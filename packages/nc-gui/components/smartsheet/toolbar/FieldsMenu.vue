@@ -1078,8 +1078,8 @@ const onAddColumnDropdownVisibilityChange = () => {
           class="flex px-2 gap-1 py-2 border-t-1 justify-between border-nc-border-gray-medium"
         >
           <NcButton
-            class="nc-fields-show-system-fields !px-2 !font-semibold"
-            size="small"
+            class="nc-fields-show-system-fields !px-2 !font-normal"
+            size="xs"
             type="text"
             :disabled="isFieldsMenuReadOnly"
             @click="showSystemField = !showSystemField"
@@ -1098,7 +1098,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             }"
             @visible-change="onAddColumnDropdownVisibilityChange"
           >
-            <NcButton text-color="primary" class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
+            <NcButton text-color="primary" class="nc-fields-add-new-field !font-normal !px-2" size="xs" type="text">
               <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
               <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
             </NcButton>

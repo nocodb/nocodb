@@ -6,22 +6,13 @@ definePageMeta({
 
 const route = useRoute()
 
-const workspaceStore = useWorkspace()
-
-const { activeWorkspace } = storeToRefs(workspaceStore)
-
-const tab = computed(() => wsSettingsSlugToTab[route.params.page as string] || 'ws-collaborators')
-
-const sidebarStore = useSidebarStore()
-
-const { activeSidebarTab } = storeToRefs(sidebarStore)
-
-// Ensure settings tab is active when on ws-settings route
-activeSidebarTab.value = 'settings'
+// Redirect old /settings/{page} URLs to new flat /{wsId}/{slug}
+const slug = route.params.page as string
+const wsTab = wsSettingsSlugToTab[slug]
+const newSlug = wsTab ? wsSettingsTabToSlug[wsTab] || slug : slug
+navigateTo(`/${route.params.typeOrId}/${newSlug}`, { replace: true })
 </script>
 
 <template>
-  <div v-if="activeWorkspace?.id" class="h-full">
-    <WorkspaceViewInline :tab="tab" />
-  </div>
+  <div />
 </template>

@@ -36,7 +36,7 @@ const onClick = () => {
           <GeneralIcon
             v-else
             icon="doubleRightArrow"
-            class="duration-150 transition-all !text-lg -mt-0.25 !text-nc-content-gray-subtle2 bg-opacity-50"
+            class="duration-150 transition-all !text-lg -mt-0.25 !text-nc-content-gray-subtle2 bg-opacity-50 rtl:transform rtl:rotate-180"
           />
         </div>
       </NcButton>

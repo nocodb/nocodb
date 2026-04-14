@@ -149,20 +149,22 @@ export class AtImportProcessor {
       ncParentAuditId: parentAuditId,
     } as NcRequest;
 
-    await Audit.insert(
-      await generateAuditV1Payload<AirtableImportPayload>(
-        AuditV1OperationTypes.AIRTABLE_IMPORT,
-        {
-          context,
-          details: {
-            airtable_sync_id: syncDB.syncId,
-            ...transformToSnakeCase(extractNonSystemProps(syncDB.options)),
+    if (Noco.isEE()) {
+      await Audit.insert(
+        await generateAuditV1Payload<AirtableImportPayload>(
+          AuditV1OperationTypes.AIRTABLE_IMPORT,
+          {
+            context,
+            details: {
+              airtable_sync_id: syncDB.syncId,
+              ...transformToSnakeCase(extractNonSystemProps(syncDB.options)),
+            },
+            req,
+            id: parentAuditId,
           },
-          req,
-          id: parentAuditId,
-        },
-      ),
-    );
+        ),
+      );
+    }
 
     const sMapEM = new EntityMap('aTblId', 'ncId', 'ncName', 'ncParent');
     await sMapEM.init();
@@ -364,7 +366,7 @@ export class AtImportProcessor {
 
     // base mapping table
     const aTblNcTypeMap = {
-      foreignKey: UITypes.Links,
+      foreignKey: UITypes.LinkToAnotherRecord,
       text: UITypes.SingleLineText,
       multilineText: UITypes.LongText,
       richText: UITypes.LongText,
@@ -903,7 +905,7 @@ export class AtImportProcessor {
               const ncTbl: any = await this.columnsService.columnAdd(context, {
                 tableId: srcTableId,
                 column: {
-                  uidt: UITypes.Links,
+                  uidt: UITypes.LinkToAnotherRecord,
                   title: ncName.title,
                   column_name: ncName.column_name,
                   parentId: srcTableId,
@@ -983,7 +985,7 @@ export class AtImportProcessor {
                 updateMigrationSkipLog(
                   parentTblSchema?.title,
                   ncLinkMappingTable[x].nc.title,
-                  UITypes.Links,
+                  UITypes.LinkToAnotherRecord,
                   'Link error',
                 );
                 continue;
@@ -2274,7 +2276,7 @@ export class AtImportProcessor {
         const ncFilters = [];
 
         // logger.log(filter)
-        if (datatype === UITypes.Links) {
+        if (datatype === UITypes.LinkToAnotherRecord) {
           // skip filters for links; Link filters in NocoDB are only rollup counts
           // where-as in airtable, filter can be textual
           updateMigrationSkipLog(
@@ -2400,7 +2402,7 @@ export class AtImportProcessor {
         if (
           datatype === UITypes.Date ||
           datatype === UITypes.DateTime ||
-          datatype === UITypes.Links ||
+          datatype === UITypes.LinkToAnotherRecord ||
           datatype === UITypes.MultiSelect ||
           datatype === UITypes.SingleSelect ||
           datatype === UITypes.SingleLineText ||
@@ -2775,20 +2777,22 @@ export class AtImportProcessor {
         await generateMigrationStats(aTblSchema);
       }
     } catch (e) {
-      await Audit.insert(
-        await generateAuditV1Payload<AirtableImportFailPayload>(
-          AuditV1OperationTypes.AIRTABLE_IMPORT_ERROR,
-          {
-            context,
-            details: {
-              airtable_sync_id: syncDB.syncId,
-              error: e?.message,
+      if (Noco.isEE()) {
+        await Audit.insert(
+          await generateAuditV1Payload<AirtableImportFailPayload>(
+            AuditV1OperationTypes.AIRTABLE_IMPORT_ERROR,
+            {
+              context,
+              details: {
+                airtable_sync_id: syncDB.syncId,
+                error: e?.message,
+              },
+              req,
+              id: parentAuditId,
             },
-            req,
-            id: parentAuditId,
-          },
-        ),
-      );
+          ),
+        );
+      }
 
       // delete tables that were created
       for (const table of ncSchema.tables) {

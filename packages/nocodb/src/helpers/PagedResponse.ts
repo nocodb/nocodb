@@ -135,6 +135,7 @@ export class PagedResponseV3Impl<T> {
       'fieldIdOnResult',
       'fields',
       'nestedPage',
+      'linksAsLtar',
     ]);
 
     if (!pagedResponse.pageInfo.isFirstPage && pagedResponse.pageInfo.page) {

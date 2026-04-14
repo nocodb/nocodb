@@ -4,6 +4,7 @@ import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
+  isNewWsPage?: boolean
 }>()
 
 const router = useRouter()
@@ -15,28 +16,43 @@ const { hideSidebar, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isUIAllowed, isBaseRolesLoaded, loadRoles } = useRoles()
 
-const { appInfo, isMobileMode } = useGlobal()
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+
+const { isMobileMode } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
+const { activeWorkspace: _activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
 const { loadCollaborators, loadWorkspace } = workspaceStore
 
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const {
-  isWsAuditEnabled,
-  handleUpgradePlan,
-  isPaymentEnabled,
-  getFeature,
-  blockTeamsManagement,
-  showUpgradeToUseTeams,
-  isEEFeatureBlocked,
-} = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, blockTeamsManagement, showUpgradeToUseTeams, showEEFeatures } = useEeConfig()
 
-const hasTeamsEditPermission = computed(() => {
-  return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
+const { isFromIntegrationPage, eventBus, searchQuery: storeSearchQuery, loadIntegrations } = useProvideIntegrationViewStore()
+
+// Local ref for integrations view mode (main page vs all-connections page).
+// Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs
+// also reads route.query.tab — changing it to 'connections' makes the outer pane blank.
+const integrationsViewMode = ref<'main' | 'all-connections'>('main')
+
+// After creating an integration, switch to all-connections view
+// (the store sets activeViewTab='connections' which breaks outer NcTabs, so we handle it here)
+const integrationEventBusHandler = (event: string) => {
+  if (event === IntegrationStoreEvents.INTEGRATION_ADD) {
+    integrationsViewMode.value = 'all-connections'
+  }
+}
+
+eventBus.on(integrationEventBusHandler)
+
+onBeforeUnmount(() => {
+  eventBus.off(integrationEventBusHandler)
+})
+
+watch(integrationsViewMode, () => {
+  storeSearchQuery.value = ''
 })
 
 const currentWorkspace = computedAsync(async () => {
@@ -55,9 +71,13 @@ const currentWorkspace = computedAsync(async () => {
   return ws
 })
 
+const { hasTeamsEditPermission, wsTabVisibility } = useWorkspaceTabVisibility(currentWorkspace, { isAdminPanel })
+
 const tab = computed({
   get() {
-    return route.value.query?.tab ?? 'collaborators'
+    return props.isNewWsPage
+      ? routeNameToWsTab[route.value.name as string] || 'collaborators'
+      : route.value.query?.tab ?? 'collaborators'
   },
   set(tab: string) {
     if (!isWsAuditEnabled.value && tab === 'audits') {
@@ -76,25 +96,38 @@ const tab = computed({
       loadCollaborators({} as any, props.workspaceId)
     }
 
-    router.push({ query: { ...route.value.query, tab } })
+    if (props.isNewWsPage) {
+      router.push({ name: wsTabToRouteName[tab] || 'index-typeOrId' })
+    } else {
+      router.push({ query: { ...route.value.query, tab } })
+    }
   },
 })
 
-const isWorkspaceSsoAvail = computed(() => {
-  if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
-    return true
-  }
-  return false
-})
+const tabTitleMap: Record<string, string> = {
+  bases: t('objects.projects'),
+  collaborators: t('labels.members'),
+  teams: t('general.teams'),
+  integrations: t('general.integrations'),
+  billing: t('general.billing'),
+  audits: t('title.audits'),
+  sso: t('title.sso'),
+  settings: t('labels.settings'),
+}
 
 watch(
-  () => currentWorkspace.value?.title,
-  (title) => {
-    if (!title) return
+  [() => currentWorkspace.value?.title, () => tab.value],
+  ([wsTitle, activeTab]) => {
+    if (!wsTitle) return
 
-    const capitalizedTitle = title.charAt(0).toUpperCase() + title.slice(1)
+    const capitalizedTitle = wsTitle.charAt(0).toUpperCase() + wsTitle.slice(1)
 
-    useTitle(capitalizedTitle)
+    if (props.isNewWsPage) {
+      const tabLabel = tabTitleMap[activeTab as string]
+      useTitle(tabLabel ? `${tabLabel} - ${capitalizedTitle}` : capitalizedTitle)
+    } else {
+      useTitle(capitalizedTitle)
+    }
   },
   {
     immediate: true,
@@ -112,11 +145,26 @@ onMounted(() => {
 })
 
 watch(
-  () => route.value.query?.tab,
-  async (newTab) => {
+  () => tab.value,
+  async (newTab, oldTab) => {
+    if (newTab === 'integrations') {
+      isFromIntegrationPage.value = true
+
+      await until(() => currentWorkspace.value?.id)
+        .toMatch((v) => !!v)
+        .then(async () => {
+          await loadIntegrations()
+        })
+    }
+
+    if (oldTab === 'integrations') {
+      isFromIntegrationPage.value = false
+      integrationsViewMode.value = 'main'
+    }
+
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isUIAllowed('workspaceCollaborators') && !isEEFeatureBlocked.value) {
+    if (!isAdminPanel.value && !isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
@@ -130,19 +178,21 @@ watch(
   },
 )
 
-onMounted(() => {
-  hideSidebar.value = true
-})
+if (!props.isNewWsPage) {
+  onMounted(() => {
+    hideSidebar.value = true
+  })
 
-onBeforeUnmount(() => {
-  hideSidebar.value = false
-})
+  onBeforeUnmount(() => {
+    hideSidebar.value = false
+  })
+}
 </script>
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings h-full overflow-hidden">
     <div
-      v-if="!props.workspaceId"
+      v-if="!props.workspaceId && !isNewWsPage"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
     >
       <GeneralOpenLeftSidebarBtn v-if="isMobileMode && !isLeftSidebarOpen" />
@@ -152,19 +202,26 @@ onBeforeUnmount(() => {
           'max-w-[calc(100%_-_52px)]': isMobileMode,
         }"
       >
-        <div class="nc-breadcrumb-item capitalize truncate">
+        <div
+          class="nc-breadcrumb-item capitalize truncate"
+          :class="{
+            '!text-bodyLgBold': isNewWsPage,
+          }"
+        >
           {{ currentWorkspace?.title }}
         </div>
-        <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+        <template v-if="!isNewWsPage">
+          <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
 
-        <h1 class="nc-breadcrumb-item active truncate">
-          {{ $t('title.teamAndSettings') }}
-        </h1>
+          <h1 class="nc-breadcrumb-item active truncate">
+            {{ $t('title.teamAndSettings') }}
+          </h1>
+        </template>
       </div>
 
       <GeneralHideLeftSidebarBtn v-if="isMobileMode && isLeftSidebarOpen" />
     </div>
-    <template v-else>
+    <template v-else-if="!isNewWsPage">
       <div class="nc-breadcrumb px-2">
         <div class="nc-breadcrumb-item">
           {{ org.title }}
@@ -199,11 +256,11 @@ onBeforeUnmount(() => {
       </NcPageHeader>
     </template>
 
-    <NcTabs v-model:active-key="tab" class="flex-1 min-h-0">
+    <NcTabs v-model:active-key="tab" class="flex-1 min-h-0" :class="{ 'hide-tabs': isNewWsPage }">
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
-      <template v-if="isUIAllowed('workspaceCollaborators')">
+      <template v-if="wsTabVisibility.collaborators">
         <a-tab-pane key="collaborators" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
@@ -215,16 +272,12 @@ onBeforeUnmount(() => {
           <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" :is-active="tab === 'collaborators'" />
         </a-tab-pane>
 
-        <a-tab-pane v-if="isEeUI && hasTeamsEditPermission" key="teams" class="w-full h-full">
+        <a-tab-pane v-if="wsTabVisibility.teams" key="teams" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
               <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
               {{ $t('general.teams') }}
-              <LazyPaymentUpgradeBadge
-                :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
-                :feature-enabled-callback="() => !isEEFeatureBlocked"
-                remove-click
-              />
+              <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT" remove-click />
             </div>
           </template>
 
@@ -232,11 +285,58 @@ onBeforeUnmount(() => {
         </a-tab-pane>
       </template>
       <template v-if="!isMobileMode">
-        <template
-          v-if="
-            isEeUI && !props.workspaceId && !currentWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling')
-          "
-        >
+        <a-tab-pane v-if="isNewWsPage && wsTabVisibility.integrations" key="integrations" class="w-full h-full">
+          <template #tab>
+            <div class="tab-title">
+              <GeneralIcon icon="integration" class="h-4 w-4" />
+              {{ $t('general.integrations') }}
+            </div>
+          </template>
+          <div class="nc-integrations-layout h-[calc(100vh-var(--topbar-height)-44px)] nc-content-max-w mx-auto">
+            <!-- Main integrations page -->
+            <template v-if="integrationsViewMode === 'main'">
+              <div class="h-full">
+                <WorkspaceIntegrationsTab
+                  show-filter
+                  show-title
+                  show-active-connections
+                  @view-all-connections="integrationsViewMode = 'all-connections'"
+                />
+              </div>
+            </template>
+
+            <!-- All connections page -->
+            <template v-else-if="integrationsViewMode === 'all-connections'">
+              <div class="h-full flex flex-col px-8 py-6">
+                <NcButton
+                  type="link"
+                  size="small"
+                  class="!text-nc-content-brand self-start !-ml-1.5 mb-4 !p-0 !h-auto !min-h-0"
+                  inner-class="hover:underline"
+                  @click="integrationsViewMode = 'main'"
+                >
+                  <GeneralIcon icon="arrowLeft" class="mr-1" />
+                  {{ $t('general.backToIntegrations') }}
+                </NcButton>
+
+                <div class="flex items-center justify-between mb-2">
+                  <h2 class="text-lg font-semibold text-nc-content-gray mb-0">
+                    {{ $t('general.allConnections') }}
+                  </h2>
+                  <WorkspaceIntegrationsAddConnectionDropdown />
+                </div>
+
+                <div class="flex-1 min-h-0">
+                  <WorkspaceIntegrationsConnectionsTab />
+                </div>
+              </div>
+            </template>
+
+            <WorkspaceIntegrationsEditOrAdd />
+          </div>
+        </a-tab-pane>
+
+        <template v-if="wsTabVisibility.billing">
           <a-tab-pane key="billing" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
@@ -249,7 +349,7 @@ onBeforeUnmount(() => {
           </a-tab-pane>
         </template>
 
-        <template v-if="isEeUI && !props.workspaceId && isUIAllowed('workspaceAuditList')">
+        <template v-if="wsTabVisibility.audits">
           <a-tab-pane key="audits" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
@@ -267,7 +367,7 @@ onBeforeUnmount(() => {
           </a-tab-pane>
         </template>
 
-        <template v-if="isWorkspaceSsoAvail && !currentWorkspace?.fk_org_id && isUIAllowed('workspaceSSO')">
+        <template v-if="wsTabVisibility.sso">
           <a-tab-pane key="sso" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-billing">
@@ -281,7 +381,7 @@ onBeforeUnmount(() => {
         </template>
       </template>
 
-      <a-tab-pane v-if="!isEEFeatureBlocked" key="settings" class="w-full">
+      <a-tab-pane v-if="wsTabVisibility.settings" key="settings" class="w-full">
         <template #tab>
           <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
             <GeneralIcon icon="ncSettings" class="h-4 w-4" />
@@ -308,6 +408,10 @@ onBeforeUnmount(() => {
   @apply pt-2 pb-3;
 }
 
+:deep(.ant-tabs-tab + .ant-tabs-tab) {
+  @apply !ml-3;
+}
+
 .ant-tabs-content-top {
   @apply !h-full;
 }
@@ -318,5 +422,12 @@ onBeforeUnmount(() => {
 
 .tab-title {
   @apply flex flex-row items-center gap-x-2 py-[1px];
+}
+
+.hide-tabs {
+  // Hide only the top-level tab nav (this element IS the .ant-tabs)
+  > :deep(.ant-tabs-nav) {
+    @apply !hidden;
+  }
 }
 </style>

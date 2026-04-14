@@ -94,9 +94,6 @@ const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpanded
   >
     <div
       class="w-full min-w-[100px]"
-      :style="{
-        ...(!isExpandedFormOpen && { height: '4px' }),
-      }"
       style="min-height: 4px"
       @mouseover="onMouseover"
       @mouseleave="onMouseleave"

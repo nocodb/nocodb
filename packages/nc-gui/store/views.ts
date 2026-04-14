@@ -1112,6 +1112,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     return (
       view?.owned_by === _user?.id ||
+      !!(view?.created_by && view.created_by === _user?.id) ||
       !!(!view?.owned_by && (_user?.base_roles?.[ProjectRoles.OWNER] || _user?.workspace_roles?.[WorkspaceUserRoles.OWNER]))
     )
   }
@@ -1370,7 +1371,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
   watch(
     [activeViewReadableUrlSlug, activeViewUrlSlug],
     ([newactiveViewReadableUrlSlug, newActiveViewUrlSlug]) => {
-      if (!newactiveViewReadableUrlSlug || newActiveViewUrlSlug === newactiveViewReadableUrlSlug) return
+      if (!newactiveViewReadableUrlSlug) return
+
+      // Decode both sides before comparing to avoid encoded vs decoded mismatch
+      // (Nuxt auto-decodes route params, but toReadableUrlSlug encodes them)
+      try {
+        if (decodeURIComponent(newActiveViewUrlSlug) === decodeURIComponent(newactiveViewReadableUrlSlug)) return
+      } catch {
+        if (newActiveViewUrlSlug === newactiveViewReadableUrlSlug) return
+      }
 
       const slugs = (route.value.params.slugs as string[]) || []
 

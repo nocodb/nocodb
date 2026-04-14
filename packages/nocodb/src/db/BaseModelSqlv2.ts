@@ -201,6 +201,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public context: NcContext;
   public schema?: string;
   public formulaDryRunFailed?: boolean;
+  protected logger = new Logger('BaseModelSqlv2');
 
   public static config: any = defaultLimitConfig;
 
@@ -1747,7 +1748,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await table.getColumns(this.context);
       }
       const pvColumn = table.columns?.find((col) => col.pv);
-      if (pvColumn?.column_name) {
+      // TODO: support virtual PV columns (Formula, Lookup, Rollup) by building
+      // the formula/rollup SQL via formulaQueryBuilderv2 and using it in the CASE WHEN
+      if (pvColumn?.column_name && !isVirtualCol(pvColumn)) {
         // Use the structured filter array from extractFilterFromXwhere
         // instead of re-parsing the raw where string
         const { filters: parsedFilters } = extractFilterFromXwhere(
@@ -1769,10 +1772,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             qb.orderByRaw(
               this.dbDriver.raw(
                 `CASE WHEN LOWER(??) LIKE ? THEN 0 ELSE 1 END`,
-                [
-                  pvColumn.column_name,
-                  String(pvFilter.value).toLowerCase(),
-                ],
+                [pvColumn.column_name, String(pvFilter.value).toLowerCase()],
               ),
             );
           } else if (op === 'eq') {
@@ -1959,7 +1959,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
-              } else if (isMMLike && isBtLikeV2Junction(column)) {
+              } else if (isBtLikeV2Junction(column)) {
                 // V2 MO/OO: single-record — return object (like BT)
                 // Use multipleMmList for batching, take first record per parent
                 const readLoader = new DataLoader(
@@ -4857,13 +4857,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
 
     await this.writeLinkAudits(
-      relationManager.getAuditUpdateObj(cookie),
+      await relationManager.getAuditUpdateObj(cookie),
       'addChild',
     );
   }
 
   private async writeLinkAudits(
-    auditObjs: ReturnType<RelationManager['getAuditUpdateObj']>,
+    auditObjs: Awaited<ReturnType<RelationManager['getAuditUpdateObj']>>,
     callerTag: string,
   ) {
     try {
@@ -5200,7 +5200,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
 
     await this.writeLinkAudits(
-      relationManager.getAuditUpdateObj(cookie),
+      await relationManager.getAuditUpdateObj(cookie),
       'removeChild',
     );
   }
@@ -5619,7 +5619,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
     } else if (this.isMySQL && INSERT_REGEX.test(query)) {
       const res = await trx.raw(query);
-      if (res && res[0] && res[0].insertId) {
+      if (res?.[0] && res[0].insertId !== undefined) {
         return res[0].insertId;
       }
       return res;

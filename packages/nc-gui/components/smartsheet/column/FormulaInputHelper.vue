@@ -4,6 +4,7 @@ import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import {
   KeyCode,
+  KeyMod,
   MarkerSeverity,
   type editor as MonacoEditor,
   Position,
@@ -82,6 +83,8 @@ const sugOptionsRef = ref<(typeof AntListItem)[]>([])
 const wordToComplete = ref<string | undefined>('')
 
 const selected = ref(0)
+
+const isMounted = ref(false)
 
 const sortOrder: Record<string, number> = {
   column: 0,
@@ -163,6 +166,11 @@ const monacoRoot = ref<HTMLDivElement>()
 let editor: MonacoEditor.IStandaloneCodeEditor
 let model: MonacoEditor.ITextModel
 
+onBeforeUnmount(() => {
+  editor?.dispose()
+  model?.dispose()
+})
+
 function getCurrentKeyword() {
   const model = editor.getModel()
   const position = editor.getPosition()
@@ -197,13 +205,16 @@ onMounted(async () => {
 
     languages.setLanguageConfiguration(formulaLanguage.name, formulaLanguage.languageConfiguration)
 
+    // Unbind Alt+Arrow from Monaco's "move line up/down" so we can use it for suggestion navigation
     monacoEditor.addKeybindingRules([
       {
-        keybinding: KeyCode.DownArrow,
+        keybinding: KeyMod.Alt | KeyCode.UpArrow,
+        command: null,
         when: 'editorTextFocus',
       },
       {
-        keybinding: KeyCode.UpArrow,
+        keybinding: KeyMod.Alt | KeyCode.DownArrow,
+        command: null,
         when: 'editorTextFocus',
       },
     ])
@@ -262,7 +273,7 @@ onMounted(async () => {
       const position = editor.getPosition()
       const model = editor.getModel()
 
-      if (!position || !model) return
+      if (!position || !model || !isMounted.value) return
 
       const text = model.getValue()
       const offset = model.getOffsetAt(position)
@@ -367,7 +378,11 @@ onMounted(async () => {
       suggestionPreviewed.value =
         (suggestionsList.value.find((s) => s.text === `${lastFunction}()`) as Record<any, string>) || undefined
     })
-    editor.focus()
+
+    forcedNextTick(() => {
+      isMounted.value = true
+      editor.focus()
+    })
   }
 })
 
@@ -537,7 +552,7 @@ function selectText() {
 }
 
 function suggestionListUp() {
-  if (suggestion.value) {
+  if (suggestion.value?.length) {
     selected.value = --selected.value > -1 ? selected.value : suggestion.value.length - 1
 
     // Update suggestionPreviewed for both formula and field items
@@ -553,7 +568,7 @@ function suggestionListUp() {
 }
 
 function suggestionListDown() {
-  if (suggestion.value) {
+  if (suggestion.value?.length) {
     selected.value = ++selected.value % suggestion.value.length
 
     // Update suggestionPreviewed for both formula and field items
@@ -606,20 +621,29 @@ onMounted(() => {
 
 const handleKeydown = (e: KeyboardEvent) => {
   e.stopPropagation()
+
+  // Alt+Arrow for suggestion navigation, plain Arrow for cursor movement
+  if (e.altKey) {
+    switch (e.key) {
+      case 'ArrowUp': {
+        e.preventDefault()
+        suggestionListUp()
+        break
+      }
+      case 'ArrowDown': {
+        e.preventDefault()
+        suggestionListDown()
+        break
+      }
+    }
+  }
+
   switch (e.key) {
-    case 'ArrowUp': {
-      e.preventDefault()
-      suggestionListUp()
-      break
-    }
-    case 'ArrowDown': {
-      e.preventDefault()
-      suggestionListDown()
-      break
-    }
     case 'Enter': {
-      e.preventDefault()
-      selectText()
+      if (!e.shiftKey && suggestion.value?.length && selected.value > -1 && selected.value < suggestion.value.length) {
+        e.preventDefault()
+        selectText()
+      }
       break
     }
   }
@@ -854,6 +878,15 @@ const validationErrorDisplay = computed(() => {
     </template>
   </template>
 
+  <div class="flex items-center gap-1 mt-4 mb-1 text-bodySm text-nc-content-gray-subtle2">
+    <GeneralIcon icon="info" class="w-3.5 h-3.5 flex-none" />
+    <i18n-t keypath="msg.formula.navigateSuggestionsHint" tag="span">
+      <template #key>
+        <kbd class="px-1 py-0.5 rounded bg-nc-bg-gray-medium">{{ renderAltOrOptlKey(true) }} + ↑↓</kbd>
+      </template>
+    </i18n-t>
+  </div>
+
   <div
     :class="{
       'h-[250px]': suggestionHeight === 'large',
@@ -861,7 +894,7 @@ const validationErrorDisplay = computed(() => {
       'h-[125px]': suggestionHeight === 'small',
       'bg-nc-bg-default': isAiModeFieldModal,
     }"
-    class="overflow-auto flex flex-col nc-suggestion-list nc-scrollbar-thin border-1 border-nc-border-gray-medium rounded-lg mt-4"
+    class="overflow-auto flex flex-col nc-suggestion-list nc-scrollbar-thin border-1 border-nc-border-gray-medium rounded-lg"
   >
     <div v-if="suggestedFormulas && showFunctionList" :style="{ order: priority === -1 ? 2 : 1 }">
       <div

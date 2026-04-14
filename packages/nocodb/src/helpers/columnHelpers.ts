@@ -101,6 +101,8 @@ export async function createHmAndBtColumn(
         fk_col_name: fkColName,
         fk_index_name: fkColName,
         ...(type === 'bt' ? colExtra : {}),
+        // Custom links are always V1
+        ...(isCustom ? { version: 1 } : {}),
         meta: {
           ...(colExtra?.meta || {}),
           custom: isCustom,
@@ -164,6 +166,8 @@ export async function createHmAndBtColumn(
         fk_index_name: fkColName,
         meta,
         ...(type === 'hm' ? colExtra : {}),
+        // Custom links are always V1
+        ...(isCustom ? { version: 1 } : {}),
         ...crossBaseProps,
       },
     );
@@ -265,6 +269,8 @@ export async function createOOColumn(
         fk_col_name: fkColName,
         fk_index_name: fkColName,
         // ...(colExtra || {}),
+        // Custom links are always V1
+        ...(isCustom ? { version: 1 } : {}),
         meta: {
           ...(colExtra?.meta || {}),
           // one-to-one relation is combination of both hm and bt to identify table which have
@@ -335,6 +341,8 @@ export async function createOOColumn(
       fk_index_name: fkColName,
       meta,
       readonly: colExtra?.readonly || false,
+      // Custom links are always V1
+      ...(isCustom ? { version: 1 } : {}),
       ...crossBaseProps,
       ...(colExtra || {}),
     });

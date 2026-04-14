@@ -416,6 +416,8 @@ async function openNewRecordHandler() {
                             getSelectTypeFieldOptionBgColor({
                               isDark,
                               color: grp.color?.split(',')[+tagIndex] || '#ccc',
+                              getColor,
+                              isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                             })
                           "
                         >
@@ -426,6 +428,7 @@ async function openNewRecordHandler() {
                                 isDark,
                                 color: grp.color?.split(',')[+tagIndex] || '#ccc',
                                 getColor,
+                                isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                               }),
                               'font-size': '14px',
                               'font-weight': 500,
@@ -453,6 +456,8 @@ async function openNewRecordHandler() {
                           getSelectTypeFieldOptionBgColor({
                             isDark,
                             color: grp.color || '#ccc',
+                            getColor,
+                            isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                           })
                         "
                       >
@@ -463,6 +468,7 @@ async function openNewRecordHandler() {
                               isDark,
                               color: grp.color || '#ccc',
                               getColor,
+                              isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
                             }),
                           }"
                         >
@@ -593,7 +599,7 @@ async function openNewRecordHandler() {
     :selected-cell-count="groupByTableRef?.selectedCellCount ?? 0"
   ></LazySmartsheetPagination>
 
-  <div v-if="depth !== 0" class="absolute bottom-12 z-5 left-2" @click.stop>
+  <div v-if="depth !== 0" class="absolute bottom-12 z-5 left-2 rtl:(right-2 left-auto)" @click.stop>
     <NcButton
       v-e="['c:row:add:grid']"
       class="nc-group-grid-add-new-row"

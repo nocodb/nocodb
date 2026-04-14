@@ -35,7 +35,12 @@ export class DatasController {
     });
   }
 
-  @Get('/data/:viewId/:rowId/mm/:colId')
+  @Get([
+    '/data/:viewId/:rowId/mm/:colId',
+    '/data/:viewId/:rowId/mo/:colId',
+    '/data/:viewId/:rowId/om/:colId',
+    '/data/:viewId/:rowId/oo/:colId',
+  ])
   @Acl('mmList')
   async mmList(
     @TenantContext() context: NcContext,
@@ -52,7 +57,11 @@ export class DatasController {
     });
   }
 
-  @Get('/data/:viewId/:rowId/mm/:colId/exclude')
+  @Get([
+    '/data/:viewId/:rowId/mm/:colId/exclude',
+    '/data/:viewId/:rowId/mo/:colId/exclude',
+    '/data/:viewId/:rowId/om/:colId/exclude',
+  ])
   @Acl('mmExcludedList')
   async mmExcludedList(
     @TenantContext() context: NcContext,
@@ -62,6 +71,23 @@ export class DatasController {
     @Param('rowId') rowId: string,
   ) {
     return await this.datasService.mmExcludedList(context, {
+      viewId: viewId,
+      colId: colId,
+      rowId: rowId,
+      query: req.query,
+    });
+  }
+
+  @Get('/data/:viewId/:rowId/oo/:colId/exclude')
+  @Acl('ooExcludedList')
+  async ooExcludedList(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('viewId') viewId: string,
+    @Param('colId') colId: string,
+    @Param('rowId') rowId: string,
+  ) {
+    return await this.datasService.ooExcludedList(context, {
       viewId: viewId,
       colId: colId,
       rowId: rowId,

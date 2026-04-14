@@ -50,12 +50,12 @@ const uiTypes: UiTypesType[] = [
     name: UITypes.Links,
     icon: iconMap.cellLinks,
     virtual: 1,
+    deprecated: 1,
   },
   {
     name: UITypes.LinkToAnotherRecord,
     icon: iconMap.cellLinks,
     virtual: 1,
-    deprecated: 0,
   },
   {
     name: UITypes.Lookup,
@@ -523,7 +523,8 @@ const showReadonlyColumnTooltip = (col: ColumnType) => {
 const showEditRestrictedColumnTooltip = (col: ColumnType) => {
   return (
     !isReadOnlyVirtualCell(col) &&
-    ![UITypes.Button, UITypes.Count, UITypes.Order, UITypes.ForeignKey].includes(col.uidt as UITypes)
+    ![UITypes.Button, UITypes.Count, UITypes.Order, UITypes.ForeignKey].includes(col.uidt as UITypes) &&
+    !isAutoNumber(col)
   )
 }
 

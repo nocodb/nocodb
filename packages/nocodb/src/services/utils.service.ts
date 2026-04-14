@@ -11,6 +11,7 @@ import type { AppConfig, NcRequest } from '~/interface/config';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_MAX_ATTACHMENTS_ALLOWED,
+  NC_MAX_TEXT_LENGTH,
 } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -468,6 +469,7 @@ export class UtilsService {
       ee: Noco.isEE(),
       ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
       ncMaxAttachmentsAllowed: NC_MAX_ATTACHMENTS_ALLOWED,
+      ncMaxTextLength: NC_MAX_TEXT_LENGTH,
       isCloud: isCloud,
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
       baseHostName: process.env.NC_BASE_HOST_NAME,

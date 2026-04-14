@@ -370,6 +370,10 @@ export function useCanvasRender({
         iconSpace += 18
       }
 
+      if (column.isDateDependencyField && !isPublic.value) {
+        iconSpace += 18
+      }
+
       const iconConfig = (
         column?.virtual ? renderVIcon(column.columnObj, column.relatedColObj) : renderIcon(column.columnObj, column.abstractType)
       ) as any
@@ -397,7 +401,7 @@ export function useCanvasRender({
 
       let rightOffset = xOffset + width - rightPadding
 
-      if (isFieldEditAllowed.value && !colObj?.readonly) {
+      if (isFieldEditAllowed.value && (!colObj?.readonly || isAutoNumber(colObj))) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'chevronDown',
@@ -406,7 +410,7 @@ export function useCanvasRender({
           x: rightOffset - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
-      } else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
+      } else if (meta.value?.synced && colObj?.readonly && !isAutoNumber(colObj) && !isPublic.value) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'ncZap',
@@ -432,6 +436,17 @@ export function useCanvasRender({
         rightOffset -= 18
         spriteLoader.renderIcon(ctx, {
           icon: 'ncInfo',
+          size: 13,
+          color: getColor(themeV4Colors.gray['500']),
+          x: rightOffset - scrollLeft.value,
+          y: headerRowHeight.value / 2 - 7,
+        })
+      }
+
+      if (column.isDateDependencyField && !isPublic.value) {
+        rightOffset -= 18
+        spriteLoader.renderIcon(ctx, {
+          icon: 'viewGannt',
           size: 13,
           color: getColor(themeV4Colors.gray['500']),
           x: rightOffset - scrollLeft.value,
@@ -579,6 +594,10 @@ export function useCanvasRender({
           iconSpace += 18
         }
 
+        if (column.isDateDependencyField && !isPublic.value) {
+          iconSpace += 18
+        }
+
         // Background
         ctx.fillStyle = getColor(themeV4Colors.gray['100'])
         ctx.fillRect(xOffset, 0, width, headerRowHeight.value)
@@ -668,7 +687,7 @@ export function useCanvasRender({
 
         let rightOffset = xOffset + width - rightPadding
 
-        if (column.uidt && isFieldEditAllowed.value && !colObj?.readonly) {
+        if (column.uidt && isFieldEditAllowed.value && (!colObj?.readonly || isAutoNumber(colObj))) {
           // Chevron down
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
@@ -678,7 +697,7 @@ export function useCanvasRender({
             x: rightOffset,
             y: y - 7,
           })
-        } else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
+        } else if (meta.value?.synced && colObj?.readonly && !isAutoNumber(colObj) && !isPublic.value) {
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
             icon: 'ncZap',
@@ -706,6 +725,17 @@ export function useCanvasRender({
           rightOffset -= 18
           spriteLoader.renderIcon(ctx, {
             icon: 'ncInfo',
+            size: 13,
+            color: getColor(themeV4Colors.gray['500']),
+            x: rightOffset,
+            y: y - 7,
+          })
+        }
+
+        if (column.isDateDependencyField && !isPublic.value) {
+          rightOffset -= 18
+          spriteLoader.renderIcon(ctx, {
+            icon: 'viewGannt',
             size: 13,
             color: getColor(themeV4Colors.gray['500']),
             x: rightOffset,
@@ -3392,7 +3422,7 @@ export function useCanvasRender({
 
         ctx.restore()
 
-        renderGroupContent(ctx, group, contentX, contentY + 22, availableWidth - contentWidth - countWidth, i)
+        renderGroupContent(ctx, group, contentX, contentY + 22, availableWidth - contentWidth - countWidth - 20, i)
 
         currentOffset = tempCurrentOffset
       }
@@ -3427,6 +3457,7 @@ export function useCanvasRender({
       const parsedValue = group?.column?.uidt === UITypes.LinkToAnotherRecord ? parseKey(group) : group.value
       const tags = Array.isArray(parsedValue) ? parsedValue : parsedValue.split(',')
       const colors = group.color.split(',')
+      const isColorCodeEnabled = parseProp(group?.column?.meta)?.isColorCodeEnabled !== false
       let xPosition = x
       let tagsRendered = 0
 
@@ -3434,13 +3465,17 @@ export function useCanvasRender({
         const tag = tags[i] || ''
         const color = colors[i] || '#ccc'
 
-        const opBgColor = !isDark.value
+        const opBgColor = !isColorCodeEnabled
+          ? getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
+          : !isDark.value
           ? getAdaptiveTint(color, { saturationMod: 5, isDarkMode: isDark.value, shade: 20 })
           : getAdaptiveTint(color, { isDarkMode: isDark.value, shade: -10 })
 
         const displayText = tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag
 
-        const textColor = getOppositeColorOfBackground(opBgColor, color)
+        const textColor = !isColorCodeEnabled
+          ? getColor('var(--nc-content-gray)')
+          : getOppositeColorOfBackground(opBgColor, color)
 
         ctx.save()
         ctx.font = '700 13px Inter'

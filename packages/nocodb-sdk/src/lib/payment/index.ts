@@ -32,6 +32,7 @@ export enum PlanLimitTypes {
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
   LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
   LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
+  LIMIT_WORKSPACE = 'limit_workspace',
 }
 
 export enum PlanFeatureTypes {
@@ -69,6 +70,7 @@ export enum PlanFeatureTypes {
   FEATURE_API_SCRIPT_MANAGEMENT = 'feature_api_script_management',
   FEATURE_API_DASHBOARD_V3 = 'feature_api_dashboard_v3',
   FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
+  FEATURE_API_WEBHOOK_V3 = 'feature_api_webhook_v3',
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
   FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
@@ -98,6 +100,9 @@ export enum PlanFeatureTypes {
   FEATURE_DOCS_EXPORT_PDF = 'feature_docs_export_pdf',
   FEATURE_DOCUMENT_PERMISSIONS = 'feature_document_permissions',
   FEATURE_DOC_AI = 'feature_doc_ai',
+  FEATURE_DATE_DEPENDENCY = 'feature_date_dependency',
+  FEATURE_API_COMMENT_V3 = 'feature_api_comment_v3',
+  FEATURE_API_WORKFLOW_MANAGEMENT = 'feature_api_workflow_management',
 }
 
 export enum PlanTitles {
@@ -108,8 +113,9 @@ export enum PlanTitles {
 }
 
 export enum OnPremPlanTitles {
-  ENTERPRISE_STARTER = 'EnterpriseStarter',
-  ENTERPRISE = 'Enterprise',
+  SELF_HOSTED_STARTER = 'Self-hosted Starter',
+  SELF_HOSTED_SCALE = 'Self-hosted Scale',
+  SELF_HOSTED_ENTERPRISE = 'Self-hosted Enterprise',
 }
 
 export enum PlanPriceLookupKeys {
@@ -171,8 +177,8 @@ export const PlanMeta = {
     bgDark: 'var(--business-plan-bg-dark, #FED8F4)',
     border: 'var(--business-plan-border, #FEB0E8)',
     chartFillColor: 'var(--business-plan-chart-fill-color, #972377)',
-    badgeBgColor: 'var(--business-plan-badge-bg-color, #FED8F4)',
-    badgeTextColor: 'var(--business-plan-badge-text-color, #972377)',
+    badgeBgColor: 'var(--business-plan-badge-bg-color, #FFF0FB)',
+    badgeTextColor: 'var(--business-plan-badge-text-color, #C44DA0)',
   },
   [PlanTitles.ENTERPRISE]: {
     title: PlanTitles.ENTERPRISE,
@@ -255,6 +261,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
     'to add more row-level security policies per table.',
+  [PlanLimitTypes.LIMIT_WORKSPACE]: 'to create more workspaces.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 'to run more workflows.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
     'to increase workflow logs retention.',
@@ -280,8 +287,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: 'to add a custom logo to forms.',
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]:
     'to customize the submit button label.',
-  [PlanFeatureTypes.FEATURE_FORM_SCHEDULING]:
-    'to schedule form availability.',
+  [PlanFeatureTypes.FEATURE_FORM_SCHEDULING]: 'to schedule form availability.',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]:
     'to access conditional form fields feature',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]:
@@ -312,6 +318,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to use member management api.',
   [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: 'to use team management.',
   [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
+  [PlanFeatureTypes.FEATURE_API_WEBHOOK_V3]: 'to use webhook api.',
   [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: 'to use script api.',
   [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: 'to use dashboard api.',
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
@@ -348,11 +355,13 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_DOCS_APIS]: 'to access Documents API.',
   [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]:
     'to use inline comments in documents.',
-  [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]:
-    'to export documents as PDF.',
+  [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]: 'to export documents as PDF.',
   [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]:
     'to use document permissions.',
   [PlanFeatureTypes.FEATURE_DOC_AI]: 'to use AI features in documents.',
+  [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: 'to use date dependencies.',
+  [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: 'to use comment api.',
+  [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: 'to use workflow api.',
 };
 
 export const getUpgradeMessage = (
@@ -375,6 +384,7 @@ export enum ReturnToBillingPage {
   ORG = 'org',
   ACCOUNT = 'account',
   WS = 'ws',
+  SELF_HOSTED = 'self_hosted',
 }
 
 export const PlanFeatureTypesToPlanTitles = {} as Record<
@@ -382,7 +392,6 @@ export const PlanFeatureTypesToPlanTitles = {} as Record<
   PlanTitles
 >;
 
-export const PlanFeatureTypesToPlanTitlesEeCloud = {} as Record<
-  Partial<PlanFeatureTypes>,
-  PlanTitles
+export type PlanMetaType = Partial<
+  Record<PlanFeatureTypes, boolean> & Record<PlanLimitTypes, number>
 >;

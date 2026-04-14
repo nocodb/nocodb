@@ -86,9 +86,12 @@
       "lodash": ">=4.17.23",
       "linkifyjs@<4.3.2": ">=4.3.2",
       "qs@<6.14.1": ">=6.14.1",
-      "h3@<=1.15.4": ">=1.15.5"
+      "h3@<=1.15.4": ">=1.15.5",
+      "oxc-resolver@<11.0.0": ">=11.19.1",
+      "simple-git": "3.33.0"
     },
     "onlyBuiltDependencies": [
+      "@biomejs/biome",
       "@nestjs/core",
       "@parcel/watcher",
       "@swc/core",

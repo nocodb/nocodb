@@ -18,6 +18,22 @@ enum AuditV1OperationTypes {
   SCIM_USER_DEACTIVATE = 'SCIM_USER_DEACTIVATE',
   SCIM_USER_REACTIVATE = 'SCIM_USER_REACTIVATE',
   SCIM_USER_DELETE = 'SCIM_USER_DELETE',
+  SCIM_GROUP_PROVISION = 'SCIM_GROUP_PROVISION',
+  SCIM_GROUP_UPDATE = 'SCIM_GROUP_UPDATE',
+  SCIM_GROUP_REPLACE = 'SCIM_GROUP_REPLACE',
+  SCIM_GROUP_DELETE = 'SCIM_GROUP_DELETE',
+  SCIM_CONFIG_CREATE = 'SCIM_CONFIG_CREATE',
+  SCIM_CONFIG_UPDATE = 'SCIM_CONFIG_UPDATE',
+  SCIM_CONFIG_DISABLE = 'SCIM_CONFIG_DISABLE',
+  SCIM_CONFIG_DELETE = 'SCIM_CONFIG_DELETE',
+  SCIM_CONFIG_TOKEN_REGENERATE = 'SCIM_CONFIG_TOKEN_REGENERATE',
+  SSO_CLIENT_CREATE = 'SSO_CLIENT_CREATE',
+  SSO_CLIENT_UPDATE = 'SSO_CLIENT_UPDATE',
+  SSO_CLIENT_DELETE = 'SSO_CLIENT_DELETE',
+  ORG_DOMAIN_ADD = 'ORG_DOMAIN_ADD',
+  ORG_DOMAIN_UPDATE = 'ORG_DOMAIN_UPDATE',
+  ORG_DOMAIN_DELETE = 'ORG_DOMAIN_DELETE',
+  ORG_DOMAIN_VERIFY = 'ORG_DOMAIN_VERIFY',
 
   USER_PASSWORD_CHANGE = 'USER_PASSWORD_CHANGE',
   USER_PASSWORD_RESET = 'USER_PASSWORD_RESET',
@@ -41,6 +57,11 @@ enum AuditV1OperationTypes {
 
   ORG_USER_INVITE = 'ORG_USER_INVITE',
   ORG_USER_INVITE_RESEND = 'ORG_USER_INVITE_RESEND',
+  ORG_USER_ADD = 'ORG_USER_ADD',
+  ORG_USER_REMOVE = 'ORG_USER_REMOVE',
+  ORG_USER_ROLE_UPDATE = 'ORG_USER_ROLE_UPDATE',
+  ORG_WORKSPACE_ADD = 'ORG_WORKSPACE_ADD',
+  ORG_WORKSPACE_REMOVE = 'ORG_WORKSPACE_REMOVE',
 
   DATA_INSERT = 'DATA_INSERT',
   DATA_UPDATE = 'DATA_UPDATE',
@@ -51,6 +72,8 @@ enum AuditV1OperationTypes {
   DATA_BULK_DELETE = 'DATA_BULK_DELETE',
   DATA_BULK_ALL_DELETE = 'DATA_BULK_ALL_DELETE',
   DATA_BULK_ALL_UPDATE = 'DATA_BULK_ALL_UPDATE',
+
+  DATA_CASCADE_UPDATE = 'DATA_CASCADE_UPDATE',
 
   DATA_LINK = 'DATA_LINK',
   DATA_UNLINK = 'DATA_UNLINK',
@@ -108,6 +131,7 @@ enum AuditV1OperationTypes {
 
   API_TOKEN_DELETE = 'API_TOKEN_DELETE',
   API_TOKEN_CREATE = 'API_TOKEN_CREATE',
+  API_TOKEN_UPDATE = 'API_TOKEN_UPDATE',
 
   BASE_DUPLICATE = 'BASE_DUPLICATE',
   BASE_DUPLICATE_ERROR = 'BASE_DUPLICATE_ERROR',
@@ -201,6 +225,9 @@ enum AuditV1OperationTypes {
   DOCUMENT_COMMENT_CREATE = 'DOCUMENT_COMMENT_CREATE',
   DOCUMENT_COMMENT_UPDATE = 'DOCUMENT_COMMENT_UPDATE',
   DOCUMENT_COMMENT_DELETE = 'DOCUMENT_COMMENT_DELETE',
+
+  DATE_DEPENDENCY_UPDATE = 'DATE_DEPENDENCY_UPDATE',
+  DATE_DEPENDENCY_DELETE = 'DATE_DEPENDENCY_DELETE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -334,6 +361,20 @@ export const auditV1OperationsCategory: Record<
     value: 'ORG',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
       key.startsWith('ORG_')
+    ),
+  },
+  SCIM: {
+    label: 'general.scim',
+    value: 'SCIM',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('SCIM_')
+    ),
+  },
+  SSO: {
+    label: 'title.sso',
+    value: 'SSO',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('SSO_')
     ),
   },
   SCRIPT: {
@@ -551,6 +592,10 @@ export interface DataBulkDeletePayload {}
 export interface DataBulkDeletePayloadRecord {
   data: Record<string, unknown>;
   column_meta: Record<string, ColumnMeta>;
+}
+
+export interface DataCascadeUpdatePayload {
+  source?: 'date_dependency';
 }
 
 /*
@@ -981,6 +1026,14 @@ export interface APITokenDeletePayload {
   token_title: string;
 }
 
+export interface APITokenUpdatePayload {
+  token_id: string;
+  token_title: string;
+  scope_count?: number;
+  permission_categories?: string[];
+  has_expiry?: boolean;
+}
+
 export interface SharedBasePayload {
   base_title: string;
   uuid: string;
@@ -1221,6 +1274,28 @@ export interface RlsPolicyDeletePayload {
   table_id: string;
 }
 
+export interface DateDependencyUpdatePayload {
+  table_id: string;
+  table_title: string;
+  date_dependency_id: string;
+  is_new: boolean;
+  start_date_field?: { id: string; title: string };
+  end_date_field?: { id: string; title: string };
+  duration_field?: { id: string; title: string };
+  dependency_link_field?: { id: string; title: string };
+  dependency_linkrow_role?: string;
+  dependency_connection_type?: string;
+  dependency_buffer_type?: string;
+  dependency_buffer_days?: number;
+  include_weekends?: boolean;
+  is_active?: boolean;
+}
+
+export interface DateDependencyDeletePayload {
+  table_id: string;
+  table_title: string;
+}
+
 export interface DocAiCompletionPayload {
   operation: 'write' | 'continue' | 'improve' | 'summarize' | 'translate';
 }
@@ -1384,6 +1459,7 @@ export interface AuditV1<T = any> {
   fk_user_id: string;
   user_agent: string;
   fk_workspace_id: string | null;
+  fk_org_id?: string | null;
   base_id: string | null;
   source_id: string | null;
   fk_model_id: string | null;
@@ -1398,11 +1474,17 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.USER_SIGNUP]: (audit: AuditV1<UserSignupPayload>) =>
     `User '${audit.user}' signed up`,
   [AuditV1OperationTypes.USER_SIGNIN]: (audit: AuditV1<UserSigninPayload>) =>
-    `User '${audit.user}' signed in${audit.details.provider ? ` via ${audit.details.provider}` : ''}`,
+    `User '${audit.user}' signed in${
+      audit.details.provider ? ` via ${audit.details.provider}` : ''
+    }`,
   [AuditV1OperationTypes.USER_SIGNIN_FAILED]: (
     audit: AuditV1<UserSigninFailedPayload>
   ) =>
-    `Failed sign-in attempt${audit.details.email ? ` for '${audit.details.email}'` : ''}${audit.details.provider ? ` via ${audit.details.provider}` : ''}${audit.details.reason ? ` - ${audit.details.reason}` : ''}`,
+    `Failed sign-in attempt${
+      audit.details.email ? ` for '${audit.details.email}'` : ''
+    }${audit.details.provider ? ` via ${audit.details.provider}` : ''}${
+      audit.details.reason ? ` - ${audit.details.reason}` : ''
+    }`,
   [AuditV1OperationTypes.USER_INVITE]: (audit: AuditV1<UserInvitePayload>) =>
     `User '${audit.user}' invited '${audit.details.user_email}'`,
   [AuditV1OperationTypes.USER_PASSWORD_CHANGE]: (
@@ -1436,12 +1518,60 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.ORG_USER_INVITE_RESEND]: (
     audit: AuditV1<OrgUserInviteResendPayload>
   ) => `User '${audit.user}' resent invite to '${audit.details.email}'`,
+  [AuditV1OperationTypes.ORG_USER_ADD]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' added '${audit.details?.email}' to organization`,
+  [AuditV1OperationTypes.ORG_USER_REMOVE]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' removed '${
+      audit.details?.email || audit.details?.user_id
+    }' from organization`,
+  [AuditV1OperationTypes.ORG_USER_ROLE_UPDATE]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' updated role of '${audit.details?.email}' in organization`,
+  [AuditV1OperationTypes.ORG_WORKSPACE_ADD]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' added workspace to organization`,
+  [AuditV1OperationTypes.ORG_WORKSPACE_REMOVE]: (audit: AuditV1<any>) =>
+    `User '${audit.user}' removed workspace from organization`,
+  [AuditV1OperationTypes.SCIM_GROUP_PROVISION]: (audit: AuditV1<any>) =>
+    `SCIM group '${audit.details?.team_title}' provisioned`,
+  [AuditV1OperationTypes.SCIM_GROUP_UPDATE]: (audit: AuditV1<any>) =>
+    `SCIM group '${audit.details?.team_title}' updated`,
+  [AuditV1OperationTypes.SCIM_GROUP_REPLACE]: (audit: AuditV1<any>) =>
+    `SCIM group '${audit.details?.team_title}' replaced`,
+  [AuditV1OperationTypes.SCIM_GROUP_DELETE]: (audit: AuditV1<any>) =>
+    `SCIM group '${audit.details?.team_title}' deleted`,
+  [AuditV1OperationTypes.SCIM_CONFIG_CREATE]: (_audit: AuditV1<any>) =>
+    `SCIM provisioning configured`,
+  [AuditV1OperationTypes.SCIM_CONFIG_UPDATE]: (_audit: AuditV1<any>) =>
+    `SCIM provisioning configuration updated`,
+  [AuditV1OperationTypes.SCIM_CONFIG_DISABLE]: (_audit: AuditV1<any>) =>
+    `SCIM provisioning disabled`,
+  [AuditV1OperationTypes.SCIM_CONFIG_DELETE]: (_audit: AuditV1<any>) =>
+    `SCIM provisioning configuration deleted`,
+  [AuditV1OperationTypes.SCIM_CONFIG_TOKEN_REGENERATE]: (
+    _audit: AuditV1<any>
+  ) => `SCIM provisioning token regenerated`,
+  [AuditV1OperationTypes.SSO_CLIENT_CREATE]: (audit: AuditV1<any>) =>
+    `SSO client '${audit.details?.title}' created`,
+  [AuditV1OperationTypes.SSO_CLIENT_UPDATE]: (audit: AuditV1<any>) =>
+    `SSO client '${audit.details?.title}' updated`,
+  [AuditV1OperationTypes.SSO_CLIENT_DELETE]: (audit: AuditV1<any>) =>
+    `SSO client '${audit.details?.title}' deleted`,
+  [AuditV1OperationTypes.ORG_DOMAIN_ADD]: (audit: AuditV1<any>) =>
+    `Domain '${audit.details?.domain_name}' added to organization`,
+  [AuditV1OperationTypes.ORG_DOMAIN_UPDATE]: (audit: AuditV1<any>) =>
+    `Domain '${audit.details?.domain_name}' updated`,
+  [AuditV1OperationTypes.ORG_DOMAIN_DELETE]: (audit: AuditV1<any>) =>
+    `Domain '${audit.details?.domain_name}' removed from organization`,
+  [AuditV1OperationTypes.ORG_DOMAIN_VERIFY]: (audit: AuditV1<any>) =>
+    `Domain '${audit.details?.domain_name}' verification initiated`,
   [AuditV1OperationTypes.DATA_INSERT]: (audit: AuditV1<DataInsertPayload>) =>
     `Record with ID [${audit.row_id}] has been inserted`,
   [AuditV1OperationTypes.DATA_UPDATE]: (audit: AuditV1<DataUpdatePayload>) =>
     `Record with ID [${audit.row_id}] has been updated`,
   [AuditV1OperationTypes.DATA_DELETE]: (audit: AuditV1<DataDeletePayload>) =>
     `Record with ID [${audit.row_id}] has been deleted`,
+  [AuditV1OperationTypes.DATA_CASCADE_UPDATE]: (
+    _audit: AuditV1<DataCascadeUpdatePayload>
+  ) => `Record was rescheduled to avoid overlap with a conflicting record`,
 
   /*  [AuditV1OperationTypes.DATA_BULK_INSERT]: (
     audit: AuditV1<DataBulkInsertPayload>
@@ -1655,6 +1785,15 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.DOCUMENT_COMMENT_DELETE]: (
     audit: AuditV1<DocumentCommentDeletePayload>
   ) => `Comment deleted from document '${audit.details.document_id}'`,
+  [AuditV1OperationTypes.DATE_DEPENDENCY_UPDATE]: (
+    audit: AuditV1<DateDependencyUpdatePayload>
+  ) =>
+    `Date dependency ${
+      audit.details.is_new ? 'created' : 'updated'
+    } for table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.DATE_DEPENDENCY_DELETE]: (
+    audit: AuditV1<DateDependencyDeletePayload>
+  ) => `Date dependency deleted from table '${audit.details.table_title}'`,
 };
 
 function auditDescription(audit: AuditV1) {

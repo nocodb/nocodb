@@ -963,6 +963,9 @@ export function useMultiSelect(
   const handleThrottledKeyDownAction = useThrottleFn(handleKeyDownAction, 60)
 
   const handleKeyDown = async (e: KeyboardEvent) => {
+    // Skip keyboard handling during IME composition (e.g. Japanese, Chinese, Korean input)
+    if (e.isComposing) return
+
     // invoke the keyEventHandler if provided and return if it returns true
 
     if (isArrayStructure ? await keyEventHandler?.(e) : keyEventHandler?.(e)) {
@@ -1311,7 +1314,7 @@ export function useMultiSelect(
               if (pasteValue !== undefined) {
                 targetRow.row[column.title!] = pasteValue
               }
-            } else if ((isBt(column) || isOo(column) || isMm(column)) && !isInfoShown) {
+            } else if ((isBt(column) || isOo(column) || isMMOrMMLike(column)) && !isInfoShown) {
               message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
               isInfoShown = true
             }
@@ -1380,7 +1383,7 @@ export function useMultiSelect(
             return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
           }
 
-          if (isMm(columnObj)) {
+          if (isMMOrMMLike(columnObj)) {
             const pasteVal = convertCellData(
               {
                 value: clipboardData,
@@ -1778,7 +1781,7 @@ export function useMultiSelect(
 
             for (const col of cols) {
               if (!col.title || !isPasteable(row, col)) {
-                if ((isBt(col) || isOo(col) || isMm(col)) && !isInfoShown) {
+                if ((isBt(col) || isOo(col) || isMMOrMMLike(col)) && !isInfoShown) {
                   message.toast(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
                   isInfoShown = true
                 }

@@ -32,7 +32,9 @@ import { NC_APP_SETTINGS } from '~/constants';
 dotenv.config();
 declare const module: any;
 
-if (['development', 'test'].includes(process.env.NODE_ENV)) {
+// Only install in development — in test/CI the rspack bundle has no source
+// maps and source-map-support crashes reading the 60 MB+ bundle file.
+if (process.env.NODE_ENV === 'development') {
   require('source-map-support').install();
 }
 
@@ -65,6 +67,7 @@ export default class Noco {
   protected requestContext: any;
 
   public static ncDefaultWorkspaceId: string;
+  public static ncDefaultOrgId: string;
 
   public static sharp: typeof Sharp;
 

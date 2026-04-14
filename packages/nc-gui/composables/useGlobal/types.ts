@@ -32,6 +32,7 @@ export interface AppInfo {
   ee?: boolean
   ncAttachmentFieldSize: number
   ncMaxAttachmentsAllowed: number
+  ncMaxTextLength: number
   isCloud: boolean
   automationLogLevel: 'OFF' | 'ERROR' | 'ALL'
   baseHostName?: string
@@ -46,6 +47,13 @@ export interface AppInfo {
   feedEnabled: boolean
   sentryDSN: string
   isOnPrem: boolean
+  isPostgres: boolean
+  isAirgapped: boolean
+  onPremPlan: Record<string, any> | null
+  seatLimit: number | null
+  isTrial: boolean
+  isTrialExpired: boolean
+  licenseExpiryTime: number
   defaultWorkspaceId: string | null
   stripePublishableKey?: string
   marketingRootUrl?: string
@@ -57,6 +65,7 @@ export interface AppInfo {
   disableGroupByAggregation?: boolean
   sendRecordMaxRecipients?: number
   mapProvider?: MapProvider
+  defaultOrgId?: string
 }
 
 export interface StoredState {

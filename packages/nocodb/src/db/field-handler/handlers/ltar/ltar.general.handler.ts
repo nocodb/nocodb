@@ -150,25 +150,6 @@ export class LtarGeneralHandler extends GenericFieldHandler {
           filter.comparison_op,
         )
       ) {
-        // handle self reference
-        if (parentModel.id === childModel.id) {
-          if (filter.comparison_op === 'blank') {
-            return {
-              rootApply,
-              clause: (qb) => {
-                qb.whereNull(childColumnRef);
-              },
-            };
-          } else {
-            return {
-              rootApply,
-              clause: (qb) => {
-                qb.whereNotNull(childColumnRef);
-              },
-            };
-          }
-        }
-
         const selectBtCount = knex(
           parentBaseModel.getTnPath(parentModel.table_name, parentTableAlias),
         )

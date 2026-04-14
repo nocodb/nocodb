@@ -522,6 +522,7 @@ import NcMoreVerticalIcon from '~icons/nc-icons-v2/more-vertical.svg'
 import NcMicOffIcon from '~icons/nc-icons-v2/mic-off.svg'
 import NcShareIcon from '~icons/nc-icons-v2/share.svg'
 import NcArrowUpIcon from '~icons/nc-icons-v2/arrow-up.svg'
+import NcArrowUpDownIcon from '~icons/nc-icons-v2/arrow-up-down.svg'
 import NcBellOffIcon from '~icons/nc-icons-v2/bell-off.svg'
 import NcLinkedinIcon from '~icons/nc-icons-v2/linkedin.svg'
 import NcVideoIcon from '~icons/nc-icons-v2/video.svg'
@@ -1601,6 +1602,7 @@ export const iconMap = {
   'ncMicOff': NcMicOffIcon,
   'ncShare': NcShareIcon,
   'ncArrowUp2': NcArrowUpIcon,
+  'ncArrowUpDown': NcArrowUpDownIcon,
   'ncBellOff': NcBellOffIcon,
   'ncLinkedin': NcLinkedinIcon,
   'ncVideo': NcVideoIcon,
@@ -4080,6 +4082,10 @@ export const searchableMap = {
   ncArrowUp: {
     icon: NcArrowUpIcon,
     keywords: ['Up', 'Direction', 'Navigation', 'Ascending', 'Increase'],
+  },
+  ncArrowUpDown: {
+    icon: NcArrowUpDownIcon,
+    keywords: ['Sort', 'Up', 'Down', 'Arrow', 'Reorder', 'Swap'],
   },
   ncBellOff: {
     icon: NcBellOffIcon,

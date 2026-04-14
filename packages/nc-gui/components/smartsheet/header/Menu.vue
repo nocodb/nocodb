@@ -39,6 +39,8 @@ const columnInvalid = computed<{ isInvalid: boolean; tooltip: string }>(() => {
   })
 })
 
+const isDateDependencyField = computed(() => isColumnDateDependencyField(meta.value, column?.value?.id))
+
 const openDropdown = () => {
   if (isLocked.value) return
   isOpen.value = !isOpen.value
@@ -81,7 +83,11 @@ const emitEdit = (...args: any[]) => {
           {{ $t(columnInvalid.tooltip) }}
         </template>
       </NcTooltip>
-      <template v-if="meta?.synced && column?.readonly && !isExpandedForm && !isPublic">
+      <NcTooltip v-if="isDateDependencyField && !isExpandedForm && !isPublic" class="flex items-center" placement="bottom">
+        <template #title> {{ $t('labels.dateDependency.enabled') }} </template>
+        <GeneralIcon icon="viewGannt" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-muted" />
+      </NcTooltip>
+      <template v-if="meta?.synced && column?.readonly && !isAutoNumber(column) && !isExpandedForm && !isPublic">
         <GeneralIcon class="!text-nc-content-gray-disabled cursor-pointer" icon="ncZap" />
       </template>
       <GeneralIcon

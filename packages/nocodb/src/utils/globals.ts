@@ -53,6 +53,7 @@ export enum MetaTable {
   LIST_VIEW = 'nc_list_view_v2',
   LIST_VIEW_COLUMNS = 'nc_list_view_columns_v2',
   LIST_VIEW_LEVELS = 'nc_list_view_levels_v2',
+  DATE_DEPENDENCY = 'nc_date_dependency_v2',
   STORE = 'nc_store',
   NOTIFICATION = 'notification',
   USER_REFRESH_TOKENS = 'nc_user_refresh_tokens',
@@ -63,6 +64,7 @@ export enum MetaTable {
   JOBS = 'nc_jobs',
   INTEGRATIONS = 'nc_integrations_v2',
   INTEGRATIONS_STORE = 'nc_integrations_store_v2',
+  INTEGRATION_LINKS = 'nc_integration_links_v2',
   FILE_REFERENCES = 'nc_file_references',
   COL_BUTTON = 'nc_col_button_v2',
   SNAPSHOT = 'nc_snapshots',
@@ -125,6 +127,7 @@ export enum MetaTable {
   CHAT_MESSAGES = 'nc_chat_messages',
   DOCS = 'nc_docs_v2',
   DOC_CONTENT = 'nc_doc_content_v2',
+  API_TOKEN_SCOPES = 'nc_api_token_scopes',
 }
 
 export const BaseRelatedMetaTables = [
@@ -166,6 +169,7 @@ export const BaseRelatedMetaTables = [
   MetaTable.LIST_VIEW_COLUMNS,
   MetaTable.LIST_VIEW_LEVELS,
   MetaTable.LIST_VIEW,
+  MetaTable.DATE_DEPENDENCY,
   MetaTable.MCP_TOKENS,
   MetaTable.MODELS,
   MetaTable.PERMISSIONS,
@@ -229,6 +233,7 @@ export const orderedMetaTables = [
   MetaTable.ORGS_OLD,
 
   // User-related
+  MetaTable.API_TOKEN_SCOPES,
   MetaTable.API_TOKENS,
   MetaTable.PROJECT_USERS,
   MetaTable.WORKSPACE_USER,
@@ -429,6 +434,7 @@ export enum CacheScope {
   LIST_VIEW = 'listView',
   LIST_VIEW_COLUMN = 'listViewColumn',
   LIST_VIEW_LEVEL = 'listViewLevel',
+  DATE_DEPENDENCY = 'dateDependency',
   USER = 'user',
   ORGS_OLD = 'orgs',
   TEAM = 'team',
@@ -499,6 +505,7 @@ export enum CacheScope {
   CHAT_SESSION = 'chatSession',
   DOCUMENT = 'document',
   DOC_CONTENT = 'docContent',
+  API_TOKEN_SCOPE = 'apiTokenScope',
 }
 
 export enum CacheGetType {
@@ -537,6 +544,7 @@ export const RootScopeTables = {
     MetaTable.USERS,
     MetaTable.USER_REFRESH_TOKENS,
     MetaTable.API_TOKENS,
+    MetaTable.API_TOKEN_SCOPES,
     MetaTable.FOLLOWER,
     MetaTable.PLUGIN,
     MetaTable.DB_MUX,
@@ -595,6 +603,8 @@ export enum FilterCacheScope {
 }
 
 export const NC_STORE_DEFAULT_WORKSPACE_ID_KEY = 'NC_DEFAULT_WORKSPACE_ID';
+export const NC_STORE_DEFAULT_ORG_ID_KEY = 'NC_DEFAULT_ORG_ID';
+export { NC_DEFAULT_ORG_ID } from 'nocodb-sdk';
 
 export enum ResourceType {
   ORG = 'org',

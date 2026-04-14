@@ -29,18 +29,20 @@ export default defineNuxtRouteMiddleware((to) => {
     const workspaceId = query.workspaceId as string
     const returnToPage = query.returnToPage as string
 
-    // If no workspaceId in query, we're already on the correct page
-    // (e.g. updateSubscription navigates directly with workspace in path)
-    if (!workspaceId) return
-
     let targetPath = ''
 
-    if (returnToPage === 'org') {
+    if (returnToPage === 'self_hosted') {
+      targetPath = '/account/self-hosted'
+    } else if (!workspaceId) {
+      // Non-self-hosted paths require a workspaceId.
+      // If missing, we're already on the correct page.
+      return
+    } else if (returnToPage === 'org') {
       targetPath = `/admin/${workspaceId}/billing`
     } else if (returnToPage === 'account') {
       targetPath = `/account/workspace/${workspaceId}/settings`
     } else {
-      targetPath = `/${workspaceId}/settings/ws-billing`
+      targetPath = `/${workspaceId}/billing`
     }
 
     // Only redirect if we're not already on the target path (prevents loop).

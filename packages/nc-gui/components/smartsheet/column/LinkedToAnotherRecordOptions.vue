@@ -18,11 +18,23 @@ const props = defineProps<{
   isEdit: boolean
 }>()
 
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:value', 'upgrade'])
 
 const vModel = useVModel(props, 'value', emit)
 
 const isEdit = toRef(props, 'isEdit')
+
+const isUpgradeable = computed(() => {
+  if (!isEdit.value) return false
+  const col = vModel.value
+  const colOpts = col?.colOptions as LinkToAnotherRecordType | undefined
+  // Custom links cannot be upgraded — upgrading may break/delete the foreign key
+  if (col?.meta?.custom) return false
+  // All Links columns (deprecated) can be upgraded — even v2 (splits into Rollup + LTAR)
+  if (col?.uidt === UITypes.Links) return true
+  // LTAR v1 can be upgraded; LTAR v2 is already fully upgraded
+  return col?.uidt === UITypes.LinkToAnotherRecord && colOpts?.version !== LinksVersion.V2
+})
 
 const meta = inject(MetaInj, ref())
 
@@ -227,16 +239,28 @@ const refViews = computed(() => {
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
 
-const isLtarV2Enabled = computed(() => isFeatureEnabled(FEATURE_FLAG.LTAR_V2))
-
-// Set version based on feature flag and uidt
-// Links (V1 UI) always sends version=1; LinkToAnotherRecord (V2 UI) sends version=2
+// Set version based on relation type and uidt
+// hm/bt are V1-only relation types; om/mo are V2 relation types
+// For mm/oo, version follows the uidt (LinkToAnotherRecord → V2, Links → V1)
+// Custom links are always V1
 watch(
-  [() => vModel.value.type, () => vModel.value.uidt, isLtarV2Enabled],
+  [() => vModel.value.type, () => vModel.value.uidt, () => vModel.value.is_custom_link],
   () => {
     if (isEdit.value) return
 
-    if (isLtarV2Enabled.value && vModel.value.uidt === UITypes.LinkToAnotherRecord) {
+    // Custom links are always V1 regardless of type
+    if (vModel.value.is_custom_link) {
+      vModel.value.version = LinksVersion.V1
+      return
+    }
+
+    const type = vModel.value.type
+
+    if (type === RelationTypes.HAS_MANY || type === RelationTypes.BELONGS_TO) {
+      vModel.value.version = LinksVersion.V1
+    } else if (type === RelationTypes.ONE_TO_MANY || type === RelationTypes.MANY_TO_ONE) {
+      vModel.value.version = LinksVersion.V2
+    } else if (vModel.value.uidt === UITypes.LinkToAnotherRecord) {
       vModel.value.version = LinksVersion.V2
     } else if (vModel.value.uidt === UITypes.Links) {
       vModel.value.version = LinksVersion.V1
@@ -342,7 +366,15 @@ const isLinkedTablePrivate = computed(() => {
 })
 
 const linkType = computed({
-  get: () => (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null,
+  get: () => {
+    const type = (isEdit.value ? vModel.value?.colOptions?.type : vModel.value?.type) ?? null
+    // Custom links use V1 types directly (hm/bt) — no remapping
+    if (vModel.value?.is_custom_link || vModel.value?.meta?.custom) return type
+    // Remap legacy relation types to V2 radio values (om/mo)
+    if (type === RelationTypes.BELONGS_TO) return RelationTypes.MANY_TO_ONE
+    if (type === RelationTypes.HAS_MANY) return RelationTypes.ONE_TO_MANY
+    return type
+  },
   set: (value) => {
     if (!isEdit.value && value) {
       vModel.value.type = value
@@ -471,9 +503,41 @@ const handleScrollIntoView = () => {
 <template>
   <div class="w-full flex flex-col gap-4">
     <div class="flex flex-col gap-4">
-      <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
+      <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type !mb-0">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
-          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord && isLtarV2Enabled">
+          <!-- Custom links use V1 relation types: MM, HM, OO -->
+          <template v-if="vModel.is_custom_link">
+            <a-row :gutter="[8, 8]" class="nc-links-3-col">
+              <a-col :span="8">
+                <a-radio value="mm" data-testid="Many to Many">
+                  <span class="nc-ltar-icon nc-mm-icon">
+                    <GeneralIcon icon="mm_solid" />
+                  </span>
+                  {{ $t('title.manyToMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="8">
+                <a-radio value="hm" data-testid="Has Many">
+                  <span class="nc-ltar-icon nc-hm-icon">
+                    <GeneralIcon icon="hm_solid" />
+                  </span>
+                  {{ $t('title.hasMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="8">
+                <a-radio value="oo" data-testid="One to One">
+                  <span class="nc-ltar-icon nc-oo-icon">
+                    <GeneralIcon icon="oneToOneSolid" />
+                  </span>
+                  {{ $t('title.oneToOne') }}
+                </a-radio>
+              </a-col>
+            </a-row>
+          </template>
+          <!-- V2 relation types: MM, OM, MO, OO -->
+          <template
+            v-else-if="vModel.uidt === UITypes.LinkToAnotherRecord || isUpgradeable || (vModel.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2"
+          >
             <a-row :gutter="[8, 8]">
               <a-col :span="12">
                 <a-radio value="mm" data-testid="Many to Many">
@@ -509,6 +573,7 @@ const handleScrollIntoView = () => {
               </a-col>
             </a-row>
           </template>
+          <!-- Legacy Links (V1): MM, HM, OO -->
           <template v-else>
             <a-row :gutter="[8, 8]" class="nc-links-3-col">
               <a-col :span="8">
@@ -539,6 +604,28 @@ const handleScrollIntoView = () => {
           </template>
         </a-radio-group>
       </a-form-item>
+    </div>
+    <div
+      v-if="isUpgradeable"
+      class="flex items-center justify-between bg-nc-orange-50 dark:bg-nc-orange-20 rounded-lg px-3 py-2 -mt-2"
+      data-testid="nc-ltar-upgrade-banner"
+    >
+      <div class="flex items-center gap-2">
+        <GeneralIcon icon="alertTriangle" class="flex-none h-4 w-4 text-orange-500" />
+        <span class="text-sm text-nc-content-gray">
+          {{ $t('msg.info.upgradeLinkFieldAvailable') }}
+          <a
+            href="https://nocodb.com/docs/product-docs/fields/field-types/links-based/link-to-another-record#upgrade-from-links-v1"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-nc-content-brand underline ml-1"
+            >{{ $t('msg.learnMore') }}</a
+          >
+        </span>
+      </div>
+      <NcButton size="xs" type="primary" @click="emit('upgrade')">
+        {{ $t('general.upgrade') }}
+      </NcButton>
     </div>
     <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI">
       <a-switch

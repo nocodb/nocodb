@@ -312,6 +312,12 @@ const cellClickHandler = () => {
   if (readOnly.value || open.value) return
   open.value = active.value || editable.value
 }
+onBeforeUnmount(() => {
+  if (tempDate.value && tempDate.value.isValid() && !localState.value?.isSame(tempDate.value)) {
+    saveChanges(tempDate.value)
+  }
+})
+
 onUnmounted(() => {
   cellClickHook?.off(cellClickHandler)
 })

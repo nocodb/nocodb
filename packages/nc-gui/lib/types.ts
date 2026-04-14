@@ -192,7 +192,7 @@ interface SharedViewMeta extends Record<string, any> {
   transitionDuration?: number // in ms
   withTheme?: boolean
   theme?: Partial<ThemeConfig>
-  defaultTheme?: 'light' | 'dark'
+  defaultTheme?: 'light' | 'dark' | 'system'
   allowCSVDownload?: boolean
   rtl?: boolean
   preFillEnabled?: boolean
@@ -292,6 +292,7 @@ type ProjectPageType =
   | 'data-source'
   | 'base-settings'
   | 'syncs'
+  | 'integrations'
   | 'permissions'
   | 'audits'
   | 'workflows'
@@ -355,6 +356,7 @@ interface ImageCropperProps {
 interface AuditLogsQuery {
   type?: string[]
   workspaceId?: string
+  workspaceIds?: string[]
   baseId?: string
   sourceId?: string
   user?: string
@@ -668,6 +670,7 @@ interface CanvasGridColumn {
     tooltip: string
     ignoreTooltip?: boolean
   }
+  isDateDependencyField?: boolean
   abstractType: any
 }
 
@@ -736,6 +739,12 @@ interface PermissionConfig {
   permission: PermissionKey
   disabled?: boolean
   tooltip?: string
+  /** Pre-resolved effective value for inherited permissions (e.g. from parent doc). */
+  effectiveValue?: string
+  /** Parent's effective permission value — child options more permissive than this are disabled. */
+  parentEffectiveValue?: string
+  /** Current visibility value — editing options more permissive than this are disabled. */
+  visibilityValue?: string
 }
 
 interface PermissionSelectorUser {
@@ -823,9 +832,6 @@ interface NcListItemProps {
   searchBasisInfo?: string
   /** Min-height of group header rows in pixels */
   groupHeaderHeight?: number
-
-  /** Focus search input on open */
-  focusSearchOnOpen?: boolean
 }
 
 /**
@@ -970,6 +976,9 @@ interface NcListProps {
   theme?: 'default' | 'ai'
 
   resetHoverEffectOnMouseLeave?: boolean
+
+  /** Focus search input on open */
+  focusSearchOnOpen?: boolean
 }
 
 // NcList type ends here

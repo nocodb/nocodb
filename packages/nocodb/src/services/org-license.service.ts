@@ -5,7 +5,7 @@ import Noco from '~/Noco';
 import { Store } from '~/models';
 
 @Injectable()
-export class OrgLcenseService {
+export class OrgLicenseService {
   async licenseGet() {
     const license = await Store.get(NC_LICENSE_KEY);
 
@@ -27,5 +27,9 @@ export class OrgLcenseService {
       hasLicense: !!license?.value,
       status: Noco.isEE() ? 'active' : 'none',
     };
+  }
+
+  async licenseRefresh(): Promise<{ success: boolean; status?: string }> {
+    return { success: false, status: 'not_available' };
   }
 }

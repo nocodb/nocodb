@@ -206,6 +206,7 @@ const surveyMode = computed({
 const themeOptions = [
   { label: 'Light', value: 'light' },
   { label: 'Dark', value: 'dark' },
+  { label: 'System', value: 'system' },
 ]
 
 const themeSetLocal = ref(false)
@@ -627,7 +628,7 @@ const copyCustomUrl = async (custUrl = '') => {
                 v-model:value="defaultTheme"
                 data-testid="nc-modal-share-view__themeSelect"
                 :options="themeOptions"
-                class="w-full nc-select-shadow"
+                class="nc-modal-share-view-theme-select w-full nc-select-shadow"
                 :disabled="isReadOnly"
               />
             </div>
@@ -713,7 +714,8 @@ const copyCustomUrl = async (custUrl = '') => {
   }
 }
 
-.nc-modal-share-view-language-select.ant-select {
+.nc-modal-share-view-language-select.ant-select,
+.nc-modal-share-view-theme-select.ant-select {
   .ant-select-selector {
     @apply !rounded-lg;
   }

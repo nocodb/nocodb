@@ -44,7 +44,7 @@ export const useProvideChatwoot = () => {
   }
 
   const chatwootInit = async () => {
-    if (ncIsIframe()) return
+    if (ncIsIframe() || appInfo.value.disableSupportChat) return
     chatwootReady.value = true
     initUserCustomerAttributes()
   }
@@ -68,6 +68,8 @@ export const useProvideChatwoot = () => {
   })
 
   onMounted(() => {
+    if (appInfo.value.disableSupportChat) return
+
     loadAggMetaInfo()
   })
 

@@ -52,7 +52,7 @@ export default {
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-      class="nc-comments-drawer border-l-1 relative border-nc-border-gray-medium bg-nc-bg-gray-extralight w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
+      class="nc-comments-drawer border-l-1 rtl:(border-l-0 border-r-1) relative border-nc-border-gray-medium bg-nc-bg-gray-extralight w-1/3 max-w-[400px] min-w-0 h-full xs:hidden rounded-br-2xl"
       :class="{
         active: commentsDrawer && isUIAllowed('commentList'),
       }"

@@ -12,6 +12,8 @@ const { isSidebarVisible } = toRefs(props)
 
 const { leftSidebarWidth, windowSize, formRightSidebarState, formRightSidebarWidthPercent } = storeToRefs(useSidebarStore())
 
+const { isRtl } = useRtl()
+
 const formPreviewSize = computed(() => 100 - formRightSidebarWidthPercent.value)
 
 function onResize(widthPercent: any) {
@@ -40,6 +42,7 @@ const normalizeSidebarWidth = computed(() => {
 <template>
   <Splitpanes
     class="nc-form-right-sidebar-content-resizable-wrapper w-full h-full"
+    :rtl="isRtl"
     @resize="(event: any) => onResize(event[1].size)"
   >
     <Pane :size="formPreviewSize" class="flex-1 h-full">
@@ -65,41 +68,58 @@ const normalizeSidebarWidth = computed(() => {
 <style lang="scss">
 /** Split pane CSS */
 
-.nc-form-right-sidebar-content-resizable-wrapper > {
-  .splitpanes__splitter {
+.nc-form-right-sidebar-content-resizable-wrapper {
+  > .splitpanes__splitter {
     @apply !w-0 relative overflow-visible;
   }
-  .splitpanes__splitter:before {
+
+  > .splitpanes__splitter:before {
     @apply bg-nc-bg-gray-medium w-0.25 absolute left-0 top-0 h-full z-40;
     content: '';
   }
 
-  .splitpanes__splitter:hover:before {
+  > .splitpanes__splitter:hover:before {
     @apply bg-nc-border-gray-medium;
     width: 3px !important;
     left: 0px;
   }
 
-  .splitpanes--dragging .splitpanes__splitter:before {
+  &.splitpanes--dragging > .splitpanes__splitter:before {
     @apply bg-nc-border-gray-medium;
     width: 3px !important;
     left: 0px;
   }
 
-  .splitpanes--dragging .splitpanes__splitter {
+  &.splitpanes--dragging > .splitpanes__splitter {
     @apply w-1 mr-0;
   }
-}
-
-.splitpanes__pane {
-  transition: width 0.15s ease-in-out !important;
-}
-
-.splitpanes--dragging {
-  cursor: col-resize;
 
   > .splitpanes__pane {
+    transition: width 0.15s ease-in-out !important;
+  }
+
+  &.splitpanes--dragging > .splitpanes__pane {
     transition: none !important;
+  }
+}
+
+.rtl .nc-form-right-sidebar-content-resizable-wrapper {
+  > .splitpanes__splitter:before {
+    @apply left-auto right-0;
+  }
+
+  > .splitpanes__splitter:hover:before {
+    left: auto;
+    right: 0px;
+  }
+
+  &.splitpanes--dragging > .splitpanes__splitter:before {
+    left: auto;
+    right: 0px;
+  }
+
+  &.splitpanes--dragging > .splitpanes__splitter {
+    @apply mr-auto ml-0;
   }
 }
 </style>

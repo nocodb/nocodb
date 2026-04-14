@@ -33,7 +33,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { sharedView } = storeToRefs(useViewsStore())
 
-  const { blockAddNewRecord, showRecordPlanLimitExceededModal } = useEeConfig()
+  const { blockAddNewRecord, showRecordPlanLimitExceededModal, showEEFeatures } = useEeConfig()
 
   provide(SharedViewPasswordInj, password)
 
@@ -50,10 +50,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   >()
   const sharedViewMeta = ref<SharedViewMeta>({})
 
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
   const isFormExpired = computed(() => {
-    if (!isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)) return false
+    if (!showEEFeatures.value) return false
 
     const expiresAt = (sharedFormView.value as any)?.expires_at
 
@@ -63,7 +61,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   })
 
   const isFormNotStarted = computed(() => {
-    if (!isFeatureEnabled(FEATURE_FLAG.FORM_SCHEDULING)) return false
+    if (!showEEFeatures.value) return false
 
     const startsAt = (sharedFormView.value as any)?.starts_at
 
@@ -76,7 +74,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const formResetHook = createEventHook<void>()
 
-  const { isMobileMode } = useGlobal()
+  const { isMobileMode, appInfo } = useGlobal()
 
   const { api, isLoading } = useApi()
 
@@ -371,7 +369,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         },
       ]
 
-      const additionalRules = extractFieldValidator(parseProp(column.meta).validators ?? [], column)
+      const additionalRules = extractFieldValidator(
+        parseProp(column.meta).validators ?? [],
+        column,
+        appInfo.value.ncMaxTextLength,
+      )
       rules = [...rules, ...additionalRules]
 
       if (rules.length) {

@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   validate-swagger-json:
-    runs-on: ubuntu-22.04
+    runs-on: ubicloud-standard-2
     timeout-minutes: 10
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
     steps:

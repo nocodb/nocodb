@@ -307,6 +307,12 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
       auditConfig.parentModel = column.meta?.bt ? childTable : parentTable;
       auditConfig.childModel = column.meta?.bt ? parentTable : childTable;
+      if (column.meta?.bt) {
+        auditConfig.parentColTitle = relatedChildCol?.title || '';
+        auditConfig.parentColId = relatedChildCol?.id || '';
+        auditConfig.childColTitle = column.title;
+        auditConfig.childColId = column.id;
+      }
     }
 
     switch (relationType) {
@@ -584,6 +590,12 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             baseModel.model.id === parentTable.id ? parentTable : childTable;
           auditConfig.childModel =
             baseModel.model.id === parentTable.id ? childTable : parentTable;
+          if (baseModel.model.id !== parentTable.id) {
+            auditConfig.parentColTitle = relatedChildCol?.title || '';
+            auditConfig.parentColId = relatedChildCol?.id || '';
+            auditConfig.childColTitle = column.title;
+            auditConfig.childColId = column.id;
+          }
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -682,6 +694,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           validateRefIds(childIds, parentTable);
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
+          auditConfig.parentColTitle = relatedChildCol?.title || '';
+          auditConfig.parentColId = relatedChildCol?.id || '';
+          auditConfig.childColTitle = column.title;
+          auditConfig.childColId = column.id;
           const refBaseModel = parentBaseModel;
           // validate Ids
           {
@@ -733,10 +749,18 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             updatedColIds: [column.id],
           });
 
+          // Broadcast child row update (FK was updated on this row)
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await childBaseModel
+              .getNonTransactionalClone()
+              .broadcastLinkUpdates([rowId]);
+          });
+
+          // Broadcast parent row update (link count changed on the referenced record)
           baseModel.dbDriver.attachToTransaction(async () => {
             await parentBaseModel
               .getNonTransactionalClone()
-              .broadcastLinkUpdates([rowId]);
+              .broadcastLinkUpdates(childIds as string[]);
           });
         }
         break;
@@ -1036,6 +1060,12 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             baseModel.model.id === parentTable.id ? parentTable : childTable;
           auditConfig.childModel =
             baseModel.model.id === parentTable.id ? childTable : parentTable;
+          if (baseModel.model.id !== parentTable.id) {
+            auditConfig.parentColTitle = relatedChildCol?.title || '';
+            auditConfig.parentColId = relatedChildCol?.id || '';
+            auditConfig.childColTitle = column.title;
+            auditConfig.childColId = column.id;
+          }
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -1140,6 +1170,10 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           validateRefIds(childIds, parentTable);
           auditConfig.parentModel = childTable;
           auditConfig.childModel = parentTable;
+          auditConfig.parentColTitle = relatedChildCol?.title || '';
+          auditConfig.parentColId = relatedChildCol?.id || '';
+          auditConfig.childColTitle = column.title;
+          auditConfig.childColId = column.id;
 
           const refBaseModel = parentBaseModel;
           // validate Ids
@@ -1201,6 +1235,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             ],
           });
 
+          // Broadcast child row update (FK was cleared on this row)
+          baseModel.dbDriver.attachToTransaction(async () => {
+            await childBaseModel
+              .getNonTransactionalClone()
+              .broadcastLinkUpdates([rowId]);
+          });
+
+          // Broadcast parent row update (link count changed on the unlinked record)
           baseModel.dbDriver.attachToTransaction(async () => {
             await parentBaseModel
               .getNonTransactionalClone()

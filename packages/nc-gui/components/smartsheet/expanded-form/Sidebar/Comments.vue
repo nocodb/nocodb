@@ -23,6 +23,8 @@ const { basesUser } = storeToRefs(basesStore)
 
 const meta = inject(MetaInj, ref())
 
+const activeView = inject(ActiveViewInj, ref())
+
 const {
   deleteComment,
   resolveComment,
@@ -112,9 +114,13 @@ const saveComment = async () => {
 }
 
 const copyComment = async (comment: CommentType) => {
+  const viewId = activeView.value?.fk_model_id === meta.value?.id ? activeView.value?.id : undefined
+
   await copy(
     encodeURI(
-      `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}?rowId=${primaryKey.value}&commentId=${comment.id}`,
+      `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
+        viewId ? `/${viewId}` : ''
+      }?rowId=${primaryKey.value}&commentId=${comment.id}`,
     ),
   )
 }

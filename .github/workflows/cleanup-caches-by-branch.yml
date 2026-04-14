@@ -5,7 +5,7 @@ on:
       - closed
 jobs:
   cleanup:
-    runs-on: ubuntu-22.04
+    runs-on: ubicloud-standard-2
     steps:
       - name: Check out code
         uses: actions/checkout@v3

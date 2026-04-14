@@ -10,11 +10,10 @@ export default class NcHelp {
 
   public static async executeOperations(
     fns: Array<() => Promise<any>>,
-    dbType: string,
+    _dbType: string,
   ): Promise<any> {
     const queue = new PQueue({
-      concurrency:
-        NC_EXECUTE_OPERATIONS_CONCURRENCY,
+      concurrency: NC_EXECUTE_OPERATIONS_CONCURRENCY,
     });
 
     const errors = [];

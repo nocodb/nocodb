@@ -348,10 +348,14 @@ const getAst = async (
       buttonFilterColumnIds.has(col.id)
     ) {
       isRequested = true;
+    } else if (col.pk && apiVersion === NcApiVersion.V3) {
+      isRequested = true;
     }
     // exclude system column and foreign key from API response for v3
+    // but always keep PK columns — they are needed for id/id_fields
     else if (
       col.system &&
+      !col.pk &&
       ![UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt) &&
       apiVersion === NcApiVersion.V3
     ) {

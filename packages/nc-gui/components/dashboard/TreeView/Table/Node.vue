@@ -51,8 +51,6 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { showEEFeatures, showRecordPlanLimitExceededModal } = useEeConfig()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
@@ -66,6 +64,7 @@ const source = computed(() => {
 const isTableDeleteDialogVisible = ref(false)
 const isTablePermissionsDialogVisible = ref(false)
 const isTableRlsDialogVisible = ref(false)
+const isTableDateDependencyDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
 
@@ -299,6 +298,11 @@ function onRowLevelSecurity() {
   isTableRlsDialogVisible.value = true
 }
 
+function onDateDependency() {
+  isOptionsOpen.value = false
+  isTableDateDependencyDialogVisible.value = true
+}
+
 /** Cancel renaming view */
 function onCancel() {
   if (!isEditing.value) return
@@ -410,9 +414,13 @@ const enabledOptions = computed(() => {
       showEEFeatures.value,
     tableRowLevelSecurity:
       isEeUI &&
-      isFeatureEnabled(FEATURE_FLAG.ROW_LEVEL_SECURITY) &&
       table.value?.type === 'table' &&
       isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }) &&
+      showEEFeatures.value,
+    tableDateDependency:
+      isEeUI &&
+      table.value?.type === 'table' &&
+      isUIAllowed('dateDependencyManage', { roles: baseRole?.value, source: source.value }) &&
       showEEFeatures.value,
     tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
@@ -434,8 +442,8 @@ const enabledOptions = computed(() => {
         class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium text-bodyDefaultSm font-medium"
         :class="{
           'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
-          'pl-8': sourceIndex !== 0,
-          'pl-2 xs:(pl-2)': sourceIndex === 0,
+          'pl-8 rtl:(pr-8 pl-0.75)': sourceIndex !== 0,
+          'pl-2 xs:(pl-2) rtl:(pr-2 pl-0.75) rtl:xs:(pr-2 pl-0.75)': sourceIndex === 0,
         }"
         :data-testid="`nc-tbl-side-node-${table.title}`"
         @contextmenu="setMenuContext('table', table)"
@@ -678,6 +686,28 @@ const enabledOptions = computed(() => {
                       <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
                     </div>
                   </NcMenuItem>
+                  <PaymentUpgradeBadgeProvider
+                    v-if="enabledOptions.tableDateDependency"
+                    :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
+                  >
+                    <template #default="{ click }">
+                      <NcMenuItem
+                        :data-testid="`sidebar-table-date-dependency-${table.title}`"
+                        class="nc-table-date-dependency"
+                        @click="click(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY, onDateDependency)"
+                      >
+                        <div v-e="['c:table:date-dependency']" class="flex gap-2 items-center w-full">
+                          <GeneralIcon icon="ncCalendar" class="opacity-80" />
+                          <div class="flex-1">{{ $t('labels.dateDependency.title') }}</div>
+                          <LazyPaymentUpgradeBadge
+                            :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
+                            :title="$t('upgrade.upgradeToUseDateDependency')"
+                            :content="$t('upgrade.upgradeToUseDateDependencySubtitle')"
+                          />
+                        </div>
+                      </NcMenuItem>
+                    </template>
+                  </PaymentUpgradeBadgeProvider>
                 </template>
                 <template v-if="enabledOptions.tableDelete">
                   <NcDivider />
@@ -738,6 +768,12 @@ const enabledOptions = computed(() => {
     <DlgTableRowLevelSecurity
       v-if="table.id && isEeUI"
       v-model:visible="isTableRlsDialogVisible"
+      :table-id="table.id"
+      :title="table.title"
+    />
+    <DlgTableDateDependency
+      v-if="table.id && isEeUI"
+      v-model:visible="isTableDateDependencyDialogVisible"
       :table-id="table.id"
       :title="table.title"
     />

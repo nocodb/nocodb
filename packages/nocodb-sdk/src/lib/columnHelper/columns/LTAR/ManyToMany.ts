@@ -4,14 +4,14 @@ import AbstractColumnHelper, {
 } from '../../column.interface';
 import { LinkToAnotherRecordType } from '~/lib/Api';
 import { ncHasProperties } from '~/lib/is';
-import { isMm } from '../../utils';
+import { isMMOrMMLike } from '~/lib/UITypes';
 import { LookupHelper } from '../Lookup';
 
 export class ManyToManyHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
 
   serializeValue(value: any, params: SerializerOrParserFnProps['params']) {
-    if (!isMm(params.col)) throw new SilentTypeConversionError();
+    if (!isMMOrMMLike(params.col)) throw new SilentTypeConversionError();
 
     let parsedVal = value;
 

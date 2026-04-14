@@ -134,6 +134,14 @@ const selectedTeams = computed(() => {
           <template #listItem="{ option }">
             <div class="w-full flex items-center gap-2" :class="`nc-team-select-${option.value}`">
               <GeneralTeamInfo :team="option" class="flex-1 max-w-[100%_-_32px]" />
+              <NcBadge
+                v-if="option.scope === 'org'"
+                :border="false"
+                color="blue"
+                class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+              >
+                {{ $t('general.orgBadge') }}
+              </NcBadge>
               <GeneralLoader v-if="compareValue(option.value, newTeam)" size="medium" />
               <GeneralIcon v-else-if="!newTeam && compareValue(option.value)" icon="check" class="text-primary h-4 w-4" />
             </div>

@@ -449,7 +449,9 @@ watch(inviteDlg, (newVal) => {
       <PaymentBanner />
     </div>
 
-    <div class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-6 px-4 md:px-6 flex flex-col gap-6 sticky top-0">
+    <div
+      class="nc-collaborator-table-wrapper h-full max-w-[1200px] mx-auto py-4 md:py-6 px-4 md:px-6 flex flex-col gap-6 sticky top-0"
+    >
       <div class="w-full flex items-center justify-between gap-3">
         <a-input
           v-model:value="userSearchText"
@@ -491,7 +493,7 @@ watch(inviteDlg, (newVal) => {
 
           <div class="flex items-center gap-2">
             <NcButton
-              v-if="isTeamsEnabled && !isAdminPanel && showEEFeatures"
+              v-if="isTeamsEnabled && showEEFeatures"
               v-e="['c:workspace:team-add']"
               size="small"
               type="secondary"
@@ -596,6 +598,14 @@ watch(inviteDlg, (newVal) => {
 
             <template v-if="column.key === 'email' && record.isTeam">
               <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" />
+              <NcBadge
+                v-if="teamsMap[record.id]?.scope === 'org'"
+                :border="false"
+                color="blue"
+                class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+              >
+                {{ $t('general.orgBadge') }}
+              </NcBadge>
             </template>
 
             <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center">

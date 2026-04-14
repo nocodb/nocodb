@@ -240,6 +240,16 @@ async function onOpenModal({
                     {{ $t('objects.viewType.calendar') }}
                   </div>
                 </a-menu-item>
+                <a-menu-item
+                  v-if="isEeUI && showEEFeatures"
+                  data-testid="topbar-view-create-map"
+                  @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
+                >
+                  <div class="nc-viewlist-submenu-popup-item">
+                    <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
+                    {{ $t('objects.viewType.map') }}
+                  </div>
+                </a-menu-item>
                 <NcTooltip
                   v-if="isListViewEnabled"
                   :title="$t('tooltip.listViewOnlyPg')"
@@ -259,22 +269,9 @@ async function onOpenModal({
                     <div class="nc-viewlist-submenu-popup-item" :class="{ 'opacity-50': !isPgSource }">
                       <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
                       {{ $t('objects.viewType.list') }}
-                      <NcBadgeBeta />
                     </div>
                   </a-menu-item>
                 </NcTooltip>
-                <a-menu-item
-                  v-if="isEeUI && showEEFeatures"
-                  data-testid="topbar-view-create-map"
-                  @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
-                >
-                  <div class="nc-viewlist-submenu-popup-item">
-                    <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
-                    {{ $t('objects.viewType.map') }}
-                    <NcBadgeBeta />
-                  </div>
-                </a-menu-item>
-
                 <a-menu-item
                   v-if="isEeUI && showEEFeatures"
                   data-testid="topbar-view-create-timeline"
@@ -283,7 +280,6 @@ async function onOpenModal({
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
                     {{ $t('objects.viewType.timeline') }}
-                    <NcBadgeBeta />
                   </div>
                 </a-menu-item>
 

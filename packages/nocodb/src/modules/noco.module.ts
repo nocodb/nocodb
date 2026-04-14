@@ -54,7 +54,7 @@ import { KanbansController } from '~/controllers/kanbans.controller';
 import { MapsController } from '~/controllers/maps.controller';
 import { ModelVisibilitiesController } from '~/controllers/model-visibilities.controller';
 import { NotificationsController } from '~/controllers/notifications.controller';
-import { OrgLcenseController } from '~/controllers/org-lcense.controller';
+import { OrgLicenseController } from '~/controllers/org-license.controller';
 import { OrgTokensController } from '~/controllers/org-tokens.controller';
 import { OrgUsersController } from '~/controllers/org-users.controller';
 import { PluginsController } from '~/controllers/plugins.controller';
@@ -95,7 +95,7 @@ import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { ModelVisibilitiesService } from '~/services/model-visibilities.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { NotificationsService } from '~/services/notifications/notifications.service';
-import { OrgLcenseService } from '~/services/org-lcense.service';
+import { OrgLicenseService } from '~/services/org-license.service';
 import { OrgTokensEeService } from '~/services/org-tokens-ee.service';
 import { OrgTokensService } from '~/services/org-tokens.service';
 import { OrgUsersService } from '~/services/org-users.service';
@@ -143,6 +143,7 @@ import { DataTableService } from '~/services/data-table.service';
 import { DatasService } from '~/services/datas.service';
 import { FormulaColumnTypeChanger } from '~/services/formula-column-type-changer.service';
 import { IntegrationsService } from '~/services/integrations.service';
+import { BaseIntegrationsService } from '~/services/base-integrations.service';
 import { PublicDatasExportService } from '~/services/public-datas-export.service';
 import { PublicDatasService } from '~/services/public-datas.service';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
@@ -214,7 +215,7 @@ export const nocoModuleMetadata = {
           KanbansController,
           MapsController,
           ModelVisibilitiesController,
-          OrgLcenseController,
+          OrgLicenseController,
           OrgTokensController,
           OrgUsersController,
           PluginsController,
@@ -246,7 +247,6 @@ export const nocoModuleMetadata = {
           ColumnsV3Controller,
           SortsV3Controller,
           FiltersV3Controller,
-
           /* Datas */
           DataTableController,
           DatasController,
@@ -300,7 +300,7 @@ export const nocoModuleMetadata = {
     MapsService,
     MetaDiffsService,
     ModelVisibilitiesService,
-    OrgLcenseService,
+    OrgLicenseService,
     OrgTokensEeService,
     OrgTokensService,
     OrgUsersService,
@@ -321,6 +321,7 @@ export const nocoModuleMetadata = {
     ExtensionsService,
     JobsMetaService,
     IntegrationsService,
+    BaseIntegrationsService,
     BasesV3Service,
     TablesV3Service,
     ColumnsV3Service,

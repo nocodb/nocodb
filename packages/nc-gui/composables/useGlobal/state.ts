@@ -1,6 +1,6 @@
 import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
-import { MapProvider } from 'nocodb-sdk'
+import { MapProvider, NC_DEFAULT_ORG_ID } from 'nocodb-sdk'
 import type { AppInfo, State, StoredState } from './types'
 import { INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
 
@@ -141,6 +141,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     version: '0.0.0',
     ncAttachmentFieldSize: 20,
     ncMaxAttachmentsAllowed: 10,
+    ncMaxTextLength: 100000,
     isCloud: false,
     automationLogLevel: 'OFF',
     disableEmailAuth: false,
@@ -148,9 +149,16 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     inviteOnlySignup: false,
     giftUrl: '',
     isOnPrem: false,
+    isPostgres: false,
+    isAirgapped: false,
+    seatLimit: null,
+    isTrial: false,
+    isTrialExpired: false,
+    licenseExpiryTime: 0,
     defaultWorkspaceId: null,
     disableGroupByAggregation: false,
     mapProvider: MapProvider.OPENSTREETMAP,
+    defaultOrgId: NC_DEFAULT_ORG_ID,
   })
 
   /** reactive token payload */

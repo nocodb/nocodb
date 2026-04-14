@@ -77,7 +77,10 @@ export const getLinkInfo = async (
 
   // Ensure colOptions is present for isMMOrMMLike check
   // (getColOptions may load via method without setting it on the column)
-  const relationType = isMMOrMMLike({ ...linkColumn, colOptions: relationColOptions })
+  const relationType = isMMOrMMLike({
+    ...linkColumn,
+    colOptions: relationColOptions,
+  })
     ? RelationTypes.MANY_TO_MANY
     : relationColOptions.type;
 
@@ -124,7 +127,7 @@ export const getLinkInfo = async (
           : relationColOptions.type,
       } as UnifiedMetaType.ILinkInfo;
     }
-    case RelationTypes.MANY_TO_MANY:{
+    case RelationTypes.MANY_TO_MANY: {
       const joinIds = [
         relationColOptions.fk_child_column_id,
         relationColOptions.fk_parent_column_id,

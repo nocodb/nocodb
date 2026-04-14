@@ -198,6 +198,40 @@ async function onOpenModal({
             <GeneralLoader v-if="toBeCreateType === ViewTypes.CALENDAR && isViewListLoading" />
           </div>
         </NcMenuItem>
+        <NcMenuItem
+          v-if="isEeUI && showEEFeatures"
+          inner-class="w-full"
+          data-testid="sidebar-view-create-map"
+          @click="
+            () => {
+              isOpen = false
+              showUpgradeToUseMapView({
+                successCallback: () => {
+                  onOpenModal({ type: ViewTypes.MAP })
+                },
+              })
+            }
+          "
+        >
+          <div class="item">
+            <div class="item-inner">
+              <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
+              <div>{{ $t('objects.viewType.map') }}</div>
+            </div>
+
+            <template v-if="blockMapView">
+              <PaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
+                :plan-title="PlanTitles.BUSINESS"
+                remove-click
+                show-as-lock
+              />
+            </template>
+            <template v-else>
+              <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
+            </template>
+          </div>
+        </NcMenuItem>
         <NcTooltip
           v-if="isListViewEnabled"
           :title="$t('tooltip.listViewOnlyPg')"
@@ -222,7 +256,6 @@ async function onOpenModal({
               <div class="item-inner">
                 <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" :class="{ '!opacity-50': !isPgSource }" />
                 <div>{{ $t('objects.viewType.list') }}</div>
-                <NcBadgeBeta />
               </div>
 
               <template v-if="blockListView">
@@ -242,41 +275,6 @@ async function onOpenModal({
         <NcMenuItem
           v-if="isEeUI && showEEFeatures"
           inner-class="w-full"
-          data-testid="sidebar-view-create-map"
-          @click="
-            () => {
-              isOpen = false
-              showUpgradeToUseMapView({
-                successCallback: () => {
-                  onOpenModal({ type: ViewTypes.MAP })
-                },
-              })
-            }
-          "
-        >
-          <div class="item">
-            <div class="item-inner">
-              <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
-              <div>{{ $t('objects.viewType.map') }}</div>
-              <NcBadgeBeta />
-            </div>
-
-            <template v-if="blockMapView">
-              <PaymentUpgradeBadge
-                :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
-                :plan-title="PlanTitles.BUSINESS"
-                remove-click
-                show-as-lock
-              />
-            </template>
-            <template v-else>
-              <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
-            </template>
-          </div>
-        </NcMenuItem>
-        <NcMenuItem
-          v-if="isEeUI && showEEFeatures"
-          inner-class="w-full"
           data-testid="sidebar-view-create-timeline"
           @click="
             () => {
@@ -293,7 +291,6 @@ async function onOpenModal({
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
               <div>{{ $t('objects.viewType.timeline') }}</div>
-              <NcBadgeBeta />
             </div>
 
             <template v-if="blockTimelineView">

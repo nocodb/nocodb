@@ -125,7 +125,6 @@ export const InstanceTypes = {
 export enum InstanceCommands {
   RESUME_LOCAL = 'resumeLocal',
   PAUSE_LOCAL = 'pauseLocal',
-  RELEASE = 'release',
   ASSIGN_WORKER_GROUP = 'assignWorkerGroup',
   STOP_OTHER_WORKER_GROUPS = 'stopOtherWorkerGroups',
   ABORT_CHAT_STREAM = 'abortChatStream',
@@ -321,6 +320,13 @@ export interface ChatMessageJobData extends JobData {
   sessionId: string;
   firstUserMessage?: string;
   approvals?: Record<string, 'approved' | 'denied'>;
+  /** User's current UI navigation context (active table/view/dashboard/document). */
+  uiContext?: {
+    tableId?: string;
+    viewId?: string;
+    dashboardId?: string;
+    documentId?: string;
+  };
 }
 
 export interface ChatApprovalJobData extends JobData {

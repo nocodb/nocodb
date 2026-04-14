@@ -8,14 +8,16 @@ export class UseWorkerProcessor {
   private logger = new Logger(UseWorkerProcessor.name);
 
   constructor(
-    private readonly attachmentsService: AttachmentsService,
-    private readonly tablesService: TablesService,
+    protected readonly attachmentsService: AttachmentsService,
+    protected readonly tablesService: TablesService,
   ) {}
 
-  serviceMap = {
-    [AttachmentsService.name]: this.attachmentsService,
-    [TablesService.name]: this.tablesService,
-  };
+  protected get serviceMap(): Record<string, any> {
+    return {
+      [AttachmentsService.name]: this.attachmentsService,
+      [TablesService.name]: this.tablesService,
+    };
+  }
 
   async job(
     job: Job<{
@@ -25,6 +27,27 @@ export class UseWorkerProcessor {
     }>,
   ) {
     const { service, method, args } = job.data;
-    return this.serviceMap[service][method](...args);
+
+    const processor = this.serviceMap[service];
+
+    if (!processor) {
+      const msg = `UseWorkerProcessor: service "${service}" not found in serviceMap. Available: [${Object.keys(
+        this.serviceMap,
+      ).join(', ')}]`;
+      this.logger.error(msg);
+      throw new Error(msg);
+    }
+
+    const target = processor[method];
+
+    if (!target) {
+      const msg = `UseWorkerProcessor: method "${method}" not found on service "${service}"`;
+      this.logger.error(msg);
+      throw new Error(msg);
+    }
+
+    // Use __original to bypass @Pollable/@UseWorker decorator and call the real method
+    const fn = target.__original || target;
+    return fn.apply(processor, args);
   }
 }

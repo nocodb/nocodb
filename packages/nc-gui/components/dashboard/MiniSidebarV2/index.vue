@@ -29,5 +29,9 @@ const { isMobileMode } = useGlobal()
   &--dock {
     overflow: visible;
   }
+
+  .rtl & {
+    @apply border-r-0 border-l-1;
+  }
 }
 </style>

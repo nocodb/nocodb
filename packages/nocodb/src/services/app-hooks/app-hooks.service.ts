@@ -6,6 +6,7 @@ import type {
   ApiCreatedEvent,
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
+  ApiTokenUpdateEvent,
   AttachmentEvent,
   BaseDuplicateEvent,
   CalendarViewUpdateEvent,
@@ -26,7 +27,12 @@ import type {
   ListViewUpdateEvent,
   MapViewUpdateEvent,
   MetaDiffEvent,
+  OrgUserAddEvent,
+  OrgUserDeleteEvent,
   OrgUserInviteEvent,
+  OrgUserRemoveEvent,
+  OrgUserUpdateEvent,
+  OrgWorkspaceEvent,
   PluginEvent,
   PluginTestEvent,
   ProjectCreateEvent,
@@ -292,6 +298,14 @@ export class AppHooksService {
   emit(event: AppEvents.API_TOKEN_DELETE, data: ApiTokenDeleteEvent): void;
   emit(event: AppEvents.ORG_USER_INVITE, data: OrgUserInviteEvent): void;
   emit(event: AppEvents.ORG_USER_RESEND_INVITE, data: OrgUserInviteEvent): void;
+  emit(event: AppEvents.ORG_USER_UPDATE, data: OrgUserUpdateEvent): void;
+  emit(event: AppEvents.ORG_USER_DELETE, data: OrgUserDeleteEvent): void;
+  emit(event: AppEvents.ORG_USER_ADD, data: OrgUserAddEvent): void;
+  emit(event: AppEvents.ORG_USER_REMOVE, data: OrgUserRemoveEvent): void;
+  emit(
+    event: AppEvents.ORG_WORKSPACE_ADD | AppEvents.ORG_WORKSPACE_REMOVE,
+    data: OrgWorkspaceEvent,
+  ): void;
   emit(event: AppEvents.VIEW_COLUMN_CREATE, data: ViewColumnEvent): void;
   emit(event: AppEvents.VIEW_COLUMN_UPDATE, data: ViewColumnUpdateEvent): void;
   emit(
@@ -319,6 +333,7 @@ export class AppHooksService {
   emit(event: AppEvents.META_DIFF_SYNC, data: MetaDiffEvent): void;
   emit(event: AppEvents.UI_ACL, data: UIAclEvent): void;
   emit(event: AppEvents.ORG_API_TOKEN_CREATE, data: ApiTokenCreateEvent): void;
+  emit(event: AppEvents.ORG_API_TOKEN_UPDATE, data: ApiTokenUpdateEvent): void;
   emit(event: AppEvents.ORG_API_TOKEN_DELETE, data: ApiTokenDeleteEvent): void;
   emit(
     event: AppEvents.USER_EMAIL_VERIFICATION,
@@ -449,6 +464,10 @@ export class AppHooksService {
       | AppEvents.DOCUMENT_CREATE
       | AppEvents.DOCUMENT_UPDATE
       | AppEvents.DOCUMENT_DELETE,
+    data: any,
+  ): void;
+  emit(
+    event: AppEvents.DATE_DEPENDENCY_UPDATE | AppEvents.DATE_DEPENDENCY_DELETE,
     data: any,
   ): void;
 

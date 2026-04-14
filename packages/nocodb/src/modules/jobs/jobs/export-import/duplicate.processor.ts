@@ -1030,14 +1030,17 @@ export class DuplicateProcessor {
         let error = null;
 
         this.exportService
-          .streamModelDataAsCsv(targetContext, {
-            dataStream,
-            linkStream,
-            baseId: sourceProject.id,
-            modelId: sourceModel.id,
-            handledMmList: handledLinks,
-            _fieldIds: fields,
-          })
+          .streamModelDataAsCsv(
+            { ...sourceContext, base_id: sourceModel.base_id },
+            {
+              dataStream,
+              linkStream,
+              baseId: sourceProject.id,
+              modelId: sourceModel.id,
+              handledMmList: handledLinks,
+              _fieldIds: fields,
+            },
+          )
           .catch((e) => {
             this.debugLog(e);
             dataStream.push(null);

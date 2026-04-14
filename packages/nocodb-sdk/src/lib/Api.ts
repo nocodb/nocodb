@@ -9,6 +9,797 @@
  * ---------------------------------------------------------------
  */
 
+/**
+ * Workflow execution with full details
+ */
+export interface WorkflowExecutionGetResponseV3Type {
+  /** Unique identifier for the execution */
+  id: string;
+  /** Unique identifier for the workflow */
+  workflow_id: string;
+  /** Execution status */
+  status:
+    | 'running'
+    | 'waiting'
+    | 'completed'
+    | 'error'
+    | 'cancelled'
+    | 'skipped';
+  /** Full execution state including node results, loops, and pause/resume data */
+  execution_data?: WorkflowExecutionDataV3Type;
+  /**
+   * Timestamp when the execution started
+   * @format date-time
+   */
+  started_at?: string | null;
+  /**
+   * Timestamp when the execution finished
+   * @format date-time
+   */
+  finished_at?: string | null;
+  /**
+   * Timestamp when the execution record was created
+   * @format date-time
+   */
+  created_at?: string;
+}
+
+export interface WorkflowExecutionListV3Type {
+  list: {
+    /** Unique identifier for the execution */
+    id: string;
+    /** Unique identifier for the workflow */
+    workflow_id: string;
+    /** Execution status */
+    status:
+      | 'running'
+      | 'waiting'
+      | 'completed'
+      | 'error'
+      | 'cancelled'
+      | 'skipped';
+    /**
+     * Timestamp when the execution started
+     * @format date-time
+     */
+    started_at?: string | null;
+    /**
+     * Timestamp when the execution finished
+     * @format date-time
+     */
+    finished_at?: string | null;
+    /**
+     * Timestamp when the execution record was created
+     * @format date-time
+     */
+    created_at?: string;
+  }[];
+}
+
+/**
+ * Update an existing workflow node
+ */
+export interface WorkflowNodeUpdateReqV3Type {
+  /** Node type identifier. */
+  type?: string;
+  /** Position of the node on the canvas. */
+  position?: {
+    /** X coordinate. */
+    x?: number;
+    /** Y coordinate. */
+    y?: number;
+  };
+  /** Node configuration and metadata. */
+  data?: {
+    /** Node-specific configuration. */
+    config?: object;
+    /** Display title for the node. */
+    title?: string;
+    /** Optional description. */
+    description?: string | null;
+  };
+  /** Position of the incoming connection handle. */
+  targetPosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Position of the outgoing connection handle. */
+  sourcePosition?: 'top' | 'bottom' | 'left' | 'right';
+}
+
+/**
+ * Create a new workflow node
+ */
+export interface WorkflowNodeCreateReqV3Type {
+  /** Node type identifier. */
+  type: string;
+  /** Position of the node on the canvas. */
+  position: {
+    /** X coordinate. */
+    x: number;
+    /** Y coordinate. */
+    y: number;
+  };
+  /** Node configuration and metadata. */
+  data: {
+    /** Node-specific configuration. */
+    config?: object;
+    /** Display title for the node. */
+    title?: string;
+    /** Optional description. */
+    description?: string | null;
+  };
+  /** Position of the incoming connection handle. Defaults to 'top'. */
+  targetPosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Position of the outgoing connection handle. Defaults to 'bottom'. */
+  sourcePosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Optional edges to add along with the node. */
+  edges?: WorkflowEdgeV3Type[];
+}
+
+/**
+ * List of workflow nodes and edges
+ */
+export interface WorkflowNodeListResponseV3Type {
+  /** Workflow nodes. */
+  nodes?: WorkflowNodeGetResponseV3Type[];
+  /** Connections between nodes. */
+  edges?: WorkflowEdgeV3Type[];
+}
+
+/**
+ * A single workflow node
+ */
+export interface WorkflowNodeGetResponseV3Type {
+  /** Unique identifier for the node. */
+  id: string;
+  /** Node type identifier. */
+  type: string;
+  /** Position of the node on the canvas. */
+  position: {
+    /** X coordinate. */
+    x: number;
+    /** Y coordinate. */
+    y: number;
+  };
+  /** Node configuration and metadata. */
+  data: WorkflowNodeDataV3Type;
+  /** Position of the incoming connection handle. */
+  targetPosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Position of the outgoing connection handle. */
+  sourcePosition?: 'top' | 'bottom' | 'left' | 'right';
+}
+
+/**
+ * Workflow test node request body
+ */
+export interface WorkflowTestNodeReqV3Type {
+  /** Unique identifier of the node to test. */
+  node_id: string;
+  /** Optional test data to pass to the node. */
+  test_trigger_data?: object;
+  /** Test mode. Defaults to sample_data if not specified. */
+  test_mode?: 'sample_data' | 'listen_webhook' | 'trigger_event';
+}
+
+/**
+ * Workflow execute request body
+ */
+export interface WorkflowExecuteReqV3Type {
+  /** Data to pass to the workflow trigger. */
+  trigger_data?: object;
+}
+
+/**
+ * Workflow with full details including nodes and edges
+ */
+export interface WorkflowGetResponseV3Type {
+  /** Unique identifier for the workflow */
+  id: string;
+  /** Title of the workflow */
+  title: string;
+  /** Description of the workflow */
+  description?: string | null;
+  /** Unique identifier for the base */
+  base_id: string;
+  /** Unique identifier for the workspace */
+  workspace_id: string;
+  /** Whether the workflow is enabled */
+  enabled?: boolean;
+  /** Published workflow node definitions */
+  nodes?: WorkflowNodeV3Type[];
+  /** Published connections between workflow nodes */
+  edges?: WorkflowEdgeV3Type[];
+  /** Draft configuration with unpublished changes. Null when no draft exists. */
+  draft?: WorkflowDraftV3Type;
+  /** Workflow options including execution configuration and display settings */
+  options?: WorkflowOptionsV3Type;
+  /**
+   * Timestamp when the workflow was created
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the workflow was last updated
+   * @format date-time
+   */
+  updated_at: string;
+  /** User ID of the creator */
+  created_by?: string;
+  /** User ID of the last updater */
+  updated_by?: string;
+}
+
+/**
+ * Workflow options including execution configuration and display settings
+ */
+export interface WorkflowOptionsV3Type {
+  /** Execution identity — determines the permissions context under which the workflow runs */
+  run_as?: {
+    /** Identity type. 'service_account' runs as a system user with creator role, 'role' runs with a specified role, 'user' runs as a specific user */
+    type: 'service_account' | 'role' | 'user';
+    /** Role name (when type='role') or user ID (when type='user'). Not required for 'service_account' */
+    value?: string;
+  };
+  /** Custom emoji icon for the workflow */
+  icon?: string;
+}
+
+/**
+ * Draft version of workflow nodes and edges for create/update requests. Node data does not accept testResult.
+ */
+export interface WorkflowDraftRequestV3Type {
+  /** Draft workflow node definitions */
+  nodes?: WorkflowNodeRequestV3Type[];
+  /** Draft connections between nodes */
+  edges?: WorkflowEdgeV3Type[];
+}
+
+/**
+ * A workflow node in create/update requests. Same as WorkflowNode but node data does not accept testResult.
+ */
+export interface WorkflowNodeRequestV3Type {
+  /** Unique identifier for this node within the workflow */
+  id: string;
+  /** Node type identifier determining behavior and available configuration. */
+  type: string;
+  /** Position of the node on the workflow canvas */
+  position: {
+    /** X coordinate */
+    x: number;
+    /** Y coordinate */
+    y: number;
+  };
+  /** Data payload for a workflow node in create/update requests. Does not accept testResult — that field is server-managed. */
+  data: WorkflowNodeDataRequestV3Type;
+  /** Position of the incoming connection handle */
+  targetPosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Position of the outgoing connection handle */
+  sourcePosition?: 'top' | 'bottom' | 'left' | 'right';
+}
+
+/**
+ * Data payload for a workflow node in create/update requests. Does not accept testResult — that field is server-managed.
+ */
+export interface WorkflowNodeDataRequestV3Type {
+  /** Display title of the node */
+  title: string;
+  /** Description of the node */
+  description?: string;
+  /** Node-specific configuration. Structure varies by node type — e.g. table ID for record triggers, conditions array for If nodes, duration/unit for Delay nodes, array expression for Iterate nodes */
+  config: object;
+  /** Input variable definitions for this node */
+  inputVariables?: WorkflowVariableDefinitionV3Type[];
+  /** Output variable definitions produced by this node */
+  outputVariables?: WorkflowVariableDefinitionV3Type[];
+}
+
+/**
+ * Draft version of workflow nodes and edges with unpublished changes. Must be published via the publish endpoint for changes to take effect.
+ */
+export interface WorkflowDraftV3Type {
+  /** Draft workflow node definitions */
+  nodes?: WorkflowNodeV3Type[];
+  /** Draft connections between nodes */
+  edges?: WorkflowEdgeV3Type[];
+}
+
+/**
+ * Full execution state of a workflow run, including all node results, loop data, and pause/resume information
+ */
+export interface WorkflowExecutionDataV3Type {
+  /** Execution state ID */
+  id: string;
+  /** ID of the workflow being executed */
+  workflowId: string;
+  /** Overall execution status */
+  status:
+    | 'running'
+    | 'waiting'
+    | 'completed'
+    | 'error'
+    | 'cancelled'
+    | 'skipped';
+  /** Execution start time (Unix timestamp in milliseconds) */
+  startTime: number;
+  /** Execution end time (Unix timestamp in milliseconds) */
+  endTime?: number;
+  /** Ordered list of node execution results */
+  nodeResults: WorkflowNodeExecutionResultV3Type[];
+  /** ID of the currently executing node (when status is 'running') */
+  currentNodeId?: string;
+  /** Data that triggered the workflow execution */
+  triggerData?: object;
+  /** Title of the trigger node */
+  triggerNodeTitle?: string;
+  /** Loop execution data keyed by iterate node ID */
+  loops?: Record<string, WorkflowLoopDataV3Type>;
+  /** Timestamp when execution was paused (for delay/wait-until nodes) */
+  pausedAt?: number;
+  /** Timestamp when execution should resume */
+  resumeAt?: number;
+  /** ID of the node to resume execution from */
+  nextNodeId?: string;
+}
+
+/**
+ * Execution data for a single iterate/loop node across all its iterations
+ */
+export interface WorkflowLoopDataV3Type {
+  /** ID of the iterate node */
+  nodeId: string;
+  /** Title of the iterate node */
+  nodeTitle: string;
+  /** Total number of iterations executed */
+  totalIterations: number;
+  /** Map of iteration index to iteration data. Each iteration contains its own nodeResults and optional nested childLoops. */
+  iterations?: Record<
+    string,
+    {
+      /** 0-based iteration index */
+      iterationIndex?: number;
+      /** Node execution results within this iteration */
+      nodeResults?: WorkflowNodeExecutionResultV3Type[];
+      /** Nested loop data for loops-within-loops */
+      childLoops?: Record<string, WorkflowLoopDataV3Type>;
+    }
+  >;
+}
+
+/**
+ * Result of executing a single workflow node
+ */
+export interface WorkflowNodeExecutionResultV3Type {
+  /** ID of the node that was executed */
+  nodeId: string;
+  /** Title of the node at execution time */
+  nodeTitle: string;
+  /** Execution status of the node */
+  status: 'pending' | 'running' | 'success' | 'error' | 'skipped';
+  /** Interpolated input data passed to the node */
+  input?: object;
+  /** Output data produced by the node */
+  output?: object;
+  /** Error message if the node failed */
+  error?: string;
+  /** Execution start time (Unix timestamp in milliseconds) */
+  startTime: number;
+  /** Execution end time (Unix timestamp in milliseconds) */
+  endTime?: number;
+  /** Explicit next node title for routing (used by conditional nodes) */
+  nextNode?: string;
+  /** Execution log entries from the node */
+  logs?: {
+    /** Log level */
+    level: 'info' | 'warn' | 'error';
+    /** Log message */
+    message: string;
+    /** Timestamp of the log entry */
+    ts?: number;
+    /** Additional structured log data */
+    data?: object;
+  }[];
+  /** Execution metrics (e.g. execution time, condition count) */
+  metrics?: object;
+  /** Input variable definitions at execution time */
+  inputVariables?: WorkflowVariableDefinitionV3Type[];
+  /** Output variable definitions at execution time */
+  outputVariables?: WorkflowVariableDefinitionV3Type[];
+  /** Loop context for iterate nodes — contains loop state, body port, and exit port */
+  loopContext?: {
+    /** Serializable loop state */
+    state?: {
+      /** Array of items being iterated */
+      items?: any[];
+      /** Current iteration index (0-based) */
+      currentIndex?: number;
+      /** Total number of items to iterate */
+      totalItems?: number;
+    };
+    /** Port ID for the loop body (e.g. 'body') */
+    bodyPort?: string;
+    /** Port ID for the loop exit (e.g. 'output') */
+    exitPort?: string;
+  };
+  /** Whether this test result is stale (node config changed since last test) */
+  isStale?: boolean;
+}
+
+/**
+ * A directed connection between two workflow nodes defining execution flow. For conditional/loop nodes, sourcePortId determines which branch is followed.
+ */
+export interface WorkflowEdgeV3Type {
+  /** Unique identifier for this edge */
+  id: string;
+  /** ID of the source node */
+  source: string;
+  /** ID of the target node */
+  target: string;
+  /** Whether the edge should be animated in the UI */
+  animated?: boolean;
+  /** Display label on the edge (e.g. 'True', 'False', 'For Each Item') */
+  label?: string;
+  /** Output port ID on the source node. Used for branching — e.g. 'true'/'false' for If nodes, 'body'/'output' for Iterate nodes */
+  sourcePortId?: string;
+  /** Input port ID on the target node */
+  targetPortId?: string;
+}
+
+/**
+ * A node in the workflow graph representing a trigger, action, or flow control operation. Node type IDs follow the pattern '{provider}.{category}.{name}' (e.g. 'nocodb.trigger.after_insert', 'core.flow.if', 'slack.send_message').
+ */
+export interface WorkflowNodeV3Type {
+  /** Unique identifier for this node within the workflow */
+  id: string;
+  /** Node type identifier determining behavior and available configuration. Categories: trigger (start events), action (operations), flow (control flow). Examples: 'nocodb.trigger.after_insert', 'core.action.http', 'core.flow.if', 'core.flow.iterate', 'core.flow.delay', 'slack.send_message', 'ai.action.generate-text' */
+  type: string;
+  /** Position of the node on the workflow canvas */
+  position: {
+    /** X coordinate */
+    x: number;
+    /** Y coordinate */
+    y: number;
+  };
+  /** Data payload of a workflow node containing its configuration and metadata */
+  data: WorkflowNodeDataV3Type;
+  /** Position of the incoming connection handle */
+  targetPosition?: 'top' | 'bottom' | 'left' | 'right';
+  /** Position of the outgoing connection handle */
+  sourcePosition?: 'top' | 'bottom' | 'left' | 'right';
+}
+
+/**
+ * Data payload of a workflow node containing its configuration and metadata
+ */
+export interface WorkflowNodeDataV3Type {
+  /** Display title of the node */
+  title: string;
+  /** Description of the node */
+  description?: string;
+  /** Node-specific configuration. Structure varies by node type — e.g. table ID for record triggers, conditions array for If nodes, duration/unit for Delay nodes, array expression for Iterate nodes */
+  config: object;
+  /** Result from the most recent test execution of this node (only present on draft nodes) */
+  testResult?: WorkflowNodeExecutionResultV3Type;
+  /** Input variable definitions for this node */
+  inputVariables?: WorkflowVariableDefinitionV3Type[];
+  /** Output variable definitions produced by this node */
+  outputVariables?: WorkflowVariableDefinitionV3Type[];
+}
+
+/**
+ * Variable definition describing an input or output of a workflow node
+ */
+export interface WorkflowVariableDefinitionV3Type {
+  /** Expression reference key (e.g. 'fields.Title', 'meta.id') */
+  key: string;
+  /** Human-readable display name */
+  name: string;
+  /** Data type of the variable */
+  type:
+    | 'string'
+    | 'number'
+    | 'integer'
+    | 'boolean'
+    | 'object'
+    | 'array'
+    | 'date'
+    | 'datetime';
+  /** Grouping category — 'meta' for system fields, 'fields' for user data, 'iteration' for loop variables */
+  groupKey?: 'meta' | 'fields' | 'iteration';
+  /** Whether this variable represents an array of values */
+  isArray?: boolean;
+  /** Additional metadata (entity references, icons, UI type hints) */
+  extra?: {
+    /** ID of the referenced entity (column, table, or view) */
+    entity_id?: string;
+    /** Type of the referenced entity */
+    entity?: 'column' | 'table' | 'view';
+    /** Icon identifier for display */
+    icon?: string;
+    /** UI data type hint */
+    uiType?: string;
+    /** Description of the variable */
+    description?: string;
+    /** Port ID this variable belongs to (for multi-port nodes like If/Iterate) */
+    port?: string;
+  };
+  /** Nested variable definitions for object/array types */
+  children?: WorkflowVariableDefinitionV3Type[];
+}
+
+/**
+ * Port definition for a workflow node (input/output connection point)
+ */
+export interface WorkflowNodePortV3Type {
+  /** Unique port identifier within the node (e.g. 'true', 'false', 'body', 'output') */
+  id: string;
+  /** Display label for the port (e.g. 'True', 'False', 'For Each Item') */
+  label?: string;
+  /** Whether this port accepts incoming or outgoing connections */
+  direction: 'input' | 'output';
+  /** Display order of the port */
+  order?: number;
+}
+
+export interface WorkflowListV3Type {
+  list: {
+    /** Unique identifier for the workflow */
+    id: string;
+    /** Title of the workflow */
+    title: string;
+    /** Description of the workflow */
+    description?: string | null;
+    /** Unique identifier for the base */
+    base_id: string;
+    /** Unique identifier for the workspace */
+    workspace_id: string;
+    /** Whether the workflow is enabled */
+    enabled?: boolean;
+    /**
+     * Timestamp when the workflow was created
+     * @format date-time
+     */
+    created_at?: string;
+    /**
+     * Timestamp when the workflow was last updated
+     * @format date-time
+     */
+    updated_at?: string;
+    /** User ID of the creator */
+    created_by?: string;
+    /** User ID of the last updater */
+    updated_by?: string;
+  }[];
+}
+
+/**
+ * Validator configuration for a form field.
+ */
+export interface FormFieldValidatorV3Type {
+  /** Type of validation to apply. */
+  type?:
+    | 'required'
+    | 'regex'
+    | 'minValue'
+    | 'maxValue'
+    | 'minLength'
+    | 'maxLength'
+    | 'email'
+    | 'url'
+    | 'custom';
+  /** Validator parameter value (e.g., min/max number, pattern string). */
+  value?: string | number | null;
+  /** Custom error message for validation failure. */
+  message?: string;
+  /** Regular expression pattern (for regex validator type). */
+  regex?: string;
+}
+
+/**
+ * Form-specific configuration for a field.
+ */
+export interface FormFieldConfigV3Type {
+  /** Display label override for the field. */
+  alias?: string;
+  /** Help text shown below the field. */
+  description?: string;
+  /** Whether the field is required. */
+  required?: boolean;
+  /** Whether to show QR/barcode scanner input. */
+  allow_scanner_input?: boolean;
+  /** Whether to display as list layout. */
+  is_list?: boolean;
+  /** Whether to limit selectable options. */
+  is_limit_option?: boolean;
+  /** List of validators for the field. */
+  validators?: FormFieldValidatorV3Type[];
+}
+
+/**
+ * List of comments for a record.
+ */
+export interface CommentListResponseV3Type {
+  list: CommentV3Type[];
+}
+
+/**
+ * Request body for updating a comment.
+ */
+export interface CommentUpdateRequestV3Type {
+  /**
+   * Updated comment text.
+   * @example Updated comment
+   */
+  comment: string;
+}
+
+/**
+ * Request body for creating a comment.
+ */
+export interface CommentCreateRequestV3Type {
+  /**
+   * Comment text (supports markdown).
+   * @example This is a comment
+   */
+  comment: string;
+}
+
+/**
+ * A comment on a record.
+ */
+export interface CommentV3Type {
+  /**
+   * Unique comment ID.
+   * @example cmt_abc123
+   */
+  id?: string;
+  /**
+   * Record ID this comment belongs to.
+   * @example 1
+   */
+  record_id?: string;
+  /**
+   * Table ID this comment belongs to.
+   * @example mrc5unwjdov67vr
+   */
+  table_id?: string;
+  /**
+   * Comment text (supports markdown).
+   * @example This is a comment
+   */
+  comment?: string;
+  /**
+   * User ID of the comment creator.
+   * @example usr_abc123
+   */
+  created_by?: string;
+  /**
+   * User ID who resolved this comment (null if not resolved).
+   * @example null
+   */
+  resolved_by?: string | null;
+  /**
+   * Parent comment ID for threaded comments.
+   * @example null
+   */
+  parent_comment_id?: string | null;
+  /**
+   * Creation timestamp.
+   * @format date-time
+   * @example 2024-01-15T10:30:00.000Z
+   */
+  created_at?: string;
+  /**
+   * Last update timestamp.
+   * @format date-time
+   * @example 2024-01-15T10:30:00.000Z
+   */
+  updated_at?: string;
+}
+
+/**
+ * List of documents.
+ */
+export interface DocumentListResponseV3Type {
+  list: DocumentListItemV3Type[];
+}
+
+/**
+ * Document summary returned in list responses. Excludes the `content` field.
+ */
+export interface DocumentListItemV3Type {
+  id: string;
+  base_id: string;
+  title: string;
+  meta?: object;
+  order: number;
+  parent_id: string | null;
+  has_children: boolean;
+  version: number;
+  comment_count?: number;
+  created_by?: string;
+  updated_by?: string;
+  /** @format date-time */
+  created_at: string;
+  /** @format date-time */
+  updated_at: string;
+}
+
+/**
+ * Full document response (includes content).
+ */
+export interface DocumentV3Type {
+  /** Unique document identifier. */
+  id: string;
+  /** Base this document belongs to. */
+  base_id: string;
+  /** Document title. */
+  title: string;
+  /** rich-text JSON document content. */
+  content: object;
+  /** Document metadata (icon, cover, lock, settings). */
+  meta?: object;
+  /** Sort order among siblings. */
+  order: number;
+  /** Parent document ID. null for root documents. */
+  parent_id: string | null;
+  /** Whether this document has child documents. */
+  has_children: boolean;
+  /** Optimistic concurrency version counter. */
+  version: number;
+  /** Number of comments on this document. */
+  comment_count?: number;
+  /** User ID of the document creator. */
+  created_by?: string;
+  /** User ID of the last editor. */
+  updated_by?: string;
+  /**
+   * Creation timestamp.
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Last update timestamp.
+   * @format date-time
+   */
+  updated_at: string;
+}
+
+/**
+ * Request body for reordering or moving a document. At least one of order or parent_id must be provided.
+ */
+export interface DocumentReorderV3Type {
+  /** New sort order value (float). Compute midpoint between neighbors for fractional ordering. */
+  order?: number;
+  /** New parent document ID. null to move to root. Omit to keep current parent. */
+  parent_id?: string | null;
+}
+
+/**
+ * Request body for updating a document.
+ */
+export interface DocumentUpdateV3Type {
+  /** Updated title. */
+  title?: string;
+  /** Updated rich-text JSON document content. */
+  content?: object;
+  /** Updated metadata. */
+  meta?: object;
+  /** Current document version for optimistic concurrency control. Must match the server's version. */
+  version: number;
+}
+
+/**
+ * Request body for creating a document.
+ */
+export interface DocumentCreateV3Type {
+  /** Title of the document. Defaults to 'Untitled' if omitted. */
+  title?: string;
+  /** rich-text JSON document content. */
+  content?: object;
+  /** Arbitrary metadata (icon, cover image, settings, etc.). */
+  meta?: object;
+  /** Parent document ID. null or omitted for root-level documents. */
+  parent_id?: string | null;
+}
+
 export type ApiTokenWithTokenV3V3Type = ApiTokenV3V3Type & {
   /**
    * The actual API token value (only returned on creation)
@@ -1158,21 +1949,6 @@ export enum BaseRolesV3Type {
 }
 
 /**
- * Paginated Model
- * Model for Paginated
- */
-export interface PaginatedV3Type {
-  /** URL to access next page */
-  next?: string;
-  /** URL to access previous page */
-  prev?: string;
-  /** URL to access current page data with next set of nested fields data */
-  nestedNext?: string;
-  /** URL to access current page data with previous set of nested fields data */
-  nestedPrev?: string;
-}
-
-/**
  * V3 Nested Data List Response format - supports both single record and array responses
  */
 export interface DataNestedListResponseV3V3Type {
@@ -1273,6 +2049,8 @@ export type DataRecordWithDeletedV3V3Type = DataRecordV3V3Type & {
 export interface DataRecordV3V3Type {
   /** Record identifier (primary key value) */
   id: string | number;
+  /** Individual primary key field values as object */
+  id_fields?: Record<string, any>;
   /** Record fields data (excluding primary key). Undefined when empty. */
   fields?: Record<string, any>;
 }
@@ -2380,6 +3158,17 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
         /** Row colour configuration for the the view. */
         row_coloring?: ViewRowColourV3Type;
       }
+    | {
+        options?: ViewOptionsFormV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+      }
   );
 
 export type ViewCreateV3Type = ViewBaseV3Type &
@@ -2469,6 +3258,18 @@ export type ViewCreateV3Type = ViewBaseV3Type &
         /** Row colour configuration for the the view. */
         row_coloring?: ViewRowColourV3Type;
       }
+    | {
+        type?: 'form';
+        options?: ViewOptionsFormV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+      }
   );
 
 export interface ViewOptionsFormV3Type {
@@ -2508,6 +3309,12 @@ export interface ViewOptionsFormV3Type {
    * @format uri
    */
   redirect_url?: string;
+  /** Custom label for the submit button. */
+  submit_button_label?: string;
+  /** Email address to send form responses to. */
+  send_response_email_to?: string;
+  /** Per-field form configuration keyed by field_id. */
+  fields_by_id?: Record<string, FormFieldConfigV3Type>;
 }
 
 export interface ViewOptionsMapV3Type {
@@ -2617,12 +3424,8 @@ export interface ViewBaseInUpdateV3Type {
 export interface ViewBaseV3Type {
   /** Title of the view. */
   title: string;
-  /**
-   * Type of the view.
-   *
-   * Note: Form view via API is not supported currently
-   */
-  type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'map';
+  /** Type of the view. */
+  type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'map' | 'form';
   /**
    * Lock type of the view.
    *
@@ -2701,6 +3504,199 @@ export interface ViewSummaryV3Type {
   title?: string;
   /** Type of the view. */
   view_type?: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form' | 'map';
+}
+
+export type HookNotificationV3V3Type =
+  | HookNotificationV3UrlV3Type
+  | HookNotificationV3EmailV3Type
+  | HookNotificationV3ScriptV3Type
+  | HookNotificationV3MessagingV3Type;
+
+/**
+ * Messaging notification via plugin adapter (Slack, Discord, Telegram, etc.).
+ */
+export interface HookNotificationV3MessagingV3Type {
+  /** Messaging platform type. */
+  type: 'Slack' | 'Discord' | 'Telegram' | 'Whatsapp' | 'Twilio';
+  /** Messaging configuration. */
+  payload: {
+    /** Message body. Supports Handlebars templates. */
+    body: string;
+  };
+  /** If true, the hook only fires when submitted via a specific form. */
+  trigger_form?: boolean;
+  /** Form view ID that triggers this hook. Only applicable when trigger_form is true. */
+  trigger_form_id?: string;
+  /** If true, includes the triggering user's info in the webhook payload. */
+  include_user?: boolean;
+}
+
+/**
+ * Script notification. Executes a saved script when triggered.
+ */
+export interface HookNotificationV3ScriptV3Type {
+  /** Notification channel type. */
+  type: 'Script';
+  /** Script execution configuration. */
+  payload: {
+    /** Identifier of the script to execute. */
+    scriptId: string;
+    /** HTTP method used to invoke the script endpoint. */
+    method?: string;
+    /** Script execution endpoint path. */
+    path?: string;
+  };
+  /** If true, the hook only fires when submitted via a specific form. */
+  trigger_form?: boolean;
+  /** Form view ID that triggers this hook. Only applicable when trigger_form is true. */
+  trigger_form_id?: string;
+  /** If true, includes the triggering user's info in the webhook payload. */
+  include_user?: boolean;
+}
+
+/**
+ * Email notification via configured email adapter.
+ */
+export interface HookNotificationV3EmailV3Type {
+  /** Notification channel type. */
+  type: 'Email';
+  /** Email configuration. */
+  payload: {
+    /** Recipient email address. Supports Handlebars templates. */
+    to: string;
+    /** Email subject line. Supports Handlebars templates. */
+    subject: string;
+    /** Email body (HTML). Supports Handlebars templates. */
+    body: string;
+  };
+  /** If true, the hook only fires when submitted via a specific form. */
+  trigger_form?: boolean;
+  /** Form view ID that triggers this hook. Only applicable when trigger_form is true. */
+  trigger_form_id?: string;
+  /** If true, includes the triggering user's info in the webhook payload. */
+  include_user?: boolean;
+}
+
+/**
+ * URL webhook notification. Sends an HTTP request when triggered.
+ */
+export interface HookNotificationV3UrlV3Type {
+  /** Notification channel type. */
+  type: 'URL';
+  /** HTTP request configuration. */
+  payload: {
+    /** HTTP method for the webhook request. */
+    method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+    /** URL to send the webhook to. Supports Handlebars templates. */
+    path: string;
+    /** Request body. Supports Handlebars templates. */
+    body?: string;
+    /** Custom HTTP headers to include in the request. */
+    headers?: {
+      /** Header name. */
+      name?: string;
+      /** Header value. Supports Handlebars templates. */
+      value?: string;
+      /** Whether this header is active. */
+      enabled?: boolean;
+    }[];
+    /** Query parameters to append to the URL. */
+    parameters?: {
+      /** Query parameter name. */
+      name?: string;
+      /** Query parameter value. Supports Handlebars templates. */
+      value?: string;
+      /** Whether this parameter is active. */
+      enabled?: boolean;
+    }[];
+    /** Authentication configuration. Supports Handlebars templates. */
+    auth?: string;
+  };
+  /** If true, the hook only fires when submitted via a specific form. */
+  trigger_form?: boolean;
+  /** Form view ID that triggers this hook. Only applicable when trigger_form is true. */
+  trigger_form_id?: string;
+  /** If true, includes the triggering user's info in the webhook payload. */
+  include_user?: boolean;
+}
+
+/**
+ * Request body for updating an existing hook.
+ */
+export interface HookV3UpdateV3Type {
+  /** Title of the hook. */
+  title?: string;
+  /** Description of the hook. */
+  description?: string;
+  /** Event trigger type. 'record' triggers after the operation completes. */
+  event?: 'record' | 'manual';
+  /** Operations that trigger the hook. */
+  operation?: ('insert' | 'update' | 'delete')[];
+  notification?: HookNotificationV3V3Type;
+  /** Indicates if the hook is active. */
+  active?: boolean;
+  /** Field IDs that trigger the hook when modified. */
+  trigger_fields?: string[];
+}
+
+/**
+ * Request body for creating a new hook.
+ */
+export interface HookV3CreateV3Type {
+  /** Title of the hook. */
+  title: string;
+  /** Description of the hook. */
+  description?: string;
+  /** Event trigger type. Defaults to 'record' (triggers after the operation completes). */
+  event?: 'record' | 'manual';
+  /** Operations that trigger the hook. */
+  operation: ('insert' | 'update' | 'delete')[];
+  notification: HookNotificationV3V3Type;
+  /** Indicates if the hook is active. */
+  active?: boolean;
+  /** Field IDs that trigger the hook when modified. */
+  trigger_fields?: string[];
+}
+
+/**
+ * List response containing hooks.
+ */
+export interface HookV3ListV3Type {
+  /** Array of hooks. */
+  list: HookV3V3Type[];
+}
+
+/**
+ * Hook configuration for table-level event triggers.
+ */
+export interface HookV3V3Type {
+  /** Unique identifier for the hook. */
+  id: string;
+  /** Unique identifier of the associated table. */
+  table_id: string;
+  /** Title of the hook. */
+  title: string;
+  /** Description of the hook. */
+  description?: string | null;
+  /** Event trigger type. 'record' triggers after the operation completes. */
+  event: 'record' | 'manual';
+  /** Operations that trigger the hook. */
+  operation: ('insert' | 'update' | 'delete')[];
+  notification?: HookNotificationV3V3Type;
+  /** Indicates if the hook is active. */
+  active?: boolean;
+  /** Field IDs that trigger the hook when modified. */
+  trigger_fields?: string[];
+  /**
+   * Timestamp when the hook was created.
+   * @format date-time
+   */
+  created_at?: string;
+  /**
+   * Timestamp when the hook was last updated.
+   * @format date-time
+   */
+  updated_at?: string;
 }
 
 export interface SortUpdateV3Type {
@@ -3292,14 +4288,7 @@ export interface SourceType {
    * DB Type
    * @example mysql2
    */
-  type?:
-    | 'mysql'
-    | 'mysql2'
-    | 'oracledb'
-    | 'pg'
-    | 'snowflake'
-    | 'sqlite3'
-    | 'databricks';
+  type?: 'mysql' | 'mysql2' | 'pg' | 'snowflake' | 'sqlite3' | 'databricks';
 }
 
 /**
@@ -3384,14 +4373,7 @@ export interface BaseReqType {
   /** Is the data source data readonly */
   is_data_readonly?: BoolType;
   /** DB Type */
-  type?:
-    | 'mysql'
-    | 'mysql2'
-    | 'oracledb'
-    | 'pg'
-    | 'snowflake'
-    | 'sqlite3'
-    | 'databricks';
+  type?: 'mysql' | 'mysql2' | 'pg' | 'snowflake' | 'sqlite3' | 'databricks';
   fk_integration_id?: string;
 }
 
@@ -3437,6 +4419,8 @@ export interface IntegrationReqType {
   sub_type?: string;
   /** ID of integration to be copied from. Used in Copy Integration. */
   copy_from_id?: StringOrNullType;
+  /** Whether the integration is restricted to specific bases */
+  is_restricted?: BoolType;
 }
 
 /**
@@ -3629,7 +4613,8 @@ export type ColumnReqType = (
       NormalColumnRequestType &
       RollupColumnReqType)
 ) & {
-  column_name?: string;
+  /** Model for StringOrNull */
+  column_name?: StringOrNullType;
   /** Model for TextOrNull */
   description?: TextOrNullType;
   /** Column order in a specific view */
@@ -4047,6 +5032,10 @@ export interface FormType {
    * @example Form View 1
    */
   title?: string;
+  /** Form start date. Before this date, the form shows a countdown and does not accept submissions. */
+  starts_at?: StringOrNullType;
+  /** Form expiration date. After this date, the form will no longer accept submissions. */
+  expires_at?: StringOrNullType;
 }
 
 /**
@@ -4082,6 +5071,10 @@ export interface FormUpdateReqType {
   submit_another_form?: BoolType;
   /** Custom message after the form is successfully submitted */
   success_msg?: TextOrNullType;
+  /** Form start date. Before this date, the form shows a countdown and does not accept submissions. */
+  starts_at?: StringOrNullType;
+  /** Form expiration date. After this date, the form will no longer accept submissions. */
+  expires_at?: StringOrNullType;
 }
 
 /**
@@ -4883,7 +5876,65 @@ export interface CalendarColumnType {
 }
 
 /**
- * Calendar Date Range Model
+ * Model for Date Dependency
+ */
+export interface DateDependencyType {
+  /** Unique identifier */
+  id?: IdType;
+  /** Foreign Key to Model (Table) */
+  fk_model_id?: IdType;
+  /** Foreign Key to start date Column */
+  fk_start_date_field_id?: StringOrNullType;
+  /** Foreign Key to end date Column */
+  fk_end_date_field_id?: StringOrNullType;
+  /** Foreign Key to duration Column */
+  fk_duration_field_id?: StringOrNullType;
+  /** Foreign Key to link-row Column used for predecessor/successor dependency */
+  fk_dependency_linkrow_field_id?: StringOrNullType;
+  /** Whether the linkrow field links to predecessors or successors */
+  dependency_linkrow_role?: 'predecessors' | 'successors';
+  /** Which date from predecessor drives which date in successor */
+  dependency_connection_type?:
+    | 'end-to-start'
+    | 'end-to-end'
+    | 'start-to-end'
+    | 'start-to-start';
+  /** Type of buffer between predecessor end and successor start */
+  dependency_buffer_type?: 'flexible' | 'fixed' | 'none';
+  /** Buffer in days between predecessor and successor */
+  dependency_buffer_days?: number;
+  /** Whether to include weekends in date calculations */
+  include_weekends?: boolean;
+  /** Whether the date dependency rule is active */
+  is_active?: boolean;
+}
+
+/**
+ * Request model for creating/updating Date Dependency
+ */
+export interface DateDependencyReqType {
+  /** Foreign Key to start date Column */
+  fk_start_date_field_id?: StringOrNullType;
+  /** Foreign Key to end date Column */
+  fk_end_date_field_id?: StringOrNullType;
+  /** Foreign Key to duration Column */
+  fk_duration_field_id?: StringOrNullType;
+  /** Foreign Key to link-row Column */
+  fk_dependency_linkrow_field_id?: StringOrNullType;
+  dependency_linkrow_role?: 'predecessors' | 'successors';
+  dependency_connection_type?:
+    | 'end-to-start'
+    | 'end-to-end'
+    | 'start-to-end'
+    | 'start-to-start';
+  dependency_buffer_type?: 'flexible' | 'fixed' | 'none';
+  /** @min 0 */
+  dependency_buffer_days?: number;
+  include_weekends?: boolean;
+  is_active?: boolean;
+}
+
+/**
  * Model for Calendar Date Range
  */
 export interface CalendarRangeType {
@@ -5258,7 +6309,7 @@ export interface PaginatedType {
    */
   offset?: number;
   /**
-   * The number of pages
+   * The number of records per page
    * @example 10
    */
   pageSize?: number;
@@ -5270,7 +6321,20 @@ export interface PaginatedType {
 }
 
 /**
- * Password Model
+ * Model for Paginated
+ */
+export interface PaginatedV3Type {
+  /** URL to access next page */
+  next?: string;
+  /** URL to access previous page */
+  prev?: string;
+  /** URL to access current page data with next set of nested fields data */
+  nestedNext?: string;
+  /** URL to access current page data with previous set of nested fields data */
+  nestedPrev?: string;
+}
+
+/**
  * Model for Password
  * @example password123456789
  */
@@ -5703,13 +6767,8 @@ export interface SelectOptionsType {
  */
 export interface SharedBaseReqType {
   /**
-   * Password to protect the base
-   * @example password123
-   */
-  password?: string;
-  /**
    * The role given the target user
-   * @example editor
+   * @example viewer
    */
   roles?: 'commenter' | 'editor' | 'viewer';
 }
@@ -5880,6 +6939,8 @@ export type IdOrNullType = IdType | null;
 export interface TableType {
   /** Unique Source ID */
   source_id?: string;
+  /** Date dependency rule for this table */
+  date_dependency?: DateDependencyType | null;
   /** The columns included in this table */
   columns?: ColumnType[];
   /** Column Models grouped by IDs */
@@ -14601,7 +15662,6 @@ export class Api<
         client?:
           | 'mysql'
           | 'mysql2'
-          | 'oracledb'
           | 'pg'
           | 'snowflake'
           | 'sqlite3'
@@ -14648,7 +15708,7 @@ export class Api<
    * DB Type
    * @example mysql2
    *\
-  client?: "mysql" | "mysql2" | "oracledb" | "pg" | "snowflake" | "sqlite3" | "databricks",
+  client?: "mysql" | "mysql2" | "pg" | "snowflake" | "sqlite3" | "databricks",
   \** Connection Config *\
   connection?: {
   \** DB User *\
@@ -14690,7 +15750,6 @@ export class Api<
           client?:
             | 'mysql'
             | 'mysql2'
-            | 'oracledb'
             | 'pg'
             | 'snowflake'
             | 'sqlite3'

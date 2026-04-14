@@ -288,6 +288,18 @@ async function processColumnToSwaggerField(
       break;
   }
 
+  // Primary key columns are never nullable
+  if (column.pk) {
+    if (Array.isArray(field.type)) {
+      field.type = field.type.filter((t) => t !== 'null');
+      // If only one type remains, unwrap the array
+      if (field.type.length === 1) {
+        field.type = field.type[0];
+      }
+    }
+    field.nullable = false;
+  }
+
   return field;
 }
 

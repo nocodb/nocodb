@@ -1,5 +1,5 @@
 import { isLTARType, ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
-import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
+import { isMMOrMMLike, isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { getUniqueColumnAliasName, getUniqueColumnName } from './getUniqueName';
@@ -10,6 +10,7 @@ import type Source from '~/models/Source';
 import type Base from '~/models/Base';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
 import type { NcContext } from '~/interface/config';
+import { META_COL_NAME } from '~/constants';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
@@ -63,7 +64,7 @@ async function isMMRelationExist(
       );
       if (
         colOpt &&
-        colOpt.type === RelationTypes.MANY_TO_MANY &&
+        isMMOrMMLike(col) &&
         colOpt.fk_mm_model_id === assocModel.id &&
         colOpt.fk_child_column_id === colChildOpt.fk_parent_column_id &&
         colOpt.fk_mm_child_column_id === colChildOpt.fk_child_column_id
@@ -284,6 +285,17 @@ export async function populateMeta(
 
   // await this.syncRelations();
 
+  // Detect NocoDB-created tables by presence of all 6 system columns.
+  // If all are found together, remap them to their proper UITypes and mark as system.
+  const NC_SYSTEM_COL_UIDT: Record<string, UITypes> = {
+    created_at: UITypes.CreatedTime,
+    updated_at: UITypes.LastModifiedTime,
+    created_by: UITypes.CreatedBy,
+    updated_by: UITypes.LastModifiedBy,
+    nc_order: UITypes.Order,
+    [META_COL_NAME]: UITypes.Meta,
+  };
+
   const tableMetasInsert = tables.map((table) => {
     return async () => {
       logger?.(`Populating meta for table '${table.title}'`);
@@ -312,6 +324,21 @@ export async function populateMeta(
         table.type === 'view'
           ? []
           : tableRelations.filter((r) => r.tn === table.tn);
+
+      const columnNameSet = new Set(columns.map((c) => c.cn));
+      const isNcCreatedTable = Object.keys(NC_SYSTEM_COL_UIDT).every((name) =>
+        columnNameSet.has(name),
+      );
+
+      for (const column of columns) {
+        // Remap NocoDB system columns to their proper UITypes
+        if (isNcCreatedTable && NC_SYSTEM_COL_UIDT[column.cn]) {
+          column.uidt = NC_SYSTEM_COL_UIDT[column.cn];
+          column.system = true;
+        } else if (!column.uidt) {
+          column.uidt = getColumnUiType(source, column);
+        }
+      }
 
       mapDefaultDisplayValue(columns);
 

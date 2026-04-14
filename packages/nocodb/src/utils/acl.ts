@@ -30,6 +30,7 @@ const permissionScopes = {
     // API Tokens
     'apiTokenList',
     'apiTokenCreate',
+    'apiTokenUpdate',
     'apiTokenDelete',
 
     'oAuthAuthorizationList',
@@ -96,6 +97,10 @@ const permissionScopes = {
     'integrationStore',
     'integrationEndpointGet',
 
+    // Integration link management (workspace scope)
+    'integrationLinkedBaseList',
+    'integrationUpdateLinkedBases',
+
     // Misc
     'duplicateSharedBase',
     'webhookPluginList',
@@ -111,6 +116,7 @@ const permissionScopes = {
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
+    'nestedDataBulkCopyPasteOrDeleteAll',
     'formViewGet',
     'baseGet',
     'tableGet',
@@ -243,6 +249,15 @@ const permissionScopes = {
 
     // etc
     'fetchViaUrl',
+
+    // Base-scoped integrations
+    'baseIntegrationList',
+    'baseIntegrationRead',
+    'baseIntegrationFetchOptions',
+    'baseIntegrationCreate',
+    'baseIntegrationUpdate',
+    'baseIntegrationLink',
+    'baseIntegrationUnlink',
   ],
 };
 
@@ -263,6 +278,7 @@ const rolePermissions:
     include: {
       apiTokenList: true,
       apiTokenCreate: true,
+      apiTokenUpdate: true,
       apiTokenDelete: true,
       passwordChange: true,
       commandPalette: true,
@@ -323,6 +339,8 @@ const rolePermissions:
       integrationList: true,
       integrationStore: true,
       integrationEndpointGet: true,
+      integrationLinkedBaseList: true,
+      integrationUpdateLinkedBases: true,
       aiSchema: true,
       workspaceUserUpdate: true,
       workspaceUserDelete: true,
@@ -422,6 +440,7 @@ const rolePermissions:
       dataInsert: true,
       bulkDataUpsert: true,
       nestedDataListCopyPasteOrDeleteAll: true,
+      nestedDataBulkCopyPasteOrDeleteAll: true,
       filterGet: true,
       filterChildrenList: true,
       mmExcludedList: true,
@@ -450,6 +469,9 @@ const rolePermissions:
       aiDataGenerateRows: true,
       aiDataFillRows: true,
       aiDataExtractRows: true,
+
+      // Base integrations (read only)
+      baseIntegrationList: true,
 
       // Extensions
       extensionUpdate: true,
@@ -667,6 +689,7 @@ export const sourceRestrictions = {
     relationDataRemove: true,
     relationDataAdd: true,
     nestedDataListCopyPasteOrDeleteAll: true,
+    nestedDataBulkCopyPasteOrDeleteAll: true,
     nestedDataUnlink: true,
     nestedDataLink: true,
   },
@@ -706,6 +729,7 @@ const permissionDescriptions: Record<string, string> = {
 
   apiTokenList: 'view list of API tokens',
   apiTokenCreate: 'create a new API token',
+  apiTokenUpdate: 'update an API token',
   apiTokenDelete: 'delete an API token',
 
   passwordChange: 'change your password',
@@ -744,6 +768,18 @@ const permissionDescriptions: Record<string, string> = {
   integrationList: 'view list of integrations',
   integrationStore: "get data from an integration's store",
   integrationEndpointGet: 'call get request to an exposed integration endpoint',
+  integrationLinkedBaseList: 'view bases linked to an integration',
+  integrationUpdateLinkedBases: 'update base assignments for an integration',
+
+  // base-scoped integration permissions
+  baseIntegrationList: 'view integrations linked to a base',
+  baseIntegrationRead: 'view a single integration from a base',
+  baseIntegrationFetchOptions: 'fetch options for a base-scoped integration',
+
+  baseIntegrationCreate: 'create an integration from a base',
+  baseIntegrationUpdate: 'update an integration from a base',
+  baseIntegrationLink: 'link an integration to a base',
+  baseIntegrationUnlink: 'unlink an integration from a base',
 
   // base permissions
   formViewGet: 'view forms',

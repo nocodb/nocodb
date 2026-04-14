@@ -258,6 +258,7 @@ export enum NcErrorType {
   ERR_API_CLIENT_NOT_FOUND = 'ERR_API_CLIENT_NOT_FOUND',
   ERR_EXTENSION_NOT_FOUND = 'ERR_EXTENSION_NOT_FOUND',
   ERR_SCRIPT_NOT_FOUND = 'ERR_SCRIPT_NOT_FOUND',
+  ERR_RLS_POLICY_NOT_FOUND = 'ERR_RLS_POLICY_NOT_FOUND',
   FIELD_UNIQUE_CONSTRAINT_VIOLATION = 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
   ERR_METHOD_NOT_ALLOWED = 'ERR_METHOD_NOT_ALLOWED',
 
@@ -393,6 +394,7 @@ export enum DependencyTableType {
   View = 'view',
   Widget = 'widget',
   Workflow = 'workflow',
+  DateDependency = 'date_dependency',
 }
 
 export enum BaseVersion {

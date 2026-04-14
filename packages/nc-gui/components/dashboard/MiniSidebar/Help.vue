@@ -113,7 +113,7 @@ const helpItems = computed<CategoryItemType[]>(() => {
           e: 'c:nocodb:chat-support',
           link: '',
           onClick: toggleChatSupport,
-          hidden: !isChatWootEnabled,
+          hidden: !isChatWootEnabled.value,
         },
         {
           title: 'support@nocodb.com',

@@ -705,6 +705,14 @@ onBeforeUnmount(() => {
 
             <template v-if="column.key === 'email' && record.isTeam">
               <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" show-breadcrumb />
+              <NcBadge
+                v-if="teamsMap[record.id]?.scope === 'org'"
+                :border="false"
+                color="blue"
+                class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+              >
+                {{ $t('general.orgBadge') }}
+              </NcBadge>
             </template>
 
             <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">

@@ -19,6 +19,8 @@ const { height } = useWindowSize()
 
 const meta = inject(MetaInj, ref())
 
+const fields = inject(FieldsInj, ref())
+
 const { t } = useI18n()
 
 const {
@@ -553,6 +555,15 @@ const selectOption = (option) => {
               >
                 <template v-if="!isRowEmpty(record, displayField)">
                   <LazySmartsheetPlainCell v-model="record.row[displayField!.title!]" :column="displayField" />
+                </template>
+                <template v-else-if="fields?.length">
+                  <template v-for="field in fields" :key="field.id">
+                    <LazySmartsheetPlainCell
+                      v-if="!isRowEmpty(record, field!)"
+                      v-model="record.row[field!.title!]"
+                      :column="field"
+                    />
+                  </template>
                 </template>
                 <template v-else>
                   <span class="text-nc-content-gray-muted"> - </span>

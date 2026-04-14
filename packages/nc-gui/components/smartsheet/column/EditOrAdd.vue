@@ -48,6 +48,7 @@ const {
   formState,
   isWebhookCreateModalOpen,
   isAiButtonConfigModalOpen,
+  isConvertLinkV2ModalOpen,
   generateNewColumnMeta,
   addOrUpdate,
   onAlter,
@@ -103,8 +104,6 @@ onBeforeMount(() => {
 
 const editDescription = toRef(props, 'editDescription')
 
-const showConvertLinkV2Modal = ref(false)
-
 const { getMeta } = useMetas()
 
 const { t } = useI18n()
@@ -130,8 +129,6 @@ const columnLabel = computed(() => props.columnLabel || t('objects.field'))
 const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const workspaceStore = useWorkspace()
 
@@ -162,7 +159,13 @@ const showHoverEffectOnSelectedType = ref(true)
 const onMouseOverUniqueValuesInfoIcon = ref(false)
 
 const columnUidt = computed({
-  get: () => formState.value.uidt,
+  get: () => {
+    // Show legacy LTAR v1 columns as "Links" in the type dropdown
+    if (isEdit.value && formState.value.uidt === UITypes.LinkToAnotherRecord && formState.value.colOptions?.version !== 2) {
+      return UITypes.Links
+    }
+    return formState.value.uidt
+  },
   set: (value: UITypes) => {
     if (value === AIPrompt && showUpgradeToUseAiPromptField()) {
       return
@@ -236,8 +239,7 @@ const uiFilters = (t: UiTypesType) => {
   const showColourField = t.name === UITypes.Colour ? isEeUI && showEEFeatures.value : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
-  const showLTAR =
-    t.name === UITypes.LinkToAnotherRecord ? isFeatureEnabled(FEATURE_FLAG.LINK_TO_ANOTHER_RECORD) && !isEdit.value : true
+  const showLTAR = t.name === UITypes.LinkToAnotherRecord ? !isEdit.value : true
 
   let formulaColumnTypeValid = true
   if (column?.value?.uidt === UITypes.Formula) {
@@ -581,7 +583,13 @@ onMounted(() => {
 })
 
 const handleEscape = (event: KeyboardEvent): void => {
-  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value || isAiButtonConfigModalOpen.value) return
+  if (
+    isColumnTypeOpen.value ||
+    isWebhookCreateModalOpen.value ||
+    isAiButtonConfigModalOpen.value ||
+    isConvertLinkV2ModalOpen.value
+  )
+    return
 
   if (event.key === 'Escape') emit('cancel')
 }
@@ -1277,26 +1285,27 @@ const unique = computed({
                       class="nc-field-type-icon w-4 h-4 !opacity-90 text-current"
                     />
                     <div
+                      class="flex items-center gap-1"
                       :class="{
-                        'flex-1': !searchBasisInfoMap[opt.name],
+                        'flex-1 min-w-0': !searchBasisInfoMap[opt.name],
                       }"
                     >
-                      {{ UITypesName[opt.name] }}
+                      <span class="truncate">{{ UITypesName[opt.name] }}</span>
                       <NcTooltip
                         v-if="
-                          isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
                           isEdit &&
                           column &&
                           column.uidt === UITypes.LinkToAnotherRecord &&
                           opt.name === UITypes.LinkToAnotherRecord &&
                           column.colOptions?.version !== 2 &&
-                          column.colOptions?.type !== 'mm'
+                          column.colOptions?.type !== 'mm' &&
+                          !column.meta?.custom
                         "
                         :title="$t('labels.convertToNewLink')"
                       >
                         <span
-                          class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline"
-                          @click.stop="showConvertLinkV2Modal = true"
+                          class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline flex-none"
+                          @click.stop="isConvertLinkV2ModalOpen = true"
                           >(Legacy)</span
                         >
                       </NcTooltip>
@@ -1389,6 +1398,7 @@ const unique = computed({
           :key="`${formState.uidt}-${formState.id || 'new'}`"
           v-model:value="formState"
           :is-edit="isEdit"
+          @upgrade="isConvertLinkV2ModalOpen = true"
         />
         <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
         <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
@@ -1684,7 +1694,7 @@ const unique = computed({
       </template>
     </a-form>
 
-    <LazyDlgConvertLinkV2 v-model:visible="showConvertLinkV2Modal" :column="column" @converted="emit('cancel')" />
+    <LazyDlgConvertLinkV2 v-model:visible="isConvertLinkV2ModalOpen" :column="column" @converted="emit('cancel')" />
   </div>
 </template>
 

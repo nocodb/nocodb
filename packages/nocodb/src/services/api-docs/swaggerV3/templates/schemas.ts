@@ -18,6 +18,23 @@ export const getModelSchemas = (ctx: {
         oneOf: [{ type: 'string' }, { type: 'number' }],
         description: 'Record identifier (primary key value)',
       },
+      id_fields: {
+        type: 'object',
+        description: 'Individual primary key field values as object',
+        properties: {
+          ...(ctx.columns?.reduce(
+            (colsObj, { title, virtual, column, ...fieldProps }) => ({
+              ...colsObj,
+              ...(column.pk
+                ? {
+                    [title]: fieldProps,
+                  }
+                : {}),
+            }),
+            {},
+          ) || {}),
+        },
+      },
       fields: {
         type: 'object',
         description: 'Record fields data (excluding primary key)',
@@ -135,6 +152,23 @@ export const getViewSchemas = (ctx: {
       id: {
         oneOf: [{ type: 'string' }, { type: 'number' }],
         description: 'Record identifier (primary key value)',
+      },
+      id_fields: {
+        type: 'object',
+        description: 'Individual primary key field values as object',
+        properties: {
+          ...(ctx.columns?.reduce(
+            (colsObj, { title, column, ...fieldProps }) => ({
+              ...colsObj,
+              ...(column.pk
+                ? {
+                    [title]: fieldProps,
+                  }
+                : {}),
+            }),
+            {},
+          ) || {}),
+        },
       },
       fields: {
         type: 'object',

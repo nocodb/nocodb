@@ -7,7 +7,7 @@ on:
 
 jobs:
   push:
-    runs-on: ubuntu-22.04
+    runs-on: ubicloud-standard-2
     steps:
     - uses: actions/github-script@v6
       with:

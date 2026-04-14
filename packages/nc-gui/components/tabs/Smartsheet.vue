@@ -16,6 +16,8 @@ useSidebar('nc-right-sidebar')
 
 const { isUIAllowed } = useRoles()
 
+const { isRtl } = useRtl()
+
 const { getMeta, getMetaByKey } = useMetas()
 
 const { ncNavigateTo } = useGlobal()
@@ -292,6 +294,7 @@ watch(isViewsLoading, async () => {
         <!-- Splitpanes is conditionally rendered only after mount to avoid race conditions with its internal async resize logic. -->
         <Splitpanes
           v-if="isMounted"
+          :rtl="isRtl"
           class="nc-extensions-content-resizable-wrapper"
           :class="{
             'nc-is-open-extensions': isPanelExpanded,
@@ -354,48 +357,65 @@ watch(isViewsLoading, async () => {
 }
 
 .nc-extensions-content-resizable-wrapper {
-  &:not(.nc-is-open-extensions) &:not(.nc-is-open-actions) > {
-    .splitpanes__splitter {
-      @apply hidden;
-    }
+  &:not(.nc-is-open-extensions):not(.nc-is-open-actions) > .splitpanes__splitter {
+    @apply hidden;
   }
 
-  & > {
-    .splitpanes__splitter {
-      @apply !w-0 relative overflow-visible z-40 -ml-1px;
-    }
-    .splitpanes__splitter:before {
-      @apply bg-nc-bg-gray-medium absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40;
-      content: '';
-    }
-
-    .splitpanes__splitter:hover:before {
-      @apply bg-nc-border-gray-medium;
-      width: 3px !important;
-      left: 0px;
-    }
-
-    .splitpanes--dragging .splitpanes__splitter:before {
-      @apply bg-nc-border-gray-medium;
-      width: 3px !important;
-      left: 0px;
-    }
-
-    .splitpanes--dragging .splitpanes__splitter {
-      @apply w-1 mr-0;
-    }
+  > .splitpanes__splitter {
+    @apply !w-0 relative overflow-visible z-40 -ml-1px;
   }
-}
 
-.splitpanes__pane {
-  transition: width 0.15s ease-in-out !important;
-}
+  > .splitpanes__splitter:before {
+    @apply bg-nc-bg-gray-medium absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40;
+    content: '';
+  }
 
-.splitpanes--dragging {
-  cursor: col-resize;
+  > .splitpanes__splitter:hover:before {
+    @apply bg-nc-border-gray-medium;
+    width: 3px !important;
+    left: 0px;
+  }
+
+  &.splitpanes--dragging > .splitpanes__splitter:before {
+    @apply bg-nc-border-gray-medium;
+    width: 3px !important;
+    left: 0px;
+  }
+
+  &.splitpanes--dragging > .splitpanes__splitter {
+    @apply w-1 mr-0;
+  }
 
   > .splitpanes__pane {
+    transition: width 0.15s ease-in-out !important;
+  }
+
+  &.splitpanes--dragging > .splitpanes__pane {
     transition: none !important;
+  }
+}
+
+.rtl .nc-extensions-content-resizable-wrapper {
+  > .splitpanes__splitter {
+    @apply -ml-0 -mr-1px;
+  }
+
+  > .splitpanes__splitter:before {
+    @apply left-auto right-0;
+  }
+
+  > .splitpanes__splitter:hover:before {
+    left: auto;
+    right: 0px;
+  }
+
+  &.splitpanes--dragging > .splitpanes__splitter:before {
+    left: auto;
+    right: 0px;
+  }
+
+  &.splitpanes--dragging > .splitpanes__splitter {
+    @apply mr-auto ml-0;
   }
 }
 </style>

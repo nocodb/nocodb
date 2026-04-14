@@ -21,7 +21,7 @@ const { activeTableId } = storeToRefs(useTablesStore())
 
 const { appInfo, isMobileMode } = useGlobal()
 
-const { setActiveCmdView } = useCommand()
+const { openCommandPalette } = useCommandPalette()
 
 const showSidebarBtn = computed(() => {
   if (isMobileMode.value) {
@@ -53,7 +53,7 @@ const showSidebarBtn = computed(() => {
             size="small"
             class="!text-nc-content-gray-muted !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
             data-testid="nc-sidebar-search-btn"
-            @click="setActiveCmdView('cmd-k')"
+            @click="openCommandPalette"
           >
             <GeneralIcon icon="search" class="!text-current" />
           </NcButton>
@@ -83,9 +83,9 @@ const showSidebarBtn = computed(() => {
               <GeneralIcon
                 v-else
                 icon="doubleLeftArrow"
-                class="duration-150 transition-all !text-lg -mt-0.5 !text-nc-content-gray-muted bg-opacity-50"
+                class="duration-150 transition-all !text-lg -mt-0.5 !text-nc-content-gray-muted bg-opacity-50 transform rtl:rotate-180"
                 :class="{
-                  'transform rotate-180': !isLeftSidebarOpen,
+                  'rotate-180 rtl:rotate-0': !isLeftSidebarOpen,
                 }"
               />
             </div>

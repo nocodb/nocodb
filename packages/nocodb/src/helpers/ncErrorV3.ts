@@ -71,6 +71,10 @@ export class NcErrorV3 extends NcErrorV1 {
         message: (id: string) => `Script '${id}' not found`,
         code: 422,
       },
+      [NcErrorType.ERR_RLS_POLICY_NOT_FOUND]: {
+        message: (id: string) => `RLS Policy '${id}' not found`,
+        code: 422,
+      },
     });
   }
 

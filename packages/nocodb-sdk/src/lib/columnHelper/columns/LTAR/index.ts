@@ -2,6 +2,7 @@ import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../../column.interface';
 import { isBt, isHm, isMm, isOo } from '../../utils';
+import { isMMOrMMLike } from '~/lib/UITypes';
 import { DefaultColumnHelper } from '../DefaultColumnHelper';
 import { BelongsToHelper } from './BelongsTo';
 import { HasManyHelper } from './HasMany';
@@ -20,6 +21,9 @@ export class LTARHelper extends AbstractColumnHelper {
     if (isMm(params.col)) columnHelper = ManyToManyHelper;
     if (isBt(params.col)) columnHelper = BelongsToHelper;
     if (isOo(params.col)) columnHelper = OneToOneHelper;
+
+    // V2 junction columns (om, mo, v2-oo, v2-mm) all use junction tables like MM
+    if (isMMOrMMLike(params.col)) columnHelper = ManyToManyHelper;
 
     return new columnHelper();
   }

@@ -32,6 +32,7 @@ const onColorChange = (value: string) => {
     :auto-close="false"
     :disabled="disabled"
     overlay-class-name="nc-select-option-color-picker"
+    use-backdrop
   >
     <slot></slot>
     <template v-if="!slotHasChildren()">

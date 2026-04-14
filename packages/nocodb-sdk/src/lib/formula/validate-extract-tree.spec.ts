@@ -236,36 +236,34 @@ const mockColumns: UnifiedMetaType.IColumn[] = [
 ];
 
 // PR review fix #8: use proper typing instead of `as any` casts
-const mockGetMeta = jest.fn(
-  async (_context, options) => {
-    if (options.id === 'model2') {
-      return {
-        id: 'model2',
-        title: 'Model2',
-        base_id: 'base1',
-        columns: [
-          {
-            id: 'col7',
-            title: 'Column7',
-            uidt: UITypes.SingleLineText as any,
-            dt: 'varchar',
-            pv: true,
-            base_id: 'base1',
-            fk_workspace_id: 'ws1',
-            fk_model_id: 'model2',
-            deleted: false,
-          },
-        ],
-      } as any;
-    }
+const mockGetMeta = jest.fn(async (_context, options) => {
+  if (options.id === 'model2') {
     return {
-      id: 'model1',
-      title: 'Model1',
+      id: 'model2',
+      title: 'Model2',
       base_id: 'base1',
-      columns: mockColumns as any,
+      columns: [
+        {
+          id: 'col7',
+          title: 'Column7',
+          uidt: UITypes.SingleLineText as any,
+          dt: 'varchar',
+          pv: true,
+          base_id: 'base1',
+          fk_workspace_id: 'ws1',
+          fk_model_id: 'model2',
+          deleted: false,
+        },
+      ],
     } as any;
   }
-) as unknown as UnifiedMetaType.IGetModel;
+  return {
+    id: 'model1',
+    title: 'Model1',
+    base_id: 'base1',
+    columns: mockColumns as any,
+  } as any;
+}) as unknown as UnifiedMetaType.IGetModel;
 
 const mockClientOrSqlUi = SqlUiFactory.create({ client: 'pg' });
 

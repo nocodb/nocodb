@@ -879,7 +879,7 @@ watch(_baseId, () => {
 <style lang="scss">
 .nc-modal-wrapper.nc-modal-table-create-wrapper {
   .ant-modal-content {
-    @apply !rounded-5;
+    border-radius: 1.25rem !important;
   }
 }
 </style>

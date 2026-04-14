@@ -23,6 +23,7 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 const {
   isWsAuditEnabled,
   showUpgradeToUseTableAndFieldPermissions,
+  showUpgradeToUseDocumentPermissions,
   showUpgradeToUseSync,
   showUpgradeToUseSnapshots,
   isEEFeatureBlocked,
@@ -31,6 +32,7 @@ const {
 
 const navigateToBaseSettings = (page: string) => {
   if (page === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) return
+  if (page === 'docs-permissions' && showUpgradeToUseDocumentPermissions()) return
   if (page === 'syncs' && showUpgradeToUseSync()) return
   if (page === 'snapshots' && isEEFeatureBlocked.value) {
     showUpgradeToUseSnapshots()
@@ -97,6 +99,19 @@ onMounted(() => {
       </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
+      v-e="['c:settings:base:docs-permissions']"
+      icon="ncFileText"
+      data-testid="base-docs-permissions"
+      :active="activeBaseSettingsTab === 'docs-permissions'"
+      @click="navigateToBaseSettings('docs-permissions')"
+    >
+      {{ $t('labels.docsPermissions') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS" remove-click />
+      </template>
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
       v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
       v-e="['c:settings:base:add-data-source']"
       icon="ncDatabase"
@@ -105,6 +120,16 @@ onMounted(() => {
       @click="navigateToBaseSettings('data-source')"
     >
       {{ $t('labels.addDataSource') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-e="['c:settings:base:integrations']"
+      icon="integration"
+      data-testid="base-integrations"
+      :active="activeBaseSettingsTab === 'integrations'"
+      @click="navigateToBaseSettings('integrations')"
+    >
+      {{ $t('labels.baseIntegrations') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"

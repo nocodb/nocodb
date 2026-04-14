@@ -141,7 +141,15 @@ export function validateAndNormaliseLocalPath(
   );
 
   // Check if the resolved path is within the intended directory
-  if (!absolutePath.startsWith(absoluteBasePath)) {
+  // Split by separator and rejoin for equivalence to prevent prefix bypass
+  // e.g. /app/data/nc_minimal_dbs would incorrectly pass startsWith('/app/data/nc')
+  const baseParts = absoluteBasePath.split(path.sep);
+  const targetPrefix = absolutePath
+    .split(path.sep)
+    .slice(0, baseParts.length)
+    .join(path.sep);
+
+  if (targetPrefix !== absoluteBasePath) {
     if (throw404) {
       NcError.notFound();
     } else {

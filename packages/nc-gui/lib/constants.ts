@@ -69,6 +69,8 @@ export const MINI_SIDEBAR_WIDTH = 48
 
 export const NEW_MINI_SIDEBAR_WIDTH = 64
 
+export const NC_CLOUD_URL = 'https://app.nocodb.com'
+
 export const clientMousePositionDefaultValue = { clientX: 0, clientY: 0 }
 
 export const CHART_COLORS = [
@@ -96,3 +98,5 @@ export const CHART_COLORS = [
 
 /** Virtual section ID for views not assigned to any real section */
 export const DEFAULT_SECTION_ID = '__default__'
+
+export const showWsSettingsInBase = false

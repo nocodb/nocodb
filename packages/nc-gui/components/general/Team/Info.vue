@@ -49,6 +49,7 @@ const breadcrumb = computed(() => {
           </template>
           {{ team.title }}
         </NcTooltip>
+        <slot name="title-append" />
       </div>
       <div
         v-if="showBreadcrumb && breadcrumb.length > 1"

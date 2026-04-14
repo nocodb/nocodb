@@ -8,6 +8,7 @@ import {
   type TableType,
   UITypes,
   type ViewType,
+  isAutoNumber,
   isVirtualCol,
   ncHasProperties,
   readonlyMetaAllowedTypes,
@@ -1774,7 +1775,7 @@ const getHeaderTooltipRegions = (
 ): {
   x: number
   width: number
-  type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron'
+  type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron' | 'dateDependency'
   text: string
   disableTooltip?: boolean
   tooltipText?: boolean
@@ -1782,7 +1783,7 @@ const getHeaderTooltipRegions = (
   const regions: {
     x: number
     width: number
-    type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron' | 'synced'
+    type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron' | 'synced' | 'dateDependency'
     text: string
     tooltipText?: string
     height?: number
@@ -1855,7 +1856,7 @@ const getHeaderTooltipRegions = (
       return
     }
 
-    if (isFieldEditAllowed.value && !column.columnObj?.readonly) {
+    if (isFieldEditAllowed.value && (!column.columnObj?.readonly || isAutoNumber(column.columnObj))) {
       regions.push({
         x: rightOffset - scrollLeftValue,
         width: 14,
@@ -1863,7 +1864,7 @@ const getHeaderTooltipRegions = (
         disableTooltip: true,
         text: null,
       })
-    } else if (meta.value?.synced && column.columnObj?.readonly) {
+    } else if (meta.value?.synced && column.columnObj?.readonly && !isAutoNumber(column.columnObj)) {
       regions.push({
         x: rightOffset - scrollLeftValue,
         width: 14,
@@ -1892,6 +1893,17 @@ const getHeaderTooltipRegions = (
         width: 14,
         type: 'info',
         text: column.columnObj.description,
+      })
+    }
+
+    // Date dependency icon region
+    if (column.isDateDependencyField && !isPublicView.value) {
+      rightOffset -= 18
+      regions.push({
+        x: rightOffset - scrollLeftValue,
+        width: 14,
+        type: 'dateDependency',
+        text: t('labels.dateDependency.enabled'),
       })
     }
 
@@ -2906,7 +2918,7 @@ watch(
 </script>
 
 <template>
-  <div ref="wrapperRef" class="w-full h-full relative">
+  <div ref="wrapperRef" dir="ltr" class="w-full h-full relative">
     <div
       v-if="isBulkOperationInProgress"
       class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-nc-bg-default/30"

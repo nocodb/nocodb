@@ -30,6 +30,7 @@ export const OPERATION_SCOPES = {
   filterChildrenList: 'base',
   sortList: 'base',
   hookList: 'base',
+  hookRead: 'base',
   hookLogList: 'base',
   hookFilterList: 'base',
   buttonFilterList: 'base',
@@ -107,6 +108,7 @@ export const OPERATION_SCOPES = {
   nestedDataLink: 'base',
   nestedDataUnlink: 'base',
   nestedDataListCopyPasteOrDeleteAll: 'base',
+  nestedDataBulkCopyPasteOrDeleteAll: 'base',
   dataAggregate: 'base',
   bulkAggregate: 'base',
   bulkDataList: 'base',
@@ -163,4 +165,17 @@ export const OPERATION_SCOPES = {
 
   // LTAR V2 conversion
   convertLinkToV2: 'base',
+
+  // Base-scoped integrations
+  baseIntegrationList: 'base',
+  baseIntegrationRead: 'base',
+  baseIntegrationCreate: 'base',
+  baseIntegrationUpdate: 'base',
+  baseIntegrationLink: 'base',
+  baseIntegrationUnlink: 'base',
+  baseIntegrationFetchOptions: 'base',
+
+  // Workspace integration link management
+  integrationLinkedBaseList: 'workspace',
+  integrationUpdateLinkedBases: 'workspace',
 } as const;

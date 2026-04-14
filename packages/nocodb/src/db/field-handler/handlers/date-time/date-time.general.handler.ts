@@ -53,6 +53,7 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
       'isnot',
       'is',
       'isWithin',
+      'in',
     ];
     if (!supportedOperations.includes(filter.comparison_op)) {
       return {
@@ -300,6 +301,15 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     const field =
       options.customWhereClause ??
       (alias ? `${alias}.${column.column_name}` : column.column_name);
+
+    // `in` uses raw values (e.g. BelongsTo DataLoader batch) — skip date parsing
+    if (filter.comparison_op === 'in') {
+      return await this.handleFilter(
+        { val: filter.value, sourceField: field },
+        { knex, filter, column },
+        options,
+      );
+    }
 
     const now = this.getNow(knex, filter, column, options);
     let anchorDate: dayjs.Dayjs;

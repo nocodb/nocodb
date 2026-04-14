@@ -19,7 +19,7 @@ const { $e: _$e } = useNuxtApp()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
+const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
@@ -45,7 +45,7 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, isEEFeatureBlocked, showEEFeatures } = useEeConfig()
+const { blockAiChat, showEEFeatures } = useEeConfig()
 
 const handleChatToggle = () => {
   toggleChatPanel()
@@ -54,6 +54,14 @@ const handleChatToggle = () => {
 const isBaseOpen = computed(() => {
   return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
 })
+
+watch(
+  isBaseOpen,
+  (val) => {
+    if (val && ncBackRoute().get() !== '/') ncBackRoute().set('')
+  },
+  { immediate: true },
+)
 
 const isBaseListModalOpen = ref(false)
 
@@ -78,7 +86,7 @@ const onTabClick = async (tabKey: string) => {
       navigateTo(`${getBasePath()}/settings`)
     } else {
       const wsId = route.value.params.typeOrId || activeWorkspaceId.value
-      navigateTo(`/${wsId}/settings/ws-members`)
+      navigateTo(`/${wsId}/members`)
     }
     return
   }
@@ -175,12 +183,14 @@ const getScale = (key: string) => {
   return itemScales.value.get(key) ?? MIN_SCALE
 }
 
+const { isRtl } = useRtl()
+
 const getMagnifyStyle = (key: string) => {
   const scale = getScale(key)
   const margin = ((scale - 1) * 48) / 2
   return {
     transform: `scale(${scale})`,
-    transformOrigin: 'left center',
+    transformOrigin: isRtl.value ? 'right center' : 'left center',
     marginTop: `${margin}px`,
     marginBottom: `${margin}px`,
   }
@@ -254,7 +264,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI || isEEFeatureBlocked.value || !hasChatBaseContext.value) return
+  if (!isEeUI || blockAiChat.value || !hasChatBaseContext.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -272,16 +282,19 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
 <template>
   <nav ref="dockRef" class="nc-dock" data-testid="nc-mini-sidebar-v2-dock" @mousemove="onMouseMove" @mouseleave="onMouseLeave">
-    <!-- Logo -->
+    <!-- Logo — hover shows back arrow, click navigates to workspace -->
+
     <DashboardMiniSidebarV2DockItem
       :ref="(el: any) => setItemRef('logo', el)"
-      class="nc-dock-logo"
+      class="nc-dock-logo nc-dock-logo-hover"
       data-testid="nc-mini-sidebar-v2-logo"
+      :data-workspace-title="activeWorkspace?.title"
+      :label="`${$t('labels.backToWorkspace')} ${activeWorkspace?.title}`"
       :scale="getScale('logo')"
-      @click="isBaseListModalOpen = true"
+      @click="navigateTo(`/${activeWorkspaceId}`)"
     >
       <GeneralProjectIcon
-        class="!h-7 !w-7"
+        class="!h-7 !w-7 nc-logo-icon"
         :color="parseProp(resolvedProject?.meta).iconColor"
         :type="resolvedProject?.type"
         :managed-app="
@@ -293,6 +306,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
             : undefined
         "
       />
+      <div class="nc-back-icon">
+        <GeneralIcon icon="ncArrowLeft" class="!h-4.5 !w-4.5 text-nc-content-gray" />
+      </div>
     </DashboardMiniSidebarV2DockItem>
 
     <NcDivider class="!w-8 !min-w-8 !mb-0 !border-nc-border-gray-medium !-mt-1.5" />
@@ -313,7 +329,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
     <!-- AI Chat -->
     <DashboardMiniSidebarV2DockItem
-      v-if="isEeUI && !isEEFeatureBlocked && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
+      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       :ref="(el: any) => setItemRef('chat', el)"
       v-e="['c:chat:toggle']"
       label="Chat"
@@ -363,9 +379,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     <NcDropdown
       v-if="!isMobileMode"
       v-model:visible="isNotificationOpen"
-      placement="right"
+      :placement="isRtl ? 'left' : 'right'"
       overlay-class-name="!shadow-none"
-      :overlay-style="{ marginLeft: '8px' }"
+      :overlay-style="isRtl ? { marginRight: '8px' } : { marginLeft: '8px' }"
       :trigger="['click']"
     >
       <div
@@ -426,6 +442,38 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
   &:hover {
     opacity: 1;
     background: none !important;
+  }
+}
+
+.nc-dock-logo-hover {
+  .nc-logo-icon,
+  .nc-back-icon {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .nc-logo-icon {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .nc-back-icon {
+    @apply flex items-center justify-center;
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  &:hover {
+    .nc-logo-icon {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    .nc-back-icon {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 }
 

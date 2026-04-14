@@ -8,7 +8,6 @@ import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfil
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
-
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   future: {

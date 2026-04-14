@@ -141,7 +141,7 @@ export default class WorkspaceUser {
       .where('fk_user_id', userId)
       .update({
         deleted: true,
-        deleted_at: new Date().toISOString(),
+        deleted_at: ncMeta.now(),
       });
 
     await this.clearBaseUserCacheForWorkspace(workspaceId, ncMeta);
@@ -159,7 +159,7 @@ export default class WorkspaceUser {
       .where('fk_user_id', userId)
       .update({
         deleted: true,
-        deleted_at: new Date().toISOString(),
+        deleted_at: ncMeta.now(),
       });
 
     for (const entry of entries) {

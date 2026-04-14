@@ -100,8 +100,10 @@ const hasTableCreatePermission = computed(() => {
       <!-- Settings panel -->
       <template v-else-if="activeSidebarTab === 'settings'">
         <DashboardTreeViewProjectBaseSettingsMenu v-if="!isSharedBase" />
-        <div v-if="!isSharedBase && !isMobileMode" class="mx-3 border-t border-nc-border-gray-medium"></div>
-        <DashboardTreeViewProjectWsSettingsMenu />
+        <template v-if="showWsSettingsInBase">
+          <div v-if="!isSharedBase && !isMobileMode" class="mx-3 border-t border-nc-border-gray-medium"></div>
+          <DashboardTreeViewProjectWsSettingsMenu />
+        </template>
       </template>
 
       <!-- Fallback to data -->

@@ -1,10 +1,8 @@
 import { forwardRef, Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bull';
 import { RecoverDisconnectedTableNames } from './migration-jobs/nc_job_008_recover_disconnected_table_name';
 import { MigrateController } from '~/modules/jobs/jobs/export-import/migrate.controller';
 import { MigrateService } from '~/modules/jobs/jobs/export-import/migrate.service';
 import { NocoModule } from '~/modules/noco.module';
-import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
 
 // Jobs
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
@@ -27,11 +25,9 @@ import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clea
 import { PublicDataExportController } from '~/modules/jobs/jobs/data-export/public-data-export.controller';
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
-import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
 import { AttachmentUrlUploadProcessor } from '~/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
 
-// Job Processor
-import { JobsProcessor } from '~/modules/jobs/jobs.processor';
+// Job Map
 import { JobsMap } from '~/modules/jobs/jobs-map.service';
 
 // Migration Jobs
@@ -45,65 +41,37 @@ import { AuditMigration } from '~/modules/jobs/migration-jobs/nc_job_009_audit_m
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
-// import { JobsGateway } from '~/modules/jobs/jobs.gateway';
 import { JobsController } from '~/modules/jobs/jobs.controller';
-import { JobsService } from '~/modules/jobs/redis/jobs.service';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 
-// Fallback
+// Fallback Queue (CE only supports fallback queue)
 import { JobsService as FallbackJobsService } from '~/modules/jobs/fallback/jobs.service';
 import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fallback-queue.service';
-import { JOBS_QUEUE } from '~/interface/Jobs';
 import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
 import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
-import { CACHE_PREFIX } from '~/utils/globals';
 
 export const JobsModuleMetadata = {
-  imports: [
-    forwardRef(() => NocoModule),
-    ...(getRedisURL(NC_REDIS_TYPE.JOB)
-      ? [
-          BullModule.forRoot({
-            url: getRedisURL(NC_REDIS_TYPE.JOB),
-            prefix: CACHE_PREFIX === 'nc' ? undefined : `${CACHE_PREFIX}`,
-          }),
-          BullModule.registerQueue({
-            name: JOBS_QUEUE,
-            defaultJobOptions: {
-              removeOnComplete: true,
-              attempts: 1,
-            },
-          }),
-        ]
-      : []),
-  ],
+  imports: [forwardRef(() => NocoModule)],
   controllers: [
     JobsController,
-    ...(process.env.NC_WORKER_CONTAINER !== 'true'
-      ? [
-          DuplicateController,
-          MigrateController,
-          AtImportController,
-          MetaSyncController,
-          SourceCreateController,
-          SourceDeleteController,
-          DataExportController,
-          PublicDataExportController,
-        ]
-      : []),
+    DuplicateController,
+    MigrateController,
+    AtImportController,
+    MetaSyncController,
+    SourceCreateController,
+    SourceDeleteController,
+    DataExportController,
+    PublicDataExportController,
   ],
   providers: [
     JobsMap,
     JobsEventService,
-    ...(getRedisURL(NC_REDIS_TYPE.JOB) ? [] : [FallbackQueueService]),
+    FallbackQueueService,
     {
       provide: 'JobsService',
-      useClass: getRedisURL(NC_REDIS_TYPE.JOB)
-        ? JobsService
-        : FallbackJobsService,
+      useClass: FallbackJobsService,
     },
     JobsLogService,
-    JobsProcessor,
     ExportService,
     ImportService,
     DuplicateProcessor,
@@ -118,7 +86,6 @@ export const JobsModuleMetadata = {
     DataExportCleanUpProcessor,
     ThumbnailGeneratorProcessor,
     AttachmentCleanUpProcessor,
-    UseWorkerProcessor,
     AttachmentUrlUploadProcessor,
 
     // Migration Jobs

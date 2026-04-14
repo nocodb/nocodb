@@ -43,6 +43,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAddNewExtension = computed(() => false)
 
+  const blockExtensions = computed(() => false)
+
   const blockAddNewAttachment = computed(() => false)
 
   const blockAddNewExternalSource = computed(() => false)
@@ -174,6 +176,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseTableAndFieldPermissions = (..._args: any[]) => {}
 
+  const blockDocumentPermissions = computed(() => true)
+
+  const showUpgradeToUseDocumentPermissions = (..._args: any[]) => {}
+
   const showUpgradeToUsePrivateBases = (..._args: any[]) => {}
 
   const showUpgradeToAddMoreAttachmentsInCell = (..._args: any[]) => {}
@@ -243,15 +249,31 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseMapView = (..._args: any[]) => {}
 
+  const blockDateDependency = computed(() => true)
+
+  const showUpgradeToUseDateDependency = (..._args: any[]) => {}
+
+  const showUpgradeToUseExtensions = (..._args: any[]) => {}
+
   const isEEFeatureBlocked = computed(() => true)
 
   const showEEFeatures = computed(() => false)
 
+  const blockWorkspaceCreate = computed(() => true)
+
   const blockWorkspaceMembers = computed(() => false)
+
+  const showUpgradeToCreateWorkspace = (..._args: any[]) => {}
 
   const showUpgradeToManageWorkspaceMembers = (..._args: any[]) => {}
 
+  const showUpgradeForEEFeature = (..._args: any[]) => {}
+
   const showUpgradeToUseSSO = (..._args: any[]) => {}
+
+  const blockScim = computed(() => true)
+
+  const showUpgradeToUseScim = (..._args: any[]) => {}
 
   return {
     calculatePrice,
@@ -307,6 +329,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCellColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
+    blockDocumentPermissions,
+    showUpgradeToUseDocumentPermissions,
     blockPrivateBases,
     showUpgradeToUsePrivateBases,
     showUserMayChargeAlert,
@@ -368,10 +392,19 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseListView,
     blockMapView,
     showUpgradeToUseMapView,
+    blockDateDependency,
+    showUpgradeToUseDateDependency,
+    blockExtensions,
+    showUpgradeToUseExtensions,
     isEEFeatureBlocked,
     showEEFeatures,
+    blockWorkspaceCreate,
     blockWorkspaceMembers,
+    showUpgradeToCreateWorkspace,
     showUpgradeToManageWorkspaceMembers,
+    showUpgradeForEEFeature,
     showUpgradeToUseSSO,
+    blockScim,
+    showUpgradeToUseScim,
   }
 })

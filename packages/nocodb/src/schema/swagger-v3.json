@@ -20,7 +20,10 @@
         "View Filters",
         "View Sorts",
         "Scripts",
-        "Dashboards"
+        "Dashboards",
+        "Documents",
+        "Hooks",
+        "Comments"
       ]
     },
     {
@@ -955,7 +958,7 @@
                           "id": "mwmlsgaek7932m4",
                           "title": "Table-1",
                           "meta": {
-                            "icon": "\ud83d\ude9e"
+                            "icon": "🚞"
                           },
                           "base_id": "pgfqcp0ocloo1j3",
                           "workspace_id": "w6dw3fo0"
@@ -964,7 +967,7 @@
                           "id": "m56zsedzrpz6p9w",
                           "title": "Table-2",
                           "meta": {
-                            "icon": "\ud83c\udfde\ufe0f"
+                            "icon": "🏞️"
                           },
                           "base_id": "pgfqcp0ocloo1j3",
                           "workspace_id": "w6dw3fo0"
@@ -1798,7 +1801,7 @@
                     "description": "Updated Description",
                     "display_field_id": "c455mde7px2yidt",
                     "meta": {
-                      "icon": "\ud83d\ude9e"
+                      "icon": "🚞"
                     }
                   }
                 }
@@ -1820,7 +1823,7 @@
                       "id": "m0nibecfkcfsz2x",
                       "title": "Features",
                       "meta": {
-                        "icon": "\ud83d\ude9e"
+                        "icon": "🚞"
                       },
                       "source_id": "bbtx6pvj7b8yszy",
                       "base_id": "pn9mmowpquxj60w",
@@ -2429,6 +2432,420 @@
           },
           "404": {
             "description": "Field not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/hooks": {
+      "get": {
+        "summary": "List hooks",
+        "operationId": "hooks-list",
+        "tags": [
+          "Hooks"
+        ],
+        "description": "Retrieve a list of all hooks for a specific table.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of hooks retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookV3List"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "hk1abc123xyz",
+                          "table_id": "tbl456def",
+                          "title": "Send Email on Insert",
+                          "description": "Sends email notification when a new record is inserted",
+                          "event": "record",
+                          "operation": ["insert"],
+                          "notification": {
+                            "type": "URL",
+                            "payload": {
+                              "path": "https://example.com/webhook"
+                            }
+                          },
+                          "active": true,
+                          "created_at": "2025-01-16T06:04:18.000Z",
+                          "updated_at": "2025-01-16T06:04:18.000Z"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create hook",
+        "description": "Create a new hook for a table.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "hook-create",
+        "tags": [
+          "Hooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HookV3Create"
+              },
+              "examples": {
+                "Webhook Example": {
+                  "value": {
+                    "title": "New Record Webhook",
+                    "event": "record",
+                    "operation": ["insert"],
+                    "notification": {
+                      "type": "URL",
+                      "payload": {
+                        "path": "https://example.com/webhook",
+                        "method": "POST",
+                        "body": "{{ json data }}",
+                        "headers": [
+                          {
+                            "name": "Content-Type",
+                            "value": "application/json",
+                            "enabled": true
+                          }
+                        ]
+                      }
+                    },
+                    "active": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hook created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookV3"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "hk1abc123xyz",
+                      "table_id": "tbl456def",
+                      "title": "New Record Webhook",
+                      "event": "record",
+                      "operation": ["insert"],
+                      "notification": {
+                        "type": "URL",
+                        "payload": {
+                          "path": "https://example.com/webhook",
+                          "method": "POST",
+                          "body": "{{ json data }}",
+                          "headers": [
+                            {
+                              "name": "Content-Type",
+                              "value": "application/json",
+                              "enabled": true
+                            }
+                          ]
+                        }
+                      },
+                      "active": true,
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/hooks/{hookId}": {
+      "get": {
+        "summary": "Get hook",
+        "description": "Retrieve the details of a specific hook.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "hook-read",
+        "tags": [
+          "Hooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "hookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the hook."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hook details retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookV3"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "hk1abc123xyz",
+                      "table_id": "tbl456def",
+                      "title": "Send Email on Insert",
+                      "description": "Sends email notification when a new record is inserted",
+                      "event": "record",
+                      "operation": ["insert"],
+                      "notification": {
+                        "type": "URL",
+                        "payload": {
+                          "path": "https://example.com/webhook"
+                        }
+                      },
+                      "active": true,
+                      "trigger_fields": ["fldAbc123"],
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Hook not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update hook",
+        "description": "Update the details of a specific hook.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "hook-update",
+        "tags": [
+          "Hooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "hookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the hook."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HookV3Update"
+              },
+              "examples": {
+                "Update Title": {
+                  "value": {
+                    "title": "Updated Hook Title"
+                  }
+                },
+                "Update Active Status": {
+                  "value": {
+                    "active": false
+                  }
+                },
+                "Update Notification Payload": {
+                  "value": {
+                    "notification": {
+                      "type": "URL",
+                      "payload": {
+                        "path": "https://example.com/webhook",
+                        "method": "POST",
+                        "body": "{{ json data }}",
+                        "headers": [
+                          {
+                            "name": "Content-Type",
+                            "value": "application/json",
+                            "enabled": true
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hook updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookV3"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "hk1abc123xyz",
+                      "table_id": "tbl456def",
+                      "title": "Updated Hook Title",
+                      "event": "record",
+                      "operation": ["insert"],
+                      "notification": {
+                        "type": "URL",
+                        "payload": {
+                          "path": "https://example.com/webhook",
+                          "method": "POST",
+                          "body": "{{ json data }}",
+                          "headers": [
+                            {
+                              "name": "Content-Type",
+                              "value": "application/json",
+                              "enabled": true
+                            }
+                          ]
+                        }
+                      },
+                      "active": true,
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Hook not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete hook",
+        "description": "Delete a specific hook.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "hook-delete",
+        "tags": [
+          "Hooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "hookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the hook."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hook deleted successfully."
+          },
+          "404": {
+            "description": "Hook not found."
           },
           "500": {
             "description": "Server error."
@@ -4231,6 +4648,214 @@
         }
       }
     },
+
+    "/api/v3/meta/bases/{base_id}/workflows": {
+      "get": {
+        "summary": "List Workflows",
+        "description": "Retrieve a list of workflows associated with a specific base.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflows-list",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow list retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}": {
+      "get": {
+        "summary": "Get Workflow",
+        "description": "Retrieve the details of a specific workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-read",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowGetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/execute": {
+      "post": {
+        "summary": "Execute Workflow",
+        "description": "Manually trigger a workflow execution. This endpoint only works for workflows whose trigger type is `manual-trigger`.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-execute",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowExecuteReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workflow execution queued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Execution identifier. Use this ID with the `GET /api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions/{execution_id}` endpoint to poll the execution status and retrieve results."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions": {
+      "get": {
+        "summary": "List Workflow Executions",
+        "description": "Retrieve a list of executions for a specific workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-execution-list",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          },
+          {
+            "schema": { "type": "integer", "default": 25 },
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of executions to return."
+          },
+          {
+            "schema": { "type": "integer", "default": 0 },
+            "name": "offset",
+            "in": "query",
+            "description": "Number of executions to skip."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Execution list retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowExecutionList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions/{execution_id}": {
+      "get": {
+        "summary": "Get Workflow Execution",
+        "description": "Retrieve the details of a specific workflow execution.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-execution-read",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "execution_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the execution."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Execution retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowExecutionGetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v3/data/{baseId}/{tableId}/records": {
       "parameters": [
         {
@@ -4255,7 +4880,7 @@
       "get": {
         "summary": "List Table Records",
         "operationId": "db-data-table-row-list",
-        "description": "This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- **next**: Contains the URL to retrieve the next page of records. For example, `\"https://app.nocodb.com/api/v3/tables/medhonywr18cysz/records?page=2\"` points to the next page of records.\n- If there are no more records available (you are on the last page), this attribute will be _null_.\n\nThe `pageInfo` attribute is particularly valuable when working with large datasets divided into multiple pages. It provides the necessary URL to seamlessly fetch subsequent pages, enabling efficient navigation through the dataset.",
+        "description": "This API endpoint allows you to retrieve records from a specified table. You can customize the response by applying various query parameters for filtering, sorting, and formatting.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following pagination fields as top-level properties alongside `records`:\n\n- **next**: URL to retrieve the next page of records. For example, `\"https://app.nocodb.com/api/v3/tables/medhonywr18cysz/records?page=2\"`. Returns `null` when on the last page.\n- **prev**: URL to retrieve the previous page of records. Returns `null` when on the first page.\n- **nestedNext**: URL to retrieve the current page of records with the next set of nested (linked record) data. Returns `null` when there are no more nested pages.\n- **nestedPrev**: URL to retrieve the current page of records with the previous set of nested data. Returns `null` when on the first nested page.\n\nThese pagination fields are particularly valuable when working with large datasets divided into multiple pages. They provide the necessary URLs to seamlessly navigate forward and backward through the dataset.",
         "tags": [
           "Table Records"
         ],
@@ -7045,6 +7670,318 @@
           }
         }
       }
+    },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/records/{recordId}/comments": {
+      "get": {
+        "summary": "List comments",
+        "operationId": "comments-list",
+        "tags": [
+          "Comments"
+        ],
+        "description": "Retrieve all comments for a specific record.\n\n**Note**: Comment APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          },
+          {
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the record."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comments retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommentListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create comment",
+        "operationId": "comments-create",
+        "tags": [
+          "Comments"
+        ],
+        "description": "Create a new comment on a record.\n\n**Note**: Comment APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          },
+          {
+            "name": "recordId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the record."
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comment created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/comments/{commentId}": {
+      "patch": {
+        "summary": "Update comment",
+        "operationId": "comments-update",
+        "tags": [
+          "Comments"
+        ],
+        "description": "Update the text of an existing comment. Only the comment creator can update.\n\n**Note**: Comment APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the comment."
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comment updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comment"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete comment",
+        "operationId": "comments-delete",
+        "tags": [
+          "Comments"
+        ],
+        "description": "Soft-delete a comment. Only the comment creator can delete.\n\n**Note**: Comment APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the comment."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/comments/{commentId}/resolve": {
+      "post": {
+        "summary": "Resolve comment",
+        "operationId": "comments-resolve",
+        "tags": [
+          "Comments"
+        ],
+        "description": "Toggle the resolved state of a comment. If already resolved, unresolves it.\n\n**Note**: Comment APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the comment."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comment resolved/unresolved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Comment"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -7893,7 +8830,10 @@
               {
                 "$ref": "#/components/schemas/FieldOptions/User"
               }
-            ]
+            ],
+            "errorMessage": {
+              "oneOf": "Invalid field type or options. Ensure 'type' is a valid field type and 'options' matches the schema for that type."
+            }
           },
           {
             "$ref": "#/components/schemas/FieldBaseCreate"
@@ -7994,7 +8934,10 @@
               {
                 "$ref": "#/components/schemas/FieldOptions/User"
               }
-            ]
+            ],
+            "errorMessage": {
+              "oneOf": "Invalid field type or options. Ensure 'type' is a valid field type and 'options' matches the schema for that type."
+            }
           },
           {
             "$ref": "#/components/schemas/TableFieldBaseCreate"
@@ -8181,6 +9124,9 @@
               }
             }
           ],
+          "errorMessage": {
+            "oneOf": "Each member must have either a valid 'user_id' or a valid 'email', but not both."
+          },
           "description": "An object representing a new member to be created."
         },
         "description": "Array of members to be created."
@@ -8250,7 +9196,7 @@
             "description": "Icon prefix to the table name that needs to be displayed in-lieu of the default table icon."
           }
         },
-        "oneOf": [
+        "anyOf": [
           {
             "title": "Rename Table",
             "required": [
@@ -8275,7 +9221,10 @@
               "meta"
             ]
           }
-        ]
+        ],
+        "errorMessage": {
+          "anyOf": "At least one of 'title', 'description', 'display_field_id', or 'meta' must be provided."
+        }
       },
       "Sort": {
         "type": "object",
@@ -8349,6 +9298,402 @@
         "required": [
           "id"
         ]
+      },
+      "HookV3": {
+        "type": "object",
+        "description": "Hook configuration for table-level event triggers.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the hook."
+          },
+          "table_id": {
+            "type": "string",
+            "description": "Unique identifier of the associated table."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the hook."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the hook."
+          },
+          "event": {
+            "type": "string",
+            "enum": ["record", "manual"],
+            "description": "Event trigger type. 'record' triggers after the operation completes."
+          },
+          "operation": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["insert", "update", "delete"]
+            },
+            "description": "Operations that trigger the hook."
+          },
+          "notification": {
+            "$ref": "#/components/schemas/HookNotificationV3"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Indicates if the hook is active."
+          },
+          "trigger_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Field IDs that trigger the hook when modified."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the hook was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the hook was last updated."
+          }
+        },
+        "required": ["id", "table_id", "title", "event", "operation"]
+      },
+      "HookV3List": {
+        "type": "object",
+        "description": "List response containing hooks.",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HookV3"
+            },
+            "description": "Array of hooks."
+          }
+        },
+        "required": ["list"]
+      },
+      "HookV3Create": {
+        "type": "object",
+        "description": "Request body for creating a new hook.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the hook."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the hook."
+          },
+          "event": {
+            "type": "string",
+            "enum": ["record", "manual"],
+            "default": "record",
+            "description": "Event trigger type. Defaults to 'record' (triggers after the operation completes)."
+          },
+          "operation": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["insert", "update", "delete"]
+            },
+            "description": "Operations that trigger the hook."
+          },
+          "notification": {
+            "$ref": "#/components/schemas/HookNotificationV3"
+          },
+          "active": {
+            "type": "boolean",
+            "default": true,
+            "description": "Indicates if the hook is active."
+          },
+          "trigger_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Field IDs that trigger the hook when modified."
+          }
+        },
+        "required": ["title", "operation", "notification"]
+      },
+      "HookV3Update": {
+        "type": "object",
+        "description": "Request body for updating an existing hook.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the hook."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the hook."
+          },
+          "event": {
+            "type": "string",
+            "enum": ["record", "manual"],
+            "description": "Event trigger type. 'record' triggers after the operation completes."
+          },
+          "operation": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["insert", "update", "delete"]
+            },
+            "description": "Operations that trigger the hook."
+          },
+          "notification": {
+            "$ref": "#/components/schemas/HookNotificationV3"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Indicates if the hook is active."
+          },
+          "trigger_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Field IDs that trigger the hook when modified."
+          }
+        }
+      },
+      "HookNotificationV3Url": {
+        "title": "URL",
+        "type": "object",
+        "description": "URL webhook notification. Sends an HTTP request when triggered.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["URL"],
+            "description": "Notification channel type."
+          },
+          "payload": {
+            "type": "object",
+            "description": "HTTP request configuration.",
+            "properties": {
+              "method": {
+                "type": "string",
+                "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+                "description": "HTTP method for the webhook request."
+              },
+              "path": {
+                "type": "string",
+                "description": "URL to send the webhook to. Supports Handlebars templates."
+              },
+              "body": {
+                "type": "string",
+                "description": "Request body. Supports Handlebars templates."
+              },
+              "headers": {
+                "type": "array",
+                "description": "Custom HTTP headers to include in the request.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Header name."
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Header value. Supports Handlebars templates."
+                    },
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether this header is active."
+                    }
+                  }
+                }
+              },
+              "parameters": {
+                "type": "array",
+                "description": "Query parameters to append to the URL.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Query parameter name."
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Query parameter value. Supports Handlebars templates."
+                    },
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether this parameter is active."
+                    }
+                  }
+                }
+              },
+              "auth": {
+                "type": "string",
+                "description": "Authentication configuration. Supports Handlebars templates."
+              }
+            },
+            "required": ["method", "path"]
+          },
+          "trigger_form": {
+            "type": "boolean",
+            "description": "If true, the hook only fires when submitted via a specific form."
+          },
+          "trigger_form_id": {
+            "type": "string",
+            "description": "Form view ID that triggers this hook. Only applicable when trigger_form is true."
+          },
+          "include_user": {
+            "type": "boolean",
+            "description": "If true, includes the triggering user's info in the webhook payload."
+          }
+        },
+        "required": ["type", "payload"]
+      },
+      "HookNotificationV3Email": {
+        "title": "Email",
+        "type": "object",
+        "description": "Email notification via configured email adapter.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["Email"],
+            "description": "Notification channel type."
+          },
+          "payload": {
+            "type": "object",
+            "description": "Email configuration.",
+            "properties": {
+              "to": {
+                "type": "string",
+                "description": "Recipient email address. Supports Handlebars templates."
+              },
+              "subject": {
+                "type": "string",
+                "description": "Email subject line. Supports Handlebars templates."
+              },
+              "body": {
+                "type": "string",
+                "description": "Email body (HTML). Supports Handlebars templates."
+              }
+            },
+            "required": ["to", "subject", "body"]
+          },
+          "trigger_form": {
+            "type": "boolean",
+            "description": "If true, the hook only fires when submitted via a specific form."
+          },
+          "trigger_form_id": {
+            "type": "string",
+            "description": "Form view ID that triggers this hook. Only applicable when trigger_form is true."
+          },
+          "include_user": {
+            "type": "boolean",
+            "description": "If true, includes the triggering user's info in the webhook payload."
+          }
+        },
+        "required": ["type", "payload"]
+      },
+      "HookNotificationV3Script": {
+        "title": "Script",
+        "type": "object",
+        "description": "Script notification. Executes a saved script when triggered.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["Script"],
+            "description": "Notification channel type."
+          },
+          "payload": {
+            "type": "object",
+            "description": "Script execution configuration.",
+            "properties": {
+              "scriptId": {
+                "type": "string",
+                "description": "Identifier of the script to execute."
+              },
+              "method": {
+                "type": "string",
+                "description": "HTTP method used to invoke the script endpoint.",
+                "default": "POST"
+              },
+              "path": {
+                "type": "string",
+                "description": "Script execution endpoint path."
+              }
+            },
+            "required": ["scriptId"]
+          },
+          "trigger_form": {
+            "type": "boolean",
+            "description": "If true, the hook only fires when submitted via a specific form."
+          },
+          "trigger_form_id": {
+            "type": "string",
+            "description": "Form view ID that triggers this hook. Only applicable when trigger_form is true."
+          },
+          "include_user": {
+            "type": "boolean",
+            "description": "If true, includes the triggering user's info in the webhook payload."
+          }
+        },
+        "required": ["type", "payload"]
+      },
+      "HookNotificationV3Messaging": {
+        "title": "Messaging",
+        "type": "object",
+        "description": "Messaging notification via plugin adapter (Slack, Discord, Telegram, etc.).",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["Slack", "Discord", "Telegram", "Whatsapp", "Twilio"],
+            "description": "Messaging platform type."
+          },
+          "payload": {
+            "type": "object",
+            "description": "Messaging configuration.",
+            "properties": {
+              "body": {
+                "type": "string",
+                "description": "Message body. Supports Handlebars templates."
+              }
+            },
+            "required": ["body"]
+          },
+          "trigger_form": {
+            "type": "boolean",
+            "description": "If true, the hook only fires when submitted via a specific form."
+          },
+          "trigger_form_id": {
+            "type": "string",
+            "description": "Form view ID that triggers this hook. Only applicable when trigger_form is true."
+          },
+          "include_user": {
+            "type": "boolean",
+            "description": "If true, includes the triggering user's info in the webhook payload."
+          }
+        },
+        "required": ["type", "payload"]
+      },
+      "HookNotificationV3": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/HookNotificationV3Url" },
+          { "$ref": "#/components/schemas/HookNotificationV3Email" },
+          { "$ref": "#/components/schemas/HookNotificationV3Script" },
+          { "$ref": "#/components/schemas/HookNotificationV3Messaging" }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "URL": "#/components/schemas/HookNotificationV3Url",
+            "Email": "#/components/schemas/HookNotificationV3Email",
+            "Script": "#/components/schemas/HookNotificationV3Script",
+            "Slack": "#/components/schemas/HookNotificationV3Messaging",
+            "Discord": "#/components/schemas/HookNotificationV3Messaging",
+            "Telegram": "#/components/schemas/HookNotificationV3Messaging",
+            "Whatsapp": "#/components/schemas/HookNotificationV3Messaging",
+            "Twilio": "#/components/schemas/HookNotificationV3Messaging"
+          }
+        }
       },
       "ViewSummary": {
         "type": "object",
@@ -8489,43 +9834,44 @@
         ]
       },
       "ViewBase": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "description": "Title of the view."
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "description": "Title of the view."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "grid",
+                "gallery",
+                "kanban",
+                "calendar",
+                "map",
+                "form"
+              ],
+              "description": "Type of the view."
+            },
+            "lock_type": {
+              "type": "string",
+              "enum": [
+                "collaborative",
+                "locked",
+                "personal"
+              ],
+              "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
+              "default": "collaborative"
+            },
+            "description": {
+              "type": "string",
+              "description": "Description of the view."
+            }
           },
-          "type": {
-            "type": "string",
-            "enum": [
-              "grid",
-              "gallery",
-              "kanban",
-              "calendar",
-              "map"
-            ],
-            "description": "Type of the view. \n\nNote: Form view via API is not supported currently"
-          },
-          "lock_type": {
-            "type": "string",
-            "enum": [
-              "collaborative",
-              "locked",
-              "personal"
-            ],
-            "description": "Lock type of the view.\n\n Note: Assigning view as personal using API is not supported currently",
-            "default": "collaborative"
-          },
-          "description": {
-            "type": "string",
-            "description": "Description of the view."
-          }
+          "required": [
+            "title",
+            "type"
+          ]
         },
-        "required": [
-          "title",
-          "type"
-        ]
-      },
       "ViewBaseInUpdate": {
         "type": "object",
         "properties": {
@@ -8641,6 +9987,9 @@
             ]
           }
         ],
+        "errorMessage": {
+          "oneOf": "Invalid row colour configuration. Must match one of the supported colour rule formats."
+        },
         "discriminator": {
           "propertyName": "mode"
         }
@@ -8763,388 +10112,445 @@
         }
       },
       "ViewOptionsForm": {
-        "type": "object",
-        "properties": {
-          "form_title": {
-            "type": "string",
-            "description": "Heading for the form."
-          },
-          "form_description": {
-            "type": "string",
-            "description": "Subheading for the form."
-          },
-          "thank_you_message": {
-            "type": "string",
-            "description": "Success message shown after form submission."
-          },
-          "form_redirect_after_secs": {
-            "type": "integer",
-            "description": "Seconds to wait before redirecting."
-          },
-          "show_submit_another_button": {
-            "type": "boolean",
-            "description": "Whether to show another form after submission."
-          },
-          "reset_form_after_submit": {
-            "type": "boolean",
-            "description": "Whether to show a blank form after submission."
-          },
-          "form_hide_banner": {
-            "type": "boolean",
-            "description": "Whether to hide the banner on the form."
-          },
-          "form_hide_branding": {
-            "type": "boolean",
-            "description": "Whether to hide branding on the form."
-          },
-          "banner": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL of the banner image for the form."
-          },
-          "logo": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL of the logo for the form."
-          },
-          "form_background_color": {
-            "type": "string",
-            "description": "Background color for the form.",
-            "pattern": "^#[0-9A-Fa-f]{6}$"
-          },
-          "redirect_url": {
-            "type": "string",
-            "format": "uri",
-            "description": "URL to redirect to after form submission."
+          "type": "object",
+          "properties": {
+            "form_title": {
+              "type": "string",
+              "description": "Heading for the form."
+            },
+            "form_description": {
+              "type": "string",
+              "description": "Subheading for the form."
+            },
+            "thank_you_message": {
+              "type": "string",
+              "description": "Success message shown after form submission."
+            },
+            "form_redirect_after_secs": {
+              "type": "integer",
+              "description": "Seconds to wait before redirecting."
+            },
+            "show_submit_another_button": {
+              "type": "boolean",
+              "description": "Whether to show another form after submission."
+            },
+            "reset_form_after_submit": {
+              "type": "boolean",
+              "description": "Whether to show a blank form after submission."
+            },
+            "form_hide_banner": {
+              "type": "boolean",
+              "description": "Whether to hide the banner on the form."
+            },
+            "form_hide_branding": {
+              "type": "boolean",
+              "description": "Whether to hide branding on the form."
+            },
+            "banner": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL of the banner image for the form."
+            },
+            "logo": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL of the logo for the form."
+            },
+            "form_background_color": {
+              "type": "string",
+              "description": "Background color for the form.",
+              "pattern": "^#[0-9A-Fa-f]{6}$"
+            },
+            "redirect_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "URL to redirect to after form submission."
+            },
+            "submit_button_label": {
+              "type": "string",
+              "description": "Custom label for the submit button."
+            },
+            "send_response_email_to": {
+              "type": "string",
+              "description": "Email address to send form responses to."
+            },
+            "fields_by_id": {
+              "type": "object",
+              "description": "Per-field form configuration keyed by field_id.",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/FormFieldConfig"
+              }
+            }
           }
-        }
-      },
+        },
       "ViewCreate": {
-        "type": "object",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ViewBase"
-          },
-          {
-            "oneOf": [
-              {
-                "type": "object",
-                "title": "grid",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "grid"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGrid"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ViewBase"
+            },
+            {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "title": "grid",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "grid"
+                      ]
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "gallery",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "gallery"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGallery"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGrid"
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "kanban",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "kanban"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsKanban"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
                   }
                 },
-                "required": [
-                  "options"
-                ]
-              },
-              {
-                "type": "object",
-                "title": "calendar",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "calendar"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsCalendar"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                {
+                  "type": "object",
+                  "title": "gallery",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "gallery"
+                      ]
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGallery"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
                   }
                 },
-                "required": [
-                  "options"
-                ]
-              },
-              {
-                "type": "object",
-                "title": "map",
-                "properties": {
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "map"
-                    ]
-                  },
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsMap"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+                {
+                  "type": "object",
+                  "title": "kanban",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "kanban"
+                      ]
                     },
-                    "description": "List of sorts to be applied to the view."
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsKanban"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
                   },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  "required": [
+                    "options"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "title": "calendar",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "calendar"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsCalendar"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
                   },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                  "required": [
+                    "options"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "title": "map",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "map"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsMap"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "form",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "form"
+                      ]
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsForm"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    }
                   }
                 }
+              ],
+              "discriminator": {
+                "propertyName": "type"
               }
-            ],
-            "discriminator": {
-              "propertyName": "type"
             }
+          ],
+          "errorMessage": {
+            "oneOf": "Invalid view type or options. Ensure the view type is valid and its properties match the expected schema."
+          },
+          "discriminator": {
+            "propertyName": "type"
           }
-        ]
-      },
+        },
       "ViewUpdate": {
-        "type": "object",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/ViewBaseInUpdate"
-          },
-          {
-            "oneOf": [
-              {
-                "type": "object",
-                "title": "grid",
-                "properties": {
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGrid"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
+          "type": "object",
+          "allOf": [
+            {
+              "$ref": "#/components/schemas/ViewBaseInUpdate"
+            },
+            {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "title": "grid",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGrid"
                     },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "gallery",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsGallery"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "kanban",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsKanban"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "calendar",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsCalendar"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "map",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsMap"
+                    },
+                    "sorts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SortCreate"
+                      },
+                      "description": "List of sorts to be applied to the view."
+                    },
+                    "filters": {
+                      "$ref": "#/components/schemas/FilterCreateUpdate"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    },
+                    "row_coloring": {
+                      "$ref": "#/components/schemas/ViewRowColour",
+                      "description": "Row colour configuration for the the view."
+                    }
+                  }
+                },
+                {
+                  "type": "object",
+                  "title": "form",
+                  "properties": {
+                    "options": {
+                      "$ref": "#/components/schemas/ViewOptionsForm"
+                    },
+                    "fields": {
+                      "$ref": "#/components/schemas/ViewFields"
+                    }
                   }
                 }
-              },
-              {
-                "type": "object",
-                "title": "gallery",
-                "properties": {
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsGallery"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
-                    },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "kanban",
-                "properties": {
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsKanban"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
-                    },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "calendar",
-                "properties": {
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsCalendar"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
-                    },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
-                  }
-                }
-              },
-              {
-                "type": "object",
-                "title": "map",
-                "properties": {
-                  "options": {
-                    "$ref": "#/components/schemas/ViewOptionsMap"
-                  },
-                  "sorts": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/SortCreate"
-                    },
-                    "description": "List of sorts to be applied to the view."
-                  },
-                  "filters": {
-                    "$ref": "#/components/schemas/FilterCreateUpdate"
-                  },
-                  "fields": {
-                    "$ref": "#/components/schemas/ViewFields"
-                  },
-                  "row_coloring": {
-                    "$ref": "#/components/schemas/ViewRowColour",
-                    "description": "Row colour configuration for the the view."
-                  }
-                }
+              ],
+              "discriminator": {
+                "propertyName": "type"
               }
-            ],
-            "discriminator": {
-              "propertyName": "type"
             }
+          ],
+          "errorMessage": {
+            "oneOf": "Invalid view type or options. Ensure the view type is valid and its properties match the expected schema."
+          },
+          "discriminator": {
+            "propertyName": "type"
           }
-        ]
-      },
+        },
       "View": {
         "type": "object",
         "allOf": [
@@ -9357,6 +10763,9 @@
                 }
               }
             ],
+            "errorMessage": {
+              "oneOf": "Invalid view type or options. Ensure the view type is valid and its properties match the expected schema."
+            },
             "discriminator": {
               "propertyName": "type"
             }
@@ -9435,10 +10844,7 @@
             "type": "boolean",
             "description": "Enable unique constraint for the field. When enabled, the field will only accept unique values (no duplicates allowed). Note: Unique constraint is only supported for NC-DB (not external databases) and is mutually exclusive with default values. Supported field types: SingleLineText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Date, DateTime and Time"
           }
-        },
-        "required": [
-          "title"
-        ]
+        }
       },
       "FieldBaseCreate": {
         "allOf": [
@@ -10272,6 +11678,9 @@
             "additionalProperties": false
           }
         ],
+        "errorMessage": {
+          "oneOf": "Invalid button field options. Must match one of the supported button action types (webhook, url, ai, script)."
+        },
         "discriminator": {
           "propertyName": "type",
           "mapping": {
@@ -10288,7 +11697,7 @@
         "properties": {
           "relation_type": {
             "type": "string",
-            "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
+            "description": "Type of relationship.\n\nSupported options are listed below\n- `om` one-to-many\n- `mo` many-to-one\n- `mm` many-to-many\n- `oo` one-to-one"
           },
           "related_table_id": {
             "type": "string",
@@ -10307,7 +11716,7 @@
         "properties": {
           "relation_type": {
             "type": "string",
-            "description": "Type of relationship.\n\nSupported options are listed below\n- `mm` many-to-many\n- `hm` has-many\n- `oo` one-to-one"
+            "description": "Type of relationship.\n\nSupported options are listed below\n- `om` one-to-many\n- `mo` many-to-one\n- `mm` many-to-many\n- `oo` one-to-one"
           },
           "related_table_id": {
             "type": "string",
@@ -10532,7 +11941,10 @@
                   }
                 }
               }
-            ]
+            ],
+            "errorMessage": {
+              "oneOf": "Invalid field options. Ensure 'uidt' is a valid field type and the options match the schema for that type."
+            }
           }
         ]
       },
@@ -10544,7 +11956,10 @@
           {
             "$ref": "#/components/schemas/FilterGroup"
           }
-        ]
+        ],
+        "errorMessage": {
+          "oneOf": "Must match either a Filter or a FilterGroup schema."
+        }
       },
       "FieldUpdate": {
         "allOf": [
@@ -10780,9 +12195,13 @@
                   }
                 }
               }
-            ]
+            ],
+            "errorMessage": {
+              "oneOf": "Invalid field type or options. Ensure 'type' is a valid field type and 'options' matches the schema for that type."
+            }
           }
-        ]
+        ],
+        "minProperties": 1
       },
       "Filter": {
         "type": "object",
@@ -10887,7 +12306,10 @@
                 {
                   "$ref": "#/components/schemas/FilterGroupLevel3"
                 }
-              ]
+              ],
+              "errorMessage": {
+                "oneOf": "Must match either a Filter or a FilterGroup schema."
+              }
             },
             "description": "List of filters or nested filter groups at level 3."
           }
@@ -10918,7 +12340,10 @@
                 {
                   "$ref": "#/components/schemas/FilterGroupLevel2"
                 }
-              ]
+              ],
+              "errorMessage": {
+                "oneOf": "Must match either a Filter or a FilterGroup schema."
+              }
             },
             "description": "List of filters or nested filter groups at level 2."
           }
@@ -10978,7 +12403,10 @@
           {
             "$ref": "#/components/schemas/FilterGroupLevel1"
           }
-        ]
+        ],
+        "errorMessage": {
+          "oneOf": "Must match either a Filter or a FilterGroup schema."
+        }
       },
       "FilterUpdate": {
         "allOf": [
@@ -11002,7 +12430,10 @@
               {
                 "$ref": "#/components/schemas/FilterGroup"
               }
-            ]
+            ],
+            "errorMessage": {
+              "oneOf": "Must match either a Filter or a FilterGroup schema."
+            }
           }
         ]
       },
@@ -11033,7 +12464,15 @@
                 "type": "number"
               }
             ],
+            "errorMessage": {
+              "oneOf": "Field 'id' must be either a string or a number."
+            },
             "description": "Record identifier (primary key value)"
+          },
+          "id_fields": {
+            "type": "object",
+            "description": "Individual primary key field values as object",
+            "additionalProperties": true
           },
           "fields": {
             "type": "object",
@@ -11132,6 +12571,9 @@
                 "type": "number"
               }
             ],
+            "errorMessage": {
+              "oneOf": "Field 'id' must be either a string or a number."
+            },
             "description": "Record identifier"
           },
           "fields": {
@@ -11158,6 +12600,9 @@
                 "type": "number"
               }
             ],
+            "errorMessage": {
+              "oneOf": "Field 'id' must be either a string or a number."
+            },
             "description": "Record identifier"
           }
         },
@@ -11199,6 +12644,9 @@
                       "type": "number"
                     }
                   ],
+                  "errorMessage": {
+                    "oneOf": "Field 'id' must be either a string or a number."
+                  },
                   "description": "Updated record identifier"
                 },
                 "fields": {
@@ -11258,7 +12706,10 @@
               {
                 "type": "null"
               }
-            ]
+            ],
+            "errorMessage": {
+              "oneOf": "Field 'record' must be either a valid record object or null."
+            }
           },
           "next": {
             "type": [
@@ -11275,35 +12726,6 @@
             "description": "Pagination token for previous page"
           }
         }
-      },
-      "Paginated": {
-        "description": "Model for Paginated",
-        "examples": [
-          {
-            "next": "http://api.nocodd.com/api/v3/tables/id?page=3",
-            "prev": "http://api.nocodd.com/api/v3/tables/id?page=1"
-          }
-        ],
-        "properties": {
-          "next": {
-            "description": "URL to access next page",
-            "type": "string"
-          },
-          "prev": {
-            "description": "URL to access previous page",
-            "type": "string"
-          },
-          "nestedNext": {
-            "description": "URL to access current page data with next set of nested fields data",
-            "type": "string"
-          },
-          "nestedPrev": {
-            "description": "URL to access current page data with previous set of nested fields data",
-            "type": "string"
-          }
-        },
-        "title": "Paginated Model",
-        "type": "object"
       },
       "BaseRoles": {
         "type": "string",
@@ -11572,6 +12994,9 @@
               }
             }
           ],
+          "errorMessage": {
+            "oneOf": "Each member must have either a valid 'user_id' or a valid 'email', but not both."
+          },
           "description": "An object representing a new workspace user to be created."
         },
         "description": "Array of workspace users to be created."
@@ -11636,7 +13061,7 @@
               "null"
             ],
             "description": "Team icon (emoji or icon identifier)",
-            "example": "\ud83c\udfa8"
+            "example": "🎨"
           },
           "icon_type": {
             "oneOf": [
@@ -11651,6 +13076,9 @@
                 "type": "null"
               }
             ],
+            "errorMessage": {
+              "oneOf": "Field 'icon_type' must be either a string or null."
+            },
             "description": "Team icon type",
             "example": "EMOJI"
           },
@@ -11740,7 +13168,7 @@
               "null"
             ],
             "description": "Team icon (emoji or icon identifier)",
-            "example": "\ud83c\udfa8"
+            "example": "🎨"
           },
           "icon_type": {
             "oneOf": [
@@ -11755,6 +13183,9 @@
                 "type": "null"
               }
             ],
+            "errorMessage": {
+              "oneOf": "Field 'icon_type' must be either a string or null."
+            },
             "description": "Team icon type",
             "example": "EMOJI"
           },
@@ -11801,7 +13232,7 @@
               "null"
             ],
             "description": "Updated team icon (emoji or icon identifier)",
-            "example": "\ud83d\udee0\ufe0f"
+            "example": "🛠️"
           },
           "icon_type": {
             "oneOf": [
@@ -11816,6 +13247,9 @@
                 "type": "null"
               }
             ],
+            "errorMessage": {
+              "oneOf": "Field 'icon_type' must be either a string or null."
+            },
             "description": "Team icon type",
             "example": "EMOJI"
           },
@@ -11842,7 +13276,7 @@
               "null"
             ],
             "description": "Team icon (emoji or icon identifier)",
-            "example": "\ud83c\udfa8"
+            "example": "🎨"
           },
           "icon_type": {
             "oneOf": [
@@ -11857,6 +13291,9 @@
                 "type": "null"
               }
             ],
+            "errorMessage": {
+              "oneOf": "Field 'icon_type' must be either a string or null."
+            },
             "description": "Team icon type",
             "example": "EMOJI"
           },
@@ -13347,6 +14784,1207 @@
         "required": [
           "list"
         ]
+      },
+
+      "Comment": {
+        "type": "object",
+        "description": "A comment on a record.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique comment ID.",
+            "example": "cmt_abc123"
+          },
+          "record_id": {
+            "type": "string",
+            "description": "Record ID this comment belongs to.",
+            "example": "1"
+          },
+          "table_id": {
+            "type": "string",
+            "description": "Table ID this comment belongs to.",
+            "example": "mrc5unwjdov67vr"
+          },
+          "comment": {
+            "type": "string",
+            "description": "Comment text (supports markdown).",
+            "example": "This is a comment",
+            "maxLength": 3000
+          },
+          "created_by": {
+            "type": "string",
+            "description": "User ID of the comment creator.",
+            "example": "usr_abc123"
+          },
+          "resolved_by": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "User ID who resolved this comment (null if not resolved).",
+            "example": null
+          },
+          "parent_comment_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Parent comment ID for threaded comments.",
+            "example": null
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp.",
+            "example": "2024-01-15T10:30:00.000Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp.",
+            "example": "2024-01-15T10:30:00.000Z"
+          }
+        }
+      },
+      "CommentCreateRequest": {
+        "type": "object",
+        "description": "Request body for creating a comment.",
+        "properties": {
+          "comment": {
+            "type": "string",
+            "description": "Comment text (supports markdown).",
+            "example": "This is a comment",
+            "maxLength": 3000
+          }
+        },
+        "required": [
+          "comment"
+        ]
+      },
+      "CommentUpdateRequest": {
+        "type": "object",
+        "description": "Request body for updating a comment.",
+        "properties": {
+          "comment": {
+            "type": "string",
+            "description": "Updated comment text.",
+            "example": "Updated comment",
+            "maxLength": 3000
+          }
+        },
+        "required": [
+          "comment"
+        ]
+      },
+      "CommentListResponse": {
+        "type": "object",
+        "description": "List of comments for a record.",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Comment"
+            }
+          }
+        },
+        "required": [
+          "list"
+        ]
+      },
+      "FormFieldConfig": {
+        "type": "object",
+        "description": "Form-specific configuration for a field.",
+        "properties": {
+          "alias": {
+            "type": "string",
+            "description": "Display label override for the field."
+          },
+          "description": {
+            "type": "string",
+            "description": "Help text shown below the field."
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether the field is required."
+          },
+          "allow_scanner_input": {
+            "type": "boolean",
+            "description": "Whether to show QR/barcode scanner input."
+          },
+          "is_list": {
+            "type": "boolean",
+            "description": "Whether to display as list layout."
+          },
+          "is_limit_option": {
+            "type": "boolean",
+            "description": "Whether to limit selectable options."
+          },
+          "validators": {
+            "type": "array",
+            "description": "List of validators for the field.",
+            "items": {
+              "$ref": "#/components/schemas/FormFieldValidator"
+            }
+          }
+        }
+      },
+      "FormFieldValidator": {
+        "type": "object",
+        "description": "Validator configuration for a form field.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "required",
+              "regex",
+              "minValue",
+              "maxValue",
+              "minLength",
+              "maxLength",
+              "email",
+              "url",
+              "custom"
+            ],
+            "description": "Type of validation to apply."
+          },
+          "value": {
+            "type": [
+              "string",
+              "integer",
+              "null"
+            ],
+            "description": "Validator parameter value (e.g., min/max number, pattern string)."
+          },
+          "message": {
+            "type": "string",
+            "description": "Custom error message for validation failure."
+          },
+          "regex": {
+            "type": "string",
+            "description": "Regular expression pattern (for regex validator type)."
+          }
+        }
+      },
+
+      "WorkflowList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the workflow"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the workflow"
+                },
+                "description": {
+                  "type": ["string", "null"],
+                  "description": "Description of the workflow"
+                },
+                "base_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the base"
+                },
+                "workspace_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the workspace"
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Whether the workflow is enabled"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp when the workflow was created"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp when the workflow was last updated"
+                },
+                "created_by": {
+                  "type": "string",
+                  "description": "User ID of the creator"
+                },
+                "updated_by": {
+                  "type": "string",
+                  "description": "User ID of the last updater"
+                }
+              },
+              "required": ["id", "title", "base_id", "workspace_id"]
+            }
+          }
+        },
+        "required": ["list"]
+      },
+      "WorkflowNodePort": {
+        "description": "Port definition for a workflow node (input/output connection point)",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique port identifier within the node (e.g. 'true', 'false', 'body', 'output')"
+          },
+          "label": {
+            "type": "string",
+            "description": "Display label for the port (e.g. 'True', 'False', 'For Each Item')"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["input", "output"],
+            "description": "Whether this port accepts incoming or outgoing connections"
+          },
+          "order": {
+            "type": "number",
+            "description": "Display order of the port"
+          }
+        },
+        "required": ["id", "direction"]
+      },
+      "WorkflowVariableDefinition": {
+        "description": "Variable definition describing an input or output of a workflow node",
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Expression reference key (e.g. 'fields.Title', 'meta.id')"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable display name"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "integer", "boolean", "object", "array", "date", "datetime"],
+            "description": "Data type of the variable"
+          },
+          "groupKey": {
+            "type": "string",
+            "enum": ["meta", "fields", "iteration"],
+            "description": "Grouping category — 'meta' for system fields, 'fields' for user data, 'iteration' for loop variables"
+          },
+          "isArray": {
+            "type": "boolean",
+            "description": "Whether this variable represents an array of values"
+          },
+          "extra": {
+            "type": "object",
+            "description": "Additional metadata (entity references, icons, UI type hints)",
+            "properties": {
+              "entity_id": {
+                "type": "string",
+                "description": "ID of the referenced entity (column, table, or view)"
+              },
+              "entity": {
+                "type": "string",
+                "enum": ["column", "table", "view"],
+                "description": "Type of the referenced entity"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon identifier for display"
+              },
+              "uiType": {
+                "type": "string",
+                "description": "UI data type hint"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the variable"
+              },
+              "port": {
+                "type": "string",
+                "description": "Port ID this variable belongs to (for multi-port nodes like If/Iterate)"
+              }
+            }
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Nested variable definitions for object/array types"
+          }
+        },
+        "required": ["key", "name", "type"]
+      },
+      "WorkflowNodeData": {
+        "description": "Data payload of a workflow node containing its configuration and metadata",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Display title of the node"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the node"
+          },
+          "config": {
+            "type": "object",
+            "description": "Node-specific configuration. Structure varies by node type — e.g. table ID for record triggers, conditions array for If nodes, duration/unit for Delay nodes, array expression for Iterate nodes"
+          },
+          "testResult": {
+            "$ref": "#/components/schemas/WorkflowNodeExecutionResult",
+            "description": "Result from the most recent test execution of this node (only present on draft nodes)"
+          },
+          "inputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Input variable definitions for this node"
+          },
+          "outputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Output variable definitions produced by this node"
+          }
+        },
+        "required": ["title", "config"]
+      },
+      "WorkflowNode": {
+        "description": "A node in the workflow graph representing a trigger, action, or flow control operation. Node type IDs follow the pattern '{provider}.{category}.{name}' (e.g. 'nocodb.trigger.after_insert', 'core.flow.if', 'slack.send_message').",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this node within the workflow"
+          },
+          "type": {
+            "type": "string",
+            "description": "Node type identifier determining behavior and available configuration. Categories: trigger (start events), action (operations), flow (control flow). Examples: 'nocodb.trigger.after_insert', 'core.action.http', 'core.flow.if', 'core.flow.iterate', 'core.flow.delay', 'slack.send_message', 'ai.action.generate-text'",
+            "examples": [
+              "nocodb.trigger.after_insert",
+              "nocodb.trigger.after_update",
+              "nocodb.trigger.after_delete",
+              "nocodb.trigger.form_submitted",
+              "nocodb.trigger.record_enters_view",
+              "nocodb.trigger.record_matches_condition",
+              "core.trigger.webhook",
+              "core.trigger.manual",
+              "core.trigger.cron",
+              "core.flow.if",
+              "core.flow.iterate",
+              "core.flow.delay",
+              "core.flow.wait-until",
+              "core.action.http",
+              "core.action.send-email",
+              "nocodb.create_record",
+              "nocodb.update_record",
+              "nocodb.find_record",
+              "nocodb.list_records",
+              "nocodb.delete_record",
+              "nocodb.run_script",
+              "ai.action.generate-text",
+              "ai.action.generate-structured",
+              "slack.send_message",
+              "google.send_email",
+              "twilio.action.send_sms",
+              "twilio.action.call_phone",
+              "twilio.action.send_whatsapp",
+              "github.trigger",
+              "outlook.send_email",
+              "google_calendar.trigger.new_event",
+              "hubspot_crm.action.contact_create",
+              "hubspot_crm.action.deal_create"
+            ]
+          },
+          "position": {
+            "type": "object",
+            "description": "Position of the node on the workflow canvas",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "X coordinate"
+              },
+              "y": {
+                "type": "number",
+                "description": "Y coordinate"
+              }
+            },
+            "required": ["x", "y"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/WorkflowNodeData"
+          },
+          "targetPosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the incoming connection handle"
+          },
+          "sourcePosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the outgoing connection handle"
+          }
+        },
+        "required": ["id", "type", "position", "data"]
+      },
+      "WorkflowEdge": {
+        "description": "A directed connection between two workflow nodes defining execution flow. For conditional/loop nodes, sourcePortId determines which branch is followed.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this edge"
+          },
+          "source": {
+            "type": "string",
+            "description": "ID of the source node"
+          },
+          "target": {
+            "type": "string",
+            "description": "ID of the target node"
+          },
+          "animated": {
+            "type": "boolean",
+            "description": "Whether the edge should be animated in the UI"
+          },
+          "label": {
+            "type": "string",
+            "description": "Display label on the edge (e.g. 'True', 'False', 'For Each Item')"
+          },
+          "sourcePortId": {
+            "type": "string",
+            "description": "Output port ID on the source node. Used for branching — e.g. 'true'/'false' for If nodes, 'body'/'output' for Iterate nodes"
+          },
+          "targetPortId": {
+            "type": "string",
+            "description": "Input port ID on the target node"
+          }
+        },
+        "required": ["id", "source", "target"]
+      },
+      "WorkflowNodeExecutionResult": {
+        "description": "Result of executing a single workflow node",
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "type": "string",
+            "description": "ID of the node that was executed"
+          },
+          "nodeTitle": {
+            "type": "string",
+            "description": "Title of the node at execution time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "running", "success", "error", "skipped"],
+            "description": "Execution status of the node"
+          },
+          "input": {
+            "type": "object",
+            "description": "Interpolated input data passed to the node"
+          },
+          "output": {
+            "type": "object",
+            "description": "Output data produced by the node"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if the node failed"
+          },
+          "startTime": {
+            "type": "number",
+            "description": "Execution start time (Unix timestamp in milliseconds)"
+          },
+          "endTime": {
+            "type": "number",
+            "description": "Execution end time (Unix timestamp in milliseconds)"
+          },
+          "nextNode": {
+            "type": "string",
+            "description": "Explicit next node title for routing (used by conditional nodes)"
+          },
+          "logs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "enum": ["info", "warn", "error"],
+                  "description": "Log level"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Log message"
+                },
+                "ts": {
+                  "type": "number",
+                  "description": "Timestamp of the log entry"
+                },
+                "data": {
+                  "type": "object",
+                  "description": "Additional structured log data"
+                }
+              },
+              "required": ["level", "message"]
+            },
+            "description": "Execution log entries from the node"
+          },
+          "metrics": {
+            "type": "object",
+            "description": "Execution metrics (e.g. execution time, condition count)"
+          },
+          "inputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Input variable definitions at execution time"
+          },
+          "outputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Output variable definitions at execution time"
+          },
+          "loopContext": {
+            "type": "object",
+            "description": "Loop context for iterate nodes — contains loop state, body port, and exit port",
+            "properties": {
+              "state": {
+                "type": "object",
+                "description": "Serializable loop state",
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {},
+                    "description": "Array of items being iterated"
+                  },
+                  "currentIndex": {
+                    "type": "number",
+                    "description": "Current iteration index (0-based)"
+                  },
+                  "totalItems": {
+                    "type": "number",
+                    "description": "Total number of items to iterate"
+                  }
+                }
+              },
+              "bodyPort": {
+                "type": "string",
+                "description": "Port ID for the loop body (e.g. 'body')"
+              },
+              "exitPort": {
+                "type": "string",
+                "description": "Port ID for the loop exit (e.g. 'output')"
+              }
+            }
+          },
+          "isStale": {
+            "type": "boolean",
+            "description": "Whether this test result is stale (node config changed since last test)"
+          }
+        },
+        "required": ["nodeId", "nodeTitle", "status", "startTime"]
+      },
+      "WorkflowLoopData": {
+        "description": "Execution data for a single iterate/loop node across all its iterations",
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "type": "string",
+            "description": "ID of the iterate node"
+          },
+          "nodeTitle": {
+            "type": "string",
+            "description": "Title of the iterate node"
+          },
+          "totalIterations": {
+            "type": "number",
+            "description": "Total number of iterations executed"
+          },
+          "iterations": {
+            "type": "object",
+            "description": "Map of iteration index to iteration data. Each iteration contains its own nodeResults and optional nested childLoops.",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "iterationIndex": {
+                  "type": "number",
+                  "description": "0-based iteration index"
+                },
+                "nodeResults": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowNodeExecutionResult"
+                  },
+                  "description": "Node execution results within this iteration"
+                },
+                "childLoops": {
+                  "type": "object",
+                  "description": "Nested loop data for loops-within-loops",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/WorkflowLoopData"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": ["nodeId", "nodeTitle", "totalIterations"]
+      },
+      "WorkflowExecutionData": {
+        "description": "Full execution state of a workflow run, including all node results, loop data, and pause/resume information",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Execution state ID"
+          },
+          "workflowId": {
+            "type": "string",
+            "description": "ID of the workflow being executed"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["running", "waiting", "completed", "error", "cancelled", "skipped"],
+            "description": "Overall execution status"
+          },
+          "startTime": {
+            "type": "number",
+            "description": "Execution start time (Unix timestamp in milliseconds)"
+          },
+          "endTime": {
+            "type": "number",
+            "description": "Execution end time (Unix timestamp in milliseconds)"
+          },
+          "nodeResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNodeExecutionResult"
+            },
+            "description": "Ordered list of node execution results"
+          },
+          "currentNodeId": {
+            "type": "string",
+            "description": "ID of the currently executing node (when status is 'running')"
+          },
+          "triggerData": {
+            "type": "object",
+            "description": "Data that triggered the workflow execution"
+          },
+          "triggerNodeTitle": {
+            "type": "string",
+            "description": "Title of the trigger node"
+          },
+          "loops": {
+            "type": "object",
+            "description": "Loop execution data keyed by iterate node ID",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/WorkflowLoopData"
+            }
+          },
+          "pausedAt": {
+            "type": "number",
+            "description": "Timestamp when execution was paused (for delay/wait-until nodes)"
+          },
+          "resumeAt": {
+            "type": "number",
+            "description": "Timestamp when execution should resume"
+          },
+          "nextNodeId": {
+            "type": "string",
+            "description": "ID of the node to resume execution from"
+          }
+        },
+        "required": ["id", "workflowId", "status", "startTime", "nodeResults"]
+      },
+      "WorkflowDraft": {
+        "description": "Draft version of workflow nodes and edges with unpublished changes. Must be published via the publish endpoint for changes to take effect.",
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNode"
+            },
+            "description": "Draft workflow node definitions"
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdge"
+            },
+            "description": "Draft connections between nodes"
+          }
+        }
+      },
+      "WorkflowNodeDataRequest": {
+        "description": "Data payload for a workflow node in create/update requests. Does not accept testResult — that field is server-managed.",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Display title of the node"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the node"
+          },
+          "config": {
+            "type": "object",
+            "description": "Node-specific configuration. Structure varies by node type — e.g. table ID for record triggers, conditions array for If nodes, duration/unit for Delay nodes, array expression for Iterate nodes"
+          },
+          "inputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Input variable definitions for this node"
+          },
+          "outputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Output variable definitions produced by this node"
+          }
+        },
+        "required": ["title", "config"]
+      },
+      "WorkflowNodeRequest": {
+        "description": "A workflow node in create/update requests. Same as WorkflowNode but node data does not accept testResult.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this node within the workflow"
+          },
+          "type": {
+            "type": "string",
+            "description": "Node type identifier determining behavior and available configuration."
+          },
+          "position": {
+            "type": "object",
+            "description": "Position of the node on the workflow canvas",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "X coordinate"
+              },
+              "y": {
+                "type": "number",
+                "description": "Y coordinate"
+              }
+            },
+            "required": ["x", "y"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/WorkflowNodeDataRequest"
+          },
+          "targetPosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the incoming connection handle"
+          },
+          "sourcePosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the outgoing connection handle"
+          }
+        },
+        "required": ["id", "type", "position", "data"]
+      },
+      "WorkflowDraftRequest": {
+        "description": "Draft version of workflow nodes and edges for create/update requests. Node data does not accept testResult.",
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNodeRequest"
+            },
+            "description": "Draft workflow node definitions"
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdge"
+            },
+            "description": "Draft connections between nodes"
+          }
+        }
+      },
+      "WorkflowOptions": {
+        "description": "Workflow options including execution configuration and display settings",
+        "type": "object",
+        "properties": {
+          "run_as": {
+            "type": "object",
+            "description": "Execution identity — determines the permissions context under which the workflow runs",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["service_account", "role", "user"],
+                "description": "Identity type. 'service_account' runs as a system user with creator role, 'role' runs with a specified role, 'user' runs as a specific user"
+              },
+              "value": {
+                "type": "string",
+                "description": "Role name (when type='role') or user ID (when type='user'). Not required for 'service_account'"
+              }
+            },
+            "required": ["type"]
+          },
+          "icon": {
+            "type": "string",
+            "description": "Custom emoji icon for the workflow"
+          }
+        }
+      },
+      "WorkflowGetResponse": {
+        "description": "Workflow with full details including nodes and edges",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the workflow"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the workflow"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the workflow"
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Unique identifier for the base"
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the workflow is enabled"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNode"
+            },
+            "description": "Published workflow node definitions"
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdge"
+            },
+            "description": "Published connections between workflow nodes"
+          },
+          "draft": {
+            "$ref": "#/components/schemas/WorkflowDraft",
+            "description": "Draft configuration with unpublished changes. Null when no draft exists."
+          },
+          "options": {
+            "$ref": "#/components/schemas/WorkflowOptions",
+            "description": "Workflow options including execution configuration and display settings"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workflow was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workflow was last updated"
+          },
+          "created_by": {
+            "type": "string",
+            "description": "User ID of the creator"
+          },
+          "updated_by": {
+            "type": "string",
+            "description": "User ID of the last updater"
+          }
+        },
+        "required": ["id", "title", "base_id", "workspace_id", "created_at", "updated_at"]
+      },
+      "WorkflowExecuteReq": {
+        "description": "Workflow execute request body",
+        "type": "object",
+        "properties": {
+          "trigger_data": {
+            "type": "object",
+            "description": "Data to pass to the workflow trigger."
+          }
+        }
+      },
+      "WorkflowTestNodeReq": {
+        "description": "Workflow test node request body",
+        "type": "object",
+        "required": ["node_id"],
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "description": "Unique identifier of the node to test."
+          },
+          "test_trigger_data": {
+            "type": "object",
+            "description": "Optional test data to pass to the node."
+          },
+          "test_mode": {
+            "type": "string",
+            "enum": ["sample_data", "listen_webhook", "trigger_event"],
+            "description": "Test mode. Defaults to sample_data if not specified."
+          }
+        }
+      },
+      "WorkflowNodeGetResponse": {
+        "description": "A single workflow node",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the node."
+          },
+          "type": {
+            "type": "string",
+            "description": "Node type identifier."
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": { "type": "number", "description": "X coordinate." },
+              "y": { "type": "number", "description": "Y coordinate." }
+            },
+            "required": ["x", "y"],
+            "description": "Position of the node on the canvas."
+          },
+          "data": {
+            "$ref": "#/components/schemas/WorkflowNodeData",
+            "description": "Node configuration and metadata."
+          },
+          "targetPosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the incoming connection handle."
+          },
+          "sourcePosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the outgoing connection handle."
+          }
+        },
+        "required": ["id", "type", "position", "data"]
+      },
+      "WorkflowNodeListResponse": {
+        "description": "List of workflow nodes and edges",
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNodeGetResponse"
+            },
+            "description": "Workflow nodes."
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdge"
+            },
+            "description": "Connections between nodes."
+          }
+        }
+      },
+      "WorkflowNodeCreateReq": {
+        "description": "Create a new workflow node",
+        "type": "object",
+        "required": ["type", "position", "data"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Node type identifier."
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": { "type": "number", "description": "X coordinate." },
+              "y": { "type": "number", "description": "Y coordinate." }
+            },
+            "required": ["x", "y"],
+            "description": "Position of the node on the canvas."
+          },
+          "data": {
+            "type": "object",
+            "description": "Node configuration and metadata.",
+            "properties": {
+              "config": {
+                "type": "object",
+                "description": "Node-specific configuration."
+              },
+              "title": {
+                "type": "string",
+                "description": "Display title for the node."
+              },
+              "description": {
+                "type": ["string", "null"],
+                "description": "Optional description."
+              }
+            }
+          },
+          "targetPosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the incoming connection handle. Defaults to 'top'."
+          },
+          "sourcePosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the outgoing connection handle. Defaults to 'bottom'."
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdge"
+            },
+            "description": "Optional edges to add along with the node."
+          }
+        }
+      },
+      "WorkflowNodeUpdateReq": {
+        "description": "Update an existing workflow node",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Node type identifier."
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": { "type": "number", "description": "X coordinate." },
+              "y": { "type": "number", "description": "Y coordinate." }
+            },
+            "description": "Position of the node on the canvas."
+          },
+          "data": {
+            "type": "object",
+            "description": "Node configuration and metadata.",
+            "properties": {
+              "config": {
+                "type": "object",
+                "description": "Node-specific configuration."
+              },
+              "title": {
+                "type": "string",
+                "description": "Display title for the node."
+              },
+              "description": {
+                "type": ["string", "null"],
+                "description": "Optional description."
+              }
+            }
+          },
+          "targetPosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the incoming connection handle."
+          },
+          "sourcePosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the outgoing connection handle."
+          }
+        }
+      },
+      "WorkflowExecutionList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the execution"
+                },
+                "workflow_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the workflow"
+                },
+                "status": {
+                  "type": "string",
+                  "description": "Execution status",
+                  "enum": ["running", "waiting", "completed", "error", "cancelled", "skipped"]
+                },
+                "started_at": {
+                  "type": ["string", "null"],
+                  "format": "date-time",
+                  "description": "Timestamp when the execution started"
+                },
+                "finished_at": {
+                  "type": ["string", "null"],
+                  "format": "date-time",
+                  "description": "Timestamp when the execution finished"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp when the execution record was created"
+                }
+              },
+              "required": ["id", "workflow_id", "status"]
+            }
+          }
+        },
+        "required": ["list"]
+      },
+      "WorkflowExecutionGetResponse": {
+        "description": "Workflow execution with full details",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the execution"
+          },
+          "workflow_id": {
+            "type": "string",
+            "description": "Unique identifier for the workflow"
+          },
+          "status": {
+            "type": "string",
+            "description": "Execution status",
+            "enum": ["running", "waiting", "completed", "error", "cancelled", "skipped"]
+          },
+          "execution_data": {
+            "$ref": "#/components/schemas/WorkflowExecutionData",
+            "description": "Full execution state including node results, loops, and pause/resume data"
+          },
+          "started_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Timestamp when the execution started"
+          },
+          "finished_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Timestamp when the execution finished"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the execution record was created"
+          }
+        },
+        "required": ["id", "workflow_id", "status"]
       }
     },
     "responses": {

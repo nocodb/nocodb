@@ -10,7 +10,8 @@ import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
 import getAst from '~/helpers/getAst';
 import { Filter, Model, View } from '~/models';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
-// import { nocoExecute } from '~/utils/nocoExecute';
+import Noco from '~/Noco';
+import { nocoExecute } from '~/utils/nocoExecute';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -24,24 +25,34 @@ export const relationDataFetcher = (param: {
     context: NcContext,
     {
       data,
+      model,
+      query,
     }: {
       data: any[];
       model: Model;
       query: any;
     },
   ) {
-    return data;
+    if (Noco.isEE()) {
+      return data;
+    }
 
-    // FIXME: reopen when we have fixed nocoexecute
-    // // get ast
-    // const { ast, parsedQuery } = await getAst(context, {
-    //   model,
-    //   query,
-    //   extractOnlyPrimaries: false,
-    // });
-    // // nocoexecute
-    // const result = await nocoExecute(ast, data, {}, parsedQuery);
-    // return result;
+    const { ast, parsedQuery } = await getAst(context, {
+      model,
+      query,
+      extractOnlyPrimaries:
+        context.cacheMap?.get('relation_postProcessData') ?? false,
+    });
+
+    if (!context.cacheMap) {
+      context.cacheMap = new Map();
+    }
+    // set context.cacheMap `relation_postProcessData` to ensure non-infinite loop
+    context.cacheMap.set('relation_postProcessData', true);
+
+    // nocoexecute
+    const result = await nocoExecute(ast, data, {}, parsedQuery);
+    return result;
   }
 
   return {
@@ -209,6 +220,12 @@ export const relationDataFetcher = (param: {
       // const tn = baseModel.model.tn;
       // const cn = (await relColOptions.getChildColumn()).title;
       const mmTable = await relColOptions.getMMModel(context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return [];
+      }
+
       const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
         model: mmTable,
         dbDriver: baseModel.dbDriver,
@@ -337,6 +354,12 @@ export const relationDataFetcher = (param: {
       const { refContext, mmContext } = relColOptions.getRelContext(context);
 
       const mmTable = await relColOptions.getMMModel(context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return null;
+      }
+
       const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
         model: mmTable,
         dbDriver: baseModel.dbDriver,
@@ -814,6 +837,12 @@ export const relationDataFetcher = (param: {
       )) as LinkToAnotherRecordColumn;
 
       const mmTable = await relColOptions.getMMModel(baseModel.context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return parentIds.map(() => 0);
+      }
+
       const vtn = baseModel.getTnPath(mmTable);
       const vcn = (await relColOptions.getMMChildColumn(baseModel.context))
         .column_name;
@@ -888,6 +917,11 @@ export const relationDataFetcher = (param: {
       const { mmContext, refContext } = relColOptions.getRelContext(context);
 
       const mmTable = await relColOptions.getMMModel(context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return 0;
+      }
 
       const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
         model: mmTable,
@@ -976,6 +1010,12 @@ export const relationDataFetcher = (param: {
       );
 
       const mmTable = await relColOptions.getMMModel(baseModel.context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return 0;
+      }
+
       const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
         id: mmTable.id,
         dbDriver: baseModel.dbDriver,
@@ -1092,6 +1132,11 @@ export const relationDataFetcher = (param: {
       )) as LinkToAnotherRecordColumn;
 
       const mmTable = await relColOptions.getMMModel(baseModel.context);
+
+      // if mm table is not present then return
+      if (!mmTable) {
+        return [];
+      }
 
       const context = baseModel.context;
       const { refContext, mmContext } = relColOptions.getRelContext(

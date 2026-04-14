@@ -25,5 +25,11 @@
     "prettier": "^3.5.3",
     "taze": "^19.1.0",
     "typescript": "^5.8.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "vue-demi"
+    ]
   }
 }

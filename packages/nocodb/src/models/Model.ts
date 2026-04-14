@@ -12,7 +12,12 @@ import { Logger } from '@nestjs/common';
 import hash from 'object-hash';
 import type { NcRequest } from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
+import type {
+  BoolType,
+  DateDependencyType,
+  TableReqType,
+  TableType,
+} from 'nocodb-sdk';
 import type PQueue from 'p-queue';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
@@ -88,6 +93,8 @@ export default class Model implements TableType {
   mm: BoolType;
 
   uuid: string;
+
+  date_dependency?: DateDependencyType | null;
 
   columns?: Column[];
   columnsById?: { [id: string]: Column };
@@ -620,6 +627,11 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
     const model = args?.model || (await this.get(context, args.id, ncMeta));
+
+    if (!model) {
+      NcError.get(context).tableNotFound(args.id);
+    }
+
     const source =
       args.source ||
       (await Source.get(context, model.source_id, false, ncMeta));
@@ -630,7 +642,9 @@ export default class Model implements TableType {
         model.id,
         ncMeta,
       );
-      args.viewId = view.id;
+      if (view) {
+        args.viewId = view.id;
+      }
     }
 
     let schema: string;
@@ -750,6 +764,35 @@ export default class Model implements TableType {
         MetaTable.COL_RELATIONS,
         {
           fk_related_model_id: this.id,
+        },
+      );
+
+      // Also clean up MM columns that reference this model as their junction table
+      const leftOverMmColumns = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          condition: {
+            fk_mm_model_id: this.id,
+          },
+        },
+      );
+
+      for (const col of leftOverMmColumns) {
+        await NocoCache.deepDel(
+          context,
+          `${CacheScope.COL_RELATION}:${col.fk_column_id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          fk_mm_model_id: this.id,
         },
       );
     }

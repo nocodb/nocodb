@@ -420,8 +420,9 @@ const updateVisibleChunks = () => {
   clearChildrenCache(bufferStart, bufferEnd)
 }
 
-// Debounce chunk fetching so dragging the scrollbar doesn't fire dozens of API calls
-const debouncedUpdateVisibleChunks = useDebounceFn(updateVisibleChunks, 150)
+// Debounce chunk fetching — short delay for normal scroll responsiveness,
+// maxWait ensures chunks load within 100ms even during continuous scrolling
+const debouncedUpdateVisibleChunks = useDebounceFn(updateVisibleChunks, 50, { maxWait: 100 })
 
 const onListScroll = () => {
   calculateSlices()

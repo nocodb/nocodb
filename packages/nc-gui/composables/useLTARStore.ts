@@ -761,6 +761,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
+        excludedLinkedState.value.set(index, false)
+        childrenCachedLinkedState.value.set(index, false)
         return
       }
       try {
@@ -775,6 +777,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true
+        excludedLoadingState.value.set(index, true)
+        childrenCachedLoadingState.value.set(index, true)
         await $api.dbTableRow.nestedRemove(
           NOCO,
           metaValue?.base_id ?? (base.value.id as string),
@@ -801,6 +805,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
+        excludedLinkedState.value.set(index, false)
+        childrenCachedLinkedState.value.set(index, false)
         if (!isSingleTargetRelation.value) {
           childrenListCount.value = childrenListCount.value - 1
         }
@@ -809,6 +815,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } finally {
         isChildrenExcludedListLoading.value[index] = false
         isChildrenListLoading.value[index] = false
+        excludedLoadingState.value.set(index, false)
+        childrenCachedLoadingState.value.set(index, false)
       }
 
       _reloadData?.({ shouldShowLoading: false, path: path.value })
@@ -841,11 +849,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = true
         isChildrenListLinked.value[index] = true
+        excludedLinkedState.value.set(index, true)
         return
       }
       try {
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true
+        excludedLoadingState.value.set(index, true)
 
         childrenListOffsetCount.value = childrenListOffsetCount.value + 1
         childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value + 1
@@ -892,20 +902,25 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = true
         isChildrenListLinked.value[index] = true
+        excludedLinkedState.value.set(index, true)
 
         if (!isSingleTargetRelation.value) {
           childrenListCount.value = childrenListCount.value + 1
         } else {
           isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)
           isChildrenExcludedListLinked.value[index] = true
+          // Reset Map-based linked state for single-target: only the selected row is linked
+          for (const [key] of excludedLinkedState.value) {
+            excludedLinkedState.value.set(key, false)
+          }
+          excludedLinkedState.value.set(index, true)
         }
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
-        // To Keep the Loading State for Minimum 600ms
-
         isChildrenExcludedListLoading.value[index] = false
         isChildrenListLoading.value[index] = false
+        excludedLoadingState.value.set(index, false)
       }
 
       _reloadData?.({ shouldShowLoading: false, path: path.value })

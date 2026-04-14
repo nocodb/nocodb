@@ -455,7 +455,7 @@ onMounted(() => {
         </NcAlert>
 
         <div class="mt-2">
-          <div class="text-sm font-medium mb-1">{{ $t('labels.enterPassword') }}</div>
+          <div class="text-sm font-medium mb-1">{{ $t('msg.enterPassword') }}</div>
           <a-input-password
             ref="disablePasswordInput"
             v-model:value="disablePassword"

@@ -3,7 +3,7 @@ import type { OnPremPlanTitles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
-import { isDevOrTestEnvironment } from '~/utils';
+import { isDevOrTestEnvironment, isOnPrem } from '~/utils';
 
 /**
  * Map of workflow node IDs to minimum required plan tier
@@ -75,7 +75,7 @@ export function isNodeAvailableForPlan(
   nodeId: string,
   userPlanTitle: string,
 ): boolean {
-  if (isDevOrTestEnvironment) return true;
+  if (isDevOrTestEnvironment || isOnPrem) return true;
 
   const requiredPlan = getRequiredPlanForNode(nodeId);
 

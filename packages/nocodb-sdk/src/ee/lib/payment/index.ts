@@ -602,6 +602,15 @@ export const InternalOpToOnPremPlanFeature: Record<
   setPermission: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
   dropPermission: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
   bulkDropPermissions: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
+  // RLS
+  rlsPolicyList: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyGet: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyCreate: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyUpdate: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyDelete: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicySetSubjects: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyFilterList: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyFilterCreate: PlanFeatureTypes.FEATURE_RLS,
   // Teams
   teamList: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
   teamGet: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,

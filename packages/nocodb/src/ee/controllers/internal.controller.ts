@@ -139,6 +139,15 @@ const LICENSE_REQUIRED_OPS = new Set([
   'documentCommentResolve',
   'documentCommentReactionToggle',
   'documentCommentReactionList',
+  // RLS (Enterprise only)
+  'rlsPolicyList',
+  'rlsPolicyGet',
+  'rlsPolicyCreate',
+  'rlsPolicyUpdate',
+  'rlsPolicyDelete',
+  'rlsPolicySetSubjects',
+  'rlsPolicyFilterList',
+  'rlsPolicyFilterCreate',
   // Workflows (Enterprise only)
   'workflowList',
   'workflowGet',

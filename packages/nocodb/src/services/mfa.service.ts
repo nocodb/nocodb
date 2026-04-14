@@ -25,6 +25,32 @@ import {
   encryptPropIfRequired,
 } from '~/utils/encryptDecrypt';
 
+export function normalizeCode(code: string): string {
+  return code.replace(/[-\s]/g, '').toLowerCase();
+}
+
+export function generateBackupCodes(count = 10): string[] {
+  const codes: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const code = crypto.randomBytes(4).toString('hex');
+    // Format as xxxx-xxxx for readability
+    codes.push(`${code.slice(0, 4)}-${code.slice(4)}`);
+  }
+  return codes;
+}
+
+export function generateTwoFactorToken(
+  user: { id: string; email: string },
+  secret?: string,
+): string {
+  const jwtSecret = secret ?? Noco.getConfig().auth.jwt.secret;
+  return jwt.sign(
+    { id: user.id, email: user.email, purpose: 'mfa' },
+    jwtSecret,
+    { expiresIn: '5m' },
+  );
+}
+
 @Injectable()
 export class MfaService {
   protected logger = new Logger(MfaService.name);
@@ -125,7 +151,7 @@ export class MfaService {
     });
     const qrUrl = await QRCode.toDataURL(otpauthUrl);
 
-    const backupCodes = this.generateBackupCodes();
+    const backupCodes = generateBackupCodes();
 
     // Store secret (encrypted) and backup codes (hashed) — not yet enabled
     const hashedCodes = await this.hashBackupCodes(backupCodes);
@@ -290,16 +316,7 @@ export class MfaService {
     const user = await User.get(userId);
     if (!user?.totp_enabled) return null;
 
-    return this.generateTwoFactorToken({ id: user.id, email: user.email });
-  }
-
-  private generateTwoFactorToken(user: { id: string; email: string }) {
-    const config = Noco.getConfig();
-    return jwt.sign(
-      { id: user.id, email: user.email, purpose: 'mfa' },
-      config.auth.jwt.secret,
-      { expiresIn: '5m' },
-    );
+    return generateTwoFactorToken({ id: user.id, email: user.email });
   }
 
   private async verifyTotp(secret: string, token: string): Promise<boolean> {
@@ -340,7 +357,7 @@ export class MfaService {
 
     if (!backupCodes.length) return false;
 
-    const normalizedCode = code.replace(/[-\s]/g, '').toLowerCase();
+    const normalizedCode = normalizeCode(code);
 
     // Try bcrypt comparison (hashed codes)
     for (let i = 0; i < backupCodes.length; i++) {
@@ -362,7 +379,7 @@ export class MfaService {
 
     // Fallback: plaintext comparison (pre-hashing data)
     const idx = backupCodes.findIndex(
-      (c) => c.replace(/[-\s]/g, '').toLowerCase() === normalizedCode,
+      (c) => normalizeCode(c) === normalizedCode,
     );
 
     if (idx === -1) return false;
@@ -385,7 +402,7 @@ export class MfaService {
   private async hashBackupCodes(codes: string[]): Promise<string[]> {
     const hashes: string[] = [];
     for (const code of codes) {
-      const normalized = code.replace(/[-\s]/g, '').toLowerCase();
+      const normalized = normalizeCode(code);
       const hash = await bcrypt.hash(normalized, 10);
       hashes.push(hash);
     }
@@ -415,15 +432,6 @@ export class MfaService {
     }
   }
 
-  private generateBackupCodes(count = 10): string[] {
-    const codes: string[] = [];
-    for (let i = 0; i < count; i++) {
-      const code = crypto.randomBytes(4).toString('hex');
-      // Format as xxxx-xxxx for readability
-      codes.push(`${code.slice(0, 4)}-${code.slice(4)}`);
-    }
-    return codes;
-  }
 
   async regenerateBackupCodes(userId: string, code: string, _req: NcRequest) {
     const user = await User.get(userId);
@@ -443,7 +451,7 @@ export class MfaService {
       NcError.badRequest('Invalid verification code');
     }
 
-    const backupCodes = this.generateBackupCodes();
+    const backupCodes = generateBackupCodes();
     const hashedCodes = await this.hashBackupCodes(backupCodes);
 
     await this.updateMfaFields(userId, {

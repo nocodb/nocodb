@@ -1,20 +1,15 @@
 import { expect } from 'chai';
 import 'mocha';
-import crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
+import {
+  generateBackupCodes,
+  generateTwoFactorToken,
+  normalizeCode,
+} from '../../../src/services/mfa.service';
 
 export function mfaHelperTests() {
 describe('MFA Helpers', () => {
   describe('Backup code generation', () => {
-    function generateBackupCodes(count = 10): string[] {
-      const codes: string[] = [];
-      for (let i = 0; i < count; i++) {
-        const code = crypto.randomBytes(4).toString('hex');
-        codes.push(`${code.slice(0, 4)}-${code.slice(4)}`);
-      }
-      return codes;
-    }
-
     it('should generate the requested number of codes', () => {
       const codes = generateBackupCodes(10);
       expect(codes).to.have.lengthOf(10);
@@ -41,10 +36,6 @@ describe('MFA Helpers', () => {
   });
 
   describe('Backup code normalization', () => {
-    function normalizeCode(code: string): string {
-      return code.replace(/[-\s]/g, '').toLowerCase();
-    }
-
     it('should strip dashes', () => {
       expect(normalizeCode('abcd-ef12')).to.equal('abcdef12');
     });
@@ -73,22 +64,11 @@ describe('MFA Helpers', () => {
   describe('Two-factor token generation', () => {
     const testSecret = 'test-jwt-secret-for-mfa-unit-tests';
 
-    function generateTwoFactorToken(user: {
-      id: string;
-      email: string;
-    }): string {
-      return jwt.sign(
-        { id: user.id, email: user.email, purpose: 'mfa' },
-        testSecret,
-        { expiresIn: '5m' },
-      );
-    }
-
     it('should generate a valid JWT', () => {
       const token = generateTwoFactorToken({
         id: 'user123',
         email: 'test@example.com',
-      });
+      }, testSecret);
       expect(token).to.be.a('string');
       expect(token.split('.')).to.have.lengthOf(3);
     });
@@ -97,7 +77,7 @@ describe('MFA Helpers', () => {
       const token = generateTwoFactorToken({
         id: 'user123',
         email: 'test@example.com',
-      });
+      }, testSecret);
       const payload = jwt.verify(token, testSecret) as any;
       expect(payload.id).to.equal('user123');
       expect(payload.email).to.equal('test@example.com');
@@ -108,7 +88,7 @@ describe('MFA Helpers', () => {
       const token = generateTwoFactorToken({
         id: 'user123',
         email: 'test@example.com',
-      });
+      }, testSecret);
       const payload = jwt.decode(token) as any;
       const expiresIn = payload.exp - payload.iat;
       expect(expiresIn).to.equal(300); // 5 minutes
@@ -118,7 +98,7 @@ describe('MFA Helpers', () => {
       const token = generateTwoFactorToken({
         id: 'user123',
         email: 'test@example.com',
-      });
+      }, testSecret);
       expect(() => jwt.verify(token, 'wrong-secret')).to.throw();
     });
 
@@ -126,7 +106,7 @@ describe('MFA Helpers', () => {
       const token = generateTwoFactorToken({
         id: 'user123',
         email: 'test@example.com',
-      });
+      }, testSecret);
       const payload = jwt.decode(token) as any;
       expect(payload).to.not.have.property('password');
       expect(payload).to.not.have.property('totp_secret');
@@ -134,4 +114,3 @@ describe('MFA Helpers', () => {
   });
 });
 }
-

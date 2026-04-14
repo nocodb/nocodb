@@ -2808,7 +2808,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
           if (matchedRecords?.length > 1 && throwOnDuplicate) {
             NcError.get(this.context).invalidRequestBody(
-              `Multiple records match fieldsToMergeOn [${mergeColNames.join(', ')}] — the combination must uniquely identify at most one record`,
+              `Multiple records match fieldsToMergeOn [${mergeColNames.join(
+                ', ',
+              )}] — the combination must uniquely identify at most one record`,
             );
           }
 

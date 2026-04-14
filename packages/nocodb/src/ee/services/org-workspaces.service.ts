@@ -12,12 +12,7 @@ import type { NcRequest } from '~/interface/config';
 import type { User } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { parseMetaProp } from '~/utils/modelUtils';
-import {
-  OrgUser,
-  PresignedUrl,
-  Workspace,
-  WorkspaceUser,
-} from '~/models';
+import { OrgUser, PresignedUrl, Workspace, WorkspaceUser } from '~/models';
 import { PrincipalAssignment, Team } from '~/ee/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';

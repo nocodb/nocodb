@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { OrgUserReqType } from 'nocodb-sdk'
 import { EnterpriseOrgUserRoles, NC_DEFAULT_ORG_ID, OrgUserRoles } from 'nocodb-sdk'
-import { extractEmail } from '~/helpers/parsers/parserHelpers'
-
 interface Props {
   show: boolean
   selectedUser?: User

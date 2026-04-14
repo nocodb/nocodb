@@ -1,5 +1,4 @@
 import { message } from 'ant-design-vue'
-import { WorkspaceUserRoles } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
 export interface ScimConfig {

@@ -20,9 +20,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class ScimConfigController {
-  constructor(
-    private readonly scimConfigService: ScimConfigService,
-  ) {}
+  constructor(private readonly scimConfigService: ScimConfigService) {}
 
   private async checkScimFeature(_context: NcContext) {
     // SCIM is available on licensed on-prem (license checked by LicenseGuard)

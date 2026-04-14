@@ -248,14 +248,13 @@ export class OrgsController {
   @Acl('orgAuditList', {
     scope: 'cloud-org',
   })
-  async orgAuditList(
-    @Req() req: NcRequest,
-    @Param('orgId') orgId: string,
-  ) {
+  async orgAuditList(@Req() req: NcRequest, @Param('orgId') orgId: string) {
     // Validate workspaceIds belong to this org
     let workspaceIds: string[] | undefined;
     if (req.query.workspaceIds) {
-      workspaceIds = ([] as string[]).concat(req.query.workspaceIds as string | string[]);
+      workspaceIds = ([] as string[]).concat(
+        req.query.workspaceIds as string | string[],
+      );
 
       // Single query: list all org workspaces and check membership
       const orgWorkspaces = await Workspace.listByOrgId({ orgId });

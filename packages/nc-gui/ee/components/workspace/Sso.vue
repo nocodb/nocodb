@@ -3,34 +3,6 @@ import type { SSOClientType } from 'nocodb-sdk'
 const { fetchProviders, providers, deleteProvider, updateProvider, addProvider, getPrePopulatedProvider, signInUrl } =
   useAuthentication(false, true)
 
-const { getFeature, handleUpgradePlan } = useEeConfig()
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-// Feature flag controls visibility of the entire SCIM section
-const isScimFeatureEnabled = computed(() => {
-  if (!isEeUI) return false
-  return isFeatureEnabled(FEATURE_FLAG.SCIM)
-})
-
-// Plan check controls whether SCIM can be configured (vs showing upgrade prompt)
-const isScimAvail = computed(() => {
-  if (!isScimFeatureEnabled.value) return false
-  return !!getFeature(PlanFeatureTypes.FEATURE_SCIM)
-})
-
-// SCIM composable
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
-const {
-  scimConfig,
-  isLoading: isScimLoading,
-  tokenVisible,
-  fetchScimConfig,
-  initializeScim,
-  regenerateToken,
-  toggleScim,
-  deleteScimConfig,
-} = useScim(activeWorkspaceId)
-
 const samlProviders = computed(() => {
   return [...providers.value].filter((provider: SSOClientType) => provider.type === 'saml' && !provider.deleted)
 })

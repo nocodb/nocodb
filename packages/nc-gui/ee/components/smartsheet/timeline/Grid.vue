@@ -218,6 +218,25 @@ const onResizeEnd = () => {
   }, 50)
 }
 
+// Check if editing is allowed and range is not readonly (system column type)
+const isRangeEditable = computed(() => {
+  return isUIAllowed('dataEdit') && !props.timelineRange[0]?.is_readonly
+})
+
+// Field-level edit permission for start date column
+const canEditFromCol = computed(() => {
+  const col = props.timelineRange[0]?.fk_from_col
+  if (!col?.id) return true
+  return isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
+})
+
+// Field-level edit permission for end date column
+const canEditToCol = computed(() => {
+  const col = props.timelineRange[0]?.fk_to_col
+  if (!col?.id) return true
+  return isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
+})
+
 // Can drag (move) a bar — requires edit permission on ALL date columns used
 const canDrag = computed(() => {
   if (!isRangeEditable.value) return false
@@ -534,25 +553,6 @@ const getBarStyle = (row: RowType) => {
     width: `${Math.max(duration * colWidth.value - 4, 20)}px`,
   }
 }
-
-// Check if editing is allowed and range is not readonly (system column type)
-const isRangeEditable = computed(() => {
-  return isUIAllowed('dataEdit') && !props.timelineRange[0]?.is_readonly
-})
-
-// Field-level edit permission for start date column
-const canEditFromCol = computed(() => {
-  const col = props.timelineRange[0]?.fk_from_col
-  if (!col?.id) return true
-  return isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
-})
-
-// Field-level edit permission for end date column
-const canEditToCol = computed(() => {
-  const col = props.timelineRange[0]?.fk_to_col
-  if (!col?.id) return true
-  return isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
-})
 
 // #11: Build tooltip text for a record bar — improved format with em-dash and year
 const getBarTooltip = (row: RowType) => {

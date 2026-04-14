@@ -470,7 +470,12 @@ export default class Team {
    */
   public static async getDescendantsForMultiple(
     context: NcContext,
-    teams: { id: string; path: string; fk_workspace_id?: string; fk_org_id?: string }[],
+    teams: {
+      id: string;
+      path: string;
+      fk_workspace_id?: string;
+      fk_org_id?: string;
+    }[],
     ncMeta = Noco.ncMeta,
   ): Promise<Map<string, Team[]>> {
     const result = new Map<string, Team[]>();
@@ -482,9 +487,7 @@ export default class Team {
 
     // Split teams by scope — workspace vs org
     const wsTeams = teams.filter((t) => t.fk_workspace_id);
-    const orgTeams = teams.filter(
-      (t) => t.fk_org_id && !t.fk_workspace_id,
-    );
+    const orgTeams = teams.filter((t) => t.fk_org_id && !t.fk_workspace_id);
 
     const allDescendants: any[] = [];
 
@@ -504,10 +507,7 @@ export default class Team {
                 })),
               },
               {
-                _or: [
-                  { deleted: { eq: false } },
-                  { deleted: { eq: null } },
-                ],
+                _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
               },
             ],
           },
@@ -532,10 +532,7 @@ export default class Team {
                 })),
               },
               {
-                _or: [
-                  { deleted: { eq: false } },
-                  { deleted: { eq: null } },
-                ],
+                _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
               },
             ],
           },

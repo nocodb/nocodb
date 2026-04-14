@@ -82,7 +82,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         user,
         baseId: req.ncBaseId,
         workspaceId: req.ncWorkspaceId,
-        orgId: req.ncOrgId || req.params?.orgId || (isOnPrem ? Noco.ncDefaultOrgId : undefined),
+        orgId:
+          req.ncOrgId ||
+          req.params?.orgId ||
+          (isOnPrem ? Noco.ncDefaultOrgId : undefined),
       })),
       provider: jwtPayload.provider ?? undefined,
       isAuthorized: true,

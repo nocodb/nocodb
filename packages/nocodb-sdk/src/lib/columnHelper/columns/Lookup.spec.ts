@@ -1,7 +1,12 @@
 import { LookupHelper } from './Lookup';
 import { ComputedTypePasteError } from '~/lib/error';
 import UITypes from '~/lib/UITypes';
-import { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from '~/lib/Api';
+import {
+  ColumnType,
+  LinkToAnotherRecordType,
+  LookupType,
+  TableType,
+} from '~/lib/Api';
 
 describe('LookupHelper', () => {
   const helper = new LookupHelper();
@@ -192,9 +197,9 @@ describe('LookupHelper', () => {
           },
         } as any;
 
-        expect(helper.serializeValue(['value1', 'value2', 'value3'], params)).toBe(
-          'value1, value2, value3'
-        );
+        expect(
+          helper.serializeValue(['value1', 'value2', 'value3'], params)
+        ).toBe('value1, value2, value3');
       });
 
       it('serializes number values using child Number column', () => {
@@ -387,9 +392,9 @@ describe('LookupHelper', () => {
           },
         } as any;
 
-        expect(helper.serializeValue(['value1', null, '', 'value2'], params)).toBe(
-          'value1, , , value2'
-        );
+        expect(
+          helper.serializeValue(['value1', null, '', 'value2'], params)
+        ).toBe('value1, , , value2');
       });
     });
   });
@@ -607,7 +612,9 @@ describe('LookupHelper', () => {
         },
       } as any;
 
-      expect(helper.parsePlainCellValue('test value', params)).toBe('test value');
+      expect(helper.parsePlainCellValue('test value', params)).toBe(
+        'test value'
+      );
     });
   });
 });

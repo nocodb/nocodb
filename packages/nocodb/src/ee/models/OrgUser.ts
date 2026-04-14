@@ -74,10 +74,9 @@ export default class OrgUser {
           '=',
           `${MetaTable.ORG_USERS}.fk_user_id`,
         ).andOn(
-          ncMeta.knex.raw(
-            `COALESCE(??, false) = false`,
-            [`${MetaTable.WORKSPACE_USER}.deleted`],
-          ),
+          ncMeta.knex.raw(`COALESCE(??, false) = false`, [
+            `${MetaTable.WORKSPACE_USER}.deleted`,
+          ]),
         );
       })
       .leftJoin(MetaTable.WORKSPACE, function () {
@@ -430,20 +429,18 @@ export default class OrgUser {
 
       if (filterUserName) {
         qb.where(function () {
-          this.whereRaw(
-            `LOWER(${MetaTable.ORG_USERS}.scim_user_name) = ?`,
-            [filterUserName.toLowerCase()],
-          ).orWhereRaw(`LOWER(${MetaTable.USERS}.email) = ?`, [
+          this.whereRaw(`LOWER(${MetaTable.ORG_USERS}.scim_user_name) = ?`, [
+            filterUserName.toLowerCase(),
+          ]).orWhereRaw(`LOWER(${MetaTable.USERS}.email) = ?`, [
             filterUserName.toLowerCase(),
           ]);
         });
       }
 
       if (filterExternalId) {
-        qb.whereRaw(
-          `LOWER(${MetaTable.ORG_USERS}.scim_external_id) = ?`,
-          [filterExternalId.toLowerCase()],
-        );
+        qb.whereRaw(`LOWER(${MetaTable.ORG_USERS}.scim_external_id) = ?`, [
+          filterExternalId.toLowerCase(),
+        ]);
       }
 
       return qb;

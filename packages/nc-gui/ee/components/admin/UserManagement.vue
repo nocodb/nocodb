@@ -66,12 +66,6 @@ const orgAllowedRoles = computed(() => {
   return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR]
 })
 
-const isLastAdmin = (member: any) => {
-  if (member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN) return false
-  const adminCount = members.value.filter((m: any) => m.cloud_org_roles === EnterpriseOrgUserRoles.ADMIN).length
-  return adminCount <= 1
-}
-
 const updateOrgRole = async (member: any, newRole: string) => {
   const oldRole = member.cloud_org_roles
 

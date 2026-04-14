@@ -144,7 +144,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     else if (type === RelationTypes.ONE_TO_MANY) typeLabel = 'one to many'
     else if (type === RelationTypes.MANY_TO_ONE) typeLabel = 'many to one'
     else if (type === RelationTypes.BELONGS_TO) typeLabel = 'belongs to'
-   
+
     const parentCol = metasWithIdAsKey.value[source]?.columns?.find((col) => {
       const colOptions = col.colOptions as LinkToAnotherRecordType
       if (!colOptions) return false

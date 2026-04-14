@@ -190,8 +190,8 @@ import type {
   RlsPolicyCreateEvent,
   RlsPolicyDeleteEvent,
   RlsPolicyUpdateEvent,
-  ScimUserEvent,
   ScimGroupEvent,
+  ScimUserEvent,
   ScriptCreateEvent,
   ScriptDeleteEvent,
   ScriptDuplicateEvent,
@@ -1185,17 +1185,14 @@ export class AppHooksListenerService
         {
           const param = data as any;
           await this.auditInsert(
-            await generateAuditV1Payload(
-              AuditV1OperationTypes.ORG_USER_ADD,
-              {
-                details: {
-                  user_id: param.userId,
-                  role: param.role,
-                },
-                fk_org_id: param.orgId,
-                req: param.req,
+            await generateAuditV1Payload(AuditV1OperationTypes.ORG_USER_ADD, {
+              details: {
+                user_id: param.userId,
+                role: param.role,
               },
-            ),
+              fk_org_id: param.orgId,
+              req: param.req,
+            }),
           );
         }
         break;
@@ -1732,8 +1729,7 @@ export class AppHooksListenerService
         {
           const param = data as any;
           const opMap = {
-            [AppEvents.ORG_DOMAIN_ADD]:
-              AuditV1OperationTypes.ORG_DOMAIN_ADD,
+            [AppEvents.ORG_DOMAIN_ADD]: AuditV1OperationTypes.ORG_DOMAIN_ADD,
             [AppEvents.ORG_DOMAIN_UPDATE]:
               AuditV1OperationTypes.ORG_DOMAIN_UPDATE,
             [AppEvents.ORG_DOMAIN_DELETE]:
@@ -1829,9 +1825,7 @@ export class AppHooksListenerService
             await generateAuditV1Payload(opMap[event], {
               details: {
                 team_id: param.team?.id,
-                team_title:
-                  param.team?.title ||
-                  param.team?.scim_display_name,
+                team_title: param.team?.title || param.team?.scim_display_name,
                 scim_id: param.scimId,
                 org_title: param.org?.title,
               },

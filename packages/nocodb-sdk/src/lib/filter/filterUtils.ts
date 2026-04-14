@@ -536,7 +536,12 @@ export const comparisonOpList = (
     value: 'blank',
     ignoreVal: true,
     // UUID excluded: auto-generated on insert, never blank
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup, UITypes.UUID],
+    excludedTypes: [
+      UITypes.Checkbox,
+      UITypes.Links,
+      UITypes.Rollup,
+      UITypes.UUID,
+    ],
     semanticType: 'blank_check',
   },
   {
@@ -544,7 +549,12 @@ export const comparisonOpList = (
     value: 'notblank',
     ignoreVal: true,
     // UUID excluded: auto-generated on insert, never blank
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup, UITypes.UUID],
+    excludedTypes: [
+      UITypes.Checkbox,
+      UITypes.Links,
+      UITypes.Rollup,
+      UITypes.UUID,
+    ],
     semanticType: 'not_blank_check',
   },
 ];

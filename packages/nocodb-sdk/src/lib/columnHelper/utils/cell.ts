@@ -84,8 +84,7 @@ export const isGeoData = (column: ColumnType) =>
 export const isPercent = (column: ColumnType) =>
   column.uidt === UITypes.Percent;
 
-export const isColour = (column: ColumnType) =>
-  column.uidt === UITypes.Colour;
+export const isColour = (column: ColumnType) => column.uidt === UITypes.Colour;
 
 export const isSpecificDBType = (column: ColumnType) =>
   column.uidt === UITypes.SpecificDBType;

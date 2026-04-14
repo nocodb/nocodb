@@ -488,7 +488,9 @@ export class ScimGroupsService {
     }
     if (unresolvedIds.length) {
       this.logger.warn(
-        `SCIM group sync: ${unresolvedIds.length} member(s) not found in org — skipped: ${unresolvedIds.join(', ')}`,
+        `SCIM group sync: ${
+          unresolvedIds.length
+        } member(s) not found in org — skipped: ${unresolvedIds.join(', ')}`,
       );
     }
 

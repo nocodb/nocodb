@@ -3,21 +3,29 @@ import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   const migrationStart = Date.now();
-  console.log('[nc_202604071201_scim_config_default_role] Starting migration...');
+  console.log(
+    '[nc_202604071201_scim_config_default_role] Starting migration...',
+  );
 
   // 1. Add default_role to SCIM config
   const step1Start = Date.now();
-  console.log('[nc_202604071201_scim_config_default_role] Step 1: Add default_role column...');
+  console.log(
+    '[nc_202604071201_scim_config_default_role] Step 1: Add default_role column...',
+  );
   await knex.schema.alterTable(MetaTable.SCIM_CONFIG, (table) => {
     table.string('default_role', 50).nullable().defaultTo('no-access');
   });
   console.log(
-    `[nc_202604071201_scim_config_default_role] Step 1 completed in ${Date.now() - step1Start}ms`,
+    `[nc_202604071201_scim_config_default_role] Step 1 completed in ${
+      Date.now() - step1Start
+    }ms`,
   );
 
   // 2. Migrate nc_scim_config from workspace-scoped to org-scoped:
   const step2Start = Date.now();
-  console.log('[nc_202604071201_scim_config_default_role] Step 2: Migrate SCIM config to org-scoped...');
+  console.log(
+    '[nc_202604071201_scim_config_default_role] Step 2: Migrate SCIM config to org-scoped...',
+  );
   //    add fk_org_id, drop fk_workspace_id unique + index, then drop column
   const hasOrgId = await knex.schema.hasColumn(
     MetaTable.SCIM_CONFIG,
@@ -43,12 +51,16 @@ const up = async (knex: Knex) => {
   }
 
   console.log(
-    `[nc_202604071201_scim_config_default_role] Step 2 completed in ${Date.now() - step2Start}ms`,
+    `[nc_202604071201_scim_config_default_role] Step 2 completed in ${
+      Date.now() - step2Start
+    }ms`,
   );
 
   // 3. Add SCIM columns to nc_org_users (org-level provisioning)
   const step3Start = Date.now();
-  console.log('[nc_202604071201_scim_config_default_role] Step 3: Add SCIM columns to org_users...');
+  console.log(
+    '[nc_202604071201_scim_config_default_role] Step 3: Add SCIM columns to org_users...',
+  );
   const hasScimCol = await knex.schema.hasColumn(
     MetaTable.ORG_USERS,
     'scim_external_id',
@@ -68,11 +80,15 @@ const up = async (knex: Knex) => {
   }
 
   console.log(
-    `[nc_202604071201_scim_config_default_role] Step 3 completed in ${Date.now() - step3Start}ms`,
+    `[nc_202604071201_scim_config_default_role] Step 3 completed in ${
+      Date.now() - step3Start
+    }ms`,
   );
 
   console.log(
-    `[nc_202604071201_scim_config_default_role] Migration completed in ${Date.now() - migrationStart}ms`,
+    `[nc_202604071201_scim_config_default_role] Migration completed in ${
+      Date.now() - migrationStart
+    }ms`,
   );
 };
 
@@ -84,10 +100,7 @@ const down = async (knex: Knex) => {
   );
   if (hasScimCol) {
     await knex.schema.alterTable(MetaTable.ORG_USERS, (table) => {
-      table.dropIndex(
-        'scim_external_id',
-        'nc_org_users_scim_external_id_idx',
-      );
+      table.dropIndex('scim_external_id', 'nc_org_users_scim_external_id_idx');
       table.dropIndex('scim_managed', 'nc_org_users_scim_managed_idx');
       table.dropColumn('scim_external_id');
       table.dropColumn('scim_managed');

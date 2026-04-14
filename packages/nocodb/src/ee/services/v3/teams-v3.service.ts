@@ -545,7 +545,9 @@ export class TeamsV3Service {
       badge_color: meta.badge_color || null,
       fk_parent_team_id: team.fk_parent_team_id || null,
       scim_managed: team.scim_managed ?? false,
-      scope: (team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace') as 'org' | 'workspace',
+      scope: (team.fk_org_id && !team.fk_workspace_id ? 'org' : 'workspace') as
+        | 'org'
+        | 'workspace',
       members,
       inherited_members: inheritedMembers.length ? inheritedMembers : undefined,
     };
@@ -635,7 +637,8 @@ export class TeamsV3Service {
     const duplicateTeam = existingTeams.find(
       (team) =>
         (team.fk_parent_team_id || null) === parentId &&
-        team.title?.trim().toLowerCase() === param.team.title?.trim().toLowerCase(),
+        team.title?.trim().toLowerCase() ===
+          param.team.title?.trim().toLowerCase(),
     );
 
     if (duplicateTeam) {
@@ -1118,7 +1121,9 @@ export class TeamsV3Service {
             userId,
           );
           if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
-            NcError.get(context).forbidden('Only team managers can delete teams');
+            NcError.get(context).forbidden(
+              'Only team managers can delete teams',
+            );
           }
         }
       }
@@ -1253,7 +1258,9 @@ export class TeamsV3Service {
             userId,
           );
           if (!assignment || assignment.roles !== TeamUserRoles.OWNER) {
-            NcError.get(context).forbidden('Only team managers can add members');
+            NcError.get(context).forbidden(
+              'Only team managers can add members',
+            );
           }
         }
       }
@@ -1706,9 +1713,7 @@ export class TeamsV3Service {
         .map((m) => m.user_id),
     );
     const remainingOwners =
-      currentOwnerIds.size -
-      demotingOwnerIds.size +
-      promotingToOwnerIds.size;
+      currentOwnerIds.size - demotingOwnerIds.size + promotingToOwnerIds.size;
     if (remainingOwners < 1) {
       NcError.get(context).invalidRequestBody(
         'Cannot demote all team owners — at least one owner must remain',

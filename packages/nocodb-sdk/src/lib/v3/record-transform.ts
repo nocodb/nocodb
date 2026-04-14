@@ -249,7 +249,8 @@ export function recordV2ToV3(
   const id_fields: Record<string, any> = {};
   for (const pk of primaryKeys) {
     const key = getKey(pk);
-    id_fields[key] = record[pk.title!] ?? record[pk.column_name!] ?? record[pk.id!];
+    id_fields[key] =
+      record[pk.title!] ?? record[pk.column_name!] ?? record[pk.id!];
   }
 
   return { id, id_fields, fields: transformedFields };

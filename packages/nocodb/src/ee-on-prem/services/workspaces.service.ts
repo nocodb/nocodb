@@ -188,10 +188,7 @@ export class WorkspacesService extends WorkspacesServiceEE {
           })
           .first();
 
-        if (
-          orgUser &&
-          orgUser.roles === EnterpriseOrgUserRoles.VIEWER
-        ) {
+        if (orgUser && orgUser.roles === EnterpriseOrgUserRoles.VIEWER) {
           NcError.forbidden(
             'Workspace creation is not allowed for viewer role. Contact your org admin.',
           );

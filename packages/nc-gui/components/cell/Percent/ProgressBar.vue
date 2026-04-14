@@ -27,10 +27,7 @@ const slotHasChildren = (name?: string) => {
       <slot></slot>
     </div>
     <div class="progress-bar flex items-center gap-2 w-full h-full" :class="{ 'min-h-[16px]': isShowNumber }">
-      <div
-        class="relative flex-1 flex rounded-full overflow-hidden self-center"
-        :class="isShowNumber ? 'h-full' : 'h-[6px]'"
-      >
+      <div class="relative flex-1 flex rounded-full overflow-hidden self-center" :class="isShowNumber ? 'h-full' : 'h-[6px]'">
         <div class="bg-nc-brand-500" style="align-self: stretch" :style="{ width: `${cPercentage}%` }"></div>
         <div
           class="bg-[#e5e5e5] dark:bg-nc-bg-brand-inverted"

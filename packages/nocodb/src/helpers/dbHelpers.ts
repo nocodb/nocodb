@@ -2,6 +2,7 @@ import { customAlphabet } from 'nanoid';
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,
   isVirtualCol,
@@ -192,6 +193,73 @@ export function getOppositeRelationType(
     return RelationTypes.ONE_TO_MANY;
   }
   return type as RelationTypes;
+}
+
+/**
+ * Decide whether NocoDB must proactively cascade a link-cleanup query
+ * before deleting a row, based on the FK's stored `dr` (ON DELETE).
+ *
+ * - Meta sources: always cascade (no DB-level FK enforcement).
+ * - External sources: cascade only when the FK is NO ACTION / RESTRICT
+ *   (stored as 'NO ACTION'); otherwise trust the DB to handle it.
+ * - `mm` columns do NOT carry `dr` themselves — resolve it from the
+ *   junction's bt column pointing back to this model (matched via
+ *   `fk_mm_child_column_id`).
+ * - `bt` never triggers link-cleanup from this side.
+ */
+/**
+ * Normalize a raw ON DELETE rule string from the DB/metadata
+ * (e.g. 'NO ACTION', 'RESTRICT', 'CASCADE', 'SET NULL', 'SET DEFAULT')
+ * to a canonical trimmed + uppercased form, or `null` if empty.
+ */
+export function normalizeDr(dr: string | null | undefined): string | null {
+  const v = (dr ?? '').toString().trim().toUpperCase();
+  return v || null;
+}
+
+export async function shouldCascadeLinkCleanup(
+  context: NcContext,
+  params: {
+    isMeta: boolean;
+    relationType: 'hm' | 'mm' | 'bt' | string;
+    colOptions: LinkToAnotherRecordColumn;
+    mmContext: NcContext;
+  },
+): Promise<boolean> {
+  const { isMeta, relationType, colOptions, mmContext } = params;
+
+  if (isMeta) return true;
+  if (relationType !== 'hm' && relationType !== 'mm') return false;
+
+  let effectiveDr: string | null | undefined = colOptions.dr;
+
+  if (relationType === 'mm') {
+    const assocModel = await Model.get(mmContext, colOptions.fk_mm_model_id);
+    if (!assocModel) return false;
+    await assocModel.getColumns(mmContext);
+    effectiveDr = undefined;
+    for (const c of assocModel.columns) {
+      if (!isLinksOrLTAR(c)) continue;
+      const opts = await c.getColOptions<LinkToAnotherRecordColumn>(mmContext);
+      if (
+        opts?.type === 'bt' &&
+        opts.fk_child_column_id === colOptions.fk_mm_child_column_id
+      ) {
+        effectiveDr = opts.dr;
+        break;
+      }
+    }
+  }
+
+  // DB does not auto-cascade when ON DELETE is NO ACTION or RESTRICT;
+  // in those cases we need to manually clean up link references.
+  // When `dr` is absent from metadata (e.g. GUI-created LTARs never wrote it,
+  // or virtual relations without a real FK), assume NO ACTION — this matches
+  // the hardcoded `onDelete: 'NO ACTION'` used when creating the FK via
+  // `relationCreate`, so manual cleanup runs and the delete succeeds.
+  const normalized = normalizeDr(effectiveDr);
+  if (!normalized) return true;
+  return normalized === 'NO ACTION' || normalized === 'RESTRICT';
 }
 
 export async function getBaseModelSqlFromModelId({

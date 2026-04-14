@@ -11,6 +11,7 @@ import type Base from '~/models/Base';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
 import type { NcContext } from '~/interface/config';
 import { META_COL_NAME } from '~/constants';
+import { normalizeDr } from '~/helpers/dbHelpers';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
@@ -458,7 +459,9 @@ export async function populateMeta(
               fk_parent_column_id: ref_rel_column_id,
               fk_index_name: rel.cstn,
               ur: rel.ur,
-              dr: rel.dr,
+              // persist raw ON DELETE rule from DB
+              // (e.g. 'NO ACTION', 'RESTRICT', 'CASCADE', 'SET NULL', 'SET DEFAULT')
+              dr: normalizeDr(rel.dr),
               order: colOrder++,
               fk_related_model_id: column.hm ? tnId : rtnId,
               system: column.system,

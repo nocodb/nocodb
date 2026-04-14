@@ -97,6 +97,7 @@ import {
   getListArgs,
   haveFormulaColumn,
   populatePk,
+  shouldCascadeLinkCleanup,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { getProjectRole } from '~/utils/roleHelper';
@@ -1874,6 +1875,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       const execQueries: ((trx: CustomKnex) => Knex.QueryBuilder)[] = [];
 
+      const source = await this.getSource();
+
       for (const column of this.model.columns) {
         if (!isLinksOrLTAR(column)) continue;
 
@@ -1885,9 +1888,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         );
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+
+        const shouldCascadeHere = await shouldCascadeLinkCleanup(this.context, {
+          isMeta: !!source.isMeta(),
+          relationType,
+          colOptions,
+          mmContext,
+        });
+
         switch (relationType) {
           case 'mm':
             {
+              if (!shouldCascadeHere) break;
+
               const mmTable = await Model.get(
                 this.context,
                 colOptions.fk_mm_model_id,
@@ -1912,6 +1925,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             break;
           case 'hm':
             {
+              if (!shouldCascadeHere) break;
+
               // skip if it's an mm table column
               const relatedTable = await colOptions.getRelatedTable(refContext);
 
@@ -3675,7 +3690,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         ids: any[],
       ) => Knex.QueryBuilder)[] = [];
 
-      const base = await this.getSource();
+      const source = await this.getSource();
 
       for (const column of this.model.columns) {
         if (!isLinksOrLTAR(column)) continue;
@@ -3687,9 +3702,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           await colOptions.getParentChildContext(this.context);
 
         const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+
+        const shouldCascadeHere = await shouldCascadeLinkCleanup(this.context, {
+          isMeta: !!source.isMeta(),
+          relationType,
+          colOptions,
+          mmContext,
+        });
+
         switch (relationType) {
           case 'mm':
             {
+              if (!shouldCascadeHere) break;
+
               const mmTable = await Model.get(
                 mmContext,
                 colOptions.fk_mm_model_id,
@@ -3707,6 +3732,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             break;
           case 'hm':
             {
+              if (!shouldCascadeHere) break;
+
               // skip if it's an mm table column
               const relatedTable = await colOptions.getRelatedTable(refContext);
               if (relatedTable.mm) {
@@ -3736,7 +3763,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       const idsVals = res.map((d) => d[this.model.primaryKey.column_name]);
 
-      if (base.isMeta() && execQueries.length > 0) {
+      // execQueries are pre-filtered above: pushed only when NocoDB must
+      // cascade itself (meta source, or external FK with dr === 'NO ACTION').
+      if (execQueries.length > 0) {
         for (const execQuery of execQueries) {
           queries.push(execQuery(this.dbDriver, idsVals).toQuery());
         }

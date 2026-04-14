@@ -94,6 +94,12 @@ export async function createHmAndBtColumn(
 
         ...crossBaseProps,
 
+        // Match the hardcoded FK rules used by `relationCreate` in
+        // ColumnsService so metadata reflects the real DB constraint and
+        // downstream cascade logic (shouldCascadeLinkCleanup) works.
+        dr: 'NO ACTION',
+        ur: 'NO ACTION',
+
         virtual,
         readonly: colExtra?.readonly || false,
         // if self referencing treat it as system field to hide from ui
@@ -159,6 +165,8 @@ export async function createHmAndBtColumn(
         fk_child_column_id: childColumn.id,
         fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
         fk_related_model_id: child.id,
+        dr: 'NO ACTION',
+        ur: 'NO ACTION',
         readonly: colExtra?.readonly || false,
         virtual,
         system: isSystemCol,
@@ -262,6 +270,8 @@ export async function createOOColumn(
         fk_child_column_id: childColumn.id,
         fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
         fk_related_model_id: parent.id,
+        dr: 'NO ACTION',
+        ur: 'NO ACTION',
         virtual,
         readonly: colExtra?.readonly || false,
         // if self referencing treat it as system field to hide from ui
@@ -335,6 +345,8 @@ export async function createOOColumn(
       fk_child_column_id: childColumn.id,
       fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
       fk_related_model_id: child.id,
+      dr: 'NO ACTION',
+      ur: 'NO ACTION',
       virtual,
       system: isSystemCol,
       fk_col_name: fkColName,

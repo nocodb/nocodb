@@ -32,7 +32,7 @@ const wsBaseListActions = useWsBaseListActions()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { showEEFeatures } = useEeConfig()
+const { showEEFeatures, isEEFeatureBlocked } = useEeConfig()
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
@@ -80,7 +80,7 @@ onMounted(() => {
     />
 
     <WorkspaceProjectCreateMenuItem
-      v-if="isTemplatesFeatureEnabled && showEEFeatures"
+      v-if="isTemplatesFeatureEnabled && showEEFeatures && !isEEFeatureBlocked"
       v-e="['c:base:template:create']"
       :variant="variant"
       icon="globe"
@@ -91,7 +91,7 @@ onMounted(() => {
     />
 
     <WorkspaceProjectCreateMenuItem
-      v-if="isAiFeaturesEnabled && showEEFeatures"
+      v-if="isAiFeaturesEnabled && showEEFeatures && !isEEFeatureBlocked"
       v-e="['c:base:ai:create']"
       :variant="variant"
       icon="ncAutoAwesome"
@@ -101,7 +101,7 @@ onMounted(() => {
       @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)"
     />
 
-    <template v-if="isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS) && showEEFeatures">
+    <template v-if="isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS) && showEEFeatures && !isEEFeatureBlocked">
       <WorkspaceProjectCreateMenuItem
         v-e="['c:base:market:create']"
         :variant="variant"

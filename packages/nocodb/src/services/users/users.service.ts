@@ -253,6 +253,8 @@ export class UsersService {
       password,
       email: user.email,
       token_version: randomTokenString(),
+      reset_password_token: null,
+      reset_password_expires: null,
     });
 
     // delete all refresh token and populate a new one

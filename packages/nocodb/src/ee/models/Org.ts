@@ -92,10 +92,9 @@ export default class Org implements OrganizationType {
           );
         });
         kn.where(function () {
-          this.where(
+          this.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
             `${MetaTable.WORKSPACE_USER}.deleted`,
-            false,
-          ).orWhereNull(`${MetaTable.WORKSPACE_USER}.deleted`);
+          );
         });
       })
       .groupBy(

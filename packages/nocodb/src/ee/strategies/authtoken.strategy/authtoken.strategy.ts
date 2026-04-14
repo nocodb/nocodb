@@ -95,9 +95,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
             ...(req['ncWorkspaceId']
               ? { workspaceId: req['ncWorkspaceId'] }
               : {}),
-            ...(req['ncOrgId']
-              ? { orgId: req['ncOrgId'] }
-              : {}),
+            ...(req['ncOrgId'] ? { orgId: req['ncOrgId'] } : {}),
           },
         );
         if (!dbUser) {

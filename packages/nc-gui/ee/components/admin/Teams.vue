@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TeamUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import { TeamUserRoles } from 'nocodb-sdk'
 import type { TeamV3ResponseType } from 'nocodb-sdk'
 
 type TeamRow = TeamV3ResponseType & { _treeDepth?: number }
@@ -132,6 +132,9 @@ const loadTeams = async () => {
   }
 }
 
+// Parent team editing
+const selectedParentId = ref<string | null>(null)
+
 const loadTeamDetail = async (teamId: string) => {
   try {
     isEditLoading.value = true
@@ -233,8 +236,6 @@ const closeEditModal = async () => {
   memberSearchQuery.value = ''
 }
 
-// Parent team editing
-const selectedParentId = ref<string | null>(null)
 const isMoving = ref(false)
 
 const getTeamDescendantIds = (teamId: string): string[] => {

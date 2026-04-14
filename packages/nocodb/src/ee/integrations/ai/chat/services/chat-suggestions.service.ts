@@ -136,7 +136,11 @@ export class ChatSuggestionsService {
             },
             tags: ['chat', 'suggestions', suggestionType],
           });
-          return chatAi.generateText({ model, messages, maxOutputTokens: 1024 });
+          return chatAi.generateText({
+            model,
+            messages,
+            maxOutputTokens: 1024,
+          });
         },
       );
 

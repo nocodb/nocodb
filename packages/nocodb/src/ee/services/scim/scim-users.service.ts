@@ -622,9 +622,7 @@ export class ScimUsersService {
     }
 
     // Block deactivation of the last org admin
-    if (
-      orgUser.roles === EnterpriseOrgUserRoles.ADMIN
-    ) {
+    if (orgUser.roles === EnterpriseOrgUserRoles.ADMIN) {
       const admins = await Noco.ncMeta
         .knexConnection(MetaTable.ORG_USERS)
         .where('fk_org_id', param.orgId)

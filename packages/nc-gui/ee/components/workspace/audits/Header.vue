@@ -99,7 +99,12 @@ const handleUpdateWorkspaceQuery = (workspaceId?: string | string[]) => {
   if (loadActionOrgId.value) {
     // Org mode: multi-select — workspaceId is an array
     const ids = ncIsArray(workspaceId) ? workspaceId : workspaceId ? [workspaceId] : []
-    auditLogsQuery.value = { ...auditLogsQuery.value, workspaceIds: ids.length ? ids : undefined, baseId: undefined, user: undefined }
+    auditLogsQuery.value = {
+      ...auditLogsQuery.value,
+      workspaceIds: ids.length ? ids : undefined,
+      baseId: undefined,
+      user: undefined,
+    }
     loadAudits()
   } else {
     // Workspace mode: single-select
@@ -282,7 +287,9 @@ const showWorkspaceSelector = computed(() => !!loadActionOrgId.value)
               {{ $t('objects.workspace') }}:
               <NcTooltip
                 class="capitalize truncate !leading-5"
-                :class="{ 'text-nc-content-brand': loadActionOrgId ? auditLogsQuery.workspaceIds?.length : auditLogsQuery.workspaceId }"
+                :class="{
+                  'text-nc-content-brand': loadActionOrgId ? auditLogsQuery.workspaceIds?.length : auditLogsQuery.workspaceId,
+                }"
                 show-on-truncate-only
               >
                 <template #title>
@@ -329,7 +336,11 @@ const showWorkspaceSelector = computed(() => !!loadActionOrgId.value)
                   class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer"
                 >
                   <span class="flex-1 text-nc-content-gray"> {{ loadActionOrgId ? 'None' : 'All Workspaces' }} </span>
-                  <GeneralIcon v-if="loadActionOrgId ? !auditLogsQuery.workspaceIds?.length : !auditLogsQuery.workspaceId" icon="check" class="flex-none text-primary w-4 h-4" />
+                  <GeneralIcon
+                    v-if="loadActionOrgId ? !auditLogsQuery.workspaceIds?.length : !auditLogsQuery.workspaceId"
+                    icon="check"
+                    class="flex-none text-primary w-4 h-4"
+                  />
                 </div>
               </div>
               <NcDivider class="!my-2" />

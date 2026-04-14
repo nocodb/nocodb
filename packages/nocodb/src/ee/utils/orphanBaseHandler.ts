@@ -20,7 +20,12 @@ export async function handleOrphanWorkspace(
   fallbackUserId: string,
   ncMeta: MetaService,
 ): Promise<boolean> {
-  const wsUser = await WorkspaceUser.get(workspaceId, deletedUserId, {}, ncMeta);
+  const wsUser = await WorkspaceUser.get(
+    workspaceId,
+    deletedUserId,
+    {},
+    ncMeta,
+  );
   if (wsUser?.roles !== WorkspaceUserRoles.OWNER) return false;
 
   const owners = await WorkspaceUser.userList(
@@ -30,7 +35,12 @@ export async function handleOrphanWorkspace(
   if (owners.length > 1) return false;
 
   // Sole owner — promote fallback user
-  const existing = await WorkspaceUser.get(workspaceId, fallbackUserId, {}, ncMeta);
+  const existing = await WorkspaceUser.get(
+    workspaceId,
+    fallbackUserId,
+    {},
+    ncMeta,
+  );
   if (existing) {
     await WorkspaceUser.update(
       workspaceId,

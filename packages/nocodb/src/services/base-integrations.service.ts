@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import { IntegrationsType as IntegrationsTypeEnum } from 'nocodb-sdk';
+import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { Base, Integration, IntegrationLink } from '~/models';
@@ -123,10 +123,7 @@ export class BaseIntegrationsService {
 
     if (param.includeConfig) {
       // Only the creator can see config
-      if (
-        integration.is_private &&
-        param.userId !== integration.created_by
-      ) {
+      if (integration.is_private && param.userId !== integration.created_by) {
         integration.config = undefined;
       } else {
         integration.config = await integration.getConnectionConfig();

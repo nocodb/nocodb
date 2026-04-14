@@ -19,6 +19,7 @@ import type {
   DocumentUpdateEvent,
   DocumentUserMentionEvent,
   FilterEvent,
+  OrgDomainEvent,
   ProjectCreateEvent,
   ProjectDeleteEvent,
   ProjectInviteEvent,
@@ -34,9 +35,11 @@ import type {
   SandboxDeleteEvent,
   SandboxDiscardEvent,
   SandboxMergeEvent,
+  ScimConfigEvent,
   ScimGroupEvent,
   ScimUserEvent,
   SortEvent,
+  SsoClientEvent,
   TableEvent,
   TeamCreateEvent,
   TeamDeleteEvent,
@@ -63,9 +66,6 @@ import type {
   WorkspaceTeamInviteEvent,
   WorkspaceTeamUpdateEvent,
   WorkspaceUserInviteEvent,
-  OrgDomainEvent,
-  SsoClientEvent,
-  ScimConfigEvent,
 } from './interfaces';
 import type { AppEvents } from 'nocodb-sdk';
 

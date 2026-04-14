@@ -14,7 +14,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import type { NcRequest } from '~/interface/config';
+import { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
 import { ScimGroupsService } from '~/ee/services/scim/scim-groups.service';
 import { ScimAuthGuard } from '~/ee/guards/scim-auth.guard';

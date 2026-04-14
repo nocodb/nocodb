@@ -1,6 +1,10 @@
 import { NotificationType, UserType } from '~/lib/Api';
 import { ChatEventAction } from '~/lib/chat';
-import type { ChatContentBlock, ChatMessageType, ChatSessionType } from '~/lib/chat';
+import type {
+  ChatContentBlock,
+  ChatMessageType,
+  ChatSessionType,
+} from '~/lib/chat';
 
 export enum EventType {
   HANDSHAKE = 'handshake',

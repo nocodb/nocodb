@@ -1,7 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, CloudOrgUserRoles, type DomainReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { DbServer, Domain, Org, OrgUser, PresignedUrl, User, Workspace } from '~/models';
+import {
+  DbServer,
+  Domain,
+  Org,
+  OrgUser,
+  PresignedUrl,
+  User,
+  Workspace,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { generateRandomTxt, verifyTXTRecord } from '~/utils';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -67,7 +75,11 @@ export class OrgsService {
     return Promise.resolve(undefined);
   }
 
-  async verifyDomain(param: { domainId: string; req: any; emitEvent?: boolean }) {
+  async verifyDomain(param: {
+    domainId: string;
+    req: any;
+    emitEvent?: boolean;
+  }) {
     const domain = await Domain.get(param.domainId);
 
     if (!domain) {
@@ -140,7 +152,11 @@ export class OrgsService {
       fk_user_id: param.req.user?.id,
     });
 
-    await this.verifyDomain({ domainId: domain.id, req: param.req, emitEvent: false });
+    await this.verifyDomain({
+      domainId: domain.id,
+      req: param.req,
+      emitEvent: false,
+    });
 
     let resolvedOrgId = param.orgId;
     if (!resolvedOrgId && param.workspaceId) {
@@ -177,7 +193,11 @@ export class OrgsService {
 
     const res = await Domain.update(param.domainId, updateObject);
 
-    await this.verifyDomain({ domainId: param.domainId, req: param.req, emitEvent: false });
+    await this.verifyDomain({
+      domainId: param.domainId,
+      req: param.req,
+      emitEvent: false,
+    });
 
     const updatedDomain = await Domain.get(param.domainId);
 

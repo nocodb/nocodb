@@ -54,7 +54,7 @@ async function signIn() {
       return
     }
 
-    const { gcp_link_token, login_hint, ...queryRest } = route.query
+    const { gcp_link_token: _gcp_link_token, login_hint: _login_hint, ...queryRest } = route.query
     await navigateTo({
       path: '/',
       query: queryRest,

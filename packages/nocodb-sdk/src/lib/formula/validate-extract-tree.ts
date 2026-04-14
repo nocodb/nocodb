@@ -241,8 +241,8 @@ async function extractColumnIdentifierType({
         const relationType = isBtLikeV2Junction(relationColWithOptions)
           ? relationColOptions.type
           : isMMOrMMLike(relationColWithOptions)
-            ? 'mm'
-            : relationColOptions.type;
+          ? 'mm'
+          : relationColOptions.type;
         res.isDataArray = ['hm', 'mm', 'om'].includes(relationType);
       }
       res.referencedColumn = {
@@ -291,8 +291,8 @@ async function extractColumnIdentifierType({
       const relationType = isBtLikeV2Junction(colWithOptions)
         ? colOptions.type
         : isMMOrMMLike(colWithOptions)
-          ? 'mm'
-          : colOptions.type;
+        ? 'mm'
+        : colOptions.type;
       res.isDataArray =
         relatedColumnIdentifierType.isDataArray ||
         ['hm', 'mm', 'om'].includes(relationType);
@@ -312,7 +312,7 @@ async function extractColumnIdentifierType({
             column: col,
           }
         );
-      let parsedTree = await unifiedMeta.getParsedTree(
+      const parsedTree = await unifiedMeta.getParsedTree(
         unifiedMeta.getContextFromObject(col),
         { colOptions, getMeta }
       );
@@ -606,22 +606,27 @@ async function checkForCircularFormulaRef(
 
     if (ltarColumn) {
       const ltarColumnContext = unifiedMeta.getContextFromObject({
-          ...ltarColumn,
-          base_id: ltarColumn.base_id,
-        });
-      const ltarColOptions = await unifiedMeta.getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(ltarColumnContext, {column: ltarColumn})
+        ...ltarColumn,
+        base_id: ltarColumn.base_id,
+      });
+      const ltarColOptions =
+        await unifiedMeta.getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(
+          ltarColumnContext,
+          { column: ltarColumn }
+        );
       const relatedColumnContext = unifiedMeta.getContextFromObject({
-          ...ltarColumn,
-          base_id:
-            (ltarColumn.colOptions as LinkToAnotherRecordType)
-              .fk_related_base_id ?? ltarColumn.base_id,
-        });
-      const relatedTableMeta = await unifiedMeta.getLTARRelatedTable(relatedColumnContext,
+        ...ltarColumn,
+        base_id:
+          (ltarColumn.colOptions as LinkToAnotherRecordType)
+            .fk_related_base_id ?? ltarColumn.base_id,
+      });
+      const relatedTableMeta = await unifiedMeta.getLTARRelatedTable(
+        relatedColumnContext,
         {
           colOptions: ltarColOptions,
-          getMeta
+          getMeta,
         }
-      )
+      );
       const lookupTarget = (
         await unifiedMeta.getColumns(
           unifiedMeta.getContextFromObject(relatedTableMeta),

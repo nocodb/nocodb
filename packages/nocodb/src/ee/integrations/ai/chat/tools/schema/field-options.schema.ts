@@ -163,7 +163,10 @@ export const dateTimeOptionsSchema = z.object({
   date_format: z.enum(DateFormatValues).optional(),
   time_format: z.enum(TimeFormatValues).optional(),
   '12hr_format': z.boolean().optional().describe('Use 12-hour format.'),
-  display_timezone: z.boolean().optional().describe('Show timezone in display.'),
+  display_timezone: z
+    .boolean()
+    .optional()
+    .describe('Show timezone in display.'),
   timezone: z
     .string()
     .optional()
@@ -238,7 +241,9 @@ export const rollupOptionsSchema = z.object({
     .describe(
       'Field name in the linked table to aggregate (resolved to related_table_rollup_field_id).',
     ),
-  rollup_function: z.enum(RollupFunctionValues).describe('Aggregation function.'),
+  rollup_function: z
+    .enum(RollupFunctionValues)
+    .describe('Aggregation function.'),
 });
 
 export const formulaOptionsSchema = z.object({
@@ -271,7 +276,10 @@ export const buttonOptionsSchema = z.object({
   formula: z.string().optional().describe('Button(formula): expression.'),
   label: z.string().optional().describe('Button display label.'),
   theme: z.enum(ButtonThemeValues).optional().describe('Visual theme.'),
-  color: z.string().optional().describe('Color name (brand, red, green, etc.).'),
+  color: z
+    .string()
+    .optional()
+    .describe('Color name (brand, red, green, etc.).'),
   icon: z.string().optional().describe('Icon name.'),
   button_hook_id: z
     .string()

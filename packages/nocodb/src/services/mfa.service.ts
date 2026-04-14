@@ -180,12 +180,28 @@ export class MfaService {
     return { msg: 'Two-factor authentication has been enabled' };
   }
 
-  async disable(userId: string, req: NcRequest) {
+  async disable(userId: string, password: string, req: NcRequest) {
     const user = await User.get(userId);
     if (!user) NcError.userNotFound(userId);
 
     if (!user.totp_enabled) {
       NcError.badRequest('Two-factor authentication is not enabled');
+    }
+
+    if (!password) {
+      NcError.badRequest('Password is required');
+    }
+
+    // Require password re-confirmation for security
+    if (!user.password) {
+      NcError.badRequest(
+        'Password verification is not available for this account',
+      );
+    }
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      NcError.badRequest('Incorrect password');
     }
 
     // Disable 2FA and clear secrets

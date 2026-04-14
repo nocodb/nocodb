@@ -274,12 +274,13 @@ function mfaTests() {
   // --- Disable ---
 
   describe('MFA Disable', () => {
-    it('should disable 2FA', async () => {
+    it('should disable 2FA with correct password', async () => {
       await enable2FA();
 
       const res = await request(context.app)
         .post('/api/v2/auth/mfa/disable')
         .set('xc-auth', context.token)
+        .send({ password: defaultUserArgs.password })
         .expect(200);
 
       expect(res.body.msg).to.include('disabled');
@@ -300,6 +301,7 @@ function mfaTests() {
       await request(context.app)
         .post('/api/v2/auth/mfa/disable')
         .set('xc-auth', context.token)
+        .send({ password: defaultUserArgs.password })
         .expect(200);
 
       // Signin should return token directly (no twoFactorRequired)
@@ -315,10 +317,30 @@ function mfaTests() {
       expect(res.body.twoFactorRequired).to.be.undefined;
     });
 
+    it('should reject with wrong password', async () => {
+      await enable2FA();
+
+      await request(context.app)
+        .post('/api/v2/auth/mfa/disable')
+        .set('xc-auth', context.token)
+        .send({ password: 'wrongPassword123!' })
+        .expect(400);
+    });
+
+    it('should reject without password', async () => {
+      await enable2FA();
+
+      await request(context.app)
+        .post('/api/v2/auth/mfa/disable')
+        .set('xc-auth', context.token)
+        .expect(400);
+    });
+
     it('should reject if 2FA not enabled', async () => {
       await request(context.app)
         .post('/api/v2/auth/mfa/disable')
         .set('xc-auth', context.token)
+        .send({ password: defaultUserArgs.password })
         .expect(400);
     });
   });

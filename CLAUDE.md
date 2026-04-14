@@ -98,7 +98,7 @@ To regenerate SDK from swagger: `cd packages/nocodb-sdk && pnpm run build:ee`
 
 ## Error Handling — NcError
 
-All backend errors go through `NcError` (`~/helpers/catchError`). Use `NcError.get(context)` in services/controllers (version-aware), `NcError.tableNotFound(id)` in models/helpers (V1 default). Guard pattern: `if (!model) NcError.get(context).tableNotFound(id)`.
+All backend errors go through `NcError` (`~/helpers/catchError`). Use `NcError.get(context)` in services/controllers (version-aware), `NcError.get().tableNotFound(id)` in models/helpers (V1 default). Guard pattern: `if (!model) NcError.get(context).tableNotFound(id)`. Always use `NcError.get(context?)` with supplied context or api_version if possible.
 
 Frontend: wrap API calls with `extractSdkResponseErrorMsg(e)` (legacy) or `extractSdkResponseErrorMsgv2(e)` (typed).
 

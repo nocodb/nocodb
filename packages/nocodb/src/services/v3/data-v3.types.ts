@@ -90,3 +90,23 @@ export interface DataReadParams {
   viewId?: string;
   req: NcRequest;
 }
+
+export interface DataUpsertRecordRequest {
+  fields: RecordField;
+}
+
+export interface DataUpsertRequest {
+  fieldsToMergeOn: string[];
+  records: DataUpsertRecordRequest | DataUpsertRecordRequest[];
+}
+
+export interface DataUpsertRecordResponse extends DataRecord {
+  status: 'inserted' | 'updated';
+}
+
+export interface DataUpsertParams {
+  baseId?: string;
+  modelId: string;
+  body: DataUpsertRequest;
+  cookie: any;
+}

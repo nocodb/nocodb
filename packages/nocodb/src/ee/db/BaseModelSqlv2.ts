@@ -2640,6 +2640,66 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     return data;
   }
 
+  public override async findByMergeFields(
+    mergeColumns: Column[],
+    mergeValuesPerRecord: any[][],
+  ): Promise<Record<string, any>[]> {
+    if (mergeValuesPerRecord.length === 0) return [];
+
+    await this.model.getColumns(this.context);
+
+    const mergeColNames = mergeColumns.map((col) => col.column_name);
+
+    // Deduplicate merge value tuples
+    const seen = new Set<string>();
+    const uniqueTuples: any[][] = [];
+    for (const tuple of mergeValuesPerRecord) {
+      const key = tuple
+        .map((v) => (v === null ? '\0NULL\0' : String(v)))
+        .join('\0SEP\0');
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueTuples.push(tuple);
+      }
+    }
+
+    // Build query: WHERE (col1 = ? AND col2 = ?) OR (col1 = ? AND col2 = ?) ...
+    const qb = this.dbDriver(this.tnPath);
+
+    qb.where((builder) => {
+      for (const tuple of uniqueTuples) {
+        builder.orWhere((inner) => {
+          for (let i = 0; i < mergeColNames.length; i++) {
+            if (tuple[i] === null || tuple[i] === undefined) {
+              inner.whereNull(mergeColNames[i]);
+            } else {
+              inner.where(mergeColNames[i], tuple[i]);
+            }
+          }
+        });
+      }
+    });
+
+    // Apply RLS conditions
+    const rlsConditions = await this.getRlsConditions();
+    if (rlsConditions.length) {
+      await conditionV2(
+        this,
+        [new Filter({ children: rlsConditions, is_group: true })],
+        qb,
+      );
+    }
+
+    // Only select PKs + merge columns (minimal data needed)
+    const selectCols = [
+      ...this.model.primaryKeys.map((pk) => pk.column_name),
+      ...mergeColNames,
+    ];
+    qb.select(selectCols);
+
+    return await qb;
+  }
+
   async bulkUpsert(
     datas: any[],
     {
@@ -2649,6 +2709,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       foreign_key_checks = true,
       insertOneByOneAsFallback = false,
       undo = false,
+      mergeColumns,
+      throwOnDuplicate = false,
     }: {
       _chunkSize?: number;
       cookie?: any;
@@ -2656,6 +2718,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       foreign_key_checks?: boolean;
       insertOneByOneAsFallback?: boolean;
       undo?: boolean;
+      mergeColumns?: Column[];
+      throwOnDuplicate?: boolean;
     } = {},
   ) {
     const insertQueries: string[] = [];
@@ -2682,56 +2746,130 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }),
           );
 
-      const dataWithPks = [];
-      const dataWithoutPks = [];
-
+      const toInsert = [];
+      const toUpdate = [];
       const updatePkValues = [];
 
-      for (const data of preparedDatas) {
-        const pkValues = this.extractPksValues(data, true);
-        if (pkValues !== 'N/A' && pkValues !== undefined) {
-          dataWithPks.push({ pk: pkValues, data });
-        } else {
-          // const insertObj = this.handleValidateBulkInsert(data, columns);
-          await this.prepareNocoData(data, true, cookie, null, {
-            ncOrder: order,
-            undo,
-          });
-          order = order?.plus(1);
-          dataWithoutPks.push(data);
+      let existingRecords: Record<string, any>[] = [];
+
+      if (mergeColumns?.length) {
+        // --- Merge-field-based matching ---
+        const mergeColNames = mergeColumns.map((col) => col.column_name);
+
+        const mergeValuesPerRecord = preparedDatas.map((data) =>
+          mergeColNames.map((cn) => data[cn]),
+        );
+
+        const mergeMatchedRecords = await this.findByMergeFields(
+          mergeColumns,
+          mergeValuesPerRecord,
+        );
+
+        // Build a lookup map: stringified merge values → matched records
+        const existingMap = new Map<string, Record<string, any>[]>();
+        for (const record of mergeMatchedRecords) {
+          const key = mergeColNames
+            .map((cn) => {
+              const v = record[cn];
+              return v === null || v === undefined ? '\0NULL\0' : String(v);
+            })
+            .join('\0SEP\0');
+          if (!existingMap.has(key)) {
+            existingMap.set(key, [record]);
+          } else {
+            existingMap.get(key).push(record);
+          }
         }
-      }
-      // Check which records with PKs exist in the database
 
-      const existingRecords = await this.chunkList({
-        pks: dataWithPks.map((v) => v.pk),
-      });
+        for (let i = 0; i < preparedDatas.length; i++) {
+          const data = preparedDatas[i];
+          const key = mergeColNames
+            .map((cn) => {
+              const v = data[cn];
+              return v === null || v === undefined ? '\0NULL\0' : String(v);
+            })
+            .join('\0SEP\0');
+          const matchedRecords = existingMap.get(key);
 
-      const existingPkSet = new Set(
-        existingRecords.map((r) => this.extractPksValues(r, true)),
-      );
+          if (matchedRecords?.length > 1 && throwOnDuplicate) {
+            NcError.get(this.context).invalidRequestBody(
+              `Multiple records match fieldsToMergeOn [${mergeColNames.join(', ')}] — the combination must uniquely identify at most one record`,
+            );
+          }
 
-      const toInsert = [...dataWithoutPks];
-      const toUpdate = [];
+          const existingRecord = matchedRecords?.[0];
 
-      for (const { pk, data } of dataWithPks) {
-        if (existingPkSet.has(pk)) {
-          await this.prepareNocoData(data, false, cookie);
-          toUpdate.push(data);
+          if (existingRecord) {
+            for (const pk of this.model.primaryKeys) {
+              data[pk.column_name] = existingRecord[pk.column_name];
+            }
+            await this.prepareNocoData(data, false, cookie);
+            toUpdate.push(data);
+            updatePkValues.push(
+              getCompositePkValue(this.model.primaryKeys, {
+                ...data,
+              }),
+            );
+          } else {
+            await this.prepareNocoData(data, true, cookie, null, {
+              ncOrder: order,
+              undo,
+            });
+            order = order?.plus(1);
+            toInsert.push(data);
+          }
+        }
 
-          updatePkValues.push(
-            getCompositePkValue(this.model.primaryKeys, {
-              ...data,
-            }),
-          );
-        } else {
-          await this.prepareNocoData(data, true, cookie, null, {
-            ncOrder: order,
-            undo,
-          });
-          order = order?.plus(1);
-          // const insertObj = this.handleValidateBulkInsert(data, columns);
-          toInsert.push(data);
+        // Re-fetch full records for audit/webhook callbacks (merge lookup only returns PK + merge cols)
+        if (toUpdate.length > 0) {
+          existingRecords = await this.chunkList({ pks: updatePkValues });
+        }
+      } else {
+        // --- Original PK-based matching ---
+        const dataWithPks = [];
+        const dataWithoutPks = [];
+
+        for (const data of preparedDatas) {
+          const pkValues = this.extractPksValues(data, true);
+          if (pkValues !== 'N/A' && pkValues !== undefined) {
+            dataWithPks.push({ pk: pkValues, data });
+          } else {
+            await this.prepareNocoData(data, true, cookie, null, {
+              ncOrder: order,
+              undo,
+            });
+            order = order?.plus(1);
+            dataWithoutPks.push(data);
+          }
+        }
+
+        existingRecords = await this.chunkList({
+          pks: dataWithPks.map((v) => v.pk),
+        });
+
+        const existingPkSet = new Set(
+          existingRecords.map((r) => this.extractPksValues(r, true)),
+        );
+
+        toInsert.push(...dataWithoutPks);
+
+        for (const { pk, data } of dataWithPks) {
+          if (existingPkSet.has(pk)) {
+            await this.prepareNocoData(data, false, cookie);
+            toUpdate.push(data);
+            updatePkValues.push(
+              getCompositePkValue(this.model.primaryKeys, {
+                ...data,
+              }),
+            );
+          } else {
+            await this.prepareNocoData(data, true, cookie, null, {
+              ncOrder: order,
+              undo,
+            });
+            order = order?.plus(1);
+            toInsert.push(data);
+          }
         }
       }
 

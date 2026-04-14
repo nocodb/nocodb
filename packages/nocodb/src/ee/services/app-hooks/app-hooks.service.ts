@@ -53,8 +53,6 @@ import type {
   TeamUpdateEvent,
   UserMfaBackupCodeUsedEvent,
   UserMfaDisabledEvent,
-  UserMfaDisabledEvent,
-  UserMfaEnabledEvent,
   UserMfaEnabledEvent,
   UserMfaSetupEvent,
   UserMfaVerifyEvent,

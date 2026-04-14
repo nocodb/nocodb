@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, PlanFeatureTypes, SyncDataType } from 'nocodb-sdk';
 import axios from 'axios';
 import { IntegrationsService as IntegrationsServiceCE } from 'src/services/integrations.service';
 import type {
@@ -9,6 +9,7 @@ import type {
 import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { validatePayload } from '~/helpers';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { Base, Integration } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { Source, Workspace } from '~/models';
@@ -249,6 +250,17 @@ export class IntegrationsService extends IntegrationsServiceCE {
       'swagger.json#/components/schemas/IntegrationReq',
       param.integration,
     );
+
+    // Gate AI integration creation behind FEATURE_AI_INTEGRATIONS
+    const aiSubTypes: string[] = [
+      SyncDataType.OPENAI,
+      SyncDataType.CLAUDE,
+      SyncDataType.OLLAMA,
+      SyncDataType.GROQ,
+    ];
+    if (aiSubTypes.includes(param.integration.sub_type as string)) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_AI_INTEGRATIONS);
+    }
 
     let integrationBody;
 

@@ -292,6 +292,12 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_AI_CHAT)
   })
 
+  const blockAiIntegrations = computed(() => {
+    if (isEEFeatureBlocked.value) return true
+
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_AI_INTEGRATIONS)
+  })
+
   const blockDocAi = computed(() => {
     if (isEEFeatureBlocked.value) return true
 
@@ -441,19 +447,20 @@ export const useEeConfig = createSharedComposable(() => {
 
   /**
    * Resolve plan meta for feature/limit lookups.
-   * On cloud: reads from workspace.payment.plan.meta
-   * On on-prem: plan is instance-wide. Tries workspace first, falls back to appInfo.onPremPlan.
+   * On cloud: reads from workspace.payment.plan.meta (per-workspace Stripe plan)
+   * On on-prem: plan is instance-wide — always use appInfo.onPremPlan (not per-workspace)
    */
   function resolvePlanMeta(workspace?: NcWorkspace | null): Record<string, any> | null {
+    // On-prem: instance-wide plan takes priority (workspaces don't have Stripe plans)
+    if (isOnPrem.value && appInfo.value?.onPremPlan) {
+      return appInfo.value.onPremPlan
+    }
+
+    // Cloud: per-workspace Stripe plan
     const ws = workspace ?? activeWorkspace.value
 
     if (ws && 'payment' in ws && ws.payment?.plan?.meta) {
       return ws.payment.plan.meta
-    }
-
-    // On-prem fallback: instance-wide plan from appInfo (always available, no workspace needed)
-    if (isOnPrem.value && appInfo.value?.onPremPlan) {
-      return appInfo.value.onPremPlan
     }
 
     return null
@@ -1582,6 +1589,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseAiIntegrations = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAiIntegrations.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseAiIntegrations'),
+      content: t('upgrade.upgradeToUseAiIntegrationsSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_AI_INTEGRATIONS,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseDocAi = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockDocAi.value) return
 
@@ -2108,6 +2130,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiButtonField,
     blockAiChat,
     showUpgradeToUseAiChat,
+    blockAiIntegrations,
+    showUpgradeToUseAiIntegrations,
     blockDocAi,
     showUpgradeToUseDocAi,
     blockButtonVisibility,

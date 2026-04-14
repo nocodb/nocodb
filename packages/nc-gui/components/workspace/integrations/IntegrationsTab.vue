@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { IntegrationCategoryType } from 'nocodb-sdk'
+import { IntegrationCategoryType, PlanFeatureTypes } from 'nocodb-sdk'
 import NcModal from '~/components/nc/Modal.vue'
 
 import { type IntegrationItemType, SyncDataType } from '#imports'
@@ -42,7 +42,7 @@ const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, blockAiIntegrations, showUpgradeToUseAiIntegrations } = useEeConfig()
 
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
 
@@ -235,6 +235,11 @@ const handleUpvote = (category: IntegrationCategoryType, syncDataType: SyncDataT
 const handleAddIntegration = async (category: IntegrationCategoryType, integration: IntegrationItemType) => {
   if (!integration.isAvailable) {
     handleUpvote(category, integration.sub_type)
+    return
+  }
+
+  if (category === IntegrationCategoryType.AI && blockAiIntegrations.value) {
+    showUpgradeToUseAiIntegrations({})
     return
   }
 
@@ -464,8 +469,14 @@ watch(activeViewTab, (value) => {
                     >
                       <div class="category-type-title flex gap-2">
                         {{ $t(category.title) }}
+                        <LazyPaymentUpgradeBadge
+                          v-if="category.value === IntegrationCategoryType.AI && blockAiIntegrations"
+                          :feature="PlanFeatureTypes.FEATURE_AI_INTEGRATIONS"
+                          :feature-enabled-callback="() => !blockAiIntegrations"
+                          remove-click
+                        />
                         <NcBadge
-                          v-if="!category.isAvailable"
+                          v-else-if="!category.isAvailable"
                           :border="false"
                           class="text-nc-content-brand !h-5 bg-nc-bg-brand text-xs font-normal px-2"
                           >{{ $t('msg.toast.futureRelease') }}</NcBadge

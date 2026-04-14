@@ -90,6 +90,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAiChat = computed(() => true)
 
+  const blockAiIntegrations = computed(() => true)
+
   const blockDocAi = computed(() => true)
 
   const blockButtonVisibility = computed(() => true)
@@ -211,6 +213,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseAiButtonField = (..._args: any[]) => {}
 
   const showUpgradeToUseAiChat = (..._args: any[]) => {}
+
+  const showUpgradeToUseAiIntegrations = (..._args: any[]) => {}
 
   const showUpgradeToUseDocAi = (..._args: any[]) => {}
 
@@ -358,6 +362,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiButtonField,
     blockAiChat,
     showUpgradeToUseAiChat,
+    blockAiIntegrations,
+    showUpgradeToUseAiIntegrations,
     blockDocAi,
     showUpgradeToUseDocAi,
     blockButtonVisibility,

@@ -454,6 +454,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspaceLoading.value = true
     const workspaceId = _workspaceId ?? activeWorkspaceId.value!
 
+    // After workspaces are loaded, skip populating if user has no access or workspace is CE-locked
+    if (!isWorkspacesLoading.value && workspaceId) {
+      if (!workspaces.value.has(workspaceId) || isWorkspaceCeLocked(workspaceId)) {
+        isWorkspaceLoading.value = false
+        return
+      }
+    }
+
     lastPopulatedWorkspaceId.value = workspaceId
 
     const wsState = workspaces.value.get(workspaceId)
@@ -1328,10 +1336,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     // Redirect away from locked workspaces (unlicensed on-prem, non-default)
     if (activeWorkspaceId.value && isWorkspaceCeLocked(activeWorkspaceId.value)) {
       const defaultWsId = appInfo.value.defaultWorkspaceId
-      if (defaultWsId) {
+      // Only redirect if the default workspace is accessible (in the loaded list)
+      if (defaultWsId && workspaces.value.has(defaultWsId)) {
         navigateTo(`/${defaultWsId}`, { replace: true })
         return
       }
+      // No accessible non-locked workspace — stay put, don't load roles
+      return
+    }
+
+    // Skip loadRoles for workspaces the user doesn't have access to
+    if (activeWorkspaceId.value && !isWorkspacesLoading.value && !workspaces.value.has(activeWorkspaceId.value)) {
+      return
     }
 
     await loadRoles(undefined, {}, activeWorkspaceId.value)
@@ -1342,6 +1358,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     () => [activeWorkspace.value?.payment?.plan?.meta, activeWorkspace.value?.id, activeWorkspace.value?.fk_org_id],
     () => {
       if (!activeWorkspace.value?.id) return
+
+      // Skip team loading for CE-locked workspaces
+      if (isWorkspaceCeLocked(activeWorkspace.value.id)) return
 
       const planMeta = activeWorkspace.value?.payment?.plan?.meta
       const hasOrg = !!activeWorkspace.value?.fk_org_id

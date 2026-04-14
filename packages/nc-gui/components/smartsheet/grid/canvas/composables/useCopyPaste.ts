@@ -35,6 +35,15 @@ export interface BulkLtarOp {
   data: { operation: string; rowId: string; columnId: string; fk_related_model_id: string }[]
 }
 
+export interface TextLtarOp {
+  columnId: string
+  columnTitle: string
+  rowId: string
+  rowRef: Row
+  oldValue: any
+  displayValues: string[]
+}
+
 /** OO and OM paste moves records between rows — not suitable for bulk paste */
 function isOoOrOm(col: ColumnType): boolean {
   return isOo(col) || (col.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.ONE_TO_MANY
@@ -276,19 +285,28 @@ export function useCopyPaste({
     }
 
     try {
-      if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
+      const isMultiCellSelection = !selection.value.isSingleCell()
+
+      if (clipboardData?.includes('\n') || clipboardData?.includes('\t') || isMultiCellSelection) {
         // if the clipboard data contains new line or tab, then it is a matrix or LongText
+        // Also handle single value pasted into multi-cell selection (e.g. text into multiple LTAR cells)
 
-        const parsedClipboard = parse(clipboardData, {
-          delimiter: '\t',
-          escapeChar: '\\',
-        })
+        let clipboardMatrix: string[][]
 
-        if (parsedClipboard.errors.length > 0) {
-          return message.error(parsedClipboard.errors[0]?.message)
+        if (clipboardData?.includes('\n') || clipboardData?.includes('\t')) {
+          const parsedClipboard = parse(clipboardData, {
+            delimiter: '\t',
+            escapeChar: '\\',
+          })
+
+          if (parsedClipboard.errors.length > 0) {
+            return message.error(parsedClipboard.errors[0]?.message)
+          }
+
+          clipboardMatrix = parsedClipboard.data as string[][]
+        } else {
+          clipboardMatrix = [[clipboardData]]
         }
-
-        let clipboardMatrix = parsedClipboard.data as string[][]
 
         // Special handling for "null" values - convert literal "null" strings to empty strings
         // This ensures that empty cells from numeric fields don't appear as "null" text
@@ -395,6 +413,7 @@ export function useCopyPaste({
         const newRows: Row[] = []
         const propsToPaste: string[] = []
         const bulkLtarOps: BulkLtarOp[] = []
+        const textLtarOps: TextLtarOp[] = []
         let isInfoShown = false
         // We can use this if we want to avoid same info multiple times per column
         const isColInfoShown = {} as Record<string, boolean>
@@ -437,57 +456,81 @@ export function useCopyPaste({
 
             // Collect junction-table-based LTAR columns for bulk API
             if (isMMOrMMLike(column)) {
-              // Block bulk paste for OO and OM — paste moves records between rows, not suitable for bulk
-              if (isOoOrOm(column)) {
-                if (!isInfoShown) {
-                  message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))
-                  isInfoShown = true
-                }
-                continue
-              }
-
               if (!isPasteable(targetRow, column, false, true)) continue
 
-              const pasteVal = convertCellData(
-                {
-                  value: clipboardMatrix[clipboardRowIndex][j],
-                  to: column.uidt as UITypes,
-                  column,
-                  appInfo: unref(appInfo),
-                  clipboardItem: extractCellClipboardData(storedCopiedData, clipboardRowIndex, j),
-                },
-                isMysql(meta.value?.source_id),
-              )
+              const clipboardItem = extractCellClipboardData(storedCopiedData, clipboardRowIndex, j)
+              const isStructuredLtarPaste = clipboardItem && isLinksOrLTAR(clipboardItem.column)
 
-              if (pasteVal === undefined || !ncIsObject(pasteVal)) continue
+              if (isStructuredLtarPaste) {
+                // Block structured copy-paste for OO and OM — paste moves records between rows
+                if (isOoOrOm(column)) {
+                  if (!isInfoShown) {
+                    message.toast(t('msg.info.groupPasteIsNotSupportedOnOoOmColumn'))
+                    isInfoShown = true
+                  }
+                  continue
+                }
 
-              const pasteRowPk = extractPkFromRow(targetRow.row, meta.value?.columns as ColumnType[])
-              if (!pasteRowPk) continue
-
-              const oldValue = targetRow.row[column.title!]
-              targetRow.row[column.title!] = pasteVal.value
-
-              bulkLtarOps.push({
-                columnId: column.id as string,
-                columnTitle: column.title!,
-                rowRef: targetRow,
-                oldValue,
-                data: [
+                const pasteVal = convertCellData(
                   {
-                    operation: 'copy',
-                    rowId: pasteVal.rowId,
-                    columnId: pasteVal.columnId,
-                    fk_related_model_id: pasteVal.fk_related_model_id,
+                    value: clipboardMatrix[clipboardRowIndex][j],
+                    to: column.uidt as UITypes,
+                    column,
+                    appInfo: unref(appInfo),
+                    clipboardItem,
                   },
-                  {
-                    operation: 'paste',
-                    rowId: pasteRowPk,
-                    columnId: column.id as string,
-                    fk_related_model_id:
-                      (column.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
-                  },
-                ],
-              })
+                  isMysql(meta.value?.source_id),
+                )
+
+                if (pasteVal === undefined || !ncIsObject(pasteVal)) continue
+
+                const pasteRowPk = extractPkFromRow(targetRow.row, meta.value?.columns as ColumnType[])
+                if (!pasteRowPk) continue
+
+                const oldValue = targetRow.row[column.title!]
+                targetRow.row[column.title!] = pasteVal.value
+
+                bulkLtarOps.push({
+                  columnId: column.id as string,
+                  columnTitle: column.title!,
+                  rowRef: targetRow,
+                  oldValue,
+                  data: [
+                    {
+                      operation: 'copy',
+                      rowId: pasteVal.rowId,
+                      columnId: pasteVal.columnId,
+                      fk_related_model_id: pasteVal.fk_related_model_id,
+                    },
+                    {
+                      operation: 'paste',
+                      rowId: pasteRowPk,
+                      columnId: column.id as string,
+                      fk_related_model_id:
+                        (column.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
+                    },
+                  ],
+                })
+              } else {
+                // Plain text paste — resolve display values to linked records
+                const plainText = clipboardMatrix[clipboardRowIndex][j]
+                if (!plainText?.trim()) continue
+
+                const displayValues = plainText.split(',').map((v: string) => v.trim()).filter(Boolean)
+                if (!displayValues.length) continue
+
+                const pasteRowPk = extractPkFromRow(targetRow.row, meta.value?.columns as ColumnType[])
+                if (!pasteRowPk) continue
+
+                textLtarOps.push({
+                  columnId: column.id as string,
+                  columnTitle: column.title!,
+                  rowId: pasteRowPk,
+                  rowRef: targetRow,
+                  oldValue: targetRow.row[column.title!],
+                  displayValues,
+                })
+              }
               continue
             }
 
@@ -560,6 +603,29 @@ export function useCopyPaste({
           }
         }
 
+        // Execute text-based LTAR link-by-display-value operations
+        if (textLtarOps.length) {
+          try {
+            await $api.internal.postOperation(
+              meta.value?.fk_workspace_id as string,
+              meta.value?.base_id as string,
+              {
+                operation: 'nestedDataBulkLinkByDisplayValue',
+                tableId: meta.value?.id as string,
+                viewId: view?.value?.id,
+              },
+              textLtarOps.map(({ columnId, rowId, displayValues }) => ({ columnId, rowId, displayValues })),
+            )
+
+            reloadViewDataHook?.trigger({ shouldShowLoading: false })
+          } catch (e: any) {
+            for (const op of textLtarOps) {
+              op.rowRef.row[op.columnTitle] = op.oldValue
+            }
+            message.error(await extractSdkResponseErrorMsg(e))
+          }
+        }
+
         if (options.expand) {
           await bulkUpsertRows?.(
             newRows,
@@ -585,62 +651,99 @@ export function useCopyPaste({
 
           if (!rowObj || !columnObj) return
 
+          const singleCellClipboardItem = extractCellClipboardData(storedCopiedData, 0, 0)
+          const isStructuredLtarPaste = singleCellClipboardItem && isLinksOrLTAR(singleCellClipboardItem.column)
+
           // handle belongs to column, skip custom links
           if (isBt(columnObj) && !(columnObj.meta as any)?.custom) {
             if (!isPasteable(rowObj, columnObj, true, true)) return
 
-            const pasteVal = convertCellData(
-              {
-                value: clipboardData,
-                to: columnObj.uidt as UITypes,
-                column: columnObj,
-                appInfo: unref(appInfo),
-                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
-              },
-              isMysql(meta.value?.source_id),
-            )
+            if (isStructuredLtarPaste) {
+              const pasteVal = convertCellData(
+                {
+                  value: clipboardData,
+                  to: columnObj.uidt as UITypes,
+                  column: columnObj,
+                  appInfo: unref(appInfo),
+                  clipboardItem: singleCellClipboardItem,
+                },
+                isMysql(meta.value?.source_id),
+              )
 
-            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
+              if (pasteVal === undefined || !ncIsObject(pasteVal)) return
 
-            const foreignKeyColumn = meta.value?.columns?.find(
-              (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
-            )
+              const foreignKeyColumn = meta.value?.columns?.find(
+                (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+              )
 
-            if (!foreignKeyColumn) return
+              if (!foreignKeyColumn) return
 
-            const relatedBaseId =
-              (columnObj.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta?.value?.base_id
-            const relatedTableMeta = await getMeta(
-              relatedBaseId as string,
-              (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
-            )
+              const relatedBaseId =
+                (columnObj.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta?.value?.base_id
+              const relatedTableMeta = await getMeta(
+                relatedBaseId as string,
+                (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+              )
 
-            // update old row to allow undo redo as bt column update only through foreignKeyColumn title
-            rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
-            rowObj.oldRow[foreignKeyColumn.title!] = rowObj.row[columnObj.title!]
-              ? extractPkFromRow(rowObj.row[columnObj.title!], (relatedTableMeta as any)!.columns!)
-              : null
+              // update old row to allow undo redo as bt column update only through foreignKeyColumn title
+              rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
+              rowObj.oldRow[foreignKeyColumn.title!] = rowObj.row[columnObj.title!]
+                ? extractPkFromRow(rowObj.row[columnObj.title!], (relatedTableMeta as any)!.columns!)
+                : null
 
-            rowObj.row[columnObj.title!] = pasteVal?.value
+              rowObj.row[columnObj.title!] = pasteVal?.value
 
-            rowObj.row[foreignKeyColumn.title!] = pasteVal?.value
-              ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
-              : null
+              rowObj.row[foreignKeyColumn.title!] = pasteVal?.value
+                ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
+                : null
 
-            return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title }, groupPath)
+              return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title }, groupPath)
+            }
+
+            // Fall through to isMMOrMMLike block for text-based paste
           }
 
           // Handle junction-table-based LTAR column paste (V1 MM, V2 om/mo/oo/mm)
           if (isMMOrMMLike(columnObj)) {
             if (!isPasteable(rowObj, columnObj, true, true)) return
 
+            if (!isStructuredLtarPaste) {
+              // Plain text paste — resolve display values to linked records
+              const plainText = clipboardData
+              if (!plainText?.trim()) return
+
+              const displayValues = plainText.split(',').map((v: string) => v.trim()).filter(Boolean)
+              if (!displayValues.length) return
+
+              const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+              if (!pasteRowPk) return
+
+              try {
+                await $api.internal.postOperation(
+                  meta.value?.fk_workspace_id as string,
+                  meta.value?.base_id as string,
+                  {
+                    operation: 'nestedDataBulkLinkByDisplayValue',
+                    tableId: meta.value?.id as string,
+                    viewId: view?.value?.id,
+                  },
+                  [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
+                )
+
+                return await syncCellData?.(activeCell.value, groupPath)
+              } catch (e: any) {
+                message.error(await extractSdkResponseErrorMsg(e))
+                return
+              }
+            }
+
             const pasteVal = convertCellData(
               {
                 value: clipboardData,
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
-                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
+                clipboardItem: singleCellClipboardItem,
               },
               isMysql(meta.value?.source_id),
             )

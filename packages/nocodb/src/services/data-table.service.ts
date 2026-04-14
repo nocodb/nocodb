@@ -3,6 +3,7 @@ import {
   isBtLikeV2Junction,
   isLinksOrLTAR,
   isMMOrMMLike,
+  isVirtualCol,
   ncIsNumber,
   RelationTypes,
   ViewTypes,
@@ -901,6 +902,231 @@ export class DataTableService {
         ...param,
         columnId: entry.columnId,
         data: entry.data,
+      });
+
+      results.push(result ?? { link: [], unlink: [] });
+    }
+
+    return results;
+  }
+
+  async nestedLinkByDisplayValue(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      rowId: string;
+      displayValues: string[];
+      query: any;
+      user?: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    if (!(await baseModel.exist(param.rowId))) {
+      NcError.get(context).recordNotFound(param.rowId);
+    }
+
+    const column = await this.getColumn(context, param);
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+
+    const { refContext } = await colOptions.getParentChildContext(context);
+
+    const relatedModel = await colOptions.getRelatedTable(refContext);
+    await relatedModel.getColumns(refContext);
+
+    const displayValueColumn = relatedModel.displayValue;
+    if (!displayValueColumn) {
+      NcError.get(context).badRequest(
+        'Related table has no display value column',
+      );
+    }
+
+    // Virtual columns (formula, lookup, rollup, etc.) don't have a real DB column
+    // to query against — bail out gracefully
+    if (isVirtualCol(displayValueColumn)) {
+      return { link: [], unlink: [] };
+    }
+
+    if (!colOptions.fk_mm_model_id) return { link: [], unlink: [] };
+
+    // Build a base model for the related table to query records
+    const relatedSource = await Source.get(refContext, relatedModel.source_id);
+    const relatedBaseModel = await Model.getBaseModelSQL(refContext, {
+      id: relatedModel.id,
+      dbDriver: await NcConnectionMgrv2.get(relatedSource),
+    });
+
+    const dbDriver = relatedBaseModel.dbDriver;
+    const tn = relatedBaseModel.getTnPath(relatedModel);
+    const cn = displayValueColumn.column_name;
+
+    // Resolve display values to records
+    // Step 1: Case-sensitive exact match
+    const matchedPks: (string | number)[] = [];
+    const unmatchedValues = new Set(param.displayValues);
+
+    if (unmatchedValues.size > 0) {
+      const caseSensitiveRows = await dbDriver(tn)
+        .whereIn(cn, [...unmatchedValues])
+        .select(
+          relatedModel.primaryKeys.map(
+            (pk) => pk.column_name || pk.title,
+          ),
+        )
+        .select(cn);
+
+      for (const row of caseSensitiveRows) {
+        const dv = row[cn];
+        if (unmatchedValues.has(dv)) {
+          unmatchedValues.delete(dv);
+          matchedPks.push(
+            dataWrapper(row).extractPksValue(relatedModel, true),
+          );
+        }
+      }
+    }
+
+    // Step 2: Case-insensitive fallback for remaining unmatched values
+    if (unmatchedValues.size > 0) {
+      const remaining = [...unmatchedValues];
+      const lowerValues = remaining.map((v) => v.toLowerCase());
+
+      const caseInsensitiveRows = await dbDriver(tn)
+        .whereRaw(
+          `LOWER(??) IN (${lowerValues.map(() => '?').join(',')})`,
+          [cn, ...lowerValues],
+        )
+        .select(
+          relatedModel.primaryKeys.map(
+            (pk) => pk.column_name || pk.title,
+          ),
+        )
+        .select(cn);
+
+      // Build a map of lowercase → original unmatched values for matching
+      const lowerToOriginal = new Map<string, string>();
+      for (const v of remaining) {
+        const lower = v.toLowerCase();
+        if (!lowerToOriginal.has(lower)) {
+          lowerToOriginal.set(lower, v);
+        }
+      }
+
+      for (const row of caseInsensitiveRows) {
+        const dv = String(row[cn]).toLowerCase();
+        if (lowerToOriginal.has(dv)) {
+          lowerToOriginal.delete(dv);
+          matchedPks.push(
+            dataWrapper(row).extractPksValue(relatedModel, true),
+          );
+        }
+      }
+    }
+
+    if (!matchedPks.length) {
+      return { link: [], unlink: [] };
+    }
+
+    // For BT/OO: only take the first match
+    const isSingleLink =
+      colOptions.type === RelationTypes.BELONGS_TO ||
+      colOptions.type === RelationTypes.ONE_TO_ONE;
+    const pksToLink = isSingleLink ? [matchedPks[0]] : matchedPks;
+
+    // Get existing links to compute diff
+    const { dependencyFields } = await getAst(refContext, {
+      model: relatedModel,
+      query: param.query,
+      extractOnlyPrimaries: true,
+    });
+
+    const listArgs: any = dependencyFields;
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    const existingLinkedList = await baseModel.mmList(
+      {
+        colId: column.id,
+        parentId: param.rowId,
+      },
+      listArgs as any,
+      true,
+    );
+
+    const existingPks = (existingLinkedList || []).map((row) =>
+      dataWrapper(row).extractPksValue(relatedModel, true),
+    );
+
+    // Compute diff: unlink records not in new set, link records not in existing set
+    const existingPkSet = new Set(existingPks.map(String));
+    const newPkSet = new Set(pksToLink.map(String));
+
+    const toLink = pksToLink.filter((pk) => !existingPkSet.has(String(pk)));
+    const toUnlink = existingPks.filter((pk) => !newPkSet.has(String(pk)));
+
+    if (toUnlink.length) {
+      await baseModel.removeLinks({
+        colId: column.id,
+        childIds: toUnlink,
+        rowId: param.rowId,
+        cookie: param.cookie,
+      });
+    }
+
+    if (toLink.length) {
+      await baseModel.addLinks({
+        colId: column.id,
+        childIds: toLink,
+        rowId: param.rowId,
+        cookie: param.cookie,
+      });
+    }
+
+    return { link: toLink, unlink: toUnlink };
+  }
+
+  async nestedBulkLinkByDisplayValue(
+    context: NcContext,
+    param: {
+      cookie: any;
+      viewId: string;
+      modelId: string;
+      query: any;
+      data: {
+        columnId: string;
+        rowId: string;
+        displayValues: string[];
+      }[];
+      user?: any;
+    },
+  ) {
+    validatePayload(
+      'swagger.json#/components/schemas/nestedBulkLinkByDisplayValueReq',
+      param.data,
+    );
+
+    const results: { link: any[]; unlink: any[] }[] = [];
+
+    for (const entry of param.data) {
+
+      const result = await this.nestedLinkByDisplayValue(context, {
+        ...param,
+        columnId: entry.columnId,
+        rowId: entry.rowId,
+        displayValues: entry.displayValues,
       });
 
       results.push(result ?? { link: [], unlink: [] });

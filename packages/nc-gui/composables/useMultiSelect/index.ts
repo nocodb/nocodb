@@ -1345,52 +1345,92 @@ export function useMultiSelect(
 
           // handle belongs to column, skip custom links
           if (isBt(columnObj) && !columnObj.meta?.custom) {
-            const pasteVal = convertCellData(
-              {
-                value: clipboardData,
-                to: columnObj.uidt as UITypes,
-                column: columnObj,
-                appInfo: unref(appInfo),
-                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
-              },
-              isMysql(meta.value?.source_id),
-            )
+            const btClipboardItem = extractCellClipboardData(storedCopiedData, 0, 0)
+            const isBtStructuredPaste = btClipboardItem && isLinksOrLTAR(btClipboardItem.column)
 
-            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
+            if (isBtStructuredPaste) {
+              const pasteVal = convertCellData(
+                {
+                  value: clipboardData,
+                  to: columnObj.uidt as UITypes,
+                  column: columnObj,
+                  appInfo: unref(appInfo),
+                  clipboardItem: btClipboardItem,
+                },
+                isMysql(meta.value?.source_id),
+              )
 
-            const foreignKeyColumn = meta.value?.columns?.find(
-              (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
-            )
+              if (pasteVal === undefined || !ncIsObject(pasteVal)) return
 
-            if (!foreignKeyColumn) return
+              const foreignKeyColumn = meta.value?.columns?.find(
+                (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+              )
 
-            const colOpts = columnObj.colOptions as LinkToAnotherRecordType
-            const relatedBaseId = colOpts.fk_related_base_id || (base.value?.id as string)
-            const relatedTableMeta = await getMeta(relatedBaseId, colOpts.fk_related_model_id!)
+              if (!foreignKeyColumn) return
 
-            // update old row to allow undo redo as bt column update only through foreignKeyColumn title
-            rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
-            rowObj.oldRow[foreignKeyColumn.title!] = rowObj.row[columnObj.title!]
-              ? extractPkFromRow(rowObj.row[columnObj.title!], (relatedTableMeta as any)!.columns!)
-              : null
+              const colOpts = columnObj.colOptions as LinkToAnotherRecordType
+              const relatedBaseId = colOpts.fk_related_base_id || (base.value?.id as string)
+              const relatedTableMeta = await getMeta(relatedBaseId, colOpts.fk_related_model_id!)
 
-            rowObj.row[columnObj.title!] = pasteVal?.value
+              // update old row to allow undo redo as bt column update only through foreignKeyColumn title
+              rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
+              rowObj.oldRow[foreignKeyColumn.title!] = rowObj.row[columnObj.title!]
+                ? extractPkFromRow(rowObj.row[columnObj.title!], (relatedTableMeta as any)!.columns!)
+                : null
 
-            rowObj.row[foreignKeyColumn.title!] = pasteVal?.value
-              ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
-              : null
+              rowObj.row[columnObj.title!] = pasteVal?.value
 
-            return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
+              rowObj.row[foreignKeyColumn.title!] = pasteVal?.value
+                ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
+                : null
+
+              return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
+            }
+
+            // Fall through to isMMOrMMLike block for text-based paste
           }
 
           if (isMMOrMMLike(columnObj)) {
+            const mmClipboardItem = extractCellClipboardData(storedCopiedData, 0, 0)
+            const isMmStructuredPaste = mmClipboardItem && isLinksOrLTAR(mmClipboardItem.column)
+
+            if (!isMmStructuredPaste) {
+              // Plain text paste — resolve display values to linked records
+              const plainText = clipboardData
+              if (!plainText?.trim()) return
+
+              const displayValues = plainText.split(',').map((v: string) => v.trim()).filter(Boolean)
+              if (!displayValues.length) return
+
+              const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+              if (!pasteRowPk) return
+
+              try {
+                await api.internal.postOperation(
+                  meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                  meta.value?.base_id ?? base.value.id,
+                  {
+                    operation: 'nestedDataBulkLinkByDisplayValue',
+                    tableId: meta.value?.id as string,
+                    viewId: activeView?.value?.id,
+                  },
+                  [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
+                )
+
+                return await syncCellData?.(activeCell)
+              } catch (e: any) {
+                message.error(await extractSdkResponseErrorMsg(e))
+                return
+              }
+            }
+
             const pasteVal = convertCellData(
               {
                 value: clipboardData,
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
-                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
+                clipboardItem: mmClipboardItem,
               },
               isMysql(meta.value?.source_id),
             )

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { isLinksOrLTAR, NcSDKErrorV2, ViewTypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, isLinkV2, NcSDKErrorV2, ViewTypes } from 'nocodb-sdk';
 import { NcApiVersion } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
@@ -891,6 +891,107 @@ export class DatasService {
       },
       param.query,
     );
+
+    return new PagedResponseImpl(data, {
+      count,
+      ...param.query,
+    });
+  }
+
+  async ooExcludedList(
+    context: NcContext,
+    param: {
+      viewId: string;
+      colId: string;
+      query: any;
+      rowId: string;
+    },
+  ) {
+    const view = await View.get(context, param.viewId);
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id || param.viewId,
+    });
+
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    const column = await Column.get(context, { colId: param.colId });
+
+    const key = 'List';
+    const requestObj: any = {
+      [key]: 1,
+    };
+
+    let data;
+    let count;
+
+    if (isLinkV2(column)) {
+      data = (
+        await nocoExecute(
+          requestObj,
+          {
+            [key]: async (args) => {
+              return await baseModel.getMmChildrenExcludedList(
+                {
+                  colId: param.colId,
+                  pid: param.rowId,
+                },
+                args,
+              );
+            },
+          },
+          {},
+
+          { nested: { [key]: param.query } },
+        )
+      )?.[key];
+
+      count = await baseModel.getMmChildrenExcludedListCount(
+        {
+          colId: param.colId,
+          pid: param.rowId,
+        },
+        param.query,
+      );
+    } else {
+      data = (
+        await nocoExecute(
+          requestObj,
+          {
+            [key]: async (args) => {
+              return await baseModel.getExcludedOneToOneChildrenList(
+                {
+                  colId: param.colId,
+                  cid: param.rowId,
+                },
+                args,
+              );
+            },
+          },
+          {},
+
+          { nested: { [key]: param.query } },
+        )
+      )?.[key];
+
+      count = await baseModel.countExcludedOneToOneChildren(
+        {
+          colId: param.colId,
+          cid: param.rowId,
+        },
+        param.query,
+      );
+    }
 
     return new PagedResponseImpl(data, {
       count,

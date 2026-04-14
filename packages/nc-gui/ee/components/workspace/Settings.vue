@@ -495,7 +495,10 @@ async function toggleForce2fa(enabled: boolean) {
         <div class="nc-settings-item-card flex flex-col">
           <div class="nc-settings-item">
             <div class="nc-settings-item-content">
-              <div class="nc-settings-item-title">{{ $t('labels.requireTwoFactor') }}</div>
+              <div class="nc-settings-item-title flex items-center gap-2">
+                {{ $t('labels.requireTwoFactor') }}
+                <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_FORCE_2FA" />
+              </div>
               <div class="nc-settings-item-subtitle">
                 {{ $t('labels.requireTwoFactorDescription') }}
               </div>
@@ -511,7 +514,6 @@ async function toggleForce2fa(enabled: boolean) {
                 data-testid="nc-workspace-settings-force-2fa-toggle"
                 @update:checked="toggleForce2fa"
               />
-              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_FORCE_2FA" />
             </div>
           </div>
         </div>

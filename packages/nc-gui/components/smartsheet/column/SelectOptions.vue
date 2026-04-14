@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { type SelectOptionsType, UITypes } from 'nocodb-sdk'
-import InfiniteLoading from 'v3-infinite-loading'
 
 interface Option {
   color: string
@@ -46,11 +45,6 @@ const optionsWrapperDomRef = ref<HTMLElement>()
 const options = ref<Option[]>([])
 
 const isAddingOption = ref(false)
-
-// TODO: Implement proper top and bottom virtual scrolling
-const OPTIONS_PAGE_COUNT = 20
-const loadedOptionAnchor = ref(OPTIONS_PAGE_COUNT)
-const isReverseLazyLoad = ref(false)
 
 const renderedOptions = ref<Option[]>([])
 const savedDefaultOption = ref<Option[]>([])
@@ -151,16 +145,7 @@ const addNewOption = () => {
   }
   options.value.push(tempOption as Option)
 
-  if (isKanbanStack.value) {
-    renderedOptions.value = options.value
-  } else {
-    isReverseLazyLoad.value = true
-
-    loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
-    loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
-
-    renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
-  }
+  renderedOptions.value = options.value
 
   updateOptionsWrapperScrollHeight()
 
@@ -312,50 +297,6 @@ watch(vModel, (next) => {
   next.cdf = newCdf.length === 0 ? null : newCdf
 })
 
-const loadListDataReverse = async ($state: any) => {
-  if (isAddingOption.value) return
-
-  if (loadedOptionAnchor.value === 0) {
-    $state.complete()
-    return
-  }
-  $state.loading()
-
-  loadedOptionAnchor.value -= OPTIONS_PAGE_COUNT
-  loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
-
-  renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
-
-  updateOptionsWrapperScrollHeight(100)
-
-  if (loadedOptionAnchor.value === 0) {
-    $state.complete()
-    return
-  }
-  $state.loaded()
-}
-
-const loadListData = async ($state: any) => {
-  if (isAddingOption.value) return
-
-  if (loadedOptionAnchor.value === options.value.length) {
-    return $state.complete()
-  }
-
-  $state.loading()
-
-  loadedOptionAnchor.value += OPTIONS_PAGE_COUNT
-  loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
-
-  renderedOptions.value = options.value.slice(0, loadedOptionAnchor.value)
-
-  if (loadedOptionAnchor.value === options.value.length) {
-    return $state.complete()
-  }
-
-  $state.loaded()
-}
-
 const predictOptions = async () => {
   if (!vModel.value?.title || !meta.value?.id) return
 
@@ -397,15 +338,8 @@ const predictOptions = async () => {
       }
     }
 
-    if (isKanbanStack.value) {
-      renderedOptions.value = options.value
-    } else {
-      isReverseLazyLoad.value = true
-
-      loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
-      loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
-
-      renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
+    renderedOptions.value = options.value
+    if (!isKanbanStack.value) {
       syncOptions()
     }
 
@@ -433,14 +367,7 @@ const alphabetizeOptions = () => {
   })
 
   options.value = [...sorted, ...removed]
-
-  if (isKanbanStack.value) {
-    renderedOptions.value = options.value
-  } else {
-    isReverseLazyLoad.value = false
-    loadedOptionAnchor.value = Math.min(OPTIONS_PAGE_COUNT, options.value.length)
-    renderedOptions.value = options.value.slice(0, loadedOptionAnchor.value)
-  }
+  renderedOptions.value = options.value
 
   syncOptions()
 }
@@ -452,8 +379,6 @@ onMounted(() => {
     }
   }
 
-  isReverseLazyLoad.value = false
-
   options.value = [...vModel.value.colOptions.options]
 
   let indexCounter = 0
@@ -462,13 +387,7 @@ onMounted(() => {
     return { ...el }
   })
 
-  if (isKanbanStack.value) {
-    renderedOptions.value = options.value
-  } else {
-    loadedOptionAnchor.value = Math.min(loadedOptionAnchor.value, options.value.length)
-
-    renderedOptions.value = [...options.value].slice(0, loadedOptionAnchor.value)
-  }
+  renderedOptions.value = options.value
 
   // Support for older options
   for (const op of options.value.filter((el) => el.order === null)) {
@@ -634,23 +553,6 @@ if (!isKanbanStack.value) {
         </div>
       </template>
       <template v-else>
-        <InfiniteLoading
-          v-if="isReverseLazyLoad"
-          v-bind="$attrs"
-          top
-          :target="optionsWrapperDomRef"
-          :distance="80"
-          @infinite="loadListDataReverse"
-        >
-          <template #spinner>
-            <div class="flex flex-row w-full justify-center mt-2">
-              <GeneralLoader />
-            </div>
-          </template>
-          <template #complete>
-            <span></span>
-          </template>
-        </InfiniteLoading>
         <Draggable
           v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 45 })"
           :list="renderedOptions"
@@ -756,22 +658,6 @@ if (!isKanbanStack.value) {
             </div>
           </template>
         </Draggable>
-        <InfiniteLoading
-          v-if="!isReverseLazyLoad"
-          v-bind="$attrs"
-          :target="optionsWrapperDomRef"
-          :distance="80"
-          @infinite="loadListData"
-        >
-          <template #spinner>
-            <div class="flex flex-row w-full justify-center mt-2">
-              <GeneralLoader />
-            </div>
-          </template>
-          <template #complete>
-            <span></span>
-          </template>
-        </InfiniteLoading>
       </template>
     </div>
 

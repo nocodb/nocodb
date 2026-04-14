@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type { FileType, UITypes } from 'nocodb-sdk';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
@@ -18,9 +19,11 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { AiDataService } from '~/integrations/ai/module/services/ai-data.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License(PlanFeatureTypes.FEATURE_AI)
 export class AiDataController {
   constructor(private readonly aiDataService: AiDataService) {}
 

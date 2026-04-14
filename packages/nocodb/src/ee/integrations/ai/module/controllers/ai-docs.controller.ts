@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type { DocAiImproveMode } from 'nocodb-sdk';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
@@ -15,6 +16,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { AiDocsService } from '~/integrations/ai/module/services/ai-docs.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { License } from '~/decorators/license.decorator';
 
 type DocAiRequestBody =
   | {
@@ -37,6 +39,7 @@ type DocAiRequestBody =
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License(PlanFeatureTypes.FEATURE_AI)
 export class AiDocsController {
   constructor(private readonly aiDocsService: AiDocsService) {}
 

@@ -107,6 +107,12 @@ export function getLicenseServerPublicKeys(): string[] {
   return LICENSE_SERVER_PUBLIC_KEYS;
 }
 
+/**
+ * IMPORTANT: The old/legacy key below must always be the LAST PEM key in this file.
+ * The build system (rspack.ee-on-prem.config.js → deriveLicenseKeys()) regex-matches
+ * all PEM keys sequentially — everything except the last becomes the rotation array
+ * (__NC_DERIVED_KEYS__), and the last one becomes __NC_DERIVED_OLD_KEY__.
+ */
 declare const __NC_DERIVED_OLD_KEY__: { d: string; m: string } | undefined;
 
 function _resolveOldKey(): string {

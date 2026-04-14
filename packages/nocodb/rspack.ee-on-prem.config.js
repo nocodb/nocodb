@@ -134,10 +134,13 @@ module.exports = {
     new rspack.EnvironmentPlugin({
       EE: true,
     }),
-    new rspack.DefinePlugin({
-      __NC_DERIVED_KEYS__: JSON.stringify(deriveLicenseKeys().rotation),
-      __NC_DERIVED_OLD_KEY__: JSON.stringify(deriveLicenseKeys().old),
-    }),
+    (() => {
+      const { rotation, old } = deriveLicenseKeys();
+      return new rspack.DefinePlugin({
+        __NC_DERIVED_KEYS__: JSON.stringify(rotation),
+        __NC_DERIVED_OLD_KEY__: JSON.stringify(old),
+      });
+    })(),
     new rspack.CopyRspackPlugin({
       patterns: [{ from: 'src/public', to: 'public' }],
     }),

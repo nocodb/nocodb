@@ -58,7 +58,7 @@ jobs:
   # Job 1: Compute tags
   # ---------------------------------------------------------------------------
   process-input:
-    runs-on: ubuntu-22.04
+    runs-on: ubicloud-standard-2
     outputs:
       ceTag: ${{ steps.compute.outputs.ceTag }}
       prevTag: ${{ steps.compute.outputs.prevTag }}
@@ -85,7 +85,7 @@ jobs:
   create-nocohub-tag:
     needs: process-input
     if: ${{ github.event.inputs.createTag == 'true' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubicloud-standard-2
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -303,7 +303,7 @@ jobs:
   release-notes:
     needs: process-input
     if: ${{ github.event.inputs.skipReleaseNotes != 'true' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubicloud-standard-2
     steps:
       - name: Checkout CE repo
         uses: actions/checkout@v5

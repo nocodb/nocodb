@@ -51,7 +51,9 @@ src/ee/                # EE-only types (sibling to lib/, excluded from CE build)
 
 ## Payment Types
 
-`src/lib/payment/index.ts` — all payment enums/constants. `PlanTitles`, `PlanFeatureTypes` (~40 flags), `PlanLimitTypes` (~30 limits), `PlanPriceLookupKeys`, `PlanOrder`, `PlanMeta`, `LoyaltyPriceLookupKeyMap`, upgrade message maps. Lives in `src/lib/` (not `src/ee/`) — both builds need these. Also: `NON_SEAT_ROLES` in `globals.ts`.
+`src/lib/payment/index.ts` — shared payment enums/constants used by CE + EE: `PlanTitles`, `PlanFeatureTypes` (~40 flags including `FEATURE_EE_CORE` for on-prem "any paid plan"), `PlanLimitTypes` (~30 limits), `PlanPriceLookupKeys`, `PlanOrder`, `PlanMeta`, `LoyaltyPriceLookupKeyMap`, upgrade message maps. Also: `NON_SEAT_ROLES` in `globals.ts`.
+
+`src/ee/lib/payment/index.ts` — EE-only on-prem plan definitions: `OnPremPlanTitles` (FREE/Starter/Scale/Enterprise), `OnPremPlanDefinitions` (single source of truth for on-prem feature gating), `OnPremPlanOrder`, `OnPremHigherPlan`, `OnPremFeatureToMinPlan`, `resolveOnPremPlanMeta(title)` (computes full plan meta with correct base per plan type — free defaults to `false`/`0`, paid defaults to `true`/`-1`), `InternalOpToOnPremPlanFeature` (maps `LICENSE_REQUIRED_OPS` operation names to `PlanFeatureTypes` for plan-level enforcement in `internal.controller.ts`).
 
 ## Anti-Patterns
 

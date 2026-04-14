@@ -10,8 +10,12 @@ import {
   Req,
 } from '@nestjs/common';
 import { InternalController as InternalControllerCE } from 'src/controllers/internal.controller';
-import { isServiceUser, ServiceUserType } from 'nocodb-sdk';
-import { PlanFeatureTypes } from 'nocodb-sdk';
+import {
+  InternalOpToOnPremPlanFeature,
+  isServiceUser,
+  PlanFeatureTypes,
+  ServiceUserType,
+} from 'nocodb-sdk';
 import type { InternalApiModule } from '~/utils/internal-type';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { DashboardsService } from '~/services/dashboards.service';
@@ -204,8 +208,24 @@ export class InternalController extends InternalControllerCE {
     await super.checkAcl(operation as any, req, scope);
   }
 
-  private requireLicense(operation: string) {
-    if (LICENSE_REQUIRED_OPS.has(operation) && !NocoLicense.isEE) {
+  private async requireLicense(operation: string, context?: NcContext) {
+    if (!LICENSE_REQUIRED_OPS.has(operation)) return;
+
+    // Plan-level check: if the operation maps to a PlanFeatureTypes,
+    // verify the current plan enables it. On cloud, checkForFeature reads
+    // workspace.payment.plan.meta; on on-prem, it reads getOnPremPlan().
+    // This works for both licensed and unlicensed — the Free plan has
+    // features explicitly enabled/disabled in OnPremPlanDefinitions.
+    if (context) {
+      const requiredFeature = InternalOpToOnPremPlanFeature[operation];
+      if (requiredFeature) {
+        await checkForFeature(context, requiredFeature);
+        return;
+      }
+    }
+
+    // No feature mapping — fall back to binary license check
+    if (!NocoLicense.isEE) {
       NcError.licenseRequired(operation);
     }
   }
@@ -218,7 +238,7 @@ export class InternalController extends InternalControllerCE {
     @Query('operation') operation: string,
     @Req() req: NcRequest,
   ): InternalGETResponseType {
-    this.requireLicense(operation);
+    await this.requireLicense(operation, context);
     await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
 
     switch (operation) {
@@ -366,7 +386,7 @@ export class InternalController extends InternalControllerCE {
     @Body() payload: any,
     @Req() req: NcRequest,
   ): InternalPOSTResponseType {
-    this.requireLicense(operation);
+    await this.requireLicense(operation, context);
     await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
 
     switch (operation) {

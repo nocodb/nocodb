@@ -18,11 +18,9 @@ import { checkForFeature } from '~/helpers/paymentHelpers';
 import { NcContext, NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { WorkspaceMembersV3Service } from '~/services/v3/workspace-members-v3.service';
-import { License } from '~/decorators/license.decorator';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
-@License('workspaces')
 export class WorkspaceMembersV3Controller {
   constructor(
     protected readonly workspaceMemberssV3Service: WorkspaceMembersV3Service,

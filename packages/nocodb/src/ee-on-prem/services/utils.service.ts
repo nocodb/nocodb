@@ -32,11 +32,11 @@ export class UtilsService extends UtilsServiceEE {
     result.isPostgres = Noco.getConfig()?.meta?.db?.client === 'pg';
     result.isLicenseKeySetByEnv = Noco.isInitialLicenseKeyFromEnv;
 
-    // Instance-wide plan for on-prem — used by frontend when no workspace context (e.g. admin page)
-    if (NocoLicense.isEE) {
-      const plan = getOnPremPlan();
-      result.onPremPlan = plan?.meta ?? null;
-    }
+    // Instance-wide plan for on-prem — used by frontend for feature gating.
+    // Always populated (including unlicensed/Free) so the frontend can check
+    // which features are enabled on the current plan via OnPremPlanDefinitions.
+    const plan = getOnPremPlan();
+    result.onPremPlan = plan?.meta ?? null;
 
     return result;
   }

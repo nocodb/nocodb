@@ -8,7 +8,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { NcRequest } from 'nocodb-sdk';
+import { NcRequest, PlanFeatureTypes } from 'nocodb-sdk';
 import type { SnapshotType } from 'nocodb-sdk';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -20,7 +20,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
-@License('snapshots')
+@License(PlanFeatureTypes.FEATURE_EE_CORE)
 export class SnapshotController {
   constructor(private readonly snapshotService: SnapshotService) {}
 

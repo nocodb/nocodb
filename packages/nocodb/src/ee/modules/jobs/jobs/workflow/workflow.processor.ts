@@ -17,7 +17,7 @@ import WorkflowExecution from '~/models/WorkflowExecution';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { UsageStat } from '~/ee/models';
-import { PlanLimitTypes } from '~/ee/helpers/paymentHelpers';
+import { PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { throttleWithLast } from '~/utils/functionUtils';
 
 export class WorkflowProcessor {

@@ -27,7 +27,7 @@ import { License } from '~/decorators/license.decorator';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
-@License('base-members')
+@License(PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT)
 export class BaseMembersV3Controller {
   constructor(protected readonly baseMembersV3Service: BaseMembersV3Service) {}
 

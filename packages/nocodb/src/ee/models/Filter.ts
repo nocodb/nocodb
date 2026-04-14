@@ -2,7 +2,7 @@ import FilterCE from 'src/models/Filter';
 import { Logger } from '@nestjs/common';
 import type { FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import { getFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
+import { getFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
 import RowColorCondition from '~/models/RowColorCondition';
 import Column from '~/models/Column';
 import Hook from '~/models/Hook';

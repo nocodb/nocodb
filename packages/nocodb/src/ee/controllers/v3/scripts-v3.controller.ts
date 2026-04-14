@@ -9,7 +9,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { NcContext, NcRequest } from 'nocodb-sdk';
+import { NcContext, NcRequest, PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   ScriptV3GetResponseType,
   ScriptV3ListResponseType,
@@ -25,7 +25,7 @@ import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-@License('scripts')
+@License(PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT)
 export class ScriptsV3Controller {
   constructor(private readonly scriptsV3Service: ScriptsV3Service) {}
 

@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { encryptPropIfRequired } from '~/utils/encryptDecrypt';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { License } from '~/decorators/license.decorator';
 import { DbServer } from '~/models';
@@ -19,7 +20,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
 @Controller()
-@License('db-server')
+@License(PlanFeatureTypes.FEATURE_EE_CORE)
 export class DbServerController {
   constructor(
     @Inject('JobsService') protected readonly jobsService: IJobsService,

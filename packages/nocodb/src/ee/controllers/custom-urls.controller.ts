@@ -12,12 +12,13 @@ import {
 import { Response } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { License } from '~/decorators/license.decorator';
 import { CustomUrlsService } from '~/services/custom-urls.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-@License('custom-urls')
+@License(PlanFeatureTypes.FEATURE_CUSTOM_URL)
 export class CustomUrlsController {
   constructor(protected readonly customUrlsService: CustomUrlsService) {}
 

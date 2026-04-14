@@ -11,7 +11,7 @@ import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
-import { checkForFeature } from '~/ee/helpers/paymentHelpers';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/ncError';
 import Noco from '~/Noco';

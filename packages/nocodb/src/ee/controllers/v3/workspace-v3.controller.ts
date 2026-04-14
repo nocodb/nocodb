@@ -23,11 +23,9 @@ import {
   WorkspaceV3Create,
   WorkspaceV3Update,
 } from '~/ee/services/v3/workspace-v3.types';
-import { License } from '~/decorators/license.decorator';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
-@License('workspaces')
 export class WorkspaceV3Controller {
   constructor(protected readonly workspaceV3Service: WorkspaceV3Service) {}
   /**

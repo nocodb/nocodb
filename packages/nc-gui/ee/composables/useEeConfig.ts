@@ -501,8 +501,14 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   function getFeature(type: PlanFeatureTypes, workspace?: NcWorkspace | null) {
-    // On-prem without license: all EE features blocked
-    if (isEEFeatureBlocked.value) return false
+    // On-prem without license: check the Free plan meta from appInfo.onPremPlan.
+    // The Free plan is default-deny — only explicitly enabled features return true.
+    if (isEEFeatureBlocked.value) {
+      const meta = resolvePlanMeta(workspace)
+      if (!meta) return false
+      const val = meta[type]
+      return ncIsString(val) ? JSON.parse(val) : !!val
+    }
 
     if (!isPaymentEnabled.value && !isOnPrem.value) return true
 

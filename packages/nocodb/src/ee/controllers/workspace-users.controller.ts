@@ -13,13 +13,11 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { License } from '~/decorators/license.decorator';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, AuthGuard('jwt'))
-@License('workspaces')
 export class WorkspaceUsersController {
   constructor(private readonly workspaceUsersService: WorkspaceUsersService) {}
 

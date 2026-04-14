@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import { CommentReqType, CommentUpdateReqType } from 'nocodb-sdk';
-import { checkForFeature } from '~/ee/helpers/paymentHelpers';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { License } from '~/decorators/license.decorator';
@@ -25,7 +25,7 @@ import { CommentsV3Service } from '~/ee/services/v3/comments-v3.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-@License('comments')
+@License(PlanFeatureTypes.FEATURE_API_COMMENT_V3)
 export class CommentsV3Controller {
   constructor(private readonly commentsV3Service: CommentsV3Service) {}
 

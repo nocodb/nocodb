@@ -4,7 +4,7 @@ import { UPDATE_WORKSPACE_STAT } from '../services/update-stats.service';
 import type { NcContext } from 'nocodb-sdk';
 import type { DuplicateModelJobData } from '~/interface/Jobs';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
-import { checkLimit, getFeature } from '~/ee/helpers/paymentHelpers';
+import { checkLimit, getFeature } from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/ncError';
 import { isOnPrem } from '~/utils';
 import { ModelStat } from '~/models';

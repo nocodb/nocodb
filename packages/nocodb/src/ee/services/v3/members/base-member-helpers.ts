@@ -5,7 +5,7 @@ import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transfo
 import { BaseUser } from '~/models';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
-import { checkForFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
+import { checkForFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
 
 export class BaseMemberHelpers extends BaseMemberHelpersCE {
   constructor() {

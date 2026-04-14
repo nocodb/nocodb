@@ -5,7 +5,11 @@ import {
   PlanFeatureTypes,
   PlanLimitTypes,
 } from 'nocodb-sdk';
-import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import type {
+  NcApiVersion,
+  ProjectRoles,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import NocoLicense from '~/NocoLicense';
 import Plan, { EnterprisePlan, FreePlan } from '~/models/Plan';
 import Noco from '~/Noco';
@@ -13,29 +17,9 @@ import { NcError } from '~/helpers/catchError';
 
 export * from 'src/ee/helpers/paymentHelpers';
 
-// ── On-prem SSO overrides ────────────────────────────────────────────────────
-// The EE base functions block all on-prem SSO (`if (!isCloud) throw`).
-// On-prem plans gate SSO via FEATURE_SSO — override to use plan-based checks.
-
-export async function checkIfWorkspaceSSOAvail(
-  _workspaceId: string,
-  throwError = true,
-) {
-  const plan = getOnPremPlan();
-  const isSSOEnabled = plan?.meta?.[PlanFeatureTypes.FEATURE_SSO] ?? false;
-
-  if (!isSSOEnabled) {
-    if (throwError)
-      NcError.forbidden('SSO is not available on your current plan');
-    else return false;
-  }
-
-  return true;
-}
-
-export async function checkIfOrgSSOAvail(_orgId: string, throwError = true) {
-  return checkIfWorkspaceSSOAvail('', throwError);
-}
+// ── On-prem plan resolution ─────────────────────────────────────────────────
+// Single entry point: reads license JWT → plan_title → OnPremPlanDefinitions.
+// All on-prem overrides below delegate to this.
 
 export const getOnPremPlan = () => {
   try {
@@ -81,6 +65,115 @@ export const getOnPremPlan = () => {
     return FreePlan;
   }
 };
+
+// ── On-prem feature/limit overrides ─────────────────────────────────────────
+// These shadow the cloud re-exports above. On cloud, feature/limit checks read
+// from workspace.payment.plan.meta (Stripe-backed). On on-prem, they read from
+// getOnPremPlan() which resolves via OnPremPlanDefinitions — the single source
+// of truth for on-prem feature gating.
+
+export async function getFeature(
+  type: PlanFeatureTypes,
+  _workspaceOrOrgId?: string | any,
+  _ncMeta?: any,
+): Promise<boolean> {
+  const plan = getOnPremPlan();
+  const value = plan?.meta?.[type];
+  return value === undefined ? false : !!value;
+}
+
+export async function checkForFeature(
+  context: {
+    workspace_id: string;
+    api_version?: NcApiVersion;
+  },
+  type: PlanFeatureTypes,
+  _ncMeta?: any,
+): Promise<boolean> {
+  if (!(await getFeature(type, context.workspace_id))) {
+    NcError.get(context).featureNotSupported({
+      feature: type,
+      isOnPrem: true,
+    });
+  }
+  return true;
+}
+
+export async function getLimit(
+  type: PlanLimitTypes,
+  _workspaceOrId?: string | any,
+  _ncMeta?: any,
+): Promise<{ limit: number; plan?: Partial<Plan> }> {
+  const plan = getOnPremPlan();
+  // Free plan defaults to 0 (restricted), paid plans default to -1 (unlimited)
+  const isFree = plan?.title === OnPremPlanTitles.FREE;
+  const limit = plan?.meta?.[type] ?? (isFree ? 0 : -1);
+
+  return {
+    limit: limit === -1 ? Infinity : limit,
+    plan,
+  };
+}
+
+export async function checkLimit(args: {
+  workspace?: any;
+  workspaceId?: string;
+  type: PlanLimitTypes;
+  count?: number;
+  delta?: number;
+  message?: (args: { limit?: number; plan?: string }) => string;
+  throwError?: boolean;
+  ncMeta?: any;
+}): Promise<void> {
+  const { type, delta = 0, message, throwError = true } = args;
+
+  const plan = getOnPremPlan();
+  const isFree = plan?.title === OnPremPlanTitles.FREE;
+  const limit = plan?.meta?.[type] ?? (isFree ? 0 : -1);
+
+  // -1 = unlimited
+  if (limit === -1) return;
+
+  const count = args.count ?? 0;
+
+  if (count + delta > limit) {
+    if (!throwError) return;
+
+    NcError.planLimitExceeded(
+      message?.({ limit, plan: plan?.title }) ||
+        `You have reached the limit of ${limit} for your plan.`,
+      {
+        plan: plan?.title,
+        limit,
+        current: count,
+      },
+    );
+  }
+}
+
+// ── On-prem SSO overrides ────────────────────────────────────────────────────
+// The EE base functions block all on-prem SSO (`if (!isCloud) throw`).
+// On-prem plans gate SSO via FEATURE_SSO — override to use plan-based checks.
+
+export async function checkIfWorkspaceSSOAvail(
+  _workspaceId: string,
+  throwError = true,
+) {
+  const plan = getOnPremPlan();
+  const isSSOEnabled = plan?.meta?.[PlanFeatureTypes.FEATURE_SSO] ?? false;
+
+  if (!isSSOEnabled) {
+    if (throwError)
+      NcError.forbidden('SSO is not available on your current plan');
+    else return false;
+  }
+
+  return true;
+}
+
+export async function checkIfOrgSSOAvail(_orgId: string, throwError = true) {
+  return checkIfWorkspaceSSOAvail('', throwError);
+}
 
 export async function getActivePlanAndSubscription(
   _workspaceOrOrgId: string,

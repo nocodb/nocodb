@@ -31,10 +31,11 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { License } from '~/decorators/license.decorator';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
-@License('teams')
+@License(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
 export class TeamsV3Controller {
   constructor(protected readonly teamsV3Service: TeamsV3Service) {}
 

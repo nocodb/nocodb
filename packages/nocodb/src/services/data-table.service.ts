@@ -3,7 +3,6 @@ import {
   isBtLikeV2Junction,
   isLinksOrLTAR,
   isMMOrMMLike,
-  isVirtualCol,
   ncIsNumber,
   RelationTypes,
   ViewTypes,
@@ -952,12 +951,6 @@ export class DataTableService {
       );
     }
 
-    // Virtual columns (formula, lookup, rollup, etc.) don't have a real DB column
-    // to query against — bail out gracefully
-    if (isVirtualCol(displayValueColumn)) {
-      return { link: [], unlink: [] };
-    }
-
     if (!colOptions.fk_mm_model_id) return { link: [], unlink: [] };
 
     // Build a base model for the related table to query records
@@ -967,66 +960,71 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(relatedSource),
     });
 
-    const dbDriver = relatedBaseModel.dbDriver;
-    const tn = relatedBaseModel.getTnPath(relatedModel);
-    const cn = displayValueColumn.column_name;
+    const dvTitle = displayValueColumn.title;
+    const uniqueValues = [...new Set(param.displayValues)];
 
-    // Resolve display values to records
-    // Step 1: Case-sensitive exact match
+    const pkFieldSet = new Set(
+      relatedModel.primaryKeys.map((pk) => pk.title || pk.column_name),
+    );
+    pkFieldSet.add(dvTitle);
+
+    const listOpts = {
+      fieldsSet: pkFieldSet,
+    };
+    const listFlags = {
+      ignoreViewFilterAndSort: true,
+      ignorePagination: true,
+    };
+
+    // Step 1: Case-sensitive exact match (eq operator)
     const matchedPks: (string | number)[] = [];
-    const unmatchedValues = new Set(param.displayValues);
+    const unmatchedValues = new Set(uniqueValues);
 
-    if (unmatchedValues.size > 0) {
-      const caseSensitiveRows = await dbDriver(tn)
-        .whereIn(cn, [...unmatchedValues])
-        .select(
-          relatedModel.primaryKeys.map(
-            (pk) => pk.column_name || pk.title,
-          ),
-        )
-        .select(cn);
+    const eqWhere = uniqueValues
+      .map((v) => `(${dvTitle},eq,${v})`)
+      .join('~or');
 
-      for (const row of caseSensitiveRows) {
-        const dv = row[cn];
-        if (unmatchedValues.has(dv)) {
-          unmatchedValues.delete(dv);
-          matchedPks.push(
-            dataWrapper(row).extractPksValue(relatedModel, true),
-          );
-        }
+    const exactRows = await relatedBaseModel.list(
+      { ...listOpts, where: eqWhere },
+      listFlags,
+    );
+
+    for (const row of exactRows) {
+      const dv = row[dvTitle];
+      if (unmatchedValues.has(dv)) {
+        unmatchedValues.delete(dv);
+        matchedPks.push(
+          dataWrapper(row).extractPksValue(relatedModel, true),
+        );
       }
     }
 
     // Step 2: Case-insensitive fallback for remaining unmatched values
+    // `like` operator is case-insensitive (ilike on PG, default on MySQL/SQLite)
+    // but adds % wildcards, so JS post-filters for exact match
     if (unmatchedValues.size > 0) {
-      const remaining = [...unmatchedValues];
-      const lowerValues = remaining.map((v) => v.toLowerCase());
+      const likeWhere = [...unmatchedValues]
+        .map((v) => `(${dvTitle},like,${v})`)
+        .join('~or');
 
-      const caseInsensitiveRows = await dbDriver(tn)
-        .whereRaw(
-          `LOWER(??) IN (${lowerValues.map(() => '?').join(',')})`,
-          [cn, ...lowerValues],
-        )
-        .select(
-          relatedModel.primaryKeys.map(
-            (pk) => pk.column_name || pk.title,
-          ),
-        )
-        .select(cn);
+      const candidateRows = await relatedBaseModel.list(
+        { ...listOpts, where: likeWhere },
+        listFlags,
+      );
 
-      // Build a map of lowercase → original unmatched values for matching
       const lowerToOriginal = new Map<string, string>();
-      for (const v of remaining) {
+      for (const v of unmatchedValues) {
         const lower = v.toLowerCase();
         if (!lowerToOriginal.has(lower)) {
           lowerToOriginal.set(lower, v);
         }
       }
 
-      for (const row of caseInsensitiveRows) {
-        const dv = String(row[cn]).toLowerCase();
-        if (lowerToOriginal.has(dv)) {
-          lowerToOriginal.delete(dv);
+      for (const row of candidateRows) {
+        const dv = String(row[dvTitle]);
+        const dvLower = dv.toLowerCase();
+        if (lowerToOriginal.has(dvLower)) {
+          lowerToOriginal.delete(dvLower);
           matchedPks.push(
             dataWrapper(row).extractPksValue(relatedModel, true),
           );

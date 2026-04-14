@@ -1343,19 +1343,19 @@ export function useMultiSelect(
           if (!rowObj) return
           const columnObj = unref(fields)[activeCell.col]
 
+          const singleCellClipboardItem = extractCellClipboardData(storedCopiedData, 0, 0)
+          const isStructuredLtarPaste = singleCellClipboardItem && isLinksOrLTAR(singleCellClipboardItem.column)
+
           // handle belongs to column, skip custom links
           if (isBt(columnObj) && !columnObj.meta?.custom) {
-            const btClipboardItem = extractCellClipboardData(storedCopiedData, 0, 0)
-            const isBtStructuredPaste = btClipboardItem && isLinksOrLTAR(btClipboardItem.column)
-
-            if (isBtStructuredPaste) {
+            if (isStructuredLtarPaste) {
               const pasteVal = convertCellData(
                 {
                   value: clipboardData,
                   to: columnObj.uidt as UITypes,
                   column: columnObj,
                   appInfo: unref(appInfo),
-                  clipboardItem: btClipboardItem,
+                  clipboardItem: singleCellClipboardItem,
                 },
                 isMysql(meta.value?.source_id),
               )
@@ -1391,10 +1391,7 @@ export function useMultiSelect(
           }
 
           if (isMMOrMMLike(columnObj)) {
-            const mmClipboardItem = extractCellClipboardData(storedCopiedData, 0, 0)
-            const isMmStructuredPaste = mmClipboardItem && isLinksOrLTAR(mmClipboardItem.column)
-
-            if (!isMmStructuredPaste) {
+            if (!isStructuredLtarPaste) {
               // Plain text paste — resolve display values to linked records
               const plainText = clipboardData
               if (!plainText?.trim()) return
@@ -1430,7 +1427,7 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
-                clipboardItem: mmClipboardItem,
+                clipboardItem: singleCellClipboardItem,
               },
               isMysql(meta.value?.source_id),
             )

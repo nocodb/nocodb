@@ -143,6 +143,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     if (route.value.params.workspaceId) return route.value.params.workspaceId as string
 
+    // On unlicensed on-prem, prefer the default workspace to avoid 402 errors
+    // when the last-opened workspace is locked (non-default).
+    const defaultWsId = appInfo.value.defaultWorkspaceId
+    if (defaultWsId && isWorkspaceCeLocked(lastOpenedWorkspaceId.value)) {
+      const defaultWs = workspacesList.value.find((w) => w.id === defaultWsId)
+      if (defaultWs) return defaultWs.id
+    }
+
     const lastLoadedWorkspace = workspacesList.value.find((w) => w.id === lastOpenedWorkspaceId.value)
     if (lastLoadedWorkspace) return lastLoadedWorkspace.id
 
@@ -1317,6 +1325,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
    * Watchers
    */
   watch(activeWorkspaceId, async () => {
+    // Redirect away from locked workspaces (unlicensed on-prem, non-default)
+    if (activeWorkspaceId.value && isWorkspaceCeLocked(activeWorkspaceId.value)) {
+      const defaultWsId = appInfo.value.defaultWorkspaceId
+      if (defaultWsId) {
+        navigateTo(`/${defaultWsId}`, { replace: true })
+        return
+      }
+    }
+
     await loadRoles(undefined, {}, activeWorkspaceId.value)
   })
 
@@ -1351,6 +1368,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     () => activeWorkspace.value?.id,
     () => {
       if (!activeWorkspaceId.value) return
+      if (isWorkspaceCeLocked(activeWorkspaceId.value)) return
       storage.value.lastOpenedWorkspaceId = activeWorkspaceId.value
     },
   )

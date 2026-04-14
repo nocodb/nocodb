@@ -13,7 +13,7 @@ const { loadCollaborators } = workspaceStore
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { isWsAuditEnabled, handleUpgradePlan, showUpgradeToUseTeams } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, showUpgradeToUseTeams, blockTeamsManagement } = useEeConfig()
 
 const { hasTeamsEditPermission, wsTabVisibility } = useWorkspaceTabVisibility(activeWorkspace)
 
@@ -22,7 +22,7 @@ interface TabItem {
   key: string
   icon: string
   label: string
-  upgradeBadge?: { feature: string }
+  upgradeBadge?: { feature: PlanFeatureTypes; blocked: boolean }
   hidden?: boolean
 }
 
@@ -38,6 +38,7 @@ const tabItems = computed<TabItem[]>(() => {
       key: 'teams',
       icon: 'ncBuilding',
       label: t('general.teams'),
+      upgradeBadge: { feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, blocked: blockTeamsManagement.value },
       hidden: !wsTabVisibility.value.teams,
     },
     {
@@ -56,6 +57,7 @@ const tabItems = computed<TabItem[]>(() => {
       key: 'audits',
       icon: 'audit',
       label: t('title.audits'),
+      upgradeBadge: { feature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE, blocked: !isWsAuditEnabled.value },
       hidden: !wsTabVisibility.value.audits,
     },
     {
@@ -105,7 +107,12 @@ const activeTab = computed({
         <div class="tab-title">
           <GeneralIcon :icon="item.icon" class="h-4 w-4" />
           {{ item.label }}
-          <LazyPaymentUpgradeBadge v-if="item.upgradeBadge" :feature="item.upgradeBadge.feature" remove-click />
+          <LazyPaymentUpgradeBadge
+            v-if="item.upgradeBadge"
+            :feature="item.upgradeBadge.feature"
+            :feature-enabled-callback="() => !item.upgradeBadge!.blocked"
+            remove-click
+          />
         </div>
       </template>
     </a-tab-pane>

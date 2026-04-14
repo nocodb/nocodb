@@ -11,6 +11,7 @@ import {
   LongTextAiMetaProp,
   NcBaseError,
   parseJsonValue,
+  PlanFeatureTypes,
   UITypes,
 } from 'nocodb-sdk';
 import mime from 'mime/lite';
@@ -26,6 +27,7 @@ import { TablesService } from '~/services/tables.service';
 import { Integration, IntegrationLink, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { NcError } from '~/helpers/catchError';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
   extractRowsSystemMessage,
@@ -349,6 +351,8 @@ export class AiDataService {
       preview?: boolean;
     },
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_AI);
+
     const {
       modelId,
       columnId,
@@ -904,6 +908,8 @@ export class AiDataService {
       req: NcRequest;
     },
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_AI);
+
     const { modelId, rows = [], generateIds, req } = params;
 
     if (!rows.length) {
@@ -1037,6 +1043,8 @@ Please generate ${
       req: NcRequest;
     },
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_AI);
+
     const { modelId, input, files, req } = params;
 
     const model = await Model.get(context, modelId);

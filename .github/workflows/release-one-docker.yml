@@ -41,6 +41,14 @@ on:
           - "false"
           - "true"
         default: "false"
+      createTag:
+        description: "Create a git tag on nocohub for release reference"
+        required: false
+        type: choice
+        options:
+          - "false"
+          - "true"
+        default: "false"
 
 permissions:
   contents: write
@@ -72,7 +80,31 @@ jobs:
           echo "Previous Tag: ${PREV_TAG}"
 
   # ---------------------------------------------------------------------------
-  # Job 2: Bootstrap + build frontend (shared by Docker & executables)
+  # Job 2: Create tag on nocohub (optional — for release reference)
+  # ---------------------------------------------------------------------------
+  create-nocohub-tag:
+    needs: process-input
+    if: ${{ github.event.inputs.createTag == 'true' }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Create and push tag
+        run: |
+          TAG="${{ needs.process-input.outputs.ceTag }}"
+          git tag -a "${TAG}" -m "Release ${TAG}"
+          git push origin "${TAG}"
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Bootstrap + build frontend (shared by Docker & executables)
   # ---------------------------------------------------------------------------
   build-common:
     needs: process-input
@@ -156,7 +188,7 @@ jobs:
           retention-days: 1
 
   # ---------------------------------------------------------------------------
-  # Job 3: Build & push Docker image (parallel with executables after common)
+  # Job 4: Build & push Docker image (parallel with executables after common)
   # ---------------------------------------------------------------------------
   build-docker:
     needs: [process-input, build-common]
@@ -266,7 +298,7 @@ jobs:
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   # ---------------------------------------------------------------------------
-  # Job 4: Draft release notes on CE repo (parallel with common build)
+  # Job 5: Draft release notes on CE repo (parallel with common build)
   # ---------------------------------------------------------------------------
   release-notes:
     needs: process-input
@@ -323,7 +355,7 @@ jobs:
             --tags ${{ needs.process-input.outputs.ceTag }}..${{ needs.process-input.outputs.prevTag }}
 
   # ---------------------------------------------------------------------------
-  # Job 5: Build executables (parallel with Docker after common build)
+  # Job 6: Build executables (parallel with Docker after common build)
   # ---------------------------------------------------------------------------
   build-executables:
     needs: [process-input, build-common]

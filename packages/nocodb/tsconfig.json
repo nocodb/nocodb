@@ -18,6 +18,7 @@
     "noImplicitAny": false,
     "noImplicitThis": false,
     "strictBindCallApply": false,
+    "useUnknownInCatchVariables": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "resolveJsonModule": true,

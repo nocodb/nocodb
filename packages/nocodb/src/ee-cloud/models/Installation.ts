@@ -301,6 +301,7 @@ export default class Installation {
     const updateObj: Record<string, any> = extractProps(installation, [
       'fk_subscription_id',
       'installation_secret',
+      'installed_at',
       'last_seen_at',
       'expires_at',
       'status',

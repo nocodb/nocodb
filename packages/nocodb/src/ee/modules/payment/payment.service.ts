@@ -2438,6 +2438,19 @@ export class PaymentService {
 
           if (!subRec) NcError.genericNotFound('Subscription', subscriptionId);
 
+          // Update last_paid_seat_count to current subscription quantity
+          // This anchors the proration chain so consolidation knows the last paid state
+          // Must run before the on-prem early return so on-prem subs also get updated
+          const paidStripeSub = await stripe.subscriptions.retrieve(
+            subRec.stripe_subscription_id,
+          );
+          if (paidStripeSub) {
+            const paidSeatCount = paidStripeSub.items.data[0].quantity;
+            await Subscription.update(subRec.id, {
+              last_paid_seat_count: paidSeatCount,
+            });
+          }
+
           // Skip workspace/org logic for on-prem subscriptions (no workspace/org)
           if (!subRec.fk_org_id && !subRec.fk_workspace_id) {
             this.logger.log(
@@ -2453,18 +2466,6 @@ export class PaymentService {
           );
 
           this.migrateDb(workspaceOrOrgId).catch(() => {});
-
-          // Update last_paid_seat_count to current subscription quantity
-          // This anchors the proration chain so consolidation knows the last paid state
-          const paidStripeSub = await stripe.subscriptions.retrieve(
-            subRec.stripe_subscription_id,
-          );
-          if (paidStripeSub) {
-            const paidSeatCount = paidStripeSub.items.data[0].quantity;
-            await Subscription.update(subRec.id, {
-              last_paid_seat_count: paidSeatCount,
-            });
-          }
 
           await this.updateNextInvoice(
             subRec.id,

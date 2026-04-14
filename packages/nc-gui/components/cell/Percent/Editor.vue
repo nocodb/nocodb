@@ -114,9 +114,10 @@ onMounted(() => {
   <CellPercentProgressBar
     v-if="percentMeta.is_progress && (isForm || isExpandedFormOpen) && !isWorkflow"
     :style="{
-      ...((isForm || isExpandedFormOpen) && { 'min-height': '22px', 'height': '22px' }),
+      ...((isForm || isExpandedFormOpen) && !isLinkRecordDropdown && { 'min-height': '22px', 'height': '22px' }),
+      ...(isLinkRecordDropdown && { 'height': '16px' }),
     }"
-    :is-show-number="true"
+    :is-show-number="!isLinkRecordDropdown"
     :percentage="vModelNumber"
     :precision="percentMeta.precision"
   >

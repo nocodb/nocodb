@@ -11,10 +11,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const cPercentage = computed(() => Math.max(0, Math.min(100, props.percentage)))
 
-const labelMarginLeft = computed<number>(() => {
-  return Math.max(1, Math.min(props.percentage / 2, 50))
-})
-
 const slots = useSlots()
 
 const slotHasChildren = (name?: string) => {
@@ -30,8 +26,11 @@ const slotHasChildren = (name?: string) => {
     <div class="progress-bar-input" :class="slotHasChildren() ? 'has-child' : ''">
       <slot></slot>
     </div>
-    <div class="progress-bar flex items-center gap-2 w-full h-full">
-      <div class="flex-1 flex rounded-full overflow-hidden h-full self-stretch">
+    <div class="progress-bar flex items-center gap-2 w-full h-full" :class="{ 'min-h-[16px]': isShowNumber }">
+      <div
+        class="relative flex-1 flex rounded-full overflow-hidden self-center"
+        :class="isShowNumber ? 'h-full' : 'h-[6px]'"
+      >
         <div class="bg-nc-brand-500" style="align-self: stretch" :style="{ width: `${cPercentage}%` }"></div>
         <div
           class="bg-[#e5e5e5] dark:bg-nc-bg-brand-inverted"
@@ -39,23 +38,13 @@ const slotHasChildren = (name?: string) => {
           :style="{ width: `${100 - cPercentage}%` }"
         ></div>
         <template v-if="isShowNumber">
-          <div class="absolute transform top-1/2 -translate-y-1/2" :style="{ 'margin-left': `${labelMarginLeft}%` }">
-            <span
-              style="mix-blend-mode: difference; color: #ffffff"
-              :style="{
-                'margin-left': `${-Math.min(cPercentage, 50)}%`,
-              }"
-            >
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span class="text-captionSm leading-none" style="mix-blend-mode: difference; color: #ffffff">
               {{ `${formatPercentage(percentage, precision)}` }}
             </span>
           </div>
-          <div class="absolute transform top-1/2 -translate-y-1/2" :style="{ 'margin-left': `${labelMarginLeft}%` }">
-            <span
-              style="mix-blend-mode: overlay; color: #ffffff"
-              :style="{
-                'margin-left': `${-Math.min(cPercentage, 50)}%`,
-              }"
-            >
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span class="text-captionSm leading-none" style="mix-blend-mode: overlay; color: #ffffff">
               {{ `${formatPercentage(percentage, precision)}` }}
             </span>
           </div>

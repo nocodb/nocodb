@@ -79,8 +79,8 @@ Three deployment modes, four runtime states. Feature gating depends on which mod
 | Mode | Description | `isEeUI` | `appInfo.ee` | `isEEFeatureBlocked` | `isPaymentEnabled` |
 |------|-------------|----------|-------------|----------------------|---------------------|
 | **CE** | Open-source. No workspaces, no EE features. | `false` | `false` | `true` (stub) | `false` |
-| **On-Prem (unlicensed)** | Single Docker EE without license key. EE UI visible but features locked with upgrade badges. | `true` | `false` | `true` | `false` |
-| **On-Prem (licensed)** | Single Docker EE with valid license. All EE features unlocked. | `true` | `true` | `false` | `false` |
+| **On-Prem (unlicensed)** | Single Docker EE without license key. EE UI visible; select features (e.g. Docs) available via Free plan; most EE features show upgrade badges. | `true` | `false` | `true` | `false` |
+| **On-Prem (licensed)** | Single Docker EE with valid license. EE features unlocked per plan tier (Starter / Scale / Enterprise). | `true` | `true` | `false` | `false` |
 | **Cloud** | Hosted SaaS. EE features gated per plan via `workspace.payment.plan.meta`. | `true` | `true` | `false` | `true` |
 
 **Common mistake:** Using `!isEEFeatureBlocked` to hide UI. On-Prem unlicensed should show features with upgrade badges — not hide them. Use `isEeUI` to hide only in CE.
@@ -563,7 +563,7 @@ Add the feature with its default value (usually `false` for paid-only):
 
 **3. Backend guard** — call at service/controller level:
 ```ts
-import { checkForFeature } from '~/ee/helpers/paymentHelpers'
+import { checkForFeature } from '~/helpers/paymentHelpers'
 import { PlanFeatureTypes } from 'nocodb-sdk'
 
 await checkForFeature(context, PlanFeatureTypes.FEATURE_MY_THING)

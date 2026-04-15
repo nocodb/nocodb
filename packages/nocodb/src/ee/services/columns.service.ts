@@ -12,6 +12,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type {
   ColumnReqType,
@@ -42,7 +43,11 @@ import {
 } from '~/helpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import {
+  checkForFeature,
+  getLimit,
+  PlanLimitTypes,
+} from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/catchError';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
@@ -141,6 +146,18 @@ export class ColumnsService extends ColumnsServiceCE {
       }
     }
 
+    // Feature-gate paid field types
+    if (param.column.uidt === UITypes.UUID) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_UUID_FIELD);
+    } else if (param.column.uidt === UITypes.AutoNumber) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD);
+    }
+
+    // Feature-gate unique constraint (skip for UUID which forces unique)
+    if ('unique' in param.column && param.column.unique && param.column.uidt !== UITypes.UUID) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_UNIQUE);
+    }
+
     const result = await super.columnAdd(context, param);
 
     // insertColumnToAllViews already handles levels whose list view is on param.tableId.
@@ -182,6 +199,33 @@ export class ColumnsService extends ColumnsServiceCE {
     }
 
     return result;
+  }
+
+  @EEOnly()
+  async columnUpdate(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      columnId: string;
+      column: ColumnReqType & { colOptions?: any };
+      user: UserType;
+      reuse?: ReusableParams;
+      apiVersion?: NcApiVersion;
+      forceUpdateSystem?: boolean;
+      columnWebhookManager?: ColumnWebhookManager;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<Model | Column<any>> {
+    // Feature-gate enabling unique constraint
+    if ('unique' in param.column && param.column.unique) {
+      const column = await Column.get(context, { colId: param.columnId });
+      // Only check when enabling unique (not when it's already unique)
+      if (column && !column.unique) {
+        await checkForFeature(context, PlanFeatureTypes.FEATURE_UNIQUE);
+      }
+    }
+
+    return super.columnUpdate(context, param, ncMeta);
   }
 
   // if column is links or ltar, insert filters if passed

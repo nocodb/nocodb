@@ -143,6 +143,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     if (route.value.params.workspaceId) return route.value.params.workspaceId as string
 
+    // On unlicensed on-prem, prefer the default workspace to avoid 402 errors
+    // when the last-opened workspace is locked (non-default).
+    const defaultWsId = appInfo.value.defaultWorkspaceId
+    if (defaultWsId && isWorkspaceCeLocked(lastOpenedWorkspaceId.value)) {
+      const defaultWs = workspacesList.value.find((w) => w.id === defaultWsId)
+      if (defaultWs) return defaultWs.id
+    }
+
     const lastLoadedWorkspace = workspacesList.value.find((w) => w.id === lastOpenedWorkspaceId.value)
     if (lastLoadedWorkspace) return lastLoadedWorkspace.id
 
@@ -445,6 +453,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   async function populateWorkspace({ force, workspaceId: _workspaceId }: { force?: boolean; workspaceId?: string } = {}) {
     isWorkspaceLoading.value = true
     const workspaceId = _workspaceId ?? activeWorkspaceId.value!
+
+    // After workspaces are loaded, skip populating if user has no access or workspace is CE-locked
+    if (!isWorkspacesLoading.value && workspaceId) {
+      if (!workspaces.value.has(workspaceId) || isWorkspaceCeLocked(workspaceId)) {
+        isWorkspaceLoading.value = false
+        return
+      }
+    }
 
     lastPopulatedWorkspaceId.value = workspaceId
 
@@ -1317,6 +1333,23 @@ export const useWorkspace = defineStore('workspaceStore', () => {
    * Watchers
    */
   watch(activeWorkspaceId, async () => {
+    // Redirect away from locked workspaces (unlicensed on-prem, non-default)
+    if (activeWorkspaceId.value && isWorkspaceCeLocked(activeWorkspaceId.value)) {
+      const defaultWsId = appInfo.value.defaultWorkspaceId
+      // Only redirect if the default workspace is accessible (in the loaded list)
+      if (defaultWsId && workspaces.value.has(defaultWsId)) {
+        navigateTo(`/${defaultWsId}`, { replace: true })
+        return
+      }
+      // No accessible non-locked workspace — stay put, don't load roles
+      return
+    }
+
+    // Skip loadRoles for workspaces the user doesn't have access to
+    if (activeWorkspaceId.value && !isWorkspacesLoading.value && !workspaces.value.has(activeWorkspaceId.value)) {
+      return
+    }
+
     await loadRoles(undefined, {}, activeWorkspaceId.value)
   })
 
@@ -1325,6 +1358,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     () => [activeWorkspace.value?.payment?.plan?.meta, activeWorkspace.value?.id, activeWorkspace.value?.fk_org_id],
     () => {
       if (!activeWorkspace.value?.id) return
+
+      // Skip team loading for CE-locked workspaces
+      if (isWorkspaceCeLocked(activeWorkspace.value.id)) return
 
       const planMeta = activeWorkspace.value?.payment?.plan?.meta
       const hasOrg = !!activeWorkspace.value?.fk_org_id
@@ -1351,6 +1387,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     () => activeWorkspace.value?.id,
     () => {
       if (!activeWorkspaceId.value) return
+      if (isWorkspaceCeLocked(activeWorkspaceId.value)) return
       storage.value.lastOpenedWorkspaceId = activeWorkspaceId.value
     },
   )

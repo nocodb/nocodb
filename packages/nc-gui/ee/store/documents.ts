@@ -23,7 +23,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
   const { ncNavigateTo } = useGlobal()
   const { refreshCommandPalette } = useCommandPalette()
 
-  const { isEEFeatureBlocked } = useEeConfig()
+  const { isEEFeatureBlocked, showUpgradeForEEFeature } = useEeConfig()
 
   const basesStore = useBases()
   const { activeProjectId } = storeToRefs(basesStore)
@@ -219,7 +219,12 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
   }
 
   const createDocument = async (baseId: string, payload?: Partial<DocumentType>) => {
-    if (isEEFeatureBlocked.value || !activeWorkspaceId.value) return null
+    if (!activeWorkspaceId.value) return null
+
+    if (isEEFeatureBlocked.value) {
+      showUpgradeForEEFeature(t('objects.documents'))
+      return null
+    }
 
     try {
       const created = (await $api.internal.postOperation(

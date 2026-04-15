@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { DomainReqType } from 'nocodb-sdk';
+import { DomainReqType, PlanFeatureTypes } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { License } from '~/decorators/license.decorator';
@@ -25,7 +25,7 @@ import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 import { Workspace } from '~/models';
 
 @Controller()
-@License('organizations')
+@License(PlanFeatureTypes.FEATURE_EE_CORE)
 export class OrgsController {
   constructor(
     protected readonly orgsService: OrgsService,

@@ -10,6 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import {
   ApiTokensV3CreateRequest,
   ApiTokensV3UpdateRequest,
@@ -23,7 +24,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
-@License('api-tokens')
+@License(PlanFeatureTypes.FEATURE_EE_CORE)
 export class ApiTokensV3Controller {
   constructor(private readonly apiTokensV3Service: ApiTokensV3Service) {}
 

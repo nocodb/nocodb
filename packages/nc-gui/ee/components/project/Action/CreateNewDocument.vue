@@ -9,8 +9,6 @@ const { isUIAllowed } = useRoles()
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { appInfo } = useGlobal()
-
 const { isEEFeatureBlocked, showUpgradeForEEFeature } = useEeConfig()
 
 const documentsStore = useDocumentsStore()
@@ -21,7 +19,7 @@ const isActionVisible = computed(() => {
 })
 
 async function onCreateDocument() {
-  if (!appInfo.value?.ee) {
+  if (isEEFeatureBlocked.value) {
     showUpgradeForEEFeature(t('objects.documents'))
     return
   }

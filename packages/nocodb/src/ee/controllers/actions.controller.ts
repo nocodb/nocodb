@@ -1,5 +1,5 @@
 import { Body, Controller, Param, Post, Req, UseGuards } from '@nestjs/common';
-import { ButtonActionsType, UITypes } from 'nocodb-sdk';
+import { ButtonActionsType, PlanFeatureTypes, UITypes } from 'nocodb-sdk';
 import type { ButtonType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -14,7 +14,7 @@ import { HooksService } from '~/services/hooks.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-@License('actions')
+@License(PlanFeatureTypes.FEATURE_EE_CORE)
 export class ActionsController {
   constructor(
     private readonly aiDataService: AiDataService,

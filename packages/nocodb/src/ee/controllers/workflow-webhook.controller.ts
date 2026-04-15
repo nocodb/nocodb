@@ -7,7 +7,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { NcApiVersion } from 'nocodb-sdk';
+import { NcApiVersion, PlanFeatureTypes } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import { NcRequest } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -20,7 +20,7 @@ import { CacheGetType, CacheScope } from '~/utils/globals';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-@License('workflows')
+@License(PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT)
 export class WorkflowWebhookController {
   constructor(private readonly workflowsService: WorkflowsService) {}
 

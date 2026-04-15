@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { BaseVersion } from 'nocodb-sdk';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -17,9 +18,11 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
 import { isEE } from '~/utils';
 import { NcError } from '~/helpers/ncError';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License(PlanFeatureTypes.FEATURE_AI)
 export class AiSchemaController {
   constructor(
     private readonly aiSchemaService: AiSchemaService,

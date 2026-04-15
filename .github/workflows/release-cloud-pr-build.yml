@@ -156,7 +156,7 @@ jobs:
         run: |
           # build nocodb ( pack nocodb-sdk and nc-gui )
           cd packages/nocodb &&
-          EE=true pnpm exec rspack --config rspack.ee-cloud.config.js &&
+          NODE_OPTIONS=--max-old-space-size=4096 EE=true pnpm exec rspack --config rspack.ee-on-prem.config.js &&
           # remove bundled libraries (nocodb-sdk, knex-snowflake)
           pnpm uninstall --save-prod nocodb-sdk knex-snowflake knex-databricks
 
@@ -181,7 +181,7 @@ jobs:
           COMMIT_HASH: ${{ github.sha }}
         run: |
           cd packages/nocodb &&
-          docker build -f src/ee-cloud/Dockerfile-cloud $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
+          docker build -f src/ee-on-prem/Dockerfile-on-prem $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 

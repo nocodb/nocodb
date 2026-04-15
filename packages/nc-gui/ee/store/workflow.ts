@@ -7,7 +7,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const { isUIAllowed } = useRoles()
 
-  const { ncNavigateTo, appInfo } = useGlobal()
+  const { ncNavigateTo } = useGlobal()
 
   const { t } = useI18n()
 
@@ -15,7 +15,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const { showUpgradeToUseWorkflows } = useEeConfig()
+  const { blockWorkflows, showUpgradeToUseWorkflows } = useEeConfig()
 
   const router = useRouter()
 
@@ -389,8 +389,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
-  const { blockWorkflows } = useEeConfig()
-
   const loadWorkflowNodes = async () => {
     if (!activeWorkspaceId.value || !activeProjectId.value || isSharedBase.value) return
     if (blockWorkflows.value) return
@@ -563,7 +561,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   }) {
     if (!baseId) return
 
-    if (!appInfo.value?.ee) {
+    if (blockWorkflows.value) {
       showUpgradeToUseWorkflows()
       return
     }

@@ -12,6 +12,7 @@ import {
 import {
   CloudOrgUserRoles,
   OrgUserRoles,
+  PlanFeatureTypes,
   SSOClientType,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
@@ -23,7 +24,7 @@ import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 import { License } from '~/decorators/license.decorator';
 
 @Controller()
-@License('sso')
+@License(PlanFeatureTypes.FEATURE_SSO)
 export class SsoClientController {
   constructor(
     private readonly ssoClientService: SSOClientService,

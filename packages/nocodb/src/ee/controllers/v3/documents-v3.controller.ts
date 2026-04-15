@@ -21,7 +21,8 @@ import {
   DocumentReorderV3Type,
   DocumentUpdateV3Type,
 } from '~/services/v3/documents-v3.types';
-import { checkForFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
+import { PlanFeatureTypes } from 'nocodb-sdk';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DocumentsV3Service } from '~/services/v3/documents-v3.service';
@@ -32,7 +33,7 @@ import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-@License('documents')
+@License(PlanFeatureTypes.FEATURE_DOCS_APIS)
 export class DocumentsV3Controller {
   constructor(private readonly documentsV3Service: DocumentsV3Service) {}
 

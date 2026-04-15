@@ -6,13 +6,14 @@ export const useScriptStore = defineStore('script', () => {
   const { $api, $e } = useNuxtApp()
   const router = useRouter()
   const route = useRoute()
-  const { ncNavigateTo, appInfo } = useGlobal()
+  const { ncNavigateTo } = useGlobal()
   const bases = useBases()
   const { activeProjectId } = storeToRefs(bases)
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId, isSharedBase } = storeToRefs(useWorkspace())
 
-  const { showScriptPlanLimitExceededModal, showUpgradeToUseScripts, updateStatLimit, showEEFeatures } = useEeConfig()
+  const { blockScripts, showScriptPlanLimitExceededModal, showUpgradeToUseScripts, updateStatLimit, showEEFeatures } =
+    useEeConfig()
 
   const { refreshCommandPalette } = useCommandPalette()
 
@@ -394,7 +395,7 @@ export const useScriptStore = defineStore('script', () => {
   }) {
     if (!baseId || showScriptPlanLimitExceededModal()) return
 
-    if (!appInfo.value?.ee) {
+    if (blockScripts.value) {
       showUpgradeToUseScripts()
       return
     }

@@ -103,6 +103,8 @@ export enum PlanFeatureTypes {
   FEATURE_DATE_DEPENDENCY = 'feature_date_dependency',
   FEATURE_API_COMMENT_V3 = 'feature_api_comment_v3',
   FEATURE_API_WORKFLOW_MANAGEMENT = 'feature_api_workflow_management',
+  /** On-prem: core EE capability flag — true for all paid plans, false for free */
+  FEATURE_EE_CORE = 'feature_ee_core',
 }
 
 export enum PlanTitles {
@@ -113,6 +115,7 @@ export enum PlanTitles {
 }
 
 export enum OnPremPlanTitles {
+  FREE = 'Free',
   SELF_HOSTED_STARTER = 'Self-hosted Starter',
   SELF_HOSTED_SCALE = 'Self-hosted Scale',
   SELF_HOSTED_ENTERPRISE = 'Self-hosted Enterprise',
@@ -362,6 +365,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: 'to use date dependencies.',
   [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: 'to use comment api.',
   [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: 'to use workflow api.',
+  [PlanFeatureTypes.FEATURE_EE_CORE]: 'to access enterprise features.',
 };
 
 export const getUpgradeMessage = (

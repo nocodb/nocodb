@@ -10,13 +10,14 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import type { DbMuxStatus } from '~/utils/globals';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { License } from '~/decorators/license.decorator';
 import { DbMux } from '~/models';
 
 @Controller()
-@License('db-mux')
+@License(PlanFeatureTypes.FEATURE_EE_CORE)
 export class DbMuxController {
   constructor(@Inject('JobsService') protected readonly jobsService) {}
 

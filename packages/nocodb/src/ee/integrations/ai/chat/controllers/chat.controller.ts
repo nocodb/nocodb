@@ -10,7 +10,12 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { NC_NEW_SESSION, NcContext, NcRequest } from 'nocodb-sdk';
+import {
+  NC_NEW_SESSION,
+  NcContext,
+  NcRequest,
+  PlanFeatureTypes,
+} from 'nocodb-sdk';
 import type {
   ChatAttachmentType,
   ChatSendMessageResponseType,
@@ -28,7 +33,7 @@ const PREFIX = '/api/v2/internal/:workspaceId/:baseId';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-@License('Chat')
+@License(PlanFeatureTypes.FEATURE_AI_CHAT)
 export class ChatController {
   constructor(
     private readonly chatService: ChatService,

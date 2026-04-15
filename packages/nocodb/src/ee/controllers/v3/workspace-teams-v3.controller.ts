@@ -26,11 +26,12 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { License } from '~/decorators/license.decorator';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 
 // Note: temporary controller for v3 workspace teams API, these paths will change in future
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
-@License('teams')
+@License(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
 export class WorkspaceTeamsV3Controller {
   constructor(
     private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,

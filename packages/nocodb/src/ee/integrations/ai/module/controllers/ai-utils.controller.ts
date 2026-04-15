@@ -7,15 +7,18 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { AiUtilsService } from '~/integrations/ai/module/services/ai-utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License(PlanFeatureTypes.FEATURE_AI)
 export class AiUtilsController {
   constructor(private readonly aiUtilsService: AiUtilsService) {}
 

@@ -14,7 +14,7 @@ import { NcError } from '~/helpers/ncError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { Model, View } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
-import { checkForFeature, checkLimit } from '~/ee/helpers/paymentHelpers';
+import { checkForFeature, checkLimit } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class RlsService {

@@ -15,6 +15,10 @@ const { populateWorkspace } = workspaceStore
 const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace, isWorkspacesLoading, workspacesList } =
   storeToRefs(workspaceStore)
 
+const hasAccessibleWorkspace = computed(
+  () => !isWorkspacesLoading.value && workspacesList.value.some((ws) => !workspaceStore.isWorkspaceCeLocked(ws.id)),
+)
+
 const { isDuplicateDlgOpen } = useCopySharedBase()
 
 const { isSharedBase, isSharedErd } = storeToRefs(useBase())
@@ -111,6 +115,17 @@ watch(
           await navigateTo(`/${defaultWsId}`)
           return
         }
+        // No accessible non-locked workspace — stop loading, show empty state
+        workspaceStore.setLoadingState(false)
+        basesStore.setProjectsLoaded()
+        return
+      }
+
+      // Skip populating workspaces the user doesn't have access to
+      if (newId && !isWorkspacesLoading.value && !workspaceStore.workspaces.has(newId)) {
+        workspaceStore.setLoadingState(false)
+        basesStore.setProjectsLoaded()
+        return
       }
 
       if (newId && oldId !== newId && lastPopulatedWorkspaceId.value !== newId) {
@@ -213,11 +228,11 @@ watch(
         <!-- Workspace home -->
         <div v-if="isHomeSidebarRoute" class="flex flex-col h-full w-full">
           <!-- Topbar: workspace name + plan + search -->
-          <WorkspaceViewTopbar />
+          <WorkspaceViewTopbar v-if="hasAccessibleWorkspace" />
 
           <!-- No workspace access: show empty state -->
           <div
-            v-if="!isWorkspacesLoading && !workspacesList.length"
+            v-if="!isWorkspacesLoading && !hasAccessibleWorkspace"
             class="flex-1 flex flex-col items-center justify-center gap-3"
           >
             <GeneralIcon icon="ncWorkspace" class="h-10 w-10 text-nc-content-gray-muted" />

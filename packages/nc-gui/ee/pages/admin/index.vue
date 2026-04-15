@@ -9,7 +9,17 @@ const { orgRoles, isUIAllowed } = useRoles()
 
 const { appInfo } = useGlobal()
 
-const { isEEFeatureBlocked, showEEFeatures, blockSSO, showUpgradeToUseSSO } = useEeConfig()
+const {
+  isEEFeatureBlocked,
+  showEEFeatures,
+  blockSSO,
+  showUpgradeToUseSSO,
+  blockTeamsManagement,
+  showUpgradeToUseTeams,
+  blockScim,
+  showUpgradeToUseScim,
+  isWsAuditEnabled,
+} = useEeConfig()
 
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -215,41 +225,56 @@ watch(
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="appInfo.ee"
+              v-if="showEEFeatures"
               key="teams"
               :class="{ active: activeTab === 'teams' }"
               class="item"
-              @click="activeTab = 'teams'"
+              @click="blockTeamsManagement ? showUpgradeToUseTeams({}) : (activeTab = 'teams')"
             >
               <div class="flex items-center space-x-2">
                 <GeneralIcon icon="ncBuilding" class="!h-4 !w-4" />
                 <div class="select-none">{{ $t('title.teams') }}</div>
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
+                  :feature-enabled-callback="() => !blockTeamsManagement"
+                  remove-click
+                />
               </div>
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="appInfo.ee"
+              v-if="showEEFeatures"
               key="scim"
               :class="{ active: activeTab === 'scim' }"
               class="item"
-              @click="activeTab = 'scim'"
+              @click="blockScim ? showUpgradeToUseScim() : (activeTab = 'scim')"
             >
               <div class="flex items-center space-x-2">
                 <GeneralIcon icon="sync" class="!h-4 !w-4" />
                 <div class="select-none">SCIM</div>
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_SCIM"
+                  :feature-enabled-callback="() => !blockScim"
+                  remove-click
+                />
               </div>
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="appInfo.ee"
+              v-if="showEEFeatures"
               key="audit"
               :class="{ active: activeTab === 'audit' }"
               class="item"
-              @click="activeTab = 'audit'"
+              @click="isWsAuditEnabled ? (activeTab = 'audit') : undefined"
             >
               <div class="flex items-center space-x-2">
                 <GeneralIcon class="!h-4 !w-4" icon="ncFileText" />
                 <div class="select-none">{{ $t('title.audit') }}</div>
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE"
+                  :feature-enabled-callback="() => isWsAuditEnabled"
+                  remove-click
+                />
               </div>
             </NcMenuItem>
 
@@ -275,14 +300,14 @@ watch(
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="!isEEFeatureBlocked"
+              v-if="showEEFeatures"
               key="external-integrations"
               :class="{ active: activeTab === 'external-integrations' }"
               class="item"
               @click="activeTab = 'external-integrations'"
             >
               <div class="flex items-center space-x-2">
-                <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
+                <GeneralIcon icon="ncIntegrationDuo" class="!h-4 !w-4" />
                 <div class="select-none">{{ $t('title.externalIntegrations') }}</div>
               </div>
             </NcMenuItem>

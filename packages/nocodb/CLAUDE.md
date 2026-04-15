@@ -53,8 +53,8 @@ Each tier exports constants selected by tsconfig path resolution at build time:
 | Mode | Mechanism |
 |------|-----------|
 | CE | EE code excluded from build — no runtime guard needed |
-| On-Prem | `LicenseGuard` on EE endpoints; `Noco.isEE()` for runtime checks; `NocoLicense.init()` validates JWT + heartbeat |
-| Cloud | `checkForFeature()` / `checkLimit()` from `ee/helpers/paymentHelpers.ts` — reads workspace plan |
+| On-Prem | Plan-aware `LicenseGuard` (`@License(PlanFeatureTypes.X)`) checks `OnPremPlanDefinitions` meta; `checkForFeature()` / `checkLimit()` in `ee-on-prem/helpers/paymentHelpers.ts` read `getOnPremPlan()`; `NocoLicense.init()` validates JWT + heartbeat |
+| Cloud | `checkForFeature()` / `checkLimit()` from `ee/helpers/paymentHelpers.ts` — reads `workspace.payment.plan.meta` |
 
 ### License (On-Prem only)
 
@@ -80,18 +80,24 @@ export class SortsService extends SortsServiceCE {
 }
 ```
 
-**`@License(feature)`** — Controller decorator (`ee/decorators/license.decorator.ts`). Attaches a `LicenseGuard` that returns HTTP 402 if no valid license. Special case: `@License('workspaces')` is allowed on unlicensed on-prem (workspaces are core). Can be applied at class or method level, stacks with `@Acl`.
+**`@License(PlanFeatureTypes.X)`** — Controller decorator (`ee/decorators/license.decorator.ts`). Takes a `PlanFeatureTypes` enum value directly. On on-prem, attaches a plan-aware `LicenseGuard` that checks `getOnPremPlan().meta[feature]` — returns HTTP 402 for unlicensed, HTTP 402 with plan upgrade message for licensed-but-wrong-tier. Use `PlanFeatureTypes.FEATURE_EE_CORE` for endpoints available on any paid plan (no per-tier restriction). Workspace controllers have no `@License` at all — workspaces are always core. Can be applied at class or method level, stacks with `@Acl`.
 
 ```ts
-@License('workspaces')
+// Any paid plan (Starter+)
+@License(PlanFeatureTypes.FEATURE_EE_CORE)
 @Controller()
-export class WorkspaceUsersController { ... }
+export class SnapshotController { ... }
+
+// Specific plan feature
+@License(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
+@Controller()
+export class TeamsV3Controller { ... }
 ```
 
 | Decorator | Layer | Unlicensed behavior | Use for |
 |-----------|-------|-------------------|---------|
 | `@EEOnly()` | Service method | Falls back to CE parent | EE overrides that add validation on top of CE logic |
-| `@License(feature)` | Controller endpoint | HTTP 402 | EE-only endpoints with no CE equivalent |
+| `@License(PlanFeatureTypes.X)` | Controller endpoint | HTTP 402 | EE-only endpoints gated by plan feature |
 
 ## Adding a New API Endpoint
 
@@ -316,7 +322,7 @@ When modifying data operations, ensure changes are applied across all relevant l
 
 ## Payment (EE only)
 
-Models: `Plan.ts` (meta = features+limits, `FreePlan` constant), `Subscription.ts` (`calculateWorkspaceSeatCount()`), `Workspace.ts` (adds `payment`, `stripe_customer_id`, `loyal`). Service: `src/ee/modules/payment/payment.service.ts` (Stripe checkout/subscriptions/webhooks/reseat/invoices). Controller: `/api/payment/` (ACL) + `/api/internal/payment/` (BasicAuth). Helpers: `paymentHelpers.ts` — `checkLimit()`, `checkForFeature()`, `checkSeatLimit()` — called from BaseModel, extract-ids middleware, job processors, view/filter models. ACL: `manageSubscription`, `paymentSeatCount` (owners only). Migrations: `nc_038`/`nc_039`/`nc_043`.
+Models: `Plan.ts` (meta = features+limits; on-prem `FreePlan`/`buildOnPremPlan()` derived from `OnPremPlanDefinitions`), `Subscription.ts` (`calculateWorkspaceSeatCount()`), `Workspace.ts` (adds `payment`, `stripe_customer_id`, `loyal`). Service: `src/ee/modules/payment/payment.service.ts` (Stripe checkout/subscriptions/webhooks/reseat/invoices). Controller: `/api/payment/` (ACL) + `/api/internal/payment/` (BasicAuth). Helpers: `paymentHelpers.ts` — `checkLimit()`, `checkForFeature()`, `checkSeatLimit()` — on-prem version in `ee-on-prem/helpers/paymentHelpers.ts` reads `getOnPremPlan()` instead of workspace plan. ACL: `manageSubscription`, `paymentSeatCount` (owners only). Migrations: `nc_038`/`nc_039`/`nc_043`.
 
 ## Key Files
 

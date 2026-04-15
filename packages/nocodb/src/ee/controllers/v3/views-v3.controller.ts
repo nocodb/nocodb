@@ -11,7 +11,8 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { checkForFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
+import { PlanFeatureTypes } from 'nocodb-sdk';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -24,7 +25,7 @@ import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-@License('views')
+@License(PlanFeatureTypes.FEATURE_API_VIEW_V3)
 export class ViewsV3Controller {
   constructor(private readonly viewsV3Service: ViewsV3Service) {}
 

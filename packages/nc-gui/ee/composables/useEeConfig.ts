@@ -292,6 +292,12 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_AI_CHAT)
   })
 
+  const blockAiIntegrations = computed(() => {
+    if (isEEFeatureBlocked.value) return true
+
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_AI_INTEGRATIONS)
+  })
+
   const blockDocAi = computed(() => {
     if (isEEFeatureBlocked.value) return true
 
@@ -363,7 +369,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockFormScheduling = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_FORM_SCHEDULING)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FORM_SCHEDULING)
   })
 
   const blockViewSections = computed(() => {
@@ -377,6 +383,8 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockMapView = computed(() => {
+    if (isEEFeatureBlocked.value) return true
+
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
   })
 
@@ -389,7 +397,7 @@ export const useEeConfig = createSharedComposable(() => {
   const blockScim = computed(() => {
     // SCIM is on-prem enterprise only — always blocked on cloud
     if (isPaymentEnabled.value) return true
-    return isEEFeatureBlocked.value
+    return isEEFeatureBlocked.value || (isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SCIM))
   })
   const blockSnapshots = computed(
     () => isEEFeatureBlocked.value || (isOnPrem.value && getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0),
@@ -441,19 +449,20 @@ export const useEeConfig = createSharedComposable(() => {
 
   /**
    * Resolve plan meta for feature/limit lookups.
-   * On cloud: reads from workspace.payment.plan.meta
-   * On on-prem: plan is instance-wide. Tries workspace first, falls back to appInfo.onPremPlan.
+   * On cloud: reads from workspace.payment.plan.meta (per-workspace Stripe plan)
+   * On on-prem: plan is instance-wide — always use appInfo.onPremPlan (not per-workspace)
    */
   function resolvePlanMeta(workspace?: NcWorkspace | null): Record<string, any> | null {
+    // On-prem: instance-wide plan takes priority (workspaces don't have Stripe plans)
+    if (isOnPrem.value && appInfo.value?.onPremPlan) {
+      return appInfo.value.onPremPlan
+    }
+
+    // Cloud: per-workspace Stripe plan
     const ws = workspace ?? activeWorkspace.value
 
     if (ws && 'payment' in ws && ws.payment?.plan?.meta) {
       return ws.payment.plan.meta
-    }
-
-    // On-prem fallback: instance-wide plan from appInfo (always available, no workspace needed)
-    if (isOnPrem.value && appInfo.value?.onPremPlan) {
-      return appInfo.value.onPremPlan
     }
 
     return null
@@ -501,8 +510,14 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   function getFeature(type: PlanFeatureTypes, workspace?: NcWorkspace | null) {
-    // On-prem without license: all EE features blocked
-    if (isEEFeatureBlocked.value) return false
+    // On-prem without license: check the Free plan meta from appInfo.onPremPlan.
+    // The Free plan is default-deny — only explicitly enabled features return true.
+    if (isEEFeatureBlocked.value) {
+      const meta = resolvePlanMeta(workspace)
+      if (!meta) return false
+      const val = meta[type]
+      return ncIsString(val) ? JSON.parse(val) : !!val
+    }
 
     if (!isPaymentEnabled.value && !isOnPrem.value) return true
 
@@ -1576,6 +1591,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseAiIntegrations = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAiIntegrations.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseAiIntegrations'),
+      content: t('upgrade.upgradeToUseAiIntegrationsSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_AI_INTEGRATIONS,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseDocAi = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockDocAi.value) return
 
@@ -2102,6 +2132,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiButtonField,
     blockAiChat,
     showUpgradeToUseAiChat,
+    blockAiIntegrations,
+    showUpgradeToUseAiIntegrations,
     blockDocAi,
     showUpgradeToUseDocAi,
     blockButtonVisibility,

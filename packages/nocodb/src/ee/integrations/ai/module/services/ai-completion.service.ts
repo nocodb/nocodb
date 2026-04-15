@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { CompletionCopilot } from 'monacopilot';
-import { IntegrationCategoryType } from 'nocodb-sdk';
+import { IntegrationCategoryType, PlanFeatureTypes } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { AiIntegration } from '@noco-local-integrations/core';
 import { Integration } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { predictScriptCompletion } from '~/integrations/ai/module/prompts';
 
 @Injectable()
@@ -17,6 +18,8 @@ export class AiCompletionService {
     error?: string;
     raw?: unknown;
   }> {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_AI);
+
     const baseSchema = req.body?.schema;
 
     if (!baseSchema) {

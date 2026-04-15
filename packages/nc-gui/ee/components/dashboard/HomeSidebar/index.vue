@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { EnterpriseOrgUserRoles, OrgUserRoles } from 'nocodb-sdk'
+import { EnterpriseOrgUserRoles, OrgUserRoles, PlanLimitTypes } from 'nocodb-sdk'
 
 const { user, isMobileMode, appInfo } = useGlobal()
 
@@ -15,7 +15,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { orgRoles } = useRoles()
 
-const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace, blockWorkspaceCreate } = useEeConfig()
 
 const { $e } = useNuxtApp()
 
@@ -58,6 +58,10 @@ const navigateToWorkspace = (wsId: string) => {
     isLeftSidebarOpen.value = false
   }
 }
+
+const hasAccessibleWorkspace = computed(() => {
+  return workspacesList.value.some((ws) => !workspaceStore.isWorkspaceCeLocked(ws.id))
+})
 
 const onCreateWorkspace = () => {
   if (isEEFeatureBlocked.value) {
@@ -182,11 +186,22 @@ const hasNoResults = computed(() => {
         </div>
 
         <template v-else>
+          <!-- Empty state: all workspaces are enterprise-only -->
+          <div
+            v-if="!hasAccessibleWorkspace && !isSearching"
+            class="px-3 py-6 text-nc-content-gray-muted text-bodyDefaultSm text-center"
+          >
+            {{ $t('msg.info.contactAdminForAccess') }}
+          </div>
+
           <template v-for="ws in filteredWorkspaceList" :key="ws.id">
             <!-- Workspace item -->
             <NcSidebarMenuItem
               class="group !my-1 !h-11 !gap-3 !text-sm"
-              :class="{ 'nc-ws-node-active': activeWorkspaceId === ws.id }"
+              :class="{
+                'nc-ws-node-active': activeWorkspaceId === ws.id,
+                'nc-ws-locked': workspaceStore.isWorkspaceCeLocked(ws.id),
+              }"
               :active="activeWorkspaceId === ws.id"
               :data-testid="`nc-home-sidebar-ws-${ws.id}`"
               @click="navigateToWorkspace(ws.id!)"
@@ -196,7 +211,13 @@ const hasNoResults = computed(() => {
               </template>
               <span class="capitalize">{{ ws.title }}</span>
               <template #extraRight>
+                <GeneralIcon
+                  v-if="workspaceStore.isWorkspaceCeLocked(ws.id)"
+                  icon="lock"
+                  class="flex-none text-nc-content-gray-muted"
+                />
                 <NcDropdown
+                  v-else
                   :trigger="['click']"
                   @update:visible="(val: boolean) => { openMenuWsId = val ? ws.id! : null }"
                   @click.stop
@@ -243,6 +264,11 @@ const hasNoResults = computed(() => {
         <div class="flex items-center justify-center gap-2 text-center">
           <GeneralIcon icon="plus" class="flex-none" />
           <span class="text-sm font-medium">{{ $t('activity.newWorkspace') }}</span>
+          <LazyPaymentUpgradeBadge
+            :limit-or-feature="PlanLimitTypes.LIMIT_WORKSPACE"
+            :feature-enabled-callback="() => !blockWorkspaceCreate"
+            remove-click
+          />
         </div>
       </NcButton>
     </div>
@@ -323,6 +349,14 @@ const hasNoResults = computed(() => {
 
   :deep(.ant-input-affix-wrapper) {
     @apply !border-none !shadow-none rounded-lg px-2 py-1;
+  }
+}
+
+.nc-ws-locked {
+  @apply opacity-45 cursor-not-allowed;
+
+  &:hover {
+    @apply !bg-transparent;
   }
 }
 </style>

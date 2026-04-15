@@ -393,13 +393,15 @@ export const OnPremPlanMeta = {
   },
 } as const;
 
-export const OnPremPlanOrder = {
+export const OnPremPlanOrder: Record<string, number> = {
+  [OnPremPlanTitles.FREE]: -1,
   [OnPremPlanTitles.SELF_HOSTED_STARTER]: 0,
   [OnPremPlanTitles.SELF_HOSTED_SCALE]: 1,
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: 2,
 };
 
 export const OnPremHigherPlan = {
+  [OnPremPlanTitles.FREE]: OnPremPlanTitles.SELF_HOSTED_STARTER,
   [OnPremPlanTitles.SELF_HOSTED_STARTER]: OnPremPlanTitles.SELF_HOSTED_SCALE,
   [OnPremPlanTitles.SELF_HOSTED_SCALE]: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
 } as Record<string, OnPremPlanTitles>;
@@ -418,6 +420,61 @@ export const OnPremPlanDefinitions: Record<
     limits: Partial<Record<PlanLimitTypes, number>>;
   }
 > = {
+  // -------------------------------------------------------------------------
+  // FREE — unlicensed on-prem; default-deny, explicitly enable features
+  // -------------------------------------------------------------------------
+  // Unlike paid plans (which start with all features enabled and list
+  // overrides as `false`), the FREE plan starts with all features DISABLED.
+  // Only features explicitly listed here as `true` are available.
+  // See `resolveOnPremPlanMeta` and `buildOnPremPlan` for the flip logic.
+  // -------------------------------------------------------------------------
+  [OnPremPlanTitles.FREE]: {
+    features: {
+      // Explicitly enabled features for unlicensed on-prem
+      [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: true,
+      [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: true,
+      [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: true,
+      [PlanFeatureTypes.FEATURE_DOCS_APIS]: true,
+    },
+    limits: {
+      // Explicitly allowed limits for unlicensed on-prem.
+      // Base is 0 for Free (see resolveOnPremPlanMeta) — only limits
+      // listed here are non-zero. Use -1 for unlimited.
+      [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
+      // Structural — self-hosted, no artificial caps
+      [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: -1,
+      [PlanLimitTypes.LIMIT_COLUMN_PER_TABLE]: -1,
+      [PlanLimitTypes.LIMIT_VIEW_PER_TABLE]: -1,
+      [PlanLimitTypes.LIMIT_FILTER_PER_VIEW]: -1,
+      [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: -1,
+      [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: -1,
+      [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: -1,
+      [PlanLimitTypes.LIMIT_WEBHOOK_PER_TABLE]: -1,
+      [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: -1,
+      // Data — self-hosted, user owns their infra
+      [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: -1,
+      [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: -1,
+      [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: -1,
+      // Seats — self-hosted, no billing
+      [PlanLimitTypes.LIMIT_EDITOR]: -1,
+      [PlanLimitTypes.LIMIT_COMMENTER]: -1,
+      // API — self-hosted
+      [PlanLimitTypes.LIMIT_API_PER_SECOND]: -1,
+      [PlanLimitTypes.LIMIT_API_CALL]: -1,
+      // Audit — retain some history even on free
+      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 30, // days
+      // Docs — enabled with sensible caps
+      [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: 10,
+      [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
+      // Everything else (AI, automations, workflows, extensions,
+      // snapshots, scripts, dashboards, sandbox, teams, RLS)
+      // inherits 0 from base — disabled by default
+    },
+  },
+
+  // -------------------------------------------------------------------------
+  // STARTER — first paid tier; Scale+ and Enterprise features disabled
+  // -------------------------------------------------------------------------
   [OnPremPlanTitles.SELF_HOSTED_STARTER]: {
     features: {
       // Scale+ only
@@ -457,31 +514,33 @@ export const OnPremPlanDefinitions: Record<
 };
 
 /**
- * On-prem: feature → lowest plan that enables it.
+ * On-prem: feature → lowest *paid* plan that enables it.
  * Derived from OnPremPlanDefinitions — a feature is "disabled" in a plan
  * if it appears in that plan's features with `false`. The minimum plan
- * is the first (by OnPremPlanOrder) where the feature is NOT disabled.
+ * is the first paid plan (by OnPremPlanOrder, excluding FREE) where the
+ * feature is NOT disabled.
  */
 export const OnPremFeatureToMinPlan: Partial<
   Record<PlanFeatureTypes, OnPremPlanTitles>
 > = (() => {
   const result: Partial<Record<PlanFeatureTypes, OnPremPlanTitles>> = {};
-  const sortedPlans = Object.keys(OnPremPlanOrder).sort(
-    (a, b) => OnPremPlanOrder[a] - OnPremPlanOrder[b]
-  ) as OnPremPlanTitles[];
+  // Only consider paid plans (exclude FREE — it's the unlicensed state)
+  const paidPlans = (Object.keys(OnPremPlanOrder) as OnPremPlanTitles[])
+    .filter((p) => p !== OnPremPlanTitles.FREE)
+    .sort((a, b) => OnPremPlanOrder[a] - OnPremPlanOrder[b]);
 
-  // Collect all features that are disabled in at least one plan
+  // Collect all features that are disabled in at least one paid plan
   const disabledFeatures = new Set<PlanFeatureTypes>();
-  for (const plan of sortedPlans) {
+  for (const plan of paidPlans) {
     const def = OnPremPlanDefinitions[plan];
     for (const [feat, val] of Object.entries(def?.features ?? {})) {
       if (val === false) disabledFeatures.add(feat as PlanFeatureTypes);
     }
   }
 
-  // For each disabled feature, find the first plan that enables it
+  // For each disabled feature, find the first paid plan that enables it
   for (const feature of disabledFeatures) {
-    for (const plan of sortedPlans) {
+    for (const plan of paidPlans) {
       const def = OnPremPlanDefinitions[plan];
       if (def?.features?.[feature] !== false) {
         result[feature] = plan;
@@ -492,3 +551,142 @@ export const OnPremFeatureToMinPlan: Partial<
 
   return result;
 })();
+
+// ---------------------------------------------------------------------------
+// resolveOnPremPlanMeta — computes the full feature/limit meta for an on-prem plan
+// ---------------------------------------------------------------------------
+// Layered override model:
+//   Paid plans: base = all features true  → overrides disable specific features
+//   FREE plan:  base = all features false → overrides enable specific features
+//
+// This ensures unlicensed on-prem is default-deny: new features are
+// automatically unavailable on free until explicitly opted in.
+// ---------------------------------------------------------------------------
+
+export function resolveOnPremPlanMeta(
+  title: OnPremPlanTitles | string
+): Record<string, number | boolean> {
+  const meta: Record<string, number | boolean> = {};
+  const isFree = title === OnPremPlanTitles.FREE;
+
+  // 1. Base: paid = all unlimited/enabled, free = all zero/disabled
+  for (const limit of Object.values(PlanLimitTypes)) {
+    meta[limit] = isFree ? 0 : -1;
+  }
+  for (const feature of Object.values(PlanFeatureTypes)) {
+    meta[feature] = !isFree;
+  }
+
+  // 2. Plan-specific overrides
+  const def = OnPremPlanDefinitions[title];
+  if (def) {
+    Object.assign(meta, def.features);
+    Object.assign(meta, def.limits);
+  }
+
+  return meta;
+}
+
+// ---------------------------------------------------------------------------
+// LICENSE_REQUIRED_OPS → PlanFeatureTypes mapping for on-prem
+// ---------------------------------------------------------------------------
+// Maps internal controller operation names to PlanFeatureTypes.
+// Operations NOT in this map default to "any paid plan" (license-only check).
+// ---------------------------------------------------------------------------
+
+export const InternalOpToOnPremPlanFeature: Record<
+  string,
+  PlanFeatureTypes | undefined
+> = {
+  // Permissions
+  setPermission: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
+  dropPermission: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
+  bulkDropPermissions: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
+  // RLS
+  rlsPolicyList: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyGet: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyCreate: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyUpdate: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyDelete: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicySetSubjects: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyFilterList: PlanFeatureTypes.FEATURE_RLS,
+  rlsPolicyFilterCreate: PlanFeatureTypes.FEATURE_RLS,
+  // Teams
+  teamList: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  teamGet: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  teamCreate: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  teamUpdate: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  teamDelete: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  teamMembersAdd: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  teamMembersRemove: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  teamMembersUpdate: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  // Workspace Teams
+  workspaceTeamList: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  workspaceTeamGet: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  workspaceTeamAdd: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  workspaceTeamUpdate: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  workspaceTeamRemove: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  // Base Teams
+  baseTeamList: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  baseTeamGet: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  baseTeamAdd: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  baseTeamUpdate: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  baseTeamRemove: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+  // Audit
+  workspaceAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+  baseAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+  // Scripts
+  listScripts: PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
+  getScript: PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
+  createScript: PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
+  updateScript: PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
+  deleteScript: PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
+  duplicateScript: PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT,
+  // Dashboards
+  dashboardList: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  dashboardGet: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  dashboardCreate: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  dashboardUpdate: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  dashboardDelete: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  dashboardShare: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  widgetList: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  widgetGet: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  widgetCreate: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  widgetDuplicate: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  widgetUpdate: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  widgetDelete: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  widgetDataGet: PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
+  // Documents
+  documentList: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentGet: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentCreate: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentUpdate: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentDelete: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentReorder: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentCommentList: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentCommentCount: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentCommentCreate: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentCommentUpdate: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentCommentDelete: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentCommentResolve: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentCommentReactionToggle: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  documentCommentReactionList: PlanFeatureTypes.FEATURE_DOCS_APIS,
+  // Workflows
+  workflowList: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowGet: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowCreate: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowDuplicate: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowUpdate: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowDelete: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowNodeIntegrationFetchOptions:
+    PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowExecute: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowTestNode: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowPublish: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowNodes: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowListSubscribers: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowAddSubscribers: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowRemoveSubscriber: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowExecutionList: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+  workflowExecutionGet: PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT,
+};

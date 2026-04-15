@@ -675,17 +675,25 @@ const enabledOptions = computed(() => {
                       </NcMenuItem>
                     </template>
                   </PaymentUpgradeBadgeProvider>
-                  <NcMenuItem
+                  <PaymentUpgradeBadgeProvider
                     v-if="enabledOptions.tableRowLevelSecurity"
-                    :data-testid="`sidebar-table-rls-${table.title}`"
-                    class="nc-table-rls"
-                    @click="onRowLevelSecurity"
+                    :feature="PlanFeatureTypes.FEATURE_RLS"
                   >
-                    <div v-e="['c:table:rls']" class="flex gap-2 items-center w-full">
-                      <GeneralIcon icon="ncShield" class="opacity-80" />
-                      <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
-                    </div>
-                  </NcMenuItem>
+                    <template #default="{ click }">
+                      <NcMenuItem
+                        :data-testid="`sidebar-table-rls-${table.title}`"
+                        class="nc-table-rls"
+                        @click="click(PlanFeatureTypes.FEATURE_RLS, onRowLevelSecurity)"
+                      >
+                        <div v-e="['c:table:rls']" class="flex gap-2 items-center w-full">
+                          <GeneralIcon icon="ncShield" class="opacity-80" />
+                          <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
+
+                          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_RLS" remove-click />
+                        </div>
+                      </NcMenuItem>
+                    </template>
+                  </PaymentUpgradeBadgeProvider>
                   <PaymentUpgradeBadgeProvider
                     v-if="enabledOptions.tableDateDependency"
                     :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"

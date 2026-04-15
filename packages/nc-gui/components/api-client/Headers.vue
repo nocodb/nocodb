@@ -56,7 +56,7 @@ const headerList = ref<Option[]>([
 
 const addHeaderRow = () =>
   vModel.value.push({
-    enabled: false,
+    enabled: true,
     name: '',
     value: '',
   })

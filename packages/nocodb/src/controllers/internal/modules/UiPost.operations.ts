@@ -714,7 +714,8 @@ export class UiPostOperations
           req,
         });
       case 'dataImportPreview': {
-        const result = await this.dataImportService.csvPreview(context, {
+        const result = await this.dataImportService.preview(context, {
+          importType: payload.importType || 'csv',
           attachment: payload.attachment,
           parserConfig: payload.parserConfig,
         });
@@ -726,7 +727,7 @@ export class UiPostOperations
         };
       }
       case 'dataImportFile':
-        return await this.dataImportService.csvImportFile(context, {
+        return await this.dataImportService.importFile(context, {
           baseId: req.query.baseId as string,
           body: payload,
           req,

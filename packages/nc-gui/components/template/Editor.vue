@@ -577,6 +577,7 @@ async function importViaJob() {
     // For each table in the template (Excel can have multiple sheets)
     for (const table of data.tables) {
       const jobPayload: Record<string, any> = {
+        importType: quickImportType,
         sourceId: sourceId || base.value?.sources?.[0]?.id,
         attachment: table._serverAttachment || serverAttachment,
         columns: (table.columns as any[])
@@ -591,9 +592,10 @@ async function importViaJob() {
             path: c.path,
           })),
         parserConfig: {
-          firstRowAsHeaders: true,
+          firstRowAsHeaders: quickImportType === 'csv',
           maxRowsToParse,
           autoSelectFieldTypes: true,
+          normalizeNested: quickImportType === 'json',
         },
         options: {
           shouldImportData: true,
@@ -1366,9 +1368,9 @@ function getErrorByTableName(tableName: string) {
               </div>
             </template>
 
-            <div v-if="table.columns && table.columns.length" class="bg-nc-bg-gray-extralight pl-3 flex-1 flex">
+            <div v-if="table.columns && table.columns.length" class="bg-nc-bg-gray-extralight pl-3 flex-1 flex max-h-[310px]">
               <NcTable
-                class="template-form flex-1 max-h-[310px]"
+                class="template-form flex-1"
                 body-row-class-name="template-form-row"
                 header-row-class-name="relative"
                 :data="table.columns"
@@ -1376,7 +1378,6 @@ function getErrorByTableName(tableName: string) {
                 :bordered="false"
                 header-row-height="40px"
                 row-height="40px"
-                :pagination="table.columns.length > 50 ? { defaultPageSize: 50, position: ['bottomCenter'] } : false"
               >
                 <template #headerCell="{ column }">
                   <template v-if="column.key === 'enabled'">

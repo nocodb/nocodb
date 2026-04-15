@@ -1,6 +1,6 @@
 import type UITypes from '~/lib/UITypes';
 
-export type FileImportType = 'csv';
+export type FileImportType = 'csv' | 'json';
 
 export interface FileImportColumn {
   title: string;

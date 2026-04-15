@@ -160,6 +160,52 @@ export interface DetectedColumn {
   dtxp?: string;
 }
 
+// Sanitizes a column name for use as a DB column name
+function sanitizeColumnName(name: string, fallback: string): string {
+  return (name?.toString().trim() || fallback)
+    .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/g, '_')
+    .trim();
+}
+
+/**
+ * Shared column initialization: sanitize names, deduplicate, create DetectedColumn array.
+ * Used by both detectColumnTypes (CSV) and detectColumnTypesFromObjects (JSON).
+ */
+function initializeColumns(headers: string[]): DetectedColumn[] {
+  const columnNamePrefixRef: Record<string, number> = { id: 0, Id: 0 };
+  const titlePrefixRef: Record<string, number> = { id: 0, Id: 0 };
+
+  const columns: DetectedColumn[] = [];
+
+  for (const [columnIdx, columnName] of headers.entries()) {
+    let title = (
+      columnName?.toString().trim() || `Field ${columnIdx + 1}`
+    ).trim();
+    let cn = sanitizeColumnName(columnName, `field_${columnIdx + 1}`);
+
+    while (cn in columnNamePrefixRef) {
+      cn = `${cn}${++columnNamePrefixRef[cn]}`;
+    }
+    while (title in titlePrefixRef) {
+      title = `${title}${++titlePrefixRef[title]}`;
+    }
+
+    columnNamePrefixRef[cn] = 0;
+    titlePrefixRef[title] = 0;
+
+    columns.push({
+      title,
+      column_name: cn,
+      ref_column_name: cn,
+      uidt: UITypes.SingleLineText,
+      key: columnIdx,
+      meta: {},
+    });
+  }
+
+  return columns;
+}
+
 /**
  * Detects column types from CSV sample data.
  */
@@ -177,41 +223,12 @@ export function detectColumnTypes(
   const distinctValues: Record<number, Set<string>> = {};
   const columnValues: Record<number, string[]> = {};
 
-  const columnNamePrefixRef: Record<string, number> = { id: 0, Id: 0 };
-  const titlePrefixRef: Record<string, number> = { id: 0, Id: 0 };
+  const columns = initializeColumns(headers);
 
-  const columns: DetectedColumn[] = [];
-
-  for (const [columnIdx, columnName] of headers.entries()) {
-    let title = (
-      columnName?.toString().trim() || `Field ${columnIdx + 1}`
-    ).trim();
-    let cn = (columnName?.toString().trim() || `field_${columnIdx + 1}`)
-      .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>{}[\]\\/]/g, '_')
-      .trim();
-
-    while (cn in columnNamePrefixRef) {
-      cn = `${cn}${++columnNamePrefixRef[cn]}`;
-    }
-    while (title in titlePrefixRef) {
-      title = `${title}${++titlePrefixRef[title]}`;
-    }
-
-    columnNamePrefixRef[cn] = 0;
-    titlePrefixRef[title] = 0;
-
+  for (let columnIdx = 0; columnIdx < headers.length; columnIdx++) {
     detectedColumnTypes[columnIdx] = {};
     distinctValues[columnIdx] = new Set<string>();
     columnValues[columnIdx] = [];
-
-    columns.push({
-      title,
-      column_name: cn,
-      ref_column_name: cn,
-      uidt: UITypes.SingleLineText,
-      key: columnIdx,
-      meta: {},
-    });
   }
 
   if (!autoSelectFieldTypes) {
@@ -325,6 +342,100 @@ export function detectColumnTypes(
       }
     } else {
       columns[columnIdx].uidt = uidt;
+    }
+  }
+
+  return columns;
+}
+
+/**
+ * Detects column types from JSON sample data (object rows with native types).
+ * Leverages typeof for initial detection before falling back to string heuristics.
+ */
+export function detectColumnTypesFromObjects(
+  headers: string[],
+  sampleRows: Record<string, any>[],
+  options: {
+    maxRowsToParse?: number;
+    autoSelectFieldTypes?: boolean;
+  } = {},
+): DetectedColumn[] {
+  const { maxRowsToParse = 500, autoSelectFieldTypes = true } = options;
+
+  const columns = initializeColumns(headers);
+
+  if (!autoSelectFieldTypes) {
+    return columns;
+  }
+
+  for (let columnIdx = 0; columnIdx < headers.length; columnIdx++) {
+    const colName = headers[columnIdx];
+
+    const colValues = sampleRows
+      .slice(0, maxRowsToParse)
+      .map((row) => row[colName])
+      .filter((v) => v !== null && v !== undefined && v !== '');
+
+    if (!colValues.length) continue;
+
+    // Determine native type distribution
+    const typeSet = new Set(colValues.map((v) => typeof v));
+
+    if (typeSet.size === 1 && typeSet.has('number')) {
+      columns[columnIdx].uidt = isDecimalType(colValues.map(String))
+        ? UITypes.Decimal
+        : UITypes.Number;
+      continue;
+    }
+
+    if (typeSet.size === 1 && typeSet.has('boolean')) {
+      columns[columnIdx].uidt = UITypes.Checkbox;
+      continue;
+    }
+
+    // For strings or mixed types, fall back to string heuristics
+    const stringValues = colValues.map((v) => String(v));
+
+    if (isMultiLineTextType(stringValues)) {
+      columns[columnIdx].uidt = UITypes.LongText;
+    } else if (isEmailType(stringValues)) {
+      columns[columnIdx].uidt = UITypes.Email;
+    } else if (isUrlType(stringValues)) {
+      columns[columnIdx].uidt = UITypes.URL;
+    } else if (isCheckboxType(stringValues)) {
+      columns[columnIdx].uidt = UITypes.Checkbox;
+    } else if (
+      stringValues.every((v) => !isNaN(Number(v)) && !isNaN(parseFloat(v)))
+    ) {
+      columns[columnIdx].uidt = isDecimalType(stringValues)
+        ? UITypes.Decimal
+        : UITypes.Number;
+    } else if (stringValues.every((v) => validateDateWithUnknownFormat(v))) {
+      const dateFormat: Record<string, number> = {};
+      const allDatesOnly = stringValues.every((v) => {
+        const isDate = v.split(' ').length === 1;
+        if (isDate) {
+          dateFormat[getDateFormat(v)] =
+            (dateFormat[getDateFormat(v)] || 0) + 1;
+        }
+        return isDate;
+      });
+
+      if (allDatesOnly) {
+        columns[columnIdx].uidt = UITypes.Date;
+        const objKeys = Object.keys(dateFormat);
+        columns[columnIdx].meta.date_format = objKeys.length
+          ? objKeys.reduce((x, y) => (dateFormat[x] > dateFormat[y] ? x : y))
+          : 'YYYY/MM/DD';
+      } else {
+        columns[columnIdx].uidt = UITypes.DateTime;
+      }
+    } else {
+      // Check for select patterns
+      const selectProps = extractMultiOrSingleSelectProps(stringValues);
+      if (selectProps.uidt) {
+        Object.assign(columns[columnIdx], selectProps);
+      }
     }
   }
 

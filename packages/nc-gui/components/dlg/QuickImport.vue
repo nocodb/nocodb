@@ -130,6 +130,8 @@ const isImportTypeCsv = computed(() => importType === 'csv')
 
 const IsImportTypeExcel = computed(() => importType === 'excel')
 
+const isServerSideImport = computed(() => isImportTypeCsv.value || isImportTypeJson.value)
+
 const showMaxFileLimitError = ref(false)
 
 const validators = computed(() => ({
@@ -203,7 +205,7 @@ const localImportError = ref('')
 
 const importError = computed(() => localImportError.value ?? templateEditorRef.value?.importError ?? '')
 
-const maxFileUploadLimit = computed(() => (isImportTypeCsv.value ? 3 : 1))
+const maxFileUploadLimit = computed(() => (isServerSideImport.value ? 3 : 1))
 
 const hideUpload = computed(() => preImportLoading.value || importState.fileList.length >= maxFileUploadLimit.value)
 
@@ -247,7 +249,18 @@ const importBtnText = computed(() => {
 
 const disableImportButton = computed(() => !templateEditorRef.value?.isValid || isError.value)
 
-let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateAdapter | null
+let templateGenerator: ExcelTemplateAdapter | null
+
+function buildPreviewParserConfig(encoding = 'utf-8') {
+  return {
+    firstRowAsHeaders: importState.parserConfig.firstRowAsHeaders,
+    delimiter: undefined as string | undefined,
+    encoding,
+    maxRowsToParse: importState.parserConfig.maxRowsToParse,
+    autoSelectFieldTypes: importState.parserConfig.autoSelectFieldTypes,
+    normalizeNested: importState.parserConfig.normalizeNested,
+  }
+}
 
 async function handlePreImport() {
   preImportLoading.value = true
@@ -261,18 +274,49 @@ async function handlePreImport() {
   const isPreImportFileMode = isPreImportFileFilled.value && activeTab.value === ImportTypeTabs.upload
 
   try {
-    if (isImportTypeCsv.value) {
-      await handleServerPreImport(isPreImportFileMode)
-    } else if (isImportTypeJson.value) {
-      // JSON: client-side parsing
-      if (isPreImportFileMode) {
-        if (isWorkerSupport && importWorker) {
-          await parseAndExtractData(importState.fileList as streamImportFileList)
-        } else {
-          await parseAndExtractData((importState.fileList as importFileList)[0].data)
+    if (isServerSideImport.value) {
+      if (isImportTypeJson.value && !isPreImportFileMode && isPreImportJsonFilled.value) {
+        // JSON editor input: upload the JSON text as a file first, then go server-side
+        const jsonBlob = new Blob([JSON.stringify(importState.jsonEditor)], { type: 'application/json' })
+        const jsonFile = new File([jsonBlob], 'editor_input.json', { type: 'application/json' })
+        const formData = new FormData()
+        formData.append('files', jsonFile)
+
+        const uploadResult = await $api.instance.post('/api/v1/db/data-import/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+
+        const attachment = uploadResult.data[0]
+        serverAttachment.value = attachment
+
+        const responseData = await $api.internal.postOperation(
+          activeWorkspace.value?.id,
+          baseId,
+          { operation: 'dataImportPreview' },
+          {
+            importType: importType,
+            attachment,
+            parserConfig: buildPreviewParserConfig('utf-8'),
+          },
+        )
+
+        const { columns, previewData } = responseData as any
+        const uniqueName = populateUniqueTableName('json_import', [])
+
+        templateData.value = {
+          tables: [
+            {
+              table_name: uniqueName,
+              ref_table_name: uniqueName,
+              columns: columns.map((col: any) => ({ ...col, selected: true })),
+            },
+          ],
         }
-      } else if (isPreImportJsonFilled.value) {
-        await parseAndExtractData(JSON.stringify(importState.jsonEditor))
+        importData.value = { [uniqueName]: previewData }
+        importColumns.value = [columns]
+        templateEditorModal.value = true
+      } else {
+        await handleServerPreImport(isPreImportFileMode)
       }
     } else if (IsImportTypeExcel) {
       // Excel: client-side parsing
@@ -329,14 +373,9 @@ async function handleServerPreImport(isFileMode: boolean) {
         baseId,
         { operation: 'dataImportPreview' },
         {
+          importType: importType,
           attachment,
-          parserConfig: {
-            firstRowAsHeaders: importState.parserConfig.firstRowAsHeaders,
-            delimiter: undefined,
-            encoding: file.encoding || 'utf-8',
-            maxRowsToParse: importState.parserConfig.maxRowsToParse,
-            autoSelectFieldTypes: importState.parserConfig.autoSelectFieldTypes,
-          },
+          parserConfig: buildPreviewParserConfig(file.encoding || 'utf-8'),
         },
       )
 
@@ -377,13 +416,9 @@ async function handleServerPreImport(isFileMode: boolean) {
       baseId,
       { operation: 'dataImportPreview' },
       {
+        importType: importType,
         attachment,
-        parserConfig: {
-          firstRowAsHeaders: importState.parserConfig.firstRowAsHeaders,
-          delimiter: undefined,
-          maxRowsToParse: importState.parserConfig.maxRowsToParse,
-          autoSelectFieldTypes: importState.parserConfig.autoSelectFieldTypes,
-        },
+        parserConfig: buildPreviewParserConfig('utf-8'),
       },
     )
 
@@ -459,7 +494,7 @@ function handleChange(info: UploadChangeParam) {
   const status = info.file.status
 
   if (status && status !== 'uploading' && status !== 'removed') {
-    if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
+    if (isServerSideImport.value || (isWorkerSupport && importWorker)) {
       if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
         ;(importState.fileList as streamImportFileList).push({
           ...info.file,
@@ -527,12 +562,6 @@ function getAdapter(val: any) {
     } else {
       return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api, undefined, undefined, unref(existingColumns))
     }
-  } else if (isImportTypeJson.value) {
-    if (isPreImportFileMode) {
-      return new JSONTemplateAdapter(val, importState.parserConfig)
-    } else {
-      return new JSONTemplateAdapter(val, importState.parserConfig)
-    }
   }
 
   return null
@@ -559,7 +588,7 @@ const beforeUpload = (file: UploadFile, fileList: UploadFile[]) => {
     showMaxFileLimitError.value = true
   }
 
-  const maxSizeMB = isImportTypeCsv.value ? Math.round((appInfo.value.ncDataImportFileSize || 100 * 1024 * 1024) / (1024 * 1024)) : 25
+  const maxSizeMB = isServerSideImport.value ? Math.round((appInfo.value.ncDataImportFileSize || 100 * 1024 * 1024) / (1024 * 1024)) : 25
   const exceedLimit = file.size! / 1024 / 1024 > maxSizeMB
   if (exceedLimit) {
     message.error(t('msg.error.fileTooLarge', { name: file.name, size: `${maxSizeMB}MB` }))
@@ -570,28 +599,10 @@ const beforeUpload = (file: UploadFile, fileList: UploadFile[]) => {
 // UploadFile[] for csv import (streaming)
 // ArrayBuffer for excel import
 function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) {
-  let importType_: ImportType
-  if (isImportTypeCsv.value) {
-    importType_ = ImportType.CSV
-  } else if (IsImportTypeExcel.value) {
-    importType_ = ImportType.EXCEL
-  } else if (isImportTypeJson.value) {
-    importType_ = ImportType.JSON
-  }
-  importType_ = importType_! ?? ImportType.CSV
-
-  let importSource: ImportSource
+  const importType_ = ImportType.EXCEL
 
   const isPreImportFileMode = isPreImportFileFilled.value && activeTab.value === ImportTypeTabs.upload
-
-  if (isPreImportFileMode) {
-    importSource = ImportSource.FILE
-  } else if (isPreImportUrlFilled.value && importType_ !== ImportType.JSON) {
-    importSource = ImportSource.URL
-  } else if (importType_ === ImportType.JSON) {
-    importSource = ImportSource.STRING
-  }
-  importSource = importSource! ?? ImportSource.FILE
+  const importSource = isPreImportFileMode ? ImportSource.FILE : isPreImportUrlFilled.value ? ImportSource.URL : ImportSource.FILE
 
   return {
     config: {
@@ -851,7 +862,7 @@ watch(
           :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
           :base-id="baseId"
           :source-id="sourceIdRef"
-          :server-attachment="isImportTypeCsv ? serverAttachment : null"
+          :server-attachment="isServerSideImport ? serverAttachment : null"
           :import-worker="importWorker"
           :table-icon="importMeta.icon"
           class="nc-quick-import-template-editor"

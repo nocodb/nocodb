@@ -1,16 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { parse } from 'papaparse';
-import type { Readable } from 'stream';
 import type {
   AttachmentReqType,
   FileImportParserConfig,
+  FileImportType,
   NcRequest,
 } from 'nocodb-sdk';
 import type { DataImportJobData } from '~/interface/Jobs';
 import type { NcContext } from '~/interface/config';
 import type IStorageAdapterV2 from '~/types/nc-plugin/lib/IStorageAdapterV2';
 import { resolveAttachmentFilePath } from '~/helpers/attachmentHelpers';
-import { detectColumnTypes } from '~/modules/jobs/jobs/data-import/csv-type-detector';
+import { getImportHandler } from '~/modules/jobs/jobs/data-import/handlers';
 import { JobTypes } from '~/interface/Jobs';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -23,9 +22,10 @@ export class DataImportService {
 
   constructor(protected readonly nocoJobsService: NocoJobsService) {}
 
-  async csvPreview(
+  async preview(
     _context: NcContext,
     param: {
+      importType?: FileImportType;
       attachment: Pick<AttachmentReqType, 'path' | 'url'>;
       parserConfig: Pick<
         FileImportParserConfig,
@@ -34,102 +34,30 @@ export class DataImportService {
         | 'encoding'
         | 'maxRowsToParse'
         | 'autoSelectFieldTypes'
+        | 'normalizeNested'
       >;
     },
   ) {
-    const { attachment, parserConfig } = param;
+    const { attachment, parserConfig, importType = 'csv' } = param;
 
     if (!attachment?.path && !attachment?.url) {
       NcError.badRequest('Attachment path or url is required');
     }
 
-    const {
-      firstRowAsHeaders = true,
-      delimiter,
-      maxRowsToParse = 500,
-      encoding,
-      autoSelectFieldTypes = true,
-    } = parserConfig || {};
+    const { encoding } = parserConfig || {};
 
     const storageAdapter =
       (await NcPluginMgrv2.storageAdapter()) as IStorageAdapterV2;
     const filePath = resolveAttachmentFilePath(attachment);
-    const readStream: Readable = await storageAdapter.fileReadByStream(
-      filePath,
-      { encoding: encoding || 'utf-8' },
-    );
-
-    const headers: string[] = [];
-    const sampleRows: string[][] = [];
-    let rowCount = 0;
-    let detectedDelimiter: string | undefined;
-
-    await new Promise<void>((resolve, reject) => {
-      parse(readStream, {
-        delimiter: delimiter || undefined,
-        skipEmptyLines: 'greedy',
-        step(row: { data: string[]; meta?: { delimiter?: string } }, parser) {
-          rowCount++;
-
-          if (!detectedDelimiter && row.meta?.delimiter) {
-            detectedDelimiter = row.meta.delimiter;
-          }
-
-          if (rowCount === 1 && firstRowAsHeaders) {
-            headers.push(...row.data);
-          } else {
-            if (rowCount === 1) {
-              for (let i = 0; i < row.data.length; i++) {
-                headers.push(`Field ${i + 1}`);
-              }
-            }
-            sampleRows.push(row.data);
-          }
-
-          if (sampleRows.length >= maxRowsToParse) {
-            parser.abort();
-          }
-        },
-        complete() {
-          resolve();
-        },
-        error(err) {
-          reject(err);
-        },
-      });
+    const readStream = await storageAdapter.fileReadByStream(filePath, {
+      encoding: encoding || 'utf-8',
     });
 
-    if (!headers.length) {
-      return {
-        columns: [],
-        previewData: [],
-        totalSampleRows: 0,
-        detectedDelimiter: delimiter || ',',
-      };
-    }
-
-    const columns = detectColumnTypes(headers, sampleRows, {
-      maxRowsToParse,
-      autoSelectFieldTypes,
-    });
-
-    const previewRows = sampleRows.slice(0, 20).map((row) => {
-      const rowObj: Record<string, any> = {};
-      for (let i = 0; i < columns.length; i++) {
-        rowObj[columns[i].column_name] = row[i] ?? null;
-      }
-      return rowObj;
-    });
-
-    return {
-      columns,
-      previewData: previewRows,
-      totalSampleRows: sampleRows.length,
-      detectedDelimiter: detectedDelimiter || delimiter || ',',
-    };
+    const handler = getImportHandler(importType);
+    return handler.preview(readStream, parserConfig);
   }
 
-  async csvImportFile(
+  async importFile(
     context: NcContext,
     param: {
       baseId: string;
@@ -170,7 +98,7 @@ export class DataImportService {
 
     const job = await this.nocoJobsService.add(JobTypes.DataImport, {
       context,
-      importType: 'csv',
+      importType: body.importType || 'csv',
       baseId: baseId || body.baseId,
       sourceId: body.sourceId,
       tableId: body.tableId,

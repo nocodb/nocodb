@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { parse } from 'papaparse';
 import {
   AuditV1OperationTypes,
   NcBaseErrorv2,
@@ -7,11 +6,12 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { Job } from 'bull';
-import type { NcRequest, UserType } from 'nocodb-sdk';
+import type { FileImportColumn, FileImportType, NcRequest, UserType } from 'nocodb-sdk';
 import type { DataImportJobData } from '~/interface/Jobs';
 import type { NcContext } from '~/interface/config';
 import type IStorageAdapterV2 from '~/types/nc-plugin/lib/IStorageAdapterV2';
 import { getCheckboxValue } from '~/modules/jobs/jobs/data-import/csv-type-detector';
+import { getImportHandler } from '~/modules/jobs/jobs/data-import/handlers';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { resolveAttachmentFilePath } from '~/helpers/attachmentHelpers';
 import { TablesService } from '~/services/tables.service';
@@ -42,6 +42,7 @@ export class DataImportProcessor {
       context,
       baseId,
       sourceId,
+      importType = 'csv',
       tableId: existingTableId,
       tableName,
       attachment,
@@ -138,8 +139,8 @@ export class DataImportProcessor {
 
       await model.getColumns(context);
 
-      // Build column map: source column key -> target DB column name
-      const colMap: Record<number, { destCn: string; uidt: string }> = {};
+      // Build column map: source column name -> target DB column name
+      const colMap: Record<string, { destCn: string; uidt: string }> = {};
 
       if (options.importDataOnly && columnMapping) {
         for (const mapping of columnMapping) {
@@ -155,7 +156,7 @@ export class DataImportProcessor {
                 c.column_name === mapping.destCn || c.title === mapping.destCn,
             );
             if (destCol) {
-              colMap[srcCol.key] = {
+              colMap[srcCol.column_name] = {
                 destCn: destCol.column_name,
                 uidt: destCol.uidt as string,
               };
@@ -168,7 +169,7 @@ export class DataImportProcessor {
             (c) => c.column_name === col.column_name || c.title === col.title,
           );
           if (dbCol) {
-            colMap[col.key] = {
+            colMap[col.column_name] = {
               destCn: dbCol.column_name,
               uidt: dbCol.uidt as string,
             };
@@ -196,12 +197,14 @@ export class DataImportProcessor {
 
       logBasic('Importing data...');
 
-      const result = await this.importCsvData(
+      const result = await this.importData(
         context,
         baseId,
         tableId,
         attachment,
         parserConfig,
+        columns,
+        importType as FileImportType,
         colMap,
         !!options.typecast,
         req,
@@ -343,13 +346,12 @@ export class DataImportProcessor {
   }
 
   private transformRow(
-    data: any[],
-    colMap: Record<number, { destCn: string; uidt: string }>,
+    data: Record<string, any>,
+    colMap: Record<string, { destCn: string; uidt: string }>,
   ): Record<string, any> {
     const rowData: Record<string, any> = {};
-    for (const [keyStr, mapping] of Object.entries(colMap)) {
-      const colIdx = parseInt(keyStr, 10);
-      const cellValue = data[colIdx];
+    for (const [srcCol, mapping] of Object.entries(colMap)) {
+      const cellValue = data[srcCol];
       const value =
         cellValue === '' || cellValue === undefined || cellValue === null
           ? null
@@ -369,13 +371,15 @@ export class DataImportProcessor {
     return rowData;
   }
 
-  private async importCsvData(
+  private async importData(
     context: NcContext,
     baseId: string,
     tableId: string,
     attachment: DataImportJobData['attachment'],
     parserConfig: DataImportJobData['parserConfig'],
-    colMap: Record<number, { destCn: string; uidt: string }>,
+    columns: FileImportColumn[],
+    importType: FileImportType,
+    colMap: Record<string, { destCn: string; uidt: string }>,
     typecast: boolean,
     req: NcRequest,
     logDetailed: (msg: string) => void,
@@ -391,100 +395,70 @@ export class DataImportProcessor {
       encoding: parserConfig.encoding || 'utf-8',
     });
 
+    const handler = getImportHandler(importType);
+
     let rowCount = 0;
     const counters = { insertedCount: 0, failedCount: 0, systemErrorCount: 0 };
     const errors: Array<{ row: number; error: string }> = [];
     const maxErrors = 1000;
     let batch: Record<string, any>[] = [];
-    let headerSkipped = false;
-    let aborted = false;
 
-    await new Promise<void>((resolve, reject) => {
-      parse(readStream, {
-        delimiter: parserConfig.delimiter || undefined,
-        skipEmptyLines: 'greedy',
-        step: async (row: { data: string[] }, parser) => {
-          if (!headerSkipped && parserConfig.firstRowAsHeaders) {
-            headerSkipped = true;
-            return;
-          }
-          if (!headerSkipped) {
-            headerSkipped = true;
-          }
+    for await (const row of handler.streamRows(
+      readStream,
+      parserConfig,
+      columns,
+    )) {
+      rowCount++;
+      batch.push(this.transformRow(row, colMap));
 
-          rowCount++;
-          const data = row.data;
-          batch.push(this.transformRow(data, colMap));
+      if (batch.length >= BATCH_SIZE) {
+        await this.flushBatch(
+          context,
+          baseId,
+          tableId,
+          batch,
+          req,
+          rowCount,
+          typecast,
+          counters,
+          errors,
+          maxErrors,
+        );
+        batch = [];
+        logDetailed(
+          JSON.stringify({
+            status: 'progress',
+            rowsInserted: counters.insertedCount,
+            rowsFailed: counters.failedCount,
+            totalProcessed: rowCount,
+          }),
+        );
+      }
+    }
 
-          if (batch.length >= BATCH_SIZE) {
-            parser.pause();
-            try {
-              await this.flushBatch(
-                context,
-                baseId,
-                tableId,
-                batch,
-                req,
-                rowCount,
-                typecast,
-                counters,
-                errors,
-                maxErrors,
-              );
-              batch = [];
-              logDetailed(
-                JSON.stringify({
-                  status: 'progress',
-                  rowsInserted: counters.insertedCount,
-                  rowsFailed: counters.failedCount,
-                  totalProcessed: rowCount,
-                }),
-              );
-            } catch (e) {
-              this.logger.error(`Batch flush error: ${e.message}`, e.stack);
-              aborted = true;
-              parser.abort();
-              reject(e);
-              return;
-            }
-            parser.resume();
-          }
-        },
-        complete: async () => {
-          if (aborted) return;
-
-          try {
-            await this.flushBatch(
-              context,
-              baseId,
-              tableId,
-              batch,
-              req,
-              rowCount,
-              typecast,
-              counters,
-              errors,
-              maxErrors,
-            );
-            batch = [];
-            logDetailed(
-              JSON.stringify({
-                status: 'progress',
-                rowsInserted: counters.insertedCount,
-                rowsFailed: counters.failedCount,
-                totalProcessed: rowCount,
-              }),
-            );
-            resolve();
-          } catch (e) {
-            reject(e);
-          }
-        },
-        error(err) {
-          reject(err);
-        },
-      });
-    });
+    // Flush remaining rows
+    if (batch.length > 0) {
+      await this.flushBatch(
+        context,
+        baseId,
+        tableId,
+        batch,
+        req,
+        rowCount,
+        typecast,
+        counters,
+        errors,
+        maxErrors,
+      );
+      logDetailed(
+        JSON.stringify({
+          status: 'progress',
+          rowsInserted: counters.insertedCount,
+          rowsFailed: counters.failedCount,
+          totalProcessed: rowCount,
+        }),
+      );
+    }
 
     return {
       insertedCount: counters.insertedCount,

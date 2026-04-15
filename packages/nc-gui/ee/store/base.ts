@@ -35,7 +35,7 @@ export const useBase = defineStore('baseStore', () => {
   const { loadDashboards } = dashboardStore
   const { loadWorkflows } = workflowStore
 
-  const { blockPrivateBases } = useEeConfig()
+  const { isEEFeatureBlocked, blockPrivateBases } = useEeConfig()
 
   // todo: refactor
   const sharedProject = ref<BaseType>()
@@ -202,7 +202,7 @@ export const useBase = defineStore('baseStore', () => {
       const promises: Promise<any>[] = [tablesStore.loadProjectTables(base.value.id, true)]
 
       // Only load EE features (scripts, dashboards, workflows) when licensed
-      if (appInfo.value?.ee) {
+      if (!isEEFeatureBlocked.value) {
         promises.push(
           loadScripts({ baseId: base.value.id || baseId.value }),
           loadDashboards({ baseId: base.value.id || baseId.value }),

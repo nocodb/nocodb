@@ -9,8 +9,6 @@ const { openedProject } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { appInfo } = useGlobal()
-
 const { isEEFeatureBlocked, showUpgradeForEEFeature } = useEeConfig()
 
 const label = computed(() => {
@@ -18,7 +16,7 @@ const label = computed(() => {
 })
 
 async function openNewDashboardModal() {
-  if (!appInfo.value?.ee) {
+  if (isEEFeatureBlocked.value) {
     showUpgradeForEEFeature(t('objects.dashboards'))
     return
   }

@@ -6,6 +6,7 @@ import {
   NcBaseError,
   ncIsNullOrUndefined,
   parseProp,
+  PlanFeatureTypes,
   RelationTypes,
   RowHeight,
   RowHeightMap,
@@ -38,6 +39,7 @@ import { FormsService } from '~/services/forms.service';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import Noco from '~/Noco';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { Model, Sort, View } from '~/models';
 import {
   builderGenerator,
@@ -858,6 +860,14 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
           break;
         }
         case ViewTypes.CALENDAR: {
+          // Feature-gate multi-range calendar views
+          if (requestBody.calendar_range?.length > 1) {
+            await checkForFeature(
+              context,
+              PlanFeatureTypes.FEATURE_CALENDAR_RANGE,
+            );
+          }
+
           insertedV2View = await this.calendarsService.calendarViewCreate(
             context,
             {
@@ -1359,6 +1369,14 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
           break;
         }
         case ViewTypes.CALENDAR: {
+          // Feature-gate multi-range calendar views
+          if (requestBody.calendar_range?.length > 1) {
+            await checkForFeature(
+              context,
+              PlanFeatureTypes.FEATURE_CALENDAR_RANGE,
+            );
+          }
+
           await this.calendarsService.calendarViewUpdate(
             context,
             {

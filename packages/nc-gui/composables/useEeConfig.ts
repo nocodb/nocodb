@@ -238,7 +238,15 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockRecordTemplates = computed(() => false)
 
+  const blockRls = computed(() => true)
+
   const showUpgradeToUseRecordTemplates = (..._args: any[]) => {}
+
+  const showUpgradeToUseRls = (..._args: any[]) => {}
+
+  const showUpgradeToDuplicateTableToOtherWs = (..._args: any[]) => {}
+
+  const showUpgradeToDuplicateTableToOtherBase = (..._args: any[]) => {}
 
   const blockFormScheduling = computed(() => true)
 
@@ -273,11 +281,29 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeForEEFeature = (..._args: any[]) => {}
 
+  const blockSSO = computed(() => true)
+
   const showUpgradeToUseSSO = (..._args: any[]) => {}
 
   const blockScim = computed(() => true)
 
   const showUpgradeToUseScim = (..._args: any[]) => {}
+
+  const blockSnapshots = computed(() => true)
+
+  const showUpgradeToUseSnapshots = (..._args: any[]) => {}
+
+  const blockCustomUrls = computed(() => true)
+
+  const showUpgradeToUseCustomUrls = (..._args: any[]) => {}
+
+  const blockScripts = computed(() => true)
+
+  const showUpgradeToUseScripts = (..._args: any[]) => {}
+
+  const blockWorkflows = computed(() => true)
+
+  const showUpgradeToUseWorkflows = (..._args: any[]) => {}
 
   return {
     calculatePrice,
@@ -379,13 +405,17 @@ export const useEeConfig = createSharedComposable(() => {
     isHigherActivePlan,
     blockCardFieldHeaderVisibility,
     blockSync,
+    blockRls,
     blockUnique,
     blockUuidField,
     blockAutoNumberField,
     showUpgradeToUseSync,
+    showUpgradeToUseRls,
     showUpgradeToUseUnique,
     showUpgradeToUseUuidField,
     showUpgradeToUseAutoNumberField,
+    showUpgradeToDuplicateTableToOtherWs,
+    showUpgradeToDuplicateTableToOtherBase,
     blockAddNewSandbox,
     showSandboxPlanLimitExceededModal,
     blockRecordTemplates,
@@ -409,8 +439,17 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToCreateWorkspace,
     showUpgradeToManageWorkspaceMembers,
     showUpgradeForEEFeature,
+    blockSSO,
     showUpgradeToUseSSO,
     blockScim,
     showUpgradeToUseScim,
+    blockSnapshots,
+    showUpgradeToUseSnapshots,
+    blockCustomUrls,
+    showUpgradeToUseCustomUrls,
+    blockScripts,
+    showUpgradeToUseScripts,
+    blockWorkflows,
+    showUpgradeToUseWorkflows,
   }
 })

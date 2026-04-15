@@ -7,12 +7,10 @@ const { isMarketVisible } = storeToRefs(scriptStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { appInfo } = useGlobal()
-
-const { isEEFeatureBlocked, showUpgradeToUseScripts } = useEeConfig()
+const { isEEFeatureBlocked, blockScripts, showUpgradeToUseScripts } = useEeConfig()
 
 const openMarketPlace = () => {
-  if (!appInfo.value?.ee) {
+  if (blockScripts.value) {
     showUpgradeToUseScripts()
     return
   }

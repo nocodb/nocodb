@@ -11,16 +11,14 @@ const { openedProject } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { appInfo } = useGlobal()
-
-const { isEEFeatureBlocked, showUpgradeToUseScripts } = useEeConfig()
+const { isEEFeatureBlocked, blockScripts, showUpgradeToUseScripts } = useEeConfig()
 
 const label = computed(() => {
   return `${t('general.create')} ${t('objects.script')}`
 })
 
 async function openNewScriptModal() {
-  if (!appInfo.value?.ee) {
+  if (blockScripts.value) {
     showUpgradeToUseScripts()
     return
   }

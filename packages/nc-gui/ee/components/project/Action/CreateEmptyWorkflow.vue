@@ -11,16 +11,14 @@ const { openedProject } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const { appInfo } = useGlobal()
-
-const { isEEFeatureBlocked, showUpgradeToUseWorkflows } = useEeConfig()
+const { isEEFeatureBlocked, blockWorkflows, showUpgradeToUseWorkflows } = useEeConfig()
 
 const label = computed(() => {
   return `${t('general.create')} ${t('objects.workflow')}`
 })
 
 async function openNewWorkflowModal() {
-  if (!appInfo.value?.ee) {
+  if (blockWorkflows.value) {
     showUpgradeToUseWorkflows()
     return
   }

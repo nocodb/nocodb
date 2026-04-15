@@ -21,9 +21,10 @@ const { isUIAllowed } = useRoles()
 
 const { isMarketVisible } = storeToRefs(useScriptStore())
 
-const { appInfo, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 
-const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseScripts, showUpgradeToUseSync } = useEeConfig()
+const { isEEFeatureBlocked, blockScripts, blockSync, showEEFeatures, showUpgradeToUseScripts, showUpgradeToUseSync } =
+  useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -41,12 +42,20 @@ const showBaseOption = (source: SourceType) => {
 const openMarketPlace = () => {
   vVisible.value = false
 
-  if (!appInfo.value?.ee) {
+  if (blockScripts.value) {
     showUpgradeToUseScripts()
     return
   }
 
   isMarketVisible.value = true
+}
+
+const handleCreateSync = (createSyncClick: () => void) => {
+  if (blockSync.value) {
+    showUpgradeToUseSync()
+    return
+  }
+  createSyncClick()
 }
 
 const syncIcons = [SyncDataType.GITHUB, SyncDataType.JIRA, SyncDataType.ZENDESK]
@@ -111,15 +120,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
             class="nc-menu-item-integration"
             inner-class="w-full"
             data-testid="create-new-sync"
-            @click="
-              () => {
-                if (!appInfo?.ee) {
-                  showUpgradeToUseSync()
-                  return
-                }
-                createSyncClick()
-              }
-            "
+            @click="handleCreateSync(createSyncClick)"
           >
             <GeneralIcon icon="ncZap" />
             {{ $t('labels.sync') }}

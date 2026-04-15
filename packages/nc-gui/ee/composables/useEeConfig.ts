@@ -369,7 +369,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockFormScheduling = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_FORM_SCHEDULING)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FORM_SCHEDULING)
   })
 
   const blockViewSections = computed(() => {
@@ -383,6 +383,8 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockMapView = computed(() => {
+    if (isEEFeatureBlocked.value) return true
+
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
   })
 
@@ -395,7 +397,7 @@ export const useEeConfig = createSharedComposable(() => {
   const blockScim = computed(() => {
     // SCIM is on-prem enterprise only — always blocked on cloud
     if (isPaymentEnabled.value) return true
-    return isEEFeatureBlocked.value
+    return isEEFeatureBlocked.value || (isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SCIM))
   })
   const blockSnapshots = computed(
     () => isEEFeatureBlocked.value || (isOnPrem.value && getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0),

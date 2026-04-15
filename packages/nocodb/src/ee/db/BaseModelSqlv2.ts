@@ -2478,7 +2478,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           responses = [];
           if (
             insertOneByOneAsFallback &&
-            (this.clientMeta.isMySQL || this.clientMeta.isSqlite)
+            (this.clientMeta.isSqlite || this.clientMeta.isMySQL)
           ) {
             for (const insertData of insertDatas) {
               const query = trx(this.tnPath).insert(insertData);

@@ -292,7 +292,7 @@ const onChangeColor = (color: string) => {
                   <GeneralIcon icon="ncFolderClosed" class="opacity-80" />
                   {{ $t('activity.kanban.collapseAll') }}
                 </NcMenuItem>
-                <template v-if="!isDefault">
+                <template v-if="!isDefault && isUIAllowed('sectionCreateOrEdit')">
                   <NcDivider />
                   <NcMenuItem class="!hover:bg-transparent !cursor-default !pb-0.5">
                     <GeneralIcon icon="ncPalette" class="opacity-80" />
@@ -307,8 +307,8 @@ const onChangeColor = (color: string) => {
                       @input="onChangeColor"
                     />
                   </div>
-                  <NcDivider v-if="isUIAllowed('sectionCreateOrEdit')" />
-                  <NcMenuItem v-if="isUIAllowed('sectionCreateOrEdit')" @click="onRenameMenuClick">
+                  <NcDivider />
+                  <NcMenuItem @click="onRenameMenuClick">
                     <GeneralIcon icon="rename" class="opacity-80" />
                     {{
                       $t('general.renameEntity', {
@@ -316,8 +316,8 @@ const onChangeColor = (color: string) => {
                       })
                     }}
                   </NcMenuItem>
-                  <NcDivider v-if="isUIAllowed('sectionCreateOrEdit')" />
-                  <NcMenuItem v-if="isUIAllowed('sectionCreateOrEdit')" danger @click="onDelete">
+                  <NcDivider />
+                  <NcMenuItem danger @click="onDelete">
                     <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />
                     {{
                       $t('general.deleteEntity', {

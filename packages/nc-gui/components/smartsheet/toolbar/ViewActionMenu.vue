@@ -308,6 +308,25 @@ const disableCollaborativeOption = computed(() => {
   return false
 })
 
+// Tooltips shown on hover of each disabled view-mode option.
+const collabOptionDisabledReason = computed(() => {
+  if (isLockedView.value) return t('tooltip.onlyCreatorsCanUnlockView')
+  if (isPersonalView.value && !isPersonalViewOwner.value) return t('tooltip.onlyOwnerOrCreatorCanReAssign')
+  return ''
+})
+
+const personalOptionDisabledReason = computed(() => {
+  if (blockViewOperations.value && !isPersonalView.value)
+    return t('msg.toast.notAllowedToChangeGridView')
+  if (isPersonalView.value && !isPersonalViewOwner.value)
+    return t('tooltip.onlyViewOwnerCanModifyPersonalView')
+  if (isLockedView.value && !isUIAllowed('fieldAdd'))
+    return t('tooltip.onlyCreatorsCanUnlockView')
+  return ''
+})
+
+const lockedOptionDisabledReason = computed(() => t('tooltip.onlyCreatorsCanLockView'))
+
 // The "Assign as personal view" action (opens DlgReAssign to pick any user) is
 // restricted to creator+. Editors can still convert a collab view to their own
 // personal view via the View mode → Personal submenu option.
@@ -578,23 +597,22 @@ defineOptions({
           <NcMenuItemLabel>
             {{ $t('labels.viewMode') }}
           </NcMenuItemLabel>
-          <NcMenuItem
-            class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
-            data-testid="nc-view-action-lock-subaction-Collaborative"
-            :disabled="disableCollaborativeOption"
-            @click="changeLockType(LockType.Collaborative)"
-          >
-            <SmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="disableCollaborativeOption" />
-          </NcMenuItem>
+          <SmartsheetToolbarNotAllowedTooltip :enabled="disableCollaborativeOption">
+            <template #title>
+              <div class="max-w-80">{{ collabOptionDisabledReason }}</div>
+            </template>
+            <NcMenuItem
+              class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
+              data-testid="nc-view-action-lock-subaction-Collaborative"
+              :disabled="disableCollaborativeOption"
+              @click="changeLockType(LockType.Collaborative)"
+            >
+              <SmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="disableCollaborativeOption" />
+            </NcMenuItem>
+          </SmartsheetToolbarNotAllowedTooltip>
           <SmartsheetToolbarNotAllowedTooltip v-if="isEeUI && showEEFeatures" :enabled="disablePersonalView">
             <template #title>
-              <div class="max-w-80">
-                {{
-                  blockViewOperations && view?.lock_type !== LockType.Personal
-                    ? $t('msg.toast.notAllowedToChangeGridView')
-                    : 'Only view owner can change to personal view'
-                }}
-              </div>
+              <div class="max-w-80">{{ personalOptionDisabledReason }}</div>
             </template>
             <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
               <template #default="{ click }">
@@ -613,14 +631,19 @@ defineOptions({
               </template>
             </PaymentUpgradeBadgeProvider>
           </SmartsheetToolbarNotAllowedTooltip>
-          <NcMenuItem
-            data-testid="nc-view-action-lock-subaction-Locked"
-            class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction"
-            :disabled="!isUIAllowed('fieldAdd')"
-            @click="changeLockType(LockType.Locked)"
-          >
-            <SmartsheetToolbarLockType :type="LockType.Locked" :disabled="!isUIAllowed('fieldAdd')" />
-          </NcMenuItem>
+          <SmartsheetToolbarNotAllowedTooltip :enabled="!isUIAllowed('fieldAdd')">
+            <template #title>
+              <div class="max-w-80">{{ lockedOptionDisabledReason }}</div>
+            </template>
+            <NcMenuItem
+              data-testid="nc-view-action-lock-subaction-Locked"
+              class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction"
+              :disabled="!isUIAllowed('fieldAdd')"
+              @click="changeLockType(LockType.Locked)"
+            >
+              <SmartsheetToolbarLockType :type="LockType.Locked" :disabled="!isUIAllowed('fieldAdd')" />
+            </NcMenuItem>
+          </SmartsheetToolbarNotAllowedTooltip>
         </NcSubMenu>
         <template v-if="isEeUI && showEEFeatures">
           <SmartsheetToolbarNotAllowedTooltip

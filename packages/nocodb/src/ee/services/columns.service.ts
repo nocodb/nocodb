@@ -154,7 +154,7 @@ export class ColumnsService extends ColumnsServiceCE {
     }
 
     // Feature-gate unique constraint (skip for UUID which forces unique)
-    if (param.column.unique && param.column.uidt !== UITypes.UUID) {
+    if ('unique' in param.column && param.column.unique && param.column.uidt !== UITypes.UUID) {
       await checkForFeature(context, PlanFeatureTypes.FEATURE_UNIQUE);
     }
 

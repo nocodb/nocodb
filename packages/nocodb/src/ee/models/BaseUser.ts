@@ -240,8 +240,10 @@ export default class BaseUser extends BaseUserCE {
         )
         // Hierarchy: direct match OR user's team is ancestor of assigned team
         .whereRaw(
-          `wta_team.id = pa_team.id OR wta_team.path LIKE ${dbClient.concat(['pa_team.path', '?'])}`,
-          ['/%'],
+          `wta_team.id = pa_team.id OR wta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         // Exclude soft-deleted teams
         .where(
@@ -293,8 +295,10 @@ export default class BaseUser extends BaseUserCE {
         )
         // Hierarchy: direct match OR user's team is ancestor of assigned team
         .whereRaw(
-          `bta_team.id = pa_team.id OR bta_team.path LIKE ${dbClient.concat(['pa_team.path', '?'])}`,
-          ['/%'],
+          `bta_team.id = pa_team.id OR bta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         // Exclude soft-deleted teams
         .where(
@@ -544,8 +548,10 @@ export default class BaseUser extends BaseUserCE {
         )
         // Hierarchy: direct match OR user's team is ancestor of assigned team
         .whereRaw(
-          `wta_team.id = pa_team.id OR wta_team.path LIKE ${dbClient.concat(['pa_team.path', '?'])}`,
-          ['/%'],
+          `wta_team.id = pa_team.id OR wta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         .where(
           ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
@@ -596,8 +602,10 @@ export default class BaseUser extends BaseUserCE {
         )
         // Hierarchy: direct match OR user's team is ancestor of assigned team
         .whereRaw(
-          `bta_team.id = pa_team.id OR bta_team.path LIKE ${dbClient.concat(['pa_team.path', '?'])}`,
-          ['/%'],
+          `bta_team.id = pa_team.id OR bta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         .where(
           ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
@@ -1030,8 +1038,10 @@ export default class BaseUser extends BaseUserCE {
           ncMeta.knex.raw('?', [false]),
         )
         .whereRaw(
-          `wta_team.id = pa_team.id OR wta_team.path LIKE ${dbClient.concat(['pa_team.path', '?'])}`,
-          ['/%'],
+          `wta_team.id = pa_team.id OR wta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         .where(
           ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
@@ -1073,8 +1083,10 @@ export default class BaseUser extends BaseUserCE {
           ncMeta.knex.raw('?', [false]),
         )
         .whereRaw(
-          `bta_team.id = pa_team.id OR bta_team.path LIKE ${dbClient.concat(['pa_team.path', '?'])}`,
-          ['/%'],
+          `bta_team.id = pa_team.id OR bta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         .where(
           ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),

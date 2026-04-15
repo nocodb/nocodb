@@ -953,6 +953,8 @@ const rolePermissions:
       gridViewCreate: true,
       gridViewUpdate: true,
       formViewCreate: true,
+      formViewUpdate: true,
+      formColumnUpdate: true,
       galleryViewCreate: true,
       galleryViewUpdate: true,
       kanbanViewCreate: true,

@@ -214,7 +214,6 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockRowColoring = computed(() => {
-    if (isEEFeatureBlocked.value) return true
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_ROW_COLOUR)
   })
 
@@ -239,14 +238,11 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockTableAndFieldPermissions = computed(() => {
-    return (
-      isEEFeatureBlocked.value ||
-      ((isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS))
-    )
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
   })
 
   const blockDocumentPermissions = computed(() => {
-    return isEEFeatureBlocked.value || (isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS))
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS)
   })
 
   const blockPrivateBases = computed(() => {
@@ -284,24 +280,18 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockAiChat = computed(() => {
-    if (isEEFeatureBlocked.value) return true
-
     // On-prem: hide AI chat entirely when no AI integrations are configured
     if (isOnPrem.value && !aiIntegrationAvailable.value) return true
 
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_AI_CHAT)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_AI_CHAT)
   })
 
   const blockAiIntegrations = computed(() => {
-    if (isEEFeatureBlocked.value) return true
-
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_AI_INTEGRATIONS)
   })
 
   const blockDocAi = computed(() => {
-    if (isEEFeatureBlocked.value) return true
-
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOC_AI)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DOC_AI)
   })
 
   const blockButtonVisibility = computed(() => {
@@ -313,14 +303,10 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockTeamHierarchy = computed(() => {
-    if (isEEFeatureBlocked.value) return true
-
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TEAM_HIERARCHY)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TEAM_HIERARCHY)
   })
 
   const blockTeamsManagement = computed(() => {
-    if (isEEFeatureBlocked.value) return true
-
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
   })
 
@@ -342,17 +328,15 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockSync = computed(() => {
-    return isEEFeatureBlocked.value || ((isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_SYNC))
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_SYNC)
   })
 
   const blockRls = computed(() => {
-    return isEEFeatureBlocked.value || ((isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_RLS))
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_RLS)
   })
 
   const blockUnique = computed(() => {
-    return (
-      isEEFeatureBlocked.value || ((isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_UNIQUE))
-    )
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_UNIQUE)
   })
 
   // UUID is available on all cloud plans + self-hosted EE — never blocked in EE
@@ -362,10 +346,7 @@ export const useEeConfig = createSharedComposable(() => {
   const blockAutoNumberField = computed(() => false)
 
   const blockRecordTemplates = computed(() => {
-    return (
-      isEEFeatureBlocked.value ||
-      ((isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES))
-    )
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES)
   })
 
   const blockFormScheduling = computed(() => {
@@ -377,15 +358,11 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockListView = computed(() => {
-    if (isEEFeatureBlocked.value) return true
-
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_LIST_VIEW)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_LIST_VIEW)
   })
 
   const blockMapView = computed(() => {
-    if (isEEFeatureBlocked.value) return true
-
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
   })
 
   const blockDateDependency = computed(() => {
@@ -393,22 +370,22 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   /** EE-only feature blocks — gated by license on self-hosted, plan-gated for licensed on-prem */
-  const blockSSO = computed(() => isEEFeatureBlocked.value || (isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SSO)))
+  const blockSSO = computed(() => isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SSO))
   const blockScim = computed(() => {
     // SCIM is on-prem enterprise only — always blocked on cloud
     if (isPaymentEnabled.value) return true
-    return isEEFeatureBlocked.value || (isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SCIM))
+    return isOnPrem.value && !getFeature(PlanFeatureTypes.FEATURE_SCIM)
   })
-  const blockSnapshots = computed(
-    () => isEEFeatureBlocked.value || (isOnPrem.value && getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0),
-  )
-  const blockCustomUrls = computed(() => isEEFeatureBlocked.value)
+  const blockSnapshots = computed(() => isOnPrem.value && getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0)
+  const blockCustomUrls = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_CUSTOM_URL)
+  })
   const blockScripts = computed(() => isEEFeatureBlocked.value)
   const blockWorkflows = computed(() => isEEFeatureBlocked.value)
-  const blockExtensions = computed(() => isEEFeatureBlocked.value)
+  const blockExtensions = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS)
+  })
   const blockWorkspaceCreate = computed(() => {
-    if (isEEFeatureBlocked.value) return true
-
     // On-prem with workspace limit from plan meta
     if (isOnPrem.value) {
       const limit = getLimit(PlanLimitTypes.LIMIT_WORKSPACE)

@@ -126,7 +126,6 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_UNIQUE]: false,
       [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: false,
       [PlanFeatureTypes.FEATURE_LIST_VIEW]: false,
-      [PlanFeatureTypes.FEATURE_MAP_VIEW]: false,
       [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: false,
       [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]: false,
       [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: false,
@@ -197,7 +196,6 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_UNIQUE]: false,
       [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: false,
       [PlanFeatureTypes.FEATURE_LIST_VIEW]: false,
-      [PlanFeatureTypes.FEATURE_MAP_VIEW]: false,
       [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: false,
       [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]: false,
       [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: false,
@@ -435,6 +433,7 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: true,
       [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: true,
       [PlanFeatureTypes.FEATURE_DOCS_APIS]: true,
+      [PlanFeatureTypes.FEATURE_MAP_VIEW]: true,
     },
     limits: {
       // Explicitly allowed limits for unlicensed on-prem.

@@ -10,7 +10,6 @@ const { orgRoles, isUIAllowed } = useRoles()
 const { appInfo } = useGlobal()
 
 const {
-  isEEFeatureBlocked,
   showEEFeatures,
   blockSSO,
   showUpgradeToUseSSO,

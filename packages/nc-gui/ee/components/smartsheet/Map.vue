@@ -2,7 +2,7 @@
 import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
-import { ViewTypes, latLongToJoinedString } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, ViewTypes, latLongToJoinedString } from 'nocodb-sdk'
 
 const route = useRoute()
 
@@ -28,6 +28,12 @@ const mapContainerRef = ref<HTMLElement>()
 const myMapRef = ref<L.Map>()
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+const { isUIAllowed } = useRoles()
+
+const { isAllowed } = usePermissions()
+
+const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const meta = inject(MetaInj, ref())
 
@@ -69,6 +75,14 @@ const expandForm = (row: Row, state?: Record<string, any>) => {
 }
 
 const openNewRecordFormListener = async () => {
+  if (
+    !isUIAllowed('dataInsert') ||
+    isSyncedTable.value ||
+    !isAllowed(PermissionEntity.TABLE, meta.value?.id, PermissionKey.TABLE_RECORD_ADD)
+  ) {
+    return
+  }
+
   const newRow = await addEmptyRow()
   expandForm(newRow)
 }
@@ -202,6 +216,14 @@ onMounted(async () => {
   })
 
   myMap.on('contextmenu', async function (e) {
+    if (
+      !isUIAllowed('dataInsert') ||
+      isSyncedTable.value ||
+      !isAllowed(PermissionEntity.TABLE, meta.value?.id, PermissionKey.TABLE_RECORD_ADD)
+    ) {
+      return
+    }
+
     const { lat, lng } = e.latlng
     const newRow = await addEmptyRow()
     if (geoDataFieldColumn.value?.title) {
@@ -340,18 +362,26 @@ const onAddRecordClick = async () => {
         </div>
       </a-tooltip>
 
-      <NcTooltip v-if="!isPublic" placement="right" class="absolute bottom-5 left-3 z-500">
-        <template #title> {{ $t('activity.addNewRecord') }} </template>
-        <NcButton
-          type="secondary"
-          size="small"
-          data-testid="nc-map-add-record-btn"
-          class="!rounded-full !w-10 !h-10 !shadow-lg"
-          @click="onAddRecordClick"
-        >
-          <GeneralIcon icon="plus" />
-        </NcButton>
-      </NcTooltip>
+      <PermissionsTooltip
+        v-if="isUIAllowed('dataInsert') && !isSyncedTable"
+        :entity="PermissionEntity.TABLE"
+        :entity-id="meta?.id"
+        :permission="PermissionKey.TABLE_RECORD_ADD"
+        class="absolute bottom-5 left-3 z-500"
+      >
+        <template #default="{ isAllowed: isAllowedAddNewRecord }">
+          <NcButton
+            type="secondary"
+            size="small"
+            data-testid="nc-map-add-record-btn"
+            class="!rounded-full !w-10 !h-10 !shadow-lg"
+            :disabled="!isAllowedAddNewRecord"
+            @click="onAddRecordClick"
+          >
+            <GeneralIcon icon="plus" />
+          </NcButton>
+        </template>
+      </PermissionsTooltip>
     </div>
   </div>
   <Suspense>

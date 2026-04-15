@@ -482,6 +482,14 @@ watch(inviteDlg, (newVal) => {
                 {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
               </div>
             </NcTooltip>
+            <div
+              v-else-if="appInfo.isOnPrem && !appInfo.ee"
+              class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap"
+            >
+              <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
+
+              {{ paidUsersCount }} {{ paidUsersCount === 1 ? $t('labels.editorSeat') : $t('labels.editorSeats') }}
+            </div>
             <div v-else class="flex items-center text-nc-content-gray-default text-sm whitespace-nowrap">
               <GeneralIcon icon="ncCrown" class="flex-none h-4 w-4 mr-1" />
 

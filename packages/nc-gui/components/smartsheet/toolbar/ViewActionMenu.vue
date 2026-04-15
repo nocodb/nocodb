@@ -285,6 +285,15 @@ const disableLockTypeMenu = computed(() => {
   return false
 })
 
+// Tooltip shown when the whole view-mode submenu is disabled (so the user
+// can hover the title and understand why it won't expand).
+const lockTypeMenuDisabledReason = computed(() => {
+  if (isPersonalView.value && !isPersonalViewOwner.value)
+    return t('tooltip.onlyViewOwnerCanModifyPersonalView')
+  if (isLockedView.value) return t('tooltip.onlyCreatorsCanUnlockView')
+  return ''
+})
+
 const disablePersonalView = computed(() => {
   // Default grid view can't be made personal (would leave the table without a grid view)
   if (blockViewOperations.value) return true
@@ -571,27 +580,34 @@ defineOptions({
           class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
         >
           <template #title>
-            <div
-              v-e="[
-                'c:navdraw:preview-as',
-                {
-                  sidebar: props.inSidebar,
-                },
-              ]"
-              class="flex flex-row items-center gap-x-3"
+            <NcTooltip
+              :disabled="!disableLockTypeMenu"
+              :title="lockTypeMenuDisabledReason"
+              placement="right"
+              class="w-full"
             >
-              <div>
-                {{ $t('labels.viewMode') }}
+              <div
+                v-e="[
+                  'c:navdraw:preview-as',
+                  {
+                    sidebar: props.inSidebar,
+                  },
+                ]"
+                class="flex flex-row items-center gap-x-3"
+              >
+                <div>
+                  {{ $t('labels.viewMode') }}
+                </div>
+                <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-nc-bg-brand">
+                  <LazySmartsheetToolbarLockType
+                    :type="lockType"
+                    class="flex nc-view-actions-lock-type !text-nc-content-brand !flex-shrink !cursor-auto"
+                    hide-tick
+                  />
+                </div>
+                <div class="flex flex-grow"></div>
               </div>
-              <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-nc-bg-brand">
-                <LazySmartsheetToolbarLockType
-                  :type="lockType"
-                  class="flex nc-view-actions-lock-type !text-nc-content-brand !flex-shrink !cursor-auto"
-                  hide-tick
-                />
-              </div>
-              <div class="flex flex-grow"></div>
-            </div>
+            </NcTooltip>
           </template>
 
           <NcMenuItemLabel>

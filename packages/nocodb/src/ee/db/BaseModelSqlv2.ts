@@ -2429,7 +2429,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             const row = responses[i];
             let rowId;
             if (this.isSqlite || this.isMySQL) {
-              if (this.isMySQL) {
+              if (
+                insertOneByOneAsFallback &&
+                !(this.dbDriver as any).isExternal
+              ) {
+                // new path: row is {pk_col: id} from extractCompositePK
+                rowId = row?.[this.model.primaryKey?.title];
+              } else if (this.isMySQL) {
+                // legacy path: execAndGetRows returned raw last-insert-id
                 rowId = row;
               }
 

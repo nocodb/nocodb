@@ -751,6 +751,7 @@ const onCancelImport = () => {
   jsonErrorText.value = ''
   isError.value = false
   localImportError.value = ''
+  serverAttachment.value = null
 }
 
 onUnmounted(() => {

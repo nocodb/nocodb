@@ -18,6 +18,7 @@ import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import { Altered } from '~/services/columns.service';
 import Upgrader from '~/Upgrader';
 import Noco from '~/Noco';
+import { META_COL_NAME } from '~/constants';
 
 const PARALLEL_LIMIT =
   +process.env.NC_SOFT_DELETE_MIGRATION_PARALLEL_LIMIT || 10;
@@ -26,21 +27,25 @@ const TEMP_TABLE = 'nc_temp_processed_soft_delete';
 
 const propsByClientType = {};
 
-const memoizedGetColumnPropsFromUIDT = async (source: Source) => {
-  const clientType = source.type;
+const memoizedGetColumnPropsFromUIDT = async (
+  source: Source,
+  uidt: UITypes,
+  column_name: string,
+) => {
+  const cacheKey = `${source.type}:${uidt}`;
 
-  if (!propsByClientType[clientType]) {
-    propsByClientType[clientType] = await getColumnPropsFromUIDT(
+  if (!propsByClientType[cacheKey]) {
+    propsByClientType[cacheKey] = await getColumnPropsFromUIDT(
       {
-        uidt: UITypes.Deleted,
-        column_name: '__nc_deleted',
-        title: '__nc_deleted',
+        uidt,
+        column_name,
+        title: column_name,
       },
       source,
     );
   }
 
-  return propsByClientType[clientType];
+  return propsByClientType[cacheKey];
 };
 
 @Injectable()
@@ -113,7 +118,7 @@ export class SoftDeleteColumnMigration {
       )?.count;
 
       this.log(
-        `Found ${numberOfModelsToBeProcessed} models to process for soft delete column`,
+        `Found ${numberOfModelsToBeProcessed} models to process for soft delete + meta column`,
       );
 
       const wrapper = async (model: {
@@ -262,26 +267,33 @@ export class SoftDeleteColumnMigration {
     }
 
     const needsDeletedCol = !model.columns.find((c) => isDeletedCol(c));
+    const needsMetaCol =
+      isEE &&
+      source.type === 'pg' &&
+      !model.columns.find((c) => c.uidt === UITypes.Meta);
     const needsOoUniqueDrop = v1OoFkColIds.size > 0;
 
-    // Check if any user-set unique columns need to be converted to partial unique indexes
-    // This handles tables that already have __nc_deleted but still have regular unique constraints
-    // Exclude PK and auto-increment columns — their unique constraints must stay unconditional
+    // Check if any user-set unique columns need to be converted to partial unique indexes.
+    // This handles tables that already have __nc_deleted but still have regular unique constraints.
+    // Exclude PK and auto-increment columns — their unique constraints must stay unconditional.
     const hasUniqueColumns = model.columns.some(
-      (c) =>
-        c.unique &&
-        !v1OoFkColIds.has(c.id) &&
-        !c.pk &&
-        !c.ai,
+      (c) => c.unique && !v1OoFkColIds.has(c.id) && !c.pk && !c.ai,
     );
     const needsUniqueConversion = hasUniqueColumns && !needsDeletedCol;
 
-    if (!needsDeletedCol && !needsOoUniqueDrop && !needsUniqueConversion) {
+    if (
+      !needsDeletedCol &&
+      !needsMetaCol &&
+      !needsOoUniqueDrop &&
+      !needsUniqueConversion
+    ) {
       await this.updateModelStatus(Noco.ncMeta, modelId, true);
       return;
     }
 
     let newDeletedColumn: any;
+    let newMetaColumn: any;
+
     // For columns whose unique constraint needs to be recreated as a partial index,
     // set unique: false on the original so PgClient sees a false→true transition.
     // Exclude PK and auto-increment columns — their unique constraints must stay unconditional.
@@ -312,7 +324,11 @@ export class SoftDeleteColumnMigration {
 
     if (needsDeletedCol) {
       newDeletedColumn = {
-        ...(await memoizedGetColumnPropsFromUIDT(source)),
+        ...(await memoizedGetColumnPropsFromUIDT(
+          source,
+          UITypes.Deleted,
+          '__nc_deleted',
+        )),
         column_name: getUniqueColumnName(model.columns, '__nc_deleted'),
         title: getUniqueColumnAliasName(model.columns, '__nc_deleted'),
         cdf: source.type === 'mysql2' ? '0' : 'false',
@@ -322,6 +338,20 @@ export class SoftDeleteColumnMigration {
       columns.push({ ...newDeletedColumn, cn: newDeletedColumn.column_name });
     }
 
+    if (needsMetaCol) {
+      newMetaColumn = {
+        ...(await memoizedGetColumnPropsFromUIDT(
+          source,
+          UITypes.Meta,
+          META_COL_NAME,
+        )),
+        column_name: getUniqueColumnName(model.columns, META_COL_NAME),
+        title: getUniqueColumnAliasName(model.columns, META_COL_NAME),
+        system: true,
+        altered: Altered.NEW_COLUMN,
+      };
+      columns.push({ ...newMetaColumn, cn: newMetaColumn.column_name });
+    }
     await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
       ...model,
       tn: model.table_name,
@@ -330,52 +360,49 @@ export class SoftDeleteColumnMigration {
     });
 
     if (needsDeletedCol && newDeletedColumn) {
+      const idxName = `${model.table_name}_nc_deleted_idx`.slice(0, 63);
+      source.upgraderQueries.push(
+        dbDriver
+          .raw(`CREATE INDEX ?? ON ?? (??)`, [
+            idxName,
+            tnPath,
+            newDeletedColumn.column_name,
+          ])
+          .toQuery(),
+      );
+    }
+
+    const modelMeta = new Upgrader();
+    modelMeta.enableUpgraderMode();
+
+    if (needsDeletedCol && newDeletedColumn) {
       await Column.insert(
         context,
         { ...newDeletedColumn, system: true, fk_model_id: model.id, source_id },
-        ncMeta,
+        modelMeta,
+      );
+    }
+
+    if (needsMetaCol && newMetaColumn) {
+      await Column.insert(
+        context,
+        { ...newMetaColumn, system: true, fk_model_id: model.id, source_id },
+        modelMeta,
       );
     }
 
     for (const fkColId of v1OoFkColIds) {
-      await Column.update(context, fkColId, { unique: false }, ncMeta);
+      await Column.update(context, fkColId, { unique: false }, modelMeta);
     }
 
     const realDbDriver = await NcConnectionMgrv2.get(
       new Source({ ...originalSource, upgraderMode: false } as any),
     );
 
-    const queries = source.upgraderQueries.splice(0);
-    if (queries.length) {
-      if (isEE) {
-        await realDbDriver.raw(queries.join(';'));
-      } else {
-        const trans = await realDbDriver.transaction();
-        try {
-          for (const query of queries) {
-            await trans.raw(query);
-          }
-          await trans.commit();
-        } catch (e) {
-          await trans.rollback();
-          throw e;
-        }
-      }
-    }
+    await Upgrader.flushSourceQueries(source, realDbDriver);
 
-    if (needsDeletedCol && newDeletedColumn) {
-      try {
-        await realDbDriver.schema.table(tnPath as string, (t) => {
-          // PG has a 63-char identifier limit, MySQL 64 — truncate to be safe
-          const idxName = `${model.table_name}_nc_deleted_idx`.slice(0, 63);
-          t.index([newDeletedColumn.column_name], idxName);
-        });
-      } catch (_e) {
-        // index may already exist
-      }
-    }
+    await modelMeta.runUpgraderQueries();
 
-    await ncMeta.runUpgraderQueries();
     await this.updateModelStatus(Noco.ncMeta, modelId, true);
   }
 

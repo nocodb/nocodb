@@ -10,6 +10,7 @@ import type { Socket } from 'socket.io';
 import { T } from '~/utils';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { TelemetryService } from '~/services/telemetry.service';
+import NocoSocket from '~/socket/NocoSocket';
 
 function getHash(str) {
   return crypto.createHash('md5').update(str).digest('hex');
@@ -48,6 +49,8 @@ export class SocketGateway implements OnModuleInit {
   server: Server;
 
   async onModuleInit() {
+    NocoSocket.ioServer = this.server;
+
     this.server
       .use(async (socket, next) => {
         try {

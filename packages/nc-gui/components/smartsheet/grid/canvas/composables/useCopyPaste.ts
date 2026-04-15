@@ -454,14 +454,20 @@ export function useCopyPaste({
             const column = colsToPaste[j]
             if (!column) continue
 
-            // Collect junction-table-based LTAR columns for bulk API
-            if (isMMOrMMLike(column)) {
+            const isBtTextTargetCol = isBt(column) && !(column.meta as any)?.custom
+            const isLtarTextTargetCol = isBtTextTargetCol || isMMOrMMLike(column)
+
+            // Collect junction-table-based LTAR columns for bulk API — and route v1 BT text paste to the same API
+            if (isLtarTextTargetCol) {
               if (!isPasteable(targetRow, column, false, true)) continue
 
               const clipboardItem = extractCellClipboardData(storedCopiedData, clipboardRowIndex, j)
               const isStructuredLtarPaste = clipboardItem && isLinksOrLTAR(clipboardItem.column)
 
               if (isStructuredLtarPaste) {
+                // Structured bulk paste is only supported for junction-based LTAR columns — v1 BT has no matching source
+                if (!isMMOrMMLike(column)) continue
+
                 // Block structured copy-paste for OO and OM — paste moves records between rows
                 if (isOoOrOm(column)) {
                   if (!isInfoShown) {
@@ -654,88 +660,89 @@ export function useCopyPaste({
           const singleCellClipboardItem = extractCellClipboardData(storedCopiedData, 0, 0)
           const isStructuredLtarPaste = singleCellClipboardItem && isLinksOrLTAR(singleCellClipboardItem.column)
 
-          // handle belongs to column, skip custom links
-          if (isBt(columnObj) && !(columnObj.meta as any)?.custom) {
+          const isBtTextTarget = isBt(columnObj) && !(columnObj.meta as any)?.custom
+          const isLtarTextTarget = isBtTextTarget || isMMOrMMLike(columnObj)
+
+          // Plain text paste into LTAR (BT v1/v2, MM) — resolve display values to linked records
+          if (isLtarTextTarget && !isStructuredLtarPaste) {
             if (!isPasteable(rowObj, columnObj, true, true)) return
 
-            if (isStructuredLtarPaste) {
-              const pasteVal = convertCellData(
+            const plainText = clipboardData
+            if (!plainText?.trim()) return
+
+            const displayValues = plainText.split(',').map((v: string) => v.trim()).filter(Boolean)
+            if (!displayValues.length) return
+
+            const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+            if (!pasteRowPk) return
+
+            try {
+              await $api.internal.postOperation(
+                meta.value?.fk_workspace_id as string,
+                meta.value?.base_id as string,
                 {
-                  value: clipboardData,
-                  to: columnObj.uidt as UITypes,
-                  column: columnObj,
-                  appInfo: unref(appInfo),
-                  clipboardItem: singleCellClipboardItem,
+                  operation: 'nestedDataBulkLinkByDisplayValue',
+                  tableId: meta.value?.id as string,
+                  viewId: view?.value?.id,
                 },
-                isMysql(meta.value?.source_id),
+                [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
               )
 
-              if (pasteVal === undefined || !ncIsObject(pasteVal)) return
-
-              const foreignKeyColumn = meta.value?.columns?.find(
-                (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
-              )
-
-              if (!foreignKeyColumn) return
-
-              const relatedBaseId =
-                (columnObj.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta?.value?.base_id
-              const relatedTableMeta = await getMeta(
-                relatedBaseId as string,
-                (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
-              )
-
-              // update old row to allow undo redo as bt column update only through foreignKeyColumn title
-              rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
-              rowObj.oldRow[foreignKeyColumn.title!] = rowObj.row[columnObj.title!]
-                ? extractPkFromRow(rowObj.row[columnObj.title!], (relatedTableMeta as any)!.columns!)
-                : null
-
-              rowObj.row[columnObj.title!] = pasteVal?.value
-
-              rowObj.row[foreignKeyColumn.title!] = pasteVal?.value
-                ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
-                : null
-
-              return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title }, groupPath)
+              return await syncCellData?.(activeCell.value, groupPath)
+            } catch (e: any) {
+              message.error(await extractSdkResponseErrorMsg(e))
+              return
             }
-
-            // Fall through to isMMOrMMLike block for text-based paste
           }
 
-          // Handle junction-table-based LTAR column paste (V1 MM, V2 om/mo/oo/mm)
-          if (isMMOrMMLike(columnObj)) {
+          // handle belongs to column, skip custom links — structured paste only (text path handled above)
+          if (isBtTextTarget) {
             if (!isPasteable(rowObj, columnObj, true, true)) return
 
-            if (!isStructuredLtarPaste) {
-              // Plain text paste — resolve display values to linked records
-              const plainText = clipboardData
-              if (!plainText?.trim()) return
+            const pasteVal = convertCellData(
+              {
+                value: clipboardData,
+                to: columnObj.uidt as UITypes,
+                column: columnObj,
+                appInfo: unref(appInfo),
+                clipboardItem: singleCellClipboardItem,
+              },
+              isMysql(meta.value?.source_id),
+            )
 
-              const displayValues = plainText.split(',').map((v: string) => v.trim()).filter(Boolean)
-              if (!displayValues.length) return
+            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
 
-              const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
-              if (!pasteRowPk) return
+            const foreignKeyColumn = meta.value?.columns?.find(
+              (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+            )
 
-              try {
-                await $api.internal.postOperation(
-                  meta.value?.fk_workspace_id as string,
-                  meta.value?.base_id as string,
-                  {
-                    operation: 'nestedDataBulkLinkByDisplayValue',
-                    tableId: meta.value?.id as string,
-                    viewId: view?.value?.id,
-                  },
-                  [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
-                )
+            if (!foreignKeyColumn) return
 
-                return await syncCellData?.(activeCell.value, groupPath)
-              } catch (e: any) {
-                message.error(await extractSdkResponseErrorMsg(e))
-                return
-              }
-            }
+            const relatedBaseId =
+              (columnObj.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta?.value?.base_id
+            const relatedTableMeta = await getMeta(
+              relatedBaseId as string,
+              (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+            )
+
+            // update old row to allow undo redo as bt column update only through foreignKeyColumn title
+            rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
+            rowObj.oldRow[foreignKeyColumn.title!] = rowObj.row[columnObj.title!]
+              ? extractPkFromRow(rowObj.row[columnObj.title!], (relatedTableMeta as any)!.columns!)
+              : null
+
+            rowObj.row[columnObj.title!] = pasteVal?.value
+
+            rowObj.row[foreignKeyColumn.title!] = pasteVal?.value
+              ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
+              : null
+
+            return await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title }, groupPath)
+          }
+
+          // Handle junction-table-based LTAR column paste (V1 MM, V2 om/mo/oo/mm) — structured only
+          if (isMMOrMMLike(columnObj)) {
+            if (!isPasteable(rowObj, columnObj, true, true)) return
 
             const pasteVal = convertCellData(
               {

@@ -1346,81 +1346,81 @@ export function useMultiSelect(
           const singleCellClipboardItem = extractCellClipboardData(storedCopiedData, 0, 0)
           const isStructuredLtarPaste = singleCellClipboardItem && isLinksOrLTAR(singleCellClipboardItem.column)
 
-          // handle belongs to column, skip custom links
-          if (isBt(columnObj) && !columnObj.meta?.custom) {
-            if (isStructuredLtarPaste) {
-              const pasteVal = convertCellData(
+          const isBtTextTarget = isBt(columnObj) && !columnObj.meta?.custom
+          const isLtarTextTarget = isBtTextTarget || isMMOrMMLike(columnObj)
+
+          // Plain text paste into LTAR (BT v1/v2, MM) — resolve display values to linked records
+          if (isLtarTextTarget && !isStructuredLtarPaste) {
+            const plainText = clipboardData
+            if (!plainText?.trim()) return
+
+            const displayValues = plainText.split(',').map((v: string) => v.trim()).filter(Boolean)
+            if (!displayValues.length) return
+
+            const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+            if (!pasteRowPk) return
+
+            try {
+              await api.internal.postOperation(
+                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                meta.value?.base_id ?? base.value.id,
                 {
-                  value: clipboardData,
-                  to: columnObj.uidt as UITypes,
-                  column: columnObj,
-                  appInfo: unref(appInfo),
-                  clipboardItem: singleCellClipboardItem,
+                  operation: 'nestedDataBulkLinkByDisplayValue',
+                  tableId: meta.value?.id as string,
+                  viewId: activeView?.value?.id,
                 },
-                isMysql(meta.value?.source_id),
+                [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
               )
 
-              if (pasteVal === undefined || !ncIsObject(pasteVal)) return
-
-              const foreignKeyColumn = meta.value?.columns?.find(
-                (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
-              )
-
-              if (!foreignKeyColumn) return
-
-              const colOpts = columnObj.colOptions as LinkToAnotherRecordType
-              const relatedBaseId = colOpts.fk_related_base_id || (base.value?.id as string)
-              const relatedTableMeta = await getMeta(relatedBaseId, colOpts.fk_related_model_id!)
-
-              // update old row to allow undo redo as bt column update only through foreignKeyColumn title
-              rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
-              rowObj.oldRow[foreignKeyColumn.title!] = rowObj.row[columnObj.title!]
-                ? extractPkFromRow(rowObj.row[columnObj.title!], (relatedTableMeta as any)!.columns!)
-                : null
-
-              rowObj.row[columnObj.title!] = pasteVal?.value
-
-              rowObj.row[foreignKeyColumn.title!] = pasteVal?.value
-                ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
-                : null
-
-              return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
+              return await syncCellData?.(activeCell)
+            } catch (e: any) {
+              message.error(await extractSdkResponseErrorMsg(e))
+              return
             }
-
-            // Fall through to isMMOrMMLike block for text-based paste
           }
 
+          // handle belongs to column, skip custom links — structured paste only (text path handled above)
+          if (isBtTextTarget) {
+            const pasteVal = convertCellData(
+              {
+                value: clipboardData,
+                to: columnObj.uidt as UITypes,
+                column: columnObj,
+                appInfo: unref(appInfo),
+                clipboardItem: singleCellClipboardItem,
+              },
+              isMysql(meta.value?.source_id),
+            )
+
+            if (pasteVal === undefined || !ncIsObject(pasteVal)) return
+
+            const foreignKeyColumn = meta.value?.columns?.find(
+              (column: ColumnType) => column.id === (columnObj.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+            )
+
+            if (!foreignKeyColumn) return
+
+            const colOpts = columnObj.colOptions as LinkToAnotherRecordType
+            const relatedBaseId = colOpts.fk_related_base_id || (base.value?.id as string)
+            const relatedTableMeta = await getMeta(relatedBaseId, colOpts.fk_related_model_id!)
+
+            // update old row to allow undo redo as bt column update only through foreignKeyColumn title
+            rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
+            rowObj.oldRow[foreignKeyColumn.title!] = rowObj.row[columnObj.title!]
+              ? extractPkFromRow(rowObj.row[columnObj.title!], (relatedTableMeta as any)!.columns!)
+              : null
+
+            rowObj.row[columnObj.title!] = pasteVal?.value
+
+            rowObj.row[foreignKeyColumn.title!] = pasteVal?.value
+              ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
+              : null
+
+            return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
+          }
+
+          // Handle junction-table-based LTAR column paste (V1 MM, V2 om/mo/oo/mm) — structured only
           if (isMMOrMMLike(columnObj)) {
-            if (!isStructuredLtarPaste) {
-              // Plain text paste — resolve display values to linked records
-              const plainText = clipboardData
-              if (!plainText?.trim()) return
-
-              const displayValues = plainText.split(',').map((v: string) => v.trim()).filter(Boolean)
-              if (!displayValues.length) return
-
-              const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
-              if (!pasteRowPk) return
-
-              try {
-                await api.internal.postOperation(
-                  meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
-                  meta.value?.base_id ?? base.value.id,
-                  {
-                    operation: 'nestedDataBulkLinkByDisplayValue',
-                    tableId: meta.value?.id as string,
-                    viewId: activeView?.value?.id,
-                  },
-                  [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
-                )
-
-                return await syncCellData?.(activeCell)
-              } catch (e: any) {
-                message.error(await extractSdkResponseErrorMsg(e))
-                return
-              }
-            }
-
             const pasteVal = convertCellData(
               {
                 value: clipboardData,

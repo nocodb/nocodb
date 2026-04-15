@@ -2531,29 +2531,31 @@ export function useInfiniteData(args: {
           (data: CommentPayload) => {
             const { action, id } = data
 
-            const dataCache = getDataCache()
+            // In group-by mode rows live in per-group caches (groupDataCache);
+            // in non-group mode they live in the root cache. Search the right set.
+            const rowCaches = isGroupBy.value
+              ? Array.from(groupDataCache.value.values()).map((g) => g.cachedRows)
+              : [getDataCache().cachedRows]
 
             let row = null
 
-            for (const [_, cachedRow] of dataCache.cachedRows.value.entries()) {
-              const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
-              if (pk && `${pk}` === `${id}`) {
-                row = cachedRow
-                break
+            outer: for (const cachedRows of rowCaches) {
+              for (const [_, cachedRow] of cachedRows.value.entries()) {
+                const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+                if (pk && `${pk}` === `${id}`) {
+                  row = cachedRow
+                  break outer
+                }
               }
             }
 
             if (row) {
               if (action === 'add') {
-                if (row) {
-                  row.rowMeta.commentCount = (row.rowMeta.commentCount || 0) + 1
-                }
+                row.rowMeta.commentCount = (row.rowMeta.commentCount || 0) + 1
               } else if (action === 'update') {
                 // Handle updated comment
               } else if (action === 'delete') {
-                if (row) {
-                  row.rowMeta.commentCount = Math.max((row.rowMeta.commentCount || 0) - 1, 0)
-                }
+                row.rowMeta.commentCount = Math.max((row.rowMeta.commentCount || 0) - 1, 0)
               }
 
               callbacks?.syncVisibleData?.()

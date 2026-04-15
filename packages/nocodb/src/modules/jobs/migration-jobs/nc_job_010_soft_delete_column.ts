@@ -372,14 +372,16 @@ export class SoftDeleteColumnMigration {
       );
     }
 
-    const modelMeta = new Upgrader();
-    modelMeta.enableUpgraderMode();
+    const realDbDriver = await NcConnectionMgrv2.get(
+      new Source({ ...originalSource, upgraderMode: false } as any),
+    );
 
+    await Upgrader.flushSourceQueries(source, realDbDriver);
     if (needsDeletedCol && newDeletedColumn) {
       await Column.insert(
         context,
         { ...newDeletedColumn, system: true, fk_model_id: model.id, source_id },
-        modelMeta,
+        ncMeta,
       );
     }
 
@@ -387,21 +389,15 @@ export class SoftDeleteColumnMigration {
       await Column.insert(
         context,
         { ...newMetaColumn, system: true, fk_model_id: model.id, source_id },
-        modelMeta,
+        ncMeta,
       );
     }
 
     for (const fkColId of v1OoFkColIds) {
-      await Column.update(context, fkColId, { unique: false }, modelMeta);
+      await Column.update(context, fkColId, { unique: false }, ncMeta);
     }
 
-    const realDbDriver = await NcConnectionMgrv2.get(
-      new Source({ ...originalSource, upgraderMode: false } as any),
-    );
-
-    await Upgrader.flushSourceQueries(source, realDbDriver);
-
-    await modelMeta.runUpgraderQueries();
+    await ncMeta.runUpgraderQueries();
 
     await this.updateModelStatus(Noco.ncMeta, modelId, true);
   }

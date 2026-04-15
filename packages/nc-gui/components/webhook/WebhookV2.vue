@@ -74,14 +74,14 @@ const hookRef = reactive<
       body: '{{ json event }}',
       headers: [
         {
-          enabled: false,
+          enabled: true,
           name: '',
           value: '',
         },
       ],
       parameters: [
         {
-          enabled: false,
+          enabled: true,
           name: '',
           value: '',
         },

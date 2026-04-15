@@ -145,7 +145,12 @@ export function useInfiniteData(args: {
       }
     : useSmartsheetStoreOrThrow()
 
-  const { isGroupBy } = disableSmartsheet ? { isGroupBy: computed(() => false) } : useViewGroupByOrThrow()
+  const { isGroupBy, groupBy } = disableSmartsheet
+    ? {
+        isGroupBy: computed(() => false),
+        groupBy: computed(() => [] as Array<{ column: ColumnType; sort: string; order?: number }>),
+      }
+    : useViewGroupByOrThrow()
 
   const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
 
@@ -2262,39 +2267,61 @@ export function useInfiniteData(args: {
         console.error('Failed to add cached row on socket event', e)
       }
     } else if (action === 'update') {
-      // Update the row in the local cache (cachedRows)
+      // Update the row in the local cache. In group-by mode rows live in per-group
+      // caches (groupDataCache); in non-group mode they live in the root cache.
       try {
-        const dataCache = getDataCache()
+        const dataCaches = isGroupBy.value
+          ? Array.from(groupDataCache.value.values())
+          : [getDataCache()]
         let updated = false
-        for (const cachedRow of dataCache.cachedRows.value.values()) {
-          const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
-          if (pk && `${pk}` === `${id}`) {
-            Object.assign(cachedRow.row, payload)
-            Object.assign(cachedRow.oldRow, payload)
+        outer: for (const dataCache of dataCaches) {
+          for (const cachedRow of dataCache.cachedRows.value.values()) {
+            const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+            if (pk && `${pk}` === `${id}`) {
+              // If the update changes any group-by column value, the row needs to
+              // move between groups (or into a new group). We can't do that in
+              // place; trigger a full group reload instead.
+              if (isGroupBy.value && groupBy.value.length) {
+                const groupColumnChanged = groupBy.value.some((g) => {
+                  const title = g.column?.title
+                  return title && title in (payload ?? {}) && payload[title] !== cachedRow.row[title]
+                })
+                if (groupColumnChanged) {
+                  eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+                  return
+                }
+              }
 
-            const isValidationFailed = !validateRowFilters(
-              [...allFilters.value, ...computedWhereFilter.value],
-              payload,
-              meta.value?.columns as ColumnType[],
-              getBaseType(viewMeta.value?.view?.source_id),
-              metas.value,
-              meta.value?.base_id,
-              {
-                currentUser: user.value,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-              },
-            )
+              Object.assign(cachedRow.row, payload)
+              Object.assign(cachedRow.oldRow, payload)
 
-            cachedRow.rowMeta.isValidationFailed = isValidationFailed
-            cachedRow.rowMeta.changed = false
-            Object.assign(cachedRow.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
-            updated = true
-            break
+              const isValidationFailed = !validateRowFilters(
+                [...allFilters.value, ...computedWhereFilter.value],
+                payload,
+                meta.value?.columns as ColumnType[],
+                getBaseType(viewMeta.value?.view?.source_id),
+                metas.value,
+                meta.value?.base_id,
+                {
+                  currentUser: user.value,
+                  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                },
+              )
+
+              cachedRow.rowMeta.isValidationFailed = isValidationFailed
+              cachedRow.rowMeta.changed = false
+              Object.assign(cachedRow.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
+              updated = true
+              break outer
+            }
           }
         }
         if (updated) {
           callbacks?.syncVisibleData?.()
-        } else {
+        } else if (!isGroupBy.value) {
+          // Row not cached — optimistically treat as an add so it shows up.
+          // In group-by mode we'd need the group-column value to pick the right
+          // group cache; skip that case rather than mis-inserting into root.
           handleDataEvent({
             ...data,
             action: 'add',
@@ -2304,31 +2331,37 @@ export function useInfiniteData(args: {
         console.error('Failed to update cached row on socket event', e)
       }
     } else if (action === 'delete') {
-      // Delete the row from the local cache (cachedRows)
+      // Delete the row from the local cache. In group-by mode search all group
+      // caches; otherwise the root cache.
       try {
-        const dataCache = getDataCache()
-        for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
-          const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
-          if (pk && `${pk}` === `${id}`) {
-            dataCache.cachedRows.value.delete(rowIndex)
+        const dataCaches = isGroupBy.value
+          ? Array.from(groupDataCache.value.values())
+          : [getDataCache()]
+        outer: for (const dataCache of dataCaches) {
+          for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
+            const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+            if (pk && `${pk}` === `${id}`) {
+              dataCache.cachedRows.value.delete(rowIndex)
 
-            const rows = Array.from(dataCache.cachedRows.value.entries())
-            const rowsToShift = rows.filter(([index]) => index > rowIndex)
-            rowsToShift.sort((a, b) => a[0] - b[0])
+              const rows = Array.from(dataCache.cachedRows.value.entries())
+              const rowsToShift = rows.filter(([index]) => index > rowIndex)
+              rowsToShift.sort((a, b) => a[0] - b[0])
 
-            for (const [index, row] of rowsToShift) {
-              const newIndex = index - 1
-              row.rowMeta.rowIndex = newIndex
-              dataCache.cachedRows.value.delete(index)
-              dataCache.cachedRows.value.set(newIndex, row)
+              for (const [index, row] of rowsToShift) {
+                const newIndex = index - 1
+                row.rowMeta.rowIndex = newIndex
+                dataCache.cachedRows.value.delete(index)
+                dataCache.cachedRows.value.set(newIndex, row)
+              }
+
+              if (rowsToShift.length) {
+                dataCache.chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
+              }
+
+              dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
+              dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
+              break outer
             }
-
-            if (rowsToShift.length) {
-              dataCache.chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
-            }
-
-            dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
-            dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
           }
         }
         callbacks?.syncVisibleData?.()

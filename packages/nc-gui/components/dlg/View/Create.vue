@@ -18,8 +18,8 @@ import {
   stringToViewTypeMap,
   viewTypeToStringMap,
 } from 'nocodb-sdk'
-import { PlanTitles, UITypes, ViewTypes } from 'nocodb-sdk'
-import { AiWizardTabsType } from '#imports'
+import { PlanTitles, UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
+import { AiWizardTabsType, LockType } from '#imports'
 
 const props = withDefaults(defineProps<Props>(), {
   selectedViewId: undefined,
@@ -79,6 +79,11 @@ interface Form {
   }>
 
   fk_cover_image_col_id: string | null | undefined
+
+  // Applied after view creation via a follow-up updateView call. Defaults
+  // to Collaborative. Editors can pick Collaborative or Personal; only
+  // creator+ can pick Locked.
+  lock_type: ViewLockType
 }
 
 type AiSuggestedViewType = SerializedAiViewType & {
@@ -99,7 +104,11 @@ const { baseId: activeBaseId } = storeToRefs(baseStore)
 
 const { blockCalendarRange, getPlanTitle, showEEFeatures } = useEeConfig()
 
+const { isUIAllowed } = useRoles()
+
 const viewStore = useViewsStore()
+
+const { updateView: updateViewInStore } = viewStore
 
 const { viewsByTable } = storeToRefs(viewStore)
 
@@ -149,6 +158,7 @@ const form = reactive<Form>({
   timeline_range: [],
   fk_cover_image_col_id: undefined,
   description: props.description || '',
+  lock_type: ViewLockType.Collaborative,
 })
 
 const viewSelectFieldOptions = ref<SelectProps['options']>([])
@@ -212,6 +222,19 @@ const isPromtAlreadyGenerated = ref<boolean>(false)
 const activeAiTabLocal = ref<AiWizardTabsType>(AiWizardTabsType.AUTO_SUGGESTIONS)
 
 const isAiSaving = computed(() => aiLoading.value && calledFunction.value === 'createViews')
+
+// Only creator+ (proxied by `fieldAdd`) can create a Locked view.
+// Editors can create Collaborative or Personal views.
+const canLockView = computed(() => isUIAllowed('fieldAdd'))
+
+const lockTypeOptions = computed(() => {
+  const options: Array<{ value: ViewLockType; disabled?: boolean }> = [
+    { value: ViewLockType.Collaborative },
+    { value: ViewLockType.Personal },
+  ]
+  if (canLockView.value) options.push({ value: ViewLockType.Locked })
+  return options
+})
 
 const activeAiTab = computed({
   get: () => {
@@ -301,6 +324,19 @@ async function onSubmit() {
       const data = await viewStore.createView(tableId.value, form)
 
       if (data) {
+        // Apply selected view mode (Personal / Locked). Views are created as
+        // Collaborative by default; we issue a follow-up updateView to flip
+        // the lock_type. Backend enforces ACL + ownership rules.
+        if (data.id && form.lock_type && form.lock_type !== ViewLockType.Collaborative) {
+          try {
+            await updateViewInStore(data.id, { lock_type: form.lock_type })
+            data.lock_type = form.lock_type
+          } catch (e: any) {
+            console.error('Failed to apply view mode after create', e)
+            message.toast(await extractSdkResponseErrorMsg(e))
+          }
+        }
+
         emits('created', data)
       }
     } catch (e: any) {
@@ -842,7 +878,7 @@ watch(activeBaseId, () => {
 <template>
   <NcModal
     v-model:visible="vModel"
-    class="nc-view-create-modal !top-[25vh]"
+    class="nc-view-create-modal !top-[22vh]"
     :show-separator="false"
     size="xs"
     height="auto"
@@ -960,6 +996,29 @@ watch(activeBaseId, () => {
               @keydown.enter="onSubmit"
             />
           </a-form-item>
+
+          <div class="flex flex-col gap-1.5 nc-create-view-lock-type">
+            <div class="text-[13px] font-medium text-nc-content-gray">{{ $t('labels.whoCanEdit') }}</div>
+            <a-radio-group
+              v-model:value="form.lock_type"
+              class="nc-create-view-lock-radio-group !flex !flex-nowrap items-center gap-x-5"
+            >
+              <a-radio
+                v-for="option in lockTypeOptions"
+                :key="option.value"
+                :value="option.value"
+                :data-testid="`nc-create-view-lock-type-${option.value}`"
+              >
+                <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
+                  <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
+                  {{ $t(viewLockIcons[option.value].title) }}
+                </span>
+              </a-radio>
+            </a-radio-group>
+            <div class="text-[12px] text-nc-content-gray-subtle2 leading-[16px]">
+              {{ $t(viewLockIcons[form.lock_type].subtitle) }}
+            </div>
+          </div>
 
           <a-form-item
             v-if="form.type === ViewTypes.GALLERY && !form.copy_from_id"
@@ -1763,8 +1822,22 @@ watch(activeBaseId, () => {
   @apply !mb-0;
 }
 
+// xs (448px) is a touch tight for the Who-can-edit row — bump the cap to
+// 512px so three radios fit on one line without the dialog feeling stretched.
 .nc-view-create-modal {
   :deep(.nc-modal) {
+    width: min(calc(100vw - 32px), 512px) !important;
+  }
+}
+
+// Who-can-edit radios — keep all three options on one line, with compact
+// spacing that visually groups icon + label.
+.nc-create-view-lock-radio-group {
+  :deep(.ant-radio-wrapper) {
+    @apply !mr-0 !text-nc-content-gray;
+  }
+  :deep(.ant-radio-wrapper .ant-radio + span) {
+    @apply !pl-1.5;
   }
 }
 

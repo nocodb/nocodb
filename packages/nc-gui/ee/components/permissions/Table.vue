@@ -17,9 +17,11 @@ const { t } = useI18n()
 
 const { permissionsByEntity } = usePermissions()
 
-// Check if current user is base owner
+const { baseRoles } = useRoles()
+
+// Check if current user is base owner (effective role, considering workspace role fallback)
 const isBaseOwner = computed(() => {
-  return props.base?.project_role === ProjectRoles.OWNER
+  return !!baseRoles.value?.[ProjectRoles.OWNER]
 })
 
 // Permission configuration for table visibility - only owners can configure

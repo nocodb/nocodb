@@ -177,6 +177,8 @@ jobs:
         run: |
           cd scripts/pkg-executable
 
+          export NODE_OPTIONS="--max-old-space-size=8192"
+
           mkdir ./mac-dist
           mkdir ./dist
 

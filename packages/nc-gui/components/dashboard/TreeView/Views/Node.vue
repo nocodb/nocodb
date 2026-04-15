@@ -92,6 +92,8 @@ const isViewOwner = computed(() => {
   return vModel.value?.owned_by === user.value?.id
 })
 
+const { canModifyView } = usePersonalViewPermissions(vModel as unknown as Ref<ViewType | undefined>)
+
 const idUserMap = computed(() => {
   return (basesUser.value.get(base.value?.id) || []).reduce((acc, user) => {
     acc[user.id] = user
@@ -126,7 +128,7 @@ const focusInput = () => {
 
 /** Enable editing view name on dbl click */
 function onDblClick() {
-  if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
+  if (isMobileMode.value || !canModifyView.value) return
 
   if (!isEditing.value) {
     isEditing.value = true
@@ -171,7 +173,7 @@ onKeyStroke('Enter', (event) => {
 })
 
 const onRenameMenuClick = () => {
-  if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
+  if (isMobileMode.value || !canModifyView.value) return
 
   if (!isEditing.value) {
     // close dropdown when rename menu is clicked and show inline view rename input
@@ -206,7 +208,7 @@ async function onRename() {
   const isValid = props.onValidate({ ...vModel.value, title: _title.value! })
 
   if (isValid !== true) {
-    message.error(isValid)
+    message.toast(isValid)
 
     onCancel()
     return
@@ -367,7 +369,7 @@ watch(isDropdownOpen, async () => {
             :emoji="props.view?.meta?.icon"
             size="small"
             :clearable="true"
-            :readonly="isLocked || isMobileMode || !isUIAllowed('viewCreateOrEdit')"
+            :readonly="isLocked || isMobileMode || !canModifyView"
             @emoji-selected="emits('selectIcon', $event)"
           >
             <template #default>

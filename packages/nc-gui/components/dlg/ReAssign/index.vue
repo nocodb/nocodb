@@ -91,7 +91,7 @@ const assignView = async () => {
     )
 
     vModel.value = false
-    message.success(isPersonalView.value ? 'View reassigned successfully' : 'View assigned as personal view successfully')
+    message.toast(isPersonalView.value ? 'View reassigned successfully' : 'View assigned as personal view successfully')
 
     viewsStore
       .loadViews({
@@ -104,7 +104,7 @@ const assignView = async () => {
         // ignore
       })
   } catch (e) {
-    await message.error(await extractSdkResponseErrorMsg(e))
+    message.toast(await extractSdkResponseErrorMsg(e))
   }
 }
 

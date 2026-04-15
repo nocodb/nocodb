@@ -62,6 +62,9 @@ export const personalViewOwnerOnlyOps = [
 
 // Permissions that editors can only use on their own personal views.
 // Includes sort/filter CRUD plus view management operations.
+// NOTE: viewUpdate/viewDelete are intentionally NOT here — editors can perform
+// those on collaborative views too. Personal-view ownership for those two ops
+// is enforced at the service layer (views.service.ts).
 export const editorPersonalViewOnlyPermissions = [
   'sortCreate',
   'sortUpdate',
@@ -87,6 +90,7 @@ export const personalViewOwnerAllowedPermissions = [
   'sortDelete',
   'columnList',
   'viewUpdate',
+  'viewDelete',
   'viewColumnUpdate',
   'viewColumnCreate',
   'hideAllColumns',

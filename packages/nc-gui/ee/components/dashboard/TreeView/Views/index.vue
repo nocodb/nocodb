@@ -239,7 +239,7 @@ const initSectionsSortable = (el: Element) => {
 }
 
 watchEffect(() => {
-  if (sectionsRef.value && isUIAllowed('viewCreateOrEdit') && showDefaultFolder.value) {
+  if (sectionsRef.value && isUIAllowed('sectionCreateOrEdit') && showDefaultFolder.value) {
     initSectionsSortable(sectionsRef.value)
   }
 })

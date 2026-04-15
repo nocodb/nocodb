@@ -167,8 +167,9 @@ const rolePermissions = {
       fieldDelete: true,
       fieldAdd: true,
       tableIconEdit: true,
-      viewCreateOrEdit: true,
       viewShare: true,
+      // View sections are a creator+ feature; editors get view CRUD but not section management.
+      sectionCreateOrEdit: true,
       baseShare: true,
       baseMiscSettings: true,
       csvImport: true,
@@ -225,6 +226,11 @@ const rolePermissions = {
       viewOperations: true,
       sortList: true,
       filterList: true,
+
+      // View CRUD — editors can create/update/delete views.
+      // Locked views and others' personal views are restricted at a finer
+      // level via usePersonalViewPermissions + backend guards.
+      viewCreateOrEdit: true,
 
       // Extensions
       extensionUpdate: true,

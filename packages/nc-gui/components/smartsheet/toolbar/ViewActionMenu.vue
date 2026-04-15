@@ -112,7 +112,7 @@ async function changeLockType(type: LockType) {
   if (!view.value) return
 
   if (view.value?.lock_type === type) {
-    message.success(`Already in ${type} view`)
+    message.toast(`Already in ${type} view`)
     emits('closeModal')
 
     return
@@ -120,7 +120,7 @@ async function changeLockType(type: LockType) {
 
   // if default view block the change since it's not allowed
   if (type === 'personal' && blockViewOperations.value) {
-    return message.info(t('msg.toast.notAllowedToChangeGridView'))
+    return message.toast(t('msg.toast.notAllowedToChangeGridView'))
   }
 
   if (type === LockType.Locked || view.value.lock_type === LockType.Locked) {
@@ -137,9 +137,9 @@ async function changeLockType(type: LockType) {
     await updateView(view.value?.id, {
       lock_type: type,
     })
-    message.success(`Successfully Switched to ${type} view`)
+    message.toast(`Successfully Switched to ${type} view`)
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    message.toast(await extractSdkResponseErrorMsg(e))
   }
 
   emits('closeModal')
@@ -247,13 +247,73 @@ const isViewOwner = computed(() => {
 
 const isPersonalView = computed(() => view.value?.lock_type === LockType.Personal)
 
+const isLockedView = computed(() => view.value?.lock_type === LockType.Locked)
+
+const { canModifyView, canDeleteView } = usePersonalViewPermissions(view)
+
+// Tooltip shown when a modify-view action is disabled (rename, change icon, edit description).
+const modifyViewDisabledReason = computed(() => {
+  if (isLockedView.value) return t('msg.info.disabledAsViewLocked')
+  if (isPersonalView.value && !isViewOwner.value) return t('tooltip.onlyViewOwnerCanModifyPersonalView')
+  return ''
+})
+
+// Tooltip shown when Delete is disabled.
+const deleteDisabledReason = computed(() => {
+  if (isLockedView.value) return t('msg.info.disabledAsViewLocked')
+  if (blockViewOperations.value && view.value.lock_type !== LockType.Personal)
+    return t('msg.info.cantDeleteLastGridView')
+  if (isPersonalView.value && !isViewOwner.value) return t('tooltip.onlyViewOwnerCanDeletePersonalView')
+  return ''
+})
+
+// Deletion blocked if user lacks permission, or the view is the last grid view
+// (which is enforced for everyone, including creators+).
+const isDeleteDisabled = computed(() => {
+  if (!canDeleteView.value) return true
+  if (blockViewOperations.value && view.value?.lock_type !== LockType.Personal) return true
+  return false
+})
+
+// The Lock-type submenu is disabled when the user can't change this view's lock_type.
+// - Not owner of a personal view (and can't reassign) → can't flip personal → anything.
+// - Locked view + not creator+ (via fieldAdd) → can't unlock.
+const disableLockTypeMenu = computed(() => {
+  if (isPersonalView.value && !isViewOwner.value && !isUIAllowed('reAssignViewOwner')) return true
+  if (isLockedView.value && !isUIAllowed('fieldAdd')) return true
+  return false
+})
+
 const disablePersonalView = computed(() => {
-  // Default view can't be made personal
+  // Default grid view can't be made personal (would leave the table without a grid view)
   if (blockViewOperations.value) return true
 
-  // If view is not owned by the current user, then disable
-  if (!isViewOwner.value) return true
+  // Converting someone else's personal view is not allowed (they're already personal anyway)
+  if (isPersonalView.value && !isViewOwner.value) return true
 
+  // Unlocking a locked view requires creator+
+  if (isLockedView.value && !isUIAllowed('fieldAdd')) return true
+
+  return false
+})
+
+const disableCollaborativeOption = computed(() => {
+  // Locked → Collab = unlock, only creator+
+  if (isLockedView.value) return !isUIAllowed('fieldAdd')
+
+  // Personal → Collab, owner or creator+
+  if (isPersonalView.value) return !isViewOwner.value && !isUIAllowed('reAssignViewOwner')
+
+  return false
+})
+
+// The "Assign as personal view" action (opens DlgReAssign to pick any user) is
+// restricted to creator+. Editors can still convert a collab view to their own
+// personal view via the View mode → Personal submenu option.
+const disableAssignAsPersonalView = computed(() => {
+  if (blockViewOperations.value) return true
+  if (isLockedView.value && !isUIAllowed('fieldAdd')) return true
+  if (!isUIAllowed('reAssignViewOwner')) return true
   return false
 })
 
@@ -307,7 +367,7 @@ defineOptions({
       <template v-if="isUIAllowed('viewCreateOrEdit')">
         <NcDivider />
         <template v-if="inSidebar">
-          <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
+          <NcMenuItem v-if="canModifyView" @click="onRenameMenuClick">
             <GeneralIcon icon="rename" class="opacity-80" />
             {{
               $t('general.renameEntity', {
@@ -317,7 +377,7 @@ defineOptions({
             }}
           </NcMenuItem>
           <NcTooltip v-else>
-            <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
+            <template #title> {{ modifyViewDisabledReason }} </template>
             <NcMenuItem disabled>
               <GeneralIcon icon="rename" class="opacity-80" />
               {{
@@ -328,16 +388,12 @@ defineOptions({
               }}
             </NcMenuItem>
           </NcTooltip>
-          <NcMenuItem v-show="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
+          <NcMenuItem v-show="canModifyView" @click="onDescriptionUpdateClick">
             <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
 
             {{ $t('labels.editDescription') }}
           </NcMenuItem>
-          <NcMenuItemChangeIcon
-            v-if="lockType !== LockType.Locked"
-            v-e="['c:view:change-icon']"
-            @change-icon="emits('changeIcon')"
-          />
+          <NcMenuItemChangeIcon v-if="canModifyView" v-e="['c:view:change-icon']" @change-icon="emits('changeIcon')" />
         </template>
         <NcMenuItem @click="onDuplicate">
           <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
@@ -491,7 +547,7 @@ defineOptions({
         <NcSubMenu
           key="lock-type"
           variant="small"
-          :disabled="!isViewOwner && !isUIAllowed('reAssignViewOwner') && isPersonalView"
+          :disabled="disableLockTypeMenu"
           class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
         >
           <template #title>
@@ -524,10 +580,10 @@ defineOptions({
           <NcMenuItem
             class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
             data-testid="nc-view-action-lock-subaction-Collaborative"
-            :disabled="!isUIAllowed('fieldAdd')"
+            :disabled="disableCollaborativeOption"
             @click="changeLockType(LockType.Collaborative)"
           >
-            <SmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="!isUIAllowed('fieldAdd')" />
+            <SmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="disableCollaborativeOption" />
           </NcMenuItem>
           <SmartsheetToolbarNotAllowedTooltip v-if="isEeUI && showEEFeatures" :enabled="disablePersonalView">
             <template #title>
@@ -608,16 +664,20 @@ defineOptions({
           </SmartsheetToolbarNotAllowedTooltip>
           <SmartsheetToolbarNotAllowedTooltip
             v-else
-            :enabled="!isViewOwner || blockViewOperations"
+            :enabled="disableAssignAsPersonalView"
             :message="
-              !isViewOwner ? $t('tooltip.onlyViewOwnerCanAssignAsPersonalView') : $t('tooltip.cantAssignLastNonPersonalView')
+              blockViewOperations
+                ? $t('tooltip.cantAssignLastNonPersonalView')
+                : isLockedView
+                ? $t('msg.info.disabledAsViewLocked')
+                : $t('tooltip.onlyOwnerOrCreatorCanReAssign')
             "
           >
             <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
               <template #default="{ click }">
                 <NcMenuItem
                   inner-class="w-full"
-                  :disabled="!isViewOwner || blockViewOperations"
+                  :disabled="disableAssignAsPersonalView"
                   @click="click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS, () => openReAssignDlg())"
                 >
                   <div
@@ -683,12 +743,9 @@ defineOptions({
 
       <template v-if="isUIAllowed('viewCreateOrEdit')">
         <NcDivider />
-        <NcTooltip
-          v-if="lockType === LockType.Locked || (blockViewOperations && view.lock_type !== LockType.Personal)"
-          placement="right"
-        >
+        <NcTooltip v-if="isDeleteDisabled" placement="right">
           <template #title>
-            {{ lockType === LockType.Locked ? $t('msg.info.disabledAsViewLocked') : $t('msg.info.cantDeleteLastGridView') }}
+            {{ deleteDisabledReason }}
           </template>
           <NcMenuItem disabled>
             <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />

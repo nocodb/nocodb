@@ -6,6 +6,7 @@ import { viewSortsTests } from './view-sorts.test';
 import { viewRowColorsTests } from './view-row-colors.test';
 import { viewSharingTests } from './view-sharing.test';
 import { viewTypeUpdatesTests } from './view-type-updates.test';
+import { viewEditorPermissionsTests } from './view-editor-permissions.test';
 
 export const internalUiViewTests = function () {
   describe('View Operations', () => {
@@ -17,5 +18,6 @@ export const internalUiViewTests = function () {
     viewRowColorsTests();
     viewSharingTests();
     viewTypeUpdatesTests();
+    viewEditorPermissionsTests();
   });
 };

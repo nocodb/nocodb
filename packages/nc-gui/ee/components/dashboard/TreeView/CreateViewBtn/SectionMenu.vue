@@ -7,7 +7,11 @@ const emits = defineEmits<{
 
 const { getPlanTitle, blockViewSections } = useEeConfig()
 
+const { isUIAllowed } = useRoles()
+
 const { $e } = useNuxtApp()
+
+const { t } = useI18n()
 
 const table = inject(SidebarTableInj)!
 
@@ -16,6 +20,12 @@ const viewSectionsStore = useViewSectionsStore()
 const viewsStore = useViewsStore()
 
 const { views } = storeToRefs(viewsStore)
+
+const canCreateSection = computed(() => isUIAllowed('sectionCreateOrEdit'))
+
+const tooltipTitle = computed(() =>
+  canCreateSection.value ? t('tooltip.organizeViewsIntoSections') : t('tooltip.onlyCreatorsCanManageSections'),
+)
 
 async function onCreateSection() {
   if (!table.value.id || !table.value.base_id) return
@@ -31,14 +41,16 @@ async function onCreateSection() {
 </script>
 
 <template>
-  <NcTooltip :title="$t('tooltip.organizeViewsIntoSections')" placement="right" class="w-full">
+  <NcTooltip :title="tooltipTitle" placement="right" class="w-full">
     <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_VIEW_SECTIONS">
       <template #default="{ click }">
         <NcMenuItem
           data-testid="sidebar-view-create-section"
           inner-class="w-full"
+          :disabled="!canCreateSection"
           @click="
             () => {
+              if (!canCreateSection) return
               emits('close')
               click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => onCreateSection())
             }
@@ -62,7 +74,7 @@ async function onCreateSection() {
                 "
                 show-as-lock
               />
-              <GeneralIcon v-if="!blockViewSections" class="plus" icon="plus" />
+              <GeneralIcon v-if="!blockViewSections && canCreateSection" class="plus" icon="plus" />
             </div>
           </div>
         </NcMenuItem>

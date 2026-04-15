@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
   EventType,
+  extractRolesObj,
   getFirstNonPersonalView,
   ProjectRoles,
   ViewLockType,
@@ -212,11 +213,15 @@ export class ViewsService {
         ).withViewId(param.viewId)
       ).forUpdate();
 
-    const userBaseRoles = (param.user as any).base_roles;
+    // `base_roles` may be a string or an object depending on auth path
+    // (see BaseModelSqlv2.ts and extract-ids.middleware.ts for precedent).
+    // Normalize via extractRolesObj before indexing.
+    const userBaseRoles = extractRolesObj((param.user as any)?.base_roles);
     const isCreatorPlus = !!(
       userBaseRoles?.[ProjectRoles.OWNER] ||
       userBaseRoles?.[ProjectRoles.CREATOR]
     );
+    const isEditor = !!userBaseRoles?.[ProjectRoles.EDITOR];
 
     // Only creators or owners can modify a locked view (including unlocking).
     // Editors inherit viewUpdate permission via ACL but are blocked here so that
@@ -281,12 +286,7 @@ export class ViewsService {
       const isViewCreator = !!(createdBy && createdBy === param.user.id);
       const isExistingOwner = !!(ownedBy && ownedBy === param.user.id);
 
-      if (
-        !isViewCreator &&
-        !isExistingOwner &&
-        !isCreatorPlus &&
-        !userBaseRoles?.[ProjectRoles.EDITOR]
-      ) {
+      if (!isViewCreator && !isExistingOwner && !isCreatorPlus && !isEditor) {
         NcError.get(context).forbidden(
           'Insufficient permissions to convert view to personal',
         );
@@ -299,23 +299,27 @@ export class ViewsService {
       }
     }
 
-    // When changing FROM personal to non-personal: clear owned_by so the view
-    // becomes a true collaborative/locked view with no latent owner.
-    // created_by is preserved so audit history remains intact.
+    // When changing FROM personal to non-personal: reset owned_by to created_by
+    // (falling back to null). This preserves attribution of who originated the
+    // view while removing the personal-view ownership semantics. The Personal
+    // conversion block above always overwrites owned_by to the current user
+    // regardless of any stale value, so no one gets locked out of re-converting.
     if (
       oldView.lock_type === ViewLockType.Personal &&
       param.view.lock_type &&
       param.view.lock_type !== ViewLockType.Personal
     ) {
-      ownedBy = null;
+      ownedBy = createdBy || null;
       includeCreatedByAndUpdateBy = true;
     }
 
-    // handle view ownership transfer
+    // Ownership transfer — fires whenever the request explicitly targets a
+    // different owned_by from the current (or just-claimed) one. This covers
+    // both assigning a brand-new personal view to someone else and re-assigning
+    // an existing personal view. Editors can never transfer to another user;
+    // their only path is self-assignment via the Personal conversion block,
+    // which sets ownedBy = param.user.id and naturally skips this block.
     if (ownedBy && param.view.owned_by && ownedBy !== param.view.owned_by) {
-      // Only OWNER/CREATOR can assign a view to another user. Editors can only
-      // self-assign (handled by the Personal conversion block above, which sets
-      // ownedBy = param.user.id).
       if (!isCreatorPlus) {
         NcError.get(context).forbidden(
           'Only owner/creator can transfer view ownership',
@@ -359,9 +363,14 @@ export class ViewsService {
     }
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
+      // Merge request body last so explicit fields win, then overlay
+      // owned_by/created_by with the final values resolved by this service
+      // (may differ from param.view when claiming/reverting personal views).
       view: {
         ...oldView,
         ...param.view,
+        owned_by: ownedBy,
+        created_by: createdBy,
       },
       oldView,
       user: param.user,
@@ -408,7 +417,7 @@ export class ViewsService {
 
     // Only creators or owners can delete a locked view. Editors inherit
     // viewDelete via ACL but are blocked here to keep locked views frozen.
-    const userBaseRoles = (param.user as any).base_roles;
+    const userBaseRoles = extractRolesObj((param.user as any)?.base_roles);
     const isCreatorPlus = !!(
       userBaseRoles?.[ProjectRoles.OWNER] ||
       userBaseRoles?.[ProjectRoles.CREATOR]

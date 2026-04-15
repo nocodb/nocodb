@@ -28,12 +28,15 @@ export function usePersonalViewPermissions(view: Ref<ViewType | undefined>) {
   }
 
   /**
-   * Whether the current user can modify this view's definition
-   * (rename, change icon, change lock_type, edit description, etc.).
+   * Whether the current user can act on this view's definition
+   * (rename, change icon, change lock_type, edit description, delete).
    *
-   * - Base editors have `viewCreateOrEdit` but cannot modify locked views
+   * - Base editors have `viewCreateOrEdit` but cannot touch locked views
    *   or personal views they don't own.
    * - Creator+ (proxied by `fieldAdd`) bypasses lock/ownership restrictions.
+   *
+   * Modify and delete currently share the same rules, so `canDeleteView` is
+   * an alias. If the rules diverge later, split them.
    */
   const canModifyView = computed(() => {
     if (!isUIAllowed('viewCreateOrEdit')) return false
@@ -47,23 +50,7 @@ export function usePersonalViewPermissions(view: Ref<ViewType | undefined>) {
     return true
   })
 
-  /**
-   * Whether the current user can delete this view.
-   *
-   * - Base editors can delete any collaborative view and their own personal views.
-   * - Creator+ can delete any view, including locked and others' personal views.
-   */
-  const canDeleteView = computed(() => {
-    if (!isUIAllowed('viewCreateOrEdit')) return false
-
-    // Locked views: only creator+ can delete.
-    if (isLockedView.value && !isUIAllowed('fieldAdd')) return false
-
-    // Personal views: only the owner or creator+ can delete.
-    if (isPersonalView.value && !isPersonalViewOwner.value && !isUIAllowed('fieldAdd')) return false
-
-    return true
-  })
+  const canDeleteView = canModifyView
 
   return {
     isPersonalView,

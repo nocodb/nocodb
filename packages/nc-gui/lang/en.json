@@ -3671,6 +3671,8 @@
       "formEmailSMTP": "Please activate the SMTP plugin to enable e-mail notifications",
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",
+      "personalView": "Successfully Switched to personal view",
+      "alreadyInView": "Already in {type} view",
       "futureRelease": "Coming soon!",
       "notAllowedToChangeDefaultView": "You are not allowed to change the default view",
       "notAllowedToChangeGridView": "You are not allowed to change the view to personal when it's the last collaborative grid view",

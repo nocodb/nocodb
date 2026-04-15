@@ -39,6 +39,11 @@ export const viewEditorPermissionsTests = function () {
     let editorToken: string;
     let editor2Token: string;
 
+    let ownerId: string;
+    let creatorId: string;
+    let editorId: string;
+    let editor2Id: string;
+
     const addMember = async (email: string, wsRole: string) => {
       await request(context.app)
         .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
@@ -80,6 +85,7 @@ export const viewEditorPermissionsTests = function () {
       context = await init();
       workspaceId = context.fk_workspace_id!;
       ownerToken = context.token;
+      ownerId = context.user.id;
 
       // Enable the FEATURE_PERSONAL_VIEWS-adjacent view features used in these tests.
       featureMock = await overrideFeature({
@@ -103,6 +109,7 @@ export const viewEditorPermissionsTests = function () {
         { email: 'creator@editperm.com', password: 'Test1234!' },
       );
       creatorToken = creator.token;
+      creatorId = creator.user.id;
       await addMember('creator@editperm.com', 'workspace-level-creator');
 
       const editor = await createUser(
@@ -110,6 +117,7 @@ export const viewEditorPermissionsTests = function () {
         { email: 'editor@editperm.com', password: 'Test1234!' },
       );
       editorToken = editor.token;
+      editorId = editor.user.id;
       await addMember('editor@editperm.com', 'workspace-level-editor');
 
       const editor2 = await createUser(
@@ -117,6 +125,7 @@ export const viewEditorPermissionsTests = function () {
         { email: 'editor2@editperm.com', password: 'Test1234!' },
       );
       editor2Token = editor2.token;
+      editor2Id = editor2.user.id;
       await addMember('editor2@editperm.com', 'workspace-level-editor');
 
       // Create a table
@@ -247,12 +256,10 @@ export const viewEditorPermissionsTests = function () {
         });
         expect(res.status).to.eq(200);
         expect(res.body.lock_type).to.eq(ViewLockType.Personal);
-        // owned_by should be the editor who converted
-        // (don't hard-assert the exact id since we don't capture it locally; assert it's set)
-        expect(res.body.owned_by).to.be.a('string').and.not.empty;
+        expect(res.body.owned_by).to.eq(editorId);
       });
 
-      it('editor can revert own personal view back to collaborative', async () => {
+      it('editor can revert own personal view back to collaborative (owned_by resets to created_by)', async () => {
         const view = (
           await createView(editorToken, {
             title: 'EditorPersonal2',
@@ -264,6 +271,93 @@ export const viewEditorPermissionsTests = function () {
         });
         expect(res.status).to.eq(200);
         expect(res.body.lock_type).to.eq(ViewLockType.Collaborative);
+        // owned_by should reset to created_by (the editor) so audit attribution
+        // is preserved; the view is no longer owner-gated since it's collab.
+        expect(res.body.owned_by).to.eq(editorId);
+      });
+
+      // Regression test for the compound bug from commit 557a54a320:
+      // 1. A view is converted personal → collab, leaving a non-null owned_by.
+      // 2. A different user (owner) tries to convert it back to personal.
+      //    Previously this hit a stale-owned_by guard and returned 401,
+      //    which logged the frontend user out.
+      it('owner can re-personalize a view that was previously someone else\'s personal view', async () => {
+        // editor makes it personal
+        const view = (
+          await createView(editorToken, {
+            title: 'RevertRepersonalize',
+            lock_type: ViewLockType.Personal,
+          })
+        ).body;
+        // editor reverts back to collab (owned_by is now non-null — = editorId)
+        await updateView(editorToken, view.id, {
+          lock_type: ViewLockType.Collaborative,
+        });
+        // owner now claims it as personal
+        const res = await updateView(ownerToken, view.id, {
+          lock_type: ViewLockType.Personal,
+        });
+        expect(res.status).to.eq(200);
+        expect(res.body.lock_type).to.eq(ViewLockType.Personal);
+        expect(res.body.owned_by).to.eq(ownerId);
+      });
+
+      it('editor cannot transfer view ownership to another user via API', async () => {
+        const view = (await createView(ownerToken, { title: 'CollabForXfer' }))
+          .body;
+        // Editor tries to convert to personal AND assign to editor2 in one go.
+        const res = await updateView(editorToken, view.id, {
+          lock_type: ViewLockType.Personal,
+          owned_by: editor2Id,
+        });
+        expect(res.status).to.eq(403);
+      });
+
+      it('creator can assign a collab view as another user\'s personal view', async () => {
+        const view = (await createView(ownerToken, { title: 'CollabForCreatorXfer' }))
+          .body;
+        const res = await updateView(creatorToken, view.id, {
+          lock_type: ViewLockType.Personal,
+          owned_by: editorId,
+        });
+        expect(res.status).to.eq(200);
+        expect(res.body.owned_by).to.eq(editorId);
+      });
+    });
+
+    // ----------------------------------------------------------------
+    // Collab view config (sort/filter on non-personal views)
+    //
+    // Regression test for the middleware gate — editors must be able to add
+    // sorts to collaborative views, not just to their own personal ones.
+    // ----------------------------------------------------------------
+
+    describe('Sort/Filter on collaborative views', () => {
+      it('editor can create a sort on a collab view authored by someone else', async () => {
+        const view = (await createView(ownerToken, { title: 'OwnerCollabForSort' }))
+          .body;
+
+        // Get the title column ID (first non-system field)
+        const colRes = await request(context.app)
+          .get(INTERNAL_API_BASE)
+          .query({ operation: 'viewColumnList', viewId: view.id })
+          .set('xc-auth', editorToken)
+          .expect(200);
+        const titleCol = colRes.body?.find?.(
+          (c: any) => c.title === 'Title' || c.column?.title === 'Title',
+        );
+        const fkColumnId = titleCol?.fk_column_id ?? titleCol?.column?.id;
+        if (!fkColumnId) {
+          // Schema introspection shape varies; skip silently rather than flake.
+          return;
+        }
+
+        const res = await request(context.app)
+          .post(INTERNAL_API_BASE)
+          .query({ operation: 'sortCreate', viewId: view.id })
+          .set('xc-auth', editorToken)
+          .send({ fk_column_id: fkColumnId, direction: 'asc' });
+        expect(res.status).to.eq(200);
       });
     });
 

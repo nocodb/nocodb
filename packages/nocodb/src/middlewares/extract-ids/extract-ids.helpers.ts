@@ -60,11 +60,18 @@ export const personalViewOwnerOnlyOps = [
   'sortDelete',
 ];
 
-// Permissions that editors can only use on their own personal views.
-// Includes sort/filter CRUD plus view management operations.
-// NOTE: viewUpdate/viewDelete are intentionally NOT here — editors can perform
-// those on collaborative views too. Personal-view ownership for those two ops
-// is enforced at the service layer (views.service.ts).
+// Permissions that editors can perform on collaborative views and on personal
+// views they own — but NOT on other users' personal views.
+//
+// The middleware gate only fires when the view IS personal (it reads
+// `req[VIEW_KEY]?.lock_type === Personal`). On collaborative views the check
+// short-circuits and the caller proceeds to the normal role ACL (editor is
+// granted these perms in acl.ts).
+//
+// viewUpdate/viewDelete are NOT in this list — their personal-view ownership
+// check lives in the service layer (views.service.ts), because those
+// endpoints also need lock_type guards that are best done with the full view
+// object in hand.
 export const editorPersonalViewOnlyPermissions = [
   'sortCreate',
   'sortUpdate',

@@ -36,7 +36,6 @@ const {
   duplicateView,
   updateView,
   updateViewMeta,
-  isUserViewOwner,
   onOpenCopyViewConfigFromAnotherViewModal,
   getCopyViewConfigBtnAccessStatus,
   hasOnlyOneGridViewInTable,
@@ -108,11 +107,17 @@ const blockViewOperations = computed(() => {
   return isLastGridViewInTable.value && view.value?.type === ViewTypes.GRID
 })
 
+const lockTypeSwitchedMessage: Record<LockType, string> = {
+  [LockType.Collaborative]: 'msg.toast.collabView',
+  [LockType.Personal]: 'msg.toast.personalView',
+  [LockType.Locked]: 'msg.toast.lockedView',
+}
+
 async function changeLockType(type: LockType) {
   if (!view.value) return
 
   if (view.value?.lock_type === type) {
-    message.toast(`Already in ${type} view`)
+    message.toast(t('msg.toast.alreadyInView', { type }))
     emits('closeModal')
 
     return
@@ -137,7 +142,7 @@ async function changeLockType(type: LockType) {
     await updateView(view.value?.id, {
       lock_type: type,
     })
-    message.toast(`Successfully Switched to ${type} view`)
+    message.toast(t(lockTypeSwitchedMessage[type]))
   } catch (e: any) {
     message.toast(await extractSdkResponseErrorMsg(e))
   }
@@ -241,29 +246,25 @@ const onToggleFieldHeaderVisibility = async () => {
   }
 }
 
-const isViewOwner = computed(() => {
-  return isUserViewOwner(view.value)
-})
-
-const isPersonalView = computed(() => view.value?.lock_type === LockType.Personal)
-
-const isLockedView = computed(() => view.value?.lock_type === LockType.Locked)
-
-const { canModifyView, canDeleteView } = usePersonalViewPermissions(view)
+// View ownership, personal/locked state and derived permission checks all
+// come from usePersonalViewPermissions to avoid drift with other components.
+const { isPersonalView, isLockedView, isPersonalViewOwner, canModifyView, canDeleteView } =
+  usePersonalViewPermissions(view)
 
 // Tooltip shown when a modify-view action is disabled (rename, change icon, edit description).
 const modifyViewDisabledReason = computed(() => {
   if (isLockedView.value) return t('msg.info.disabledAsViewLocked')
-  if (isPersonalView.value && !isViewOwner.value) return t('tooltip.onlyViewOwnerCanModifyPersonalView')
+  if (isPersonalView.value && !isPersonalViewOwner.value)
+    return t('tooltip.onlyViewOwnerCanModifyPersonalView')
   return ''
 })
 
 // Tooltip shown when Delete is disabled.
 const deleteDisabledReason = computed(() => {
   if (isLockedView.value) return t('msg.info.disabledAsViewLocked')
-  if (blockViewOperations.value && view.value.lock_type !== LockType.Personal)
-    return t('msg.info.cantDeleteLastGridView')
-  if (isPersonalView.value && !isViewOwner.value) return t('tooltip.onlyViewOwnerCanDeletePersonalView')
+  if (blockViewOperations.value && !isPersonalView.value) return t('msg.info.cantDeleteLastGridView')
+  if (isPersonalView.value && !isPersonalViewOwner.value)
+    return t('tooltip.onlyViewOwnerCanDeletePersonalView')
   return ''
 })
 
@@ -271,7 +272,7 @@ const deleteDisabledReason = computed(() => {
 // (which is enforced for everyone, including creators+).
 const isDeleteDisabled = computed(() => {
   if (!canDeleteView.value) return true
-  if (blockViewOperations.value && view.value?.lock_type !== LockType.Personal) return true
+  if (blockViewOperations.value && !isPersonalView.value) return true
   return false
 })
 
@@ -279,7 +280,7 @@ const isDeleteDisabled = computed(() => {
 // - Not owner of a personal view (and can't reassign) → can't flip personal → anything.
 // - Locked view + not creator+ (via fieldAdd) → can't unlock.
 const disableLockTypeMenu = computed(() => {
-  if (isPersonalView.value && !isViewOwner.value && !isUIAllowed('reAssignViewOwner')) return true
+  if (isPersonalView.value && !isPersonalViewOwner.value && !isUIAllowed('reAssignViewOwner')) return true
   if (isLockedView.value && !isUIAllowed('fieldAdd')) return true
   return false
 })
@@ -289,7 +290,7 @@ const disablePersonalView = computed(() => {
   if (blockViewOperations.value) return true
 
   // Converting someone else's personal view is not allowed (they're already personal anyway)
-  if (isPersonalView.value && !isViewOwner.value) return true
+  if (isPersonalView.value && !isPersonalViewOwner.value) return true
 
   // Unlocking a locked view requires creator+
   if (isLockedView.value && !isUIAllowed('fieldAdd')) return true
@@ -302,7 +303,7 @@ const disableCollaborativeOption = computed(() => {
   if (isLockedView.value) return !isUIAllowed('fieldAdd')
 
   // Personal → Collab, owner or creator+
-  if (isPersonalView.value) return !isViewOwner.value && !isUIAllowed('reAssignViewOwner')
+  if (isPersonalView.value) return !isPersonalViewOwner.value && !isUIAllowed('reAssignViewOwner')
 
   return false
 })
@@ -624,14 +625,14 @@ defineOptions({
         <template v-if="isEeUI && showEEFeatures">
           <SmartsheetToolbarNotAllowedTooltip
             v-if="isPersonalView"
-            :enabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
+            :enabled="!(isPersonalViewOwner || isUIAllowed('reAssignViewOwner'))"
             :message="$t('tooltip.onlyOwnerOrCreatorCanReAssign')"
           >
             <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
               <template #default="{ click }">
                 <NcMenuItem
                   inner-class="w-full"
-                  :disabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
+                  :disabled="!(isPersonalViewOwner || isUIAllowed('reAssignViewOwner'))"
                   @click="click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS, () => openReAssignDlg())"
                 >
                   <div

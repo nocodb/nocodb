@@ -28,7 +28,7 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isViewActionsEnabled } = useActionPane()
 
-const { blockPinnedFilter, showEEFeatures } = useEeConfig()
+const { blockPinnedFilter, showEEFeatures, isEEFeatureBlocked } = useEeConfig()
 
 const containerRef = ref<HTMLElement>()
 
@@ -132,7 +132,8 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
               !isSharedBase &&
               isUIAllowed('scriptExecute') &&
               isViewActionsEnabled &&
-              showEEFeatures
+              showEEFeatures &&
+              !isEEFeatureBlocked
             "
           />
         </template>

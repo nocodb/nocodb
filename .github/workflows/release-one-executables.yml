@@ -55,7 +55,7 @@ jobs:
       - name: Build nocodb for executables
         run: |
           cd packages/nocodb &&
-          EE=true pnpm exec rspack --config rspack.one-executable.config.js
+          NODE_OPTIONS=--max-old-space-size=4096 EE=true pnpm exec rspack --config rspack.one-executable.config.js
 
       - name: Update package.json version to CE tag
         run: |
@@ -176,6 +176,8 @@ jobs:
       - name: Build executables
         run: |
           cd scripts/pkg-executable
+
+          export NODE_OPTIONS="--max-old-space-size=8192"
 
           mkdir ./mac-dist
           mkdir ./dist

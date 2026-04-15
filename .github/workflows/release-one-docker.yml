@@ -99,7 +99,7 @@ jobs:
 
       - name: Create and push tag
         run: |
-          TAG="${{ needs.process-input.outputs.ceTag }}"
+          TAG="v${{ needs.process-input.outputs.ceTag }}"
           git tag -a "${TAG}" -m "Release ${TAG}"
           git push origin "${TAG}"
 

@@ -12,6 +12,8 @@ const { handleUpgradePlan, isPaymentEnabled } = useEeConfig()
 
 const isCeRetentionLimited = computed(() => !appInfo.value?.ee)
 
+const isOnPremUnlicensed = computed(() => appInfo.value?.isOnPrem && !appInfo.value?.ee)
+
 function showAuditUpgradeModal() {
   handleUpgradePlan({
     limitOrFeature: PlanLimitTypes.LIMIT_AUDIT_RETENTION,
@@ -145,7 +147,18 @@ function isV0Audit(audit: AuditType) {
       </template>
       <template v-else>
         <div class="mt-auto" />
-        <div v-if="isCeRetentionLimited" class="flex flex-col items-center gap-2 my-2 mx-3">
+        <div v-if="isOnPremUnlicensed" class="flex flex-col items-center gap-2 my-2 mx-3">
+          <div class="text-center text-nc-content-gray-subtle2 text-xs">
+            {{ $t('upgrade.ceAuditRetentionNotice') }}
+          </div>
+          <NcButton v-e="['c:audit:retention:upgrade']" type="secondary" size="xs" @click="showAuditUpgradeModal">
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="ncArrowUpCircle" class="h-3 w-3" />
+              {{ $t('general.upgrade') }}
+            </div>
+          </NcButton>
+        </div>
+        <div v-else-if="isCeRetentionLimited" class="flex flex-col items-center gap-2 my-2 mx-3">
           <div class="text-center text-nc-content-gray-subtle2 text-xs">
             {{ $t('upgrade.ceAuditRetentionNotice') }}
           </div>

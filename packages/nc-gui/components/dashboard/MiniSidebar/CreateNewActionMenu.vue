@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type TableType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, type TableType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 
@@ -28,7 +28,15 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
+const {
+  isEEFeatureBlocked,
+  showEEFeatures,
+  showUpgradeToUseTimelineView,
+  showUpgradeToUseMapView,
+  blockMapView,
+  blockListView,
+  blockTimelineView,
+} = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -319,26 +327,62 @@ const hasDocumentCreateAccess = computed(() => {
               <NcMenuItem
                 v-if="isEeUI && showEEFeatures"
                 data-testid="mini-sidebar-view-create-map"
+                inner-class="w-full"
                 @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
               >
-                <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
-                <div>{{ $t('objects.viewType.map') }}</div>
+                <div class="flex items-center justify-between w-full">
+                  <div class="flex items-center gap-2">
+                    <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
+                    <div>{{ $t('objects.viewType.map') }}</div>
+                  </div>
+                  <PaymentUpgradeBadge
+                    v-if="blockMapView"
+                    :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
+                    :plan-title="PlanTitles.BUSINESS"
+                    remove-click
+                    show-as-lock
+                  />
+                </div>
               </NcMenuItem>
               <NcMenuItem
                 v-if="isListViewEnabled"
                 data-testid="mini-sidebar-view-create-list"
+                inner-class="w-full"
                 @click="showUpgradeToUseListView({ successCallback: () => onOpenModal({ type: ViewTypes.LIST }) })"
               >
-                <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
-                <div>{{ $t('objects.viewType.list') }}</div>
+                <div class="flex items-center justify-between w-full">
+                  <div class="flex items-center gap-2">
+                    <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
+                    <div>{{ $t('objects.viewType.list') }}</div>
+                  </div>
+                  <PaymentUpgradeBadge
+                    v-if="blockListView"
+                    :feature="PlanFeatureTypes.FEATURE_LIST_VIEW"
+                    :plan-title="PlanTitles.BUSINESS"
+                    remove-click
+                    show-as-lock
+                  />
+                </div>
               </NcMenuItem>
               <NcMenuItem
                 v-if="isEeUI && showEEFeatures"
                 data-testid="mini-sidebar-view-create-timeline"
+                inner-class="w-full"
                 @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
               >
-                <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
-                <div>{{ $t('objects.viewType.timeline') }}</div>
+                <div class="flex items-center justify-between w-full">
+                  <div class="flex items-center gap-2">
+                    <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
+                    <div>{{ $t('objects.viewType.timeline') }}</div>
+                  </div>
+                  <PaymentUpgradeBadge
+                    v-if="blockTimelineView"
+                    :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW"
+                    :plan-title="PlanTitles.BUSINESS"
+                    remove-click
+                    show-as-lock
+                  />
+                </div>
               </NcMenuItem>
               <template v-if="isAiFeaturesEnabled">
                 <NcDivider />

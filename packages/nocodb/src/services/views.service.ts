@@ -11,6 +11,7 @@ import {
 import type {
   SharedViewReqType,
   UserType,
+  ViewType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -362,16 +363,19 @@ export class ViewsService {
       owner = await User.get(ownedBy, ncMeta);
     }
 
+    // Merge request body last so explicit fields win, then overlay
+    // owned_by/created_by with the final values resolved by this service
+    // (may differ from param.view when claiming/reverting personal views).
+    // ViewType declares owned_by as `IdType | undefined`, coerce nulls.
+    const viewForEvent = {
+      ...oldView,
+      ...param.view,
+      owned_by: ownedBy ?? undefined,
+      created_by: createdBy ?? undefined,
+    } as ViewType;
+
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
-      // Merge request body last so explicit fields win, then overlay
-      // owned_by/created_by with the final values resolved by this service
-      // (may differ from param.view when claiming/reverting personal views).
-      view: {
-        ...oldView,
-        ...param.view,
-        owned_by: ownedBy,
-        created_by: createdBy,
-      },
+      view: viewForEvent,
       oldView,
       user: param.user,
       req: param.req,

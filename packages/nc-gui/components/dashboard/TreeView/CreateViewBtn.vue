@@ -20,8 +20,7 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { blockListView, blockMapView, blockTimelineView, showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } =
-  useEeConfig()
+const { blockListView, blockTimelineView, showEEFeatures, showUpgradeToUseTimelineView } = useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -205,11 +204,7 @@ async function onOpenModal({
           @click="
             () => {
               isOpen = false
-              showUpgradeToUseMapView({
-                successCallback: () => {
-                  onOpenModal({ type: ViewTypes.MAP })
-                },
-              })
+              onOpenModal({ type: ViewTypes.MAP })
             }
           "
         >
@@ -219,17 +214,7 @@ async function onOpenModal({
               <div>{{ $t('objects.viewType.map') }}</div>
             </div>
 
-            <template v-if="blockMapView">
-              <PaymentUpgradeBadge
-                :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
-                :plan-title="PlanTitles.BUSINESS"
-                remove-click
-                show-as-lock
-              />
-            </template>
-            <template v-else>
-              <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
-            </template>
+            <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
           </div>
         </NcMenuItem>
         <NcTooltip

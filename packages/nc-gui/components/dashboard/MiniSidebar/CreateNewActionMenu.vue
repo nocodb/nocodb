@@ -28,15 +28,7 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const {
-  isEEFeatureBlocked,
-  showEEFeatures,
-  showUpgradeToUseTimelineView,
-  showUpgradeToUseMapView,
-  blockMapView,
-  blockListView,
-  blockTimelineView,
-} = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseTimelineView, blockListView, blockTimelineView } = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -327,22 +319,10 @@ const hasDocumentCreateAccess = computed(() => {
               <NcMenuItem
                 v-if="isEeUI && showEEFeatures"
                 data-testid="mini-sidebar-view-create-map"
-                inner-class="w-full"
-                @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
+                @click="onOpenModal({ type: ViewTypes.MAP })"
               >
-                <div class="flex items-center justify-between w-full">
-                  <div class="flex items-center gap-2">
-                    <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
-                    <div>{{ $t('objects.viewType.map') }}</div>
-                  </div>
-                  <PaymentUpgradeBadge
-                    v-if="blockMapView"
-                    :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
-                    :plan-title="PlanTitles.BUSINESS"
-                    remove-click
-                    show-as-lock
-                  />
-                </div>
+                <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
+                <div>{{ $t('objects.viewType.map') }}</div>
               </NcMenuItem>
               <NcMenuItem
                 v-if="isListViewEnabled"

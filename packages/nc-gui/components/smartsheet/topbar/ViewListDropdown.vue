@@ -17,8 +17,7 @@ const { navigateToView, onOpenViewCreateModal, showUpgradeToUseListView } = view
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView, blockMapView, blockListView, blockTimelineView } =
-  useEeConfig()
+const { showEEFeatures, showUpgradeToUseTimelineView, blockListView, blockTimelineView } = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 
@@ -244,20 +243,11 @@ async function onOpenModal({
                 <a-menu-item
                   v-if="isEeUI && showEEFeatures"
                   data-testid="topbar-view-create-map"
-                  @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
+                  @click="onOpenModal({ type: ViewTypes.MAP })"
                 >
-                  <div class="nc-viewlist-submenu-popup-item justify-between">
-                    <div class="flex items-center gap-2">
-                      <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
-                      {{ $t('objects.viewType.map') }}
-                    </div>
-                    <PaymentUpgradeBadge
-                      v-if="blockMapView"
-                      :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
-                      :plan-title="PlanTitles.BUSINESS"
-                      remove-click
-                      show-as-lock
-                    />
+                  <div class="nc-viewlist-submenu-popup-item">
+                    <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
+                    {{ $t('objects.viewType.map') }}
                   </div>
                 </a-menu-item>
                 <NcTooltip

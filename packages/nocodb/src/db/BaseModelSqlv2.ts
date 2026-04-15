@@ -3636,12 +3636,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
 
       // Check which records with PKs exist in the database (active records)
-      const existingRecords = await this.chunkList({
+      const dbRecords = await this.chunkList({
         pks: dataWithPks.map((v) => v.pk),
       });
 
         const existingPkSet = new Set(
-          existingRecords.map((r) => this.extractPksValues(r, true)),
+          dbRecords.map((r) => this.extractPksValues(r, true)),
         );
 
       // Also check for trashed records — their PKs still physically exist
@@ -3656,8 +3656,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         trashedRecords.map((r) => this.extractPksValues(r, true)),
       );
 
-      const toInsert = [...dataWithoutPks];
-      const toUpdate = [];
+      toInsert.push(...dataWithoutPks);
 
       for (const { pk, data } of dataWithPks) {
         if (existingPkSet.has(pk)) {

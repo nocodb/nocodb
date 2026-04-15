@@ -3239,76 +3239,79 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const dataWithPks = [];
         const dataWithoutPks = [];
 
-      const updatePkValues = [];
-
-      for (const data of preparedDatas) {
-        const pkValues = this.extractPksValues(data, true);
-        if (pkValues !== 'N/A' && pkValues !== undefined) {
-          dataWithPks.push({ pk: pkValues, data });
-        } else {
-          // const insertObj = this.handleValidateBulkInsert(data, columns);
-          await this.prepareNocoData(data, true, cookie, null, {
-            ncOrder: order,
-            undo,
-          });
-          order = order?.plus(1);
-          dataWithoutPks.push(data);
+        for (const data of preparedDatas) {
+          const pkValues = this.extractPksValues(data, true);
+          if (pkValues !== 'N/A' && pkValues !== undefined) {
+            dataWithPks.push({ pk: pkValues, data });
+          } else {
+            // const insertObj = this.handleValidateBulkInsert(data, columns);
+            await this.prepareNocoData(data, true, cookie, null, {
+              ncOrder: order,
+              undo,
+            });
+            order = order?.plus(1);
+            dataWithoutPks.push(data);
+          }
         }
-      }
-      // Check which records with PKs exist in the database (active records)
-      const existingRecords = await this.chunkList({
-        pks: dataWithPks.map((v) => v.pk),
-      });
+        // Check which records with PKs exist in the database (active records)
+        const dbRecords = await this.chunkList({
+          pks: dataWithPks.map((v) => v.pk),
+        });
 
         const existingPkSet = new Set(
-          existingRecords.map((r) => this.extractPksValues(r, true)),
+          dbRecords.map((r) => this.extractPksValues(r, true)),
         );
 
-      // Also check for trashed records — their PKs still physically exist
-      // so an INSERT with the same PK would fail with a duplicate key error.
-      // When a PK matches a trashed record, strip the PK and insert as a new record.
-      const trashedRecords = await this.chunkList({
-        pks: dataWithPks.map((v) => v.pk),
-        deletedOnly: true,
-      });
+        // Also check for trashed records — their PKs still physically exist
+        // so an INSERT with the same PK would fail with a duplicate key error.
+        // When a PK matches a trashed record, strip the PK and insert as a new record.
+        const trashedRecords = await this.chunkList({
+          pks: dataWithPks.map((v) => v.pk),
+          deletedOnly: true,
+        });
 
-      const trashedPkSet = new Set(
-        trashedRecords.map((r) => this.extractPksValues(r, true)),
-      );
+        const trashedPkSet = new Set(
+          trashedRecords.map((r) => this.extractPksValues(r, true)),
+        );
 
-      const toInsert = [...dataWithoutPks];
-      const toUpdate = [];
+        toInsert.push(...dataWithoutPks);
 
-      for (const { pk, data } of dataWithPks) {
-        if (existingPkSet.has(pk)) {
-          await this.prepareNocoData(data, false, cookie);
-          toUpdate.push(data);
+        for (const { pk, data } of dataWithPks) {
+          if (existingPkSet.has(pk)) {
+            await this.prepareNocoData(data, false, cookie);
+            toUpdate.push(data);
 
-          updatePkValues.push(
-            getCompositePkValue(this.model.primaryKeys, {
-              ...data,
-            }),
-          );
-        } else if (trashedPkSet.has(pk)) {
-          // PK belongs to a trashed record — strip the PK and insert as a new record
-          for (const pkCol of this.model.primaryKeys) {
-            delete data[pkCol.column_name];
-            delete data[pkCol.title];
+            updatePkValues.push(
+              getCompositePkValue(this.model.primaryKeys, {
+                ...data,
+              }),
+            );
+          } else if (trashedPkSet.has(pk)) {
+            // PK belongs to a trashed record — strip the PK and insert as a new record
+            for (const pkCol of this.model.primaryKeys) {
+              delete data[pkCol.column_name];
+              delete data[pkCol.title];
+            }
+            await this.prepareNocoData(data, true, cookie, null, {
+              ncOrder: order,
+              undo,
+            });
+            order = order?.plus(1);
+            toInsert.push(data);
+          } else {
+            await this.prepareNocoData(data, true, cookie, null, {
+              ncOrder: order,
+              undo,
+            });
+            order = order?.plus(1);
+            // const insertObj = this.handleValidateBulkInsert(data, columns);
+            toInsert.push(data);
           }
-          await this.prepareNocoData(data, true, cookie, null, {
-            ncOrder: order,
-            undo,
-          });
-          order = order?.plus(1);
-          toInsert.push(data);
-        } else {
-          await this.prepareNocoData(data, true, cookie, null, {
-            ncOrder: order,
-            undo,
-          });
-          order = order?.plus(1);
-          // const insertObj = this.handleValidateBulkInsert(data, columns);
-          toInsert.push(data);
+        }
+
+        // Set existingRecords for after-update hooks (pre-update snapshot)
+        if (updatePkValues.length > 0) {
+          existingRecords = dbRecords;
         }
       }
 
@@ -4170,10 +4173,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           ids: any[],
         ) => Knex.QueryBuilder)[] = [];
 
-      const source = await this.getSource();
+        const source = await this.getSource();
 
-      for (const column of this.model.columns) {
-        if (!isLinksOrLTAR(column)) continue;
+        for (const column of this.model.columns) {
+          if (!isLinksOrLTAR(column)) continue;
 
           const colOptions =
             await column.getColOptions<LinkToAnotherRecordColumn>(this.context);
@@ -4182,12 +4185,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             await colOptions.getParentChildContext(this.context);
 
           const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
-        const shouldCascadeHere = await shouldCascadeLinkCleanup(this.context, {
-          isMeta: !!source.isMeta(),
-          relationType,
-          colOptions,
-          mmContext,
-        });
+          const shouldCascadeHere = await shouldCascadeLinkCleanup(
+            this.context,
+            {
+              isMeta: !!source.isMeta(),
+              relationType,
+              colOptions,
+              mmContext,
+            },
+          );
           switch (relationType) {
             case 'mm':
               {
@@ -4265,13 +4271,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           idsVals,
         );
 
-      // execQueries are pre-filtered above: pushed only when NocoDB must
-      // cascade itself (meta source, or external FK with dr === 'NO ACTION').
-      if (execQueries.length > 0) {
-        for (const execQuery of execQueries) {
-          queries.push(execQuery(this.dbDriver, idsVals).toQuery());
+        // execQueries are pre-filtered above: pushed only when NocoDB must
+        // cascade itself (meta source, or external FK with dr === 'NO ACTION').
+        if (execQueries.length > 0) {
+          for (const execQuery of execQueries) {
+            queries.push(execQuery(this.dbDriver, idsVals).toQuery());
+          }
         }
-      }
 
         for (const d of res) {
           const qb = this.dbDriver(this.tnPath).del().where(d);

@@ -1074,14 +1074,13 @@ const onAddColumnDropdownVisibilityChange = () => {
         </div>
 
         <div
-          v-if="!isLocalMode && !filterQuery"
+          v-if="!isLocalMode && !filterQuery && !isFieldsMenuReadOnly"
           class="flex px-2 gap-1 py-2 border-t-1 justify-between border-nc-border-gray-medium"
         >
           <NcButton
             class="nc-fields-show-system-fields !px-2 !font-normal"
             size="xs"
             type="text"
-            :disabled="isFieldsMenuReadOnly"
             @click="showSystemField = !showSystemField"
           >
             <GeneralIcon :icon="showSystemField ? 'eyeSlash' : 'eye'" class="!w-4 !h-4 mr-2" />

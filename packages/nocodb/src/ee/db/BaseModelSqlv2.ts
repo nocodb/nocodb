@@ -2422,6 +2422,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       let responses;
 
+      // the new local-trx insertOneByOneAsFallback path bypasses `queries`,
+      // so the SET foreign_key_checks / session_replication_role statements
+      // and their placeholder responses are never produced — FK toggling must
+      // be applied directly on the trx, and trimLeading/trimTrailing must be
+      // skipped for that path.
+      const usingInsertOneByOneTrxPath =
+        insertOneByOneAsFallback &&
+        (this.clientMeta.isSqlite || this.clientMeta.isMySQL) &&
+        !(this.dbDriver as any).isExternal;
+
       const postSingleRecordInsertionCbk = async (responses, trx?) => {
         // insert nested link data for single record insertion
         if (isSingleRecordInsertion || apiVersion === NcApiVersion.V3) {
@@ -2429,7 +2439,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             const row = responses[i];
             let rowId;
             if (this.isSqlite || this.isMySQL) {
-              if (this.isMySQL) {
+              if (
+                insertOneByOneAsFallback &&
+                !(this.dbDriver as any).isExternal
+              ) {
+                // new path: row is {pk_col: id} from extractCompositePK
+                rowId = row?.[this.model.primaryKey?.title];
+              } else if (this.isMySQL) {
+                // legacy path: execAndGetRows returned raw last-insert-id
                 rowId = row;
               }
 
@@ -2469,13 +2486,43 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const trx = await this.dbDriver.transaction();
         try {
           responses = [];
-          for (const q of queries) {
-            const result = await this.execAndGetRows(q, trx);
-            if (this.isMySQL && !Array.isArray(result)) {
-              // this is the case of returnedId from mySql, which is number
-              responses.push(result);
-            } else {
-              responses.push(...result);
+          if (usingInsertOneByOneTrxPath) {
+            // Apply FK toggle on the trx since we're not executing `queries`.
+            // sqlite FK toggling is not handled (matches the existing
+            // pg/mysql-only behavior upstream).
+            if (!foreign_key_checks && this.isMySQL) {
+              await trx.raw('SET foreign_key_checks = 0;');
+            }
+
+            for (const insertData of insertDatas) {
+              const query = trx(this.tnPath).insert(insertData);
+              let id = (await query)[0];
+              if (agPkCol) {
+                id = insertData[agPkCol.column_name];
+              }
+              responses.push(
+                this.extractCompositePK({
+                  rowId: id,
+                  ai: aiPkCol,
+                  ag: agPkCol,
+                  insertObj: insertData,
+                  force: true,
+                }) || insertData,
+              );
+            }
+
+            if (!foreign_key_checks && this.isMySQL) {
+              await trx.raw('SET foreign_key_checks = 1;');
+            }
+          } else {
+            for (const q of queries) {
+              const result = await this.execAndGetRows(q, trx);
+              if (this.isMySQL && !Array.isArray(result)) {
+                // this is the case of returnedId from mySql, which is number
+                responses.push(result);
+              } else {
+                responses.push(...result);
+              }
             }
           }
           profiler.log('execAndGetRows done');
@@ -2492,16 +2539,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       // we have extra queries other than insert if foreign_key_checks is false to disable foreign key checks
       // we need to trim the leading and trailing extra queries
-      if (trimLeading) {
+      // (skipped for the insertOneByOneAsFallback trx path — it issues the
+      // FK toggle via trx.raw and responses contain only per-row results)
+      if (trimLeading && !usingInsertOneByOneTrxPath) {
         responses = responses.slice(trimLeading);
       }
-      if (trimTrailing) {
+      if (trimTrailing && !usingInsertOneByOneTrxPath) {
         responses = responses.slice(0, -trimTrailing);
       }
 
       if (!raw && !skip_hooks) {
         // we will wrap returning primary key values with primary key column name
-        if (this.isMySQL) {
+        // only needed when responses are raw auto-increment IDs (batchInsert path)
+        // skip when usingInsertOneByOneTrxPath already wrapped them via extractCompositePK
+        if (this.isMySQL && !usingInsertOneByOneTrxPath) {
           responses = responses.map((r, idx) => {
             const rowId = this.extractCompositePK({
               rowId: r,

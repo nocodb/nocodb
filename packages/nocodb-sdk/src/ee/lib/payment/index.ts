@@ -435,6 +435,7 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: true,
       [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: true,
       [PlanFeatureTypes.FEATURE_DOCS_APIS]: true,
+      [PlanFeatureTypes.FEATURE_MAP_VIEW]: true,
     },
     limits: {
       // Explicitly allowed limits for unlicensed on-prem.

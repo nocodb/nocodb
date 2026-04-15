@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { $e } = useNuxtApp()
 
@@ -17,7 +17,8 @@ const { navigateToView, onOpenViewCreateModal, showUpgradeToUseListView } = view
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
+const { showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView, blockMapView, blockListView, blockTimelineView } =
+  useEeConfig()
 
 const isOpen = ref<boolean>(false)
 
@@ -245,9 +246,18 @@ async function onOpenModal({
                   data-testid="topbar-view-create-map"
                   @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
                 >
-                  <div class="nc-viewlist-submenu-popup-item">
-                    <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
-                    {{ $t('objects.viewType.map') }}
+                  <div class="nc-viewlist-submenu-popup-item justify-between">
+                    <div class="flex items-center gap-2">
+                      <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
+                      {{ $t('objects.viewType.map') }}
+                    </div>
+                    <PaymentUpgradeBadge
+                      v-if="blockMapView"
+                      :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
+                      :plan-title="PlanTitles.BUSINESS"
+                      remove-click
+                      show-as-lock
+                    />
                   </div>
                 </a-menu-item>
                 <NcTooltip
@@ -266,9 +276,18 @@ async function onOpenModal({
                         })
                     "
                   >
-                    <div class="nc-viewlist-submenu-popup-item" :class="{ 'opacity-50': !isPgSource }">
-                      <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
-                      {{ $t('objects.viewType.list') }}
+                    <div class="nc-viewlist-submenu-popup-item justify-between" :class="{ 'opacity-50': !isPgSource }">
+                      <div class="flex items-center gap-2">
+                        <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
+                        {{ $t('objects.viewType.list') }}
+                      </div>
+                      <PaymentUpgradeBadge
+                        v-if="blockListView"
+                        :feature="PlanFeatureTypes.FEATURE_LIST_VIEW"
+                        :plan-title="PlanTitles.BUSINESS"
+                        remove-click
+                        show-as-lock
+                      />
                     </div>
                   </a-menu-item>
                 </NcTooltip>
@@ -277,9 +296,18 @@ async function onOpenModal({
                   data-testid="topbar-view-create-timeline"
                   @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
                 >
-                  <div class="nc-viewlist-submenu-popup-item">
-                    <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
-                    {{ $t('objects.viewType.timeline') }}
+                  <div class="nc-viewlist-submenu-popup-item justify-between">
+                    <div class="flex items-center gap-2">
+                      <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
+                      {{ $t('objects.viewType.timeline') }}
+                    </div>
+                    <PaymentUpgradeBadge
+                      v-if="blockTimelineView"
+                      :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW"
+                      :plan-title="PlanTitles.BUSINESS"
+                      remove-click
+                      show-as-lock
+                    />
                   </div>
                 </a-menu-item>
 

@@ -383,9 +383,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockMapView = computed(() => {
-    if (isEEFeatureBlocked.value) return true
-
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
   })
 
   const blockDateDependency = computed(() => {

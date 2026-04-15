@@ -205,10 +205,13 @@ const hasDocumentCreateAccess = computed(() => {
               <NcMenuItem
                 data-testid="mini-sidebar--workflow-create"
                 :disabled="!isWorkflowsTab || !isBaseHomePage || !hasWorkflowCreateAccess"
+                inner-class="w-full"
                 @click="openNewWorkflowModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="ncAutomation" />
-                {{ $t('general.workflow') }}
+                <div class="flex-1">
+                  {{ $t('general.workflow') }}
+                </div>
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
@@ -228,9 +231,13 @@ const hasDocumentCreateAccess = computed(() => {
               <NcMenuItem
                 data-testid="mini-sidebar--script-create"
                 :disabled="!isWorkflowsTab || !isBaseHomePage || !hasScriptCreateAccess"
+                inner-class="w-full"
                 @click="openNewScriptModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="ncScript" />
+                <div class="flex-1">
+                  {{ $t('general.script') }}
+                </div>
                 {{ $t('general.script') }}
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
@@ -252,10 +259,14 @@ const hasDocumentCreateAccess = computed(() => {
               <NcMenuItem
                 data-testid="mini-sidebar--document-create"
                 :disabled="!isDocsTab || !isBaseHomePage || !hasDocumentCreateAccess"
+                inner-class="w-full"
                 @click="createDocument(openedProject?.id)"
               >
                 <GeneralIcon icon="ncFileText" />
-                {{ $t('objects.document') }}
+                <div class="flex-1">
+                  {{ $t('objects.document') }}
+                </div>
+
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
@@ -330,19 +341,16 @@ const hasDocumentCreateAccess = computed(() => {
                 inner-class="w-full"
                 @click="showUpgradeToUseListView({ successCallback: () => onOpenModal({ type: ViewTypes.LIST }) })"
               >
-                <div class="flex items-center justify-between w-full">
-                  <div class="flex items-center gap-2">
-                    <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
-                    <div>{{ $t('objects.viewType.list') }}</div>
-                  </div>
-                  <PaymentUpgradeBadge
-                    v-if="blockListView"
-                    :feature="PlanFeatureTypes.FEATURE_LIST_VIEW"
-                    :plan-title="PlanTitles.BUSINESS"
-                    remove-click
-                    show-as-lock
-                  />
-                </div>
+                <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
+                <div class="flex-1">{{ $t('objects.viewType.list') }}</div>
+
+                <PaymentUpgradeBadge
+                  v-if="blockListView"
+                  :feature="PlanFeatureTypes.FEATURE_LIST_VIEW"
+                  :plan-title="PlanTitles.BUSINESS"
+                  remove-click
+                  show-as-lock
+                />
               </NcMenuItem>
               <NcMenuItem
                 v-if="isEeUI && showEEFeatures"
@@ -350,19 +358,16 @@ const hasDocumentCreateAccess = computed(() => {
                 inner-class="w-full"
                 @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
               >
-                <div class="flex items-center justify-between w-full">
-                  <div class="flex items-center gap-2">
-                    <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
-                    <div>{{ $t('objects.viewType.timeline') }}</div>
-                  </div>
-                  <PaymentUpgradeBadge
-                    v-if="blockTimelineView"
-                    :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW"
-                    :plan-title="PlanTitles.BUSINESS"
-                    remove-click
-                    show-as-lock
-                  />
-                </div>
+                <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
+                <div class="flex-1">{{ $t('objects.viewType.timeline') }}</div>
+
+                <PaymentUpgradeBadge
+                  v-if="blockTimelineView"
+                  :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW"
+                  :plan-title="PlanTitles.BUSINESS"
+                  remove-click
+                  show-as-lock
+                />
               </NcMenuItem>
               <template v-if="isAiFeaturesEnabled">
                 <NcDivider />

@@ -346,7 +346,7 @@ async function onOpenModal({
   }
 
   .ant-menu-item {
-    @apply h-auto min-h-8 md:min-h-7 !my-0 text-sm !leading-5 py-1 px-2 hover:!bg-nc-bg-gray-light cursor-pointer rounded-md;
+    @apply h-auto min-h-8.5 !my-0 text-sm !leading-5 py-1 px-2 hover:!bg-nc-bg-gray-light cursor-pointer rounded-md flex items-center;
 
     .ant-menu-title-content {
       @apply w-full px-0;

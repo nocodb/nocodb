@@ -1,4 +1,5 @@
 import {
+  ClientType,
   NOCO_SERVICE_USERS,
   OrderedProjectRoles,
   OrderedWorkspaceRoles,
@@ -27,6 +28,7 @@ import WorkspaceUser from '~/models/WorkspaceUser';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import { getArrayAggExpression } from '~/helpers/dbHelpers';
+import { DBQueryClient } from '~/dbQueryClient';
 
 const logger = new Logger('BaseUser');
 
@@ -178,6 +180,10 @@ export default class BaseUser extends BaseUserCE {
       // Create subqueries for workspace and base team roles.
       // Joins nc_teams for path-based hierarchy: ancestor team members
       // inherit roles assigned to descendant teams (upward cascade).
+      const dbClient = DBQueryClient.get(
+        ncMeta.knex.clientType() as ClientType,
+      );
+
       const workspaceTeamRolesSubquery = ncMeta.knexConnection
         .select('pa.principal_ref_id as user_id')
         .select(
@@ -234,10 +240,10 @@ export default class BaseUser extends BaseUserCE {
         )
         // Hierarchy: direct match OR user's team is ancestor of assigned team
         .whereRaw(
-          ['mysql', 'mysql2'].includes(ncMeta.knex.clientType())
-            ? `wta_team.id = pa_team.id OR wta_team.path LIKE CONCAT(pa_team.path, ?)`
-            : `wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?`,
-          ['/%'],
+          `wta_team.id = pa_team.id OR wta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         // Exclude soft-deleted teams
         .where(
@@ -289,8 +295,10 @@ export default class BaseUser extends BaseUserCE {
         )
         // Hierarchy: direct match OR user's team is ancestor of assigned team
         .whereRaw(
-          'bta_team.id = pa_team.id OR bta_team.path LIKE pa_team.path || ?',
-          ['/%'],
+          `bta_team.id = pa_team.id OR bta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         // Exclude soft-deleted teams
         .where(
@@ -480,6 +488,10 @@ export default class BaseUser extends BaseUserCE {
 
     if (strict_in_record || (!isNoneList && !baseUsers.length)) {
       // Create subqueries for workspace and base team roles
+      const dbClient = DBQueryClient.get(
+        ncMeta.knex.clientType() as ClientType,
+      );
+
       const workspaceTeamRolesSubquery = ncMeta.knexConnection
         .select('pa.principal_ref_id as user_id')
         .select(
@@ -536,10 +548,10 @@ export default class BaseUser extends BaseUserCE {
         )
         // Hierarchy: direct match OR user's team is ancestor of assigned team
         .whereRaw(
-          ['mysql', 'mysql2'].includes(ncMeta.knex.clientType())
-            ? `wta_team.id = pa_team.id OR wta_team.path LIKE CONCAT(pa_team.path, ?)`
-            : `wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?`,
-          ['/%'],
+          `wta_team.id = pa_team.id OR wta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         .where(
           ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
@@ -590,8 +602,10 @@ export default class BaseUser extends BaseUserCE {
         )
         // Hierarchy: direct match OR user's team is ancestor of assigned team
         .whereRaw(
-          'bta_team.id = pa_team.id OR bta_team.path LIKE pa_team.path || ?',
-          ['/%'],
+          `bta_team.id = pa_team.id OR bta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         .where(
           ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
@@ -987,6 +1001,10 @@ export default class BaseUser extends BaseUserCE {
     }
 
     try {
+      const dbClient = DBQueryClient.get(
+        ncMeta.knex.clientType() as ClientType,
+      );
+
       // Get workspace team roles (with hierarchy: ancestor team members inherit)
       const workspaceTeamRoles = await ncMeta.knexConnection
         .select('pa.principal_ref_id as user_id', 'wta.roles')
@@ -1020,10 +1038,10 @@ export default class BaseUser extends BaseUserCE {
           ncMeta.knex.raw('?', [false]),
         )
         .whereRaw(
-          ['mysql', 'mysql2'].includes(ncMeta.knex.clientType())
-            ? `wta_team.id = pa_team.id OR wta_team.path LIKE CONCAT(pa_team.path, ?)`
-            : `wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?`,
-          ['/%'],
+          `wta_team.id = pa_team.id OR wta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         .where(
           ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
@@ -1065,8 +1083,10 @@ export default class BaseUser extends BaseUserCE {
           ncMeta.knex.raw('?', [false]),
         )
         .whereRaw(
-          'bta_team.id = pa_team.id OR bta_team.path LIKE pa_team.path || ?',
-          ['/%'],
+          `bta_team.id = pa_team.id OR bta_team.path LIKE ${dbClient.concat([
+            'pa_team.path',
+            "'/%'",
+          ])}`,
         )
         .where(
           ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),

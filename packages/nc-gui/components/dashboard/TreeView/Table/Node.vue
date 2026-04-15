@@ -670,6 +670,7 @@ const enabledOptions = computed(() => {
                                 isOptionsOpen = false
                               }
                             "
+                            show-as-lock
                           />
                         </div>
                       </NcMenuItem>
@@ -689,7 +690,7 @@ const enabledOptions = computed(() => {
                           <GeneralIcon icon="ncShield" class="opacity-80" />
                           <div class="flex-1">{{ $t('objects.permissions.rlsPolicy.rowLevelSecurity') }}</div>
 
-                          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_RLS" remove-click />
+                          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_RLS" remove-click show-as-lock />
                         </div>
                       </NcMenuItem>
                     </template>
@@ -711,6 +712,7 @@ const enabledOptions = computed(() => {
                             :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY"
                             :title="$t('upgrade.upgradeToUseDateDependency')"
                             :content="$t('upgrade.upgradeToUseDateDependencySubtitle')"
+                            show-as-lock
                           />
                         </div>
                       </NcMenuItem>

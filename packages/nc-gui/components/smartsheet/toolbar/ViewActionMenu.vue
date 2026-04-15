@@ -674,6 +674,7 @@ defineOptions({
                   })
                 "
                 :on-click-callback="() => emits('closeModal')"
+                show-as-lock
               />
             </NcMenuItem>
           </template>

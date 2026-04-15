@@ -238,7 +238,7 @@ const hasDocumentCreateAccess = computed(() => {
                 <div class="flex-1">
                   {{ $t('general.script') }}
                 </div>
-                {{ $t('general.script') }}
+
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
@@ -396,10 +396,15 @@ const hasDocumentCreateAccess = computed(() => {
               <NcMenuItem
                 data-testid="mini-sidebar--dashboard-create"
                 :disabled="!isDataTab || !isBaseHomePage || !hasDashboardCreateAccess"
+                inner-class="w-full"
                 @click="openNewDashboardModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="dashboards" />
-                {{ $t('general.dashboard') }}
+
+                <div class="flex-1">
+                  {{ $t('general.dashboard') }}
+                </div>
+
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>

@@ -124,16 +124,11 @@ const rolePermissions = {
       // Base-scoped integrations
       baseIntegrationCreate: true,
 
-      // Row colouring
-      rowColourUpdate: true,
-
       projectOverviewTab: true,
 
       // Extensions
       extensionCreate: true,
       extensionDelete: true,
-
-      viewFieldEdit: true,
 
       // Documents — creators can create and delete documents
       documentCreate: true,
@@ -151,14 +146,17 @@ const rolePermissions = {
       excelTableImport: true,
       hookTrigger: true,
 
-      // Editors can directly edit view filters / sorts / group-by on
-      // collaborative views (backend grants this via the middleware gate
-      // now requiring lock_type=Personal). `isLocked` in the smartsheet
-      // store still blocks the write UI on locked + non-owned personal
-      // views, falling back to the dual-tab local-filter flow there.
+      // Editors can directly edit view filters / sorts / group-by / field
+      // visibility & order / row coloring on collaborative views (backend
+      // grants this via the middleware gate now requiring
+      // lock_type=Personal). `isLocked` in the smartsheet store still
+      // blocks the write UI on locked + non-owned personal views,
+      // falling back to the read-only list there.
       sortSync: true,
       filterSync: true,
       groupBySync: true,
+      viewFieldEdit: true,
+      rowColourUpdate: true,
 
       // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
       viewOperations: true,

@@ -141,7 +141,6 @@ const rolePermissions = {
   },
   [ProjectRoles.CREATOR]: {
     include: {
-      viewFieldEdit: true,
       fieldUpdate: true,
       hookList: true,
       hookCreate: true,
@@ -179,9 +178,6 @@ const rolePermissions = {
       baseIntegrationCreate: true,
       // Scripts
       scriptCreateOrEdit: true,
-
-      // Row colouring
-      rowColourUpdate: true,
 
       projectOverviewTab: true,
 
@@ -224,14 +220,17 @@ const rolePermissions = {
       sortList: true,
       filterList: true,
 
-      // Editors can directly edit view filters / sorts / group-by on
-      // collaborative views (backend grants this via the middleware gate
-      // now requiring lock_type=Personal). `isLocked` in the smartsheet
-      // store still blocks the write UI on locked + non-owned personal
-      // views, falling back to the dual-tab local-filter flow there.
+      // Editors can directly edit view filters / sorts / group-by / field
+      // visibility & order / row coloring on collaborative views (backend
+      // grants this via the middleware gate now requiring
+      // lock_type=Personal). `isLocked` in the smartsheet store still
+      // blocks the write UI on locked + non-owned personal views,
+      // falling back to the read-only list there.
       sortSync: true,
       filterSync: true,
       groupBySync: true,
+      viewFieldEdit: true,
+      rowColourUpdate: true,
 
       // View CRUD — editors can create/update/delete views.
       // Locked views and others' personal views are restricted at a finer

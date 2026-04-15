@@ -980,6 +980,11 @@ const rolePermissions:
       viewUpdate: true,
       viewDelete: true,
 
+      // Copy view configuration from another view — same restrictions as
+      // viewUpdate apply (locked views blocked, non-owned personal views
+      // blocked) since the underlying write goes through viewUpdate.
+      viewSettingOverride: true,
+
       // Record Templates
       recordTemplateList: true,
       recordTemplateGet: true,

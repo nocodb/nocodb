@@ -16,6 +16,10 @@ const { view, table } = toRefs(props)
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
+const { isUIAllowed } = useRoles()
+
 const { getPlanTitle } = useEeConfig()
 
 const viewsStore = useViewsStore()
@@ -23,6 +27,10 @@ const viewsStore = useViewsStore()
 const { updateView } = viewsStore
 
 const viewSectionsStore = useViewSectionsStore()
+
+// Only creator+ can create new sections (section CRUD stays restricted even
+// though view CRUD is now open to editors).
+const canCreateSection = computed(() => isUIAllowed('sectionCreateOrEdit'))
 
 const sections = computed(() => {
   if (!table.value.base_id || !table.value.id) return []
@@ -109,8 +117,15 @@ async function onMoveToNewSection() {
           <NcDivider class="!my-1" />
         </template>
 
-        <!-- New section -->
-        <NcMenuItem @click="click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => onMoveToNewSection())">
+        <!-- New section — only creator+ can create new sections;
+             editors see it disabled with an explanatory tooltip. -->
+        <NcTooltip v-if="!canCreateSection" :title="t('tooltip.onlyCreatorsCanManageSections')" placement="right">
+          <NcMenuItem disabled>
+            <GeneralIcon icon="plus" class="opacity-80" />
+            {{ $t('labels.newSection') }}
+          </NcMenuItem>
+        </NcTooltip>
+        <NcMenuItem v-else @click="click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => onMoveToNewSection())">
           <GeneralIcon icon="plus" class="opacity-80" />
           {{ $t('labels.newSection') }}
         </NcMenuItem>

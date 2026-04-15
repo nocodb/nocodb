@@ -82,7 +82,8 @@ const { meta: metaKey, control } = useMagicKeys()
 const editMode = ref(false)
 
 const tempTitle = ref('')
-// const { t } = useI18n()
+
+const { t } = useI18n()
 
 const input = ref<HTMLInputElement>()
 
@@ -167,6 +168,24 @@ const updateProjectTitle = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     refreshCommandPalette()
+  }
+}
+
+const copyProjectInfo = async () => {
+  try {
+    if (
+      await copy(
+        Object.entries(await basesStore.getProjectMetaInfo(base.value.id!)!)
+          .map(([k, v]) => `${k}: **${v}**`)
+          .join('\n'),
+      )
+    ) {
+      // Copied to clipboard
+      message.info(t('msg.info.copiedToClipboard'))
+    }
+  } catch (e: any) {
+    console.error(e)
+    message.error(e.message)
   }
 }
 
@@ -776,6 +795,7 @@ defineExpose({
                       @open-base-settings="openBaseSettings($event)"
                       @open-mcp-server="openMcpSettings($event)"
                       @delete="isProjectDeleteDialogVisible = true"
+                      @copy-project-info="copyProjectInfo()"
                     />
                   </template>
                 </NcDropdown>
@@ -829,6 +849,7 @@ defineExpose({
         @open-base-settings="openBaseSettings($event)"
         @open-mcp-server="openMcpSettings($event)"
         @delete="isProjectDeleteDialogVisible = true"
+        @copy-project-info="copyProjectInfo()"
       />
 
       <NcMenu

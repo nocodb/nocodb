@@ -19,6 +19,7 @@ interface Emits {
   (e: 'onDataReflection'): void
   (e: 'openBaseSettings', id: string): void
   (e: 'openMcpServer', id: string): void
+  (e: 'copyProjectInfo'): void
   (e: 'delete'): void
   (e: 'toggleStarred', id: string): void
   (e: 'convertToManagedApp'): void
@@ -36,6 +37,8 @@ const { appInfo } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { isEEFeatureBlocked } = useEeConfig()
+
 const { isUIAllowed } = useRoles()
 
 const isOptionVisible = computed(() => {
@@ -49,14 +52,16 @@ const isOptionVisible = computed(() => {
       base.value?.version === BaseVersion.V3 &&
       !base.value?.managed_app_id &&
       isUIAllowed('baseMiscSettings') &&
-      isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS),
+      isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS) &&
+      !isEEFeatureBlocked.value,
     createSandbox:
       base.value?.version === BaseVersion.V3 &&
       !isSandboxBase &&
       !isInstalledManagedApp &&
       isUIAllowed('baseMiscSettings') &&
-      isFeatureEnabled(FEATURE_FLAG.SANDBOX),
-    viewAllSandboxes: isSandboxMaster && !isSandboxBase && isFeatureEnabled(FEATURE_FLAG.SANDBOX),
+      isFeatureEnabled(FEATURE_FLAG.SANDBOX) &&
+      !isEEFeatureBlocked.value,
+    viewAllSandboxes: isSandboxMaster && !isSandboxBase && isFeatureEnabled(FEATURE_FLAG.SANDBOX) && !isEEFeatureBlocked.value,
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&
@@ -141,6 +146,19 @@ const isOptionVisible = computed(() => {
     </NcMenuItem>
 
     <NcDivider />
+
+    <!-- Copy Project Info -->
+    <NcMenuItem
+      v-if="isEEFeatureBlocked"
+      key="copy"
+      data-testid="nc-sidebar-base-copy-base-info"
+      @click.stop="emits('copyProjectInfo')"
+    >
+      <div v-e="['c:base:copy-proj-info']" class="flex gap-2 items-center">
+        <GeneralIcon icon="copy" />
+        {{ $t('activity.account.projInfo') }}
+      </div>
+    </NcMenuItem>
 
     <!-- ERD View -->
     <NcMenuItem

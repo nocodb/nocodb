@@ -3264,6 +3264,7 @@
       "noSaml": "There are no configured SAML authentications.",
       "noOIDC": "There are no configured OpenID authentications.",
       "disabledAsViewLocked": "Disabled as View is locked",
+      "noFiltersApplied": "No filters applied",
       "basesMigrated": "Bases are migrated. Please try again.",
       "pasteNotSupported": "Paste operation is not supported on the active cell",
       "pasteNotSupportedInSyncedCells": "Paste operation is not supported in synced fields",

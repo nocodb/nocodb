@@ -54,7 +54,6 @@ const displayedSorts = computed(() => {
 })
 
 const displayedExistingSorts = computed(() => displayedSorts.value.filter((s) => s.id))
-const displayedLocalSorts = computed(() => displayedSorts.value.filter((s) => !s.id))
 
 const isToolbarIconMode = inject(
   IsToolbarIconMode,
@@ -131,10 +130,7 @@ const availableColumns = computed(() => {
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       }
     })
-    .filter(
-      (c) =>
-        !((isRestrictedEditor.value ? displayedLocalSorts : displayedSorts).value ?? []).find((s) => s.fk_column_id === c.id),
-    )
+    .filter((c) => !(displayedSorts.value ?? []).find((s) => s.fk_column_id === c.id))
 })
 
 const getColumnUidtByID = (key?: string) => {
@@ -309,67 +305,10 @@ watch(
               </div>
             </template>
             <template v-else>
-              <!-- Local Sorts (Editable) - hidden for personal view non-owners -->
-              <template v-if="!isPersonalViewNonOwner">
-                <div
-                  v-for="(sort, k) of displayedLocalSorts"
-                  :key="`local-${k}`"
-                  class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center"
-                >
-                  <SmartsheetToolbarFieldListAutoCompleteDropdown
-                    v-model="sort.fk_column_id"
-                    class="flex caption nc-sort-field-select !w-44 flex-grow"
-                    :columns="columns"
-                    is-sort
-                    :meta="meta"
-                    :disabled="false"
-                    @click.stop
-                    @update:model-value="saveOrUpdate(sort, getSortIndex(sort))"
-                  />
-
-                  <NcSelect
-                    v-model:value="sort.direction"
-                    class="flex flex-grow-1 w-full nc-sort-dir-select"
-                    :label="$t('labels.operation')"
-                    dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir !rounded-lg"
-                    :disabled="false"
-                    @click.stop
-                    @select="saveOrUpdate(sort, getSortIndex(sort))"
-                  >
-                    <a-select-option
-                      v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
-                      :key="j"
-                      v-e="['c:sort:operation:select']"
-                      :value="option.value"
-                    >
-                      <div class="w-full flex items-center justify-between gap-2">
-                        <div class="truncate flex-1">{{ option.text }}</div>
-                        <component
-                          :is="iconMap.check"
-                          v-if="sort.direction === option.value"
-                          id="nc-selected-item-icon"
-                          class="text-primary w-4 h-4"
-                        />
-                      </div>
-                    </a-select-option>
-                  </NcSelect>
-
-                  <NcTooltip placement="top" title="Remove" class="flex-none">
-                    <NcButton
-                      v-e="['c:sort:delete']"
-                      size="small"
-                      type="secondary"
-                      :shadow="false"
-                      :disabled="false"
-                      class="nc-sort-item-remove-btn !max-w-8 !border-l-transparent !rounded-l-none"
-                      @click.stop="deleteSort(sort, getSortIndex(sort))"
-                    >
-                      <component :is="iconMap.deleteListItem" />
-                    </NcButton>
-                  </NcTooltip>
-                </div>
-              </template>
-
+              <!-- Restricted editors (locked / non-owned personal) see the
+                   saved sorts as read-only — the temp/local sort path is
+                   intentionally gone now that editors have direct write
+                   access on collab + own personal views. -->
               <!-- Existing Sorts (Read Only) -->
               <div
                 v-for="(sort, i) of displayedExistingSorts"
@@ -426,7 +365,7 @@ watch(
             </template>
           </div>
 
-          <div v-if="!isPersonalViewNonOwner" class="flex items-center justify-between empty:hidden pr-4 mt-1 mb-2">
+          <div v-if="!isRestrictedEditor" class="flex items-center justify-between empty:hidden pr-4 mt-1 mb-2">
             <NcDropdown
               v-if="availableColumns.length"
               v-model:visible="showCreateSort"
@@ -436,10 +375,7 @@ watch(
             >
               <template v-if="appInfo.ee && !isPublic">
                 <NcButton
-                  v-if="
-                    (isRestrictedEditor ? displayedLocalSorts.length : displayedSorts.length) <
-                    getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW) + 10
-                  "
+                  v-if="displayedSorts.length < getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW) + 10"
                   v-e="['c:sort:add']"
                   :class="{
                     '!text-nc-content-brand': !isLocked,
@@ -477,7 +413,7 @@ watch(
               </template>
               <template #overlay>
                 <SmartsheetToolbarCreateSort
-                  :sorts="isRestrictedEditor ? displayedLocalSorts : displayedSorts"
+                  :sorts="displayedSorts"
                   :is-parent-open="showCreateSort"
                   @created="addSort"
                 />

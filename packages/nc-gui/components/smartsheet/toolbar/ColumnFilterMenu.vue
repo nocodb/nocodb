@@ -51,17 +51,6 @@ const isPersonalViewNonOwner = computed(
   () => activeView.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(activeView.value),
 )
 
-// Show temp filters only for collaborative views, not for personal views
-// For personal views, non-assigned users should not see temp filters at all
-const showTempFilters = computed(() => {
-  // If user has full access, don't need temp filters section (they have full editor)
-  if (!isRestrictedEditor.value) return false
-  // If restricted AND it's a personal view, hide temp filters (non-assigned user)
-  if (activeView.value?.lock_type === 'personal') return false
-  // If restricted AND it's NOT a personal view, show temp filters (editor on collaborative view)
-  return true
-})
-
 watch(
   () => activeView?.value?.id,
   async (viewId) => {
@@ -79,22 +68,6 @@ watch(
 
 const existingFilters = computed(() => {
   return (nestedFilters.value || []).filter((f) => f.id && f.status !== 'delete')
-})
-
-// We need to cast nestedFilters to any to avoid type check errors in setter for now
-const localFilters = computed({
-  get: () => {
-    // Strictly return new/local filters (no ID)
-    return (nestedFilters.value || []).filter((f) => !f.id)
-  },
-  set: (val: any[]) => {
-    // Merge logic: keep existing (with ID), replace local (no ID)
-    const existing = (nestedFilters.value || []).filter((f) => f.id)
-    // Ensure we don't duplicate if val somehow contains IDs (shouldn't happen)
-    const newLocal = val.filter((f) => !f.id)
-
-    nestedFilters.value = [...existing, ...newLocal]
-  },
 })
 
 const open = ref(false)
@@ -136,18 +109,25 @@ const activeFilterTab = ref<FilterTab>('filters')
 const filterTabs = computed(() => {
   const tabs: { key: FilterTab; label: string; count?: number; tooltip?: string }[] = []
 
-  // For restricted editors: view filters tab (read-only persisted filters)
-  if (isRestrictedEditor.value && filtersLength.value) {
-    tabs.push({ key: 'viewFilters', label: t('title.viewFilters'), count: filtersLength.value, tooltip: t('msg.viewFilter') })
+  // Restricted editor (locked view / non-owned personal view):
+  // one read-only list of the view's saved filters — no local/temp tab.
+  if (isRestrictedEditor.value) {
+    if (filtersLength.value) {
+      tabs.push({
+        key: 'viewFilters',
+        label: t('title.viewFilters'),
+        count: filtersLength.value,
+        tooltip: t('msg.viewFilter'),
+      })
+    }
+  } else {
+    // Full editor — a single, editable view filters tab.
+    tabs.push({
+      key: 'filters',
+      label: t('activity.filters'),
+      count: filtersLength.value,
+    })
   }
-
-  // Main filters tab — always present
-  // For full editors: editable view filters. For restricted: temp/local filters.
-  tabs.push({
-    key: 'filters',
-    label: t('activity.filters'),
-    count: isRestrictedEditor.value ? localFilters.value?.length || 0 : filtersLength.value,
-  })
 
   // URL filters tab — only when URL params have filters
   if (filtersFromUrlParams.value) {
@@ -205,12 +185,7 @@ onBeforeUnmount(() => {
   eventBus.off(smartsheetEventListener)
 })
 
-const combinedFilterLength = computed(() => {
-  if (isRestrictedEditor.value) {
-    return (filtersLength.value || 0) + (localFilters.value?.length || 0)
-  }
-  return filtersLength.value
-})
+const combinedFilterLength = computed(() => filtersLength.value)
 
 const isCurrentUserFilterPresent = ref(false)
 
@@ -353,49 +328,35 @@ watch(
           <SmartsheetToolbarColumnFilterTabs v-model:active-key="activeFilterTab" :tabs="filterTabs" />
         </div>
 
-        <!-- Section: Main Filters (full editor or temp filters) -->
+        <!-- Section: Main Filters (editable — full editors only) -->
         <div
+          v-if="!isRestrictedEditor"
           v-show="!showFilterTabs || activeFilterTab === 'filters'"
           class="xs:(overflow-y-auto nc-scrollbar-thin)"
           :style="{ height: sectionHeight }"
         >
-          <template v-if="!isRestrictedEditor">
-            <SmartsheetToolbarColumnFilter
-              ref="filterComp"
-              v-model:draft-filter="draftFilter"
-              v-model:is-open="open"
-              class="nc-table-toolbar-menu"
-              :auto-save="true"
-              data-testid="nc-filter-menu"
-              :is-view-filter="true"
-              @update:filters-length="filtersLength = $event"
-            >
-            </SmartsheetToolbarColumnFilter>
-          </template>
-          <template v-else-if="showTempFilters">
-            <SmartsheetToolbarColumnFilter
-              ref="filterComp"
-              v-model="localFilters"
-              v-model:draft-filter="draftFilter"
-              v-model:is-open="open"
-              class="nc-table-toolbar-menu"
-              :auto-save="false"
-              data-testid="nc-filter-menu"
-              :is-view-filter="false"
-              :is-temp-filters="true"
-            >
-            </SmartsheetToolbarColumnFilter>
-          </template>
+          <SmartsheetToolbarColumnFilter
+            ref="filterComp"
+            v-model:draft-filter="draftFilter"
+            v-model:is-open="open"
+            class="nc-table-toolbar-menu"
+            :auto-save="true"
+            data-testid="nc-filter-menu"
+            :is-view-filter="true"
+            @update:filters-length="filtersLength = $event"
+          >
+          </SmartsheetToolbarColumnFilter>
         </div>
 
         <!-- Section: View Filters (read-only, restricted editors) -->
         <div
-          v-if="isRestrictedEditor && !!filtersLength"
+          v-if="isRestrictedEditor"
           v-show="!showFilterTabs || activeFilterTab === 'viewFilters'"
           class="xs:(overflow-y-auto nc-scrollbar-thin)"
           :style="{ height: sectionHeight }"
         >
           <SmartsheetToolbarColumnFilter
+            v-if="filtersLength"
             :key="`existing-${filterKey}`"
             v-model:is-open="open"
             class="nc-table-toolbar-menu !w-full"
@@ -406,6 +367,9 @@ watch(
             @update:filters-length="filtersLength = $event || 0"
           >
           </SmartsheetToolbarColumnFilter>
+          <div v-else class="px-4 py-6 text-center text-xs text-nc-content-gray-subtle2">
+            {{ $t('msg.info.noFiltersApplied') }}
+          </div>
         </div>
 
         <!-- Section: URL Filters -->

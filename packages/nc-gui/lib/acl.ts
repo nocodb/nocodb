@@ -133,10 +133,6 @@ const rolePermissions = {
       extensionCreate: true,
       extensionDelete: true,
 
-      // Creator specific permissions (previously inherited from Editor)
-      sortSync: true,
-      filterSync: true,
-      groupBySync: true,
       viewFieldEdit: true,
 
       // Documents — creators can create and delete documents
@@ -154,6 +150,15 @@ const rolePermissions = {
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,
+
+      // Editors can directly edit view filters / sorts / group-by on
+      // collaborative views (backend grants this via the middleware gate
+      // now requiring lock_type=Personal). `isLocked` in the smartsheet
+      // store still blocks the write UI on locked + non-owned personal
+      // views, falling back to the dual-tab local-filter flow there.
+      sortSync: true,
+      filterSync: true,
+      groupBySync: true,
 
       // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
       viewOperations: true,

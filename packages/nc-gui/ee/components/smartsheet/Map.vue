@@ -369,13 +369,13 @@ const onAddRecordClick = async () => {
         :permission="PermissionKey.TABLE_RECORD_ADD"
         class="absolute bottom-5 left-3 z-500"
       >
-        <template #default="{ isAllowed }">
+        <template #default="{ isAllowed: isAllowedAddNewRecord }">
           <NcButton
             type="secondary"
             size="small"
             data-testid="nc-map-add-record-btn"
             class="!rounded-full !w-10 !h-10 !shadow-lg"
-            :disabled="!isAllowed"
+            :disabled="!isAllowedAddNewRecord"
             @click="onAddRecordClick"
           >
             <GeneralIcon icon="plus" />

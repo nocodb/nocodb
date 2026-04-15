@@ -109,8 +109,6 @@ export const useBase = defineStore('baseStore', () => {
   // todo: refactor path param name and variable name
   const baseType = computed(() => route.value.params.typeOrId as string)
 
-  const { appInfo } = useGlobal()
-
   const idUserMap = computed(() => {
     return (basesStore.basesUser.get(baseId.value) || []).reduce((acc, user) => {
       acc[user.id] = user

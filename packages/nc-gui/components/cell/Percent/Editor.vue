@@ -115,7 +115,7 @@ onMounted(() => {
     v-if="percentMeta.is_progress && (isForm || isExpandedFormOpen) && !isWorkflow"
     :style="{
       ...((isForm || isExpandedFormOpen) && !isLinkRecordDropdown && { 'min-height': '22px', 'height': '22px' }),
-      ...(isLinkRecordDropdown && { 'height': '16px' }),
+      ...(isLinkRecordDropdown && { height: '16px' }),
     }"
     :is-show-number="!isLinkRecordDropdown"
     :percentage="vModelNumber"

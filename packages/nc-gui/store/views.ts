@@ -1135,9 +1135,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
     } else if (view?.lock_type === LockType.Locked) {
       result.isDisabled = true
-      result.tooltip = t('title.thisViewIsLockType', {
-        type: t(viewLockIcons[view?.lock_type]?.title).toLowerCase(),
-      })
+      result.tooltip = t('msg.info.disabledAsViewLocked')
 
       if (from === 'toolbar') {
         result.isVisible = false

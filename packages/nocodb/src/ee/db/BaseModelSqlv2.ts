@@ -2469,13 +2469,32 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const trx = await this.dbDriver.transaction();
         try {
           responses = [];
-          for (const q of queries) {
-            const result = await this.execAndGetRows(q, trx);
-            if (this.isMySQL && !Array.isArray(result)) {
-              // this is the case of returnedId from mySql, which is number
-              responses.push(result);
-            } else {
-              responses.push(...result);
+          if (
+            insertOneByOneAsFallback &&
+            (this.clientMeta.isMySQL || this.clientMeta.isSqlite)
+          ) {
+            for (const insertData of insertDatas) {
+              const query = trx(this.tnPath).insert(insertData);
+              const id = (await query)[0];
+              responses.push(
+                this.extractCompositePK({
+                  rowId: id,
+                  ai: aiPkCol,
+                  ag: agPkCol,
+                  insertObj: insertData,
+                  force: true,
+                }) || insertData,
+              );
+            }
+          } else {
+            for (const q of queries) {
+              const result = await this.execAndGetRows(q, trx);
+              if (this.isMySQL && !Array.isArray(result)) {
+                // this is the case of returnedId from mySql, which is number
+                responses.push(result);
+              } else {
+                responses.push(...result);
+              }
             }
           }
           profiler.log('execAndGetRows done');

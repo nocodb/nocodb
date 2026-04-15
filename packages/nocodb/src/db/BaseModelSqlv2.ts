@@ -3635,187 +3635,188 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
 
-      // Check which records with PKs exist in the database (active records)
-      const dbRecords = await this.chunkList({
-        pks: dataWithPks.map((v) => v.pk),
-      });
+        // Check which records with PKs exist in the database (active records)
+        const dbRecords = await this.chunkList({
+          pks: dataWithPks.map((v) => v.pk),
+        });
 
         const existingPkSet = new Set(
           dbRecords.map((r) => this.extractPksValues(r, true)),
         );
 
-      // Also check for trashed records — their PKs still physically exist
-      // so an INSERT with the same PK would fail with a duplicate key error.
-      // When a PK matches a trashed record, strip the PK and insert as a new record.
-      const trashedRecords = await this.chunkList({
-        pks: dataWithPks.map((v) => v.pk),
-        deletedOnly: true,
-      });
+        // Also check for trashed records — their PKs still physically exist
+        // so an INSERT with the same PK would fail with a duplicate key error.
+        // When a PK matches a trashed record, strip the PK and insert as a new record.
+        const trashedRecords = await this.chunkList({
+          pks: dataWithPks.map((v) => v.pk),
+          deletedOnly: true,
+        });
 
-      const trashedPkSet = new Set(
-        trashedRecords.map((r) => this.extractPksValues(r, true)),
-      );
+        const trashedPkSet = new Set(
+          trashedRecords.map((r) => this.extractPksValues(r, true)),
+        );
 
-      toInsert.push(...dataWithoutPks);
+        toInsert.push(...dataWithoutPks);
 
-      for (const { pk, data } of dataWithPks) {
-        if (existingPkSet.has(pk)) {
-          await this.prepareNocoData(data, false, cookie);
-          toUpdate.push(data);
-        } else if (trashedPkSet.has(pk)) {
-          // PK belongs to a trashed record — strip the PK and insert as a new record.
-          // The old PK is still physically occupied; a fresh auto-generated PK avoids conflicts.
-          for (const pkCol of this.model.primaryKeys) {
-            delete data[pkCol.column_name];
-            delete data[pkCol.title];
-          }
-          await this.prepareNocoData(data, true, cookie, null, {
-            ncOrder: order,
-            undo,
-          });
-          order = order?.plus(1);
-          toInsert.push(data);
-        } else {
-          await this.prepareNocoData(data, true, cookie, null, {
-            ncOrder: order,
-            undo,
-          });
-          order = order?.plus(1);
-          // const insertObj = this.handleValidateBulkInsert(data, columns);
-          toInsert.push(data);
-        }
-      }
-
-      trx = await this.dbDriver.transaction();
-
-      const updatedPks = [];
-
-      if (toUpdate.length > 0) {
-        for (const data of toUpdate) {
-          if (!raw) await this.validate(data, columns);
-          const pkValues = this.extractPksValues(data);
-          updatedPks.push(pkValues);
-          const wherePk = await this._wherePk(pkValues, true);
-          await trx(this.tnPath).update(data).where(wherePk);
-        }
-      }
-
-      if (toInsert.length > 0) {
-        if (!foreign_key_checks) {
-          if (this.isPg) {
-            await trx.raw('set session_replication_role to replica;');
-          } else if (this.isMySQL) {
-            await trx.raw('SET foreign_key_checks = 0;');
+        for (const { pk, data } of dataWithPks) {
+          if (existingPkSet.has(pk)) {
+            await this.prepareNocoData(data, false, cookie);
+            toUpdate.push(data);
+          } else if (trashedPkSet.has(pk)) {
+            // PK belongs to a trashed record — strip the PK and insert as a new record.
+            // The old PK is still physically occupied; a fresh auto-generated PK avoids conflicts.
+            for (const pkCol of this.model.primaryKeys) {
+              delete data[pkCol.column_name];
+              delete data[pkCol.title];
+            }
+            await this.prepareNocoData(data, true, cookie, null, {
+              ncOrder: order,
+              undo,
+            });
+            order = order?.plus(1);
+            toInsert.push(data);
+          } else {
+            await this.prepareNocoData(data, true, cookie, null, {
+              ncOrder: order,
+              undo,
+            });
+            order = order?.plus(1);
+            // const insertObj = this.handleValidateBulkInsert(data, columns);
+            toInsert.push(data);
           }
         }
-        let responses;
 
-        if (this.isSqlite || this.isMySQL) {
-          responses = [];
+        trx = await this.dbDriver.transaction();
 
-          for (const insertData of toInsert) {
-            const query = trx(this.tnPath).insert(insertData);
-            let id = (await query)[0];
+        const updatedPks = [];
 
-            if (agPkCol) {
-              id = insertData[agPkCol.column_name];
+        if (toUpdate.length > 0) {
+          for (const data of toUpdate) {
+            if (!raw) await this.validate(data, columns);
+            const pkValues = this.extractPksValues(data);
+            updatedPks.push(pkValues);
+            const wherePk = await this._wherePk(pkValues, true);
+            await trx(this.tnPath).update(data).where(wherePk);
+          }
+        }
+
+        if (toInsert.length > 0) {
+          if (!foreign_key_checks) {
+            if (this.isPg) {
+              await trx.raw('set session_replication_role to replica;');
+            } else if (this.isMySQL) {
+              await trx.raw('SET foreign_key_checks = 0;');
+            }
+          }
+          let responses;
+
+          if (this.isSqlite || this.isMySQL) {
+            responses = [];
+
+            for (const insertData of toInsert) {
+              const query = trx(this.tnPath).insert(insertData);
+              let id = (await query)[0];
+
+              if (agPkCol) {
+                id = insertData[agPkCol.column_name];
+              }
+
+              responses.push(
+                this.extractCompositePK({
+                  rowId: id,
+                  ai: aiPkCol,
+                  ag: agPkCol,
+                  insertObj: insertData,
+                  force: true,
+                }) || insertData,
+              );
+            }
+          } else {
+            const returningObj: Record<string, string> = {};
+
+            for (const col of this.model.primaryKeys) {
+              returningObj[col.title] = col.column_name;
             }
 
-            responses.push(
-              this.extractCompositePK({
-                rowId: id,
-                ai: aiPkCol,
-                ag: agPkCol,
-                insertObj: insertData,
-                force: true,
-              }) || insertData,
-            );
+            responses =
+              !raw && this.isPg
+                ? await trx
+                    .batchInsert(this.tnPath, toInsert, chunkSize)
+                    .returning(
+                      this.model.primaryKeys?.length ? returningObj : '*',
+                    )
+                : await trx.batchInsert(this.tnPath, toInsert, chunkSize);
           }
+
+          if (!foreign_key_checks) {
+            if (this.isPg) {
+              await trx.raw('set session_replication_role to origin;');
+            } else if (this.isMySQL) {
+              await trx.raw('SET foreign_key_checks = 1;');
+            }
+          }
+          insertedDatas.push(...responses);
+        }
+
+        await trx.commit();
+
+        const updatedRecords = await this.chunkList({
+          pks: updatedPks,
+        });
+        updatedDatas.push(...updatedRecords);
+
+        const insertedDataList =
+          insertedDatas.length > 0
+            ? await this.chunkList({
+                pks: insertedDatas.map((d) => this.extractPksValues(d)),
+              })
+            : [];
+
+        const updatedDataList =
+          updatedDatas.length > 0
+            ? await this.chunkList({
+                pks: updatedDatas.map((d) => this.extractPksValues(d)),
+              })
+            : [];
+
+        if (insertedDatas.length === 1) {
+          await this.afterInsert({
+            data: insertedDataList[0],
+            trx: this.dbDriver,
+            req: cookie,
+            insertData: datas[0],
+          });
+
+          await this.statsUpdate({
+            count: insertedDataList.length,
+          });
+        } else if (insertedDatas.length > 1) {
+          await this.afterBulkInsert(insertedDataList, this.dbDriver, cookie);
+
+          await this.statsUpdate({
+            count: insertedDataList.length,
+          });
+        }
+
+        if (updatedDataList.length === 1) {
+          await this.afterUpdate(
+            existingRecords[0],
+            updatedDataList[0],
+            null,
+            cookie,
+            datas[0],
+          );
         } else {
-          const returningObj: Record<string, string> = {};
-
-          for (const col of this.model.primaryKeys) {
-            returningObj[col.title] = col.column_name;
-          }
-
-          responses =
-            !raw && this.isPg
-              ? await trx
-                  .batchInsert(this.tnPath, toInsert, chunkSize)
-                  .returning(
-                    this.model.primaryKeys?.length ? returningObj : '*',
-                  )
-              : await trx.batchInsert(this.tnPath, toInsert, chunkSize);
+          await this.afterBulkUpdate(
+            existingRecords,
+            updatedDataList,
+            this.dbDriver,
+            cookie,
+          );
         }
 
-        if (!foreign_key_checks) {
-          if (this.isPg) {
-            await trx.raw('set session_replication_role to origin;');
-          } else if (this.isMySQL) {
-            await trx.raw('SET foreign_key_checks = 1;');
-          }
-        }
-        insertedDatas.push(...responses);
+        return [...updatedDataList, ...insertedDataList];
       }
-
-      await trx.commit();
-
-      const updatedRecords = await this.chunkList({
-        pks: updatedPks,
-      });
-      updatedDatas.push(...updatedRecords);
-
-      const insertedDataList =
-        insertedDatas.length > 0
-          ? await this.chunkList({
-              pks: insertedDatas.map((d) => this.extractPksValues(d)),
-            })
-          : [];
-
-      const updatedDataList =
-        updatedDatas.length > 0
-          ? await this.chunkList({
-              pks: updatedDatas.map((d) => this.extractPksValues(d)),
-            })
-          : [];
-
-      if (insertedDatas.length === 1) {
-        await this.afterInsert({
-          data: insertedDataList[0],
-          trx: this.dbDriver,
-          req: cookie,
-          insertData: datas[0],
-        });
-
-        await this.statsUpdate({
-          count: insertedDataList.length,
-        });
-      } else if (insertedDatas.length > 1) {
-        await this.afterBulkInsert(insertedDataList, this.dbDriver, cookie);
-
-        await this.statsUpdate({
-          count: insertedDataList.length,
-        });
-      }
-
-      if (updatedDataList.length === 1) {
-        await this.afterUpdate(
-          existingRecords[0],
-          updatedDataList[0],
-          null,
-          cookie,
-          datas[0],
-        );
-      } else {
-        await this.afterBulkUpdate(
-          existingRecords,
-          updatedDataList,
-          this.dbDriver,
-          cookie,
-        );
-      }
-
-      return [...updatedDataList, ...insertedDataList];
     } catch (e) {
       await trx?.rollback();
       throw e;
@@ -4574,12 +4575,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             await colOptions.getParentChildContext(this.context);
 
           const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
-          const shouldCascadeHere = await shouldCascadeLinkCleanup(this.context, {
-            isMeta: !!source.isMeta(),
-            relationType,
-            colOptions,
-            mmContext,
-          });
+          const shouldCascadeHere = await shouldCascadeLinkCleanup(
+            this.context,
+            {
+              isMeta: !!source.isMeta(),
+              relationType,
+              colOptions,
+              mmContext,
+            },
+          );
           switch (relationType) {
             case 'mm':
               {
@@ -4863,13 +4867,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
 
-      // execQueries are pre-filtered above: pushed only when NocoDB must
-      // cascade itself (meta source, or external FK with dr === 'NO ACTION').
-      if (execQueries.length > 0) {
-        for (const execQuery of execQueries) {
-          await execQuery(transaction, idsVals);
+        // execQueries are pre-filtered above: pushed only when NocoDB must
+        // cascade itself (meta source, or external FK with dr === 'NO ACTION').
+        if (execQueries.length > 0) {
+          for (const execQuery of execQueries) {
+            await execQuery(transaction, idsVals);
+          }
         }
-      }
 
         for (const d of res) {
           await transaction(this.tnPath).del().where(d);

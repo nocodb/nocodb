@@ -5359,6 +5359,52 @@
         ]
       }
     },
+    "/api/v3/data/{baseId}/{tableId}/records/upsert": {
+      "parameters": [
+        {
+          "schema": { "type": "string" },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "**Base Identifier**."
+        },
+        {
+          "schema": { "type": "string" },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "**Table Identifier**."
+        }
+      ],
+      "post": {
+        "summary": "Upsert Table Records",
+        "operationId": "db-v3-data-table-row-upsert",
+        "description": "Find-or-create records in a single call. If a record matching the merge key exists, update it; otherwise insert a new one.",
+        "tags": ["Table Records"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DataUpsertRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Upsert results with status per record",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DataUpsertResponse" }
+              }
+            }
+          },
+          "400": { "description": "Bad request — invalid merge fields or missing records" },
+          "401": { "description": "Unauthorized" },
+          "403": { "description": "Forbidden" },
+          "404": { "description": "Base or table not found" }
+        }
+      }
+    },
     "/api/v3/data/{baseId}/{tableId}/records/{recordId}": {
       "parameters": [
         {
@@ -7986,6 +8032,71 @@
   },
   "components": {
     "schemas": {
+      "DataUpsertRecordRequest": {
+        "type": "object",
+        "required": ["fields"],
+        "properties": {
+          "fields": {
+            "type": "object",
+            "description": "Field title → value map"
+          }
+        }
+      },
+      "DataUpsertRequest": {
+        "type": "object",
+        "required": ["fieldsToMergeOn", "records"],
+        "properties": {
+          "fieldsToMergeOn": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Field titles or IDs to match on (max 3). If a matching record exists it is updated; otherwise a new record is created. When multiple records match the same combination, the request is rejected.",
+            "minItems": 1,
+            "maxItems": 3
+          },
+          "records": {
+            "oneOf": [
+              { "$ref": "#/components/schemas/DataUpsertRecordRequest" },
+              {
+                "type": "array",
+                "items": { "$ref": "#/components/schemas/DataUpsertRecordRequest" },
+                "maxItems": 10
+              }
+            ],
+            "description": "Records to upsert — single object or array"
+          }
+        }
+      },
+      "DataUpsertRecordResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "oneOf": [{ "type": "string" }, { "type": "number" }],
+            "description": "Primary key value"
+          },
+          "id_fields": {
+            "type": "object",
+            "description": "Composite PK values (when table has multi-column PK)"
+          },
+          "fields": {
+            "type": "object",
+            "description": "Full record fields after upsert"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["inserted", "updated"],
+            "description": "Whether this record was inserted or updated"
+          }
+        }
+      },
+      "DataUpsertResponse": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DataUpsertRecordResponse" }
+          }
+        }
+      },
       "Base": {
         "type": "object",
         "properties": {

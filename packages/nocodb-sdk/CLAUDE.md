@@ -51,9 +51,23 @@ src/ee/                # EE-only types (sibling to lib/, excluded from CE build)
 
 ## Payment Types
 
-`src/lib/payment/index.ts` — shared payment enums/constants used by CE + EE: `PlanTitles`, `PlanFeatureTypes` (~40 flags including `FEATURE_EE_CORE` for on-prem "any paid plan"), `PlanLimitTypes` (~30 limits), `PlanPriceLookupKeys`, `PlanOrder`, `PlanMeta`, `LoyaltyPriceLookupKeyMap`, upgrade message maps. Also: `NON_SEAT_ROLES` in `globals.ts`.
+`src/lib/payment/index.ts` — shared enums/constants (CE + EE): `PlanTitles`, `PlanFeatureTypes`, `PlanLimitTypes`, upgrade message maps, `NON_SEAT_ROLES` (in `globals.ts`).
 
-`src/ee/lib/payment/index.ts` — EE-only on-prem plan definitions: `OnPremPlanTitles` (FREE/Starter/Scale/Enterprise), `OnPremPlanDefinitions` (single source of truth for on-prem feature gating), `OnPremPlanOrder`, `OnPremHigherPlan`, `OnPremFeatureToMinPlan`, `resolveOnPremPlanMeta(title)` (computes full plan meta with correct base per plan type — free defaults to `false`/`0`, paid defaults to `true`/`-1`), `InternalOpToOnPremPlanFeature` (maps `LICENSE_REQUIRED_OPS` operation names to `PlanFeatureTypes` for plan-level enforcement in `internal.controller.ts`).
+`src/ee/lib/payment/index.ts` — plan definitions for both Cloud and On-Prem.
+
+### Plan Override Model
+
+Cloud and On-Prem have **separate** plan definition objects. They are NOT inherited.
+
+| Plan | Base default | Override style | Defined in |
+|------|-------------|----------------|------------|
+| **Cloud** (Free, Plus, Business, Enterprise) | All features **enabled** | List `false` to disable | `CloudPlanDefinitions` |
+| **On-Prem Free** (unlicensed) | All features **disabled** | List `true` to enable | `OnPremPlanDefinitions[FREE]` |
+| **On-Prem paid** (Starter, Scale, Enterprise) | All features **enabled** | List `false` to disable | `OnPremPlanDefinitions[*]` |
+
+To make a feature available everywhere: remove the entry from Cloud plans (unlisted = enabled) and add explicit `true` in `OnPremPlanDefinitions[FREE]`.
+
+`resolveOnPremPlanMeta(title)` computes the full meta: sets the base (all `false`/`0` for Free, all `true`/`-1` for paid), then applies plan-specific overrides.
 
 ## Anti-Patterns
 

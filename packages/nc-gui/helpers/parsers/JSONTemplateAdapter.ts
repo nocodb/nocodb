@@ -34,7 +34,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
     this.columns = {}
   }
 
-  async init() {
+  override async init() {
     this.progress('Initializing json parser')
     const parsedJsonData =
       typeof this._jsonData === 'string'
@@ -45,15 +45,15 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
     this.jsonData = Array.isArray(parsedJsonData) ? parsedJsonData : [parsedJsonData]
   }
 
-  getColumns(): any {
+  override getColumns(): any {
     return this.columns
   }
 
-  getData(): any {
+  override getData(): any {
     return this.data
   }
 
-  parse(): any {
+  override parse(): any {
     this.progress('Reading json data')
     const jsonData = this.jsonData
     const tn = 'table'
@@ -73,7 +73,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
     this.base.tables.push(table)
   }
 
-  getTemplate() {
+  override getTemplate() {
     return this.base
   }
 
@@ -100,8 +100,41 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
         path,
       }
       if (this.config.autoSelectFieldTypes) {
-        column.uidt = jsonTypeToUidt[typeof firstRowVal] || UITypes.SingleLineText
+        let initialUidt = jsonTypeToUidt[typeof firstRowVal] || UITypes.SingleLineText
         const colData = jsonData.map((r: any) => extractNestedData(r, path))
+        const nonNullData = colData.filter((v: any) => v !== null && v !== undefined && v !== '')
+
+        if (nonNullData.length > 0) {
+          const isAllStrings = nonNullData.every((v: any) => typeof v === 'string')
+          const isAllNumbers = nonNullData.every((v: any) => typeof v === 'number')
+          const isAllObjects = nonNullData.every((v: any) => typeof v === 'object' && !Array.isArray(v))
+          const isAllArrays = nonNullData.every((v: any) => Array.isArray(v))
+
+          if (isAllStrings) {
+            if (nonNullData.every((v: any) => /^\d{4}-\d{2}-\d{2}$/.test(v) || /^\d{2}\/\d{2}\/\d{4}$/.test(v))) initialUidt = UITypes.Date
+            else if (nonNullData.every((v: any) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(v))) initialUidt = UITypes.DateTime
+            else if (nonNullData.every((v: any) => /^([01]\d|2[0-3]):?([0-5]\d):?([0-5]\d)$/.test(v))) initialUidt = UITypes.Time
+            else if (nonNullData.every((v: any) => /^\d{4}$/.test(v) && Number(v) >= 1900 && Number(v) <= 2100)) initialUidt = UITypes.Year
+            else if (nonNullData.every((v: any) => /^\+?[\d\s-]{7,15}$/.test(v))) initialUidt = UITypes.PhoneNumber
+            else if (nonNullData.every((v: any) => /^[\$\€\£\¥]\s?\d+(\.\d{1,2})?$/.test(v))) initialUidt = UITypes.Currency
+            else if (nonNullData.every((v: any) => /^\d+(\.\d+)?%$/.test(v))) initialUidt = UITypes.Percent
+            else if (nonNullData.every((v: any) => /^\d+(\.\d+)?\s*(h|m|s|hrs|mins|secs)$/i.test(v) || /^\d{2}:\d{2}:\d{2}$/.test(v))) initialUidt = UITypes.Duration
+          } else if (isAllNumbers) {
+            if (nonNullData.every((v: any) => v >= 1 && v <= 5 && Number.isInteger(v))) initialUidt = UITypes.Rating
+            else if (nonNullData.every((v: any) => v >= 1900 && v <= 2100 && Number.isInteger(v))) initialUidt = UITypes.Year
+          } else if (isAllArrays) {
+            if (nonNullData.every((arr: any) => arr.every((item: any) => typeof item === 'object' && item !== null && 'url' in item && 'name' in item))) {
+              initialUidt = UITypes.Attachment
+            }
+          } else if (isAllObjects) {
+            if (nonNullData.every((obj: any) => 'type' in obj && 'coordinates' in obj)) initialUidt = UITypes.Geometry
+            else if (nonNullData.every((obj: any) => ('lat' in obj && 'lng' in obj) || ('latitude' in obj && 'longitude' in obj))) initialUidt = UITypes.GeoData
+            else if (nonNullData.every((obj: any) => 'email' in obj && 'name' in obj)) initialUidt = UITypes.User
+            else initialUidt = UITypes.JSON
+          }
+        }
+        
+        column.uidt = initialUidt
         Object.assign(column, getColumnUIDTAndMetas(colData, column.uidt))
       }
       columns.push(column)

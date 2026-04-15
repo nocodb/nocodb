@@ -2475,7 +2475,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           ) {
             for (const insertData of insertDatas) {
               const query = trx(this.tnPath).insert(insertData);
-              const id = (await query)[0];
+              let id = (await query)[0];
+              if (agPkCol) {
+                id = insertData[agPkCol.column_name];
+              }
               responses.push(
                 this.extractCompositePK({
                   rowId: id,

@@ -48,11 +48,9 @@ export class CsvImportHandler implements DataImportHandler {
                 headers.push(`Field ${i + 1}`);
               }
             }
-            sampleRows.push(row.data);
-          }
-
-          if (sampleRows.length >= maxRowsToParse) {
-            parser.abort();
+            if (sampleRows.length < maxRowsToParse) {
+              sampleRows.push(row.data);
+            }
           }
         },
         complete() {
@@ -64,11 +62,14 @@ export class CsvImportHandler implements DataImportHandler {
       });
     });
 
+    const totalRows = firstRowAsHeaders ? rowCount - 1 : rowCount;
+
     if (!headers.length) {
       return {
         columns: [],
         previewData: [],
         totalSampleRows: 0,
+        totalRows: 0,
         detectedDelimiter: delimiter || ',',
       };
     }
@@ -90,6 +91,7 @@ export class CsvImportHandler implements DataImportHandler {
       columns,
       previewData: previewRows,
       totalSampleRows: sampleRows.length,
+      totalRows,
       detectedDelimiter: detectedDelimiter || delimiter || ',',
     };
   }

@@ -27,7 +27,6 @@ interface Props {
   baseId: string
   sourceId: string
   serverAttachment?: { path?: string; url?: string; title?: string; mimetype?: string; size?: number } | null
-  importWorker?: Worker
   tableIcon?: string
 }
 
@@ -46,7 +45,6 @@ const {
   baseId,
   sourceId,
   serverAttachment,
-  importWorker,
 } = defineProps<Props>()
 
 const emit = defineEmits(['import', 'error', 'change'])
@@ -656,7 +654,7 @@ async function importViaJob() {
               try {
                 const progress = JSON.parse(pollerData.data.message)
                 if (progress.rowsInserted !== undefined) {
-                  updateImportTips(baseName, table.table_name, progress.rowsInserted, progress.totalProcessed || 0)
+                  updateImportTips(baseName, table.table_name, progress.totalProcessed || 0, table._totalRows || progress.totalProcessed || 0)
                 }
               } catch {
                 // Plain text log message — ignore

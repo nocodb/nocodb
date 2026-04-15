@@ -723,6 +723,7 @@ export class UiPostOperations
           columns: result.columns as any[],
           previewData: result.previewData,
           totalSampleRows: result.totalSampleRows,
+          totalRows: result.totalRows,
           detectedDelimiter: result.detectedDelimiter,
         };
       }

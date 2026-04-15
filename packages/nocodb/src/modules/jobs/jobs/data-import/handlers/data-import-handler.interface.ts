@@ -8,6 +8,8 @@ export interface ImportPreviewResult {
   columns: DetectedColumn[];
   previewData: Record<string, any>[];
   totalSampleRows: number;
+  /** Total number of rows in the file (for progress display). -1 if unknown. */
+  totalRows: number;
   detectedDelimiter?: string;
 }
 

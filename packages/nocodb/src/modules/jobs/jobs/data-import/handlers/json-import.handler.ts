@@ -137,23 +137,23 @@ export class JsonImportHandler implements DataImportHandler {
     const pipeline = jsonStream.pipe(parser()).pipe(streamArray()) as Transform;
 
     const sampleRows: Record<string, any>[] = [];
+    let totalRows = 0;
 
     try {
       for await (const { value } of pipeline as AsyncIterable<{
         key: number;
         value: any;
       }>) {
-        const row = normalizeNested ? flattenObject(value) : value;
-        sampleRows.push(row);
-        if (sampleRows.length >= maxRowsToParse) {
-          pipeline.destroy();
-          break;
+        totalRows++;
+        if (sampleRows.length < maxRowsToParse) {
+          const row = normalizeNested ? flattenObject(value) : value;
+          sampleRows.push(row);
         }
       }
     } catch (e: any) {
-      if (e.code === 'ERR_STREAM_PREMATURE_CLOSE' && sampleRows.length) {
-        // Expected when we destroy the pipeline early
-      } else if (e.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
+      if (e.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+        // Can happen on stream teardown
+      } else {
         throw new Error('Invalid JSON file. Please check the file format.');
       }
     }
@@ -163,6 +163,7 @@ export class JsonImportHandler implements DataImportHandler {
         columns: [],
         previewData: [],
         totalSampleRows: 0,
+        totalRows: 0,
       };
     }
 
@@ -192,6 +193,7 @@ export class JsonImportHandler implements DataImportHandler {
       columns,
       previewData: sampleRows.slice(0, 20),
       totalSampleRows: sampleRows.length,
+      totalRows,
     };
   }
 

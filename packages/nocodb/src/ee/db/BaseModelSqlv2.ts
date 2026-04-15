@@ -2523,7 +2523,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       if (!raw && !skip_hooks) {
         // we will wrap returning primary key values with primary key column name
-        if (this.isMySQL) {
+        // only needed when responses are raw auto-increment IDs (batchInsert path)
+        // skip when insertOneByOneAsFallback already wrapped them via extractCompositePK
+        if (this.isMySQL && !insertOneByOneAsFallback) {
           responses = responses.map((r, idx) => {
             const rowId = this.extractCompositePK({
               rowId: r,

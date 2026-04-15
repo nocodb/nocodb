@@ -28,9 +28,11 @@ const { getPermissionSummaryLabel } = usePermissions()
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
-// Check if current user is base owner
+const { baseRoles } = useRoles()
+
+// Check if current user is base owner (effective role, considering workspace role fallback)
 const isBaseOwner = computed(() => {
-  return base.value?.project_role === ProjectRoles.OWNER
+  return !!baseRoles.value?.[ProjectRoles.OWNER]
 })
 
 const searchQuery = ref<string>('')

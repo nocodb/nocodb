@@ -310,7 +310,6 @@ export function useCanvasRender({
     ctx.fillStyle = getColor(themeV4Colors.gray['500'])
     ctx.font = '600 12px Inter'
     ctx.textBaseline = 'middle'
-    ctx.imageSmoothingEnabled = false
 
     let xOffset = initialOffset
 
@@ -3640,8 +3639,8 @@ export function useCanvasRender({
     if (!ctx) return
 
     const dpr = window.devicePixelRatio || 1
-    const targetWidth = width.value * dpr
-    const targetHeight = height.value * dpr
+    const targetWidth = Math.round(width.value * dpr)
+    const targetHeight = Math.round(height.value * dpr)
 
     // Always sync CSS display size so the canvas matches the viewport.
     // This must happen outside the buffer-resize guard because Vue's template

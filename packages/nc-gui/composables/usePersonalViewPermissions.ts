@@ -8,12 +8,20 @@ import type { Ref } from 'vue'
  */
 export function usePersonalViewPermissions(view: Ref<ViewType | undefined>) {
   const { isUIAllowed } = useRoles()
-  const { isUserViewOwner } = useViewsStore()
+  const { user } = useGlobal()
 
   const isPersonalView = computed(() => view.value?.lock_type === ViewLockType.Personal)
   const isLockedView = computed(() => view.value?.lock_type === ViewLockType.Locked)
 
-  const isPersonalViewOwner = computed(() => isPersonalView.value && isUserViewOwner(view.value))
+  // Personal-view ownership is strictly `owned_by === current user`.
+  // We intentionally don't use the store's `isUserViewOwner` here because it
+  // also treats the original `created_by` as owner — which is correct for
+  // collaborative views (no owned_by) but wrong for personal views that have
+  // been reassigned to someone else. Backend enforces the strict check; the
+  // frontend must mirror it to avoid showing enabled controls that 403.
+  const isPersonalViewOwner = computed(
+    () => isPersonalView.value && !!view.value?.owned_by && view.value.owned_by === user.value?.id,
+  )
 
   /**
    * Returns a computed that is true if the user has the given permission via role

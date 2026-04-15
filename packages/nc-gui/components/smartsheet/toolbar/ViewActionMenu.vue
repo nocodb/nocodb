@@ -648,14 +648,14 @@ defineOptions({
         <template v-if="isEeUI && showEEFeatures">
           <SmartsheetToolbarNotAllowedTooltip
             v-if="isPersonalView"
-            :enabled="!(isPersonalViewOwner || isUIAllowed('reAssignViewOwner'))"
+            :enabled="!isUIAllowed('reAssignViewOwner')"
             :message="$t('tooltip.onlyOwnerOrCreatorCanReAssign')"
           >
             <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
               <template #default="{ click }">
                 <NcMenuItem
                   inner-class="w-full"
-                  :disabled="!(isPersonalViewOwner || isUIAllowed('reAssignViewOwner'))"
+                  :disabled="!isUIAllowed('reAssignViewOwner')"
                   @click="click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS, () => openReAssignDlg())"
                 >
                   <div

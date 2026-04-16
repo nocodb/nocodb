@@ -286,6 +286,11 @@ watch(enableFormattingOptions, (enabled) => {
     const meta = { ...vModel.value.meta }
     delete meta.precision
     vModel.value.meta = meta
+  } else if (enabled && vModel.value.meta?.precision == null) {
+    vModel.value.meta = {
+      ...vModel.value.meta,
+      ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
+    }
   }
 })
 

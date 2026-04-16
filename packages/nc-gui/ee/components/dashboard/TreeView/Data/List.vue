@@ -65,30 +65,39 @@ interface FlatDocChild {
 }
 
 /**
- * For a given root document, return its visible descendants (flattened, respecting expand state).
- * Depth starts at 1 since the root itself is rendered by allEntities at depth 0.
+ * Pre-computed map of root doc ID → visible descendants (flattened, respecting expand state).
+ * Using a computed ensures Vue tracks expandedDocIds and activeDocuments reactivity.
  */
-function getVisibleChildren(rootDocId: string): FlatDocChild[] {
-  const result: FlatDocChild[] = []
+const visibleChildrenMap = computed<Map<string, FlatDocChild[]>>(() => {
+  const map = new Map<string, FlatDocChild[]>()
   const allDocs = activeDocuments.value
+  const expanded = expandedDocIds.value
 
-  const walk = (parentId: string, depth: number) => {
-    const children = allDocs
-      .filter((d) => d.parent_id === parentId)
-      .sort((a, b) => (a.order || 0) - (b.order || 0))
+  for (const rootDoc of rootDocuments.value) {
+    const result: FlatDocChild[] = []
 
-    for (const child of children) {
-      const hasChildren = !!child.has_children || allDocs.some((d) => d.parent_id === child.id)
-      result.push({ doc: child, depth, hasChildren })
-      if (expandedDocIds.value.has(child.id!) && hasChildren) {
-        walk(child.id!, depth + 1)
+    const walk = (parentId: string, depth: number) => {
+      const children = allDocs
+        .filter((d) => d.parent_id === parentId)
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+
+      for (const child of children) {
+        const hasChildren = !!child.has_children || allDocs.some((d) => d.parent_id === child.id)
+        result.push({ doc: child, depth, hasChildren })
+        if (expanded.has(child.id!) && hasChildren) {
+          walk(child.id!, depth + 1)
+        }
       }
+    }
+
+    walk(rootDoc.id!, 1)
+    if (result.length) {
+      map.set(rootDoc.id!, result)
     }
   }
 
-  walk(rootDocId, 1)
-  return result
-}
+  return map
+})
 
 const allEntities = computed<
   Array<
@@ -320,7 +329,7 @@ watchEffect(() => {
           />
           <!-- Expanded child documents -->
           <DashboardTreeViewDocumentsNode
-            v-for="child of getVisibleChildren(entity.id!)"
+            v-for="child of visibleChildrenMap.get(entity.id!) || []"
             :key="child.doc.id"
             :data-id="child.doc.id"
             :data-order="child.doc.order"

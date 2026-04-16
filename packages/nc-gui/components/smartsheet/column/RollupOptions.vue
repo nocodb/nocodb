@@ -281,6 +281,15 @@ const enableFormattingOptions = computed(() => {
   return isIntegerUiType({ uidt } as ColumnType) || [UITypes.Decimal, UITypes.Currency, UITypes.Percent].includes(uidt as UITypes)
 })
 
+watch(enableFormattingOptions, (enabled) => {
+  if (enabled && vModel.value.meta?.precision == null) {
+    vModel.value.meta = {
+      ...vModel.value.meta,
+      ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
+    }
+  }
+})
+
 const onFilterLabelClick = () => {
   if (!selectedTable.value) return
 
@@ -410,7 +419,6 @@ const handleScrollIntoView = () => {
     </a-form-item>
     <a-form-item v-if="enableFormattingOptions" :label="$t('placeholder.precision')">
       <a-select
-        v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
         v-model:value="vModel.meta.precision"
         dropdown-class-name="nc-dropdown-rollup-precision-format"
         @change="onPrecisionChange"

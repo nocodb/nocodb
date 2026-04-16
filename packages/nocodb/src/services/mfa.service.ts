@@ -365,10 +365,8 @@ export class MfaService {
         const match = await bcrypt.compare(normalizedCode, backupCodes[i]);
         if (match) {
           backupCodes.splice(i, 1);
-          this.updateMfaFields(user.id, {
+          await this.updateMfaFields(user.id, {
             totp_backup_codes: JSON.stringify(backupCodes),
-          }).catch((e) => {
-            this.logger.error('Failed to consume backup code', e.stack);
           });
           return true;
         }
@@ -386,15 +384,10 @@ export class MfaService {
 
     // Consume the matched code and re-hash remaining codes for gradual migration
     backupCodes.splice(idx, 1);
-    this.hashBackupCodes(backupCodes)
-      .then((hashedRemaining) => {
-        return this.updateMfaFields(user.id, {
-          totp_backup_codes: JSON.stringify(hashedRemaining),
-        });
-      })
-      .catch((e) => {
-        this.logger.error('Failed to migrate backup codes', e.stack);
-      });
+    const hashedRemaining = await this.hashBackupCodes(backupCodes);
+    await this.updateMfaFields(user.id, {
+      totp_backup_codes: JSON.stringify(hashedRemaining),
+    });
 
     return true;
   }

@@ -258,7 +258,7 @@ const hasDocumentCreateAccess = computed(() => {
                 data-testid="mini-sidebar--document-create"
                 :disabled="!isDataTab || !isBaseHomePage || !hasDocumentCreateAccess"
                 inner-class="w-full"
-                @click="createDocument(openedProject?.id, undefined, { navigate: false })"
+                @click="createDocument(openedProject?.id)"
               >
                 <GeneralIcon icon="ncFileText" />
                 <div class="flex-1">

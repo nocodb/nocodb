@@ -321,6 +321,7 @@ export default class Document extends DocumentCE implements DocumentType {
       'fk_workspace_id',
       'content',
       'meta',
+      'order',
       'parent_id',
       'created_by',
       'updated_by',
@@ -336,10 +337,12 @@ export default class Document extends DocumentCE implements DocumentType {
     insertObj.deleted = false;
     insertObj.doc_version = 1;
 
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.MODELS, {
-      base_id: context.base_id,
-      parent_id: insertObj.parent_id ?? null,
-    });
+    if (insertObj.order === undefined || insertObj.order === null) {
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.MODELS, {
+        base_id: context.base_id,
+        parent_id: insertObj.parent_id ?? null,
+      });
+    }
 
     // Insert metadata (without content) into MODELS table
     const insertResult = await ncMeta.metaInsert2(

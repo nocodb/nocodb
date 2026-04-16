@@ -56,8 +56,8 @@ export const RollupCellRenderer: CellRenderer = {
             uidt: colMeta?.display_type,
             ...displayColumnMeta,
             meta: {
-              ...parseProp(column?.meta),
               ...parseProp(displayColumnMeta?.meta),
+              ...parseProp(column?.meta),
             },
           },
           readonly: true,

@@ -53,8 +53,8 @@ const childColumn = computed(() => {
         uidt: colMeta.display_type,
         ...displayColumnMeta,
         meta: {
-          ...parseProp(column.value?.meta),
           ...parseProp(displayColumnMeta?.meta),
+          ...parseProp(column.value?.meta),
         },
       }
     }

@@ -74,8 +74,8 @@ export class RollupHelper extends AbstractColumnHelper {
           uidt: colMeta.display_type,
           ...displayColumnMeta,
           meta: {
-            ...parseProp(col?.meta),
             ...parseProp(displayColumnMeta?.meta),
+            ...parseProp(col?.meta),
           },
         } as ColumnType;
       }

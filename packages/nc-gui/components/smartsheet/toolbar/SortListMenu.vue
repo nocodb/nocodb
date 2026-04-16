@@ -41,7 +41,7 @@ const isCalendar = inject(IsCalendarInj, ref(false))
 
 const { isUserViewOwner } = useViewsStore()
 
-const isRestrictedEditor = computed(() => isLocked.value || !canSyncSort.value)
+const isRestrictedEditor = computed(() => !isPublic.value && (isLocked.value || !canSyncSort.value))
 
 // True when user is viewing a personal view they don't own
 const isPersonalViewNonOwner = computed(() => view.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(view.value))

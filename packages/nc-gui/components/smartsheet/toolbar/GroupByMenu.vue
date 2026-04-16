@@ -25,6 +25,7 @@ const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
 
 const isLocked = inject(IsLockedInj, ref(false))
+const isPublic = inject(IsPublicInj, ref(false))
 
 const isToolbarIconMode = inject(
   IsToolbarIconMode,
@@ -41,7 +42,7 @@ const { isUserViewOwner, updateViewMeta } = useViewsStore()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
-const isRestrictedEditor = computed(() => isLocked.value || !canSyncGroupBy.value)
+const isRestrictedEditor = computed(() => !isPublic.value && (isLocked.value || !canSyncGroupBy.value))
 
 const isPersonalViewNonOwner = computed(() => view.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(view.value))
 

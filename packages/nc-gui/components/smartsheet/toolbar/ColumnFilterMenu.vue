@@ -3,6 +3,7 @@ import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewLockType, Vie
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
+const isPublic = inject(IsPublicInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -43,8 +44,9 @@ const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
 )
 
 const filtersLength = ref(0)
-// If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
-const isRestrictedEditor = computed(() => isLocked.value || !canSyncFilter.value)
+// If view is locked OR user lacks permission to sync filters (Editor), show restricted UI.
+// Public/shared views always get the interactive UI — their changes are local-only.
+const isRestrictedEditor = computed(() => !isPublic.value && (isLocked.value || !canSyncFilter.value))
 
 // True when user is viewing a personal view they don't own
 const isPersonalViewNonOwner = computed(

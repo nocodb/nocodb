@@ -21,6 +21,9 @@ export const isRichText = (column: ColumnType) =>
 export const isInt = (_column: ColumnType, abstractType: any) =>
   abstractType === 'integer';
 
+export const isIntegerUiType = (column: ColumnType) =>
+  [UITypes.Number, UITypes.ID, UITypes.AutoNumber, UITypes.Rating, UITypes.Links].includes(column.uidt as UITypes);
+
 export const isFloat = (column: ColumnType, abstractType: any) =>
   abstractType === 'float' || column.uidt === UITypes.Number;
 

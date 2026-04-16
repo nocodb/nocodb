@@ -4,8 +4,9 @@ import AbstractColumnHelper, {
 } from '../column.interface';
 import { ColumnHelper } from '../column-helper';
 import { getMetaWithCompositeKey } from '~/lib/helpers/metaHelpers';
-import { getRenderAsTextFunForUiType, integerRollupFunctions, integerPreservingRollupFunctions, parseProp } from '~/lib/helperFunctions';
+import { getRenderAsTextFunForUiType, getRollupColumnMeta, integerRollupFunctions, integerPreservingRollupFunctions, parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
+import { isIntegerUiType } from '../utils/cell';
 import { ComputedTypePasteError } from '~/lib/error';
 import { precisionFormats } from '../utils';
 import { isValidValue } from '~/lib/is';
@@ -75,7 +76,7 @@ export class RollupHelper extends AbstractColumnHelper {
           ...displayColumnMeta,
           meta: {
             ...parseProp(displayColumnMeta?.meta),
-            ...parseProp(col?.meta),
+            ...getRollupColumnMeta(col?.meta, colMeta.display_type, colOptions.rollup_function),
           },
         } as ColumnType;
       }
@@ -90,14 +91,14 @@ export class RollupHelper extends AbstractColumnHelper {
     if (!isFormulaWithDisplayType) {
       childColumn.meta = {
         ...parseProp(childColumn?.meta),
-        ...parseProp(col?.meta),
+        ...getRollupColumnMeta(col?.meta, childColumn.uidt as UITypes, colOptions.rollup_function),
       };
     }
 
     if (renderAsTextFun.includes(colOptions.rollup_function)) {
       const isInteger =
         integerRollupFunctions.includes(colOptions.rollup_function) ||
-        (childColumn.uidt === UITypes.Number && integerPreservingRollupFunctions.includes(colOptions.rollup_function));
+        (isIntegerUiType(childColumn) && integerPreservingRollupFunctions.includes(colOptions.rollup_function));
 
       childColumn.uidt = isInteger ? UITypes.Number : UITypes.Decimal;
     }

@@ -10,6 +10,7 @@ export {
   isTextArea,
   isRichText,
   isInt,
+  isIntegerUiType,
   isFloat,
   isDate,
   isYear,

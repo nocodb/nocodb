@@ -273,11 +273,20 @@ const enableFormattingOptions = computed(() => {
   // count/countDistinct always return integers — precision is not applicable
   if (integerRollupFunctions.includes(vModel.value.rollup_function)) return false
 
-  // Number type stores integers — only avg/avgDistinct can produce decimals
-  if (uidt === UITypes.Number && integerPreservingRollupFunctions.includes(vModel.value.rollup_function)) return false
+  // Integer-based types — only avg/avgDistinct can produce decimals
+  if (isIntegerUiType({ uidt } as ColumnType) && integerPreservingRollupFunctions.includes(vModel.value.rollup_function))
+    return false
 
   // Column types that can produce decimal results
-  return [UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent].includes(uidt as UITypes)
+  return isIntegerUiType({ uidt } as ColumnType) || [UITypes.Decimal, UITypes.Currency, UITypes.Percent].includes(uidt as UITypes)
+})
+
+watch(enableFormattingOptions, (enabled) => {
+  if (!enabled && vModel.value.meta?.precision != null) {
+    const meta = { ...vModel.value.meta }
+    delete meta.precision
+    vModel.value.meta = meta
+  }
 })
 
 const onFilterLabelClick = () => {

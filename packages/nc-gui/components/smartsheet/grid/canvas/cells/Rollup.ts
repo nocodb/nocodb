@@ -5,8 +5,10 @@ import {
   UITypes,
   getMetaWithCompositeKey,
   getRenderAsTextFunForUiType,
+  isIntegerUiType,
   integerRollupFunctions,
   integerPreservingRollupFunctions,
+  getRollupColumnMeta,
 } from 'nocodb-sdk'
 
 import rfdc from 'rfdc'
@@ -57,7 +59,7 @@ export const RollupCellRenderer: CellRenderer = {
             ...displayColumnMeta,
             meta: {
               ...parseProp(displayColumnMeta?.meta),
-              ...parseProp(column?.meta),
+              ...getRollupColumnMeta(column?.meta, colMeta?.display_type, colOptions?.rollup_function),
             },
           },
           readonly: true,
@@ -83,14 +85,14 @@ export const RollupCellRenderer: CellRenderer = {
     if (!isFormulaWithDisplayType) {
       renderProps.column.meta = {
         ...parseProp(childColumn?.meta),
-        ...parseProp(column?.meta),
+        ...getRollupColumnMeta(column?.meta, childColumn?.uidt as UITypes, colOptions?.rollup_function),
       }
     }
 
     if (colOptions?.rollup_function && renderAsTextFun.includes(colOptions?.rollup_function)) {
       const isInteger =
         integerRollupFunctions.includes(colOptions.rollup_function) ||
-        (renderProps.column.uidt === UITypes.Number && integerPreservingRollupFunctions.includes(colOptions.rollup_function))
+        (isIntegerUiType(renderProps.column as ColumnType) && integerPreservingRollupFunctions.includes(colOptions.rollup_function))
 
       renderProps.column.uidt = isInteger ? UITypes.Number : UITypes.Decimal
     }

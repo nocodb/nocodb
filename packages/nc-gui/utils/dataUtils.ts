@@ -3,8 +3,10 @@ import {
   UITypes,
   dateFormats,
   getRenderAsTextFunForUiType,
+  isIntegerUiType,
   integerRollupFunctions,
   integerPreservingRollupFunctions,
+  getRollupColumnMeta,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -426,13 +428,13 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
 
   childColumn.meta = {
     ...parseProp(childColumn?.meta),
-    ...parseProp(col?.meta),
+    ...getRollupColumnMeta(col?.meta, childColumn.uidt as UITypes, colOptions.rollup_function ?? ''),
   }
 
   if (renderAsTextFun.includes(colOptions.rollup_function ?? '')) {
     const isInteger =
       integerRollupFunctions.includes(colOptions.rollup_function ?? '') ||
-      (childColumn.uidt === UITypes.Number && integerPreservingRollupFunctions.includes(colOptions.rollup_function ?? ''))
+      (isIntegerUiType(childColumn as ColumnType) && integerPreservingRollupFunctions.includes(colOptions.rollup_function ?? ''))
 
     childColumn.uidt = isInteger ? UITypes.Number : UITypes.Decimal
   }

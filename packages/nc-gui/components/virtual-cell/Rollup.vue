@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, getRenderAsTextFunForUiType, integerRollupFunctions, integerPreservingRollupFunctions } from 'nocodb-sdk'
+import { UITypes, getRenderAsTextFunForUiType, getRollupColumnMeta, integerRollupFunctions, integerPreservingRollupFunctions } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
 
 const { metas } = useMetas()
@@ -54,7 +54,7 @@ const childColumn = computed(() => {
         ...displayColumnMeta,
         meta: {
           ...parseProp(displayColumnMeta?.meta),
-          ...parseProp(column.value?.meta),
+          ...getRollupColumnMeta(column.value?.meta, colMeta.display_type, (colOptions.value as RollupType)?.rollup_function!),
         },
       }
     }
@@ -72,7 +72,7 @@ const isIntegerResult = computed(() => {
 
   return (
     integerRollupFunctions.includes(fn) ||
-    (childColumn.value?.uidt === UITypes.Number && integerPreservingRollupFunctions.includes(fn))
+    (isIntegerUiType(childColumn.value as ColumnType) && integerPreservingRollupFunctions.includes(fn))
   )
 })
 </script>

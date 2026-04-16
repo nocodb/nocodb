@@ -96,8 +96,6 @@ const onTabClick = async (tabKey: string) => {
 
   if (tabKey === 'workflows') {
     await navigateTo(`${basePath}/workflows`)
-  } else if (tabKey === 'docs') {
-    await navigateTo(`${basePath}/docs`)
   } else {
     await navigateTo(basePath)
   }

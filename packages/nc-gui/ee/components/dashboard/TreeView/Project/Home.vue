@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import Automation from '../Automation/index.vue'
 import Data from '../Data/index.vue'
-import Documents from '../Documents/index.vue'
 
 const sidebarStore = useSidebarStore()
 
@@ -75,26 +74,7 @@ const hasTableCreatePermission = computed(() => {
         class="nc-project-home-section !py-0 xs:mt-1 flex items-center min-h-[var(--toolbar-height)]"
       >
         <div class="flex items-center w-full">
-          <!-- Docs tab: direct create (no dropdown — only one option) -->
-          <NcButton
-            v-if="activeSidebarTab === 'docs'"
-            v-e="['c:document:create:sidebar']"
-            type="text"
-            size="small"
-            mobile-size="medium"
-            full-width
-            class="nc-home-create-new-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !w-full !px-3"
-            data-testid="nc-home-create-new-btn"
-            @click="createDocument(base.id!)"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="ncPlusCircle" class="!text-nc-content-brand" />
-              <div>{{ $t('labels.createNew') }}</div>
-            </div>
-          </NcButton>
-
-          <!-- Other tabs: dropdown with multiple options -->
-          <NcDropdown v-else v-model:visible="isVisibleCreateNew">
+          <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
               type="text"
               size="small"
@@ -130,11 +110,6 @@ const hasTableCreatePermission = computed(() => {
       <!-- Data tab -->
       <template v-if="activeSidebarTab === 'data'">
         <Data :base-id="base.id" hide-header />
-      </template>
-
-      <!-- Documents tab -->
-      <template v-else-if="activeSidebarTab === 'docs'">
-        <Documents v-if="!isSharedBase" :base-id="base.id" hide-header />
       </template>
 
       <!-- Automation/Workflows tab -->

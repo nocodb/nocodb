@@ -20,7 +20,7 @@ const { baseTables } = storeToRefs(useTablesStore())
 const { activeDashboardId, activeBaseDashboards } = storeToRefs(dashboardStore)
 
 const documentsStore = useDocumentsStore()
-const { activeDocuments, activeDocumentId, documentTree, expandedDocIds } = storeToRefs(documentsStore)
+const { activeDocuments, activeDocumentId, expandedDocIds } = storeToRefs(documentsStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -66,26 +66,32 @@ interface FlatDocChild {
 
 /**
  * Pre-computed map of root doc ID → visible descendants (flattened, respecting expand state).
- * Using a computed ensures Vue tracks expandedDocIds and activeDocuments reactivity.
+ * Builds a parent→children index once (O(n)) then walks only expanded branches.
  */
 const visibleChildrenMap = computed<Map<string, FlatDocChild[]>>(() => {
   const map = new Map<string, FlatDocChild[]>()
   const allDocs = activeDocuments.value
   const expanded = expandedDocIds.value
 
+  // Build parent→children index (O(n))
+  const childrenByParent = new Map<string | null, DocumentType[]>()
+  for (const doc of allDocs) {
+    const key = doc.parent_id ?? null
+    const group = childrenByParent.get(key) || []
+    group.push(doc)
+    childrenByParent.set(key, group)
+  }
+
   for (const rootDoc of rootDocuments.value) {
-    // Skip if root doc is not expanded
     if (!expanded.has(rootDoc.id!)) continue
 
     const result: FlatDocChild[] = []
 
     const walk = (parentId: string, depth: number) => {
-      const children = allDocs
-        .filter((d) => d.parent_id === parentId)
-        .sort((a, b) => (a.order || 0) - (b.order || 0))
+      const children = (childrenByParent.get(parentId) || []).sort((a, b) => (a.order || 0) - (b.order || 0))
 
       for (const child of children) {
-        const hasChildren = !!child.has_children || allDocs.some((d) => d.parent_id === child.id)
+        const hasChildren = !!child.has_children || childrenByParent.has(child.id!)
         result.push({ doc: child, depth, hasChildren })
         if (expanded.has(child.id!) && hasChildren) {
           walk(child.id!, depth + 1)
@@ -229,6 +235,11 @@ const initSortable = (el: Element) => {
           order: item.order,
         })
       } else if (item.type === 'document') {
+        // Update local doc order in the reactive array
+        const doc = activeDocuments.value.find((d) => d.id === item.id)
+        if (doc) {
+          doc.order = item.order
+        }
         await documentsStore.updateDocument(baseId.value, item.id, {
           order: item.order,
         })
@@ -323,6 +334,7 @@ watchEffect(() => {
             :data-order="entity.order"
             :data-title="entity.title"
             :data-type="entity.type"
+            :data-testid="`nc-tbl-side-node-${entity.title}`"
             class="nc-document-item nc-tree-item text-sm"
             :class="{
               'bg-nc-bg-gray-medium': isMarked === entity.id,

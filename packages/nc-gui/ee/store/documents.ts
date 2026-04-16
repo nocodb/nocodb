@@ -218,7 +218,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     }
   }
 
-  const createDocument = async (baseId: string, payload?: Partial<DocumentType>, { navigate = true }: { navigate?: boolean } = {}) => {
+  const createDocument = async (baseId: string, payload?: Partial<DocumentType>) => {
     if (!activeWorkspaceId.value) return null
 
     if (isEEFeatureBlocked.value) {
@@ -256,14 +256,12 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
         }
       }
 
-      if (navigate) {
-        ncNavigateTo({
-          workspaceId: activeWorkspaceId.value,
-          baseId,
-          docId: created.id,
-          docTitle: created.title,
-        })
-      }
+      ncNavigateTo({
+        workspaceId: activeWorkspaceId.value,
+        baseId,
+        docId: created.id,
+        docTitle: created.title,
+      })
 
       // Scroll the newly created document into view in the sidebar
       setTimeout(() => {

@@ -120,6 +120,8 @@ const onCreateBaseClick = () => {
 
           <ProjectActionCreateEmptyDashboard v-if="!isMobileMode && showEEFeatures" />
 
+          <ProjectActionCreateNewDocument v-if="!isMobileMode && showEEFeatures" :base-id="base?.id" />
+
           <ProjectActionCreateNewSync v-if="!isMobileMode && showEEFeatures" :base-id="base?.id" />
 
           <NcTooltip
@@ -156,11 +158,6 @@ const onCreateBaseClick = () => {
               </template>
             </ProjectActionItem>
           </NcTooltip>
-        </template>
-
-        <!-- Docs tab actions -->
-        <template v-if="activeSidebarTab === 'docs' && showEEFeatures">
-          <ProjectActionCreateNewDocument :base-id="base?.id" />
         </template>
 
         <!-- Automation actions (shown on Automation tab) -->

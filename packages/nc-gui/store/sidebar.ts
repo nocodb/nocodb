@@ -112,7 +112,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
-  type SidebarTab = 'data' | 'docs' | 'workflows' | 'agents' | 'settings'
+  type SidebarTab = 'data' | 'workflows' | 'agents' | 'settings'
 
   const activeSidebarTab = ref<SidebarTab>('data')
 

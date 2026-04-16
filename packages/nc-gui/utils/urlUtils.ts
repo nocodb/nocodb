@@ -337,13 +337,9 @@ export function toReadableUrlSlug(parts: (string | undefined)[] = []): string {
       .map((part) => {
         if (!part?.trim()) return ''
 
-        return part
-          .trim()
-          .toLowerCase()
-          .replace(/[^\w\s-]/g, '') // strip special/non-ASCII characters
-          .replace(/\s+/g, '-') // replace spaces with dashes
-          .replace(/-{2,}/g, '-') // collapse consecutive dashes
-          .replace(/^-|-$/g, '') // trim leading/trailing dashes
+        return encodeURIComponent(
+          part.trim().toLowerCase().replace(/\s+/g, '-'), // replace one or more spaces with a single dash
+        )
       })
       .filter(Boolean) // remove empty parts
       .join('-') ?? ''

@@ -304,7 +304,16 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       ? `/workflows/${workflowId}${toReadableUrlSlug([workflowTitle]) ? `/${toReadableUrlSlug([workflowTitle])}` : ''}`
       : ''
 
-    const docPath = docId ? `/docs/${docId}${toReadableUrlSlug([docTitle]) ? `/${toReadableUrlSlug([docTitle])}` : ''}` : ''
+    const docSlug = docTitle
+      ? docTitle
+          .trim()
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-{2,}/g, '-')
+          .replace(/^-|-$/g, '')
+      : ''
+    const docPath = docId ? `/docs/${docId}${docSlug ? `/${docSlug}` : ''}` : ''
 
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'

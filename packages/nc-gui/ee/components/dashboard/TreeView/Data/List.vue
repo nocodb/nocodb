@@ -275,10 +275,9 @@ watchEffect(() => {
           :data-order="entity.order"
           :data-title="entity.title"
           :data-type="entity.type"
-          class="nc-document-item nc-tree-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+          class="nc-document-item nc-tree-item text-sm"
           :class="{
             'bg-nc-bg-gray-medium': isMarked === entity.id,
-            'active': activeDocumentId === entity.id,
           }"
           :doc="entity"
           :has-children="!!entity.has_children"

@@ -257,7 +257,7 @@ const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 const enableFormattingOptions = computed(() => {
   const relatedCol = filteredColumns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
 
-  if (!relatedCol) return false
+  if (!relatedCol || !vModel.value.rollup_function) return false
 
   let uidt = relatedCol.uidt
 

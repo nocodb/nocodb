@@ -3,6 +3,8 @@ import {
   UITypes,
   dateFormats,
   getRenderAsTextFunForUiType,
+  integerRollupFunctions,
+  integerPreservingRollupFunctions,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -428,7 +430,11 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
   }
 
   if (renderAsTextFun.includes(colOptions.rollup_function ?? '')) {
-    childColumn.uidt = UITypes.Decimal
+    const isInteger =
+      integerRollupFunctions.includes(colOptions.rollup_function ?? '') ||
+      (childColumn.uidt === UITypes.Number && integerPreservingRollupFunctions.includes(colOptions.rollup_function ?? ''))
+
+    childColumn.uidt = isInteger ? UITypes.Number : UITypes.Decimal
   }
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define

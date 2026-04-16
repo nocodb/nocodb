@@ -4,7 +4,7 @@ import AbstractColumnHelper, {
 } from '../column.interface';
 import { ColumnHelper } from '../column-helper';
 import { getMetaWithCompositeKey } from '~/lib/helpers/metaHelpers';
-import { getRenderAsTextFunForUiType, parseProp } from '~/lib/helperFunctions';
+import { getRenderAsTextFunForUiType, integerRollupFunctions, integerPreservingRollupFunctions, parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { ComputedTypePasteError } from '~/lib/error';
 import { precisionFormats } from '../utils';
@@ -95,7 +95,11 @@ export class RollupHelper extends AbstractColumnHelper {
     }
 
     if (renderAsTextFun.includes(colOptions.rollup_function)) {
-      childColumn.uidt = UITypes.Decimal;
+      const isInteger =
+        integerRollupFunctions.includes(colOptions.rollup_function) ||
+        (childColumn.uidt === UITypes.Number && integerPreservingRollupFunctions.includes(colOptions.rollup_function));
+
+      childColumn.uidt = isInteger ? UITypes.Number : UITypes.Decimal;
     }
 
     return ColumnHelper.parseValue(value, { ...params, col: childColumn! });

@@ -7,7 +7,8 @@ import {
   PlanTitles,
   UITypes,
   getAvailableRollupForColumn,
-  getRenderAsTextFunForUiType,
+  integerRollupFunctions,
+  integerPreservingRollupFunctions,
   rollupAllFunctions,
 } from 'nocodb-sdk'
 
@@ -266,9 +267,14 @@ const enableFormattingOptions = computed(() => {
       uidt = colMeta?.display_type
     }
   }
-  const validFunctions = getRenderAsTextFunForUiType(uidt)
+  // count/countDistinct always return integers — precision is not applicable
+  if (integerRollupFunctions.includes(vModel.value.rollup_function)) return false
 
-  return validFunctions.includes(vModel.value.rollup_function)
+  // Number type stores integers — only avg/avgDistinct can produce decimals
+  if (uidt === UITypes.Number && integerPreservingRollupFunctions.includes(vModel.value.rollup_function)) return false
+
+  // Column types that can produce decimal results
+  return [UITypes.Number, UITypes.Decimal, UITypes.Currency, UITypes.Percent].includes(uidt as UITypes)
 })
 
 const onFilterLabelClick = () => {

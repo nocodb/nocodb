@@ -5,6 +5,8 @@ import {
   UITypes,
   getMetaWithCompositeKey,
   getRenderAsTextFunForUiType,
+  integerRollupFunctions,
+  integerPreservingRollupFunctions,
 } from 'nocodb-sdk'
 
 import rfdc from 'rfdc'
@@ -86,8 +88,11 @@ export const RollupCellRenderer: CellRenderer = {
     }
 
     if (colOptions?.rollup_function && renderAsTextFun.includes(colOptions?.rollup_function)) {
-      // Render as decimal cell
-      renderProps.column.uidt = UITypes.Decimal
+      const isInteger =
+        integerRollupFunctions.includes(colOptions.rollup_function) ||
+        (renderProps.column.uidt === UITypes.Number && integerPreservingRollupFunctions.includes(colOptions.rollup_function))
+
+      renderProps.column.uidt = isInteger ? UITypes.Number : UITypes.Decimal
     }
 
     renderCell(ctx, renderProps.column, renderProps)

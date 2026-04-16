@@ -165,6 +165,12 @@ const getAvailableRollupForFormulaType = (type: FormulaDataTypes) => {
   }
 };
 
+/** Rollup functions that always return integer values — no decimal precision needed */
+const integerRollupFunctions: string[] = ['count', 'countDistinct'];
+
+/** Rollup functions that preserve the source column type (integer in → integer out) */
+const integerPreservingRollupFunctions: string[] = ['sum', 'min', 'max', 'sumDistinct'];
+
 const getRenderAsTextFunForUiType = (type: UITypes) => {
   if (
     [
@@ -247,6 +253,8 @@ export {
   getAvailableRollupForUiType,
   getAvailableRollupForFormulaType,
   getRenderAsTextFunForUiType,
+  integerRollupFunctions,
+  integerPreservingRollupFunctions,
   populateUniqueFileName,
   roundUpToPrecision,
 };

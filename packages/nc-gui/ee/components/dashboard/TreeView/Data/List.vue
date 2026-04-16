@@ -74,6 +74,9 @@ const visibleChildrenMap = computed<Map<string, FlatDocChild[]>>(() => {
   const expanded = expandedDocIds.value
 
   for (const rootDoc of rootDocuments.value) {
+    // Skip if root doc is not expanded
+    if (!expanded.has(rootDoc.id!)) continue
+
     const result: FlatDocChild[] = []
 
     const walk = (parentId: string, depth: number) => {

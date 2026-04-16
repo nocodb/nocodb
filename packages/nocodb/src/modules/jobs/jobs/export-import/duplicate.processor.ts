@@ -98,6 +98,7 @@ export class DuplicateProcessor {
       excludeScripts?: boolean;
       excludeDashboards?: boolean;
       excludeWorkflows?: boolean;
+      excludeDocuments?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -184,6 +185,19 @@ export class DuplicateProcessor {
         );
       }
 
+      let exportedDocuments = null;
+
+      if (!options?.excludeDocuments) {
+        exportedDocuments =
+          await this.exportService.serializeDocuments(context);
+
+        elapsedTime(
+          hrTime,
+          `serialize documents for ${dataSource.base_id}`,
+          operation,
+        );
+      }
+
       let exportedDashboards = null;
 
       if (!options.excludeDashboards) {
@@ -224,6 +238,15 @@ export class DuplicateProcessor {
           user,
           baseId: targetBase.id,
           data: exportedScripts,
+          req: req,
+        });
+      }
+
+      if (exportedDocuments?.length) {
+        await this.importService.importDocuments(targetContext, {
+          user,
+          baseId: targetBase.id,
+          data: exportedDocuments,
           req: req,
         });
       }

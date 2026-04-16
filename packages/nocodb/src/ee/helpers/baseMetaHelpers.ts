@@ -301,6 +301,15 @@ export async function serializeMeta(
         }
 
         baseSchema[metaTable] = records;
+
+        // DEBUG: log document-related serialization
+        if (metaTable === MetaTable.MODELS) {
+          const docRecords = records.filter((r) => r.type === 'document');
+          console.log(`[docs-in-data] serializeMeta MODELS: ${records.length} total, ${docRecords.length} documents`);
+        }
+        if (metaTable === MetaTable.DOC_CONTENT) {
+          console.log(`[docs-in-data] serializeMeta DOC_CONTENT: ${records.length} records`);
+        }
       } catch (error) {
         console.error(`Failed to serialize table ${metaTable}:`, error);
         // Continue with other tables, but log the error
@@ -762,8 +771,17 @@ async function handleTableCreations(
 ) {
   const tablesToAdd = metaDiff.add[MetaTable.MODELS] || [];
 
+  // DEBUG
+  const docCount = tablesToAdd.filter((r) => r.type === 'document').length;
+  console.log(`[docs-in-data] handleTableCreations: ${tablesToAdd.length} models to add, ${docCount} documents`);
+
   for (const tableRecord of tablesToAdd) {
     try {
+      // DEBUG
+      if (tableRecord.type === 'document') {
+        console.log(`[docs-in-data] creating document: ${tableRecord.id} "${tableRecord.title}" isMetadataOnly=${isMetadataOnly(tableRecord.type)}`);
+      }
+
       // Check if table metadata already exists (idempotency check)
       const existingTable = await ncMeta
         .knex(MetaTable.MODELS)
@@ -1277,6 +1295,11 @@ async function handleNonDDLChanges(
       const toDelete = metaDiff.delete[metaTable] || [];
       const toUpdate = metaDiff.update[metaTable] || [];
       const toAdd = metaDiff.add[metaTable] || [];
+
+      // DEBUG: log DOC_CONTENT processing
+      if (metaTable === MetaTable.DOC_CONTENT) {
+        console.log(`[docs-in-data] handleNonDDLChanges DOC_CONTENT: add=${toAdd.length}, update=${toUpdate.length}, delete=${toDelete.length}`);
+      }
 
       // Handle deletions first
       for (const record of toDelete) {

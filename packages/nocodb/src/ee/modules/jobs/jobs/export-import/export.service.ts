@@ -5,6 +5,7 @@ import type { NcRequest } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { DatasService } from '~/services/datas.service';
 import { Workflow } from '~/models';
+import Document from '~/models/Document';
 import { extractWorkflowDependencies } from '~/services/workflows/extractDependency';
 import { deepReplaceStrings } from '~/helpers/stringHelpers';
 
@@ -12,6 +13,29 @@ import { deepReplaceStrings } from '~/helpers/stringHelpers';
 export class ExportService extends ExportServiceCE {
   constructor(datasService: DatasService) {
     super(datasService);
+  }
+
+  async serializeDocuments(context: NcContext) {
+    const allDocs = await Document.listAllLite(context, context.base_id);
+
+    const docsWithContent = [];
+    for (const doc of allDocs) {
+      const full = await Document.get(context, doc.id!);
+      if (full) {
+        docsWithContent.push({
+          id: full.id,
+          title: full.title,
+          content: full.content,
+          meta: full.meta,
+          order: full.order,
+          parent_id: full.parent_id,
+          has_children: full.has_children,
+          version: full.version,
+        });
+      }
+    }
+
+    return docsWithContent;
   }
 
   async serializeWorkflows(context: NcContext, param: any, _req: NcRequest) {

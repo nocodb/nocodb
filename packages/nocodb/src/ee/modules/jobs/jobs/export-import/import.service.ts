@@ -7,6 +7,7 @@ import type { Model, Permission, View } from '~/models';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { ListsService } from '~/services/lists.service';
 import { type User, WorkspaceUser } from '~/models';
+import Document from '~/models/Document';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -138,6 +139,76 @@ export class ImportService extends ImportServiceCE {
     if (!param.data?.length) return;
     for (const script of param.data) {
       await this.scriptsService.createScript(context, script, param.req);
+    }
+  }
+
+  override async importDocuments(
+    context: NcContext,
+    param: {
+      user: User;
+      baseId: string;
+      data: Array<any>;
+      req: NcRequest;
+    },
+  ) {
+    if (!param.data?.length) return;
+
+    // Build old parent_id -> new doc id mapping for nested docs
+    const idMap = new Map<string | null, string>();
+
+    // First pass: create all documents (without parent_id for nested ones)
+    // We need to create root docs first, then children
+    const rootDocs = param.data.filter((d) => !d.parent_id);
+    const childDocs = param.data.filter((d) => d.parent_id);
+
+    for (const doc of rootDocs) {
+      const created = await Document.insert(context, {
+        title: doc.title,
+        content: doc.content,
+        meta: doc.meta,
+        order: doc.order,
+        has_children: doc.has_children,
+        parent_id: null,
+        base_id: param.baseId,
+        fk_workspace_id: context.workspace_id,
+        created_by: param.user.id,
+        updated_by: param.user.id,
+      });
+      if (created?.id && doc.id) {
+        idMap.set(doc.id, created.id);
+      }
+    }
+
+    // Second pass: create child docs with mapped parent_ids
+    // Sort by depth (shallowest first) so parents are created before children
+    const pending = [...childDocs];
+    let maxIterations = pending.length * 2;
+    while (pending.length > 0 && maxIterations-- > 0) {
+      const doc = pending[0];
+      const newParentId = idMap.get(doc.parent_id);
+
+      if (newParentId) {
+        pending.shift();
+        const created = await Document.insert(context, {
+          title: doc.title,
+          content: doc.content,
+          meta: doc.meta,
+          order: doc.order,
+          has_children: doc.has_children,
+          parent_id: newParentId,
+          base_id: param.baseId,
+          fk_workspace_id: context.workspace_id,
+          created_by: param.user.id,
+          updated_by: param.user.id,
+        });
+        if (created?.id && doc.id) {
+          idMap.set(doc.id, created.id);
+        }
+      } else {
+        // Parent not yet created, move to end
+        pending.shift();
+        pending.push(doc);
+      }
     }
   }
 

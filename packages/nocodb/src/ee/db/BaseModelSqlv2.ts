@@ -1477,9 +1477,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async beforeInsert(
-    data: any,
+    data: Record<string, any>,
     _trx: any,
-    req,
+    req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
     },
@@ -1532,9 +1532,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async beforeBulkInsert(
-    data: any,
+    data: Record<string, any>[],
     _trx: any,
-    req,
+    req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
     },
@@ -1592,8 +1592,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     trx: _trx,
     req,
   }: {
-    data: any;
-    insertData: any;
+    data: Record<string, any>;
+    insertData: Record<string, any>;
     trx: any;
     req: NcRequest;
   }): Promise<void> {
@@ -1655,7 +1655,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     await this.propagateDateDependency([insertedId], req);
   }
 
-  public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
+  public async afterBulkInsert(
+    data: Record<string, any>[],
+    _trx: any,
+    req: NcRequest,
+  ): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
 
     for (const d of data) {
@@ -1750,9 +1754,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async afterDelete(
-    data: any,
+    data: Record<string, any>,
     _trx: any,
-    req,
+    req: NcRequest,
     eventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
     const id = this.extractPksValues(data);
@@ -1795,9 +1799,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async afterBulkDelete(
-    data: any,
+    data: Record<string, any>[],
     _trx: any,
-    req,
+    req: NcRequest,
     isBulkAllOperation = false,
     bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
     rowEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
@@ -4393,10 +4397,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async afterUpdate(
-    prevData: any,
-    newData: any,
+    prevData: Record<string, any>,
+    newData: Record<string, any>,
     _trx: any,
-    req,
+    req: NcRequest,
     updateObj?: Record<string, any>,
   ): Promise<void> {
     // TODO this is a temporary fix for the audit log / DOMPurify causes issue for long text
@@ -4499,17 +4503,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async afterBulkUpdate(
-    prevData: any,
-    newData: any,
+    prevData: Record<string, any>[] | null,
+    newData: Record<string, any>[] | number,
     _trx: any,
-    req,
+    req: NcRequest,
     isBulkAllOperation = false,
   ): Promise<void> {
-    if (!isBulkAllOperation) {
+    if (!isBulkAllOperation && Array.isArray(newData)) {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
 
-    if (newData && newData.length > 0) {
+    if (!Array.isArray(newData)) return;
+
+    if (newData.length > 0) {
       for (const data of newData) {
         // Strip __nc_rls_hidden from broadcast — other clients have different
         // RLS policies and the flag would be incorrect for them
@@ -4619,7 +4625,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  public async beforeDelete(data: any, _trx: any, req): Promise<void> {
+  public async beforeDelete(
+    data: Record<string, any>,
+    _trx: any,
+    req: NcRequest,
+  ): Promise<void> {
     await this.checkPermission({
       entity: PermissionEntity.TABLE,
       entityId: this.model.id,
@@ -4631,7 +4641,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     return super.beforeDelete(data, _trx, req);
   }
 
-  public async beforeBulkDelete(_data: any, _trx: any, req): Promise<void> {
+  public async beforeBulkDelete(
+    _data: Record<string, any>[],
+    _trx: any,
+    req: NcRequest,
+  ): Promise<void> {
     await this.checkPermission({
       entity: PermissionEntity.TABLE,
       entityId: this.model.id,

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { PlanFeatureTypes } from 'nocodb-sdk'
+
 const { api } = useApi()
 
 const { t } = useI18n()
@@ -230,10 +232,7 @@ onMounted(() => {
                 <div class="flex flex-col gap-1.5 min-w-0 flex-1">
                   <div class="flex items-center gap-2">
                     <div class="text-sm font-semibold text-nc-content-gray">{{ $t('labels.twoFactorAuth') }}</div>
-                    <NcBadge
-                      v-if="mfaEnabled"
-                      class="!bg-green-100 !text-green-600 !border-green-200 flex items-center gap-1"
-                    >
+                    <NcBadge v-if="mfaEnabled" class="!bg-green-100 !text-green-600 !border-green-200 flex items-center gap-1">
                       <GeneralIcon icon="circleCheck" class="h-4 w-4" />
                       {{ $t('general.enabled') }}
                     </NcBadge>
@@ -243,6 +242,7 @@ onMounted(() => {
                     >
                       {{ $t('general.disabled') }}
                     </div>
+                    <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_MFA" />
                   </div>
                   <div class="text-small text-nc-content-gray-subtle leading-5">
                     {{ $t('labels.twoFactorAuthDescription') }}
@@ -253,7 +253,7 @@ onMounted(() => {
                   <NcButton
                     v-if="!mfaEnabled"
                     v-e="['c:account:security:enable-2fa']"
-                    type="primary"
+                    :type="blockMfa ? 'secondary' : 'primary'"
                     size="small"
                     :loading="isLoading"
                     @click="startSetup"
@@ -442,7 +442,12 @@ onMounted(() => {
       size="small"
       centered
       @after-enter="disablePasswordInput?.focus()"
-      @after-leave="() => { disablePassword = ''; disableError = '' }"
+      @after-leave="
+        () => {
+          disablePassword = ''
+          disableError = ''
+        }
+      "
     >
       <div class="flex flex-col gap-2 p-4 md:!p-6">
         <div class="text-lg font-semibold mb-3">{{ $t('labels.disableTwoFactor') }}</div>
@@ -450,7 +455,8 @@ onMounted(() => {
         <NcAlert type="warning" background>
           <template #description>
             {{ $t('labels.disableTwoFactorWarningPrefix') }}
-            <span class="font-semibold">{{ $t('labels.disableTwoFactorWarningBold') }}</span>{{ $t('labels.disableTwoFactorWarningSuffix') }}
+            <span class="font-semibold">{{ $t('labels.disableTwoFactorWarningBold') }}</span
+            >{{ $t('labels.disableTwoFactorWarningSuffix') }}
           </template>
         </NcAlert>
 

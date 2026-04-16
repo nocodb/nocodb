@@ -30,12 +30,16 @@ const base = inject(ProjectInj)!
 
 const tables = computed(() => (baseTables.value.get(base.value.id!) ?? []).filter((t) => includeM2M.value || !t.mm))
 
-// Load root documents for this base when the component mounts
-onMounted(() => {
-  if (baseId.value) {
-    documentsStore.loadDocuments({ baseId: baseId.value })
-  }
-})
+// Load root documents when baseId changes or on mount
+watch(
+  baseId,
+  (id) => {
+    if (id) {
+      documentsStore.loadDocuments({ baseId: id })
+    }
+  },
+  { immediate: true },
+)
 
 const menuRef = useTemplateRef('menuRef')
 

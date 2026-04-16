@@ -2215,6 +2215,7 @@
     "includeScripts": "Include scripts",
     "includeDashboards": "Include dashboards",
     "includeWorkflows": "Include workflows",
+    "includeDocuments": "Include documents",
     "includeWebhook": "Include webhook",
     "includeComments": "Include comments",
     "zoomInToViewColumns": "Zoom in to view columns",

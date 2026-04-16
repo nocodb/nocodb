@@ -5782,11 +5782,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } else if (this.isMySQL && INSERT_REGEX.test(query)) {
       const res = await trx.raw(query);
       if (res?.[0] && res[0].insertId !== undefined) {
-        return res[0].insertId;
+        return [res[0].insertId];
       }
-      return res;
+      return Array.isArray(res) ? res : [res];
     } else {
-      return await trx.raw(query);
+      const res = await trx.raw(query);
+      return Array.isArray(res) ? res : [res];
     }
   }
 

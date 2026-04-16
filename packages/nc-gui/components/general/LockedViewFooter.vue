@@ -21,6 +21,8 @@ const { activeView } = storeToRefs(useViewsStore())
 
 const view = computed(() => props.view || activeView.value)
 
+const lockMessage = computed(() => parseProp(view.value?.meta)?.lockedViewDescription || '')
+
 const handleUnlockView = () => {
   emits('onOpen')
   const isOpen = ref(true)
@@ -53,7 +55,7 @@ const handleUnlockView = () => {
       />
     </slot>
 
-    <div class="flex-1">
+    <div class="flex-1 flex items-center gap-1">
       <slot name="title">
         {{
           $t('title.thisViewIsLockType', {
@@ -61,6 +63,12 @@ const handleUnlockView = () => {
           })
         }}
       </slot>
+      <NcTooltip v-if="lockMessage" placement="top">
+        <template #title>
+          <div class="whitespace-pre-wrap max-w-80">{{ lockMessage }}</div>
+        </template>
+        <GeneralIcon icon="info" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted cursor-help -mt-0.5" />
+      </NcTooltip>
     </div>
 
     <NcButton

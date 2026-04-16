@@ -224,36 +224,49 @@ export class ViewsService {
     );
     const isEditor = !!userBaseRoles?.[ProjectRoles.EDITOR];
 
-    // Only creators or owners can modify a locked view (including unlocking).
-    // Editors inherit viewUpdate permission via ACL but are blocked here so that
-    // locked views remain frozen for them.
-    if (oldView.lock_type === ViewLockType.Locked && !isCreatorPlus) {
-      NcError.get(context).forbidden(
-        'Only creators or owners can modify a locked view',
-      );
-    }
+    // Organisational fields (section membership, display order) can be changed
+    // by any editor+ regardless of lock_type or ownership — they don't alter the
+    // view's configuration, only its placement in the sidebar.
+    const organisationalFields = new Set(['fk_view_section_id', 'order']);
+    const updatedFields = Object.keys(param.view).filter(
+      (k) => param.view[k] !== undefined,
+    );
+    const isOrganisationalOnly = updatedFields.every((k) =>
+      organisationalFields.has(k),
+    );
 
-    // Only creators or owners can lock a view (collab/personal → locked).
-    if (
-      param.view.lock_type === ViewLockType.Locked &&
-      oldView.lock_type !== ViewLockType.Locked &&
-      !isCreatorPlus
-    ) {
-      NcError.get(context).forbidden(
-        'Only creators or owners can lock a view',
-      );
-    }
+    if (!isOrganisationalOnly) {
+      // Only creators or owners can modify a locked view (including unlocking).
+      // Editors inherit viewUpdate permission via ACL but are blocked here so
+      // that locked views remain frozen for them.
+      if (oldView.lock_type === ViewLockType.Locked && !isCreatorPlus) {
+        NcError.get(context).forbidden(
+          'Only creators or owners can modify a locked view',
+        );
+      }
 
-    // Editors can only update personal views they own. Creator+ can update any.
-    if (
-      !isCreatorPlus &&
-      oldView.lock_type === ViewLockType.Personal &&
-      oldView.owned_by &&
-      oldView.owned_by !== param.user.id
-    ) {
-      NcError.get(context).forbidden(
-        'Only the view owner or creator can modify this personal view',
-      );
+      // Only creators or owners can lock a view (collab/personal → locked).
+      if (
+        param.view.lock_type === ViewLockType.Locked &&
+        oldView.lock_type !== ViewLockType.Locked &&
+        !isCreatorPlus
+      ) {
+        NcError.get(context).forbidden(
+          'Only creators or owners can lock a view',
+        );
+      }
+
+      // Editors can only update personal views they own. Creator+ can update any.
+      if (
+        !isCreatorPlus &&
+        oldView.lock_type === ViewLockType.Personal &&
+        oldView.owned_by &&
+        oldView.owned_by !== param.user.id
+      ) {
+        NcError.get(context).forbidden(
+          'Only the view owner or creator can modify this personal view',
+        );
+      }
     }
 
     let ownedBy = oldView.owned_by;

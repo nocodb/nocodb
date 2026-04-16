@@ -23,28 +23,44 @@ export function usePersonalViewPermissions(view: Ref<ViewType | undefined>) {
     () => isPersonalView.value && !!view.value?.owned_by && view.value.owned_by === user.value?.id,
   )
 
+  // Read-only permissions that should never be blocked by lock_type or
+  // ownership — everyone who can see a view can list its filters/sorts/columns.
+  // Only WRITE operations get the lock/ownership gate.
+  const readOnlyPermissions = new Set([
+    'filterList',
+    'filterGet',
+    'filterChildrenList',
+    'sortList',
+    'sortGet',
+    'columnList',
+  ])
+
   /**
    * Whether the current user has a given view-config permission, taking
    * view type into account.
    *
-   * - **Collab / own personal**: role ACL decides (editor has filterSync, etc.)
-   * - **Non-owned personal**: only creator+ (`fieldAdd`) can act; editors denied
-   *   even if they have the role perm — backend middleware rejects them.
-   * - **Locked**: only creator+ can act.
-   * - **Personal view owner**: always granted regardless of role perm (e.g. a
-   *   commenter who owns a personal view can still edit it).
+   * **Read-only perms** (`filterList`, `sortList`, etc.) pass through based
+   * on role alone — everyone who can see a view can read its config.
    *
-   * This closes the trap where a raw `isUIAllowed(perm)` would return true
-   * on any view because the role has it, but the backend would 403 on
-   * non-owned-personal / locked views.
+   * **Write perms** (`filterSync`, `sortSync`, `viewFieldEdit`, etc.):
+   * - **Collab / own personal**: role ACL decides
+   * - **Non-owned personal**: only creator+ (`fieldAdd`) bypass
+   * - **Locked**: only creator+ bypass
+   * - **Personal view owner**: always granted (e.g. a commenter who owns a
+   *   personal view can still edit it)
    */
   const hasPersonalViewPermission = (permission: string) => {
     return computed(() => {
-      // Personal view, user is not the owner — only creator+ bypass
+      // Read-only perms: role ACL is sufficient, no lock/ownership gate
+      if (readOnlyPermissions.has(permission)) {
+        return isUIAllowed(permission) || isPersonalViewOwner.value
+      }
+
+      // Write perms on non-owned personal view — only creator+ bypass
       if (isPersonalView.value && !isPersonalViewOwner.value) {
         return isUIAllowed('fieldAdd')
       }
-      // Locked view — only creator+ can modify
+      // Write perms on locked view — only creator+ bypass
       if (isLockedView.value) {
         return isUIAllowed('fieldAdd')
       }

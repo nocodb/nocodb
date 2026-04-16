@@ -42,7 +42,7 @@ export const NC_SCREEN_BREAKPOINTS = {
   '5xl': { min: `${NC_BREAKPOINTS['5xl']}px` },
 }
 
-export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:8080'
+export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:8081'
 
 export const GROUP_BY_VARS = {
   NULL: '__nc_null__',

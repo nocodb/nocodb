@@ -20,6 +20,7 @@ export const getOptions = (
     }
 
     const isColorCodeEnabled = parseProp(column.meta)?.isColorCodeEnabled !== false
+    const isMutedColorEnabled = parseProp(column.meta)?.isMutedColorEnabled === true
 
     let order = 1
 
@@ -49,16 +50,16 @@ export const getOptions = (
           ...o,
           value: o.title,
           order: o.id && limitOptionsById[o.id] ? limitOptionsById[o.id]?.order : order++,
-          bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark, getColor, isColorCodeEnabled }),
-          textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor, isColorCodeEnabled }),
+          bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark, getColor, isColorCodeEnabled, isMutedColorEnabled }),
+          textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor, isColorCodeEnabled, isMutedColorEnabled }),
         }))
         .sort((a, b) => a.order - b.order)
     } else {
       return opts.map((o: any) => ({
         ...o,
         value: o.title,
-        bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark, getColor, isColorCodeEnabled }),
-        textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor, isColorCodeEnabled }),
+        bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark, getColor, isColorCodeEnabled, isMutedColorEnabled }),
+        textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor, isColorCodeEnabled, isMutedColorEnabled }),
       }))
     }
   }

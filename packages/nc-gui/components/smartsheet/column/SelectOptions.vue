@@ -69,6 +69,17 @@ const isColorCodeEnabled = computed({
   },
 })
 
+const isMutedColorEnabled = computed({
+  get: () => {
+    const metaObj = parseProp(vModel.value.meta)
+    return metaObj.isMutedColorEnabled === true
+  },
+  set: (val: boolean) => {
+    const metaObj = parseProp(vModel.value.meta)
+    vModel.value.meta = { ...metaObj, isMutedColorEnabled: val }
+  },
+})
+
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const { t } = useI18n()
@@ -517,6 +528,21 @@ if (!isKanbanStack.value) {
       </NcButton>
     </div>
 
+    <div v-if="!isKanbanStack && isColorCodeEnabled" class="flex items-center select-none mb-2">
+      <NcTooltip :disabled="!isDark" :title="$t('tooltip.mutedColorLightModeOnly')">
+        <NcSwitch
+          v-model:checked="isMutedColorEnabled"
+          v-e="['c:field:select:muted-color:toggle']"
+          size="xsmall"
+          :disabled="isDark"
+        >
+          <span :class="{ 'text-nc-content-gray-muted': isDark }">
+            {{ $t('labels.mutedColorStyle') }}
+          </span>
+        </NcSwitch>
+      </NcTooltip>
+    </div>
+
     <div
       ref="optionsWrapperDomRef"
       class="nc-col-option-select-option"
@@ -547,8 +573,8 @@ if (!isKanbanStack.value) {
                     'justify-center': isLoadingPredictOptions,
                   }"
                   :style="{
-                    backgroundColor: getSelectTypeFieldOptionBgColor({ color: kanbanStackOption.color || '#ccc', isDark }),
-                    color: getSelectTypeFieldOptionTextColor({ color: kanbanStackOption.color || '#ccc', isDark, getColor }),
+                    backgroundColor: getSelectTypeFieldOptionBgColor({ color: kanbanStackOption.color || '#ccc', isDark, isMutedColorEnabled }),
+                    color: getSelectTypeFieldOptionTextColor({ color: kanbanStackOption.color || '#ccc', isDark, getColor, isMutedColorEnabled }),
                   }"
                 >
                   <GeneralLoader v-if="isLoadingPredictOptions" size="regular" class="!text-current" />
@@ -563,6 +589,7 @@ if (!isKanbanStack.value) {
                     :is-open="colorMenus[kanbanStackOption.index!]"
                     invert-in-dark-mode
                     show-text-icon
+                    :is-muted-color-enabled="isMutedColorEnabled"
                     @input="(el:string) => {
                       kanbanStackOption!.color = el
                       optionChanged(kanbanStackOption!)
@@ -623,8 +650,8 @@ if (!isKanbanStack.value) {
                     <div
                       class="h-6 w-6 rounded flex items-center"
                       :style="{
-                        backgroundColor: getSelectTypeFieldOptionBgColor({ color: element.color, isDark }),
-                        color: getSelectTypeFieldOptionTextColor({ color: element.color, isDark, getColor }),
+                        backgroundColor: getSelectTypeFieldOptionBgColor({ color: element.color, isDark, isMutedColorEnabled }),
+                        color: getSelectTypeFieldOptionTextColor({ color: element.color, isDark, getColor, isMutedColorEnabled }),
                       }"
                     >
                       <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-current" />
@@ -638,6 +665,7 @@ if (!isKanbanStack.value) {
                         :is-open="colorMenus[index]"
                         invert-in-dark-mode
                         show-text-icon
+                        :is-muted-color-enabled="isMutedColorEnabled"
                         @input="(el:string) => {
                           element.color = el
                           optionChanged(element)
@@ -688,8 +716,8 @@ if (!isKanbanStack.value) {
                   <div
                     class="h-6 w-6 rounded flex items-center justify-center"
                     :style="{
-                      backgroundColor: getSelectTypeFieldOptionBgColor({ color: getNextColor(), isDark }),
-                      color: getSelectTypeFieldOptionTextColor({ color: getNextColor(), isDark, getColor }),
+                      backgroundColor: getSelectTypeFieldOptionBgColor({ color: getNextColor(), isDark, isMutedColorEnabled }),
+                      color: getSelectTypeFieldOptionTextColor({ color: getNextColor(), isDark, getColor, isMutedColorEnabled }),
                     }"
                   >
                     <GeneralLoader size="regular" class="!text-current" />

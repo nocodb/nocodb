@@ -3457,6 +3457,7 @@ export function useCanvasRender({
       const tags = Array.isArray(parsedValue) ? parsedValue : parsedValue.split(',')
       const colors = group.color.split(',')
       const isColorCodeEnabled = parseProp(group?.column?.meta)?.isColorCodeEnabled !== false
+      const isMutedColorEnabled = parseProp(group?.column?.meta)?.isMutedColorEnabled === true
       let xPosition = x
       let tagsRendered = 0
 
@@ -3466,9 +3467,11 @@ export function useCanvasRender({
 
         const opBgColor = !isColorCodeEnabled
           ? getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
-          : !isDark.value
-          ? getAdaptiveTint(color, { saturationMod: 5, isDarkMode: isDark.value, shade: 20 })
-          : getAdaptiveTint(color, { isDarkMode: isDark.value, shade: -10 })
+          : isDark.value
+            ? getAdaptiveTint(color, { isDarkMode: isDark.value, shade: -10 })
+            : isMutedColorEnabled
+              ? getSelectOptionLightTint(color)
+              : color
 
         const displayText = tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag
 

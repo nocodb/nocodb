@@ -9,6 +9,7 @@ interface Props {
   includeBlackAndWhiteAsDefaultColors?: boolean
   invertInDarkMode?: boolean
   showTextIcon?: boolean
+  isMutedColorEnabled?: boolean
   getBgColorCallback?: (color: string, isDark: boolean) => string
   getTextColorCallback?: (color: string, isDark: boolean) => string
 }
@@ -141,6 +142,7 @@ watch(
                       ? getSelectTypeFieldOptionBgColor({
                           color: color || '#ccc',
                           isDark: invertInDarkMode && isDark,
+                          isMutedColorEnabled,
                         })
                       : getDarkModeCompatibleBgColor({ color: color || '#ccc', isDark: invertInDarkMode && isDark }),
                     color: getTextColorCallback
@@ -149,6 +151,7 @@ watch(
                           color: color || '#ccc',
                           isDark: invertInDarkMode && isDark,
                           getColor,
+                          isMutedColorEnabled,
                         }),
                   }"
                   @click="selectColor(color, true)"

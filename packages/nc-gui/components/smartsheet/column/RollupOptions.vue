@@ -288,7 +288,7 @@ watch(enableFormattingOptions, (enabled) => {
       ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
     }
   }
-})
+}, { immediate: true })
 
 const onFilterLabelClick = () => {
   if (!selectedTable.value) return

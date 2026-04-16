@@ -52,7 +52,13 @@ export const getOptions = (
           value: o.title,
           order: o.id && limitOptionsById[o.id] ? limitOptionsById[o.id]?.order : order++,
           bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark, getColor, isColorCodeEnabled, isMutedColorEnabled }),
-          textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor, isColorCodeEnabled, isMutedColorEnabled }),
+          textColor: getSelectTypeFieldOptionTextColor({
+            color: o.color,
+            isDark,
+            getColor,
+            isColorCodeEnabled,
+            isMutedColorEnabled,
+          }),
         }))
         .sort((a, b) => a.order - b.order)
     } else {
@@ -60,7 +66,13 @@ export const getOptions = (
         ...o,
         value: o.title,
         bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark, getColor, isColorCodeEnabled, isMutedColorEnabled }),
-        textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor, isColorCodeEnabled, isMutedColorEnabled }),
+        textColor: getSelectTypeFieldOptionTextColor({
+          color: o.color,
+          isDark,
+          getColor,
+          isColorCodeEnabled,
+          isMutedColorEnabled,
+        }),
       }))
     }
   }

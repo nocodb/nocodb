@@ -32,8 +32,8 @@ export const SingleSelectCellRenderer: CellRenderer = {
       ? isDark
         ? getAdaptiveTint(opColor!, { isDarkMode: isDark, shade: -10 })
         : isMutedColorEnabled
-          ? getSelectOptionLightTint(opColor!)
-          : opColor!
+        ? getSelectOptionLightTint(opColor!)
+        : opColor!
       : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
     const opTextColor = isColorCodeEnabled ? getOppositeColorOfBackground(opBgColor, opColor) : getColor('var(--nc-content-gray)')
 

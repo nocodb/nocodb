@@ -573,8 +573,17 @@ if (!isKanbanStack.value) {
                     'justify-center': isLoadingPredictOptions,
                   }"
                   :style="{
-                    backgroundColor: getSelectTypeFieldOptionBgColor({ color: kanbanStackOption.color || '#ccc', isDark, isMutedColorEnabled }),
-                    color: getSelectTypeFieldOptionTextColor({ color: kanbanStackOption.color || '#ccc', isDark, getColor, isMutedColorEnabled }),
+                    backgroundColor: getSelectTypeFieldOptionBgColor({
+                      color: kanbanStackOption.color || '#ccc',
+                      isDark,
+                      isMutedColorEnabled,
+                    }),
+                    color: getSelectTypeFieldOptionTextColor({
+                      color: kanbanStackOption.color || '#ccc',
+                      isDark,
+                      getColor,
+                      isMutedColorEnabled,
+                    }),
                   }"
                 >
                   <GeneralLoader v-if="isLoadingPredictOptions" size="regular" class="!text-current" />

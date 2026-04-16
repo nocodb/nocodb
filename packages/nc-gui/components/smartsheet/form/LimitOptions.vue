@@ -301,11 +301,19 @@ const showOrHideAll = (showAll: boolean) => {
           <a-tag
             v-else
             class="rounded-tag max-w-[calc(100%_-_70px)]"
-            :color="getSelectTypeFieldOptionBgColor({ color: element.color, isDark, getColor, isColorCodeEnabled, isMutedColorEnabled })"
+            :color="
+              getSelectTypeFieldOptionBgColor({ color: element.color, isDark, getColor, isColorCodeEnabled, isMutedColorEnabled })
+            "
           >
             <span
               :style="{
-                'color': getSelectTypeFieldOptionTextColor({ color: element.color, isDark, getColor, isColorCodeEnabled, isMutedColorEnabled }),
+                'color': getSelectTypeFieldOptionTextColor({
+                  color: element.color,
+                  isDark,
+                  getColor,
+                  isColorCodeEnabled,
+                  isMutedColorEnabled,
+                }),
                 'font-size': '13px',
               }"
             >

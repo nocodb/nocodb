@@ -216,6 +216,7 @@ onMounted(async () => {
                           color: grp.color?.split(',')[+tagIndex] || '#ccc',
                           getColor,
                           isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
+                          isMutedColorEnabled: parseProp(grp.column?.meta)?.isMutedColorEnabled === true,
                         })
                       "
                     >
@@ -226,6 +227,7 @@ onMounted(async () => {
                             color: grp.color?.split(',')[+tagIndex] || '#ccc',
                             getColor,
                             isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
+                            isMutedColorEnabled: parseProp(grp.column?.meta)?.isMutedColorEnabled === true,
                           }),
                           fontSize: '12px',
                           fontWeight: 500,
@@ -257,6 +259,7 @@ onMounted(async () => {
                       color: grp.color || '#ccc',
                       getColor,
                       isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
+                      isMutedColorEnabled: parseProp(grp.column?.meta)?.isMutedColorEnabled === true,
                     })
                   "
                 >
@@ -268,6 +271,7 @@ onMounted(async () => {
                         color: grp.color || '#ccc',
                         getColor,
                         isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
+                        isMutedColorEnabled: parseProp(grp.column?.meta)?.isMutedColorEnabled === true,
                       }),
                     }"
                   >

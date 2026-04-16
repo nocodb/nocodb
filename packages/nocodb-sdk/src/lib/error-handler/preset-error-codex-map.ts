@@ -469,4 +469,9 @@ export const presetErrorCodexMap: Partial<
       message || 'System is not configured correctly',
     code: 500,
   },
+  [NcErrorType.ERR_TOO_MANY_REQUESTS]: {
+    message: (message: string) =>
+      message || 'Too many requests. Please try again later.',
+    code: 429,
+  },
 };

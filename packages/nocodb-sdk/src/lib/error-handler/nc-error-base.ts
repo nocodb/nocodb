@@ -756,6 +756,13 @@ export class NcErrorBase {
     throw new BadRequestV2(message);
   }
 
+  tooManyRequests(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TOO_MANY_REQUESTS, {
+      customMessage: message,
+      ...args,
+    });
+  }
+
   optionsNotExists(props: {
     columnTitle: string;
     options: string[];

@@ -286,6 +286,7 @@ export enum NcErrorType {
 
   // System configuration errors
   ERR_SYSTEM_MISCONFIGURED = 'ERR_SYSTEM_MISCONFIGURED',
+  ERR_TOO_MANY_REQUESTS = 'ERR_TOO_MANY_REQUESTS',
 }
 
 export enum ROW_COLORING_MODE {

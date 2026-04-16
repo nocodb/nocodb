@@ -68,7 +68,9 @@ export class MfaService {
     );
 
     if (attempts !== null && parseInt(attempts, 10) >= this.MFA_MAX_ATTEMPTS) {
-      NcError.badRequest('Too many failed attempts. Please try again later.');
+      NcError.get().tooManyRequests(
+        'Too many failed attempts. Please try again later.',
+      );
     }
   }
 
@@ -425,7 +427,6 @@ export class MfaService {
       return encrypted;
     }
   }
-
 
   async regenerateBackupCodes(userId: string, code: string, _req: NcRequest) {
     const user = await User.get(userId);

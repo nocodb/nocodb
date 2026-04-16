@@ -334,7 +334,7 @@ const handleScrollIntoView = () => {
                   :is="iconMap.check"
                   v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
                   id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
+                  class="text-nc-content-brand w-4 h-4"
                 />
               </div>
             </div>
@@ -371,7 +371,7 @@ const handleScrollIntoView = () => {
                 :is="iconMap.check"
                 v-if="vModel.fk_rollup_column_id === column.id"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>
@@ -395,13 +395,13 @@ const handleScrollIntoView = () => {
           <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
         </template>
         <a-select-option v-for="(func, index) of aggFunctionsList" :key="index" :value="func.value">
-          <div class="flex gap-2 justify-between items-center">
+          <div class="w-full flex gap-2 justify-between items-center">
             {{ func.text }}
             <component
               :is="iconMap.check"
               v-if="vModel.rollup_function === func.value"
               id="nc-selected-item-icon"
-              class="text-primary w-4 h-4"
+              class="text-nc-content-brand w-4 h-4"
             />
           </div>
         </a-select-option>
@@ -424,7 +424,7 @@ const handleScrollIntoView = () => {
               :is="iconMap.check"
               v-if="vModel.meta.precision === format"
               id="nc-selected-item-icon"
-              class="text-primary w-4 h-4"
+              class="text-nc-content-brand w-4 h-4"
             />
           </div>
         </a-select-option>

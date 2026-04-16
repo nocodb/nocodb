@@ -79,7 +79,7 @@ const useSameTimezoneForAll = computed({
                 :is="iconMap.check"
                 v-if="vModel.meta.date_format === format"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>
@@ -98,7 +98,7 @@ const useSameTimezoneForAll = computed({
                 :is="iconMap.check"
                 v-if="vModel.meta.time_format === format"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>
@@ -165,7 +165,7 @@ const useSameTimezoneForAll = computed({
                   <component
                     :is="iconMap.check"
                     id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
+                    class="text-nc-content-brand w-4 h-4"
                     :class="{ invisible: vModel.meta.timezone !== timezone.name }"
                   />
                 </div>
@@ -188,7 +188,7 @@ const useSameTimezoneForAll = computed({
                   <component
                     :is="iconMap.check"
                     id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
+                    class="text-nc-content-brand w-4 h-4"
                     :class="{ invisible: vModel.meta.timezone !== timezone.name }"
                   />
                 </div>

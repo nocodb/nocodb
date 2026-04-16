@@ -76,7 +76,7 @@ watch(
                 :is="iconMap.check"
                 v-if="vModel.meta.iconIdx === i"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>

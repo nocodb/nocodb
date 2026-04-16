@@ -19,9 +19,19 @@ const { isUIAllowed } = useRoles()
 
 const { activeView } = storeToRefs(useViewsStore())
 
+const { basesUser } = storeToRefs(useBases())
+
 const view = computed(() => props.view || activeView.value)
 
 const lockMessage = computed(() => parseProp(view.value?.meta)?.lockedViewDescription || '')
+
+// For personal views: resolve the owner's display name or email for the tooltip.
+const personalViewOwnerLabel = computed(() => {
+  if (view.value?.lock_type !== ViewLockType.Personal || !view.value?.owned_by) return ''
+  const users = view.value.base_id ? basesUser.value.get(view.value.base_id) || [] : []
+  const owner = users.find((u) => u.id === view.value!.owned_by)
+  return owner?.display_name || owner?.email || ''
+})
 
 const handleUnlockView = () => {
   emits('onOpen')
@@ -63,9 +73,9 @@ const handleUnlockView = () => {
           })
         }}
       </slot>
-      <NcTooltip v-if="lockMessage" placement="top">
+      <NcTooltip v-if="lockMessage || personalViewOwnerLabel" placement="top">
         <template #title>
-          <div class="whitespace-pre-wrap max-w-80">{{ lockMessage }}</div>
+          <div class="whitespace-pre-wrap max-w-80">{{ lockMessage || personalViewOwnerLabel }}</div>
         </template>
         <GeneralIcon icon="info" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted cursor-help -mt-0.5" />
       </NcTooltip>

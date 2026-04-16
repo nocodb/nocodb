@@ -127,8 +127,9 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     if (name.startsWith('index-typeOrId-baseId-')) {
       if (name.startsWith('index-typeOrId-baseId-index-settings')) return 'settings'
 
+      // Docs routes resolve to data tab — documents live alongside tables/dashboards
       if (name.startsWith('index-typeOrId-baseId-index-docs')) {
-        return 'docs'
+        return 'data'
       }
 
       if (

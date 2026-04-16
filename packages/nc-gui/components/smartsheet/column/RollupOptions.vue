@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import type { ColumnType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
+import type { ColumnType, FormulaType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
 import {
   ColumnHelper,
   PlanFeatureTypes,
   PlanTitles,
   UITypes,
   getAvailableRollupForColumn,
+  FormulaDataTypes,
   integerRollupFunctions,
   integerPreservingRollupFunctions,
   rollupAllFunctions,
@@ -265,6 +266,8 @@ const enableFormattingOptions = computed(() => {
 
     if (colMeta?.display_type) {
       uidt = colMeta?.display_type
+    } else if ((relatedCol.colOptions as FormulaType)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC) {
+      uidt = UITypes.Decimal
     }
   }
   // count/countDistinct always return integers — precision is not applicable

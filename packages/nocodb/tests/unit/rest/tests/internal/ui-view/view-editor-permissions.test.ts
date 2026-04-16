@@ -46,9 +46,9 @@ export const viewEditorPermissionsTests = function () {
 
     const addMember = async (email: string, wsRole: string) => {
       await request(context.app)
-        .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
+        .post(`/api/v1/workspaces/${workspaceId}/invitations`)
         .set('xc-auth', ownerToken)
-        .send({ email, workspace_role: wsRole })
+        .send({ email, roles: wsRole })
         .expect(200);
     };
 

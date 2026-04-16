@@ -49,6 +49,16 @@ export default function () {
     let commenterToken: string;
     let nonBaseUser: any;
     let nonBaseToken: string;
+    let featureMock: any;
+
+    async function mockTablePermissionFeature() {
+      featureMock = await overridePlan({
+        workspace_id: context.fk_workspace_id,
+        features: {
+          [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: true,
+        },
+      });
+    }
 
     beforeEach(async () => {
       context = await init();
@@ -198,7 +208,16 @@ export default function () {
       ).body.token;
     });
 
+    afterEach(async () => {
+      await featureMock?.restore?.();
+      featureMock = null;
+    });
+
     describe('Permission Configuration Access Control', () => {
+      beforeEach(async () => {
+        await mockTablePermissionFeature();
+      });
+
       it('Only base owner can set table visibility permission', async () => {
         // Owner should be able to set permission
         await request(context.app)
@@ -346,6 +365,8 @@ export default function () {
 
     describe('Viewers & Up Permission', () => {
       beforeEach(async () => {
+        await mockTablePermissionFeature();
+
         // Set table visibility to Viewers & up
         await request(context.app)
           .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
@@ -435,6 +456,8 @@ export default function () {
 
     describe('Editors & Up Permission', () => {
       beforeEach(async () => {
+        await mockTablePermissionFeature();
+
         // Set table visibility to Editors & up
         await request(context.app)
           .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
@@ -507,6 +530,8 @@ export default function () {
 
     describe('Creators & Up Permission', () => {
       beforeEach(async () => {
+        await mockTablePermissionFeature();
+
         // Set table visibility to Creators & up
         await request(context.app)
           .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
@@ -563,6 +588,8 @@ export default function () {
 
     describe('Specific Users Permission', () => {
       beforeEach(async () => {
+        await mockTablePermissionFeature();
+
         // Set table visibility to specific users (creator and editor)
         await request(context.app)
           .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
@@ -639,6 +666,8 @@ export default function () {
 
     describe('Nobody Permission', () => {
       beforeEach(async () => {
+        await mockTablePermissionFeature();
+
         // Set table visibility to Nobody
         await request(context.app)
           .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
@@ -687,6 +716,10 @@ export default function () {
     });
 
     describe('Base Owner Access', () => {
+      beforeEach(async () => {
+        await mockTablePermissionFeature();
+      });
+
       it('Base owner should always have access regardless of permission', async () => {
         // Set permission to Nobody
         await request(context.app)
@@ -750,6 +783,10 @@ export default function () {
     });
 
     describe('Permission Updates', () => {
+      beforeEach(async () => {
+        await mockTablePermissionFeature();
+      });
+
       it('Should be able to update permission from Viewers & up to Editors & up', async () => {
         // Set to Viewers & up
         await request(context.app)
@@ -880,6 +917,8 @@ export default function () {
       let table3Id: string;
 
       beforeEach(async () => {
+        await mockTablePermissionFeature();
+
         // Create additional tables
         const table2Response = await request(context.app)
           .post(`/api/v1/db/meta/projects/${baseId}/tables`)
@@ -1008,6 +1047,7 @@ export default function () {
           features: {
             [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
             [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: true,
+            [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: true,
           },
           limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 10 },
         });
@@ -1231,6 +1271,7 @@ export default function () {
           features: {
             [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
             [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: true,
+            [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: true,
           },
           limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 10 },
         });

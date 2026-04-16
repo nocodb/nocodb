@@ -107,6 +107,9 @@ export class AuthController extends AuthControllerCE {
       body.code,
       req,
     );
+    // Populate req.user so setRefreshToken can read the user id
+    // (no AuthGuard on this public endpoint — req.user is not set by Passport)
+    req.user = { id: result.userId } as any;
     await this.setRefreshToken({ req, res });
     setAuthCookie(res, result.token);
     res.json(result);

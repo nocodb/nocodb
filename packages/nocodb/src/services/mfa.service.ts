@@ -305,6 +305,7 @@ export class MfaService {
     // Generate full JWT
     return {
       token: genJwt(user as any, config),
+      userId: user.id,
     };
   }
 

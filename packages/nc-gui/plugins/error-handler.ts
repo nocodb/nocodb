@@ -12,8 +12,6 @@ export default defineNuxtPlugin((nuxtApp) => {
       url.searchParams.set(QUERY_PARAM_NAME, (currentRetry + 1).toString())
 
       window.location.replace(url.toString())
-      // sometimes replace will not cause a refresh so we have to reload page
-      window.location.reload()
     }
   }
 

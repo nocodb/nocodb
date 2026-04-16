@@ -983,7 +983,7 @@ export class OnPremLicenseService {
 
     const session = await stripe.billingPortal.sessions.create({
       customer: user.stripe_customer_id,
-      return_url: `${req.ncSiteUrl}/#/account/self-hosted`,
+      return_url: `${req.ncSiteUrl}/account/self-hosted`,
     });
 
     return { url: session.url };

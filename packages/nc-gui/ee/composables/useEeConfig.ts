@@ -782,7 +782,7 @@ export const useEeConfig = createSharedComposable(() => {
       'okText': t('upgrade.upgradeLicense'),
       'onOk': () => {
         const instanceUrl = window.location.origin
-        window.open(`${NC_CLOUD_URL}/#/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`, '_blank')
+        window.open(`${NC_CLOUD_URL}/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`, '_blank')
         toggleDialog()
       },
       'cancelText': t('general.close'),

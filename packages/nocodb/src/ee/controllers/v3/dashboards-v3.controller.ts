@@ -11,7 +11,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { NcContext, NcRequest } from 'nocodb-sdk';
+import { NcContext, NcRequest, PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   DashboardV3DataResponseType,
   DashboardV3GetResponseType,
@@ -31,9 +31,11 @@ import { DashboardsV3Service } from '~/services/v3/dashboards-v3.service';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License(PlanFeatureTypes.FEATURE_API_DASHBOARD_V3)
 export class DashboardsV3Controller {
   constructor(private readonly dashboardsV3Service: DashboardsV3Service) {}
 

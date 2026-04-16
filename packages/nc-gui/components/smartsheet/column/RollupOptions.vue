@@ -3,13 +3,13 @@ import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
 import {
   ColumnHelper,
+  FormulaDataTypes,
   PlanFeatureTypes,
   PlanTitles,
   UITypes,
   getAvailableRollupForColumn,
-  FormulaDataTypes,
-  integerRollupFunctions,
   integerPreservingRollupFunctions,
+  integerRollupFunctions,
   rollupAllFunctions,
 } from 'nocodb-sdk'
 

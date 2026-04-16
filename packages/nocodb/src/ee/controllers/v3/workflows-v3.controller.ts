@@ -9,7 +9,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { NcContext, NcRequest } from 'nocodb-sdk';
+import { NcContext, NcRequest, PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   WorkflowExecutionV3GetResponseType,
   WorkflowExecutionV3ListResponseType,
@@ -32,9 +32,11 @@ import { WorkflowsV3Service } from '~/services/v3/workflows-v3.service';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License(PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT)
 export class WorkflowsV3Controller {
   constructor(private readonly workflowsV3Service: WorkflowsV3Service) {}
 

@@ -103,14 +103,14 @@ const LICENSE_REQUIRED_OPS = new Set([
   // Audit (Enterprise only)
   'workspaceAuditList',
   'baseAuditList',
-  // Scripts (Enterprise only)
+  // Scripts
   'listScripts',
   'getScript',
   'createScript',
   'updateScript',
   'deleteScript',
   'duplicateScript',
-  // Dashboards (Enterprise only)
+  // Dashboards
   'dashboardList',
   'dashboardGet',
   'dashboardCreate',
@@ -124,6 +124,23 @@ const LICENSE_REQUIRED_OPS = new Set([
   'widgetUpdate',
   'widgetDelete',
   'widgetDataGet',
+  // Workflows
+  'workflowList',
+  'workflowGet',
+  'workflowCreate',
+  'workflowDuplicate',
+  'workflowUpdate',
+  'workflowDelete',
+  'workflowNodeIntegrationFetchOptions',
+  'workflowExecute',
+  'workflowTestNode',
+  'workflowPublish',
+  'workflowNodes',
+  'workflowListSubscribers',
+  'workflowAddSubscribers',
+  'workflowRemoveSubscriber',
+  'workflowExecutionList',
+  'workflowExecutionGet',
   // Documents (Enterprise only)
   'documentList',
   'documentGet',
@@ -148,23 +165,6 @@ const LICENSE_REQUIRED_OPS = new Set([
   'rlsPolicySetSubjects',
   'rlsPolicyFilterList',
   'rlsPolicyFilterCreate',
-  // Workflows (Enterprise only)
-  'workflowList',
-  'workflowGet',
-  'workflowCreate',
-  'workflowDuplicate',
-  'workflowUpdate',
-  'workflowDelete',
-  'workflowNodeIntegrationFetchOptions',
-  'workflowExecute',
-  'workflowTestNode',
-  'workflowPublish',
-  'workflowNodes',
-  'workflowListSubscribers',
-  'workflowAddSubscribers',
-  'workflowRemoveSubscriber',
-  'workflowExecutionList',
-  'workflowExecutionGet',
 ]);
 
 @Controller()

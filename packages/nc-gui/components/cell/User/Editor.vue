@@ -83,7 +83,7 @@ const isFormListView = computed(() => !isEditColumn.value && isForm.value && par
 
 const options = computed(() => {
   const currentUserField: any[] = []
-  if (isEeUI && isInFilter.value && showEEFeatures.value) {
+  if (isEeUI && (isInFilter.value || isEditColumn.value) && showEEFeatures.value) {
     currentUserField.push({
       id: CURRENT_USER_TOKEN,
       display_name: t('title.currentUser'),
@@ -405,10 +405,18 @@ onMounted(() => {
                       placement="bottom"
                     >
                       <template #title>
-                        {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+                        {{
+                          op.email === CURRENT_USER_TOKEN
+                            ? $t(isEditColumn ? 'title.defaultToLoggedInUser' : 'title.filteredByLoggedInUser')
+                            : op.email
+                        }}
                       </template>
 
-                      {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+                      {{
+                        op.email === CURRENT_USER_TOKEN
+                          ? $t(isEditColumn ? 'title.defaultToLoggedInUser' : 'title.filteredByLoggedInUser')
+                          : op.email
+                      }}
                     </NcTooltip>
                   </div>
                 </div>
@@ -509,10 +517,18 @@ onMounted(() => {
                 placement="bottom"
               >
                 <template #title>
-                  {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+                  {{
+                    op.email === CURRENT_USER_TOKEN
+                      ? $t(isEditColumn ? 'title.defaultToLoggedInUser' : 'title.filteredByLoggedInUser')
+                      : op.email
+                  }}
                 </template>
 
-                {{ op.email === CURRENT_USER_TOKEN ? $t('title.filteredByLoggedInUser') : op.email }}
+                {{
+                  op.email === CURRENT_USER_TOKEN
+                    ? $t(isEditColumn ? 'title.defaultToLoggedInUser' : 'title.filteredByLoggedInUser')
+                    : op.email
+                }}
               </NcTooltip>
             </div>
             <GeneralIcon
@@ -569,7 +585,7 @@ onMounted(() => {
               :class="{
                 'text-nc-content-gray-muted': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
                 'text-nc-content-brand': val === CURRENT_USER_TOKEN,
-                'font-600': isInFilter,
+                'font-600': isInFilter || isEditColumn,
               }"
             >
               {{ label }}

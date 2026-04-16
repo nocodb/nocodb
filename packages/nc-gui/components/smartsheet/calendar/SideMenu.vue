@@ -13,7 +13,7 @@ const INFINITY_SCROLL_THRESHOLD = 100
 
 const { isUIAllowed } = useRoles()
 
-const { appInfo, isMobileMode } = useGlobal()
+const { appInfo, isMobileMode, user } = useGlobal()
 
 const { height } = useWindowSize()
 
@@ -267,7 +267,7 @@ const sideBarListScrollHandle = useDebounceFn(async (e: Event) => {
 
 const newRecord = () => {
   const row = {
-    ...rowDefaultData(meta.value?.columns),
+    ...rowDefaultData(meta.value?.columns, user.value ?? undefined),
   }
 
   let fromDate

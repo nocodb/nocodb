@@ -172,7 +172,7 @@ const openNewRecordFormHookHandler = async () => {
   )
 
   expandForm({
-    row: { ...rowDefaultData(meta.value?.columns), ...rowFilters },
+    row: { ...rowDefaultData(meta.value?.columns, user.value ?? undefined), ...rowFilters },
     oldRow: {},
     rowMeta: { new: true },
   })

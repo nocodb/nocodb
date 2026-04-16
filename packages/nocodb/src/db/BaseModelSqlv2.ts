@@ -13,6 +13,7 @@ import {
   AuditV1OperationTypes,
   ClientType,
   convertDurationToSeconds,
+  CURRENT_USER_TOKEN,
   enumColors,
   EventType,
   extractFilterFromXwhere,
@@ -7506,6 +7507,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.uidt,
         )
       ) {
+        // Resolve @me token in default value for User columns during insert
+        if (
+          isInsertData &&
+          column.uidt === UITypes.User &&
+          ncIsNullOrUndefined(data[column.column_name]) &&
+          column.cdf &&
+          typeof column.cdf === 'string' &&
+          column.cdf.includes(CURRENT_USER_TOKEN) &&
+          cookie?.user?.id
+        ) {
+          data[column.column_name] = column.cdf
+            .split(',')
+            .map((v) =>
+              v.trim() === CURRENT_USER_TOKEN ? cookie.user.id : v.trim(),
+            )
+            .join(',');
+        }
+
         if (!ncIsNullOrUndefined(data[column.column_name])) {
           const userIds = [];
 

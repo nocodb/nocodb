@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
 import { ButtonActionsType, ColumnType } from '~/lib/Api';
 import { LongTextAiMetaProp } from '~/lib/globals';
-import { integerUITypes, parseProp } from '~/lib/helperFunctions';
+import { isIntegerUiType, parseProp } from '~/lib/helperFunctions';
+export { isIntegerUiType };
 import UITypes, { isAIPromptCol } from '~/lib/UITypes';
 
 export const dataTypeLow = (column: ColumnType) => column.dt?.toLowerCase();
@@ -21,8 +22,6 @@ export const isRichText = (column: ColumnType) =>
 export const isInt = (_column: ColumnType, abstractType: any) =>
   abstractType === 'integer';
 
-export const isIntegerUiType = (column: ColumnType) =>
-  integerUITypes.includes(column.uidt as UITypes);
 
 export const isFloat = (column: ColumnType, abstractType: any) =>
   abstractType === 'float' || column.uidt === UITypes.Number;

@@ -171,8 +171,9 @@ const integerRollupFunctions: string[] = ['count', 'countDistinct'];
 /** Rollup functions that preserve the source column type (integer in → integer out) */
 const integerPreservingRollupFunctions: string[] = ['sum', 'min', 'max', 'sumDistinct'];
 
-/** UITypes that store integer values */
-const integerUITypes: UITypes[] = [UITypes.Number, UITypes.ID, UITypes.AutoNumber, UITypes.Rating, UITypes.Links];
+/** Check if a column UIType stores integer values */
+const isIntegerUiType = (column: ColumnType) =>
+  [UITypes.Number, UITypes.ID, UITypes.AutoNumber, UITypes.Rating, UITypes.Links].includes(column.uidt as UITypes);
 
 /**
  * Returns parsed rollup column meta with `precision` stripped when the
@@ -185,7 +186,7 @@ const getRollupColumnMeta = (rollupMeta: any, childUidt: UITypes, rollupFunction
   if (meta.precision != null) {
     const isInteger =
       integerRollupFunctions.includes(rollupFunction) ||
-      (integerUITypes.includes(childUidt) &&
+      (isIntegerUiType({ uidt: childUidt } as ColumnType) &&
         integerPreservingRollupFunctions.includes(rollupFunction));
 
     if (isInteger) {
@@ -282,7 +283,7 @@ export {
   getRenderAsTextFunForUiType,
   integerRollupFunctions,
   integerPreservingRollupFunctions,
-  integerUITypes,
+  isIntegerUiType,
   getRollupColumnMeta,
   populateUniqueFileName,
   roundUpToPrecision,

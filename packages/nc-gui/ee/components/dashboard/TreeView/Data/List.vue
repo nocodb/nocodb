@@ -20,7 +20,7 @@ const { baseTables } = storeToRefs(useTablesStore())
 const { activeDashboardId, activeBaseDashboards } = storeToRefs(dashboardStore)
 
 const documentsStore = useDocumentsStore()
-const { activeDocuments, activeDocumentId } = storeToRefs(documentsStore)
+const { activeDocuments, activeDocumentId, documentTree, expandedDocIds } = storeToRefs(documentsStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -53,6 +53,38 @@ const hasTableCreatePermission = computed(() => {
 
 // Root-level documents (parent_id is null/undefined)
 const rootDocuments = computed(() => activeDocuments.value.filter((d) => !d.parent_id))
+
+interface FlatDocChild {
+  doc: DocumentType
+  depth: number
+  hasChildren: boolean
+}
+
+/**
+ * For a given root document, return its visible descendants (flattened, respecting expand state).
+ * Depth starts at 1 since the root itself is rendered by allEntities at depth 0.
+ */
+function getVisibleChildren(rootDocId: string): FlatDocChild[] {
+  const result: FlatDocChild[] = []
+  const allDocs = activeDocuments.value
+
+  const walk = (parentId: string, depth: number) => {
+    const children = allDocs
+      .filter((d) => d.parent_id === parentId)
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+
+    for (const child of children) {
+      const hasChildren = !!child.has_children || allDocs.some((d) => d.parent_id === child.id)
+      result.push({ doc: child, depth, hasChildren })
+      if (expandedDocIds.value.has(child.id!) && hasChildren) {
+        walk(child.id!, depth + 1)
+      }
+    }
+  }
+
+  walk(rootDocId, 1)
+  return result
+}
 
 const allEntities = computed<
   Array<
@@ -269,19 +301,37 @@ watchEffect(() => {
           }"
           :dashboard="entity"
         />
-        <DashboardTreeViewDocumentsNode
-          v-else-if="entity.type === ModelTypes.DOCUMENT"
-          :data-id="entity.id"
-          :data-order="entity.order"
-          :data-title="entity.title"
-          :data-type="entity.type"
-          class="nc-document-item nc-tree-item text-sm"
-          :class="{
-            'bg-nc-bg-gray-medium': isMarked === entity.id,
-          }"
-          :doc="entity"
-          :has-children="!!entity.has_children"
-        />
+        <template v-else-if="entity.type === ModelTypes.DOCUMENT">
+          <DashboardTreeViewDocumentsNode
+            :data-id="entity.id"
+            :data-order="entity.order"
+            :data-title="entity.title"
+            :data-type="entity.type"
+            class="nc-document-item nc-tree-item text-sm"
+            :class="{
+              'bg-nc-bg-gray-medium': isMarked === entity.id,
+            }"
+            :doc="entity"
+            :has-children="!!entity.has_children"
+          />
+          <!-- Expanded child documents -->
+          <DashboardTreeViewDocumentsNode
+            v-for="child of getVisibleChildren(entity.id!)"
+            :key="child.doc.id"
+            :data-id="child.doc.id"
+            :data-order="child.doc.order"
+            :data-title="child.doc.title"
+            :data-type="'document'"
+            :doc="child.doc"
+            :depth="child.depth"
+            :indent-step="22"
+            :has-children="child.hasChildren"
+            class="nc-document-item nc-tree-item text-sm"
+            :class="{
+              'bg-nc-bg-gray-medium': isMarked === child.doc.id,
+            }"
+          />
+        </template>
         <DashboardTreeViewTableNode
           v-else
           :data-id="entity.id"

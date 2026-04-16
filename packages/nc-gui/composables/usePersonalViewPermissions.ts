@@ -24,12 +24,33 @@ export function usePersonalViewPermissions(view: Ref<ViewType | undefined>) {
   )
 
   /**
-   * Returns a computed that is true if the user has the given permission via role
-   * OR is the owner of a personal view.
+   * Whether the current user has a given view-config permission, taking
+   * view type into account.
+   *
+   * - **Collab / own personal**: role ACL decides (editor has filterSync, etc.)
+   * - **Non-owned personal**: only creator+ (`fieldAdd`) can act; editors denied
+   *   even if they have the role perm — backend middleware rejects them.
+   * - **Locked**: only creator+ can act.
+   * - **Personal view owner**: always granted regardless of role perm (e.g. a
+   *   commenter who owns a personal view can still edit it).
+   *
+   * This closes the trap where a raw `isUIAllowed(perm)` would return true
+   * on any view because the role has it, but the backend would 403 on
+   * non-owned-personal / locked views.
    */
   const hasPersonalViewPermission = (permission: string) => {
     return computed(() => {
+      // Personal view, user is not the owner — only creator+ bypass
+      if (isPersonalView.value && !isPersonalViewOwner.value) {
+        return isUIAllowed('fieldAdd')
+      }
+      // Locked view — only creator+ can modify
+      if (isLockedView.value) {
+        return isUIAllowed('fieldAdd')
+      }
+      // Collab view or own personal — role ACL applies
       if (isUIAllowed(permission)) return true
+      // Fallback: personal view owner always gets access
       if (isPersonalViewOwner.value) return true
       return false
     })

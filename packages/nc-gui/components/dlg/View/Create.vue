@@ -321,16 +321,21 @@ async function onSubmit() {
     try {
       isViewCreating.value = true
 
-      const data = await viewStore.createView(tableId.value, form)
+      // Destructure lock_type out so it doesn't get sent in the POST body
+      // (ViewCreateReqType doesn't declare it — backend's extractProps
+      // strips it silently, which is confusing for anyone debugging).
+      const { lock_type: selectedLockType, ...createPayload } = form
+
+      const data = await viewStore.createView(tableId.value, createPayload as typeof form)
 
       if (data) {
-        // Apply selected view mode (Personal / Locked). Views are created as
-        // Collaborative by default; we issue a follow-up updateView to flip
-        // the lock_type. Backend enforces ACL + ownership rules.
-        if (data.id && form.lock_type && form.lock_type !== ViewLockType.Collaborative) {
+        // Apply selected view mode (Personal / Locked). Views are created
+        // as Collaborative by default; a follow-up updateView sets the
+        // lock_type. Backend enforces ACL + ownership rules.
+        if (data.id && selectedLockType && selectedLockType !== ViewLockType.Collaborative) {
           try {
-            await updateViewInStore(data.id, { lock_type: form.lock_type })
-            data.lock_type = form.lock_type
+            await updateViewInStore(data.id, { lock_type: selectedLockType })
+            data.lock_type = selectedLockType
           } catch (e: any) {
             console.error('Failed to apply view mode after create', e)
             message.toast(await extractSdkResponseErrorMsg(e))

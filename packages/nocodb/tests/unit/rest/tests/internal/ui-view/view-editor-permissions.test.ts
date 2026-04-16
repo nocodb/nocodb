@@ -49,7 +49,7 @@ export const viewEditorPermissionsTests = function () {
         .post(`/api/v1/workspaces/${workspaceId}/invitations`)
         .set('xc-auth', ownerToken)
         .send({ email, roles: wsRole })
-        .expect(200);
+        .expect(201);
     };
 
     const createView = async (

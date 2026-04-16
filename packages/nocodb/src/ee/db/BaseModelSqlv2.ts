@@ -3078,7 +3078,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const trx = await this.dbDriver.transaction();
         try {
           for (const q of insertQueries) {
-            insertResponses.push(...(await this.execAndGetRows(q, trx)));
+            const result = await this.execAndGetRows(q, trx);
+            if (Array.isArray(result)) {
+              insertResponses.push(...result);
+            } else {
+              insertResponses.push(result);
+            }
           }
           for (const q of updateQueries) {
             await trx.raw(this.sanitizeQuery(q));

@@ -284,18 +284,21 @@ const updateRowCommentCount = (count: number) => {
   if (!routeQuery.value.rowId) return
 
   if (isInfiniteScrollingEnabled.value) {
-    const currentRowIndex = Array.from(cachedRows.value.values()).find(
-      (row) => extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId,
-    )?.rowMeta.rowIndex
+    // In group-by mode rows live in per-group caches (groupDataCache);
+    // in non-group mode they live in the root cache. Search the right set.
+    const rowCaches = isGroupBy.value
+      ? Array.from(groupDataCache.value.values()).map((g) => g.cachedRows)
+      : [cachedRows]
 
-    if (currentRowIndex === undefined) return
-
-    const currentRow = cachedRows.value.get(currentRowIndex)
-    if (!currentRow) return
-
-    currentRow.rowMeta.commentCount = count
-
-    syncVisibleData?.()
+    for (const cache of rowCaches) {
+      for (const row of cache.value.values()) {
+        if (extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId) {
+          row.rowMeta.commentCount = count
+          syncVisibleData?.()
+          return
+        }
+      }
+    }
   } else {
     const aggCommentCountIndex = pAggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
 

@@ -7,7 +7,7 @@ const up = async (knex: Knex) => {
     table.string('parent_id', 20).nullable();
     table.string('updated_by', 20);
     table.boolean('has_children').defaultTo(false);
-    table.integer('doc_version');
+    table.integer('doc_version').defaultTo(1);
 
     // Tree index for efficient doc hierarchy queries
     table.index(['base_id', 'parent_id', 'order'], 'nc_models_v2_tree_idx');

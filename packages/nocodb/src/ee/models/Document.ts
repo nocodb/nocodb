@@ -334,6 +334,7 @@ export default class Document extends DocumentCE implements DocumentType {
     insertObj.id = `doc${nanoidv2()}`;
     insertObj.type = ModelTypes.DOCUMENT;
     insertObj.deleted = false;
+    insertObj.doc_version = 1;
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.MODELS, {
       base_id: context.base_id,

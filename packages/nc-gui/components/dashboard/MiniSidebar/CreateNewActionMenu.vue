@@ -245,22 +245,22 @@ const hasDocumentCreateAccess = computed(() => {
             <NcDivider />
             <NcTooltip
               :title="
-                !isDocsTab
-                  ? $t('tooltip.switchToDocsTab', { type: $t('objects.document').toLowerCase() })
+                !isDataTab && !isDocsTab
+                  ? $t('tooltip.switchToDataTab', { type: $t('objects.document').toLowerCase() })
                   : !isBaseHomePage
                   ? $t('tooltip.navigateToBaseToCreateDocument')
                   : !hasDocumentCreateAccess
                   ? $t('tooltip.youDontHaveAccessToCreateNewDocument')
                   : ''
               "
-              :disabled="isDocsTab && isBaseHomePage && hasDocumentCreateAccess"
+              :disabled="(isDataTab || isDocsTab) && isBaseHomePage && hasDocumentCreateAccess"
               placement="right"
             >
               <NcMenuItem
                 data-testid="mini-sidebar--document-create"
-                :disabled="!isDocsTab || !isBaseHomePage || !hasDocumentCreateAccess"
+                :disabled="(!isDataTab && !isDocsTab) || !isBaseHomePage || !hasDocumentCreateAccess"
                 inner-class="w-full"
-                @click="createDocument(openedProject?.id)"
+                @click="createDocument(openedProject?.id, undefined, { navigate: !isDataTab })"
               >
                 <GeneralIcon icon="ncFileText" />
                 <div class="flex-1">

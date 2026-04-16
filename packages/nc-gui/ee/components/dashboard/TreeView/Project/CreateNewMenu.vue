@@ -135,9 +135,15 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
           </NcMenuItem>
         </template>
       </ProjectSyncCreateProvider>
+
+      <NcMenuItem v-if="showEEFeatures" inner-class="w-full" data-testid="create-new-document" @click="emits('emptyPage')">
+        <GeneralIcon icon="ncFileText" />
+        {{ $t('objects.document') }}
+        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+      </NcMenuItem>
     </template>
 
-    <!-- Docs tab items: document -->
+    <!-- Docs tab items: document (kept for backward compat while docs tab exists) -->
     <template v-if="isDocsTab">
       <NcMenuItem v-if="showEEFeatures" inner-class="w-full" data-testid="create-new-document" @click="emits('emptyPage')">
         <GeneralIcon icon="ncFileText" />

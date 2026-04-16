@@ -1,3 +1,5 @@
+import { ModelTypes } from 'nocodb-sdk';
+import { customAlphabet } from 'nanoid';
 import DocumentCE from 'src/models/Document';
 import type { DocumentType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
@@ -12,12 +14,19 @@ import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
+const nanoidv2 = customAlphabet(
+  '1234567890abcdefghijklmnopqrstuvwxyz',
+  14,
+);
+
 /**
- * Data model for Documents (table: nc_docs_v2).
+ * Data model for Documents (stored in nc_models_v2 with type='document').
  *
- * Document metadata lives in `nc_docs_v2` (via ncMeta) while content
+ * Document metadata lives in `nc_models_v2` (via ncMeta) while content
  * (ProseMirror JSON) lives in `nc_doc_content_v2` (via ncDocsContent).
  * When `NC_DOCS_DB` is not set, both resolve to the same meta connection.
+ *
+ * The DB column `doc_version` is mapped to `version` on the model/SDK side.
  *
  * JSON fields (content, meta) are stringified for DB storage and parsed on read
  * via `parseDocument()`. Cache invalidation uses `del` on update (not `update`) to
@@ -27,6 +36,11 @@ export default class Document extends DocumentCE implements DocumentType {
   constructor(doc: Document | DocumentType) {
     super(doc);
     Object.assign(this, doc);
+  }
+
+  /** Base condition to scope queries to documents only. */
+  private static get typeCondition() {
+    return { type: ModelTypes.DOCUMENT };
   }
 
   /**
@@ -45,8 +59,8 @@ export default class Document extends DocumentCE implements DocumentType {
       doc = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.DOCS,
-        { id: docId, deleted: false },
+        MetaTable.MODELS,
+        { id: docId, deleted: false, ...this.typeCondition },
       );
 
       if (doc) {
@@ -98,12 +112,13 @@ export default class Document extends DocumentCE implements DocumentType {
     const docList = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       {
         condition: {
           base_id: baseId,
           deleted: false,
           parent_id: parentId,
+          ...this.typeCondition,
         },
         orderBy: {
           order: 'asc',
@@ -140,9 +155,6 @@ export default class Document extends DocumentCE implements DocumentType {
    * Lightweight list for sidebar — excludes `content` to avoid
    * transferring large ProseMirror JSON payloads.
    *
-   * @param parentId — `null` (default) for root documents, doc ID for children.
-   */
-  /**
    * @param parentId — `null` for root documents, doc ID for children,
    *   `undefined` to list all documents across all hierarchy levels.
    */
@@ -161,7 +173,7 @@ export default class Document extends DocumentCE implements DocumentType {
       'order',
       'parent_id',
       'has_children',
-      'version',
+      'doc_version',
       'created_by',
       'updated_by',
       'created_at',
@@ -171,6 +183,7 @@ export default class Document extends DocumentCE implements DocumentType {
     const condition: Record<string, any> = {
       base_id: baseId,
       deleted: false,
+      ...this.typeCondition,
     };
 
     // undefined = all levels, null = root, string = children of that doc
@@ -181,7 +194,7 @@ export default class Document extends DocumentCE implements DocumentType {
     const docList = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       {
         condition,
         orderBy: {
@@ -215,7 +228,7 @@ export default class Document extends DocumentCE implements DocumentType {
       'order',
       'parent_id',
       'has_children',
-      'version',
+      'doc_version',
       'created_by',
       'updated_by',
       'created_at',
@@ -225,11 +238,12 @@ export default class Document extends DocumentCE implements DocumentType {
     const docList = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       {
         condition: {
           base_id: baseId,
           deleted: false,
+          ...this.typeCondition,
         },
         xcCondition: {
           _and: [
@@ -269,7 +283,7 @@ export default class Document extends DocumentCE implements DocumentType {
       'order',
       'parent_id',
       'has_children',
-      'version',
+      'doc_version',
       'created_by',
       'updated_by',
       'created_at',
@@ -279,11 +293,12 @@ export default class Document extends DocumentCE implements DocumentType {
     const docList = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       {
         condition: {
           base_id: baseId,
           deleted: false,
+          ...this.typeCondition,
         },
         orderBy: {
           order: 'asc',
@@ -315,16 +330,21 @@ export default class Document extends DocumentCE implements DocumentType {
     const content = insertObj.content;
     delete insertObj.content;
 
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.DOCS, {
+    // Pre-generate ID with doc prefix
+    insertObj.id = `doc${nanoidv2()}`;
+    insertObj.type = ModelTypes.DOCUMENT;
+    insertObj.deleted = false;
+
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.MODELS, {
       base_id: context.base_id,
       parent_id: insertObj.parent_id ?? null,
     });
 
-    // Insert metadata (without content) into DOCS table
+    // Insert metadata (without content) into MODELS table
     const insertResult = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       prepareForDb(insertObj, ['meta']),
     );
 
@@ -379,16 +399,22 @@ export default class Document extends DocumentCE implements DocumentType {
       'updated_by',
     ]);
 
+    // Map version -> doc_version for DB column
+    if ('version' in updateObj) {
+      updateObj.doc_version = updateObj.version;
+      delete updateObj.version;
+    }
+
     // Extract content for separate update
     const content = updateObj.content;
     delete updateObj.content;
 
-    // Update metadata (without content) in DOCS table
+    // Update metadata (without content) in MODELS table
     if (Object.keys(updateObj).length > 0) {
       await ncMeta.metaUpdate(
         context.workspace_id,
         context.base_id,
-        MetaTable.DOCS,
+        MetaTable.MODELS,
         prepareForDb(updateObj, ['meta']),
         docId,
       );
@@ -430,7 +456,7 @@ export default class Document extends DocumentCE implements DocumentType {
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       docId,
     );
 
@@ -457,7 +483,7 @@ export default class Document extends DocumentCE implements DocumentType {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       { deleted: true },
       docId,
     );
@@ -479,9 +505,13 @@ export default class Document extends DocumentCE implements DocumentType {
     const children = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       {
-        condition: { parent_id: parentId, deleted: false },
+        condition: {
+          parent_id: parentId,
+          deleted: false,
+          ...this.typeCondition,
+        },
         fields: ['id'],
       },
     );
@@ -492,7 +522,7 @@ export default class Document extends DocumentCE implements DocumentType {
       await ncMeta.metaUpdate(
         context.workspace_id,
         context.base_id,
-        MetaTable.DOCS,
+        MetaTable.MODELS,
         { deleted: true },
         child.id,
       );
@@ -513,9 +543,13 @@ export default class Document extends DocumentCE implements DocumentType {
       const children = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
-        MetaTable.DOCS,
+        MetaTable.MODELS,
         {
-          condition: { parent_id: parentId, deleted: false },
+          condition: {
+            parent_id: parentId,
+            deleted: false,
+            ...this.typeCondition,
+          },
           fields: ['id'],
         },
       );
@@ -551,7 +585,7 @@ export default class Document extends DocumentCE implements DocumentType {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       updateObj,
       docId,
     );
@@ -582,7 +616,7 @@ export default class Document extends DocumentCE implements DocumentType {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       { has_children: value },
       docId,
     );
@@ -600,9 +634,13 @@ export default class Document extends DocumentCE implements DocumentType {
     const children = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       {
-        condition: { parent_id: docId, deleted: false },
+        condition: {
+          parent_id: docId,
+          deleted: false,
+          ...this.typeCondition,
+        },
         fields: ['id'],
       },
     );
@@ -617,10 +655,11 @@ export default class Document extends DocumentCE implements DocumentType {
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
     const result = await ncMeta
-      .knexConnection(MetaTable.DOCS)
+      .knexConnection(MetaTable.MODELS)
       .where('base_id', baseId)
       .where('fk_workspace_id', context.workspace_id)
       .where('deleted', false)
+      .where('type', ModelTypes.DOCUMENT)
       .count('id as count')
       .first();
 
@@ -628,14 +667,18 @@ export default class Document extends DocumentCE implements DocumentType {
   }
 
   /**
-   * Parse stringified JSON fields (content, meta) from a DB row.
-   *
-   * Uses `prepareForResponse` which JSON.parse()s string-typed fields
-   * and skips already-parsed objects (checks `typeof field === 'string'`),
-   * making this safe to call on both raw DB rows and cached entries.
+   * Parse stringified JSON fields (content, meta) from a DB row and
+   * map DB column names to model property names (doc_version -> version).
    */
   private static parseDocument(doc: any): any {
     if (!doc) return doc;
+
+    // Map DB column -> model property
+    if ('doc_version' in doc) {
+      doc.version = doc.doc_version;
+      delete doc.doc_version;
+    }
+
     return prepareForResponse(doc, ['meta', 'content']);
   }
 }

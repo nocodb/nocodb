@@ -218,7 +218,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     }
   }
 
-  const createDocument = async (baseId: string, payload?: Partial<DocumentType>) => {
+  const createDocument = async (baseId: string, payload?: Partial<DocumentType>, { navigate = true }: { navigate?: boolean } = {}) => {
     if (!activeWorkspaceId.value) return null
 
     if (isEEFeatureBlocked.value) {
@@ -256,16 +256,20 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
         }
       }
 
-      ncNavigateTo({
-        workspaceId: activeWorkspaceId.value,
-        baseId,
-        docId: created.id,
-        docTitle: created.title,
-      })
+      if (navigate) {
+        ncNavigateTo({
+          workspaceId: activeWorkspaceId.value,
+          baseId,
+          docId: created.id,
+          docTitle: created.title,
+        })
+      }
 
       // Scroll the newly created document into view in the sidebar
       setTimeout(() => {
-        const newDocDom = document.querySelector(`[data-testid="nc-docs-sidebar-pages-list"] [data-id="${created.id}"]`)
+        const newDocDom =
+          document.querySelector(`[data-testid="nc-docs-sidebar-pages-list"] [data-id="${created.id}"]`) ||
+          document.querySelector(`[data-id="${created.id}"]`)
         if (newDocDom) {
           newDocDom.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
         }

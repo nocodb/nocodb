@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Sortable, { type SortableEvent } from 'sortablejs'
-import { type DashboardType, ModelTypes, type TableType } from 'nocodb-sdk'
+import { type DashboardType, type DocumentType, ModelTypes, type TableType } from 'nocodb-sdk'
 const props = defineProps<{
   baseId: string
 }>()
@@ -19,6 +19,9 @@ const { baseTables } = storeToRefs(useTablesStore())
 
 const { activeDashboardId, activeBaseDashboards } = storeToRefs(dashboardStore)
 
+const documentsStore = useDocumentsStore()
+const { activeDocuments, activeDocumentId } = storeToRefs(documentsStore)
+
 const { isSharedBase } = storeToRefs(useBase())
 
 const { includeM2M } = useGlobal()
@@ -26,6 +29,13 @@ const { includeM2M } = useGlobal()
 const base = inject(ProjectInj)!
 
 const tables = computed(() => (baseTables.value.get(base.value.id!) ?? []).filter((t) => includeM2M.value || !t.mm))
+
+// Load root documents for this base when the component mounts
+onMounted(() => {
+  if (baseId.value) {
+    documentsStore.loadDocuments({ baseId: baseId.value })
+  }
+})
 
 const menuRef = useTemplateRef('menuRef')
 
@@ -41,7 +51,14 @@ const hasTableCreatePermission = computed(() => {
   return isUIAllowed('tableCreate', { roles: base.value.project_role, source: base.value?.sources?.[0] })
 })
 
-const allEntities = computed<Array<(DashboardType & { type: 'dashboard' }) | (TableType & { type: 'table' })>>(() => {
+// Root-level documents (parent_id is null/undefined)
+const rootDocuments = computed(() => activeDocuments.value.filter((d) => !d.parent_id))
+
+const allEntities = computed<
+  Array<
+    (DashboardType & { type: 'dashboard' }) | (TableType & { type: 'table' }) | (DocumentType & { type: 'document' })
+  >
+>(() => {
   const entities = []
 
   // Hide dashboard item in mobile mode as we don't support currently
@@ -58,6 +75,13 @@ const allEntities = computed<Array<(DashboardType & { type: 'dashboard' }) | (Ta
     for (const table of tables.value) {
       if (table.source_id !== sourceId) continue
       entities.push({ ...table, type: 'table' as const })
+    }
+  }
+
+  // Add root-level documents
+  if (!isSharedBase.value && !isMobileMode.value) {
+    for (const doc of rootDocuments.value) {
+      entities.push({ ...doc, type: 'document' as const })
     }
   }
 
@@ -156,6 +180,10 @@ const initSortable = (el: Element) => {
         await dashboardStore.updateDashboard(baseId.value, item.id, {
           order: item.order,
         })
+      } else if (item.type === 'document') {
+        await documentsStore.updateDocument(baseId.value, item.id, {
+          order: item.order,
+        })
       } else if (item.type === 'table') {
         // Update local table order in the tables array
         const tables = baseTables.value.get(baseId.value)
@@ -240,6 +268,20 @@ watchEffect(() => {
             'active': activeDashboardId === entity.id,
           }"
           :dashboard="entity"
+        />
+        <DashboardTreeViewDocumentsNode
+          v-else-if="entity.type === ModelTypes.DOCUMENT"
+          :data-id="entity.id"
+          :data-order="entity.order"
+          :data-title="entity.title"
+          :data-type="entity.type"
+          class="nc-document-item nc-tree-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+          :class="{
+            'bg-nc-bg-gray-medium': isMarked === entity.id,
+            'active': activeDocumentId === entity.id,
+          }"
+          :doc="entity"
+          :has-children="!!entity.has_children"
         />
         <DashboardTreeViewTableNode
           v-else

@@ -114,6 +114,7 @@ export enum ModelTypes {
   TABLE = 'table',
   VIEW = 'view',
   DASHBOARD = 'dashboard',
+  DOCUMENT = 'document',
 }
 
 export enum AutomationTypes {

@@ -94,6 +94,10 @@ export default class Model implements TableType {
 
   uuid: string;
 
+  updated_by: string;
+  has_children: BoolType;
+  doc_version: number;
+
   date_dependency?: DateDependencyType | null;
 
   columns?: Column[];

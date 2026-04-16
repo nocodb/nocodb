@@ -4,7 +4,7 @@ import request from 'supertest';
 import { PlanFeatureTypes, ViewLockType } from 'nocodb-sdk';
 import init from '../../../../init';
 import { isEE } from '../../../../utils/helpers';
-import { overrideFeature } from '../../../../utils/plan.utils';
+import { overridePlan } from '../../../../utils/plan.utils';
 import { createUser } from '../../../../factory/user';
 
 /**
@@ -46,10 +46,10 @@ export const viewEditorPermissionsTests = function () {
 
     const addMember = async (email: string, wsRole: string) => {
       await request(context.app)
-        .post(`/api/v1/workspaces/${workspaceId}/invitations`)
+        .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
         .set('xc-auth', ownerToken)
-        .send({ email, roles: wsRole })
-        .expect(201);
+        .send({ email, workspace_role: wsRole })
+        .expect(200);
     };
 
     const createView = async (
@@ -87,11 +87,15 @@ export const viewEditorPermissionsTests = function () {
       ownerToken = context.token;
       ownerId = context.user.id;
 
-      // Enable the FEATURE_PERSONAL_VIEWS-adjacent view features used in these tests.
-      featureMock = await overrideFeature({
+      // Enable plan features needed by these tests:
+      // - FEATURE_PERSONAL_VIEWS: view CRUD permissions under test
+      // - FEATURE_API_MEMBER_MANAGEMENT: V3 workspace member invite
+      featureMock = await overridePlan({
         workspace_id: workspaceId,
-        feature: PlanFeatureTypes.FEATURE_PERSONAL_VIEWS,
-        allowed: true,
+        features: {
+          [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: true,
+          [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: true,
+        },
       });
 
       // Create base

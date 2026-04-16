@@ -634,19 +634,4 @@ export const InternalOpToOnPremPlanFeature: Record<
   // Audit
   workspaceAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
   baseAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
-  // Documents
-  documentList: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentGet: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentCreate: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentUpdate: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentDelete: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentReorder: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentCommentList: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentCommentCount: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentCommentCreate: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentCommentUpdate: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentCommentDelete: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentCommentResolve: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentCommentReactionToggle: PlanFeatureTypes.FEATURE_DOCS_APIS,
-  documentCommentReactionList: PlanFeatureTypes.FEATURE_DOCS_APIS,
 };

@@ -163,7 +163,8 @@ async function execAndGetRows(kn: Knex, config: any, query: string) {
     const res = await kn
       .raw(query)
       .timeout(QUERY_TIMEOUT_MS, queryTimeoutOpts(client));
-    if (res?.[0]?.insertId !== undefined) return res[0].insertId;
+    if (res?.[0]?.insertId !== undefined)
+      return [{ insertId: res[0].insertId }];
     return res;
   } else {
     return await kn
@@ -314,12 +315,7 @@ async function handleQuery(
           );
         } else {
           const execRowsResult = await execAndGetRows(trx, config, q);
-          if (isMysql(client) && !Array.isArray(execRowsResult)) {
-            // this is the case of returnedId from mySql, which is number
-            responses.push(execRowsResult);
-          } else {
-            responses.push(...execRowsResult);
-          }
+          responses.push(...execRowsResult);
         }
       }
       await trx.commit();

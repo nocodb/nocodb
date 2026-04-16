@@ -11,6 +11,7 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   DocumentV3ListResponseType,
   DocumentV3Type,
@@ -21,7 +22,6 @@ import {
   DocumentReorderV3Type,
   DocumentUpdateV3Type,
 } from '~/services/v3/documents-v3.types';
-import { PlanFeatureTypes } from 'nocodb-sdk';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';

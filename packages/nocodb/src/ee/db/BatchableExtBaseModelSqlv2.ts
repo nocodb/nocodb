@@ -4,6 +4,7 @@ import type { Knex } from 'knex';
 import type { NcContext } from '~/interface/config';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column } from '~/models';
+import type { ExecAndParseOptions } from 'src/db/BaseModelSqlv2';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 
 import { runExternal } from '~/helpers/muxHelpers';
@@ -150,8 +151,8 @@ class BatchableExtBaseModelSqlv2 extends BaseModelSqlv2 {
     }
 
     // Check if this is an external source
-    const isExternal = (this.dbDriver as any)?.isExternal === true;
-    const extDb = isExternal ? (this.dbDriver as any)?.extDb : null;
+    const isExternal = this.dbDriver.isExternal === true;
+    const extDb = isExternal ? this.dbDriver.extDb : null;
 
     // For external sources, collect query strings and execute via runExternal
     try {
@@ -256,17 +257,17 @@ class BatchableExtBaseModelSqlv2 extends BaseModelSqlv2 {
   public async execAndParse(
     qb: Knex.QueryBuilder | string,
     dependencyColumns?: Column[],
-    options: {
-      skipDateConversion?: boolean;
-      skipAttachmentConversion?: boolean;
-      skipSubstitutingColumnIds?: boolean;
-      skipUserConversion?: boolean;
-      skipJsonConversion?: boolean;
-      raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
-      first?: boolean;
-      bulkAggregate?: boolean;
-      apiVersion?: NcApiVersion;
-    } = {
+    options?: ExecAndParseOptions & { first: true },
+  ): Promise<Record<string, any>>;
+  public async execAndParse(
+    qb: Knex.QueryBuilder | string,
+    dependencyColumns?: Column[],
+    options?: ExecAndParseOptions,
+  ): Promise<Record<string, any>[]>;
+  public async execAndParse(
+    qb: Knex.QueryBuilder | string,
+    dependencyColumns?: Column[],
+    options: ExecAndParseOptions = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
@@ -314,7 +315,7 @@ class BatchableExtBaseModelSqlv2 extends BaseModelSqlv2 {
           // as endBatchMode resolves promises directly with runExternal results
           return await runExternal(
             this.sanitizeQuery(queryStr),
-            (this.dbDriver as any).extDb,
+            this.dbDriver.extDb,
           );
         },
         queryType as 'insert' | 'update' | 'delete' | 'raw',
@@ -322,10 +323,7 @@ class BatchableExtBaseModelSqlv2 extends BaseModelSqlv2 {
       );
     } else {
       // Not in batch mode, execute immediately with runExternal
-      data = await runExternal(
-        this.sanitizeQuery(query),
-        (this.dbDriver as any).extDb,
-      );
+      data = await runExternal(this.sanitizeQuery(query), this.dbDriver.extDb);
     }
 
     if (!this.model?.columns) {

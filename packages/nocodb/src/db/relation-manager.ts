@@ -493,7 +493,7 @@ export class RelationManager {
     // Wrap cardinality enforcement + insert in a single transaction.
     // External mux sources don't support PG transactions over HTTP — skip
     // the transaction wrapper but still execute queries through execAndParse.
-    const isExternal = (baseModel.dbDriver as any).isExternal;
+    const isExternal = !!baseModel.dbDriver.isExternal;
     const trx: any = isExternal
       ? baseModel.dbDriver
       : await baseModel.dbDriver.transaction();

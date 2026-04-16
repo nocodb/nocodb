@@ -489,7 +489,7 @@ export class DataTableService {
     ) {
       listArgs.nestedLimit = param.query.limit;
     }
-    let data: any[];
+    let data: Record<string, any>[] | Record<string, any>;
     let count: number;
 
     // V2 single-target relations (MO/OO) — junction table with LIMIT 1
@@ -565,7 +565,7 @@ export class DataTableService {
 
     if (colOptions.type === RelationTypes.BELONGS_TO) return data;
 
-    return new PagedResponseImpl(data, {
+    return new PagedResponseImpl(data as Record<string, any>[], {
       count,
       ...param.query,
     });

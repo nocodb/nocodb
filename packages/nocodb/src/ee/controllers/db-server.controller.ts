@@ -9,8 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { encryptPropIfRequired } from '~/utils/encryptDecrypt';
 import { PlanFeatureTypes } from 'nocodb-sdk';
+import { encryptPropIfRequired } from '~/utils/encryptDecrypt';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { License } from '~/decorators/license.decorator';
 import { DbServer } from '~/models';

@@ -9,8 +9,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import type { DbMuxStatus } from '~/utils/globals';
 import { PlanFeatureTypes } from 'nocodb-sdk';
+import type { DbMuxStatus } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { License } from '~/decorators/license.decorator';

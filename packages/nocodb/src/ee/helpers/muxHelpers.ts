@@ -1,6 +1,8 @@
 import { createInterface } from 'readline';
 import { Logger } from '@nestjs/common';
 import axios from 'axios';
+import type { ClientType } from 'nocodb-sdk';
+import type { ExtDbConfig } from '~/db/CustomKnex';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import { NcError } from '~/helpers/catchError';
 
@@ -8,15 +10,15 @@ const logger = new Logger('MuxHelpers');
 
 export async function runExternal(
   query: string | string[],
-  config: { dbMux: string; sourceId: string; [key: string]: any },
+  config: ExtDbConfig,
   extraOptions: {
     raw?: boolean;
   } = {},
-) {
+): Promise<Record<string, any>[] | undefined> {
   const { dbMux, sourceId, ...rest } = config;
 
   if (config.upgrader === true) {
-    config.source.upgraderQueries.push(
+    config.source!.upgraderQueries!.push(
       ...(Array.isArray(query) ? query : [query]),
     );
     return;
@@ -84,7 +86,7 @@ export async function runExternal(
     if (rawError && errorType === 'DatabaseError') {
       NcError._.externalError(
         DBErrorExtractor.get().extractDbError(rawError, {
-          clientType: config.client,
+          clientType: config.client as ClientType,
           ignoreDefault: false,
         }) as any as Error,
       );
@@ -109,7 +111,7 @@ export async function runExternal(
  */
 export async function* runExternalStream(
   query: string,
-  config: { dbMux: string; sourceId: string; [key: string]: any },
+  config: ExtDbConfig,
 ): AsyncGenerator<Record<string, any>> {
   const { dbMux, sourceId, ...rest } = config;
 

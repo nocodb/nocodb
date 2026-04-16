@@ -1273,7 +1273,7 @@ export class ColumnsService implements IColumnsService {
             const existingOptions = colBody.colOptions.options.map(
               (el) => el.title,
             );
-            const options = data.reduce((acc, el) => {
+            const options = data.reduce<{ title: string }[]>((acc, el) => {
               if (el[column.column_name]) {
                 const values = String(el[column.column_name]).split(',');
                 if (values.length > 1) {

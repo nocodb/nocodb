@@ -176,6 +176,18 @@ const MAX_RECURSION_DEPTH = 2;
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
 
+export interface ExecAndParseOptions {
+  skipDateConversion?: boolean;
+  skipAttachmentConversion?: boolean;
+  skipSubstitutingColumnIds?: boolean;
+  skipUserConversion?: boolean;
+  skipJsonConversion?: boolean;
+  raw?: boolean;
+  first?: boolean;
+  bulkAggregate?: boolean;
+  apiVersion?: NcApiVersion;
+}
+
 /**
  * Base class for models
  *
@@ -6642,7 +6654,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return await this.execAndParse(qb);
   }
 
-  public async execAndGetRows(query: string, trx?: Knex | CustomKnex) {
+  public async execAndGetRows(
+    query: string,
+    trx?: Knex | CustomKnex,
+  ): Promise<Record<string, any>[]> {
     trx = trx || this.dbDriver;
 
     query = this.sanitizeQuery(query);
@@ -6654,7 +6669,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } else if (this.isMySQL && INSERT_REGEX.test(query)) {
       const res = await trx.raw(query);
       if (res?.[0] && res[0].insertId !== undefined) {
-        return res[0].insertId;
+        return [{ insertId: res[0].insertId }];
       }
       return res;
     } else {
@@ -6664,18 +6679,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async execAndParse(
     qb: Knex.QueryBuilder | string,
+    dependencyColumns: Column[] | undefined | null,
+    options: ExecAndParseOptions & { first: true },
+  ): Promise<Record<string, any>>;
+  public async execAndParse(
+    qb: Knex.QueryBuilder | string,
+    dependencyColumns?: Column[] | null,
+    options?: ExecAndParseOptions,
+  ): Promise<Record<string, any>[]>;
+  public async execAndParse(
+    qb: Knex.QueryBuilder | string,
     dependencyColumns?: Column[],
-    options: {
-      skipDateConversion?: boolean;
-      skipAttachmentConversion?: boolean;
-      skipSubstitutingColumnIds?: boolean;
-      skipUserConversion?: boolean;
-      skipJsonConversion?: boolean;
-      raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
-      first?: boolean;
-      bulkAggregate?: boolean;
-      apiVersion?: NcApiVersion;
-    } = {
+    options: ExecAndParseOptions = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
@@ -6806,7 +6821,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return data;
   }
 
-  sanitizeQuery(query: string | string[]) {
+  sanitizeQuery(query: string): string;
+  sanitizeQuery(query: string[]): string[];
+  sanitizeQuery(query: string | string[]): string | string[];
+  sanitizeQuery(query: string | string[]): string | string[] {
     const fn = (q: string) => {
       if (!this.isPg && !this.isSnowflake) {
         return unsanitize(q);
@@ -6978,6 +6996,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
   }
 
+  protected async convertUserFormat(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+    apiVersion?: NcApiVersion,
+  ): Promise<Record<string, any>[]>;
+  protected async convertUserFormat(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+    apiVersion?: NcApiVersion,
+  ): Promise<Record<string, any>>;
   protected async convertUserFormat(
     data: Record<string, any>,
     dependencyColumns?: Column[],
@@ -7357,6 +7385,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async convertJsonTypes(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>[]>;
+  public async convertJsonTypes(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>>;
+  public async convertJsonTypes(
     data: Record<string, any>,
     dependencyColumns?: Column[],
   ) {
@@ -7419,6 +7455,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async convertMultiSelectTypes(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>[]>;
+  public async convertMultiSelectTypes(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>>;
+  public async convertMultiSelectTypes(
     data: Record<string, any>,
     dependencyColumns?: Column[],
   ) {
@@ -7444,6 +7488,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
+  public async convertAttachmentType(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>[]>;
+  public async convertAttachmentType(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>>;
   public async convertAttachmentType(
     data: Record<string, any>,
     dependencyColumns?: Column[],
@@ -7654,6 +7706,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return d;
   }
 
+  public convertDateFormat(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Record<string, any>[];
+  public convertDateFormat(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ): Record<string, any>;
   public convertDateFormat(
     data: Record<string, any>,
     dependencyColumns?: Column[],

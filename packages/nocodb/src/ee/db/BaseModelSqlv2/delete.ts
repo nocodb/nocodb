@@ -11,7 +11,7 @@ import { runExternal } from '~/helpers/muxHelpers';
 export class BaseModelDelete extends BaseModelDeleteCE {
   logger = new Logger(BaseModelDelete.name);
   override get isDbExternal(): boolean {
-    return (this.baseModel.dbDriver as any).isExternal;
+    return !!this.baseModel.dbDriver.isExternal;
   }
   override async executeBulkAll({
     execQueries,
@@ -58,7 +58,7 @@ export class BaseModelDelete extends BaseModelDeleteCE {
       if (this.isDbExternal) {
         await runExternal(
           this.baseModel.sanitizeQuery(queries),
-          (this.baseModel.dbDriver as any).extDb,
+          this.baseModel.dbDriver.extDb,
           {
             raw: true,
           },

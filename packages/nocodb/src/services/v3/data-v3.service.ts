@@ -25,6 +25,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
+import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { dataWrapper } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
@@ -1252,12 +1253,15 @@ export class DataV3Service {
           };
     }
 
-    const pagedResponse = new PagedResponseV3Impl(response, {
-      context,
-      tableId: param.modelId,
-      baseUrl: param.req.ncSiteUrl,
-      queryParams: param.query,
-    });
+    const pagedResponse = new PagedResponseV3Impl(
+      response as PagedResponseImpl<Record<string, any>>,
+      {
+        context,
+        tableId: param.modelId,
+        baseUrl: param.req.ncSiteUrl,
+        queryParams: param.query,
+      },
+    );
 
     // Extract requested fields from query parameters for nested data
     const requestedFields = this.getRequestedFields(param.query);

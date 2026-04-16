@@ -36,8 +36,6 @@ const isDataTab = computed(() => activeSidebarTab.value === 'data')
 
 const isWorkflowsTab = computed(() => activeSidebarTab.value === 'workflows')
 
-const isDocsTab = computed(() => activeSidebarTab.value === 'docs')
-
 const isVisibleCreateNew = ref(false)
 
 const baseCreateDlg = ref(false)
@@ -245,7 +243,7 @@ const hasDocumentCreateAccess = computed(() => {
             <NcDivider />
             <NcTooltip
               :title="
-                !isDataTab && !isDocsTab
+                !isDataTab
                   ? $t('tooltip.switchToDataTab', { type: $t('objects.document').toLowerCase() })
                   : !isBaseHomePage
                   ? $t('tooltip.navigateToBaseToCreateDocument')
@@ -253,14 +251,14 @@ const hasDocumentCreateAccess = computed(() => {
                   ? $t('tooltip.youDontHaveAccessToCreateNewDocument')
                   : ''
               "
-              :disabled="(isDataTab || isDocsTab) && isBaseHomePage && hasDocumentCreateAccess"
+              :disabled="isDataTab && isBaseHomePage && hasDocumentCreateAccess"
               placement="right"
             >
               <NcMenuItem
                 data-testid="mini-sidebar--document-create"
-                :disabled="(!isDataTab && !isDocsTab) || !isBaseHomePage || !hasDocumentCreateAccess"
+                :disabled="!isDataTab || !isBaseHomePage || !hasDocumentCreateAccess"
                 inner-class="w-full"
-                @click="createDocument(openedProject?.id, undefined, { navigate: !isDataTab })"
+                @click="createDocument(openedProject?.id, undefined, { navigate: false })"
               >
                 <GeneralIcon icon="ncFileText" />
                 <div class="flex-1">

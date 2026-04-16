@@ -193,19 +193,6 @@ const mainItems = computed<NavItem[]>(() => [
         },
       ]
     : []),
-  ...(isEeUI && showEEFeatures.value
-    ? [
-        {
-          key: 'docs',
-          icon: 'ncFileText',
-          label: 'Docs',
-          disabled: !hasAvailableBases.value,
-          onClick: () => {
-            onTabClick('docs')
-          },
-        },
-      ]
-    : []),
 ])
 </script>
 

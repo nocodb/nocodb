@@ -118,7 +118,7 @@ const hasTableCreatePermission = computed(() => {
                 @empty-script="openNewScriptModal({ baseId: base.id })"
                 @empty-workflow="openNewWorkflowModal({ baseId: base.id })"
                 @empty-dashboard="openNewDashboardModal({ baseId: base.id })"
-                @empty-page="createDocument(base.id!, undefined, { navigate: activeSidebarTab !== 'data' })"
+                @empty-page="createDocument(base.id!, undefined, { navigate: false })"
               />
             </template>
           </NcDropdown>

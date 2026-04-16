@@ -141,13 +141,6 @@ const mainItems = computed<NavItem[]>(() => [
             }),
           onClick: () => onTabClick('workflows'),
         },
-        {
-          key: 'docs',
-          icon: 'ncFileText',
-          label: 'Docs',
-          disabled: !hasAvailableBases.value,
-          onClick: () => onTabClick('docs'),
-        },
       ]
     : []),
 ])

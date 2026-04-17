@@ -48,8 +48,24 @@ const isMarked = ref<string | false>(false)
 const keys = ref<Record<string, number>>({})
 
 const dragging = ref(false)
+const draggingType = ref<'table' | 'dashboard' | 'document' | null>(null)
 
 let sortable: Sortable
+let draggedDocId: string | null = null
+let draggedSubtreeIds: Set<string> | null = null
+
+// Matches DocumentsNode's indent-step and BASE padding below.
+const INDENT_PX = 22
+const BASE_INDENT_PX = 8
+
+// Notion-style drop indicator shown only during doc drags.
+const dropIndicator = reactive({
+  visible: false,
+  top: 0,
+  depth: 0,
+})
+
+const pendingDrop = ref<{ targetParentId: string | null; order: number } | null>(null)
 
 const hasTableCreatePermission = computed(() => {
   return isUIAllowed('tableCreate', { roles: base.value.project_role, source: base.value?.sources?.[0] })
@@ -148,12 +164,165 @@ const entitiesById = computed(() =>
   }, {}),
 )
 
+// ── Entry metadata (type + depth for every visible sidebar row) ──
+// Tables/dashboards are always depth 0. Root docs are depth 0; child docs
+// carry their computed depth from visibleChildrenMap.
+
+interface EntryMeta {
+  type: 'table' | 'dashboard' | 'document'
+  depth: number
+  doc?: DocumentType
+}
+
+const entryMetadata = computed<Map<string, EntryMeta>>(() => {
+  const map = new Map<string, EntryMeta>()
+  for (const entity of allEntities.value) {
+    if (entity.type === 'document') {
+      map.set(entity.id!, { type: 'document', depth: 0, doc: entity })
+      for (const c of visibleChildrenMap.value.get(entity.id!) || []) {
+        map.set(c.doc.id!, { type: 'document', depth: c.depth, doc: c.doc })
+      }
+    } else {
+      map.set(entity.id!, { type: entity.type, depth: 0 })
+    }
+  }
+  return map
+})
+
 /** shortly mark an item after sorting */
 function markItem(id: string) {
   isMarked.value = id
   setTimeout(() => {
     isMarked.value = false
   }, 300)
+}
+
+// ── Drop-target math (doc drags only) ──
+// Mirrors the old Documents/List.vue Notion-style logic: cursor X determines
+// depth, then we derive the new parent_id by walking back through the flat
+// visible list. Tables/dashboards are treated as depth-0 siblings that
+// cannot contain doc children.
+
+interface VisibleEntry {
+  id: string
+  meta: EntryMeta
+  rect: DOMRect
+}
+
+function getVisibleEntries(el: HTMLElement): VisibleEntry[] {
+  const meta = entryMetadata.value
+  const items = Array.from(el.children) as HTMLElement[]
+  const entries: VisibleEntry[] = []
+
+  for (const item of items) {
+    const id = item.dataset.id
+    if (!id) continue
+    if (id === draggedDocId) continue
+    if (draggedSubtreeIds?.has(id)) continue
+    const m = meta.get(id)
+    if (!m) continue
+    entries.push({ id, meta: m, rect: item.getBoundingClientRect() })
+  }
+
+  return entries
+}
+
+function findSlot(entries: VisibleEntry[], clientY: number, listTop: number) {
+  let slotIndex = entries.length
+  let indicatorY = 0
+
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i]
+    if (!entry) continue
+    const { rect } = entry
+    if (clientY < rect.top + rect.height / 2) {
+      slotIndex = i
+      indicatorY = rect.top - listTop
+      break
+    }
+    indicatorY = rect.bottom - listTop
+  }
+
+  return { slotIndex, indicatorY }
+}
+
+function calculateDocDropTarget(entries: VisibleEntry[], slotIndex: number, cursorDepth: number) {
+  const prev = slotIndex > 0 ? entries[slotIndex - 1] : undefined
+  const next = slotIndex < entries.length ? entries[slotIndex] : undefined
+
+  // Depth range — only docs can host doc children, so non-docs cap max at 0.
+  const maxDepth = prev ? (prev.meta.type === 'document' ? prev.meta.depth + 1 : 0) : 0
+  const minDepth = next ? (next.meta.type === 'document' ? next.meta.depth : 0) : 0
+  const targetDepth = Math.max(minDepth, Math.min(maxDepth, cursorDepth))
+
+  // Find parent — walk back to the nearest doc ancestor at targetDepth - 1.
+  let targetParentId: string | null = null
+  if (targetDepth > 0) {
+    for (let i = slotIndex - 1; i >= 0; i--) {
+      const e = entries[i]
+      if (!e) continue
+      if (e.meta.type === 'document' && e.meta.depth === targetDepth - 1) {
+        targetParentId = e.id
+        break
+      }
+    }
+  }
+
+  // Order — bisect between nearest doc siblings at same depth + parent.
+  let prevSiblingOrder: number | null = null
+  let nextSiblingOrder: number | null = null
+
+  for (let i = slotIndex - 1; i >= 0; i--) {
+    const e = entries[i]
+    if (!e) continue
+    if (e.meta.type !== 'document') continue
+    if (e.meta.depth < targetDepth) break
+    if (e.meta.depth === targetDepth && (e.meta.doc!.parent_id ?? null) === targetParentId) {
+      prevSiblingOrder = e.meta.doc!.order ?? 0
+      break
+    }
+  }
+
+  for (let i = slotIndex; i < entries.length; i++) {
+    const e = entries[i]
+    if (!e) continue
+    if (e.meta.type !== 'document') continue
+    if (e.meta.depth < targetDepth) break
+    if (e.meta.depth === targetDepth && (e.meta.doc!.parent_id ?? null) === targetParentId) {
+      nextSiblingOrder = e.meta.doc!.order ?? 0
+      break
+    }
+  }
+
+  let order: number
+  if (prevSiblingOrder === null && nextSiblingOrder === null) order = 1
+  else if (nextSiblingOrder === null) order = prevSiblingOrder! + 1
+  else if (prevSiblingOrder === null) order = nextSiblingOrder / 2
+  else order = (prevSiblingOrder + nextSiblingOrder) / 2
+
+  return { targetDepth, targetParentId, order }
+}
+
+function onDragOver(e: DragEvent) {
+  if (!dragging.value || draggingType.value !== 'document' || !draggedDocId || e.clientX <= 0) return
+
+  const el = menuRef.value
+  if (!el) return
+
+  const listRect = el.getBoundingClientRect()
+  const entries = getVisibleEntries(el)
+  const { slotIndex, indicatorY } = findSlot(entries, e.clientY, listRect.top)
+
+  const relativeX = e.clientX - listRect.left
+  const cursorDepth = Math.max(0, Math.round((relativeX - BASE_INDENT_PX) / INDENT_PX))
+
+  const { targetDepth, targetParentId, order } = calculateDocDropTarget(entries, slotIndex, cursorDepth)
+
+  dropIndicator.visible = true
+  dropIndicator.top = indicatorY
+  dropIndicator.depth = targetDepth
+
+  pendingDrop.value = { targetParentId, order }
 }
 
 // todo: replace with vuedraggable
@@ -163,10 +332,37 @@ const initSortable = (el: Element) => {
 
   sortable = Sortable.create(el as HTMLElement, {
     ghostClass: 'ghost',
+    // For doc drags we suppress DOM shifting and use the blue indicator line instead;
+    // for tables/dashboards we let SortableJS shift items like before.
+    onMove: () => {
+      return draggingType.value !== 'document'
+    },
     onStart: (evt: SortableEvent) => {
       evt.stopImmediatePropagation()
       evt.preventDefault()
       dragging.value = true
+
+      const itemEl = evt.item as HTMLElement
+      const type = (itemEl.dataset.type as 'table' | 'dashboard' | 'document') || null
+      draggingType.value = type
+      pendingDrop.value = null
+
+      if (type === 'document') {
+        draggedDocId = itemEl.dataset.id || null
+        // Collect all descendant IDs to prevent self-nesting during drag.
+        if (draggedDocId) {
+          draggedSubtreeIds = new Set<string>()
+          const collectDescendants = (parentId: string) => {
+            for (const d of activeDocuments.value) {
+              if (d.parent_id === parentId && d.id) {
+                draggedSubtreeIds!.add(d.id)
+                collectDescendants(d.id)
+              }
+            }
+          }
+          collectDescendants(draggedDocId)
+        }
+      }
     },
     onEnd: async (evt) => {
       const { newIndex = 0, oldIndex = 0 } = evt
@@ -175,10 +371,40 @@ const initSortable = (el: Element) => {
       evt.preventDefault()
 
       dragging.value = false
-
-      if (newIndex === oldIndex) return
+      dropIndicator.visible = false
 
       const itemEl = evt.item as HTMLElement
+      const type = draggingType.value
+      const docId = draggedDocId
+
+      draggedDocId = null
+      draggedSubtreeIds = null
+      draggingType.value = null
+
+      // ── Doc drag: apply depth-aware drop (parent + order) ──
+      if (type === 'document' && docId) {
+        const drop = pendingDrop.value
+        pendingDrop.value = null
+        if (!drop) return
+
+        const currentDoc = activeDocuments.value.find((d) => d.id === docId)
+        if (
+          currentDoc &&
+          (currentDoc.parent_id ?? null) === drop.targetParentId &&
+          currentDoc.order === drop.order
+        ) {
+          return
+        }
+
+        await documentsStore.moveDocument(baseId.value, docId, drop.targetParentId, drop.order)
+        markItem(docId)
+        $e('a:document:reorder')
+        return
+      }
+
+      // ── Table / dashboard drag: existing order-only logic ──
+      if (newIndex === oldIndex) return
+
       const item = entitiesById.value[itemEl.dataset.id as string]
 
       if (!item) return
@@ -232,15 +458,6 @@ const initSortable = (el: Element) => {
         await dashboardStore.updateDashboard(baseId.value, item.id, {
           order: item.order,
         })
-      } else if (item.type === 'document') {
-        // Update local doc order in the reactive array
-        const doc = activeDocuments.value.find((d) => d.id === item.id)
-        if (doc) {
-          doc.order = item.order
-        }
-        await documentsStore.updateDocument(baseId.value, item.id, {
-          order: item.order,
-        })
       } else if (item.type === 'table') {
         // Update local table order in the tables array
         const tables = baseTables.value.get(baseId.value)
@@ -284,11 +501,20 @@ const initSortable = (el: Element) => {
     filter: isTouchEvent,
     ...getDraggableAutoScrollOptions({ scrollSensitivity: 50 }),
   })
+
+  el.addEventListener('dragover', onDragOver as EventListener)
 }
 
 watchEffect(() => {
   if (menuRef.value && isUIAllowed('viewCreateOrEdit')) {
     initSortable(menuRef.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (sortable) sortable.destroy()
+  if (menuRef.value) {
+    menuRef.value.removeEventListener('dragover', onDragOver as EventListener)
   }
 })
 </script>
@@ -310,8 +536,19 @@ watchEffect(() => {
       ref="menuRef"
       :key="`data-${keys.data || 0}`"
       :class="{ dragging }"
-      class="nc-data-menu flex flex-col w-full !border-r-0 bg-nc-bg-gray-sidebar"
+      class="nc-data-menu flex flex-col w-full !border-r-0 bg-nc-bg-gray-sidebar relative"
     >
+      <!-- Drop indicator line (Notion-style) — visible only during doc drags -->
+      <div
+        v-show="dropIndicator.visible && dragging && draggingType === 'document'"
+        class="nc-doc-drop-indicator absolute pointer-events-none z-10"
+        :style="{
+          top: `${dropIndicator.top}px`,
+          left: `${BASE_INDENT_PX + dropIndicator.depth * INDENT_PX}px`,
+          right: '8px',
+        }"
+      />
+
       <template v-for="entity of allEntities" :key="entity.id">
         <DashboardTreeViewDataDashboardNode
           v-if="entity.type === ModelTypes.DASHBOARD"
@@ -349,7 +586,7 @@ watchEffect(() => {
             data-type="document"
             :doc="child.doc"
             :depth="child.depth"
-            :indent-step="22"
+            :indent-step="INDENT_PX"
             :has-children="child.hasChildren"
             class="nc-document-item nc-tree-item text-sm"
             :class="{
@@ -402,6 +639,18 @@ watchEffect(() => {
 
   .active {
     @apply !bg-primary-selected dark:!bg-nc-bg-gray-medium font-medium;
+  }
+}
+
+// Blue indicator line with dot — standard tree drag-and-drop visual.
+.nc-doc-drop-indicator {
+  height: 2px;
+  @apply bg-nc-content-brand rounded-full;
+
+  &::before {
+    content: '';
+    @apply absolute w-2 h-2 rounded-full bg-nc-content-brand -top-0.75;
+    left: -3px;
   }
 }
 </style>

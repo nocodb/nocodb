@@ -464,6 +464,11 @@ export class MfaService {
       totp_backup_codes: JSON.stringify(hashedCodes),
     });
 
+    // Rotate token_version to invalidate all existing sessions
+    await User.update(userId, {
+      token_version: randomTokenString(),
+    });
+
     return { backupCodes };
   }
 }

@@ -127,11 +127,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     if (name.startsWith('index-typeOrId-baseId-')) {
       if (name.startsWith('index-typeOrId-baseId-index-settings')) return 'settings'
 
-      // Docs routes resolve to data tab — documents live alongside tables/dashboards
-      if (name.startsWith('index-typeOrId-baseId-index-docs')) {
-        return 'data'
-      }
-
       if (
         name.startsWith('index-typeOrId-baseId-index-workflows') ||
         name.startsWith('index-typeOrId-baseId-index-automation-') ||
@@ -141,6 +136,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
         return 'workflows'
       }
 
+      // All other routes resolve to data tab (table, dashboard, document, etc.)
       return 'data'
     }
 

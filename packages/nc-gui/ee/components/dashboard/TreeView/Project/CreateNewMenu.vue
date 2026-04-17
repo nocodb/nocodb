@@ -63,7 +63,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
 
 <template>
   <NcMenu variant="large" data-testid="nc-home-create-new-menu" @click="vVisible = false">
-    <!-- Data tab items: table, dashboard, sync, document -->
+    <!-- Data tab items: table, document, dashboard, sync -->
     <template v-if="!isWorkflowsTab">
       <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-table" @click="emits('newTable')">
         <div class="w-full flex items-center">
@@ -101,6 +101,12 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
         </div>
       </NcMenuItem>
 
+      <NcMenuItem v-if="showEEFeatures" inner-class="w-full" data-testid="create-new-document" @click="emits('emptyPage')">
+        <GeneralIcon icon="ncFileText" />
+        {{ $t('objects.document') }}
+        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+      </NcMenuItem>
+
       <NcMenuItem
         v-if="!isMobileMode && showEEFeatures"
         inner-class="w-full"
@@ -133,12 +139,6 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
           </NcMenuItem>
         </template>
       </ProjectSyncCreateProvider>
-
-      <NcMenuItem v-if="showEEFeatures" inner-class="w-full" data-testid="create-new-document" @click="emits('emptyPage')">
-        <GeneralIcon icon="ncFileText" />
-        {{ $t('objects.document') }}
-        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
-      </NcMenuItem>
     </template>
 
     <!-- Automations tab items: workflow, script -->

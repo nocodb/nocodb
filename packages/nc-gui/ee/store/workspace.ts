@@ -454,12 +454,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isWorkspaceLoading.value = true
     const workspaceId = _workspaceId ?? activeWorkspaceId.value!
 
-    // After workspaces are loaded, skip populating if user has no access or workspace is CE-locked
-    if (!isWorkspacesLoading.value && workspaceId) {
-      if (!workspaces.value.has(workspaceId) || isWorkspaceCeLocked(workspaceId)) {
-        isWorkspaceLoading.value = false
-        return
-      }
+    if (!isWorkspacesLoading.value && workspaceId && isWorkspaceCeLocked(workspaceId)) {
+      isWorkspaceLoading.value = false
+      return
     }
 
     lastPopulatedWorkspaceId.value = workspaceId
@@ -1342,11 +1339,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         return
       }
       // No accessible non-locked workspace — stay put, don't load roles
-      return
-    }
-
-    // Skip loadRoles for workspaces the user doesn't have access to
-    if (activeWorkspaceId.value && !isWorkspacesLoading.value && !workspaces.value.has(activeWorkspaceId.value)) {
       return
     }
 

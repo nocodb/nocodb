@@ -1006,12 +1006,15 @@ export const useRealtime = createSharedComposable(() => {
 
       if (activeTeamListener.value) {
         $ncSocket.offMessage(activeTeamListener.value)
+        activeTeamListener.value = null
       }
 
-      activeTeamListener.value = $ncSocket.onMessage(
-        `${EventType.TEAM_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
-        handleTeamEvent,
-      )
+      if (activeWorkspaceId.value) {
+        activeTeamListener.value = $ncSocket.onMessage(
+          `${EventType.TEAM_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
+          handleTeamEvent,
+        )
+      }
 
       if (activeBaseId.value) {
         // Handle base meta events

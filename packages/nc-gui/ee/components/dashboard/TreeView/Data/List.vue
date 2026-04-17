@@ -388,11 +388,7 @@ const initSortable = (el: Element) => {
         if (!drop) return
 
         const currentDoc = activeDocuments.value.find((d) => d.id === docId)
-        if (
-          currentDoc &&
-          (currentDoc.parent_id ?? null) === drop.targetParentId &&
-          currentDoc.order === drop.order
-        ) {
+        if (currentDoc && (currentDoc.parent_id ?? null) === drop.targetParentId && currentDoc.order === drop.order) {
           return
         }
 

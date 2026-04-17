@@ -8,7 +8,8 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
-import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
+import { NcApiVersion } from 'nocodb-sdk';
+import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
@@ -1125,7 +1126,7 @@ export class DataTableService {
       );
 
       const exactRows = await relatedBaseModel.list(
-        { ...listOpts, filterArr: eqFilterArr },
+        { ...listOpts, filterArr: eqFilterArr, apiVersion: NcApiVersion.V3 },
         listFlags,
       );
 
@@ -1158,7 +1159,7 @@ export class DataTableService {
       );
 
       const candidateRows = await relatedBaseModel.list(
-        { ...listOpts, filterArr: likeFilterArr },
+        { ...listOpts, filterArr: likeFilterArr, apiVersion: NcApiVersion.V3 },
         listFlags,
       );
 

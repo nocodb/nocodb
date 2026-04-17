@@ -12,7 +12,7 @@ import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
-import { Column, Model, Source, View } from '~/models';
+import { Column, Filter, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/catchError';
@@ -1114,12 +1114,18 @@ export class DataTableService {
 
     // Step 1: Case-sensitive exact match (eq operator)
     if (allUniqueValues.size > 0) {
-      const eqWhere = [...allUniqueValues]
-        .map((v) => `(${dvTitle},eq,${v})`)
-        .join('~or');
+      const eqFilterArr = [...allUniqueValues].map(
+        (v) =>
+          new Filter({
+            fk_column_id: displayValueColumn.id,
+            comparison_op: 'eq',
+            value: v,
+            logical_op: 'or',
+          }),
+      );
 
       const exactRows = await relatedBaseModel.list(
-        { ...listOpts, where: eqWhere },
+        { ...listOpts, filterArr: eqFilterArr },
         listFlags,
       );
 
@@ -1141,12 +1147,18 @@ export class DataTableService {
       (v) => !valueToPk.has(v),
     );
     if (unmatchedValues.length > 0) {
-      const likeWhere = unmatchedValues
-        .map((v) => `(${dvTitle},like,${v})`)
-        .join('~or');
+      const likeFilterArr = unmatchedValues.map(
+        (v) =>
+          new Filter({
+            fk_column_id: displayValueColumn.id,
+            comparison_op: 'like',
+            value: v,
+            logical_op: 'or',
+          }),
+      );
 
       const candidateRows = await relatedBaseModel.list(
-        { ...listOpts, where: likeWhere },
+        { ...listOpts, filterArr: likeFilterArr },
         listFlags,
       );
 

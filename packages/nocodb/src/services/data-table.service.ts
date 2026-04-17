@@ -938,164 +938,31 @@ export class DataTableService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    // Group entries by columnId, preserving original indices for ordered output
-    const groups = new Map<
-      string,
-      { index: number; entry: (typeof param.data)[number] }[]
-    >();
-    param.data.forEach((entry, index) => {
-      const list = groups.get(entry.columnId);
-      if (list) {
-        list.push({ index, entry });
-      } else {
-        groups.set(entry.columnId, [{ index, entry }]);
-      }
-    });
+    const groups = this.groupEntriesByColumn(param.data);
 
     const results: { link: any[]; unlink: any[] }[] = new Array(
       param.data.length,
     );
 
     for (const [columnId, entries] of groups) {
-      // Resolve column once per group
-      const column = await this.getColumn(context, {
-        ...param,
-        columnId,
-      });
-
-      if (!isLinksOrLTAR(column)) {
-        NcError.get(context).invalidRequestBody(
-          `Column '${column.title ?? columnId}' is not a link column`,
-        );
-      }
-
-      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      const groupCtx = await this.resolveColumnGroupContext(
         context,
+        param,
+        columnId,
       );
 
-      const { refContext } = await colOptions.getParentChildContext(context);
-      const relatedModel = await colOptions.getRelatedTable(refContext);
-      await relatedModel.getColumns(refContext);
-
-      const displayValueColumn = relatedModel.displayValue;
-      if (!displayValueColumn) {
-        NcError.get(context).badRequest(
-          'Related table has no display value column',
-        );
-      }
-
-      const isSingleLink =
-        colOptions.type === RelationTypes.BELONGS_TO ||
-        colOptions.type === RelationTypes.ONE_TO_ONE;
-
       // No junction model — nothing to link for this column group
-      if (!colOptions.fk_mm_model_id) {
+      if (!groupCtx) {
         for (const { index } of entries) {
           results[index] = { link: [], unlink: [] };
         }
         continue;
       }
 
-      // Build related base model once per group
-      const relatedSource = await Source.get(
-        refContext,
-        relatedModel.source_id,
-      );
-      const relatedBaseModel = await Model.getBaseModelSQL(refContext, {
-        id: relatedModel.id,
-        dbDriver: await NcConnectionMgrv2.get(relatedSource),
-      });
+      const valueToPk = await this.resolveDisplayValuesToPks(groupCtx, entries);
 
-      const dvTitle = displayValueColumn.title;
-
-      const pkFieldSet = new Set(
-        relatedModel.primaryKeys.map((pk) => pk.title || pk.column_name),
-      );
-      pkFieldSet.add(dvTitle);
-
-      const listOpts = { fieldsSet: pkFieldSet };
-      const listFlags = {
-        ignoreViewFilterAndSort: true,
-        ignorePagination: true,
-      };
-
-      // Collect every unique display value across all entries in this group —
-      // one eq query + one like fallback serve the whole group instead of N×
-      const allUniqueValues = new Set<string>();
-      for (const { entry } of entries) {
-        for (const v of entry.displayValues) {
-          allUniqueValues.add(v);
-        }
-      }
-
-      // Map: submitted display value → matched PK (populated by eq, then like fallback)
-      const valueToPk = new Map<string, string | number>();
-
-      // Step 1: Case-sensitive exact match (eq operator) — one query for the whole group
-      if (allUniqueValues.size > 0) {
-        const eqWhere = [...allUniqueValues]
-          .map((v) => `(${dvTitle},eq,${v})`)
-          .join('~or');
-
-        const exactRows = await relatedBaseModel.list(
-          { ...listOpts, where: eqWhere },
-          listFlags,
-        );
-
-        for (const row of exactRows) {
-          const dv = row[dvTitle];
-          if (dv == null) continue;
-          const dvStr = String(dv);
-          if (allUniqueValues.has(dvStr) && !valueToPk.has(dvStr)) {
-            valueToPk.set(
-              dvStr,
-              dataWrapper(row).extractPksValue(relatedModel, true),
-            );
-          }
-        }
-      }
-
-      // Step 2: Case-insensitive fallback for values the eq step didn't match
-      // `like` is case-insensitive (ilike on PG, default on MySQL/SQLite) but
-      // adds % wildcards, so post-filter lowercase-equality to preserve exact match semantics
-      const unmatchedValues = [...allUniqueValues].filter(
-        (v) => !valueToPk.has(v),
-      );
-      if (unmatchedValues.length > 0) {
-        const likeWhere = unmatchedValues
-          .map((v) => `(${dvTitle},like,${v})`)
-          .join('~or');
-
-        const candidateRows = await relatedBaseModel.list(
-          { ...listOpts, where: likeWhere },
-          listFlags,
-        );
-
-        const lowerToOriginal = new Map<string, string>();
-        for (const v of unmatchedValues) {
-          const lower = v.toLowerCase();
-          if (!lowerToOriginal.has(lower)) {
-            lowerToOriginal.set(lower, v);
-          }
-        }
-
-        for (const row of candidateRows) {
-          const dv = row[dvTitle];
-          if (dv == null) continue;
-          const dvLower = String(dv).toLowerCase();
-          const originalValue = lowerToOriginal.get(dvLower);
-          if (originalValue && !valueToPk.has(originalValue)) {
-            valueToPk.set(
-              originalValue,
-              dataWrapper(row).extractPksValue(relatedModel, true),
-            );
-          }
-        }
-      }
-
-      // mmList listArgs — depend only on the related model, shared by the group
-      const { dependencyFields } = await getAst(refContext, {
-        model: relatedModel,
+      const { dependencyFields } = await getAst(groupCtx.refContext, {
+        model: groupCtx.relatedModel,
         query: param.query,
         extractOnlyPrimaries: true,
       });
@@ -1105,74 +972,295 @@ export class DataTableService {
         listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
       } catch (e) {}
 
-      // Per-entry: verify row exists, translate display values via the shared map,
-      // diff against existing links, and apply add/remove
-      for (const { index, entry } of entries) {
-        if (!(await baseModel.exist(entry.rowId))) {
-          NcError.get(context).recordNotFound(entry.rowId);
-        }
-
-        const seenPks = new Set<string>();
-        const matchedPks: (string | number)[] = [];
-        for (const value of new Set(entry.displayValues)) {
-          const pk = valueToPk.get(value);
-          if (pk === undefined || pk === null) continue;
-          const pkStr = String(pk);
-          if (seenPks.has(pkStr)) continue;
-          seenPks.add(pkStr);
-          matchedPks.push(pk);
-        }
-
-        if (!matchedPks.length) {
-          results[index] = { link: [], unlink: [] };
-          continue;
-        }
-
-        // For BT/OO: only take the first match
-        const pksToLink = isSingleLink ? [matchedPks[0]] : matchedPks;
-
-        const existingLinkedList = await baseModel.mmList(
-          {
-            colId: column.id,
-            parentId: entry.rowId,
-          },
-          listArgs as any,
-          true,
-        );
-
-        const existingPks = (existingLinkedList || []).map((row) =>
-          dataWrapper(row).extractPksValue(relatedModel, true),
-        );
-
-        const existingPkSet = new Set(existingPks.map(String));
-        const newPkSet = new Set(pksToLink.map(String));
-
-        const toLink = pksToLink.filter((pk) => !existingPkSet.has(String(pk)));
-        const toUnlink = existingPks.filter((pk) => !newPkSet.has(String(pk)));
-
-        if (toUnlink.length) {
-          await baseModel.removeLinks({
-            colId: column.id,
-            childIds: toUnlink,
-            rowId: entry.rowId,
-            cookie: param.cookie,
-          });
-        }
-
-        if (toLink.length) {
-          await baseModel.addLinks({
-            colId: column.id,
-            childIds: toLink,
-            rowId: entry.rowId,
-            cookie: param.cookie,
-          });
-        }
-
-        results[index] = { link: toLink, unlink: toUnlink };
-      }
+      await this.diffAndApplyLinks(
+        context,
+        baseModel,
+        groupCtx,
+        entries,
+        valueToPk,
+        listArgs,
+        param.cookie,
+        results,
+      );
     }
 
     return results;
+  }
+
+  /**
+   * Groups bulk link entries by columnId, preserving each entry's original
+   * index so results can be written back in the correct order.
+   */
+  private groupEntriesByColumn(
+    data: { columnId: string; rowId: string; displayValues: string[] }[],
+  ) {
+    const groups = new Map<
+      string,
+      { index: number; entry: (typeof data)[number] }[]
+    >();
+    data.forEach((entry, index) => {
+      const list = groups.get(entry.columnId);
+      if (list) {
+        list.push({ index, entry });
+      } else {
+        groups.set(entry.columnId, [{ index, entry }]);
+      }
+    });
+    return groups;
+  }
+
+  /**
+   * Resolves all shared context for a column group: validates the column is an
+   * LTAR type, fetches colOptions, related model, related source, and the
+   * display-value column. Returns `null` when there is no junction model
+   * (nothing to link).
+   */
+  private async resolveColumnGroupContext(
+    context: NcContext,
+    param: { viewId: string; modelId: string; query: any; user?: any },
+    columnId: string,
+  ) {
+    const column = await this.getColumn(context, {
+      ...param,
+      columnId,
+    });
+
+    if (!isLinksOrLTAR(column)) {
+      NcError.get(context).invalidRequestBody(
+        `Column '${column.title ?? columnId}' is not a link column`,
+      );
+    }
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+
+    const { refContext } = await colOptions.getParentChildContext(context);
+    const relatedModel = await colOptions.getRelatedTable(refContext);
+    await relatedModel.getColumns(refContext);
+
+    const displayValueColumn = relatedModel.displayValue;
+    if (!displayValueColumn) {
+      NcError.get(context).badRequest(
+        'Related table has no display value column',
+      );
+    }
+
+    const isSingleLink =
+      colOptions.type === RelationTypes.BELONGS_TO ||
+      colOptions.type === RelationTypes.ONE_TO_ONE;
+
+    if (!colOptions.fk_mm_model_id) {
+      return null;
+    }
+
+    const relatedSource = await Source.get(refContext, relatedModel.source_id);
+    const relatedBaseModel = await Model.getBaseModelSQL(refContext, {
+      id: relatedModel.id,
+      dbDriver: await NcConnectionMgrv2.get(relatedSource),
+    });
+
+    return {
+      column,
+      colOptions,
+      refContext,
+      relatedModel,
+      relatedBaseModel,
+      displayValueColumn,
+      isSingleLink,
+    };
+  }
+
+  /**
+   * Batch-resolves display values to primary keys for the related table.
+   *
+   * Uses a two-step strategy shared across all entries in a column group:
+   *  1. Case-sensitive exact match (`eq` operator) — one query for all values.
+   *  2. Case-insensitive fallback (`like` operator) for any values the first
+   *     step didn't match, with post-filter lowercase equality to avoid
+   *     partial/wildcard matches.
+   *
+   * Returns a Map from submitted display value → matched primary key.
+   */
+  private async resolveDisplayValuesToPks(
+    groupCtx: NonNullable<
+      Awaited<ReturnType<DataTableService['resolveColumnGroupContext']>>
+    >,
+    entries: { index: number; entry: { displayValues: string[] } }[],
+  ) {
+    const { relatedModel, relatedBaseModel, displayValueColumn } = groupCtx;
+    const dvTitle = displayValueColumn.title;
+
+    const pkFieldSet = new Set(
+      relatedModel.primaryKeys.map((pk) => pk.title || pk.column_name),
+    );
+    pkFieldSet.add(dvTitle);
+
+    const listOpts = { fieldsSet: pkFieldSet };
+    const listFlags = {
+      ignoreViewFilterAndSort: true,
+      ignorePagination: true,
+    };
+
+    // Collect every unique display value across all entries in this group
+    const allUniqueValues = new Set<string>();
+    for (const { entry } of entries) {
+      for (const v of entry.displayValues) {
+        allUniqueValues.add(v);
+      }
+    }
+
+    const valueToPk = new Map<string, string | number>();
+
+    // Step 1: Case-sensitive exact match (eq operator)
+    if (allUniqueValues.size > 0) {
+      const eqWhere = [...allUniqueValues]
+        .map((v) => `(${dvTitle},eq,${v})`)
+        .join('~or');
+
+      const exactRows = await relatedBaseModel.list(
+        { ...listOpts, where: eqWhere },
+        listFlags,
+      );
+
+      for (const row of exactRows) {
+        const dv = row[dvTitle];
+        if (dv == null) continue;
+        const dvStr = String(dv);
+        if (allUniqueValues.has(dvStr) && !valueToPk.has(dvStr)) {
+          valueToPk.set(
+            dvStr,
+            dataWrapper(row).extractPksValue(relatedModel, true),
+          );
+        }
+      }
+    }
+
+    // Step 2: Case-insensitive fallback for values the eq step didn't match
+    const unmatchedValues = [...allUniqueValues].filter(
+      (v) => !valueToPk.has(v),
+    );
+    if (unmatchedValues.length > 0) {
+      const likeWhere = unmatchedValues
+        .map((v) => `(${dvTitle},like,${v})`)
+        .join('~or');
+
+      const candidateRows = await relatedBaseModel.list(
+        { ...listOpts, where: likeWhere },
+        listFlags,
+      );
+
+      const lowerToOriginal = new Map<string, string>();
+      for (const v of unmatchedValues) {
+        const lower = v.toLowerCase();
+        if (!lowerToOriginal.has(lower)) {
+          lowerToOriginal.set(lower, v);
+        }
+      }
+
+      for (const row of candidateRows) {
+        const dv = row[dvTitle];
+        if (dv == null) continue;
+        const dvLower = String(dv).toLowerCase();
+        const originalValue = lowerToOriginal.get(dvLower);
+        if (originalValue && !valueToPk.has(originalValue)) {
+          valueToPk.set(
+            originalValue,
+            dataWrapper(row).extractPksValue(relatedModel, true),
+          );
+        }
+      }
+    }
+
+    return valueToPk;
+  }
+
+  /**
+   * For each entry in a column group: verifies the parent row exists,
+   * translates display values to PKs via the pre-built map, fetches existing
+   * links, computes the diff (toLink / toUnlink), and applies add/remove
+   * operations. Writes results back into the shared results array by index.
+   */
+  private async diffAndApplyLinks(
+    context: NcContext,
+    baseModel: Awaited<ReturnType<typeof Model.getBaseModelSQL>>,
+    groupCtx: NonNullable<
+      Awaited<ReturnType<DataTableService['resolveColumnGroupContext']>>
+    >,
+    entries: {
+      index: number;
+      entry: { rowId: string; displayValues: string[] };
+    }[],
+    valueToPk: Map<string, string | number>,
+    listArgs: any,
+    cookie: any,
+    results: { link: any[]; unlink: any[] }[],
+  ) {
+    const { column, relatedModel, isSingleLink } = groupCtx;
+
+    for (const { index, entry } of entries) {
+      if (!(await baseModel.exist(entry.rowId))) {
+        NcError.get(context).recordNotFound(entry.rowId);
+      }
+
+      const seenPks = new Set<string>();
+      const matchedPks: (string | number)[] = [];
+      for (const value of new Set(entry.displayValues)) {
+        const pk = valueToPk.get(value);
+        if (pk === undefined || pk === null) continue;
+        const pkStr = String(pk);
+        if (seenPks.has(pkStr)) continue;
+        seenPks.add(pkStr);
+        matchedPks.push(pk);
+      }
+
+      if (!matchedPks.length) {
+        results[index] = { link: [], unlink: [] };
+        continue;
+      }
+
+      // For BT/OO: only take the first match
+      const pksToLink = isSingleLink ? [matchedPks[0]] : matchedPks;
+
+      const existingLinkedList = await baseModel.mmList(
+        {
+          colId: column.id,
+          parentId: entry.rowId,
+        },
+        listArgs as any,
+        true,
+      );
+
+      const existingPks = (existingLinkedList || []).map((row) =>
+        dataWrapper(row).extractPksValue(relatedModel, true),
+      );
+
+      const existingPkSet = new Set(existingPks.map(String));
+      const newPkSet = new Set(pksToLink.map(String));
+
+      const toLink = pksToLink.filter((pk) => !existingPkSet.has(String(pk)));
+      const toUnlink = existingPks.filter((pk) => !newPkSet.has(String(pk)));
+
+      if (toUnlink.length) {
+        await baseModel.removeLinks({
+          colId: column.id,
+          childIds: toUnlink,
+          rowId: entry.rowId,
+          cookie,
+        });
+      }
+
+      if (toLink.length) {
+        await baseModel.addLinks({
+          colId: column.id,
+          childIds: toLink,
+          rowId: entry.rowId,
+          cookie,
+        });
+      }
+
+      results[index] = { link: toLink, unlink: toUnlink };
+    }
   }
 
   validateIds(context: NcContext, rowIds: any[] | any) {

@@ -244,7 +244,7 @@ function formulaErrorTests() {
         expect.fail('Expected formula creation to fail due to length limit');
       } catch (ex) {
         expect(ex.body.message).to.satisfy((msg) =>
-          msg.startsWith('Formula length too long for '),
+          msg.startsWith('The generated query for '),
         );
       }
     });
@@ -286,7 +286,7 @@ function formulaErrorTests() {
         expect.fail('Expected formula creation to fail due to length limit');
       } catch (ex) {
         expect(ex.body.message).to.satisfy((msg) =>
-          msg.startsWith('Formula length too long for '),
+          msg.startsWith('The generated query for '),
         );
       }
     });

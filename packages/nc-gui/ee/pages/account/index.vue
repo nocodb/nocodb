@@ -199,7 +199,7 @@ onMounted(() => {
                 @click="navigateTo('/account/authentication')"
               >
                 <div class="flex items-center space-x-2">
-                  <component :is="iconMap.ncLock" />
+                  <GeneralIcon icon="ncLock" />
 
                   <div class="select-none text-sm">{{ $t('title.sso') }}</div>
                   <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
@@ -262,7 +262,9 @@ onMounted(() => {
               >
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="ncShield" class="!h-4 !w-4" />
+
                   <div class="select-none">{{ $t('labels.security') }}</div>
+                  <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
                 </div>
               </NcMenuItem>
 

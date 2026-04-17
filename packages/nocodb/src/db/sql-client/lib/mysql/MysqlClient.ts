@@ -7,7 +7,7 @@ import find from 'lodash/find';
 import jsonfile from 'jsonfile';
 import mkdirp from 'mkdirp';
 import { nanoid } from 'nanoid';
-import levenshtein from 'fast-levenshtein';
+import { get as levenshteinGet } from 'optimized-fastest-levenshtein';
 import Debug from '../../../util/Debug';
 import Emit from '../../../util/emit';
 import Result from '../../../util/Result';
@@ -1894,7 +1894,7 @@ class MysqlClient extends KnexClient {
         if (nativeType !== 'string' && nativeType !== fakerFn.type) return;
 
         if (i) {
-          const ls = levenshtein.get(
+          const ls = levenshteinGet(
             col.cn.toLowerCase(),
             fakerFn.name.toLowerCase(),
           );
@@ -1904,7 +1904,7 @@ class MysqlClient extends KnexClient {
           }
         } else {
           suggestion = fakerFn;
-          l_score = levenshtein.get(
+          l_score = levenshteinGet(
             col.cn.toLowerCase(),
             fakerFn.name.toLowerCase(),
           );

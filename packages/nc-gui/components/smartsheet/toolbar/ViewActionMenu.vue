@@ -38,8 +38,14 @@ const {
   updateViewMeta,
   onOpenCopyViewConfigFromAnotherViewModal,
   getCopyViewConfigBtnAccessStatus,
-  hasOnlyOneGridViewInTable,
 } = viewsStore
+
+// Reactive views map for the whole store. We look up by the action target's
+// own (baseId, tableId) rather than relying on the active-table view list,
+// because the three-dot menu can be opened on a view that belongs to a table
+// other than the currently-active one (e.g. from the sidebar tree while a
+// different table is loaded).
+const { viewsByTable } = storeToRefs(viewsStore)
 
 const { base } = storeToRefs(useBase())
 
@@ -51,7 +57,25 @@ const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.
 
 const currentSourceId = computed(() => table.value?.source_id)
 
-const isLastGridViewInTable = computedAsync(async () => await hasOnlyOneGridViewInTable(table.value?.id))
+// "Would converting/deleting THIS view leave the table with zero collab
+// grid views?" Computed synchronously from the store's reactive
+// `viewsByTable` map, keyed by the action target's own (baseId, tableId)
+// so it works regardless of which table is currently active in the UI.
+// Falls back to `false` (don't block) when the list is empty or doesn't
+// include the current view — avoids spuriously disabling actions during
+// initial load or on views the store hasn't seen yet.
+const isLastGridViewInTable = computed(() => {
+  const baseId = table.value?.base_id
+  const tableId = table.value?.id
+  if (!baseId || !tableId) return false
+  const viewsList = viewsByTable.value.get(`${baseId}:${tableId}`) || []
+  if (viewsList.length === 0) return false
+  if (!viewsList.some((v) => v.id === view.value?.id)) return false
+  const otherNonPersonalGrids = viewsList.filter(
+    (v) => v.id !== view.value?.id && v.type === ViewTypes.GRID && v.lock_type !== LockType.Personal,
+  )
+  return otherNonPersonalGrids.length === 0
+})
 
 const onRenameMenuClick = () => {
   emits('rename')

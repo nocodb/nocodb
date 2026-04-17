@@ -17,23 +17,46 @@ const up = async (knex: Knex) => {
   if (await knex.schema.hasTable('nc_docs_v2')) {
     const docs = await knex('nc_docs_v2').select('*');
 
-    const batch = docs.map((doc) => ({
-      id: doc.id,
-      base_id: doc.base_id,
-      fk_workspace_id: doc.fk_workspace_id,
-      title: doc.title,
-      meta: doc.meta,
-      order: doc.order,
-      parent_id: doc.parent_id,
-      deleted: doc.deleted,
-      has_children: doc.has_children,
-      doc_version: doc.version,
-      created_by: doc.created_by,
-      updated_by: doc.updated_by,
-      type: 'document',
-      created_at: doc.created_at,
-      updated_at: doc.updated_at,
-    }));
+    // Offset root-level docs so they appear AFTER existing tables/dashboards
+    // within each base. Before this migration, nc_models_v2 rows had no
+    // parent_id, so every existing row is effectively root-level.
+    const baseIds = [...new Set(docs.map((d) => d.base_id).filter(Boolean))];
+
+    const maxOrderByBase = new Map<string, number>();
+    if (baseIds.length) {
+      const rows = await knex(MetaTable.MODELS)
+        .whereIn('base_id', baseIds)
+        .groupBy('base_id')
+        .select('base_id')
+        .max({ maxOrder: 'order' });
+
+      for (const row of rows) {
+        maxOrderByBase.set(row.base_id, Number(row.maxOrder) || 0);
+      }
+    }
+
+    const batch = docs.map((doc) => {
+      const isRoot = !doc.parent_id;
+      const offset = isRoot ? maxOrderByBase.get(doc.base_id) || 0 : 0;
+
+      return {
+        id: doc.id,
+        base_id: doc.base_id,
+        fk_workspace_id: doc.fk_workspace_id,
+        title: doc.title,
+        meta: doc.meta,
+        order: (Number(doc.order) || 0) + offset,
+        parent_id: doc.parent_id,
+        deleted: doc.deleted,
+        has_children: doc.has_children,
+        doc_version: doc.version,
+        created_by: doc.created_by,
+        updated_by: doc.updated_by,
+        type: 'document',
+        created_at: doc.created_at,
+        updated_at: doc.updated_at,
+      };
+    });
 
     if (batch.length) {
       await knex.batchInsert(MetaTable.MODELS, batch, 100);

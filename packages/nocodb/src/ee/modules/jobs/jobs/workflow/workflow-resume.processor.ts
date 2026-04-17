@@ -4,6 +4,7 @@ import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
+import { ncSiteUrl } from '~/utils/envs';
 
 @Injectable()
 export class WorkflowResumeProcessor {
@@ -30,7 +31,7 @@ export class WorkflowResumeProcessor {
 
       for (const execution of dueExecutions) {
         try {
-          const ncSiteUrl =
+          const configSiteUrl =
             Noco.config?.envs?.[Noco.env]?.publicUrl ||
             Noco.config?.publicUrl ||
             '';
@@ -38,7 +39,7 @@ export class WorkflowResumeProcessor {
           const context = {
             workspace_id: execution.fk_workspace_id,
             base_id: execution.base_id,
-            nc_site_url: process.env.NC_PUBLIC_URL || ncSiteUrl,
+            nc_site_url: ncSiteUrl || configSiteUrl,
           };
 
           // Add a ResumeWorkflow job for this execution

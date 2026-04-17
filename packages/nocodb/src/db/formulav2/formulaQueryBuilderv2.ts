@@ -525,10 +525,10 @@ export default async function formulaQueryBuilderv2({
       TelemetryHandlerService.sendPriorityError(context, {
         trigger: 'formulaQueryBuilder',
         error_type: 'FORMULA_TOO_LONG_ERROR',
-        message: `Formula length too long for ${columnInfo.title}${columnInfo.id}`,
+        message: `Generated query too long for ${columnInfo.title}${columnInfo.id}`,
       });
       NcError.get(context).formulaError(
-        `Formula length too long for ${columnInfo.title}`,
+        `The generated query for ${columnInfo.title} exceeds the maximum allowed length. Try simplifying the formula by reducing the number of referenced fields, lookup chains, or nested formula references.`,
       );
     }
     if (!validateFormula) return qb;

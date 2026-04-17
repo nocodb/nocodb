@@ -2034,7 +2034,6 @@
     "copyAll": "Copy All",
     "iHaveSavedTheseCodes": "I've saved these codes",
     "stepOf": "Step {current} of {total}",
-    "regenerate": "Regenerate",
     "regenerateBackupCodes": "Regenerate Backup Codes",
     "disableTwoFactorWarningPrefix": "Disabling two-factor authentication will make your account",
     "disableTwoFactorWarningBold": "less secure",

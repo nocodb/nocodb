@@ -868,6 +868,7 @@ const permissionDescriptions: Record<string, string> = {
   bulkDataDeleteAll: 'bulk delete all data',
   relationDataRemove: 'remove related data',
   relationDataAdd: 'add related data',
+  nestedDataBulkLinkByDisplayValue: 'bulk link records by display value',
   baseUserList: 'view list of users in the base',
 
   baseApiTokenList: 'view list of base API tokens',

@@ -30032,6 +30032,7 @@
               "items": {
                 "type": "string"
               },
+              "minItems": 1,
               "maxItems": 100
             }
           },

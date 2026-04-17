@@ -308,9 +308,11 @@ onMounted(() => {
                 <LazyAccountBreadcrumb />
               </div>
 
+              <DashboardMiniSidebarTheme placement="bottom" render-as-btn class="mr-3" button-class="h-8 w-8" />
+
               <LazyGeneralReleaseInfo />
 
-              <NcTooltip placement="bottom" class="mr-4">
+              <NcTooltip placement="bottom" class="mr-3">
                 <template #title> {{ $t('labels.community.communityTranslated') }}</template>
 
                 <div class="flex items-center">

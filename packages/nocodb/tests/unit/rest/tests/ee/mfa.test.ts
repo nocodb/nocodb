@@ -28,7 +28,40 @@ function mfaTests() {
     return setupRes.body;
   }
 
-  // Helper: fully enable 2FA (setup + verify)
+  // Helper: complete MFA signin dance, returns a fresh auth token
+  async function mfaSigninForToken(secret: string): Promise<string> {
+    const signinRes = await request(context.app)
+      .post('/api/v2/auth/user/signin')
+      .send({
+        email: defaultUserArgs.email,
+        password: defaultUserArgs.password,
+      })
+      .expect(200);
+
+    const code = await generateTotpCode(secret);
+
+    const verifyRes = await request(context.app)
+      .post('/api/v2/auth/mfa/verify')
+      .send({ token: signinRes.body.twoFactorToken, code })
+      .expect(200);
+
+    return verifyRes.body.token;
+  }
+
+  // Helper: plain signin (no 2FA), returns a fresh auth token
+  async function plainSigninForToken(): Promise<string> {
+    const res = await request(context.app)
+      .post('/api/v2/auth/user/signin')
+      .send({
+        email: defaultUserArgs.email,
+        password: defaultUserArgs.password,
+      })
+      .expect(200);
+    return res.body.token;
+  }
+
+  // Helper: fully enable 2FA (setup + verify) and refresh context.token.
+  // verify-setup rotates token_version, so the existing context.token is invalidated.
   async function enable2FA() {
     const setupData = await setup2FA();
     const code = await generateTotpCode(setupData.secret);
@@ -38,6 +71,8 @@ function mfaTests() {
       .set('xc-auth', context.token)
       .send({ code })
       .expect(200);
+
+    context.token = await mfaSigninForToken(setupData.secret);
 
     return setupData;
   }
@@ -284,6 +319,9 @@ function mfaTests() {
         .expect(200);
 
       expect(res.body.msg).to.include('disabled');
+
+      // disable rotates token_version — refresh the session token
+      context.token = await plainSigninForToken();
 
       // Verify status is now false
       const statusRes = await request(context.app)

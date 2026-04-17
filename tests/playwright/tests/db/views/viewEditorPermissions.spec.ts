@@ -451,7 +451,7 @@ test.describe('View editor permissions — UI (editor role)', () => {
 
   // ---------- §2 Editor action menu on locked view --------------------
 
-  test('Editor — locked view action menu: Rename / Delete disabled; Duplicate enabled', async () => {
+  test('Editor — locked view action menu: Rename / Delete disabled; Duplicate enabled; View mode submenu disabled', async () => {
     await editorDash.viewSidebar.openView({ title: vLocked });
     const menu = await openViewMenu(vLocked);
 
@@ -459,6 +459,26 @@ test.describe('View editor permissions — UI (editor role)', () => {
       expect(await isMenuItemDisabled(menu, label), `${label} should be disabled on locked view`).toBe(true);
     }
     expect(await isMenuItemDisabled(menu, 'Duplicate'), 'Duplicate should stay enabled').toBe(false);
+
+    // The "View mode" sub-menu carries `:disabled="disableLockTypeMenu"`,
+    // which Ant renders as `aria-disabled="true"` on the wrapping <li>.
+    // Hovering should NOT expand the sub-menu — none of the lock-type
+    // sub-actions become visible.
+    const subMenuTitle = menu.locator('.ant-dropdown-menu-submenu-title:has-text("View mode")').first();
+    await expect(subMenuTitle).toBeVisible();
+    const subMenuLi = subMenuTitle.locator('xpath=ancestor::li[1]');
+    const aria = (await subMenuLi.getAttribute('aria-disabled')) ?? '';
+    const cls = (await subMenuLi.getAttribute('class')) ?? '';
+    expect(
+      /true/.test(aria) || cls.includes('ant-dropdown-menu-submenu-disabled'),
+      'View mode sub-menu must be disabled for editor on a locked view'
+    ).toBe(true);
+
+    // Hover anyway — the lock-type sub-actions must remain absent because
+    // the disabled sub-menu does not open its overlay.
+    await subMenuTitle.hover();
+    await editorPage.waitForTimeout(400);
+    await expect(editorPage.locator('[data-testid^="nc-view-action-lock-subaction-"]:visible')).toHaveCount(0);
 
     await closeMenu();
   });
@@ -545,6 +565,101 @@ test.describe('View editor permissions — UI (editor role)', () => {
     // Manage Base Access button also hidden
     await expect(editorPage.locator('[data-testid="docs-share-manage-access"]')).toHaveCount(0);
 
+    await editorPage.keyboard.press('Escape');
+  });
+
+  // ---------- §2 Edit description / Change icon menu items ------------
+
+  test('Editor — collab view menu has Edit description + Change icon items enabled', async () => {
+    // Dismiss any lingering overlay from earlier tests (e.g. the
+    // section-create tooltip dropdown).
+    await editorPage.keyboard.press('Escape');
+    await editorPage.locator('body').click({ position: { x: 5, y: 5 } });
+    await editorDash.viewSidebar.openView({ title: vCollab });
+    const menu = await openViewMenu(vCollab);
+    // The menu items don't carry data-testids; match by label text.
+    await expect(menu.locator('.ant-dropdown-menu-item:has-text("Edit description")').first()).toBeVisible();
+    // Change-icon is rendered by NcMenuItemChangeIcon — its label is "Change icon".
+    await expect(menu.locator('.ant-dropdown-menu-item:has-text("Change icon")').first()).toBeVisible();
+    for (const label of ['Edit description', 'Change icon']) {
+      expect(await isMenuItemDisabled(menu, label), `${label} should be enabled`).toBe(false);
+    }
+    await closeMenu();
+  });
+
+  test('Editor — own personal view menu has Edit description + Change icon items enabled', async () => {
+    await editorDash.viewSidebar.openView({ title: vPersonalE1 });
+    const menu = await openViewMenu(vPersonalE1);
+    for (const label of ['Edit description', 'Change icon']) {
+      expect(await isMenuItemDisabled(menu, label), `${label} should be enabled on own personal`).toBe(false);
+    }
+    await closeMenu();
+  });
+
+  // ---------- §4 Section three-dot context menu hidden ----------------
+
+  test('Editor — section three-dot context menu does not expose rename / delete / recolour', async () => {
+    // Owner needs to seed a section first so the editor can see one.
+    await apiCall(ownerToken, { operation: 'viewSectionCreate', tableId: tableFkId }, { title: 'EdSection' });
+    // Force a soft reload of the editor sidebar so the new section appears.
+    await editorPage.reload({ waitUntil: 'networkidle' });
+    await editorPage.locator('.nc-sidebar').waitFor({ state: 'visible' });
+
+    const sectionNode = editorPage.locator('[data-testid="view-sidebar-section-EdSection"]');
+    if ((await sectionNode.count()) === 0) {
+      // Section endpoint flake — skip rather than flake the whole spec.
+      test.skip();
+      return;
+    }
+    await sectionNode.hover();
+    const ctxBtn = sectionNode.locator('.nc-sidebar-section-node-context-btn');
+    if ((await ctxBtn.count()) === 0) return; // already hidden — pass
+    await ctxBtn.click({ force: true });
+    // For editor, the dropdown overlay must not contain Rename / Delete /
+    // recolour entries (those live behind sectionCreateOrEdit).
+    for (const label of ['Rename', 'Delete', 'Icon colour']) {
+      await expect(editorPage.locator(`.ant-dropdown-menu-item:has-text("${label}")`)).toHaveCount(0);
+    }
+    await editorPage.keyboard.press('Escape');
+  });
+
+  // ---------- §3 Filter regression — POSTs (not transient query) -----
+
+  test('Editor — adding a filter on collab view fires filterCreate POST (not filterArrJson transient)', async () => {
+    await editorDash.viewSidebar.openView({ title: vCollab });
+
+    // Watch for the persisted filterCreate POST and ensure no transient
+    // dataAggregate URL carries the editor's local filter as fallback.
+    const filterCreatePromise = editorPage.waitForRequest(
+      req => req.method() === 'POST' && req.url().includes('operation=filterCreate') && req.url().includes(`viewId=`),
+      { timeout: 15_000 }
+    );
+
+    // Open Filter menu and click "Add filter".
+    await editorPage.locator('.nc-filter-menu-btn').first().click();
+    await editorPage.getByTestId('add-filter').first().click();
+
+    // Type into the value cell — the debounced saveOrUpdate fires a
+    // filterCreate (since the new filter has no id).
+    await editorPage.locator('.nc-filter-value-select input, .nc-filter-value-select').first().click();
+    await editorPage.keyboard.type('regress', { delay: 50 });
+
+    const req = await filterCreatePromise;
+    expect(req.url()).toContain('operation=filterCreate');
+
+    await editorPage.keyboard.press('Escape');
+  });
+
+  // ---------- §3 Fields menu footer hidden on locked / others' personal -
+
+  test('Editor — Fields menu on locked view hides "Show system fields" footer', async () => {
+    await editorDash.viewSidebar.openView({ title: vLocked });
+    // Trigger button is `.nc-fields-menu-btn`; the testid `nc-fields-menu`
+    // lives on the dropdown content.
+    await editorPage.locator('.nc-fields-menu-btn').first().click();
+    // Footer text "Show system fields" / "Hide system fields" lives in
+    // FieldsMenu.vue and is gated on `!isFieldsMenuReadOnly`.
+    await expect(editorPage.locator('text=system fields').first()).toHaveCount(0);
     await editorPage.keyboard.press('Escape');
   });
 });

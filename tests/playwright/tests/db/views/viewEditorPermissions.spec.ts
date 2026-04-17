@@ -260,6 +260,7 @@ test.describe('View editor permissions — UI (editor role)', () => {
   let editorContext: import('@playwright/test').BrowserContext;
   let editorPage: import('@playwright/test').Page;
   let editorDash: DashboardPage;
+  let editor1Id: string;
   let editor2Id: string;
 
   const editor1Email = 'ved-editor1@nc-ved.com';
@@ -269,6 +270,7 @@ test.describe('View editor permissions — UI (editor role)', () => {
   const tableTitle = `VEPerm_ed_${Date.now().toString(36)}`;
   const vCollab = 'v_collab_ed';
   const vLocked = 'v_locked_ed';
+  const vPersonalE1 = 'v_personal_e1_ed';
   const vPersonalE2 = 'v_personal_e2_ed';
 
   const apiCall = (token: string, query: Record<string, string>, body: Record<string, unknown> = {}) => {
@@ -355,12 +357,15 @@ test.describe('View editor permissions — UI (editor role)', () => {
     await getAuthToken(editor2Email);
     await inviteWs(editor1Email, 'workspace-level-editor');
     await inviteWs(editor2Email, 'workspace-level-editor');
+    editor1Id = (await resolveUserId(editor1Email))!;
     editor2Id = (await resolveUserId(editor2Email))!;
 
     // Fixture views as owner.
     await createGridView(vCollab);
     const lv = await createGridView(vLocked);
     await setLockType(lv.id, ViewLockType.Locked);
+    const pe1 = await createGridView(vPersonalE1);
+    await setLockType(pe1.id, ViewLockType.Personal, { owned_by: editor1Id });
     const pe2 = await createGridView(vPersonalE2);
     await setLockType(pe2.id, ViewLockType.Personal, { owned_by: editor2Id });
 
@@ -469,6 +474,29 @@ test.describe('View editor permissions — UI (editor role)', () => {
         true
       );
     }
+
+    await closeMenu();
+  });
+
+  // ---------- §2 Editor on own personal view -------------------------
+
+  test('Editor — own personal view action menu: Rename / Duplicate / Delete enabled', async () => {
+    await editorDash.viewSidebar.openView({ title: vPersonalE1 });
+    const menu = await openViewMenu(vPersonalE1);
+
+    for (const label of ['Rename', 'Duplicate', 'Delete']) {
+      expect(await isMenuItemDisabled(menu, label), `${label} should NOT be disabled on own personal view`).toBe(false);
+    }
+
+    // Revert-to-collab is also allowed on own personal (matches policy:
+    // editor can convert their own personal back to Collaborative).
+    await menu.locator('text=View mode').hover();
+    await expect(
+      editorPage.locator('[data-testid="nc-view-action-lock-subaction-Collaborative"]:visible').first()
+    ).not.toHaveAttribute('aria-disabled', /true/);
+    await expect(
+      editorPage.locator('[data-testid="nc-view-action-lock-subaction-Locked"]:visible').first()
+    ).toHaveAttribute('aria-disabled', /true/);
 
     await closeMenu();
   });

@@ -1,7 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import { PlanFeatureTypes, ViewLockType } from 'nocodb-sdk';
+import { PlanFeatureTypes, PlanLimitTypes, ViewLockType } from 'nocodb-sdk';
 import init from '../../../../init';
 import { isEE } from '../../../../utils/helpers';
 import { overridePlan } from '../../../../utils/plan.utils';
@@ -90,11 +90,17 @@ export const viewEditorPermissionsTests = function () {
       // Enable plan features needed by these tests:
       // - FEATURE_PERSONAL_VIEWS: view CRUD permissions under test
       // - FEATURE_API_MEMBER_MANAGEMENT: V3 workspace member invite
+      // Raise editor/commenter seat limits so the test can invite 1 creator
+      // + 2 editors (Free plan allows only 3 editor seats, owner takes one).
       featureMock = await overridePlan({
         workspace_id: workspaceId,
         features: {
           [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: true,
           [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: true,
+        },
+        limits: {
+          [PlanLimitTypes.LIMIT_EDITOR]: -1,
+          [PlanLimitTypes.LIMIT_COMMENTER]: -1,
         },
       });
 

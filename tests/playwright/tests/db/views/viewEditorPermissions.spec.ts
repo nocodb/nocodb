@@ -478,7 +478,7 @@ test.describe('View editor permissions — UI (editor role)', () => {
     await editorDash.viewSidebar.openView({ title: vLocked });
     const menu = await openViewMenu(vLocked);
 
-    for (const label of ['Rename', 'Delete']) {
+    for (const label of ['Rename', 'Edit description', 'Change icon', 'Delete']) {
       expect(await isMenuItemDisabled(menu, label), `${label} should be disabled on locked view`).toBe(true);
     }
     expect(await isMenuItemDisabled(menu, 'Duplicate'), 'Duplicate should stay enabled').toBe(false);
@@ -508,11 +508,11 @@ test.describe('View editor permissions — UI (editor role)', () => {
 
   // ---------- §2 Editor action menu on others' personal view ----------
 
-  test("Editor — other user's personal view action menu: Rename / Delete disabled", async () => {
+  test("Editor — other user's personal view action menu: Rename / Edit description / Change icon / Delete disabled", async () => {
     await editorDash.viewSidebar.openView({ title: vPersonalE2 });
     const menu = await openViewMenu(vPersonalE2);
 
-    for (const label of ['Rename', 'Delete']) {
+    for (const label of ['Rename', 'Edit description', 'Change icon', 'Delete']) {
       expect(await isMenuItemDisabled(menu, label), `${label} should be disabled on another user's personal view`).toBe(
         true
       );

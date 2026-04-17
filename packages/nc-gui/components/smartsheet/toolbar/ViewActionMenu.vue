@@ -441,12 +441,23 @@ defineOptions({
               }}
             </NcMenuItem>
           </NcTooltip>
-          <NcMenuItem v-show="canModifyView" @click="onDescriptionUpdateClick">
+          <NcMenuItem v-if="canModifyView" @click="onDescriptionUpdateClick">
             <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
 
             {{ $t('labels.editDescription') }}
           </NcMenuItem>
+          <NcTooltip v-else>
+            <template #title> {{ modifyViewDisabledReason }} </template>
+            <NcMenuItem disabled>
+              <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
+              {{ $t('labels.editDescription') }}
+            </NcMenuItem>
+          </NcTooltip>
           <NcMenuItemChangeIcon v-if="canModifyView" v-e="['c:view:change-icon']" @change-icon="emits('changeIcon')" />
+          <NcTooltip v-else>
+            <template #title> {{ modifyViewDisabledReason }} </template>
+            <NcMenuItemChangeIcon disabled />
+          </NcTooltip>
         </template>
         <NcMenuItem @click="onDuplicate">
           <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />

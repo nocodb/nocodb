@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { WorkspaceUserRoles } from 'nocodb-sdk'
+
 definePageMeta({
   hideHeader: true,
   hasSidebar: true,
@@ -11,7 +13,7 @@ const route = router.currentRoute
 const { showOnboardingFlow } = useOnboardingFlow()
 
 const workspaceStore = useWorkspace()
-const { populateWorkspace } = workspaceStore
+const { populateWorkspace, loadWorkspace } = workspaceStore
 const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId, activeWorkspace, isWorkspacesLoading, workspacesList } =
   storeToRefs(workspaceStore)
 
@@ -121,10 +123,18 @@ watch(
         return
       }
 
-      // Skip populating workspaces the user doesn't have access to
+      // Skip populating workspaces the user doesn't have access to.
       if (newId && !isWorkspacesLoading.value && !workspaceStore.workspaces.has(newId)) {
-        workspaceStore.setLoadingState(false)
-        basesStore.setProjectsLoaded()
+        await loadWorkspace(newId)
+        const ws = workspaceStore.workspaces.get(newId)
+        if (!ws || ws.roles === WorkspaceUserRoles.NO_ACCESS) {
+          // Clean up the inaccessible workspace from local state
+          workspaceStore.workspaces.delete(newId)
+          await navigateTo('/')
+          return
+        }
+        // loadWorkspace succeeded — newWorkspace snapshot is stale, populate explicitly
+        await populateWorkspace()
         return
       }
 

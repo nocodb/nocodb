@@ -309,7 +309,7 @@ watch(
                 <NcButton
                   v-else
                   type="text"
-                  size="xxs"
+                  size="xs"
                   class="!text-nc-content-gray-muted hover:!text-nc-content-red-dark !w-5 !h-5 !min-w-0"
                   :disabled="isLocked"
                   @click="removeLevel(arrIdx)"

@@ -264,7 +264,11 @@ export class ApiTokensV3Service {
     );
 
     await this.validateScopes(scopesToValidate, param.cookie['user']?.id);
-    this.validateExpiry(param.body.expiry);
+
+    // On CE / unlicensed on-prem the expiry UI is hidden — tokens never expire
+    // regardless of what the client sends. Only validate/apply expiry on licensed EE.
+    const expiry = Noco.isEE() ? param.body.expiry || null : null;
+    if (expiry) this.validateExpiry(expiry);
 
     const ssoClientId = (param.cookie.user as Record<string, any>)?.extra
       ?.sso_client_id;
@@ -274,7 +278,7 @@ export class ApiTokensV3Service {
       fk_user_id: param.cookie['user'].id,
       fk_sso_client_id: ssoClientId || null,
       scopes: scopesForStorage as any,
-      expiry: param.body.expiry || null,
+      expiry,
       fineGrained: true,
     });
 
@@ -317,7 +321,9 @@ export class ApiTokensV3Service {
       updateData.description = param.body.title;
     }
     if (param.body.expiry !== undefined) {
-      if (param.body.expiry === null) {
+      // On CE / unlicensed on-prem the expiry UI is hidden — force no-expiry
+      // regardless of what the client sends.
+      if (param.body.expiry === null || !Noco.isEE()) {
         updateData.expiry = null;
       } else {
         this.validateExpiry(param.body.expiry);

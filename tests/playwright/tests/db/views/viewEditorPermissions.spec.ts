@@ -351,10 +351,17 @@ test.describe('View editor permissions — UI (editor role)', () => {
     ownerToken = ownerCtx.token;
 
     // Dedicated table so fixtures don't collide with the owner-only spec.
+    // Typed columns are seeded so §8a view-type tests can exercise the
+    // type-specific config (Kanban stack-by needs a SingleSelect,
+    // Calendar range needs a Date column).
     const tbl = await ownerCtx.api.dbTable.create(ownerCtx.base.id, {
       table_name: tableTitle,
       title: tableTitle,
-      columns: [{ title: 'Name', column_name: 'name', uidt: 'SingleLineText' }],
+      columns: [
+        { title: 'Name', column_name: 'name', uidt: 'SingleLineText' },
+        { title: 'Status', column_name: 'status', uidt: 'SingleSelect', dtxp: "'Todo','Doing','Done'" },
+        { title: 'StartDate', column_name: 'start_date', uidt: 'Date' },
+      ],
     });
     tableFkId = tbl.id;
 
@@ -375,27 +382,15 @@ test.describe('View editor permissions — UI (editor role)', () => {
     const pe2 = await createGridView(vPersonalE2);
     await setLockType(pe2.id, ViewLockType.Personal, { owned_by: editor2Id });
 
-    // Per-view-type fixtures so the §8a editor smoke tests have something
-    // to navigate to. Kanban/calendar/map require specific column types
-    // that aren't seeded here — we cover form + gallery (which need only
-    // a basic text column) and rely on the type-specific Mocha matrix to
-    // assert lock-block coverage for the rest.
+    // Per-view-type fixtures so the §8a editor affordance tests have
+    // something to navigate to. With the typed columns seeded above,
+    // kanban/calendar create succeeds without further wiring — the
+    // kanban service auto-picks a single-select field and the calendar
+    // service defers range-column wiring until first interaction.
     await apiCall(ownerToken, { operation: 'formViewCreate', tableId: tableFkId }, { title: vForm });
     await apiCall(ownerToken, { operation: 'galleryViewCreate', tableId: tableFkId }, { title: vGallery });
-    // Kanban/Calendar create endpoints accept a title without explicit
-    // column wiring on this build — the view loads in an "incomplete"
-    // state but the type-specific UI is reachable, which is what we
-    // assert below. If creation 400s, the relevant test is skipped.
-    try {
-      await apiCall(ownerToken, { operation: 'kanbanViewCreate', tableId: tableFkId }, { title: vKanban });
-    } catch {
-      // ignore — test self-skips if view absent
-    }
-    try {
-      await apiCall(ownerToken, { operation: 'calendarViewCreate', tableId: tableFkId }, { title: vCalendar });
-    } catch {
-      // ignore — test self-skips if view absent
-    }
+    await apiCall(ownerToken, { operation: 'kanbanViewCreate', tableId: tableFkId }, { title: vKanban });
+    await apiCall(ownerToken, { operation: 'calendarViewCreate', tableId: tableFkId }, { title: vCalendar });
 
     // Editor-1 browser context with injected token.
     const ed = await tokenSignedInContext(browser, editor1Token);
@@ -719,36 +714,58 @@ test.describe('View editor permissions — UI (editor role)', () => {
     await editorPage.keyboard.press('Escape');
   });
 
-  // eslint-disable-next-line no-empty-pattern -- Playwright requires destructuring pattern as first arg
-  test('Editor — Kanban view: navigates without permission error', async ({}, testInfo) => {
-    const node = editorPage.locator(`[data-testid="view-sidebar-view-${vKanban}"]`);
-    if ((await node.count()) === 0) {
-      testInfo.skip(true, 'kanban fixture unavailable on this build');
-      return;
-    }
+  test('Editor — Kanban view: Stack-by dropdown is enabled and lists SingleSelect columns', async () => {
     await editorPage.keyboard.press('Escape');
     await editorPage.locator('body').click({ position: { x: 5, y: 5 } });
     await editorDash.viewSidebar.openView({ title: vKanban });
-    // Successful navigation = URL contains the view slug. (Editor write
-    // paths and lock_type guards for kanban are covered by Mocha
-    // `kanbanViewUpdate` matrix.)
-    expect(editorPage.url().toLowerCase()).toContain(vKanban.toLowerCase());
-    // No global permission-denied banner.
-    await expect(editorPage.locator('text=Permission denied').first()).toHaveCount(0);
+    // Stack-by toolbar button → dropdown menu shows the seeded
+    // SingleSelect column ("Status") as a selectable option. If the
+    // editor were locked out, either the button would be
+    // `show-as-disabled` or the options list would be empty.
+    const stackBy = editorPage.locator('.nc-kanban-stacked-by-menu-btn').first();
+    await expect(stackBy).toBeVisible();
+    await stackBy.click();
+    await expect(editorPage.locator('.nc-dropdown-kanban-stacked-by-menu').first()).toBeVisible({ timeout: 10_000 });
+    await editorPage.keyboard.press('Escape');
   });
 
-  // eslint-disable-next-line no-empty-pattern -- Playwright requires destructuring pattern as first arg
-  test('Editor — Calendar view: navigates without permission error', async ({}, testInfo) => {
-    const node = editorPage.locator(`[data-testid="view-sidebar-view-${vCalendar}"]`);
-    if ((await node.count()) === 0) {
-      testInfo.skip(true, 'calendar fixture unavailable on this build');
-      return;
-    }
+  test('Editor — Calendar view: date-range dropdown opens and from-field picker is reachable', async () => {
     await editorPage.keyboard.press('Escape');
     await editorPage.locator('body').click({ position: { x: 5, y: 5 } });
     await editorDash.viewSidebar.openView({ title: vCalendar });
-    expect(editorPage.url().toLowerCase()).toContain(vCalendar.toLowerCase());
-    await expect(editorPage.locator('text=Permission denied').first()).toHaveCount(0);
+    const rangeBtn = editorPage.locator('[data-testid="nc-calendar-range-btn"]').first();
+    await expect(rangeBtn).toBeVisible({ timeout: 10_000 });
+    await rangeBtn.click();
+    // Range menu + from-field select both render → editor can configure
+    // the calendar date range. Backend `calendarViewUpdate` guard
+    // coverage for locked / others'-personal is in the Mocha matrix.
+    await expect(editorPage.locator('[data-testid="nc-calendar-range-menu"]').first()).toBeVisible();
+    await expect(editorPage.locator('[data-testid="nc-calendar-range-from-field-select"]').first()).toBeVisible();
+    await editorPage.keyboard.press('Escape');
+  });
+
+  test('Editor — Grid view: Fields toolbar menu opens and lists columns', async () => {
+    await editorPage.keyboard.press('Escape');
+    await editorPage.locator('body').click({ position: { x: 5, y: 5 } });
+    await editorDash.viewSidebar.openView({ title: vCollab });
+    await editorPage.locator('.nc-fields-menu-btn').first().click();
+    const menu = editorPage.locator('[data-testid="nc-fields-menu"]').first();
+    await expect(menu).toBeVisible({ timeout: 10_000 });
+    // A seeded column name (Name/Status/StartDate) must be rendered
+    // inside the menu — proves the editor can see the column list and
+    // not just an empty / permission-denied panel.
+    await expect(menu.locator('text=Status').first()).toBeVisible();
+    await editorPage.keyboard.press('Escape');
+  });
+
+  test('Editor — Grid view: row-height toolbar menu opens', async () => {
+    await editorPage.keyboard.press('Escape');
+    await editorPage.locator('body').click({ position: { x: 5, y: 5 } });
+    await editorDash.viewSidebar.openView({ title: vCollab });
+    await editorPage.locator('.nc-height-menu-btn').first().click();
+    await expect(editorPage.locator('[data-testid="nc-height-menu"]').first()).toBeVisible({ timeout: 10_000 });
+    await expect(editorPage.locator('.nc-row-height-option').first()).toBeVisible();
+    await editorPage.keyboard.press('Escape');
   });
 });
 

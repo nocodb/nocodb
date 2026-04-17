@@ -293,6 +293,10 @@ const permissionScopes = {
     'viewCreate',
     'viewUpdate',
     'viewDelete',
+    'shareView',
+    'shareViewUpdate',
+    'shareViewDelete',
+    'shareViewList',
     'functionList',
     'sequenceList',
     'procedureList',
@@ -982,6 +986,14 @@ const rolePermissions:
       viewUpdate: true,
       viewDelete: true,
 
+      // Share view — editors can create/update/delete share links on
+      // collaborative views they have access to. Matches Airtable.
+      // Base-level sharing is still gated by `baseShare` (creator+).
+      shareView: true,
+      shareViewUpdate: true,
+      shareViewDelete: true,
+      shareViewList: true,
+
       // Copy view configuration from another view — same restrictions as
       // viewUpdate apply (locked views blocked, non-owned personal views
       // blocked) since the underlying write goes through viewUpdate.
@@ -1431,6 +1443,10 @@ const permissionDescriptions: Record<string, string> = {
   viewCreate: 'create a view',
   viewUpdate: 'update a view',
   viewDelete: 'delete a view',
+  shareView: 'create a share link for a view',
+  shareViewUpdate: 'update a view share link',
+  shareViewDelete: 'remove a view share link',
+  shareViewList: 'list share links of views',
   viewSectionList: 'view list of view sections',
   viewSectionCreate: 'create a view section',
   viewSectionUpdate: 'update a view section',

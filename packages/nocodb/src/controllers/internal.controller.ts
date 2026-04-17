@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { NcContext, NcRequest, ViewLockType } from 'nocodb-sdk';
+import { NcContext, NcRequest } from 'nocodb-sdk';
 import type { InternalApiModule } from '~/utils/internal-type';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
@@ -18,10 +18,8 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
-import {
-  AclMiddleware,
-  VIEW_KEY,
-} from '~/middlewares/extract-ids/extract-ids.middleware';
+import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { markPersonalViewIfNeeded } from '~/middlewares/extract-ids/extract-ids.helpers';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,
@@ -150,10 +148,11 @@ export class InternalController {
         }
       }
 
-      // Set view in request for personal view ownership check in ACL middleware
-      if (view && view.lock_type === ViewLockType.Personal) {
-        req[VIEW_KEY] = view;
-      }
+      // Set view in request for personal view ownership check in ACL
+      // middleware. markPersonalViewIfNeeded covers both Personal and
+      // Locked lock_types — the editor + locked-view gate relies on
+      // VIEW_KEY being set for locked views too.
+      markPersonalViewIfNeeded(req, view);
     }
 
     await this.aclMiddleware.aclFn(

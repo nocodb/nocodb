@@ -781,6 +781,69 @@ export const viewEditorPermissionsTests = function () {
       }
     });
 
+    // ----- Share view -----------------------------------------------
+    //
+    // Share behaviour is deliberately lock-type-agnostic: any user with
+    // the `shareView` permission (editor+ in this build) can create a
+    // share link on any view they can see — collab, personal, or locked.
+    // This matches the prior product behaviour; see discussion in PR.
+    // (Only the base-share section remains creator+ via `baseShare`.)
+
+    describe('Share view', () => {
+      const share = (token: string, viewId: string) =>
+        post(token, 'shareView', { viewId }, {});
+
+      it('editor can share a collaborative view', async () => {
+        const view = (await createView(ownerToken, { title: 'SV_Collab' }))
+          .body;
+        const res = await share(editorToken, view.id);
+        expect(res.status).to.eq(200);
+      });
+
+      it('editor can share own personal view', async () => {
+        const view = (
+          await createView(editorToken, {
+            title: 'SV_OwnPersonal',
+            lock_type: ViewLockType.Personal,
+          })
+        ).body;
+        const res = await share(editorToken, view.id);
+        expect(res.status).to.eq(200);
+      });
+
+      it('editor can share a locked view (behaviour unchanged from previous)', async () => {
+        const view = (await createView(ownerToken, { title: 'SV_Locked' }))
+          .body;
+        await updateView(ownerToken, view.id, {
+          lock_type: ViewLockType.Locked,
+        });
+        const res = await share(editorToken, view.id);
+        expect(res.status).to.eq(200);
+      });
+
+      it("editor can share another editor's personal view (behaviour unchanged)", async () => {
+        const view = (
+          await createView(editorToken, {
+            title: 'SV_OthersPersonal',
+            lock_type: ViewLockType.Personal,
+          })
+        ).body;
+        const res = await share(editor2Token, view.id);
+        expect(res.status).to.eq(200);
+      });
+
+      it('creator can share any view', async () => {
+        const view = (
+          await createView(creatorToken, { title: 'SV_CreatorLocked' })
+        ).body;
+        await updateView(creatorToken, view.id, {
+          lock_type: ViewLockType.Locked,
+        });
+        const res = await share(creatorToken, view.id);
+        expect(res.status).to.eq(200);
+      });
+    });
+
     // ----- Type-specific view updates × lock_type × role ------------
     // Editor must be blocked from updating type-specific settings
     // (formViewUpdate / galleryViewUpdate / kanbanViewUpdate / etc.)

@@ -308,36 +308,58 @@ export default class Document extends DocumentCE implements DocumentType {
   }
 
   /**
-   * List ALL documents for a base with their content, using 2 queries instead of N+1.
-   * Used by export to avoid per-document content fetches.
+   * Load the given docs (by id) with their content. Pagination is the
+   * caller's responsibility — pass a bounded slice of ids so only that
+   * slice's metadata + content is held in memory at a time. Used by export
+   * to stream through all documents in a base without buffering every
+   * ProseMirror payload at once.
    */
-  public static async listAllWithContent(
+  public static async listWithContent(
     context: NcContext,
-    baseId: string,
+    docIds: string[],
     ncMeta = Noco.ncMeta,
   ) {
-    const docs = await this.listAllLite(context, baseId, ncMeta);
-    if (!docs.length) return docs;
+    if (!docIds.length) return [];
 
-    const docIds = docs.map((d) => d.id!).filter(Boolean);
+    const docs = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      {
+        condition: {
+          deleted: false,
+          ...this.typeCondition,
+        },
+        xcCondition: {
+          id: { in: docIds },
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      },
+    );
+
+    if (!docs.length) return [];
+
     const contentRows = await Noco.ncDocsContent.metaList2(
       context.workspace_id,
       context.base_id,
       MetaTable.DOC_CONTENT,
       {
         xcCondition: {
-          fk_doc_id: { in: docIds },
+          fk_doc_id: { in: docs.map((d) => d.id) },
         },
         fields: ['fk_doc_id', 'content'],
       },
     );
     const contentMap = new Map(
-      contentRows.map((r: any) => [r.fk_doc_id, r.content]),
+      (contentRows as any[]).map((r) => [r.fk_doc_id, r.content]),
     );
-    for (const doc of docs) {
-      doc.content = contentMap.get(doc.id!);
-    }
-    return docs;
+
+    return docs.map((doc) => {
+      doc.content = contentMap.get(doc.id);
+      return new Document(this.parseDocument(doc));
+    });
   }
 
   public static async insert(
@@ -353,6 +375,7 @@ export default class Document extends DocumentCE implements DocumentType {
       'meta',
       'order',
       'parent_id',
+      'has_children',
       'created_by',
       'updated_by',
     ]);
@@ -450,7 +473,7 @@ export default class Document extends DocumentCE implements DocumentType {
         context.base_id,
         MetaTable.MODELS,
         prepareForDb(updateObj, ['meta']),
-        docId,
+        { id: docId, ...this.typeCondition },
       );
     }
 
@@ -491,7 +514,7 @@ export default class Document extends DocumentCE implements DocumentType {
       context.workspace_id,
       context.base_id,
       MetaTable.MODELS,
-      docId,
+      { id: docId, ...this.typeCondition },
     );
 
     // Remove from both individual cache and parent list
@@ -519,7 +542,7 @@ export default class Document extends DocumentCE implements DocumentType {
       context.base_id,
       MetaTable.MODELS,
       { deleted: true },
-      docId,
+      { id: docId, ...this.typeCondition },
     );
 
     const key = `${CacheScope.DOCUMENT}:${docId}`;
@@ -558,7 +581,7 @@ export default class Document extends DocumentCE implements DocumentType {
         context.base_id,
         MetaTable.MODELS,
         { deleted: true },
-        child.id,
+        { id: child.id, ...this.typeCondition },
       );
 
       const key = `${CacheScope.DOCUMENT}:${child.id}`;
@@ -621,7 +644,7 @@ export default class Document extends DocumentCE implements DocumentType {
       context.base_id,
       MetaTable.MODELS,
       updateObj,
-      docId,
+      { id: docId, ...this.typeCondition },
     );
 
     const key = `${CacheScope.DOCUMENT}:${docId}`;
@@ -652,7 +675,7 @@ export default class Document extends DocumentCE implements DocumentType {
       context.base_id,
       MetaTable.MODELS,
       { has_children: value },
-      docId,
+      { id: docId, ...this.typeCondition },
     );
 
     const key = `${CacheScope.DOCUMENT}:${docId}`;

@@ -9,8 +9,16 @@ const up = async (knex: Knex) => {
     table.boolean('has_children').defaultTo(false);
     table.integer('doc_version').defaultTo(1);
 
-    // Tree index for efficient doc hierarchy queries
-    table.index(['base_id', 'parent_id', 'order'], 'nc_models_v2_tree_idx');
+    // Tree index for efficient doc hierarchy queries.
+    // `type` is included as the 2nd column so queries like
+    //   WHERE base_id=? AND type='document' AND parent_id=? ORDER BY order
+    // seek directly to doc rows instead of returning every model row in the
+    // base (tables/dashboards/etc. all share parent_id IS NULL) and filtering
+    // by type post-seek.
+    table.index(
+      ['base_id', 'type', 'parent_id', 'order'],
+      'nc_models_v2_tree_idx',
+    );
   });
 
   // Migrate existing documents from nc_docs_v2 into nc_models_v2
@@ -65,38 +73,15 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  // Restore migrated documents back to nc_docs_v2 (reverses the up() data migration)
-  if (await knex.schema.hasTable('nc_docs_v2')) {
-    const docs = await knex(MetaTable.MODELS)
-      .where('type', 'document')
-      .select('*');
-
-    const batch = docs.map((doc) => ({
-      id: doc.id,
-      base_id: doc.base_id,
-      fk_workspace_id: doc.fk_workspace_id,
-      title: doc.title,
-      meta: doc.meta,
-      order: doc.order,
-      parent_id: doc.parent_id,
-      deleted: doc.deleted,
-      has_children: doc.has_children,
-      version: doc.doc_version,
-      created_by: doc.created_by,
-      updated_by: doc.updated_by,
-      created_at: doc.created_at,
-      updated_at: doc.updated_at,
-    }));
-
-    if (batch.length) {
-      await knex.batchInsert('nc_docs_v2', batch, 100);
-    }
-  }
-
-  await knex(MetaTable.MODELS).where('type', 'document').delete();
-
+  // Non-destructive rollback: only drop the schema additions.
+  // The original nc_docs_v2 rows are preserved by up() (not deleted),
+  // and the migrated rows in nc_models_v2 are left in place so no data
+  // is destroyed on rollback.
   await knex.schema.alterTable(MetaTable.MODELS, (table) => {
-    table.dropIndex(['base_id', 'parent_id', 'order'], 'nc_models_v2_tree_idx');
+    table.dropIndex(
+      ['base_id', 'type', 'parent_id', 'order'],
+      'nc_models_v2_tree_idx',
+    );
     table.dropColumn('parent_id');
     table.dropColumn('updated_by');
     table.dropColumn('has_children');

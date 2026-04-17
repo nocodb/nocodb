@@ -153,22 +153,30 @@ export class ImportService extends ImportServiceCE {
   ) {
     if (!param.data?.length) return;
 
-    // Build old parent_id -> new doc id mapping for nested docs
-    const idMap = new Map<string | null, string>();
+    // Group children by their source parent_id for O(1) lookup during BFS.
+    const childrenByParent = new Map<string, any[]>();
+    const rootDocs: any[] = [];
+    for (const doc of param.data) {
+      if (doc.parent_id) {
+        const siblings = childrenByParent.get(doc.parent_id) ?? [];
+        siblings.push(doc);
+        childrenByParent.set(doc.parent_id, siblings);
+      } else {
+        rootDocs.push(doc);
+      }
+    }
 
-    // First pass: create all documents (without parent_id for nested ones)
-    // We need to create root docs first, then children
-    const rootDocs = param.data.filter((d) => !d.parent_id);
-    const childDocs = param.data.filter((d) => d.parent_id);
+    // old id -> new id, used to map each doc's parent_id as we descend.
+    const idMap = new Map<string, string>();
 
-    for (const doc of rootDocs) {
+    const insertDoc = async (doc: any, newParentId: string | null) => {
       const created = await Document.insert(context, {
         title: doc.title,
         content: doc.content,
         meta: doc.meta,
         order: doc.order,
         has_children: doc.has_children,
-        parent_id: null,
+        parent_id: newParentId,
         base_id: param.baseId,
         fk_workspace_id: context.workspace_id,
         created_by: param.user.id,
@@ -177,43 +185,34 @@ export class ImportService extends ImportServiceCE {
       if (created?.id && doc.id) {
         idMap.set(doc.id, created.id);
       }
-    }
+      return created;
+    };
 
-    // Second pass: create child docs with mapped parent_ids
-    // Sort by depth (shallowest first) so parents are created before children
-    const pending = [...childDocs];
-    let maxIterations = pending.length * 2;
-    while (pending.length > 0 && maxIterations-- > 0) {
-      const doc = pending[0];
-      const newParentId = idMap.get(doc.parent_id);
+    // BFS from roots — parents are always inserted before children, so every
+    // child's mapped parent id is guaranteed to be in idMap by the time we
+    // reach it. Each doc is visited exactly once (O(n)).
+    const queue: Array<{ doc: any; newParentId: string | null }> = rootDocs.map(
+      (doc) => ({ doc, newParentId: null }),
+    );
+    let visited = 0;
+    while (queue.length) {
+      const { doc, newParentId } = queue.shift()!;
+      await insertDoc(doc, newParentId);
+      visited++;
 
-      if (newParentId) {
-        pending.shift();
-        const created = await Document.insert(context, {
-          title: doc.title,
-          content: doc.content,
-          meta: doc.meta,
-          order: doc.order,
-          has_children: doc.has_children,
-          parent_id: newParentId,
-          base_id: param.baseId,
-          fk_workspace_id: context.workspace_id,
-          created_by: param.user.id,
-          updated_by: param.user.id,
-        });
-        if (created?.id && doc.id) {
-          idMap.set(doc.id, created.id);
-        }
-      } else {
-        // Parent not yet created, move to end
-        pending.shift();
-        pending.push(doc);
+      const children = childrenByParent.get(doc.id);
+      if (!children) continue;
+      const mappedId = idMap.get(doc.id);
+      if (!mappedId) continue;
+      for (const child of children) {
+        queue.push({ doc: child, newParentId: mappedId });
       }
     }
 
-    if (pending.length > 0) {
+    const orphaned = param.data.length - visited;
+    if (orphaned > 0) {
       this.logger.warn(
-        `importDocuments: ${pending.length} child document(s) could not be imported — parent IDs not resolved (orphaned or missing from export).`,
+        `importDocuments: ${orphaned} child document(s) could not be imported — parent IDs not resolved (orphaned or missing from export).`,
       );
     }
   }

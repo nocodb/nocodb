@@ -1047,9 +1047,11 @@ export class DataTableService {
       );
     }
 
-    const isSingleLink =
-      colOptions.type === RelationTypes.BELONGS_TO ||
-      colOptions.type === RelationTypes.ONE_TO_ONE;
+    const isSingleLink = [
+      RelationTypes.BELONGS_TO,
+      RelationTypes.ONE_TO_ONE,
+      RelationTypes.MANY_TO_ONE,
+    ].includes(colOptions.type as RelationTypes);
 
     if (!colOptions.fk_mm_model_id) {
       return null;

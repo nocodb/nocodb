@@ -1,5 +1,4 @@
 import {
-  ClientType,
   NOCO_SERVICE_USERS,
   OrderedProjectRoles,
   OrderedWorkspaceRoles,
@@ -8,7 +7,7 @@ import {
 import { BaseUser as BaseUserCE } from 'src/models';
 import { Logger } from '@nestjs/common';
 import { WorkspaceRolesV3Type } from 'nocodb-sdk';
-import type { BaseType, UserType } from 'nocodb-sdk';
+import type { BaseType, ClientType, UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
 import {

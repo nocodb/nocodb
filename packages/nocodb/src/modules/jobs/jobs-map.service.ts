@@ -11,7 +11,6 @@ import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean
 import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
 import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clean-up/data-export-clean-up.processor';
 import { AttachmentUrlUploadProcessor } from '~/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
-import { RecordTrashCleanupJob } from '~/modules/jobs/jobs/record-trash-cleanup/record-trash-cleanup.job';
 import { JobTypes } from '~/interface/Jobs';
 
 @Injectable()
@@ -29,7 +28,6 @@ export class JobsMap {
     protected readonly initMigrationJobs: InitMigrationJobs,
     protected readonly dataExportCleanUpProcessor: DataExportCleanUpProcessor,
     protected readonly attachmentUrlUploadProcessor: AttachmentUrlUploadProcessor,
-    protected readonly recordTrashCleanupJob: RecordTrashCleanupJob,
   ) {}
 
   protected get _jobMap(): {
@@ -87,9 +85,6 @@ export class JobsMap {
       },
       [JobTypes.AttachmentUrlUpload]: {
         this: this.attachmentUrlUploadProcessor,
-      },
-      [JobTypes.RecordTrashCleanup]: {
-        this: this.recordTrashCleanupJob,
       },
     };
   }

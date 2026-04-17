@@ -26,7 +26,6 @@ import { PublicDataExportController } from '~/modules/jobs/jobs/data-export/publ
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
 import { AttachmentUrlUploadProcessor } from '~/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
-import { RecordTrashCleanupJob } from '~/modules/jobs/jobs/record-trash-cleanup/record-trash-cleanup.job';
 
 // Job Map
 import { JobsMap } from '~/modules/jobs/jobs-map.service';
@@ -89,7 +88,6 @@ export const JobsModuleMetadata = {
     ThumbnailGeneratorProcessor,
     AttachmentCleanUpProcessor,
     AttachmentUrlUploadProcessor,
-    RecordTrashCleanupJob,
 
     // Migration Jobs
     InitMigrationJobs,

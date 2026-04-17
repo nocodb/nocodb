@@ -12,7 +12,11 @@ import type { NcRequest } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import { _wherePk, getCompositePkValue, shouldCascadeLinkCleanup } from '~/helpers/dbHelpers';
+import {
+  _wherePk,
+  getCompositePkValue,
+  shouldCascadeLinkCleanup,
+} from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import conditionV2 from '~/db/conditionV2';
 import { Column, FileReference, Filter, Model } from '~/models';

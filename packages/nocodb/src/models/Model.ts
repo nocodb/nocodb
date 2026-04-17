@@ -106,7 +106,7 @@ export default class Model implements TableType {
   trash_retention_days?: number | null;
 
   get isTrashEnabled(): boolean {
-    return !this.trash_disabled;
+    return false;
   }
 
   columns?: Column[];

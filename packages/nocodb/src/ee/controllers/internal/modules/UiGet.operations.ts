@@ -23,7 +23,6 @@ import { ListDatasService } from '~/ee/services/list-datas.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DateDependencyService } from '~/services/date-dependency.service';
-import { RecordTrashService } from '~/services/record-trash.service';
 
 @Injectable()
 export class UiGetOperations
@@ -47,7 +46,6 @@ export class UiGetOperations
     protected syncService: SyncService,
     protected extensionsService: ExtensionsService,
     protected dateDependencyService: DateDependencyService,
-    protected recordTrashService: RecordTrashService,
   ) {
     super(
       dataTableService,
@@ -64,14 +62,9 @@ export class UiGetOperations
       commentsService,
       syncService,
       extensionsService,
-      recordTrashService,
     );
 
-    (this.operations as string[]) = [
-      ...this.operations,
-      'getDateDependency',
-      'recordTrashSettingsList',
-    ];
+    (this.operations as string[]) = [...this.operations, 'getDateDependency'];
   }
 
   async handle(
@@ -125,12 +118,6 @@ export class UiGetOperations
       case 'getDateDependency':
         return this.dateDependencyService.get(context, {
           modelId: (req.query.fk_model_id || req.query.modelId) as string,
-        });
-      case 'recordTrashSettingsList':
-        return await this.recordTrashService.getBaseTrashSettings(context, {
-          baseId: context.base_id,
-          user: req.user,
-          roles: req.user?.base_roles ?? {},
         });
     }
     return super.handle(context, {

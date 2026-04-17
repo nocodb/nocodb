@@ -2479,9 +2479,7 @@ class PGClient extends KnexClient {
       let downQuery = '';
 
       // Detect soft-delete column for partial unique index support
-      const deletedCol = args.columns.find(
-        (c) => c.uidt === UITypes.Deleted,
-      );
+      const deletedCol = args.columns.find((c) => c.uidt === UITypes.Deleted);
       const softDeleteColumnName = deletedCol?.cn || deletedCol?.column_name;
 
       for (let i = 0; i < args.columns.length; ++i) {

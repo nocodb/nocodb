@@ -88,7 +88,6 @@ export class JobsMap extends JobsMapCE {
       initMigrationJobs,
       dataExportCleanUpProcessor,
       attachmentUrlUploadProcessor,
-      recordTrashCleanupJob,
     );
   }
 
@@ -192,6 +191,9 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.ChatApproval]: {
         this: this.chatApprovalProcessor,
+      },
+      [JobTypes.RecordTrashCleanup]: {
+        this: this.recordTrashCleanupJob,
       },
     };
   }

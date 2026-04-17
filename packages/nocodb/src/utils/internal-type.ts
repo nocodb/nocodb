@@ -94,7 +94,6 @@ export type InternalPOSTResponseType = Promise<
       link: (string | number | Record<string, any>)[];
       unlink: (string | number | Record<string, any>)[];
     }[]
-  | { link: (string | number | Record<string, any>)[]; unlink: (string | number | Record<string, any>)[] }[]
   | { message: string }
 >;
 

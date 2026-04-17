@@ -1381,7 +1381,7 @@ export function useInfiniteData(args: {
         row.row = fullRecord
 
         if (!undo) {
-          const hasSoftDelete = meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
 
           addUndo({
             undo: hasSoftDelete

@@ -6,6 +6,10 @@ import Noco from '~/Noco';
 import ViewSection from '~/ee/models/ViewSection';
 
 export default class Model extends ModelCE implements TableType {
+  get isTrashEnabled(): boolean {
+    return !this.trash_disabled;
+  }
+
   public static castType(data: Model): Model {
     return data && new Model(data);
   }

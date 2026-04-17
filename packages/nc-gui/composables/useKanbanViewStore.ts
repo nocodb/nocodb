@@ -750,7 +750,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     async function deleteRow(row: Row, undo = false) {
       try {
         if (!undo) {
-          const hasSoftDelete = meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
 
           addUndo({
             redo: {

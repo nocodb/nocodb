@@ -86,9 +86,6 @@ const rolePermissions = {
       migrateBase: true,
       baseAuditList: true,
 
-      // Record Trash — permanent delete + empty are owner-only
-      recordTrashPermanentDelete: true,
-      recordTrashEmpty: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -167,11 +164,6 @@ const rolePermissions = {
 
       // Extensions
       extensionUpdate: true,
-
-      // Record Trash — editors can list/count/restore but NOT permanent delete or empty
-      recordTrashList: true,
-      recordTrashCount: true,
-      recordTrashRestore: true,
 
       // Documents — editors can update and reorder, but NOT create/delete
       documentUpdate: true,

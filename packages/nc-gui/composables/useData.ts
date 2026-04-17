@@ -591,7 +591,7 @@ export function useData(args: {
         }
 
         if (!undo) {
-          const hasSoftDelete = meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
 
           addUndo({
             redo: {
@@ -737,7 +737,7 @@ export function useData(args: {
           removedRowsData: Record<string, any>[],
           pg: { page: number; pageSize: number },
         ) {
-          const hasSoftDelete = meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
 
           if (hasSoftDelete) {
             const rowIds = removedRowsData
@@ -885,7 +885,7 @@ export function useData(args: {
           removedRowsData: Record<string, any>[],
           pg: { page: number; pageSize: number },
         ) {
-          const hasSoftDelete = meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
 
           if (hasSoftDelete) {
             const rowIds = removedRowsData

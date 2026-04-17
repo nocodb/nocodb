@@ -448,6 +448,14 @@ export default function recordTrashTests() {
         const row = await insertRow(tblB, 'B1');
         await permDelete(tblB.id!, [row.id], 422);
       });
+
+      it('6a. Restore with empty rowIds → 400', async function () {
+        await restoreRecords(tblB.id!, [], false, 400);
+      });
+
+      it('6b. Permanent delete with empty rowIds → 400', async function () {
+        await permDelete(tblB.id!, [], 400);
+      });
     });
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -509,6 +517,31 @@ export default function recordTrashTests() {
         // V1 OO: FK preserved on soft-deleted B1. B2 now also has same FK → conflict
         const rsp = await restoreRecords(tblB.id!, [b1.id], false, 409);
         expect(rsp.error).to.equal(NcErrorType.ERR_RECORD_RESTORE_CONFLICT);
+      });
+
+      it('10a. V1 OO: batch restore [conflict, clean] → entire batch blocked (409)', async function () {
+        const a1 = await insertRow(tblA, 'A1');
+        const b1 = await insertRow(tblB, 'B1');
+        const b2 = await insertRow(tblB, 'B2');
+        const b3 = await insertRow(tblB, 'B3');
+
+        // B1 linked to A1 via OO, then soft-deleted, then B2 takes A1's OO slot
+        await v1LinkAdd(tblA.id!, a1.id, 'hm', v1OoCol.id!, b1.id);
+        await softDelete(tblB, b1.id);
+        await v1LinkAdd(tblA.id!, a1.id, 'hm', v1OoCol.id!, b2.id);
+
+        // B3 is soft-deleted with no conflict
+        await softDelete(tblB, b3.id);
+
+        // Batch restore: B1 has conflict, B3 is clean → entire batch rejected
+        const rsp = await restoreRecords(tblB.id!, [b1.id, b3.id], false, 409);
+        expect(rsp.error).to.equal(NcErrorType.ERR_RECORD_RESTORE_CONFLICT);
+
+        // Both remain in trash
+        const trash = await trashList(tblB.id!);
+        const trashIds = trash.list.map((r: any) => r.Id);
+        expect(trashIds).to.include(b1.id);
+        expect(trashIds).to.include(b3.id);
       });
 
       it('11. V1 OO: force restore B → success, B without link, A still → C', async function () {

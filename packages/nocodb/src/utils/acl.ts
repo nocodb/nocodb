@@ -115,12 +115,6 @@ const permissionScopes = {
     'workspaceUserDelete',
   ],
   base: [
-    // Record Trash
-    'recordTrashList',
-    'recordTrashCount',
-    'recordTrashRestore',
-    'recordTrashPermanentDelete',
-    'recordTrashEmpty',
     'nestedDataListCopyPasteOrDeleteAll',
     'nestedDataBulkCopyPasteOrDeleteAll',
     'nestedDataBulkLinkByDisplayValue',
@@ -443,10 +437,6 @@ const rolePermissions:
   },
   [ProjectRoles.EDITOR]: {
     include: {
-      // Record Trash
-      recordTrashRestore: true,
-      recordTrashList: true,
-      recordTrashCount: true,
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
@@ -517,8 +507,6 @@ const rolePermissions:
   [ProjectRoles.CREATOR]: {
     exclude: {
       baseDelete: true,
-      recordTrashPermanentDelete: true,
-      recordTrashEmpty: true,
     },
   },
   [ProjectRoles.OWNER]: {
@@ -901,13 +889,6 @@ const permissionDescriptions: Record<string, string> = {
   mcpCreate: 'create a new MCP token',
   mcpUpdate: 'update an MCP token',
   mcpDelete: 'delete an MCP token',
-
-  // Record Trash
-  recordTrashList: 'view deleted records',
-  recordTrashCount: 'view count of deleted records',
-  recordTrashRestore: 'restore deleted records',
-  recordTrashPermanentDelete: 'permanently delete records from trash',
-  recordTrashEmpty: 'empty the record trash',
 };
 
 // Human-readable descriptions for roles

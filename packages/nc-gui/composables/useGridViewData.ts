@@ -328,7 +328,7 @@ export function useGridViewData(
     addUndo({
       undo: {
         fn: async (removedRowsData: Record<string, any>[], path: Array<number>) => {
-          const hasSoftDelete = meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
 
           if (hasSoftDelete) {
             const rowIds = removedRowsData
@@ -942,7 +942,7 @@ export function useGridViewData(
     addUndo({
       undo: {
         fn: async (deletedRows: Record<string, any>[], path: Array<number>) => {
-          const hasSoftDelete = meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
 
           if (hasSoftDelete) {
             const rowIds = deletedRows

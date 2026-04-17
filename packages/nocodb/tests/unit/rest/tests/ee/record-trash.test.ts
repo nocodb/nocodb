@@ -2,16 +2,16 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import { NcErrorType, UITypes } from 'nocodb-sdk';
-import init from '../../init';
-import { createProject } from '../../factory/base';
-import { createTable } from '../../factory/table';
-import { createRow } from '../../factory/row';
+import init from '../../../init';
+import { createProject } from '../../../factory/base';
+import { createTable } from '../../../factory/table';
+import { createRow } from '../../../factory/row';
 import {
   createColumn,
   createLtarColumn,
   createLtarColumn2,
-} from '../../factory/column';
-import type { Column, Model, Base } from '../../../../src/models';
+} from '../../../factory/column';
+import type { Column, Model, Base } from '../../../../../src/models';
 
 /**
  * Record Trash (soft-delete / restore / permanent-delete) tests.

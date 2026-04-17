@@ -40,7 +40,7 @@ const createdTokenValue = ref('')
 
 // Form fields — pre-fill from editToken if editing
 const tokenName = ref(props.editToken?.title || props.editToken?.description || '')
-const expiryOption = ref(props.editToken ? 'keep' : '90d')
+const expiryOption = ref(props.editToken ? 'keep' : isEEFeatureBlocked.value ? 'none' : '90d')
 const customExpiry = ref('')
 
 // Scopes — pre-fill from editToken

@@ -18,7 +18,7 @@ import {
   RootScopes,
 } from '~/utils/globals';
 import { normalizeEmail } from '~/utils/emailUtils';
-import { genJwt } from '~/services/users/helpers';
+import { genJwt, randomTokenString } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
   decryptPropIfRequired,
@@ -200,6 +200,12 @@ export class MfaService {
       totp_enabled: true,
     });
 
+    // Rotate token_version to invalidate all existing sessions
+    // Forces re-login so all sessions must authenticate with MFA
+    await User.update(userId, {
+      token_version: randomTokenString(),
+    });
+
     this.appHooksService.emit(AppEvents.USER_MFA_ENABLED, {
       user: user as any as UserType,
       req,
@@ -237,6 +243,11 @@ export class MfaService {
       totp_enabled: false,
       totp_secret: null,
       totp_backup_codes: null,
+    });
+
+    // Rotate token_version to invalidate all existing sessions
+    await User.update(userId, {
+      token_version: randomTokenString(),
     });
 
     this.appHooksService.emit(AppEvents.USER_MFA_DISABLED, {

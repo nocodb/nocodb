@@ -19,7 +19,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { markPersonalViewIfNeeded } from '~/middlewares/extract-ids/extract-ids.helpers';
+import { markPersonalViewIfNeeded } from 'src/middlewares/extract-ids/extract-ids.helpers';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,

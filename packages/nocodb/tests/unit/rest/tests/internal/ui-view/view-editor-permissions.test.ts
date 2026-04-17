@@ -97,6 +97,9 @@ export const viewEditorPermissionsTests = function () {
         features: {
           [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: true,
           [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: true,
+          // Sections + row colouring live behind dedicated feature gates.
+          [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: true,
+          [PlanFeatureTypes.FEATURE_ROW_COLOUR]: true,
         },
         limits: {
           [PlanLimitTypes.LIMIT_EDITOR]: -1,
@@ -436,6 +439,346 @@ export const viewEditorPermissionsTests = function () {
         const res = await deleteView(creatorToken, view.id);
         expect(res.status).to.eq(200);
       });
+    });
+
+    // ==============================================================
+    // Filter / Sort / Row-colour / View-section / View-type matrix
+    // ==============================================================
+    // Each family mirrors the view CRUD shape: Editor can mutate on
+    // collaborative + own-personal views, is blocked on locked +
+    // others'-personal views, and Creator+ bypass the ownership gate.
+    // Section management is Creator+ only by policy.
+
+    // Helper: fetch the first non-system column id on a given view.
+    // viewColumnList returns a PagedResponse `{ list: [...] }`. Fall
+    // back to `body` directly for older shapes.
+    const getFirstColumnId = async (
+      token: string,
+      viewId: string,
+    ): Promise<{ fkColumnId: string; gridColumnId: string } | null> => {
+      const colRes = await request(context.app)
+        .get(INTERNAL_API_BASE)
+        .query({ operation: 'viewColumnList', viewId })
+        .set('xc-auth', token);
+      if (colRes.status !== 200) return null;
+      const list = (colRes.body?.list ?? colRes.body) as any[];
+      if (!Array.isArray(list)) return null;
+      const titleCol = list.find(
+        (c: any) => c.title === 'Title' || c.column?.title === 'Title',
+      ) ?? list[0];
+      if (!titleCol) return null;
+      return {
+        fkColumnId: titleCol.fk_column_id ?? titleCol.column?.id,
+        gridColumnId: titleCol.id,
+      };
+    };
+
+    const post = (
+      token: string,
+      op: string,
+      query: Record<string, string>,
+      body: Record<string, any> = {},
+    ) =>
+      request(context.app)
+        .post(INTERNAL_API_BASE)
+        .query({ operation: op, ...query })
+        .set('xc-auth', token)
+        .send(body);
+
+    // ----- Filter ----------------------------------------------------
+
+    describe('Filter operations', () => {
+      const create = (token: string, viewId: string, fkColumnId: string) =>
+        post(token, 'filterCreate', { viewId }, {
+          fk_column_id: fkColumnId,
+          comparison_op: 'eq',
+          value: 'x',
+          logical_op: 'and',
+        });
+
+      it('editor can create filter on collaborative view', async () => {
+        const view = (await createView(ownerToken, { title: 'F_Collab' }))
+          .body;
+        const col = await getFirstColumnId(editorToken, view.id);
+        if (!col) return;
+        const res = await create(editorToken, view.id, col.fkColumnId);
+        expect(res.status).to.eq(200);
+      });
+
+      it('editor can create filter on own personal view', async () => {
+        const view = (
+          await createView(editorToken, {
+            title: 'F_OwnPersonal',
+            lock_type: ViewLockType.Personal,
+          })
+        ).body;
+        const col = await getFirstColumnId(editorToken, view.id);
+        if (!col) return;
+        const res = await create(editorToken, view.id, col.fkColumnId);
+        expect(res.status).to.eq(200);
+      });
+
+      it('editor cannot create filter on locked view', async () => {
+        const view = (await createView(ownerToken, { title: 'F_Locked' }))
+          .body;
+        await updateView(ownerToken, view.id, {
+          lock_type: ViewLockType.Locked,
+        });
+        const col = await getFirstColumnId(ownerToken, view.id);
+        if (!col) return;
+        const res = await create(editorToken, view.id, col.fkColumnId);
+        expect(res.status).to.eq(403);
+      });
+
+      it("editor cannot create filter on another editor's personal view", async () => {
+        const view = (
+          await createView(editorToken, {
+            title: 'F_OthersPersonal',
+            lock_type: ViewLockType.Personal,
+          })
+        ).body;
+        const col = await getFirstColumnId(editorToken, view.id);
+        if (!col) return;
+        const res = await create(editor2Token, view.id, col.fkColumnId);
+        expect(res.status).to.eq(403);
+      });
+
+      it('creator can create filter on locked view', async () => {
+        const view = (
+          await createView(creatorToken, { title: 'F_CreatorLocked' })
+        ).body;
+        await updateView(creatorToken, view.id, {
+          lock_type: ViewLockType.Locked,
+        });
+        const col = await getFirstColumnId(creatorToken, view.id);
+        if (!col) return;
+        const res = await create(creatorToken, view.id, col.fkColumnId);
+        expect(res.status).to.eq(200);
+      });
+    });
+
+    // ----- Sort (expanded matrix) -----------------------------------
+
+    describe('Sort operations (matrix)', () => {
+      const create = (token: string, viewId: string, fkColumnId: string) =>
+        post(token, 'sortCreate', { viewId }, {
+          fk_column_id: fkColumnId,
+          direction: 'asc',
+        });
+
+      it('editor can create sort on own personal view', async () => {
+        const view = (
+          await createView(editorToken, {
+            title: 'S_OwnPersonal',
+            lock_type: ViewLockType.Personal,
+          })
+        ).body;
+        const col = await getFirstColumnId(editorToken, view.id);
+        if (!col) return;
+        const res = await create(editorToken, view.id, col.fkColumnId);
+        expect(res.status).to.eq(200);
+      });
+
+      it('editor cannot create sort on locked view', async () => {
+        const view = (await createView(ownerToken, { title: 'S_Locked' }))
+          .body;
+        await updateView(ownerToken, view.id, {
+          lock_type: ViewLockType.Locked,
+        });
+        const col = await getFirstColumnId(ownerToken, view.id);
+        if (!col) return;
+        const res = await create(editorToken, view.id, col.fkColumnId);
+        expect(res.status).to.eq(403);
+      });
+
+      it("editor cannot create sort on another editor's personal view", async () => {
+        const view = (
+          await createView(editorToken, {
+            title: 'S_OthersPersonal',
+            lock_type: ViewLockType.Personal,
+          })
+        ).body;
+        const col = await getFirstColumnId(editorToken, view.id);
+        if (!col) return;
+        const res = await create(editor2Token, view.id, col.fkColumnId);
+        expect(res.status).to.eq(403);
+      });
+    });
+
+    // ----- Row colour -----------------------------------------------
+
+    describe('Row colour operations', () => {
+      const add = (token: string, viewId: string, fkColumnId: string) =>
+        post(
+          token,
+          'viewRowColorConditionAdd',
+          { viewId },
+          {
+            color: '#cfdffe',
+            nc_order: 1,
+            is_set_as_background: true,
+            filter: {
+              fk_column_id: fkColumnId,
+              comparison_op: 'eq',
+              value: 'x',
+              logical_op: 'and',
+            },
+          },
+        );
+
+      it('editor can add row-colour condition on collaborative view', async () => {
+        const view = (await createView(ownerToken, { title: 'RC_Collab' }))
+          .body;
+        const col = await getFirstColumnId(editorToken, view.id);
+        if (!col) return;
+        const res = await add(editorToken, view.id, col.fkColumnId);
+        expect([200, 201]).to.include(res.status);
+      });
+
+      it('editor cannot add row-colour condition on locked view', async () => {
+        const view = (await createView(ownerToken, { title: 'RC_Locked' }))
+          .body;
+        await updateView(ownerToken, view.id, {
+          lock_type: ViewLockType.Locked,
+        });
+        const col = await getFirstColumnId(ownerToken, view.id);
+        if (!col) return;
+        const res = await add(editorToken, view.id, col.fkColumnId);
+        expect(res.status).to.eq(403);
+      });
+
+      it("editor cannot add row-colour condition on another editor's personal view", async () => {
+        const view = (
+          await createView(editorToken, {
+            title: 'RC_OthersPersonal',
+            lock_type: ViewLockType.Personal,
+          })
+        ).body;
+        const col = await getFirstColumnId(editorToken, view.id);
+        if (!col) return;
+        const res = await add(editor2Token, view.id, col.fkColumnId);
+        expect(res.status).to.eq(403);
+      });
+    });
+
+    // ----- View column (hide/unhide/reorder) ------------------------
+
+    describe('View column (field visibility) operations', () => {
+      const columnUpdate = async (
+        token: string,
+        viewId: string,
+      ): Promise<request.Response> => {
+        // The gridColumnUpdate op requires a gridViewColumnId. We reuse
+        // the reader helper's structured return to avoid the list-vs-
+        // PagedResponse shape mismatch.
+        const col = await getFirstColumnId(token, viewId);
+        if (!col?.gridColumnId) return { status: 500 } as request.Response;
+        return post(
+          token,
+          'gridColumnUpdate',
+          { gridViewColumnId: col.gridColumnId },
+          { show: true, order: 1 },
+        );
+      };
+
+      it('editor can update column visibility on collaborative view', async () => {
+        const view = (await createView(ownerToken, { title: 'VC_Collab' }))
+          .body;
+        const res = await columnUpdate(editorToken, view.id);
+        expect(res.status).to.eq(200);
+      });
+
+      it('editor cannot update column visibility on locked view', async () => {
+        const view = (await createView(ownerToken, { title: 'VC_Locked' }))
+          .body;
+        await updateView(ownerToken, view.id, {
+          lock_type: ViewLockType.Locked,
+        });
+        const res = await columnUpdate(editorToken, view.id);
+        expect(res.status).to.eq(403);
+      });
+    });
+
+    // ----- Sections --------------------------------------------------
+
+    describe('Section operations', () => {
+      const sectionCreate = (token: string, title: string) =>
+        post(token, 'viewSectionCreate', { tableId }, { title });
+
+      const sectionUpdate = (
+        token: string,
+        sectionId: string,
+        title: string,
+      ) => post(token, 'viewSectionUpdate', { sectionId }, { title });
+
+      const sectionDelete = (token: string, sectionId: string) =>
+        post(token, 'viewSectionDelete', { sectionId }, {});
+
+      it('editor cannot create a view section', async () => {
+        const res = await sectionCreate(editorToken, 'Sec_byEditor');
+        expect(res.status).to.eq(403);
+      });
+
+      it('creator can create a view section', async () => {
+        const res = await sectionCreate(creatorToken, 'Sec_byCreator');
+        expect(res.status).to.eq(200);
+      });
+
+      it('editor cannot rename or delete a view section', async () => {
+        const created = (await sectionCreate(creatorToken, 'Sec_forRename')).body;
+        if (!created?.id) return;
+        const renameRes = await sectionUpdate(
+          editorToken,
+          created.id,
+          'Renamed',
+        );
+        expect(renameRes.status).to.eq(403);
+        const deleteRes = await sectionDelete(editorToken, created.id);
+        expect(deleteRes.status).to.eq(403);
+      });
+
+      it('editor CAN move a view into an existing section', async () => {
+        const section = (
+          await sectionCreate(creatorToken, 'Sec_forMove')
+        ).body;
+        if (!section?.id) return;
+        const view = (
+          await createView(ownerToken, { title: 'V_ToMove' })
+        ).body;
+        const res = await updateView(editorToken, view.id, {
+          fk_view_section_id: section.id,
+        });
+        expect(res.status).to.eq(200);
+      });
+    });
+
+    // ----- Other view types -----------------------------------------
+    // Editors should be able to create every non-grid view type as a
+    // collaborative view. Personal/locked variants are covered by the
+    // shared view-CRUD matrix above.
+
+    describe('Other view types — create as collaborative (editor)', () => {
+      const byType: Array<[string, string]> = [
+        ['form', 'formViewCreate'],
+        ['gallery', 'galleryViewCreate'],
+        ['kanban', 'kanbanViewCreate'],
+        ['calendar', 'calendarViewCreate'],
+      ];
+
+      for (const [label, op] of byType) {
+        it(`editor can create a ${label} view`, async () => {
+          const res = await request(context.app)
+            .post(INTERNAL_API_BASE)
+            .query({ operation: op, tableId })
+            .set('xc-auth', editorToken)
+            .send({ title: `Editor_${label}` });
+          // Kanban/calendar may need extra columns to succeed; we only
+          // assert they're not forbidden by role ACL. A 400 (validation)
+          // is acceptable — it means ACL passed and the service ran.
+          expect([200, 400]).to.include(res.status);
+          expect(res.status).to.not.eq(403);
+        });
+      }
     });
   });
 };

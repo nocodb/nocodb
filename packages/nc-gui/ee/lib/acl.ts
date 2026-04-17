@@ -163,7 +163,6 @@ const rolePermissions = {
       fieldDelete: true,
       fieldAdd: true,
       tableIconEdit: true,
-      viewShare: true,
       // View sections are a creator+ feature; editors get view CRUD but not section management.
       sectionCreateOrEdit: true,
       baseShare: true,
@@ -236,6 +235,10 @@ const rolePermissions = {
       // Locked views and others' personal views are restricted at a finer
       // level via usePersonalViewPermissions + backend guards.
       viewCreateOrEdit: true,
+
+      // Share — editors can create/update share links on collaborative
+      // views they have access to. Matches Airtable behaviour.
+      viewShare: true,
 
       // Extensions
       extensionUpdate: true,

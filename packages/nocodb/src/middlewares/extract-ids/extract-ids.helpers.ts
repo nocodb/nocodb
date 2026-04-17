@@ -3,11 +3,17 @@ import { ViewLockType } from 'nocodb-sdk';
 export const VIEW_KEY = Symbol.for('nc:view');
 
 /**
- * If the view is a personal view, attach it to the request
- * so ACL middleware can perform ownership checks.
+ * Attach the view to the request when it carries a lock_type the ACL
+ * middleware needs to reason about (Personal for owner-specific checks,
+ * Locked for the editor + locked-view write gate). The function keeps
+ * its historical name for call-site compatibility.
  */
 export function markPersonalViewIfNeeded(req: any, view: any) {
-  if (view && view.lock_type === ViewLockType.Personal) {
+  if (
+    view &&
+    (view.lock_type === ViewLockType.Personal ||
+      view.lock_type === ViewLockType.Locked)
+  ) {
     req[VIEW_KEY] = view;
   }
 }

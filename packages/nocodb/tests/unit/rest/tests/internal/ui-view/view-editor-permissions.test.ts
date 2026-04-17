@@ -780,5 +780,86 @@ export const viewEditorPermissionsTests = function () {
         });
       }
     });
+
+    // ----- Type-specific view updates × lock_type × role ------------
+    // Editor must be blocked from updating type-specific settings
+    // (formViewUpdate / galleryViewUpdate / kanbanViewUpdate / etc.)
+    // on locked views and others'-personal views. These ops are routed
+    // through their own operation names and need the middleware
+    // PERSONAL_VIEW_MANAGEMENT_PERMISSIONS gate to fire for Personal +
+    // Locked lock_types.
+
+    describe('Type-specific view updates — editor × lock_type', () => {
+      const byType: Array<[string, string, string]> = [
+        ['grid', 'gridViewCreate', 'gridViewUpdate'],
+        ['form', 'formViewCreate', 'formViewUpdate'],
+        ['gallery', 'galleryViewCreate', 'galleryViewUpdate'],
+        ['kanban', 'kanbanViewCreate', 'kanbanViewUpdate'],
+        ['calendar', 'calendarViewCreate', 'calendarViewUpdate'],
+      ];
+
+      for (const [label, createOp, updateOp] of byType) {
+        // Use the type-specific create so the subsequent update hits
+        // the same view type.
+        const mkView = (token: string, title: string) =>
+          request(context.app)
+            .post(INTERNAL_API_BASE)
+            .query({ operation: createOp, tableId })
+            .set('xc-auth', token)
+            .send({ title });
+
+        const updateViewMeta = (
+          token: string,
+          viewId: string,
+        ): { query: Record<string, string> } extends infer _ ? any : any => {
+          // Query key varies per endpoint (e.g. gridViewId, formViewId…);
+          // the internal router accepts the generic `viewId` variant on
+          // most endpoints. Fall back to `${label}ViewId` if needed.
+          const paramKey = `${label}ViewId`;
+          return request(context.app)
+            .post(INTERNAL_API_BASE)
+            .query({
+              operation: updateOp,
+              [paramKey]: viewId,
+              viewId,
+            })
+            .set('xc-auth', token)
+            .send({ meta: { __qa: 'editor' } });
+        };
+
+        it(`editor cannot ${updateOp} on locked view`, async () => {
+          const create = await mkView(ownerToken, `TL_${label}_locked`);
+          if (create.status !== 200) return;
+          await updateView(ownerToken, create.body.id, {
+            lock_type: ViewLockType.Locked,
+          });
+          const res = await updateViewMeta(editorToken, create.body.id);
+          expect(res.status).to.eq(403);
+        });
+
+        it(`editor cannot ${updateOp} on another editor's personal view`, async () => {
+          const create = await mkView(editorToken, `TP_${label}_others`);
+          if (create.status !== 200) return;
+          await updateView(editorToken, create.body.id, {
+            lock_type: ViewLockType.Personal,
+          });
+          const res = await updateViewMeta(editor2Token, create.body.id);
+          expect(res.status).to.eq(403);
+        });
+
+        it(`creator can ${updateOp} on locked view`, async () => {
+          const create = await mkView(creatorToken, `TC_${label}_locked`);
+          if (create.status !== 200) return;
+          await updateView(creatorToken, create.body.id, {
+            lock_type: ViewLockType.Locked,
+          });
+          const res = await updateViewMeta(creatorToken, create.body.id);
+          // Some view-type update ops return 200 with an empty body when
+          // nothing meaningful is changed; others might return 400 on
+          // empty-meta. Either is fine — we're asserting the ACL path.
+          expect(res.status).to.not.eq(403);
+        });
+      }
+    });
   });
 };

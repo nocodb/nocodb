@@ -11,6 +11,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 const baseStore = useBase()
 const { base, isPrivateBase } = storeToRefs(baseStore)
 const { navigateToProjectPage } = baseStore
+const { isUIAllowed } = useRoles()
 const { activeView } = storeToRefs(useViewsStore())
 const dashboardStore = useDashboardStore()
 const { activeDashboard } = storeToRefs(dashboardStore)
@@ -141,7 +142,7 @@ watch(showShareModal, (val) => {
         <DlgShareAndCollaborateShareDashboard />
       </div>
 
-      <div class="share-base">
+      <div v-if="isUIAllowed('baseShare')" class="share-base">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
           <GeneralProjectIcon
             :color="parseProp(base.meta).iconColor"
@@ -177,6 +178,7 @@ watch(showShareModal, (val) => {
           {{ $t('general.close') }}
         </NcButton>
         <NcButton
+          v-if="isUIAllowed('baseShare')"
           data-testid="docs-share-manage-access"
           type="secondary"
           :loading="isOpeningManageAccess"

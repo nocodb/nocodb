@@ -5,11 +5,10 @@ import { stringHelperTest } from './stringHelpers.test';
 import { planResolutionTests } from './planResolution.test';
 import { attachmentHelpersTest } from './attachmentHelpers.test';
 import { apiTokenPermissionTest } from './apiTokenPermission.test';
-import { mfaHelperTests } from './mfa.test';
-
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
 let verifyDefaultOrgTests = () => {};
+let mfaHelperTests = () => {};
 if (process.env.EE === 'true') {
   dashboardV3ConfigTransformTest =
     require('./ee/dashboardV3ConfigTransform.test').dashboardV3ConfigTransformTest;
@@ -17,6 +16,7 @@ if (process.env.EE === 'true') {
     require('./ee/dateDependencyHelper.test').dateDependencyHelperTests;
   verifyDefaultOrgTests =
     require('./ee/verifyDefaultOrg.test').verifyDefaultOrgTests;
+  mfaHelperTests = require('./mfa.test').mfaHelperTests;
 }
 
 function _helperTests() {

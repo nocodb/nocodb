@@ -6,8 +6,11 @@ import {
   generateTwoFactorToken,
   normalizeCode,
 } from '../../../src/ee/services/mfa.service';
+import { isEE } from '../utils/helpers';
 
 export function mfaHelperTests() {
+if (!isEE()) return;
+
 describe('MFA Helpers', () => {
   describe('Backup code generation', () => {
     it('should generate the requested number of codes', () => {

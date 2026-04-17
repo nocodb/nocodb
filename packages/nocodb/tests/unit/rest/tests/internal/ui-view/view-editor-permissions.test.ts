@@ -100,6 +100,11 @@ export const viewEditorPermissionsTests = function () {
           // Sections + row colouring live behind dedicated feature gates.
           [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: true,
           [PlanFeatureTypes.FEATURE_ROW_COLOUR]: true,
+          // Needed for the type-specific update matrix — timeline + list
+          // create otherwise returns ERR_FEATURE_NOT_SUPPORTED, which
+          // would skip the editor × lock_type assertions for those types.
+          [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: true,
+          [PlanFeatureTypes.FEATURE_LIST_VIEW]: true,
         },
         limits: {
           [PlanLimitTypes.LIMIT_EDITOR]: -1,
@@ -895,7 +900,7 @@ export const viewEditorPermissionsTests = function () {
 
         it(`editor cannot ${updateOp} on locked view`, async () => {
           const create = await mkView(ownerToken, `TL_${label}_locked`);
-          if (create.status !== 200) return;
+          expect(create.status, `create ${createOp} failed: ${JSON.stringify(create.body)}`).to.eq(200);
           await updateView(ownerToken, create.body.id, {
             lock_type: ViewLockType.Locked,
           });
@@ -905,7 +910,7 @@ export const viewEditorPermissionsTests = function () {
 
         it(`editor cannot ${updateOp} on another editor's personal view`, async () => {
           const create = await mkView(editorToken, `TP_${label}_others`);
-          if (create.status !== 200) return;
+          expect(create.status, `create ${createOp} failed: ${JSON.stringify(create.body)}`).to.eq(200);
           await updateView(editorToken, create.body.id, {
             lock_type: ViewLockType.Personal,
           });
@@ -915,7 +920,7 @@ export const viewEditorPermissionsTests = function () {
 
         it(`creator can ${updateOp} on locked view`, async () => {
           const create = await mkView(creatorToken, `TC_${label}_locked`);
-          if (create.status !== 200) return;
+          expect(create.status, `create ${createOp} failed: ${JSON.stringify(create.body)}`).to.eq(200);
           await updateView(creatorToken, create.body.id, {
             lock_type: ViewLockType.Locked,
           });

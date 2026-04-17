@@ -7,7 +7,6 @@ import type { ComponentProps } from 'react';
 import * as MailTemplates from '~/services/mail/templates';
 import { MailEvent } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { NcError } from '~/helpers/ncError';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -83,14 +82,16 @@ export class MailService {
     }
   }
 
-  protected async ensurePublicUrl(ncMeta = Noco.ncMeta): Promise<void> {
-    if (this.isPublicUrlConfigured()) return;
+  protected async ensurePublicUrl(ncMeta = Noco.ncMeta): Promise<boolean> {
+    if (this.isPublicUrlConfigured()) return true;
 
     await this.notifySuperAdmin(ncMeta);
 
-    NcError.systemMisconfigured(
+    this.logger.warn(
       'NC_PUBLIC_URL is not configured. Email cannot be sent because the system cannot generate safe URLs.',
     );
+
+    return false;
   }
 
   protected async renderMail<K extends keyof typeof MailTemplates>(
@@ -230,7 +231,7 @@ export class MailService {
     // Validate NC_PUBLIC_URL is configured for events that generate URLs
     // FORM_SUBMISSION is exempt — it has no req and builds no links
     if (mailEvent !== MailEvent.FORM_SUBMISSION) {
-      await this.ensurePublicUrl(ncMeta);
+      if (!(await this.ensurePublicUrl(ncMeta))) return false;
     }
 
     try {

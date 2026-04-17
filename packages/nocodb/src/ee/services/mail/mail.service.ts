@@ -24,7 +24,7 @@ export class MailService extends MailServiceCE {
     }
 
     // All EE mail events use req.ncSiteUrl for link generation
-    await this.ensurePublicUrl(ncMeta);
+    if (!(await this.ensurePublicUrl(ncMeta))) return false;
 
     try {
       switch (params.mailEvent) {

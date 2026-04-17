@@ -5,7 +5,7 @@ import {
   generateBackupCodes,
   generateTwoFactorToken,
   normalizeCode,
-} from '../../../src/services/mfa.service';
+} from '../../../src/ee/services/mfa.service';
 
 export function mfaHelperTests() {
 describe('MFA Helpers', () => {

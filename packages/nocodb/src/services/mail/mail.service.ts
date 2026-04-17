@@ -7,6 +7,9 @@ import type { ComponentProps } from 'react';
 import * as MailTemplates from '~/services/mail/templates';
 import { MailEvent } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { NcError } from '~/helpers/ncError';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import config from '~/app.config';
 import { extractDisplayNameFromEmail } from '~/utils';
@@ -27,6 +30,67 @@ export class MailService {
       this.logger.error('Email Plugin not configured / active');
       return null;
     }
+  }
+
+  protected static readonly PUBLIC_URL_NOTIFIED_CACHE_KEY =
+    'system:public_url_missing_notified';
+
+  protected isPublicUrlConfigured(): boolean {
+    return !!(
+      Noco.config?.envs?.[Noco.env]?.publicUrl || Noco.config?.publicUrl
+    );
+  }
+
+  protected async notifySuperAdmin(ncMeta = Noco.ncMeta): Promise<void> {
+    const cacheFlag = await NocoCache.get(
+      'root',
+      MailService.PUBLIC_URL_NOTIFIED_CACHE_KEY,
+      CacheGetType.TYPE_STRING,
+    );
+
+    if (cacheFlag === 'true') return;
+
+    await NocoCache.set(
+      'root',
+      MailService.PUBLIC_URL_NOTIFIED_CACHE_KEY,
+      'true',
+    );
+
+    try {
+      const superUser = await ncMeta
+        .knexConnection(MetaTable.USERS)
+        .where('roles', 'like', '%super%')
+        .first();
+
+      if (!superUser?.email) return;
+
+      const mailerAdapter = await this.getAdapter(ncMeta);
+      if (!mailerAdapter) return;
+
+      await mailerAdapter.mailSend({
+        to: superUser.email,
+        subject: 'NocoDB: NC_PUBLIC_URL is not configured',
+        html: [
+          '<p>Your NocoDB instance does not have <strong>NC_PUBLIC_URL</strong> configured.</p>',
+          '<p>Without this setting, emails cannot be sent because the system cannot generate safe URLs. ',
+          'The host header from incoming requests can be spoofed, making it unsafe to use as a base URL in emails.</p>',
+          '<p>Please set the <code>NC_PUBLIC_URL</code> environment variable to the publicly accessible URL of your NocoDB instance ',
+          '(e.g. <code>https://nocodb.example.com</code>) and restart the server.</p>',
+        ].join(''),
+      });
+    } catch (e) {
+      this.logger.error('Failed to send NC_PUBLIC_URL notification', e.stack);
+    }
+  }
+
+  protected async ensurePublicUrl(ncMeta = Noco.ncMeta): Promise<void> {
+    if (this.isPublicUrlConfigured()) return;
+
+    await this.notifySuperAdmin(ncMeta);
+
+    NcError.systemMisconfigured(
+      'NC_PUBLIC_URL is not configured. Email cannot be sent because the system cannot generate safe URLs.',
+    );
   }
 
   protected async renderMail<K extends keyof typeof MailTemplates>(
@@ -162,6 +226,12 @@ export class MailService {
     }
 
     const { payload, mailEvent } = params;
+
+    // Validate NC_PUBLIC_URL is configured for events that generate URLs
+    // FORM_SUBMISSION is exempt — it has no req and builds no links
+    if (mailEvent !== MailEvent.FORM_SUBMISSION) {
+      await this.ensurePublicUrl(ncMeta);
+    }
 
     try {
       switch (mailEvent) {

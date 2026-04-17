@@ -171,6 +171,10 @@ export class NcError {
     return NcError._.internalServerError(message, args);
   }
 
+  static systemMisconfigured(message: string, args?: NcErrorArgs): never {
+    return NcError._.systemMisconfigured(message, args);
+  }
+
   static formulaError(message: string, args?: NcErrorArgs): never {
     return NcError._.formulaError(message, args);
   }

@@ -719,7 +719,8 @@ test.describe('View editor permissions — UI (editor role)', () => {
     await editorPage.keyboard.press('Escape');
   });
 
-  test('Editor — Kanban view: navigates without permission error', async (_ctx, testInfo) => {
+  // eslint-disable-next-line no-empty-pattern -- Playwright requires destructuring pattern as first arg
+  test('Editor — Kanban view: navigates without permission error', async ({}, testInfo) => {
     const node = editorPage.locator(`[data-testid="view-sidebar-view-${vKanban}"]`);
     if ((await node.count()) === 0) {
       testInfo.skip(true, 'kanban fixture unavailable on this build');
@@ -736,7 +737,8 @@ test.describe('View editor permissions — UI (editor role)', () => {
     await expect(editorPage.locator('text=Permission denied').first()).toHaveCount(0);
   });
 
-  test('Editor — Calendar view: navigates without permission error', async (_ctx, testInfo) => {
+  // eslint-disable-next-line no-empty-pattern -- Playwright requires destructuring pattern as first arg
+  test('Editor — Calendar view: navigates without permission error', async ({}, testInfo) => {
     const node = editorPage.locator(`[data-testid="view-sidebar-view-${vCalendar}"]`);
     if ((await node.count()) === 0) {
       testInfo.skip(true, 'calendar fixture unavailable on this build');

@@ -859,6 +859,9 @@ export const viewEditorPermissionsTests = function () {
         ['gallery', 'galleryViewCreate', 'galleryViewUpdate'],
         ['kanban', 'kanbanViewCreate', 'kanbanViewUpdate'],
         ['calendar', 'calendarViewCreate', 'calendarViewUpdate'],
+        ['map', 'mapViewCreate', 'mapViewUpdate'],
+        ['timeline', 'timelineViewCreate', 'timelineViewUpdate'],
+        ['list', 'listViewCreate', 'listViewUpdate'],
       ];
 
       for (const [label, createOp, updateOp] of byType) {

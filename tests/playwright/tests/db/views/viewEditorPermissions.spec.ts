@@ -520,3 +520,213 @@ test.describe('View editor permissions — UI (editor role)', () => {
     await editorPage.keyboard.press('Escape');
   });
 });
+
+// =====================================================================
+// Viewer / Commenter — UI regression
+// =====================================================================
+// Locks down the existing read-only behaviour for non-editor roles. These
+// roles must not see the toolbar config buttons, the Create View button,
+// or the per-view three-dot action menu.
+
+test.describe('View permissions — UI (viewer / commenter regressions)', () => {
+  let ownerCtx: any;
+  let ownerToken: string;
+  let tableFkId: string;
+  let viewerContext: import('@playwright/test').BrowserContext | undefined;
+  let viewerPage: import('@playwright/test').Page;
+  let commenterContext: import('@playwright/test').BrowserContext | undefined;
+  let commenterPage: import('@playwright/test').Page;
+
+  const viewerEmail = 'ved-viewer@nc-ved.com';
+  const commenterEmail = 'ved-commenter@nc-ved.com';
+  const pwd = 'Password123.';
+  const tableTitle = `VEPerm_vc_${Date.now().toString(36)}`;
+  const vCollab = 'v_collab_vc';
+
+  const getAuthToken = async (email: string) => {
+    const prefixed = editorPrefix() + email;
+    try {
+      return (await axios.post(`${API_BASE}/api/v1/auth/user/signup`, { email: prefixed, password: pwd })).data
+        .token as string;
+    } catch {
+      return (await axios.post(`${API_BASE}/api/v1/auth/user/signin`, { email: prefixed, password: pwd })).data
+        .token as string;
+    }
+  };
+
+  const inviteWs = async (email: string, role: string) => {
+    const api = ownerCtx.api;
+    if (!api?.workspaceUser) return;
+    try {
+      await api.workspaceUser.invite(ownerCtx.workspace.id, { email: editorPrefix() + email, roles: role });
+    } catch {
+      // already invited
+    }
+  };
+
+  const tokenSignedInContext = async (browser: any, token: string) => {
+    const ctx = await browser.newContext();
+    await ctx.addInitScript((tok: string) => {
+      localStorage.setItem('nocodb-gui-v2', JSON.stringify({ token: tok }));
+    }, token);
+    const page = await ctx.newPage();
+    await page.goto(`http://localhost:3000/${ownerCtx.workspace.id}/${ownerCtx.base.id}/${tableFkId}`, {
+      waitUntil: 'networkidle',
+    });
+    await page.locator('.nc-sidebar').waitFor({ state: 'visible', timeout: 15_000 });
+    return { ctx, page };
+  };
+
+  test.beforeAll(async ({ browser }) => {
+    test.skip(!isEE(), 'EE-only: workspace-level roles');
+
+    const ownerPage = await browser.newPage();
+    ownerCtx = await setup({ page: ownerPage, isEmptyProject: true });
+    ownerToken = ownerCtx.token;
+
+    const tbl = await ownerCtx.api.dbTable.create(ownerCtx.base.id, {
+      table_name: tableTitle,
+      title: tableTitle,
+      columns: [{ title: 'Name', column_name: 'name', uidt: 'SingleLineText' }],
+    });
+    tableFkId = tbl.id;
+
+    // Seed a single collaborative view that viewer/commenter can land on.
+    await axios.post(
+      `${API_BASE}/api/v2/internal/${ownerCtx.workspace.id}/${ownerCtx.base.id}?operation=gridViewCreate&tableId=${tableFkId}`,
+      { title: vCollab },
+      { headers: { 'xc-auth': ownerToken } }
+    );
+
+    const viewerToken = await getAuthToken(viewerEmail);
+    const commenterToken = await getAuthToken(commenterEmail);
+    await inviteWs(viewerEmail, 'workspace-level-viewer');
+    await inviteWs(commenterEmail, 'workspace-level-commenter');
+
+    const v = await tokenSignedInContext(browser, viewerToken);
+    viewerContext = v.ctx;
+    viewerPage = v.page;
+
+    const c = await tokenSignedInContext(browser, commenterToken);
+    commenterContext = c.ctx;
+    commenterPage = c.page;
+  });
+
+  test.afterAll(async () => {
+    await viewerContext?.close();
+    await commenterContext?.close();
+    if (ownerCtx) await unsetup(ownerCtx);
+  });
+
+  for (const role of ['viewer', 'commenter'] as const) {
+    test(`${role} — no Create View button on the active table`, async () => {
+      const page = role === 'viewer' ? viewerPage : commenterPage;
+      const activeTbl = page.locator('.nc-table-node-wrapper[data-active="true"]');
+      // The "+" button has data-testid `nc-sidebar-table-create-view-btn`
+      // and only renders for editor+. Strict count = 0 for restricted roles.
+      await expect(activeTbl.getByTestId('nc-sidebar-table-create-view-btn')).toHaveCount(0);
+    });
+
+    test(`${role} — no toolbar config buttons (Filter / Sort / Fields / Group / Colour)`, async () => {
+      const page = role === 'viewer' ? viewerPage : commenterPage;
+      // Hit the active view first so the toolbar mounts.
+      await page.locator(`[data-testid="view-sidebar-view-${vCollab}"]`).click();
+      await page.waitForLoadState('networkidle');
+      // Per the existing ACL, restricted roles see only download/preview-as
+      // entries on the toolbar — none of these are present.
+      for (const sel of ['.nc-filter-menu-btn', '[data-testid="nc-fields-menu"]', '[data-testid="nc-sorts-menu"]']) {
+        await expect(page.locator(sel)).toHaveCount(0);
+      }
+    });
+
+    test(`${role} — three-dot menu has no Rename/Duplicate/Delete items`, async () => {
+      const page = role === 'viewer' ? viewerPage : commenterPage;
+      const node = page.locator(`[data-testid="view-sidebar-view-${vCollab}"]`);
+      await node.hover();
+      // The three-dot button is rendered for all roles (Node.vue has no
+      // role gate around it) but the menu CONTENTS are gated by
+      // `viewCreateOrEdit`. For viewer/commenter, the menu should only
+      // expose the read-only "Copy view ID" entry — no Rename, no
+      // Duplicate, no Delete.
+      await node.locator('.nc-sidebar-view-node-context-btn').click({ force: true });
+      const menu = page.locator(`[data-testid="view-sidebar-view-actions-${vCollab}"]`);
+      await menu.waitFor({ state: 'visible' });
+      for (const label of ['Rename', 'Duplicate', 'Delete']) {
+        await expect(menu.locator(`.ant-dropdown-menu-item:has-text("${label}")`)).toHaveCount(0);
+      }
+      await page.keyboard.press('Escape');
+    });
+  }
+});
+
+// =====================================================================
+// Last collaborative grid view — single-grid table block
+// =====================================================================
+// Separate describe so the fixture state (exactly one collab grid) is
+// isolated from the multi-grid spec above. Owner-only assertions.
+
+test.describe('View permissions — UI (single collab grid → block conversion)', () => {
+  let ctx: any;
+  let dashboard: DashboardPage;
+  let ownerToken: string;
+  let tableFkId: string;
+  const tableTitle = `VEPerm_single_${Date.now().toString(36)}`;
+
+  test.beforeAll(async ({ browser }) => {
+    test.skip(!isEE(), 'EE-only: personal/locked types');
+
+    const page = await browser.newPage();
+    ctx = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, ctx.base);
+    ownerToken = ctx.token;
+
+    const tbl = await ctx.api.dbTable.create(ctx.base.id, {
+      table_name: tableTitle,
+      title: tableTitle,
+      columns: [{ title: 'Name', column_name: 'name', uidt: 'SingleLineText' }],
+    });
+    tableFkId = tbl.id;
+
+    // Note: dbTable.create auto-provisions one default grid view ("VEPerm…")
+    // — no extra views needed; this leaves the table with exactly one
+    // collaborative grid view, which is what we want.
+
+    await page.goto(`http://localhost:3000/${ctx.workspace.id}/${ctx.base.id}/${tableFkId}`, {
+      waitUntil: 'networkidle',
+    });
+    await page.locator('.nc-sidebar').waitFor({ state: 'visible' });
+  });
+
+  test.afterAll(async () => {
+    if (ctx) await unsetup(ctx);
+  });
+
+  test('Owner — single collab grid: Personal subaction is DISABLED with last-grid tooltip', async () => {
+    // Resolve the auto-provisioned view via API rather than guessing the
+    // sidebar testid format.
+    const list = await axios.get(
+      `${API_BASE}/api/v2/internal/${ctx.workspace.id}/${ctx.base.id}?operation=viewList&tableId=${tableFkId}`,
+      { headers: { 'xc-auth': ownerToken } }
+    );
+    const views = (list.data?.list ?? []) as Array<{ id: string; title: string }>;
+    expect(views.length, 'table should have exactly one auto-provisioned grid view').toBe(1);
+    const viewTitle = views[0].title;
+
+    const sidebar = dashboard.viewSidebar.get();
+    const node = sidebar.locator(`[data-testid="view-sidebar-view-${viewTitle}"]`);
+    await node.waitFor({ state: 'visible' });
+    await node.hover();
+    await node.locator('.nc-sidebar-view-node-context-btn').click();
+
+    const menu = dashboard.rootPage.locator(`[data-testid="view-sidebar-view-actions-${viewTitle}"]`);
+    await menu.waitFor({ state: 'visible' });
+    await menu.locator('text=View mode').hover();
+
+    const personalOpt = dashboard.rootPage
+      .locator('[data-testid="nc-view-action-lock-subaction-Personal"]:visible')
+      .first();
+    await expect(personalOpt).toHaveAttribute('aria-disabled', /true/);
+
+    await dashboard.rootPage.keyboard.press('Escape');
+  });
+});

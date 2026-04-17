@@ -13,7 +13,7 @@ import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthController as AuthControllerCE } from 'src/modules/auth/auth.controller';
-import { AppEvents, CloudOrgUserRoles } from 'nocodb-sdk';
+import { AppEvents, CloudOrgUserRoles, PlanFeatureTypes } from 'nocodb-sdk';
 import type { UserType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import { clearAuthCookie, setAuthCookie } from '~/services/users/helpers';
@@ -27,10 +27,12 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { License } from '~/decorators/license.decorator';
 import { NcRequest } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
 import { CHATWOOT_IDENTITY_KEY } from '~/utils/nc-config';
 import Noco from '~/Noco';
+import NocoLicense from '~/NocoLicense';
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 
 @Controller()
@@ -57,10 +59,10 @@ export class AuthController extends AuthControllerCE {
       NcError.forbidden('Email authentication is disabled');
     }
 
-    // Check if user has 2FA enabled
-    const twoFactorToken = await this.mfaService.getTwoFactorTokenIfEnabled(
-      req.user.id,
-    );
+    // Check if user has 2FA enabled (only when MFA feature is licensed)
+    const twoFactorToken = NocoLicense.isEE
+      ? await this.mfaService.getTwoFactorTokenIfEnabled(req.user.id)
+      : null;
     if (twoFactorToken) {
       res.json({
         twoFactorRequired: true,
@@ -78,6 +80,7 @@ export class AuthController extends AuthControllerCE {
 
   // MFA Endpoints
 
+  @License(PlanFeatureTypes.FEATURE_MFA)
   @Post(['/api/v2/auth/mfa/setup'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('mfaSetup', { scope: 'org' })
@@ -86,6 +89,7 @@ export class AuthController extends AuthControllerCE {
     return this.mfaService.setup(req.user.id, body.password, req);
   }
 
+  @License(PlanFeatureTypes.FEATURE_MFA)
   @Post(['/api/v2/auth/mfa/verify-setup'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('mfaVerifySetup', { scope: 'org' })
@@ -94,6 +98,7 @@ export class AuthController extends AuthControllerCE {
     return this.mfaService.verifySetup(req.user.id, body.code, req);
   }
 
+  @License(PlanFeatureTypes.FEATURE_MFA)
   @Post(['/api/v2/auth/mfa/verify'])
   @UseGuards(PublicApiLimiterGuard)
   @HttpCode(200)
@@ -115,6 +120,7 @@ export class AuthController extends AuthControllerCE {
     res.json(result);
   }
 
+  @License(PlanFeatureTypes.FEATURE_MFA)
   @Post(['/api/v2/auth/mfa/disable'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('mfaDisable', { scope: 'org' })
@@ -123,6 +129,7 @@ export class AuthController extends AuthControllerCE {
     return this.mfaService.disable(req.user.id, body.password, req);
   }
 
+  @License(PlanFeatureTypes.FEATURE_MFA)
   @Get(['/api/v2/auth/mfa/status'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('mfaStatus', { scope: 'org' })
@@ -130,6 +137,7 @@ export class AuthController extends AuthControllerCE {
     return this.mfaService.status(req.user.id);
   }
 
+  @License(PlanFeatureTypes.FEATURE_MFA)
   @Post(['/api/v2/auth/mfa/regenerate-backup-codes'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('mfaRegenerateBackupCodes', { scope: 'org' })

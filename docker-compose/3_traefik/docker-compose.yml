@@ -9,7 +9,7 @@ services:
       - nocodb-db
     environment: 
       - "NC_DB=pg://nocodb-db:5432?u=${DATABASE_USER}&p=${DATABASE_PW}&d=${DATABASE_NAME}"
-      - "NC_PUBLIC_URL=https://nocodb.${DOMAINNAME}"
+      - "NC_SITE_URL=https://nocodb.${DOMAINNAME}"
       - NC_DISABLE_TELE=true
     image: "nocodb/nocodb:latest"
     labels: 

@@ -14,10 +14,7 @@ import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
-const nanoidv2 = customAlphabet(
-  '1234567890abcdefghijklmnopqrstuvwxyz',
-  14,
-);
+const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 /**
  * Data model for Documents (stored in nc_models_v2 with type='document').
@@ -308,6 +305,39 @@ export default class Document extends DocumentCE implements DocumentType {
     );
 
     return docList.map((doc) => new Document(this.parseDocument(doc)));
+  }
+
+  /**
+   * List ALL documents for a base with their content, using 2 queries instead of N+1.
+   * Used by export to avoid per-document content fetches.
+   */
+  public static async listAllWithContent(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const docs = await this.listAllLite(context, baseId, ncMeta);
+    if (!docs.length) return docs;
+
+    const docIds = docs.map((d) => d.id!).filter(Boolean);
+    const contentRows = await Noco.ncDocsContent.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOC_CONTENT,
+      {
+        xcCondition: {
+          fk_doc_id: { in: docIds },
+        },
+        fields: ['fk_doc_id', 'content'],
+      },
+    );
+    const contentMap = new Map(
+      contentRows.map((r: any) => [r.fk_doc_id, r.content]),
+    );
+    for (const doc of docs) {
+      doc.content = contentMap.get(doc.id!);
+    }
+    return docs;
   }
 
   public static async insert(
@@ -677,12 +707,10 @@ export default class Document extends DocumentCE implements DocumentType {
   private static parseDocument(doc: any): any {
     if (!doc) return doc;
 
-    // Map DB column -> model property
     if ('doc_version' in doc) {
       doc.version = doc.doc_version;
       delete doc.doc_version;
     }
-
     return prepareForResponse(doc, ['meta', 'content']);
   }
 }

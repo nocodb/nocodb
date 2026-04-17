@@ -16,26 +16,18 @@ export class ExportService extends ExportServiceCE {
   }
 
   async serializeDocuments(context: NcContext) {
-    const allDocs = await Document.listAllLite(context, context.base_id);
+    const allDocs = await Document.listAllWithContent(context, context.base_id);
 
-    const docsWithContent = [];
-    for (const doc of allDocs) {
-      const full = await Document.get(context, doc.id!);
-      if (full) {
-        docsWithContent.push({
-          id: full.id,
-          title: full.title,
-          content: full.content,
-          meta: full.meta,
-          order: full.order,
-          parent_id: full.parent_id,
-          has_children: full.has_children,
-          version: full.version,
-        });
-      }
-    }
-
-    return docsWithContent;
+    return allDocs.map((doc) => ({
+      id: doc.id,
+      title: doc.title,
+      content: doc.content,
+      meta: doc.meta,
+      order: doc.order,
+      parent_id: doc.parent_id,
+      has_children: doc.has_children,
+      version: doc.version,
+    }));
   }
 
   async serializeWorkflows(context: NcContext, param: any, _req: NcRequest) {

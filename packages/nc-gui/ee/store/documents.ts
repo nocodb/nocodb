@@ -267,7 +267,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
       setTimeout(() => {
         const newDocDom =
           document.querySelector(`[data-testid="nc-docs-sidebar-pages-list"] [data-id="${created.id}"]`) ||
-          document.querySelector(`[data-id="${created.id}"]`)
+          document.querySelector(`.nc-data-menu [data-id="${created.id}"]`)
         if (newDocDom) {
           newDocDom.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
         }

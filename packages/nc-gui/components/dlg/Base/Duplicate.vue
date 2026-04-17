@@ -306,7 +306,7 @@ onKeyStroke('Enter', () => {
           </div>
 
           <div
-            v-if="isEeActive"
+            v-if="isEeUI"
             class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeDocuments = !options.includeDocuments"
           >

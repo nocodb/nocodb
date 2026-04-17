@@ -42,14 +42,38 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  // Remove migrated document rows
+  // Restore migrated documents back to nc_docs_v2 (reverses the up() data migration)
+  if (await knex.schema.hasTable('nc_docs_v2')) {
+    const docs = await knex(MetaTable.MODELS)
+      .where('type', 'document')
+      .select('*');
+
+    const batch = docs.map((doc) => ({
+      id: doc.id,
+      base_id: doc.base_id,
+      fk_workspace_id: doc.fk_workspace_id,
+      title: doc.title,
+      meta: doc.meta,
+      order: doc.order,
+      parent_id: doc.parent_id,
+      deleted: doc.deleted,
+      has_children: doc.has_children,
+      version: doc.doc_version,
+      created_by: doc.created_by,
+      updated_by: doc.updated_by,
+      created_at: doc.created_at,
+      updated_at: doc.updated_at,
+    }));
+
+    if (batch.length) {
+      await knex.batchInsert('nc_docs_v2', batch, 100);
+    }
+  }
+
   await knex(MetaTable.MODELS).where('type', 'document').delete();
 
   await knex.schema.alterTable(MetaTable.MODELS, (table) => {
-    table.dropIndex(
-      ['base_id', 'parent_id', 'order'],
-      'nc_models_v2_tree_idx',
-    );
+    table.dropIndex(['base_id', 'parent_id', 'order'], 'nc_models_v2_tree_idx');
     table.dropColumn('parent_id');
     table.dropColumn('updated_by');
     table.dropColumn('has_children');

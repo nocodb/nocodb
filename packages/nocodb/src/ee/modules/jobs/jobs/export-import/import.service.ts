@@ -210,6 +210,12 @@ export class ImportService extends ImportServiceCE {
         pending.push(doc);
       }
     }
+
+    if (pending.length > 0) {
+      this.logger.warn(
+        `importDocuments: ${pending.length} child document(s) could not be imported — parent IDs not resolved (orphaned or missing from export).`,
+      );
+    }
   }
 
   override async importDashboards(

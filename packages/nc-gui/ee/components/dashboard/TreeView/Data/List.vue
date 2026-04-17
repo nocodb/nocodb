@@ -20,7 +20,7 @@ const { baseTables } = storeToRefs(useTablesStore())
 const { activeDashboardId, activeBaseDashboards } = storeToRefs(dashboardStore)
 
 const documentsStore = useDocumentsStore()
-const { activeDocuments, activeDocumentId, expandedDocIds } = storeToRefs(documentsStore)
+const { activeDocuments, expandedDocIds } = storeToRefs(documentsStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -109,9 +109,7 @@ const visibleChildrenMap = computed<Map<string, FlatDocChild[]>>(() => {
 })
 
 const allEntities = computed<
-  Array<
-    (DashboardType & { type: 'dashboard' }) | (TableType & { type: 'table' }) | (DocumentType & { type: 'document' })
-  >
+  Array<(DashboardType & { type: 'dashboard' }) | (TableType & { type: 'table' }) | (DocumentType & { type: 'document' })>
 >(() => {
   const entities = []
 
@@ -334,7 +332,6 @@ watchEffect(() => {
             :data-order="entity.order"
             :data-title="entity.title"
             :data-type="entity.type"
-            :data-testid="`nc-tbl-side-node-${entity.title}`"
             class="nc-document-item nc-tree-item text-sm"
             :class="{
               'bg-nc-bg-gray-medium': isMarked === entity.id,
@@ -349,7 +346,7 @@ watchEffect(() => {
             :data-id="child.doc.id"
             :data-order="child.doc.order"
             :data-title="child.doc.title"
-            :data-type="'document'"
+            data-type="document"
             :doc="child.doc"
             :depth="child.depth"
             :indent-step="22"

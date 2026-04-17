@@ -22,6 +22,10 @@ export class MailService extends MailServiceCE {
       this.logger.error('Email Plugin not configured / active');
       return false;
     }
+
+    // All EE mail events use req.ncSiteUrl for link generation
+    await this.ensurePublicUrl(ncMeta);
+
     try {
       switch (params.mailEvent) {
         case MailEvent.COMMENT_CREATE:

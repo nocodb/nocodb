@@ -439,4 +439,9 @@ export const presetErrorCodexMap: Partial<
     message: 'System field cannot be modified',
     code: 422,
   },
+  [NcErrorType.ERR_SYSTEM_MISCONFIGURED]: {
+    message: (message: string) =>
+      message || 'System is not configured correctly',
+    code: 500,
+  },
 };

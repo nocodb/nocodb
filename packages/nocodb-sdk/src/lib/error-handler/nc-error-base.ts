@@ -361,6 +361,13 @@ export class NcErrorBase {
     });
   }
 
+  systemMisconfigured(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SYSTEM_MISCONFIGURED, {
+      params: message,
+      ...args,
+    });
+  }
+
   formulaError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_FORMULA, {
       params: message,

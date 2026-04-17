@@ -388,6 +388,9 @@ export const nocoModuleEeMetadata = {
     /* Generic */
     CustomUrlsService,
 
+    /* MFA */
+    MfaService,
+
     /* Workspaces */
     WorkspacesService,
     WorkspaceUsersService,

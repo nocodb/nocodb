@@ -30014,6 +30014,35 @@
           ]
         }
       },
+      "nestedBulkLinkByDisplayValueReq": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 100,
+        "items": {
+          "type": "object",
+          "properties": {
+            "columnId": {
+              "type": "string"
+            },
+            "rowId": {
+              "type": "string"
+            },
+            "displayValues": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          },
+          "required": [
+            "columnId",
+            "rowId",
+            "displayValues"
+          ]
+        }
+      },
       "KanbanColumnReq": {
         "description": "Model for Kanban Column Request",
         "examples": [

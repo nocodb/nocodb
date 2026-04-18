@@ -1343,15 +1343,51 @@ export function useMultiSelect(
           if (!rowObj) return
           const columnObj = unref(fields)[activeCell.col]
 
-          // handle belongs to column, skip custom links
-          if (isBt(columnObj) && !columnObj.meta?.custom) {
+          const singleCellClipboardItem = extractCellClipboardData(storedCopiedData, 0, 0)
+          const isStructuredLtarPaste = singleCellClipboardItem && isLinksOrLTAR(singleCellClipboardItem.column)
+
+          const isBtTextTarget = isBt(columnObj) && !columnObj.meta?.custom
+          const isLtarTextTarget = isBtTextTarget || isMMOrMMLike(columnObj)
+
+          // Plain text paste into LTAR (BT v1/v2, MM) — resolve display values to linked records
+          if (isLtarTextTarget && !isStructuredLtarPaste) {
+            const plainText = clipboardData
+            if (!plainText?.trim()) return
+
+            const displayValues = plainText.split(',').map((v: string) => v.trim()).filter(Boolean)
+            if (!displayValues.length) return
+
+            const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
+            if (!pasteRowPk) return
+
+            try {
+              await api.internal.postOperation(
+                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                meta.value?.base_id ?? base.value.id,
+                {
+                  operation: 'nestedDataBulkLinkByDisplayValue',
+                  tableId: meta.value?.id as string,
+                  viewId: activeView?.value?.id,
+                },
+                [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
+              )
+
+              return await syncCellData?.(activeCell)
+            } catch (e: any) {
+              message.error(await extractSdkResponseErrorMsg(e))
+              return
+            }
+          }
+
+          // handle belongs to column, skip custom links — structured paste only (text path handled above)
+          if (isBtTextTarget) {
             const pasteVal = convertCellData(
               {
                 value: clipboardData,
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
-                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
+                clipboardItem: singleCellClipboardItem,
               },
               isMysql(meta.value?.source_id),
             )
@@ -1383,6 +1419,7 @@ export function useMultiSelect(
             return await syncCellData?.({ ...activeCell, updatedColumnTitle: foreignKeyColumn.title })
           }
 
+          // Handle junction-table-based LTAR column paste (V1 MM, V2 om/mo/oo/mm) — structured only
           if (isMMOrMMLike(columnObj)) {
             const pasteVal = convertCellData(
               {
@@ -1390,7 +1427,7 @@ export function useMultiSelect(
                 to: columnObj.uidt as UITypes,
                 column: columnObj,
                 appInfo: unref(appInfo),
-                clipboardItem: extractCellClipboardData(storedCopiedData, 0, 0),
+                clipboardItem: singleCellClipboardItem,
               },
               isMysql(meta.value?.source_id),
             )

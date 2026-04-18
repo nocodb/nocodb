@@ -49,7 +49,7 @@ export class ListsService {
       NcError.get(context).schemaLocked();
     }
 
-    await assertPersonalViewAllowed(context, (param.list as any).lock_type);
+    await assertPersonalViewAllowed(context, param.list.lock_type);
 
     const model = await Model.get(context, param.tableId);
 

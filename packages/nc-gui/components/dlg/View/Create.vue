@@ -19,7 +19,7 @@ import {
   viewTypeToStringMap,
 } from 'nocodb-sdk'
 import { PlanTitles, UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
-import { AiWizardTabsType, LockType } from '#imports'
+import { AiWizardTabsType } from '#imports'
 
 const props = withDefaults(defineProps<Props>(), {
   selectedViewId: undefined,
@@ -82,8 +82,9 @@ interface Form {
 
   // Applied after view creation via a follow-up updateView call. Defaults
   // to Collaborative. Editors can pick Collaborative or Personal; only
-  // creator+ can pick Locked.
-  lock_type: ViewLockType
+  // creator+ can pick Locked. Optional so the destructured payload sent
+  // to createView (which omits lock_type) matches the type.
+  lock_type?: ViewLockType
 }
 
 type AiSuggestedViewType = SerializedAiViewType & {
@@ -330,7 +331,7 @@ async function onSubmit() {
       // strips it silently, which is confusing for anyone debugging).
       const { lock_type: selectedLockType, ...createPayload } = form
 
-      const data = await viewStore.createView(tableId.value, createPayload as typeof form)
+      const data = await viewStore.createView(tableId.value, createPayload)
 
       if (data) {
         // Apply selected view mode (Personal / Locked). Views are created
@@ -349,7 +350,7 @@ async function onSubmit() {
         emits('created', data)
       }
     } catch (e: any) {
-      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       setTimeout(() => {
         isViewCreating.value = false
@@ -1043,19 +1044,12 @@ watch(activeBaseId, () => {
                         {{ $t(viewLockIcons[option.value].title) }}
                         <!-- show-as-lock renders a compact lock icon when gated
                              and auto-hides when the feature is enabled -->
-                        <PaymentUpgradeBadge
-                          :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
-                          show-as-lock
-                        />
+                        <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS" show-as-lock />
                       </span>
                     </a-radio>
                   </template>
                 </PaymentUpgradeBadgeProvider>
-                <a-radio
-                  v-else
-                  :value="option.value"
-                  :data-testid="`nc-create-view-lock-type-${option.value}`"
-                >
+                <a-radio v-else :value="option.value" :data-testid="`nc-create-view-lock-type-${option.value}`">
                   <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
                     <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
                     {{ $t(viewLockIcons[option.value].title) }}

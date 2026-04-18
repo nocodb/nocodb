@@ -49,7 +49,7 @@ export class FormsService {
       NcError.get(context).schemaLocked();
     }
 
-    await assertPersonalViewAllowed(context, (param.body as any).lock_type);
+    await assertPersonalViewAllowed(context, param.body.lock_type);
 
     const model = await Model.get(context, param.tableId, ncMeta);
 

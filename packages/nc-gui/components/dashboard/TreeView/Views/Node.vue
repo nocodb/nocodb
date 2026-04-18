@@ -40,8 +40,6 @@ const { t } = useI18n()
 
 const { isMobileMode, user } = useGlobal()
 
-const { isUIAllowed } = useRoles()
-
 const base = inject(ProjectInj, ref())
 
 const { activeView } = storeToRefs(useViewsStore())
@@ -92,7 +90,7 @@ const isViewOwner = computed(() => {
   return vModel.value?.owned_by === user.value?.id
 })
 
-const { canModifyView } = usePersonalViewPermissions(vModel as unknown as Ref<ViewType | undefined>)
+const { canModifyView } = usePersonalViewPermissions(vModel)
 
 const idUserMap = computed(() => {
   return (basesUser.value.get(base.value?.id) || []).reduce((acc, user) => {

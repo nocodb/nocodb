@@ -162,7 +162,9 @@ export class ViewsService {
     param: {
       viewId: string;
       view: ViewUpdateReqType;
-      user: UserType;
+      // `base_roles` is attached by extract-ids.middleware when the caller
+      // comes through the HTTP pipeline (shape mirrors NcRequest['user']).
+      user: UserType & { base_roles?: Record<string, boolean> | string };
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
@@ -218,7 +220,7 @@ export class ViewsService {
     // `base_roles` may be a string or an object depending on auth path
     // (see BaseModelSqlv2.ts and extract-ids.middleware.ts for precedent).
     // Normalize via extractRolesObj before indexing.
-    const userBaseRoles = extractRolesObj((param.user as any)?.base_roles);
+    const userBaseRoles = extractRolesObj(param.user?.base_roles);
     const isCreatorPlus = !!(
       userBaseRoles?.[ProjectRoles.OWNER] ||
       userBaseRoles?.[ProjectRoles.CREATOR]
@@ -423,7 +425,13 @@ export class ViewsService {
 
   async viewDelete(
     context: NcContext,
-    param: { viewId: string; user: UserType; req: NcRequest },
+    param: {
+      viewId: string;
+      // `base_roles` is attached by extract-ids.middleware when the caller
+      // comes through the HTTP pipeline (shape mirrors NcRequest['user']).
+      user: UserType & { base_roles?: Record<string, boolean> | string };
+      req: NcRequest;
+    },
     ncMeta = Noco.ncMeta,
   ) {
     if (context.schema_locked) {
@@ -438,7 +446,7 @@ export class ViewsService {
 
     // Only creators or owners can delete a locked view. Editors inherit
     // viewDelete via ACL but are blocked here to keep locked views frozen.
-    const userBaseRoles = extractRolesObj((param.user as any)?.base_roles);
+    const userBaseRoles = extractRolesObj(param.user?.base_roles);
     const isCreatorPlus = !!(
       userBaseRoles?.[ProjectRoles.OWNER] ||
       userBaseRoles?.[ProjectRoles.CREATOR]

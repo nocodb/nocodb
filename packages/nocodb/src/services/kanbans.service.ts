@@ -60,7 +60,7 @@ export class KanbansService {
       NcError.get(context).schemaLocked();
     }
 
-    await assertPersonalViewAllowed(context, (param.kanban as any).lock_type);
+    await assertPersonalViewAllowed(context, param.kanban.lock_type);
 
     const model = await Model.get(context, param.tableId, ncMeta);
 

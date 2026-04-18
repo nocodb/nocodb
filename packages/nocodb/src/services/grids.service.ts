@@ -40,7 +40,7 @@ export class GridsService {
       NcError.get(context).schemaLocked();
     }
 
-    await assertPersonalViewAllowed(context, (param.grid as any).lock_type);
+    await assertPersonalViewAllowed(context, param.grid.lock_type);
 
     const model = await Model.get(context, param.tableId, ncMeta);
 

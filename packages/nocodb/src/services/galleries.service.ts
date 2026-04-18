@@ -49,7 +49,7 @@ export class GalleriesService {
       NcError.get(context).schemaLocked();
     }
 
-    await assertPersonalViewAllowed(context, (param.gallery as any).lock_type);
+    await assertPersonalViewAllowed(context, param.gallery.lock_type);
 
     const model = await Model.get(context, param.tableId, ncMeta);
 

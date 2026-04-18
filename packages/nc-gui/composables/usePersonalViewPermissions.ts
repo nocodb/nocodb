@@ -6,7 +6,7 @@ import type { Ref } from 'vue'
  * Shared composable for personal-view / locked-view permission checks.
  * Combines the user's role-based ACL with per-view ownership + lock_type rules.
  */
-export function usePersonalViewPermissions(view: Ref<ViewType | undefined>) {
+export function usePersonalViewPermissions<T extends ViewType | undefined>(view: Ref<T>) {
   const { isUIAllowed } = useRoles()
   const { user } = useGlobal()
 
@@ -26,14 +26,7 @@ export function usePersonalViewPermissions(view: Ref<ViewType | undefined>) {
   // Read-only permissions that should never be blocked by lock_type or
   // ownership — everyone who can see a view can list its filters/sorts/columns.
   // Only WRITE operations get the lock/ownership gate.
-  const readOnlyPermissions = new Set([
-    'filterList',
-    'filterGet',
-    'filterChildrenList',
-    'sortList',
-    'sortGet',
-    'columnList',
-  ])
+  const readOnlyPermissions = new Set(['filterList', 'filterGet', 'filterChildrenList', 'sortList', 'sortGet', 'columnList'])
 
   /**
    * Whether the current user has a given view-config permission, taking

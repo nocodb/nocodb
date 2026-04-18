@@ -53,7 +53,7 @@ export class TimelinesService {
       NcError.get(context).schemaLocked();
     }
 
-    await assertPersonalViewAllowed(context, (param.timeline as any).lock_type);
+    await assertPersonalViewAllowed(context, param.timeline.lock_type);
 
     const model = await Model.get(context, param.tableId, ncMeta);
 

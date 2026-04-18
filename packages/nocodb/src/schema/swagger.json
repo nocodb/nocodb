@@ -29546,6 +29546,16 @@
             "$ref": "#/components/schemas/TextOrNull",
             "description": "Description of the view.",
             "example": "This is a grid view."
+          },
+          "lock_type": {
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ],
+            "type": "string",
+            "description": "Lock type of View. Applied as the initial mode on create.",
+            "example": "collaborative"
           }
         },
         "required": [

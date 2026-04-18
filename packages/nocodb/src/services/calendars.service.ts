@@ -49,7 +49,7 @@ export class CalendarsService {
       NcError.get(context).schemaLocked();
     }
 
-    await assertPersonalViewAllowed(context, (param.calendar as any).lock_type);
+    await assertPersonalViewAllowed(context, param.calendar.lock_type);
 
     const model = await Model.get(context, param.tableId, ncMeta);
 

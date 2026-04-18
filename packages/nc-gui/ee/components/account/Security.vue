@@ -37,11 +37,6 @@ const regenerateError = ref('')
 const newBackupCodes = ref<string[]>([])
 const regenerateCodeInput = ref<HTMLInputElement>()
 
-const setupStepNumber = computed(() => {
-  const steps = { password: 1, qr: 2, verify: 3, backup: 4 }
-  return steps[setupStep.value]
-})
-
 async function fetchStatus() {
   try {
     const response = await api.instance.get('/api/v2/auth/mfa/status')

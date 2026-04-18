@@ -8,7 +8,7 @@ export {
   personalViewOwnerAllowedPermissions,
   personalViewOwnerOnlyOps,
   VIEW_KEY,
-} from '../../../middlewares/extract-ids/extract-ids.helpers';
+} from 'src/middlewares/extract-ids/extract-ids.helpers';
 
 export const beforeAclValidationHook = async (_param: {
   req: any;

@@ -418,7 +418,6 @@ async function openNewRecordHandler() {
                               color: grp.color?.split(',')[+tagIndex] || '#ccc',
                               getColor,
                               isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
-                              isMutedColorEnabled: parseProp(grp.column?.meta)?.isMutedColorEnabled === true,
                             })
                           "
                         >
@@ -430,7 +429,6 @@ async function openNewRecordHandler() {
                                 color: grp.color?.split(',')[+tagIndex] || '#ccc',
                                 getColor,
                                 isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
-                                isMutedColorEnabled: parseProp(grp.column?.meta)?.isMutedColorEnabled === true,
                               }),
                               'font-size': '14px',
                               'font-weight': 500,
@@ -460,7 +458,6 @@ async function openNewRecordHandler() {
                             color: grp.color || '#ccc',
                             getColor,
                             isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
-                            isMutedColorEnabled: parseProp(grp.column?.meta)?.isMutedColorEnabled === true,
                           })
                         "
                       >
@@ -472,7 +469,6 @@ async function openNewRecordHandler() {
                               color: grp.color || '#ccc',
                               getColor,
                               isColorCodeEnabled: parseProp(grp.column?.meta)?.isColorCodeEnabled !== false,
-                              isMutedColorEnabled: parseProp(grp.column?.meta)?.isMutedColorEnabled === true,
                             }),
                           }"
                         >

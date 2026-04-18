@@ -903,30 +903,6 @@ export const getAdaptiveTint = (
   return tinycolor({ h: hsv.h, s, v }).toHexString()
 }
 
-/**
- * Light-mode tint for select field option chips.
- * Produces a proportional tint so light→dark palette shades remain visually distinct.
- * Dark mode continues to use getAdaptiveTint directly.
- */
-export const getSelectOptionLightTint = (color: string) => {
-  const base = tinycolor(color)
-  const hsv = base.toHsv()
-
-  const isGray = hsv.s < 0.01
-
-  // Scale saturation proportionally — subtle but distinguishable tints
-  let s = isGray ? 0 : hsv.s * 0.15
-
-  // Near-white brightness, very slight depth for darker source colors
-  let v = 0.98 - hsv.v * 0.02
-
-  // Clamp to safe tint range
-  s = Math.max(0, Math.min(0.25, s))
-  v = Math.max(0.94, Math.min(0.99, v))
-
-  return tinycolor({ h: hsv.h, s, v }).toHexString()
-}
-
 export const getOppositeColorOfBackground = (
   background?: string,
   preferredText?: string,

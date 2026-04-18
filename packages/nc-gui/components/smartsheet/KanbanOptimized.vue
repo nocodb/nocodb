@@ -126,8 +126,6 @@ const isRequiredGroupingFieldColumn = computed(() => {
 
 const isColorCodeEnabled = computed(() => parseProp(groupingFieldColumn.value?.meta)?.isColorCodeEnabled !== false)
 
-const isMutedColorEnabled = computed(() => parseProp(groupingFieldColumn.value?.meta)?.isMutedColorEnabled === true)
-
 const {
   isRowColouringEnabled,
   getCellColorStyle: _getCellColorStyle,
@@ -1417,7 +1415,6 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                   isDark,
                                   getColor,
                                   isColorCodeEnabled,
-                                  isMutedColorEnabled,
                                 })
                               "
                               @dblclick="
@@ -1435,7 +1432,6 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                     isDark,
                                     getColor,
                                     isColorCodeEnabled,
-                                    isMutedColorEnabled,
                                   }),
                                 }"
                                 class="text-sm font-semibold"

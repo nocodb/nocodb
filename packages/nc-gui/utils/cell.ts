@@ -127,26 +127,22 @@ export const getSelectTypeFieldOptionBgColor = ({
   shade,
   getColor,
   isColorCodeEnabled = true,
-  isMutedColorEnabled = false,
 }: {
   color?: string
   isDark: boolean
   shade?: number
   getColor?: GetColorType
   isColorCodeEnabled?: boolean
-  isMutedColorEnabled?: boolean
 }) => {
   if (!isColorCodeEnabled && getColor) {
     return getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
   }
 
-  // Dark mode: always use tint
   if (isDark) {
     return getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
   }
 
-  // Light mode: solid bg (default) or muted tint (opt-in)
-  return isMutedColorEnabled ? getSelectOptionLightTint(color || '#e7e7e9') : color || '#e7e7e9'
+  return color || '#e7e7e9'
 }
 
 export const getDarkModeCompatibleBgColor = ({ color, isDark, shade }: { color?: string; isDark: boolean; shade?: number }) => {
@@ -158,19 +154,17 @@ export const getSelectTypeFieldOptionTextColor = ({
   isDark,
   getColor,
   isColorCodeEnabled = true,
-  isMutedColorEnabled = false,
 }: {
   color?: string
   isDark: boolean
   getColor: GetColorType
   isColorCodeEnabled?: boolean
-  isMutedColorEnabled?: boolean
 }) => {
   if (!isColorCodeEnabled) {
     return getColor('var(--nc-content-gray)')
   }
 
-  return getOppositeColorOfBackground(getSelectTypeFieldOptionBgColor({ color, isDark, isMutedColorEnabled }), color)
+  return getOppositeColorOfBackground(getSelectTypeFieldOptionBgColor({ color, isDark }), color)
 }
 
 export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmode'] => {

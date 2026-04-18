@@ -120,14 +120,12 @@ const getSelectOptions = (filter: FilterType) => {
         isDark: isDark.value,
         getColor,
         isColorCodeEnabled: parseProp(col?.meta)?.isColorCodeEnabled !== false,
-        isMutedColorEnabled: parseProp(col?.meta)?.isMutedColorEnabled === true,
       }),
       textColor: getSelectTypeFieldOptionTextColor({
         color: o.color,
         isDark: isDark.value,
         getColor,
         isColorCodeEnabled: parseProp(col?.meta)?.isColorCodeEnabled !== false,
-        isMutedColorEnabled: parseProp(col?.meta)?.isMutedColorEnabled === true,
       }),
     }))
     .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))

@@ -2092,7 +2092,6 @@
     "sqlOutput": "SQL Output",
     "addOption": "Add option",
     "colorCodeOptions": "Color-code options",
-    "mutedColorStyle": "Muted color style",
     "alphabetize": "Alphabetize",
     "interfaceColor": "Interface Color",
     "qrCodeValueColumn": "Field with QR code value",
@@ -2743,7 +2742,6 @@
     "goBackHome": "Go back home"
   },
   "tooltip": {
-    "mutedColorLightModeOnly": "Muted color style is only available in light mode",
     "scopeReadOnly": "View records, tables, fields, views, and comments. No modifications allowed.",
     "scopeReadWrite": "Create, read, update, and delete records and comments. Other resources are read-only.",
     "scopeFullAccess": "Full read and write access to all resources including tables, fields, views, webhooks, and users.",

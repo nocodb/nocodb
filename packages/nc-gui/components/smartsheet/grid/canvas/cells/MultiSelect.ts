@@ -25,7 +25,6 @@ export const MultiSelectCellRenderer: CellRenderer = {
     const extra = column.extra as ReturnType<typeof getSingleMultiselectColOptions>
     const optionsMap = extra?.optionsMap
     const isColorCodeEnabled = extra?.isColorCodeEnabled !== false
-    const isMutedColorEnabled = extra?.isMutedColorEnabled === true
     let count = 0
     let line = 1
     for (const option of selectedOptions) {
@@ -69,8 +68,6 @@ export const MultiSelectCellRenderer: CellRenderer = {
       const opBgColor = isColorCodeEnabled
         ? isDark
           ? getAdaptiveTint(opColor!, { isDarkMode: isDark, shade: -10 })
-          : isMutedColorEnabled
-          ? getSelectOptionLightTint(opColor!)
           : opColor!
         : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
       const opTextColor = isColorCodeEnabled

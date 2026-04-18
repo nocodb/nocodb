@@ -105,3 +105,4 @@ export * from '~/lib/v3';
 export * from '~/lib/Document';
 export * from '~/lib/DocumentComment';
 export * from '~/lib/docs';
+export * from '~/lib/accountNameValidation';

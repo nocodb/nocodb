@@ -97,7 +97,6 @@ async function peekJsonType(
  */
 function wrapAsArray(readStream: Readable): Readable {
   let sentPrefix = false;
-  let sourceEnded = false;
 
   const wrapper = new Transform({
     transform(chunk, _encoding, callback) {
@@ -108,7 +107,6 @@ function wrapAsArray(readStream: Readable): Readable {
       callback(null, chunk);
     },
     flush(callback) {
-      sourceEnded = true;
       this.push(Buffer.from(']'));
       callback();
     },

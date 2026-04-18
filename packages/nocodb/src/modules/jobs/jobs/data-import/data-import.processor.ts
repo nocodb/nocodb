@@ -84,8 +84,8 @@ export class DataImportProcessor {
         await generateAuditV1Payload(AuditV1OperationTypes.DATA_IMPORT, {
           context,
           details: {
-            file_name: attachment.title || 'csv-import',
-            import_type: 'csv',
+            file_name: attachment.title || `${importType}-import`,
+            import_type: importType,
             import_data_only: options.importDataOnly,
             table_name: tableName,
             columns_count: columns.length,
@@ -95,7 +95,7 @@ export class DataImportProcessor {
         }),
       );
 
-      logBasic('Starting CSV import...');
+      logBasic(`Starting ${importType.toUpperCase()} import...`);
 
       if (!options.importDataOnly) {
         logBasic(`Creating table "${tableName}"...`);
@@ -215,7 +215,7 @@ export class DataImportProcessor {
 
       elapsedTime(
         hrTime,
-        `CSV import completed for table ${tableId}`,
+        `${importType.toUpperCase()} import completed for table ${tableId}`,
         'fileImport',
       );
 
@@ -232,6 +232,25 @@ export class DataImportProcessor {
         `Import completed: ${insertedCount} rows inserted, ${failedCount} failed.`,
       );
 
+      return {
+        tableId,
+        tableName: finalTableName,
+        rowsInserted: insertedCount,
+        rowsFailed: failedCount,
+        errors: errors.slice(0, 100),
+      };
+    } catch (e) {
+      this.logger.error(`${importType.toUpperCase()} import failed: ${e.message}`, e.stack);
+      logBasic('Import failed due to an internal error.');
+
+      throw {
+        data: {
+          tableId,
+          tableName: finalTableName,
+        },
+        message: e.message || 'Import failed. Please check the file format and try again.',
+      };
+    } finally {
       // Cleanup temp file from storage
       try {
         if (attachment.path || attachment.url) {
@@ -242,25 +261,6 @@ export class DataImportProcessor {
       } catch (e) {
         this.logger.warn(`Failed to cleanup temp file: ${e.message}`);
       }
-
-      return {
-        tableId,
-        tableName: finalTableName,
-        rowsInserted: insertedCount,
-        rowsFailed: failedCount,
-        errors: errors.slice(0, 100),
-      };
-    } catch (e) {
-      this.logger.error(`CSV import failed: ${e.message}`, e.stack);
-      logBasic('Import failed due to an internal error.');
-
-      throw {
-        data: {
-          tableId,
-          tableName: finalTableName,
-        },
-        message: e.message || 'Import failed. Please check the file format and try again.',
-      };
     }
   }
 

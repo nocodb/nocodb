@@ -18,6 +18,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import {
   BaseUser,
   CustomUrl,
@@ -282,6 +283,9 @@ export class ViewsService {
       param.view.lock_type === ViewLockType.Personal &&
       param.view.lock_type !== oldView.lock_type
     ) {
+      // Payment-gated on unlicensed on-prem / non-Plus cloud.
+      // EE override throws featureNotSupported; CE stub is a no-op.
+      await assertPersonalViewAllowed(context, param.view.lock_type);
       // Prevent changing the last collaborative grid view to personal
       if (oldView.type === ViewTypes.GRID) {
         const views = await View.list(context, oldView.fk_model_id, ncMeta);

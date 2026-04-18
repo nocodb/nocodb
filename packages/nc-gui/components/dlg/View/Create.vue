@@ -102,7 +102,9 @@ const workspaceStore = useWorkspace()
 const baseStore = useBase()
 const { baseId: activeBaseId } = storeToRefs(baseStore)
 
-const { blockCalendarRange, getPlanTitle, showEEFeatures } = useEeConfig()
+const { blockCalendarRange, getPlanTitle, showEEFeatures, getFeature } = useEeConfig()
+
+const isPersonalViewFeatureEnabled = computed(() => getFeature(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS))
 
 const { isUIAllowed } = useRoles()
 
@@ -1008,17 +1010,53 @@ watch(activeBaseId, () => {
               v-model:value="form.lock_type"
               class="nc-create-view-lock-radio-group !flex !flex-nowrap items-center gap-x-5"
             >
-              <a-radio
-                v-for="option in lockTypeOptions"
-                :key="option.value"
-                :value="option.value"
-                :data-testid="`nc-create-view-lock-type-${option.value}`"
-              >
-                <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
-                  <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
-                  {{ $t(viewLockIcons[option.value].title) }}
-                </span>
-              </a-radio>
+              <template v-for="option in lockTypeOptions" :key="option.value">
+                <!-- Personal is payment-gated: on unlicensed on-prem / non-Plus cloud,
+                     the radio shows an upgrade badge and clicks open the upgrade
+                     modal instead of setting lock_type. Mirrors the View mode
+                     submenu pattern in ViewActionMenu.vue. -->
+                <PaymentUpgradeBadgeProvider
+                  v-if="option.value === ViewLockType.Personal && isEeUI && showEEFeatures"
+                  :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+                >
+                  <template #default="{ click }">
+                    <a-radio
+                      :value="option.value"
+                      :data-testid="`nc-create-view-lock-type-${option.value}`"
+                      @click.capture="
+                        (e) => {
+                          if (!isPersonalViewFeatureEnabled) {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS)
+                          }
+                        }
+                      "
+                    >
+                      <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
+                        <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
+                        {{ $t(viewLockIcons[option.value].title) }}
+                        <!-- show-as-lock renders a compact lock icon when gated
+                             and auto-hides when the feature is enabled -->
+                        <PaymentUpgradeBadge
+                          :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+                          show-as-lock
+                        />
+                      </span>
+                    </a-radio>
+                  </template>
+                </PaymentUpgradeBadgeProvider>
+                <a-radio
+                  v-else
+                  :value="option.value"
+                  :data-testid="`nc-create-view-lock-type-${option.value}`"
+                >
+                  <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
+                    <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
+                    {{ $t(viewLockIcons[option.value].title) }}
+                  </span>
+                </a-radio>
+              </template>
             </a-radio-group>
             <div class="text-[12px] text-nc-content-gray-subtle2 leading-[16px]">
               {{ $t(viewLockIcons[form.lock_type].subtitle) }}

@@ -15,6 +15,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
+import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { Model, User, View } from '~/models';
 import TimelineView from '~/models/TimelineView';
 import NocoCache from '~/cache/NocoCache';
@@ -51,6 +52,8 @@ export class TimelinesService {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
+
+    await assertPersonalViewAllowed(context, (param.timeline as any).lock_type);
 
     const model = await Model.get(context, param.tableId, ncMeta);
 

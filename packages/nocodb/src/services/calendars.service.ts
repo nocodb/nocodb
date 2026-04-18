@@ -13,6 +13,7 @@ import {
 } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
+import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { NcError } from '~/helpers/catchError';
 import { CalendarView, Model, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
@@ -47,6 +48,8 @@ export class CalendarsService {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
+
+    await assertPersonalViewAllowed(context, (param.calendar as any).lock_type);
 
     const model = await Model.get(context, param.tableId, ncMeta);
 

@@ -932,5 +932,213 @@ export const viewEditorPermissionsTests = function () {
         });
       }
     });
+
+    // ----------------------------------------------------------------
+    // Feature-gated: FEATURE_PERSONAL_VIEWS = false
+    // ----------------------------------------------------------------
+    // When the workspace plan does not include personal views (e.g.
+    // unlicensed on-prem / Free cloud), every create-with-Personal and
+    // update-to-Personal path must return 402 featureNotSupported,
+    // regardless of role. Collaborative + Locked flows stay allowed.
+    describe('Personal view feature gate (FEATURE_PERSONAL_VIEWS disabled)', () => {
+      let gatedFeatureMock: any;
+
+      beforeEach(async () => {
+        // The outer beforeEach already restored + set
+        // FEATURE_PERSONAL_VIEWS: true; this inner override flips it to
+        // false for the feature-gated matrix below.
+        gatedFeatureMock = await overridePlan({
+          workspace_id: workspaceId,
+          features: {
+            [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: false,
+            [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: true,
+            [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: true,
+            [PlanFeatureTypes.FEATURE_ROW_COLOUR]: true,
+            [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: true,
+            [PlanFeatureTypes.FEATURE_LIST_VIEW]: true,
+          },
+          limits: {
+            [PlanLimitTypes.LIMIT_EDITOR]: -1,
+            [PlanLimitTypes.LIMIT_COMMENTER]: -1,
+          },
+        });
+      });
+
+      afterEach(async () => {
+        await gatedFeatureMock?.restore?.();
+      });
+
+      const create = (token: string, body: Record<string, unknown>) =>
+        request(context.app)
+          .post(INTERNAL_API_BASE)
+          .query({ operation: 'gridViewCreate', tableId })
+          .set('xc-auth', token)
+          .send(body);
+
+      it('editor cannot create a view with lock_type=Personal', async () => {
+        const res = await create(editorToken, {
+          title: 'Gated_PersonalCreate_ed',
+          lock_type: ViewLockType.Personal,
+        });
+        expect(res.status).to.eq(403);
+        expect(res.body?.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
+      });
+
+      it('creator cannot create a view with lock_type=Personal either (role-agnostic)', async () => {
+        const res = await create(creatorToken, {
+          title: 'Gated_PersonalCreate_cr',
+          lock_type: ViewLockType.Personal,
+        });
+        expect(res.status).to.eq(403);
+        expect(res.body?.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
+      });
+
+      it('creating a collaborative view is still allowed', async () => {
+        const res = await create(editorToken, { title: 'Gated_CollabCreate' });
+        expect(res.status).to.eq(200);
+      });
+
+      it('creator can still create a locked view (not payment-gated)', async () => {
+        const collab = await create(creatorToken, { title: 'Gated_LockedSeed' });
+        expect(collab.status).to.eq(200);
+        const locked = await updateView(creatorToken, collab.body.id, {
+          lock_type: ViewLockType.Locked,
+        });
+        expect(locked.status).to.eq(200);
+      });
+
+      it('editor cannot flip an existing collab view to Personal', async () => {
+        const collab = await create(editorToken, { title: 'Gated_FlipSource_ed' });
+        expect(collab.status).to.eq(200);
+        const res = await updateView(editorToken, collab.body.id, {
+          lock_type: ViewLockType.Personal,
+        });
+        expect(res.status).to.eq(403);
+        expect(res.body?.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
+      });
+
+      it('creator cannot flip an existing collab view to Personal', async () => {
+        const collab = await create(creatorToken, { title: 'Gated_FlipSource_cr' });
+        expect(collab.status).to.eq(200);
+        const res = await updateView(creatorToken, collab.body.id, {
+          lock_type: ViewLockType.Personal,
+        });
+        expect(res.status).to.eq(403);
+        expect(res.body?.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
+      });
+
+      // Type-specific creates: every view type's create endpoint must
+      // reject lock_type=Personal when the feature is disabled.
+      const byType: Array<[string, string, string]> = [
+        ['grid', 'gridViewCreate', 'grid'],
+        ['form', 'formViewCreate', 'body'],
+        ['gallery', 'galleryViewCreate', 'gallery'],
+        ['kanban', 'kanbanViewCreate', 'kanban'],
+        ['calendar', 'calendarViewCreate', 'calendar'],
+        ['map', 'mapViewCreate', 'map'],
+        ['timeline', 'timelineViewCreate', 'timeline'],
+        ['list', 'listViewCreate', 'list'],
+      ];
+
+      for (const [label, createOp] of byType) {
+        it(`${label}ViewCreate with lock_type=Personal returns 403 ERR_FEATURE_NOT_SUPPORTED`, async () => {
+          const res = await request(context.app)
+            .post(INTERNAL_API_BASE)
+            .query({ operation: createOp, tableId })
+            .set('xc-auth', creatorToken)
+            .send({
+              title: `Gated_${label}_personal`,
+              lock_type: ViewLockType.Personal,
+            });
+          expect(res.status).to.eq(403);
+          expect(res.body?.error).to.eq('ERR_FEATURE_NOT_SUPPORTED');
+        });
+      }
+    });
+
+    // ----------------------------------------------------------------
+    // Positive path: FEATURE_PERSONAL_VIEWS = true (paid / licensed)
+    // ----------------------------------------------------------------
+    // Mirrors the gated block above but with the feature enabled —
+    // creating/updating to Personal must return 200. This pins the
+    // paired behaviour: the gate ONLY fires when the feature is off.
+    describe('Personal view allowed when FEATURE_PERSONAL_VIEWS enabled', () => {
+      let enabledFeatureMock: any;
+
+      beforeEach(async () => {
+        enabledFeatureMock = await overridePlan({
+          workspace_id: workspaceId,
+          features: {
+            [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: true,
+            [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: true,
+            [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: true,
+            [PlanFeatureTypes.FEATURE_ROW_COLOUR]: true,
+            [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: true,
+            [PlanFeatureTypes.FEATURE_LIST_VIEW]: true,
+          },
+          limits: {
+            [PlanLimitTypes.LIMIT_EDITOR]: -1,
+            [PlanLimitTypes.LIMIT_COMMENTER]: -1,
+          },
+        });
+      });
+
+      afterEach(async () => {
+        await enabledFeatureMock?.restore?.();
+      });
+
+      it('editor can create a view with lock_type=Personal', async () => {
+        const res = await request(context.app)
+          .post(INTERNAL_API_BASE)
+          .query({ operation: 'gridViewCreate', tableId })
+          .set('xc-auth', editorToken)
+          .send({
+            title: 'Enabled_PersonalCreate_ed',
+            lock_type: ViewLockType.Personal,
+          });
+        expect(res.status).to.eq(200);
+        expect(res.body?.lock_type).to.eq(ViewLockType.Personal);
+      });
+
+      it('editor can flip an existing collab view to Personal', async () => {
+        const collab = await request(context.app)
+          .post(INTERNAL_API_BASE)
+          .query({ operation: 'gridViewCreate', tableId })
+          .set('xc-auth', editorToken)
+          .send({ title: 'Enabled_FlipSource_ed' });
+        expect(collab.status).to.eq(200);
+        const res = await updateView(editorToken, collab.body.id, {
+          lock_type: ViewLockType.Personal,
+        });
+        expect(res.status).to.eq(200);
+      });
+
+      // Every view type's create endpoint must accept lock_type=Personal
+      // when the feature is available.
+      const byTypeEnabled: Array<[string, string]> = [
+        ['grid', 'gridViewCreate'],
+        ['form', 'formViewCreate'],
+        ['gallery', 'galleryViewCreate'],
+        ['kanban', 'kanbanViewCreate'],
+        ['calendar', 'calendarViewCreate'],
+        ['map', 'mapViewCreate'],
+        ['timeline', 'timelineViewCreate'],
+        ['list', 'listViewCreate'],
+      ];
+
+      for (const [label, createOp] of byTypeEnabled) {
+        it(`${label}ViewCreate with lock_type=Personal returns 200`, async () => {
+          const res = await request(context.app)
+            .post(INTERNAL_API_BASE)
+            .query({ operation: createOp, tableId })
+            .set('xc-auth', creatorToken)
+            .send({
+              title: `Enabled_${label}_personal`,
+              lock_type: ViewLockType.Personal,
+            });
+          expect(res.status, `status ${res.status}: ${JSON.stringify(res.body)}`).to.eq(200);
+        });
+      }
+    });
   });
 };

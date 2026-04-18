@@ -9,6 +9,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { checkForFeature } from '~/helpers/paymentHelpers';
+import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { ListView, Model, Source, User, View } from '~/models';
@@ -47,6 +48,8 @@ export class ListsService {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
+
+    await assertPersonalViewAllowed(context, (param.list as any).lock_type);
 
     const model = await Model.get(context, param.tableId);
 

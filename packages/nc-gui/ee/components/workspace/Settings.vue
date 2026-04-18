@@ -492,12 +492,16 @@ async function toggleForce2fa(enabled: boolean) {
       <div v-if="hasWorkspaceManagePermission" class="nc-settings-item-card-wrapper mt-10">
         <div class="nc-settings-item-heading">{{ $t('labels.security') }}</div>
 
-        <div class="nc-settings-item-card flex flex-col">
+        <div
+          class="nc-settings-item-card flex flex-col"
+          :class="{ 'cursor-pointer': blockForce2fa }"
+          @click="blockForce2fa && showUpgradeToUseForce2fa()"
+        >
           <div class="nc-settings-item">
             <div class="nc-settings-item-content">
               <div class="nc-settings-item-title flex items-center gap-2">
                 {{ $t('labels.requireTwoFactor') }}
-                <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_FORCE_2FA" />
+                <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_FORCE_2FA" remove-click />
               </div>
               <div class="nc-settings-item-subtitle">
                 {{ $t('labels.requireTwoFactorDescription') }}

@@ -6,6 +6,7 @@ import {
   NON_SEAT_ROLES,
   OnPremHigherPlan,
   PlanFeatureTypes,
+  PlanFeatureTypesToPlanTitles,
   PlanLimitTypes,
   PlanTitles,
   getUpgradeMessage,
@@ -1990,12 +1991,24 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseMfa = () => {
     if (!blockMfa.value) return
-    handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_MFA })
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseMfa'),
+      content: t('upgrade.upgradeToUseMfaSubtitle', {
+        plan: getPlanTitle(PlanFeatureTypesToPlanTitles[PlanFeatureTypes.FEATURE_MFA] ?? PlanTitles.ENTERPRISE),
+      }),
+      limitOrFeature: PlanFeatureTypes.FEATURE_MFA,
+    })
   }
 
   const showUpgradeToUseForce2fa = () => {
     if (!blockForce2fa.value) return
-    handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_FORCE_2FA })
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToRequireTwoFactor'),
+      content: t('upgrade.upgradeToRequireTwoFactorSubtitle', {
+        plan: getPlanTitle(PlanFeatureTypesToPlanTitles[PlanFeatureTypes.FEATURE_FORCE_2FA] ?? PlanTitles.ENTERPRISE),
+      }),
+      limitOrFeature: PlanFeatureTypes.FEATURE_FORCE_2FA,
+    })
   }
 
   const showUpgradeToUseSnapshots = () => {

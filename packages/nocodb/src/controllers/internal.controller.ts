@@ -26,6 +26,7 @@ import {
 } from '~/utils/internal-type';
 import {
   Filter,
+  FormViewColumn,
   GridViewColumn,
   ListViewColumn,
   Sort,
@@ -89,6 +90,7 @@ export class InternalController {
       'timelineViewUpdate',
       'timelineColumnUpdate',
       'listColumnUpdate',
+      'formColumnUpdate',
       'viewRowColorConditionAdd',
       'viewRowColorConditionUpdate',
       'viewRowColorConditionDelete',
@@ -145,6 +147,18 @@ export class InternalController {
         );
         if (listCol?.fk_view_id) {
           view = await View.get(context, listCol.fk_view_id);
+        }
+      } else if (req.query.formColumnId) {
+        // formColumnUpdate handler reads `req.query.formColumnId` (note:
+        // not the more generic `formViewColumnId` the outer extract-ids
+        // middleware recognises). Handle it here so VIEW_KEY is set
+        // before the editor-personal gate runs.
+        const formCol = await FormViewColumn.get(
+          context,
+          req.query.formColumnId as string,
+        );
+        if (formCol?.fk_view_id) {
+          view = await View.get(context, formCol.fk_view_id);
         }
       }
 

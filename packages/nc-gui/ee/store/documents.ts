@@ -265,7 +265,9 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
 
       // Scroll the newly created document into view in the sidebar
       setTimeout(() => {
-        const newDocDom = document.querySelector(`[data-testid="nc-docs-sidebar-pages-list"] [data-id="${created.id}"]`)
+        const newDocDom =
+          document.querySelector(`[data-testid="nc-docs-sidebar-pages-list"] [data-id="${created.id}"]`) ||
+          document.querySelector(`.nc-data-menu [data-id="${created.id}"]`)
         if (newDocDom) {
           newDocDom.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
         }

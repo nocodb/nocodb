@@ -316,6 +316,12 @@ export const extractYoutubeVideoId = (url: string) => {
  * - All output is lowercased.
  * - The final slug is created by joining all parts with a dash (`-`).
  *
+ * TODO: Ideally we'd strip special chars (`,`, `!`, `?`, parens, etc.) instead of
+ * percent-encoding them — produces nicer human-readable URLs (e.g. "hello-world"
+ * instead of "hello%2C-world%21"). Held back because `\w` in JS doesn't match
+ * non-ASCII letters, so stripping would break Unicode titles (Chinese, Japanese,
+ * Arabic, etc.). Revisit with a `\p{L}`/`u`-flag approach to support both.
+ *
  * @example
  * ```ts
  * toReadableUrlSlug(['Feature   Table', 'Default View']);

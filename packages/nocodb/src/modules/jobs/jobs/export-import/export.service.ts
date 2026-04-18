@@ -83,6 +83,10 @@ export class ExportService {
     return serializedScripts;
   }
 
+  async serializeDocuments(_context: NcContext) {
+    return [];
+  }
+
   async serializeWorkflows(_context: NcContext, _param: any, _req: NcRequest) {
     return [];
   }

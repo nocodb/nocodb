@@ -6,11 +6,13 @@ interface Props {
   doc: DocumentType
   depth?: number
   hasChildren?: boolean
+  indentStep?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   depth: 0,
   hasChildren: false,
+  indentStep: 8,
 })
 
 const { $e } = useNuxtApp()
@@ -68,7 +70,7 @@ const { isRtl } = useRtl()
 const MAX_INDENT_DEPTH = 8
 
 const indentStyle = computed(() => {
-  const padding = `${8 + Math.min(props.depth, MAX_INDENT_DEPTH) * 8}px`
+  const padding = `${8 + Math.min(props.depth, MAX_INDENT_DEPTH) * props.indentStep}px`
   return isRtl.value ? { paddingRight: padding } : { paddingLeft: padding }
 })
 

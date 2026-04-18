@@ -11,22 +11,21 @@ export class DocsSidebarPage extends BasePage {
   }
 
   /**
-   * Ensures the MiniSidebarV2 docs tab is active before interacting with the docs sidebar.
-   * No-op if V2 is not present or docs tab is already active.
+   * Ensures the data tab is active (documents now live in the data tab).
    */
-  private async ensureDocsTab(): Promise<void> {
-    await this.sidebar.dashboard.leftSidebar.sidebarNav.navigateToDocsTab();
+  private async ensureDataTab(): Promise<void> {
+    await this.sidebar.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
   }
 
   /**
-   * Get the documents list container in the sidebar.
-   * If isPublic, scopes to the public docs sidebar; otherwise scopes to the main sidebar.
+   * Get the sidebar container where document nodes are rendered.
+   * Documents are now in the data sidebar alongside tables and dashboards.
    */
   get({ baseTitle, isPublic }: { baseTitle: string; isPublic?: boolean }) {
     if (isPublic) {
       return this.rootPage.getByTestId(`docs-sidebar-${baseTitle}`);
     }
-    return this.sidebar.get().getByTestId('nc-docs-sidebar-pages-list');
+    return this.sidebar.get();
   }
 
   /**
@@ -46,7 +45,7 @@ export class DocsSidebarPage extends BasePage {
     isVisible: boolean;
     isPublic?: boolean;
   }) {
-    await this.ensureDocsTab();
+    await this.ensureDataTab();
     if (isVisible) {
       await expect(this.get({ baseTitle, isPublic })).toBeVisible();
     } else {
@@ -55,12 +54,17 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async createDocument({ baseTitle, title, content }: { baseTitle: string; title?: string; content?: string }) {
-    await this.ensureDocsTab();
+    await this.ensureDataTab();
 
+    // Click the "Create New" dropdown button
     const createNewBtn = this.rootPage.getByTestId('nc-home-create-new-btn');
+    await createNewBtn.click();
+
+    // Select "Document" from the dropdown
+    const documentOption = this.rootPage.getByTestId('create-new-document');
 
     await this.waitForResponse({
-      uiAction: () => createNewBtn.click(),
+      uiAction: () => documentOption.click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `operation=documentCreate`,
     });
@@ -88,7 +92,7 @@ export class DocsSidebarPage extends BasePage {
     isPublic?: boolean;
     emoji?: string;
   }) {
-    await this.ensureDocsTab();
+    await this.ensureDataTab();
     await expect(this.documentNodeLocator({ baseTitle, title, isPublic })).toBeVisible();
   }
 
@@ -101,12 +105,12 @@ export class DocsSidebarPage extends BasePage {
     title: string;
     isPublic?: boolean;
   }) {
-    await this.ensureDocsTab();
+    await this.ensureDataTab();
     await expect(this.documentNodeLocator({ baseTitle, title, isPublic })).toBeHidden();
   }
 
   async openDocument({ baseTitle, title }: { baseTitle: string; title: string }) {
-    await this.ensureDocsTab();
+    await this.ensureDataTab();
 
     const node = this.documentNodeLocator({ baseTitle, title });
 
@@ -120,7 +124,7 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async deleteDocument({ baseTitle, title }: { baseTitle: string; title: string }) {
-    await this.ensureDocsTab();
+    await this.ensureDataTab();
 
     const node = this.documentNodeLocator({ baseTitle, title });
 
@@ -140,7 +144,6 @@ export class DocsSidebarPage extends BasePage {
 
   /**
    * Get the title of the currently active (selected) document in the sidebar.
-   * Active documents have the `.active` class on the nc-document-item wrapper.
    */
   async getTitleOfOpenedDocument({
     baseTitle,
@@ -149,7 +152,7 @@ export class DocsSidebarPage extends BasePage {
     baseTitle: string;
     isPublic?: boolean;
   }): Promise<string | null> {
-    await this.ensureDocsTab();
+    await this.ensureDataTab();
 
     const activeNode = this.get({ baseTitle, isPublic }).locator('.nc-document-item.active');
     if (!(await activeNode.isVisible().catch(() => false))) {
@@ -160,7 +163,7 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async createSubDocument({ baseTitle, parentTitle }: { baseTitle: string; parentTitle: string }) {
-    await this.ensureDocsTab();
+    await this.ensureDataTab();
 
     const node = this.documentNodeLocator({ baseTitle, title: parentTitle });
 
@@ -180,7 +183,7 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async duplicateDocument({ baseTitle, title }: { baseTitle: string; title: string }) {
-    await this.ensureDocsTab();
+    await this.ensureDataTab();
 
     const node = this.documentNodeLocator({ baseTitle, title });
 
@@ -197,7 +200,7 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async verifyCreateDocumentButtonVisibility({ baseTitle, isVisible }: { baseTitle: string; isVisible: boolean }) {
-    await this.ensureDocsTab();
+    await this.ensureDataTab();
     if (isVisible) {
       await expect(this.rootPage.getByTestId('nc-home-create-new-btn')).toBeVisible();
     } else {

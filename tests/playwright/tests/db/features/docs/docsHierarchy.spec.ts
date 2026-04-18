@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test';
-import { ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../../../pages/Dashboard';
 import setup, { unsetup } from '../../../../setup';
 import { isEE } from '../../../../setup/db';
@@ -12,7 +11,6 @@ test.describe('Docs — Sub-documents & Hierarchy', () => {
   test.beforeEach(async ({ page }) => {
     context = await setup({
       page,
-      baseType: ProjectTypes.DOCUMENTATION,
       isEmptyProject: true,
     });
     dashboard = new DashboardPage(page, context.base);

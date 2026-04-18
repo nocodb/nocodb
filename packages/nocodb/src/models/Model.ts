@@ -94,6 +94,11 @@ export default class Model implements TableType {
 
   uuid: string;
 
+  // Document-only fields — undefined on non-document model types
+  updated_by?: string;
+  has_children?: BoolType;
+  doc_version?: number;
+
   date_dependency?: DateDependencyType | null;
 
   columns?: Column[];

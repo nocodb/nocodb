@@ -36,8 +36,6 @@ const isDataTab = computed(() => activeSidebarTab.value === 'data')
 
 const isWorkflowsTab = computed(() => activeSidebarTab.value === 'workflows')
 
-const isDocsTab = computed(() => activeSidebarTab.value === 'docs')
-
 const isVisibleCreateNew = ref(false)
 
 const baseCreateDlg = ref(false)
@@ -243,36 +241,9 @@ const hasDocumentCreateAccess = computed(() => {
               </NcMenuItem>
             </NcTooltip>
             <NcDivider />
-            <NcTooltip
-              :title="
-                !isDocsTab
-                  ? $t('tooltip.switchToDocsTab', { type: $t('objects.document').toLowerCase() })
-                  : !isBaseHomePage
-                  ? $t('tooltip.navigateToBaseToCreateDocument')
-                  : !hasDocumentCreateAccess
-                  ? $t('tooltip.youDontHaveAccessToCreateNewDocument')
-                  : ''
-              "
-              :disabled="isDocsTab && isBaseHomePage && hasDocumentCreateAccess"
-              placement="right"
-            >
-              <NcMenuItem
-                data-testid="mini-sidebar--document-create"
-                :disabled="!isDocsTab || !isBaseHomePage || !hasDocumentCreateAccess"
-                inner-class="w-full"
-                @click="createDocument(openedProject?.id)"
-              >
-                <GeneralIcon icon="ncFileText" />
-                <div class="flex-1">
-                  {{ $t('objects.document') }}
-                </div>
-
-                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
-              </NcMenuItem>
-            </NcTooltip>
-            <NcDivider />
           </template>
 
+          <!-- Data tab items (reads bottom-up: Table → Document → Dashboard → View) -->
           <NcTooltip
             :title="
               !isDataTab
@@ -408,6 +379,34 @@ const hasDocumentCreateAccess = computed(() => {
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
+
+            <NcTooltip
+              :title="
+                !isDataTab
+                  ? $t('tooltip.switchToDataTab', { type: $t('objects.document').toLowerCase() })
+                  : !isBaseHomePage
+                  ? $t('tooltip.navigateToBaseToCreateDocument')
+                  : !hasDocumentCreateAccess
+                  ? $t('tooltip.youDontHaveAccessToCreateNewDocument')
+                  : ''
+              "
+              :disabled="isDataTab && isBaseHomePage && hasDocumentCreateAccess"
+              placement="right"
+            >
+              <NcMenuItem
+                data-testid="mini-sidebar--document-create"
+                :disabled="!isDataTab || !isBaseHomePage || !hasDocumentCreateAccess"
+                inner-class="w-full"
+                @click="createDocument(openedProject?.id)"
+              >
+                <GeneralIcon icon="ncFileText" />
+                <div class="flex-1">
+                  {{ $t('objects.document') }}
+                </div>
+
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+              </NcMenuItem>
+            </NcTooltip>
           </template>
 
           <NcTooltip
@@ -432,6 +431,7 @@ const hasDocumentCreateAccess = computed(() => {
               {{ $t('objects.table') }}
             </NcMenuItem>
           </NcTooltip>
+
           <NcMenuItem v-if="hasBaseCreateAccess" data-testid="mini-sidebar-base-create" @click="baseCreateDlg = true">
             <GeneralIcon icon="ncBaseOutline" class="h-4 w-4" />
             {{ $t('objects.project') }}

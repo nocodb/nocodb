@@ -112,7 +112,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
-  type SidebarTab = 'data' | 'docs' | 'workflows' | 'agents' | 'settings'
+  type SidebarTab = 'data' | 'workflows' | 'agents' | 'settings'
 
   const activeSidebarTab = ref<SidebarTab>('data')
 
@@ -127,10 +127,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     if (name.startsWith('index-typeOrId-baseId-')) {
       if (name.startsWith('index-typeOrId-baseId-index-settings')) return 'settings'
 
-      if (name.startsWith('index-typeOrId-baseId-index-docs')) {
-        return 'docs'
-      }
-
       if (
         name.startsWith('index-typeOrId-baseId-index-workflows') ||
         name.startsWith('index-typeOrId-baseId-index-automation-') ||
@@ -140,6 +136,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
         return 'workflows'
       }
 
+      // All other routes resolve to data tab (table, dashboard, document, etc.)
       return 'data'
     }
 

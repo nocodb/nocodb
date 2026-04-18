@@ -29,7 +29,6 @@ export type SettingsMenuItem = BaseSettingsMenuItem | WsSettingsMenuItem;
  */
 type MiniSidebarV2TabType =
   | 'data'
-  | 'docs'
   | 'workflows'
   | 'chat'
   | 'notification'
@@ -109,14 +108,11 @@ export class SidebarNavPage extends BasePage {
   }
 
   /**
-   * Navigates to the Documents section via MiniSidebarV2.
-   * Falls back silently if V2 is not present.
+   * Navigates to the Data tab (documents now live alongside tables/dashboards).
+   * @deprecated Docs tab removed — delegates to navigateToDataTab().
    */
   async navigateToDocsTab(): Promise<void> {
-    if (await this.isMiniSidebarV2Visible()) {
-      await this.clickMiniSidebarV2Tab('docs');
-      await this.rootPage.waitForLoadState('networkidle');
-    }
+    await this.navigateToDataTab();
   }
 
   /**

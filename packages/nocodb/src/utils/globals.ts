@@ -127,6 +127,7 @@ export enum MetaTable {
   VIEW_SECTIONS = 'nc_view_sections',
   CHAT_SESSIONS = 'nc_chat_sessions',
   CHAT_MESSAGES = 'nc_chat_messages',
+  /** @deprecated Documents now live in nc_models_v2 (type='document'). Kept for legacy data cleanup. */
   DOCS = 'nc_docs_v2',
   DOC_CONTENT = 'nc_doc_content_v2',
   API_TOKEN_SCOPES = 'nc_api_token_scopes',

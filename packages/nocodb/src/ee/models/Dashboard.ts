@@ -138,26 +138,29 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       'description',
       'base_id',
       'meta',
+      'order',
       'created_by',
       'owned_by',
     ]);
 
-    // get order value
-    const sources = (await Source.list(context, { baseId: context.base_id }))
-      .filter((c) => c.isMeta())
-      .map((c) => c.id)
-      .filter(Boolean);
+    // Preserve order if provided; otherwise calculate next order
+    if (insertObj.order === undefined || insertObj.order === null) {
+      const sources = (await Source.list(context, { baseId: context.base_id }))
+        .filter((c) => c.isMeta())
+        .map((c) => c.id)
+        .filter(Boolean);
 
-    insertObj.order = await ncMeta.metaGetNextOrder(
-      MetaTable.MODELS,
-      {
-        base_id: context.base_id,
-        fk_workspace_id: context.workspace_id,
-      },
-      {
-        _or: [{ source_id: { in: sources } }, { source_id: { eq: null } }],
-      },
-    );
+      insertObj.order = await ncMeta.metaGetNextOrder(
+        MetaTable.MODELS,
+        {
+          base_id: context.base_id,
+          fk_workspace_id: context.workspace_id,
+        },
+        {
+          _or: [{ source_id: { in: sources } }, { source_id: { eq: null } }],
+        },
+      );
+    }
 
     if (!insertObj.meta) {
       insertObj.meta = {};

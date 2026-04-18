@@ -31,7 +31,9 @@ const isPhysicalCol = (col: Column) => {
 };
 
 const isMetadataOnly = (modelType: ModelTypes) => {
-  return [ModelTypes.DASHBOARD, ModelTypes.VIEW].includes(modelType);
+  return [ModelTypes.DASHBOARD, ModelTypes.VIEW, ModelTypes.DOCUMENT].includes(
+    modelType,
+  );
 };
 
 const serializableMetaTables = BaseRelatedMetaTables.filter(
@@ -51,6 +53,7 @@ const tablePrimaryKeys: Record<string, string | string[]> = {
   [MetaTable.CALENDAR_VIEW]: 'fk_view_id',
   [MetaTable.MAP_VIEW]: 'fk_view_id',
   [MetaTable.MODEL_STAT]: ['fk_workspace_id', 'base_id', 'fk_model_id'],
+  [MetaTable.DOC_CONTENT]: ['base_id', 'fk_doc_id'],
   // Default to 'id' for all other tables
 };
 
@@ -127,6 +130,9 @@ const orderedSerializableMetaTables = [
   MetaTable.SYNC_CONFIGS,
   MetaTable.SYNC_MAPPINGS,
   MetaTable.SYNC_LOGS,
+
+  // Document content (satellite table — metadata is in MODELS)
+  MetaTable.DOC_CONTENT,
 
   // Scripts and workflows
   MetaTable.AUTOMATIONS,

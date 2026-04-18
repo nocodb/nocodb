@@ -265,6 +265,14 @@ const onClick = () => {
   }
 }
 
+.nc-tooltip-scrollable {
+  .ant-tooltip-inner {
+    max-height: 60vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
 .nc-tooltip-arrow-hidden {
   .ant-tooltip-arrow {
     @apply hidden;

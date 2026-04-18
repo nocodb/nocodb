@@ -322,7 +322,10 @@ const onClick = (e: Event) => {
       </NcTooltip>
     </div>
 
-    <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
+    <NcTooltip
+      v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu"
+      overlay-class-name="nc-tooltip-scrollable"
+    >
       <template #title>
         <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
       </template>

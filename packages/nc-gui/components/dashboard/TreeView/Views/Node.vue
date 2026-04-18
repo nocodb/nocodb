@@ -442,6 +442,7 @@ watch(isDropdownOpen, async () => {
         <template v-if="!isEditing && !isLocked">
           <NcTooltip
             v-if="vModel.description?.length"
+            overlay-class-name="nc-tooltip-scrollable"
             placement="bottom"
             @mouseenter="showViewNodeTooltip = false"
             @mouseleave="showViewNodeTooltip = true"

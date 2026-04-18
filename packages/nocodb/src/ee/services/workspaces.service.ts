@@ -646,6 +646,14 @@ export class WorkspacesService implements OnApplicationBootstrap {
     )
       return;
 
+    if (workspace.title !== undefined) {
+      const nameValidation = validateAccountName(workspace.title);
+      if (!nameValidation.valid) {
+        NcError.badRequest(nameValidation.error);
+      }
+      workspace.title = workspace.title.trim();
+    }
+
     const updateObj = extractProps(workspace, ['title', 'description', 'meta']);
 
     const updatedWorkspace = await Workspace.update(workspaceId, updateObj);

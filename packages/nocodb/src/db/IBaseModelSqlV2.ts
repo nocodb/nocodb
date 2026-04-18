@@ -92,6 +92,7 @@ export interface IBaseModelSqlV2 {
     knex?: XKnex;
     baseModel?: IBaseModelSqlV2;
     updatedColIds: string[];
+    timestamp?: string;
   }): Promise<void>;
   readOnlyPrimariesByPkFromModel(
     props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
@@ -213,9 +214,17 @@ export interface IBaseModelSqlV2 {
     rowEventType?: AuditV1OperationTypes,
   ): Promise<void>;
 
-  afterBulkRestore(data: any, req: any): Promise<void>;
+  afterBulkRestore(
+    data: any,
+    req: any,
+    isBulkAllOperation?: boolean,
+  ): Promise<void>;
 
-  permanentDeleteByIds(rowIds: string[], cookie: any): Promise<any[]>;
+  permanentDeleteByIds(
+    rowIds: string[],
+    cookie: any,
+    isBulkAllOperation?: boolean,
+  ): Promise<any[]>;
 
   applySortAndFilter(param: {
     table: Model;

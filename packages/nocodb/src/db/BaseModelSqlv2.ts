@@ -4980,8 +4980,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
   }
 
-  async permanentDeleteByIds(rowIds: string[], cookie: NcRequest) {
-    return await new BaseModelDelete(this).permanentDeleteByIds(rowIds, cookie);
+  async permanentDeleteByIds(
+    rowIds: string[],
+    cookie: NcRequest,
+    isBulkAllOperation = false,
+  ) {
+    return await new BaseModelDelete(this).permanentDeleteByIds(
+      rowIds,
+      cookie,
+      isBulkAllOperation,
+    );
   }
 
   /**
@@ -5192,16 +5200,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     data: any,
     _trx: any,
     req,
-    _isBulkAllOperation = false,
+    isBulkAllOperation = false,
     bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
     rowEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
     await this.handleHooks('after.bulkDelete', null, data, req);
 
-    const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
+    // bulkAll chunks rows into 100-row batches and calls afterBulkDelete per
+    // chunk. The first chunk creates the parent audit; later chunks reuse
+    // req.ncParentAuditId so the whole operation appears as one event in
+    // the trash UI instead of N (one per 100-row chunk).
+    const reuseParent = isBulkAllOperation && !!req.ncParentAuditId;
+    const parentAuditId = reuseParent
+      ? req.ncParentAuditId
+      : await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
     // disable external source audit in cloud
-    if (await this.isDataAuditEnabled()) {
+    if (!reuseParent && (await this.isDataAuditEnabled())) {
       await Audit.insert(
         await generateAuditV1Payload<DataBulkDeletePayload>(bulkEventType, {
           details: {},
@@ -5248,13 +5263,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  public async afterBulkRestore(data: any, req): Promise<void> {
+  public async afterBulkRestore(
+    data: any,
+    req,
+    isBulkAllOperation = false,
+  ): Promise<void> {
     const isBulk = data?.length > 1;
-    const parentAuditId = isBulk
+    // Streamed restore calls afterBulkRestore per chunk. First chunk creates
+    // the parent audit; later chunks reuse req.ncParentAuditId so the whole
+    // operation appears as one event instead of N.
+    const reuseParent = isBulkAllOperation && !!req.ncParentAuditId;
+    const parentAuditId = reuseParent
+      ? req.ncParentAuditId
+      : isBulk || isBulkAllOperation
       ? await Noco.ncAudit.genNanoid(MetaTable.AUDIT)
       : undefined;
 
-    if (isBulk && (await this.isDataAuditEnabled())) {
+    if (
+      !reuseParent &&
+      (isBulk || isBulkAllOperation) &&
+      (await this.isDataAuditEnabled())
+    ) {
       await Audit.insert(
         await generateAuditV1Payload<DataBulkDeletePayload>(
           AuditV1OperationTypes.DATA_BULK_RESTORE,
@@ -7836,6 +7865,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     knex = this.dbDriver,
     baseModel = this,
     updatedColIds,
+    timestamp,
   }: {
     rowIds: any | any[];
     cookie?: { user?: any };
@@ -7843,6 +7873,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     knex?: XKnex;
     baseModel?: BaseModelSqlv2;
     updatedColIds: string[];
+    // Optional shared timestamp — callers that invoke this once per chunk of
+    // a larger operation (e.g. bulkAll) pass in a single value so every
+    // affected linked record gets the same LastModifiedTime.
+    timestamp?: string;
   }) {
     const columns = await model.getColumns(this.context);
 
@@ -7858,8 +7892,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const metaColumn = columns.find((c) => c.uidt === UITypes.Meta);
 
+    const now = timestamp ?? this.now();
+
     if (lastModifiedTimeColumn) {
-      updateObject[lastModifiedTimeColumn.column_name] = this.now();
+      updateObject[lastModifiedTimeColumn.column_name] = now;
     }
 
     if (lastModifiedByColumn) {
@@ -7872,7 +7908,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         colIds: updatedColIds,
         props: {
           modifiedBy: cookie?.user?.id,
-          modifiedTime: this.now(),
+          modifiedTime: now,
         },
         metaColumn,
       });

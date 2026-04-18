@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
+  AuditV1OperationTypes,
   isDeletedCol,
   isLinksOrLTAR,
   isMMOrMMLike,
   LinksVersion,
   PlanFeatureTypes,
-  PlanLimitTypes,
   UITypes,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
@@ -17,14 +17,44 @@ import { NcError } from '~/helpers/catchError';
 import { _wherePk, getCompositePkValue } from '~/helpers/dbHelpers';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import conditionV2 from '~/db/conditionV2';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { checkForFeature, checkLimit } from '~/helpers/paymentHelpers';
-import { resolveTrashRetentionDays } from '~/helpers/trashHelpers';
+import { checkForFeature } from '~/helpers/paymentHelpers';
+import {
+  decodeCursor,
+  decodeEventId,
+  encodeCursor,
+  encodeEventId,
+  resolveTrashRetentionDays,
+  toIsoString,
+} from '~/helpers/trashHelpers';
 import { TablesService } from '~/services/tables.service';
+
+/**
+ * Link conflict tagged by detection path. V1 and V2 carry different
+ * resolution data so the restore code can switch on `kind` instead of
+ * parsing a synthetic column-name prefix.
+ *
+ *   V1: OO direct FK on the child table — resolution nulls `fkColumnName`.
+ *   V2: junction-table link — resolution deletes the restored record's
+ *       junction row at `(rowId, conflictAnchorPk)` on column `colId`.
+ */
+type LinkConflict =
+  | {
+      kind: 'v1';
+      rowId: string;
+      columnTitle: string;
+      fkColumnName: string;
+    }
+  | {
+      kind: 'v2';
+      rowId: string;
+      columnTitle: string;
+      colId: string;
+      conflictAnchorPk: unknown;
+    };
 
 /**
  * Apply a WHERE clause that matches any of the given PK values,
@@ -45,6 +75,118 @@ function _whereInPks(
   });
 }
 
+/**
+ * Fetch the next batch of RLS-visible rowIds belonging to a trash event.
+ *
+ * Two traversal modes:
+ *   - `afterPk` unset: natural drop-out. Used after the caller mutates rows
+ *     (restore flips `deleted=false`, permanent delete removes them) so the
+ *     next call sees the next chunk.
+ *   - `afterPk` set: keyset cursor on the first PK column. Used by read-only
+ *     passes (e.g. conflict pre-flight) where rows don't drop out.
+ */
+async function listNextEventBatch(
+  baseModel: any,
+  model: Model,
+  deletedColumn: Column,
+  decoded: { fkUserId: string | null; deletedAt: Date },
+  limit: number,
+  afterPk?: string | null,
+): Promise<string[]> {
+  const lmtCol = model.columns.find(
+    (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+  );
+  const lmbCol = model.columns.find(
+    (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+  );
+  if (!lmtCol) return [];
+
+  const primaryKeys = model.primaryKeys;
+  const pkColNames = primaryKeys.map((pk) => pk.column_name);
+
+  // Format as UTC wall-clock string to match how baseModel.now() stores it
+  // (columns are `timestamp without time zone`, bare UTC). Passing a JS Date
+  // lets knex/pg serialize to the server's local timezone → mismatch.
+  const lmtValue = decoded.deletedAt
+    .toISOString()
+    .replace('T', ' ')
+    .replace('Z', '');
+
+  const qb = baseModel
+    .dbDriver(baseModel.tnPath)
+    .where(deletedColumn.column_name, true)
+    .where(lmtCol.column_name, lmtValue)
+    .orderBy(primaryKeys[0].column_name)
+    .limit(limit)
+    .select(pkColNames);
+
+  if (lmbCol) {
+    if (decoded.fkUserId === null) {
+      qb.whereNull(lmbCol.column_name);
+    } else {
+      qb.where(lmbCol.column_name, decoded.fkUserId);
+    }
+  }
+
+  if (afterPk != null) {
+    qb.where(primaryKeys[0].column_name, '>', afterPk);
+  }
+
+  const rlsConditions = await baseModel.getRlsConditions();
+  if (rlsConditions?.length) {
+    await conditionV2(
+      baseModel,
+      [new Filter({ children: rlsConditions, is_group: true })],
+      qb,
+    );
+  }
+
+  const rows = await qb;
+  return rows.map((r: Record<string, any>) =>
+    getCompositePkValue(primaryKeys, r),
+  );
+}
+
+/**
+ * Filter a list of rowIds down to the subset visible under the current user's
+ * RLS policies. Returns only rowIds whose rows exist, are soft-deleted, and
+ * pass every active RLS condition. Anything not in the result is silently
+ * dropped — callers treat it the same as "does not exist".
+ */
+async function filterRowIdsByRls(
+  baseModel: any,
+  model: Model,
+  deletedColumn: Column,
+  rowIds: string[],
+): Promise<string[]> {
+  if (!rowIds?.length) return [];
+
+  const primaryKeys = model.primaryKeys;
+  const pkColNames = primaryKeys.map((pk) => pk.column_name);
+
+  const qb = _whereInPks(
+    baseModel.dbDriver(baseModel.tnPath),
+    primaryKeys,
+    rowIds,
+  )
+    .where(deletedColumn.column_name, true)
+    .select(pkColNames);
+
+  const rlsConditions = await baseModel.getRlsConditions();
+  if (rlsConditions?.length) {
+    await conditionV2(
+      baseModel,
+      [new Filter({ children: rlsConditions, is_group: true })],
+      qb,
+    );
+  }
+
+  const rows = await qb;
+  return rows.map((r: Record<string, any>) =>
+    getCompositePkValue(primaryKeys, r),
+  );
+}
+
 @Injectable()
 export class RecordTrashService {
   private readonly logger = new Logger(RecordTrashService.name);
@@ -54,32 +196,60 @@ export class RecordTrashService {
     protected readonly tablesService: TablesService,
   ) {}
 
-  async getDeletedRecords(
+  /**
+   * List soft-delete events (one per delete operation) for a table.
+   *
+   * Rows are grouped on `(LastModifiedBy, LastModifiedTime)` on the base table
+   * itself — every soft-delete invocation stamps one timestamp across all
+   * affected rows (see delete.ts `operationNow`), so rows deleted in one
+   * operation collapse into a single group naturally.
+   *
+   * Pagination is keyset on `(lmt, lmb)` so new deletes arriving at the top
+   * never shift ranks between pages — each page resumes strictly after the
+   * last group of the previous page.
+   *
+   */
+  async listTrashEvents(
     context: NcContext,
     param: {
       tableId: string;
-      query: {
-        limit?: string | number;
-        offset?: string | number;
-      };
-      req: NcRequest;
+      limit?: number;
+      cursor?: string;
     },
   ) {
+    const limit = Math.max(1, Math.min(param.limit ?? 25, 100));
+    const cursor = decodeCursor(param.cursor);
+
+    const emptyResponse = {
+      list: [] as any[],
+      retentionDays: 30,
+      trashDisabled: false,
+      pageInfo: {
+        pageSize: limit,
+        nextCursor: null as string | null,
+        hasMore: false,
+      },
+    };
+
     const model = await Model.get(context, param.tableId);
     if (!model) NcError.get(context).tableNotFound(param.tableId);
 
     await model.getColumns(context);
 
     const deletedColumn = model.columns.find((c) => isDeletedCol(c));
+    if (!deletedColumn) return emptyResponse;
 
-    if (!deletedColumn) {
-      return new PagedResponseImpl([], { count: 0 });
-    }
+    const lmtCol = model.columns.find(
+      (c) => c.uidt === UITypes.LastModifiedTime && c.system,
+    );
+    if (!lmtCol) return emptyResponse;
+
+    const lmbCol = model.columns.find(
+      (c) => c.uidt === UITypes.LastModifiedBy && c.system,
+    );
 
     const source = await Source.get(context, model.source_id);
-    if (!source || !source.isMeta()) {
-      return new PagedResponseImpl([], { count: 0 });
-    }
+    if (!source || !source.isMeta()) return emptyResponse;
 
     const baseModel = await Model.getBaseModelSQL(context, {
       model,
@@ -87,65 +257,174 @@ export class RecordTrashService {
       source,
     });
 
-    const limit = Math.min(+(param.query.limit ?? 25), 100);
-    const offset = +(param.query.offset ?? 0);
+    const primaryKeys = model.primaryKeys;
+    const pkColNames = primaryKeys.map((pk) => pk.column_name);
+    const pkOrderCol = primaryKeys[0].column_name;
+    const lmt = lmtCol.column_name;
+    const lmb = lmbCol?.column_name;
 
-    const lastModifiedTimeCol = model.columns.find(
-      (c) => c.uidt === UITypes.LastModifiedTime,
+    const PREVIEW_LIMIT = 1000;
+
+    // ── Query 1: group + rank + collect PKs (PV deliberately excluded) ──────
+    const partitionSql = lmb ? '??, ??' : '??';
+    const partitionBindings = lmb ? [lmb, lmt] : [lmt];
+
+    const innerSelect: any[] = [
+      ...pkColNames.map((c) => baseModel.dbDriver.ref(c)),
+      baseModel.dbDriver.ref(lmt),
+    ];
+    if (lmb) innerSelect.push(baseModel.dbDriver.ref(lmb));
+
+    innerSelect.push(
+      baseModel.dbDriver.raw(
+        `ROW_NUMBER() OVER (PARTITION BY ${partitionSql} ORDER BY ??) AS "__nc_trash_rn"`,
+        [...partitionBindings, pkOrderCol],
+      ),
+      baseModel.dbDriver.raw(
+        `COUNT(*) OVER (PARTITION BY ${partitionSql}) AS "__nc_trash_grp_count"`,
+        partitionBindings,
+      ),
+      baseModel.dbDriver.raw(
+        lmb
+          ? `DENSE_RANK() OVER (ORDER BY ?? DESC, COALESCE(??, '') DESC) AS "__nc_trash_grp_rank"`
+          : `DENSE_RANK() OVER (ORDER BY ?? DESC) AS "__nc_trash_grp_rank"`,
+        lmb ? [lmt, lmb] : [lmt],
+      ),
     );
 
-    // Build fieldsSet: exclude the __nc_deleted column itself, include everything else
-    // list() + selectObject handles proper field aliasing, User column resolution, etc.
-    const fieldsSet = new Set(
-      model.columns.filter((c) => !isDeletedCol(c)).map((c) => c.title),
-    );
-
-    // Sort by LastModifiedTime desc (most recently deleted first)
-    const sortCol = lastModifiedTimeCol;
-
-    // Count trashed records — apply RLS so the count matches what list() returns
-    const countQb = baseModel
+    const innerQb = baseModel
       .dbDriver(baseModel.tnPath)
-      .count('* as count')
-      .where(deletedColumn.column_name, true);
+      .where(deletedColumn.column_name, true)
+      .select(innerSelect);
+
+    // ── Cursor filter: strictly after (cursor.lmt, cursor.lmb) in sort order ──
+    if (cursor) {
+      if (lmb) {
+        innerQb.where(function () {
+          this.where(lmt, '<', cursor.lmt).orWhere(function () {
+            this.where(lmt, '=', cursor.lmt).whereRaw(`COALESCE(??, '') < ?`, [
+              lmb,
+              cursor.lmb,
+            ]);
+          });
+        });
+      } else {
+        innerQb.where(lmt, '<', cursor.lmt);
+      }
+    }
 
     const rlsConditions = await baseModel.getRlsConditions();
-    if (rlsConditions.length) {
+    if (rlsConditions?.length) {
       await conditionV2(
         baseModel,
         [new Filter({ children: rlsConditions, is_group: true })],
-        countQb,
+        innerQb,
       );
     }
 
-    const count = +((await countQb.first())?.count ?? 0);
+    const outerQb = baseModel.dbDriver
+      .with('filtered', innerQb)
+      .from('filtered')
+      .where('__nc_trash_grp_rank', '<=', limit + 1)
+      .where('__nc_trash_rn', '<=', PREVIEW_LIMIT)
+      .select('*')
+      .orderBy([
+        { column: '__nc_trash_grp_rank', order: 'asc' },
+        { column: '__nc_trash_rn', order: 'asc' },
+      ]);
 
-    const rows = await baseModel.list(
-      {
-        limit,
-        offset,
-        fieldsSet,
-        ...(sortCol ? { sort: `-${sortCol.title}` } : {}),
-      },
-      {
-        ignoreViewFilterAndSort: true,
+    const rows = (await outerQb) as Array<Record<string, any>>;
+
+    // ── Bucket rows by grp_rank → one bucket per event ──────────────────────
+    interface Bucket {
+      fk_user_id: string | null;
+      deleted_at: unknown;
+      grp_count: number;
+      rowIds: string[];
+    }
+    const groupsByRank = new Map<number, Bucket>();
+
+    for (const row of rows) {
+      const rank = Number(row.__nc_trash_grp_rank);
+      if (!groupsByRank.has(rank)) {
+        groupsByRank.set(rank, {
+          fk_user_id: lmb ? row[lmb] ?? null : null,
+          deleted_at: row[lmt],
+          grp_count: Number(row.__nc_trash_grp_count) || 0,
+          rowIds: [],
+        });
+      }
+      const rowId = getCompositePkValue(primaryKeys, row) as string;
+      groupsByRank.get(rank)!.rowIds.push(rowId);
+    }
+
+    const sortedRanks = [...groupsByRank.keys()].sort((a, b) => a - b);
+    const hasMore = sortedRanks.length > limit;
+    const visibleRanks = hasMore ? sortedRanks.slice(0, limit) : sortedRanks;
+
+    // ── Query 2: resolve PV through the normal read pipeline (handles formula) ─
+    const visibleRowIds: string[] = [];
+    for (const rank of visibleRanks) {
+      visibleRowIds.push(...groupsByRank.get(rank)!.rowIds);
+    }
+
+    const pvByRowId = new Map<string, any>();
+    if (visibleRowIds.length) {
+      const records = (await (baseModel as any).chunkList({
+        pks: visibleRowIds,
         deletedOnly: true,
-      },
-    );
+        extractOnlyPrimaries: true,
+      })) as Array<Record<string, any>>;
 
-    // Resolve retention days: per-model override → workspace/env default
+      const pvTitle = model.columns.find((c) => c.pv)?.title;
+      for (const rec of records) {
+        const rowId = getCompositePkValue(primaryKeys, rec) as string;
+        pvByRowId.set(rowId, pvTitle ? rec[pvTitle] ?? null : null);
+      }
+    }
+
+    const enriched: any[] = [];
+    let lastLmtIso: string | null = null;
+    let lastFkUserId: string | null = null;
+
+    for (const rank of visibleRanks) {
+      const g = groupsByRank.get(rank)!;
+      const deletedAtIso = toIsoString(g.deleted_at);
+      if (!deletedAtIso) continue;
+
+      enriched.push({
+        id: encodeEventId(g.fk_user_id, deletedAtIso),
+        op_type:
+          g.grp_count > 1
+            ? AuditV1OperationTypes.DATA_BULK_SOFT_DELETE
+            : AuditV1OperationTypes.DATA_SOFT_DELETE,
+        created_at: deletedAtIso,
+        fk_user_id: g.fk_user_id,
+        row_count: g.grp_count,
+        preview_rows: g.rowIds.map((rowId) => ({
+          row_id: rowId,
+          pv: pvByRowId.get(rowId) ?? null,
+        })),
+      });
+
+      lastLmtIso = deletedAtIso;
+      lastFkUserId = g.fk_user_id;
+    }
+
+    const nextCursor =
+      hasMore && lastLmtIso ? encodeCursor(lastLmtIso, lastFkUserId) : null;
+
     const retentionDays =
       model.trash_retention_days ?? (await resolveTrashRetentionDays(context));
 
     return {
-      list: rows,
+      list: enriched,
       retentionDays,
+      trashDisabled: !!model.trash_disabled,
       pageInfo: {
-        totalRows: count,
-        page: Math.floor(offset / limit) + 1,
         pageSize: limit,
-        isFirstPage: offset === 0,
-        isLastPage: offset + limit >= count,
+        nextCursor,
+        hasMore,
       },
     };
   }
@@ -154,22 +433,15 @@ export class RecordTrashService {
     context: NcContext,
     param: {
       tableId: string;
-      rowIds: string[];
+      /** Explicit primary keys to restore. Ignored if eventId is provided. */
+      rowIds?: string[];
+      /** Trash event id from listTrashEvents — encodes (LastModifiedBy, LastModifiedTime). */
+      eventId?: string;
       req: NcRequest;
       /** If true, restore the record even when OO link conflicts exist — conflicting FKs are nulled */
       force?: boolean;
     },
   ) {
-    if (!Array.isArray(param.rowIds) || !param.rowIds.length) {
-      NcError.get(context).badRequest('rowIds must be a non-empty array');
-    }
-
-    if (param.rowIds.length > 1000) {
-      NcError.get(context).trashBatchLimitExceeded(1000);
-    }
-
-    // Build V1 conflict map: rowId → FK columns to null
-    const conflictMap = new Map<string, string[]>();
     const model = await Model.get(context, param.tableId);
     if (!model) NcError.get(context).tableNotFound(param.tableId);
 
@@ -192,90 +464,33 @@ export class RecordTrashService {
       source,
     });
 
-    await checkLimit({
-      workspaceId: context.workspace_id,
-      type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
-      delta: rowIds.length,
-    });
+    // ── Input validation + streaming source setup ───────────────────────────
+    // Two sources: event (streamed — unbounded) or caller-supplied rowIds
+    // (capped at 1000). The rowIds path is RLS-filtered up front because the
+    // caller could guess primary keys outside their scope.
+    let decoded: ReturnType<typeof decodeEventId> = null;
+    let rowIdsPath: string[] = [];
 
-    // ── OO conflict detection ─────────────────────────────────────────────────
-    // When a record is soft-deleted its FK value is preserved. If another record
-    // has since claimed the same OO slot, restoring would violate the constraint.
-    // Default: block with an error. force=true: restore without the conflicting link.
-
-    const ooConflicts = await this._detectOOConflicts(
-      context,
-      model,
-      baseModel,
-      deletedColumn,
-      param.rowIds,
-    );
-
-    if (ooConflicts.length && !param.force) {
-      const details = ooConflicts
-        .map(
-          (c) =>
-            `row ${c.rowId}: column "${c.columnTitle}" conflicts with active record`,
-        )
-        .join('; ');
-      NcError.get(context).recordRestoreConflict(details);
+    if (param.eventId) {
+      decoded = decodeEventId(param.eventId);
+      if (!decoded) return { message: `0 record(s) restored` };
+    } else {
+      if (!Array.isArray(param.rowIds) || !param.rowIds.length) {
+        NcError.get(context).badRequest('rowIds or eventId must be provided');
+      }
+      if (param.rowIds.length > 1000) {
+        NcError.get(context).trashBatchLimitExceeded(1000);
+      }
+      rowIdsPath = await filterRowIdsByRls(
+        baseModel,
+        model,
+        deletedColumn,
+        param.rowIds,
+      );
+      if (!rowIdsPath.length) return { message: `0 record(s) restored` };
     }
 
-    const primaryKeys = model.primaryKeys;
-    const BATCH_SIZE = 100;
-
-    // ── Handle OO force-restore conflicts (pre-restore cleanup) ──────────────
-    if (ooConflicts.length && param.force) {
-      const v1Conflicts = ooConflicts.filter(
-        (c) => !c.fkColumnName.startsWith('__nc_v2_jn_'),
-      );
-      const v2Conflicts = ooConflicts.filter((c) =>
-        c.fkColumnName.startsWith('__nc_v2_jn_'),
-      );
-
-      // Handle V2 junction conflicts: delete only the conflicting junction row
-      for (const v2c of v2Conflicts) {
-        const colId = v2c.fkColumnName.replace('__nc_v2_jn_', '');
-        const col = model.columns.find((c) => c.id === colId);
-        if (!col) continue;
-
-        const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
-          context,
-        );
-        const { mmContext } = await colOpts.getParentChildContext(context);
-        const mmModel = await colOpts.getMMModel(mmContext);
-        const mmChildCol = await colOpts.getMMChildColumn(mmContext);
-        const mmParentCol = await colOpts.getMMParentColumn(mmContext);
-
-        if (
-          mmModel &&
-          mmChildCol &&
-          mmParentCol &&
-          v2c.conflictParentPk != null
-        ) {
-          const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
-            id: mmModel.id,
-            dbDriver: baseModel.dbDriver,
-          });
-          await baseModel
-            .dbDriver(assocBaseModel.getTnPath(mmModel))
-            .where(mmChildCol.column_name, v2c.rowId)
-            .where(mmParentCol.column_name, v2c.conflictParentPk)
-            .del();
-        }
-      }
-      for (const c of v1Conflicts) {
-        const key = String(c.rowId);
-        const cols = conflictMap.get(key) ?? [];
-        cols.push(c.fkColumnName);
-        conflictMap.set(key, cols);
-      }
-    }
-
-    // ── Batch restore ────────────────────────────────────────────────────────
-    const allPreRestoreRows = [];
-
-    // Build base restore payload: undelete + stamp LMT/LMB to reflect restore
+    // ── Build restore payload: undelete + stamp LMT/LMB ─────────────────────
     const restorePayload: Record<string, any> = {
       [deletedColumn.column_name]: false,
     };
@@ -288,106 +503,279 @@ export class RecordTrashService {
     if (lmtCol) restorePayload[lmtCol.column_name] = baseModel.now();
     if (lmbCol) restorePayload[lmbCol.column_name] = param.req?.user?.id;
 
-    for (let i = 0; i < param.rowIds.length; i += BATCH_SIZE) {
-      const batchIds = param.rowIds.slice(i, i + BATCH_SIZE);
+    const primaryKeys = model.primaryKeys;
+    const BATCH_SIZE = 100;
+    const attachmentColumns = model.columns.filter(
+      (c) => c.uidt === UITypes.Attachment,
+    );
 
-      // Fetch records before restoring — needed for audit log
-      const preRestoreRows = await baseModel.execAndParse(
-        _whereInPks(baseModel.dbDriver(baseModel.tnPath), primaryKeys, batchIds)
-          .where(deletedColumn.column_name, true)
-          .select(
-            model.columns
-              .filter((c) => c.column_name)
-              .map((c) => c.column_name),
-          ),
-        model.columns,
-        { raw: true },
-      );
+    // ── Pass 1: conflict pre-flight ─────────────────────────────────────────
+    // Stream PKs (read-only, keyset cursor for eventId path — rows don't drop
+    // out since we're not mutating), run conflict detection per batch,
+    // accumulate only conflict metadata (small: typically 0 or a handful).
+    //
+    // When a record is soft-deleted its link state is preserved. If another
+    // record has since claimed the same link slot (OO, or HM/OM via
+    // junction), restoring would violate the "one per slot" guarantee. With
+    // !force, any conflict aborts the whole operation before any mutation.
+    // With force, we carry the conflict list into pass 2 for resolution.
+    const v1ConflictMap = new Map<string, string[]>();
+    const v2ConflictsByRowId = new Map<
+      string,
+      Array<{ colId: string; anchorPk: unknown }>
+    >();
+    // Full conflict list across all batches — only kept for the !force error
+    // message so the user sees every conflicting row, not just the first
+    // batch that triggered the abort. Bounded by actual conflict count
+    // (typically 0 or a handful), not by event size.
+    const allConflicts: LinkConflict[] = [];
 
-      allPreRestoreRows.push(...preRestoreRows);
+    {
+      let afterPk: string | null = null;
+      let rowIdsOffset = 0;
+      while (true) {
+        let batchIds: string[];
+        if (decoded) {
+          batchIds = await listNextEventBatch(
+            baseModel,
+            model,
+            deletedColumn,
+            decoded,
+            BATCH_SIZE,
+            afterPk,
+          );
+        } else {
+          batchIds = rowIdsPath.slice(rowIdsOffset, rowIdsOffset + BATCH_SIZE);
+          rowIdsOffset += BATCH_SIZE;
+        }
 
-      // Restore: set __nc_deleted = false + LMT/LMB (with V1 OO conflict FK nulling if needed)
-      try {
-        if (conflictMap?.size) {
-          const cleanIds = batchIds.filter((id) => !conflictMap.has(id));
-          if (cleanIds.length) {
-            await _whereInPks(
-              baseModel.dbDriver(baseModel.tnPath),
-              primaryKeys,
-              cleanIds,
-            )
-              .where(deletedColumn.column_name, true)
-              .update(restorePayload);
+        if (!batchIds.length) break;
+
+        const conflicts = await this._detectLinkConflicts(
+          context,
+          model,
+          baseModel,
+          deletedColumn,
+          batchIds,
+        );
+
+        if (conflicts.length) {
+          if (param.force) {
+            for (const c of conflicts) {
+              if (c.kind === 'v2') {
+                const list = v2ConflictsByRowId.get(c.rowId) ?? [];
+                list.push({ colId: c.colId, anchorPk: c.conflictAnchorPk });
+                v2ConflictsByRowId.set(c.rowId, list);
+              } else {
+                const cols = v1ConflictMap.get(c.rowId) ?? [];
+                cols.push(c.fkColumnName);
+                v1ConflictMap.set(c.rowId, cols);
+              }
+            }
+          } else {
+            allConflicts.push(...conflicts);
           }
+        }
 
-          for (const id of batchIds) {
-            const fkCols = conflictMap.get(id);
-            if (!fkCols) continue;
+        if (decoded) afterPk = batchIds[batchIds.length - 1];
+      }
+    }
 
-            const update: Record<string, any> = {
-              ...restorePayload,
-            };
-            for (const col of fkCols) update[col] = null;
+    // Decide once, after the full pre-flight — no mutation has happened yet.
+    if (allConflicts.length) {
+      const details = allConflicts
+        .map(
+          (c) =>
+            `row ${c.rowId}: column "${c.columnTitle}" conflicts with active record`,
+        )
+        .join('; ');
+      NcError.get(context).recordRestoreConflict(details);
+    }
+
+    // ── Pass 2: restore ─────────────────────────────────────────────────────
+    // For eventId path: natural drop-out — restored rows flip to deleted=false
+    // and fall out of the filter, so no cursor needed.
+    // For rowIds path: re-walk the pre-filtered array by offset.
+    //
+    // Single-parent audit: afterBulkRestore is called with isBulkAllOperation=true,
+    // so the first call mints one parent DATA_BULK_RESTORE audit and sets
+    // req.ncParentAuditId; subsequent calls reuse it.
+    let totalRestored = 0;
+
+    {
+      let rowIdsOffset = 0;
+      while (true) {
+        let batchIds: string[];
+        if (decoded) {
+          batchIds = await listNextEventBatch(
+            baseModel,
+            model,
+            deletedColumn,
+            decoded,
+            BATCH_SIZE,
+          );
+        } else {
+          batchIds = rowIdsPath.slice(rowIdsOffset, rowIdsOffset + BATCH_SIZE);
+          rowIdsOffset += BATCH_SIZE;
+        }
+
+        if (!batchIds.length) break;
+
+        // Apply V2 junction conflict resolution for rows in this batch:
+        // delete the restored record's own conflicting junction row so the
+        // active rival's link is the one that stands.
+        for (const rowId of batchIds) {
+          const v2Items = v2ConflictsByRowId.get(rowId);
+          if (!v2Items?.length) continue;
+
+          for (const item of v2Items) {
+            if (item.anchorPk == null) continue;
+            const col = model.columns.find((c) => c.id === item.colId);
+            if (!col) continue;
+
+            const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
+              context,
+            );
+            const { mmContext } = await colOpts.getParentChildContext(context);
+            const mmModel = await colOpts.getMMModel(mmContext);
+            const mmChildCol = await colOpts.getMMChildColumn(mmContext);
+            const mmParentCol = await colOpts.getMMParentColumn(mmContext);
+
+            if (!mmModel || !mmChildCol || !mmParentCol) continue;
+
+            const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+              id: mmModel.id,
+              dbDriver: baseModel.dbDriver,
+            });
 
             await baseModel
-              .dbDriver(baseModel.tnPath)
-              .where(_wherePk(primaryKeys, id, true))
-              .where(deletedColumn.column_name, true)
-              .update(update);
+              .dbDriver(assocBaseModel.getTnPath(mmModel))
+              .where(mmChildCol.column_name, rowId)
+              .where(mmParentCol.column_name, item.anchorPk)
+              .del();
           }
-        } else {
-          await _whereInPks(
+        }
+
+        // Fetch records before restoring — needed for audit log
+        const preRestoreRows = await baseModel.execAndParse(
+          _whereInPks(
             baseModel.dbDriver(baseModel.tnPath),
             primaryKeys,
             batchIds,
           )
             .where(deletedColumn.column_name, true)
-            .update(restorePayload);
-        }
-      } catch (e: any) {
-        await handleUniqueConstraintError({
-          error: e,
-          baseModel,
-        });
-        throw e;
-      }
+            .select(
+              model.columns
+                .filter((c) => c.column_name)
+                .map((c) => c.column_name),
+            ),
+          model.columns,
+          { raw: true },
+        );
 
-      // Restore soft-deleted file references by extracting attachment IDs from row data
-      const attachmentColumns = model.columns.filter(
-        (c) => c.uidt === UITypes.Attachment,
-      );
-      if (attachmentColumns.length) {
-        const fileRefIds: string[] = [];
-        for (const row of preRestoreRows) {
-          for (const col of attachmentColumns) {
-            const val = row[col.column_name] || row[col.title];
-            if (!val) continue;
-            try {
-              const attachments =
-                typeof val === 'string' ? JSON.parse(val) : val;
-              if (Array.isArray(attachments)) {
-                for (const att of attachments) {
-                  if (att.id) fileRefIds.push(att.id);
+        // Restore: set __nc_deleted = false + LMT/LMB (with V1 OO conflict FK nulling if needed)
+        try {
+          const batchConflictIds = batchIds.filter((id) =>
+            v1ConflictMap.has(id),
+          );
+
+          if (batchConflictIds.length) {
+            const cleanIds = batchIds.filter((id) => !v1ConflictMap.has(id));
+            if (cleanIds.length) {
+              await _whereInPks(
+                baseModel.dbDriver(baseModel.tnPath),
+                primaryKeys,
+                cleanIds,
+              )
+                .where(deletedColumn.column_name, true)
+                .update(restorePayload);
+            }
+
+            for (const id of batchConflictIds) {
+              const fkCols = v1ConflictMap.get(id)!;
+              const update: Record<string, any> = { ...restorePayload };
+              for (const col of fkCols) update[col] = null;
+
+              await baseModel
+                .dbDriver(baseModel.tnPath)
+                .where(_wherePk(primaryKeys, id, true))
+                .where(deletedColumn.column_name, true)
+                .update(update);
+            }
+          } else {
+            await _whereInPks(
+              baseModel.dbDriver(baseModel.tnPath),
+              primaryKeys,
+              batchIds,
+            )
+              .where(deletedColumn.column_name, true)
+              .update(restorePayload);
+          }
+        } catch (e: any) {
+          await handleUniqueConstraintError({ error: e, baseModel });
+          throw e;
+        }
+
+        // Restore soft-deleted file references from attachment columns
+        if (attachmentColumns.length) {
+          const fileRefIds: string[] = [];
+          for (const row of preRestoreRows) {
+            for (const col of attachmentColumns) {
+              const val = row[col.column_name] || row[col.title];
+              if (!val) continue;
+              try {
+                const attachments =
+                  typeof val === 'string' ? JSON.parse(val) : val;
+                if (Array.isArray(attachments)) {
+                  for (const att of attachments) {
+                    if (att.id) fileRefIds.push(att.id);
+                  }
                 }
+              } catch {
+                // ignore invalid JSON
               }
-            } catch {
-              // ignore invalid JSON
             }
           }
+          if (fileRefIds.length) {
+            await FileReference.softRestore(context, fileRefIds);
+          }
         }
-        if (fileRefIds.length) {
-          await FileReference.softRestore(context, fileRefIds);
-        }
+
+        // LMT + broadcast on linked records
+        await baseModel.updateLinkedRecordsOnDelete(batchIds, param.req);
+
+        // Audit + realtime — isBulkAllOperation=true mints parent on first
+        // call and reuses req.ncParentAuditId on subsequent calls.
+        await baseModel.afterBulkRestore(preRestoreRows, param.req, true);
+
+        // Per-batch hooks — never accumulate full rows across batches
+        Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
+          context: { ...context, cache: false, cacheMap: undefined },
+          hookName: 'after.bulkInsert',
+          prevData: null,
+          newData: preRestoreRows,
+          user: param.req?.user,
+          viewId: null,
+          modelId: model.id,
+          tnPath: baseModel.tnPath,
+        });
+
+        this.appHooksService.emit(AppEvents.RECORDS_RESTORE, {
+          context,
+          req: param.req,
+          tableId: param.tableId,
+          rowIds: batchIds,
+        });
+
+        totalRestored += batchIds.length;
       }
-
-      // LMT + broadcast on linked records
-      await baseModel.updateLinkedRecordsOnDelete(batchIds, param.req);
-
-      // Audit + realtime for this batch
-      await baseModel.afterBulkRestore(preRestoreRows, param.req);
     }
 
-    // ── Post-restore: trash_cleanup_due_at, webhooks, events ─────────────────
+    if (!totalRestored) {
+      return { message: `0 record(s) restored` };
+    }
+
+    // ── Post-restore: clear trash_cleanup_due_at if trash is now empty ──────
     const remainingTrashCount = await baseModel
       .dbDriver(baseModel.tnPath)
       .where(deletedColumn.column_name, true)
@@ -401,44 +789,20 @@ export class RecordTrashService {
       await Model.updateTrashCleanupDueAt(context, model.id, null);
     }
 
-    // Fire webhook once for all restored records
-    Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
-      context: { ...context, cache: false, cacheMap: undefined },
-      hookName: 'after.bulkInsert',
-      prevData: null,
-      newData: allPreRestoreRows,
-      user: param.req?.user,
-      viewId: null,
-      modelId: model.id,
-      tnPath: baseModel.tnPath,
-    });
-
-    this.appHooksService.emit(AppEvents.RECORDS_RESTORE, {
-      context,
-      req: param.req,
-      tableId: param.tableId,
-      rowIds: param.rowIds,
-    });
-
-    return { message: `${param.rowIds.length} record(s) restored` };
+    return { message: `${totalRestored} record(s) restored` };
   }
 
   async permanentDeleteRecords(
     context: NcContext,
     param: {
       tableId: string;
-      rowIds: string[];
+      /** Explicit primary keys to permanently delete. Ignored if eventId is provided. */
+      rowIds?: string[];
+      /** Trash event id from listTrashEvents — encodes (LastModifiedBy, LastModifiedTime). */
+      eventId?: string;
       req: NcRequest;
     },
   ) {
-    if (!Array.isArray(param.rowIds) || !param.rowIds.length) {
-      NcError.get(context).badRequest('rowIds must be a non-empty array');
-    }
-
-    if (param.rowIds.length > 1000) {
-      NcError.get(context).trashBatchLimitExceeded(1000);
-    }
-
     const model = await Model.get(context, param.tableId);
     if (!model) NcError.get(context).tableNotFound(param.tableId);
 
@@ -461,35 +825,74 @@ export class RecordTrashService {
       source,
     });
 
-    // Verify all specified rows are actually trashed before allowing permanent delete.
-    // Without this check, a caller could permanently delete active (non-trashed) records.
-    if (deletedColumn && param.rowIds.length) {
-      const primaryKeys = model.primaryKeys;
-      const pkColNames = primaryKeys.map((pk) => pk.column_name);
-      const rows = await _whereInPks(
-        baseModel.dbDriver(baseModel.tnPath),
-        primaryKeys,
+    // ── Input validation + streaming source setup ──────────────────────────
+    let decoded: ReturnType<typeof decodeEventId> = null;
+    let rowIdsPath: string[] = [];
+
+    if (param.eventId) {
+      decoded = decodeEventId(param.eventId);
+      if (!decoded) return { message: `0 record(s) permanently deleted` };
+    } else {
+      if (!Array.isArray(param.rowIds) || !param.rowIds.length) {
+        NcError.get(context).badRequest('rowIds or eventId must be provided');
+      }
+      if (param.rowIds.length > 1000) {
+        NcError.get(context).trashBatchLimitExceeded(1000);
+      }
+      rowIdsPath = await filterRowIdsByRls(
+        baseModel,
+        model,
+        deletedColumn,
         param.rowIds,
-      ).select([...pkColNames, deletedColumn.column_name]);
-
-      const activeRows = rows.filter((r) => !r[deletedColumn.column_name]);
-
-      if (activeRows.length > 0) {
-        NcError.get(context).recordNotTrashed();
+      );
+      if (!rowIdsPath.length) {
+        return { message: `0 record(s) permanently deleted` };
       }
     }
 
-    // Use the proper delete pipeline so MM/HM links and file references are cleaned up
-    await baseModel.permanentDeleteByIds(param.rowIds, param.req);
+    // ── Streaming permanent delete ─────────────────────────────────────────
+    // Use the proper delete pipeline so MM/HM links and file references are
+    // cleaned up. isBulkAllOperation=true gives us a single parent audit
+    // spanning all batches instead of one parent per 100-row chunk.
+    const DELETE_BATCH_SIZE = 100;
+    let totalDeleted = 0;
+    let rowIdsOffset = 0;
 
-    this.appHooksService.emit(AppEvents.RECORDS_PERMANENT_DELETE, {
-      context,
-      req: param.req,
-      tableId: param.tableId,
-      rowIds: param.rowIds,
-    });
+    while (true) {
+      let batchIds: string[];
+      if (decoded) {
+        batchIds = await listNextEventBatch(
+          baseModel,
+          model,
+          deletedColumn,
+          decoded,
+          DELETE_BATCH_SIZE,
+        );
+      } else {
+        batchIds = rowIdsPath.slice(
+          rowIdsOffset,
+          rowIdsOffset + DELETE_BATCH_SIZE,
+        );
+        rowIdsOffset += DELETE_BATCH_SIZE;
+      }
 
-    return { message: `${param.rowIds.length} record(s) permanently deleted` };
+      if (!batchIds.length) break;
+
+      await baseModel.permanentDeleteByIds(batchIds, param.req, true);
+
+      this.appHooksService.emit(AppEvents.RECORDS_PERMANENT_DELETE, {
+        context,
+        req: param.req,
+        tableId: param.tableId,
+        rowIds: batchIds,
+      });
+
+      totalDeleted += batchIds.length;
+    }
+
+    return {
+      message: `${totalDeleted} record(s) permanently deleted`,
+    };
   }
 
   async emptyTrash(
@@ -517,33 +920,51 @@ export class RecordTrashService {
       source,
     });
 
-    // Paginated permanent delete of all trashed records
+    // Paginated permanent delete of trashed records visible to the caller.
+    // RLS is applied so a caller cannot wipe trashed rows outside their scope.
     const primaryKeys = model.primaryKeys;
     const pkColNames = primaryKeys.map((pk) => pk.column_name);
     const batchSize = 100;
     let totalDeleted = 0;
 
+    const rlsConditions = await baseModel.getRlsConditions();
+
     // eslint-disable-next-line no-constant-condition
     while (true) {
-      const rows = await baseModel.execAndParse(
-        baseModel
-          .dbDriver(baseModel.tnPath)
-          .select(pkColNames)
-          .where(deletedColumn.column_name, true)
-          .limit(batchSize),
-        null,
-        { raw: true },
-      );
+      const qb = baseModel
+        .dbDriver(baseModel.tnPath)
+        .select(pkColNames)
+        .where(deletedColumn.column_name, true)
+        .limit(batchSize);
+
+      if (rlsConditions?.length) {
+        await conditionV2(
+          baseModel,
+          [new Filter({ children: rlsConditions, is_group: true })],
+          qb,
+        );
+      }
+
+      const rows = await baseModel.execAndParse(qb, null, { raw: true });
 
       if (!rows.length) break;
 
       const ids = rows.map((r) => getCompositePkValue(primaryKeys, r));
-      await baseModel.permanentDeleteByIds(ids, param.req);
+      await baseModel.permanentDeleteByIds(ids, param.req, true);
       totalDeleted += ids.length;
     }
 
-    // All trashed records are gone — reset trash_cleanup_due_at
-    await Model.updateTrashCleanupDueAt(context, model.id, null);
+    // Reset trash_cleanup_due_at only if no trashed records remain for anyone.
+    // (Can't assume that from within an RLS-scoped loop.)
+    const remaining = await baseModel
+      .dbDriver(baseModel.tnPath)
+      .where(deletedColumn.column_name, true)
+      .count('* as count')
+      .first();
+
+    if (!remaining?.count || Number(remaining.count) === 0) {
+      await Model.updateTrashCleanupDueAt(context, model.id, null);
+    }
 
     this.appHooksService.emit(AppEvents.RECORDS_PERMANENT_DELETE, {
       context,
@@ -703,30 +1124,39 @@ export class RecordTrashService {
   }
 
   /**
-   * Detect one-to-one link conflicts for records about to be restored.
+   * Detect link conflicts for records about to be restored.
    *
-   * A conflict occurs when:
-   *   - The restored record holds an OO FK pointing at record B, AND
-   *   - Another non-deleted record already holds the same FK (has taken the OO slot).
+   * A conflict occurs when restoring a record would re-establish a link whose
+   * "one-per-slot" guarantee is already held by another active record. Covers:
    *
-   * Handles both V1 links (direct FK on child table) and V2 links (junction table).
+   *   - V1 OO (direct FK on child table): the restored record holds an OO FK
+   *     pointing at record B, and another active record now holds the same FK.
+   *   - V2 OO (junction): the restored record's junction row shares its rival
+   *     side with another active record's junction row.
+   *   - V2 HM/OM (junction, model = parent of relation): the restored parent's
+   *     junction row for a child is now also held by another active parent
+   *     (child-of-relation side is unique — one parent per child).
+   *
+   * V1 HM/BT has no per-side uniqueness, so no conflict is possible there.
+   * V2 BT/MO (model = child of relation) each own at most one junction row on
+   * their own side, so no rival slot exists. MM has no uniqueness either side.
+   *
+   * For V2, the detector relies on the convention that
+   * `fk_mm_child_column_id` on a link column always references the junction
+   * column that points at the column's own model's PK — so filtering by
+   * `j1.<mmChildCol> IN rowIds` is always correct regardless of whether the
+   * model is the relation's parent or child.
    *
    * Returns one entry per (rowId, column) pair that conflicts.
    */
-  private async _detectOOConflicts(
+  private async _detectLinkConflicts(
     context: NcContext,
     model: Awaited<ReturnType<typeof Model.get>>,
     baseModel: Awaited<ReturnType<typeof Model.getBaseModelSQL>>,
     deletedColumn: (typeof model.columns)[number],
     rowIds: string[],
-  ) {
-    const conflicts: Array<{
-      rowId: string;
-      columnTitle: string;
-      fkColumnName: string;
-      /** For V2 junction conflicts: the parent PK value that is conflicting */
-      conflictParentPk?: unknown;
-    }> = [];
+  ): Promise<LinkConflict[]> {
+    const conflicts: LinkConflict[] = [];
 
     if (!rowIds.length) return conflicts;
 
@@ -736,8 +1166,13 @@ export class RecordTrashService {
       fkChildCol: Awaited<ReturnType<typeof Column.get>>;
     }> = [];
 
-    // ── V2 OO columns (junction-table based) ────────────────────────────────
-    const ooV2Cols: Array<{
+    // ── V2 junction-based columns with unique constraint on one side ───────
+    //   - OO: both sides unique → always include
+    //   - HM/OM: model is parent of relation, child side unique → include
+    //   - BT/MO: model is child of relation → model owns only one row per
+    //     self, no rival slot → skip
+    //   - MM: no uniqueness → skip
+    const junctionV2Cols: Array<{
       col: (typeof model.columns)[number];
       colOpts: LinkToAnotherRecordColumn;
     }> = [];
@@ -748,29 +1183,34 @@ export class RecordTrashService {
       const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
         context,
       );
-      if (colOpts.type !== 'oo') continue;
 
       if (isMMOrMMLike(col) && colOpts.version === LinksVersion.V2) {
-        // V2 OO link — uses junction table
-        ooV2Cols.push({ col, colOpts });
-      } else {
-        // V1 OO link — direct FK on child table
-        // Child side = the table that holds the FK (meta.bt = true on the column)
-        if (!col.meta?.bt) continue;
-
-        const fkChildCol = await Column.get(context, {
-          colId: colOpts.fk_child_column_id,
-        });
-        const fkChildTable = await fkChildCol.getModel(context);
-
-        // Only care when the FK lives on this table
-        if (fkChildTable.id !== model.id) continue;
-
-        ooV1ChildCols.push({ col, fkChildCol });
+        if (
+          colOpts.type === 'oo' ||
+          colOpts.type === 'mo' ||
+          colOpts.type === 'om'
+        ) {
+          junctionV2Cols.push({ col, colOpts });
+        }
+        continue;
       }
+
+      // V1 OO direct-FK (child side only — only care when the FK lives on this table)
+      if (colOpts.type !== 'oo') continue;
+      if (!col.meta?.bt) continue;
+
+      const fkChildCol = await Column.get(context, {
+        colId: colOpts.fk_child_column_id,
+      });
+      const fkChildTable = await fkChildCol.getModel(context);
+
+      if (fkChildTable.id !== model.id) continue;
+
+      ooV1ChildCols.push({ col, fkChildCol });
     }
 
     // ── V1 conflict detection (direct FK) ───────────────────────────────────
+    const CHUNK = 500;
     if (ooV1ChildCols.length) {
       const primaryKeys = model.primaryKeys;
       const pkColName = primaryKeys[0]?.column_name;
@@ -780,54 +1220,57 @@ export class RecordTrashService {
       for (const { col, fkChildCol } of ooV1ChildCols) {
         const fkColName = fkChildCol.column_name;
 
-        // SELECT t1.pk as row_id
-        // FROM main_table t1
-        // WHERE t1.pk IN (rowIds)
-        //   AND t1.__nc_deleted = true
-        //   AND t1.fk_col IS NOT NULL
-        //   AND EXISTS (
-        //     SELECT 1 FROM main_table t2
-        //     WHERE t2.fk_col = t1.fk_col
-        //       AND t2.pk != t1.pk
-        //       AND (t2.__nc_deleted IS NULL OR t2.__nc_deleted = false)
-        //   )
-        const conflictRows = await baseModel.dbDriver
-          .from(baseModel.dbDriver.raw('?? as ??', [tnPath, 't1']))
-          .whereIn(`t1.${pkColName}`, rowIds)
-          .where(`t1.${delColName}`, true)
-          .whereNotNull(`t1.${fkColName}`)
-          .whereExists(function () {
-            this.select(baseModel.dbDriver.raw('1'))
-              .from(baseModel.dbDriver.raw('?? as ??', [tnPath, 't2']))
-              .whereRaw('?? = ??', [`t2.${fkColName}`, `t1.${fkColName}`])
-              .whereRaw('?? != ??', [`t2.${pkColName}`, `t1.${pkColName}`])
-              .where(function () {
-                this.whereNull(`t2.${delColName}`).orWhere(
-                  `t2.${delColName}`,
-                  false,
-                );
-              });
-          })
-          .select(`t1.${pkColName} as row_id`);
+        for (let i = 0; i < rowIds.length; i += CHUNK) {
+          const chunk = rowIds.slice(i, i + CHUNK);
+          const conflictRows = await baseModel.dbDriver
+            .from(baseModel.dbDriver.raw('?? as ??', [tnPath, 't1']))
+            .whereIn(`t1.${pkColName}`, chunk)
+            .where(`t1.${delColName}`, true)
+            .whereNotNull(`t1.${fkColName}`)
+            .whereExists(function () {
+              this.select(baseModel.dbDriver.raw('1'))
+                .from(baseModel.dbDriver.raw('?? as ??', [tnPath, 't2']))
+                .whereRaw('?? = ??', [`t2.${fkColName}`, `t1.${fkColName}`])
+                .whereRaw('?? != ??', [`t2.${pkColName}`, `t1.${pkColName}`])
+                .where(function () {
+                  this.whereNull(`t2.${delColName}`).orWhere(
+                    `t2.${delColName}`,
+                    false,
+                  );
+                });
+            })
+            .select(`t1.${pkColName} as row_id`);
 
-        for (const row of conflictRows) {
-          conflicts.push({
-            rowId: String(row.row_id),
-            columnTitle: col.title,
-            fkColumnName: fkColName,
-          });
+          for (const row of conflictRows) {
+            conflicts.push({
+              kind: 'v1',
+              rowId: String(row.row_id),
+              columnTitle: col.title,
+              fkColumnName: fkColName,
+            });
+          }
         }
       }
     }
 
     // ── V2 conflict detection (junction table) ──────────────────────────────
-    // V2 OO links use a junction (MM) table. A conflict exists when:
-    //   - The junction table has a row linking the restored record to a parent, AND
-    //   - Another active (non-deleted) record also links to the same parent via the junction.
-    if (ooV2Cols.length) {
+    // Conflict: the restored record's junction row shares its "other side"
+    // value with a row owned by a different active record.
+    //
+    //   SELECT j1.child, j1.parent
+    //   FROM junction j1
+    //   WHERE j1.child IN (rowIds)              -- rows belonging to restored records
+    //     AND EXISTS (
+    //       SELECT 1 FROM junction j2
+    //       JOIN main m ON m.pk = j2.child       -- rival sits on model's side too
+    //       WHERE j2.parent = j1.parent          -- contested slot
+    //         AND j2.child != j1.child           -- held by a different record
+    //         AND (m.__nc_deleted IS NULL OR m.__nc_deleted = false)
+    //     )
+    if (junctionV2Cols.length) {
       const primaryKeys = model.primaryKeys;
 
-      for (const { col, colOpts } of ooV2Cols) {
+      for (const { col, colOpts } of junctionV2Cols) {
         const { mmContext } = await colOpts.getParentChildContext(context);
         const mmModel = await colOpts.getMMModel(mmContext);
         const mmChildCol = await colOpts.getMMChildColumn(mmContext);
@@ -835,7 +1278,7 @@ export class RecordTrashService {
 
         if (!mmModel || !mmChildCol || !mmParentCol) {
           this.logger.warn(
-            `V2 OO conflict detection: could not resolve junction table for column "${col.title}" — skipping`,
+            `V2 link conflict detection: could not resolve junction table for column "${col.title}" — skipping`,
           );
           continue;
         }
@@ -851,57 +1294,48 @@ export class RecordTrashService {
         const pkColName = primaryKeys[0]?.column_name;
         const delColName = deletedColumn.column_name;
 
-        // Single query: find junction rows for our rowIds where another
-        // active (non-deleted) record already links to the same parent.
-        //
-        // SELECT j1.child_id, j1.parent_id
-        // FROM junction j1
-        // WHERE j1.child_id IN (rowIds)
-        //   AND EXISTS (
-        //     SELECT 1 FROM junction j2
-        //     JOIN main_table m ON m.pk = j2.child_id
-        //     WHERE j2.parent_id = j1.parent_id
-        //       AND j2.child_id != j1.child_id
-        //       AND (m.__nc_deleted IS NULL OR m.__nc_deleted = false)
-        //   )
-        const conflictRows = await baseModel.dbDriver
-          .from(baseModel.dbDriver.raw('?? as ??', [mmTnPath, 'j1']))
-          .whereIn(`j1.${childColName}`, rowIds)
-          .whereExists(function () {
-            this.select(baseModel.dbDriver.raw('1'))
-              .from(baseModel.dbDriver.raw('?? as ??', [mmTnPath, 'j2']))
-              .join(
-                baseModel.dbDriver.raw('?? as ??', [mainTnPath, 'm']),
-                `m.${pkColName}`,
-                `j2.${childColName}`,
-              )
-              .whereRaw('?? = ??', [
-                `j2.${parentColName}`,
-                `j1.${parentColName}`,
-              ])
-              .whereRaw('?? != ??', [
-                `j2.${childColName}`,
-                `j1.${childColName}`,
-              ])
-              .where(function () {
-                this.whereNull(`m.${delColName}`).orWhere(
-                  `m.${delColName}`,
-                  false,
-                );
-              });
-          })
-          .select([
-            `j1.${childColName} as row_id`,
-            `j1.${parentColName} as conflict_parent_pk`,
-          ]);
+        for (let i = 0; i < rowIds.length; i += CHUNK) {
+          const chunk = rowIds.slice(i, i + CHUNK);
+          const conflictRows = await baseModel.dbDriver
+            .from(baseModel.dbDriver.raw('?? as ??', [mmTnPath, 'j1']))
+            .whereIn(`j1.${childColName}`, chunk)
+            .whereExists(function () {
+              this.select(baseModel.dbDriver.raw('1'))
+                .from(baseModel.dbDriver.raw('?? as ??', [mmTnPath, 'j2']))
+                .join(
+                  baseModel.dbDriver.raw('?? as ??', [mainTnPath, 'm']),
+                  `m.${pkColName}`,
+                  `j2.${childColName}`,
+                )
+                .whereRaw('?? = ??', [
+                  `j2.${parentColName}`,
+                  `j1.${parentColName}`,
+                ])
+                .whereRaw('?? != ??', [
+                  `j2.${childColName}`,
+                  `j1.${childColName}`,
+                ])
+                .where(function () {
+                  this.whereNull(`m.${delColName}`).orWhere(
+                    `m.${delColName}`,
+                    false,
+                  );
+                });
+            })
+            .select([
+              `j1.${childColName} as row_id`,
+              `j1.${parentColName} as conflict_anchor_pk`,
+            ]);
 
-        for (const row of conflictRows) {
-          conflicts.push({
-            rowId: String(row.row_id),
-            columnTitle: col.title,
-            fkColumnName: `__nc_v2_jn_${col.id}`,
-            conflictParentPk: row.conflict_parent_pk,
-          });
+          for (const row of conflictRows) {
+            conflicts.push({
+              kind: 'v2',
+              rowId: String(row.row_id),
+              columnTitle: col.title,
+              colId: col.id,
+              conflictAnchorPk: row.conflict_anchor_pk,
+            });
+          }
         }
       }
     }

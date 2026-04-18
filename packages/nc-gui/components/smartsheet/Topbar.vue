@@ -20,7 +20,22 @@ const { appInfo } = useGlobal()
 
 const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
 
-const { openTrash } = useRecordTrash()
+const { openTrash, trashUnavailableReason } = useRecordTrash()
+
+const { t } = useI18n()
+
+const trashUnavailableMessage = computed(() => {
+  switch (trashUnavailableReason.value) {
+    case 'external':
+      return t('trash.notAvailableExternal')
+    case 'pending':
+      return t('trash.notAvailablePending')
+    case 'disabled':
+      return t('trash.autoExpiryDisabled')
+    default:
+      return ''
+  }
+})
 
 const { resolvedProject } = storeToRefs(useBases())
 
@@ -140,19 +155,30 @@ const topbarBreadcrumbItemWidth = computed(() => {
                 <GeneralIcon icon="camera" class="text-nc-content-gray-subtle2" />
                 <div>{{ $t('labels.snapshots') }}</div>
               </NcMenuItem>
-              <NcMenuItem
-                v-e="['c:topbar:history-menu:trash']"
-                data-testid="nc-topbar-history-menu-trash"
-                @click="
-                  () => {
-                    isHistoryMenuOpen = false
-                    openTrash()
-                  }
-                "
-              >
-                <GeneralIcon icon="ncTrash2" class="text-nc-content-gray-subtle2" />
-                <div>{{ $t('labels.trash') }}</div>
-              </NcMenuItem>
+              <NcTooltip :disabled="!trashUnavailableReason" placement="left">
+                <template #title>{{ trashUnavailableMessage }}</template>
+                <NcMenuItem
+                  v-e="['c:topbar:history-menu:trash']"
+                  :disabled="!!trashUnavailableReason"
+                  data-testid="nc-topbar-history-menu-trash"
+                  @click="
+                    () => {
+                      if (trashUnavailableReason) return
+                      isHistoryMenuOpen = false
+                      openTrash()
+                    }
+                  "
+                >
+                  <GeneralIcon
+                    :class="{
+                      '!text-nc-content-gray-disabled': trashUnavailableReason,
+                    }"
+                    icon="ncTrash2"
+                    class="text-nc-content-gray-subtle2"
+                  />
+                  <div>{{ $t('labels.trash') }}</div>
+                </NcMenuItem>
+              </NcTooltip>
             </NcMenu>
           </template>
         </NcDropdown>
@@ -179,10 +205,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
             data-testid="nc-topbar-extension-btn"
             @click="blockExtensions && !isPanelExpanded ? showUpgradeToUseExtensions() : toggleExtensionPanel()"
           >
-            <GeneralIcon
-              :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'"
-              class="w-4 h-4 !stroke-transparent"
-            />
+            <GeneralIcon :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'" class="w-4 h-4 !stroke-transparent" />
           </NcButton>
         </NcTooltip>
 

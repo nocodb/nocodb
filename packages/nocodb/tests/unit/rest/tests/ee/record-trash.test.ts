@@ -137,12 +137,23 @@ export default function recordTrashTests() {
       return rsp.body;
     }
 
-    /** Trash list */
+    /**
+     * Flattened view of the event-based trash list.
+     *
+     * The backend exposes `recordTrashEvents` (grouped by deleter + LMT) —
+     * tests here only need "which record ids are currently in trash?", so we
+     * collapse the event buckets back to a flat list shape compatible with the
+     * existing assertions: `{ list: [{ Id }, ...] }`.
+     */
     async function trashList(tableId: string) {
-      return internalGet({
-        operation: 'recordTrashList',
+      const rsp = await internalGet({
+        operation: 'recordTrashEvents',
         tableId,
       });
+      const list = ((rsp?.list ?? []) as any[]).flatMap((ev) =>
+        (ev.preview_rows ?? []).map((pr: any) => ({ Id: pr.row_id })),
+      );
+      return { list };
     }
 
     /** Trash count */
@@ -642,6 +653,42 @@ export default function recordTrashTests() {
 
         const links = await v3LinkList(tblA.id!, v2OmCol.id!, a1.id);
         expect(links.records.length).to.equal(1);
+      });
+
+      it('18a. V2 OM (HM): delete parent A1, re-parent B1 to A2, restore A1 → 409 conflict', async function () {
+        const a1 = await insertRow(tblA, 'A1');
+        const a2 = await insertRow(tblA, 'A2');
+        const b1 = await insertRow(tblB, 'B1');
+
+        await v3LinkAdd(tblA.id!, v2OmCol.id!, a1.id, [b1.id]);
+        await softDelete(tblA, a1.id);
+        // While A1 is in trash, A2 claims B1. Junction {A1,B1} is preserved
+        // alongside the new {A2,B1} — restoring A1 would give B1 two parents.
+        await v3LinkAdd(tblA.id!, v2OmCol.id!, a2.id, [b1.id]);
+
+        const rsp = await restoreRecords(tblA.id!, [a1.id], false, 409);
+        expect(rsp.error).to.equal(NcErrorType.ERR_RECORD_RESTORE_CONFLICT);
+      });
+
+      it('18b. V2 OM (HM): force restore A1 → A1 has no B1, A2 still owns B1', async function () {
+        const a1 = await insertRow(tblA, 'A1');
+        const a2 = await insertRow(tblA, 'A2');
+        const b1 = await insertRow(tblB, 'B1');
+
+        await v3LinkAdd(tblA.id!, v2OmCol.id!, a1.id, [b1.id]);
+        await softDelete(tblA, a1.id);
+        await v3LinkAdd(tblA.id!, v2OmCol.id!, a2.id, [b1.id]);
+
+        await restoreRecords(tblA.id!, [a1.id], true);
+
+        // Force-restore drops the restored record's own conflicting junction
+        // row (mirrors V2 OO test 15 — A1 has no B1, A2 still owns B1).
+        const a1Links = await v3LinkList(tblA.id!, v2OmCol.id!, a1.id);
+        expect(a1Links.records.length).to.equal(0);
+
+        const a2Links = await v3LinkList(tblA.id!, v2OmCol.id!, a2.id);
+        expect(a2Links.records.length).to.equal(1);
+        expect(a2Links.records[0].id).to.equal(b1.id);
       });
     });
 

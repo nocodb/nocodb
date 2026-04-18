@@ -237,7 +237,7 @@ const permissionScopes = {
   ],
   base: [
     // Record Trash
-    'recordTrashList',
+    'recordTrashEvents',
     'recordTrashCount',
     'recordTrashRestore',
     'recordTrashPermanentDelete',
@@ -884,7 +884,7 @@ const rolePermissions:
   [ProjectRoles.EDITOR]: {
     include: {
       // Record Trash
-      recordTrashList: true,
+      recordTrashEvents: true,
       recordTrashCount: true,
       recordTrashRestore: true,
 
@@ -1598,7 +1598,7 @@ const permissionDescriptions: Record<string, string> = {
   aiDataExtractRows: 'extract rows from input using AI',
 
   // Record Trash
-  recordTrashList: 'view deleted records',
+  recordTrashEvents: 'view record trash events',
   recordTrashCount: 'view count of deleted records',
   recordTrashRestore: 'restore deleted records',
   recordTrashPermanentDelete: 'permanently delete records from trash',

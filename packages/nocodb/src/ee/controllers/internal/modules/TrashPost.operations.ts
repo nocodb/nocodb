@@ -39,6 +39,7 @@ export class TrashPostOperations
         return await this.recordTrashService.restoreRecords(context, {
           tableId: req.body.tableId as string,
           rowIds: req.body.rowIds as string[],
+          eventId: req.body.eventId as string,
           force: req.body.force as boolean,
           req,
         });
@@ -46,6 +47,7 @@ export class TrashPostOperations
         return await this.recordTrashService.permanentDeleteRecords(context, {
           tableId: req.body.tableId as string,
           rowIds: req.body.rowIds as string[],
+          eventId: req.body.eventId as string,
           req,
         });
       case 'recordTrashEmpty':

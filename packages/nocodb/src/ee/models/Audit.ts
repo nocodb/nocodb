@@ -155,7 +155,7 @@ export default class Audit extends AuditCE {
     }
 
     if (type) {
-      query.where('op_type', 'in', type);
+      query.whereIn('op_type', Array.isArray(type) ? type : [type]);
     }
 
     if (!Noco.isEE()) {
@@ -189,7 +189,7 @@ export default class Audit extends AuditCE {
     }
 
     // skip DATA_ operations
-    query.where('op_type', 'not in', [
+    query.whereNotIn('op_type', [
       AuditV1OperationTypes.DATA_INSERT,
       AuditV1OperationTypes.DATA_DELETE,
       AuditV1OperationTypes.DATA_UPDATE,
@@ -312,7 +312,7 @@ export default class Audit extends AuditCE {
     }
 
     if (type) {
-      query.where('op_type', 'in', type);
+      query.whereIn('op_type', Array.isArray(type) ? type : [type]);
     }
 
     if (startDate) {
@@ -338,7 +338,7 @@ export default class Audit extends AuditCE {
     }
 
     // Skip DATA_ operations
-    query.where('op_type', 'not in', [
+    query.whereNotIn('op_type', [
       AuditV1OperationTypes.DATA_INSERT,
       AuditV1OperationTypes.DATA_DELETE,
       AuditV1OperationTypes.DATA_UPDATE,
@@ -387,6 +387,7 @@ export default class Audit extends AuditCE {
         return;
       }
       const propsToExtract = [
+        'id',
         'user',
         'ip',
         'source_id',

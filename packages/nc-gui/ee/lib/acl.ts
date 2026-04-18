@@ -238,7 +238,7 @@ const rolePermissions = {
       extensionUpdate: true,
 
       // Record Trash — editors can list/count/restore but NOT permanent delete or empty
-      recordTrashList: true,
+      recordTrashEvents: true,
       recordTrashCount: true,
       recordTrashRestore: true,
 

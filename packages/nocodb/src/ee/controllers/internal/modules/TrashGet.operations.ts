@@ -14,7 +14,7 @@ export class TrashGetOperations
   constructor(private readonly recordTrashService: RecordTrashService) {}
 
   operations = [
-    'recordTrashList' as const,
+    'recordTrashEvents' as const,
     'recordTrashCount' as const,
     'recordTrashSettingsList' as const,
   ];
@@ -34,11 +34,13 @@ export class TrashGetOperations
     },
   ): InternalGETResponseType {
     switch (operation) {
-      case 'recordTrashList':
-        return await this.recordTrashService.getDeletedRecords(context, {
+      case 'recordTrashEvents':
+        return await this.recordTrashService.listTrashEvents(context, {
           tableId: req.query.tableId as string,
-          query: req.query,
-          req,
+          limit: req.query.limit ? +req.query.limit : undefined,
+          cursor: req.query.cursor
+            ? (req.query.cursor as string)
+            : undefined,
         });
       case 'recordTrashCount':
         return await this.recordTrashService.getTrashCount(context, {

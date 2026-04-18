@@ -1,12 +1,29 @@
-import { NcErrorType } from 'nocodb-sdk'
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import { NcErrorType, isDeletedCol } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
 
 type RecordTrashOperation =
-  | 'recordTrashList'
+  | 'recordTrashEvents'
   | 'recordTrashCount'
   | 'recordTrashRestore'
   | 'recordTrashPermanentDelete'
   | 'recordTrashEmpty'
+
+/** Raw shape returned by the backend. User info is resolved on the client. */
+interface RawTrashEvent {
+  id: string
+  op_type: string
+  created_at: string
+  fk_user_id: string | null
+  row_count: number
+  preview_rows: Array<{ row_id: string; pv: any }>
+}
+
+export interface TrashEvent extends RawTrashEvent {
+  display_name: string | null
+  display_name_short: string | null
+  email: string | null
+  user_meta: any
+}
 
 export const useRecordTrash = createSharedComposable(() => {
   const { $api, $eventBus } = useNuxtApp()
@@ -17,7 +34,9 @@ export const useRecordTrash = createSharedComposable(() => {
 
   const { activeTableId: tableId, activeTable } = storeToRefs(tablesStore)
 
-  const { activeProjectId } = storeToRefs(useBases())
+  const basesStore = useBases()
+
+  const { activeProjectId, basesUser, bases } = storeToRefs(basesStore)
 
   const { getMetaByKey } = useMetas()
 
@@ -27,28 +46,61 @@ export const useRecordTrash = createSharedComposable(() => {
 
   const isLoading = ref(false)
 
-  const deletedRecords = ref<Record<string, any>[]>([])
+  const isLoadingMore = ref(false)
+
+  const trashEvents = ref<TrashEvent[]>([])
+
+  const hasMoreEvents = ref(false)
 
   const trashCount = ref(0)
 
-  const currentPage = ref(1)
+  const nextCursor = ref<string | null>(null)
 
   const pageSize = 25
 
-  const totalCount = ref(0)
-
-  const selectedRowIds = ref<string[]>([])
-
   const retentionDays = ref(30)
+
+  const trashDisabled = ref(false)
 
   const meta = computed(() => {
     if (!activeProjectId.value || !tableId.value) return undefined
     return getMetaByKey(activeProjectId.value, tableId.value) ?? activeTable.value
   })
 
-  const columns = computed(() => (meta.value?.columns ?? []) as ColumnType[])
+  const baseUsers = computed(() => {
+    const baseId = (meta.value as TableType | undefined)?.base_id
+    return baseId ? basesUser.value.get(baseId) ?? [] : []
+  })
 
-  const pkColumn = computed(() => columns.value.find((c) => c.pk)?.title ?? 'Id')
+  // Reason trash is unavailable for the active table, derived locally:
+  //   'external' — source isn't a NocoDB-managed (meta/local) source
+  //   'pending'  — meta source but no __nc_deleted column yet
+  //   'disabled' — user toggled trash off in settings
+  //   null       — trash is fully available
+  const trashUnavailableReason = computed<
+    'external' | 'pending' | 'disabled' | null
+  >(() => {
+    const table = meta.value as TableType | undefined
+    if (!table) return 'pending'
+    const source = bases.value
+      .get(table.base_id!)
+      ?.sources?.find((s) => s.id === table.source_id)
+    if (source && !(source.is_meta || source.is_local)) return 'external'
+    if (!table.columns?.some((c) => isDeletedCol(c))) return 'pending'
+    if (trashDisabled.value) return 'disabled'
+    return null
+  })
+
+  function enrichEvent(raw: RawTrashEvent): TrashEvent {
+    const user = raw.fk_user_id ? baseUsers.value.find((u) => u.id === raw.fk_user_id) : undefined
+    return {
+      ...raw,
+      display_name: user?.display_name ?? null,
+      display_name_short: user?.display_name ?? extractNameFromEmail(user?.email) ?? null,
+      email: user?.email ?? null,
+      user_meta: user?.meta,
+    }
+  }
 
   async function loadTrashCount() {
     if (!tableId.value || !(meta.value as TableType)?.fk_workspace_id) return
@@ -63,42 +115,144 @@ export const useRecordTrash = createSharedComposable(() => {
       )
       trashCount.value = (result as any)?.count ?? 0
       retentionDays.value = (result as any)?.retentionDays ?? 30
+      trashDisabled.value = !!(result as any)?.trashDisabled
     } catch (_e) {
       trashCount.value = 0
     }
   }
 
-  async function loadDeletedRecords() {
+  /**
+   * Event-based API — each item is one delete operation (grouped by deleter +
+   * LastModifiedTime), not one record.
+   */
+  async function loadTrashEvents(opts: { append?: boolean } = {}) {
     if (!tableId.value || !(meta.value as TableType)?.fk_workspace_id) return
-    isLoading.value = true
+    if (opts.append) isLoadingMore.value = true
+    else isLoading.value = true
+
     try {
-      const offset = (currentPage.value - 1) * pageSize
+      const cursor = opts.append ? nextCursor.value : null
       const result = (await $api.internal.getOperation(
         (meta.value as TableType).fk_workspace_id!,
         (meta.value as TableType)?.base_id!,
         {
-          operation: 'recordTrashList' as RecordTrashOperation,
+          operation: 'recordTrashEvents' as RecordTrashOperation,
           tableId: tableId.value,
           limit: pageSize,
-          offset,
+          ...(cursor ? { cursor } : {}),
         } as any,
       )) as any
 
-      deletedRecords.value = result?.list ?? []
-      totalCount.value = result?.pageInfo?.totalRows ?? 0
+      const list = ((result?.list ?? []) as RawTrashEvent[]).map(enrichEvent)
+      trashEvents.value = opts.append ? [...trashEvents.value, ...list] : list
+      hasMoreEvents.value = !!result?.pageInfo?.hasMore
+      nextCursor.value = result?.pageInfo?.nextCursor ?? null
+      if (typeof result?.retentionDays === 'number') {
+        retentionDays.value = result.retentionDays
+      }
+      if (typeof result?.trashDisabled === 'boolean') {
+        trashDisabled.value = result.trashDisabled
+      }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
-      isLoading.value = false
+      if (opts.append) isLoadingMore.value = false
+      else isLoading.value = false
     }
   }
 
-  function removeRowsLocally(rowIds: string[]) {
-    const idSet = new Set(rowIds)
-    deletedRecords.value = deletedRecords.value.filter((r) => !idSet.has(extractPkFromRow(r, columns.value) ?? ''))
-    selectedRowIds.value = selectedRowIds.value.filter((id) => !idSet.has(id))
-    trashCount.value = Math.max(0, trashCount.value - rowIds.length)
-    totalCount.value = Math.max(0, totalCount.value - rowIds.length)
+  async function loadMoreEvents() {
+    if (isLoading.value || isLoadingMore.value || !hasMoreEvents.value) return
+    if (!nextCursor.value) return
+    await loadTrashEvents({ append: true })
+  }
+
+  function removeEventLocally(eventId: string) {
+    const event = trashEvents.value.find((e) => e.id === eventId)
+    const count = event?.row_count ?? 0
+    trashEvents.value = trashEvents.value.filter((e) => e.id !== eventId)
+    trashCount.value = Math.max(0, trashCount.value - count)
+    return count
+  }
+
+  async function doRestoreEvent(tableMeta: TableType, eventId: string, force = false) {
+    await $api.internal.postOperation(
+      tableMeta.fk_workspace_id!,
+      tableMeta.base_id!,
+      { operation: 'recordTrashRestore' as RecordTrashOperation } as any,
+      { tableId: tableMeta.id, eventId, force },
+    )
+  }
+
+  async function restoreEvent(eventId: string) {
+    if (!tableId.value || !eventId) return
+    const tableMeta = meta.value as TableType | undefined
+    if (!tableMeta?.id || !tableMeta?.fk_workspace_id) return
+
+    const event = trashEvents.value.find((e) => e.id === eventId)
+    const expectedCount = event?.row_count ?? 0
+
+    try {
+      await doRestoreEvent(tableMeta, eventId)
+      message.toast(t('trash.recordsRestored', { count: expectedCount }))
+      removeEventLocally(eventId)
+      await loadTrashCount()
+    } catch (e: any) {
+      if (isUniqueConstraintViolationError(e)) {
+        const errorData = e.response?.data
+        const field = errorData?.fieldName
+        const value = errorData?.value
+
+        showWarningModal({
+          title: t('trash.uniqueConflictTitle'),
+          content: field && value ? t('trash.uniqueConflict', { field, value }) : t('trash.uniqueConflictGeneric'),
+        })
+        return
+      }
+
+      const { error } = await extractSdkResponseErrorMsgv2(e)
+      if (error === NcErrorType.ERR_RECORD_RESTORE_CONFLICT) {
+        showWarningModal({
+          title: t('trash.linkConflictTitle'),
+          content: t('trash.linkConflictForce'),
+          okText: t('trash.restoreAnyway'),
+          showCancelBtn: true,
+          okCallback: async () => {
+            try {
+              await doRestoreEvent(tableMeta, eventId, true)
+              message.toast(t('trash.recordsRestored', { count: expectedCount }))
+              removeEventLocally(eventId)
+              await loadTrashCount()
+            } catch (e2: any) {
+              message.error(await extractSdkResponseErrorMsg(e2))
+              await loadTrashEvents()
+            }
+          },
+        })
+        return
+      }
+
+      message.error(await extractSdkResponseErrorMsg(e))
+      await loadTrashEvents()
+    }
+  }
+
+  async function permanentDeleteEvent(eventId: string) {
+    if (!tableId.value || !eventId || !(meta.value as TableType)?.fk_workspace_id) return
+    try {
+      await $api.internal.postOperation(
+        (meta.value as TableType).fk_workspace_id!,
+        (meta.value as TableType)?.base_id!,
+        { operation: 'recordTrashPermanentDelete' as RecordTrashOperation } as any,
+        { tableId: tableId.value, eventId },
+      )
+      const count = removeEventLocally(eventId)
+      message.success(t('trash.recordsDeleted', { count }))
+      await loadTrashCount()
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      await loadTrashEvents()
+    }
   }
 
   async function doRestore(tableMeta: TableType, rowIds: string[], force = false) {
@@ -143,9 +297,10 @@ export const useRecordTrash = createSharedComposable(() => {
       const { error } = await extractSdkResponseErrorMsgv2(e)
       if (error === NcErrorType.ERR_RECORD_RESTORE_CONFLICT) {
         showWarningModal({
-          title: t('trash.ooConflictTitle'),
-          content: t('trash.ooConflictForce'),
+          title: t('trash.linkConflictTitle'),
+          content: t('trash.linkConflictForce'),
           okText: t('trash.restoreAnyway'),
+          showCancelBtn: true,
           okCallback: async () => {
             try {
               await doRestore(tableMeta, rowIds, true)
@@ -163,39 +318,6 @@ export const useRecordTrash = createSharedComposable(() => {
     }
   }
 
-  async function restoreRecords(rowIds: string[]) {
-    if (!tableId.value || !rowIds.length) return
-    await restoreFromTrash(meta.value as TableType, rowIds, {
-      onSuccess: async () => {
-        message.toast(t('trash.recordsRestored', { count: rowIds.length }))
-        removeRowsLocally(rowIds)
-        await loadTrashCount()
-      },
-      onError: async () => {
-        await loadDeletedRecords()
-        await loadTrashCount()
-      },
-    })
-  }
-
-  async function permanentDeleteRecords(rowIds: string[]) {
-    if (!tableId.value || !rowIds.length || !(meta.value as TableType)?.fk_workspace_id) return
-    removeRowsLocally(rowIds)
-    try {
-      await $api.internal.postOperation(
-        (meta.value as TableType).fk_workspace_id!,
-        (meta.value as TableType)?.base_id!,
-        { operation: 'recordTrashPermanentDelete' as RecordTrashOperation } as any,
-        { tableId: tableId.value, rowIds },
-      )
-      message.success(t('trash.recordsDeleted', { count: rowIds.length }))
-      await loadTrashCount()
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-      await loadDeletedRecords()
-    }
-  }
-
   async function emptyTrash() {
     if (!tableId.value || !(meta.value as TableType)?.fk_workspace_id) return
     try {
@@ -206,31 +328,32 @@ export const useRecordTrash = createSharedComposable(() => {
         { tableId: tableId.value },
       )
       message.success(t('trash.trashEmptied'))
-      deletedRecords.value = []
-      selectedRowIds.value = []
+      trashEvents.value = []
+      hasMoreEvents.value = false
+      nextCursor.value = null
       trashCount.value = 0
-      totalCount.value = 0
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-      await loadDeletedRecords()
+      await loadTrashEvents()
       await loadTrashCount()
     }
   }
 
   function openTrash() {
+    if (trashUnavailableReason.value) return
     isOpen.value = true
   }
 
   watch(
     tableId,
     () => {
-      currentPage.value = 1
-      selectedRowIds.value = []
-      deletedRecords.value = []
+      nextCursor.value = null
+      trashEvents.value = []
+      hasMoreEvents.value = false
       loadTrashCount()
 
       if (isOpen.value) {
-        loadDeletedRecords()
+        loadTrashEvents()
       }
     },
     { immediate: true },
@@ -242,7 +365,7 @@ export const useRecordTrash = createSharedComposable(() => {
       loadTrashCount()
 
       if (isOpen.value) {
-        loadDeletedRecords()
+        loadTrashEvents()
       }
     }
   }
@@ -254,9 +377,12 @@ export const useRecordTrash = createSharedComposable(() => {
 
   watch(isOpen, (open) => {
     if (open) {
+      // Only poll the count — a plain number doesn't re-render list rows.
+      // The events list refreshes on modal open and on DATA_RELOAD from the
+      // smartsheet event bus, which is enough to keep the user's own actions
+      // in sync without flickering the chips.
       refreshInterval = setInterval(() => {
         loadTrashCount()
-        loadDeletedRecords()
       }, 30000)
     } else {
       if (refreshInterval) {
@@ -278,18 +404,17 @@ export const useRecordTrash = createSharedComposable(() => {
   return {
     isOpen,
     isLoading,
-    deletedRecords,
+    isLoadingMore,
+    trashEvents,
     trashCount,
-    currentPage,
-    pageSize,
-    totalCount,
-    selectedRowIds,
-    pkColumn,
+    hasMoreEvents,
     retentionDays,
-    loadDeletedRecords,
+    trashUnavailableReason,
+    loadTrashEvents,
+    loadMoreEvents,
+    restoreEvent,
+    permanentDeleteEvent,
     restoreFromTrash,
-    restoreRecords,
-    permanentDeleteRecords,
     emptyTrash,
     openTrash,
   }

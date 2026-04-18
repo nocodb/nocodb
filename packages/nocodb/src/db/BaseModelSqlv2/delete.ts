@@ -419,6 +419,14 @@ export class BaseModelDelete {
       }
     });
 
+    // Capture one timestamp for the whole bulkAll invocation so every chunk —
+    // and every linked-record LMT propagation inside each chunk — stamps rows
+    // with the same LastModifiedTime. Without this, each 100-row chunk plus
+    // each per-link updateLastModified() call would get its own now(), and
+    // grouping on (LastModifiedBy, LastModifiedTime) would split one logical
+    // delete into many events in the trash UI.
+    const operationNow = this.baseModel.now();
+
     // delete (or soft-delete) the rows in table
     execQueries.push(({ trx, qb, ids }) => {
       if (isSoftDelete) {
@@ -433,8 +441,7 @@ export class BaseModelDelete {
         const lmbCol = columns.find(
           (c) => c.uidt === UITypes.LastModifiedBy && c.system,
         );
-        if (lmtCol)
-          softDeletePayload[lmtCol.column_name] = this.baseModel.now();
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = operationNow;
         if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
 
         if (this.baseModel.model.primaryKeys.length === 1) {
@@ -478,6 +485,7 @@ export class BaseModelDelete {
       attachmentColumns,
       filterObj,
       isSoftDelete,
+      operationNow,
     };
   }
 
@@ -547,6 +555,7 @@ export class BaseModelDelete {
       filterObj,
       attachmentColumns,
       isSoftDelete,
+      operationNow,
     } = await this.prepareBulkDeleteAll(params);
 
     const bulkAuditEvent = isSoftDelete
@@ -654,6 +663,7 @@ export class BaseModelDelete {
             rowIds: entry.ids,
             cookie,
             updatedColIds: [entry.colId].filter(Boolean),
+            timestamp: operationNow,
           });
           await entry.baseModel.broadcastLinkUpdates(entry.ids);
         } catch (e) {
@@ -690,7 +700,11 @@ export class BaseModelDelete {
     return response;
   }
 
-  async permanentDeleteByIds(rowIds: string[], cookie: NcRequest) {
+  async permanentDeleteByIds(
+    rowIds: string[],
+    cookie: NcRequest,
+    isBulkAllOperation = false,
+  ) {
     const columns = await this.baseModel.model.getColumns(
       this.baseModel.context,
     );
@@ -901,7 +915,7 @@ export class BaseModelDelete {
       oldRecords,
       this.baseModel.dbDriver,
       cookie,
-      false,
+      isBulkAllOperation,
       AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE,
       AuditV1OperationTypes.DATA_DELETE,
     );

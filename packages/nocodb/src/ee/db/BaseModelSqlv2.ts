@@ -1802,7 +1802,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     data: any,
     _trx: any,
     req,
-    _isBulkAllOperation = false,
+    isBulkAllOperation = false,
     bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
     rowEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
@@ -1825,20 +1825,29 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     if (await this.isDataAuditEnabled()) {
-      const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
+      // bulkAll chunks rows into 100-row batches and calls afterBulkDelete
+      // per chunk. The first chunk creates the parent audit; later chunks
+      // reuse req.ncParentAuditId so the whole operation appears as one
+      // event in the trash UI instead of N (one per 100-row chunk).
+      const reuseParent = isBulkAllOperation && !!req.ncParentAuditId;
+      const parentAuditId = reuseParent
+        ? req.ncParentAuditId
+        : await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
-      await Audit.insert(
-        await generateAuditV1Payload<DataBulkDeletePayload>(bulkEventType, {
-          details: {},
-          context: {
-            ...this.context,
-            source_id: this.model.source_id,
-            fk_model_id: this.model.id,
-          },
-          req,
-          id: parentAuditId,
-        }),
-      );
+      if (!reuseParent) {
+        await Audit.insert(
+          await generateAuditV1Payload<DataBulkDeletePayload>(bulkEventType, {
+            details: {},
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+            },
+            req,
+            id: parentAuditId,
+          }),
+        );
+      }
       req.ncParentAuditId = parentAuditId;
 
       const column_meta = extractColsMetaForAudit(this.model.columns);
@@ -1869,7 +1878,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  public async afterBulkRestore(data: any, req): Promise<void> {
+  public async afterBulkRestore(
+    data: any,
+    req,
+    isBulkAllOperation = false,
+  ): Promise<void> {
     const pks = data.map((d) => this.extractPksValues(d, true));
     const rows = await this.chunkList({ pks, extractOrderColumn: true });
 
@@ -1885,7 +1898,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       });
     }
 
-    await super.afterBulkRestore(data, req);
+    await super.afterBulkRestore(data, req, isBulkAllOperation);
   }
 
   async delByPk(id, _trx?, cookie?) {

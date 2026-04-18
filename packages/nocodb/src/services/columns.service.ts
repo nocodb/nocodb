@@ -3,6 +3,7 @@ import { pluralize, singularize } from 'inflection';
 import {
   AppEvents,
   ButtonActionsType,
+  CURRENT_USER_TOKEN,
   EventType,
   extractRolesObj,
   FormulaDataTypes,
@@ -376,6 +377,20 @@ export class ColumnsService implements IColumnsService {
   ) {
     const { table, column, source, reuse } = args;
 
+    // Strip @me from SQL DEFAULT — it's an app-level token, not a DB value
+    let savedCdf: string | undefined;
+    if (
+      column.uidt === UITypes.User &&
+      typeof column.cdf === 'string' &&
+      column.cdf.includes(CURRENT_USER_TOKEN)
+    ) {
+      savedCdf = column.cdf;
+      const nonTokenValues = column.cdf
+        .split(',')
+        .filter((v) => v.trim() !== CURRENT_USER_TOKEN);
+      column.cdf = nonTokenValues.length ? nonTokenValues.join(',') : null;
+    }
+
     const tableUpdateBody = {
       ...table,
       tn: table.table_name,
@@ -437,6 +452,11 @@ export class ColumnsService implements IColumnsService {
       }),
     );
     await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+    // Restore @me cdf for metadata storage
+    if (savedCdf !== undefined) {
+      column.cdf = savedCdf;
+    }
 
     await Column.update(context, column.id, {
       ...column,
@@ -1957,29 +1977,44 @@ export class ColumnsService implements IColumnsService {
       if (typeof colBody.cdf !== 'string') {
         colBody.cdf = '';
       } else if (colBody.cdf) {
-        const baseUsers = await BaseUser.getUsersList(context, {
-          base_id: source.base_id,
-          include_ws_deleted: false,
-        });
-
         const emailOrIds = colBody.cdf.split(',');
-        const emailsNotPresent = emailOrIds.filter((el) => {
-          return !baseUsers.find((user) => user.id === el || user.email === el);
-        });
 
-        if (emailsNotPresent.length) {
-          NcError.get(context).badRequest(
-            `The following default users are not part of workspace: ${emailsNotPresent.join(
-              ', ',
-            )}`,
-          );
+        // Filter out @me token — it doesn't need user validation
+        const nonTokenValues = emailOrIds.filter(
+          (el) => el.trim() !== CURRENT_USER_TOKEN,
+        );
+
+        let baseUsers: Awaited<
+          ReturnType<typeof BaseUser.getUsersList>
+        > = [];
+
+        if (nonTokenValues.length) {
+          baseUsers = await BaseUser.getUsersList(context, {
+            base_id: source.base_id,
+            include_ws_deleted: false,
+          });
+
+          const emailsNotPresent = nonTokenValues.filter((el) => {
+            return !baseUsers.find(
+              (user) => user.id === el || user.email === el,
+            );
+          });
+
+          if (emailsNotPresent.length) {
+            NcError.get(context).badRequest(
+              `The following default users are not part of workspace: ${emailsNotPresent.join(
+                ', ',
+              )}`,
+            );
+          }
         }
 
         const ids = emailOrIds.map((el) => {
+          if (el.trim() === CURRENT_USER_TOKEN) return CURRENT_USER_TOKEN;
           const user = baseUsers.find(
             (user) => user.id === el || user.email === el,
           );
-          return user.id;
+          return user?.id ?? el;
         });
 
         colBody.cdf = ids.join(',');
@@ -3374,31 +3409,45 @@ export class ColumnsService implements IColumnsService {
           if (colBody.uidt === UITypes.User) {
             // handle default value for user column
             if (colBody.cdf) {
-              const baseUsers = await BaseUser.getUsersList(context, {
-                base_id: base.id,
-                include_ws_deleted: false,
-              });
-
               const emailOrIds = colBody.cdf.split(',');
-              const emailsNotPresent = emailOrIds.filter((el) => {
-                return !baseUsers.find(
-                  (user) => user.id === el || user.email === el,
-                );
-              });
 
-              if (emailsNotPresent.length) {
-                NcError.get(context).invalidRequestBody(
-                  `The following default users are not part of workspace: ${emailsNotPresent.join(
-                    ', ',
-                  )}`,
-                );
+              // Filter out @me token — it doesn't need user validation
+              const nonTokenValues = emailOrIds.filter(
+                (el) => el.trim() !== CURRENT_USER_TOKEN,
+              );
+
+              let baseUsers: Awaited<
+                ReturnType<typeof BaseUser.getUsersList>
+              > = [];
+
+              if (nonTokenValues.length) {
+                baseUsers = await BaseUser.getUsersList(context, {
+                  base_id: base.id,
+                  include_ws_deleted: false,
+                });
+
+                const emailsNotPresent = nonTokenValues.filter((el) => {
+                  return !baseUsers.find(
+                    (user) => user.id === el || user.email === el,
+                  );
+                });
+
+                if (emailsNotPresent.length) {
+                  NcError.get(context).invalidRequestBody(
+                    `The following default users are not part of workspace: ${emailsNotPresent.join(
+                      ', ',
+                    )}`,
+                  );
+                }
               }
 
               const ids = emailOrIds.map((el) => {
+                if (el.trim() === CURRENT_USER_TOKEN)
+                  return CURRENT_USER_TOKEN;
                 const user = baseUsers.find(
                   (user) => user.id === el || user.email === el,
                 );
-                return user.id;
+                return user?.id ?? el;
               });
 
               colBody.cdf = ids.join(',');
@@ -3459,6 +3508,23 @@ export class ColumnsService implements IColumnsService {
             colBody.internal_meta = internalMeta;
           }
 
+          // Strip @me from SQL DEFAULT — it's an app-level token, not a DB value.
+          // Existing rows should remain NULL; @me resolves only for new rows.
+          let savedCdf: string | undefined;
+          if (
+            colBody.uidt === UITypes.User &&
+            typeof colBody.cdf === 'string' &&
+            colBody.cdf.includes(CURRENT_USER_TOKEN)
+          ) {
+            savedCdf = colBody.cdf;
+            const nonTokenValues = colBody.cdf
+              .split(',')
+              .filter((v) => v.trim() !== CURRENT_USER_TOKEN);
+            colBody.cdf = nonTokenValues.length
+              ? nonTokenValues.join(',')
+              : null;
+          }
+
           const tableUpdateBody = {
             ...table,
             tn: table.table_name,
@@ -3484,6 +3550,11 @@ export class ColumnsService implements IColumnsService {
           );
           await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
+          // Restore @me cdf for metadata storage
+          if (savedCdf !== undefined) {
+            colBody.cdf = savedCdf;
+          }
+
           if (!source.isMeta()) {
             const columns: Array<
               Omit<Column, 'column_name' | 'title'> & {
@@ -3500,7 +3571,14 @@ export class ColumnsService implements IColumnsService {
             const insertedColumnMeta =
               columns.find((c) => c.cn === colBody.column_name) || ({} as any);
 
+            // Preserve @me cdf — DB column info won't have it
+            const metaCdf = colBody.cdf;
+
             Object.assign(colBody, insertedColumnMeta);
+
+            if (metaCdf) {
+              colBody.cdf = metaCdf;
+            }
           }
 
           // Insert column with pre-generated ID if available (for unique constraint)

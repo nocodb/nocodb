@@ -1,5 +1,6 @@
 import {
   RelationTypes,
+  resolveCurrentUserToken,
   UITypes,
   dateFormats,
   getRenderAsTextFunForUiType,
@@ -147,7 +148,7 @@ export async function populateInsertObject({
 }
 
 // a function to get default values of row
-export const rowDefaultData = (columns: ColumnType[] = []) => {
+export const rowDefaultData = (columns: ColumnType[] = [], currentUser?: { id?: string; email?: string }) => {
   const defaultData: Record<string, string> = columns.reduce<Record<string, any>>((acc: Record<string, any>, col: ColumnType) => {
     //  avoid setting default value for system col, virtual col, rollup, formula, barcode, qrcode, links, ltar
     if (
@@ -165,7 +166,13 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
       isValidValue(col?.cdf) &&
       !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {
-      const defaultValue = col.cdf
+      let defaultValue = col.cdf
+
+      // Resolve @me token for User fields to current user's ID
+      if (col.uidt === UITypes.User && typeof defaultValue === 'string' && currentUser?.id) {
+        defaultValue = resolveCurrentUserToken(defaultValue, currentUser.id)
+      }
+
       acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^['"]|['"]$/g, '') : defaultValue
     }
     return acc

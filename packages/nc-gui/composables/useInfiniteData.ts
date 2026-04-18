@@ -1270,7 +1270,7 @@ export function useInfiniteData(args: {
       },
     )
     const newRow = {
-      row: { ...rowDefaultData(metaValue?.columns), ...rowFilters, ...rowOverwrite },
+      row: { ...rowDefaultData(metaValue?.columns, user.value ?? undefined), ...rowFilters, ...rowOverwrite },
       oldRow: {},
       rowMeta: { new: true, rowIndex: newRowIndex, path },
     }

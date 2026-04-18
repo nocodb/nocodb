@@ -142,7 +142,7 @@ function addEmptyRow(group: Group, addAfter?: number, metaValue = meta.value) {
   group.rows.splice(addAfter, 0, {
     row: {
       ...rowFilters,
-      ...rowDefaultData(metaValue?.columns),
+      ...rowDefaultData(metaValue?.columns, user.value ?? undefined),
       ...setGroup,
     },
     oldRow: {},

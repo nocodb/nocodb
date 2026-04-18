@@ -30,6 +30,8 @@ export function useData(args: {
 
   const { isPaginationLoading } = storeToRefs(useViewsStore())
 
+  const { user } = useGlobal()
+
   const reloadAggregate = inject(ReloadAggregateHookInj)
 
   const selectedAllRecords = computed({
@@ -43,7 +45,7 @@ export function useData(args: {
 
   function addEmptyRow(addAfter = formattedData.value.length, metaValue = meta.value) {
     formattedData.value.splice(addAfter, 0, {
-      row: { ...rowDefaultData(metaValue?.columns) },
+      row: { ...rowDefaultData(metaValue?.columns, user.value ?? undefined) },
       oldRow: {},
       rowMeta: { new: true },
     })

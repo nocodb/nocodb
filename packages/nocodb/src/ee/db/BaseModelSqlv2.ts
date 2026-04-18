@@ -2,6 +2,7 @@ import {
   AppEvents,
   AuditV1OperationTypes,
   convertDurationToSeconds,
+  CURRENT_USER_TOKEN,
   enumColors,
   isAIPromptCol,
   isAttachment,
@@ -20,6 +21,7 @@ import {
   PlanLimitTypes,
   ProjectRoles,
   RelationTypes,
+  resolveCurrentUserToken,
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
@@ -1162,10 +1164,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
+      // Check if data value matches the resolved column default (including @me → current user)
+      const isDefaultValue =
+        isInsertData &&
+        (column.cdf === data[column.column_name] ||
+          (column.uidt === UITypes.User &&
+            typeof column.cdf === 'string' &&
+            column.cdf.includes(CURRENT_USER_TOKEN) &&
+            cookie?.user?.id &&
+            data[column.column_name] ===
+              resolveCurrentUserToken(column.cdf, cookie.user.id)));
+
       if (
         data[column.column_name] !== undefined &&
         // if inserting data with column default value, skip permission check
-        !(isInsertData && column.cdf === data[column.column_name])
+        !isDefaultValue
       ) {
         await this.checkPermission({
           entity: PermissionEntity.FIELD,

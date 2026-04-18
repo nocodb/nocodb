@@ -101,7 +101,7 @@ const newRecord = (row: RowType) => {
 
   expandRecord({
     row: {
-      ...rowDefaultData(meta.value?.columns),
+      ...rowDefaultData(meta.value?.columns, user.value ?? undefined),
       ...rowFilters,
       ...row.row,
     },

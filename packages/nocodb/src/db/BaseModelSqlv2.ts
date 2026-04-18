@@ -13,6 +13,7 @@ import {
   AuditV1OperationTypes,
   ClientType,
   convertDurationToSeconds,
+  CURRENT_USER_TOKEN,
   enumColors,
   EventType,
   extractFilterFromXwhere,
@@ -38,6 +39,7 @@ import {
   PermissionEntity,
   PermissionKey,
   RelationTypes,
+  resolveCurrentUserToken,
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -7506,6 +7508,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.uidt,
         )
       ) {
+        // Resolve @me token in default value for User columns during insert
+        if (
+          isInsertData &&
+          column.uidt === UITypes.User &&
+          ncIsNullOrUndefined(data[column.column_name]) &&
+          column.cdf &&
+          typeof column.cdf === 'string' &&
+          column.cdf.includes(CURRENT_USER_TOKEN) &&
+          cookie?.user?.id
+        ) {
+          data[column.column_name] = resolveCurrentUserToken(
+            column.cdf,
+            cookie.user.id,
+          );
+        }
+
         if (!ncIsNullOrUndefined(data[column.column_name])) {
           const userIds = [];
 

@@ -7,7 +7,7 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const { blockMfa, showUpgradeToUseMfa } = useEeConfig()
+const { blockMfa, showUpgradeToUseMfa, isEEFeatureBlocked } = useEeConfig()
 
 const { copy } = useCopy()
 
@@ -38,6 +38,8 @@ const newBackupCodes = ref<string[]>([])
 const regenerateCodeInput = ref<HTMLInputElement>()
 
 async function fetchStatus() {
+  if (isEEFeatureBlocked.value) return
+
   try {
     const response = await api.instance.get('/api/v2/auth/mfa/status')
     mfaEnabled.value = response.data.enabled

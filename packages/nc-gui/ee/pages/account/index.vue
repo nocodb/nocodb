@@ -264,7 +264,6 @@ onMounted(() => {
                   <GeneralIcon icon="ncShield" class="!h-4 !w-4" />
 
                   <div class="select-none">{{ $t('labels.security') }}</div>
-                  <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
                 </div>
               </NcMenuItem>
 

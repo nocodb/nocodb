@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { validateAccountName } from 'nocodb-sdk'
 import InputOrTags from './InputOrTags.vue'
 
 const props = defineProps<{
@@ -22,21 +23,15 @@ const useForm = Form.useForm
 const { t } = useI18n()
 
 const validators = computed(() => {
-  // todo: validation
   return {
     title: [
       {
         validator: (_: any, value: any) => {
-          // validate duplicate alias
           return new Promise((resolve, reject) => {
-            if (!value?.trim()) {
-              return reject(new Error('Workspace name required'))
+            const result = validateAccountName(value)
+            if (!result.valid) {
+              return reject(new Error(result.error))
             }
-
-            if (value?.trim().length > 255) {
-              return reject(new Error('Workspace name should be less than 255 characters'))
-            }
-
             return resolve(true)
           })
         },

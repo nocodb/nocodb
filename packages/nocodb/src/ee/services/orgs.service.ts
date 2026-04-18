@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, CloudOrgUserRoles, type DomainReqType } from 'nocodb-sdk';
+import { AppEvents, CloudOrgUserRoles, type DomainReqType, validateAccountName } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import {
   DbServer,
@@ -30,6 +30,11 @@ export class OrgsService {
       NcError.userNotFound(param.userId);
     }
 
+    const nameValidation = validateAccountName(param.title);
+    if (!nameValidation.valid) {
+      NcError.badRequest(nameValidation.error);
+    }
+
     // check if the user already has an org
     const ownedOrgs = await OrgUser.getOwnedOrgs(user.id);
     if (ownedOrgs.length > 0) {
@@ -45,7 +50,7 @@ export class OrgsService {
     }
 
     const org = await Org.insert({
-      title: param.title,
+      title: param.title.trim(),
       fk_user_id: user.id,
       fk_db_instance_id: param.dbServerId,
     });

@@ -439,6 +439,7 @@ const deleteScript = () => {
         <template v-if="!isEditing">
           <NcTooltip
             v-if="vModel.description?.length"
+            overlay-class-name="nc-tooltip-scrollable"
             placement="bottom"
             @mouseenter="showScriptNodeTooltip = false"
             @mouseleave="showScriptNodeTooltip = true"

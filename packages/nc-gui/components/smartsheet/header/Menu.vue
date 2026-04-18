@@ -65,7 +65,7 @@ const emitEdit = (...args: any[]) => {
   >
     <div class="flex gap-1 items-center" @dblclick.stop>
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
-      <NcTooltip v-if="column?.description?.length && !isExpandedForm" class="flex">
+      <NcTooltip v-if="column?.description?.length && !isExpandedForm" overlay-class-name="nc-tooltip-scrollable" class="flex">
         <template #title>
           <div class="whitespace-pre-wrap break-words">{{ column?.description }}</div>
         </template>

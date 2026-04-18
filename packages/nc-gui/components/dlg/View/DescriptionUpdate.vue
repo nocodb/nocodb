@@ -112,7 +112,7 @@ const updateDescription = async (undo = false) => {
   <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
-        <GeneralViewIcon :meta="view" class="mt-0.5 !text-2xl" />
+        <GeneralViewIcon :meta="view" class="!w-5 !h-5" />
 
         <span class="text-nc-content-gray-emphasis font-semibold">
           {{ view?.title }}

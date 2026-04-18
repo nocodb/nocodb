@@ -426,6 +426,71 @@ const {
   updateOrSaveRow,
 })
 
+const descriptionPopoverState = ref<{
+  text: string
+  rect: { x: number; y: number; width: number; height: number }
+} | null>(null)
+const descriptionPopoverRef = ref<HTMLElement | null>(null)
+let descriptionPopoverHideTimer: ReturnType<typeof setTimeout> | null = null
+
+const descriptionTargetReference = computed(() => {
+  const r = descriptionPopoverState.value?.rect
+  const empty = { x: 0, y: 0, left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }
+  if (!r) return { getBoundingClientRect: () => empty }
+  return {
+    getBoundingClientRect: () => ({
+      x: r.x,
+      y: r.y,
+      left: r.x,
+      top: r.y,
+      right: r.x + r.width,
+      bottom: r.y + r.height,
+      width: r.width,
+      height: r.height,
+    }),
+  }
+})
+
+const { floatingStyles: descriptionFloatingStyles } = useFloating(descriptionTargetReference, descriptionPopoverRef, {
+  placement: 'bottom-start',
+  middleware: [offset(4), flip(), shift({ padding: 8 })],
+})
+
+const clearDescriptionHideTimer = () => {
+  if (descriptionPopoverHideTimer) {
+    clearTimeout(descriptionPopoverHideTimer)
+    descriptionPopoverHideTimer = null
+  }
+}
+
+const scheduleHideDescriptionPopover = () => {
+  clearDescriptionHideTimer()
+  descriptionPopoverHideTimer = setTimeout(() => {
+    descriptionPopoverState.value = null
+    descriptionPopoverHideTimer = null
+  }, 200)
+}
+
+const hideDescriptionPopoverImmediate = () => {
+  clearDescriptionHideTimer()
+  descriptionPopoverState.value = null
+}
+
+const showDescriptionPopover = (region: { x: number; y: number; width: number; height: number }, text: string) => {
+  const canvasRect = canvasRef.value?.getBoundingClientRect()
+  if (!canvasRect || !text) return
+  clearDescriptionHideTimer()
+  descriptionPopoverState.value = {
+    text,
+    rect: {
+      x: region.x + canvasRect.x,
+      y: region.y + canvasRect.y,
+      width: region.width,
+      height: region.height,
+    },
+  }
+}
+
 /** Whether the table has attachment fields and data editing is allowed — gates the file drop zone */
 const canDropFilesToCreateRecords = computed(() => isDataEditAllowed.value && attachmentFields.value.length > 0)
 
@@ -1931,6 +1996,7 @@ const handleMouseMove = (e: MouseEvent) => {
 
   let cursor = colResizeHoveredColIds.value.size ? 'col-resize' : 'auto'
   hideTooltip()
+  scheduleHideDescriptionPopover()
   const fixedCols = columns.value.filter((col) => col.fixed)
 
   if (mousePosition.y < headerRowHeight.value) {
@@ -1953,7 +2019,9 @@ const handleMouseMove = (e: MouseEvent) => {
       if (['title', 'columnChevron', 'synced'].includes(activeFixedRegion?.type) && isFieldEditAllowed.value) {
         cursor = 'pointer'
       }
-      if (activeFixedRegion && !activeFixedRegion.disableTooltip) {
+      if (activeFixedRegion?.type === 'info') {
+        showDescriptionPopover(activeFixedRegion, activeFixedRegion.text)
+      } else if (activeFixedRegion && !activeFixedRegion.disableTooltip) {
         tryShowTooltip({
           rect: activeFixedRegion,
           text: activeFixedRegion.tooltipText || activeFixedRegion.text,
@@ -1988,7 +2056,9 @@ const handleMouseMove = (e: MouseEvent) => {
           cursor = 'pointer'
         }
 
-        if (activeRegion && !activeRegion.disableTooltip) {
+        if (activeRegion?.type === 'info') {
+          showDescriptionPopover(activeRegion, activeRegion.text)
+        } else if (activeRegion && !activeRegion.disableTooltip) {
           tryShowTooltip({
             rect: activeRegion,
             text: activeRegion.tooltipText || activeRegion.text,
@@ -2192,6 +2262,7 @@ const handleMouseMove = (e: MouseEvent) => {
 const handleMouseLeave = () => {
   setCursor('auto')
   hideTooltip()
+  scheduleHideDescriptionPopover()
 
   // Reset hover row on mouse leave from canvas
   hoverRow.value = {
@@ -2234,6 +2305,7 @@ const reloadViewDataHookHandler = withLoading(async (params) => {
 let rafId: number | null = null
 
 const handleScroll = (e: { left: number; top: number }) => {
+  hideDescriptionPopoverImmediate()
   if (rafId) cancelAnimationFrame(rafId)
 
   rafId = requestAnimationFrame(() => {
@@ -2638,6 +2710,7 @@ onBeforeUnmount(() => {
   reloadVisibleDataHook?.off(triggerReload)
   openNewRecordFormHook?.off(openNewRecordHandler)
   selectCellHook.off(selectCell)
+  hideDescriptionPopoverImmediate()
 })
 
 function resetActiveCell(path?: Array<number>, force = false) {
@@ -2944,6 +3017,20 @@ watch(
         <Teleport to="body">
           <Transition name="tooltip">
             <Tooltip v-if="tooltipStore.tooltipText" ref="tooltipRef" :tooltip-style="floatingStyles" />
+          </Transition>
+        </Teleport>
+        <Teleport to="body">
+          <Transition name="tooltip">
+            <div
+              v-if="descriptionPopoverState"
+              ref="descriptionPopoverRef"
+              class="nc-field-description-popover"
+              :style="descriptionFloatingStyles"
+              @mouseenter="clearDescriptionHideTimer"
+              @mouseleave="scheduleHideDescriptionPopover"
+            >
+              <div class="nc-field-description-popover-body" @wheel.stop>{{ descriptionPopoverState.text }}</div>
+            </div>
           </Transition>
         </Teleport>
         <NcDropdown
@@ -3426,6 +3513,42 @@ watch(
 
   :deep(.nc-under-ltar .nc-cell-field div) {
     @apply !leading-[16px];
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-field-description-popover {
+  @apply bg-gray-800 text-white rounded-lg text-xs shadow-lg dark:!bg-[#3a3f4b];
+  max-width: 320px;
+  z-index: 1000;
+}
+
+.nc-field-description-popover-body {
+  @apply whitespace-pre-wrap break-words px-2.5 py-1.5;
+  max-height: 60vh;
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    margin: 4px 0;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 4px;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.6);
+    }
   }
 }
 </style>

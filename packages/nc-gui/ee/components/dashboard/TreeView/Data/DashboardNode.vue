@@ -432,6 +432,7 @@ const deleteDashboard = () => {
         <template v-if="!isEditing">
           <NcTooltip
             v-if="vModel.description?.length"
+            overlay-class-name="nc-tooltip-scrollable"
             placement="bottom"
             @mouseenter="showDashboardNodeTooltip = false"
             @mouseleave="showDashboardNodeTooltip = true"

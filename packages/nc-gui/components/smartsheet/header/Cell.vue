@@ -279,7 +279,10 @@ const onClick = (e: Event) => {
         <GeneralIcon icon="ncZap" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-disabled" />
       </NcTooltip>
     </div>
-    <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
+    <NcTooltip
+      v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu"
+      overlay-class-name="nc-tooltip-scrollable"
+    >
       <template #title>
         <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
       </template>

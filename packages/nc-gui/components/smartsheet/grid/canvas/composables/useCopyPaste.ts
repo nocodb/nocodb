@@ -522,7 +522,10 @@ export function useCopyPaste({
                 const plainText = clipboardMatrix[clipboardRowIndex][j]
                 if (!plainText?.trim()) continue
 
-                const displayValues = plainText.split(',').map((v: string) => v.trim()).filter(Boolean)
+                const displayValues = plainText
+                  .split(',')
+                  .map((v: string) => v.trim())
+                  .filter(Boolean)
                 if (!displayValues.length) continue
 
                 const pasteRowPk = extractPkFromRow(targetRow.row, meta.value?.columns as ColumnType[])
@@ -670,7 +673,10 @@ export function useCopyPaste({
             const plainText = clipboardData
             if (!plainText?.trim()) return
 
-            const displayValues = plainText.split(',').map((v: string) => v.trim()).filter(Boolean)
+            const displayValues = plainText
+              .split(',')
+              .map((v: string) => v.trim())
+              .filter(Boolean)
             if (!displayValues.length) return
 
             const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])

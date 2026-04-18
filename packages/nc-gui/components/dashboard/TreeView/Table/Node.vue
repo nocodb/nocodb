@@ -543,7 +543,7 @@ const enabledOptions = computed(() => {
           </span>
         </NcTooltip>
         <div v-if="!isEditing" class="flex items-center">
-          <NcTooltip v-if="table.description?.length" placement="bottom">
+          <NcTooltip v-if="table.description?.length" overlay-class-name="nc-tooltip-scrollable" placement="bottom">
             <template #title>
               <div class="whitespace-pre-wrap break-words">{{ table.description }}</div>
             </template>

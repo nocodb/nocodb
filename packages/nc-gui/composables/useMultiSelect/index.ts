@@ -1354,7 +1354,10 @@ export function useMultiSelect(
             const plainText = clipboardData
             if (!plainText?.trim()) return
 
-            const displayValues = plainText.split(',').map((v: string) => v.trim()).filter(Boolean)
+            const displayValues = plainText
+              .split(',')
+              .map((v: string) => v.trim())
+              .filter(Boolean)
             if (!displayValues.length) return
 
             const pasteRowPk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])

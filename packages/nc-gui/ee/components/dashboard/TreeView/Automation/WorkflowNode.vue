@@ -432,6 +432,7 @@ const deleteWorkflow = () => {
         <template v-if="!isEditing">
           <NcTooltip
             v-if="vModel.description?.length"
+            overlay-class-name="nc-tooltip-scrollable"
             placement="bottom"
             @mouseenter="showWorkflowNodeTooltip = false"
             @mouseleave="showWorkflowNodeTooltip = true"

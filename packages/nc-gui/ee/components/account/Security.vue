@@ -265,6 +265,7 @@ onMounted(() => {
                     :type="blockMfa ? 'secondary' : 'primary'"
                     size="small"
                     :loading="isLoading"
+                    data-testid="nc-2fa-enable-btn"
                     @click="startSetup"
                   >
                     {{ $t('labels.enableTwoFactor') }}
@@ -275,6 +276,7 @@ onMounted(() => {
                     type="secondary"
                     size="small"
                     class="!text-nc-content-red-dark"
+                    data-testid="nc-2fa-disable-btn"
                     @click="showDisableModal = true"
                   >
                     {{ $t('labels.disableTwoFactor') }}
@@ -296,6 +298,7 @@ onMounted(() => {
                     type="secondary"
                     size="small"
                     class="flex-shrink-0"
+                    data-testid="nc-2fa-regenerate-btn"
                     @click="showRegenerateModal = true"
                   >
                     {{ $t('labels.regenerateBackupCodes') }}
@@ -368,7 +371,7 @@ onMounted(() => {
               <code class="text-xs break-all text-nc-content-gray select-all">{{ setupData.secret }}</code>
               <NcTooltip :visible="recentlyCopied ? true : undefined">
                 <template #title>{{ recentlyCopied ? $t('general.copied') : $t('general.copy') }}</template>
-                <NcButton type="text" size="xs" class="flex-shrink-0" @click="copySecret">
+                <NcButton type="text" size="xs" class="flex-shrink-0" data-testid="nc-2fa-copy-secret-btn" @click="copySecret">
                   <GeneralIcon :icon="recentlyCopied ? 'check' : 'copy'" class="h-3.5 w-3.5" />
                 </NcButton>
               </NcTooltip>
@@ -376,7 +379,7 @@ onMounted(() => {
             <span class="text-xs text-nc-content-gray-muted text-center">{{ $t('labels.manualEntryHint') }}</span>
           </div>
           <div class="flex flex-row gap-x-2 justify-end">
-            <NcButton type="primary" size="small" @click="goToVerifyStep">
+            <NcButton type="primary" size="small" data-testid="nc-2fa-setup-qr-next-btn" @click="goToVerifyStep">
               {{ $t('general.next') }}
             </NcButton>
           </div>
@@ -398,7 +401,14 @@ onMounted(() => {
           </div>
           <div v-if="setupError" class="text-red-500 text-sm">{{ setupError }}</div>
           <div class="flex flex-row gap-x-2 justify-end">
-            <NcButton type="primary" size="small" :loading="isLoading" :disabled="!setupCode" @click="confirmSetup">
+            <NcButton
+              type="primary"
+              size="small"
+              :loading="isLoading"
+              :disabled="!setupCode"
+              data-testid="nc-2fa-setup-verify-btn"
+              @click="confirmSetup"
+            >
               {{ $t('general.verify') }}
             </NcButton>
           </div>
@@ -428,6 +438,7 @@ onMounted(() => {
               v-e="['c:account:security:copy-backup-codes']"
               type="secondary"
               size="small"
+              data-testid="nc-2fa-setup-copy-backup-codes-btn"
               @click="copyBackupCodes(setupData.backupCodes)"
             >
               <div class="flex items-center gap-1.5">
@@ -435,7 +446,7 @@ onMounted(() => {
                 {{ recentlyCopied ? $t('general.copied') : $t('labels.copyAll') }}
               </div>
             </NcButton>
-            <NcButton type="primary" size="small" @click="closeSetupModal">
+            <NcButton type="primary" size="small" data-testid="nc-2fa-setup-confirm-saved-btn" @click="closeSetupModal">
               {{ $t('labels.iHaveSavedTheseCodes') }}
             </NcButton>
           </div>
@@ -522,7 +533,7 @@ onMounted(() => {
               autocomplete="one-time-code"
               @press-enter="confirmRegenerate"
             />
-            <div v-if="regenerateError" class="text-red-500 text-sm">{{ regenerateError || 'fdsafas' }}</div>
+            <div v-if="regenerateError" class="text-red-500 text-sm">{{ regenerateError }}</div>
           </div>
         </template>
 
@@ -548,6 +559,7 @@ onMounted(() => {
               v-e="['c:account:security:copy-backup-codes']"
               type="secondary"
               size="small"
+              data-testid="nc-2fa-regenerate-copy-backup-codes-btn"
               @click="copyBackupCodes(newBackupCodes)"
             >
               <div class="flex items-center gap-1.5">
@@ -555,7 +567,7 @@ onMounted(() => {
                 {{ recentlyCopied ? $t('general.copied') : $t('labels.copyAll') }}
               </div>
             </NcButton>
-            <NcButton type="primary" size="small" @click="closeRegenerateModal">
+            <NcButton type="primary" size="small" data-testid="nc-2fa-regenerate-confirm-saved-btn" @click="closeRegenerateModal">
               {{ $t('labels.iHaveSavedTheseCodes') }}
             </NcButton>
           </div>

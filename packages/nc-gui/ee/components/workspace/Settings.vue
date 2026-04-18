@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IconType, PlanFeatureTypes, PublicAttachmentScope, WorkspaceUserRoles, validateAccountName } from 'nocodb-sdk'
+import { IconType, PlanFeatureTypes, PublicAttachmentScope, WorkspaceUserRoles, parseProp, validateAccountName } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -336,9 +336,7 @@ const onCancel = () => {
 }
 
 const force2faEnabled = computed(() => {
-  const meta = currentWorkspace.value?.meta
-  const parsed = typeof meta === 'string' ? JSON.parse(meta || '{}') : meta
-  return !!parsed?.force_2fa
+  return !!parseProp(currentWorkspace.value?.meta)?.force_2fa
 })
 
 const isForce2faUpdating = ref(false)
@@ -354,14 +352,9 @@ async function toggleForce2fa(enabled: boolean) {
   isForce2faUpdating.value = true
 
   try {
-    const existingMeta =
-      typeof currentWorkspace.value.meta === 'string'
-        ? JSON.parse(currentWorkspace.value.meta || '{}')
-        : currentWorkspace.value.meta || {}
-
     await updateWorkspace(currentWorkspace.value.id, {
       meta: {
-        ...existingMeta,
+        ...parseProp(currentWorkspace.value.meta),
         force_2fa: enabled,
       },
     })

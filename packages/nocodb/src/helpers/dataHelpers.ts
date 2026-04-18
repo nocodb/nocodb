@@ -2,6 +2,8 @@ import {
   convertMS2Duration,
   LongTextAiMetaProp,
   parseHelper,
+  parseProp,
+  roundUpToPrecision,
   UITypes,
 } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
@@ -148,6 +150,27 @@ export async function serializeCellValue(
           .join(', ');
       }
       break;
+    case UITypes.Currency: {
+      if (isNaN(Number(value))) return null;
+
+      const currencyMeta = parseProp(column.meta);
+
+      try {
+        const roundedValue = roundUpToPrecision(
+          Number(value),
+          currencyMeta.precision ?? 2,
+        );
+
+        return new Intl.NumberFormat(currencyMeta.currency_locale || 'en-US', {
+          style: 'currency',
+          currency: currencyMeta.currency_code || 'USD',
+          minimumFractionDigits: currencyMeta.precision ?? 2,
+          maximumFractionDigits: currencyMeta.precision ?? 2,
+        }).format(+roundedValue);
+      } catch {
+        return value;
+      }
+    }
     case UITypes.Decimal:
       {
         if (isNaN(Number(value))) return null;

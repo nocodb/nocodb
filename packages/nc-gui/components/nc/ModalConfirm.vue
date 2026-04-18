@@ -110,7 +110,6 @@ const props = withDefaults(defineProps<NcConfirmModalProps>(), {
 const emits = defineEmits<Emits>()
 
 const restProps = computed(() => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { visible: _visible, showOkBtn: _showOkBtn, showCancelBtn: _showCancelBtn, ...rest } = props
   return rest
 })

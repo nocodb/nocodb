@@ -349,7 +349,7 @@ onMounted(() => {
               data-testid="nc-2fa-setup-password"
               class="w-full nc-input-sm nc-input-shadow"
               :placeholder="$t('msg.info.signUp.enterPassword')"
-              @pressEnter="confirmPassword"
+              @press-enter="confirmPassword"
             />
             <div v-if="setupError" class="text-red-500 text-sm">{{ setupError }}</div>
           </div>
@@ -396,7 +396,7 @@ onMounted(() => {
               class="w-full nc-input-sm nc-input-shadow"
               :placeholder="$t('placeholder.enterVerificationCode')"
               autocomplete="one-time-code"
-              @pressEnter="confirmSetup"
+              @press-enter="confirmSetup"
             />
           </div>
           <div v-if="setupError" class="text-red-500 text-sm">{{ setupError }}</div>
@@ -498,7 +498,13 @@ onMounted(() => {
       @ok="confirmRegenerate"
     >
       <template #headerAction>
-        <NcButton v-if="newBackupCodes.length === 0" size="small" type="text" class="-mt-1.5 -mr-1.5" @click="showRegenerateModal = false">
+        <NcButton
+          v-if="newBackupCodes.length === 0"
+          size="small"
+          type="text"
+          class="-mt-1.5 -mr-1.5"
+          @click="showRegenerateModal = false"
+        >
           <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
         </NcButton>
       </template>
@@ -517,7 +523,7 @@ onMounted(() => {
               class="w-full nc-input-sm nc-input-shadow"
               :placeholder="$t('placeholder.enterVerificationCode')"
               autocomplete="one-time-code"
-              @pressEnter="confirmRegenerate"
+              @press-enter="confirmRegenerate"
             />
             <div v-if="regenerateError" class="text-red-500 text-sm">{{ regenerateError || 'fdsafas' }}</div>
           </div>

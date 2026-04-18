@@ -164,7 +164,9 @@ const googleAuthUrl = computed(() => {
 
         <div class="flex flex-col gap-3">
           <div>
-            <div class="text-sm font-medium mb-1">{{ useBackupCode ? $t('labels.backupCode') : $t('labels.verificationCode') }}</div>
+            <div class="text-sm font-medium mb-1">
+              {{ useBackupCode ? $t('labels.backupCode') : $t('labels.verificationCode') }}
+            </div>
             <a-input
               ref="twoFactorCodeInput"
               v-model:value="twoFactorCode"
@@ -174,7 +176,7 @@ const googleAuthUrl = computed(() => {
               autocomplete="one-time-code"
               :disabled="twoFactorLoading"
               @focus="twoFactorError = ''"
-              @pressEnter="verifyTwoFactor"
+              @press-enter="verifyTwoFactor"
             />
           </div>
 
@@ -207,113 +209,62 @@ const googleAuthUrl = computed(() => {
       </template>
 
       <template v-else>
-      <h1 class="prose-2xl font-bold self-center my-4 text-nc-content-gray">{{ $t('general.signIn') }}</h1>
+        <h1 class="prose-2xl font-bold self-center my-4 text-nc-content-gray">{{ $t('general.signIn') }}</h1>
 
-      <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signIn">
-        <template v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)">
-          <Transition name="layout">
-            <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
-              <div class="flex items-center gap-2 justify-center">
-                <MaterialSymbolsWarning />
-                <div class="break-words">{{ error }}</div>
-              </div>
-            </div>
-          </Transition>
-
-          <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-            <a-input
-              v-model:value="form.email"
-              type="email"
-              autocomplete="email"
-              data-testid="nc-form-signin__email"
-              size="large"
-              :placeholder="$t('msg.info.signUp.workEmail')"
-              @focus="resetError"
-            />
-          </a-form-item>
-
-          <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
-            <a-input-password
-              v-model:value="form.password"
-              autocomplete="current-password"
-              data-testid="nc-form-signin__password"
-              size="large"
-              class="password"
-              :placeholder="$t('msg.info.signUp.enterPassword')"
-              @focus="resetError"
-            />
-          </a-form-item>
-
-          <div class="hidden md:block text-right">
-            <nuxt-link class="prose-sm" @click="navigateForgotPassword">
-              {{ $t('msg.info.signUp.forgotPassword') }}
-            </nuxt-link>
-          </div>
-        </template>
-
-        <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
+        <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signIn">
           <template v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)">
-            <button data-testid="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
-              <span class="flex items-center gap-2">
-                <component :is="iconMap.signin" />
-                {{ $t('general.signIn') }}
-              </span>
-            </button>
+            <Transition name="layout">
+              <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
+                <div class="flex items-center gap-2 justify-center">
+                  <MaterialSymbolsWarning />
+                  <div class="break-words">{{ error }}</div>
+                </div>
+              </div>
+            </Transition>
+
+            <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
+              <a-input
+                v-model:value="form.email"
+                type="email"
+                autocomplete="email"
+                data-testid="nc-form-signin__email"
+                size="large"
+                :placeholder="$t('msg.info.signUp.workEmail')"
+                @focus="resetError"
+              />
+            </a-form-item>
+
+            <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
+              <a-input-password
+                v-model:value="form.password"
+                autocomplete="current-password"
+                data-testid="nc-form-signin__password"
+                size="large"
+                class="password"
+                :placeholder="$t('msg.info.signUp.enterPassword')"
+                @focus="resetError"
+              />
+            </a-form-item>
+
+            <div class="hidden md:block text-right">
+              <nuxt-link class="prose-sm" @click="navigateForgotPassword">
+                {{ $t('msg.info.signUp.forgotPassword') }}
+              </nuxt-link>
+            </div>
           </template>
-          <a
-            v-if="appInfo.googleAuthEnabled"
-            :href="googleAuthUrl"
-            class="scaling-btn bg-opacity-100 after:(!bg-transparent) !text-primary !no-underline"
-          >
-            <span class="flex items-center gap-2">
-              <LogosGoogleGmail />
 
-              {{ $t('labels.signInWithProvider', { provider: 'Google' }) }}
-            </span>
-          </a>
-
-          <div v-if="appInfo.oidcAuthEnabled" class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-            <a :href="`${appInfo.ncSiteUrl}/auth/oidc?${queryToPass}`" class="!text-primary !no-underline">
-              <button type="button" class="scaling-btn bg-opacity-100">
+          <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
+            <template v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)">
+              <button data-testid="nc-form-signin__submit" class="scaling-btn bg-opacity-100" type="submit">
                 <span class="flex items-center gap-2">
-                  <MdiLogin />
-
-                  <template v-if="!appInfo.disableEmailAuth">
-                    {{ $t('labels.signInWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
-                  </template>
-                  <template v-else>
-                    {{ $t('general.signIn') }}
-                  </template>
+                  <component :is="iconMap.signin" />
+                  {{ $t('general.signIn') }}
                 </span>
               </button>
-            </a>
-          </div>
-
-          <div v-if="appInfo.samlAuthEnabled" class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
-            <a :href="`${appInfo.ncSiteUrl}/auth/saml`" class="!text-primary !no-underline">
-              <button type="button" class="scaling-btn bg-opacity-100">
-                <span class="flex items-center gap-2">
-                  <MdiLogin />
-
-                  <template v-if="!appInfo.disableEmailAuth">
-                    {{ $t('labels.signInWithProvider', { provider: appInfo.samlProviderName || 'SAML' }) }}
-                  </template>
-                  <template v-else>
-                    {{ $t('general.signIn') }}
-                  </template>
-                </span>
-              </button>
-            </a>
-          </div>
-
-          <div
-            v-for="client of appInfo.ssoClients || []"
-            :key="client.id"
-            class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
-          >
+            </template>
             <a
-              v-if="client.type === 'google'"
-              :href="client.url"
+              v-if="appInfo.googleAuthEnabled"
+              :href="googleAuthUrl"
               class="scaling-btn bg-opacity-100 after:(!bg-transparent) !text-primary !no-underline"
             >
               <span class="flex items-center gap-2">
@@ -323,32 +274,89 @@ const googleAuthUrl = computed(() => {
               </span>
             </a>
 
-            <a v-else :href="client.url" class="!text-primary !no-underline">
-              <button type="button" class="scaling-btn bg-opacity-100">
-                <span class="flex items-center gap-2">
-                  <MdiLogin />
-                  {{ $t('labels.signInWithProvider', { provider: client.title || client.type.toUpperCase() }) }}
-                </span>
-              </button>
-            </a>
-          </div>
+            <div
+              v-if="appInfo.oidcAuthEnabled"
+              class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+            >
+              <a :href="`${appInfo.ncSiteUrl}/auth/oidc?${queryToPass}`" class="!text-primary !no-underline">
+                <button type="button" class="scaling-btn bg-opacity-100">
+                  <span class="flex items-center gap-2">
+                    <MdiLogin />
 
-          <div
-            v-if="!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm"
-            class="text-end prose-sm text-nc-content-gray"
-          >
-            {{ $t('msg.info.signUp.dontHaveAccount') }}
-            <nuxt-link @click="navigateSignUp">{{ $t('general.signUp') }}</nuxt-link>
-          </div>
-          <template v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)">
-            <div class="md:hidden">
-              <nuxt-link class="prose-sm" @click="navigateForgotPassword">
-                {{ $t('msg.info.signUp.forgotPassword') }}
-              </nuxt-link>
+                    <template v-if="!appInfo.disableEmailAuth">
+                      {{ $t('labels.signInWithProvider', { provider: appInfo.oidcProviderName || 'OpenID Connect' }) }}
+                    </template>
+                    <template v-else>
+                      {{ $t('general.signIn') }}
+                    </template>
+                  </span>
+                </button>
+              </a>
             </div>
-          </template>
-        </div>
-      </a-form>
+
+            <div
+              v-if="appInfo.samlAuthEnabled"
+              class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+            >
+              <a :href="`${appInfo.ncSiteUrl}/auth/saml`" class="!text-primary !no-underline">
+                <button type="button" class="scaling-btn bg-opacity-100">
+                  <span class="flex items-center gap-2">
+                    <MdiLogin />
+
+                    <template v-if="!appInfo.disableEmailAuth">
+                      {{ $t('labels.signInWithProvider', { provider: appInfo.samlProviderName || 'SAML' }) }}
+                    </template>
+                    <template v-else>
+                      {{ $t('general.signIn') }}
+                    </template>
+                  </span>
+                </button>
+              </a>
+            </div>
+
+            <div
+              v-for="client of appInfo.ssoClients || []"
+              :key="client.id"
+              class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center"
+            >
+              <a
+                v-if="client.type === 'google'"
+                :href="client.url"
+                class="scaling-btn bg-opacity-100 after:(!bg-transparent) !text-primary !no-underline"
+              >
+                <span class="flex items-center gap-2">
+                  <LogosGoogleGmail />
+
+                  {{ $t('labels.signInWithProvider', { provider: 'Google' }) }}
+                </span>
+              </a>
+
+              <a v-else :href="client.url" class="!text-primary !no-underline">
+                <button type="button" class="scaling-btn bg-opacity-100">
+                  <span class="flex items-center gap-2">
+                    <MdiLogin />
+                    {{ $t('labels.signInWithProvider', { provider: client.title || client.type.toUpperCase() }) }}
+                  </span>
+                </button>
+              </a>
+            </div>
+
+            <div
+              v-if="!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm"
+              class="text-end prose-sm text-nc-content-gray"
+            >
+              {{ $t('msg.info.signUp.dontHaveAccount') }}
+              <nuxt-link @click="navigateSignUp">{{ $t('general.signUp') }}</nuxt-link>
+            </div>
+            <template v-if="!appInfo.disableEmailAuth && (!appInfo.isOnPrem || !appInfo.ssoClients?.length || toggleLoginForm)">
+              <div class="md:hidden">
+                <nuxt-link class="prose-sm" @click="navigateForgotPassword">
+                  {{ $t('msg.info.signUp.forgotPassword') }}
+                </nuxt-link>
+              </div>
+            </template>
+          </div>
+        </a-form>
       </template>
     </div>
   </div>

@@ -28,7 +28,7 @@ const validators = computed(() => {
       {
         validator: (_: any, value: any) => {
           return new Promise((resolve, reject) => {
-            const result = validateAccountName(value)
+            const result = validateAccountName(value, 'Workspace name')
             if (!result.valid) {
               return reject(new Error(result.error))
             }
@@ -51,6 +51,7 @@ const _createWorkspace = async () => {
     }
 
     message.error((await extractSdkResponseErrorMsg(e)) ?? 'Something went wrong')
+    return
   }
 
   isCreating.value = true

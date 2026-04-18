@@ -60,7 +60,7 @@ const formRules = {
     {
       validator: (_: any, value: any) => {
         return new Promise((resolve, reject) => {
-          const result = validateAccountName(value)
+          const result = validateAccountName(value, 'Workspace name')
           if (!result.valid) {
             return reject(new Error(result.error))
           }

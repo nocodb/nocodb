@@ -93,7 +93,10 @@ export class WorkspaceV3Service {
     _context: NcContext,
     _param: { body: WorkspaceV3Create; cookie: any },
   ) {
-    const nameValidation = validateAccountName(_param.body.title);
+    const nameValidation = validateAccountName(
+      _param.body.title,
+      'Workspace name',
+    );
     if (!nameValidation.valid) {
       NcError.badRequest(nameValidation.error);
     }

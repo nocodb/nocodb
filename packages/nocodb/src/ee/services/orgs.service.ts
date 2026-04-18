@@ -30,7 +30,10 @@ export class OrgsService {
       NcError.userNotFound(param.userId);
     }
 
-    const nameValidation = validateAccountName(param.title);
+    const nameValidation = validateAccountName(
+      param.title,
+      'Organization name',
+    );
     if (!nameValidation.valid) {
       NcError.badRequest(nameValidation.error);
     }
@@ -238,6 +241,17 @@ export class OrgsService {
     user: User;
     req: NcRequest;
   }) {
+    if (param.org.title !== undefined) {
+      const nameValidation = validateAccountName(
+        param.org.title,
+        'Organization name',
+      );
+      if (!nameValidation.valid) {
+        NcError.badRequest(nameValidation.error);
+      }
+      param.org.title = param.org.title.trim();
+    }
+
     return await Org.update(param.orgId, param.org);
   }
 

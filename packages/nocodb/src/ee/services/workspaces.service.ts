@@ -208,7 +208,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
     for (const workspacePayload of workspacePayloads) {
       validateParams(['title'], workspacePayload);
 
-      const nameValidation = validateAccountName(workspacePayload.title);
+      const nameValidation = validateAccountName(
+        workspacePayload.title,
+        'Workspace name',
+      );
       if (!nameValidation.valid) {
         NcError.badRequest(nameValidation.error);
       }
@@ -647,7 +650,10 @@ export class WorkspacesService implements OnApplicationBootstrap {
       return;
 
     if (workspace.title !== undefined) {
-      const nameValidation = validateAccountName(workspace.title);
+      const nameValidation = validateAccountName(
+        workspace.title,
+        'Workspace name',
+      );
       if (!nameValidation.valid) {
         NcError.badRequest(nameValidation.error);
       }

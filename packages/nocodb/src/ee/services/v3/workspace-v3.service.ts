@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { validateAccountName } from 'nocodb-sdk';
 import type {
   WorkspaceV3Create,
   WorkspaceV3Update,
@@ -92,6 +93,10 @@ export class WorkspaceV3Service {
     _context: NcContext,
     _param: { body: WorkspaceV3Create; cookie: any },
   ) {
+    const nameValidation = validateAccountName(_param.body.title);
+    if (!nameValidation.valid) {
+      NcError.badRequest(nameValidation.error);
+    }
     return true;
   }
 

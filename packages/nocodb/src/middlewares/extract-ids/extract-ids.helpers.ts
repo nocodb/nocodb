@@ -79,10 +79,14 @@ export const personalViewOwnerOnlyOps = [
 // short-circuits and the caller proceeds to the normal role ACL (editor is
 // granted these perms in acl.ts).
 //
-// viewUpdate/viewDelete are NOT in this list — their personal-view ownership
-// check lives in the service layer (views.service.ts), because those
-// endpoints also need lock_type guards that are best done with the full view
-// object in hand.
+// viewUpdate/viewDelete are listed here for defense-in-depth. Their
+// primary enforcement still lives in the service layer
+// (views.service.ts), which has the full view object in hand and can
+// reason about nuanced transitions (e.g. collab → locked on the new
+// payload). The middleware fires on exactly the same conditions the
+// service already blocks, so no behaviour changes — but future
+// controllers that hit the ACL without routing through views.service
+// still get the gate.
 export const editorPersonalViewOnlyPermissions = [
   'sortCreate',
   'sortUpdate',
@@ -90,6 +94,8 @@ export const editorPersonalViewOnlyPermissions = [
   'filterCreate',
   'filterUpdate',
   'filterDelete',
+  'viewUpdate',
+  'viewDelete',
   ...PERSONAL_VIEW_MANAGEMENT_PERMISSIONS,
 ];
 

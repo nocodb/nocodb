@@ -21,6 +21,7 @@ import {
   PlanLimitTypes,
   ProjectRoles,
   RelationTypes,
+  resolveCurrentUserToken,
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
@@ -1172,14 +1173,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             column.cdf.includes(CURRENT_USER_TOKEN) &&
             cookie?.user?.id &&
             data[column.column_name] ===
-              column.cdf
-                .split(',')
-                .map((v) =>
-                  v.trim() === CURRENT_USER_TOKEN
-                    ? cookie.user.id
-                    : v.trim(),
-                )
-                .join(',')));
+              resolveCurrentUserToken(column.cdf, cookie.user.id)));
 
       if (
         data[column.column_name] !== undefined &&

@@ -1,6 +1,6 @@
 import {
-  CURRENT_USER_TOKEN,
   RelationTypes,
+  resolveCurrentUserToken,
   UITypes,
   dateFormats,
   getRenderAsTextFunForUiType,
@@ -166,10 +166,7 @@ export const rowDefaultData = (columns: ColumnType[] = [], currentUser?: { id?: 
 
       // Resolve @me token for User fields to current user's ID
       if (col.uidt === UITypes.User && typeof defaultValue === 'string' && currentUser?.id) {
-        defaultValue = defaultValue
-          .split(',')
-          .map((v) => (v.trim() === CURRENT_USER_TOKEN ? currentUser.id : v.trim()))
-          .join(',')
+        defaultValue = resolveCurrentUserToken(defaultValue, currentUser.id)
       }
 
       acc[col.title!] = typeof defaultValue === 'string' ? defaultValue.replace(/^['"]|['"]$/g, '') : defaultValue

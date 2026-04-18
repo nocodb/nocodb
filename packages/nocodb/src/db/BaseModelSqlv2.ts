@@ -39,6 +39,7 @@ import {
   PermissionEntity,
   PermissionKey,
   RelationTypes,
+  resolveCurrentUserToken,
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -7517,12 +7518,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.cdf.includes(CURRENT_USER_TOKEN) &&
           cookie?.user?.id
         ) {
-          data[column.column_name] = column.cdf
-            .split(',')
-            .map((v) =>
-              v.trim() === CURRENT_USER_TOKEN ? cookie.user.id : v.trim(),
-            )
-            .join(',');
+          data[column.column_name] = resolveCurrentUserToken(
+            column.cdf,
+            cookie.user.id,
+          );
         }
 
         if (!ncIsNullOrUndefined(data[column.column_name])) {

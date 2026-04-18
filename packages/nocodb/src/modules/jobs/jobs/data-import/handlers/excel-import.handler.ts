@@ -102,7 +102,8 @@ export class ExcelImportHandler implements DataImportHandler {
       break;
     }
 
-    const totalRows = parserConfig.firstRowAsHeaders !== false ? rowCount - 1 : rowCount;
+    const totalRows =
+      parserConfig.firstRowAsHeaders !== false ? rowCount - 1 : rowCount;
 
     if (!sampleRows.length) {
       return {

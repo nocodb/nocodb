@@ -30,10 +30,7 @@ export class CsvImportHandler implements DataImportHandler {
       parse(readStream, {
         delimiter: delimiter || undefined,
         skipEmptyLines: 'greedy',
-        step(
-          row: { data: string[]; meta?: { delimiter?: string } },
-          parser,
-        ) {
+        step(row: { data: string[]; meta?: { delimiter?: string } }) {
           rowCount++;
 
           if (!detectedDelimiter && row.meta?.delimiter) {

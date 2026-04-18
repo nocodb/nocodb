@@ -193,7 +193,12 @@ export type InternalPOSTResponseType = Promise<
   | (RlsPolicy & { filters: Filter[] })
   | { added: boolean; reaction: any }
   | { [key: string]: string }[]
-  | { columns: any[]; previewData: any[]; totalSampleRows: number; detectedDelimiter: string }
+  | {
+      columns: any[];
+      previewData: any[];
+      totalSampleRows: number;
+      detectedDelimiter: string;
+    }
   | {
       link: (string | number | Record<string, any>)[];
       unlink: (string | number | Record<string, any>)[];

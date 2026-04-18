@@ -6,7 +6,12 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { Job } from 'bull';
-import type { FileImportColumn, FileImportType, NcRequest, UserType } from 'nocodb-sdk';
+import type {
+  FileImportColumn,
+  FileImportType,
+  NcRequest,
+  UserType,
+} from 'nocodb-sdk';
 import type { DataImportJobData } from '~/interface/Jobs';
 import type { NcContext } from '~/interface/config';
 import type IStorageAdapterV2 from '~/types/nc-plugin/lib/IStorageAdapterV2';
@@ -240,7 +245,10 @@ export class DataImportProcessor {
         errors: errors.slice(0, 100),
       };
     } catch (e) {
-      this.logger.error(`${importType.toUpperCase()} import failed: ${e.message}`, e.stack);
+      this.logger.error(
+        `${importType.toUpperCase()} import failed: ${e.message}`,
+        e.stack,
+      );
       logBasic('Import failed due to an internal error.');
 
       throw {
@@ -248,7 +256,9 @@ export class DataImportProcessor {
           tableId,
           tableName: finalTableName,
         },
-        message: e.message || 'Import failed. Please check the file format and try again.',
+        message:
+          e.message ||
+          'Import failed. Please check the file format and try again.',
       };
     } finally {
       // Cleanup temp file from storage

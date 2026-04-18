@@ -145,6 +145,8 @@ export class DataImportProcessor {
       const model = await Model.get(context, tableId);
       if (!model) NcError.tableNotFound(tableId);
 
+      if (!finalTableName) finalTableName = model.title;
+
       await model.getColumns(context);
 
       // Build column map: source column name -> target DB column name
@@ -263,16 +265,16 @@ export class DataImportProcessor {
           ? e.message
           : 'Import failed. Please check the file format and try again.';
 
-      throw {
-        data: {
-          tableId,
-          tableName: finalTableName,
-          rowsInserted: counters.insertedCount,
-          rowsFailed: counters.failedCount,
-          errors: errors.slice(0, 100),
-        },
-        message: safeMessage,
+      const err = new Error(safeMessage) as Error & { data: unknown };
+      err.data = {
+        tableId,
+        tableName: finalTableName,
+        rowsInserted: counters.insertedCount,
+        rowsFailed: counters.failedCount,
+        errors: errors.slice(0, 100),
       };
+      if (e?.stack) err.stack = e.stack;
+      throw err;
     } finally {
       // Cleanup temp file from storage
       try {

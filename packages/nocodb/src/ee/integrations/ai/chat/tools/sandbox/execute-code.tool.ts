@@ -1,4 +1,3 @@
-import path from 'path';
 import { Readable } from 'stream';
 import { z } from 'zod';
 import { Sandbox } from '@e2b/code-interpreter';

@@ -229,11 +229,13 @@ const isAiSaving = computed(() => aiLoading.value && calledFunction.value === 'c
 // Editors can create Collaborative or Personal views.
 const canLockView = computed(() => isUIAllowed('fieldAdd'))
 
+// Personal views are an EE-only concept — CE has only Collaborative
+// and the legacy Locked lock_types.
 const lockTypeOptions = computed(() => {
   const options: Array<{ value: ViewLockType; disabled?: boolean }> = [
     { value: ViewLockType.Collaborative },
-    { value: ViewLockType.Personal },
   ]
+  if (isEeUI) options.push({ value: ViewLockType.Personal })
   if (canLockView.value) options.push({ value: ViewLockType.Locked })
   return options
 })
@@ -1004,6 +1006,9 @@ watch(activeBaseId, () => {
             />
           </a-form-item>
 
+          <!-- Personal radio is excluded from lockTypeOptions in CE
+               (EE-only concept); Collaborative + Locked remain available
+               in both CE and EE. -->
           <div class="flex flex-col gap-1.5 nc-create-view-lock-type">
             <div class="text-[13px] font-medium text-nc-content-gray">{{ $t('labels.whoCanEdit') }}</div>
             <a-radio-group

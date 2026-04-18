@@ -954,6 +954,7 @@ const rolePermissions:
       showAllColumns: true,
       gridColumnUpdate: true,
       listColumnUpdate: true,
+      timelineColumnUpdate: true,
       gridViewCreate: true,
       gridViewUpdate: true,
       formViewCreate: true,

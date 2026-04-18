@@ -630,6 +630,9 @@ export class BaseModelDelete {
             }
           } catch (e) {
             // Don't fail the delete if linked record collection fails
+            this.logger.warn(
+              `Failed to collect linked ids for column ${entry.column.id}: ${e.message}`,
+            );
           }
         }
       }
@@ -655,6 +658,9 @@ export class BaseModelDelete {
           await entry.baseModel.broadcastLinkUpdates(entry.ids);
         } catch (e) {
           // Don't fail the delete if linked record updates fail
+          this.logger.warn(
+            `Failed to notify linked records for column ${entry.colId}: ${e.message}`,
+          );
         }
       }
 

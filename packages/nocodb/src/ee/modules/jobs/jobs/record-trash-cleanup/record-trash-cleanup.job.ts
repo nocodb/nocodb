@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   isDeletedCol,
   NOCO_SERVICE_USERS,
-  PlanLimitTypes,
   ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
@@ -12,7 +11,7 @@ import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { getLimit } from '~/helpers/paymentHelpers';
+import { resolveTrashRetentionDays } from '~/helpers/trashHelpers';
 
 const BATCH_SIZE = 100;
 const MAX_TABLES_PER_RUN = 50;
@@ -88,7 +87,8 @@ export class RecordTrashCleanupJob {
 
         // Resolve retention: per-model override → plan-based → env default
         const retentionDays =
-          model.trash_retention_days ?? (await this.resolveRetention(context));
+          model.trash_retention_days ??
+          (await resolveTrashRetentionDays(context));
         const cutoffDate = new Date(
           now.getTime() - retentionDays * 24 * 60 * 60 * 1000,
         );
@@ -202,18 +202,5 @@ export class RecordTrashCleanupJob {
     }
 
     return { totalDeleted, tablesProcessed };
-  }
-
-  private async resolveRetention(context: NcContext): Promise<number> {
-    try {
-      const { limit } = await getLimit(
-        PlanLimitTypes.LIMIT_TRASH_RETENTION,
-        context.workspace_id,
-      );
-      if (limit !== Infinity && limit > 0) return limit;
-    } catch {
-      // fallback below
-    }
-    return parseInt(process.env.NC_TRASH_RETENTION_DAYS || '30', 10);
   }
 }

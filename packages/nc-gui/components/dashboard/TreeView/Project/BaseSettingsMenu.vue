@@ -192,7 +192,7 @@ onMounted(() => {
     <NcSidebarMenuItem
       v-if="isEeUI && isUIAllowed('recordTrashSettingsList', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
       v-e="['c:settings:base:record-trash']"
-      icon="ncTrash"
+      icon="ncTrash2"
       data-testid="base-record-trash"
       :active="activeBaseSettingsTab === 'record-trash'"
       @click="navigateToBaseSettings('record-trash')"

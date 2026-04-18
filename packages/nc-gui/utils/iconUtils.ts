@@ -487,6 +487,7 @@ import NcArrowUpRightIcon from '~icons/nc-icons-v2/arrow-up-right.svg'
 import NcPenToolIcon from '~icons/nc-icons-v2/pen-tool.svg'
 import NcAtSignIcon from '~icons/nc-icons-v2/at-sign.svg'
 import NcTrashIcon from '~icons/nc-icons-v2/trash.svg'
+import NcHistoryIcon from '~icons/nc-icons-v2/history.svg'
 import NcWifiOffIcon from '~icons/nc-icons-v2/wifi-off.svg'
 import NcCornerLeftDownIcon from '~icons/nc-icons-v2/corner-left-down.svg'
 import NcDollarSignIcon from '~icons/nc-icons-v2/dollar-sign.svg'
@@ -1566,6 +1567,7 @@ export const iconMap = {
   'ncPenTool': NcPenToolIcon,
   'ncAtSign': NcAtSignIcon,
   'ncTrash': NcTrashIcon,
+  'ncHistory': NcHistoryIcon,
   'ncWifiOff': NcWifiOffIcon,
   'ncCornerLeftDown': NcCornerLeftDownIcon,
   'ncDollarSign': NcDollarSignIcon,

@@ -558,7 +558,7 @@ watch(
         >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__record-trash">
-              <GeneralIcon icon="ncTrash" />
+              <GeneralIcon icon="ncTrash2" />
               <div>{{ $t('trash.settings') }}</div>
             </div>
           </template>

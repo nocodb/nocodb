@@ -79,8 +79,8 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
       },
       {
         jobId: JobTypes.RecordTrashCleanup,
-        // run every minute — the job self-limits to 10 tables per run
-        repeat: { cron: '* * * * *' },
+        // run every 10 minutes
+        repeat: { cron: '*/10 * * * *' },
       },
     );
 

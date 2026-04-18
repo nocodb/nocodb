@@ -19,6 +19,10 @@ const isLoading = ref(false)
 
 const defaultRetentionDays = ref(30)
 
+const RETENTION_PRESETS = [30, 60, 90, 180, 365]
+
+const retentionDropdownVisible = ref<Record<string, boolean>>({})
+
 const tables = ref<
   Array<{
     id: string
@@ -74,7 +78,7 @@ async function saveTableSetting(
     )
 
     table[field] = value
-    message.success(t('trash.settingsUpdated'))
+    message.toast(t('trash.settingsUpdated'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -98,10 +102,8 @@ function updateTable(table: (typeof tables.value)[number], field: 'trash_disable
 }
 
 function getRetentionDisplay(table: (typeof tables.value)[number]) {
-  if (table.trash_retention_days != null) {
-    return t('trash.customDays', { days: table.trash_retention_days })
-  }
-  return t('trash.defaultRetention', { days: defaultRetentionDays.value })
+  const days = table.trash_retention_days ?? defaultRetentionDays.value
+  return t('trash.customDays', { days })
 }
 
 function isTrashAvailable(table: (typeof tables.value)[number]) {
@@ -117,26 +119,10 @@ function isTrashEnabled(table: (typeof tables.value)[number]) {
   return !table.trash_disabled
 }
 
-// Retention dropdown state
-const retentionDropdownVisible = ref<Record<string, boolean>>({})
-const retentionDraft = ref<Record<string, number | null>>({})
-
-function openRetentionDropdown(table: (typeof tables.value)[number]) {
-  retentionDraft.value[table.id] = table.trash_retention_days
-  retentionDropdownVisible.value[table.id] = true
-}
-
-function closeRetentionDropdown(tableId: string) {
-  retentionDropdownVisible.value[tableId] = false
-}
-
-function isRetentionDirty(table: (typeof tables.value)[number]) {
-  return retentionDraft.value[table.id] !== table.trash_retention_days
-}
-
-async function saveRetention(table: (typeof tables.value)[number]) {
-  await saveTableSetting(table, 'trash_retention_days', retentionDraft.value[table.id])
-  closeRetentionDropdown(table.id)
+function selectPreset(table: (typeof tables.value)[number], days: number) {
+  retentionDropdownVisible.value[table.id] = false
+  if (table.trash_retention_days === days) return
+  saveTableSetting(table, 'trash_retention_days', days)
 }
 
 onMounted(async () => {
@@ -146,13 +132,17 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div data-testid="nc-settings-subtab-trash" class="flex flex-col w-full">
-    <div class="text-nc-content-gray-emphasis font-semibold text-lg">
-      {{ $t('trash.settings') }}
-    </div>
-
-    <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
+  <div data-testid="nc-settings-subtab-trash" class="flex flex-col w-full max-w-3xl mx-auto px-6">
+    <div class="text-nc-content-gray-subtle2 leading-5">
       {{ $t('trash.settingsDesc') }}
+      <a
+        href="https://nocodb.com/docs/product-docs/bases/trash-settings"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="!text-nc-content-brand !no-underline hover:!underline"
+      >
+        {{ $t('msg.learnMore') }}
+      </a>
     </div>
 
     <div v-if="isLoading" class="flex items-center justify-center py-12">
@@ -162,11 +152,11 @@ onMounted(async () => {
     <div v-else-if="tables.length" class="flex flex-col border-1 rounded-lg mt-6 border-nc-border-gray-medium overflow-hidden">
       <!-- Header -->
       <div class="flex items-center px-4 py-2 bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-medium">
-        <div class="flex-1 text-bodySm font-semibold text-nc-content-gray-emphasis">
-          {{ $t('objects.table') }}
-        </div>
         <div class="w-24 text-center text-bodySm font-semibold text-nc-content-gray-emphasis">
           {{ $t('trash.enableTrash') }}
+        </div>
+        <div class="flex-1 text-bodySm font-semibold text-nc-content-gray-emphasis pl-4">
+          {{ $t('objects.table') }}
         </div>
         <div class="w-48 text-center text-bodySm font-semibold text-nc-content-gray-emphasis">
           {{ $t('trash.retentionDays') }}
@@ -177,15 +167,9 @@ onMounted(async () => {
       <div
         v-for="table in tables"
         :key="table.id"
-        class="flex items-center px-4 py-2.5 border-b-1 border-nc-border-gray-medium last:border-b-0"
+        class="flex items-center px-4 py-1.5 min-h-11 border-b-1 border-nc-border-gray-medium last:border-b-0"
         :data-testid="`nc-trash-settings-row-${table.id}`"
       >
-        <div
-          class="flex-1 text-bodySm truncate pr-4"
-          :class="isTrashAvailable(table) ? 'text-nc-content-gray' : 'text-nc-content-gray-muted'"
-        >
-          {{ table.title }}
-        </div>
         <div class="w-24 flex justify-center">
           <NcTooltip v-if="!isTrashAvailable(table)" :title="unavailableReason(table)">
             <NcSwitch :checked="false" disabled size="small" />
@@ -200,6 +184,16 @@ onMounted(async () => {
             @update:checked="(val: boolean) => updateTable(table, 'trash_disabled', !val)"
           />
         </div>
+        <div
+          class="flex-1 flex items-center gap-2 px-4 min-w-0"
+          :class="isTrashAvailable(table) ? 'text-nc-content-gray' : 'text-nc-content-gray-muted'"
+        >
+          <GeneralIcon icon="table" class="flex-none w-4 h-4 text-nc-content-gray-subtle2" />
+          <NcTooltip class="truncate text-bodyDefaultSm font-weight-500" show-on-truncate-only>
+            <template #title>{{ table.title }}</template>
+            {{ table.title }}
+          </NcTooltip>
+        </div>
         <div class="w-48 flex justify-center">
           <span v-if="!isTrashAvailable(table)" class="text-bodySm text-nc-content-gray-muted">—</span>
           <NcTooltip v-else-if="!isTrashEnabled(table)" class="text-bodySm text-nc-content-gray-muted">
@@ -209,44 +203,25 @@ onMounted(async () => {
           <NcDropdown
             v-else
             v-model:visible="retentionDropdownVisible[table.id]"
-            :auto-close="false"
             :disabled="!isUIAllowed('recordTrashSettingsUpdate')"
-            placement="bottomRight"
+            :trigger="['click']"
+            placement="bottom"
           >
-            <NcButton size="xs" type="text" class="!text-bodySm" @click="openRetentionDropdown(table)">
+            <NcButton size="small" type="text" class="!text-bodyDefaultSm">
               {{ getRetentionDisplay(table) }}
               <GeneralIcon icon="arrowDown" class="ml-1 h-3.5 w-3.5" />
             </NcButton>
             <template #overlay>
-              <div class="p-3 flex flex-col gap-3 w-52" @click.stop @mousedown.stop @keydown.stop>
-                <div class="text-bodySm font-semibold text-nc-content-gray-emphasis">
-                  {{ $t('trash.retentionDays') }}
-                </div>
-                <a-input-number
-                  v-model:value="retentionDraft[table.id]"
-                  :min="1"
-                  :max="365"
-                  :placeholder="String(defaultRetentionDays)"
-                  class="w-full"
-                />
-                <div class="text-captionSm text-nc-content-gray-muted">
-                  {{ $t('trash.defaultRetention', { days: defaultRetentionDays }) }}
-                </div>
-                <div class="flex justify-end gap-2">
-                  <NcButton size="xs" type="text" @click="closeRetentionDropdown(table.id)">
-                    {{ $t('general.cancel') }}
-                  </NcButton>
-                  <NcButton
-                    size="xs"
-                    type="primary"
-                    :disabled="!isRetentionDirty(table)"
-                    :loading="table._saving"
-                    @click="saveRetention(table)"
-                  >
-                    {{ $t('general.save') }}
-                  </NcButton>
-                </div>
-              </div>
+              <NcMenu variant="small" class="nc-trash-retention-menu !min-w-32">
+                <NcMenuItem
+                  v-for="days in RETENTION_PRESETS"
+                  :key="days"
+                  :class="{ '!bg-nc-bg-gray-light': table.trash_retention_days === days }"
+                  @click="selectPreset(table, days)"
+                >
+                  {{ $t('trash.customDays', { days }) }}
+                </NcMenuItem>
+              </NcMenu>
             </template>
           </NcDropdown>
         </div>
@@ -260,3 +235,20 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.nc-trash-retention-menu {
+  &.ant-dropdown-menu {
+    @apply !py-1;
+  }
+
+  .ant-dropdown-menu-item {
+    @apply !min-h-7 !py-1 !px-2.5 !justify-center !text-center;
+  }
+
+  .ant-dropdown-menu-title-content,
+  .nc-menu-item-inner {
+    @apply !justify-center !text-center;
+  }
+}
+</style>

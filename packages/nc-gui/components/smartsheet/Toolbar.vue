@@ -15,9 +15,7 @@ const { isGrid, isGallery, isKanban, isMap, isCalendar, isList, isForm, isViewOp
   useSmartsheetStoreOrThrow()
 
 const hasDeletedField = computed(() => {
-  return (
-    !!(meta.value as TableType)?.columns?.some((c) => c.uidt === UITypes.Deleted) && !(meta.value as TableType)?.trash_disabled
-  )
+  return !!(meta.value as TableType)?.columns?.some((c) => c.uidt === UITypes.Deleted)
 })
 
 const { isUIAllowed } = useRoles()

@@ -22,11 +22,8 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import {
-  checkForFeature,
-  checkLimit,
-  getLimit,
-} from '~/helpers/paymentHelpers';
+import { checkForFeature, checkLimit } from '~/helpers/paymentHelpers';
+import { resolveTrashRetentionDays } from '~/helpers/trashHelpers';
 import { TablesService } from '~/services/tables.service';
 
 /**
@@ -138,7 +135,7 @@ export class RecordTrashService {
 
     // Resolve retention days: per-model override → workspace/env default
     const retentionDays =
-      model.trash_retention_days ?? (await this.resolveRetentionDays(context));
+      model.trash_retention_days ?? (await resolveTrashRetentionDays(context));
 
     return {
       list: rows,
@@ -195,7 +192,11 @@ export class RecordTrashService {
       source,
     });
 
-    await this.checkRestoreLimits(context, param.rowIds.length);
+    await checkLimit({
+      workspaceId: context.workspace_id,
+      type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
+      delta: rowIds.length,
+    });
 
     // ── OO conflict detection ─────────────────────────────────────────────────
     // When a record is soft-deleted its FK value is preserved. If another record
@@ -595,9 +596,13 @@ export class RecordTrashService {
     const result = await countQb.first();
 
     const retentionDays =
-      model.trash_retention_days ?? (await this.resolveRetentionDays(context));
+      model.trash_retention_days ?? (await resolveTrashRetentionDays(context));
 
-    return { count: +(result?.count ?? 0), retentionDays };
+    return {
+      count: +(result?.count ?? 0),
+      retentionDays,
+      trashDisabled: !!model.trash_disabled,
+    };
   }
 
   // ── Trash settings (EE) ────────────────────────────────────────────────────
@@ -622,15 +627,15 @@ export class RecordTrashService {
       },
     );
 
-    const defaultRetentionDays = await this.resolveRetentionDays(context);
+    const defaultRetentionDays = await resolveTrashRetentionDays(context);
+
+    const sources = await Source.list(context, { baseId: param.baseId });
+    const metaSourceId = sources.find((s) => s.isMeta())?.id;
 
     const tables = await Promise.all(
-      accessibleTables.map(async (t) => {
-        const model = await Model.get(context, t.id);
+      accessibleTables.map(async (model) => {
         await model.getColumns(context);
 
-        const source = await Source.get(context, model.source_id);
-        const isMeta = source?.isMeta();
         const hasDeletedColumn = model.columns.some((c) => isDeletedCol(c));
 
         return {
@@ -638,7 +643,7 @@ export class RecordTrashService {
           title: model.title,
           trash_disabled: model.trash_disabled,
           trash_retention_days: model.trash_retention_days,
-          is_meta: !!isMeta,
+          is_meta: !!metaSourceId && model.source_id === metaSourceId,
           has_deleted_column: hasDeletedColumn,
         };
       }),
@@ -695,32 +700,6 @@ export class RecordTrashService {
     }
 
     return { message: 'Trash settings updated' };
-  }
-
-  // ── Private helpers ─────────────────────────────────────────────────────────
-
-  private async resolveRetentionDays(context: NcContext): Promise<number> {
-    try {
-      const { limit } = await getLimit(
-        PlanLimitTypes.LIMIT_TRASH_RETENTION,
-        context.workspace_id,
-      );
-      if (limit !== Infinity && limit > 0) return limit;
-    } catch {
-      // fallback below
-    }
-    return parseInt(process.env.NC_TRASH_RETENTION_DAYS || '30', 10);
-  }
-
-  private async checkRestoreLimits(
-    context: NcContext,
-    count: number,
-  ): Promise<void> {
-    await checkLimit({
-      workspaceId: context.workspace_id,
-      type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
-      delta: count,
-    });
   }
 
   /**

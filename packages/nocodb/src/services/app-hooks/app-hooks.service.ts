@@ -202,6 +202,18 @@ export class AppHooksService {
       | AppEvents.INTEGRATION_CREATE,
     listener: (data: IntegrationEvent) => void,
   ): () => void;
+  on(
+    event: AppEvents.RECORDS_SOFT_DELETE,
+    listener: (data: RecordsSoftDeleteEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RECORDS_RESTORE,
+    listener: (data: RecordsRestoreEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RECORDS_PERMANENT_DELETE,
+    listener: (data: RecordsPermanentDeleteEvent) => void,
+  ): () => void;
   on(event, listener): () => void {
     const unsubscribe = this.eventEmitter.on(event, listener);
 

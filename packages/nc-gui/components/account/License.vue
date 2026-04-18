@@ -32,7 +32,7 @@ const licenseStatus = computed(() => {
 
 const buyLicenseUrl = computed(() => {
   const instanceUrl = window.location.origin
-  return `${NC_CLOUD_URL}/#/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`
+  return `${NC_CLOUD_URL}/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`
 })
 
 const loadLicense = async () => {

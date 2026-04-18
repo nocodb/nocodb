@@ -1,5 +1,6 @@
-import { RelationTypes } from '~/lib';
-import type { NcContext, UnifiedMetaType } from '~/lib';
+import { RelationTypes } from '~/lib/globals';
+import type { NcContext } from '~/lib/ncTypes';
+import type { UnifiedMetaType } from '~/lib/types';
 import { getColOptions } from '~/lib/unifiedMeta/getColOptions';
 import { getColumns } from '~/lib/unifiedMeta/getColumns';
 import { getLTARRelatedTable } from './getLTARRelatedTable';

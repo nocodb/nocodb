@@ -3,11 +3,11 @@ import { BadRequest, NcSDKError } from '~/lib/errorUtils';
 import {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,
-  FilterParseError,
   GROUPBY_COMPARISON_OPS,
   IS_WITHIN_COMPARISON_SUB_OPS,
-  UITypes,
-} from '~/lib/index';
+} from '~/lib/parser/queryFilter/query-filter-lexer';
+import { FilterParseError } from '~/lib/filterHelpers';
+import UITypes from '~/lib/UITypes';
 export {
   COMPARISON_OPS,
   COMPARISON_SUB_OPS,

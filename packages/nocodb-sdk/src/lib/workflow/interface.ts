@@ -1,4 +1,4 @@
-import { ColumnType } from '~/lib';
+import { ColumnType } from '~/lib/Api';
 
 enum VariableType {
   String = 'string',

@@ -6,7 +6,8 @@ import {
   FormulaMeta,
   FormulaMetaCustomValidation,
 } from './types';
-import { isSystemColumn, isVirtualCol, UITypes } from '~/lib';
+import UITypes, { isVirtualCol } from '~/lib/UITypes';
+import { isSystemColumn } from '~/lib/helperFunctions';
 export const API_DOC_PREFIX = 'https://nocodb.com/docs/product-docs/fields';
 
 const customValidationArray: FormulaMetaCustomValidation = (

@@ -6,7 +6,7 @@ import {
   ComparisonOperator,
   StringOperator,
 } from './operators';
-import { UnifiedMetaType } from '~/lib';
+import { UnifiedMetaType } from '~/lib/types';
 
 export interface ReferencedInfo {
   referencedColumn?: {

@@ -1,5 +1,5 @@
 import { WidgetDataSourceTypes } from './';
-import { type AllAggregations } from '~/lib';
+import { type AllAggregations } from '~/lib/aggregationHelper';
 
 export enum ChartTypes {
   BAR = 'bar',

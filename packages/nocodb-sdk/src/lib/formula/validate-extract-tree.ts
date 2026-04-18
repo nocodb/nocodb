@@ -30,7 +30,7 @@ import {
 import { UnifiedMetaType } from '~/lib/types';
 import { unifiedMeta } from '~/lib/unifiedMeta';
 import { getColOptions } from '~/lib/unifiedMeta/getColOptions';
-import { isBtLikeV2Junction, isMMOrMMLike } from '~/lib';
+import { isBtLikeV2Junction, isMMOrMMLike } from '~/lib/UITypes';
 
 async function extractColumnIdentifierType({
   col,

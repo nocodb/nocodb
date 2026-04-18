@@ -1,6 +1,6 @@
 import * as acorn from 'acorn-loose'
 import * as walk from 'acorn-walk'
-import { CursorRowUsage, InputCallInfo } from '~/lib'
+import { CursorRowUsage, InputCallInfo } from '~/ee/lib/scripts/types'
 import { extractObjectValue } from './utils'
 
 export const isInputMethodCall = (node: any) => {

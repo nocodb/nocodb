@@ -1,5 +1,6 @@
 import UITypes from '../UITypes';
-import { ColumnType, IDType } from '~/lib';
+import { ColumnType } from '~/lib/Api';
+import { IDType } from './index';
 import { SqlUi } from './SqlUI.types';
 import { numberize } from '../numberUtils';
 

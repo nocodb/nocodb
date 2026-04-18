@@ -1,4 +1,5 @@
-import { RelationTypes, UITypes } from '~/lib';
+import { RelationTypes } from '~/lib/globals';
+import UITypes from '~/lib/UITypes';
 
 enum AuditV1OperationTypes {
   USER_SIGNUP = 'USER_SIGNUP',

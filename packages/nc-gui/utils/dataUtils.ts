@@ -3,9 +3,13 @@ import {
   UITypes,
   dateFormats,
   getRenderAsTextFunForUiType,
+  getRollupColumnMeta,
+  integerPreservingRollupFunctions,
+  integerRollupFunctions,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isIntegerUiType,
   isSystemColumn,
   isValidValue,
   isVirtualCol,
@@ -424,11 +428,15 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
 
   childColumn.meta = {
     ...parseProp(childColumn?.meta),
-    ...parseProp(col?.meta),
+    ...getRollupColumnMeta(col?.meta, childColumn.uidt as UITypes, colOptions.rollup_function ?? ''),
   }
 
   if (renderAsTextFun.includes(colOptions.rollup_function ?? '')) {
-    childColumn.uidt = UITypes.Decimal
+    const isInteger =
+      integerRollupFunctions.includes(colOptions.rollup_function ?? '') ||
+      (isIntegerUiType(childColumn as ColumnType) && integerPreservingRollupFunctions.includes(colOptions.rollup_function ?? ''))
+
+    childColumn.uidt = isInteger ? UITypes.Number : UITypes.Decimal
   }
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define

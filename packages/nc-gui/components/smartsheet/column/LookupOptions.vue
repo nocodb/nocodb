@@ -270,7 +270,7 @@ const handleScrollIntoView = () => {
                   :is="iconMap.check"
                   v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
                   id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
+                  class="text-nc-content-brand w-4 h-4"
                 />
               </div>
             </div>
@@ -308,7 +308,7 @@ const handleScrollIntoView = () => {
                 :is="iconMap.check"
                 v-if="vModel.fk_lookup_column_id === column.id"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>

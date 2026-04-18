@@ -95,7 +95,12 @@ vModel.value.au = !!vModel.value.au */
           <a-select-option v-for="type in dataTypes" :key="type" :value="type">
             <div class="flex gap-2 items-center justify-between">
               {{ type }}
-              <component :is="iconMap.check" v-if="vModel.dt === type" id="nc-selected-item-icon" class="text-primary w-4 h-4" />
+              <component
+                :is="iconMap.check"
+                v-if="vModel.dt === type"
+                id="nc-selected-item-icon"
+                class="text-nc-content-brand w-4 h-4"
+              />
             </div>
           </a-select-option>
         </a-select>

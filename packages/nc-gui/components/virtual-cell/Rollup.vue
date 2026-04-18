@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
+import {
+  UITypes,
+  getRenderAsTextFunForUiType,
+  getRollupColumnMeta,
+  integerPreservingRollupFunctions,
+  integerRollupFunctions,
+} from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
 
 const { metas } = useMetas()
@@ -53,8 +59,8 @@ const childColumn = computed(() => {
         uidt: colMeta.display_type,
         ...displayColumnMeta,
         meta: {
-          ...parseProp(column.value?.meta),
           ...parseProp(displayColumnMeta?.meta),
+          ...getRollupColumnMeta(column.value?.meta, colMeta.display_type, (colOptions.value as RollupType)?.rollup_function ?? ''),
         },
       }
     }
@@ -66,11 +72,24 @@ const childColumn = computed(() => {
 const renderAsTextFun = computed(() => {
   return getRenderAsTextFunForUiType(childColumn.value?.uidt || UITypes.SingleLineText)
 })
+
+const isIntegerResult = computed(() => {
+  const fn = (colOptions.value as RollupType)?.rollup_function ?? ''
+
+  return (
+    integerRollupFunctions.includes(fn) ||
+    (isIntegerUiType(childColumn.value as ColumnType) && integerPreservingRollupFunctions.includes(fn))
+  )
+})
 </script>
 
 <template>
   <div @dblclick="activateShowEditNonEditableFieldWarning">
-    <CellDecimal v-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" :model-value="value" />
+    <CellInteger
+      v-if="isIntegerResult && renderAsTextFun.includes((colOptions as RollupType).rollup_function!)"
+      :model-value="value"
+    />
+    <CellDecimal v-else-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" :model-value="value" />
     <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />
     <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
       {{ $t('msg.info.computedFieldEditWarning') }}

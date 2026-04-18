@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import type { ColumnType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
+import type { ColumnType, FormulaType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
 import {
   ColumnHelper,
+  FormulaDataTypes,
   PlanFeatureTypes,
   PlanTitles,
   UITypes,
   getAvailableRollupForColumn,
-  getRenderAsTextFunForUiType,
+  integerPreservingRollupFunctions,
+  integerRollupFunctions,
   rollupAllFunctions,
 } from 'nocodb-sdk'
 
@@ -255,7 +257,7 @@ const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 const enableFormattingOptions = computed(() => {
   const relatedCol = filteredColumns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
 
-  if (!relatedCol) return false
+  if (!relatedCol || !vModel.value.rollup_function) return false
 
   let uidt = relatedCol.uidt
 
@@ -264,12 +266,29 @@ const enableFormattingOptions = computed(() => {
 
     if (colMeta?.display_type) {
       uidt = colMeta?.display_type
+    } else if ((relatedCol.colOptions as FormulaType)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC) {
+      uidt = UITypes.Decimal
     }
   }
-  const validFunctions = getRenderAsTextFunForUiType(uidt)
+  // count/countDistinct always return integers — precision is not applicable
+  if (integerRollupFunctions.includes(vModel.value.rollup_function)) return false
 
-  return validFunctions.includes(vModel.value.rollup_function)
+  // Integer-based types — only avg/avgDistinct can produce decimals
+  if (isIntegerUiType({ uidt } as ColumnType) && integerPreservingRollupFunctions.includes(vModel.value.rollup_function))
+    return false
+
+  // Column types that can produce decimal results
+  return isIntegerUiType({ uidt } as ColumnType) || [UITypes.Decimal, UITypes.Currency, UITypes.Percent].includes(uidt as UITypes)
 })
+
+watch(enableFormattingOptions, (enabled) => {
+  if (enabled && vModel.value.meta?.precision == null) {
+    vModel.value.meta = {
+      ...vModel.value.meta,
+      ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
+    }
+  }
+}, { immediate: true })
 
 const onFilterLabelClick = () => {
   if (!selectedTable.value) return
@@ -325,7 +344,7 @@ const handleScrollIntoView = () => {
                   :is="iconMap.check"
                   v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
                   id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
+                  class="text-nc-content-brand w-4 h-4"
                 />
               </div>
             </div>
@@ -362,7 +381,7 @@ const handleScrollIntoView = () => {
                 :is="iconMap.check"
                 v-if="vModel.fk_rollup_column_id === column.id"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>
@@ -386,13 +405,13 @@ const handleScrollIntoView = () => {
           <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
         </template>
         <a-select-option v-for="(func, index) of aggFunctionsList" :key="index" :value="func.value">
-          <div class="flex gap-2 justify-between items-center">
+          <div class="w-full flex gap-2 justify-between items-center">
             {{ func.text }}
             <component
               :is="iconMap.check"
               v-if="vModel.rollup_function === func.value"
               id="nc-selected-item-icon"
-              class="text-primary w-4 h-4"
+              class="text-nc-content-brand w-4 h-4"
             />
           </div>
         </a-select-option>
@@ -400,7 +419,6 @@ const handleScrollIntoView = () => {
     </a-form-item>
     <a-form-item v-if="enableFormattingOptions" :label="$t('placeholder.precision')">
       <a-select
-        v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
         v-model:value="vModel.meta.precision"
         dropdown-class-name="nc-dropdown-rollup-precision-format"
         @change="onPrecisionChange"
@@ -415,7 +433,7 @@ const handleScrollIntoView = () => {
               :is="iconMap.check"
               v-if="vModel.meta.precision === format"
               id="nc-selected-item-icon"
-              class="text-primary w-4 h-4"
+              class="text-nc-content-brand w-4 h-4"
             />
           </div>
         </a-select-option>

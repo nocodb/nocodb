@@ -286,9 +286,7 @@ const updateRowCommentCount = (count: number) => {
   if (isInfiniteScrollingEnabled.value) {
     // In group-by mode rows live in per-group caches (groupDataCache);
     // in non-group mode they live in the root cache. Search the right set.
-    const rowCaches = isGroupBy.value
-      ? Array.from(groupDataCache.value.values()).map((g) => g.cachedRows)
-      : [cachedRows]
+    const rowCaches = isGroupBy.value ? Array.from(groupDataCache.value.values()).map((g) => g.cachedRows) : [cachedRows]
 
     for (const cache of rowCaches) {
       for (const row of cache.value.values()) {

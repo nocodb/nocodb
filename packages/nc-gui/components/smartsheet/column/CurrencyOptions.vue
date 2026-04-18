@@ -109,7 +109,7 @@ const onPrecisionChange = (value: number) => {
                 :is="iconMap.check"
                 v-if="vModel.meta.currency_locale === currencyLocale.value"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>
@@ -136,7 +136,7 @@ const onPrecisionChange = (value: number) => {
                 :is="iconMap.check"
                 v-if="vModel.meta.currency_code === currencyCode"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>
@@ -163,7 +163,7 @@ const onPrecisionChange = (value: number) => {
                 :is="iconMap.check"
                 v-if="vModel.meta.precision === format"
                 id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
+                class="text-nc-content-brand w-4 h-4"
               />
             </div>
           </a-select-option>

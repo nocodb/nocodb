@@ -165,6 +165,39 @@ const getAvailableRollupForFormulaType = (type: FormulaDataTypes) => {
   }
 };
 
+/** Rollup functions that always return integer values — no decimal precision needed */
+const integerRollupFunctions: string[] = ['count', 'countDistinct'];
+
+/** Rollup functions that preserve the source column type (integer in → integer out) */
+const integerPreservingRollupFunctions: string[] = ['sum', 'min', 'max', 'sumDistinct'];
+
+/** Check if a column UIType stores integer values */
+const isIntegerUiType = (column: ColumnType) =>
+  [UITypes.Number, UITypes.ID, UITypes.AutoNumber, UITypes.Rating, UITypes.Links].includes(column.uidt as UITypes);
+
+/**
+ * Returns parsed rollup column meta with `precision` stripped when the
+ * source column type + rollup function combination doesn't support it.
+ * Prevents stale precision from old column configs affecting rendering.
+ */
+const getRollupColumnMeta = (rollupMeta: any, childUidt: UITypes, rollupFunction: string) => {
+  const meta = parseProp(rollupMeta);
+
+  if (meta.precision != null) {
+    const isInteger =
+      integerRollupFunctions.includes(rollupFunction) ||
+      (isIntegerUiType({ uidt: childUidt } as ColumnType) &&
+        integerPreservingRollupFunctions.includes(rollupFunction));
+
+    if (isInteger) {
+      const { precision: _, ...rest } = meta;
+      return rest;
+    }
+  }
+
+  return meta;
+};
+
 const getRenderAsTextFunForUiType = (type: UITypes) => {
   if (
     [
@@ -175,6 +208,7 @@ const getRenderAsTextFunForUiType = (type: UITypes) => {
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
       UITypes.Currency,
+      UITypes.Percent,
       UITypes.Duration,
     ].includes(type)
   ) {
@@ -247,6 +281,10 @@ export {
   getAvailableRollupForUiType,
   getAvailableRollupForFormulaType,
   getRenderAsTextFunForUiType,
+  integerRollupFunctions,
+  integerPreservingRollupFunctions,
+  isIntegerUiType,
+  getRollupColumnMeta,
   populateUniqueFileName,
   roundUpToPrecision,
 };

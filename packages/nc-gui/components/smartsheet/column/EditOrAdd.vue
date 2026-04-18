@@ -1332,7 +1332,7 @@ const unique = computed({
                     id="nc-selected-item-icon"
                     class="w-4 h-4"
                     :class="{
-                      'text-primary': !isAiMode,
+                      'text-nc-content-brand': !isAiMode,
                       'text-nc-content-purple-medium': isAiMode,
                     }"
                   />

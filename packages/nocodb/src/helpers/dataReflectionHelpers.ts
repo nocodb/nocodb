@@ -1,9 +1,10 @@
 import { customAlphabet, nanoid } from 'nanoid';
+import { ncSiteUrl } from '~/utils/envs';
 
 const NC_DATA_REFLECTION_SETTINGS = {
   host:
     process.env.NC_DATA_REFLECTION_HOST ||
-    process.env.NC_PUBLIC_URL?.replace(/(^\w+:|^)\/\//, '').replace(/\/$/, ''),
+    ncSiteUrl?.replace(/(^\w+:|^)\/\//, '').replace(/\/$/, ''),
   port: +process.env.NC_DATA_REFLECTION_PORT || 5433,
 };
 

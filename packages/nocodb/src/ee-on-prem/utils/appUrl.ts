@@ -1,3 +1,5 @@
+import { ncSiteUrl } from '~/utils/envs';
+
 let siteUrl: string;
 
 // extract url from license key jwt payload
@@ -17,8 +19,7 @@ export const getAppUrl = () => {
     } catch {
       // if error then fallback to default
       siteUrl =
-        process.env.NC_PUBLIC_URL ||
-        `http://localhost:${process.env.PORT || 8080}`;
+        ncSiteUrl || `http://localhost:${process.env.PORT || 8080}`;
     }
   }
   return `${siteUrl}${process.env.NC_DASHBOARD_URL ?? '/'}`;

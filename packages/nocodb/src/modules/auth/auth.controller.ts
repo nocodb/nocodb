@@ -23,6 +23,7 @@ import { clearAuthCookie, setAuthCookie } from '~/services/users/helpers';
 
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { NcError } from '~/helpers/catchError';
+import { ncSiteUrl } from '~/utils/envs';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
@@ -269,7 +270,7 @@ export class AuthController {
         ejs.render(
           (await import('~/modules/auth/ui/auth/resetPassword')).default,
           {
-            ncPublicUrl: process.env.NC_PUBLIC_URL || '',
+            ncPublicUrl: ncSiteUrl || '',
             token: tokenId,
             baseUrl: `/`,
           },

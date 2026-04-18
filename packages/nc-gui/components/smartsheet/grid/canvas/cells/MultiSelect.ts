@@ -66,9 +66,9 @@ export const MultiSelectCellRenderer: CellRenderer = {
 
       const opColor = isColorCodeEnabled ? optionsMap[text]?.color ?? '#e7e7e9' : undefined
       const opBgColor = isColorCodeEnabled
-        ? !isDark
-          ? getAdaptiveTint(opColor!, { saturationMod: 5, isDarkMode: isDark, shade: 20 })
-          : getAdaptiveTint(opColor!, { isDarkMode: isDark, shade: -10 })
+        ? isDark
+          ? getAdaptiveTint(opColor!, { isDarkMode: isDark, shade: -10 })
+          : opColor!
         : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
       const opTextColor = isColorCodeEnabled
         ? getOppositeColorOfBackground(opBgColor, opColor)

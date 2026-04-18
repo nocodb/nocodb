@@ -139,9 +139,11 @@ export const getSelectTypeFieldOptionBgColor = ({
     return getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
   }
 
-  return !isDark
-    ? getAdaptiveTint(color || '#e7e7e9', { saturationMod: 5, isDarkMode: isDark, shade: shade ?? 20 })
-    : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
+  if (isDark) {
+    return getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
+  }
+
+  return color || '#e7e7e9'
 }
 
 export const getDarkModeCompatibleBgColor = ({ color, isDark, shade }: { color?: string; isDark: boolean; shade?: number }) => {

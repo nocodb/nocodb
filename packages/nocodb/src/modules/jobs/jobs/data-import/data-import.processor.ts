@@ -83,6 +83,9 @@ export class DataImportProcessor {
     let tableId = existingTableId;
     let finalTableName = tableName;
 
+    const counters = { insertedCount: 0, failedCount: 0, systemErrorCount: 0 };
+    const errors: Array<{ row: number; error: string }> = [];
+
     try {
       // Insert parent audit log
       await Audit.insert(
@@ -202,7 +205,7 @@ export class DataImportProcessor {
 
       logBasic('Importing data...');
 
-      const result = await this.importData(
+      await this.importData(
         context,
         baseId,
         tableId,
@@ -213,10 +216,12 @@ export class DataImportProcessor {
         colMap,
         !!options.typecast,
         req,
+        counters,
+        errors,
         logDetailed,
       );
 
-      const { insertedCount, failedCount, errors } = result;
+      const { insertedCount, failedCount } = counters;
 
       elapsedTime(
         hrTime,
@@ -251,14 +256,22 @@ export class DataImportProcessor {
       );
       logBasic('Import failed due to an internal error.');
 
+      // NcError messages are user-safe; other errors (knex, etc.) may leak
+      // schema details — fall back to a generic message.
+      const safeMessage =
+        e instanceof NcBaseErrorv2
+          ? e.message
+          : 'Import failed. Please check the file format and try again.';
+
       throw {
         data: {
           tableId,
           tableName: finalTableName,
+          rowsInserted: counters.insertedCount,
+          rowsFailed: counters.failedCount,
+          errors: errors.slice(0, 100),
         },
-        message:
-          e.message ||
-          'Import failed. Please check the file format and try again.',
+        message: safeMessage,
       };
     } finally {
       // Cleanup temp file from storage
@@ -392,6 +405,12 @@ export class DataImportProcessor {
     colMap: Record<string, { destCn: string; uidt: string }>,
     typecast: boolean,
     req: NcRequest,
+    counters: {
+      insertedCount: number;
+      failedCount: number;
+      systemErrorCount: number;
+    },
+    errors: Array<{ row: number; error: string }>,
     logDetailed: (msg: string) => void,
   ) {
     if (!attachment.path && !attachment.url) {
@@ -408,8 +427,6 @@ export class DataImportProcessor {
     const handler = getImportHandler(importType);
 
     let rowCount = 0;
-    const counters = { insertedCount: 0, failedCount: 0, systemErrorCount: 0 };
-    const errors: Array<{ row: number; error: string }> = [];
     const maxErrors = 1000;
     let batch: Record<string, any>[] = [];
 
@@ -469,11 +486,5 @@ export class DataImportProcessor {
         }),
       );
     }
-
-    return {
-      insertedCount: counters.insertedCount,
-      failedCount: counters.failedCount,
-      errors,
-    };
   }
 }

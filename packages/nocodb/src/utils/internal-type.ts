@@ -99,7 +99,8 @@ export type InternalPOSTResponseType = Promise<
       columns: any[];
       previewData: any[];
       totalSampleRows: number;
-      detectedDelimiter: string;
+      totalRows: number;
+      detectedDelimiter?: string;
     }
   | { deleted: number; failed: { id: string; error: string }[] }
   | { id: string; name?: string }

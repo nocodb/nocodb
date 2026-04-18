@@ -116,9 +116,6 @@ export class CsvImportHandler implements DataImportHandler {
           headerSkipped = true;
           return;
         }
-        if (!headerSkipped) {
-          headerSkipped = true;
-        }
 
         parser.pause();
 

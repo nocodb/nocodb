@@ -48,6 +48,12 @@ async function peekJsonType(
   readStream: Readable,
 ): Promise<{ isArray: boolean; stream: Readable }> {
   return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      readStream.removeListener('readable', onReadable);
+      readStream.removeListener('error', onError);
+      readStream.removeListener('end', onEnd);
+    };
+
     const onReadable = () => {
       let chunk = readStream.read();
       if (chunk === null) return;
@@ -76,18 +82,25 @@ async function peekJsonType(
 
       // Push the chunk back so the stream is unconsumed
       readStream.unshift(chunk);
-      readStream.removeListener('readable', onReadable);
-      readStream.removeListener('error', onError);
+      cleanup();
       resolve({ isArray, stream: readStream });
     };
 
     const onError = (err: Error) => {
-      readStream.removeListener('readable', onReadable);
+      cleanup();
       reject(err);
+    };
+
+    // Empty stream — no bytes to peek. Resolve with isArray=false so the
+    // caller wraps it; downstream parser will surface a clean "empty" result.
+    const onEnd = () => {
+      cleanup();
+      resolve({ isArray: false, stream: readStream });
     };
 
     readStream.on('readable', onReadable);
     readStream.on('error', onError);
+    readStream.on('end', onEnd);
   });
 }
 
@@ -107,6 +120,11 @@ function wrapAsArray(readStream: Readable): Readable {
       callback(null, chunk);
     },
     flush(callback) {
+      // Handle empty source: emit a valid empty array instead of just ']'
+      if (!sentPrefix) {
+        sentPrefix = true;
+        this.push(Buffer.from('['));
+      }
       this.push(Buffer.from(']'));
       callback();
     },
@@ -215,18 +233,14 @@ export class JsonImportHandler implements DataImportHandler {
     const jsonStream = isArray ? stream : wrapAsArray(stream);
     const pipeline = jsonStream.pipe(parser()).pipe(streamArray()) as Transform;
 
-    try {
-      for await (const { value } of pipeline as AsyncIterable<{
-        key: number;
-        value: any;
-      }>) {
-        yield this.transformJsonValue(value, normalizeNested, colPaths);
-      }
-    } catch (e: any) {
-      if (e.code === 'ERR_STREAM_PREMATURE_CLOSE') {
-        return;
-      }
-      throw e;
+    // Don't swallow ERR_STREAM_PREMATURE_CLOSE here — a mid-stream abort
+    // during import must surface so partial-success stats are reported
+    // instead of a silent "completed" with truncated data.
+    for await (const { value } of pipeline as AsyncIterable<{
+      key: number;
+      value: any;
+    }>) {
+      yield this.transformJsonValue(value, normalizeNested, colPaths);
     }
   }
 

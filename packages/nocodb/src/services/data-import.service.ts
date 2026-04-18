@@ -78,7 +78,7 @@ export class DataImportService {
       NcError.sourceDataReadOnly(source.alias);
     }
 
-    if (!body.attachment?.path) {
+    if (!body.attachment?.path && !body.attachment?.url) {
       NcError.badRequest('Attachment path or url is required');
     }
 

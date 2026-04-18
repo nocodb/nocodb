@@ -17,6 +17,12 @@ const navItems = [
     description: 'Test NcComponents',
     icon: 'appStore',
   },
+  {
+    name: 'Plans',
+    path: '/playground/plans',
+    description: 'Plan badges & billing tables in light + dark',
+    icon: 'ncArrowUpCircle',
+  },
 ]
 </script>
 

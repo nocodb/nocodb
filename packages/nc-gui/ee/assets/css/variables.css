@@ -420,15 +420,15 @@
   --business-plan-badge-text-color: var(--color-pink-700, #C44DA0);
 
   /* Enterprise Plan  */
-  --enterprise-plan-color: var(--color-orange-50, #fff5ef);
-  --enterprise-plan-accent: var(--color-orange-200, #663b1f);
-  --enterprise-plan-primary: var(--color-orange-700, #c86827);
-  --enterprise-plan-bg-light: var(--color-orange-50, #fff5ef);
-  --enterprise-plan-bg-dark: var(--color-orange-100, #fee6d6);
-  --enterprise-plan-border: var(--color-orange-200, #fdcdad);
-  --enterprise-plan-chart-fill-color: var(--color-orange-700, #c86827);
-  --enterprise-plan-badge-bg-color: var(--color-orange-100, #fee6d6);
-  --enterprise-plan-badge-text-color: var(--color-orange-700, #c86827);
+  --enterprise-plan-color: #eaf7f7;
+  --enterprise-plan-accent: #8fc8c8;
+  --enterprise-plan-primary: #0d5a5a;
+  --enterprise-plan-bg-light: #eaf7f7;
+  --enterprise-plan-bg-dark: #cfeaea;
+  --enterprise-plan-border: #8fc8c8;
+  --enterprise-plan-chart-fill-color: #0d5a5a;
+  --enterprise-plan-badge-bg-color: #cfeaea;
+  --enterprise-plan-badge-text-color: #0d5a5a;
 
   /* View icon colors  */
   --color-view-icon-grid: #36bfff;
@@ -840,15 +840,15 @@
   --business-plan-badge-text-color: var(--color-pink-700, #C44DA0);
 
   /* Enterprise Plan  */
-  --enterprise-plan-color: #1b120b;
-  --enterprise-plan-accent: #5e381d;
-  --enterprise-plan-primary: #e28e4c;
-  --enterprise-plan-bg-light: #24170d;
-  --enterprise-plan-bg-dark: #160e08;
-  --enterprise-plan-border: #70492c;
-  --enterprise-plan-chart-fill-color: #e28e4c;
-  --enterprise-plan-badge-bg-color: var(--color-orange-100, #fee6d6);
-  --enterprise-plan-badge-text-color: var(--color-orange-700, #c86827);
+  --enterprise-plan-color: #0e2424;
+  --enterprise-plan-accent: #1f4a4a;
+  --enterprise-plan-primary: #5fc8c8;
+  --enterprise-plan-bg-light: #0e2424;
+  --enterprise-plan-bg-dark: #071818;
+  --enterprise-plan-border: #1f4a4a;
+  --enterprise-plan-chart-fill-color: #5fc8c8;
+  --enterprise-plan-badge-bg-color: #cfeaea;
+  --enterprise-plan-badge-text-color: #0d5a5a;
 
   /* View icon colors  */
   --color-view-icon-grid: #5fccff;

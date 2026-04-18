@@ -65,6 +65,8 @@ hooks.hook('page:finish', () => {
 
         <div class="flex-1" />
 
+        <DashboardMiniSidebarTheme placement="bottom" render-as-btn button-class="h-8 w-8" class="mr-3" />
+
         <GeneralReleaseInfo />
 
         <a-tooltip placement="bottom" :mouse-enter-delay="1" class="mr-4">

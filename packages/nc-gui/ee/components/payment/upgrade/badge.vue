@@ -3,7 +3,13 @@
  * PaymentUpgradeBadge component - will only visible if feature is not available in current plan
  */
 import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
-import { OnPremFeatureToMinPlan, OnPremPlanMeta, PlanFeatureTypesToPlanTitles, PlanMeta, PlanTitles } from 'nocodb-sdk'
+import {
+  OnPremFeatureToMinPlan,
+  OnPremPlanMeta,
+  PlanFeatureTypesToPlanTitles,
+  PlanMeta,
+  PlanTitles,
+} from 'nocodb-sdk'
 interface Props {
   /** Required plan to access new feature */
   planTitle?: PlanTitles
@@ -63,9 +69,13 @@ const effectivePlanTitle = computed(() => {
   return PlanFeatureTypesToPlanTitles[props.feature as PlanFeatureTypes] || PlanTitles.PLUS
 })
 
-const activePlanMeta = computed(() => {
+const activeBadgeColors = computed(() => {
   const title = effectivePlanTitle.value
-  return OnPremPlanMeta[title] || PlanMeta[title]
+  const meta = (OnPremPlanMeta as any)[title] || (PlanMeta as any)[title] || PlanMeta[PlanTitles.ENTERPRISE]
+  return {
+    bg: meta.staticBadgeBgColor,
+    text: meta.staticBadgeTextColor,
+  }
 })
 
 const showUpgradeModal = (e?: MouseEvent) => {
@@ -105,7 +115,7 @@ onBeforeUnmount(() => {
 <template>
   <NcTooltip v-if="!isFeatureEnabled && showAsLock && isEEFeatureBlocked" @click="showUpgradeModal">
     <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
-    <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" style="color: #c86827" />
+    <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" style="color: #0d5a5a" />
   </NcTooltip>
   <NcBadge
     v-else-if="!isFeatureEnabled && (isPaymentEnabled || isOnPrem)"
@@ -119,22 +129,42 @@ onBeforeUnmount(() => {
       },
     ]"
     :style="{
-      'color': activePlanMeta.badgeTextColor,
-      '--nc-badge-bg-light': activePlanMeta.badgeBgColor,
+      'color': activeBadgeColors.text,
+      '--nc-badge-bg-light': activeBadgeColors.bg,
     }"
     @click="showUpgradeModal"
   >
-    <!-- <GeneralIcon  icon="ncArrowUpCircle" class="h-4 w-4 mr-1" /> -->
+    <svg
+      class="nc-upgrade-badge-sparkle"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        d="M8 0 C8.6 5 11 7.4 16 8 C11 8.6 8.6 11 8 16 C7.4 11 5 8.6 0 8 C5 7.4 7.4 5 8 0 Z"
+      />
+    </svg>
     {{ getPlanTitle(effectivePlanTitle) }}
   </NcBadge>
 </template>
 
 <style lang="scss" scoped>
 .nc-upgrade-badge {
-  @apply bg-[var(--nc-badge-bg-light)] font-semibold transition-colors duration-200;
+  @apply bg-[var(--nc-badge-bg-light)] font-normal transition-colors duration-200 inline-flex items-center gap-1 whitespace-nowrap;
+  border-radius: 9999px;
+  padding: 4px 8px;
+  line-height: 1;
 
   &.nc-size-xs {
-    @apply text-bodyDefaultSm font-normal;
+    @apply text-bodyDefaultSm;
   }
+}
+
+.nc-upgrade-badge-sparkle {
+  width: 0.85em;
+  height: 0.85em;
+  flex: none;
+  display: block;
 }
 </style>

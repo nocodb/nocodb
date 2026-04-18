@@ -1,6 +1,5 @@
 import {
   RelationTypes,
-  resolveCurrentUserToken,
   UITypes,
   dateFormats,
   getRenderAsTextFunForUiType,
@@ -14,6 +13,7 @@ import {
   isSystemColumn,
   isValidValue,
   isVirtualCol,
+  resolveCurrentUserToken,
   getLookupColumnType as sdkGetLookupColumnType,
   validateRowFilters as sdkValidateRowFilters,
   timeFormats,

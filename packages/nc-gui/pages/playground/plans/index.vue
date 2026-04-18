@@ -138,8 +138,7 @@ const enterpriseOrangeBadge = { bg: '#FEE6D6', text: '#C86827' }
         <a href="/playground" class="text-sm text-nc-content-brand no-underline">← Playground</a>
         <h1 class="text-4xl font-bold text-nc-content-gray-emphasis mt-2 mb-1">Plans</h1>
         <p class="text-sm text-nc-content-gray-subtle">
-          Current-plan billing table and upgrade badges for both Cloud and On-Prem SKUs. Toggle the app theme to check dark
-          mode.
+          Current-plan billing table and upgrade badges for both Cloud and On-Prem SKUs. Toggle the app theme to check dark mode.
         </p>
       </div>
 
@@ -194,17 +193,14 @@ const enterpriseOrangeBadge = { bg: '#FEE6D6', text: '#C86827' }
       <!-- Old orange Enterprise — for comparison only (not in product) -->
       <div class="mt-14 mb-6">
         <div class="text-[11px] tracking-widest text-nc-content-gray-muted uppercase mb-1">Legacy · Orange Enterprise</div>
-        <div class="text-sm text-nc-content-gray-subtle">For comparison — the pre-teal Enterprise tokens. Not applied in product.</div>
+        <div class="text-sm text-nc-content-gray-subtle">
+          For comparison — the pre-teal Enterprise tokens. Not applied in product.
+        </div>
       </div>
 
       <section class="flex flex-col gap-3">
         <div class="flex items-center gap-3">
-          <h2
-            class="text-lg font-semibold leading-none !m-0"
-            :style="{ color: enterpriseOrangeMeta.primary }"
-          >
-            Enterprise
-          </h2>
+          <h2 class="text-lg font-semibold leading-none !m-0" :style="{ color: enterpriseOrangeMeta.primary }">Enterprise</h2>
           <span
             class="nc-play-badge"
             :style="{

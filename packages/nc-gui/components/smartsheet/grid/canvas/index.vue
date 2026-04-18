@@ -265,71 +265,6 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
 })
 const { tryShowTooltip, hideTooltip } = tooltipStore
 
-const descriptionPopoverState = ref<{
-  text: string
-  rect: { x: number; y: number; width: number; height: number }
-} | null>(null)
-const descriptionPopoverRef = ref<HTMLElement | null>(null)
-let descriptionPopoverHideTimer: ReturnType<typeof setTimeout> | null = null
-
-const descriptionTargetReference = computed(() => {
-  const r = descriptionPopoverState.value?.rect
-  const empty = { x: 0, y: 0, left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }
-  if (!r) return { getBoundingClientRect: () => empty }
-  return {
-    getBoundingClientRect: () => ({
-      x: r.x,
-      y: r.y,
-      left: r.x,
-      top: r.y,
-      right: r.x + r.width,
-      bottom: r.y + r.height,
-      width: r.width,
-      height: r.height,
-    }),
-  }
-})
-
-const { floatingStyles: descriptionFloatingStyles } = useFloating(descriptionTargetReference, descriptionPopoverRef, {
-  placement: 'bottom-start',
-  middleware: [offset(4), flip(), shift({ padding: 8 })],
-})
-
-const clearDescriptionHideTimer = () => {
-  if (descriptionPopoverHideTimer) {
-    clearTimeout(descriptionPopoverHideTimer)
-    descriptionPopoverHideTimer = null
-  }
-}
-
-const scheduleHideDescriptionPopover = () => {
-  clearDescriptionHideTimer()
-  descriptionPopoverHideTimer = setTimeout(() => {
-    descriptionPopoverState.value = null
-    descriptionPopoverHideTimer = null
-  }, 200)
-}
-
-const hideDescriptionPopoverImmediate = () => {
-  clearDescriptionHideTimer()
-  descriptionPopoverState.value = null
-}
-
-const showDescriptionPopover = (region: { x: number; y: number; width: number; height: number }, text: string) => {
-  const canvasRect = canvasRef.value?.getBoundingClientRect()
-  if (!canvasRect || !text) return
-  clearDescriptionHideTimer()
-  descriptionPopoverState.value = {
-    text,
-    rect: {
-      x: region.x + canvasRect.x,
-      y: region.y + canvasRect.y,
-      width: region.width,
-      height: region.height,
-    },
-  }
-}
-
 let selectedRowInfo: { index: number | null | undefined; isSelectionStarted: boolean; path: Array<number> } = {
   index: null,
   isSelectionStarted: false,
@@ -490,6 +425,71 @@ const {
   callAddEmptyRow,
   updateOrSaveRow,
 })
+
+const descriptionPopoverState = ref<{
+  text: string
+  rect: { x: number; y: number; width: number; height: number }
+} | null>(null)
+const descriptionPopoverRef = ref<HTMLElement | null>(null)
+let descriptionPopoverHideTimer: ReturnType<typeof setTimeout> | null = null
+
+const descriptionTargetReference = computed(() => {
+  const r = descriptionPopoverState.value?.rect
+  const empty = { x: 0, y: 0, left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }
+  if (!r) return { getBoundingClientRect: () => empty }
+  return {
+    getBoundingClientRect: () => ({
+      x: r.x,
+      y: r.y,
+      left: r.x,
+      top: r.y,
+      right: r.x + r.width,
+      bottom: r.y + r.height,
+      width: r.width,
+      height: r.height,
+    }),
+  }
+})
+
+const { floatingStyles: descriptionFloatingStyles } = useFloating(descriptionTargetReference, descriptionPopoverRef, {
+  placement: 'bottom-start',
+  middleware: [offset(4), flip(), shift({ padding: 8 })],
+})
+
+const clearDescriptionHideTimer = () => {
+  if (descriptionPopoverHideTimer) {
+    clearTimeout(descriptionPopoverHideTimer)
+    descriptionPopoverHideTimer = null
+  }
+}
+
+const scheduleHideDescriptionPopover = () => {
+  clearDescriptionHideTimer()
+  descriptionPopoverHideTimer = setTimeout(() => {
+    descriptionPopoverState.value = null
+    descriptionPopoverHideTimer = null
+  }, 200)
+}
+
+const hideDescriptionPopoverImmediate = () => {
+  clearDescriptionHideTimer()
+  descriptionPopoverState.value = null
+}
+
+const showDescriptionPopover = (region: { x: number; y: number; width: number; height: number }, text: string) => {
+  const canvasRect = canvasRef.value?.getBoundingClientRect()
+  if (!canvasRect || !text) return
+  clearDescriptionHideTimer()
+  descriptionPopoverState.value = {
+    text,
+    rect: {
+      x: region.x + canvasRect.x,
+      y: region.y + canvasRect.y,
+      width: region.width,
+      height: region.height,
+    },
+  }
+}
 
 /** Whether the table has attachment fields and data editing is allowed — gates the file drop zone */
 const canDropFilesToCreateRecords = computed(() => isDataEditAllowed.value && attachmentFields.value.length > 0)

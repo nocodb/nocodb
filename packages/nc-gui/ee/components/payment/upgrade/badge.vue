@@ -3,13 +3,7 @@
  * PaymentUpgradeBadge component - will only visible if feature is not available in current plan
  */
 import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
-import {
-  OnPremFeatureToMinPlan,
-  OnPremPlanMeta,
-  PlanFeatureTypesToPlanTitles,
-  PlanMeta,
-  PlanTitles,
-} from 'nocodb-sdk'
+import { OnPremFeatureToMinPlan, OnPremPlanMeta, PlanFeatureTypesToPlanTitles, PlanMeta, PlanTitles } from 'nocodb-sdk'
 interface Props {
   /** Required plan to access new feature */
   planTitle?: PlanTitles
@@ -141,9 +135,7 @@ onBeforeUnmount(() => {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      <path
-        d="M8 0 C8.6 5 11 7.4 16 8 C11 8.6 8.6 11 8 16 C7.4 11 5 8.6 0 8 C5 7.4 7.4 5 8 0 Z"
-      />
+      <path d="M8 0 C8.6 5 11 7.4 16 8 C11 8.6 8.6 11 8 16 C7.4 11 5 8.6 0 8 C5 7.4 7.4 5 8 0 Z" />
     </svg>
     {{ getPlanTitle(effectivePlanTitle) }}
   </NcBadge>

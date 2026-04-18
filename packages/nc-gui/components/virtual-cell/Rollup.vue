@@ -60,7 +60,11 @@ const childColumn = computed(() => {
         ...displayColumnMeta,
         meta: {
           ...parseProp(displayColumnMeta?.meta),
-          ...getRollupColumnMeta(column.value?.meta, colMeta.display_type, (colOptions.value as RollupType)?.rollup_function ?? ''),
+          ...getRollupColumnMeta(
+            column.value?.meta,
+            colMeta.display_type,
+            (colOptions.value as RollupType)?.rollup_function ?? '',
+          ),
         },
       }
     }

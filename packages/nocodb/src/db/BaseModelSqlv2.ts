@@ -3685,138 +3685,138 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             toInsert.push(data);
           }
         }
-
-        trx = await this.dbDriver.transaction();
-
-        const updatedPks = [];
-
-        if (toUpdate.length > 0) {
-          for (const data of toUpdate) {
-            if (!raw) await this.validate(data, columns);
-            const pkValues = this.extractPksValues(data);
-            updatedPks.push(pkValues);
-            const wherePk = await this._wherePk(pkValues, true);
-            await trx(this.tnPath).update(data).where(wherePk);
-          }
-        }
-
-        if (toInsert.length > 0) {
-          if (!foreign_key_checks) {
-            if (this.isPg) {
-              await trx.raw('set session_replication_role to replica;');
-            } else if (this.isMySQL) {
-              await trx.raw('SET foreign_key_checks = 0;');
-            }
-          }
-          let responses;
-
-          if (this.isSqlite || this.isMySQL) {
-            responses = [];
-
-            for (const insertData of toInsert) {
-              const query = trx(this.tnPath).insert(insertData);
-              let id = (await query)[0];
-
-              if (agPkCol) {
-                id = insertData[agPkCol.column_name];
-              }
-
-              responses.push(
-                this.extractCompositePK({
-                  rowId: id,
-                  ai: aiPkCol,
-                  ag: agPkCol,
-                  insertObj: insertData,
-                  force: true,
-                }) || insertData,
-              );
-            }
-          } else {
-            const returningObj: Record<string, string> = {};
-
-            for (const col of this.model.primaryKeys) {
-              returningObj[col.title] = col.column_name;
-            }
-
-            responses =
-              !raw && this.isPg
-                ? await trx
-                    .batchInsert(this.tnPath, toInsert, chunkSize)
-                    .returning(
-                      this.model.primaryKeys?.length ? returningObj : '*',
-                    )
-                : await trx.batchInsert(this.tnPath, toInsert, chunkSize);
-          }
-
-          if (!foreign_key_checks) {
-            if (this.isPg) {
-              await trx.raw('set session_replication_role to origin;');
-            } else if (this.isMySQL) {
-              await trx.raw('SET foreign_key_checks = 1;');
-            }
-          }
-          insertedDatas.push(...responses);
-        }
-
-        await trx.commit();
-
-        const updatedRecords = await this.chunkList({
-          pks: updatedPks,
-        });
-        updatedDatas.push(...updatedRecords);
-
-        const insertedDataList =
-          insertedDatas.length > 0
-            ? await this.chunkList({
-                pks: insertedDatas.map((d) => this.extractPksValues(d)),
-              })
-            : [];
-
-        const updatedDataList =
-          updatedDatas.length > 0
-            ? await this.chunkList({
-                pks: updatedDatas.map((d) => this.extractPksValues(d)),
-              })
-            : [];
-
-        if (insertedDatas.length === 1) {
-          await this.afterInsert({
-            data: insertedDataList[0],
-            trx: this.dbDriver,
-            req: cookie,
-            insertData: datas[0],
-          });
-
-          await this.statsUpdate({
-            count: insertedDataList.length,
-          });
-        } else if (insertedDatas.length > 1) {
-          await this.afterBulkInsert(insertedDataList, this.dbDriver, cookie);
-
-          await this.statsUpdate({
-            count: insertedDataList.length,
-          });
-        }
-
-        if (updatedDataList.length === 1) {
-          await this.afterUpdate(
-            existingRecords[0],
-            updatedDataList[0],
-            null,
-            cookie,
-            datas[0],
-          );
-        } else {
-          await this.afterBulkUpdate(
-            existingRecords,
-            updatedDataList,
-            this.dbDriver,
-            cookie,
-          );
-        }
-
-        return [...updatedDataList, ...insertedDataList];
       }
+
+      trx = await this.dbDriver.transaction();
+
+      const updatedPks = [];
+
+      if (toUpdate.length > 0) {
+        for (const data of toUpdate) {
+          if (!raw) await this.validate(data, columns);
+          const pkValues = this.extractPksValues(data);
+          updatedPks.push(pkValues);
+          const wherePk = await this._wherePk(pkValues, true);
+          await trx(this.tnPath).update(data).where(wherePk);
+        }
+      }
+
+      if (toInsert.length > 0) {
+        if (!foreign_key_checks) {
+          if (this.isPg) {
+            await trx.raw('set session_replication_role to replica;');
+          } else if (this.isMySQL) {
+            await trx.raw('SET foreign_key_checks = 0;');
+          }
+        }
+        let responses;
+
+        if (this.isSqlite || this.isMySQL) {
+          responses = [];
+
+          for (const insertData of toInsert) {
+            const query = trx(this.tnPath).insert(insertData);
+            let id = (await query)[0];
+
+            if (agPkCol) {
+              id = insertData[agPkCol.column_name];
+            }
+
+            responses.push(
+              this.extractCompositePK({
+                rowId: id,
+                ai: aiPkCol,
+                ag: agPkCol,
+                insertObj: insertData,
+                force: true,
+              }) || insertData,
+            );
+          }
+        } else {
+          const returningObj: Record<string, string> = {};
+
+          for (const col of this.model.primaryKeys) {
+            returningObj[col.title] = col.column_name;
+          }
+
+          responses =
+            !raw && this.isPg
+              ? await trx
+                  .batchInsert(this.tnPath, toInsert, chunkSize)
+                  .returning(
+                    this.model.primaryKeys?.length ? returningObj : '*',
+                  )
+              : await trx.batchInsert(this.tnPath, toInsert, chunkSize);
+        }
+
+        if (!foreign_key_checks) {
+          if (this.isPg) {
+            await trx.raw('set session_replication_role to origin;');
+          } else if (this.isMySQL) {
+            await trx.raw('SET foreign_key_checks = 1;');
+          }
+        }
+        insertedDatas.push(...responses);
+      }
+
+      await trx.commit();
+
+      const updatedRecords = await this.chunkList({
+        pks: updatedPks,
+      });
+      updatedDatas.push(...updatedRecords);
+
+      const insertedDataList =
+        insertedDatas.length > 0
+          ? await this.chunkList({
+              pks: insertedDatas.map((d) => this.extractPksValues(d)),
+            })
+          : [];
+
+      const updatedDataList =
+        updatedDatas.length > 0
+          ? await this.chunkList({
+              pks: updatedDatas.map((d) => this.extractPksValues(d)),
+            })
+          : [];
+
+      if (insertedDatas.length === 1) {
+        await this.afterInsert({
+          data: insertedDataList[0],
+          trx: this.dbDriver,
+          req: cookie,
+          insertData: datas[0],
+        });
+
+        await this.statsUpdate({
+          count: insertedDataList.length,
+        });
+      } else if (insertedDatas.length > 1) {
+        await this.afterBulkInsert(insertedDataList, this.dbDriver, cookie);
+
+        await this.statsUpdate({
+          count: insertedDataList.length,
+        });
+      }
+
+      if (updatedDataList.length === 1) {
+        await this.afterUpdate(
+          existingRecords[0],
+          updatedDataList[0],
+          null,
+          cookie,
+          datas[0],
+        );
+      } else {
+        await this.afterBulkUpdate(
+          existingRecords,
+          updatedDataList,
+          this.dbDriver,
+          cookie,
+        );
+      }
+
+      return [...updatedDataList, ...insertedDataList];
     } catch (e) {
       await trx?.rollback();
       throw e;
@@ -4511,9 +4511,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         colId: string;
       }[] = [];
 
-      transaction = await this.dbDriver.transaction();
-
       if (isSoftDelete) {
+        transaction = await this.dbDriver.transaction();
         // Soft-delete: flag records instead of removing them, skip link cleanup
         const softDeletePayload: Record<string, any> = {
           [deletedColumn.column_name]: true,
@@ -4855,7 +4854,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
 
-        // Phase 1: Collect linked IDs BEFORE transaction (data still intact)
+        // Phase 1: Collect linked IDs BEFORE transaction (data still intact).
         const idsVals = res.map((d) => d[this.model.primaryKey.column_name]);
 
         for (const collector of bulkLinkedCollectors) {
@@ -4866,6 +4865,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             logger.error(e?.message, e?.stack);
           }
         }
+
+        transaction = await this.dbDriver.transaction();
 
         // execQueries are pre-filtered above: pushed only when NocoDB must
         // cascade itself (meta source, or external FK with dr === 'NO ACTION').

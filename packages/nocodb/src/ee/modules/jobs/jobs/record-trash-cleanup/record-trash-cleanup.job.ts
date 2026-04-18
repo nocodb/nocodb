@@ -10,6 +10,7 @@ import type { NcContext } from '~/interface/config';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { Model, Source } from '~/models';
+import { getCompositePkValue } from '~/helpers/dbHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { resolveTrashRetentionDays } from '~/helpers/trashHelpers';
 
@@ -109,7 +110,13 @@ export class RecordTrashCleanupJob {
         }
 
         const pkColumns = model.primaryKeys.map((pk) => pk.column_name);
-        const isCompositePk = pkColumns.length > 1;
+
+        // Format UTC wall-clock string to match how baseModel.now() stores
+        // timestamps (columns are `timestamp without time zone`, bare UTC).
+        const cutoffLmt = cutoffDate
+          .toISOString()
+          .replace('T', ' ')
+          .replace('Z', '');
 
         const systemReq = {
           context,
@@ -126,7 +133,7 @@ export class RecordTrashCleanupJob {
               .dbDriver(baseModel.tnPath)
               .select(pkColumns)
               .where(deletedColumn.column_name, true)
-              .where(lmtColumn.column_name, '<', cutoffDate.toISOString())
+              .where(lmtColumn.column_name, '<', cutoffLmt)
               .limit(BATCH_SIZE),
             null,
             { raw: true },
@@ -134,18 +141,11 @@ export class RecordTrashCleanupJob {
 
           if (!rows.length) break;
 
-          // permanentDeleteByIds expects composite PKs as "val1___val2" strings
-          // (underscores in values escaped as \_)
           const rowIds = rows.map((r) =>
-            isCompositePk
-              ? pkColumns
-                  .map((col) => String(r[col] ?? '').replaceAll('_', '\\_'))
-                  .join('___')
-              : String(r[pkColumns[0]]),
+            getCompositePkValue(model.primaryKeys, r),
           );
 
-          // Use permanentDeleteByIds — cleans up MM junctions, HM FK refs, and file attachments
-          await baseModel.permanentDeleteByIds(rowIds, systemReq);
+          await baseModel.permanentDeleteByIds(rowIds, systemReq, true);
 
           deletedInModel += rowIds.length;
           totalDeleted += rowIds.length;

@@ -96,11 +96,14 @@ export type InternalPOSTResponseType = Promise<
     }[]
   | { message: string }
   | {
-      columns: any[];
-      previewData: any[];
-      totalSampleRows: number;
-      totalRows: number;
-      detectedDelimiter?: string;
+      sheets: {
+        name?: string;
+        columns: any[];
+        previewData: any[];
+        totalSampleRows: number;
+        totalRows: number;
+        detectedDelimiter?: string;
+      }[];
     }
   | { deleted: number; failed: { id: string; error: string }[] }
   | { id: string; name?: string }

@@ -3,10 +3,9 @@ import type {
   AttachmentReqType,
   AttachmentResType,
   ChatUIContext,
-  FileImportColumn,
-  FileImportColumnMapping,
   FileImportOptions,
   FileImportParserConfig,
+  FileImportSheet,
   FileImportType,
   PublicAttachmentScope,
   SnapshotType,
@@ -346,13 +345,10 @@ export interface ChatApprovalJobData extends JobData {
 export interface DataImportJobData extends JobData {
   baseId: string;
   sourceId: string;
-  importType?: FileImportType;
-  tableId?: string;
-  tableName?: string;
+  importType: FileImportType;
   attachment: AttachmentReqType;
-  columns: FileImportColumn[];
+  sheets: FileImportSheet[];
   parserConfig: FileImportParserConfig;
   options: FileImportOptions;
-  columnMapping?: FileImportColumnMapping[];
   req: NcRequest;
 }

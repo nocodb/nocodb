@@ -713,20 +713,12 @@ export class UiPostOperations
           extensionId: req.query.extensionId,
           req,
         });
-      case 'dataImportPreview': {
-        const result = await this.dataImportService.preview(context, {
+      case 'dataImportPreview':
+        return await this.dataImportService.preview(context, {
           importType: payload.importType || 'csv',
           attachment: payload.attachment,
           parserConfig: payload.parserConfig,
         });
-        return {
-          columns: result.columns as any[],
-          previewData: result.previewData,
-          totalSampleRows: result.totalSampleRows,
-          totalRows: result.totalRows,
-          detectedDelimiter: result.detectedDelimiter,
-        };
-      }
       case 'dataImportFile':
         return await this.dataImportService.importFile(context, {
           baseId: req.query.baseId as string,

@@ -1,9 +1,12 @@
 import { parse } from 'papaparse';
 import type { Readable } from 'stream';
-import type { FileImportColumn, FileImportParserConfig } from 'nocodb-sdk';
+import type {
+  FileImportColumn,
+  FileImportParserConfig,
+  ImportPreviewSheet,
+} from 'nocodb-sdk';
 import type {
   DataImportHandler,
-  ImportPreviewResult,
   ImportRow,
 } from '~/modules/jobs/jobs/data-import/handlers/data-import-handler.interface';
 import { AsyncQueue } from '~/modules/jobs/jobs/data-import/handlers/async-queue';
@@ -13,7 +16,7 @@ export class CsvImportHandler implements DataImportHandler {
   async preview(
     readStream: Readable,
     parserConfig: FileImportParserConfig,
-  ): Promise<ImportPreviewResult> {
+  ): Promise<ImportPreviewSheet[]> {
     const {
       firstRowAsHeaders = true,
       delimiter,
@@ -62,13 +65,15 @@ export class CsvImportHandler implements DataImportHandler {
     const totalRows = firstRowAsHeaders ? rowCount - 1 : rowCount;
 
     if (!headers.length) {
-      return {
-        columns: [],
-        previewData: [],
-        totalSampleRows: 0,
-        totalRows: 0,
-        detectedDelimiter: delimiter || ',',
-      };
+      return [
+        {
+          columns: [],
+          previewData: [],
+          totalSampleRows: 0,
+          totalRows: 0,
+          detectedDelimiter: delimiter || ',',
+        },
+      ];
     }
 
     const columns = detectColumnTypes(headers, sampleRows, {
@@ -84,13 +89,15 @@ export class CsvImportHandler implements DataImportHandler {
       return rowObj;
     });
 
-    return {
-      columns,
-      previewData: previewRows,
-      totalSampleRows: sampleRows.length,
-      totalRows,
-      detectedDelimiter: detectedDelimiter || delimiter || ',',
-    };
+    return [
+      {
+        columns,
+        previewData: previewRows,
+        totalSampleRows: sampleRows.length,
+        totalRows,
+        detectedDelimiter: detectedDelimiter || delimiter || ',',
+      },
+    ];
   }
 
   async *streamRows(

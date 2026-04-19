@@ -1,27 +1,31 @@
 import type { Readable } from 'stream';
-import type { FileImportColumn, FileImportParserConfig } from 'nocodb-sdk';
-import type { DetectedColumn } from '~/modules/jobs/jobs/data-import/csv-type-detector';
+import type {
+  FileImportColumn,
+  FileImportParserConfig,
+  ImportPreviewSheet,
+} from 'nocodb-sdk';
 
 export type ImportRow = Record<string, any>;
 
-export interface ImportPreviewResult {
-  columns: DetectedColumn[];
-  previewData: Record<string, any>[];
-  totalSampleRows: number;
-  /** Total number of rows in the file (for progress display). -1 if unknown. */
-  totalRows: number;
-  detectedDelimiter?: string;
-}
-
+/**
+ * A file handler parses a single uploaded file. CSV/JSON produce exactly one
+ * sheet per file; Excel produces one per worksheet in the workbook.
+ */
 export interface DataImportHandler {
+  /** Parse the file and return one entry per logical sheet. */
   preview(
     readStream: Readable,
     parserConfig: FileImportParserConfig,
-  ): Promise<ImportPreviewResult>;
+  ): Promise<ImportPreviewSheet[]>;
 
+  /**
+   * Stream rows for a single sheet. `sheetName` is only meaningful for Excel;
+   * other handlers ignore it.
+   */
   streamRows(
     readStream: Readable,
     parserConfig: FileImportParserConfig,
     columns: FileImportColumn[],
+    sheetName?: string,
   ): AsyncGenerator<ImportRow, void, undefined>;
 }

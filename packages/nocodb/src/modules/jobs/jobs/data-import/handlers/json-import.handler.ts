@@ -2,10 +2,13 @@ import { Transform } from 'stream';
 import { parser } from 'stream-json';
 import { streamArray } from 'stream-json/streamers/StreamArray';
 import type { Readable } from 'stream';
-import type { FileImportColumn, FileImportParserConfig } from 'nocodb-sdk';
+import type {
+  FileImportColumn,
+  FileImportParserConfig,
+  ImportPreviewSheet,
+} from 'nocodb-sdk';
 import type {
   DataImportHandler,
-  ImportPreviewResult,
   ImportRow,
 } from '~/modules/jobs/jobs/data-import/handlers/data-import-handler.interface';
 import { detectColumnTypesFromObjects } from '~/modules/jobs/jobs/data-import/csv-type-detector';
@@ -138,7 +141,7 @@ export class JsonImportHandler implements DataImportHandler {
   async preview(
     readStream: Readable,
     parserConfig: FileImportParserConfig,
-  ): Promise<ImportPreviewResult> {
+  ): Promise<ImportPreviewSheet[]> {
     const {
       maxRowsToParse = 500,
       autoSelectFieldTypes = true,
@@ -175,12 +178,14 @@ export class JsonImportHandler implements DataImportHandler {
     }
 
     if (!sampleRows.length) {
-      return {
-        columns: [],
-        previewData: [],
-        totalSampleRows: 0,
-        totalRows: 0,
-      };
+      return [
+        {
+          columns: [],
+          previewData: [],
+          totalSampleRows: 0,
+          totalRows: 0,
+        },
+      ];
     }
 
     const headerSet = new Set<string>();
@@ -205,12 +210,14 @@ export class JsonImportHandler implements DataImportHandler {
       }
     }
 
-    return {
-      columns,
-      previewData: sampleRows.slice(0, 20),
-      totalSampleRows: sampleRows.length,
-      totalRows,
-    };
+    return [
+      {
+        columns,
+        previewData: sampleRows.slice(0, 20),
+        totalSampleRows: sampleRows.length,
+        totalRows,
+      },
+    ];
   }
 
   async *streamRows(

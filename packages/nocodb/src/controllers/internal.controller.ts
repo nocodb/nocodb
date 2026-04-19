@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { NcContext, NcRequest, ViewLockType } from 'nocodb-sdk';
+import { NcContext, NcRequest } from 'nocodb-sdk';
 import type { InternalApiModule } from '~/utils/internal-type';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
@@ -18,16 +18,15 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
-import {
-  AclMiddleware,
-  VIEW_KEY,
-} from '~/middlewares/extract-ids/extract-ids.middleware';
+import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { markPersonalViewIfNeeded } from 'src/middlewares/extract-ids/extract-ids.helpers';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
 import {
   Filter,
+  FormViewColumn,
   GridViewColumn,
   ListViewColumn,
   Sort,
@@ -91,6 +90,7 @@ export class InternalController {
       'timelineViewUpdate',
       'timelineColumnUpdate',
       'listColumnUpdate',
+      'formColumnUpdate',
       'viewRowColorConditionAdd',
       'viewRowColorConditionUpdate',
       'viewRowColorConditionDelete',
@@ -148,12 +148,25 @@ export class InternalController {
         if (listCol?.fk_view_id) {
           view = await View.get(context, listCol.fk_view_id);
         }
+      } else if (req.query.formColumnId) {
+        // formColumnUpdate handler reads `req.query.formColumnId` (note:
+        // not the more generic `formViewColumnId` the outer extract-ids
+        // middleware recognises). Handle it here so VIEW_KEY is set
+        // before the editor-personal gate runs.
+        const formCol = await FormViewColumn.get(
+          context,
+          req.query.formColumnId as string,
+        );
+        if (formCol?.fk_view_id) {
+          view = await View.get(context, formCol.fk_view_id);
+        }
       }
 
-      // Set view in request for personal view ownership check in ACL middleware
-      if (view && view.lock_type === ViewLockType.Personal) {
-        req[VIEW_KEY] = view;
-      }
+      // Set view in request for personal view ownership check in ACL
+      // middleware. markPersonalViewIfNeeded covers both Personal and
+      // Locked lock_types — the editor + locked-view gate relies on
+      // VIEW_KEY being set for locked views too.
+      markPersonalViewIfNeeded(req, view);
     }
 
     await this.aclMiddleware.aclFn(

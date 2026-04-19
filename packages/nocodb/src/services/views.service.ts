@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
   EventType,
+  extractRolesObj,
   getFirstNonPersonalView,
   ProjectRoles,
   ViewLockType,
@@ -10,12 +11,14 @@ import {
 import type {
   SharedViewReqType,
   UserType,
+  ViewType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import {
   BaseUser,
   CustomUrl,
@@ -159,7 +162,9 @@ export class ViewsService {
     param: {
       viewId: string;
       view: ViewUpdateReqType;
-      user: UserType;
+      // `base_roles` is attached by extract-ids.middleware when the caller
+      // comes through the HTTP pipeline (shape mirrors NcRequest['user']).
+      user: UserType & { base_roles?: Record<string, boolean> | string };
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
@@ -212,19 +217,78 @@ export class ViewsService {
         ).withViewId(param.viewId)
       ).forUpdate();
 
+    // `base_roles` may be a string or an object depending on auth path
+    // (see BaseModelSqlv2.ts and extract-ids.middleware.ts for precedent).
+    // Normalize via extractRolesObj before indexing.
+    const userBaseRoles = extractRolesObj(param.user?.base_roles);
+    const isCreatorPlus = !!(
+      userBaseRoles?.[ProjectRoles.OWNER] ||
+      userBaseRoles?.[ProjectRoles.CREATOR]
+    );
+    const isEditor = !!userBaseRoles?.[ProjectRoles.EDITOR];
+
+    // Organisational fields (section membership, display order) can be changed
+    // by any editor+ regardless of lock_type or ownership — they don't alter the
+    // view's configuration, only its placement in the sidebar.
+    const organisationalFields = new Set(['fk_view_section_id', 'order']);
+    const updatedFields = Object.keys(param.view).filter(
+      (k) => param.view[k] !== undefined,
+    );
+    const isOrganisationalOnly = updatedFields.every((k) =>
+      organisationalFields.has(k),
+    );
+
+    if (!isOrganisationalOnly) {
+      // Only creators or owners can modify a locked view (including unlocking).
+      // Editors inherit viewUpdate permission via ACL but are blocked here so
+      // that locked views remain frozen for them.
+      if (oldView.lock_type === ViewLockType.Locked && !isCreatorPlus) {
+        NcError.get(context).forbidden(
+          'Only creators or owners can modify a locked view',
+        );
+      }
+
+      // Only creators or owners can lock a view (collab/personal → locked).
+      if (
+        param.view.lock_type === ViewLockType.Locked &&
+        oldView.lock_type !== ViewLockType.Locked &&
+        !isCreatorPlus
+      ) {
+        NcError.get(context).forbidden(
+          'Only creators or owners can lock a view',
+        );
+      }
+
+      // Editors can only update personal views they own. Creator+ can update any.
+      if (
+        !isCreatorPlus &&
+        oldView.lock_type === ViewLockType.Personal &&
+        oldView.owned_by &&
+        oldView.owned_by !== param.user.id
+      ) {
+        NcError.get(context).forbidden(
+          'Only the view owner or creator can modify this personal view',
+        );
+      }
+    }
+
     let ownedBy = oldView.owned_by;
     let createdBy = oldView.created_by;
     let includeCreatedByAndUpdateBy = false;
 
-    // check if the lock_type changing to `personal` and only allow if user is the owner
-    // if the owned_by is not the same as the user, then throw error
-    // if owned_by is empty, then only allow owner of project to change
+    // Converting a view to Personal: the current user claims ownership.
+    // Any editor+ can do this (ACL already restricts to editor+); the view
+    // creator can also always reclaim a view they originally made. Historical
+    // owned_by data from a previous Personal state is ignored — the new
+    // personal-view owner is whoever is calling this endpoint.
     if (
       param.view.lock_type === ViewLockType.Personal &&
       param.view.lock_type !== oldView.lock_type
     ) {
-      // Check if this is the last collaborative grid view
-      // Prevent changing to personal if this is the only non-personal grid view
+      // Payment-gated on unlicensed on-prem / non-Plus cloud.
+      // EE override throws featureNotSupported; CE stub is a no-op.
+      await assertPersonalViewAllowed(context, param.view.lock_type);
+      // Prevent changing the last collaborative grid view to personal
       if (oldView.type === ViewTypes.GRID) {
         const views = await View.list(context, oldView.fk_model_id, ncMeta);
         const otherNonPersonalGridView = getFirstNonPersonalView(
@@ -239,37 +303,27 @@ export class ViewsService {
         }
       }
 
-      // if owned_by is not empty then allow if current user is the owner or the original creator of the view
-      if (
-        ownedBy &&
-        ownedBy !== param.user.id &&
-        !(createdBy && createdBy === param.user.id)
-      ) {
-        NcError.get(context).unauthorized(
-          'Only owner/creator can change to personal view',
+      const isViewCreator = !!(createdBy && createdBy === param.user.id);
+      const isExistingOwner = !!(ownedBy && ownedBy === param.user.id);
+
+      if (!isViewCreator && !isExistingOwner && !isCreatorPlus && !isEditor) {
+        NcError.get(context).forbidden(
+          'Insufficient permissions to convert view to personal',
         );
       }
 
-      // if empty then allow if current user is the project owner or the original creator of the view
-      if (
-        !ownedBy &&
-        ((param.user as any).base_roles?.[ProjectRoles.OWNER] ||
-          (createdBy && createdBy === param.user.id))
-      ) {
-        includeCreatedByAndUpdateBy = true;
-        ownedBy = param.user.id;
-        if (!createdBy) {
-          createdBy = param.user.id;
-        }
-      } else if (!ownedBy) {
-        // todo: move to catchError
-        NcError.get(context).unauthorized(
-          'Only owner can change to personal view',
-        );
+      includeCreatedByAndUpdateBy = true;
+      ownedBy = param.user.id;
+      if (!createdBy) {
+        createdBy = param.user.id;
       }
     }
 
-    // When changing FROM personal to non-personal, reset owned_by to created_by if available
+    // When changing FROM personal to non-personal: reset owned_by to created_by
+    // (falling back to null). This preserves attribution of who originated the
+    // view while removing the personal-view ownership semantics. The Personal
+    // conversion block above always overwrites owned_by to the current user
+    // regardless of any stale value, so no one gets locked out of re-converting.
     if (
       oldView.lock_type === ViewLockType.Personal &&
       param.view.lock_type &&
@@ -279,15 +333,15 @@ export class ViewsService {
       includeCreatedByAndUpdateBy = true;
     }
 
-    // handle view ownership transfer
+    // Ownership transfer — fires whenever the request explicitly targets a
+    // different owned_by from the current (or just-claimed) one. This covers
+    // both assigning a brand-new personal view to someone else and re-assigning
+    // an existing personal view. Editors can never transfer to another user;
+    // their only path is self-assignment via the Personal conversion block,
+    // which sets ownedBy = param.user.id and naturally skips this block.
     if (ownedBy && param.view.owned_by && ownedBy !== param.view.owned_by) {
-      // extract user roles and allow creator and owner to change to personal view
-      if (
-        param.user.id !== ownedBy &&
-        !(param.user as any).base_roles?.[ProjectRoles.OWNER] &&
-        !(param.user as any).base_roles?.[ProjectRoles.CREATOR]
-      ) {
-        NcError.get(context).unauthorized(
+      if (!isCreatorPlus) {
+        NcError.get(context).forbidden(
           'Only owner/creator can transfer view ownership',
         );
       }
@@ -328,11 +382,19 @@ export class ViewsService {
       owner = await User.get(ownedBy, ncMeta);
     }
 
+    // Merge request body last so explicit fields win, then overlay
+    // owned_by/created_by with the final values resolved by this service
+    // (may differ from param.view when claiming/reverting personal views).
+    // ViewType declares owned_by as `IdType | undefined`, coerce nulls.
+    const viewForEvent = {
+      ...oldView,
+      ...param.view,
+      owned_by: ownedBy ?? undefined,
+      created_by: createdBy ?? undefined,
+    } as ViewType;
+
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
-      view: {
-        ...oldView,
-        ...param.view,
-      },
+      view: viewForEvent,
       oldView,
       user: param.user,
       req: param.req,
@@ -363,7 +425,13 @@ export class ViewsService {
 
   async viewDelete(
     context: NcContext,
-    param: { viewId: string; user: UserType; req: NcRequest },
+    param: {
+      viewId: string;
+      // `base_roles` is attached by extract-ids.middleware when the caller
+      // comes through the HTTP pipeline (shape mirrors NcRequest['user']).
+      user: UserType & { base_roles?: Record<string, boolean> | string };
+      req: NcRequest;
+    },
     ncMeta = Noco.ncMeta,
   ) {
     if (context.schema_locked) {
@@ -374,6 +442,32 @@ export class ViewsService {
 
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);
+    }
+
+    // Only creators or owners can delete a locked view. Editors inherit
+    // viewDelete via ACL but are blocked here to keep locked views frozen.
+    const userBaseRoles = extractRolesObj(param.user?.base_roles);
+    const isCreatorPlus = !!(
+      userBaseRoles?.[ProjectRoles.OWNER] ||
+      userBaseRoles?.[ProjectRoles.CREATOR]
+    );
+
+    if (view.lock_type === ViewLockType.Locked && !isCreatorPlus) {
+      NcError.get(context).forbidden(
+        'Only creators or owners can delete a locked view',
+      );
+    }
+
+    // Editors can only delete personal views they own. Creator+ can delete any.
+    if (
+      !isCreatorPlus &&
+      view.lock_type === ViewLockType.Personal &&
+      view.owned_by &&
+      view.owned_by !== param.user.id
+    ) {
+      NcError.get(context).forbidden(
+        'Only the view owner or creator can delete this personal view',
+      );
     }
 
     const views = await View.list(context, view.fk_model_id, ncMeta);

@@ -232,7 +232,7 @@ export class ViewSidebarPage extends BasePage {
 
   async validateRoleAccess(param: { role: string }) {
     await this.dashboard.sidebar.verifyCreateViewButtonVisibility({
-      isVisible: param.role.toLowerCase() === 'creator',
+      isVisible: ['creator', 'editor'].includes(param.role.toLowerCase()),
     });
 
     // await this.openDeveloperTab({});

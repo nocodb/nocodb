@@ -239,7 +239,7 @@ const initSectionsSortable = (el: Element) => {
 }
 
 watchEffect(() => {
-  if (sectionsRef.value && isUIAllowed('viewCreateOrEdit') && showDefaultFolder.value) {
+  if (sectionsRef.value && isUIAllowed('sectionCreateOrEdit') && showDefaultFolder.value) {
     initSectionsSortable(sectionsRef.value)
   }
 })
@@ -325,8 +325,19 @@ watch(
         baseId: table.value.base_id!,
       })
       loadExpandedSections()
-      if (expandedSections.value[DEFAULT_SECTION_ID] === undefined) {
-        expandedSections.value[DEFAULT_SECTION_ID] = true
+
+      // On first visit (no localStorage state), expand all sections so
+      // the user sees every view. Previously only the Default section
+      // auto-expanded, leaving custom sections collapsed and their views
+      // hidden — confusing for users who expect to see all views.
+      let needsSave = false
+      for (const id of allSectionIds.value) {
+        if (expandedSections.value[id] === undefined) {
+          expandedSections.value[id] = true
+          needsSave = true
+        }
+      }
+      if (needsSave) {
         saveExpandedSections()
       }
       sectionsLoading.value = false

@@ -1135,9 +1135,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
     } else if (view?.lock_type === LockType.Locked) {
       result.isDisabled = true
-      result.tooltip = t('title.thisViewIsLockType', {
-        type: t(viewLockIcons[view?.lock_type]?.title).toLowerCase(),
-      })
+      result.tooltip = t('msg.info.disabledAsViewLocked')
 
       if (from === 'toolbar') {
         result.isVisible = false
@@ -1280,7 +1278,19 @@ export const useViewsStore = defineStore('viewsStore', () => {
     return toReadableUrlSlug([tableTitle, viewTitle])
   }
 
-  async function hasOnlyOneGridViewInTable(tableId: string) {
+  /**
+   * Returns true when converting/deleting `excludeViewId` would leave the table
+   * with zero collaborative (or locked) grid views. Used by the view action
+   * menu to block the last-collab-grid guardrail.
+   *
+   * Previous implementation used `grids.length === 1` which fired whenever
+   * the table had exactly one non-personal grid regardless of whether that
+   * grid was the view being edited — so it also blocked actions on unrelated
+   * views (including personal views that weren't changing anything). The
+   * correct semantic is "after removing this view, is there any non-personal
+   * grid left?", which is what the explicit self-exclusion below encodes.
+   */
+  async function hasOnlyOneGridViewInTable(tableId: string, excludeViewId?: string) {
     await loadViews({
       tableId,
     })
@@ -1296,8 +1306,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     if (!key) return false
 
-    const grids = viewsByTable.value.get(key)?.filter((v) => v.type === ViewTypes.GRID && v.lock_type !== LockType.Personal)
-    return grids?.length === 1
+    const grids = viewsByTable.value
+      .get(key)
+      ?.filter((v) => v.id !== excludeViewId && v.type === ViewTypes.GRID && v.lock_type !== LockType.Personal)
+    return (grids?.length ?? 0) === 0
   }
 
   watch(

@@ -4,6 +4,7 @@ import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
+import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { NcError } from '~/helpers/catchError';
 import { MapView, Model, User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -34,6 +35,8 @@ export class MapsService {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
+
+    await assertPersonalViewAllowed(context, param.map.lock_type);
 
     const model = await Model.get(context, param.tableId);
 

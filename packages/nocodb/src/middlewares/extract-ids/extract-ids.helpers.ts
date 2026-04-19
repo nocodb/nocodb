@@ -3,11 +3,17 @@ import { ViewLockType } from 'nocodb-sdk';
 export const VIEW_KEY = Symbol.for('nc:view');
 
 /**
- * If the view is a personal view, attach it to the request
- * so ACL middleware can perform ownership checks.
+ * Attach the view to the request when it carries a lock_type the ACL
+ * middleware needs to reason about (Personal for owner-specific checks,
+ * Locked for the editor + locked-view write gate). The function keeps
+ * its historical name for call-site compatibility.
  */
 export function markPersonalViewIfNeeded(req: any, view: any) {
-  if (view && view.lock_type === ViewLockType.Personal) {
+  if (
+    view &&
+    (view.lock_type === ViewLockType.Personal ||
+      view.lock_type === ViewLockType.Locked)
+  ) {
     req[VIEW_KEY] = view;
   }
 }
@@ -32,11 +38,16 @@ const PERSONAL_VIEW_MANAGEMENT_PERMISSIONS = [
   'hideAllColumns',
   'showAllColumns',
   'gridColumnUpdate',
+  'listColumnUpdate',
+  'timelineColumnUpdate',
   'gridViewUpdate',
+  'formViewUpdate',
+  'formColumnUpdate',
   'galleryViewUpdate',
   'kanbanViewUpdate',
   'mapViewUpdate',
   'calendarViewUpdate',
+  'timelineViewUpdate',
   'listViewUpdate',
   'viewRowColorConditionAdd',
   'viewRowColorConditionUpdate',
@@ -60,8 +71,22 @@ export const personalViewOwnerOnlyOps = [
   'sortDelete',
 ];
 
-// Permissions that editors can only use on their own personal views.
-// Includes sort/filter CRUD plus view management operations.
+// Permissions that editors can perform on collaborative views and on personal
+// views they own — but NOT on other users' personal views.
+//
+// The middleware gate only fires when the view IS personal (it reads
+// `req[VIEW_KEY]?.lock_type === Personal`). On collaborative views the check
+// short-circuits and the caller proceeds to the normal role ACL (editor is
+// granted these perms in acl.ts).
+//
+// viewUpdate/viewDelete are listed here for defense-in-depth. Their
+// primary enforcement still lives in the service layer
+// (views.service.ts), which has the full view object in hand and can
+// reason about nuanced transitions (e.g. collab → locked on the new
+// payload). The middleware fires on exactly the same conditions the
+// service already blocks, so no behaviour changes — but future
+// controllers that hit the ACL without routing through views.service
+// still get the gate.
 export const editorPersonalViewOnlyPermissions = [
   'sortCreate',
   'sortUpdate',
@@ -69,6 +94,8 @@ export const editorPersonalViewOnlyPermissions = [
   'filterCreate',
   'filterUpdate',
   'filterDelete',
+  'viewUpdate',
+  'viewDelete',
   ...PERSONAL_VIEW_MANAGEMENT_PERMISSIONS,
 ];
 
@@ -87,16 +114,22 @@ export const personalViewOwnerAllowedPermissions = [
   'sortDelete',
   'columnList',
   'viewUpdate',
+  'viewDelete',
   'viewColumnUpdate',
   'viewColumnCreate',
   'hideAllColumns',
   'showAllColumns',
   'gridColumnUpdate',
+  'listColumnUpdate',
+  'timelineColumnUpdate',
+  'formColumnUpdate',
   'gridViewUpdate',
+  'formViewUpdate',
   'galleryViewUpdate',
   'kanbanViewUpdate',
   'mapViewUpdate',
   'calendarViewUpdate',
+  'timelineViewUpdate',
   'listViewUpdate',
   'viewRowColorConditionAdd',
   'viewRowColorConditionUpdate',

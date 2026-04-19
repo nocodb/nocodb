@@ -1075,10 +1075,18 @@ export class AclMiddleware implements NestInterceptor {
       !userBaseRoles?.[ProjectRoles.CREATOR] &&
       !userBaseRoles?.[ProjectRoles.OWNER];
 
+    // This gate applies ONLY when the view is a personal view: editors can
+    // perform sort/filter/view-column/layout ops on collaborative views (ACL
+    // already grants them the permission) but are restricted on:
+    //   - personal views they don't own
+    //   - locked views (creator+ only)
+    // On collaborative views VIEW_KEY is unset → the check short-circuits
+    // and the caller proceeds to the normal role-based ACL check.
     if (
       isEditor &&
       editorPersonalViewOnlyPermissions.includes(permissionName) &&
-      !isPersonalViewOwner
+      ((req[VIEW_KEY]?.lock_type === ViewLockType.Personal && !isPersonalViewOwner) ||
+        req[VIEW_KEY]?.lock_type === ViewLockType.Locked)
     ) {
       NcError.forbidden('Unauthorized access');
     }

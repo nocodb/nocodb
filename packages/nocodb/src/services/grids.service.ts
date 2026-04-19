@@ -9,6 +9,7 @@ import {
 } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
+import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { NcError } from '~/helpers/catchError';
 import { GridView, Model, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
@@ -38,6 +39,8 @@ export class GridsService {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
+
+    await assertPersonalViewAllowed(context, param.grid.lock_type);
 
     const model = await Model.get(context, param.tableId, ncMeta);
 

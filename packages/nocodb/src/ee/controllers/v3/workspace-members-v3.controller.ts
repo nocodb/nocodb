@@ -49,7 +49,8 @@ export class WorkspaceMembersV3Controller {
 
   @Post(['/api/v3/meta/workspaces/:workspaceId/members'])
   @HttpCode(200)
-  @Acl('workspaceUserInvite', {
+  // fix: was 'workspaceUserInvite' which doesn't exist in acl.ts — always returned 403
+  @Acl('workspaceInvite', {
     scope: 'workspace',
   })
   async userInvite(

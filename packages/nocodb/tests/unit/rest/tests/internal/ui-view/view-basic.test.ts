@@ -4,7 +4,7 @@ import request from 'supertest';
 import { PlanFeatureTypes, ViewTypes } from 'nocodb-sdk';
 import init from '../../../../init';
 import { isEE } from '../../../../utils/helpers';
-import { overrideFeature } from '../../../../utils/plan.utils';
+import { overridePlan } from '../../../../utils/plan.utils';
 import { Base, Model } from '~/models';
 import { RootScopes } from '~/utils/globals';
 
@@ -75,11 +75,16 @@ export const viewBasicTests = function () {
         base_id: initBase.id,
       });
 
-      // Override feature flag
-      featureMock = await overrideFeature({
+      // Override feature flags — FEATURE_API_VIEW_V3 for the endpoint
+      // itself, FEATURE_PERSONAL_VIEWS because several tests below
+      // create / update views with lock_type=Personal which is now
+      // payment-gated (assertPersonalViewAllowed).
+      featureMock = await overridePlan({
         workspace_id: workspaceId,
-        feature: PlanFeatureTypes.FEATURE_API_VIEW_V3,
-        allowed: true,
+        features: {
+          [PlanFeatureTypes.FEATURE_API_VIEW_V3]: true,
+          [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: true,
+        },
       });
 
       INTERNAL_API_BASE = `/api/v2/internal/${workspaceId}/${baseId}`;

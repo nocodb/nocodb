@@ -18,7 +18,7 @@ import {
   stringToViewTypeMap,
   viewTypeToStringMap,
 } from 'nocodb-sdk'
-import { PlanTitles, UITypes, ViewTypes } from 'nocodb-sdk'
+import { PlanTitles, UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
 import { AiWizardTabsType } from '#imports'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -79,6 +79,12 @@ interface Form {
   }>
 
   fk_cover_image_col_id: string | null | undefined
+
+  // Applied after view creation via a follow-up updateView call. Defaults
+  // to Collaborative. Editors can pick Collaborative or Personal; only
+  // creator+ can pick Locked. Optional so the destructured payload sent
+  // to createView (which omits lock_type) matches the type.
+  lock_type?: ViewLockType
 }
 
 type AiSuggestedViewType = SerializedAiViewType & {
@@ -97,9 +103,15 @@ const workspaceStore = useWorkspace()
 const baseStore = useBase()
 const { baseId: activeBaseId } = storeToRefs(baseStore)
 
-const { blockCalendarRange, getPlanTitle, showEEFeatures } = useEeConfig()
+const { blockCalendarRange, getPlanTitle, showEEFeatures, getFeature } = useEeConfig()
+
+const isPersonalViewFeatureEnabled = computed(() => getFeature(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS))
+
+const { isUIAllowed } = useRoles()
 
 const viewStore = useViewsStore()
+
+const { updateView: updateViewInStore } = viewStore
 
 const { viewsByTable } = storeToRefs(viewStore)
 
@@ -149,6 +161,7 @@ const form = reactive<Form>({
   timeline_range: [],
   fk_cover_image_col_id: undefined,
   description: props.description || '',
+  lock_type: ViewLockType.Collaborative,
 })
 
 const viewSelectFieldOptions = ref<SelectProps['options']>([])
@@ -212,6 +225,21 @@ const isPromtAlreadyGenerated = ref<boolean>(false)
 const activeAiTabLocal = ref<AiWizardTabsType>(AiWizardTabsType.AUTO_SUGGESTIONS)
 
 const isAiSaving = computed(() => aiLoading.value && calledFunction.value === 'createViews')
+
+// Only creator+ (proxied by `fieldAdd`) can create a Locked view.
+// Editors can create Collaborative or Personal views.
+const canLockView = computed(() => isUIAllowed('fieldAdd'))
+
+// Personal views are an EE-only concept — CE has only Collaborative
+// and the legacy Locked lock_types.
+const lockTypeOptions = computed(() => {
+  const options: Array<{ value: ViewLockType; disabled?: boolean }> = [
+    { value: ViewLockType.Collaborative },
+  ]
+  if (isEeUI) options.push({ value: ViewLockType.Personal })
+  if (canLockView.value) options.push({ value: ViewLockType.Locked })
+  return options
+})
 
 const activeAiTab = computed({
   get: () => {
@@ -298,13 +326,31 @@ async function onSubmit() {
     try {
       isViewCreating.value = true
 
-      const data = await viewStore.createView(tableId.value, form)
+      // Destructure lock_type out so it doesn't get sent in the POST body
+      // (ViewCreateReqType doesn't declare it — backend's extractProps
+      // strips it silently, which is confusing for anyone debugging).
+      const { lock_type: selectedLockType, ...createPayload } = form
+
+      const data = await viewStore.createView(tableId.value, createPayload)
 
       if (data) {
+        // Apply selected view mode (Personal / Locked). Views are created
+        // as Collaborative by default; a follow-up updateView sets the
+        // lock_type. Backend enforces ACL + ownership rules.
+        if (data.id && selectedLockType && selectedLockType !== ViewLockType.Collaborative) {
+          try {
+            await updateViewInStore(data.id, { lock_type: selectedLockType })
+            data.lock_type = selectedLockType
+          } catch (e: any) {
+            console.error('Failed to apply view mode after create', e)
+            message.toast(await extractSdkResponseErrorMsg(e))
+          }
+        }
+
         emits('created', data)
       }
     } catch (e: any) {
-      console.error(e)
+      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       setTimeout(() => {
         isViewCreating.value = false
@@ -842,7 +888,7 @@ watch(activeBaseId, () => {
 <template>
   <NcModal
     v-model:visible="vModel"
-    class="nc-view-create-modal !top-[25vh]"
+    class="nc-view-create-modal !top-[22vh]"
     :show-separator="false"
     size="xs"
     height="auto"
@@ -960,6 +1006,61 @@ watch(activeBaseId, () => {
               @keydown.enter="onSubmit"
             />
           </a-form-item>
+
+          <!-- Personal radio is excluded from lockTypeOptions in CE
+               (EE-only concept); Collaborative + Locked remain available
+               in both CE and EE. -->
+          <div class="flex flex-col gap-1.5 nc-create-view-lock-type">
+            <div class="text-[13px] font-medium text-nc-content-gray">{{ $t('labels.whoCanEdit') }}</div>
+            <a-radio-group
+              v-model:value="form.lock_type"
+              class="nc-create-view-lock-radio-group !flex !flex-nowrap items-center gap-x-5"
+            >
+              <template v-for="option in lockTypeOptions" :key="option.value">
+                <!-- Personal is payment-gated: on unlicensed on-prem / non-Plus cloud,
+                     the radio shows an upgrade badge and clicks open the upgrade
+                     modal instead of setting lock_type. Mirrors the View mode
+                     submenu pattern in ViewActionMenu.vue. -->
+                <PaymentUpgradeBadgeProvider
+                  v-if="option.value === ViewLockType.Personal && isEeUI && showEEFeatures"
+                  :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+                >
+                  <template #default="{ click }">
+                    <a-radio
+                      :value="option.value"
+                      :data-testid="`nc-create-view-lock-type-${option.value}`"
+                      @click.capture="
+                        (e) => {
+                          if (!isPersonalViewFeatureEnabled) {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS)
+                          }
+                        }
+                      "
+                    >
+                      <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
+                        <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
+                        {{ $t(viewLockIcons[option.value].title) }}
+                        <!-- show-as-lock renders a compact lock icon when gated
+                             and auto-hides when the feature is enabled -->
+                        <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS" show-as-lock />
+                      </span>
+                    </a-radio>
+                  </template>
+                </PaymentUpgradeBadgeProvider>
+                <a-radio v-else :value="option.value" :data-testid="`nc-create-view-lock-type-${option.value}`">
+                  <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
+                    <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
+                    {{ $t(viewLockIcons[option.value].title) }}
+                  </span>
+                </a-radio>
+              </template>
+            </a-radio-group>
+            <div class="text-[12px] text-nc-content-gray-subtle2 leading-[16px]">
+              {{ $t(viewLockIcons[form.lock_type].subtitle) }}
+            </div>
+          </div>
 
           <a-form-item
             v-if="form.type === ViewTypes.GALLERY && !form.copy_from_id"
@@ -1763,8 +1864,22 @@ watch(activeBaseId, () => {
   @apply !mb-0;
 }
 
+// xs (448px) is a touch tight for the Who-can-edit row — bump the cap to
+// 512px so three radios fit on one line without the dialog feeling stretched.
 .nc-view-create-modal {
   :deep(.nc-modal) {
+    width: min(calc(100vw - 32px), 512px) !important;
+  }
+}
+
+// Who-can-edit radios — keep all three options on one line, with compact
+// spacing that visually groups icon + label.
+.nc-create-view-lock-radio-group {
+  :deep(.ant-radio-wrapper) {
+    @apply !mr-0 !text-nc-content-gray;
+  }
+  :deep(.ant-radio-wrapper .ant-radio + span) {
+    @apply !pl-1.5;
   }
 }
 

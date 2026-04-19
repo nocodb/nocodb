@@ -3818,7 +3818,7 @@
     "ooConflictForce": "Another record now holds a one-to-one link that used to belong to this record. Restoring will reclaim the link and unlink the other record.",
     "linkConflictTitle": "Link conflict",
     "linkConflictForce": "Another record has taken a link that used to belong to this record. Restoring anyway will bring the record back without that link; the other record keeps it.",
-    "restoreAnyway": "Restore Anyway",
+    "restoreAnyway": "Restore Without Link",
     "uniqueConflictTitle": "Cannot restore record",
     "uniqueConflict": "The field '{field}' must be unique and the value '{value}' already exists in an active record. Update or delete the existing record first, then try restoring again.",
     "uniqueConflictGeneric": "A unique field value conflicts with an existing active record. Update or delete the existing record first, then try restoring again.",

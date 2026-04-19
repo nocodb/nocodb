@@ -529,15 +529,12 @@ export class RecordTrashService {
       (c) => c.uidt === UITypes.Attachment,
     );
 
-    // ── Pass 1: read-only conflict pre-flight ──────────────────────────────
-    const v1ConflictMap = new Map<string, string[]>();
-    const v2ConflictsByRowId = new Map<
-      string,
-      Array<{ colId: string; anchorPk: unknown }>
-    >();
-    const allConflicts: LinkConflict[] = [];
-
-    {
+    // ── Conflict pre-flight (force=false only) ──────────────────────────────
+    // Required for force=false so we can fail atomically — no writes until
+    // every batch has been scanned. force=true skips this and detects per
+    // batch inline in the apply loop below.
+    if (!param.force) {
+      const allConflicts: LinkConflict[] = [];
       const nextBatch = makeTrashBatchIterator(
         baseModel,
         model,
@@ -557,38 +554,26 @@ export class RecordTrashService {
           deletedColumn,
           batchIds,
         );
+        if (conflicts.length) allConflicts.push(...conflicts);
+      }
 
-        if (!conflicts.length) continue;
-
-        if (param.force) {
-          for (const c of conflicts) {
-            if (c.kind === 'v2') {
-              const list = v2ConflictsByRowId.get(c.rowId) ?? [];
-              list.push({ colId: c.colId, anchorPk: c.conflictAnchorPk });
-              v2ConflictsByRowId.set(c.rowId, list);
-            } else {
-              const cols = v1ConflictMap.get(c.rowId) ?? [];
-              cols.push(c.fkColumnName);
-              v1ConflictMap.set(c.rowId, cols);
-            }
-          }
-        } else {
-          allConflicts.push(...conflicts);
-        }
+      if (allConflicts.length) {
+        const details = allConflicts
+          .map(
+            (c) =>
+              `row ${c.rowId}: column "${c.columnTitle}" conflicts with active record`,
+          )
+          .join('; ');
+        NcError.get(context).recordRestoreConflict(details);
       }
     }
 
-    if (allConflicts.length) {
-      const details = allConflicts
-        .map(
-          (c) =>
-            `row ${c.rowId}: column "${c.columnTitle}" conflicts with active record`,
-        )
-        .join('; ');
-      NcError.get(context).recordRestoreConflict(details);
-    }
-
-    // ── Pass 2: restore ─────────────────────────────────────────────────────
+    // ── Apply pass ──────────────────────────────────────────────────────────
+    // force=true: detect conflicts per batch into local maps and resolve
+    //   inline. Safe because force-restore never throws — no half-applied
+    //   state is possible.
+    // force=false: pre-flight above already proved no conflicts exist, so
+    //   the apply just runs with empty conflict maps.
     let totalRestored = 0;
 
     {
@@ -603,6 +588,33 @@ export class RecordTrashService {
       while (true) {
         const batchIds = await nextBatch();
         if (!batchIds.length) break;
+
+        const v1ConflictMap = new Map<string, string[]>();
+        const v2ConflictsByRowId = new Map<
+          string,
+          Array<{ colId: string; anchorPk: unknown }>
+        >();
+
+        if (param.force) {
+          const conflicts = await this._detectLinkConflicts(
+            context,
+            model,
+            baseModel,
+            deletedColumn,
+            batchIds,
+          );
+          for (const c of conflicts) {
+            if (c.kind === 'v2') {
+              const list = v2ConflictsByRowId.get(c.rowId) ?? [];
+              list.push({ colId: c.colId, anchorPk: c.conflictAnchorPk });
+              v2ConflictsByRowId.set(c.rowId, list);
+            } else {
+              const cols = v1ConflictMap.get(c.rowId) ?? [];
+              cols.push(c.fkColumnName);
+              v1ConflictMap.set(c.rowId, cols);
+            }
+          }
+        }
 
         await this._applyRestoreBatch({
           context,
@@ -1026,11 +1038,7 @@ export class RecordTrashService {
       );
 
       if (isMMOrMMLike(col) && colOpts.version === LinksVersion.V2) {
-        if (
-          colOpts.type === 'oo' ||
-          colOpts.type === 'mo' ||
-          colOpts.type === 'om'
-        ) {
+        if (colOpts.type === 'oo' || colOpts.type === 'om') {
           junctionV2Cols.push({ col, colOpts });
         }
         continue;

@@ -73,9 +73,9 @@ export class DataImportProcessor {
     const data = job.data;
     const { attachment, importType, sheets, options, user } = data;
 
-    const log = (msg: string, detailed = false) => {
+    const log = (msg: string, verbose = false) => {
       this.jobsLogService.sendLog(job, { message: msg });
-      if (detailed) this.logger.debug(msg);
+      if (verbose) this.logger.debug(msg);
       else this.logger.log(msg);
     };
 
@@ -88,6 +88,25 @@ export class DataImportProcessor {
       ncParentAuditId: parentAuditId,
     } as NcRequest;
 
+    let auditTableNames: string;
+    if (options.importDataOnly) {
+      const resolved = await Promise.all(
+        sheets
+          .map((s) => s.tableId)
+          .filter((id): id is string => Boolean(id))
+          .map((id) => Model.get(data.context, id)),
+      );
+      auditTableNames = resolved
+        .filter(Boolean)
+        .map((m) => m!.title)
+        .join(', ');
+    } else {
+      auditTableNames = sheets
+        .map((s) => s.tableName)
+        .filter(Boolean)
+        .join(', ');
+    }
+
     await Audit.insert(
       await generateAuditV1Payload(AuditV1OperationTypes.DATA_IMPORT, {
         context: data.context,
@@ -95,10 +114,7 @@ export class DataImportProcessor {
           file_name: attachment.title || `${importType}-import`,
           import_type: importType,
           import_data_only: options.importDataOnly,
-          table_name: sheets
-            .map((s) => s.tableName)
-            .filter(Boolean)
-            .join(', '),
+          table_name: auditTableNames,
           columns_count: sheets.reduce(
             (sum, s) => sum + (s.columns?.length ?? 0),
             0,
@@ -196,7 +212,7 @@ export class DataImportProcessor {
     spec: FileImportSheet;
     user: Partial<UserType>;
     req: NcRequest;
-    log: (msg: string, detailed?: boolean) => void;
+    log: (msg: string, verbose?: boolean) => void;
   }): Promise<SheetResult> {
     const {
       context,
@@ -357,7 +373,7 @@ export class DataImportProcessor {
     tableName: string;
     colMap: Record<string, ColumnMapEntry>;
     req: NcRequest;
-    log: (msg: string, detailed?: boolean) => void;
+    log: (msg: string, verbose?: boolean) => void;
   }) {
     const {
       context,

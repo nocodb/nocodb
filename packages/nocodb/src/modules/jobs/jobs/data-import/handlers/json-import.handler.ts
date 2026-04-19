@@ -1,4 +1,5 @@
 import { Transform } from 'stream';
+import { Logger } from '@nestjs/common';
 import { parser } from 'stream-json';
 import { streamArray } from 'stream-json/streamers/StreamArray';
 import type { Readable } from 'stream';
@@ -12,6 +13,8 @@ import type {
   ImportRow,
 } from '~/modules/jobs/jobs/data-import/handlers/data-import-handler.interface';
 import { detectColumnTypesFromObjects } from '~/modules/jobs/jobs/data-import/csv-type-detector';
+
+const logger = new Logger('JsonImportHandler');
 
 const MAX_FLATTEN_DEPTH = 3;
 
@@ -170,8 +173,13 @@ export class JsonImportHandler implements DataImportHandler {
         }
       }
     } catch (e: any) {
-      if (e.code === 'ERR_STREAM_PREMATURE_CLOSE') {
-        // Can happen on stream teardown
+      // `ERR_STREAM_PREMATURE_CLOSE` can fire on legitimate teardown after we
+      // already sampled enough rows — accept what we have. But if we parsed
+      // nothing before it fired, the stream is truncated/malformed; surface it.
+      if (e.code === 'ERR_STREAM_PREMATURE_CLOSE' && sampleRows.length > 0) {
+        logger.debug(
+          `JSON preview stream closed early after ${totalRows} rows`,
+        );
       } else {
         throw new Error('Invalid JSON file. Please check the file format.');
       }

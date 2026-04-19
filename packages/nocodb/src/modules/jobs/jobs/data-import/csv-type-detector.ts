@@ -35,17 +35,19 @@ const validateEmail = (v: string) =>
 
 export function isCheckboxType(values: any[], col?: number): boolean {
   let options = booleanOptions;
+  let hasNonEmpty = false;
   for (let i = 0; i < values.length; i++) {
     const val = col !== undefined ? values[i]?.[col] : values[i];
     if (val === null || val === undefined || val.toString().trim() === '') {
       continue;
     }
+    hasNonEmpty = true;
     options = options.filter((v) => val in v);
     if (!options.length) {
       return false;
     }
   }
-  return true;
+  return hasNonEmpty;
 }
 
 export function getCheckboxValue(value: any): boolean {

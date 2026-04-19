@@ -401,11 +401,13 @@ export class DataImportProcessor {
         ...(options.typecast ? { typecast: 'true' } : {}),
       });
 
+    const progressKey = spec.tableName || tableName;
+
     const reportProgress = () =>
       log(
         JSON.stringify({
           status: 'progress',
-          tableName,
+          tableName: progressKey,
           sheetName: spec.sheetName,
           rowsInserted: stats.rowsInserted,
           rowsFailed: stats.rowsFailed,

@@ -754,9 +754,7 @@ watch(
                             class="!max-w-1/2 min-w-[120p] !leading-[18px] truncate"
                             show-on-truncate-only
                           >
-                            <template #title>
-                              {{ progressMsg }}</template
-                            >
+                            <template #title> {{ progressMsg }}</template>
 
                             <span class="!text-small text-nc-content-gray-muted">
                               {{ progressMsg }}
@@ -788,11 +786,7 @@ watch(
                   <div class="flex-1" />
 
                   <template v-if="preImportLoading">
-                    <NcTooltip
-                      :key="progressMsg"
-                      class="!max-w-1/2 min-w-[120p] !leading-[25px] truncate"
-                      show-on-truncate-only
-                    >
+                    <NcTooltip :key="progressMsg" class="!max-w-1/2 min-w-[120p] !leading-[25px] truncate" show-on-truncate-only>
                       <template #title> {{ progressMsg }}</template>
 
                       <span class="!text-small text-nc-content-gray-muted">

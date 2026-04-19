@@ -371,7 +371,7 @@ const permissionScopes = {
     'tableUpdate',
     'tableDelete',
 
-    // CSV Import
+    // Data Import
     'dataImportPreview',
     'dataImportFile',
 

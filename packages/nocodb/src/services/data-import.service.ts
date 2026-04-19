@@ -55,7 +55,6 @@ export class DataImportService {
     param: {
       baseId: string;
       body: {
-        baseId?: string;
         sourceId: string;
         importType?: FileImportType;
         attachment: AttachmentReqType;
@@ -104,7 +103,7 @@ export class DataImportService {
     const job = await this.nocoJobsService.add(JobTypes.DataImport, {
       context,
       importType: body.importType || 'csv',
-      baseId: baseId || body.baseId,
+      baseId,
       sourceId: body.sourceId,
       attachment: body.attachment,
       sheets: body.sheets,

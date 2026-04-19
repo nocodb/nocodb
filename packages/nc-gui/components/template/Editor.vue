@@ -554,7 +554,7 @@ async function importViaJob() {
 
         sheets.push({
           sheetName: table._sheetName,
-          tableName: importDataOnly ? undefined : table.table_name,
+          tableName: table.table_name,
           tableId: importDataOnly ? meta.value?.id : undefined,
           columns: (table.columns as any[])
             ?.filter((c) => !('selected' in c) || c.selected)

@@ -1244,6 +1244,16 @@ export class ColumnsService implements IColumnsService {
                 fk_display_value_column_id: (colBody as any)
                   .fk_display_value_column_id,
               });
+
+              // Re-clear after the write — changing the display value column
+              // changes the generated SQL for any query that expands this LTAR
+              // nested list. Clearing before the update leaves a small window
+              // where a concurrent request repopulates the cache with stale SQL.
+              await View.clearSingleQueryCache(
+                context,
+                column.fk_model_id,
+                null,
+              );
             }
           }
           // handle reorder column

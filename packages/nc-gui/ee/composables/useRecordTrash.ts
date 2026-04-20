@@ -341,7 +341,7 @@ export const useRecordTrash = createSharedComposable(() => {
         { operation: 'recordTrashEmpty' as RecordTrashOperation } as any,
         { tableId: tableId.value },
       )
-      message.success(t('trash.trashEmptied'))
+      message.toast(t('trash.trashEmptied'))
       trashEvents.value = []
       hasMoreEvents.value = false
       nextCursor.value = null

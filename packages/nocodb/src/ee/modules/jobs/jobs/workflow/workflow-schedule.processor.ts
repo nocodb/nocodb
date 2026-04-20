@@ -40,10 +40,7 @@ export class WorkflowScheduleProcessor {
 
     for (const trigger of dueTriggers) {
       try {
-        const configSiteUrl =
-          Noco.config?.envs?.[Noco.env]?.publicUrl ||
-          Noco.config?.publicUrl ||
-          '';
+        const configSiteUrl = Noco.config?.ncSiteUrl || '';
 
         const context = {
           workspace_id: trigger.fk_workspace_id,

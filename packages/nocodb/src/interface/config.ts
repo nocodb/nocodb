@@ -178,7 +178,7 @@ export interface NcConfig {
     [key: string]: {
       db: DbConfig[];
       api?: any;
-      publicUrl?: string;
+      ncSiteUrl?: string;
     };
   };
 
@@ -215,7 +215,7 @@ export interface NcConfig {
   dashboardPath?: string;
 
   prefix?: string;
-  publicUrl?: string;
+  ncSiteUrl?: string;
 }
 
 export interface Event {

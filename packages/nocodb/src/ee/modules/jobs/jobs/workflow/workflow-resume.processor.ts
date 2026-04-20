@@ -31,10 +31,7 @@ export class WorkflowResumeProcessor {
 
       for (const execution of dueExecutions) {
         try {
-          const configSiteUrl =
-            Noco.config?.envs?.[Noco.env]?.publicUrl ||
-            Noco.config?.publicUrl ||
-            '';
+          const configSiteUrl = Noco.config?.ncSiteUrl || '';
 
           const context = {
             workspace_id: execution.fk_workspace_id,

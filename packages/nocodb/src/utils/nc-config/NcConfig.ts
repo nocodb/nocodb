@@ -38,7 +38,7 @@ export class NcConfig {
   try: boolean;
 
   // optional
-  publicUrl?: string;
+  ncSiteUrl?: string;
   dashboardPath?: string;
 
   queriesFolder: string;
@@ -59,9 +59,9 @@ export class NcConfig {
     tryMode?: boolean;
     worker?: boolean;
     dashboardPath?: string;
-    publicUrl?: string;
+    ncSiteUrl?: string;
   }): Promise<NcConfig> {
-    const { meta, secret, port, worker, tryMode, publicUrl, dashboardPath } =
+    const { meta, secret, port, worker, tryMode, ncSiteUrl, dashboardPath } =
       param;
 
     const ncConfig = new NcConfig();
@@ -116,8 +116,8 @@ export class NcConfig {
       }
     }
 
-    if (publicUrl) {
-      ncConfig.publicUrl = publicUrl;
+    if (ncSiteUrl) {
+      ncConfig.ncSiteUrl = ncSiteUrl;
     }
 
     if (dashboardPath) {
@@ -148,7 +148,7 @@ export class NcConfig {
       tryMode: !!process.env.NC_TRY,
       worker: !!process.env.NC_WORKER,
       dashboardPath: process.env.NC_DASHBOARD_URL ?? '/',
-      publicUrl: ncSiteUrl,
+      ncSiteUrl,
     });
   }
 

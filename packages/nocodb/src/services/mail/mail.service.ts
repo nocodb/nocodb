@@ -36,9 +36,7 @@ export class MailService {
     'system:public_url_missing_notified';
 
   protected isPublicUrlConfigured(): boolean {
-    return !!(
-      Noco.config?.envs?.[Noco.env]?.publicUrl || Noco.config?.publicUrl
-    );
+    return !!Noco.config?.ncSiteUrl;
   }
 
   protected async notifySuperAdmin(ncMeta = Noco.ncMeta): Promise<void> {

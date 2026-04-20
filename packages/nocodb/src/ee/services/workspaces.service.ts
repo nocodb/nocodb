@@ -9,7 +9,7 @@ import {
   ProjectRoles,
   ProjectStatus,
   SqlUiFactory,
-  validateAccountName,
+  validateEntityName,
   WorkspacePlan,
   WorkspaceStatus,
   WorkspaceUserRoles,
@@ -208,7 +208,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     for (const workspacePayload of workspacePayloads) {
       validateParams(['title'], workspacePayload);
 
-      const nameValidation = validateAccountName(
+      const nameValidation = validateEntityName(
         workspacePayload.title,
         'Workspace name',
       );
@@ -650,7 +650,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       return;
 
     if (workspace.title !== undefined) {
-      const nameValidation = validateAccountName(
+      const nameValidation = validateEntityName(
         workspace.title,
         'Workspace name',
       );

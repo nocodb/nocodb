@@ -38,11 +38,7 @@ const form = reactive({
 })
 
 const formRules = {
-  title: [
-    { required: true, message: 'Base name required' },
-    { min: 3, message: 'Base name must be at least 3 characters long' },
-    { max: 50, message: 'Base name must be at most 50 characters long' },
-  ],
+  title: [baseTitleValidator()],
 }
 
 const formValidator = ref()

@@ -11,6 +11,7 @@ import {
   ncIsUndefined,
   PlanFeatureTypes,
   ProjectRoles,
+  validateEntityName,
 } from 'nocodb-sdk';
 import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import type {
@@ -247,9 +248,9 @@ export class BasesService extends BasesServiceCE {
       baseBody.is_meta = false;
     }
 
-    // Limited for consistent behaviour across identifier names for table, view, columns
-    if (baseBody?.title.length > 50) {
-      NcError.badRequest('Base title exceeds 50 characters');
+    const nameValidation = validateEntityName(baseBody?.title, 'Base name');
+    if (!nameValidation.valid) {
+      NcError.badRequest(nameValidation.error);
     }
 
     baseBody.title = DOMPurify.sanitize(baseBody.title);

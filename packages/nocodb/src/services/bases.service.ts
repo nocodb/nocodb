@@ -11,6 +11,7 @@ import {
   NcBaseError,
   OrgUserRoles,
   SqlUiFactory,
+  validateEntityName,
 } from 'nocodb-sdk';
 import type {
   NcApiVersion,
@@ -119,6 +120,13 @@ export class BasesService {
       'default_role',
       'version',
     ]);
+    if (data.title) {
+      const nameValidation = validateEntityName(data.title, 'Base name');
+      if (!nameValidation.valid) {
+        NcError.badRequest(nameValidation.error);
+      }
+    }
+
     await this.validateProjectTitle(context, data, base);
 
     if (data?.order !== undefined) {
@@ -341,9 +349,9 @@ export class BasesService {
       baseBody.is_meta = false;
     }
 
-    if (baseBody?.title.length > 50) {
-      // Limited for consistent behaviour across identifier names for table, view, columns
-      NcError.badRequest('Base title exceeds 50 characters');
+    const nameValidation = validateEntityName(baseBody?.title, 'Base name');
+    if (!nameValidation.valid) {
+      NcError.badRequest(nameValidation.error);
     }
 
     baseBody.title = DOMPurify.sanitize(baseBody.title);

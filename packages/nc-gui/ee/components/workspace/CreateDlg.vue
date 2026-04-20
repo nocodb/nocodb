@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { validateAccountName } from 'nocodb-sdk'
+import { validateEntityName } from 'nocodb-sdk'
 import InputOrTags from './InputOrTags.vue'
 
 const props = defineProps<{
@@ -28,7 +28,7 @@ const validators = computed(() => {
       {
         validator: (_: any, value: any) => {
           return new Promise((resolve, reject) => {
-            const result = validateAccountName(value, 'Workspace name')
+            const result = validateEntityName(value, 'Workspace name')
             if (!result.valid) {
               return reject(new Error(result.error))
             }

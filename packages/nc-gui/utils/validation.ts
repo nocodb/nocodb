@@ -1,5 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
-import { validateEmail } from 'nocodb-sdk'
+import { validateEntityName, validateEmail } from 'nocodb-sdk'
 import validator from 'validator'
 import { getI18n } from '../plugins/a.i18n'
 import { TypeConversionError } from '../error/type-conversion.error'
@@ -180,33 +180,15 @@ export const layoutTitleValidator = {
   },
 }
 
-export const baseTitleValidator = (title: string = 'objects.project') => {
+export const baseTitleValidator = (entityName: string = 'Base name') => {
   return {
-    validator: (rule: any, value: any) => {
-      const { t } = getI18n().global
-
+    validator: (_rule: any, value: any) => {
       return new Promise((resolve, reject) => {
-        if (value?.length > 50) {
-          reject(
-            new Error(
-              t('msg.error.projectNameExceeds50Characters', {
-                title: t(title),
-              }),
-            ),
-          )
+        const result = validateEntityName(value, entityName)
+        if (!result.valid) {
+          return reject(new Error(result.error))
         }
-
-        if (value[0] === ' ') {
-          reject(
-            new Error(
-              t('msg.error.projectNameCannotStartWithSpace', {
-                title: t(title),
-              }),
-            ),
-          )
-        }
-
-        resolve(true)
+        return resolve(true)
       })
     },
   }

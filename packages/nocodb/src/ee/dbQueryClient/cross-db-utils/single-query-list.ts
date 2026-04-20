@@ -45,6 +45,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       extractOnlyPrimaries?: boolean;
       ignoreRls?: boolean;
       deletedOnly?: boolean;
+      fk_display_value_column_id?: string | null;
     },
   ): Promise<
     PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
@@ -84,11 +85,17 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       rlsCacheSegment = `:rls:${hash}`;
     }
 
+    // Different fk_display_value_column_id overrides produce different ASTs —
+    // scope the cache key so LTAR readers with distinct overrides don't collide
+    const displayColSegment = ctx.fk_display_value_column_id
+      ? `:dvc:${ctx.fk_display_value_column_id}`
+      : '';
     const cacheKeySuffix =
       (linksAsLtar ? ':ltar' : '') +
       (ctx.deletedOnly ? ':deleted' : '') +
       (ctx.extractOnlyPrimaries ? ':primaries' : '') +
-      rlsCacheSegment;
+      rlsCacheSegment +
+      displayColSegment;
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
     }:queries${cacheKeySuffix}`;
@@ -191,6 +198,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       ignoreRls: ctx.ignoreRls,
       deletedOnly: ctx.deletedOnly,
       extractOnlyPrimaries: ctx.extractOnlyPrimaries,
+      fk_display_value_column_id: ctx.fk_display_value_column_id,
       skipCache,
       listArgs,
       limitOffsetPlaceholder: skipCache ? undefined : limitOffsetPlaceholder,

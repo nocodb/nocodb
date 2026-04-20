@@ -48,6 +48,7 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       skipSortBasedOnOrderCol?: boolean;
       ignoreViewFilterAndSort?: boolean;
       extractOnlyPrimaries?: boolean;
+      fk_display_value_column_id?: string | null;
       skipCache?: boolean;
       listArgs?: XcFilter;
       ignoreRls?: boolean;
@@ -309,6 +310,7 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       includeButtonFilterColumns:
         ctx.params?.include_button_filter_columns === 'true',
       extractOnlyPrimaries: ctx.extractOnlyPrimaries,
+      fk_display_value_column_id: ctx.fk_display_value_column_id,
     });
     profiler.log('extract column');
 

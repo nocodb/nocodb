@@ -198,17 +198,19 @@ describe('dataApiV3', () => {
       });
 
       it('BT persists fk_display_value_column_id on create', async () => {
-        // For BT the LINKED table (where override lives) is the one
-        // rendered in the chip. Frontend sends parentId=current table;
-        // which side hosts the override is sensitive to relation direction.
-        // Post-fix, the service routes the lookup to the correct side.
-        const labelA = findCol(colsA, 'Label');
+        // V1 BT quirk: the BT column lands on `child` (= childId = refTable
+        // in service) with fk_related_model_id pointing to `parent`
+        // (= parentId = table). The "linked" table the BT references is
+        // therefore parentId. The service validates the override against
+        // parentId's columns; the post-fix code does exactly that.
+        const labelB = findCol(colsB, 'Label');
         const col = await createLtar(tblB, tblA, 'BT_V1', {
           uidt: UITypes.LinkToAnotherRecord,
           type: RelationTypes.BELONGS_TO,
-          fk_display_value_column_id: labelA.id,
+          // Override is from parentId-side (tblB = `table` in service)
+          fk_display_value_column_id: labelB.id,
         });
-        await assertPersisted(col, labelA.id);
+        await assertPersisted(col, labelB.id);
       });
 
       it('OO persists fk_display_value_column_id on create', async () => {

@@ -25,6 +25,7 @@ const {
   loadTrashEvents,
   loadMoreEvents,
   restoreEvent,
+  conflictFor,
   emptyTrash,
 } = useRecordTrash()
 
@@ -235,90 +236,101 @@ watch(isOpen, (val) => {
             <div
               v-for="event in trashEvents"
               :key="event.id"
-              class="nc-trash-event-row flex items-start gap-3 px-6 py-3.5 hover:bg-nc-bg-gray-extralight transition-colors"
+              class="nc-trash-event-row flex flex-col transition-colors"
+              :class="{ 'bg-nc-bg-gray-extralight': !!conflictFor(event.id) }"
               :data-testid="`nc-trash-event-${event.id}`"
             >
-              <NcTooltip
-                placement="bottom"
-                color="light"
-                :disabled="!event.email && !event.fk_user_id"
-                overlay-class-name="nc-tooltip-trash-user"
-              >
-                <template #title>
-                  <div class="flex items-center gap-2.5 py-1 pr-1">
-                    <div
-                      class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
-                      :class="avatarColor(event)"
-                    >
-                      {{ userInitial(event) }}
-                    </div>
-                    <div class="flex flex-col min-w-0 text-left">
-                      <div class="text-bodySm font-semibold text-nc-content-gray-emphasis truncate">
-                        {{ userDisplayName(event) || $t('trash.deletedBy') }}
-                      </div>
-                      <div v-if="event.email" class="text-captionSm text-nc-content-gray-muted truncate">
-                        {{ event.email }}
-                      </div>
-                    </div>
-                  </div>
-                </template>
-                <div
-                  class="w-8 h-8 rounded-full flex items-center justify-center text-captionSm font-semibold shrink-0 mt-0.5 cursor-default"
-                  :class="avatarColor(event)"
+              <div class="flex items-start gap-3 px-6 py-3.5 hover:bg-nc-bg-gray-extralight">
+                <NcTooltip
+                  placement="bottom"
+                  color="light"
+                  :disabled="!event.email && !event.fk_user_id"
+                  overlay-class-name="nc-tooltip-trash-user"
                 >
-                  {{ userInitial(event) }}
-                </div>
-              </NcTooltip>
+                  <template #title>
+                    <div class="flex items-center gap-2.5 py-1 pr-1">
+                      <div
+                        class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shrink-0"
+                        :class="avatarColor(event)"
+                      >
+                        {{ userInitial(event) }}
+                      </div>
+                      <div class="flex flex-col min-w-0 text-left">
+                        <div class="text-bodySm font-semibold text-nc-content-gray-emphasis truncate">
+                          {{ userDisplayName(event) || $t('trash.deletedBy') }}
+                        </div>
+                        <div v-if="event.email" class="text-captionSm text-nc-content-gray-muted truncate">
+                          {{ event.email }}
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                  <div
+                    class="w-8 h-8 rounded-full flex items-center justify-center text-captionSm font-semibold shrink-0 mt-0.5 cursor-default"
+                    :class="avatarColor(event)"
+                  >
+                    {{ userInitial(event) }}
+                  </div>
+                </NcTooltip>
 
-              <div class="flex-1 min-w-0">
-                <div class="flex items-baseline gap-2 flex-wrap">
-                  <span class="text-bodyDefault font-semibold text-nc-content-gray-emphasis">
-                    {{ eventTitle(event) }}
-                  </span>
-                  <NcTooltip placement="top" :disabled="!absoluteDate(event.created_at)">
-                    <template #title>{{ absoluteDate(event.created_at) }}</template>
-                    <span class="text-captionSm text-nc-content-gray-muted cursor-default">
-                      {{ formatDate(event.created_at) }}
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-baseline gap-2 flex-wrap">
+                    <span class="text-bodyDefault font-semibold text-nc-content-gray-emphasis">
+                      {{ eventTitle(event) }}
                     </span>
-                  </NcTooltip>
+                    <NcTooltip placement="top" :disabled="!absoluteDate(event.created_at)">
+                      <template #title>{{ absoluteDate(event.created_at) }}</template>
+                      <span class="text-captionSm text-nc-content-gray-muted cursor-default">
+                        {{ formatDate(event.created_at) }}
+                      </span>
+                    </NcTooltip>
+                  </div>
+                  <div v-if="event.preview_rows.length" class="flex flex-wrap gap-1.5 mt-2 items-center">
+                    <span
+                      v-for="(r, i) in visiblePreviewRows(event)"
+                      :key="i"
+                      class="px-2 py-0.5 rounded bg-nc-bg-gray-light text-nc-content-gray text-captionSm max-w-60 truncate"
+                      :title="pvText(r)"
+                    >
+                      {{ pvText(r) || $t('trash.unnamedRecord') }}
+                    </span>
+                    <span
+                      v-if="isExpanded(event) && event.row_count > event.preview_rows.length"
+                      class="text-captionSm text-nc-content-gray-muted px-1 shrink-0"
+                    >
+                      {{ $t('trash.andNMore', { count: event.row_count - event.preview_rows.length }) }}
+                    </span>
+                    <button
+                      v-if="event.row_count > MAX_CHIPS"
+                      v-e="['c:trash:event:toggle-expand']"
+                      type="button"
+                      class="text-captionSm text-nc-content-brand hover:underline px-1 shrink-0"
+                      @click="toggleExpand(event)"
+                    >
+                      {{ isExpanded(event) ? $t('trash.showLess') : $t('trash.showAll') }}
+                    </button>
+                  </div>
                 </div>
-                <div v-if="event.preview_rows.length" class="flex flex-wrap gap-1.5 mt-2 items-center">
-                  <span
-                    v-for="(r, i) in visiblePreviewRows(event)"
-                    :key="i"
-                    class="px-2 py-0.5 rounded bg-nc-bg-gray-light text-nc-content-gray text-captionSm max-w-60 truncate"
-                    :title="pvText(r)"
-                  >
-                    {{ pvText(r) || $t('trash.unnamedRecord') }}
-                  </span>
-                  <span
-                    v-if="isExpanded(event) && event.row_count > event.preview_rows.length"
-                    class="text-captionSm text-nc-content-gray-muted px-1 shrink-0"
-                  >
-                    {{ $t('trash.andNMore', { count: event.row_count - event.preview_rows.length }) }}
-                  </span>
-                  <button
-                    v-if="event.row_count > MAX_CHIPS"
-                    v-e="['c:trash:event:toggle-expand']"
-                    type="button"
-                    class="text-captionSm text-nc-content-brand hover:underline px-1 shrink-0"
-                    @click="toggleExpand(event)"
-                  >
-                    {{ isExpanded(event) ? $t('trash.showLess') : $t('trash.showAll') }}
-                  </button>
-                </div>
+
+                <NcButton
+                  v-e="['c:trash:restore:event']"
+                  size="small"
+                  type="text"
+                  class="!text-nc-content-brand !px-2 shrink-0"
+                  :data-testid="`nc-trash-restore-event-${event.id}`"
+                  :disabled="!!conflictFor(event.id)"
+                  @click="restoreEvent(event.id)"
+                >
+                  {{ $t('trash.restore') }}
+                </NcButton>
               </div>
 
-              <NcButton
-                v-e="['c:trash:restore:event']"
-                size="small"
-                type="text"
-                class="!text-nc-content-brand !px-2 shrink-0"
-                :data-testid="`nc-trash-restore-event-${event.id}`"
-                @click="restoreEvent(event.id)"
-              >
-                {{ $t('trash.restore') }}
-              </NcButton>
+              <SmartsheetToolbarRecordTrashConflictPanel
+                v-if="conflictFor(event.id)"
+                :event-id="event.id"
+                :row-count="event.row_count"
+                :state="conflictFor(event.id)!"
+              />
             </div>
           </div>
 

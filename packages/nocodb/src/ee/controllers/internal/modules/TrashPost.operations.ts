@@ -41,6 +41,7 @@ export class TrashPostOperations
           rowIds: req.body.rowIds as string[],
           eventId: req.body.eventId as string,
           force: req.body.force as boolean,
+          partial: req.body.partial as boolean,
           req,
         });
       case 'recordTrashPermanentDelete':

@@ -337,6 +337,7 @@ export class SoftDeleteColumnMigration {
     const columns = model.columns.map((c) => ({
       ...c,
       cn: c.column_name,
+      cno: c.column_name,
       ...(v1OoFkColIds.has(c.id)
         ? { altered: Altered.UPDATE_COLUMN, unique: false }
         : // Re-process existing unique columns so PgClient recreates them as

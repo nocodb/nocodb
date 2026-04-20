@@ -3292,7 +3292,15 @@ class PGClient extends KnexClient {
           // Dropping unique constraint (may be a constraint or a partial index)
           const constraintName = this.getUniqueConstraintName(o, t);
 
-          // Drop both constraint and index to handle both cases
+          // Drop both constraint and index to handle both cases. Qualify the
+          // DROP INDEX with the table's schema — an unqualified drop only
+          // searches the current search_path and silently misses the index
+          // when the table lives in a workspace schema, causing the next
+          // CREATE INDEX to fail with "already exists".
+          const dropIndexSchema = t.includes('.') ? t.split('.')[0] : null;
+          const qualifiedIndexName = dropIndexSchema
+            ? `${dropIndexSchema}.${constraintName}`
+            : constraintName;
           query += this.genQuery(
             `\nALTER TABLE ?? DROP CONSTRAINT IF EXISTS ??;\n`,
             [t, constraintName],
@@ -3300,7 +3308,7 @@ class PGClient extends KnexClient {
           );
           query += this.genQuery(
             `\nDROP INDEX IF EXISTS ??;\n`,
-            [constraintName],
+            [qualifiedIndexName],
             shouldSanitize,
           );
         }
@@ -3460,10 +3468,17 @@ class PGClient extends KnexClient {
       [t, constraintName],
       shouldSanitize,
     );
-    // Also drop index in case it was created as a partial unique index
+    // Also drop index in case it was created as a partial unique index.
+    // Qualify with the table's schema — see comment in the drop-branch
+    // above; unqualified DROP INDEX silently misses indexes in non-default
+    // schemas and causes the subsequent CREATE to fail.
+    const dropIndexSchema = t.includes('.') ? t.split('.')[0] : null;
+    const qualifiedIndexName = dropIndexSchema
+      ? `${dropIndexSchema}.${constraintName}`
+      : constraintName;
     query += this.genQuery(
       `\nDROP INDEX IF EXISTS ??;\n`,
-      [constraintName],
+      [qualifiedIndexName],
       shouldSanitize,
     );
 

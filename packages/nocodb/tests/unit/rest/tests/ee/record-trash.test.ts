@@ -277,6 +277,104 @@ export default function recordTrashTests() {
       return new Promise((r) => setTimeout(r, ms));
     }
 
+    // ── helpers used by I–M (validation / unique / partial / fix 1) ─────────
+
+    /** Internal columnUpdate — change a column's attrs (validate, unique, colOptions, …) */
+    async function updateColumn(
+      columnId: string,
+      body: Record<string, any>,
+      status = 200,
+    ) {
+      return internalPost(
+        { operation: 'columnUpdate', columnId },
+        body,
+        status,
+      );
+    }
+
+    /** Add a SingleLineText column to `table`. Returns the new Column. */
+    async function addTextColumn(
+      table: Model,
+      title: string,
+      extra: Record<string, any> = {},
+    ): Promise<Column> {
+      return (await createColumn(context, table, {
+        title,
+        column_name: title,
+        uidt: UITypes.SingleLineText,
+        ...extra,
+      })) as Column;
+    }
+
+    /** Add a SingleSelect column with the given option titles. */
+    async function addSingleSelectColumn(
+      table: Model,
+      title: string,
+      options: string[],
+    ): Promise<Column> {
+      return (await createColumn(context, table, {
+        title,
+        column_name: title,
+        uidt: UITypes.SingleSelect,
+        colOptions: { options: options.map((o) => ({ title: o })) },
+      })) as Column;
+    }
+
+    /** Flip a column's validator on. Pass `func` like 'isEmail' / 'isURL'. */
+    async function enableValidator(
+      column: Column,
+      func: 'isEmail' | 'isURL' | 'isMobilePhone',
+      msg = `Validation failed : ${func}`,
+    ) {
+      await updateColumn(column.id!, {
+        ...column,
+        meta: { ...(column.meta ?? {}), validate: true },
+        validate: JSON.stringify({ func: [func], msg: [msg] }),
+      });
+    }
+
+    /** Toggle `unique` on an existing column via columnUpdate. */
+    async function setUnique(column: Column, unique: boolean) {
+      await updateColumn(column.id!, { ...column, unique });
+    }
+
+    /** Insert a row with arbitrary fields (V3 data API). */
+    async function insertRowWithFields(
+      table: Model,
+      fields: Record<string, any>,
+    ) {
+      const rsp = await request(context.app)
+        .post(`/api/v3/data/${base.id}/${table.id}/records`)
+        .set('xc-auth', context.token)
+        .send({ fields })
+        .expect(200);
+      return rsp.body.records[0];
+    }
+
+    /** restoreRecords with an opts object — supports `partial` alongside `force`. */
+    async function restoreRecordsOpts(
+      tableId: string,
+      rowIds: (string | number)[],
+      opts: { force?: boolean; partial?: boolean } = {},
+      status = 200,
+    ) {
+      return internalPost(
+        { operation: 'recordTrashRestore' },
+        { tableId, rowIds: rowIds.map(String), ...opts },
+        status,
+      );
+    }
+
+    /** Read a specific field value on an active record. */
+    async function readField(
+      table: Model,
+      rowId: number | string,
+      field: string,
+    ) {
+      const rec = await getRecord(table, rowId as number);
+      return rec.fields?.[field];
+    }
+
     // ── setup ────────────────────────────────────────────────────────────────
 
     beforeEach(async function () {
@@ -1184,6 +1282,466 @@ export default function recordTrashTests() {
           .true;
         expect(audit2.list.some((e: any) => e.op_type === 'DATA_RESTORE')).to.be
           .true;
+      });
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // I. Validation conflicts (Email / URL / Phone validators)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    describe('I. Validation conflicts', () => {
+      it('54. Email validator enabled after trash → 409 with validation conflict', async function () {
+        const emailCol = await addTextColumn(tblB, 'Email');
+        const row = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Email: 'not-an-email',
+        });
+        await softDelete(tblB, row.id);
+
+        // Turn on the validator AFTER the invalid value is in trash
+        await enableValidator(emailCol, 'isEmail');
+
+        const rsp = await restoreRecordsOpts(tblB.id!, [row.id], {}, 409);
+        expect(rsp.error).to.equal(NcErrorType.ERR_RECORD_RESTORE_CONFLICT);
+        expect(rsp.details?.conflicts?.length).to.be.greaterThan(0);
+        const validation = rsp.details.conflicts.find(
+          (c: any) => c.kind === 'validation',
+        );
+        expect(validation).to.exist;
+        expect(validation.columnTitle).to.equal('Email');
+      });
+
+      it('55. Email validator — valid row restores cleanly even when validator is on', async function () {
+        const emailCol = await addTextColumn(tblB, 'Email');
+        const row = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Email: 'alice@example.com',
+        });
+        await softDelete(tblB, row.id);
+        await enableValidator(emailCol, 'isEmail');
+
+        const rsp = await restoreRecordsOpts(tblB.id!, [row.id]);
+        expect(rsp.restored).to.equal(1);
+        expect(rsp.cleared).to.deep.equal([]);
+      });
+
+      it('56. Force restore with invalid email → email field cleared, row restored', async function () {
+        const emailCol = await addTextColumn(tblB, 'Email');
+        const row = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Email: 'still-not-valid',
+        });
+        await softDelete(tblB, row.id);
+        await enableValidator(emailCol, 'isEmail');
+
+        const rsp = await restoreRecordsOpts(tblB.id!, [row.id], {
+          force: true,
+        });
+        expect(rsp.restored).to.equal(1);
+        expect(rsp.cleared?.length).to.equal(1);
+        expect(rsp.cleared[0].columns).to.include(emailCol.column_name);
+
+        const emailAfter = await readField(tblB, row.id, 'Email');
+        expect(emailAfter == null || emailAfter === '').to.equal(true);
+        // Title is untouched
+        expect(await readField(tblB, row.id, 'Title')).to.equal('B1');
+      });
+
+      it('57. URL validator — invalid URL blocks restore', async function () {
+        const urlCol = await addTextColumn(tblB, 'Homepage');
+        const row = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Homepage: 'htps:/broken',
+        });
+        await softDelete(tblB, row.id);
+        await enableValidator(urlCol, 'isURL');
+
+        const rsp = await restoreRecordsOpts(tblB.id!, [row.id], {}, 409);
+        expect(rsp.error).to.equal(NcErrorType.ERR_RECORD_RESTORE_CONFLICT);
+        expect(
+          rsp.details.conflicts.some(
+            (c: any) => c.kind === 'validation' && c.columnTitle === 'Homepage',
+          ),
+        ).to.equal(true);
+      });
+
+      it('58. Phone validator — invalid phone blocks restore', async function () {
+        const phoneCol = await addTextColumn(tblB, 'Phone');
+        const row = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Phone: 'call-me',
+        });
+        await softDelete(tblB, row.id);
+        await enableValidator(phoneCol, 'isMobilePhone');
+
+        const rsp = await restoreRecordsOpts(tblB.id!, [row.id], {}, 409);
+        expect(rsp.error).to.equal(NcErrorType.ERR_RECORD_RESTORE_CONFLICT);
+        expect(
+          rsp.details.conflicts.some(
+            (c: any) => c.kind === 'validation' && c.columnTitle === 'Phone',
+          ),
+        ).to.equal(true);
+      });
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // J. Unique conflicts (active + intra-batch)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    describe('J. Unique conflicts', () => {
+      it('59. Unique-active: trash row collides with an active row → 409', async function () {
+        const handleCol = await addTextColumn(tblB, 'Handle', { unique: true });
+
+        // Active row holds the value first
+        const active = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Handle: 'foo',
+        });
+        // Trash row re-uses the value while the active row is alive:
+        // soft-delete active first so the partial unique index permits it,
+        // then restore the active row only. The remaining trash row will
+        // conflict with it on restore.
+        const trash = await insertRowWithFields(tblB, {
+          Title: 'B2',
+          Handle: 'temp',
+        });
+        await softDelete(tblB, trash.id);
+        // Now set the trash row's handle directly via columnUpdate is not
+        // available; instead we reshape the scenario: insert trash row AFTER
+        // taking the value, and use a second row that was once 'foo' then
+        // soft-deleted. Simpler: delete the active row, insert another with
+        // 'foo', then re-active the first. Left as a simpler variant below.
+        // Use the columnUpdate → unique strategy instead.
+        await setUnique(handleCol, false);
+        // With unique off we can give the trash row the same value via a
+        // fresh insert + soft-delete:
+        const trashDup = await insertRowWithFields(tblB, {
+          Title: 'B3',
+          Handle: 'foo',
+        });
+        await softDelete(tblB, trashDup.id);
+        await setUnique(handleCol, true);
+
+        const rsp = await restoreRecordsOpts(
+          tblB.id!,
+          [trashDup.id],
+          {},
+          409,
+        );
+        expect(rsp.error).to.equal(NcErrorType.ERR_RECORD_RESTORE_CONFLICT);
+        const conflict = rsp.details.conflicts.find(
+          (c: any) => c.kind === 'unique-active',
+        );
+        expect(conflict).to.exist;
+        expect(conflict.value).to.equal('foo');
+        expect(String(conflict.conflictingRowId)).to.equal(String(active.id));
+        // Cleanup not needed — `trash` + `active` remain in DB but only `active` is visible
+        void trash;
+      });
+
+      it('60. Unique-active + force → value nulled, row restored', async function () {
+        const handleCol = await addTextColumn(tblB, 'Handle');
+        const active = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Handle: 'foo',
+        });
+        const trashDup = await insertRowWithFields(tblB, {
+          Title: 'B2',
+          Handle: 'foo',
+        });
+        await softDelete(tblB, trashDup.id);
+        await setUnique(handleCol, true);
+
+        const rsp = await restoreRecordsOpts(tblB.id!, [trashDup.id], {
+          force: true,
+        });
+        expect(rsp.restored).to.equal(1);
+        expect(rsp.cleared?.length).to.equal(1);
+        expect(rsp.cleared[0].columns).to.include(handleCol.column_name);
+
+        const afterVal = await readField(tblB, trashDup.id, 'Handle');
+        expect(afterVal == null || afterVal === '').to.equal(true);
+        // Active row still owns 'foo'
+        expect(await readField(tblB, active.id, 'Handle')).to.equal('foo');
+      });
+
+      it('61. Unique-intra: 3 trash rows share "bar", no active claimant → 2 conflicts (winner keeps)', async function () {
+        const handleCol = await addTextColumn(tblB, 'Handle');
+        const r1 = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Handle: 'bar',
+        });
+        const r2 = await insertRowWithFields(tblB, {
+          Title: 'B2',
+          Handle: 'bar',
+        });
+        const r3 = await insertRowWithFields(tblB, {
+          Title: 'B3',
+          Handle: 'bar',
+        });
+        await softDelete(tblB, r1.id);
+        await softDelete(tblB, r2.id);
+        await softDelete(tblB, r3.id);
+        await setUnique(handleCol, true);
+
+        const rsp = await restoreRecordsOpts(
+          tblB.id!,
+          [r1.id, r2.id, r3.id],
+          {},
+          409,
+        );
+        const intras = rsp.details.conflicts.filter(
+          (c: any) => c.kind === 'unique-intra',
+        );
+        // Only 2 losers — the winner has no conflict entry
+        expect(intras.length).to.equal(2);
+        // All intras share the same winner (lowest PK)
+        const winnerRowId = intras[0].winnerRowId;
+        expect(intras.every((c: any) => c.winnerRowId === winnerRowId)).to.equal(
+          true,
+        );
+      });
+
+      it('62. Unique-intra + force → winner keeps value, losers cleared', async function () {
+        const handleCol = await addTextColumn(tblB, 'Handle');
+        const r1 = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Handle: 'bar',
+        });
+        const r2 = await insertRowWithFields(tblB, {
+          Title: 'B2',
+          Handle: 'bar',
+        });
+        const r3 = await insertRowWithFields(tblB, {
+          Title: 'B3',
+          Handle: 'bar',
+        });
+        await softDelete(tblB, r1.id);
+        await softDelete(tblB, r2.id);
+        await softDelete(tblB, r3.id);
+        await setUnique(handleCol, true);
+
+        const rsp = await restoreRecordsOpts(
+          tblB.id!,
+          [r1.id, r2.id, r3.id],
+          { force: true },
+        );
+        expect(rsp.restored).to.equal(3);
+        expect(rsp.cleared?.length).to.equal(2);
+
+        const handles = await Promise.all(
+          [r1.id, r2.id, r3.id].map((id) => readField(tblB, id, 'Handle')),
+        );
+        // Exactly one of the three keeps 'bar'
+        const kept = handles.filter((h) => h === 'bar');
+        expect(kept.length).to.equal(1);
+      });
+
+      it('63. Active claimant present → every trash row with same value is unique-active (not intra)', async function () {
+        const handleCol = await addTextColumn(tblB, 'Handle');
+        await insertRowWithFields(tblB, { Title: 'B0', Handle: 'foo' });
+        const r1 = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Handle: 'foo',
+        });
+        const r2 = await insertRowWithFields(tblB, {
+          Title: 'B2',
+          Handle: 'foo',
+        });
+        await softDelete(tblB, r1.id);
+        await softDelete(tblB, r2.id);
+        await setUnique(handleCol, true);
+
+        const rsp = await restoreRecordsOpts(
+          tblB.id!,
+          [r1.id, r2.id],
+          {},
+          409,
+        );
+        const active = rsp.details.conflicts.filter(
+          (c: any) => c.kind === 'unique-active',
+        );
+        const intra = rsp.details.conflicts.filter(
+          (c: any) => c.kind === 'unique-intra',
+        );
+        // Both trash rows lose to the active claimant — no intra winner
+        expect(active.length).to.equal(2);
+        expect(intra.length).to.equal(0);
+      });
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // K. Partial restore
+    // ═══════════════════════════════════════════════════════════════════════
+
+    describe('K. Partial restore', () => {
+      it('64. Mixed batch with partial=true → clean rows restored, conflicted stay in trash', async function () {
+        const emailCol = await addTextColumn(tblB, 'Email');
+        const clean = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Email: 'ok@example.com',
+        });
+        const dirty = await insertRowWithFields(tblB, {
+          Title: 'B2',
+          Email: 'nope',
+        });
+        await softDelete(tblB, clean.id);
+        await softDelete(tblB, dirty.id);
+        await enableValidator(emailCol, 'isEmail');
+
+        const rsp = await restoreRecordsOpts(
+          tblB.id!,
+          [clean.id, dirty.id],
+          { partial: true },
+        );
+        expect(rsp.restored).to.equal(1);
+        expect(rsp.skipped?.length).to.equal(1);
+        expect(String(rsp.skipped[0].rowId)).to.equal(String(dirty.id));
+
+        // Clean one is now active
+        const active = await listActive(tblB);
+        expect(active.map((r: any) => r.id)).to.include(clean.id);
+
+        // Dirty one still in trash
+        const trash = await trashList(tblB.id!);
+        expect(trash.list.map((r: any) => r.Id)).to.include(dirty.id);
+      });
+
+      it('65. Partial with no conflicts behaves like a normal restore', async function () {
+        const r = await insertRow(tblB, 'B1');
+        await softDelete(tblB, r.id);
+
+        const rsp = await restoreRecordsOpts(tblB.id!, [r.id], {
+          partial: true,
+        });
+        expect(rsp.restored).to.equal(1);
+        expect(rsp.skipped).to.deep.equal([]);
+      });
+
+      it('66. force + partial together → 400', async function () {
+        const r = await insertRow(tblB, 'B1');
+        await softDelete(tblB, r.id);
+        await restoreRecordsOpts(
+          tblB.id!,
+          [r.id],
+          { force: true, partial: true },
+          400,
+        );
+      });
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // L. Response shape
+    // ═══════════════════════════════════════════════════════════════════════
+
+    describe('L. Response shape', () => {
+      it('67. Clean restore returns { restored, skipped:[], cleared:[] }', async function () {
+        const r = await insertRow(tblB, 'B1');
+        await softDelete(tblB, r.id);
+
+        const rsp = await restoreRecordsOpts(tblB.id!, [r.id]);
+        expect(rsp.restored).to.equal(1);
+        expect(rsp.skipped).to.deep.equal([]);
+        expect(rsp.cleared).to.deep.equal([]);
+        expect(rsp.message).to.be.a('string');
+      });
+
+      it('68. Force-restore response includes cleared[] with the nulled columns', async function () {
+        const emailCol = await addTextColumn(tblB, 'Email');
+        const r = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Email: 'bad',
+        });
+        await softDelete(tblB, r.id);
+        await enableValidator(emailCol, 'isEmail');
+
+        const rsp = await restoreRecordsOpts(tblB.id!, [r.id], {
+          force: true,
+        });
+        expect(rsp.cleared?.length).to.equal(1);
+        expect(String(rsp.cleared[0].rowId)).to.equal(String(r.id));
+        expect(rsp.cleared[0].columns).to.include(emailCol.column_name);
+      });
+
+      it('69. 409 response carries details.conflicts[] and details.counts', async function () {
+        const emailCol = await addTextColumn(tblB, 'Email');
+        const r = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Email: 'bad',
+        });
+        await softDelete(tblB, r.id);
+        await enableValidator(emailCol, 'isEmail');
+
+        const rsp = await restoreRecordsOpts(tblB.id!, [r.id], {}, 409);
+        expect(rsp.details?.conflicts).to.be.an('array');
+        expect(rsp.details.counts).to.be.an('object');
+        expect(rsp.details.counts.validation).to.be.greaterThan(0);
+      });
+    });
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // M. SingleSelect option rename/delete propagates to trash rows (Fix 1)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    describe('M. Select option propagation to trash rows', () => {
+      it('70. Rename SingleSelect option → trash row value follows, restore clean', async function () {
+        const statusCol = await addSingleSelectColumn(tblB, 'Status', [
+          'Open',
+          'Closed',
+        ]);
+        const r = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Status: 'Open',
+        });
+        await softDelete(tblB, r.id);
+
+        // Rename 'Open' → 'Active' via columnUpdate
+        const colOptions = (await statusCol.getColOptions({
+          workspace_id: base.fk_workspace_id,
+          base_id: base.id,
+        } as any)) as any;
+        const renamed = (colOptions?.options ?? []).map((o: any) =>
+          o.title === 'Open' ? { ...o, title: 'Active' } : o,
+        );
+        await updateColumn(statusCol.id!, {
+          ...statusCol,
+          colOptions: { options: renamed },
+        });
+
+        // Restore — should land cleanly and the active row now carries 'Active'
+        const rsp = await restoreRecordsOpts(tblB.id!, [r.id]);
+        expect(rsp.restored).to.equal(1);
+        expect(await readField(tblB, r.id, 'Status')).to.equal('Active');
+      });
+
+      it('71. Delete SingleSelect option → trash row value nulled on restore', async function () {
+        const statusCol = await addSingleSelectColumn(tblB, 'Status', [
+          'Open',
+          'Closed',
+        ]);
+        const r = await insertRowWithFields(tblB, {
+          Title: 'B1',
+          Status: 'Open',
+        });
+        await softDelete(tblB, r.id);
+
+        // Remove 'Open' from the option set
+        const colOptions = (await statusCol.getColOptions({
+          workspace_id: base.fk_workspace_id,
+          base_id: base.id,
+        } as any)) as any;
+        const remaining = (colOptions?.options ?? []).filter(
+          (o: any) => o.title !== 'Open',
+        );
+        await updateColumn(statusCol.id!, {
+          ...statusCol,
+          colOptions: { options: remaining },
+        });
+
+        const rsp = await restoreRecordsOpts(tblB.id!, [r.id]);
+        expect(rsp.restored).to.equal(1);
+        const after = await readField(tblB, r.id, 'Status');
+        expect(after == null || after === '').to.equal(true);
       });
     });
   });

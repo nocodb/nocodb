@@ -590,7 +590,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             raw: true,
             first: true,
           });
-          id = res?.id ?? res;
+          id = res?.id ?? res?.insertId ?? res;
         }
 
         if (ai) {

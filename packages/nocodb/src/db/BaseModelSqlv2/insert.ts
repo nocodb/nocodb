@@ -97,7 +97,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             raw: true,
             first: true,
           });
-          id = res?.id ?? res;
+          id = res?.id ?? res?.insertId ?? res;
         }
 
         if (ai) {

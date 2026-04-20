@@ -469,14 +469,10 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   //   1. Lookup column's explicit target (fk_lookup_column_id)
   //   2. LTAR's custom display value override (fk_display_value_column_id)
   //   3. Related table's PV (default)
-  const customDisplayColId = (relationColumnOptions as LinkToAnotherRecordType)
-    ?.fk_display_value_column_id
+  const customDisplayColId = (relationColumnOptions as LinkToAnotherRecordType)?.fk_display_value_column_id
   const childColumn = relatedTableMeta?.columns.find(
     (c: ColumnType) =>
-      c.id ===
-      (colOptions?.fk_lookup_column_id ??
-        customDisplayColId ??
-        relatedTableMeta?.columns.find((c) => c.pv)?.id),
+      c.id === (colOptions?.fk_lookup_column_id ?? customDisplayColId ?? relatedTableMeta?.columns.find((c) => c.pv)?.id),
   ) as ColumnType | undefined
 
   // When the value is a record object (from Lookup of LTAR), extract the child column's

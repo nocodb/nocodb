@@ -315,9 +315,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
           }
 
-          return (
-            (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
-          )
+          return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
         })
 
         // When a custom display value is set, prepend the original PV as the first extra field

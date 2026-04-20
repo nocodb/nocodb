@@ -96,7 +96,8 @@ export class WorkspaceV3Service {
     const nameValidation = validateEntityName(
       _param.body.title,
       'Workspace name',
-    );
+    ) as { valid: boolean; error: string };
+
     if (!nameValidation.valid) {
       NcError.badRequest(nameValidation.error);
     }

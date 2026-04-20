@@ -237,7 +237,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
       const nameValidation = validateEntityName(
         workspacePayload.title,
         'Workspace name',
-      );
+      ) as { valid: boolean; error: string };
+
       if (!nameValidation.valid) {
         NcError.badRequest(nameValidation.error);
       }
@@ -679,7 +680,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
       const nameValidation = validateEntityName(
         workspace.title,
         'Workspace name',
-      );
+      ) as { valid: boolean; error: string };
+
       if (!nameValidation.valid) {
         NcError.badRequest(nameValidation.error);
       }

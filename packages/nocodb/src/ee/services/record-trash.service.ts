@@ -481,13 +481,14 @@ export class RecordTrashService {
     const nextCursor =
       hasMore && lastLmtIso ? encodeCursor(lastLmtIso, lastFkUserId) : null;
 
-    const retentionDays =
-      model.trash_retention_days ?? (await resolveTrashRetentionDays(context));
+    const planRetentionDays = await resolveTrashRetentionDays(context);
+    const retentionDays = model.trash_retention_days ?? planRetentionDays;
 
     return {
       list: enriched,
       retentionDays,
-      trashDisabled: !!model.trash_disabled,
+      // Plan-level disable (retention=0) counts the same as table-level
+      trashDisabled: !!model.trash_disabled || planRetentionDays === 0,
       pageInfo: {
         pageSize: limit,
         nextCursor,
@@ -990,13 +991,13 @@ export class RecordTrashService {
 
     const result = await countQb.first();
 
-    const retentionDays =
-      model.trash_retention_days ?? (await resolveTrashRetentionDays(context));
+    const planRetentionDays = await resolveTrashRetentionDays(context);
+    const retentionDays = model.trash_retention_days ?? planRetentionDays;
 
     return {
       count: +(result?.count ?? 0),
       retentionDays,
-      trashDisabled: !!model.trash_disabled,
+      trashDisabled: !!model.trash_disabled || planRetentionDays === 0,
     };
   }
 

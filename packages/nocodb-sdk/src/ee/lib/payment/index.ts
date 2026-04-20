@@ -165,7 +165,7 @@ export const CloudPlanDefinitions: Record<
       // Audit
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 14,
       // Trash
-      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 2,
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 15,
       // Extensions & tools
       [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 50,
       [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 1,
@@ -222,7 +222,7 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_API_CALL]: 100000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 60,
-      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 7,
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 60,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 7,
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 10000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
@@ -255,7 +255,7 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 180,
-      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 30,
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 90,
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 50000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
@@ -278,7 +278,7 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 365,
-      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180,
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000000,
@@ -482,6 +482,7 @@ export const OnPremPlanDefinitions: Record<
       // Docs — enabled with sensible caps
       [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: 10,
       [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 0, // days
       // Everything else (AI, automations, workflows, extensions,
       // snapshots, scripts, dashboards, sandbox, teams, RLS)
       // inherits 0 from base — disabled by default
@@ -510,6 +511,7 @@ export const OnPremPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 180, // days
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 90, // days
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 180, // days
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 60, // days
     },
   },
   [OnPremPlanTitles.SELF_HOSTED_SCALE]: {
@@ -527,11 +529,14 @@ export const OnPremPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 365, // days
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 180, // days
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 365, // days
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180, // days
     },
   },
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
     features: {},
-    limits: {},
+    limits: {
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 365, // days
+    },
   },
 };
 

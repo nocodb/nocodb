@@ -125,7 +125,9 @@ export class BaseModelDelete {
       !args.permanentDelete &&
       !!deletedColumn &&
       isMeta &&
-      this.baseModel.model.isTrashEnabled;
+      (await this.baseModel.model.isTrashEnabledForWorkspace(
+        this.baseModel.context,
+      ));
 
     // Exclude already soft-deleted records from the delete query
     if (isSoftDelete) {

@@ -74,7 +74,7 @@ export class RecordTrashCleanupJob {
         if (!model) continue;
 
         // Skip if trash is disabled for this model — clear schedule
-        if (!model.isTrashEnabled) {
+        if (!(await model.isTrashEnabledForWorkspace(context))) {
           await Model.updateTrashCleanupDueAt(context, model.id, null);
           continue;
         }
@@ -114,6 +114,12 @@ export class RecordTrashCleanupJob {
         const retentionDays =
           model.trash_retention_days ??
           (await resolveTrashRetentionDays(context));
+
+        // Retention 0 → feature disabled at plan level. Nothing should be
+        // in trash for this workspace; skip cleanup rather than purging
+        // everything older than "now" (which would be every row).
+        if (retentionDays <= 0) continue;
+
         const cutoffDate = new Date(
           now.getTime() - retentionDays * 24 * 60 * 60 * 1000,
         );

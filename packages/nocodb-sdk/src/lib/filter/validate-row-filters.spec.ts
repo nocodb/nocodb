@@ -11,7 +11,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
-import { CURRENT_USER_TOKEN } from '~/lib';
+import { CURRENT_USER_TOKEN } from '~/lib/globals';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);

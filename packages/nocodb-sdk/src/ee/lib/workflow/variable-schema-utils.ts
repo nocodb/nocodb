@@ -1,4 +1,4 @@
-import { VariableDefinition } from '~/lib'
+import { VariableDefinition } from '~/lib/workflow/interface'
 
 /**
  * Recursively adds port information to all variables in a schema

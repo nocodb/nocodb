@@ -1,6 +1,6 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
-import { ColumnType } from '~/lib';
+import { ColumnType } from '~/lib/Api';
 import { SqlUi } from './SqlUI.types';
 
 const dbTypes = [

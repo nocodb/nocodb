@@ -1,4 +1,5 @@
-import { ColumnType, IDType } from '~/lib';
+import { ColumnType } from '~/lib/Api';
+import { IDType } from './index';
 import UITypes from '~/lib/UITypes';
 
 export interface SqlUi {

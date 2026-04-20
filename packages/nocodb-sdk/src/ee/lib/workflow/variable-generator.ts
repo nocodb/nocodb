@@ -7,7 +7,7 @@ import {
   VariableGeneratorContext,
 } from '~/lib/workflow/interface';
 import { RelationTypes } from '~/lib/globals';
-import { ColumnType } from '~/lib';
+import { ColumnType } from '~/lib/Api';
 import { LinkToAnotherRecordType, LookupType } from '~/lib/Api';
 import { FormulaDataTypes } from '~/lib/formula/enums';
 import { prefixVariableKeys } from '~/ee/lib'

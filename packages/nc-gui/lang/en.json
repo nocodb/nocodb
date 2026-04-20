@@ -899,7 +899,7 @@
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",
-      "warning": "This action cannot be undone."
+      "warning": "Records can be restored from Trash if enabled."
     },
     "copyViewConfig": {
       "fieldVisibility": "Field visibility",

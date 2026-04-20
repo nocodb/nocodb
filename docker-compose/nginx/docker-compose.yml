@@ -27,7 +27,7 @@ services:
       # while it is not good practice to use the Root user, 
       # there were issues with granting privileges to a new user using the Linux server MariaDB image.
       NC_DB: "mysql2://nocodb_database:3306?u=root&p=${MYSQL_ROOT_PASSWORD}&d=${MYSQL_DATABASE}" 
-      NC_PUBLIC_URL: "${NC_PUBLIC_URL}"
+      NC_SITE_URL: "${NC_SITE_URL}"
     image: "nocodb/nocodb:latest"
     networks: 
       - backend

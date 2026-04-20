@@ -7,9 +7,12 @@ import type { ComponentProps } from 'react';
 import * as MailTemplates from '~/services/mail/templates';
 import { MailEvent } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import config from '~/app.config';
 import { extractDisplayNameFromEmail } from '~/utils';
+import { ncSiteUrl } from '~/utils/envs';
 
 type TemplateComponent<K extends keyof typeof MailTemplates> =
   (typeof MailTemplates)[K];
@@ -27,6 +30,67 @@ export class MailService {
       this.logger.error('Email Plugin not configured / active');
       return null;
     }
+  }
+
+  protected static readonly PUBLIC_URL_NOTIFIED_CACHE_KEY =
+    'system:public_url_missing_notified';
+
+  protected isPublicUrlConfigured(): boolean {
+    return !!Noco.config?.ncSiteUrl;
+  }
+
+  protected async notifySuperAdmin(ncMeta = Noco.ncMeta): Promise<void> {
+    const cacheFlag = await NocoCache.get(
+      'root',
+      MailService.PUBLIC_URL_NOTIFIED_CACHE_KEY,
+      CacheGetType.TYPE_STRING,
+    );
+
+    if (cacheFlag === 'true') return;
+
+    await NocoCache.set(
+      'root',
+      MailService.PUBLIC_URL_NOTIFIED_CACHE_KEY,
+      'true',
+    );
+
+    try {
+      const superUser = await ncMeta
+        .knexConnection(MetaTable.USERS)
+        .where('roles', 'like', '%super%')
+        .first();
+
+      if (!superUser?.email) return;
+
+      const mailerAdapter = await this.getAdapter(ncMeta);
+      if (!mailerAdapter) return;
+
+      await mailerAdapter.mailSend({
+        to: superUser.email,
+        subject: 'NocoDB: NC_SITE_URL is not configured',
+        html: [
+          '<p>Your NocoDB instance does not have <strong>NC_SITE_URL</strong> configured.</p>',
+          '<p>Without this setting, emails cannot be sent because the system cannot generate safe URLs. ',
+          'The host header from incoming requests can be spoofed, making it unsafe to use as a base URL in emails.</p>',
+          '<p>Please set the <code>NC_SITE_URL</code> environment variable to the publicly accessible URL of your NocoDB instance ',
+          '(e.g. <code>https://nocodb.example.com</code>) and restart the server.</p>',
+        ].join(''),
+      });
+    } catch (e) {
+      this.logger.error('Failed to send NC_SITE_URL notification', e.stack);
+    }
+  }
+
+  protected async ensurePublicUrl(ncMeta = Noco.ncMeta): Promise<boolean> {
+    if (this.isPublicUrlConfigured()) return true;
+
+    await this.notifySuperAdmin(ncMeta);
+
+    this.logger.error(
+      'NC_SITE_URL is not configured. Email cannot be sent because the system cannot generate safe URLs.',
+    );
+
+    return false;
   }
 
   protected async renderMail<K extends keyof typeof MailTemplates>(
@@ -60,7 +124,7 @@ export class MailService {
       return `${req.ncSiteUrl}/signup/${params.token}`;
     }
 
-    let url = req?.ncSiteUrl || process.env.NC_PUBLIC_URL;
+    let url = req?.ncSiteUrl || ncSiteUrl;
 
     // Reset password link is served from the backend. So no need to append the dashboard path
     if (params.resetPassword) {
@@ -162,6 +226,12 @@ export class MailService {
     }
 
     const { payload, mailEvent } = params;
+
+    // Validate NC_SITE_URL is configured for events that generate URLs
+    // FORM_SUBMISSION is exempt — it has no req and builds no links
+    if (mailEvent !== MailEvent.FORM_SUBMISSION) {
+      if (!(await this.ensurePublicUrl(ncMeta))) return false;
+    }
 
     try {
       switch (mailEvent) {

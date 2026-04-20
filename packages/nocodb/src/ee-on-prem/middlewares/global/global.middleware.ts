@@ -10,9 +10,7 @@ export class GlobalMiddleware implements NestMiddleware {
 
   use(req: any, res: any, next: () => void) {
     req.ncSiteUrl =
-      Noco.config?.envs?.[Noco.env]?.publicUrl ||
-      Noco.config?.publicUrl ||
-      req.protocol + '://' + req.get('host');
+      Noco.config?.ncSiteUrl || req.protocol + '://' + req.get('host');
     req.ncFullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 
     const dashboardPath = this.config.get('dashboardPath', {

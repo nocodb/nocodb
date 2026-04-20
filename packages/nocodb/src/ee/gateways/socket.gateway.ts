@@ -4,10 +4,10 @@ import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import type { OnModuleInit } from '@nestjs/common';
 import type { NcSocket } from '~/interface/config';
 import NocoSocket from '~/socket/NocoSocket';
+import { ncSiteUrl } from '~/utils/envs';
 
 const url = new URL(
-  process.env.NC_PUBLIC_URL ||
-    `http://localhost:${process.env.PORT || '8080'}/`,
+  ncSiteUrl || `http://localhost:${process.env.PORT || '8080'}/`,
 );
 let namespace = url.pathname;
 namespace += namespace.endsWith('/') ? '' : '/';

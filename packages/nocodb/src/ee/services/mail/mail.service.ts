@@ -22,6 +22,12 @@ export class MailService extends MailServiceCE {
       this.logger.error('Email Plugin not configured / active');
       return false;
     }
+
+    // FORM_SUBMISSION is exempt — it has no req and builds no links
+    if (params.mailEvent !== MailEvent.FORM_SUBMISSION) {
+      if (!(await this.ensurePublicUrl(ncMeta))) return false;
+    }
+
     try {
       switch (params.mailEvent) {
         case MailEvent.COMMENT_CREATE:

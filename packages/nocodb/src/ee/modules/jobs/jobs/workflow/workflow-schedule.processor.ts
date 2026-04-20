@@ -10,6 +10,7 @@ import { MetaTable } from '~/utils/globals';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { Base } from '~/models';
+import { ncSiteUrl } from '~/utils/envs';
 
 @Injectable()
 export class WorkflowScheduleProcessor {
@@ -39,15 +40,12 @@ export class WorkflowScheduleProcessor {
 
     for (const trigger of dueTriggers) {
       try {
-        const ncSiteUrl =
-          Noco.config?.envs?.[Noco.env]?.publicUrl ||
-          Noco.config?.publicUrl ||
-          '';
+        const configSiteUrl = Noco.config?.ncSiteUrl || '';
 
         const context = {
           workspace_id: trigger.fk_workspace_id,
           base_id: trigger.base_id,
-          nc_site_url: process.env.NC_PUBLIC_URL || ncSiteUrl,
+          nc_site_url: ncSiteUrl || configSiteUrl,
         };
 
         const base = await Base.get(context, trigger.base_id);

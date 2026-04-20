@@ -474,6 +474,7 @@ export class DataTableService {
       model: relatedModel,
       query: param.query,
       extractOnlyPrimaries: !(param.query?.f || param.query?.fields),
+      fk_display_value_column_id: (colOptions as any).fk_display_value_column_id,
     });
 
     const listArgs: any = dependencyFields;
@@ -768,6 +769,7 @@ export class DataTableService {
       model: relatedModel,
       query: param.query,
       extractOnlyPrimaries: !(param.query?.f || param.query?.fields),
+      fk_display_value_column_id: (colOptions as any).fk_display_value_column_id,
     });
 
     const listArgs: any = dependencyFields;
@@ -966,6 +968,8 @@ export class DataTableService {
         model: groupCtx.relatedModel,
         query: param.query,
         extractOnlyPrimaries: true,
+        fk_display_value_column_id: (groupCtx.colOptions as any)
+          .fk_display_value_column_id,
       });
 
       const listArgs: any = dependencyFields;

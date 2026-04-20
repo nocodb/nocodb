@@ -334,7 +334,7 @@ export class SoftDeleteColumnMigration {
       ...(needsUniqueRecreate(c) ? { unique: false } : {}),
     }));
 
-    const columns = model.columns.map((c) => ({
+    const existingColumns = model.columns.map((c) => ({
       ...c,
       cn: c.column_name,
       cno: c.column_name,
@@ -346,6 +346,11 @@ export class SoftDeleteColumnMigration {
         ? { altered: Altered.UPDATE_COLUMN }
         : {}),
     }));
+
+    // PgClient.tableUpdate emits SQL in column order, and partial unique
+    // indexes on existing columns reference __nc_deleted in their WHERE
+    // predicate — so NEW_COLUMN additions must come before UPDATE_COLUMN edits.
+    const newColumns: any[] = [];
 
     if (needsDeletedCol) {
       newDeletedColumn = {
@@ -360,7 +365,10 @@ export class SoftDeleteColumnMigration {
         system: true,
         altered: Altered.NEW_COLUMN,
       };
-      columns.push({ ...newDeletedColumn, cn: newDeletedColumn.column_name });
+      newColumns.push({
+        ...newDeletedColumn,
+        cn: newDeletedColumn.column_name,
+      });
     }
 
     if (needsMetaCol) {
@@ -375,8 +383,11 @@ export class SoftDeleteColumnMigration {
         system: true,
         altered: Altered.NEW_COLUMN,
       };
-      columns.push({ ...newMetaColumn, cn: newMetaColumn.column_name });
+      newColumns.push({ ...newMetaColumn, cn: newMetaColumn.column_name });
     }
+
+    const columns = [...newColumns, ...existingColumns];
+
     await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
       ...model,
       tn: model.table_name,

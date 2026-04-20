@@ -189,13 +189,21 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       const tableId = colOptions.value.fk_related_model_id as string
       const colId = colOptions.value.fk_column_id as string
 
-      // Try fetching full table meta first. If it fails (e.g., user lacks permission
-      // to access the related table), fall back to partial meta which only fetches
-      // the linked column metadata needed to render the LTAR cell.
-      try {
-        await getMeta(relatedBaseId, tableId, false, false, true)
-      } catch {}
       const metaKey = `${relatedBaseId}:${tableId}`
+
+      // In shared-base / public-view context, a cross-base related table isn't
+      // accessible via the full meta endpoint (403). Skip the full-meta attempt
+      // entirely in that case — the partial-meta endpoint is the intended path
+      // and it doesn't need full base access. Avoids a noisy 403 on every
+      // LTAR cell render.
+      const isCrossBase = relatedBaseId !== column.value.base_id
+      if (!isPublic.value || !isCrossBase) {
+        // Try fetching full table meta first. If it fails (e.g., user lacks
+        // permission to access the related table), fall back to partial meta.
+        try {
+          await getMeta(relatedBaseId, tableId, false, false, true)
+        } catch {}
+      }
       if (!metas.value[metaKey]) {
         await getPartialMeta(relatedBaseId, colId, tableId)
       }

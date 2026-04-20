@@ -6474,9 +6474,14 @@ export class ColumnsService implements IColumnsService {
       NcError.get(context).badRequest('Invalid table id');
     }
 
-    // filter out columns other than primary key and display column
+    // filter out columns other than primary key, display column, and the
+    // LTAR's custom display value override (fk_display_value_column_id).
+    // Without including the override here, shared-base + cross-base LTAR
+    // chips fall back to the PV because the frontend meta doesn't have
+    // the override column.
+    const customDisplayColId = (colOptions as any).fk_display_value_column_id;
     table.columns = table.columns.filter((col) => {
-      return col.pk || col.pv;
+      return col.pk || col.pv || col.id === customDisplayColId;
     });
 
     // Check table visibility access and add flag

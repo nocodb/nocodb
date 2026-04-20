@@ -1220,9 +1220,18 @@ export class ColumnsService implements IColumnsService {
                   await column.getColOptions<LinkToAnotherRecordColumn>(
                     context,
                   );
-                const relatedModel = await Model.getWithInfo(context, {
+                // For cross-base LTAR the related model lives in a different
+                // base — use the ref context so Model.getWithInfo can find it.
+                const { refContext: colRefContext } =
+                  colOptions.getRelContext(context);
+                const relatedModel = await Model.getWithInfo(colRefContext, {
                   id: colOptions.fk_related_model_id,
                 });
+                if (!relatedModel) {
+                  NcError.get(context).tableNotFound(
+                    colOptions.fk_related_model_id,
+                  );
+                }
                 const displayCol = relatedModel.columns?.find(
                   (c) =>
                     c.id === (colBody as any).fk_display_value_column_id,

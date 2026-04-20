@@ -14,43 +14,26 @@ export class ChildList extends BasePage {
     return this.dashboard.get().locator(`.nc-modal-child-list`);
   }
 
-  async verify({ cardTitle, linkField }: { cardTitle: string[]; linkField: string }) {
-    // DOM element validation
-    //    title: Child list
-    //    button: Link to 'City'
-    //    icon: reload
-
-    // child list body validation (card count, card title)
-    const cardCount = cardTitle.length;
+  async verify({ cardTitle, linkField: _linkField }: { cardTitle: string[]; linkField: string }) {
     await this.get().locator('.nc-dropdown-link-record-header').waitFor();
-    {
-      let isOk = false;
-      let count = 0;
-      let childList;
 
-      while (!isOk && count < 5) {
-        try {
-          childList = this.get().getByTestId('nc-child-list-item');
-          const childCards = await childList.count();
-          if (childCards === cardCount) {
-            isOk = true;
-          }
-        } catch (e) {
-          await this.rootPage.waitForTimeout(100);
-        } finally {
-          count++;
-        }
-      }
+    // Filter the list per-title so each assertion is against a stable top result.
+    // Avoids depending on DOM nth(i) == list index, which is unstable once the
+    // list scrolls (virtualized/infinite-scroll windows shift on scroll).
+    const searchInput = this.get().locator('.nc-dropdown-link-record-search-wrapper input').first();
+    const firstItem = this.get().getByTestId('nc-child-list-item').first();
 
-      expect(childList).toBeDefined();
-
-      for (let i = 0; i < cardCount; i++) {
-        await childList.nth(i).locator('.nc-display-value').waitFor({ state: 'visible' });
-        await childList.nth(i).locator('.nc-display-value').scrollIntoViewIfNeeded();
-        await this.rootPage.waitForTimeout(100);
-        expect(await childList.nth(i).locator('.nc-display-value').textContent()).toContain(cardTitle[i]);
-      }
+    for (const title of cardTitle) {
+      await searchInput.fill(title);
+      await firstItem.locator('.nc-display-value').waitFor({ state: 'visible' });
+      await expect
+        .poll(async () => (await firstItem.locator('.nc-display-value').textContent())?.trim())
+        .toContain(title);
     }
+
+    // Reset the filter so the modal returns to the unfiltered state for any
+    // follow-up interaction.
+    await searchInput.fill('');
   }
 
   async close() {

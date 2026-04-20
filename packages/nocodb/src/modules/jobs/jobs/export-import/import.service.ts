@@ -632,6 +632,11 @@ export class ImportService {
                       childViewId:
                         colOptions.fk_target_view_id &&
                         getIdOrExternalId(colOptions.fk_target_view_id),
+                      fk_display_value_column_id:
+                        colOptions.fk_display_value_column_id &&
+                        getIdOrExternalId(
+                          colOptions.fk_display_value_column_id,
+                        ),
                     },
                   }),
                   req: param.req,

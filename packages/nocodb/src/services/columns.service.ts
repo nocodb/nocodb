@@ -5543,10 +5543,13 @@ export class ColumnsService implements IColumnsService {
       }
 
       const hmBtOut: { childRelColId?: string; savedColumnId?: string } = {};
-      // Display value is always from the linked/related table (refTable) —
-      // both HM and BT columns surface records from the other side.
+      // Display value is always from the linked/related table — the one the
+      // user sees in the LTAR cell. For HM, that's refTable (childId). For
+      // BT, the frontend flips things so the linked table is parentId
+      // (= `table`) and the FK/ref lives on childId (= refTable).
+      const hmBtLinkedTable = ltarReq.type === 'bt' ? table : refTable;
       const hmBtDisplayValueCol = ltarReq.fk_display_value_column_id
-        ? refTable.columns?.find(
+        ? hmBtLinkedTable.columns?.find(
             (c) => c.id === ltarReq.fk_display_value_column_id,
           )
         : undefined;

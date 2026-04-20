@@ -294,37 +294,36 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       FieldsInj,
       (_fields) => {
         const colOptions = (column.value?.colOptions as LinkToAnotherRecordType) || {}
+        const hasCustomDisplayValue = !!colOptions.fk_display_value_column_id
 
-        return (relatedTableMeta.value.columns ?? [])
-          .filter((col) => {
-            // Hide the custom display value column from extra fields since it's already shown as the primary display
-            if (colOptions.fk_display_value_column_id && col.id === colOptions.fk_display_value_column_id) return false
+        const filteredFields = (relatedTableMeta.value.columns ?? []).filter((col) => {
+          // Hide the custom display value column from extra fields since it's already shown as the primary display
+          if (hasCustomDisplayValue && col.id === colOptions.fk_display_value_column_id) return false
 
-            // When a custom display field is set, show the original PV as an extra field
-            // (only if it passes the same type filters applied to non-PV fields)
-            if (
-              colOptions.fk_display_value_column_id &&
-              isPrimary(col) &&
-              !isSystemColumn(col) &&
-              !isLinksOrLTAR(col) &&
-              !isAttachment(col) &&
-              !isLookup(col)
-            )
-              return true
+          // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
+          return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
+        })
 
-            // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
-            return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
-          })
-          .sort((a, b) => {
-            if (isPublic.value) {
-              return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-            }
+        const sortedFields = filteredFields.sort((a, b) => {
+          if (isPublic.value) {
+            return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+          }
 
-            return (
-              (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
-            )
-          })
-          .slice(0, isMobileMode.value ? 1 : 3)
+          return (
+            (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
+          )
+        })
+
+        // When a custom display value is set, prepend the original PV as the first extra field
+        // so it's guaranteed to be present regardless of the slice limit below.
+        if (hasCustomDisplayValue) {
+          const pvCol = (relatedTableMeta.value.columns ?? []).find(
+            (c) => isPrimary(c) && !isSystemColumn(c) && !isLinksOrLTAR(c) && !isAttachment(c) && !isLookup(c),
+          )
+          if (pvCol) sortedFields.unshift(pvCol)
+        }
+
+        return sortedFields.slice(0, isMobileMode.value ? 1 : 3)
       },
       ref([]),
     )

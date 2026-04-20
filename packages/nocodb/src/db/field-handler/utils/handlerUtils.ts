@@ -19,6 +19,7 @@ import { Filter, Model } from '~/models';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
+import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
 
 export function ncIsStringHasValue(val: string | undefined | null) {
   return val !== '' && !ncIsUndefined(val) && !ncIsNull(val);
@@ -258,6 +259,11 @@ export async function nestedConditionJoin({
       const relationType = isMMOrMMLike(relationColumn)
         ? 'mm'
         : relationColOptions.type;
+      // Resolve display column once — honors per-LTAR fk_display_value_column_id override
+      const displayCol = await getDisplayValueOfRefTable(
+        context,
+        relationColumn,
+      );
       switch (relationType) {
         case RelationTypes.HAS_MANY: {
           const filterOperationResult = await parseConditionV2(
@@ -265,7 +271,7 @@ export async function nestedConditionJoin({
             new Filter({
               ...filter,
               fk_model_id: childModel.id,
-              fk_column_id: childModel.displayValue?.id,
+              fk_column_id: displayCol?.id,
             }),
             aliasCount,
             relAlias,
@@ -282,7 +288,7 @@ export async function nestedConditionJoin({
             new Filter({
               ...filter,
               fk_model_id: parentModel.id,
-              fk_column_id: parentModel?.displayValue?.id,
+              fk_column_id: displayCol?.id,
             }),
             aliasCount,
             relAlias,
@@ -299,7 +305,7 @@ export async function nestedConditionJoin({
             new Filter({
               ...filter,
               fk_model_id: parentModel.id,
-              fk_column_id: parentModel.displayValue?.id,
+              fk_column_id: displayCol?.id,
             }),
             aliasCount,
             relAlias,

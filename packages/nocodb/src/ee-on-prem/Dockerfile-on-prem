@@ -1,10 +1,14 @@
 ###########
 # Platform-specific runner images
-# node:24.14.0-alpine doesn't publish arm/v7 — fall back to node:22-alpine
+# node:24.14.0-alpine doesn't publish arm/v7 — fall back to node:22-alpine3.19
+# Pinned to alpine3.19 (Python 3.11) because sqlite3@5.1.7 bundles node-gyp@8.4.1
+# which imports `distutils.version.StrictVersion` — removed in Python 3.12+.
+# Newer Alpine (3.20+) ships Python 3.12, breaking source-compile of sqlite3
+# on arm/musl where no upstream prebuilt exists.
 ###########
 FROM node:24.14.0-alpine AS runner-amd64
 FROM node:24.14.0-alpine AS runner-arm64
-FROM node:22-alpine AS runner-arm
+FROM node:22-alpine3.19 AS runner-arm
 
 ###########
 # Builder — always runs natively on the build host (no QEMU)

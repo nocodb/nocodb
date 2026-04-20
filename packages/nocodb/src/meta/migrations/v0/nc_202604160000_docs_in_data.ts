@@ -47,11 +47,18 @@ const up = async (knex: Knex) => {
       const isRoot = !doc.parent_id;
       const offset = isRoot ? maxOrderByBase.get(doc.base_id) || 0 : 0;
 
+      // nc_docs_v2.title is varchar(512), nc_models_v2.title is varchar(255).
+      // Truncate to fit and preserve the overflow in description so nothing is lost.
+      const title = doc.title?.slice(0, 255);
+      const overflow =
+        doc.title && doc.title.length > 255 ? doc.title.slice(255) : null;
+
       return {
         id: doc.id,
         base_id: doc.base_id,
         fk_workspace_id: doc.fk_workspace_id,
-        title: doc.title,
+        title,
+        description: overflow,
         meta: doc.meta,
         order: (Number(doc.order) || 0) + offset,
         parent_id: doc.parent_id,

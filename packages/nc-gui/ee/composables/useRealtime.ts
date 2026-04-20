@@ -163,6 +163,9 @@ export const useRealtime = createSharedComposable(() => {
       } else {
         loadProjectTables(eventBaseId, true)
       }
+
+      setMeta(updatedTable)
+
       refreshCommandPalette()
     } else if (event.action === 'table_delete') {
       const eventBaseId = event.payload.base_id

@@ -1,4 +1,4 @@
-import { NcErrorType, isDeletedCol } from 'nocodb-sdk'
+import { NcErrorType, PlanLimitTypes, isDeletedCol } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
 
 type RecordTrashOperation =
@@ -41,25 +41,20 @@ export const useRecordTrash = createSharedComposable(() => {
 
   const { showWarningModal } = useNcConfirmModal()
 
+  const { getLimit } = useEeConfig()
+
+  const PAGE_SIZE = 25
+
+  // UI state
   const isOpen = ref(false)
-
   const isLoading = ref(false)
-
   const isLoadingMore = ref(false)
 
+  // Data
   const trashEvents = ref<TrashEvent[]>([])
-
-  const hasMoreEvents = ref(false)
-
   const trashCount = ref(0)
-
+  const hasMoreEvents = ref(false)
   const nextCursor = ref<string | null>(null)
-
-  const pageSize = 25
-
-  const retentionDays = ref(30)
-
-  const trashDisabled = ref(false)
 
   const meta = computed(() => {
     if (!activeProjectId.value || !tableId.value) return undefined
@@ -71,22 +66,26 @@ export const useRecordTrash = createSharedComposable(() => {
     return baseId ? basesUser.value.get(baseId) ?? [] : []
   })
 
+  // Default retention comes from the workspace plan limit; per-table override on `meta.trash_retention_days`.
+  const retentionDays = computed(() => {
+    const table = meta.value as TableType | undefined
+    if (typeof table?.trash_retention_days === 'number') return table.trash_retention_days
+    const limit = getLimit(PlanLimitTypes.LIMIT_TRASH_RETENTION)
+    return typeof limit === 'number' && limit > 0 ? limit : 30
+  })
+
   // Reason trash is unavailable for the active table, derived locally:
   //   'external' — source isn't a NocoDB-managed (meta/local) source
   //   'pending'  — meta source but no __nc_deleted column yet
   //   'disabled' — user toggled trash off in settings
   //   null       — trash is fully available
-  const trashUnavailableReason = computed<
-    'external' | 'pending' | 'disabled' | null
-  >(() => {
+  const trashUnavailableReason = computed<'external' | 'pending' | 'disabled' | null>(() => {
     const table = meta.value as TableType | undefined
     if (!table) return 'pending'
-    const source = bases.value
-      .get(table.base_id!)
-      ?.sources?.find((s) => s.id === table.source_id)
+    const source = bases.value.get(table.base_id!)?.sources?.find((s) => s.id === table.source_id)
     if (source && !(source.is_meta || source.is_local)) return 'external'
     if (!table.columns?.some((c) => isDeletedCol(c))) return 'pending'
-    if (trashDisabled.value) return 'disabled'
+    if (table.trash_disabled) return 'disabled'
     return null
   })
 
@@ -113,8 +112,6 @@ export const useRecordTrash = createSharedComposable(() => {
         } as any,
       )
       trashCount.value = (result as any)?.count ?? 0
-      retentionDays.value = (result as any)?.retentionDays ?? 30
-      trashDisabled.value = !!(result as any)?.trashDisabled
     } catch (_e) {
       trashCount.value = 0
     }
@@ -137,7 +134,7 @@ export const useRecordTrash = createSharedComposable(() => {
         {
           operation: 'recordTrashEvents' as RecordTrashOperation,
           tableId: tableId.value,
-          limit: pageSize,
+          limit: PAGE_SIZE,
           ...(cursor ? { cursor } : {}),
         } as any,
       )) as any
@@ -146,12 +143,6 @@ export const useRecordTrash = createSharedComposable(() => {
       trashEvents.value = opts.append ? [...trashEvents.value, ...list] : list
       hasMoreEvents.value = !!result?.pageInfo?.hasMore
       nextCursor.value = result?.pageInfo?.nextCursor ?? null
-      if (typeof result?.retentionDays === 'number') {
-        retentionDays.value = result.retentionDays
-      }
-      if (typeof result?.trashDisabled === 'boolean') {
-        trashDisabled.value = result.trashDisabled
-      }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
@@ -371,33 +362,8 @@ export const useRecordTrash = createSharedComposable(() => {
 
   $eventBus.smartsheetStoreEventBus.on(smartsheetEventHandler)
 
-  // Periodic refresh when the drawer is open (catches changes not signaled via eventBus)
-  let refreshInterval: ReturnType<typeof setInterval> | null = null
-
-  watch(isOpen, (open) => {
-    if (open) {
-      // Only poll the count — a plain number doesn't re-render list rows.
-      // The events list refreshes on modal open and on DATA_RELOAD from the
-      // smartsheet event bus, which is enough to keep the user's own actions
-      // in sync without flickering the chips.
-      refreshInterval = setInterval(() => {
-        loadTrashCount()
-      }, 30000)
-    } else {
-      if (refreshInterval) {
-        clearInterval(refreshInterval)
-        refreshInterval = null
-      }
-    }
-  })
-
   onScopeDispose(() => {
     $eventBus.smartsheetStoreEventBus.off(smartsheetEventHandler)
-
-    if (refreshInterval) {
-      clearInterval(refreshInterval)
-      refreshInterval = null
-    }
   })
 
   return {

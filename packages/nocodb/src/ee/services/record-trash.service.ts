@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   AuditV1OperationTypes,
+  EventType,
   isDeletedCol,
   isLinksOrLTAR,
   isMMOrMMLike,
@@ -31,6 +32,7 @@ import {
   toIsoString,
 } from '~/helpers/trashHelpers';
 import { TablesService } from '~/services/tables.service';
+import NocoSocket from '~/socket/NocoSocket';
 
 /**
  * Batch size for restore / permanent-delete / empty-trash loops. Kept small
@@ -987,6 +989,18 @@ export class RecordTrashService {
     if (param.body.trash_disabled) {
       await this.emptyTrash(context, { tableId: param.tableId, req });
     }
+
+    const table = await Model.getWithInfo(context, {
+      id: model.id,
+    });
+
+    NocoSocket.broadcastEvent(context, {
+      event: EventType.META_EVENT,
+      payload: {
+        action: 'table_update',
+        payload: table,
+      },
+    });
 
     return { message: 'Trash settings updated' };
   }

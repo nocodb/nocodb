@@ -5543,21 +5543,18 @@ export class ColumnsService implements IColumnsService {
       }
 
       const hmBtOut: { childRelColId?: string; savedColumnId?: string } = {};
-      // This block is already guarded by `!isMMLike && (type === 'hm' || type === 'bt')`
-      // above, which only matches V1 HM/BT. So here the relation is guaranteed V1 —
-      // no need to re-check `ltarReq.version` (which may even be undefined if the
-      // caller didn't set it and the service's normalisation hasn't filled it in).
-      //
-      // V1 HM: system BT lands on child=refTable, user-facing HM on parent=table.
-      //        The user-facing HM's fk_related_model_id = child = refTable.
-      // V1 BT: user-facing BT lands on child=refTable, system HM on parent=table.
-      //        The user-facing BT's fk_related_model_id = parent = table.
-      //
-      // So the override column (on the LINKED table the user sees in the chip)
-      // lives in `refTable` for HM, and in `table` for BT.
-      const hmBtLinkedTable = ltarReq.type === 'bt' ? table : refTable;
+      // Resolve the linked table — the one whose rows the user-facing LTAR
+      // column surfaces in the chip. This matches fk_related_model_id of
+      // the user-facing column after createHmAndBtColumn runs:
+      //   HM → fk_related_model_id = childId (= refTable.id)
+      //   BT → fk_related_model_id = parentId (= table.id)
+      // The override column always lives on the linked table (never "self").
+      const linkedTableId =
+        ltarReq.type === 'bt' ? ltarReq.parentId : ltarReq.childId;
+      const linkedTable =
+        table.id === linkedTableId ? table : refTable;
       const hmBtDisplayValueCol = ltarReq.fk_display_value_column_id
-        ? hmBtLinkedTable.columns?.find(
+        ? linkedTable.columns?.find(
             (c) => c.id === ltarReq.fk_display_value_column_id,
           )
         : undefined;

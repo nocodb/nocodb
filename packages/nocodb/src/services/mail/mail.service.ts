@@ -86,7 +86,7 @@ export class MailService {
 
     await this.notifySuperAdmin(ncMeta);
 
-    this.logger.warn(
+    this.logger.error(
       'NC_SITE_URL is not configured. Email cannot be sent because the system cannot generate safe URLs.',
     );
 

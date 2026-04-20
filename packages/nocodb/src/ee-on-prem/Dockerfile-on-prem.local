@@ -34,6 +34,7 @@ RUN node -e "const p=require('./package.json'); delete p.dependencies['nocodb-sd
 RUN pnpm install --prod --shamefully-hoist \
     && pnpm dlx modclean --patterns="default:*" --ignore="libxmljs/**,nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**,@react-email/**,@linear/**,jsdom/**,formdata-polyfill/**,**/lru-cache/**,**/@asamuzakjp/**,**/cssstyle/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
+    && rm -rf ./node_modules/msgpackr-extract/build \
     && chmod +x /usr/src/appEntry/start.sh
 
 # Replace nc-lib-gui dist with the freshly built frontend

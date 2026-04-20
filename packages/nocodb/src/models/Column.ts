@@ -1068,13 +1068,18 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
-    // Clear fk_display_value_column_id on LTAR columns referencing the deleted column
-    // Use direct knex query to also catch cross-base LTAR references
+    // Clear fk_display_value_column_id on LTAR columns referencing the deleted column.
+    // Direct knex query (not metaList2) catches cross-base LTAR references; scoped by
+    // fk_workspace_id since fk_display_value_column_id has no index, so a bare `where`
+    // would trigger a full-table scan on COL_RELATIONS.
     {
       const links = await ncMeta
         .knex(MetaTable.COL_RELATIONS)
         .select('fk_column_id', 'base_id', 'fk_workspace_id')
-        .where({ fk_display_value_column_id: id });
+        .where({
+          fk_display_value_column_id: id,
+          fk_workspace_id: context.workspace_id,
+        });
 
       for (const link of links) {
         await Column.updateDisplayValueColumn(

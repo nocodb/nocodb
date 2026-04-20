@@ -5533,11 +5533,10 @@ export class ColumnsService implements IColumnsService {
       }
 
       const hmBtOut: { childRelColId?: string; savedColumnId?: string } = {};
-      // HM displays refTable records, BT displays table records
-      const hmBtDisplayValueTable =
-        ltarReq.type === 'bt' ? table : refTable;
+      // Display value is always from the linked/related table (refTable) —
+      // both HM and BT columns surface records from the other side.
       const hmBtDisplayValueCol = ltarReq.fk_display_value_column_id
-        ? hmBtDisplayValueTable.columns?.find(
+        ? refTable.columns?.find(
             (c) => c.id === ltarReq.fk_display_value_column_id,
           )
         : undefined;

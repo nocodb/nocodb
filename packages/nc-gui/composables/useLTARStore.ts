@@ -42,7 +42,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // state
     const { getMeta, getMetaByKey, getPartialMeta, metas } = useMetas()
 
-    const { base } = storeToRefs(useBase())
+    const { base, isSharedBase } = storeToRefs(useBase())
 
     const { getBaseRoles } = useBases()
 
@@ -191,13 +191,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       const metaKey = `${relatedBaseId}:${tableId}`
 
-      // In shared-base / public-view context, a cross-base related table isn't
-      // accessible via the full meta endpoint (403). Skip the full-meta attempt
-      // entirely in that case — the partial-meta endpoint is the intended path
-      // and it doesn't need full base access. Avoids a noisy 403 on every
-      // LTAR cell render.
-      const isCrossBase = relatedBaseId !== column.value.base_id
-      if (!isPublic.value || !isCrossBase) {
+      // In shared-view (isPublic) or shared-base (isSharedBase) context the
+      // full-meta endpoint is restricted — partial meta is the intended path
+      // and has all the fields we need to render an LTAR cell. Skip getMeta
+      // here to avoid noisy 403s on every cell render (especially for
+      // cross-base related tables in a shared base).
+      if (!isPublic.value && !isSharedBase.value) {
         // Try fetching full table meta first. If it fails (e.g., user lacks
         // permission to access the related table), fall back to partial meta.
         try {

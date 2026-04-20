@@ -359,6 +359,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                 );
               });
 
+            // Exclude soft-deleted target rows — otherwise the link succeeds
+            // but the linked record is invisible under the read filter.
+            const parentSoftDeleteFilter =
+              await refBaseModel.getSoftDeleteFilter();
+            if (parentSoftDeleteFilter) {
+              childRowsQb.where(parentSoftDeleteFilter);
+            }
+
             if (parentTable.primaryKeys.length > 1) {
               childRowsQb.where((qb) => {
                 for (const childId of childIds) {
@@ -678,6 +686,13 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               .dbDriver(childTn)
               .select(childTable.primaryKey.column_name);
 
+            // Exclude soft-deleted target rows — see MM branch above.
+            const childSoftDeleteFilter =
+              await childBaseModel.getSoftDeleteFilter();
+            if (childSoftDeleteFilter) {
+              childRowsQb.where(childSoftDeleteFilter);
+            }
+
             if (childTable.primaryKeys.length > 1) {
               childRowsQb.where((qb) => {
                 for (const childId of childIds) {
@@ -775,8 +790,16 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             const childRowsQb = baseModel
               .dbDriver(parentTn)
               .select(parentTable.primaryKey.column_name)
-              .where(_wherePk(parentTable.primaryKeys, childIds[0]))
-              .first();
+              .where(_wherePk(parentTable.primaryKeys, childIds[0]));
+
+            // Exclude soft-deleted target rows — see MM branch above.
+            const parentSoftDeleteFilter =
+              await refBaseModel.getSoftDeleteFilter();
+            if (parentSoftDeleteFilter) {
+              childRowsQb.where(parentSoftDeleteFilter);
+            }
+
+            childRowsQb.first();
 
             const childRow = await refBaseModel.execAndParse(
               childRowsQb,

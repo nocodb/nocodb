@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   isDeletedCol,
@@ -13,15 +14,38 @@ import { Model, Source } from '~/models';
 import { getCompositePkValue } from '~/helpers/dbHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { resolveTrashRetentionDays } from '~/helpers/trashHelpers';
+import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
 
 const BATCH_SIZE = 100;
 const MAX_TABLES_PER_RUN = 50;
+const LOCK_KEY = 'lock:record-trash-cleanup';
+// Just under the cron interval (10m). If a run legitimately exceeds this,
+// the lock expires and the next tick can take over.
+const LOCK_TTL_SECONDS = 9 * 60;
 
 @Injectable()
 export class RecordTrashCleanupJob {
   private readonly logger = new Logger(RecordTrashCleanupJob.name);
 
   async job() {
+    // Skip this tick if another instance is already running. With shared
+    // queue concurrency, a long cleanup could overlap with the next cron
+    // fire and re-process the same tables.
+    const lockId = randomUUID();
+    const gotLock = await acquireLock(LOCK_KEY, lockId, 0, LOCK_TTL_SECONDS);
+    if (!gotLock) {
+      this.logger.log('Skipping — another cleanup run is active');
+      return { totalDeleted: 0, tablesProcessed: 0 };
+    }
+
+    try {
+      return await this.runCleanup();
+    } finally {
+      await releaseLock(LOCK_KEY, lockId);
+    }
+  }
+
+  private async runCleanup() {
     const now = new Date();
 
     // Query models with due cleanup — ordered by earliest due first

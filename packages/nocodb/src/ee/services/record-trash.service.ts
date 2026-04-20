@@ -19,7 +19,6 @@ import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHand
 import conditionV2 from '~/db/conditionV2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { checkForFeature } from '~/helpers/paymentHelpers';
@@ -405,34 +404,6 @@ export class RecordTrashService {
       }
     }
 
-    // Resolve display_name + email in one query so every event's avatar + title
-    // render correctly even if the frontend's base-user cache is cold. Using
-    // MetaTable.USERS directly is safe here because we only expose display_name
-    // and email, both already visible in the UI next to these avatars.
-    const userIdsToResolve = Array.from(
-      new Set(
-        visibleRanks
-          .map((r) => groupsByRank.get(r)?.fk_user_id)
-          .filter((id): id is string => !!id),
-      ),
-    );
-    const userById = new Map<
-      string,
-      { display_name: string | null; email: string | null }
-    >();
-    if (userIdsToResolve.length) {
-      const users = await Noco.ncMeta
-        .knex(MetaTable.USERS)
-        .select('id', 'display_name', 'email')
-        .whereIn('id', userIdsToResolve);
-      for (const u of users) {
-        userById.set(u.id, {
-          display_name: u.display_name ?? null,
-          email: u.email ?? null,
-        });
-      }
-    }
-
     const enriched: any[] = [];
     let lastLmtIso: string | null = null;
     let lastFkUserId: string | null = null;
@@ -442,8 +413,6 @@ export class RecordTrashService {
       const deletedAtIso = toIsoString(g.deleted_at);
       if (!deletedAtIso) continue;
 
-      const u = g.fk_user_id ? userById.get(g.fk_user_id) : null;
-
       enriched.push({
         id: encodeEventId(g.fk_user_id, deletedAtIso),
         op_type:
@@ -452,8 +421,6 @@ export class RecordTrashService {
             : AuditV1OperationTypes.DATA_SOFT_DELETE,
         created_at: deletedAtIso,
         fk_user_id: g.fk_user_id,
-        display_name: u?.display_name ?? null,
-        email: u?.email ?? null,
         row_count: g.grp_count,
         preview_rows: g.rowIds.map((rowId) => ({
           row_id: rowId,

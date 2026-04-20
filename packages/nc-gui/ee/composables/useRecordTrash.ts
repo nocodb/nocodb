@@ -8,15 +8,11 @@ type RecordTrashOperation =
   | 'recordTrashPermanentDelete'
   | 'recordTrashEmpty'
 
-/** Raw shape returned by the backend. `display_name` / `email` are resolved server-side
- *  via MetaTable.USERS so avatars render even if the client's base-user cache is cold. */
 interface RawTrashEvent {
   id: string
   op_type: string
   created_at: string
   fk_user_id: string | null
-  display_name: string | null
-  email: string | null
   row_count: number
   preview_rows: Array<{ row_id: string; pv: any }>
 }
@@ -42,8 +38,6 @@ export const useRecordTrash = createSharedComposable(() => {
   const { activeProjectId, basesUser, bases } = storeToRefs(basesStore)
 
   const { getMetaByKey } = useMetas()
-
-  const { user: currentUser } = useGlobal()
 
   const { showWarningModal } = useNcConfirmModal()
 
@@ -97,22 +91,13 @@ export const useRecordTrash = createSharedComposable(() => {
   })
 
   function enrichEvent(raw: RawTrashEvent): TrashEvent {
-    // Prefer backend-supplied user info (MetaTable.USERS lookup); fall back to
-    // the base-user cache for `meta` (avatar colour / profile image) which the
-    // backend doesn't ship, and to the logged-in user when the event is theirs.
-    const cached = raw.fk_user_id ? baseUsers.value.find((u) => u.id === raw.fk_user_id) : undefined
-    const isSelf = !!raw.fk_user_id && raw.fk_user_id === currentUser.value?.id
-
-    const displayName = raw.display_name ?? cached?.display_name ?? (isSelf ? currentUser.value?.display_name : null) ?? null
-    const email = raw.email ?? cached?.email ?? (isSelf ? currentUser.value?.email : null) ?? null
-    const short = displayName ?? extractNameFromEmail(email) ?? null
-
+    const user = raw.fk_user_id ? baseUsers.value.find((u) => u.id === raw.fk_user_id) : undefined
     return {
       ...raw,
-      display_name: displayName,
-      display_name_short: short,
-      email,
-      user_meta: cached?.meta,
+      display_name: user?.display_name ?? null,
+      display_name_short: user?.display_name ?? extractNameFromEmail(user?.email) ?? null,
+      email: user?.email ?? null,
+      user_meta: user?.meta,
     }
   }
 

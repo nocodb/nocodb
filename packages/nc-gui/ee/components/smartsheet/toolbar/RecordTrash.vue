@@ -163,13 +163,7 @@ watch(isOpen, (val) => {
 </script>
 
 <template>
-  <NcModal
-    v-model:visible="isOpen"
-    :show-separator="false"
-    size="lg"
-    wrap-class-name="nc-modal-record-trash"
-    :mask-style="{ background: 'rgba(0, 0, 0, 0.08)' }"
-  >
+  <NcModal v-model:visible="isOpen" :show-separator="false" size="lg" wrap-class-name="nc-modal-record-trash">
     <template #header>
       <div class="flex w-full items-start px-6 pt-5 pb-4 justify-between gap-4 border-b-1 border-nc-border-gray-medium">
         <div class="flex flex-col gap-1 min-w-0 flex-1">

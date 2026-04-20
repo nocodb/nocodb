@@ -357,7 +357,11 @@ const getAst = async (
     if (col.uidt === UITypes.Meta) {
       isRequested = false;
     } else if (isSortOrFilterColumn) {
-      isRequested = true;
+      // For LTAR / Lookup columns `value` holds the nested AST that tells the
+      // query builder which related-table fields to include (pk, pv, custom
+      // display value). Collapsing it to a boolean `true` drops that info and
+      // the nested rows come back with only pk+pv.
+      isRequested = value ?? true;
     } else if (
       rowColoringColumnIds.has(col.id) ||
       buttonFilterColumnIds.has(col.id)

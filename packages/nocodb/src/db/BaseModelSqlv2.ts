@@ -311,6 +311,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       apiVersion,
       extractOrderColumn = false,
       ignoreRls = false,
+      fk_display_value_column_id,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -319,6 +320,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
       ignoreRls?: boolean;
+      fk_display_value_column_id?: string | null;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -333,6 +335,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOnlyPrimaries,
       extractOrderColumn,
       apiVersion,
+      fk_display_value_column_id,
       skipSubstitutingColumnIds:
         this.context.api_version === NcApiVersion.V3 &&
         query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
@@ -437,52 +440,75 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async readOnlyPrimariesByPkFromModel(
-    props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
+    props: {
+      model: Model;
+      id: any;
+      extractDisplayValueData?: boolean;
+      // When set, the returned display value is taken from this column
+      // (the LTAR's custom display value override) and this column is
+      // requested in the underlying getAst so it's present in the record.
+      displayColumn?: Column;
+    }[],
   ): Promise<any[]> {
     if (!props.length) return [];
 
     // Small inputs (1-2 items): direct readByPk is cheaper than chunkList setup
     if (props.length <= 2) {
       const results: any[] = [];
-      for (const { model, id, extractDisplayValueData = true } of props) {
-        results.push(
-          await this.readByPkFromModel(
-            model,
-            undefined,
-            extractDisplayValueData,
-            id,
-            false,
-            {},
-            {
-              ignoreView: true,
-              getHiddenColumn: true,
-              extractOnlyPrimaries: true,
-            },
-          ),
+      for (const {
+        model,
+        id,
+        extractDisplayValueData = true,
+        displayColumn,
+      } of props) {
+        const data = await this.readByPkFromModel(
+          model,
+          undefined,
+          false, // don't let readByPkFromModel extract PV — we pick the field ourselves below
+          id,
+          false,
+          {},
+          {
+            ignoreView: true,
+            getHiddenColumn: true,
+            extractOnlyPrimaries: true,
+            fk_display_value_column_id: displayColumn?.id,
+          },
         );
+        if (extractDisplayValueData) {
+          const titleKey = displayColumn?.title ?? model.displayValue?.title;
+          results.push(data ? data[titleKey] ?? null : '');
+        } else {
+          results.push(data);
+        }
       }
       return results;
     }
 
-    // Bulk: group by model and batch-fetch via chunkList (1 SQL query per chunk)
-    const modelGroups = new Map<string, { model: Model; pks: Set<string> }>();
+    // Bulk: group by model and batch-fetch via chunkList (1 SQL query per chunk).
+    // Group key is model.id + displayColumn.id so each group has a single AST.
+    const modelGroups = new Map<
+      string,
+      { model: Model; pks: Set<string>; displayColumn?: Column }
+    >();
 
-    for (const { model, id } of props) {
-      let group = modelGroups.get(model.id);
+    for (const { model, id, displayColumn } of props) {
+      const key = `${model.id}::${displayColumn?.id ?? ''}`;
+      let group = modelGroups.get(key);
       if (!group) {
-        group = { model, pks: new Set() };
-        modelGroups.set(model.id, group);
+        group = { model, pks: new Set(), displayColumn };
+        modelGroups.set(key, group);
       }
       group.pks.add(String(id));
     }
 
-    // Fetch all records per model using chunkList (batched SQL queries)
-    const recordsByModel = new Map<string, Map<string, any>>();
+    // Fetch all records per (model, displayColumn) using chunkList
+    const recordsByKey = new Map<string, Map<string, any>>();
 
-    for (const [modelId, { model, pks }] of modelGroups) {
+    for (const [key, { model, pks, displayColumn }] of modelGroups) {
       const context = { ...this.context, base_id: model.base_id };
       const baseModel =
-        this.model.id === modelId
+        this.model.id === model.id
           ? this
           : await Model.getBaseModelSQL(context, {
               model,
@@ -493,6 +519,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const records = await baseModel.chunkList({
         pks: [...pks],
         extractOnlyPrimaries: true,
+        fk_display_value_column_id: displayColumn?.id,
       });
 
       await model.getCachedColumns(context);
@@ -502,17 +529,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const pk = baseModel.extractPksValues(record, true);
         pkMap.set(String(pk), record);
       }
-      recordsByModel.set(modelId, pkMap);
+      recordsByKey.set(key, pkMap);
     }
 
     // Reassemble results in original order
-    return props.map(({ model, id, extractDisplayValueData = true }) => {
-      const record = recordsByModel.get(model.id)?.get(String(id));
-      if (extractDisplayValueData) {
-        return record ? record[model.displayValue.title] ?? null : '';
-      }
-      return record ?? null;
-    });
+    return props.map(
+      ({ model, id, extractDisplayValueData = true, displayColumn }) => {
+        const key = `${model.id}::${displayColumn?.id ?? ''}`;
+        const record = recordsByKey.get(key)?.get(String(id));
+        if (extractDisplayValueData) {
+          const titleKey = displayColumn?.title ?? model.displayValue?.title;
+          return record ? record[titleKey] ?? null : '';
+        }
+        return record ?? null;
+      },
+    );
   }
 
   public async fetchDisplayValueMap(
@@ -3862,6 +3893,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     args?: Record<string, any>;
     extractOnlyPrimaries?: boolean;
     deletedOnly?: boolean;
+    fk_display_value_column_id?: string | null;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -3873,6 +3905,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       model: this.model,
       query: args.args || {},
       extractOnlyPrimaries: args.extractOnlyPrimaries,
+      fk_display_value_column_id: args.fk_display_value_column_id,
     });
 
     for (const chunk of chunkedPks) {

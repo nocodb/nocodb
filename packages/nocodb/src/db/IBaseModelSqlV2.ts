@@ -91,7 +91,12 @@ export interface IBaseModelSqlV2 {
     timestamp?: string;
   }): Promise<void>;
   readOnlyPrimariesByPkFromModel(
-    props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
+    props: {
+      model: Model;
+      id: any;
+      extractDisplayValueData?: boolean;
+      displayColumn?: Column;
+    }[],
   ): Promise<any[]>;
   fetchDisplayValueMap(
     props: { model: Model; id: any }[],

@@ -15,6 +15,7 @@ import type { Knex } from 'knex';
 import { Model } from '~/models';
 import { RelationUpdateWebhookHandler } from '~/db/relation-update-webhook-handler';
 import { NcError } from '~/helpers/catchError';
+import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
 import {
   _wherePk,
   getCompositePkValue,
@@ -72,6 +73,48 @@ export class RelationManager {
 
   getRelationContext() {
     return this.relationContext;
+  }
+
+  // Resolve the LTAR column's custom display value column (if set) for use
+  // with readOnlyPrimariesByPkFromModel — cached on first resolution.
+  // Returns undefined when there's no override (fall back to model PV).
+  private _customDisplayCol: Column | null | undefined = undefined;
+  protected async getCustomDisplayCol(): Promise<Column | undefined> {
+    if (this._customDisplayCol !== undefined) {
+      return this._customDisplayCol ?? undefined;
+    }
+    const colOpts = this.relationContext.relationColOptions;
+    if (!(colOpts as any)?.fk_display_value_column_id) {
+      this._customDisplayCol = null;
+      return undefined;
+    }
+    const resolved = await getDisplayValueOfRefTable(
+      this.relationContext.baseModel.context,
+      this.relationContext.relationColumn as Column<LinkToAnotherRecordColumn>,
+    );
+    // getDisplayValueOfRefTable always returns something — only keep it as
+    // the override when the ID actually matches fk_display_value_column_id
+    // (otherwise we'd double-apply the PV).
+    if (
+      resolved &&
+      resolved.id === (colOpts as any).fk_display_value_column_id
+    ) {
+      this._customDisplayCol = resolved;
+      return resolved;
+    }
+    this._customDisplayCol = null;
+    return undefined;
+  }
+
+  // Returns the display column to use for a given model when that model is
+  // the "related" side of this LTAR column. For the other side we fall back
+  // to the model's PV (returned as undefined so callers use the default).
+  protected async getDisplayColForModel(
+    model: Model,
+  ): Promise<Column | undefined> {
+    const colOpts = this.relationContext.relationColOptions;
+    if (model.id !== colOpts?.fk_related_model_id) return undefined;
+    return this.getCustomDisplayCol();
   }
 
   // for M2M and Belongs to relation, the relation stored in column option is reversed
@@ -809,8 +852,16 @@ export class RelationManager {
             await webhookHandler.addAffectedParentId(oldRowId);
             const [parentRelatedPkValue, childRelatedPkValue] =
               await baseModel.readOnlyPrimariesByPkFromModel([
-                { model: childTable, id: childId },
-                { model: parentTable, id: oldRowId },
+                {
+                  model: childTable,
+                  id: childId,
+                  displayColumn: await this.getDisplayColForModel(childTable),
+                },
+                {
+                  model: parentTable,
+                  id: oldRowId,
+                  displayColumn: await this.getDisplayColForModel(parentTable),
+                },
               ]);
 
             this.auditUpdateObj.push({
@@ -892,8 +943,16 @@ export class RelationManager {
             await webhookHandler.addAffectedParentId(oldParentRowId);
             const [parentRelatedPkValue, childRelatedPkValue] =
               await baseModel.readOnlyPrimariesByPkFromModel([
-                { model: parentTable, id: oldParentRowId },
-                { model: childTable, id: childId },
+                {
+                  model: parentTable,
+                  id: oldParentRowId,
+                  displayColumn: await this.getDisplayColForModel(parentTable),
+                },
+                {
+                  model: childTable,
+                  id: childId,
+                  displayColumn: await this.getDisplayColForModel(childTable),
+                },
               ]);
 
             this.auditUpdateObj.push({
@@ -988,8 +1047,16 @@ export class RelationManager {
               await webhookHandler.addAffectedChildId(oldChildRowId);
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await baseModel.readOnlyPrimariesByPkFromModel([
-                  { model: childTable, id: oldChildRowId },
-                  { model: parentTable, id: parentId },
+                  {
+                    model: childTable,
+                    id: oldChildRowId,
+                    displayColumn: await this.getDisplayColForModel(childTable),
+                  },
+                  {
+                    model: parentTable,
+                    id: parentId,
+                    displayColumn: await this.getDisplayColForModel(parentTable),
+                  },
                 ]);
 
               this.auditUpdateObj.push({
@@ -1031,8 +1098,16 @@ export class RelationManager {
             await webhookHandler.addAffectedParentId(oldRowId);
             const [parentRelatedPkValue, childRelatedPkValue] =
               await baseModel.readOnlyPrimariesByPkFromModel([
-                { model: childTable, id: childId },
-                { model: parentTable, id: oldRowId },
+                {
+                  model: childTable,
+                  id: childId,
+                  displayColumn: await this.getDisplayColForModel(childTable),
+                },
+                {
+                  model: parentTable,
+                  id: oldRowId,
+                  displayColumn: await this.getDisplayColForModel(parentTable),
+                },
               ]);
 
             this.auditUpdateObj.push({
@@ -1408,7 +1483,11 @@ export class RelationManager {
 
     const [childRelatedPkValue] =
       await baseModel.readOnlyPrimariesByPkFromModel([
-        { model: childTable, id: childId },
+        {
+          model: childTable,
+          id: childId,
+          displayColumn: await this.getDisplayColForModel(childTable),
+        },
       ]);
 
     if (oldChildRowId) {

@@ -203,7 +203,7 @@ export const parseYearValue = (value: any) => {
 
   value = dayjs(value, 'YYYY').format('YYYY');
 
-  return value ? +value : value;
+  return ncIsNaN(value) ? null : +value;
 };
 
 export const parseUserValue = (

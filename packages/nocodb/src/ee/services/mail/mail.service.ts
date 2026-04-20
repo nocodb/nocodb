@@ -23,8 +23,10 @@ export class MailService extends MailServiceCE {
       return false;
     }
 
-    // All EE mail events use req.ncSiteUrl for link generation
-    if (!(await this.ensurePublicUrl(ncMeta))) return false;
+    // FORM_SUBMISSION is exempt — it has no req and builds no links
+    if (params.mailEvent !== MailEvent.FORM_SUBMISSION) {
+      if (!(await this.ensurePublicUrl(ncMeta))) return false;
+    }
 
     try {
       switch (params.mailEvent) {

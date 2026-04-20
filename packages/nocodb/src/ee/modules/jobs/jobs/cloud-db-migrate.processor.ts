@@ -193,7 +193,10 @@ export class CloudDbMigrateProcessor {
           db_job_id: `${job.id}`,
         });
 
-        const bases = await Base.listByWorkspace(workspace.id);
+        const bases = await Base.listByWorkspace(workspace.id, {
+          includeDeleted: true,
+          includeSnapshot: true,
+        });
 
         schemas.push(...bases.map((base) => base.id));
       }

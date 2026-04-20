@@ -42,7 +42,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // state
     const { getMeta, getMetaByKey, getPartialMeta, metas } = useMetas()
 
-    const { base } = storeToRefs(useBase())
+    const { base, isSharedBase } = storeToRefs(useBase())
 
     const { getBaseRoles } = useBases()
 
@@ -191,11 +191,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       const metaKey = `${relatedBaseId}:${tableId}`
 
-      // Skip the full-meta call for cross-base LTARs — partial meta is the
-      // intended path and avoids a noisy 403 when the viewer doesn't have
-      // access to the related external base.
+      // Only skip the full-meta call for a cross-base LTAR rendered inside a
+      // shared view or shared base — the viewer has no access to the external
+      // base there, so getMeta would 403. In the logged-in dashboard always
+      // try getMeta (the user may have access to both bases).
       const isCrossBase = relatedBaseId !== column.value.base_id
-      if (!isCrossBase) {
+      const skipGetMeta = isCrossBase && (isPublic.value || isSharedBase.value)
+      if (!skipGetMeta) {
         try {
           await getMeta(relatedBaseId, tableId, false, false, true)
         } catch {}

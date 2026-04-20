@@ -5543,11 +5543,19 @@ export class ColumnsService implements IColumnsService {
       }
 
       const hmBtOut: { childRelColId?: string; savedColumnId?: string } = {};
-      // Display value is always from the linked/related table — the one the
-      // user sees in the LTAR cell. For HM, that's refTable (childId). For
-      // BT, the frontend flips things so the linked table is parentId
-      // (= `table`) and the FK/ref lives on childId (= refTable).
-      const hmBtLinkedTable = ltarReq.type === 'bt' ? table : refTable;
+      // Pick which side holds the override column based on the version +
+      // relation type of the created LTAR.
+      //
+      // V1 HM: BT (system) on child=refTable, HM (user-facing) on parent=table.
+      //        HM column's fk_related_model_id = child = refTable → lookup in refTable.
+      // V1 BT: BT (user-facing) on child=refTable, HM (system) on parent=table.
+      //        BT column's fk_related_model_id = parent = table → lookup in table.
+      //
+      // V2 routes never reach this block — the outer `if (!isMMLike ...)`
+      // guards against them (V2 → isMMLike=true → MM-like path).
+      const isV1Bt =
+        ltarReq.version === LinksVersion.V1 && ltarReq.type === 'bt';
+      const hmBtLinkedTable = isV1Bt ? table : refTable;
       const hmBtDisplayValueCol = ltarReq.fk_display_value_column_id
         ? hmBtLinkedTable.columns?.find(
             (c) => c.id === ltarReq.fk_display_value_column_id,

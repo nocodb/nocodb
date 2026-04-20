@@ -291,6 +291,7 @@ const getAst = async (
         const { ast: childAst } = await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
+          fk_display_value_column_id: colOpt.fk_display_value_column_id,
           dependencyFields: (dependencyFields.nested[col.title] =
             dependencyFields.nested[col.title] || {
               nested: {},

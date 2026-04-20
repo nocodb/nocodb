@@ -13,7 +13,7 @@ import { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 import { AuthController as AuthControllerCE } from 'src/modules/auth/auth.controller';
-import { AppEvents, CloudOrgUserRoles } from 'nocodb-sdk';
+import { AppEvents, CloudOrgUserRoles, PlanFeatureTypes } from 'nocodb-sdk';
 import type { UserType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import { clearAuthCookie, setAuthCookie } from '~/services/users/helpers';
@@ -22,13 +22,17 @@ import { CacheGetType, MetaTable } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { UsersService } from '~/services/users/users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MfaService } from '~/services/mfa.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { License } from '~/decorators/license.decorator';
 import { NcRequest } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
 import { CHATWOOT_IDENTITY_KEY } from '~/utils/nc-config';
 import Noco from '~/Noco';
+import NocoLicense from '~/NocoLicense';
 const IS_UPGRADE_ALLOWED_CACHE_KEY = 'nc_upgrade_allowed';
 
 @Controller()
@@ -37,8 +41,112 @@ export class AuthController extends AuthControllerCE {
     protected readonly usersService: UsersService,
     protected readonly appHooksService: AppHooksService,
     protected readonly config: ConfigService<AppConfig>,
+    protected readonly mfaService: MfaService,
   ) {
     super(usersService, appHooksService, config);
+  }
+
+  @Post([
+    '/auth/user/signin',
+    '/api/v1/db/auth/user/signin',
+    '/api/v1/auth/user/signin',
+    '/api/v2/auth/user/signin',
+  ])
+  @UseGuards(PublicApiLimiterGuard, AuthGuard('local'))
+  @HttpCode(200)
+  async signin(@Req() req: NcRequest, @Res() res: Response) {
+    if (this.config.get('auth', { infer: true }).disableEmailAuth) {
+      NcError.forbidden('Email authentication is disabled');
+    }
+
+    // Check if user has 2FA enabled (only when MFA feature is licensed)
+    const twoFactorToken = NocoLicense.isEE
+      ? await this.mfaService.getTwoFactorTokenIfEnabled(req.user.id)
+      : null;
+    if (twoFactorToken) {
+      res.json({
+        twoFactorRequired: true,
+        twoFactorToken,
+      });
+      return;
+    }
+
+    // No 2FA — proceed normally
+    await this.setRefreshToken({ req, res });
+    const result = await this.usersService.login(req.user, req);
+    setAuthCookie(res, result.token);
+    res.json(result);
+  }
+
+  // MFA Endpoints
+
+  @License(PlanFeatureTypes.FEATURE_MFA)
+  @Post(['/api/v2/auth/mfa/setup'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('mfaSetup', { scope: 'org' })
+  @HttpCode(200)
+  async mfaSetup(@Req() req: NcRequest, @Body() body: { password: string }) {
+    return this.mfaService.setup(req.user.id, body.password, req);
+  }
+
+  @License(PlanFeatureTypes.FEATURE_MFA)
+  @Post(['/api/v2/auth/mfa/verify-setup'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('mfaVerifySetup', { scope: 'org' })
+  @HttpCode(200)
+  async mfaVerifySetup(@Req() req: NcRequest, @Body() body: { code: string }) {
+    return this.mfaService.verifySetup(req.user.id, body.code, req);
+  }
+
+  @License(PlanFeatureTypes.FEATURE_MFA)
+  @Post(['/api/v2/auth/mfa/verify'])
+  @UseGuards(PublicApiLimiterGuard)
+  @HttpCode(200)
+  async mfaVerify(
+    @Req() req: NcRequest,
+    @Res() res: Response,
+    @Body() body: { token: string; code: string },
+  ) {
+    const result = await this.mfaService.verifySignin(
+      body.token,
+      body.code,
+      req,
+    );
+    // Populate req.user so setRefreshToken can read the user id
+    // (no AuthGuard on this public endpoint — req.user is not set by Passport)
+    req.user = { id: result.userId } as any;
+    await this.setRefreshToken({ req, res });
+    setAuthCookie(res, result.token);
+    res.json(result);
+  }
+
+  @License(PlanFeatureTypes.FEATURE_MFA)
+  @Post(['/api/v2/auth/mfa/disable'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('mfaDisable', { scope: 'org' })
+  @HttpCode(200)
+  async mfaDisable(@Req() req: NcRequest, @Body() body: { password: string }) {
+    return this.mfaService.disable(req.user.id, body.password, req);
+  }
+
+  @License(PlanFeatureTypes.FEATURE_MFA)
+  @Get(['/api/v2/auth/mfa/status'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('mfaStatus', { scope: 'org' })
+  async mfaStatus(@Req() req: NcRequest) {
+    return this.mfaService.status(req.user.id);
+  }
+
+  @License(PlanFeatureTypes.FEATURE_MFA)
+  @Post(['/api/v2/auth/mfa/regenerate-backup-codes'])
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Acl('mfaRegenerateBackupCodes', { scope: 'org' })
+  @HttpCode(200)
+  async mfaRegenerateBackupCodes(
+    @Req() req: NcRequest,
+    @Body() body: { code: string },
+  ) {
+    return this.mfaService.regenerateBackupCodes(req.user.id, body.code, req);
   }
 
   @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'])

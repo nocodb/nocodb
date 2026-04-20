@@ -6,6 +6,8 @@ const ignoreKeys = new Set([
   'reset_password_expires',
   'reset_password_token',
   'email_verification_token',
+  'totp_secret',
+  'totp_backup_codes',
   'created_at',
   'updated_at',
 ]);

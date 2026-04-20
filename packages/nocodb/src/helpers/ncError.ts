@@ -241,6 +241,9 @@ export class NcError {
   static allowedOnlySSOGeneratedToken(ncWorkspaceId: string): never {
     return NcError._.allowedOnlySSOGeneratedToken(ncWorkspaceId);
   }
+  static mfaSetupRequired(ncWorkspaceId: string): never {
+    return NcError._.mfaSetupRequired(ncWorkspaceId);
+  }
   static maxPayloadLimitExceeded(limit: number, args?: NcErrorArgs): never {
     return NcError._.maxPayloadLimitExceeded(limit, args);
   }

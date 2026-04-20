@@ -53,6 +53,10 @@ export default class User implements UserType {
   is_new_user?: boolean;
   canonical_email?: string;
 
+  totp_secret?: string;
+  totp_enabled?: boolean;
+  totp_backup_codes?: string;
+
   deleted_at?: Date;
   is_deleted?: boolean;
   meta?: MetaType;
@@ -82,6 +86,9 @@ export default class User implements UserType {
       'token_version',
       'is_new_user',
       'meta',
+      'totp_secret',
+      'totp_enabled',
+      'totp_backup_codes',
     ]);
 
     // Set is_new_user to true for new users if not explicitly set
@@ -134,6 +141,9 @@ export default class User implements UserType {
       'avatar',
       'is_new_user',
       'meta',
+      'totp_secret',
+      'totp_enabled',
+      'totp_backup_codes',
     ]);
 
     if (updateObj.email) {
@@ -498,6 +508,9 @@ export default class User implements UserType {
         reset_password_token: null,
         email_verification_token: null,
         token_version: null,
+        totp_secret: null,
+        totp_enabled: false,
+        totp_backup_codes: null,
         deleted_at: ncMeta.knex.fn.now(),
         is_deleted: true,
       },

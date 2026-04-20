@@ -172,4 +172,12 @@ export const OPERATION_SCOPES = {
   recordTrashEmpty: 'base',
   recordTrashSettingsList: 'base',
   recordTrashSettingsUpdate: 'base',
+
+  // MFA operations
+  mfaSetup: 'org',
+  mfaVerifySetup: 'org',
+  mfaVerify: 'ncSkipAcl',
+  mfaDisable: 'org',
+  mfaStatus: 'org',
+  mfaRegenerateBackupCodes: 'org',
 } as const;

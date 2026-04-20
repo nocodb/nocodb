@@ -217,6 +217,11 @@ import type {
   TeamUpdateEvent,
   UserEmailVerificationEvent,
   UserInviteEvent,
+  UserMfaSetupEvent,
+  UserMfaEnabledEvent,
+  UserMfaDisabledEvent,
+  UserMfaVerifyEvent,
+  UserMfaBackupCodeUsedEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
@@ -608,6 +613,87 @@ export class AppHooksListenerService
           await this.auditInsert(
             await generateAuditV1Payload(
               AuditV1OperationTypes.USER_EMAIL_VERIFY,
+              {
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+      case AppEvents.USER_MFA_SETUP:
+        {
+          const param = data as UserMfaSetupEvent;
+          param.req.user = param.user;
+
+          await this.auditInsert(
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.USER_MFA_SETUP,
+              {
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+      case AppEvents.USER_MFA_ENABLED:
+        {
+          const param = data as UserMfaEnabledEvent;
+          param.req.user = param.user;
+
+          await this.auditInsert(
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.USER_MFA_ENABLED,
+              {
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+      case AppEvents.USER_MFA_DISABLED:
+        {
+          const param = data as UserMfaDisabledEvent;
+          param.req.user = param.user;
+
+          await this.auditInsert(
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.USER_MFA_DISABLED,
+              {
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+      case AppEvents.USER_MFA_VERIFY:
+        {
+          const param = data as UserMfaVerifyEvent;
+          param.req.user = param.user;
+
+          await this.auditInsert(
+            await generateAuditV1Payload<{ method?: string }>(
+              AuditV1OperationTypes.USER_MFA_VERIFY,
+              {
+                context: param.context,
+                req: param.req,
+                details: { method: param.method },
+              },
+            ),
+          );
+        }
+        break;
+      case AppEvents.USER_MFA_BACKUP_CODE_USED:
+        {
+          const param = data as UserMfaBackupCodeUsedEvent;
+          param.req.user = param.user;
+
+          await this.auditInsert(
+            await generateAuditV1Payload(
+              AuditV1OperationTypes.USER_MFA_BACKUP_CODE_USED,
               {
                 context: param.context,
                 req: param.req,

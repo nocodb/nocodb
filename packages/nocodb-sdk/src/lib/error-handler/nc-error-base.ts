@@ -547,6 +547,11 @@ export class NcErrorBase {
       }
     );
   }
+  mfaSetupRequired(ncWorkspaceId: string): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_MFA_SETUP_REQUIRED, {
+      params: ncWorkspaceId,
+    });
+  }
   maxPayloadLimitExceeded(limit: number, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_MAX_PAYLOAD_LIMIT_EXCEEDED,
@@ -749,6 +754,13 @@ export class NcErrorBase {
 
   badRequest(message): never {
     throw new BadRequestV2(message);
+  }
+
+  tooManyRequests(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TOO_MANY_REQUESTS, {
+      customMessage: message,
+      ...args,
+    });
   }
 
   optionsNotExists(props: {

@@ -56,6 +56,9 @@ const defaultNcMessageExtraProps = {
   showCopyBtn: true,
 }
 
+// Error messages that are handled via dedicated modals — suppress toasts for these
+const MODAL_HANDLED_MESSAGES = ['Two-factor authentication setup required for this workspace']
+
 /**
  * Default values for `NcMessageObjectProps`.
  */
@@ -213,6 +216,9 @@ const showMessage = (
 
   // If title & content is blank then no need to show blank toast message
   if (!title && !content) return
+
+  // Skip toast for errors already handled via dedicated modals
+  if (type === 'error' && ncIsString(content) && MODAL_HANDLED_MESSAGES.some((msg) => content.includes(msg))) return
 
   const key = generateMessageKey(params)
 

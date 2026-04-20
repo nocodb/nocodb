@@ -72,6 +72,13 @@ export function addAxiosInterceptors(api: Api<any> | InternalApi<any>, skipSocke
         }
       }
 
+      // if 403 and ERR_MFA_SETUP_REQUIRED error, show dialog prompting 2FA setup
+      if (error.response?.status === 403 && error.response?.data?.error === NcErrorType.ERR_MFA_SETUP_REQUIRED) {
+        const workspaceStore = useWorkspace()
+        workspaceStore.toggleMfaSetupRequiredDlg(true)
+        await until(() => !workspaceStore.mfaSetupRequiredDlg).toBeTruthy()
+      }
+
       return Promise.reject(error)
     },
   )

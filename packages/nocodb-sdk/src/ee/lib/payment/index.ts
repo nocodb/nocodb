@@ -129,6 +129,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: false,
       [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]: false,
       [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: false,
+      [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
       [PlanFeatureTypes.FEATURE_API_WEBHOOK_V3]: false,
       [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: false,
       [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: false,
@@ -202,6 +203,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: false,
       [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]: false,
       [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: false,
+      [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
       [PlanFeatureTypes.FEATURE_API_WEBHOOK_V3]: false,
       [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: false,
       [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: false,
@@ -247,6 +249,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
+      [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
@@ -494,6 +497,8 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
       [PlanFeatureTypes.FEATURE_SSO]: false,
       [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: false,
+      [PlanFeatureTypes.FEATURE_MFA]: false,
+      [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
       // Enterprise only
       [PlanFeatureTypes.FEATURE_RLS]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
@@ -513,6 +518,8 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_RLS]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
+      [PlanFeatureTypes.FEATURE_MFA]: false,
+      [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_WORKSPACE]: 1,

@@ -122,6 +122,9 @@ import { AttachmentProxyController } from '~/controllers/attachment-proxy.contro
 /* Record Trash */
 import { RecordTrashService } from '~/services/record-trash.service';
 
+/* MFA */
+import { MfaService } from '~/services/mfa.service';
+
 /* List View */
 import { ListsService } from '~/ee/services/lists.service';
 import { ListDatasService } from '~/ee/services/list-datas.service';
@@ -284,6 +287,9 @@ export const nocoModuleEeMetadata = {
     ScimResourceTypesService,
     ScimBearerStrategy,
 
+    /* MFA */
+    MfaService,
+
     ...nocoModuleMetadata.providers,
 
     /* EE Meta Dependency Handlers (overrides CE provider) */
@@ -381,6 +387,9 @@ export const nocoModuleEeMetadata = {
 
     /* Generic */
     CustomUrlsService,
+
+    /* MFA */
+    MfaService,
 
     /* Workspaces */
     WorkspacesService,

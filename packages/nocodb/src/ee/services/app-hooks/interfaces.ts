@@ -517,4 +517,27 @@ export interface RecordsPermanentDeleteEvent extends NcBaseEvent {
   rowIds: string[];
 }
 
+// MFA Events
+export interface UserMfaSetupEvent extends Optional<NcBaseEvent, 'context'> {
+  user: UserType;
+}
+
+export interface UserMfaEnabledEvent extends Optional<NcBaseEvent, 'context'> {
+  user: UserType;
+}
+
+export interface UserMfaDisabledEvent extends Optional<NcBaseEvent, 'context'> {
+  user: UserType;
+}
+
+export interface UserMfaVerifyEvent extends Optional<NcBaseEvent, 'context'> {
+  user: UserType;
+  method: 'totp' | 'backup_code';
+}
+
+export interface UserMfaBackupCodeUsedEvent
+  extends Optional<NcBaseEvent, 'context'> {
+  user: UserType;
+}
+
 export * from 'src/services/app-hooks/interfaces';

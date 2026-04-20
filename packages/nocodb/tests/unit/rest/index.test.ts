@@ -36,6 +36,7 @@ let oauthDCRTest = () => {};
 let oauthTests = () => {};
 let autoNumberTests = () => {};
 let recordTrashTest = () => {};
+let mfaTests = () => {};
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
   oauthDCRTest = require('./tests/ee/oAuthDCR.test').default;
@@ -49,6 +50,7 @@ if (process.env.EE === 'true') {
   oauthTests = require('./tests/oauth.test').default;
   autoNumberTests = require('./tests/ee/autoNumber.test').default;
   recordTrashTest = require('./tests/ee/record-trash.test').default;
+  mfaTests = require('./tests/ee/mfa.test').default;
 }
 
 const testVersion = ['v1', 'v2', 'v3'];
@@ -86,6 +88,7 @@ function restTests() {
     oauthTests();
     bulkV1Test();
     oauthDCRTest();
+    mfaTests();
   }
   if (willRunOnSet(3)) {
     viewRowTests();

@@ -199,7 +199,7 @@ onMounted(() => {
                 @click="navigateTo('/account/authentication')"
               >
                 <div class="flex items-center space-x-2">
-                  <component :is="iconMap.ncLock" />
+                  <GeneralIcon icon="ncLock" />
 
                   <div class="select-none text-sm">{{ $t('title.sso') }}</div>
                   <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
@@ -252,6 +252,20 @@ onMounted(() => {
                   <div class="select-none">{{ $t('title.resetPasswordMenu') }}</div>
                 </div>
               </NcMenuItem>
+              <NcMenuItem
+                key="security"
+                :class="{
+                  active: $route.params.page === 'security',
+                }"
+                class="item"
+                @click="navigateTo('/account/security')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncShield" class="!h-4 !w-4" />
+
+                  <div class="select-none">{{ $t('labels.security') }}</div>
+                </div>
+              </NcMenuItem>
 
               <NcDivider class="!mt-0" />
 
@@ -295,9 +309,11 @@ onMounted(() => {
                 <LazyAccountBreadcrumb />
               </div>
 
+              <DashboardMiniSidebarTheme placement="bottom" render-as-btn class="mr-3" button-class="h-8 w-8" />
+
               <LazyGeneralReleaseInfo />
 
-              <NcTooltip placement="bottom" class="mr-4">
+              <NcTooltip placement="bottom" class="mr-3">
                 <template #title> {{ $t('labels.community.communityTranslated') }}</template>
 
                 <div class="flex items-center">

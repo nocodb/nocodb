@@ -6,6 +6,7 @@ import {
   NON_SEAT_ROLES,
   OnPremHigherPlan,
   PlanFeatureTypes,
+  PlanFeatureTypesToPlanTitles,
   PlanLimitTypes,
   PlanTitles,
   getUpgradeMessage,
@@ -367,6 +368,14 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockDateDependency = computed(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY)
+  })
+
+  const blockMfa = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_MFA)
+  })
+
+  const blockForce2fa = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FORCE_2FA)
   })
 
   /** EE-only feature blocks — gated by license on self-hosted, plan-gated for licensed on-prem */
@@ -1980,6 +1989,28 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseMfa = () => {
+    if (!blockMfa.value) return
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseMfa'),
+      content: t('upgrade.upgradeToUseMfaSubtitle', {
+        plan: getPlanTitle(PlanFeatureTypesToPlanTitles[PlanFeatureTypes.FEATURE_MFA] ?? PlanTitles.ENTERPRISE),
+      }),
+      limitOrFeature: PlanFeatureTypes.FEATURE_MFA,
+    })
+  }
+
+  const showUpgradeToUseForce2fa = () => {
+    if (!blockForce2fa.value) return
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToRequireTwoFactor'),
+      content: t('upgrade.upgradeToRequireTwoFactorSubtitle', {
+        plan: getPlanTitle(PlanFeatureTypesToPlanTitles[PlanFeatureTypes.FEATURE_FORCE_2FA] ?? PlanTitles.ENTERPRISE),
+      }),
+      limitOrFeature: PlanFeatureTypes.FEATURE_FORCE_2FA,
+    })
+  }
+
   const showUpgradeToUseSnapshots = () => {
     if (!blockSnapshots.value) return
     return showUpgradeForEEFeature(t('upgrade.features.snapshots'), PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE)
@@ -2180,5 +2211,9 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToCreateWorkspace,
     showUpgradeToManageWorkspaceMembers,
     showUpgradeForEEFeature,
+    blockMfa,
+    showUpgradeToUseMfa,
+    blockForce2fa,
+    showUpgradeToUseForce2fa,
   }
 })

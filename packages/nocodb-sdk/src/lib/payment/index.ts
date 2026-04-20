@@ -94,6 +94,8 @@ export enum PlanFeatureTypes {
   FEATURE_MAP_VIEW = 'feature_map_view',
   FEATURE_LIST_VIEW = 'feature_list_view',
   FEATURE_TEAM_HIERARCHY = 'feature_team_hierarchy',
+  FEATURE_MFA = 'feature_mfa',
+  FEATURE_FORCE_2FA = 'feature_force_2fa',
   FEATURE_TIMELINE_VIEW = 'feature_timeline_view',
   FEATURE_AI_CHAT = 'feature_ai_chat',
   FEATURE_DOCS_APIS = 'feature_docs_apis',
@@ -366,6 +368,9 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: 'to use map view.',
   [PlanFeatureTypes.FEATURE_LIST_VIEW]: 'to use list view.',
   [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: 'to use team hierarchy.',
+  [PlanFeatureTypes.FEATURE_MFA]: 'to enable multi-factor authentication.',
+  [PlanFeatureTypes.FEATURE_FORCE_2FA]:
+    'to require two-factor authentication for all workspace members.',
   [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: 'to use timeline view.',
   [PlanFeatureTypes.FEATURE_AI_CHAT]: 'to use AI chat.',
   [PlanFeatureTypes.FEATURE_DOCS_APIS]: 'to access Documents API.',

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IconType, PublicAttachmentScope, WorkspaceUserRoles, validateAccountName } from 'nocodb-sdk'
+import { IconType, PlanFeatureTypes, PublicAttachmentScope, WorkspaceUserRoles, parseProp, validateAccountName } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -15,7 +15,14 @@ const { orgId } = useOrganization()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { isPaymentEnabled, isEEFeatureBlocked, activeSubscription, showUpgradeToUploadWsImage } = useEeConfig()
+const {
+  isPaymentEnabled,
+  isEEFeatureBlocked,
+  activeSubscription,
+  showUpgradeToUploadWsImage,
+  blockForce2fa,
+  showUpgradeToUseForce2fa,
+} = useEeConfig()
 
 const router = useRouter()
 
@@ -327,6 +334,38 @@ watch(
 const onCancel = () => {
   if (currentWorkspace.value?.title) form.title = currentWorkspace.value.title
 }
+
+const force2faEnabled = computed(() => {
+  return !!parseProp(currentWorkspace.value?.meta)?.force_2fa
+})
+
+const isForce2faUpdating = ref(false)
+
+async function toggleForce2fa(enabled: boolean) {
+  if (!currentWorkspace.value?.id) return
+
+  if (blockForce2fa.value) {
+    showUpgradeToUseForce2fa()
+    return
+  }
+
+  isForce2faUpdating.value = true
+
+  try {
+    await updateWorkspace(currentWorkspace.value.id, {
+      meta: {
+        ...parseProp(currentWorkspace.value.meta),
+        force_2fa: enabled,
+      },
+    })
+    await loadWorkspaces()
+    message.success(enabled ? t('msg.success.twoFactorRequired') : t('msg.success.twoFactorRequirementRemoved'))
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isForce2faUpdating.value = false
+  }
+}
 </script>
 
 <template>
@@ -443,6 +482,40 @@ const onCancel = () => {
           </a-form>
         </div>
       </div>
+      <div v-if="hasWorkspaceManagePermission" class="nc-settings-item-card-wrapper mt-10">
+        <div class="nc-settings-item-heading">{{ $t('labels.security') }}</div>
+
+        <div
+          class="nc-settings-item-card flex flex-col"
+          :class="{ 'cursor-pointer': blockForce2fa }"
+          @click="blockForce2fa && showUpgradeToUseForce2fa()"
+        >
+          <div class="nc-settings-item">
+            <div class="nc-settings-item-content">
+              <div class="nc-settings-item-title flex items-center gap-2">
+                {{ $t('labels.requireTwoFactor') }}
+                <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_FORCE_2FA" remove-click />
+              </div>
+              <div class="nc-settings-item-subtitle">
+                {{ $t('labels.requireTwoFactorDescription') }}
+              </div>
+            </div>
+
+            <div class="nc-settings-item-action flex items-center gap-2">
+              <NcSwitch
+                v-e="['c:workspace:settings:force-2fa:toggle']"
+                :checked="force2faEnabled"
+                size="small"
+                :loading="isForce2faUpdating"
+                :disabled="blockForce2fa"
+                data-testid="nc-workspace-settings-force-2fa-toggle"
+                @update:checked="toggleForce2fa"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="nc-settings-item-card-wrapper mt-10">
         <div class="nc-settings-item-heading text-nc-content-red-dark">{{ $t('labels.dangerZone') }}</div>
 

@@ -5,18 +5,28 @@ import { CacheGetType } from '~/utils/globals';
 const logger = new Logger('LockHelpers');
 
 /**
- * Acquires a distributed lock with retry logic and verification
+ * Acquires a distributed lock with retry logic and verification.
+ *
+ * Pass `maxWaitTimeMs: 0` for try-once semantics (cron jobs that should skip
+ * their tick when another instance is active, rather than queue up).
  */
 export async function acquireLock(
   lockKey: string,
   lockId: string,
   maxWaitTimeMs: number = 30000, // 30 seconds max wait
+  ttlSeconds: number = 60, // lock expiration
 ): Promise<boolean> {
   const startTime = Date.now();
   let attempt = 0;
   const maxRetries = 20;
 
-  while (attempt < maxRetries && Date.now() - startTime < maxWaitTimeMs) {
+  // try-once path — do exactly one acquire attempt, no retry backoff
+  const tryOnce = maxWaitTimeMs <= 0;
+
+  while (
+    attempt < maxRetries &&
+    (tryOnce ? attempt === 0 : Date.now() - startTime < maxWaitTimeMs)
+  ) {
     try {
       // Check if lock exists
       const existingLock = await NocoCache.get(
@@ -35,7 +45,7 @@ export async function acquireLock(
             timestamp: Date.now(),
             pid: process.pid,
           },
-          60, // 1 minute expiration
+          ttlSeconds,
         );
 
         // Small delay to ensure cache consistency

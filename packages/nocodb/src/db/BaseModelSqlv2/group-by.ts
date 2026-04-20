@@ -374,6 +374,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       qb,
     );
 
+    // Exclude soft-deleted records
+    const softDeleteFilterList = await baseModel.getSoftDeleteFilter();
+    if (softDeleteFilterList) {
+      qb.where(softDeleteFilterList);
+    }
+
     if (!sorts) {
       if (args.sortArr?.length) {
         sorts = args.sortArr;
@@ -770,6 +776,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       qb,
     );
 
+    // Exclude soft-deleted records
+    const softDeleteFilterCount = await baseModel.getSoftDeleteFilter();
+    if (softDeleteFilterCount) {
+      qb.where(softDeleteFilterCount);
+    }
+
     qb.groupBy(...groupBySelectors);
 
     // Add HAVING clause to filter groups by minimum count (e.g., count > 1 for duplicates only)
@@ -1067,6 +1079,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           ],
           tQb,
         );
+
+        // Exclude soft-deleted records
+        const softDeleteFilterBulkCount = await baseModel.getSoftDeleteFilter();
+        if (softDeleteFilterBulkCount) {
+          tQb.where(softDeleteFilterBulkCount);
+        }
 
         tQb.groupBy(...groupBySelectors);
 
@@ -1422,6 +1440,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           tQb,
         );
 
+        // Exclude soft-deleted records
+        const softDeleteFilterBulkList = await baseModel.getSoftDeleteFilter();
+        if (softDeleteFilterBulkList) {
+          tQb.where(softDeleteFilterBulkList);
+        }
+
         if (!groupSort) {
           if (rest.sortArr?.length) {
             groupSort = rest.sortArr;
@@ -1722,6 +1746,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           ],
           tQb,
         );
+
+        // Exclude soft-deleted records
+        const softDeleteFilterBulkAgg = await baseModel.getSoftDeleteFilter();
+        if (softDeleteFilterBulkAgg) {
+          tQb.where(softDeleteFilterBulkAgg);
+        }
 
         let jsonBuildObject;
 

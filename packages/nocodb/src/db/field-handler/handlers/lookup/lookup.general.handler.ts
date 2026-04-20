@@ -21,6 +21,7 @@ import {
 import { Model } from '~/models';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
+import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 
 export class LookupGeneralHandler extends ComputedFieldHandler {
   /**
@@ -147,6 +148,14 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           alias,
         });
 
+        const hmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          childBaseModel,
+          alias,
+        );
+        if (hmSoftDeleteFilter) {
+          qb.where(hmSoftDeleteFilter);
+        }
+
         return {
           rootApply: (qb) => {
             rootApply?.(qb);
@@ -215,6 +224,14 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb,
           alias,
         });
+
+        const btSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          parentBaseModel,
+          alias,
+        );
+        if (btSoftDeleteFilter) {
+          qb.where(btSoftDeleteFilter);
+        }
 
         return {
           rootApply: (qb) => {
@@ -289,6 +306,14 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           qb,
           alias,
         });
+
+        const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          parentBaseModel,
+          childAlias,
+        );
+        if (mmSoftDeleteFilter) {
+          qb.where(mmSoftDeleteFilter);
+        }
 
         return {
           rootApply: (qb) => {

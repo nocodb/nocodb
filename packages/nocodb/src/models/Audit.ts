@@ -57,6 +57,7 @@ export default class Audit {
         return;
       }
       const propsToExtract = [
+        'id',
         'user',
         'ip',
         'source_id',

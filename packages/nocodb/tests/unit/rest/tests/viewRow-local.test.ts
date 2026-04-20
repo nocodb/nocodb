@@ -223,6 +223,7 @@ function viewRowLocalStaticTests() {
             UITypes.LastModifiedTime,
             UITypes.Order,
             UITypes.Meta,
+            UITypes.Deleted,
           ].includes(c.uidt as UITypes),
       )
       .filter((_: any, index: number) => index < 2);
@@ -277,6 +278,7 @@ function viewRowLocalStaticTests() {
             UITypes.LastModifiedTime,
             UITypes.Order,
             UITypes.Meta,
+            UITypes.Deleted,
           ].includes(c.uidt as UITypes),
       )
       .filter((_: any, index: number) => index < 3);

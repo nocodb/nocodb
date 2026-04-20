@@ -514,6 +514,7 @@ export class ColumnsService implements IColumnsService {
           UITypes.ID,
           UITypes.Order,
           UITypes.Meta,
+          UITypes.Deleted,
         ].includes(column.uidt)) ||
         // somehow current external meta sync do not mark pk as system
         column.pk) &&
@@ -2669,7 +2670,9 @@ export class ColumnsService implements IColumnsService {
     }
     if (
       (param.column as any).system ||
-      [UITypes.Order, UITypes.ID].includes(param.column.uidt as UITypes)
+      [UITypes.Order, UITypes.ID, UITypes.Deleted, UITypes.Meta].includes(
+        param.column.uidt as UITypes,
+      )
     ) {
       NcError.get(context).invalidRequestBody(
         `Cannot manually create system columns`,
@@ -5137,7 +5140,9 @@ export class ColumnsService implements IColumnsService {
           dtxs: table.primaryKey.dtxs,
           un: table.primaryKey.un,
           altered: Altered.NEW_COLUMN,
-          unique: 1, // Ensure the foreign key column is unique for one-to-one relationships
+          // No unique constraint — soft-deleted records may retain their FK
+          // value for restore conflict detection. OO cardinality is enforced
+          // at the application level (RelationManager.addChild).
         };
 
         const tableUpdateBody = {

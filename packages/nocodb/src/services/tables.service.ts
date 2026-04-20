@@ -99,16 +99,17 @@ export class TablesService {
         context,
       });
 
+      const table = await Model.getWithInfo(context, {
+        id: model.id,
+      });
+
       NocoSocket.broadcastEvent(
         context,
         {
           event: EventType.META_EVENT,
           payload: {
             action: 'table_update',
-            payload: {
-              ...model,
-              ...param.table,
-            },
+            payload: table,
           },
         },
         context.socket_id,
@@ -232,8 +233,9 @@ export class TablesService {
       param.table.title,
       param.table.table_name,
     );
-
-    const result = await Model.get(context, param.tableId);
+    const result = await Model.getWithInfo(context, {
+      id: model.id,
+    });
 
     this.appHooksService.emit(AppEvents.TABLE_UPDATE, {
       table: param.table,
@@ -275,16 +277,17 @@ export class TablesService {
       context,
     } as any);
 
+    const table = await Model.getWithInfo(context, {
+      id: model.id,
+    });
+
     NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.META_EVENT,
         payload: {
           action: 'table_update',
-          payload: {
-            ...model,
-            order: param.order,
-          },
+          payload: table,
         },
       },
       context.socket_id,
@@ -728,6 +731,7 @@ export class TablesService {
       tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
         columns: tableCreatePayLoad.columns,
         clientType: source.type,
+        isMeta: !!source.isMeta(),
       });
     }
 

@@ -193,7 +193,7 @@ function baseModelSqlTests() {
     const insertedRows: any[] = await baseModelSql.list();
 
     await baseModelSql.bulkUpdate(
-      insertedRows.map(({ CreatedAt: _, UpdatedAt: __, ...row }) => ({
+      insertedRows.map(({ CreatedAt: _, UpdatedAt: __, __nc_deleted: ___, ...row }) => ({
         ...row,
         Title: `new-${row['Title']}`,
       })),

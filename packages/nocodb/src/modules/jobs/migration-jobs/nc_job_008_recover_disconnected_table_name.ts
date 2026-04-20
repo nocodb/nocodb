@@ -112,7 +112,7 @@ export class RecoverDisconnectedTableNames {
             `${MetaTable.MODELS}.source_id`,
             `${MetaTable.MODELS}.table_name`,
             `${MetaTable.MODELS}.base_id`,
-            ...(isEE ? [`${MetaTable.MODELS}.fk_workspace_id`] : []),
+            `${MetaTable.MODELS}.fk_workspace_id`,
           ])
           .whereNotIn(
             `${MetaTable.MODELS}.id`,

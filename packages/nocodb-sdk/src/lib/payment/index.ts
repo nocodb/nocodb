@@ -33,6 +33,7 @@ export enum PlanLimitTypes {
   LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
   LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
   LIMIT_WORKSPACE = 'limit_workspace',
+  LIMIT_TRASH_RETENTION = 'limit_trash_retention',
 }
 
 export enum PlanFeatureTypes {
@@ -105,6 +106,7 @@ export enum PlanFeatureTypes {
   FEATURE_API_WORKFLOW_MANAGEMENT = 'feature_api_workflow_management',
   /** On-prem: core EE capability flag — true for all paid plans, false for free */
   FEATURE_EE_CORE = 'feature_ee_core',
+  FEATURE_TRASH_SETTINGS = 'feature_trash_settings',
 }
 
 export enum PlanTitles {
@@ -283,6 +285,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more document pages in a base.',
   [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]:
     'to increase the document page size limit.',
+  [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 'for extended trash retention.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -376,6 +379,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: 'to use comment api.',
   [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: 'to use workflow api.',
   [PlanFeatureTypes.FEATURE_EE_CORE]: 'to access enterprise features.',
+  [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]:
+    'to configure per-table trash settings.',
 };
 
 export const getUpgradeMessage = (

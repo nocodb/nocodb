@@ -2,6 +2,7 @@
 import {
   ClientType,
   extractFilterFromXwhere,
+  isDeletedCol,
   isOrderCol,
   NcApiVersion,
   UITypes,
@@ -39,6 +40,7 @@ export async function singleQueryRead(
     extractOrderColumn?: boolean;
     customConditions?: Filter[];
     ignoreRls?: boolean;
+    deletedOnly?: boolean;
   },
 ): Promise<PagedResponseImpl<Record<string, any>>> {
   const dbQuery = DBQueryClient.get(ClientType.PG);
@@ -65,6 +67,7 @@ export async function singleQueryList(
     skipSortBasedOnOrderCol?: boolean;
     ignoreViewFilterAndSort?: boolean;
     ignoreRls?: boolean;
+    deletedOnly?: boolean;
   },
 ): Promise<
   PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
@@ -91,6 +94,7 @@ export async function singleQueryGroupedList(
     ignoreViewFilterAndSort?: boolean;
     includeButtonFilterColumns?: boolean;
     includeRowColourColumns?: boolean;
+    deletedOnly?: boolean;
   },
 ): Promise<
   {
@@ -139,6 +143,21 @@ export async function singleQueryGroupedList(
   const offset = +listArgs?.offset || 0;
 
   const rootQb = knex(baseModel.getTnPath(ctx.model));
+
+  // Soft-delete filter: exclude deleted records normally, or select ONLY deleted for trash listing
+  if (ctx.deletedOnly) {
+    const deletedCol = ctx.model.columns?.find((c) => isDeletedCol(c));
+    if (deletedCol) {
+      rootQb.where(deletedCol.column_name, true);
+    } else {
+      rootQb.whereRaw('1 = 0');
+    }
+  } else {
+    const softDeleteFilter = await baseModel.getSoftDeleteFilter();
+    if (softDeleteFilter) {
+      rootQb.where(softDeleteFilter);
+    }
+  }
 
   const aliasColObjMap = await ctx.model.getAliasColObjMap(context, columns);
   let sorts = extractSortsObject(

@@ -19,6 +19,7 @@ export const baseSettingsTabToSlug: Record<string, string> = {
   'workflows': 'workflows',
   'overview': 'overview',
   'mcp': 'mcp',
+  'record-trash': 'record-trash',
   'snapshots': 'snapshots',
 }
 

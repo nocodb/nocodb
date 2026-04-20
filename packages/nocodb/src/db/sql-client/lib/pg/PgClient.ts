@@ -2478,6 +2478,10 @@ class PGClient extends KnexClient {
       let upQuery = '';
       let downQuery = '';
 
+      // Detect soft-delete column for partial unique index support
+      const deletedCol = args.columns.find((c) => c.uidt === UITypes.Deleted);
+      const softDeleteColumnName = deletedCol?.cn || deletedCol?.column_name;
+
       for (let i = 0; i < args.columns.length; ++i) {
         // Set table name on column object (needed for functions that don't take table parameter)
         args.columns[i].tn = args.table;
@@ -2554,6 +2558,7 @@ class PGClient extends KnexClient {
             oldColumn,
             args.columns[i],
             downQuery,
+            softDeleteColumnName,
           );
         } else if (args.columns[i].altered & 2 || args.columns[i].altered & 8) {
           // col edit
@@ -2561,11 +2566,13 @@ class PGClient extends KnexClient {
             args.columns[i],
             oldColumn,
             upQuery,
+            softDeleteColumnName,
           );
           downQuery += this.alterTableChangeColumn(
             oldColumn,
             args.columns[i],
             downQuery,
+            softDeleteColumnName,
           );
         } else if (args.columns[i].altered & 1) {
           // col addition
@@ -2573,6 +2580,7 @@ class PGClient extends KnexClient {
             args.columns[i],
             oldColumn,
             upQuery,
+            softDeleteColumnName,
           );
           downQuery += this.alterTableRemoveColumn(
             args.columns[i],
@@ -3018,16 +3026,16 @@ class PGClient extends KnexClient {
     return query;
   }
 
-  createTableColumn(n, o, existingQuery) {
-    return this.alterTableColumn(n, o, existingQuery, 0);
+  createTableColumn(n, o, existingQuery, softDeleteColumnName?: string) {
+    return this.alterTableColumn(n, o, existingQuery, 0, softDeleteColumnName);
   }
 
-  alterTableAddColumn(n, o, existingQuery) {
-    return this.alterTableColumn(n, o, existingQuery, 1);
+  alterTableAddColumn(n, o, existingQuery, softDeleteColumnName?: string) {
+    return this.alterTableColumn(n, o, existingQuery, 1, softDeleteColumnName);
   }
 
-  alterTableChangeColumn(n, o, existingQuery) {
-    return this.alterTableColumn(n, o, existingQuery, 2);
+  alterTableChangeColumn(n, o, existingQuery, softDeleteColumnName?: string) {
+    return this.alterTableColumn(n, o, existingQuery, 2, softDeleteColumnName);
   }
 
   createTable(table, args) {
@@ -3045,7 +3053,13 @@ class PGClient extends KnexClient {
     return query;
   }
 
-  alterTableColumn(n, o, existingQuery, change = 2) {
+  alterTableColumn(
+    n,
+    o,
+    existingQuery,
+    change = 2,
+    softDeleteColumnName?: string,
+  ) {
     // Get table name from column object (like MySQL pattern)
     const t = n.tn || o?.tn;
     let query = '';
@@ -3117,7 +3131,13 @@ class PGClient extends KnexClient {
         shouldSanitize,
       );
       // For change === 1, use addUniqueConstraintToQuery
-      query = this.addUniqueConstraintToQuery(n, t, query, shouldSanitize);
+      query = this.addUniqueConstraintToQuery(
+        n,
+        t,
+        query,
+        shouldSanitize,
+        softDeleteColumnName,
+      );
     } else {
       // Ensure column name is set - use n.cn if available, otherwise fall back to o.cn or o.cno
       // This ensures all subsequent operations have a valid column name
@@ -3261,15 +3281,26 @@ class PGClient extends KnexClient {
             n.cn = columnName;
           }
 
-          query = this.addUniqueConstraintToQuery(n, t, query, shouldSanitize);
+          query = this.addUniqueConstraintToQuery(
+            n,
+            t,
+            query,
+            shouldSanitize,
+            softDeleteColumnName,
+          );
         } else {
-          // Dropping unique constraint
+          // Dropping unique constraint (may be a constraint or a partial index)
           const constraintName = this.getUniqueConstraintName(o, t);
 
-          // Use DROP CONSTRAINT IF EXISTS to avoid errors if constraint doesn't exist
+          // Drop both constraint and index to handle both cases
           query += this.genQuery(
             `\nALTER TABLE ?? DROP CONSTRAINT IF EXISTS ??;\n`,
             [t, constraintName],
+            shouldSanitize,
+          );
+          query += this.genQuery(
+            `\nDROP INDEX IF EXISTS ??;\n`,
+            [constraintName],
             shouldSanitize,
           );
         }
@@ -3384,11 +3415,14 @@ class PGClient extends KnexClient {
   }
 
   /**
-   * Adds unique constraint SQL to the query
+   * Adds unique constraint SQL to the query.
+   * When softDeleteColumnName is provided, creates a partial unique index
+   * that excludes soft-deleted rows so trashed records don't block active values.
    * @param n - Column object
    * @param tableName - Optional table name (can be extracted from n.tn)
    * @param query - Existing query string
    * @param shouldSanitize - Whether to sanitize the query
+   * @param softDeleteColumnName - Name of the soft-delete boolean column (e.g. __nc_deleted)
    * @returns Updated query string
    */
   private addUniqueConstraintToQuery(
@@ -3396,6 +3430,7 @@ class PGClient extends KnexClient {
     tableName?: string,
     query: string = '',
     shouldSanitize: boolean = true,
+    softDeleteColumnName?: string,
   ): string {
     // Check n.unique for unique constraint
     if (!n.unique) {
@@ -3419,17 +3454,41 @@ class PGClient extends KnexClient {
     // Store constraint name in internal_meta
     this.storeUniqueConstraintName(n, constraintName);
 
-    // Add DROP CONSTRAINT and ADD CONSTRAINT to query
+    // Drop existing constraint/index first
     query += this.genQuery(
       `\nALTER TABLE ?? DROP CONSTRAINT IF EXISTS ??;\n`,
       [t, constraintName],
       shouldSanitize,
     );
+    // Also drop index in case it was created as a partial unique index
     query += this.genQuery(
-      `\nALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??);\n`,
-      [t, constraintName, columnName],
+      `\nDROP INDEX IF EXISTS ??;\n`,
+      [constraintName],
       shouldSanitize,
     );
+
+    // If table has a soft-delete column, use a partial unique index
+    // so that deleted records don't block unique values for active records.
+    // PK and auto-increment columns keep unconditional unique constraints.
+    if (softDeleteColumnName && !n.pk && !n.ai) {
+      query += this.genQuery(
+        `\nCREATE UNIQUE INDEX ?? ON ?? (??) WHERE (?? IS NULL OR ?? = false);\n`,
+        [
+          constraintName,
+          t,
+          columnName,
+          softDeleteColumnName,
+          softDeleteColumnName,
+        ],
+        shouldSanitize,
+      );
+    } else {
+      query += this.genQuery(
+        `\nALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??);\n`,
+        [t, constraintName, columnName],
+        shouldSanitize,
+      );
+    }
 
     return query;
   }

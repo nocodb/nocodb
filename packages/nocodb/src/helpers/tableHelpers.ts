@@ -28,10 +28,16 @@ export const repopulateCreateTableSystemColumns = (
   {
     columns,
     clientType,
-  }: { columns: (ColumnType & { cn?: string })[]; clientType: DriverClient },
+    isMeta = true,
+  }: {
+    columns: (ColumnType & { cn?: string })[];
+    clientType: DriverClient;
+    isMeta?: boolean;
+  },
 ) => {
   const tableSystemColumns = TableSystemColumns(
     isEE && clientType === DriverClient.PG,
+    isMeta,
   );
 
   // check meta column support and filter out

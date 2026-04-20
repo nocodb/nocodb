@@ -380,6 +380,9 @@ export const useEeConfig = createSharedComposable(() => {
   const blockCustomUrls = computed(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_CUSTOM_URL)
   })
+  const blockTrashSettings = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TRASH_SETTINGS)
+  })
   const blockScripts = computed(() => isEEFeatureBlocked.value)
   const blockWorkflows = computed(() => isEEFeatureBlocked.value)
   const blockExtensions = computed(() => {
@@ -1982,6 +1985,11 @@ export const useEeConfig = createSharedComposable(() => {
     return showUpgradeForEEFeature(t('upgrade.features.snapshots'), PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE)
   }
 
+  const showUpgradeToUseTrashSettings = () => {
+    if (!blockTrashSettings.value) return
+    return handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_TRASH_SETTINGS })
+  }
+
   const showUpgradeToUseCustomUrls = () => {
     if (!blockCustomUrls.value) return
     return showUpgradeForEEFeature(t('upgrade.features.customUrls'))
@@ -2155,6 +2163,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockScim,
     showUpgradeToUseScim,
     blockSnapshots,
+    blockTrashSettings,
     blockCustomUrls,
     blockScripts,
     blockWorkflows,
@@ -2164,6 +2173,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockWorkspaceMembers,
     showUpgradeToUseSSO,
     showUpgradeToUseSnapshots,
+    showUpgradeToUseTrashSettings,
     showUpgradeToUseCustomUrls,
     showUpgradeToUseScripts,
     showUpgradeToUseWorkflows,

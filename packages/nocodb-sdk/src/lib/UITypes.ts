@@ -53,6 +53,7 @@ enum UITypes {
   CreatedBy = 'CreatedBy',
   LastModifiedBy = 'LastModifiedBy',
   Order = 'Order',
+  Deleted = 'Deleted',
   Meta = 'Meta',
   UUID = 'UUID',
 }
@@ -102,6 +103,7 @@ export const UITypesName = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
+  [UITypes.Deleted]: 'Deleted',
   [UITypes.Meta]: 'Row Meta',
   [UITypes.UUID]: 'UUID',
   AIButton: 'AI Button',
@@ -330,6 +332,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
   [UITypes.Order]: 'Order',
+  [UITypes.Deleted]: 'Deleted',
   [UITypes.Meta]: 'Row Meta',
   [UITypes.UUID]: 'UUID',
 };
@@ -429,6 +432,18 @@ export function isOrderCol(
   );
 }
 
+export function isDeletedCol(
+  col:
+    | UITypes
+    | { readonly uidt: UITypes | string }
+    | ColumnReqType
+    | ColumnType
+) {
+  return [UITypes.Deleted].includes(
+    <UITypes>(typeof col === 'object' ? col?.uidt : col)
+  );
+}
+
 export function isActionButtonCol(
   col: (ColumnReqType | ColumnType) & {
     colOptions?: any;
@@ -462,7 +477,11 @@ export function isHiddenCol(
     return col.colOptions?.type === RelationTypes.HAS_MANY;
   }
 
-  if (col.uidt === UITypes.Order || col.uidt === UITypes.Meta) {
+  if (
+    col.uidt === UITypes.Order ||
+    col.uidt === UITypes.Meta ||
+    col.uidt === UITypes.Deleted
+  ) {
     return true;
   }
 
@@ -873,6 +892,7 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
     isCreatedOrLastModifiedTimeCol(column) ||
     // Check if the column is used for row ordering
     isOrderCol(column) ||
+    isDeletedCol(column) ||
     // if primary key and auto generated then treat as readonly
     (column.pk && (column.ai || parseProp(column.meta)?.ag))
   );
@@ -929,7 +949,11 @@ export const customLinkSupportedTypes: UITypes[] = [
 ];
 
 // column types that are not shown in the GUI
-export const hiddenColumnTypes: UITypes[] = [UITypes.Meta];
+export const hiddenColumnTypes: UITypes[] = [
+  UITypes.Meta,
+  UITypes.Deleted,
+  UITypes.Order,
+];
 
 // Re-export LinksVersion from globals for backward compatibility
 export { LinksVersion } from '~/lib/globals';

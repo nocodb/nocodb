@@ -119,6 +119,9 @@ import { RecordTemplatesService } from '~/services/record-templates/record-templ
 /* Attachment Proxy */
 import { AttachmentProxyController } from '~/controllers/attachment-proxy.controller';
 
+/* Record Trash */
+import { RecordTrashService } from '~/services/record-trash.service';
+
 /* List View */
 import { ListsService } from '~/ee/services/lists.service';
 import { ListDatasService } from '~/ee/services/list-datas.service';
@@ -246,6 +249,9 @@ export const nocoModuleEeMetadata = {
 
     /* Record Templates */
     RecordTemplatesService,
+
+    /* Record Trash */
+    RecordTrashService,
 
     /* List View */
     ListsService,

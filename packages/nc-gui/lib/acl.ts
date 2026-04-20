@@ -85,6 +85,7 @@ const rolePermissions = {
       manageSnapshot: true,
       migrateBase: true,
       baseAuditList: true,
+
     },
   },
   [ProjectRoles.CREATOR]: {

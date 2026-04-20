@@ -181,6 +181,8 @@ watch(
         projectPageTab.value = 'mcp'
       } else if (newVal === 'snapshots' && isEeUI) {
         projectPageTab.value = 'snapshots'
+      } else if (newVal === 'record-trash' && isEeUI) {
+        projectPageTab.value = 'record-trash'
       } else {
         projectPageTab.value = 'collaborator'
       }
@@ -208,6 +210,7 @@ const settingsPageTitle = computed(() => {
     'mcp': t('title.mcpServer'),
     'syncs': t('labels.manageSyncs'),
     'snapshots': t('labels.manageSnapshots'),
+    'record-trash': t('trash.settings'),
     'data-source': t('labels.addDataSource'),
     'integrations': t('labels.baseIntegrations'),
     'base-settings': t('general.general'),
@@ -547,6 +550,20 @@ watch(
           </template>
           <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseMCP />
+          </div>
+        </a-tab-pane>
+        <a-tab-pane
+          v-if="isEeUI && showEEFeatures && isUIAllowed('recordTrashSettingsList') && base.id && !isMobileMode"
+          key="record-trash"
+        >
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__record-trash">
+              <GeneralIcon icon="ncTrash2" />
+              <div>{{ $t('trash.settings') }}</div>
+            </div>
+          </template>
+          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+            <DashboardSettingsBaseTrash />
           </div>
         </a-tab-pane>
         <a-tab-pane

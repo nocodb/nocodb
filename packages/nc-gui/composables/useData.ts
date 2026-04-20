@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isAIPromptCol, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
+import { UITypes, isAIPromptCol, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol, isDeletedCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { CellRange } from '#imports'
 
@@ -27,6 +27,8 @@ export function useData(args: {
   const { base } = storeToRefs(useBase())
 
   const { $api } = useNuxtApp()
+
+  const { restoreFromTrash } = useRecordTrash()
 
   const { isPaginationLoading } = storeToRefs(useViewsStore())
 
@@ -589,6 +591,8 @@ export function useData(args: {
         }
 
         if (!undo) {
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
+
           addUndo({
             redo: {
               fn: async function redo(this: UndoRedoAction, id: string) {
@@ -600,30 +604,38 @@ export function useData(args: {
               },
               args: [id],
             },
-            undo: {
-              fn: async function undo(
-                this: UndoRedoAction,
-                row: Row,
-                ltarState: Record<string, any>,
-                pg: { page: number; pageSize: number },
-              ) {
-                const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
-
-                row.row = { ...pkData, ...row.row }
-                await insertRow(row, ltarState, {}, true)
-                recoverLTARRefs(row.row)
-                if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
-                  if (pg.page === paginationData.value.page) {
-                    formattedData.value.splice(rowIndex, 0, row)
-                  } else {
-                    await callbacks?.changePage?.(pg.page)
-                  }
-                } else {
-                  await callbacks?.loadData?.()
+            undo: hasSoftDelete
+              ? {
+                  fn: async function undo(this: UndoRedoAction, id: string) {
+                    await restoreFromTrash(meta.value as TableType, [id], {
+                      onSuccess: () => callbacks?.loadData?.(),
+                    })
+                  },
+                  args: [id],
                 }
-              },
-              args: [clone(row), {}, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
-            },
+              : {
+                  fn: async function undo(
+                    this: UndoRedoAction,
+                    row: Row,
+                    ltarState: Record<string, any>,
+                    pg: { page: number; pageSize: number },
+                  ) {
+                    const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+                    row.row = { ...pkData, ...row.row }
+                    await insertRow(row, ltarState, {}, true)
+                    recoverLTARRefs(row.row)
+                    if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
+                      if (pg.page === paginationData.value.page) {
+                        formattedData.value.splice(rowIndex, 0, row)
+                      } else {
+                        await callbacks?.changePage?.(pg.page)
+                      }
+                    } else {
+                      await callbacks?.loadData?.()
+                    }
+                  },
+                  args: [clone(row), {}, { page: paginationData.value.page, pageSize: paginationData.value.pageSize }],
+                },
             scope: defineViewScope({ view: viewMeta.value }),
           })
         }
@@ -725,32 +737,44 @@ export function useData(args: {
           removedRowsData: Record<string, any>[],
           pg: { page: number; pageSize: number },
         ) {
-          const rowsToInsert = removedRowsData
-            .map((row) => {
-              const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
-              row.row = { ...pkData, ...row.row }
-              return row
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
+
+          if (hasSoftDelete) {
+            const rowIds = removedRowsData
+              .map((row) => extractPkFromRow(row.row.row, meta.value?.columns as ColumnType[]))
+              .filter(Boolean)
+
+            await restoreFromTrash(meta.value as TableType, rowIds, {
+              onSuccess: () => callbacks?.loadData?.(),
             })
-            .reverse()
+          } else {
+            const rowsToInsert = removedRowsData
+              .map((row) => {
+                const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+                row.row = { ...pkData, ...row.row }
+                return row
+              })
+              .reverse()
 
-          const insertedRowIds = await bulkInsertRows(
-            rowsToInsert.map((row) => row.row),
-            undefined,
-            true,
-          )
+            const insertedRowIds = await bulkInsertRows(
+              rowsToInsert.map((row) => row.row),
+              undefined,
+              true,
+            )
 
-          if (Array.isArray(insertedRowIds)) {
-            for (const { row, rowIndex } of rowsToInsert) {
-              recoverLTARRefs(row.row)
+            if (Array.isArray(insertedRowIds)) {
+              for (const { row, rowIndex } of rowsToInsert) {
+                recoverLTARRefs(row.row)
 
-              if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
-                if (pg.page === paginationData.value.page) {
-                  formattedData.value.splice(rowIndex, 0, row)
+                if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
+                  if (pg.page === paginationData.value.page) {
+                    formattedData.value.splice(rowIndex, 0, row)
+                  } else {
+                    await callbacks?.changePage?.(pg.page)
+                  }
                 } else {
-                  await callbacks?.changePage?.(pg.page)
+                  await callbacks?.loadData?.()
                 }
-              } else {
-                await callbacks?.loadData?.()
               }
             }
           }
@@ -861,32 +885,44 @@ export function useData(args: {
           removedRowsData: Record<string, any>[],
           pg: { page: number; pageSize: number },
         ) {
-          const rowsToInsert = removedRowsData
-            .map((row) => {
-              const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
-              row.row = { ...pkData, ...row.row }
-              return row
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
+
+          if (hasSoftDelete) {
+            const rowIds = removedRowsData
+              .map((row) => extractPkFromRow(row.row.row, meta.value?.columns as ColumnType[]))
+              .filter(Boolean)
+
+            await restoreFromTrash(meta.value as TableType, rowIds, {
+              onSuccess: () => callbacks?.loadData?.(),
             })
-            .reverse()
+          } else {
+            const rowsToInsert = removedRowsData
+              .map((row) => {
+                const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+                row.row = { ...pkData, ...row.row }
+                return row
+              })
+              .reverse()
 
-          const insertedRowIds = await bulkInsertRows(
-            rowsToInsert.map((row) => row.row),
-            undefined,
-            true,
-          )
+            const insertedRowIds = await bulkInsertRows(
+              rowsToInsert.map((row) => row.row),
+              undefined,
+              true,
+            )
 
-          if (Array.isArray(insertedRowIds)) {
-            for (const { row, rowIndex } of rowsToInsert) {
-              recoverLTARRefs(row.row)
+            if (Array.isArray(insertedRowIds)) {
+              for (const { row, rowIndex } of rowsToInsert) {
+                recoverLTARRefs(row.row)
 
-              if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
-                if (pg.page === paginationData.value.page) {
-                  formattedData.value.splice(rowIndex, 0, row)
+                if (rowIndex !== -1 && pg.pageSize === paginationData.value.pageSize) {
+                  if (pg.page === paginationData.value.page) {
+                    formattedData.value.splice(rowIndex, 0, row)
+                  } else {
+                    await callbacks?.changePage?.(pg.page)
+                  }
                 } else {
-                  await callbacks?.changePage?.(pg.page)
+                  await callbacks?.loadData?.()
                 }
-              } else {
-                await callbacks?.loadData?.()
               }
             }
           }

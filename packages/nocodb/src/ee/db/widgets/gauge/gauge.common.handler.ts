@@ -129,6 +129,11 @@ export class GaugeCommonHandler extends BaseWidgetHandler<GaugeWidgetType> {
       where: '',
     });
 
+    const softDeleteFilter = await baseModel.getSoftDeleteFilter();
+    if (softDeleteFilter) {
+      qb.where(softDeleteFilter);
+    }
+
     let query;
     let aggregationColumn;
 

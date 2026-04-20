@@ -101,6 +101,14 @@ export default class Model implements TableType {
 
   date_dependency?: DateDependencyType | null;
 
+  trash_cleanup_due_at?: string | null;
+  trash_disabled?: boolean | null;
+  trash_retention_days?: number | null;
+
+  get isTrashEnabled(): boolean {
+    return false;
+  }
+
   columns?: Column[];
   columnsById?: { [id: string]: Column };
   columnsHash?: string;
@@ -1356,6 +1364,54 @@ export default class Model implements TableType {
     return mapColumns.reduce(
       (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
       idReduce,
+    );
+  }
+
+  static async updateTrashCleanupDueAt(
+    context: NcContext,
+    modelId: string,
+    dueAt: string | null,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      { trash_cleanup_due_at: dueAt },
+      modelId,
+    );
+
+    await NocoCache.update(context, `${CacheScope.MODEL}:${modelId}`, {
+      trash_cleanup_due_at: dueAt,
+    });
+  }
+
+  static async updateTrashSettings(
+    context: NcContext,
+    modelId: string,
+    settings: {
+      trash_disabled?: boolean | null;
+      trash_retention_days?: number | null;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(settings, [
+      'trash_disabled',
+      'trash_retention_days',
+    ]);
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      updateObj,
+      modelId,
+    );
+
+    await NocoCache.update(
+      context,
+      `${CacheScope.MODEL}:${modelId}`,
+      updateObj,
     );
   }
 

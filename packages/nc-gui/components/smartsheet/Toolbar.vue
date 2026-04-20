@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { UITypes } from 'nocodb-sdk'
+
 defineProps<{
   showFullScreenToggle?: boolean
 }>()
@@ -9,8 +11,12 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { isGrid, isGallery, isKanban, isMap, isCalendar, isList, isForm, isViewOperationsAllowed, allFilters, isTimeline } =
+const { isGrid, isGallery, isKanban, isMap, isCalendar, isList, isForm, isViewOperationsAllowed, allFilters, isTimeline, meta } =
   useSmartsheetStoreOrThrow()
+
+const hasDeletedField = computed(() => {
+  return !!(meta.value as TableType)?.columns?.some((c) => c.uidt === UITypes.Deleted)
+})
 
 const { isUIAllowed } = useRoles()
 
@@ -172,6 +178,10 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
         v-if="isGrid || isGallery || isKanban || isList"
         v-model:search-expanded="isSearchExpanded"
         :class="isMobileSearchActive ? 'flex-1 min-w-0' : 'shrink'"
+      />
+
+      <LazySmartsheetToolbarRecordTrash
+        v-if="isEeUI && !isPublic && !isSharedBase && !isMobileMode && !isForm && hasDeletedField && isUIAllowed('dataEdit')"
       />
 
       <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />

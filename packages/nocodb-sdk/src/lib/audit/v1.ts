@@ -76,6 +76,14 @@ enum AuditV1OperationTypes {
 
   DATA_CASCADE_UPDATE = 'DATA_CASCADE_UPDATE',
 
+  // Trash / soft-delete operations
+  DATA_SOFT_DELETE = 'DATA_SOFT_DELETE',
+  DATA_BULK_SOFT_DELETE = 'DATA_BULK_SOFT_DELETE',
+  DATA_RESTORE = 'DATA_RESTORE',
+  DATA_BULK_RESTORE = 'DATA_BULK_RESTORE',
+  DATA_PERMANENT_DELETE = 'DATA_PERMANENT_DELETE',
+  DATA_BULK_PERMANENT_DELETE = 'DATA_BULK_PERMANENT_DELETE',
+
   DATA_LINK = 'DATA_LINK',
   DATA_UNLINK = 'DATA_UNLINK',
 
@@ -411,7 +419,10 @@ export const auditV1OperationsCategory: Record<
 export type BulkAuditV1OperationTypes =
   | AuditV1OperationTypes.DATA_BULK_INSERT
   | AuditV1OperationTypes.DATA_BULK_UPDATE
-  | AuditV1OperationTypes.DATA_BULK_DELETE;
+  | AuditV1OperationTypes.DATA_BULK_DELETE
+  | AuditV1OperationTypes.DATA_BULK_SOFT_DELETE
+  | AuditV1OperationTypes.DATA_BULK_RESTORE
+  | AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE;
 
 export interface UserSigninPayload {
   provider?: string;
@@ -1573,6 +1584,23 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.DATA_CASCADE_UPDATE]: (
     _audit: AuditV1<DataCascadeUpdatePayload>
   ) => `Record was rescheduled to avoid overlap with a conflicting record`,
+  [AuditV1OperationTypes.DATA_SOFT_DELETE]: (
+    audit: AuditV1<DataDeletePayload>
+  ) => `Record with ID [${audit.row_id}] has been moved to trash`,
+  [AuditV1OperationTypes.DATA_RESTORE]: (audit: AuditV1<DataDeletePayload>) =>
+    `Record with ID [${audit.row_id}] has been restored from trash`,
+  [AuditV1OperationTypes.DATA_PERMANENT_DELETE]: (
+    audit: AuditV1<DataDeletePayload>
+  ) => `Record with ID [${audit.row_id}] has been permanently deleted`,
+  [AuditV1OperationTypes.DATA_BULK_SOFT_DELETE]: (
+    _audit: AuditV1<DataDeletePayload>
+  ) => `Records have been moved to trash`,
+  [AuditV1OperationTypes.DATA_BULK_RESTORE]: (
+    _audit: AuditV1<DataDeletePayload>
+  ) => `Records have been restored from trash`,
+  [AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE]: (
+    _audit: AuditV1<DataDeletePayload>
+  ) => `Records have been permanently deleted`,
 
   /*  [AuditV1OperationTypes.DATA_BULK_INSERT]: (
     audit: AuditV1<DataBulkInsertPayload>

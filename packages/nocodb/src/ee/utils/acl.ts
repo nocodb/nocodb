@@ -236,6 +236,15 @@ const permissionScopes = {
     // SCIM Config
   ],
   base: [
+    // Record Trash
+    'recordTrashEvents',
+    'recordTrashCount',
+    'recordTrashRestore',
+    'recordTrashPermanentDelete',
+    'recordTrashEmpty',
+    'recordTrashSettingsList',
+    'recordTrashSettingsUpdate',
+
     'nestedDataListCopyPasteOrDeleteAll',
     'nestedDataBulkCopyPasteOrDeleteAll',
     'nestedDataBulkLinkByDisplayValue',
@@ -884,6 +893,11 @@ const rolePermissions:
   },
   [ProjectRoles.EDITOR]: {
     include: {
+      // Record Trash
+      recordTrashEvents: true,
+      recordTrashCount: true,
+      recordTrashRestore: true,
+
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
@@ -1014,6 +1028,8 @@ const rolePermissions:
   [ProjectRoles.CREATOR]: {
     exclude: {
       createBase: true,
+      recordTrashPermanentDelete: true,
+      recordTrashEmpty: true,
       manageSnapshots: true,
       baseAuditList: true,
       rlsPolicyList: true,
@@ -1634,6 +1650,15 @@ const permissionDescriptions: Record<string, string> = {
   aiDataGenerateRows: 'generate rows using AI',
   aiDataFillRows: 'fill rows using AI',
   aiDataExtractRows: 'extract rows from input using AI',
+
+  // Record Trash
+  recordTrashEvents: 'view record trash events',
+  recordTrashCount: 'view count of deleted records',
+  recordTrashRestore: 'restore deleted records',
+  recordTrashPermanentDelete: 'permanently delete records from trash',
+  recordTrashEmpty: 'empty the record trash',
+  recordTrashSettingsList: 'view trash settings for tables',
+  recordTrashSettingsUpdate: 'update trash settings for a table',
 };
 
 // Human-readable descriptions for roles

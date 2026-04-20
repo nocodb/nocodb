@@ -1,4 +1,9 @@
-import { extractFilterFromXwhere, isOrderCol, UITypes } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  isDeletedCol,
+  isOrderCol,
+  UITypes,
+} from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { NcApiVersion } from 'nocodb-sdk';
@@ -46,6 +51,7 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       skipCache?: boolean;
       listArgs?: XcFilter;
       ignoreRls?: boolean;
+      deletedOnly?: boolean;
       limitOffsetPlaceholder?: number;
       /**
        * Optional raw inner query BEFORE source_qb wrapping. When provided,
@@ -219,20 +225,27 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
     // RLS filters — always throw on missing columns to prevent row leaks
     if (rlsFilterGroup.length) {
       await conditionV2(baseModel, rlsFilterGroup, baseQb, undefined, true);
-      if (countConditionQb) {
-        await conditionV2(
-          baseModel,
-          rlsFilterGroup,
-          countConditionQb,
-          undefined,
-          true,
-        );
-      }
     }
 
     // Apply remaining filters on baseQb (inner qb when provided,
-    // otherwise rootQb). This keeps formula-based conditions in scope
+    // otherwise baseQb). This keeps formula-based conditions in scope
     // of the original table name.
+    // Soft-delete filter: exclude deleted records normally, or select ONLY deleted for trash listing
+    if (ctx.deletedOnly) {
+      const deletedCol = columns.find((c) => isDeletedCol(c));
+      if (deletedCol) {
+        baseQb.where(deletedCol.column_name, true);
+      } else {
+        baseQb.whereRaw('1 = 0');
+      }
+    } else {
+      const softDeleteFilter = await baseModel.getSoftDeleteFilter();
+      if (softDeleteFilter) {
+        baseQb.where(softDeleteFilter);
+      }
+    }
+
+    // apply remaining filters on root query and count query
     await conditionV2(
       baseModel,
       aggrConditionObj,
@@ -240,15 +253,6 @@ export const listQueryEnrichment = (client: DBQueryClient, _logger: Logger) => {
       undefined,
       ctx.throwErrorIfInvalidParams,
     );
-    if (countConditionQb) {
-      await conditionV2(
-        baseModel,
-        aggrConditionObj,
-        countConditionQb,
-        undefined,
-        ctx.throwErrorIfInvalidParams,
-      );
-    }
 
     // Clone baseQb for count AFTER conditions but BEFORE sorts —
     // count queries don't need ORDER BY.

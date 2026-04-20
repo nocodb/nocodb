@@ -510,6 +510,21 @@ export interface DataExportEvent extends NcBaseEvent {
   type: 'excel' | 'csv' | 'json';
 }
 
+export interface RecordsSoftDeleteEvent extends NcBaseEvent {
+  tableId: string;
+  rowIds: string[];
+}
+
+export interface RecordsRestoreEvent extends NcBaseEvent {
+  tableId: string;
+  rowIds: string[];
+}
+
+export interface RecordsPermanentDeleteEvent extends NcBaseEvent {
+  tableId: string;
+  rowIds: string[];
+}
+
 export type AppEventPayload =
   | ProjectInviteEvent
   | ProjectCreateEvent

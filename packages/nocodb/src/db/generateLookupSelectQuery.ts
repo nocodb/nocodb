@@ -21,7 +21,7 @@ import type LookupColumn from '../models/LookupColumn';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { NcError } from '~/helpers/catchError';
-import { getAs } from '~/helpers/dbHelpers';
+import { getAliasedSoftDeleteFilter, getAs } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 import { getAliasGenerator } from '~/utils';
 
@@ -143,6 +143,15 @@ export default async function generateLookupSelectQuery({
             }`,
           ]),
         );
+
+        // Exclude soft-deleted parent records from BT lookup
+        const btSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          parentBaseModel,
+          alias,
+        );
+        if (btSoftDeleteFilter) {
+          selectQb.where(btSoftDeleteFilter);
+        }
       } else if (relationType === RelationTypes.HAS_MANY && !isMMLike) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn(context);
@@ -175,6 +184,15 @@ export default async function generateLookupSelectQuery({
             }.${parentColumn.column_name}`,
           ]),
         );
+
+        // Exclude soft-deleted child records from HM lookup
+        const hmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          childBaseModel,
+          alias,
+        );
+        if (hmSoftDeleteFilter) {
+          selectQb.where(hmSoftDeleteFilter);
+        }
       } else if (relationType === RelationTypes.MANY_TO_MANY || isMMLike) {
         const isSingleTargetV2 = isBtLikeV2Junction(relationCol);
         if (!isSingleTargetV2) {
@@ -231,6 +249,15 @@ export default async function generateLookupSelectQuery({
               }.${childColumn.column_name}`,
             ),
           );
+
+        // Exclude soft-deleted referenced records from MM lookup
+        const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+          parentBaseModel,
+          alias,
+        );
+        if (mmSoftDeleteFilter) {
+          selectQb.where(mmSoftDeleteFilter);
+        }
 
         if (isSingleTargetV2) {
           selectQb.limit(1);
@@ -313,6 +340,15 @@ export default async function generateLookupSelectQuery({
             `${nestedAlias}.${parentColumn.column_name}`,
             `${prevAlias}.${childColumn.column_name}`,
           );
+
+          // Exclude soft-deleted parent records from nested BT lookup
+          const nestedBtSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+            parentBaseModel,
+            nestedAlias,
+          );
+          if (nestedBtSoftDeleteFilter) {
+            selectQb.where(nestedBtSoftDeleteFilter);
+          }
         } else if (relationType === RelationTypes.HAS_MANY) {
           isBtLookup = false;
           const childColumn = await relation.getChildColumn(context);
@@ -334,6 +370,15 @@ export default async function generateLookupSelectQuery({
             `${nestedAlias}.${childColumn.column_name}`,
             `${prevAlias}.${parentColumn.column_name}`,
           );
+
+          // Exclude soft-deleted child records from nested HM lookup
+          const nestedHmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+            childBaseModel,
+            nestedAlias,
+          );
+          if (nestedHmSoftDeleteFilter) {
+            selectQb.where(nestedHmSoftDeleteFilter);
+          }
         } else if (relationType === RelationTypes.MANY_TO_MANY) {
           const nestedIsSingleTargetV2 = isBtLikeV2Junction(relationCol);
           if (!nestedIsSingleTargetV2) {
@@ -392,6 +437,15 @@ export default async function generateLookupSelectQuery({
                 }`,
               ),
             );
+
+          // Exclude soft-deleted referenced records from nested MM lookup
+          const nestedMmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+            parentBaseModel,
+            nestedAlias,
+          );
+          if (nestedMmSoftDeleteFilter) {
+            selectQb.where(nestedMmSoftDeleteFilter);
+          }
 
           if (nestedIsSingleTargetV2) {
             selectQb.limit(1);

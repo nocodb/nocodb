@@ -24,6 +24,9 @@ import type {
   ProjectDeleteEvent,
   ProjectInviteEvent,
   ProjectUpdateEvent,
+  RecordsPermanentDeleteEvent,
+  RecordsRestoreEvent,
+  RecordsSoftDeleteEvent,
   RecordTemplateCreateEvent,
   RecordTemplateDeleteEvent,
   RecordTemplateUpdateEvent,
@@ -572,6 +575,20 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: ScimConfigEvent) => void,
   ): () => void;
 
+  // Record Trash Events
+  on(
+    event: AppEvents.RECORDS_SOFT_DELETE,
+    listener: (data: RecordsSoftDeleteEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RECORDS_RESTORE,
+    listener: (data: RecordsRestoreEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RECORDS_PERMANENT_DELETE,
+    listener: (data: RecordsPermanentDeleteEvent) => void,
+  ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }
@@ -1029,6 +1046,17 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.SCIM_CONFIG_DELETE
       | AppEvents.SCIM_CONFIG_TOKEN_REGENERATE,
     data: ScimConfigEvent,
+  ): void;
+
+  // Record Trash Events
+  emit(
+    event: AppEvents.RECORDS_SOFT_DELETE,
+    data: RecordsSoftDeleteEvent,
+  ): void;
+  emit(event: AppEvents.RECORDS_RESTORE, data: RecordsRestoreEvent): void;
+  emit(
+    event: AppEvents.RECORDS_PERMANENT_DELETE,
+    data: RecordsPermanentDeleteEvent,
   ): void;
 
   emit(event, data): void {

@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import { EventType, UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
+import { EventType, UITypes, ViewLockType, ViewTypes, isDeletedCol } from 'nocodb-sdk'
 import type {
   Api,
   ColumnType,
@@ -40,6 +40,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const { getBaseType } = baseStore
 
     const { $e, $api, $ncSocket } = useNuxtApp()
+
+    const { restoreFromTrash } = useRecordTrash()
 
     const { sorts, nestedFilters, eventBus, xWhere, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 
@@ -748,6 +750,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     async function deleteRow(row: Row, undo = false) {
       try {
         if (!undo) {
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
+
           addUndo({
             redo: {
               fn: async function redo(this: UndoRedoAction, r: Row) {
@@ -755,15 +759,25 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
               },
               args: [clone(row)],
             },
-            undo: {
-              fn: async function undo(this: UndoRedoAction, row: Row) {
-                const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
-                row.row = { ...pkData, ...row.row }
-                await insertRow(row.row, undefined, true)
-                addOrEditStackRow(row, true)
-              },
-              args: [clone(row)],
-            },
+            undo: hasSoftDelete
+              ? {
+                  fn: async function undo(this: UndoRedoAction, row: Row) {
+                    const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                    await restoreFromTrash(meta.value as TableType, [id], {
+                      onSuccess: () => addOrEditStackRow(row, true),
+                    })
+                  },
+                  args: [clone(row)],
+                }
+              : {
+                  fn: async function undo(this: UndoRedoAction, row: Row) {
+                    const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+                    row.row = { ...pkData, ...row.row }
+                    await insertRow(row.row, undefined, true)
+                    addOrEditStackRow(row, true)
+                  },
+                  args: [clone(row)],
+                },
             scope: defineViewScope({ view: viewMeta.value as ViewType }),
           })
         }

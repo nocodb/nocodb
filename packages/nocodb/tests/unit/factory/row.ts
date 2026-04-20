@@ -378,6 +378,7 @@ const generateDefaultRowAttributes = ({
       column.uidt === UITypes.ID ||
       column.uidt === UITypes.Order ||
       column.uidt === UITypes.Meta ||
+      column.uidt === UITypes.Deleted ||
       isCreatedOrLastModifiedTimeCol(column) ||
       isCreatedOrLastModifiedByCol(column)
     ) {

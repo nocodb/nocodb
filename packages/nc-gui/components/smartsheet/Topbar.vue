@@ -20,6 +20,34 @@ const { appInfo } = useGlobal()
 
 const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
 
+const { openTrash, trashUnavailableReason } = useRecordTrash()
+
+const { t } = useI18n()
+
+const trashUnavailableMessage = computed(() => {
+  switch (trashUnavailableReason.value) {
+    case 'external':
+      return t('trash.notAvailableExternal')
+    case 'pending':
+      return t('trash.notAvailablePending')
+    case 'disabled':
+      return t('trash.autoExpiryDisabled')
+    default:
+      return ''
+  }
+})
+
+const { resolvedProject } = storeToRefs(useBases())
+
+const isHistoryMenuOpen = ref(false)
+
+function openSnapshots() {
+  const baseId = resolvedProject.value?.id
+  const wsId = route.value.params.typeOrId
+  if (!baseId || !wsId) return
+  navigateTo(`/${wsId}/${baseId}/settings/snapshots`)
+}
+
 const { toggleActionPanel, isPanelExpanded: isActionPanelExpanded, isViewActionsEnabled } = useActionPane()
 
 const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
@@ -86,7 +114,76 @@ const topbarBreadcrumbItemWidth = computed(() => {
           v-if="!isPublic && !isSharedBase && !isMobileMode && openedViewsTab === 'view' && appInfo.ee"
         />
 
-        <NcButton
+        <NcDropdown
+          v-if="
+            isEeUI &&
+            !isSharedBase &&
+            !activeScriptId &&
+            !activeDashboardId &&
+            !activeWorkflowId &&
+            openedViewsTab === 'view' &&
+            !isMobileMode
+          "
+          v-model:visible="isHistoryMenuOpen"
+          placement="bottomRight"
+        >
+          <NcTooltip :disabled="isHistoryMenuOpen" placement="bottom">
+            <template #title>{{ $t('labels.history') }}</template>
+            <NcButton
+              v-e="['c:topbar:history-menu']"
+              type="text"
+              size="small"
+              class="nc-topbar-history-btn"
+              :class="{ '!bg-nc-bg-brand !text-nc-content-brand': isHistoryMenuOpen }"
+              data-testid="nc-topbar-history-btn"
+            >
+              <GeneralIcon icon="ncHistory" class="w-4 h-4 !stroke-transparent" />
+            </NcButton>
+          </NcTooltip>
+          <template #overlay>
+            <NcMenu variant="medium" class="min-w-40">
+              <NcMenuItem
+                v-e="['c:topbar:history-menu:snapshots']"
+                data-testid="nc-topbar-history-menu-snapshots"
+                @click="
+                  () => {
+                    isHistoryMenuOpen = false
+                    openSnapshots()
+                  }
+                "
+              >
+                <GeneralIcon icon="camera" class="text-nc-content-gray-subtle2" />
+                <div>{{ $t('labels.snapshots') }}</div>
+              </NcMenuItem>
+              <NcTooltip :disabled="!trashUnavailableReason" placement="left">
+                <template #title>{{ trashUnavailableMessage }}</template>
+                <NcMenuItem
+                  v-e="['c:topbar:history-menu:trash']"
+                  :disabled="!!trashUnavailableReason"
+                  data-testid="nc-topbar-history-menu-trash"
+                  @click="
+                    () => {
+                      if (trashUnavailableReason) return
+                      isHistoryMenuOpen = false
+                      openTrash()
+                    }
+                  "
+                >
+                  <GeneralIcon
+                    :class="{
+                      '!text-nc-content-gray-disabled': trashUnavailableReason,
+                    }"
+                    icon="ncTrash2"
+                    class="text-nc-content-gray-subtle2"
+                  />
+                  <div>{{ $t('labels.trash') }}</div>
+                </NcMenuItem>
+              </NcTooltip>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+
+        <NcTooltip
           v-if="
             (isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
@@ -96,31 +193,21 @@ const topbarBreadcrumbItemWidth = computed(() => {
             openedViewsTab === 'view' &&
             !isMobileMode
           "
-          v-e="['c:extension-toggle']"
-          type="secondary"
-          size="small"
-          class="nc-topbar-extension-btn"
-          :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
-          data-testid="nc-topbar-extension-btn"
-          @click="blockExtensions && !isPanelExpanded ? showUpgradeToUseExtensions() : toggleExtensionPanel()"
+          placement="bottom"
         >
-          <div class="flex items-center justify-center min-w-[28.69px]">
-            <GeneralIcon
-              :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'"
-              class="w-4 h-4 !stroke-transparent"
-              :class="{ 'border-l-1 border-transparent': isPanelExpanded }"
-            />
-            <span
-              class="overflow-hidden transition-all duration-200"
-              :class="{
-                'w-[0px] invisible': isPanelExpanded || isChatPanelExpanded,
-                'ml-1 w-[74px]': !isPanelExpanded && !isChatPanelExpanded,
-              }"
-            >
-              {{ $t('general.extensions') }}
-            </span>
-          </div>
-        </NcButton>
+          <template #title>{{ $t('general.extensions') }}</template>
+          <NcButton
+            v-e="['c:extension-toggle']"
+            type="text"
+            size="small"
+            class="nc-topbar-extension-btn"
+            :class="{ '!bg-nc-bg-brand !text-nc-content-brand': isPanelExpanded }"
+            data-testid="nc-topbar-extension-btn"
+            @click="blockExtensions && !isPanelExpanded ? showUpgradeToUseExtensions() : toggleExtensionPanel()"
+          >
+            <GeneralIcon :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'" class="w-4 h-4 !stroke-transparent" />
+          </NcButton>
+        </NcTooltip>
 
         <NcButton
           v-if="

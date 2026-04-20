@@ -24,6 +24,7 @@ import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getRefColumnIfAlias } from '~/helpers';
+import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 
 export const lookupOrLtarBuilder =
@@ -117,6 +118,14 @@ export const lookupOrLtarBuilder =
               qb: selectQb,
               alias,
             });
+
+            const btSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+              parentBaseModel,
+              alias,
+            );
+            if (btSoftDeleteFilter) {
+              selectQb.where(btSoftDeleteFilter);
+            }
           }
           break;
         case RelationTypes.HAS_MANY:
@@ -149,6 +158,14 @@ export const lookupOrLtarBuilder =
               qb: selectQb,
               alias,
             });
+
+            const hmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+              childBaseModel,
+              alias,
+            );
+            if (hmSoftDeleteFilter) {
+              selectQb.where(hmSoftDeleteFilter);
+            }
           }
           break;
         case RelationTypes.MANY_TO_MANY:
@@ -206,6 +223,14 @@ export const lookupOrLtarBuilder =
               qb: selectQb,
               alias,
             });
+
+            const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+              parentBaseModel,
+              alias,
+            );
+            if (mmSoftDeleteFilter) {
+              selectQb.where(mmSoftDeleteFilter);
+            }
           }
           break;
       }
@@ -278,6 +303,14 @@ export const lookupOrLtarBuilder =
                 qb: selectQb,
                 alias,
               });
+
+              const nestedBtSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+                parentBaseModel,
+                nestedAlias,
+              );
+              if (nestedBtSoftDeleteFilter) {
+                selectQb.where(nestedBtSoftDeleteFilter);
+              }
             }
             break;
           case RelationTypes.HAS_MANY:
@@ -300,6 +333,14 @@ export const lookupOrLtarBuilder =
                 qb: selectQb,
                 alias,
               });
+
+              const nestedHmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+                childBaseModel,
+                nestedAlias,
+              );
+              if (nestedHmSoftDeleteFilter) {
+                selectQb.where(nestedHmSoftDeleteFilter);
+              }
             }
             break;
           case RelationTypes.MANY_TO_MANY: {
@@ -342,6 +383,14 @@ export const lookupOrLtarBuilder =
               qb: selectQb,
               alias,
             });
+
+            const nestedMmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+              parentBaseModel,
+              nestedAlias,
+            );
+            if (nestedMmSoftDeleteFilter) {
+              selectQb.where(nestedMmSoftDeleteFilter);
+            }
           }
         }
 

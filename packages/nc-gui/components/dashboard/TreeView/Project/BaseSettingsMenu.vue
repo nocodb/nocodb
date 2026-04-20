@@ -26,6 +26,8 @@ const {
   showUpgradeToUseDocumentPermissions,
   showUpgradeToUseSync,
   showUpgradeToUseSnapshots,
+  showUpgradeToUseTrashSettings,
+  blockTrashSettings,
   isEEFeatureBlocked,
   showEEFeatures,
 } = useEeConfig()
@@ -36,6 +38,10 @@ const navigateToBaseSettings = (page: string) => {
   if (page === 'syncs' && showUpgradeToUseSync()) return
   if (page === 'snapshots' && isEEFeatureBlocked.value) {
     showUpgradeToUseSnapshots()
+    return
+  }
+  if (page === 'record-trash' && blockTrashSettings.value) {
+    showUpgradeToUseTrashSettings()
     return
   }
 
@@ -182,6 +188,19 @@ onMounted(() => {
       @click="navigateToBaseSettings('mcp')"
     >
       {{ $t('title.mcpServer') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('recordTrashSettingsList', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
+      v-e="['c:settings:base:record-trash']"
+      icon="ncTrash2"
+      data-testid="base-record-trash"
+      :active="activeBaseSettingsTab === 'record-trash'"
+      @click="navigateToBaseSettings('record-trash')"
+    >
+      {{ $t('trash.settings') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockTrashSettings" />
+      </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="

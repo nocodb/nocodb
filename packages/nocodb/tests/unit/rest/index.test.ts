@@ -35,6 +35,7 @@ let integrationTest = require('./tests/integration.test').default;
 let oauthDCRTest = () => {};
 let oauthTests = () => {};
 let autoNumberTests = () => {};
+let recordTrashTest = () => {};
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
   oauthDCRTest = require('./tests/ee/oAuthDCR.test').default;
@@ -47,6 +48,7 @@ if (process.env.EE === 'true') {
   integrationTest = require('./tests/ee/integration.test').default;
   oauthTests = require('./tests/oauth.test').default;
   autoNumberTests = require('./tests/ee/autoNumber.test').default;
+  recordTrashTest = require('./tests/ee/record-trash.test').default;
 }
 
 const testVersion = ['v1', 'v2', 'v3'];
@@ -65,6 +67,7 @@ function restTests() {
     formulaTests();
     ssoTest();
     scimTest();
+    recordTrashTest();
   }
   if (willRunOnSet(2)) {
     convertDateFormatTests();

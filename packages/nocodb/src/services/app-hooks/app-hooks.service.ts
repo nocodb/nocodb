@@ -22,6 +22,7 @@ import type {
   GalleryViewUpdateEvent,
   GridColumnEvent,
   GridViewUpdateEvent,
+  IntegrationEvent,
   IntegrationUpdateEvent,
   KanbanViewUpdateEvent,
   ListViewUpdateEvent,
@@ -39,10 +40,15 @@ import type {
   ProjectDeleteEvent,
   ProjectInviteEvent,
   ProjectUpdateEvent,
+  ProjectUserDeleteEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
+  RecordsPermanentDeleteEvent,
+  RecordsRestoreEvent,
+  RecordsSoftDeleteEvent,
   RelationEvent,
   RowCommentEvent,
+  RowMentionEvent,
   SharedBaseDeleteEvent,
   SharedBaseEvent,
   SharedViewUpdateEvent,
@@ -74,12 +80,10 @@ import type {
   ViewEvent,
   ViewUpdateEvent,
   WebhookEvent,
+  WebhookUpdateEvent,
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
-import type { IntegrationEvent } from '~/services/app-hooks/interfaces';
-import type { RowMentionEvent } from '~/services/app-hooks/interfaces';
-import type { WebhookUpdateEvent } from '~/services/app-hooks/interfaces';
-import type { ProjectUserDeleteEvent } from '~/services/app-hooks/interfaces';
+
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
 const ALL_EVENTS = '__nc_all_events__';
@@ -197,6 +201,18 @@ export class AppHooksService {
       | AppEvents.INTEGRATION_DELETE
       | AppEvents.INTEGRATION_CREATE,
     listener: (data: IntegrationEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RECORDS_SOFT_DELETE,
+    listener: (data: RecordsSoftDeleteEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RECORDS_RESTORE,
+    listener: (data: RecordsRestoreEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RECORDS_PERMANENT_DELETE,
+    listener: (data: RecordsPermanentDeleteEvent) => void,
   ): () => void;
   on(event, listener): () => void {
     const unsubscribe = this.eventEmitter.on(event, listener);
@@ -469,6 +485,15 @@ export class AppHooksService {
   emit(
     event: AppEvents.DATE_DEPENDENCY_UPDATE | AppEvents.DATE_DEPENDENCY_DELETE,
     data: any,
+  ): void;
+  emit(
+    event: AppEvents.RECORDS_SOFT_DELETE,
+    data: RecordsSoftDeleteEvent,
+  ): void;
+  emit(event: AppEvents.RECORDS_RESTORE, data: RecordsRestoreEvent): void;
+  emit(
+    event: AppEvents.RECORDS_PERMANENT_DELETE,
+    data: RecordsPermanentDeleteEvent,
   ): void;
 
   emit(event, data): void {

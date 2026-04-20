@@ -1,5 +1,6 @@
 import {
   AuditV1OperationTypes,
+  isDeletedCol,
   isLinksOrLTAR,
   isLinkV2,
   isMMOrMMLike,
@@ -358,6 +359,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                 );
               });
 
+            // Exclude soft-deleted target rows — otherwise the link succeeds
+            // but the linked record is invisible under the read filter.
+            const parentSoftDeleteFilter =
+              await refBaseModel.getSoftDeleteFilter();
+            if (parentSoftDeleteFilter) {
+              childRowsQb.where(parentSoftDeleteFilter);
+            }
+
             if (parentTable.primaryKeys.length > 1) {
               childRowsQb.where((qb) => {
                 for (const childId of childIds) {
@@ -425,28 +434,63 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             const unlinkAuditChildObj = [];
 
             // mo/oo: child can only link to one parent — clear existing child links
+            // Preserve junction rows where the parent is soft-deleted so that
+            // restore conflict detection can detect them on restore.
             if (['mo', 'oo'].includes(colOptions.type)) {
               const childFkValue =
                 dataWrapper(row).getByColumnNameTitleOrId(childColumn);
 
+              // Skip rows whose parent is soft-deleted — they are preserved
+              // for restore conflict detection and should not be deleted or audited.
+              const parentSoftDeleteCol = parentTable.columns.find((c) =>
+                isDeletedCol(c),
+              );
+
+              const existingQb = baseModel
+                .dbDriver(vTn)
+                .select(vChildCol.column_name, vParentCol.column_name)
+                .where(vChildCol.column_name, childFkValue);
+
+              if (parentSoftDeleteCol) {
+                existingQb.whereNotExists(
+                  baseModel
+                    .dbDriver(parentTn)
+                    .select(1)
+                    .where(parentSoftDeleteCol.column_name, true)
+                    .whereRaw('?? = ??', [
+                      parentTable.primaryKey.column_name,
+                      `${vTn}.${vParentCol.column_name}`,
+                    ]),
+                );
+              }
+
               const existing = await assocBaseModel.execAndParse(
-                baseModel
-                  .dbDriver(vTn)
-                  .select(vChildCol.column_name, vParentCol.column_name)
-                  .where(vChildCol.column_name, childFkValue),
+                existingQb,
                 null,
                 { raw: true },
               );
 
               if (existing.length) {
-                await assocBaseModel.execAndParse(
-                  baseModel
-                    .dbDriver(vTn)
-                    .where(vChildCol.column_name, childFkValue)
-                    .delete(),
-                  null,
-                  { raw: true },
-                );
+                const deleteQb = baseModel
+                  .dbDriver(vTn)
+                  .where(vChildCol.column_name, childFkValue);
+
+                if (parentSoftDeleteCol) {
+                  deleteQb.whereNotExists(
+                    baseModel
+                      .dbDriver(parentTn)
+                      .select(1)
+                      .where(parentSoftDeleteCol.column_name, true)
+                      .whereRaw('?? = ??', [
+                        parentTable.primaryKey.column_name,
+                        `${vTn}.${vParentCol.column_name}`,
+                      ]),
+                  );
+                }
+
+                await assocBaseModel.execAndParse(deleteQb.delete(), null, {
+                  raw: true,
+                });
 
                 for (const r of existing) {
                   unlinkAuditParentObj.push({
@@ -466,28 +510,63 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             }
 
             // om/oo: each parent can only be linked by one child — clear existing parent links
+            // Preserve junction rows where the child is soft-deleted so that
+            // restore conflict detection can detect them on restore.
             if (['om', 'oo'].includes(colOptions.type)) {
               for (const data of insertData) {
                 const parentFkValue = data[vParentCol.column_name];
 
+                // Skip rows whose child is soft-deleted — they are preserved
+                // for restore conflict detection and should not be deleted or audited.
+                const childSoftDeleteCol = childTable.columns.find((c) =>
+                  isDeletedCol(c),
+                );
+
+                const existingQb = baseModel
+                  .dbDriver(vTn)
+                  .select(vChildCol.column_name, vParentCol.column_name)
+                  .where(vParentCol.column_name, parentFkValue);
+
+                if (childSoftDeleteCol) {
+                  existingQb.whereNotExists(
+                    baseModel
+                      .dbDriver(childTn)
+                      .select(1)
+                      .where(childSoftDeleteCol.column_name, true)
+                      .whereRaw('?? = ??', [
+                        childTable.primaryKey.column_name,
+                        `${vTn}.${vChildCol.column_name}`,
+                      ]),
+                  );
+                }
+
                 const existing = await assocBaseModel.execAndParse(
-                  baseModel
-                    .dbDriver(vTn)
-                    .select(vChildCol.column_name, vParentCol.column_name)
-                    .where(vParentCol.column_name, parentFkValue),
+                  existingQb,
                   null,
                   { raw: true },
                 );
 
                 if (existing.length) {
-                  await assocBaseModel.execAndParse(
-                    baseModel
-                      .dbDriver(vTn)
-                      .where(vParentCol.column_name, parentFkValue)
-                      .delete(),
-                    null,
-                    { raw: true },
-                  );
+                  const deleteQb = baseModel
+                    .dbDriver(vTn)
+                    .where(vParentCol.column_name, parentFkValue);
+
+                  if (childSoftDeleteCol) {
+                    deleteQb.whereNotExists(
+                      baseModel
+                        .dbDriver(childTn)
+                        .select(1)
+                        .where(childSoftDeleteCol.column_name, true)
+                        .whereRaw('?? = ??', [
+                          childTable.primaryKey.column_name,
+                          `${vTn}.${vChildCol.column_name}`,
+                        ]),
+                    );
+                  }
+
+                  await assocBaseModel.execAndParse(deleteQb.delete(), null, {
+                    raw: true,
+                  });
 
                   for (const r of existing) {
                     unlinkAuditParentObj.push({
@@ -607,6 +686,13 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               .dbDriver(childTn)
               .select(childTable.primaryKey.column_name);
 
+            // Exclude soft-deleted target rows — see MM branch above.
+            const childSoftDeleteFilter =
+              await childBaseModel.getSoftDeleteFilter();
+            if (childSoftDeleteFilter) {
+              childRowsQb.where(childSoftDeleteFilter);
+            }
+
             if (childTable.primaryKeys.length > 1) {
               childRowsQb.where((qb) => {
                 for (const childId of childIds) {
@@ -704,8 +790,16 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             const childRowsQb = baseModel
               .dbDriver(parentTn)
               .select(parentTable.primaryKey.column_name)
-              .where(_wherePk(parentTable.primaryKeys, childIds[0]))
-              .first();
+              .where(_wherePk(parentTable.primaryKeys, childIds[0]));
+
+            // Exclude soft-deleted target rows — see MM branch above.
+            const parentSoftDeleteFilter =
+              await refBaseModel.getSoftDeleteFilter();
+            if (parentSoftDeleteFilter) {
+              childRowsQb.where(parentSoftDeleteFilter);
+            }
+
+            childRowsQb.first();
 
             const childRow = await refBaseModel.execAndParse(
               childRowsQb,

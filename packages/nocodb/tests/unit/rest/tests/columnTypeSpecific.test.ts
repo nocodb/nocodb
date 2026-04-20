@@ -65,6 +65,11 @@ function columnTypeSpecificTests() {
       uidt: UITypes.Order,
       system: true,
     },
+    {
+      title: '__nc_deleted',
+      uidt: UITypes.Deleted,
+      system: true,
+    },
     ...(isEE
       ? [
           {

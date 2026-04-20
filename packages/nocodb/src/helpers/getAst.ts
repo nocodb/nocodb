@@ -1,6 +1,7 @@
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isDeletedCol,
   isHiddenCol,
   isLinksOrLTAR,
   isOrderCol,
@@ -364,6 +365,8 @@ const getAst = async (
       isRequested = false;
     } else if (isOrderCol(col) && col.system) {
       isRequested = extractOrderColumn || getHiddenColumn;
+    } else if (isDeletedCol(col) && col.system) {
+      isRequested = false;
     } else if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||

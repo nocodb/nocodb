@@ -163,4 +163,13 @@ export const OPERATION_SCOPES = {
   getDateDependency: 'base',
   updateDateDependency: 'base',
   deleteTableDateDependency: 'base',
+
+  // Record Trash (EE only)
+  recordTrashEvents: 'base',
+  recordTrashCount: 'base',
+  recordTrashRestore: 'base',
+  recordTrashPermanentDelete: 'base',
+  recordTrashEmpty: 'base',
+  recordTrashSettingsList: 'base',
+  recordTrashSettingsUpdate: 'base',
 } as const;

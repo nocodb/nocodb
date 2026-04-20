@@ -21,6 +21,7 @@ import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
+import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
 import { Profiler } from '~/helpers/profiler';
 
 export default async function genRollupSelectv2(param: {
@@ -249,6 +250,16 @@ export default async function genRollupSelectv2(param: {
         '=',
         knex.ref(`${refTableAlias}.${childCol.column_name}`),
       );
+
+      // Exclude soft-deleted child records from HM rollup
+      const hmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+        childBaseModel,
+        refTableAlias,
+      );
+      if (hmSoftDeleteFilter) {
+        queryBuilder.where(hmSoftDeleteFilter);
+      }
+
       await applyFunction(queryBuilder);
 
       if (column) {
@@ -283,6 +294,15 @@ export default async function genRollupSelectv2(param: {
         '=',
         knex.ref(`${refTableAlias}.${childCol.column_name}`),
       );
+
+      // Exclude soft-deleted child records from OO rollup
+      const ooSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+        childBaseModel,
+        refTableAlias,
+      );
+      if (ooSoftDeleteFilter) {
+        qb.where(ooSoftDeleteFilter);
+      }
 
       await extractLinkRelFiltersAndApply({
         qb,
@@ -346,6 +366,15 @@ export default async function genRollupSelectv2(param: {
             }`,
           ),
         );
+
+      // Exclude soft-deleted parent records from MM rollup
+      const mmSoftDeleteFilter = await getAliasedSoftDeleteFilter(
+        parentBaseModel,
+        refTableAlias,
+      );
+      if (mmSoftDeleteFilter) {
+        qb.where(mmSoftDeleteFilter);
+      }
 
       await extractLinkRelFiltersAndApply({
         qb: qb,

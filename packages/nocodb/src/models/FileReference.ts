@@ -23,6 +23,7 @@ export default class FileReference {
   fk_session_id: string;
   is_external: boolean;
   deleted: boolean;
+  soft_deleted: boolean;
   created_at: Date;
   updated_at: Date;
 
@@ -143,7 +144,7 @@ export default class FileReference {
         context.workspace_id,
         context.base_id,
         MetaTable.FILE_REFERENCES,
-        { deleted: true },
+        { deleted: true, soft_deleted: false },
         fileReferenceObj.id,
       );
     } else {
@@ -151,7 +152,7 @@ export default class FileReference {
         context.workspace_id,
         context.base_id,
         MetaTable.FILE_REFERENCES,
-        { deleted: true },
+        { deleted: true, soft_deleted: false },
         fileReferences,
       );
     }
@@ -195,6 +196,140 @@ export default class FileReference {
     );
 
     await this.updateWorkspaceCache(context, fileReferencesSize, true);
+  }
+
+  /**
+   * Mark file references as soft-deleted (parent record moved to trash).
+   * Physical files preserved; excluded from workspace storage count.
+   */
+  public static async softDelete(
+    context: NcContext,
+    fileReferenceId: string | string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (
+      !fileReferenceId ||
+      (Array.isArray(fileReferenceId) && fileReferenceId.length === 0)
+    ) {
+      return;
+    }
+
+    const fileReferences = Array.isArray(fileReferenceId)
+      ? fileReferenceId
+      : [fileReferenceId];
+
+    let fileReferencesSize = 0;
+
+    try {
+      fileReferencesSize = await FileReference.sumSize(
+        context,
+        {},
+        fileReferences,
+        ncMeta,
+      );
+    } catch (error) {
+      fileReferencesSize = -1;
+      logger.error('Error while summing file reference size');
+      logger.error(error);
+    }
+
+    await ncMeta.bulkMetaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILE_REFERENCES,
+      { soft_deleted: true },
+      fileReferences,
+    );
+
+    await this.updateWorkspaceCache(context, fileReferencesSize, true);
+  }
+
+  /**
+   * Restore soft-deleted file references (parent record restored from trash).
+   * Re-counted in workspace storage.
+   */
+  public static async softRestore(
+    context: NcContext,
+    fileReferenceId: string | string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (
+      !fileReferenceId ||
+      (Array.isArray(fileReferenceId) && fileReferenceId.length === 0)
+    ) {
+      return;
+    }
+
+    const fileReferences = Array.isArray(fileReferenceId)
+      ? fileReferenceId
+      : [fileReferenceId];
+
+    let fileReferencesSize = 0;
+
+    try {
+      fileReferencesSize = await FileReference.sumSize(
+        context,
+        {},
+        fileReferences,
+        ncMeta,
+      );
+    } catch (error) {
+      fileReferencesSize = -1;
+      logger.error('Error while summing file reference size');
+      logger.error(error);
+    }
+
+    await ncMeta.bulkMetaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILE_REFERENCES,
+      { soft_deleted: false },
+      fileReferences,
+    );
+
+    await this.updateWorkspaceCache(context, fileReferencesSize, false);
+  }
+
+  /**
+   * Restore soft-deleted file references by condition (parent record restored from trash).
+   */
+  public static async bulkSoftRestore(
+    context: NcContext,
+    condition: {
+      fk_model_id?: string;
+      fk_column_id?: string;
+      fk_doc_id?: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    let fileReferencesSize = 0;
+
+    try {
+      fileReferencesSize =
+        (
+          await ncMeta
+            .knexConnection(MetaTable.FILE_REFERENCES)
+            .sum('file_size as total')
+            .where(condition)
+            .where('soft_deleted', true)
+            .first()
+        )?.total || 0;
+    } catch (error) {
+      fileReferencesSize = -1;
+      logger.error('Error while summing file reference size');
+      logger.error(error);
+    }
+
+    await ncMeta.bulkMetaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILE_REFERENCES,
+      { soft_deleted: false },
+      null,
+      { ...condition, soft_deleted: true },
+    );
+
+    await this.updateWorkspaceCache(context, fileReferencesSize, false);
   }
 
   public static async get(context: NcContext, id: any, ncMeta = Noco.ncMeta) {
@@ -361,6 +496,7 @@ export default class FileReference {
       .knexConnection(MetaTable.FILE_REFERENCES)
       .where({
         deleted: false,
+        soft_deleted: false,
         fk_workspace_id: context.workspace_id,
         ...condition,
       });

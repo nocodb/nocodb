@@ -42,6 +42,18 @@ export type InternalGETResponseType = Promise<
   | Extension[]
   | { workspaces: any[] }
   | { totalRows: number; counts: Record<string, number> }
+  | { count: number }
+  | {
+      tables: {
+        id: string;
+        title: string;
+        trash_disabled: boolean | null;
+        trash_retention_days: number | null;
+        is_meta: boolean;
+        has_deleted_column: boolean;
+      }[];
+      defaultRetentionDays: number;
+    }
   | {
       totalWorkspaces: number;
       totalBases: number;
@@ -82,6 +94,7 @@ export type InternalPOSTResponseType = Promise<
       link: (string | number | Record<string, any>)[];
       unlink: (string | number | Record<string, any>)[];
     }[]
+  | { message: string }
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

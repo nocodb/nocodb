@@ -1,4 +1,4 @@
-import { UniqueConstraintViolationError } from 'nocodb-sdk';
+import { isDeletedCol, UniqueConstraintViolationError } from 'nocodb-sdk';
 import { ViewTypes } from 'nocodb-sdk';
 import type { Column } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -105,6 +105,7 @@ async function findDuplicateColumnByQuery(
   tableName: string | any,
   uniqueColumns: Column[],
   insertData: Record<string, any>,
+  deletedColumnName?: string,
 ): Promise<{ column: Column; value: any } | null> {
   // Check each unique column that has a value in the payload
   for (const column of uniqueColumns) {
@@ -121,6 +122,14 @@ async function findDuplicateColumnByQuery(
       const query = dbDriver(tableName)
         .where(column.column_name, value)
         .limit(1);
+
+      // Exclude soft-deleted records
+      if (deletedColumnName) {
+        query.where(function () {
+          this.whereNull(deletedColumnName).orWhere(deletedColumnName, false);
+        });
+      }
+
       const existing = await query.first();
 
       if (existing) {
@@ -165,6 +174,10 @@ export async function handleUniqueConstraintError({
   const dbDriver = baseModel.dbDriver;
   const tableName = baseModel.tnPath;
   const viewId = baseModel.viewId;
+
+  // Get soft-delete column name to exclude trashed records from duplicate checks
+  const deletedCol = modelColumns.find((c) => isDeletedCol(c));
+  const deletedColumnName = deletedCol?.column_name;
   // ULTRA-EARLY CHECK: If we see error code 23505 ANYWHERE, handle it immediately
   // This check happens before any other logic to ensure we never miss it
   // Check ALL possible locations and formats - be extremely thorough
@@ -294,6 +307,7 @@ export async function handleUniqueConstraintError({
           tableName,
           uniqueColumns,
           insertData,
+          deletedColumnName,
         );
         if (duplicateInfo) {
           column = duplicateInfo.column;
@@ -843,6 +857,7 @@ export async function handleUniqueConstraintError({
         tableName,
         uniqueColumns,
         insertData,
+        deletedColumnName,
       );
       if (duplicateInfo) {
         finalColumn = duplicateInfo.column;

@@ -73,6 +73,16 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
         },
       );
     }
+    await this.jobsQueue.add(
+      {
+        jobName: JobTypes.RecordTrashCleanup,
+      },
+      {
+        jobId: JobTypes.RecordTrashCleanup,
+        // run every 10 minutes
+        repeat: { cron: '*/10 * * * *' },
+      },
+    );
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       const assignWorkerGroup = async (workerGroupId: string) => {

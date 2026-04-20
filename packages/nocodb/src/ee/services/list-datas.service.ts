@@ -218,6 +218,10 @@ export class ListDatasService {
         return pks.map((pk) => `${q(pk.column_name)}`).join(` || '___' || `);
       };
 
+      // Soft-delete + RLS filters (applied to every level)
+      const softDeleteFilter = await baseModel.getSoftDeleteFilter();
+      const rlsConditions = await baseModel.getRlsConditions();
+
       if (depth === 0) {
         // Root level: just select id with filters
         const levelQb = dbDriver(tnPath).select(
@@ -228,6 +232,15 @@ export class ListDatasService {
           await conditionV2(
             baseModel,
             [new Filter({ children: filters, is_group: true })],
+            levelQb,
+          );
+        }
+
+        if (softDeleteFilter) levelQb.where(softDeleteFilter);
+        if (rlsConditions.length) {
+          await conditionV2(
+            baseModel,
+            [new Filter({ children: rlsConditions, is_group: true })],
             levelQb,
           );
         }
@@ -279,6 +292,15 @@ export class ListDatasService {
           await conditionV2(
             baseModel,
             [new Filter({ children: filters, is_group: true })],
+            levelQb,
+          );
+        }
+
+        if (softDeleteFilter) levelQb.where(softDeleteFilter);
+        if (rlsConditions.length) {
+          await conditionV2(
+            baseModel,
+            [new Filter({ children: rlsConditions, is_group: true })],
             levelQb,
           );
         }
@@ -609,6 +631,10 @@ export class ListDatasService {
       // FK column for __nc_parent_id in hydration
       let parentFkCol: string | null = null;
 
+      // Soft-delete + RLS filters (applied to every level)
+      const softDeleteFilter = await baseModel.getSoftDeleteFilter();
+      const rlsConditions = await baseModel.getRlsConditions();
+
       if (depth === 0) {
         // Root level: id + ROW_NUMBER
         const levelQb = dbDriver(tnPath)
@@ -623,6 +649,15 @@ export class ListDatasService {
           await conditionV2(
             baseModel,
             [new Filter({ children: filters, is_group: true })],
+            levelQb,
+          );
+        }
+
+        if (softDeleteFilter) levelQb.where(softDeleteFilter);
+        if (rlsConditions.length) {
+          await conditionV2(
+            baseModel,
+            [new Filter({ children: rlsConditions, is_group: true })],
             levelQb,
           );
         }
@@ -695,6 +730,15 @@ export class ListDatasService {
           await conditionV2(
             baseModel,
             [new Filter({ children: filters, is_group: true })],
+            levelQb,
+          );
+        }
+
+        if (softDeleteFilter) levelQb.where(softDeleteFilter);
+        if (rlsConditions.length) {
+          await conditionV2(
+            baseModel,
+            [new Filter({ children: rlsConditions, is_group: true })],
             levelQb,
           );
         }

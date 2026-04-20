@@ -21,6 +21,7 @@ export enum MigrationJobTypes {
   RecoverOrderColumnMigration = 'recover-order-column-migration',
   RecoverDisconnectedTableNames = 'recover-disconnected-table-names',
   AuditMigration = 'audit-migration',
+  SoftDeleteColumnMigration = 'soft-delete-column-migration',
 }
 
 export enum JobTypes {
@@ -67,6 +68,7 @@ export enum JobTypes {
   WorkflowDraftReminder = 'workflow-draft-reminder',
   ChatMessage = 'chat-message',
   ChatApproval = 'chat-approval',
+  RecordTrashCleanup = 'record-trash-cleanup',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -90,6 +92,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.WorkflowDraftReminder,
   JobTypes.ChatMessage,
   JobTypes.ChatApproval,
+  JobTypes.RecordTrashCleanup,
 ];
 
 export enum JobStatus {

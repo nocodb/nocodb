@@ -99,6 +99,18 @@ export type InternalGETResponseType = Promise<
   | (RlsPolicy & { filters: Filter[] })[]
   | { workspaces: any[] }
   | { totalRows: number; counts: Record<string, number> }
+  | { count: number }
+  | {
+      tables: {
+        id: string;
+        title: string;
+        trash_disabled: boolean | null;
+        trash_retention_days: number | null;
+        is_meta: boolean;
+        has_deleted_column: boolean;
+      }[];
+      defaultRetentionDays: number;
+    }
   | {
       totalWorkspaces: number;
       totalBases: number;
@@ -184,6 +196,11 @@ export type InternalPOSTResponseType = Promise<
       link: (string | number | Record<string, any>)[];
       unlink: (string | number | Record<string, any>)[];
     }[]
+  | {
+      link: (string | number | Record<string, any>)[];
+      unlink: (string | number | Record<string, any>)[];
+    }[]
+  | { message: string }
 >;
 
 export interface InternalApiModule<

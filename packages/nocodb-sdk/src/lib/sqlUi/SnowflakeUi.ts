@@ -206,6 +206,30 @@ export class SnowflakeUi implements SqlUi {
         uicn: '',
         system: true,
       },
+      {
+        column_name: '__nc_deleted',
+        title: '__nc_deleted',
+        dt: 'boolean',
+        dtx: 'specificType',
+        ct: 'boolean',
+        nrqd: true,
+        rqd: false,
+        ck: false,
+        pk: false,
+        un: false,
+        ai: false,
+        cdf: 'false',
+        clen: null,
+        np: null,
+        ns: null,
+        dtxp: '',
+        dtxs: '',
+        altered: 1,
+        uidt: UITypes.Deleted,
+        uip: '',
+        uicn: '',
+        system: true,
+      },
     ];
   }
 
@@ -867,6 +891,9 @@ export class SnowflakeUi implements SqlUi {
       case 'JSON':
         colProp.dt = 'TEXT';
         break;
+      case UITypes.Deleted:
+        colProp.dt = 'boolean';
+        break;
       default:
         colProp.dt = 'VARCHAR';
         break;
@@ -1043,6 +1070,9 @@ export class SnowflakeUi implements SqlUi {
 
       case 'Geometry':
         return ['TEXT'];
+
+      case UITypes.Deleted:
+        return ['boolean'];
 
       default:
         return dbTypes;

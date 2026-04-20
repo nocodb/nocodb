@@ -140,6 +140,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
+      [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
     },
     limits: {
       // Seat limits
@@ -162,6 +163,8 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 15,
       // Audit
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 14,
+      // Trash
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 2,
       // Extensions & tools
       [PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE]: 50,
       [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: 1,
@@ -210,12 +213,14 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
+      [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_CALL]: 100000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 60,
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 7,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 7,
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 10000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 1,
@@ -241,11 +246,13 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_VIEW_V3]: false,
       [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: false,
       [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: false,
+      [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 180,
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 30,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 90,
       [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 50000,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
@@ -268,6 +275,7 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 365,
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: 10,
       [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 1000000,
@@ -489,6 +497,7 @@ export const OnPremPlanDefinitions: Record<
       // Enterprise only
       [PlanFeatureTypes.FEATURE_RLS]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
@@ -503,6 +512,7 @@ export const OnPremPlanDefinitions: Record<
       // Enterprise only
       [PlanFeatureTypes.FEATURE_RLS]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_WORKSPACE]: 1,

@@ -2,6 +2,7 @@ import { customAlphabet } from 'nanoid';
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isDeletedCol,
   isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,
@@ -22,6 +23,7 @@ import type { MetaService } from '~/meta/meta.service';
 import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type CustomKnex from '~/db/CustomKnex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
@@ -518,6 +520,30 @@ export function haveFormulaColumn(columns: Column[]) {
   return columns.some((c) => c.uidt === UITypes.Formula);
 }
 
+/**
+ * Returns a Knex where-clause callback that excludes soft-deleted records
+ * using an alias-qualified column name. For use in subqueries where the
+ * table is aliased (e.g. lookups, rollups, CTEs).
+ *
+ * Returns null if the table has no __nc_deleted column or the source is not meta.
+ */
+export async function getAliasedSoftDeleteFilter(
+  baseModel: IBaseModelSqlV2,
+  tableAlias: string,
+): Promise<Knex.QueryCallback | null> {
+  const columns = await baseModel.model.getColumns(baseModel.context);
+  const deletedColumn = columns.find((c) => isDeletedCol(c));
+  if (!deletedColumn) return null;
+
+  const source = await baseModel.getSource();
+  if (!source.isMeta()) return null;
+
+  const qualifiedName = `${tableAlias}.${deletedColumn.column_name}`;
+  return function () {
+    this.whereNull(qualifiedName).orWhereRaw(`?? = false`, [qualifiedName]);
+  };
+}
+
 export function shouldSkipField(
   fieldsSet,
   viewOrTableColumn,
@@ -528,6 +554,8 @@ export function shouldSkipField(
 ) {
   // skip row meta column
   if (column.uidt === UITypes.Meta) return true;
+  // skip soft-delete column
+  if (column.uidt === UITypes.Deleted) return true;
   if (fieldsSet && !pkAndPvOnly) {
     return !fieldsSet.has(column.title) && !fieldsSet.has(column.id);
   } else {

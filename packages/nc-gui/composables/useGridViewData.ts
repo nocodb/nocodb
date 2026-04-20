@@ -4,6 +4,7 @@ import {
   type ViewType,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isDeletedCol,
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
@@ -40,6 +41,8 @@ export function useGridViewData(
   const { base } = storeToRefs(useBase())
 
   const { $api } = useNuxtApp()
+
+  const { restoreFromTrash } = useRecordTrash()
 
   const isBulkOperationInProgress = ref(false)
 
@@ -325,12 +328,27 @@ export function useGridViewData(
     addUndo({
       undo: {
         fn: async (removedRowsData: Record<string, any>[], path: Array<number>) => {
-          const rowsToInsert = removedRowsData.reverse()
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
 
-          const insertedRowIds = await bulkInsertRows(rowsToInsert as Row[], undefined, true, path)
+          if (hasSoftDelete) {
+            const rowIds = removedRowsData
+              .map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
+              .filter(Boolean)
 
-          if (Array.isArray(insertedRowIds)) {
-            await Promise.all(rowsToInsert.map((row, _index) => recoverLTARRefs(row.row)))
+            await restoreFromTrash(meta.value as TableType, rowIds, {
+              onSuccess: async () => {
+                clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
+                await loadData(undefined, path)
+              },
+            })
+          } else {
+            const rowsToInsert = removedRowsData.reverse()
+
+            const insertedRowIds = await bulkInsertRows(rowsToInsert as Row[], undefined, true, path)
+
+            if (Array.isArray(insertedRowIds)) {
+              await Promise.all(rowsToInsert.map((row, _index) => recoverLTARRefs(row.row)))
+            }
           }
         },
         args: [removedRowsData, clone(path)],
@@ -924,12 +942,27 @@ export function useGridViewData(
     addUndo({
       undo: {
         fn: async (deletedRows: Record<string, any>[], path: Array<number>) => {
-          const rowsToInsert = deletedRows.reverse()
+          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
 
-          const insertedRowIds = await bulkInsertRows(rowsToInsert, undefined, true, path)
+          if (hasSoftDelete) {
+            const rowIds = deletedRows
+              .map((row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
+              .filter(Boolean)
 
-          if (Array.isArray(insertedRowIds)) {
-            await Promise.all(rowsToInsert.map((row, _index) => recoverLTARRefs(row.row)))
+            await restoreFromTrash(meta.value as TableType, rowIds, {
+              onSuccess: async () => {
+                clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)
+                await loadData(undefined, path)
+              },
+            })
+          } else {
+            const rowsToInsert = deletedRows.reverse()
+
+            const insertedRowIds = await bulkInsertRows(rowsToInsert, undefined, true, path)
+
+            if (Array.isArray(insertedRowIds)) {
+              await Promise.all(rowsToInsert.map((row, _index) => recoverLTARRefs(row.row)))
+            }
           }
         },
         args: [rowsToDelete, clone(path)],

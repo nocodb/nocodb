@@ -9,6 +9,7 @@ import {
   ProjectRoles,
   ProjectStatus,
   SqlUiFactory,
+  validateAccountName,
   WorkspacePlan,
   WorkspaceStatus,
   WorkspaceUserRoles,
@@ -206,6 +207,14 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     for (const workspacePayload of workspacePayloads) {
       validateParams(['title'], workspacePayload);
+
+      const nameValidation = validateAccountName(
+        workspacePayload.title,
+        'Workspace name',
+      );
+      if (!nameValidation.valid) {
+        NcError.badRequest(nameValidation.error);
+      }
 
       if (workspacePayload.fk_org_id) {
         const org = await Org.get(workspacePayload.fk_org_id);
@@ -639,6 +648,17 @@ export class WorkspacesService implements OnApplicationBootstrap {
       !(user as any).workspace_roles[WorkspaceUserRoles.CREATOR]
     )
       return;
+
+    if (workspace.title !== undefined) {
+      const nameValidation = validateAccountName(
+        workspace.title,
+        'Workspace name',
+      );
+      if (!nameValidation.valid) {
+        NcError.badRequest(nameValidation.error);
+      }
+      workspace.title = workspace.title.trim();
+    }
 
     const updateObj = extractProps(workspace, ['title', 'description', 'meta']);
 

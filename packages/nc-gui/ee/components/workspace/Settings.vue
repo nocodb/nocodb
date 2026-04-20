@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IconType, PublicAttachmentScope, WorkspaceUserRoles } from 'nocodb-sdk'
+import { IconType, PublicAttachmentScope, WorkspaceUserRoles, validateAccountName } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -57,9 +57,17 @@ const form = reactive<{
 
 const formRules = {
   title: [
-    { required: true, message: 'Workspace name required' },
-    { min: 3, message: 'Workspace name must be at least 3 characters long' },
-    { max: 50, message: 'Workspace name must be at most 50 characters long' },
+    {
+      validator: (_: any, value: any) => {
+        return new Promise((resolve, reject) => {
+          const result = validateAccountName(value, 'Workspace name')
+          if (!result.valid) {
+            return reject(new Error(result.error))
+          }
+          return resolve(true)
+        })
+      },
+    },
   ],
 }
 

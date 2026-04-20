@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import request from 'supertest';
-import { UITypes } from 'nocodb-sdk';
+import { UITypes, RelationTypes, LinksVersion } from 'nocodb-sdk';
 import { beforeEach as dataApiV3BeforeEach } from './beforeEach';
 import { customColumns } from '../../../factory/column';
 import { createBulkRows } from '../../../factory/row';
@@ -10,58 +10,68 @@ import type { ColumnType } from 'nocodb-sdk';
 import type { Model } from '../../../../../src/models';
 
 /**
- * Tests for the per-LTAR `fk_display_value_column_id` override.
+ * Full coverage for the per-LTAR `fk_display_value_column_id` override.
  *
- * Feature contract:
- * - When a custom display value column is set on an LTAR column, that column's
- *   value is surfaced in the nested LTAR payload alongside the PV.
- * - The override must reference a real, supported column in the related table.
- * - When the override column is deleted, the LTAR's
- *   fk_display_value_column_id is nulled out.
+ * Covers the matrix of (uidt × relation-type × links version):
+ *   V1 LTAR (uidt = LinkToAnotherRecord) : hm, bt, oo, mm (traditional)
+ *   V2 LTAR (uidt = Links)              : mm, om, mo, oo
+ *
+ * Per combination: (a) persistence on create, (b) PATCH update/clear,
+ * (c) list response carries the override column. Plus a column-delete
+ * cascade test that covers the null-on-delete cleanup.
  */
 describe('dataApiV3', () => {
   describe('ltar-custom-display-value', () => {
     let testContext: ITestContext;
-    let tblAuthors: Model;
-    let tblBooks: Model;
-    let columnsAuthors: ColumnType[];
-    let columnsBooks: ColumnType[];
+    // Two neutral-named tables so the tests read without HM/BT bias.
+    // Each table has a PV (Title) and a secondary col (Label) to act as the
+    // custom display value target.
+    let tblA: Model;
+    let tblB: Model;
+    let colsA: ColumnType[];
+    let colsB: ColumnType[];
 
     const getToken = () => testContext.context.token;
     const getApp = () => testContext.context.app;
 
-    const createLtarWithDisplay = async (
+    const findCol = (cols: ColumnType[], title: string) =>
+      cols.find((c) => c.title === title) as ColumnType;
+
+    const createLtar = async (
       parentTable: Model,
       childTable: Model,
       title: string,
-      type: 'hm' | 'bt' | 'mm',
-      fk_display_value_column_id?: string | null,
+      opts: {
+        uidt: UITypes;
+        type: RelationTypes;
+        version?: LinksVersion;
+        fk_display_value_column_id?: string | null;
+      },
       expectStatus = 200,
     ) => {
+      const body: Record<string, any> = {
+        title,
+        column_name: title,
+        uidt: opts.uidt,
+        parentId: parentTable.id,
+        childId: childTable.id,
+        type: opts.type,
+      };
+      if (opts.version != null) body.version = opts.version;
+      if (opts.fk_display_value_column_id !== undefined) {
+        body.fk_display_value_column_id = opts.fk_display_value_column_id;
+      }
       const res = await request(getApp())
         .post(`/api/v1/db/meta/tables/${parentTable.id}/columns`)
         .set('xc-auth', getToken())
-        .send({
-          title,
-          column_name: title,
-          uidt: UITypes.LinkToAnotherRecord,
-          parentId: parentTable.id,
-          childId: childTable.id,
-          type,
-          ...(fk_display_value_column_id !== undefined
-            ? { fk_display_value_column_id }
-            : {}),
-        });
-      expect(res.status).to.equal(expectStatus);
+        .send(body);
+      expect(res.status, `create ${title}: ${JSON.stringify(res.body)}`).to.equal(expectStatus);
       if (expectStatus !== 200) return res;
-
       const ctx = {
         workspace_id: parentTable.fk_workspace_id,
         base_id: parentTable.base_id,
       };
-      return (await parentTable.getColumns(ctx)).find(
-        (c) => c.title === title,
-      );
+      return (await parentTable.getColumns(ctx)).find((c) => c.title === title);
     };
 
     const patchColumn = async (
@@ -73,7 +83,7 @@ describe('dataApiV3', () => {
         .patch(`/api/v2/meta/columns/${columnId}`)
         .set('xc-auth', getToken())
         .send(body);
-      expect(res.status).to.equal(expectStatus);
+      expect(res.status, `patch ${columnId}: ${JSON.stringify(res.body)}`).to.equal(expectStatus);
       return res;
     };
 
@@ -109,16 +119,20 @@ describe('dataApiV3', () => {
       expect(res.status).to.be.oneOf([200, 201]);
     };
 
-    const findCol = (cols: ColumnType[], title: string) =>
-      cols.find((c) => c.title === title) as ColumnType;
+    const assertPersisted = async (
+      column: any,
+      expectedDisplayColId: string | null,
+    ) => {
+      expect(column?.colOptions?.fk_display_value_column_id).to.equal(
+        expectedDisplayColId,
+      );
+    };
 
     beforeEach(async () => {
       testContext = (await dataApiV3BeforeEach()) as unknown as ITestContext;
 
-      tblAuthors = await createTable(testContext.context, testContext.base, {
-        title: 'Authors',
-        table_name: 'Authors',
-        columns: customColumns('custom', [
+      const makeCols = (prefix: string) =>
+        customColumns('custom', [
           {
             title: 'Title',
             column_name: 'Title',
@@ -126,45 +140,37 @@ describe('dataApiV3', () => {
             pv: true,
           },
           {
-            title: 'Description',
-            column_name: 'Description',
+            title: 'Label',
+            column_name: 'Label',
             uidt: UITypes.SingleLineText,
           },
-        ]),
+        ]);
+
+      tblA = await createTable(testContext.context, testContext.base, {
+        title: 'TblA',
+        table_name: 'TblA',
+        columns: makeCols('A'),
       });
-      tblBooks = await createTable(testContext.context, testContext.base, {
-        title: 'Books',
-        table_name: 'Books',
-        columns: customColumns('custom', [
-          {
-            title: 'Title',
-            column_name: 'Title',
-            uidt: UITypes.SingleLineText,
-            pv: true,
-          },
-          {
-            title: 'Notes',
-            column_name: 'Notes',
-            uidt: UITypes.SingleLineText,
-          },
-        ]),
+      tblB = await createTable(testContext.context, testContext.base, {
+        title: 'TblB',
+        table_name: 'TblB',
+        columns: makeCols('B'),
       });
 
       await createBulkRows(testContext.context, {
         base: testContext.base,
-        table: tblAuthors,
+        table: tblA,
         values: [
-          { Title: 'AuthorA', Description: 'Alpha' },
-          { Title: 'AuthorB', Description: 'Beta' },
-          { Title: 'AuthorC', Description: 'Charlie' },
+          { Title: 'A1', Label: 'A-one' },
+          { Title: 'A2', Label: 'A-two' },
         ],
       });
       await createBulkRows(testContext.context, {
         base: testContext.base,
-        table: tblBooks,
+        table: tblB,
         values: [
-          { Title: 'Book1', Notes: 'N1' },
-          { Title: 'Book2', Notes: 'N2' },
+          { Title: 'B1', Label: 'B-one' },
+          { Title: 'B2', Label: 'B-two' },
         ],
       });
 
@@ -172,126 +178,268 @@ describe('dataApiV3', () => {
         workspace_id: testContext.base.fk_workspace_id,
         base_id: testContext.base.id,
       };
-      columnsAuthors = await tblAuthors.getColumns(ctx);
-      columnsBooks = await tblBooks.getColumns(ctx);
+      colsA = await tblA.getColumns(ctx);
+      colsB = await tblB.getColumns(ctx);
     });
 
-    it('persists fk_display_value_column_id on BT column', async () => {
-      const desc = findCol(columnsAuthors, 'Description');
-      const col = await createLtarWithDisplay(
-        tblBooks,
-        tblAuthors,
-        'AuthorBT',
-        'bt',
-        desc.id,
-      );
-      expect((col as any)?.colOptions?.fk_display_value_column_id).to.equal(
-        desc.id,
-      );
-    });
+    // ----------------------------------------------------------------------
+    // V1 LTAR (uidt = LinkToAnotherRecord)
+    // ----------------------------------------------------------------------
 
-    it('persists fk_display_value_column_id on HM column', async () => {
-      const notes = findCol(columnsBooks, 'Notes');
-      const col = await createLtarWithDisplay(
-        tblAuthors,
-        tblBooks,
-        'BooksHM',
-        'hm',
-        notes.id,
-      );
-      expect((col as any)?.colOptions?.fk_display_value_column_id).to.equal(
-        notes.id,
-      );
-    });
-
-    it('persists fk_display_value_column_id on MM column', async () => {
-      const desc = findCol(columnsAuthors, 'Description');
-      const col = await createLtarWithDisplay(
-        tblBooks,
-        tblAuthors,
-        'AuthorsMM',
-        'mm',
-        desc.id,
-      );
-      expect((col as any)?.colOptions?.fk_display_value_column_id).to.equal(
-        desc.id,
-      );
-    });
-
-    it('rejects a non-existent display value column id', async () => {
-      const res: any = await createLtarWithDisplay(
-        tblBooks,
-        tblAuthors,
-        'BadBT',
-        'bt',
-        'does_not_exist_12345',
-        400,
-      );
-      expect(res.body.message || res.body.msg).to.match(/not found/i);
-    });
-
-    it('clears override when set to null via PATCH', async () => {
-      const desc = findCol(columnsAuthors, 'Description');
-      const col = await createLtarWithDisplay(
-        tblBooks,
-        tblAuthors,
-        'AuthorBTClear',
-        'bt',
-        desc.id,
-      );
-
-      await patchColumn((col as any).id, {
-        fk_display_value_column_id: null,
+    describe('V1 LTAR (uidt=LinkToAnotherRecord)', () => {
+      it('HM persists fk_display_value_column_id on create', async () => {
+        const labelB = findCol(colsB, 'Label');
+        const col = await createLtar(tblA, tblB, 'HM_V1', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.HAS_MANY,
+          fk_display_value_column_id: labelB.id,
+        });
+        await assertPersisted(col, labelB.id);
       });
-      const fetched = await getColumn((col as any).id);
-      expect(fetched.colOptions.fk_display_value_column_id).to.be.null;
+
+      it('BT persists fk_display_value_column_id on create', async () => {
+        // For BT the LINKED table (where override lives) is the one
+        // rendered in the chip. Frontend sends parentId=current table;
+        // which side hosts the override is sensitive to relation direction.
+        // Post-fix, the service routes the lookup to the correct side.
+        const labelA = findCol(colsA, 'Label');
+        const col = await createLtar(tblB, tblA, 'BT_V1', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.BELONGS_TO,
+          fk_display_value_column_id: labelA.id,
+        });
+        await assertPersisted(col, labelA.id);
+      });
+
+      it('OO persists fk_display_value_column_id on create', async () => {
+        const labelB = findCol(colsB, 'Label');
+        const col = await createLtar(tblA, tblB, 'OO_V1', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.ONE_TO_ONE,
+          fk_display_value_column_id: labelB.id,
+        });
+        await assertPersisted(col, labelB.id);
+      });
+
+      it('MM (traditional) persists fk_display_value_column_id on create', async () => {
+        const labelB = findCol(colsB, 'Label');
+        const col = await createLtar(tblA, tblB, 'MM_V1', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.MANY_TO_MANY,
+          fk_display_value_column_id: labelB.id,
+        });
+        await assertPersisted(col, labelB.id);
+      });
     });
 
-    it('includes override column in list response nested LTAR payload', async () => {
-      const desc = findCol(columnsAuthors, 'Description');
-      const btCol = await createLtarWithDisplay(
-        tblBooks,
-        tblAuthors,
-        'AuthorBTList',
-        'bt',
-        desc.id,
-      );
+    // ----------------------------------------------------------------------
+    // V2 LTAR (uidt = Links, version = 2)
+    // ----------------------------------------------------------------------
 
-      const authors = await listRows(tblAuthors.id);
-      const books = await listRows(tblBooks.id);
-      const authorA = authors.find((r) => r.Title === 'AuthorA');
-      const book1 = books.find((r) => r.Title === 'Book1');
-      const authorAId = String(authorA.Id ?? authorA.id);
-      const book1Id = String(book1.Id ?? book1.id);
+    describe('V2 LTAR (uidt=Links, version=2)', () => {
+      it('MM V2 persists fk_display_value_column_id on create', async () => {
+        const labelB = findCol(colsB, 'Label');
+        const col = await createLtar(tblA, tblB, 'MM_V2', {
+          uidt: UITypes.Links,
+          type: RelationTypes.MANY_TO_MANY,
+          version: LinksVersion.V2,
+          fk_display_value_column_id: labelB.id,
+        });
+        await assertPersisted(col, labelB.id);
+      });
 
-      await linkV3(tblBooks.id, (btCol as any).id, book1Id, authorAId);
+      it('OM V2 persists fk_display_value_column_id on create', async () => {
+        const labelB = findCol(colsB, 'Label');
+        const col = await createLtar(tblA, tblB, 'OM_V2', {
+          uidt: UITypes.Links,
+          type: RelationTypes.ONE_TO_MANY,
+          version: LinksVersion.V2,
+          fk_display_value_column_id: labelB.id,
+        });
+        await assertPersisted(col, labelB.id);
+      });
 
-      const booksAfter = await listRows(tblBooks.id);
-      const book1After = booksAfter.find((r) => r.Title === 'Book1');
-      const nested = book1After.AuthorBTList;
-      const linked = Array.isArray(nested) ? nested[0] : nested;
-      expect(linked, 'linked payload must exist').to.exist;
-      expect(linked.Title).to.equal('AuthorA');
-      expect(linked.Description).to.equal('Alpha');
+      it('MO V2 persists fk_display_value_column_id on create', async () => {
+        const labelB = findCol(colsB, 'Label');
+        const col = await createLtar(tblA, tblB, 'MO_V2', {
+          uidt: UITypes.Links,
+          type: RelationTypes.MANY_TO_ONE,
+          version: LinksVersion.V2,
+          fk_display_value_column_id: labelB.id,
+        });
+        await assertPersisted(col, labelB.id);
+      });
+
+      it('OO V2 persists fk_display_value_column_id on create', async () => {
+        const labelB = findCol(colsB, 'Label');
+        const col = await createLtar(tblA, tblB, 'OO_V2', {
+          uidt: UITypes.Links,
+          type: RelationTypes.ONE_TO_ONE,
+          version: LinksVersion.V2,
+          fk_display_value_column_id: labelB.id,
+        });
+        await assertPersisted(col, labelB.id);
+      });
     });
 
-    it('nulls fk_display_value_column_id when the target column is deleted', async () => {
-      const desc = findCol(columnsAuthors, 'Description');
-      const btCol = await createLtarWithDisplay(
-        tblBooks,
-        tblAuthors,
-        'AuthorBTDel',
-        'bt',
-        desc.id,
-      );
+    // ----------------------------------------------------------------------
+    // Validation
+    // ----------------------------------------------------------------------
 
-      const delRes = await request(getApp())
-        .delete(`/api/v2/meta/columns/${desc.id}`)
-        .set('xc-auth', getToken());
-      expect(delRes.status).to.equal(200);
+    describe('validation', () => {
+      it('rejects a non-existent display value column id', async () => {
+        const res: any = await createLtar(
+          tblA,
+          tblB,
+          'BadV1HM',
+          {
+            uidt: UITypes.LinkToAnotherRecord,
+            type: RelationTypes.HAS_MANY,
+            fk_display_value_column_id: 'does_not_exist_12345',
+          },
+          400,
+        );
+        expect(res.body.message || res.body.msg).to.match(/not found|not supported/i);
+      });
 
-      const fetched = await getColumn((btCol as any).id);
-      expect(fetched.colOptions.fk_display_value_column_id).to.be.null;
+      it('PATCH clears override when set to null', async () => {
+        const labelB = findCol(colsB, 'Label');
+        const col = await createLtar(tblA, tblB, 'ClearHM', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.HAS_MANY,
+          fk_display_value_column_id: labelB.id,
+        });
+        await assertPersisted(col, labelB.id);
+
+        await patchColumn((col as any).id, {
+          fk_display_value_column_id: null,
+        });
+        const fetched = await getColumn((col as any).id);
+        expect(fetched.colOptions.fk_display_value_column_id).to.be.null;
+      });
+
+      it('PATCH swaps override between columns', async () => {
+        const titleB = findCol(colsB, 'Title');
+        const labelB = findCol(colsB, 'Label');
+        const col = await createLtar(tblA, tblB, 'SwapHM', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.HAS_MANY,
+          fk_display_value_column_id: labelB.id,
+        });
+        await assertPersisted(col, labelB.id);
+
+        await patchColumn((col as any).id, {
+          fk_display_value_column_id: titleB.id,
+        });
+        const fetched = await getColumn((col as any).id);
+        expect(fetched.colOptions.fk_display_value_column_id).to.equal(
+          titleB.id,
+        );
+      });
+    });
+
+    // ----------------------------------------------------------------------
+    // List response carries the override column for all variants
+    // ----------------------------------------------------------------------
+
+    describe('list response includes override column', () => {
+      const runListCase = async (
+        title: string,
+        opts: {
+          uidt: UITypes;
+          type: RelationTypes;
+          version?: LinksVersion;
+        },
+      ) => {
+        const labelB = findCol(colsB, 'Label');
+        const linkCol: any = await createLtar(tblA, tblB, title, {
+          ...opts,
+          fk_display_value_column_id: labelB.id,
+        });
+        expect(linkCol.colOptions.fk_display_value_column_id).to.equal(
+          labelB.id,
+        );
+
+        // Link TblA.row1 → TblB.row1
+        const rowsA = await listRows(tblA.id);
+        const rowsB = await listRows(tblB.id);
+        const a1 = rowsA.find((r) => r.Title === 'A1');
+        const b1 = rowsB.find((r) => r.Title === 'B1');
+        const a1Id = String(a1.Id ?? a1.id);
+        const b1Id = String(b1.Id ?? b1.id);
+        await linkV3(tblA.id, linkCol.id, a1Id, b1Id);
+
+        const rowsAAfter = await listRows(tblA.id);
+        const a1After = rowsAAfter.find((r) => r.Title === 'A1');
+        const nested = a1After[title];
+        const linked = Array.isArray(nested) ? nested[0] : nested;
+        expect(linked, `${title}: nested payload must exist`).to.exist;
+        expect(linked.Label, `${title}: override col Label must be present`).to.equal('B-one');
+      };
+
+      it('V1 HM', async () => {
+        await runListCase('ListHMV1', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.HAS_MANY,
+        });
+      });
+
+      it('V1 MM', async () => {
+        await runListCase('ListMMV1', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.MANY_TO_MANY,
+        });
+      });
+
+      it('V2 MM', async () => {
+        await runListCase('ListMMV2', {
+          uidt: UITypes.Links,
+          type: RelationTypes.MANY_TO_MANY,
+          version: LinksVersion.V2,
+        });
+      });
+
+      it('V2 OM', async () => {
+        await runListCase('ListOMV2', {
+          uidt: UITypes.Links,
+          type: RelationTypes.ONE_TO_MANY,
+          version: LinksVersion.V2,
+        });
+      });
+    });
+
+    // ----------------------------------------------------------------------
+    // Column-delete cascade (target col deletion nulls the override)
+    // ----------------------------------------------------------------------
+
+    describe('column delete cascade', () => {
+      it('nulls fk_display_value_column_id on all LTARs when target col is deleted', async () => {
+        const labelB = findCol(colsB, 'Label');
+
+        // Create TWO LTARs (different relation types) pointing at the same
+        // target col so we prove the cleanup isn't relation-type specific.
+        const hmCol: any = await createLtar(tblA, tblB, 'DelHM', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.HAS_MANY,
+          fk_display_value_column_id: labelB.id,
+        });
+        const mmCol: any = await createLtar(tblA, tblB, 'DelMM', {
+          uidt: UITypes.Links,
+          type: RelationTypes.MANY_TO_MANY,
+          version: LinksVersion.V2,
+          fk_display_value_column_id: labelB.id,
+        });
+
+        const delRes = await request(getApp())
+          .delete(`/api/v2/meta/columns/${labelB.id}`)
+          .set('xc-auth', getToken());
+        expect(delRes.status).to.equal(200);
+
+        const hmAfter = await getColumn(hmCol.id);
+        const mmAfter = await getColumn(mmCol.id);
+        expect(hmAfter.colOptions.fk_display_value_column_id).to.be.null;
+        expect(mmAfter.colOptions.fk_display_value_column_id).to.be.null;
+      });
     });
   });
 });

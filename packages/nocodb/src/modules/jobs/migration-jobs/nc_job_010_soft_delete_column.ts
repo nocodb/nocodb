@@ -690,7 +690,6 @@ export class SoftDeleteColumnMigration {
             );
           }
         })
-        .orderBy(`${MetaTable.MODELS}.source_id`)
         .limit(PARALLEL_LIMIT * 10)
     );
   }

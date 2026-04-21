@@ -14,47 +14,20 @@ const { base, isSandbox, isSandboxMaster, sandboxInfo } = storeToRefs(baseStore)
 
 const { baseUrl } = baseStore
 
-const { openDrawer, loadChangelog } = useSandboxChangelog()
+const { openDrawer, loadChangelog, data: changelogData, isLoading: isCheckingChanges } = useSandboxChangelog()
 
 const isOpenDropdown = ref<boolean>(false)
 const isMasterDropdownOpen = ref<boolean>(false)
 
-const hasChanges = ref(true)
-const isCheckingChanges = ref(false)
 const isDiscarding = ref(false)
 
-const checkForChanges = async () => {
-  if (!base.value?.id || !activeWorkspaceId.value || isCheckingChanges.value) return
-
-  isCheckingChanges.value = true
-  try {
-    const response = (await $api.internal.getOperation(activeWorkspaceId.value, base.value.id, {
-      operation: 'sandboxDiff',
-    })) as { diff?: { add?: Record<string, any[]>; delete?: Record<string, any[]>; update?: Record<string, any[]> } }
-
-    const diff = response?.diff
-    if (!diff) {
-      hasChanges.value = false
-      return
-    }
-
-    const hasAdds = Object.values(diff.add || {}).some((arr) => arr.length > 0)
-    const hasDeletes = Object.values(diff.delete || {}).some((arr) => arr.length > 0)
-    const hasUpdates = Object.values(diff.update || {}).some((arr) => arr.length > 0)
-
-    hasChanges.value = hasAdds || hasDeletes || hasUpdates
-  } catch (_e) {
-    hasChanges.value = true
-  } finally {
-    isCheckingChanges.value = false
-  }
-}
-
-const debouncedCheckForChanges = useDebounceFn(checkForChanges, 500)
+// Sandbox has unpublished changes when its changelog is non-empty.
+// Discard clears the changelog; merge also clears it on success.
+const hasChanges = computed(() => (changelogData.value.changelog?.length || 0) > 0)
 
 watch(isOpenDropdown, (open) => {
   if (open) {
-    debouncedCheckForChanges()
+    loadChangelog()
   }
 })
 
@@ -204,27 +177,24 @@ const deleteSandbox = () => {
 
         <NcDivider class="!my-1" />
 
-        <!-- Publish changes to master -->
-        <NcTooltip :disabled="hasChanges" placement="bottom">
-          <template #title>{{ $t('tooltip.noSchemaChanges') }}</template>
-          <SmartsheetTopbarManagedAppStatusMenuItem
-            :clickable="hasChanges"
-            :icon-wrapper-class="hasChanges ? 'bg-green-50 dark:bg-nc-green-20' : 'bg-nc-bg-gray-light'"
-            :class="{ 'opacity-50 cursor-not-allowed': !hasChanges }"
-            @click="hasChanges && openSandboxDrawer()"
-          >
-            <template #icon>
-              <GeneralLoader v-if="isCheckingChanges" size="small" />
-              <GeneralIcon v-else icon="ncArrowUp" :class="hasChanges ? 'text-green-600' : 'text-nc-content-gray-muted'" />
-            </template>
-            <template #label>
-              <span :class="hasChanges ? 'text-green-600' : 'text-nc-content-gray-muted'">
-                {{ t('labels.publishToMaster') }}
-              </span>
-            </template>
-            <template #subtext> {{ t('labels.pushChangesToMainBase') }} </template>
-          </SmartsheetTopbarManagedAppStatusMenuItem>
-        </NcTooltip>
+        <!-- Publish changes to master — only shown when the sandbox changelog has entries -->
+        <SmartsheetTopbarManagedAppStatusMenuItem
+          v-if="hasChanges"
+          clickable
+          icon-wrapper-class="bg-green-50 dark:bg-nc-green-20"
+          @click="openSandboxDrawer"
+        >
+          <template #icon>
+            <GeneralLoader v-if="isCheckingChanges" size="small" />
+            <GeneralIcon v-else icon="ncArrowUp" class="text-green-600" />
+          </template>
+          <template #label>
+            <span class="text-green-600">
+              {{ t('labels.publishToMaster') }}
+            </span>
+          </template>
+          <template #subtext> {{ t('labels.pushChangesToMainBase') }} </template>
+        </SmartsheetTopbarManagedAppStatusMenuItem>
 
         <!-- Go to master base -->
         <SmartsheetTopbarManagedAppStatusMenuItem
@@ -324,11 +294,7 @@ const deleteSandbox = () => {
 
         <NcDivider class="!my-1" />
 
-        <SmartsheetTopbarManagedAppStatusMenuItem
-          clickable
-          icon-wrapper-class="bg-nc-bg-gray-light"
-          @click="deleteSandbox"
-        >
+        <SmartsheetTopbarManagedAppStatusMenuItem clickable icon-wrapper-class="bg-nc-bg-gray-light" @click="deleteSandbox">
           <template #icon>
             <GeneralIcon icon="delete" class="text-nc-content-red-dark" />
           </template>

@@ -175,7 +175,8 @@ export class ColumnsService extends ColumnsServiceCE {
       // V3 path: result is Column (has fk_model_id)
       if ((r as any)?.fk_model_id !== undefined) return (r as any).id;
       // V1 path: result is Model; find the added column by title
-      const title = (_p?.column as any)?.title ?? (_p?.column as any)?.column_name;
+      const title =
+        (_p?.column as any)?.title ?? (_p?.column as any)?.column_name;
       return (r as any)?.columns?.find((c: any) => c.title === title)?.id;
     },
     entityTitle: (p) => p?.column?.title,
@@ -332,14 +333,19 @@ export class ColumnsService extends ColumnsServiceCE {
     parentId: (p) => p?.column?.fk_model_id ?? p?.tableId,
     description: ({ entityTitle, parentEntityTitle, extra }) =>
       extra?.oldTitle && extra.oldTitle !== entityTitle
-        ? `Rename ${b(extra.oldTitle)} field to ${b(entityTitle)} in ${b(parentEntityTitle)}`
+        ? `Rename ${b(extra.oldTitle)} field to ${b(entityTitle)} in ${b(
+            parentEntityTitle,
+          )}`
         : `Edit ${b(entityTitle)} field in ${b(parentEntityTitle)}`,
     resolveCtx: async (context, param) => {
       const col = await Column.get(context, { colId: param?.columnId });
       const tableId = col?.fk_model_id;
       if (!tableId) return { extra: { oldTitle: col?.title } };
       const table = await Model.get(context, tableId);
-      return { parentEntityTitle: table?.title, extra: { oldTitle: col?.title } };
+      return {
+        parentEntityTitle: table?.title,
+        extra: { oldTitle: col?.title },
+      };
     },
     deps: (_p, r) => {
       if (!r || r.uidt !== UITypes.Formula) return [];

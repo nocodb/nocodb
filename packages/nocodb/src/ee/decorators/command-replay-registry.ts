@@ -14,7 +14,6 @@ export class CommandReplayRegistry {
   static register(operation: string, entry: ReplayEntry): void {
     const existing = this.entries.get(operation);
     if (existing && existing.serviceClass !== entry.serviceClass) {
-      // eslint-disable-next-line no-console
       console.warn(
         `[CommandReplayRegistry] Operation '${operation}' registered by ` +
           `${existing.serviceClass.name} is being overwritten by ` +

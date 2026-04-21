@@ -10,10 +10,7 @@ import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  b,
-  descUpdate,
-} from '~/decorators/trace-command-descriptions';
+import { b, descUpdate } from '~/decorators/trace-command-descriptions';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { Model } from '~/models';
 import { MetaTable } from '~/utils/globals';

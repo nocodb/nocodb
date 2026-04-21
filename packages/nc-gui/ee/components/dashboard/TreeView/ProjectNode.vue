@@ -466,7 +466,6 @@ const goToSandbox = async () => {
   }
 }
 
-
 const getSource = (sourceId: string) => {
   return base.value.sources?.find((s) => s.id === sourceId)
 }

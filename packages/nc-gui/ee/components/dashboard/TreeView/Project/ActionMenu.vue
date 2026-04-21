@@ -154,11 +154,7 @@ const isOptionVisible = computed(() => {
       {{ $t('labels.migrateToV3') }}
     </NcMenuItem>
 
-    <NcMenuItem
-      v-if="isOptionVisible.goToSandbox"
-      data-testid="nc-sidebar-base-go-to-sandbox"
-      @click="emits('goToSandbox')"
-    >
+    <NcMenuItem v-if="isOptionVisible.goToSandbox" data-testid="nc-sidebar-base-go-to-sandbox" @click="emits('goToSandbox')">
       <GeneralIcon icon="ncGitBranch" />
       {{ $t('labels.goToSandbox') }}
     </NcMenuItem>

@@ -131,8 +131,10 @@ const getApiVersionFromUrl = (url: string) => {
 };
 
 // Keep local for now, later if we need it elsewhere we can move to utils
+// Only managed apps fully lock the schema. Sandbox master restrictions are
+// enforced per-operation via assertNotSandboxMaster() in EE service overrides.
 const isBaseLocked = (base: Base): boolean => {
-  return !!(base.managed_app_schema_locked || base.is_sandbox_master);
+  return !!base.managed_app_schema_locked;
 };
 
 // todo: refactor name since we are using it as auth guard
@@ -590,7 +592,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
     if (req.ncBase) {
       const base = req.ncBase as Base;
-      // Schema is locked if managed app is locked OR sandbox master is active
       req.context.schema_locked = isBaseLocked(base);
     }
 
@@ -1134,7 +1135,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       if (req.ncBase) {
         const base = req.ncBase as Base;
         req.ncWorkspaceId = base.fk_workspace_id;
-        // Read computed schema_locked property (managed app OR sandbox master)
         req.ncSchemaLocked = isBaseLocked(base);
       } else {
         NcError.baseNotFound(req.ncBaseId);

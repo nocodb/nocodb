@@ -56,10 +56,10 @@ export class ViewsService extends ViewsServiceCE {
     },
   ) {
     const view = await View.get(context, param.viewId);
-    if (view?.lock_type === 'locked') {
+    if (view?.lock_type === 'locked' || param.view?.lock_type === 'locked') {
       await assertNotSandboxMaster(
         context,
-        'Locked views cannot be modified on a base with an active sandbox. Make changes in the sandbox.',
+        'Locked views cannot be created or modified on a base with an active sandbox. Make changes in the sandbox.',
       );
     }
     return super.viewUpdate(context, param);

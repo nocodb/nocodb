@@ -64,7 +64,8 @@ export class SandboxCommandReplayService {
       return null;
     }
 
-    const { operation, params, idField, sandboxColumns, sandboxDefaultViewId } = command;
+    const { operation, params, idField, sandboxColumns, sandboxDefaultViewId } =
+      command;
 
     const registration = CommandReplayRegistry.get(operation);
     if (!registration) {
@@ -115,7 +116,10 @@ export class SandboxCommandReplayService {
         if (c.title) colIdMap[c.title] = c.id;
         if (c.cn) colIdMap[c.cn] = c.id;
       }
-      replayParams.table = { ...replayParams.table, _sandboxColumnIds: colIdMap };
+      replayParams.table = {
+        ...replayParams.table,
+        _sandboxColumnIds: colIdMap,
+      };
     }
 
     // Inject the sandbox's auto-created default view ID so sorts/filters that
@@ -132,7 +136,10 @@ export class SandboxCommandReplayService {
     // every schema mutation would be rejected by the sandbox enforcement guards.
     const replayContext: NcContext = {
       ...targetContext,
-      additionalContext: { ...targetContext.additionalContext, is_replay: true },
+      additionalContext: {
+        ...targetContext.additionalContext,
+        is_replay: true,
+      },
     };
 
     this.logger.log(`Replaying ${operation} (entry: ${entry.id})`);

@@ -645,7 +645,11 @@ export class WorkflowsService implements OnModuleInit {
   })
   async publishWorkflow(
     context: NcContext,
-    param: { workflowId: string; req: NcRequest; cancelPendingExecutions?: boolean },
+    param: {
+      workflowId: string;
+      req: NcRequest;
+      cancelPendingExecutions?: boolean;
+    },
   ) {
     const { workflowId, req } = param;
     const params = param;

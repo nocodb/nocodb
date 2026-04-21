@@ -123,10 +123,7 @@ function toggleSortOrder() {
         <span class="text-sm font-bold text-nc-content-gray-emphasis">
           {{ t('labels.sandboxChanges') }}
         </span>
-        <span
-          v-if="changelog.length > 0"
-          class="nc-changelog-count-badge"
-        >
+        <span v-if="changelog.length > 0" class="nc-changelog-count-badge">
           {{ changelog.length }}
         </span>
       </div>
@@ -204,10 +201,7 @@ function toggleSortOrder() {
           >
             <div class="flex items-center gap-2.5 min-w-0">
               <GeneralUserIcon :user="getUserInfo(entry.created_by)" size="medium" class="flex-none" />
-              <span
-                class="nc-changelog-entry-text"
-                v-html="renderDescription(entry.description) || entry.event"
-              />
+              <span class="nc-changelog-entry-text" v-html="renderDescription(entry.description) || entry.event" />
             </div>
 
             <!-- Expanded detail -->
@@ -255,15 +249,13 @@ function toggleSortOrder() {
       <template v-else>
         <NcTooltip :disabled="hasChanges" placement="top" class="w-full">
           <template #title>{{ t('tooltip.noSchemaChanges') }}</template>
-          <NcButton
-            size="small"
-            class="w-full"
-            type="primary"
-            :disabled="!hasChanges || isMerging"
-            @click="emit('apply')"
-          >
+          <NcButton size="small" class="w-full" type="primary" :disabled="!hasChanges || isMerging" @click="emit('apply')">
             <GeneralIcon icon="ncArrowUp" class="w-4 h-4 mr-1.5" />
-            {{ hasChanges ? t('labels.applyNChanges', { count: changelog.length }, changelog.length) : t('labels.applyChangesToMaster') }}
+            {{
+              hasChanges
+                ? t('labels.applyNChanges', { count: changelog.length }, changelog.length)
+                : t('labels.applyChangesToMaster')
+            }}
           </NcButton>
         </NcTooltip>
       </template>

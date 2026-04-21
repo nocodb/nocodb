@@ -11,5 +11,16 @@ export const useSandboxChangelog = createSharedComposable(() => {
   const mergeFromChangelog = async () => {}
   const loadChangelog = async () => {}
 
-  return { DRAWER_WIDTH, isDrawerOpen, isLoading, data, mergeStatus, mergeError, openDrawer, closeDrawer, mergeFromChangelog, loadChangelog }
+  return {
+    DRAWER_WIDTH,
+    isDrawerOpen,
+    isLoading,
+    data,
+    mergeStatus,
+    mergeError,
+    openDrawer,
+    closeDrawer,
+    mergeFromChangelog,
+    loadChangelog,
+  }
 })

@@ -380,7 +380,11 @@ export class DuplicateProcessor {
       dataSource: source,
       req,
       context,
+      // Spread original options first so EE-only flags (excludeDocuments,
+      // excludePersonalViews, excludePermissions, excludeRls, etc.) reach the
+      // processor. Normalized CE flags override after.
       options: {
+        ...(options ?? {}),
         excludeData,
         excludeHooks,
         excludeViews,

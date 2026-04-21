@@ -281,9 +281,7 @@ export const useBases = defineStore('basesStore', () => {
       // Only update bases.value if the workspaceId matches activeWorkspace.id
       if (!workspaceId || workspaceId === activeWorkspace?.id) {
         // Preserve sandbox bases already loaded (API excludes them from list)
-        const sandboxBases = new Map(
-          Array.from(bases.value.entries()).filter(([, b]) => b.is_sandbox),
-        )
+        const sandboxBases = new Map(Array.from(bases.value.entries()).filter(([, b]) => b.is_sandbox))
 
         bases.value = _projects.reduce((acc, base) => {
           const existingProjectMeta = bases.value.get(base.id!) || {}

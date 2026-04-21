@@ -267,7 +267,7 @@ onKeyStroke('Enter', () => {
           <GeneralIcon icon="ncArrowRight" class="w-4 h-4 mr-1" />
           {{ t('labels.goToSandbox') }}
         </template>
-        <template v-else-if="status === 'error'"> {{ $t('general.tryAgain') }} </template>
+        <template v-else-if="status === 'error'"> {{ $t('labels.tryAgain') }} </template>
       </NcButton>
     </div>
   </GeneralModal>

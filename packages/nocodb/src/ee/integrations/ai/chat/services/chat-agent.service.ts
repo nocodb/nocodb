@@ -774,9 +774,7 @@ export class ChatAgentService {
       const base = await Base.get(toolContext, baseId);
       if (base) {
         await Base.populateManagedAppInfo(base);
-        toolContext.schema_locked = !!(
-          base.managed_app_schema_locked || base.is_sandbox_master
-        );
+        toolContext.schema_locked = !!base.managed_app_schema_locked;
       }
     }
 

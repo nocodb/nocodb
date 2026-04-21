@@ -7,7 +7,7 @@ const props = defineProps<{
 
 const { isUIAllowed } = useRoles()
 
-const { isSharedBase } = storeToRefs(useBase())
+const { isSharedBase, isSandbox } = storeToRefs(useBase())
 
 const { blockDocs, showUpgradeToUseDocs } = useEeConfig()
 
@@ -15,7 +15,7 @@ const documentsStore = useDocumentsStore()
 const { createDocument } = documentsStore
 
 const isActionVisible = computed(() => {
-  return !isSharedBase.value && isUIAllowed('documentCreate')
+  return !isSharedBase.value && !isSandbox.value && isUIAllowed('documentCreate')
 })
 
 async function onCreateDocument() {

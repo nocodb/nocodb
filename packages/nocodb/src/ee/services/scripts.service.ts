@@ -113,7 +113,11 @@ export class ScriptsService {
   })
   async updateScript(
     context: NcContext,
-    param: { scriptId: string; body: Pick<ScriptType, 'title'>; req: NcRequest },
+    param: {
+      scriptId: string;
+      body: Pick<ScriptType, 'title'>;
+      req: NcRequest;
+    },
   ) {
     const { scriptId, body, req } = param;
     if (context.schema_locked) {

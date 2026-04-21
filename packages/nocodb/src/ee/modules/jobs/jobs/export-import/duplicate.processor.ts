@@ -29,6 +29,7 @@ import {
   type BaseMetaSchema,
   diffMeta,
   serializeMeta,
+  stripDocuments,
 } from '~/helpers/baseMetaHelpers';
 import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -303,6 +304,7 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
       excludePersonalViews?: boolean;
       excludePermissions?: boolean;
       excludeRls?: boolean;
+      excludeDocuments?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -436,7 +438,9 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
           }));
         }
 
-        // Strip personal views, permissions, and RLS when requested (sandbox creation)
+        // Strip personal views, permissions, RLS, and documents when requested
+        // (sandbox creation). Docs are treated as data — they should not flow
+        // from master into the sandbox.
         let filteredMeta = options.excludePersonalViews
           ? stripPersonalViews(sourceMeta)
           : sourceMeta;
@@ -445,6 +449,9 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
         }
         if (options.excludeRls) {
           filteredMeta = stripRls(filteredMeta);
+        }
+        if (options.excludeDocuments) {
+          filteredMeta = stripDocuments(filteredMeta);
         }
 
         // Step 3: Calculate diff (empty old meta means everything is new)

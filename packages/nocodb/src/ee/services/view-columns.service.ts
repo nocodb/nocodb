@@ -18,6 +18,7 @@ export class ViewColumnsService extends ViewColumnsServiceCE {
   }
 
   @TraceCommand({
+    operation: 'viewColumnUpdate',
     entity: MetaTable.GRID_VIEW_COLUMNS,
     entityId: (p) => p?.columnId,
     parentId: 'viewId',

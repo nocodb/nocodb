@@ -12,6 +12,7 @@ import {
 import { Base, Column, Model, Source } from '~/models';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { runWithoutCache } from '~/cache/cacheBypassScope';
 
 const logger = new Logger('BaseMetaHelpers');
 
@@ -169,6 +170,24 @@ export type BaseMetaDiff = {
   delete: BaseMetaSchema;
   update: BaseMetaSchema;
 };
+
+// Documents are treated as data on sandboxes — they live alongside the schema
+// but their lifecycle is independent. Strip them from any meta snapshot that
+// feeds sandbox create / discard / diff so doc rows never participate in the
+// sandbox↔master sync.
+export function stripDocuments(meta: BaseMetaSchema): BaseMetaSchema {
+  const models: any[] = meta[MetaTable.MODELS] ?? [];
+  const docIds = new Set(
+    models.filter((m) => m.type === ModelTypes.DOCUMENT).map((m) => m.id),
+  );
+  if (docIds.size === 0 && !meta[MetaTable.DOC_CONTENT]?.length) return meta;
+
+  return {
+    ...meta,
+    [MetaTable.MODELS]: models.filter((m) => !docIds.has(m.id)),
+    [MetaTable.DOC_CONTENT]: [],
+  };
+}
 
 export async function serializeMeta(
   sourceContext: NcContext,
@@ -504,76 +523,82 @@ export async function applyMeta(
     progressCallback?: (step: string, progress: number) => void;
   } = {},
 ): Promise<void> {
-  const base_id = targetContext.base_id;
+  // Bypass NocoCache within the entire transaction: reads inside a trx would
+  // return stale pre-commit state (e.g. a cMASTER column inserted in Step 4
+  // being masked by a cached cSANDBOX row deleted in Step 2), and writes would
+  // leak transaction-local data into the shared cache. See cacheBypassScope.ts.
+  return runWithoutCache(async () => {
+    const base_id = targetContext.base_id;
 
-  if (!base_id) {
-    throw new Error('Target base ID is required');
-  }
+    if (!base_id) {
+      throw new Error('Target base ID is required');
+    }
 
-  const base = await Base.get(targetContext, base_id, ncMeta);
-  if (!base) {
-    throw new Error(`Target base not found: ${base_id}`);
-  }
+    const base = await Base.get(targetContext, base_id, ncMeta);
+    if (!base) {
+      throw new Error(`Target base not found: ${base_id}`);
+    }
 
-  const { progressCallback } = options;
+    const { progressCallback } = options;
 
-  try {
-    // Step 1: Handle table deletions first (this cascades to delete columns)
-    progressCallback?.('Deleting tables', 10);
-    await handleTableDeletions(targetContext, metaDiff, base, ncMeta);
+    try {
+      // Step 1: Handle table deletions first (this cascades to delete columns)
+      progressCallback?.('Deleting tables', 10);
+      await handleTableDeletions(targetContext, metaDiff, base, ncMeta);
 
-    // Step 2: Handle standalone column deletions (columns deleted from existing tables)
-    progressCallback?.('Deleting columns', 20);
-    await handleStandaloneColumnDeletions(
-      targetContext,
-      metaDiff,
-      base,
-      ncMeta,
-    );
+      // Step 2: Handle standalone column deletions (columns deleted from existing tables)
+      progressCallback?.('Deleting columns', 20);
+      await handleStandaloneColumnDeletions(
+        targetContext,
+        metaDiff,
+        base,
+        ncMeta,
+      );
 
-    // Step 3: Handle table creations with their columns
-    progressCallback?.('Creating tables', 40);
-    await handleTableCreations(targetContext, metaDiff, base, ncMeta);
+      // Step 3: Handle table creations with their columns
+      progressCallback?.('Creating tables', 40);
+      await handleTableCreations(targetContext, metaDiff, base, ncMeta);
 
-    // Step 4: Handle standalone column additions (columns added to existing tables)
-    progressCallback?.('Adding columns', 60);
-    await handleStandaloneColumnAdditions(
-      targetContext,
-      metaDiff,
-      base,
-      ncMeta,
-    );
+      // Step 4: Handle standalone column additions (columns added to existing tables)
+      progressCallback?.('Adding columns', 60);
+      await handleStandaloneColumnAdditions(
+        targetContext,
+        metaDiff,
+        base,
+        ncMeta,
+      );
 
-    // Step 5: Handle table and column updates
-    progressCallback?.('Updating tables and columns', 70);
-    await handleTableUpdates(targetContext, metaDiff, base_id, ncMeta);
-    await handleColumnUpdates(targetContext, metaDiff, base_id, ncMeta);
+      // Step 5: Handle table and column updates
+      progressCallback?.('Updating tables and columns', 70);
+      await handleTableUpdates(targetContext, metaDiff, base_id, ncMeta);
+      await handleColumnUpdates(targetContext, metaDiff, base_id, ncMeta);
 
-    // Step 6: Handle all non-DDL metadata changes
-    progressCallback?.('Applying metadata changes', 90);
-    await handleNonDDLChanges(targetContext, metaDiff, base_id, ncMeta);
+      // Step 6: Handle all non-DDL metadata changes
+      progressCallback?.('Applying metadata changes', 90);
+      await handleNonDDLChanges(targetContext, metaDiff, base_id, ncMeta);
 
-    // Step 7: Create missing indexes
-    progressCallback?.('Creating indexes', 95);
-    await createMissingIndexes(targetContext, metaDiff, base, ncMeta);
+      // Step 7: Create missing indexes
+      progressCallback?.('Creating indexes', 95);
+      await createMissingIndexes(targetContext, metaDiff, base, ncMeta);
 
-    // NOTE: Cache clearing intentionally omitted here.
-    // Cache is not transactional — callers must call NocoCache.clear(targetContext)
-    // both AFTER commit (so concurrent reads during the transaction cannot cache stale
-    // pre-commit DB state) AND AFTER rollback (so any cache entries written during the
-    // aborted transaction are evicted).
-    //
-    // Callers are also responsible for broadcasting base_meta_reload AFTER
-    // committing — broadcasting here is premature and causes stale reloads.
+      // NOTE: Cache clearing intentionally omitted here.
+      // Cache is not transactional — callers must call NocoCache.clear(targetContext)
+      // both AFTER commit (so concurrent reads during the transaction cannot cache stale
+      // pre-commit DB state) AND AFTER rollback (so any cache entries written during the
+      // aborted transaction are evicted).
+      //
+      // Callers are also responsible for broadcasting base_meta_reload AFTER
+      // committing — broadcasting here is premature and causes stale reloads.
 
-    progressCallback?.('Completed', 100);
-  } catch (error) {
-    logger.error(
-      `Failed to apply metadata changes: ${error.message}`,
-      error.stack,
-    );
-    throw new Error(`Failed to apply metadata changes: ${error.message}`);
-  }
+      progressCallback?.('Completed', 100);
+    } catch (error) {
+      logger.error(
+        `Failed to apply metadata changes: ${error.message}`,
+        error.stack,
+      );
+      throw new Error(`Failed to apply metadata changes: ${error.message}`);
+    }
+  });
 }
 
 async function handleTableDeletions(

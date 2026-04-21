@@ -84,10 +84,7 @@ export class BaseVariablesService {
     // their own overrides. Fixed inherited values and non-overridden editable
     // inherited values are masked.
     else if (flags.isSandbox) {
-      if (
-        v.inheritance === BaseVariableInheritance.FIXED &&
-        v.is_inherited
-      ) {
+      if (v.inheritance === BaseVariableInheritance.FIXED && v.is_inherited) {
         result.value = SECRET_MASK;
       } else if (
         v.inheritance === BaseVariableInheritance.EDITABLE &&

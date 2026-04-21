@@ -8,7 +8,12 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
-import { applyMeta, diffMeta, serializeMeta } from '~/helpers/baseMetaHelpers';
+import {
+  applyMeta,
+  diffMeta,
+  serializeMeta,
+  stripDocuments,
+} from '~/helpers/baseMetaHelpers';
 import { MetaTable } from '~/utils/globals';
 import { JobTypes } from '~/interface/Jobs';
 import NocoSocket from '~/socket/NocoSocket';
@@ -154,9 +159,6 @@ export class SandboxesService {
       );
     }
 
-    // Gate: block if personal views are used in automations
-    await this.assertNoPersonalViewDependencies(context, baseId);
-
     const baseSources = await base.getSources();
 
     // Use provided title or generate default
@@ -217,6 +219,7 @@ export class SandboxesService {
           excludePersonalViews: true,
           excludePermissions: true,
           excludeRls: true,
+          excludeDocuments: true,
         },
         req: jobReq,
       });
@@ -319,8 +322,12 @@ export class SandboxesService {
         : {}),
     });
 
-    // Calculate diff (sandbox is current, master is target - we want to revert to master)
-    const diff = await diffMeta(sandboxMeta, masterMeta);
+    // Documents are treated as data — strip from both sides so discard does
+    // not touch sandbox-owned docs.
+    const diff = await diffMeta(
+      stripDocuments(sandboxMeta),
+      stripDocuments(masterMeta),
+    );
 
     // Discard policy: preserve sandbox base variables — they are
     // environment-specific and should not be reverted to master values
@@ -520,8 +527,12 @@ export class SandboxesService {
           }
         : {}),
     });
-    // Calculate diff (master is current, sandbox is new)
-    const diff = await diffMeta(masterMeta, sandboxMeta);
+    // Documents are treated as data — exclude from the diff preview so
+    // doc add/update/delete never appears as a schema change.
+    const diff = await diffMeta(
+      stripDocuments(masterMeta),
+      stripDocuments(sandboxMeta),
+    );
 
     // Variable diff policy: show new variables but hide value changes and deletions
     // (staging values are environment-specific and shouldn't appear in the diff preview)
@@ -539,47 +550,5 @@ export class SandboxesService {
     });
 
     return { diff, changelog };
-  }
-
-  private async assertNoPersonalViewDependencies(
-    context: NcContext,
-    baseId: string,
-  ): Promise<void> {
-    const knex = Noco.ncMeta.knex;
-
-    // Find personal views (owned_by IS NOT NULL) on this base
-    const personalViews: { id: string; title: string }[] = await knex(
-      MetaTable.VIEWS,
-    )
-      .join(
-        MetaTable.MODELS,
-        `${MetaTable.MODELS}.id`,
-        `${MetaTable.VIEWS}.fk_model_id`,
-      )
-      .where(`${MetaTable.MODELS}.base_id`, baseId)
-      .whereNotNull(`${MetaTable.VIEWS}.owned_by`)
-      .select(`${MetaTable.VIEWS}.id`, `${MetaTable.VIEWS}.title`);
-
-    if (!personalViews.length) return;
-
-    const personalViewIds = personalViews.map((v) => v.id);
-
-    // Check if any personal view is referenced in hooks (automations)
-    const hookDeps: { fk_view_id: string }[] = await knex(MetaTable.HOOKS)
-      .whereIn('fk_view_id', personalViewIds)
-      .select('fk_view_id');
-
-    const blockingViewIds = new Set(hookDeps.map((h) => h.fk_view_id));
-
-    if (blockingViewIds.size === 0) return;
-
-    const viewTitles = personalViews
-      .filter((v) => blockingViewIds.has(v.id))
-      .map((v) => v.title)
-      .join(', ');
-
-    NcError.get(context).badRequest(
-      `Cannot create sandbox: personal views are used in automations: ${viewTitles}. Remove these automation triggers before creating a sandbox.`,
-    );
   }
 }

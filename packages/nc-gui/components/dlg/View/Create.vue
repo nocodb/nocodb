@@ -103,9 +103,25 @@ const workspaceStore = useWorkspace()
 const baseStore = useBase()
 const { baseId: activeBaseId } = storeToRefs(baseStore)
 
-const { blockCalendarRange, getPlanTitle, showEEFeatures, getFeature } = useEeConfig()
+const { blockCalendarRange, getPlanTitle, showEEFeatures, getFeature, handleUpgradePlan } = useEeConfig()
 
 const isPersonalViewFeatureEnabled = computed(() => getFeature(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS))
+
+// Proxies `form.lock_type` so that selecting "Personal" when the
+// feature is gated opens the upgrade modal INSTEAD of updating the
+// model. Covers both mouse (the radio's @click.capture) and keyboard
+// (Tab + Space/Enter) paths uniformly, since v-model updates flow
+// through this setter regardless of input method.
+const formLockType = computed({
+  get: () => form.lock_type,
+  set: (val: ViewLockType) => {
+    if (val === ViewLockType.Personal && isEeUI && showEEFeatures.value && !isPersonalViewFeatureEnabled.value) {
+      handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_PERSONAL_VIEWS })
+      return
+    }
+    form.lock_type = val
+  },
+})
 
 const { isUIAllowed } = useRoles()
 
@@ -1012,50 +1028,34 @@ watch(activeBaseId, () => {
                in both CE and EE. -->
           <div class="flex flex-col gap-1.5 nc-create-view-lock-type">
             <div class="text-[13px] font-medium text-nc-content-gray">{{ $t('labels.whoCanEdit') }}</div>
+            <!-- formLockType is a computed setter: selecting Personal
+                 when the feature is gated (on-prem Free / cloud Free)
+                 opens the upgrade modal INSTEAD of updating the model.
+                 Covers mouse, keyboard, and any other path that would
+                 flip v-model — replaces the previous @click.capture
+                 guard which missed keyboard selection. -->
             <a-radio-group
-              v-model:value="form.lock_type"
+              v-model:value="formLockType"
               class="nc-create-view-lock-radio-group !flex !flex-nowrap items-center gap-x-5"
             >
-              <template v-for="option in lockTypeOptions" :key="option.value">
-                <!-- Personal is payment-gated: on unlicensed on-prem / non-Plus cloud,
-                     the radio shows an upgrade badge and clicks open the upgrade
-                     modal instead of setting lock_type. Mirrors the View mode
-                     submenu pattern in ViewActionMenu.vue. -->
-                <PaymentUpgradeBadgeProvider
-                  v-if="option.value === ViewLockType.Personal && isEeUI && showEEFeatures"
-                  :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
-                >
-                  <template #default="{ click }">
-                    <a-radio
-                      :value="option.value"
-                      :data-testid="`nc-create-view-lock-type-${option.value}`"
-                      @click.capture="
-                        (e) => {
-                          if (!isPersonalViewFeatureEnabled) {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS)
-                          }
-                        }
-                      "
-                    >
-                      <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
-                        <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
-                        {{ $t(viewLockIcons[option.value].title) }}
-                        <!-- show-as-lock renders a compact lock icon when gated
-                             and auto-hides when the feature is enabled -->
-                        <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS" show-as-lock />
-                      </span>
-                    </a-radio>
-                  </template>
-                </PaymentUpgradeBadgeProvider>
-                <a-radio v-else :value="option.value" :data-testid="`nc-create-view-lock-type-${option.value}`">
-                  <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
-                    <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
-                    {{ $t(viewLockIcons[option.value].title) }}
-                  </span>
-                </a-radio>
-              </template>
+              <a-radio
+                v-for="option in lockTypeOptions"
+                :key="option.value"
+                :value="option.value"
+                :data-testid="`nc-create-view-lock-type-${option.value}`"
+              >
+                <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
+                  <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
+                  {{ $t(viewLockIcons[option.value].title) }}
+                  <!-- show-as-lock renders a compact lock icon when gated
+                       and auto-hides when the feature is enabled. -->
+                  <PaymentUpgradeBadge
+                    v-if="option.value === ViewLockType.Personal && isEeUI && showEEFeatures"
+                    :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+                    show-as-lock
+                  />
+                </span>
+              </a-radio>
             </a-radio-group>
             <div class="text-[12px] text-nc-content-gray-subtle2 leading-[16px]">
               {{ $t(viewLockIcons[form.lock_type].subtitle) }}

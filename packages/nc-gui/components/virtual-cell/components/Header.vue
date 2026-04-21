@@ -56,9 +56,9 @@ const relationMeta = computed(() => {
     class="flex-none flex rounded-md gap-1 items-center p-1 max-h-7"
     :class="{
       'bg-nc-bg-gray-medium text-nc-content-gray-subtle2': !linkedRecords,
-      'bg-nc-bg-orange-dark text-nc-content-orange-dark': relation === 'hm' && linkedRecords,
+      'bg-nc-bg-orange-dark text-nc-content-orange-dark': (relation === 'hm' || relation === 'om') && linkedRecords,
       'bg-nc-bg-pink-dark text-nc-content-pink-dark': relation === 'mm' && linkedRecords,
-      'bg-nc-bg-blue-dark text-nc-content-blue-dark': relation === 'bt' && linkedRecords,
+      'bg-nc-bg-blue-dark text-nc-content-blue-dark': (relation === 'bt' || relation === 'mo') && linkedRecords,
       'bg-nc-bg-purple-dark text-nc-content-purple-dark': relation === 'oo' && linkedRecords,
     }"
   >
@@ -82,10 +82,10 @@ const relationMeta = computed(() => {
         :is="relationMeta.icon"
         class="nc-relation-icon flex-none w-5 h-5 p-1 rounded-md"
         :class="{
-          '!bg-nc-orange-500': relation === 'hm',
+          '!bg-nc-orange-500': relation === 'hm' || relation === 'om',
           '!bg-nc-pink-500': relation === 'mm',
           '!bg-nc-purple-500 one-to-one': relation === 'oo',
-          '!bg-nc-blue-500': relation === 'bt',
+          '!bg-nc-blue-500': relation === 'bt' || relation === 'mo',
         }"
       />
     </NcTooltip>

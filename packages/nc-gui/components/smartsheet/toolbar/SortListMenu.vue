@@ -412,11 +412,7 @@ watch(
                 </NcButton>
               </template>
               <template #overlay>
-                <SmartsheetToolbarCreateSort
-                  :sorts="displayedSorts"
-                  :is-parent-open="showCreateSort"
-                  @created="addSort"
-                />
+                <SmartsheetToolbarCreateSort :sorts="displayedSorts" :is-parent-open="showCreateSort" @created="addSort" />
               </template>
             </NcDropdown>
             <LazyGeneralCopyFromAnotherViewActionBtn

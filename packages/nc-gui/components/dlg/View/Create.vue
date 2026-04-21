@@ -233,9 +233,7 @@ const canLockView = computed(() => isUIAllowed('fieldAdd'))
 // Personal views are an EE-only concept — CE has only Collaborative
 // and the legacy Locked lock_types.
 const lockTypeOptions = computed(() => {
-  const options: Array<{ value: ViewLockType; disabled?: boolean }> = [
-    { value: ViewLockType.Collaborative },
-  ]
+  const options: Array<{ value: ViewLockType; disabled?: boolean }> = [{ value: ViewLockType.Collaborative }]
   if (isEeUI) options.push({ value: ViewLockType.Personal })
   if (canLockView.value) options.push({ value: ViewLockType.Locked })
   return options

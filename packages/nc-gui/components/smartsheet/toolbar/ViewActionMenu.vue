@@ -272,14 +272,12 @@ const onToggleFieldHeaderVisibility = async () => {
 
 // View ownership, personal/locked state and derived permission checks all
 // come from usePersonalViewPermissions to avoid drift with other components.
-const { isPersonalView, isLockedView, isPersonalViewOwner, canModifyView, canDeleteView } =
-  usePersonalViewPermissions(view)
+const { isPersonalView, isLockedView, isPersonalViewOwner, canModifyView, canDeleteView } = usePersonalViewPermissions(view)
 
 // Tooltip shown when a modify-view action is disabled (rename, change icon, edit description).
 const modifyViewDisabledReason = computed(() => {
   if (isLockedView.value) return t('msg.info.disabledAsViewLocked')
-  if (isPersonalView.value && !isPersonalViewOwner.value)
-    return t('tooltip.onlyViewOwnerCanModifyPersonalView')
+  if (isPersonalView.value && !isPersonalViewOwner.value) return t('tooltip.onlyViewOwnerCanModifyPersonalView')
   return ''
 })
 
@@ -287,8 +285,7 @@ const modifyViewDisabledReason = computed(() => {
 const deleteDisabledReason = computed(() => {
   if (isLockedView.value) return t('msg.info.disabledAsViewLocked')
   if (blockViewOperations.value && !isPersonalView.value) return t('msg.info.cantDeleteLastGridView')
-  if (isPersonalView.value && !isPersonalViewOwner.value)
-    return t('tooltip.onlyViewOwnerCanDeletePersonalView')
+  if (isPersonalView.value && !isPersonalViewOwner.value) return t('tooltip.onlyViewOwnerCanDeletePersonalView')
   return ''
 })
 
@@ -312,8 +309,7 @@ const disableLockTypeMenu = computed(() => {
 // Tooltip shown when the whole view-mode submenu is disabled (so the user
 // can hover the title and understand why it won't expand).
 const lockTypeMenuDisabledReason = computed(() => {
-  if (isPersonalView.value && !isPersonalViewOwner.value)
-    return t('tooltip.onlyViewOwnerCanModifyPersonalView')
+  if (isPersonalView.value && !isPersonalViewOwner.value) return t('tooltip.onlyViewOwnerCanModifyPersonalView')
   if (isLockedView.value) return t('tooltip.onlyCreatorsCanUnlockView')
   return ''
 })
@@ -349,12 +345,9 @@ const collabOptionDisabledReason = computed(() => {
 })
 
 const personalOptionDisabledReason = computed(() => {
-  if (blockViewOperations.value && !isPersonalView.value)
-    return t('msg.toast.notAllowedToChangeGridView')
-  if (isPersonalView.value && !isPersonalViewOwner.value)
-    return t('tooltip.onlyViewOwnerCanModifyPersonalView')
-  if (isLockedView.value && !isUIAllowed('fieldAdd'))
-    return t('tooltip.onlyCreatorsCanUnlockView')
+  if (blockViewOperations.value && !isPersonalView.value) return t('msg.toast.notAllowedToChangeGridView')
+  if (isPersonalView.value && !isPersonalViewOwner.value) return t('tooltip.onlyViewOwnerCanModifyPersonalView')
+  if (isLockedView.value && !isUIAllowed('fieldAdd')) return t('tooltip.onlyCreatorsCanUnlockView')
   return ''
 })
 
@@ -615,12 +608,7 @@ defineOptions({
           class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
         >
           <template #title>
-            <NcTooltip
-              :disabled="!disableLockTypeMenu"
-              :title="lockTypeMenuDisabledReason"
-              placement="right"
-              class="w-full"
-            >
+            <NcTooltip :disabled="!disableLockTypeMenu" :title="lockTypeMenuDisabledReason" placement="right" class="w-full">
               <div
                 v-e="[
                   'c:navdraw:preview-as',

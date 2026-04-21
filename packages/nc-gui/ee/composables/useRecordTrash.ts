@@ -178,7 +178,7 @@ export const useRecordTrash = createSharedComposable(() => {
       const cursor = opts.append ? nextCursor.value : null
       const result = (await $api.internal.getOperation(
         (meta.value as TableType).fk_workspace_id!,
-        (meta.value as TableType)?.base_id!,
+        (meta.value as TableType)?.base_id as string,
         {
           operation: 'recordTrashEvents' as RecordTrashOperation,
           tableId: tableId.value,
@@ -341,7 +341,7 @@ export const useRecordTrash = createSharedComposable(() => {
     try {
       await $api.internal.postOperation(
         (meta.value as TableType).fk_workspace_id!,
-        (meta.value as TableType)?.base_id!,
+        (meta.value as TableType)?.base_id as string,
         { operation: 'recordTrashPermanentDelete' as RecordTrashOperation } as any,
         { tableId: tableId.value, eventId },
       )
@@ -433,7 +433,7 @@ export const useRecordTrash = createSharedComposable(() => {
     try {
       await $api.internal.postOperation(
         (meta.value as TableType).fk_workspace_id!,
-        (meta.value as TableType)?.base_id!,
+        (meta.value as TableType)?.base_id as string,
         { operation: 'recordTrashEmpty' as RecordTrashOperation } as any,
         { tableId: tableId.value },
       )

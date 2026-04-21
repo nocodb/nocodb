@@ -208,8 +208,6 @@ export default class XcMigrationSourcev0 {
         return nc_202603170000_form_view_expires_at;
       case 'nc_202603170001_workflow_draft_reminder':
         return nc_202603170001_workflow_draft_reminder;
-      case 'nc_202603180000_user_mfa':
-        return nc_202603180000_user_mfa;
       case 'nc_202603090002_date_dependency':
         return nc_202603090002_date_dependency;
       case 'nc_202603230000_subscription_last_paid_seat_count':
@@ -232,6 +230,8 @@ export default class XcMigrationSourcev0 {
         return nc_202604160000_docs_in_data;
       case 'nc_202604200002_trash_cleanup_due_at':
         return nc_202604200002_trash_cleanup_due_at;
+      case 'nc_202603180000_user_mfa':
+        return nc_202603180000_user_mfa;
     }
   }
 }

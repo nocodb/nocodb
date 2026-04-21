@@ -1242,7 +1242,7 @@ export class ColumnsService implements IColumnsService {
                   );
                 }
                 if (!isSupportedDisplayValueColumn(displayCol)) {
-                  NcError.badRequest(
+                  NcError.get(context).badRequest(
                     'Selected column type is not supported as a display value field',
                   );
                 }

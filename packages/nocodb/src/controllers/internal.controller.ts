@@ -19,6 +19,15 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+// DO NOT change to `~/middlewares/extract-ids/extract-ids.helpers` —
+// the cloud-docker-build CI rsyncs ee-private's sameid branch which
+// adds an ee-cloud overlay at `src/ee-cloud/middlewares/extract-ids/
+// extract-ids.helpers.ts` that shadows the `~/*` path and does NOT
+// re-export `markPersonalViewIfNeeded`. Using the explicit `src/*`
+// alias here bypasses the overlay and resolves directly to CE.
+// Followup to fix this cleanly: update ee-cloud overlay to
+// `export * from 'src/ee/middlewares/extract-ids/extract-ids.helpers';`
+// and restore the `~/*` import here.
 import { markPersonalViewIfNeeded } from 'src/middlewares/extract-ids/extract-ids.helpers';
 import {
   InternalGETResponseType,

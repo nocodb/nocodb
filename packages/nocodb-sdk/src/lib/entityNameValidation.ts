@@ -1,5 +1,5 @@
 export const ENTITY_NAME_MIN_LENGTH = 1;
-export const ENTITY_NAME_MAX_LENGTH = 50;
+export const ENTITY_NAME_MAX_LENGTH = 150;
 
 /**
  * Allowed characters: Unicode letters, numbers, regular spaces, hyphens,

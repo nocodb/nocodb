@@ -182,6 +182,8 @@ export class PublicDatasController {
     '/api/v2/public/shared-view/:sharedViewUuid/rows/:rowId/mm/:columnId',
     '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/ln/:columnId',
     '/api/v2/public/shared-view/:sharedViewUuid/rows/:rowId/ln/:columnId',
+    '/api/v1/db/public/shared-view/:sharedViewUuid/rows/:rowId/om/:columnId',
+    '/api/v2/public/shared-view/:sharedViewUuid/rows/:rowId/om/:columnId',
   ])
   async publicMmList(
     @TenantContext() context: NcContext,

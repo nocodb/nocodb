@@ -18,7 +18,7 @@ const CONSECUTIVE_SPACES_PATTERN = / {2,}/;
 export function validateAccountName(
   name: string | undefined | null,
   entityLabel = 'Name',
-): { valid: true } | { valid: false; error: string } {
+): { valid: boolean; error?: string } {
   if (name == null || name.trim().length === 0) {
     return { valid: false, error: `${entityLabel} is required` };
   }

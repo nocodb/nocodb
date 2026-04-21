@@ -188,8 +188,9 @@ export class DuplicateProcessor {
       let exportedDocuments = null;
 
       if (!options?.excludeDocuments) {
-        exportedDocuments =
-          await this.exportService.serializeDocuments(context);
+        exportedDocuments = await this.exportService.serializeDocuments(
+          context,
+        );
 
         elapsedTime(
           hrTime,

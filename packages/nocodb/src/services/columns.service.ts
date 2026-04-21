@@ -2021,9 +2021,7 @@ export class ColumnsService implements IColumnsService {
           (el) => el.trim() !== CURRENT_USER_TOKEN,
         );
 
-        let baseUsers: Awaited<
-          ReturnType<typeof BaseUser.getUsersList>
-        > = [];
+        let baseUsers: Awaited<ReturnType<typeof BaseUser.getUsersList>> = [];
 
         if (nonTokenValues.length) {
           baseUsers = await BaseUser.getUsersList(context, {
@@ -3456,9 +3454,8 @@ export class ColumnsService implements IColumnsService {
                 (el) => el.trim() !== CURRENT_USER_TOKEN,
               );
 
-              let baseUsers: Awaited<
-                ReturnType<typeof BaseUser.getUsersList>
-              > = [];
+              let baseUsers: Awaited<ReturnType<typeof BaseUser.getUsersList>> =
+                [];
 
               if (nonTokenValues.length) {
                 baseUsers = await BaseUser.getUsersList(context, {
@@ -3482,8 +3479,7 @@ export class ColumnsService implements IColumnsService {
               }
 
               const ids = emailOrIds.map((el) => {
-                if (el.trim() === CURRENT_USER_TOKEN)
-                  return CURRENT_USER_TOKEN;
+                if (el.trim() === CURRENT_USER_TOKEN) return CURRENT_USER_TOKEN;
                 const user = baseUsers.find(
                   (user) => user.id === el || user.email === el,
                 );

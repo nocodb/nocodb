@@ -1085,7 +1085,8 @@ export class AclMiddleware implements NestInterceptor {
     if (
       isEditor &&
       editorPersonalViewOnlyPermissions.includes(permissionName) &&
-      ((req[VIEW_KEY]?.lock_type === ViewLockType.Personal && !isPersonalViewOwner) ||
+      ((req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
+        !isPersonalViewOwner) ||
         req[VIEW_KEY]?.lock_type === ViewLockType.Locked)
     ) {
       NcError.forbidden('Unauthorized access');

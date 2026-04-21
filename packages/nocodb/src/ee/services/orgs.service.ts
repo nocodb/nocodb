@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, CloudOrgUserRoles, type DomainReqType, validateEntityName } from 'nocodb-sdk';
+import {
+  AppEvents,
+  CloudOrgUserRoles,
+  type DomainReqType,
+  validateEntityName,
+} from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import {
   DbServer,

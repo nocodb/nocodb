@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import { OrderColumnMigration } from './nc_job_005_order_column';
 import type CustomKnex from '~/db/CustomKnex';
-import { isEE } from '~/utils';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';

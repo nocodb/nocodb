@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { NcContext, NcRequest } from 'nocodb-sdk';
+import { markPersonalViewIfNeeded } from 'src/middlewares/extract-ids/extract-ids.helpers';
 import type { InternalApiModule } from '~/utils/internal-type';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
@@ -19,7 +20,6 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { markPersonalViewIfNeeded } from 'src/middlewares/extract-ids/extract-ids.helpers';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,

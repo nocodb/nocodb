@@ -10,6 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   BaseTeamCreateV3ReqType,
   BaseTeamDeleteV3ReqType,
@@ -26,7 +27,6 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { License } from '~/decorators/license.decorator';
-import { PlanFeatureTypes } from 'nocodb-sdk';
 
 // Note: temporary controller for v3 base teams API, these paths will change in future
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)

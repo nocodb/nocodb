@@ -162,8 +162,7 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 0,
       [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 1000,
       [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 15,
-      // Trash & Audit
-      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 2,
+      // Audit
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 14,
       // Trash
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 15,
@@ -222,7 +221,6 @@ export const CloudPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_CALL]: 100000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
-      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 7,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 60,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 60,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 7,
@@ -256,7 +254,6 @@ export const CloudPlanDefinitions: Record<
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
-      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 30,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 90,
@@ -280,7 +277,6 @@ export const CloudPlanDefinitions: Record<
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
       [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
-      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 365,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 365,

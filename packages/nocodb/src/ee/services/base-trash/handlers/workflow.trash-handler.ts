@@ -31,7 +31,13 @@ export class WorkflowTrashHandler implements TrashHandler<Workflow> {
       const list = await Workflow.list(ctx, ctx.base_id);
       const existingNames = list.map((w) => w.title);
       if (existingNames.includes(trashEntry.name)) {
-        const newTitle = generateUniqueCopyName(trashEntry.name, existingNames);
+        const newTitle = generateUniqueCopyName(
+          trashEntry.name,
+          existingNames,
+          {
+            prefix: 'Restored',
+          },
+        );
         await Workflow.update(ctx, trashEntry.resource_id, {
           title: newTitle,
         });

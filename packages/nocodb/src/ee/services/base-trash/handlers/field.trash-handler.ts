@@ -1,15 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   EventType,
+  generateUniqueCopyName,
   isLinksOrLTAR,
   MetaEventType,
   NOCO_SERVICE_USERS,
   UITypes,
+  WebhookActions,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { TrashHandler, TrashResult } from '~/services/base-trash/types';
 import type { MetaService } from '~/meta/meta.service';
+import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import Column from '~/models/Column';
 import Model from '~/models/Model';
 import View from '~/models/View';
@@ -64,6 +67,14 @@ export class FieldTrashHandler implements TrashHandler<Column> {
       { id: col.fk_model_id },
       ncMeta,
     );
+
+    const columnWebhookManager = (
+      await (
+        await new ColumnWebhookManagerBuilder(ctx, ncMeta).withModelId(
+          col.fk_model_id,
+        )
+      ).addColumnById(col.id)
+    ).forDelete();
 
     // Find reverse link column before transaction (read-only)
     let reverseCol: Column | null = null;
@@ -213,6 +224,9 @@ export class FieldTrashHandler implements TrashHandler<Column> {
       }
     }
 
+    await columnWebhookManager.populateNewColumns();
+    columnWebhookManager.emit();
+
     return {
       entity: col,
       relatedItems: Object.keys(relatedItems).length ? relatedItems : undefined,
@@ -237,6 +251,29 @@ export class FieldTrashHandler implements TrashHandler<Column> {
       }
     }
 
+    const columnWebhookManager = (
+      await new ColumnWebhookManagerBuilder(ctx).withModelId(
+        trashEntry.parent_id,
+      )
+    ).forCreate();
+
+    // Resolve title collision — rename restored column if a live column in the
+    // same table already holds the original title. column_name is already
+    // auto-uniquified at create time via getUniqueColumnName, so only title
+    // needs handling here.
+    let renamedTitle: string | undefined;
+    if (trashEntry.name && trashEntry.parent_id) {
+      const liveColumns = await Column.list(ctx, {
+        fk_model_id: trashEntry.parent_id,
+      });
+      const existingTitles = liveColumns.map((c) => c.title);
+      if (existingTitles.includes(trashEntry.name)) {
+        renamedTitle = generateUniqueCopyName(trashEntry.name, existingTitles, {
+          prefix: 'Restored',
+        });
+      }
+    }
+
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
     try {
       // Restore column — update DB
@@ -244,7 +281,9 @@ export class FieldTrashHandler implements TrashHandler<Column> {
         ctx.workspace_id,
         ctx.base_id,
         MetaTable.COLUMNS,
-        { deleted: false },
+        renamedTitle
+          ? { deleted: false, title: renamedTitle }
+          : { deleted: false },
         trashEntry.resource_id,
       );
       const freshCol = await ncMeta.metaGet2(
@@ -294,6 +333,14 @@ export class FieldTrashHandler implements TrashHandler<Column> {
         payload: { table: restoredTable, column: restoredCol },
       } as Record<string, unknown>,
     } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
+
+    if (restoredCol) {
+      await columnWebhookManager.addNewColumnById({
+        columnId: restoredCol.id,
+        action: WebhookActions.INSERT,
+      });
+      columnWebhookManager.emit();
+    }
 
     if (relatedItems?.columns?.length) {
       for (const item of relatedItems.columns) {
@@ -362,12 +409,22 @@ export class FieldTrashHandler implements TrashHandler<Column> {
       );
     }
 
+    // Pass a silent webhook manager to suppress the DELETE webhook — it was
+    // already emitted at trash time, so we don't want a duplicate at retention
+    // cleanup. columnDelete only emits if no manager was passed in.
+    const silentWebhookManager = (
+      await new ColumnWebhookManagerBuilder(ctx).withModelId(
+        freshCol?.fk_model_id ?? trashEntry.parent_id,
+      )
+    ).forDelete();
+
     // Use columnsService for full cleanup (FK constraints, junction tables, view columns, etc.)
     await this.columnsService.columnDelete(ctx, {
       columnId: trashEntry.resource_id,
       user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER as any,
       forceDeleteSystem: true,
       skipLinkPlaceholder: true,
+      columnWebhookManager: silentWebhookManager,
     });
   }
 

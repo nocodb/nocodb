@@ -870,6 +870,23 @@ export class TablesService {
       );
     }
 
+    const allModels = await Model.list(context, {
+      base_id: base.id,
+      source_id: source.id,
+      includeDeleted: true,
+    });
+    const usedTableNames = new Set(allModels.map((m) => m.table_name));
+    if (usedTableNames.has(tableCreatePayLoad.table_name)) {
+      const baseName = tableCreatePayLoad.table_name;
+      let i = 1;
+      let candidate = `${baseName}_${i}`;
+      while (usedTableNames.has(candidate)) {
+        i++;
+        candidate = `${baseName}_${i}`;
+      }
+      tableCreatePayLoad.table_name = candidate;
+    }
+
     if (
       !(await Model.checkTitleAvailable(context, {
         table_name: tableCreatePayLoad.table_name,

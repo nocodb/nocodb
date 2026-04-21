@@ -7,6 +7,7 @@ import Model from '~/models/Model';
 import View from '~/models/View';
 import NocoSocket from '~/socket/NocoSocket';
 import { NcError } from '~/helpers/catchError';
+import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
 @Injectable()
 export class ViewTrashHandler implements TrashHandler<View> {
@@ -24,11 +25,21 @@ export class ViewTrashHandler implements TrashHandler<View> {
 
     const table = await Model.getByIdOrName(ctx, { id: view.fk_model_id });
 
+    const viewWebhookManager = (
+      await (
+        await new ViewWebhookManagerBuilder(ctx, ncMeta).withModelId(
+          view.fk_model_id,
+        )
+      ).withViewId(view.id)
+    ).forDelete();
+
     await View.softDelete(ctx, id, true, ncMeta);
 
     const meta: Record<string, any> = {};
     if (view.type != null) meta.viewType = view.type;
     if (view.meta != null) meta.viewMeta = view.meta;
+
+   viewWebhookManager.emit();
 
     return {
       entity: view,
@@ -47,11 +58,21 @@ export class ViewTrashHandler implements TrashHandler<View> {
       }
     }
 
+    const viewWebhookManager = (
+      await new ViewWebhookManagerBuilder(ctx).withModelId(trashEntry.parent_id)
+    ).forCreate();
+
     if (trashEntry.name && trashEntry.parent_id) {
       const views = await View.list(ctx, trashEntry.parent_id);
       const existingNames = views.map((v) => v.title);
       if (existingNames.includes(trashEntry.name)) {
-        const newTitle = generateUniqueCopyName(trashEntry.name, existingNames);
+        const newTitle = generateUniqueCopyName(
+          trashEntry.name,
+          existingNames,
+          {
+            prefix: 'Restored',
+          },
+        );
         await View.update(ctx, trashEntry.resource_id, { title: newTitle });
       }
     }
@@ -66,6 +87,8 @@ export class ViewTrashHandler implements TrashHandler<View> {
         payload: await View.get(ctx, trashEntry.resource_id),
       } as Record<string, unknown>,
     } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
+
+    (await viewWebhookManager.withNewViewId(trashEntry.resource_id)).emit();
   }
 
   async permanentDelete(ctx: NcContext, trashEntry: BaseTrash): Promise<void> {

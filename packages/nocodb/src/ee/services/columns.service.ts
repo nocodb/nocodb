@@ -57,6 +57,7 @@ import { FiltersService } from '~/services/filters.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import ListViewLevel from '~/models/ListViewLevel';
 import ListViewColumn from '~/models/ListViewColumn';
 
@@ -72,6 +73,7 @@ export class ColumnsService extends ColumnsServiceCE {
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
     protected readonly duplicateDetectionService: DuplicateDetectionService,
     protected readonly linkPlaceholderService: LinkPlaceholderService,
+    protected readonly baseTrashService: BaseTrashService,
   ) {
     super(
       metaService,
@@ -83,6 +85,22 @@ export class ColumnsService extends ColumnsServiceCE {
       duplicateDetectionService,
       linkPlaceholderService,
     );
+  }
+
+  // Override CE hard-delete in columnBulk to soft-delete via trash, so bulk
+  // field deletes from the field manager UI route through the same trash flow
+  // as single-column delete.
+  protected async handleColumnBulkDelete(
+    context: NcContext,
+    op: { column: Partial<Column> },
+    req: NcRequest,
+  ) {
+    await this.baseTrashService.trashResource(context, {
+      resourceId: op.column.id,
+      resourceType: 'field',
+      user: req.user,
+      req,
+    });
   }
 
   @EEOnly()

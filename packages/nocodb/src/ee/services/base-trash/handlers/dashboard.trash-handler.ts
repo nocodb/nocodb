@@ -28,7 +28,9 @@ export class DashboardTrashHandler implements TrashHandler<Dashboard> {
       const list = await Dashboard.list(ctx, ctx.base_id);
       const existingNames = list.map((d) => d.title);
       if (existingNames.includes(trashEntry.name)) {
-        const newTitle = generateUniqueCopyName(trashEntry.name, existingNames);
+        const newTitle = generateUniqueCopyName(trashEntry.name, existingNames, {
+          prefix: 'Restored',
+        });
         await Dashboard.update(ctx, trashEntry.resource_id, {
           title: newTitle,
         });

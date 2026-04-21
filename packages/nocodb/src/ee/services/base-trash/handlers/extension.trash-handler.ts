@@ -27,7 +27,9 @@ export class ExtensionTrashHandler implements TrashHandler<Extension> {
       const list = await Extension.list(ctx, ctx.base_id);
       const existingNames = list.map((e) => e.title);
       if (existingNames.includes(trashEntry.name)) {
-        const newTitle = generateUniqueCopyName(trashEntry.name, existingNames);
+        const newTitle = generateUniqueCopyName(trashEntry.name, existingNames, {
+          prefix: 'Restored',
+        });
         await Extension.update(ctx, trashEntry.resource_id, {
           title: newTitle,
         });

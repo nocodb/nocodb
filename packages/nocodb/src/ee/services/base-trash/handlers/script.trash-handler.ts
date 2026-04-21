@@ -27,7 +27,9 @@ export class ScriptTrashHandler implements TrashHandler<Script> {
       const list = await Script.list(ctx, ctx.base_id);
       const existingNames = list.map((s) => s.title);
       if (existingNames.includes(trashEntry.name)) {
-        const newTitle = generateUniqueCopyName(trashEntry.name, existingNames);
+        const newTitle = generateUniqueCopyName(trashEntry.name, existingNames, {
+          prefix: 'Restored',
+        });
         await Script.update(ctx, trashEntry.resource_id, {
           title: newTitle,
         });

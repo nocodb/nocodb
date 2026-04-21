@@ -47,6 +47,7 @@ import {
   viewColumnBuilder,
 } from '~/utils/api-v3-data-transformation.builder';
 import { ViewsService } from '~/services/views.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { NcError } from '~/helpers/catchError';
 import {
   addDummyRootAndNest,
@@ -180,6 +181,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
     protected formsService: FormsService,
     protected kanbansService: KanbansService,
     protected galleriesService: GalleriesService,
+    protected readonly baseTrashService: BaseTrashService,
   ) {
     super();
     this.builder = builderGenerator({
@@ -1528,8 +1530,9 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
 
   async delete(context: NcContext, param: { req: NcRequest; viewId: string }) {
     const { req, viewId } = param;
-    await this.viewsService.viewDelete(context, {
-      viewId,
+    await this.baseTrashService.trashResource(context, {
+      resourceId: viewId,
+      resourceType: 'view',
       user: context.user,
       req,
     });

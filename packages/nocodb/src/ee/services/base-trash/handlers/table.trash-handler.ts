@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   EventType,
+  generateUniqueCopyName,
   MetaEventType,
   NOCO_SERVICE_USERS,
 } from 'nocodb-sdk';
@@ -85,7 +86,11 @@ export class TableTrashHandler implements TrashHandler<Model> {
     await Model.softDelete(ctx, table.id, true, ncMeta);
 
     // Cascade: soft-delete all reverse LTAR columns in OTHER tables + create placeholders
-    const cascadedColumns = await this.cascadeLinksOnTrash(ctx, table.id, ncMeta);
+    const cascadedColumns = await this.cascadeLinksOnTrash(
+      ctx,
+      table.id,
+      ncMeta,
+    );
 
     // Mark dependents of cascade-deleted columns
     const dependents: Array<{ id: string; type: string }> = [];
@@ -107,12 +112,7 @@ export class TableTrashHandler implements TrashHandler<Model> {
 
     // Mark dependents for ALL columns inside the trashed table
     // (other tables may have Lookups/Rollups referencing these columns)
-    await this.markDependentsForTableColumns(
-      ctx,
-      table.id,
-      dependents,
-      ncMeta,
-    );
+    await this.markDependentsForTableColumns(ctx, table.id, dependents, ncMeta);
 
     // Build related_items
     const relatedItems: Record<string, any> = {};
@@ -146,6 +146,39 @@ export class TableTrashHandler implements TrashHandler<Model> {
   // ── Restore ────────────────────────────────────────────────
 
   async restore(ctx: NcContext, trashEntry: BaseTrash): Promise<void> {
+    // Resolve title collision — rename restored table if a live table in the
+    // same source already holds the original title. table_name is auto-uniquified
+    // at create time, so only the display title needs handling here.
+    if (trashEntry.name) {
+      const trashedTable = await Model.get(ctx, trashEntry.resource_id, true);
+      if (trashedTable?.source_id) {
+        const liveTables = await Model.list(ctx, {
+          base_id: ctx.base_id,
+          source_id: trashedTable.source_id,
+        });
+        const existingTitles = liveTables.map((t) => t.title);
+        if (existingTitles.includes(trashEntry.name)) {
+          const newTitle = generateUniqueCopyName(
+            trashEntry.name,
+            existingTitles,
+            { prefix: 'Restored' },
+          );
+          await Noco.ncMeta.metaUpdate(
+            ctx.workspace_id,
+            ctx.base_id,
+            MetaTable.MODELS,
+            { title: newTitle },
+            trashEntry.resource_id,
+          );
+          await NocoCache.update(
+            ctx,
+            `${CacheScope.MODEL}:${trashEntry.resource_id}`,
+            { title: newTitle },
+          );
+        }
+      }
+    }
+
     // Un-soft-delete the table
     await Model.softDelete(ctx, trashEntry.resource_id, false);
 

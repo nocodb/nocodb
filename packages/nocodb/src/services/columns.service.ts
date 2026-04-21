@@ -6009,11 +6009,7 @@ export class ColumnsService implements IColumnsService {
         }
       } else if (op.op === 'delete') {
         try {
-          await this.columnDelete(context, {
-            columnId: op.column.id,
-            req,
-            user: req.user,
-          });
+          await this.handleColumnBulkDelete(context, op, req);
         } catch (e) {
           const dbError = DBErrorExtractor.get().extractDbError(e, {
             clientType: source.type as unknown as ClientType, // Pass the client type from source
@@ -6045,6 +6041,21 @@ export class ColumnsService implements IColumnsService {
     _columnBody: ColumnReqType,
   ) {
     // placeholder for post column update hook
+  }
+
+  // Hook used by columnBulk's delete branch. CE hard-deletes; EE overrides
+  // this to soft-delete via baseTrashService so bulk deletes route through
+  // the trash system identically to the single-column delete path.
+  protected async handleColumnBulkDelete(
+    context: NcContext,
+    op: { column: Partial<Column> },
+    req: NcRequest,
+  ) {
+    await this.columnDelete(context, {
+      columnId: op.column.id,
+      req,
+      user: req.user,
+    });
   }
 
   private async checkCrossBasePermission(

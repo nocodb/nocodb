@@ -151,7 +151,7 @@ const validators = computed(() => {
         required: true,
         message: 'Source name is required',
       },
-      baseTitleValidator(),
+      sourceAliasValidator(),
     ],
     fk_integration_id: [
       {

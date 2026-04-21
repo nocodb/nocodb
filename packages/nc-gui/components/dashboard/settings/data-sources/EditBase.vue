@@ -101,7 +101,7 @@ const getDataSourceValue = (field: 'database' | 'schema') => {
 
 const validators = computed(() => {
   return {
-    'title': [baseTitleValidator()],
+    'title': [sourceAliasValidator()],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
     ...(formState.value.dataSource.client === ClientType.SQLITE

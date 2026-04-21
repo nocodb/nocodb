@@ -194,6 +194,23 @@ export const baseTitleValidator = (entityName: string = 'Base name') => {
   }
 }
 
+export const sourceAliasValidator = () => {
+  return {
+    validator: (_rule: any, value: any) => {
+      return new Promise((resolve, reject) => {
+        if (value == null || value.trim().length === 0) {
+          return resolve(true)
+        }
+        const result = validateEntityName(value, 'Data source name')
+        if (!result.valid) {
+          return reject(new Error(result.error))
+        }
+        return resolve(true)
+      })
+    },
+  }
+}
+
 export const fieldRequiredValidator = () => {
   const { t } = getI18n().global
   return {

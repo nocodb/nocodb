@@ -1,10 +1,14 @@
 ###########
 # Platform-specific runner images
-# node:24.14.0-alpine doesn't publish arm/v7 — fall back to node:22-alpine
+# node:24.14.0-alpine doesn't publish arm/v7 — fall back to node:22-alpine3.19
+# Pinned to alpine3.19 (Python 3.11) because sqlite3@5.1.7 bundles node-gyp@8.4.1
+# which imports `distutils.version.StrictVersion` — removed in Python 3.12+.
+# Newer Alpine (3.20+) ships Python 3.12, breaking source-compile of sqlite3
+# on arm/musl where no upstream prebuilt exists.
 ###########
 FROM node:24.14.0-alpine AS runner-amd64
 FROM node:24.14.0-alpine AS runner-arm64
-FROM node:22-alpine AS runner-arm
+FROM node:22-alpine3.19 AS runner-arm
 
 ###########
 # Builder — always runs natively on the build host (no QEMU)
@@ -55,7 +59,14 @@ RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | se
 
 # Install sharp for the target platform (sharp uses npm optional deps for prebuilds)
 RUN TARGET_ARCH=$(echo $TARGETPLATFORM | cut -d'/' -f2 | sed 's/amd64/x64/' | sed 's/arm64/arm64/') \
-    && npm install --no-save --os=linux --cpu=${TARGET_ARCH} sharp 2>/dev/null; true
+    && npm install --no-save --ignore-scripts --os=linux --cpu=${TARGET_ARCH} sharp 2>/dev/null; true
+
+# Remove msgpackr-extract local build that npm install may have regenerated for
+# the host arch. The NAPI prebuilt in @msgpackr-extract/msgpackr-extract-linux-<arch>
+# works on all supported platforms (linux x64/arm64/arm). Keeping build/Release
+# loads a broken binary on aarch64 musl with "unsupported relocation type 7",
+# segfaulting on Pi 5 Cortex-A76 inside musl's dynamic loader memset.
+RUN rm -rf ./node_modules/msgpackr-extract/build
 
 # Copy application files
 COPY ./docker/nc-gui/ ./docker/nc-gui/

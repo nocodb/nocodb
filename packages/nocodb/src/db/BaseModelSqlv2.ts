@@ -4291,6 +4291,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       filterArr?: Filter[];
       viewId?: string;
       skipValidationAndHooks?: boolean;
+      /**
+       * When true, soft-deleted (trash) rows are included in the update.
+       * Used by column-level rewrites (e.g. select option rename/delete)
+       * that must keep trash rows in sync so restore lands on valid values.
+       */
+      includeSoftDeleted?: boolean;
     } = {},
     data,
     { cookie, skip_hooks = false }: { cookie: NcRequest; skip_hooks?: boolean },
@@ -4372,10 +4378,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         await conditionV2(this, conditionObj, qb, undefined, true);
 
-        // Exclude soft-deleted records from bulk update
-        const softDeleteFilterBUA = await this.getSoftDeleteFilter();
-        if (softDeleteFilterBUA) {
-          qb.where(softDeleteFilterBUA);
+        // Exclude soft-deleted records from bulk update unless caller opts in
+        if (!args.includeSoftDeleted) {
+          const softDeleteFilterBUA = await this.getSoftDeleteFilter();
+          if (softDeleteFilterBUA) {
+            qb.where(softDeleteFilterBUA);
+          }
         }
 
         count = (

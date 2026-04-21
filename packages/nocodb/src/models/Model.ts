@@ -109,6 +109,11 @@ export default class Model implements TableType {
     return false;
   }
 
+ // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async isTrashEnabledForWorkspace(_context: NcContext): Promise<boolean> {
+    return this.isTrashEnabled;
+  }
+
   columns?: Column[];
   columnsById?: { [id: string]: Column };
   columnsHash?: string;

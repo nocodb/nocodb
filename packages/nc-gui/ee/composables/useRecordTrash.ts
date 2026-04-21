@@ -8,6 +8,54 @@ type RecordTrashOperation =
   | 'recordTrashPermanentDelete'
   | 'recordTrashEmpty'
 
+export type RestoreConflict =
+  | {
+      kind: 'link-v1' | 'link-v2'
+      rowId: string
+      columnId: string
+      columnTitle: string
+    }
+  | {
+      kind: 'validation'
+      rowId: string
+      columnId: string
+      columnTitle: string
+      columnName: string
+      value: unknown
+      message: string
+    }
+  | {
+      kind: 'unique-active'
+      rowId: string
+      columnId: string
+      columnTitle: string
+      columnName: string
+      value: unknown
+      conflictingRowId: string
+    }
+  | {
+      kind: 'unique-intra'
+      rowId: string
+      columnId: string
+      columnTitle: string
+      columnName: string
+      value: unknown
+      winnerRowId: string
+    }
+
+export interface ConflictState {
+  conflicts: RestoreConflict[]
+  isSubmitting: boolean
+  error?: string
+}
+
+export interface RestoreResult {
+  restored: number
+  skipped: Array<{ rowId: string; conflicts: RestoreConflict[] }>
+  cleared: Array<{ rowId: string; columns: string[] }>
+  message?: string
+}
+
 interface RawTrashEvent {
   id: string
   op_type: string
@@ -53,8 +101,8 @@ export const useRecordTrash = createSharedComposable(() => {
   // Data
   const trashEvents = ref<TrashEvent[]>([])
   const trashCount = ref(0)
-  const hasMoreEvents = ref(false)
   const nextCursor = ref<string | null>(null)
+  const hasMoreEvents = computed(() => nextCursor.value !== null)
 
   const meta = computed(() => {
     if (!activeProjectId.value || !tableId.value) return undefined
@@ -141,7 +189,6 @@ export const useRecordTrash = createSharedComposable(() => {
 
       const list = ((result?.list ?? []) as RawTrashEvent[]).map(enrichEvent)
       trashEvents.value = opts.append ? [...trashEvents.value, ...list] : list
-      hasMoreEvents.value = !!result?.pageInfo?.hasMore
       nextCursor.value = result?.pageInfo?.nextCursor ?? null
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -165,13 +212,32 @@ export const useRecordTrash = createSharedComposable(() => {
     return count
   }
 
-  async function doRestoreEvent(tableMeta: TableType, eventId: string, force = false) {
-    await $api.internal.postOperation(
+  async function doRestoreEvent(
+    tableMeta: TableType,
+    eventId: string,
+    opts: { force?: boolean; partial?: boolean } = {},
+  ): Promise<RestoreResult> {
+    return (await $api.internal.postOperation(
       tableMeta.fk_workspace_id!,
       tableMeta.base_id!,
       { operation: 'recordTrashRestore' as RecordTrashOperation } as any,
-      { tableId: tableMeta.id, eventId, force },
-    )
+      { tableId: tableMeta.id, eventId, ...opts },
+    )) as RestoreResult
+  }
+
+  const conflictByEventId = reactive<Record<string, ConflictState>>({})
+
+  function conflictFor(eventId: string): ConflictState | undefined {
+    return conflictByEventId[eventId]
+  }
+
+  function dismissConflict(eventId: string) {
+    delete conflictByEventId[eventId]
+  }
+
+  function extractConflictDetails(e: any): RestoreConflict[] | null {
+    const conflicts = e?.response?.data?.details?.conflicts
+    return Array.isArray(conflicts) ? (conflicts as RestoreConflict[]) : null
   }
 
   async function restoreEvent(eventId: string) {
@@ -179,51 +245,94 @@ export const useRecordTrash = createSharedComposable(() => {
     const tableMeta = meta.value as TableType | undefined
     if (!tableMeta?.id || !tableMeta?.fk_workspace_id) return
 
-    const event = trashEvents.value.find((e) => e.id === eventId)
-    const expectedCount = event?.row_count ?? 0
+    dismissConflict(eventId)
 
     try {
-      await doRestoreEvent(tableMeta, eventId)
-      message.toast(t('trash.recordsRestored', { count: expectedCount }))
+      const result = await doRestoreEvent(tableMeta, eventId)
+      message.toast(t('trash.recordsRestored', { count: result.restored }))
       removeEventLocally(eventId)
       await loadTrashCount()
     } catch (e: any) {
-      if (isUniqueConstraintViolationError(e)) {
-        const errorData = e.response?.data
-        const field = errorData?.fieldName
-        const value = errorData?.value
-
-        showWarningModal({
-          title: t('trash.uniqueConflictTitle'),
-          content: field && value ? t('trash.uniqueConflict', { field, value }) : t('trash.uniqueConflictGeneric'),
-        })
-        return
-      }
-
       const { error } = await extractSdkResponseErrorMsgv2(e)
       if (error === NcErrorType.ERR_RECORD_RESTORE_CONFLICT) {
-        showWarningModal({
-          title: t('trash.linkConflictTitle'),
-          content: t('trash.linkConflictForce'),
-          okText: t('trash.restoreAnyway'),
-          showCancelBtn: true,
-          okCallback: async () => {
-            try {
-              await doRestoreEvent(tableMeta, eventId, true)
-              message.toast(t('trash.recordsRestored', { count: expectedCount }))
-              removeEventLocally(eventId)
-              await loadTrashCount()
-            } catch (e2: any) {
-              message.error(await extractSdkResponseErrorMsg(e2))
-              await loadTrashEvents()
-            }
-          },
-        })
-        return
+        const conflicts = extractConflictDetails(e)
+        if (conflicts) {
+          conflictByEventId[eventId] = { conflicts, isSubmitting: false }
+          return
+        }
       }
-
       message.error(await extractSdkResponseErrorMsg(e))
       await loadTrashEvents()
+    }
+  }
+
+  /**
+   * Restore only the non-conflicted rows. Conflicted rows stay in trash for
+   * the user to fix upstream and retry.
+   */
+  async function partialRestoreEvent(eventId: string) {
+    if (!tableId.value || !eventId) return
+    const tableMeta = meta.value as TableType | undefined
+    if (!tableMeta?.id || !tableMeta?.fk_workspace_id) return
+
+    const state = conflictByEventId[eventId]
+    if (!state) return
+    state.isSubmitting = true
+    state.error = undefined
+
+    try {
+      const result = await doRestoreEvent(tableMeta, eventId, { partial: true })
+      const skipped = result.skipped?.length ?? 0
+      message.toast(
+        skipped
+          ? t('trash.recordsRestoredPartial', { restored: result.restored, skipped })
+          : t('trash.recordsRestored', { count: result.restored }),
+      )
+      dismissConflict(eventId)
+      if (!skipped) {
+        removeEventLocally(eventId)
+      } else {
+        await loadTrashEvents()
+      }
+      await loadTrashCount()
+    } catch (e: any) {
+      if (conflictByEventId[eventId]) {
+        conflictByEventId[eventId].isSubmitting = false
+        conflictByEventId[eventId].error = await extractSdkResponseErrorMsg(e)
+      }
+    }
+  }
+
+  /**
+   * Force-restore: auto-resolve every conflict by nulling the offending
+   * column(s) / deleting conflicting junction rows. Destructive.
+   */
+  async function forceRestoreEvent(eventId: string) {
+    if (!tableId.value || !eventId) return
+    const tableMeta = meta.value as TableType | undefined
+    if (!tableMeta?.id || !tableMeta?.fk_workspace_id) return
+
+    const state = conflictByEventId[eventId]
+    if (!state) return
+    state.isSubmitting = true
+    state.error = undefined
+
+    try {
+      const result = await doRestoreEvent(tableMeta, eventId, { force: true })
+      const clearedCount = result.cleared?.reduce((n, r) => n + r.columns.length, 0) ?? 0
+      message.toast(
+        clearedCount
+          ? t('trash.recordsRestoredForce', { restored: result.restored, cleared: clearedCount })
+          : t('trash.recordsRestored', { count: result.restored }),
+      )
+      dismissConflict(eventId)
+      removeEventLocally(eventId)
+      await loadTrashCount()
+    } catch (e: any) {
+      if (conflictByEventId[eventId]) {
+        conflictByEventId[eventId].isSubmitting = false
+        conflictByEventId[eventId].error = await extractSdkResponseErrorMsg(e)
+      }
     }
   }
 
@@ -245,17 +354,23 @@ export const useRecordTrash = createSharedComposable(() => {
     }
   }
 
-  async function doRestore(tableMeta: TableType, rowIds: string[], force = false) {
-    await $api.internal.postOperation(
+  async function doRestore(
+    tableMeta: TableType,
+    rowIds: string[],
+    opts: { force?: boolean; partial?: boolean } = {},
+  ): Promise<RestoreResult> {
+    return (await $api.internal.postOperation(
       tableMeta.fk_workspace_id!,
       tableMeta.base_id!,
       { operation: 'recordTrashRestore' as RecordTrashOperation } as any,
-      { tableId: tableMeta.id, rowIds, force },
-    )
+      { tableId: tableMeta.id, rowIds, ...opts },
+    )) as RestoreResult
   }
 
   /**
-   * Generic conflict-aware restore. Used by both the trash drawer and undo handlers.
+   * Row-based restore entry point (undo, bulk actions). When no event row
+   * is available to host an inline panel, falls back to a confirm modal
+   * that summarises the structured conflicts.
    */
   async function restoreFromTrash(
     tableMeta: TableType | undefined,
@@ -286,14 +401,19 @@ export const useRecordTrash = createSharedComposable(() => {
 
       const { error } = await extractSdkResponseErrorMsgv2(e)
       if (error === NcErrorType.ERR_RECORD_RESTORE_CONFLICT) {
+        const conflicts = extractConflictDetails(e)
+        const summary = conflicts?.length
+          ? t('trash.conflict.panelTitle', { count: conflicts.length }, conflicts.length)
+          : t('trash.linkConflictForce')
+
         showWarningModal({
           title: t('trash.linkConflictTitle'),
-          content: t('trash.linkConflictForce'),
+          content: summary,
           okText: t('trash.restoreAnyway'),
           showCancelBtn: true,
           okCallback: async () => {
             try {
-              await doRestore(tableMeta, rowIds, true)
+              await doRestore(tableMeta, rowIds, { force: true })
               await callbacks?.onSuccess?.()
             } catch (e2: any) {
               message.error(await extractSdkResponseErrorMsg(e2))
@@ -319,7 +439,6 @@ export const useRecordTrash = createSharedComposable(() => {
       )
       message.toast(t('trash.trashEmptied'))
       trashEvents.value = []
-      hasMoreEvents.value = false
       nextCursor.value = null
       trashCount.value = 0
     } catch (e: any) {
@@ -334,12 +453,22 @@ export const useRecordTrash = createSharedComposable(() => {
     isOpen.value = true
   }
 
+  // Drop all inline conflict panels whenever the trash modal closes or the
+  // active table changes — stale panels shouldn't linger across sessions.
+  function clearConflicts() {
+    for (const k of Object.keys(conflictByEventId)) delete conflictByEventId[k]
+  }
+
+  watch(isOpen, (val) => {
+    if (!val) clearConflicts()
+  })
+
   watch(
     tableId,
     () => {
       nextCursor.value = null
       trashEvents.value = []
-      hasMoreEvents.value = false
+      clearConflicts()
       loadTrashCount()
 
       if (isOpen.value) {
@@ -378,6 +507,11 @@ export const useRecordTrash = createSharedComposable(() => {
     loadTrashEvents,
     loadMoreEvents,
     restoreEvent,
+    partialRestoreEvent,
+    forceRestoreEvent,
+    conflictByEventId,
+    conflictFor,
+    dismissConflict,
     permanentDeleteEvent,
     restoreFromTrash,
     emptyTrash,

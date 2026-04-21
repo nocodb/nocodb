@@ -3887,6 +3887,42 @@
     "disableTrashConfirm": "All existing trashed records for \"{table}\" will be permanently deleted and cannot be recovered. New deletes will skip Trash.",
     "settingsUpdated": "Trash settings updated",
     "notAvailableExternal": "Trash is not available for tables in external sources.",
-    "notAvailablePending": "Trash is not yet available for this table."
+    "notAvailablePending": "Trash is not yet available for this table.",
+    "recordsRestoredPartial": "{restored} restored · {skipped} still in Trash",
+    "recordsRestoredForce": "{restored} restored · {cleared} field(s) cleared",
+    "conflict": {
+      "panelTitle": "{count} record has a conflict | {count} records have conflicts",
+      "panelHelp": "Fix these at the source and try again, or restore now — we'll clear the conflicting values.",
+      "cleanRemainder": "{count} other record will restore normally. | {count} other records will restore normally.",
+      "group": {
+        "link": "Links already taken",
+        "validation": "Invalid values",
+        "unique": "Duplicate values"
+      },
+      "resolution": {
+        "clearLink": "Links will be cleared on restore",
+        "clearField": "Fields will be cleared on restore",
+        "intraKeepLowest": "First match keeps the value; others are cleared"
+      },
+      "outcome": {
+        "kept": "kept",
+        "cleared": "will be cleared"
+      },
+      "cell": {
+        "linkTaken": "Already linked to another record",
+        "duplicateActive": "\"{value}\" is already used",
+        "duplicateIntra": "Duplicate of another record in this batch",
+        "validationEmail": "Not a valid email address",
+        "validationUrl": "Not a valid URL",
+        "validationPhone": "Not a valid phone number",
+        "validationGeneric": "Doesn't match the field's current rule"
+      },
+      "action": {
+        "cancel": "Cancel",
+        "partial": "Restore {count} without conflicts",
+        "partialSub": "{count} will stay in Trash",
+        "force": "Restore all and clear conflicts"
+      }
+    }
   }
 }

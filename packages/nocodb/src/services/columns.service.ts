@@ -1538,6 +1538,8 @@ export class ColumnsService implements IColumnsService {
                 {
                   where: `(${column.title},eq,${option.title})`,
                   skipValidationAndHooks: true,
+                  // include trash rows so restore lands on a valid option
+                  includeSoftDeleted: true,
                 },
                 { [column.column_name]: null },
                 { cookie: req },
@@ -1698,6 +1700,8 @@ export class ColumnsService implements IColumnsService {
                 {
                   where: `(${column.title},eq,${option.title})`,
                   skipValidationAndHooks: true,
+                  // include trash rows so restore lands on the renamed option
+                  includeSoftDeleted: true,
                 },
                 { [column.column_name]: newOp.title },
                 { cookie: req },
@@ -1764,6 +1768,8 @@ export class ColumnsService implements IColumnsService {
               {
                 where: `(${column.title},eq,${ch.temp_title})`,
                 skipValidationAndHooks: true,
+                // include trash rows so cyclic renames apply uniformly
+                includeSoftDeleted: true,
               },
               { [column.column_name]: newOp.title },
               { cookie: req },

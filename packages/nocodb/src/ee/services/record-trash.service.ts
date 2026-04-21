@@ -15,7 +15,11 @@ import type { Knex } from 'knex';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import { Column, FileReference, Filter, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { _wherePk, getCompositePkValue } from '~/helpers/dbHelpers';
+import {
+  _wherePk,
+  getCompositePkValue,
+  validateFuncOnColumn,
+} from '~/helpers/dbHelpers';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import conditionV2 from '~/db/conditionV2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -42,28 +46,68 @@ import NocoSocket from '~/socket/NocoSocket';
 const TRASH_BATCH_SIZE = 100;
 
 /**
- * Link conflict tagged by detection path. V1 and V2 carry different
- * resolution data so the restore code can switch on `kind` instead of
- * parsing a synthetic column-name prefix.
+ * Per-row conflict discovered by the restore pre-flight. The `kind`
+ * discriminator carries both what to show the user and what the apply
+ * step has to do to resolve it when force/partial is used.
  *
- *   V1: OO direct FK on the child table — resolution nulls `fkColumnName`.
- *   V2: junction-table link — resolution deletes the restored record's
- *       junction row at `(rowId, conflictAnchorPk)` on column `colId`.
+ *   - link-v1     → null `fkColumnName` on `rowId`
+ *   - link-v2     → delete the junction row at (rowId, anchorPk) on colId
+ *   - validation  → null `columnName` on `rowId`
+ *   - unique-active → null `columnName` on `rowId`
+ *   - unique-intra → null `columnName` on `rowId` (winner keeps the value)
  */
-type LinkConflict =
+export type RestoreConflict =
   | {
-      kind: 'v1';
+      kind: 'link-v1';
       rowId: string;
+      columnId: string;
       columnTitle: string;
       fkColumnName: string;
     }
   | {
-      kind: 'v2';
+      kind: 'link-v2';
       rowId: string;
+      columnId: string;
       columnTitle: string;
-      colId: string;
-      conflictAnchorPk: unknown;
+      anchorPk: unknown;
+    }
+  | {
+      kind: 'validation';
+      rowId: string;
+      columnId: string;
+      columnTitle: string;
+      columnName: string;
+      value: unknown;
+      message: string;
+    }
+  | {
+      kind: 'unique-active';
+      rowId: string;
+      columnId: string;
+      columnTitle: string;
+      columnName: string;
+      value: unknown;
+      conflictingRowId: string;
+    }
+  | {
+      kind: 'unique-intra';
+      rowId: string;
+      columnId: string;
+      columnTitle: string;
+      columnName: string;
+      value: unknown;
+      winnerRowId: string;
     };
+
+/**
+ * Per-row resolution plan built from conflicts. `nullColumns` are columns
+ * to set to NULL in the restore UPDATE; `junctionDeletes` are V2 junction
+ * rows to remove so the active rival's link stands.
+ */
+type RowResolution = {
+  nullColumns: Set<string>;
+  junctionDeletes: Array<{ colId: string; anchorPk: unknown }>;
+};
 
 /**
  * Apply a WHERE clause that matches any of the given PK values,
@@ -437,13 +481,14 @@ export class RecordTrashService {
     const nextCursor =
       hasMore && lastLmtIso ? encodeCursor(lastLmtIso, lastFkUserId) : null;
 
-    const retentionDays =
-      model.trash_retention_days ?? (await resolveTrashRetentionDays(context));
+    const planRetentionDays = await resolveTrashRetentionDays(context);
+    const retentionDays = model.trash_retention_days ?? planRetentionDays;
 
     return {
       list: enriched,
       retentionDays,
-      trashDisabled: !!model.trash_disabled,
+      // Plan-level disable (retention=0) counts the same as table-level
+      trashDisabled: !!model.trash_disabled || planRetentionDays === 0,
       pageInfo: {
         pageSize: limit,
         nextCursor,
@@ -461,8 +506,14 @@ export class RecordTrashService {
       /** Trash event id from listTrashEvents — encodes (LastModifiedBy, LastModifiedTime). */
       eventId?: string;
       req: NcRequest;
-      /** If true, restore the record even when OO link conflicts exist — conflicting FKs are nulled */
+      /** If true, restore everything and auto-resolve all conflicts by
+       * nulling the offending column(s) / deleting the conflicting junction
+       * row(s). Mutually exclusive with `partial`. */
       force?: boolean;
+      /** If true, restore only the rows with no conflicts and leave the
+       * conflicted ones in trash so the user can fix them upstream and
+       * retry. Mutually exclusive with `force`. */
+      partial?: boolean;
     },
   ) {
     const model = await Model.get(context, param.tableId);
@@ -494,9 +545,22 @@ export class RecordTrashService {
     let decoded: ReturnType<typeof decodeEventId> = null;
     let rowIdsPath: string[] = [];
 
+    if (param.force && param.partial) {
+      NcError.get(context).badRequest(
+        '`force` and `partial` are mutually exclusive',
+      );
+    }
+
     if (param.eventId) {
       decoded = decodeEventId(param.eventId);
-      if (!decoded) return { message: `0 record(s) restored` };
+      if (!decoded) {
+        return {
+          restored: 0,
+          skipped: [],
+          cleared: [],
+          message: `0 record(s) restored`,
+        };
+      }
     } else {
       if (!Array.isArray(param.rowIds) || !param.rowIds.length) {
         NcError.get(context).badRequest('rowIds or eventId must be provided');
@@ -510,7 +574,14 @@ export class RecordTrashService {
         deletedColumn,
         param.rowIds,
       );
-      if (!rowIdsPath.length) return { message: `0 record(s) restored` };
+      if (!rowIdsPath.length) {
+        return {
+          restored: 0,
+          skipped: [],
+          cleared: [],
+          message: `0 record(s) restored`,
+        };
+      }
     }
 
     // ── Build restore payload: undelete + stamp LMT/LMB ─────────────────────
@@ -531,53 +602,14 @@ export class RecordTrashService {
       (c) => c.uidt === UITypes.Attachment,
     );
 
-    // ── Conflict pre-flight (force=false only) ──────────────────────────────
-    // Required for force=false so we can fail atomically — no writes until
-    // every batch has been scanned. force=true skips this and detects per
-    // batch inline in the apply loop below.
-    if (!param.force) {
-      const allConflicts: LinkConflict[] = [];
-      const nextBatch = makeTrashBatchIterator(
-        baseModel,
-        model,
-        deletedColumn,
-        decoded,
-        rowIdsPath,
-      );
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const batchIds = await nextBatch();
-        if (!batchIds.length) break;
-
-        const conflicts = await this._detectLinkConflicts(
-          context,
-          model,
-          baseModel,
-          deletedColumn,
-          batchIds,
-        );
-        if (conflicts.length) allConflicts.push(...conflicts);
-      }
-
-      if (allConflicts.length) {
-        const details = allConflicts
-          .map(
-            (c) =>
-              `row ${c.rowId}: column "${c.columnTitle}" conflicts with active record`,
-          )
-          .join('; ');
-        NcError.get(context).recordRestoreConflict(details);
-      }
-    }
-
-    // ── Apply pass ──────────────────────────────────────────────────────────
-    // force=true: detect conflicts per batch into local maps and resolve
-    //   inline. Safe because force-restore never throws — no half-applied
-    //   state is possible.
-    // force=false: pre-flight above already proved no conflicts exist, so
-    //   the apply just runs with empty conflict maps.
-    let totalRestored = 0;
-
+    // ── Pre-flight ──────────────────────────────────────────────────────────
+    // One pass over the batch stream. Collects validation + unique + link
+    // conflicts. If none, we skip the apply pass's detection entirely. If
+    // some:
+    //   - default (!force && !partial): 422 with structured conflicts list
+    //   - partial: apply only the rows with no conflicts
+    //   - force: apply everything; per-row resolutions null offending columns
+    const allConflicts: RestoreConflict[] = [];
     {
       const nextBatch = makeTrashBatchIterator(
         baseModel,
@@ -591,30 +623,94 @@ export class RecordTrashService {
         const batchIds = await nextBatch();
         if (!batchIds.length) break;
 
-        const v1ConflictMap = new Map<string, string[]>();
-        const v2ConflictsByRowId = new Map<
-          string,
-          Array<{ colId: string; anchorPk: unknown }>
-        >();
+        const conflicts = await this._detectRestoreConflicts(
+          context,
+          model,
+          baseModel,
+          deletedColumn,
+          batchIds,
+          primaryKeys,
+        );
+        if (conflicts.length) allConflicts.push(...conflicts);
+      }
+    }
 
-        if (param.force) {
-          const conflicts = await this._detectLinkConflicts(
-            context,
-            model,
-            baseModel,
-            deletedColumn,
-            batchIds,
-          );
-          for (const c of conflicts) {
-            if (c.kind === 'v2') {
-              const list = v2ConflictsByRowId.get(c.rowId) ?? [];
-              list.push({ colId: c.colId, anchorPk: c.conflictAnchorPk });
-              v2ConflictsByRowId.set(c.rowId, list);
+    if (allConflicts.length && !param.force && !param.partial) {
+      // Human-readable summary + structured payload for the UI
+      const counts = allConflicts.reduce(
+        (acc, c) => ((acc[c.kind] = (acc[c.kind] ?? 0) + 1), acc),
+        {} as Record<string, number>,
+      );
+      const summary = Object.entries(counts)
+        .map(([k, n]) => `${n} ${k}`)
+        .join(', ');
+      NcError.get(context).recordRestoreConflict(summary, {
+        details: { conflicts: allConflicts, counts },
+      });
+    }
+
+    // Build conflict index — rowId → RestoreConflict[] — used to decide
+    // which rows to skip (partial) or which resolutions to apply (force).
+    const conflictsByRowId = new Map<string, RestoreConflict[]>();
+    for (const c of allConflicts) {
+      const list = conflictsByRowId.get(c.rowId) ?? [];
+      list.push(c);
+      conflictsByRowId.set(c.rowId, list);
+    }
+
+    // ── Apply pass ──────────────────────────────────────────────────────────
+    let totalRestored = 0;
+    const skipped: Array<{ rowId: string; conflicts: RestoreConflict[] }> = [];
+    const cleared: Array<{ rowId: string; columns: string[] }> = [];
+
+    {
+      const nextBatch = makeTrashBatchIterator(
+        baseModel,
+        model,
+        deletedColumn,
+        decoded,
+        rowIdsPath,
+      );
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        let batchIds = await nextBatch();
+        if (!batchIds.length) break;
+
+        // Partial mode: drop conflicted rows; leave them in trash, report them
+        if (param.partial) {
+          const next: string[] = [];
+          for (const id of batchIds) {
+            const rowConflicts = conflictsByRowId.get(id);
+            if (rowConflicts?.length) {
+              skipped.push({ rowId: id, conflicts: rowConflicts });
             } else {
-              const cols = v1ConflictMap.get(c.rowId) ?? [];
-              cols.push(c.fkColumnName);
-              v1ConflictMap.set(c.rowId, cols);
+              next.push(id);
             }
+          }
+          batchIds = next;
+          if (!batchIds.length) continue;
+        }
+
+        // Build resolutions for rows in this batch (force path only).
+        // Junction-col title lookups need the column metadata, which is on
+        // model.columns, so we keep all conflicts in the resolution map —
+        // validation/unique just null the stored column.
+        const batchConflicts: RestoreConflict[] = [];
+        if (param.force) {
+          for (const id of batchIds) {
+            const rowConflicts = conflictsByRowId.get(id);
+            if (rowConflicts?.length) batchConflicts.push(...rowConflicts);
+          }
+        }
+        const resolutions = this._buildResolutions(batchConflicts);
+
+        // Track what we cleared per row for the response
+        for (const [rowId, resolution] of resolutions) {
+          if (resolution.nullColumns.size) {
+            cleared.push({
+              rowId,
+              columns: Array.from(resolution.nullColumns),
+            });
           }
         }
 
@@ -626,8 +722,7 @@ export class RecordTrashService {
           batchIds,
           primaryKeys,
           restorePayload,
-          v1ConflictMap,
-          v2ConflictsByRowId,
+          resolutions,
           attachmentColumns,
           req: param.req,
           tableId: param.tableId,
@@ -638,7 +733,12 @@ export class RecordTrashService {
     }
 
     if (!totalRestored) {
-      return { message: `0 record(s) restored` };
+      return {
+        restored: 0,
+        skipped,
+        cleared: [],
+        message: `0 record(s) restored`,
+      };
     }
 
     // ── Post-restore: clear trash_cleanup_due_at if trash is now empty ──────
@@ -655,7 +755,12 @@ export class RecordTrashService {
       await Model.updateTrashCleanupDueAt(context, model.id, null);
     }
 
-    return { message: `${totalRestored} record(s) restored` };
+    return {
+      restored: totalRestored,
+      skipped,
+      cleared,
+      message: `${totalRestored} record(s) restored`,
+    };
   }
 
   async permanentDeleteRecords(
@@ -886,13 +991,13 @@ export class RecordTrashService {
 
     const result = await countQb.first();
 
-    const retentionDays =
-      model.trash_retention_days ?? (await resolveTrashRetentionDays(context));
+    const planRetentionDays = await resolveTrashRetentionDays(context);
+    const retentionDays = model.trash_retention_days ?? planRetentionDays;
 
     return {
       count: +(result?.count ?? 0),
       retentionDays,
-      trashDisabled: !!model.trash_disabled,
+      trashDisabled: !!model.trash_disabled || planRetentionDays === 0,
     };
   }
 
@@ -1006,193 +1111,363 @@ export class RecordTrashService {
   }
 
   /**
-   * Detect link conflicts for records about to be restored — a conflict
-   * occurs when another active record has since claimed a link slot that
-   * was held by the soft-deleted record.
+   * Unified pre-flight: validation + unique + V1 OO link detection folded
+   * into ONE SELECT against the base table, plus 1 SELECT per V2 junction
+   * column (unavoidable — cross-table).
    *
-   *   - V1 OO (direct FK on this table) — rival now holds the same FK value.
-   *   - V2 OO/OM (junction, unique on child side) — another active junction
-   *     row now occupies the same rival-side slot.
+   * Target query count per batch: `1 + (V2 junction columns)`. A table
+   * with no validators, no unique columns, and no V1 OO links skips the
+   * base fetch entirely (0 queries).
    *
-   * V1 HM/BT and V2 MO/MM have no per-side uniqueness → skipped.
+   * The base SELECT grabs PK / validator / unique / V1-FK columns for each
+   * trash row, plus:
+   *   - `__v1_<colId>`   → EXISTS(...) boolean, one per V1 OO col
+   *   - `__uniq_<colId>` → scalar subquery returning the conflicting active
+   *                        PK (or NULL), one per unique col
+   * Everything else (running JS validators, grouping intra-batch unique
+   * losers) happens in-memory on the returned rows.
    */
-  private async _detectLinkConflicts(
+  private async _detectRestoreConflicts(
     context: NcContext,
     model: Awaited<ReturnType<typeof Model.get>>,
     baseModel: Awaited<ReturnType<typeof Model.getBaseModelSQL>>,
     deletedColumn: (typeof model.columns)[number],
-    rowIds: string[],
-  ): Promise<LinkConflict[]> {
-    const conflicts: LinkConflict[] = [];
+    batchIds: string[],
+    primaryKeys: Column[],
+  ): Promise<RestoreConflict[]> {
+    const conflicts: RestoreConflict[] = [];
+    if (!batchIds.length) return conflicts;
 
-    if (!rowIds.length) return conflicts;
-
-    // ── V1 OO child columns (direct FK on this table) ──────────────────────
-    const ooV1ChildCols: Array<{
+    // ── Discover column sets ───────────────────────────────────────────
+    const validatedCols = model.columns.filter(
+      (c) => c?.meta?.validate && c?.validate,
+    );
+    const uniqueCols = model.columns.filter(
+      (c) => c.unique && !c.pk && !c.system && c.column_name,
+    );
+    const v1OoChildCols: Array<{
       col: (typeof model.columns)[number];
-      fkChildCol: Awaited<ReturnType<typeof Column.get>>;
+      fkColumnName: string;
     }> = [];
-
-    // ── V2 junction-based columns with unique constraint on one side ───────
-    //   - OO: both sides unique → always include
-    //   - HM/OM: model is parent of relation, child side unique → include
-    //   - BT/MO: model is child of relation → model owns only one row per
-    //     self, no rival slot → skip
-    //   - MM: no uniqueness → skip
-    const junctionV2Cols: Array<{
+    const v2JunctionCols: Array<{
       col: (typeof model.columns)[number];
       colOpts: LinkToAnotherRecordColumn;
     }> = [];
 
     for (const col of model.columns) {
       if (!isLinksOrLTAR(col)) continue;
-
       const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
         context,
       );
-
       if (isMMOrMMLike(col) && colOpts.version === LinksVersion.V2) {
         if (colOpts.type === 'oo' || colOpts.type === 'om') {
-          junctionV2Cols.push({ col, colOpts });
+          v2JunctionCols.push({ col, colOpts });
         }
         continue;
       }
-
-      // V1 OO direct-FK (child side only — only care when the FK lives on this table)
-      if (colOpts.type !== 'oo') continue;
-      if (!col.meta?.bt) continue;
-
+      // V1 OO child side — only when FK lives on this table
+      if (colOpts.type !== 'oo' || !col.meta?.bt) continue;
       const fkChildCol = await Column.get(context, {
         colId: colOpts.fk_child_column_id,
       });
       const fkChildTable = await fkChildCol.getModel(context);
-
       if (fkChildTable.id !== model.id) continue;
-
-      ooV1ChildCols.push({ col, fkChildCol });
+      v1OoChildCols.push({ col, fkColumnName: fkChildCol.column_name });
     }
 
-    // ── V1 conflict detection (direct FK) ───────────────────────────────────
-    const CHUNK = 500;
-    if (ooV1ChildCols.length) {
-      const primaryKeys = model.primaryKeys;
-      const pkColName = primaryKeys[0]?.column_name;
-      const tnPath = baseModel.tnPath;
-      const delColName = deletedColumn.column_name;
+    // ── Single row fetch: raw cols + EXISTS / scalar subquery columns ──
+    const pkColName = primaryKeys[0]?.column_name;
+    const tnPath = baseModel.tnPath;
+    const delCol = deletedColumn.column_name;
+    const needsBaseFetch = !!(
+      validatedCols.length ||
+      uniqueCols.length ||
+      v1OoChildCols.length
+    );
 
-      for (const { col, fkChildCol } of ooV1ChildCols) {
-        const fkColName = fkChildCol.column_name;
+    let rows: Array<Record<string, any>> = [];
+    if (needsBaseFetch) {
+      const rawCols = Array.from(
+        new Set([
+          ...primaryKeys.map((c) => c.column_name),
+          ...validatedCols.map((c) => c.column_name),
+          ...uniqueCols.map((c) => c.column_name),
+          ...v1OoChildCols.map((v) => v.fkColumnName),
+        ]),
+      );
 
-        for (let i = 0; i < rowIds.length; i += CHUNK) {
-          const chunk = rowIds.slice(i, i + CHUNK);
-          const conflictRows = await baseModel.dbDriver
-            .from(baseModel.dbDriver.raw('?? as ??', [tnPath, 't1']))
-            .whereIn(`t1.${pkColName}`, chunk)
-            .where(`t1.${delColName}`, true)
-            .whereNotNull(`t1.${fkColName}`)
-            .whereExists(function () {
-              this.select(baseModel.dbDriver.raw('1'))
-                .from(baseModel.dbDriver.raw('?? as ??', [tnPath, 't2']))
-                .whereRaw('?? = ??', [`t2.${fkColName}`, `t1.${fkColName}`])
-                .whereRaw('?? != ??', [`t2.${pkColName}`, `t1.${pkColName}`])
-                .where(function () {
-                  this.whereNull(`t2.${delColName}`).orWhere(
-                    `t2.${delColName}`,
-                    false,
-                  );
-                });
-            })
-            .select(`t1.${pkColName} as row_id`);
+      const selectItems: any[] = rawCols.map((c) =>
+        baseModel.dbDriver.raw('??.??', ['t1', c]),
+      );
 
-          for (const row of conflictRows) {
+      for (const { col, fkColumnName } of v1OoChildCols) {
+        selectItems.push(
+          baseModel.dbDriver.raw(
+            'EXISTS (SELECT 1 FROM ?? AS t2 WHERE t2.?? = t1.?? AND t2.?? != t1.?? AND (t2.?? IS NULL OR t2.?? = false)) AS ??',
+            [
+              tnPath,
+              fkColumnName,
+              fkColumnName,
+              pkColName,
+              pkColName,
+              delCol,
+              delCol,
+              `__v1_${col.id}`,
+            ],
+          ),
+        );
+      }
+
+      for (const col of uniqueCols) {
+        selectItems.push(
+          baseModel.dbDriver.raw(
+            '(SELECT t2.?? FROM ?? AS t2 WHERE t2.?? = t1.?? AND t2.?? != t1.?? AND (t2.?? IS NULL OR t2.?? = false) LIMIT 1) AS ??',
+            [
+              pkColName,
+              tnPath,
+              col.column_name,
+              col.column_name,
+              pkColName,
+              pkColName,
+              delCol,
+              delCol,
+              `__uniq_${col.id}`,
+            ],
+          ),
+        );
+      }
+
+      const qb = baseModel.dbDriver
+        .from(baseModel.dbDriver.raw('?? AS t1', [tnPath]))
+        .where(`t1.${delCol}`, true)
+        .whereIn(`t1.${pkColName}`, batchIds)
+        .select(selectItems);
+
+      rows = await baseModel.execAndParse(qb, null, { raw: true });
+    }
+
+    // ── Validation (in-memory over fetched rows) ──────────────────────
+    if (validatedCols.length && rows.length) {
+      for (const row of rows) {
+        const rowId = String(getCompositePkValue(primaryKeys, row));
+        for (const col of validatedCols) {
+          const value = row[col.column_name];
+          try {
+            await validateFuncOnColumn({
+              value,
+              column: col,
+              apiVersion: context.api_version,
+            });
+          } catch (e: any) {
             conflicts.push({
-              kind: 'v1',
-              rowId: String(row.row_id),
+              kind: 'validation',
+              rowId,
+              columnId: col.id,
               columnTitle: col.title,
-              fkColumnName: fkColName,
+              columnName: col.column_name,
+              value,
+              message:
+                e?.message || 'value does not match current validation rule',
             });
           }
         }
       }
     }
 
-    // ── V2 conflict detection (junction table) ──────────────────────────────
-    // Conflict: the restored record's junction row shares its rival-side value
-    // with another junction row owned by a different active record.
-    if (junctionV2Cols.length) {
-      const primaryKeys = model.primaryKeys;
+    // ── Unique: active via subquery result, intra-batch via grouping ──
+    if (uniqueCols.length && rows.length) {
+      for (const col of uniqueCols) {
+        const subqKey = `__uniq_${col.id}`;
+        const unclaimedGroups = new Map<unknown, string[]>();
 
-      for (const { col, colOpts } of junctionV2Cols) {
-        const { mmContext } = await colOpts.getParentChildContext(context);
-        const mmModel = await colOpts.getMMModel(mmContext);
-        const mmChildCol = await colOpts.getMMChildColumn(mmContext);
-        const mmParentCol = await colOpts.getMMParentColumn(mmContext);
+        for (const row of rows) {
+          const v = row[col.column_name];
+          if (v === null || v === undefined || v === '') continue;
+          const rid = String(getCompositePkValue(primaryKeys, row));
+          const activeClaimant =
+            row[subqKey] != null ? String(row[subqKey]) : null;
 
-        if (!mmModel || !mmChildCol || !mmParentCol) {
-          this.logger.warn(
-            `V2 link conflict detection: could not resolve junction table for column "${col.title}" — skipping`,
-          );
-          continue;
+          if (activeClaimant) {
+            conflicts.push({
+              kind: 'unique-active',
+              rowId: rid,
+              columnId: col.id,
+              columnTitle: col.title,
+              columnName: col.column_name,
+              value: v,
+              conflictingRowId: activeClaimant,
+            });
+          } else {
+            const list = unclaimedGroups.get(v) ?? [];
+            list.push(rid);
+            unclaimedGroups.set(v, list);
+          }
         }
 
-        const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
-          id: mmModel.id,
-          dbDriver: baseModel.dbDriver,
-        });
-        const mmTnPath = assocBaseModel.getTnPath(mmModel);
-        const mainTnPath = baseModel.tnPath;
-        const childColName = mmChildCol.column_name;
-        const parentColName = mmParentCol.column_name;
-        const pkColName = primaryKeys[0]?.column_name;
-        const delColName = deletedColumn.column_name;
-
-        for (let i = 0; i < rowIds.length; i += CHUNK) {
-          const chunk = rowIds.slice(i, i + CHUNK);
-          const conflictRows = await baseModel.dbDriver
-            .from(baseModel.dbDriver.raw('?? as ??', [mmTnPath, 'j1']))
-            .whereIn(`j1.${childColName}`, chunk)
-            .whereExists(function () {
-              this.select(baseModel.dbDriver.raw('1'))
-                .from(baseModel.dbDriver.raw('?? as ??', [mmTnPath, 'j2']))
-                .join(
-                  baseModel.dbDriver.raw('?? as ??', [mainTnPath, 'm']),
-                  `m.${pkColName}`,
-                  `j2.${childColName}`,
-                )
-                .whereRaw('?? = ??', [
-                  `j2.${parentColName}`,
-                  `j1.${parentColName}`,
-                ])
-                .whereRaw('?? != ??', [
-                  `j2.${childColName}`,
-                  `j1.${childColName}`,
-                ])
-                .where(function () {
-                  this.whereNull(`m.${delColName}`).orWhere(
-                    `m.${delColName}`,
-                    false,
-                  );
-                });
-            })
-            .select([
-              `j1.${childColName} as row_id`,
-              `j1.${parentColName} as conflict_anchor_pk`,
-            ]);
-
-          for (const row of conflictRows) {
+        for (const [value, rowIds] of unclaimedGroups) {
+          if (rowIds.length <= 1) continue;
+          const sorted = [...rowIds].sort();
+          const winner = sorted[0];
+          for (let i = 1; i < sorted.length; i++) {
             conflicts.push({
-              kind: 'v2',
-              rowId: String(row.row_id),
+              kind: 'unique-intra',
+              rowId: sorted[i],
+              columnId: col.id,
               columnTitle: col.title,
-              colId: col.id,
-              conflictAnchorPk: row.conflict_anchor_pk,
+              columnName: col.column_name,
+              value,
+              winnerRowId: winner,
             });
           }
         }
       }
     }
+
+    // ── V1 OO links: from the EXISTS column ───────────────────────────
+    if (v1OoChildCols.length && rows.length) {
+      for (const { col, fkColumnName } of v1OoChildCols) {
+        const key = `__v1_${col.id}`;
+        for (const row of rows) {
+          if (row[fkColumnName] == null) continue;
+          if (!row[key]) continue;
+          conflicts.push({
+            kind: 'link-v1',
+            rowId: String(getCompositePkValue(primaryKeys, row)),
+            columnId: col.id,
+            columnTitle: col.title,
+            fkColumnName,
+          });
+        }
+      }
+    }
+
+    // ── V2 junctions: one query per junction column (cross-table) ─────
+    await this._detectV2JunctionConflicts(
+      context,
+      baseModel,
+      deletedColumn,
+      batchIds,
+      primaryKeys,
+      v2JunctionCols,
+      conflicts,
+    );
 
     return conflicts;
+  }
+
+  /**
+   * V2 junction link conflict detection — pulled out because each junction
+   * column is a separate table that can't be folded into the main base-table
+   * SELECT. Runs one query per junction column.
+   */
+  private async _detectV2JunctionConflicts(
+    context: NcContext,
+    baseModel: Awaited<ReturnType<typeof Model.getBaseModelSQL>>,
+    deletedColumn: Column,
+    batchIds: string[],
+    primaryKeys: Column[],
+    v2JunctionCols: Array<{ col: Column; colOpts: LinkToAnotherRecordColumn }>,
+    conflicts: RestoreConflict[],
+  ): Promise<void> {
+    if (!v2JunctionCols.length) return;
+
+    for (const { col, colOpts } of v2JunctionCols) {
+      const { mmContext } = await colOpts.getParentChildContext(context);
+      const mmModel = await colOpts.getMMModel(mmContext);
+      const mmChildCol = await colOpts.getMMChildColumn(mmContext);
+      const mmParentCol = await colOpts.getMMParentColumn(mmContext);
+
+      if (!mmModel || !mmChildCol || !mmParentCol) {
+        this.logger.warn(
+          `V2 link conflict detection: could not resolve junction table for column "${col.title}" — skipping`,
+        );
+        continue;
+      }
+
+      const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+        id: mmModel.id,
+        dbDriver: baseModel.dbDriver,
+      });
+      const mmTnPath = assocBaseModel.getTnPath(mmModel);
+      const mainTnPath = baseModel.tnPath;
+      const childColName = mmChildCol.column_name;
+      const parentColName = mmParentCol.column_name;
+      const pkColName = primaryKeys[0]?.column_name;
+      const delColName = deletedColumn.column_name;
+
+      const conflictRows = await baseModel.dbDriver
+        .from(baseModel.dbDriver.raw('?? as ??', [mmTnPath, 'j1']))
+        .whereIn(`j1.${childColName}`, batchIds)
+        .whereExists(function () {
+          this.select(baseModel.dbDriver.raw('1'))
+            .from(baseModel.dbDriver.raw('?? as ??', [mmTnPath, 'j2']))
+            .join(
+              baseModel.dbDriver.raw('?? as ??', [mainTnPath, 'm']),
+              `m.${pkColName}`,
+              `j2.${childColName}`,
+            )
+            .whereRaw('?? = ??', [`j2.${parentColName}`, `j1.${parentColName}`])
+            .whereRaw('?? != ??', [`j2.${childColName}`, `j1.${childColName}`])
+            .where(function () {
+              this.whereNull(`m.${delColName}`).orWhere(
+                `m.${delColName}`,
+                false,
+              );
+            });
+        })
+        .select([
+          `j1.${childColName} as row_id`,
+          `j1.${parentColName} as conflict_anchor_pk`,
+        ]);
+
+      for (const row of conflictRows) {
+        conflicts.push({
+          kind: 'link-v2',
+          rowId: String(row.row_id),
+          columnId: col.id,
+          columnTitle: col.title,
+          anchorPk: row.conflict_anchor_pk,
+        });
+      }
+    }
+  }
+
+  /**
+   * Build per-row resolution plans from a flat conflict list. Every conflict
+   * kind maps to either a column-null directive or a junction-row delete.
+   */
+  private _buildResolutions(
+    conflicts: RestoreConflict[],
+  ): Map<string, RowResolution> {
+    const map = new Map<string, RowResolution>();
+    const ensure = (rowId: string) => {
+      let r = map.get(rowId);
+      if (!r) {
+        r = { nullColumns: new Set(), junctionDeletes: [] };
+        map.set(rowId, r);
+      }
+      return r;
+    };
+
+    for (const c of conflicts) {
+      switch (c.kind) {
+        case 'link-v1':
+          ensure(c.rowId).nullColumns.add(c.fkColumnName);
+          break;
+        case 'link-v2':
+          ensure(c.rowId).junctionDeletes.push({
+            colId: c.columnId,
+            anchorPk: c.anchorPk,
+          });
+          break;
+        case 'validation':
+        case 'unique-active':
+        case 'unique-intra':
+          ensure(c.rowId).nullColumns.add(c.columnName);
+          break;
+      }
+    }
+    return map;
   }
 
   /**
@@ -1208,11 +1483,7 @@ export class RecordTrashService {
     batchIds: string[];
     primaryKeys: Column[];
     restorePayload: Record<string, any>;
-    v1ConflictMap: Map<string, string[]>;
-    v2ConflictsByRowId: Map<
-      string,
-      Array<{ colId: string; anchorPk: unknown }>
-    >;
+    resolutions: Map<string, RowResolution>;
     attachmentColumns: Column[];
     req: NcRequest;
     tableId: string;
@@ -1225,8 +1496,7 @@ export class RecordTrashService {
       batchIds,
       primaryKeys,
       restorePayload,
-      v1ConflictMap,
-      v2ConflictsByRowId,
+      resolutions,
       attachmentColumns,
       req,
       tableId,
@@ -1235,10 +1505,10 @@ export class RecordTrashService {
     // V2 junction conflict resolution — delete the restored record's own
     // junction row so the active rival's link is the one that stands.
     for (const rowId of batchIds) {
-      const v2Items = v2ConflictsByRowId.get(rowId);
-      if (!v2Items?.length) continue;
+      const resolution = resolutions.get(rowId);
+      if (!resolution?.junctionDeletes.length) continue;
 
-      for (const item of v2Items) {
+      for (const item of resolution.junctionDeletes) {
         if (item.anchorPk == null) continue;
         const col = model.columns.find((c) => c.id === item.colId);
         if (!col) continue;
@@ -1279,12 +1549,16 @@ export class RecordTrashService {
 
     if (!preRestoreRows.length) return;
 
-    // UPDATE: undelete + stamp LMT/LMB; V1 OO conflicts also null their FK
+    // UPDATE: undelete + stamp LMT/LMB; rows with resolutions also null the
+    // offending columns (link FKs, invalid validator values, duplicate uniques).
     try {
-      const batchConflictIds = batchIds.filter((id) => v1ConflictMap.has(id));
+      const dirtyIds = batchIds.filter((id) => {
+        const r = resolutions.get(id);
+        return r && r.nullColumns.size > 0;
+      });
 
-      if (batchConflictIds.length) {
-        const cleanIds = batchIds.filter((id) => !v1ConflictMap.has(id));
+      if (dirtyIds.length) {
+        const cleanIds = batchIds.filter((id) => !dirtyIds.includes(id));
         if (cleanIds.length) {
           await _whereInPks(
             baseModel.dbDriver(baseModel.tnPath),
@@ -1295,10 +1569,10 @@ export class RecordTrashService {
             .update(restorePayload);
         }
 
-        for (const id of batchConflictIds) {
-          const fkCols = v1ConflictMap.get(id)!;
+        for (const id of dirtyIds) {
+          const nullCols = resolutions.get(id)!.nullColumns;
           const update: Record<string, any> = { ...restorePayload };
-          for (const col of fkCols) update[col] = null;
+          for (const col of nullCols) update[col] = null;
 
           await baseModel
             .dbDriver(baseModel.tnPath)

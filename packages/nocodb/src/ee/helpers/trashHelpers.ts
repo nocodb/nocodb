@@ -10,6 +10,7 @@ export async function resolveTrashRetentionDays(
       PlanLimitTypes.LIMIT_TRASH_RETENTION,
       context.workspace_id,
     );
+    if (limit === 0) return 0;
     if (limit !== Infinity && limit > 0) return limit;
   } catch {
     // fallback below

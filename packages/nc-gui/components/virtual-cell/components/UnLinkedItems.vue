@@ -39,11 +39,13 @@ const { $e } = useNuxtApp()
 const { isDataReadOnly } = useRoles()
 
 const {
+  childrenExcludedList,
   isChildrenExcludedListLinked,
   childrenExcludedOffsetCount,
   childrenListOffsetCount,
   isChildrenExcludedLoading,
   childrenListCount,
+  loadChildrenExcludedList,
   loadChildrenList,
   childrenExcludedListPagination,
   relatedTableDisplayValueProp,
@@ -172,15 +174,7 @@ watch(
       if (!isForm.value) {
         loadChildrenList()
       }
-      // Excluded list is rendered from the chunked virtual-scroll cache;
-      // onMounted fetches chunk 0 on first mount. For subsequent re-opens
-      // (same instance, vModel toggled true→false→true) we reset the cache
-      // and re-fetch chunk 0 here. Legacy loadChildrenExcludedList is no
-      // longer called — rendering reads excludedCachedRows directly.
-      if (prevVal !== undefined) {
-        resetExcludedCache()
-        fetchExcludedChunk(0)
-      }
+      loadChildrenExcludedList(rowState.value, true)
     }
     if (!nextVal) {
       resetChildrenExcludedOffsetCount()
@@ -258,10 +252,7 @@ watch(expandedFormDlg, () => {
     if (!isForm.value) {
       loadChildrenList()
     }
-    // Refresh the virtual-scroll cache so newly-created / edited records
-    // surface in the excluded list after the expanded form closes.
-    resetExcludedCache()
-    fetchExcludedChunk(0)
+    loadChildrenExcludedList(rowState.value)
   }
   childrenExcludedOffsetCount.value = 0
   childrenListOffsetCount.value = 0
@@ -359,10 +350,7 @@ const onCreatedRecord = (record: any) => {
 
 const onDeletedRecord = async () => {
   await loadChildrenList()
-  // Refresh the virtual-scroll cache after delete so the list reflects
-  // the removed record.
-  resetExcludedCache()
-  fetchExcludedChunk(0)
+  loadChildrenExcludedList(rowState.value, true)
 }
 
 const linkedShortcuts = (e: KeyboardEvent) => {
@@ -481,12 +469,12 @@ const handleKeyDown = (e: KeyboardEvent) => {
     if (!childrenExcludedListPagination.query) emit('escape')
     filterQueryRef.value?.blur()
   } else if (e.key === 'Enter') {
-    // Pick the first record from the chunked cache — same source the
-    // virtual-scroll list renders from, so Enter always acts on what the
-    // user sees at the top of the results.
-    const firstRow = excludedCachedRows.value.get(0)
-    if (childrenExcludedListPagination.query && firstRow) {
-      onClick(firstRow, '0')
+    if (
+      childrenExcludedListPagination.query &&
+      ncIsArray(childrenExcludedList.value?.list) &&
+      childrenExcludedList.value?.list.length
+    ) {
+      onClick(childrenExcludedList.value?.list[0], '0')
     }
   }
 }

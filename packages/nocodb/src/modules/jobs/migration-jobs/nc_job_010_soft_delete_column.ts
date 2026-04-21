@@ -46,14 +46,6 @@ const PARALLEL_LIMIT =
 // TODO: Drop nc_temp_processed_soft_delete after migration is confirmed complete across all deployments
 const TEMP_TABLE = 'nc_temp_processed_soft_delete';
 
-// Comma-separated workspace IDs to target during dry-run.
-// When set, the migration only processes models in these workspaces.
-const TARGET_WORKSPACE_IDS = process.env.NC_TRASH_MIGRATION_WORKSPACE_IDS
-  ? process.env.NC_TRASH_MIGRATION_WORKSPACE_IDS.split(',')
-      .map((s) => s.trim())
-      .filter(Boolean)
-  : null;
-
 const propsByClientType = {};
 
 const memoizedGetColumnPropsFromUIDT = async (
@@ -144,25 +136,9 @@ export class SoftDeleteColumnMigration {
               .from(TEMP_TABLE)
               .whereRaw(`${TEMP_TABLE}.fk_model_id = ${MetaTable.MODELS}.id`),
           )
-          .modify((qb) => {
-            if (TARGET_WORKSPACE_IDS) {
-              qb.whereIn(
-                `${MetaTable.MODELS}.fk_workspace_id`,
-                TARGET_WORKSPACE_IDS,
-              );
-            }
-          })
           .count('*', { as: 'count' })
           .first()
       )?.count;
-
-      if (TARGET_WORKSPACE_IDS) {
-        this.log(
-          `Dry-run mode: targeting ${
-            TARGET_WORKSPACE_IDS.length
-          } workspace(s): ${TARGET_WORKSPACE_IDS.join(', ')}`,
-        );
-      }
 
       this.log(
         `Found ${numberOfModelsToBeProcessed} models to process for soft delete + meta column`,
@@ -682,14 +658,6 @@ export class SoftDeleteColumnMigration {
           `${MetaTable.MODELS}.id`,
           this.processingModels.map((m) => m.fk_model_id),
         )
-        .modify((qb) => {
-          if (TARGET_WORKSPACE_IDS) {
-            qb.whereIn(
-              `${MetaTable.MODELS}.fk_workspace_id`,
-              TARGET_WORKSPACE_IDS,
-            );
-          }
-        })
         .limit(PARALLEL_LIMIT * 10)
     );
   }

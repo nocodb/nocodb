@@ -1491,12 +1491,20 @@ export class RelationManager {
       ]);
 
     if (oldChildRowId) {
+      // Honor the LTAR's custom display value override when reading the
+      // previous parent display value from prevData — parentTable.displayValue
+      // is always the PV, which is wrong when the column has an override set.
+      const parentDisplayCol = await this.getDisplayColForModel(parentTable);
+      const parentDisplayTitle =
+        parentDisplayCol?.title ?? parentTable.displayValue.title;
+      const oldParentDisplayValue =
+        prevData[column.title]?.[parentDisplayTitle] ?? null;
+
       this.auditUpdateObj.push({
         rowId: parentId,
         refRowId: oldChildRowId as string,
         opSubType: AuditOperationSubTypes.UNLINK_RECORD,
-        displayValue:
-          prevData[column.title]?.[parentTable.displayValue.title] ?? null,
+        displayValue: oldParentDisplayValue,
         refDisplayValue: childRelatedPkValue,
         direction: 'parent_child',
         type: colOptions.type as RelationTypes,
@@ -1507,8 +1515,7 @@ export class RelationManager {
         refRowId: parentId,
         opSubType: AuditOperationSubTypes.UNLINK_RECORD,
         displayValue: childRelatedPkValue,
-        refDisplayValue:
-          prevData[column.title]?.[parentTable.displayValue.title] ?? null,
+        refDisplayValue: oldParentDisplayValue,
         direction: 'child_parent',
         type: getOppositeRelationType(colOptions.type),
       });

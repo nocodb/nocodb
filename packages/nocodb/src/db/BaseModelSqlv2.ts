@@ -547,7 +547,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async fetchDisplayValueMap(
-    props: { model: Model; id: any }[],
+    props: { model: Model; id: any; displayColumn?: Column }[],
   ): Promise<Map<string, any>> {
     const dvMap = new Map<string, any>();
     if (!props.length) return dvMap;
@@ -556,6 +556,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       dvMap.set(`${props[i].model.id}:${props[i].id}`, values[i]);
     }
     return dvMap;
+  }
+
+  // Given a source-side LTAR columnId, return the related table's column that
+  // was set as the override display value (`fk_display_value_column_id`). Used
+  // by audit paths to render linked-record display values consistently with
+  // what the UI shows in LTAR dropdowns / chips.
+  protected async resolveLtarDisplayCol(
+    columnId: string | undefined,
+    refModel: Model,
+  ): Promise<Column | undefined> {
+    if (!columnId) return undefined;
+    const col = await Column.get(this.context, { colId: columnId });
+    if (!col) return undefined;
+    const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
+      this.context,
+    );
+    const displayColId = (colOpts as any)?.fk_display_value_column_id;
+    if (!displayColId) return undefined;
+    if (!refModel.columns?.length) await refModel.getColumns(this.context);
+    return refModel.columns?.find((c) => c.id === displayColId);
   }
 
   public async exist(id?: any): Promise<any> {
@@ -3321,13 +3341,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             refRowId: entry.refRowIdIsInsertedRow ? rowId : entry.refRowId,
           }));
 
-          // Batch-fetch all display values into a KV map
-          const dvMap = await this.fetchDisplayValueMap(
-            resolvedEntries.flatMap((entry) => [
-              { model: entry.model, id: entry.rowId },
-              { model: entry.refModel, id: entry.refRowId },
-            ]),
-          );
+          // Batch-fetch all display values into a KV map. Thread the LTAR's
+          // custom display column (fk_display_value_column_id) for the ref
+          // side so audit entries render the overridden value, matching UI.
+          const dvProps: {
+            model: Model;
+            id: any;
+            displayColumn?: Column;
+          }[] = [];
+          for (const entry of resolvedEntries) {
+            dvProps.push({ model: entry.model, id: entry.rowId });
+            dvProps.push({
+              model: entry.refModel,
+              id: entry.refRowId,
+              displayColumn: await this.resolveLtarDisplayCol(
+                entry.columnId,
+                entry.refModel,
+              ),
+            });
+          }
+          const dvMap = await this.fetchDisplayValueMap(dvProps);
 
           // Write audits with per-entry isolation
           for (const entry of resolvedEntries) {
@@ -5979,13 +6012,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       if (!auditObjs.length || !(await this.isDataAuditEnabled())) return;
 
-      // Batch-fetch missing display values into a KV map
-      const missingDvProps: { model: Model; id: any }[] = [];
+      // Batch-fetch missing display values into a KV map. Thread the LTAR's
+      // custom display column (fk_display_value_column_id) for the ref side
+      // so audit entries render the overridden value, matching the UI.
+      const missingDvProps: {
+        model: Model;
+        id: any;
+        displayColumn?: Column;
+      }[] = [];
       for (const obj of auditObjs) {
         if (obj.displayValue === undefined)
           missingDvProps.push({ model: obj.model, id: obj.rowId });
-        if (obj.refDisplayValue === undefined)
-          missingDvProps.push({ model: obj.refModel, id: obj.refRowId });
+        if (obj.refDisplayValue === undefined && obj.refModel) {
+          missingDvProps.push({
+            model: obj.refModel,
+            id: obj.refRowId,
+            displayColumn: await this.resolveLtarDisplayCol(
+              obj.columnId,
+              obj.refModel,
+            ),
+          });
+        }
       }
       const dvMap = await this.fetchDisplayValueMap(missingDvProps);
 

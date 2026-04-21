@@ -132,6 +132,26 @@ const META_ONLY_COLUMN_PROPS = new Set(['description', 'meta']);
 
 const ALLOWED_DATE_FORMATS = new Set([...dateFormats, ...dateMonthFormats]);
 
+// MySQL stores SingleSelect/MultiSelect as ENUM/SET, which compares members
+// case-insensitively under utf8mb4_*_ci collations. Callers use this to
+// decide whether select-option title comparisons (duplicate detection,
+// rename-conflict detection) should be case-insensitive to match DB semantics.
+const isMysqlCaseInsensitiveOptionDt = (driverType: string, dt?: string) =>
+  (driverType === 'mysql' || driverType === 'mysql2') &&
+  (dt === 'enum' || dt === 'set');
+
+const hasDuplicateOptionTitles = (
+  titles: (string | undefined)[],
+  caseInsensitive: boolean,
+) => {
+  const compare = caseInsensitive
+    ? titles.map((t) => t?.toLowerCase())
+    : titles;
+  return compare.some(
+    (item, _i, arr) => arr.indexOf(item) !== arr.lastIndexOf(item),
+  );
+};
+
 function validateDateFormatMeta(context: NcContext, meta: unknown) {
   let parsed;
   try {
@@ -1363,12 +1383,13 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
-        // Restrict duplicates
+        // Restrict duplicates (case-insensitive on MySQL enum/set).
         const titles = colBody.colOptions.options.map((el) => el.title);
         if (
-          titles.some(function (item) {
-            return titles.indexOf(item) !== titles.lastIndexOf(item);
-          })
+          hasDuplicateOptionTitles(
+            titles,
+            isMysqlCaseInsensitiveOptionDt(driverType, colBody.dt),
+          )
         ) {
           NcError.get(context).badRequest('Duplicates are not allowed!');
         }
@@ -1610,11 +1631,23 @@ export class ColumnsService implements IColumnsService {
               new_title: newOp.title,
             });
 
-            // Handle title conflicts by creating unique temporary titles
-            if (old_titles.includes(newOp.title)) {
+            // Handle title conflicts by creating unique temporary titles.
+            // On MySQL ENUM/SET the comparison must be case-insensitive so
+            // case-only renames (apple → Apple) are routed through the
+            // interchange and avoid a collision in the intermediate SET.
+            const caseInsensitiveDt = isMysqlCaseInsensitiveOptionDt(
+              driverType,
+              column.dt,
+            );
+            const conflictsWithOld = (title: string) =>
+              caseInsensitiveDt
+                ? old_titles.some((t) => t.toLowerCase() === title.toLowerCase())
+                : old_titles.includes(title);
+
+            if (conflictsWithOld(newOp.title)) {
               const def_option = { ...newOp };
               let title_counter = 1;
-              while (old_titles.includes(newOp.title)) {
+              while (conflictsWithOld(newOp.title)) {
                 newOp.title = `${def_option.title}_${title_counter++}`;
               }
               // Store the temporary title mapping
@@ -1625,10 +1658,7 @@ export class ColumnsService implements IColumnsService {
             }
 
             // Append new option before editing
-            if (
-              (driverType === 'mysql' || driverType === 'mysql2') &&
-              (column.dt === 'enum' || column.dt === 'set')
-            ) {
+            if (caseInsensitiveDt) {
               column.colOptions.options.push({ title: newOp.title });
 
               let temp_dtxp = '';
@@ -3341,12 +3371,13 @@ export class ColumnsService implements IColumnsService {
               }
             }
 
-            // Restrict duplicates
+            // Restrict duplicates (case-insensitive on MySQL enum/set).
             const titles = colBody.colOptions.options.map((el) => el.title);
             if (
-              titles.some(function (item) {
-                return titles.indexOf(item) !== titles.lastIndexOf(item);
-              })
+              hasDuplicateOptionTitles(
+                titles,
+                isMysqlCaseInsensitiveOptionDt(driverType, colBody.dt),
+              )
             ) {
               NcError.get(context).invalidRequestBody(
                 'Duplicates are not allowed!',

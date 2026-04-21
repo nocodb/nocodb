@@ -65,6 +65,12 @@ const tablePrimaryKeys: Record<string, string | string[]> = {
   [MetaTable.LIST_VIEW]: 'fk_view_id',
   [MetaTable.MODEL_STAT]: ['fk_workspace_id', 'base_id', 'fk_model_id'],
   [MetaTable.DOC_CONTENT]: ['base_id', 'fk_doc_id'],
+  [MetaTable.PERMISSION_SUBJECTS]: [
+    'base_id',
+    'fk_permission_id',
+    'subject_type',
+    'subject_id',
+  ],
   // Default to 'id' for all other tables
 };
 
@@ -475,6 +481,7 @@ async function setPostgresSequenceValue(
     source: Source;
     pgSerialLastVal?: number;
   },
+  ncMeta = Noco.ncMeta,
 ) {
   if (source.type !== 'pg' || !pgSerialLastVal) {
     return;
@@ -487,11 +494,17 @@ async function setPostgresSequenceValue(
   }
 
   try {
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: table.id,
-      viewId: null,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
+    const baseModel = await Model.getBaseModelSQL(
+      context,
+      {
+        // Pass the already-loaded model so getBaseModelSQL doesn't re-fetch via
+        // a non-transactional handle — the model may still be mid-transaction.
+        model: table,
+        viewId: null,
+        dbDriver: await NcConnectionMgrv2.get(source),
+      },
+      ncMeta,
+    );
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
     await sqlClient.raw(`SELECT setval(pg_get_serial_sequence('??', ?), ?);`, [
       baseModel.getTnPath(table.table_name),
@@ -957,12 +970,16 @@ async function handleTableCreations(
               ncMeta,
             );
             if (table) {
-              await setPostgresSequenceValue(targetContext, {
-                table,
-                columns: tableColumns,
-                source,
-                pgSerialLastVal: tableRecord.pgSerialLastVal,
-              });
+              await setPostgresSequenceValue(
+                targetContext,
+                {
+                  table,
+                  columns: tableColumns,
+                  source,
+                  pgSerialLastVal: tableRecord.pgSerialLastVal,
+                },
+                ncMeta,
+              );
             }
           } catch (error) {
             logger.warn(

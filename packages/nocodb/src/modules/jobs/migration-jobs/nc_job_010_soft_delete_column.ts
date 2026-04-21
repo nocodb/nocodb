@@ -200,7 +200,9 @@ export class SoftDeleteColumnMigration {
 
       // eslint-disable-next-line no-constant-condition
       while (true) {
-        if (queue.pending > PARALLEL_LIMIT * 2) {
+        // PQueue.pending is capped at concurrency; waiting tasks accumulate
+        // in .size. Guard on size to actually bound unprocessed backlog.
+        if (queue.size > PARALLEL_LIMIT * 2) {
           await new Promise((resolve) => setTimeout(resolve, 1000));
           continue;
         }

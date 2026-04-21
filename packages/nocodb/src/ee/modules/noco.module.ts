@@ -87,6 +87,9 @@ import { ScriptsV3Service } from '~/services/v3/scripts-v3.service';
 import { DashboardsV3Controller } from '~/controllers/v3/dashboards-v3.controller';
 import { DashboardsV3Service } from '~/services/v3/dashboards-v3.service';
 
+/* Filters V3 (EE override — adds @TraceCommand to filterCreate) */
+import { FiltersV3Service } from '~/services/v3/filters-v3.service';
+
 /* Documents V3 */
 import { DocumentsV3Controller } from '~/ee/controllers/v3/documents-v3.controller';
 import { DocumentsV3Service } from '~/services/v3/documents-v3.service';
@@ -100,6 +103,17 @@ import { SnapshotService } from '~/services/snapshot.service';
 
 /* Sandbox */
 import { SandboxesService } from '~/services/sandboxes.service';
+import { SandboxCommandReplayService } from '~/services/sandbox-command-replay.service';
+
+/* Sandbox tracing — EE service overrides with @TraceCommand */
+import { ViewsService } from '~/services/views.service';
+import { GridsService } from '~/services/grids.service';
+import { FormsService } from '~/services/forms.service';
+import { GalleriesService } from '~/services/galleries.service';
+import { KanbansService } from '~/services/kanbans.service';
+import { CalendarsService } from '~/services/calendars.service';
+import { ExtensionsService } from '~/services/extensions.service';
+import { ViewColumnsService } from '~/services/view-columns.service';
 
 /* Scripts */
 import { ScriptsService } from '~/services/scripts.service';
@@ -142,6 +156,9 @@ import {
 
 /* View Sections */
 import { ViewSectionsService } from '~/ee/services/view-sections.service';
+
+/* Base Variables */
+import { BaseVariablesService } from '~/ee/services/base-variables.service';
 
 /* Timelines */
 import { TimelinesService } from '~/services/timelines.service';
@@ -222,6 +239,17 @@ export const nocoModuleEeMetadata = {
 
     /* Sandbox */
     SandboxesService,
+    SandboxCommandReplayService,
+
+    /* Sandbox tracing */
+    ViewsService,
+    GridsService,
+    FormsService,
+    GalleriesService,
+    KanbansService,
+    CalendarsService,
+    ExtensionsService,
+    ViewColumnsService,
 
     /* Hooks V3 */
     HooksV3Service,
@@ -269,6 +297,9 @@ export const nocoModuleEeMetadata = {
     /* View Sections */
     ViewSectionsService,
 
+    /* Base Variables */
+    BaseVariablesService,
+
     /* Timelines */
     TimelinesService,
     TimelineColumnsService,
@@ -299,6 +330,9 @@ export const nocoModuleEeMetadata = {
     BaseTrashService,
     BaseTrashSettingsService,
     ...EeTrashHandlerProvider,
+
+    /* EE V3 service overrides */
+    FiltersV3Service,
 
     /* EE Meta Dependency Handlers (overrides CE provider) */
     ...MetaDependencyServices,

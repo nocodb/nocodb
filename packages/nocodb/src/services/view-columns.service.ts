@@ -35,7 +35,7 @@ import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 @Injectable()
 export class ViewColumnsService {
   private logger = new Logger(ViewColumnsService.name);
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(protected appHooksService: AppHooksService) {}
 
   async columnList(
     context: NcContext,

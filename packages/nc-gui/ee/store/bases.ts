@@ -36,9 +36,9 @@ export const useBases = defineStore('basesStore', () => {
   const baseRoleLoadingStatus: Record<string, boolean> = {}
 
   const basesList = computed<NcProject[]>(() =>
-    Array.from(bases.value.values()).sort(
-      (a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity),
-    ),
+    Array.from(bases.value.values())
+      .filter((b) => !b.is_sandbox)
+      .sort((a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity)),
   )
 
   const basesUser = ref<Map<string, User[]>>(new Map())
@@ -280,6 +280,11 @@ export const useBases = defineStore('basesStore', () => {
 
       // Only update bases.value if the workspaceId matches activeWorkspace.id
       if (!workspaceId || workspaceId === activeWorkspace?.id) {
+        // Preserve sandbox bases already loaded (API excludes them from list)
+        const sandboxBases = new Map(
+          Array.from(bases.value.entries()).filter(([, b]) => b.is_sandbox),
+        )
+
         bases.value = _projects.reduce((acc, base) => {
           const existingProjectMeta = bases.value.get(base.id!) || {}
           acc.set(base.id!, {
@@ -290,7 +295,7 @@ export const useBases = defineStore('basesStore', () => {
             isLoading: false,
           })
           return acc
-        }, new Map())
+        }, sandboxBases)
 
         await updateIfBaseOrderIsNullOrDuplicate()
       }

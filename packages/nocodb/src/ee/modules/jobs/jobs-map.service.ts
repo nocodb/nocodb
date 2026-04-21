@@ -36,6 +36,9 @@ import { WorkflowDraftReminderProcessor } from '~/modules/jobs/jobs/workflow/wor
 import { HookErrorNotificationProcessor } from '~/modules/jobs/jobs/hook-error-notification.processor';
 import { ChatMessageProcessor } from '~/modules/jobs/jobs/chat-message.processor';
 import { ChatApprovalProcessor } from '~/modules/jobs/jobs/chat-approval.processor';
+import { SandboxMergeProcessor } from '~/modules/jobs/jobs/sandbox-merge.processor';
+import { ManagedAppUpdateProcessor } from '~/modules/jobs/jobs/managed-app-update/managed-app-update.processor';
+
 @Injectable()
 export class JobsMap extends JobsMapCE {
   constructor(
@@ -75,6 +78,8 @@ export class JobsMap extends JobsMapCE {
     protected readonly chatMessageProcessor: ChatMessageProcessor,
     protected readonly chatApprovalProcessor: ChatApprovalProcessor,
     protected readonly dataImportProcessor: DataImportProcessor,
+    protected readonly sandboxMergeProcessor: SandboxMergeProcessor,
+    protected readonly managedAppUpdateProcessor: ManagedAppUpdateProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -196,6 +201,13 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.BaseTrashCleanUp]: {
         this: this.baseTrashCleanUpProcessor,
+      },
+      [JobTypes.SandboxMerge]: {
+        this: this.sandboxMergeProcessor,
+        fn: 'process',
+      },
+      [JobTypes.ManagedAppUpdate]: {
+        this: this.managedAppUpdateProcessor,
       },
     };
   }

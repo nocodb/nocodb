@@ -29,7 +29,7 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class KanbansService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async kanbanViewGet(
     context: NcContext,

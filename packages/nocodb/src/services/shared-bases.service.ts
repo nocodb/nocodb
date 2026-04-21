@@ -39,6 +39,12 @@ export class SharedBasesService {
       NcError.baseNotFound(param.baseId);
     }
 
+    if (base.is_sandbox) {
+      NcError.badRequest(
+        'Shared links cannot be created on sandbox bases. Share the master base instead.',
+      );
+    }
+
     const data: any = {
       uuid: uuidv4(),
       password: param?.password,
@@ -90,6 +96,12 @@ export class SharedBasesService {
 
     if (!base) {
       NcError.baseNotFound(param.baseId);
+    }
+
+    if (base.is_sandbox) {
+      NcError.badRequest(
+        'Shared links cannot be updated on sandbox bases. Share the master base instead.',
+      );
     }
 
     if (roles === 'editor') {

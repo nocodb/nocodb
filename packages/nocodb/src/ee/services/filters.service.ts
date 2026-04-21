@@ -1,11 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { FiltersService as FiltersServiceCE } from 'src/services/filters.service';
 import { AppEvents, isLinksOrLTAR, UITypes } from 'nocodb-sdk';
-import type { MetaService } from '~/meta/meta.service';
 import type { FilterReqType, UserType, WidgetType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
+import {
+  TraceCommand,
+  type TraceCommandDep,
+} from '~/decorators/trace-command.decorator';
+import { b } from '~/decorators/trace-command-descriptions';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
@@ -13,6 +18,7 @@ import {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { Column, Filter, View } from '~/models';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import Noco from '~/Noco';
@@ -28,6 +34,22 @@ export class FiltersService extends FiltersServiceCE {
   }
 
   @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.FILTER_EXP,
+    entityId: 'id',
+    parentId: 'viewId',
+    description: ({ parentEntityTitle }) =>
+      `Add filter in ${b(parentEntityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const view = await View.get(context, param?.viewId);
+      return { parentEntityTitle: view?.title };
+    },
+    deps: (_p, r) =>
+      r?.fk_column_id
+        ? [{ entity: MetaTable.COLUMNS, id: r.fk_column_id }]
+        : [],
+    idField: 'filter',
+  })
   async filterCreate(
     context: NcContext,
     param: {
@@ -87,6 +109,67 @@ export class FiltersService extends FiltersServiceCE {
     return super.filterCreate(context, param);
   }
 
+  @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.FILTER_EXP,
+    entityId: (p) => p?.filterId,
+    description: () => 'Edit filter',
+    deps: (p, r) => {
+      const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
+      return colId ? [{ entity: MetaTable.COLUMNS, id: colId }] : [];
+    },
+  })
+  async filterUpdate(
+    context: NcContext,
+    param: {
+      filter: FilterReqType;
+      filterId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+    ncMeta?: MetaService,
+  ) {
+    return super.filterUpdate(context, param, ncMeta);
+  }
+
+  @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.FILTER_EXP,
+    entityId: (p) => p?.filterId,
+    description: ({ parentEntityTitle }) =>
+      parentEntityTitle
+        ? `Delete filter in ${b(parentEntityTitle)}`
+        : 'Delete filter',
+    resolveCtx: async (context, param) => {
+      const filter = await Filter.get(context, param?.filterId);
+      if (!filter?.fk_view_id) return {};
+      const view = await View.get(context, filter.fk_view_id);
+      return { parentEntityTitle: view?.title };
+    },
+  })
+  async filterDelete(
+    context: NcContext,
+    param: { filterId: string; req: NcRequest },
+    ncMeta?: MetaService,
+  ) {
+    return super.filterDelete(context, param, ncMeta);
+  }
+
+  @TraceCommand({
+    entity: MetaTable.FILTER_EXP,
+    entityId: 'id',
+    parentId: (p) => p?.columnId,
+    description: () => 'Add link filter',
+    deps: (p, r) => {
+      const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
+      const linkColId = p?.columnId;
+      const deps: TraceCommandDep[] = [];
+      if (colId) deps.push({ entity: MetaTable.COLUMNS, id: colId });
+      if (linkColId) deps.push({ entity: MetaTable.COLUMNS, id: linkColId });
+      return deps;
+    },
+    idField: 'filter',
+  })
   async linkFilterCreate(
     context: NcContext,
     param: {
@@ -129,9 +212,21 @@ export class FiltersService extends FiltersServiceCE {
       req: param.req,
       context,
     });
+
     return filter;
   }
 
+  @TraceCommand({
+    entity: MetaTable.FILTER_EXP,
+    entityId: 'id',
+    parentId: (p) => p?.widgetId,
+    description: () => 'Add widget filter',
+    deps: (p, r) => {
+      const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
+      return colId ? [{ entity: MetaTable.COLUMNS, id: colId }] : [];
+    },
+    idField: 'filter',
+  })
   async widgetFilterCreate(
     context: NcContext,
     param: {
@@ -167,9 +262,21 @@ export class FiltersService extends FiltersServiceCE {
       req: param.req,
       context,
     });
+
     return filter;
   }
 
+  @TraceCommand({
+    entity: MetaTable.FILTER_EXP,
+    entityId: 'id',
+    parentId: (p) => p?.rlsPolicyId,
+    description: () => 'Add RLS policy filter',
+    deps: (p, r) => {
+      const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
+      return colId ? [{ entity: MetaTable.COLUMNS, id: colId }] : [];
+    },
+    idField: 'filter',
+  })
   async rlsPolicyFilterCreate(
     context: NcContext,
     param: {
@@ -179,6 +286,8 @@ export class FiltersService extends FiltersServiceCE {
       req: NcRequest;
     },
   ) {
+    await assertNotSandbox(context);
+
     const policy = await RlsPolicy.get(context, param.rlsPolicyId);
 
     if (!policy) {
@@ -210,12 +319,24 @@ export class FiltersService extends FiltersServiceCE {
     return Filter.rootFilterListByWidget(context, { widgetId: param.widgetId });
   }
 
+  @TraceCommand({
+    entity: MetaTable.FILTER_EXP,
+    entityId: 'id',
+    parentId: (p) => p?.rowColorConditionsId,
+    description: () => 'Add row color condition filter',
+    deps: (p, r) => {
+      const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
+      return colId ? [{ entity: MetaTable.COLUMNS, id: colId }] : [];
+    },
+    idField: 'filter',
+  })
   async rowColorConditionsCreate(
     context: NcContext,
     param: {
       rowColorConditionsId: string;
       filter: FilterReqType;
       viewWebhookManager?: ViewWebhookManager;
+      req?: NcRequest;
     },
     ncMeta?: MetaService,
   ) {
@@ -258,6 +379,7 @@ export class FiltersService extends FiltersServiceCE {
         )
       ).emit();
     }
+
     return filter;
   }
 }

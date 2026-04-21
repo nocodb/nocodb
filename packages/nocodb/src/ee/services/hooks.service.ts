@@ -7,6 +7,8 @@ import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { b } from '~/decorators/trace-command-descriptions';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -56,6 +58,19 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
   }
 
   @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.HOOKS,
+    entityId: 'id',
+    entityTitle: 'title',
+    parentId: 'tableId',
+    description: ({ entityTitle, parentEntityTitle }) =>
+      `Add webhook ${b(entityTitle)} to ${b(parentEntityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const table = await Model.get(context, param?.tableId);
+      return { parentEntityTitle: table?.title };
+    },
+    idField: 'hook',
+  })
   async hookCreate(
     context: NcContext,
     param: {
@@ -151,6 +166,35 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
     return hook;
   }
 
+  @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.HOOKS,
+    entityId: (p) => p?.hookId,
+    entityTitle: (p) => p?.hook?.title,
+    parentId: (_p, r) => r?.fk_model_id,
+    description: ({ entityTitle }) => `Edit webhook ${b(entityTitle)}`,
+  })
+  async hookUpdate(
+    context: NcContext,
+    param: {
+      hookId: string;
+      hook: HookReqType;
+      req: NcRequest;
+    },
+  ) {
+    return super.hookUpdate(context, param);
+  }
+
+  @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.HOOKS,
+    entityId: (p) => p?.hookId,
+    description: ({ entityTitle }) => `Delete webhook ${b(entityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const hook = await Hook.get(context, param?.hookId);
+      return { entityTitle: hook?.title };
+    },
+  })
   async hookDelete(
     context: NcContext,
     param: { hookId: string; req: NcRequest; skipTrash?: boolean },

@@ -157,6 +157,7 @@ export const OPERATION_SCOPES = {
   managedAppDeployments: 'base',
   managedAppVersionDeployments: 'base',
   managedAppDeploymentLogs: 'base',
+  managedAppManualUpdate: 'base',
 
   // List View
   listViewDataList: 'base',

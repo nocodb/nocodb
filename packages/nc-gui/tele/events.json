@@ -439,7 +439,10 @@
     "c:row-height": "Change row height"
   },
   "sandbox": {
-    "a:sandbox:create": "Create sandbox"
+    "a:sandbox:create": "Create sandbox",
+    "a:sandbox:merge": "Merge sandbox to master",
+    "a:sandbox:discard": "Discard sandbox changes",
+    "a:sandbox:delete": "Delete sandbox"
   },
   "script": {
     "a:script:config:save": "Save script config",

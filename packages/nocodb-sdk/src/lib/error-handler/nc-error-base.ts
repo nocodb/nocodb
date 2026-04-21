@@ -1072,4 +1072,21 @@ export class NcErrorBase {
       ...args,
     });
   }
+
+  sandboxBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SANDBOX_BLOCKED, {
+      params: message || '',
+      ...args,
+    });
+  }
+
+  sandboxMasterBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SANDBOX_MASTER_BLOCKED,
+      {
+        params: message || '',
+        ...args,
+      },
+    );
+  }
 }

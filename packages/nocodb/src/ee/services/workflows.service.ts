@@ -43,6 +43,12 @@ import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  b,
+  descCreate,
+  descDelete,
+} from '~/decorators/trace-command-descriptions';
 
 @Injectable()
 export class WorkflowsService implements OnModuleInit {
@@ -205,11 +211,19 @@ export class WorkflowsService implements OnModuleInit {
     return workflow;
   }
 
+  @TraceCommand({
+    entity: MetaTable.AUTOMATIONS,
+    entityId: 'id',
+    entityTitle: 'title',
+    description: descCreate('workflow'),
+    idField: 'body',
+  })
   async createWorkflow(
     context: NcContext,
-    workflowBody: Partial<Workflow>,
-    req: NcRequest,
+    param: { body: Partial<Workflow>; req: NcRequest },
   ) {
+    const { body: workflowBody, req } = param;
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -271,12 +285,24 @@ export class WorkflowsService implements OnModuleInit {
     return workflow;
   }
 
+  @TraceCommand({
+    entity: MetaTable.AUTOMATIONS,
+    entityId: (p) => p?.workflowId,
+    entityTitle: (_p, r) => r?.title,
+    description: ({ entityTitle, extra }) =>
+      extra?.oldTitle && extra.oldTitle !== entityTitle
+        ? `Rename workflow ${b(extra.oldTitle)} to ${b(entityTitle)}`
+        : `Edit workflow ${b(entityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const wf = await Workflow.get(context, param?.workflowId);
+      return { extra: { oldTitle: wf?.title } };
+    },
+  })
   async updateWorkflow(
     context: NcContext,
-    workflowId: string,
-    workflowBody: Partial<Workflow>,
-    req: NcRequest,
+    param: { workflowId: string; body: Partial<Workflow>; req: NcRequest },
   ) {
+    const { workflowId, body: workflowBody, req } = param;
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -337,12 +363,20 @@ export class WorkflowsService implements OnModuleInit {
     return updatedWorkflow;
   }
 
+  @TraceCommand({
+    entity: MetaTable.AUTOMATIONS,
+    entityId: (p) => p?.workflowId,
+    description: descDelete('workflow'),
+    resolveCtx: async (context, param) => {
+      const wf = await Workflow.get(context, param?.workflowId);
+      return { entityTitle: wf?.title };
+    },
+  })
   async deleteWorkflow(
     context: NcContext,
-    workflowId: string,
-    req: NcRequest,
-    ncMeta?: MetaService,
+    param: { workflowId: string; req: NcRequest; ncMeta?: MetaService },
   ) {
+    const { workflowId, req, ncMeta } = param;
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -600,14 +634,21 @@ export class WorkflowsService implements OnModuleInit {
     return execution;
   }
 
+  @TraceCommand({
+    entity: MetaTable.AUTOMATIONS,
+    entityId: (p) => p?.workflowId,
+    description: ({ entityTitle }) => `Publish workflow ${b(entityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const wf = await Workflow.get(context, param?.workflowId);
+      return { entityTitle: wf?.title };
+    },
+  })
   async publishWorkflow(
     context: NcContext,
-    workflowId: string,
-    req: NcRequest,
-    params?: {
-      cancelPendingExecutions?: boolean;
-    },
+    param: { workflowId: string; req: NcRequest; cancelPendingExecutions?: boolean },
   ) {
+    const { workflowId, req } = param;
+    const params = param;
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {

@@ -9,6 +9,8 @@ const { openedProject } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 
+const { isUIAllowed } = useRoles()
+
 const { isEEFeatureBlocked, showUpgradeForEEFeature } = useEeConfig()
 
 const label = computed(() => {
@@ -29,7 +31,7 @@ async function openNewDashboardModal() {
 }
 
 const isActionVisible = computed(() => {
-  return !isSharedBase.value
+  return !isSharedBase.value && isUIAllowed('dashboardCreate')
 })
 </script>
 

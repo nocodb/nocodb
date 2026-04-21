@@ -15,6 +15,8 @@ import { RlsGetOperations } from '~/controllers/internal/modules/RlsGet.operatio
 import { RlsPostOperations } from '~/controllers/internal/modules/RlsPost.operations';
 import { ViewSectionGetOperations } from '~/controllers/internal/modules/ViewSectionGet.operations';
 import { ViewSectionPostOperations } from '~/controllers/internal/modules/ViewSectionPost.operations';
+import { BaseVariableGetOperations } from '~/controllers/internal/modules/BaseVariableGet.operations';
+import { BaseVariablePostOperations } from '~/controllers/internal/modules/BaseVariablePost.operations';
 import { HookPostOperations } from '~/controllers/internal/modules/HookPost.operations';
 import { HookGetOperations } from '~/controllers/internal/modules/HookGet.operations';
 import { DocumentsGetOperations } from '~/controllers/internal/modules/DocumentsGet.operations';
@@ -47,6 +49,8 @@ export const InternalApiModules = [
   RlsPostOperations,
   ViewSectionGetOperations,
   ViewSectionPostOperations,
+  BaseVariableGetOperations,
+  BaseVariablePostOperations,
   DocumentsGetOperations,
   DocumentsPostOperations,
   DocumentCommentsGetOperations,

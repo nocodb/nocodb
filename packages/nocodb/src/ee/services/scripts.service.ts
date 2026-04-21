@@ -14,6 +14,13 @@ import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { ButtonColumn, Script, Workspace } from '~/models';
 import { checkLimit } from '~/helpers/paymentHelpers';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  b,
+  descCreate,
+  descDelete,
+} from '~/decorators/trace-command-descriptions';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class ScriptsService {
@@ -36,11 +43,18 @@ export class ScriptsService {
     return script;
   }
 
+  @TraceCommand({
+    entity: MetaTable.AUTOMATIONS,
+    entityId: 'id',
+    entityTitle: 'title',
+    description: descCreate('script'),
+    idField: 'body',
+  })
   async createScript(
     context: NcContext,
-    scriptBody: Partial<ScriptType>,
-    req: NcRequest,
+    param: { body: Partial<ScriptType>; req: NcRequest },
   ) {
+    const { body: scriptBody, req } = param;
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -84,12 +98,24 @@ export class ScriptsService {
     return script;
   }
 
+  @TraceCommand({
+    entity: MetaTable.AUTOMATIONS,
+    entityId: (p) => p?.scriptId,
+    entityTitle: (_p, r) => r?.title,
+    description: ({ entityTitle, extra }) =>
+      extra?.oldTitle && extra.oldTitle !== entityTitle
+        ? `Rename script ${b(extra.oldTitle)} to ${b(entityTitle)}`
+        : `Edit script ${b(entityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const script = await Script.get(context, param?.scriptId);
+      return { extra: { oldTitle: script?.title } };
+    },
+  })
   async updateScript(
     context: NcContext,
-    scriptId: string,
-    body: Pick<ScriptType, 'title'>,
-    req: NcRequest,
+    param: { scriptId: string; body: Pick<ScriptType, 'title'>; req: NcRequest },
   ) {
+    const { scriptId, body, req } = param;
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -128,12 +154,20 @@ export class ScriptsService {
     return updatedScript;
   }
 
+  @TraceCommand({
+    entity: MetaTable.AUTOMATIONS,
+    entityId: (p) => p?.scriptId,
+    description: descDelete('script'),
+    resolveCtx: async (context, param) => {
+      const script = await Script.get(context, param?.scriptId);
+      return { entityTitle: script?.title };
+    },
+  })
   async deleteScript(
     context: NcContext,
-    scriptId: string,
-    req: NcRequest,
-    ncMeta?: MetaService,
+    param: { scriptId: string; req: NcRequest; ncMeta?: MetaService },
   ) {
+    const { scriptId, req, ncMeta } = param;
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }

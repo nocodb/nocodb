@@ -24,11 +24,63 @@ import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
 import { FiltersService } from '~/services/filters.service';
-import { applyMeta, diffMeta, serializeMeta } from '~/helpers/baseMetaHelpers';
+import {
+  applyMeta,
+  type BaseMetaSchema,
+  diffMeta,
+  serializeMeta,
+} from '~/helpers/baseMetaHelpers';
 import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { processConcurrently } from '~/utils';
+import { NcError } from '~/helpers/catchError';
+
+// Permissions reference users via fk_subject_id; the sandbox user base differs
+// from master, so these must be managed on master only. MODEL_ROLE_VISIBILITY
+// is role-based (not user-based) and is intentionally kept.
+function stripPermissions(meta: BaseMetaSchema): BaseMetaSchema {
+  return {
+    ...meta,
+    [MetaTable.PERMISSIONS]: [],
+    [MetaTable.PERMISSION_SUBJECTS]: [],
+  };
+}
+
+// RLS policy subjects reference users/teams (same pattern as permissions) and
+// RLS filters live in FILTER_EXP scoped by fk_rls_policy_id. Strip all three
+// so sandboxes start with no row-level security — it's managed on master only.
+function stripRls(meta: BaseMetaSchema): BaseMetaSchema {
+  const filters: any[] = meta[MetaTable.FILTER_EXP] ?? [];
+  return {
+    ...meta,
+    [MetaTable.RLS_POLICIES]: [],
+    [MetaTable.RLS_POLICY_SUBJECTS]: [],
+    [MetaTable.FILTER_EXP]: filters.filter((f) => !f.fk_rls_policy_id),
+  };
+}
+
+// Strips views owned by a specific user (personal views) and cascades to every
+// table row referencing them via fk_view_id — no manually-maintained table list.
+function stripPersonalViews(meta: BaseMetaSchema): BaseMetaSchema {
+  const views: any[] = meta[MetaTable.VIEWS] ?? [];
+  const personalViewIds = new Set(
+    views.filter((v) => v.owned_by != null).map((v) => v.id),
+  );
+  if (personalViewIds.size === 0) return meta;
+
+  const result: BaseMetaSchema = { ...meta };
+  result[MetaTable.VIEWS] = views.filter((v) => !personalViewIds.has(v.id));
+  for (const [table, rows] of Object.entries(result) as [
+    keyof BaseMetaSchema,
+    any[],
+  ][]) {
+    if (table === MetaTable.VIEWS || !rows?.length) continue;
+    if (!('fk_view_id' in rows[0])) continue;
+    result[table] = rows.filter((r) => !personalViewIds.has(r.fk_view_id));
+  }
+  return result;
+}
 
 @Injectable()
 export class DuplicateProcessor extends DuplicateProcessorCE {
@@ -128,10 +180,12 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
       const newDashboard = await this.dashboardService.dashboardCreate(
         context,
         {
-          ...withoutId(dashboard),
-          title: newTitle,
+          dashboard: {
+            ...withoutId(dashboard),
+            title: newTitle,
+          },
+          req,
         },
-        req,
       );
 
       elapsedTime(
@@ -146,10 +200,13 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
         const createdWidget = await this.dashboardService.widgetCreate(
           context,
           {
-            ...withoutId(widget),
-            fk_dashboard_id: newDashboard.id,
+            widget: {
+              ...withoutId(widget),
+              fk_dashboard_id: newDashboard.id,
+            },
+            dashboardId: newDashboard.id,
+            req,
           },
-          req,
         );
 
         for (const filter of filters) {
@@ -243,9 +300,31 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
       excludeUsers?: boolean;
       excludeScripts?: boolean;
       excludeDashboards?: boolean;
+      excludePersonalViews?: boolean;
+      excludePermissions?: boolean;
+      excludeRls?: boolean;
     };
     operation: JobTypes;
   }) {
+    // Sandbox bases break the 1-1 master/sandbox contract if duplicated,
+    // snapshotted, or restored into. Block at the job entry so both UI and
+    // API paths are covered.
+    if (operation === JobTypes.DuplicateBase && sourceBase.is_sandbox) {
+      NcError.badRequest(
+        'Sandbox bases cannot be duplicated. Duplicate the master base instead.',
+      );
+    }
+    if (operation === JobTypes.CreateSnapshot && sourceBase.is_sandbox) {
+      NcError.badRequest(
+        'Sandbox bases cannot be snapshotted. Take the snapshot on the master base.',
+      );
+    }
+    if (operation === JobTypes.RestoreSnapshot && targetBase.is_sandbox) {
+      NcError.badRequest(
+        'Cannot restore a snapshot into a sandbox. Restore on the master base.',
+      );
+    }
+
     // For non-v3 bases, use the CE duplication logic
     if (sourceBase.version !== BaseVersion.V3) {
       return super.duplicateBaseJob({
@@ -341,9 +420,36 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
           trx,
         );
 
+        // Populate default_value for variables on derived bases (sandbox, etc.)
+        // Populate inheritance fields for variables on derived bases.
+        // Required values are stripped — they're bound to the source environment
+        // and the derived base must provide its own.
+        if (sourceMeta[MetaTable.BASE_VARIABLES]?.length) {
+          sourceMeta[MetaTable.BASE_VARIABLES] = sourceMeta[
+            MetaTable.BASE_VARIABLES
+          ].map((v: any) => ({
+            ...v,
+            default_value: v.default_value ?? v.value,
+            is_overridden: false,
+            is_inherited: true,
+            ...(v.inheritance === 'required' ? { value: null } : {}),
+          }));
+        }
+
+        // Strip personal views, permissions, and RLS when requested (sandbox creation)
+        let filteredMeta = options.excludePersonalViews
+          ? stripPersonalViews(sourceMeta)
+          : sourceMeta;
+        if (options.excludePermissions) {
+          filteredMeta = stripPermissions(filteredMeta);
+        }
+        if (options.excludeRls) {
+          filteredMeta = stripRls(filteredMeta);
+        }
+
         // Step 3: Calculate diff (empty old meta means everything is new)
         this.debugLog('Calculating metadata diff');
-        const diff = await diffMeta({}, sourceMeta);
+        const diff = await diffMeta({}, filteredMeta);
 
         // Step 4: Apply metadata changes to target base
         this.debugLog('Applying metadata changes');
@@ -367,6 +473,10 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
         await trx.commit();
         this.debugLog('Transaction committed successfully');
 
+        // Clear cache AFTER commit so concurrent reads during the transaction
+        // cannot repopulate it with pre-commit (stale) DB state.
+        await NocoCache.clear(targetContext);
+
         elapsedTime(
           hrTime,
           `duplicated metadata for base ${sourceBase.id}`,
@@ -375,6 +485,7 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
       } catch (e) {
         this.debugLog('Error during duplication, rolling back transaction:', e);
         await trx.rollback();
+        await NocoCache.clear(targetContext);
         throw e;
       }
 

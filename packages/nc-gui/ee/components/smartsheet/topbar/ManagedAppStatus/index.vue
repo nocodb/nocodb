@@ -33,9 +33,17 @@ const openModal = (variant?: 'draftOrPublish' | 'versionHistory' | 'changelog' |
   })
 }
 
+const { isManualUpdating } = storeToRefs(baseStore)
+
 const loadManagedAppAndCurrentVersion = async () => {
   await loadManagedApp()
   await loadCurrentVersion()
+}
+
+const handleManualUpdate = async () => {
+  await baseStore.triggerManualUpdate()
+  isOpenDropdown.value = false
+  await loadManagedAppAndCurrentVersion()
 }
 
 watch(
@@ -245,10 +253,7 @@ const badgeConfig = computed(() => {
             </template>
           </SmartsheetTopbarManagedAppStatusMenuItem>
 
-          <div
-            v-if="!base.auto_update && managedAppVersionsInfo.updateAvailable"
-            class="bg-nc-brand-20 dark:bg-nc-brand-20/40 -mb-1.5"
-          >
+          <div v-if="managedAppVersionsInfo.updateAvailable" class="bg-nc-brand-20 dark:bg-nc-brand-20/40 -mb-1.5">
             <SmartsheetTopbarManagedAppStatusMenuItem
               :label="`v${managedAppVersionsInfo.published?.version || '1.0.0'}`"
               icon-wrapper-class="bg-brand-50 dark:bg-nc-brand-50"
@@ -258,10 +263,12 @@ const badgeConfig = computed(() => {
               </template>
 
               <template #subtext>
-                <span class="text-brand-600"> New version available </span>
+                <span class="text-brand-600"> {{ $t('labels.updateAvailable') }} </span>
               </template>
               <template #extraRight>
-                <NcButton size="small"> Update </NcButton>
+                <NcButton size="small" :loading="isManualUpdating" @click.stop="handleManualUpdate">
+                  {{ $t('general.update') }}
+                </NcButton>
               </template>
             </SmartsheetTopbarManagedAppStatusMenuItem>
           </div>

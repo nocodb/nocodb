@@ -478,6 +478,14 @@ const permissionScopes = {
     'viewSectionUpdate',
     'viewSectionDelete',
 
+    // Base Variables
+    'baseVariableList',
+    'baseVariableCreate',
+    'baseVariableUpdate',
+    'baseVariableDelete',
+    'baseVariableBulkUpdate',
+    'baseVariableRevertToDefault',
+
     // Dashboard
     'dashboardList',
     'dashboardGet',
@@ -533,6 +541,7 @@ const permissionScopes = {
     'managedAppDelete',
     'managedAppPublish',
     'managedAppUnpublish',
+    'managedAppManualUpdate',
 
     // Sandbox
     'sandboxList',
@@ -542,6 +551,7 @@ const permissionScopes = {
     'sandboxDelete',
     'sandboxMerge',
     'sandboxDiff',
+    'sandboxChangelog',
 
     // Audit Logs
     'baseAuditList',
@@ -823,6 +833,7 @@ const rolePermissions:
       tableList: true,
       viewList: true,
       viewSectionList: true,
+      baseVariableList: true,
       functionList: true,
       sequenceList: true,
       procedureList: true,
@@ -891,7 +902,10 @@ const rolePermissions:
       // Send record email
       sendRecordEmail: true,
       // Sandbox
+      sandboxList: true,
       sandboxGet: true,
+      sandboxDiff: true,
+      sandboxChangelog: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -1515,6 +1529,12 @@ const permissionDescriptions: Record<string, string> = {
   viewSectionCreate: 'create a view section',
   viewSectionUpdate: 'update a view section',
   viewSectionDelete: 'delete a view section',
+  baseVariableList: 'list base variables',
+  baseVariableCreate: 'create a base variable',
+  baseVariableUpdate: 'update a base variable',
+  baseVariableDelete: 'delete a base variable',
+  baseVariableBulkUpdate: 'bulk update base variable values',
+  baseVariableRevertToDefault: 'revert a base variable to its default value',
   functionList: 'view list of functions',
   sequenceList: 'view list of sequences',
   procedureList: 'view list of procedures',
@@ -1656,6 +1676,8 @@ const permissionDescriptions: Record<string, string> = {
   managedAppUnpublish: 'unpublish a managed app from the app store',
   managedAppInstall: 'install a managed app as a new base',
   managedAppGetUpdates: 'check for updates to an installed managed app',
+  managedAppManualUpdate:
+    'manually update an installed managed app to the latest version',
 
   // Sandbox permissions
   sandboxList: 'view list of sandboxes for the base',
@@ -1665,6 +1687,7 @@ const permissionDescriptions: Record<string, string> = {
   sandboxMerge: 'merge sandbox changes back to the master base',
   sandboxDelete: 'delete a sandbox environment',
   sandboxDiff: 'view differences between sandbox and master base',
+  sandboxChangelog: 'view sandbox change history',
 
   viewRowColorInfo: 'view row colouring info',
   viewSettingOverride: 'copy view configuration from other view',

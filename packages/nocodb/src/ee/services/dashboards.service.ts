@@ -20,6 +20,14 @@ import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { checkLimit } from '~/helpers/paymentHelpers';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  b,
+  descCreate,
+  descDelete,
+  descUpdate,
+} from '~/decorators/trace-command-descriptions';
+import { MetaTable } from '~/utils/globals';
 @Injectable()
 export class DashboardsService {
   constructor(
@@ -43,11 +51,23 @@ export class DashboardsService {
     return dashboard;
   }
 
+  @TraceCommand({
+    entity: MetaTable.DASHBOARDS,
+    entityId: 'id',
+    entityTitle: 'title',
+    description: descCreate('dashboard'),
+    idField: 'dashboard',
+  })
   async dashboardCreate(
     context: NcContext,
-    insertObj: Partial<Dashboard>,
-    req: NcRequest,
+    param: {
+      dashboard: Partial<Dashboard>;
+      req: NcRequest;
+    },
   ) {
+    const { req } = param;
+    const insertObj = param.dashboard;
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -93,12 +113,23 @@ export class DashboardsService {
     return dashboard;
   }
 
+  @TraceCommand({
+    entity: MetaTable.DASHBOARDS,
+    entityId: (p) => p?.dashboardId,
+    entityTitle: (p) => p?.dashboard?.title,
+    description: descUpdate('dashboard'),
+  })
   async dashboardUpdate(
     context: NcContext,
-    dashboardId: string,
-    updateObj: Partial<Dashboard>,
-    req: NcRequest,
+    param: {
+      dashboardId: string;
+      dashboard: Partial<Dashboard>;
+      req: NcRequest;
+    },
   ) {
+    const { dashboardId, req } = param;
+    const updateObj = param.dashboard;
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -141,12 +172,21 @@ export class DashboardsService {
     return updatedDashboard;
   }
 
+  @TraceCommand({
+    entity: MetaTable.DASHBOARDS,
+    entityId: (p) => p?.dashboardId,
+    description: descDelete('dashboard'),
+  })
   async dashboardDelete(
     context: NcContext,
-    dashboardId: string,
-    req: NcRequest,
-    ncMeta?: MetaService,
+    param: {
+      dashboardId: string;
+      req: NcRequest;
+      ncMeta?: MetaService;
+    },
   ) {
+    const { dashboardId, req, ncMeta } = param;
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -218,11 +258,33 @@ export class DashboardsService {
     return widget;
   }
 
+  @TraceCommand({
+    entity: MetaTable.WIDGETS,
+    entityId: 'id',
+    entityTitle: 'title',
+    parentId: (p, r) =>
+      p?.dashboardId ?? p?.widget?.fk_dashboard_id ?? r?.fk_dashboard_id,
+    description: ({ entityTitle, parentEntityTitle }) =>
+      `Create widget ${b(entityTitle)} in ${b(parentEntityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const dashboardId = param?.dashboardId ?? param?.widget?.fk_dashboard_id;
+      if (!dashboardId) return {};
+      const dashboard = await Dashboard.get(context, dashboardId);
+      return { parentEntityTitle: dashboard?.title };
+    },
+    idField: 'widget',
+  })
   async widgetCreate(
     context: NcContext,
-    insertObj: Partial<Widget>,
-    req: NcRequest,
+    param: {
+      widget: Partial<Widget>;
+      dashboardId?: string;
+      req: NcRequest;
+    },
   ) {
+    const { req } = param;
+    const insertObj = param.widget;
+
     if (insertObj.fk_dashboard_id) {
       await this.assertDashboardLive(context, insertObj.fk_dashboard_id);
     }
@@ -371,12 +433,33 @@ export class DashboardsService {
     return newWidget;
   }
 
+  @TraceCommand({
+    entity: MetaTable.WIDGETS,
+    entityId: (p) => p?.widgetId,
+    parentId: (p, r) => r?.fk_dashboard_id,
+    description: ({ entityTitle, parentEntityTitle }) =>
+      `Edit widget ${b(entityTitle)} in ${b(parentEntityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const widget = await Widget.get(context, param?.widgetId);
+      if (!widget) return {};
+      const dashboard = await Dashboard.get(context, widget.fk_dashboard_id);
+      return {
+        entityTitle: widget.title,
+        parentEntityTitle: dashboard?.title,
+      };
+    },
+  })
   async widgetUpdate(
     context: NcContext,
-    widgetId: string,
-    updateObj: Partial<Widget>,
-    req: NcRequest,
+    param: {
+      widgetId: string;
+      widget: Partial<Widget>;
+      req: NcRequest;
+    },
   ) {
+    const { widgetId, req } = param;
+    const updateObj = param.widget;
+
     const widget = await Widget.get(context, widgetId);
 
     if (!widget) {
@@ -444,12 +527,30 @@ export class DashboardsService {
     return updatedWidget;
   }
 
+  @TraceCommand({
+    entity: MetaTable.WIDGETS,
+    entityId: (p) => p?.widgetId,
+    description: ({ entityTitle, parentEntityTitle }) =>
+      `Delete widget ${b(entityTitle)} from ${b(parentEntityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const widget = await Widget.get(context, param?.widgetId);
+      if (!widget) return {};
+      const dashboard = await Dashboard.get(context, widget.fk_dashboard_id);
+      return {
+        entityTitle: widget.title,
+        parentEntityTitle: dashboard?.title,
+      };
+    },
+  })
   async widgetDelete(
     context: NcContext,
-    widgetId: string,
-    req: NcRequest,
-    ncMeta?: MetaService,
+    param: {
+      widgetId: string;
+      req: NcRequest;
+      ncMeta?: MetaService;
+    },
   ) {
+    const { widgetId, req, ncMeta } = param;
     const widget = await Widget.get(context, widgetId, false, ncMeta);
 
     if (!widget) {

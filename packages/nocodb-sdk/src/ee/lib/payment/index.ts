@@ -133,6 +133,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_API_WEBHOOK_V3]: false,
       [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: false,
       [PlanFeatureTypes.FEATURE_API_WORKFLOW_MANAGEMENT]: false,
+      [PlanFeatureTypes.FEATURE_BASE_VARIABLES]: false,
       // Enterprise-only features (disabled at Free)
       [PlanFeatureTypes.FEATURE_RLS]: false,
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
@@ -508,6 +509,7 @@ export const OnPremPlanDefinitions: Record<
     },
     limits: {
       [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
+      [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 5,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 60, // days
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 180, // days
@@ -526,6 +528,7 @@ export const OnPremPlanDefinitions: Record<
     },
     limits: {
       [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
+      [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 5,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180, // days
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 365, // days
@@ -537,6 +540,7 @@ export const OnPremPlanDefinitions: Record<
     features: {},
     limits: {
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 365, // days
+      [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
     },
   },
 };

@@ -6,11 +6,19 @@ import type {
   ViewSectionType,
   ViewSectionUpdateReqType,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { Model, ViewSection } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  descCreate,
+  descDelete,
+  descUpdate,
+} from '~/decorators/trace-command-descriptions';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class ViewSectionsService {
@@ -52,6 +60,9 @@ export class ViewSectionsService {
     }
 
     const section = await ViewSection.insert(context, {
+      ...(context?.additionalContext?.is_replay && (body as any).id
+        ? { id: (body as any).id }
+        : {}),
       fk_model_id: tableId,
       title,
       order: body.order,
@@ -169,5 +180,57 @@ export class ViewSectionsService {
     });
 
     return true;
+  }
+
+  // ────────────────────────────────────────────
+  // Sandbox-traced wrappers (standard (context, param) signature)
+  // ────────────────────────────────────────────
+
+  @TraceCommand({
+    entity: MetaTable.VIEW_SECTIONS,
+    entityId: 'id',
+    entityTitle: 'title',
+    parentId: 'viewId',
+    description: descCreate('view section'),
+    idField: 'section',
+  })
+  async viewSectionCreate(
+    context: NcContext,
+    param: {
+      viewId: string;
+      section: ViewSectionCreateReqType;
+      req: NcRequest;
+    },
+  ): Promise<ViewSectionType> {
+    return this.create(context, param.viewId, param.section, param.req);
+  }
+
+  @TraceCommand({
+    entity: MetaTable.VIEW_SECTIONS,
+    entityId: (p) => p?.viewSectionId,
+    entityTitle: (p) => p?.section?.title,
+    description: descUpdate('view section'),
+  })
+  async viewSectionUpdate(
+    context: NcContext,
+    param: {
+      viewSectionId: string;
+      section: ViewSectionUpdateReqType;
+      req: NcRequest;
+    },
+  ): Promise<ViewSectionType> {
+    return this.update(context, param.viewSectionId, param.section, param.req);
+  }
+
+  @TraceCommand({
+    entity: MetaTable.VIEW_SECTIONS,
+    entityId: (p) => p?.viewSectionId,
+    description: descDelete('view section'),
+  })
+  async viewSectionDelete(
+    context: NcContext,
+    param: { viewSectionId: string; req: NcRequest },
+  ): Promise<boolean> {
+    return this.delete(context, param.viewSectionId, param.req);
   }
 }

@@ -33,7 +33,10 @@ export const deleteDashboardTool = defineChatTool({
       args.dashboard_name,
     );
 
-    await service.dashboardDelete(context, dashboard.id, req);
+    await service.dashboardDelete(context, {
+      dashboardId: dashboard.id,
+      req,
+    });
 
     return {
       message: `Dashboard "${args.dashboard_name}" has been permanently deleted.`,

@@ -1308,6 +1308,9 @@ importers:
       sharp:
         specifier: 0.33.4
         version: 0.33.4
+      simple-git:
+        specifier: 3.33.0
+        version: 3.33.0
       slash:
         specifier: ^3.0.0
         version: 3.0.0

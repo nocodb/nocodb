@@ -2,17 +2,19 @@ import { Injectable } from '@nestjs/common';
 import { BaseVersion, ManagedAppVersionStatus } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
-import type { MetaTable } from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 import { Base } from '~/models';
 import ManagedApp from '~/models/ManagedApp';
 import ManagedAppVersion from '~/models/ManagedAppVersion';
 import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
 import {
   applyMeta,
+  type BaseMetaDiff,
   type BaseMetaSchema,
   diffMeta,
   serializeMeta,
-  skipOverrideTables,
+  skipSourceIdOverrideTables,
 } from '~/helpers/baseMetaHelpers';
 
 @Injectable()
@@ -66,6 +68,18 @@ export class ManagedAppService {
         targetSourceId,
       );
 
+      // Populate default_value for variables on the installed base
+      if (remappedSchema[MetaTable.BASE_VARIABLES]?.length) {
+        remappedSchema[MetaTable.BASE_VARIABLES] = remappedSchema[
+          MetaTable.BASE_VARIABLES
+        ].map((v: any) => ({
+          ...v,
+          default_value: v.default_value ?? v.value,
+          is_overridden: false,
+          is_inherited: true,
+        }));
+      }
+
       // For a fresh install, create a diff where everything is in the "add" section
       // The target base is empty, so we're adding all schema from the published version
       const metaDiff = {
@@ -77,6 +91,7 @@ export class ManagedAppService {
       await applyMeta(targetContext, metaDiff, trx);
 
       await trx.commit();
+      await NocoCache.clear(targetContext);
 
       // Increment the install count for the managed app
       await ManagedApp.incrementInstallCount(managedAppId);
@@ -89,6 +104,7 @@ export class ManagedAppService {
     } catch (error) {
       if (trx) {
         await trx.rollback();
+        await NocoCache.clear(targetContext);
       }
       throw error;
     }
@@ -152,6 +168,9 @@ export class ManagedAppService {
     // Calculate diff (installed is "current", master is "new")
     const diff = await diffMeta(installedMeta, masterMeta);
 
+    // Preserve installer-set variable values during updates
+    this.preserveInstallerVariableValues(diff, installedMeta);
+
     // Apply the diff in a transaction
     let trx: MetaService;
     try {
@@ -172,6 +191,7 @@ export class ManagedAppService {
       }
 
       await trx.commit();
+      await NocoCache.clear(installedContext);
 
       return {
         success: true,
@@ -183,6 +203,7 @@ export class ManagedAppService {
     } catch (error) {
       if (trx) {
         await trx.rollback();
+        await NocoCache.clear(installedContext);
       }
       throw error;
     }
@@ -247,6 +268,7 @@ export class ManagedAppService {
       );
 
       await trx.commit();
+      await NocoCache.clear(masterContext);
 
       return {
         success: true,
@@ -257,6 +279,7 @@ export class ManagedAppService {
     } catch (error) {
       if (trx) {
         await trx.rollback();
+        await NocoCache.clear(masterContext);
       }
       throw error;
     }
@@ -279,7 +302,7 @@ export class ManagedAppService {
         continue;
       }
 
-      if (skipOverrideTables.includes(tableName as MetaTable)) {
+      if (skipSourceIdOverrideTables.includes(tableName as MetaTable)) {
         remapped[tableName] = records;
         continue;
       }
@@ -294,5 +317,67 @@ export class ManagedAppService {
     }
 
     return remapped;
+  }
+
+  /**
+   * Preserve installer-set variable values during managed app updates.
+   * - fixed mode: allow value + default_value update from master (author controls)
+   * - overrideable/required mode: update default_value from master,
+   *   restore installer's current value if overridden
+   * - New variables (in diff.add): set default_value, strip values for required/sensitive
+   */
+  private preserveInstallerVariableValues(
+    diff: BaseMetaDiff,
+    installedMeta: BaseMetaSchema,
+  ) {
+    const table = MetaTable.BASE_VARIABLES;
+
+    // Build map of installer's current variable state by key
+    const installedVars = new Map<string, any>();
+    for (const v of installedMeta[table] || []) {
+      if (v.key) {
+        installedVars.set(v.key, v);
+      }
+    }
+
+    // For updated variables
+    if (diff.update[table]?.length) {
+      diff.update[table] = diff.update[table].map((v: any) => {
+        const installedVar = installedVars.get(v.key);
+
+        // Always update default_value to latest from master
+        v.default_value = v.default_value ?? v.value;
+
+        if (v.inheritance !== 'fixed') {
+          // Non-fixed: preserve installer's value and override state if they've overridden
+          if (installedVar?.is_overridden && installedVar?.value) {
+            return {
+              ...v,
+              value: installedVar.value,
+              is_overridden: true,
+            };
+          }
+          // Not overridden: value follows master's default
+          return { ...v, is_overridden: false, is_inherited: true };
+        }
+
+        // Fixed: author controls everything
+        return { ...v, is_overridden: false, is_inherited: true };
+      });
+    }
+
+    // For new variables: set default_value, strip values for required/sensitive
+    if (diff.add[table]?.length) {
+      diff.add[table] = diff.add[table].map((v: any) => {
+        v.default_value = v.default_value ?? v.value;
+        v.is_overridden = false;
+        v.is_inherited = true;
+
+        if (v.inheritance === 'required' || v.type === 'secret') {
+          return { ...v, value: null };
+        }
+        return v;
+      });
+    }
   }
 }

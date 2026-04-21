@@ -12,6 +12,7 @@ export const OPERATION_SCOPES = {
   deleteDataReflection: 'workspace',
   refreshDataReflection: 'workspace',
   listenRemoteImport: 'workspace',
+  abortRemoteImport: 'workspace',
   createSync: 'base',
   triggerSync: 'base',
   migrateSync: 'base',
@@ -118,6 +119,7 @@ export const OPERATION_SCOPES = {
   sandboxDelete: 'base',
   sandboxMerge: 'base',
   sandboxDiff: 'base',
+  sandboxChangelog: 'base',
 
   // RLS (Row-Level Security) operations
   rlsPolicyList: 'base',
@@ -153,6 +155,14 @@ export const OPERATION_SCOPES = {
   viewSectionCreate: 'base',
   viewSectionUpdate: 'base',
   viewSectionDelete: 'base',
+
+  // Base Variables operations
+  baseVariableList: 'base',
+  baseVariableCreate: 'base',
+  baseVariableUpdate: 'base',
+  baseVariableDelete: 'base',
+  baseVariableBulkUpdate: 'base',
+  baseVariableRevertToDefault: 'base',
 
   // AI Data operations
   aiDataGenerateRows: 'base',

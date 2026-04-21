@@ -1,14 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
 import { ViewsService as ViewsServiceCE } from 'src/services/views.service';
-import type { UserType } from 'nocodb-sdk';
+import type {
+  SharedViewReqType,
+  UserType,
+  ViewUpdateReqType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { b } from '~/decorators/trace-command-descriptions';
 import { User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
+import { MetaTable } from '~/utils/globals';
+import {
+  assertNotSandbox,
+  assertNotSandboxMaster,
+} from '~/helpers/sandboxGuards';
 
 @Injectable()
 export class ViewsService extends ViewsServiceCE {
@@ -19,6 +31,49 @@ export class ViewsService extends ViewsServiceCE {
     super(appHooksServiceEE);
   }
 
+  @TraceCommand({
+    entity: MetaTable.VIEWS,
+    entityId: (p) => p?.viewId,
+    entityTitle: (p) => p?.view?.title,
+    parentId: (_p, r) => r?.fk_model_id,
+    description: ({ entityTitle, extra }) =>
+      extra?.oldTitle && extra.oldTitle !== entityTitle
+        ? `Rename view ${b(extra.oldTitle)} to ${b(entityTitle)}`
+        : `Edit view ${b(entityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const view = await View.get(context, param?.viewId);
+      return { entityTitle: view?.title, extra: { oldTitle: view?.title } };
+    },
+  })
+  async viewUpdate(
+    context: NcContext,
+    param: {
+      viewId: string;
+      view: ViewUpdateReqType;
+      user: UserType;
+      req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
+  ) {
+    const view = await View.get(context, param.viewId);
+    if (view?.lock_type === 'locked') {
+      await assertNotSandboxMaster(
+        context,
+        'Locked views cannot be modified on a base with an active sandbox. Make changes in the sandbox.',
+      );
+    }
+    return super.viewUpdate(context, param);
+  }
+
+  @TraceCommand({
+    entity: MetaTable.VIEWS,
+    entityId: (p) => p?.viewId,
+    description: ({ entityTitle }) => `Delete view ${b(entityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const view = await View.get(context, param?.viewId);
+      return { entityTitle: view?.title };
+    },
+  })
   async viewDelete(
     context: NcContext,
     param: {
@@ -26,16 +81,24 @@ export class ViewsService extends ViewsServiceCE {
       user: UserType & { base_roles?: Record<string, boolean> | string };
       skipTrash?: boolean;
       req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
-    if (param.skipTrash) {
-      return super.viewDelete(context, param, ncMeta);
-    }
-
     const view = await View.get(context, param.viewId, false, ncMeta);
     if (!view) {
       NcError.get(context).genericNotFound('view', param.viewId);
+    }
+
+    if (!view.owned_by) {
+      await assertNotSandboxMaster(
+        context,
+        'Collaborative views cannot be deleted from a base with an active sandbox. Delete the view in the sandbox and merge.',
+      );
+    }
+
+    if (param.skipTrash) {
+      return super.viewDelete(context, param, ncMeta);
     }
 
     await this.baseTrashService.trashResource(context, {
@@ -84,5 +147,80 @@ export class ViewsService extends ViewsServiceCE {
     );
 
     return true;
+  }
+
+  @TraceCommand({
+    entity: MetaTable.VIEWS,
+    entityId: (p) => p?.viewId,
+    description: ({ entityTitle }) => `Share view ${b(entityTitle)}`,
+  })
+  async shareView(
+    context: NcContext,
+    param: { viewId: string; user: UserType; req: NcRequest },
+  ) {
+    await assertNotSandbox(
+      context,
+      'Shared view links cannot be created on a sandbox base. Share the view on the master base.',
+    );
+    const view = await View.get(context, param.viewId);
+    if (view?.lock_type === 'locked') {
+      await assertNotSandboxMaster(
+        context,
+        'Locked views cannot be modified on a base with an active sandbox. Make changes in the sandbox.',
+      );
+    }
+    return super.shareView(context, param);
+  }
+
+  @TraceCommand({
+    entity: MetaTable.VIEWS,
+    entityId: (p) => p?.viewId,
+    description: ({ entityTitle }) => `Edit shared link for ${b(entityTitle)}`,
+  })
+  async shareViewUpdate(
+    context: NcContext,
+    param: {
+      viewId: string;
+      sharedView: SharedViewReqType & { custom_url_path?: string };
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    await assertNotSandbox(
+      context,
+      'Shared view links cannot be edited on a sandbox base. Manage sharing on the master base.',
+    );
+    const view = await View.get(context, param.viewId);
+    if (view?.lock_type === 'locked') {
+      await assertNotSandboxMaster(
+        context,
+        'Locked views cannot be modified on a base with an active sandbox. Make changes in the sandbox.',
+      );
+    }
+    return super.shareViewUpdate(context, param);
+  }
+
+  @TraceCommand({
+    entity: MetaTable.VIEWS,
+    entityId: (p) => p?.viewId,
+    description: ({ entityTitle }) =>
+      `Remove shared link for ${b(entityTitle)}`,
+  })
+  async shareViewDelete(
+    context: NcContext,
+    param: { viewId: string; user: UserType; req: NcRequest },
+  ) {
+    await assertNotSandbox(
+      context,
+      'Shared view links cannot be removed on a sandbox base. Manage sharing on the master base.',
+    );
+    const view = await View.get(context, param.viewId);
+    if (view?.lock_type === 'locked') {
+      await assertNotSandboxMaster(
+        context,
+        'Locked views cannot be modified on a base with an active sandbox. Make changes in the sandbox.',
+      );
+    }
+    return super.shareViewDelete(context, param);
   }
 }

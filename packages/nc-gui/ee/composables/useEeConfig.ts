@@ -362,6 +362,10 @@ export const useEeConfig = createSharedComposable(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_VIEW_SECTIONS)
   })
 
+  const blockBaseVariables = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_BASE_VARIABLES)
+  })
+
   const blockListView = computed(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_LIST_VIEW)
   })
@@ -1905,6 +1909,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseBaseVariables = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockBaseVariables.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseBaseVariables'),
+      content: t('upgrade.upgradeToUseBaseVariablesSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_BASE_VARIABLES,
+      requiredPlan: PlanTitles.PLUS,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseListView = ({
     callback,
     successCallback,
@@ -2199,6 +2226,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseFormScheduling,
     blockViewSections,
     showUpgradeToUseViewSections,
+    blockBaseVariables,
+    showUpgradeToUseBaseVariables,
     blockListView,
     showUpgradeToUseListView,
     blockMapView,

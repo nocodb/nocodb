@@ -28,7 +28,7 @@ export const useRealtime = createSharedComposable(() => {
   const basesStore = useBases()
   const { bases, basesUser } = storeToRefs(basesStore)
 
-  const { setMeta, getMeta, removeMeta, clearDeletedTableId } = useMetas()
+  const { setMeta, getMeta, clearBaseMeta, clearDeletedTableId } = useMetas()
   const { tables: _tables, baseId: activeBaseId, base } = storeToRefs(useBase())
 
   const tableStore = useTablesStore()
@@ -54,7 +54,9 @@ export const useRealtime = createSharedComposable(() => {
   const documentStore = useDocumentsStore()
   const { documents, activeDocumentId, loadedParentIds } = storeToRefs(documentStore)
 
-  const { baseExtensions, Extension } = useExtensions()
+  const { baseExtensions, Extension, loadExtensionsForBase } = useExtensions()
+
+  const { listVariables } = useBaseVariables()
 
   const notificationStore = useNotification()
 
@@ -128,7 +130,7 @@ export const useRealtime = createSharedComposable(() => {
 
       // Clear from deleted set in case this is a restore from trash
       if (event.payload.id) {
-        clearDeletedTableId(event.payload.id)
+        clearDeletedTableId(eventBaseId, event.payload.id)
       }
 
       const tables = baseTables.value.get(eventBaseId)
@@ -981,19 +983,14 @@ export const useRealtime = createSharedComposable(() => {
       } else if (event.action === 'base_meta_reload') {
         const baseId = event.payload?.base_id
         if (baseId) {
-          // Clear cached metadata only for the affected base
-          const cachedTables = baseTables.value.get(baseId)
-          if (cachedTables) {
-            for (const table of cachedTables) {
-              if (table.id) {
-                removeMeta(baseId, table.id)
-              }
-            }
-          }
+          // Clear cached meta for this base — including deletedTableIds entries
+          // which would block getMeta for tables restored after discard.
+          clearBaseMeta(baseId)
           baseTables.value.delete(baseId)
           scriptStore.scripts.delete(baseId)
           workflowStore.workflows.delete(baseId)
           dashboardStore.dashboards.delete(baseId)
+          delete baseExtensions.value[baseId]
 
           // If this is the active base, reload immediately
           if (activeBaseId.value === baseId) {
@@ -1005,10 +1002,20 @@ export const useRealtime = createSharedComposable(() => {
                 }
               }
 
+              // Invalidate all view caches for this base so navigating
+              // to any table fetches fresh views with correct filters/sorts.
+              for (const key of viewsByTable.value.keys()) {
+                if (key.startsWith(`${baseId}:`)) {
+                  viewsByTable.value.delete(key)
+                }
+              }
+
               await Promise.all([
                 scriptStore.loadScripts({ baseId, force: true }),
                 workflowStore.loadWorkflows({ baseId, force: true }),
                 dashboardStore.loadDashboards({ baseId, force: true }),
+                loadExtensionsForBase(baseId),
+                listVariables(),
               ])
 
               $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)

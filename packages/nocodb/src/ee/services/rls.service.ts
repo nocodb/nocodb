@@ -6,7 +6,8 @@ import {
   PlanLimitTypes,
 } from 'nocodb-sdk';
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import NocoSocket from '~/ee/socket/NocoSocket';
 import Filter from '~/models/Filter';
@@ -15,6 +16,14 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { Model, View } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { checkForFeature, checkLimit } from '~/helpers/paymentHelpers';
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  descCreate,
+  descDelete,
+  descUpdate,
+} from '~/decorators/trace-command-descriptions';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class RlsService {
@@ -82,10 +91,19 @@ export class RlsService {
     return { ...policy, filters };
   }
 
+  @TraceCommand({
+    entity: MetaTable.RLS_POLICIES,
+    entityId: 'id',
+    entityTitle: 'title',
+    parentId: (p) => p?.body?.fk_model_id,
+    description: descCreate('RLS policy'),
+    idField: 'body',
+  })
   async createPolicy(
     context: NcContext,
     param: {
       body: {
+        id?: string;
         fk_model_id: string;
         title?: string;
         is_default?: boolean;
@@ -98,6 +116,8 @@ export class RlsService {
     },
   ) {
     const { body, userId, req } = param;
+
+    await assertNotSandbox(context);
 
     // Check if RLS feature is available on the workspace plan
     await checkForFeature(context, PlanFeatureTypes.FEATURE_RLS);
@@ -132,6 +152,9 @@ export class RlsService {
 
     // Create the policy
     const policy = await RlsPolicy.insert(context, {
+      ...(context?.additionalContext?.is_replay && body.id
+        ? { id: body.id }
+        : {}),
       base_id: context.base_id,
       fk_model_id: body.fk_model_id,
       title: body.title || (body.is_default ? 'Default Policy' : 'New Policy'),
@@ -194,6 +217,12 @@ export class RlsService {
     return this.getPolicy(context, { policyId: policy.id });
   }
 
+  @TraceCommand({
+    entity: MetaTable.RLS_POLICIES,
+    entityId: (p) => p?.body?.id,
+    entityTitle: (p) => p?.body?.title,
+    description: descUpdate('RLS policy'),
+  })
   async updatePolicy(
     context: NcContext,
     param: {
@@ -209,6 +238,8 @@ export class RlsService {
     },
   ) {
     const { body, userId, req } = param;
+
+    await assertNotSandbox(context);
 
     const policy = await RlsPolicy.get(context, body.id);
 
@@ -260,6 +291,11 @@ export class RlsService {
     return this.getPolicy(context, { policyId: body.id });
   }
 
+  @TraceCommand({
+    entity: MetaTable.RLS_POLICIES,
+    entityId: (p) => p?.policyId,
+    description: descDelete('RLS policy'),
+  })
   async deletePolicy(
     context: NcContext,
     param: {
@@ -269,6 +305,8 @@ export class RlsService {
     },
   ) {
     const { policyId, userId, req } = param;
+
+    await assertNotSandbox(context);
 
     const policy = await RlsPolicy.get(context, policyId);
 
@@ -329,6 +367,8 @@ export class RlsService {
     },
   ) {
     const { policyId, subjects, userId, req } = param;
+
+    await assertNotSandbox(context);
 
     const policy = await RlsPolicy.get(context, policyId);
 

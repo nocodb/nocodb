@@ -25,7 +25,7 @@ const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isEEFeatureBlocked, blockExtensions, showUpgradeToUseExtensions } = useEeConfig()
+const { isEEFeatureBlocked } = useEeConfig()
 
 const isSharedBase = computed(() => route.params.typeOrId === 'base')
 
@@ -75,6 +75,9 @@ const topbarBreadcrumbItemWidth = computed(() => {
       <div class="flex items-center justify-end gap-2 flex-1">
         <GeneralApiLoader v-if="!isMobileMode && !activeScriptId && !activeDashboardId" />
 
+        <!-- Variable Setup Warning -->
+        <SmartsheetTopbarVariableSetupWarning v-if="!isSharedBase && !isMobileMode" />
+
         <!-- Managed App Status -->
         <LazySmartsheetTopbarManagedAppStatus v-if="!isSharedBase && !isMobileMode" />
 
@@ -99,13 +102,13 @@ const topbarBreadcrumbItemWidth = computed(() => {
           "
           placement="bottom"
         >
-          <template #title>{{ $t('general.extensions') }}</template>
+          <template #title>{{ isPanelExpanded ? $t('tooltip.hideExtensions') : $t('tooltip.showExtensions') }}</template>
           <NcButton
             v-e="['c:extension-toggle']"
-            type="text"
+            type="secondary"
             size="small"
-            class="nc-topbar-extension-btn"
-            :class="{ '!bg-nc-bg-brand !text-nc-content-brand': isPanelExpanded }"
+            class="nc-topbar-extension-btn !font-normal"
+            :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
             data-testid="nc-topbar-extension-btn"
             @click="blockExtensions && !isPanelExpanded ? showUpgradeToUseExtensions() : toggleExtensionPanel()"
           >

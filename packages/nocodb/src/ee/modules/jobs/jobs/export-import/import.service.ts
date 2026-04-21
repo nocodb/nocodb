@@ -138,7 +138,7 @@ export class ImportService extends ImportServiceCE {
   ) {
     if (!param.data?.length) return;
     for (const script of param.data) {
-      await this.scriptsService.createScript(context, script, param.req);
+      await this.scriptsService.createScript(context, { body: script, req: param.req });
     }
   }
 
@@ -233,8 +233,10 @@ export class ImportService extends ImportServiceCE {
     for (const dashboard of param.data) {
       const createdDashboard = await this.dashboardService.dashboardCreate(
         context,
-        withoutId(dashboard),
-        req,
+        {
+          dashboard: withoutId(dashboard),
+          req,
+        },
       );
 
       idMap.set(dashboard.id, createdDashboard.id);
@@ -258,8 +260,12 @@ export class ImportService extends ImportServiceCE {
 
         const insertedWidget = await this.dashboardService.widgetCreate(
           context,
-          deserializedWidget,
-          req,
+          {
+            widget: deserializedWidget,
+            dashboardId:
+              deserializedWidget?.fk_dashboard_id ?? createdDashboard.id,
+            req,
+          },
         );
         idMap.set(widget.id, insertedWidget.id);
 
@@ -356,11 +362,10 @@ export class ImportService extends ImportServiceCE {
           draft: updatedDraft,
         };
 
-        await this.workflowService.createWorkflow(
-          context,
-          withoutId(updatedWorkflow),
-          param.req,
-        );
+        await this.workflowService.createWorkflow(context, {
+          body: withoutId(updatedWorkflow),
+          req: param.req,
+        });
       } catch (error: any) {
         this.logger.error(
           `Failed to import workflow "${workflowData.title}": ${error.message}`,

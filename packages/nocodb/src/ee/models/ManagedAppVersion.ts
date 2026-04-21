@@ -1,4 +1,6 @@
+import { gunzipSync, gzipSync } from 'zlib';
 import { ManagedAppVersionStatus } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import Noco from '~/Noco';
 import {
   CacheGetType,
@@ -9,6 +11,8 @@ import {
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+
+const logger = new Logger('ManagedAppVersion');
 
 export default class ManagedAppVersion {
   id?: string;
@@ -182,6 +186,11 @@ export default class ManagedAppVersion {
       ncMeta,
     );
 
+    // Compress schema before storage
+    if (insertObj.schema) {
+      insertObj.schema = ManagedAppVersion.compressSchema(insertObj.schema);
+    }
+
     const { id } = await ncMeta.metaInsert2(
       RootScopes.ROOT,
       RootScopes.ROOT,
@@ -222,6 +231,11 @@ export default class ManagedAppVersion {
       'published_at',
     ]);
 
+    // Compress schema before storage
+    if (updateObj.schema) {
+      updateObj.schema = ManagedAppVersion.compressSchema(updateObj.schema);
+    }
+
     await ncMeta.metaUpdate(
       RootScopes.ROOT,
       RootScopes.ROOT,
@@ -238,11 +252,85 @@ export default class ManagedAppVersion {
     return this.get(managedAppVersionId, ncMeta);
   }
 
+  /**
+   * Batch-fetch versions by IDs. Used to eliminate N+1 in Base.list().
+   * Results are cached individually.
+   */
+  public static async getByIds(
+    ids: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<Map<string, ManagedAppVersion>> {
+    const result = new Map<string, ManagedAppVersion>();
+    if (!ids.length) return result;
+
+    // Check cache in parallel
+    const cacheResults = await Promise.all(
+      ids.map((id) =>
+        NocoCache.get(
+          'root',
+          `${CacheScope.MANAGED_APP_VERSION}:${id}`,
+          CacheGetType.TYPE_OBJECT,
+        ).then((cached) => ({ id, cached })),
+      ),
+    );
+
+    const uncachedIds: string[] = [];
+    for (const { id, cached } of cacheResults) {
+      if (cached) {
+        result.set(id, new ManagedAppVersion(cached));
+      } else {
+        uncachedIds.push(id);
+      }
+    }
+
+    if (uncachedIds.length) {
+      const rows = await ncMeta
+        .knexConnection(MetaTable.MANAGED_APP_VERSIONS)
+        .whereIn('id', uncachedIds);
+
+      for (const row of rows || []) {
+        const data = prepareForResponse(row);
+        await NocoCache.set(
+          'root',
+          `${CacheScope.MANAGED_APP_VERSION}:${data.id}`,
+          data,
+        );
+        result.set(data.id, new ManagedAppVersion(data));
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Compress a JSON string with gzip + base64 for TEXT column storage.
+   * Prefixed with 'gz:' so we can distinguish from legacy uncompressed data.
+   */
+  private static compressSchema(json: string): string {
+    if (!json) return json;
+    const compressed = gzipSync(Buffer.from(json, 'utf-8'));
+    return 'gz:' + compressed.toString('base64');
+  }
+
+  /**
+   * Decompress schema. Handles both gzipped ('gz:' prefix) and legacy plain JSON.
+   */
+  private static decompressSchema(stored: string): string {
+    if (!stored) return stored;
+    if (stored.startsWith('gz:')) {
+      const buf = Buffer.from(stored.slice(3), 'base64');
+      return gunzipSync(buf).toString('utf-8');
+    }
+    // Legacy uncompressed — return as-is
+    return stored;
+  }
+
   public getParsedSchema(): any {
     try {
-      return JSON.parse(this.schema);
+      const raw = ManagedAppVersion.decompressSchema(this.schema);
+      return JSON.parse(raw);
     } catch (e) {
-      console.error('Failed to parse managed app version schema:', e);
+      logger.error('Failed to parse managed app version schema', e.stack);
       return null;
     }
   }

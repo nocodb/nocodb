@@ -22,7 +22,7 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class CalendarsService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async calendarViewGet(context: NcContext, param: { calendarViewId: string }) {
     return await CalendarView.get(context, param.calendarViewId);

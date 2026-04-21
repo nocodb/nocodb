@@ -42,12 +42,11 @@ export const updateDashboardTool = defineChatTool({
     if (args.description !== undefined)
       updateObj.description = args.description;
 
-    const updated = await service.dashboardUpdate(
-      context,
-      dashboard.id,
-      updateObj,
+    const updated = await service.dashboardUpdate(context, {
+      dashboardId: dashboard.id,
+      dashboard: updateObj,
       req,
-    );
+    });
 
     return {
       id: updated.id,

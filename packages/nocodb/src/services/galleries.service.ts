@@ -22,7 +22,7 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class GalleriesService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async galleryViewGet(context: NcContext, param: { galleryViewId: string }) {
     return await GalleryView.get(context, param.galleryViewId);

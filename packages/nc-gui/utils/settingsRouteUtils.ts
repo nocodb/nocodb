@@ -20,6 +20,7 @@ export const baseSettingsTabToSlug: Record<string, string> = {
   'overview': 'overview',
   'mcp': 'mcp',
   'record-trash': 'record-trash',
+  'variables': 'variables',
   'snapshots': 'snapshots',
 }
 

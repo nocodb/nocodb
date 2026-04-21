@@ -1,4 +1,5 @@
-import type { DeploymentStatus, DeploymentType } from 'nocodb-sdk';
+import { DeploymentType } from 'nocodb-sdk';
+import type { DeploymentStatus } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
 import {
@@ -175,5 +176,25 @@ export default class ManagedAppDeploymentLog {
     await NocoCache.del('root', cacheKey);
 
     return await this.get(logId, ncMeta);
+  }
+
+  /**
+   * Count recent INSTALL deployments in a workspace (last hour).
+   * Used as a workspace-level rate-limit guardrail.
+   */
+  public static async countRecentInstalls(
+    workspaceId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+    const rows = await ncMeta
+      .knexConnection(MetaTable.MANAGED_APP_DEPLOYMENT_LOGS)
+      .where('fk_workspace_id', workspaceId)
+      .where('deployment_type', DeploymentType.INSTALL)
+      .where('created_at', '>=', oneHourAgo)
+      .count('id as count');
+
+    return Number(rows?.[0]?.count ?? 0);
   }
 }

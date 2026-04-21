@@ -282,14 +282,13 @@ export class DashboardsV3Service {
       context,
     );
 
-    const dashboard = await this.dashboardsService.dashboardCreate(
-      context,
-      {
+    const dashboard = await this.dashboardsService.dashboardCreate(context, {
+      dashboard: {
         ...body,
         base_id: baseId,
       },
       req,
-    );
+    });
 
     return dashboardBuilder().build(dashboard);
   }
@@ -309,12 +308,11 @@ export class DashboardsV3Service {
       context,
     );
 
-    const dashboard = await this.dashboardsService.dashboardUpdate(
-      context,
+    const dashboard = await this.dashboardsService.dashboardUpdate(context, {
       dashboardId,
-      body,
+      dashboard: body,
       req,
-    );
+    });
 
     return dashboardBuilder().build(dashboard);
   }
@@ -326,11 +324,10 @@ export class DashboardsV3Service {
   ): Promise<boolean> {
     await this.validateFeatureAccess(context);
 
-    return await this.dashboardsService.dashboardDelete(
-      context,
+    return await this.dashboardsService.dashboardDelete(context, {
       dashboardId,
       req,
-    );
+    });
   }
 
   async widgetCreate(
@@ -350,11 +347,11 @@ export class DashboardsV3Service {
 
     const mapped = this.mapWidgetRequestToInternal(body);
 
-    const widget = await this.dashboardsService.widgetCreate(
-      context,
-      { ...mapped, fk_dashboard_id: dashboardId },
+    const widget = await this.dashboardsService.widgetCreate(context, {
+      widget: { ...mapped, fk_dashboard_id: dashboardId },
+      dashboardId,
       req,
-    );
+    });
 
     return widgetBuilder().build(widget);
   }
@@ -376,12 +373,11 @@ export class DashboardsV3Service {
 
     const mapped = this.mapWidgetRequestToInternal(body);
 
-    const widget = await this.dashboardsService.widgetUpdate(
-      context,
+    const widget = await this.dashboardsService.widgetUpdate(context, {
       widgetId,
-      mapped,
+      widget: mapped,
       req,
-    );
+    });
 
     return widgetBuilder().build(widget);
   }
@@ -393,7 +389,10 @@ export class DashboardsV3Service {
   ): Promise<boolean> {
     await this.validateFeatureAccess(context);
 
-    return await this.dashboardsService.widgetDelete(context, widgetId, req);
+    return await this.dashboardsService.widgetDelete(context, {
+      widgetId,
+      req,
+    });
   }
 
   private mapWidgetRequestToInternal(

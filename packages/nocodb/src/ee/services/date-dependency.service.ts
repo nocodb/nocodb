@@ -8,13 +8,20 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { DateDependencyReqType, NcRequest } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
+import { assertNotSandboxMaster } from '~/helpers/sandboxGuards';
 import { validatePayload } from '~/helpers/apiHelpers';
 import { Column, DateDependency, DependencyTracker, Model } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  descDelete,
+  descUpdate,
+} from '~/decorators/trace-command-descriptions';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class DateDependencyService {
@@ -29,6 +36,11 @@ export class DateDependencyService {
     return DateDependency.getByModelId(context, param.modelId);
   }
 
+  @TraceCommand({
+    entity: MetaTable.DATE_DEPENDENCY,
+    entityId: (p) => p?.modelId,
+    description: descUpdate('date dependency'),
+  })
   async update(
     context: NcContext,
     param: {
@@ -37,6 +49,8 @@ export class DateDependencyService {
       req: NcRequest;
     },
   ): Promise<DateDependency> {
+    await assertNotSandboxMaster(context);
+
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
 
     validatePayload(
@@ -92,10 +106,17 @@ export class DateDependencyService {
     return result;
   }
 
+  @TraceCommand({
+    entity: MetaTable.DATE_DEPENDENCY,
+    entityId: (p) => p?.modelId,
+    description: descDelete('date dependency'),
+  })
   async delete(
     context: NcContext,
     param: { modelId: string; req: NcRequest },
   ): Promise<void> {
+    await assertNotSandboxMaster(context);
+
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
 
     const model = param.modelId && (await Model.get(context, param.modelId));

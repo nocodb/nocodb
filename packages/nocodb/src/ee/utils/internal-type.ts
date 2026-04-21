@@ -1,4 +1,5 @@
 import type {
+  BaseVariableType,
   DependencyTableType,
   NcContext,
   NcRequest,
@@ -191,6 +192,8 @@ export type InternalPOSTResponseType = Promise<
     }
   | { success: boolean }
   | (RlsPolicy & { filters: Filter[] })
+  | BaseVariableType
+  | BaseVariableType[]
   | { added: boolean; reaction: any }
   | { [key: string]: string }[]
   | {
@@ -207,12 +210,9 @@ export type InternalPOSTResponseType = Promise<
       link: (string | number | Record<string, any>)[];
       unlink: (string | number | Record<string, any>)[];
     }[]
-  | {
-      link: (string | number | Record<string, any>)[];
-      unlink: (string | number | Record<string, any>)[];
-    }[]
   | { message: string }
   | { deleted: number; failed: { id: string; error: string }[] }
+  | { job_id: string }
 >;
 
 export interface InternalApiModule<

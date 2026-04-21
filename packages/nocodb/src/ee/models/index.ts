@@ -30,6 +30,7 @@ export { default as ManagedApp } from './ManagedApp';
 export { default as ManagedAppVersion } from './ManagedAppVersion';
 export { default as ManagedAppDeploymentLog } from './ManagedAppDeploymentLog';
 export { default as Sandbox } from './Sandbox';
+export { default as SandboxChangelog } from './SandboxChangelog';
 export { default as UsageStat } from './UsageStat';
 export { default as DbServer } from './DbServer';
 export { default as Permission } from './Permission';

@@ -364,6 +364,12 @@ export class BasesService extends BasesServiceCE {
       NcError.baseNotFound(param.baseId);
     }
 
+    if (base.is_sandbox) {
+      NcError.badRequest(
+        'Sandbox bases cannot be deleted directly. Use "Discard sandbox" on the master base instead.',
+      );
+    }
+
     if (isEE) {
       // delete all cross base links
       const crossBaseLinks = await ncMeta

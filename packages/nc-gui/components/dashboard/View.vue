@@ -237,8 +237,8 @@ function onResize(widthPercent: any) {
 
 const contentWidthStyle = computed(() => ({
   width: isMiniSidebarVisible.value
-    ? 'calc(100vw - var(--mini-sidebar-width) - var(--nc-chat-panel-offset, 0px))'
-    : 'calc(100vw - var(--nc-chat-panel-offset, 0px))',
+    ? 'calc(100vw - var(--mini-sidebar-width) - var(--nc-chat-panel-offset, 0px) - var(--nc-sandbox-drawer-offset, 0px))'
+    : 'calc(100vw - var(--nc-chat-panel-offset, 0px) - var(--nc-sandbox-drawer-offset, 0px))',
 }))
 
 watch(isChatPanelExpanded, () => {

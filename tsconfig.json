@@ -2,7 +2,11 @@
   /* Root tsconfig — "solution" style: no files of its own.
      Without "files": [], TS creates a catch-all project that includes the ENTIRE repo,
      causing every file to belong to 2+ projects and forcing VS Code's TS server
-     to reload when switching between files. */
+     to reload when switching between files.
+
+     Project references tell tsserver to treat each package as an isolated project.
+     This prevents one giant TS program from loading all 5000+ files at once.
+     Build is handled by rspack — composite/declaration are purely for IDE perf. */
   "include": [],
   "compilerOptions": {
     "target": "ESNext",
@@ -11,6 +15,11 @@
     "noEmit": true,
     "skipLibCheck": true
   },
+  "references": [
+    { "path": "packages/nocodb-sdk" },
+    { "path": "packages/nocodb" },
+    { "path": "packages/nc-gui" }
+  ],
   "exclude": [
     "node_modules",
     "packages/noco-integrations",

@@ -53,6 +53,12 @@ export class SnapshotController {
       NcError.get(context).baseNotFound(baseId);
     }
 
+    if (base.is_sandbox) {
+      NcError.badRequest(
+        'Sandbox bases cannot be snapshotted. Take the snapshot on the master base.',
+      );
+    }
+
     const workspace = await Workspace.get(base.fk_workspace_id);
 
     await checkLimit({
@@ -164,6 +170,12 @@ export class SnapshotController {
 
     if (!base) {
       NcError.baseNotFound(baseId);
+    }
+
+    if (base.is_sandbox) {
+      NcError.badRequest(
+        'Cannot restore a snapshot into a sandbox. Restore on the master base.',
+      );
     }
 
     const snapshot = await Snapshot.get(context, snapshotId);

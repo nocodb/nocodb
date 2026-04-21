@@ -294,6 +294,7 @@ export class ManagedAppGetOperations
       .select(
         `${MetaTable.PROJECT}.id`,
         `${MetaTable.PROJECT}.title`,
+        `${MetaTable.PROJECT}.fk_workspace_id`,
         `${MetaTable.PROJECT}.managed_app_version_id`,
         `${MetaTable.PROJECT}.updated_at`,
         `${MetaTable.PROJECT}.created_at`,
@@ -306,12 +307,14 @@ export class ManagedAppGetOperations
       versions.map((v) => [v.id, { version: v.version, status: v.status }]),
     );
 
-    // Build deployment list with version info and deployment status
+    // Build deployment list — redact base details for other workspaces
+    const ownerWorkspaceId = managedApp.fk_workspace_id;
     const deploymentsList = installedBases.map((base) => {
       const versionInfo = versionMap.get(base.managed_app_version_id);
+      const isSameWorkspace = base.fk_workspace_id === ownerWorkspaceId;
       return {
-        baseId: base.id,
-        baseTitle: base.title,
+        baseId: isSameWorkspace ? base.id : undefined,
+        baseTitle: isSameWorkspace ? base.title : undefined,
         version: versionInfo?.version || 'unknown',
         versionId: base.managed_app_version_id,
         installedAt: base.created_at,
@@ -449,16 +452,19 @@ export class ManagedAppGetOperations
       .limit(pageLimit)
       .offset(pageOffset);
 
-    // Enrich with workspace info if needed
-    const enrichedDeployments = deployments.map((base) => ({
-      baseId: base.id,
-      baseTitle: base.title,
-      workspaceId: base.fk_workspace_id,
-      versionId: base.managed_app_version_id,
-      installedAt: base.created_at,
-      lastUpdated: base.updated_at,
-      status: base.deployment_status || 'unknown',
-    }));
+    // Redact base details for installations in other workspaces
+    const ownerWsId = managedApp.fk_workspace_id;
+    const enrichedDeployments = deployments.map((base) => {
+      const isSameWorkspace = base.fk_workspace_id === ownerWsId;
+      return {
+        baseId: isSameWorkspace ? base.id : undefined,
+        baseTitle: isSameWorkspace ? base.title : undefined,
+        versionId: base.managed_app_version_id,
+        installedAt: base.created_at,
+        lastUpdated: base.updated_at,
+        status: base.deployment_status || 'unknown',
+      };
+    });
 
     return {
       managedApp: {

@@ -63,7 +63,7 @@ const publishCurrentDraft = async () => {
 
   isLoading.value = true
   try {
-    await $api.internal.postOperation(
+    const response = await $api.internal.postOperation(
       base.value.fk_workspace_id,
       base.value.id,
       {
@@ -83,6 +83,32 @@ const publishCurrentDraft = async () => {
     await loadManagedAppAndCurrentVersion()
 
     message.success(t('msg.versionPublishedSuccessfully', { version: managedAppVersionsInfo.value.current?.version || '1.0.0' }))
+
+    // Poll for background installation updates if job was queued
+    const updateJobId = (response as any)?.updateJobId
+    if (updateJobId) {
+      const { $poller } = useNuxtApp()
+      $poller.subscribe({ id: updateJobId }, (data: any) => {
+        if (data?.status === 'completed') {
+          const result = data?.data?.result
+          if (result?.failedUpdates > 0) {
+            message.warning(
+              t('msg.installationUpdatePartial', {
+                success: result.successfulUpdates,
+                failed: result.failedUpdates,
+              }),
+            )
+          } else if (result?.successfulUpdates > 0) {
+            message.success(t('msg.allInstallationsUpdated'))
+          }
+        } else if (data?.status === 'failed') {
+          message.error(t('msg.installationUpdateFailed'))
+        } else if (data?.data?.message) {
+          // Progress log from job processor (e.g. "Updated 3/10 installations")
+          message.info(data.data.message)
+        }
+      })
+    }
 
     vVisible.value = false
   } catch (e: any) {

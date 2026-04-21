@@ -86,7 +86,7 @@ export class ScriptsV3Service {
       true,
       context,
     );
-    const script = await this.scriptsService.createScript(context, body, req);
+    const script = await this.scriptsService.createScript(context, { body, req });
     return scriptBuilder().build(script);
   }
 
@@ -103,12 +103,11 @@ export class ScriptsV3Service {
       true,
       context,
     );
-    const script = await this.scriptsService.updateScript(
-      context,
-      id,
+    const script = await this.scriptsService.updateScript(context, {
+      scriptId: id,
       body,
       req,
-    );
+    });
     return scriptBuilder().build(script);
   }
 
@@ -118,6 +117,6 @@ export class ScriptsV3Service {
     req: NcRequest,
   ): Promise<boolean> {
     await this.validateFeatureAccess(context);
-    return await this.scriptsService.deleteScript(context, id, req);
+    return await this.scriptsService.deleteScript(context, { scriptId: id, req });
   }
 }

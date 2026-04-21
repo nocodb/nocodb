@@ -79,6 +79,12 @@ const createSandbox = async () => {
 
               status.value = 'success'
               refreshCommandPalette()
+
+              try {
+                await loadProjects('workspace', activeWorkspaceId.value)
+              } catch (_e: any) {
+                // ignore
+              }
             } else if (data.status === JobStatus.FAILED) {
               status.value = 'error'
               errorMessage.value = data?.data?.error?.message || t('labels.failedToCreateSandbox')
@@ -172,7 +178,7 @@ onKeyStroke('Enter', () => {
 
         <template v-else-if="status === 'success'">
           <div class="flex items-center gap-2">
-            <GeneralIcon class="text-green-600 w-6 h-6" icon="checkFill" />
+            <GeneralIcon class="text-white w-6 h-6" icon="checkFill" />
             <div class="text-nc-content-gray-emphasis font-semibold">{{ t('labels.sandboxCreated') }}</div>
           </div>
         </template>
@@ -227,7 +233,7 @@ onKeyStroke('Enter', () => {
       </template>
 
       <template v-else-if="status === 'success'">
-        <div class="text-nc-content-gray-emphasis my-5 font-medium">
+        <div class="text-nc-content-gray-emphasis my-5">
           {{ t('labels.sandboxCreatedSuccess', { title }) }} <br /><br />
           {{ t('labels.sandboxCreatedInstructions') }}
         </div>

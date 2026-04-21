@@ -9,7 +9,10 @@ import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { b, descRename } from '~/decorators/trace-command-descriptions';
 import { NcError } from '~/helpers/catchError';
+import { assertNotSandboxMaster } from '~/helpers/sandboxGuards';
 import { Base, Model } from '~/models';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -80,12 +83,34 @@ export class TablesService extends TableServiceCE {
   }
 
   @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.MODELS,
+    entityId: 'id',
+    entityTitle: 'title',
+    description: ({ entityTitle }) => `Create table ${b(entityTitle)}`,
+    idField: 'table',
+    // Store sandbox column IDs so replay can seed auto-created columns
+    // (Title column etc.) with matching IDs on master.
+    // Also store the auto-created default view ID so sorts/filters that
+    // reference it by ID continue to work after replay on master.
+    extraCommandMeta: (_p, result) => ({
+      sandboxColumns: (result?.columns ?? []).map((c: any) => ({
+        id: c.id,
+        cn: c.cn,
+        title: c.title,
+      })),
+      sandboxDefaultViewId: (result?.views ?? [])[0]?.id,
+    }),
+  })
   async tableCreate(
     context: NcContext,
     param: {
       baseId: string;
       sourceId?: string;
-      table: TableReqType;
+      table: TableReqType & {
+        _sandboxColumnIds?: Record<string, string>;
+        _sandboxDefaultViewId?: string;
+      };
       user: User | UserType;
       req: NcRequest;
       synced?: boolean;
@@ -94,6 +119,26 @@ export class TablesService extends TableServiceCE {
       operationSource?: OperationSource;
     },
   ) {
+    await assertNotSandboxMaster(
+      context,
+      'Creating tables is not allowed on a base with an active sandbox. Create tables in the sandbox.',
+    );
+
+    // During replay: inject sandbox column IDs into the column definitions so
+    // auto-created columns (Title etc.) get the same IDs on master as in sandbox.
+    const { _sandboxColumnIds, _sandboxDefaultViewId, ...tableBody } =
+      param.table ?? {};
+    const tableParam: any = { ...tableBody };
+    if (_sandboxColumnIds && tableParam.columns?.length) {
+      tableParam.columns = tableParam.columns.map((col: any) => ({
+        ...col,
+        id: _sandboxColumnIds[col.title] ?? _sandboxColumnIds[col.cn] ?? col.id,
+      }));
+    }
+    if (_sandboxDefaultViewId) {
+      tableParam._sandboxDefaultViewId = _sandboxDefaultViewId;
+    }
+
     const base = await Base.getWithInfo(context, param.baseId);
     let source = base.sources[0];
 
@@ -138,15 +183,15 @@ export class TablesService extends TableServiceCE {
       );
 
       if (
-        param.table?.columns?.length &&
-        param.table.columns.length >= columnLimitForWorkspace
+        tableParam?.columns?.length &&
+        tableParam.columns.length >= columnLimitForWorkspace
       ) {
         NcError.planLimitExceeded(
           `Maximum ${columnLimitForWorkspace} columns are allowed, for more please upgrade your plan`,
           {
             plan: plan?.title,
             limit: columnLimitForWorkspace,
-            current: param.table.columns.length,
+            current: tableParam.columns.length,
           },
         );
       }
@@ -154,6 +199,7 @@ export class TablesService extends TableServiceCE {
 
     return super.tableCreate(context, {
       ...param,
+      table: tableParam,
       sourceId: source?.id || param.sourceId,
     });
   }
@@ -175,5 +221,62 @@ export class TablesService extends TableServiceCE {
     }
 
     return table;
+  }
+
+  @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.MODELS,
+    entityId: (p) => p?.tableId,
+    entityTitle: (p) => p?.table?.title,
+    description: descRename('table'),
+    resolveCtx: async (context, param) => {
+      const table = await Model.get(context, param?.tableId);
+      return { extra: { oldTitle: table?.title } };
+    },
+  })
+  async tableUpdate(
+    context: NcContext,
+    param: {
+      tableId: any;
+      table: Partial<TableReqType> & { base_id?: string };
+      baseId?: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    await assertNotSandboxMaster(
+      context,
+      'Renaming tables is not allowed on a base with an active sandbox. Make the change in the sandbox.',
+    );
+
+    return super.tableUpdate(context, param);
+  }
+
+  @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.MODELS,
+    entityId: (p) => p?.tableId,
+    description: ({ entityTitle }) => `Delete table ${b(entityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const table = await Model.get(context, param?.tableId);
+      return { entityTitle: table?.title };
+    },
+  })
+  async tableDelete(
+    context: NcContext,
+    param: {
+      tableId: string;
+      user: User;
+      forceDeleteRelations?: boolean;
+      forceDeleteSyncs?: boolean;
+      req?: any;
+    },
+  ) {
+    await assertNotSandboxMaster(
+      context,
+      'Deleting tables is not allowed on a base with an active sandbox. Delete the table in the sandbox.',
+    );
+
+    return super.tableDelete(context, param);
   }
 }

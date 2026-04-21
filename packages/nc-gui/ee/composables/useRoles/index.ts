@@ -213,14 +213,18 @@ export const useRolesShared = createSharedComposable(() => {
       checkRoles = extractRolesObj(roles)
     }
 
-    if (
-      !args.skipBaseCheck &&
-      activeBase &&
-      activeBase.id &&
-      managedAppRestrictions[permission as Permission] &&
-      ((activeBase.managed_app_id && activeBase.managed_app_schema_locked) || activeBase.is_sandbox_master)
-    ) {
-      return false
+    if (!args.skipBaseCheck && activeBase && activeBase.id) {
+      const isManagedLocked = activeBase.managed_app_id && activeBase.managed_app_schema_locked
+      const isSandboxMaster = activeBase.is_sandbox_master
+      const isSandbox = activeBase.is_sandbox
+
+      if (
+        (isManagedLocked && managedAppRestrictions[permission as Permission]) ||
+        (isSandboxMaster && sandboxMasterRestrictions[permission as Permission]) ||
+        (isSandbox && sandboxRestrictions[permission as Permission])
+      ) {
+        return false
+      }
     }
 
     // check source level restrictions

@@ -12,7 +12,8 @@ import {
   PlanFeatureTypes,
   ProjectRoles,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import { Team } from '~/models';
 import Workspace from '~/ee/models/Workspace';
@@ -20,9 +21,12 @@ import Document from '~/ee/models/Document';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/ncError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
-import { CacheDelDirection, CacheScope } from '~/utils/globals';
+import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { descDelete } from '~/decorators/trace-command-descriptions';
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 
 @Injectable()
 export class PermissionsService {
@@ -84,6 +88,8 @@ export class PermissionsService {
     >,
     req: NcRequest,
   ) {
+    await assertNotSandbox(context);
+
     const {
       entity,
       entity_id,
@@ -381,6 +387,8 @@ export class PermissionsService {
     permissionObj: Partial<Permission>,
     req: NcRequest,
   ) {
+    await assertNotSandbox(context);
+
     const { entity, entity_id, permission: permission_key } = permissionObj;
 
     this.assertRoleForPermissionKey(context, permission_key, req);
@@ -473,6 +481,8 @@ export class PermissionsService {
     permissionIds: string[],
     req: NcRequest,
   ) {
+    await assertNotSandbox(context);
+
     if (!permissionIds.length) return;
 
     const oldPermissions = await Permission.list(context, context.base_id);
@@ -589,5 +599,46 @@ export class PermissionsService {
         payload: perms,
       },
     });
+  }
+
+  // ────────────────────────────────────────────
+  // Sandbox-traced wrappers (standard (context, param) signature)
+  // ────────────────────────────────────────────
+
+  @TraceCommand({
+    entity: MetaTable.PERMISSIONS,
+    entityId: (_p, r) => r?.id,
+    description: () => 'Edit permission settings',
+  })
+  async permissionSet(
+    context: NcContext,
+    param: {
+      permission: Pick<
+        Permission,
+        | 'entity'
+        | 'entity_id'
+        | 'permission'
+        | 'granted_type'
+        | 'granted_role'
+        | 'enforce_for_automation'
+        | 'enforce_for_form'
+        | 'subjects'
+      >;
+      req: NcRequest;
+    },
+  ) {
+    return this.setPermission(context, param.permission, param.req);
+  }
+
+  @TraceCommand({
+    entity: MetaTable.PERMISSIONS,
+    entityId: (p) => p?.permission?.id,
+    description: descDelete('permission'),
+  })
+  async permissionDrop(
+    context: NcContext,
+    param: { permission: Partial<Permission>; req: NcRequest },
+  ) {
+    return this.dropPermission(context, param.permission, param.req);
   }
 }

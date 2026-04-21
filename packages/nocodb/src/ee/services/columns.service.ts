@@ -29,6 +29,9 @@ import type { NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { b } from '~/decorators/trace-command-descriptions';
+import { extractFormulaColumnRefs } from '~/ee/helpers/formulaDeps';
 import {
   Base,
   Column,
@@ -53,6 +56,7 @@ import {
   PlanLimitTypes,
 } from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/catchError';
+import { assertNotSandboxMaster } from '~/helpers/sandboxGuards';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -165,6 +169,33 @@ export class ColumnsService extends ColumnsServiceCE {
   }
 
   @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.COLUMNS,
+    entityId: (_p, r) => {
+      // V3 path: result is Column (has fk_model_id)
+      if ((r as any)?.fk_model_id !== undefined) return (r as any).id;
+      // V1 path: result is Model; find the added column by title
+      const title = (_p?.column as any)?.title ?? (_p?.column as any)?.column_name;
+      return (r as any)?.columns?.find((c: any) => c.title === title)?.id;
+    },
+    entityTitle: (p) => p?.column?.title,
+    parentId: 'tableId',
+    description: ({ entityTitle, parentEntityTitle }) =>
+      `Add ${b(entityTitle)} field to ${b(parentEntityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const table = await Model.get(context, param?.tableId);
+      return { parentEntityTitle: table?.title };
+    },
+    deps: (_p, r) => {
+      if (!r || r.uidt !== UITypes.Formula) return [];
+      const parsed = r.parsed_tree ?? r.colOptions?.parsed_tree;
+      return extractFormulaColumnRefs(parsed).map((id) => ({
+        entity: MetaTable.COLUMNS,
+        id,
+      }));
+    },
+    idField: 'column',
+  })
   async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {
@@ -180,6 +211,11 @@ export class ColumnsService extends ColumnsServiceCE {
     },
     _ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
+    await assertNotSandboxMaster(
+      context,
+      'Adding fields is not allowed on a base with an active sandbox. Add fields in the sandbox.',
+    );
+
     // if column_name is defined and title is not defined, set title to column_name
     if (param.column.column_name && !param.column.title) {
       param.column.title = param.column.column_name;
@@ -289,6 +325,31 @@ export class ColumnsService extends ColumnsServiceCE {
   }
 
   @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.COLUMNS,
+    entityId: (p) => p?.columnId,
+    entityTitle: (p) => p?.column?.title,
+    parentId: (p) => p?.column?.fk_model_id ?? p?.tableId,
+    description: ({ entityTitle, parentEntityTitle, extra }) =>
+      extra?.oldTitle && extra.oldTitle !== entityTitle
+        ? `Rename ${b(extra.oldTitle)} field to ${b(entityTitle)} in ${b(parentEntityTitle)}`
+        : `Edit ${b(entityTitle)} field in ${b(parentEntityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const col = await Column.get(context, { colId: param?.columnId });
+      const tableId = col?.fk_model_id;
+      if (!tableId) return { extra: { oldTitle: col?.title } };
+      const table = await Model.get(context, tableId);
+      return { parentEntityTitle: table?.title, extra: { oldTitle: col?.title } };
+    },
+    deps: (_p, r) => {
+      if (!r || r.uidt !== UITypes.Formula) return [];
+      const parsed = r.parsed_tree ?? r.colOptions?.parsed_tree;
+      return extractFormulaColumnRefs(parsed).map((id) => ({
+        entity: MetaTable.COLUMNS,
+        id,
+      }));
+    },
+  })
   async columnUpdate(
     context: NcContext,
     param: {
@@ -303,6 +364,11 @@ export class ColumnsService extends ColumnsServiceCE {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model | Column<any>> {
+    await assertNotSandboxMaster(
+      context,
+      'Updating fields is not allowed on a base with an active sandbox. Update fields in the sandbox.',
+    );
+
     // Feature-gate enabling unique constraint
     if ('unique' in param.column && param.column.unique) {
       const column = await Column.get(context, { colId: param.columnId });
@@ -313,6 +379,46 @@ export class ColumnsService extends ColumnsServiceCE {
     }
 
     return super.columnUpdate(context, param, ncMeta);
+  }
+
+  @EEOnly()
+  @TraceCommand({
+    entity: MetaTable.COLUMNS,
+    entityId: (p) => p?.columnId,
+    description: ({ entityTitle, parentEntityTitle }) =>
+      parentEntityTitle
+        ? `Delete ${b(entityTitle)} field from ${b(parentEntityTitle)}`
+        : `Delete field ${b(entityTitle)}`,
+    resolveCtx: async (context, param) => {
+      const col = await Column.get(context, { colId: param?.columnId });
+      if (!col) return {};
+      const table = col.fk_model_id
+        ? await Model.get(context, col.fk_model_id)
+        : undefined;
+      return {
+        entityTitle: col.title,
+        parentEntityTitle: table?.title,
+      };
+    },
+  })
+  async columnDelete(
+    context: NcContext,
+    param: {
+      req?: any;
+      columnId: string;
+      user: UserType;
+      forceDeleteSystem?: boolean;
+      reuse?: ReusableParams;
+      columnWebhookManager?: ColumnWebhookManager;
+    },
+    ncMeta = this.metaService,
+  ) {
+    await assertNotSandboxMaster(
+      context,
+      'Deleting fields is not allowed on a base with an active sandbox. Delete fields in the sandbox.',
+    );
+
+    return super.columnDelete(context, param, ncMeta);
   }
 
   // if column is links or ltar, insert filters if passed

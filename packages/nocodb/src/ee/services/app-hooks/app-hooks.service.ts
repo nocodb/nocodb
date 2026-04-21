@@ -4,6 +4,9 @@ import type {
   BaseTeamDeleteEvent,
   BaseTeamInviteEvent,
   BaseTeamUpdateEvent,
+  BaseVariableCreateEvent,
+  BaseVariableDeleteEvent,
+  BaseVariableUpdateEvent,
   ChatSessionCreateEvent,
   ChatSessionDeleteEvent,
   ChatSessionUpdateEvent,
@@ -19,6 +22,12 @@ import type {
   DocumentUpdateEvent,
   DocumentUserMentionEvent,
   FilterEvent,
+  ManagedAppCreateEvent,
+  ManagedAppDeleteEvent,
+  ManagedAppInstallEvent,
+  ManagedAppPublishEvent,
+  ManagedAppUpdateDeploymentEvent,
+  ManagedAppUpdateEvent,
   OrgDomainEvent,
   ProjectCreateEvent,
   ProjectDeleteEvent,
@@ -625,6 +634,35 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: UserMfaBackupCodeUsedEvent) => void,
   ): () => void;
 
+  // Managed App Events
+  on(
+    event: AppEvents.MANAGED_APP_CREATE,
+    listener: (data: ManagedAppCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.MANAGED_APP_UPDATE,
+    listener: (data: ManagedAppUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.MANAGED_APP_DELETE,
+    listener: (data: ManagedAppDeleteEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.MANAGED_APP_PUBLISH,
+    listener: (data: ManagedAppPublishEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.MANAGED_APP_INSTALL,
+    listener: (data: ManagedAppInstallEvent) => void,
+  ): () => void;
+  on(
+    event:
+      | AppEvents.MANAGED_APP_UPDATE_START
+      | AppEvents.MANAGED_APP_UPDATE_COMPLETE
+      | AppEvents.MANAGED_APP_UPDATE_FAIL,
+    listener: (data: ManagedAppUpdateDeploymentEvent) => void,
+  ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }
@@ -1028,6 +1066,20 @@ export class AppHooksService extends ApppHookServiceCE {
     data: ViewSectionDeleteEvent,
   ): void;
 
+  // Base Variable Events
+  emit(
+    event: AppEvents.BASE_VARIABLE_CREATE,
+    data: BaseVariableCreateEvent,
+  ): void;
+  emit(
+    event: AppEvents.BASE_VARIABLE_UPDATE,
+    data: BaseVariableUpdateEvent,
+  ): void;
+  emit(
+    event: AppEvents.BASE_VARIABLE_DELETE,
+    data: BaseVariableDeleteEvent,
+  ): void;
+
   // Doc AI Events
   emit(event: AppEvents.DOC_AI_COMPLETION, data: DocAiCompletionEvent): void;
 
@@ -1107,6 +1159,26 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.RECORDS_PERMANENT_DELETE,
     data: RecordsPermanentDeleteEvent,
+  ): void;
+
+  // Managed App Events
+  emit(event: AppEvents.MANAGED_APP_CREATE, data: ManagedAppCreateEvent): void;
+  emit(event: AppEvents.MANAGED_APP_UPDATE, data: ManagedAppUpdateEvent): void;
+  emit(event: AppEvents.MANAGED_APP_DELETE, data: ManagedAppDeleteEvent): void;
+  emit(
+    event: AppEvents.MANAGED_APP_PUBLISH,
+    data: ManagedAppPublishEvent,
+  ): void;
+  emit(
+    event: AppEvents.MANAGED_APP_INSTALL,
+    data: ManagedAppInstallEvent,
+  ): void;
+  emit(
+    event:
+      | AppEvents.MANAGED_APP_UPDATE_START
+      | AppEvents.MANAGED_APP_UPDATE_COMPLETE
+      | AppEvents.MANAGED_APP_UPDATE_FAIL,
+    data: ManagedAppUpdateDeploymentEvent,
   ): void;
 
   emit(event, data): void {

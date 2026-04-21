@@ -91,7 +91,7 @@ const { isUIAllowed } = useRoles()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 
 const { copy } = useCopy()
 
@@ -436,8 +436,6 @@ const convertToManagedApp = () => {
 
 /* Sandbox */
 const isSandboxCreateDlgOpen = ref(false)
-const isSandboxListDlgOpen = ref(false)
-
 const { showSandboxPlanLimitExceededModal } = useEeConfig()
 
 const openSandboxCreateDialog = () => {
@@ -446,16 +444,28 @@ const openSandboxCreateDialog = () => {
   isSandboxCreateDlgOpen.value = true
 }
 
-const openSandboxListDialog = () => {
-  isSandboxListDlgOpen.value = true
+const goToSandbox = async () => {
+  if (!base.value?.id || !base.value?.fk_workspace_id) return
+
+  try {
+    const sandbox = (await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id, {
+      operation: 'sandboxGet',
+    })) as { sandbox_base_id?: string } | null
+
+    if (sandbox?.sandbox_base_id) {
+      await navigateTo(
+        baseUrl({
+          id: sandbox.sandbox_base_id,
+          type: 'database',
+          isSharedBase: false,
+        }),
+      )
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
-const handleCreateSandboxFromList = () => {
-  if (showSandboxPlanLimitExceededModal()) return
-
-  isSandboxListDlgOpen.value = false
-  isSandboxCreateDlgOpen.value = true
-}
 
 const getSource = (sourceId: string) => {
   return base.value.sources?.find((s) => s.id === sourceId)
@@ -789,7 +799,7 @@ defineExpose({
                       @duplicate-project="duplicateProject($event)"
                       @convert-to-managed-app="convertToManagedApp"
                       @create-sandbox="openSandboxCreateDialog"
-                      @view-all-sandboxes="openSandboxListDialog"
+                      @go-to-sandbox="goToSandbox"
                       @open-erd-view="openErdView($event)"
                       @on-data-reflection="onDataReflection"
                       @open-base-settings="openBaseSettings($event)"
@@ -843,7 +853,7 @@ defineExpose({
         @duplicate-project="duplicateProject($event)"
         @convert-to-managed-app="convertToManagedApp"
         @create-sandbox="openSandboxCreateDialog"
-        @view-all-sandboxes="openSandboxListDialog"
+        @go-to-sandbox="goToSandbox"
         @open-erd-view="openErdView($event)"
         @on-data-reflection="onDataReflection"
         @open-base-settings="openBaseSettings($event)"
@@ -929,6 +939,7 @@ defineExpose({
   <DlgManagedApp v-if="base?.id" v-model:visible="isConvertToManagedAppDlgOpen" modal-size="sm">
     <WorkspaceProjectCreateManagedApp
       v-model:visible="isConvertToManagedAppDlgOpen"
+      :workspace-id="base.fk_workspace_id!"
       :base-id="base.id"
       title="Convert to Managed App"
       :sub-title="$t('labels.publishToAppStore')"
@@ -939,7 +950,6 @@ defineExpose({
 
   <!-- Sandbox Modals -->
   <DlgSandboxCreate v-if="base?.id" v-model="isSandboxCreateDlgOpen" :base="base" />
-  <DlgSandboxList v-if="base?.id" v-model="isSandboxListDlgOpen" :base="base" @create-sandbox="handleCreateSandboxFromList" />
 </template>
 
 <style lang="scss" scoped>

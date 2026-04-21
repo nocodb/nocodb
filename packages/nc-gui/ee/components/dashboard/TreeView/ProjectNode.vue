@@ -97,8 +97,6 @@ const { copy } = useCopy()
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
-const { open: openBaseTrash } = useBaseTrash()
-
 const isOptionsOpen = ref(false)
 const isProjectNodeContextMenuOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
@@ -852,7 +850,6 @@ defineExpose({
         @open-mcp-server="openMcpSettings($event)"
         @delete="isProjectDeleteDialogVisible = true"
         @copy-project-info="copyProjectInfo()"
-        @open-trash="openBaseTrash()"
       />
 
       <NcMenu

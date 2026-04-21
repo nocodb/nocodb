@@ -24,6 +24,8 @@ const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
 
 const { openTrash, trashUnavailableReason } = useRecordTrash()
 
+const { open: openBaseTrash } = useBaseTrash()
+
 const { t } = useI18n()
 
 const trashUnavailableMessage = computed(() => {
@@ -204,6 +206,26 @@ const topbarBreadcrumbItemWidth = computed(() => {
                       </div>
                     </NcMenuItem>
                   </NcTooltip>
+                </template>
+              </PaymentUpgradeBadgeProvider>
+              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_EE_CORE">
+                <template #default="{ click }">
+                  <NcMenuItem
+                    v-e="['c:topbar:history-menu:base-trash']"
+                    inner-class="w-full"
+                    @click="
+                      click(PlanFeatureTypes.FEATURE_EE_CORE, () => {
+                        isHistoryMenuOpen = false
+                        openBaseTrash()
+                      })
+                    "
+                  >
+                    <div class="flex gap-2 items-center w-full">
+                      <GeneralIcon icon="ncTrash2" class="text-nc-content-gray-subtle2" />
+                      <div class="flex-1">{{ $t('labels.baseTrash') }}</div>
+                      <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_EE_CORE" show-as-lock />
+                    </div>
+                  </NcMenuItem>
                 </template>
               </PaymentUpgradeBadgeProvider>
             </NcMenu>

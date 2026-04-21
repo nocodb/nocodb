@@ -21,7 +21,6 @@ interface Emits {
   (e: 'openMcpServer', id: string): void
   (e: 'copyProjectInfo'): void
   (e: 'delete'): void
-  (e: 'openTrash'): void
   (e: 'toggleStarred', id: string): void
   (e: 'convertToManagedApp'): void
   (e: 'createSandbox'): void
@@ -237,10 +236,6 @@ const isOptionVisible = computed(() => {
     >
       <GeneralIcon icon="settings" />
       {{ $t('activity.settings') }}
-    </NcMenuItem>
-    <NcMenuItem data-testid="nc-sidebar-base-trash" @click="emits('openTrash')">
-      <GeneralIcon icon="delete" class="w-4" />
-      <div>{{ $t('title.trash') }}</div>
     </NcMenuItem>
     <NcMenuItem v-if="isOptionVisible.baseDelete" danger data-testid="nc-sidebar-base-delete" @click="emits('delete')">
       <GeneralIcon icon="delete" class="w-4" />

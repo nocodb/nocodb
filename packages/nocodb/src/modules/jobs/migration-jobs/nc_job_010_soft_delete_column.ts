@@ -138,9 +138,11 @@ export class SoftDeleteColumnMigration {
             builder.where(`${MetaTable.SOURCES}.is_meta`, true);
             builder.orWhere({ is_local: true });
           })
-          .whereNotIn(
-            `${MetaTable.MODELS}.id`,
-            ncMeta.knexConnection(TEMP_TABLE).select('fk_model_id'),
+          .whereNotExists((qb) =>
+            qb
+              .select(1)
+              .from(TEMP_TABLE)
+              .whereRaw(`${TEMP_TABLE}.fk_model_id = ${MetaTable.MODELS}.id`),
           )
           .modify((qb) => {
             if (TARGET_WORKSPACE_IDS) {
@@ -646,44 +648,50 @@ export class SoftDeleteColumnMigration {
   }
 
   private getModelsQuery(ncMeta: MetaService) {
-    return ncMeta
-      .knexConnection(MetaTable.MODELS)
-      .select([
-        `${MetaTable.MODELS}.id`,
-        'source_id',
-        `${MetaTable.MODELS}.base_id`,
-        `${MetaTable.MODELS}.fk_workspace_id`,
-        `${MetaTable.MODELS}.table_name`,
-      ])
-      .where(`${MetaTable.MODELS}.mm`, false)
-      .join(
-        MetaTable.SOURCES,
-        `${MetaTable.MODELS}.source_id`,
-        '=',
-        `${MetaTable.SOURCES}.id`,
-      )
-      .where((builder) => {
-        builder.where(`${MetaTable.SOURCES}.is_meta`, true);
-        builder.orWhere({ is_local: true });
-      })
-      .whereNotIn(
-        `${MetaTable.MODELS}.id`,
-        ncMeta.knexConnection(TEMP_TABLE).select('fk_model_id'),
-      )
-      .whereNotIn(
-        `${MetaTable.MODELS}.id`,
-        this.processingModels.map((m) => m.fk_model_id),
-      )
-      .modify((qb) => {
-        if (TARGET_WORKSPACE_IDS) {
-          qb.whereIn(
-            `${MetaTable.MODELS}.fk_workspace_id`,
-            TARGET_WORKSPACE_IDS,
-          );
-        }
-      })
-      .orderBy(`${MetaTable.MODELS}.source_id`)
-      .limit(PARALLEL_LIMIT * 10);
+    return (
+      ncMeta
+        .knexConnection(MetaTable.MODELS)
+        .select([
+          `${MetaTable.MODELS}.id`,
+          'source_id',
+          `${MetaTable.MODELS}.base_id`,
+          `${MetaTable.MODELS}.fk_workspace_id`,
+          `${MetaTable.MODELS}.table_name`,
+        ])
+        .where(`${MetaTable.MODELS}.mm`, false)
+        .join(
+          MetaTable.SOURCES,
+          `${MetaTable.MODELS}.source_id`,
+          '=',
+          `${MetaTable.SOURCES}.id`,
+        )
+        .where((builder) => {
+          builder.where(`${MetaTable.SOURCES}.is_meta`, true);
+          builder.orWhere({ is_local: true });
+        })
+        // NOT EXISTS instead of NOT IN (subquery). At large temp-table
+        // sizes (200k+), PG's NOT IN planner choked into 10+ minute
+        // anti-joins; NOT EXISTS plans cleanly against the fk_model_id index.
+        .whereNotExists((qb) =>
+          qb
+            .select(1)
+            .from(TEMP_TABLE)
+            .whereRaw(`${TEMP_TABLE}.fk_model_id = ${MetaTable.MODELS}.id`),
+        )
+        .whereNotIn(
+          `${MetaTable.MODELS}.id`,
+          this.processingModels.map((m) => m.fk_model_id),
+        )
+        .modify((qb) => {
+          if (TARGET_WORKSPACE_IDS) {
+            qb.whereIn(
+              `${MetaTable.MODELS}.fk_workspace_id`,
+              TARGET_WORKSPACE_IDS,
+            );
+          }
+        })
+        .limit(PARALLEL_LIMIT * 10)
+    );
   }
 
   private async updateModelStatus(

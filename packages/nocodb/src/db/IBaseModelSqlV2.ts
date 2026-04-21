@@ -388,6 +388,7 @@ export interface IBaseModelSqlV2 {
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
     linksAsLtar?: boolean;
+    fk_display_value_column_id?: string | null;
   }): Promise<void>;
   getProto(param?: {
     apiVersion?: NcApiVersion;

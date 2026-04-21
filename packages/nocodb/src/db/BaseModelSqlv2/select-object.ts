@@ -39,6 +39,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     validateFormula,
     pkAndPvOnly = false,
     linksAsLtar = false,
+    fk_display_value_column_id,
   }: {
     fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder & Knex.QueryInterface;
@@ -50,6 +51,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
     linksAsLtar?: boolean;
+    fk_display_value_column_id?: string | null;
   }): Promise<void> => {
     // keep a common object for all columns to share across all columns
     const aliasToColumnBuilder = {};
@@ -104,12 +106,13 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           column,
           extractPkAndPv || pkAndPvOnly,
           pkAndPvOnly,
+          fk_display_value_column_id,
         )
       ) {
         continue;
       }
 
-      if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
+      if (!checkColumnRequired(column, fields, extractPkAndPv, fk_display_value_column_id)) continue;
 
       switch (column.uidt) {
         case UITypes.CreatedTime:

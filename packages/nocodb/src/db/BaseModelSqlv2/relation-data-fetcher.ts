@@ -117,6 +117,7 @@ export const relationDataFetcher = (param: {
           extractPkAndPv: true,
           fieldsSet: args.fieldsSet,
           pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
+          fk_display_value_column_id: relationColOpts.fk_display_value_column_id,
           linksAsLtar,
         });
         const view = relationColOpts.fk_target_view_id
@@ -281,6 +282,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
         linksAsLtar,
       });
 
@@ -423,6 +425,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const child = await refBaseModel.execAndParse(
@@ -598,6 +601,7 @@ export const relationDataFetcher = (param: {
           qb,
           fieldsSet: args.fieldSet,
           pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
+          fk_display_value_column_id: relationColOpts.fk_display_value_column_id,
           linksAsLtar,
         });
 
@@ -801,6 +805,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
         linksAsLtar,
       });
 
@@ -1282,6 +1287,7 @@ export const relationDataFetcher = (param: {
         fieldsSet: listArgs?.fieldsSet,
         viewId: refView?.id,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const aliasColObjMap = await refTable.getAliasColObjMap(refContext);
@@ -1394,6 +1400,7 @@ export const relationDataFetcher = (param: {
       await refBaseModel.selectObject({
         qb,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const aliasColObjMap = await refTable.getAliasColObjMap(refContext);
@@ -1608,6 +1615,7 @@ export const relationDataFetcher = (param: {
         fieldsSet: listArgs.fieldsSet,
         viewId: targetView?.id,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       // extract col-alias map based on the correct relation table
@@ -1904,6 +1912,7 @@ export const relationDataFetcher = (param: {
       await parentBaseModel.selectObject({
         qb,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        fk_display_value_column_id: relColOptions.fk_display_value_column_id,
       });
 
       const aliasColObjMap = await parentTable.getAliasColObjMap(

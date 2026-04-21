@@ -206,7 +206,7 @@ export default {
 
     <div
       v-show="active || isForm || isExpandedForm"
-      v-if="showUnlinkButton && !readOnly && isUIAllowed('dataEdit', externalBaseUserRoles)"
+      v-if="showUnlinkButton && !readOnly && (isUIAllowed('dataEdit', externalBaseUserRoles) || isForm)"
       class="flex items-center cursor-pointer"
     >
       <component

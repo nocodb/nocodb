@@ -10,8 +10,7 @@ import {
 import type { MetaService } from '~/meta/meta.service';
 import type CustomKnex from '~/db/CustomKnex';
 import { Column, Model, Source } from '~/models';
-import { CacheScope, MetaTable } from '~/utils/globals';
-import NocoCache from '~/cache/NocoCache';
+import { MetaTable } from '~/utils/globals';
 import SimpleLRUCache from '~/utils/cache';
 import { isEE } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -234,8 +233,6 @@ export class SoftDeleteColumnMigration {
       }
 
       await queue.onIdle();
-
-      await this.purgeColumnCaches();
 
       await ncMeta.disableUpgraderMode();
 

@@ -60,7 +60,7 @@ export class ViewColumnsService {
       param.column,
     );
 
-    const view = await View.get(context, param.viewId, ncMeta);
+    const view = await View.get(context, param.viewId, false, ncMeta);
 
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
@@ -131,7 +131,7 @@ export class ViewColumnsService {
       param.column,
     );
 
-    const view = await View.get(context, param.viewId, ncMeta);
+    const view = await View.get(context, param.viewId, false, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);

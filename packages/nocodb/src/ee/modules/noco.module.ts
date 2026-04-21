@@ -59,6 +59,14 @@ import { WorkspaceMembersV3Controller } from '~/controllers/v3/workspace-members
 import { TeamsV3Controller } from '~/controllers/v3/teams-v3.controller';
 import { TeamsV3Service } from '~/services/v3/teams-v3.service';
 
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import {
+  TrashHandlerProvider as EeTrashHandlerProviderDef,
+  TrashHandlers as EeTrashHandlers,
+} from '~/services/base-trash/provider';
+
+const EeTrashHandlerProvider = [...EeTrashHandlers, EeTrashHandlerProviderDef];
+
 import { ApiTokensV3Controller } from '~/controllers/v3/api-tokens-v3.controller';
 import { ApiTokensV3Service } from '~/services/v3/api-tokens-v3.service';
 
@@ -292,6 +300,10 @@ export const nocoModuleEeMetadata = {
 
     ...nocoModuleMetadata.providers,
 
+    /* EE Trash (full trash feature — CE has no trash) */
+    BaseTrashService,
+    ...EeTrashHandlerProvider,
+
     /* EE Meta Dependency Handlers (overrides CE provider) */
     ...MetaDependencyServices,
     MetaDependencyModuleProvider,
@@ -416,6 +428,9 @@ export const nocoModuleEeMetadata = {
 
     /* EE Meta Dependency Handlers */
     ...MetaDependencyServices,
+
+    /* EE Trash */
+    BaseTrashService,
 
     ...nocoModuleMetadata.exports,
   ],

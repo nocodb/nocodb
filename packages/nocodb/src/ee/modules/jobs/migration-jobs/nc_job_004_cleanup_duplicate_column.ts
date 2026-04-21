@@ -140,7 +140,7 @@ export class CleanupDuplicateColumnMigration {
             false,
             ncMeta,
           );
-          const model = await Model.get(context, fk_model_id, ncMeta);
+          const model = await Model.get(context, fk_model_id, false, ncMeta);
           let columnList = [];
 
           try {

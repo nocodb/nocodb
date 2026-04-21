@@ -578,6 +578,12 @@ const permissionScopes = {
     'baseIntegrationUpdate',
     'baseIntegrationLink',
     'baseIntegrationUnlink',
+
+    // Base trash
+    'baseTrashList',
+    'baseTrashRestore',
+    'baseTrashPermanentDelete',
+    'baseTrashEmpty',
   ],
 } as const;
 
@@ -1397,6 +1403,12 @@ const permissionDescriptions: Record<string, string> = {
   baseIntegrationUpdate: 'update an integration from a base',
   baseIntegrationLink: 'link an integration to a base',
   baseIntegrationUnlink: 'unlink an integration from a base',
+
+  // base trash
+  baseTrashList: 'view trash for a base',
+  baseTrashRestore: 'restore an item from base trash',
+  baseTrashPermanentDelete: 'permanently delete an item from base trash',
+  baseTrashEmpty: 'empty all trash for a base',
 
   // Teams permissions
   teamList: 'view list of teams in the workspace',

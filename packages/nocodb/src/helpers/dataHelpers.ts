@@ -117,12 +117,17 @@ export async function serializeCellValue(
     case UITypes.Lookup:
       {
         const colOptions = await column.getColOptions<LookupColumn>(context);
-        const relationColOptions = await colOptions
-          .getRelationColumn(context)
-          .then((col) => col.getColOptions<LinkToAnotherRecordColumn>(context));
+        if (colOptions?.error) return value?.toString?.() ?? '';
+
+        const relationCol = await colOptions.getRelationColumn(context);
+        if (!relationCol) return value?.toString?.() ?? '';
+
+        const relationColOptions =
+          await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
         const { refContext } = relationColOptions.getRelContext(context);
 
         const lookupColumn = await colOptions.getLookupColumn(refContext);
+        if (!lookupColumn) return value?.toString?.() ?? '';
         return (
           await Promise.all(
             [...(Array.isArray(value) ? value : [value])].map(async (v) =>

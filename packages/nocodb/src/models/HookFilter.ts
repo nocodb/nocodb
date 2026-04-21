@@ -46,7 +46,7 @@ export default class Filter {
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
     return this.fk_view_id
-      ? (await View.get(context, this.fk_view_id, ncMeta)).getModel(
+      ? (await View.get(context, this.fk_view_id, false, ncMeta)).getModel(
           context,
           ncMeta,
         )

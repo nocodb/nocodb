@@ -139,7 +139,8 @@ test.describe('Virtual Columns', () => {
       });
       await grid.column.verify({ title: 'QrCode2', isVisible: true });
       await grid.column.delete({ title: 'column_name_a' });
-      await grid.column.verify({ title: 'QrCode2', isVisible: false });
+      // QR code column is error-marked (not cascade-deleted) when the reference column is deleted
+      await grid.column.verify({ title: 'QrCode2', isVisible: true });
     });
   });
 });

@@ -109,6 +109,7 @@ import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-change
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
+import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import {
@@ -312,6 +313,7 @@ export class ColumnsService implements IColumnsService {
     protected readonly filtersService: FiltersService,
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
     protected readonly duplicateDetectionService: DuplicateDetectionService,
+    protected readonly linkPlaceholderService: LinkPlaceholderService,
   ) {}
 
   /**
@@ -893,11 +895,16 @@ export class ColumnsService implements IColumnsService {
           await Column.update(context, column.id, {
             ...column,
             ...colBody,
+            error: null,
           } as Column);
         } else if (column.uidt === UITypes.Formula) {
           const relatedModels: Map<string, Model> = await getRelatedModelMap(
             context,
             table,
+          );
+
+          const formulaColumns = table.columns.filter(
+            (c) => !c.colOptions?.error,
           );
 
           colBody.formula = await substituteColumnAliasWithIdInFormula(
@@ -906,7 +913,7 @@ export class ColumnsService implements IColumnsService {
           );
           colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
             formula: colBody.formula || colBody.formula_raw,
-            columns: table.columns,
+            columns: formulaColumns,
             column,
             clientOrSqlUi: source.type as any,
             getMeta: async (_, { id }) => {
@@ -949,13 +956,17 @@ export class ColumnsService implements IColumnsService {
               table,
             );
 
+            const buttonFormulaColumns = table.columns.filter(
+              (c) => !c.colOptions?.error,
+            );
+
             colBody.formula = await substituteColumnAliasWithIdInFormula(
               colBody.formula_raw || colBody.formula,
               table.columns,
             );
             colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
               formula: colBody.formula || colBody.formula_raw,
-              columns: table.columns,
+              columns: buttonFormulaColumns,
               column,
               clientOrSqlUi: source.type as any,
               getMeta: async (_, { id }) => {
@@ -3006,6 +3017,10 @@ export class ColumnsService implements IColumnsService {
             table,
           );
 
+          const formulaColumns = table.columns.filter(
+            (c) => !c.colOptions?.error,
+          );
+
           colBody.formula = await substituteColumnAliasWithIdInFormula(
             colBody.formula_raw || colBody.formula,
             table.columns,
@@ -3018,7 +3033,7 @@ export class ColumnsService implements IColumnsService {
               ...colBody,
               colOptions: colBody,
             },
-            columns: table.columns,
+            columns: formulaColumns,
             clientOrSqlUi: source.type as any,
             getMeta: async (_, { id }) => {
               return relatedModels.get(id);
@@ -3065,13 +3080,17 @@ export class ColumnsService implements IColumnsService {
               table,
             );
 
+            const buttonFormulaColumns = table.columns.filter(
+              (c) => !c.colOptions?.error,
+            );
+
             colBody.formula = await substituteColumnAliasWithIdInFormula(
               colBody.formula_raw || colBody.formula,
               table.columns,
             );
             colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
               formula: colBody.formula,
-              columns: table.columns,
+              columns: buttonFormulaColumns,
               column: {
                 ...colBody,
                 colOptions: colBody,
@@ -3719,6 +3738,7 @@ export class ColumnsService implements IColumnsService {
       columnId: string;
       user: UserType;
       forceDeleteSystem?: boolean;
+      skipLinkPlaceholder?: boolean;
       reuse?: ReusableParams;
       columnWebhookManager?: ColumnWebhookManager;
     },
@@ -3760,6 +3780,10 @@ export class ColumnsService implements IColumnsService {
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id, false, ncMeta),
     );
+
+    // Tracks related tables where placeholder columns were created so we can
+    // broadcast a refreshed column_delete event with the new SLT included.
+    const placeholderRefTables = new Map<string, Model>();
 
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
@@ -4007,6 +4031,8 @@ export class ColumnsService implements IColumnsService {
                   childContext,
                   parentContext,
                   columnWebhookManager,
+                  skipLinkPlaceholder: param.skipLinkPlaceholder,
+                  affectedRefTables: placeholderRefTables,
                 });
               }
               break;
@@ -4027,6 +4053,8 @@ export class ColumnsService implements IColumnsService {
                   parentContext,
                   column,
                   columnWebhookManager,
+                  skipLinkPlaceholder: param.skipLinkPlaceholder,
+                  affectedRefTables: placeholderRefTables,
                 });
               }
               break;
@@ -4116,11 +4144,39 @@ export class ColumnsService implements IColumnsService {
                       colOpt.fk_mm_child_column_id ===
                         relationColOpt.fk_mm_parent_column_id
                     ) {
+                      // Create placeholder text column with linked display values before deleting
+                      if (!param.skipLinkPlaceholder) {
+                        try {
+                          const placeholder =
+                            await this.linkPlaceholderService.createPlaceholder(
+                              refContext,
+                              c,
+                              refTable,
+                            );
+                          if (placeholder) {
+                            placeholderRefTables.set(refTable.id, refTable);
+                          }
+                        } catch (e) {
+                          this.logger.error(
+                            `Failed to create link placeholder for MM column ${c.id}: ${e.message}`,
+                            e.stack,
+                          );
+                        }
+                      }
+
                       await Column.delete2(
                         refContext,
                         {
                           id: c.id,
                           ...generateColumnDeleteHandler(columnWebhookManager),
+                        },
+                        ncMeta,
+                      );
+                      await this.metaDependencyEventHandler.handleEvent(
+                        refContext,
+                        {
+                          eventType: MetaEventType.COLUMN_DELETED,
+                          oldEntity: c,
                         },
                         ncMeta,
                       );
@@ -4417,6 +4473,35 @@ export class ColumnsService implements IColumnsService {
       context.socket_id,
     );
 
+    // Broadcast column_delete for each related table that received a placeholder
+    // so remote clients pick up the new SLT without a full meta refetch.
+    // Skip the source table — the main broadcast above already covers it.
+    for (const [refTableId, refTable] of placeholderRefTables) {
+      if (refTableId === table.id) continue;
+      try {
+        const refContext: NcContext = {
+          ...context,
+          workspace_id: refTable.fk_workspace_id,
+          base_id: refTable.base_id,
+        };
+        await refTable.getColumns(refContext, ncMeta);
+        NocoSocket.broadcastEvent(refContext, {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'column_delete',
+            payload: {
+              table: refTable,
+            },
+          },
+        });
+      } catch (e) {
+        this.logger.error(
+          `Failed to broadcast placeholder column_delete for table ${refTable.id}: ${e.message}`,
+          e.stack,
+        );
+      }
+    }
+
     await applyRowColorInvolvement();
 
     await Hook.deleteTriggersByColumnId(context, column.id, ncMeta);
@@ -4446,6 +4531,8 @@ export class ColumnsService implements IColumnsService {
       childContext,
       column,
       columnWebhookManager,
+      skipLinkPlaceholder,
+      affectedRefTables,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       source: Source;
@@ -4462,6 +4549,8 @@ export class ColumnsService implements IColumnsService {
       childContext: NcContext;
       column?: Column;
       columnWebhookManager?: ColumnWebhookManager;
+      skipLinkPlaceholder?: boolean;
+      affectedRefTables?: Map<string, Model>;
     },
     ignoreFkDelete = false,
   ) => {
@@ -4546,6 +4635,27 @@ export class ColumnsService implements IColumnsService {
             { colId: c.id },
             ncMeta,
           );
+
+          // Create placeholder text column with linked display values before deleting
+          if (!skipLinkPlaceholder && colInRefTable) {
+            try {
+              const placeholder =
+                await this.linkPlaceholderService.createPlaceholder(
+                  refContext,
+                  colInRefTable,
+                  refTable,
+                );
+              if (placeholder && affectedRefTables) {
+                affectedRefTables.set(refTable.id, refTable);
+              }
+            } catch (e) {
+              this.logger.error(
+                `Failed to create link placeholder for column ${c.id}: ${e.message}`,
+                e.stack,
+              );
+            }
+          }
+
           await columnWebhookManager?.addOldColumnById({
             columnId: c.id,
             action: WebhookActions.DELETE,
@@ -4556,6 +4666,15 @@ export class ColumnsService implements IColumnsService {
             {
               id: c.id,
               ...generateColumnDeleteHandler(columnWebhookManager),
+            },
+            ncMeta,
+          );
+
+          await this.metaDependencyEventHandler.handleEvent(
+            refContext,
+            {
+              eventType: MetaEventType.COLUMN_DELETED,
+              oldEntity: colInRefTable,
             },
             ncMeta,
           );
@@ -4700,6 +4819,8 @@ export class ColumnsService implements IColumnsService {
       parentContext,
       column,
       columnWebhookManager,
+      skipLinkPlaceholder,
+      affectedRefTables,
     }: {
       relationColOpt: LinkToAnotherRecordColumn;
       source: Source;
@@ -4717,6 +4838,8 @@ export class ColumnsService implements IColumnsService {
       parentContext: NcContext;
       column: Column;
       columnWebhookManager?: ColumnWebhookManager;
+      skipLinkPlaceholder?: boolean;
+      affectedRefTables?: Map<string, Model>;
     },
     ignoreFkDelete = false,
   ) => {
@@ -4805,6 +4928,26 @@ export class ColumnsService implements IColumnsService {
             ncMeta,
           );
 
+          // Create placeholder text column with linked display values before deleting
+          if (!skipLinkPlaceholder && colInRefTable) {
+            try {
+              const placeholder =
+                await this.linkPlaceholderService.createPlaceholder(
+                  refContext,
+                  colInRefTable,
+                  refTable,
+                );
+              if (placeholder && affectedRefTables) {
+                affectedRefTables.set(refTable.id, refTable);
+              }
+            } catch (e) {
+              this.logger.error(
+                `Failed to create link placeholder for column ${c.id}: ${e.message}`,
+                e.stack,
+              );
+            }
+          }
+
           await columnWebhookManager?.addOldColumnById({
             columnId: c.id,
             action: WebhookActions.DELETE,
@@ -4815,6 +4958,15 @@ export class ColumnsService implements IColumnsService {
             {
               id: c.id,
               ...generateColumnDeleteHandler(columnWebhookManager),
+            },
+            ncMeta,
+          );
+
+          await this.metaDependencyEventHandler.handleEvent(
+            refContext,
+            {
+              eventType: MetaEventType.COLUMN_DELETED,
+              oldEntity: colInRefTable,
             },
             ncMeta,
           );
@@ -5672,7 +5824,7 @@ export class ColumnsService implements IColumnsService {
     ) {
       // Perform additional validation for lookup payload
       await validateLookupPayload(context, colBody, column.id);
-      await Column.update(context, column.id, colBody);
+      await Column.update(context, column.id, { ...colBody, error: null });
     } else if (
       UITypes.Rollup === column.uidt &&
       validateRequiredField(colBody, [
@@ -5697,7 +5849,7 @@ export class ColumnsService implements IColumnsService {
           ...colBody,
         },
       });
-      await Column.update(context, column.id, colBody);
+      await Column.update(context, column.id, { ...colBody, error: null });
     }
   }
 

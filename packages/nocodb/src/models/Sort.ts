@@ -50,7 +50,7 @@ export default class Sort {
 
     // on delete, delete any optimised single query cache
     {
-      const view = await View.get(context, viewId, ncMeta);
+      const view = await View.get(context, viewId, false, ncMeta);
       await View.clearSingleQueryCache(
         context,
         view.fk_model_id,
@@ -135,7 +135,7 @@ export default class Sort {
     }
     // on insert, delete any optimised single query cache
     {
-      const view = await View.get(context, row.fk_view_id, ncMeta);
+      const view = await View.get(context, row.fk_view_id, false, ncMeta);
       await View.clearSingleQueryCache(
         context,
         view.fk_model_id,
@@ -233,7 +233,7 @@ export default class Sort {
     // on update, delete any optimised single query cache
     {
       const sort = await this.get(context, sortId, ncMeta);
-      const view = await View.get(context, sort.fk_view_id, ncMeta);
+      const view = await View.get(context, sort.fk_view_id, false, ncMeta);
       await View.clearSingleQueryCache(
         context,
         view.fk_model_id,
@@ -267,7 +267,7 @@ export default class Sort {
 
     // on delete, delete any optimised single query cache
     if (sort?.fk_view_id) {
-      const view = await View.get(context, sort.fk_view_id, ncMeta);
+      const view = await View.get(context, sort.fk_view_id, false, ncMeta);
       await View.clearSingleQueryCache(
         context,
         view.fk_model_id,

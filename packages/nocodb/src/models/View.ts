@@ -24,6 +24,7 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
+import { notDeletedXcCondition } from '~/utils/trashUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
@@ -141,6 +142,7 @@ export default class View implements ViewType {
   public static async get(
     context: NcContext,
     viewId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     let view =
@@ -159,9 +161,12 @@ export default class View implements ViewType {
       );
       if (view) {
         view.meta = parseMetaProp(view);
-
         await NocoCache.set(context, `${CacheScope.VIEW}:${view.id}`, view);
       }
+    }
+
+    if (view?.deleted && !includeDeleted) {
+      return null;
     }
 
     return view && new View(view);
@@ -187,17 +192,11 @@ export default class View implements ViewType {
         { fk_model_id },
         null,
         {
-          _or: [
+          _and: [
             {
-              id: {
-                eq: titleOrId,
-              },
+              _or: [{ id: { eq: titleOrId } }, { title: { eq: titleOrId } }],
             },
-            {
-              title: {
-                eq: titleOrId,
-              },
-            },
+            notDeletedXcCondition,
           ],
         },
       );
@@ -235,7 +234,7 @@ export default class View implements ViewType {
       ));
     if (!view) {
       view = getFirstNonPersonalView(
-        await this.list(context, fk_model_id, ncMeta),
+        await this.list(context, fk_model_id, false, ncMeta),
         {
           includeViewType: ViewTypes.GRID,
         },
@@ -257,6 +256,7 @@ export default class View implements ViewType {
   public static async list(
     context: NcContext,
     modelId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(context, CacheScope.VIEW, [
@@ -283,6 +283,11 @@ export default class View implements ViewType {
       }
       await NocoCache.setList(context, CacheScope.VIEW, [modelId], viewsList);
     }
+
+    if (!includeDeleted) {
+      viewsList = viewsList.filter((v) => !v.deleted);
+    }
+
     viewsList.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
@@ -356,7 +361,7 @@ export default class View implements ViewType {
 
       copyFromView =
         view.copy_from_id &&
-        (await View.get(context, view.copy_from_id, ncMeta));
+        (await View.get(context, view.copy_from_id, false, ncMeta));
       await copyFromView?.getView(context);
 
       const { id: view_id } = await ncMeta.metaInsert2(
@@ -779,7 +784,7 @@ export default class View implements ViewType {
           context,
         });
       }
-      return View.get(context, view_id, ncMeta).then(async (v) => {
+      return View.get(context, view_id, false, ncMeta).then(async (v) => {
         await NocoCache.appendToList(
           context,
           CacheScope.VIEW,
@@ -853,7 +858,7 @@ export default class View implements ViewType {
       order: param.order,
       show: param.column_show.show,
     };
-    const views = await this.list(context, param.fk_model_id, ncMeta);
+    const views = await this.list(context, param.fk_model_id, false, ncMeta);
 
     const tableColumns = await Column.list(
       context,
@@ -988,7 +993,7 @@ export default class View implements ViewType {
       Partial<CalendarViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(context, param.view_id, ncMeta);
+    const view = await this.get(context, param.view_id, false, ncMeta);
 
     let col;
     switch (view.type) {
@@ -1098,7 +1103,7 @@ export default class View implements ViewType {
     id: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const list = await this.list(context, id, ncMeta);
+    const list = await this.list(context, id, false, ncMeta);
     for (const item of list) {
       await item.getViewWithInfo(context, ncMeta);
     }
@@ -1121,7 +1126,7 @@ export default class View implements ViewType {
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
 
     // todo:  just get - order & show props
     switch (view.type) {
@@ -1246,7 +1251,7 @@ export default class View implements ViewType {
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
     let table;
     let cacheScope;
     switch (view.type) {
@@ -1294,6 +1299,8 @@ export default class View implements ViewType {
           fk_model_id: view.fk_model_id,
           pv: true,
         },
+        undefined,
+        notDeletedXcCondition,
       );
       if (!primary_value_column_meta) {
         const metaColumns = await ncMeta.metaList2(
@@ -1368,7 +1375,7 @@ export default class View implements ViewType {
     colId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
     switch (view.type) {
       case ViewTypes.GRID:
         return GridViewColumn.get(context, colId, ncMeta);
@@ -1407,7 +1414,7 @@ export default class View implements ViewType {
     | MapViewColumn
     | any
   > {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
     const table = this.extractViewColumnsTableName(view);
 
     const existingCol = await ncMeta.metaGet2(
@@ -1560,6 +1567,8 @@ export default class View implements ViewType {
       {
         uuid,
       },
+      undefined,
+      notDeletedXcCondition,
     );
 
     if (view) {
@@ -1737,7 +1746,7 @@ export default class View implements ViewType {
       }
     }
 
-    const oldView = await this.get(context, viewId, ncMeta);
+    const oldView = await this.get(context, viewId, false, ncMeta);
 
     // set meta
     await ncMeta.metaUpdate(
@@ -1770,7 +1779,7 @@ export default class View implements ViewType {
 
     // Get the first collaborative grid view to update default view cache
     const defaultView = getFirstNonPersonalView(
-      await this.list(context, oldView.fk_model_id, ncMeta),
+      await this.list(context, oldView.fk_model_id, false, ncMeta),
       {
         includeViewType: ViewTypes.GRID,
       },
@@ -1785,7 +1794,7 @@ export default class View implements ViewType {
       );
     }
 
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
 
     if (view.type === ViewTypes.GRID) {
       if ('show_system_fields' in updateObj) {
@@ -1807,9 +1816,28 @@ export default class View implements ViewType {
     return view;
   }
 
+  static async softDelete(
+    context: NcContext,
+    viewId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.VIEWS,
+      { deleted },
+      viewId,
+    );
+    await NocoCache.update(context, `${CacheScope.VIEW}:${viewId}`, {
+      deleted,
+    });
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {});
+  }
+
   // @ts-ignore
   static async delete(context: NcContext, viewId, ncMeta = Noco.ncMeta) {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
     await Sort.deleteAll(context, viewId, ncMeta);
     await Filter.deleteAll(context, viewId, ncMeta);
     const table = this.extractViewTableName(view);
@@ -2070,7 +2098,7 @@ export default class View implements ViewType {
     ncMeta = Noco.ncMeta,
     levelId?: string,
   ) {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
     const table = this.extractViewColumnsTableName(view);
     const scope = this.extractViewColumnsTableNameScope(view);
 
@@ -2083,6 +2111,8 @@ export default class View implements ViewType {
           fk_model_id: view.fk_model_id,
           pv: true,
         },
+        undefined,
+        notDeletedXcCondition,
       );
 
       // keep primary_value_column always visible
@@ -2149,7 +2179,7 @@ export default class View implements ViewType {
     viewId,
     ncMeta = Noco.ncMeta,
   ) {
-    const view = await this.get(context, viewId, ncMeta);
+    const view = await this.get(context, viewId, false, ncMeta);
     if (!view.uuid) return null;
 
     let viewType;
@@ -2203,14 +2233,19 @@ export default class View implements ViewType {
         MetaTable.VIEWS,
         {
           xcCondition: {
-            fk_model_id: {
-              eq: tableId,
-            },
-            _not: {
-              uuid: {
-                eq: null,
+            _and: [
+              {
+                fk_model_id: {
+                  eq: tableId,
+                },
+                _not: {
+                  uuid: {
+                    eq: null,
+                  },
+                },
               },
-            },
+              notDeletedXcCondition,
+            ],
           },
         },
       );
@@ -2248,6 +2283,8 @@ export default class View implements ViewType {
         context.base_id,
         MetaTable.COLUMNS,
         col.fk_column_id,
+        undefined,
+        notDeletedXcCondition,
       );
       if (col_meta) view_columns_meta.push(col_meta);
     }
@@ -2754,7 +2791,8 @@ export default class View implements ViewType {
     insertObj.meta = stringifyMetaProp(insertObj);
 
     const copyFromView =
-      view.copy_from_id && (await View.get(context, view.copy_from_id, ncMeta));
+      view.copy_from_id &&
+      (await View.get(context, view.copy_from_id, false, ncMeta));
     await copyFromView?.getView(context);
 
     const table = await Model.getByIdOrName(

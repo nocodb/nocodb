@@ -341,6 +341,14 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
     :src="attachmentUrl"
     class="object-contain h-full w-full"
   />
+  <div v-else-if="column && column.colOptions && column.colOptions.error" class="nc-cell-field">
+    <NcTooltip placement="bottom" class="text-nc-content-orange-dark">
+      <template #title>
+        <span class="font-bold">{{ column.colOptions.error }}</span>
+      </template>
+      <span>ERR!</span>
+    </NcTooltip>
+  </div>
   <NcDropdown
     v-else
     :disabled="disableDropdown"

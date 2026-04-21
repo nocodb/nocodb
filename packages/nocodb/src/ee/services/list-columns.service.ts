@@ -47,7 +47,12 @@ export class ListColumnsService {
       ncMeta,
     );
 
-    const view = await View.get(context, oldListViewColumn.fk_view_id, ncMeta);
+    const view = await View.get(
+      context,
+      oldListViewColumn.fk_view_id,
+      false,
+      ncMeta,
+    );
 
     const viewWebhookManager =
       param.viewWebhookManager ??

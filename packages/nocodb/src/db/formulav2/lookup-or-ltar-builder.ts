@@ -56,6 +56,10 @@ export const lookupOrLtarBuilder =
       column.uidt === UITypes.Lookup
         ? await column.getColOptions<LookupColumn>(context)
         : null;
+
+    if (lookup?.error) {
+      return { builder: knex.raw('?', [null]) };
+    }
     {
       const relationCol = lookup
         ? await lookup.getRelationColumn(context)

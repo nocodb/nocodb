@@ -7,6 +7,7 @@ import init from '../../../init';
 import { overridePlan } from '../../../utils/plan.utils';
 import { Base, Model } from '~/models';
 import TimelineView from '~/models/TimelineView';
+import View from '~/models/View';
 import TimelineRange from '~/models/TimelineRange';
 import TimelineViewColumn from '~/models/TimelineViewColumn';
 import { RootScopes } from '~/utils/globals';
@@ -473,9 +474,9 @@ export default function () {
 
         expect(deleteResponse.status).to.eq(200);
 
-        // Verify timeline view is gone
-        const timelineView = await TimelineView.get(ctx, viewId);
-        expect(timelineView).to.not.be.ok;
+        // Verify the view is soft-deleted (trashed) — not accessible via View.get
+        const view = await View.get(ctx, viewId);
+        expect(view).to.not.be.ok;
       });
     });
   });

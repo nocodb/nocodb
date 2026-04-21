@@ -167,7 +167,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       'source_id',
     ]);
 
-    const view = await View.get(context, body.fk_view_id, ncMeta);
+    const view = await View.get(context, body.fk_view_id, false, ncMeta);
 
     if (!insertObj.source_id) {
       insertObj.source_id = view.source_id;

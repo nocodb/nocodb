@@ -135,6 +135,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.DOCS]: 'doc',
       [MetaTable.DATE_DEPENDENCY]: 'dd',
       [MetaTable.API_TOKEN_SCOPES]: 'ats',
+      [MetaTable.TRASH]: 'tr',
     };
 
     const prefix = prefixMap[target] || 'nc';

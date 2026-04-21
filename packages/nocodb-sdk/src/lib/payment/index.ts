@@ -6,6 +6,7 @@ export enum PlanLimitTypes {
   LIMIT_API_PER_SECOND = 'limit_api_per_second',
   LIMIT_AI_TOKEN = 'limit_ai_token',
   LIMIT_API_CALL = 'limit_api_call',
+  LIMIT_TRASH_RETENTION = 'limit_trash_retention',
   LIMIT_AUDIT_RETENTION = 'limit_audit_retention',
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
@@ -250,6 +251,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'due to reaching the API per second limit.',
   [PlanLimitTypes.LIMIT_AI_TOKEN]: 'due to reaching the AI token usage limit.',
   [PlanLimitTypes.LIMIT_API_CALL]: 'due to reaching the API call limit.',
+  [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 'to increase trash retention.',
   [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 'to increase audit retention.',
   [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 'to run more automations.',
   [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]:

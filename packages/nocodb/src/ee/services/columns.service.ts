@@ -56,6 +56,7 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
+import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import ListViewLevel from '~/models/ListViewLevel';
 import ListViewColumn from '~/models/ListViewColumn';
 
@@ -70,6 +71,7 @@ export class ColumnsService extends ColumnsServiceCE {
     protected readonly filtersService: FiltersService,
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
     protected readonly duplicateDetectionService: DuplicateDetectionService,
+    protected readonly linkPlaceholderService: LinkPlaceholderService,
   ) {
     super(
       metaService,
@@ -79,6 +81,7 @@ export class ColumnsService extends ColumnsServiceCE {
       filtersService,
       metaDependencyEventHandler,
       duplicateDetectionService,
+      linkPlaceholderService,
     );
   }
 

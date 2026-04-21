@@ -161,12 +161,14 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
     .where('fk_workspace_id', workspaceId)
     .whereNot('type', ModelTypes.DASHBOARD)
     .where('mm', false)
+    .where((qb) => qb.where('deleted', false).orWhereNull('deleted'))
     .select('id', 'title', 'description');
 
   // 3. All columns
   const columns = await knex(MetaTable.COLUMNS)
     .where('base_id', baseId)
     .where('fk_workspace_id', workspaceId)
+    .where((qb) => qb.where('deleted', false).orWhereNull('deleted'))
     .select(
       'id',
       'fk_model_id',
@@ -186,6 +188,7 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
   const views = await knex(MetaTable.VIEWS)
     .where('base_id', baseId)
     .where('fk_workspace_id', workspaceId)
+    .where((qb) => qb.where('deleted', false).orWhereNull('deleted'))
     .select('id', 'fk_model_id', 'title', 'type', 'description');
 
   // 5. Collaborators (TODO include inherited users, maybe use BaseUser)

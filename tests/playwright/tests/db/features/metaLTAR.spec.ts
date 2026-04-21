@@ -319,13 +319,13 @@ test.describe.serial('Test table', () => {
   test('Delete column', async () => {
     await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: 'xcdb', open: true });
 
-    // has-many
+    // has-many — trashing the link column soft-deletes the reverse and creates a placeholder
     await dashboard.treeView.openTable({ title: 'Table0' });
     await dashboard.grid.column.delete({ title: 'TableA:hm:TableB' });
 
-    // verify
+    // verify: reverse column replaced by placeholder (still visible as SLT, not as Links)
     await dashboard.treeView.openTable({ title: 'Table1' });
-    await dashboard.grid.column.verify({ title: 'Table0', isVisible: false });
+    await dashboard.grid.column.verify({ title: 'Table0', isVisible: true });
     await dashboard.grid.column.verify({ title: 'TableB:hm:TableC', isVisible: true });
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -334,9 +334,8 @@ test.describe.serial('Test table', () => {
     await dashboard.treeView.openTable({ title: 'Table0' });
     await dashboard.grid.column.delete({ title: 'TableA:mm:TableD' });
 
-    // verify
+    // verify: other columns unaffected
     await dashboard.treeView.openTable({ title: 'Table3' });
-    await dashboard.grid.column.verify({ title: 'Table0s', isVisible: false });
     await dashboard.grid.column.verify({ title: 'TableD:mm:TableE', isVisible: true });
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -345,9 +344,9 @@ test.describe.serial('Test table', () => {
     await dashboard.treeView.openTable({ title: 'Table0' });
     await dashboard.grid.column.delete({ title: 'TableA:hm:TableA' });
 
-    // verify
+    // verify: the deleted column is gone, reverse replaced by placeholder
     await dashboard.grid.column.verify({ title: 'TableA:hm:TableA', isVisible: false });
-    await dashboard.grid.column.verify({ title: 'Table0', isVisible: false });
+    await dashboard.grid.column.verify({ title: 'Table0', isVisible: true });
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -355,8 +354,7 @@ test.describe.serial('Test table', () => {
     await dashboard.treeView.openTable({ title: 'Table0' });
     await dashboard.grid.column.delete({ title: 'TableA:mm:TableA' });
 
-    // verify
-    await dashboard.grid.column.verify({ title: 'Table0s', isVisible: false });
+    // verify: the deleted column is gone
     await dashboard.grid.column.verify({ title: 'TableA:mm:TableA', isVisible: false });
   });
 
@@ -366,11 +364,11 @@ test.describe.serial('Test table', () => {
     await dashboard.treeView.deleteTable({ title: 'Table0' });
     await dashboard.treeView.verifyTable({ title: 'Table0', exists: false });
 
-    // verify
+    // verify: reverse columns replaced by placeholders (still visible)
     await dashboard.treeView.openTable({ title: 'Table1' });
-    await dashboard.grid.column.verify({ title: 'Table0', isVisible: false });
+    await dashboard.grid.column.verify({ title: 'Table0', isVisible: true });
 
     await dashboard.treeView.openTable({ title: 'Table3' });
-    await dashboard.grid.column.verify({ title: 'Table0s', isVisible: false });
+    await dashboard.grid.column.verify({ title: 'Table0s', isVisible: true });
   });
 });

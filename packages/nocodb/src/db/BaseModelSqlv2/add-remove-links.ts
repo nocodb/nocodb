@@ -248,7 +248,13 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     const parentTn = parentBaseModel.getTnPath(parentTable);
 
     let relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
-    let childIds = _childIds;
+    // v2 link-records body sends `[{Id: x}, ...]`; normalize to primitive PKs once
+    // so downstream audit + broadcast paths don't stringify objects as '[object Object]'.
+    let childIds = _childIds.map((id) =>
+      id !== null && typeof id === 'object'
+        ? childBaseModel.extractPksValues(id, true)
+        : id,
+    );
 
     const relatedChildCol = getRelatedLinksColumn(
       column,
@@ -920,7 +926,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
   const removeLinks = async ({
     cookie,
-    childIds,
+    childIds: _childIds,
     colId,
     rowId,
   }: {
@@ -947,7 +953,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       NcError.get(baseModel.context).recordNotFound(rowId);
     }
 
-    if (!childIds.length) return;
+    if (!_childIds.length) return;
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       baseModel.context,
@@ -975,6 +981,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     const childTn = childBaseModel.getTnPath(childTable);
     const parentTn = parentBaseModel.getTnPath(parentTable);
+
+    // v2 link-records body sends `[{Id: x}, ...]`; normalize to primitive PKs once
+    // so downstream audit + broadcast paths don't stringify objects as '[object Object]'.
+    const childIds = _childIds.map((id) =>
+      id !== null && typeof id === 'object'
+        ? childBaseModel.extractPksValues(id, true)
+        : id,
+    );
 
     const relatedChildCol = getRelatedLinksColumn(
       column,

@@ -31,7 +31,7 @@ export const handleFieldsRequestBody = async (
   const modelColumns =
     param.modelColumns ??
     (await (
-      await Model.get(context, param.tableId, ncMeta)
+      await Model.get(context, param.tableId, false, ncMeta)
     ).getColumns(context, ncMeta));
 
   // when given empty array, every column except pv is show = false

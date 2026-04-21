@@ -97,6 +97,8 @@ const { copy } = useCopy()
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
+const { open: openBaseTrash } = useBaseTrash()
+
 const isOptionsOpen = ref(false)
 const isProjectNodeContextMenuOpen = ref(false)
 const isBasesOptionsOpen = ref<Record<string, boolean>>({})
@@ -850,6 +852,7 @@ defineExpose({
         @open-mcp-server="openMcpSettings($event)"
         @delete="isProjectDeleteDialogVisible = true"
         @copy-project-info="copyProjectInfo()"
+        @open-trash="openBaseTrash()"
       />
 
       <NcMenu
@@ -923,6 +926,7 @@ defineExpose({
     :base-id="base?.id"
   />
   <DlgBaseDelete v-model:visible="isProjectDeleteDialogVisible" :base-id="base?.id" />
+  <DlgBaseTrash />
 
   <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
   <DlgManagedApp v-if="base?.id" v-model:visible="isConvertToManagedAppDlgOpen" modal-size="sm">

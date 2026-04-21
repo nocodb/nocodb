@@ -540,4 +540,20 @@ export type AppEventPayload =
   | RowCommentEvent
   | RowMentionEvent
   | WebhookTriggerEvent
-  | ColumnEvent;
+  | ColumnEvent
+  | ResourceRestoreEvent
+  | ResourcePermanentDeleteEvent;
+
+export interface ResourceRestoreEvent extends NcBaseEvent {
+  resourceType: string;
+  resourceId: string;
+  name: string;
+  user: Partial<UserType>;
+}
+
+export interface ResourcePermanentDeleteEvent extends NcBaseEvent {
+  resourceType: string;
+  resourceId: string;
+  name: string;
+  user: Partial<UserType>;
+}

@@ -225,6 +225,7 @@ export class FiltersService extends FiltersServiceCE {
       const view = await View.get(
         context,
         rowColorCondition.fk_view_id,
+        false,
         ncMeta,
       );
       innerViewWebhookManager = (

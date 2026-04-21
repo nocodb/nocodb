@@ -62,6 +62,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
   public static async get(
     context: NcContext,
     workflowId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     if (!workflowId) return null;
@@ -99,20 +100,23 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       }
     }
 
+    if (workflow?.deleted && !includeDeleted) return null;
+
     return workflow && new Workflow(workflow);
   }
 
   public static async list(
     context: NcContext,
     baseId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(context, CacheScope.WORKFLOW, [
       baseId,
     ]);
 
-    // eslint-disable-next-line prefer-const
-    let { list: workflowList, isNoneList } = cachedList;
+    const { isNoneList } = cachedList;
+    let workflowList = cachedList.list;
 
     if (!isNoneList && !workflowList.length) {
       workflowList = await ncMeta.metaList2(
@@ -140,6 +144,10 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
         [baseId],
         workflowList,
       );
+    }
+
+    if (!includeDeleted) {
+      workflowList = workflowList.filter((w) => !w.deleted);
     }
 
     workflowList.sort((a, b) => a.order - b.order);
@@ -185,7 +193,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       logger.error('Failed to clean command palette cache');
     });
 
-    return this.get(context, id, ncMeta).then(async (res) => {
+    return this.get(context, id, false, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
         context,
         CacheScope.WORKFLOW,
@@ -232,7 +240,28 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       logger.error('Failed to clean command palette cache');
     });
 
-    return this.get(context, workflowId, ncMeta);
+    return this.get(context, workflowId, false, ncMeta);
+  }
+
+  static async softDelete(
+    context: NcContext,
+    workflowId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.AUTOMATIONS,
+      { deleted },
+      workflowId,
+    );
+    await NocoCache.update(context, `${CacheScope.WORKFLOW}:${workflowId}`, {
+      deleted,
+    });
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
   }
 
   static async delete(
@@ -268,7 +297,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const workflows = await this.list(context, baseId, ncMeta);
+    const workflows = await this.list(context, baseId, true, ncMeta);
 
     for (const workflow of workflows) {
       await this.delete(context, workflow.id, ncMeta);
@@ -295,7 +324,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
     );
 
     const workflows = await processConcurrently(dependencies, (dependency) =>
-      this.get(context, dependency.dependent_id, ncMeta),
+      this.get(context, dependency.dependent_id, false, ncMeta),
     );
 
     return workflows.filter((wf) => wf.enabled);

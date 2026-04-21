@@ -77,6 +77,20 @@ export class NcErrorBase {
     });
   }
 
+  trashNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_TRASH_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  parentInTrash(parentType: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_PARENT_IN_TRASH, {
+      params: parentType,
+      ...args,
+    });
+  }
+
   dashboardNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_DASHBOARD_NOT_FOUND, {
       params: id,

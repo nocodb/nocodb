@@ -3,6 +3,7 @@ import {
   type ColumnType,
   type FilterType,
   ViewSettingOverrideOptions,
+  isColumnInError,
   isCreatedOrLastModifiedTimeCol,
   isHiddenCol,
   isSystemColumn,
@@ -190,18 +191,26 @@ const { showSystemFields } =
   widget.value || workflow.value || rlsPolicyId?.value ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
 
 const fieldsToFilter = computed(() =>
-  columns.value.filter((c) => {
-    if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
+  clone(columns.value)
+    .filter((c) => {
+      if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
 
-    if (!link.value && !webHook.value && !workflow.value && isSystemColumn(c)) {
-      if (isHiddenCol(c, meta.value)) return false
-      if (!showSystemFields.value) return false
-    }
+      if (!link.value && !webHook.value && !workflow.value && isSystemColumn(c)) {
+        if (isHiddenCol(c, meta.value)) return false
+        if (!showSystemFields.value) return false
+      }
 
-    const customFilter = props.filterOption ? props.filterOption(c) : true
+      const customFilter = props.filterOption ? props.filterOption(c) : true
 
-    return !excludedFilterColUidt.includes(c.uidt as UITypes) && customFilter
-  }),
+      return !excludedFilterColUidt.includes(c.uidt as UITypes) && customFilter
+    })
+    .map((c) => {
+      if (isColumnInError(c)) {
+        c.ncItemDisabled = true
+        c.ncItemTooltip = t('tooltip.filteringNotSupportedForFieldsWithErrors')
+      }
+      return c
+    }),
 )
 
 const {

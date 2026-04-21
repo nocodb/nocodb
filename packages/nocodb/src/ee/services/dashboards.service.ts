@@ -16,11 +16,15 @@ import { CustomUrl, Dashboard, DependencyTracker, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getWidgetData, getWidgetHandler } from '~/db/widgets';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { checkLimit } from '~/helpers/paymentHelpers';
 @Injectable()
 export class DashboardsService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly baseTrashService: BaseTrashService,
+  ) {}
 
   async dashboardList(context: NcContext, baseId: string) {
     return await Dashboard.list(context, baseId);
@@ -151,28 +155,17 @@ export class DashboardsService {
       NcError.get(context).dashboardNotFound(dashboardId);
     }
 
-    try {
-      const widgets = await Widget.list(context, dashboardId);
-      for (const widget of widgets) {
-        await DependencyTracker.clearDependencies(
-          context,
-          DependencyTableType.Widget,
-          widget.id,
-        );
-      }
-    } catch (error) {
-      console.error(
-        'Failed to clear widget dependencies for dashboard:',
-        error,
-      );
-    }
-
-    await Dashboard.delete(context, dashboardId);
+    await this.baseTrashService.trashResource(context, {
+      resourceId: dashboardId,
+      resourceType: 'dashboard',
+      user: req.user,
+      req,
+    });
 
     this.appHooksService.emit(AppEvents.DASHBOARD_DELETE, {
       dashboard,
       context,
-      req: req,
+      req,
       user: context.user,
     });
 
@@ -436,17 +429,13 @@ export class DashboardsService {
     if (!widget) {
       NcError.get(context).widgetNotFound(widgetId);
     }
-    try {
-      await DependencyTracker.clearDependencies(
-        context,
-        DependencyTableType.Widget,
-        widgetId,
-      );
-    } catch (error) {
-      console.error('Failed to clear widget dependencies:', error);
-    }
 
-    await Widget.delete(context, widgetId);
+    await this.baseTrashService.trashResource(context, {
+      resourceId: widgetId,
+      resourceType: 'widget',
+      user: req.user,
+      req,
+    });
 
     this.appHooksService.emit(AppEvents.WIDGET_DELETE, {
       context,

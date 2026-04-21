@@ -6,6 +6,7 @@ import {
   type TableType,
   UITypes,
   type ViewType,
+  isColumnInError,
   isSystemColumn,
 } from 'nocodb-sdk'
 import type { FilterRowChangeEvent } from '#imports'
@@ -27,6 +28,8 @@ export function useViewRowColorOption(params: {
   const { eventBus } = useSmartsheetStoreOrThrow()
 
   const { clone } = useUndoRedo()
+
+  const { t } = useI18n()
 
   const meta = inject(MetaInj, ref())
   const { metas, getMetaByKey } = useMetas()
@@ -65,11 +68,23 @@ export function useViewRowColorOption(params: {
 
   const filterColumns = computedAsync(async () => {
     if (!metas.value || Object.keys(metas.value).length === 0) return []
-    return await composeColumnsForFilter({ rootMeta: meta.value, getMeta: async (id) => getMetaByKey(meta.value?.base_id, id) })
+    const cols = await composeColumnsForFilter({
+      rootMeta: meta.value,
+      getMeta: async (id) => getMetaByKey(meta.value?.base_id, id),
+    })
+    return clone(cols).map((c) => {
+      if (isColumnInError(c)) {
+        c.ncItemDisabled = true
+        c.ncItemTooltip = t('tooltip.filteringNotSupportedForFieldsWithErrors')
+      }
+      return c
+    })
   }, [])
 
   const targetFieldColumns = computed(() => {
     return filterColumns.value.filter((c) => {
+      if (isColumnInError(c)) return false
+
       const field = viewFieldsMap.value[c.id]
 
       if (!field) return false

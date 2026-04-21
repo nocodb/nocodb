@@ -7,6 +7,7 @@ import {
   type TableType,
   UITypesName,
   type ViewType,
+  isColumnInError,
 } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -26,6 +27,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const groupByLimit = 3
 
     const clone = rfdc()
+
+    const { t } = useI18n()
 
     const { api } = useApi()
     const { $api } = useNuxtApp()
@@ -109,11 +112,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const fieldsToGroupBy = computed(() => {
       return clone(meta?.value?.columns || []).map((field) => {
         if (
+          isColumnInError(field) ||
           (field.uidt === UITypes.Lookup && field.id && unsupportedLookups.value.includes(field.id)) ||
           excludedGroupingUidt.includes(field.uidt as UITypes)
         ) {
           field.ncItemDisabled = true
-          field.ncItemTooltip = `This Field of type ${UITypesName[field.uidt]} not supported for grouping`
+          field.ncItemTooltip = isColumnInError(field)
+            ? t('tooltip.groupingNotSupportedForFieldsWithErrors')
+            : `This Field of type ${UITypesName[field.uidt]} not supported for grouping`
         } else {
           field.ncItemDisabled = false
           field.ncItemTooltip = ''

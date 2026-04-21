@@ -675,11 +675,15 @@ export const travelLookupColumn = async ({
 }: {
   context: NcContext;
   column: Column;
-}) => {
+}): Promise<Column | null> => {
   const lookupColOptions = await column.getColOptions<LookupColumn>(context);
+  if (lookupColOptions?.error) return null;
+
   const targetColumn = await Column.get(context, {
     colId: lookupColOptions.fk_lookup_column_id,
   });
+
+  if (!targetColumn) return null;
 
   if (targetColumn.uidt === UITypes.Lookup) {
     return travelLookupColumn({

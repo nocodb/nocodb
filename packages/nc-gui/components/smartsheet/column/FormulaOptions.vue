@@ -5,6 +5,7 @@ import {
   FormulaError,
   UITypes,
   getUITypesForFormulaDataType,
+  isColumnInError,
   isHiddenCol,
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
@@ -49,6 +50,10 @@ const supportedColumns = computed(
   () =>
     meta?.value?.columns?.filter((col) => {
       if (uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) {
+        return false
+      }
+
+      if (isColumnInError(col)) {
         return false
       }
 

@@ -6,6 +6,7 @@ import {
   isLinksOrLTAR,
   isMMOrMMLike,
   isVirtualCol,
+  MetaEventType,
   ModelTypes,
   RelationTypes,
   SqlUiFactory,
@@ -16,6 +17,7 @@ import type { UserType } from 'nocodb-sdk';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import ModelXcMetaFactory from '~/db/sql-mgr/code/models/xc/ModelXcMetaFactory';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
@@ -149,7 +151,10 @@ type MetaDiffChange = {
 
 @Injectable()
 export class MetaDiffsService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(
+    private appHooksService: AppHooksService,
+    private metaDependencyEventHandler: MetaDependencyEventHandler,
+  ) {}
 
   async getMetaDiff(
     context: NcContext,
@@ -986,10 +991,18 @@ export class MetaDiffsService {
           case MetaDiffType.TABLE_COLUMN_REMOVE:
           case MetaDiffType.VIEW_COLUMN_REMOVE:
             await change.column.delete(context);
+            await this.metaDependencyEventHandler.handleEvent(context, {
+              eventType: MetaEventType.COLUMN_DELETED,
+              oldEntity: change.column,
+            });
             break;
           case MetaDiffType.TABLE_RELATION_REMOVE:
           case MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE:
             await change.column.delete(context);
+            await this.metaDependencyEventHandler.handleEvent(context, {
+              eventType: MetaEventType.COLUMN_DELETED,
+              oldEntity: change.column,
+            });
             break;
           case MetaDiffType.TABLE_RELATION_CHANGED:
             {

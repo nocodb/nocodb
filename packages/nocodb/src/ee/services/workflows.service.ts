@@ -38,6 +38,7 @@ import {
 import NocoSocket from '~/socket/NocoSocket';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -52,6 +53,7 @@ export class WorkflowsService implements OnModuleInit {
     private readonly workflowExecutionService: WorkflowExecutionService,
     @Inject('JobsService') private readonly jobsService: IJobsService,
     protected readonly nocoJobsService: NocoJobsService,
+    protected readonly baseTrashService: BaseTrashService,
   ) {}
 
   async onModuleInit() {
@@ -227,7 +229,10 @@ export class WorkflowsService implements OnModuleInit {
         notify_on_error: true,
       });
     } catch (error) {
-      console.error('Failed to add workflow creator as subscriber:', error);
+      this.logger.error(
+        'Failed to add workflow creator as subscriber:',
+        error?.stack,
+      );
     }
 
     try {
@@ -239,7 +244,7 @@ export class WorkflowsService implements OnModuleInit {
         dependencies,
       );
     } catch (error) {
-      console.error('Failed to track workflow dependencies:', error);
+      this.logger.error('Failed to track workflow dependencies:', error?.stack);
     }
 
     this.appHooksService.emit(AppEvents.WORKFLOW_CREATE, {
@@ -342,23 +347,19 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).workflowNotFound(workflowId);
     }
 
+    // Deactivate triggers before trashing
     try {
       await this.callOnDeactivateHooks(context, workflow);
     } catch (error) {
-      console.error('Failed to trigger deactivation hooks:', error);
+      this.logger.error('Failed to trigger deactivation hooks:', error?.stack);
     }
 
-    try {
-      await DependencyTracker.clearDependencies(
-        context,
-        DependencyTableType.Workflow,
-        workflowId,
-      );
-    } catch (error) {
-      console.error('Failed to clear workflow dependencies:', error);
-    }
-
-    await Workflow.delete(context, workflowId);
+    await this.baseTrashService.trashResource(context, {
+      resourceId: workflowId,
+      resourceType: 'workflow',
+      user: req.user,
+      req,
+    });
 
     this.appHooksService.emit(AppEvents.WORKFLOW_DELETE, {
       workflow,
@@ -417,7 +418,10 @@ export class WorkflowsService implements OnModuleInit {
         notify_on_error: true,
       });
     } catch (error) {
-      console.error('Failed to add workflow creator as subscriber:', error);
+      this.logger.error(
+        'Failed to add workflow creator as subscriber:',
+        error?.stack,
+      );
     }
 
     try {
@@ -429,7 +433,7 @@ export class WorkflowsService implements OnModuleInit {
         dependencies,
       );
     } catch (error) {
-      console.error('Failed to track workflow dependencies:', error);
+      this.logger.error('Failed to track workflow dependencies:', error?.stack);
     }
 
     NocoSocket.broadcastEvent(
@@ -733,7 +737,7 @@ export class WorkflowsService implements OnModuleInit {
     try {
       await this.callOnDeactivateHooks(context, workflow);
     } catch (error) {
-      console.error('Failed to trigger deactivation hooks:', error);
+      this.logger.error('Failed to trigger deactivation hooks:', error?.stack);
     }
 
     // Step 2: Clear old dependencies
@@ -744,7 +748,7 @@ export class WorkflowsService implements OnModuleInit {
         workflowId,
       );
     } catch (error) {
-      console.error('Failed to clear dependencies:', error);
+      this.logger.error('Failed to clear dependencies:', error?.stack);
     }
 
     // Step 3: Update workflow
@@ -767,14 +771,17 @@ export class WorkflowsService implements OnModuleInit {
         dependencies,
       );
     } catch (error) {
-      console.error('Failed to track workflow dependencies:', error);
+      this.logger.error('Failed to track workflow dependencies:', error?.stack);
     }
 
     // Step 5: Activate new external triggers
     try {
       await this.callOnActivateHooks(context, updatedWorkflow, req);
     } catch (error) {
-      console.error('Failed to trigger node activation hooks:', error);
+      this.logger.error(
+        'Failed to trigger node activation hooks:',
+        error?.stack,
+      );
     }
 
     this.appHooksService.emit(AppEvents.WORKFLOW_UPDATE, {
@@ -930,9 +937,9 @@ export class WorkflowsService implements OnModuleInit {
           );
         }
       } catch (error) {
-        console.error(
+        this.logger.error(
           `[Workflow] Failed to activate trigger for node ${triggerNode.id}:`,
-          error,
+          error?.stack,
         );
       }
     }
@@ -1092,9 +1099,9 @@ export class WorkflowsService implements OnModuleInit {
           trigger.activationState,
         );
       } catch (error) {
-        console.error(
+        this.logger.error(
           `[Workflow] Failed to deactivate trigger for node ${trigger.nodeId}:`,
-          error,
+          error?.stack,
         );
       }
     }

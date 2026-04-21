@@ -3,7 +3,11 @@ import { EventType, isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import Noco from '~/Noco';
-import { BaseRelatedMetaTables, MetaTable } from '~/utils/globals';
+import {
+  BaseRelatedMetaTables,
+  MetaTable,
+  SoftDeleteMetaTables,
+} from '~/utils/globals';
 import { Base, Column, Model, Source } from '~/models';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import NocoCache from '~/cache/NocoCache';
@@ -183,11 +187,18 @@ export async function serializeMeta(
     // Use ordered tables to ensure proper dependency resolution
     for (const metaTable of orderedSerializableMetaTables) {
       try {
-        const records = await ncMeta
+        const query = ncMeta
           .knex(metaTable)
           .where('base_id', base_id)
-          .orderBy('created_at', 'asc')
-          .select();
+          .orderBy('created_at', 'asc');
+
+        if (SoftDeleteMetaTables.includes(metaTable)) {
+          query.where((qb) =>
+            qb.where('deleted', false).orWhereNull('deleted'),
+          );
+        }
+
+        const records = await query.select();
 
         // Apply overrides if provided (for changing base_id/workspace_id/source_id)
         if (
@@ -240,6 +251,7 @@ export async function serializeMeta(
                     const model = await Model.get(
                       sourceContext,
                       record.id,
+                      false,
                       ncMeta,
                     );
                     if (model) {
@@ -651,6 +663,7 @@ async function handleStandaloneColumnDeletions(
     const parentTable = await Model.get(
       targetContext,
       columnRecord.fk_model_id,
+      false,
       ncMeta,
     );
 
@@ -879,6 +892,7 @@ async function handleTableCreations(
             const table = await Model.get(
               targetContext,
               insertedTableId,
+              false,
               ncMeta,
             );
             if (table) {
@@ -982,6 +996,7 @@ async function handleStandaloneColumnAdditions(
         const parentTable = await Model.get(
           targetContext,
           columnRecord.fk_model_id,
+          false,
           ncMeta,
         );
 
@@ -1172,6 +1187,7 @@ async function handleColumnUpdates(
         const parentTable = await Model.get(
           targetContext,
           columnRecord.fk_model_id,
+          false,
           ncMeta,
         );
 
@@ -1395,7 +1411,7 @@ async function createOrderIndexForTable(
     }
 
     // Get the actual model and column objects
-    const model = await Model.get(targetContext, tableRecord.id, ncMeta);
+    const model = await Model.get(targetContext, tableRecord.id, false, ncMeta);
     if (!model) {
       console.warn(`Model not found for table ${tableRecord.table_name}`);
       return;

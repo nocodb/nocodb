@@ -110,6 +110,14 @@ export class CircularChartCommonHandler extends BaseWidgetHandler<ChartWidgetTyp
       return errors;
     }
 
+    if (categoryColumn.colOptions?.error) {
+      addError(
+        'data.category.column_id',
+        `Column has an error: ${categoryColumn.colOptions.error}`,
+      );
+      return errors;
+    }
+
     if (
       category.orderBy &&
       !['default', 'asc', 'desc'].includes(category.orderBy)
@@ -141,6 +149,11 @@ export class CircularChartCommonHandler extends BaseWidgetHandler<ChartWidgetTyp
       const column = await Column.get(context, { colId: value.column_id });
       if (!column) {
         addError('data.value.column_id', 'Column not found');
+      } else if (column.colOptions?.error) {
+        addError(
+          'data.value.column_id',
+          `Column has an error: ${column.colOptions.error}`,
+        );
       } else if (
         !validateAggregationColType(
           context,

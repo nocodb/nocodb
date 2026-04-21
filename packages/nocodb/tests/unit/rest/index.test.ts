@@ -23,6 +23,7 @@ import tableTests from './tests/meta-apis/table.test';
 import { paymentTest } from './tests/payment/payment.test';
 import { planGatingTests } from './tests/payment/planGating.test';
 import convertDateFormatTests from './tests/convertDateFormat.test';
+import linkPlaceholderTests from './tests/linkPlaceholder.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
@@ -92,6 +93,7 @@ function restTests() {
     bulkV1Test();
     oauthDCRTest();
     mfaTests();
+    linkPlaceholderTests();
   }
   if (willRunOnSet(3)) {
     viewRowTests();

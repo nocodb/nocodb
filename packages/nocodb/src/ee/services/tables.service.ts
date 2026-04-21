@@ -11,6 +11,7 @@ import { Base } from '~/models';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ColumnsService } from '~/services/columns.service';
+import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -22,8 +23,14 @@ export class TablesService extends TableServiceCE {
     protected readonly metaDiffServiceEE: MetaDiffsService,
     protected readonly appHooksServiceEE: AppHooksService,
     protected readonly columnsServiceEE: ColumnsService,
+    protected readonly linkPlaceholderServiceEE: LinkPlaceholderService,
   ) {
-    super(metaDiffServiceEE, appHooksServiceEE, columnsServiceEE);
+    super(
+      metaDiffServiceEE,
+      appHooksServiceEE,
+      columnsServiceEE,
+      linkPlaceholderServiceEE,
+    );
   }
 
   @EEOnly()
@@ -55,6 +62,9 @@ export class TablesService extends TableServiceCE {
         {
           condition: {
             source_id: source.id,
+          },
+          xcCondition: {
+            _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
           },
         },
       );

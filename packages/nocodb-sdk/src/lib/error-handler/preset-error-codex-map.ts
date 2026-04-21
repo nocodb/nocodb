@@ -124,6 +124,15 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `View section '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_TRASH_NOT_FOUND]: {
+    message: (id: string) => `Trash entry '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_PARENT_IN_TRASH]: {
+    message: (parentType: string) =>
+      `Cannot restore — parent ${parentType} is in trash. Restore it first.`,
+    code: 400,
+  },
   [NcErrorType.ERR_DASHBOARD_NOT_FOUND]: {
     message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,

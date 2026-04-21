@@ -13,6 +13,7 @@ export default class BarcodeColumn {
   fk_column_id: string;
   fk_barcode_value_column_id: string;
   barcode_format: string;
+  error: string;
 
   constructor(data: Partial<BarcodeColumn>) {
     Object.assign(this, data);
@@ -27,6 +28,7 @@ export default class BarcodeColumn {
       'fk_column_id',
       'fk_barcode_value_column_id',
       'barcode_format',
+      'error',
     ]);
 
     const column = await Column.get(
@@ -87,6 +89,36 @@ export default class BarcodeColumn {
         colId: this.fk_barcode_value_column_id,
       },
       ncMeta,
+    );
+  }
+
+  public static async update(
+    context: NcContext,
+    columnId: string,
+    data: Partial<BarcodeColumn>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = extractProps(data, [
+      'fk_column_id',
+      'fk_barcode_value_column_id',
+      'barcode_format',
+      'error',
+    ]);
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_BARCODE,
+      updateObj,
+      {
+        fk_column_id: columnId,
+      },
+    );
+
+    await NocoCache.update(
+      context,
+      `${CacheScope.COL_BARCODE}:${columnId}`,
+      updateObj,
     );
   }
 }

@@ -1400,8 +1400,31 @@ export class ImportService {
       const { colOptions, ...flatCol } = col;
       if (col.uidt === UITypes.Lookup) {
         // Skip if relation column or lookup column can't be mapped (e.g., cross-base lookups)
-        if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
-        if (!getIdOrExternalId(colOptions.fk_lookup_column_id)) continue;
+        // but preserve error columns even if references can't be mapped
+        if (
+          !getIdOrExternalId(colOptions.fk_relation_column_id) ||
+          !getIdOrExternalId(colOptions.fk_lookup_column_id)
+        ) {
+          if (colOptions.error) {
+            const tableId = getIdOrExternalId(getParentIdentifier(col.id));
+            const insertedColumn = await Column.insert(targetContext, {
+              ...withoutId(flatCol),
+              fk_model_id: tableId,
+              fk_relation_column_id: getIdOrExternalId(
+                colOptions.fk_relation_column_id,
+              ),
+              fk_lookup_column_id: getIdOrExternalId(
+                colOptions.fk_lookup_column_id,
+              ),
+              error: colOptions.error,
+            });
+
+            if (insertedColumn) {
+              idMap.set(col.id, insertedColumn.id);
+            }
+          }
+          continue;
+        }
         const freshModelData = (await this.columnsService.columnAdd(
           targetContext,
           {
@@ -1431,8 +1454,32 @@ export class ImportService {
         }
       } else if (col.uidt === UITypes.Rollup) {
         // Skip if relation column or rollup column can't be mapped (e.g., cross-base rollups)
-        if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
-        if (!getIdOrExternalId(colOptions.fk_rollup_column_id)) continue;
+        // but preserve error columns even if references can't be mapped
+        if (
+          !getIdOrExternalId(colOptions.fk_relation_column_id) ||
+          !getIdOrExternalId(colOptions.fk_rollup_column_id)
+        ) {
+          if (colOptions.error) {
+            const tableId = getIdOrExternalId(getParentIdentifier(col.id));
+            const insertedColumn = await Column.insert(targetContext, {
+              ...withoutId(flatCol),
+              fk_model_id: tableId,
+              fk_relation_column_id: getIdOrExternalId(
+                colOptions.fk_relation_column_id,
+              ),
+              fk_rollup_column_id: getIdOrExternalId(
+                colOptions.fk_rollup_column_id,
+              ),
+              rollup_function: colOptions.rollup_function,
+              error: colOptions.error,
+            });
+
+            if (insertedColumn) {
+              idMap.set(col.id, insertedColumn.id);
+            }
+          }
+          continue;
+        }
         const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({
@@ -1601,6 +1648,7 @@ export class ImportService {
                 fk_qr_value_column_id: getIdOrExternalId(
                   colOptions.fk_qr_value_column_id,
                 ),
+                error: colOptions.error,
               },
             }) as any,
             req: param.req,
@@ -1627,6 +1675,7 @@ export class ImportService {
                 fk_barcode_value_column_id: getIdOrExternalId(
                   colOptions.fk_barcode_value_column_id,
                 ),
+                error: colOptions.error,
               },
             }) as any,
             req: param.req,

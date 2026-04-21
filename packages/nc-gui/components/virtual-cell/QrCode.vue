@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NC_ERROR_SENTINEL } from 'nocodb-sdk'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
 import { IsCanvasInjectionInj } from '../../context'
@@ -28,7 +29,11 @@ const isExpandedFormOpen = computed(() => {
 
 const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOfAllowedCharsForQrValue)
 
-const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value && qrValue?.value !== 'ERR!')
+const hasColError = computed(() => !!column?.value?.colOptions?.error)
+
+const showQrCode = computed(
+  () => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value && qrValue?.value !== NC_ERROR_SENTINEL && !hasColError.value,
+)
 
 const compressedQrValue = computed(() => {
   if (qrValue.value.length > maxNumberOfAllowedCharsForQrValue) {
@@ -215,12 +220,18 @@ onMounted(() => {
   <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.qrFieldsCannotBeDirectlyChanged') }}
   </div>
-  <a-tooltip v-else-if="!showQrCode && qrValue === 'ERR!'" placement="bottom" class="text-nc-content-orange-dark">
+  <NcTooltip v-else-if="hasColError" placement="bottom" class="text-nc-content-orange-dark">
+    <template #title>
+      <span class="font-bold">{{ column?.colOptions?.error }}</span>
+    </template>
+    <span>ERR!</span>
+  </NcTooltip>
+  <NcTooltip v-else-if="!showQrCode && qrValue === NC_ERROR_SENTINEL" placement="bottom" class="text-nc-content-orange-dark">
     <template #title>
       <span class="font-bold">Please select a target field!</span>
     </template>
     <span>ERR!</span>
-  </a-tooltip>
+  </NcTooltip>
 </template>
 
 <style lang="scss">

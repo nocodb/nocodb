@@ -605,7 +605,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
     param: { viewId: string; req: NcRequest },
     ncMeta?: MetaService,
   ) {
-    const view = await View.get(context, param.viewId, ncMeta);
+    const view = await View.get(context, param.viewId, false, ncMeta);
     // todo: check for GUI permissions, since we are handling at ui level we can ignore for now
 
     if (!view) {
@@ -1083,7 +1083,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
     const columns =
       param.modelColumns ??
       (await (
-        await Model.get(context, param.tableId, ncMeta)
+        await Model.get(context, param.tableId, false, ncMeta)
       ).getColumns(context, ncMeta));
     const existingColumnKeys = columns.map((k) => k.id);
     const invalidField = param.fieldIds.find(
@@ -1218,7 +1218,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       context,
     );
 
-    const existingView = await View.get(context, viewId, ncMeta);
+    const existingView = await View.get(context, viewId, false, ncMeta);
     if (!existingView) {
       NcError.get(context).viewNotFound(viewId);
     }

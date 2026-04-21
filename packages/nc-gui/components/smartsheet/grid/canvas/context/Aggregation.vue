@@ -15,7 +15,8 @@ const { gridViewCols } = useViewColumnsOrThrow()
 const isLocked = inject(IsLockedInj, ref(false))
 
 const gridCol = computed(() => gridViewCols.value[column.value.id])
-const aggregations = computed(() => getAggregations(column.value.columnObj))
+const hasColError = computed(() => !!column.value?.columnObj?.colOptions?.error)
+const aggregations = computed(() => (hasColError.value ? [] : getAggregations(column.value.columnObj)))
 
 const onClick = (agg) => {
   updateAggregate(column.value.id, agg)

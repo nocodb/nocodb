@@ -33,6 +33,7 @@ import { JobsProcessor } from '~/modules/jobs/jobs.processor';
 import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
 import { NocoAiModule } from '~/integrations/ai/module/ai.module';
 import { JobsController } from '~/modules/jobs/jobs.controller';
+import { BaseTrashCleanUpProcessor } from '~/modules/jobs/jobs/base-trash-clean-up/base-trash-clean-up.processor';
 import { CACHE_PREFIX } from '~/utils/globals';
 
 @Module({
@@ -93,6 +94,7 @@ import { CACHE_PREFIX } from '~/utils/globals';
     WorkflowDraftReminderProcessor,
     HookErrorNotificationProcessor,
     RecordTrashCleanupJob,
+    BaseTrashCleanUpProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

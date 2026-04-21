@@ -139,7 +139,8 @@ test.describe('Virtual Columns', () => {
       });
       await grid.column.verify({ title: 'Barcode2', isVisible: true });
       await grid.column.delete({ title: 'column_name_a' });
-      await grid.column.verify({ title: 'Barcode2', isVisible: false });
+      // Barcode column is error-marked (not cascade-deleted) when the reference column is deleted
+      await grid.column.verify({ title: 'Barcode2', isVisible: true });
     });
 
     test('a) showing an error message for non-compatible barcode input and b) changing the format of the Barcode is reflected in the change of the actual rendered barcode', async () => {

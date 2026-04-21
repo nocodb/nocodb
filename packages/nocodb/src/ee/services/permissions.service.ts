@@ -129,7 +129,7 @@ export class PermissionsService {
       const newPermissionObj: Partial<Permission> = {};
 
       if (entity === PermissionEntity.TABLE) {
-        const table = await Model.get(context, entity_id, ncMeta);
+        const table = await Model.get(context, entity_id, false, ncMeta);
 
         if (!table) {
           NcError.tableNotFound(entity_id);

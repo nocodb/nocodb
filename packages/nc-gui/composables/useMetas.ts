@@ -49,11 +49,21 @@ export const useMetas = createSharedComposable(() => {
   const setMeta = async (model: any) => {
     if (!model.base_id) return
 
-    metas.value = {
+    // Clean up stale title key when table is renamed
+    const idKey = getMetaKey(model.base_id, model.id!)
+    const existingMeta = metas.value[idKey]
+
+    const updated = {
       ...metas.value,
-      [getMetaKey(model.base_id, model.id!)]: model,
+      [idKey]: model,
       [getMetaKey(model.base_id, model.title)]: model,
     }
+
+    if (existingMeta && existingMeta.title !== model.title) {
+      delete updated[getMetaKey(model.base_id, existingMeta.title)]
+    }
+
+    metas.value = updated
   }
 
   // todo: this needs a proper refactor, arbitrary waiting times are usually not a good idea
@@ -75,10 +85,17 @@ export const useMetas = createSharedComposable(() => {
     const metaKey = getMetaKey(baseId, tableIdOrTitle)
     const loadingKey = metaKey
 
-    // if already deleted return null
-    if (deletedTableIds.has(tableIdOrTitle)) return null
-
     const tables = baseTables.value.get(baseId) ?? []
+
+    // if marked as deleted, verify it's actually still gone
+    // (e.g., table restored from trash re-appears in baseTables)
+    if (deletedTableIds.has(tableIdOrTitle)) {
+      if (tables.some((t) => t.id === tableIdOrTitle)) {
+        deletedTableIds.delete(tableIdOrTitle)
+      } else {
+        return null
+      }
+    }
 
     /** wait until loading is finished if requesting same meta
      * use while to recheck loading state since it can be changed by other requests
@@ -176,9 +193,22 @@ export const useMetas = createSharedComposable(() => {
     }
   }
 
+  const clearDeletedTableId = (tableId: string) => {
+    deletedTableIds.delete(tableId)
+  }
+
   // return partial metadata for related table of a meta service
   const getPartialMeta = async (baseId: string, linkColumnId: string, tableIdOrTitle: string): Promise<TableType | null> => {
-    if (!tableIdOrTitle || !linkColumnId || deletedTableIds.has(tableIdOrTitle)) return null
+    if (!tableIdOrTitle || !linkColumnId) return null
+
+    if (deletedTableIds.has(tableIdOrTitle)) {
+      const tables = baseTables.value.get(baseId) ?? []
+      if (tables.some((t) => t.id === tableIdOrTitle)) {
+        deletedTableIds.delete(tableIdOrTitle)
+      } else {
+        return null
+      }
+    }
 
     const metaKey = getMetaKey(baseId, tableIdOrTitle)
     const loadingKey = metaKey
@@ -218,6 +248,7 @@ export const useMetas = createSharedComposable(() => {
     metas,
     metasWithIdAsKey,
     removeMeta,
+    clearDeletedTableId,
     setMeta,
     getPartialMeta,
     getMetaByKey,

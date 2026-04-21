@@ -35,6 +35,7 @@ import {
   ModelStat,
   Permission,
   Sandbox,
+  Script,
   Source,
   User,
   Workflow,
@@ -509,6 +510,7 @@ export default class Base extends BaseCE {
 
     await Dashboard.deleteByBaseId(context, baseId, ncMeta);
     await Workflow.deleteByBaseId(context, baseId, ncMeta);
+    await Script.deleteByBaseId(context, baseId, ncMeta);
 
     const sources = await Source.list(
       context,

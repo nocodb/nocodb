@@ -1,7 +1,15 @@
-import { RelationTypes, UITypes, getMetaWithCompositeKey, isBtLikeV2Junction, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import {
+  NC_ERROR_SENTINEL,
+  RelationTypes,
+  UITypes,
+  getMetaWithCompositeKey,
+  isBtLikeV2Junction,
+  isLinksOrLTAR,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { getRelatedBaseId, getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
-import { renderSingleLineText } from '../utils/canvas'
+import { renderCellError, renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
 
 const renderOnly1Row = [UITypes.QrCode, UITypes.Barcode, UITypes.Attachment, UITypes.LinkToAnotherRecord, UITypes.Links]
@@ -28,6 +36,11 @@ export const LookupCellRenderer: CellRenderer = {
     let x = _x
     let y = _y
     let width = _width - ellipsisWidth
+
+    if (parseProp(column.colOptions)?.error || value === NC_ERROR_SENTINEL) {
+      renderCellError(ctx, { x, y, width: _width, height, padding, getColor })
+      return
+    }
 
     // If it is empty text then no need to render
     if (!metas) return

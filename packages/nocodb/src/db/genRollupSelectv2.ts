@@ -1,6 +1,7 @@
 import {
   isBtLikeV2Junction,
   isMMOrMMLike,
+  NC_ERROR_SENTINEL,
   NcDataErrorCodes,
   RelationTypes,
   UITypes,
@@ -35,6 +36,10 @@ export default async function genRollupSelectv2(param: {
   const { baseModelSqlv2, knex, alias, columnOptions, nestedLevel = 0 } = param;
   let { parentColumns } = param;
 
+  if ((columnOptions as RollupColumn).error) {
+    return { builder: knex.raw(`?`, [NC_ERROR_SENTINEL]) };
+  }
+
   const context = baseModelSqlv2.context;
   parentColumns = parentColumns ?? CircularRefContext.make();
   const profiler = Profiler.start(
@@ -64,6 +69,10 @@ export default async function genRollupSelectv2(param: {
     relationColumn = await columnOptions.getRelationColumn(context);
   }
   profiler.log('getRelationColumn done');
+
+  if (!relationColumn) {
+    return { builder: knex.raw(`?`, [NC_ERROR_SENTINEL]) };
+  }
 
   const relationColumnOption: LinkToAnotherRecordColumn =
     (await relationColumn.getColOptions(context)) as LinkToAnotherRecordColumn;

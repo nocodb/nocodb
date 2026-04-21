@@ -43,6 +43,7 @@ export default class Script extends ScriptCE implements ScriptType {
   public static async get(
     context: NcContext,
     scriptId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     if (!scriptId) return null;
@@ -74,20 +75,23 @@ export default class Script extends ScriptCE implements ScriptType {
       }
     }
 
+    if (script?.deleted && !includeDeleted) return null;
+
     return script && new Script(script);
   }
 
   public static async list(
     context: NcContext,
     baseId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(context, CacheScope.SCRIPTS, [
       baseId,
     ]);
 
-    // eslint-disable-next-line prefer-const
-    let { list: scriptsList, isNoneList } = cachedList;
+    const { isNoneList } = cachedList;
+    let scriptsList = cachedList.list;
 
     if (!isNoneList && !scriptsList.length) {
       scriptsList = await ncMeta.metaList2(
@@ -117,9 +121,43 @@ export default class Script extends ScriptCE implements ScriptType {
       );
     }
 
+    if (!includeDeleted) {
+      scriptsList = scriptsList.filter((s) => !s.deleted);
+    }
+
     scriptsList.sort((a, b) => a.order - b.order);
 
     return scriptsList?.map((script) => new Script(script));
+  }
+
+  static async softDelete(
+    context: NcContext,
+    scriptId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.AUTOMATIONS,
+      { deleted },
+      scriptId,
+    );
+    await NocoCache.update(context, `${CacheScope.SCRIPTS}:${scriptId}`, {
+      deleted,
+    });
+
+    // Adjust workspace resource stats cache: -1 on trash, +1 on restore
+    await NocoCache.incrHashField(
+      'root',
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE,
+      deleted ? -1 : 1,
+    );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
   }
 
   static async delete(context: NcContext, scriptId: any, ncMeta = Noco.ncMeta) {
@@ -191,7 +229,7 @@ export default class Script extends ScriptCE implements ScriptType {
       logger.error('Failed to clean command palette cache');
     });
 
-    return this.get(context, scriptId, ncMeta);
+    return this.get(context, scriptId, false, ncMeta);
   }
 
   public static async insert(
@@ -240,7 +278,7 @@ export default class Script extends ScriptCE implements ScriptType {
       logger.error('Failed to clean command palette cache');
     });
 
-    return this.get(context, id, ncMeta).then(async (res) => {
+    return this.get(context, id, false, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
         context,
         CacheScope.SCRIPTS,
@@ -249,5 +287,19 @@ export default class Script extends ScriptCE implements ScriptType {
       );
       return res;
     });
+  }
+
+  public static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const scripts = await this.list(context, baseId, true, ncMeta);
+
+    for (const script of scripts) {
+      await this.delete(context, script.id, ncMeta);
+    }
+
+    return true;
   }
 }

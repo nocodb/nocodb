@@ -180,4 +180,10 @@ export const OPERATION_SCOPES = {
   mfaDisable: 'org',
   mfaStatus: 'org',
   mfaRegenerateBackupCodes: 'org',
+
+  // Base trash
+  baseTrashList: 'base',
+  baseTrashRestore: 'base',
+  baseTrashPermanentDelete: 'base',
+  baseTrashEmpty: 'base',
 } as const;

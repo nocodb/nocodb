@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, UITypes, isHiddenCol } from 'nocodb-sdk'
+import { type ColumnType, UITypes, isColumnInError, isHiddenCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue/lib/list'
 import {
@@ -54,6 +54,10 @@ const supportedColumns = computed(
   () =>
     meta?.value?.columns?.filter((col) => {
       if (uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) {
+        return false
+      }
+
+      if (isColumnInError(col)) {
         return false
       }
 

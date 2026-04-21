@@ -28,6 +28,7 @@ import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { ColumnsService } from '~/services/columns.service';
+import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import {
   hasDefaultTableVisibility,
@@ -59,6 +60,7 @@ export class TablesService {
     protected readonly metaDiffService: MetaDiffsService,
     protected readonly appHooksService: AppHooksService,
     protected readonly columnsService: ColumnsService,
+    protected readonly linkPlaceholderService: LinkPlaceholderService,
   ) {}
 
   async tableUpdate(
@@ -303,6 +305,7 @@ export class TablesService {
       user: User;
       forceDeleteRelations?: boolean;
       forceDeleteSyncs?: boolean;
+      skipLinkPlaceholder?: boolean;
       req?: any;
     },
   ) {
@@ -318,10 +321,16 @@ export class TablesService {
       );
     }
 
-    await table.getColumns(context);
+    await table.getColumns(context, undefined, undefined, true, true);
 
     if (table.mm) {
-      const columns = await table.getColumns(context);
+      const columns = await table.getColumns(
+        context,
+        undefined,
+        undefined,
+        true,
+        true,
+      );
 
       // get table names of the relation which uses the current table as junction table
       const tables = await Promise.all(
@@ -409,6 +418,40 @@ export class TablesService {
       await new ColumnWebhookManagerBuilder(context).withModelId(table.id)
     ).forDelete();
 
+    const placeholderRefTables = new Map<string, Model>();
+
+    if (!param.skipLinkPlaceholder) {
+      for (const c of relationColumns) {
+        if (c.system && !table.mm) continue;
+        try {
+          const reverseCol =
+            await this.linkPlaceholderService.findReverseLinkColumn(
+              context,
+              c.id,
+            );
+          // Skip self-ref: opposite column lives on the same table being deleted
+          if (!reverseCol || reverseCol.fk_model_id === table.id) continue;
+          const placeholderResult =
+            await this.linkPlaceholderService.createPlaceholderForReverse(
+              context,
+              reverseCol,
+            );
+          if (placeholderResult) {
+            const refTable = await Model.getWithInfo(context, {
+              id: placeholderResult.table_id,
+            });
+            if (refTable)
+              placeholderRefTables.set(placeholderResult.table_id, refTable);
+          }
+        } catch (e) {
+          this.logger.error(
+            `Failed to create link placeholder for reverse of ${c.id}: ${e.message}`,
+            e.stack,
+          );
+        }
+      }
+    }
+
     // start a transaction
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
     let result;
@@ -432,6 +475,7 @@ export class TablesService {
             columnId: c.id,
             user: param.user,
             forceDeleteSystem: true,
+            skipLinkPlaceholder: true,
             columnWebhookManager,
           },
           ncMeta,
@@ -482,6 +526,32 @@ export class TablesService {
         },
         context.socket_id,
       );
+
+      for (const [refTableId, refTable] of placeholderRefTables) {
+        if (refTableId === table.id) continue;
+        try {
+          const refContext: NcContext = {
+            ...context,
+            workspace_id: refTable.fk_workspace_id,
+            base_id: refTable.base_id,
+          };
+          await refTable.getColumns(refContext);
+          NocoSocket.broadcastEvent(refContext, {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'column_delete',
+              payload: {
+                table: refTable,
+              },
+            },
+          });
+        } catch (e) {
+          this.logger.error(
+            `Failed to broadcast placeholder column_delete for table ${refTable.id}: ${e.message}`,
+            e.stack,
+          );
+        }
+      }
     }
 
     return result;

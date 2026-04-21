@@ -361,6 +361,9 @@ export enum AppEvents {
   RECORDS_SOFT_DELETE = 'records.soft.delete',
   RECORDS_RESTORE = 'records.restore',
   RECORDS_PERMANENT_DELETE = 'records.permanent.delete',
+
+  RESOURCE_RESTORE = 'resource.restore',
+  RESOURCE_PERMANENT_DELETE = 'resource.permanent_delete',
 }
 
 export enum ClickhouseTables {

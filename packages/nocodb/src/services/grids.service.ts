@@ -42,7 +42,7 @@ export class GridsService {
 
     await assertPersonalViewAllowed(context, param.grid.lock_type);
 
-    const model = await Model.get(context, param.tableId, ncMeta);
+    const model = await Model.get(context, param.tableId, false, ncMeta);
 
     // check for duplicated view title
     param.grid.title = param.grid.title?.trim();
@@ -94,7 +94,7 @@ export class GridsService {
     );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(context, id, ncMeta);
+    const view = await View.get(context, id, false, ncMeta);
     await NocoCache.appendToList(
       context,
       CacheScope.VIEW,
@@ -150,7 +150,7 @@ export class GridsService {
       param.grid,
     );
 
-    const view = await View.get(context, param.viewId, ncMeta);
+    const view = await View.get(context, param.viewId, false, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.viewId);

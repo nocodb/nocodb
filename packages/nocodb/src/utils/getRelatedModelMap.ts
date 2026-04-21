@@ -61,6 +61,7 @@ async function processColumn(
   // Handle Lookup columns - traverse the entire lookup chain
   else if (column.uidt === UITypes.Lookup) {
     const colOptions = await column.getColOptions<LookupColumn>(context);
+    if (colOptions?.error) return;
     const relationColOpt = await colOptions
       .getRelationColumn(context)
       .then((col) => {

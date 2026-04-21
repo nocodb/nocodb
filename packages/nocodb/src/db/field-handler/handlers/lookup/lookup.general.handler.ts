@@ -52,7 +52,22 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
     let rootApply = undefined;
 
     const colOptions = await column.getColOptions<LookupColumn>(context);
+
+    if (colOptions?.error) {
+      return {
+        clause: (_qb) => {},
+        rootApply: undefined,
+      };
+    }
+
     const relationColumn = await colOptions.getRelationColumn(context);
+    if (!relationColumn) {
+      return {
+        clause: (_qb) => {},
+        rootApply: undefined,
+      };
+    }
+
     const relationColumnOptions =
       await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
     // const relationModel = await relationColumn.getModel();

@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isAIPromptCol, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol, isDeletedCol } from 'nocodb-sdk'
+import { UITypes, isAIPromptCol, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { CellRange } from '#imports'
 
@@ -28,7 +28,7 @@ export function useData(args: {
 
   const { $api } = useNuxtApp()
 
-  const { restoreFromTrash } = useRecordTrash()
+  const { restoreFromTrash, trashUnavailableReason } = useRecordTrash()
 
   const { isPaginationLoading } = storeToRefs(useViewsStore())
 
@@ -591,7 +591,7 @@ export function useData(args: {
         }
 
         if (!undo) {
-          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = !trashUnavailableReason.value
 
           addUndo({
             redo: {
@@ -737,7 +737,7 @@ export function useData(args: {
           removedRowsData: Record<string, any>[],
           pg: { page: number; pageSize: number },
         ) {
-          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = !trashUnavailableReason.value
 
           if (hasSoftDelete) {
             const rowIds = removedRowsData
@@ -885,7 +885,7 @@ export function useData(args: {
           removedRowsData: Record<string, any>[],
           pg: { page: number; pageSize: number },
         ) {
-          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = !trashUnavailableReason.value
 
           if (hasSoftDelete) {
             const rowIds = removedRowsData

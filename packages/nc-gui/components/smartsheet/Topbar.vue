@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { PlanFeatureTypes } from 'nocodb-sdk'
+
 const router = useRouter()
 const route = router.currentRoute
 
@@ -32,6 +34,8 @@ const trashUnavailableMessage = computed(() => {
       return t('trash.notAvailablePending')
     case 'disabled':
       return t('trash.autoExpiryDisabled')
+    case 'license':
+      return t('trash.notAvailableLicense')
     default:
       return ''
   }
@@ -142,43 +146,64 @@ const topbarBreadcrumbItemWidth = computed(() => {
           </NcTooltip>
           <template #overlay>
             <NcMenu variant="medium" class="min-w-40">
-              <NcMenuItem
-                v-e="['c:topbar:history-menu:snapshots']"
-                data-testid="nc-topbar-history-menu-snapshots"
-                @click="
-                  () => {
-                    isHistoryMenuOpen = false
-                    openSnapshots()
-                  }
-                "
-              >
-                <GeneralIcon icon="camera" class="text-nc-content-gray-subtle2" />
-                <div>{{ $t('labels.snapshots') }}</div>
-              </NcMenuItem>
-              <NcTooltip :disabled="!trashUnavailableReason" placement="left">
-                <template #title>{{ trashUnavailableMessage }}</template>
-                <NcMenuItem
-                  v-e="['c:topbar:history-menu:trash']"
-                  :disabled="!!trashUnavailableReason"
-                  data-testid="nc-topbar-history-menu-trash"
-                  @click="
-                    () => {
-                      if (trashUnavailableReason) return
-                      isHistoryMenuOpen = false
-                      openTrash()
-                    }
-                  "
-                >
-                  <GeneralIcon
-                    :class="{
-                      '!text-nc-content-gray-disabled': trashUnavailableReason,
-                    }"
-                    icon="ncTrash2"
-                    class="text-nc-content-gray-subtle2"
-                  />
-                  <div>{{ $t('labels.trash') }}</div>
-                </NcMenuItem>
-              </NcTooltip>
+              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_EE_CORE">
+                <template #default="{ click }">
+                  <NcMenuItem
+                    data-testid="nc-topbar-history-menu-snapshots"
+                    @click="
+                      click(
+                        PlanFeatureTypes.FEATURE_EE_CORE,
+                        isEeUI
+                          ? () => {
+                              isHistoryMenuOpen = false
+                              openSnapshots()
+                            }
+                          : undefined,
+                      )
+                    "
+                  >
+                    <div v-e="['c:topbar:history-menu:snapshots']" class="flex gap-2 items-center w-full">
+                      <GeneralIcon icon="camera" class="text-nc-content-gray-subtle2" />
+                      <div class="flex-1">{{ $t('labels.snapshots') }}</div>
+                      <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_EE_CORE" show-as-lock />
+                    </div>
+                  </NcMenuItem>
+                </template>
+              </PaymentUpgradeBadgeProvider>
+              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_EE_CORE">
+                <template #default="{ click }">
+                  <NcTooltip :disabled="!trashUnavailableReason || trashUnavailableReason === 'license'" placement="left">
+                    <template #title>{{ trashUnavailableMessage }}</template>
+                    <NcMenuItem
+                      :disabled="!!trashUnavailableReason && trashUnavailableReason !== 'license'"
+                      data-testid="nc-topbar-history-menu-trash"
+                      @click="
+                        click(
+                          PlanFeatureTypes.FEATURE_EE_CORE,
+                          trashUnavailableReason
+                            ? undefined
+                            : () => {
+                                isHistoryMenuOpen = false
+                                openTrash()
+                              },
+                        )
+                      "
+                    >
+                      <div v-e="['c:topbar:history-menu:trash']" class="flex gap-2 items-center w-full">
+                        <GeneralIcon
+                          icon="ncTrash2"
+                          class="text-nc-content-gray-subtle2"
+                          :class="{
+                            '!text-nc-content-gray-disabled': trashUnavailableReason && trashUnavailableReason !== 'license',
+                          }"
+                        />
+                        <div class="flex-1">{{ $t('labels.trash') }}</div>
+                        <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_EE_CORE" show-as-lock />
+                      </div>
+                    </NcMenuItem>
+                  </NcTooltip>
+                </template>
+              </PaymentUpgradeBadgeProvider>
             </NcMenu>
           </template>
         </NcDropdown>

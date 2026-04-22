@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import { EventType, UITypes, ViewLockType, ViewTypes, isDeletedCol } from 'nocodb-sdk'
+import { EventType, UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
 import type {
   Api,
   ColumnType,
@@ -41,7 +41,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { $e, $api, $ncSocket } = useNuxtApp()
 
-    const { restoreFromTrash } = useRecordTrash()
+    const { restoreFromTrash, trashUnavailableReason } = useRecordTrash()
 
     const { sorts, nestedFilters, eventBus, xWhere, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 
@@ -750,7 +750,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     async function deleteRow(row: Row, undo = false) {
       try {
         if (!undo) {
-          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = !trashUnavailableReason.value
 
           addUndo({
             redo: {

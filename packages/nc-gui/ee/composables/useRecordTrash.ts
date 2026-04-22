@@ -126,12 +126,16 @@ export const useRecordTrash = createSharedComposable(() => {
   //   'external' — source isn't a NocoDB-managed (meta/local) source
   //   'pending'  — meta source but no __nc_deleted column yet
   //   'disabled' — user toggled trash off in settings
+  //   'license'  — workspace plan doesn't include trash (retention ≤ 0); mirrors backend Model.isTrashEnabledForWorkspace
   //   null       — trash is fully available
-  const trashUnavailableReason = computed<'external' | 'pending' | 'disabled' | null>(() => {
+  const trashUnavailableReason = computed<'external' | 'pending' | 'disabled' | 'license' | null>(() => {
     const table = meta.value as TableType | undefined
     if (!table) return 'pending'
     const source = bases.value.get(table.base_id!)?.sources?.find((s) => s.id === table.source_id)
     if (source && !(source.is_meta || source.is_local)) return 'external'
+    // 'license' has to win over 'pending' / 'disabled' — without a plan, the column/user settings are moot
+    const limit = getLimit(PlanLimitTypes.LIMIT_TRASH_RETENTION)
+    if (!(typeof limit === 'number' && limit > 0)) return 'license'
     if (!table.columns?.some((c) => isDeletedCol(c))) return 'pending'
     if (table.trash_disabled) return 'disabled'
     return null

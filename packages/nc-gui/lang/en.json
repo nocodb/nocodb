@@ -3888,6 +3888,7 @@
     "settingsUpdated": "Trash settings updated",
     "notAvailableExternal": "Trash is not available for tables in external sources.",
     "notAvailablePending": "Trash is not yet available for this table.",
+    "notAvailableLicense": "Trash is an Enterprise feature.",
     "recordsRestoredPartial": "{restored} restored · {skipped} still in Trash",
     "recordsRestoredForce": "{restored} restored · {cleared} field(s) cleared",
     "conflict": {

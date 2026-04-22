@@ -176,6 +176,10 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
+  const blockDocs = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DOCS)
+  })
+
   const blockDocsInlineComments = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS)
   })
@@ -1127,6 +1131,17 @@ export const useEeConfig = createSharedComposable(() => {
       }),
       callback,
       limitOrFeature: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUseDocs = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockDocs.value) return
+
+    handleUpgradePlan({
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_DOCS,
     })
 
     return true
@@ -2124,6 +2139,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
+    blockDocs,
+    showUpgradeToUseDocs,
     blockDocsInlineComments,
     blockDocsResolveComments,
     blockDocsExportPdf,

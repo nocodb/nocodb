@@ -449,8 +449,10 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: true,
       [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: true,
       [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: true,
-      [PlanFeatureTypes.FEATURE_DOCS_APIS]: true,
       [PlanFeatureTypes.FEATURE_MAP_VIEW]: true,
+      // Core Docs available on unlicensed on-prem (sub-features below stay paid)
+      [PlanFeatureTypes.FEATURE_DOCS]: true,
+      [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]: true,
     },
     limits: {
       // Explicitly allowed limits for unlicensed on-prem.
@@ -479,8 +481,8 @@ export const OnPremPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_API_CALL]: -1,
       // Audit — retain some history even on free
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 30, // days
-      // Docs — enabled with sensible caps
-      [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: 10,
+      // Docs — core feature available on unlicensed on-prem (matches paid cloud)
+      [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: -1,
       [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 0, // days
       // Everything else (AI, automations, workflows, extensions,

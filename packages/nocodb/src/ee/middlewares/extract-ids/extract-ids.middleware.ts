@@ -54,6 +54,7 @@ import {
   Sort,
   Source,
   SyncSource,
+  User,
   View,
   ViewSection,
   Workspace,
@@ -1424,7 +1425,7 @@ export class AclMiddleware implements NestInterceptor {
     }
 
     // If workspace requires 2FA, block users who haven't set it up
-    // Skip for workspace owners, service users, and API tokens
+    // Skip for workspace owners, service users, API tokens, and SSO users (no password)
     // Only enforced when the force_2fa plan feature is available
     if (
       req.ncWorkspaceId &&
@@ -1439,7 +1440,11 @@ export class AclMiddleware implements NestInterceptor {
           ? JSON.parse(workspace.meta)
           : workspace?.meta;
       if (meta?.force_2fa && !req.user?.totp_enabled) {
-        NcError.mfaSetupRequired(req.ncWorkspaceId);
+        // SSO users (no password) cannot set up 2FA, so skip enforcement
+        const user = await User.get(req.user.id);
+        if (user?.password) {
+          NcError.mfaSetupRequired(req.ncWorkspaceId);
+        }
       }
     }
 

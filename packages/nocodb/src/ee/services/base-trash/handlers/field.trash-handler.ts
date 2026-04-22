@@ -11,21 +11,15 @@ import {
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
-import type { TrashHandler, TrashResult } from '~/services/base-trash/types';
+import type { TrashResult } from '~/services/base-trash/types';
 import type { MetaService } from '~/meta/meta.service';
+import { BaseTrashHandler } from '~/services/base-trash/types';
 import { getLimit } from '~/helpers/paymentHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import Column from '~/models/Column';
 import Model from '~/models/Model';
 import View from '~/models/View';
-import {
-  BarcodeColumn,
-  ButtonColumn,
-  FormulaColumn,
-  LookupColumn,
-  QrCodeColumn,
-  RollupColumn,
-} from '~/models';
+import { ButtonColumn, FormulaColumn } from '~/models';
 import addFormulaErrorIfMissingColumn from '~/helpers/addFormulaErrorIfMissingColumn';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
@@ -34,6 +28,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { ColumnsService } from '~/services/columns.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
+import { clearDependentErrorsIfResolved } from '~/services/base-trash/dependent-error-helpers';
 import { CacheScope, MetaTable } from '~/utils/globals';
 
 interface CascadedColumn {
@@ -43,8 +38,9 @@ interface CascadedColumn {
 }
 
 @Injectable()
-export class FieldTrashHandler implements TrashHandler<Column> {
+export class FieldTrashHandler extends BaseTrashHandler<Column> {
   resourceType = 'field';
+  affectedCaches = ['baseSchema'] as const;
 
   private logger = new Logger(FieldTrashHandler.name);
 
@@ -52,7 +48,9 @@ export class FieldTrashHandler implements TrashHandler<Column> {
     private readonly metaDependencyEventHandler: MetaDependencyEventHandler,
     private readonly columnsService: ColumnsService,
     private readonly linkPlaceholderService: LinkPlaceholderService,
-  ) {}
+  ) {
+    super();
+  }
 
   async trash(
     ctx: NcContext,
@@ -330,10 +328,9 @@ export class FieldTrashHandler implements TrashHandler<Column> {
     // Restore cascaded link columns + drop placeholders
     await this.restoreCascadedLinks(ctx, trashEntry, ncMeta);
 
-    // Clear dependent errors
     const relatedItems = trashEntry.getRelatedItems();
     if (relatedItems?.dependents?.length) {
-      await this.clearDependentErrors(ctx, relatedItems.dependents);
+      await clearDependentErrorsIfResolved(ctx, relatedItems.dependents);
     }
 
     // Socket broadcast — include the restored column so frontend can update
@@ -455,6 +452,7 @@ export class FieldTrashHandler implements TrashHandler<Column> {
         user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER as any,
         forceDeleteSystem: true,
         skipLinkPlaceholder: true,
+        skipTrash: true,
         columnWebhookManager: silentWebhookManager,
       },
       ncMeta,
@@ -495,6 +493,7 @@ export class FieldTrashHandler implements TrashHandler<Column> {
               columnId: item.placeholder_id,
               user: {} as any,
               forceDeleteSystem: true,
+              skipTrash: true,
             },
             ncMeta,
           );
@@ -660,37 +659,5 @@ export class FieldTrashHandler implements TrashHandler<Column> {
       dependents.push({ id: r.fk_column_id, type: 'qrcode' });
     for (const r of barcodes)
       dependents.push({ id: r.fk_column_id, type: 'barcode' });
-  }
-
-  private async clearDependentErrors(
-    ctx: NcContext,
-    dependents: Array<{ id: string; type: string }>,
-  ) {
-    type ErrorUpdater = (
-      cx: NcContext,
-      colId: string,
-      data: Record<string, unknown>,
-    ) => Promise<any>;
-
-    const updaters: Record<string, ErrorUpdater> = {
-      lookup: LookupColumn.update.bind(LookupColumn),
-      rollup: RollupColumn.update.bind(RollupColumn),
-      qrcode: QrCodeColumn.update.bind(QrCodeColumn),
-      barcode: BarcodeColumn.update.bind(BarcodeColumn),
-      formula: FormulaColumn.update.bind(FormulaColumn),
-      button: ButtonColumn.update.bind(ButtonColumn),
-    };
-
-    for (const dep of dependents) {
-      try {
-        const updater = updaters[dep.type];
-        if (updater) await updater(ctx, dep.id, { error: null });
-      } catch (e) {
-        this.logger.error(
-          `Failed to clear error on dependent ${dep.id}: ${e.message}`,
-          e.stack,
-        );
-      }
-    }
   }
 }

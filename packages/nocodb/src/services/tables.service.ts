@@ -306,6 +306,7 @@ export class TablesService {
       forceDeleteRelations?: boolean;
       forceDeleteSyncs?: boolean;
       skipLinkPlaceholder?: boolean;
+      skipTrash?: boolean;
       req?: any;
     },
   ) {

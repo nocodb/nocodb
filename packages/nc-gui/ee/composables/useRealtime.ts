@@ -205,6 +205,12 @@ export const useRealtime = createSharedComposable(() => {
       } else {
         loadProjectTables(eventBaseId, true)
       }
+
+      removeFromRecentViews({
+        tableId: deletedTableId,
+        baseId: eventBaseId,
+      })
+
       refreshCommandPalette()
     } else if (event.action === 'column_add' || event.action === 'column_update' || event.action === 'column_delete') {
       const { table, column, skipDataReload = false } = event.payload

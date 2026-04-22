@@ -3,7 +3,8 @@ import { EventType, generateUniqueCopyName, PlanLimitTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { MetaService } from '~/meta/meta.service';
-import type { TrashHandler, TrashResult } from '~/services/base-trash/types';
+import type { TrashResult } from '~/services/base-trash/types';
+import { BaseTrashHandler } from '~/services/base-trash/types';
 import Model from '~/models/Model';
 import View from '~/models/View';
 import NocoSocket from '~/socket/NocoSocket';
@@ -14,8 +15,9 @@ import { getLimit } from '~/helpers/paymentHelpers';
 import { MetaTable } from '~/utils/globals';
 
 @Injectable()
-export class ViewTrashHandler implements TrashHandler<View> {
+export class ViewTrashHandler extends BaseTrashHandler<View> {
   resourceType = 'view';
+  affectedCaches = ['commandPalette', 'baseSchema'] as const;
 
   async checkRestoreLimit(
     ctx: NcContext,

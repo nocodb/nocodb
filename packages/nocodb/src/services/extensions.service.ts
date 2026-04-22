@@ -109,6 +109,7 @@ export class ExtensionsService {
     context: NcContext,
     param: {
       extensionId: string;
+      skipTrash?: boolean;
       req: NcRequest;
     },
   ) {

@@ -7,14 +7,16 @@ import {
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { MetaService } from '~/meta/meta.service';
-import type { TrashHandler, TrashResult } from '~/services/base-trash/types';
+import type { TrashResult } from '~/services/base-trash/types';
+import { BaseTrashHandler } from '~/services/base-trash/types';
 import { DependencyTracker, Workflow } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
 import { NcError } from '~/helpers/catchError';
 
 @Injectable()
-export class WorkflowTrashHandler implements TrashHandler<Workflow> {
+export class WorkflowTrashHandler extends BaseTrashHandler<Workflow> {
   resourceType = 'workflow';
+  affectedCaches = ['commandPalette'] as const;
 
   async trash(
     ctx: NcContext,

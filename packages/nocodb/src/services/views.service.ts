@@ -435,6 +435,7 @@ export class ViewsService {
       // `base_roles` is attached by extract-ids.middleware when the caller
       // comes through the HTTP pipeline (shape mirrors NcRequest['user']).
       user: UserType & { base_roles?: Record<string, boolean> | string };
+      skipTrash?: boolean;
       req: NcRequest;
     },
     ncMeta = Noco.ncMeta,

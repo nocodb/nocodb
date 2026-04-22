@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { AppEvents } from 'nocodb-sdk';
 import { TablesService as TableServiceCE } from 'src/services/tables.service';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { TableReqType, UserType } from 'nocodb-sdk';
@@ -7,11 +8,12 @@ import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { NcError } from '~/helpers/catchError';
-import { Base } from '~/models';
+import { Base, Model } from '~/models';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { ColumnsService } from '~/services/columns.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -24,6 +26,7 @@ export class TablesService extends TableServiceCE {
     protected readonly appHooksServiceEE: AppHooksService,
     protected readonly columnsServiceEE: ColumnsService,
     protected readonly linkPlaceholderServiceEE: LinkPlaceholderService,
+    protected readonly baseTrashService: BaseTrashService,
   ) {
     super(
       metaDiffServiceEE,
@@ -31,6 +34,44 @@ export class TablesService extends TableServiceCE {
       columnsServiceEE,
       linkPlaceholderServiceEE,
     );
+  }
+
+  async tableDelete(
+    context: NcContext,
+    param: {
+      tableId: string;
+      user: User | UserType;
+      forceDeleteRelations?: boolean;
+      forceDeleteSyncs?: boolean;
+      skipLinkPlaceholder?: boolean;
+      skipTrash?: boolean;
+      req?: any;
+    },
+  ) {
+    if (param.skipTrash) {
+      return super.tableDelete(context, param as any);
+    }
+
+    const table = await Model.get(context, param.tableId);
+    if (!table) {
+      NcError.get(context).tableNotFound(param.tableId);
+    }
+
+    await this.baseTrashService.trashResource(context, {
+      resourceId: param.tableId,
+      resourceType: 'table',
+      user: param.user,
+      req: param.req,
+    });
+
+    this.appHooksServiceEE.emit(AppEvents.TABLE_DELETE, {
+      table,
+      user: param.user,
+      req: param.req,
+      context,
+    });
+
+    return true;
   }
 
   @EEOnly()

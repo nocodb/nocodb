@@ -33,7 +33,6 @@ import { SyncService } from '~/services/sync.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DateDependencyService } from '~/services/date-dependency.service';
-import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 
 @Injectable()
 export class UiPostOperations
@@ -68,7 +67,6 @@ export class UiPostOperations
     protected nocoJobsService: NocoJobsService,
     protected extensionsService: ExtensionsService,
     protected dateDependencyService: DateDependencyService,
-    protected baseTrashService: BaseTrashService,
   ) {
     super(
       dataTableService,
@@ -198,35 +196,6 @@ export class UiPostOperations
       case 'deleteTableDateDependency':
         return this.dateDependencyService.delete(context, {
           modelId: (req.query.fk_model_id || req.query.modelId) as string,
-          req,
-        });
-      // Base trash — intercept delete operations to soft-delete via trash
-      case 'tableDelete':
-        return await this.baseTrashService.trashResource(context, {
-          resourceId: req.query.tableId,
-          resourceType: 'table',
-          user: req.user,
-          req,
-        });
-      case 'columnDelete':
-        return await this.baseTrashService.trashResource(context, {
-          resourceId: req.query.columnId,
-          resourceType: 'field',
-          user: req.user,
-          req,
-        });
-      case 'viewDelete':
-        return await this.baseTrashService.trashResource(context, {
-          resourceId: req.query.viewId,
-          resourceType: 'view',
-          user: req.user,
-          req,
-        });
-      case 'extensionDelete':
-        return await this.baseTrashService.trashResource(context, {
-          resourceId: req.query.extensionId,
-          resourceType: 'extension',
-          user: req.user,
           req,
         });
     }

@@ -1,3 +1,4 @@
+import { PlanLimitTypes } from 'nocodb-sdk'
 import type { BaseTrashType } from 'nocodb-sdk'
 
 export const useBaseTrash = createSharedComposable(() => {
@@ -10,6 +11,13 @@ export const useBaseTrash = createSharedComposable(() => {
   const basesStore = useBases()
 
   const { activeProjectId } = storeToRefs(basesStore)
+
+  const { getLimit } = useEeConfig()
+
+  const retentionDays = computed(() => {
+    const limit = getLimit(PlanLimitTypes.LIMIT_TRASH_RETENTION)
+    return typeof limit === 'number' && limit > 0 ? limit : 30
+  })
 
   const isOpen = ref(false)
 
@@ -129,6 +137,7 @@ export const useBaseTrash = createSharedComposable(() => {
     totalRows,
     currentPage,
     pageSize,
+    retentionDays,
     open,
     close,
     loadTrash,

@@ -160,6 +160,10 @@ export class BaseTrashService implements OnModuleInit {
         await this.insertTrashEntry(context, { ...param, ncMeta }, result);
       }
       if (!param.ncMeta) await ncMeta.commit();
+      handler.invalidateCaches(
+        context.workspace_id,
+        result.entity?.base_id ?? context.base_id,
+      );
       return true;
     } catch (e) {
       if (!param.ncMeta) await ncMeta.rollback();
@@ -200,6 +204,11 @@ export class BaseTrashService implements OnModuleInit {
       NcError.get(context).internalServerError('Failed to restore');
     }
 
+    handler.invalidateCaches(
+      context.workspace_id,
+      trashEntry.base_id ?? context.base_id,
+    );
+
     this.appHooksService.emit(AppEvents.RESOURCE_RESTORE, {
       resourceType: trashEntry.resource_type,
       resourceId: trashEntry.resource_id,
@@ -229,21 +238,27 @@ export class BaseTrashService implements OnModuleInit {
 
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
     try {
-      // Clean up child trash entries (e.g. dashboard → widget)
+      // Clean up child trash entries (e.g. dashboard → widget, table → view/field).
       if (handler.childTypes?.length) {
+        const CHILD_CLEANUP_BATCH = 200;
         for (const childType of handler.childTypes) {
-          const childTrash = await BaseTrash.list(
-            context,
-            {
-              base_id: context.base_id,
-              resourceType: childType,
-              parentId: trashEntry.resource_id,
-              limit: 1000,
-            },
-            ncMeta,
-          );
-          for (const child of childTrash) {
-            await BaseTrash.delete(context, child.id, ncMeta);
+          // eslint-disable-next-line no-constant-condition
+          while (true) {
+            const childTrash = await BaseTrash.list(
+              context,
+              {
+                base_id: context.base_id,
+                resourceType: childType,
+                parentId: trashEntry.resource_id,
+                limit: CHILD_CLEANUP_BATCH,
+              },
+              ncMeta,
+            );
+            if (!childTrash.length) break;
+            for (const child of childTrash) {
+              await BaseTrash.delete(context, child.id, ncMeta);
+            }
+            if (childTrash.length < CHILD_CLEANUP_BATCH) break;
           }
         }
       }
@@ -257,6 +272,11 @@ export class BaseTrashService implements OnModuleInit {
       this.logger.error(e.message, e.stack);
       NcError.get(context).internalServerError('Failed to permanently delete');
     }
+
+    handler.invalidateCaches(
+      context.workspace_id,
+      trashEntry.base_id ?? context.base_id,
+    );
 
     this.appHooksService.emit(AppEvents.RESOURCE_PERMANENT_DELETE, {
       resourceType: trashEntry.resource_type,

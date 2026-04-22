@@ -3,15 +3,17 @@ import { EventType, generateUniqueCopyName, PlanLimitTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { MetaService } from '~/meta/meta.service';
-import type { TrashHandler, TrashResult } from '~/services/base-trash/types';
+import type { TrashResult } from '~/services/base-trash/types';
+import { BaseTrashHandler } from '~/services/base-trash/types';
 import { Script } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
 import { NcError } from '~/helpers/catchError';
 import { checkLimit } from '~/helpers/paymentHelpers';
 
 @Injectable()
-export class ScriptTrashHandler implements TrashHandler<Script> {
+export class ScriptTrashHandler extends BaseTrashHandler<Script> {
   resourceType = 'script';
+  affectedCaches = ['commandPalette'] as const;
 
   async checkRestoreLimit(
     ctx: NcContext,

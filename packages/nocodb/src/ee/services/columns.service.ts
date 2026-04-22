@@ -5,6 +5,7 @@ import {
   reuseOrSave,
 } from 'src/services/columns.service';
 import {
+  AppEvents,
   customLinkSupportedTypes,
   isLinksOrLTAR,
   isVirtualCol,
@@ -87,20 +88,54 @@ export class ColumnsService extends ColumnsServiceCE {
     );
   }
 
-  // Override CE hard-delete in columnBulk to soft-delete via trash, so bulk
-  // field deletes from the field manager UI route through the same trash flow
-  // as single-column delete.
-  protected async handleColumnBulkDelete(
+  async columnDelete(
     context: NcContext,
-    op: { column: Partial<Column> },
-    req: NcRequest,
+    param: {
+      req?: any;
+      columnId: string;
+      user: UserType;
+      forceDeleteSystem?: boolean;
+      skipLinkPlaceholder?: boolean;
+      skipTrash?: boolean;
+      reuse?: ReusableParams;
+      columnWebhookManager?: ColumnWebhookManager;
+    },
+    ncMeta = this.metaService,
   ) {
+    // Trash handler's permanent-delete path sets skipTrash to bypass the
+    // trash flow and run the CE hard-delete directly.
+    if (param.skipTrash) {
+      return super.columnDelete(context, param, ncMeta);
+    }
+
+    const column = await Column.get(context, { colId: param.columnId }, ncMeta);
+    if (!column) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
+    const table = await Model.getWithInfo(
+      context,
+      { id: column.fk_model_id },
+      ncMeta,
+    );
+
     await this.baseTrashService.trashResource(context, {
-      resourceId: op.column.id,
+      resourceId: param.columnId,
       resourceType: 'field',
-      user: req.user,
-      req,
+      user: param.user,
+      req: param.req,
     });
+
+    this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
+      table,
+      column,
+      columnId: column.id,
+      columns: table?.columns ?? [],
+      req: param.req,
+      context,
+    });
+
+    return true;
   }
 
   @EEOnly()

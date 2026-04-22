@@ -3,13 +3,14 @@ import { DependencyTableType, EventType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { MetaService } from '~/meta/meta.service';
-import type { TrashHandler, TrashResult } from '~/services/base-trash/types';
+import type { TrashResult } from '~/services/base-trash/types';
+import { BaseTrashHandler } from '~/services/base-trash/types';
 import { Dashboard, DependencyTracker, Widget } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
 import { NcError } from '~/helpers/catchError';
 
 @Injectable()
-export class WidgetTrashHandler implements TrashHandler<Widget> {
+export class WidgetTrashHandler extends BaseTrashHandler<Widget> {
   resourceType = 'widget';
 
   async trash(

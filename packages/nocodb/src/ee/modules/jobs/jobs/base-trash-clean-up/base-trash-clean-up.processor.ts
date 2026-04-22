@@ -49,18 +49,21 @@ export class BaseTrashCleanUpProcessor {
 
       if (!batch.length) break;
 
+      const systemUser = NOCO_SERVICE_USERS[ServiceUserType.TRASH_CLEANUP_USER];
+
       for (const entry of batch) {
         const context: NcContext = {
           workspace_id: entry.fk_workspace_id,
           base_id: entry.base_id,
+          user: systemUser as NcContext['user'],
         };
 
         try {
           await this.baseTrashService.permanentDelete(context, {
             trashId: entry.id,
-            user: NOCO_SERVICE_USERS[ServiceUserType.TRASH_CLEANUP_USER],
+            user: systemUser,
             req: {
-              user: NOCO_SERVICE_USERS[ServiceUserType.TRASH_CLEANUP_USER],
+              user: systemUser,
             } as NcRequest,
           });
 

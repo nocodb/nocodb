@@ -8,21 +8,14 @@ import {
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
-import type { TrashHandler, TrashResult } from '~/services/base-trash/types';
+import type { TrashResult } from '~/services/base-trash/types';
 import type { MetaService } from '~/meta/meta.service';
+import { BaseTrashHandler } from '~/services/base-trash/types';
 import { getLimit } from '~/helpers/paymentHelpers';
 import Column from '~/models/Column';
 import Model from '~/models/Model';
 import View from '~/models/View';
 import Base from '~/models/Base';
-import {
-  BarcodeColumn,
-  ButtonColumn,
-  FormulaColumn,
-  LookupColumn,
-  QrCodeColumn,
-  RollupColumn,
-} from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
@@ -31,6 +24,7 @@ import { ColumnsService } from '~/services/columns.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { TablesService } from '~/services/tables.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
+import { clearDependentErrorsIfResolved } from '~/services/base-trash/dependent-error-helpers';
 import { CacheScope, MetaTable } from '~/utils/globals';
 
 interface CascadedColumn {
@@ -40,8 +34,10 @@ interface CascadedColumn {
 }
 
 @Injectable()
-export class TableTrashHandler implements TrashHandler<Model> {
+export class TableTrashHandler extends BaseTrashHandler<Model> {
   resourceType = 'table';
+  childTypes = ['view', 'field'];
+  affectedCaches = ['commandPalette', 'baseSchema'] as const;
 
   private logger = new Logger(TableTrashHandler.name);
 
@@ -50,7 +46,9 @@ export class TableTrashHandler implements TrashHandler<Model> {
     private readonly tablesService: TablesService,
     private readonly columnsService: ColumnsService,
     private readonly linkPlaceholderService: LinkPlaceholderService,
-  ) {}
+  ) {
+    super();
+  }
 
   async checkRestoreLimit(
     ctx: NcContext,
@@ -238,9 +236,8 @@ export class TableTrashHandler implements TrashHandler<Model> {
     // Handle deferred restores (mutually-trashed tables)
     await this.restoreDeferredLinks(ctx, trashEntry.resource_id, ncMeta);
 
-    // Clear dependent errors
     if (relatedItems?.dependents?.length) {
-      await this.clearDependentErrors(ctx, relatedItems.dependents);
+      await clearDependentErrorsIfResolved(ctx, relatedItems.dependents);
     }
 
     // Socket broadcast — use table_create so frontend adds back to sidebar
@@ -344,6 +341,7 @@ export class TableTrashHandler implements TrashHandler<Model> {
       req: {} as any,
       forceDeleteRelations: true,
       skipLinkPlaceholder: true,
+      skipTrash: true,
     });
   }
 
@@ -462,6 +460,7 @@ export class TableTrashHandler implements TrashHandler<Model> {
               columnId: item.placeholder_id,
               user: {} as any,
               forceDeleteSystem: true,
+              skipTrash: true,
             },
             ncMeta,
           );
@@ -563,6 +562,7 @@ export class TableTrashHandler implements TrashHandler<Model> {
                 columnId: item.placeholder_id,
                 user: {} as any,
                 forceDeleteSystem: true,
+                skipTrash: true,
               },
               ncMeta,
             );
@@ -693,38 +693,6 @@ export class TableTrashHandler implements TrashHandler<Model> {
         `Failed to mark dependents for table columns ${tableId}: ${e.message}`,
         e.stack,
       );
-    }
-  }
-
-  private async clearDependentErrors(
-    ctx: NcContext,
-    dependents: Array<{ id: string; type: string }>,
-  ) {
-    type ErrorUpdater = (
-      cx: NcContext,
-      colId: string,
-      data: Record<string, unknown>,
-    ) => Promise<any>;
-
-    const updaters: Record<string, ErrorUpdater> = {
-      lookup: LookupColumn.update.bind(LookupColumn),
-      rollup: RollupColumn.update.bind(RollupColumn),
-      qrcode: QrCodeColumn.update.bind(QrCodeColumn),
-      barcode: BarcodeColumn.update.bind(BarcodeColumn),
-      formula: FormulaColumn.update.bind(FormulaColumn),
-      button: ButtonColumn.update.bind(ButtonColumn),
-    };
-
-    for (const dep of dependents) {
-      try {
-        const updater = updaters[dep.type];
-        if (updater) await updater(ctx, dep.id, { error: null });
-      } catch (e) {
-        this.logger.error(
-          `Failed to clear error on dependent ${dep.id}: ${e.message}`,
-          e.stack,
-        );
-      }
     }
   }
 }

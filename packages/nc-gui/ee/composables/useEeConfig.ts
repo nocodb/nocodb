@@ -181,15 +181,15 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockDocsInlineComments = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS)
   })
 
   const blockDocsResolveComments = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_COMMENT_RESOLVE)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_COMMENT_RESOLVE)
   })
 
   const blockDocsExportPdf = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF)
   })
 
   const blockAddNewScript = computed(() => {

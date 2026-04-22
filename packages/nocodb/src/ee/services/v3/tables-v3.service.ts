@@ -40,8 +40,9 @@ export class TablesV3Service extends TablesV3ServiceCE {
       req?: any;
     },
   ) {
-    await this.baseTrashService.trashTable(context, {
-      tableId: param.tableId,
+    await this.baseTrashService.trashResource(context, {
+      resourceId: param.tableId,
+      resourceType: 'table',
       user: param.user,
       req: param.req,
     });

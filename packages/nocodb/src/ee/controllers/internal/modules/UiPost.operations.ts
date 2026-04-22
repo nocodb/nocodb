@@ -202,8 +202,9 @@ export class UiPostOperations
         });
       // Base trash — intercept delete operations to soft-delete via trash
       case 'tableDelete':
-        return await this.baseTrashService.trashTable(context, {
-          tableId: req.query.tableId,
+        return await this.baseTrashService.trashResource(context, {
+          resourceId: req.query.tableId,
+          resourceType: 'table',
           user: req.user,
           req,
         });

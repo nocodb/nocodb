@@ -1,17 +1,52 @@
 import { Injectable } from '@nestjs/common';
-import { EventType, generateUniqueCopyName } from 'nocodb-sdk';
+import { EventType, generateUniqueCopyName, PlanLimitTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
+import type { MetaService } from '~/meta/meta.service';
 import type { TrashHandler, TrashResult } from '~/services/base-trash/types';
 import Model from '~/models/Model';
 import View from '~/models/View';
 import NocoSocket from '~/socket/NocoSocket';
 import { NcError } from '~/helpers/catchError';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
+import Noco from '~/Noco';
+import { getLimit } from '~/helpers/paymentHelpers';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class ViewTrashHandler implements TrashHandler<View> {
   resourceType = 'view';
+
+  async checkRestoreLimit(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+  ): Promise<void> {
+    if (!trashEntry.parent_id) return;
+
+    const current = await Noco.ncMeta.metaCount(
+      ctx.workspace_id,
+      ctx.base_id,
+      MetaTable.VIEWS,
+      {
+        condition: { fk_model_id: trashEntry.parent_id },
+        xcCondition: {
+          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+        },
+      },
+    );
+
+    const { limit, plan } = await getLimit(
+      PlanLimitTypes.LIMIT_VIEW_PER_TABLE,
+      ctx.workspace_id,
+    );
+
+    if (limit !== Infinity && current >= limit) {
+      NcError.planLimitExceeded(
+        `Cannot restore — you have reached the limit of ${limit} views for your plan. Upgrade to restore this view.`,
+        { plan: plan?.title, limit, current },
+      );
+    }
+  }
 
   async trash(
     ctx: NcContext,
@@ -91,8 +126,12 @@ export class ViewTrashHandler implements TrashHandler<View> {
     (await viewWebhookManager.withNewViewId(trashEntry.resource_id)).emit();
   }
 
-  async permanentDelete(ctx: NcContext, trashEntry: BaseTrash): Promise<void> {
-    await View.softDelete(ctx, trashEntry.resource_id, false);
-    await View.delete(ctx, trashEntry.resource_id);
+  async permanentDelete(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta?: MetaService,
+  ): Promise<void> {
+    await View.softDelete(ctx, trashEntry.resource_id, false, ncMeta);
+    await View.delete(ctx, trashEntry.resource_id, ncMeta);
   }
 }

@@ -207,7 +207,13 @@ export default class BaseTrash implements BaseTrashType {
     data: Partial<BaseTrash>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(data, ['related_items']);
+    const updateObj = extractProps(data, [
+      'related_items',
+      'meta',
+      'cleanup_due_at',
+    ]);
+
+    prepareForDb(updateObj, ['meta', 'related_items']);
 
     await ncMeta.metaUpdate(
       context.workspace_id,
@@ -265,7 +271,6 @@ export default class BaseTrash implements BaseTrashType {
 
   public static async deleteAllForBase(
     context: NcContext,
-    baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
     const trashEntries = await ncMeta.metaList2(
@@ -288,38 +293,6 @@ export default class BaseTrash implements BaseTrashType {
         entry.id,
       );
     }
-  }
-
-  /**
-   * Recalculate cleanup_due_at for all trash entries in a workspace.
-   * Call this when the workspace plan changes.
-   */
-  public static async recalculateCleanupDueAt(
-    workspaceId: string,
-    retentionDays: number,
-    ncMeta = Noco.ncMeta,
-  ) {
-    // Validate retentionDays
-    const days = Math.max(1, Math.min(Math.floor(Number(retentionDays) || 30), 3650));
-
-    const query = ncMeta.knexConnection(MetaTable.TRASH);
-    const client = query.client.config.client;
-
-    let dateExpr: string;
-
-    if (client === 'pg') {
-      dateExpr = `deleted_at + interval '${days} days'`;
-    } else if (client === 'mysql' || client === 'mysql2') {
-      dateExpr = `DATE_ADD(deleted_at, INTERVAL ${days} DAY)`;
-    } else if (client === 'sqlite3') {
-      dateExpr = `datetime(deleted_at, '+${days} days')`;
-    } else {
-      throw new Error(`Unsupported DB client: ${client}`);
-    }
-
-    await query.where('fk_workspace_id', workspaceId).update({
-      cleanup_due_at: ncMeta.knexConnection.raw(dateExpr),
-    });
   }
 
   public getRelatedItems(): {

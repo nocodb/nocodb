@@ -199,7 +199,10 @@ onMounted(() => {
     >
       {{ $t('trash.settings') }}
       <template #extraRight>
-        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockTrashSettings" />
+        <LazyPaymentUpgradeBadge
+          :feature="PlanFeatureTypes.FEATURE_TRASH_SETTINGS"
+          :feature-enabled-callback="() => !blockTrashSettings"
+        />
       </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem

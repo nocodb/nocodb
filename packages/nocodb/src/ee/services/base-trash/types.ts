@@ -36,6 +36,14 @@ export interface TrashHandler<T = any> {
     trashEntry: BaseTrash,
     ncMeta?: MetaService,
   ): Promise<void>;
+
+  /**
+   * Optional pre-restore plan-limit check. Each handler decides whether the
+   * resource type has a per-base / per-workspace cap and throws
+   * NcError.planLimitExceeded when restoration would cross it. No-op if the
+   * resource type has no quota.
+   */
+  checkRestoreLimit?(ctx: NcContext, trashEntry: BaseTrash): Promise<void>;
 }
 
 export const TRASH_HANDLER_TOKEN = 'TRASH_HANDLERS';

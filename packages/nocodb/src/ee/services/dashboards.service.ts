@@ -185,12 +185,16 @@ export class DashboardsService {
     return true;
   }
 
-  async widgetList(context: NcContext, dashboardId: string) {
+  private async assertDashboardLive(context: NcContext, dashboardId: string) {
     const dashboard = await Dashboard.get(context, dashboardId);
-
     if (!dashboard) {
       NcError.get(context).dashboardNotFound(dashboardId);
     }
+    return dashboard;
+  }
+
+  async widgetList(context: NcContext, dashboardId: string) {
+    await this.assertDashboardLive(context, dashboardId);
 
     return await Widget.list(context, dashboardId);
   }
@@ -202,6 +206,8 @@ export class DashboardsService {
       NcError.get(context).widgetNotFound(widgetId);
     }
 
+    await this.assertDashboardLive(context, widget.fk_dashboard_id);
+
     return widget;
   }
 
@@ -210,6 +216,10 @@ export class DashboardsService {
     insertObj: Partial<Widget>,
     req: NcRequest,
   ) {
+    if (insertObj.fk_dashboard_id) {
+      await this.assertDashboardLive(context, insertObj.fk_dashboard_id);
+    }
+
     const widget = await Widget.insert(context, insertObj);
 
     const handler = await getWidgetHandler(context, {
@@ -272,6 +282,8 @@ export class DashboardsService {
     if (!widget) {
       NcError.get(context).widgetNotFound(widgetId);
     }
+
+    await this.assertDashboardLive(context, widget.fk_dashboard_id);
 
     const existingWidgets = await Widget.list(context, widget.fk_dashboard_id);
 
@@ -364,6 +376,8 @@ export class DashboardsService {
       NcError.get(context).widgetNotFound(widgetId);
     }
 
+    await this.assertDashboardLive(context, widget.fk_dashboard_id);
+
     const updatedWidget = await Widget.update(context, widgetId, updateObj);
 
     const handler = await getWidgetHandler(context, {
@@ -430,6 +444,8 @@ export class DashboardsService {
       NcError.get(context).widgetNotFound(widgetId);
     }
 
+    await this.assertDashboardLive(context, widget.fk_dashboard_id);
+
     await this.baseTrashService.trashResource(context, {
       resourceId: widgetId,
       resourceType: 'widget',
@@ -467,6 +483,8 @@ export class DashboardsService {
     if (!widget) {
       NcError.get(context).widgetNotFound(widgetId);
     }
+
+    await this.assertDashboardLive(context, widget.fk_dashboard_id);
 
     return await getWidgetData(context, { widget: widget as WidgetType, req });
   }

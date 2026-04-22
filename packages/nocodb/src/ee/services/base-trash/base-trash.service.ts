@@ -1,20 +1,18 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { AppEvents, PlanLimitTypes } from 'nocodb-sdk';
-import { TRASH_HANDLER_TOKEN } from '~/services/base-trash/types';
 import type { OnModuleInit } from '@nestjs/common';
 import type { UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type { TrashHandler } from '~/services/base-trash/types';
+import { TRASH_HANDLER_TOKEN } from '~/services/base-trash/types';
 import BaseTrash from '~/models/BaseTrash';
-import Model from '~/models/Model';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobTypes } from '~/interface/Jobs';
 import { getLimit } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class BaseTrashService implements OnModuleInit {
@@ -55,20 +53,6 @@ export class BaseTrashService implements OnModuleInit {
     }
 
     return parseInt(process.env.NC_TRASH_RETENTION_DAYS || '30', 10);
-  }
-
-  async checkRestoreLimit(
-    context: NcContext,
-    resourceType: string,
-    trashEntry: BaseTrash,
-  ): Promise<void> {
-    if (resourceType === 'table') {
-      await this.checkTableRestoreLimit(context, trashEntry.resource_id);
-    } else if (resourceType === 'view') {
-      await this.checkViewRestoreLimit(context, trashEntry.parent_id);
-    } else if (resourceType === 'field') {
-      await this.checkFieldRestoreLimit(context, trashEntry.parent_id);
-    }
   }
 
   protected getHandler(resourceType: string): TrashHandler {
@@ -165,27 +149,26 @@ export class BaseTrashService implements OnModuleInit {
     },
   ) {
     const handler = this.getHandler(param.resourceType);
-    const result = await handler.trash(context, param.resourceId, param.ncMeta);
-    if (!result.skipTrashEntry) {
-      await this.insertTrashEntry(context, param, result);
-    }
-    return true;
-  }
 
-  async trashTable(
-    context: NcContext,
-    param: {
-      tableId: string;
-      user: Partial<UserType>;
-      req: NcRequest;
-    },
-  ) {
-    return this.trashResource(context, {
-      resourceId: param.tableId,
-      resourceType: 'table',
-      user: param.user,
-      req: param.req,
-    });
+    const ncMeta = param.ncMeta
+      ? param.ncMeta
+      : await (Noco.ncMeta as MetaService).startTransaction();
+
+    try {
+      const result = await handler.trash(context, param.resourceId, ncMeta);
+      if (!result.skipTrashEntry) {
+        await this.insertTrashEntry(context, { ...param, ncMeta }, result);
+      }
+      if (!param.ncMeta) await ncMeta.commit();
+      return true;
+    } catch (e) {
+      if (!param.ncMeta) await ncMeta.rollback();
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error(e.message, e.stack);
+      NcError.get(context).internalServerError(
+        `Failed to trash ${param.resourceType}`,
+      );
+    }
   }
 
   async restore(
@@ -201,11 +184,21 @@ export class BaseTrashService implements OnModuleInit {
       NcError.get(context).trashNotFound(param.trashId);
     }
 
-    await this.checkRestoreLimit(context, trashEntry.resource_type, trashEntry);
-
     const handler = this.getHandler(trashEntry.resource_type);
-    await handler.restore(context, trashEntry);
-    await BaseTrash.delete(context, trashEntry.id);
+
+    await handler.checkRestoreLimit?.(context, trashEntry);
+
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+    try {
+      await handler.restore(context, trashEntry, ncMeta);
+      await BaseTrash.delete(context, trashEntry.id, ncMeta);
+      await ncMeta.commit();
+    } catch (e) {
+      await ncMeta.rollback();
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error(e.message, e.stack);
+      NcError.get(context).internalServerError('Failed to restore');
+    }
 
     this.appHooksService.emit(AppEvents.RESOURCE_RESTORE, {
       resourceType: trashEntry.resource_type,
@@ -234,23 +227,36 @@ export class BaseTrashService implements OnModuleInit {
 
     const handler = this.getHandler(trashEntry.resource_type);
 
-    // Clean up child trash entries (e.g. dashboard → widget)
-    if (handler.childTypes?.length) {
-      for (const childType of handler.childTypes) {
-        const childTrash = await BaseTrash.list(context, {
-          base_id: context.base_id,
-          resourceType: childType,
-          parentId: trashEntry.resource_id,
-          limit: 1000,
-        });
-        for (const child of childTrash) {
-          await BaseTrash.delete(context, child.id);
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+    try {
+      // Clean up child trash entries (e.g. dashboard → widget)
+      if (handler.childTypes?.length) {
+        for (const childType of handler.childTypes) {
+          const childTrash = await BaseTrash.list(
+            context,
+            {
+              base_id: context.base_id,
+              resourceType: childType,
+              parentId: trashEntry.resource_id,
+              limit: 1000,
+            },
+            ncMeta,
+          );
+          for (const child of childTrash) {
+            await BaseTrash.delete(context, child.id, ncMeta);
+          }
         }
       }
-    }
 
-    await handler.permanentDelete(context, trashEntry);
-    await BaseTrash.delete(context, trashEntry.id);
+      await handler.permanentDelete(context, trashEntry, ncMeta);
+      await BaseTrash.delete(context, trashEntry.id, ncMeta);
+      await ncMeta.commit();
+    } catch (e) {
+      await ncMeta.rollback();
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error(e.message, e.stack);
+      NcError.get(context).internalServerError('Failed to permanently delete');
+    }
 
     this.appHooksService.emit(AppEvents.RESOURCE_PERMANENT_DELETE, {
       resourceType: trashEntry.resource_type,
@@ -274,6 +280,8 @@ export class BaseTrashService implements OnModuleInit {
   ) {
     const batchSize = 100;
     let batch: BaseTrash[];
+    let deleted = 0;
+    const failed: Array<{ id: string; error: string }> = [];
 
     do {
       batch = await BaseTrash.list(context, {
@@ -281,6 +289,7 @@ export class BaseTrashService implements OnModuleInit {
         limit: batchSize,
       });
 
+      let batchDeleted = 0;
       for (const entry of batch) {
         try {
           await this.permanentDelete(context, {
@@ -288,109 +297,20 @@ export class BaseTrashService implements OnModuleInit {
             user: param.user,
             req: param.req,
           });
+          deleted++;
+          batchDeleted++;
         } catch (e) {
           this.logger.error(
             `Failed to permanently delete trash entry ${entry.id}: ${e.message}`,
             e.stack,
           );
+          failed.push({ id: entry.id, error: e?.message ?? 'unknown' });
         }
       }
+
+      if (batch.length && batchDeleted === 0) break;
     } while (batch.length === batchSize);
 
-    return true;
-  }
-
-  private async checkTableRestoreLimit(
-    context: NcContext,
-    tableId: string,
-  ): Promise<void> {
-    const table = await Model.get(context, tableId, true);
-    if (!table) return;
-
-    const tablesInBase = await Noco.ncMeta.metaCount(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.MODELS,
-      {
-        condition: { source_id: table.source_id },
-        xcCondition: {
-          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
-        },
-      },
-    );
-
-    const { limit, plan } = await getLimit(
-      PlanLimitTypes.LIMIT_TABLE_PER_BASE,
-      context.workspace_id,
-    );
-
-    if (limit !== Infinity && tablesInBase >= limit) {
-      NcError.planLimitExceeded(
-        `Cannot restore — you have reached the limit of ${limit} tables for your plan. Upgrade to restore this table.`,
-        { plan: plan?.title, limit, current: tablesInBase },
-      );
-    }
-  }
-
-  private async checkViewRestoreLimit(
-    context: NcContext,
-    tableId: string,
-  ): Promise<void> {
-    if (!tableId) return;
-
-    const viewsInTable = await Noco.ncMeta.metaCount(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.VIEWS,
-      {
-        condition: { fk_model_id: tableId },
-        xcCondition: {
-          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
-        },
-      },
-    );
-
-    const { limit, plan } = await getLimit(
-      PlanLimitTypes.LIMIT_VIEW_PER_TABLE,
-      context.workspace_id,
-    );
-
-    if (limit !== Infinity && viewsInTable >= limit) {
-      NcError.planLimitExceeded(
-        `Cannot restore — you have reached the limit of ${limit} views for your plan. Upgrade to restore this view.`,
-        { plan: plan?.title, limit, current: viewsInTable },
-      );
-    }
-  }
-
-  private async checkFieldRestoreLimit(
-    context: NcContext,
-    tableId: string,
-  ): Promise<void> {
-    if (!tableId) return;
-
-    const columnsInTable = await Noco.ncMeta.metaCount(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COLUMNS,
-      {
-        condition: { fk_model_id: tableId },
-        xcCondition: {
-          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
-        },
-      },
-    );
-
-    const { limit, plan } = await getLimit(
-      PlanLimitTypes.LIMIT_COLUMN_PER_TABLE,
-      context.workspace_id,
-    );
-
-    if (limit !== Infinity && columnsInTable >= limit) {
-      NcError.planLimitExceeded(
-        `Cannot restore — you have reached the limit of ${limit} fields for your plan. Upgrade to restore this field.`,
-        { plan: plan?.title, limit, current: columnsInTable },
-      );
-    }
+    return { deleted, failed };
   }
 }

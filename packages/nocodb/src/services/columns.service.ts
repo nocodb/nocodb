@@ -513,7 +513,10 @@ export class ColumnsService implements IColumnsService {
     );
 
     const isSyncedColumn =
-      table.synced && column.readonly && column.uidt !== UITypes.AutoNumber;
+      table.synced &&
+      column.readonly &&
+      column.uidt !== UITypes.AutoNumber &&
+      column.uidt !== UITypes.UUID;
 
     const payloadHasNonMetaProps = Object.keys(param.column).some(
       (k) => !META_ONLY_COLUMN_PROPS.has(k),
@@ -2935,6 +2938,11 @@ export class ColumnsService implements IColumnsService {
 
           // UUID fields must have unique constraint (per PRD requirement DR-2)
           colBody.unique = true;
+
+          // UUID is DB-generated (gen_random_uuid()) and cannot be overridden.
+          // Mirrors AutoNumber — the generic col.readonly guards in BaseModelSqlv2
+          // (insert path ~3921, update path ~5655) reject user-supplied values.
+          colBody.readonly = true;
 
           // Generate column ID upfront for unique constraint name
           const columnId = await ncMeta.genNanoid(MetaTable.COLUMNS);

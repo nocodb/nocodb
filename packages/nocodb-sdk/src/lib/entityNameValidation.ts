@@ -1,21 +1,21 @@
-export const ACCOUNT_NAME_MIN_LENGTH = 1;
-export const ACCOUNT_NAME_MAX_LENGTH = 50;
+export const ENTITY_NAME_MIN_LENGTH = 1;
+export const ENTITY_NAME_MAX_LENGTH = 150;
 
 /**
  * Allowed characters: Unicode letters, numbers, regular spaces, hyphens,
  * underscores, periods, parentheses, ampersands, commas, apostrophes.
  */
-export const ACCOUNT_NAME_ALLOWED_PATTERN =
+export const ENTITY_NAME_ALLOWED_PATTERN =
   /^[\p{L}\p{N} \-_.,&'()]+$/u;
 
 /**
  * Must contain at least one Unicode letter or number.
  */
-export const ACCOUNT_NAME_ALPHANUMERIC_PATTERN = /[\p{L}\p{N}]/u;
+export const ENTITY_NAME_ALPHANUMERIC_PATTERN = /[\p{L}\p{N}]/u;
 
 const CONSECUTIVE_SPACES_PATTERN = / {2,}/;
 
-export function validateAccountName(
+export function validateEntityName(
   name: string | undefined | null,
   entityLabel = 'Name',
 ): { valid: boolean; error?: string } {
@@ -25,21 +25,21 @@ export function validateAccountName(
 
   const trimmed = name.trim();
 
-  if (trimmed.length > ACCOUNT_NAME_MAX_LENGTH) {
+  if (trimmed.length > ENTITY_NAME_MAX_LENGTH) {
     return {
       valid: false,
-      error: `${entityLabel} must be at most ${ACCOUNT_NAME_MAX_LENGTH} characters long`,
+      error: `${entityLabel} must be at most ${ENTITY_NAME_MAX_LENGTH} characters long`,
     };
   }
 
-  if (!ACCOUNT_NAME_ALLOWED_PATTERN.test(trimmed)) {
+  if (!ENTITY_NAME_ALLOWED_PATTERN.test(trimmed)) {
     return {
       valid: false,
       error: `${entityLabel} can only contain letters, numbers, spaces, hyphens, underscores, periods, parentheses, ampersands, commas, and apostrophes`,
     };
   }
 
-  if (!ACCOUNT_NAME_ALPHANUMERIC_PATTERN.test(trimmed)) {
+  if (!ENTITY_NAME_ALPHANUMERIC_PATTERN.test(trimmed)) {
     return {
       valid: false,
       error: `${entityLabel} must contain at least one letter or number`,

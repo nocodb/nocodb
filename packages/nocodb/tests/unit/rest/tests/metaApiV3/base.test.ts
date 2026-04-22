@@ -151,7 +151,7 @@ export default function () {
         expect(err.body.message).to.equal("Workspace 'invalidId' not found");
       }
 
-      // base name exceeds 255 characters
+      // base name exceeds 150 characters
       const baseDataLong = {
         title: 'Test Base Long'.repeat(100),
       };
@@ -166,7 +166,7 @@ export default function () {
         'message',
         'error',
       ]);
-      expect(errLong.body.message).to.contains(`'title' must be at most 50 characters`);
+      expect(errLong.body.message).to.contains(`'title' must be at most 150 characters`);
     });
     it('Read Base v3', async () => {
       const baseObj = await _createBase(baseData);

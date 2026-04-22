@@ -13164,7 +13164,7 @@
             "type": "string",
             "description": "Team name",
             "example": "Design Team",
-            "maxLength": 50
+            "maxLength": 150
           },
           "icon": {
             "type": [
@@ -13270,7 +13270,7 @@
             "type": "string",
             "description": "Team name",
             "example": "Design Team",
-            "maxLength": 50,
+            "maxLength": 150,
             "minLength": 1
           },
           "icon": {
@@ -13334,7 +13334,7 @@
             "type": "string",
             "description": "Updated team name",
             "example": "Updated Team Name",
-            "maxLength": 50,
+            "maxLength": 150,
             "minLength": 1
           },
           "icon": {

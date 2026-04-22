@@ -27315,7 +27315,7 @@
           "title": {
             "description": "Base Title",
             "example": "My Base",
-            "maxLength": 50,
+            "maxLength": 150,
             "minLength": 1,
             "type": "string"
           },
@@ -27382,7 +27382,7 @@
           "title": {
             "description": "Base Title",
             "example": "My Base",
-            "maxLength": 128,
+            "maxLength": 150,
             "minLength": 1,
             "type": "string"
           },

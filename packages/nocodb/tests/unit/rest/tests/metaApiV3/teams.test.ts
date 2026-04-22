@@ -262,7 +262,7 @@ export default function () {
 
     it('Create Team v3 - Name Too Long', async () => {
       const createData = {
-        title: 'A'.repeat(51), // Exceeds 50 character limit
+        title: 'A'.repeat(151), // Exceeds 150 character limit
         icon: '🎨',
         badge_color: '#FF5733',
       };

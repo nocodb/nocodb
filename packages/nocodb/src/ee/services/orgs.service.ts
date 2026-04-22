@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, CloudOrgUserRoles, type DomainReqType, validateAccountName } from 'nocodb-sdk';
+import { AppEvents, CloudOrgUserRoles, type DomainReqType, validateEntityName } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import {
   DbServer,
@@ -30,7 +30,7 @@ export class OrgsService {
       NcError.userNotFound(param.userId);
     }
 
-    const nameValidation = validateAccountName(
+    const nameValidation = validateEntityName(
       param.title,
       'Organization name',
     );
@@ -242,7 +242,7 @@ export class OrgsService {
     req: NcRequest;
   }) {
     if (param.org.title !== undefined) {
-      const nameValidation = validateAccountName(
+      const nameValidation = validateEntityName(
         param.org.title,
         'Organization name',
       );

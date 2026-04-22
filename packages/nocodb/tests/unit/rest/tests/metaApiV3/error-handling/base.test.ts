@@ -80,17 +80,17 @@ export default function () {
         expect(result.body.message).to.includes(`'title' must not be empty`);
       });
 
-      it('will handle base title over 50 chars', async () => {
+      it('will handle base title over 150 chars', async () => {
         const workspaceId = context.fk_workspace_id;
         const result = await request(context.app)
           .post(`${API_PREFIX}/${workspaceId}/bases`)
           .set('xc-token', context.xc_token)
           .send({
-            title: 'a'.repeat(52),
+            title: 'a'.repeat(151),
           })
           .expect(400);
         expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
-        expect(result.body.message).to.includes(`'title' must be at most 50 characters`);
+        expect(result.body.message).to.includes(`'title' must be at most 150 characters`);
       });
 
       it('will handle base meta props invalid', async () => {

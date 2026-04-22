@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { IconType, PlanFeatureTypes, PublicAttachmentScope, WorkspaceUserRoles, parseProp, validateAccountName } from 'nocodb-sdk'
+import { IconType, PlanFeatureTypes, PublicAttachmentScope, WorkspaceUserRoles, parseProp, validateEntityName } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
@@ -67,7 +67,7 @@ const formRules = {
     {
       validator: (_: any, value: any) => {
         return new Promise((resolve, reject) => {
-          const result = validateAccountName(value, 'Workspace name')
+          const result = validateEntityName(value, 'Workspace name')
           if (!result.valid) {
             return reject(new Error(result.error))
           }

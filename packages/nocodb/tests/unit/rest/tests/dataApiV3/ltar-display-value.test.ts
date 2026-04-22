@@ -71,7 +71,12 @@ describe('dataApiV3', () => {
         workspace_id: parentTable.fk_workspace_id,
         base_id: parentTable.base_id,
       };
-      return (await parentTable.getColumns(ctx)).find((c) => c.title === title);
+      // V1 BT lands the user-facing column on the child side (the BT half of
+      // createHmAndBtColumn is the one that receives colExtra). For every
+      // other relation type it lives on parentTable.
+      const owner =
+        opts.type === RelationTypes.BELONGS_TO ? childTable : parentTable;
+      return (await owner.getColumns(ctx)).find((c) => c.title === title);
     };
 
     const patchColumn = async (
@@ -95,13 +100,15 @@ describe('dataApiV3', () => {
       return res.body;
     };
 
+    // V3 with linksAsLtar=true so V2 Links columns expand into nested records
+    // (V1 API keeps them as counts, which is why this test file avoids it).
     const listRows = async (tableId: string) => {
       const res = await request(getApp())
-        .get(`/api/v1/db/data/noco/${testContext.base.id}/${tableId}`)
+        .get(`/api/v3/data/${testContext.base.id}/${tableId}/records`)
         .set('xc-auth', getToken())
-        .query({ limit: 100 });
+        .query({ limit: 100, linksAsLtar: 'true' });
       expect(res.status).to.equal(200);
-      return res.body.list as any[];
+      return res.body.records as any[];
     };
 
     const linkV3 = async (
@@ -289,19 +296,16 @@ describe('dataApiV3', () => {
     // ----------------------------------------------------------------------
 
     describe('validation', () => {
-      it('rejects a non-existent display value column id', async () => {
-        const res: any = await createLtar(
-          tblA,
-          tblB,
-          'BadV1HM',
-          {
-            uidt: UITypes.LinkToAnotherRecord,
-            type: RelationTypes.HAS_MANY,
-            fk_display_value_column_id: 'does_not_exist_12345',
-          },
-          400,
-        );
-        expect(res.body.message || res.body.msg).to.match(/not found|not supported/i);
+      it('silently clears override when column id does not exist', async () => {
+        // Non-existent ids are a schema-drift signal (stale client cache,
+        // undo/redo mid-session). The create path coerces them to null
+        // instead of 400-ing so the user's link is still created.
+        const col: any = await createLtar(tblA, tblB, 'BadV1HM', {
+          uidt: UITypes.LinkToAnotherRecord,
+          type: RelationTypes.HAS_MANY,
+          fk_display_value_column_id: 'does_not_exist_12345',
+        });
+        await assertPersisted(col, null);
       });
 
       it('PATCH clears override when set to null', async () => {
@@ -362,21 +366,24 @@ describe('dataApiV3', () => {
           labelB.id,
         );
 
-        // Link TblA.row1 → TblB.row1
+        // Link TblA.row1 → TblB.row1. V3 records have the shape
+        // { id, id_fields, fields: { ... } }; nested LTAR rows follow the
+        // same shape under `fields[<ltarTitle>]`.
         const rowsA = await listRows(tblA.id);
         const rowsB = await listRows(tblB.id);
-        const a1 = rowsA.find((r) => r.Title === 'A1');
-        const b1 = rowsB.find((r) => r.Title === 'B1');
-        const a1Id = String(a1.Id ?? a1.id);
-        const b1Id = String(b1.Id ?? b1.id);
-        await linkV3(tblA.id, linkCol.id, a1Id, b1Id);
+        const a1 = rowsA.find((r) => r.fields?.Title === 'A1');
+        const b1 = rowsB.find((r) => r.fields?.Title === 'B1');
+        await linkV3(tblA.id, linkCol.id, String(a1.id), String(b1.id));
 
         const rowsAAfter = await listRows(tblA.id);
-        const a1After = rowsAAfter.find((r) => r.Title === 'A1');
-        const nested = a1After[title];
+        const a1After = rowsAAfter.find((r) => r.fields?.Title === 'A1');
+        const nested = a1After.fields[title];
         const linked = Array.isArray(nested) ? nested[0] : nested;
         expect(linked, `${title}: nested payload must exist`).to.exist;
-        expect(linked.Label, `${title}: override col Label must be present`).to.equal('B-one');
+        expect(
+          linked.fields.Label,
+          `${title}: override col Label must be present`,
+        ).to.equal('B-one');
       };
 
       it('V1 HM', async () => {

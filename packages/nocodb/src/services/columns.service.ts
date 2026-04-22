@@ -194,6 +194,26 @@ function validateDateFormatMeta(context: NcContext, meta: unknown) {
   }
 }
 
+// Resolves the LTAR custom display value column id against the related table.
+// Missing column silently falls back to null (handles stale client state and
+// cross-session schema drift). Existing-but-unsupported column type throws —
+// that's a caller-contract violation we want to surface.
+function resolveDisplayValueColumnOrThrow(
+  context: NcContext,
+  relatedTable: Model,
+  requestedId: string | null | undefined,
+): string | null {
+  if (!requestedId) return null;
+  const col = relatedTable.columns?.find((c) => c.id === requestedId);
+  if (!col) return null;
+  if (!isSupportedDisplayValueColumn(col)) {
+    NcError.get(context).badRequest(
+      'Selected column type is not supported as a display value field',
+    );
+  }
+  return col.id;
+}
+
 // todo: move
 export enum Altered {
   NEW_COLUMN = 1,
@@ -1214,8 +1234,11 @@ export class ColumnsService implements IColumnsService {
               (colBody as any).fk_display_value_column_id === null ||
               (colBody as any).fk_display_value_column_id
             ) {
-              // Validate that the column belongs to the related table and is a supported type
-              if ((colBody as any).fk_display_value_column_id) {
+              // Resolve via shared helper — missing column silently becomes
+              // null, unsupported type throws. Mirrors the create path.
+              let resolvedDisplayValueColumnId: string | null =
+                (colBody as any).fk_display_value_column_id ?? null;
+              if (resolvedDisplayValueColumnId) {
                 const colOptions =
                   await column.getColOptions<LinkToAnotherRecordColumn>(
                     context,
@@ -1232,26 +1255,16 @@ export class ColumnsService implements IColumnsService {
                     colOptions.fk_related_model_id,
                   );
                 }
-                const displayCol = relatedModel.columns?.find(
-                  (c) =>
-                    c.id === (colBody as any).fk_display_value_column_id,
+                resolvedDisplayValueColumnId = resolveDisplayValueColumnOrThrow(
+                  context,
+                  relatedModel,
+                  resolvedDisplayValueColumnId,
                 );
-                if (!displayCol) {
-                  NcError.get(context).fieldNotFound(
-                    (colBody as any).fk_display_value_column_id,
-                  );
-                }
-                if (!isSupportedDisplayValueColumn(displayCol)) {
-                  NcError.get(context).badRequest(
-                    'Selected column type is not supported as a display value field',
-                  );
-                }
               }
 
               await Column.updateDisplayValueColumn(context, {
                 colId: param.columnId,
-                fk_display_value_column_id: (colBody as any)
-                  .fk_display_value_column_id,
+                fk_display_value_column_id: resolvedDisplayValueColumnId,
               });
 
               // Re-clear after the write — changing the display value column
@@ -5562,15 +5575,11 @@ export class ColumnsService implements IColumnsService {
         ltarReq.type === 'bt' ? ltarReq.parentId : ltarReq.childId;
       const linkedTable =
         table.id === linkedTableId ? table : refTable;
-      const hmBtDisplayValueCol = ltarReq.fk_display_value_column_id
-        ? linkedTable.columns?.find(
-            (c) => c.id === ltarReq.fk_display_value_column_id,
-          )
-        : undefined;
-      const hmBtDisplayValueColumnId =
-        hmBtDisplayValueCol && isSupportedDisplayValueColumn(hmBtDisplayValueCol)
-          ? hmBtDisplayValueCol.id
-          : null;
+      const hmBtDisplayValueColumnId = resolveDisplayValueColumnOrThrow(
+        context,
+        linkedTable,
+        ltarReq.fk_display_value_column_id,
+      );
 
       savedColumn = await createHmAndBtColumn(
         context,
@@ -5690,15 +5699,11 @@ export class ColumnsService implements IColumnsService {
       }
       const ooOut: { childRelColId?: string; savedColumnId?: string } = {};
       // OO user-facing column (HM-side) displays refTable records
-      const ooDisplayValueCol = ltarReq.fk_display_value_column_id
-        ? refTable.columns?.find(
-            (c) => c.id === ltarReq.fk_display_value_column_id,
-          )
-        : undefined;
-      const ooDisplayValueColumnId =
-        ooDisplayValueCol && isSupportedDisplayValueColumn(ooDisplayValueCol)
-          ? ooDisplayValueCol.id
-          : null;
+      const ooDisplayValueColumnId = resolveDisplayValueColumnOrThrow(
+        context,
+        refTable,
+        ltarReq.fk_display_value_column_id,
+      );
 
       savedColumn = await createOOColumn(
         context,
@@ -5968,14 +5973,11 @@ export class ColumnsService implements IColumnsService {
         fk_child_column_id: primaryKey.id,
         fk_parent_column_id: refPrimaryKey.id,
         fk_target_view_id: childView?.id,
-        fk_display_value_column_id: (() => {
-          const col = ltarReq.fk_display_value_column_id
-            ? refTable.columns?.find(
-                (c) => c.id === ltarReq.fk_display_value_column_id,
-              )
-            : undefined;
-          return col && isSupportedDisplayValueColumn(col) ? col.id : null;
-        })(),
+        fk_display_value_column_id: resolveDisplayValueColumnOrThrow(
+          context,
+          refTable,
+          ltarReq.fk_display_value_column_id,
+        ),
 
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: parentCol.id,

@@ -38,9 +38,7 @@ export class TrashGetOperations
         return await this.recordTrashService.listTrashEvents(context, {
           tableId: req.query.tableId as string,
           limit: req.query.limit ? +req.query.limit : undefined,
-          cursor: req.query.cursor
-            ? (req.query.cursor as string)
-            : undefined,
+          cursor: req.query.cursor ? (req.query.cursor as string) : undefined,
         });
       case 'recordTrashCount':
         return await this.recordTrashService.getTrashCount(context, {

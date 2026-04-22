@@ -18,9 +18,7 @@ export const useRecordTrash = createSharedComposable(() => {
     trashCount: ref(0),
     hasMoreEvents: ref(false),
     retentionDays: ref(30),
-    trashUnavailableReason: computed<'external' | 'pending' | 'disabled' | null>(
-      () => 'pending',
-    ),
+    trashUnavailableReason: computed<'external' | 'pending' | 'disabled' | null>(() => 'pending'),
     loadTrashEvents: async (_opts?: { append?: boolean }) => {},
     loadMoreEvents: async () => {},
     restoreFromTrash,

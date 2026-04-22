@@ -18,8 +18,7 @@ export const getAppUrl = () => {
       siteUrl = parsedPayload.siteUrl;
     } catch {
       // if error then fallback to default
-      siteUrl =
-        ncSiteUrl || `http://localhost:${process.env.PORT || 8080}`;
+      siteUrl = ncSiteUrl || `http://localhost:${process.env.PORT || 8080}`;
     }
   }
   return `${siteUrl}${process.env.NC_DASHBOARD_URL ?? '/'}`;

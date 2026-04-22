@@ -6,7 +6,6 @@ import { Model, Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import SimpleLRUCache from '~/utils/cache';
-import { isEE } from '~/utils';
 import Noco from '~/Noco';
 
 const PARALLEL_LIMIT = +process.env.NC_ORDER_MIGRATION_PARALLEL_LIMIT || 10;

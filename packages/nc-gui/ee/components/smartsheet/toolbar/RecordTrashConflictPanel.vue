@@ -55,9 +55,7 @@ const cleanCount = computed(() => Math.max(0, props.rowCount - conflictedRowCoun
     <div class="px-6 py-4 flex flex-col gap-3">
       <!-- Header -->
       <div class="flex items-start gap-2.5">
-        <div
-          class="w-5 h-5 rounded-full bg-nc-fill-red flex items-center justify-center shrink-0 mt-0.5"
-        >
+        <div class="w-5 h-5 rounded-full bg-nc-fill-red flex items-center justify-center shrink-0 mt-0.5">
           <GeneralIcon icon="alertTriangle" class="w-3 h-3 text-white" />
         </div>
         <div class="flex-1 min-w-0">

@@ -217,11 +217,11 @@ import type {
   TeamUpdateEvent,
   UserEmailVerificationEvent,
   UserInviteEvent,
-  UserMfaSetupEvent,
-  UserMfaEnabledEvent,
-  UserMfaDisabledEvent,
-  UserMfaVerifyEvent,
   UserMfaBackupCodeUsedEvent,
+  UserMfaDisabledEvent,
+  UserMfaEnabledEvent,
+  UserMfaSetupEvent,
+  UserMfaVerifyEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
@@ -627,13 +627,10 @@ export class AppHooksListenerService
           param.req.user = param.user;
 
           await this.auditInsert(
-            await generateAuditV1Payload(
-              AuditV1OperationTypes.USER_MFA_SETUP,
-              {
-                context: param.context,
-                req: param.req,
-              },
-            ),
+            await generateAuditV1Payload(AuditV1OperationTypes.USER_MFA_SETUP, {
+              context: param.context,
+              req: param.req,
+            }),
           );
         }
         break;

@@ -23,7 +23,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
   const { ncNavigateTo } = useGlobal()
   const { refreshCommandPalette } = useCommandPalette()
 
-  const { isEEFeatureBlocked, showUpgradeForEEFeature } = useEeConfig()
+  const { blockDocs, showUpgradeToUseDocs } = useEeConfig()
 
   const basesStore = useBases()
   const { activeProjectId } = storeToRefs(basesStore)
@@ -88,7 +88,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
    * This is the initial load — children are fetched lazily on expand.
    */
   const loadDocuments = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    if (isEEFeatureBlocked.value) return []
+    if (blockDocs.value) return []
 
     const rootKey = `root:${baseId}`
 
@@ -131,7 +131,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
    * Fetched children are merged into the flat document list.
    */
   const loadChildren = async (baseId: string, parentDocId: string) => {
-    if (isEEFeatureBlocked.value) return
+    if (blockDocs.value) return
     if (loadedParentIds.value.has(parentDocId)) return
     if (loadingParentIds.value.has(parentDocId)) return
 
@@ -221,8 +221,8 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
   const createDocument = async (baseId: string, payload?: Partial<DocumentType>) => {
     if (!activeWorkspaceId.value) return null
 
-    if (isEEFeatureBlocked.value) {
-      showUpgradeForEEFeature(t('objects.documents'))
+    if (blockDocs.value) {
+      showUpgradeToUseDocs()
       return null
     }
 

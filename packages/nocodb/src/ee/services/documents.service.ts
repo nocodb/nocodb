@@ -16,7 +16,11 @@ import { DocumentsService as DocumentsServiceCE } from 'src/services/documents.s
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { checkForFeature, checkLimit, getLimit } from '~/helpers/paymentHelpers';
+import {
+  checkForFeature,
+  checkLimit,
+  getLimit,
+} from '~/helpers/paymentHelpers';
 import { Document, FileReference, Permission } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';

@@ -39,7 +39,10 @@ class SnowflakeClient extends KnexClient {
             const originalThen = builder.then;
 
             builder.then = function (onFulfilled, onRejected) {
-              if (self.sqlClient && self.sqlClient.isExternal) {
+              if (
+                self.sqlClient &&
+                (self.sqlClient.isExternal || self.sqlClient.extDb?.upgrader)
+              ) {
                 return runExternal(builder.toQuery(), self.sqlClient.extDb, {
                   raw: true,
                 })

@@ -12,6 +12,7 @@ const { blockMfa, showUpgradeToUseMfa, isEEFeatureBlocked } = useEeConfig()
 const { copy } = useCopy()
 
 const mfaEnabled = ref(false)
+const hasPassword = ref(true)
 const isLoading = ref(false)
 
 // Setup wizard state
@@ -43,6 +44,7 @@ async function fetchStatus() {
   try {
     const response = await api.instance.get('/api/v2/auth/mfa/status')
     mfaEnabled.value = response.data.enabled
+    hasPassword.value = response.data.hasPassword ?? true
   } catch {
     // ignore
   }
@@ -113,14 +115,14 @@ function closeSetupModal() {
 }
 
 async function confirmDisable() {
-  if (!disablePassword.value) return
+  if (hasPassword.value && !disablePassword.value) return
 
   isLoading.value = true
   disableError.value = ''
 
   try {
     await api.instance.post('/api/v2/auth/mfa/disable', {
-      password: disablePassword.value,
+      ...(hasPassword.value ? { password: disablePassword.value } : {}),
     })
     mfaEnabled.value = false
     showDisableModal.value = false
@@ -460,7 +462,7 @@ onMounted(() => {
       :title="$t('labels.disableTwoFactor')"
       :show-icon="false"
       :ok-text="$t('labels.disableTwoFactor')"
-      :ok-props="{ type: 'danger', loading: isLoading, disabled: !disablePassword }"
+      :ok-props="{ type: 'danger', loading: isLoading, disabled: hasPassword && !disablePassword }"
       @cancel="
         () => {
           disablePassword = ''
@@ -478,7 +480,7 @@ onMounted(() => {
           </template>
         </NcAlert>
 
-        <div class="flex flex-col gap-2">
+        <div v-if="hasPassword" class="flex flex-col gap-2">
           <div class="text-sm">{{ $t('msg.enterPassword') }}</div>
           <a-input-password
             ref="disablePasswordInput"
@@ -489,6 +491,7 @@ onMounted(() => {
           />
           <div v-if="disableError" class="text-red-500 text-sm">{{ disableError }}</div>
         </div>
+        <div v-else-if="disableError" class="text-red-500 text-sm">{{ disableError }}</div>
       </template>
     </NcModalConfirm>
 

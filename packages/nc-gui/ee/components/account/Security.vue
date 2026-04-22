@@ -50,11 +50,15 @@ async function fetchStatus() {
   }
 }
 
+const canSetup2fa = computed(() => hasPassword.value)
+
 function startSetup() {
   if (blockMfa.value) {
     showUpgradeToUseMfa()
     return
   }
+
+  if (!canSetup2fa.value) return
 
   $e('c:account:security:enable-2fa')
   setupStep.value = 'password'
@@ -261,17 +265,19 @@ onMounted(() => {
                 </div>
 
                 <div class="flex-shrink-0">
-                  <NcButton
-                    v-if="!mfaEnabled"
-                    v-e="['c:account:security:enable-2fa']"
-                    :type="blockMfa ? 'secondary' : 'primary'"
-                    size="small"
-                    :loading="isLoading"
-                    data-testid="nc-2fa-enable-btn"
-                    @click="startSetup"
-                  >
-                    {{ $t('labels.enableTwoFactor') }}
-                  </NcButton>
+                  <NcTooltip v-if="!mfaEnabled" :disabled="canSetup2fa" :title="$t('labels.twoFactorSsoNotAvailable')">
+                    <NcButton
+                      v-e="['c:account:security:enable-2fa']"
+                      :type="blockMfa ? 'secondary' : 'primary'"
+                      size="small"
+                      :loading="isLoading"
+                      :disabled="!canSetup2fa"
+                      data-testid="nc-2fa-enable-btn"
+                      @click="startSetup"
+                    >
+                      {{ $t('labels.enableTwoFactor') }}
+                    </NcButton>
+                  </NcTooltip>
                   <NcButton
                     v-else
                     v-e="['c:account:security:disable-2fa']"

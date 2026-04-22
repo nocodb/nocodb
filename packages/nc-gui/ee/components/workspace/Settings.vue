@@ -499,6 +499,9 @@ async function toggleForce2fa(enabled: boolean) {
               <div class="nc-settings-item-subtitle">
                 {{ $t('labels.requireTwoFactorDescription') }}
               </div>
+              <div class="text-bodyDefaultSm text-nc-content-gray-muted">
+                {{ $t('labels.requireTwoFactorSsoNote') }}
+              </div>
             </div>
 
             <div class="nc-settings-item-action flex items-center gap-2">

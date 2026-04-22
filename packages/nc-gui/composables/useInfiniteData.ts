@@ -17,7 +17,6 @@ import {
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isDeletedCol,
   isOrderCol,
   isSystemColumn,
 } from 'nocodb-sdk'
@@ -100,7 +99,7 @@ export function useInfiniteData(args: {
 
   const { t } = useI18n()
 
-  const { restoreFromTrash } = useRecordTrash()
+  const { restoreFromTrash, trashUnavailableReason } = useRecordTrash()
 
   const router = useRouter()
 
@@ -1381,7 +1380,7 @@ export function useInfiniteData(args: {
         row.row = fullRecord
 
         if (!undo) {
-          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = !trashUnavailableReason.value
 
           addUndo({
             undo: hasSoftDelete

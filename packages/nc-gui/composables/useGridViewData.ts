@@ -4,7 +4,6 @@ import {
   type ViewType,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isDeletedCol,
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
@@ -42,7 +41,7 @@ export function useGridViewData(
 
   const { $api } = useNuxtApp()
 
-  const { restoreFromTrash } = useRecordTrash()
+  const { restoreFromTrash, trashUnavailableReason } = useRecordTrash()
 
   const isBulkOperationInProgress = ref(false)
 
@@ -328,7 +327,7 @@ export function useGridViewData(
     addUndo({
       undo: {
         fn: async (removedRowsData: Record<string, any>[], path: Array<number>) => {
-          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = !trashUnavailableReason.value
 
           if (hasSoftDelete) {
             const rowIds = removedRowsData
@@ -942,7 +941,7 @@ export function useGridViewData(
     addUndo({
       undo: {
         fn: async (deletedRows: Record<string, any>[], path: Array<number>) => {
-          const hasSoftDelete = isEeUI && meta.value?.columns?.some((c) => isDeletedCol(c))
+          const hasSoftDelete = !trashUnavailableReason.value
 
           if (hasSoftDelete) {
             const rowIds = deletedRows

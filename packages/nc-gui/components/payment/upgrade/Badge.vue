@@ -26,6 +26,8 @@ interface Props {
   featureEnabledCallback?: () => boolean
   onClickCallback?: () => void
   size?: 'xs' | 'sm' | 'md' | 'lg'
+  /** When true, renders a lock icon instead of hidden — lets CE signal Enterprise-only features */
+  showAsLock?: boolean
 }
 
 withDefaults(defineProps<Props>(), {

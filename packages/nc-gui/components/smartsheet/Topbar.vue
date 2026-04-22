@@ -120,7 +120,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcDropdown
           v-if="
-            isEeUI &&
+            appInfo.ee &&
             !isSharedBase &&
             !activeScriptId &&
             !activeDashboardId &&
@@ -150,6 +150,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
                 <template #default="{ click }">
                   <NcMenuItem
                     data-testid="nc-topbar-history-menu-snapshots"
+                    inner-class="w-full"
                     @click="
                       click(
                         PlanFeatureTypes.FEATURE_EE_CORE,
@@ -177,6 +178,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
                     <NcMenuItem
                       :disabled="!!trashUnavailableReason && trashUnavailableReason !== 'license'"
                       data-testid="nc-topbar-history-menu-trash"
+                      inner-class="w-full"
                       @click="
                         click(
                           PlanFeatureTypes.FEATURE_EE_CORE,

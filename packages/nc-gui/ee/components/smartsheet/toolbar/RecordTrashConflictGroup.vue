@@ -48,7 +48,6 @@ const groupIcon = computed(() => {
   }
 })
 
-
 function validationReason(message?: string): string {
   if (!message) return t('trash.conflict.cell.validationGeneric')
   const low = message.toLowerCase()
@@ -104,10 +103,7 @@ function willClear(c: RestoreConflict): boolean {
       class="w-full flex items-center gap-2 px-3 py-2 text-left bg-nc-bg-gray-extralight hover:bg-nc-bg-gray-light transition-colors"
       @click="isOpen = !isOpen"
     >
-      <GeneralIcon
-        :icon="isOpen ? 'ncChevronDown' : 'ncChevronRight'"
-        class="w-3.5 h-3.5 text-nc-content-gray-subtle shrink-0"
-      />
+      <GeneralIcon :icon="isOpen ? 'ncChevronDown' : 'ncChevronRight'" class="w-3.5 h-3.5 text-nc-content-gray-subtle shrink-0" />
       <GeneralIcon :icon="groupIcon" class="w-3.5 h-3.5 text-nc-content-gray-subtle shrink-0" />
       <span class="text-bodySm font-semibold text-nc-content-gray-emphasis shrink-0">
         {{ t(titleKey) }}
@@ -121,24 +117,15 @@ function willClear(c: RestoreConflict): boolean {
     </button>
 
     <div v-if="isOpen" class="divide-y divide-nc-border-gray-medium">
-      <div
-        v-for="(c, i) in conflicts"
-        :key="i"
-        class="flex items-center gap-3 px-3 py-2.5 text-captionSm"
-      >
-        <span class="text-nc-content-gray-muted font-mono shrink-0 w-10">
-          #{{ c.rowId }}
-        </span>
+      <div v-for="(c, i) in conflicts" :key="i" class="flex items-center gap-3 px-3 py-2.5 text-captionSm">
+        <span class="text-nc-content-gray-muted font-mono shrink-0 w-10"> #{{ c.rowId }} </span>
         <span class="font-medium text-nc-content-gray-emphasis shrink-0 max-w-32 truncate" :title="c.columnTitle">
           {{ c.columnTitle }}
         </span>
         <span class="text-nc-content-gray-subtle flex-1 min-w-0 truncate" :title="reasonFor(c)">
           {{ reasonFor(c) }}
         </span>
-        <span
-          v-if="willClear(c)"
-          class="text-captionSm text-nc-content-gray-muted shrink-0 italic"
-        >
+        <span v-if="willClear(c)" class="text-captionSm text-nc-content-gray-muted shrink-0 italic">
           {{ t('trash.conflict.outcome.cleared') }}
         </span>
         <span v-else class="text-captionSm text-nc-content-brand shrink-0 font-medium">

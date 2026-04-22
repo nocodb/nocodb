@@ -38,12 +38,20 @@ export const serializeDecimalValue = (
   callback?: (val: any) => any,
   params?: SerializerOrParserFnProps['params']
 ) => {
-  // If we have clipboard data, use it
+  // If we have clipboard data, use it — but only when source and target
+  // separators match. Otherwise fall through to text parsing so the pasted
+  // text is re-interpreted with the target column's separator rules.
   if (
     params?.clipboardItem?.dbCellValue &&
     ncIsNumber(params.clipboardItem.dbCellValue)
   ) {
-    return params.clipboardItem.dbCellValue;
+    const targetSep = resolveColumnSeparator(parseProp(params?.col?.meta));
+    const sourceSep = resolveColumnSeparator(
+      parseProp(params?.clipboardItem?.column?.meta)
+    );
+    if (targetSep === sourceSep) {
+      return params.clipboardItem.dbCellValue;
+    }
   }
 
   if (ncIsNumber(value)) {

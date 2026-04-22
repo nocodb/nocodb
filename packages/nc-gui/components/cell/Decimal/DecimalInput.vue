@@ -36,7 +36,15 @@ const pasteText = (target: HTMLInputElement, value: string) => {
   // composeNewDecimalValue only understands '.' as decimal separator,
   // so normalize to '.' before composing and convert back after
   const normalizedLast = decSep !== '.' ? lastValue.replace(new RegExp('\\' + decSep, 'g'), '.') : lastValue
-  const normalizedNew = decSep !== '.' ? value.replace(new RegExp('\\' + decSep, 'g'), '.') : value
+  let normalizedNew: string
+  if (decSep !== '.') {
+    // Strip dots first — they are not the decimal separator for this column
+    normalizedNew = value.replace(/\./g, '')
+    // Then convert column's decimal separator to dot
+    normalizedNew = normalizedNew.replace(new RegExp(`\\${decSep}`, 'g'), '.')
+  } else {
+    normalizedNew = value
+  }
 
   let newValue = composeNewDecimalValue({
     selectionStart: target.selectionStart,

@@ -74,6 +74,17 @@ export const serializeDecimalValue = (
           ''
         );
       }
+      // Truncate at the second occurrence of the decimal separator
+      const firstIdx = cleanedValue.indexOf(decimalSeparator);
+      if (firstIdx !== -1) {
+        const secondIdx = cleanedValue.indexOf(
+          decimalSeparator,
+          firstIdx + 1
+        );
+        if (secondIdx !== -1) {
+          cleanedValue = cleanedValue.substring(0, secondIdx);
+        }
+      }
       // Replace decimal separator with dot
       if (decimalSeparator !== '.') {
         cleanedValue = cleanedValue.replace(
@@ -83,6 +94,13 @@ export const serializeDecimalValue = (
       }
       // Remove anything that's not digit, dot, or leading minus
       cleanedValue = cleanedValue.replace(/(?!^-)[^\d.-]/g, '').trim();
+      // Remove duplicate dots — keep only the first one
+      const dotIdx = cleanedValue.indexOf('.');
+      if (dotIdx !== -1) {
+        cleanedValue =
+          cleanedValue.substring(0, dotIdx + 1) +
+          cleanedValue.substring(dotIdx + 1).replace(/\./g, '');
+      }
     } else {
       cleanedValue = value
         .replace(/[\s\u00A0]/g, '')

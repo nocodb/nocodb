@@ -10,6 +10,8 @@ import {
   csvColumnSeparatorOptions,
   isSystemColumn,
   isVirtualCol,
+  serializeDecimalValue,
+  serializeIntValue,
 } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 import dayjs from 'dayjs'
@@ -623,7 +625,16 @@ const prepareDataToImport = () => {
     .map((row: string[]) => {
       return importPayload.value.srcDestMapping.reduce((acc, importMeta) => {
         if (importMeta.enabled && importMeta.destCn) {
-          acc[importMeta.destCn] = row[parseInt(importMeta.mapIndex)]
+          const col = columnByTitle.value[importMeta.destCn]
+          const rawValue = row[parseInt(importMeta.mapIndex)]
+
+          if (col?.uidt === UITypes.Decimal) {
+            acc[importMeta.destCn] = serializeDecimalValue(rawValue, undefined, { col })
+          } else if (col?.uidt === UITypes.Number) {
+            acc[importMeta.destCn] = serializeIntValue(rawValue, { col })
+          } else {
+            acc[importMeta.destCn] = rawValue
+          }
         }
         return acc
       }, {} as Record<string, any>)

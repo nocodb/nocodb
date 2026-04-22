@@ -1,6 +1,19 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  SqlUiFactory,
+  UITypes,
+  getDateFormat,
+  getDateTimeFormat,
+  isSystemColumn,
+  isVirtualCol,
+  parseStringDate,
+  serializeDecimalValue,
+  serializeIntValue,
+  validateDateWithUnknownFormat,
+} from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
 
@@ -376,6 +389,47 @@ function _deleteTable(tableIdx: number) {
   data.tables.splice(tableIdx, 1)
 }
 
+function remapColNames(batchData: any[], columns: ColumnType[]) {
+  const dateFormatMap: Record<number, string> = {}
+  return batchData.map((data) =>
+    (columns || []).reduce((aggObj, col: Record<string, any>) => {
+      // we renaming existing id column and using our own auto increment id
+      if (col.uidt === UITypes.ID) return aggObj
+
+      // for excel & json, if the column name is changed in TemplateEditor,
+      // then only col.column_name exists in data, else col.ref_column_name
+      // for csv, col.column_name always exists in data
+      // since it streams the data in getData() with the updated col.column_name
+      const key = col.title in data ? col.title : col.ref_column_name
+      let d = data[key]
+      if (col.uidt === UITypes.Date && d) {
+        let dateFormat
+        if (col?.meta?.date_format) {
+          dateFormat = col.meta.date_format
+          dateFormatMap[col.key] = dateFormat
+        } else if (col.key in dateFormatMap) {
+          dateFormat = dateFormatMap[col.key]
+        } else {
+          dateFormat = getDateFormat(d)
+          dateFormatMap[col.key] = dateFormat
+        }
+        d = parseStringDate(d, dateFormat)
+      } else if (col.uidt === UITypes.DateTime && d) {
+        const dateTimeFormat = getDateTimeFormat(data[key])
+        d = dayjs(data[key], dateTimeFormat).format('YYYY-MM-DD HH:mm')
+      } else if (col.uidt === UITypes.Decimal && d !== null && d !== undefined && d !== '') {
+        d = serializeDecimalValue(d, undefined, { col })
+      } else if (col.uidt === UITypes.Number && d !== null && d !== undefined && d !== '') {
+        d = serializeIntValue(d, { col })
+      }
+      return {
+        ...aggObj,
+        [col.title]: d,
+      }
+    }, {}),
+  )
+}
+
 function missingRequiredColumnsValidation(tn: string, showError = false) {
   const missingRequiredColumns = columns.value.filter(
     (c: Record<string, any>) =>
@@ -638,6 +692,256 @@ async function importViaJob() {
 
 async function importTemplate() {
   await importViaJob()
+  if (importDataOnly) {
+    for (const table of data.tables) {
+      // validate required columns
+      const validationErrors = getErrorByTableName(table.table_name)
+      if (validationErrors.length) throw new Error(`${validationErrors[0]}`)
+    }
+
+    try {
+      isImporting.value = true
+      // collapse table
+      expansionPanel.value = []
+
+      const tableId = meta.value?.id
+      const baseId = base.value.id!
+      const table_names = data.tables.map((t: Record<string, any>) => t.table_name)
+
+      await Promise.all(
+        Object.keys(importData).map((key: string) =>
+          (async (k) => {
+            if (!table_names.includes(k)) {
+              return
+            }
+            const data = importData[k]
+            const total = data.length
+            let operationId
+            for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
+              const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
+                srcDestMapping.value[k].reduce((res: Record<string, any>, col: Record<string, any>) => {
+                  if (col.enabled && col.destCn) {
+                    const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
+                    let input = row[col.srcCn]
+                    // parse potential boolean values
+                    if (v.uidt === UITypes.Checkbox) {
+                      if (typeof input === 'string') {
+                        input = input ? input.replace(/["']/g, '').toLowerCase().trim() : 'false'
+                      }
+                      input = input ?? 'false'
+                      if (input === 'false' || input === 'no' || input === 'n') {
+                        input = '0'
+                      } else if (input === 'true' || input === 'yes' || input === 'y') {
+                        input = '1'
+                      }
+                    } else if (v.uidt === UITypes.Decimal) {
+                      input = input === '' ? null : serializeDecimalValue(input, undefined, { col: v as ColumnType })
+                    } else if (v.uidt === UITypes.Number) {
+                      if (input === '') {
+                        input = null
+                      } else {
+                        input = serializeIntValue(input, { col: v as ColumnType })
+                      }
+                    } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
+                      if (input === '') {
+                        input = null
+                      }
+                    } else if (v.uidt === UITypes.Date) {
+                      if (input === '' || input === null || input === undefined) {
+                        input = null
+                      } else if (input instanceof Date) {
+                        // Handle JS Date objects from Excel parser
+                        const d = dayjs(input)
+                        input = d.isValid() ? d.format('YYYY-MM-DD') : null
+                      } else {
+                        const originalInput = String(input)
+
+                        if (validateDateWithUnknownFormat(originalInput)) {
+                          // Known format matched with strict parsing — parse it
+                          input = parseStringDate(originalInput, v.meta.date_format)
+                          if (input === 'Invalid Date') {
+                            const detectedFormat = getDateFormat(originalInput)
+                            input = dayjs(originalInput, detectedFormat, true).format('YYYY-MM-DD')
+                          }
+                        } else if (/\d/.test(originalInput) && dayjs(originalInput).isValid()) {
+                          // Fallback: contains digits and dayjs native parsing accepts it
+                          // Handles formats like 2024-01-15T10:30:00, 15-Jan-24, etc.
+                          input = dayjs(originalInput).format('YYYY-MM-DD')
+                        } else {
+                          throw new Error(
+                            `Invalid date value "${originalInput}" provided for field "${col.destCn}" in row ${
+                              data.indexOf(row) + 1
+                            }`,
+                          )
+                        }
+                      }
+                    }
+                    res[col.destCn] = input
+                  }
+                  return res
+                }, {}),
+              )
+              const res = await $api.dbTableRow.bulkCreate(
+                'noco',
+                baseId,
+                tableId,
+                batchData,
+                {
+                  'wrapped': 'true',
+                  'headers[nc-import-type]': quickImportType,
+                  'operation_id': operationId,
+                  'typecast': isEeUI && autoInsertOption.value ? 'true' : undefined,
+                },
+                {
+                  headers: {
+                    'xc-auth': $state.token.value as string,
+                    'nc-operation-id': operationId,
+                    'nc-import-type': quickImportType,
+                  },
+                },
+              )
+
+              operationId = res.headers?.['nc-operation-id']
+              updateImportTips(baseId, tableId!, progress, total)
+              progress += batchData.length
+              if (autoInsertOption.value) {
+                await getMeta(baseId, tableId, true)
+              }
+            }
+          })(key),
+        ),
+      )
+
+      // reload table
+      reloadHook.trigger()
+
+      // Successfully imported table data
+      message.success(t('msg.success.tableDataImported'))
+    } catch (e: any) {
+      console.log(e)
+      throw e
+    } finally {
+      isImporting.value = false
+    }
+  } else {
+    // check if form is valid
+    try {
+      await validate()
+    } catch (errorInfo) {
+      throw new Error('Please fill all the required values')
+    }
+
+    try {
+      isImporting.value = true
+      // collapse table
+      expansionPanel.value = []
+      // tab info to be used to show the tab after successful import
+      const tab = {
+        id: '',
+        title: '',
+        baseId: '',
+      }
+
+      // create tables
+      for (const table of data.tables) {
+        // enrich system fields if not provided
+        // e.g. id, created_at, updated_at
+        const systemColumns = sqlUi?.value.getNewTableColumns().filter((c: ColumnType) => c.column_name !== 'title')
+        for (const systemColumn of systemColumns) {
+          if (!table.columns?.some((c) => c.column_name?.toLowerCase() === systemColumn.column_name.toLowerCase())) {
+            table.columns?.push(systemColumn)
+          }
+        }
+
+        table.columns = table.columns?.filter((c) => !('selected' in c) || (c as any).selected)
+
+        if (table.columns) {
+          for (const column of table.columns) {
+            // set pk & rqd if ID is provided
+            if (column.column_name?.toLowerCase() === 'id' && !('pk' in column)) {
+              column.pk = true
+              column.rqd = true
+            }
+            if (
+              (!isSystemColumn(column) || ['created_at', 'updated_at'].includes(column.column_name!)) &&
+              column.uidt !== UITypes.SingleSelect &&
+              column.uidt !== UITypes.MultiSelect
+            ) {
+              // delete dtxp if the final data type is not single & multi select
+              // e.g. import -> detect as single / multi select -> switch to SingleLineText
+              // the correct dtxp will be generated during column creation
+              delete column.dtxp
+            }
+          }
+        }
+        const createdTable = await $api.source.tableCreate(base.value?.id as string, (sourceId || base.value?.sources?.[0].id)!, {
+          table_name: table.table_name,
+          // leave title empty to get a generated one based on table_name
+          title: '',
+          columns: table.columns || [],
+        })
+
+        if (process.env.NC_SANITIZE_COLUMN_NAME !== 'false') {
+          // column_name could have been updated in tableCreate
+          // e.g. sanitize column name to something like field_1, field_2, and etc
+          // todo: see why we have extra columns when json is imported through pasting
+          createdTable.columns.forEach((column, i) => {
+            if (table.columns[i]) {
+              table.columns[i].column_name = column.column_name
+            }
+          })
+        }
+
+        table.id = createdTable.id
+        table.title = createdTable.title
+
+        // open the first table after import
+        if (tab.id === '' && tab.title === '' && tab.baseId === '') {
+          tab.id = createdTable.id as string
+          tab.title = createdTable.title as string
+          tab.baseId = base.value.id as string
+        }
+      }
+
+      // bulk insert data
+      if (importData) {
+        const offset = maxRowsToParse
+        const baseName = base.value.title as string
+        await Promise.all(
+          data.tables.map((table: Record<string, any>) =>
+            (async (tableMeta) => {
+              let progress = 0
+              let total = 0
+              // use ref_table_name here instead of table_name
+              // since importData[talbeMeta.table_name] would be empty after renaming
+              const data = importData[tableMeta.ref_table_name]
+              if (data) {
+                total += data.length
+                for (let i = 0; i < data.length; i += offset) {
+                  updateImportTips(baseName, tableMeta.title, progress, total)
+                  const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
+                  await $api.dbTableRow.bulkCreate('noco', base.value.id, tableMeta.id, batchData)
+                  progress += batchData.length
+                }
+                updateImportTips(baseName, tableMeta.title, total, total)
+              }
+            })(table),
+          ),
+        )
+      }
+
+      // Successfully imported table
+      message.success(t(`msg.success.${data.tables.length > 1 ? 'tableImportedPlural' : 'tableImported'}`))
+
+      // reload table list
+      await loadProjectTables(base.value.id, true)
+    } catch (e: any) {
+      console.log(e)
+      throw e
+    } finally {
+      isImporting.value = false
+    }
+  }
 
   if (!data.tables?.length) return
 

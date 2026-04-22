@@ -450,9 +450,8 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: true,
       [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: true,
       [PlanFeatureTypes.FEATURE_MAP_VIEW]: true,
-      // Core Docs available on unlicensed on-prem (sub-features below stay paid)
+      // Core Docs available on unlicensed on-prem (sub-features stay paid)
       [PlanFeatureTypes.FEATURE_DOCS]: true,
-      [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]: true,
     },
     limits: {
       // Explicitly allowed limits for unlicensed on-prem.

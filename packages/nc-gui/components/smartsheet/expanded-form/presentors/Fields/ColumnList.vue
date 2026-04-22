@@ -125,7 +125,7 @@ const revertLocalOnlyChanges = (col: string) => {
   }
 }
 
-const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.readonly && !isAutoNumber(column)
+const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.readonly && !isAutoNumber(column) && !isUUID(column)
 </script>
 
 <template>

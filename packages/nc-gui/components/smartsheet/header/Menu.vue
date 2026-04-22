@@ -87,7 +87,7 @@ const emitEdit = (...args: any[]) => {
         <template #title> {{ $t('labels.dateDependency.enabled') }} </template>
         <GeneralIcon icon="viewGannt" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-muted" />
       </NcTooltip>
-      <template v-if="meta?.synced && column?.readonly && !isAutoNumber(column) && !isExpandedForm && !isPublic">
+      <template v-if="meta?.synced && column?.readonly && !isAutoNumber(column) && !isUUID(column) && !isExpandedForm && !isPublic">
         <GeneralIcon class="!text-nc-content-gray-disabled cursor-pointer" icon="ncZap" />
       </template>
       <GeneralIcon

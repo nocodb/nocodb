@@ -188,7 +188,7 @@ export function useCopyPaste({
 
     const restrictEditCell = col.id && !isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
 
-    if (col.readonly && meta.value?.synced && !isAutoNumber(col)) {
+    if (col.readonly && meta.value?.synced && !isAutoNumber(col) && !isUUID(col)) {
       if (showInfo) {
         message.toast(t('msg.info.pasteNotSupportedInSyncedCells'))
       }

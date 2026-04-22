@@ -78,7 +78,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isSystem = computed(() => isSystemColumn(column.value))
 
-    const isSyncedField = computed(() => meta.value?.synced && column?.value?.readonly && !isAutoNumber(column?.value))
+    const isSyncedField = computed(
+      () => meta.value?.synced && column?.value?.readonly && !isAutoNumber(column?.value) && !isUUID(column?.value),
+    )
 
     const isXcdbBase = computed(() =>
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),

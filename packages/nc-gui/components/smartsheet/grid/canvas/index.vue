@@ -9,6 +9,7 @@ import {
   UITypes,
   type ViewType,
   isAutoNumber,
+  isUUID,
   isVirtualCol,
   ncHasProperties,
   readonlyMetaAllowedTypes,
@@ -1921,7 +1922,7 @@ const getHeaderTooltipRegions = (
       return
     }
 
-    if (isFieldEditAllowed.value && (!column.columnObj?.readonly || isAutoNumber(column.columnObj))) {
+    if (isFieldEditAllowed.value && (!column.columnObj?.readonly || isAutoNumber(column.columnObj) || isUUID(column.columnObj))) {
       regions.push({
         x: rightOffset - scrollLeftValue,
         width: 14,
@@ -1929,7 +1930,7 @@ const getHeaderTooltipRegions = (
         disableTooltip: true,
         text: null,
       })
-    } else if (meta.value?.synced && column.columnObj?.readonly && !isAutoNumber(column.columnObj)) {
+    } else if (meta.value?.synced && column.columnObj?.readonly && !isAutoNumber(column.columnObj) && !isUUID(column.columnObj)) {
       regions.push({
         x: rightOffset - scrollLeftValue,
         width: 14,

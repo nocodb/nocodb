@@ -500,7 +500,7 @@ const onInsertAfter = () => {
 }
 
 const isSyncedReadonlyField = computed(() => {
-  return meta.value?.synced && column.value?.readonly && !isAutoNumber(column.value)
+  return meta.value?.synced && column.value?.readonly && !isAutoNumber(column.value) && !isUUID(column.value)
 })
 
 const isDeleteAllowed = computed(() => {
@@ -514,6 +514,7 @@ const isDuplicateAllowed = computed(() => {
     !column.value.meta?.custom &&
     column.value.uidt !== UITypes.ForeignKey &&
     !isAutoNumber(column.value) &&
+    !isUUID(column.value) &&
     !isCrossBaseLink(column.value)
   )
 })

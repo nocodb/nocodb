@@ -1,5 +1,14 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AllAggregations, type ColumnType, PlanTitles, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
+import {
+  AllAggregations,
+  type ColumnType,
+  PlanTitles,
+  type TableType,
+  UITypes,
+  isAutoNumber,
+  isCreatedOrLastModifiedByCol,
+  isUUID,
+} from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
 import {
   isBoxHovered,
@@ -400,7 +409,7 @@ export function useCanvasRender({
 
       let rightOffset = xOffset + width - rightPadding
 
-      if (isFieldEditAllowed.value && (!colObj?.readonly || isAutoNumber(colObj))) {
+      if (isFieldEditAllowed.value && (!colObj?.readonly || isAutoNumber(colObj) || isUUID(colObj))) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'chevronDown',
@@ -409,7 +418,7 @@ export function useCanvasRender({
           x: rightOffset - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
-      } else if (meta.value?.synced && colObj?.readonly && !isAutoNumber(colObj) && !isPublic.value) {
+      } else if (meta.value?.synced && colObj?.readonly && !isAutoNumber(colObj) && !isUUID(colObj) && !isPublic.value) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'ncZap',
@@ -686,7 +695,7 @@ export function useCanvasRender({
 
         let rightOffset = xOffset + width - rightPadding
 
-        if (column.uidt && isFieldEditAllowed.value && (!colObj?.readonly || isAutoNumber(colObj))) {
+        if (column.uidt && isFieldEditAllowed.value && (!colObj?.readonly || isAutoNumber(colObj) || isUUID(colObj))) {
           // Chevron down
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
@@ -696,7 +705,7 @@ export function useCanvasRender({
             x: rightOffset,
             y: y - 7,
           })
-        } else if (meta.value?.synced && colObj?.readonly && !isAutoNumber(colObj) && !isPublic.value) {
+        } else if (meta.value?.synced && colObj?.readonly && !isAutoNumber(colObj) && !isUUID(colObj) && !isPublic.value) {
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
             icon: 'ncZap',

@@ -10,6 +10,7 @@ import {
   isAIPromptCol,
   isLinksOrLTAR,
   isSystemColumn,
+  isUUID,
   isValidURL,
   isVirtualCol,
   ratingIconList,
@@ -524,7 +525,8 @@ const showEditRestrictedColumnTooltip = (col: ColumnType) => {
   return (
     !isReadOnlyVirtualCell(col) &&
     ![UITypes.Button, UITypes.Count, UITypes.Order, UITypes.ForeignKey].includes(col.uidt as UITypes) &&
-    !isAutoNumber(col)
+    !isAutoNumber(col) &&
+    !isUUID(col)
   )
 }
 

@@ -446,7 +446,7 @@ export function useCanvasTable({
           !showEditRestrictedColumnTooltip(f) ||
           isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
 
-        const isSyncedCol = meta.value?.synced && f.readonly && !isAutoNumber(f)
+        const isSyncedCol = meta.value?.synced && f.readonly && !isAutoNumber(f) && !isUUID(f)
 
         const aggregation = getFormattedAggrationValue(gridViewCol.aggregation, aggregations.value[f.title!], f, [], {
           col: f,

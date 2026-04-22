@@ -3769,6 +3769,7 @@ export class ColumnsService implements IColumnsService {
       table.synced &&
       column.readonly &&
       column.uidt !== UITypes.AutoNumber &&
+      column.uidt !== UITypes.UUID &&
       !param.forceDeleteSystem
     ) {
       NcError.get(context).invalidRequestBody(

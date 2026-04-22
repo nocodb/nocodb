@@ -9,6 +9,7 @@ import {
   isAutoNumber,
   isLinksOrLTAR,
   isSystemColumn,
+  isUUID,
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
@@ -2089,7 +2090,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                             <NcMenuItem
                               key="table-explorer-duplicate"
                               data-testid="nc-field-item-action-duplicate"
-                              :disabled="isSystemColumn(field) || isAutoNumber(field)"
+                              :disabled="isSystemColumn(field) || isAutoNumber(field) || isUUID(field)"
                               @click="duplicateField(field)"
                             >
                               <GeneralIcon icon="duplicate" />

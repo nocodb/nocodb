@@ -35,14 +35,21 @@ const disableConfiguration = computed(
 )
 
 const separatorOptions = [
-  { value: SeparatorType.Locale, label: t('labels.separatorFollowLocale') },
-  { value: SeparatorType.NonePeriod, label: '1234.56' },
-  { value: SeparatorType.NoneComma, label: '1234,56' },
-  { value: SeparatorType.CommaPeriod, label: '1,234.56' },
-  { value: SeparatorType.PeriodComma, label: '1.234,56' },
-  { value: SeparatorType.SpacePeriod, label: '1 234.56' },
-  { value: SeparatorType.SpaceComma, label: '1 234,56' },
+  { value: SeparatorType.Locale, label: t('labels.separatorLocal'), preview: '1,000,000.00' },
+  { value: SeparatorType.NonePeriod, label: t('labels.separatorNonePeriod'), preview: '1000000.00' },
+  { value: SeparatorType.NoneComma, label: t('labels.separatorNoneComma'), preview: '1000000,00' },
+  { value: SeparatorType.CommaPeriod, label: t('labels.separatorCommaPeriod'), preview: '1,000,000.00' },
+  { value: SeparatorType.PeriodComma, label: t('labels.separatorPeriodComma'), preview: '1.000.000,00' },
+  { value: SeparatorType.SpacePeriod, label: t('labels.separatorSpacePeriod'), preview: '1 000 000.00' },
+  { value: SeparatorType.SpaceComma, label: t('labels.separatorSpaceComma'), preview: '1 000 000,00' },
 ]
+
+const selectedSeparatorDisplay = computed(() => {
+  const option = separatorOptions.find((o) => o.value === vModel.value.meta.separator)
+  if (!option) return ''
+  if (option.label) return `${option.label} (${option.preview})`
+  return option.preview
+})
 
 // Backward compat: resolve isLocaleString to separator if separator is not yet set
 if (!vModel.value.meta.separator) {
@@ -87,15 +94,13 @@ if (!vModel.value.meta.separator) {
       <template #suffixIcon>
         <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
       </template>
+      <template #selectedValue>
+        {{ selectedSeparatorDisplay }}
+      </template>
       <a-select-option v-for="option of separatorOptions" :key="option.value" :value="option.value">
-        <div class="flex gap-2 w-full justify-between items-center">
-          {{ option.label }}
-          <component
-            :is="iconMap.check"
-            v-if="vModel.meta.separator === option.value"
-            id="nc-selected-item-icon"
-            class="text-nc-content-brand w-4 h-4"
-          />
+        <div class="flex w-full justify-between items-center">
+          <span>{{ option.label }}</span>
+          <span class="text-nc-content-gray-subtle">{{ option.preview }}</span>
         </div>
       </a-select-option>
     </a-select>

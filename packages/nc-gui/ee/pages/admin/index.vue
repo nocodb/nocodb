@@ -212,9 +212,9 @@ watch(
               class="item"
               @click="blockSSO ? showUpgradeToUseSSO() : (activeTab = 'authentication')"
             >
-              <div class="flex items-center space-x-2">
+              <div class="w-full flex items-center space-x-2">
                 <component :is="iconMap.ncLock" />
-                <div class="select-none text-sm">{{ $t('title.sso') }}</div>
+                <div class="select-none text-sm flex-1">{{ $t('title.sso') }}</div>
                 <LazyPaymentUpgradeBadge
                   :feature="PlanFeatureTypes.FEATURE_SSO"
                   :feature-enabled-callback="() => !blockSSO"
@@ -230,9 +230,9 @@ watch(
               class="item"
               @click="blockTeamsManagement ? showUpgradeToUseTeams({}) : (activeTab = 'teams')"
             >
-              <div class="flex items-center space-x-2">
+              <div class="w-full flex items-center space-x-2">
                 <GeneralIcon icon="ncBuilding" class="!h-4 !w-4" />
-                <div class="select-none">{{ $t('title.teams') }}</div>
+                <div class="select-none flex-1">{{ $t('title.teams') }}</div>
                 <LazyPaymentUpgradeBadge
                   :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
                   :feature-enabled-callback="() => !blockTeamsManagement"
@@ -248,9 +248,9 @@ watch(
               class="item"
               @click="blockScim ? showUpgradeToUseScim() : (activeTab = 'scim')"
             >
-              <div class="flex items-center space-x-2">
+              <div class="w-full flex items-center space-x-2">
                 <GeneralIcon icon="sync" class="!h-4 !w-4" />
-                <div class="select-none">SCIM</div>
+                <div class="select-none flex-1">SCIM</div>
                 <LazyPaymentUpgradeBadge
                   :feature="PlanFeatureTypes.FEATURE_SCIM"
                   :feature-enabled-callback="() => !blockScim"
@@ -266,9 +266,9 @@ watch(
               class="item"
               @click="isWsAuditEnabled ? (activeTab = 'audit') : undefined"
             >
-              <div class="flex items-center space-x-2">
+              <div class="w-full flex items-center space-x-2">
                 <GeneralIcon class="!h-4 !w-4" icon="ncFileText" />
-                <div class="select-none">{{ $t('title.audit') }}</div>
+                <div class="select-none flex-1">{{ $t('title.audit') }}</div>
                 <LazyPaymentUpgradeBadge
                   :feature="PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE"
                   :feature-enabled-callback="() => isWsAuditEnabled"

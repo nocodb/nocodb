@@ -23,15 +23,8 @@ const { isMarketVisible } = storeToRefs(useScriptStore())
 
 const { isMobileMode } = useGlobal()
 
-const {
-  isEEFeatureBlocked,
-  blockDocs,
-  blockScripts,
-  blockSync,
-  showEEFeatures,
-  showUpgradeToUseScripts,
-  showUpgradeToUseSync,
-} = useEeConfig()
+const { isEEFeatureBlocked, blockDocs, blockScripts, blockSync, showEEFeatures, showUpgradeToUseScripts, showUpgradeToUseSync } =
+  useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 

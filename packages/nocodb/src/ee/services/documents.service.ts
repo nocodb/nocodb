@@ -8,6 +8,7 @@ import {
   PermissionRole,
   PermissionRoleMap,
   PermissionRolePower,
+  PlanFeatureTypes,
   PlanLimitTypes,
   ProjectRoles,
 } from 'nocodb-sdk';
@@ -15,7 +16,11 @@ import { DocumentsService as DocumentsServiceCE } from 'src/services/documents.s
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { checkLimit, getLimit } from '~/helpers/paymentHelpers';
+import {
+  checkForFeature,
+  checkLimit,
+  getLimit,
+} from '~/helpers/paymentHelpers';
 import { Document, FileReference, Permission } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
@@ -363,6 +368,8 @@ export class DocumentsService extends DocumentsServiceCE {
     payload: Partial<DocumentType>,
     req: NcRequest,
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS);
+
     const docCount = await Document.countForBase(context, context.base_id);
 
     await checkLimit({

@@ -98,6 +98,8 @@ export enum PlanFeatureTypes {
   FEATURE_FORCE_2FA = 'feature_force_2fa',
   FEATURE_TIMELINE_VIEW = 'feature_timeline_view',
   FEATURE_AI_CHAT = 'feature_ai_chat',
+  /** Core Documents feature (create/view/edit). Do not conflate with FEATURE_DOCS_APIS (V3 API access only). */
+  FEATURE_DOCS = 'feature_docs',
   FEATURE_DOCS_APIS = 'feature_docs_apis',
   FEATURE_DOCS_INLINE_COMMENTS = 'feature_docs_inline_comments',
   FEATURE_DOCS_EXPORT_PDF = 'feature_docs_export_pdf',
@@ -373,6 +375,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to require two-factor authentication for all workspace members.',
   [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: 'to use timeline view.',
   [PlanFeatureTypes.FEATURE_AI_CHAT]: 'to use AI chat.',
+  [PlanFeatureTypes.FEATURE_DOCS]: 'to use Documents.',
   [PlanFeatureTypes.FEATURE_DOCS_APIS]: 'to access Documents API.',
   [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]:
     'to use inline comments in documents.',

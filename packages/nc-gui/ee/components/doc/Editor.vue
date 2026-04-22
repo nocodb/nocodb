@@ -2347,22 +2347,23 @@ onBeforeUnmount(() => {
                   <template v-if="isEeUI && isEditable">
                     <div class="nc-doc-bubble-ai-divider" />
                     <NcDropdown
-                      :disabled="!isDocAiConfigured"
+                      :disabled="!isDocAiConfigured || blockDocAi"
                       trigger="click"
                       placement="bottomLeft"
                       @update:visible="resetAiSubMenus"
                     >
-                      <NcTooltip placement="top">
+                      <NcTooltip placement="top" :disabled="blockDocAi">
                         <template #title>
                           {{ isDocAiConfigured ? 'NocoAI' : $t('title.noAiIntegrationAvailable') }}
                         </template>
                         <NcButton
                           size="small"
                           type="text"
-                          :disabled="!isDocAiConfigured"
+                          :disabled="!isDocAiConfigured && !blockDocAi"
                           class="nc-doc-ai-btn"
                           data-testid="nc-doc-ai-menu-btn"
                           @mousedown.prevent
+                          @click="blockDocAi && showUpgradeToUseDocAi()"
                         >
                           <GeneralIcon icon="ncAutoAwesome" />
                         </NcButton>

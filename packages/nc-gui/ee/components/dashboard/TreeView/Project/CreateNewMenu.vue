@@ -23,8 +23,15 @@ const { isMarketVisible } = storeToRefs(useScriptStore())
 
 const { isMobileMode } = useGlobal()
 
-const { isEEFeatureBlocked, blockScripts, blockSync, showEEFeatures, showUpgradeToUseScripts, showUpgradeToUseSync } =
-  useEeConfig()
+const {
+  isEEFeatureBlocked,
+  blockDocs,
+  blockScripts,
+  blockSync,
+  showEEFeatures,
+  showUpgradeToUseScripts,
+  showUpgradeToUseSync,
+} = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -104,7 +111,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
       <NcMenuItem v-if="showEEFeatures" inner-class="w-full" data-testid="create-new-document" @click="emits('emptyPage')">
         <GeneralIcon icon="ncFileText" />
         {{ $t('objects.document') }}
-        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockDocs" show-as-lock remove-click />
       </NcMenuItem>
 
       <NcMenuItem

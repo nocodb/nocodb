@@ -83,6 +83,13 @@ describe('serializeDecimalValue', () => {
       // replace "," with "." → 1.2
       expect(serializeDecimalValue('1,2,3,4', undefined, params)).toBe(1.2);
     });
+
+    it('accepts period-based value pasted into comma-decimal field', () => {
+      // 123.46 → no thousand sep to remove → first "," not found → no truncation
+      // no "," to replace with "." → stays 123.46 → regex keeps digits/dot/minus → 123.46
+      // The "." passes through because it is not the column's decimal separator
+      expect(serializeDecimalValue('123.46', undefined, params)).toBe(12346);
+    });
   });
 
   describe('CommaPeriod ("," thousand, "." decimal)', () => {

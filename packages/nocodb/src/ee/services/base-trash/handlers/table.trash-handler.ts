@@ -4,11 +4,13 @@ import {
   generateUniqueCopyName,
   MetaEventType,
   NOCO_SERVICE_USERS,
+  PlanLimitTypes,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { TrashHandler, TrashResult } from '~/services/base-trash/types';
 import type { MetaService } from '~/meta/meta.service';
+import { getLimit } from '~/helpers/paymentHelpers';
 import Column from '~/models/Column';
 import Model from '~/models/Model';
 import View from '~/models/View';
@@ -49,6 +51,38 @@ export class TableTrashHandler implements TrashHandler<Model> {
     private readonly columnsService: ColumnsService,
     private readonly linkPlaceholderService: LinkPlaceholderService,
   ) {}
+
+  async checkRestoreLimit(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+  ): Promise<void> {
+    const table = await Model.get(ctx, trashEntry.resource_id, true);
+    if (!table) return;
+
+    const current = await Noco.ncMeta.metaCount(
+      ctx.workspace_id,
+      ctx.base_id,
+      MetaTable.MODELS,
+      {
+        condition: { source_id: table.source_id },
+        xcCondition: {
+          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+        },
+      },
+    );
+
+    const { limit, plan } = await getLimit(
+      PlanLimitTypes.LIMIT_TABLE_PER_BASE,
+      ctx.workspace_id,
+    );
+
+    if (limit !== Infinity && current >= limit) {
+      NcError.planLimitExceeded(
+        `Cannot restore — you have reached the limit of ${limit} tables for your plan. Upgrade to restore this table.`,
+        { plan: plan?.title, limit, current },
+      );
+    }
+  }
 
   // ── Trash ──────────────────────────────────────────────────
 
@@ -145,17 +179,30 @@ export class TableTrashHandler implements TrashHandler<Model> {
 
   // ── Restore ────────────────────────────────────────────────
 
-  async restore(ctx: NcContext, trashEntry: BaseTrash): Promise<void> {
+  async restore(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta?: MetaService,
+  ): Promise<void> {
     // Resolve title collision — rename restored table if a live table in the
     // same source already holds the original title. table_name is auto-uniquified
     // at create time, so only the display title needs handling here.
     if (trashEntry.name) {
-      const trashedTable = await Model.get(ctx, trashEntry.resource_id, true);
+      const trashedTable = await Model.get(
+        ctx,
+        trashEntry.resource_id,
+        true,
+        ncMeta,
+      );
       if (trashedTable?.source_id) {
-        const liveTables = await Model.list(ctx, {
-          base_id: ctx.base_id,
-          source_id: trashedTable.source_id,
-        });
+        const liveTables = await Model.list(
+          ctx,
+          {
+            base_id: ctx.base_id,
+            source_id: trashedTable.source_id,
+          },
+          ncMeta,
+        );
         const existingTitles = liveTables.map((t) => t.title);
         if (existingTitles.includes(trashEntry.name)) {
           const newTitle = generateUniqueCopyName(
@@ -163,7 +210,7 @@ export class TableTrashHandler implements TrashHandler<Model> {
             existingTitles,
             { prefix: 'Restored' },
           );
-          await Noco.ncMeta.metaUpdate(
+          await ncMeta.metaUpdate(
             ctx.workspace_id,
             ctx.base_id,
             MetaTable.MODELS,
@@ -180,16 +227,16 @@ export class TableTrashHandler implements TrashHandler<Model> {
     }
 
     // Un-soft-delete the table
-    await Model.softDelete(ctx, trashEntry.resource_id, false);
+    await Model.softDelete(ctx, trashEntry.resource_id, false, ncMeta);
 
     // Restore cascaded link columns + drop placeholders
     const relatedItems = trashEntry.getRelatedItems();
     if (relatedItems?.columns?.length) {
-      await this.restoreCascadedLinks(ctx, relatedItems.columns);
+      await this.restoreCascadedLinks(ctx, relatedItems.columns, ncMeta);
     }
 
     // Handle deferred restores (mutually-trashed tables)
-    await this.restoreDeferredLinks(ctx, trashEntry.resource_id);
+    await this.restoreDeferredLinks(ctx, trashEntry.resource_id, ncMeta);
 
     // Clear dependent errors
     if (relatedItems?.dependents?.length) {
@@ -197,9 +244,11 @@ export class TableTrashHandler implements TrashHandler<Model> {
     }
 
     // Socket broadcast — use table_create so frontend adds back to sidebar
-    const restoredTable = await Model.getWithInfo(ctx, {
-      id: trashEntry.resource_id,
-    });
+    const restoredTable = await Model.getWithInfo(
+      ctx,
+      { id: trashEntry.resource_id },
+      ncMeta,
+    );
 
     NocoSocket.broadcastEvent(ctx, {
       event: EventType.META_EVENT,
@@ -212,11 +261,13 @@ export class TableTrashHandler implements TrashHandler<Model> {
     // Broadcast column_add for each related table whose columns were restored
     if (relatedItems?.columns?.length) {
       for (const item of relatedItems.columns) {
-        const relatedModel = await Model.getWithInfo(ctx, {
-          id: item.table_id,
-        });
+        const relatedModel = await Model.getWithInfo(
+          ctx,
+          { id: item.table_id },
+          ncMeta,
+        );
         if (relatedModel) {
-          const restoredCol = await Column.get(ctx, { colId: item.id });
+          const restoredCol = await Column.get(ctx, { colId: item.id }, ncMeta);
           NocoSocket.broadcastEvent(ctx, {
             event: EventType.META_EVENT,
             payload: {
@@ -231,20 +282,24 @@ export class TableTrashHandler implements TrashHandler<Model> {
 
   // ── Permanent Delete ───────────────────────────────────────
 
-  async permanentDelete(ctx: NcContext, trashEntry: BaseTrash): Promise<void> {
+  async permanentDelete(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta?: MetaService,
+  ): Promise<void> {
     const relatedItems = trashEntry.getRelatedItems();
 
     // Restore cascaded reverse columns so tableDelete can properly clean up relations
     if (relatedItems?.columns?.length) {
       for (const item of relatedItems.columns) {
-        await Noco.ncMeta.metaUpdate(
+        await ncMeta.metaUpdate(
           ctx.workspace_id,
           ctx.base_id,
           MetaTable.COLUMNS,
           { deleted: false },
           item.id,
         );
-        const freshCol = await Noco.ncMeta.metaGet2(
+        const freshCol = await ncMeta.metaGet2(
           ctx.workspace_id,
           ctx.base_id,
           MetaTable.COLUMNS,
@@ -257,10 +312,10 @@ export class TableTrashHandler implements TrashHandler<Model> {
     }
 
     // Restore table + columns temporarily so tableDelete can run full cleanup
-    await Model.softDelete(ctx, trashEntry.resource_id, false);
+    await Model.softDelete(ctx, trashEntry.resource_id, false, ncMeta);
 
     // Restore soft-deleted columns and update cache
-    const deletedCols = await Noco.ncMeta.metaList2(
+    const deletedCols = await ncMeta.metaList2(
       ctx.workspace_id,
       ctx.base_id,
       MetaTable.COLUMNS,
@@ -269,7 +324,7 @@ export class TableTrashHandler implements TrashHandler<Model> {
       },
     );
     for (const col of deletedCols) {
-      await Noco.ncMeta.metaUpdate(
+      await ncMeta.metaUpdate(
         ctx.workspace_id,
         ctx.base_id,
         MetaTable.COLUMNS,
@@ -381,9 +436,10 @@ export class TableTrashHandler implements TrashHandler<Model> {
   private async restoreCascadedLinks(
     ctx: NcContext,
     columns: CascadedColumn[],
+    ncMeta?: MetaService,
   ) {
     for (const item of columns) {
-      const colTable = await Noco.ncMeta.metaGet2(
+      const colTable = await ncMeta.metaGet2(
         ctx.workspace_id,
         ctx.base_id,
         MetaTable.MODELS,
@@ -394,25 +450,33 @@ export class TableTrashHandler implements TrashHandler<Model> {
 
       // Drop placeholder
       if (item.placeholder_id) {
-        const phCol = await Column.get(ctx, { colId: item.placeholder_id });
+        const phCol = await Column.get(
+          ctx,
+          { colId: item.placeholder_id },
+          ncMeta,
+        );
         if (phCol) {
-          await this.columnsService.columnDelete(ctx, {
-            columnId: item.placeholder_id,
-            user: {} as any,
-            forceDeleteSystem: true,
-          });
+          await this.columnsService.columnDelete(
+            ctx,
+            {
+              columnId: item.placeholder_id,
+              user: {} as any,
+              forceDeleteSystem: true,
+            },
+            ncMeta,
+          );
         }
       }
 
       // Restore original column
-      await Noco.ncMeta.metaUpdate(
+      await ncMeta.metaUpdate(
         ctx.workspace_id,
         ctx.base_id,
         MetaTable.COLUMNS,
         { deleted: false },
         item.id,
       );
-      const freshCol = await Noco.ncMeta.metaGet2(
+      const freshCol = await ncMeta.metaGet2(
         ctx.workspace_id,
         ctx.base_id,
         MetaTable.COLUMNS,
@@ -431,7 +495,7 @@ export class TableTrashHandler implements TrashHandler<Model> {
           },
           item.table_id,
           null,
-          Noco.ncMeta,
+          ncMeta,
         );
       }
     }
@@ -441,8 +505,12 @@ export class TableTrashHandler implements TrashHandler<Model> {
    * When table A is restored, check if any OTHER trashed tables had
    * link columns pointing to A that were deferred. If those tables are now live, restore those links.
    */
-  private async restoreDeferredLinks(ctx: NcContext, restoredTableId: string) {
-    const allTableTrash = await Noco.ncMeta.metaList2(
+  private async restoreDeferredLinks(
+    ctx: NcContext,
+    restoredTableId: string,
+    ncMeta?: MetaService,
+  ) {
+    const allTableTrash = await ncMeta.metaList2(
       ctx.workspace_id,
       ctx.base_id,
       MetaTable.TRASH,
@@ -471,7 +539,7 @@ export class TableTrashHandler implements TrashHandler<Model> {
       if (!deferredForThisTable.length) continue;
 
       // Check if the entry's own table is still trashed
-      const entryModel = await Noco.ncMeta.metaGet2(
+      const entryModel = await ncMeta.metaGet2(
         ctx.workspace_id,
         ctx.base_id,
         MetaTable.MODELS,
@@ -483,24 +551,32 @@ export class TableTrashHandler implements TrashHandler<Model> {
       // Restore deferred columns
       for (const item of deferredForThisTable) {
         if (item.placeholder_id) {
-          const phCol = await Column.get(ctx, { colId: item.placeholder_id });
+          const phCol = await Column.get(
+            ctx,
+            { colId: item.placeholder_id },
+            ncMeta,
+          );
           if (phCol) {
-            await this.columnsService.columnDelete(ctx, {
-              columnId: item.placeholder_id,
-              user: {} as any,
-              forceDeleteSystem: true,
-            });
+            await this.columnsService.columnDelete(
+              ctx,
+              {
+                columnId: item.placeholder_id,
+                user: {} as any,
+                forceDeleteSystem: true,
+              },
+              ncMeta,
+            );
           }
         }
 
-        await Noco.ncMeta.metaUpdate(
+        await ncMeta.metaUpdate(
           ctx.workspace_id,
           ctx.base_id,
           MetaTable.COLUMNS,
           { deleted: false },
           item.id,
         );
-        const freshDefCol = await Noco.ncMeta.metaGet2(
+        const freshDefCol = await ncMeta.metaGet2(
           ctx.workspace_id,
           ctx.base_id,
           MetaTable.COLUMNS,
@@ -515,7 +591,7 @@ export class TableTrashHandler implements TrashHandler<Model> {
         }
       }
 
-      await View.clearSingleQueryCache(ctx, restoredTableId, null, Noco.ncMeta);
+      await View.clearSingleQueryCache(ctx, restoredTableId, null, ncMeta);
     }
   }
 

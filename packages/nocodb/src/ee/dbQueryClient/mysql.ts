@@ -703,18 +703,14 @@ export class MySqlDBQueryClient
           );
 
           if (lookupColOpt.error) {
-            qb.select(
-              knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]),
-            );
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
             break;
           }
 
           const relationColumn = await lookupColOpt.getRelationColumn(context);
 
           if (!relationColumn) {
-            qb.select(
-              knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]),
-            );
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
             break;
           }
 
@@ -731,9 +727,7 @@ export class MySqlDBQueryClient
           const lookupColumn = await lookupColOpt.getLookupColumn(refContext);
 
           if (!lookupColumn) {
-            qb.select(
-              knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]),
-            );
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
             break;
           }
 
@@ -1148,9 +1142,7 @@ export class MySqlDBQueryClient
           const rollupColOptions = await column.getColOptions(context);
 
           if (rollupColOptions.error) {
-            qb.select(
-              knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]),
-            );
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
             break;
           }
 
@@ -1171,9 +1163,7 @@ export class MySqlDBQueryClient
           const barcodeCol = await column.getColOptions<BarcodeColumn>(context);
 
           if (barcodeCol.error) {
-            qb.select(
-              knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]),
-            );
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
             break;
           }
 
@@ -1209,9 +1199,7 @@ export class MySqlDBQueryClient
           const qrCol = await column.getColOptions<QrCodeColumn>(context);
 
           if (qrCol.error) {
-            qb.select(
-              knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]),
-            );
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
             break;
           }
 

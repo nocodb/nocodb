@@ -600,7 +600,8 @@ export default class Model implements TableType {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
-    const model = args?.model || (await this.get(context, args.id, false, ncMeta));
+    const model =
+      args?.model || (await this.get(context, args.id, false, ncMeta));
 
     if (!model) {
       NcError.get(context).tableNotFound(args.id);

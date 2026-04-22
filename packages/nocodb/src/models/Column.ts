@@ -2,7 +2,6 @@ import {
   AllowedColumnTypesForQrAndBarcodes,
   enumColors,
   isAIPromptCol,
-  isLinksOrLTAR,
   LinksVersion,
   LongTextAiMetaProp,
   RelationTypes,

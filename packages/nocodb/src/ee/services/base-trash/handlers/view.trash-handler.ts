@@ -53,19 +53,21 @@ export class ViewTrashHandler implements TrashHandler<View> {
     id: string,
     ncMeta?: any,
   ): Promise<TrashResult<View>> {
-    const view = await View.get(ctx, id);
+    const view = await View.get(ctx, id, false, ncMeta);
     if (!view) {
       NcError.get(ctx).genericNotFound('view', id);
     }
 
-    const table = await Model.getByIdOrName(ctx, { id: view.fk_model_id });
+    const table = await Model.getByIdOrName(
+      ctx,
+      { id: view.fk_model_id },
+      ncMeta,
+    );
 
     const viewWebhookManager = (
-      await (
-        await new ViewWebhookManagerBuilder(ctx, ncMeta).withModelId(
-          view.fk_model_id,
-        )
-      ).withViewId(view.id)
+      await new ViewWebhookManagerBuilder(ctx, ncMeta)
+        .withModelId(view.fk_model_id)
+        .withViewId(view.id)
     ).forDelete();
 
     await View.softDelete(ctx, id, true, ncMeta);
@@ -74,7 +76,7 @@ export class ViewTrashHandler implements TrashHandler<View> {
     if (view.type != null) meta.viewType = view.type;
     if (view.meta != null) meta.viewMeta = view.meta;
 
-   viewWebhookManager.emit();
+    viewWebhookManager.emit();
 
     return {
       entity: view,
@@ -85,20 +87,26 @@ export class ViewTrashHandler implements TrashHandler<View> {
     };
   }
 
-  async restore(ctx: NcContext, trashEntry: BaseTrash): Promise<void> {
+  async restore(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta?: MetaService,
+  ): Promise<void> {
     if (trashEntry.parent_id) {
-      const table = await Model.get(ctx, trashEntry.parent_id);
+      const table = await Model.get(ctx, trashEntry.parent_id, false, ncMeta);
       if (!table) {
         NcError.get(ctx).parentInTrash('table');
       }
     }
 
     const viewWebhookManager = (
-      await new ViewWebhookManagerBuilder(ctx).withModelId(trashEntry.parent_id)
+      await new ViewWebhookManagerBuilder(ctx, ncMeta).withModelId(
+        trashEntry.parent_id,
+      )
     ).forCreate();
 
     if (trashEntry.name && trashEntry.parent_id) {
-      const views = await View.list(ctx, trashEntry.parent_id);
+      const views = await View.list(ctx, trashEntry.parent_id, false, ncMeta);
       const existingNames = views.map((v) => v.title);
       if (existingNames.includes(trashEntry.name)) {
         const newTitle = generateUniqueCopyName(
@@ -108,18 +116,24 @@ export class ViewTrashHandler implements TrashHandler<View> {
             prefix: 'Restored',
           },
         );
-        await View.update(ctx, trashEntry.resource_id, { title: newTitle });
+        await View.update(
+          ctx,
+          trashEntry.resource_id,
+          { title: newTitle },
+          false,
+          ncMeta,
+        );
       }
     }
 
-    await View.softDelete(ctx, trashEntry.resource_id, false);
+    await View.softDelete(ctx, trashEntry.resource_id, false, ncMeta);
 
     NocoSocket.broadcastEvent(ctx, {
       event: EventType.META_EVENT,
       payload: {
         id: trashEntry.resource_id,
         action: 'view_restore',
-        payload: await View.get(ctx, trashEntry.resource_id),
+        payload: await View.get(ctx, trashEntry.resource_id, false, ncMeta),
       } as Record<string, unknown>,
     } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
 

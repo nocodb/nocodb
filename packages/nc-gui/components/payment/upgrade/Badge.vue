@@ -30,16 +30,9 @@ interface Props {
   showAsLock?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   planTitle: PlanTitles.PLUS,
   size: 'xs',
-})
-
-const isFeatureEnabled = computed(() => {
-  if (ncIsFunction(props.featureEnabledCallback)) {
-    return props.featureEnabledCallback()
-  }
-  return false
 })
 </script>
 

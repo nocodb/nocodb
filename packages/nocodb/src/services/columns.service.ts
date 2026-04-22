@@ -1643,7 +1643,9 @@ export class ColumnsService implements IColumnsService {
             );
             const conflictsWithOld = (title: string) =>
               caseInsensitiveDt
-                ? old_titles.some((t) => t.toLowerCase() === title.toLowerCase())
+                ? old_titles.some(
+                    (t) => t.toLowerCase() === title.toLowerCase(),
+                  )
                 : old_titles.includes(title);
 
             if (conflictsWithOld(newOp.title)) {

@@ -35,10 +35,7 @@ export class OrgsService {
       NcError.userNotFound(param.userId);
     }
 
-    const nameValidation = validateEntityName(
-      param.title,
-      'Organization name',
-    );
+    const nameValidation = validateEntityName(param.title, 'Organization name');
     if (!nameValidation.valid) {
       NcError.badRequest(nameValidation.error);
     }

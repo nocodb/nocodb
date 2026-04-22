@@ -109,7 +109,7 @@ onBeforeUnmount(() => {
 <template>
   <NcTooltip v-if="!isFeatureEnabled && showAsLock && isEEFeatureBlocked" @click="showUpgradeModal">
     <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
-    <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" style="color: #0d5a5a" />
+    <GeneralIcon icon="ncUpgradeSparkle" class="h-3.5 w-3.5 cursor-pointer" :style="{ color: activeBadgeColors.text }" />
   </NcTooltip>
   <NcBadge
     v-else-if="!isFeatureEnabled && (isPaymentEnabled || isOnPrem)"
@@ -128,15 +128,7 @@ onBeforeUnmount(() => {
     }"
     @click="showUpgradeModal"
   >
-    <svg
-      class="nc-upgrade-badge-sparkle"
-      viewBox="0 0 16 16"
-      fill="currentColor"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path d="M8 0 C8.6 5 11 7.4 16 8 C11 8.6 8.6 11 8 16 C7.4 11 5 8.6 0 8 C5 7.4 7.4 5 8 0 Z" />
-    </svg>
+    <GeneralIcon icon="ncUpgradeSparkle" class="nc-upgrade-badge-sparkle" />
     {{ getPlanTitle(effectivePlanTitle) }}
   </NcBadge>
 </template>

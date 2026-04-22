@@ -324,6 +324,7 @@ import NcChevronsRightIcon from '~icons/nc-icons-v2/chevrons-right.svg'
 import NcListIcon from '~icons/nc-icons-v2/list.svg'
 import NcListEndIcon from '~icons/nc-icons-v2/list-end.svg'
 import NcWandSparklesIcon from '~icons/nc-icons-v2/wand-sparkles.svg'
+import NcUpgradeSparkleIcon from '~icons/nc-icons-v2/upgrade-sparkle.svg'
 import NcNumberListIcon from '~icons/nc-icons-v2/number-list.svg'
 import NcCheckListIcon from '~icons/nc-icons-v2/check-list.svg'
 import NcChevronsDownIcon from '~icons/nc-icons-v2/chevrons-down.svg'
@@ -1405,6 +1406,7 @@ export const iconMap = {
   'ncList': NcListIcon,
   'ncListEnd': NcListEndIcon,
   'ncWandSparkles': NcWandSparklesIcon,
+  'ncUpgradeSparkle': h(NcUpgradeSparkleIcon, { stroke: 'transparent' }),
   'ncNumberList': NcNumberListIcon,
   'ncCheckList': NcCheckListIcon,
   'ncChevronsDown': NcChevronsDownIcon,
@@ -4288,6 +4290,10 @@ export const searchableMap = {
   ncAutoAwesome: {
     icon: h(NcAutoAwesome, { stroke: 'transparent' }),
     keywords: ['Magic', 'ai', 'autoAwesome', 'awesome'],
+  },
+  ncUpgradeSparkle: {
+    icon: h(NcUpgradeSparkleIcon, { stroke: 'transparent' }),
+    keywords: ['upgrade', 'sparkle', 'star', 'premium', 'plus', 'badge'],
   },
   ncHeading1: {
     icon: NcHeading1,

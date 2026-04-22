@@ -9,6 +9,7 @@ interface Props {
   disabled?: boolean
   precision?: number
   isFocusOnMounted?: boolean
+  decimalSeparator?: string
 }
 
 interface Emits {
@@ -28,14 +29,27 @@ const pasteText = (target: HTMLInputElement, value: string) => {
   if (!value || value === '') {
     return { changed: false }
   }
+  const decSep = props.decimalSeparator || '.'
   const selectionEnd = target.selectionEnd
   const lastValue = target.value
-  const newValue = composeNewDecimalValue({
+
+  // composeNewDecimalValue only understands '.' as decimal separator,
+  // so normalize to '.' before composing and convert back after
+  const normalizedLast = decSep !== '.' ? lastValue.replace(new RegExp('\\' + decSep, 'g'), '.') : lastValue
+  const normalizedNew = decSep !== '.' ? value.replace(new RegExp('\\' + decSep, 'g'), '.') : value
+
+  let newValue = composeNewDecimalValue({
     selectionStart: target.selectionStart,
     selectionEnd: target.selectionEnd,
-    lastValue,
-    newValue: value,
+    lastValue: normalizedLast,
+    newValue: normalizedNew,
   })
+
+  // Convert back to the column's decimal separator
+  if (decSep !== '.') {
+    newValue = newValue.replace('.', decSep)
+  }
+
   if (target.value !== newValue) {
     target.value = newValue
   }
@@ -47,21 +61,29 @@ const pasteText = (target: HTMLInputElement, value: string) => {
 
 const getFormattedModelValue = (format = true) => {
   if (vModel.value || vModel.value === 0) {
+    const decSep = props.decimalSeparator || '.'
+    let numValue: number | undefined
+
     if (typeof vModel.value === 'number') {
-      if (props.precision && format) {
-        return vModel.value.toFixed(props.precision) ?? ''
-      } else {
-        return vModel.value.toString()
-      }
+      numValue = vModel.value
     } else if (typeof vModel.value === 'string') {
-      const numberValue = Number(vModel.value)
-      if (!ncIsNaN(numberValue)) {
-        if (props.precision && format) {
-          return numberValue.toFixed(props.precision) ?? ''
-        } else {
-          return numberValue.toString()
-        }
+      const parsed = Number(vModel.value)
+      if (!ncIsNaN(parsed)) {
+        numValue = parsed
       }
+    }
+
+    if (numValue !== undefined) {
+      let result: string
+      if (props.precision && format) {
+        result = numValue.toFixed(props.precision) ?? ''
+      } else {
+        result = numValue.toString()
+      }
+      if (decSep !== '.') {
+        result = result.replace('.', decSep)
+      }
+      return result
     }
   }
 
@@ -77,7 +99,12 @@ const saveValue = (targetValue: string) => {
     vModel.value = null
     return
   }
-  const value = Number(targetValue)
+  let cleaned = targetValue
+  const decSep = props.decimalSeparator || '.'
+  if (decSep !== '.') {
+    cleaned = cleaned.replace(new RegExp('\\' + decSep), '.')
+  }
+  const value = Number(cleaned)
   if (ncIsNaN(value)) {
     vModel.value = null
     return
@@ -140,7 +167,7 @@ const onInputKeyDown = (e: KeyboardEvent) => {
   } else if (e.key === 'ArrowUp') {
     target.setSelectionRange(0, 0)
     return
-  } else if (e.key.match('[^-0-9\.]')) {
+  } else if (e.key.match(`[^-0-9\\${props.decimalSeparator || '.'}]`)) {
     // prevent everything non ctrl / alt and non . and non number
     e.preventDefault()
     e.stopPropagation()
@@ -205,7 +232,8 @@ const onBeforeInput = (e: InputEvent) => {
   if (!e.data || !isMobileMode.value) return // may be null for deletions etc.
 
   // allow only digits, minus, dot
-  if (!/^[0-9.\-]$/.test(e.data)) {
+  const decSep = props.decimalSeparator || '.'
+  if (!(new RegExp(`^[0-9\\-\\${decSep}]$`).test(e.data))) {
     e.preventDefault()
   }
 }

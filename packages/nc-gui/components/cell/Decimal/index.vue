@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { roundUpToPrecision } from 'nocodb-sdk'
+import { roundUpToPrecision, resolveColumnSeparator, getSeparatorChars, formatNumberWithSeparator, SeparatorType } from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type
@@ -39,14 +39,19 @@ const displayValue = computed(() => {
 
   if (isNaN(Number(_vModel.value))) return null
 
-  if (meta.value.isLocaleString) {
-    return Number(roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1)).toLocaleString(undefined, {
-      minimumFractionDigits: meta.value.precision ?? 1,
-      maximumFractionDigits: meta.value.precision ?? 1,
+  const separator = resolveColumnSeparator(meta.value)
+  const precision = meta.value.precision ?? 1
+  const numValue = Number(roundUpToPrecision(Number(_vModel.value), precision))
+
+  if (separator === SeparatorType.Locale) {
+    return numValue.toLocaleString(undefined, {
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
     })
   }
 
-  return roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1)
+  const { thousandSeparator, decimalSeparator } = getSeparatorChars(separator)
+  return formatNumberWithSeparator(numValue, thousandSeparator, decimalSeparator, precision)
 })
 
 const vModel = computed({

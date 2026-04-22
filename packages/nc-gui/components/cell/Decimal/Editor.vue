@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { resolveColumnSeparator, getSeparatorChars } from 'nocodb-sdk'
+
 interface Props {
   // when we set a number, then it is number type
   // for sqlite, when we clear a cell or empty the cell, it returns ""
@@ -29,6 +31,11 @@ const precision = computed(() => {
   return parseProp(column?.value.meta).precision ?? 1
 })
 
+const separatorChars = computed(() => {
+  const separator = resolveColumnSeparator(parseProp(column?.value.meta))
+  return getSeparatorChars(separator)
+})
+
 onMounted(() => {
   if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     inputRef.value?.focus()
@@ -48,6 +55,7 @@ onMounted(() => {
     }"
     :disabled="readOnly"
     :precision="precision"
+    :decimal-separator="separatorChars.decimalSeparator"
     @blur="editEnabled = false"
   />
 </template>

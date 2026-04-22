@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnHelper, UITypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { ColumnHelper, SeparatorType, UITypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -33,6 +33,23 @@ const { formState } = useColumnCreateStoreOrThrow()
 const disableConfiguration = computed(
   () => Boolean(isMetaReadOnly.value) && !readonlyMetaAllowedTypes.includes(formState.value.uidt),
 )
+
+const separatorOptions = [
+  { value: SeparatorType.Locale, label: t('labels.separatorFollowLocale') },
+  { value: SeparatorType.NonePeriod, label: '1234.56' },
+  { value: SeparatorType.NoneComma, label: '1234,56' },
+  { value: SeparatorType.CommaPeriod, label: '1,234.56' },
+  { value: SeparatorType.PeriodComma, label: '1.234,56' },
+  { value: SeparatorType.SpacePeriod, label: '1 234.56' },
+  { value: SeparatorType.SpaceComma, label: '1 234,56' },
+]
+
+// Backward compat: resolve isLocaleString to separator if separator is not yet set
+if (!vModel.value.meta.separator) {
+  vModel.value.meta.separator = vModel.value.meta.isLocaleString
+    ? SeparatorType.CommaPeriod
+    : SeparatorType.NonePeriod
+}
 </script>
 
 <template>
@@ -61,11 +78,26 @@ const disableConfiguration = computed(
     </a-select>
   </a-form-item>
 
-  <a-form-item>
-    <div class="flex items-center gap-1">
-      <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
-        <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.showThousandsSeparator') }}</div>
-      </NcSwitch>
-    </div>
+  <a-form-item :label="$t('labels.separator')">
+    <a-select
+      v-model:value="vModel.meta.separator"
+      :disabled="disableConfiguration"
+      dropdown-class-name="nc-dropdown-decimal-separator-format"
+    >
+      <template #suffixIcon>
+        <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+      </template>
+      <a-select-option v-for="option of separatorOptions" :key="option.value" :value="option.value">
+        <div class="flex gap-2 w-full justify-between items-center">
+          {{ option.label }}
+          <component
+            :is="iconMap.check"
+            v-if="vModel.meta.separator === option.value"
+            id="nc-selected-item-icon"
+            class="text-nc-content-brand w-4 h-4"
+          />
+        </div>
+      </a-select-option>
+    </a-select>
   </a-form-item>
 </template>

@@ -2407,6 +2407,8 @@
     "clearSelection": "Clear selection",
     "displayAsProgress": "Display as progress",
     "relationType": "Relation type",
+    "separator": "Separator",
+    "separatorFollowLocale": "Follow locale",
     "showThousandsSeparator": "Show thousands separator",
     "signUpForFree": "Sign up for free",
     "coverImageField": "Cover image",

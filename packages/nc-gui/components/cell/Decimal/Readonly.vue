@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { roundUpToPrecision } from 'nocodb-sdk'
+import { roundUpToPrecision, resolveColumnSeparator, getSeparatorChars, formatNumberWithSeparator, SeparatorType } from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type
@@ -21,14 +21,19 @@ const displayValue = computed(() => {
 
   if (isNaN(Number(props.modelValue))) return null
 
-  if (meta.value.isLocaleString) {
-    return Number(roundUpToPrecision(Number(props.modelValue), meta.value.precision ?? 1)).toLocaleString(undefined, {
-      minimumFractionDigits: meta.value.precision ?? 1,
-      maximumFractionDigits: meta.value.precision ?? 1,
+  const separator = resolveColumnSeparator(meta.value)
+  const precision = meta.value.precision ?? 1
+  const numValue = Number(roundUpToPrecision(Number(props.modelValue), precision))
+
+  if (separator === SeparatorType.Locale) {
+    return numValue.toLocaleString(undefined, {
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
     })
   }
 
-  return roundUpToPrecision(Number(props.modelValue), meta.value.precision ?? 1)
+  const { thousandSeparator, decimalSeparator } = getSeparatorChars(separator)
+  return formatNumberWithSeparator(numValue, thousandSeparator, decimalSeparator, precision)
 })
 </script>
 

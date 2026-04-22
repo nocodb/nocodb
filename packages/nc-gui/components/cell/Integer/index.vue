@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import { resolveColumnSeparator, getSeparatorChars, formatNumberWithSeparator, SeparatorType } from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type
@@ -38,9 +39,19 @@ const displayValue = computed(() => {
 
   if (isNaN(Number(_vModel.value))) return null
 
-  if (parseProp(column.value.meta).isLocaleString) return Number(_vModel.value).toLocaleString()
+  const separator = resolveColumnSeparator(parseProp(column.value.meta))
 
-  return Number(_vModel.value)
+  if (separator === SeparatorType.Locale) {
+    return Number(_vModel.value).toLocaleString()
+  }
+
+  const { thousandSeparator } = getSeparatorChars(separator)
+
+  if (!thousandSeparator) {
+    return Number(_vModel.value)
+  }
+
+  return formatNumberWithSeparator(Number(_vModel.value), thousandSeparator, '.')
 })
 
 const vModel = computed({

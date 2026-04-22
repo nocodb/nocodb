@@ -14,7 +14,12 @@ import {
 } from '~/lib/is';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { constructTimeFormat } from '~/lib/dateTimeHelper';
-import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
+import { checkboxTypeMap, SeparatorType } from '~/lib/columnHelper/utils/common';
+import {
+  resolveColumnSeparator,
+  getSeparatorChars,
+  formatNumberWithSeparator,
+} from './separator';
 
 export const parseDefault = (value: any) => {
   try {
@@ -39,12 +44,19 @@ export const parseIntValue = (
   value = parseInt(value.toString(), 10);
 
   const columnMeta = parseProp(col?.meta);
+  const separator = resolveColumnSeparator(columnMeta);
 
-  if (columnMeta.isLocaleString) {
+  if (separator === SeparatorType.Locale) {
     return Number(value).toLocaleString();
   }
 
-  return Number(value);
+  const { thousandSeparator } = getSeparatorChars(separator);
+
+  if (!thousandSeparator) {
+    return Number(value);
+  }
+
+  return formatNumberWithSeparator(Number(value), thousandSeparator, '.');
 };
 
 export const parseDecimalValue = (
@@ -56,17 +68,27 @@ export const parseDecimalValue = (
   }
 
   const columnMeta = parseProp(col.meta);
+  const separator = resolveColumnSeparator(columnMeta);
+  const precision = columnMeta.precision ?? 1;
 
-  if (columnMeta.isLocaleString) {
+  if (separator === SeparatorType.Locale) {
     return Number(
-      roundUpToPrecision(Number(value), columnMeta.precision ?? 1)
+      roundUpToPrecision(Number(value), precision)
     ).toLocaleString(undefined, {
-      minimumFractionDigits: columnMeta.precision ?? 1,
-      maximumFractionDigits: columnMeta.precision ?? 1,
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
     });
   }
 
-  return roundUpToPrecision(Number(value), columnMeta.precision ?? 1);
+  const { thousandSeparator, decimalSeparator } = getSeparatorChars(separator);
+  const rounded = Number(roundUpToPrecision(Number(value), precision));
+
+  return formatNumberWithSeparator(
+    rounded,
+    thousandSeparator,
+    decimalSeparator,
+    precision
+  );
 };
 
 export const parsePercentValue = (value: string | null, col: ColumnType) => {

@@ -11,6 +11,7 @@ import {
   type ViewType,
   isLinksOrLTAR,
   isSystemColumn,
+  isUUID,
   isVirtualCol,
   populateUniqueFileName,
 } from 'nocodb-sdk'
@@ -1284,12 +1285,14 @@ export function useCopyPaste({
       !hasEditPermission.value ||
       columnObj.readonly ||
       (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj)) ||
-      (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
+      (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj)) ||
+      isUUID(columnObj)
     ) {
       if (
         columnObj.readonly ||
         (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj)) ||
-        (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
+        (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj)) ||
+        isUUID(columnObj)
       ) {
         message.toast(t('msg.info.computedFieldClearWarning'))
       }

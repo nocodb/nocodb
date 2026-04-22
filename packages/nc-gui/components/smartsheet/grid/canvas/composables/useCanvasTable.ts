@@ -1302,7 +1302,7 @@ export function useCanvasTable({
         if (isVirtualCol(colObj)) continue
 
         // skip readonly columns
-        if (isReadonlyVirtualColumn(colObj)) continue
+        if (isReadonlyVirtualColumn(colObj) || isUUID(colObj)) continue
 
         if (colObj.readonly) continue
 

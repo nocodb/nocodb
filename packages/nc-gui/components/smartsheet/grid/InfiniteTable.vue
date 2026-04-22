@@ -13,6 +13,7 @@ import {
   isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,
+  isUUID,
   isVirtualCol,
 } from 'nocodb-sdk'
 
@@ -475,7 +476,7 @@ provide(JsonExpandInj, isJsonExpand)
 const isKeyDown = ref(false)
 
 const isReadonly = (col: ColumnType) => {
-  return isReadonlyVirtualColumn(col) || col.readonly
+  return isReadonlyVirtualColumn(col) || col.readonly || isUUID(col)
 }
 
 const colMeta = computed(() => {
@@ -502,7 +503,12 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     return
 
   // If the cell is readonly, return
-  if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) return
+  if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) {
+    if (isUUID(fields.value[ctx.col])) {
+      message.toast(t('msg.info.computedFieldClearWarning'))
+    }
+    return
+  }
 
   // Get the row and column object
   const rowObj = cachedRows.value.get(ctx.row)

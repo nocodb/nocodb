@@ -2,7 +2,7 @@
 import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
 import type { ButtonType, ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isAIPromptCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isAIPromptCol, isLinksOrLTAR, isSystemColumn, isUUID, isVirtualCol } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
 import { type CellRange, type Group, NavigateDir } from '#imports'
 
@@ -257,7 +257,12 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     return
 
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
-  if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) return
+  if (colMeta.value[ctx.col].isReadonly && !isVirtualCol(fields.value[ctx.col])) {
+    if (isUUID(fields.value[ctx.col])) {
+      message.toast(t('msg.info.computedFieldClearWarning'))
+    }
+    return
+  }
 
   const rowObj = dataRef.value[ctx.row]
   const columnObj = fields.value[ctx.col]
@@ -498,7 +503,7 @@ const colMeta = computed(() => {
   return fields.value.map((col) => {
     return {
       isVirtualCol: isVirtualCol(col),
-      isReadonly: isReadonlyVirtualColumn(col),
+      isReadonly: isReadonlyVirtualColumn(col) || isUUID(col),
     }
   })
 })
@@ -1088,7 +1093,7 @@ async function clearSelectedRangeOfCells() {
       }
 
       // skip readonly columns
-      if (isReadonlyVirtualColumn(col)) continue
+      if (isReadonlyVirtualColumn(col) || isUUID(col)) continue
 
       if (col.readonly) continue
 

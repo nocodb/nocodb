@@ -82,16 +82,11 @@ onBeforeUnmount(() => {
   document.body.style.cursor = ''
 })
 
-const rowRef = computed(() => activeRow.value ?? { row: {}, oldRow: {}, rowMeta: {} } as Row)
+const rowRef = computed(() => activeRow.value ?? ({ row: {}, oldRow: {}, rowMeta: {} } as Row))
 
 const maintainDefaultViewOrder = ref(false)
 
-const expandedFormStore = useProvideExpandedFormStore(
-  meta as Ref<TableType>,
-  rowRef as Ref<Row>,
-  maintainDefaultViewOrder,
-  false,
-)
+const expandedFormStore = useProvideExpandedFormStore(meta as Ref<TableType>, rowRef as Ref<Row>, maintainDefaultViewOrder, false)
 
 const {
   commentsDrawer,
@@ -133,18 +128,15 @@ provide(ReloadRowDataHookInj, reloadHook)
 
 commentsDrawer.value = true
 
-watch(
-  [() => activityExpanded.value, () => activeActivityTab.value],
-  async ([expanded, tab]) => {
-    if (!expanded || !primaryKey.value) return
+watch([() => activityExpanded.value, () => activeActivityTab.value], async ([expanded, tab]) => {
+  if (!isOpen.value || !expanded || !primaryKey.value) return
 
-    if (tab === 'comments') {
-      await loadComments(primaryKey.value)
-    } else if (tab === 'audits') {
-      await loadAudits(primaryKey.value, false)
-    }
-  },
-)
+  if (tab === 'comments') {
+    await loadComments(primaryKey.value)
+  } else if (tab === 'audits') {
+    await loadAudits(primaryKey.value, false)
+  }
+})
 
 const isSaving = ref(false)
 
@@ -189,7 +181,9 @@ watch(
   { immediate: true },
 )
 
-const save = async () => {
+// Returns true on success, false on failure (error is surfaced via message.error).
+// saveAndContinue relies on the return value to decide whether to navigate.
+const save = async (): Promise<boolean> => {
   isSaving.value = true
 
   try {
@@ -201,15 +195,17 @@ const save = async () => {
     }
 
     await reloadViewDataTrigger?.trigger()
+    return true
   } catch (e: any) {
     if (isNew.value) {
       message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
     } else {
       message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
+    return false
+  } finally {
+    isSaving.value = false
   }
-
-  isSaving.value = false
 }
 
 const showDiscardModal = ref(false)
@@ -223,7 +219,6 @@ const onClose = () => {
     closePanel()
   }
 }
-
 
 const pendingNavDirection = ref<'prev' | 'next' | null>(null)
 
@@ -251,17 +246,14 @@ const discardAndNavigate = () => {
 
 const saveAndContinue = async () => {
   $e('c:row-expand-panel:save-and-continue')
-  try {
-    await save()
-    showDiscardModal.value = false
-    const dir = pendingNavDirection.value
-    pendingNavDirection.value = null
-    if (dir === 'prev') navigatePrev()
-    else if (dir === 'next') navigateNext()
-    else closePanel()
-  } catch {
-    // Save failed — stay on current row
-  }
+  const ok = await save()
+  if (!ok) return // save failed — stay on current row so user can fix/retry
+  showDiscardModal.value = false
+  const dir = pendingNavDirection.value
+  pendingNavDirection.value = null
+  if (dir === 'prev') navigatePrev()
+  else if (dir === 'next') navigateNext()
+  else closePanel()
 }
 
 const onKeydown = (e: KeyboardEvent) => {
@@ -294,14 +286,7 @@ const panelStyle = computed(() => {
 })
 
 const panelClasses = computed(() => {
-  const base = [
-    'nc-expanded-form-panel',
-    'flex',
-    'flex-col',
-    'bg-nc-bg-default',
-    'border-l',
-    'border-nc-border-gray-medium',
-  ]
+  const base = ['nc-expanded-form-panel', 'flex', 'flex-col', 'bg-nc-bg-default', 'border-l', 'border-nc-border-gray-medium']
   if (isResizing.value) base.push('is-resizing')
   if (isFullscreen.value) {
     base.push('flex-1', 'h-full', 'z-50')
@@ -339,24 +324,25 @@ const showActivity = computed(() => {
       <div
         class="flex items-center h-[var(--toolbar-height)] gap-0 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
       >
-        <!-- Display value -->
+        <!-- Display value (flex-1 pushes header controls to the right) -->
         <NcTooltip v-if="displayValue && !isNew" show-on-truncate-only class="truncate min-w-0 flex-1">
           <template #title>{{ displayValue }}</template>
           <span class="nc-expanded-form-panel-display-value truncate font-bold text-body text-nc-content-gray">
             {{ displayValue }}
           </span>
         </NcTooltip>
-        <span v-else-if="isNew" class="truncate font-bold text-body text-nc-content-gray">
+        <span v-else-if="isNew" class="truncate font-bold text-body text-nc-content-gray flex-1">
           {{ $t('activity.newRecord') }}
         </span>
         <div v-else class="flex-1" />
 
-        <div class="flex-1" />
-
         <!-- Save -->
-        <NcTooltip v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView" :title="isNew ? $t('general.create') : $t('general.save')">
+        <NcTooltip
+          v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
+          :title="isNew ? $t('general.create') : $t('general.save')"
+        >
           <NcButton
-            v-e="['c:row-expand:save']"
+            v-e="['c:row-expand-panel:save']"
             :disabled="isSaveDisabled"
             :loading="isSaving"
             class="!w-7 !h-7"
@@ -396,12 +382,7 @@ const showActivity = computed(() => {
           </NcTooltip>
         </div>
 
-        <SmartsheetExpandedFormViewModeSelector
-          v-if="isFullscreen"
-          v-model="activeViewMode"
-          :view="view"
-          class="mr-2"
-        />
+        <SmartsheetExpandedFormViewModeSelector v-if="isFullscreen" v-model="activeViewMode" :view="view" class="mr-2" />
 
         <div
           v-if="showActivity && !isFullscreen"
@@ -409,8 +390,8 @@ const showActivity = computed(() => {
         >
           <NcTooltip :title="$t('objects.fields')">
             <div
-              class="nc-panel-mode-tab"
               v-e="['c:row-expand-panel:mode:fields']"
+              class="nc-panel-mode-tab"
               :class="{ active: !activityExpanded }"
               @click="activityExpanded = false"
             >
@@ -419,8 +400,8 @@ const showActivity = computed(() => {
           </NcTooltip>
           <NcTooltip :title="$t('general.comments')">
             <div
-              class="nc-panel-mode-tab"
               v-e="['c:row-expand-panel:mode:comments']"
+              class="nc-panel-mode-tab"
               :class="{ active: activityExpanded && activeActivityTab === 'comments' }"
               data-testid="nc-expanded-form-panel-comments-toggle"
               @click="toggleActivity('comments')"
@@ -430,8 +411,8 @@ const showActivity = computed(() => {
           </NcTooltip>
           <NcTooltip :title="$t('labels.revisionHistory')">
             <div
-              class="nc-panel-mode-tab"
               v-e="['c:row-expand-panel:mode:audits']"
+              class="nc-panel-mode-tab"
               :class="{ active: activityExpanded && activeActivityTab === 'audits' }"
               data-testid="nc-expanded-form-panel-audits-toggle"
               @click="toggleActivity('audits')"
@@ -444,23 +425,20 @@ const showActivity = computed(() => {
         <div class="flex items-center">
           <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
             <NcButton
+              v-e="[`c:row-expand-panel:${isFullscreen ? 'exit' : 'enter'}-fullscreen`]"
               size="xs"
               :type="isFullscreen ? 'primary' : 'text'"
-              v-e="[`c:row-expand-panel:${isFullscreen ? 'exit' : 'enter'}-fullscreen`]"
               data-testid="nc-expanded-form-panel-fullscreen"
               @click="setFullscreen(!isFullscreen)"
             >
-              <GeneralIcon
-                :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'"
-                class="w-3.5 h-3.5"
-              />
+              <GeneralIcon :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'" class="w-3.5 h-3.5" />
             </NcButton>
           </NcTooltip>
           <NcTooltip :title="$t('general.close')">
             <NcButton
+              v-e="['c:row-expand-panel:close']"
               size="xs"
               type="text"
-              v-e="['c:row-expand-panel:close']"
               data-testid="nc-expanded-form-panel-close"
               @click="onClose"
             >
@@ -528,10 +506,10 @@ const showActivity = computed(() => {
   </Transition>
 
   <!-- Discard changes modal -->
-  <NcModal v-model:visible="showDiscardModal" size="small">
+  <NcModal v-model:visible="showDiscardModal" size="xs">
     <div>
       <div class="flex flex-row items-center gap-x-2 text-base font-bold">
-        {{ $t('tooltip.saveChanges') }}
+        {{ $t('labels.saveChanges') }}
       </div>
       <div class="flex font-medium mt-2">
         {{ $t('activity.doYouWantToSaveTheChanges') }}
@@ -539,7 +517,7 @@ const showActivity = computed(() => {
       <div class="flex flex-row justify-end gap-x-2 mt-5">
         <NcButton type="secondary" size="small" @click="discardAndNavigate">{{ $t('labels.discard') }}</NcButton>
         <NcButton type="primary" size="small" :loading="isSaving" @click="saveAndContinue">
-          {{ $t('tooltip.saveChanges') }}
+          {{ $t('labels.saveChanges') }}
         </NcButton>
       </div>
     </div>
@@ -582,7 +560,6 @@ const showActivity = computed(() => {
     user-select: none;
     transition: none;
   }
-
 }
 
 .nc-expanded-form-panel-resize-handle {
@@ -621,7 +598,6 @@ const showActivity = computed(() => {
   transform: translateX(100%);
   opacity: 0;
 }
-
 </style>
 
 <style lang="scss">
@@ -674,7 +650,6 @@ const showActivity = computed(() => {
       }
     }
   }
-
 
   .nc-expanded-cell .flex-none {
     @apply !mb-0;

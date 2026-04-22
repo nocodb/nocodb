@@ -275,42 +275,43 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
-// EE desktop: open panel from route rowId (page reload, direct link)
-watch(
-  () => routeQuery.value.rowId,
-  (rowId) => {
-    if (!rowId || !isEeUI || isMobileMode.value || isPublic.value || !expandedFormPanelStore || !meta.value?.id) return
-    if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
-
-    expandedFormPanelStore.openPanel(
-      { row: {}, oldRow: {}, rowMeta: {} } as Row,
-      undefined,
-      undefined,
-      rowId,
-    )
-  },
-  { immediate: true },
-)
-
 const isSyncingPanelRoute = ref(false)
 let syncRouteTimeout: ReturnType<typeof setTimeout> | null = null
 
 const setSyncingRoute = () => {
   isSyncingPanelRoute.value = true
   if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
-  syncRouteTimeout = setTimeout(() => { isSyncingPanelRoute.value = false }, 500)
+  syncRouteTimeout = setTimeout(() => {
+    isSyncingPanelRoute.value = false
+  }, 500)
 }
 
 const clearSyncingRoute = () => {
   if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
   syncRouteTimeout = null
-  nextTick(() => { isSyncingPanelRoute.value = false })
+  nextTick(() => {
+    isSyncingPanelRoute.value = false
+  })
 }
 
 onBeforeUnmount(() => {
   if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
   isSyncingPanelRoute.value = false
 })
+
+// EE desktop: open panel from route rowId (page reload, direct link).
+// Depends on meta columns being loaded so injectPkIntoRow can populate the PK.
+watch(
+  [() => routeQuery.value.rowId, () => meta.value?.columns?.length],
+  ([rowId, columnsLen]) => {
+    if (!rowId || !columnsLen || !isEeUI || isMobileMode.value || isPublic.value || !expandedFormPanelStore || !meta.value?.id)
+      return
+    if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
+
+    expandedFormPanelStore.openPanel({ row: {}, oldRow: {}, rowMeta: {} } as Row, undefined, undefined, rowId)
+  },
+  { immediate: true },
+)
 
 watch(
   () => routeQuery.value.rowId,
@@ -322,43 +323,41 @@ watch(
   },
 )
 
-watch(
-  isExpandedFormPanelOpen,
-  (open) => {
-    if (!open && routeQuery.value.rowId) {
-      setSyncingRoute()
-      router.push({
+watch(isExpandedFormPanelOpen, (open) => {
+  if (!open && routeQuery.value.rowId) {
+    setSyncingRoute()
+    router
+      .push({
         query: {
           ...routeQuery.value,
           path: undefined,
           rowId: undefined,
         },
-      }).finally(clearSyncingRoute)
-    }
-  },
-)
+      })
+      .finally(clearSyncingRoute)
+  }
+})
 
 watch(
   () => expandedFormPanelStore?.activeRowId.value,
   (newRowId) => {
     if (newRowId && isExpandedFormPanelOpen.value && routeQuery.value.rowId !== newRowId) {
       setSyncingRoute()
-      router.push({
-        query: {
-          ...routeQuery.value,
-          rowId: newRowId,
-        },
-      }).finally(clearSyncingRoute)
+      router
+        .push({
+          query: {
+            ...routeQuery.value,
+            rowId: newRowId,
+          },
+        })
+        .finally(clearSyncingRoute)
     }
   },
 )
 
-watch(
-  [isExpandedFormPanelOpen, () => expandedFormPanelStore?.activeRowIndex.value],
-  () => {
-    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
-  },
-)
+watch([isExpandedFormPanelOpen, () => expandedFormPanelStore?.activeRowIndex.value], () => {
+  eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+})
 
 const addRowExpandOnClose = (row: Row) => {
   if (!skipRowRemovalOnCancel.value) {

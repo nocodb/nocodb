@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { NodeProps } from '@vue-flow/core'
 import { Handle, Position, useVueFlow } from '@vue-flow/core'
-import type { LinkToAnotherRecordType } from 'nocodb-sdk'
 import { isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import type { NodeData } from './utils'
 
@@ -22,9 +21,6 @@ const isZooming = refAutoReset(false, 200)
 provide(MetaInj, table)
 
 const { $e } = useNuxtApp()
-
-const relatedColumnId = (colOptions: LinkToAnotherRecordType | any) =>
-  colOptions.type === 'mm' ? colOptions.fk_parent_column_id : colOptions.fk_child_column_id
 
 const hasColumns = computed(() => data.pkAndFkColumns.length || data.nonPkColumns.length)
 
@@ -97,7 +93,7 @@ watch(
               :class="`nc-erd-table-node-${table.table_name}-column-${col.title?.toLowerCase()?.replace(' ', '_')}`"
             >
               <Handle
-                :id="`s-${relatedColumnId(col.colOptions)}-${table.id}`"
+                :id="`s-${col.id}-${table.id}`"
                 class="opacity-0 !right-[-1px]"
                 type="source"
                 :position="Position.Right"
@@ -105,7 +101,7 @@ watch(
               />
 
               <Handle
-                :id="`d-${relatedColumnId(col.colOptions)}-${table.id}`"
+                :id="`d-${col.id}-${table.id}`"
                 class="opacity-0 !left-[-1px]"
                 type="target"
                 :position="Position.Left"

@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR, LinksVersion } from 'nocodb-sdk'
 import dagre from 'dagre'
 import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
 import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
@@ -29,6 +29,8 @@ export interface NodeData {
 
 export interface EdgeData {
   isManyToMany: boolean
+  isOneToMany: boolean
+  isManyToOne: boolean
   isOneToOne: boolean
   isSelfRelation: boolean
   label?: string
@@ -43,6 +45,13 @@ interface Relation {
   parentColId?: string
   modelId?: string
   type: RelationTypes
+  // v2 links are junction-backed; v1 HM/BT/OO are direct-FK.
+  isV2?: boolean
+  // Handle anchors — the LTAR column ids on each side.
+  // Using `col.id` (unique per row) avoids v2's fk_child collision where OM/MO/OO
+  // on the same table all resolve to the table's PK.
+  sourceColumnId?: string
+  targetColumnId?: string
 }
 
 /**
@@ -83,60 +92,65 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
         const source = column.fk_model_id
         const target = colOptions.fk_related_model_id
 
-        const sourceExists = erdTables.value.find((t) => t.id === source)
-        const targetExists = erdTables.value.find((t) => t.id === target)
+        if (!source || !target) continue
+        if (!erdTables.value.some((t) => t.id === source)) continue
+        if (!erdTables.value.some((t) => t.id === target)) continue
 
-        if (source && target && sourceExists && targetExists) {
-          const relation: Relation = {
-            source,
-            target,
-            childColId: colOptions.fk_child_column_id,
-            parentColId: colOptions.fk_parent_column_id,
-            modelId: colOptions.fk_mm_model_id,
-            type: RelationTypes.HAS_MANY,
-          }
+        const type = colOptions.type as RelationTypes
 
-          if (colOptions.type === RelationTypes.HAS_MANY) {
-            relation.type = RelationTypes.HAS_MANY
+        // BT is always the mirror of HM; MO is always the mirror of OM — skip them.
+        if (type === RelationTypes.BELONGS_TO) continue
+        if (type === RelationTypes.MANY_TO_ONE) continue
 
-            acc.push(relation)
-            continue
-          }
-          if (colOptions.type === RelationTypes.ONE_TO_ONE) {
-            relation.type = RelationTypes.ONE_TO_ONE
+        // db may store version as string "2" or number 2
+        const isV2 = colOptions.version == LinksVersion.V2
+        // junction-backed relation (v1 MM + any v2 link): mirror has swapped fk_child/fk_parent
+        const isJunction = isV2 || type === RelationTypes.MANY_TO_MANY
 
-            // skip adding relation link from both side
-            if (column.meta?.bt) continue
+        // v1 OO tags the child side with meta.bt — skip it so the relation is pushed once.
+        if (type === RelationTypes.ONE_TO_ONE && !isV2 && column.meta?.bt) continue
 
-            acc.push(relation)
-            continue
-          }
-
-          if (colOptions.type === RelationTypes.MANY_TO_MANY) {
-            // Avoid duplicate mm connections
-            const correspondingColumn = acc.find(
-              (relation) =>
-                relation.type === RelationTypes.MANY_TO_MANY &&
-                relation.parentColId === colOptions.fk_child_column_id &&
-                relation.childColId === colOptions.fk_parent_column_id,
+        // Find the mirror column on the target table.
+        const mirror = metasWithIdAsKey.value[target]?.columns?.find((c: ColumnType) => {
+          if (!isLinksOrLTAR(c) || !!c.system || c.id === column.id) return false
+          const co = c.colOptions as LinkToAnotherRecordType | undefined
+          if (!co || co.fk_related_model_id !== source) return false
+          if (isJunction) {
+            return (
+              co.fk_child_column_id === colOptions.fk_parent_column_id &&
+              co.fk_parent_column_id === colOptions.fk_child_column_id &&
+              co.fk_mm_model_id === colOptions.fk_mm_model_id
             )
-
-            if (!correspondingColumn) {
-              relation.type = RelationTypes.MANY_TO_MANY
-
-              acc.push(relation)
-              continue
-            }
           }
-        }
+          // v1 direct-FK — mirror keeps the same fk_child / fk_parent values
+          return (
+            co.fk_child_column_id === colOptions.fk_child_column_id &&
+            co.fk_parent_column_id === colOptions.fk_parent_column_id
+          )
+        })
+
+        // If our mirror was already processed and pushed, we'd be its mirror — skip.
+        if (mirror && acc.some((r) => r.sourceColumnId === mirror.id)) continue
+
+        acc.push({
+          source,
+          target,
+          childColId: colOptions.fk_child_column_id,
+          parentColId: colOptions.fk_parent_column_id,
+          modelId: colOptions.fk_mm_model_id,
+          type,
+          isV2,
+          sourceColumnId: column.id,
+          targetColumnId: mirror?.id ?? column.id,
+        })
       }
 
       return acc
     }, [] as Relation[]),
   )
 
-  function edgeLabel({ type, source, target, modelId, childColId, parentColId }: Relation) {
-    let typeLabel: string
+  function edgeLabel({ type, source, target, modelId, sourceColumnId, targetColumnId }: Relation) {
+    let typeLabel = ''
 
     if (type === RelationTypes.HAS_MANY) typeLabel = 'has many'
     else if (type === RelationTypes.MANY_TO_MANY) typeLabel = 'many to many'
@@ -145,23 +159,9 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     else if (type === RelationTypes.MANY_TO_ONE) typeLabel = 'many to one'
     else if (type === RelationTypes.BELONGS_TO) typeLabel = 'belongs to'
 
-    const parentCol = metasWithIdAsKey.value[source]?.columns?.find((col) => {
-      const colOptions = col.colOptions as LinkToAnotherRecordType
-      if (!colOptions) return false
-
-      return (
-        colOptions.fk_child_column_id === childColId &&
-        colOptions.fk_parent_column_id === parentColId &&
-        colOptions.fk_mm_model_id === modelId
-      )
-    })
-
-    const childCol = metasWithIdAsKey.value[target]?.columns?.find((col) => {
-      const colOptions = col.colOptions as LinkToAnotherRecordType
-      if (!colOptions) return false
-
-      return colOptions.fk_parent_column_id === (type === RelationTypes.MANY_TO_MANY ? childColId : parentColId)
-    })
+    // Source/target column ids were computed at collection time; look up by id directly.
+    const parentCol = metasWithIdAsKey.value[source]?.columns?.find((col) => col.id === sourceColumnId)
+    const childCol = metasWithIdAsKey.value[target]?.columns?.find((col) => col.id === targetColumnId)
 
     if (!parentCol || !childCol) return ['', '']
 
@@ -230,27 +230,10 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
   }
 
   function createEdges() {
-    return relations.value.reduce<Edge<EdgeData>[]>((acc, { source, target, childColId, parentColId, type, modelId }) => {
-      let sourceColumnId, targetColumnId
+    return relations.value.reduce<Edge<EdgeData>[]>((acc, rel) => {
+      const { source, target, type, sourceColumnId, targetColumnId } = rel
 
-      if (type === RelationTypes.HAS_MANY || type === 'oo') {
-        sourceColumnId = childColId
-        targetColumnId = childColId
-      }
-
-      if (type === RelationTypes.MANY_TO_MANY) {
-        sourceColumnId = parentColId
-        targetColumnId = childColId
-      }
-
-      const [label, simpleLabel] = edgeLabel({
-        source,
-        target,
-        type,
-        childColId,
-        parentColId,
-        modelId,
-      })
+      const [label, simpleLabel] = edgeLabel(rel)
 
       acc.push({
         id: `e-${sourceColumnId}-${source}-${targetColumnId}-${target}-#${label}`,
@@ -265,8 +248,10 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
         },
         data: {
           isManyToMany: type === RelationTypes.MANY_TO_MANY,
-          isOneToOne: type === 'oo',
-          isSelfRelation: source === target && sourceColumnId === targetColumnId,
+          isOneToMany: type === RelationTypes.ONE_TO_MANY,
+          isManyToOne: type === RelationTypes.MANY_TO_ONE,
+          isOneToOne: type === RelationTypes.ONE_TO_ONE,
+          isSelfRelation: source === target,
           label,
           simpleLabel,
           color: '',

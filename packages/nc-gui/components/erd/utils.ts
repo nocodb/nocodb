@@ -112,7 +112,7 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
 
         // Find the mirror column on the target table.
         const mirror = metasWithIdAsKey.value[target]?.columns?.find((c: ColumnType) => {
-          if (!isLinksOrLTAR(c) || c.system === 1 || c.id === column.id) return false
+          if (!isLinksOrLTAR(c) || !!c.system || c.id === column.id) return false
           const co = c.colOptions as LinkToAnotherRecordType | undefined
           if (!co || co.fk_related_model_id !== source) return false
           if (isJunction) {

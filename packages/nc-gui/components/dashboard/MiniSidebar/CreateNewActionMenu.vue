@@ -28,7 +28,8 @@ const { showUpgradeToUseListView } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
-const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseTimelineView, blockListView, blockTimelineView } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseTimelineView, blockListView, blockTimelineView, blockDocs } =
+  useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -404,7 +405,7 @@ const hasDocumentCreateAccess = computed(() => {
                   {{ $t('objects.document') }}
                 </div>
 
-                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockDocs" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
           </template>

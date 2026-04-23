@@ -112,6 +112,7 @@ export enum PlanFeatureTypes {
   /** On-prem: core EE capability flag — true for all paid plans, false for free */
   FEATURE_EE_CORE = 'feature_ee_core',
   FEATURE_TRASH_SETTINGS = 'feature_trash_settings',
+  FEATURE_FORM_GRID_LAYOUT = 'feature_form_grid_layout',
 }
 
 export enum PlanTitles {
@@ -391,6 +392,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_EE_CORE]: 'to access enterprise features.',
   [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]:
     'to configure per-table trash settings.',
+  [PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT]:
+    'to arrange form fields in multi-column rows.',
 };
 
 export const getUpgradeMessage = (

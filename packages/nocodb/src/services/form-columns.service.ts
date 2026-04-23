@@ -94,6 +94,7 @@ export class FormColumnsService {
         'required',
         'show',
         'order',
+        'row_id',
         'meta',
         'enable_scanner',
       ]),
@@ -187,9 +188,46 @@ export class FormColumnsService {
         ).withViewId(view.id)
       ).forUpdate();
 
+    // Cache Column lookups so the audit payload per form-column update
+    // doesn't re-hit the DB for each sibling in a drag reflow.
+    const columnCache = new Map<string, Column>();
+    const getUnderlyingColumn = async (colId: string) => {
+      if (!columnCache.has(colId)) {
+        columnCache.set(
+          colId,
+          await Column.get(context, { colId }, ncMeta),
+        );
+      }
+      return columnCache.get(colId)!;
+    };
+
     for (const u of param.updates) {
       const body = extractProps(u, ['row_id', 'order']);
+      const oldFormViewColumn = existingById.get(u.id)!;
+
+      // Skip audit emit if the update is a no-op (same row_id + same order).
+      const rowIdChanged =
+        body.row_id !== undefined &&
+        (oldFormViewColumn.row_id ?? null) !== (body.row_id ?? null);
+      const orderChanged =
+        body.order !== undefined && oldFormViewColumn.order !== body.order;
+
       await FormViewColumn.update(context, u.id, body, ncMeta);
+
+      if (!rowIdChanged && !orderChanged) continue;
+
+      const column = await getUnderlyingColumn(oldFormViewColumn.fk_column_id);
+
+      // Match single-column columnUpdate emit shape so the audit listener
+      // produces identical VIEW_COLUMN_UPDATE entries for grid reflows.
+      this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
+        oldViewColumn: oldFormViewColumn,
+        viewColumn: extractProps(body, ['row_id', 'order']),
+        view,
+        column,
+        req: param.req,
+        context,
+      });
     }
 
     if (!param.viewWebhookManager) {

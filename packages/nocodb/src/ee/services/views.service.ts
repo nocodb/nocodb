@@ -3,11 +3,11 @@ import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import { ViewsService as ViewsServiceCE } from 'src/services/views.service';
 import type { UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { View, User } from '~/models';
+import type { MetaService } from '~/meta/meta.service';
+import { User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { NcError } from '~/helpers/catchError';
-import Noco from '~/Noco';
 
 @Injectable()
 export class ViewsService extends ViewsServiceCE {
@@ -26,7 +26,7 @@ export class ViewsService extends ViewsServiceCE {
       skipTrash?: boolean;
       req: NcRequest;
     },
-    ncMeta = Noco.ncMeta,
+    ncMeta?: MetaService,
   ) {
     if (param.skipTrash) {
       return super.viewDelete(context, param, ncMeta);
@@ -42,6 +42,7 @@ export class ViewsService extends ViewsServiceCE {
       resourceType: 'view',
       user: param.user,
       req: param.req,
+      ncMeta,
     });
 
     // Match CE: pick the type-specific delete event

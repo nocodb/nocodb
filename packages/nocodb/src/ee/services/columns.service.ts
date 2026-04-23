@@ -100,7 +100,7 @@ export class ColumnsService extends ColumnsServiceCE {
       reuse?: ReusableParams;
       columnWebhookManager?: ColumnWebhookManager;
     },
-    ncMeta = this.metaService,
+    ncMeta?: MetaService,
   ) {
     // Trash handler's permanent-delete path sets skipTrash to bypass the
     // trash flow and run the CE hard-delete directly.
@@ -124,6 +124,7 @@ export class ColumnsService extends ColumnsServiceCE {
       resourceType: 'field',
       user: param.user,
       req: param.req,
+      ncMeta,
     });
 
     this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
@@ -135,7 +136,7 @@ export class ColumnsService extends ColumnsServiceCE {
       context,
     });
 
-    return true;
+    return table;
   }
 
   @EEOnly()

@@ -99,11 +99,15 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
 
     // External source tables → hard-delete (no trash, can't soft-delete external schema)
     if (!source?.isMeta()) {
-      await this.tablesService.tableDelete(ctx, {
-        tableId: id,
-        user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER,
-        req: {} as any,
-      });
+      await this.tablesService.tableDelete(
+        ctx,
+        {
+          tableId: id,
+          user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER,
+          req: {} as any,
+        },
+        ncMeta,
+      );
       return { entity: table, skipTrashEntry: true };
     }
 
@@ -335,14 +339,18 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
     }
 
     // Run existing hard-delete chain (handles FK constraints, junction tables, view columns, etc.)
-    await this.tablesService.tableDelete(ctx, {
-      tableId: trashEntry.resource_id,
-      user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER as any,
-      req: {} as any,
-      forceDeleteRelations: true,
-      skipLinkPlaceholder: true,
-      skipTrash: true,
-    });
+    await this.tablesService.tableDelete(
+      ctx,
+      {
+        tableId: trashEntry.resource_id,
+        user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER as any,
+        req: {} as any,
+        forceDeleteRelations: true,
+        skipLinkPlaceholder: true,
+        skipTrash: true,
+      },
+      ncMeta,
+    );
   }
 
   // ── Cascade: All Reverse Links in Other Tables ─────────────

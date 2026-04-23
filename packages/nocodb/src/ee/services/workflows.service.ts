@@ -17,6 +17,7 @@ import type { WorkflowRunAs } from 'nocodb-sdk';
 import type { OnModuleInit } from '@nestjs/common';
 import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { extractWorkflowDependencies } from '~/services/workflows/extractDependency';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { NcError } from '~/helpers/catchError';
@@ -336,12 +337,17 @@ export class WorkflowsService implements OnModuleInit {
     return updatedWorkflow;
   }
 
-  async deleteWorkflow(context: NcContext, workflowId: string, req: NcRequest) {
+  async deleteWorkflow(
+    context: NcContext,
+    workflowId: string,
+    req: NcRequest,
+    ncMeta?: MetaService,
+  ) {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
 
-    const workflow = await Workflow.get(context, workflowId);
+    const workflow = await Workflow.get(context, workflowId, false, ncMeta);
 
     if (!workflow) {
       NcError.get(context).workflowNotFound(workflowId);
@@ -349,7 +355,7 @@ export class WorkflowsService implements OnModuleInit {
 
     // Deactivate triggers before trashing
     try {
-      await this.callOnDeactivateHooks(context, workflow);
+      await this.callOnDeactivateHooks(context, workflow, ncMeta);
     } catch (error) {
       this.logger.error('Failed to trigger deactivation hooks:', error?.stack);
     }
@@ -359,6 +365,7 @@ export class WorkflowsService implements OnModuleInit {
       resourceType: 'workflow',
       user: req.user,
       req,
+      ncMeta,
     });
 
     this.appHooksService.emit(AppEvents.WORKFLOW_DELETE, {
@@ -1064,9 +1071,14 @@ export class WorkflowsService implements OnModuleInit {
   private async callOnDeactivateHooks(
     context: NcContext,
     workflow: Workflow,
+    ncMeta?: MetaService,
   ): Promise<void> {
     // Get all external triggers for this workflow from Workflow model
-    const triggers = await Workflow.getExternalTriggers(context, workflow.id);
+    const triggers = await Workflow.getExternalTriggers(
+      context,
+      workflow.id,
+      ncMeta,
+    );
 
     if (triggers.length === 0) return;
 

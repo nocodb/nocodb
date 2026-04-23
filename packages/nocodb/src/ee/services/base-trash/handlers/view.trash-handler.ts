@@ -66,11 +66,11 @@ export class ViewTrashHandler extends BaseTrashHandler<View> {
       ncMeta,
     );
 
-    const viewWebhookManager = (
-      await new ViewWebhookManagerBuilder(ctx, ncMeta)
-        .withModelId(view.fk_model_id)
-        .withViewId(view.id)
-    ).forDelete();
+    const builder = await new ViewWebhookManagerBuilder(
+      ctx,
+      ncMeta,
+    ).withModelId(view.fk_model_id);
+    const viewWebhookManager = (await builder.withViewId(view.id)).forDelete();
 
     await View.softDelete(ctx, id, true, ncMeta);
 

@@ -12,6 +12,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import type { DashboardType, WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { CustomUrl, Dashboard, DependencyTracker, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getWidgetData, getWidgetHandler } from '~/db/widgets';
@@ -144,12 +145,13 @@ export class DashboardsService {
     context: NcContext,
     dashboardId: string,
     req: NcRequest,
+    ncMeta?: MetaService,
   ) {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
 
-    const dashboard = await Dashboard.get(context, dashboardId);
+    const dashboard = await Dashboard.get(context, dashboardId, false, ncMeta);
 
     if (!dashboard) {
       NcError.get(context).dashboardNotFound(dashboardId);
@@ -160,6 +162,7 @@ export class DashboardsService {
       resourceType: 'dashboard',
       user: req.user,
       req,
+      ncMeta,
     });
 
     this.appHooksService.emit(AppEvents.DASHBOARD_DELETE, {
@@ -185,8 +188,12 @@ export class DashboardsService {
     return true;
   }
 
-  private async assertDashboardLive(context: NcContext, dashboardId: string) {
-    const dashboard = await Dashboard.get(context, dashboardId);
+  private async assertDashboardLive(
+    context: NcContext,
+    dashboardId: string,
+    ncMeta?: MetaService,
+  ) {
+    const dashboard = await Dashboard.get(context, dashboardId, false, ncMeta);
     if (!dashboard) {
       NcError.get(context).dashboardNotFound(dashboardId);
     }
@@ -437,20 +444,26 @@ export class DashboardsService {
     return updatedWidget;
   }
 
-  async widgetDelete(context: NcContext, widgetId: string, req: NcRequest) {
-    const widget = await Widget.get(context, widgetId);
+  async widgetDelete(
+    context: NcContext,
+    widgetId: string,
+    req: NcRequest,
+    ncMeta?: MetaService,
+  ) {
+    const widget = await Widget.get(context, widgetId, false, ncMeta);
 
     if (!widget) {
       NcError.get(context).widgetNotFound(widgetId);
     }
 
-    await this.assertDashboardLive(context, widget.fk_dashboard_id);
+    await this.assertDashboardLive(context, widget.fk_dashboard_id, ncMeta);
 
     await this.baseTrashService.trashResource(context, {
       resourceId: widgetId,
       resourceType: 'widget',
       user: req.user,
       req,
+      ncMeta,
     });
 
     this.appHooksService.emit(AppEvents.WIDGET_DELETE, {

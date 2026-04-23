@@ -5,6 +5,7 @@ import type { NcApiVersion } from 'nocodb-sdk';
 import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { NcError } from '~/helpers/catchError';
@@ -47,12 +48,13 @@ export class TablesService extends TableServiceCE {
       skipTrash?: boolean;
       req?: any;
     },
+    ncMeta?: MetaService,
   ) {
     if (param.skipTrash) {
-      return super.tableDelete(context, param as any);
+      return super.tableDelete(context, param as any, ncMeta);
     }
 
-    const table = await Model.get(context, param.tableId);
+    const table = await Model.get(context, param.tableId, false, ncMeta);
     if (!table) {
       NcError.get(context).tableNotFound(param.tableId);
     }
@@ -62,6 +64,7 @@ export class TablesService extends TableServiceCE {
       resourceType: 'table',
       user: param.user,
       req: param.req,
+      ncMeta,
     });
 
     this.appHooksServiceEE.emit(AppEvents.TABLE_DELETE, {

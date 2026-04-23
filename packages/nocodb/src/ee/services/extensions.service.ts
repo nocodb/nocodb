@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { ExtensionsService as ExtensionsServiceCE } from 'src/services/extensions.service';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { Extension } from '~/models';
@@ -23,12 +24,18 @@ export class ExtensionsService extends ExtensionsServiceCE {
       skipTrash?: boolean;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     if (param.skipTrash) {
-      return super.extensionDelete(context, param);
+      return super.extensionDelete(context, param, ncMeta);
     }
 
-    const extension = await Extension.get(context, param.extensionId);
+    const extension = await Extension.get(
+      context,
+      param.extensionId,
+      false,
+      ncMeta,
+    );
     if (!extension) {
       NcError.get(context).extensionNotFound(param.extensionId);
     }
@@ -38,6 +45,7 @@ export class ExtensionsService extends ExtensionsServiceCE {
       resourceType: 'extension',
       user: param.req.user,
       req: param.req,
+      ncMeta,
     });
 
     this.appHooksServiceEE.emit(AppEvents.EXTENSION_DELETE, {

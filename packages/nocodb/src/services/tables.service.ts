@@ -309,154 +309,173 @@ export class TablesService {
       skipTrash?: boolean;
       req?: any;
     },
+    ncMetaParam?: MetaService,
   ) {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
 
-    const table = await Model.getByIdOrName(context, { id: param.tableId });
+    const ncMeta = ncMetaParam ?? Noco.ncMeta;
 
-    if (table?.synced && !param.forceDeleteSyncs) {
-      NcError.get(context).invalidRequestBody(
-        'Synced tables cannot be deleted',
-      );
-    }
+    let result;
+    let placeholderRefTables: Map<string, Model>;
+    let table: Model;
+    try {
+      table = await Model.getByIdOrName(context, { id: param.tableId }, ncMeta);
 
-    await table.getColumns(context, undefined, undefined, true, true);
-
-    if (table.mm) {
-      const columns = await table.getColumns(
-        context,
-        undefined,
-        undefined,
-        true,
-        true,
-      );
-
-      // get table names of the relation which uses the current table as junction table
-      const tables = await Promise.all(
-        columns
-          .filter((c) => isLinksOrLTAR(c))
-          .map((c) => c.colOptions.getRelatedTable()),
-      );
-
-      // get relation column names
-      const relColumns = await Promise.all(
-        tables.map((t) => {
-          return t
-            .getColumns({
-              ...context,
-              base_id: t.base_id,
-              workspace_id: t.fk_workspace_id,
-            })
-            .then((cols) => {
-              return cols.find((c) => {
-                return (
-                  isLinksOrLTAR(c) &&
-                  (c.colOptions as LinkToAnotherRecordColumn).type ===
-                    RelationTypes.MANY_TO_MANY &&
-                  (c.colOptions as LinkToAnotherRecordColumn).fk_mm_model_id ===
-                    table.id
-                );
-              });
-            });
-        }),
-      );
-
-      NcError.get(context).invalidRequestBody(
-        `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
-      );
-    } else if (!param.forceDeleteRelations) {
-      // if table is using in custom relation as junction table then delete all the relation
-      const relations = await Noco.ncMeta.metaList2(
-        table.fk_workspace_id,
-        table.base_id,
-        MetaTable.COL_RELATIONS,
-        {
-          condition: {
-            fk_mm_model_id: table.id,
-          },
-        },
-      );
-
-      if (relations.length) {
-        const relCol = await Column.get(context, {
-          colId: relations[0].fk_column_id,
-        });
-        const relTable = await Model.get(context, relCol.fk_model_id);
-        NcError.tableAssociatedWithLink(table.id, {
-          customMessage: `This is a many to many table for '${relTable?.title}' (${relTable?.title}), please delete the column before deleting the table.`,
-        });
+      if (table?.synced && !param.forceDeleteSyncs) {
+        NcError.get(context).invalidRequestBody(
+          'Synced tables cannot be deleted',
+        );
       }
-    }
 
-    const base = await Base.getWithInfo(context, table.base_id);
-    const source = base.sources.find((b) => b.id === table.source_id);
+      await table.getColumns(context, ncMeta, undefined, true, true);
 
-    const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
+      if (table.mm) {
+        const columns = await table.getColumns(
+          context,
+          ncMeta,
+          undefined,
+          true,
+          true,
+        );
 
-    const deleteRelations = source.isMeta() || param.forceDeleteRelations;
+        // get table names of the relation which uses the current table as junction table
+        const tables = await Promise.all(
+          columns
+            .filter((c) => isLinksOrLTAR(c))
+            .map((c) => c.colOptions.getRelatedTable()),
+        );
 
-    if (relationColumns?.length && !deleteRelations) {
-      const referredTables = await Promise.all(
-        relationColumns.map(async (c) =>
-          c
-            .getColOptions<LinkToAnotherRecordColumn>(context)
-            .then((opt) => opt.getRelatedTable(context))
-            .then((t) => t?.title),
-        ),
-      );
-      NcError.get(context).invalidRequestBody(
-        `Table can't be deleted since Table is being referred in following tables : ${referredTables.join(
-          ', ',
-        )}. Delete LinkToAnotherRecord columns and try again.`,
-      );
-    }
+        // get relation column names
+        const relColumns = await Promise.all(
+          tables.map((t) => {
+            return t
+              .getColumns({
+                ...context,
+                base_id: t.base_id,
+                workspace_id: t.fk_workspace_id,
+              })
+              .then((cols) => {
+                return cols.find((c) => {
+                  return (
+                    isLinksOrLTAR(c) &&
+                    (c.colOptions as LinkToAnotherRecordColumn).type ===
+                      RelationTypes.MANY_TO_MANY &&
+                    (c.colOptions as LinkToAnotherRecordColumn)
+                      .fk_mm_model_id === table.id
+                  );
+                });
+              });
+          }),
+        );
 
-    // TODO: replace this with the one that's generated by table webhook manager
-    // currently this one is to prevent webhook to trigger when delete table
-    const columnWebhookManager = (
-      await new ColumnWebhookManagerBuilder(context).withModelId(table.id)
-    ).forDelete();
+        NcError.get(context).invalidRequestBody(
+          `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
+        );
+      } else if (!param.forceDeleteRelations) {
+        // if table is using in custom relation as junction table then delete all the relation
+        const relations = await ncMeta.metaList2(
+          table.fk_workspace_id,
+          table.base_id,
+          MetaTable.COL_RELATIONS,
+          {
+            condition: {
+              fk_mm_model_id: table.id,
+            },
+          },
+        );
 
-    const placeholderRefTables = new Map<string, Model>();
-
-    if (!param.skipLinkPlaceholder) {
-      for (const c of relationColumns) {
-        if (c.system && !table.mm) continue;
-        try {
-          const reverseCol =
-            await this.linkPlaceholderService.findReverseLinkColumn(
-              context,
-              c.id,
-            );
-          // Skip self-ref: opposite column lives on the same table being deleted
-          if (!reverseCol || reverseCol.fk_model_id === table.id) continue;
-          const placeholderResult =
-            await this.linkPlaceholderService.createPlaceholderForReverse(
-              context,
-              reverseCol,
-            );
-          if (placeholderResult) {
-            const refTable = await Model.getWithInfo(context, {
-              id: placeholderResult.table_id,
-            });
-            if (refTable)
-              placeholderRefTables.set(placeholderResult.table_id, refTable);
-          }
-        } catch (e) {
-          this.logger.error(
-            `Failed to create link placeholder for reverse of ${c.id}: ${e.message}`,
-            e.stack,
+        if (relations.length) {
+          const relCol = await Column.get(
+            context,
+            {
+              colId: relations[0].fk_column_id,
+            },
+            ncMeta,
           );
+          const relTable = await Model.get(
+            context,
+            relCol.fk_model_id,
+            false,
+            ncMeta,
+          );
+          NcError.tableAssociatedWithLink(table.id, {
+            customMessage: `This is a many to many table for '${relTable?.title}' (${relTable?.title}), please delete the column before deleting the table.`,
+          });
         }
       }
-    }
 
-    // start a transaction
-    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
-    let result;
-    try {
+      const base = await Base.getWithInfo(context, table.base_id, true, ncMeta);
+      const source = base.sources.find((b) => b.id === table.source_id);
+
+      const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
+
+      const deleteRelations = source.isMeta() || param.forceDeleteRelations;
+
+      if (relationColumns?.length && !deleteRelations) {
+        const referredTables = await Promise.all(
+          relationColumns.map(async (c) =>
+            c
+              .getColOptions<LinkToAnotherRecordColumn>(context, ncMeta)
+              .then((opt) => opt.getRelatedTable(context, ncMeta))
+              .then((t) => t?.title),
+          ),
+        );
+        NcError.get(context).invalidRequestBody(
+          `Table can't be deleted since Table is being referred in following tables : ${referredTables.join(
+            ', ',
+          )}. Delete LinkToAnotherRecord columns and try again.`,
+        );
+      }
+
+      // TODO: replace this with the one that's generated by table webhook manager
+      // currently this one is to prevent webhook to trigger when delete table
+      const columnWebhookManager = (
+        await new ColumnWebhookManagerBuilder(context, ncMeta).withModelId(
+          table.id,
+        )
+      ).forDelete();
+
+      placeholderRefTables = new Map<string, Model>();
+
+      if (!param.skipLinkPlaceholder) {
+        for (const c of relationColumns) {
+          if (c.system && !table.mm) continue;
+          try {
+            const reverseCol =
+              await this.linkPlaceholderService.findReverseLinkColumn(
+                context,
+                c.id,
+                ncMeta,
+              );
+            // Skip self-ref: opposite column lives on the same table being deleted
+            if (!reverseCol || reverseCol.fk_model_id === table.id) continue;
+            const placeholderResult =
+              await this.linkPlaceholderService.createPlaceholderForReverse(
+                context,
+                reverseCol,
+                undefined,
+                ncMeta,
+              );
+            if (placeholderResult) {
+              const refTable = await Model.getWithInfo(
+                context,
+                { id: placeholderResult.table_id },
+                ncMeta,
+              );
+              if (refTable)
+                placeholderRefTables.set(placeholderResult.table_id, refTable);
+            }
+          } catch (e) {
+            this.logger.error(
+              `Failed to create link placeholder for reverse of ${c.id}: ${e.message}`,
+              e.stack,
+            );
+          }
+        }
+      }
+
       // delete all relations
       for (const c of relationColumns) {
         // skip if column is hasmany relation to mm table
@@ -500,9 +519,7 @@ export class TablesService {
       }
 
       result = await table.delete(context, ncMeta);
-      await ncMeta.commit();
     } catch (e) {
-      await ncMeta.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Error deleting table', e);
       NcError.get(context).tableError('Bad Request');
@@ -536,7 +553,7 @@ export class TablesService {
             workspace_id: refTable.fk_workspace_id,
             base_id: refTable.base_id,
           };
-          await refTable.getColumns(refContext);
+          await refTable.getColumns(refContext, ncMeta);
           NocoSocket.broadcastEvent(refContext, {
             event: EventType.META_EVENT,
             payload: {

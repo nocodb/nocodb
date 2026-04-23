@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, type ExtensionReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Extension } from '~/models';
@@ -15,8 +16,17 @@ export class ExtensionsService {
     return await Extension.list(context, param.baseId);
   }
 
-  async extensionRead(context: NcContext, param: { extensionId: string }) {
-    const extension = await Extension.get(context, param.extensionId);
+  async extensionRead(
+    context: NcContext,
+    param: { extensionId: string },
+    ncMeta?: MetaService,
+  ) {
+    const extension = await Extension.get(
+      context,
+      param.extensionId,
+      false,
+      ncMeta,
+    );
 
     if (!extension) {
       NcError.get(context).extensionNotFound(param.extensionId);
@@ -112,10 +122,11 @@ export class ExtensionsService {
       skipTrash?: boolean;
       req: NcRequest;
     },
-  ) {
-    const extension = await this.extensionRead(context, param);
+    ncMeta?: MetaService,
+  ): Promise<boolean | void> {
+    const extension = await this.extensionRead(context, param, ncMeta);
 
-    const res = await Extension.delete(context, param.extensionId);
+    const res = await Extension.delete(context, param.extensionId, ncMeta);
 
     this.appHooksService.emit(AppEvents.EXTENSION_DELETE, {
       extensionId: param.extensionId,

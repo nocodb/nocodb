@@ -201,6 +201,7 @@ export type InternalPOSTResponseType = Promise<
       unlink: (string | number | Record<string, any>)[];
     }[]
   | { message: string }
+  | { deleted: number; failed: { id: string; error: string }[] }
 >;
 
 export interface InternalApiModule<

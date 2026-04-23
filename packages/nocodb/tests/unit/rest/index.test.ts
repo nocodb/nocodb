@@ -37,6 +37,7 @@ let oauthTests = () => {};
 let autoNumberTests = () => {};
 let recordTrashTest = () => {};
 let mfaTests = () => {};
+let patResourceFilterTest = () => {};
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
   oauthDCRTest = require('./tests/ee/oAuthDCR.test').default;
@@ -51,6 +52,7 @@ if (process.env.EE === 'true') {
   autoNumberTests = require('./tests/ee/autoNumber.test').default;
   recordTrashTest = require('./tests/ee/record-trash.test').default;
   mfaTests = require('./tests/ee/mfa.test').default;
+  patResourceFilterTest = require('./tests/ee/patResourceFilter.test').default;
 }
 
 const testVersion = ['v1', 'v2', 'v3'];
@@ -70,6 +72,7 @@ function restTests() {
     ssoTest();
     scimTest();
     recordTrashTest();
+    patResourceFilterTest();
   }
   if (willRunOnSet(2)) {
     convertDateFormatTests();

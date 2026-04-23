@@ -20,7 +20,7 @@ const { t } = useI18n()
 
 const { isMobileMode, ncNavigateTo } = useGlobal()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, baseRoles } = useRoles()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
@@ -43,7 +43,9 @@ const base = inject(ProjectInj, ref())
 
 const isCreatorOrAbove = computed(() => {
   const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
-  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
+  if (role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR) return true
+  // Fallback when ProjectInj isn't populated (e.g. doc node rendered in Data tab tree)
+  return !!(baseRoles.value?.[ProjectRoles.OWNER] || baseRoles.value?.[ProjectRoles.CREATOR])
 })
 
 const input = ref<HTMLInputElement>()

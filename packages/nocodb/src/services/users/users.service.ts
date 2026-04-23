@@ -650,7 +650,10 @@ export class UsersService {
         });
         // todo: clear only token present in cookie to avoid invalidating all refresh token
         await UserRefreshToken.deleteAllUserToken(user.id);
-        await OAuthToken.revokeAllByUser(user.id);
+        // OAuth tokens are not revoked on sign-out: sign-out ends the user's
+        // own session, not third-party OAuth client grants. OAuth tokens are
+        // revoked on password change/reset/forgot where credential compromise
+        // is assumed.
       }
       return { msg: 'Signed out successfully' };
     } catch (e) {

@@ -32,6 +32,8 @@ const { appInfo } = useGlobal()
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const workspaceStore = useWorkspace()
 
 const { baseRoles, workspaceRoles } = useRoles()
@@ -41,6 +43,12 @@ const { createProjectUser, baseTeamAdd } = basesStore
 const { inviteCollaborator: inviteWsCollaborator, workspaceTeamAdd } = workspaceStore
 
 const { isTeamsEnabled } = storeToRefs(workspaceStore)
+
+const { fetchOrgUsers, resetOrgUsers, orgUsers } = useOrgUserInvitePicker({
+  type: props.type,
+  workspaceId: props.workspaceId,
+  baseId: props.baseId,
+})
 
 const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, showUserMayChargeAlert } = useEeConfig()
 
@@ -450,6 +458,96 @@ const inviteCollaborator = async () => {
 
 const isOrgSelectMenuOpen = ref(false)
 
+// Org-user invite picker: shows org members not already in the workspace/base
+// as the user types, so they can be added without typing the email out.
+interface OrgUserPickerItem {
+  id: string
+  email: string
+  display_name?: string
+  meta?: string | Record<string, any>
+}
+
+const pickerSelectedIndex = ref(0)
+
+const filteredOrgUsers = computed<OrgUserPickerItem[]>(() => {
+  const q = inviteData.email.trim().toLowerCase()
+  const selected = new Set<string>(emailBadges.value.map((e) => e.toLowerCase()))
+  if (singleEmailValue.value) selected.add(singleEmailValue.value.toLowerCase())
+
+  const pool = orgUsers.value.filter((u) => u.email && !selected.has(u.email.toLowerCase()))
+
+  const matches = q
+    ? pool.filter((u) => u.email.toLowerCase().includes(q) || (u.display_name || '').toLowerCase().includes(q))
+    : pool
+
+  return matches.slice(0, 8)
+})
+
+const isOrgUserPickerVisible = computed(
+  () =>
+    isEeUI &&
+    !props.isTeam &&
+    (props.type === 'workspace' || props.type === 'base') &&
+    isDivFocused.value &&
+    filteredOrgUsers.value.length > 0,
+)
+
+const selectOrgUser = (user: OrgUserPickerItem) => {
+  if (!user?.email) return
+
+  if (!emailBadges.value.includes(user.email)) {
+    emailBadges.value.push(user.email)
+  }
+
+  inviteData.email = ''
+  singleEmailValue.value = ''
+  emailValidation.isError = false
+  emailValidation.message = ''
+  pickerSelectedIndex.value = 0
+
+  $e(props.type === 'base' ? 'c:base:invite:org-user-select' : 'c:workspace:invite:org-user-select', {
+    count: 1,
+  })
+
+  nextTick(() => focusRef.value?.focus())
+}
+
+const onPickerArrowDown = (e: KeyboardEvent) => {
+  if (!isOrgUserPickerVisible.value) return
+  e.preventDefault()
+  pickerSelectedIndex.value = Math.min(pickerSelectedIndex.value + 1, filteredOrgUsers.value.length - 1)
+}
+
+const onPickerArrowUp = (e: KeyboardEvent) => {
+  if (!isOrgUserPickerVisible.value) return
+  e.preventDefault()
+  pickerSelectedIndex.value = Math.max(pickerSelectedIndex.value - 1, 0)
+}
+
+const onInputEnter = (e: KeyboardEvent) => {
+  if (isOrgUserPickerVisible.value) {
+    const picked = filteredOrgUsers.value[pickerSelectedIndex.value]
+    if (picked) {
+      e.preventDefault()
+      selectOrgUser(picked)
+      return
+    }
+  }
+  handleEnter()
+}
+
+watch(
+  () => inviteData.email,
+  () => {
+    pickerSelectedIndex.value = 0
+  },
+)
+
+watch(dialogShow, async (v) => {
+  if (v) await fetchOrgUsers()
+  else resetOrgUsers()
+})
+
 onMounted(async () => {
   if (props.type === 'organization') {
     await listWorkspaces()
@@ -497,44 +595,76 @@ const onTeamChange = async (_teamIds: RawValueType) => {
     <div class="flex items-center justify-between gap-3 mt-2">
       <div class="flex w-full gap-4 flex-col">
         <div class="flex flex-col gap-6 md:(flex-row gap-3 justify-between) w-full">
-          <div
-            v-if="!isTeam"
-            ref="divRef"
-            :class="{
-              'border-primary/100 shadow-selected': isDivFocused,
-              'p-1': emailBadges?.length > 0,
-            }"
-            class="flex items-center flex-wrap border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md min-h-10 rounded-lg md:!min-w-96"
-            tabindex="0"
-            @blur="isDivFocused = false"
-            @click="focusOnDiv"
-          >
-            <span
-              v-for="(email, index) in emailBadges"
-              :key="email"
-              class="border-1 text-nc-content-gray bg-nc-bg-gray-light rounded-md flex items-center px-1 whitespace-nowrap"
-            >
-              {{ email }}
-              <component
-                :is="iconMap.close"
-                class="ml-0.5 hover:(cursor-pointer text-nc-content-gray-subtle) mt-0.5 w-4 h-4 text-nc-content-gray-subtle2"
-                @click="removeEmail(index)"
-              />
-            </span>
-            <input
-              id="email"
-              ref="focusRef"
-              v-model="inviteData.email"
-              inputmode="email"
-              :disabled="isLoading"
-              :placeholder="$t('activity.enterEmail')"
-              class="flex-1 md:min-w-36 outline-none px-2"
-              data-testid="email-input"
+          <div v-if="!isTeam" class="relative w-full">
+            <div
+              ref="divRef"
+              :class="{
+                'border-primary/100 shadow-selected': isDivFocused,
+                'p-1': emailBadges?.length > 0,
+              }"
+              class="flex items-center flex-wrap border-1 gap-1 w-full overflow-x-scroll nc-scrollbar-x-md min-h-10 rounded-lg md:!min-w-96"
+              tabindex="0"
               @blur="isDivFocused = false"
-              @keyup.enter="handleEnter"
-              @paste.prevent="onPaste"
-              @input="warningMsg = null"
-            />
+              @click="focusOnDiv"
+            >
+              <span
+                v-for="(email, index) in emailBadges"
+                :key="email"
+                class="border-1 text-nc-content-gray bg-nc-bg-gray-light rounded-md flex items-center px-1 whitespace-nowrap"
+              >
+                {{ email }}
+                <component
+                  :is="iconMap.close"
+                  class="ml-0.5 hover:(cursor-pointer text-nc-content-gray-subtle) mt-0.5 w-4 h-4 text-nc-content-gray-subtle2"
+                  @click="removeEmail(index)"
+                />
+              </span>
+              <input
+                id="email"
+                ref="focusRef"
+                v-model="inviteData.email"
+                inputmode="email"
+                :disabled="isLoading"
+                :placeholder="$t('activity.enterEmail')"
+                class="flex-1 md:min-w-36 outline-none px-2"
+                data-testid="email-input"
+                @blur="isDivFocused = false"
+                @keydown.down="onPickerArrowDown"
+                @keydown.up="onPickerArrowUp"
+                @keydown.enter="onInputEnter"
+                @paste.prevent="onPaste"
+                @input="warningMsg = null"
+              />
+            </div>
+
+            <div
+              v-if="isOrgUserPickerVisible"
+              class="nc-invite-org-user-picker absolute z-50 left-0 right-0 mt-1 py-1 bg-white dark:bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg shadow-selected max-h-64 overflow-y-auto nc-scrollbar-md"
+              data-testid="nc-invite-org-user-picker"
+              @mousedown.prevent
+            >
+              <div
+                v-for="(orgUser, i) in filteredOrgUsers"
+                :key="orgUser.id"
+                :class="{ 'bg-nc-bg-gray-light': i === pickerSelectedIndex }"
+                class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-nc-bg-gray-light"
+                :data-testid="`nc-invite-org-user-${orgUser.email}`"
+                @click="selectOrgUser(orgUser)"
+                @mouseenter="pickerSelectedIndex = i"
+              >
+                <GeneralUserIcon :user="orgUser" size="base" />
+                <div class="flex flex-col min-w-0 flex-1">
+                  <NcTooltip v-if="orgUser.display_name" show-on-truncate-only class="truncate text-nc-content-gray text-body">
+                    <template #title>{{ orgUser.display_name }}</template>
+                    {{ orgUser.display_name }}
+                  </NcTooltip>
+                  <NcTooltip show-on-truncate-only class="truncate text-nc-content-gray-subtle text-bodySm">
+                    <template #title>{{ orgUser.email }}</template>
+                    {{ orgUser.email }}
+                  </NcTooltip>
+                </div>
+              </div>
+            </div>
           </div>
           <NcListTeamSelector
             v-else

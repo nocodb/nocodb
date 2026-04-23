@@ -11,7 +11,16 @@ import type {
   StringOrNullType,
   TableType,
 } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  PermissionEntity,
+  PermissionKey,
+  RelationTypes,
+  UITypes,
+  groupFormColumnsByRow,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import { useTitle } from '@vueuse/core'
 import type { RuleObject } from 'ant-design-vue/es/form'
@@ -185,6 +194,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }) || [],
   )
 
+  const rows = computed(() => groupFormColumnsByRow(formColumns.value))
+
   function supportedFields(col: ColumnType) {
     return (
       !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && !isAI(col) && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt))
@@ -282,6 +293,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             readonly: !isAddingEmptyRowPermitted.value ? true : c?.readonly ?? false,
             read_only: !isAddingEmptyRowPermitted.value ? true : c?.read_only ?? false,
             order: fieldById[c.id].order || c.order,
+            row_id: fieldById[c.id].row_id ?? null,
             visible: true,
             meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
             description: fieldById[c.id].description,
@@ -924,6 +936,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     meta,
     validators,
     formColumns,
+    rows,
     formState,
     notFound,
     password,

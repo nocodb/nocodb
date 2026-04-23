@@ -10,6 +10,7 @@ const {
   formState,
   notFound,
   formColumns,
+  rows,
   submitted,
   secondsRemain,
   isLoading,
@@ -227,10 +228,16 @@ const { message: templatedMessage } = useTemplatedMessage(
               <div class="nc-form h-full">
                 <div class="flex flex-col gap-3 md:gap-6">
                   <div
-                    v-for="(field, index) in formColumns"
-                    :key="index"
-                    class="flex flex-col gap-2"
+                    v-for="(row, rowIdx) in rows"
+                    :key="rowIdx"
+                    class="nc-shared-form-row flex flex-col md:flex-row md:items-stretch gap-3 md:gap-6"
+                  >
+                  <div
+                    v-for="(field, index) in row"
+                    :key="field.id || index"
+                    class="flex flex-col gap-2 flex-1 md:basis-0 md:min-w-0"
                     :data-testid="`nc-shared-form-item-${field.title?.replace(' ', '')}`"
+                    :data-row-id="field.row_id || ''"
                   >
                     <div class="nc-form-column-label text-sm font-semibold text-nc-content-gray">
                       <span>
@@ -302,6 +309,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         </a-form-item>
                       </NcTooltip>
                     </div>
+                  </div>
                   </div>
                 </div>
 

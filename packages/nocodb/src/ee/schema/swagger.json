@@ -5418,6 +5418,11 @@
             "description": "The order among all the columns in the form",
             "example": 1
           },
+          "row_id": {
+            "type": "string",
+            "description": "Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width).",
+            "example": "fr_12ab34cd"
+          },
           "required": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is this form column required in submission?"
@@ -5493,6 +5498,10 @@
           "order": {
             "type": "number",
             "description": "The order among all the columns in the form"
+          },
+          "row_id": {
+            "type": "string",
+            "description": "Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width)."
           },
           "required": {
             "$ref": "#/components/schemas/Bool",

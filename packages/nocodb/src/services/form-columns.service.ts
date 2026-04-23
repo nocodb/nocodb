@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, FORM_ROW_MAX_FIELDS } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
@@ -107,5 +107,95 @@ export class FormColumnsService {
       (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
     return res;
+  }
+
+  /**
+   * Atomically re-layout multiple form columns in a single request.
+   *
+   * Used by the grid-layout drag-drop editor where moving one field typically
+   * changes `row_id` and/or `order` on several sibling columns at once. Keeps
+   * the reflow transactional from the client's perspective and avoids N HTTP
+   * round-trips.
+   */
+  async columnBulkUpdate(
+    context: NcContext,
+    param: {
+      formViewId: string;
+      updates: Array<{ id: string; row_id?: string | null; order?: number }>;
+      req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
+    ncMeta?: MetaService,
+  ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
+    if (!Array.isArray(param.updates) || param.updates.length === 0) {
+      NcError.get(context).invalidRequestBody('updates must be a non-empty array');
+    }
+
+    const view = await View.get(context, param.formViewId, ncMeta);
+    if (!view) {
+      NcError.get(context).viewNotFound(param.formViewId);
+    }
+
+    // Validate max fields per row against the final projected state —
+    // updates may move fields in/out of rows, so compute counts after apply.
+    const existingCols = await FormViewColumn.list(
+      context,
+      param.formViewId,
+      ncMeta,
+    );
+    const existingById = new Map(existingCols.map((c) => [c.id, c]));
+
+    for (const u of param.updates) {
+      if (!existingById.has(u.id)) {
+        NcError.get(context).genericNotFound('FormViewColumn', u.id);
+      }
+    }
+
+    const projected = existingCols.map((c) => {
+      const u = param.updates.find((u) => u.id === c.id);
+      if (!u) return { id: c.id, row_id: c.row_id ?? null };
+      return {
+        id: c.id,
+        row_id: u.row_id === undefined ? c.row_id ?? null : u.row_id ?? null,
+      };
+    });
+
+    const rowCounts = new Map<string, number>();
+    for (const p of projected) {
+      if (!p.row_id) continue;
+      rowCounts.set(p.row_id, (rowCounts.get(p.row_id) ?? 0) + 1);
+    }
+    for (const [rowId, count] of rowCounts) {
+      if (count > FORM_ROW_MAX_FIELDS) {
+        NcError.get(context).invalidRequestBody(
+          `Row ${rowId} would contain ${count} fields; maximum is ${FORM_ROW_MAX_FIELDS}`,
+        );
+      }
+    }
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
+
+    for (const u of param.updates) {
+      const body = extractProps(u, ['row_id', 'order']);
+      await FormViewColumn.update(context, u.id, body, ncMeta);
+    }
+
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
+
+    return { msg: 'Form columns updated' };
   }
 }

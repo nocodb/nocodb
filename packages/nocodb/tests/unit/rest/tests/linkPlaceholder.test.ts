@@ -11,7 +11,12 @@ import Column from '~/models/Column';
 
 type Context = Awaited<ReturnType<typeof init>>;
 
-const CE_PLACEHOLDER_PREFIX = '_nc_ph_';
+const PLACEHOLDER_PREFIXES = ['_nc_trash_ph_', '_nc_ph_'];
+
+function hasPlaceholderPrefix(columnName?: string | null) {
+  if (!columnName) return false;
+  return PLACEHOLDER_PREFIXES.some((p) => columnName.startsWith(p));
+}
 
 function isLtarCol(c: any) {
   return (
@@ -72,9 +77,7 @@ function linkPlaceholderTests() {
 
     async function findPlaceholder(tableId: string) {
       const cols = await Column.list(ctx, { fk_model_id: tableId });
-      return cols.find((c) =>
-        c.column_name?.startsWith(CE_PLACEHOLDER_PREFIX),
-      );
+      return cols.find((c) => hasPlaceholderPrefix(c.column_name));
     }
 
     async function assertPlaceholderPopulated(
@@ -190,7 +193,7 @@ function linkPlaceholderTests() {
         ).to.be.undefined;
 
         const placeholder = childCols.find((c) =>
-          c.column_name?.startsWith(CE_PLACEHOLDER_PREFIX),
+          hasPlaceholderPrefix(c.column_name),
         );
         expect(placeholder, 'placeholder should exist on child').to.not.be
           .undefined;
@@ -250,7 +253,7 @@ function linkPlaceholderTests() {
         ).to.be.undefined;
 
         const placeholder = parentCols.find((c) =>
-          c.column_name?.startsWith(CE_PLACEHOLDER_PREFIX),
+          hasPlaceholderPrefix(c.column_name),
         );
         expect(placeholder, 'placeholder should exist on parent').to.not.be
           .undefined;
@@ -295,7 +298,7 @@ function linkPlaceholderTests() {
         ).to.be.undefined;
 
         const placeholder = bCols.find((c) =>
-          c.column_name?.startsWith(CE_PLACEHOLDER_PREFIX),
+          hasPlaceholderPrefix(c.column_name),
         );
         expect(placeholder, 'placeholder should exist on tableB').to.not.be
           .undefined;
@@ -351,7 +354,7 @@ function linkPlaceholderTests() {
         ).to.be.undefined;
 
         const placeholder = colsAfter.find((c) =>
-          c.column_name?.startsWith(CE_PLACEHOLDER_PREFIX),
+          hasPlaceholderPrefix(c.column_name),
         );
         expect(placeholder, 'placeholder should exist in same table').to.not.be
           .undefined;
@@ -405,7 +408,7 @@ function linkPlaceholderTests() {
         ).to.be.undefined;
 
         const placeholder = bCols.find((c) =>
-          c.column_name?.startsWith(CE_PLACEHOLDER_PREFIX),
+          hasPlaceholderPrefix(c.column_name),
         );
         expect(placeholder, 'placeholder should exist on tableB').to.not.be
           .undefined;
@@ -448,7 +451,7 @@ function linkPlaceholderTests() {
         ).to.be.undefined;
 
         const placeholder = bCols.find((c) =>
-          c.column_name?.startsWith(CE_PLACEHOLDER_PREFIX),
+          hasPlaceholderPrefix(c.column_name),
         );
         expect(placeholder, 'placeholder should exist on tableB').to.not.be
           .undefined;
@@ -497,7 +500,7 @@ function linkPlaceholderTests() {
         ).to.be.undefined;
 
         const placeholder = bCols.find((c) =>
-          c.column_name?.startsWith(CE_PLACEHOLDER_PREFIX),
+          hasPlaceholderPrefix(c.column_name),
         );
         expect(placeholder, 'placeholder should exist on tableB').to.not.be
           .undefined;
@@ -553,7 +556,7 @@ function linkPlaceholderTests() {
         ).to.be.undefined;
 
         const placeholder = aCols.find((c) =>
-          c.column_name?.startsWith(CE_PLACEHOLDER_PREFIX),
+          hasPlaceholderPrefix(c.column_name),
         );
         expect(placeholder, 'placeholder should exist on tableA').to.not.be
           .undefined;

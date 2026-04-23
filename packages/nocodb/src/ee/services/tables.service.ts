@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { TablesService as TableServiceCE } from 'src/services/tables.service';
 import type { NcApiVersion } from 'nocodb-sdk';
@@ -27,6 +27,7 @@ export class TablesService extends TableServiceCE {
     protected readonly appHooksServiceEE: AppHooksService,
     protected readonly columnsServiceEE: ColumnsService,
     protected readonly linkPlaceholderServiceEE: LinkPlaceholderService,
+    @Inject(forwardRef(() => BaseTrashService))
     protected readonly baseTrashService: BaseTrashService,
   ) {
     super(

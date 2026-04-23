@@ -1,7 +1,7 @@
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
 import { DuplicateProcessor as DuplicateProcessorCE } from 'src/modules/jobs/jobs/export-import/duplicate.processor';
-import { AppEvents, generateUniqueCopyName } from 'nocodb-sdk';
+import { AppEvents, generateUniqueCopyName, ViewLockType } from 'nocodb-sdk';
 import { BaseVersion } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -61,12 +61,15 @@ function stripRls(meta: BaseMetaSchema): BaseMetaSchema {
   };
 }
 
-// Strips views owned by a specific user (personal views) and cascades to every
+// Strips personal views (lock_type === 'personal') and cascades to every
 // table row referencing them via fk_view_id — no manually-maintained table list.
+// `owned_by` alone is not a reliable marker: view create/update paths populate
+// it for creator attribution even on collaborative views, so filtering on it
+// would strip any user-created collaborative view too.
 function stripPersonalViews(meta: BaseMetaSchema): BaseMetaSchema {
   const views: any[] = meta[MetaTable.VIEWS] ?? [];
   const personalViewIds = new Set(
-    views.filter((v) => v.owned_by != null).map((v) => v.id),
+    views.filter((v) => v.lock_type === ViewLockType.Personal).map((v) => v.id),
   );
   if (personalViewIds.size === 0) return meta;
 

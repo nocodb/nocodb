@@ -1231,6 +1231,25 @@ const _tiptapEditor = useEditor({
           }
         }
 
+        // Empty first paragraph inside a list item that also contains additional
+        // content (e.g. a nested list): lift the item out. ProseMirror's default
+        // joinBackward only handles the simple empty-item case — when the item has
+        // extra block content, it strands the caret.
+        if ($from.parent.content.size === 0) {
+          for (let d = $from.depth - 1; d >= 1; d--) {
+            const item = $from.node(d)
+            const typeName = item.type.name
+            if (typeName === 'listItem' || typeName === 'taskItem') {
+              const isFirstParagraphInItem = d === $from.depth - 1 && $from.index(d) === 0
+              // Skip when default already works: item has only the empty paragraph
+              if (!isFirstParagraphInItem || item.childCount <= 1) break
+              if (editor.value?.commands.liftListItem(typeName)) return true
+              break
+            }
+            if (typeName === 'bulletList' || typeName === 'orderedList' || typeName === 'taskList') break
+          }
+        }
+
         // First empty block in document: delete it when there are siblings below.
         // ProseMirror's default joinBackward can't remove the very first block.
         // Only apply when the paragraph is a direct child of the doc (depth === 1),

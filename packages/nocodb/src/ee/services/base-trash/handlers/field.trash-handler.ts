@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   EventType,
   generateUniqueCopyName,
@@ -47,6 +47,9 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
 
   constructor(
     private readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+    // ColumnsService → BaseTrashService → FieldTrashHandler → ColumnsService
+    // is circular — use forwardRef to break the cycle during DI resolution.
+    @Inject(forwardRef(() => ColumnsService))
     private readonly columnsService: ColumnsService,
     private readonly linkPlaceholderService: LinkPlaceholderService,
   ) {

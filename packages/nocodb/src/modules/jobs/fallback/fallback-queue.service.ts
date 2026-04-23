@@ -219,6 +219,12 @@ export class QueueService {
     return job;
   }
 
+  // Signature-compat stub for Bull Queue#removeRepeatable. The in-memory queue
+  // doesn't persist across restarts, and add() with the same jobId+repeat is
+  // idempotent, so there's nothing to clean up — but callers shouldn't have to
+  // branch on queue type.
+  async removeRepeatable(_opts: { jobId: string; cron?: string }) {}
+
   getJobs(types: string[] | string) {
     types = Array.isArray(types) ? types : [types];
     return this.queueMemory.filter((q) => types.includes(q.status));

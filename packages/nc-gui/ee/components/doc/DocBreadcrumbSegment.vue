@@ -15,11 +15,11 @@ interface Props {
   activeId?: string | null
   maxWidthClass?: string
   iconOnly?: boolean
-  /** Nested mode: render items as a-menu with hover-expand a-sub-menu for items with children */
+  /** Nested mode: each item with children renders its own hover-triggered submenu dropdown */
   nested?: boolean
   /** Required when nested=true — returns children of a doc */
   getChildren?: (docId: string) => DocumentType[]
-  /** Required when nested=true — lazy-loads children before submenu expand */
+  /** Required when nested=true — lazy-loads children when a row opens its submenu */
   loadChildren?: (docId: string) => Promise<void> | void
 }
 
@@ -62,16 +62,6 @@ const onSelectNested = (doc: DocumentType) => {
   isOpen.value = false
   emit('select', doc)
 }
-
-// Preload children of visible items when dropdown opens, so submenu hover doesn't flash empty
-watch(isOpen, (open) => {
-  if (!open || !props.nested || !props.loadChildren) return
-  for (const item of props.items as DocumentType[]) {
-    if (item.has_children && item.id) {
-      props.loadChildren(item.id)
-    }
-  }
-})
 </script>
 
 <template>

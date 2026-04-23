@@ -27,19 +27,23 @@ const isActive = computed(() => props.doc.id === props.activeId)
 
 const isOpen = ref(false)
 
-// Count of descendant dropdowns that are currently open. Parent must stay
-// open while any descendant is visible, otherwise moving the mouse from
-// level N+1 back through level N to level N+2 closes level N prematurely.
-const openDescendantCount = ref(0)
+// Parent must stay open while any descendant is visible, otherwise moving the
+// mouse from level N+1 back through level N to level N+2 closes level N
+// prematurely. Tracked as a Set keyed by child id so duplicate events are
+// idempotent and the counter can't drift positive from missed decrements.
+const openDescendantIds = ref(new Set<string>())
 
-const onDescendantOpenChange = (val: boolean) => {
-  openDescendantCount.value += val ? 1 : -1
-  if (openDescendantCount.value < 0) openDescendantCount.value = 0
+const onDescendantOpenChange = (childId: string | undefined, val: boolean) => {
+  if (!childId) return
+  const next = new Set(openDescendantIds.value)
+  if (val) next.add(childId)
+  else next.delete(childId)
+  openDescendantIds.value = next
 }
 
 const onVisibleChange = (val: boolean) => {
   // Ignore close requests while a descendant is still open
-  if (!val && openDescendantCount.value > 0) return
+  if (!val && openDescendantIds.value.size > 0) return
   isOpen.value = val
 }
 
@@ -48,6 +52,12 @@ watch(isOpen, (open) => {
   if (open && props.doc.has_children && props.doc.id) {
     props.loadChildren(props.doc.id)
   }
+})
+
+// Guarantee the parent's tracker releases this row even if a close event
+// didn't fire (rapid unmount, route change, async teardown).
+onBeforeUnmount(() => {
+  if (isOpen.value) emits('open-change', false)
 })
 
 const onClickRow = (e: MouseEvent) => {
@@ -89,7 +99,7 @@ const onClickRow = (e: MouseEvent) => {
           :get-children="getChildren"
           :load-children="loadChildren"
           :on-select="onSelect"
-          @open-change="onDescendantOpenChange"
+          @open-change="(val: boolean) => onDescendantOpenChange(child.id, val)"
         />
       </div>
     </template>

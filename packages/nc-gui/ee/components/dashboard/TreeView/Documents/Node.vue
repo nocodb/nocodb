@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles, ProjectRoles, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 import type { DocumentType } from 'nocodb-sdk'
 
 interface Props {
@@ -20,7 +20,7 @@ const { t } = useI18n()
 
 const { isMobileMode, ncNavigateTo } = useGlobal()
 
-const { isUIAllowed, baseRoles } = useRoles()
+const { isUIAllowed } = useRoles()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
@@ -40,13 +40,6 @@ const { activeDocumentId, expandedDocIds } = storeToRefs(documentsStore)
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const base = inject(ProjectInj, ref())
-
-const isCreatorOrAbove = computed(() => {
-  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
-  if (role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR) return true
-  // Fallback when ProjectInj isn't populated (e.g. doc node rendered in Data tab tree)
-  return !!(baseRoles.value?.[ProjectRoles.OWNER] || baseRoles.value?.[ProjectRoles.CREATOR])
-})
 
 const input = ref<HTMLInputElement>()
 
@@ -157,7 +150,7 @@ const focusInput = () => {
 /** Enable editing document name on dbl click */
 const onDblClick = () => {
   if (isMobileMode.value) return
-  if (!isCreatorOrAbove.value) return
+  if (!isUIAllowed('documentUpdate')) return
 
   if (!isEditing.value) {
     isEditing.value = true
@@ -270,7 +263,7 @@ onKeyStroke('Enter', (event) => {
 })
 
 const onRenameMenuClick = () => {
-  if (isMobileMode.value || !isCreatorOrAbove.value) return
+  if (isMobileMode.value || !isUIAllowed('documentUpdate')) return
 
   isDropdownOpen.value = false
 
@@ -389,7 +382,7 @@ function onStopEdit() {
             :key="doc?.meta?.icon"
             :clearable="true"
             :emoji="doc?.meta?.icon"
-            :readonly="isMobileMode || !isCreatorOrAbove"
+            :readonly="isMobileMode || !isUIAllowed('documentUpdate')"
             class="nc-document-icon"
             size="small"
             @emoji-selected="updateDocumentIcon($event)"
@@ -480,7 +473,7 @@ function onStopEdit() {
                 v-if="isCreatorOrAbove || isUIAllowed('documentCreate') || (doc.parent_id && isUIAllowed('documentUpdate'))"
               />
 
-              <template v-if="isCreatorOrAbove">
+              <template v-if="isUIAllowed('documentUpdate')">
                 <NcMenuItem
                   v-e="['c:document:rename']"
                   :data-testid="`sidebar-doc-rename-${doc.title}`"
@@ -525,7 +518,7 @@ function onStopEdit() {
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="arrowUp" />
                 {{ $t('labels.moveToRoot') }}
               </NcMenuItem>
-              <template v-if="isEeUI && isCreatorOrAbove">
+              <template v-if="isEeUI && isUIAllowed('documentCreate')">
                 <NcDivider />
                 <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS">
                   <template #default="{ click }">

@@ -1625,7 +1625,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         @change="onRowMove($event)"
                       >
                         <template #item="{ element: row }">
-                          <div class="nc-form-row flex items-stretch gap-3 min-w-0">
+                          <div class="nc-form-row flex items-stretch gap-1 min-w-0">
                             <Draggable
                               :model-value="row.fields"
                               item-key="id"
@@ -1633,7 +1633,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               handle=".nc-form-field-drag-handler"
                               group="form-inputs"
                               ghost-class="nc-form-field-ghost"
-                              class="flex items-stretch gap-3 flex-1 min-w-0 nc-form-row-fields"
+                              class="flex items-stretch gap-1 flex-1 min-w-0 nc-form-row-fields"
                               :move="(ev: any) => onFieldMoveCallback(ev, row.fields)"
                               :disabled="isLocked || !isEditable"
                               @change="onFieldMove($event, row._key)"
@@ -1642,22 +1642,22 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 <div
                                   v-if="!isLocked || (isLocked && element?.visible)"
                                   :key="element.id"
-                                  class="nc-editable nc-form-focus-element item relative bg-nc-bg-default p-4 lg:p-6 flex-1 basis-0 min-w-0"
+                                  class="nc-editable nc-form-focus-element item relative bg-nc-bg-default p-2 flex-1 basis-0 min-w-0"
                                   :class="[
                                     `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                                     {
-                                      'rounded-2xl border-2 my-1': isEditable,
+                                      'rounded-2xl my-1': isEditable,
                                     },
                                     {
-                                      'border-transparent my-0': !isEditable,
+                                      'my-0': !isEditable,
                                     },
                                     {
-                                      'nc-form-field-drag-handler border-transparent hover:(bg-nc-bg-gray-extralight) cursor-pointer':
+                                      'nc-form-field-drag-handler hover:(bg-nc-bg-gray-extralight) cursor-pointer':
                                         activeRow !== element.id && isEditable,
                                     },
 
                                     {
-                                      'border-nc-border-brand': activeRow === element.id,
+                                      'ring-1 ring-inset ring-nc-border-brand': activeRow === element.id,
                                     },
                                     {
                                       '!hover:bg-nc-bg-default !ring-0 !cursor-auto': isLocked,
@@ -1669,16 +1669,18 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   @click.stop="onFormItemClick(element)"
                                 >
                                   <template v-if="activeRow === element.id">
-                                    <div class="absolute -left-3 top-6">
+                                    <div class="absolute -top-2 left-1/2 -translate-x-1/2">
                                       <NcButton
-                                        type="primary"
+                                        type="secondary"
                                         size="small"
-                                        class="nc-form-field-drag-handler !cursor-move !p-1 !min-w-6 !h-auto !rounded"
+                                        class="nc-form-field-drag-handler group !cursor-move !p-1 !min-w-6 !h-auto !rounded !bg-white !border-1 !border-nc-border-brand hover:!bg-nc-fill-primary"
                                       >
-                                        <component
-                                          :is="iconMap.drag"
-                                          class="nc-form-field-drag-handler flex-none !h-4 !w-4 text-white font-bold"
-                                        />
+                                        <span class="nc-form-field-drag-handler inline-flex transform rotate-90">
+                                          <component
+                                            :is="iconMap.drag"
+                                            class="nc-form-field-drag-handler flex-none !h-3 !w-3 text-nc-content-brand group-hover:!text-white font-bold"
+                                          />
+                                        </span>
                                       </NcButton>
                                     </div>
                                     <div class="absolute right-1 top-1">

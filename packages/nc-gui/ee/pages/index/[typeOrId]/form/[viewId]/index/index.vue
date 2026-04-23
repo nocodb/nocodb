@@ -230,7 +230,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                   <div
                     v-for="(row, rowIdx) in rows"
                     :key="rowIdx"
-                    class="nc-shared-form-row flex flex-col md:flex-row md:items-stretch gap-3 md:gap-6"
+                    class="nc-shared-form-row flex flex-col md:flex-row md:items-stretch gap-3 md:gap-3"
                   >
                   <div
                     v-for="(field, index) in row"

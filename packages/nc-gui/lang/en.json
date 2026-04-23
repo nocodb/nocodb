@@ -1057,6 +1057,7 @@
   "title": {
     "trash": "Trash",
     "baseTrash": "Base Trash",
+    "recordTrash": "Record Trash",
     "noWorkspaceAccess": "No workspace access",
     "convertLegacyLink": "Upgrade Link Field",
     "versionHistory": "Version History",
@@ -3983,11 +3984,19 @@
   },
   "baseTrash": {
     "title": "Trash",
+    "header": "Deleted from {base}",
+    "description": "Restore items deleted from this base in the past {days} days. To restore deleted bases and workspaces, go to your workspace trash.",
     "autoExpiry": "Items are permanently deleted after {days} days",
     "noDeletedItems": "No deleted items",
     "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "confirmPermanentDelete": "{name} will be permanently deleted. This cannot be undone.",
-    "restoreParentFirst": "Restore \"{parent}\" first to restore this item"
+    "restoreParentFirst": "Restore \"{parent}\" first to restore this item",
+    "secondsAgo": "{count} seconds ago",
+    "youDeleted": "You deleted a {type} from {parent}: {name}",
+    "userDeleted": "{user} deleted a {type} from {parent}: {name}",
+    "youDeletedNoParent": "You deleted a {type}: {name}",
+    "userDeletedNoParent": "{user} deleted a {type}: {name}",
+    "someoneDeleted": "A {type} was deleted: {name}"
   }
 }

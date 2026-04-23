@@ -121,15 +121,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         />
 
         <NcDropdown
-          v-if="
-            appInfo.ee &&
-            !isSharedBase &&
-            !activeScriptId &&
-            !activeDashboardId &&
-            !activeWorkflowId &&
-            openedViewsTab === 'view' &&
-            !isMobileMode
-          "
+          v-if="appInfo.ee && !isSharedBase && !isMobileMode"
           v-model:visible="isHistoryMenuOpen"
           placement="bottomRight"
         >
@@ -173,7 +165,10 @@ const topbarBreadcrumbItemWidth = computed(() => {
                   </NcMenuItem>
                 </template>
               </PaymentUpgradeBadgeProvider>
-              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_EE_CORE">
+              <PaymentUpgradeBadgeProvider
+                v-if="openedViewsTab === 'view' && !activeScriptId && !activeDashboardId && !activeWorkflowId"
+                :feature="PlanFeatureTypes.FEATURE_EE_CORE"
+              >
                 <template #default="{ click }">
                   <NcTooltip :disabled="!trashUnavailableReason || trashUnavailableReason === 'license'" placement="left">
                     <template #title>{{ trashUnavailableMessage }}</template>
@@ -201,7 +196,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
                             '!text-nc-content-gray-disabled': trashUnavailableReason && trashUnavailableReason !== 'license',
                           }"
                         />
-                        <div class="flex-1">{{ $t('labels.trash') }}</div>
+                        <div class="flex-1">{{ $t('title.recordTrash') }}</div>
                         <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_EE_CORE" show-as-lock />
                       </div>
                     </NcMenuItem>
@@ -222,7 +217,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
                   >
                     <div class="flex gap-2 items-center w-full">
                       <GeneralIcon icon="ncTrash2" class="text-nc-content-gray-subtle2" />
-                      <div class="flex-1">{{ $t('labels.baseTrash') }}</div>
+                      <div class="flex-1">{{ $t('title.baseTrash') }}</div>
                       <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_EE_CORE" show-as-lock />
                     </div>
                   </NcMenuItem>

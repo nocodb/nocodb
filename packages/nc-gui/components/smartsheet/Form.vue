@@ -1646,13 +1646,13 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   :class="[
                                     `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                                     {
-                                      'rounded-2xl my-1': isEditable,
+                                      'nc-form-field-drag-handler rounded-2xl my-1 cursor-move': isEditable,
                                     },
                                     {
                                       'my-0': !isEditable,
                                     },
                                     {
-                                      'nc-form-field-drag-handler hover:(bg-nc-bg-gray-extralight) cursor-pointer':
+                                      'hover:(bg-nc-bg-gray-extralight)':
                                         activeRow !== element.id && isEditable,
                                     },
 
@@ -1669,20 +1669,6 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   @click.stop="onFormItemClick(element)"
                                 >
                                   <template v-if="activeRow === element.id">
-                                    <div class="absolute -top-2 left-1/2 -translate-x-1/2">
-                                      <NcButton
-                                        type="secondary"
-                                        size="small"
-                                        class="nc-form-field-drag-handler group !cursor-move !p-1 !min-w-6 !h-auto !rounded !bg-white !border-1 !border-nc-border-brand hover:!bg-nc-fill-primary"
-                                      >
-                                        <span class="nc-form-field-drag-handler inline-flex transform rotate-90">
-                                          <component
-                                            :is="iconMap.drag"
-                                            class="nc-form-field-drag-handler flex-none !h-3 !w-3 text-nc-content-brand group-hover:!text-white font-bold"
-                                          />
-                                        </span>
-                                      </NcButton>
-                                    </div>
                                     <div class="absolute right-1 top-1">
                                       <NcTooltip
                                         :title="
@@ -1694,7 +1680,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                         <NcButton
                                           type="link"
                                           size="xsmall"
-                                          class="nc-form-field-hide !bg-transparent !h-6 !w-6"
+                                          class="nc-form-field-hide !bg-white !h-5 !w-5 !min-w-5 !rounded-full"
                                           :class="{
                                             '!text-nc-content-gray-muted !hover:text-nc-content-brand': !isRequired(
                                               element,

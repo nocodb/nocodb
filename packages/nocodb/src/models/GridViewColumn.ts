@@ -143,7 +143,7 @@ export default class GridViewColumn implements GridColumnType {
     );
 
     if (!(ncMeta as Upgrader).upgrader_mode) {
-      // TODO: optimize this function & try to avoid if possible
+      // Optimized: uses batch Column.list() + Promise.all for parallel DB operations
       await View.fixPVColumnForView(context, column.fk_view_id, ncMeta);
     }
 

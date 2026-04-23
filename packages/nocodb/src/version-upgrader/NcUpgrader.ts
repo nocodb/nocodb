@@ -13,7 +13,6 @@ import ncXcdbLTARIndexUpgrader from './upgraders/0111002_ncXcdbLTARIndexUpgrader
 import ncXcdbCreatedAndUpdatedSystemFieldsUpgrader from './upgraders/0111005_ncXcdbCreatedAndUpdatedSystemFieldsUpgrader';
 import ncDatasourceDecrypt from './upgraders/0225002_ncDatasourceDecrypt';
 import ncDuplicatePluginMerge from './upgraders/0258003_ncDuplicatePluginMerge';
-import ncUuidNullBackfillUpgrader from './upgraders/0259001_ncUuidNullBackfillUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcConfig } from '~/interface/config';
 import { T } from '~/utils';
@@ -147,7 +146,6 @@ export default class NcUpgrader {
       { name: '0111005', handler: ncXcdbCreatedAndUpdatedSystemFieldsUpgrader },
       { name: '0225002', handler: ncDatasourceDecrypt },
       { name: '0258003', handler: ncDuplicatePluginMerge },
-      { name: '0259001', handler: ncUuidNullBackfillUpgrader },
     ];
   }
 }

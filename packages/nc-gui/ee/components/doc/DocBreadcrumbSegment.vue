@@ -12,7 +12,10 @@ interface Props {
   iconEmoji?: string | null
   iconFallback?: string
   items: DocumentType[] | Item[]
+  /** Used by the flat NcList path (e.g. base dropdown) to check-mark the active option */
   activeId?: string | null
+  /** Nested-mode only: ids on the active path (all ancestors + current doc) — every matching row is highlighted */
+  activeIds?: string[]
   maxWidthClass?: string
   iconOnly?: boolean
   /** Nested mode: each item with children renders its own hover-triggered submenu dropdown */
@@ -27,6 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
   iconEmoji: null,
   iconFallback: 'ncFileText',
   activeId: null,
+  activeIds: () => [],
   maxWidthClass: 'max-w-1/4',
   iconOnly: false,
   nested: false,
@@ -122,7 +126,7 @@ const onSelectNested = (doc: DocumentType) => {
           v-for="item in (items as DocumentType[])"
           :key="item.id"
           :doc="item"
-          :active-id="activeId"
+          :active-ids="activeIds"
           :get-children="getChildren"
           :load-children="loadChildren"
           :on-select="onSelectNested"
@@ -162,18 +166,20 @@ const onSelectNested = (doc: DocumentType) => {
 // popup via a nested NcDropdown, decoupling each level's hover/close tracking.
 .nc-doc-breadcrumb-menu,
 .nc-doc-breadcrumb-submenu-overlay .nc-doc-breadcrumb-submenu {
-  @apply py-2 px-2 min-w-64;
+  @apply p-1 min-w-64 flex flex-col gap-[2px];
 }
 
 .nc-doc-breadcrumb-row {
-  @apply flex items-center gap-2 w-full min-h-8 my-[2px] py-[5px] px-2 rounded-md cursor-pointer text-sm leading-5 text-nc-content-gray;
+  @apply flex items-center gap-2 w-full min-h-8 py-[5px] px-2 rounded-md cursor-pointer text-sm leading-5 text-nc-content-gray;
+
+  // Active rows get the subtler tint; hover is one notch darker so the
+  // feedback is still visible when the user moves across an active row.
+  &.nc-doc-breadcrumb-row-active {
+    @apply bg-nc-bg-gray-extralight;
+  }
 
   &:hover {
     @apply bg-nc-bg-gray-light;
-  }
-
-  &.nc-doc-breadcrumb-row-active {
-    @apply font-weight-500;
   }
 }
 </style>

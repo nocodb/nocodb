@@ -3,7 +3,8 @@ import type { DocumentType } from 'nocodb-sdk'
 
 interface Props {
   doc: DocumentType
-  activeId?: string | null
+  /** Ids on the active path — every ancestor plus the currently-open doc */
+  activeIds?: string[]
   getChildren: (docId: string) => DocumentType[]
   loadChildren: (docId: string) => Promise<void> | void
   onSelect: (doc: DocumentType) => void
@@ -23,7 +24,7 @@ const children = computed(() => (props.doc.id ? props.getChildren(props.doc.id) 
 
 const hasChildren = computed(() => !!props.doc.has_children)
 
-const isActive = computed(() => props.doc.id === props.activeId)
+const isActive = computed(() => !!props.doc.id && !!props.activeIds?.includes(props.doc.id))
 
 const isOpen = ref(false)
 
@@ -95,7 +96,7 @@ const onClickRow = (e: MouseEvent) => {
           v-for="child in children"
           :key="child.id"
           :doc="child"
-          :active-id="activeId"
+          :active-ids="activeIds"
           :get-children="getChildren"
           :load-children="loadChildren"
           :on-select="onSelect"
@@ -117,6 +118,5 @@ const onClickRow = (e: MouseEvent) => {
       <template #title>{{ label }}</template>
       {{ label }}
     </NcTooltip>
-    <GeneralIcon v-if="isActive" icon="check" class="flex-none text-primary w-4 h-4" />
   </div>
 </template>

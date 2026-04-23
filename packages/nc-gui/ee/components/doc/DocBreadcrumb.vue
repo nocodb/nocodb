@@ -43,6 +43,15 @@ const isEllipsisOpen = ref(false)
 
 const displayTitle = computed(() => props.currentTitle || activeDocument.value?.title || t('general.untitled'))
 
+// Every doc on the active path — ancestors plus the currently-open doc. Any row
+// whose id appears here is highlighted as active, so the full trail stays lit
+// regardless of how deep the user drills into a segment's submenu tree.
+const activePathIds = computed<string[]>(() => {
+  const ids = ancestors.value.map((a) => a.id).filter((id): id is string => !!id)
+  if (activeDocument.value?.id) ids.push(activeDocument.value.id)
+  return ids
+})
+
 // Treat null, undefined, and empty string as "no parent" (matches sidebar's `!d.parent_id`)
 const normalizeParentId = (v: string | null | undefined) => v || null
 
@@ -141,7 +150,7 @@ const handleEllipsisSelect = (option: NcListItemType) => {
         :label="rootAncestor.title || $t('general.untitled')"
         :icon-emoji="rootAncestor.meta?.icon"
         :items="rootSiblings"
-        :active-id="rootAncestor.id ?? null"
+        :active-ids="activePathIds"
         nested
         :get-children="getChildren"
         :load-children="ensureChildrenLoaded"
@@ -156,7 +165,7 @@ const handleEllipsisSelect = (option: NcListItemType) => {
         :label="middleAncestor.title || $t('general.untitled')"
         :icon-emoji="middleAncestor.meta?.icon"
         :items="middleSiblings"
-        :active-id="middleAncestor.id ?? null"
+        :active-ids="activePathIds"
         nested
         :get-children="getChildren"
         :load-children="ensureChildrenLoaded"
@@ -211,7 +220,7 @@ const handleEllipsisSelect = (option: NcListItemType) => {
         :label="parentAncestor.title || $t('general.untitled')"
         :icon-emoji="parentAncestor.meta?.icon"
         :items="parentSiblings"
-        :active-id="parentAncestor.id ?? null"
+        :active-ids="activePathIds"
         nested
         :get-children="getChildren"
         :load-children="ensureChildrenLoaded"
@@ -225,7 +234,7 @@ const handleEllipsisSelect = (option: NcListItemType) => {
       :label="displayTitle"
       :icon-emoji="activeDocument?.meta?.icon"
       :items="currentSiblings"
-      :active-id="activeDocument?.id ?? null"
+      :active-ids="activePathIds"
       max-width-class="max-w-1/2"
       nested
       :get-children="getChildren"

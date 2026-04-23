@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -41,6 +42,39 @@ export class OrgUsersController extends OrgUsersControllerCE {
     return this.orgUsersService.userList({
       query: req.query,
       reqUser: req.user,
+    });
+  }
+
+  /**
+   * Invite-picker endpoint — mirrors cloud's `GET /api/v2/orgs/:orgId/users`.
+   * Open to any cloud-org role (VIEWER / CREATOR / ADMIN) so a workspace
+   * creator can see who else is in the org. Scope must be `cloud-org` so the
+   * check reads from `user.org_roles` instead of the global `user.roles`.
+   * `excludeWorkspaceId` / `excludeBaseId` return only users not already in
+   * the given workspace/base.
+   */
+  @Get('/api/v2/orgs/:orgId/users')
+  @HttpCode(200)
+  @Acl('orgUserList', {
+    scope: 'cloud-org',
+    blockApiTokenAccess: true,
+  })
+  async getOrgUsers(
+    @Req() req: NcRequest,
+    @Param('orgId') orgId: string,
+    @Query('excludeWorkspaceId') excludeWorkspaceId?: string,
+    @Query('excludeBaseId') excludeBaseId?: string,
+    @Query('query') query?: string,
+  ) {
+    if (!Noco.isEE() || !Noco.ncDefaultOrgId) {
+      return [];
+    }
+    return this.orgUsersService.getOrgUsers({
+      orgId,
+      req,
+      excludeWorkspaceId,
+      excludeBaseId,
+      query,
     });
   }
 

@@ -147,6 +147,103 @@ export class OrgUsersService extends OrgUsersServiceCE {
   }
 
   /**
+   * List org users for the invite picker.
+   * Response shape mirrors the cloud `GET /api/v2/orgs/:orgId/users` list so
+   * `api.orgUser.list(orgId)` can be called identically across editions.
+   * When `excludeWorkspaceId` / `excludeBaseId` is set, users already in that
+   * workspace/base are removed — so the caller only sees "invitable" users.
+   */
+  async getOrgUsers(param: {
+    orgId: string;
+    req: NcRequest;
+    excludeWorkspaceId?: string;
+    excludeBaseId?: string;
+    query?: string;
+  }) {
+    const orgId = param.orgId || Noco.ncDefaultOrgId;
+
+    if (!orgId) {
+      return [];
+    }
+
+    const ncMeta = Noco.ncMeta;
+
+    let qb = ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.created_at as created_at`,
+        `${MetaTable.USERS}.meta`,
+        `${MetaTable.ORG_USERS}.roles as cloud_org_roles`,
+        `${MetaTable.ORG_USERS}.scim_managed`,
+      )
+      .innerJoin(
+        MetaTable.USERS,
+        `${MetaTable.ORG_USERS}.fk_user_id`,
+        `${MetaTable.USERS}.id`,
+      )
+      .where(`${MetaTable.ORG_USERS}.fk_org_id`, orgId)
+      .where(function () {
+        this.where(`${MetaTable.ORG_USERS}.deleted`, false).orWhereNull(
+          `${MetaTable.ORG_USERS}.deleted`,
+        );
+      })
+      .where(function () {
+        this.where(`${MetaTable.USERS}.is_deleted`, false).orWhereNull(
+          `${MetaTable.USERS}.is_deleted`,
+        );
+      });
+
+    if (param.query) {
+      const likeVal = `%${param.query
+        .replace(/%/g, '\\%')
+        .replace(/_/g, '\\_')}%`;
+      qb = qb.where(function () {
+        this.where(`${MetaTable.USERS}.email`, 'like', likeVal).orWhere(
+          `${MetaTable.USERS}.display_name`,
+          'like',
+          likeVal,
+        );
+      });
+    }
+
+    if (param.excludeWorkspaceId) {
+      qb = qb.whereNotIn(
+        `${MetaTable.USERS}.id`,
+        ncMeta
+          .knexConnection(MetaTable.WORKSPACE_USER)
+          .select('fk_user_id')
+          .where('fk_workspace_id', param.excludeWorkspaceId)
+          .where(function () {
+            this.where('deleted', false).orWhereNull('deleted');
+          }),
+      );
+    }
+
+    if (param.excludeBaseId) {
+      qb = qb.whereNotIn(
+        `${MetaTable.USERS}.id`,
+        ncMeta
+          .knexConnection(MetaTable.PROJECT_USERS)
+          .select('fk_user_id')
+          .where('base_id', param.excludeBaseId),
+      );
+    }
+
+    const rows = await qb.orderBy(`${MetaTable.USERS}.created_at`, 'desc');
+
+    // Match cloud's response shape — workspaces array is empty on on-prem
+    const list = rows.map((r) => ({ ...r, workspaces: [] }));
+
+    await PresignedUrl.signMetaIconImage(list);
+
+    return list;
+  }
+
+  /**
    * Add an existing user to the org. User must already exist in nc_users.
    */
   async addToOrg(param: {

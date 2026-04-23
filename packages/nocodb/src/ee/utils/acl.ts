@@ -674,6 +674,7 @@ const rolePermissions:
       orgTeamTree: true,
       orgTeamGet: true,
       orgAuditList: true,
+      orgUserList: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

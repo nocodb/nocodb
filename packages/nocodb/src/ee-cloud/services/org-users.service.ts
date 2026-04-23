@@ -87,12 +87,63 @@ export class OrgUsersService {
     return { msg: 'User added to organization' };
   }
 
-  async getOrgUsers(param: { orgId: string; req: NcRequest; user: User }) {
+  async getOrgUsers(param: {
+    orgId: string;
+    req: NcRequest;
+    user: User;
+    excludeWorkspaceId?: string;
+    excludeBaseId?: string;
+  }) {
     const orgUsers = await OrgUser.list(param.orgId);
 
-    await PresignedUrl.signMetaIconImage(orgUsers);
+    const excludedUserIds = await this.getExcludedUserIds({
+      excludeWorkspaceId: param.excludeWorkspaceId,
+      excludeBaseId: param.excludeBaseId,
+    });
 
-    return orgUsers;
+    const filtered = excludedUserIds.size
+      ? orgUsers.filter((u) => !excludedUserIds.has(u.id))
+      : orgUsers;
+
+    await PresignedUrl.signMetaIconImage(filtered);
+
+    return filtered;
+  }
+
+  /**
+   * Returns a set of user IDs that are already members of the given workspace
+   * or base — used to filter the invite picker list.
+   */
+  protected async getExcludedUserIds(param: {
+    excludeWorkspaceId?: string;
+    excludeBaseId?: string;
+  }): Promise<Set<string>> {
+    const ids = new Set<string>();
+
+    if (!param.excludeWorkspaceId && !param.excludeBaseId) return ids;
+
+    const ncMeta = Noco.ncMeta;
+
+    if (param.excludeWorkspaceId) {
+      const rows = await ncMeta
+        .knexConnection(MetaTable.WORKSPACE_USER)
+        .select('fk_user_id')
+        .where('fk_workspace_id', param.excludeWorkspaceId)
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        });
+      for (const r of rows) ids.add(r.fk_user_id);
+    }
+
+    if (param.excludeBaseId) {
+      const rows = await ncMeta
+        .knexConnection(MetaTable.PROJECT_USERS)
+        .select('fk_user_id')
+        .where('base_id', param.excludeBaseId);
+      for (const r of rows) ids.add(r.fk_user_id);
+    }
+
+    return ids;
   }
 
   async removeUserFromOrg(param: {

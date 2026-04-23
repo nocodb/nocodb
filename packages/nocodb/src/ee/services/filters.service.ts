@@ -19,7 +19,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
-import { Column, Filter, View } from '~/models';
+import { Column, Filter, Model, View } from '~/models';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -38,11 +38,25 @@ export class FiltersService extends FiltersServiceCE {
     entity: MetaTable.FILTER_EXP,
     entityId: 'id',
     parentId: 'viewId',
-    description: ({ parentEntityTitle }) =>
-      `Add filter in ${b(parentEntityTitle)}`,
+    description: ({ parentEntityTitle, extra }) => {
+      const parts: string[] = ['Add filter'];
+      if (extra?.fieldTitle) parts.push(`on ${b(extra.fieldTitle)}`);
+      if (parentEntityTitle) parts.push(`in ${b(parentEntityTitle)}`);
+      if (extra?.tableTitle) parts.push(`· ${b(extra.tableTitle)}`);
+      return parts.join(' ');
+    },
     resolveCtx: async (context, param) => {
       const view = await View.get(context, param?.viewId);
-      return { parentEntityTitle: view?.title };
+      const field = param?.filter?.fk_column_id
+        ? await Column.get(context, { colId: param.filter.fk_column_id })
+        : undefined;
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      return {
+        parentEntityTitle: view?.title,
+        extra: { fieldTitle: field?.title, tableTitle: table?.title },
+      };
     },
     deps: (_p, r) =>
       r?.fk_column_id
@@ -113,7 +127,25 @@ export class FiltersService extends FiltersServiceCE {
   @TraceCommand({
     entity: MetaTable.FILTER_EXP,
     entityId: (p) => p?.filterId,
-    description: () => 'Edit filter',
+    description: ({ parentEntityTitle, extra }) => {
+      const parts: string[] = ['Edit filter'];
+      if (extra?.fieldTitle) parts.push(`on ${b(extra.fieldTitle)}`);
+      if (parentEntityTitle) parts.push(`in ${b(parentEntityTitle)}`);
+      return parts.join(' ');
+    },
+    resolveCtx: async (context, param) => {
+      const filter = await Filter.get(context, param?.filterId);
+      if (!filter) return {};
+      const view = filter.fk_view_id
+        ? await View.get(context, filter.fk_view_id)
+        : undefined;
+      const colId = param?.filter?.fk_column_id ?? filter.fk_column_id;
+      const field = colId ? await Column.get(context, { colId }) : undefined;
+      return {
+        parentEntityTitle: view?.title,
+        extra: { fieldTitle: field?.title },
+      };
+    },
     deps: (p, r) => {
       const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
       return colId ? [{ entity: MetaTable.COLUMNS, id: colId }] : [];
@@ -136,15 +168,25 @@ export class FiltersService extends FiltersServiceCE {
   @TraceCommand({
     entity: MetaTable.FILTER_EXP,
     entityId: (p) => p?.filterId,
-    description: ({ parentEntityTitle }) =>
-      parentEntityTitle
-        ? `Delete filter in ${b(parentEntityTitle)}`
-        : 'Delete filter',
+    description: ({ parentEntityTitle, extra }) => {
+      const parts: string[] = ['Delete filter'];
+      if (extra?.fieldTitle) parts.push(`on ${b(extra.fieldTitle)}`);
+      if (parentEntityTitle) parts.push(`from ${b(parentEntityTitle)}`);
+      return parts.join(' ');
+    },
     resolveCtx: async (context, param) => {
       const filter = await Filter.get(context, param?.filterId);
-      if (!filter?.fk_view_id) return {};
-      const view = await View.get(context, filter.fk_view_id);
-      return { parentEntityTitle: view?.title };
+      if (!filter) return {};
+      const view = filter.fk_view_id
+        ? await View.get(context, filter.fk_view_id)
+        : undefined;
+      const field = filter.fk_column_id
+        ? await Column.get(context, { colId: filter.fk_column_id })
+        : undefined;
+      return {
+        parentEntityTitle: view?.title,
+        extra: { fieldTitle: field?.title },
+      };
     },
   })
   async filterDelete(
@@ -159,7 +201,24 @@ export class FiltersService extends FiltersServiceCE {
     entity: MetaTable.FILTER_EXP,
     entityId: 'id',
     parentId: (p) => p?.columnId,
-    description: () => 'Add link filter',
+    description: ({ parentEntityTitle, extra }) => {
+      const parts: string[] = ['Add filter'];
+      if (extra?.fieldTitle) parts.push(`on ${b(extra.fieldTitle)}`);
+      if (parentEntityTitle) parts.push(`for link ${b(parentEntityTitle)}`);
+      return parts.join(' ');
+    },
+    resolveCtx: async (context, param) => {
+      const linkCol = param?.columnId
+        ? await Column.get(context, { colId: param.columnId })
+        : undefined;
+      const field = param?.filter?.fk_column_id
+        ? await Column.get(context, { colId: param.filter.fk_column_id })
+        : undefined;
+      return {
+        parentEntityTitle: linkCol?.title,
+        extra: { fieldTitle: field?.title },
+      };
+    },
     deps: (p, r) => {
       const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
       const linkColId = p?.columnId;
@@ -220,7 +279,24 @@ export class FiltersService extends FiltersServiceCE {
     entity: MetaTable.FILTER_EXP,
     entityId: 'id',
     parentId: (p) => p?.widgetId,
-    description: () => 'Add widget filter',
+    description: ({ parentEntityTitle, extra }) => {
+      const parts: string[] = ['Add filter'];
+      if (extra?.fieldTitle) parts.push(`on ${b(extra.fieldTitle)}`);
+      if (parentEntityTitle) parts.push(`for widget ${b(parentEntityTitle)}`);
+      return parts.join(' ');
+    },
+    resolveCtx: async (context, param) => {
+      const widget = param?.widgetId
+        ? ((await Widget.get(context, param.widgetId)) as WidgetType)
+        : undefined;
+      const field = param?.filter?.fk_column_id
+        ? await Column.get(context, { colId: param.filter.fk_column_id })
+        : undefined;
+      return {
+        parentEntityTitle: widget?.title,
+        extra: { fieldTitle: field?.title },
+      };
+    },
     deps: (p, r) => {
       const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
       return colId ? [{ entity: MetaTable.COLUMNS, id: colId }] : [];
@@ -270,7 +346,28 @@ export class FiltersService extends FiltersServiceCE {
     entity: MetaTable.FILTER_EXP,
     entityId: 'id',
     parentId: (p) => p?.rlsPolicyId,
-    description: () => 'Add RLS policy filter',
+    description: ({ parentEntityTitle, extra }) => {
+      const parts: string[] = ['Add filter'];
+      if (extra?.fieldTitle) parts.push(`on ${b(extra.fieldTitle)}`);
+      if (parentEntityTitle) {
+        parts.push(`for RLS policy ${b(parentEntityTitle)}`);
+      } else {
+        parts.push('for RLS policy');
+      }
+      return parts.join(' ');
+    },
+    resolveCtx: async (context, param) => {
+      const policy = param?.rlsPolicyId
+        ? await RlsPolicy.get(context, param.rlsPolicyId)
+        : undefined;
+      const field = param?.filter?.fk_column_id
+        ? await Column.get(context, { colId: param.filter.fk_column_id })
+        : undefined;
+      return {
+        parentEntityTitle: policy?.title,
+        extra: { fieldTitle: field?.title },
+      };
+    },
     deps: (p, r) => {
       const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
       return colId ? [{ entity: MetaTable.COLUMNS, id: colId }] : [];
@@ -323,7 +420,27 @@ export class FiltersService extends FiltersServiceCE {
     entity: MetaTable.FILTER_EXP,
     entityId: 'id',
     parentId: (p) => p?.rowColorConditionsId,
-    description: () => 'Add row color condition filter',
+    description: ({ parentEntityTitle, extra }) => {
+      const parts: string[] = ['Add row color filter'];
+      if (extra?.fieldTitle) parts.push(`on ${b(extra.fieldTitle)}`);
+      if (parentEntityTitle) parts.push(`in ${b(parentEntityTitle)}`);
+      return parts.join(' ');
+    },
+    resolveCtx: async (context, param) => {
+      const condition = param?.rowColorConditionsId
+        ? await RowColorCondition.getById(context, param.rowColorConditionsId)
+        : undefined;
+      const view = condition?.fk_view_id
+        ? await View.get(context, condition.fk_view_id)
+        : undefined;
+      const field = param?.filter?.fk_column_id
+        ? await Column.get(context, { colId: param.filter.fk_column_id })
+        : undefined;
+      return {
+        parentEntityTitle: view?.title,
+        extra: { fieldTitle: field?.title },
+      };
+    },
     deps: (p, r) => {
       const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
       return colId ? [{ entity: MetaTable.COLUMNS, id: colId }] : [];

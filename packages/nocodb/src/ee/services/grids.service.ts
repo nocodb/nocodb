@@ -6,9 +6,9 @@ import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { b, descUpdate } from '~/decorators/trace-command-descriptions';
+import { viewActions } from '~/decorators/trace-command-descriptions';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { Model } from '~/models';
+import { Model, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
 
@@ -23,8 +23,7 @@ export class GridsService extends GridsServiceCE {
     entityId: 'id',
     entityTitle: (p) => p?.grid?.title,
     parentId: 'tableId',
-    description: ({ entityTitle, parentEntityTitle }) =>
-      `Create grid view ${b(entityTitle)} in ${b(parentEntityTitle)}`,
+    description: viewActions.add,
     resolveCtx: async (context, param) => {
       const table = await Model.get(context, param?.tableId);
       return { parentEntityTitle: table?.title };
@@ -55,7 +54,21 @@ export class GridsService extends GridsServiceCE {
     entity: MetaTable.VIEWS,
     entityId: (p) => p?.viewId,
     entityTitle: (p) => p?.grid?.title,
-    description: descUpdate('grid view'),
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? viewActions.rename(ctx)
+        : viewActions.edit(ctx),
+    resolveCtx: async (context, param) => {
+      const view = await View.get(context, param?.viewId);
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      return {
+        entityTitle: view?.title,
+        parentEntityTitle: table?.title,
+        extra: { oldTitle: view?.title },
+      };
+    },
   })
   async gridViewUpdate(
     context: NcContext,

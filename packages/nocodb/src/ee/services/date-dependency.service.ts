@@ -17,10 +17,7 @@ import { Column, DateDependency, DependencyTracker, Model } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  descDelete,
-  descUpdate,
-} from '~/decorators/trace-command-descriptions';
+import { dateDependencyActions } from '~/decorators/trace-command-descriptions';
 import { MetaTable } from '~/utils/globals';
 
 @Injectable()
@@ -39,7 +36,13 @@ export class DateDependencyService {
   @TraceCommand({
     entity: MetaTable.DATE_DEPENDENCY,
     entityId: (p) => p?.modelId,
-    description: descUpdate('date dependency'),
+    description: dateDependencyActions.edit,
+    resolveCtx: async (context, param) => {
+      const table = param?.modelId
+        ? await Model.get(context, param.modelId)
+        : undefined;
+      return { parentEntityTitle: table?.title };
+    },
   })
   async update(
     context: NcContext,
@@ -109,7 +112,13 @@ export class DateDependencyService {
   @TraceCommand({
     entity: MetaTable.DATE_DEPENDENCY,
     entityId: (p) => p?.modelId,
-    description: descDelete('date dependency'),
+    description: dateDependencyActions.delete,
+    resolveCtx: async (context, param) => {
+      const table = param?.modelId
+        ? await Model.get(context, param.modelId)
+        : undefined;
+      return { parentEntityTitle: table?.title };
+    },
   })
   async delete(
     context: NcContext,

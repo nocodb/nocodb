@@ -10,7 +10,10 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { b } from '~/decorators/trace-command-descriptions';
+import {
+  shareViewActions,
+  viewActions,
+} from '~/decorators/trace-command-descriptions';
 import { User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
@@ -36,13 +39,20 @@ export class ViewsService extends ViewsServiceCE {
     entityId: (p) => p?.viewId,
     entityTitle: (p) => p?.view?.title,
     parentId: (_p, r) => r?.fk_model_id,
-    description: ({ entityTitle, extra }) =>
-      extra?.oldTitle && extra.oldTitle !== entityTitle
-        ? `Rename view ${b(extra.oldTitle)} to ${b(entityTitle)}`
-        : `Edit view ${b(entityTitle)}`,
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? viewActions.rename(ctx)
+        : viewActions.edit(ctx),
     resolveCtx: async (context, param) => {
       const view = await View.get(context, param?.viewId);
-      return { entityTitle: view?.title, extra: { oldTitle: view?.title } };
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      return {
+        entityTitle: view?.title,
+        parentEntityTitle: table?.title,
+        extra: { oldTitle: view?.title },
+      };
     },
   })
   async viewUpdate(
@@ -68,10 +78,16 @@ export class ViewsService extends ViewsServiceCE {
   @TraceCommand({
     entity: MetaTable.VIEWS,
     entityId: (p) => p?.viewId,
-    description: ({ entityTitle }) => `Delete view ${b(entityTitle)}`,
+    description: viewActions.delete,
     resolveCtx: async (context, param) => {
       const view = await View.get(context, param?.viewId);
-      return { entityTitle: view?.title };
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      return {
+        entityTitle: view?.title,
+        parentEntityTitle: table?.title,
+      };
     },
   })
   async viewDelete(
@@ -152,7 +168,7 @@ export class ViewsService extends ViewsServiceCE {
   @TraceCommand({
     entity: MetaTable.VIEWS,
     entityId: (p) => p?.viewId,
-    description: ({ entityTitle }) => `Share view ${b(entityTitle)}`,
+    description: shareViewActions.create,
   })
   async shareView(
     context: NcContext,
@@ -175,7 +191,7 @@ export class ViewsService extends ViewsServiceCE {
   @TraceCommand({
     entity: MetaTable.VIEWS,
     entityId: (p) => p?.viewId,
-    description: ({ entityTitle }) => `Edit shared link for ${b(entityTitle)}`,
+    description: shareViewActions.update,
   })
   async shareViewUpdate(
     context: NcContext,
@@ -203,8 +219,7 @@ export class ViewsService extends ViewsServiceCE {
   @TraceCommand({
     entity: MetaTable.VIEWS,
     entityId: (p) => p?.viewId,
-    description: ({ entityTitle }) =>
-      `Remove shared link for ${b(entityTitle)}`,
+    description: shareViewActions.delete,
   })
   async shareViewDelete(
     context: NcContext,

@@ -18,11 +18,7 @@ import { parseMetaProp } from '~/utils/modelUtils';
 import { checkForFeature, checkLimit } from '~/helpers/paymentHelpers';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  descCreate,
-  descDelete,
-  descUpdate,
-} from '~/decorators/trace-command-descriptions';
+import { rlsPolicyActions } from '~/decorators/trace-command-descriptions';
 import { MetaTable } from '~/utils/globals';
 
 @Injectable()
@@ -96,7 +92,12 @@ export class RlsService {
     entityId: 'id',
     entityTitle: 'title',
     parentId: (p) => p?.body?.fk_model_id,
-    description: descCreate('RLS policy'),
+    description: rlsPolicyActions.add,
+    resolveCtx: async (context, param) => {
+      const tableId = param?.body?.fk_model_id;
+      const table = tableId ? await Model.get(context, tableId) : undefined;
+      return { parentEntityTitle: table?.title };
+    },
     idField: 'body',
   })
   async createPolicy(
@@ -221,7 +222,22 @@ export class RlsService {
     entity: MetaTable.RLS_POLICIES,
     entityId: (p) => p?.body?.id,
     entityTitle: (p) => p?.body?.title,
-    description: descUpdate('RLS policy'),
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? rlsPolicyActions.rename(ctx)
+        : rlsPolicyActions.edit(ctx),
+    resolveCtx: async (context, param) => {
+      const policy = param?.body?.id
+        ? await RlsPolicy.get(context, param.body.id)
+        : undefined;
+      const table = policy?.fk_model_id
+        ? await Model.get(context, policy.fk_model_id)
+        : undefined;
+      return {
+        parentEntityTitle: table?.title,
+        extra: { oldTitle: policy?.title },
+      };
+    },
   })
   async updatePolicy(
     context: NcContext,
@@ -294,7 +310,19 @@ export class RlsService {
   @TraceCommand({
     entity: MetaTable.RLS_POLICIES,
     entityId: (p) => p?.policyId,
-    description: descDelete('RLS policy'),
+    description: rlsPolicyActions.delete,
+    resolveCtx: async (context, param) => {
+      const policy = param?.policyId
+        ? await RlsPolicy.get(context, param.policyId)
+        : undefined;
+      const table = policy?.fk_model_id
+        ? await Model.get(context, policy.fk_model_id)
+        : undefined;
+      return {
+        entityTitle: policy?.title,
+        parentEntityTitle: table?.title,
+      };
+    },
   })
   async deletePolicy(
     context: NcContext,

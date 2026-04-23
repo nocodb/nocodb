@@ -13,11 +13,7 @@ import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  descCreate,
-  descDelete,
-  descUpdate,
-} from '~/decorators/trace-command-descriptions';
+import { viewSectionActions } from '~/decorators/trace-command-descriptions';
 import { MetaTable } from '~/utils/globals';
 
 @Injectable()
@@ -191,7 +187,7 @@ export class ViewSectionsService {
     entityId: 'id',
     entityTitle: 'title',
     parentId: 'viewId',
-    description: descCreate('view section'),
+    description: viewSectionActions.add,
     idField: 'section',
   })
   async viewSectionCreate(
@@ -209,7 +205,14 @@ export class ViewSectionsService {
     entity: MetaTable.VIEW_SECTIONS,
     entityId: (p) => p?.viewSectionId,
     entityTitle: (p) => p?.section?.title,
-    description: descUpdate('view section'),
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? viewSectionActions.rename(ctx)
+        : viewSectionActions.edit(ctx),
+    resolveCtx: async (context, param) => {
+      const section = await ViewSection.get(context, param?.viewSectionId);
+      return { extra: { oldTitle: section?.title } };
+    },
   })
   async viewSectionUpdate(
     context: NcContext,
@@ -225,7 +228,11 @@ export class ViewSectionsService {
   @TraceCommand({
     entity: MetaTable.VIEW_SECTIONS,
     entityId: (p) => p?.viewSectionId,
-    description: descDelete('view section'),
+    description: viewSectionActions.delete,
+    resolveCtx: async (context, param) => {
+      const section = await ViewSection.get(context, param?.viewSectionId);
+      return { entityTitle: section?.title };
+    },
   })
   async viewSectionDelete(
     context: NcContext,

@@ -88,11 +88,6 @@ const groupedChangelog = computed(() => {
 
 const hasChanges = computed(() => props.changelog.length > 0)
 
-function renderDescription(desc?: string): string {
-  if (!desc) return ''
-  return desc.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-}
-
 function getUserInfo(userId: string): UserInfo {
   return props.users[userId] ?? { display_name: 'Unknown', email: '', avatar: null }
 }
@@ -201,7 +196,8 @@ function toggleSortOrder() {
           >
             <div class="flex items-center gap-2.5 min-w-0">
               <GeneralUserIcon :user="getUserInfo(entry.created_by)" size="medium" class="flex-none" />
-              <span class="nc-changelog-entry-text" v-html="renderDescription(entry.description) || entry.event" />
+              <SandboxChangelogEntryText v-if="entry.description" :description="entry.description" />
+              <span v-else class="nc-changelog-entry-text">{{ entry.event }}</span>
             </div>
 
             <!-- Expanded detail -->

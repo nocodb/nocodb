@@ -15,11 +15,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { ButtonColumn, Script, Workspace } from '~/models';
 import { checkLimit } from '~/helpers/paymentHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  b,
-  descCreate,
-  descDelete,
-} from '~/decorators/trace-command-descriptions';
+import { scriptActions } from '~/decorators/trace-command-descriptions';
 import { MetaTable } from '~/utils/globals';
 
 @Injectable()
@@ -47,7 +43,7 @@ export class ScriptsService {
     entity: MetaTable.AUTOMATIONS,
     entityId: 'id',
     entityTitle: 'title',
-    description: descCreate('script'),
+    description: scriptActions.add,
     idField: 'body',
   })
   async createScript(
@@ -102,10 +98,10 @@ export class ScriptsService {
     entity: MetaTable.AUTOMATIONS,
     entityId: (p) => p?.scriptId,
     entityTitle: (_p, r) => r?.title,
-    description: ({ entityTitle, extra }) =>
-      extra?.oldTitle && extra.oldTitle !== entityTitle
-        ? `Rename script ${b(extra.oldTitle)} to ${b(entityTitle)}`
-        : `Edit script ${b(entityTitle)}`,
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? scriptActions.rename(ctx)
+        : scriptActions.edit(ctx),
     resolveCtx: async (context, param) => {
       const script = await Script.get(context, param?.scriptId);
       return { extra: { oldTitle: script?.title } };
@@ -161,7 +157,7 @@ export class ScriptsService {
   @TraceCommand({
     entity: MetaTable.AUTOMATIONS,
     entityId: (p) => p?.scriptId,
-    description: descDelete('script'),
+    description: scriptActions.delete,
     resolveCtx: async (context, param) => {
       const script = await Script.get(context, param?.scriptId);
       return { entityTitle: script?.title };

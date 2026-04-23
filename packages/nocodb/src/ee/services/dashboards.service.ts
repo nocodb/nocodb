@@ -22,10 +22,8 @@ import NocoSocket from '~/socket/NocoSocket';
 import { checkLimit } from '~/helpers/paymentHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
-  b,
-  descCreate,
-  descDelete,
-  descUpdate,
+  dashboardActions,
+  widgetActions,
 } from '~/decorators/trace-command-descriptions';
 import { MetaTable } from '~/utils/globals';
 @Injectable()
@@ -55,7 +53,7 @@ export class DashboardsService {
     entity: MetaTable.DASHBOARDS,
     entityId: 'id',
     entityTitle: 'title',
-    description: descCreate('dashboard'),
+    description: dashboardActions.add,
     idField: 'dashboard',
   })
   async dashboardCreate(
@@ -117,7 +115,14 @@ export class DashboardsService {
     entity: MetaTable.DASHBOARDS,
     entityId: (p) => p?.dashboardId,
     entityTitle: (p) => p?.dashboard?.title,
-    description: descUpdate('dashboard'),
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? dashboardActions.rename(ctx)
+        : dashboardActions.edit(ctx),
+    resolveCtx: async (context, param) => {
+      const dashboard = await Dashboard.get(context, param?.dashboardId);
+      return { extra: { oldTitle: dashboard?.title } };
+    },
   })
   async dashboardUpdate(
     context: NcContext,
@@ -175,7 +180,11 @@ export class DashboardsService {
   @TraceCommand({
     entity: MetaTable.DASHBOARDS,
     entityId: (p) => p?.dashboardId,
-    description: descDelete('dashboard'),
+    description: dashboardActions.delete,
+    resolveCtx: async (context, param) => {
+      const dashboard = await Dashboard.get(context, param?.dashboardId);
+      return { entityTitle: dashboard?.title };
+    },
   })
   async dashboardDelete(
     context: NcContext,
@@ -264,8 +273,7 @@ export class DashboardsService {
     entityTitle: 'title',
     parentId: (p, r) =>
       p?.dashboardId ?? p?.widget?.fk_dashboard_id ?? r?.fk_dashboard_id,
-    description: ({ entityTitle, parentEntityTitle }) =>
-      `Create widget ${b(entityTitle)} in ${b(parentEntityTitle)}`,
+    description: widgetActions.add,
     resolveCtx: async (context, param) => {
       const dashboardId = param?.dashboardId ?? param?.widget?.fk_dashboard_id;
       if (!dashboardId) return {};
@@ -437,8 +445,10 @@ export class DashboardsService {
     entity: MetaTable.WIDGETS,
     entityId: (p) => p?.widgetId,
     parentId: (p, r) => r?.fk_dashboard_id,
-    description: ({ entityTitle, parentEntityTitle }) =>
-      `Edit widget ${b(entityTitle)} in ${b(parentEntityTitle)}`,
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? widgetActions.rename(ctx)
+        : widgetActions.edit(ctx),
     resolveCtx: async (context, param) => {
       const widget = await Widget.get(context, param?.widgetId);
       if (!widget) return {};
@@ -446,6 +456,7 @@ export class DashboardsService {
       return {
         entityTitle: widget.title,
         parentEntityTitle: dashboard?.title,
+        extra: { oldTitle: widget.title },
       };
     },
   })
@@ -530,8 +541,7 @@ export class DashboardsService {
   @TraceCommand({
     entity: MetaTable.WIDGETS,
     entityId: (p) => p?.widgetId,
-    description: ({ entityTitle, parentEntityTitle }) =>
-      `Delete widget ${b(entityTitle)} from ${b(parentEntityTitle)}`,
+    description: widgetActions.delete,
     resolveCtx: async (context, param) => {
       const widget = await Widget.get(context, param?.widgetId);
       if (!widget) return {};

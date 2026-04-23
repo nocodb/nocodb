@@ -30,7 +30,7 @@ import type { Source } from '~/models';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { b } from '~/decorators/trace-command-descriptions';
+import { fieldActions } from '~/decorators/trace-command-descriptions';
 import { extractFormulaColumnRefs } from '~/ee/helpers/formulaDeps';
 import {
   Base,
@@ -181,8 +181,7 @@ export class ColumnsService extends ColumnsServiceCE {
     },
     entityTitle: (p) => p?.column?.title,
     parentId: 'tableId',
-    description: ({ entityTitle, parentEntityTitle }) =>
-      `Add ${b(entityTitle)} field to ${b(parentEntityTitle)}`,
+    description: fieldActions.add,
     resolveCtx: async (context, param) => {
       const table = await Model.get(context, param?.tableId);
       return { parentEntityTitle: table?.title };
@@ -331,12 +330,10 @@ export class ColumnsService extends ColumnsServiceCE {
     entityId: (p) => p?.columnId,
     entityTitle: (p) => p?.column?.title,
     parentId: (p) => p?.column?.fk_model_id ?? p?.tableId,
-    description: ({ entityTitle, parentEntityTitle, extra }) =>
-      extra?.oldTitle && extra.oldTitle !== entityTitle
-        ? `Rename ${b(extra.oldTitle)} field to ${b(entityTitle)} in ${b(
-            parentEntityTitle,
-          )}`
-        : `Edit ${b(entityTitle)} field in ${b(parentEntityTitle)}`,
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? fieldActions.rename(ctx)
+        : fieldActions.edit(ctx),
     resolveCtx: async (context, param) => {
       const col = await Column.get(context, { colId: param?.columnId });
       const tableId = col?.fk_model_id;
@@ -391,10 +388,7 @@ export class ColumnsService extends ColumnsServiceCE {
   @TraceCommand({
     entity: MetaTable.COLUMNS,
     entityId: (p) => p?.columnId,
-    description: ({ entityTitle, parentEntityTitle }) =>
-      parentEntityTitle
-        ? `Delete ${b(entityTitle)} field from ${b(parentEntityTitle)}`
-        : `Delete field ${b(entityTitle)}`,
+    description: fieldActions.delete,
     resolveCtx: async (context, param) => {
       const col = await Column.get(context, { colId: param?.columnId });
       if (!col) return {};

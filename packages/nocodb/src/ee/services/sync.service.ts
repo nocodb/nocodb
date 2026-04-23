@@ -4,11 +4,7 @@ import type { NcRequest } from '~/interface/config';
 import type { SyncSource } from '~/models';
 import { NcContext } from '~/interface/config';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  descCreate,
-  descDelete,
-  descUpdate,
-} from '~/decorators/trace-command-descriptions';
+import { syncActions } from '~/decorators/trace-command-descriptions';
 import { MetaTable } from '~/utils/globals';
 
 @Injectable()
@@ -17,7 +13,7 @@ export class SyncService extends SyncServiceCE {
     entity: MetaTable.SYNC_SOURCE,
     entityId: 'id',
     entityTitle: (p, r) => p?.syncPayload?.title ?? r?.title,
-    description: descCreate('sync source'),
+    description: syncActions.add,
     idField: 'syncPayload',
   })
   async syncCreate(
@@ -37,7 +33,7 @@ export class SyncService extends SyncServiceCE {
     entity: MetaTable.SYNC_SOURCE,
     entityId: (p) => p?.syncId,
     entityTitle: (p) => p?.syncPayload?.title,
-    description: descUpdate('sync source'),
+    description: syncActions.edit,
   })
   async syncUpdate(
     context: NcContext,
@@ -53,7 +49,7 @@ export class SyncService extends SyncServiceCE {
   @TraceCommand({
     entity: MetaTable.SYNC_SOURCE,
     entityId: (p) => p?.syncId,
-    description: descDelete('sync source'),
+    description: syncActions.delete,
   })
   async syncDelete(
     context: NcContext,

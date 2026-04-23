@@ -7,7 +7,7 @@ import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { b } from '~/decorators/trace-command-descriptions';
+import { sortActions } from '~/decorators/trace-command-descriptions';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -27,13 +27,7 @@ export class SortsService extends SortsServiceCE {
     entity: MetaTable.SORT,
     entityId: 'id',
     parentId: 'viewId',
-    description: ({ parentEntityTitle, extra }) => {
-      const parts: string[] = ['Add sort'];
-      if (extra?.fieldTitle) parts.push(`by ${b(extra.fieldTitle)}`);
-      if (parentEntityTitle) parts.push(`in ${b(parentEntityTitle)}`);
-      if (extra?.tableTitle) parts.push(`· ${b(extra.tableTitle)}`);
-      return parts.join(' ');
-    },
+    description: sortActions.add,
     resolveCtx: async (context, param) => {
       const view = await View.get(context, param?.viewId);
       const field = param?.sort?.fk_column_id
@@ -105,23 +99,21 @@ export class SortsService extends SortsServiceCE {
   @TraceCommand({
     entity: MetaTable.SORT,
     entityId: (p) => p?.sortId,
-    description: ({ parentEntityTitle, extra }) => {
-      const parts: string[] = ['Edit sort'];
-      if (extra?.fieldTitle) parts.push(`by ${b(extra.fieldTitle)}`);
-      if (parentEntityTitle) parts.push(`in ${b(parentEntityTitle)}`);
-      return parts.join(' ');
-    },
+    description: sortActions.edit,
     resolveCtx: async (context, param) => {
       const sort = await Sort.get(context, param?.sortId);
       if (!sort) return {};
       const view = sort.fk_view_id
         ? await View.get(context, sort.fk_view_id)
         : undefined;
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
       const colId = param?.sort?.fk_column_id ?? sort.fk_column_id;
       const field = colId ? await Column.get(context, { colId }) : undefined;
       return {
         parentEntityTitle: view?.title,
-        extra: { fieldTitle: field?.title },
+        extra: { fieldTitle: field?.title, tableTitle: table?.title },
       };
     },
     deps: (p, r) => {
@@ -146,24 +138,22 @@ export class SortsService extends SortsServiceCE {
   @TraceCommand({
     entity: MetaTable.SORT,
     entityId: (p) => p?.sortId,
-    description: ({ parentEntityTitle, extra }) => {
-      const parts: string[] = ['Delete sort'];
-      if (extra?.fieldTitle) parts.push(`by ${b(extra.fieldTitle)}`);
-      if (parentEntityTitle) parts.push(`from ${b(parentEntityTitle)}`);
-      return parts.join(' ');
-    },
+    description: sortActions.delete,
     resolveCtx: async (context, param) => {
       const sort = await Sort.get(context, param?.sortId);
       if (!sort) return {};
       const view = sort.fk_view_id
         ? await View.get(context, sort.fk_view_id)
         : undefined;
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
       const field = sort.fk_column_id
         ? await Column.get(context, { colId: sort.fk_column_id })
         : undefined;
       return {
         parentEntityTitle: view?.title,
-        extra: { fieldTitle: field?.title },
+        extra: { fieldTitle: field?.title, tableTitle: table?.title },
       };
     },
   })

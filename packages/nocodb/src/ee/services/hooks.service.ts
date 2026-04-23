@@ -8,7 +8,7 @@ import type { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { b } from '~/decorators/trace-command-descriptions';
+import { hookActions } from '~/decorators/trace-command-descriptions';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -63,8 +63,7 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
     entityId: 'id',
     entityTitle: 'title',
     parentId: 'tableId',
-    description: ({ entityTitle, parentEntityTitle }) =>
-      `Add webhook ${b(entityTitle)} to ${b(parentEntityTitle)}`,
+    description: hookActions.add,
     resolveCtx: async (context, param) => {
       const table = await Model.get(context, param?.tableId);
       return { parentEntityTitle: table?.title };
@@ -172,7 +171,20 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
     entityId: (p) => p?.hookId,
     entityTitle: (p) => p?.hook?.title,
     parentId: (_p, r) => r?.fk_model_id,
-    description: ({ entityTitle }) => `Edit webhook ${b(entityTitle)}`,
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? hookActions.rename(ctx)
+        : hookActions.edit(ctx),
+    resolveCtx: async (context, param) => {
+      const hook = await Hook.get(context, param?.hookId);
+      const table = hook?.fk_model_id
+        ? await Model.get(context, hook.fk_model_id)
+        : undefined;
+      return {
+        parentEntityTitle: table?.title,
+        extra: { oldTitle: hook?.title },
+      };
+    },
   })
   async hookUpdate(
     context: NcContext,
@@ -189,10 +201,16 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
   @TraceCommand({
     entity: MetaTable.HOOKS,
     entityId: (p) => p?.hookId,
-    description: ({ entityTitle }) => `Delete webhook ${b(entityTitle)}`,
+    description: hookActions.delete,
     resolveCtx: async (context, param) => {
       const hook = await Hook.get(context, param?.hookId);
-      return { entityTitle: hook?.title };
+      const table = hook?.fk_model_id
+        ? await Model.get(context, hook.fk_model_id)
+        : undefined;
+      return {
+        entityTitle: hook?.title,
+        parentEntityTitle: table?.title,
+      };
     },
   })
   async hookDelete(

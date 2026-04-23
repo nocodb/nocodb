@@ -6,9 +6,9 @@ import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { b } from '~/decorators/trace-command-descriptions';
+import { viewColumnActions } from '~/decorators/trace-command-descriptions';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { View } from '~/models';
+import { Column, Model, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
 
 @Injectable()
@@ -22,11 +22,19 @@ export class ViewColumnsService extends ViewColumnsServiceCE {
     entity: MetaTable.GRID_VIEW_COLUMNS,
     entityId: (p) => p?.columnId,
     parentId: 'viewId',
-    description: ({ parentEntityTitle }) =>
-      `Edit view column settings in ${b(parentEntityTitle)}`,
+    description: viewColumnActions.update,
     resolveCtx: async (context, param) => {
       const view = await View.get(context, param?.viewId);
-      return { parentEntityTitle: view?.title };
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      const field = param?.columnId
+        ? await Column.get(context, { colId: param.columnId })
+        : undefined;
+      return {
+        parentEntityTitle: view?.title,
+        extra: { fieldTitle: field?.title, tableTitle: table?.title },
+      };
     },
     deps: (p) =>
       p?.columnId ? [{ entity: MetaTable.COLUMNS, id: p.columnId }] : [],

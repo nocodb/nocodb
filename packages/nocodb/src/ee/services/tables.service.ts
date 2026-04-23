@@ -10,7 +10,7 @@ import type { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { b, descRename } from '~/decorators/trace-command-descriptions';
+import { tableActions } from '~/decorators/trace-command-descriptions';
 import { NcError } from '~/helpers/catchError';
 import { assertNotSandboxMaster } from '~/helpers/sandboxGuards';
 import { Base, Model } from '~/models';
@@ -87,7 +87,7 @@ export class TablesService extends TableServiceCE {
     entity: MetaTable.MODELS,
     entityId: 'id',
     entityTitle: 'title',
-    description: ({ entityTitle }) => `Create table ${b(entityTitle)}`,
+    description: tableActions.add,
     idField: 'table',
     // Store sandbox column IDs so replay can seed auto-created columns
     // (Title column etc.) with matching IDs on master.
@@ -228,7 +228,7 @@ export class TablesService extends TableServiceCE {
     entity: MetaTable.MODELS,
     entityId: (p) => p?.tableId,
     entityTitle: (p) => p?.table?.title,
-    description: descRename('table'),
+    description: tableActions.rename,
     resolveCtx: async (context, param) => {
       const table = await Model.get(context, param?.tableId);
       return { extra: { oldTitle: table?.title } };
@@ -256,7 +256,7 @@ export class TablesService extends TableServiceCE {
   @TraceCommand({
     entity: MetaTable.MODELS,
     entityId: (p) => p?.tableId,
-    description: ({ entityTitle }) => `Delete table ${b(entityTitle)}`,
+    description: tableActions.delete,
     resolveCtx: async (context, param) => {
       const table = await Model.get(context, param?.tableId);
       return { entityTitle: table?.title };

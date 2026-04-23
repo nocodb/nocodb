@@ -10,7 +10,7 @@ import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { b } from '~/decorators/trace-command-descriptions';
+import { viewActions } from '~/decorators/trace-command-descriptions';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { Model, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
@@ -27,8 +27,7 @@ export class FormsService extends FormsServiceCE {
     entityId: 'id',
     entityTitle: (p) => p?.body?.title,
     parentId: 'tableId',
-    description: ({ entityTitle, parentEntityTitle }) =>
-      `Create form view ${b(entityTitle)} in ${b(parentEntityTitle)}`,
+    description: viewActions.add,
     resolveCtx: async (context, param) => {
       const table = await Model.get(context, param?.tableId);
       return { parentEntityTitle: table?.title };
@@ -60,13 +59,20 @@ export class FormsService extends FormsServiceCE {
     entity: MetaTable.VIEWS,
     entityId: (p) => p?.formViewId,
     entityTitle: (p) => p?.form?.title,
-    description: ({ entityTitle, extra }) =>
-      extra?.oldTitle && extra.oldTitle !== entityTitle
-        ? `Rename form view ${b(extra.oldTitle)} to ${b(entityTitle)}`
-        : `Edit form view ${b(entityTitle)}`,
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? viewActions.rename(ctx)
+        : viewActions.edit(ctx),
     resolveCtx: async (context, param) => {
       const view = await View.get(context, param?.formViewId);
-      return { entityTitle: view?.title, extra: { oldTitle: view?.title } };
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      return {
+        entityTitle: view?.title,
+        parentEntityTitle: table?.title,
+        extra: { oldTitle: view?.title },
+      };
     },
   })
   async formViewUpdate(

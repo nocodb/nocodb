@@ -12,11 +12,7 @@ import { Base, BaseVariable } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  descCreate,
-  descDelete,
-  descUpdate,
-} from '~/decorators/trace-command-descriptions';
+import { baseVariableActions } from '~/decorators/trace-command-descriptions';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { MetaTable } from '~/utils/globals';
 
@@ -413,7 +409,7 @@ export class BaseVariablesService {
     entity: MetaTable.BASE_VARIABLES,
     entityId: 'id',
     entityTitle: 'key',
-    description: descCreate('variable'),
+    description: baseVariableActions.add,
     idField: 'variable',
   })
   async baseVariableCreate(
@@ -427,7 +423,7 @@ export class BaseVariablesService {
     entity: MetaTable.BASE_VARIABLES,
     entityId: (p) => p?.variableId,
     entityTitle: (p) => p?.variable?.key,
-    description: descUpdate('variable'),
+    description: baseVariableActions.edit,
   })
   async baseVariableUpdate(
     context: NcContext,
@@ -443,7 +439,11 @@ export class BaseVariablesService {
   @TraceCommand({
     entity: MetaTable.BASE_VARIABLES,
     entityId: (p) => p?.variableId,
-    description: descDelete('variable'),
+    description: baseVariableActions.delete,
+    resolveCtx: async (context, param) => {
+      const variable = await BaseVariable.get(context, param?.variableId);
+      return { entityTitle: variable?.key };
+    },
   })
   async baseVariableDelete(
     context: NcContext,

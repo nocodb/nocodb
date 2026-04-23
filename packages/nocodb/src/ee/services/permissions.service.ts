@@ -25,7 +25,7 @@ import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { descDelete } from '~/decorators/trace-command-descriptions';
+import { permissionActions } from '~/decorators/trace-command-descriptions';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
 
 @Injectable()
@@ -608,7 +608,7 @@ export class PermissionsService {
   @TraceCommand({
     entity: MetaTable.PERMISSIONS,
     entityId: (_p, r) => r?.id,
-    description: () => 'Edit permission settings',
+    description: permissionActions.set,
   })
   async permissionSet(
     context: NcContext,
@@ -633,7 +633,7 @@ export class PermissionsService {
   @TraceCommand({
     entity: MetaTable.PERMISSIONS,
     entityId: (p) => p?.permission?.id,
-    description: descDelete('permission'),
+    description: permissionActions.drop,
   })
   async permissionDrop(
     context: NcContext,

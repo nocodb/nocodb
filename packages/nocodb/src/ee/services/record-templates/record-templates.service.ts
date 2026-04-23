@@ -12,11 +12,7 @@ import RecordTemplate from '~/models/RecordTemplate';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  descCreate,
-  descDelete,
-  descUpdate,
-} from '~/decorators/trace-command-descriptions';
+import { recordTemplateActions } from '~/decorators/trace-command-descriptions';
 import { MetaTable } from '~/utils/globals';
 
 @Injectable()
@@ -411,7 +407,7 @@ export class RecordTemplatesService {
     entityId: 'id',
     entityTitle: 'title',
     parentId: 'tableId',
-    description: descCreate('record template'),
+    description: recordTemplateActions.add,
     idField: 'body',
   })
   async recordTemplateCreate(
@@ -438,7 +434,14 @@ export class RecordTemplatesService {
     entity: MetaTable.RECORD_TEMPLATES,
     entityId: (p) => p?.templateId,
     entityTitle: (p) => p?.template?.title,
-    description: descUpdate('record template'),
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? recordTemplateActions.rename(ctx)
+        : recordTemplateActions.edit(ctx),
+    resolveCtx: async (context, param) => {
+      const template = await RecordTemplate.get(context, param?.templateId);
+      return { extra: { oldTitle: template?.title } };
+    },
   })
   async recordTemplateUpdate(
     context: NcContext,
@@ -461,7 +464,11 @@ export class RecordTemplatesService {
   @TraceCommand({
     entity: MetaTable.RECORD_TEMPLATES,
     entityId: (p) => p?.templateId,
-    description: descDelete('record template'),
+    description: recordTemplateActions.delete,
+    resolveCtx: async (context, param) => {
+      const template = await RecordTemplate.get(context, param?.templateId);
+      return { entityTitle: template?.title };
+    },
   })
   async recordTemplateDelete(
     context: NcContext,

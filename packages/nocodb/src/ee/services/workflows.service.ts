@@ -45,9 +45,8 @@ import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
-  b,
-  descCreate,
-  descDelete,
+  bWorkflow,
+  workflowActions,
 } from '~/decorators/trace-command-descriptions';
 
 @Injectable()
@@ -215,7 +214,7 @@ export class WorkflowsService implements OnModuleInit {
     entity: MetaTable.AUTOMATIONS,
     entityId: 'id',
     entityTitle: 'title',
-    description: descCreate('workflow'),
+    description: workflowActions.add,
     idField: 'body',
   })
   async createWorkflow(
@@ -289,10 +288,10 @@ export class WorkflowsService implements OnModuleInit {
     entity: MetaTable.AUTOMATIONS,
     entityId: (p) => p?.workflowId,
     entityTitle: (_p, r) => r?.title,
-    description: ({ entityTitle, extra }) =>
-      extra?.oldTitle && extra.oldTitle !== entityTitle
-        ? `Rename workflow ${b(extra.oldTitle)} to ${b(entityTitle)}`
-        : `Edit workflow ${b(entityTitle)}`,
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? workflowActions.rename(ctx)
+        : workflowActions.edit(ctx),
     resolveCtx: async (context, param) => {
       const wf = await Workflow.get(context, param?.workflowId);
       return { extra: { oldTitle: wf?.title } };
@@ -366,7 +365,7 @@ export class WorkflowsService implements OnModuleInit {
   @TraceCommand({
     entity: MetaTable.AUTOMATIONS,
     entityId: (p) => p?.workflowId,
-    description: descDelete('workflow'),
+    description: workflowActions.delete,
     resolveCtx: async (context, param) => {
       const wf = await Workflow.get(context, param?.workflowId);
       return { entityTitle: wf?.title };
@@ -637,7 +636,7 @@ export class WorkflowsService implements OnModuleInit {
   @TraceCommand({
     entity: MetaTable.AUTOMATIONS,
     entityId: (p) => p?.workflowId,
-    description: ({ entityTitle }) => `Publish workflow ${b(entityTitle)}`,
+    description: ({ entityTitle }) => `Publish ${bWorkflow(entityTitle)} workflow`,
     resolveCtx: async (context, param) => {
       const wf = await Workflow.get(context, param?.workflowId);
       return { entityTitle: wf?.title };

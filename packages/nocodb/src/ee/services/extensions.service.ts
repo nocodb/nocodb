@@ -5,10 +5,7 @@ import type { ExtensionReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  descCreate,
-  descUpdate,
-} from '~/decorators/trace-command-descriptions';
+import { extensionActions } from '~/decorators/trace-command-descriptions';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { Extension } from '~/models';
@@ -29,7 +26,7 @@ export class ExtensionsService extends ExtensionsServiceCE {
     entity: MetaTable.EXTENSIONS,
     entityId: 'id',
     entityTitle: (p, r) => p?.extension?.title ?? r?.title,
-    description: descCreate('extension'),
+    description: extensionActions.add,
     idField: 'extension',
   })
   async extensionCreate(
@@ -46,7 +43,14 @@ export class ExtensionsService extends ExtensionsServiceCE {
     entity: MetaTable.EXTENSIONS,
     entityId: (p) => p?.extensionId,
     entityTitle: (p) => p?.extension?.title,
-    description: descUpdate('extension'),
+    description: (ctx) =>
+      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
+        ? extensionActions.rename(ctx)
+        : extensionActions.edit(ctx),
+    resolveCtx: async (context, param) => {
+      const ext = await Extension.get(context, param?.extensionId);
+      return { extra: { oldTitle: ext?.title } };
+    },
   })
   async extensionUpdate(
     context: NcContext,
@@ -62,8 +66,7 @@ export class ExtensionsService extends ExtensionsServiceCE {
   @TraceCommand({
     entity: MetaTable.EXTENSIONS,
     entityId: (p) => p?.extensionId,
-    description: ({ entityTitle }) =>
-      `Delete extension ${entityTitle ? `**${entityTitle}**` : ''}`.trim(),
+    description: extensionActions.delete,
     resolveCtx: async (context, param) => {
       const ext = await Extension.get(context, param?.extensionId);
       return { entityTitle: ext?.title };

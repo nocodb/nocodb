@@ -144,6 +144,15 @@ export class SoftDeleteColumnMigration {
         `Found ${numberOfModelsToBeProcessed} models to process for soft delete + meta column`,
       );
 
+      // SQLite in scope → force serial; otherwise use PARALLEL_LIMIT.
+      const hasSqlite = !!(await ncMeta
+        .knexConnection(MetaTable.SOURCES)
+        .where('type', 'sqlite3')
+        .where((b) => b.where('is_meta', true).orWhere({ is_local: true }))
+        .first());
+      const concurrency = hasSqlite ? 1 : PARALLEL_LIMIT;
+      this.log(`Concurrency: ${concurrency}`);
+
       const wrapper = async (model: {
         id: string;
         source_id: string;
@@ -174,13 +183,13 @@ export class SoftDeleteColumnMigration {
         }
       };
 
-      const queue = new PQueue({ concurrency: PARALLEL_LIMIT });
+      const queue = new PQueue({ concurrency });
 
       // eslint-disable-next-line no-constant-condition
       while (true) {
         // PQueue.pending is capped at concurrency; waiting tasks accumulate
         // in .size. Guard on size to actually bound unprocessed backlog.
-        if (queue.size > PARALLEL_LIMIT * 2) {
+        if (queue.size > concurrency * 2) {
           await new Promise((resolve) => setTimeout(resolve, 1000));
           continue;
         }
@@ -189,7 +198,7 @@ export class SoftDeleteColumnMigration {
           (m) => m.processing,
         );
 
-        const models = await this.getModelsQuery(ncMeta);
+        const models = await this.getModelsQuery(ncMeta, concurrency);
 
         if (!models?.length) break;
 
@@ -628,7 +637,7 @@ export class SoftDeleteColumnMigration {
     await this.updateModelStatus(Noco.ncMeta, modelId, true);
   }
 
-  private getModelsQuery(ncMeta: MetaService) {
+  private getModelsQuery(ncMeta: MetaService, concurrency: number) {
     return (
       ncMeta
         .knexConnection(MetaTable.MODELS)
@@ -663,7 +672,7 @@ export class SoftDeleteColumnMigration {
           `${MetaTable.MODELS}.id`,
           this.processingModels.map((m) => m.fk_model_id),
         )
-        .limit(PARALLEL_LIMIT * 10)
+        .limit(concurrency * 10)
     );
   }
 

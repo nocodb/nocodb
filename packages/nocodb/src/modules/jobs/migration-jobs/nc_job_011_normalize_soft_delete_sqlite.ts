@@ -121,6 +121,15 @@ export class NormalizeSoftDeleteSqliteMigration {
         return true;
       }
 
+      // SQLite in scope → force serial; otherwise use PARALLEL_LIMIT.
+      const hasSqlite = !!(await ncMeta
+        .knexConnection(MetaTable.SOURCES)
+        .where('type', 'sqlite3')
+        .where((b) => b.where('is_meta', true).orWhere({ is_local: true }))
+        .first());
+      const concurrency = hasSqlite ? 1 : PARALLEL_LIMIT;
+      this.log(`Concurrency: ${concurrency}`);
+
       // eslint-disable-next-line no-constant-condition
       while (true) {
         const modelsToProcess = await this.getModelsToBeProcessedQueryBuilder(
@@ -138,7 +147,7 @@ export class NormalizeSoftDeleteSqliteMigration {
             this.processingModels.map((m) => m.fk_model_id),
           )
           .orderBy(`${MetaTable.MODELS}.id`, 'asc')
-          .limit(PARALLEL_LIMIT * 2);
+          .limit(concurrency * 2);
 
         if (!modelsToProcess?.length) break;
 
@@ -269,6 +278,19 @@ export class NormalizeSoftDeleteSqliteMigration {
       return base;
     });
 
+    // Job 010 creates `nc_deleted_idx_${model.id}` on `__nc_deleted` (see
+    // nc_job_010_soft_delete_column.ts:438-447). SqliteClient's rename/add/
+    // copy/drop alter dance renames the original column to a backup name;
+    // the index follows the rename, and SQLite refuses to DROP COLUMN on a
+    // column still referenced by an index. Drop the index first, recreate
+    // it on the new column after the alter.
+    const realDbDriver = await NcConnectionMgrv2.get(
+      new Source({ ...originalSource, upgraderMode: false } as any),
+    );
+    const indexName = `nc_deleted_idx_${model.id}`;
+
+    await realDbDriver.raw('DROP INDEX IF EXISTS ??', [indexName]);
+
     await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
       ...model,
       tn: model.table_name,
@@ -276,13 +298,13 @@ export class NormalizeSoftDeleteSqliteMigration {
       columns,
     });
 
-    // Flush queued queries in a transaction via the real (non-upgrader)
-    // driver — same two-step pattern job 010 uses.
-    const realDbDriver = await NcConnectionMgrv2.get(
-      new Source({ ...originalSource, upgraderMode: false } as any),
-    );
-
     await Upgrader.flushSourceQueries(source, realDbDriver);
+
+    await realDbDriver.raw('CREATE INDEX IF NOT EXISTS ?? ON ?? (??)', [
+      indexName,
+      model.table_name,
+      deletedCol.column_name,
+    ]);
 
     await realDbDriver(tnPath)
       .update({ [deletedCol.column_name]: 0 })
@@ -293,13 +315,15 @@ export class NormalizeSoftDeleteSqliteMigration {
 
     // Sync the meta column's cdf so the NocoDB column definition records
     // '0' going forward.
-    await Noco.ncMeta.metaUpdate(
+    await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.COLUMNS,
       { cdf: '0' },
       deletedCol.id,
     );
+
+    await ncMeta.runUpgraderQueries();
 
     this.processedModelsCount++;
   }

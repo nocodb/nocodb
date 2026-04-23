@@ -34,6 +34,7 @@ export class BasesController extends BasesControllerCE {
     const bases = await this.projectsService.baseList(context, {
       user: req.user,
       query: queryParams,
+      req,
     });
     return new PagedResponseImpl(bases as BaseType[], {
       count: bases.length,

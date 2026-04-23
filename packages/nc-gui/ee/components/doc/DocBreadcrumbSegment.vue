@@ -127,7 +127,7 @@ watch(isOpen, (open) => {
     </div>
 
     <template #overlay>
-      <a-menu v-if="nested && getChildren && loadChildren" class="nc-doc-breadcrumb-menu">
+      <div v-if="nested && getChildren && loadChildren" class="nc-doc-breadcrumb-menu">
         <DocBreadcrumbMenuRow
           v-for="item in (items as DocumentType[])"
           :key="item.id"
@@ -137,7 +137,7 @@ watch(isOpen, (open) => {
           :load-children="loadChildren"
           :on-select="onSelectNested"
         />
-      </a-menu>
+      </div>
 
       <NcList
         v-else
@@ -167,61 +167,23 @@ watch(isOpen, (open) => {
 </template>
 
 <style lang="scss">
-// Main menu (rendered inside NcDropdown — uses ant-dropdown-menu-* classes, not ant-menu-*).
-// Nested submenu popup (.nc-doc-breadcrumb-submenu-popup) uses ant-menu.ant-menu-sub.
-.nc-doc-breadcrumb-menu {
-  @apply !border-r-0 !rounded-lg !py-2 !px-2 min-w-64;
-
-  .ant-dropdown-menu-submenu-title {
-    @apply !h-auto min-h-8 !my-[2px] !py-[5px] !px-2 hover:!bg-nc-bg-gray-light cursor-pointer !rounded-md flex items-center;
-  }
-
-  .ant-dropdown-menu-item {
-    @apply !h-auto min-h-8 !my-[2px] !py-[5px] text-sm leading-5 !px-2 hover:!bg-nc-bg-gray-light cursor-pointer !rounded-md flex items-center;
-
-    .ant-dropdown-menu-title-content {
-      @apply w-full px-0 flex items-center;
-    }
-  }
-
-  .ant-dropdown-menu-submenu-title .ant-dropdown-menu-title-content {
-    @apply w-full px-0 flex items-center;
-  }
-}
-
-.nc-doc-breadcrumb-submenu-popup {
-  @apply !rounded-lg border-1 border-nc-border-gray-medium;
-
-  .ant-menu.ant-menu-sub {
-    @apply !border-r-0 !rounded-lg !py-2 !px-2 min-w-64 !shadow-lg shadow-nc-border-gray-medium;
-
-    .ant-menu-submenu-title {
-      @apply !h-auto min-h-8 !my-[2px] !py-[5px] !px-2 hover:!bg-nc-bg-gray-light cursor-pointer !rounded-md flex items-center;
-
-      .ant-menu-title-content {
-        @apply w-full px-0 flex items-center;
-      }
-    }
-
-    .ant-menu-item {
-      @apply !h-auto min-h-8 !my-[2px] !py-[5px] text-sm leading-5 !px-2 hover:!bg-nc-bg-gray-light cursor-pointer !rounded-md flex items-center;
-
-      .ant-menu-title-content {
-        @apply w-full px-0 flex items-center;
-      }
-
-      &.ant-menu-item-selected {
-        @apply bg-transparent;
-      }
-    }
-  }
+// Top-level menu (inside NcDropdown overlay) and nested submenu overlays
+// are plain divs containing DocBreadcrumbMenuRow — each row handles its own
+// popup via a nested NcDropdown, decoupling each level's hover/close tracking.
+.nc-doc-breadcrumb-menu,
+.nc-doc-breadcrumb-submenu-overlay .nc-doc-breadcrumb-submenu {
+  @apply py-2 px-2 min-w-64;
 }
 
 .nc-doc-breadcrumb-row {
-  @apply flex items-center gap-2 w-full !text-nc-content-gray;
+  @apply flex items-center gap-2 w-full min-h-8 my-[2px] py-[5px] px-2 rounded-md cursor-pointer text-sm leading-5 text-nc-content-gray;
+
+  &:hover {
+    @apply bg-nc-bg-gray-light;
+  }
 
   &.nc-doc-breadcrumb-row-active {
-    @apply !font-weight-500;
+    @apply font-weight-500;
   }
 }
 </style>

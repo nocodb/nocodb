@@ -505,8 +505,8 @@ const showActivity = computed(() => {
     </div>
   </Transition>
 
-  <!-- Discard changes modal -->
-  <NcModal v-model:visible="showDiscardModal" size="xs">
+  <!-- Discard changes modal (height=auto so the frame fits the short confirm copy) -->
+  <NcModal v-model:visible="showDiscardModal" size="xs" height="auto">
     <div>
       <div class="flex flex-row items-center gap-x-2 text-base font-bold">
         {{ $t('labels.saveChanges') }}

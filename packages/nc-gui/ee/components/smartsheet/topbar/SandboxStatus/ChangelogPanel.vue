@@ -118,21 +118,21 @@ function toggleSortOrder() {
 <template>
   <div class="nc-sandbox-changelog-panel flex flex-col h-full">
     <!-- Header -->
-    <div class="flex items-center justify-between px-4 pt-3.5 pb-2.5">
-      <div class="flex items-center gap-2">
-        <span class="text-sm font-bold text-nc-content-gray-emphasis">
+    <div
+      class="h-[var(--topbar-height)] flex items-center justify-between gap-2 px-3 border-b-1 border-nc-border-gray-medium bg-nc-bg-default flex-none"
+    >
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="text-bodyBold text-nc-content-gray truncate">
           {{ t('labels.sandboxChanges') }}
         </span>
         <span v-if="changelog.length > 0" class="nc-changelog-count-badge">
           {{ changelog.length }}
         </span>
       </div>
-      <NcButton type="text" size="xsmall" class="!px-1" @click="emit('close')">
+      <NcButton type="text" size="small" class="nc-sandbox-header-btn" @click="emit('close')">
         <GeneralIcon icon="ncChevronsRight" class="w-4 h-4 text-nc-content-gray-muted" />
       </NcButton>
     </div>
-
-    <NcDivider class="!my-0" />
 
     <!-- Loading state -->
     <div v-if="isLoading" class="flex-1 flex items-center justify-center py-6">
@@ -276,6 +276,20 @@ function toggleSortOrder() {
   @apply inline-flex items-center justify-center min-w-5 h-5 px-1.5;
   @apply text-[11px] font-semibold rounded-full;
   @apply bg-orange-100 text-orange-600;
+}
+
+.nc-sandbox-header-btn {
+  @apply !bg-transparent hover:!bg-transparent;
+
+  :deep(svg) {
+    @apply w-4 h-4;
+    color: var(--nc-content-gray-muted);
+    transition: color 150ms ease;
+  }
+
+  &:hover :deep(svg) {
+    color: var(--nc-content-gray);
+  }
 }
 
 .nc-changelog-banner {

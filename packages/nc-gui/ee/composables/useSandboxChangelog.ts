@@ -9,6 +9,8 @@ export const useSandboxChangelog = createSharedComposable(() => {
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
+  const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
+
   const DRAWER_WIDTH = 480
 
   const isDrawerOpen = ref(false)
@@ -26,6 +28,10 @@ export const useSandboxChangelog = createSharedComposable(() => {
 
   watch(isSandbox, (val) => {
     if (!val) isDrawerOpen.value = false
+  })
+
+  watch(isChatPanelExpanded, (expanded) => {
+    if (expanded && isDrawerOpen.value) isDrawerOpen.value = false
   })
 
   const loadChangelog = async () => {
@@ -47,6 +53,7 @@ export const useSandboxChangelog = createSharedComposable(() => {
   }
 
   const openDrawer = () => {
+    if (isChatPanelExpanded.value) isChatPanelExpanded.value = false
     isDrawerOpen.value = true
     mergeStatus.value = 'idle'
     mergeError.value = ''

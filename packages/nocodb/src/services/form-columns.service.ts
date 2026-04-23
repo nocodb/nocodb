@@ -26,7 +26,7 @@ const ROW_ID_PATTERN = /^fr_[a-z0-9]+$/;
 export class FormColumnsService {
   protected logger = new Logger(FormColumnsService.name);
 
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   @TraceCommand(OperationName.formColumnUpdate)
   async columnUpdate(

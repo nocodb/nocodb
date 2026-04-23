@@ -274,7 +274,6 @@
     "a:form-view:field:show-extra-fields": "Show extra fields in form",
     "a:form-view:grid:field-move": "Grid layout — drag a field into a different row or position (payload: { fieldCount } = final row size)",
     "a:form-view:grid:new-row": "Grid layout — drop a field into the new-row zone",
-    "a:form-view:grid:row-reorder": "Grid layout — reorder an entire row of fields",
     "a:form-view:hide-columns": "Hide columns in form view",
     "a:form-view:remove-all": "Remove all fields from form",
     "a:form-view:reorder": "Reorder form fields (single-column / CE fallback)",

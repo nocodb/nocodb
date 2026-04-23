@@ -582,20 +582,17 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     /**
      * Atomically re-layout multiple form columns after a drag-drop reflow.
      * Each update carries the new `row_id` and/or `order` for a column.
+     * Throws on API failure so callers can roll back optimistic UI state.
      */
     async function bulkUpdateColumns(updates: Array<{ id: string; row_id?: string | null; order?: number }>) {
       if (!isEditable || !updates.length || !viewMeta.value?.id) return
 
-      try {
-        await $api.internal.postOperation(
-          viewMeta.value.fk_workspace_id!,
-          viewMeta.value.base_id!,
-          { operation: 'formColumnBulkUpdate', viewId: viewMeta.value.id },
-          { updates },
-        )
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
-      }
+      await $api.internal.postOperation(
+        viewMeta.value.fk_workspace_id!,
+        viewMeta.value.base_id!,
+        { operation: 'formColumnBulkUpdate', viewId: viewMeta.value.id },
+        { updates },
+      )
     }
 
     function isRequired(_columnObj: Record<string, any>, required = false) {

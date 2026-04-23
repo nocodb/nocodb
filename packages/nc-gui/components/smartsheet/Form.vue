@@ -518,6 +518,34 @@ const rowsWithKey = computed(() =>
   })),
 )
 
+// Serializes drag-drop re-layouts: blocks new drags while a bulk update
+// is in flight so rapid consecutive moves can't race each other and
+// ship inconsistent projected states to the server.
+const gridUpdatePending = ref(false)
+
+function snapshotGridState() {
+  return localColumns.value.map((c: any) => ({
+    id: c.id,
+    order: c.order,
+    row_id: c.row_id ?? null,
+  }))
+}
+
+function restoreGridState(snap: Array<{ id: string; order: number; row_id: string | null }>) {
+  for (const s of snap) {
+    const lc = localColumns.value.find((c: any) => c.id === s.id) as any
+    if (lc) {
+      lc.order = s.order
+      lc.row_id = s.row_id
+    }
+    const fc = fields.value?.find((f: any) => f?.id === s.id) as any
+    if (fc) {
+      fc.order = s.order
+      fc.row_id = s.row_id
+    }
+  }
+}
+
 /**
  * Reject drops that would violate grid-layout invariants we cannot recover
  * from — full-width fields must stay alone. Capacity overflow (dropping a
@@ -525,6 +553,8 @@ const rowsWithKey = computed(() =>
  * it and silently splits the incoming field into a fresh row below.
  */
 function onFieldMoveCallback(event: any, targetRow: Record<string, any>[]) {
+  if (gridUpdatePending.value) return false
+
   const dragged = event.draggedContext?.element
   if (!dragged) return true
 
@@ -616,56 +646,25 @@ async function onFieldMove(event: any, targetRowKey: string) {
 
   if (!updates.length) return
 
-  await bulkUpdateColumns(updates)
+  const snapshot = snapshotGridState()
+  gridUpdatePending.value = true
+  try {
+    await bulkUpdateColumns(updates)
+  } catch (e: any) {
+    restoreGridState(snapshot)
+    message.error(await extractSdkResponseErrorMsg(e))
+    return
+  } finally {
+    gridUpdatePending.value = false
+  }
   checkFieldVisibility()
 
   const finalRow = pruned.find((r: any[]) => r.some((c: any) => c.id === movedId))
   $e('a:form-view:grid:field-move', { fieldCount: finalRow?.length ?? 1 })
 }
 
-async function onRowMove(event: any) {
-  if (isLocked.value || !isEditable) return
-  if (!event.moved) return
-
-  const reordered = event.moved.element
-  if (!Array.isArray(reordered)) return
-
-  // Rebuild flat order from the reordered rows sequence
-  const newRowsFlat: Record<string, any>[] = [...rows.value].flat()
-  // Re-run grouping off the reordered list
-  const fromIndex = event.moved.oldIndex
-  const toIndex = event.moved.newIndex
-  const reordRows = [...rows.value]
-  const [taken] = reordRows.splice(fromIndex, 1)
-  reordRows.splice(toIndex, 0, taken)
-
-  const flat = reordRows.flat()
-  const updates: Array<{ id: string; row_id?: string | null; order?: number }> = []
-
-  for (let i = 0; i < flat.length; i++) {
-    const col = flat[i]
-    const newOrder = i + 1
-    if (col.order !== newOrder) {
-      updates.push({ id: col.id, row_id: col.row_id ?? null, order: newOrder })
-      col.order = newOrder
-    }
-  }
-
-  if (!updates.length) return
-
-  for (const col of flat) {
-    const lc = localColumns.value.find((c: any) => c.id === col.id)
-    if (lc) lc.order = col.order
-    const fc = fields.value?.find((f: any) => f?.id === col.id)
-    if (fc) fc.order = col.order
-  }
-
-  await bulkUpdateColumns(updates)
-  void newRowsFlat
-  $e('a:form-view:grid:row-reorder')
-}
-
 function onFieldMoveToNewRowCallback(event: any) {
+  if (gridUpdatePending.value) return false
   const dragged = event.draggedContext?.element
   if (!dragged) return false
   // Always allowed — incoming field gets its own fresh row
@@ -711,7 +710,17 @@ async function onFieldMoveToNewRow(event: any) {
 
   if (!updates.length) return
 
-  await bulkUpdateColumns(updates)
+  const snapshot = snapshotGridState()
+  gridUpdatePending.value = true
+  try {
+    await bulkUpdateColumns(updates)
+  } catch (e: any) {
+    restoreGridState(snapshot)
+    message.error(await extractSdkResponseErrorMsg(e))
+    return
+  } finally {
+    gridUpdatePending.value = false
+  }
   checkFieldVisibility()
   $e('a:form-view:grid:new-row')
 }
@@ -1616,208 +1625,59 @@ const { message: templatedMessage } = useTemplatedMessage(
                       </div>
 
                       <!-- EE: multi-column grid layout (gated by plan feature) -->
-                      <Draggable
-                        v-if="!blockFormGridLayout"
-                        ref="draggableRef"
-                        v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
-                        :model-value="rowsWithKey"
-                        item-key="_key"
-                        handle=".nc-form-row-drag-handler"
-                        group="form-rows"
-                        ghost-class="nc-form-row-ghost"
-                        class="h-full px-4 lg:px-6 nc-form-rows"
-                        :disabled="isLocked || !isEditable"
-                        @change="onRowMove($event)"
-                      >
-                        <template #item="{ element: row }">
-                          <div class="nc-form-row flex items-stretch gap-1 min-w-0">
-                            <Draggable
-                              :model-value="row.fields"
-                              item-key="id"
-                              draggable=".item"
-                              handle=".nc-form-field-drag-handler"
-                              group="form-inputs"
-                              ghost-class="nc-form-field-ghost"
-                              class="flex items-stretch gap-1 flex-1 min-w-0 nc-form-row-fields"
-                              :move="(ev: any) => onFieldMoveCallback(ev, row.fields)"
-                              :disabled="isLocked || !isEditable"
-                              @change="onFieldMove($event, row._key)"
-                            >
-                              <template #item="{ element }">
-                                <div
-                                  v-if="!isLocked || (isLocked && element?.visible)"
-                                  :key="element.id"
-                                  class="nc-editable nc-form-focus-element item relative bg-nc-bg-default p-2 flex-1 basis-0 min-w-0"
-                                  :class="[
-                                    `nc-form-drag-${element.title.replaceAll(' ', '')}`,
-                                    {
-                                      'nc-form-field-drag-handler rounded-2xl my-1 cursor-move': isEditable,
-                                    },
-                                    {
-                                      'my-0': !isEditable,
-                                    },
-                                    {
-                                      'hover:(bg-nc-bg-gray-extralight)':
-                                        activeRow !== element.id && isEditable,
-                                    },
-
-                                    {
-                                      'ring-1 ring-inset ring-nc-border-brand': activeRow === element.id,
-                                    },
-                                    {
-                                      '!hover:bg-nc-bg-default !ring-0 !cursor-auto': isLocked,
-                                    },
-                                  ]"
-                                  :data-title="element.title"
-                                  :data-row-id="element.row_id || ''"
-                                  data-testid="nc-form-fields"
-                                  @click.stop="onFormItemClick(element)"
-                                >
-                                  <template v-if="activeRow === element.id">
-                                    <div class="absolute right-1 top-1">
-                                      <NcTooltip
-                                        :title="
-                                          isRequired(element, element.required)
-                                            ? $t('tooltip.youCantRemoveARequiredField')
-                                            : $t('tooltip.removeFromForm')
-                                        "
-                                      >
-                                        <NcButton
-                                          type="link"
-                                          size="xsmall"
-                                          class="nc-form-field-hide !bg-white !h-5 !w-5 !min-w-5 !rounded-full"
-                                          :class="{
-                                            '!text-nc-content-gray-muted !hover:text-nc-content-brand': !isRequired(
-                                              element,
-                                              element.required,
-                                            ),
-                                          }"
-                                          icon-only
-                                          :disabled="isRequired(element, element.required)"
-                                          @click="showOrHideColumn(element, false, false)"
-                                        >
-                                          <template #icon>
-                                            <GeneralIcon icon="close" class="!w-4 !h-4" />
-                                          </template>
-                                        </NcButton>
-                                      </NcTooltip>
-                                    </div>
-                                  </template>
-                                  <div class="flex items-center gap-3">
-                                    <NcTooltip
-                                      v-if="allViewFilters[element.fk_column_id]?.length && !isLocked"
-                                      class="relative h-3.5 w-3.5 flex cursor-pointer"
-                                      placement="topLeft"
-                                    >
-                                      <template #title> Conditionally visible field </template>
-                                      <Transition name="icon-fade" :duration="500">
-                                        <GeneralIcon
-                                          v-if="element?.visible"
-                                          icon="eye"
-                                          class="nc-field-visibility-icon nc-field-visible w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
-                                        />
-                                        <GeneralIcon
-                                          v-else
-                                          icon="eyeSlash"
-                                          class="nc-field-visibility-icon w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
-                                        />
-                                      </Transition>
-                                    </NcTooltip>
-                                    <div class="text-sm font-medium text-nc-content-gray">
-                                      <span data-testid="nc-form-input-label">
-                                        {{ element.label || element.title }}
-                                      </span>
-                                      <span
-                                        v-if="isRequired(element, element.required)"
-                                        class="text-nc-content-red-medium text-base leading-[18px]"
-                                      >
-                                        &nbsp;*
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <LazyCellRichText
-                                    v-if="element.description"
-                                    :value="element.description"
-                                    is-form-field
-                                    read-only
-                                    sync-value-change
-                                    class="nc-form-help-text !h-auto text-nc-content-gray-muted text-xs mt-1 -ml-1"
-                                    data-testid="nc-form-help-text"
-                                    @update:value="updateColMeta(element)"
-                                  />
-
-                                  <!-- Field Body  -->
-
-                                  <div class="nc-form-field-body">
-                                    <div class="mt-2">
-                                      <a-form-item
-                                        v-if="fieldMappings[element.title]"
-                                        :name="fieldMappings[element.title]"
-                                        class="!my-0 nc-input-required-error nc-form-input-item"
-                                        v-bind="validateInfos[fieldMappings[element.title]]"
-                                      >
-                                        <LazySmartsheetDivDataCell class="relative" @click.stop>
-                                          <LazySmartsheetVirtualCell
-                                            v-if="isVirtualCol(element)"
-                                            v-model="formState[element.title]"
-                                            :row="row"
-                                            class="nc-input"
-                                            :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                            :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                            :column="element"
-                                          />
-                                          <LazySmartsheetCell
-                                            v-else
-                                            v-model="formState[element.title]"
-                                            class="nc-input truncate"
-                                            :class="[
-                                              `nc-form-input-${element.title.replaceAll(' ', '')}`,
-                                              { 'layout-list': element.meta.isList },
-                                            ]"
-                                            :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                            :column="element"
-                                            :edit-enabled="true"
-                                          />
-                                        </LazySmartsheetDivDataCell>
-                                      </a-form-item>
-
-                                      <div>
-                                        <LazySmartsheetFormFieldConfigError :column="element" mode="preview" />
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </template>
-                            </Draggable>
-                          </div>
-                        </template>
-
-                        <template #footer>
-                          <div
-                            v-if="!visibleColumns.length && isEditable"
-                            class="mt-4 border-dashed border-2 border-nc-border-gray-extradark py-3 text-nc-content-gray-disabled text-center"
-                          >
-                            {{ $t('title.selectFieldsFromRightPannelToAddHere') }}
-                          </div>
+                      <div v-if="!blockFormGridLayout" class="h-full px-4 lg:px-6 nc-form-rows">
+                        <div
+                          v-for="row in rowsWithKey"
+                          :key="row._key"
+                          class="nc-form-row flex items-stretch gap-1 min-w-0"
+                        >
                           <Draggable
-                            v-if="isEditable && !isLocked && visibleColumns.length"
-                            :model-value="[]"
+                            :model-value="row.fields"
                             item-key="id"
+                            draggable=".item"
+                            handle=".nc-form-field-drag-handler"
                             group="form-inputs"
-                            class="nc-form-new-row-zone mt-2 h-8 rounded-md border border-dashed border-nc-border-gray-medium flex items-center justify-center text-xs text-nc-content-gray-muted"
-                            :move="onFieldMoveToNewRowCallback"
-                            @change="onFieldMoveToNewRow($event)"
+                            ghost-class="nc-form-field-ghost"
+                            class="flex items-stretch gap-1 flex-1 min-w-0 nc-form-row-fields"
+                            :move="(ev: any) => onFieldMoveCallback(ev, row.fields)"
+                            :disabled="isLocked || !isEditable || gridUpdatePending"
+                            @change="onFieldMove($event, row._key)"
                           >
-                            <template #item>
-                              <div />
-                            </template>
-                            <template #header>
-                              <span class="pointer-events-none">Drop here to start a new row</span>
-                            </template>
+                              <template #item="{ element }">
+                                <SmartsheetFormFieldCard
+                                  :element="element"
+                                  :is-locked="isLocked"
+                                  :is-editable="isEditable"
+                                  variant="grid"
+                                  @remove="showOrHideColumn($event, false, false)"
+                                />
+                              </template>
                           </Draggable>
-                        </template>
-                      </Draggable>
+                        </div>
+
+                        <div
+                          v-if="!visibleColumns.length && isEditable"
+                          class="mt-4 border-dashed border-2 border-nc-border-gray-extradark py-3 text-nc-content-gray-disabled text-center"
+                        >
+                          {{ $t('title.selectFieldsFromRightPannelToAddHere') }}
+                        </div>
+                        <Draggable
+                          v-if="isEditable && !isLocked && visibleColumns.length"
+                          :model-value="[]"
+                          item-key="id"
+                          group="form-inputs"
+                          class="nc-form-new-row-zone mt-2 h-8 rounded-md border border-dashed border-nc-border-gray-medium flex items-center justify-center text-xs text-nc-content-gray-muted"
+                          :move="onFieldMoveToNewRowCallback"
+                          @change="onFieldMoveToNewRow($event)"
+                        >
+                          <template #item>
+                            <div />
+                          </template>
+                          <template #header>
+                            <span class="pointer-events-none">{{ $t('title.dropHereToStartNewRow') }}</span>
+                          </template>
+                        </Draggable>
+                      </div>
 
                       <!-- CE: single-column stacked layout -->
                       <Draggable
@@ -1836,161 +1696,13 @@ const { message: templatedMessage } = useTemplatedMessage(
                         @change="onMove($event, true)"
                       >
                         <template #item="{ element }">
-                          <div
-                            v-if="!isLocked || (isLocked && element?.visible)"
-                            :key="element.id"
-                            class="nc-editable nc-form-focus-element item relative bg-nc-bg-default p-4 lg:p-6"
-                            :class="[
-                              `nc-form-drag-${element.title.replaceAll(' ', '')}`,
-                              {
-                                'rounded-2xl border-2 my-1': isEditable,
-                              },
-                              {
-                                'border-transparent my-0': !isEditable,
-                              },
-                              {
-                                'nc-form-field-drag-handler border-transparent hover:(bg-nc-bg-gray-extralight) cursor-pointer':
-                                  activeRow !== element.id && isEditable,
-                              },
-
-                              {
-                                'border-nc-border-brand': activeRow === element.id,
-                              },
-                              {
-                                '!hover:bg-nc-bg-default !ring-0 !cursor-auto': isLocked,
-                              },
-                            ]"
-                            :data-title="element.title"
-                            data-testid="nc-form-fields"
-                            @click.stop="onFormItemClick(element)"
-                          >
-                            <template v-if="activeRow === element.id">
-                              <div class="absolute -left-3 top-6">
-                                <NcButton
-                                  type="primary"
-                                  size="small"
-                                  class="nc-form-field-drag-handler !cursor-move !p-1 !min-w-6 !h-auto !rounded"
-                                >
-                                  <component
-                                    :is="iconMap.drag"
-                                    class="nc-form-field-drag-handler flex-none !h-4 !w-4 text-white font-bold"
-                                  />
-                                </NcButton>
-                              </div>
-                              <div class="absolute right-1 top-1">
-                                <NcTooltip
-                                  :title="
-                                    isRequired(element, element.required)
-                                      ? $t('tooltip.youCantRemoveARequiredField')
-                                      : $t('tooltip.removeFromForm')
-                                  "
-                                >
-                                  <NcButton
-                                    type="link"
-                                    size="xsmall"
-                                    class="nc-form-field-hide !bg-transparent !h-6 !w-6"
-                                    :class="{
-                                      '!text-nc-content-gray-muted !hover:text-nc-content-brand': !isRequired(
-                                        element,
-                                        element.required,
-                                      ),
-                                    }"
-                                    icon-only
-                                    :disabled="isRequired(element, element.required)"
-                                    @click="showOrHideColumn(element, false, false)"
-                                  >
-                                    <template #icon>
-                                      <GeneralIcon icon="close" class="!w-4 !h-4" />
-                                    </template>
-                                  </NcButton>
-                                </NcTooltip>
-                              </div>
-                            </template>
-                            <div class="flex items-center gap-3">
-                              <NcTooltip
-                                v-if="allViewFilters[element.fk_column_id]?.length && !isLocked"
-                                class="relative h-3.5 w-3.5 flex cursor-pointer"
-                                placement="topLeft"
-                              >
-                                <template #title> Conditionally visible field </template>
-                                <Transition name="icon-fade" :duration="500">
-                                  <GeneralIcon
-                                    v-if="element?.visible"
-                                    icon="eye"
-                                    class="nc-field-visibility-icon nc-field-visible w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
-                                  />
-                                  <GeneralIcon
-                                    v-else
-                                    icon="eyeSlash"
-                                    class="nc-field-visibility-icon w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
-                                  />
-                                </Transition>
-                              </NcTooltip>
-                              <div class="text-sm font-semibold text-nc-content-gray">
-                                <span data-testid="nc-form-input-label">
-                                  {{ element.label || element.title }}
-                                </span>
-                                <span
-                                  v-if="isRequired(element, element.required)"
-                                  class="text-nc-content-red-medium text-base leading-[18px]"
-                                >
-                                  &nbsp;*
-                                </span>
-                              </div>
-                            </div>
-
-                            <LazyCellRichText
-                              v-if="element.description"
-                              :value="element.description"
-                              is-form-field
-                              read-only
-                              sync-value-change
-                              class="nc-form-help-text text-nc-content-gray-muted text-sm mt-2 -ml-1"
-                              data-testid="nc-form-help-text"
-                              @update:value="updateColMeta(element)"
-                            />
-
-                            <!-- Field Body  -->
-
-                            <div class="nc-form-field-body">
-                              <div class="mt-2">
-                                <a-form-item
-                                  v-if="fieldMappings[element.title]"
-                                  :name="fieldMappings[element.title]"
-                                  class="!my-0 nc-input-required-error nc-form-input-item"
-                                  v-bind="validateInfos[fieldMappings[element.title]]"
-                                >
-                                  <LazySmartsheetDivDataCell class="relative" @click.stop>
-                                    <LazySmartsheetVirtualCell
-                                      v-if="isVirtualCol(element)"
-                                      v-model="formState[element.title]"
-                                      :row="row"
-                                      class="nc-input"
-                                      :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :column="element"
-                                    />
-                                    <LazySmartsheetCell
-                                      v-else
-                                      v-model="formState[element.title]"
-                                      class="nc-input truncate"
-                                      :class="[
-                                        `nc-form-input-${element.title.replaceAll(' ', '')}`,
-                                        { 'layout-list': element.meta.isList },
-                                      ]"
-                                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :column="element"
-                                      :edit-enabled="true"
-                                    />
-                                  </LazySmartsheetDivDataCell>
-                                </a-form-item>
-
-                                <div>
-                                  <LazySmartsheetFormFieldConfigError :column="element" mode="preview" />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+                          <SmartsheetFormFieldCard
+                            :element="element"
+                            :is-locked="isLocked"
+                            :is-editable="isEditable"
+                            variant="single-column"
+                            @remove="showOrHideColumn($event, false, false)"
+                          />
                         </template>
 
                         <template #footer>

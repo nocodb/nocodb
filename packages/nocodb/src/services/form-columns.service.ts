@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, FORM_ROW_MAX_FIELDS } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
@@ -15,9 +15,17 @@ import { assertNotLockedViewOnSandboxProduction } from '~/helpers/sandboxGuards'
 import { Column, FormViewColumn, View } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/ncError';
+import Noco from '~/Noco';
+import { NcBaseError } from '~/helpers/catchError';
+
+// row_id is a client-generated grouping key for form view columns that
+// share a horizontal row. Format: `fr_<lowercase alphanumerics>`.
+const ROW_ID_PATTERN = /^fr_[a-z0-9]+$/;
 
 @Injectable()
 export class FormColumnsService {
+  protected logger = new Logger(FormColumnsService.name);
+
   constructor(private readonly appHooksService: AppHooksService) {}
 
   @TraceCommand(OperationName.formColumnUpdate)
@@ -115,8 +123,12 @@ export class FormColumnsService {
    *
    * Used by the grid-layout drag-drop editor where moving one field typically
    * changes `row_id` and/or `order` on several sibling columns at once. Keeps
-   * the reflow transactional from the client's perspective and avoids N HTTP
-   * round-trips.
+   * the reflow transactional (all updates committed together or none) and
+   * avoids N HTTP round-trips from the client.
+   *
+   * Guarded here at the CE layer so the op is unreachable on CE builds and
+   * unlicensed on-prem — the EE override adds a per-plan `checkForFeature`
+   * on top of this.
    */
   async columnBulkUpdate(
     context: NcContext,
@@ -126,28 +138,50 @@ export class FormColumnsService {
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
-    ncMeta?: MetaService,
+    _ncMeta?: MetaService,
   ) {
+    // Grid layout is an EE feature. CE builds and unlicensed on-prem fall
+    // through here (the EE @EEOnly override is skipped when unlicensed).
+    if (!Noco.isEE()) {
+      NcError.notImplemented('Form grid layout');
+    }
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
 
     if (!Array.isArray(param.updates) || param.updates.length === 0) {
-      NcError.get(context).invalidRequestBody('updates must be a non-empty array');
+      NcError.get(context).invalidRequestBody(
+        'updates must be a non-empty array',
+      );
     }
 
-    const view = await View.get(context, param.formViewId, ncMeta);
+    // Validate each update entry before touching the DB.
+    for (const u of param.updates) {
+      if (!u.id || typeof u.id !== 'string') {
+        NcError.get(context).invalidRequestBody('each update must have an id');
+      }
+      if (
+        u.row_id != null &&
+        (typeof u.row_id !== 'string' || !ROW_ID_PATTERN.test(u.row_id))
+      ) {
+        NcError.get(context).invalidRequestBody(
+          `Invalid row_id format: ${u.row_id}`,
+        );
+      }
+      if (u.order !== undefined && typeof u.order !== 'number') {
+        NcError.get(context).invalidRequestBody('order must be a number');
+      }
+    }
+
+    const view = await View.get(context, param.formViewId);
     if (!view) {
       NcError.get(context).viewNotFound(param.formViewId);
     }
 
     // Validate max fields per row against the final projected state —
     // updates may move fields in/out of rows, so compute counts after apply.
-    const existingCols = await FormViewColumn.list(
-      context,
-      param.formViewId,
-      ncMeta,
-    );
+    const existingCols = await FormViewColumn.list(context, param.formViewId);
     const existingById = new Map(existingCols.map((c) => [c.id, c]));
 
     for (const u of param.updates) {
@@ -178,6 +212,10 @@ export class FormColumnsService {
       }
     }
 
+    // Wrap all writes in a transaction so a partial failure can't leave the
+    // form view with mismatched row_ids / orders.
+    const ncMeta = await Noco.ncMeta.startTransaction();
+
     const viewWebhookManager =
       param.viewWebhookManager ??
       (
@@ -188,52 +226,67 @@ export class FormColumnsService {
         ).withViewId(view.id)
       ).forUpdate();
 
-    // Cache Column lookups so the audit payload per form-column update
-    // doesn't re-hit the DB for each sibling in a drag reflow.
-    const columnCache = new Map<string, Column>();
-    const getUnderlyingColumn = async (colId: string) => {
-      if (!columnCache.has(colId)) {
-        columnCache.set(
-          colId,
-          await Column.get(context, { colId }, ncMeta),
-        );
+    try {
+      // Cache Column lookups so the audit payload per form-column update
+      // doesn't re-hit the DB for each sibling in a drag reflow.
+      const columnCache = new Map<string, Column>();
+      const getUnderlyingColumn = async (colId: string) => {
+        if (!columnCache.has(colId)) {
+          columnCache.set(colId, await Column.get(context, { colId }, ncMeta));
+        }
+        return columnCache.get(colId)!;
+      };
+
+      const auditQueue: Array<{
+        oldFormViewColumn: FormViewColumn;
+        body: { row_id?: string | null; order?: number };
+      }> = [];
+
+      for (const u of param.updates) {
+        const body = extractProps(u, ['row_id', 'order']);
+        const oldFormViewColumn = existingById.get(u.id)!;
+
+        const rowIdChanged =
+          body.row_id !== undefined &&
+          (oldFormViewColumn.row_id ?? null) !== (body.row_id ?? null);
+        const orderChanged =
+          body.order !== undefined && oldFormViewColumn.order !== body.order;
+
+        await FormViewColumn.update(context, u.id, body, ncMeta);
+
+        if (rowIdChanged || orderChanged) {
+          auditQueue.push({ oldFormViewColumn, body });
+        }
       }
-      return columnCache.get(colId)!;
-    };
 
-    for (const u of param.updates) {
-      const body = extractProps(u, ['row_id', 'order']);
-      const oldFormViewColumn = existingById.get(u.id)!;
+      await ncMeta.commit();
 
-      // Skip audit emit if the update is a no-op (same row_id + same order).
-      const rowIdChanged =
-        body.row_id !== undefined &&
-        (oldFormViewColumn.row_id ?? null) !== (body.row_id ?? null);
-      const orderChanged =
-        body.order !== undefined && oldFormViewColumn.order !== body.order;
+      // Emit audit events only after the transaction succeeds — otherwise
+      // a rollback would leave audit entries for changes that didn't stick.
+      for (const entry of auditQueue) {
+        const column = await getUnderlyingColumn(
+          entry.oldFormViewColumn.fk_column_id,
+        );
+        this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
+          oldViewColumn: entry.oldFormViewColumn,
+          viewColumn: extractProps(entry.body, ['row_id', 'order']),
+          view,
+          column,
+          req: param.req,
+          context,
+        });
+      }
 
-      await FormViewColumn.update(context, u.id, body, ncMeta);
+      if (!param.viewWebhookManager) {
+        (await viewWebhookManager.withNewViewId(view.id)).emit();
+      }
 
-      if (!rowIdChanged && !orderChanged) continue;
-
-      const column = await getUnderlyingColumn(oldFormViewColumn.fk_column_id);
-
-      // Match single-column columnUpdate emit shape so the audit listener
-      // produces identical VIEW_COLUMN_UPDATE entries for grid reflows.
-      this.appHooksService.emit(AppEvents.VIEW_COLUMN_UPDATE, {
-        oldViewColumn: oldFormViewColumn,
-        viewColumn: extractProps(body, ['row_id', 'order']),
-        view,
-        column,
-        req: param.req,
-        context,
-      });
+      return { msg: 'Form columns updated' };
+    } catch (e) {
+      await ncMeta.rollback();
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error bulk updating form columns', e?.stack);
+      NcError.get(context).badRequest('Failed to update form columns');
     }
-
-    if (!param.viewWebhookManager) {
-      (await viewWebhookManager.withNewViewId(view.id)).emit();
-    }
-
-    return { msg: 'Form columns updated' };
   }
 }

@@ -30,6 +30,12 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const { blockAddNewRecord, blockFormGridLayout } = useEeConfig()
 
+// When grid layout is disabled for the current plan we fall back to one
+// field per row so the rest of the template stays identical.
+const displayRows = computed(() =>
+  blockFormGridLayout.value ? (formColumns.value || []).map((f: any) => [f]) : rows.value,
+)
+
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
   if (
@@ -228,7 +234,7 @@ const { message: templatedMessage } = useTemplatedMessage(
               <div class="nc-form h-full">
                 <div class="flex flex-col gap-3 md:gap-6">
                   <div
-                    v-for="(row, rowIdx) in blockFormGridLayout ? formColumns.map((f) => [f]) : rows"
+                    v-for="(row, rowIdx) in displayRows"
                     :key="rowIdx"
                     class="nc-shared-form-row flex flex-col gap-3"
                     :class="{ 'md:flex-row md:items-stretch md:gap-3': !blockFormGridLayout }"

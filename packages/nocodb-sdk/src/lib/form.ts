@@ -1,3 +1,5 @@
+import UITypes from './UITypes';
+
 export interface Validation {
   type:
     | GenericValidationType
@@ -95,11 +97,11 @@ export const FORM_ROW_MAX_FIELDS = 5;
  * UI types that always occupy their own full-width row in the form view —
  * multi-line / large inputs are too wide to share a row with other fields.
  */
-export const FORM_ROW_FULL_WIDTH_UI_TYPES = [
-  'LongText',
-  'Attachment',
-  'JSON',
-] as const;
+export const FORM_ROW_FULL_WIDTH_UI_TYPES: readonly UITypes[] = [
+  UITypes.LongText,
+  UITypes.Attachment,
+  UITypes.JSON,
+];
 
 /**
  * Group an ordered list of form columns into horizontal rows based on `row_id`.
@@ -119,30 +121,39 @@ export function groupFormColumnsByRow<
   T extends {
     id?: string;
     row_id?: string | null;
-    uidt?: string;
+    uidt?: UITypes | string;
   },
 >(columns: T[]): T[][] {
+  // Walk the list in order and maintain the "currently open" row — a new
+  // row opens whenever row_id changes or we hit a full-width field (which
+  // must be alone). Contiguous same-row_id runs group into one row;
+  // non-contiguous runs create separate rows so visual order is preserved.
   const rows: T[][] = [];
-  const byRowId = new Map<string, T[]>();
+  let currentRow: T[] | null = null;
+  let currentRowId: string | null = null;
 
   for (const col of columns) {
-    const rowId = col.row_id;
+    const rowId = col.row_id ?? null;
     const isFullWidth =
       col.uidt != null &&
-      (FORM_ROW_FULL_WIDTH_UI_TYPES as readonly string[]).includes(col.uidt);
+      (FORM_ROW_FULL_WIDTH_UI_TYPES as readonly string[]).includes(
+        col.uidt as string,
+      );
 
-    if (!rowId || isFullWidth) {
+    if (isFullWidth || rowId == null) {
       rows.push([col]);
+      currentRow = null;
+      currentRowId = null;
       continue;
     }
 
-    let bucket = byRowId.get(rowId);
-    if (!bucket) {
-      bucket = [];
-      byRowId.set(rowId, bucket);
-      rows.push(bucket);
+    if (currentRow && currentRowId === rowId) {
+      currentRow.push(col);
+    } else {
+      currentRow = [col];
+      currentRowId = rowId;
+      rows.push(currentRow);
     }
-    bucket.push(col);
   }
 
   return rows;

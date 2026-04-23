@@ -1240,6 +1240,7 @@
       "setDefault": "Set Default"
     },
     "selectFieldsFromRightPannelToAddHere": "Select fields from right panel to add here",
+    "dropHereToStartNewRow": "Drop here to start a new row",
     "noOptionsFound": "No options found",
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?",
     "noResultsMatchedYourSearch": "Your search did not yield any matching results",
@@ -2895,6 +2896,7 @@
     "lockedViewDisabledOnSandboxMaster": "Locked views can only be created in the sandbox",
     "personalViewDisabledOnSandbox": "Personal views can only be created on the master base",
     "noSchemaChanges": "No schema changes to publish",
+    "conditionallyVisibleField": "Conditionally visible field",
     "scopeReadOnly": "View records, tables, fields, views, and comments. No modifications allowed.",
     "scopeReadWrite": "Create, read, update, and delete records and comments. Other resources are read-only.",
     "scopeFullAccess": "Full read and write access to all resources including tables, fields, views, webhooks, and users.",

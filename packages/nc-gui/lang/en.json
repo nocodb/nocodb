@@ -2984,6 +2984,7 @@
     "organizeViewsIntoSections": "Organize views into collapsible sections",
     "filteringNotSupportedForFieldsWithErrors": "Filtering is not supported for fields with errors",
     "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
+    "sortingNotSupportedForField": "Sorting is not supported for {type} field",
     "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors"
   },
   "placeholder": {

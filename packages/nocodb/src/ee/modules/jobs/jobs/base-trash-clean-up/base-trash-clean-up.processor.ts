@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NcErrorType, NOCO_SERVICE_USERS, ServiceUserType } from 'nocodb-sdk';
+import {
+  NcApiVersion,
+  NcErrorType,
+  NOCO_SERVICE_USERS,
+  ServiceUserType,
+} from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { MetaTable } from '~/utils/globals';
@@ -56,6 +61,8 @@ export class BaseTrashCleanUpProcessor {
           workspace_id: entry.fk_workspace_id,
           base_id: entry.base_id,
           user: systemUser as NcContext['user'],
+          api_version: NcApiVersion.V2,
+          socket_id: null,
         };
 
         try {

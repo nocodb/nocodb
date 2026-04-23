@@ -30,6 +30,10 @@ export class BaseTrashService implements OnModuleInit {
   }
 
   async onModuleInit() {
+    await this.nocoJobsService.jobsQueue.removeRepeatable({
+      jobId: JobTypes.BaseTrashCleanUp,
+      cron: '*/10 * * * *',
+    });
     this.nocoJobsService.jobsQueue.add(
       { jobName: JobTypes.BaseTrashCleanUp },
       {

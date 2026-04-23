@@ -8,7 +8,7 @@ import { getRenderAsTextFunForUiType, getRollupColumnMeta, integerRollupFunction
 import UITypes from '~/lib/UITypes';
 import { isIntegerUiType } from '../utils/cell';
 import { ComputedTypePasteError } from '~/lib/error';
-import { precisionFormats } from '../utils';
+import { precisionFormats, SeparatorType } from '../utils';
 import { isValidValue } from '~/lib/is';
 import rfdc from 'rfdc';
 
@@ -18,6 +18,7 @@ export class RollupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     precision: precisionFormats[0],
     isLocaleString: false,
+    separator: SeparatorType.NonePeriod,
   };
 
   serializeValue(

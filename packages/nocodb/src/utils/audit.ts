@@ -470,6 +470,7 @@ export const additionalExcludePropsForCol = (_uidt) => [
 const metaAliasMap = {
   allowCSVDownload: 'allow_csv_download',
   isLocaleString: 'locale_string',
+  separator: 'separator',
   duration: 'duration_format',
   is12hrFormat: '12hr_format',
   fk_cover_image_object_fit: 'cover_image_object_fit',

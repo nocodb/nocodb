@@ -37,11 +37,13 @@ function transformFieldMeta(field: any, colOptions: any): Record<string, any> {
       break;
     case UITypes.Number:
       options.locale_string = metaObj.isLocaleString || false;
+      options.separator = metaObj.separator || null;
       break;
     case UITypes.Decimal:
     case UITypes.Rollup:
       options.precision = metaObj.precision || 1;
       options.locale_string = metaObj.isLocaleString || false;
+      options.separator = metaObj.separator || null;
       break;
     case UITypes.Currency:
       options.locale = metaObj.currency_locale || 'en-US';

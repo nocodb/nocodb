@@ -27,6 +27,8 @@ export class BasesV3Service {
     param: {
       user: { id: string; roles?: string | Record<string, boolean> };
       query?: any;
+      workspaceId?: string;
+      req?: NcRequest;
     },
   ) {
     return extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
@@ -42,6 +44,7 @@ export class BasesV3Service {
       user: { id: string; roles?: string | Record<string, boolean> };
       query?: any;
       workspaceId: string;
+      req?: NcRequest;
     },
   ) {
     const bases = await this.getBaseList(context, param);

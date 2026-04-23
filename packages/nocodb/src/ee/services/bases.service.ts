@@ -26,6 +26,7 @@ import { EEOnly } from '~/decorators/ee-only.decorator';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { getFeature, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import { getPatResourceFilter } from '~/helpers/patResourceFilter';
 import syncMigration from '~/helpers/syncMigration';
 import { MetaService } from '~/meta/meta.service';
 import {
@@ -70,11 +71,21 @@ export class BasesService extends BasesServiceCE {
     param: {
       user: { id: string; roles?: Record<string, boolean> | string };
       query?: any;
+      req?: NcRequest;
     },
   ) {
+    const patFilter = param.req
+      ? await getPatResourceFilter(param.req)
+      : null;
     const bases = await BaseUser.getProjectsList(param.user.id, param.query);
 
-    return bases;
+    if (!patFilter) return bases;
+
+    return bases.filter(
+      (b: any) =>
+        patFilter.baseIds.includes(b.id) ||
+        patFilter.workspaceIds.includes(b.fk_workspace_id),
+    );
   }
 
   @EEOnly()

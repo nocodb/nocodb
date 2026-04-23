@@ -125,10 +125,7 @@ export class AuthController extends AuthControllerCE {
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Acl('mfaDisable', { scope: 'org' })
   @HttpCode(200)
-  async mfaDisable(
-    @Req() req: NcRequest,
-    @Body() body: { password?: string },
-  ) {
+  async mfaDisable(@Req() req: NcRequest, @Body() body: { password?: string }) {
     return this.mfaService.disable(req.user.id, body.password, req);
   }
 

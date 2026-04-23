@@ -251,9 +251,7 @@ const uiFilters = (t: UiTypesType) => {
   // data would break both invariants; backend blocks this in columns.service.ts).
   // When editing an existing UUID column, line 228 above already preserves the
   // current type in the dropdown.
-  const showUUID =
-    t.name !== UITypes.UUID ||
-    (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value && !isEdit.value)
+  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value && !isEdit.value)
 
   // AutoNumber is only supported for PostgreSQL databases
   const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)

@@ -6,7 +6,9 @@ import { MetaTable } from '~/utils/globals';
 // this backfill covers columns created before that change so the generic
 // col.readonly guards in BaseModelSqlv2 (insert/update) reject overrides.
 const up = async (knex: Knex) => {
-  await knex(MetaTable.COLUMNS).where('uidt', 'UUID').update({ readonly: true });
+  await knex(MetaTable.COLUMNS)
+    .where('uidt', 'UUID')
+    .update({ readonly: true });
 };
 
 const down = async (_knex: Knex) => {

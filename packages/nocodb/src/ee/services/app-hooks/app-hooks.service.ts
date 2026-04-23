@@ -159,6 +159,7 @@ import type {
   TableDuplicateEvent,
   TableUpdateEvent,
   TimelineViewUpdateEvent,
+  GanttViewUpdateEvent,
   UserEmailVerificationEvent,
   UserInviteEvent,
   UserPasswordChangeEvent,
@@ -864,6 +865,7 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.GRID_CREATE
       | AppEvents.CALENDAR_CREATE
       | AppEvents.TIMELINE_CREATE
+      | AppEvents.GANTT_CREATE
       | AppEvents.GALLERY_CREATE
       | AppEvents.KANBAN_CREATE
       | AppEvents.MAP_CREATE
@@ -876,6 +878,7 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.GRID_DELETE
       | AppEvents.CALENDAR_DELETE
       | AppEvents.TIMELINE_DELETE
+      | AppEvents.GANTT_DELETE
       | AppEvents.GALLERY_DELETE
       | AppEvents.KANBAN_DELETE
       | AppEvents.MAP_DELETE
@@ -888,6 +891,7 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.GRID_UPDATE
       | AppEvents.CALENDAR_UPDATE
       | AppEvents.TIMELINE_UPDATE
+      | AppEvents.GANTT_UPDATE
       | AppEvents.GALLERY_UPDATE
       | AppEvents.KANBAN_UPDATE
       | AppEvents.MAP_UPDATE
@@ -901,7 +905,8 @@ export class AppHooksService extends ApppHookServiceCE {
       | MapViewUpdateEvent
       | FormViewUpdateEvent
       | ListViewUpdateEvent
-      | TimelineViewUpdateEvent,
+      | TimelineViewUpdateEvent
+      | GanttViewUpdateEvent,
   ): void;
   emit(
     event:

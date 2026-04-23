@@ -61,6 +61,7 @@ import * as nc_202605060000_smart_text from './v0/nc_202605060000_smart_text';
 import * as nc_202605090000_bookmarks from './v0/nc_202605090000_bookmarks';
 import * as nc_202605120000_mail_sends from './v0/nc_202605120000_mail_sends';
 import * as nc_202605140000_operation_logs from './v0/nc_202605140000_operation_logs';
+import * as nc_202605141500_gantt_view from './v0/nc_202605141500_gantt_view';
 import * as nc_202605160000_cleanup_orphan_base_users from './v0/nc_202605160000_cleanup_orphan_base_users';
 
 // Create a custom migration source class
@@ -134,6 +135,7 @@ export default class XcMigrationSourcev0 {
       'nc_202605090000_bookmarks',
       'nc_202605120000_mail_sends',
       'nc_202605140000_operation_logs',
+      'nc_202605141500_gantt_view',
       'nc_202605160000_cleanup_orphan_base_users',
     ]);
   }
@@ -270,6 +272,8 @@ export default class XcMigrationSourcev0 {
         return nc_202605120000_mail_sends;
       case 'nc_202605140000_operation_logs':
         return nc_202605140000_operation_logs;
+      case 'nc_202605141500_gantt_view':
+        return nc_202605141500_gantt_view;
       case 'nc_202605160000_cleanup_orphan_base_users':
         return nc_202605160000_cleanup_orphan_base_users;
     }

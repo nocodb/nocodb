@@ -78,6 +78,14 @@ interface Form {
     fk_to_column_id: string | null
   }>
 
+  // for gantt view only
+  gantt_range: Array<{
+    fk_start_col_id: string
+    fk_end_col_id: string | null
+    fk_dependency_col_id: string | null
+    dependency_direction: 'predecessor' | 'successor'
+  }>
+
   fk_cover_image_col_id: string | null | undefined
 
   // Applied after view creation via a follow-up updateView call. Defaults
@@ -155,6 +163,7 @@ const errorMessages = {
   [ViewTypes.MAP]: t('msg.warning.mapNoFields'),
   [ViewTypes.CALENDAR]: t('msg.warning.calendarNoFields'),
   [ViewTypes.TIMELINE]: t('msg.warning.timelineNoFields'),
+  [ViewTypes.GANTT]: t('msg.warning.timelineNoFields'),
 }
 
 const form = reactive<Form>({
@@ -165,6 +174,7 @@ const form = reactive<Form>({
   fk_geo_data_col_id: null,
   calendar_range: props.calendarRange || [],
   timeline_range: [],
+  gantt_range: [],
   fk_cover_image_col_id: undefined,
   description: props.description || '',
   lock_type: ViewLockType.Collaborative,
@@ -202,6 +212,7 @@ const typeAlias = computed(
       [ViewTypes.CALENDAR]: 'calendar',
       [ViewTypes.LIST]: 'list',
       [ViewTypes.TIMELINE]: 'timeline',
+      [ViewTypes.GANTT]: 'gantt',
       // Todo: add ai view docs route
       AI: '',
     }[props.type]),
@@ -402,7 +413,7 @@ onMounted(async () => {
   }
 
   if (
-    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR, ViewTypes.TIMELINE].includes(props.type) ||
+    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR, ViewTypes.TIMELINE, ViewTypes.GANTT].includes(props.type) ||
     aiIntegrationAvailable.value
   ) {
     isMetaLoading.value = true
@@ -614,6 +625,48 @@ onMounted(async () => {
           }
         } else {
           // if there is no date field column, disable the create button
+          isNecessaryColumnsPresent.value = false
+        }
+      }
+
+      if (props.type === ViewTypes.GANTT) {
+        viewSelectFieldOptions.value = meta
+          .value!.columns!.filter(
+            (el) =>
+              [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(el.uidt) ||
+              (el.uidt === UITypes.Formula && (el.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
+          )
+          .map((field) => {
+            return {
+              value: field.id,
+              label: field.title,
+              uidt: field.uidt,
+              col: field,
+            }
+          })
+          .sort((a, b) => {
+            const priority = {
+              [UITypes.DateTime]: 1,
+              [UITypes.Date]: 2,
+              [UITypes.Formula]: 3,
+              [UITypes.CreatedTime]: 4,
+              [UITypes.LastModifiedTime]: 5,
+            }
+            return (priority[a.uidt] || 6) - (priority[b.uidt] || 6)
+          })
+
+        if (viewSelectFieldOptions.value?.length) {
+          if (form.gantt_range.length === 0) {
+            form.gantt_range = [
+              {
+                fk_start_col_id: viewSelectFieldOptions.value[0].value as string,
+                fk_end_col_id: (viewSelectFieldOptions.value[1]?.value as string) || null,
+                fk_dependency_col_id: null,
+                dependency_direction: 'predecessor',
+              },
+            ]
+          }
+        } else {
           isNecessaryColumnsPresent.value = false
         }
       }
@@ -969,6 +1022,14 @@ watch(activeBaseId, () => {
             </template>
             <template v-else>
               {{ $t(`labels.${getPluralName('createTimelineView')}`) }}
+            </template>
+          </template>
+          <template v-else-if="form.type === ViewTypes.GANTT">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateGanttView') }}
+            </template>
+            <template v-else>
+              {{ $t(`labels.${getPluralName('createGanttView')}`) }}
             </template>
           </template>
           <template v-else-if="form.type === 'AI'">
@@ -1509,6 +1570,56 @@ watch(activeBaseId, () => {
                     <component :is="iconMap.close" />
                   </NcButton>
                 </template>
+              </div>
+            </div>
+          </template>
+
+          <template v-if="form.type === ViewTypes.GANTT && !form.copy_from_id">
+            <div v-for="(range, index) in form.gantt_range" :key="`gantt-range-${index}`" class="flex flex-col w-full gap-6">
+              <div class="w-full space-y-2">
+                <div class="text-nc-content-gray">{{ $t('labels.startDateField') || 'Start date' }}</div>
+                <a-select
+                  v-model:value="range.fk_start_col_id"
+                  class="nc-select-shadow w-full !rounded-lg"
+                  dropdown-class-name="!rounded-lg"
+                  show-search
+                  :placeholder="$t('placeholder.notSelected')"
+                  data-testid="nc-gantt-range-start-field-select"
+                  @click.stop
+                >
+                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                  <a-select-option v-for="(option, id) in viewSelectFieldOptions!" :key="id" :value="option.value">
+                    <div class="w-full flex gap-2 items-center">
+                      <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
+                      <span class="truncate">{{ option.label }}</span>
+                    </div>
+                  </a-select-option>
+                </a-select>
+              </div>
+              <div class="w-full space-y-2">
+                <div class="text-nc-content-gray">{{ $t('activity.endDate') }}</div>
+                <a-select
+                  v-model:value="range.fk_end_col_id"
+                  class="nc-select-shadow w-full !rounded-lg"
+                  dropdown-class-name="!rounded-lg"
+                  show-search
+                  allow-clear
+                  :placeholder="$t('placeholder.notSelected')"
+                  data-testid="nc-gantt-range-end-field-select"
+                  @click.stop
+                >
+                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                  <a-select-option
+                    v-for="(option, id) in viewSelectFieldOptions!.filter((f) => f.value !== range.fk_start_col_id)"
+                    :key="id"
+                    :value="option.value"
+                  >
+                    <div class="w-full flex gap-2 items-center">
+                      <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
+                      <span class="truncate">{{ option.label }}</span>
+                    </div>
+                  </a-select-option>
+                </a-select>
               </div>
             </div>
           </template>

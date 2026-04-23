@@ -164,6 +164,10 @@ import { TimelineColumnsService } from '~/services/timeline-columns.service';
 import { TimelineDatasService } from '~/ee/services/timeline-datas.service';
 import { TimelinesDatasController } from '~/ee/controllers/timelines-datas.controller';
 
+/* Gantts */
+import { GanttsService } from '~/services/gantts.service';
+import { GanttColumnsService } from '~/services/gantt-columns.service';
+
 /* Lists */
 import { ListColumnsService } from '~/ee/services/list-columns.service';
 import { UndoRedoService } from '~/ee/services/undo-redo.service';
@@ -303,6 +307,10 @@ export const nocoModuleEeMetadata = {
     TimelineColumnsService,
     TimelineDatasService,
 
+    /* Gantts */
+    GanttsService,
+    GanttColumnsService,
+
     /* Lists */
     ListColumnsService,
 
@@ -435,6 +443,8 @@ export const nocoModuleEeMetadata = {
     TimelinesService,
     TimelineColumnsService,
     TimelineDatasService,
+    GanttsService,
+    GanttColumnsService,
     ListColumnsService,
     PermissionsService,
     RlsService,

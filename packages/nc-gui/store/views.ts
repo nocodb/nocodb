@@ -543,6 +543,25 @@ export const useViewsStore = defineStore('viewsStore', () => {
             },
           )
           break
+        case ViewTypes.GANTT:
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'ganttViewCreate',
+              tableId,
+            },
+            {
+              ...form,
+              gantt_range: (form.gantt_range || []).map((range: any) => ({
+                fk_start_col_id: range.fk_start_col_id,
+                fk_end_col_id: range.fk_end_col_id,
+                fk_dependency_col_id: range.fk_dependency_col_id,
+                dependency_direction: range.dependency_direction,
+              })),
+            },
+          )
+          break
       }
 
       if (data) {
@@ -644,6 +663,17 @@ export const useViewsStore = defineStore('viewsStore', () => {
                 fk_from_column_id: range.fk_from_column_id as string,
                 fk_to_column_id: range.fk_to_column_id as string,
               })) || [],
+          }
+        case ViewTypes.GANTT:
+          return {
+            ...baseProps,
+            gantt_range:
+              ((sourceView.view as any)?.gantt_range || []).map((range: any) => ({
+                fk_start_col_id: range.fk_start_col_id as string,
+                fk_end_col_id: range.fk_end_col_id as string,
+                fk_dependency_col_id: range.fk_dependency_col_id as string,
+                dependency_direction: range.dependency_direction,
+              })),
           }
         default:
           return baseProps
@@ -861,6 +891,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
               activeView.value!.fk_workspace_id!,
               activeView.value!.base_id!,
               { operation: 'timelineViewUpdate', viewId },
+              updates,
+            )
+            break
+          case ViewTypes.GANTT:
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'ganttViewUpdate', viewId },
               updates,
             )
             break

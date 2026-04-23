@@ -26,6 +26,8 @@ import { CalendarsService } from '~/services/calendars.service';
 import { TimelineColumnsService } from '~/services/timeline-columns.service';
 import { ListColumnsService } from '~/ee/services/list-columns.service';
 import { TimelinesService } from '~/services/timelines.service';
+import { GanttColumnsService } from '~/services/gantt-columns.service';
+import { GanttsService } from '~/services/gantts.service';
 import { CommentsService } from '~/services/comments.service';
 import { ListsService } from '~/ee/services/lists.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
@@ -62,6 +64,8 @@ export class UiPostOperations
     protected timelineColumnsService: TimelineColumnsService,
     protected listColumnsService: ListColumnsService,
     protected timelinesService: TimelinesService,
+    protected ganttColumnsService: GanttColumnsService,
+    protected ganttsService: GanttsService,
     protected commentsService: CommentsService,
     protected bulkDataAliasService: BulkDataAliasService,
     protected syncService: SyncService,
@@ -189,6 +193,25 @@ export class UiPostOperations
         return await this.timelinesService.timelineViewUpdate(context, {
           timelineViewId: req.query.viewId,
           timeline: payload,
+          req,
+        });
+      case 'ganttColumnUpdate':
+        return await this.ganttColumnsService.ganttColumnUpdate(context, {
+          ganttViewColumnId: req.query.ganttViewColumnId,
+          gantt: payload,
+          req,
+        });
+      case 'ganttViewCreate':
+        return await this.ganttsService.ganttViewCreate(context, {
+          gantt: payload,
+          tableId: req.query.tableId,
+          user: req.user,
+          req,
+        });
+      case 'ganttViewUpdate':
+        return await this.ganttsService.ganttViewUpdate(context, {
+          ganttViewId: req.query.viewId,
+          gantt: payload,
           req,
         });
       case 'updateDateDependency':

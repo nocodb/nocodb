@@ -15,6 +15,7 @@ export const viewIcons: Record<number | string, { icon: any; color: string; dark
   [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: 'var(--color-view-icon-kanban)' },
   [ViewTypes.LIST]: { icon: iconMap.ncList, color: 'var(--color-view-icon-list)' },
   [ViewTypes.TIMELINE]: { icon: iconMap.timeline, color: 'var(--color-view-icon-timeline)' },
+  [ViewTypes.GANTT]: { icon: iconMap.gantt, color: 'var(--color-view-icon-timeline)' },
   view: { icon: iconMap.view, color: 'var(--color-view-icon-view)' },
 }
 

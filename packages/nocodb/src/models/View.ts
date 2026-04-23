@@ -36,11 +36,14 @@ import KanbanView from '~/models/KanbanView';
 import GalleryView from '~/models/GalleryView';
 import CalendarView from '~/models/CalendarView';
 import TimelineView from '~/models/TimelineView';
+import GanttView from '~/models/GanttView';
 import GridViewColumn from '~/models/GridViewColumn';
 import CalendarViewColumn from '~/models/CalendarViewColumn';
 import TimelineViewColumn from '~/models/TimelineViewColumn';
+import GanttViewColumn from '~/models/GanttViewColumn';
 import CalendarRange from '~/models/CalendarRange';
 import TimelineRange from '~/models/TimelineRange';
+import GanttRange from '~/models/GanttRange';
 import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import GalleryViewColumn from '~/models/GalleryViewColumn';
@@ -117,7 +120,8 @@ export default class View implements ViewType {
     | GalleryView
     | MapView
     | CalendarView
-    | TimelineView;
+    | TimelineView
+    | GanttView;
   columns?: Array<
     | FormViewColumn
     | GridViewColumn
@@ -126,6 +130,7 @@ export default class View implements ViewType {
     | MapViewColumn
     | CalendarViewColumn
     | TimelineViewColumn
+    | GanttViewColumn
   >;
 
   sorts: Sort[];
@@ -315,11 +320,13 @@ export default class View implements ViewType {
           | MapView
           | CalendarView
           | TimelineView
+          | GanttView
         > & {
           copy_from_id?: string;
           fk_grp_col_id?: string;
           calendar_range?: Partial<CalendarRange>[];
           timeline_range?: Partial<TimelineRange>[];
+          gantt_range?: Partial<GanttRange>[];
         };
       req: NcRequest;
     },
@@ -543,6 +550,27 @@ export default class View implements ViewType {
           await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
           break;
         }
+        case ViewTypes.GANTT: {
+          const obj = extractProps(view, ['gantt_range']);
+          if (!obj.gantt_range) break;
+          const ganttRange = obj.gantt_range as Partial<GanttRange>[];
+          ganttRange.forEach((range) => {
+            range.fk_view_id = view_id;
+          });
+
+          await GanttView.insert(
+            context,
+            {
+              ...(copyFromView?.view || {}),
+              ...view,
+              fk_view_id: view_id,
+            },
+            ncMeta,
+          );
+
+          await GanttRange.bulkInsert(context, ganttRange, ncMeta);
+          break;
+        }
       }
 
       if (copyFromView) {
@@ -645,7 +673,8 @@ export default class View implements ViewType {
 
         if (
           view.type === ViewTypes.CALENDAR ||
-          view.type === ViewTypes.TIMELINE
+          view.type === ViewTypes.TIMELINE ||
+          view.type === ViewTypes.GANTT
         ) {
           calendarRanges = await View.getRangeColumnsAsArray(
             context,
@@ -729,6 +758,14 @@ export default class View implements ViewType {
             // Show all Fields in Ranges
           } else if (view.type === ViewTypes.TIMELINE && !copyFromView) {
             // Timeline has no cover image, just show range columns and primary value
+            if (calendarRanges && calendarRanges.includes(vCol.id)) {
+              show = true;
+            } else {
+              show = vCol.pv;
+            }
+            // Show all Fields in Ranges
+          } else if (view.type === ViewTypes.GANTT && !copyFromView) {
+            // Gantt has no cover image, just show range columns and primary value
             if (calendarRanges && calendarRanges.includes(vCol.id)) {
               show = true;
             } else {
@@ -849,6 +886,16 @@ export default class View implements ViewType {
         if (range.fk_to_column_id) tlIds.add(range.fk_to_column_id);
       });
       return Array.from(tlIds) as Array<string>;
+    }
+    // Try GanttRange
+    const ganttRange = await GanttRange.read(context, viewId, ncMeta);
+    if (ganttRange) {
+      const ganttIds: Set<string> = new Set();
+      (ganttRange as any).ranges?.forEach((range) => {
+        if (range.fk_start_col_id) ganttIds.add(range.fk_start_col_id);
+        if (range.fk_end_col_id) ganttIds.add(range.fk_end_col_id);
+      });
+      return Array.from(ganttIds) as Array<string>;
     }
     return [];
   }
@@ -985,6 +1032,16 @@ export default class View implements ViewType {
             ncMeta,
           );
           break;
+        case ViewTypes.GANTT:
+          await GanttViewColumn.insert(
+            context,
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+          break;
         case ViewTypes.FORM:
           await FormViewColumn.insert(context, modifiedInsertObj, ncMeta);
           break;
@@ -1107,6 +1164,18 @@ export default class View implements ViewType {
           );
         }
         break;
+      case ViewTypes.GANTT:
+        {
+          col = await GanttViewColumn.insert(
+            context,
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+        }
+        break;
     }
 
     return col;
@@ -1137,6 +1206,7 @@ export default class View implements ViewType {
       | MapViewColumn
       | CalendarViewColumn
       | TimelineViewColumn
+      | GanttViewColumn
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
@@ -1175,6 +1245,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         columns = await TimelineViewColumn.list(context, viewId, ncMeta);
+        break;
+      case ViewTypes.GANTT:
+        columns = await GanttViewColumn.list(context, viewId, ncMeta);
         break;
     }
 
@@ -1236,6 +1309,11 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         tableName = MetaTable.TIMELINE_VIEW_COLUMNS;
         cacheScope = CacheScope.TIMELINE_VIEW_COLUMN;
+
+        break;
+      case ViewTypes.GANTT:
+        tableName = MetaTable.GANTT_VIEW_COLUMNS;
+        cacheScope = CacheScope.GANTT_VIEW_COLUMN;
 
         break;
     }
@@ -1309,6 +1387,10 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         table = MetaTable.TIMELINE_VIEW_COLUMNS;
         cacheScope = CacheScope.TIMELINE_VIEW_COLUMN;
+        break;
+      case ViewTypes.GANTT:
+        table = MetaTable.GANTT_VIEW_COLUMNS;
+        cacheScope = CacheScope.GANTT_VIEW_COLUMN;
     }
     let updateObj = extractProps(colData, ['order', 'show']);
 
@@ -1377,7 +1459,11 @@ export default class View implements ViewType {
         }
       }
     }
-    if (view.type === ViewTypes.CALENDAR || view.type === ViewTypes.TIMELINE) {
+    if (
+      view.type === ViewTypes.CALENDAR ||
+      view.type === ViewTypes.TIMELINE ||
+      view.type === ViewTypes.GANTT
+    ) {
       updateObj = {
         ...updateObj,
         ...extractProps(colData, ['underline', 'bold', 'italic']),
@@ -1425,6 +1511,8 @@ export default class View implements ViewType {
         return CalendarViewColumn.get(context, colId, ncMeta);
       case ViewTypes.TIMELINE:
         return TimelineViewColumn.get(context, colId, ncMeta);
+      case ViewTypes.GANTT:
+        return GanttViewColumn.get(context, colId, ncMeta);
     }
     return null;
   }
@@ -1562,6 +1650,17 @@ export default class View implements ViewType {
           );
         case ViewTypes.TIMELINE:
           return await TimelineViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
+        case ViewTypes.GANTT:
+          return await GanttViewColumn.insert(
             context,
             {
               fk_view_id: viewId,
@@ -2004,6 +2103,23 @@ export default class View implements ViewType {
         CacheDelDirection.CHILD_TO_PARENT,
       );
     }
+
+    // For Gantt View, delete the range associated with viewId
+    if (view.type === ViewTypes.GANTT) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.GANTT_VIEW_RANGE,
+        {
+          fk_view_id: viewId,
+        },
+      );
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.GANTT_VIEW_RANGE}:${viewId}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
     await NocoCache.deepDel(
       context,
       `${columnTableScope}:${viewId}`,
@@ -2288,6 +2404,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         viewType = 'timeline';
         break;
+      case ViewTypes.GANTT:
+        viewType = 'gantt';
+        break;
       default:
         viewType = 'view';
     }
@@ -2543,6 +2662,7 @@ export default class View implements ViewType {
         | MapViewColumn
         | CalendarViewColumn
         | TimelineViewColumn
+        | GanttViewColumn
       )[];
     },
     view: View,
@@ -2566,7 +2686,8 @@ export default class View implements ViewType {
           'source_id',
           'order',
           ...(view.type === ViewTypes.CALENDAR ||
-          view.type === ViewTypes.TIMELINE
+          view.type === ViewTypes.TIMELINE ||
+          view.type === ViewTypes.GANTT
             ? ['bold', 'italic', 'underline']
             : []),
           ...(view.type === ViewTypes.FORM
@@ -2638,6 +2759,16 @@ export default class View implements ViewType {
             .map((range) => [
               range.fk_from_column_id,
               (range as any).fk_to_column_id,
+            ])
+            .flat();
+        }
+      } else if (view.type == ViewTypes.GANTT) {
+        const ganttRange = await GanttRange.read(context, view.id, ncMeta);
+        if (ganttRange) {
+          calendarRangeColumns = (ganttRange as any).ranges
+            ?.map((range) => [
+              range.fk_start_col_id,
+              (range as any).fk_end_col_id,
             ])
             .flat();
         }
@@ -2721,6 +2852,11 @@ export default class View implements ViewType {
             // carry over.
             show = false;
           }
+        } else if (view.type === ViewTypes.GANTT) {
+          if (!calendarRangeColumns) break;
+          if (calendarRangeColumns.includes(column.id)) {
+            show = true;
+          }
         }
 
         insertObjs.push({
@@ -2803,6 +2939,14 @@ export default class View implements ViewType {
           MetaTable.TIMELINE_VIEW_COLUMNS,
           insertObjs,
         );
+        break;
+      case ViewTypes.GANTT:
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.GANTT_VIEW_COLUMNS,
+          insertObjs,
+        );
     }
   }
 
@@ -2822,11 +2966,13 @@ export default class View implements ViewType {
           | MapView
           | CalendarView
           | TimelineView
+          | GanttView
         > & {
           copy_from_id?: string;
           fk_grp_col_id?: string;
           calendar_range?: Partial<CalendarRange>[];
           timeline_range?: Partial<TimelineRange>[];
+          gantt_range?: Partial<GanttRange>[];
           created_by: string;
           owned_by: string;
           expanded_record_mode?: ExpandedFormModeType;
@@ -3058,6 +3204,27 @@ export default class View implements ViewType {
 
         await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
         await TimelineView.insert(
+          context,
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+
+        break;
+      }
+      case ViewTypes.GANTT: {
+        const obj = extractProps(view, ['gantt_range']);
+        if (!obj.gantt_range) break;
+        const ganttRange = obj.gantt_range as Partial<GanttRange>[];
+        ganttRange.forEach((range) => {
+          range.fk_view_id = view_id;
+        });
+
+        await GanttRange.bulkInsert(context, ganttRange, ncMeta);
+        await GanttView.insert(
           context,
           {
             ...(copyFromView?.view || {}),
@@ -3317,6 +3484,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         table = MetaTable.TIMELINE_VIEW_COLUMNS;
         break;
+      case ViewTypes.GANTT:
+        table = MetaTable.GANTT_VIEW_COLUMNS;
+        break;
     }
     return table;
   }
@@ -3347,6 +3517,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         table = MetaTable.TIMELINE_VIEW;
+        break;
+      case ViewTypes.GANTT:
+        table = MetaTable.GANTT_VIEW;
         break;
     }
     return table;
@@ -3379,6 +3552,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         scope = CacheScope.TIMELINE_VIEW_COLUMN;
         break;
+      case ViewTypes.GANTT:
+        scope = CacheScope.GANTT_VIEW_COLUMN;
+        break;
     }
     return scope;
   }
@@ -3409,6 +3585,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         scope = CacheScope.TIMELINE_VIEW;
+        break;
+      case ViewTypes.GANTT:
+        scope = CacheScope.GANTT_VIEW;
         break;
     }
     return scope;
@@ -3459,6 +3638,9 @@ export default class View implements ViewType {
       case ViewTypes.TIMELINE:
         this.view = await TimelineView.get(context, this.id, ncMeta);
         break;
+      case ViewTypes.GANTT:
+        this.view = await GanttView.get(context, this.id, ncMeta);
+        break;
     }
     return <T>this.view;
   }
@@ -3491,6 +3673,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.TIMELINE:
         this.view = await TimelineView.get(context, this.id, ncMeta);
+        break;
+      case ViewTypes.GANTT:
+        this.view = await GanttView.get(context, this.id, ncMeta);
         break;
     }
     return this.view;

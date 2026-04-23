@@ -11,9 +11,9 @@ import {
 } from 'nocodb-sdk';
 import type { UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type BaseTrash from '~/models/BaseTrash';
 import type { TrashResult } from '~/services/base-trash/types';
 import type { MetaService } from '~/meta/meta.service';
+import BaseTrash from '~/models/BaseTrash';
 import { BaseTrashHandler } from '~/services/base-trash/types';
 import { getLimit } from '~/helpers/paymentHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
@@ -276,6 +276,14 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       }
     }
 
+    // If the field links to a trashed table, convert it to a placeholder
+    // on its own table instead of restoring it. Restoring that target table
+    // later will reverse the conversion — see ConvertedFieldCascade below.
+    if (await this.hasDeferredCascade(ctx, trashEntry, ncMeta)) {
+      await this.convertToPlaceholderOnRestore(ctx, trashEntry, ncMeta);
+      return;
+    }
+
     const columnWebhookManager = (
       await new ColumnWebhookManagerBuilder(ctx, ncMeta).withModelId(
         trashEntry.parent_id,
@@ -536,6 +544,158 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
         );
       }
     }
+  }
+
+  private async hasDeferredCascade(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta: MetaService,
+  ): Promise<boolean> {
+    const relatedItems = trashEntry.getRelatedItems();
+    if (!relatedItems?.columns?.length) return false;
+    for (const item of relatedItems.columns as CascadedColumn[]) {
+      const colTable = await ncMeta.metaGet2(
+        ctx.workspace_id,
+        ctx.base_id,
+        MetaTable.MODELS,
+        item.table_id,
+      );
+      if (colTable?.deleted) return true;
+    }
+    return false;
+  }
+
+  private async convertToPlaceholderOnRestore(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    ncMeta: MetaService,
+  ): Promise<void> {
+    const col = await Column.get(
+      ctx,
+      { colId: trashEntry.resource_id, includeDeleted: true },
+      ncMeta,
+    );
+    if (!col) return;
+
+    const parentTable = await Model.getWithInfo(
+      ctx,
+      {
+        id: col.fk_model_id,
+      },
+      ncMeta,
+    );
+    if (!parentTable) return;
+
+    // Create placeholder on the field's own table (snapshot of linked data)
+    const placeholderResult =
+      await this.linkPlaceholderService.createPlaceholderForReverse(
+        ctx,
+        col,
+        '_nc_trash_ph_',
+        ncMeta,
+      );
+    if (!placeholderResult) return;
+
+    const fieldEntry: CascadedColumn = {
+      id: col.id,
+      placeholder_id: placeholderResult.placeholder.id,
+      table_id: parentTable.id,
+    };
+
+    // Group existing cascade items by their (trashed) target table and
+    // append — together with the new fieldEntry — onto each target's trash
+    // row. When that table is restored, its restoreCascadedLinks will drop
+    // the placeholder and un-soft-delete the column.
+    const relatedItems = trashEntry.getRelatedItems() || {};
+    const existing: CascadedColumn[] = Array.isArray(relatedItems.columns)
+      ? (relatedItems.columns as CascadedColumn[])
+      : [];
+
+    const byTarget = new Map<string, CascadedColumn[]>();
+    for (const item of existing) {
+      const colTable = await ncMeta.metaGet2(
+        ctx.workspace_id,
+        ctx.base_id,
+        MetaTable.MODELS,
+        item.table_id,
+      );
+      if (!colTable?.deleted) continue;
+      if (!byTarget.has(item.table_id)) byTarget.set(item.table_id, []);
+      byTarget.get(item.table_id)!.push(item);
+    }
+
+    for (const [targetTableId, items] of byTarget) {
+      await this.appendCascadesToTableTrash(
+        ctx,
+        targetTableId,
+        [...items, fieldEntry],
+        ncMeta,
+      );
+    }
+
+    // Broadcast placeholder add on parent table
+    NocoSocket.broadcastEvent(ctx, {
+      event: EventType.META_EVENT,
+      payload: {
+        action: 'column_add',
+        payload: {
+          table: parentTable,
+          column: await Column.get(
+            ctx,
+            { colId: placeholderResult.placeholder.id },
+            ncMeta,
+          ),
+        },
+      } as Record<string, unknown>,
+    } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
+
+    await View.clearSingleQueryCache(ctx, parentTable.id, null, ncMeta);
+  }
+
+  private async appendCascadesToTableTrash(
+    ctx: NcContext,
+    tableId: string,
+    items: CascadedColumn[],
+    ncMeta: MetaService,
+  ) {
+    const [tableTrash] = await ncMeta.metaList2(
+      ctx.workspace_id,
+      ctx.base_id,
+      MetaTable.TRASH,
+      {
+        condition: { resource_type: 'table', resource_id: tableId },
+        limit: 1,
+      },
+    );
+    if (!tableTrash) return;
+
+    let relatedItems: Record<string, any> = {};
+    if (tableTrash.related_items) {
+      try {
+        relatedItems =
+          typeof tableTrash.related_items === 'object'
+            ? tableTrash.related_items
+            : JSON.parse(tableTrash.related_items);
+      } catch {
+        relatedItems = {};
+      }
+    }
+
+    const existing: CascadedColumn[] = Array.isArray(relatedItems.columns)
+      ? relatedItems.columns
+      : [];
+    const existingIds = new Set(existing.map((c) => c.id));
+    const toAdd = items.filter((i) => !existingIds.has(i.id));
+    if (!toAdd.length) return;
+
+    relatedItems.columns = [...existing, ...toAdd];
+
+    await BaseTrash.update(
+      ctx,
+      tableTrash.id,
+      { related_items: relatedItems as any },
+      ncMeta,
+    );
   }
 
   // ── Dependency Marking ─────────────────────────────────────

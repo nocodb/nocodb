@@ -272,9 +272,12 @@
     "a:form-view:field:mark-enable-scanner": "Enable scanner for form field",
     "a:form-view:field:mark-required": "Mark form field as required",
     "a:form-view:field:show-extra-fields": "Show extra fields in form",
+    "a:form-view:grid:field-move": "Grid layout — drag a field into a different row or position (payload: { fieldCount } = final row size)",
+    "a:form-view:grid:new-row": "Grid layout — drop a field into the new-row zone",
+    "a:form-view:grid:row-reorder": "Grid layout — reorder an entire row of fields",
     "a:form-view:hide-columns": "Hide columns in form view",
     "a:form-view:remove-all": "Remove all fields from form",
-    "a:form-view:reorder": "Reorder form fields",
+    "a:form-view:reorder": "Reorder form fields (single-column / CE fallback)",
     "a:form-view:show-columns": "Show columns in form view"
   },
   "groupBy": {

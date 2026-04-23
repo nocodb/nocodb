@@ -618,7 +618,9 @@ async function onFieldMove(event: any, targetRowKey: string) {
 
   await bulkUpdateColumns(updates)
   checkFieldVisibility()
-  $e('a:form-view:grid-layout-change')
+
+  const finalRow = pruned.find((r: any[]) => r.some((c: any) => c.id === movedId))
+  $e('a:form-view:grid:field-move', { fieldCount: finalRow?.length ?? 1 })
 }
 
 async function onRowMove(event: any) {
@@ -660,7 +662,7 @@ async function onRowMove(event: any) {
 
   await bulkUpdateColumns(updates)
   void newRowsFlat
-  $e('a:form-view:row-reorder')
+  $e('a:form-view:grid:row-reorder')
 }
 
 function onFieldMoveToNewRowCallback(event: any) {
@@ -711,7 +713,7 @@ async function onFieldMoveToNewRow(event: any) {
 
   await bulkUpdateColumns(updates)
   checkFieldVisibility()
-  $e('a:form-view:grid-layout-new-row')
+  $e('a:form-view:grid:new-row')
 }
 
 async function showOrHideColumn(column: Record<string, any>, show: boolean, isFormSettings = false) {

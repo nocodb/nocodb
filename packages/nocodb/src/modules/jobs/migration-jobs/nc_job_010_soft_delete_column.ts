@@ -400,7 +400,12 @@ export class SoftDeleteColumnMigration {
         )),
         column_name: getUniqueColumnName(model.columns, '__nc_deleted'),
         title: getUniqueColumnAliasName(model.columns, '__nc_deleted'),
-        cdf: source.type === 'mysql2' ? '0' : 'false',
+        cdf:
+          source.type === 'mysql2' ||
+          source.type === 'mysql' ||
+          source.type === 'sqlite3'
+            ? '0'
+            : 'false',
         system: true,
         altered: Altered.NEW_COLUMN,
       };

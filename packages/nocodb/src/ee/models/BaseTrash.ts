@@ -130,6 +130,7 @@ export default class BaseTrash implements BaseTrashType {
     if (parentIds.length) {
       const trashedParents = await ncMeta
         .knexConnection(MetaTable.TRASH)
+        .where('fk_workspace_id', context.workspace_id)
         .where('base_id', context.base_id)
         .whereIn('resource_id', parentIds)
         .select('resource_id');

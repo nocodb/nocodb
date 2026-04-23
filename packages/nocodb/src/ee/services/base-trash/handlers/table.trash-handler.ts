@@ -6,6 +6,7 @@ import {
   NOCO_SERVICE_USERS,
   PlanLimitTypes,
 } from 'nocodb-sdk';
+import type { UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { TrashResult } from '~/services/base-trash/types';
@@ -343,7 +344,7 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
       ctx,
       {
         tableId: trashEntry.resource_id,
-        user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER as any,
+        user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER as unknown as UserType,
         req: {} as any,
         forceDeleteRelations: true,
         skipLinkPlaceholder: true,

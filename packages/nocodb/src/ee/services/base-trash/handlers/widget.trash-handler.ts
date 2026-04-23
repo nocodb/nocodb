@@ -25,7 +25,7 @@ export class WidgetTrashHandler extends BaseTrashHandler<Widget> {
 
     const dashboard = await Dashboard.get(
       ctx,
-      (widget as any).fk_dashboard_id,
+      widget.fk_dashboard_id,
       false,
       ncMeta,
     );
@@ -35,7 +35,7 @@ export class WidgetTrashHandler extends BaseTrashHandler<Widget> {
     return {
       entity: widget,
       parentType: 'dashboard',
-      parentId: (widget as any).fk_dashboard_id,
+      parentId: widget.fk_dashboard_id,
       parentName: dashboard?.title,
     };
   }

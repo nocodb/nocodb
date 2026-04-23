@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, EventType } from 'nocodb-sdk';
 import { ExtensionsService as ExtensionsServiceCE } from 'src/services/extensions.service';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
@@ -7,6 +7,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { Extension } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class ExtensionsService extends ExtensionsServiceCE {
@@ -52,6 +53,18 @@ export class ExtensionsService extends ExtensionsServiceCE {
       extensionId: param.extensionId,
       req: param.req,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'extension_delete',
+          payload: extension,
+        },
+      },
+      context.socket_id,
+    );
 
     return true;
   }

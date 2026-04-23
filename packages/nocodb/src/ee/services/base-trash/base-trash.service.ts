@@ -34,7 +34,7 @@ export class BaseTrashService implements OnModuleInit {
       { jobName: JobTypes.BaseTrashCleanUp },
       {
         jobId: JobTypes.BaseTrashCleanUp,
-        repeat: { cron: '*/2 * * * *' },
+        repeat: { cron: '*/10 * * * *' },
       },
     );
   }

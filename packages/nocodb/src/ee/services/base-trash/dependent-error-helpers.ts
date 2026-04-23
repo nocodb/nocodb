@@ -51,10 +51,10 @@ export async function clearDependentErrorsIfResolved(
           await BarcodeColumn.update(ctx, dep.id, { error: null });
           break;
         case 'formula':
-          await FormulaColumn.update(ctx, dep.id, { error: null } as any);
+          await FormulaColumn.update(ctx, dep.id, { error: null });
           break;
         case 'button':
-          await ButtonColumn.update(ctx, dep.id, { error: null } as any);
+          await ButtonColumn.update(ctx, dep.id, { error: null });
           break;
       }
     } catch (e) {

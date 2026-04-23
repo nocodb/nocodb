@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
 import { ViewsService as ViewsServiceCE } from 'src/services/views.service';
 import type { UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -8,6 +8,7 @@ import { User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { NcError } from '~/helpers/catchError';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class ViewsService extends ViewsServiceCE {
@@ -69,6 +70,18 @@ export class ViewsService extends ViewsServiceCE {
       req: param.req,
       context,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_delete',
+          payload: view,
+        },
+      },
+      context.socket_id,
+    );
 
     return true;
   }

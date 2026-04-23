@@ -9,6 +9,7 @@ import {
   UITypes,
   WebhookActions,
 } from 'nocodb-sdk';
+import type { UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { TrashResult } from '~/services/base-trash/types';
@@ -449,7 +450,7 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       ctx,
       {
         columnId: trashEntry.resource_id,
-        user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER as any,
+        user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER as unknown as UserType,
         forceDeleteSystem: true,
         skipLinkPlaceholder: true,
         skipTrash: true,

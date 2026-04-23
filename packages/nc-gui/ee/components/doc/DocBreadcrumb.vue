@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const documentsStore = useDocumentsStore()
 const { activeDocument, activeDocuments } = storeToRefs(documentsStore)
-const { getDocumentAncestors } = documentsStore
+const { getDocumentAncestors, loadChildren } = documentsStore
 
 const { ncNavigateTo } = useGlobal()
 
@@ -51,6 +51,13 @@ const getSiblingsByParent = (parentId: string | null | undefined) => {
   return activeDocuments.value
     .filter((d) => normalizeParentId(d.parent_id) === target)
     .sort((a, b) => (a.order || 0) - (b.order || 0))
+}
+
+const getChildren = (docId: string) => getSiblingsByParent(docId)
+
+const ensureChildrenLoaded = (docId: string) => {
+  if (!activeProjectId.value) return
+  loadChildren(activeProjectId.value, docId)
 }
 
 const rootSiblings = computed(() => (rootAncestor.value ? getSiblingsByParent(rootAncestor.value.parent_id) : []))
@@ -135,6 +142,9 @@ const handleEllipsisSelect = (option: NcListItemType) => {
         :icon-emoji="rootAncestor.meta?.icon"
         :items="rootSiblings"
         :active-id="rootAncestor.id ?? null"
+        nested
+        :get-children="getChildren"
+        :load-children="ensureChildrenLoaded"
         @select="navigateToDoc"
       />
       <GeneralIcon icon="ncSlash1" class="nc-doc-breadcrumb-divider" />
@@ -147,6 +157,9 @@ const handleEllipsisSelect = (option: NcListItemType) => {
         :icon-emoji="middleAncestor.meta?.icon"
         :items="middleSiblings"
         :active-id="middleAncestor.id ?? null"
+        nested
+        :get-children="getChildren"
+        :load-children="ensureChildrenLoaded"
         @select="navigateToDoc"
       />
       <GeneralIcon icon="ncSlash1" class="nc-doc-breadcrumb-divider" />
@@ -199,6 +212,9 @@ const handleEllipsisSelect = (option: NcListItemType) => {
         :icon-emoji="parentAncestor.meta?.icon"
         :items="parentSiblings"
         :active-id="parentAncestor.id ?? null"
+        nested
+        :get-children="getChildren"
+        :load-children="ensureChildrenLoaded"
         @select="navigateToDoc"
       />
       <GeneralIcon icon="ncSlash1" class="nc-doc-breadcrumb-divider" />
@@ -211,6 +227,9 @@ const handleEllipsisSelect = (option: NcListItemType) => {
       :items="currentSiblings"
       :active-id="activeDocument?.id ?? null"
       max-width-class="max-w-1/2"
+      nested
+      :get-children="getChildren"
+      :load-children="ensureChildrenLoaded"
       @select="navigateToDoc"
     />
   </div>

@@ -15,6 +15,12 @@ interface Props {
   activeId?: string | null
   maxWidthClass?: string
   iconOnly?: boolean
+  /** Nested mode: render items as a-menu with hover-expand a-sub-menu for items with children */
+  nested?: boolean
+  /** Required when nested=true — returns children of a doc */
+  getChildren?: (docId: string) => DocumentType[]
+  /** Required when nested=true — lazy-loads children before submenu expand */
+  loadChildren?: (docId: string) => Promise<void> | void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -23,6 +29,9 @@ const props = withDefaults(defineProps<Props>(), {
   activeId: null,
   maxWidthClass: 'max-w-1/4',
   iconOnly: false,
+  nested: false,
+  getChildren: undefined,
+  loadChildren: undefined,
 })
 
 const emit = defineEmits<{
@@ -48,6 +57,21 @@ const onSelect = (option: NcListItemType & { raw?: DocumentType | Item }) => {
   isOpen.value = false
   if (option.raw) emit('select', option.raw)
 }
+
+const onSelectNested = (doc: DocumentType) => {
+  isOpen.value = false
+  emit('select', doc)
+}
+
+// Preload children of visible items when dropdown opens, so submenu hover doesn't flash empty
+watch(isOpen, (open) => {
+  if (!open || !props.nested || !props.loadChildren) return
+  for (const item of props.items as DocumentType[]) {
+    if (item.has_children && item.id) {
+      props.loadChildren(item.id)
+    }
+  }
+})
 </script>
 
 <template>
@@ -103,7 +127,20 @@ const onSelect = (option: NcListItemType & { raw?: DocumentType | Item }) => {
     </div>
 
     <template #overlay>
+      <a-menu v-if="nested && getChildren && loadChildren" class="nc-doc-breadcrumb-menu">
+        <DocBreadcrumbMenuRow
+          v-for="item in (items as DocumentType[])"
+          :key="item.id"
+          :doc="item"
+          :active-id="activeId"
+          :get-children="getChildren"
+          :load-children="loadChildren"
+          :on-select="onSelectNested"
+        />
+      </a-menu>
+
       <NcList
+        v-else
         v-model:open="isOpen"
         :value="activeId ?? undefined"
         :list="listItems"
@@ -128,3 +165,63 @@ const onSelect = (option: NcListItemType & { raw?: DocumentType | Item }) => {
     </template>
   </NcDropdown>
 </template>
+
+<style lang="scss">
+// Main menu (rendered inside NcDropdown — uses ant-dropdown-menu-* classes, not ant-menu-*).
+// Nested submenu popup (.nc-doc-breadcrumb-submenu-popup) uses ant-menu.ant-menu-sub.
+.nc-doc-breadcrumb-menu {
+  @apply !border-r-0 !rounded-lg !py-2 !px-2 min-w-64;
+
+  .ant-dropdown-menu-submenu-title {
+    @apply !h-auto min-h-8 !my-[2px] !py-[5px] !px-2 hover:!bg-nc-bg-gray-light cursor-pointer !rounded-md flex items-center;
+  }
+
+  .ant-dropdown-menu-item {
+    @apply !h-auto min-h-8 !my-[2px] !py-[5px] text-sm leading-5 !px-2 hover:!bg-nc-bg-gray-light cursor-pointer !rounded-md flex items-center;
+
+    .ant-dropdown-menu-title-content {
+      @apply w-full px-0 flex items-center;
+    }
+  }
+
+  .ant-dropdown-menu-submenu-title .ant-dropdown-menu-title-content {
+    @apply w-full px-0 flex items-center;
+  }
+}
+
+.nc-doc-breadcrumb-submenu-popup {
+  @apply !rounded-lg border-1 border-nc-border-gray-medium;
+
+  .ant-menu.ant-menu-sub {
+    @apply !border-r-0 !rounded-lg !py-2 !px-2 min-w-64 !shadow-lg shadow-nc-border-gray-medium;
+
+    .ant-menu-submenu-title {
+      @apply !h-auto min-h-8 !my-[2px] !py-[5px] !px-2 hover:!bg-nc-bg-gray-light cursor-pointer !rounded-md flex items-center;
+
+      .ant-menu-title-content {
+        @apply w-full px-0 flex items-center;
+      }
+    }
+
+    .ant-menu-item {
+      @apply !h-auto min-h-8 !my-[2px] !py-[5px] text-sm leading-5 !px-2 hover:!bg-nc-bg-gray-light cursor-pointer !rounded-md flex items-center;
+
+      .ant-menu-title-content {
+        @apply w-full px-0 flex items-center;
+      }
+
+      &.ant-menu-item-selected {
+        @apply bg-transparent;
+      }
+    }
+  }
+}
+
+.nc-doc-breadcrumb-row {
+  @apply flex items-center gap-2 w-full !text-nc-content-gray;
+
+  &.nc-doc-breadcrumb-row-active {
+    @apply !font-weight-500;
+  }
+}
+</style>

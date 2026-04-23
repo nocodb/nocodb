@@ -300,8 +300,8 @@ export class AttachmentsService {
             size = response.headers['content-length'];
 
             if (size && +size > NC_ATTACHMENT_FIELD_SIZE) {
-              NcError.badRequest(
-                `File is too large. Maximum allowed size is ${(
+              NcError.get().invalidRequestBody(
+                `Attachment is larger than maximum allowed size at ${(
                   NC_ATTACHMENT_FIELD_SIZE /
                   (1024 * 1024)
                 ).toFixed(2)} MB`,
@@ -326,6 +326,16 @@ export class AttachmentsService {
 
             mimeType = mimetypeHelper[0];
             size = Buffer.byteLength(base64Data, 'base64');
+
+            if (size > NC_ATTACHMENT_FIELD_SIZE) {
+              NcError.get().invalidRequestBody(
+                `Attachment is larger than maximum allowed size at ${(
+                  NC_ATTACHMENT_FIELD_SIZE /
+                  (1024 * 1024)
+                ).toFixed(2)} MB`,
+              );
+            }
+
             base64Buffer = Buffer.from(base64Data, 'base64');
             base64TempStream = Readable.from(base64Buffer);
           }

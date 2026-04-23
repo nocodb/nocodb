@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { NcError } from '~/helpers/ncError';
+import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 
 interface MinioObjectStorageInput {
   bucket: string;
@@ -180,6 +181,7 @@ export default class Minio implements IStorageAdapterV2 {
         httpAgent: useAgent(url),
         httpsAgent: useAgent(url),
         responseType: buffer ? 'arraybuffer' : 'stream',
+        maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
       });
 
       const uploadParams = {

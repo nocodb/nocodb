@@ -8,6 +8,7 @@ import type { GetSignedUrlConfig, StorageOptions } from '@google-cloud/storage';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 import { NcError } from '~/helpers/ncError';
+import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 
 interface GoogleCloudStorageInput {
   client_email: string;
@@ -160,6 +161,7 @@ export default class Gcs implements IStorageAdapterV2 {
         httpAgent: useAgent(url),
         httpsAgent: useAgent(url),
         responseType: buffer ? 'arraybuffer' : 'stream',
+        maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
       });
 
       const file = this.storageClient.bucket(this.bucketName).file(destPath);

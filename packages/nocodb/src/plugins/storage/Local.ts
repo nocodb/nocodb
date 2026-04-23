@@ -10,6 +10,7 @@ import { Logger } from '@nestjs/common';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 import { NcError } from '~/helpers/ncError';
+import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 
 export default class Local implements IStorageAdapterV2 {
   name = 'Local';
@@ -37,6 +38,7 @@ export default class Local implements IStorageAdapterV2 {
       const destPath = validateAndNormaliseLocalPath(key);
       const response = await axios.get(url, {
         responseType: buffer ? 'arraybuffer' : 'stream',
+        maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
         headers: {
           accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',

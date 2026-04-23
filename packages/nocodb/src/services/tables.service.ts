@@ -888,23 +888,6 @@ export class TablesService {
       );
     }
 
-    const allModels = await Model.list(context, {
-      base_id: base.id,
-      source_id: source.id,
-      includeDeleted: true,
-    });
-    const usedTableNames = new Set(allModels.map((m) => m.table_name));
-    if (usedTableNames.has(tableCreatePayLoad.table_name)) {
-      const baseName = tableCreatePayLoad.table_name;
-      let i = 1;
-      let candidate = `${baseName}_${i}`;
-      while (usedTableNames.has(candidate)) {
-        i++;
-        candidate = `${baseName}_${i}`;
-      }
-      tableCreatePayLoad.table_name = candidate;
-    }
-
     if (
       !(await Model.checkTitleAvailable(context, {
         table_name: tableCreatePayLoad.table_name,
@@ -918,6 +901,29 @@ export class TablesService {
         base: context.base_id,
         label: 'name',
       });
+    }
+
+    // Soft-deleted tables keep their physical DB tables until permanent delete.
+    // If a trashed row shares the requested table_name, the CREATE TABLE DDL
+    // will collide — uniquify the new name to dodge that. Live collisions have
+    // already been rejected above.
+    const trashedModels = await Model.list(context, {
+      base_id: base.id,
+      source_id: source.id,
+      includeDeleted: true,
+    });
+    const trashedTableNames = new Set(
+      trashedModels.filter((m) => m.deleted).map((m) => m.table_name),
+    );
+    if (trashedTableNames.has(tableCreatePayLoad.table_name)) {
+      const baseName = tableCreatePayLoad.table_name;
+      let i = 1;
+      let candidate = `${baseName}_${i}`;
+      while (trashedTableNames.has(candidate)) {
+        i++;
+        candidate = `${baseName}_${i}`;
+      }
+      tableCreatePayLoad.table_name = candidate;
     }
 
     if (!tableCreatePayLoad.title) {

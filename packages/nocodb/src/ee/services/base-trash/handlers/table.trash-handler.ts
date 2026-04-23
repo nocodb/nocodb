@@ -188,8 +188,10 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
     ncMeta?: MetaService,
   ): Promise<void> {
     // Resolve title collision — rename restored table if a live table in the
-    // same source already holds the original title. table_name is auto-uniquified
-    // at create time, so only the display title needs handling here.
+    // same source already holds the original title. table_name never collides
+    // on restore: any new table created after this one was trashed would have
+    // been uniquified at create time (see TablesService.tableCreate trashed-
+    // name dedup), so the trashed row still owns its original table_name.
     if (trashEntry.name) {
       const trashedTable = await Model.get(
         ctx,

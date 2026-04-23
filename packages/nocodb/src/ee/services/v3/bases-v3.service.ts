@@ -28,9 +28,7 @@ export class BasesV3Service extends BasesV3ServiceCE {
       param.user.id,
     );
 
-    const patFilter = param.req
-      ? await getPatResourceFilter(param.req)
-      : null;
+    const patFilter = await getPatResourceFilter(param.req);
     if (!patFilter) return bases;
 
     return bases.filter(

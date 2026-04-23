@@ -190,9 +190,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
     }
 
     // Filter by fine-grained API token scopes, if present.
-    const patFilter = param.req
-      ? await getPatResourceFilter(param.req)
-      : null;
+    const patFilter = await getPatResourceFilter(param.req);
 
     if (patFilter) {
       // Allowed workspaces: explicit workspace scopes + workspaces derived

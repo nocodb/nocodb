@@ -11,7 +11,7 @@ export interface PatResourceFilter {
 }
 
 export async function getPatResourceFilter(
-  _req: NcRequest,
+  _req?: NcRequest,
 ): Promise<PatResourceFilter | null> {
   return null;
 }

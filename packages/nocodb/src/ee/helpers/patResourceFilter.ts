@@ -27,7 +27,7 @@ export interface PatResourceFilter {
  * to specific bases/workspaces.
  */
 export async function getPatResourceFilter(
-  req: NcRequest,
+  req?: NcRequest,
 ): Promise<PatResourceFilter | null> {
   const user = req?.user as any;
 

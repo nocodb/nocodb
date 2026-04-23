@@ -74,9 +74,7 @@ export class BasesService extends BasesServiceCE {
       req?: NcRequest;
     },
   ) {
-    const patFilter = param.req
-      ? await getPatResourceFilter(param.req)
-      : null;
+    const patFilter = await getPatResourceFilter(param.req);
     const bases = await BaseUser.getProjectsList(param.user.id, param.query);
 
     if (!patFilter) return bases;

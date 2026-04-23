@@ -22,6 +22,7 @@ export enum MigrationJobTypes {
   RecoverDisconnectedTableNames = 'recover-disconnected-table-names',
   AuditMigration = 'audit-migration',
   SoftDeleteColumnMigration = 'soft-delete-column-migration',
+  NormalizeSoftDeleteSqliteMigration = 'normalize-soft-delete-sqlite-migration',
 }
 
 export enum JobTypes {

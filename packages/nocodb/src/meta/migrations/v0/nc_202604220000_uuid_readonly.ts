@@ -1,3 +1,4 @@
+import { UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
@@ -7,7 +8,7 @@ import { MetaTable } from '~/utils/globals';
 // col.readonly guards in BaseModelSqlv2 (insert/update) reject overrides.
 const up = async (knex: Knex) => {
   await knex(MetaTable.COLUMNS)
-    .where('uidt', 'UUID')
+    .where('uidt', UITypes.UUID)
     .update({ readonly: true });
 };
 

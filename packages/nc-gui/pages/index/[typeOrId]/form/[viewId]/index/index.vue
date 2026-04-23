@@ -219,7 +219,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         >&nbsp;*</span
                       >
                     </div>
-                    <div v-if="field?.description" class="nc-form-column-description text-nc-content-gray-muted text-sm">
+                    <div v-if="field?.description" class="nc-form-column-description text-nc-content-gray-muted text-xs">
                       <LazyCellRichText
                         :value="field?.description"
                         class="!h-auto -ml-1"

@@ -1737,7 +1737,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     is-form-field
                                     read-only
                                     sync-value-change
-                                    class="nc-form-help-text !h-auto text-nc-content-gray-muted text-sm mt-2 -ml-1"
+                                    class="nc-form-help-text !h-auto text-nc-content-gray-muted text-xs mt-1 -ml-1"
                                     data-testid="nc-form-help-text"
                                     @update:value="updateColMeta(element)"
                                   />

@@ -71,7 +71,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   const callAiSchemaApi = async (operation: string, input: any, customBaseId?: string, skipMsgToast = false) => {
     try {
-      const baseId = customBaseId || workspaceStore.activeProjectId.value
+      const baseId = customBaseId || activeProjectId.value
 
       if (!aiIntegrationAvailable.value || !baseId) {
         return

@@ -1,6 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType, PlanFeatureTypes, ViewTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  GanttDependencyDirection,
+  PlanFeatureTypes,
+  UITypes,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type {
+  ColumnType,
+  GanttRangeType,
   GanttUpdateReqType,
   UserType,
   ViewCreateReqType,
@@ -16,19 +25,89 @@ import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
-import { Model, User, View } from '~/models';
+import { Column, Model, User, View } from '~/models';
 import GanttView from '~/models/GanttView';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 
+const DATE_LIKE_UITYPES = new Set<UITypes>([
+  UITypes.Date,
+  UITypes.DateTime,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+]);
+
+async function validateGanttRange(
+  context: NcContext,
+  tableId: string,
+  ranges: GanttRangeType[] | undefined,
+  ncMeta?: MetaService,
+) {
+  if (!ranges?.length) return;
+
+  const columns = await Column.list(context, { fk_model_id: tableId }, ncMeta);
+  const byId = new Map<string, ColumnType>(columns.map((c) => [c.id, c]));
+
+  for (const range of ranges) {
+    const assertDateCol = (id: string | null | undefined, label: string) => {
+      if (!id) return;
+      const col = byId.get(id);
+      if (!col) {
+        NcError.get(context).fieldNotFound(id);
+      }
+      if (!DATE_LIKE_UITYPES.has(col.uidt as UITypes)) {
+        NcError.get(context).invalidRequestBody(
+          `${label} must reference a Date or DateTime field`,
+        );
+      }
+    };
+
+    assertDateCol(range.fk_start_col_id, 'Gantt start column');
+    assertDateCol(range.fk_end_col_id, 'Gantt end column');
+
+    if (range.fk_dependency_col_id) {
+      const depCol = columns.find(
+        (c) => c.id === range.fk_dependency_col_id,
+      ) as Column | undefined;
+      if (!depCol) {
+        NcError.get(context).fieldNotFound(range.fk_dependency_col_id);
+      }
+      if (
+        depCol.uidt !== UITypes.Links &&
+        depCol.uidt !== UITypes.LinkToAnotherRecord
+      ) {
+        NcError.get(context).invalidRequestBody(
+          'Gantt dependency column must be a Links field',
+        );
+      }
+      const colOpts: any = await depCol.getColOptions(context, ncMeta);
+      if (
+        colOpts?.fk_related_model_id &&
+        colOpts.fk_related_model_id !== tableId
+      ) {
+        NcError.get(context).invalidRequestBody(
+          'Gantt dependency column must link to the same table (self-relation)',
+        );
+      }
+    }
+
+    if (
+      range.dependency_direction &&
+      !Object.values(GanttDependencyDirection).includes(
+        range.dependency_direction,
+      )
+    ) {
+      NcError.get(context).invalidRequestBody(
+        `Invalid Gantt dependency_direction: ${range.dependency_direction}`,
+      );
+    }
+  }
+}
+
 @Injectable()
 export class GanttsService {
   constructor(private readonly appHooksService: AppHooksService) {}
-
-  async ganttViewGet(context: NcContext, param: { ganttViewId: string }) {
-    return await GanttView.get(context, param.ganttViewId);
-  }
 
   async ganttViewCreate(
     context: NcContext,
@@ -54,6 +133,13 @@ export class GanttsService {
     }
 
     await assertPersonalViewAllowed(context, param.gantt.lock_type);
+
+    await validateGanttRange(
+      context,
+      param.tableId,
+      (param.gantt as { gantt_range?: GanttRangeType[] }).gantt_range,
+      ncMeta,
+    );
 
     const model = await Model.get(context, param.tableId, ncMeta);
 
@@ -165,6 +251,13 @@ export class GanttsService {
     if (!view) {
       NcError.viewNotFound(param.ganttViewId);
     }
+
+    await validateGanttRange(
+      context,
+      view.fk_model_id,
+      param.gantt.gantt_range,
+      ncMeta,
+    );
 
     const viewWebhookManager =
       param.viewWebhookManager ??

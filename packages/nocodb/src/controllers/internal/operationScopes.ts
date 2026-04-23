@@ -44,7 +44,6 @@ export const OPERATION_SCOPES = {
   formViewGet: 'base',
   mapViewGet: 'base',
   timelineViewGet: 'base',
-  ganttViewGet: 'base',
   // Extensions
   extensionList: 'base',
   extensionRead: 'base',

@@ -272,9 +272,6 @@ import NcWhatsapp from '~icons/nc-icons/whatsapp'
 import NcWhatsappSolid from '~icons/nc-icons/whatsapp-solid'
 import NcMCP from '~icons/nc-icons/mcp'
 
-// View icons
-import NcViewGantt from '~icons/nc-icons/view-gantt'
-
 import NcDollerSign from '~icons/nc-icons/doller-sign'
 import NcMultiFile from '~icons/nc-icons/multi-file'
 import NcHeart from '~icons/nc-icons/heart'
@@ -1359,7 +1356,7 @@ export const iconMap = {
   'twilio': NcTwilio,
   'whatsapp': NcWhatsapp,
   'whatsappSolid': NcWhatsappSolid,
-  'viewGannt': NcViewGantt,
+  'gantt': NcGanttViewIcon,
   'dollerSign': NcDollerSign,
   'multiFile': NcMultiFile,
   'heart': NcHeart,

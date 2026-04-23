@@ -669,14 +669,14 @@ export default class View implements ViewType {
         let order = 1;
         let galleryShowLimit = 0;
         let kanbanShowLimit = 0;
-        let calendarRanges: Array<string> | null = null;
+        let rangeColumns: Array<string> | null = null;
 
         if (
           view.type === ViewTypes.CALENDAR ||
           view.type === ViewTypes.TIMELINE ||
           view.type === ViewTypes.GANTT
         ) {
-          calendarRanges = await View.getRangeColumnsAsArray(
+          rangeColumns = await View.getRangeColumnsAsArray(
             context,
             view_id,
             ncMeta,
@@ -751,14 +751,14 @@ export default class View implements ViewType {
               view_id,
               ncMeta,
             );
-            if (calendarRanges && calendarRanges.includes(vCol.id)) {
+            if (rangeColumns && rangeColumns.includes(vCol.id)) {
               show = true;
             } else
               show = vCol.id === calendarView?.fk_cover_image_col_id || vCol.pv;
             // Show all Fields in Ranges
           } else if (view.type === ViewTypes.TIMELINE && !copyFromView) {
             // Timeline has no cover image, just show range columns and primary value
-            if (calendarRanges && calendarRanges.includes(vCol.id)) {
+            if (rangeColumns && rangeColumns.includes(vCol.id)) {
               show = true;
             } else {
               show = vCol.pv;
@@ -766,7 +766,7 @@ export default class View implements ViewType {
             // Show all Fields in Ranges
           } else if (view.type === ViewTypes.GANTT && !copyFromView) {
             // Gantt has no cover image, just show range columns and primary value
-            if (calendarRanges && calendarRanges.includes(vCol.id)) {
+            if (rangeColumns && rangeColumns.includes(vCol.id)) {
               show = true;
             } else {
               show = vCol.pv;

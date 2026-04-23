@@ -1,11 +1,12 @@
 import type { GanttRangeType } from 'nocodb-sdk';
+import { GanttDependencyDirection } from 'nocodb-sdk';
 
 export default class GanttRange implements GanttRangeType {
   id?: string;
   fk_start_col_id?: string;
   fk_end_col_id?: string;
   fk_dependency_col_id?: string;
-  dependency_direction?: any;
+  dependency_direction?: GanttDependencyDirection;
   fk_workspace_id?: string;
   base_id?: string;
   fk_view_id?: string;

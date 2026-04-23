@@ -474,7 +474,7 @@ export function useCanvasRender({
       if (column.isDateDependencyField && !isPublic.value) {
         rightOffset -= 18
         spriteLoader.renderIcon(ctx, {
-          icon: 'viewGannt',
+          icon: 'gantt',
           size: 13,
           color: getColor(themeV4Colors.gray['500']),
           x: rightOffset - _scrollLeft,
@@ -755,7 +755,7 @@ export function useCanvasRender({
         if (column.isDateDependencyField && !isPublic.value) {
           rightOffset -= 18
           spriteLoader.renderIcon(ctx, {
-            icon: 'viewGannt',
+            icon: 'gantt',
             size: 13,
             color: getColor(themeV4Colors.gray['500']),
             x: rightOffset,

@@ -309,7 +309,7 @@ async function onOpenModal({
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GANTT }" class="!w-4 !h-4" />
-              <div>Gantt</div>
+              <div>{{ $t('objects.viewType.gantt') }}</div>
             </div>
 
             <template v-if="blockGanttView">

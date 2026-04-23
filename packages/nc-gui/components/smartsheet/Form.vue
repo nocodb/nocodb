@@ -1718,7 +1718,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                         />
                                       </Transition>
                                     </NcTooltip>
-                                    <div class="text-sm font-semibold text-nc-content-gray">
+                                    <div class="text-sm font-medium text-nc-content-gray">
                                       <span data-testid="nc-form-input-label">
                                         {{ element.label || element.title }}
                                       </span>

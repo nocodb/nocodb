@@ -239,7 +239,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     :data-testid="`nc-shared-form-item-${field.title?.replace(' ', '')}`"
                     :data-row-id="field.row_id || ''"
                   >
-                    <div class="nc-form-column-label text-sm font-semibold text-nc-content-gray">
+                    <div class="nc-form-column-label text-sm font-medium text-nc-content-gray">
                       <span>
                         {{ field.label || field.title }}
                       </span>

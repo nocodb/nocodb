@@ -35,7 +35,8 @@ export const parseDefault = (value: any) => {
 
 export const parseIntValue = (
   value: string | null | number,
-  col?: ColumnType
+  col?: ColumnType,
+  options?: { skipThousandSeparator?: boolean }
 ) => {
   if (ncIsNaN(value)) {
     return null;
@@ -45,6 +46,10 @@ export const parseIntValue = (
 
   const columnMeta = parseProp(col?.meta);
   const separator = resolveColumnSeparator(columnMeta);
+
+  if (options?.skipThousandSeparator) {
+    return Number(value);
+  }
 
   if (separator === SeparatorType.Locale) {
     return Number(value).toLocaleString();
@@ -61,7 +66,8 @@ export const parseIntValue = (
 
 export const parseDecimalValue = (
   value: string | null | number,
-  col: ColumnType
+  col: ColumnType,
+  options?: { skipThousandSeparator?: boolean }
 ) => {
   if (ncIsNaN(value)) {
     return null;
@@ -70,6 +76,18 @@ export const parseDecimalValue = (
   const columnMeta = parseProp(col.meta);
   const separator = resolveColumnSeparator(columnMeta);
   const precision = columnMeta.precision ?? 1;
+
+  if (options?.skipThousandSeparator) {
+    const { decimalSeparator } = getSeparatorChars(separator);
+    const rounded = Number(roundUpToPrecision(Number(value), precision));
+
+    return formatNumberWithSeparator(
+      rounded,
+      '',
+      decimalSeparator,
+      precision
+    );
+  }
 
   if (separator === SeparatorType.Locale) {
     return Number(

@@ -182,14 +182,18 @@ export async function serializeCellValue(
       {
         if (isNaN(Number(value))) return null;
 
-        return parseDecimalValue(value, column);
+        return parseDecimalValue(value, column, {
+          skipThousandSeparator: true,
+        });
       }
       break;
     case UITypes.Number:
       {
         if (isNaN(Number(value))) return null;
 
-        return parseIntValue(value, column);
+        return parseIntValue(value, column, {
+          skipThousandSeparator: true,
+        });
       }
       break;
     case UITypes.Duration: {

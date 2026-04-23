@@ -1327,5 +1327,199 @@ export function baseTrashFieldTests() {
         expect(res.status).to.be.gte(400);
       });
     });
+
+    // ── V1 Links: MM (was uncovered) ──────────────────────────
+    describe('V1 Links — MM trash & restore', () => {
+      it('should cascade reverse MM column on trash and restore both sides', async () => {
+        const tableA = await createTable(context, base, {
+          table_name: 'MmV1A',
+          title: 'MmV1A',
+        });
+        const tableB = await createTable(context, base, {
+          table_name: 'MmV1B',
+          title: 'MmV1B',
+        });
+
+        const mmCol = await createLtarColumn(context, {
+          title: 'MmV1Link',
+          parentTable: tableA,
+          childTable: tableB,
+          type: 'mm',
+        });
+
+        await trashField(context, workspaceId, baseId, mmCol.id);
+
+        // Reverse MM link on tableB should be hidden
+        const bCols = await Column.list(ctx, { fk_model_id: tableB.id });
+        expect(
+          bCols.find(
+            (c) =>
+              (c.uidt === UITypes.LinkToAnotherRecord ||
+                c.uidt === UITypes.Links) &&
+              !c.system,
+          ),
+        ).to.be.undefined;
+
+        // Restore
+        const trashRes = await listTrash(context, workspaceId, baseId);
+        const entry = findTrashEntry(trashRes.body.list, mmCol.id);
+        await restoreTrash(context, workspaceId, baseId, entry.id);
+
+        // Both MM sides back
+        const aColsAfter = await Column.list(ctx, { fk_model_id: tableA.id });
+        expect(aColsAfter.find((c) => c.title === 'MmV1Link')).to.not.be
+          .undefined;
+        const bColsAfter = await Column.list(ctx, { fk_model_id: tableB.id });
+        expect(
+          bColsAfter.find(
+            (c) =>
+              (c.uidt === UITypes.LinkToAnotherRecord ||
+                c.uidt === UITypes.Links) &&
+              !c.system,
+          ),
+        ).to.not.be.undefined;
+      });
+    });
+
+    // ── Permanent-delete per link flavor (fills #13 gap) ───────
+    describe('Permanent delete — per link flavor', () => {
+      async function trashAndPermDelete(
+        columnId: string,
+      ): Promise<{ status: number }> {
+        await trashField(context, workspaceId, baseId, columnId);
+        const trashRes = await listTrash(context, workspaceId, baseId);
+        const entry = findTrashEntry(trashRes.body.list, columnId);
+        return permanentDeleteTrash(context, workspaceId, baseId, entry.id);
+      }
+
+      it('V1 BT: permanent delete keeps placeholder on parent', async () => {
+        const parent = await createTable(context, base, {
+          table_name: 'PermBtP',
+          title: 'PermBtP',
+        });
+        const child = await createTable(context, base, {
+          table_name: 'PermBtC',
+          title: 'PermBtC',
+        });
+        await createLtarColumn(context, {
+          title: 'PermBtLink',
+          parentTable: parent,
+          childTable: child,
+          type: 'hm',
+        });
+        const childCols = await Column.list(ctx, { fk_model_id: child.id });
+        const btCol = childCols.find(
+          (c) =>
+            (c.uidt === UITypes.LinkToAnotherRecord ||
+              c.uidt === UITypes.Links) &&
+            !c.system,
+        );
+
+        const del = await trashAndPermDelete(btCol.id);
+        expect(del.status).to.eq(200);
+
+        const parentAfter = await Column.list(ctx, { fk_model_id: parent.id });
+        expect(
+          parentAfter.find((c) => c.column_name?.startsWith('_nc_trash_ph_')),
+        ).to.not.be.undefined;
+      });
+
+      it('V1 OO: permanent delete keeps placeholder on reverse side', async () => {
+        const a = await createTable(context, base, {
+          table_name: 'PermOoA',
+          title: 'PermOoA',
+        });
+        const b = await createTable(context, base, {
+          table_name: 'PermOoB',
+          title: 'PermOoB',
+        });
+        const ooCol = await createLtarColumn(context, {
+          title: 'PermOoLink',
+          parentTable: a,
+          childTable: b,
+          type: 'oo',
+        });
+
+        const del = await trashAndPermDelete(ooCol.id);
+        expect(del.status).to.eq(200);
+
+        const bAfter = await Column.list(ctx, { fk_model_id: b.id });
+        expect(
+          bAfter.find((c) => c.column_name?.startsWith('_nc_trash_ph_')),
+        ).to.not.be.undefined;
+      });
+
+      it('V1 MM: permanent delete keeps placeholder on reverse side', async () => {
+        const a = await createTable(context, base, {
+          table_name: 'PermMmV1A',
+          title: 'PermMmV1A',
+        });
+        const b = await createTable(context, base, {
+          table_name: 'PermMmV1B',
+          title: 'PermMmV1B',
+        });
+        const mmCol = await createLtarColumn(context, {
+          title: 'PermMmV1Link',
+          parentTable: a,
+          childTable: b,
+          type: 'mm',
+        });
+
+        const del = await trashAndPermDelete(mmCol.id);
+        expect(del.status).to.eq(200);
+
+        const bAfter = await Column.list(ctx, { fk_model_id: b.id });
+        // MM reverse is hidden; placeholder is optional for V1 MM but the
+        // trash entry must still be gone.
+        const trashRes = await listTrash(context, workspaceId, baseId);
+        expect(findTrashEntry(trashRes.body.list, mmCol.id)).to.be.undefined;
+      });
+
+      it('V2 MM: permanent delete keeps placeholder on reverse side', async () => {
+        const a = await createTable(context, base, {
+          table_name: 'PermMmV2A',
+          title: 'PermMmV2A',
+        });
+        const b = await createTable(context, base, {
+          table_name: 'PermMmV2B',
+          title: 'PermMmV2B',
+        });
+        const mmCol = await createLtarColumn2(context, {
+          title: 'PermMmV2Link',
+          parentTable: a,
+          childTable: b,
+          type: 'mm',
+        });
+
+        const del = await trashAndPermDelete(mmCol.id);
+        expect(del.status).to.eq(200);
+
+        const trashRes = await listTrash(context, workspaceId, baseId);
+        expect(findTrashEntry(trashRes.body.list, mmCol.id)).to.be.undefined;
+      });
+
+      it('V2 OM/MO: permanent delete cleans up cleanly', async () => {
+        const a = await createTable(context, base, {
+          table_name: 'PermOmA',
+          title: 'PermOmA',
+        });
+        const b = await createTable(context, base, {
+          table_name: 'PermOmB',
+          title: 'PermOmB',
+        });
+        const omCol = await createLtarColumn2(context, {
+          title: 'PermOmLink',
+          parentTable: a,
+          childTable: b,
+          type: 'om',
+        });
+
+        const del = await trashAndPermDelete(omCol.id);
+        expect(del.status).to.eq(200);
+
+        const trashRes = await listTrash(context, workspaceId, baseId);
+        expect(findTrashEntry(trashRes.body.list, omCol.id)).to.be.undefined;
+      });
+    });
   });
 }

@@ -496,6 +496,7 @@ export class SyncModuleService implements OnModuleInit {
             {
               tableId: table.id,
               forceDeleteSyncs: true,
+              skipTrash: true,
               user: req.user,
               req,
             },
@@ -837,6 +838,7 @@ export class SyncModuleService implements OnModuleInit {
               await this.tablesService.tableDelete(context, {
                 tableId: model.id,
                 forceDeleteSyncs: true,
+                skipTrash: true,
                 user: req.user,
                 req,
               });
@@ -1137,6 +1139,7 @@ export class SyncModuleService implements OnModuleInit {
                 tableId: syncMapping.fk_model_id,
                 forceDeleteSyncs: true,
                 forceDeleteRelations: true,
+                skipTrash: true,
                 user: req.user,
                 req,
               },

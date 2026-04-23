@@ -152,6 +152,10 @@ export class BaseTrashService implements OnModuleInit {
       ncMeta?: MetaService;
     },
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
     const handler = this.getHandler(param.resourceType);
 
     const ncMeta = param.ncMeta
@@ -187,6 +191,10 @@ export class BaseTrashService implements OnModuleInit {
       req: NcRequest;
     },
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
     const trashEntry = await BaseTrash.get(context, param.trashId);
     if (!trashEntry) {
       NcError.get(context).trashNotFound(param.trashId);
@@ -233,6 +241,10 @@ export class BaseTrashService implements OnModuleInit {
       req: NcRequest;
     },
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
     const trashEntry = await BaseTrash.get(context, param.trashId);
     if (!trashEntry) {
       NcError.get(context).trashNotFound(param.trashId);
@@ -302,6 +314,10 @@ export class BaseTrashService implements OnModuleInit {
       req: NcRequest;
     },
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
     const batchSize = 100;
     let batch: BaseTrash[];
     let deleted = 0;

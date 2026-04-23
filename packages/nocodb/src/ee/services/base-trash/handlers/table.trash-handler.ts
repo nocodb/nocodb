@@ -99,6 +99,10 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
       NcError.get(ctx).tableNotFound(id);
     }
 
+    if (table.synced) {
+      NcError.get(ctx).invalidRequestBody('Synced tables cannot be deleted');
+    }
+
     const base = await Base.getWithInfo(ctx, table.base_id, true, ncMeta);
     const source = base.sources.find((s) => s.id === table.source_id);
 

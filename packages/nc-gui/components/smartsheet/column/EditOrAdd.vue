@@ -246,8 +246,14 @@ const uiFilters = (t: UiTypesType) => {
     formulaColumnTypeValid = [UITypes.SingleLineText].includes(t.name)
   }
 
-  // UUID is only supported for PostgreSQL databases
-  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
+  // UUID is only supported for PostgreSQL databases, and cannot be converted
+  // to from other types (values are DB-generated + unique — converting existing
+  // data would break both invariants; backend blocks this in columns.service.ts).
+  // When editing an existing UUID column, line 228 above already preserves the
+  // current type in the dropdown.
+  const showUUID =
+    t.name !== UITypes.UUID ||
+    (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value && !isEdit.value)
 
   // AutoNumber is only supported for PostgreSQL databases
   const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)

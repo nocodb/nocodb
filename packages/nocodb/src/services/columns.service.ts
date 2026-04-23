@@ -2351,6 +2351,19 @@ export class ColumnsService implements IColumnsService {
         }
       }
 
+      // Block conversion to UUID from any other type — UUID values are
+      // DB-generated (gen_random_uuid()) with a unique constraint; converting
+      // existing text/numeric values would violate both invariants (no backfill
+      // path, likely duplicates). UUID must be created as a fresh column.
+      if (
+        colBody.uidt === UITypes.UUID &&
+        column.uidt !== UITypes.UUID
+      ) {
+        NcError.get(context).badRequest(
+          `Cannot convert '${column.title}' to UUID. UUID values are auto-generated — create a new UUID column instead.`,
+        );
+      }
+
       // Block AutoNumber conversion on non-PG sources
       if (
         colBody.uidt === UITypes.AutoNumber &&

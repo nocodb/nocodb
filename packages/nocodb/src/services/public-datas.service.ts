@@ -372,7 +372,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
       view.type !== ViewTypes.CALENDAR &&
-      view.type !== ViewTypes.TIMELINE
+      view.type !== ViewTypes.TIMELINE &&
+      view.type !== ViewTypes.GANTT
     ) {
       NcError.get(context).notFound('Not found');
     }
@@ -458,7 +459,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
       view.type !== ViewTypes.CALENDAR &&
-      view.type !== ViewTypes.TIMELINE
+      view.type !== ViewTypes.TIMELINE &&
+      view.type !== ViewTypes.GANTT
     ) {
       NcError.notFound('Not found');
     }

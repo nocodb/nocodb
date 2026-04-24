@@ -64,7 +64,8 @@ export class PublicDatasService extends PublicDatasServiceCE {
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
       view.type !== ViewTypes.CALENDAR &&
-      view.type !== ViewTypes.TIMELINE
+      view.type !== ViewTypes.TIMELINE &&
+      view.type !== ViewTypes.GANTT
     ) {
       NcError.notFound('Not found');
     }

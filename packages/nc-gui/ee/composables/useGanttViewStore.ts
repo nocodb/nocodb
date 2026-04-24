@@ -260,8 +260,35 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
     const loadDependencyLinks = async () => {
       const range = ganttRange.value?.[0]
       const depCol = range?.fk_dependency_col as ColumnType | undefined
+      if (!depCol || !formattedData.value.length) {
+        dependencyLinks.value = new Map()
+        return
+      }
+
+      const pkCols = (meta.value?.columns ?? []) as ColumnType[]
+
+      // Shared view: no public nestedList endpoint. Derive the dep graph from
+      // the row data itself — LTAR fields ship as an array of linked records
+      // in the row payload (backend getAst includes depCol for Gantt views).
+      if (isPublic.value) {
+        const graph = new Map<string, string[]>()
+        for (const row of formattedData.value) {
+          const rowId = extractPkFromRow(row.row, pkCols)
+          if (rowId == null) continue
+          const linked = row.row[depCol.title!]
+          if (!Array.isArray(linked)) continue
+          const ids = linked
+            .map((r: any) => extractPkFromRow(r, pkCols))
+            .filter((id: any) => id != null)
+            .map((id: any) => String(id))
+          if (ids.length) graph.set(String(rowId), ids)
+        }
+        dependencyLinks.value = graph
+        return
+      }
+
       const tableId = meta.value?.id
-      if (!depCol || !tableId || !base.value?.id || !formattedData.value.length) {
+      if (!tableId || !base.value?.id) {
         dependencyLinks.value = new Map()
         return
       }
@@ -275,7 +302,6 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       // except 'hm' which has its own handler; cast to any to sidestep the
       // narrower SDK enum that predates 'om'.
       const relType = colType as any
-      const pkCols = (meta.value?.columns ?? []) as ColumnType[]
       const baseId = base.value.id
 
       const entries = await Promise.all(

@@ -25,6 +25,7 @@ import {
   Base,
   Column,
   Dashboard,
+  DateDependency,
   Model,
   Permission,
   Workspace,
@@ -60,6 +61,50 @@ export class PublicMetasService extends PublicMetasServiceCE {
         view,
         workspace,
       );
+    }
+
+    // Gantt reads its range from the table-level DateDependency (not from a
+    // per-view config). Attach it to view.model so the shared-view frontend
+    // can render arrows and bars. Without this, Gantt falls back to the empty
+    // state ("Date Dependencies are not configured for this table").
+    if (view.type === ViewTypes.GANTT && view.model) {
+      const dep = await DateDependency.getByModelId(context, view.model.id);
+      view.model.date_dependency = dep;
+
+      const columnsById = (view.model as any).columnsById ?? {};
+      const existingIds = new Set(
+        ((view.model.columns as any[]) || []).map((c) => c.id),
+      );
+
+      // Helper: insert a raw column (by id) into view.model.columns if missing.
+      const ensureColumn = (colId?: string | null) => {
+        if (!colId || existingIds.has(colId)) return;
+        const rawCol = columnsById[colId];
+        if (!rawCol) return;
+        const viewCol = (view.columns || []).find(
+          (c) => c.fk_column_id === colId,
+        );
+        (view.model.columns as any[]).push(
+          new Column({ ...(viewCol || {}), ...rawCol } as any),
+        );
+        existingIds.add(colId);
+      };
+
+      // The CE column filter is meant to keep PK via `column.pk ||` but that
+      // doesn't always fire (legacy view column configs, unset pk flag). The
+      // Gantt frontend needs PK to identify rows for the dep graph — guarantee
+      // every pk column from the raw model is present.
+      for (const rawCol of Object.values<any>(columnsById)) {
+        if (rawCol?.pk) ensureColumn(rawCol.id);
+      }
+
+      // The CE filter also strips the range/dep-link columns if they aren't
+      // show=true. Merge those back so ganttRange can resolve them.
+      if (dep) {
+        ensureColumn(dep.fk_start_date_field_id);
+        ensureColumn(dep.fk_end_date_field_id);
+        ensureColumn(dep.fk_dependency_linkrow_field_id);
+      }
     }
 
     // List view: load level table metas and merge level table columns into view.model.columns

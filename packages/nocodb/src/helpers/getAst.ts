@@ -152,6 +152,31 @@ const getAst = async (
         )
         .map(String);
     }
+  } else if (view && view.type === ViewTypes.GANTT) {
+    // Gantt consumes the table-level DateDependency (EE-only). The start/end
+    // date and dep-link columns often aren't "shown" on the view, so we
+    // augment the range-field list the same way Calendar does — forces them
+    // through the allowedCols gate below. `require('~/models')` resolves to
+    // CE or EE models by the build's path alias; DateDependency is only
+    // exported in EE, so this block is a no-op in CE.
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { DateDependency } = require('~/models');
+      if (DateDependency?.getByModelId) {
+        const dep = await DateDependency.getByModelId(context, model.id);
+        if (dep && dep.is_active !== false) {
+          dependencyFieldsForCalenderView = [
+            dep.fk_start_date_field_id,
+            dep.fk_end_date_field_id,
+            dep.fk_dependency_linkrow_field_id,
+          ]
+            .filter(Boolean)
+            .map(String);
+        }
+      }
+    } catch {
+      // CE build — Gantt view is unreachable anyway
+    }
   }
 
   if (view && includeSortAndFilterColumns) {

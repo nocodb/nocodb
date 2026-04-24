@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { NcApiVersion } from 'nocodb-sdk';
 import { BasesV3Service as BasesV3ServiceCE } from 'src/services/v3/bases-v3.service';
-import type { NcContext } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
 import { checkForFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
+import { getPatResourceFilter } from '~/helpers/patResourceFilter';
 import { Base } from '~/models';
 import { BasesService } from '~/services/bases.service';
 
@@ -19,13 +20,22 @@ export class BasesV3Service extends BasesV3ServiceCE {
       user: { id: string; roles?: string | Record<string, boolean> };
       query?: any;
       workspaceId: string;
+      req?: NcRequest;
     },
   ) {
     const bases = await Base.listByWorkspaceAndUser(
       param.workspaceId,
       param.user.id,
     );
-    return bases;
+
+    const patFilter = await getPatResourceFilter(param.req);
+    if (!patFilter) return bases;
+
+    return bases.filter(
+      (b: any) =>
+        patFilter.baseIds.includes(b.id) ||
+        patFilter.workspaceIds.includes(b.fk_workspace_id),
+    );
   }
 
   override async parseBaseRequest(

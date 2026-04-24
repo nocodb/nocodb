@@ -52,6 +52,7 @@ export class BasesService {
     param: {
       user: { id: string; roles?: string | Record<string, boolean> };
       query?: any;
+      req?: NcRequest;
     },
   ) {
     const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]

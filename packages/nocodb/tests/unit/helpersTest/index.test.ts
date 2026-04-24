@@ -9,6 +9,7 @@ let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
 let verifyDefaultOrgTests = () => {};
 let mfaHelperTests = () => {};
+let patResourceFilterTest = () => {};
 if (process.env.EE === 'true') {
   dashboardV3ConfigTransformTest =
     require('./ee/dashboardV3ConfigTransform.test').dashboardV3ConfigTransformTest;
@@ -17,6 +18,8 @@ if (process.env.EE === 'true') {
   verifyDefaultOrgTests =
     require('./ee/verifyDefaultOrg.test').verifyDefaultOrgTests;
   mfaHelperTests = require('./mfa.test').mfaHelperTests;
+  patResourceFilterTest =
+    require('./patResourceFilter.test').patResourceFilterTest;
 }
 
 function _helperTests() {
@@ -29,6 +32,7 @@ function _helperTests() {
   mfaHelperTests();
   describe('PublicDatasService - shared view column sanitization', publicDatasSanitizeTest);
   apiTokenPermissionTest();
+  patResourceFilterTest();
   verifyDefaultOrgTests();
 }
 export const helperTests = runOnSet(1, function () {

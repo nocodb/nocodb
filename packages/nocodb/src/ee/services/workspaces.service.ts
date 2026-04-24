@@ -46,6 +46,7 @@ import {
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractProps } from '~/helpers/extractProps';
+import { getPatResourceFilter } from '~/helpers/patResourceFilter';
 import { BasesService } from '~/services/bases.service';
 import { TablesService } from '~/services/tables.service';
 import Noco from '~/Noco';
@@ -186,6 +187,31 @@ export class WorkspacesService implements OnApplicationBootstrap {
         // fk_org_id: param.user.extra?.org_id,
         // fk_workspace_id: param.user.extra?.workspace_id,
       });
+    }
+
+    // Filter by fine-grained API token scopes, if present.
+    const patFilter = await getPatResourceFilter(param.req);
+
+    if (patFilter) {
+      // Allowed workspaces: explicit workspace scopes + workspaces derived
+      // from base scopes (user can discover workspaces containing scoped bases).
+      const allowedWsIds = new Set(patFilter.workspaceIds);
+
+      // Iterate user's workspaces and check if any scoped base belongs there.
+      // Avoids extra DB query — we already have Base.get cache for base lookup,
+      // but comparing workspace IDs directly against the already-loaded list
+      // is cheaper when we only need IDs.
+      if (patFilter.baseIds.length) {
+        for (const baseId of patFilter.baseIds) {
+          const base = await Base.get(
+            { workspace_id: 'bypass', base_id: 'bypass' } as any,
+            baseId,
+          );
+          if (base?.fk_workspace_id) allowedWsIds.add(base.fk_workspace_id);
+        }
+      }
+
+      workspaces = workspaces.filter((w: any) => allowedWsIds.has(w.id));
     }
 
     return new PagedResponseImpl<WorkspaceType>(workspaces, {

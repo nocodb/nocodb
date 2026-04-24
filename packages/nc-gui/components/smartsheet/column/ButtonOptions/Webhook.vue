@@ -91,13 +91,16 @@ watch(isWebhookModal, (newVal) => {
         Docs
       </a>
     </div>
+    <div class="text-small leading-5 text-nc-content-gray-muted mb-2">
+      {{ $t('tooltip.runWebhookAutomationButtonOption') }}
+    </div>
     <div class="flex rounded-lg">
       <NcDropdown v-model:visible="isWebHookSelectionDropdownOpen" :trigger="['click']">
         <template #overlay>
           <NcListWithSearch
             v-if="isWebHookSelectionDropdownOpen"
             :is-parent-open="isWebHookSelectionDropdownOpen"
-            :search-input-placeholder="$t('placeholder.searchFields')"
+            :search-input-placeholder="$t('placeholder.searchWebhook')"
             :option-config="{ selectOptionEvent: ['c:actions:webhook'], optionClassName: '' }"
             :options="manualHooks"
             :selected-option-id="selectedWebhook?.id"

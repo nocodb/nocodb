@@ -57,8 +57,13 @@ const bases = useBases()
 
 const { openedProject } = storeToRefs(bases)
 
-if (showEEFeatures.value) {
-  await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
+// Webhook buttons are available in OSS and are a lightweight automation primitive:
+// clicking a row button can trigger NocoDB/n8n/Zapier/Make/custom workflows.
+// Keep script loading behind the EE UI gate because the OSS script store/model are stubs.
+await loadHooksList()
+
+if (isEeUI && showEEFeatures.value) {
+  await loadScripts({ baseId: openedProject.value!.id, force: true })
 }
 
 const { activeBaseScripts } = toRefs(scriptStore)
@@ -92,9 +97,10 @@ const buttonTypes = computed(() => [
     value: ButtonActionsType.Url,
   },
   {
-    label: t('labels.runWebHook'),
+    label: t('labels.runWebhookAutomation'),
     value: ButtonActionsType.Webhook,
     icon: 'ncWebhook',
+    tooltip: t('tooltip.runWebhookAutomationButtonOption'),
   },
   ...(isAiButtonEnabled.value && showEEFeatures.value
     ? [

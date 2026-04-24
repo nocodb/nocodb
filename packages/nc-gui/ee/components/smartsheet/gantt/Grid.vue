@@ -265,6 +265,13 @@ const canDrag = computed(() => {
   return true
 })
 
+// Can drag a milestone (end-date-only record) — only needs end-date edit
+// permission, since there's no start date to shift.
+const canDragMilestone = computed(() => {
+  if (!isRangeEditable.value) return false
+  return canEditToCol.value
+})
+
 // Can resize left handle (start date)
 const canResizeLeft = computed(() => isRangeEditable.value && canEditFromCol.value)
 
@@ -315,7 +322,17 @@ const onDrag = (event: MouseEvent) => {
   const ogStartDate = parseDate(dragRecord.value, fromCol)
   const ogEndDate = toCol ? parseDate(dragRecord.value, toCol) : null
 
-  if (!ogStartDate) return
+  // Milestone path: no start date, only shift end date
+  if (!ogStartDate) {
+    if (!ogEndDate || !toCol?.title) return
+    const isDateOnly = toCol.uidt === UITypes.Date
+    const dateFormat = isDateOnly ? 'YYYY-MM-DD' : updateFormat.value
+    const newEnd = ogEndDate.add(dayDelta, 'day')
+    dragRecord.value.row[toCol.title] = isDateOnly ? newEnd.format('YYYY-MM-DD') : newEnd.format(dateFormat)
+    dragStartDayIndex.value = currentDayIdx
+    useDebouncedRowUpdate(dragRecord.value, [toCol.title], false)
+    return
+  }
 
   const isDateOnly = fromCol.uidt === UITypes.Date
   const dateFormat = isDateOnly ? 'YYYY-MM-DD' : updateFormat.value
@@ -359,7 +376,8 @@ const onDragEnd = () => {
 }
 
 const onDragStart = (event: MouseEvent, record: RowType) => {
-  if (!canDrag.value) return
+  const milestone = isMilestone(record)
+  if (milestone ? !canDragMilestone.value : !canDrag.value) return
 
   // Use a short hold delay (200ms) to distinguish drag from click
   const startDayIdx = getDayIndexFromEvent(event)
@@ -764,6 +782,58 @@ const arrowPaths = computed<ArrowPath[]>(() => {
 const selectedArrowId = ref<string | null>(null)
 const canEditDeps = computed(() => !props.ganttRange[0]?.is_readonly && isUIAllowed('dataEdit'))
 
+// Hover-highlight: when a milestone is hovered, trace the transitive closure
+// of connected records (both upstream + downstream) so the user can see the
+// entire dependency chain that touches this milestone.
+const highlightedRecordId = ref<string | null>(null)
+
+const setHighlightFromRecord = (record: RowType) => {
+  const pkCols = (meta.value?.columns ?? []) as ColumnType[]
+  const id = extractPkFromRow(record.row, pkCols)
+  highlightedRecordId.value = id != null ? String(id) : null
+}
+
+const clearHighlight = () => {
+  highlightedRecordId.value = null
+}
+
+// Set of row IDs reachable from the hovered record through dependency links
+// in either direction. dependencyLinks stores A → successors[A]; we build a
+// reverse index once and BFS both ways.
+const highlightedRowIds = computed<Set<string>>(() => {
+  const id = highlightedRecordId.value
+  if (!id) return new Set()
+  const links = dependencyLinks?.value
+  if (!links?.size) return new Set([id])
+
+  const reverse = new Map<string, string[]>()
+  links.forEach((successors, predecessor) => {
+    for (const succ of successors) {
+      const arr = reverse.get(succ) ?? []
+      arr.push(predecessor)
+      reverse.set(succ, arr)
+    }
+  })
+
+  const visited = new Set<string>()
+  const queue = [id]
+  while (queue.length) {
+    const current = queue.shift()!
+    if (visited.has(current)) continue
+    visited.add(current)
+    for (const next of links.get(current) ?? []) if (!visited.has(next)) queue.push(next)
+    for (const prev of reverse.get(current) ?? []) if (!visited.has(prev)) queue.push(prev)
+  }
+  return visited
+})
+
+const isRecordHighlighted = (record: RowType) => {
+  if (!highlightedRowIds.value.size) return false
+  const pkCols = (meta.value?.columns ?? []) as ColumnType[]
+  const id = extractPkFromRow(record.row, pkCols)
+  return id != null && highlightedRowIds.value.has(String(id))
+}
+
 const selectArrow = (id: string, event?: MouseEvent) => {
   if (!canEditDeps.value) return
   event?.stopPropagation()
@@ -984,6 +1054,11 @@ const getBarTooltip = (row: RowType) => {
 
   const startDate = parseDate(row, range.fk_from_col)
   const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
+
+  // Milestone: end date only, show the single date
+  if (!startDate && endDate) {
+    return endDate.format('MMM D, YYYY')
+  }
 
   if (!startDate) return ''
 
@@ -1458,6 +1533,17 @@ const onGridMouseLeave = () => {
             >
               <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-content-red-dark, #b91c1c)" />
             </marker>
+            <marker
+              id="nc-gantt-arrow-head-highlighted"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--color-green-600)" />
+            </marker>
           </defs>
           <g v-for="arrow in arrowPaths" :key="arrow.id">
             <!-- Transparent wide hit target for click selection. Uses
@@ -1481,14 +1567,24 @@ const onGridMouseLeave = () => {
               :stroke="
                 selectedArrowId === arrow.id
                   ? 'var(--nc-content-red-dark, #b91c1c)'
+                  : highlightedRowIds.has(arrow.rowId) && highlightedRowIds.has(arrow.linkedId)
+                  ? 'var(--color-green-600)'
                   : 'var(--nc-border-gray-extra-dark, #9aa2af)'
               "
-              :stroke-width="selectedArrowId === arrow.id ? 2 : 1.25"
+              :stroke-width="
+                selectedArrowId === arrow.id
+                  ? 2
+                  : highlightedRowIds.has(arrow.rowId) && highlightedRowIds.has(arrow.linkedId)
+                  ? 1.75
+                  : 1.25
+              "
               stroke-linejoin="round"
               class="pointer-events-none"
               :marker-end="
                 selectedArrowId === arrow.id
                   ? 'url(#nc-gantt-arrow-head-selected)'
+                  : highlightedRowIds.has(arrow.rowId) && highlightedRowIds.has(arrow.linkedId)
+                  ? 'url(#nc-gantt-arrow-head-highlighted)'
                   : 'url(#nc-gantt-arrow-head)'
               "
             />
@@ -1530,44 +1626,62 @@ const onGridMouseLeave = () => {
             <!-- Bars in this lane (skip records without valid dates — sidebar still shows them) -->
             <template v-for="({ record, colorIndex }, barIdx) in lane" :key="colorIndex">
             <!-- Milestone: end-date-only record rendered as a diamond marker -->
-            <div
+            <NcTooltip
               v-if="isMilestone(record) && getMilestoneStyle(record)"
-              class="nc-gantt-milestone absolute cursor-pointer group peer"
+              :disabled="isInteracting"
+              placement="top"
+              class="nc-gantt-milestone absolute peer"
+              :class="{
+                'cursor-grabbing': dragInProgress && dragRecord === record && canDragMilestone,
+                'cursor-grab': !isInteracting && canDragMilestone,
+                'cursor-pointer': !isInteracting && !canDragMilestone,
+                'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
+                'z-100': isInteracting && interactionRecord === record,
+              }"
               :style="{
                 ...getMilestoneStyle(record),
                 top: `${(ROW_HEIGHT - MILESTONE_SIZE) / 2}px`,
                 height: `${MILESTONE_SIZE}px`,
               }"
-              :data-lane="laneIdx"
-              :data-bar="barIdx"
-              data-testid="nc-gantt-bar"
-              :data-unique-id="record.rowMeta?.id"
-              role="button"
-              tabindex="0"
-              @click="!isInteracting && !justFinishedResize && emit('expandRecord', record)"
-              @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
-              @mousedown.stop
             >
+              <template #title>
+                <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
+              </template>
               <div
-                class="nc-gantt-milestone-shape absolute bg-nc-bg-default"
-                :style="{
-                  top: '50%',
-                  left: '50%',
-                  width: `${MILESTONE_INNER}px`,
-                  height: `${MILESTONE_INNER}px`,
-                  transform: 'translate(-50%, -50%) rotate(45deg)',
-                  border: '1px solid var(--nc-border-gray-dark)',
-                  borderRadius: '3px',
-                }"
-              />
-              <!-- Label to the right of the diamond, vertically centered via flex -->
-              <div
-                class="absolute top-0 bottom-0 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none"
-                :style="{ left: `${MILESTONE_SIZE + 6}px` }"
+                class="relative w-full h-full"
+                :data-lane="laneIdx"
+                :data-bar="barIdx"
+                data-testid="nc-gantt-bar"
+                :data-unique-id="record.rowMeta?.id"
+                role="button"
+                tabindex="0"
+                @click="!isInteracting && !justFinishedResize && emit('expandRecord', record)"
+                @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
+                @mousedown.stop="onDragStart($event, record)"
+                @mouseenter="setHighlightFromRecord(record)"
+                @mouseleave="clearHighlight()"
               >
-                {{ primaryField ? record.row[primaryField.title!] ?? '' : '' }}
+                <div
+                  class="nc-gantt-milestone-shape absolute bg-nc-bg-default"
+                  :style="{
+                    top: '50%',
+                    left: '50%',
+                    width: `${MILESTONE_INNER}px`,
+                    height: `${MILESTONE_INNER}px`,
+                    transform: 'translate(-50%, -50%) rotate(45deg)',
+                    border: `1px solid ${isRecordHighlighted(record) ? 'var(--color-green-600)' : 'var(--nc-border-gray-dark)'}`,
+                    borderRadius: '3px',
+                  }"
+                />
+                <!-- Label to the right of the diamond, vertically centered via flex -->
+                <div
+                  class="absolute top-0 bottom-0 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none"
+                  :style="{ left: `${MILESTONE_SIZE + 6}px` }"
+                >
+                  {{ primaryField ? record.row[primaryField.title!] ?? '' : '' }}
+                </div>
               </div>
-            </div>
+            </NcTooltip>
             <!-- Dependency handle for milestones — anchored at the diamond's right tip -->
             <div
               v-if="isMilestone(record) && getMilestoneStyle(record) && ganttRange[0]?.fk_dependency_col && !isInteracting && canEditDeps"
@@ -1608,6 +1722,7 @@ const onGridMouseLeave = () => {
                 :style="{
                   height: `${ROW_HEIGHT - 8}px`,
                   ...getRowColorStyle(record).rowBgColor,
+                  ...(isRecordHighlighted(record) ? { borderColor: 'var(--color-green-600)' } : {}),
                 }"
                 :data-lane="laneIdx"
                 :data-bar="barIdx"

@@ -1283,7 +1283,7 @@ const onGridMouseLeave = () => {
                 <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
               </template>
               <div
-                class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group w-full relative overflow-hidden"
+                class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group peer w-full relative overflow-hidden"
                 :class="{
                   'cursor-grabbing': dragInProgress && dragRecord === record && canDrag,
                   'cursor-grab': !isInteracting && canDrag,
@@ -1387,6 +1387,22 @@ const onGridMouseLeave = () => {
                   </div>
                 </div>
               </div>
+              <!-- Dependency handle — sibling to the bar (peer) so it can
+                   straddle the bar's bottom-right edge without being clipped
+                   by the bar's overflow-hidden. Centered on the connector
+                   exit point at (bar_right - EXIT_INSET, bar_bottom). Shows
+                   when bar is hovered; grows slightly when handle itself
+                   is hovered. Translate + scale live in scoped CSS so we
+                   can compose them cleanly. -->
+              <div
+                v-if="ganttRange[0]?.fk_dependency_col && !isInteracting"
+                class="nc-gantt-dep-handle absolute w-2.5 h-2.5 rounded-full bg-nc-bg-default opacity-0 peer-hover:opacity-100 hover:!opacity-100"
+                style="
+                  left: calc(100% - 10px);
+                  bottom: 0;
+                  border: 1.25px solid var(--nc-content-gray-muted, #6a7184);
+                "
+              />
             </NcTooltip>
             </template>
           </div>
@@ -1466,6 +1482,19 @@ const onGridMouseLeave = () => {
 /* Slightly round inward edge for right handle */
 .nc-gantt-resize-handle--right {
   border-radius: 0 4px 4px 0;
+}
+
+/* Dependency handle — translate centers it on the connector exit point;
+   scale grows it slightly on direct hover (affordance for drag-to-link). */
+.nc-gantt-dep-handle {
+  transform: translate(-50%, 50%) scale(1);
+  transform-origin: center;
+  transition: transform 120ms ease, opacity 120ms ease, border-width 120ms ease;
+  cursor: crosshair;
+}
+
+.nc-gantt-dep-handle:hover {
+  transform: translate(-50%, 50%) scale(1.4);
 }
 
 /* Neutral bar shadow matching calendar RecordCard */

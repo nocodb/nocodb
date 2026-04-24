@@ -1,253 +1,605 @@
-<script setup lang="ts">
+<!--
+  TEMPORARY CLONE — duplicated from Timeline on 2026-04-24.
+  Rename pass: timeline → gantt. To be consolidated into components/smartsheet/shared/
+  once Gantt is feature-frozen.
+  Bug-fix discipline: until then, any fix applied here MUST be double-applied to the
+  Timeline counterpart (and vice versa). See plan.md Phase 4 "Consolidation pass".
+-->
+<script lang="ts" setup>
 import dayjs from 'dayjs'
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { Row as RowType } from '#imports'
 
-const ROW_LIMIT = 500
+const meta = inject(MetaInj, ref())
 
-const { $api } = useNuxtApp()
+const view = inject(ActiveViewInj, ref())
+
+const { isMobileMode } = useGlobal()
+
+const { $e } = useNuxtApp()
+
+const isPublic = inject(IsPublicInj, ref(false))
 
 const { t } = useI18n()
 
-const meta = inject(MetaInj, ref<TableType | undefined>())
-const activeView = inject(ActiveViewInj, ref<ViewType | undefined>())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const baseStore = useBase()
-const { base } = storeToRefs(baseStore)
+// When the left sidebar is open, show toolbar buttons as icon-only with tooltips
+const isToolbarIconMode = computed(() => isLeftSidebarOpen.value)
 
-const records = ref<any[]>([])
-const totalRows = ref(0)
-const isLoading = ref(false)
+provide(IsToolbarIconMode, isToolbarIconMode)
+provide(IsFormInj, ref(false))
+provide(IsGalleryInj, ref(false))
+provide(IsGridInj, ref(false))
+provide(IsKanbanInj, ref(false))
+provide(IsCalendarInj, ref(false))
+provide(IsGanttInj, ref(true))
 
-const scrollRef = ref<HTMLElement | null>(null)
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
-const ganttRange = computed<any>(() => {
-  const range = (activeView.value as any)?.view?.gantt_range?.[0]
-  return range || {}
-})
+const {
+  ganttRange,
+  formattedData,
+  isGanttDataLoading,
+  loadGanttData,
+  visibleDates,
+  dateRangeLabel,
+  zoomLevel,
+  navigateNext,
+  navigatePrev,
+  goToToday,
+  goToDate,
+  setZoomLevel,
+  currentDate,
+  totalRecordCount,
+  recordsWithoutDates,
+  navigateToClosestRecord,
+  updateFormat,
+} = useGanttViewStoreOrThrow()
 
-const dateColumns = computed<ColumnType[]>(() => {
-  return (meta.value?.columns || []).filter((c) =>
-    [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(c.uidt as UITypes),
-  )
-})
+// Group-by support (provided by parent Smartsheet.vue via useProvideViewGroupBy)
+const { isGroupBy, rootGroup, groupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage } =
+  useViewGroupByOrThrow()
 
-const startColumn = computed<ColumnType | undefined>(() => {
-  const fromRange = meta.value?.columns?.find((c) => c.id === ganttRange.value.fk_start_col_id)
-  return fromRange || dateColumns.value[0]
-})
+const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
-const endColumn = computed<ColumnType | undefined>(() => {
-  const fromRange = meta.value?.columns?.find((c) => c.id === ganttRange.value.fk_end_col_id)
-  return fromRange || dateColumns.value[1] || dateColumns.value[0]
-})
+const router = useRouter()
+const route = useRoute()
 
-const primaryColumn = computed(() => meta.value?.columns?.find((c) => c.pv))
-
-const rowsWithDates = computed(() => {
-  if (!startColumn.value) return []
-  return records.value
-    .map((r) => {
-      const startVal = r[startColumn.value!.title!]
-      const endVal = endColumn.value ? r[endColumn.value.title!] : startVal
-      if (!startVal) return null
-      const start = dayjs(startVal)
-      const end = dayjs(endVal || startVal)
-      if (!start.isValid()) return null
-      return {
-        row: r,
-        title: primaryColumn.value ? r[primaryColumn.value.title!] ?? '(untitled)' : '(untitled)',
-        start,
-        end: end.isValid() && end.isAfter(start) ? end : start,
-      }
-    })
-    .filter((x): x is Exclude<typeof x, null> => x !== null)
-})
-
-const axisRange = computed(() => {
-  const first = rowsWithDates.value[0]
-  if (!first) {
-    return { min: dayjs().startOf('month'), max: dayjs().endOf('month').add(1, 'month') }
-  }
-  let min = first.start
-  let max = first.end
-  for (const r of rowsWithDates.value) {
-    if (r.start.isBefore(min)) min = r.start
-    if (r.end.isAfter(max)) max = r.end
-  }
-  return { min: min.startOf('week'), max: max.endOf('week').add(1, 'day') }
-})
-
-const totalDays = computed(() => Math.max(1, axisRange.value.max.diff(axisRange.value.min, 'day')))
-
-const dayColWidth = 24
-
-const headerMonths = computed(() => {
-  const months: { label: string; widthDays: number }[] = []
-  let cursor = axisRange.value.min.startOf('month')
-  while (cursor.isBefore(axisRange.value.max)) {
-    const next = cursor.add(1, 'month').startOf('month')
-    const windowStart = cursor.isBefore(axisRange.value.min) ? axisRange.value.min : cursor
-    const windowEnd = next.isAfter(axisRange.value.max) ? axisRange.value.max : next
-    months.push({
-      label: cursor.format('MMM YYYY'),
-      widthDays: windowEnd.diff(windowStart, 'day'),
-    })
-    cursor = next
-  }
-  return months
-})
-
-const timelineWidth = computed(() => totalDays.value * dayColWidth)
-
-const todayLeft = computed(() => {
-  const today = dayjs()
-  if (today.isBefore(axisRange.value.min) || today.isAfter(axisRange.value.max)) return null
-  return today.diff(axisRange.value.min, 'day') * dayColWidth
-})
-
-const statusMsg = computed(() => {
-  if (isLoading.value) return ''
-  if (!dateColumns.value.length) return t('msg.info.ganttAddDateField')
-  if (!records.value.length) return t('msg.info.ganttNoRecords')
-  if (!rowsWithDates.value.length) {
-    return t('msg.info.ganttNoStartDate', { field: startColumn.value?.title || 'start date' })
-  }
-  if (totalRows.value > ROW_LIMIT) {
-    return t('msg.info.ganttRowLimitReached', { limit: ROW_LIMIT, total: totalRows.value })
-  }
-  return ''
-})
-
-function barStyle(r: { start: dayjs.Dayjs; end: dayjs.Dayjs }) {
-  const left = Math.max(0, r.start.diff(axisRange.value.min, 'day')) * dayColWidth
-  const durationDays = Math.max(1, r.end.diff(r.start, 'day'))
-  const width = durationDays * dayColWidth
-  return { left: `${left}px`, width: `${width}px` }
-}
-
-async function loadRecords() {
-  if (!activeView.value?.id || !meta.value?.id || !base.value?.id) return
-  isLoading.value = true
-  try {
-    const res: any = await $api.dbViewRow.list(
-      'noco',
-      base.value.id,
-      meta.value.id,
-      activeView.value.id as string,
-      { limit: ROW_LIMIT, offset: 0 } as any,
-    )
-    records.value = res?.list || []
-    totalRows.value = res?.pageInfo?.totalRows ?? records.value.length
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isLoading.value = false
-  }
-}
-
-function goToToday() {
-  const el = scrollRef.value
-  if (!el) return
-  const todayOffset = dayjs().diff(axisRange.value.min, 'day') * dayColWidth
-  el.scrollTo({ left: Math.max(0, todayOffset - el.clientWidth / 2), behavior: 'smooth' })
-}
-
-watch(
-  [() => activeView.value?.id, () => meta.value?.id, () => base.value?.id],
-  () => {
-    loadRecords()
+const expandedFormOnRowIdDlg = computed({
+  get() {
+    return !!route.query.rowId
   },
-  { immediate: true },
+  set(value) {
+    if (!value) {
+      router.push({
+        query: {
+          ...route.query,
+          rowId: undefined,
+        },
+      })
+    }
+  },
+})
+
+const expandedFormDlg = ref(false)
+const expandedFormRow = ref<RowType>()
+const expandedFormRowState = ref<Record<string, any>>()
+
+const expandRecord = (row: RowType, state?: Record<string, any>) => {
+  const rowId = extractPkFromRow(row.row, meta.value!.columns!)
+
+  expandedFormRowState.value = state
+
+  $e('a:gantt:expand-record')
+
+  if (rowId && !isPublic.value) {
+    router.push({
+      query: {
+        ...route.query,
+        rowId,
+      },
+    })
+  } else {
+    expandedFormRow.value = row
+    expandedFormDlg.value = true
+  }
+}
+
+// #12: Create a new record with pre-filled start/end dates from drag-to-create
+const onNewRecord = (startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
+  const range = ganttRange.value?.[0]
+  if (!range?.fk_from_col?.title) return
+
+  $e('c:gantt:new-record', { zoomLevel: zoomLevel.value })
+
+  const row: Record<string, any> = {
+    [range.fk_from_col.title]: startDate.format(updateFormat.value),
+  }
+  if (range.fk_to_col?.title) {
+    row[range.fk_to_col.title] = endDate.format(updateFormat.value)
+  }
+
+  expandRecord({ row, oldRow: {}, rowMeta: { new: true } })
+}
+
+// Floating "+" button — create a new record with start date set to the median visible date
+const onFloatingNewRecord = () => {
+  const range = ganttRange.value?.[0]
+  if (!range?.fk_from_col?.title) return
+
+  $e('c:gantt:new-record-btn', { zoomLevel: zoomLevel.value })
+
+  const midIdx = Math.floor(visibleDates.value.length / 2)
+  const medianDate = visibleDates.value[midIdx] ?? visibleDates.value[0]
+  if (!medianDate) return
+
+  const row: Record<string, any> = {
+    [range.fk_from_col.title]: medianDate.format(updateFormat.value),
+  }
+  if (range.fk_to_col?.title) {
+    row[range.fk_to_col.title] = medianDate.format(updateFormat.value)
+  }
+
+  expandRecord({ row, oldRow: {}, rowMeta: { new: true } })
+}
+
+const reloadData = async () => {
+  if (isGroupBy.value) {
+    isViewDataLoading.value = true
+    isPaginationLoading.value = true
+    try {
+      await loadGroups({}, rootGroup.value)
+    } finally {
+      isViewDataLoading.value = false
+      isPaginationLoading.value = false
+    }
+  } else {
+    await loadGanttData()
+  }
+}
+
+onMounted(async () => {
+  await reloadData()
+  navigateToClosestRecord()
+})
+
+const reloadViewDataListener = async () => {
+  await reloadData()
+}
+
+reloadViewDataHook?.on(reloadViewDataListener)
+
+onBeforeUnmount(() => {
+  reloadViewDataHook?.off(reloadViewDataListener)
+})
+
+// Watch for date/zoom/range changes and reload data
+// ganttRange is critical: it may be empty on mount (view data loads async)
+// and gets populated later when activeView.view.gantt_range arrives
+watch([currentDate, zoomLevel, ganttRange], () => {
+  reloadData()
+})
+
+// When group-by is toggled on/off, reload with appropriate strategy
+watch(isGroupBy, () => {
+  reloadData()
+})
+
+// When group-by fields change, reload data
+watch(
+  groupBy,
+  () => {
+    if (isGroupBy.value) {
+      reloadData()
+    }
+  },
+  { deep: true },
 )
+
+// --- Shared date header for grouped layout ---
+const GROUP_SIDEBAR_WIDTH = TIMELINE_GROUP_SIDEBAR_WIDTH
+const GROUP_HEADER_HEIGHT = TIMELINE_GROUP_HEADER_HEIGHT
+const groupHeaderRef = ref<HTMLElement | null>(null)
+const { width: groupHeaderWidth } = useElementSize(groupHeaderRef)
+
+const groupColWidth = computed(() => {
+  if (!groupHeaderWidth.value || !visibleDates.value.length) return 120
+  return groupHeaderWidth.value / visibleDates.value.length
+})
+
+// Label for the "Grouped by" sidebar header
+const groupByFieldLabel = computed(() => {
+  if (!groupBy.value?.length) return ''
+  if (groupBy.value.length > 1) return t('msg.ganttGroupByFields', { count: groupBy.value.length })
+  return groupBy.value[0]?.column?.title || ''
+})
+
+// #18: Reactive today
+const today = ref(dayjs())
+const isToday = (date: dayjs.Dayjs) => date.isSame(today.value, 'day')
+const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
+
+// #7: Date picker dropdown
+const datePickerVisible = ref(false)
+const pageDate = ref(dayjs())
+
+// Keep pageDate in sync with currentDate when navigating
+watch(currentDate, (val) => {
+  pageDate.value = val
+})
+
+const onDatePickerSelect = (date: dayjs.Dayjs) => {
+  goToDate(date)
+  datePickerVisible.value = false
+  $e('c:gantt:date-picker', { zoomLevel: zoomLevel.value })
+}
+
+// #3: Record count badge text
+const recordCountLabel = computed(() => {
+  const total = totalRecordCount.value
+  const noDate = recordsWithoutDates.value
+  if (noDate > 0) {
+    return t('msg.ganttRecordsCountWithMissing', { total, noDate })
+  }
+  return total > 0 ? t('msg.ganttRecordsCount', { total }) : ''
+})
 </script>
 
 <template>
-  <div class="nc-gantt-view flex h-full flex-col bg-white" data-testid="nc-gantt-wrapper">
-    <div
-      class="nc-gantt-toolbar flex items-center gap-3 px-3 py-2 border-b border-nc-border-gray-medium text-sm"
-      data-testid="nc-gantt-toolbar"
-    >
-      <div class="text-nc-content-gray-subtle">
-        {{ rowsWithDates.length }} task{{ rowsWithDates.length === 1 ? '' : 's' }}
+  <template v-if="isMobileMode">
+    <div class="pl-6 pr-[120px] py-6 bg-nc-bg-default flex-col justify-start items-start gap-2.5 inline-flex">
+      <div class="text-nc-content-gray-muted text-5xl font-semibold leading-16">
+        {{ $t('labels.availableInDesktop') }}
       </div>
-      <div v-if="statusMsg" class="text-nc-content-orange" data-testid="nc-gantt-status">{{ statusMsg }}</div>
-      <NcButton
-        v-e="['c:gantt:today-btn']"
-        size="xsmall"
-        type="secondary"
-        class="ml-auto"
-        data-testid="nc-gantt-today-btn"
-        @click="goToToday"
-      >
-        {{ $t('labels.today') }}
-      </NcButton>
+      <div class="text-nc-content-gray-muted text-base font-medium leading-normal">
+        {{ $t('msg.ganttViewNotSupportedOnMobile') }}
+      </div>
     </div>
-
-    <div v-if="isLoading" class="flex-1 flex items-center justify-center">
-      <GeneralLoader />
-    </div>
-
-    <div v-else class="nc-gantt-body flex-1 flex overflow-hidden">
+  </template>
+  <template v-else>
+    <!-- Lets not support rtl for now as its not handled in the component -->
+    <div dir="ltr" class="relative flex flex-col h-full w-full bg-nc-bg-default" data-testid="nc-gantt-wrapper">
+      <!-- Toolbar -->
       <div
-        class="nc-gantt-record-list border-r border-nc-border-gray-medium shrink-0 w-64 overflow-y-auto"
-        data-testid="nc-gantt-record-list"
+        class="nc-gantt-toolbar flex items-center gap-1 px-3 border-b border-nc-border-gray-medium bg-nc-bg-default min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)]"
       >
-        <div
-          class="h-14 border-b border-nc-border-gray-medium bg-nc-bg-gray-light px-3 flex items-center text-xs font-medium text-nc-content-gray-subtle"
+        <!-- #7: Date Header with picker dropdown -->
+        <NcDropdown v-model:visible="datePickerVisible" :trigger="['click']">
+          <NcButton
+            :class="{
+              'w-29': zoomLevel === 'month',
+              'w-38': zoomLevel === 'week',
+              'w-48': zoomLevel === 'day',
+            }"
+            class="nc-gantt-prev-next-btn !h-7"
+            full-width
+            size="small"
+            type="secondary"
+          >
+            <div class="flex w-full px-1 items-center justify-between">
+              <span
+                :class="{
+                  'max-w-38 truncate': zoomLevel === 'week',
+                }"
+                class="font-medium text-[13px] text-center text-nc-content-gray"
+                data-testid="nc-gantt-active-date"
+              >
+                {{ dateRangeLabel }}
+              </span>
+              <GeneralIcon icon="arrowDown" class="ml-1 text-nc-content-gray-subtle" />
+            </div>
+          </NcButton>
+          <template #overlay>
+            <div v-if="datePickerVisible" class="w-[287px] pb-2" @click.stop>
+              <NcDateWeekSelector
+                v-if="zoomLevel === 'week'"
+                v-model:page-date="pageDate"
+                :selected-date="currentDate"
+                is-week-picker
+                header="v2"
+                size="medium"
+                @update:selected-date="onDatePickerSelect"
+              />
+              <NcDateWeekSelector
+                v-else-if="zoomLevel === 'day'"
+                v-model:page-date="pageDate"
+                :selected-date="currentDate"
+                header="v2"
+                size="medium"
+                @update:selected-date="onDatePickerSelect"
+              />
+              <NcMonthYearSelector
+                v-else
+                v-model:page-date="pageDate"
+                :selected-date="currentDate"
+                header="v2"
+                size="medium"
+                @update:selected-date="onDatePickerSelect"
+              />
+            </div>
+          </template>
+        </NcDropdown>
+
+        <!-- Today Button -->
+        <NcButton
+          v-e="['c:gantt:today-btn']"
+          class="nc-gantt-prev-next-btn !h-7"
+          size="small"
+          type="secondary"
+          data-testid="nc-gantt-today-btn"
+          @click="goToToday"
         >
-          {{ $t('labels.name') }}
+          <span class="text-nc-content-gray-subtle font-medium !text-[13px]">
+            {{ $t('labels.today') }}
+          </span>
+        </NcButton>
+
+        <!-- Prev/Next Navigation -->
+        <div class="flex items-center gap-2">
+          <NcTooltip hide-on-click>
+            <template #title>{{ $t('labels.previous') }}</template>
+            <NcButton
+              v-e="['c:gantt:navigate', { direction: 'prev' }]"
+              class="!w-7 !h-7 !rounded-lg nc-gantt-prev-next-btn !hover:(text-nc-content-gray-subtle)"
+              inner-class="flex items-center justify-center"
+              data-testid="nc-gantt-prev-btn"
+              size="xs"
+              type="text"
+              @click="navigatePrev"
+            >
+              <GeneralIcon icon="ncChevronLeft" class="h-4 !-ml-0.5 w-4" />
+            </NcButton>
+          </NcTooltip>
+          <NcTooltip hide-on-click>
+            <template #title>{{ $t('labels.next') }}</template>
+            <NcButton
+              v-e="['c:gantt:navigate', { direction: 'next' }]"
+              class="!w-7 !h-7 !rounded-lg nc-gantt-prev-next-btn !hover:(text-nc-content-gray-subtle)"
+              inner-class="flex items-center justify-center"
+              data-testid="nc-gantt-next-btn"
+              size="xs"
+              type="text"
+              @click="navigateNext"
+            >
+              <GeneralIcon icon="ncChevronRight" class="h-4 !-ml-0.2 w-4" />
+            </NcButton>
+          </NcTooltip>
         </div>
-        <div
-          v-for="(r, i) in rowsWithDates"
-          :key="i"
-          class="h-9 px-3 flex items-center text-sm border-b border-nc-border-gray-extralight truncate"
+
+        <!-- #3 + #15: Record count badge -->
+        <NcTooltip
+          v-if="recordCountLabel && !isGroupBy"
+          class="ml-1 text-[11px] text-nc-content-gray-muted font-medium px-1.5 py-0.5 rounded-md bg-nc-bg-gray-medium truncate"
+          :class="{ 'text-nc-content-orange-medium bg-nc-bg-orange-light': recordsWithoutDates > 0 }"
+          data-testid="nc-gantt-record-count"
         >
-          {{ r.title }}
-        </div>
+          <template #title>
+            <span v-if="recordsWithoutDates > 0">
+              {{ $t('msg.ganttRecordsMissingDates', { count: recordsWithoutDates }, recordsWithoutDates) }}
+            </span>
+            <span v-else>{{ $t('msg.ganttTotalRecordsLoaded', { max: 400 }) }}</span>
+          </template>
+
+          {{ recordCountLabel }}
+        </NcTooltip>
+
+        <div class="flex-1" />
+
+        <!-- #20: Zoom Mode Selector (day, week, month) -->
+        <a-select
+          v-e="['c:gantt:change-zoom-level']"
+          :value="zoomLevel"
+          class="nc-select-shadow nc-gantt-mode-select !w-21 !rounded-lg"
+          dropdown-class-name="!rounded-lg !min-w-25"
+          size="small"
+          data-testid="nc-gantt-view-mode"
+          @change="setZoomLevel"
+          @click.stop
+        >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+          </template>
+          <a-select-option v-for="option in ['day', 'week', 'month']" :key="option" :value="option">
+            <div class="w-full flex gap-2 items-center justify-between" :title="$t(`objects.${option}`)">
+              <div class="flex items-center gap-1">
+                <NcTooltip class="flex-1 capitalize mt-0.5 truncate" show-on-truncate-only>
+                  <template #title>{{ $t(`objects.${option}`) }}</template>
+                  <template #default>{{ $t(`objects.${option}`) }}</template>
+                </NcTooltip>
+              </div>
+              <GeneralIcon
+                v-if="option === zoomLevel"
+                id="nc-selected-item-icon"
+                icon="check"
+                class="flex-none text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </a-select>
+
+        <!-- Fields -->
+        <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
+
+        <!-- #8: Sort -->
+        <LazySmartsheetToolbarSortListMenu v-if="!isPublic" />
+
+        <!-- Group By -->
+        <SmartsheetToolbarGroupByMenu v-if="!isPublic" hide-reorder />
+
+        <!-- Colour -->
+        <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic" />
+
+        <!-- Filter -->
+        <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
+
+        <!-- Gantt Settings (#5: using timeline icon instead of calendar) -->
+        <SmartsheetToolbarGanttRange />
+
+        <!-- Actions menu (three-dot) -->
+        <SmartsheetToolbarOpenedViewAction />
       </div>
 
-      <div ref="scrollRef" class="nc-gantt-scroll flex-1 overflow-auto" data-testid="nc-gantt-scroll">
-        <div :style="{ width: `${timelineWidth}px`, position: 'relative' }">
-          <div class="h-14 border-b border-nc-border-gray-medium bg-nc-bg-gray-light flex sticky top-0 z-10">
+      <!-- Gantt content -->
+      <template v-if="ganttRange?.length">
+        <div v-if="isGanttDataLoading" class="flex-1 flex w-full items-center justify-center min-h-0">
+          <GeneralLoader size="xlarge" />
+        </div>
+
+        <!-- Grouped layout: fixed header (sidebar + dates) + scrollable groups -->
+        <div v-else-if="isGroupBy" class="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <!-- Fixed header row: left sidebar header + date columns -->
+          <div class="flex flex-shrink-0 border-b border-nc-border-gray-medium">
+            <!-- Left sidebar header: "Grouped by <field>" -->
             <div
-              v-for="(m, i) in headerMonths"
-              :key="i"
-              class="text-xs font-medium px-2 py-1 border-r border-nc-border-gray-extralight flex items-center"
-              :style="{ width: `${m.widthDays * dayColWidth}px` }"
+              class="flex-shrink-0 border-r border-nc-border-gray-medium bg-nc-bg-default px-3 flex items-center"
+              :style="{ width: `${GROUP_SIDEBAR_WIDTH}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
             >
-              {{ m.label }}
+              <span class="text-[11px] text-nc-content-gray-muted font-normal truncate">{{ groupByFieldLabel }}</span>
+            </div>
+
+            <!-- #10: Date columns header — using date string keys -->
+            <div ref="groupHeaderRef" class="flex-1 overflow-hidden">
+              <div class="flex bg-nc-bg-default w-full">
+                <div
+                  v-for="date in visibleDates"
+                  :key="date.format('YYYY-MM-DD')"
+                  class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
+                  :class="{
+                    'bg-nc-bg-brand': isToday(date),
+                    'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date),
+                  }"
+                  :style="{ width: `${groupColWidth}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
+                >
+                  <span
+                    class="text-[10px] font-normal leading-tight"
+                    :class="{
+                      'text-nc-content-brand': isToday(date),
+                      'text-nc-content-gray-muted': !isToday(date),
+                    }"
+                  >
+                    {{
+                      zoomLevel === 'month'
+                        ? date.format('dd').charAt(0)
+                        : zoomLevel === 'week'
+                        ? date.format('ddd')
+                        : date.format('dddd')
+                    }}
+                  </span>
+                  <span
+                    class="text-[11px] font-normal leading-tight"
+                    :class="{
+                      'text-nc-content-brand': isToday(date),
+                      'text-nc-content-gray-muted': !isToday(date),
+                    }"
+                  >
+                    {{ date.format('D') }}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div
-            v-if="todayLeft !== null"
-            class="absolute top-14 bottom-0 w-px bg-nc-fill-red-dark z-5 pointer-events-none"
-            :style="{ left: `${todayLeft}px` }"
+          <!-- Scrollable groups area -->
+          <SmartsheetGanttGroupBy
+            class="flex-1 min-h-0"
+            :group="rootGroup"
+            :visible-dates="visibleDates"
+            :gantt-range="ganttRange"
+            :zoom-level="zoomLevel"
+            :load-groups="loadGroups"
+            :load-group-data="loadGroupData"
+            :load-group-page="loadGroupPage"
+            :group-wrapper-change-page="groupWrapperChangePage"
+            :max-depth="groupBy.length"
+            @expand-record="expandRecord"
+            @navigate-to="goToDate"
           />
-
-          <div
-            v-for="(r, i) in rowsWithDates"
-            :key="i"
-            class="h-9 border-b border-nc-border-gray-extralight relative"
-          >
-            <NcTooltip :title="`${r.title} • ${r.start.format('YYYY-MM-DD')} → ${r.end.format('YYYY-MM-DD')}`">
-              <div
-                class="nc-gantt-bar absolute top-1 bottom-1 bg-nc-fill-primary text-white text-xs rounded px-2 flex items-center truncate shadow-sm"
-                :style="barStyle(r)"
-              >
-                {{ r.title }}
-              </div>
-            </NcTooltip>
-          </div>
         </div>
-      </div>
+
+        <!-- Flat layout (no group-by) -->
+        <SmartsheetGanttGrid
+          v-else
+          class="flex-1 min-h-0"
+          :records="formattedData"
+          :visible-dates="visibleDates"
+          :gantt-range="ganttRange"
+          :zoom-level="zoomLevel"
+          @expand-record="expandRecord"
+          @new-record="onNewRecord"
+          @navigate-to="goToDate"
+        />
+      </template>
+      <!-- #9: Empty state — using i18n -->
+      <template v-else>
+        <div class="flex-1 flex w-full items-center justify-center text-nc-content-gray-muted min-h-0 flex-col gap-2">
+          <GeneralIcon icon="warning" class="text-2xl text-nc-content-orange-medium" />
+          <span class="text-sm">{{ $t('activity.noGanttRange') }}</span>
+          <span class="text-xs text-nc-content-gray-subtle">{{ $t('msg.configureGanttRange') }}</span>
+        </div>
+      </template>
+
+      <!-- Floating new record button -->
+      <NcTooltip
+        v-if="ganttRange?.length && !isPublic"
+        class="!absolute left-3 z-20"
+        :class="isGroupBy ? 'bottom-13' : 'bottom-3'"
+      >
+        <template #title>{{ $t('activity.newRecord') }}</template>
+        <NcButton
+          v-e="['c:gantt:new-record-btn']"
+          class="!rounded-full !shadow-sm !w-8 !h-8 !min-w-0 !p-0"
+          type="secondary"
+          size="small"
+          data-testid="nc-gantt-new-record-btn"
+          @click="onFloatingNewRecord"
+        >
+          <GeneralIcon icon="plus" class="text-nc-content-gray-subtle w-4 h-4" />
+        </NcButton>
+      </NcTooltip>
     </div>
-  </div>
+
+    <Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormRow && expandedFormDlg"
+        v-model="expandedFormDlg"
+        :row="expandedFormRow"
+        :load-row="!isPublic"
+        :state="expandedFormRowState"
+        :meta="meta"
+        :view="view"
+      />
+    </Suspense>
+
+    <LazySmartsheetExpandedForm
+      v-if="expandedFormOnRowIdDlg && meta?.id"
+      v-model="expandedFormOnRowIdDlg"
+      close-after-save
+      :load-row="!isPublic"
+      :meta="meta"
+      :state="expandedFormRowState"
+      :row="{
+        row: {},
+        oldRow: {},
+        rowMeta: {},
+      }"
+      :row-id="route.query.rowId"
+      :expand-form="expandRecord"
+      :view="view"
+    />
+  </template>
 </template>
 
 <style lang="scss" scoped>
-.nc-gantt-record-list {
-  background: white;
+.nc-gantt-prev-next-btn {
+  @apply !hover:bg-nc-bg-gray-medium;
+}
+
+.nc-gantt-mode-select {
+  :deep(.ant-select-selector) {
+    @apply !h-7 !px-3 !flex !items-center;
+  }
+  :deep(.ant-select-selection-item) {
+    @apply !text-[13px] !flex !items-center;
+  }
 }
 </style>

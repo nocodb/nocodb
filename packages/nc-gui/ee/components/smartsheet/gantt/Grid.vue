@@ -1225,7 +1225,7 @@ const onGridMouseLeave = () => {
         <div
           v-for="(lane, laneIdx) in swimlanes"
           :key="laneIdx"
-          class="flex items-center px-3 border-b border-nc-border-gray-light text-sm text-nc-content-gray truncate cursor-pointer hover:bg-nc-bg-gray-extralight"
+          class="flex items-center px-3 border-b border-nc-border-gray-light text-xs text-nc-content-gray truncate cursor-pointer hover:bg-nc-bg-gray-extralight"
           :style="{ height: `${ROW_HEIGHT}px` }"
           :title="primaryField ? lane[0].record.row[primaryField.title!] ?? '' : ''"
           @click="emit('expandRecord', lane[0].record)"

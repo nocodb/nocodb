@@ -31,7 +31,7 @@ export class SendCampaignNode extends WorkflowNodeIntegration<SendCampaignConfig
         model: 'config.authIntegrationId',
         integrationFilter: {
           type: IntegrationType.Auth,
-          sub_type: 'mailchimp',
+          sub_type: 'mailchimp.api-key',
         },
         validators: [
           {

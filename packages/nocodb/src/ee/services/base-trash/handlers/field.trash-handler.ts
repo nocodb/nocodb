@@ -339,7 +339,11 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
 
     const relatedItems = trashEntry.getRelatedItems();
     if (relatedItems?.dependents?.length) {
-      await clearDependentErrorsIfResolved(ctx, relatedItems.dependents);
+      await clearDependentErrorsIfResolved(
+        ctx,
+        relatedItems.dependents,
+        ncMeta,
+      );
     }
 
     // Socket broadcast — include the restored column so frontend can update

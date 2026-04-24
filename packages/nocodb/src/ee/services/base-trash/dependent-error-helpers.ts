@@ -1,5 +1,6 @@
-import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
+import Noco from '~/Noco';
 import Column from '~/models/Column';
 import {
   BarcodeColumn,
@@ -10,8 +11,6 @@ import {
   RollupColumn,
 } from '~/models';
 import addFormulaErrorIfMissingColumn from '~/helpers/addFormulaErrorIfMissingColumn';
-
-const logger = new Logger('TrashDependentErrorHelpers');
 
 export interface Dependent {
   id: string;
@@ -31,37 +30,31 @@ export interface Dependent {
 export async function clearDependentErrorsIfResolved(
   ctx: NcContext,
   dependents: Dependent[],
+  ncMeta: MetaService = Noco.ncMeta,
 ): Promise<void> {
   for (const dep of dependents) {
-    try {
-      const stillBroken = await dependentStillBroken(ctx, dep);
-      if (stillBroken) continue;
+    const stillBroken = await dependentStillBroken(ctx, dep, ncMeta);
+    if (stillBroken) continue;
 
-      switch (dep.type) {
-        case 'lookup':
-          await LookupColumn.update(ctx, dep.id, { error: null });
-          break;
-        case 'rollup':
-          await RollupColumn.update(ctx, dep.id, { error: null });
-          break;
-        case 'qrcode':
-          await QrCodeColumn.update(ctx, dep.id, { error: null });
-          break;
-        case 'barcode':
-          await BarcodeColumn.update(ctx, dep.id, { error: null });
-          break;
-        case 'formula':
-          await FormulaColumn.update(ctx, dep.id, { error: null });
-          break;
-        case 'button':
-          await ButtonColumn.update(ctx, dep.id, { error: null });
-          break;
-      }
-    } catch (e) {
-      logger.error(
-        `Failed to clear error on dependent ${dep.id}: ${e.message}`,
-        e.stack,
-      );
+    switch (dep.type) {
+      case 'lookup':
+        await LookupColumn.update(ctx, dep.id, { error: null }, ncMeta);
+        break;
+      case 'rollup':
+        await RollupColumn.update(ctx, dep.id, { error: null }, ncMeta);
+        break;
+      case 'qrcode':
+        await QrCodeColumn.update(ctx, dep.id, { error: null }, ncMeta);
+        break;
+      case 'barcode':
+        await BarcodeColumn.update(ctx, dep.id, { error: null }, ncMeta);
+        break;
+      case 'formula':
+        await FormulaColumn.update(ctx, dep.id, { error: null }, ncMeta);
+        break;
+      case 'button':
+        await ButtonColumn.update(ctx, dep.id, { error: null }, ncMeta);
+        break;
     }
   }
 }
@@ -70,37 +63,38 @@ export async function clearDependentErrorsIfResolved(
 async function dependentStillBroken(
   ctx: NcContext,
   dep: Dependent,
+  ncMeta: MetaService,
 ): Promise<boolean> {
-  const col = await Column.get(ctx, { colId: dep.id });
+  const col = await Column.get(ctx, { colId: dep.id }, ncMeta);
   if (!col) return false;
 
   const refIsTrashed = async (colId?: string | null) => {
     if (!colId) return false;
-    const ref = await Column.get(ctx, { colId, includeDeleted: true });
+    const ref = await Column.get(ctx, { colId, includeDeleted: true }, ncMeta);
     return !!ref?.deleted;
   };
 
   switch (dep.type) {
     case 'lookup': {
-      const opt = await col.getColOptions<LookupColumn>(ctx);
+      const opt = await col.getColOptions<LookupColumn>(ctx, ncMeta);
       return (
         (await refIsTrashed(opt?.fk_relation_column_id)) ||
         (await refIsTrashed(opt?.fk_lookup_column_id))
       );
     }
     case 'rollup': {
-      const opt = await col.getColOptions<RollupColumn>(ctx);
+      const opt = await col.getColOptions<RollupColumn>(ctx, ncMeta);
       return (
         (await refIsTrashed(opt?.fk_relation_column_id)) ||
         (await refIsTrashed(opt?.fk_rollup_column_id))
       );
     }
     case 'qrcode': {
-      const opt = await col.getColOptions<QrCodeColumn>(ctx);
+      const opt = await col.getColOptions<QrCodeColumn>(ctx, ncMeta);
       return await refIsTrashed(opt?.fk_qr_value_column_id);
     }
     case 'barcode': {
-      const opt = await col.getColOptions<BarcodeColumn>(ctx);
+      const opt = await col.getColOptions<BarcodeColumn>(ctx, ncMeta);
       return await refIsTrashed(opt?.fk_barcode_value_column_id);
     }
     case 'formula':
@@ -109,8 +103,8 @@ async function dependentStillBroken(
       // same table. If any is still referenced → dependent is still broken.
       const opts =
         dep.type === 'formula'
-          ? await col.getColOptions<FormulaColumn>(ctx)
-          : await col.getColOptions<ButtonColumn>(ctx);
+          ? await col.getColOptions<FormulaColumn>(ctx, ncMeta)
+          : await col.getColOptions<ButtonColumn>(ctx, ncMeta);
       if (!opts) return false;
       if (dep.type === 'button' && (opts as ButtonColumn).type !== 'url') {
         return false;
@@ -118,10 +112,11 @@ async function dependentStillBroken(
       const hasFormula = !!(opts as FormulaColumn | ButtonColumn).formula;
       if (!hasFormula) return false;
 
-      const siblings = await Column.list(ctx, {
-        fk_model_id: col.fk_model_id,
-        includeDeleted: true,
-      });
+      const siblings = await Column.list(
+        ctx,
+        { fk_model_id: col.fk_model_id, includeDeleted: true },
+        ncMeta,
+      );
       const stillTrashed = siblings.filter((c) => c.deleted);
       for (const other of stillTrashed) {
         // Probe against a fresh copy — addFormulaErrorIfMissingColumn mutates.

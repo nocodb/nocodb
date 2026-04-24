@@ -56,7 +56,16 @@ export class BaseTrashService implements OnModuleInit {
       // Fall through to default
     }
 
-    return parseInt(process.env.NC_TRASH_RETENTION_DAYS || '30', 10);
+    const raw = process.env.NC_TRASH_RETENTION_DAYS;
+    if (raw === undefined || raw === '') return 30;
+    const n = Number.parseInt(raw, 10);
+    if (Number.isFinite(n) && n > 0) return n;
+    this.logger.warn(
+      `Ignoring invalid NC_TRASH_RETENTION_DAYS=${JSON.stringify(
+        raw,
+      )} — falling back to 30 days`,
+    );
+    return 30;
   }
 
   protected getHandler(resourceType: string): TrashHandler {
@@ -272,6 +281,8 @@ export class BaseTrashService implements OnModuleInit {
             );
             if (!childTrash.length) break;
             for (const child of childTrash) {
+              const childHandler = this.getHandler(child.resource_type);
+              await childHandler.permanentDelete(context, child, ncMeta);
               await BaseTrash.delete(context, child.id, ncMeta);
             }
             if (childTrash.length < CHILD_CLEANUP_BATCH) break;

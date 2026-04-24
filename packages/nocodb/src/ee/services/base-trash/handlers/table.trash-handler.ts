@@ -248,7 +248,11 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
     await this.restoreDeferredLinks(ctx, trashEntry.resource_id, ncMeta);
 
     if (relatedItems?.dependents?.length) {
-      await clearDependentErrorsIfResolved(ctx, relatedItems.dependents);
+      await clearDependentErrorsIfResolved(
+        ctx,
+        relatedItems.dependents,
+        ncMeta,
+      );
     }
 
     // Socket broadcast — use table_create so frontend adds back to sidebar

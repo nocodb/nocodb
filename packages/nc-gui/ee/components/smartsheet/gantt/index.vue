@@ -401,7 +401,7 @@ const recordCountLabel = computed(() => {
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
-          <a-select-option v-for="option in ['day', 'week', 'month']" :key="option" :value="option">
+          <a-select-option v-for="option in ['week', 'month']" :key="option" :value="option">
             <div class="w-full flex gap-2 items-center justify-between" :title="$t(`objects.${option}`)">
               <div class="flex items-center gap-1">
                 <NcTooltip class="flex-1 capitalize mt-0.5 truncate" show-on-truncate-only>

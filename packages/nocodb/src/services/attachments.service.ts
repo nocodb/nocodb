@@ -301,7 +301,7 @@ export class AttachmentsService {
 
             if (size && +size > NC_ATTACHMENT_FIELD_SIZE) {
               NcError.get().invalidRequestBody(
-                `Attachment is larger than maximum allowed size at ${(
+                `File is too large. Maximum allowed size is ${(
                   NC_ATTACHMENT_FIELD_SIZE /
                   (1024 * 1024)
                 ).toFixed(2)} MB`,
@@ -329,7 +329,7 @@ export class AttachmentsService {
 
             if (size > NC_ATTACHMENT_FIELD_SIZE) {
               NcError.get().invalidRequestBody(
-                `Attachment is larger than maximum allowed size at ${(
+                `File is too large. Maximum allowed size is ${(
                   NC_ATTACHMENT_FIELD_SIZE /
                   (1024 * 1024)
                 ).toFixed(2)} MB`,

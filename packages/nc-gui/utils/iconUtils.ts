@@ -248,6 +248,7 @@ import NcMailchimp from '~icons/nc-icons/mailchimp'
 import NcMicrosoftAccess from '~icons/nc-icons/microsoft_access'
 import NcMicrosoftExcel from '~icons/nc-icons/microsoft_excel'
 import NcMicrosoftOutlook from '~icons/nc-icons/microsoft_outlook'
+import NcMailchimp from '~icons/nc-icons-v2/mailchimp.svg'
 import NcMiro from '~icons/nc-icons/miro'
 import NcSalesforce from '~icons/nc-icons/salesforce'
 import NcSnowflake from '~icons/nc-icons/snowflake'
@@ -1332,6 +1333,7 @@ export const iconMap = {
   'microsoftAccess': NcMicrosoftAccess,
   'microsoftExcel': NcMicrosoftExcel,
   'microsoftOutlook': NcMicrosoftOutlook,
+  'ncMailchimp': h(NcMailchimp, { stroke: 'transparent' }),
   'miro': NcMiro,
   'salesforce': h(NcSalesforce, { stroke: 'transparent' }),
   'snowflake': NcSnowflake,

@@ -1072,7 +1072,7 @@ const onGridMouseLeave = () => {
     >
       <div class="relative" :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%', minHeight: '100%' }">
         <!-- Background layer: grid lines, weekend shading, today line — fills full height -->
-        <div class="absolute inset-0 pointer-events-none">
+        <div class="absolute inset-0 pointer-events-none" style="z-index: 0">
           <!-- Weekend backgrounds -->
           <div
             v-for="(date, dateIdx) in visibleDates"

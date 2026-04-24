@@ -29,7 +29,7 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { PresignedUrl, User, UserRefreshToken } from '~/models';
+import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
@@ -259,6 +259,7 @@ export class UsersService {
 
     // delete all refresh token and populate a new one
     await UserRefreshToken.deleteAllUserToken(user.id);
+    await OAuthToken.revokeAllByUser(user.id);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
       user: user,
@@ -308,6 +309,8 @@ export class UsersService {
           'Email Plugin is not found. Please contact administrators to configure it in App Store first.',
         );
       }
+
+      await OAuthToken.revokeAllByUser(user.id);
 
       this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
         user: user,
@@ -391,6 +394,7 @@ export class UsersService {
 
     // delete all refresh tokens to invalidate existing sessions
     await UserRefreshToken.deleteAllUserToken(user.id);
+    await OAuthToken.revokeAllByUser(user.id);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
       user: user,
@@ -646,6 +650,10 @@ export class UsersService {
         });
         // todo: clear only token present in cookie to avoid invalidating all refresh token
         await UserRefreshToken.deleteAllUserToken(user.id);
+        // OAuth tokens are not revoked on sign-out: sign-out ends the user's
+        // own session, not third-party OAuth client grants. OAuth tokens are
+        // revoked on password change/reset/forgot where credential compromise
+        // is assumed.
       }
       return { msg: 'Signed out successfully' };
     } catch (e) {

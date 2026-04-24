@@ -171,6 +171,13 @@ export default class OAuthToken {
     return true;
   }
 
+  static async revokeAllByUser(userId: string, ncMeta = Noco.ncMeta) {
+    const tokens = await this.listByUser(userId, ncMeta);
+    if (tokens?.length) {
+      await Promise.all(tokens.map((t) => this.revoke(t.id, ncMeta)));
+    }
+  }
+
   static async deleteAllByClient(clientId: string, ncMeta = Noco.ncMeta) {
     const BATCH_SIZE = 100;
     let deletedCount = 0;

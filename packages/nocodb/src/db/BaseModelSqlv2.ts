@@ -7181,6 +7181,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 : null;
             }
 
+            if (this.context?.is_public) {
+              return {
+                id,
+                display_name: display_name?.length
+                  ? display_name
+                  : email
+                  ? email
+                      .split('@')[0]
+                      .replace(/[._-]+/g, ' ')
+                      .replace(/\b\w/g, (c) => c.toUpperCase())
+                  : null,
+                email: '',
+                meta: metaObj,
+              };
+            }
+
             return {
               id,
               email,

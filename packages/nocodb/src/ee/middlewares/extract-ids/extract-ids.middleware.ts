@@ -488,6 +488,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
 
       markPersonalViewIfNeeded(req, view);
+
+      if (publicDataUuid || sharedViewUuid || sharedBaseUuid) {
+        req.context.is_public = true;
+      }
       /*
       TODO: migrate after comments api
       // extract fk_model_id from query params only if it's audit post or comments post, get, patch, delete endpoint
@@ -1275,6 +1279,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       timezone: context.timezone,
       schema_locked: req.ncSchemaLocked || false,
       is_api_token: req.user?.is_api_token,
+      ...(params.publicDataUuid || params.sharedViewUuid || params.sharedBaseUuid
+        ? { is_public: true }
+        : {}),
     };
 
     // Load and cache permissions in context to avoid multiple fetches
@@ -1515,6 +1522,10 @@ export class AclMiddleware implements NestInterceptor {
 
     if (req?.user?.isPublicBase && blockPublicBaseAccess) {
       NcError.forbidden('Not allowed for shared base');
+    }
+
+    if (req.user?.isPublicBase && req.context) {
+      req.context.is_public = true;
     }
 
     if (

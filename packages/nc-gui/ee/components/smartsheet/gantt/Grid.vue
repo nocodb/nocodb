@@ -1358,7 +1358,7 @@ const onGridMouseLeave = () => {
               markerHeight="6"
               orient="auto-start-reverse"
             >
-              <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-content-gray-muted, #6a7184)" />
+              <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-border-gray-extra-dark, #9aa2af)" />
             </marker>
             <marker
               id="nc-gantt-arrow-head-selected"
@@ -1394,7 +1394,7 @@ const onGridMouseLeave = () => {
               :stroke="
                 selectedArrowId === arrow.id
                   ? 'var(--nc-content-red-dark, #b91c1c)'
-                  : 'var(--nc-content-gray-muted, #6a7184)'
+                  : 'var(--nc-border-gray-extra-dark, #9aa2af)'
               "
               :stroke-width="selectedArrowId === arrow.id ? 2 : 1.25"
               stroke-linejoin="round"
@@ -1416,7 +1416,7 @@ const onGridMouseLeave = () => {
             :stroke="
               linkCreationDrag.hoveredId
                 ? 'var(--nc-content-brand, #3366ff)'
-                : 'var(--nc-content-gray-muted, #6a7184)'
+                : 'var(--nc-border-gray-extra-dark, #9aa2af)'
             "
             stroke-width="1.5"
             stroke-dasharray="5 3"
@@ -1574,7 +1574,7 @@ const onGridMouseLeave = () => {
                   left: calc(100% - 10px);
                   bottom: 0;
                   z-index: 4;
-                  border: 1.25px solid var(--nc-content-gray-muted, #6a7184);
+                  border: 1.25px solid var(--nc-border-gray-extra-dark, #9aa2af);
                 "
                 @mousedown="onHandleMouseDown($event, record)"
                 @click.stop

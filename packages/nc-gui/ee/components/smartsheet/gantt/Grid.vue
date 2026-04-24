@@ -1425,8 +1425,11 @@ const onGridMouseLeave = () => {
           />
         </svg>
 
-        <!-- Content layer: bars and empty state — sits above backgrounds -->
-        <div ref="gridBodyRef" class="relative w-full" style="z-index: 2" @mousedown="onGridBodyMouseDown">
+        <!-- Content layer: bars and empty state. Intentionally no z-index —
+             creating a stacking context here would trap the dep handles
+             underneath the SVG (z-index 3). Handles set their own z-index:4
+             to sit above the arrow SVG while bars stack naturally below it. -->
+        <div ref="gridBodyRef" class="relative w-full" @mousedown="onGridBodyMouseDown">
           <!-- Swimlane rows -->
           <div
             v-for="(lane, laneIdx) in swimlanes"
@@ -1570,6 +1573,7 @@ const onGridMouseLeave = () => {
                 style="
                   left: calc(100% - 10px);
                   bottom: 0;
+                  z-index: 4;
                   border: 1.25px solid var(--nc-content-gray-muted, #6a7184);
                 "
                 @mousedown="onHandleMouseDown($event, record)"

@@ -166,7 +166,7 @@ export class UsersService {
     } else {
       const settings = await Noco.getAppSettings();
 
-      if (settings?.invite_only_signup && !is_invite) {
+      if (settings?.invite_only_signup && !is_invite && !workspace_invite) {
         NcError.badRequest('Not allowed to signup, contact super admin.');
       } else {
         roles = OrgUserRoles.VIEWER;

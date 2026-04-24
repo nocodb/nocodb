@@ -128,16 +128,16 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       return ganttMetaData.value.gantt_range
         .map((range: any) => {
           // Get the from column
-          const fromCol = (meta.value?.columns ?? []).find((col) => col.id === range.fk_from_column_id)
+          const fromCol = (meta.value?.columns ?? []).find((col) => col.id === range.fk_start_col_id)
           // Get the to column (optional)
-          const toCol = range.fk_to_column_id ? (meta.value?.columns ?? []).find((col) => col.id === range.fk_to_column_id) : null
+          const toCol = range.fk_end_col_id ? (meta.value?.columns ?? []).find((col) => col.id === range.fk_end_col_id) : null
 
           if (!fromCol) return null
 
           return {
             fk_from_col: fromCol,
             fk_to_col: toCol,
-            id: `${range.fk_from_column_id}_${range.fk_to_column_id}`,
+            id: `${range.fk_start_col_id}_${range.fk_end_col_id}`,
             is_readonly: ![UITypes.Date, UITypes.DateTime].includes(fromCol.uidt as UITypes),
           }
         })

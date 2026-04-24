@@ -1577,7 +1577,7 @@ watch(activeBaseId, () => {
           <template v-if="form.type === ViewTypes.GANTT && !form.copy_from_id">
             <div v-for="(range, index) in form.gantt_range" :key="`gantt-range-${index}`" class="flex flex-col w-full gap-6">
               <div class="w-full space-y-2">
-                <div class="text-nc-content-gray">{{ $t('labels.startDateField') || 'Start date' }}</div>
+                <div class="text-nc-content-gray">{{ $t('activity.startDate') }}</div>
                 <a-select
                   v-model:value="range.fk_start_col_id"
                   class="nc-select-shadow w-full !rounded-lg"

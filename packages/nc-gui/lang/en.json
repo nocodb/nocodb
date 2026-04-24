@@ -2708,6 +2708,8 @@
     "addTeamsToWorkspace": "Add Teams to Workspace",
     "noRange": "Calendar view requires a date range",
     "noTimelineRange": "No date range configured",
+    "noGanttRange": "No date range configured",
+    "startDate": "Start Date",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",

@@ -67,8 +67,8 @@ const saveRange = async () => {
   try {
     const range = [
       {
-        fk_from_column_id: selectedFromCol.value,
-        fk_to_column_id: selectedToCol.value || null,
+        fk_start_col_id: selectedFromCol.value,
+        fk_end_col_id: selectedToCol.value || null,
       },
     ]
 

@@ -73,7 +73,11 @@ export default class BaseTrash implements BaseTrashType {
       context.workspace_id,
       context.base_id,
       MetaTable.TRASH,
-      { resource_type: resourceType, resource_id: resourceId },
+      {
+        fk_workspace_id: context.workspace_id,
+        resource_type: resourceType,
+        resource_id: resourceId,
+      },
     );
 
     return (
@@ -161,12 +165,12 @@ export default class BaseTrash implements BaseTrashType {
       condition.resource_type = param.resourceType;
     }
 
-    return await ncMeta.metaCount(
+    return ncMeta.metaCount(
       context.workspace_id,
       context.base_id,
       MetaTable.TRASH,
       { condition },
-    );
+    )
   }
 
   public static async insert(

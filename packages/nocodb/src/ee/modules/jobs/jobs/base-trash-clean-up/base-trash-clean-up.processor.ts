@@ -147,6 +147,8 @@ export class BaseTrashCleanUpProcessor {
       this.logger.log(
         `Job completed for ${job.id} — cleaned ${totalCleaned} entries`,
       );
+    } else {
+      this.logger.debug(`Job completed for ${job.id} — no entries ready`);
     }
   }
 }

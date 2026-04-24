@@ -15,7 +15,6 @@ export class BaseTrashPostOperations
 
   operations = [
     'baseTrashRestore',
-    'baseTrashPermanentDelete',
     'baseTrashEmpty',
   ] as (keyof typeof OPERATION_SCOPES)[];
   httpMethod = 'POST' as const;
@@ -37,12 +36,6 @@ export class BaseTrashPostOperations
     switch (operation) {
       case 'baseTrashRestore':
         return await this.baseTrashService.restore(context, {
-          trashId: payload.trashId,
-          user: req.user,
-          req,
-        });
-      case 'baseTrashPermanentDelete':
-        return await this.baseTrashService.permanentDelete(context, {
           trashId: payload.trashId,
           user: req.user,
           req,

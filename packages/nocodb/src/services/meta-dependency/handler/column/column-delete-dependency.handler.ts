@@ -156,8 +156,9 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       type: AffectedColumnType,
       ctx: NcContext,
     ) => {
-      if (visited.has(fk_column_id)) return;
-      visited.add(fk_column_id);
+      const key = `${ctx.base_id}:${fk_column_id}`;
+      if (visited.has(key)) return;
+      visited.add(key);
       queue.push({ fk_column_id, type, context: ctx });
     };
 

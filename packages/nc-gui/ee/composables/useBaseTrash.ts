@@ -65,16 +65,6 @@ export const useBaseTrash = createSharedComposable(() => {
     }
   }
 
-  const removeItemLocally = (trashId: string) => {
-    trashItems.value = trashItems.value.filter((t) => t.id !== trashId)
-    totalRows.value = Math.max(0, totalRows.value - 1)
-
-    // If page is empty and not the first page, go back
-    if (!trashItems.value.length && currentPage.value > 1) {
-      loadTrash(currentPage.value - 1)
-    }
-  }
-
   const restoreItem = async (trashId: string) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return
 
@@ -90,25 +80,6 @@ export const useBaseTrash = createSharedComposable(() => {
       $e('a:base-trash:restore')
       // Reload to recompute is_restorable flags for remaining items
       await loadTrash(currentPage.value)
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-    }
-  }
-
-  const permanentDeleteItem = async (trashId: string) => {
-    if (!activeWorkspaceId.value || !activeProjectId.value) return
-
-    try {
-      await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        activeProjectId.value,
-        { operation: 'baseTrashPermanentDelete' },
-        { trashId },
-      )
-
-      removeItemLocally(trashId)
-      message.success(t('msg.success.permanentlyDeleted'))
-      $e('a:base-trash:permanent-delete')
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -142,7 +113,6 @@ export const useBaseTrash = createSharedComposable(() => {
     close,
     loadTrash,
     restoreItem,
-    permanentDeleteItem,
     emptyTrash,
   }
 })

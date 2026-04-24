@@ -19,8 +19,6 @@ export const useBaseTrash = createSharedComposable(() => {
 
   const restoreItem = async (_trashId: string) => {}
 
-  const permanentDeleteItem = async (_trashId: string) => {}
-
   const emptyTrash = async () => {}
 
   return {
@@ -34,7 +32,6 @@ export const useBaseTrash = createSharedComposable(() => {
     close,
     loadTrash,
     restoreItem,
-    permanentDeleteItem,
     emptyTrash,
   }
 })

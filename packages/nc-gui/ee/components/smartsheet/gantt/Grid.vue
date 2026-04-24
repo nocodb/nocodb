@@ -494,9 +494,21 @@ const visibleRecords = computed(() => {
 // off-screen or records without dates at all. Sorted by start date, with
 // date-less records appended at the end — matches Airtable's Gantt record
 // list which shows every row regardless of the current date window.
-const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>>(() => {
+//
+// Row order is held stable during an active drag/resize/drag-create. If we
+// re-sorted on every frame, the bar the user is physically holding would
+// shuffle up/down each time its start-date crossed a neighbour's — the Airtable
+// Gantt keeps the dragged bar in its original row and only reseats it on drop.
+const stableRowOrder = ref<Array<{ record: RowType; colorIndex: number }>>([])
+
+watchEffect(() => {
+  if (isInteracting.value) return
+
   const range = props.ganttRange[0]
-  if (!range) return []
+  if (!range) {
+    stableRowOrder.value = []
+    return
+  }
 
   const sorted = [...props.records].sort((a, b) => {
     const aStart = parseDate(a, range.fk_from_col)
@@ -507,8 +519,12 @@ const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>
     return aStart.valueOf() - bStart.valueOf()
   })
 
-  return sorted.map((record, idx) => [{ record, colorIndex: idx }])
+  stableRowOrder.value = sorted.map((record, idx) => ({ record, colorIndex: idx }))
 })
+
+const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>>(() =>
+  stableRowOrder.value.map((entry) => [entry]),
+)
 
 // Get bar position and width for a record
 const getBarStyle = (row: RowType) => {

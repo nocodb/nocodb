@@ -299,6 +299,7 @@
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
+    "undo": "Undo",
     "optional": "Optional",
     "none": "None",
     "done": "Done",
@@ -3387,6 +3388,7 @@
     "ganttRecordsMissingDates": "{count} record missing date fields and not shown on Gantt | {count} records missing date fields and not shown on Gantt",
     "ganttTotalRecordsLoaded": "Total records loaded (max {max})",
     "ganttGroupByFields": "{count} fields",
+    "dependencyRemoved": "Dependency removed",
     "newFormWillBeLoaded": "New form will be loaded after {seconds} seconds",
     "optimizedQueryDisabled": "Optimized query is disabled",
     "optimizedQueryEnabled": "Optimized query is enabled",

@@ -310,6 +310,79 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       dependencyLinks.value = graph
     }
 
+    // Mutate the in-memory dep graph without a round-trip; used for optimistic
+    // updates on unlink/link and for undo after a toast.
+    const patchDependencyLinks = (
+      rowId: string,
+      linkedId: string,
+      action: 'add' | 'remove',
+    ) => {
+      const next = new Map(dependencyLinks.value)
+      const current = [...(next.get(rowId) ?? [])]
+      if (action === 'remove') {
+        const idx = current.indexOf(linkedId)
+        if (idx !== -1) current.splice(idx, 1)
+      } else {
+        if (!current.includes(linkedId)) current.push(linkedId)
+      }
+      if (current.length) next.set(rowId, current)
+      else next.delete(rowId)
+      dependencyLinks.value = next
+    }
+
+    const _depEndpointArgs = () => {
+      const range = ganttRange.value?.[0]
+      const depCol = range?.fk_dependency_col as ColumnType | undefined
+      const tableId = meta.value?.id
+      const baseId = base.value?.id
+      const colType = (depCol?.colOptions as any)?.type as
+        | 'mm' | 'hm' | 'om' | 'bt' | 'oo' | 'ln' | undefined
+      if (!depCol || !tableId || !baseId || !colType) return null
+      return { baseId, tableId, colId: depCol.id!, relType: colType as any }
+    }
+
+    const unlinkDependency = async (rowId: string, linkedId: string) => {
+      const args = _depEndpointArgs()
+      if (!args) return false
+      patchDependencyLinks(rowId, linkedId, 'remove')
+      try {
+        await $api.dbTableRow.nestedRemove(
+          NOCO,
+          args.baseId,
+          args.tableId,
+          encodeURIComponent(rowId),
+          args.relType,
+          args.colId,
+          encodeURIComponent(linkedId),
+        )
+        return true
+      } catch (e) {
+        patchDependencyLinks(rowId, linkedId, 'add')
+        throw e
+      }
+    }
+
+    const linkDependency = async (rowId: string, linkedId: string) => {
+      const args = _depEndpointArgs()
+      if (!args) return false
+      patchDependencyLinks(rowId, linkedId, 'add')
+      try {
+        await $api.dbTableRow.nestedAdd(
+          NOCO,
+          args.baseId,
+          args.tableId,
+          encodeURIComponent(rowId),
+          args.relType,
+          args.colId,
+          encodeURIComponent(linkedId),
+        )
+        return true
+      } catch (e) {
+        patchDependencyLinks(rowId, linkedId, 'remove')
+        throw e
+      }
+    }
+
     // Navigate to the closest record on initial view load
     const navigateToClosestRecord = () => {
       const viewId = viewMeta.value?.id
@@ -573,6 +646,8 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       // Methods
       loadGanttData,
       loadDependencyLinks,
+      unlinkDependency,
+      linkDependency,
       navigateToClosestRecord,
       navigateNext,
       navigatePrev,

@@ -38,7 +38,10 @@ const { isAllowed } = usePermissions()
 
 const { $e } = useNuxtApp()
 
-const { updateRowProperty, updateFormat, dependencyLinks } = useGanttViewStoreOrThrow()
+const { updateRowProperty, updateFormat, dependencyLinks, unlinkDependency, linkDependency } =
+  useGanttViewStoreOrThrow()
+
+const { t } = useI18n()
 
 // Visible fields from the Fields menu (injected by parent Smartsheet/shared-view)
 const fields = inject(FieldsInj, ref())
@@ -619,7 +622,9 @@ function buildArrowPath(
   )
 }
 
-const arrowPaths = computed<Array<{ id: string; d: string }>>(() => {
+type ArrowPath = { id: string; d: string; rowId: string; linkedId: string }
+
+const arrowPaths = computed<ArrowPath[]>(() => {
   const range = props.ganttRange[0]
   if (!range?.fk_dependency_col) return []
   const links = dependencyLinks?.value
@@ -634,7 +639,7 @@ const arrowPaths = computed<Array<{ id: string; d: string }>>(() => {
   if (!indexByRowId.size) return []
 
   const direction = range.dependency_direction ?? 'successor'
-  const result: Array<{ id: string; d: string }> = []
+  const result: ArrowPath[] = []
 
   links.forEach((linkedIds, rowId) => {
     const rowIdx = indexByRowId.get(rowId)
@@ -660,12 +665,79 @@ const arrowPaths = computed<Array<{ id: string; d: string }>>(() => {
 
       result.push({
         id: `${rowId}-${linkedId}`,
+        rowId,
+        linkedId,
         d: buildArrowPath(predRightX, predIdx, succLeftX, succIdx),
       })
     }
   })
 
   return result
+})
+
+// Selection + delete interaction for dependency arrows
+const selectedArrowId = ref<string | null>(null)
+const canEditDeps = computed(() => !props.ganttRange[0]?.is_readonly && isUIAllowed('dataEdit'))
+
+const selectArrow = (id: string, event?: MouseEvent) => {
+  if (!canEditDeps.value) return
+  event?.stopPropagation()
+  selectedArrowId.value = id
+}
+
+const deselectArrow = () => {
+  selectedArrowId.value = null
+}
+
+const handleArrowDelete = async () => {
+  const id = selectedArrowId.value
+  if (!id) return
+  const arrow = arrowPaths.value.find((a) => a.id === id)
+  if (!arrow) return
+
+  selectedArrowId.value = null
+  try {
+    await unlinkDependency(arrow.rowId, arrow.linkedId)
+    $e('a:gantt:dep-unlink')
+    const msg = message.info({
+      content: () =>
+        h('span', { class: 'flex items-center gap-3' }, [
+          t('msg.dependencyRemoved'),
+          h(
+            'button',
+            {
+              class: 'underline text-nc-content-brand',
+              onClick: async () => {
+                msg()
+                try {
+                  await linkDependency(arrow.rowId, arrow.linkedId)
+                  $e('a:gantt:dep-unlink-undo')
+                } catch (e: any) {
+                  message.error(await extractSdkResponseErrorMsg(e))
+                }
+              },
+            },
+            t('general.undo'),
+          ),
+        ]),
+      duration: 5,
+    })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+onKeyStroke(['Delete', 'Backspace'], (event) => {
+  if (!selectedArrowId.value) return
+  const target = event.target as HTMLElement | null
+  if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return
+  if (target?.isContentEditable) return
+  event.preventDefault()
+  handleArrowDelete()
+})
+
+onKeyStroke('Escape', () => {
+  if (selectedArrowId.value) deselectArrow()
 })
 
 const arrowSvgHeight = computed(() => Math.max(stableRowOrder.value.length * ROW_HEIGHT, ROW_HEIGHT))
@@ -849,6 +921,12 @@ const getLaneIndexFromEvent = (event: MouseEvent): number => {
 }
 
 const onGridBodyMouseDown = (event: MouseEvent) => {
+  // Any mousedown on the grid body that isn't on the arrow hit path clears the
+  // arrow selection. Using mousedown (not click) so the deselect happens
+  // before any subsequent drag handlers capture the pointer.
+  const clickedArrow = (event.target as HTMLElement | null)?.closest?.('.nc-gantt-arrow-hit')
+  if (selectedArrowId.value && !clickedArrow) deselectArrow()
+
   if (!isUIAllowed('dataEdit')) return
   if (!gridBodyRef.value) return
   // Only left mouse button
@@ -1106,13 +1184,15 @@ const onGridMouseLeave = () => {
           />
         </div>
 
-        <!-- Dependency arrows layer — sits above backgrounds, below bars so
-             bar edges occlude arrow termini. Pointer-events disabled for now;
-             interactivity (hover highlight, delete) comes in a follow-up. -->
+        <!-- Dependency arrows layer — raised above the bar content layer so hit
+             paths can receive clicks (the grid body otherwise absorbs them).
+             SVG itself is pointer-events: none; only the hit paths re-enable
+             pointer-events below. Arrows drawn 2px short of bar edges so they
+             still read as terminating at the bar. -->
         <svg
           v-if="arrowPaths.length"
           class="absolute inset-0 pointer-events-none"
-          style="z-index: 1"
+          style="z-index: 3"
           :width="totalGridWidth"
           :height="arrowSvgHeight"
           :viewBox="`0 0 ${totalGridWidth} ${arrowSvgHeight}`"
@@ -1130,17 +1210,52 @@ const onGridMouseLeave = () => {
             >
               <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-content-gray-muted, #6a7184)" />
             </marker>
+            <marker
+              id="nc-gantt-arrow-head-selected"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-content-red-dark, #b91c1c)" />
+            </marker>
           </defs>
-          <path
-            v-for="arrow in arrowPaths"
-            :key="arrow.id"
-            :d="arrow.d"
-            fill="none"
-            stroke="var(--nc-content-gray-muted, #6a7184)"
-            stroke-width="1.25"
-            stroke-linejoin="round"
-            marker-end="url(#nc-gantt-arrow-head)"
-          />
+          <g v-for="arrow in arrowPaths" :key="arrow.id">
+            <!-- Transparent wide hit target for click selection. Uses
+                 pointer-events="stroke" so the invisible stroke still catches
+                 clicks, re-enabling hit-testing over the SVG's inherited
+                 pointer-events: none. -->
+            <path
+              v-if="canEditDeps"
+              :d="arrow.d"
+              fill="none"
+              stroke="transparent"
+              stroke-width="12"
+              pointer-events="stroke"
+              class="nc-gantt-arrow-hit cursor-pointer"
+              @click="selectArrow(arrow.id, $event)"
+            />
+            <!-- Visible arrow -->
+            <path
+              :d="arrow.d"
+              fill="none"
+              :stroke="
+                selectedArrowId === arrow.id
+                  ? 'var(--nc-content-red-dark, #b91c1c)'
+                  : 'var(--nc-content-gray-muted, #6a7184)'
+              "
+              :stroke-width="selectedArrowId === arrow.id ? 2 : 1.25"
+              stroke-linejoin="round"
+              class="pointer-events-none"
+              :marker-end="
+                selectedArrowId === arrow.id
+                  ? 'url(#nc-gantt-arrow-head-selected)'
+                  : 'url(#nc-gantt-arrow-head)'
+              "
+            />
+          </g>
         </svg>
 
         <!-- Content layer: bars and empty state — sits above backgrounds -->

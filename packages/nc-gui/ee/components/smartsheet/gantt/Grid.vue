@@ -482,43 +482,22 @@ const visibleRecords = computed(() => {
     })
 })
 
-// Swimlane packing: group non-overlapping records into lanes so bars sit side by side
-// Each lane is an array of { record, colorIndex } where colorIndex is the record's
-// position in the global visibleRecords list (for stable coloring).
+// Gantt layout: one record per lane. Intentional divergence from Timeline's
+// non-overlap packing — in a Gantt chart each task occupies its own row so the
+// left-hand record column aligns 1:1 with the bars on the right.
 const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>>(() => {
   const range = props.ganttRange[0]
   if (!range) return []
 
-  const lanes: Array<{ records: Array<{ record: RowType; colorIndex: number }>; lastEnd: dayjs.Dayjs }> = []
+  const lanes: Array<Array<{ record: RowType; colorIndex: number }>> = []
 
   visibleRecords.value.forEach((record, idx) => {
     const startDate = parseDate(record, range.fk_from_col)
-    const endDate = range.fk_to_col ? parseDate(record, range.fk_to_col) : startDate
     if (!startDate) return
-
-    const effectiveEnd = endDate || startDate
-
-    // Find the first lane where this record fits (no overlap)
-    let placed = false
-    for (const lane of lanes) {
-      if (startDate.isAfter(lane.lastEnd, 'day')) {
-        lane.records.push({ record, colorIndex: idx })
-        lane.lastEnd = effectiveEnd
-        placed = true
-        break
-      }
-    }
-
-    // No existing lane fits — create a new one
-    if (!placed) {
-      lanes.push({
-        records: [{ record, colorIndex: idx }],
-        lastEnd: effectiveEnd,
-      })
-    }
+    lanes.push([{ record, colorIndex: idx }])
   })
 
-  return lanes.map((lane) => lane.records)
+  return lanes
 })
 
 // Get bar position and width for a record

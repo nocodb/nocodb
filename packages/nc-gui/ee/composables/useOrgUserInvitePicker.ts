@@ -1,3 +1,4 @@
+import { NC_DEFAULT_ORG_ID } from 'nocodb-sdk'
 import type { OrgUserPickerItem } from '~/composables/useOrgUserInvitePicker'
 
 export type { OrgUserPickerItem }
@@ -25,7 +26,10 @@ export function useOrgUserInvitePicker(opts: {
       if (ws?.fk_org_id) return ws.fk_org_id as string
     }
     if ((activeWorkspace.value as any)?.fk_org_id) return (activeWorkspace.value as any).fk_org_id as string
-    return appInfo.value?.defaultOrgId
+    // Last-resort fallback for setups where no org is wired (e.g. shared EE
+    // test mode). The backend will 404 if no such org exists; the catch
+    // below swallows it and the picker stays empty.
+    return appInfo.value?.defaultOrgId || NC_DEFAULT_ORG_ID
   })
 
   const fetchOrgUsers = async () => {

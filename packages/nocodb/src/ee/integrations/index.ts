@@ -42,6 +42,8 @@ import JiraCloudAuth from '@noco-local-integrations/jira-cloud-auth';
 import JiraCloudSync from '@noco-local-integrations/jira-cloud-sync';
 import LinearAuth from '@noco-local-integrations/linear-auth';
 import LinearSync from '@noco-local-integrations/linear-sync';
+import MailchimpAuth from '@noco-local-integrations/mailchimp-auth';
+import MailchimpWorkflowNode from '@noco-local-integrations/mailchimp-workflow-node';
 import MysqlAuth from '@noco-local-integrations/mysql-auth';
 import MysqlSync from '@noco-local-integrations/mysql-sync';
 import NocodbAi from '@noco-local-integrations/nocodb-ai';
@@ -85,59 +87,41 @@ export default [
   ...(Array.isArray(FreshdeskSync) ? FreshdeskSync : [FreshdeskSync]),
   ...(Array.isArray(GithubAuth) ? GithubAuth : [GithubAuth]),
   ...(Array.isArray(GithubSync) ? GithubSync : [GithubSync]),
-  ...(Array.isArray(GithubWorkflowNode)
-    ? GithubWorkflowNode
-    : [GithubWorkflowNode]),
+  ...(Array.isArray(GithubWorkflowNode) ? GithubWorkflowNode : [GithubWorkflowNode]),
   ...(Array.isArray(GitlabAuth) ? GitlabAuth : [GitlabAuth]),
   ...(Array.isArray(GitlabSync) ? GitlabSync : [GitlabSync]),
   ...(Array.isArray(GoogleAi) ? GoogleAi : [GoogleAi]),
-  ...(Array.isArray(GoogleCalendarAuth)
-    ? GoogleCalendarAuth
-    : [GoogleCalendarAuth]),
-  ...(Array.isArray(GoogleCalendarWorkflowNodes)
-    ? GoogleCalendarWorkflowNodes
-    : [GoogleCalendarWorkflowNodes]),
+  ...(Array.isArray(GoogleCalendarAuth) ? GoogleCalendarAuth : [GoogleCalendarAuth]),
+  ...(Array.isArray(GoogleCalendarWorkflowNodes) ? GoogleCalendarWorkflowNodes : [GoogleCalendarWorkflowNodes]),
   ...(Array.isArray(GoogleDriveAuth) ? GoogleDriveAuth : [GoogleDriveAuth]),
   ...(Array.isArray(GoogleDriveSync) ? GoogleDriveSync : [GoogleDriveSync]),
   ...(Array.isArray(GoogleMailAuth) ? GoogleMailAuth : [GoogleMailAuth]),
-  ...(Array.isArray(GoogleWorkflowNodes)
-    ? GoogleWorkflowNodes
-    : [GoogleWorkflowNodes]),
+  ...(Array.isArray(GoogleWorkflowNodes) ? GoogleWorkflowNodes : [GoogleWorkflowNodes]),
   ...(Array.isArray(GroqAi) ? GroqAi : [GroqAi]),
   ...(Array.isArray(HubspotAuth) ? HubspotAuth : [HubspotAuth]),
-  ...(Array.isArray(HubspotCrmWorkflowNode)
-    ? HubspotCrmWorkflowNode
-    : [HubspotCrmWorkflowNode]),
+  ...(Array.isArray(HubspotCrmWorkflowNode) ? HubspotCrmWorkflowNode : [HubspotCrmWorkflowNode]),
   ...(Array.isArray(HubspotSync) ? HubspotSync : [HubspotSync]),
   ...(Array.isArray(JiraCloudAuth) ? JiraCloudAuth : [JiraCloudAuth]),
   ...(Array.isArray(JiraCloudSync) ? JiraCloudSync : [JiraCloudSync]),
   ...(Array.isArray(LinearAuth) ? LinearAuth : [LinearAuth]),
   ...(Array.isArray(LinearSync) ? LinearSync : [LinearSync]),
+  ...(Array.isArray(MailchimpAuth) ? MailchimpAuth : [MailchimpAuth]),
+  ...(Array.isArray(MailchimpWorkflowNode) ? MailchimpWorkflowNode : [MailchimpWorkflowNode]),
   ...(Array.isArray(MysqlAuth) ? MysqlAuth : [MysqlAuth]),
   ...(Array.isArray(MysqlSync) ? MysqlSync : [MysqlSync]),
   ...(Array.isArray(NocodbAi) ? NocodbAi : [NocodbAi]),
-  ...(Array.isArray(NocodbWorkflowNode)
-    ? NocodbWorkflowNode
-    : [NocodbWorkflowNode]),
+  ...(Array.isArray(NocodbWorkflowNode) ? NocodbWorkflowNode : [NocodbWorkflowNode]),
   ...(Array.isArray(OpenaiAi) ? OpenaiAi : [OpenaiAi]),
-  ...(Array.isArray(OpenaiCompatibleAi)
-    ? OpenaiCompatibleAi
-    : [OpenaiCompatibleAi]),
+  ...(Array.isArray(OpenaiCompatibleAi) ? OpenaiCompatibleAi : [OpenaiCompatibleAi]),
   ...(Array.isArray(OutlookMailAuth) ? OutlookMailAuth : [OutlookMailAuth]),
-  ...(Array.isArray(OutlookWorkflowNodes)
-    ? OutlookWorkflowNodes
-    : [OutlookWorkflowNodes]),
+  ...(Array.isArray(OutlookWorkflowNodes) ? OutlookWorkflowNodes : [OutlookWorkflowNodes]),
   ...(Array.isArray(PostgresAuth) ? PostgresAuth : [PostgresAuth]),
   ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
   ...(Array.isArray(SlackAuth) ? SlackAuth : [SlackAuth]),
-  ...(Array.isArray(SlackWorkflowNode)
-    ? SlackWorkflowNode
-    : [SlackWorkflowNode]),
+  ...(Array.isArray(SlackWorkflowNode) ? SlackWorkflowNode : [SlackWorkflowNode]),
   ...(Array.isArray(SmtpAuth) ? SmtpAuth : [SmtpAuth]),
   ...(Array.isArray(TwilioAuth) ? TwilioAuth : [TwilioAuth]),
-  ...(Array.isArray(TwilioWorkflowNode)
-    ? TwilioWorkflowNode
-    : [TwilioWorkflowNode]),
+  ...(Array.isArray(TwilioWorkflowNode) ? TwilioWorkflowNode : [TwilioWorkflowNode]),
   ...(Array.isArray(ZendeskAuth) ? ZendeskAuth : [ZendeskAuth]),
   ...(Array.isArray(ZendeskSync) ? ZendeskSync : [ZendeskSync]),
   ...(Array.isArray(ZohoAuth) ? ZohoAuth : [ZohoAuth]),

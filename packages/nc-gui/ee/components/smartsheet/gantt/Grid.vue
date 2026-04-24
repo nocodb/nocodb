@@ -84,6 +84,14 @@ onMounted(() => {
 
 const ROW_HEIGHT = 36
 const HEADER_HEIGHT = 32
+const SIDEBAR_WIDTH = 240
+
+const meta = inject(MetaInj, ref())
+
+const primaryField = computed(() => {
+  const cols = meta.value?.columns ?? []
+  return cols.find((c) => c.pv) ?? cols.find((c) => !!c.title)
+})
 
 // Measure the grid container to compute dynamic column widths
 const gridContainerRef = ref<HTMLElement | null>(null)
@@ -781,14 +789,25 @@ const onBarKeydown = (event: KeyboardEvent, record: RowType, laneIdx: number, ba
   targetEl?.focus()
 }
 
-// Sync horizontal scroll between header and body
+// Sync horizontal scroll between header and body, and vertical scroll with sidebar
 const headerScrollRef = ref<HTMLElement | null>(null)
 const bodyScrollRef = ref<HTMLElement | null>(null)
+const sidebarScrollRef = ref<HTMLElement | null>(null)
 
 const onBodyScroll = (event: Event) => {
   const target = event.target as HTMLElement
   if (headerScrollRef.value) {
     headerScrollRef.value.scrollLeft = target.scrollLeft
+  }
+  if (sidebarScrollRef.value && sidebarScrollRef.value.scrollTop !== target.scrollTop) {
+    sidebarScrollRef.value.scrollTop = target.scrollTop
+  }
+}
+
+const onSidebarScroll = (event: Event) => {
+  const target = event.target as HTMLElement
+  if (bodyScrollRef.value && bodyScrollRef.value.scrollTop !== target.scrollTop) {
+    bodyScrollRef.value.scrollTop = target.scrollTop
   }
 }
 
@@ -828,13 +847,48 @@ const onGridMouseLeave = () => {
 
 <template>
   <div
-    class="relative flex flex-col overflow-hidden"
-    :class="{ 'h-full': !hideHeader }"
+    class="relative flex overflow-hidden"
+    :class="{ 'h-full flex-row': !hideHeader, 'flex-col': hideHeader }"
     :style="{
       minHeight: (hasRecordsBefore || hasRecordsAfter) && !swimlanes.length ? `${ROW_HEIGHT}px` : undefined,
       height: groupedGridHeight,
     }"
   >
+    <!-- Left record-list sidebar — only in flat (non-grouped) mode -->
+    <div
+      v-if="!hideHeader"
+      class="nc-gantt-sidebar flex flex-col flex-shrink-0 border-r border-nc-border-gray-medium bg-nc-bg-default"
+      :style="{ width: `${SIDEBAR_WIDTH}px` }"
+      data-testid="nc-gantt-sidebar"
+    >
+      <div
+        class="flex items-center px-3 text-xs font-medium text-nc-content-gray-muted border-b border-nc-border-gray-medium flex-shrink-0"
+        :style="{ height: `${HEADER_HEIGHT}px` }"
+      >
+        {{ primaryField?.title || $t('labels.name') }}
+      </div>
+      <div
+        ref="sidebarScrollRef"
+        class="flex-1 overflow-y-auto overflow-x-hidden"
+        @scroll="onSidebarScroll"
+      >
+        <div
+          v-for="(lane, laneIdx) in swimlanes"
+          :key="laneIdx"
+          class="flex items-center px-3 border-b border-nc-border-gray-light text-sm text-nc-content-gray truncate cursor-pointer hover:bg-nc-bg-gray-extralight"
+          :style="{ height: `${ROW_HEIGHT}px` }"
+          :title="primaryField ? lane[0].record.row[primaryField.title!] ?? '' : ''"
+          @click="emit('expandRecord', lane[0].record)"
+        >
+          <span class="truncate">
+            {{ primaryField ? lane[0].record.row[primaryField.title!] ?? '' : '' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main pane: date header + scrollable grid body -->
+    <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
     <!-- Date column headers (hidden when parent provides a shared header) -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
       <div ref="headerScrollRef" class="overflow-x-hidden" @mousemove="onHeaderMouseMove" @mouseleave="onGridMouseLeave">
@@ -1084,6 +1138,7 @@ const onGridMouseLeave = () => {
           <!-- #9: Empty state grid filler — using i18n -->
         </div>
       </div>
+    </div>
     </div>
 
     <!-- Grid-level nav arrows — only for fully off-screen records (no bars visible) -->

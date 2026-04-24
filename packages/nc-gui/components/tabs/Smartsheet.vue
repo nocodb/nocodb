@@ -358,7 +358,7 @@ watch(isViewsLoading, async () => {
         >
           <Pane class="flex flex-row h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
             <div v-show="!isExpandedFormPanelFullscreen" class="flex flex-col flex-1 min-w-0 h-full">
-              <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
+              <SmartsheetToolbar v-if="!isForm && !isGantt" show-full-screen-toggle />
               <div
                 :style="{ height: isForm || isTimeline || isGantt ? '100%' : 'calc(100% - var(--toolbar-height))' }"
                 class="flex flex-row w-full"

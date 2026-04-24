@@ -199,9 +199,9 @@ export class DataAttachmentV3Service {
 
     if (fileSize > NC_ATTACHMENT_FIELD_SIZE) {
       NcError.get(context).invalidRequestBody(
-        `Attachment is larger than maximum allowed size at ${(
+        `File is too large. Maximum allowed size is ${(
           NC_ATTACHMENT_FIELD_SIZE / mb
-        ).toFixed(2)} mb`,
+        ).toFixed(2)} MB`,
       );
     }
 

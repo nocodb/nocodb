@@ -1,13 +1,7 @@
 import type { BaseTrashType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
-import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
@@ -37,26 +31,13 @@ export default class BaseTrash implements BaseTrashType {
     trashId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    let trash =
-      trashId &&
-      (await NocoCache.get(
-        context,
-        `${CacheScope.TRASH}:${trashId}`,
-        CacheGetType.TYPE_OBJECT,
-      ));
-
-    if (!trash) {
-      trash = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.TRASH,
-        trashId,
-      );
-      if (trash) {
-        await NocoCache.set(context, `${CacheScope.TRASH}:${trashId}`, trash);
-      }
-    }
-
+    if (!trashId) return null;
+    const trash = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.TRASH,
+      trashId,
+    );
     return (
       trash &&
       new BaseTrash(prepareForResponse(trash, ['meta', 'related_items']))
@@ -228,12 +209,6 @@ export default class BaseTrash implements BaseTrashType {
       trashId,
     );
 
-    await NocoCache.update(
-      context,
-      `${CacheScope.TRASH}:${trashId}`,
-      updateObj,
-    );
-
     return this.get(context, trashId, ncMeta);
   }
 
@@ -242,12 +217,6 @@ export default class BaseTrash implements BaseTrashType {
     trashId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    await NocoCache.deepDel(
-      context,
-      `${CacheScope.TRASH}:${trashId}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
-
     return await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
@@ -286,11 +255,6 @@ export default class BaseTrash implements BaseTrashType {
     );
 
     for (const entry of trashEntries) {
-      await NocoCache.deepDel(
-        context,
-        `${CacheScope.TRASH}:${entry.id}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
       await ncMeta.metaDelete(
         context.workspace_id,
         context.base_id,

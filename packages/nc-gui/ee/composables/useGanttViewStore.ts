@@ -146,8 +146,14 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
           fk_from_col: fromCol,
           fk_to_col: toCol,
           fk_dependency_col: depCol,
-          dependency_direction:
-            dep.dependency_linkrow_role === 'successors' ? 'successor' : 'predecessor',
+          // DateDependency only accepts hm/om/oo self-relations. For those
+          // shapes, nestedList returns the current row's CHILDREN. The dialog
+          // labels the field as a "Predecessor Link" and sets
+          // `dependency_linkrow_role = 'predecessors'`, but in practice users
+          // store successor-pointing values (Task-1.NextTask → Task-2). The
+          // cascade logic on the backend respects the role; the arrow render
+          // follows the observed data semantics (linked = successor).
+          dependency_direction: 'successor',
           id: `${dep.fk_start_date_field_id}_${dep.fk_end_date_field_id ?? 'none'}`,
           is_readonly: ![UITypes.Date, UITypes.DateTime].includes(fromCol.uidt as UITypes),
         },
@@ -239,6 +245,69 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       } finally {
         isGanttDataLoading.value = false
       }
+
+      // After rows land, resolve the dependency graph (if a dep field is set).
+      // Fire-and-forget — arrows appear once links load; row data is already usable.
+      loadDependencyLinks()
+    }
+
+    // Dependency graph — Map<rowId, linkedRowIds[]>.
+    // Populated from the Links field configured in DateDependency; fetched via
+    // N+1 nestedList calls (bulk endpoint doesn't exist yet). Acceptable for
+    // Gantt's 400-row cap; optimise later if needed.
+    const dependencyLinks = ref<Map<string, string[]>>(new Map())
+
+    const loadDependencyLinks = async () => {
+      const range = ganttRange.value?.[0]
+      const depCol = range?.fk_dependency_col as ColumnType | undefined
+      const tableId = meta.value?.id
+      if (!depCol || !tableId || !base.value?.id || !formattedData.value.length) {
+        dependencyLinks.value = new Map()
+        return
+      }
+      const colType = (depCol.colOptions as any)?.type as
+        | 'mm' | 'hm' | 'om' | 'bt' | 'oo' | 'ln' | undefined
+      if (!colType) {
+        dependencyLinks.value = new Map()
+        return
+      }
+      // Every relation subtype (mm/ln/om/oo) routes to mmList on the backend
+      // except 'hm' which has its own handler; cast to any to sidestep the
+      // narrower SDK enum that predates 'om'.
+      const relType = colType as any
+      const pkCols = (meta.value?.columns ?? []) as ColumnType[]
+      const baseId = base.value.id
+
+      const entries = await Promise.all(
+        formattedData.value.map(async (row) => {
+          const rowId = extractPkFromRow(row.row, pkCols)
+          if (rowId == null) return null
+          try {
+            const res: any = await $api.dbTableRow.nestedList(
+              NOCO,
+              baseId,
+              tableId,
+              encodeURIComponent(String(rowId)),
+              relType,
+              depCol.id!,
+              { limit: 1000 } as any,
+            )
+            const ids = (res?.list ?? [])
+              .map((r: any) => extractPkFromRow(r, pkCols))
+              .filter((id: any) => id != null)
+              .map((id: any) => String(id))
+            return ids.length ? ([String(rowId), ids] as const) : null
+          } catch {
+            return null
+          }
+        }),
+      )
+
+      const graph = new Map<string, string[]>()
+      for (const e of entries) {
+        if (e) graph.set(e[0], e[1])
+      }
+      dependencyLinks.value = graph
     }
 
     // Navigate to the closest record on initial view load
@@ -497,11 +566,13 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       isPublic,
       totalRecordCount,
       recordsWithoutDates,
+      dependencyLinks,
 
       updateFormat,
 
       // Methods
       loadGanttData,
+      loadDependencyLinks,
       navigateToClosestRecord,
       navigateNext,
       navigatePrev,

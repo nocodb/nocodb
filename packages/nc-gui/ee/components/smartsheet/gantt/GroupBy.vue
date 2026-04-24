@@ -19,6 +19,8 @@ const props = defineProps<{
   ganttRange: Array<{
     fk_from_col: ColumnType
     fk_to_col?: ColumnType | null
+    fk_dependency_col?: ColumnType | null
+    dependency_direction?: 'predecessor' | 'successor'
     id: string
     is_readonly: boolean
   }>

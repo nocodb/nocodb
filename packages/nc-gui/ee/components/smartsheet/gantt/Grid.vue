@@ -17,6 +17,8 @@ const props = defineProps<{
   ganttRange: Array<{
     fk_from_col: ColumnType
     fk_to_col?: ColumnType | null
+    fk_dependency_col?: ColumnType | null
+    dependency_direction?: 'predecessor' | 'successor'
     id: string
     is_readonly: boolean
   }>
@@ -36,7 +38,7 @@ const { isAllowed } = usePermissions()
 
 const { $e } = useNuxtApp()
 
-const { updateRowProperty, updateFormat } = useGanttViewStoreOrThrow()
+const { updateRowProperty, updateFormat, dependencyLinks } = useGanttViewStoreOrThrow()
 
 // Visible fields from the Fields menu (injected by parent Smartsheet/shared-view)
 const fields = inject(FieldsInj, ref())
@@ -566,6 +568,108 @@ const getBarStyle = (row: RowType) => {
   }
 }
 
+// Dependency arrows — SVG step paths from predecessor's bottom-right corner to
+// successor's left-center (Airtable Gantt style). Data lives on
+// `dependencyLinks` (Map<rowId, linkedRowIds[]>) from the store.
+// Direction flips meaning: 'predecessor' = linkedIds are the row's predecessors
+// (arrow goes linkedId → row). 'successor' = linkedIds are its successors
+// (arrow goes row → linkedId).
+const ARROW_HEAD_OFFSET = 2
+const BAR_PADDING = 4 // matches the 4px top/bottom inset on bars
+const CORNER_RADIUS = 3 // Airtable-style rounded corner
+const EXIT_INSET = 10 // how far inside pred's right edge the bottom-drop starts
+const MIN_HORIZONTAL = 4 // minimum horizontal segment before arrow tip
+
+function buildArrowPath(
+  predRightX: number,
+  predIdx: number,
+  succLeftX: number,
+  succIdx: number,
+): string {
+  const predBottomY = (predIdx + 1) * ROW_HEIGHT - BAR_PADDING
+  const succCenterY = succIdx * ROW_HEIGHT + ROW_HEIGHT / 2
+  const tipX = succLeftX - ARROW_HEAD_OFFSET
+
+  // Forward path: drop from inside the predecessor's bottom edge (10px left of
+  // its right edge), rounded corner, horizontal to successor's left-middle.
+  const preferredExit = predRightX - EXIT_INSET
+  const maxExit = tipX - CORNER_RADIUS - MIN_HORIZONTAL
+  if (maxExit >= preferredExit - 12) {
+    const exitX = Math.min(preferredExit, maxExit)
+    return (
+      `M ${exitX} ${predBottomY}` +
+      ` L ${exitX} ${succCenterY - CORNER_RADIUS}` +
+      ` A ${CORNER_RADIUS} ${CORNER_RADIUS} 0 0 0 ${exitX + CORNER_RADIUS} ${succCenterY}` +
+      ` L ${tipX} ${succCenterY}`
+    )
+  }
+
+  const exitX = predRightX - EXIT_INSET
+
+  // Backward / overlapping dep: route out-and-around past the successor's row.
+  const midY =
+    predIdx < succIdx ? succCenterY + ROW_HEIGHT : succCenterY - ROW_HEIGHT
+  const farLeftX = Math.min(succLeftX - 12, exitX - 12)
+  return (
+    `M ${exitX} ${predBottomY}` +
+    ` L ${exitX} ${midY}` +
+    ` L ${farLeftX} ${midY}` +
+    ` L ${farLeftX} ${succCenterY}` +
+    ` L ${tipX} ${succCenterY}`
+  )
+}
+
+const arrowPaths = computed<Array<{ id: string; d: string }>>(() => {
+  const range = props.ganttRange[0]
+  if (!range?.fk_dependency_col) return []
+  const links = dependencyLinks?.value
+  if (!links || !links.size) return []
+
+  const pkCols = (meta.value?.columns ?? []) as ColumnType[]
+  const indexByRowId = new Map<string, number>()
+  stableRowOrder.value.forEach((entry, idx) => {
+    const id = extractPkFromRow(entry.record.row, pkCols)
+    if (id != null) indexByRowId.set(String(id), idx)
+  })
+  if (!indexByRowId.size) return []
+
+  const direction = range.dependency_direction ?? 'successor'
+  const result: Array<{ id: string; d: string }> = []
+
+  links.forEach((linkedIds, rowId) => {
+    const rowIdx = indexByRowId.get(rowId)
+    if (rowIdx === undefined) return
+
+    for (const linkedId of linkedIds) {
+      const linkedIdx = indexByRowId.get(linkedId)
+      if (linkedIdx === undefined) continue
+
+      const [predIdx, succIdx] =
+        direction === 'predecessor' ? [linkedIdx, rowIdx] : [rowIdx, linkedIdx]
+
+      const predBar = getBarStyle(stableRowOrder.value[predIdx]!.record)
+      const succBar = getBarStyle(stableRowOrder.value[succIdx]!.record)
+      if (!predBar || !succBar) continue
+
+      const predLeft = parseFloat(predBar.left)
+      const predWidth = parseFloat(predBar.width)
+      const succLeft = parseFloat(succBar.left)
+
+      const predRightX = predLeft + predWidth
+      const succLeftX = succLeft
+
+      result.push({
+        id: `${rowId}-${linkedId}`,
+        d: buildArrowPath(predRightX, predIdx, succLeftX, succIdx),
+      })
+    }
+  })
+
+  return result
+})
+
+const arrowSvgHeight = computed(() => Math.max(stableRowOrder.value.length * ROW_HEIGHT, ROW_HEIGHT))
+
 // #11: Build tooltip text for a record bar — improved format with em-dash and year
 const getBarTooltip = (row: RowType) => {
   const range = props.ganttRange[0]
@@ -1002,8 +1106,45 @@ const onGridMouseLeave = () => {
           />
         </div>
 
+        <!-- Dependency arrows layer — sits above backgrounds, below bars so
+             bar edges occlude arrow termini. Pointer-events disabled for now;
+             interactivity (hover highlight, delete) comes in a follow-up. -->
+        <svg
+          v-if="arrowPaths.length"
+          class="absolute inset-0 pointer-events-none"
+          style="z-index: 1"
+          :width="totalGridWidth"
+          :height="arrowSvgHeight"
+          :viewBox="`0 0 ${totalGridWidth} ${arrowSvgHeight}`"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <marker
+              id="nc-gantt-arrow-head"
+              viewBox="0 0 10 10"
+              refX="8"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-content-gray-muted, #6a7184)" />
+            </marker>
+          </defs>
+          <path
+            v-for="arrow in arrowPaths"
+            :key="arrow.id"
+            :d="arrow.d"
+            fill="none"
+            stroke="var(--nc-content-gray-muted, #6a7184)"
+            stroke-width="1.25"
+            stroke-linejoin="round"
+            marker-end="url(#nc-gantt-arrow-head)"
+          />
+        </svg>
+
         <!-- Content layer: bars and empty state — sits above backgrounds -->
-        <div ref="gridBodyRef" class="relative w-full" style="z-index: 1" @mousedown="onGridBodyMouseDown">
+        <div ref="gridBodyRef" class="relative w-full" style="z-index: 2" @mousedown="onGridBodyMouseDown">
           <!-- Swimlane rows -->
           <div
             v-for="(lane, laneIdx) in swimlanes"

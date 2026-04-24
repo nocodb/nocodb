@@ -1550,6 +1550,17 @@ watch(isEditable, (val) => {
 
 const activeFont = ref<'default' | 'serif' | 'mono'>('default')
 
+type DocDir = 'ltr' | 'rtl' | 'auto'
+
+const { isRtl: isAppRtl } = useRtl()
+
+// Tri-state direction selector state. `null` = use default (app locale).
+const activeDir = ref<DocDir | null>(null)
+
+// Resolved direction used on DOM: explicit meta.dir wins; otherwise follow the
+// app locale (RTL for Persian/Arabic/Hebrew/Urdu users, LTR otherwise).
+const resolvedDir = computed<DocDir>(() => activeDir.value ?? (isAppRtl.value ? 'rtl' : 'ltr'))
+
 // Re-load doc when navigating between pages.
 // Watch both docId AND activeProjectId — on a full page reload, activeProjectId
 // may not be available yet when docId resolves from route params. Without this,
@@ -1562,6 +1573,9 @@ watch(
 
       const loadedFont = docMeta.value.font
       activeFont.value = loadedFont === 'serif' || loadedFont === 'mono' ? loadedFont : 'default'
+
+      const loadedDir = docMeta.value.dir
+      activeDir.value = loadedDir === 'ltr' || loadedDir === 'rtl' || loadedDir === 'auto' ? loadedDir : null
 
       nextTick(() => countTasks())
 
@@ -1832,6 +1846,22 @@ const setDocFont = async (font: 'default' | 'serif' | 'mono') => {
   }
 }
 
+const setDocDir = async (dir: DocDir) => {
+  if (!doc.value?.id || !base.value?.id || dir === activeDir.value) return
+  activeDir.value = dir
+  try {
+    doc.value.meta = { ...docMeta.value, dir }
+    const updated = await updateDocument(base.value.id, doc.value.id, {
+      meta: doc.value.meta,
+      version: doc.value.version,
+    })
+    if (updated?.version && doc.value) doc.value.version = updated.version
+    $e('a:doc:dir:change', { dir })
+  } catch (e: any) {
+    ncMessage.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const onCopyPageLink = () => {
   performCopyLink(() => copy(window.location.href))
 }
@@ -2077,6 +2107,27 @@ onBeforeUnmount(() => {
                 </button>
               </div>
               <NcDivider />
+              <div class="nc-doc-dir-selector-label">{{ $t('labels.textDirection') }}</div>
+              <div :key="activeDir ?? 'default'" class="nc-doc-dir-selector" data-testid="nc-doc-dir-selector" @click.stop>
+                <button
+                  v-for="d in (['ltr', 'auto', 'rtl'] as const)"
+                  :key="d"
+                  v-e="['c:doc:dir:change', { dir: d }]"
+                  class="nc-doc-dir-option"
+                  :class="{ 'nc-doc-dir-option-active': activeDir === d }"
+                  :data-testid="`nc-doc-dir-option-${d}`"
+                  @click="setDocDir(d)"
+                >
+                  <GeneralIcon
+                    class="nc-doc-dir-icon"
+                    :icon="d === 'ltr' ? 'ncAlignLeft' : d === 'rtl' ? 'ncAlignRight' : 'ncAlignCenter'"
+                  />
+                  <span class="nc-doc-dir-label">{{
+                    d === 'ltr' ? $t('labels.directionLtr') : d === 'rtl' ? $t('labels.directionRtl') : $t('labels.directionAuto')
+                  }}</span>
+                </button>
+              </div>
+              <NcDivider />
               <NcMenuItem v-if="isUIAllowed('documentCreate')" @click="onDuplicatePage">
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
                 {{ $t('general.duplicate') }}
@@ -2191,7 +2242,11 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <div class="nc-doc-editor-inner w-full mx-auto px-6 sm:px-10 lg:px-16" :class="{ 'max-w-[900px]': !isFullWidth }">
+        <div
+          class="nc-doc-editor-inner w-full mx-auto px-6 sm:px-10 lg:px-16"
+          :class="{ 'max-w-[900px]': !isFullWidth }"
+          :dir="resolvedDir"
+        >
           <!-- Title -->
           <div class="nc-doc-editor-header pt-12 pb-4">
             <NcTooltip v-if="!coverImageSrc && isUIAllowed('documentUpdate')" :disabled="isEditable">
@@ -2232,6 +2287,7 @@ onBeforeUnmount(() => {
                 class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
                 data-testid="docs-page-title"
                 :placeholder="$t('general.untitled')"
+                :dir="resolvedDir"
                 @blur="onTitleBlur"
                 @keydown="onTitleKeydown"
               />
@@ -3131,11 +3187,13 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-right: 4px;
+  // Logical properties so the icon's hanging-outside-the-content position
+  // flips correctly when the doc is rendered RTL.
+  margin-inline-end: 4px;
 
   @media (min-width: 1024px) {
-    margin-left: -48px;
-    margin-right: 8px;
+    margin-inline-start: -48px;
+    margin-inline-end: 8px;
   }
 }
 
@@ -4344,6 +4402,58 @@ onBeforeUnmount(() => {
 }
 
 .nc-doc-font-label {
+  font-size: 11px;
+  color: var(--nc-content-gray-subtle);
+}
+
+// Direction selector row in page menu
+.nc-doc-dir-selector-label {
+  padding: 6px 12px 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--nc-content-gray-subtle);
+}
+
+.nc-doc-dir-selector {
+  display: flex;
+  gap: 8px;
+  padding: 0 12px 8px;
+}
+
+.nc-doc-dir-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--nc-border-gray-medium);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: var(--nc-bg-gray-light);
+  }
+
+  &.nc-doc-dir-option-active {
+    border-color: var(--nc-content-brand);
+
+    .nc-doc-dir-icon,
+    .nc-doc-dir-label {
+      color: var(--nc-content-brand);
+    }
+  }
+}
+
+.nc-doc-dir-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--nc-content-gray);
+}
+
+.nc-doc-dir-label {
   font-size: 11px;
   color: var(--nc-content-gray-subtle);
 }

@@ -18,7 +18,7 @@ export const viewIcons: Record<number | string, { icon: any; color: string; dark
   view: { icon: iconMap.view, color: 'var(--color-view-icon-view)' },
 }
 
-export const isRtlLang = (lang: keyof typeof Language) => ['fa', 'ar'].includes(lang)
+export const isRtlLang = (lang: keyof typeof Language) => ['fa', 'ar', 'he', 'ur'].includes(lang)
 
 const rtl = 'rtl' as const
 const ltr = 'ltr' as const

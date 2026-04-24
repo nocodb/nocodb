@@ -639,7 +639,7 @@ const onTeamChange = async (_teamIds: RawValueType) => {
 
             <div
               v-if="isOrgUserPickerVisible"
-              class="nc-invite-org-user-picker absolute z-50 left-0 right-0 mt-1 py-1 bg-white dark:bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg shadow-selected max-h-64 overflow-y-auto nc-scrollbar-md"
+              class="nc-invite-org-user-picker absolute z-50 left-0 right-0 top-full mt-1 p-1 bg-white dark:bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-lg shadow-md max-h-64 overflow-y-auto nc-scrollbar-thin"
               data-testid="nc-invite-org-user-picker"
               @mousedown.prevent
             >
@@ -647,18 +647,22 @@ const onTeamChange = async (_teamIds: RawValueType) => {
                 v-for="(orgUser, i) in filteredOrgUsers"
                 :key="orgUser.id"
                 :class="{ 'bg-nc-bg-gray-light': i === pickerSelectedIndex }"
-                class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-nc-bg-gray-light"
+                class="flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md hover:bg-nc-bg-gray-light"
                 :data-testid="`nc-invite-org-user-${orgUser.email}`"
                 @click="selectOrgUser(orgUser)"
                 @mouseenter="pickerSelectedIndex = i"
               >
-                <GeneralUserIcon :user="orgUser" size="base" />
+                <GeneralUserIcon :user="orgUser" size="base" class="flex-none" />
                 <div class="flex flex-col min-w-0 flex-1">
-                  <NcTooltip v-if="orgUser.display_name" show-on-truncate-only class="truncate text-nc-content-gray text-body">
+                  <NcTooltip
+                    v-if="orgUser.display_name"
+                    show-on-truncate-only
+                    class="truncate text-bodyDefaultSmBold !leading-5 capitalize text-nc-content-gray"
+                  >
                     <template #title>{{ orgUser.display_name }}</template>
                     {{ orgUser.display_name }}
                   </NcTooltip>
-                  <NcTooltip show-on-truncate-only class="truncate text-nc-content-gray-subtle text-bodySm">
+                  <NcTooltip show-on-truncate-only class="truncate text-xs !leading-4 text-nc-content-gray-muted">
                     <template #title>{{ orgUser.email }}</template>
                     {{ orgUser.email }}
                   </NcTooltip>

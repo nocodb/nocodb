@@ -306,6 +306,7 @@ export class CreateCampaignNode extends WorkflowNodeIntegration<CreateCampaignCo
         settings: {
           subject_line: subject,
           from_name: fromName,
+          from_email: fromEmail,
           reply_to: config.replyTo || fromEmail,
         },
       };

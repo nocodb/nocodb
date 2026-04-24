@@ -16,6 +16,10 @@ export class MailchimpAuthIntegration extends AuthIntegration<
 
   private mandrillClient: ReturnType<typeof Mandrill> | null = null;
 
+  // Per-instance config stored to re-apply before each use(),
+  // since @mailchimp/mailchimp_marketing is a module-level singleton.
+  private clientConfig: Record<string, string> = {};
+
   protected getRateLimitConfig(): RateLimitOptions | null {
     return {
       global: {
@@ -27,7 +31,6 @@ export class MailchimpAuthIntegration extends AuthIntegration<
   }
 
   public async authenticate(): Promise<typeof mailchimp> {
-    let apiKey: string;
     let server: string;
 
     switch (this.config.type) {
@@ -38,13 +41,8 @@ export class MailchimpAuthIntegration extends AuthIntegration<
         if (!this.config.server) {
           throw new Error(`Missing required ${APP_LABEL} server prefix`);
         }
-        apiKey = this.config.oauth_token;
         server = this.config.server;
-
-        mailchimp.setConfig({
-          accessToken: apiKey,
-          server,
-        });
+        this.clientConfig = { accessToken: this.config.oauth_token, server };
         break;
 
       case AuthType.ApiKey:
@@ -58,21 +56,28 @@ export class MailchimpAuthIntegration extends AuthIntegration<
             'Invalid API key format. Expected format: "apikey-us21"',
           );
         }
-        apiKey = this.config.apiKey;
         server = parts[parts.length - 1];
-
-        mailchimp.setConfig({
-          apiKey,
-          server,
-        });
+        this.clientConfig = { apiKey: this.config.apiKey, server };
         break;
 
       default:
         throw new Error(`Unsupported auth type: ${this.config.type}`);
     }
 
+    mailchimp.setConfig(this.clientConfig);
     this.client = mailchimp;
     return this.client;
+  }
+
+  /**
+   * Re-apply this instance's config before every call to guard against
+   * cross-instance contamination of the shared mailchimp singleton.
+   */
+  public async use<T>(fn: (client: typeof mailchimp) => Promise<T>): Promise<T> {
+    return super.use(async (client) => {
+      mailchimp.setConfig(this.clientConfig);
+      return fn(client);
+    });
   }
 
   public async testConnection(): Promise<TestConnectionResponse> {

@@ -3389,6 +3389,7 @@
     "ganttTotalRecordsLoaded": "Total records loaded (max {max})",
     "ganttGroupByFields": "{count} fields",
     "dependencyRemoved": "Dependency removed",
+    "dependencyCreated": "Dependency created",
     "newFormWillBeLoaded": "New form will be loaded after {seconds} seconds",
     "optimizedQueryDisabled": "Optimized query is disabled",
     "optimizedQueryEnabled": "Optimized query is enabled",

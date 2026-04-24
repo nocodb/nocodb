@@ -737,10 +737,160 @@ onKeyStroke(['Delete', 'Backspace'], (event) => {
 })
 
 onKeyStroke('Escape', () => {
+  if (linkCreationDrag.value) cancelLinkCreation()
   if (selectedArrowId.value) deselectArrow()
 })
 
+// Drag-to-create link from a bar's dependency handle to another bar.
+// Coordinates are in bodyScrollRef content space (not viewport), so they match
+// the SVG arrow overlay's coordinate system.
+interface LinkDragState {
+  fromRecord: RowType
+  fromId: string
+  startX: number
+  startY: number
+  currentX: number
+  currentY: number
+  hoveredRecord: RowType | null
+  hoveredId: string | null
+}
+const linkCreationDrag = ref<LinkDragState | null>(null)
+
+const _eventToContentCoords = (event: MouseEvent) => {
+  const container = bodyScrollRef.value
+  if (!container) return null
+  const rect = container.getBoundingClientRect()
+  return {
+    x: event.clientX - rect.left + container.scrollLeft,
+    y: event.clientY - rect.top + container.scrollTop,
+  }
+}
+
+const onHandleMouseDown = (event: MouseEvent, record: RowType) => {
+  if (event.button !== 0) return
+  if (!canEditDeps.value) return
+  event.stopPropagation()
+  event.preventDefault()
+
+  const pkCols = (meta.value?.columns ?? []) as ColumnType[]
+  const fromId = extractPkFromRow(record.row, pkCols)
+  if (fromId == null) return
+
+  const coords = _eventToContentCoords(event)
+  if (!coords) return
+
+  linkCreationDrag.value = {
+    fromRecord: record,
+    fromId: String(fromId),
+    startX: coords.x,
+    startY: coords.y,
+    currentX: coords.x,
+    currentY: coords.y,
+    hoveredRecord: null,
+    hoveredId: null,
+  }
+
+  document.addEventListener('mousemove', onHandleDragMove)
+  document.addEventListener('mouseup', onHandleDragEnd, { once: true })
+  document.body.style.userSelect = 'none'
+  document.body.style.cursor = 'grabbing'
+}
+
+const onHandleDragMove = (event: MouseEvent) => {
+  const state = linkCreationDrag.value
+  if (!state) return
+  const coords = _eventToContentCoords(event)
+  if (!coords) return
+
+  state.currentX = coords.x
+  state.currentY = coords.y
+
+  // Resolve hovered bar from DOM under cursor. Walk through elementsFromPoint
+  // because the SVG overlay sits on top and would otherwise mask the bar.
+  const elements = document.elementsFromPoint(event.clientX, event.clientY)
+  const barEl = elements.find((el) =>
+    (el as HTMLElement).dataset?.testid === 'nc-gantt-bar',
+  ) as HTMLElement | undefined
+
+  if (!barEl) {
+    state.hoveredRecord = null
+    state.hoveredId = null
+    return
+  }
+
+  const laneIdx = parseInt(barEl.getAttribute('data-lane') ?? '-1', 10)
+  const barIdx = parseInt(barEl.getAttribute('data-bar') ?? '-1', 10)
+  const lane = swimlanes.value[laneIdx]
+  const hit = lane?.[barIdx]?.record
+  if (!hit || hit === state.fromRecord) {
+    state.hoveredRecord = null
+    state.hoveredId = null
+    return
+  }
+
+  const pkCols = (meta.value?.columns ?? []) as ColumnType[]
+  const hoveredId = extractPkFromRow(hit.row, pkCols)
+  state.hoveredRecord = hit
+  state.hoveredId = hoveredId != null ? String(hoveredId) : null
+}
+
+const cancelLinkCreation = () => {
+  linkCreationDrag.value = null
+  document.removeEventListener('mousemove', onHandleDragMove)
+  document.body.style.userSelect = ''
+  document.body.style.cursor = ''
+}
+
+const onHandleDragEnd = async (_event: MouseEvent) => {
+  const state = linkCreationDrag.value
+  cancelLinkCreation()
+  if (!state) return
+
+  const toId = state.hoveredId
+  if (!toId || toId === state.fromId) return
+
+  // Skip if link already exists (either direction).
+  const existing = dependencyLinks.value.get(state.fromId) ?? []
+  if (existing.includes(toId)) return
+
+  try {
+    await linkDependency(state.fromId, toId)
+    $e('a:gantt:dep-link-create')
+    message.success(t('msg.dependencyCreated'))
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+onBeforeUnmount(() => {
+  if (linkCreationDrag.value) cancelLinkCreation()
+  document.removeEventListener('mouseup', onHandleDragEnd)
+})
+
 const arrowSvgHeight = computed(() => Math.max(stableRowOrder.value.length * ROW_HEIGHT, ROW_HEIGHT))
+
+// L-shaped preview path for drag-to-link: drop straight down from the handle
+// start, rounded corner, horizontal to the cursor. Mirrors the connector style.
+// Falls back to a sharp-corner L if the cursor doesn't leave enough room for
+// the arc (e.g. dragging upward or leftward).
+const linkDragPreviewPath = computed(() => {
+  const state = linkCreationDrag.value
+  if (!state) return ''
+  const R = CORNER_RADIUS
+  const { startX, startY, currentX, currentY } = state
+  const dx = currentX - startX
+  const dy = currentY - startY
+  if (dx > R + 1 && dy > R + 1) {
+    return (
+      `M ${startX} ${startY}` +
+      ` L ${startX} ${currentY - R}` +
+      ` A ${R} ${R} 0 0 0 ${startX + R} ${currentY}` +
+      ` L ${currentX} ${currentY}`
+    )
+  }
+  // Fallback: sharp corner (handles backward / upward drags)
+  return `M ${startX} ${startY} L ${startX} ${currentY} L ${currentX} ${currentY}`
+})
 
 // #11: Build tooltip text for a record bar — improved format with em-dash and year
 const getBarTooltip = (row: RowType) => {
@@ -1190,7 +1340,7 @@ const onGridMouseLeave = () => {
              pointer-events below. Arrows drawn 2px short of bar edges so they
              still read as terminating at the bar. -->
         <svg
-          v-if="arrowPaths.length"
+          v-if="arrowPaths.length || linkCreationDrag"
           class="absolute inset-0 pointer-events-none"
           style="z-index: 3"
           :width="totalGridWidth"
@@ -1256,6 +1406,23 @@ const onGridMouseLeave = () => {
               "
             />
           </g>
+          <!-- Drag preview path while the user drags from a handle. L-shaped
+               like the existing connectors (drop-then-arc-then-horizontal).
+               Brand-coloured when hovering a valid target, neutral otherwise. -->
+          <path
+            v-if="linkCreationDrag"
+            :d="linkDragPreviewPath"
+            fill="none"
+            :stroke="
+              linkCreationDrag.hoveredId
+                ? 'var(--nc-content-brand, #3366ff)'
+                : 'var(--nc-content-gray-muted, #6a7184)'
+            "
+            stroke-width="1.5"
+            stroke-dasharray="5 3"
+            stroke-linejoin="round"
+            class="pointer-events-none"
+          />
         </svg>
 
         <!-- Content layer: bars and empty state — sits above backgrounds -->
@@ -1395,13 +1562,18 @@ const onGridMouseLeave = () => {
                    is hovered. Translate + scale live in scoped CSS so we
                    can compose them cleanly. -->
               <div
-                v-if="ganttRange[0]?.fk_dependency_col && !isInteracting"
+                v-if="ganttRange[0]?.fk_dependency_col && !isInteracting && canEditDeps"
                 class="nc-gantt-dep-handle absolute w-2.5 h-2.5 rounded-full bg-nc-bg-default opacity-0 peer-hover:opacity-100 hover:!opacity-100"
+                :class="{
+                  '!opacity-100': linkCreationDrag?.fromRecord === record,
+                }"
                 style="
                   left: calc(100% - 10px);
                   bottom: 0;
                   border: 1.25px solid var(--nc-content-gray-muted, #6a7184);
                 "
+                @mousedown="onHandleMouseDown($event, record)"
+                @click.stop
               />
             </NcTooltip>
             </template>
@@ -1485,16 +1657,22 @@ const onGridMouseLeave = () => {
 }
 
 /* Dependency handle — translate centers it on the connector exit point;
-   scale grows it slightly on direct hover (affordance for drag-to-link). */
+   scale grows it slightly on direct hover (affordance for drag-to-link).
+   grab cursor signals draggability; the document cursor flips to grabbing
+   while the drag is active. */
 .nc-gantt-dep-handle {
   transform: translate(-50%, 50%) scale(1);
   transform-origin: center;
-  transition: transform 120ms ease, opacity 120ms ease, border-width 120ms ease;
-  cursor: crosshair;
+  transition: transform 120ms ease, opacity 120ms ease;
+  cursor: grab;
 }
 
 .nc-gantt-dep-handle:hover {
   transform: translate(-50%, 50%) scale(1.4);
+}
+
+.nc-gantt-dep-handle:active {
+  cursor: grabbing;
 }
 
 /* Neutral bar shadow matching calendar RecordCard */

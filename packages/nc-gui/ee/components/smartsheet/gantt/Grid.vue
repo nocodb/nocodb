@@ -515,13 +515,22 @@ watchEffect(() => {
     return
   }
 
+  // Sort by effective anchor: start date for bars, end date for milestones.
+  // Without this, milestones (no start date) would all collapse to the bottom
+  // instead of interleaving by their end date like Airtable does.
+  const anchorOf = (row: RowType) => {
+    const start = parseDate(row, range.fk_from_col)
+    if (start) return start
+    return range.fk_to_col ? parseDate(row, range.fk_to_col) : null
+  }
+
   const sorted = [...props.records].sort((a, b) => {
-    const aStart = parseDate(a, range.fk_from_col)
-    const bStart = parseDate(b, range.fk_from_col)
-    if (!aStart && !bStart) return 0
-    if (!aStart) return 1
-    if (!bStart) return -1
-    return aStart.valueOf() - bStart.valueOf()
+    const aAnchor = anchorOf(a)
+    const bAnchor = anchorOf(b)
+    if (!aAnchor && !bAnchor) return 0
+    if (!aAnchor) return 1
+    if (!bAnchor) return -1
+    return aAnchor.valueOf() - bAnchor.valueOf()
   })
 
   stableRowOrder.value = sorted.map((record, idx) => ({ record, colorIndex: idx }))
@@ -571,6 +580,43 @@ const getBarStyle = (row: RowType) => {
   }
 }
 
+// Milestones: a record with only an end date (no start date) renders as a
+// diamond centered on the end-date column. It still lists in the sidebar and
+// can be a dependency source or target. MILESTONE_SIZE is the diagonal
+// (bounding box) — matched to the bar height so the diamond reads at the same
+// visual weight as a task bar. MILESTONE_INNER is the pre-rotation square
+// side so that after rotating 45° the diamond fits exactly in MILESTONE_SIZE.
+const MILESTONE_SIZE = ROW_HEIGHT - 8
+const MILESTONE_INNER = MILESTONE_SIZE / Math.SQRT2
+
+const isMilestone = (row: RowType) => {
+  const range = props.ganttRange[0]
+  if (!range?.fk_to_col) return false
+  const start = parseDate(row, range.fk_from_col)
+  const end = parseDate(row, range.fk_to_col)
+  return !start && !!end
+}
+
+// Position the diamond centered on the end-date column. Returns null if the
+// end date is outside the visible window (same contract as getBarStyle).
+const getMilestoneStyle = (row: RowType) => {
+  if (!isMilestone(row)) return null
+  const range = props.ganttRange[0]!
+  const end = parseDate(row, range.fk_to_col)!
+
+  const firstVisibleDate = props.visibleDates[0]
+  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
+  if (!firstVisibleDate || !lastVisibleDate) return null
+  if (end.isBefore(firstVisibleDate, 'day') || end.isAfter(lastVisibleDate, 'day')) return null
+
+  const offset = end.diff(firstVisibleDate, 'day')
+  const centerX = offset * colWidth.value + colWidth.value / 2
+  return {
+    left: `${centerX - MILESTONE_SIZE / 2}px`,
+    width: `${MILESTONE_SIZE}px`,
+  }
+}
+
 // Dependency arrows — SVG step paths from predecessor's bottom-right corner to
 // successor's left-center (Airtable Gantt style). Data lives on
 // `dependencyLinks` (Map<rowId, linkedRowIds[]>) from the store.
@@ -588,10 +634,39 @@ function buildArrowPath(
   predIdx: number,
   succLeftX: number,
   succIdx: number,
+  predIsMilestone = false,
 ): string {
-  const predBottomY = (predIdx + 1) * ROW_HEIGHT - BAR_PADDING
   const succCenterY = succIdx * ROW_HEIGHT + ROW_HEIGHT / 2
   const tipX = succLeftX - ARROW_HEAD_OFFSET
+
+  // Milestone predecessor: exit horizontally from the diamond's right tip at
+  // row centre rather than dropping from a bar bottom. The bar logic below
+  // assumes there's a bottom edge to drop from; diamonds don't have one.
+  if (predIsMilestone) {
+    const predCenterY = predIdx * ROW_HEIGHT + ROW_HEIGHT / 2
+    if (Math.abs(predCenterY - succCenterY) < 0.5) {
+      return `M ${predRightX} ${predCenterY} L ${tipX} ${succCenterY}`
+    }
+    const R = CORNER_RADIUS
+    const goingDown = succCenterY > predCenterY
+    const minMid = predRightX + R + MIN_HORIZONTAL
+    const maxMid = tipX - R - MIN_HORIZONTAL
+    const midX = Math.max(minMid, Math.min(maxMid, (predRightX + tipX) / 2))
+    const vSweep = goingDown ? 1 : 0
+    const hSweep = goingDown ? 0 : 1
+    const vCornerY = goingDown ? predCenterY + R : predCenterY - R
+    const hCornerY = goingDown ? succCenterY - R : succCenterY + R
+    return (
+      `M ${predRightX} ${predCenterY}` +
+      ` L ${midX - R} ${predCenterY}` +
+      ` A ${R} ${R} 0 0 ${vSweep} ${midX} ${vCornerY}` +
+      ` L ${midX} ${hCornerY}` +
+      ` A ${R} ${R} 0 0 ${hSweep} ${midX + R} ${succCenterY}` +
+      ` L ${tipX} ${succCenterY}`
+    )
+  }
+
+  const predBottomY = (predIdx + 1) * ROW_HEIGHT - BAR_PADDING
 
   // Forward path: drop from inside the predecessor's bottom edge (10px left of
   // its right edge), rounded corner, horizontal to successor's left-middle.
@@ -641,6 +716,23 @@ const arrowPaths = computed<ArrowPath[]>(() => {
   const direction = range.dependency_direction ?? 'successor'
   const result: ArrowPath[] = []
 
+  // Resolve a record's horizontal anchors (right-edge for a predecessor, left-
+  // edge for a successor) from either its bar or its milestone diamond.
+  const anchorsFor = (row: RowType) => {
+    const bar = getBarStyle(row)
+    if (bar) {
+      const left = parseFloat(bar.left)
+      const width = parseFloat(bar.width)
+      return { leftX: left, rightX: left + width, milestone: false }
+    }
+    const ms = getMilestoneStyle(row)
+    if (ms) {
+      const left = parseFloat(ms.left)
+      return { leftX: left, rightX: left + MILESTONE_SIZE, milestone: true }
+    }
+    return null
+  }
+
   links.forEach((linkedIds, rowId) => {
     const rowIdx = indexByRowId.get(rowId)
     if (rowIdx === undefined) return
@@ -652,22 +744,15 @@ const arrowPaths = computed<ArrowPath[]>(() => {
       const [predIdx, succIdx] =
         direction === 'predecessor' ? [linkedIdx, rowIdx] : [rowIdx, linkedIdx]
 
-      const predBar = getBarStyle(stableRowOrder.value[predIdx]!.record)
-      const succBar = getBarStyle(stableRowOrder.value[succIdx]!.record)
-      if (!predBar || !succBar) continue
-
-      const predLeft = parseFloat(predBar.left)
-      const predWidth = parseFloat(predBar.width)
-      const succLeft = parseFloat(succBar.left)
-
-      const predRightX = predLeft + predWidth
-      const succLeftX = succLeft
+      const predAnchor = anchorsFor(stableRowOrder.value[predIdx]!.record)
+      const succAnchor = anchorsFor(stableRowOrder.value[succIdx]!.record)
+      if (!predAnchor || !succAnchor) continue
 
       result.push({
         id: `${rowId}-${linkedId}`,
         rowId,
         linkedId,
-        d: buildArrowPath(predRightX, predIdx, succLeftX, succIdx),
+        d: buildArrowPath(predAnchor.rightX, predIdx, succAnchor.leftX, succIdx, predAnchor.milestone),
       })
     }
   })
@@ -1085,6 +1170,8 @@ const onGridBodyMouseDown = (event: MouseEvent) => {
   const target = event.target as HTMLElement
   if (
     target.closest('.nc-gantt-bar') ||
+    target.closest('.nc-gantt-milestone') ||
+    target.closest('.nc-gantt-dep-handle') ||
     target.closest('.nc-gantt-resize-handle') ||
     target.closest('.nc-gantt-nav-arrow') ||
     target.closest('.nc-gantt-nav-btn')
@@ -1442,8 +1529,61 @@ const onGridMouseLeave = () => {
 
             <!-- Bars in this lane (skip records without valid dates — sidebar still shows them) -->
             <template v-for="({ record, colorIndex }, barIdx) in lane" :key="colorIndex">
+            <!-- Milestone: end-date-only record rendered as a diamond marker -->
+            <div
+              v-if="isMilestone(record) && getMilestoneStyle(record)"
+              class="nc-gantt-milestone absolute cursor-pointer group peer"
+              :style="{
+                ...getMilestoneStyle(record),
+                top: `${(ROW_HEIGHT - MILESTONE_SIZE) / 2}px`,
+                height: `${MILESTONE_SIZE}px`,
+              }"
+              :data-lane="laneIdx"
+              :data-bar="barIdx"
+              data-testid="nc-gantt-bar"
+              :data-unique-id="record.rowMeta?.id"
+              role="button"
+              tabindex="0"
+              @click="!isInteracting && !justFinishedResize && emit('expandRecord', record)"
+              @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
+              @mousedown.stop
+            >
+              <div
+                class="nc-gantt-milestone-shape absolute bg-nc-bg-default"
+                :style="{
+                  top: '50%',
+                  left: '50%',
+                  width: `${MILESTONE_INNER}px`,
+                  height: `${MILESTONE_INNER}px`,
+                  transform: 'translate(-50%, -50%) rotate(45deg)',
+                  border: '1px solid var(--nc-border-gray-dark)',
+                  borderRadius: '3px',
+                }"
+              />
+              <!-- Label to the right of the diamond, vertically centered via flex -->
+              <div
+                class="absolute top-0 bottom-0 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none"
+                :style="{ left: `${MILESTONE_SIZE + 6}px` }"
+              >
+                {{ primaryField ? record.row[primaryField.title!] ?? '' : '' }}
+              </div>
+            </div>
+            <!-- Dependency handle for milestones — anchored at the diamond's right tip -->
+            <div
+              v-if="isMilestone(record) && getMilestoneStyle(record) && ganttRange[0]?.fk_dependency_col && !isInteracting && canEditDeps"
+              class="nc-gantt-dep-handle nc-gantt-dep-handle--milestone absolute w-2.5 h-2.5 rounded-full bg-nc-bg-default opacity-0 peer-hover:opacity-100 hover:!opacity-100"
+              :class="{ '!opacity-100': linkCreationDrag?.fromRecord === record }"
+              :style="{
+                left: `calc(${getMilestoneStyle(record)!.left} + ${MILESTONE_SIZE}px)`,
+                top: `${ROW_HEIGHT / 2}px`,
+                zIndex: 4,
+                border: '1.25px solid var(--nc-border-gray-extra-dark, #9aa2af)',
+              }"
+              @mousedown="onHandleMouseDown($event, record)"
+              @click.stop
+            />
             <NcTooltip
-              v-if="getBarStyle(record)"
+              v-if="!isMilestone(record) && getBarStyle(record)"
               :disabled="isInteracting"
               placement="top"
               class="absolute top-1"
@@ -1677,6 +1817,16 @@ const onGridMouseLeave = () => {
 
 .nc-gantt-dep-handle:active {
   cursor: grabbing;
+}
+
+/* Milestone variant is anchored at row centre (top: ROW_HEIGHT/2) rather than
+   the bar's bottom edge, so the Y translate flips from +50% to -50%. */
+.nc-gantt-dep-handle--milestone {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.nc-gantt-dep-handle--milestone:hover {
+  transform: translate(-50%, -50%) scale(1.4);
 }
 
 /* Neutral bar shadow matching calendar RecordCard */

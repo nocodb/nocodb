@@ -582,6 +582,7 @@ const permissionScopes = {
     // Base trash
     'baseTrashList',
     'baseTrashRestore',
+    'baseTrashPermanentDelete',
     'baseTrashEmpty',
   ],
 } as const;
@@ -1406,6 +1407,7 @@ const permissionDescriptions: Record<string, string> = {
   // base trash
   baseTrashList: 'view trash for a base',
   baseTrashRestore: 'restore an item from base trash',
+  baseTrashPermanentDelete: 'permanently delete an item from base trash',
   baseTrashEmpty: 'empty all trash for a base',
 
   // Teams permissions

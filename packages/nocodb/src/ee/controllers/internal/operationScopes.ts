@@ -184,5 +184,6 @@ export const OPERATION_SCOPES = {
   // Base trash
   baseTrashList: 'base',
   baseTrashRestore: 'base',
+  baseTrashPermanentDelete: 'base',
   baseTrashEmpty: 'base',
 } as const;

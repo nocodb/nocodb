@@ -339,11 +339,12 @@ export class LinkPlaceholderService {
     const phCn = placeholderColumnName;
 
     // COALESCE so a single NULL doesn't contaminate the whole aggregate to
-    // NULL (PG behaviour). Ambiguity with values containing ", " is
-    // accepted as a placeholder-readability tradeoff.
+    // NULL (PG behaviour).
     const aggFn = baseModel.isPg
       ? `string_agg(COALESCE(${pvExpr}::text, ''), ', ')`
-      : `GROUP_CONCAT(COALESCE(${pvExpr}, '') SEPARATOR ', ')`;
+      : baseModel.isMySQL
+      ? `GROUP_CONCAT(COALESCE(${pvExpr}, '') SEPARATOR ', ')`
+      : `GROUP_CONCAT(COALESCE(${pvExpr}, ''), ', ')`;
 
     const isMMLike = isMMOrMMLike({ ...originalCol, colOptions: colOpt });
 

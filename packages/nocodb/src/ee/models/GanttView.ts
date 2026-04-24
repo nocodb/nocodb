@@ -7,7 +7,6 @@ import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
-import GanttRange from '~/models/GanttRange';
 
 export default class GanttView extends GanttViewCE implements GanttType {
   fk_view_id: string;
@@ -16,7 +15,6 @@ export default class GanttView extends GanttViewCE implements GanttType {
   base_id?: string;
   source_id?: string;
   meta?: MetaType;
-  gantt_range?: Array<Partial<GanttRange>>;
   show?: BoolType;
   public?: BoolType;
   password?: string;
@@ -39,14 +37,7 @@ export default class GanttView extends GanttViewCE implements GanttType {
         `${CacheScope.GANTT_VIEW}:${viewId}`,
         CacheGetType.TYPE_OBJECT,
       ));
-    if (view) {
-      const ganttRange = await GanttRange.read(context, viewId, ncMeta);
-      if (ganttRange) {
-        view.gantt_range = ganttRange.ranges;
-      } else {
-        view.gantt_range = [];
-      }
-    } else {
+    if (!view) {
       view = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
@@ -55,10 +46,6 @@ export default class GanttView extends GanttViewCE implements GanttType {
           fk_view_id: viewId,
         },
       );
-      const ganttRange = await GanttRange.read(context, viewId, ncMeta);
-      if (view && ganttRange) {
-        view.gantt_range = ganttRange.ranges;
-      }
       await NocoCache.set(
         context,
         `${CacheScope.GANTT_VIEW}:${viewId}`,
@@ -99,28 +86,6 @@ export default class GanttView extends GanttViewCE implements GanttType {
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(body, ['meta']);
-
-    if (body.gantt_range) {
-      await ncMeta.metaDelete(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.GANTT_VIEW_RANGE,
-        {
-          fk_view_id: ganttId,
-        },
-      );
-      await NocoCache.del(context, `${CacheScope.GANTT_VIEW}:${ganttId}`);
-      await GanttRange.bulkInsert(
-        context,
-        body.gantt_range.map((range) => {
-          return {
-            fk_view_id: ganttId,
-            ...range,
-          };
-        }),
-        ncMeta,
-      );
-    }
 
     const res = await ncMeta.metaUpdate(
       context.workspace_id,

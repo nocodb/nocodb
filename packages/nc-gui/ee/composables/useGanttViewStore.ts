@@ -6,7 +6,7 @@
 
 import dayjs from 'dayjs'
 import type { ColumnType, TableType, GanttType, ViewType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { EventType, UITypes } from 'nocodb-sdk'
 import { type ComputedRef, type Ref, computed, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { Row } from '~/lib/types'
@@ -33,7 +33,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-    const { $api } = useNuxtApp()
+    const { $api, $ncSocket } = useNuxtApp()
 
     const baseStore = useBase()
     const { isMysql } = baseStore
@@ -114,34 +114,44 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       return metaObj ?? {}
     })
 
-    // Gantt range - maps to start/end date columns
+    // Gantt consumes the table-level DateDependency rule — no per-view range.
+    // The shape below is kept the same as before so Grid.vue / index.vue
+    // continue to consume `ganttRange[0].fk_from_col` etc. without changes.
     const ganttRange = computed<
       Array<{
         fk_from_col: ColumnType
         fk_to_col?: ColumnType | null
+        fk_dependency_col?: ColumnType | null
+        dependency_direction?: 'predecessor' | 'successor'
         id: string
         is_readonly: boolean
       }>
     >(() => {
-      if (!ganttMetaData.value?.gantt_range?.length) return []
+      const dep = (meta.value as any)?.date_dependency
+      if (!dep || dep.is_active === false) return []
 
-      return ganttMetaData.value.gantt_range
-        .map((range: any) => {
-          // Get the from column
-          const fromCol = (meta.value?.columns ?? []).find((col) => col.id === range.fk_start_col_id)
-          // Get the to column (optional)
-          const toCol = range.fk_end_col_id ? (meta.value?.columns ?? []).find((col) => col.id === range.fk_end_col_id) : null
+      const cols = meta.value?.columns ?? []
+      const fromCol = cols.find((col) => col.id === dep.fk_start_date_field_id)
+      if (!fromCol) return []
 
-          if (!fromCol) return null
+      const toCol = dep.fk_end_date_field_id
+        ? cols.find((col) => col.id === dep.fk_end_date_field_id)
+        : null
+      const depCol = dep.fk_dependency_linkrow_field_id
+        ? cols.find((col) => col.id === dep.fk_dependency_linkrow_field_id)
+        : null
 
-          return {
-            fk_from_col: fromCol,
-            fk_to_col: toCol,
-            id: `${range.fk_start_col_id}_${range.fk_end_col_id}`,
-            is_readonly: ![UITypes.Date, UITypes.DateTime].includes(fromCol.uidt as UITypes),
-          }
-        })
-        .filter(Boolean)
+      return [
+        {
+          fk_from_col: fromCol,
+          fk_to_col: toCol,
+          fk_dependency_col: depCol,
+          dependency_direction:
+            dep.dependency_linkrow_role === 'successors' ? 'successor' : 'predecessor',
+          id: `${dep.fk_start_date_field_id}_${dep.fk_end_date_field_id ?? 'none'}`,
+          is_readonly: ![UITypes.Date, UITypes.DateTime].includes(fromCol.uidt as UITypes),
+        },
+      ]
     })
 
     // Compute visible dates based on zoom level
@@ -395,8 +405,80 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
 
     eventBus.on(smartsheetEventHandler)
 
+    // Socket subscription — keep formattedData in sync with row-level changes
+    // broadcast by the backend. Crucial for date-dependency cascades: when the
+    // user drags one bar, the backend reschedules dependent rows and emits a
+    // DATA_EVENT per update; without this listener, Gantt would need a reload.
+    const findRowIndex = (payloadRow: Record<string, any>): number => {
+      const pkCols = (meta.value?.columns ?? []).filter((c) => (c as any).pk)
+      if (!pkCols.length) return -1
+      return formattedData.value.findIndex((row) =>
+        pkCols.every(
+          (pk) => pk.title && row.row?.[pk.title] != null && row.row[pk.title] === payloadRow[pk.title],
+        ),
+      )
+    }
+
+    const handleDataEvent = (data: { action?: string; payload?: Record<string, any> }) => {
+      const payload = data?.payload
+      if (!payload) return
+      const idx = findRowIndex(payload)
+
+      if (data.action === 'delete') {
+        if (idx >= 0) formattedData.value.splice(idx, 1)
+        return
+      }
+
+      const existing = idx >= 0 ? formattedData.value[idx] : undefined
+      if (existing) {
+        const merged = { ...existing.row, ...payload }
+        formattedData.value[idx] = {
+          ...existing,
+          row: merged,
+          oldRow: { ...merged },
+          rowMeta: {
+            ...existing.rowMeta,
+            ...getEvaluatedRowMetaRowColorInfo(merged),
+          },
+        }
+        return
+      }
+
+      if (data.action === 'add') {
+        formattedData.value.push({
+          row: payload,
+          oldRow: { ...payload },
+          rowMeta: {
+            new: false,
+            ...getEvaluatedRowMetaRowColorInfo(payload),
+          },
+        })
+      }
+    }
+
+    const activeDataListener = ref<string | null>(null)
+    watch(
+      meta,
+      (newMeta: any, oldMeta: any) => {
+        if (!newMeta?.fk_workspace_id || !newMeta?.base_id || !newMeta?.id) return
+        if (oldMeta?.id && oldMeta.id === newMeta.id) return
+
+        if (activeDataListener.value) {
+          $ncSocket.offMessage(activeDataListener.value)
+        }
+        activeDataListener.value = $ncSocket.onMessage(
+          `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+          handleDataEvent,
+        )
+      },
+      { immediate: true },
+    )
+
     onBeforeUnmount(() => {
       eventBus.off(smartsheetEventHandler)
+      if (activeDataListener.value) {
+        $ncSocket.offMessage(activeDataListener.value)
+      }
     })
 
     return {

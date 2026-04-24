@@ -1,10 +1,5 @@
 import type { BoolType, IdType, MetaType, StringOrNullType } from './Api';
 
-export enum GanttDependencyDirection {
-  PREDECESSOR = 'predecessor',
-  SUCCESSOR = 'successor',
-}
-
 export enum GanttZoomLevel {
   DAY = 'day',
   WEEK = 'week',
@@ -15,7 +10,8 @@ export enum GanttZoomLevel {
 
 /**
  * Extensible config stored in GanttType.meta JSON.
- * Dedicated FK fields live on GanttRangeType for cascade delete.
+ * The start/end/predecessor field mapping and scheduling semantics live on
+ * the table-level DateDependency rule, not on the Gantt view.
  */
 export interface GanttMetaType {
   use_milestones?: boolean;
@@ -31,7 +27,6 @@ export interface GanttType {
   id?: IdType;
   fk_view_id?: IdType;
   columns?: GanttColumnType[];
-  gantt_range?: GanttRangeType[];
   meta?: MetaType;
   title?: string;
 }
@@ -58,18 +53,6 @@ export interface GanttColumnType {
 }
 
 /**
- * Model for Gantt Range (start/end date + dependency link)
- */
-export interface GanttRangeType {
-  fk_view_id?: StringOrNullType;
-  fk_start_col_id?: IdType;
-  fk_end_col_id?: StringOrNullType;
-  fk_dependency_col_id?: StringOrNullType;
-  dependency_direction?: GanttDependencyDirection;
-  label?: string;
-}
-
-/**
  * Model for Gantt Update Request
  */
 export interface GanttUpdateReqType {
@@ -78,8 +61,6 @@ export interface GanttUpdateReqType {
    * @example Gantt 01
    */
   title?: string;
-  /** Gantt Range */
-  gantt_range?: GanttRangeType[];
   /** Meta Info */
   meta?: MetaType;
 }

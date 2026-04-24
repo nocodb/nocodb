@@ -47,28 +47,12 @@ const up = async (knex: Knex) => {
     table.index(['id'], 'nc_gantt_view_columns_v2_oldpk_idx');
   });
 
-  await knex.schema.createTable(MetaTable.GANTT_VIEW_RANGE, (table) => {
-    table.string('id', 20).notNullable();
-    table.string('fk_view_id', 20);
-    table.string('fk_start_col_id', 20);
-    table.string('fk_end_col_id', 20);
-    table.string('fk_dependency_col_id', 20);
-    table.string('dependency_direction', 20);
-    table.string('label', 40);
-    table.string('base_id', 20);
-    table.string('fk_workspace_id', 20);
-    table.timestamps(true, true);
-    table.primary(['base_id', 'id']);
-    table.index(
-      ['base_id', 'fk_workspace_id'],
-      'nc_gantt_view_range_v2_base_id_fk_workspace_id_index',
-    );
-    table.index(['id'], 'nc_gantt_view_range_v2_oldpk_idx');
-  });
+  // Date dependency config (start/end/predecessor/duration/weekends) lives on
+  // the table meta (`nc_date_dependency`). Gantt consumes it directly; no
+  // per-view range table is needed.
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.dropTableIfExists(MetaTable.GANTT_VIEW_RANGE);
   await knex.schema.dropTableIfExists(MetaTable.GANTT_VIEW_COLUMNS);
   await knex.schema.dropTableIfExists(MetaTable.GANTT_VIEW);
 };

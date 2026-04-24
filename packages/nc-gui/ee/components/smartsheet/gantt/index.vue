@@ -85,6 +85,9 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
+// Open the table-level Date Dependencies dialog from the empty-state CTA.
+const showDateDependencyDlg = ref(false)
+
 const expandRecord = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
 
@@ -173,9 +176,8 @@ onBeforeUnmount(() => {
   reloadViewDataHook?.off(reloadViewDataListener)
 })
 
-// Watch for date/zoom/range changes and reload data
-// ganttRange is critical: it may be empty on mount (view data loads async)
-// and gets populated later when activeView.view.gantt_range arrives
+// ganttRange is derived from meta.date_dependency; it may be empty on mount
+// (meta loads async) and repopulates once the table meta resolves.
 watch([currentDate, zoomLevel, ganttRange], () => {
   reloadData()
 })
@@ -432,9 +434,6 @@ const recordCountLabel = computed(() => {
         <!-- Filter -->
         <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
 
-        <!-- Gantt Settings (#5: using timeline icon instead of calendar) -->
-        <SmartsheetToolbarGanttRange />
-
         <!-- Actions menu (three-dot) -->
         <SmartsheetToolbarOpenedViewAction />
       </div>
@@ -529,14 +528,35 @@ const recordCountLabel = computed(() => {
           @navigate-to="goToDate"
         />
       </template>
-      <!-- #9: Empty state — using i18n -->
+      <!-- Empty state — Gantt reads from table-level Date Dependencies.
+           If the rule is missing or inactive, prompt the user to open the
+           existing table-level dialog instead of offering a per-view config. -->
       <template v-else>
-        <div class="flex-1 flex w-full items-center justify-center text-nc-content-gray-muted min-h-0 flex-col gap-2">
+        <div class="flex-1 flex w-full items-center justify-center text-nc-content-gray-muted min-h-0 flex-col gap-3">
           <GeneralIcon icon="warning" class="text-2xl text-nc-content-orange-medium" />
           <span class="text-sm">{{ $t('activity.noGanttRange') }}</span>
-          <span class="text-xs text-nc-content-gray-subtle">{{ $t('msg.configureGanttRange') }}</span>
+          <span class="text-xs text-nc-content-gray-subtle text-center max-w-sm">
+            {{ $t('msg.configureGanttRange') }}
+          </span>
+          <NcButton
+            v-if="!isPublic && meta?.id"
+            v-e="['c:gantt:open-date-dependency']"
+            size="small"
+            type="primary"
+            data-testid="nc-gantt-open-date-dependency"
+            @click="showDateDependencyDlg = true"
+          >
+            {{ $t('labels.configureDateDependencies') }}
+          </NcButton>
         </div>
       </template>
+
+      <DlgTableDateDependency
+        v-if="meta?.id"
+        v-model:visible="showDateDependencyDlg"
+        :table-id="meta.id"
+        :title="meta.title"
+      />
 
       <!-- Floating new record button -->
       <NcTooltip

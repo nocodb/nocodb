@@ -43,7 +43,6 @@ import TimelineViewColumn from '~/models/TimelineViewColumn';
 import GanttViewColumn from '~/models/GanttViewColumn';
 import CalendarRange from '~/models/CalendarRange';
 import TimelineRange from '~/models/TimelineRange';
-import GanttRange from '~/models/GanttRange';
 import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import GalleryViewColumn from '~/models/GalleryViewColumn';
@@ -326,7 +325,6 @@ export default class View implements ViewType {
           fk_grp_col_id?: string;
           calendar_range?: Partial<CalendarRange>[];
           timeline_range?: Partial<TimelineRange>[];
-          gantt_range?: Partial<GanttRange>[];
         };
       req: NcRequest;
     },
@@ -551,13 +549,8 @@ export default class View implements ViewType {
           break;
         }
         case ViewTypes.GANTT: {
-          const obj = extractProps(view, ['gantt_range']);
-          if (!obj.gantt_range) break;
-          const ganttRange = obj.gantt_range as Partial<GanttRange>[];
-          ganttRange.forEach((range) => {
-            range.fk_view_id = view_id;
-          });
-
+          // Gantt reads start/end/predecessor from the table-level
+          // DateDependency rule, so there is no per-view range to persist.
           await GanttView.insert(
             context,
             {
@@ -567,8 +560,6 @@ export default class View implements ViewType {
             },
             ncMeta,
           );
-
-          await GanttRange.bulkInsert(context, ganttRange, ncMeta);
           break;
         }
       }
@@ -887,16 +878,7 @@ export default class View implements ViewType {
       });
       return Array.from(tlIds) as Array<string>;
     }
-    // Try GanttRange
-    const ganttRange = await GanttRange.read(context, viewId, ncMeta);
-    if (ganttRange) {
-      const ganttIds: Set<string> = new Set();
-      (ganttRange as any).ranges?.forEach((range) => {
-        if (range.fk_start_col_id) ganttIds.add(range.fk_start_col_id);
-        if (range.fk_end_col_id) ganttIds.add(range.fk_end_col_id);
-      });
-      return Array.from(ganttIds) as Array<string>;
-    }
+    // Gantt has no per-view range — skip.
     return [];
   }
 
@@ -2104,22 +2086,8 @@ export default class View implements ViewType {
       );
     }
 
-    // For Gantt View, delete the range associated with viewId
-    if (view.type === ViewTypes.GANTT) {
-      await ncMeta.metaDelete(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.GANTT_VIEW_RANGE,
-        {
-          fk_view_id: viewId,
-        },
-      );
-      await NocoCache.deepDel(
-        context,
-        `${CacheScope.GANTT_VIEW_RANGE}:${viewId}`,
-        CacheDelDirection.CHILD_TO_PARENT,
-      );
-    }
+    // Gantt has no per-view range to clean up — it reads from table-level
+    // DateDependency which is unrelated to the view lifecycle.
     await NocoCache.deepDel(
       context,
       `${columnTableScope}:${viewId}`,
@@ -2762,17 +2730,8 @@ export default class View implements ViewType {
             ])
             .flat();
         }
-      } else if (view.type == ViewTypes.GANTT) {
-        const ganttRange = await GanttRange.read(context, view.id, ncMeta);
-        if (ganttRange) {
-          calendarRangeColumns = (ganttRange as any).ranges
-            ?.map((range) => [
-              range.fk_start_col_id,
-              (range as any).fk_end_col_id,
-            ])
-            .flat();
-        }
       }
+      // Gantt: no per-view range — start/end come from table-level DateDependency.
 
       for (let i = 0; i < columns.length; i++) {
         const column = columns[i];
@@ -2972,7 +2931,6 @@ export default class View implements ViewType {
           fk_grp_col_id?: string;
           calendar_range?: Partial<CalendarRange>[];
           timeline_range?: Partial<TimelineRange>[];
-          gantt_range?: Partial<GanttRange>[];
           created_by: string;
           owned_by: string;
           expanded_record_mode?: ExpandedFormModeType;
@@ -3216,14 +3174,8 @@ export default class View implements ViewType {
         break;
       }
       case ViewTypes.GANTT: {
-        const obj = extractProps(view, ['gantt_range']);
-        if (!obj.gantt_range) break;
-        const ganttRange = obj.gantt_range as Partial<GanttRange>[];
-        ganttRange.forEach((range) => {
-          range.fk_view_id = view_id;
-        });
-
-        await GanttRange.bulkInsert(context, ganttRange, ncMeta);
+        // Gantt has no per-view range — start/end/predecessor come from
+        // the table-level DateDependency rule.
         await GanttView.insert(
           context,
           {

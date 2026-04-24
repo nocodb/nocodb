@@ -544,6 +544,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
           )
           break
         case ViewTypes.GANTT:
+          // Gantt has no per-view range — start/end/predecessor are read
+          // from the table-level DateDependency rule on the frontend.
           data = await $api.internal.postOperation(
             activeWorkspaceId.value!,
             openedProject.value!.id!,
@@ -551,15 +553,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'ganttViewCreate',
               tableId,
             },
-            {
-              ...form,
-              gantt_range: (form.gantt_range || []).map((range: any) => ({
-                fk_start_col_id: range.fk_start_col_id,
-                fk_end_col_id: range.fk_end_col_id,
-                fk_dependency_col_id: range.fk_dependency_col_id,
-                dependency_direction: range.dependency_direction,
-              })),
-            },
+            form,
           )
           break
       }
@@ -665,16 +659,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
               })) || [],
           }
         case ViewTypes.GANTT:
-          return {
-            ...baseProps,
-            gantt_range:
-              ((sourceView.view as any)?.gantt_range || []).map((range: any) => ({
-                fk_start_col_id: range.fk_start_col_id as string,
-                fk_end_col_id: range.fk_end_col_id as string,
-                fk_dependency_col_id: range.fk_dependency_col_id as string,
-                dependency_direction: range.dependency_direction,
-              })),
-          }
+          // Gantt duplicates don't need to carry per-view range props — the
+          // new view inherits the table-level DateDependency automatically.
+          return baseProps
         default:
           return baseProps
       }

@@ -1356,7 +1356,6 @@ export const iconMap = {
   'twilio': NcTwilio,
   'whatsapp': NcWhatsapp,
   'whatsappSolid': NcWhatsappSolid,
-  'gantt': NcGanttViewIcon,
   'dollerSign': NcDollerSign,
   'multiFile': NcMultiFile,
   'heart': NcHeart,

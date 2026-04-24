@@ -122,7 +122,6 @@ export class MetaService {
       [MetaTable.TIMELINE_VIEW_RANGE]: 'tvr',
       [MetaTable.GANTT_VIEW]: 'gtv',
       [MetaTable.GANTT_VIEW_COLUMNS]: 'gtvc',
-      [MetaTable.GANTT_VIEW_RANGE]: 'gtvr',
       [MetaTable.USERS]: 'us',
       [MetaTable.ORGS_OLD]: 'org',
       [MetaTable.TEAMS]: 'tm',

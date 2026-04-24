@@ -1,9 +1,4 @@
-import type {
-  BoolType,
-  GanttRangeType,
-  GanttType,
-  MetaType,
-} from 'nocodb-sdk';
+import type { BoolType, GanttType, MetaType } from 'nocodb-sdk';
 
 export default class GanttView implements GanttType {
   fk_view_id: string;
@@ -12,7 +7,6 @@ export default class GanttView implements GanttType {
   base_id?: string;
   source_id?: string;
   meta?: MetaType;
-  gantt_range?: GanttRangeType[];
   show?: BoolType;
   public?: BoolType;
   password?: string;

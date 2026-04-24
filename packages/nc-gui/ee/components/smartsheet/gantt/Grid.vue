@@ -490,22 +490,24 @@ const visibleRecords = computed(() => {
     })
 })
 
-// Gantt layout: one record per lane. Intentional divergence from Timeline's
-// non-overlap packing — in a Gantt chart each task occupies its own row so the
-// left-hand record column aligns 1:1 with the bars on the right.
+// Gantt layout: one row per record, including records whose bars are
+// off-screen or records without dates at all. Sorted by start date, with
+// date-less records appended at the end — matches Airtable's Gantt record
+// list which shows every row regardless of the current date window.
 const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>>(() => {
   const range = props.ganttRange[0]
   if (!range) return []
 
-  const lanes: Array<Array<{ record: RowType; colorIndex: number }>> = []
-
-  visibleRecords.value.forEach((record, idx) => {
-    const startDate = parseDate(record, range.fk_from_col)
-    if (!startDate) return
-    lanes.push([{ record, colorIndex: idx }])
+  const sorted = [...props.records].sort((a, b) => {
+    const aStart = parseDate(a, range.fk_from_col)
+    const bStart = parseDate(b, range.fk_from_col)
+    if (!aStart && !bStart) return 0
+    if (!aStart) return 1
+    if (!bStart) return -1
+    return aStart.valueOf() - bStart.valueOf()
   })
 
-  return lanes
+  return sorted.map((record, idx) => [{ record, colorIndex: idx }])
 })
 
 // Get bar position and width for a record
@@ -996,10 +998,10 @@ const onGridMouseLeave = () => {
             <!-- Hover background -->
             <div class="absolute inset-0 nc-gantt-row-hover transition-colors" />
 
-            <!-- Bars in this lane -->
+            <!-- Bars in this lane (skip records without valid dates — sidebar still shows them) -->
+            <template v-for="({ record, colorIndex }, barIdx) in lane" :key="colorIndex">
             <NcTooltip
-              v-for="({ record, colorIndex }, barIdx) in lane"
-              :key="colorIndex"
+              v-if="getBarStyle(record)"
               :disabled="isInteracting"
               placement="top"
               class="absolute top-1"
@@ -1114,6 +1116,7 @@ const onGridMouseLeave = () => {
                 </div>
               </div>
             </NcTooltip>
+            </template>
           </div>
 
           <!-- Empty row for inserting a new record (flat mode only) -->

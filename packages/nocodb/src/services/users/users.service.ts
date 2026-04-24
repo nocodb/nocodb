@@ -29,7 +29,7 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
+import { PresignedUrl, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
@@ -259,7 +259,7 @@ export class UsersService {
 
     // delete all refresh token and populate a new one
     await UserRefreshToken.deleteAllUserToken(user.id);
-    await OAuthToken.revokeAllByUser(user.id);
+    await this.revokeAllOAuthTokensByUser(user.id);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
       user: user,
@@ -310,7 +310,7 @@ export class UsersService {
         );
       }
 
-      await OAuthToken.revokeAllByUser(user.id);
+      await this.revokeAllOAuthTokensByUser(user.id);
 
       this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
         user: user,
@@ -394,7 +394,7 @@ export class UsersService {
 
     // delete all refresh tokens to invalidate existing sessions
     await UserRefreshToken.deleteAllUserToken(user.id);
-    await OAuthToken.revokeAllByUser(user.id);
+    await this.revokeAllOAuthTokensByUser(user.id);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
       user: user,
@@ -710,4 +710,6 @@ export class UsersService {
 
     setTokenCookie(res, refreshToken, req);
   }
+
+  protected async revokeAllOAuthTokensByUser(_userId: string) {}
 }

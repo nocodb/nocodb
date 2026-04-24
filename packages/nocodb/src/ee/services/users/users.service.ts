@@ -42,6 +42,7 @@ import {
   BaseUser,
   Extension,
   Integration,
+  OAuthToken,
   PresignedUrl,
   Subscription,
   SyncSource,
@@ -1108,5 +1109,9 @@ export class UsersService extends UsersServiceCE {
       domain: process.env.NC_BASE_HOST_NAME || undefined,
     });
     clearAuthCookie(param.res);
+  }
+
+  protected async revokeAllOAuthTokensByUser(userId: string) {
+    await OAuthToken.revokeAllByUser(userId);
   }
 }

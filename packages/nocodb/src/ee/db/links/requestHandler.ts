@@ -2,6 +2,7 @@ import {
   arrFlatMap,
   AuditV1OperationTypes,
   EventType,
+  isMMOrMMLike,
   LinksVersion,
   type NcContext,
   parseProp,
@@ -866,7 +867,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
   ) {
     const { baseModel, model, colOptions, column } = payload;
 
-    if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+    if (isMMOrMMLike(column)) {
       const { mmContext, refContext } = colOptions.getRelContext(context);
       const mmBaseModel = await getBaseModelSqlFromModelId({
         modelId: colOptions.fk_mm_model_id,

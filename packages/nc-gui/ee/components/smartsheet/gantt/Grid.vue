@@ -985,7 +985,7 @@ const onGridMouseLeave = () => {
     >
       <div
         class="flex items-center px-3 text-xs font-medium text-nc-content-gray-muted border-b border-nc-border-gray-medium flex-shrink-0"
-        :style="{ height: `${HEADER_HEIGHT}px` }"
+        :style="{ height: `${HEADER_HEIGHT + 1}px` }"
       >
         {{ primaryField?.title || $t('labels.name') }}
       </div>

@@ -1669,7 +1669,7 @@ const onGridMouseLeave = () => {
                     width: `${MILESTONE_INNER}px`,
                     height: `${MILESTONE_INNER}px`,
                     transform: 'translate(-50%, -50%) rotate(45deg)',
-                    border: `1px solid ${isRecordHighlighted(record) ? 'var(--color-green-600)' : 'var(--nc-border-gray-dark)'}`,
+                    border: `${isRecordHighlighted(record) ? 2 : 1}px solid ${isRecordHighlighted(record) ? 'var(--color-green-600)' : 'var(--nc-border-gray-dark)'}`,
                     borderRadius: '3px',
                   }"
                 />
@@ -1722,7 +1722,9 @@ const onGridMouseLeave = () => {
                 :style="{
                   height: `${ROW_HEIGHT - 8}px`,
                   ...getRowColorStyle(record).rowBgColor,
-                  ...(isRecordHighlighted(record) ? { borderColor: 'var(--color-green-600)' } : {}),
+                  ...(isRecordHighlighted(record)
+                    ? { borderColor: 'var(--color-green-600)', borderWidth: '2px' }
+                    : {}),
                 }"
                 :data-lane="laneIdx"
                 :data-bar="barIdx"

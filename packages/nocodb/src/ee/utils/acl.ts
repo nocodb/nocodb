@@ -388,6 +388,9 @@ const permissionScopes = {
 
     'userInvite',
 
+    // Migration
+    'migrateBase',
+
     'jobList',
     // it's an extended scoped permission which is prefixed with the main scope
     'workspace_integrationList',
@@ -1038,6 +1041,7 @@ const rolePermissions:
   [ProjectRoles.CREATOR]: {
     exclude: {
       createBase: true,
+      migrateBase: true,
       recordTrashPermanentDelete: true,
       recordTrashEmpty: true,
       manageSnapshots: true,
@@ -1674,6 +1678,8 @@ const permissionDescriptions: Record<string, string> = {
   recordTrashEmpty: 'empty the record trash',
   recordTrashSettingsList: 'view trash settings for tables',
   recordTrashSettingsUpdate: 'update trash settings for a table',
+
+  migrateBase: 'migrate a base to another instance',
 };
 
 // Human-readable descriptions for roles

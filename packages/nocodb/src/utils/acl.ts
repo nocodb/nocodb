@@ -253,6 +253,9 @@ const permissionScopes = {
 
     'userInvite',
 
+    // Migration
+    'migrateBase',
+
     // AI
     'aiUtils',
     'aiData',
@@ -552,6 +555,7 @@ const rolePermissions:
   [ProjectRoles.CREATOR]: {
     exclude: {
       baseDelete: true,
+      migrateBase: true,
     },
   },
   [ProjectRoles.OWNER]: {
@@ -951,6 +955,8 @@ const permissionDescriptions: Record<string, string> = {
   jobList: 'view list of jobs',
 
   hookTrigger: 'trigger a webhook',
+
+  migrateBase: 'migrate a base to another instance',
 
   mcpList: 'view list of MCP tokens',
   mcpCreate: 'create a new MCP token',

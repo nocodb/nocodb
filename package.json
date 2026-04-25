@@ -103,5 +103,8 @@
       "sqlite3",
       "vue-demi"
     ]
+  },
+  "dependencies": {
+    "basic-ftp": "5.2.0"
   }
 }

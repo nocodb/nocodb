@@ -38,7 +38,7 @@ export class CreateCampaignNode extends WorkflowNodeIntegration<CreateCampaignCo
         model: 'config.authIntegrationId',
         integrationFilter: {
           type: IntegrationType.Auth,
-          sub_type: 'mailchimp.api-key',
+          sub_type: 'mailchimp',
         },
         validators: [
           {

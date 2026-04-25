@@ -6,7 +6,7 @@ import {
 import { authUri, clientId, redirectUri, scopes } from './config';
 import type { FormDefinition } from '@noco-integrations/core';
 
-const commonFields: FormDefinition = [
+export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
@@ -21,23 +21,6 @@ const commonFields: FormDefinition = [
       },
     ],
   },
-];
-
-const mandrillField: FormDefinition = [
-  {
-    type: FormBuilderInputType.Password,
-    label: 'Mandrill API key',
-    model: 'config.mandrillApiKey',
-    span: 24,
-    category: 'Transactional Email',
-    placeholder: '••••••••',
-    helpText:
-      'Optional. Required for sending transactional emails. Found in Mailchimp > Transactional > Settings.',
-  },
-];
-
-export const oauthForm: FormDefinition = [
-  ...commonFields,
   {
     type: FormBuilderInputType.Select,
     label: 'Auth type',
@@ -45,10 +28,19 @@ export const oauthForm: FormDefinition = [
     model: 'config.type',
     category: 'Authentication',
     placeholder: 'Select auth type',
-    defaultValue: AuthType.OAuth,
+    defaultValue: redirectUri && clientId ? AuthType.OAuth : AuthType.ApiKey,
     options: [
+      {
+        label: 'API Key',
+        value: AuthType.ApiKey,
+      },
       ...(redirectUri && clientId
-        ? [{ label: 'OAuth2', value: AuthType.OAuth }]
+        ? [
+            {
+              label: 'OAuth2',
+              value: AuthType.OAuth,
+            },
+          ]
         : []),
     ],
     validators: [
@@ -57,6 +49,26 @@ export const oauthForm: FormDefinition = [
         message: 'Auth type is required',
       },
     ],
+  },
+  {
+    type: FormBuilderInputType.Password,
+    label: 'API Key',
+    model: 'config.apiKey',
+    span: 24,
+    category: 'Authentication',
+    placeholder: 'Enter your Mailchimp API key (e.g. abc123def-us21)',
+    helpText:
+      'Found in Mailchimp > Account & Billing > Extras > API keys. The server prefix is extracted automatically from the key.',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'API key is required',
+      },
+    ],
+    condition: {
+      model: 'config.type',
+      value: AuthType.ApiKey,
+    },
   },
   ...(redirectUri && clientId
     ? [
@@ -86,42 +98,14 @@ export const oauthForm: FormDefinition = [
         },
       ]
     : []),
-  ...mandrillField,
-];
-
-export const apiKeyForm: FormDefinition = [
-  ...commonFields,
-  {
-    type: FormBuilderInputType.Select,
-    label: 'Auth type',
-    span: [24, 12],
-    model: 'config.type',
-    category: 'Authentication',
-    placeholder: 'Select auth type',
-    defaultValue: AuthType.ApiKey,
-    options: [{ label: 'API Key', value: AuthType.ApiKey }],
-    validators: [
-      {
-        type: FormBuilderValidatorType.Required,
-        message: 'Auth type is required',
-      },
-    ],
-  },
   {
     type: FormBuilderInputType.Password,
-    label: 'API Key',
-    model: 'config.apiKey',
+    label: 'Mandrill API key',
+    model: 'config.mandrillApiKey',
     span: 24,
-    category: 'Authentication',
-    placeholder: 'Enter your Mailchimp API key (e.g. abc123def-us21)',
+    category: 'Transactional Email',
+    placeholder: '••••••••',
     helpText:
-      'Found in Mailchimp > Account & Billing > Extras > API keys. The server prefix is extracted automatically from the key.',
-    validators: [
-      {
-        type: FormBuilderValidatorType.Required,
-        message: 'API key is required',
-      },
-    ],
+      'Optional. Required for sending transactional emails. Found in Mailchimp > Transactional > Settings.',
   },
-  ...mandrillField,
 ];

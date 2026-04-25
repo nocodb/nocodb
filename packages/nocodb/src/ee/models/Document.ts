@@ -572,7 +572,7 @@ export default class Document extends DocumentCE implements DocumentType {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       { deleted: false },
       docId,
     );
@@ -765,12 +765,13 @@ export default class Document extends DocumentCE implements DocumentType {
     const doc = await ncMeta.metaGet2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       {
         fk_column_id: columnId,
         fk_row_id: rowId,
         doc_source: 'field',
         deleted: false,
+        ...this.typeCondition,
       },
     );
 
@@ -832,9 +833,10 @@ export default class Document extends DocumentCE implements DocumentType {
     if (!columnIds.length || !rowIds.length) return result;
 
     const rows = await ncMeta
-      .knexConnection(MetaTable.DOCS)
+      .knexConnection(MetaTable.MODELS)
       .where('fk_workspace_id', context.workspace_id)
       .where('base_id', context.base_id)
+      .where('type', ModelTypes.DOCUMENT)
       .where('doc_source', 'field')
       .where('deleted', false)
       .whereIn('fk_column_id', columnIds)
@@ -866,12 +868,13 @@ export default class Document extends DocumentCE implements DocumentType {
     const docs = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.DOCS,
+      MetaTable.MODELS,
       {
         condition: {
           fk_column_id: columnId,
           doc_source: 'field',
           deleted: false,
+          ...this.typeCondition,
         },
         fields: ['id'],
       },
@@ -883,7 +886,7 @@ export default class Document extends DocumentCE implements DocumentType {
       await ncMeta.metaUpdate(
         context.workspace_id,
         context.base_id,
-        MetaTable.DOCS,
+        MetaTable.MODELS,
         { deleted: true },
         doc.id,
       );

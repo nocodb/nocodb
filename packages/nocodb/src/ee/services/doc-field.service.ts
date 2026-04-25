@@ -15,8 +15,8 @@ import { generateAuditV1Payload } from '~/utils';
 /**
  * Service for Doc field type — manages documents linked to table cells.
  *
- * Each Doc field cell lazily creates a document in nc_docs_v2 with
- * doc_source='field', fk_column_id, and fk_row_id set.
+ * Each Doc field cell lazily creates a document in nc_models_v2 with
+ * type='document', doc_source='field', fk_column_id, and fk_row_id set.
  */
 @Injectable()
 export class DocFieldService extends DocFieldServiceCE {

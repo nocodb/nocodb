@@ -1702,16 +1702,20 @@ if (!isCellMode.value) {
 
 // Cell mode: push fresh PM content into the editor whenever the parent
 // supplies a new value (initial open, switch field, navigate row).
-// Skip when the editor already has the same JSON to avoid loops.
+// Watch `editor` too — useEditor populates the ref in onMounted, so an
+// immediate-mode watcher on `props.initialContent` alone fires before the
+// editor instance exists and silently no-ops. By also tracking `editor`,
+// the watcher re-fires once Tiptap has the editor ready and applies the
+// loaded PM JSON. Skip the setContent when already in sync to avoid loops.
 if (isCellMode.value) {
   watch(
-    () => props.initialContent,
-    (val) => {
-      if (!editor.value) return
+    [() => props.initialContent, editor],
+    ([val, ed]) => {
+      if (!ed) return
       const next = val ?? { type: 'doc', content: [{ type: 'paragraph' }] }
-      const current = editor.value.getJSON()
+      const current = ed.getJSON()
       if (JSON.stringify(current) === JSON.stringify(next)) return
-      editor.value.commands.setContent(next as any, false)
+      ed.commands.setContent(next as any, false)
     },
     { immediate: true, flush: 'post' },
   )

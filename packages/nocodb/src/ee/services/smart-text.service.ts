@@ -48,30 +48,36 @@ export class SmartTextService extends SmartTextServiceCE {
       );
     }
 
-    const row = await dbDriver(tnPath)
-      .where(pkColumn.column_name, param.rowId)
-      .select(
-        column.column_name,
-        dbDriver.raw(
-          `??->?->>'pm' as nc_smart_pm`,
-          [META_COL_NAME, column.id],
-        ),
-      )
-      .first();
-
-    if (!row) {
+    // Read the markdown via baseModel.readByPk (handles aliasing/AST/RLS) and
+    // the PM JSON via a targeted JSONB extract (nc_row_meta is excluded from
+    // standard reads). The two queries run sequentially against the same row.
+    const fullRow = await baseModel.readByPk(param.rowId);
+    if (!fullRow) {
       NcError.get(context).recordNotFound(param.rowId);
     }
 
-    const markdown: string | null = row[column.column_name] ?? null;
+    const markdownRaw = fullRow[column.title];
+    const markdown: string | null =
+      typeof markdownRaw === 'string' ? markdownRaw : null;
+
+    const pmRow = await dbDriver(tnPath)
+      .where(pkColumn.column_name, param.rowId)
+      .select(
+        dbDriver.raw(`??->?->>'pm' as nc_smart_pm`, [
+          META_COL_NAME,
+          column.id,
+        ]),
+      )
+      .first();
+
     let pm: ProseMirrorDoc | null = null;
 
-    if (row.nc_smart_pm) {
+    if (pmRow?.nc_smart_pm) {
       try {
         pm =
-          typeof row.nc_smart_pm === 'string'
-            ? JSON.parse(row.nc_smart_pm)
-            : row.nc_smart_pm;
+          typeof pmRow.nc_smart_pm === 'string'
+            ? JSON.parse(pmRow.nc_smart_pm)
+            : pmRow.nc_smart_pm;
       } catch (e) {
         this.logger.warn(
           `Failed to parse stored PM JSON for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,
@@ -95,6 +101,7 @@ export class SmartTextService extends SmartTextServiceCE {
       } catch (e) {
         this.logger.warn(
           `Lazy MD→PM backfill failed for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,
+          (e as Error)?.stack,
         );
       }
     }

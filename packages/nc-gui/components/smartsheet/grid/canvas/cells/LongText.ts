@@ -1,4 +1,4 @@
-import { isAIPromptCol } from 'nocodb-sdk'
+import { isAIPromptCol, isSmartText } from 'nocodb-sdk'
 import { isBoxHovered, renderIconButton, renderMarkdown, renderMultiLineText, renderTagLabel } from '../utils/canvas'
 import { AILongTextCellRenderer } from './AILongText'
 
@@ -9,7 +9,10 @@ export const LongTextCellRenderer: CellRenderer = {
       return
     }
 
-    const isRichMode = props.column?.meta?.richMode
+    // SmartText cells render their stored markdown using the same rich-mode
+    // canvas path so users still see formatted preview in the grid.
+    const isSmartMode = isSmartText(props.column)
+    const isRichMode = props.column?.meta?.richMode || isSmartMode
     const {
       value,
       x,
@@ -126,13 +129,23 @@ export const LongTextCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore, isDoubleClick, selected } = props
+    const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore, isDoubleClick, selected, openSmartText, pk } =
+      props
 
     if (isAIPromptCol(column?.columnObj)) {
       return AILongTextCellRenderer.handleClick!(props)
     }
 
     if (!selected && !isDoubleClick) return false
+
+    // SmartText opens the panel instead of inline editing.
+    if (isSmartText(column?.columnObj) && openSmartText && column.columnObj?.id && pk) {
+      const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
+      if (isBoxHovered({ x, y, width, height }, mousePosition)) {
+        await openSmartText(String(pk), column.columnObj.id, row.row, row.rowMeta.rowIndex)
+        return true
+      }
+    }
 
     const isRichMode = column.columnObj?.meta?.richMode
 
@@ -160,12 +173,22 @@ export const LongTextCellRenderer: CellRenderer = {
     return false
   },
   async handleKeyDown(ctx) {
-    const { e, row, column, makeCellEditable } = ctx
+    const { e, row, column, makeCellEditable, openSmartText, pk } = ctx
 
     const columnObj = column?.columnObj
 
     if (isAIPromptCol(columnObj)) {
       return AILongTextCellRenderer.handleKeyDown?.(ctx)
+    }
+
+    // SmartText: any printable key or Enter / Shift+Space opens the panel
+    // — there is no inline edit mode for SmartText cells.
+    if (isSmartText(columnObj) && openSmartText && columnObj?.id && pk) {
+      if (isExpandCellKey(e) || e.key === 'Enter' || (e.key.length === 1 && !e.ctrlKey && !e.metaKey)) {
+        e.preventDefault()
+        await openSmartText(String(pk), columnObj.id, row.row, row.rowMeta.rowIndex)
+        return true
+      }
     }
 
     if (isExpandCellKey(e)) {

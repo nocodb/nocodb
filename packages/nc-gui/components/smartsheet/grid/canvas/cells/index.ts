@@ -102,6 +102,9 @@ export function useGridCellHandler(params: {
   const openDocField = docFieldStore?.openDoc
   const deleteDocField = docFieldStore?.deleteDoc
 
+  const smartTextStore = useSmartText()
+  const openSmartText = smartTextStore?.openEditor
+
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     params.meta?.value?.base_id ? basesUser.value.get(params.meta?.value.base_id) || [] : [],
   )
@@ -491,6 +494,7 @@ export function useGridCellHandler(params: {
         openDetachedLongText,
         openDocField,
         deleteDocField,
+        openSmartText,
         path: ctx.path ?? [],
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         baseRoles: baseRoles.value,
@@ -530,6 +534,7 @@ export function useGridCellHandler(params: {
         openDetachedLongText,
         openDocField,
         deleteDocField,
+        openSmartText,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         path: ctx.path ?? [],
         t,

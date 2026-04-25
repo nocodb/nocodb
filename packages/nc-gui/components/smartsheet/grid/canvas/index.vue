@@ -2726,6 +2726,10 @@ const syncActiveCellFromPanel = (rowIndex: number | null | undefined, columnId: 
   if (colIdx < 0) return
   if (activeCell.value.row === rowIndex && activeCell.value.column === colIdx) return
   activeCell.value = { row: rowIndex, column: colIdx, path: activeCell.value.path ?? [] }
+  // Clear leftover selection range + fill handle anchored to the previously
+  // clicked cell so they don't visually trail behind during panel navigation.
+  selection.value.clear()
+  isFillHandlerActive.value = false
   triggerRefreshCanvas()
 }
 

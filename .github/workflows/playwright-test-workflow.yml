@@ -177,12 +177,16 @@ jobs:
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb
         env:
-          # Dump 1 heap snapshot when V8 nears the OOM limit (raw file ~6 GB JSON
-          # for a 4 GB heap; multiple snapshots filled the runner disk and got
-          # the VM killed). Plus a sampled allocation profile on process exit.
-          # Snapshots land in CWD as Heap.<ts>.<pid>.<seq>.heapsnapshot; profile
-          # lands in ./heap-profiles/.
-          NODE_OPTIONS: "--heapsnapshot-near-heap-limit=1 --heap-prof --heap-prof-dir=./heap-profiles"
+          # Cap the V8 old-space at 512 MB so the OOM reproduces quickly with a
+          # small (~1 GB raw, ~200 MB gzipped) heap snapshot — large enough to
+          # diagnose the leak, small enough that gzip+S3 upload finishes well
+          # before the runner is shut down. The leak is per-request, so a
+          # smaller heap just means OOM after fewer requests with the same
+          # allocation signature.
+          # Dump 1 heap snapshot near the OOM limit + a sampled allocation
+          # profile on process exit. Snapshots land in CWD as
+          # Heap.<ts>.<pid>.<seq>.heapsnapshot; profile lands in ./heap-profiles/.
+          NODE_OPTIONS: "--max-old-space-size=512 --heapsnapshot-near-heap-limit=1 --heap-prof --heap-prof-dir=./heap-profiles"
         run: |
           mkdir -p heap-profiles
           pnpm run watch:run:playwright:pg:ee &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &

@@ -19,6 +19,7 @@ export default class FileReference {
   source_id: string;
   fk_model_id: string;
   fk_column_id: string;
+  fk_row_id: string;
   fk_doc_id: string;
   fk_session_id: string;
   is_external: boolean;

@@ -466,6 +466,7 @@ const permissionScopes = {
     // SmartText
     'smartTextGetContent',
     'smartTextUpdateContent',
+    'smartTextGetAttachment',
 
     // Document Comments
     'documentCommentList',
@@ -891,6 +892,7 @@ const rolePermissions:
 
       // SmartText — read-only for viewers
       smartTextGetContent: true,
+      smartTextGetAttachment: true,
 
       // Document Comments — read-only for viewers
       documentCommentList: true,
@@ -1668,6 +1670,7 @@ const permissionDescriptions: Record<string, string> = {
 
   smartTextGetContent: 'read SmartText cell content',
   smartTextUpdateContent: 'update SmartText cell content',
+  smartTextGetAttachment: 'read SmartText cell attachment',
 
   documentCommentList: 'view document comments',
   documentCommentCount: 'view document comment count',

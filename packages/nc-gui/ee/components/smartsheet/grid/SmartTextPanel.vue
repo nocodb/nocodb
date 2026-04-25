@@ -11,6 +11,7 @@ const {
   pmContent,
   activeColumn,
   activeColumnId,
+  activeRowId,
   smartTextColumns,
   activeDisplayValue,
   hasPrev,
@@ -29,6 +30,19 @@ const {
 
 const { t } = useI18n()
 const view = inject(ActiveViewInj, ref())
+const meta = inject(MetaInj, ref())
+
+// Provide cell context so the embedded doc editor's attachment proxy resolves
+// image / file URLs via the cell-keyed endpoint instead of the doc-keyed one.
+const cellAttachmentContext = computed(() => {
+  if (!meta.value?.id || !activeColumnId.value || !activeRowId.value) return null
+  return {
+    tableId: meta.value.id,
+    columnId: activeColumnId.value,
+    rowId: activeRowId.value,
+  }
+})
+provide(SmartTextCellAttachmentInj, cellAttachmentContext)
 
 // Fullscreen mode covers everything to the right of the project sidebar.
 // We measure the sidebar's actual right edge from the DOM rather than using

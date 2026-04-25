@@ -1,29 +1,18 @@
 /**
  * ProseMirror plugin that decorates every block-level node with
- * `dir="auto"`, mirroring how Notion renders body blocks. This lets each
- * paragraph/heading/list-item/etc. pick its own text direction from its
- * first strong character — so a doc can mix LTR and RTL content cleanly.
+ * `dir="auto"`, mirroring how Notion renders body blocks. Each paragraph,
+ * heading, list-item, blockquote, table cell, etc. picks its own direction
+ * from its first strong character — so a doc cleanly mixes LTR and RTL
+ * content without any per-block UI or stored attribute.
  *
- * Disabled by default. Toggle with a meta transaction:
- *
- *   editor.view.dispatch(
- *     editor.state.tr.setMeta(blockDirPluginKey, { enabled: true }),
- *   )
- *
- * The plugin itself doesn't touch the wrapper or the page title — those
- * stay on the doc-level `dir` (concrete ltr/rtl). Only the editor body
- * blocks are decorated.
+ * The plugin doesn't touch the wrapper or the page title; those keep their
+ * own direction handling in Editor.vue.
  */
 import { Extension } from '@tiptap/core'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
 import { Decoration, DecorationSet } from '@tiptap/pm/view'
 
-export const blockDirPluginKey = new PluginKey<BlockDirState>('blockDir')
-
-interface BlockDirState {
-  enabled: boolean
-  decorations: DecorationSet
-}
+const blockDirPluginKey = new PluginKey<DecorationSet>('blockDir')
 
 const buildDecorations = (doc: any): DecorationSet => {
   const decos: Decoration[] = []
@@ -34,32 +23,22 @@ const buildDecorations = (doc: any): DecorationSet => {
   return DecorationSet.create(doc, decos)
 }
 
-const blockDirPlugin = new Plugin<BlockDirState>({
+const blockDirPlugin = new Plugin<DecorationSet>({
   key: blockDirPluginKey,
 
   state: {
-    init() {
-      return { enabled: false, decorations: DecorationSet.empty }
+    init(_, { doc }) {
+      return buildDecorations(doc)
     },
-    apply(tr, value, _oldState, newState) {
-      const meta = tr.getMeta(blockDirPluginKey) as { enabled?: boolean } | undefined
-      const nextEnabled = meta && typeof meta.enabled === 'boolean' ? meta.enabled : value.enabled
-
-      if (!nextEnabled) {
-        return { enabled: false, decorations: DecorationSet.empty }
-      }
-
-      const enabledFlipped = nextEnabled !== value.enabled
-      if (enabledFlipped || tr.docChanged) {
-        return { enabled: nextEnabled, decorations: buildDecorations(newState.doc) }
-      }
-      return { enabled: nextEnabled, decorations: value.decorations.map(tr.mapping, tr.doc) }
+    apply(tr, decorationSet, _oldState, newState) {
+      if (tr.docChanged) return buildDecorations(newState.doc)
+      return decorationSet.map(tr.mapping, tr.doc)
     },
   },
 
   props: {
     decorations(state) {
-      return blockDirPluginKey.getState(state)?.decorations
+      return blockDirPluginKey.getState(state)
     },
   },
 })

@@ -28,7 +28,7 @@ import { DocTabExtension, DocTabsExtension } from './DocTabsExtension'
 import { DocColumnsToolbarExtension } from './DocColumnsToolbarPlugin'
 import { DocMathExtension } from './DocMathExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
-import { DocBlockDirExtension, blockDirPluginKey } from './DocBlockDirPlugin'
+import { DocBlockDirExtension } from './DocBlockDirPlugin'
 import { DocHeadingCollapseExtension } from './DocHeadingCollapseExtension'
 import { DocHeadingAnchorExtension } from './DocHeadingAnchorExtension'
 import { DocDragHandleExtension } from './DocDragHandlePlugin'
@@ -1559,32 +1559,17 @@ const { isRtl: isAppRtl } = useRtl()
 // Tri-state direction selector state. `null` = use default (app locale).
 const activeDir = ref<DocDir | null>(null)
 
-// Concrete direction applied to the editor wrapper. `auto` is resolved to a
-// concrete ltr/rtl via the locale fallback so layout chrome around the body
-// (hanging title icon, padding) stays anchored. The title input itself uses
-// `dir="auto"` so its text always auto-detects from content — matching Notion,
-// where the page-block wrapper is pinned but the title leaf flips with content
-// (via `unicode-bidi: plaintext`). Per-block auto detection inside the body is
-// handled by DocBlockDirExtension.
+// Concrete direction applied to the editor wrapper only. Layout chrome
+// (hanging title icon, padding) is anchored by this; per-block text
+// direction inside the body is handled by DocBlockDirExtension, and the
+// title input uses `dir="auto"` directly. The doc-level menu setting now
+// only controls wrapper chrome — explicit ltr/rtl picks override the
+// locale fallback for the icon side and empty-block neutral defaults.
 const resolvedDir = computed<'ltr' | 'rtl'>(() => {
   if (activeDir.value === 'ltr') return 'ltr'
   if (activeDir.value === 'rtl') return 'rtl'
   return isAppRtl.value ? 'rtl' : 'ltr'
 })
-
-// Toggle the per-block `dir="auto"` plugin whenever the doc-level setting
-// flips into or out of `auto`. The plugin is a no-op until enabled.
-watch(
-  [activeDir, () => editor.value],
-  ([dir, ed]) => {
-    if (!ed) return
-    const enabled = dir === 'auto'
-    const current = blockDirPluginKey.getState(ed.state)?.enabled ?? false
-    if (current === enabled) return
-    ed.view.dispatch(ed.state.tr.setMeta(blockDirPluginKey, { enabled }))
-  },
-  { immediate: true },
-)
 
 // Re-load doc when navigating between pages.
 // Watch both docId AND activeProjectId — on a full page reload, activeProjectId

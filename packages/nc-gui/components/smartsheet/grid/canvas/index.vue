@@ -2715,6 +2715,40 @@ const smartsheetEvents = async (event: SmartsheetStoreEvents, payload) => {
 
 eventBus.on(smartsheetEvents)
 
+// Mirror SmartText / DocField panel navigation into the canvas active cell so
+// the blue active border follows the cell whose panel is currently open.
+const smartTextStoreForActive = useSmartText()
+const docFieldStoreForActive = useDocField()
+
+const syncActiveCellFromPanel = (rowIndex: number | null | undefined, columnId: string | null | undefined) => {
+  if (rowIndex == null || !columnId) return
+  const colIdx = columns.value.findIndex((c) => c.id === columnId)
+  if (colIdx < 0) return
+  if (activeCell.value.row === rowIndex && activeCell.value.column === colIdx) return
+  activeCell.value = { row: rowIndex, column: colIdx, path: activeCell.value.path ?? [] }
+  triggerRefreshCanvas()
+}
+
+if (smartTextStoreForActive) {
+  watch(
+    [smartTextStoreForActive.isOpen, smartTextStoreForActive.activeRowIndex, smartTextStoreForActive.activeColumnId],
+    ([open, rowIndex, columnId]) => {
+      if (!open) return
+      syncActiveCellFromPanel(rowIndex as number | null, columnId as string | null)
+    },
+  )
+}
+
+if (docFieldStoreForActive) {
+  watch(
+    [docFieldStoreForActive.isOpen, docFieldStoreForActive.activeRowIndex, docFieldStoreForActive.activeColumnId],
+    ([open, rowIndex, columnId]) => {
+      if (!open) return
+      syncActiveCellFromPanel(rowIndex as number | null, columnId as string | null)
+    },
+  )
+}
+
 onBeforeUnmount(() => {
   eventBus.off(smartsheetEvents)
   reloadViewDataHook.off(reloadViewDataHookHandler)
@@ -2785,6 +2819,8 @@ onClickOutside(
       '.canvas-header-column-menu',
       '.canvas-header-add-new-row-menu',
       '.canvas-group-context-menu',
+      '.nc-doc-field-panel',
+      '.nc-smart-text-panel',
     ],
   },
 )

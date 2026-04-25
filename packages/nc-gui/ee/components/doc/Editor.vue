@@ -1856,21 +1856,23 @@ const setDocFont = async (font: 'default' | 'serif' | 'mono') => {
   }
 }
 
-const setDocDir = async (dir: DocDir) => {
-  if (!doc.value?.id || !base.value?.id || dir === activeDir.value) return
-  activeDir.value = dir
-  try {
-    doc.value.meta = { ...docMeta.value, dir }
-    const updated = await updateDocument(base.value.id, doc.value.id, {
-      meta: doc.value.meta,
-      version: doc.value.version,
-    })
-    if (updated?.version && doc.value) doc.value.version = updated.version
-    $e('a:doc:dir:change', { dir })
-  } catch (e: any) {
-    ncMessage.error(await extractSdkResponseErrorMsg(e))
-  }
-}
+// Disabled together with the Text direction menu — see the comment in the
+// template. Restoring the menu also brings this back into use.
+// const setDocDir = async (dir: DocDir) => {
+//   if (!doc.value?.id || !base.value?.id || dir === activeDir.value) return
+//   activeDir.value = dir
+//   try {
+//     doc.value.meta = { ...docMeta.value, dir }
+//     const updated = await updateDocument(base.value.id, doc.value.id, {
+//       meta: doc.value.meta,
+//       version: doc.value.version,
+//     })
+//     if (updated?.version && doc.value) doc.value.version = updated.version
+//     $e('a:doc:dir:change', { dir })
+//   } catch (e: any) {
+//     ncMessage.error(await extractSdkResponseErrorMsg(e))
+//   }
+// }
 
 const onCopyPageLink = () => {
   performCopyLink(() => copy(window.location.href))
@@ -2116,6 +2118,10 @@ onBeforeUnmount(() => {
                   <span class="nc-doc-font-label">{{ $t(`labels.font${f.charAt(0).toUpperCase() + f.slice(1)}`) }}</span>
                 </button>
               </div>
+              <!--
+                Text direction menu — disabled for now. Per-block detection via
+                DocBlockDirExtension covers the common case; bring this back if
+                we need an explicit override for whole-doc chrome direction.
               <NcDivider />
               <div class="nc-doc-dir-selector-label">{{ $t('labels.textDirection') }}</div>
               <div :key="activeDir ?? 'default'" class="nc-doc-dir-selector" data-testid="nc-doc-dir-selector" @click.stop>
@@ -2137,6 +2143,7 @@ onBeforeUnmount(() => {
                   }}</span>
                 </button>
               </div>
+              -->
               <NcDivider />
               <NcMenuItem v-if="isUIAllowed('documentCreate')" @click="onDuplicatePage">
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />

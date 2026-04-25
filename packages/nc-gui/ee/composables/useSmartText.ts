@@ -110,13 +110,17 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
 
     isSaving.value = true
     try {
-      const result = (await $api.internal.postOperation(activeWorkspaceId.value, activeProjectId.value, {
-        operation: 'smartTextUpdateContent',
-        tableId: meta.value.id,
-        rowId: activeRowId.value,
-        columnId: activeColumnId.value,
-        pmContent: pmContent.value,
-      })) as SmartTextGetResponse
+      const result = (await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        activeProjectId.value,
+        {
+          operation: 'smartTextUpdateContent',
+          tableId: meta.value.id,
+          rowId: activeRowId.value,
+          columnId: activeColumnId.value,
+        },
+        { pmContent: pmContent.value },
+      )) as SmartTextGetResponse
 
       // Sync derived markdown back into the grid row so the cell preview updates.
       const newMarkdown = result?.markdown ?? null

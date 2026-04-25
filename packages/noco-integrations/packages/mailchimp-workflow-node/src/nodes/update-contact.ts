@@ -107,6 +107,9 @@ export class UpdateContactNode extends WorkflowNodeIntegration<UpdateContactConf
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/mailchimp',
+      group: 'contact',
+      groupLabel: 'Contact',
+      groupOrder: 3,
       keywords: [
         'mailchimp',
         'contact',

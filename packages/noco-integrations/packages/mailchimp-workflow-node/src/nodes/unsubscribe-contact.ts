@@ -80,6 +80,9 @@ export class UnsubscribeContactNode extends WorkflowNodeIntegration<UnsubscribeC
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/mailchimp',
+      group: 'subscription',
+      groupLabel: 'Subscription',
+      groupOrder: 5,
       keywords: [
         'mailchimp',
         'unsubscribe',

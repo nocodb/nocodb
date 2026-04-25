@@ -66,6 +66,9 @@ export class SendCampaignNode extends WorkflowNodeIntegration<SendCampaignConfig
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/mailchimp',
+      group: 'campaign',
+      groupLabel: 'Campaign',
+      groupOrder: 2,
       keywords: ['mailchimp', 'campaign', 'send', 'email', 'marketing'],
     };
   }

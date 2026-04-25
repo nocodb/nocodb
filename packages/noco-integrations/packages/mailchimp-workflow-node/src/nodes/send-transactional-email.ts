@@ -123,6 +123,9 @@ export class SendTransactionalEmailNode extends WorkflowNodeIntegration<SendTran
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/mailchimp',
+      group: 'email',
+      groupLabel: 'Email',
+      groupOrder: 1,
       keywords: [
         'mailchimp',
         'mandrill',

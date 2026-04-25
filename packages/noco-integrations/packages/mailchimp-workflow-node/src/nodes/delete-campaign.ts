@@ -65,6 +65,9 @@ export class DeleteCampaignNode extends WorkflowNodeIntegration<DeleteCampaignCo
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/mailchimp',
+      group: 'campaign',
+      groupLabel: 'Campaign',
+      groupOrder: 2,
       keywords: [
         'mailchimp',
         'campaign',

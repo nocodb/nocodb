@@ -89,6 +89,9 @@ export class DeleteContactNode extends WorkflowNodeIntegration<DeleteContactConf
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/mailchimp',
+      group: 'contact',
+      groupLabel: 'Contact',
+      groupOrder: 3,
       keywords: [
         'mailchimp',
         'contact',

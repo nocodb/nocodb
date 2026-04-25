@@ -94,6 +94,9 @@ export class UntagContactNode extends WorkflowNodeIntegration<UntagContactConfig
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/mailchimp',
+      group: 'contact-tags',
+      groupLabel: 'Contact Tags',
+      groupOrder: 4,
       keywords: [
         'mailchimp',
         'contact',

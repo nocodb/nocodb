@@ -80,6 +80,9 @@ export class GetContactNode extends WorkflowNodeIntegration<GetContactConfig> {
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/mailchimp',
+      group: 'contact',
+      groupLabel: 'Contact',
+      groupOrder: 3,
       keywords: [
         'mailchimp',
         'contact',

@@ -197,6 +197,9 @@ export class CreateListNode extends WorkflowNodeIntegration<CreateListConfig> {
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/mailchimp',
+      group: 'audience',
+      groupLabel: 'Audience',
+      groupOrder: 6,
       keywords: [
         'mailchimp',
         'audience',

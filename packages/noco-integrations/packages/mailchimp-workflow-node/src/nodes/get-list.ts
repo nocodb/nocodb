@@ -66,6 +66,9 @@ export class GetListNode extends WorkflowNodeIntegration<GetListConfig> {
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/mailchimp',
+      group: 'audience',
+      groupLabel: 'Audience',
+      groupOrder: 6,
       keywords: [
         'mailchimp',
         'audience',

@@ -137,6 +137,13 @@ const rolePermissions = {
       manageBaseType: true,
       baseAuditList: true,
       rlsManage: true,
+
+      // Base trash — destructive operations + per-table settings
+      // are owner-only.
+      baseTrashPermanentDelete: true,
+      baseTrashEmpty: true,
+      baseTrashSettingsList: true,
+      baseTrashSettingsUpdate: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -194,10 +201,6 @@ const rolePermissions = {
       workflowExecutionList: true,
       workflowList: true,
 
-      // Per-table trash settings— creators can view and update
-      baseTrashSettingsList: true,
-      baseTrashSettingsUpdate: true,
-
       // Documents — creators can create and delete documents
       documentCreate: true,
       documentDelete: true,
@@ -246,6 +249,12 @@ const rolePermissions = {
 
       // Extensions
       extensionUpdate: true,
+
+      // Base trash — editors can list / restore (per-entry + per-row),
+      // but permanent delete + empty are owner-only.
+      baseTrashList: true,
+      baseTrashRestore: true,
+      baseTrashRestoreRows: true,
 
       // Documents — editors can update and reorder, but NOT create/delete
       documentUpdate: true,

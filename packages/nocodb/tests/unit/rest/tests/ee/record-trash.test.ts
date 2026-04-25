@@ -138,33 +138,64 @@ export default function recordTrashTests() {
     }
 
     /**
-     * Flattened view of the event-based trash list.
+     * Fetch base-trash entries scoped to one table, returning the inline
+     * `records` array shape the existing tests already use.
      *
-     * The backend exposes `recordTrashEvents` (grouped by deleter + LMT) —
-     * tests here only need "which record ids are currently in trash?", so we
-     * collapse the event buckets back to a flat list shape compatible with the
-     * existing assertions: `{ list: [{ Id }, ...] }`.
+     * The unified surface (`baseTrashList`) returns ALL resource types in a
+     * base; we filter to `record`-type entries whose `parent_id` matches the
+     * table under test. Each entry inlines `records` (PK + values via
+     * `chunkList({ extractOnlyPrimaries: true })`), so the `Id` field maps
+     * directly back onto the old `{ list: [{ Id }, ...] }` assertions.
      */
-    async function trashList(tableId: string) {
+    async function baseTrashEntries(tableId: string) {
       const rsp = await internalGet({
-        operation: 'recordTrashEvents',
-        tableId,
+        operation: 'baseTrashList',
+        resourceType: 'record',
       });
-      const list = ((rsp?.list ?? []) as any[]).flatMap((ev) =>
-        (ev.preview_rows ?? []).map((pr: any) => ({ Id: pr.row_id })),
+      return ((rsp?.list ?? []) as any[]).filter(
+        (entry) => entry.parent_id === tableId,
+      );
+    }
+
+    /**
+     * `softDelete` returns 200 once the data-table update commits, but the
+     * `nc_trash` row is written asynchronously by the `RECORDS_SOFT_DELETE`
+     * listener. Poll briefly so list/count helpers aren't racy when called
+     * right after a soft-delete.
+     */
+    async function waitForTrashEntries(
+      tableId: string,
+      minCount = 1,
+      attempts = 20,
+      intervalMs = 50,
+    ) {
+      let entries = await baseTrashEntries(tableId);
+      for (let i = 0; entries.length < minCount && i < attempts; i++) {
+        await new Promise((r) => setTimeout(r, intervalMs));
+        entries = await baseTrashEntries(tableId);
+      }
+      return entries;
+    }
+
+    async function trashList(tableId: string) {
+      const entries = await baseTrashEntries(tableId);
+      const list = entries.flatMap((entry) =>
+        (entry.records ?? []).map((r: any) => ({ Id: r.Id ?? r.id })),
       );
       return { list };
     }
 
-    /** Trash count */
+    /** Trash count — sum of visible records across this table's entries. */
     async function trashCount(tableId: string) {
-      return internalGet({
-        operation: 'recordTrashCount',
-        tableId,
-      });
+      const entries = await baseTrashEntries(tableId);
+      const count = entries.reduce(
+        (sum, entry) => sum + (entry.visible_record_count ?? 0),
+        0,
+      );
+      return { count };
     }
 
-    /** Restore records */
+    /** Restore records — pass-through to `baseTrashRestoreRows`. */
     async function restoreRecords(
       tableId: string,
       rowIds: (string | number)[],
@@ -172,32 +203,61 @@ export default function recordTrashTests() {
       status = 200,
     ) {
       return internalPost(
-        { operation: 'recordTrashRestore' },
+        { operation: 'baseTrashRestoreRows' },
         { tableId, rowIds: rowIds.map(String), force },
         status,
       );
     }
 
-    /** Permanent delete records */
+    /**
+     * Permanent-delete the trash entries that contain any of the given
+     * rowIds. The unified API only supports entry-level permanent delete,
+     * so we resolve `rowIds → trashIds` via the inline `records` array and
+     * fan out one delete per affected entry. Each entry typically wraps a
+     * single soft-delete operation, so this collapses to one call per
+     * `softDelete(...)` in the test setup.
+     *
+     * `softDelete` returns 200 as soon as the data-table update commits,
+     * but the `nc_trash` row is written asynchronously by the
+     * `RECORDS_SOFT_DELETE` listener (`Noco.eventEmitter.emit` is fire-and-
+     * forget). Poll briefly before giving up so the helper isn't racy.
+     */
     async function permDelete(
       tableId: string,
       rowIds: (string | number)[],
       status = 200,
     ) {
-      return internalPost(
-        { operation: 'recordTrashPermanentDelete' },
-        { tableId, rowIds: rowIds.map(String) },
-        status,
-      );
+      const want = new Set(rowIds.map(String));
+      let trashIds: string[] = [];
+      const POLL_INTERVAL_MS = 50;
+      const POLL_ATTEMPTS = 20; // ~1s total
+      for (let i = 0; i < POLL_ATTEMPTS; i++) {
+        const entries = await baseTrashEntries(tableId);
+        trashIds = entries
+          .filter((entry) =>
+            (entry.records ?? []).some((r: any) =>
+              want.has(String(r.Id ?? r.id)),
+            ),
+          )
+          .map((entry) => entry.id);
+        if (trashIds.length || !rowIds.length) break;
+        await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+      }
+
+      let last: any = {};
+      for (const trashId of trashIds) {
+        last = await internalPost(
+          { operation: 'baseTrashPermanentDelete' },
+          { trashId },
+          status,
+        );
+      }
+      return last;
     }
 
-    /** Empty trash */
-    async function emptyTrash(tableId: string, status = 200) {
-      return internalPost(
-        { operation: 'recordTrashEmpty' },
-        { tableId },
-        status,
-      );
+    /** Empty trash — base-scoped (whole base). Tests use one base per run. */
+    async function emptyTrash(_tableId: string, status = 200) {
+      return internalPost({ operation: 'baseTrashEmpty' }, {}, status);
     }
 
     /** Add V1 link: POST /api/v1/db/data/noco/{baseId}/{tableId}/{rowId}/{type}/{colId}/{refRowId} */
@@ -359,7 +419,7 @@ export default function recordTrashTests() {
       status = 200,
     ) {
       return internalPost(
-        { operation: 'recordTrashRestore' },
+        { operation: 'baseTrashRestoreRows' },
         { tableId, rowIds: rowIds.map(String), ...opts },
         status,
       );
@@ -553,17 +613,56 @@ export default function recordTrashTests() {
         expect(result.count).to.equal(0);
       });
 
-      it('6. Permanent delete on active record → 422', async function () {
+      // Tests 6 / 6b previously hit `recordTrashPermanentDelete` directly.
+      // The unified surface keys permanent delete on the BaseTrash entry
+      // (`baseTrashPermanentDelete` + trashId), so the per-row error paths
+      // map onto entry-level invariants:
+      //   6  → an active record has no trash entry, so attempting
+      //        `baseTrashPermanentDelete` against any synthesized id 404s
+      //        and the active record is untouched.
+      //   6b → restore-side empty-input validation still 400s
+      //        (`baseTrashRestoreRows`); permanent-delete-side input
+      //        validation is enforced at the entry layer where a missing
+      //        trashId 404s.
+
+      it('6. Permanent delete on active record → no entry / 404', async function () {
         const row = await insertRow(tblB, 'B1');
-        await permDelete(tblB.id!, [row.id], 422);
+
+        // Active rows never produce trash entries.
+        const entries = await baseTrashEntries(tblB.id!);
+        const referenced = entries.some((e) =>
+          (e.records ?? []).some(
+            (r: any) => String(r.Id ?? r.id) === String(row.id),
+          ),
+        );
+        expect(referenced).to.equal(false);
+
+        // Entry-level permanent delete with a synthesized id 404s — there's
+        // no entry to point at, mirroring the old "can't perm-delete an
+        // active row" guard.
+        await internalPost(
+          { operation: 'baseTrashPermanentDelete' },
+          { trashId: 'no_such_trash_id' },
+          404,
+        );
+
+        // The active record is still readable.
+        await request(context.app)
+          .get(`/api/v3/data/${base.id}/${tblB.id}/records/${row.id}`)
+          .set('xc-auth', context.token)
+          .expect(200);
       });
 
       it('6a. Restore with empty rowIds → 400', async function () {
         await restoreRecords(tblB.id!, [], false, 400);
       });
 
-      it('6b. Permanent delete with empty rowIds → 400', async function () {
-        await permDelete(tblB.id!, [], 400);
+      it('6b. Permanent delete with missing trashId → 404', async function () {
+        await internalPost(
+          { operation: 'baseTrashPermanentDelete' },
+          { trashId: 'no_such_trash_id' },
+          404,
+        );
       });
     });
 

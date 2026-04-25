@@ -1,5 +1,11 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { AppEvents, ncHasProperties, PlanLimitTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  extractRolesObj,
+  ncHasProperties,
+  PlanLimitTypes,
+  ProjectRoles,
+} from 'nocodb-sdk';
 import type { OnModuleInit } from '@nestjs/common';
 import type { UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -255,6 +261,23 @@ export class BaseTrashService implements OnModuleInit {
     }
 
     const handler = this.getHandler(trashEntry.resource_type);
+
+    // Resource-type role gate. ACL allows EDITOR+ to invoke baseTrashRestore
+    // (so editors can undo their own row deletes), but restoring a non-record
+    // entry — table / view / field / dashboard / widget / workflow / script —
+    // is structural and requires CREATOR+. Records remain editor-restorable
+    // because soft-delete + restore is part of the normal data-edit loop.
+    if (trashEntry.resource_type !== 'record') {
+      const baseRoles = extractRolesObj(param.req?.user?.base_roles);
+      const isCreatorOrOwner =
+        !!baseRoles?.[ProjectRoles.CREATOR] ||
+        !!baseRoles?.[ProjectRoles.OWNER];
+      if (!isCreatorOrOwner) {
+        NcError.get(context).forbidden(
+          `Restoring a ${trashEntry.resource_type} requires creator or owner role`,
+        );
+      }
+    }
 
     await handler.checkRestoreLimit?.(context, trashEntry);
 

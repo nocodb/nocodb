@@ -1032,6 +1032,16 @@ const rolePermissions:
       recordTemplateUpdate: true,
       recordTemplateDelete: true,
       recordTemplateUse: true,
+
+      // Base trash — editors see the list and can restore (per-entry +
+      // per-row). Permanent-delete / empty / per-table settings are
+      // owner-only via CREATOR.exclude below. Restoring non-record entries
+      // (table / view / field / dashboard / widget / workflow / script) is
+      // gated at the service layer (`BaseTrashService.restore`) since the
+      // ACL can't see resource_type.
+      baseTrashList: true,
+      baseTrashRestore: true,
+      baseTrashRestoreRows: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -1048,6 +1058,12 @@ const rolePermissions:
       rlsPolicySetSubjects: true,
       rlsPolicyFilterList: true,
       rlsPolicyFilterCreate: true,
+
+      // Base trash — destructive ops + per-table settings are owner-only.
+      baseTrashPermanentDelete: true,
+      baseTrashEmpty: true,
+      baseTrashSettingsList: true,
+      baseTrashSettingsUpdate: true,
     },
   },
   [ProjectRoles.OWNER]: {

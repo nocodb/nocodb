@@ -176,72 +176,8 @@ jobs:
       - name: Run backend:pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb
-        env:
-          # Cap the V8 old-space at 512 MB so the OOM reproduces quickly with a
-          # small (~1 GB raw, ~200 MB gzipped) heap snapshot — large enough to
-          # diagnose the leak, small enough that gzip+S3 upload finishes well
-          # before the runner is shut down. The leak is per-request, so a
-          # smaller heap just means OOM after fewer requests with the same
-          # allocation signature.
-          # Dump 1 heap snapshot near the OOM limit + a sampled allocation
-          # profile on process exit. Snapshots land in CWD as
-          # Heap.<ts>.<pid>.<seq>.heapsnapshot; profile lands in ./heap-profiles/.
-          NODE_OPTIONS: "--max-old-space-size=512 --heapsnapshot-near-heap-limit=1 --heap-prof --heap-prof-dir=./heap-profiles"
         run: |
-          mkdir -p heap-profiles
           pnpm run watch:run:playwright:pg:ee &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
-
-      - name: Stream heap dumps to S3 in background
-        if: ${{ inputs.db == 'pg' }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.ARTIFACTS_S3_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.ARTIFACTS_S3_SECRET_KEY }}
-          AWS_DEFAULT_REGION: us-east-2
-        run: |
-          # Why this exists: the backend OOM kills the V8 process, which writes
-          # a heap snapshot ~6 GB raw. With multiple snapshots and rspack
-          # artifacts on top, the ubicloud runner can run out of disk and the
-          # host kills the VM. When that happens, the post-job artifact upload
-          # never runs and we lose the dumps.
-          #
-          # This streamer gzips and uploads each heap snapshot/profile as soon
-          # as it appears, then deletes the original to keep disk free. It
-          # runs as a background nohup process so it survives this step
-          # finishing, and we capture its PID so the post-job step can stop
-          # and flush it.
-          s3_prefix="runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/${GITHUB_JOB}-${{ inputs.shard }}/heap"
-          echo "Heap dumps will stream to: s3://nocohub-ci-artifacts/${s3_prefix}/"
-
-          nohup bash -c '
-            set +e
-            while true; do
-              shopt -s nullglob
-              for f in ./packages/nocodb/Heap.*.heapsnapshot \
-                       ./packages/nocodb/heap-profiles/*.heapprofile \
-                       ./packages/nocodb/heap-profiles/*.heapsnapshot; do
-                [ -f "$f" ] || continue
-                [ -f "${f}.uploaded" ] && continue
-
-                # File may still be growing — wait until size is stable
-                # for two consecutive ticks before uploading.
-                s1=$(stat -c%s "$f" 2>/dev/null || echo 0)
-                sleep 5
-                s2=$(stat -c%s "$f" 2>/dev/null || echo 0)
-                [ "$s1" = "0" ] && continue
-                [ "$s1" != "$s2" ] && continue
-
-                gzip -f "$f" && \
-                  aws s3 cp "${f}.gz" "s3://nocohub-ci-artifacts/'"${s3_prefix}"'/$(basename ${f}.gz)" \
-                    --no-progress --content-type "application/gzip" && \
-                  rm -f "${f}.gz" && \
-                  touch "${f}.uploaded"
-              done
-              shopt -u nullglob
-              sleep 10
-            done
-          ' >/tmp/heap-streamer.log 2>&1 &
-          echo $! > /tmp/heap-streamer.pid
-          echo "Heap streamer started: PID $(cat /tmp/heap-streamer.pid)"
 
       - name: Cache Playwright browsers
         uses: actions/cache@v5
@@ -335,30 +271,6 @@ jobs:
             aws s3 cp ./packages/nocodb/${LOG_FILE} s3://nocohub-ci-artifacts/${s3_path}/${LOG_FILE} --content-type "text/plain; charset=utf-8"
           fi
 
-          # Heap dumps (PG only) are streamed to S3 by the background uploader
-          # started in "Stream heap dumps to S3 in background". Stop it now and
-          # flush any remaining files (heap profile is only written on process
-          # exit, so it usually lands here, not via the streamer).
-          STREAM_PREFIX="runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/${GITHUB_JOB}-${{ inputs.shard }}/heap"
-          if [ -f /tmp/heap-streamer.pid ]; then
-            kill "$(cat /tmp/heap-streamer.pid)" 2>/dev/null || true
-          fi
-          shopt -s nullglob
-          for f in ./packages/nocodb/Heap.*.heapsnapshot ./packages/nocodb/heap-profiles/*.heapprofile ./packages/nocodb/heap-profiles/*.heapsnapshot; do
-            [ -f "$f" ] || continue
-            [ -f "${f}.uploaded" ] && continue
-            gzip -f "$f" 2>/dev/null && \
-              aws s3 cp "${f}.gz" "s3://nocohub-ci-artifacts/${STREAM_PREFIX}/$(basename ${f}.gz)" --content-type "application/gzip" && \
-              rm -f "${f}.gz"
-          done
-          shopt -u nullglob
-
-          HEAP_SECTION=""
-          if aws s3 ls "s3://nocohub-ci-artifacts/${STREAM_PREFIX}/" >/dev/null 2>&1; then
-            HEAP_SECTION="
-          [heap-dumps](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/?prefix=${STREAM_PREFIX}/)"
-          fi
-
           SUMMARY="[backend-logs](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/${LOG_FILE})
-          [playwright-report](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/playwright-report/index.html)${HEAP_SECTION}"
+          [playwright-report](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/playwright-report/index.html)"
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY

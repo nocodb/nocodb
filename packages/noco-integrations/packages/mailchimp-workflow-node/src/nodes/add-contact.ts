@@ -128,7 +128,7 @@ export class AddContactNode extends WorkflowNodeIntegration<AddContactConfig> {
     return {
       id: 'mailchimp.add_contact',
       title: 'Add contact',
-      description: 'Add a new contact to a Mailchimp audience',
+      description: 'Add or update a contact in a Mailchimp audience',
       icon: 'ncMailchimp',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
@@ -226,7 +226,7 @@ export class AddContactNode extends WorkflowNodeIntegration<AddContactConfig> {
 
       logs.push({
         level: 'info',
-        message: `Adding contact ${email} to audience ${listId}`,
+        message: `Adding or updating contact ${email} in audience ${listId}`,
         ts: Date.now(),
       });
 
@@ -266,24 +266,27 @@ export class AddContactNode extends WorkflowNodeIntegration<AddContactConfig> {
         );
       }
 
+      const subscriberHash = await this.md5(email.toLowerCase());
+
       const body: any = {
         email_address: email,
-        status: status || 'subscribed',
+        status_if_new: status || 'subscribed',
         ...(Object.keys(mergeFields).length
           ? { merge_fields: mergeFields }
           : {}),
         ...(tags.length ? { tags } : {}),
       };
 
+      // PUT (setListMember) — creates if new, updates if exists
       const member = await auth.use(async (client) => {
-        return await client.lists.addListMember(listId, body);
+        return await client.lists.setListMember(listId, subscriberHash, body);
       });
 
       const result = member as any;
 
       logs.push({
         level: 'info',
-        message: `Contact added — id: ${result.id}, status: ${result.status}`,
+        message: `Contact upserted — id: ${result.id}, status: ${result.status}`,
         ts: Date.now(),
       });
 
@@ -315,6 +318,11 @@ export class AddContactNode extends WorkflowNodeIntegration<AddContactConfig> {
         metrics: { executionTimeMs: Date.now() - startTime },
       };
     }
+  }
+
+  private async md5(str: string): Promise<string> {
+    const { createHash } = await import('crypto');
+    return createHash('md5').update(str).digest('hex');
   }
 
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {

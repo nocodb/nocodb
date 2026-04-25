@@ -28,6 +28,7 @@ import { DocTabExtension, DocTabsExtension } from './DocTabsExtension'
 import { DocColumnsToolbarExtension } from './DocColumnsToolbarPlugin'
 import { DocMathExtension } from './DocMathExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
+import { DocBlockDirExtension, blockDirPluginKey } from './DocBlockDirPlugin'
 import { DocHeadingCollapseExtension } from './DocHeadingCollapseExtension'
 import { DocHeadingAnchorExtension } from './DocHeadingAnchorExtension'
 import { DocDragHandleExtension } from './DocDragHandlePlugin'
@@ -1092,6 +1093,7 @@ const _tiptapEditor = useEditor({
     DocFileAttachmentExtension,
     DocEmbedExtension,
     DocActiveBlockExtension,
+    DocBlockDirExtension,
     DocHeadingCollapseExtension,
     DocHeadingAnchorExtension,
     DocDragHandleExtension,
@@ -1557,9 +1559,30 @@ const { isRtl: isAppRtl } = useRtl()
 // Tri-state direction selector state. `null` = use default (app locale).
 const activeDir = ref<DocDir | null>(null)
 
-// Resolved direction used on DOM: explicit meta.dir wins; otherwise follow the
-// app locale (RTL for Persian/Arabic/Hebrew/Urdu users, LTR otherwise).
-const resolvedDir = computed<DocDir>(() => activeDir.value ?? (isAppRtl.value ? 'rtl' : 'ltr'))
+// Concrete direction applied to the wrapper and the title input. `auto` is
+// resolved to a concrete ltr/rtl via the locale fallback so the title and
+// hanging icon don't flicker mid-typing — mirrors Notion, which pins the
+// page title and only auto-detects body blocks. Per-block auto detection
+// for the body is handled by DocBlockDirExtension.
+const resolvedDir = computed<'ltr' | 'rtl'>(() => {
+  if (activeDir.value === 'ltr') return 'ltr'
+  if (activeDir.value === 'rtl') return 'rtl'
+  return isAppRtl.value ? 'rtl' : 'ltr'
+})
+
+// Toggle the per-block `dir="auto"` plugin whenever the doc-level setting
+// flips into or out of `auto`. The plugin is a no-op until enabled.
+watch(
+  [activeDir, () => editor.value],
+  ([dir, ed]) => {
+    if (!ed) return
+    const enabled = dir === 'auto'
+    const current = blockDirPluginKey.getState(ed.state)?.enabled ?? false
+    if (current === enabled) return
+    ed.view.dispatch(ed.state.tr.setMeta(blockDirPluginKey, { enabled }))
+  },
+  { immediate: true },
+)
 
 // Re-load doc when navigating between pages.
 // Watch both docId AND activeProjectId — on a full page reload, activeProjectId

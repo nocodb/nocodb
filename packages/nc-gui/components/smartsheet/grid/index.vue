@@ -115,6 +115,49 @@ smartTextRowNavigator.value = {
   totalRows: () => totalRows.value,
 }
 
+// Deep-link sync: open the SmartText panel for the cell encoded in the URL.
+// Watches both the route query and the cached rows so the panel opens once
+// the relevant row has been loaded (paginated views or fresh navigations).
+// Skipped while the expanded record dialog is open — that surface wins.
+watch(
+  [() => route.value.query, cachedRows],
+  ([q]) => {
+    if (q.rowId) return
+    const stRow = q.smartTextRowId as string | undefined
+    const stCol = q.smartTextColId as string | undefined
+    if (!stRow || !stCol) {
+      if (smartTextStore.isOpen.value) smartTextStore.closeEditor()
+      return
+    }
+
+    if (
+      smartTextStore.isOpen.value &&
+      smartTextStore.activeRowId.value === stRow &&
+      smartTextStore.activeColumnId.value === stCol
+    ) {
+      // Already showing this cell — just sync fullscreen if it diverged.
+      const wantFs = q.smartTextMode === 'fullscreen'
+      if (smartTextStore.isFullscreen.value !== wantFs) smartTextStore.setFullscreen(wantFs)
+      return
+    }
+
+    let rowIndex: number | undefined
+    let rowData: Record<string, any> | undefined
+    for (const [idx, row] of cachedRows.value.entries()) {
+      const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+      if (rowId === stRow) {
+        rowIndex = idx
+        rowData = row.row
+        break
+      }
+    }
+
+    smartTextStore.openEditor(stRow, stCol, rowData, rowIndex)
+    if (q.smartTextMode === 'fullscreen') smartTextStore.setFullscreen(true)
+  },
+  { immediate: true, deep: true },
+)
+
 const rowHeight = computed(() => {
   const gridView = view.value?.view as GridType
   if (gridView?.row_height !== undefined) {

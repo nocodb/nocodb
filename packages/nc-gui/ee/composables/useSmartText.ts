@@ -20,6 +20,9 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
 
   const meta = inject(MetaInj, ref())
 
+  const router = useRouter()
+  const route = router.currentRoute
+
   const isOpen = ref(false)
   const activeRowId = ref<string | null>(null)
   const activeColumnId = ref<string | null>(null)
@@ -40,6 +43,39 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
   } | null>(null)
 
   const isFullscreen = computed(() => mode.value === 'fullscreen')
+
+  /**
+   * Mirror panel state into the URL so the cell is shareable / restorable.
+   * Uses router.replace (not push) — opening / navigating cells should not
+   * stack history entries.
+   */
+  const _syncUrl = () => {
+    const next = { ...route.value.query } as Record<string, any>
+    if (
+      isOpen.value &&
+      activeRowId.value &&
+      activeColumnId.value
+    ) {
+      next.smartTextRowId = activeRowId.value
+      next.smartTextColId = activeColumnId.value
+      if (mode.value === 'fullscreen') {
+        next.smartTextMode = 'fullscreen'
+      } else {
+        delete next.smartTextMode
+      }
+    } else {
+      delete next.smartTextRowId
+      delete next.smartTextColId
+      delete next.smartTextMode
+    }
+
+    // Skip no-op replaces
+    const a = JSON.stringify(route.value.query)
+    const b = JSON.stringify(next)
+    if (a === b) return
+
+    router.replace({ query: next }).catch(() => {})
+  }
 
   const activeColumn = computed<ColumnType | undefined>(() => {
     if (!activeColumnId.value || !meta.value?.columns) return undefined
@@ -174,6 +210,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     activeRowData.value = rowData || null
     isOpen.value = true
     isDirty.value = false
+    _syncUrl()
 
     await _loadContent()
   }
@@ -184,6 +221,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
 
     activeColumnId.value = columnId
     isDirty.value = false
+    _syncUrl()
     await _loadContent()
   }
 
@@ -202,6 +240,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     activeRowIndex.value = rowIndex
     activeRowData.value = rowInfo.rowData
     isDirty.value = false
+    _syncUrl()
     await _loadContent()
   }
 
@@ -229,10 +268,12 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     markdown.value = null
     isLoading.value = false
     isDirty.value = false
+    _syncUrl()
   }
 
   const setFullscreen = (val: boolean) => {
     mode.value = val ? 'fullscreen' : 'floating'
+    _syncUrl()
   }
 
   return {

@@ -2187,7 +2187,11 @@ onBeforeUnmount(() => {
     Keep the editor mounted across page switches to avoid detaching
     ProseMirror's view from the DOM. Content is swapped via setContent.
   -->
-  <div v-else class="nc-doc-editor flex flex-row h-full w-full overflow-hidden" :class="{ 'nc-doc-embedded': embedded }">
+  <div
+    v-else
+    class="nc-doc-editor flex flex-row h-full w-full overflow-hidden"
+    :class="{ 'nc-doc-embedded': embedded, 'nc-doc-editor-cell': isCellMode }"
+  >
     <!-- Editor area — relative wrapper for floating menu + scroll content -->
     <div class="relative flex-1 min-w-0 h-full overflow-hidden">
       <!-- Sticky header background — slides in when title scrolls out of view -->
@@ -2383,7 +2387,7 @@ onBeforeUnmount(() => {
         <div
           class="nc-doc-editor-inner w-full mx-auto"
           :class="[
-            isCellMode ? 'px-6' : 'px-6 sm:px-10 lg:px-16',
+            isCellMode ? 'px-10' : 'px-6 sm:px-10 lg:px-16',
             { 'max-w-[900px]': !isFullWidth },
           ]"
           :dir="resolvedDir"
@@ -2960,6 +2964,15 @@ onBeforeUnmount(() => {
   // The h-full chain breaks at a-layout-content — this bypasses it.
   height: 100vh;
   height: 100dvh;
+}
+
+// Cell mode (SmartText panel): zero out the first child's top margin so a
+// leading heading doesn't stack ~33px on top of the body's pt-6 padding.
+// Doc mode keeps the heading rhythm because the title block sits above.
+.nc-doc-editor-cell {
+  .nc-doc-editor-content.ProseMirror > *:first-child {
+    margin-top: 0 !important;
+  }
 }
 
 // Doc editor bubble menu — override embed-mode's transparent/no-shadow defaults

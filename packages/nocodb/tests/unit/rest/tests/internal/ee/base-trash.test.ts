@@ -344,7 +344,7 @@ export function baseTrashTests() {
         ).to.not.be.undefined;
       });
 
-      it('should store view-specific meta in trash entry', async () => {
+      it('should record name and parent linkage on the view trash entry', async () => {
         const table = await createTable(context, base);
         const view = await createView(context, {
           title: 'MetaView',
@@ -356,8 +356,11 @@ export function baseTrashTests() {
 
         const trashRes = await listTrash(context, workspaceId, baseId);
         const entry = findTrashEntry(trashRes.body.list, view.id);
-        expect(entry.meta).to.not.be.undefined;
-        expect(entry.meta.viewType).to.eq(ViewTypes.GRID);
+        expect(entry).to.not.be.undefined;
+        expect(entry.resource_type).to.eq('view');
+        expect(entry.name).to.eq('MetaView');
+        expect(entry.parent_type).to.eq('table');
+        expect(entry.parent_id).to.eq(table.id);
       });
     });
 

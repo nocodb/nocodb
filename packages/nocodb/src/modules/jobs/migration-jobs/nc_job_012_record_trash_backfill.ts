@@ -1,13 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import debug from 'debug';
 import PQueue from 'p-queue';
-import { isDeletedCol, PlanLimitTypes, UITypes } from 'nocodb-sdk';
+import { isDeletedCol, UITypes } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import { Model, Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import SimpleLRUCache from '~/utils/cache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { getLimit } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 
 /**
@@ -278,41 +277,14 @@ export class RecordTrashBackfillMigration {
       ? [lmtCol.column_name, lmbCol.column_name]
       : [lmtCol.column_name];
 
-    // Resolve retention with the same hierarchy as the runtime listener
-    // (`resolveTrashRetentionDays`): per-table override on the model →
-    // workspace plan limit → env → fallback 30. Backfilled entries inherit
-    // the original deleted_at, so cleanup_due_at = deleted_at +
-    // retentionDays. Long-stale entries get a due date in the past and
-    // the next cleanup tick purges them.
-    let retentionDays: number;
-    if (
-      typeof trash_retention_days === 'number' &&
-      trash_retention_days > 0
-    ) {
-      retentionDays = trash_retention_days;
-    } else {
-      try {
-        const { limit } = await getLimit(
-          PlanLimitTypes.LIMIT_TRASH_RETENTION,
-          fk_workspace_id,
-        );
-        if (limit === 0) {
-          retentionDays = 0;
-        } else if (limit !== Infinity && limit > 0) {
-          retentionDays = limit;
-        } else {
-          retentionDays = parseInt(
-            process.env.NC_TRASH_RETENTION_DAYS || '30',
-            10,
-          );
-        }
-      } catch {
-        retentionDays = parseInt(
-          process.env.NC_TRASH_RETENTION_DAYS || '30',
-          10,
-        );
-      }
-    }
+    // Per-table override → env fallback. Plan-tier retention is applied at
+    // runtime by the soft-delete listener on new deletes; this is a one-shot
+    // backfill of stale entries, so env (or the per-table override) is the
+    // pragmatic compromise that keeps this job CE-safe (no EE imports).
+    const retentionDays =
+      typeof trash_retention_days === 'number' && trash_retention_days > 0
+        ? trash_retention_days
+        : parseInt(process.env.NC_TRASH_RETENTION_DAYS || '30', 10);
 
     let inserted = 0;
     let offset = 0;

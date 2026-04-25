@@ -75,10 +75,6 @@ export class ViewTrashHandler extends BaseTrashHandler<View> {
 
     await View.softDelete(ctx, id, true, ncMeta);
 
-    const meta: Record<string, any> = {};
-    if (view.type != null) meta.viewType = view.type;
-    if (view.meta != null) meta.viewMeta = view.meta;
-
     viewWebhookManager.emit();
 
     return {

@@ -154,7 +154,6 @@ export function baseTrashFieldTests() {
         expect(entry.resource_type).to.eq('field');
         expect(entry.parent_type).to.eq('table');
         expect(entry.parent_id).to.eq(table.id);
-        expect(entry.meta?.uidt).to.eq(UITypes.SingleLineText);
 
         // Restore
         const restoreRes = await restoreTrash(

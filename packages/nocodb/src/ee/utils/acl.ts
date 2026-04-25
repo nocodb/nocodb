@@ -241,14 +241,8 @@ const permissionScopes = {
     // SCIM Config
   ],
   base: [
-    // Record Trash
-    'recordTrashEvents',
-    'recordTrashCount',
-    'recordTrashRestore',
-    'recordTrashPermanentDelete',
-    'recordTrashEmpty',
-    'recordTrashSettingsList',
-    'recordTrashSettingsUpdate',
+    'baseTrashSettingsList',
+    'baseTrashSettingsUpdate',
 
     'nestedDataListCopyPasteOrDeleteAll',
     'nestedDataBulkCopyPasteOrDeleteAll',
@@ -582,6 +576,7 @@ const permissionScopes = {
     // Base trash
     'baseTrashList',
     'baseTrashRestore',
+    'baseTrashRestoreRows',
     'baseTrashPermanentDelete',
     'baseTrashEmpty',
   ],
@@ -912,11 +907,6 @@ const rolePermissions:
   },
   [ProjectRoles.EDITOR]: {
     include: {
-      // Record Trash
-      recordTrashEvents: true,
-      recordTrashCount: true,
-      recordTrashRestore: true,
-
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
@@ -1048,8 +1038,6 @@ const rolePermissions:
     exclude: {
       createBase: true,
       migrateBase: true,
-      recordTrashPermanentDelete: true,
-      recordTrashEmpty: true,
       manageSnapshots: true,
       baseAuditList: true,
       rlsPolicyList: true,
@@ -1407,6 +1395,7 @@ const permissionDescriptions: Record<string, string> = {
   // base trash
   baseTrashList: 'view trash for a base',
   baseTrashRestore: 'restore an item from base trash',
+  baseTrashRestoreRows: 'restore specific records from base trash by row id',
   baseTrashPermanentDelete: 'permanently delete an item from base trash',
   baseTrashEmpty: 'empty all trash for a base',
 
@@ -1682,14 +1671,8 @@ const permissionDescriptions: Record<string, string> = {
   aiDataFillRows: 'fill rows using AI',
   aiDataExtractRows: 'extract rows from input using AI',
 
-  // Record Trash
-  recordTrashEvents: 'view record trash events',
-  recordTrashCount: 'view count of deleted records',
-  recordTrashRestore: 'restore deleted records',
-  recordTrashPermanentDelete: 'permanently delete records from trash',
-  recordTrashEmpty: 'empty the record trash',
-  recordTrashSettingsList: 'view trash settings for tables',
-  recordTrashSettingsUpdate: 'update trash settings for a table',
+  baseTrashSettingsList: 'view per-table trash settings for the base',
+  baseTrashSettingsUpdate: 'update per-table trash settings for the base',
 
   migrateBase: 'migrate a base to another instance',
 };

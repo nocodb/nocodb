@@ -1927,6 +1927,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         (await this.model.isTrashEnabledForWorkspace(this.context));
 
       if (isSoftDelete) {
+        const operationNow = this.now();
         const where = await this._wherePk(id);
         const softDeletePayload: Record<string, any> = {
           [deletedColumn.column_name]: true,
@@ -1938,7 +1939,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const lmbCol = this.model.columns.find(
           (c) => c.uidt === UITypes.LastModifiedBy && c.system,
         );
-        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = operationNow;
         if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
 
         const updateQb = this.dbDriver(this.tnPath)
@@ -1968,6 +1969,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           req: cookie,
           tableId: this.model.id,
           rowIds: [id],
+          deletedAt: operationNow,
         });
 
         await this.afterDelete(
@@ -4147,8 +4149,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         colId: string;
       }[] = [];
 
+      let bulkOperationNow: string | null = null;
       if (isSoftDelete) {
         // Soft-delete: flag records instead of removing them, skip link cleanup
+        bulkOperationNow = this.now();
         const softDeletePayload: Record<string, any> = {
           [deletedColumn.column_name]: true,
         };
@@ -4158,7 +4162,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const lmbCol = this.model.columns.find(
           (c) => c.uidt === UITypes.LastModifiedBy && c.system,
         );
-        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = bulkOperationNow;
         if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
 
         for (const d of res) {
@@ -4342,6 +4346,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           req: cookie,
           tableId: this.model.id,
           rowIds: idsVals,
+          deletedAt: bulkOperationNow!,
         });
       }
 

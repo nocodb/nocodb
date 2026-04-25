@@ -1,10 +1,13 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { AppEvents, PlanLimitTypes } from 'nocodb-sdk';
+import { AppEvents, ncHasProperties, PlanLimitTypes } from 'nocodb-sdk';
 import type { OnModuleInit } from '@nestjs/common';
 import type { UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
-import type { TrashHandler } from '~/services/base-trash/types';
+import type {
+  TrashHandler,
+  TrashLifecycleResult,
+} from '~/services/base-trash/types';
 import { TRASH_HANDLER_TOKEN } from '~/services/base-trash/types';
 import BaseTrash from '~/models/BaseTrash';
 import { NcBaseError, NcError } from '~/helpers/catchError';
@@ -12,6 +15,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobTypes } from '~/interface/Jobs';
 import { getLimit } from '~/helpers/paymentHelpers';
+import { processConcurrently } from '~/utils/dataUtils';
 import Noco from '~/Noco';
 
 @Injectable()
@@ -87,7 +91,7 @@ export class BaseTrashService implements OnModuleInit {
       offset?: number;
     },
   ) {
-    const list = await BaseTrash.list(context, {
+    const rawList = await BaseTrash.list(context, {
       base_id: param.baseId,
       resourceType: param.resourceType,
       limit: param.limit,
@@ -98,6 +102,25 @@ export class BaseTrashService implements OnModuleInit {
       base_id: param.baseId,
       resourceType: param.resourceType,
     });
+
+    const enriched = await processConcurrently(rawList, async (entry) => {
+      const handler = this.handlerMap.get(entry.resource_type);
+      if (!handler?.enrich) return entry;
+
+      try {
+        const enrichment = await handler.enrich(context, entry);
+        if ('drop' in enrichment) return null; // hide
+        return { ...entry, ...enrichment.extra };
+      } catch (e) {
+        this.logger.error(
+          `Failed to enrich ${entry.resource_type} trash entry ${entry.id}: ${e?.message}`,
+          e?.stack,
+        );
+        return entry;
+      }
+    });
+
+    const list = enriched.filter((e) => e !== null);
 
     return {
       list,
@@ -116,13 +139,20 @@ export class BaseTrashService implements OnModuleInit {
       resourceType: string;
       user: Partial<UserType>;
       ncMeta?: MetaService;
+      deletedAt?: string;
+      cleanupDueAt?: string;
     },
     result: Awaited<ReturnType<TrashHandler['trash']>>,
   ) {
     const retentionDays = await this.getRetentionDays(context.workspace_id);
-    const deletedAt = new Date();
-    const cleanupDueAt = new Date(deletedAt);
-    cleanupDueAt.setDate(cleanupDueAt.getDate() + retentionDays);
+    const deletedAt = param.deletedAt ? new Date(param.deletedAt) : new Date();
+    const cleanupDueAt = param.cleanupDueAt
+      ? new Date(param.cleanupDueAt)
+      : (() => {
+          const due = new Date(deletedAt);
+          due.setDate(due.getDate() + retentionDays);
+          return due;
+        })();
 
     await BaseTrash.insert(
       context,
@@ -159,6 +189,8 @@ export class BaseTrashService implements OnModuleInit {
       user: Partial<UserType>;
       req: NcRequest;
       ncMeta?: MetaService;
+      deletedAt?: string;
+      cleanupDueAt?: string;
     },
   ) {
     if (context.schema_locked) {
@@ -203,6 +235,14 @@ export class BaseTrashService implements OnModuleInit {
       trashId: string;
       user: Partial<UserType>;
       req: NcRequest;
+      /**
+       * Conflict-resolution flag for `record` entries — pass-through to
+       * `RecordTrashHandler.restore`. Other resource types ignore it.
+       *   force:   auto-resolve every conflict by nulling offending columns
+       *   partial: skip conflicting rows; leave them in trash
+       */
+      force?: boolean;
+      partial?: boolean;
     },
   ) {
     if (context.schema_locked) {
@@ -220,13 +260,26 @@ export class BaseTrashService implements OnModuleInit {
 
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
     try {
-      await handler.restore(
+      const lifecycle = await handler.restore(
         context,
         trashEntry,
-        { user: param.user, req: param.req },
+        {
+          user: param.user,
+          req: param.req,
+          force: param.force,
+          partial: param.partial,
+        },
         ncMeta,
       );
-      await BaseTrash.delete(context, trashEntry.id, ncMeta);
+      // Handlers (e.g. record handler) can ask the entry to survive when the
+      // restore only affected a subset of the underlying records (RLS-bounded
+      // user pass, or a partial restore where conflicts kept some rows).
+      const keepEntry =
+        ncHasProperties<TrashLifecycleResult>(lifecycle, 'keepEntry') &&
+        !!lifecycle.keepEntry;
+      if (!keepEntry) {
+        await BaseTrash.delete(context, trashEntry.id, ncMeta);
+      }
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback();
@@ -305,13 +358,20 @@ export class BaseTrashService implements OnModuleInit {
         }
       }
 
-      await handler.permanentDelete(
+      const lifecycle = await handler.permanentDelete(
         context,
         trashEntry,
         { user: param.user, req: param.req },
         ncMeta,
       );
-      await BaseTrash.delete(context, trashEntry.id, ncMeta);
+      // See `restore` — handlers may keep the entry alive when their
+      // permanent-delete only swept a subset of the underlying state.
+      const keepEntry =
+        ncHasProperties<TrashLifecycleResult>(lifecycle, 'keepEntry') &&
+        !!lifecycle.keepEntry;
+      if (!keepEntry) {
+        await BaseTrash.delete(context, trashEntry.id, ncMeta);
+      }
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback();

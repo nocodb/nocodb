@@ -83,7 +83,6 @@ export class ViewTrashHandler extends BaseTrashHandler<View> {
 
     return {
       entity: view,
-      meta: Object.keys(meta).length ? meta : undefined,
       parentType: 'table',
       parentId: view.fk_model_id,
       parentName: table?.title,

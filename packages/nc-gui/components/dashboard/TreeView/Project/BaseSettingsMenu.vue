@@ -190,7 +190,7 @@ onMounted(() => {
       {{ $t('title.mcpServer') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('recordTrashSettingsList', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
+      v-if="isEeUI && isUIAllowed('baseTrashSettingsList', { roles: effectiveRoles }) && !isMobileMode && showEEFeatures"
       v-e="['c:settings:base:record-trash']"
       icon="ncTrash2"
       data-testid="base-record-trash"

@@ -6,17 +6,25 @@ import type {
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import { BaseTrashSettingsService } from '~/services/base-trash/base-trash-settings.service';
+import { RecordTrashHandler } from '~/services/base-trash/handlers/record.trash-handler';
 
 @Injectable()
 export class BaseTrashPostOperations
   implements InternalApiModule<InternalPOSTResponseType>
 {
-  constructor(private readonly baseTrashService: BaseTrashService) {}
+  constructor(
+    private readonly baseTrashService: BaseTrashService,
+    private readonly baseTrashSettingsService: BaseTrashSettingsService,
+    private readonly recordTrashHandler: RecordTrashHandler,
+  ) {}
 
   operations = [
     'baseTrashRestore',
+    'baseTrashRestoreRows',
     'baseTrashPermanentDelete',
     'baseTrashEmpty',
+    'baseTrashSettingsUpdate',
   ] as (keyof typeof OPERATION_SCOPES)[];
   httpMethod = 'POST' as const;
 
@@ -40,6 +48,16 @@ export class BaseTrashPostOperations
           trashId: payload.trashId,
           user: req.user,
           req,
+          force: payload.force,
+          partial: payload.partial,
+        });
+      case 'baseTrashRestoreRows':
+        return await this.recordTrashHandler.restoreRows(context, {
+          tableId: payload.tableId,
+          rowIds: payload.rowIds,
+          req,
+          force: payload.force,
+          partial: payload.partial,
         });
       case 'baseTrashPermanentDelete':
         return await this.baseTrashService.permanentDelete(context, {
@@ -53,6 +71,15 @@ export class BaseTrashPostOperations
           user: req.user,
           req,
         });
+      case 'baseTrashSettingsUpdate':
+        return await this.baseTrashSettingsService.update(
+          context,
+          {
+            tableId: payload.tableId,
+            body: payload,
+          },
+          req,
+        );
     }
   }
 }

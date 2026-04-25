@@ -8,6 +8,14 @@ import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 export interface TrashCallParam {
   user: Partial<UserType>;
   req: NcRequest;
+  /**
+   * Conflict-resolution flags consumed by the record handler's restore
+   * path (force = auto-resolve by nulling offending columns / dropping
+   * junction rows; partial = skip conflicted rows). Other handlers
+   * ignore these — they're only meaningful for resource_type === 'record'.
+   */
+  force?: boolean;
+  partial?: boolean;
 }
 
 /**
@@ -26,6 +34,33 @@ export interface TrashResult<T = any> {
   /** When true, the resource was hard-deleted (e.g. external source) — skip trash entry creation */
   skipTrashEntry?: boolean;
 }
+
+/**
+ * Result handlers may return from `restore()` / `permanentDelete()` to control
+ * whether the BaseTrash row is auto-deleted by the service after the call. The
+ * record handler uses `keepEntry: true` when only a subset of records under
+ * the entry were affected (e.g. RLS-bounded user pass) and others remain.
+ * Other handlers return `void` for the default delete-after-success behavior.
+ */
+export interface TrashLifecycleResult {
+  keepEntry?: boolean;
+}
+
+/**
+ * Per-handler enrichment for trash list entries. Returned from `enrich`;
+ * consumed by `BaseTrashService.trashList`. Tagged union — exactly one of:
+ *
+ *   - `{ drop: true }` — hide this entry from the list (e.g. RLS hid every
+ *     underlying row). The trash row itself stays in `nc_trash` and may
+ *     resurface for users with broader RLS.
+ *   - `{ extra: {...} }` — merge those fields onto the entry in the response
+ *     (e.g. inline records for `record` entries).
+ *
+ * Handlers with no enrichment to perform should just not implement the hook.
+ */
+export type TrashListEnrichment =
+  | { drop: true }
+  | { extra: Record<string, any> };
 
 export interface TrashHandler<T = any> {
   resourceType: string;
@@ -51,14 +86,14 @@ export interface TrashHandler<T = any> {
     trashEntry: BaseTrash,
     param: TrashCallParam,
     ncMeta?: MetaService,
-  ): Promise<void>;
+  ): Promise<TrashLifecycleResult | void>;
 
   permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
     param: TrashCallParam,
     ncMeta?: MetaService,
-  ): Promise<void>;
+  ): Promise<TrashLifecycleResult | void>;
 
   /**
    * Optional pre-restore plan-limit check. Each handler decides whether the
@@ -67,6 +102,16 @@ export interface TrashHandler<T = any> {
    * resource type has no quota.
    */
   checkRestoreLimit?(ctx: NcContext, trashEntry: BaseTrash): Promise<void>;
+
+  /**
+   * Optional per-entry enrichment for `BaseTrashService.trashList`. Use this
+   * to attach resource-type-specific data to the entry (e.g. inline record
+   * rows for `record` entries) or to filter the entry out of the response
+   * (e.g. RLS hid every underlying row).
+   *
+   * Return `null` to pass the entry through unchanged.
+   */
+  enrich?(ctx: NcContext, trashEntry: BaseTrash): Promise<TrashListEnrichment>;
 
   /**
    * Fire the cache invalidations declared in `affectedCaches`. Called by the
@@ -98,16 +143,18 @@ export abstract class BaseTrashHandler<T = any> implements TrashHandler<T> {
     trashEntry: BaseTrash,
     param: TrashCallParam,
     ncMeta?: MetaService,
-  ): Promise<void>;
+  ): Promise<TrashLifecycleResult | void>;
 
   abstract permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
     param: TrashCallParam,
     ncMeta?: MetaService,
-  ): Promise<void>;
+  ): Promise<TrashLifecycleResult | void>;
 
   checkRestoreLimit?(ctx: NcContext, trashEntry: BaseTrash): Promise<void>;
+
+  enrich?(ctx: NcContext, trashEntry: BaseTrash): Promise<TrashListEnrichment>;
 
   invalidateCaches(workspaceId: string, baseId?: string): void {
     const caches = this.affectedCaches;

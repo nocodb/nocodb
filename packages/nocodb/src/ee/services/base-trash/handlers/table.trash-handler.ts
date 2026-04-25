@@ -36,7 +36,7 @@ interface CascadedColumn {
 @Injectable()
 export class TableTrashHandler extends BaseTrashHandler<Model> {
   resourceType = 'table';
-  childTypes = ['view', 'field'];
+  childTypes = ['view', 'field', 'record'];
   affectedCaches = ['commandPalette', 'baseSchema'] as const;
 
   private logger = new Logger(TableTrashHandler.name);
@@ -181,7 +181,6 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
     return {
       entity: table,
       relatedItems: Object.keys(relatedItems).length ? relatedItems : undefined,
-      meta: { tableType: table.type, tableMeta: table.meta },
     };
   }
 

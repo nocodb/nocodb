@@ -505,6 +505,7 @@ export interface ScimConfigEvent {
 export interface RecordsSoftDeleteEvent extends NcBaseEvent {
   tableId: string;
   rowIds: string[];
+  deletedAt: string;
 }
 
 export interface RecordsRestoreEvent extends NcBaseEvent {

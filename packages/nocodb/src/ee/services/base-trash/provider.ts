@@ -8,8 +8,10 @@ import { DashboardTrashHandler } from '~/services/base-trash/handlers/dashboard.
 import { WidgetTrashHandler } from '~/services/base-trash/handlers/widget.trash-handler';
 import { WorkflowTrashHandler } from '~/services/base-trash/handlers/workflow.trash-handler';
 import { ScriptTrashHandler } from '~/services/base-trash/handlers/script.trash-handler';
+import { RecordTrashHandler } from '~/services/base-trash/handlers/record.trash-handler';
 
 export const TrashHandlers = [
+  RecordTrashHandler,
   ViewTrashHandler,
   ExtensionTrashHandler,
   FieldTrashHandler,

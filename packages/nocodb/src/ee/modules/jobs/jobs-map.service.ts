@@ -35,8 +35,6 @@ import { WorkflowDraftReminderProcessor } from '~/modules/jobs/jobs/workflow/wor
 import { HookErrorNotificationProcessor } from '~/modules/jobs/jobs/hook-error-notification.processor';
 import { ChatMessageProcessor } from '~/modules/jobs/jobs/chat-message.processor';
 import { ChatApprovalProcessor } from '~/modules/jobs/jobs/chat-approval.processor';
-import { RecordTrashCleanupJob } from '~/modules/jobs/jobs/record-trash-cleanup/record-trash-cleanup.job';
-
 @Injectable()
 export class JobsMap extends JobsMapCE {
   constructor(
@@ -75,7 +73,6 @@ export class JobsMap extends JobsMapCE {
     protected readonly hookErrorNotificationProcessor: HookErrorNotificationProcessor,
     protected readonly chatMessageProcessor: ChatMessageProcessor,
     protected readonly chatApprovalProcessor: ChatApprovalProcessor,
-    protected readonly recordTrashCleanupJob: RecordTrashCleanupJob,
   ) {
     super(
       duplicateProcessor,
@@ -193,9 +190,6 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.ChatApproval]: {
         this: this.chatApprovalProcessor,
-      },
-      [JobTypes.RecordTrashCleanup]: {
-        this: this.recordTrashCleanupJob,
       },
       [JobTypes.BaseTrashCleanUp]: {
         this: this.baseTrashCleanUpProcessor,

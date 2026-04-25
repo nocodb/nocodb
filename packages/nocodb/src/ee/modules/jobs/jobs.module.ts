@@ -23,7 +23,6 @@ import { WorkflowProcessor } from '~/modules/jobs/jobs/workflow/workflow.process
 import { WorkflowErrorNotificationProcessor } from '~/modules/jobs/jobs/workflow/workflow-error-notification.processor';
 import { WorkflowDraftReminderProcessor } from '~/modules/jobs/jobs/workflow/workflow-draft-reminder.processor';
 import { HookErrorNotificationProcessor } from '~/modules/jobs/jobs/hook-error-notification.processor';
-import { RecordTrashCleanupJob } from '~/modules/jobs/jobs/record-trash-cleanup/record-trash-cleanup.job';
 import { WorkerController } from '~/modules/jobs/worker/worker.controller';
 import { PaymentModule } from '~/modules/payment/payment.module';
 import { getRedisURL, NC_REDIS_TYPE } from '~/helpers/redisHelpers';
@@ -93,7 +92,6 @@ import { CACHE_PREFIX } from '~/utils/globals';
     WorkflowErrorNotificationProcessor,
     WorkflowDraftReminderProcessor,
     HookErrorNotificationProcessor,
-    RecordTrashCleanupJob,
     BaseTrashCleanUpProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],

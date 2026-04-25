@@ -2455,6 +2455,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (isSoftDelete) {
         // Soft-delete: flag the record instead of removing it
         const where = await this._wherePk(id);
+        const operationNow = this.now();
         const softDeletePayload: Record<string, any> = {
           [deletedColumn.column_name]: true,
         };
@@ -2465,7 +2466,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const lmbCol = this.model.columns.find(
           (c) => c.uidt === UITypes.LastModifiedBy && c.system,
         );
-        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = operationNow;
         if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
 
         // Use the caller's transaction or run without one (single UPDATE, no link cleanup)
@@ -2480,6 +2481,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           req: cookie,
           tableId: this.model.id,
           rowIds: [id],
+          deletedAt: operationNow,
         });
 
         await this.softDeleteFileReferences({
@@ -4556,6 +4558,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (isSoftDelete) {
         transaction = await this.dbDriver.transaction();
         // Soft-delete: flag records instead of removing them, skip link cleanup
+        const operationNow = this.now();
         const softDeletePayload: Record<string, any> = {
           [deletedColumn.column_name]: true,
         };
@@ -4566,7 +4569,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const lmbCol = this.model.columns.find(
           (c) => c.uidt === UITypes.LastModifiedBy && c.system,
         );
-        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = operationNow;
         if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
 
         if (this.model.primaryKeys.length === 1) {
@@ -4591,6 +4594,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               ? d[this.model.primaryKey.column_name]
               : this.extractPksValues(d, true),
           ),
+          deletedAt: operationNow,
         });
       } else {
         const execQueries: ((

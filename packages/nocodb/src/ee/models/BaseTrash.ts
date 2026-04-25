@@ -243,6 +243,42 @@ export default class BaseTrash implements BaseTrashType {
     }
   }
 
+  /**
+   * Bulk-delete trash entries by `(resource_type, resource_id IN [...])`.
+   * Used by `RecordTrashHandler.restoreRows` to drop now-empty trash entries
+   * in a single round-trip after a per-row restore. Workspace + base scoped
+   * via the standard `metaDelete` context filter.
+   */
+  public static async deleteByResourceIds(
+    context: NcContext,
+    resourceType: string,
+    resourceIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!resourceIds.length) return;
+    return await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.TRASH,
+      { resource_type: resourceType },
+      { resource_id: { in: resourceIds } },
+    );
+  }
+
+  public static async deleteRecordEntriesForTable(
+    context: NcContext,
+    tableId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.TRASH,
+      { resource_type: 'record' },
+      { resource_id: { like: `${tableId}:%` } },
+    );
+  }
+
   public static async deleteAllForBase(
     context: NcContext,
     ncMeta = Noco.ncMeta,

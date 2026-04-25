@@ -60,6 +60,7 @@ import { TeamsV3Controller } from '~/controllers/v3/teams-v3.controller';
 import { TeamsV3Service } from '~/services/v3/teams-v3.service';
 
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import { BaseTrashSettingsService } from '~/services/base-trash/base-trash-settings.service';
 import {
   TrashHandlerProvider as EeTrashHandlerProviderDef,
   TrashHandlers as EeTrashHandlers,
@@ -126,9 +127,6 @@ import { RecordTemplatesService } from '~/services/record-templates/record-templ
 
 /* Attachment Proxy */
 import { AttachmentProxyController } from '~/controllers/attachment-proxy.controller';
-
-/* Record Trash */
-import { RecordTrashService } from '~/services/record-trash.service';
 
 /* MFA */
 import { MfaService } from '~/services/mfa.service';
@@ -261,9 +259,6 @@ export const nocoModuleEeMetadata = {
     /* Record Templates */
     RecordTemplatesService,
 
-    /* Record Trash */
-    RecordTrashService,
-
     /* List View */
     ListsService,
     ListDatasService,
@@ -302,6 +297,7 @@ export const nocoModuleEeMetadata = {
 
     /* EE Trash (full trash feature — CE has no trash) */
     BaseTrashService,
+    BaseTrashSettingsService,
     ...EeTrashHandlerProvider,
 
     /* EE Meta Dependency Handlers (overrides CE provider) */
@@ -431,6 +427,7 @@ export const nocoModuleEeMetadata = {
 
     /* EE Trash */
     BaseTrashService,
+    BaseTrashSettingsService,
 
     ...nocoModuleMetadata.exports,
   ],

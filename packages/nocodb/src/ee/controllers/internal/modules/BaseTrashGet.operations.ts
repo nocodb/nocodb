@@ -6,14 +6,21 @@ import type {
   InternalGETResponseType,
 } from '~/utils/internal-type';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import { BaseTrashSettingsService } from '~/services/base-trash/base-trash-settings.service';
 
 @Injectable()
 export class BaseTrashGetOperations
   implements InternalApiModule<InternalGETResponseType>
 {
-  constructor(private readonly baseTrashService: BaseTrashService) {}
+  constructor(
+    private readonly baseTrashService: BaseTrashService,
+    private readonly baseTrashSettingsService: BaseTrashSettingsService,
+  ) {}
 
-  operations = ['baseTrashList'] as (keyof typeof OPERATION_SCOPES)[];
+  operations = [
+    'baseTrashList',
+    'baseTrashSettingsList',
+  ] as (keyof typeof OPERATION_SCOPES)[];
   httpMethod = 'GET' as const;
 
   async handle(
@@ -36,6 +43,12 @@ export class BaseTrashGetOperations
           resourceType: req.query.resourceType as string,
           limit: req.query.limit ? Number(req.query.limit) : undefined,
           offset: req.query.offset ? Number(req.query.offset) : undefined,
+        });
+      case 'baseTrashSettingsList':
+        return await this.baseTrashSettingsService.list(context, {
+          baseId: context.base_id,
+          user: req.user,
+          roles: req.user?.base_roles ?? {},
         });
     }
   }

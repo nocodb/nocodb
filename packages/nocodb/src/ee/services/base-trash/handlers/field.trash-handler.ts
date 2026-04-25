@@ -239,7 +239,6 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
     return {
       entity: col,
       relatedItems: Object.keys(relatedItems).length ? relatedItems : undefined,
-      meta: { uidt: col.uidt },
       parentType: 'table',
       parentId: col.fk_model_id,
       parentName: table?.title,

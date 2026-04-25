@@ -27,7 +27,7 @@ const {
   isTemplatesFeatureEnabled,
 } = workspaceStore
 
-const { basesList } = storeToRefs(useBases())
+const { basesList, activeProjectId } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -304,6 +304,11 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
               <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
             </div>
           </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper v-if="isEeUI && activeProjectId">
+        <NcTooltip :title="$t('labels.history')" placement="right" hide-on-click :arrow="false">
+          <DashboardMiniSidebarHistory />
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
     </div>

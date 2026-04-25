@@ -164,15 +164,6 @@ export const OPERATION_SCOPES = {
   updateDateDependency: 'base',
   deleteTableDateDependency: 'base',
 
-  // Record Trash (EE only)
-  recordTrashEvents: 'base',
-  recordTrashCount: 'base',
-  recordTrashRestore: 'base',
-  recordTrashPermanentDelete: 'base',
-  recordTrashEmpty: 'base',
-  recordTrashSettingsList: 'base',
-  recordTrashSettingsUpdate: 'base',
-
   // MFA operations
   mfaSetup: 'org',
   mfaVerifySetup: 'org',
@@ -184,6 +175,9 @@ export const OPERATION_SCOPES = {
   // Base trash
   baseTrashList: 'base',
   baseTrashRestore: 'base',
+  baseTrashRestoreRows: 'base',
   baseTrashPermanentDelete: 'base',
   baseTrashEmpty: 'base',
+  baseTrashSettingsList: 'base',
+  baseTrashSettingsUpdate: 'base',
 } as const;

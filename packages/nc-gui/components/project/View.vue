@@ -553,7 +553,7 @@ watch(
           </div>
         </a-tab-pane>
         <a-tab-pane
-          v-if="isEeUI && showEEFeatures && isUIAllowed('recordTrashSettingsList') && base.id && !isMobileMode"
+          v-if="isEeUI && showEEFeatures && isUIAllowed('baseTrashSettingsList') && base.id && !isMobileMode"
           key="record-trash"
         >
           <template #tab>

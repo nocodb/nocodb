@@ -270,7 +270,6 @@ export class AddContactNode extends WorkflowNodeIntegration<AddContactConfig> {
         ...(Object.keys(mergeFields).length
           ? { merge_fields: mergeFields }
           : {}),
-        ...(tags.length ? { tags } : {}),
       };
 
       // PUT (setListMember) — creates if new, updates if exists
@@ -280,9 +279,18 @@ export class AddContactNode extends WorkflowNodeIntegration<AddContactConfig> {
 
       const result = member as any;
 
+      // Tags must be set via a separate endpoint — setListMember ignores them
+      if (tags.length) {
+        await auth.use(async (client) => {
+          return await client.lists.updateListMemberTags(listId, hash, {
+            tags: tags.map((name) => ({ name, status: 'active' })),
+          });
+        });
+      }
+
       logs.push({
         level: 'info',
-        message: `Contact upserted — id: ${result.id}, status: ${result.status}`,
+        message: `Contact upserted — id: ${result.id}, status: ${result.status}${tags.length ? `, tags: [${tags.join(', ')}]` : ''}`,
         ts: Date.now(),
       });
 

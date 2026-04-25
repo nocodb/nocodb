@@ -151,7 +151,7 @@ export default class BaseTrash implements BaseTrashType {
       context.base_id,
       MetaTable.TRASH,
       { condition },
-    )
+    );
   }
 
   public static async insert(

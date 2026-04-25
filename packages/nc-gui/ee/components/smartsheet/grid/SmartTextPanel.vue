@@ -138,7 +138,7 @@ const panelStyle = computed(() => {
 const panelClasses = computed(() => {
   const base = ['nc-smart-text-panel', 'flex', 'flex-col', 'bg-nc-bg-default', 'border-l', 'border-nc-border-gray-medium']
   if (isResizing.value) base.push('is-resizing')
-  if (isFullscreen.value) base.push('fixed', 'top-0', 'z-50')
+  if (isFullscreen.value) base.push('fixed', 'top-0', 'z-50', 'nc-smart-text-fullscreen')
   else base.push('flex-shrink-0', 'h-full')
   return base
 })
@@ -223,7 +223,7 @@ const onEditorContentUpdate = (content: Record<string, any>) => {
         <!-- Save status -->
         <span
           v-if="saveStatusLabel"
-          class="text-captionSm text-nc-content-gray-subtle2"
+          class="text-captionSm text-nc-content-gray-muted"
           data-testid="nc-smart-text-save-status"
         >
           {{ saveStatusLabel }}

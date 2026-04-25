@@ -2975,6 +2975,14 @@ onBeforeUnmount(() => {
   }
 }
 
+// Hide the block drag handle inside a non-fullscreen SmartText panel.
+// The narrow panel doesn't have room for handle + heading label + chevron in
+// the left gutter. In fullscreen mode there's plenty of horizontal space, so
+// the handle stays available for users reorganizing longer cells.
+.nc-smart-text-panel:not(.nc-smart-text-fullscreen) .nc-doc-drag-handle {
+  display: none !important;
+}
+
 // Doc editor bubble menu — override embed-mode's transparent/no-shadow defaults
 // and tighten horizontal spacing to keep the toolbar compact.
 .nc-doc-editor-body .bubble-menu.embed-mode,

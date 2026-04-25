@@ -158,6 +158,10 @@ onBeforeUnmount(() => {
   sidebarObserver?.disconnect()
   sidebarObserver = null
   window.removeEventListener('resize', updateSidebarRightEdge)
+  if (copyResetTimer) {
+    clearTimeout(copyResetTimer)
+    copyResetTimer = null
+  }
 })
 
 // Save when focus leaves the panel body (covers blur from editor, dropdowns, etc.).
@@ -249,10 +253,20 @@ const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({
 
 const { copy } = useCopy()
 
+const isActionsMenuOpen = ref(false)
+const isUrlCopied = ref(false)
+let copyResetTimer: ReturnType<typeof setTimeout> | null = null
+
 const onCopyUrl = async () => {
   try {
     await copy(window.location.href)
-    message.success(t('msg.copiedToClipboard'))
+    isUrlCopied.value = true
+    if (copyResetTimer) clearTimeout(copyResetTimer)
+    copyResetTimer = setTimeout(() => {
+      isUrlCopied.value = false
+      isActionsMenuOpen.value = false
+      copyResetTimer = null
+    }, 1200)
   } catch {
     message.error(t('msg.error.copyToClipboardError'))
   }
@@ -390,7 +404,7 @@ const onDownloadPDF = () => downloadPDF()
           </NcButton>
         </NcTooltip>
 
-        <NcDropdown placement="bottomRight">
+        <NcDropdown v-model:visible="isActionsMenuOpen" placement="bottomRight">
           <NcButton
             size="xs"
             type="text"
@@ -400,10 +414,16 @@ const onDownloadPDF = () => downloadPDF()
             <GeneralIcon icon="ncMoreVertical" class="w-4 h-4" />
           </NcButton>
           <template #overlay>
-            <NcMenu>
-              <NcMenuItem data-testid="nc-smart-text-panel-copy-url" @click="onCopyUrl">
-                <GeneralIcon class="text-nc-content-gray-subtle" icon="ncCopy" />
-                {{ $t('activity.copyUrl') }}
+            <NcMenu variant="small">
+              <NcMenuItem
+                data-testid="nc-smart-text-panel-copy-url"
+                @click.stop="onCopyUrl"
+              >
+                <GeneralIcon
+                  :icon="isUrlCopied ? 'check' : 'ncCopy'"
+                  :class="isUrlCopied ? 'text-nc-content-green-medium' : 'text-nc-content-gray-subtle'"
+                />
+                {{ isUrlCopied ? $t('general.copied') : $t('activity.copyUrl') }}
               </NcMenuItem>
               <NcSubMenu key="download" variant="small">
                 <template #title>

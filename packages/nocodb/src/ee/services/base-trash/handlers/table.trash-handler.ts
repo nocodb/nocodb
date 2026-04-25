@@ -404,12 +404,19 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
       // display-value population may resolve a Formula pv that references
       // this link column.  If the column is already soft-deleted,
       // formulaQueryBuilderv2 filters it out and generates invalid SQL.
+      //
+      // Use Noco.ncMeta (autocommit) — not the trash transaction. The DDL
+      // path (sqlMgr.sqlOpPlus → ALTER TABLE) acquires a table lock, and
+      // populatePlaceholderValues then runs UPDATE on a separate connection
+      // pool; routing the DDL through the open meta tx would block the
+      // UPDATE on PG and the file lock on SQLite. Tradeoff: if the trash
+      // tx rolls back, the placeholder column is committed and orphaned.
       const placeholder = await this.linkPlaceholderService.createPlaceholder(
         ctx,
         col,
         colTable,
         '_nc_trash_ph_',
-        ncMeta,
+        Noco.ncMeta,
       );
 
       // Soft-delete the reverse link column

@@ -91,6 +91,13 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
     // display-value population may resolve a Formula pv that references
     // these link columns.  If columns are already soft-deleted,
     // formulaQueryBuilderv2 filters them out and generates invalid SQL.
+    //
+    // Use Noco.ncMeta (autocommit) — not the trash transaction. The DDL
+    // path (sqlMgr.sqlOpPlus → ALTER TABLE) acquires a table lock, and
+    // populatePlaceholderValues then runs UPDATE on a separate connection
+    // pool; routing the DDL through the open meta tx would block the
+    // UPDATE on PG and the file lock on SQLite. Tradeoff: if the trash
+    // tx rolls back, the placeholder column is committed and orphaned.
     let cascadeResult: { columns: CascadedColumn[] } | null = null;
     if (reverseCol) {
       const result =
@@ -98,7 +105,7 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
           ctx,
           reverseCol,
           '_nc_trash_ph_',
-          ncMeta,
+          Noco.ncMeta,
         );
       if (result) {
         cascadeResult = {
@@ -590,13 +597,15 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
     );
     if (!parentTable) return;
 
-    // Create placeholder on the field's own table (snapshot of linked data)
+    // Create placeholder on the field's own table (snapshot of linked data).
+    // Routed through Noco.ncMeta (autocommit) — see the matching note in
+    // trash() above for why this must run outside the restore transaction.
     const placeholderResult =
       await this.linkPlaceholderService.createPlaceholderForReverse(
         ctx,
         col,
         '_nc_trash_ph_',
-        ncMeta,
+        Noco.ncMeta,
       );
     if (!placeholderResult) return;
 

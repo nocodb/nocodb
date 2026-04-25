@@ -266,6 +266,10 @@ export function useCanvasRender({
     } | null,
   ) {
     const canvasWidth = width.value
+    // Snapshot scrollLeft once so every offset within this header pass is
+    // computed against the same value — guards against any reactive mutation
+    // that could happen mid-render (matches the pattern in renderRows).
+    const _scrollLeft = scrollLeft.value
     // ctx.textAlign is previously set during the previous render calls and that carries over here
     // causing the misalignment. Resetting textAlign fixes it.
     ctx.textAlign = 'left'
@@ -276,7 +280,7 @@ export function useCanvasRender({
         ? groupByColumns?.value?.length * 13 + (groupByColumns?.value?.length - 1) * 13
         : 0) +
       (isAddingColumnAllowed.value && !isMobileMode.value ? plusColumnWidth : 0) -
-      scrollLeft.value
+      _scrollLeft
 
     // Header background
     ctx.fillStyle = getColor(themeV4Colors.gray['100'])
@@ -325,8 +329,8 @@ export function useCanvasRender({
       if (column.fixed) {
         xOffset += width
         ctx.beginPath()
-        ctx.moveTo(xOffset - scrollLeft.value, 0)
-        ctx.lineTo(xOffset - scrollLeft.value, headerRowHeight.value)
+        ctx.moveTo(xOffset - _scrollLeft, 0)
+        ctx.lineTo(xOffset - _scrollLeft, headerRowHeight.value)
         ctx.stroke()
         continue
       }
@@ -338,7 +342,7 @@ export function useCanvasRender({
           renderTag(ctx, {
             height: headerRowHeight.value - 0.5,
             width,
-            x: xOffset - scrollLeft.value,
+            x: xOffset - _scrollLeft,
             y: 0,
             radius: 0,
             fillStyle: getColor(themeV4Colors.base.white, undefined, 0.533),
@@ -346,7 +350,7 @@ export function useCanvasRender({
           renderTag(ctx, {
             height: headerRowHeight.value,
             width,
-            x: xOffset - scrollLeft.value,
+            x: xOffset - _scrollLeft,
             y: 0,
             radius: 0,
             fillStyle: getColor(filteredOrSortedAppearanceConfig[columnState].canvas.headerBgColor),
@@ -381,7 +385,7 @@ export function useCanvasRender({
           icon: column?.virtual ? iconConfig?.icon : iconConfig,
           size: 13,
           color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600']),
-          x: xOffset + 8 - scrollLeft.value,
+          x: xOffset + 8 - _scrollLeft,
           y: headerRowHeight.value / 2 - 7,
         })
       }
@@ -390,11 +394,11 @@ export function useCanvasRender({
 
       const availableTextWidth = width - (26 + iconSpace + (isRequired ? 4 : 0))
       const truncatedText = truncateText(ctx, column.title!, availableTextWidth)
-      ctx.fillText(truncatedText, xOffset + 26 - scrollLeft.value, headerRowHeight.value / 2)
+      ctx.fillText(truncatedText, xOffset + 26 - _scrollLeft, headerRowHeight.value / 2)
       if (isRequired) {
         ctx.save()
         ctx.fillStyle = getColor(themeV4Colors.red['500'])
-        ctx.fillText('*', xOffset + 28 - scrollLeft.value + ctx.measureText(truncatedText).width, headerRowHeight.value / 2)
+        ctx.fillText('*', xOffset + 28 - _scrollLeft + ctx.measureText(truncatedText).width, headerRowHeight.value / 2)
         ctx.restore()
       }
 
@@ -406,7 +410,7 @@ export function useCanvasRender({
           icon: 'chevronDown',
           size: 14,
           color: getColor(themeV4Colors.gray['500']),
-          x: rightOffset - scrollLeft.value,
+          x: rightOffset - _scrollLeft,
           y: headerRowHeight.value / 2 - 7,
         })
       } else if (meta.value?.synced && colObj?.readonly && !isAutoNumber(colObj) && !isPublic.value) {
@@ -415,7 +419,7 @@ export function useCanvasRender({
           icon: 'ncZap',
           size: 14,
           color: getColor(themeV4Colors.gray['500']),
-          x: rightOffset - scrollLeft.value,
+          x: rightOffset - _scrollLeft,
           y: headerRowHeight.value / 2 - 7,
         })
       }
@@ -426,7 +430,7 @@ export function useCanvasRender({
           icon: 'alertTriangle',
           size: 14,
           color: getColor(themeV4Colors.red['300']),
-          x: rightOffset - scrollLeft.value,
+          x: rightOffset - _scrollLeft,
           y: headerRowHeight.value / 2 - 7 + 1,
         })
       }
@@ -437,7 +441,7 @@ export function useCanvasRender({
           icon: 'ncInfo',
           size: 13,
           color: getColor(themeV4Colors.gray['500']),
-          x: rightOffset - scrollLeft.value,
+          x: rightOffset - _scrollLeft,
           y: headerRowHeight.value / 2 - 7,
         })
       }
@@ -448,7 +452,7 @@ export function useCanvasRender({
           icon: 'viewGannt',
           size: 13,
           color: getColor(themeV4Colors.gray['500']),
-          x: rightOffset - scrollLeft.value,
+          x: rightOffset - _scrollLeft,
           y: headerRowHeight.value / 2 - 7,
         })
       }
@@ -457,7 +461,7 @@ export function useCanvasRender({
       const resizeHandleWidth = 10
       const isNearEdge =
         mousePosition &&
-        Math.abs(xOffset - scrollLeft.value - mousePosition.x) <= resizeHandleWidth &&
+        Math.abs(xOffset - _scrollLeft - mousePosition.x) <= resizeHandleWidth &&
         mousePosition.y <= headerRowHeight.value
 
       if (isNearEdge && !isLocked.value && isViewOperationsAllowed.value) {
@@ -465,8 +469,8 @@ export function useCanvasRender({
         ctx.strokeStyle = getColor(themeV4Colors.blue['400'])
         ctx.lineWidth = 2
         ctx.beginPath()
-        ctx.moveTo(xOffset - scrollLeft.value, 0)
-        ctx.lineTo(xOffset - scrollLeft.value, headerRowHeight.value)
+        ctx.moveTo(xOffset - _scrollLeft, 0)
+        ctx.lineTo(xOffset - _scrollLeft, headerRowHeight.value)
         ctx.stroke()
 
         // Reset for regular column separator
@@ -475,31 +479,31 @@ export function useCanvasRender({
       } else {
         colResizeHoveredColIds.value.delete(column.id)
         ctx.beginPath()
-        ctx.moveTo(xOffset - scrollLeft.value, 0)
-        ctx.lineTo(xOffset - scrollLeft.value, headerRowHeight.value)
+        ctx.moveTo(xOffset - _scrollLeft, 0)
+        ctx.lineTo(xOffset - _scrollLeft, headerRowHeight.value)
         ctx.stroke()
       }
     }
 
     if (isAddingColumnAllowed.value && !isMobileMode.value) {
       ctx.fillStyle = getColor(themeV4Colors.gray['50'])
-      ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, headerRowHeight.value)
+      ctx.fillRect(xOffset - _scrollLeft, 0, plusColumnWidth, headerRowHeight.value)
       spriteLoader.renderIcon(ctx, {
         icon: 'ncPlus',
         size: 16,
         color: getColor(themeV4Colors.gray['500']),
-        x: xOffset + plusColumnWidth / 2 - 8 - scrollLeft.value,
+        x: xOffset + plusColumnWidth / 2 - 8 - _scrollLeft,
         y: headerRowHeight.value / 2 - 8,
       })
 
       ctx.beginPath()
-      ctx.moveTo(xOffset + plusColumnWidth - scrollLeft.value, 0)
-      ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, headerRowHeight.value)
+      ctx.moveTo(xOffset + plusColumnWidth - _scrollLeft, 0)
+      ctx.lineTo(xOffset + plusColumnWidth - _scrollLeft, headerRowHeight.value)
       ctx.stroke()
 
       ctx.beginPath()
-      ctx.moveTo(xOffset - scrollLeft.value, headerRowHeight.value)
-      ctx.lineTo(xOffset + plusColumnWidth - scrollLeft.value, headerRowHeight.value)
+      ctx.moveTo(xOffset - _scrollLeft, headerRowHeight.value)
+      ctx.lineTo(xOffset + plusColumnWidth - _scrollLeft, headerRowHeight.value)
       ctx.stroke()
     }
 
@@ -510,16 +514,16 @@ export function useCanvasRender({
       // For quick hack, we skip rendering border over the y values of the active state to avoid the overlap.
       if (
         (activeState &&
-          xOffset - scrollLeft.value >= activeState.x &&
-          xOffset - scrollLeft.value <= activeState.x + activeState.width) ||
-        (fillHandler && xOffset - scrollLeft.value + 1 >= fillHandler.x && xOffset - scrollLeft.value - 1 <= fillHandler.x)
+          xOffset - _scrollLeft >= activeState.x &&
+          xOffset - _scrollLeft <= activeState.x + activeState.width) ||
+        (fillHandler && xOffset - _scrollLeft + 1 >= fillHandler.x && xOffset - _scrollLeft - 1 <= fillHandler.x)
       ) {
         // Draw line above active state
         ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
         if (fillHandler && activeState?.y) {
           ctx.beginPath()
-          ctx.moveTo(xOffset - scrollLeft.value, headerRowHeight.value)
-          ctx.lineTo(xOffset - scrollLeft.value, activeState.y)
+          ctx.moveTo(xOffset - _scrollLeft, headerRowHeight.value)
+          ctx.lineTo(xOffset - _scrollLeft, activeState.y)
           ctx.stroke()
         }
 
@@ -529,32 +533,32 @@ export function useCanvasRender({
             ctx.beginPath()
 
             if (selection.value.start.col !== selection.value.end.col) {
-              ctx.moveTo(xOffset - scrollLeft.value, activeState ? activeState.y : headerRowHeight.value)
+              ctx.moveTo(xOffset - _scrollLeft, activeState ? activeState.y : headerRowHeight.value)
             } else {
               let y = activeState ? activeState.y + activeState.height : headerRowHeight.value
 
               // Adjust y position if fill handler is in the same active cell and multiple rows are selected
               if (y === fillHandler.y) y -= fillHandler.size / 2
 
-              ctx.moveTo(xOffset - scrollLeft.value, y)
+              ctx.moveTo(xOffset - _scrollLeft, y)
             }
-            ctx.lineTo(xOffset - scrollLeft.value, fillHandler.y - fillHandler.size / 2)
+            ctx.lineTo(xOffset - _scrollLeft, fillHandler.y - fillHandler.size / 2)
             ctx.stroke()
           }
           // Draw line below the fill handler
           ctx.beginPath()
-          ctx.moveTo(xOffset - scrollLeft.value, fillHandler.y + fillHandler.size / 2)
+          ctx.moveTo(xOffset - _scrollLeft, fillHandler.y + fillHandler.size / 2)
           ctx.lineTo(
-            xOffset - scrollLeft.value,
+            xOffset - _scrollLeft,
             (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + headerRowHeight.value,
           )
           ctx.stroke()
         } else if (activeState?.y && activeState?.height) {
           // Draw line below active state
           ctx.beginPath()
-          ctx.moveTo(xOffset - scrollLeft.value, activeState.y + activeState.height)
+          ctx.moveTo(xOffset - _scrollLeft, activeState.y + activeState.height)
           ctx.lineTo(
-            xOffset - scrollLeft.value,
+            xOffset - _scrollLeft,
             (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + headerRowHeight.value,
           )
           ctx.stroke()
@@ -562,7 +566,7 @@ export function useCanvasRender({
       } else if (visibleCols.filter((f) => !f.fixed).length) {
         // Draw full line if not intersecting with active state
         // To avoid rendering the line inside fixed columns, set the xOffset to the right of fixed columns if xOffset is less than fixedColsWidth
-        const verticalLineXOffset = Math.max(fixedColsWidth.value, xOffset - scrollLeft.value)
+        const verticalLineXOffset = Math.max(fixedColsWidth.value, xOffset - _scrollLeft)
         ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
         ctx.beginPath()
         ctx.moveTo(verticalLineXOffset, headerRowHeight.value)
@@ -775,7 +779,7 @@ export function useCanvasRender({
         }
       })
 
-      if (scrollLeft.value) {
+      if (_scrollLeft) {
         ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
         ctx.beginPath()
         ctx.lineWidth = 1

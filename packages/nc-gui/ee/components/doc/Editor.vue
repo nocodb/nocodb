@@ -2381,8 +2381,11 @@ onBeforeUnmount(() => {
         </div>
 
         <div
-          class="nc-doc-editor-inner w-full mx-auto px-6 sm:px-10 lg:px-16"
-          :class="{ 'max-w-[900px]': !isFullWidth }"
+          class="nc-doc-editor-inner w-full mx-auto"
+          :class="[
+            isCellMode ? 'px-6' : 'px-6 sm:px-10 lg:px-16',
+            { 'max-w-[900px]': !isFullWidth },
+          ]"
           :dir="resolvedDir"
         >
           <!-- Title — hidden in cell mode (the panel header already shows the column name) -->
@@ -2469,7 +2472,10 @@ onBeforeUnmount(() => {
           <!-- Editor — always mounted so ProseMirror view stays attached -->
           <div
             class="nc-doc-editor-body relative"
-            :class="hasSubDocuments ? 'pb-8' : 'pb-48'"
+            :class="[
+              hasSubDocuments ? 'pb-8' : 'pb-48',
+              { 'pt-6': isCellMode },
+            ]"
             :style="docColorVars"
             data-testid="docs-page-content"
             @click="onEditorBodyClick"

@@ -1,3 +1,4 @@
+import type { TableType } from 'nocodb-sdk'
 export const useBaseTrash = createSharedComposable(() => {
   const isOpen = ref(false)
 
@@ -21,6 +22,19 @@ export const useBaseTrash = createSharedComposable(() => {
 
   const emptyTrash = async () => {}
 
+  // Per-row restore — used by data composables (undo, "restore selected").
+  // CE returns immediately; the row stays trashed until an EE caller reaches it.
+  async function restoreFromTrash(
+    _tableMeta: TableType | undefined,
+    _rowIds: string[],
+    _callbacks?: {
+      onSuccess?: () => Promise<void> | void
+      onError?: () => Promise<void> | void
+    },
+  ): Promise<void> {}
+
+  const trashUnavailableReason = computed<'external' | 'pending' | 'disabled' | 'license' | null>(() => 'license')
+
   return {
     isOpen,
     isLoading,
@@ -33,5 +47,7 @@ export const useBaseTrash = createSharedComposable(() => {
     loadTrash,
     restoreItem,
     emptyTrash,
+    restoreFromTrash,
+    trashUnavailableReason,
   }
 })

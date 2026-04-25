@@ -39,6 +39,7 @@ import { NoOpMigration } from '~/modules/jobs/migration-jobs/nc_job_no_op';
 import { AuditMigration } from '~/modules/jobs/migration-jobs/nc_job_009_audit_migration';
 import { SoftDeleteColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_010_soft_delete_column';
 import { NormalizeSoftDeleteSqliteMigration } from '~/modules/jobs/migration-jobs/nc_job_011_normalize_soft_delete_sqlite';
+import { RecordTrashBackfillMigration } from '~/modules/jobs/migration-jobs/nc_job_012_record_trash_backfill';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -102,6 +103,7 @@ export const JobsModuleMetadata = {
     AuditMigration,
     SoftDeleteColumnMigration,
     NormalizeSoftDeleteSqliteMigration,
+    RecordTrashBackfillMigration,
   ],
   exports: ['JobsService', JobsLogService, DuplicateProcessor],
 };

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import type { ColumnType, TableType } from 'nocodb-sdk'
+
+const MAX_CHIPS = 8
+
 const AVATAR_PALETTE = [
   'bg-blue-500',
   'bg-purple-500',
@@ -21,6 +25,7 @@ const {
   loadTrash,
   restoreItem,
   emptyTrash,
+  conflictFor,
 } = useBaseTrash()
 
 const { t } = useI18n()
@@ -31,7 +36,57 @@ const { showWarningModal } = useNcConfirmModal()
 
 const { basesUser, openedProject } = storeToRefs(useBases())
 
+const { getMeta, getMetaByKey } = useMetas()
+
 const baseUsers = computed(() => (openedProject.value?.id ? basesUser.value.get(openedProject.value.id) || [] : []))
+
+// ── Per-record-entry meta resolution ──────────────────────────────────
+//
+// Record entries' inline `records` need their parent table's meta to look
+// up the PV column for chip rendering. Pre-fetch any missing metas after
+// each load (in parallel) so PlainCell has columns to bind against.
+const recordEntryMetas = computed(() => {
+  const out: Record<string, TableType | undefined> = {}
+  for (const item of trashItems.value as any[]) {
+    if (item.resource_type !== 'record' || !item.parent_id || !item.base_id) continue
+    out[item.id] = getMetaByKey(item.base_id, item.parent_id)
+  }
+  return out
+})
+
+watch(
+  trashItems,
+  async (items) => {
+    await Promise.all(
+      (items as any[])
+        .filter((i) => i.resource_type === 'record' && i.parent_id && i.base_id && !getMetaByKey(i.base_id, i.parent_id))
+        .map((i) => getMeta(i.base_id, i.parent_id).catch(() => null)),
+    )
+  },
+  { immediate: true },
+)
+
+const expandedEntries = ref<Set<string>>(new Set())
+
+function isExpanded(id: string) {
+  return expandedEntries.value.has(id)
+}
+
+function toggleExpand(id: string) {
+  if (expandedEntries.value.has(id)) expandedEntries.value.delete(id)
+  else expandedEntries.value.add(id)
+  expandedEntries.value = new Set(expandedEntries.value)
+}
+
+function pvColumn(item: any): ColumnType | undefined {
+  const meta = recordEntryMetas.value[item.id]
+  return meta?.columns?.find((c: ColumnType) => c.pv)
+}
+
+function visibleRecords(item: any): any[] {
+  const all = (item.records ?? []) as any[]
+  return isExpanded(item.id) ? all : all.slice(0, MAX_CHIPS)
+}
 
 function displayName(userId?: string | null) {
   if (!userId) return ''
@@ -59,13 +114,21 @@ const RESOURCE_LABEL_KEYS: Record<string, string> = {
 }
 
 function activitySentence(item: any) {
+  const isSelf = !!item.deleted_by && item.deleted_by === user.value?.id
+  const actor = isSelf ? '' : displayName(item.deleted_by)
+
+  if (item.resource_type === 'record') {
+    const count = item.visible_record_count ?? item.records?.length ?? 0
+    if (isSelf) return t('trash.youDeletedRecord', { count }, count)
+    if (actor) return t('trash.userDeletedRecord', { user: actor, count }, count)
+    return t('trash.someoneDeletedRecord', { count }, count)
+  }
+
   const typeLabel = (
     RESOURCE_LABEL_KEYS[item.resource_type] ? t(RESOURCE_LABEL_KEYS[item.resource_type]) : item.resource_type || ''
   ).toLowerCase()
   const name = item.name || ''
   const parent = item.parent_name || ''
-  const isSelf = !!item.deleted_by && item.deleted_by === user.value?.id
-  const actor = isSelf ? '' : displayName(item.deleted_by)
 
   if (!isSelf && !actor) return t('baseTrash.someoneDeleted', { type: typeLabel, name })
 
@@ -149,44 +212,98 @@ function handleEmptyTrash() {
           <div
             v-for="item in trashItems"
             :key="item.id"
-            class="nc-base-trash-item flex items-center gap-3 px-6 py-4 hover:bg-nc-bg-gray-extralight transition-colors"
+            class="nc-base-trash-event-row flex flex-col"
+            :class="{ 'bg-nc-bg-gray-extralight': !!conflictFor(item.id!) }"
             :data-testid="`nc-base-trash-item-${item.id}`"
           >
-            <div
-              class="w-9 h-9 rounded-full flex items-center justify-center text-bodySm font-semibold shrink-0 text-white"
-              :class="avatarColor(item.deleted_by)"
-            >
-              {{ (displayName(item.deleted_by) || '?').charAt(0).toUpperCase() }}
-            </div>
-
-            <div class="flex-1 min-w-0">
-              <NcTooltip
-                show-on-truncate-only
-                class="block truncate text-bodyDefault font-semibold text-nc-content-gray-emphasis"
+            <div class="nc-base-trash-item flex items-center gap-3 px-6 py-4 hover:bg-nc-bg-gray-extralight transition-colors">
+              <div
+                class="w-9 h-9 rounded-full flex items-center justify-center text-bodySm font-semibold shrink-0 text-white"
+                :class="avatarColor(item.deleted_by)"
               >
-                {{ activitySentence(item) }}
-              </NcTooltip>
-              <div class="text-captionSm text-nc-content-gray-muted mt-0.5">
-                {{ formatDate(item.deleted_at) }}
+                {{ (displayName(item.deleted_by) || '?').charAt(0).toUpperCase() }}
               </div>
+
+              <div class="flex-1 min-w-0">
+                <NcTooltip
+                  show-on-truncate-only
+                  class="block truncate text-bodyDefault font-semibold text-nc-content-gray-emphasis"
+                >
+                  {{ activitySentence(item) }}
+                </NcTooltip>
+                <div class="text-captionSm text-nc-content-gray-muted mt-0.5">
+                  {{ formatDate(item.deleted_at) }}
+                </div>
+
+                <!-- Record entries: PV chips, rendered via PlainCell so the
+                   parent table's display-value column dictates formatting
+                   (datetime, user, currency, etc). Falls back to "Unnamed
+                   record" when meta isn't loaded yet or PV is empty. -->
+                <div
+                  v-if="item.resource_type === 'record' && item.records?.length"
+                  class="flex flex-wrap gap-1.5 mt-2 items-center"
+                >
+                  <span
+                    v-for="(record, i) in visibleRecords(item)"
+                    :key="i"
+                    class="px-2 py-0.5 rounded bg-nc-bg-gray-light text-nc-content-gray text-captionSm max-w-60 truncate"
+                  >
+                    <SmartsheetPlainCell
+                      v-if="pvColumn(item) && recordEntryMetas[item.id]"
+                      :column="pvColumn(item)!"
+                      :model-value="record[pvColumn(item)!.title!]"
+                      :meta="recordEntryMetas[item.id]"
+                    />
+                    <span v-else class="italic text-nc-content-gray-muted">
+                      {{ $t('trash.unnamedRecord') }}
+                    </span>
+                  </span>
+                  <span
+                    v-if="isExpanded(item.id) && (item.records?.length ?? 0) > visibleRecords(item).length"
+                    class="text-captionSm text-nc-content-gray-muted px-1 shrink-0"
+                  >
+                    {{
+                      $t('trash.andNMore', {
+                        count: (item.records?.length ?? 0) - visibleRecords(item).length,
+                      })
+                    }}
+                  </span>
+                  <button
+                    v-if="(item.records?.length ?? 0) > MAX_CHIPS"
+                    v-e="['c:base-trash:record:toggle-expand']"
+                    type="button"
+                    class="text-captionSm text-nc-content-brand hover:underline px-1 shrink-0"
+                    @click="toggleExpand(item.id)"
+                  >
+                    {{ isExpanded(item.id) ? $t('trash.showLess') : $t('trash.showAll') }}
+                  </button>
+                </div>
+              </div>
+
+              <NcTooltip :disabled="item.is_restorable !== false">
+                <template #title>
+                  {{ $t('baseTrash.restoreParentFirst', { parent: item.parent_name || item.parent_type }) }}
+                </template>
+                <NcButton
+                  v-e="['c:base-trash:restore']"
+                  size="small"
+                  type="text"
+                  class="!text-nc-content-brand !px-2 !font-semibold shrink-0"
+                  :disabled="item.is_restorable === false || !!conflictFor(item.id!)"
+                  :data-testid="`nc-base-trash-restore-btn-${item.id}`"
+                  @click="restoreItem(item.id!)"
+                >
+                  {{ $t('trash.restore') }}
+                </NcButton>
+              </NcTooltip>
             </div>
 
-            <NcTooltip :disabled="item.is_restorable !== false">
-              <template #title>
-                {{ $t('baseTrash.restoreParentFirst', { parent: item.parent_name || item.parent_type }) }}
-              </template>
-              <NcButton
-                v-e="['c:base-trash:restore']"
-                size="small"
-                type="text"
-                class="!text-nc-content-brand !px-2 !font-semibold shrink-0"
-                :disabled="item.is_restorable === false"
-                :data-testid="`nc-base-trash-restore-btn-${item.id}`"
-                @click="restoreItem(item.id!)"
-              >
-                {{ $t('trash.restore') }}
-              </NcButton>
-            </NcTooltip>
+            <BaseTrashConflictPanel
+              v-if="conflictFor(item.id!)"
+              :entry-id="item.id!"
+              :row-count="item.visible_record_count ?? item.records?.length ?? 1"
+              :state="conflictFor(item.id!)!"
+            />
           </div>
         </div>
       </div>
@@ -227,7 +344,7 @@ function handleEmptyTrash() {
   }
 }
 
-.nc-base-trash-item:not(:last-child) {
+.nc-base-trash-event-row:not(:last-child) {
   @apply border-b-1 border-nc-border-gray-medium;
 }
 </style>

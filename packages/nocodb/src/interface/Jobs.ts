@@ -23,6 +23,7 @@ export enum MigrationJobTypes {
   AuditMigration = 'audit-migration',
   SoftDeleteColumnMigration = 'soft-delete-column-migration',
   NormalizeSoftDeleteSqliteMigration = 'normalize-soft-delete-sqlite-migration',
+  RecordTrashBackfill = 'record-trash-backfill',
 }
 
 export enum JobTypes {

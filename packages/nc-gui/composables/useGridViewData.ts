@@ -42,7 +42,7 @@ export function useGridViewData(
 
   const { $api } = useNuxtApp()
 
-  const { restoreFromTrash, trashUnavailableReason } = useRecordTrash()
+  const { restoreFromTrash, trashUnavailableReason } = useBaseTrash()
 
   const isBulkOperationInProgress = ref(false)
 

@@ -100,7 +100,7 @@ export function useInfiniteData(args: {
 
   const { t } = useI18n()
 
-  const { restoreFromTrash, trashUnavailableReason } = useRecordTrash()
+  const { restoreFromTrash, trashUnavailableReason } = useBaseTrash()
 
   const router = useRouter()
 

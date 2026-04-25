@@ -3,10 +3,7 @@ import type { Knex } from 'knex';
 import type { Column, Model } from '~/models';
 import { Filter } from '~/models';
 import { _wherePk, getCompositePkValue } from '~/helpers/dbHelpers';
-import {
-  decodeEventId,
-  encodeEventId,
-} from '~/ee/helpers/trashHelpers';
+import { decodeEventId, encodeEventId } from '~/ee/helpers/trashHelpers';
 import conditionV2 from '~/db/conditionV2';
 
 /**

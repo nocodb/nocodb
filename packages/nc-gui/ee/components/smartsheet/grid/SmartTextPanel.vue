@@ -193,9 +193,9 @@ const onEditorContentUpdate = (content: Record<string, any>) => {
 
         <NcDropdown v-if="smartTextColumns.length > 1" placement="bottomLeft">
           <NcButton size="xs" type="text" class="!px-1">
-            <div class="flex items-center gap-1 text-nc-content-gray">
+            <div class="flex items-center gap-2 text-nc-content-gray">
               <GeneralIcon icon="ncFileText" class="w-4 h-4" />
-              <span class="text-bodySm font-medium truncate max-w-48 leading-normal">{{ panelTitle }}</span>
+              <span class="text-bodyDefaultSm font-medium truncate max-w-48 leading-normal">{{ panelTitle }}</span>
               <GeneralIcon icon="arrowDown" class="w-3 h-3" />
             </div>
           </NcButton>
@@ -215,9 +215,9 @@ const onEditorContentUpdate = (content: Record<string, any>) => {
             </NcMenu>
           </template>
         </NcDropdown>
-        <div v-else class="flex items-center gap-1 text-nc-content-gray-subtle px-1">
+        <div v-else class="flex items-center gap-2 text-nc-content-gray-subtle px-1">
           <GeneralIcon icon="ncFileText" class="w-4 h-4" />
-          <span class="text-bodySm font-medium truncate max-w-48 leading-normal">{{ panelTitle }}</span>
+          <span class="text-bodyDefaultSm font-medium truncate max-w-48 leading-normal">{{ panelTitle }}</span>
         </div>
 
         <!-- Save status -->

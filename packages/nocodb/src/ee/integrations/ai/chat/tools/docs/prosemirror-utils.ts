@@ -60,6 +60,38 @@ function decodeMarkdownUrl(url: string): string {
 }
 
 /**
+ * Pre-process raw markdown so URLs containing whitespace inside image / link
+ * destinations parse as image / link tokens instead of being dropped to plain
+ * text. Marked follows CommonMark — `![alt](url with space)` is not a valid
+ * image, but pasted content from external sources (or earlier NocoDB versions)
+ * may still contain unescaped spaces. Encode them so marked recognises the
+ * pattern; the inline parser later decodes them back into the PM path.
+ *
+ * Skips fenced code blocks so literal markdown examples inside ``` blocks are
+ * not rewritten.
+ */
+function preprocessMarkdownUrls(md: string): string {
+  const lines = md.split('\n');
+  let inFence = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*```/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    lines[i] = line.replace(
+      /(!?\[[^\]\n]*\])\(([^)\n]+)\)/g,
+      (match, prefix, url) => {
+        if (!/\s/.test(url)) return match;
+        return `${prefix}(${encodeMarkdownUrl(url.trim())})`;
+      },
+    );
+  }
+  return lines.join('\n');
+}
+
+/**
  * Convert a ProseMirror JSON document to a Markdown string.
  */
 export function prosemirrorToMarkdown(doc: Record<string, any>): string {
@@ -544,12 +576,15 @@ export function markdownToProseMirror(markdown: string): Record<string, any> {
   // 1. Extract fenced directives into placeholders
   const { cleaned, directives } = extractDirectives(markdown);
 
+  // 1a. Encode whitespace in image / link URLs so they survive tokenization
+  const normalized = preprocessMarkdownUrls(cleaned);
+
   // 2. Tokenize the cleaned markdown (directives replaced with HTML comments).
   // mangle:false — marked v4 entity-encodes `@` in autolinked emails by default
   // (spam-obfuscation). The PM editor renders the encoded chars verbatim, so
   // emails appear as `&#x6e;...` strings in the UI. headerIds is unused here
   // but disabled for forward-compatibility (removed in marked v8+).
-  const tokens = marked.lexer(cleaned, { mangle: false, headerIds: false });
+  const tokens = marked.lexer(normalized, { mangle: false, headerIds: false });
   const content = tokensToNodes(tokens);
 
   // 3. Resolve directive placeholders into PM nodes

@@ -11,12 +11,13 @@ import {
 } from 'nocodb-sdk';
 import type { UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type { TrashResult } from '~/services/base-trash/types';
+import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
 import type { MetaService } from '~/meta/meta.service';
 import BaseTrash from '~/models/BaseTrash';
 import { BaseTrashHandler } from '~/services/base-trash/types';
 import { getLimit } from '~/helpers/paymentHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
+import Base from '~/models/Base';
 import Column from '~/models/Column';
 import Model from '~/models/Model';
 import View from '~/models/View';
@@ -56,6 +57,7 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
   async trash(
     ctx: NcContext,
     id: string,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<TrashResult<Column>> {
     const col = await Column.get(ctx, { colId: id }, ncMeta);
@@ -68,6 +70,22 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       { id: col.fk_model_id },
       ncMeta,
     );
+
+    const base = await Base.getWithInfo(ctx, table.base_id, true, ncMeta);
+    const source = base.sources.find((s) => s.id === table.source_id);
+    if (!source?.isMeta()) {
+      await this.columnsService.columnDelete(
+        ctx,
+        {
+          columnId: id,
+          user: param.user as UserType,
+          req: param.req,
+          skipTrash: true,
+        },
+        ncMeta,
+      );
+      return { entity: col, skipTrashEntry: true };
+    }
 
     const columnWebhookManager = (
       await (

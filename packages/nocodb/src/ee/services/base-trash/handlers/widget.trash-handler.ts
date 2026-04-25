@@ -3,7 +3,7 @@ import { DependencyTableType, EventType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { MetaService } from '~/meta/meta.service';
-import type { TrashResult } from '~/services/base-trash/types';
+import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
 import { BaseTrashHandler } from '~/services/base-trash/types';
 import { Dashboard, DependencyTracker, Widget } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
@@ -16,6 +16,7 @@ export class WidgetTrashHandler extends BaseTrashHandler<Widget> {
   async trash(
     ctx: NcContext,
     id: string,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<TrashResult<Widget>> {
     const widget = await Widget.get(ctx, id, false, ncMeta);

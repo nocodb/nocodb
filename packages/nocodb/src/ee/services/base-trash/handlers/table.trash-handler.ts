@@ -9,7 +9,7 @@ import {
 import type { UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
-import type { TrashResult } from '~/services/base-trash/types';
+import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
 import type { MetaService } from '~/meta/meta.service';
 import { BaseTrashHandler } from '~/services/base-trash/types';
 import { getLimit } from '~/helpers/paymentHelpers';
@@ -88,6 +88,7 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
   async trash(
     ctx: NcContext,
     id: string,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<TrashResult<Model>> {
     const table = await Model.getByIdOrName(ctx, { id }, ncMeta);
@@ -102,14 +103,15 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
     const base = await Base.getWithInfo(ctx, table.base_id, true, ncMeta);
     const source = base.sources.find((s) => s.id === table.source_id);
 
-    // External source tables → hard-delete (no trash, can't soft-delete external schema)
+    // External source tables → hard-delete (no trash, can't soft-delete external schema).
     if (!source?.isMeta()) {
       await this.tablesService.tableDelete(
         ctx,
         {
           tableId: id,
-          user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER,
-          req: {} as any,
+          user: param.user as UserType,
+          req: param.req,
+          skipTrash: true,
         },
         ncMeta,
       );

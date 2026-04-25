@@ -1,8 +1,14 @@
-import type { NcContext } from '~/interface/config';
+import type { UserType } from 'nocodb-sdk';
+import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type BaseTrash from '~/models/BaseTrash';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+
+export interface TrashCallParam {
+  user: Partial<UserType>;
+  req: NcRequest;
+}
 
 /**
  * Cache buckets that a resource type may affect. Each handler declares its
@@ -36,6 +42,7 @@ export interface TrashHandler<T = any> {
   trash(
     ctx: NcContext,
     id: string,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<TrashResult<T>>;
 
@@ -80,6 +87,7 @@ export abstract class BaseTrashHandler<T = any> implements TrashHandler<T> {
   abstract trash(
     ctx: NcContext,
     id: string,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<TrashResult<T>>;
 

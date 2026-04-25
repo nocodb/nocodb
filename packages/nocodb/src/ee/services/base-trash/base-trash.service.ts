@@ -172,7 +172,12 @@ export class BaseTrashService implements OnModuleInit {
       : await (Noco.ncMeta as MetaService).startTransaction();
 
     try {
-      const result = await handler.trash(context, param.resourceId, ncMeta);
+      const result = await handler.trash(
+        context,
+        param.resourceId,
+        { user: param.user, req: param.req },
+        ncMeta,
+      );
       if (!result.skipTrashEntry) {
         await this.insertTrashEntry(context, { ...param, ncMeta }, result);
       }

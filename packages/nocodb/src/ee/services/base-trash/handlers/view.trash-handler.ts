@@ -3,7 +3,7 @@ import { EventType, generateUniqueCopyName, PlanLimitTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { MetaService } from '~/meta/meta.service';
-import type { TrashResult } from '~/services/base-trash/types';
+import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
 import { BaseTrashHandler } from '~/services/base-trash/types';
 import Model from '~/models/Model';
 import View from '~/models/View';
@@ -53,6 +53,7 @@ export class ViewTrashHandler extends BaseTrashHandler<View> {
   async trash(
     ctx: NcContext,
     id: string,
+    _param: TrashCallParam,
     ncMeta?: any,
   ): Promise<TrashResult<View>> {
     const view = await View.get(ctx, id, false, ncMeta);

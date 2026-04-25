@@ -7,7 +7,7 @@ import {
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { MetaService } from '~/meta/meta.service';
-import type { TrashResult } from '~/services/base-trash/types';
+import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
 import { BaseTrashHandler } from '~/services/base-trash/types';
 import { DependencyTracker, Workflow } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
@@ -21,6 +21,7 @@ export class WorkflowTrashHandler extends BaseTrashHandler<Workflow> {
   async trash(
     ctx: NcContext,
     id: string,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<TrashResult<Workflow>> {
     const workflow = await Workflow.get(ctx, id, false, ncMeta);

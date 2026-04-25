@@ -3,7 +3,7 @@ import { EventType, generateUniqueCopyName, PlanLimitTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { MetaService } from '~/meta/meta.service';
-import type { TrashResult } from '~/services/base-trash/types';
+import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
 import { BaseTrashHandler } from '~/services/base-trash/types';
 import { Dashboard } from '~/models';
 import NocoSocket from '~/socket/NocoSocket';
@@ -31,6 +31,7 @@ export class DashboardTrashHandler extends BaseTrashHandler<Dashboard> {
   async trash(
     ctx: NcContext,
     id: string,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<TrashResult<Dashboard>> {
     const dashboard = await Dashboard.get(ctx, id, false, ncMeta);

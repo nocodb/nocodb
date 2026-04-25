@@ -29,6 +29,27 @@ const {
 const { t } = useI18n()
 const meta = inject(MetaInj, ref())
 
+// Fullscreen mode covers everything to the right of the project sidebar.
+// We measure the sidebar's actual right edge from the DOM rather than using
+// the store width — Splitpanes sizes the pane by percentage, which doesn't
+// always match the inner wrapper's pixel width.
+const sidebarRightEdge = ref(0)
+let sidebarObserver: ResizeObserver | null = null
+
+const updateSidebarRightEdge = () => {
+  const el = document.querySelector('.nc-sidebar-splitpane') as HTMLElement | null
+  if (!el) {
+    sidebarRightEdge.value = 0
+    return
+  }
+  const rect = el.getBoundingClientRect()
+  sidebarRightEdge.value = rect.right
+}
+
+const fullscreenLeft = computed(() =>
+  sidebarRightEdge.value > 0 ? `${sidebarRightEdge.value}px` : 'var(--mini-sidebar-width)',
+)
+
 const panelRef = ref<HTMLElement>()
 
 // ---- Resize handle (mirrors Doc field panel) -------------------------------
@@ -90,11 +111,38 @@ watch(
   { immediate: true },
 )
 
+// Track the sidebar's actual right edge while the panel is open in fullscreen.
+// Use ResizeObserver on the sidebar element + window resize for viewport changes.
+watch(
+  [isOpen, isFullscreen],
+  ([open, fs]) => {
+    if (open && fs) {
+      nextTick(() => {
+        updateSidebarRightEdge()
+        const el = document.querySelector('.nc-sidebar-splitpane') as HTMLElement | null
+        if (el && 'ResizeObserver' in window) {
+          sidebarObserver = new ResizeObserver(updateSidebarRightEdge)
+          sidebarObserver.observe(el)
+        }
+        window.addEventListener('resize', updateSidebarRightEdge)
+      })
+    } else {
+      sidebarObserver?.disconnect()
+      sidebarObserver = null
+      window.removeEventListener('resize', updateSidebarRightEdge)
+    }
+  },
+  { immediate: true },
+)
+
 onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', onVisibilityChange)
   window.removeEventListener('beforeunload', onBeforeUnload)
   window.removeEventListener('mousemove', onResizeMove)
   window.removeEventListener('mouseup', onResizeEnd)
+  sidebarObserver?.disconnect()
+  sidebarObserver = null
+  window.removeEventListener('resize', updateSidebarRightEdge)
 })
 
 // Save when focus leaves the panel body (covers blur from editor, dropdowns, etc.).
@@ -130,7 +178,7 @@ const onKeydown = (e: KeyboardEvent) => {
 
 const panelStyle = computed(() => {
   if (isFullscreen.value) {
-    return { left: 'var(--mini-sidebar-width)', right: '0', top: '0', bottom: '0' }
+    return { left: fullscreenLeft.value, right: '0', top: '0', bottom: '0' }
   }
   return { width: `${panelWidth.value}px` }
 })
@@ -308,7 +356,7 @@ const onEditorContentUpdate = (content: Record<string, any>) => {
     <div
       v-if="isOpen && isFullscreen"
       class="fixed top-0 bottom-0 right-0 bg-black/20 z-49 cursor-pointer"
-      :style="{ left: 'var(--mini-sidebar-width)' }"
+      :style="{ left: fullscreenLeft }"
       @click="setFullscreen(false)"
     />
   </Transition>

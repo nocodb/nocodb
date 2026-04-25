@@ -1559,11 +1559,13 @@ const { isRtl: isAppRtl } = useRtl()
 // Tri-state direction selector state. `null` = use default (app locale).
 const activeDir = ref<DocDir | null>(null)
 
-// Concrete direction applied to the wrapper and the title input. `auto` is
-// resolved to a concrete ltr/rtl via the locale fallback so the title and
-// hanging icon don't flicker mid-typing — mirrors Notion, which pins the
-// page title and only auto-detects body blocks. Per-block auto detection
-// for the body is handled by DocBlockDirExtension.
+// Concrete direction applied to the editor wrapper. `auto` is resolved to a
+// concrete ltr/rtl via the locale fallback so layout chrome around the body
+// (hanging title icon, padding) stays anchored. The title input itself uses
+// `dir="auto"` so its text always auto-detects from content — matching Notion,
+// where the page-block wrapper is pinned but the title leaf flips with content
+// (via `unicode-bidi: plaintext`). Per-block auto detection inside the body is
+// handled by DocBlockDirExtension.
 const resolvedDir = computed<'ltr' | 'rtl'>(() => {
   if (activeDir.value === 'ltr') return 'ltr'
   if (activeDir.value === 'rtl') return 'rtl'
@@ -2310,7 +2312,7 @@ onBeforeUnmount(() => {
                 class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
                 data-testid="docs-page-title"
                 :placeholder="$t('general.untitled')"
-                :dir="resolvedDir"
+                dir="auto"
                 @blur="onTitleBlur"
                 @keydown="onTitleKeydown"
               />

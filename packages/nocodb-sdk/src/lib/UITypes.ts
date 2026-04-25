@@ -720,13 +720,12 @@ export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
       return true;
     }
     case UITypes.LongText: {
-      if (
-        parseProp(column.meta)?.richMode ||
-        parseProp(column.meta)[LongTextAiMetaProp]
-      ) {
-        return false;
-      }
-      return true;
+      // Long Text and its variants (RichText, SmartText, AI) render poorly in
+      // the single-line surfaces that consume the display value (LTAR chips,
+      // breadcrumbs, audit lines, search). Block as a new selection. Existing
+      // PV columns of this type are honoured by the backend service and not
+      // forced off — this only gates *new* selections.
+      return false;
     }
 
     default: {

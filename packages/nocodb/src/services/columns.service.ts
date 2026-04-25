@@ -2955,6 +2955,16 @@ export class ColumnsService implements IColumnsService {
     if (!oldColumn) {
       NcError.get(context).fieldNotFound(param.columnId);
     }
+
+    // LongText (and its richMode / smartMode / ai variants) is rejected as a
+    // display value — multi-line / markdown content renders poorly in
+    // single-line surfaces (LTAR chips, breadcrumbs, audit lines, search).
+    // Existing PV columns keep working; only new selections are blocked.
+    if (oldColumn.uidt === UITypes.LongText && !oldColumn.pv) {
+      NcError.get(context).invalidRequestBody(
+        'Long Text fields cannot be set as the display value.',
+      );
+    }
     const result = await Model.updatePrimaryColumn(
       context,
       oldColumn.fk_model_id,

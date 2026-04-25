@@ -216,7 +216,7 @@ export class SmartTextService extends SmartTextServiceCE {
     }
 
     const source = await Source.get(context, model.source_id);
-    if (!source?.is_meta) {
+    if (!source?.isMeta()) {
       NcError.get(context).invalidRequestBody(
         'SmartText is only supported on internal sources',
       );

@@ -384,7 +384,10 @@ function validateLongTextMetaExclusivity(
     );
   }
 
-  if (smartMode && source && !source.is_meta) {
+  // Skip the source-eligibility check when no source is provided.
+  // `Source.isMeta()` (without args) returns is_meta || is_local — the broad
+  // "internal source" semantics used by other column validators in this file.
+  if (smartMode && source && !source.isMeta()) {
     NcError.get(context).invalidRequestBody(
       'SmartText is only supported on internal sources',
     );

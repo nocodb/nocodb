@@ -374,6 +374,81 @@ const saveStatusLabel = computed(() => {
     pointer-events: none;
   }
 
+  // Headings — Tailwind preflight resets the browser defaults, so re-state.
+  h1 {
+    @apply text-2xl font-bold mt-6 mb-3 leading-tight;
+  }
+  h2 {
+    @apply text-xl font-bold mt-5 mb-2 leading-tight;
+  }
+  h3 {
+    @apply text-lg font-semibold mt-4 mb-2 leading-snug;
+  }
+  h4 {
+    @apply text-base font-semibold mt-3 mb-2;
+  }
+  h5,
+  h6 {
+    @apply text-sm font-semibold mt-2 mb-1;
+  }
+
+  // Paragraphs / spacing
+  p {
+    @apply my-2 leading-relaxed;
+  }
+
+  // Inline marks
+  strong {
+    @apply font-semibold;
+  }
+  em {
+    @apply italic;
+  }
+  code {
+    @apply px-1 py-0.5 rounded bg-nc-bg-gray-light text-[12.5px] font-mono;
+  }
+  a {
+    @apply text-nc-content-brand underline cursor-pointer;
+  }
+
+  // Lists
+  ul,
+  ol {
+    @apply pl-6 my-2;
+  }
+  ul {
+    @apply list-disc;
+  }
+  ol {
+    @apply list-decimal;
+  }
+  li {
+    @apply my-1;
+  }
+  li > p {
+    @apply my-0;
+  }
+
+  // Blockquote
+  blockquote {
+    @apply pl-4 border-l-3 border-nc-border-gray-medium text-nc-content-gray-subtle italic my-3;
+  }
+
+  // Code block
+  pre {
+    @apply p-3 my-3 rounded-md bg-nc-bg-gray-light text-[12.5px] font-mono overflow-x-auto;
+
+    code {
+      @apply bg-transparent p-0;
+    }
+  }
+
+  // Horizontal rule
+  hr {
+    @apply my-4 border-t border-nc-border-gray-medium;
+  }
+
+  // Task list (overrides ul disc style above)
   ul[data-type='taskList'] {
     @apply list-none pl-0;
 

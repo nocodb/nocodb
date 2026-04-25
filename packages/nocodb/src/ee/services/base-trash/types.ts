@@ -49,12 +49,14 @@ export interface TrashHandler<T = any> {
   restore(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void>;
 
   permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void>;
 
@@ -94,12 +96,14 @@ export abstract class BaseTrashHandler<T = any> implements TrashHandler<T> {
   abstract restore(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void>;
 
   abstract permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void>;
 

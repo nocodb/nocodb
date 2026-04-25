@@ -3,7 +3,6 @@ import {
   EventType,
   generateUniqueCopyName,
   MetaEventType,
-  NOCO_SERVICE_USERS,
   PlanLimitTypes,
 } from 'nocodb-sdk';
 import type { UserType } from 'nocodb-sdk';
@@ -191,6 +190,7 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
   async restore(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     // Resolve title collision — rename restored table if a live table in the
@@ -243,11 +243,11 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
     // Restore cascaded link columns + drop placeholders
     const relatedItems = trashEntry.getRelatedItems();
     if (relatedItems?.columns?.length) {
-      await this.restoreCascadedLinks(ctx, relatedItems.columns, ncMeta);
+      await this.restoreCascadedLinks(ctx, relatedItems.columns, param, ncMeta);
     }
 
     // Handle deferred restores (mutually-trashed tables)
-    await this.restoreDeferredLinks(ctx, trashEntry.resource_id, ncMeta);
+    await this.restoreDeferredLinks(ctx, trashEntry.resource_id, param, ncMeta);
 
     if (relatedItems?.dependents?.length) {
       await clearDependentErrorsIfResolved(
@@ -299,6 +299,7 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
   async permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     const relatedItems = trashEntry.getRelatedItems();
@@ -356,8 +357,8 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
       ctx,
       {
         tableId: trashEntry.resource_id,
-        user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER as unknown as UserType,
-        req: {} as any,
+        user: param.user as UserType,
+        req: param.req,
         forceDeleteRelations: true,
         skipLinkPlaceholder: true,
         skipTrash: true,
@@ -462,6 +463,7 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
   private async restoreCascadedLinks(
     ctx: NcContext,
     columns: CascadedColumn[],
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ) {
     for (const item of columns) {
@@ -486,7 +488,8 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
             ctx,
             {
               columnId: item.placeholder_id,
-              user: {} as any,
+              user: param.user as UserType,
+              req: param.req,
               forceDeleteSystem: true,
               skipTrash: true,
             },
@@ -535,6 +538,7 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
   private async restoreDeferredLinks(
     ctx: NcContext,
     restoredTableId: string,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ) {
     const allTableTrash = await ncMeta.metaList2(
@@ -588,7 +592,8 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
               ctx,
               {
                 columnId: item.placeholder_id,
-                user: {} as any,
+                user: param.user as UserType,
+                req: param.req,
                 forceDeleteSystem: true,
                 skipTrash: true,
               },

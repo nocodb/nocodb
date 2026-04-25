@@ -45,6 +45,7 @@ export class ExtensionTrashHandler extends BaseTrashHandler<Extension> {
   async restore(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     if (trashEntry.name) {
@@ -87,6 +88,7 @@ export class ExtensionTrashHandler extends BaseTrashHandler<Extension> {
   async permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     await Extension.softDelete(ctx, trashEntry.resource_id, false, ncMeta);

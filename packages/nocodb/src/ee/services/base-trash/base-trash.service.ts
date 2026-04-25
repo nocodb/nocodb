@@ -220,7 +220,12 @@ export class BaseTrashService implements OnModuleInit {
 
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
     try {
-      await handler.restore(context, trashEntry, ncMeta);
+      await handler.restore(
+        context,
+        trashEntry,
+        { user: param.user, req: param.req },
+        ncMeta,
+      );
       await BaseTrash.delete(context, trashEntry.id, ncMeta);
       await ncMeta.commit();
     } catch (e) {
@@ -287,7 +292,12 @@ export class BaseTrashService implements OnModuleInit {
             if (!childTrash.length) break;
             for (const child of childTrash) {
               const childHandler = this.getHandler(child.resource_type);
-              await childHandler.permanentDelete(context, child, ncMeta);
+              await childHandler.permanentDelete(
+                context,
+                child,
+                { user: param.user, req: param.req },
+                ncMeta,
+              );
               await BaseTrash.delete(context, child.id, ncMeta);
             }
             if (childTrash.length < CHILD_CLEANUP_BATCH) break;
@@ -295,7 +305,12 @@ export class BaseTrashService implements OnModuleInit {
         }
       }
 
-      await handler.permanentDelete(context, trashEntry, ncMeta);
+      await handler.permanentDelete(
+        context,
+        trashEntry,
+        { user: param.user, req: param.req },
+        ncMeta,
+      );
       await BaseTrash.delete(context, trashEntry.id, ncMeta);
       await ncMeta.commit();
     } catch (e) {

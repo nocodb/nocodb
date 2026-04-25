@@ -4,7 +4,6 @@ import {
   generateUniqueCopyName,
   isLinksOrLTAR,
   MetaEventType,
-  NOCO_SERVICE_USERS,
   PlanLimitTypes,
   UITypes,
   WebhookActions,
@@ -283,6 +282,7 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
   async restore(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     // Validate parent
@@ -360,7 +360,7 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
     await View.clearSingleQueryCache(ctx, trashEntry.parent_id, null, ncMeta);
 
     // Restore cascaded link columns + drop placeholders
-    await this.restoreCascadedLinks(ctx, trashEntry, ncMeta);
+    await this.restoreCascadedLinks(ctx, trashEntry, param, ncMeta);
 
     const relatedItems = trashEntry.getRelatedItems();
     if (relatedItems?.dependents?.length) {
@@ -426,6 +426,7 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
   async permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    param: TrashCallParam,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
     const relatedItems = trashEntry.getRelatedItems();
@@ -487,7 +488,8 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       ctx,
       {
         columnId: trashEntry.resource_id,
-        user: NOCO_SERVICE_USERS.TRASH_CLEANUP_USER as unknown as UserType,
+        user: param.user as UserType,
+        req: param.req,
         forceDeleteSystem: true,
         skipLinkPlaceholder: true,
         skipTrash: true,
@@ -502,6 +504,7 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
   private async restoreCascadedLinks(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    param: TrashCallParam,
     ncMeta: any,
   ) {
     const relatedItems = trashEntry.getRelatedItems();
@@ -529,7 +532,8 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
             ctx,
             {
               columnId: item.placeholder_id,
-              user: {} as any,
+              user: param.user as UserType,
+              req: param.req,
               forceDeleteSystem: true,
               skipTrash: true,
             },

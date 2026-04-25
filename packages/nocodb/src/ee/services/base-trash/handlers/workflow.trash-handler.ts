@@ -37,6 +37,7 @@ export class WorkflowTrashHandler extends BaseTrashHandler<Workflow> {
   async restore(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     if (trashEntry.name) {
@@ -74,6 +75,7 @@ export class WorkflowTrashHandler extends BaseTrashHandler<Workflow> {
   async permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     await DependencyTracker.clearDependencies(

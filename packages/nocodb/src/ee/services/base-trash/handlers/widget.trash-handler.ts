@@ -44,6 +44,7 @@ export class WidgetTrashHandler extends BaseTrashHandler<Widget> {
   async restore(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     if (trashEntry.parent_id) {
@@ -73,6 +74,7 @@ export class WidgetTrashHandler extends BaseTrashHandler<Widget> {
   async permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     await DependencyTracker.clearDependencies(

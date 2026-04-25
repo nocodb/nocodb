@@ -47,6 +47,7 @@ export class DashboardTrashHandler extends BaseTrashHandler<Dashboard> {
   async restore(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     if (trashEntry.name) {
@@ -89,6 +90,7 @@ export class DashboardTrashHandler extends BaseTrashHandler<Dashboard> {
   async permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     await Dashboard.softDelete(ctx, trashEntry.resource_id, false, ncMeta);

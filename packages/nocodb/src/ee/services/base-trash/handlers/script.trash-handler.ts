@@ -46,6 +46,7 @@ export class ScriptTrashHandler extends BaseTrashHandler<Script> {
   async restore(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     if (trashEntry.name) {
@@ -83,6 +84,7 @@ export class ScriptTrashHandler extends BaseTrashHandler<Script> {
   async permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     await Script.softDelete(ctx, trashEntry.resource_id, false, ncMeta);

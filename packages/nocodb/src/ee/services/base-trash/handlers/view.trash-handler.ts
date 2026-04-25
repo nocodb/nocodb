@@ -93,6 +93,7 @@ export class ViewTrashHandler extends BaseTrashHandler<View> {
   async restore(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     if (trashEntry.parent_id) {
@@ -146,6 +147,7 @@ export class ViewTrashHandler extends BaseTrashHandler<View> {
   async permanentDelete(
     ctx: NcContext,
     trashEntry: BaseTrash,
+    _param: TrashCallParam,
     ncMeta?: MetaService,
   ): Promise<void> {
     await View.softDelete(ctx, trashEntry.resource_id, false, ncMeta);

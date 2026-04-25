@@ -85,12 +85,50 @@ export class SmartTextService extends SmartTextServiceCE {
       }
     }
 
+    const isMarkdownEmpty = !markdown || !markdown.trim();
+
+    // Markdown is authoritative — the grid / data API can clear or rewrite a
+    // SmartText cell without going through the panel, leaving the cached pm
+    // in nc_row_meta out of sync. If the markdown is empty, discard any stale
+    // pm and clean up FileReferences so the panel reflects the cleared state.
+    if (isMarkdownEmpty && pm) {
+      try {
+        const emptyPm: ProseMirrorDoc = {
+          type: 'doc',
+          content: [{ type: 'paragraph' }],
+        } as ProseMirrorDoc;
+        await this._reconcileFileReferences(
+          context,
+          model.id,
+          column.id,
+          param.rowId,
+          emptyPm,
+          /* req */ null,
+        );
+        await this._writeRowMetaPm(
+          dbDriver,
+          tnPath,
+          pkColumn.column_name,
+          param.rowId,
+          column,
+          emptyPm,
+          /* userId */ null,
+        );
+        pm = null;
+      } catch (e) {
+        this.logger.warn(
+          `Stale PM cleanup failed for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,
+          (e as Error)?.stack,
+        );
+      }
+    }
+
     // Lazy backfill: if PM JSON is missing but markdown exists, convert and
     // persist. Run FileReference reconciliation too — markdown pasted from
     // another cell still references storage paths that need a fresh
     // (model, column, row)-keyed FileReference for the cell-keyed proxy to
     // serve them.
-    if (!pm && markdown && markdown.trim().length > 0) {
+    if (!pm && !isMarkdownEmpty) {
       try {
         pm = markdownToProseMirror(markdown) as ProseMirrorDoc;
         await this._reconcileFileReferences(

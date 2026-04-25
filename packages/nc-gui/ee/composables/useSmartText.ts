@@ -46,6 +46,9 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
 
   /**
    * Mirror panel state into the URL so the cell is shareable / restorable.
+   * Uses generic ?rowId / ?colId so the convention is reusable for other
+   * field-level surfaces — for now only SmartText cells claim the params
+   * (the grid watcher checks the column type before opening the panel).
    * Uses router.replace (not push) — opening / navigating cells should not
    * stack history entries.
    */
@@ -56,17 +59,17 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
       activeRowId.value &&
       activeColumnId.value
     ) {
-      next.smartTextRowId = activeRowId.value
-      next.smartTextColId = activeColumnId.value
+      next.rowId = activeRowId.value
+      next.colId = activeColumnId.value
       if (mode.value === 'fullscreen') {
-        next.smartTextMode = 'fullscreen'
+        next.cellMode = 'fullscreen'
       } else {
-        delete next.smartTextMode
+        delete next.cellMode
       }
     } else {
-      delete next.smartTextRowId
-      delete next.smartTextColId
-      delete next.smartTextMode
+      delete next.rowId
+      delete next.colId
+      delete next.cellMode
     }
 
     // Skip no-op replaces

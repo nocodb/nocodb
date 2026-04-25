@@ -60,7 +60,7 @@ export class SmartTextService extends SmartTextServiceCE {
     const markdown: string | null =
       typeof markdownRaw === 'string' ? markdownRaw : null;
 
-    const pmRow = await dbDriver(tnPath)
+    const pmRow = (await dbDriver(tnPath)
       .where(pkColumn.column_name, param.rowId)
       .select(
         dbDriver.raw(`??->?->>'pm' as nc_smart_pm`, [
@@ -68,7 +68,7 @@ export class SmartTextService extends SmartTextServiceCE {
           column.id,
         ]),
       )
-      .first();
+      .first()) as { nc_smart_pm?: string | object } | undefined;
 
     let pm: ProseMirrorDoc | null = null;
 
@@ -77,7 +77,7 @@ export class SmartTextService extends SmartTextServiceCE {
         pm =
           typeof pmRow.nc_smart_pm === 'string'
             ? JSON.parse(pmRow.nc_smart_pm)
-            : pmRow.nc_smart_pm;
+            : (pmRow.nc_smart_pm as ProseMirrorDoc);
       } catch (e) {
         this.logger.warn(
           `Failed to parse stored PM JSON for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,
@@ -85,10 +85,22 @@ export class SmartTextService extends SmartTextServiceCE {
       }
     }
 
-    // Lazy backfill: if PM JSON is missing but markdown exists, convert and persist.
+    // Lazy backfill: if PM JSON is missing but markdown exists, convert and
+    // persist. Run FileReference reconciliation too — markdown pasted from
+    // another cell still references storage paths that need a fresh
+    // (model, column, row)-keyed FileReference for the cell-keyed proxy to
+    // serve them.
     if (!pm && markdown && markdown.trim().length > 0) {
       try {
         pm = markdownToProseMirror(markdown) as ProseMirrorDoc;
+        await this._reconcileFileReferences(
+          context,
+          model.id,
+          column.id,
+          param.rowId,
+          pm,
+          /* req */ null,
+        );
         await this._writeRowMetaPm(
           dbDriver,
           tnPath,
@@ -280,7 +292,7 @@ export class SmartTextService extends SmartTextServiceCE {
     columnId: string,
     rowId: string,
     content: ProseMirrorDoc,
-    req: NcRequest,
+    req: NcRequest | null,
   ) {
     const fileNodes: { node: any; id?: string; path?: string }[] = [];
     const walk = (node: any) => {
@@ -302,6 +314,27 @@ export class SmartTextService extends SmartTextServiceCE {
     walk(content);
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
+    const fkUserId = req?.user?.id ?? 'anonymous';
+
+    // Validate ownership of pre-existing ids — when a cell is duplicated (copy-
+    // paste or programmatic write), pasted PM nodes may carry an `id` from the
+    // source cell. Treat those as new attachments and fork a fresh
+    // FileReference for the destination cell so the cell-keyed proxy resolves.
+    for (const fileNode of fileNodes) {
+      if (fileNode.id) {
+        const existing = await FileReference.get(context, fileNode.id);
+        if (
+          !existing ||
+          existing.deleted ||
+          existing.fk_model_id !== modelId ||
+          existing.fk_column_id !== columnId ||
+          existing.fk_row_id !== rowId
+        ) {
+          fileNode.id = undefined;
+          fileNode.node.attrs.id = null;
+        }
+      }
+    }
 
     for (const fileNode of fileNodes) {
       if (!fileNode.id && fileNode.path) {
@@ -309,7 +342,7 @@ export class SmartTextService extends SmartTextServiceCE {
           storage: storageAdapter.name,
           file_url: fileNode.path,
           file_size: fileNode.node.attrs?.fileSize || 0,
-          fk_user_id: req.user?.id ?? 'anonymous',
+          fk_user_id: fkUserId,
           fk_model_id: modelId,
           fk_column_id: columnId,
           fk_row_id: rowId,

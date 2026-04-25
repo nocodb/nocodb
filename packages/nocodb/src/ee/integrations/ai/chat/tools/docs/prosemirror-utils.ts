@@ -93,8 +93,11 @@ function renderNode(node: Record<string, any>, indent: string): string {
 
     case 'image': {
       const alt = node.attrs?.alt || '';
-      const src = node.attrs?.src || '';
-      return `![${alt}](${src})\n\n`;
+      // Prefer `path` (persistent storage key) over `src` — `src` may be a
+      // session-only blob URL after upload. Falling back to `src` keeps
+      // external image links working.
+      const url = node.attrs?.path || node.attrs?.src || '';
+      return `![${alt}](${url})\n\n`;
     }
 
     // NocoDocs-specific nodes — fenced directive syntax
@@ -131,8 +134,8 @@ function renderNode(node: Record<string, any>, indent: string): string {
 
     case 'fileAttachment': {
       const fileName = node.attrs?.fileName || 'file';
-      const src = node.attrs?.src || '';
-      return `[${fileName}](${src})\n\n`;
+      const url = node.attrs?.path || node.attrs?.src || '';
+      return `[${fileName}](${url})\n\n`;
     }
 
     case 'hardBreak':
@@ -730,7 +733,11 @@ function tokenToNode(
       return {
         type: 'image',
         attrs: {
+          // Set `path` so the FileReference reconciler picks it up — markdown
+          // has only one URL field, but PM image nodes track storage path
+          // separately from the rendered src.
           src: (token as any).href || '',
+          path: (token as any).href || '',
           alt: (token as any).text || '',
           title: (token as any).title || null,
         },
@@ -873,6 +880,7 @@ function inlineTokensToNodes(tokens: marked.Token[]): Record<string, any>[] {
           type: 'image',
           attrs: {
             src: (token as any).href || '',
+            path: (token as any).href || '',
             alt: (token as any).text || '',
             title: (token as any).title || null,
           },

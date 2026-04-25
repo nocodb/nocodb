@@ -3,6 +3,7 @@ import type {
   DependencyTableType,
   NcContext,
   NcRequest,
+  ProseMirrorDoc,
 } from 'nocodb-sdk';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
@@ -66,6 +67,7 @@ export type InternalGETResponseType = Promise<
       totalUsers: number;
       editorCount: number;
     }
+  | { pm: ProseMirrorDoc | null; markdown: string | null }
 >;
 
 export type InternalPOSTResponseType = Promise<
@@ -115,6 +117,7 @@ export type InternalPOSTResponseType = Promise<
     }
   | { deleted: number; failed: { id: string; error: string }[] }
   | { id: string; name?: string }
+  | { pm: ProseMirrorDoc | null; markdown: string | null }
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

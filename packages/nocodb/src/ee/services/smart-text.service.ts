@@ -1,10 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  AppEvents,
-  isSmartText,
-  SMART_TEXT_MAX_BYTES,
-  UITypes,
-} from 'nocodb-sdk';
+import { isSmartText, SMART_TEXT_MAX_BYTES, UITypes } from 'nocodb-sdk';
 import type { ProseMirrorDoc } from 'nocodb-sdk';
 import { SmartTextService as SmartTextServiceCE } from 'src/services/smart-text.service';
 import type { SmartTextGetResult } from 'src/services/smart-text.service';
@@ -15,7 +10,6 @@ import {
   prosemirrorToMarkdown,
 } from '~/ee/helpers/prosemirrorUtils';
 import { prepareMetaUpdateQuery } from '~/ee/helpers/metaColumnHelpers';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Model from '~/models/Model';
 import Source from '~/models/Source';
 import Column from '~/models/Column';
@@ -28,10 +22,6 @@ const META_COL_NAME = 'nc_row_meta';
 @Injectable()
 export class SmartTextService extends SmartTextServiceCE {
   protected logger = new Logger(SmartTextService.name);
-
-  constructor(protected readonly appHooksService: AppHooksService) {
-    super();
-  }
 
   async getContent(
     context: NcContext,
@@ -184,17 +174,10 @@ export class SmartTextService extends SmartTextServiceCE {
       markdown,
     );
 
-    this.appHooksService.emit(AppEvents.DATA_UPDATE, {
-      context,
-      req: param.req,
-      model,
-      view: null,
-      data: {
-        [column.title]: markdown,
-        rowId: param.rowId,
-      },
-      ip: param.req?.clientIp,
-    } as any);
+    // TODO: emit DATA_UPDATE app event for audit. Data-plane cell updates use
+    // Noco.eventEmitter directly (see BaseModelSqlv2 RECORDS_SOFT_DELETE) rather
+    // than the typed appHooksService.emit; wire SmartText into the same path
+    // when the audit listener is updated to recognize SmartText writes.
 
     return { pm: param.pmContent, markdown };
   }

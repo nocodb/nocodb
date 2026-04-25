@@ -272,6 +272,17 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     navigateToRow(activeRowIndex.value + 1)
   }
 
+  /**
+   * Backfill row context (index + data) after the panel has been opened from a
+   * URL — at deep-link time the row may not yet be in the grid's cached rows,
+   * which leaves chevron navigation and cell highlight non-functional. The
+   * grid calls this once the row arrives in cache.
+   */
+  const setRowContext = (rowIndex: number, rowData: Record<string, any>) => {
+    if (activeRowIndex.value !== rowIndex) activeRowIndex.value = rowIndex
+    if (activeRowData.value !== rowData) activeRowData.value = rowData
+  }
+
   const closeEditor = async () => {
     if (isDirty.value) await flushSave()
 
@@ -320,6 +331,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     setFullscreen,
     navigatePrev,
     navigateNext,
+    setRowContext,
   }
 }, 'smart-text-store')
 

@@ -41,6 +41,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
   const setFullscreen = (_val: boolean) => {}
   const navigatePrev = () => {}
   const navigateNext = () => {}
+  const setRowContext = (_rowIndex: number, _rowData: Record<string, any>) => {}
 
   return {
     isOpen,
@@ -69,6 +70,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     setFullscreen,
     navigatePrev,
     navigateNext,
+    setRowContext,
   }
 }, 'smart-text-store')
 

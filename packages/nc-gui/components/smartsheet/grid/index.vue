@@ -116,11 +116,19 @@ smartTextRowNavigator.value = {
 }
 
 // Deep-link sync: open the SmartText panel for the cell encoded in the URL.
-// Watches both the route query and the cached rows so the panel opens once
+// Watches the route query plus the cached rows' size so the panel opens once
 // the relevant row has been loaded (paginated views or fresh navigations).
 // Skipped while the expanded record dialog is open — that surface wins.
+const _findRowInCache = (rowId: string) => {
+  for (const [idx, row] of cachedRows.value.entries()) {
+    const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (id === rowId) return { idx, rowData: row.row }
+  }
+  return null
+}
+
 watch(
-  [() => route.value.query, cachedRows],
+  [() => route.value.query, () => cachedRows.value.size],
   ([q]) => {
     if (q.rowId) return
     const stRow = q.smartTextRowId as string | undefined
@@ -135,27 +143,24 @@ watch(
       smartTextStore.activeRowId.value === stRow &&
       smartTextStore.activeColumnId.value === stCol
     ) {
-      // Already showing this cell — just sync fullscreen if it diverged.
+      // Already showing this cell — sync fullscreen if it diverged, and
+      // backfill row context if the row has since arrived in cache (deep-link
+      // open often happens before the grid finishes loading).
       const wantFs = q.smartTextMode === 'fullscreen'
       if (smartTextStore.isFullscreen.value !== wantFs) smartTextStore.setFullscreen(wantFs)
+
+      if (smartTextStore.activeRowIndex.value == null) {
+        const found = _findRowInCache(stRow)
+        if (found) smartTextStore.setRowContext(found.idx, found.rowData)
+      }
       return
     }
 
-    let rowIndex: number | undefined
-    let rowData: Record<string, any> | undefined
-    for (const [idx, row] of cachedRows.value.entries()) {
-      const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-      if (rowId === stRow) {
-        rowIndex = idx
-        rowData = row.row
-        break
-      }
-    }
-
-    smartTextStore.openEditor(stRow, stCol, rowData, rowIndex)
+    const found = _findRowInCache(stRow)
+    smartTextStore.openEditor(stRow, stCol, found?.rowData, found?.idx)
     if (q.smartTextMode === 'fullscreen') smartTextStore.setFullscreen(true)
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 )
 
 const rowHeight = computed(() => {

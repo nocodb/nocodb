@@ -31,8 +31,18 @@ const availableFields = computed(() => {
   )
 })
 
-const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn, updateFieldName, isSyncedField } =
-  useColumnCreateStoreOrThrow()
+const {
+  isEdit,
+  setAdditionalValidations,
+  column,
+  formattedData,
+  loadData,
+  disableSubmitBtn,
+  updateFieldName,
+  isSyncedField,
+  isPg,
+  isXcdbBase,
+} = useColumnCreateStoreOrThrow()
 
 const { isAiBetaFeaturesEnabled, aiIntegrationAvailable, generateRows } = useNocoAi()
 
@@ -65,6 +75,7 @@ const isEnabledGenerateText = computed({
     vModel.value.prompt_raw = ''
     previewRow.value.row = {}
     isAlreadyGenerated.value = false
+    if (value) vModel.value.meta.smartMode = false
   },
 })
 
@@ -171,8 +182,41 @@ const richMode = computed({
     if (!vModel.value.meta) vModel.value.meta = {}
 
     vModel.value.meta.richMode = value
+    if (value) vModel.value.meta.smartMode = false
   },
 })
+
+const smartMode = computed({
+  get: () => !!vModel.value.meta?.smartMode,
+  set: (value) => {
+    if (!vModel.value.meta) vModel.value.meta = {}
+
+    vModel.value.meta.smartMode = value
+    if (value) {
+      vModel.value.meta.richMode = false
+      vModel.value.meta[LongTextAiMetaProp] = false
+    }
+  },
+})
+
+// SmartText requires nc_row_meta — only available on internal PG sources.
+const isSmartTextEligible = computed(
+  () => isXcdbBase.value && isPg.value && isEeUI,
+)
+
+const smartTextDisableReason = computed(() => {
+  if (!isSmartTextEligible.value)
+    return 'Smart Text is only available on internal PostgreSQL sources'
+  if (richMode.value)
+    return 'Smart Text and Rich Text are mutually exclusive'
+  if (isEnabledGenerateText.value)
+    return 'Smart Text and AI generation are mutually exclusive'
+  if (isPvColumn.value && !smartMode.value)
+    return `${UITypesName.LongText} field cannot be used as display value field`
+  return ''
+})
+
+const isSmartTextDisabled = computed(() => !!smartTextDisableReason.value)
 
 const handleDisableSubmitBtn = () => {
   updateFieldName()
@@ -204,20 +248,46 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
 <template>
   <div class="flex flex-col gap-4">
     <a-form-item>
-      <NcTooltip :disabled="!(isEnabledGenerateText || (isPvColumn && !richMode))">
+      <NcTooltip :disabled="!(isEnabledGenerateText || smartMode || (isPvColumn && !richMode))">
         <template #title>
           {{
             isPvColumn && !richMode
               ? `${UITypesName.RichText} field cannot be used as display value field`
+              : smartMode
+              ? 'Rich text formatting is not supported when Smart Text is enabled'
               : 'Rich text formatting is not supported when generate text using AI is enabled'
           }}
         </template>
         <div class="flex items-center gap-1">
-          <NcSwitch v-model:checked="richMode" :disabled="isEnabledGenerateText || (isPvColumn && !richMode)">
+          <NcSwitch
+            v-model:checked="richMode"
+            :disabled="isEnabledGenerateText || smartMode || (isPvColumn && !richMode)"
+          >
             <div class="text-sm text-nc-content-gray select-none">
               {{ $t('labels.enableRichText') }}
             </div>
           </NcSwitch>
+        </div>
+      </NcTooltip>
+    </a-form-item>
+
+    <a-form-item v-if="isSmartTextEligible || smartMode">
+      <NcTooltip :disabled="!isSmartTextDisabled">
+        <template #title>{{ smartTextDisableReason }}</template>
+        <div class="flex items-center gap-1">
+          <NcSwitch v-model:checked="smartMode" :disabled="isSmartTextDisabled" data-testid="nc-long-text-smart-mode-toggle">
+            <div class="text-sm text-nc-content-gray select-none">Enable Smart Text</div>
+          </NcSwitch>
+          <NcTooltip class="ml-1 flex cursor-pointer">
+            <template #title>
+              Smart Text uses a rich block-based editor with formatting, images, tables, and more. Content is stored
+              in-row, so it's searchable and filterable.
+            </template>
+            <GeneralIcon
+              icon="info"
+              class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70 w-3.5 h-3.5"
+            />
+          </NcTooltip>
         </div>
       </NcTooltip>
     </a-form-item>

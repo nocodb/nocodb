@@ -28,6 +28,8 @@ export const isActiveElementInsideExtension = () =>
   )
 export const isActiveElementInsideScriptPane = () => document.querySelector('.nc-action-pane')?.contains(document.activeElement)
 export const isActiveElementInsideDocFieldPanel = () => document.querySelector('.nc-doc-field-panel')?.contains(document.activeElement)
+export const isActiveElementInsideSmartTextPanel = () =>
+  document.querySelector('.nc-smart-text-panel')?.contains(document.activeElement)
 export const isTiptapDropdownExistInsideEditor = () => {
   return document.querySelector('.tippy-box')
 }

@@ -98,12 +98,20 @@ onBeforeUnmount(() => {
 })
 
 // Save when focus leaves the panel body (covers blur from editor, dropdowns, etc.).
+// During paste / clipboard interactions, focusout fires transiently with a null
+// relatedTarget while focus is in flight back to the editor. Defer the check
+// until after the focus transition settles by waiting one microtask and reading
+// document.activeElement — that reflects the *final* next target.
 const onPanelBlur = (e: FocusEvent) => {
-  // Only flush if the new focus is outside the panel.
   if (!panelRef.value) return
   const next = e.relatedTarget as Node | null
   if (next && panelRef.value.contains(next)) return
-  if (isDirty.value) flushSave()
+
+  setTimeout(() => {
+    if (!panelRef.value) return
+    if (panelRef.value.contains(document.activeElement)) return
+    if (isDirty.value) flushSave()
+  }, 0)
 }
 
 // ---- UI helpers ------------------------------------------------------------

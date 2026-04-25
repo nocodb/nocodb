@@ -32,6 +32,34 @@ import { marked } from 'marked';
 // ── PM → Markdown ──────────────────────────────────────────────────────────
 
 /**
+ * Percent-encode the chars that break CommonMark image / link URLs:
+ * whitespace and unbalanced parens. Other chars (incl. non-ASCII) are left
+ * intact — markdown handles those fine, and Cyrillic / CJK filenames stay
+ * readable in the round-tripped markdown.
+ */
+function encodeMarkdownUrl(url: string): string {
+  if (!url) return '';
+  return url
+    .replace(/ /g, '%20')
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29');
+}
+
+/**
+ * Inverse of encodeMarkdownUrl — used when reading marked-emitted href values
+ * back into PM nodes so the `path` matches the actual storage key (file lookup
+ * fails for encoded paths). Falls back to the raw string on malformed input.
+ */
+function decodeMarkdownUrl(url: string): string {
+  if (!url) return '';
+  try {
+    return decodeURI(url);
+  } catch {
+    return url;
+  }
+}
+
+/**
  * Convert a ProseMirror JSON document to a Markdown string.
  */
 export function prosemirrorToMarkdown(doc: Record<string, any>): string {
@@ -97,7 +125,7 @@ function renderNode(node: Record<string, any>, indent: string): string {
       // session-only blob URL after upload. Falling back to `src` keeps
       // external image links working.
       const url = node.attrs?.path || node.attrs?.src || '';
-      return `![${alt}](${url})\n\n`;
+      return `![${alt}](${encodeMarkdownUrl(url)})\n\n`;
     }
 
     // NocoDocs-specific nodes — fenced directive syntax
@@ -135,7 +163,7 @@ function renderNode(node: Record<string, any>, indent: string): string {
     case 'fileAttachment': {
       const fileName = node.attrs?.fileName || 'file';
       const url = node.attrs?.path || node.attrs?.src || '';
-      return `[${fileName}](${url})\n\n`;
+      return `[${fileName}](${encodeMarkdownUrl(url)})\n\n`;
     }
 
     case 'hardBreak':
@@ -729,19 +757,21 @@ function tokenToNode(
       return { type: 'table', content: rows };
     }
 
-    case 'image':
+    case 'image': {
+      const href = decodeMarkdownUrl((token as any).href || '');
       return {
         type: 'image',
         attrs: {
           // Set `path` so the FileReference reconciler picks it up — markdown
           // has only one URL field, but PM image nodes track storage path
           // separately from the rendered src.
-          src: (token as any).href || '',
-          path: (token as any).href || '',
+          src: href,
+          path: href,
           alt: (token as any).text || '',
           title: (token as any).title || null,
         },
       };
+    }
 
     case 'space':
       return null;
@@ -875,17 +905,19 @@ function inlineTokensToNodes(tokens: marked.Token[]): Record<string, any>[] {
         break;
       }
 
-      case 'image':
+      case 'image': {
+        const href = decodeMarkdownUrl((token as any).href || '');
         nodes.push({
           type: 'image',
           attrs: {
-            src: (token as any).href || '',
-            path: (token as any).href || '',
+            src: href,
+            path: href,
             alt: (token as any).text || '',
             title: (token as any).title || null,
           },
         });
         break;
+      }
 
       case 'br':
         nodes.push({ type: 'hardBreak' });

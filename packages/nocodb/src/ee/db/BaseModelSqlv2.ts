@@ -3016,6 +3016,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         ignoreRls: args.ignoreRls,
         getHiddenColumns: args.extractOrderColumn,
         deletedOnly: args.deletedOnly,
+        extractOnlyPrimaries: args.extractOnlyPrimaries,
       };
 
       if (['mysql', 'mysql2'].includes(source.type)) {

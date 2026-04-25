@@ -23,7 +23,7 @@ const up = async (knex: Knex) => {
     table.string('parent_name', 255);
 
     table.string('resource_type');
-    table.string('resource_id', 20);
+    table.string('resource_id', 255);
 
     table.string('parent_type');
     table.string('parent_id', 20);

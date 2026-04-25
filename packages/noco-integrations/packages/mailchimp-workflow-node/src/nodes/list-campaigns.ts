@@ -10,6 +10,7 @@ import {
   type FormDefinition,
 } from '@noco-integrations/core';
 import type { MailchimpAuthIntegration } from '@noco-integrations/mailchimp-auth';
+import { fetchLists } from '../utils';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -115,15 +116,7 @@ export class ListCampaignsNode extends WorkflowNodeIntegration<ListCampaignsConf
       const auth = await this.getIntegration<MailchimpAuthIntegration>(
         this.config.authIntegrationId,
       );
-      return await auth.use(async (client) => {
-        const response = await client.lists.getAllLists({ count: 1000 });
-        return ((response as any).lists || []).map(
-          (list: { name: string; id: string }) => ({
-            label: list.name,
-            value: list.id,
-          }),
-        );
-      });
+      return await fetchLists(auth);
     }
 
     return [];

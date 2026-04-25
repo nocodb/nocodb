@@ -10,6 +10,7 @@ import {
   type FormDefinition,
 } from '@noco-integrations/core';
 import type { MailchimpAuthIntegration } from '@noco-integrations/mailchimp-auth';
+import { subscriberHash, fetchLists } from '../utils';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -100,15 +101,7 @@ export class UnsubscribeContactNode extends WorkflowNodeIntegration<UnsubscribeC
       const auth = await this.getIntegration<MailchimpAuthIntegration>(
         this.config.authIntegrationId,
       );
-      return await auth.use(async (client) => {
-        const response = await client.lists.getAllLists({ count: 1000 });
-        return ((response as any).lists || []).map(
-          (list: { name: string; id: string }) => ({
-            label: list.name,
-            value: list.id,
-          }),
-        );
-      });
+      return await fetchLists(auth);
     }
 
     return [];
@@ -181,10 +174,10 @@ export class UnsubscribeContactNode extends WorkflowNodeIntegration<UnsubscribeC
       const auth =
         await this.getIntegration<MailchimpAuthIntegration>(authIntegrationId);
 
-      const subscriberHash = await this.md5(email.toLowerCase());
+      const hash = subscriberHash(email);
 
       const member = await auth.use(async (client) => {
-        return await client.lists.updateListMember(listId, subscriberHash, {
+        return await client.lists.updateListMember(listId, hash, {
           status: 'unsubscribed',
         });
       });
@@ -225,11 +218,6 @@ export class UnsubscribeContactNode extends WorkflowNodeIntegration<UnsubscribeC
         metrics: { executionTimeMs: Date.now() - startTime },
       };
     }
-  }
-
-  private async md5(str: string): Promise<string> {
-    const { createHash } = await import('crypto');
-    return createHash('md5').update(str).digest('hex');
   }
 
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {

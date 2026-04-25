@@ -16,6 +16,7 @@ import type {
   WorkflowNodeResult,
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
+import { subscriberHash, fetchLists } from '../utils';
 
 interface DeleteContactConfig extends WorkflowNodeConfig {
   authIntegrationId: string;
@@ -109,15 +110,7 @@ export class DeleteContactNode extends WorkflowNodeIntegration<DeleteContactConf
       const auth = await this.getIntegration<MailchimpAuthIntegration>(
         this.config.authIntegrationId,
       );
-      return await auth.use(async (client) => {
-        const response = await client.lists.getAllLists({ count: 1000 });
-        return ((response as any).lists || []).map(
-          (list: { name: string; id: string }) => ({
-            label: list.name,
-            value: list.id,
-          }),
-        );
-      });
+      return await fetchLists(auth);
     }
 
     return [];
@@ -191,18 +184,18 @@ export class DeleteContactNode extends WorkflowNodeIntegration<DeleteContactConf
       const auth =
         await this.getIntegration<MailchimpAuthIntegration>(authIntegrationId);
 
-      const subscriberHash = await this.md5(email.toLowerCase());
+      const hash = subscriberHash(email);
 
       if (permanent) {
         await auth.use(async (client) => {
           return await client.lists.deleteListMemberPermanent(
             listId,
-            subscriberHash,
+            hash,
           );
         });
       } else {
         await auth.use(async (client) => {
-          return await client.lists.deleteListMember(listId, subscriberHash);
+          return await client.lists.deleteListMember(listId, hash);
         });
       }
 
@@ -239,11 +232,6 @@ export class DeleteContactNode extends WorkflowNodeIntegration<DeleteContactConf
         metrics: { executionTimeMs: Date.now() - startTime },
       };
     }
-  }
-
-  private async md5(str: string): Promise<string> {
-    const { createHash } = await import('crypto');
-    return createHash('md5').update(str).digest('hex');
   }
 
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {

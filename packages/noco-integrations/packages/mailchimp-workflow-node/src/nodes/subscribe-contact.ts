@@ -10,6 +10,7 @@ import {
   type FormDefinition,
 } from '@noco-integrations/core';
 import type { MailchimpAuthIntegration } from '@noco-integrations/mailchimp-auth';
+import { subscriberHash, fetchLists } from '../utils';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -138,15 +139,7 @@ export class SubscribeContactNode extends WorkflowNodeIntegration<SubscribeConta
       const auth = await this.getIntegration<MailchimpAuthIntegration>(
         this.config.authIntegrationId,
       );
-      return await auth.use(async (client) => {
-        const response = await client.lists.getAllLists({ count: 1000 });
-        return ((response as any).lists || []).map(
-          (list: { name: string; id: string }) => ({
-            label: list.name,
-            value: list.id,
-          }),
-        );
-      });
+      return await fetchLists(auth);
     }
 
     return [];
@@ -219,7 +212,7 @@ export class SubscribeContactNode extends WorkflowNodeIntegration<SubscribeConta
       const auth =
         await this.getIntegration<MailchimpAuthIntegration>(authIntegrationId);
 
-      const subscriberHash = await this.md5(email.toLowerCase());
+      const hash = subscriberHash(email);
 
       const mergeFields: Record<string, string> = {};
       if (config.firstName) mergeFields.FNAME = config.firstName;
@@ -227,7 +220,7 @@ export class SubscribeContactNode extends WorkflowNodeIntegration<SubscribeConta
 
       // Use setListMember (PUT) to create-or-update
       const member = await auth.use(async (client) => {
-        return await client.lists.setListMember(listId, subscriberHash, {
+        return await client.lists.setListMember(listId, hash, {
           email_address: email,
           status_if_new: status || 'subscribed',
           status: status || 'subscribed',
@@ -273,11 +266,6 @@ export class SubscribeContactNode extends WorkflowNodeIntegration<SubscribeConta
         metrics: { executionTimeMs: Date.now() - startTime },
       };
     }
-  }
-
-  private async md5(str: string): Promise<string> {
-    const { createHash } = await import('crypto');
-    return createHash('md5').update(str).digest('hex');
   }
 
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {

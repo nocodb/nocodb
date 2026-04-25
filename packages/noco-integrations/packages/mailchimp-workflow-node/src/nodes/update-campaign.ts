@@ -10,6 +10,7 @@ import {
   type FormDefinition,
 } from '@noco-integrations/core';
 import type { MailchimpAuthIntegration } from '@noco-integrations/mailchimp-auth';
+import { fetchLists, fetchSegments, fetchTemplates } from '../utils';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -146,47 +147,26 @@ export class UpdateCampaignNode extends WorkflowNodeIntegration<UpdateCampaignCo
   }
 
   public async fetchOptions(key: string): Promise<unknown> {
-    const auth = await this.getIntegration<MailchimpAuthIntegration>(
-      this.config.authIntegrationId,
-    );
-
     if (key === 'lists') {
-      return await auth.use(async (client) => {
-        const response = await client.lists.getAllLists({ count: 1000 });
-        return ((response as any).lists || []).map(
-          (list: { name: string; id: string }) => ({
-            label: list.name,
-            value: list.id,
-          }),
-        );
-      });
+      const auth = await this.getIntegration<MailchimpAuthIntegration>(
+        this.config.authIntegrationId,
+      );
+      return await fetchLists(auth);
     }
 
     if (key === 'segments') {
       if (!this.config.listId) return [];
-      return await auth.use(async (client) => {
-        const response = await client.lists.listSegments(this.config.listId!, {
-          count: 1000,
-        });
-        return ((response as any).segments || []).map(
-          (seg: { name: string; id: number }) => ({
-            label: seg.name,
-            value: String(seg.id),
-          }),
-        );
-      });
+      const auth = await this.getIntegration<MailchimpAuthIntegration>(
+        this.config.authIntegrationId,
+      );
+      return await fetchSegments(auth, this.config.listId);
     }
 
     if (key === 'templates') {
-      return await auth.use(async (client) => {
-        const response = await client.templates.list({ count: 1000 });
-        return ((response as any).templates || []).map(
-          (tpl: { name: string; id: number }) => ({
-            label: tpl.name,
-            value: tpl.id,
-          }),
-        );
-      });
+      const auth = await this.getIntegration<MailchimpAuthIntegration>(
+        this.config.authIntegrationId,
+      );
+      return await fetchTemplates(auth);
     }
 
     return [];

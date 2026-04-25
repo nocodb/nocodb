@@ -16,6 +16,7 @@ import type {
   WorkflowNodeResult,
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
+import { subscriberHash, fetchLists } from '../utils';
 
 interface AddContactConfig extends WorkflowNodeConfig {
   authIntegrationId: string;
@@ -155,15 +156,7 @@ export class AddContactNode extends WorkflowNodeIntegration<AddContactConfig> {
       const auth = await this.getIntegration<MailchimpAuthIntegration>(
         this.config.authIntegrationId,
       );
-      return await auth.use(async (client) => {
-        const response = await client.lists.getAllLists({ count: 1000 });
-        return ((response as any).lists || []).map(
-          (list: { name: string; id: string }) => ({
-            label: list.name,
-            value: list.id,
-          }),
-        );
-      });
+      return await fetchLists(auth);
     }
 
     return [];
@@ -269,7 +262,7 @@ export class AddContactNode extends WorkflowNodeIntegration<AddContactConfig> {
         );
       }
 
-      const subscriberHash = await this.md5(email.toLowerCase());
+      const hash = subscriberHash(email);
 
       const body: any = {
         email_address: email,
@@ -282,7 +275,7 @@ export class AddContactNode extends WorkflowNodeIntegration<AddContactConfig> {
 
       // PUT (setListMember) — creates if new, updates if exists
       const member = await auth.use(async (client) => {
-        return await client.lists.setListMember(listId, subscriberHash, body);
+        return await client.lists.setListMember(listId, hash, body);
       });
 
       const result = member as any;
@@ -321,11 +314,6 @@ export class AddContactNode extends WorkflowNodeIntegration<AddContactConfig> {
         metrics: { executionTimeMs: Date.now() - startTime },
       };
     }
-  }
-
-  private async md5(str: string): Promise<string> {
-    const { createHash } = await import('crypto');
-    return createHash('md5').update(str).digest('hex');
   }
 
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {

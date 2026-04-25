@@ -110,3 +110,4 @@ export * from '~/lib/Document';
 export * from '~/lib/DocumentComment';
 export * from '~/lib/docs';
 export * from '~/lib/entityNameValidation';
+export * from '~/lib/smartText';

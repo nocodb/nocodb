@@ -176,7 +176,15 @@ jobs:
       - name: Run backend:pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb
+        env:
+          # Dump up to 3 heap snapshots when V8 nears the OOM limit, plus a sampled
+          # allocation profile on process exit. Snapshots land in CWD as
+          # Heap.<ts>.<pid>.<seq>.heapsnapshot; profile lands in ./heap-profiles/.
+          # Keep --max-old-space-size at the runner default (~4GB) so we still
+          # trigger the snapshot dump before the OS kills the process.
+          NODE_OPTIONS: "--heapsnapshot-near-heap-limit=3 --heap-prof --heap-prof-dir=./heap-profiles"
         run: |
+          mkdir -p heap-profiles
           pnpm run watch:run:playwright:pg:ee &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
 
       - name: Cache Playwright browsers
@@ -271,6 +279,21 @@ jobs:
             aws s3 cp ./packages/nocodb/${LOG_FILE} s3://nocohub-ci-artifacts/${s3_path}/${LOG_FILE} --content-type "text/plain; charset=utf-8"
           fi
 
+          # Upload heap snapshots / heap profile (PG only — gated by NODE_OPTIONS in
+          # the backend step). Snapshots can be ~heap-size raw, so gzip first.
+          # Open in Chrome DevTools → Memory tab to inspect.
+          HEAP_LIST=""
+          shopt -s nullglob
+          for f in ./packages/nocodb/Heap.*.heapsnapshot ./packages/nocodb/heap-profiles/*.heapprofile ./packages/nocodb/heap-profiles/*.heapsnapshot; do
+            [ -f "$f" ] || continue
+            gzip -f "$f"
+            base="$(basename "$f").gz"
+            aws s3 cp "${f}.gz" "s3://nocohub-ci-artifacts/${s3_path}/heap/${base}"
+            HEAP_LIST="${HEAP_LIST}
+          [heap/${base}](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/heap/${base})"
+          done
+          shopt -u nullglob
+
           SUMMARY="[backend-logs](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/${LOG_FILE})
-          [playwright-report](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/playwright-report/index.html)"
+          [playwright-report](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/playwright-report/index.html)${HEAP_LIST}"
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY

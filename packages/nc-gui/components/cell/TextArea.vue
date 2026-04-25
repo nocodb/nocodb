@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { AIRecordType } from 'nocodb-sdk'
+import { isSmartText } from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
 const props = defineProps<{
@@ -187,6 +188,10 @@ const isRichMode = computed(() => {
 
   return meta?.richMode
 })
+
+// SmartText cells are edited via the SmartText side panel — the rich text
+// expand modal would just show raw markdown, so suppress the expand affordance.
+const isSmartMode = computed(() => isSmartText(column?.value))
 
 const richTextContent = computedAsync(async () => {
   if (isRichMode.value && vModel.value) {
@@ -717,7 +722,7 @@ useResizeObserver(inputWrapperRef, () => {
             </template>
           </NcButton>
         </NcTooltip>
-        <NcTooltip v-if="!isVisible && !isForm" placement="bottom" class="nc-action-icon">
+        <NcTooltip v-if="!isVisible && !isForm && !isSmartMode" placement="bottom" class="nc-action-icon">
           <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
           <NcButton
             type="secondary"

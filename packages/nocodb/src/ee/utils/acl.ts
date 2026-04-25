@@ -463,6 +463,10 @@ const permissionScopes = {
     'docFieldDuplicate',
     'docFieldRestore',
 
+    // SmartText
+    'smartTextGetContent',
+    'smartTextUpdateContent',
+
     // Document Comments
     'documentCommentList',
     'documentCommentCount',
@@ -885,6 +889,9 @@ const rolePermissions:
       // Doc Field — read-only for viewers
       docFieldGet: true,
 
+      // SmartText — read-only for viewers
+      smartTextGetContent: true,
+
       // Document Comments — read-only for viewers
       documentCommentList: true,
       documentCommentCount: true,
@@ -1002,6 +1009,9 @@ const rolePermissions:
       docFieldDelete: true,
       docFieldDuplicate: true,
       docFieldRestore: true,
+
+      // SmartText — editors can update cell content
+      smartTextUpdateContent: true,
 
       // Extensions
       extensionUpdate: true,
@@ -1655,6 +1665,9 @@ const permissionDescriptions: Record<string, string> = {
   docFieldDelete: 'delete a doc field document',
   docFieldDuplicate: 'duplicate a doc field document',
   docFieldRestore: 'restore a deleted doc field document',
+
+  smartTextGetContent: 'read SmartText cell content',
+  smartTextUpdateContent: 'update SmartText cell content',
 
   documentCommentList: 'view document comments',
   documentCommentCount: 'view document comment count',

@@ -148,6 +148,10 @@ export const OPERATION_SCOPES = {
   docFieldDuplicate: 'base',
   docFieldRestore: 'base',
 
+  // SmartText (EE-only)
+  smartTextGetContent: 'base',
+  smartTextUpdateContent: 'base',
+
   // Document Comments (EE-only)
   documentCommentList: 'base',
   documentCommentCount: 'base',

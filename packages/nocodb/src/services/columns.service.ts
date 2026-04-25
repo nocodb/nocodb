@@ -19,6 +19,8 @@ import {
   isVirtualCol,
   LinksVersion,
   LongTextAiMetaProp,
+  LongTextRichModeMetaProp,
+  LongTextSmartModeMetaProp,
   MetaEventType,
   NcApiVersion,
   NcBaseError,
@@ -357,6 +359,38 @@ const generateColumnDeleteHandler = (
   };
 };
 
+/**
+ * Validate that LongText meta flags richMode / smartMode / ai are mutually
+ * exclusive — at most one may be true on a single column.
+ *
+ * Also enforces that smartMode is only enabled on internal sources
+ * (nc_row_meta is not present on external tables, and we don't alter their schema).
+ */
+function validateLongTextMetaExclusivity(
+  context: NcContext,
+  uidt: UITypes | string | undefined,
+  meta: Record<string, any> | null | undefined,
+  source: Source | null | undefined,
+) {
+  if (uidt !== UITypes.LongText || !meta) return;
+
+  const richMode = !!meta[LongTextRichModeMetaProp];
+  const smartMode = !!meta[LongTextSmartModeMetaProp];
+  const aiMode = !!meta[LongTextAiMetaProp];
+
+  if ([richMode, smartMode, aiMode].filter(Boolean).length > 1) {
+    NcError.get(context).invalidRequestBody(
+      'richMode, smartMode, and AI generation are mutually exclusive on LongText',
+    );
+  }
+
+  if (smartMode && source && !source.is_meta) {
+    NcError.get(context).invalidRequestBody(
+      'SmartText is only supported on internal sources',
+    );
+  }
+}
+
 @Injectable()
 export class ColumnsService implements IColumnsService {
   protected logger = new Logger(ColumnsService.name);
@@ -611,6 +645,22 @@ export class ColumnsService implements IColumnsService {
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id),
     );
+
+    // Merge incoming meta with existing column meta to validate the post-update state.
+    if (column.uidt === UITypes.LongText) {
+      const incomingMeta = parseProp((param.column as any)?.meta);
+      const existingMeta = parseProp(column.meta);
+      const mergedMeta =
+        incomingMeta !== undefined && incomingMeta !== null
+          ? { ...existingMeta, ...incomingMeta }
+          : existingMeta;
+      validateLongTextMetaExclusivity(
+        context,
+        column.uidt,
+        mergedMeta,
+        source,
+      );
+    }
 
     const columnWebhookManager =
       param.columnWebhookManager ??
@@ -3027,6 +3077,14 @@ export class ColumnsService implements IColumnsService {
     ) {
       NcError.get(context).sourceMetaReadOnly(source.alias);
     }
+
+    validateLongTextMetaExclusivity(
+      context,
+      param.column.uidt,
+      (param.column as any).meta,
+      source,
+    );
+
     if (
       (param.column as any).system ||
       [UITypes.Order, UITypes.ID, UITypes.Deleted, UITypes.Meta].includes(

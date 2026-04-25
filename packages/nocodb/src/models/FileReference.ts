@@ -45,6 +45,7 @@ export default class FileReference {
       'source_id',
       'fk_model_id',
       'fk_column_id',
+      'fk_row_id',
       'fk_doc_id',
       'fk_session_id',
       'is_external',
@@ -80,6 +81,7 @@ export default class FileReference {
       'source_id',
       'fk_model_id',
       'fk_column_id',
+      'fk_row_id',
       'fk_doc_id',
       'fk_session_id',
       'is_external',
@@ -379,6 +381,31 @@ export default class FileReference {
       .where({
         base_id: context.base_id,
         fk_doc_id: docId,
+        deleted: false,
+      })
+      .select('id');
+
+    return rows.map((r: any) => r.id);
+  }
+
+  /**
+   * List non-deleted FileReference IDs for a SmartText cell (model + column + row).
+   * Uses nc_fr_row_idx (base_id, fk_column_id, fk_row_id).
+   */
+  public static async listIdsForCell(
+    context: NcContext,
+    modelId: string,
+    columnId: string,
+    rowId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string[]> {
+    const rows = await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_model_id: modelId,
+        fk_column_id: columnId,
+        fk_row_id: rowId,
         deleted: false,
       })
       .select('id');

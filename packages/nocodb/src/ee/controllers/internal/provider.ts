@@ -30,6 +30,8 @@ import { TrashGetOperations } from '~/controllers/internal/modules/TrashGet.oper
 import { TrashPostOperations } from '~/controllers/internal/modules/TrashPost.operations';
 import { DocFieldGetOperations } from '~/controllers/internal/modules/DocFieldGet.operations';
 import { DocFieldPostOperations } from '~/controllers/internal/modules/DocFieldPost.operations';
+import { SmartTextGetOperations } from '~/controllers/internal/modules/SmartTextGet.operations';
+import { SmartTextPostOperations } from '~/controllers/internal/modules/SmartTextPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -64,6 +66,8 @@ export const InternalApiModules = [
   TrashPostOperations,
   DocFieldGetOperations,
   DocFieldPostOperations,
+  SmartTextGetOperations,
+  SmartTextPostOperations,
 ];
 
 export const InternalApiModuleProvider = {

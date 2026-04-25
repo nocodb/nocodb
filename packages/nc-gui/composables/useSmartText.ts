@@ -22,6 +22,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
 
   const activeColumn = computed(() => undefined)
   const smartTextColumns = computed(() => [])
+  const activeDisplayValue = computed<string | null>(() => null)
   const hasPrev = computed(() => false)
   const hasNext = computed(() => false)
 
@@ -56,6 +57,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     isFullscreen,
     activeColumn,
     smartTextColumns,
+    activeDisplayValue,
     hasPrev,
     hasNext,
     rowNavigator,

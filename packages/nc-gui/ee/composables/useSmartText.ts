@@ -51,6 +51,14 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     return meta.value.columns.filter((c) => isSmartText(c))
   })
 
+  const activeDisplayValue = computed(() => {
+    if (!activeRowData.value || !meta.value?.columns) return null
+    const pvCol = meta.value.columns.find((c) => c.pv)
+    if (!pvCol?.title) return null
+    const val = activeRowData.value[pvCol.title]
+    return val != null && val !== '' ? String(val) : null
+  })
+
   const hasPrev = computed(() => activeRowIndex.value != null && activeRowIndex.value > 0)
 
   const hasNext = computed(() => {
@@ -243,6 +251,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     isFullscreen,
     activeColumn,
     smartTextColumns,
+    activeDisplayValue,
     hasPrev,
     hasNext,
     rowNavigator,

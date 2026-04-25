@@ -12,6 +12,7 @@ const {
   activeColumn,
   activeColumnId,
   smartTextColumns,
+  activeDisplayValue,
   hasPrev,
   hasNext,
 } = smartTextStore
@@ -27,7 +28,7 @@ const {
 } = smartTextStore
 
 const { t } = useI18n()
-const meta = inject(MetaInj, ref())
+const view = inject(ActiveViewInj, ref())
 
 // Fullscreen mode covers everything to the right of the project sidebar.
 // We measure the sidebar's actual right edge from the DOM rather than using
@@ -231,12 +232,23 @@ const onEditorContentUpdate = (content: Record<string, any>) => {
         class="flex items-center h-[var(--topbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
       >
         <div
-          v-if="isFullscreen && meta?.title"
-          class="flex items-center gap-1 text-bodySm text-nc-content-gray-subtle2 truncate max-w-40"
+          v-if="isFullscreen"
+          class="flex items-center gap-2 text-bodyDefaultSm font-medium text-nc-content-gray-subtle2 leading-normal min-w-0"
         >
-          <GeneralIcon icon="table" class="w-4 h-4 flex-shrink-0" />
-          <span class="truncate">{{ meta.title }}</span>
-          <span>·</span>
+          <template v-if="view?.title">
+            <NcTooltip show-on-truncate-only class="truncate max-w-40">
+              <template #title>{{ view.title }}</template>
+              {{ view.title }}
+            </NcTooltip>
+            <span class="flex-shrink-0">·</span>
+          </template>
+          <template v-if="activeDisplayValue">
+            <NcTooltip show-on-truncate-only class="truncate max-w-40">
+              <template #title>{{ activeDisplayValue }}</template>
+              {{ activeDisplayValue }}
+            </NcTooltip>
+            <span class="flex-shrink-0">·</span>
+          </template>
         </div>
 
         <NcDropdown v-if="smartTextColumns.length > 1" placement="bottomLeft">

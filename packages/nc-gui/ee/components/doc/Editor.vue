@@ -42,11 +42,32 @@ import { suggestion } from '~/helpers/tiptap'
 
 const props = withDefaults(
   defineProps<{
-    docId: string
+    /**
+     * Doc page id. Required in `mode = 'doc'`. Ignored in `mode = 'cell'`,
+     * where the editor is driven by `initialContent` instead of loading
+     * from the docs store.
+     */
+    docId?: string
     embedded?: boolean
+    /**
+     * `'doc'` (default): full page editor — loads + auto-saves a document
+     * via the documents store; renders title, cover, comments, breadcrumb.
+     * `'cell'`: SmartText cell editor — no doc load/save, no title/cover;
+     * content is provided via `initialContent` and changes emit
+     * `update:content`. The parent owns persistence.
+     */
+    mode?: 'doc' | 'cell'
+    /** Initial PM JSON for cell mode. Re-applied when the prop reference changes. */
+    initialContent?: Record<string, any> | null
   }>(),
-  { embedded: false },
+  { docId: '', embedded: false, mode: 'doc', initialContent: null },
 )
+
+const emit = defineEmits<{
+  (e: 'update:content', content: Record<string, any>): void
+}>()
+
+const isCellMode = computed(() => props.mode === 'cell')
 
 const docId = toRef(props, 'docId')
 
@@ -140,6 +161,11 @@ const isTitleVisible = ref(true)
 
 const editor = shallowRef<Editor | undefined>()
 
+// In cell mode the editor is driven by `initialContent` + an `update:content`
+// emit — no document load/save. We provide a shape-compatible stub so the
+// rest of this component (title/cover/comments/version chrome, all template
+// references to doc/title/isSaving/etc.) keeps working without per-callsite
+// branches. In doc mode the real composable runs.
 const {
   doc,
   title,
@@ -153,7 +179,27 @@ const {
   reloadDocument,
   flushOnUnmount,
   activeDocument,
-} = useDocumentAutoSave({ editor, activeProjectId, isEditable })
+} = isCellMode.value
+  ? (() => {
+      const cellDoc = ref<any>({ id: 'cell', title: '', meta: {} })
+      const noop = () => {}
+      const noopAsync = async () => {}
+      return {
+        doc: cellDoc,
+        title: ref(''),
+        lastSavedTitle: ref(''),
+        isSaving: ref(false),
+        isLoaded: ref(true),
+        isStale: computed(() => false),
+        staleUpdatedBy: computed(() => null),
+        debouncedSave: noop as () => void,
+        loadAndSetDoc: noopAsync as (_id: string) => Promise<void>,
+        reloadDocument: noopAsync as () => Promise<any>,
+        flushOnUnmount: noop as () => void,
+        activeDocument: ref<any>(null),
+      }
+    })()
+  : useDocumentAutoSave({ editor, activeProjectId, isEditable })
 
 const docMeta = computed(() => parseProp(doc.value?.meta))
 
@@ -1445,10 +1491,16 @@ const _tiptapEditor = useEditor({
       return true
     },
   },
-  onUpdate: () => {
+  onUpdate: ({ editor: e }) => {
     // Dismiss paste-link menu on any editor content change (typing, etc.)
     if (pasteLinkMenu.value.visible) dismissPasteLinkMenu()
-    debouncedSave()
+    if (isCellMode.value) {
+      // Cell mode: parent owns persistence; emit JSON on every edit.
+      // No debounce here — SmartTextPanel batches via session-end triggers.
+      emit('update:content', e.getJSON() as Record<string, any>)
+    } else {
+      debouncedSave()
+    }
     countTasks()
   },
   onSelectionUpdate: () => {
@@ -1616,34 +1668,54 @@ const resolvedDir = computed<'ltr' | 'rtl'>(() => {
 // Watch both docId AND activeProjectId — on a full page reload, activeProjectId
 // may not be available yet when docId resolves from route params. Without this,
 // loadDoc silently returns null (guard: !activeProjectId) and the editor stays empty.
-watch(
-  [docId, activeProjectId],
-  async ([newId, newBaseId]) => {
-    if (newId && newBaseId) {
-      await loadAndSetDoc(newId)
+// Skipped in cell mode — content comes from `initialContent` (see watcher below).
+if (!isCellMode.value) {
+  watch(
+    [docId, activeProjectId],
+    async ([newId, newBaseId]) => {
+      if (newId && newBaseId) {
+        await loadAndSetDoc(newId)
 
-      const loadedFont = docMeta.value.font
-      activeFont.value = loadedFont === 'serif' || loadedFont === 'mono' ? loadedFont : 'default'
+        const loadedFont = docMeta.value.font
+        activeFont.value = loadedFont === 'serif' || loadedFont === 'mono' ? loadedFont : 'default'
 
-      const loadedDir = docMeta.value.dir
-      activeDir.value = loadedDir === 'ltr' || loadedDir === 'rtl' || loadedDir === 'auto' ? loadedDir : null
+        const loadedDir = docMeta.value.dir
+        activeDir.value = loadedDir === 'ltr' || loadedDir === 'rtl' || loadedDir === 'auto' ? loadedDir : null
 
-      nextTick(() => countTasks())
+        nextTick(() => countTasks())
 
-      // Auto-focus the title input on new (untitled) pages so the user
-      // can immediately start typing a name (only for users who can edit).
-      // On mobile, skip focus when the sidebar is open — the editor isn't visible
-      // and focusing would trigger the virtual keyboard.
-      const skipFocus = isMobileMode.value && isLeftSidebarOpen.value
-      if (!title.value && isEditable.value && !skipFocus) {
-        nextTick(() => {
-          ;(titleInput.value as HTMLInputElement)?.focus()
-        })
+        // Auto-focus the title input on new (untitled) pages so the user
+        // can immediately start typing a name (only for users who can edit).
+        // On mobile, skip focus when the sidebar is open — the editor isn't visible
+        // and focusing would trigger the virtual keyboard.
+        const skipFocus = isMobileMode.value && isLeftSidebarOpen.value
+        if (!title.value && isEditable.value && !skipFocus) {
+          nextTick(() => {
+            ;(titleInput.value as HTMLInputElement)?.focus()
+          })
+        }
       }
-    }
-  },
-  { immediate: true },
-)
+    },
+    { immediate: true },
+  )
+}
+
+// Cell mode: push fresh PM content into the editor whenever the parent
+// supplies a new value (initial open, switch field, navigate row).
+// Skip when the editor already has the same JSON to avoid loops.
+if (isCellMode.value) {
+  watch(
+    () => props.initialContent,
+    (val) => {
+      if (!editor.value) return
+      const next = val ?? { type: 'doc', content: [{ type: 'paragraph' }] }
+      const current = editor.value.getJSON()
+      if (JSON.stringify(current) === JSON.stringify(next)) return
+      editor.value.commands.setContent(next as any, false)
+    },
+    { immediate: true, flush: 'post' },
+  )
+}
 
 // Sync external title changes (e.g. sidebar rename) into the editor's local title ref.
 // Skip when the editor itself initiated the change (isSaving) or when loading a new doc.
@@ -2295,8 +2367,8 @@ onBeforeUnmount(() => {
           </NcAlert>
         </div>
 
-        <!-- Cover image banner -->
-        <div v-if="coverImageSrc" class="nc-doc-cover group relative w-full" data-testid="nc-doc-cover">
+        <!-- Cover image banner — doc mode only; cells have no cover. -->
+        <div v-if="!isCellMode && coverImageSrc" class="nc-doc-cover group relative w-full" data-testid="nc-doc-cover">
           <img :src="coverImageSrc" class="nc-doc-cover-image" />
           <div v-if="isEditable" class="nc-doc-cover-controls">
             <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-change" @click="onAddOrChangeCover">
@@ -2313,8 +2385,9 @@ onBeforeUnmount(() => {
           :class="{ 'max-w-[900px]': !isFullWidth }"
           :dir="resolvedDir"
         >
-          <!-- Title -->
-          <div class="nc-doc-editor-header pb-4" :class="embedded ? 'pt-4' : 'pt-12'">
+          <!-- Title — hidden in cell mode (the panel header already shows the column name) -->
+          <div v-if="!isCellMode" class="nc-doc-editor-header pb-4" :class="embedded ? 'pt-4' : 'pt-12'">
+
             <NcTooltip v-if="!coverImageSrc && isUIAllowed('documentUpdate')" :disabled="isEditable">
               <template #title>{{ $t('msg.info.editingRestrictedForThisPage') }}</template>
               <div
@@ -2842,9 +2915,9 @@ onBeforeUnmount(() => {
     </div>
     <!-- /relative wrapper -->
 
-    <!-- Comments sidebar — drawer on mobile, inline panel on desktop -->
+    <!-- Comments sidebar — drawer on mobile, inline panel on desktop. Cell mode skips entirely. -->
     <NcDrawer
-      v-if="isMobileMode"
+      v-if="!isCellMode && isMobileMode"
       v-model:visible="isCommentsPanelOpen"
       height="85svh"
       :show-drag-handle="true"
@@ -2863,7 +2936,7 @@ onBeforeUnmount(() => {
       />
     </NcDrawer>
     <DocCommentsSidebar
-      v-else-if="isCommentsPanelOpen"
+      v-else-if="!isCellMode && isCommentsPanelOpen"
       :doc-id="docId"
       :base-id="base?.id"
       :editor="editor"

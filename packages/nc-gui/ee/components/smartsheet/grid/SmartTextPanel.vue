@@ -1,12 +1,4 @@
 <script setup lang="ts">
-import { EditorContent, useEditor } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Link from '@tiptap/extension-link'
-import TaskList from '@tiptap/extension-task-list'
-import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
-import Placeholder from '@tiptap/extension-placeholder'
-import Underline from '@tiptap/extension-underline'
-
 const smartTextStore = useSmartTextOrThrow()
 
 const {
@@ -72,52 +64,11 @@ const onResizeEnd = () => {
   window.removeEventListener('mouseup', onResizeEnd)
 }
 
-// ---- Tiptap editor ---------------------------------------------------------
-// v1 mounts a minimal extension set. Full extension parity (tables, callouts,
-// columns, code blocks with language, file attachments, math, etc.) is a
-// follow-up tied to extracting the docs Editor.vue into a shared component.
-const editor = useEditor({
-  extensions: [
-    StarterKit,
-    Underline,
-    Link.configure({ openOnClick: false }),
-    TaskList,
-    TaskItem.configure({ nested: true }),
-    Placeholder.configure({ placeholder: 'Start writing...' }),
-  ],
-  editorProps: {
-    attributes: {
-      class: 'nc-smart-text-editor focus:outline-none',
-    },
-  },
-  onUpdate: ({ editor: e }) => {
-    setPmContent(e.getJSON() as Record<string, any>)
-  },
-})
-
-// Push freshly-loaded PM content into the editor when the panel switches cells.
-watch(
-  pmContent,
-  (val) => {
-    if (!editor.value) return
-    if (!val) {
-      editor.value.commands.setContent('')
-      return
-    }
-    const current = editor.value.getJSON()
-    if (JSON.stringify(current) === JSON.stringify(val)) return
-    editor.value.commands.setContent(val as any, false)
-  },
-  { flush: 'post' },
-)
-
-onBeforeUnmount(() => {
-  window.removeEventListener('mousemove', onResizeMove)
-  window.removeEventListener('mouseup', onResizeEnd)
-  editor.value?.destroy()
-})
-
 // ---- Session-end save triggers ---------------------------------------------
+// The doc Editor (mounted in cell mode) emits update:content on every edit;
+// setPmContent stages the JSON in the store and marks isDirty. flushSave
+// fires only on session-end events: panel close, field switch, row nav
+// (handled inside the composable), Esc, tab hidden, beforeunload.
 const onVisibilityChange = () => {
   if (document.hidden && isDirty.value) flushSave()
 }
@@ -142,10 +93,16 @@ watch(
 onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', onVisibilityChange)
   window.removeEventListener('beforeunload', onBeforeUnload)
+  window.removeEventListener('mousemove', onResizeMove)
+  window.removeEventListener('mouseup', onResizeEnd)
 })
 
-// Save on editor blur — fires when focus leaves the ProseMirror node.
-const onEditorBlur = () => {
+// Save when focus leaves the panel body (covers blur from editor, dropdowns, etc.).
+const onPanelBlur = (e: FocusEvent) => {
+  // Only flush if the new focus is outside the panel.
+  if (!panelRef.value) return
+  const next = e.relatedTarget as Node | null
+  if (next && panelRef.value.contains(next)) return
   if (isDirty.value) flushSave()
 }
 
@@ -183,6 +140,14 @@ const saveStatusLabel = computed(() => {
   if (isDirty.value) return 'Unsaved changes'
   return ''
 })
+
+// Stable initial content for the editor mount. Updates flow via the watcher
+// inside DocEditor (cell mode) which compares against current JSON.
+const editorInitialContent = computed(() => pmContent.value ?? null)
+
+const onEditorContentUpdate = (content: Record<string, any>) => {
+  setPmContent(content)
+}
 </script>
 
 <template>
@@ -195,6 +160,7 @@ const saveStatusLabel = computed(() => {
       :style="panelStyle"
       data-testid="nc-smart-text-panel"
       @keydown="onKeydown"
+      @focusout="onPanelBlur"
     >
       <!-- Resize handle (left edge) -->
       <div
@@ -313,13 +279,18 @@ const saveStatusLabel = computed(() => {
         </NcTooltip>
       </div>
 
-      <!-- Body -->
-      <div class="flex-1 min-h-0 overflow-auto" @blur.capture="onEditorBlur">
+      <!-- Body — full noco-docs editor in cell mode -->
+      <div class="flex-1 min-h-0 overflow-hidden">
         <div v-if="isLoading" class="flex items-center justify-center h-full">
           <GeneralLoader />
         </div>
-        <div v-else class="px-6 py-4">
-          <EditorContent :editor="editor" />
+        <div v-else class="h-full overflow-auto">
+          <LazyDocEditor
+            mode="cell"
+            embedded
+            :initial-content="editorInitialContent"
+            @update:content="onEditorContentUpdate"
+          />
         </div>
       </div>
     </div>
@@ -360,110 +331,6 @@ const saveStatusLabel = computed(() => {
 
 .nc-smart-text-panel.is-resizing .nc-smart-text-panel-resize-handle {
   @apply bg-nc-border-gray-medium;
-}
-
-:deep(.nc-smart-text-editor) {
-  @apply text-bodyDefaultSm text-nc-content-gray;
-  min-height: 200px;
-
-  p.is-editor-empty:first-child::before {
-    @apply text-nc-content-gray-subtle2;
-    content: attr(data-placeholder);
-    float: left;
-    height: 0;
-    pointer-events: none;
-  }
-
-  // Headings — Tailwind preflight resets the browser defaults, so re-state.
-  h1 {
-    @apply text-2xl font-bold mt-6 mb-3 leading-tight;
-  }
-  h2 {
-    @apply text-xl font-bold mt-5 mb-2 leading-tight;
-  }
-  h3 {
-    @apply text-lg font-semibold mt-4 mb-2 leading-snug;
-  }
-  h4 {
-    @apply text-base font-semibold mt-3 mb-2;
-  }
-  h5,
-  h6 {
-    @apply text-sm font-semibold mt-2 mb-1;
-  }
-
-  // Paragraphs / spacing
-  p {
-    @apply my-2 leading-relaxed;
-  }
-
-  // Inline marks
-  strong {
-    @apply font-semibold;
-  }
-  em {
-    @apply italic;
-  }
-  code {
-    @apply px-1 py-0.5 rounded bg-nc-bg-gray-light text-[12.5px] font-mono;
-  }
-  a {
-    @apply text-nc-content-brand underline cursor-pointer;
-  }
-
-  // Lists
-  ul,
-  ol {
-    @apply pl-6 my-2;
-  }
-  ul {
-    @apply list-disc;
-  }
-  ol {
-    @apply list-decimal;
-  }
-  li {
-    @apply my-1;
-  }
-  li > p {
-    @apply my-0;
-  }
-
-  // Blockquote
-  blockquote {
-    @apply pl-4 border-l-3 border-nc-border-gray-medium text-nc-content-gray-subtle italic my-3;
-  }
-
-  // Code block
-  pre {
-    @apply p-3 my-3 rounded-md bg-nc-bg-gray-light text-[12.5px] font-mono overflow-x-auto;
-
-    code {
-      @apply bg-transparent p-0;
-    }
-  }
-
-  // Horizontal rule
-  hr {
-    @apply my-4 border-t border-nc-border-gray-medium;
-  }
-
-  // Task list (overrides ul disc style above)
-  ul[data-type='taskList'] {
-    @apply list-none pl-0;
-
-    li {
-      @apply flex items-start gap-2;
-
-      > label {
-        @apply mt-1;
-      }
-
-      > div {
-        @apply flex-1;
-      }
-    }
-  }
 }
 
 .nc-slide-right-enter-active {

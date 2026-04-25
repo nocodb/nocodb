@@ -135,6 +135,22 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     }
   }
 
+  // Deep-link recovery — when the panel is opened from a URL on a fresh page
+  // load, meta / workspace / project IDs may not be ready yet, so the initial
+  // _loadContent call inside openEditor silently early-returns. Re-attempt
+  // once the missing prerequisites resolve.
+  watch(
+    [isOpen, activeRowId, activeColumnId, () => meta.value?.id, activeWorkspaceId, activeProjectId],
+    () => {
+      if (!isOpen.value) return
+      if (!activeRowId.value || !activeColumnId.value) return
+      if (!meta.value?.id || !activeWorkspaceId.value || !activeProjectId.value) return
+      // Already loaded for this cell — nothing to do
+      if (pmContent.value || markdown.value || isLoading.value) return
+      _loadContent()
+    },
+  )
+
   /**
    * Persist current PM content to the backend. Called on session-end triggers
    * (blur, panel close, row navigation, visibility change, beforeunload).

@@ -513,8 +513,12 @@ export function markdownToProseMirror(markdown: string): Record<string, any> {
   // 1. Extract fenced directives into placeholders
   const { cleaned, directives } = extractDirectives(markdown);
 
-  // 2. Tokenize the cleaned markdown (directives replaced with HTML comments)
-  const tokens = marked.lexer(cleaned);
+  // 2. Tokenize the cleaned markdown (directives replaced with HTML comments).
+  // mangle:false — marked v4 entity-encodes `@` in autolinked emails by default
+  // (spam-obfuscation). The PM editor renders the encoded chars verbatim, so
+  // emails appear as `&#x6e;...` strings in the UI. headerIds is unused here
+  // but disabled for forward-compatibility (removed in marked v8+).
+  const tokens = marked.lexer(cleaned, { mangle: false, headerIds: false });
   const content = tokensToNodes(tokens);
 
   // 3. Resolve directive placeholders into PM nodes

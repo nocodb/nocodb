@@ -72,12 +72,35 @@ export class SmartTextService extends SmartTextServiceCE {
 
     let pm: ProseMirrorDoc | null = null;
 
+    /**
+     * A PM doc that's structurally empty (no content, or a single empty
+     * paragraph). The backend caches such a doc when a cell is cleared via
+     * grid; treating it as "no pm" lets the lazy backfill rehydrate the
+     * editor when the cell is later repopulated (e.g. paste).
+     */
+    const isPmEmpty = (doc: any): boolean => {
+      if (!doc || doc.type !== 'doc') return true;
+      const content = Array.isArray(doc.content) ? doc.content : [];
+      if (content.length === 0) return true;
+      if (content.length === 1) {
+        const only = content[0];
+        if (
+          only?.type === 'paragraph' &&
+          (!Array.isArray(only.content) || only.content.length === 0)
+        ) {
+          return true;
+        }
+      }
+      return false;
+    };
+
     if (pmRow?.nc_smart_pm) {
       try {
         pm =
           typeof pmRow.nc_smart_pm === 'string'
             ? JSON.parse(pmRow.nc_smart_pm)
             : (pmRow.nc_smart_pm as ProseMirrorDoc);
+        if (isPmEmpty(pm)) pm = null;
       } catch (e) {
         this.logger.warn(
           `Failed to parse stored PM JSON for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,

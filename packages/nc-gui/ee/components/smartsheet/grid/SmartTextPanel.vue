@@ -219,6 +219,48 @@ const editorInitialContent = computed(() => pmContent.value ?? null)
 const onEditorContentUpdate = (content: Record<string, any>) => {
   setPmContent(content)
 }
+
+// ---- Action menu: copy URL + download as ----------------------------------
+const docEditorRef = ref<{ editor: Ref<any> } | null>(null)
+
+const { base } = storeToRefs(useBase())
+const { appInfo } = useGlobal()
+
+const tiptapEditor = computed(() => docEditorRef.value?.editor as any)
+
+const exportTitle = computed(() => activeDisplayValue.value || activeColumn.value?.title || 'Untitled')
+
+const cellImageUrlBuilder = (fileRefId: string) => {
+  const baseId = base.value?.id
+  const tableId = activeColumn.value?.fk_model_id
+  const colId = activeColumnId.value
+  const rowId = activeRowId.value
+  if (!baseId || !tableId || !colId || !rowId) return ''
+  return `${appInfo.value.ncSiteUrl}/api/v2/data/bases/${baseId}/tables/${tableId}/columns/${colId}/rows/${encodeURIComponent(
+    rowId,
+  )}/attachment/${encodeURIComponent(fileRefId)}`
+}
+
+const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({
+  editor: tiptapEditor,
+  title: exportTitle,
+  imageUrlBuilder: cellImageUrlBuilder,
+})
+
+const { copy } = useCopy()
+
+const onCopyUrl = async () => {
+  try {
+    await copy(window.location.href)
+    message.success(t('msg.copiedToClipboard'))
+  } catch {
+    message.error(t('msg.error.copyToClipboardError'))
+  }
+}
+
+const onDownloadMarkdown = () => downloadMarkdown()
+const onDownloadHTML = () => downloadHTML()
+const onDownloadPDF = () => downloadPDF()
 </script>
 
 <template>
@@ -348,6 +390,43 @@ const onEditorContentUpdate = (content: Record<string, any>) => {
           </NcButton>
         </NcTooltip>
 
+        <NcDropdown placement="bottomRight">
+          <NcButton
+            size="xs"
+            type="text"
+            :aria-label="$t('general.actions')"
+            data-testid="nc-smart-text-panel-more"
+          >
+            <GeneralIcon icon="ncMoreVertical" class="w-4 h-4" />
+          </NcButton>
+          <template #overlay>
+            <NcMenu>
+              <NcMenuItem data-testid="nc-smart-text-panel-copy-url" @click="onCopyUrl">
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="ncCopy" />
+                {{ $t('activity.copyUrl') }}
+              </NcMenuItem>
+              <NcSubMenu key="download" variant="small">
+                <template #title>
+                  <GeneralIcon class="text-nc-content-gray-subtle" icon="download" />
+                  {{ $t('general.downloadAs') }}
+                </template>
+                <NcMenuItem data-testid="nc-smart-text-panel-download-md" @click="onDownloadMarkdown">
+                  <GeneralIcon icon="ncHash" />
+                  {{ $t('general.markdown') }}
+                </NcMenuItem>
+                <NcMenuItem data-testid="nc-smart-text-panel-download-html" @click="onDownloadHTML">
+                  <GeneralIcon icon="code" />
+                  {{ $t('general.html') }}
+                </NcMenuItem>
+                <NcMenuItem data-testid="nc-smart-text-panel-download-pdf" @click="onDownloadPDF">
+                  <GeneralIcon icon="pdfFile" />
+                  {{ $t('general.pdf') }}
+                </NcMenuItem>
+              </NcSubMenu>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+
         <NcTooltip :title="$t('general.close')">
           <NcButton
             size="xs"
@@ -368,6 +447,7 @@ const onEditorContentUpdate = (content: Record<string, any>) => {
         </div>
         <div v-else class="h-full overflow-auto">
           <LazyDocEditor
+            ref="docEditorRef"
             mode="cell"
             embedded
             :initial-content="editorInitialContent"

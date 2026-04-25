@@ -2167,6 +2167,10 @@ onBeforeUnmount(() => {
   flushOnUnmount()
   editor.value?.destroy()
 })
+
+// Expose the Tiptap editor instance so parents (e.g. SmartTextPanel) can run
+// the same export pipeline (markdown / html / pdf) used in the docs surface.
+defineExpose({ editor })
 </script>
 
 <template>

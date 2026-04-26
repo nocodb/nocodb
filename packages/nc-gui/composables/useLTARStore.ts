@@ -772,6 +772,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenListLinked.value[index] = false
         if (!isSingleTargetRelation.value) {
           childrenListCount.value = childrenListCount.value - 1
+        } else if (column.value?.title && currentRow.value?.row) {
+          // For BelongsTo / OneToOne relations, immediately clear the local cell value
+          // so the grid UI reflects the unlink without waiting for a full data reload.
+          // This mirrors what clearLTARCell() does in useSmartsheetLtarHelpers and
+          // ensures consistent behavior regardless of whether Infinite Scrolling is enabled.
+          currentRow.value.row[column.value.title] = null
         }
       } catch (e: any) {
         message.error(`${t('msg.error.unlinkFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
@@ -863,6 +869,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else {
           isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)
           isChildrenExcludedListLinked.value[index] = true
+          if (column.value?.title && currentRow.value?.row) {
+            // For BelongsTo / OneToOne relations, immediately update the local cell value
+            // with the newly linked record so the grid UI reflects the change without
+            // waiting for a full data reload.  This mirrors the approach used by
+            // clearLTARCell() in useSmartsheetLtarHelpers and ensures consistent
+            // behavior regardless of whether Infinite Scrolling is enabled.
+            currentRow.value.row[column.value.title] = row
+          }
         }
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)

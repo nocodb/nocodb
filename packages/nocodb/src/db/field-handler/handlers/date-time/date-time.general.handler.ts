@@ -187,20 +187,23 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
   }
 
   protected parseFilterValue(
-    value: string,
+    value: string | number,
     _knex: CustomKnex,
     filter: Filter,
     column: Column,
     options: FilterOptions,
   ) {
+    // Coerce numeric values (e.g. integer filter values stored in DB) to string
+    // to avoid runtime errors in string methods like .trim() and .replace()
+    const strValue = String(value);
     // if the time provided has timezone, return as is
-    if (isDateTimeStringHasTimezone(value)) {
-      const result = dayjs(value).tz(
+    if (isDateTimeStringHasTimezone(strValue)) {
+      const result = dayjs(strValue).tz(
         this.getTimezone(_knex, filter, column, options),
       );
       dateTimeHandlerDebug(
         'parseFilterValue ' +
-          value +
+          strValue +
           ' DateTimeStringHasTimezone: ' +
           result +
           ' ' +
@@ -211,12 +214,12 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
     // assume local
     else {
       const result = dayjs.tz(
-        value,
+        strValue,
         this.getTimezone(_knex, filter, column, options),
       );
       dateTimeHandlerDebug(
         'parseFilterValue ' +
-          value +
+          strValue +
           ' withoutTimezone: ' +
           result +
           ' ' +

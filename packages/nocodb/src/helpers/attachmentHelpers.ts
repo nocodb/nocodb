@@ -153,7 +153,21 @@ export function validateAndNormaliseLocalPath(
 }
 
 export function getPathFromUrl(url: string, removePrefix = false) {
-  const newUrl = new URL(encodeURI(url));
+  // Avoid double-encoding percent-encoded sequences (e.g. %20 for spaces).
+  // If the URL is already valid (e.g. contains %20 for spaces), passing it
+  // through encodeURI() would turn '%' into '%25', creating '%2520'. The
+  // subsequent decodeURI() only partially decodes this ('%2520' → '%20'),
+  // leaving percent-encoded characters in the key. When that key is used as
+  // an S3 object key, it won't match the actual stored key, causing NoSuchKey.
+  //
+  // Parse the URL directly first; fall back to encodeURI() only for URLs that
+  // contain literal characters (e.g. raw spaces) that are not valid in a URL.
+  let newUrl: URL;
+  try {
+    newUrl = new URL(url);
+  } catch {
+    newUrl = new URL(encodeURI(url));
+  }
 
   const pathName = removePrefix
     ? newUrl.pathname.replace(/.*?nc\/uploads\//, '')

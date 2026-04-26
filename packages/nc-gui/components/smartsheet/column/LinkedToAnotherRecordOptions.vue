@@ -439,8 +439,8 @@ const onCrossBaseToggle = () => {
 
 // check user have creator or above role to create cross base link to the base
 const canCreateCrossBaseLink = (base: { workspace_role: string; base_role: string }) => {
-  if (base.project_role) {
-    if ([ProjectRoles.CREATOR, ProjectRoles.OWNER].includes(base.project_role)) {
+  if (base.base_role) {
+    if ([ProjectRoles.CREATOR, ProjectRoles.OWNER].includes(base.base_role as ProjectRoles)) {
       return true
     }
   } else if (base.workspace_role) {

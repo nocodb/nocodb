@@ -2642,6 +2642,9 @@ onBeforeUnmount(() => {
               <DocTableMenu v-if="isEditable" :editor="editor" />
             </template>
           </div>
+
+          <!-- Sub documents — direct children of the current doc, rendered after content (Notion-style) -->
+          <DocSubDocumentsList v-if="isLoaded" :doc-id="docId" :base-id="base?.id" />
         </div>
 
         <!-- Delete page modal — matches table delete styling -->

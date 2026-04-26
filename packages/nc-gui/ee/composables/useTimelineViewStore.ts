@@ -13,26 +13,28 @@ import type { TimelineZoomLevel } from '../utils/timelineUtils'
 // `bufferDays` is how many days each side of the anchor we render initially
 // (and extend by when the user nears an edge).
 //
-// Header layout has two rows. `majorUnit` says how the top row groups day
-// columns (one label per month/quarter/year span). `minorLabel` says what
-// each per-day cell shows in the bottom row — at coarse zooms we drop the
-// per-day text since it can't fit anyway.
+// Header layout has up to N stacked major rows + one minor (per-day) row.
+// `majorTiers` lists the major rows top-down — e.g. `['quarter', 'month']`
+// shows "Q2 2026" over "April / May / June". Empty array = no major row.
+// `minorLabel` controls per-day cell labels in the bottom row.
+type MajorTier = 'year' | 'quarter' | 'month'
+
 interface ScaleConfig {
   colWidth: number
   bufferDays: number
   navUnit: 'day' | 'week' | 'month' | 'year'
   navAmount: number
-  majorUnit: 'month' | 'quarter' | 'year' | null
-  minorLabel: 'weekday-full' | 'weekday-short' | 'weekday-letter' | 'day-number' | 'none'
+  majorTiers: MajorTier[]
+  minorLabel: 'weekday-full' | 'weekday-short' | 'weekday-letter' | 'day-number' | 'mondays' | 'none'
 }
 
 const SCALE_CONFIG: Record<TimelineZoomLevel, ScaleConfig> = {
-  day: { colWidth: 160, bufferDays: 30, navUnit: 'day', navAmount: 1, majorUnit: null, minorLabel: 'weekday-full' },
-  week: { colWidth: 72, bufferDays: 60, navUnit: 'week', navAmount: 1, majorUnit: null, minorLabel: 'weekday-short' },
-  month: { colWidth: 36, bufferDays: 120, navUnit: 'month', navAmount: 1, majorUnit: null, minorLabel: 'weekday-letter' },
-  quarter: { colWidth: 12, bufferDays: 365, navUnit: 'month', navAmount: 3, majorUnit: 'month', minorLabel: 'day-number' },
-  year: { colWidth: 4, bufferDays: 730, navUnit: 'year', navAmount: 1, majorUnit: 'month', minorLabel: 'none' },
-  '5year': { colWidth: 1, bufferDays: 1825, navUnit: 'year', navAmount: 5, majorUnit: 'year', minorLabel: 'none' },
+  day: { colWidth: 160, bufferDays: 30, navUnit: 'day', navAmount: 1, majorTiers: [], minorLabel: 'weekday-full' },
+  week: { colWidth: 72, bufferDays: 60, navUnit: 'week', navAmount: 1, majorTiers: [], minorLabel: 'weekday-short' },
+  month: { colWidth: 36, bufferDays: 120, navUnit: 'month', navAmount: 1, majorTiers: [], minorLabel: 'weekday-letter' },
+  quarter: { colWidth: 12, bufferDays: 365, navUnit: 'month', navAmount: 3, majorTiers: ['quarter', 'month'], minorLabel: 'mondays' },
+  year: { colWidth: 4, bufferDays: 730, navUnit: 'year', navAmount: 1, majorTiers: ['month'], minorLabel: 'none' },
+  '5year': { colWidth: 1, bufferDays: 1825, navUnit: 'year', navAmount: 5, majorTiers: ['year'], minorLabel: 'none' },
 }
 
 const quarterOf = (d: dayjs.Dayjs): number => Math.floor(d.month() / 3) + 1
@@ -120,50 +122,50 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const totalGridWidth = computed(() => visibleDates.value.length * colWidth.value)
 
-    // Header config for the current scale — drives whether a major (top) row
-    // is rendered and what the per-cell minor row shows.
+    // Header config for the current scale — drives whether/which major rows
+    // render and what the per-cell minor row shows.
     const headerConfig = computed(() => {
       const cfg = SCALE_CONFIG[zoomLevel.value]
-      return { majorUnit: cfg.majorUnit, minorLabel: cfg.minorLabel }
+      return { majorTiers: cfg.majorTiers, minorLabel: cfg.minorLabel }
     })
 
-    // Spans for the major (top) header row — one entry per consecutive run of
-    // dates that share the same major unit (month/quarter/year). `leftPx` is
-    // the offset from the buffer start, so it composes directly with the body
-    // grid which is also positioned relative to the buffer.
-    const majorHeaderSpans = computed(() => {
-      const cfg = SCALE_CONFIG[zoomLevel.value]
-      const unit = cfg.majorUnit
-      if (!unit) return [] as Array<{ key: string; leftPx: number; widthPx: number; label: string }>
-
+    // Stacked major rows. Each tier is one row of consecutive same-unit spans
+    // (e.g. quarter spans, then month spans below). When a parent tier already
+    // shows year context, child tiers omit the year from their labels.
+    const majorHeaderTiers = computed(() => {
+      const tiers = SCALE_CONFIG[zoomLevel.value].majorTiers
       const dates = visibleDates.value
-      const spans: Array<{ key: string; leftPx: number; widthPx: number; label: string }> = []
-      let i = 0
-      while (i < dates.length) {
-        const start = dates[i]
-        let j = i + 1
-        while (j < dates.length) {
-          if (unit === 'quarter') {
-            if (quarterOf(dates[j]) !== quarterOf(start) || dates[j].year() !== start.year()) break
-          } else if (!dates[j].isSame(start, unit)) {
-            break
+      const cw = colWidth.value
+      return tiers.map((unit, tierIdx) => {
+        const omitYear = tiers.slice(0, tierIdx).some((t) => t === 'year' || t === 'quarter')
+        const spans: Array<{ key: string; leftPx: number; widthPx: number; label: string }> = []
+        let i = 0
+        while (i < dates.length) {
+          const start = dates[i]
+          let j = i + 1
+          while (j < dates.length) {
+            if (unit === 'quarter') {
+              if (quarterOf(dates[j]) !== quarterOf(start) || dates[j].year() !== start.year()) break
+            } else if (!dates[j].isSame(start, unit)) {
+              break
+            }
+            j++
           }
-          j++
-        }
-        let label = ''
-        if (unit === 'year') label = start.format('YYYY')
-        else if (unit === 'quarter') label = `Q${quarterOf(start)} ${start.format('YYYY')}`
-        else label = start.format('MMM YYYY')
+          let label = ''
+          if (unit === 'year') label = start.format('YYYY')
+          else if (unit === 'quarter') label = omitYear ? `Q${quarterOf(start)}` : `Q${quarterOf(start)} ${start.format('YYYY')}`
+          else label = omitYear ? start.format('MMMM') : start.format('MMM YYYY')
 
-        spans.push({
-          key: `${unit}-${start.format('YYYY-MM-DD')}`,
-          leftPx: i * colWidth.value,
-          widthPx: (j - i) * colWidth.value,
-          label,
-        })
-        i = j
-      }
-      return spans
+          spans.push({
+            key: `${unit}-${start.format('YYYY-MM-DD')}`,
+            leftPx: i * cw,
+            widthPx: (j - i) * cw,
+            label,
+          })
+          i = j
+        }
+        return spans
+      })
     })
 
     // Event hook used to ask the grid component to imperatively adjust the
@@ -717,7 +719,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
       // Header rendering
       headerConfig,
-      majorHeaderSpans,
+      majorHeaderTiers,
 
       updateFormat,
 

@@ -40,7 +40,7 @@ const {
   setViewportWidth,
   onScrollAdjustment,
   headerConfig,
-  majorHeaderSpans,
+  majorHeaderTiers,
 } = useTimelineViewStoreOrThrow()
 
 // Format the per-day weekday label for the minor header row, depending on
@@ -58,10 +58,17 @@ const minorWeekdayLabel = (date: dayjs.Dayjs) => {
   }
 }
 
+// Day number visibility per cell — `mondays` shows it only on Mondays.
+const minorDayNumLabel = (date: dayjs.Dayjs) => {
+  const mode = headerConfig.value.minorLabel
+  if (mode === 'none') return ''
+  if (mode === 'mondays') return date.day() === 1 ? date.format('D') : ''
+  return date.format('D')
+}
+
 const showMinorWeekday = computed(() =>
   ['weekday-full', 'weekday-short', 'weekday-letter'].includes(headerConfig.value.minorLabel),
 )
-const showMinorDayNum = computed(() => headerConfig.value.minorLabel !== 'none')
 
 // Visible fields from the Fields menu (injected by parent Smartsheet/shared-view)
 const fields = inject(FieldsInj, ref())
@@ -903,17 +910,19 @@ const onGridMouseLeave = () => {
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
       <div ref="headerScrollRef" class="overflow-x-hidden" @mousemove="onHeaderMouseMove" @mouseleave="onGridMouseLeave">
         <div :style="{ width: `${totalGridWidth}px` }">
-          <!-- Major row — months/quarters/years at coarser zoom levels. Each
-               span is positioned absolutely over the day grid below. -->
+          <!-- Stacked major rows (year / quarter / month etc.) — each tier is
+               a row of absolutely-positioned spans over the day grid. -->
           <div
-            v-if="majorHeaderSpans.length"
+            v-for="(tier, tierIdx) in majorHeaderTiers"
+            :key="`tier-${tierIdx}`"
             class="relative bg-nc-bg-default border-b border-nc-border-gray-light"
             :style="{ height: '20px' }"
           >
             <div
-              v-for="span in majorHeaderSpans"
+              v-for="span in tier"
               :key="span.key"
-              class="absolute top-0 h-full flex items-center justify-center text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-1"
+              class="absolute top-0 h-full flex items-center text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-2"
+              :class="tierIdx === 0 ? 'justify-start' : 'justify-start'"
               :style="{ left: `${span.leftPx}px`, width: `${span.widthPx}px` }"
             >
               {{ span.label }}
@@ -946,15 +955,14 @@ const onGridMouseLeave = () => {
                 {{ minorWeekdayLabel(date) }}
               </span>
               <span
-                v-if="showMinorDayNum"
-                class="text-[11px] leading-tight"
+                class="text-[11px] leading-tight whitespace-nowrap"
                 :class="{
                   'text-nc-content-brand': isToday(date),
                   'font-semibold text-nc-content-gray-emphasis': hoverColIndex === dateIdx && !isToday(date),
                   'font-normal text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
                 }"
               >
-                {{ date.format('D') }}
+                {{ minorDayNumLabel(date) }}
               </span>
             </div>
           </div>

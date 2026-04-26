@@ -55,7 +55,7 @@ const {
   setViewportWidth,
   onScrollUpdate,
   headerConfig,
-  majorHeaderSpans,
+  majorHeaderTiers,
 } = useTimelineViewStoreOrThrow()
 
 const minorWeekdayLabel = (date: dayjs.Dayjs) => {
@@ -71,10 +71,16 @@ const minorWeekdayLabel = (date: dayjs.Dayjs) => {
   }
 }
 
+const minorDayNumLabel = (date: dayjs.Dayjs) => {
+  const mode = headerConfig.value.minorLabel
+  if (mode === 'none') return ''
+  if (mode === 'mondays') return date.day() === 1 ? date.format('D') : ''
+  return date.format('D')
+}
+
 const showMinorWeekday = computed(() =>
   ['weekday-full', 'weekday-short', 'weekday-letter'].includes(headerConfig.value.minorLabel),
 )
-const showMinorDayNum = computed(() => headerConfig.value.minorLabel !== 'none')
 
 const zoomOptions = TIMELINE_ZOOM_LEVELS
 
@@ -512,16 +518,17 @@ const recordCountLabel = computed(() => {
                  Per-group bodies have hidden scrollbars and follow this one via the store. -->
             <div ref="groupHeaderRef" class="flex-1 overflow-x-auto overflow-y-hidden" @scroll="onGroupHeaderScroll">
               <div :style="{ width: `${totalGridWidth}px` }">
-                <!-- Major row at coarser zoom levels -->
+                <!-- Stacked major rows -->
                 <div
-                  v-if="majorHeaderSpans.length"
+                  v-for="(tier, tierIdx) in majorHeaderTiers"
+                  :key="`tier-${tierIdx}`"
                   class="relative bg-nc-bg-default border-b border-nc-border-gray-light"
                   :style="{ height: '20px' }"
                 >
                   <div
-                    v-for="span in majorHeaderSpans"
+                    v-for="span in tier"
                     :key="span.key"
-                    class="absolute top-0 h-full flex items-center justify-center text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-1"
+                    class="absolute top-0 h-full flex items-center justify-start text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-2"
                     :style="{ left: `${span.leftPx}px`, width: `${span.widthPx}px` }"
                   >
                     {{ span.label }}
@@ -551,14 +558,13 @@ const recordCountLabel = computed(() => {
                       {{ minorWeekdayLabel(date) }}
                     </span>
                     <span
-                      v-if="showMinorDayNum"
-                      class="text-[11px] font-normal leading-tight"
+                      class="text-[11px] font-normal leading-tight whitespace-nowrap"
                       :class="{
                         'text-nc-content-brand': isToday(date),
                         'text-nc-content-gray-muted': !isToday(date),
                       }"
                     >
-                      {{ date.format('D') }}
+                      {{ minorDayNumLabel(date) }}
                     </span>
                   </div>
                 </div>

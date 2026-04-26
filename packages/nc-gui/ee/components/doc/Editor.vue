@@ -68,6 +68,8 @@ const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInse
 
 const { activeDocuments } = storeToRefs(documentsStore)
 
+const hasSubDocuments = computed(() => activeDocuments.value.some((d) => d.parent_id === docId.value))
+
 const base = inject(ProjectInj, ref())
 
 const isCreatorOrAbove = computed(() => {
@@ -1100,7 +1102,7 @@ const _tiptapEditor = useEditor({
   ],
   editorProps: {
     attributes: {
-      class: 'nc-doc-editor-content focus:outline-none min-h-[200px]',
+      class: 'nc-doc-editor-content focus:outline-none min-h-[60px]',
     },
     handleKeyDown(view, event) {
       // Note: Cmd/Ctrl+F is handled by a document-level keydown listener
@@ -2273,7 +2275,8 @@ onBeforeUnmount(() => {
 
           <!-- Editor — always mounted so ProseMirror view stays attached -->
           <div
-            class="nc-doc-editor-body pb-48 relative"
+            class="nc-doc-editor-body relative"
+            :class="hasSubDocuments ? 'pb-8' : 'pb-48'"
             :style="docColorVars"
             data-testid="docs-page-content"
             @click="onEditorBodyClick"
@@ -3279,7 +3282,7 @@ onBeforeUnmount(() => {
     -webkit-box-decoration-break: clone;
   }
 
-  min-height: 200px;
+  min-height: 60px;
   font-size: 0.95rem;
   line-height: 1.7;
   color: var(--nc-content-gray);

@@ -215,7 +215,6 @@ export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
 
   if (colProps.uidt === UITypes.SingleLineText) {
     // check for long text
-    // if (isMultiLineTextType(colData)) {
     if (isDateTimeType(colData)) {
       colProps.uidt = UITypes.DateTime
     } else if (isDateType(colData)) {

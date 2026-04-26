@@ -94,20 +94,26 @@ export class BaseTrashService implements OnModuleInit {
       baseId: string;
       resourceType?: string;
       limit?: number;
-      offset?: number;
+      cursor?: string | null;
+      roles?: Record<string, boolean> | null;
     },
   ) {
-    const rawList = await BaseTrash.list(context, {
+    const { list: rawList, nextCursor } = await BaseTrash.list(context, {
       base_id: param.baseId,
       resourceType: param.resourceType,
       limit: param.limit,
-      offset: param.offset,
+      cursor: param.cursor,
     });
 
-    const count = await BaseTrash.count(context, {
-      base_id: param.baseId,
-      resourceType: param.resourceType,
-    });
+   const isCreatorOrOwner = (() => {
+      if (!param.roles) return true; // no role info → assume allowed; the restore call will gate
+      const obj = extractRolesObj(param.roles);
+      return !!obj?.[ProjectRoles.CREATOR] || !!obj?.[ProjectRoles.OWNER];
+    })();
+    for (const entry of rawList) {
+      entry.is_restorable =
+        entry.resource_type === 'record' || isCreatorOrOwner;
+    }
 
     const enriched = await processConcurrently(rawList, async (entry) => {
       const handler = this.handlerMap.get(entry.resource_type);
@@ -128,15 +134,7 @@ export class BaseTrashService implements OnModuleInit {
 
     const list = enriched.filter((e) => e !== null);
 
-    return {
-      list,
-      pageInfo: {
-        totalRows: count,
-        page: Math.floor((param.offset || 0) / (param.limit || 25)) + 1,
-        pageSize: param.limit || 25,
-        isLastPage: (param.offset || 0) + (param.limit || 25) >= count,
-      },
-    };
+    return { list, nextCursor };
   }
 
   private async insertTrashEntry(
@@ -351,11 +349,11 @@ export class BaseTrashService implements OnModuleInit {
     try {
       // Clean up child trash entries (e.g. dashboard → widget, table → view/field).
       if (handler.childTypes?.length) {
-        const CHILD_CLEANUP_BATCH = 200;
+        const CHILD_CLEANUP_BATCH = 100;
         for (const childType of handler.childTypes) {
           // eslint-disable-next-line no-constant-condition
           while (true) {
-            const childTrash = await BaseTrash.list(
+            const { list: childTrash } = await BaseTrash.list(
               context,
               {
                 base_id: context.base_id,
@@ -438,10 +436,10 @@ export class BaseTrashService implements OnModuleInit {
     const failed: Array<{ id: string; error: string }> = [];
 
     do {
-      batch = await BaseTrash.list(context, {
+      ({ list: batch } = await BaseTrash.list(context, {
         base_id: param.baseId,
         limit: batchSize,
-      });
+      }));
 
       let batchDeleted = 0;
       for (const entry of batch) {

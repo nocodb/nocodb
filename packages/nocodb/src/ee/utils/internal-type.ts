@@ -84,6 +84,7 @@ export type InternalGETResponseType = Promise<
       };
     }
   | { nodes: any[] }
+  | { list: any[]; nextCursor: string | null }
   | PagedResponseImpl<any>
   | Model
   | Column[]

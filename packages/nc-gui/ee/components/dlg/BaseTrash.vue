@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
-
+import dayjs from 'dayjs'
 const MAX_CHIPS = 8
 
 const AVATAR_PALETTE = [
@@ -16,17 +16,24 @@ const AVATAR_PALETTE = [
 const {
   isOpen,
   isLoading,
+  isLoadingMore,
   trashItems,
-  totalRows,
-  currentPage,
-  pageSize,
+  nextCursor,
   retentionDays,
   close,
-  loadTrash,
+  loadMore,
   restoreItem,
   emptyTrash,
   conflictFor,
 } = useBaseTrash()
+
+const sentinelRef = ref<HTMLElement | null>(null)
+
+useIntersectionObserver(sentinelRef, ([entry]) => {
+  if (entry?.isIntersecting && nextCursor.value && !isLoadingMore.value) {
+    loadMore()
+  }
+})
 
 const { t } = useI18n()
 
@@ -93,6 +100,19 @@ function displayName(userId?: string | null) {
   const u = baseUsers.value.find((x: any) => x.id === userId)
   if (!u) return ''
   return u.display_name || extractNameFromEmail(u.email) || ''
+}
+
+function userEmail(userId?: string | null) {
+  if (!userId) return ''
+  const u = baseUsers.value.find((x: any) => x.id === userId)
+  return u?.email || ''
+}
+
+function absoluteDate(dateStr?: string) {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  if (Number.isNaN(d.getTime())) return ''
+  return dayjs(d).format('YYYY-MM-DD HH:mm')
 }
 
 function avatarColor(userId?: string | null) {
@@ -217,12 +237,37 @@ function handleEmptyTrash() {
             :data-testid="`nc-base-trash-item-${item.id}`"
           >
             <div class="nc-base-trash-item flex items-center gap-3 px-6 py-4 hover:bg-nc-bg-gray-extralight transition-colors">
-              <div
-                class="w-9 h-9 rounded-full flex items-center justify-center text-bodySm font-semibold shrink-0 text-white"
-                :class="avatarColor(item.deleted_by)"
+              <NcTooltip
+                placement="bottom"
+                color="light"
+                :disabled="!item.deleted_by"
+                overlay-class-name="nc-tooltip-trash-user"
               >
-                {{ (displayName(item.deleted_by) || '?').charAt(0).toUpperCase() }}
-              </div>
+                <template #title>
+                  <div class="flex items-center gap-2.5 py-1 pr-1">
+                    <div
+                      class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold shrink-0 text-white"
+                      :class="avatarColor(item.deleted_by)"
+                    >
+                      {{ (displayName(item.deleted_by) || '?').charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="flex flex-col min-w-0 text-left">
+                      <div class="text-bodySm font-semibold text-nc-content-gray-emphasis truncate">
+                        {{ displayName(item.deleted_by) || $t('trash.deletedBy') }}
+                      </div>
+                      <div v-if="userEmail(item.deleted_by)" class="text-captionSm text-nc-content-gray-muted truncate">
+                        {{ userEmail(item.deleted_by) }}
+                      </div>
+                    </div>
+                  </div>
+                </template>
+                <div
+                  class="w-9 h-9 rounded-full flex items-center justify-center text-bodySm font-semibold shrink-0 text-white cursor-default"
+                  :class="avatarColor(item.deleted_by)"
+                >
+                  {{ (displayName(item.deleted_by) || '?').charAt(0).toUpperCase() }}
+                </div>
+              </NcTooltip>
 
               <div class="flex-1 min-w-0">
                 <NcTooltip
@@ -231,9 +276,12 @@ function handleEmptyTrash() {
                 >
                   {{ activitySentence(item) }}
                 </NcTooltip>
-                <div class="text-captionSm text-nc-content-gray-muted mt-0.5">
-                  {{ formatDate(item.deleted_at) }}
-                </div>
+                <NcTooltip placement="top" :disabled="!absoluteDate(item.deleted_at)">
+                  <template #title>{{ absoluteDate(item.deleted_at) }}</template>
+                  <span class="text-captionSm text-nc-content-gray-muted mt-0.5 cursor-default">
+                    {{ formatDate(item.deleted_at) }}
+                  </span>
+                </NcTooltip>
 
                 <!-- Record entries: PV chips, rendered via PlainCell so the
                    parent table's display-value column dictates formatting
@@ -282,7 +330,7 @@ function handleEmptyTrash() {
 
               <NcTooltip :disabled="item.is_restorable !== false">
                 <template #title>
-                  {{ $t('baseTrash.restoreParentFirst', { parent: item.parent_name || item.parent_type }) }}
+                  {{ $t('baseTrash.restoreRequiresCreator') }}
                 </template>
                 <NcButton
                   v-e="['c:base-trash:restore']"
@@ -309,17 +357,12 @@ function handleEmptyTrash() {
       </div>
 
       <div
-        v-if="totalRows > pageSize"
-        class="flex items-center justify-center h-11 border-t-1 border-nc-border-gray-medium shrink-0"
+        v-if="nextCursor"
+        ref="sentinelRef"
+        class="flex items-center justify-center py-3 shrink-0"
+        data-testid="nc-base-trash-load-more-sentinel"
       >
-        <NcPagination
-          v-e="['c:base-trash:paginate']"
-          :current="currentPage"
-          :total="totalRows"
-          :page-size="pageSize"
-          data-testid="nc-base-trash-pagination"
-          @update:current="loadTrash"
-        />
+        <GeneralLoader v-if="isLoadingMore" size="small" />
       </div>
     </div>
   </NcModal>

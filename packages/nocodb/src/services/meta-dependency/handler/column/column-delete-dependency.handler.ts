@@ -8,7 +8,11 @@ import type {
 } from '../../types';
 import {
   BarcodeColumn,
+  CalendarRange,
   Filter,
+  GalleryView,
+  Hook,
+  KanbanView,
   LookupColumn,
   Model,
   QrCodeColumn,
@@ -21,6 +25,7 @@ import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import Column from '~/models/Column';
 import NocoSocket from '~/socket/NocoSocket';
+import { ViewRowColorService } from '~/services/view-row-color.service';
 
 type AffectedColumnType = 'lookup' | 'rollup' | 'qrcode' | 'barcode';
 
@@ -62,6 +67,8 @@ const DEPENDENT_QUERIES: [MetaTable, string, AffectedColumnType][] = [
 export class ColumnDeleteDependencyHandler implements MetaEventHandler {
   triggerMetaEvents: MetaEventType[] = [MetaEventType.COLUMN_DELETED];
 
+  constructor(private readonly viewRowColorService: ViewRowColorService) {}
+
   /**
    * Lightweight check: are there any dependents at all?
    * Avoids starting a transaction when nothing needs updating.
@@ -75,6 +82,31 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
     if (!deletedColumn?.id) return undefined;
 
     const id = deletedColumn.id;
+
+    const REFERENCE_CHECKS: [MetaTable, string][] = [
+      [MetaTable.SORT, 'fk_column_id'],
+      [MetaTable.FILTER_EXP, 'fk_column_id'],
+      [MetaTable.GALLERY_VIEW, 'fk_cover_image_col_id'],
+      [MetaTable.KANBAN_VIEW, 'fk_cover_image_col_id'],
+      [MetaTable.KANBAN_VIEW, 'fk_grp_col_id'],
+      [MetaTable.CALENDAR_VIEW_RANGE, 'fk_from_column_id'],
+      [MetaTable.CALENDAR_VIEW_RANGE, 'fk_to_column_id'],
+      // Row-coloring cell-target conditions
+      [MetaTable.ROW_COLOR_CONDITIONS, 'fk_target_column_id'],
+      // Expanded-form mode column FK on any view
+      [MetaTable.VIEWS, 'attachment_mode_column_id'],
+      // Webhook trigger-field junction
+      [MetaTable.HOOK_TRIGGER_FIELDS, 'fk_column_id'],
+    ];
+    for (const [table, fkField] of REFERENCE_CHECKS) {
+      const rows = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        table,
+        { condition: { [fkField]: id }, limit: 1 },
+      );
+      if (rows.length) return {};
+    }
 
     for (const [table, fkField] of DEPENDENT_QUERIES) {
       const rows = await ncMeta.metaList2(
@@ -146,6 +178,33 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
     const error = `Field '${
       deletedColumn.title || deletedColumn.column_name
     }' was deleted`;
+
+    // Clean up every reference the deleted column had in dependent metadata.
+    // The BFS below only touches *transitive* dependents (lookup/rollup/etc) —
+    // this call covers the root column's own sorts, filters, gallery/kanban
+    // cover image, kanban stack-by, and calendar range references. Soft-delete
+    // (trash) emits the same `COLUMN_DELETED` event so trash + hard-delete
+    // converge here.
+    await ColumnDeleteDependencyHandler.cleanupColumnReferences(
+      context,
+      id,
+      ncMeta,
+    );
+
+    await View.updateIfColumnUsedAsExpandedMode(
+      context,
+      id,
+      deletedColumn.fk_model_id,
+      ncMeta,
+    );
+    const { applyRowColorInvolvement } =
+      await this.viewRowColorService.checkIfColumnInvolved({
+        context,
+        existingColumn: deletedColumn,
+        action: 'delete',
+        ncMeta,
+      });
+    await applyRowColorInvolvement();
 
     // Seed: find all direct dependents of the deleted column
     const visited = new Set<string>();
@@ -264,7 +323,11 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
         { error },
         ncMeta,
       );
-      await this.cleanupSortsAndFilters(ctx, affected.fk_column_id, ncMeta);
+      await ColumnDeleteDependencyHandler.cleanupColumnReferences(
+        ctx,
+        affected.fk_column_id,
+        ncMeta,
+      );
 
       // Discover transitive dependents of this just-marked column (same base)
       for (const [table, fkField, type] of DEPENDENT_QUERIES) {
@@ -355,11 +418,23 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
     }
   }
 
-  private async cleanupSortsAndFilters(
+  /**
+   * Single sweep of every column-reference cleanup the deleted column needs.
+   * Called by `handle()` so trash + hard-delete converge on the same surface.
+   *
+   * Cleans:
+   *  - `nc_sorts`              — `fk_column_id` matches
+   *  - `nc_filter_exp`         — `fk_column_id` or `fk_value_col_id` matches, plus child filters parented by this column
+   *  - Gallery / Kanban cover  — nulls `fk_cover_image_col_id`
+   *  - Kanban stack-by         — nulls `fk_grp_col_id`
+   *  - Calendar ranges         — drops rows where `fk_from_column_id` or `fk_to_column_id` matches
+   */
+  static async cleanupColumnReferences(
     context: NcContext,
     columnId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
+    // Sorts.
     for (const sort of await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
@@ -369,6 +444,7 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       await Sort.delete(context, sort.id, ncMeta);
     }
 
+    // Filters referencing the column directly.
     for (const filter of await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
@@ -384,5 +460,71 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
     )) {
       await Filter.delete(context, filter.id, ncMeta);
     }
+    // Filter-group children parented by this column.
+    await Filter.deleteAllByParentColumn(context, columnId, ncMeta);
+
+    // Cover-image FKs on Gallery views.
+    for (const v of await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.GALLERY_VIEW,
+      { condition: { fk_cover_image_col_id: columnId } },
+    )) {
+      await GalleryView.update(
+        context,
+        v.fk_view_id,
+        { fk_cover_image_col_id: null },
+        ncMeta,
+      );
+    }
+
+    // Cover-image FKs on Kanban views.
+    for (const v of await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.KANBAN_VIEW,
+      { condition: { fk_cover_image_col_id: columnId } },
+    )) {
+      await KanbanView.update(
+        context,
+        v.fk_view_id,
+        { fk_cover_image_col_id: null },
+        ncMeta,
+      );
+    }
+
+    // Kanban stack-by.
+    for (const v of await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.KANBAN_VIEW,
+      { condition: { fk_grp_col_id: columnId } },
+    )) {
+      await KanbanView.update(
+        context,
+        v.fk_view_id,
+        { fk_grp_col_id: null },
+        ncMeta,
+      );
+    }
+
+    // Calendar ranges.
+    for (const range of await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CALENDAR_VIEW_RANGE,
+      {
+        xcCondition: {
+          _or: [
+            { fk_from_column_id: { eq: columnId } },
+            { fk_to_column_id: { eq: columnId } },
+          ],
+        },
+      },
+    )) {
+      await CalendarRange.delete(range.id, context, ncMeta);
+    }
+
+    await Hook.deleteTriggersByColumnId(context, columnId, ncMeta);
   }
 }

@@ -1179,15 +1179,10 @@ export class RecordTrashHandler extends BaseTrashHandler<{
       }
     }
 
-    const preRestoreRows = await baseModel.execAndParse(
-      whereInPks(baseModel.dbDriver(baseModel.tnPath), primaryKeys, batchIds)
-        .where(deletedColumn.column_name, true)
-        .select(
-          model.columns.filter((c) => c.column_name).map((c) => c.column_name),
-        ),
-      model.columns,
-      { raw: true },
-    );
+    const preRestoreRows = await baseModel.chunkList({
+      pks: batchIds,
+      deletedOnly: true,
+    });
 
     if (!preRestoreRows.length) return;
 

@@ -5,6 +5,28 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
+function encodeListCursor(deletedAt: string | Date, id: string): string {
+  const iso =
+    deletedAt instanceof Date
+      ? deletedAt.toISOString()
+      : new Date(deletedAt).toISOString();
+  return `${iso}::${id}`;
+}
+
+function decodeListCursor(
+  cursor: string | undefined | null,
+): { deletedAt: string; id: string } | null {
+  if (!cursor) return null;
+  const idx = cursor.indexOf('::');
+  if (idx <= 0) return null;
+  const deletedAtIso = cursor.slice(0, idx);
+  const id = cursor.slice(idx + 2);
+  if (!id) return null;
+  const d = new Date(deletedAtIso);
+  if (Number.isNaN(d.getTime())) return null;
+  return { deletedAt: d.toISOString(), id };
+}
+
 function isUniqueViolation(e: any): boolean {
   if (!e) return false;
   const code =
@@ -96,85 +118,91 @@ export default class BaseTrash implements BaseTrashType {
       base_id: string;
       resourceType?: string;
       limit?: number;
-      offset?: number;
+      cursor?: string | null;
       parentId?: string;
     },
     ncMeta = Noco.ncMeta,
-  ) {
-    const condition: Record<string, any> = {};
+  ): Promise<{ list: BaseTrash[]; nextCursor: string | null }> {
+    const limit = Math.max(1, Math.min(param.limit || 25, 100));
 
-    if (param.resourceType) {
-      condition.resource_type = param.resourceType;
+    const qb = this.buildBaseListQuery(context, param, ncMeta);
+
+    const decoded = decodeListCursor(param.cursor);
+    if (decoded) {
+      qb.where(function () {
+        this.where(
+          `${MetaTable.TRASH}.deleted_at`,
+          '<',
+          decoded.deletedAt,
+        ).orWhere(function () {
+          this.where(
+            `${MetaTable.TRASH}.deleted_at`,
+            '=',
+            decoded.deletedAt,
+          ).andWhere(`${MetaTable.TRASH}.id`, '<', decoded.id);
+        });
+      });
     }
 
-    if (param.parentId) {
-      condition.parent_id = param.parentId;
-    }
+    qb.orderBy(`${MetaTable.TRASH}.deleted_at`, 'desc')
+      .orderBy(`${MetaTable.TRASH}.id`, 'desc')
+      .limit(limit + 1);
 
-    const trashList = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.TRASH,
-      {
-        condition,
-        limit: param.limit || 25,
-        offset: param.offset || 0,
-        orderBy: {
-          deleted_at: 'desc',
-        },
-      },
+    const rows = await qb.select(`${MetaTable.TRASH}.*`);
+    const hasMore = rows.length > limit;
+    const visible = hasMore ? rows.slice(0, limit) : rows;
+
+    const items = visible.map(
+      (t: any) =>
+        new BaseTrash(prepareForResponse(t, ['meta', 'related_items'])),
     );
 
-    const items = trashList.map(
-      (t) => new BaseTrash(prepareForResponse(t, ['meta', 'related_items'])),
-    );
+    const last = visible[visible.length - 1];
+    const nextCursor =
+      hasMore && last ? encodeListCursor(last.deleted_at, last.id) : null;
 
-    // Enrich with is_restorable — false when parent is also in trash
-    const parentIds = [
-      ...new Set(items.filter((t) => t.parent_id).map((t) => t.parent_id)),
-    ];
-
-    let trashedParentIds = new Set<string>();
-    if (parentIds.length) {
-      const trashedParents = await ncMeta
-        .knexConnection(MetaTable.TRASH)
-        .where('fk_workspace_id', context.workspace_id)
-        .where('base_id', context.base_id)
-        .whereIn('resource_id', parentIds)
-        .select('resource_id');
-      trashedParentIds = new Set(
-        trashedParents.map((r: { resource_id: string }) => r.resource_id),
-      );
-    }
-
-    for (const item of items) {
-      item.is_restorable =
-        !item.parent_id || !trashedParentIds.has(item.parent_id);
-    }
-
-    return items;
+    return { list: items, nextCursor };
   }
 
-  public static async count(
+  /**
+   * Shared filter for `list` and `count` — workspace + base scope, optional
+   * resource_type / parent_id, and the parent-trashed exclusion that mirrors
+   * Airtable's "hide children while parent is in trash" UX.
+   */
+  private static buildBaseListQuery(
     context: NcContext,
     param: {
       base_id: string;
       resourceType?: string;
+      parentId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const condition: Record<string, any> = {};
+    const qb = ncMeta
+      .knexConnection(MetaTable.TRASH)
+      .where(`${MetaTable.TRASH}.fk_workspace_id`, context.workspace_id)
+      .where(`${MetaTable.TRASH}.base_id`, context.base_id);
 
     if (param.resourceType) {
-      condition.resource_type = param.resourceType;
+      qb.where(`${MetaTable.TRASH}.resource_type`, param.resourceType);
+    }
+    if (param.parentId) {
+      qb.where(`${MetaTable.TRASH}.parent_id`, param.parentId);
     }
 
-    return ncMeta.metaCount(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.TRASH,
-      { condition },
-    );
+    qb.where(function () {
+      this.whereNull(`${MetaTable.TRASH}.parent_id`).orWhereNotExists(
+        function () {
+          this.select(1)
+            .from(`${MetaTable.TRASH} as parent`)
+            .whereRaw(`parent.resource_id = ${MetaTable.TRASH}.parent_id`)
+            .where('parent.fk_workspace_id', context.workspace_id)
+            .where('parent.base_id', context.base_id);
+        },
+      );
+    });
+
+    return qb;
   }
 
   public static async insert(

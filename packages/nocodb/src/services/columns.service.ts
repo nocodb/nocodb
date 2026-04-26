@@ -3753,14 +3753,6 @@ export class ColumnsService implements IColumnsService {
       NcError.get(context).fieldNotFound(param.columnId);
     }
 
-    const { applyRowColorInvolvement } =
-      await this.viewRowColorService.checkIfColumnInvolved({
-        context,
-        existingColumn: column,
-        action: 'delete',
-        ncMeta,
-      });
-
     if ((column.system || isSystemColumn(column)) && !param.forceDeleteSystem) {
       NcError.get(context).invalidRequestBody(
         `The column '${
@@ -3908,38 +3900,11 @@ export class ColumnsService implements IColumnsService {
         break;
 
       case UITypes.Formula:
-        if (!column.colOptions) await column.getColOptions(context, ncMeta);
-        if (column.colOptions.parsed_tree?.dataType === FormulaDataTypes.DATE) {
-          if (
-            (
-              await CalendarRange.IsColumnBeingUsedAsRange(
-                context,
-                column.id,
-                ncMeta,
-              )
-            )?.length
-          ) {
-            NcError.get(context).badRequest(
-              `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
-            );
-          }
-        }
-
         await Column.delete(context, param.columnId, ncMeta);
         break;
       // on deleting created/last modified columns, keep the column in table and delete the column from meta
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime: {
-        const rangesList = await CalendarRange.IsColumnBeingUsedAsRange(
-          context,
-          column.id,
-          ncMeta,
-        );
-        if (rangesList?.length) {
-          NcError.get(context).badRequest(
-            `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
-          );
-        }
         await Column.delete2(
           context,
           {
@@ -4350,31 +4315,6 @@ export class ColumnsService implements IColumnsService {
         NcError.get(context).notImplemented(`Support for ${column.uidt}`);
         break;
       }
-      case UITypes.SingleSelect: {
-        if (
-          (await KanbanView.getViewsByGroupingColId(context, column.id))
-            .length > 0
-        ) {
-          NcError.get(context).badRequest(
-            `The column '${column.title}' is being used in Kanban View. Please update Kanban View first.`,
-          );
-        }
-        /* falls through to default */
-      }
-      case UITypes.DateTime:
-      case UITypes.Date: {
-        const listRanges = await CalendarRange.IsColumnBeingUsedAsRange(
-          context,
-          column.id,
-          ncMeta,
-        );
-        if (listRanges?.length) {
-          NcError.get(context).badRequest(
-            `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
-          );
-        }
-        /* falls through to default */
-      }
       default: {
         const tableUpdateBody = {
           ...table,
@@ -4429,13 +4369,6 @@ export class ColumnsService implements IColumnsService {
         ncMeta,
       );
     }
-
-    await View.updateIfColumnUsedAsExpandedMode(
-      context,
-      column.id,
-      column.fk_model_id,
-      ncMeta,
-    );
 
     if (!isLinksOrLTAR(column)) {
       this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
@@ -4502,10 +4435,6 @@ export class ColumnsService implements IColumnsService {
         );
       }
     }
-
-    await applyRowColorInvolvement();
-
-    await Hook.deleteTriggersByColumnId(context, column.id, ncMeta);
 
     if (!param.columnWebhookManager) {
       await columnWebhookManager.populateNewColumns();

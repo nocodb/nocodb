@@ -20,19 +20,11 @@ import RollupColumn from '~/models/RollupColumn';
 import SelectOption from '~/models/SelectOption';
 import Model from '~/models/Model';
 import View from '~/models/View';
-import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import QrCodeColumn from '~/models/QrCodeColumn';
 import BarcodeColumn from '~/models/BarcodeColumn';
 import AIColumn from '~/models/AIColumn';
-import {
-  ButtonColumn,
-  FileReference,
-  GalleryView,
-  KanbanView,
-  LinksColumn,
-  Source,
-} from '~/models';
+import { ButtonColumn, FileReference, LinksColumn, Source } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import addFormulaErrorIfMissingColumn from '~/helpers/addFormulaErrorIfMissingColumn';
@@ -41,7 +33,6 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
-  FilterCacheScope,
   MetaTable,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
@@ -1076,65 +1067,6 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
-    // Relation-based lookup/rollup error-marking is handled by ColumnDeleteDependencyHandler.
-
-    // delete sorts
-    {
-      const cachedList = await NocoCache.getList(context, CacheScope.SORT, [
-        id,
-      ]);
-      let { list: sorts } = cachedList;
-      const { isNoneList } = cachedList;
-      if (!isNoneList && !sorts.length) {
-        sorts = await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.SORT,
-          {
-            condition: {
-              fk_column_id: id,
-            },
-          },
-        );
-      }
-      for (const sort of sorts) {
-        await Sort.delete(context, sort.id, ncMeta);
-      }
-    }
-    // delete filters
-    {
-      const cachedList = await NocoCache.getList(
-        context,
-        CacheScope.FILTER_EXP,
-        [FilterCacheScope.COLUMN, id],
-      );
-      let { list: filters } = cachedList;
-      const { isNoneList } = cachedList;
-      if (!isNoneList && !filters.length) {
-        filters = await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.FILTER_EXP,
-          {
-            condition: {
-              fk_column_id: id,
-            },
-          },
-        );
-      }
-      // Delete all filters referencing this column, including child filters
-      // nested inside filter groups (which have fk_parent_id set).
-      for (const filter of filters) {
-        await Filter.delete(context, filter.id, ncMeta);
-      }
-    }
-    {
-      await Filter.deleteAllByParentColumn(context, id, ncMeta);
-    }
-
-    // Set Gallery & Kanban view `fk_cover_image_col_id` value to null
-    await Column.deleteCoverImageColumnId(context, id, ncMeta);
-
     // Delete from view columns
     let colOptionTableName = null;
     let cacheScopeName = null;
@@ -1545,15 +1477,6 @@ export default class Column<T = any> implements ColumnType {
         },
         ncMeta,
       );
-    }
-
-    if (
-      column.uidt &&
-      oldCol.uidt === UITypes.Attachment &&
-      oldCol.uidt !== column.uidt
-    ) {
-      // Set Gallery & Kanban view `fk_cover_image_col_id` value to null
-      await Column.deleteCoverImageColumnId(context, colId, ncMeta);
     }
 
     // Validate internal_meta if present
@@ -2368,65 +2291,5 @@ export default class Column<T = any> implements ColumnType {
           break;
       }
     }
-  }
-
-  private static async deleteCoverImageColumnId(
-    context: NcContext,
-    id: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const promises = [];
-
-    // Gallery views
-    const galleryViews: GalleryView[] = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.GALLERY_VIEW,
-      {
-        condition: {
-          fk_cover_image_col_id: id,
-        },
-      },
-    );
-
-    for (const galleryView of galleryViews) {
-      promises.push(
-        GalleryView.update(
-          context,
-          galleryView.fk_view_id,
-          {
-            fk_cover_image_col_id: null,
-          },
-          ncMeta,
-        ),
-      );
-    }
-
-    // Kanban views
-    const kanbanViews: KanbanView[] = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.KANBAN_VIEW,
-      {
-        condition: {
-          fk_cover_image_col_id: id,
-        },
-      },
-    );
-
-    for (const kanbanView of kanbanViews) {
-      promises.push(
-        KanbanView.update(
-          context,
-          kanbanView.fk_view_id,
-          {
-            fk_cover_image_col_id: null,
-          },
-          ncMeta,
-        ),
-      );
-    }
-
-    await Promise.all(promises);
   }
 }

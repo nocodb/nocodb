@@ -85,11 +85,11 @@ export const useBaseTrash = createSharedComposable(() => {
 
   const trashItems = ref<BaseTrashType[]>([])
 
-  const totalRows = ref(0)
-
-  const currentPage = ref(1)
-
   const pageSize = ref(25)
+
+  const nextCursor = ref<string | null>(null)
+
+  const isLoadingMore = ref(false)
 
   const open = () => {
     isOpen.value = true
@@ -100,30 +100,43 @@ export const useBaseTrash = createSharedComposable(() => {
   const close = () => {
     isOpen.value = false
     trashItems.value = []
-    currentPage.value = 1
+    nextCursor.value = null
   }
 
-  const loadTrash = async (page = 1) => {
+  /**
+   * Cursor-paginated load. `append=false` resets the list and pulls the first
+   * page; `append=true` follows `nextCursor` to fetch and append the next.
+   */
+  const loadTrash = async (append = false) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return
 
-    isLoading.value = true
+    if (append && !nextCursor.value) return
+
+    if (append) {
+      isLoadingMore.value = true
+    } else {
+      isLoading.value = true
+    }
 
     try {
       const res = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
         operation: 'baseTrashList',
         limit: String(pageSize.value),
-        offset: String((page - 1) * pageSize.value),
+        ...(append && nextCursor.value ? { cursor: nextCursor.value } : {}),
       })
 
-      trashItems.value = res.list || []
-      totalRows.value = res.pageInfo?.totalRows || 0
-      currentPage.value = page
+      const incoming = (res.list as BaseTrashType[]) || []
+      trashItems.value = append ? [...trashItems.value, ...incoming] : incoming
+      nextCursor.value = (res as any).nextCursor || null
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isLoading.value = false
+      isLoadingMore.value = false
     }
   }
+
+  const loadMore = () => loadTrash(true)
 
   // ── Per-entry conflict state ──────────────────────────────────
   //
@@ -167,7 +180,7 @@ export const useBaseTrash = createSharedComposable(() => {
       await callBaseTrashRestore(trashId)
       message.success(t('msg.success.restored'))
       $e('a:base-trash:restore')
-      await loadTrash(currentPage.value)
+      await loadTrash()
     } catch (e: any) {
       const { error } = await extractSdkResponseErrorMsgv2(e)
       // Record entries surface conflicts as inline panel state. Other types
@@ -199,10 +212,10 @@ export const useBaseTrash = createSharedComposable(() => {
 
     try {
       await callBaseTrashRestore(trashId, { partial: true })
-      message.success(t('msg.success.restored'))
+      message.success(t('msg.success.partiallyRestored'))
       $e('a:base-trash:restore:partial')
       dismissConflict(trashId)
-      await loadTrash(currentPage.value)
+      await loadTrash()
     } catch (e: any) {
       if (conflictByEntryId[trashId]) {
         conflictByEntryId[trashId].isSubmitting = false
@@ -229,7 +242,7 @@ export const useBaseTrash = createSharedComposable(() => {
       message.success(t('msg.success.restored'))
       $e('a:base-trash:restore:force')
       dismissConflict(trashId)
-      await loadTrash(currentPage.value)
+      await loadTrash()
     } catch (e: any) {
       if (conflictByEntryId[trashId]) {
         conflictByEntryId[trashId].isSubmitting = false
@@ -247,8 +260,7 @@ export const useBaseTrash = createSharedComposable(() => {
       message.success(t('msg.success.trashEmptied'))
       $e('a:base-trash:empty')
       trashItems.value = []
-      totalRows.value = 0
-      currentPage.value = 1
+      nextCursor.value = null
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -340,14 +352,15 @@ export const useBaseTrash = createSharedComposable(() => {
   return {
     isOpen,
     isLoading,
+    isLoadingMore,
     trashItems,
-    totalRows,
-    currentPage,
+    nextCursor,
     pageSize,
     retentionDays,
     open,
     close,
     loadTrash,
+    loadMore,
     restoreItem,
     partialRestoreItem,
     forceRestoreItem,

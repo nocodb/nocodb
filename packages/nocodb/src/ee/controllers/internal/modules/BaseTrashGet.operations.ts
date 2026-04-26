@@ -42,7 +42,8 @@ export class BaseTrashGetOperations
           baseId: context.base_id,
           resourceType: req.query.resourceType as string,
           limit: req.query.limit ? Number(req.query.limit) : undefined,
-          offset: req.query.offset ? Number(req.query.offset) : undefined,
+          cursor: (req.query.cursor as string) || null,
+          roles: req.user?.base_roles ?? null,
         });
       case 'baseTrashSettingsList':
         return await this.baseTrashSettingsService.list(context, {

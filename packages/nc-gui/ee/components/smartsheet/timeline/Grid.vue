@@ -36,6 +36,7 @@ const {
   colWidth,
   totalGridWidth,
   scrollLeft: storeScrollLeft,
+  viewportWidth: storeViewportWidth,
   onScrollUpdate,
   setViewportWidth,
   onScrollAdjustment,
@@ -558,16 +559,27 @@ const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>
 // The label slides rightward as the user scrolls, but is clamped so it
 // never extends past the bar's right edge minus a small reserve for the
 // right resize handle / nav arrow.
+//
+// The 28px reserves for the per-bar nav arrows only apply when the
+// matching bar edge is actually in the viewport. Once the user has
+// scrolled past a bar edge, the arrow attached to it is off-screen too,
+// so the label can hug the visible portion with the smaller padding.
 const getLabelStyle = (row: RowType) => {
   const bar = getBarStyle(row)
   if (!bar) return null
   const barLeftPx = parseFloat(bar.left)
   const barWidthPx = parseFloat(bar.width)
+  const barRightPx = barLeftPx + barWidthPx
 
-  const startPad = !isStartVisible(row) ? 28 : 10
-  const endPad = !isEndVisible(row) ? 28 : 8
+  const vpLeft = storeScrollLeft.value
+  const vpRight = vpLeft + storeViewportWidth.value
 
-  const scrolledPast = Math.max(0, storeScrollLeft.value - barLeftPx)
+  const leftArrowInView = !isStartVisible(row) && barLeftPx >= vpLeft
+  const rightArrowInView = !isEndVisible(row) && barRightPx <= vpRight
+  const startPad = leftArrowInView ? 28 : 10
+  const endPad = rightArrowInView ? 28 : 8
+
+  const scrolledPast = Math.max(0, vpLeft - barLeftPx)
   let leftInBar = scrolledPast + startPad
 
   const minLabelWidth = 8

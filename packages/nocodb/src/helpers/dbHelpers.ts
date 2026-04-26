@@ -955,7 +955,11 @@ export function getArrayAggExpression(
   // Note: columnName and alias are controlled by our code, so it's safe to use directly
   const exprMap: Record<string, string> = {
     pg: `ARRAY_AGG(DISTINCT ${columnName}) FILTER (WHERE ${columnName} IS NOT NULL) AS ${alias}`,
-    mysql2: `CAST(CONCAT('[', GROUP_CONCAT(DISTINCT CONCAT('"', ${columnName}, '"')), ']') AS JSON) AS ${alias}`,
+    // MariaDB does not support CAST(... AS JSON) — see MDEV-26448.
+    // MySQL supports JSON_ARRAYAGG but not with DISTINCT until 8.0+.
+    // Using plain CONCAT+GROUP_CONCAT produces a valid JSON array string compatible
+    // with both MySQL (5.7+) and MariaDB (10.x / 11.x).
+    mysql2: `CONCAT('[', GROUP_CONCAT(DISTINCT CONCAT('"', ${columnName}, '"')), ']') AS ${alias}`,
     sqlite3: `json_group_array(DISTINCT ${columnName}) AS ${alias}`,
   };
 

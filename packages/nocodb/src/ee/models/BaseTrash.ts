@@ -5,6 +5,29 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
+function isUniqueViolation(e: any): boolean {
+  if (!e) return false;
+  const code =
+    e.code ??
+    e.original?.code ??
+    e.nativeError?.code ??
+    e.errno ??
+    e.original?.errno ??
+    e.nativeError?.errno;
+  if (
+    code === '23505' || // postgres
+    code === 23505 ||
+    code === 'ER_DUP_ENTRY' || // mysql
+    code === 1062 ||
+    code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+    code === 'SQLITE_CONSTRAINT'
+  ) {
+    return true;
+  }
+  const msg = String(e.message ?? '');
+  return /UNIQUE constraint failed|duplicate key value/i.test(msg);
+}
+
 export default class BaseTrash implements BaseTrashType {
   id?: string;
   fk_workspace_id?: string;
@@ -177,12 +200,29 @@ export default class BaseTrash implements BaseTrashType {
 
     prepareForDb(insertObj, ['meta', 'related_items']);
 
-    const { id } = await ncMeta.metaInsert2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.TRASH,
-      insertObj,
-    );
+    // Idempotent on the (base_id, resource_type, resource_id) unique key.
+    // Concurrent deletes of the same resource — or retries from the inline
+    // record-trash hook — collapse onto the first inserted row instead of
+    // surfacing a 500.
+    let id: string | undefined;
+    try {
+      ({ id } = await ncMeta.metaInsert2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.TRASH,
+        insertObj,
+      ));
+    } catch (e) {
+      if (!isUniqueViolation(e)) throw e;
+      const existing = await this.getByResourceId(
+        context,
+        insertObj.resource_type,
+        insertObj.resource_id,
+        ncMeta,
+      );
+      if (existing) return existing;
+      throw e;
+    }
 
     return this.get(context, id, ncMeta);
   }

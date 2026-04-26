@@ -1,6 +1,5 @@
 import { Logger } from '@nestjs/common';
 import {
-  AppEvents,
   AuditV1OperationTypes,
   extractFilterFromXwhere,
   isDeletedCol,
@@ -21,7 +20,6 @@ import {
 import { NcError } from '~/helpers/catchError';
 import conditionV2 from '~/db/conditionV2';
 import { Column, FileReference, Filter, Model } from '~/models';
-import Noco from '~/Noco';
 
 export type ExecQueryType = (param: {
   trx: Knex.Transaction | CustomKnex;
@@ -703,13 +701,7 @@ export class BaseModelDelete {
     }
 
     if (isSoftDelete && response.length > 0) {
-      Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
-        context: this.baseModel.context,
-        req: cookie,
-        tableId: this.baseModel.model.id,
-        rowIds: [],
-        deletedAt: operationNow,
-      });
+      await this.baseModel.afterSoftDeleteCompleted({ cookie, operationNow });
     }
 
     return response;

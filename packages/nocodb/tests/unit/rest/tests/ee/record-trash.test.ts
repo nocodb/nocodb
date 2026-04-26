@@ -157,26 +157,6 @@ export default function recordTrashTests() {
       );
     }
 
-    /**
-     * `softDelete` returns 200 once the data-table update commits, but the
-     * `nc_trash` row is written asynchronously by the `RECORDS_SOFT_DELETE`
-     * listener. Poll briefly so list/count helpers aren't racy when called
-     * right after a soft-delete.
-     */
-    async function waitForTrashEntries(
-      tableId: string,
-      minCount = 1,
-      attempts = 20,
-      intervalMs = 50,
-    ) {
-      let entries = await baseTrashEntries(tableId);
-      for (let i = 0; entries.length < minCount && i < attempts; i++) {
-        await new Promise((r) => setTimeout(r, intervalMs));
-        entries = await baseTrashEntries(tableId);
-      }
-      return entries;
-    }
-
     async function trashList(tableId: string) {
       const entries = await baseTrashEntries(tableId);
       const list = entries.flatMap((entry) =>
@@ -217,10 +197,6 @@ export default function recordTrashTests() {
      * single soft-delete operation, so this collapses to one call per
      * `softDelete(...)` in the test setup.
      *
-     * `softDelete` returns 200 as soon as the data-table update commits,
-     * but the `nc_trash` row is written asynchronously by the
-     * `RECORDS_SOFT_DELETE` listener (`Noco.eventEmitter.emit` is fire-and-
-     * forget). Poll briefly before giving up so the helper isn't racy.
      */
     async function permDelete(
       tableId: string,

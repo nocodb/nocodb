@@ -90,7 +90,6 @@ export default class Model implements TableType {
 
   date_dependency?: DateDependencyType | null;
 
-  trash_cleanup_due_at?: string | null;
   trash_disabled?: boolean | null;
   trash_retention_days?: number | null;
 
@@ -1330,25 +1329,6 @@ export default class Model implements TableType {
       (sortAgg, c) => ({ ...sortAgg, [c.title]: c }),
       idReduce,
     );
-  }
-
-  static async updateTrashCleanupDueAt(
-    context: NcContext,
-    modelId: string,
-    dueAt: string | null,
-    ncMeta = Noco.ncMeta,
-  ) {
-    await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.MODELS,
-      { trash_cleanup_due_at: dueAt },
-      modelId,
-    );
-
-    await NocoCache.update(context, `${CacheScope.MODEL}:${modelId}`, {
-      trash_cleanup_due_at: dueAt,
-    });
   }
 
   static async updateTrashSettings(

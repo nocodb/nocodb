@@ -126,19 +126,12 @@ export default class FileReference {
     }
 
     if (fileReferences.length === 1) {
-      const fileReferenceObj = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.FILE_REFERENCES,
-        fileReferences[0],
-      );
-
       await ncMeta.metaUpdate(
         context.workspace_id,
         context.base_id,
         MetaTable.FILE_REFERENCES,
         { deleted: true },
-        fileReferenceObj.id,
+        fileReferences[0],
       );
     } else {
       await ncMeta.bulkMetaUpdate(

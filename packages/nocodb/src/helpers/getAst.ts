@@ -529,15 +529,21 @@ const extractLookupDependencies = async (
     await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
   const { refContext } = relationColumnOpts.getRelContext(context);
   await extractRelationDependencies(context, relationColumn, dependencyFields);
+  // Ensure the nested dependency object always has a fieldsSet, even when it was
+  // pre-populated from the user's nested query parameter (which only contains
+  // plain query fields without a fieldsSet property).
+  const relNested = (dependencyFields.nested[relationColumn.title] =
+    dependencyFields.nested[relationColumn.title] || {
+      nested: {},
+      fieldsSet: new Set(),
+    });
+  if (!relNested.fieldsSet) {
+    relNested.fieldsSet = new Set();
+  }
   await extractDependencies(
     refContext,
     await lookupColumnOpts.getLookupColumn(refContext),
-    (dependencyFields.nested[relationColumn.title] = dependencyFields.nested[
-      relationColumn.title
-    ] || {
-      nested: {},
-      fieldsSet: new Set(),
-    }),
+    relNested,
   );
 };
 

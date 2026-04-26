@@ -45,6 +45,22 @@ export const useProvideChatwoot = () => {
 
   const chatwootInit = async () => {
     if (ncIsIframe()) return
+
+    // When support chat is disabled, hide the widget immediately and prevent
+    // any further SDK activity. The @productdevbook/chatwoot nuxt module always
+    // injects the Chatwoot script at build time, so we must opt-out at runtime.
+    if (appInfo.value.disableSupportChat) {
+      try {
+        // Hide the bubble so it never appears in the UI
+        window.$chatwoot?.toggleBubbleVisibility('hide')
+        // Reset clears queued events and stops the SDK from sending data
+        window.$chatwoot?.reset()
+      } catch (_e) {
+        // SDK may not be fully initialised — safe to ignore
+      }
+      return
+    }
+
     chatwootReady.value = true
     initUserCustomerAttributes()
   }
@@ -58,6 +74,16 @@ export const useProvideChatwoot = () => {
   watch(
     [() => user.value?.email, () => user.value?.id, () => appInfo.value.disableSupportChat, () => metaInfo.value],
     () => {
+      if (appInfo.value.disableSupportChat && chatwootReady.value) {
+        // Support chat was disabled after the SDK had already initialised —
+        // hide the bubble and reset any queued session data.
+        try {
+          window.$chatwoot?.toggleBubbleVisibility('hide')
+          window.$chatwoot?.reset()
+        } catch (_e) {}
+        chatwootReady.value = false
+        return
+      }
       initUserCustomerAttributes()
     },
     { immediate: true },

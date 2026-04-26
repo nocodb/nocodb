@@ -76,10 +76,13 @@ const navigateToChild = (child: { id?: string; title?: string }) => {
 <style lang="scss" scoped>
 .nc-doc-sub-documents-header {
   border-bottom: 1px solid var(--nc-border-gray-medium);
-  padding-bottom: 6px;
 }
 
 .nc-doc-sub-documents-title {
+  display: inline-block;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--nc-content-gray);
+  margin-bottom: -1px;
   @apply text-sm font-semibold text-nc-content-gray;
 }
 

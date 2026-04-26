@@ -553,6 +553,33 @@ const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>
   return lanes.map((lane) => lane.records)
 })
 
+// Compute the position of the inner label relative to the bar so it stays
+// visible when the bar's start has scrolled past the viewport's left edge.
+// The label slides rightward as the user scrolls, but is clamped so it
+// never extends past the bar's right edge minus a small reserve for the
+// right resize handle / nav arrow.
+const getLabelStyle = (row: RowType) => {
+  const bar = getBarStyle(row)
+  if (!bar) return null
+  const barLeftPx = parseFloat(bar.left)
+  const barWidthPx = parseFloat(bar.width)
+
+  const startPad = !isStartVisible(row) ? 28 : 10
+  const endPad = !isEndVisible(row) ? 28 : 8
+
+  const scrolledPast = Math.max(0, storeScrollLeft.value - barLeftPx)
+  let leftInBar = scrolledPast + startPad
+
+  const minLabelWidth = 8
+  const maxLeftInBar = Math.max(startPad, barWidthPx - endPad - minLabelWidth)
+  leftInBar = Math.min(leftInBar, maxLeftInBar)
+
+  return {
+    left: `${leftInBar}px`,
+    right: `${endPad}px`,
+  }
+}
+
 // Get bar position and width for a record
 const getBarStyle = (row: RowType) => {
   const range = props.timelineRange[0]
@@ -1110,13 +1137,8 @@ const onGridMouseLeave = () => {
                 </div>
 
                 <span
-                  class="truncate inline-flex items-center"
-                  :class="{
-                    'pl-7': !isStartVisible(record),
-                    'pl-2.5': isStartVisible(record),
-                    'pr-7': !isEndVisible(record),
-                    'pr-2': isEndVisible(record),
-                  }"
+                  class="absolute top-0 bottom-0 truncate inline-flex items-center"
+                  :style="getLabelStyle(record) ?? {}"
                 >
                   <template v-for="field in fields" :key="field.id">
                     <LazySmartsheetPlainCell

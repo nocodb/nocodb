@@ -19,6 +19,10 @@ export const timeAgo = (date: string) => {
     // if there is no timezone info, consider as UTC
     // e.g. 2023-01-01 08:00:00 (MySQL)
     date += '+00:00'
+  } else if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?$/.test(date)) {
+    // ISO 8601 without timezone suffix — treat as UTC
+    // e.g. 2023-01-01T08:00:00 or 2023-01-01T08:00:00.000 (PostgreSQL / SQLite)
+    date += 'Z'
   }
   // show in local time
   const diff = dayjs().diff(date)

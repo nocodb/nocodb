@@ -635,7 +635,10 @@ const onChange = () => {
 
 onMounted(() => {
   importState.parserConfig.importDataOnly = importDataOnly
-  importState.parserConfig.autoSelectFieldTypes = importDataOnly
+  // importState.parserConfig.autoSelectFieldTypes = importDataOnly
+  if (!importDataOnly) {
+    importState.parserConfig.autoSelectFieldTypes = true
+  }
 })
 
 const onCancelImport = () => {

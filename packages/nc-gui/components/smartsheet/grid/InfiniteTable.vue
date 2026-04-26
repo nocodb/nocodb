@@ -950,7 +950,9 @@ const {
         return true
       }
     } else if (e.key === 'Enter') {
-      if (e.isComposing) return
+      // Skip during IME composition; keyCode 229 catches browsers where isComposing
+      // is not yet true on the final composition-confirmation keydown event.
+      if (e.isComposing || e.keyCode === 229) return
       if (e.shiftKey) {
         // add a line break for types like LongText / JSON
         return true

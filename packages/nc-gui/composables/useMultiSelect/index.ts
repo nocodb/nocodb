@@ -963,8 +963,10 @@ export function useMultiSelect(
   const handleThrottledKeyDownAction = useThrottleFn(handleKeyDownAction, 60)
 
   const handleKeyDown = async (e: KeyboardEvent) => {
-    // Skip keyboard handling during IME composition (e.g. Japanese, Chinese, Korean input)
-    if (e.isComposing) return
+    // Skip keyboard handling during IME composition (e.g. Japanese, Chinese, Korean input).
+    // keyCode 229 is the legacy IME-processing code used by some browsers when isComposing
+    // is not yet set to true (observed with certain CJK IMEs on Chrome/Windows).
+    if (e.isComposing || e.keyCode === 229) return
 
     // invoke the keyEventHandler if provided and return if it returns true
 

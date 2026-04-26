@@ -13,7 +13,7 @@ const visible = ref(false)
 
 const canSeeBaseTrash = computed(() => isUIAllowed('baseTrashList'))
 
-const canSeeSnapshots = computed(() => isUIAllowed('manageSnapshots'))
+const canSeeSnapshots = computed(() => isUIAllowed('manageSnapshot'))
 
 const showHistoryTrigger = computed(() => canSeeBaseTrash.value || canSeeSnapshots.value)
 

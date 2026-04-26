@@ -150,23 +150,28 @@ export class LtarGeneralHandler extends GenericFieldHandler {
           filter.comparison_op,
         )
       ) {
-        // handle self reference
+        // handle self reference — use the same count-based subquery as the
+        // non-self-referencing path so that dangling foreign keys (FK pointing
+        // to a deleted record) are also treated as blank/notblank.
+        // parentTableAlias is a fresh alias (e.g. "nc_8") that avoids conflicts
+        // with childTableAlias (the main query's table alias).
         if (parentModel.id === childModel.id) {
-          if (filter.comparison_op === 'blank') {
-            return {
-              rootApply,
-              clause: (qb) => {
-                qb.whereNull(childColumnRef);
-              },
-            };
-          } else {
-            return {
-              rootApply,
-              clause: (qb) => {
-                qb.whereNotNull(childColumnRef);
-              },
-            };
-          }
+          const selectSelfBtCount = knex(
+            parentBaseModel.getTnPath(parentModel.table_name, parentTableAlias),
+          )
+            .count(parentColumnRef)
+            .where(parentColumnRef, childColumnRef);
+
+          return {
+            rootApply,
+            clause: (qb) => {
+              if (filter.comparison_op === 'blank') {
+                qb.where(knex.raw('0'), selectSelfBtCount);
+              } else {
+                qb.whereNot(knex.raw('0'), selectSelfBtCount);
+              }
+            },
+          };
         }
 
         const selectBtCount = knex(

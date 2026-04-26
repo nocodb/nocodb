@@ -403,7 +403,9 @@ const alphabetizeOptions = () => {
   })
 
   options.value = [...sorted, ...removed]
-  loadedCount.value = Math.min(OPTIONS_PAGE_SIZE, options.value.length)
+  // Preserve the current loadedCount so previously-scrolled options remain visible after sort.
+  // Only ensure we don't exceed the new total length (e.g. if options were removed between scrolls).
+  loadedCount.value = Math.min(loadedCount.value, options.value.length)
   refreshRenderedOptions()
 
   syncOptions()

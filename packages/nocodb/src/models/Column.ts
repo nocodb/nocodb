@@ -1628,11 +1628,11 @@ export default class Column<T = any> implements ColumnType {
             },
           );
 
-          await NocoCache.deepDel(
-            context,
-            `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
-            CacheDelDirection.PARENT_TO_CHILD,
-          );
+          // NOTE: Cache invalidation is intentionally deferred to AFTER
+          // insertColOption (below) so that a concurrent read between the DB
+          // delete and the DB insert cannot race in and populate the cache
+          // with a 'NONE' sentinel (empty list), which would cause subsequent
+          // reads to bypass the DB and return no options.
           break;
         }
 
@@ -1774,6 +1774,23 @@ export default class Column<T = any> implements ColumnType {
     // insert new col options only if existing colOption meta is deleted
     if (requiredColAvail) {
       await this.insertColOption(context, column, colId, ncMeta);
+    }
+
+    // Invalidate the select-option list cache AFTER the new options have been
+    // written to the DB.  Doing this before the insert (as previously done in
+    // the switch block above) opened a race window where a concurrent read
+    // could populate the cache with a 'NONE' sentinel (empty list) between
+    // the DB delete and the DB insert, causing subsequent reads to skip the
+    // DB and return an empty options list.
+    if (
+      oldCol.uidt === UITypes.SingleSelect ||
+      oldCol.uidt === UITypes.MultiSelect
+    ) {
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
     }
 
     // on column update, delete any optimised single query cache

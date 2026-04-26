@@ -1,8 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { AppEvents, NcBaseError, WebhookEvents } from 'nocodb-sdk';
+import {
+  AppEvents,
+  MetaEventType,
+  NcBaseError,
+  WebhookEvents,
+} from 'nocodb-sdk';
 import View from '../models/View';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -16,6 +22,7 @@ import { ButtonColumn, Hook, HookLog, Model } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 
 const SUPPORTED_HOOK_VERSION = ['v3'];
 
@@ -25,6 +32,7 @@ export class HooksService {
     protected readonly appHooksService: AppHooksService,
     protected readonly dataService: DatasService,
     @Inject('JobsService') protected readonly jobsService: IJobsService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {}
 
   validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
@@ -116,30 +124,31 @@ export class HooksService {
 
   async hookDelete(
     context: NcContext,
-    param: { hookId: string; req: NcRequest },
+    param: { hookId: string; req: NcRequest; skipTrash?: boolean },
+    ncMeta?: MetaService,
   ) {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
 
-    const hook = await Hook.get(context, param.hookId);
+    const hook = await Hook.get(context, param.hookId, false, ncMeta);
 
     if (!hook) {
       NcError.get(context).hookNotFound(param.hookId);
     }
 
-    const buttonCols = await Hook.hookUsages(context, param.hookId);
+    await Hook.delete(context, param.hookId, ncMeta);
 
-    if (buttonCols.length) {
-      for (const button of buttonCols) {
-        await ButtonColumn.update(context, button.fk_column_id, {
-          fk_webhook_id: null,
-        });
-      }
-      await View.clearSingleQueryCache(context, hook.fk_model_id);
-    }
-
-    await Hook.delete(context, param.hookId);
+    // Button-column FK cleanup + single-query cache clear are handled by
+    // `HookDeleteButtonRefDependencyHandler` via the `HOOK_DELETED` meta event.
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.HOOK_DELETED,
+        oldEntity: hook,
+      },
+      ncMeta,
+    );
 
     this.appHooksService.emit(AppEvents.WEBHOOK_DELETE, {
       hook,

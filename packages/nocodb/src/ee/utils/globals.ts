@@ -206,6 +206,7 @@ export const SoftDeleteMetaTables = [
   MetaTable.DASHBOARDS,
   MetaTable.WIDGETS,
   MetaTable.EXTENSIONS,
+  MetaTable.HOOKS,
 ];
 
 export const orderedMetaTables = [

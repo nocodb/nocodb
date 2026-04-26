@@ -9,6 +9,7 @@ import { WidgetTrashHandler } from '~/services/base-trash/handlers/widget.trash-
 import { WorkflowTrashHandler } from '~/services/base-trash/handlers/workflow.trash-handler';
 import { ScriptTrashHandler } from '~/services/base-trash/handlers/script.trash-handler';
 import { RecordTrashHandler } from '~/services/base-trash/handlers/record.trash-handler';
+import { HookTrashHandler } from '~/services/base-trash/handlers/hook.trash-handler';
 
 export const TrashHandlers = [
   RecordTrashHandler,
@@ -20,6 +21,7 @@ export const TrashHandlers = [
   WidgetTrashHandler,
   WorkflowTrashHandler,
   ScriptTrashHandler,
+  HookTrashHandler,
 ];
 
 export const TrashHandlerProvider = {

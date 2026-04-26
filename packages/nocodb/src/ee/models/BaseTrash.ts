@@ -119,7 +119,6 @@ export default class BaseTrash implements BaseTrashType {
       resourceType?: string;
       limit?: number;
       cursor?: string | null;
-      parentId?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<{ list: BaseTrash[]; nextCursor: string | null }> {
@@ -165,16 +164,47 @@ export default class BaseTrash implements BaseTrashType {
   }
 
   /**
+   * Cascade-cleanup query — returns child trash rows for a given parent
+   * regardless of whether the parent is also in trash. The user-facing
+   * `list` hides children whose parent is in trash; `permanentDelete`'s
+   * cascade needs them, so it uses this direct path.
+   */
+  public static async listChildrenByParent(
+    context: NcContext,
+    param: {
+      parentId: string;
+      resourceType: string;
+      limit?: number;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<BaseTrash[]> {
+    const limit = Math.max(1, Math.min(param.limit || 100, 500));
+    const rows = await ncMeta
+      .knexConnection(MetaTable.TRASH)
+      .where('fk_workspace_id', context.workspace_id)
+      .where('base_id', context.base_id)
+      .where('resource_type', param.resourceType)
+      .where('parent_id', param.parentId)
+      .orderBy('deleted_at', 'desc')
+      .orderBy('id', 'desc')
+      .limit(limit)
+      .select('*');
+    return rows.map(
+      (t: any) =>
+        new BaseTrash(prepareForResponse(t, ['meta', 'related_items'])),
+    );
+  }
+
+  /**
    * Shared filter for `list` and `count` — workspace + base scope, optional
-   * resource_type / parent_id, and the parent-trashed exclusion that mirrors
-   * Airtable's "hide children while parent is in trash" UX.
+   * resource_type, and the parent-trashed exclusion that mirrors Airtable's
+   * "hide children while parent is in trash" UX.
    */
   private static buildBaseListQuery(
     context: NcContext,
     param: {
       base_id: string;
       resourceType?: string;
-      parentId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -185,9 +215,6 @@ export default class BaseTrash implements BaseTrashType {
 
     if (param.resourceType) {
       qb.where(`${MetaTable.TRASH}.resource_type`, param.resourceType);
-    }
-    if (param.parentId) {
-      qb.where(`${MetaTable.TRASH}.parent_id`, param.parentId);
     }
 
     qb.where(function () {

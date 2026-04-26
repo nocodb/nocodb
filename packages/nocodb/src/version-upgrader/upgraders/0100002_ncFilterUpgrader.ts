@@ -20,7 +20,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     if (filter.fk_view_id) {
       model = await View.get(context, filter.fk_view_id, false, ncMeta);
     } else if (filter.fk_hook_id) {
-      model = await Hook.get(context, filter.fk_hook_id, ncMeta);
+      model = await Hook.get(context, filter.fk_hook_id, false, ncMeta);
     } else if (filter.fk_column_id) {
       model = await Column.get(context, { colId: filter.fk_column_id }, ncMeta);
     } else {

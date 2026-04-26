@@ -700,6 +700,7 @@ export enum MetaEventType {
   COLUMN_ADDED = 'COLUMN_ADDED',
   COLUMN_UPDATED = 'COLUMN_UPDATED',
   COLUMN_DELETED = 'COLUMN_DELETED',
+  HOOK_DELETED = 'HOOK_DELETED',
 }
 
 export enum MetaEntityType {

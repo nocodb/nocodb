@@ -54,6 +54,7 @@ const up = async (knex: Knex) => {
     MetaTable.DASHBOARDS,
     MetaTable.WIDGETS,
     MetaTable.EXTENSIONS,
+    MetaTable.HOOKS,
   ];
 
   for (const table of tables) {
@@ -110,6 +111,7 @@ const down = async (knex: Knex) => {
     MetaTable.DASHBOARDS,
     MetaTable.WIDGETS,
     MetaTable.EXTENSIONS,
+    MetaTable.HOOKS,
   ];
 
   for (const table of tablesWeAdded) {

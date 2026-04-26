@@ -138,7 +138,7 @@ export default class Filter implements FilterType {
       if (filter.fk_view_id && !filter.fk_parent_column_id) {
         model = await View.get(context, filter.fk_view_id, false, ncMeta);
       } else if (filter.fk_hook_id) {
-        model = await Hook.get(context, filter.fk_hook_id, ncMeta);
+        model = await Hook.get(context, filter.fk_hook_id, false, ncMeta);
       } else if (filter.fk_link_col_id) {
         model = await Column.get(
           context,
@@ -1386,7 +1386,9 @@ export default class Filter implements FilterType {
         view: await View.get(context, this.fk_view_id, false, ncMeta),
       };
     } else if (this.fk_hook_id) {
-      parentData = { hook: await Hook.get(context, this.fk_hook_id, ncMeta) };
+      parentData = {
+        hook: await Hook.get(context, this.fk_hook_id, false, ncMeta),
+      };
     } else if (this.fk_link_col_id) {
       parentData = {
         linkColumn: await Column.get(

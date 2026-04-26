@@ -669,7 +669,8 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
             .knexConnection(MetaTable.HOOKS)
             .count('*')
             .where('fk_workspace_id', id)
-            .whereIn('base_id', activeBaseIds),
+            .whereIn('base_id', activeBaseIds)
+            .where((qb) => qb.where('deleted', false).orWhereNull('deleted')),
           [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.EXTENSIONS)
             .count('*')

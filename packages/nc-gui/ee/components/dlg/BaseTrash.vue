@@ -131,6 +131,7 @@ const RESOURCE_LABEL_KEYS: Record<string, string> = {
   workflow: 'objects.workflow',
   script: 'objects.script',
   extension: 'objects.extension',
+  hook: 'objects.webhook',
 }
 
 function activitySentence(item: any) {

@@ -539,7 +539,7 @@ export function baseTrashTests() {
         ).to.not.be.undefined;
       });
 
-      it('should mark widget as not restorable when parent dashboard is trashed', async () => {
+      it('should hide widget from trash list when parent dashboard is trashed', async () => {
         const dashboard = await createDashboardViaApi(
           context,
           workspaceId,
@@ -554,7 +554,9 @@ export function baseTrashTests() {
           'ChildWidget',
         );
 
-        // Trash widget first, then dashboard
+        // Trash widget first, then dashboard. Child entries are hidden
+        // while their parent is in trash; the dashboard is still listed
+        // and restorable on its own.
         await deleteWidgetViaApi(context, workspaceId, baseId, widget.id);
         await deleteDashboardViaApi(
           context,
@@ -567,43 +569,9 @@ export function baseTrashTests() {
         const widgetEntry = findTrashEntry(trashRes.body.list, widget.id);
         const dashEntry = findTrashEntry(trashRes.body.list, dashboard.id);
 
+        expect(widgetEntry).to.be.undefined;
+        expect(dashEntry).to.not.be.undefined;
         expect(dashEntry.is_restorable).to.eq(true);
-        expect(widgetEntry.is_restorable).to.eq(false);
-      });
-
-      it('should fail to restore widget when parent dashboard is trashed', async () => {
-        const dashboard = await createDashboardViaApi(
-          context,
-          workspaceId,
-          baseId,
-          'TrashedParent',
-        );
-        const widget = await createWidgetViaApi(
-          context,
-          workspaceId,
-          baseId,
-          dashboard.id,
-          'OrphanWidget',
-        );
-
-        await deleteWidgetViaApi(context, workspaceId, baseId, widget.id);
-        await deleteDashboardViaApi(
-          context,
-          workspaceId,
-          baseId,
-          dashboard.id,
-        );
-
-        const trashRes = await listTrash(context, workspaceId, baseId);
-        const widgetEntry = findTrashEntry(trashRes.body.list, widget.id);
-
-        const restoreRes = await restoreTrash(
-          context,
-          workspaceId,
-          baseId,
-          widgetEntry.id,
-        );
-        expect(restoreRes.status).to.be.gte(400);
       });
     });
 
@@ -875,7 +843,7 @@ export function baseTrashTests() {
     // ── Trash List & Pagination ────────────────────────────────
 
     describe('Trash list & pagination', () => {
-      it('should return paginated trash list', async () => {
+      it('should return paginated trash list via cursor', async () => {
         for (let i = 0; i < 3; i++) {
           const d = await createDashboardViaApi(
             context,
@@ -888,18 +856,18 @@ export function baseTrashTests() {
 
         const res1 = await listTrash(context, workspaceId, baseId, {
           limit: '2',
-          offset: '0',
         });
         expect(res1.status).to.eq(200);
         expect(res1.body.list.length).to.eq(2);
-        expect(res1.body.pageInfo.totalRows).to.eq(3);
+        expect(res1.body.nextCursor).to.be.a('string');
 
         const res2 = await listTrash(context, workspaceId, baseId, {
           limit: '2',
-          offset: '2',
+          cursor: res1.body.nextCursor,
         });
         expect(res2.status).to.eq(200);
         expect(res2.body.list.length).to.eq(1);
+        expect(res2.body.nextCursor).to.be.null;
       });
 
       it('should filter by resourceType', async () => {
@@ -1006,9 +974,12 @@ export function baseTrashTests() {
           dashboard.id,
         );
 
+        // While the parent is in trash the child is hidden — only the
+        // dashboard entry is visible.
         const trashRes = await listTrash(context, workspaceId, baseId);
         const dashEntry = findTrashEntry(trashRes.body.list, dashboard.id);
-        const widgetEntry = findTrashEntry(trashRes.body.list, widget.id);
+        expect(dashEntry).to.not.be.undefined;
+        expect(findTrashEntry(trashRes.body.list, widget.id)).to.be.undefined;
 
         // Restore dashboard first
         const restoreDash = await restoreTrash(
@@ -1019,7 +990,11 @@ export function baseTrashTests() {
         );
         expect(restoreDash.status).to.eq(200);
 
-        // Now restore widget
+        // Widget entry now surfaces — restore it.
+        const trashRes2 = await listTrash(context, workspaceId, baseId);
+        const widgetEntry = findTrashEntry(trashRes2.body.list, widget.id);
+        expect(widgetEntry).to.not.be.undefined;
+
         const restoreWidget = await restoreTrash(
           context,
           workspaceId,

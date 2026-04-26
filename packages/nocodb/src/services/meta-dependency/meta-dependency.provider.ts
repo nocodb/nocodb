@@ -17,6 +17,7 @@ import { ColumnUpdateRowColorDependencyHandler } from '~/services/meta-dependenc
 import { ColumnUpdateCalendarRangeDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-calendar-range-dependency.handler';
 import { ColumnUpdateFilterOperatorDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-filter-operator-dependency.handler';
 import { ColumnUpdateKanbanGroupByDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-kanban-groupby-dependency.handler';
+import { HookDeleteButtonRefDependencyHandler } from '~/services/meta-dependency/handler/hook/hook-delete-button-ref-dependency.handler';
 
 export const MetaDependencyServices = [
   ColumnTimezoneUpdateDependencyHandler,
@@ -34,6 +35,7 @@ export const MetaDependencyServices = [
   ColumnUpdateCalendarRangeDependencyHandler,
   ColumnUpdateFilterOperatorDependencyHandler,
   ColumnUpdateKanbanGroupByDependencyHandler,
+  HookDeleteButtonRefDependencyHandler,
 ];
 
 export const MetaDependencyModuleProvider = {

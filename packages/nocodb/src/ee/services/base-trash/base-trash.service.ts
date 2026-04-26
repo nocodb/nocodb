@@ -353,10 +353,9 @@ export class BaseTrashService implements OnModuleInit {
         for (const childType of handler.childTypes) {
           // eslint-disable-next-line no-constant-condition
           while (true) {
-            const { list: childTrash } = await BaseTrash.list(
+            const childTrash = await BaseTrash.listChildrenByParent(
               context,
               {
-                base_id: context.base_id,
                 resourceType: childType,
                 parentId: trashEntry.resource_id,
                 limit: CHILD_CLEANUP_BATCH,

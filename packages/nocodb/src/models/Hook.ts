@@ -50,6 +50,7 @@ export default class Hook implements HookType {
   version?: 'v1' | 'v2' | 'v3';
   trigger_field?: boolean;
   trigger_fields?: string[];
+  deleted?: BoolType;
 
   constructor(
     hook: Partial<Hook | HookReqType> & {
@@ -66,6 +67,7 @@ export default class Hook implements HookType {
   public static async get(
     context: NcContext,
     hookId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     let hook =
@@ -95,6 +97,7 @@ export default class Hook implements HookType {
       }
       await NocoCache.set(context, `${CacheScope.HOOK}:${hookId}`, hook);
     }
+    if (hook?.deleted && !includeDeleted) return null;
     return hook && new Hook(hook);
   }
 
@@ -113,6 +116,7 @@ export default class Hook implements HookType {
       event?: HookType['event'];
       operation?: HookType['operation'][0];
       affectedColumns?: string[];
+      includeDeleted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -163,6 +167,9 @@ export default class Hook implements HookType {
         [param.fk_model_id],
         hooks,
       );
+    }
+    if (!param.includeDeleted) {
+      hooks = hooks.filter((h) => !h.deleted);
     }
     // filter event & operation
     if (param.event) {
@@ -273,7 +280,7 @@ export default class Hook implements HookType {
       1,
     );
 
-    return this.get(context, id, ncMeta).then(async (hook) => {
+    return this.get(context, id, false, ncMeta).then(async (hook) => {
       await NocoCache.appendToList(
         context,
         CacheScope.HOOK,
@@ -357,7 +364,7 @@ export default class Hook implements HookType {
       1,
     );
 
-    return this.get(context, id, ncMeta).then(async (hook) => {
+    return this.get(context, id, false, ncMeta).then(async (hook) => {
       await NocoCache.appendToList(
         context,
         CacheScope.HOOK,
@@ -454,7 +461,33 @@ export default class Hook implements HookType {
 
     await NocoCache.update(context, `${CacheScope.HOOK}:${hookId}`, updateObj);
 
-    return this.get(context, hookId, ncMeta);
+    return this.get(context, hookId, false, ncMeta);
+  }
+
+  static async softDelete(
+    context: NcContext,
+    hookId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.HOOKS,
+      { deleted },
+      hookId,
+    );
+    await NocoCache.update(context, `${CacheScope.HOOK}:${hookId}`, {
+      deleted,
+    });
+
+    // Adjust workspace resource stats cache: -1 on trash, +1 on restore.
+    await NocoCache.incrHashField(
+      'root',
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE,
+      deleted ? -1 : 1,
+    );
   }
 
   static async delete(context: NcContext, hookId: any, ncMeta = Noco.ncMeta) {

@@ -6984,7 +6984,7 @@
             "description": "Icon prefix to the table name that needs to be displayed in-lieu of the default table icon."
           }
         },
-        "oneOf": [
+        "anyOf": [
           {
             "title": "Rename Table",
             "required": [

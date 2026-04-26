@@ -82,6 +82,19 @@ const showMinorWeekday = computed(() =>
   ['weekday-full', 'weekday-short', 'weekday-letter'].includes(headerConfig.value.minorLabel),
 )
 
+const isCellBoundary = (date: dayjs.Dayjs) => {
+  switch (headerConfig.value.gridlineUnit) {
+    case 'day':
+      return true
+    case 'week':
+      return date.day() === 0
+    case 'month':
+      return date.date() === date.daysInMonth()
+    case 'quarter':
+      return date.date() === date.daysInMonth() && date.month() % 3 === 2
+  }
+}
+
 const zoomOptions = TIMELINE_ZOOM_LEVELS
 
 const zoomLabel = (option: TimelineZoomLevel) => {
@@ -540,8 +553,9 @@ const recordCountLabel = computed(() => {
                   <div
                     v-for="date in visibleDates"
                     :key="date.format('YYYY-MM-DD')"
-                    class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
+                    class="flex-shrink-0 flex flex-col items-center justify-center"
                     :class="{
+                      'border-r border-nc-border-gray-light': isCellBoundary(date),
                       'bg-nc-bg-brand': isToday(date),
                       'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date),
                     }"

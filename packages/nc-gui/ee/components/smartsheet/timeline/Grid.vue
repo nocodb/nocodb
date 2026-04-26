@@ -70,6 +70,21 @@ const showMinorWeekday = computed(() =>
   ['weekday-full', 'weekday-short', 'weekday-letter'].includes(headerConfig.value.minorLabel),
 )
 
+// True when the date's right edge sits on a gridline boundary for the
+// current scale. Used to suppress per-day gridlines at coarser scales.
+const isCellBoundary = (date: dayjs.Dayjs) => {
+  switch (headerConfig.value.gridlineUnit) {
+    case 'day':
+      return true
+    case 'week':
+      return date.day() === 0 // Sunday — right edge is start of next Monday
+    case 'month':
+      return date.date() === date.daysInMonth()
+    case 'quarter':
+      return date.date() === date.daysInMonth() && date.month() % 3 === 2
+  }
+}
+
 // Visible fields from the Fields menu (injected by parent Smartsheet/shared-view)
 const fields = inject(FieldsInj, ref())
 
@@ -930,13 +945,15 @@ const onGridMouseLeave = () => {
           </div>
 
           <!-- Minor row — one cell per day. Labels fade out at coarser zoom
-               levels per `headerConfig.minorLabel`. -->
+               levels per `headerConfig.minorLabel`. Cell right-borders only
+               render at gridline boundaries (week/month/quarter). -->
           <div class="flex bg-nc-bg-default border-b border-nc-border-gray-medium">
             <div
               v-for="(date, dateIdx) in visibleDates"
               :key="date.format('YYYY-MM-DD')"
-              class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center transition-colors duration-100"
+              class="flex-shrink-0 flex flex-col items-center justify-center transition-colors duration-100"
               :class="{
+                'border-r border-nc-border-gray-light': isCellBoundary(date),
                 'bg-nc-bg-brand': isToday(date),
                 'nc-timeline-header-hover': hoverColIndex === dateIdx && !isToday(date),
                 'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date) && hoverColIndex !== dateIdx,
@@ -997,13 +1014,16 @@ const onGridMouseLeave = () => {
               width: `${colWidth}px`,
             }"
           />
-          <!-- Grid lines (vertical) -->
-          <div
-            v-for="(date, dateIdx) in visibleDates"
-            :key="`line-${date.format('YYYY-MM-DD')}`"
-            class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
-            :style="{ left: `${(dateIdx + 1) * colWidth}px` }"
-          />
+          <!-- Grid lines (vertical) — only at gridline boundaries for the
+               current scale (every day for fine zooms, every week / month /
+               quarter for coarser zooms). -->
+          <template v-for="(date, dateIdx) in visibleDates" :key="`line-${date.format('YYYY-MM-DD')}`">
+            <div
+              v-if="isCellBoundary(date)"
+              class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
+              :style="{ left: `${(dateIdx + 1) * colWidth}px` }"
+            />
+          </template>
           <!-- Today indicator line -->
           <div
             v-if="todayPosition !== null"

@@ -252,7 +252,8 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
     !ctx ||
     !hasEditPermission.value ||
     (!isLinksOrLTAR(fields.value[ctx.col]) && isVirtualCol(fields.value[ctx.col])) ||
-    fields.value[ctx.col].readonly
+    fields.value[ctx.col].readonly ||
+    fields.value[ctx.col].uidt === UITypes.UUID
   )
     return
 

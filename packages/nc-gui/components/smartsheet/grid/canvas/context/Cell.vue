@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, type TableType, type ViewType, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes, type TableType, type ViewType, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
 import type { ActionManager } from '../loaders/ActionManager'
 const props = defineProps<{
@@ -135,13 +135,16 @@ const disablePasteCell = computed(() => {
 })
 
 const disableClearCell = computed(() => {
+  const col = contextMenuCol.value ? columns.value[contextMenuCol.value]?.columnObj : null
+  // UUID fields are read-only (auto-generated) — clear is never allowed
+  if (col && col.uidt === UITypes.UUID) return true
   return (
     props.isSelectionReadOnly &&
     (!selection.value.isSingleCell() ||
       !contextMenuPath.value ||
       !contextMenuCol.value ||
-      !columns.value[contextMenuCol.value]?.columnObj ||
-      !isLinksOrLTAR(columns.value[contextMenuCol.value]?.columnObj))
+      !col ||
+      !isLinksOrLTAR(col))
   )
 })
 

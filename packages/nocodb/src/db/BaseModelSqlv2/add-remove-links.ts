@@ -236,12 +236,12 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     const childBaseModel = await Model.getBaseModelSQL(childContext, {
       model: childTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
     });
 
     const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
       model: parentTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
     });
 
     const childTn = childBaseModel.getTnPath(childTable);
@@ -332,7 +332,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
           const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
             model: vTable,
-            dbDriver: baseModel.dbDriver,
+            dbDriver: baseModel.knex,
           });
 
           const refBaseModel = parentBaseModel;
@@ -965,12 +965,12 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     const childBaseModel = await Model.getBaseModelSQL(childContext, {
       model: childTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
     });
 
     const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
       model: parentTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
     });
 
     const childTn = childBaseModel.getTnPath(childTable);
@@ -1026,7 +1026,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
           const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
             model: vTable,
-            dbDriver: baseModel.dbDriver,
+            dbDriver: baseModel.knex,
           });
           const refBaseModel = parentBaseModel;
 

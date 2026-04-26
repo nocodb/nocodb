@@ -5,7 +5,7 @@ import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column } from '~/models';
 import type CustomKnex from '~/db/CustomKnex';
 import { Profiler } from '~/helpers/profiler';
-import { Model } from '~/models';
+import { LinkToAnotherRecordColumn, Model } from '~/models';
 import { addOrRemoveLinks } from '~/db/BaseModelSqlv2/add-remove-links';
 
 // for v3 bulk update with ltar links
@@ -37,6 +37,44 @@ export const LTARColsUpdater = (param: {
       for (const col of baseModel.model.columns) {
         // skip if not LTAR or Links
         if (!isLinksOrLTAR(col)) continue;
+
+        // Lazily load the related table's BaseModel so we can use it for correct
+        // PK extraction.  baseModel belongs to the *current* table; when the related
+        // table has a different primary-key title (e.g. "EmployeeId" vs "Id"),
+        // baseModel.extractPksValues() returns undefined for related records and the
+        // link is silently skipped or causes a "record not found" error.
+        //
+        // For BELONGS_TO the "linked" records live in the parent table.
+        // For HAS_MANY  the "linked" records live in the child table.
+        // For MM/Links  extractPksValues usually works because both sides
+        //               share the same default PK naming, so we leave those
+        //               on the existing path.
+        let relatedBaseModel: IBaseModelSqlV2 | null = null;
+        if (!isMMOrMMLike(col)) {
+          try {
+            const colOptions =
+              await col.getColOptions<LinkToAnotherRecordColumn>(
+                baseModel.context,
+              );
+            const isBt = col.colOptions.type === RelationTypes.BELONGS_TO;
+            const linkedCol = isBt
+              ? await colOptions.getParentColumn(baseModel.context)
+              : await colOptions.getChildColumn(baseModel.context);
+            const linkedTable = await linkedCol.getModel(baseModel.context);
+            relatedBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+              model: linkedTable,
+              dbDriver: baseModel.dbDriver,
+            });
+          } catch (_e) {
+            // Fall back to baseModel if we can't resolve the related model
+          }
+        }
+
+        // Extract the PK string from a related-table record using the correct model
+        const extractRelatedId = (rec: any): string => {
+          const model = relatedBaseModel ?? baseModel;
+          return model.extractPksValues(rec, true) as string;
+        };
 
         for (const d of datas) {
           const rowId = baseModel.extractPksValues(d, true);
@@ -76,12 +114,12 @@ export const LTARColsUpdater = (param: {
             ...(Array.isArray(d[col.title])
               ? d[col.title]
               : [d[col.title]]
-            ).map((rec) => baseModel.extractPksValues(rec, true)),
+            ).map((rec) => extractRelatedId(rec)),
           ];
 
           // check for any missing links then unlink
           const idsToUnlink = existingLinks
-            .map((link) => baseModel.extractPksValues(link, true))
+            .map((link) => extractRelatedId(link))
             .filter((existingLinkPk) => {
               const index = idsToLink.findIndex((linkPk) => {
                 return existingLinkPk === linkPk;

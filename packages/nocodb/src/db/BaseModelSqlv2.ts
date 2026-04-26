@@ -1760,12 +1760,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (colOptions?.type === 'hm' && !isMMLike) {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
+                    // Use the runtime context api_version rather than the cached
+                    // closure value so that V3 requests get the correct nested
+                    // limit (ltarV3Limit = 1000) even when the proto was first
+                    // built under a V2 request.
+                    const runtimeApiVersion =
+                      this.context.api_version ?? apiVersion;
                     if (ids.length > 1) {
                       const data = await this.multipleHmList(
                         {
                           colId: column.id,
                           ids,
-                          apiVersion,
+                          apiVersion: runtimeApiVersion,
                           linksAsLtar,
                         },
                         (listLoader as any).args,
@@ -1779,7 +1785,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                           {
                             colId: column.id,
                             id: ids[0],
-                            apiVersion,
+                            apiVersion: runtimeApiVersion,
                             nested: true,
                             linksAsLtar,
                           },
@@ -1807,12 +1813,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               } else if (colOptions.type === 'mm' || isMMLike) {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
+                    // Use the runtime context api_version rather than the cached
+                    // closure value so that V3 requests get the correct nested
+                    // limit (ltarV3Limit = 1000) even when the proto was first
+                    // built under a V2 request.
+                    const runtimeApiVersion =
+                      this.context.api_version ?? apiVersion;
                     if (ids?.length > 1) {
                       const data = await this.multipleMmList(
                         {
                           parentIds: ids,
                           colId: column.id,
-                          apiVersion,
+                          apiVersion: runtimeApiVersion,
                           nested: true,
                           linksAsLtar,
                         },
@@ -1826,7 +1838,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                           {
                             parentId: ids[0],
                             colId: column.id,
-                            apiVersion,
+                            apiVersion: runtimeApiVersion,
                             nested: true,
                             linksAsLtar,
                           },

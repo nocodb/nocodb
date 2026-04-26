@@ -65,7 +65,12 @@ export const relationDataFetcher = (param: {
         // skip duplicate id
         const ids = [...new Set(_ids)];
 
-        const { where, sort, ...rest } = baseModel._getListArgs(args as any);
+        // Pass apiVersion and nested so that V3 requests get the correct
+        // ltarV3Limit (1000) instead of the V2 default (25).
+        const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
+          apiVersion,
+          nested,
+        });
         // todo: get only required fields
         const relColumn = (
           await baseModel.model.getColumns(baseModel.context)
@@ -585,7 +590,12 @@ export const relationDataFetcher = (param: {
     ) {
       // skip duplicate id
       const parentIds = [...new Set(_parentIds)];
-      const { where, sort, ...rest } = baseModel._getListArgs(args as any);
+      // Pass apiVersion and nested so that V3 requests get the correct
+      // ltarV3Limit (1000) instead of the V2 default (25).
+      const { where, sort, ...rest } = baseModel._getListArgs(args as any, {
+        apiVersion,
+        nested,
+      });
       const relColumn = (
         await baseModel.model.getColumns(baseModel.context)
       ).find((c) => c.id === colId);

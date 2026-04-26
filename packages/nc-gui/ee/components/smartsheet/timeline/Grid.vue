@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
+import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
 
 const props = defineProps<{
   records: RowType[]
@@ -13,7 +14,7 @@ const props = defineProps<{
     id: string
     is_readonly: boolean
   }>
-  zoomLevel: 'day' | 'week' | 'month'
+  zoomLevel: TimelineZoomLevel
   hideHeader?: boolean
 }>()
 
@@ -29,7 +30,38 @@ const { isAllowed } = usePermissions()
 
 const { $e } = useNuxtApp()
 
-const { updateRowProperty, updateFormat } = useTimelineViewStoreOrThrow()
+const {
+  updateRowProperty,
+  updateFormat,
+  colWidth,
+  totalGridWidth,
+  scrollLeft: storeScrollLeft,
+  onScrollUpdate,
+  setViewportWidth,
+  onScrollAdjustment,
+  headerConfig,
+  majorHeaderSpans,
+} = useTimelineViewStoreOrThrow()
+
+// Format the per-day weekday label for the minor header row, depending on
+// how compact the current scale wants the cell to be.
+const minorWeekdayLabel = (date: dayjs.Dayjs) => {
+  switch (headerConfig.value.minorLabel) {
+    case 'weekday-full':
+      return date.format('dddd')
+    case 'weekday-short':
+      return date.format('ddd')
+    case 'weekday-letter':
+      return date.format('dd').charAt(0)
+    default:
+      return ''
+  }
+}
+
+const showMinorWeekday = computed(() =>
+  ['weekday-full', 'weekday-short', 'weekday-letter'].includes(headerConfig.value.minorLabel),
+)
+const showMinorDayNum = computed(() => headerConfig.value.minorLabel !== 'none')
 
 // Visible fields from the Fields menu (injected by parent Smartsheet/shared-view)
 const fields = inject(FieldsInj, ref())
@@ -78,30 +110,15 @@ onMounted(() => {
 const ROW_HEIGHT = 36
 const HEADER_HEIGHT = 32
 
-// Measure the grid container to compute dynamic column widths
+// Measure the grid container — drives viewport width for scroll math
 const gridContainerRef = ref<HTMLElement | null>(null)
 const { width: containerWidth } = useElementSize(gridContainerRef)
 
-// #4: Column width — for month view, always fit all days in the container;
-// for day/week views, enforce a minimum so columns aren't excessively wide
-const MIN_COL_WIDTH_DAY_WEEK = 48
-const colWidth = computed(() => {
-  if (!containerWidth.value || !props.visibleDates.length) return 120
-  const naturalWidth = containerWidth.value / props.visibleDates.length
-  // Month view: always fit all days without horizontal scroll
-  if (props.zoomLevel === 'month') return naturalWidth
-  return Math.max(naturalWidth, MIN_COL_WIDTH_DAY_WEEK)
-})
-
-// Total grid width — may exceed container for horizontal scroll
-const totalGridWidth = computed(() => {
-  return props.visibleDates.length * colWidth.value
-})
-
-// Whether horizontal scrolling is needed
-const needsHorizontalScroll = computed(() => {
-  return totalGridWidth.value > containerWidth.value
-})
+// Push viewport width into the store so it can compute scroll targets and
+// derive currentDate from viewport center.
+watch(containerWidth, (w) => {
+  if (w > 0) setViewportWidth(w)
+}, { immediate: true })
 
 // --- Resize state ---
 const resizeInProgress = ref(false)
@@ -550,7 +567,9 @@ const getBarStyle = (row: RowType) => {
 
   return {
     left: `${startOffset * colWidth.value}px`,
-    width: `${Math.max(duration * colWidth.value - 4, 20)}px`,
+    // Allow bars to shrink to a thin line at coarse zoom levels — only floor
+    // at 1px so a single-day record still renders as a hairline.
+    width: `${Math.max(duration * colWidth.value - 4, 1)}px`,
   }
 }
 
@@ -795,16 +814,47 @@ const onBarKeydown = (event: KeyboardEvent, record: RowType, laneIdx: number, ba
   targetEl?.focus()
 }
 
-// Sync horizontal scroll between header and body
+// Horizontal scroll: the body is the user-scrolled element; the header
+// follows via a watcher on the store's scrollLeft. In grouped mode multiple
+// Grid instances exist — they all sync to the same store value.
 const headerScrollRef = ref<HTMLElement | null>(null)
 const bodyScrollRef = ref<HTMLElement | null>(null)
 
 const onBodyScroll = (event: Event) => {
   const target = event.target as HTMLElement
-  if (headerScrollRef.value) {
-    headerScrollRef.value.scrollLeft = target.scrollLeft
-  }
+  // Idempotent guard: when the store updates scrollLeft and we mirror it back
+  // onto this element, the resulting native scroll event would otherwise
+  // re-enter the store. Bail when the value already matches.
+  if (target.scrollLeft === storeScrollLeft.value) return
+  onScrollUpdate(target.scrollLeft)
 }
+
+// Mirror store scrollLeft → DOM. Both the header and the body track it.
+watch(
+  () => storeScrollLeft.value,
+  (newLeft) => {
+    if (headerScrollRef.value && headerScrollRef.value.scrollLeft !== newLeft) {
+      headerScrollRef.value.scrollLeft = newLeft
+    }
+    if (bodyScrollRef.value && bodyScrollRef.value.scrollLeft !== newLeft) {
+      bodyScrollRef.value.scrollLeft = newLeft
+    }
+  },
+)
+
+// Imperative scroll adjustments from the store (goToDate / today / prev /
+// next / buffer extension). Applied after the DOM has rendered the new
+// buffer width.
+onScrollAdjustment(({ type, value }) => {
+  nextTick(() => {
+    if (!bodyScrollRef.value) return
+    if (type === 'delta') {
+      bodyScrollRef.value.scrollLeft += value
+    } else {
+      bodyScrollRef.value.scrollLeft = value
+    }
+  })
+})
 
 const onGridMouseMove = (event: MouseEvent) => {
   if (resizeInProgress.value || dragInProgress.value) return
@@ -852,47 +902,61 @@ const onGridMouseLeave = () => {
     <!-- Date column headers (hidden when parent provides a shared header) -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
       <div ref="headerScrollRef" class="overflow-x-hidden" @mousemove="onHeaderMouseMove" @mouseleave="onGridMouseLeave">
-        <div
-          class="flex bg-nc-bg-default border-b border-nc-border-gray-medium"
-          :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%' }"
-        >
+        <div :style="{ width: `${totalGridWidth}px` }">
+          <!-- Major row — months/quarters/years at coarser zoom levels. Each
+               span is positioned absolutely over the day grid below. -->
           <div
-            v-for="(date, dateIdx) in visibleDates"
-            :key="date.format('YYYY-MM-DD')"
-            class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center transition-colors duration-100"
-            :class="{
-              'bg-nc-bg-brand': isToday(date),
-              'nc-timeline-header-hover': hoverColIndex === dateIdx && !isToday(date),
-              'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date) && hoverColIndex !== dateIdx,
-            }"
-            :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
+            v-if="majorHeaderSpans.length"
+            class="relative bg-nc-bg-default border-b border-nc-border-gray-light"
+            :style="{ height: '20px' }"
           >
-            <span
-              class="text-[10px] font-normal leading-tight"
-              :class="{
-                'text-nc-content-brand': isToday(date),
-                'text-nc-content-gray-subtle': hoverColIndex === dateIdx && !isToday(date),
-                'text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
-              }"
+            <div
+              v-for="span in majorHeaderSpans"
+              :key="span.key"
+              class="absolute top-0 h-full flex items-center justify-center text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-1"
+              :style="{ left: `${span.leftPx}px`, width: `${span.widthPx}px` }"
             >
-              {{
-                zoomLevel === 'month'
-                  ? date.format('dd').charAt(0)
-                  : zoomLevel === 'week'
-                  ? date.format('ddd')
-                  : date.format('dddd')
-              }}
-            </span>
-            <span
-              class="text-[11px] leading-tight"
+              {{ span.label }}
+            </div>
+          </div>
+
+          <!-- Minor row — one cell per day. Labels fade out at coarser zoom
+               levels per `headerConfig.minorLabel`. -->
+          <div class="flex bg-nc-bg-default border-b border-nc-border-gray-medium">
+            <div
+              v-for="(date, dateIdx) in visibleDates"
+              :key="date.format('YYYY-MM-DD')"
+              class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center transition-colors duration-100"
               :class="{
-                'text-nc-content-brand': isToday(date),
-                'font-semibold text-nc-content-gray-emphasis': hoverColIndex === dateIdx && !isToday(date),
-                'font-normal text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
+                'bg-nc-bg-brand': isToday(date),
+                'nc-timeline-header-hover': hoverColIndex === dateIdx && !isToday(date),
+                'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date) && hoverColIndex !== dateIdx,
               }"
+              :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
             >
-              {{ date.format('D') }}
-            </span>
+              <span
+                v-if="showMinorWeekday"
+                class="text-[10px] font-normal leading-tight"
+                :class="{
+                  'text-nc-content-brand': isToday(date),
+                  'text-nc-content-gray-subtle': hoverColIndex === dateIdx && !isToday(date),
+                  'text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
+                }"
+              >
+                {{ minorWeekdayLabel(date) }}
+              </span>
+              <span
+                v-if="showMinorDayNum"
+                class="text-[11px] leading-tight"
+                :class="{
+                  'text-nc-content-brand': isToday(date),
+                  'font-semibold text-nc-content-gray-emphasis': hoverColIndex === dateIdx && !isToday(date),
+                  'font-normal text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
+                }"
+              >
+                {{ date.format('D') }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -900,15 +964,18 @@ const onGridMouseLeave = () => {
     <!-- When header is hidden, still need a ref element to measure container width -->
     <div v-else ref="gridContainerRef" class="w-full h-0" />
 
-    <!-- Scrollable grid body (#4: both axes scroll) -->
+    <!-- Scrollable grid body. Flat mode: scroll both axes. Grouped mode (hideHeader):
+         scroll only horizontally; vertical scroll lives on the GroupBy wrapper.
+         The horizontal scrollbar is hidden in grouped mode so users see only the
+         shared scrollbar on the top date header. -->
     <div
       ref="bodyScrollRef"
-      :class="hideHeader ? 'overflow-hidden' : 'flex-1 min-h-0 overflow-auto'"
+      :class="hideHeader ? 'overflow-x-auto overflow-y-hidden nc-timeline-no-scrollbar' : 'flex-1 min-h-0 overflow-auto'"
       @scroll="onBodyScroll"
       @mousemove="onGridMouseMove"
       @mouseleave="onGridMouseLeave"
     >
-      <div class="relative" :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%', minHeight: '100%' }">
+      <div class="relative" :style="{ width: `${totalGridWidth}px`, minHeight: '100%' }">
         <!-- Background layer: grid lines, weekend shading, today line — fills full height -->
         <div class="absolute inset-0 pointer-events-none">
           <!-- Weekend backgrounds -->
@@ -1202,5 +1269,14 @@ const onGridMouseLeave = () => {
   background-color: var(--nc-bg-brand);
   opacity: 0.15;
   z-index: 10;
+}
+
+/* Hide native scrollbar — used on per-group bodies in grouped mode where the
+   shared scrollbar lives on the top date header. */
+.nc-timeline-no-scrollbar {
+  scrollbar-width: none;
+}
+.nc-timeline-no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 </style>

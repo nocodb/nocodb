@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { Row as RowType } from '#imports'
+import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
+import { TIMELINE_ZOOM_LEVELS } from '../../../utils/timelineUtils'
 
 const meta = inject(MetaInj, ref())
 
@@ -47,7 +49,39 @@ const {
   recordsWithoutDates,
   navigateToClosestRecord,
   updateFormat,
+  colWidth,
+  totalGridWidth,
+  scrollLeft: storeScrollLeft,
+  setViewportWidth,
+  onScrollUpdate,
+  headerConfig,
+  majorHeaderSpans,
 } = useTimelineViewStoreOrThrow()
+
+const minorWeekdayLabel = (date: dayjs.Dayjs) => {
+  switch (headerConfig.value.minorLabel) {
+    case 'weekday-full':
+      return date.format('dddd')
+    case 'weekday-short':
+      return date.format('ddd')
+    case 'weekday-letter':
+      return date.format('dd').charAt(0)
+    default:
+      return ''
+  }
+}
+
+const showMinorWeekday = computed(() =>
+  ['weekday-full', 'weekday-short', 'weekday-letter'].includes(headerConfig.value.minorLabel),
+)
+const showMinorDayNum = computed(() => headerConfig.value.minorLabel !== 'none')
+
+const zoomOptions = TIMELINE_ZOOM_LEVELS
+
+const zoomLabel = (option: TimelineZoomLevel) => {
+  if (option === '5year') return t('objects.fiveYear')
+  return t(`objects.${option}`)
+}
 
 // Group-by support (provided by parent Smartsheet.vue via useProvideViewGroupBy)
 const { isGroupBy, rootGroup, groupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage } =
@@ -166,10 +200,13 @@ onBeforeUnmount(() => {
   reloadViewDataHook?.off(reloadViewDataListener)
 })
 
-// Watch for date/zoom/range changes and reload data
+// Watch for zoom/range changes and reload data.
+// (currentDate is no longer in this watch — under infinite scroll it updates
+// continuously as the user pans, and the data fetch is scale-independent
+// anyway: 400 records, no date filter.)
 // timelineRange is critical: it may be empty on mount (view data loads async)
-// and gets populated later when activeView.view.timeline_range arrives
-watch([currentDate, zoomLevel, timelineRange], () => {
+// and gets populated later when activeView.view.timeline_range arrives.
+watch([zoomLevel, timelineRange], () => {
   reloadData()
 })
 
@@ -195,10 +232,31 @@ const GROUP_HEADER_HEIGHT = TIMELINE_GROUP_HEADER_HEIGHT
 const groupHeaderRef = ref<HTMLElement | null>(null)
 const { width: groupHeaderWidth } = useElementSize(groupHeaderRef)
 
-const groupColWidth = computed(() => {
-  if (!groupHeaderWidth.value || !visibleDates.value.length) return 120
-  return groupHeaderWidth.value / visibleDates.value.length
-})
+// Surface viewport width to the store from the grouped header — scroll math
+// (centring on a date, edge-extension thresholds) needs the visible width.
+// In flat mode Grid.vue does the same from its own container.
+watch(groupHeaderWidth, (w) => {
+  if (w > 0) setViewportWidth(w)
+}, { immediate: true })
+
+// Mirror store scrollLeft into the grouped header so it follows when a per-group
+// body scrolls.
+watch(
+  () => storeScrollLeft.value,
+  (newLeft) => {
+    if (groupHeaderRef.value && groupHeaderRef.value.scrollLeft !== newLeft) {
+      groupHeaderRef.value.scrollLeft = newLeft
+    }
+  },
+)
+
+// User scrolls the date header — push position into the store so all the
+// per-group bodies follow.
+const onGroupHeaderScroll = (event: Event) => {
+  const target = event.target as HTMLElement
+  if (target.scrollLeft === storeScrollLeft.value) return
+  onScrollUpdate(target.scrollLeft)
+}
 
 // Label for the "Grouped by" sidebar header
 const groupByFieldLabel = computed(() => {
@@ -260,7 +318,7 @@ const recordCountLabel = computed(() => {
         <NcDropdown v-model:visible="datePickerVisible" :trigger="['click']">
           <NcButton
             :class="{
-              'w-29': zoomLevel === 'month',
+              'w-29': zoomLevel === 'month' || zoomLevel === 'quarter' || zoomLevel === 'year' || zoomLevel === '5year',
               'w-38': zoomLevel === 'week',
               'w-48': zoomLevel === 'day',
             }"
@@ -378,12 +436,12 @@ const recordCountLabel = computed(() => {
 
         <div class="flex-1" />
 
-        <!-- #20: Zoom Mode Selector (day, week, month) -->
+        <!-- Zoom Mode Selector (day, week, month, quarter, year, 5-year) -->
         <a-select
           v-e="['c:timeline:change-zoom-level']"
           :value="zoomLevel"
-          class="nc-select-shadow nc-timeline-mode-select !w-21 !rounded-lg"
-          dropdown-class-name="!rounded-lg !min-w-25"
+          class="nc-select-shadow nc-timeline-mode-select !w-24 !rounded-lg"
+          dropdown-class-name="!rounded-lg !min-w-28"
           size="small"
           data-testid="nc-timeline-view-mode"
           @change="setZoomLevel"
@@ -392,12 +450,12 @@ const recordCountLabel = computed(() => {
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
-          <a-select-option v-for="option in ['day', 'week', 'month']" :key="option" :value="option">
-            <div class="w-full flex gap-2 items-center justify-between" :title="$t(`objects.${option}`)">
+          <a-select-option v-for="option in zoomOptions" :key="option" :value="option">
+            <div class="w-full flex gap-2 items-center justify-between" :title="zoomLabel(option)">
               <div class="flex items-center gap-1">
                 <NcTooltip class="flex-1 capitalize mt-0.5 truncate" show-on-truncate-only>
-                  <template #title>{{ $t(`objects.${option}`) }}</template>
-                  <template #default>{{ $t(`objects.${option}`) }}</template>
+                  <template #title>{{ zoomLabel(option) }}</template>
+                  <template #default>{{ zoomLabel(option) }}</template>
                 </NcTooltip>
               </div>
               <GeneralIcon
@@ -450,43 +508,59 @@ const recordCountLabel = computed(() => {
               <span class="text-[11px] text-nc-content-gray-muted font-normal truncate">{{ groupByFieldLabel }}</span>
             </div>
 
-            <!-- #10: Date columns header — using date string keys -->
-            <div ref="groupHeaderRef" class="flex-1 overflow-hidden">
-              <div class="flex bg-nc-bg-default w-full">
+            <!-- Date columns header — the shared horizontal scrollbar for grouped mode lives here.
+                 Per-group bodies have hidden scrollbars and follow this one via the store. -->
+            <div ref="groupHeaderRef" class="flex-1 overflow-x-auto overflow-y-hidden" @scroll="onGroupHeaderScroll">
+              <div :style="{ width: `${totalGridWidth}px` }">
+                <!-- Major row at coarser zoom levels -->
                 <div
-                  v-for="date in visibleDates"
-                  :key="date.format('YYYY-MM-DD')"
-                  class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
-                  :class="{
-                    'bg-nc-bg-brand': isToday(date),
-                    'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date),
-                  }"
-                  :style="{ width: `${groupColWidth}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
+                  v-if="majorHeaderSpans.length"
+                  class="relative bg-nc-bg-default border-b border-nc-border-gray-light"
+                  :style="{ height: '20px' }"
                 >
-                  <span
-                    class="text-[10px] font-normal leading-tight"
-                    :class="{
-                      'text-nc-content-brand': isToday(date),
-                      'text-nc-content-gray-muted': !isToday(date),
-                    }"
+                  <div
+                    v-for="span in majorHeaderSpans"
+                    :key="span.key"
+                    class="absolute top-0 h-full flex items-center justify-center text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-1"
+                    :style="{ left: `${span.leftPx}px`, width: `${span.widthPx}px` }"
                   >
-                    {{
-                      zoomLevel === 'month'
-                        ? date.format('dd').charAt(0)
-                        : zoomLevel === 'week'
-                        ? date.format('ddd')
-                        : date.format('dddd')
-                    }}
-                  </span>
-                  <span
-                    class="text-[11px] font-normal leading-tight"
+                    {{ span.label }}
+                  </div>
+                </div>
+
+                <!-- Minor row -->
+                <div class="flex bg-nc-bg-default">
+                  <div
+                    v-for="date in visibleDates"
+                    :key="date.format('YYYY-MM-DD')"
+                    class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
                     :class="{
-                      'text-nc-content-brand': isToday(date),
-                      'text-nc-content-gray-muted': !isToday(date),
+                      'bg-nc-bg-brand': isToday(date),
+                      'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date),
                     }"
+                    :style="{ width: `${colWidth}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
                   >
-                    {{ date.format('D') }}
-                  </span>
+                    <span
+                      v-if="showMinorWeekday"
+                      class="text-[10px] font-normal leading-tight"
+                      :class="{
+                        'text-nc-content-brand': isToday(date),
+                        'text-nc-content-gray-muted': !isToday(date),
+                      }"
+                    >
+                      {{ minorWeekdayLabel(date) }}
+                    </span>
+                    <span
+                      v-if="showMinorDayNum"
+                      class="text-[11px] font-normal leading-tight"
+                      :class="{
+                        'text-nc-content-brand': isToday(date),
+                        'text-nc-content-gray-muted': !isToday(date),
+                      }"
+                    >
+                      {{ date.format('D') }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

@@ -5,6 +5,7 @@ import GroupBy from './GroupBy.vue'
 import type { Row as RowType } from '#imports'
 import { shouldRenderCell } from '~/utils/groupbyUtils'
 import type { Group } from '~/lib/types'
+import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
 
 const props = defineProps<{
   group: Group
@@ -15,7 +16,7 @@ const props = defineProps<{
     id: string
     is_readonly: boolean
   }>
-  zoomLevel: 'day' | 'week' | 'month'
+  zoomLevel: TimelineZoomLevel
   loadGroups: (
     params?: any,
     group?: Group,

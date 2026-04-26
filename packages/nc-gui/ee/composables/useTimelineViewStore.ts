@@ -6,10 +6,43 @@ import { storeToRefs } from 'pinia'
 import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
 import { validateRowFilters } from '~/utils/dataUtils'
+import type { TimelineZoomLevel } from '../utils/timelineUtils'
+
+// Per-scale config drives column width, buffer size, prev/next step, and
+// header rendering. `colWidth` is the fixed pixel width of one day-column.
+// `bufferDays` is how many days each side of the anchor we render initially
+// (and extend by when the user nears an edge).
+//
+// Header layout has two rows. `majorUnit` says how the top row groups day
+// columns (one label per month/quarter/year span). `minorLabel` says what
+// each per-day cell shows in the bottom row — at coarse zooms we drop the
+// per-day text since it can't fit anyway.
+interface ScaleConfig {
+  colWidth: number
+  bufferDays: number
+  navUnit: 'day' | 'week' | 'month' | 'year'
+  navAmount: number
+  majorUnit: 'month' | 'quarter' | 'year' | null
+  minorLabel: 'weekday-full' | 'weekday-short' | 'weekday-letter' | 'day-number' | 'none'
+}
+
+const SCALE_CONFIG: Record<TimelineZoomLevel, ScaleConfig> = {
+  day: { colWidth: 160, bufferDays: 30, navUnit: 'day', navAmount: 1, majorUnit: null, minorLabel: 'weekday-full' },
+  week: { colWidth: 72, bufferDays: 60, navUnit: 'week', navAmount: 1, majorUnit: null, minorLabel: 'weekday-short' },
+  month: { colWidth: 36, bufferDays: 120, navUnit: 'month', navAmount: 1, majorUnit: null, minorLabel: 'weekday-letter' },
+  quarter: { colWidth: 12, bufferDays: 365, navUnit: 'month', navAmount: 3, majorUnit: 'month', minorLabel: 'day-number' },
+  year: { colWidth: 4, bufferDays: 730, navUnit: 'year', navAmount: 1, majorUnit: 'month', minorLabel: 'none' },
+  '5year': { colWidth: 1, bufferDays: 1825, navUnit: 'year', navAmount: 5, majorUnit: 'year', minorLabel: 'none' },
+}
+
+const quarterOf = (d: dayjs.Dayjs): number => Math.floor(d.month() / 3) + 1
+
+// Extend the buffer once the user scrolls within this many pixels of an edge.
+const EXTEND_THRESHOLD_PX = 240
 
 // Module-level cache to persist timeline navigation state across view switches.
 // Keyed by view ID so each timeline view remembers its own position.
-const _viewStateCache = new Map<string, { currentDate: string; zoomLevel: 'day' | 'week' | 'month' }>()
+const _viewStateCache = new Map<string, { currentDate: string; zoomLevel: TimelineZoomLevel }>()
 
 // Track which views have already had their initial navigation performed,
 // so we don't re-navigate on every data reload.
@@ -46,46 +79,106 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
-    // Timeline state
-    // #20: Support day zoom level alongside week and month
-    const zoomLevel = ref<'day' | 'week' | 'month'>('month')
+    // ---- Timeline state ----
 
+    const zoomLevel = ref<TimelineZoomLevel>('month')
+
+    // `currentDate` is the date currently centred in the viewport. It is
+    // primarily *derived* from scroll position (via `onScrollUpdate`), but
+    // explicit navigation actions (date picker, today, prev/next) write to
+    // it as well. It drives the breadcrumb label and is what gets cached.
     const currentDate = ref<dayjs.Dayjs>(dayjs())
 
     const selectedDate = ref<dayjs.Dayjs>(dayjs())
+
+    // ---- Buffered window ----
+
+    // Initial buffer is sized for the default zoom level; it gets re-anchored
+    // on zoom level changes and extended on near-edge scrolls.
+    const bufferStart = ref<dayjs.Dayjs>(currentDate.value.startOf('day').subtract(SCALE_CONFIG.month.bufferDays, 'day'))
+    const bufferEnd = ref<dayjs.Dayjs>(currentDate.value.startOf('day').add(SCALE_CONFIG.month.bufferDays, 'day'))
+
+    // Scroll position (px from buffer start) and viewport width — set by the
+    // grid component. The store reads these to derive `currentDate` and to
+    // compute scroll targets for goToDate / today / prev / next.
+    const scrollLeft = ref(0)
+    const viewportWidth = ref(0)
+
+    // Per-scale fixed column width.
+    const colWidth = computed(() => SCALE_CONFIG[zoomLevel.value].colWidth)
+
+    const visibleDates = computed<dayjs.Dayjs[]>(() => {
+      const dates: dayjs.Dayjs[] = []
+      let d = bufferStart.value
+      // bufferEnd is inclusive
+      while (!d.isAfter(bufferEnd.value, 'day')) {
+        dates.push(d)
+        d = d.add(1, 'day')
+      }
+      return dates
+    })
+
+    const totalGridWidth = computed(() => visibleDates.value.length * colWidth.value)
+
+    // Header config for the current scale — drives whether a major (top) row
+    // is rendered and what the per-cell minor row shows.
+    const headerConfig = computed(() => {
+      const cfg = SCALE_CONFIG[zoomLevel.value]
+      return { majorUnit: cfg.majorUnit, minorLabel: cfg.minorLabel }
+    })
+
+    // Spans for the major (top) header row — one entry per consecutive run of
+    // dates that share the same major unit (month/quarter/year). `leftPx` is
+    // the offset from the buffer start, so it composes directly with the body
+    // grid which is also positioned relative to the buffer.
+    const majorHeaderSpans = computed(() => {
+      const cfg = SCALE_CONFIG[zoomLevel.value]
+      const unit = cfg.majorUnit
+      if (!unit) return [] as Array<{ key: string; leftPx: number; widthPx: number; label: string }>
+
+      const dates = visibleDates.value
+      const spans: Array<{ key: string; leftPx: number; widthPx: number; label: string }> = []
+      let i = 0
+      while (i < dates.length) {
+        const start = dates[i]
+        let j = i + 1
+        while (j < dates.length) {
+          if (unit === 'quarter') {
+            if (quarterOf(dates[j]) !== quarterOf(start) || dates[j].year() !== start.year()) break
+          } else if (!dates[j].isSame(start, unit)) {
+            break
+          }
+          j++
+        }
+        let label = ''
+        if (unit === 'year') label = start.format('YYYY')
+        else if (unit === 'quarter') label = `Q${quarterOf(start)} ${start.format('YYYY')}`
+        else label = start.format('MMM YYYY')
+
+        spans.push({
+          key: `${unit}-${start.format('YYYY-MM-DD')}`,
+          leftPx: i * colWidth.value,
+          widthPx: (j - i) * colWidth.value,
+          label,
+        })
+        i = j
+      }
+      return spans
+    })
+
+    // Event hook used to ask the grid component to imperatively adjust the
+    // body's scrollLeft. `absolute` sets a target; `delta` adds to current
+    // (used after extending the buffer leftward to keep the visible content
+    // anchored).
+    const scrollAdjustmentHook = createEventHook<{ type: 'absolute' | 'delta'; value: number }>()
+
+    // ---- Persistence (watcher set up further down — needs scroll helpers) ----
 
     // Track the last timeline view ID we cached state for, so we can
     // detect when the active view switches back to a timeline and restore.
     let _lastCachedViewId: string | undefined
 
-    // Persist navigation state whenever currentDate or zoomLevel changes
-    watch([currentDate, zoomLevel], () => {
-      const viewId = viewMeta.value?.id
-      if (viewId) {
-        _viewStateCache.set(viewId, {
-          currentDate: currentDate.value.toISOString(),
-          zoomLevel: zoomLevel.value,
-        })
-        _lastCachedViewId = viewId
-      }
-    })
-
-    // When the active view changes (e.g., user switches back to timeline from grid),
-    // restore the cached navigation state for that view.
-    watch(
-      () => viewMeta.value?.id,
-      (newViewId) => {
-        if (!newViewId || newViewId === _lastCachedViewId) return
-        const cached = _viewStateCache.get(newViewId)
-        if (cached) {
-          currentDate.value = dayjs(cached.currentDate)
-          selectedDate.value = currentDate.value
-          zoomLevel.value = cached.zoomLevel
-          _lastCachedViewId = newViewId
-        }
-      },
-      { immediate: true },
-    )
+    // ---- Data ----
 
     const formattedData = ref<Row[]>([])
 
@@ -96,7 +189,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       field: '',
     })
 
-    // Timeline meta data
     const timelineMetaData = computed<TimelineType>(() => {
       return isPublic.value ? (sharedView.value?.view as TimelineType) : (viewMeta.value?.view as TimelineType)
     })
@@ -113,7 +205,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       return metaObj ?? {}
     })
 
-    // Timeline range - maps to start/end date columns
     const timelineRange = computed<
       Array<{
         fk_from_col: ColumnType
@@ -126,9 +217,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
       return timelineMetaData.value.timeline_range
         .map((range: any) => {
-          // Get the from column
           const fromCol = (meta.value?.columns ?? []).find((col) => col.id === range.fk_from_column_id)
-          // Get the to column (optional)
           const toCol = range.fk_to_column_id ? (meta.value?.columns ?? []).find((col) => col.id === range.fk_to_column_id) : null
 
           if (!fromCol) return null
@@ -143,44 +232,31 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         .filter(Boolean)
     })
 
-    // Compute visible dates based on zoom level
-    const visibleDates = computed<dayjs.Dayjs[]>(() => {
-      const dates: dayjs.Dayjs[] = []
-      if (zoomLevel.value === 'month') {
-        const startOfMonth = currentDate.value.startOf('month')
-        const daysInMonth = currentDate.value.daysInMonth()
-        for (let i = 0; i < daysInMonth; i++) {
-          dates.push(startOfMonth.add(i, 'day'))
-        }
-      } else if (zoomLevel.value === 'day') {
-        dates.push(currentDate.value.startOf('day'))
-      } else {
-        // week view
-        const startOfWeek = currentDate.value.startOf('week')
-        for (let i = 0; i < 7; i++) {
-          dates.push(startOfWeek.add(i, 'day'))
-        }
-      }
-
-      return dates
-    })
-
     const dateRangeLabel = computed(() => {
-      if (zoomLevel.value === 'month') {
-        return currentDate.value.format('MMMM YYYY')
-      } else if (zoomLevel.value === 'day') {
-        return currentDate.value.format('ddd, MMM D, YYYY')
-      } else {
-        const start = currentDate.value.startOf('week')
-        const end = currentDate.value.endOf('week')
-        if (start.month() === end.month()) {
-          return `${start.format('D')} - ${end.format('D MMM YYYY')}`
+      switch (zoomLevel.value) {
+        case 'day':
+          return currentDate.value.format('ddd, MMM D, YYYY')
+        case 'week': {
+          const start = currentDate.value.startOf('week')
+          const end = currentDate.value.endOf('week')
+          if (start.month() === end.month()) {
+            return `${start.format('D')} - ${end.format('D MMM YYYY')}`
+          }
+          return `${start.format('D MMM')} - ${end.format('D MMM YYYY')}`
         }
-        return `${start.format('D MMM')} - ${end.format('D MMM YYYY')}`
+        case 'month':
+          return currentDate.value.format('MMMM YYYY')
+        case 'quarter':
+          return `Q${quarterOf(currentDate.value)} ${currentDate.value.format('YYYY')}`
+        case 'year':
+          return currentDate.value.format('YYYY')
+        case '5year': {
+          const startYear = currentDate.value.year() - 2
+          return `${startYear} - ${startYear + 4}`
+        }
       }
     })
 
-    // #3 + #15: Record statistics for the info badge
     const totalRecordCount = computed(() => formattedData.value.length)
 
     const recordsWithoutDates = computed(() => {
@@ -192,7 +268,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       }).length
     })
 
-    // Data loading
     const loadTimelineData = async () => {
       if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !timelineRange.value?.length)
         return
@@ -230,22 +305,25 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       }
     }
 
-    // Navigate to the closest record on initial view load
     const navigateToClosestRecord = () => {
       const viewId = viewMeta.value?.id
       if (!viewId) return
 
-      // Skip if already initialized or if cached state exists (user previously navigated)
       if (_initializedViews.has(viewId) || _viewStateCache.has(viewId)) return
       _initializedViews.add(viewId)
 
-      // Check the initial_view setting (default: 'closest_record')
       const initialView = viewMetaProperties.value?.initial_view ?? 'closest_record'
-      if (initialView === 'today') return
+      if (initialView === 'today') {
+        // Centre on today via scroll once viewport width is known
+        requestScrollToDate(dayjs())
+        return
+      }
 
-      // Find the record with a start date closest to today
       const range = timelineRange.value?.[0]
-      if (!range?.fk_from_col?.title) return
+      if (!range?.fk_from_col?.title) {
+        requestScrollToDate(dayjs())
+        return
+      }
 
       const now = dayjs()
       let closestDate: dayjs.Dayjs | null = null
@@ -264,61 +342,170 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         }
       }
 
-      if (closestDate && !closestDate.isSame(now, 'month')) {
-        currentDate.value = closestDate
-        selectedDate.value = closestDate
+      const target = closestDate && !closestDate.isSame(now, 'month') ? closestDate : now
+      currentDate.value = target
+      selectedDate.value = target
+      reAnchorBuffer(target)
+      requestScrollToDate(target)
+    }
+
+    // ---- Buffer / scroll mechanics ----
+
+    const reAnchorBuffer = (date: dayjs.Dayjs) => {
+      const days = SCALE_CONFIG[zoomLevel.value].bufferDays
+      bufferStart.value = date.startOf('day').subtract(days, 'day')
+      bufferEnd.value = date.startOf('day').add(days, 'day')
+    }
+
+    const extendBufferLeft = () => {
+      const days = SCALE_CONFIG[zoomLevel.value].bufferDays
+      bufferStart.value = bufferStart.value.subtract(days, 'day')
+      return days * colWidth.value
+    }
+
+    const extendBufferRight = () => {
+      const days = SCALE_CONFIG[zoomLevel.value].bufferDays
+      bufferEnd.value = bufferEnd.value.add(days, 'day')
+    }
+
+    // Compute and emit a scroll target so `date` ends up centred in the
+    // viewport. If viewport width hasn't been measured yet (initial mount,
+    // before the grid container has rendered), queue the date and re-issue
+    // once the width is known.
+    const _pendingScrollDate = ref<dayjs.Dayjs | null>(null)
+
+    const requestScrollToDate = (date: dayjs.Dayjs) => {
+      if (viewportWidth.value <= 0) {
+        _pendingScrollDate.value = date
+        return
+      }
+      const dayOffset = date.diff(bufferStart.value, 'day')
+      const target = dayOffset * colWidth.value + colWidth.value / 2 - viewportWidth.value / 2
+      scrollAdjustmentHook.trigger({ type: 'absolute', value: Math.max(0, target) })
+    }
+
+    // Drain pending scroll once the grid measures itself.
+    watch(viewportWidth, (w) => {
+      if (w > 0 && _pendingScrollDate.value) {
+        const date = _pendingScrollDate.value
+        _pendingScrollDate.value = null
+        requestScrollToDate(date)
+      }
+    })
+
+    // Called from the grid on every scroll event. Updates derived state and
+    // grows the buffer when the user nears an edge.
+    const onScrollUpdate = (newScrollLeft: number) => {
+      scrollLeft.value = newScrollLeft
+
+      // Update currentDate from viewport center
+      if (viewportWidth.value > 0 && colWidth.value > 0) {
+        const centerPx = newScrollLeft + viewportWidth.value / 2
+        const dayIdx = Math.floor(centerPx / colWidth.value)
+        const newDate = bufferStart.value.add(dayIdx, 'day')
+        if (!newDate.isSame(currentDate.value, 'day')) {
+          currentDate.value = newDate
+        }
+      }
+
+      // Edge-driven extension
+      if (newScrollLeft < EXTEND_THRESHOLD_PX) {
+        const delta = extendBufferLeft()
+        scrollAdjustmentHook.trigger({ type: 'delta', value: delta })
+      } else if (
+        viewportWidth.value > 0 &&
+        newScrollLeft + viewportWidth.value > totalGridWidth.value - EXTEND_THRESHOLD_PX
+      ) {
+        extendBufferRight()
       }
     }
 
-    // Navigation
-    const navigateNext = () => {
-      if (zoomLevel.value === 'month') {
-        currentDate.value = currentDate.value.add(1, 'month')
-      } else if (zoomLevel.value === 'day') {
-        currentDate.value = currentDate.value.add(1, 'day')
-      } else {
-        currentDate.value = currentDate.value.add(1, 'week')
+    const setViewportWidth = (w: number) => {
+      viewportWidth.value = w
+    }
+
+    // Re-anchor + scroll when zoom level changes — keeps `currentDate` centred.
+    watch(zoomLevel, () => {
+      const center = currentDate.value
+      reAnchorBuffer(center)
+      // Wait for re-render before requesting scroll, since visibleDates length
+      // changes synchronously but DOM hasn't reflected it yet.
+      nextTick(() => requestScrollToDate(center))
+    })
+
+    // ---- Persistence: cache writes + cross-view restore ----
+    // Persist navigation state whenever currentDate or zoomLevel changes.
+    watch([currentDate, zoomLevel], () => {
+      const viewId = viewMeta.value?.id
+      if (viewId) {
+        _viewStateCache.set(viewId, {
+          currentDate: currentDate.value.toISOString(),
+          zoomLevel: zoomLevel.value,
+        })
+        _lastCachedViewId = viewId
       }
-    }
+    })
 
-    const navigatePrev = () => {
-      if (zoomLevel.value === 'month') {
-        currentDate.value = currentDate.value.subtract(1, 'month')
-      } else if (zoomLevel.value === 'day') {
-        currentDate.value = currentDate.value.subtract(1, 'day')
-      } else {
-        currentDate.value = currentDate.value.subtract(1, 'week')
-      }
-    }
+    // When the active view changes (e.g., user switches back to timeline from
+    // grid), restore the cached navigation state for that view.
+    watch(
+      () => viewMeta.value?.id,
+      (newViewId) => {
+        if (!newViewId || newViewId === _lastCachedViewId) return
+        const cached = _viewStateCache.get(newViewId)
+        if (cached) {
+          zoomLevel.value = cached.zoomLevel
+          const date = dayjs(cached.currentDate)
+          currentDate.value = date
+          selectedDate.value = date
+          reAnchorBuffer(date)
+          nextTick(() => requestScrollToDate(date))
+          _lastCachedViewId = newViewId
+        }
+      },
+      { immediate: true },
+    )
 
-    const goToToday = () => {
-      currentDate.value = dayjs()
-      selectedDate.value = dayjs()
-    }
+    // ---- Navigation ----
 
-    // #14: Navigate to a specific date (for date picker)
     const goToDate = (date: dayjs.Dayjs) => {
       currentDate.value = date
       selectedDate.value = date
+
+      const inBuffer = !date.isBefore(bufferStart.value, 'day') && !date.isAfter(bufferEnd.value, 'day')
+      if (inBuffer) {
+        requestScrollToDate(date)
+      } else {
+        reAnchorBuffer(date)
+        nextTick(() => requestScrollToDate(date))
+      }
     }
 
-    const setZoomLevel = (level: 'day' | 'week' | 'month') => {
+    const goToToday = () => goToDate(dayjs())
+
+    const navigateNext = () => {
+      const cfg = SCALE_CONFIG[zoomLevel.value]
+      goToDate(currentDate.value.add(cfg.navAmount, cfg.navUnit))
+    }
+
+    const navigatePrev = () => {
+      const cfg = SCALE_CONFIG[zoomLevel.value]
+      goToDate(currentDate.value.subtract(cfg.navAmount, cfg.navUnit))
+    }
+
+    const setZoomLevel = (level: TimelineZoomLevel) => {
       zoomLevel.value = level
     }
 
-    // Date format for updates (matching calendar store pattern)
     const updateFormat = computed(() => {
       return isMysql(meta.value?.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
     })
 
-    // Find a row in formattedData by primary key
     const findRowInState = (rowData: Record<string, any>) => {
       const pk = extractPkFromRow(rowData, meta.value?.columns as ColumnType[])
       return formattedData.value.find((r) => extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) === pk)
     }
 
-    // Update a row property (used for drag-to-resize)
-    // Follows the same pattern as useCalendarViewStore.updateRowProperty
     async function updateRowProperty(toUpdate: Row, property: string[], undo = false) {
       try {
         const id = extractPkFromRow(toUpdate.row, meta?.value?.columns as ColumnType[])
@@ -380,7 +567,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       }
     }
 
-    // Re-evaluate row colors when colour config changes (e.g. Background colour toggle)
     const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
       if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
         return
@@ -521,6 +707,18 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       totalRecordCount,
       recordsWithoutDates,
 
+      // Scroll/buffer state
+      bufferStart,
+      bufferEnd,
+      colWidth,
+      totalGridWidth,
+      scrollLeft,
+      viewportWidth,
+
+      // Header rendering
+      headerConfig,
+      majorHeaderSpans,
+
       updateFormat,
 
       // Methods
@@ -532,6 +730,9 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       goToDate,
       setZoomLevel,
       updateRowProperty,
+      onScrollUpdate,
+      setViewportWidth,
+      onScrollAdjustment: scrollAdjustmentHook.on,
     }
   },
   'timeline-view-store',

@@ -1,29 +1,11 @@
 import dayjs from 'dayjs'
 
-/**
- * Get an array of visible dates based on the center date and zoom level
- */
-export function getVisibleDates(centerDate: dayjs.Dayjs, zoom: 'week' | 'month'): dayjs.Dayjs[] {
-  const dates: dayjs.Dayjs[] = []
+export type TimelineZoomLevel = 'day' | 'week' | 'month' | 'quarter' | 'year' | '5year'
 
-  if (zoom === 'month') {
-    const startOfMonth = centerDate.startOf('month')
-    const daysInMonth = centerDate.daysInMonth()
-    for (let i = 0; i < daysInMonth; i++) {
-      dates.push(startOfMonth.add(i, 'day'))
-    }
-  } else {
-    const startOfWeek = centerDate.startOf('week')
-    for (let i = 0; i < 7; i++) {
-      dates.push(startOfWeek.add(i, 'day'))
-    }
-  }
-
-  return dates
-}
+export const TIMELINE_ZOOM_LEVELS: TimelineZoomLevel[] = ['day', 'week', 'month', 'quarter', 'year', '5year']
 
 /**
- * Calculate bar left offset in pixels
+ * Calculate bar left offset in pixels (relative to a base date).
  */
 export function getBarPosition(startDate: dayjs.Dayjs, firstVisibleDate: dayjs.Dayjs, colWidth: number): number {
   const offset = startDate.diff(firstVisibleDate, 'day')
@@ -31,11 +13,12 @@ export function getBarPosition(startDate: dayjs.Dayjs, firstVisibleDate: dayjs.D
 }
 
 /**
- * Calculate bar width in pixels
+ * Calculate bar width in pixels — allows shrinking to a 1px hairline so a
+ * single-day record stays visible at coarse zoom levels.
  */
 export function getBarWidth(startDate: dayjs.Dayjs, endDate: dayjs.Dayjs, colWidth: number): number {
   const duration = endDate.diff(startDate, 'day') + 1
-  return Math.max(duration * colWidth - 4, 20) // minimum 20px
+  return Math.max(duration * colWidth - 4, 1)
 }
 
 /**

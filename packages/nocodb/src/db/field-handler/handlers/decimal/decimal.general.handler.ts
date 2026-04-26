@@ -47,7 +47,22 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       } as FilterVerificationResult;
     }
 
+    // Null-checking operators do not require a numeric value — the filter value
+    // is irrelevant (or sent as the string "null" by the query parser). Skip
+    // value validation entirely for these operators so that API calls such as
+    // `where=(number,isnot,null)` work as expected. See: nocodb/nocodb#12704
+    const nullOps = [
+      'is',
+      'isnot',
+      'null',
+      'notnull',
+      'blank',
+      'notblank',
+      'empty',
+      'notempty',
+    ];
     if (
+      !nullOps.includes(filter.comparison_op) &&
       !(
         typeof filter.value === 'undefined' ||
         filter.value === null ||

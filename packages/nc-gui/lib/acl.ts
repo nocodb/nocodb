@@ -60,6 +60,7 @@ const rolePermissions = {
       baseCreate: true,
       baseMove: true,
       baseDuplicate: true,
+      baseReorder: true,
       newUser: true,
     },
   },
@@ -118,6 +119,7 @@ const rolePermissions = {
       csvImport: true,
       baseRename: true,
       baseDuplicate: true,
+      baseReorder: true,
       sourceCreate: true,
 
       // Base-scoped integrations

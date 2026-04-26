@@ -323,7 +323,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       :ref="(el: any) => setItemRef('chat', el)"
       v-e="['c:chat:toggle']"
-      label="Chat"
+      :label="$t('labels.chat')"
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
       :active="isChatPanelExpanded"
@@ -338,7 +338,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     <DashboardMiniSidebarV2DockItem
       :ref="(el: any) => setItemRef('settings', el)"
       icon="ncSettings"
-      label="Settings"
+      :label="$t('labels.settings')"
       panel-key="settings"
       :active="activeSidebarTab === 'settings' && !isChatFullScreen"
       :scale="getScale('settings')"
@@ -350,7 +350,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       <!-- Help -->
       <div :ref="(el: any) => setItemRef('help', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('help')">
         <DashboardMiniSidebarHelp>
-          <DashboardMiniSidebarV2DockItem icon="ncHelp" label="Help" panel-key="help" :scale="1" />
+          <DashboardMiniSidebarV2DockItem icon="ncHelp" :label="$t('general.help')" panel-key="help" :scale="1" />
         </DashboardMiniSidebarHelp>
       </div>
     </div>
@@ -381,7 +381,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
         :style="getMagnifyStyle('notification')"
       >
         <DashboardMiniSidebarV2DockItem
-          :label="isNotificationOpen ? undefined : 'Activity'"
+          :label="isNotificationOpen ? undefined : $t('general.activity')"
           panel-key="notification"
           data-testid="nc-sidebar-notification-btn"
           :active="isNotificationOpen"

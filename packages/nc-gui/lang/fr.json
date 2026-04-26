@@ -443,7 +443,8 @@
     "overview": "Aper\u0000e7u",
     "baseType": "Type de base",
     "beta": "B\u0000eata",
-    "selected": "selected"
+    "selected": "selected",
+    "activity": "Activité"
   },
   "objects": {
     "script": "Script",

@@ -611,7 +611,8 @@
     "embed": "Embed",
     "downloadAs": "Download as",
     "createdBy": "Created by",
-    "updatedBy": "Updated by"
+    "updatedBy": "Updated by",
+    "activity": "Activity"
   },
   "objects": {
     "script": "Script",
@@ -3047,8 +3048,8 @@
       "starterDescribe": "Help me build a CRM from scratch",
       "starterRecords": "Organize my data with views and filters",
       "starterFilter": "Summarize what's in my base",
-      "thinking": "Thinking\u2026",
-      "working": "Working\u2026",
+      "thinking": "Thinking…",
+      "working": "Working…",
       "showMore": "+{count} more",
       "showLess": "Show less",
       "toolsFailed": "{count} failed",

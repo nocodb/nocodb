@@ -63,7 +63,8 @@ export async function nestedConditionJoin({
 
   if (
     lookupColumn.uidt === UITypes.Lookup ||
-    lookupColumn.uidt === UITypes.LinkToAnotherRecord
+    lookupColumn.uidt === UITypes.LinkToAnotherRecord ||
+    lookupColumn.uidt === UITypes.Links
   ) {
     const relationColumn =
       lookupColumn.uidt === UITypes.Lookup

@@ -259,7 +259,8 @@ watch(groupHeaderWidth, (w) => {
 }, { immediate: true })
 
 // Mirror store scrollLeft into the grouped header so it follows when a per-group
-// body scrolls.
+// body scrolls. `flush: sync` keeps the header lockstep with the body during
+// user scrolling.
 watch(
   () => storeScrollLeft.value,
   (newLeft) => {
@@ -267,6 +268,7 @@ watch(
       groupHeaderRef.value.scrollLeft = newLeft
     }
   },
+  { flush: 'sync' },
 )
 
 // User scrolls the date header — push position into the store so all the

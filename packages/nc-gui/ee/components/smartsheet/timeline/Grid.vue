@@ -878,7 +878,9 @@ const onBodyScroll = (event: Event) => {
   onScrollUpdate(target.scrollLeft)
 }
 
-// Mirror store scrollLeft → DOM. Both the header and the body track it.
+// Mirror store scrollLeft → DOM. Both header and body track it. `flush: sync`
+// keeps the header in lockstep with the body during user scrolling — without
+// it, the watch fires post-render and the header visibly lags.
 watch(
   () => storeScrollLeft.value,
   (newLeft) => {
@@ -889,19 +891,22 @@ watch(
       bodyScrollRef.value.scrollLeft = newLeft
     }
   },
+  { flush: 'sync' },
 )
 
 // Imperative scroll adjustments from the store (goToDate / today / prev /
 // next / buffer extension). Applied after the DOM has rendered the new
-// buffer width.
+// buffer width — both header and body move atomically to avoid a frame of
+// visible drift.
 onScrollAdjustment(({ type, value }) => {
   nextTick(() => {
-    if (!bodyScrollRef.value) return
-    if (type === 'delta') {
-      bodyScrollRef.value.scrollLeft += value
-    } else {
-      bodyScrollRef.value.scrollLeft = value
+    const apply = (el: HTMLElement | null) => {
+      if (!el) return
+      if (type === 'delta') el.scrollLeft += value
+      else el.scrollLeft = value
     }
+    apply(bodyScrollRef.value)
+    apply(headerScrollRef.value)
   })
 })
 

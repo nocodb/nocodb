@@ -4,6 +4,7 @@ export const useProvideChatwoot = () => {
   const { $api } = useNuxtApp()
 
   const { user, appInfo } = useGlobal()
+  const { isDark } = useTheme()
   const router = useRouter()
   const route = router.currentRoute
 
@@ -43,9 +44,15 @@ export const useProvideChatwoot = () => {
     })
   }
 
+  const syncChatwootTheme = (dark: boolean) => {
+    if (!chatwootReady.value || ncIsIframe() || appInfo.value.disableSupportChat) return
+    window.$chatwoot?.setColorScheme?.(dark ? 'dark' : 'light')
+  }
+
   const chatwootInit = async () => {
     if (ncIsIframe()) return
     chatwootReady.value = true
+    syncChatwootTheme(isDark.value)
     initUserCustomerAttributes()
   }
 
@@ -62,6 +69,10 @@ export const useProvideChatwoot = () => {
     },
     { immediate: true },
   )
+
+  watch(isDark, (dark) => {
+    syncChatwootTheme(dark)
+  })
 
   router.afterEach(() => {
     initUserCustomerAttributes()

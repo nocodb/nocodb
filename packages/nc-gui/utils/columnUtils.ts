@@ -247,7 +247,17 @@ const isVirtualColRequired = (col: ColumnType, columns: ColumnType[]) =>
   isColumnRequired(columns.find((c) => c.id === (<LinkToAnotherRecordType>col.colOptions).fk_child_column_id))
 
 const isColumnRequiredAndNull = (col: ColumnType, row: Record<string, any>) => {
-  return isColumnRequired(col) && (row[col.title!] === undefined || row[col.title!] === null)
+  if (!isColumnRequired(col)) return false
+
+  const value = row[col.title!]
+
+  // Checkbox columns represent a boolean value whose natural "unset" state is false.
+  // An absent, null, or undefined value for a NOT NULL checkbox column is semantically
+  // equivalent to false (unchecked), which is a valid non-null boolean that the
+  // database will accept. Do not flag it as a missing required column.
+  if (col.uidt === UITypes.Checkbox) return false
+
+  return value === undefined || value === null
 }
 
 const getUniqueColumnName = (initName: string, columns: ColumnType[]) => {

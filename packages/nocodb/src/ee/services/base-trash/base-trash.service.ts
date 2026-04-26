@@ -105,7 +105,7 @@ export class BaseTrashService implements OnModuleInit {
       cursor: param.cursor,
     });
 
-   const isCreatorOrOwner = (() => {
+    const isCreatorOrOwner = (() => {
       if (!param.roles) return true; // no role info → assume allowed; the restore call will gate
       const obj = extractRolesObj(param.roles);
       return !!obj?.[ProjectRoles.CREATOR] || !!obj?.[ProjectRoles.OWNER];

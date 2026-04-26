@@ -5,27 +5,25 @@ import type {
   AffectedDependencyResult,
   MetaDependencyEventRequest,
   MetaEventHandler,
-} from '../../types';
+} from '~/services/meta-dependency/types';
 import {
   BarcodeColumn,
-  CalendarRange,
-  Filter,
-  GalleryView,
-  Hook,
-  KanbanView,
   LookupColumn,
   Model,
   QrCodeColumn,
   RollupColumn,
-  Sort,
   View,
 } from '~/models';
+import Column from '~/models/Column';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
-import Noco from '~/Noco';
-import Column from '~/models/Column';
 import NocoSocket from '~/socket/NocoSocket';
-import { ViewRowColorService } from '~/services/view-row-color.service';
+import Noco from '~/Noco';
+import { ColumnDeleteFilterDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-filter-dependency.handler';
+import { ColumnDeleteCoverImageDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-cover-image-dependency.handler';
+import { ColumnDeleteKanbanGroupByDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-kanban-groupby-dependency.handler';
+import { ColumnDeleteCalendarRangeDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-calendar-range-dependency.handler';
+import { ColumnDeleteHookTriggerDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-hook-trigger-dependency.handler';
 
 type AffectedColumnType = 'lookup' | 'rollup' | 'qrcode' | 'barcode';
 
@@ -50,7 +48,6 @@ const COL_OPTION_UPDATERS: Record<
   barcode: BarcodeColumn.update.bind(BarcodeColumn),
 };
 
-// Dependent column queries used for both discovery and transitive BFS
 const DEPENDENT_QUERIES: [MetaTable, string, AffectedColumnType][] = [
   [MetaTable.COL_LOOKUP, 'fk_lookup_column_id', 'lookup'],
   [MetaTable.COL_ROLLUP, 'fk_rollup_column_id', 'rollup'],
@@ -59,20 +56,43 @@ const DEPENDENT_QUERIES: [MetaTable, string, AffectedColumnType][] = [
 ];
 
 /**
- * When a column is deleted, mark dependent virtual columns (Lookup, Rollup, QR Code, Barcode)
- * with an error instead of cascade-deleting them. This preserves the column metadata for
- * potential restore (soft-delete / base trash).
+ * BFS over virtual columns (Lookup / Rollup / QR Code / Barcode) that
+ * depended on the deleted column. Each dependent is *error-marked* (its col
+ * options get an `error` field) so its metadata survives a future restore;
+ * its own sorts / filters / cover-image / kanban-stack-by / calendar-range
+ * / hook-trigger refs are swept the same way the per-concern delete
+ * handlers sweep the root column.
+ *
+ * Walks same-base AND cross-base dependents (links/LTAR cross-base
+ * lookups/rollups). After the BFS, clears the optimised single-query cache
+ * for every affected model and broadcasts a realtime `column_update` so
+ * remote clients pick up the new error state.
  */
 @Injectable()
-export class ColumnDeleteDependencyHandler implements MetaEventHandler {
+export class ColumnDeleteTransitiveDependentsDependencyHandler
+  implements MetaEventHandler
+{
   triggerMetaEvents: MetaEventType[] = [MetaEventType.COLUMN_DELETED];
 
-  constructor(private readonly viewRowColorService: ViewRowColorService) {}
-
   /**
-   * Lightweight check: are there any dependents at all?
-   * Avoids starting a transaction when nothing needs updating.
+   * Per-concern delete handlers that we replay for each error-marked
+   * transitive dependent. The framework blocks recursive `COLUMN_DELETED`
+   * dispatch (`suppressDependencyEvaluation`), so we invoke each handler's
+   * `handle()` directly with a synthetic param. Keeps the transitive
+   * cleanup behavior identical to a regular column delete without
+   * duplicating any cleanup bodies.
+   *
+   * Expanded-mode + row-color are intentionally omitted — those concerns
+   * applied only to the root delete in the original handler too.
    */
+  constructor(
+    private readonly filterHandler: ColumnDeleteFilterDependencyHandler,
+    private readonly coverImageHandler: ColumnDeleteCoverImageDependencyHandler,
+    private readonly kanbanGroupByHandler: ColumnDeleteKanbanGroupByDependencyHandler,
+    private readonly calendarRangeHandler: ColumnDeleteCalendarRangeDependencyHandler,
+    private readonly hookTriggerHandler: ColumnDeleteHookTriggerDependencyHandler,
+  ) {}
+
   async getAffectedDependency(
     context: NcContext,
     param: MetaDependencyEventRequest,
@@ -83,31 +103,7 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
 
     const id = deletedColumn.id;
 
-    const REFERENCE_CHECKS: [MetaTable, string][] = [
-      [MetaTable.SORT, 'fk_column_id'],
-      [MetaTable.FILTER_EXP, 'fk_column_id'],
-      [MetaTable.GALLERY_VIEW, 'fk_cover_image_col_id'],
-      [MetaTable.KANBAN_VIEW, 'fk_cover_image_col_id'],
-      [MetaTable.KANBAN_VIEW, 'fk_grp_col_id'],
-      [MetaTable.CALENDAR_VIEW_RANGE, 'fk_from_column_id'],
-      [MetaTable.CALENDAR_VIEW_RANGE, 'fk_to_column_id'],
-      // Row-coloring cell-target conditions
-      [MetaTable.ROW_COLOR_CONDITIONS, 'fk_target_column_id'],
-      // Expanded-form mode column FK on any view
-      [MetaTable.VIEWS, 'attachment_mode_column_id'],
-      // Webhook trigger-field junction
-      [MetaTable.HOOK_TRIGGER_FIELDS, 'fk_column_id'],
-    ];
-    for (const [table, fkField] of REFERENCE_CHECKS) {
-      const rows = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        table,
-        { condition: { [fkField]: id }, limit: 1 },
-      );
-      if (rows.length) return {};
-    }
-
+    // Same-base dependents.
     for (const [table, fkField] of DEPENDENT_QUERIES) {
       const rows = await ncMeta.metaList2(
         context.workspace_id,
@@ -118,21 +114,21 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       if (rows.length) return {};
     }
 
+    // Same-base lookups/rollups whose relation column is the deleted col.
     if (isLinksOrLTAR(deletedColumn.uidt)) {
       for (const [table, , type] of DEPENDENT_QUERIES) {
         if (type !== 'lookup' && type !== 'rollup') continue;
-        const fkField = 'fk_relation_column_id';
         const rows = await ncMeta.metaList2(
           context.workspace_id,
           context.base_id,
           table,
-          { condition: { [fkField]: id } },
+          { condition: { fk_relation_column_id: id } },
         );
         if (rows.length) return {};
       }
     }
 
-    // Check cross-base dependents
+    // Cross-base dependents.
     const columns = await Column.list(context, {
       fk_model_id: deletedColumn.fk_model_id,
     });
@@ -142,9 +138,9 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       if (
         !colOptions?.fk_related_base_id ||
         colOptions.fk_related_base_id === deletedColumn.base_id
-      )
+      ) {
         continue;
-
+      }
       for (const [table, fkField] of DEPENDENT_QUERIES) {
         if (fkField.includes('qr') || fkField.includes('barcode')) continue;
         const rows = await ncMeta.metaList2(
@@ -160,10 +156,6 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
     return undefined;
   }
 
-  /**
-   * Single BFS pass: discover all dependents (direct + transitive), error-mark
-   * each one, and clean up its sorts/filters.
-   */
   async handle(
     context: NcContext,
     param: MetaDependencyEventRequest & {
@@ -179,34 +171,6 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       deletedColumn.title || deletedColumn.column_name
     }' was deleted`;
 
-    // Clean up every reference the deleted column had in dependent metadata.
-    // The BFS below only touches *transitive* dependents (lookup/rollup/etc) —
-    // this call covers the root column's own sorts, filters, gallery/kanban
-    // cover image, kanban stack-by, and calendar range references. Soft-delete
-    // (trash) emits the same `COLUMN_DELETED` event so trash + hard-delete
-    // converge here.
-    await ColumnDeleteDependencyHandler.cleanupColumnReferences(
-      context,
-      id,
-      ncMeta,
-    );
-
-    await View.updateIfColumnUsedAsExpandedMode(
-      context,
-      id,
-      deletedColumn.fk_model_id,
-      ncMeta,
-    );
-    const { applyRowColorInvolvement } =
-      await this.viewRowColorService.checkIfColumnInvolved({
-        context,
-        existingColumn: deletedColumn,
-        action: 'delete',
-        ncMeta,
-      });
-    await applyRowColorInvolvement();
-
-    // Seed: find all direct dependents of the deleted column
     const visited = new Set<string>();
     const queue: AffectedColumn[] = [];
 
@@ -221,7 +185,7 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       queue.push({ fk_column_id, type, context: ctx });
     };
 
-    // Direct dependents — use cache for lookups/rollups (matching original Column.delete pattern)
+    // Seed: direct dependents of the deleted column.
     for (const [table, fkField, type] of DEPENDENT_QUERIES) {
       let rows: any[];
 
@@ -253,7 +217,6 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       }
     }
 
-    // For LTAR columns: lookups/rollups referencing it as their relation
     if (isLinksOrLTAR(deletedColumn.uidt)) {
       for (const row of await ncMeta.metaList2(
         context.workspace_id,
@@ -274,7 +237,7 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       }
     }
 
-    // Cross-base dependents
+    // Cross-base dependents.
     const columns = await Column.list(context, {
       fk_model_id: deletedColumn.fk_model_id,
     });
@@ -284,8 +247,9 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       if (
         !colOptions?.fk_related_base_id ||
         colOptions.fk_related_base_id === deletedColumn.base_id
-      )
+      ) {
         continue;
+      }
 
       const crossCtx = { ...context, base_id: colOptions.fk_related_base_id };
 
@@ -308,11 +272,10 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       }
     }
 
-    // Collect unique model IDs (with their column's context) whose single-query
-    // cache needs clearing. Context may differ for cross-base dependents.
+    // BFS: error-mark each dependent, clean their refs, discover transitive
+    // dependents and continue.
     const affectedModelCtxMap = new Map<string, NcContext>();
 
-    // BFS: error-mark each dependent, clean up sorts/filters, discover transitive dependents
     while (queue.length > 0) {
       const affected = queue.shift();
       const ctx = affected.context;
@@ -323,13 +286,21 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
         { error },
         ncMeta,
       );
-      await ColumnDeleteDependencyHandler.cleanupColumnReferences(
-        ctx,
-        affected.fk_column_id,
-        ncMeta,
-      );
 
-      // Discover transitive dependents of this just-marked column (same base)
+      // Replay each per-concern delete handler's `handle()` for the dep.
+      // Synthetic param carries just the column id — that's all the bodies
+      // these handlers read from `oldEntity`.
+      const depParam = {
+        eventType: MetaEventType.COLUMN_DELETED,
+        oldEntity: { id: affected.fk_column_id } as any,
+        affectedDependencyResult: {} as AffectedDependencyResult,
+      };
+      await this.filterHandler.handle(ctx, depParam, ncMeta);
+      await this.coverImageHandler.handle(ctx, depParam, ncMeta);
+      await this.kanbanGroupByHandler.handle(ctx, depParam, ncMeta);
+      await this.calendarRangeHandler.handle(ctx, depParam, ncMeta);
+      await this.hookTriggerHandler.handle(ctx, depParam, ncMeta);
+
       for (const [table, fkField, type] of DEPENDENT_QUERIES) {
         for (const row of await ncMeta.metaList2(
           ctx.workspace_id,
@@ -341,15 +312,12 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
         }
       }
 
-      // Discover transitive cross-base dependents
       const affectedCol = await Column.get(
         ctx,
         { colId: affected.fk_column_id },
         ncMeta,
       );
       if (affectedCol?.fk_model_id) {
-        // Derive context from the column's own base_id/workspace_id (authoritative
-        // source), matching the pattern in Column.get → getColOptions.
         if (!affectedModelCtxMap.has(affectedCol.fk_model_id)) {
           affectedModelCtxMap.set(affectedCol.fk_model_id, {
             ...context,
@@ -369,8 +337,9 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
           if (
             !opts?.fk_related_base_id ||
             opts.fk_related_base_id === ctx.base_id
-          )
+          ) {
             continue;
+          }
 
           const crossCtx = { ...ctx, base_id: opts.fk_related_base_id };
           for (const row of await ncMeta.metaList2(
@@ -393,15 +362,10 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
       }
     }
 
-    // Clear single-query cache for all affected tables so stale CTE SQL
-    // (which may reference the now-deleted column) is not reused.
-    // Use each model's own context since cross-base models have different base_id.
     for (const [modelId, modelCtx] of affectedModelCtxMap) {
       await View.clearSingleQueryCache(modelCtx, modelId, null, ncMeta);
     }
 
-    // Broadcast realtime updates so other clients refresh field metadata
-    // for tables whose columns were error-marked.
     for (const [modelId, modelCtx] of affectedModelCtxMap) {
       const model = await Model.get(modelCtx, modelId, false, ncMeta);
       if (!model) continue;
@@ -416,115 +380,5 @@ export class ColumnDeleteDependencyHandler implements MetaEventHandler {
         },
       } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
     }
-  }
-
-  /**
-   * Single sweep of every column-reference cleanup the deleted column needs.
-   * Called by `handle()` so trash + hard-delete converge on the same surface.
-   *
-   * Cleans:
-   *  - `nc_sorts`              — `fk_column_id` matches
-   *  - `nc_filter_exp`         — `fk_column_id` or `fk_value_col_id` matches, plus child filters parented by this column
-   *  - Gallery / Kanban cover  — nulls `fk_cover_image_col_id`
-   *  - Kanban stack-by         — nulls `fk_grp_col_id`
-   *  - Calendar ranges         — drops rows where `fk_from_column_id` or `fk_to_column_id` matches
-   */
-  static async cleanupColumnReferences(
-    context: NcContext,
-    columnId: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<void> {
-    // Sorts.
-    for (const sort of await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.SORT,
-      { condition: { fk_column_id: columnId } },
-    )) {
-      await Sort.delete(context, sort.id, ncMeta);
-    }
-
-    // Filters referencing the column directly.
-    for (const filter of await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.FILTER_EXP,
-      {
-        xcCondition: {
-          _or: [
-            { fk_column_id: { eq: columnId } },
-            { fk_value_col_id: { eq: columnId } },
-          ],
-        },
-      },
-    )) {
-      await Filter.delete(context, filter.id, ncMeta);
-    }
-    // Filter-group children parented by this column.
-    await Filter.deleteAllByParentColumn(context, columnId, ncMeta);
-
-    // Cover-image FKs on Gallery views.
-    for (const v of await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.GALLERY_VIEW,
-      { condition: { fk_cover_image_col_id: columnId } },
-    )) {
-      await GalleryView.update(
-        context,
-        v.fk_view_id,
-        { fk_cover_image_col_id: null },
-        ncMeta,
-      );
-    }
-
-    // Cover-image FKs on Kanban views.
-    for (const v of await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.KANBAN_VIEW,
-      { condition: { fk_cover_image_col_id: columnId } },
-    )) {
-      await KanbanView.update(
-        context,
-        v.fk_view_id,
-        { fk_cover_image_col_id: null },
-        ncMeta,
-      );
-    }
-
-    // Kanban stack-by.
-    for (const v of await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.KANBAN_VIEW,
-      { condition: { fk_grp_col_id: columnId } },
-    )) {
-      await KanbanView.update(
-        context,
-        v.fk_view_id,
-        { fk_grp_col_id: null },
-        ncMeta,
-      );
-    }
-
-    // Calendar ranges.
-    for (const range of await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.CALENDAR_VIEW_RANGE,
-      {
-        xcCondition: {
-          _or: [
-            { fk_from_column_id: { eq: columnId } },
-            { fk_to_column_id: { eq: columnId } },
-          ],
-        },
-      },
-    )) {
-      await CalendarRange.delete(range.id, context, ncMeta);
-    }
-
-    await Hook.deleteTriggersByColumnId(context, columnId, ncMeta);
   }
 }

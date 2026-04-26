@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import type { Row as RowType } from '#imports'
 import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
-import { TIMELINE_ZOOM_LEVELS } from '../../../utils/timelineUtils'
+import { TIMELINE_ZOOM_LEVELS, isGridlineBoundary } from '../../../utils/timelineUtils'
 
 const meta = inject(MetaInj, ref())
 
@@ -82,18 +82,7 @@ const showMinorWeekday = computed(() =>
   ['weekday-full', 'weekday-short', 'weekday-letter'].includes(headerConfig.value.minorLabel),
 )
 
-const isCellBoundary = (date: dayjs.Dayjs) => {
-  switch (headerConfig.value.gridlineUnit) {
-    case 'day':
-      return true
-    case 'week':
-      return date.day() === 0
-    case 'month':
-      return date.date() === date.daysInMonth()
-    case 'quarter':
-      return date.date() === date.daysInMonth() && date.month() % 3 === 2
-  }
-}
+const isCellBoundary = (date: dayjs.Dayjs) => isGridlineBoundary(date, headerConfig.value.gridlineUnit)
 
 const zoomOptions = TIMELINE_ZOOM_LEVELS
 

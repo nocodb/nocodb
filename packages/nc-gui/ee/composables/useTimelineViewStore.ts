@@ -28,8 +28,8 @@ interface ScaleConfig {
   minorLabel: 'weekday-full' | 'weekday-short' | 'weekday-letter' | 'day-number' | 'mondays' | 'none'
   // Gridline cadence — only render vertical lines at boundaries of this unit.
   // At fine zooms this matches the day cells; at coarse zooms it strips away
-  // daily gridlines so the grid reads as week/month/quarter chunks.
-  gridlineUnit: 'day' | 'week' | 'month' | 'quarter'
+  // daily gridlines so the grid reads as week/fortnight/month/quarter chunks.
+  gridlineUnit: 'day' | 'week' | 'fortnight' | 'month' | 'quarter'
 }
 
 const SCALE_CONFIG: Record<TimelineZoomLevel, ScaleConfig> = {
@@ -37,9 +37,10 @@ const SCALE_CONFIG: Record<TimelineZoomLevel, ScaleConfig> = {
   week: { colWidth: 72, bufferDays: 60, navUnit: 'week', navAmount: 1, majorTiers: [], minorLabel: 'weekday-short', gridlineUnit: 'day' },
   month: { colWidth: 36, bufferDays: 120, navUnit: 'month', navAmount: 1, majorTiers: [], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
   quarter: { colWidth: 12, bufferDays: 365, navUnit: 'month', navAmount: 3, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
-  year: { colWidth: 4, bufferDays: 730, navUnit: 'year', navAmount: 1, majorTiers: ['month'], minorLabel: 'none', gridlineUnit: 'month' },
+  year: { colWidth: 4, bufferDays: 730, navUnit: 'year', navAmount: 1, majorTiers: ['month'], minorLabel: 'none', gridlineUnit: 'fortnight' },
   '5year': { colWidth: 1, bufferDays: 1825, navUnit: 'year', navAmount: 5, majorTiers: ['year'], minorLabel: 'none', gridlineUnit: 'quarter' },
 }
+
 
 const quarterOf = (d: dayjs.Dayjs): number => Math.floor(d.month() / 3) + 1
 
@@ -53,6 +54,8 @@ const _viewStateCache = new Map<string, { currentDate: string; zoomLevel: Timeli
 // Track which views have already had their initial navigation performed,
 // so we don't re-navigate on every data reload.
 const _initializedViews = new Set<string>()
+
+// (FORTNIGHT_REF_SUNDAY moved to timelineUtils.ts for reuse by isCellBoundary helpers)
 
 const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
   (

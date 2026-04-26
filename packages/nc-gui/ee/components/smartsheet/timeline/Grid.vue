@@ -4,6 +4,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
+import { isGridlineBoundary } from '../../../utils/timelineUtils'
 
 const props = defineProps<{
   records: RowType[]
@@ -73,18 +74,7 @@ const showMinorWeekday = computed(() =>
 
 // True when the date's right edge sits on a gridline boundary for the
 // current scale. Used to suppress per-day gridlines at coarser scales.
-const isCellBoundary = (date: dayjs.Dayjs) => {
-  switch (headerConfig.value.gridlineUnit) {
-    case 'day':
-      return true
-    case 'week':
-      return date.day() === 0 // Sunday — right edge is start of next Monday
-    case 'month':
-      return date.date() === date.daysInMonth()
-    case 'quarter':
-      return date.date() === date.daysInMonth() && date.month() % 3 === 2
-  }
-}
+const isCellBoundary = (date: dayjs.Dayjs) => isGridlineBoundary(date, headerConfig.value.gridlineUnit)
 
 // Visible fields from the Fields menu (injected by parent Smartsheet/shared-view)
 const fields = inject(FieldsInj, ref())

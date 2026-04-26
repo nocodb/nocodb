@@ -150,6 +150,11 @@ export class BaseTrashService implements OnModuleInit {
   ) {
     const retentionDays = await this.getRetentionDays(context.workspace_id);
     const deletedAt = param.deletedAt ? new Date(param.deletedAt) : new Date();
+    // The PG type parser at db/CustomKnex.ts truncates fractional seconds when
+    // reading timestamps, so cursor pagination on `deleted_at` reads back at
+    // second precision. Insert at the same precision so cursor `<`/`=` checks
+    // match the stored value exactly.
+    deletedAt.setMilliseconds(0);
     const cleanupDueAt = param.cleanupDueAt
       ? new Date(param.cleanupDueAt)
       : (() => {

@@ -679,7 +679,11 @@ const dragStart = (event: MouseEvent, record: Row) => {
     dragRecord.value = record
 
     dragOffset.value = {
-      x: dragRecord.value?.rowMeta.maxSpanning > 1 ? event.clientX - target.getBoundingClientRect().left : 0,
+      // In month view, always use 0 for x offset so the record drops onto the
+      // day cell where the mouse lands. Using the element's visual left edge for
+      // multi-week spanning records caused the date to always snap to the first
+      // day of the target week.
+      x: 0,
       y: event.clientY,
     }
 

@@ -233,14 +233,29 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     await childTable.getColumns(childContext);
     await parentTable.getColumns(parentContext);
 
+    // When addLinks is called from within a transactional baseModel (e.g.
+    // from LTARColsUpdater), `baseModel.dbDriver` returns the active
+    // Knex.Transaction which does NOT carry the `applyCte` helper added by
+    // CustomKnex.  Passing that transaction directly as `dbDriver` for
+    // sub-models causes `execAndParse` to fail with
+    // "this.knex.applyCte is not a function". See: nocodb/nocodb#13253
+    //
+    // Fix: always pass `baseModel.knex` (the non-transactional XKnex) as
+    // `dbDriver` so the sub-model's `knex` getter has `applyCte`, and pass
+    // the active transaction separately so DB writes still run inside it.
+    const activeTransaction =
+      baseModel.dbDriver !== baseModel.knex ? baseModel.dbDriver : undefined;
+
     const childBaseModel = await Model.getBaseModelSQL(childContext, {
       model: childTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
+      transaction: activeTransaction,
     });
 
     const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
       model: parentTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
+      transaction: activeTransaction,
     });
 
     const childTn = childBaseModel.getTnPath(childTable);
@@ -325,7 +340,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
           const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
             model: vTable,
-            dbDriver: baseModel.dbDriver,
+            dbDriver: baseModel.knex,
+            transaction: activeTransaction,
           });
 
           const refBaseModel = parentBaseModel;
@@ -845,14 +861,23 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     await childTable.getColumns(childContext);
     await parentTable.getColumns(parentContext);
 
+    // Same fix as in addLinks: use baseModel.knex (XKnex with applyCte) as
+    // dbDriver and pass the active transaction separately to avoid
+    // "this.knex.applyCte is not a function" when called from a transactional
+    // context. See: nocodb/nocodb#13253
+    const activeTransaction =
+      baseModel.dbDriver !== baseModel.knex ? baseModel.dbDriver : undefined;
+
     const childBaseModel = await Model.getBaseModelSQL(childContext, {
       model: childTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
+      transaction: activeTransaction,
     });
 
     const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
       model: parentTable,
-      dbDriver: baseModel.dbDriver,
+      dbDriver: baseModel.knex,
+      transaction: activeTransaction,
     });
 
     const childTn = childBaseModel.getTnPath(childTable);
@@ -908,7 +933,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
           const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
             model: vTable,
-            dbDriver: baseModel.dbDriver,
+            dbDriver: baseModel.knex,
+            transaction: activeTransaction,
           });
           const refBaseModel = parentBaseModel;
 

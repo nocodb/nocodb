@@ -426,11 +426,14 @@ const dragOffset = ref<{
 const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeCheck?: boolean) => {
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
-  let relativeX = event.clientX - left
-
-  if (dragOffset.value.x) {
-    relativeX -= dragOffset.value.x
-  }
+  // Use raw cursor position within the grid — do NOT subtract dragOffset.x.
+  // The dragOffset for multi-week records was set to (cursor - element.left) at drag
+  // start, which equals the grid-relative cursor position when the element starts at
+  // column 0.  Subtracting it caused the drop always to resolve back to column 0
+  // (first day of the week) regardless of where the user released the mouse.
+  // Matching the behaviour of WeekView (where the analogous subtraction is also
+  // removed) fixes the issue.
+  const relativeX = event.clientX - left
 
   const relativeY = event.clientY - top
 

@@ -79,31 +79,65 @@ const sqlite3 = {
   },
   DATEADD: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
-    let dateIN = (await fn(pt.arguments[1])).builder;
-    if (typeof dateIN === 'object' && dateIN.toQuery) {
-      dateIN = Number(dateIN.toQuery());
+    const dateINBuilder = (await fn(pt.arguments[1])).builder;
+
+    // Determine whether the second argument is a compile-time literal number.
+    // If so, we can inline the value; otherwise we must keep it as a SQL expression.
+    const isLiteralCount = pt.arguments[1].type === 'Literal';
+    let literalCount: number | null = null;
+    if (isLiteralCount) {
+      const raw =
+        typeof dateINBuilder === 'object' && dateINBuilder.toQuery
+          ? dateINBuilder.toQuery()
+          : String(dateINBuilder);
+      literalCount = Number(raw);
     }
 
     if (pt.arguments[2].type === 'Literal') {
+      // Unit is a compile-time string literal — validate it immediately.
       let dateModifier = (await fn(pt.arguments[2])).builder;
       if (typeof dateModifier === 'object' && dateModifier.toQuery) {
         dateModifier = dateModifier.toQuery();
       }
       const unit = validateDateAddUnit(String(dateModifier));
-      const fullModifierRaw = `${dateIN > 0 ? '+' : ''}${dateIN} ${unit}`;
+
+      if (isLiteralCount && literalCount !== null && !isNaN(literalCount)) {
+        // Both count and unit are literals — build a plain string modifier.
+        const fullModifierRaw = `${literalCount > 0 ? '+' : ''}${literalCount} ${unit}`;
+        return {
+          builder: knex.raw(
+            `CASE
+          WHEN :source LIKE '%:%' THEN
+            STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(:source, 'utc', ':fullModifier'))
+          ELSE
+            DATE(:source, ':fullModifier')
+          END`,
+            {
+              source,
+              fullModifier: knex.raw(fullModifierRaw),
+            },
+          ),
+        };
+      }
+
+      // Count is a field reference — build the modifier string at query time.
+      // SQLite DATE() accepts modifiers like '-3 day' or '+5 month'.
+      // CAST(col AS TEXT) || ' day' produces the correct modifier string.
+      const countExpr = dateINBuilder;
+      const fullModifier = knex.raw(`CAST(? AS TEXT) || ?`, [
+        countExpr,
+        ` ${unit}`,
+      ]);
 
       return {
         builder: knex.raw(
           `CASE
-        WHEN :source LIKE '%:%' THEN
-          STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(:source, 'utc', ':fullModifier'))
+        WHEN ? LIKE '%:%' THEN
+          STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(?, 'utc', ?))
         ELSE
-          DATE(:source, ':fullModifier')
+          DATE(?, ?)
         END`,
-          {
-            source,
-            fullModifier: knex.raw(fullModifierRaw),
-          },
+          [source, source, fullModifier, source, fullModifier],
         ),
       };
     }
@@ -112,8 +146,19 @@ const sqlite3 = {
     // with proper ? bindings so knex nests the Raw correctly
     const unitBuilder = (await fn(pt.arguments[2])).builder;
     const safeUnit = safeDateAddUnitSQL(knex, unitBuilder);
-    const prefix = `${dateIN > 0 ? '+' : ''}${dateIN} `;
-    const fullModifier = knex.raw(`'${prefix}' || ?`, [safeUnit]);
+
+    let fullModifier: ReturnType<typeof knex.raw>;
+    if (isLiteralCount && literalCount !== null && !isNaN(literalCount)) {
+      // Count is a literal, unit is a field reference
+      const prefix = `${literalCount > 0 ? '+' : ''}${literalCount} `;
+      fullModifier = knex.raw(`'${prefix}' || ?`, [safeUnit]);
+    } else {
+      // Both count and unit are field references
+      fullModifier = knex.raw(`CAST(? AS TEXT) || ' ' || ?`, [
+        dateINBuilder,
+        safeUnit,
+      ]);
+    }
 
     return {
       builder: knex.raw(

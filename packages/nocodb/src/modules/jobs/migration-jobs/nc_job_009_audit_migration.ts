@@ -30,6 +30,19 @@ export class AuditMigration {
         return true;
       }
 
+      // If the old audit table doesn't exist there's nothing to migrate
+      // (happens on fresh installations that started on the new schema)
+      const hasOldTable = await ncMeta.knexConnection.schema.hasTable(
+        `${MetaTable.AUDIT}_old`,
+      );
+      if (!hasOldTable) {
+        this.logger.log(
+          'Old audit table not found — nothing to migrate, running cleanup',
+        );
+        await this.cleanupMigration(ncMeta);
+        return true;
+      }
+
       const lastMigratedRecord = await ncMeta
         .knexConnection(MetaTable.AUDIT)
         .whereNotNull('old_id')

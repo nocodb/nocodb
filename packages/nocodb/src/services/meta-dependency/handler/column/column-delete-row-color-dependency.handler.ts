@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { MetaEventType } from 'nocodb-sdk';
+import { Injectable, Logger } from '@nestjs/common';
+import { EventType, MetaEventType } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type {
   AffectedDependencyResult,
   MetaDependencyEventRequest,
   MetaEventHandler,
 } from '~/services/meta-dependency/types';
-import type { Column } from '~/models';
+import { type Column, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 
@@ -24,6 +25,10 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
  */
 @Injectable()
 export class ColumnDeleteRowColorDependencyHandler implements MetaEventHandler {
+  private readonly logger = new Logger(
+    ColumnDeleteRowColorDependencyHandler.name,
+  );
+
   triggerMetaEvents: MetaEventType[] = [MetaEventType.COLUMN_DELETED];
 
   constructor(private readonly viewRowColorService: ViewRowColorService) {}
@@ -74,6 +79,33 @@ export class ColumnDeleteRowColorDependencyHandler implements MetaEventHandler {
     const oldCol = param.oldEntity as Column;
     if (!oldCol?.id) return;
 
+    // Snapshot affected view IDs before the cleanup so we can broadcast
+    // `view_update`. Two probes — cell-target conditions and filter
+    // conditions inside row-coloring rules — match the gate above.
+    const affectedViewIds = new Set<string>();
+    for (const row of await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.ROW_COLOR_CONDITIONS,
+      { condition: { fk_target_column_id: oldCol.id } },
+    )) {
+      if (row.fk_view_id) affectedViewIds.add(row.fk_view_id);
+    }
+    for (const row of await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILTER_EXP,
+      {
+        xcCondition: (qb: any) => {
+          qb.where('fk_column_id', oldCol.id).whereNotNull(
+            'fk_row_color_condition_id',
+          );
+        },
+      },
+    )) {
+      if (row.fk_view_id) affectedViewIds.add(row.fk_view_id);
+    }
+
     const { applyRowColorInvolvement } =
       await this.viewRowColorService.checkIfColumnInvolved({
         context,
@@ -82,5 +114,30 @@ export class ColumnDeleteRowColorDependencyHandler implements MetaEventHandler {
         ncMeta,
       });
     await applyRowColorInvolvement();
+
+    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+      this.logger.error(
+        `Failed to broadcast view_update events: ${e?.message}`,
+        e?.stack,
+      ),
+    );
+  }
+
+  private async broadcastViewUpdates(
+    context: NcContext,
+    viewIds: Set<string>,
+  ): Promise<void> {
+    for (const viewId of viewIds) {
+      const view = await View.get(context, viewId, false, Noco.ncMeta);
+      if (!view) continue;
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: { action: 'view_update', payload: view },
+        },
+        context.socket_id,
+      );
+    }
   }
 }

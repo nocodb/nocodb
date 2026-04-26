@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { MetaEventType } from 'nocodb-sdk';
+import { Injectable, Logger } from '@nestjs/common';
+import { EventType, MetaEventType } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type {
   AffectedDependencyResult,
   MetaDependencyEventRequest,
   MetaEventHandler,
 } from '~/services/meta-dependency/types';
-import { Filter, Sort } from '~/models';
+import { Filter, Sort, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
 
 /**
@@ -20,6 +21,10 @@ import Noco from '~/Noco';
  */
 @Injectable()
 export class ColumnDeleteFilterDependencyHandler implements MetaEventHandler {
+  private readonly logger = new Logger(
+    ColumnDeleteFilterDependencyHandler.name,
+  );
+
   triggerMetaEvents: MetaEventType[] = [MetaEventType.COLUMN_DELETED];
 
   async getAffectedDependency(
@@ -52,6 +57,8 @@ export class ColumnDeleteFilterDependencyHandler implements MetaEventHandler {
     const id = param.oldEntity?.id;
     if (!id) return;
 
+    const affectedViewIds = new Set<string>();
+
     for (const sort of await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
@@ -59,6 +66,7 @@ export class ColumnDeleteFilterDependencyHandler implements MetaEventHandler {
       { condition: { fk_column_id: id } },
     )) {
       await Sort.delete(context, sort.id, ncMeta);
+      if (sort.fk_view_id) affectedViewIds.add(sort.fk_view_id);
     }
 
     for (const filter of await ncMeta.metaList2(
@@ -72,8 +80,34 @@ export class ColumnDeleteFilterDependencyHandler implements MetaEventHandler {
       },
     )) {
       await Filter.delete(context, filter.id, ncMeta);
+      if (filter.fk_view_id) affectedViewIds.add(filter.fk_view_id);
     }
 
     await Filter.deleteAllByParentColumn(context, id, ncMeta);
+
+    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+      this.logger.error(
+        `Failed to broadcast view_update events: ${e?.message}`,
+        e?.stack,
+      ),
+    );
+  }
+
+  private async broadcastViewUpdates(
+    context: NcContext,
+    viewIds: Set<string>,
+  ): Promise<void> {
+    for (const viewId of viewIds) {
+      const view = await View.get(context, viewId, false, Noco.ncMeta);
+      if (!view) continue;
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: { action: 'view_update', payload: view },
+        },
+        context.socket_id,
+      );
+    }
   }
 }

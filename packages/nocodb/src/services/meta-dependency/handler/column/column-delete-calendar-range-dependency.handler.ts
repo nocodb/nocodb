@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { MetaEventType } from 'nocodb-sdk';
+import { Injectable, Logger } from '@nestjs/common';
+import { EventType, MetaEventType } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type {
   AffectedDependencyResult,
   MetaDependencyEventRequest,
   MetaEventHandler,
 } from '~/services/meta-dependency/types';
-import { CalendarRange } from '~/models';
+import { CalendarRange, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
 
 /**
@@ -19,6 +20,10 @@ import Noco from '~/Noco';
 export class ColumnDeleteCalendarRangeDependencyHandler
   implements MetaEventHandler
 {
+  private readonly logger = new Logger(
+    ColumnDeleteCalendarRangeDependencyHandler.name,
+  );
+
   triggerMetaEvents: MetaEventType[] = [MetaEventType.COLUMN_DELETED];
 
   async getAffectedDependency(
@@ -51,6 +56,8 @@ export class ColumnDeleteCalendarRangeDependencyHandler
     const id = param.oldEntity?.id;
     if (!id) return;
 
+    const affectedViewIds = new Set<string>();
+
     for (const range of await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
@@ -65,6 +72,32 @@ export class ColumnDeleteCalendarRangeDependencyHandler
       },
     )) {
       await CalendarRange.delete(range.id, context, ncMeta);
+      if (range.fk_view_id) affectedViewIds.add(range.fk_view_id);
+    }
+
+    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+      this.logger.error(
+        `Failed to broadcast view_update events: ${e?.message}`,
+        e?.stack,
+      ),
+    );
+  }
+
+  private async broadcastViewUpdates(
+    context: NcContext,
+    viewIds: Set<string>,
+  ): Promise<void> {
+    for (const viewId of viewIds) {
+      const view = await View.get(context, viewId, false, Noco.ncMeta);
+      if (!view) continue;
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: { action: 'view_update', payload: view },
+        },
+        context.socket_id,
+      );
     }
   }
 }

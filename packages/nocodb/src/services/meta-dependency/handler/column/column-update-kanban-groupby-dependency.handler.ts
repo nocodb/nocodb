@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { EventType, MetaEventType, parseProp, UITypes } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type {
@@ -35,6 +35,10 @@ const UNCATEGORIZED_STACK = {
 export class ColumnUpdateKanbanGroupByDependencyHandler
   implements MetaEventHandler
 {
+  private readonly logger = new Logger(
+    ColumnUpdateKanbanGroupByDependencyHandler.name,
+  );
+
   triggerMetaEvents: MetaEventType[] = [MetaEventType.COLUMN_UPDATED];
 
   async getAffectedDependency(
@@ -88,6 +92,8 @@ export class ColumnUpdateKanbanGroupByDependencyHandler
       const opts = await newColFull.getColOptions<any>(context, ncMeta);
       newOptions = opts?.options ?? [];
     }
+
+    const affectedViewIds = new Set<string>();
 
     for (const kanbanView of kanbanViews) {
       const view = await View.get(
@@ -173,7 +179,25 @@ export class ColumnUpdateKanbanGroupByDependencyHandler
         );
       }
 
-      await view.getView(context, ncMeta);
+      affectedViewIds.add(view.id);
+    }
+
+    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+      this.logger.error(
+        `Failed to broadcast view_update events: ${e?.message}`,
+        e?.stack,
+      ),
+    );
+  }
+
+  private async broadcastViewUpdates(
+    context: NcContext,
+    viewIds: Set<string>,
+  ): Promise<void> {
+    for (const viewId of viewIds) {
+      const view = await View.get(context, viewId, false, Noco.ncMeta);
+      if (!view) continue;
+      await view.getView(context, Noco.ncMeta);
       NocoSocket.broadcastEvent(
         context,
         {

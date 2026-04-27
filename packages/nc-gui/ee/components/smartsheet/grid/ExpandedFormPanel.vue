@@ -322,7 +322,7 @@ const showActivity = computed(() => {
 
       <!-- Header -->
       <div
-        class="flex items-center h-[var(--toolbar-height)] gap-0 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
+        class="flex items-center h-[var(--toolbar-height)] gap-1 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
       >
         <!-- Display value (flex-1 pushes header controls to the right) -->
         <NcTooltip v-if="displayValue && !isNew" show-on-truncate-only class="truncate min-w-0 flex-1">

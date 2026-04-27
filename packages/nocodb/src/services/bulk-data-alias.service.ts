@@ -40,7 +40,7 @@ export class BulkDataAliasService {
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
-    return await baseModel[param.operation].apply(null, param.options);
+    return await baseModel[param.operation].apply(baseModel, param.options);
   }
 
   // todo: Integrate with filterArrJson bulkDataUpdateAll

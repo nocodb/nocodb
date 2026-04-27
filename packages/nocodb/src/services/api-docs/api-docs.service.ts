@@ -61,7 +61,7 @@ export class ApiDocsService {
 
     const models: Model[] = [];
     // filter based on table visibility permission
-    Promise.all(
+    await Promise.all(
       allModels.map(async (model) => {
         if (
           await hasTableVisibilityAccess(context, model.id, param.req?.user)

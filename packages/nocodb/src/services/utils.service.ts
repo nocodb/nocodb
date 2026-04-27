@@ -144,7 +144,7 @@ export class UtilsService {
       try {
         apiMeta.body = JSON.parse(apiMeta.body);
       } catch (e) {
-        console.log(e);
+        this.logger.warn('Failed to parse apiMeta.body as JSON', e);
       }
     }
 
@@ -152,7 +152,7 @@ export class UtilsService {
       try {
         apiMeta.auth = JSON.parse(apiMeta.auth);
       } catch (e) {
-        console.log(e);
+        this.logger.warn('Failed to parse apiMeta.auth as JSON', e);
       }
     }
 

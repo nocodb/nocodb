@@ -139,13 +139,13 @@ export class ViewsService {
     context: NcContext,
     param: { viewId: string; user: UserType; req: NcRequest },
   ) {
-    const res = await View.share(context, param.viewId);
-
     const view = await View.get(context, param.viewId);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);
     }
+
+    const res = await View.share(context, param.viewId);
 
     this.appHooksService.emit(AppEvents.SHARED_VIEW_CREATE, {
       user: param.user,

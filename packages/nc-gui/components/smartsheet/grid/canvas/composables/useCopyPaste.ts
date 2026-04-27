@@ -1283,11 +1283,13 @@ export function useCopyPaste({
       !ctx ||
       !hasEditPermission.value ||
       columnObj.readonly ||
+      columnObj.uidt === UITypes.UUID ||
       (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj)) ||
       (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
     ) {
       if (
         columnObj.readonly ||
+        columnObj.uidt === UITypes.UUID ||
         (isSystemColumn(columnObj) && !isLinksOrLTAR(columnObj)) ||
         (!isLinksOrLTAR(columnObj) && isVirtualCol(columnObj))
       ) {

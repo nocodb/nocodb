@@ -159,7 +159,7 @@ export class BaseTrashService implements OnModuleInit {
       ? new Date(param.cleanupDueAt)
       : (() => {
           const due = new Date(deletedAt);
-          due.setDate(due.getDate() + retentionDays);
+          due.setUTCDate(due.getUTCDate() + retentionDays);
           return due;
         })();
 
@@ -245,6 +245,12 @@ export class BaseTrashService implements OnModuleInit {
       user: Partial<UserType>;
       req: NcRequest;
       /**
+       * Optional caller-supplied transaction. When provided, restore
+       * participates in the outer transaction (no nested commit/rollback);
+       * otherwise we own a fresh transaction here. Mirrors `trashResource`.
+       */
+      ncMeta?: MetaService;
+      /**
        * Conflict-resolution flag for `record` entries — pass-through to
        * `RecordTrashHandler.restore`. Other resource types ignore it.
        *   force:   auto-resolve every conflict by nulling offending columns
@@ -258,7 +264,11 @@ export class BaseTrashService implements OnModuleInit {
       NcError.get(context).schemaLocked();
     }
 
-    const trashEntry = await BaseTrash.get(context, param.trashId);
+    const trashEntry = await BaseTrash.get(
+      context,
+      param.trashId,
+      param.ncMeta,
+    );
     if (!trashEntry) {
       NcError.get(context).trashNotFound(param.trashId);
     }
@@ -271,20 +281,25 @@ export class BaseTrashService implements OnModuleInit {
     // is structural and requires CREATOR+. Records remain editor-restorable
     // because soft-delete + restore is part of the normal data-edit loop.
     if (trashEntry.resource_type !== 'record') {
-      const baseRoles = extractRolesObj(param.req?.user?.base_roles);
-      const isCreatorOrOwner =
-        !!baseRoles?.[ProjectRoles.CREATOR] ||
-        !!baseRoles?.[ProjectRoles.OWNER];
-      if (!isCreatorOrOwner) {
-        NcError.get(context).forbidden(
-          `Restoring a ${trashEntry.resource_type} requires creator or owner role`,
-        );
+      const rawRoles = param.req?.user?.base_roles;
+      if (rawRoles) {
+        const baseRoles = extractRolesObj(rawRoles);
+        const isCreatorOrOwner =
+          !!baseRoles?.[ProjectRoles.CREATOR] ||
+          !!baseRoles?.[ProjectRoles.OWNER];
+        if (!isCreatorOrOwner) {
+          NcError.get(context).forbidden(
+            `Restoring a ${trashEntry.resource_type} requires creator or owner role`,
+          );
+        }
       }
     }
 
     await handler.checkRestoreLimit?.(context, trashEntry);
 
-    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+    const ncMeta = param.ncMeta
+      ? param.ncMeta
+      : await (Noco.ncMeta as MetaService).startTransaction();
     try {
       const lifecycle = await handler.restore(
         context,
@@ -306,9 +321,9 @@ export class BaseTrashService implements OnModuleInit {
       if (!keepEntry) {
         await BaseTrash.delete(context, trashEntry.id, ncMeta);
       }
-      await ncMeta.commit();
+      if (!param.ncMeta) await ncMeta.commit();
     } catch (e) {
-      await ncMeta.rollback();
+      if (!param.ncMeta) await ncMeta.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(e.message, e.stack);
       NcError.get(context).internalServerError('Failed to restore');
@@ -337,20 +352,32 @@ export class BaseTrashService implements OnModuleInit {
       trashId: string;
       user: Partial<UserType>;
       req: NcRequest;
+      /**
+       * Optional caller-supplied transaction. When provided, permanentDelete
+       * participates in the outer transaction (no nested commit/rollback);
+       * otherwise we own a fresh transaction here. Mirrors `trashResource`.
+       */
+      ncMeta?: MetaService;
     },
   ) {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
 
-    const trashEntry = await BaseTrash.get(context, param.trashId);
+    const trashEntry = await BaseTrash.get(
+      context,
+      param.trashId,
+      param.ncMeta,
+    );
     if (!trashEntry) {
       NcError.get(context).trashNotFound(param.trashId);
     }
 
     const handler = this.getHandler(trashEntry.resource_type);
 
-    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+    const ncMeta = param.ncMeta
+      ? param.ncMeta
+      : await (Noco.ncMeta as MetaService).startTransaction();
     try {
       // Clean up child trash entries (e.g. dashboard → widget, table → view/field).
       if (handler.childTypes?.length) {
@@ -368,16 +395,33 @@ export class BaseTrashService implements OnModuleInit {
               ncMeta,
             );
             if (!childTrash.length) break;
+            let removed = 0;
             for (const child of childTrash) {
               const childHandler = this.getHandler(child.resource_type);
-              await childHandler.permanentDelete(
+              const childLifecycle = await childHandler.permanentDelete(
                 context,
                 child,
                 { user: param.user, req: param.req },
                 ncMeta,
               );
-              await BaseTrash.delete(context, child.id, ncMeta);
+              // Mirror the parent guard at line 397 — handlers (e.g. record
+              // handler under RLS-bounded users) may ask the entry to survive
+              // when only a subset of underlying state was swept. Wiping the
+              // trash row while the soft-deleted rows persist would orphan
+              // them.
+              const childKeepEntry =
+                ncHasProperties<TrashLifecycleResult>(
+                  childLifecycle,
+                  'keepEntry',
+                ) && !!childLifecycle.keepEntry;
+              if (!childKeepEntry) {
+                await BaseTrash.delete(context, child.id, ncMeta);
+                removed++;
+              }
             }
+            // If any child opted to survive, stop paging — re-fetching would
+            // return the same kept rows and loop forever.
+            if (removed < childTrash.length) break;
             if (childTrash.length < CHILD_CLEANUP_BATCH) break;
           }
         }
@@ -397,9 +441,9 @@ export class BaseTrashService implements OnModuleInit {
       if (!keepEntry) {
         await BaseTrash.delete(context, trashEntry.id, ncMeta);
       }
-      await ncMeta.commit();
+      if (!param.ncMeta) await ncMeta.commit();
     } catch (e) {
-      await ncMeta.rollback();
+      if (!param.ncMeta) await ncMeta.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(e.message, e.stack);
       NcError.get(context).internalServerError('Failed to permanently delete');

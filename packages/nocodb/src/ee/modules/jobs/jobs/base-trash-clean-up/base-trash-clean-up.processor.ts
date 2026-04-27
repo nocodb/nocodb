@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   NcApiVersion,
@@ -12,6 +13,7 @@ import Noco from '~/Noco';
 import BaseTrash from '~/models/BaseTrash';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
+import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
 
 const BATCH_SIZE = 50;
 const MAX_PER_RUN = 1000;
@@ -19,9 +21,13 @@ const MAX_PER_RUN = 1000;
 // Row 1 failure → +1h, 2 failures → +2h, etc. Prevents a poisoned row from
 // consuming the MAX_PER_RUN budget on every tick.
 const RETRY_BACKOFF_MS = 60 * 60 * 1000; // 1h
-// After this many consecutive failures, emit a priority_error telemetry so ops
-// can intervene. Backoff still continues so we don't flood the firehose.
+// Emit a priority_error telemetry every Nth consecutive failure (5, 10, 15…)
+// so a single missed alert doesn't park the row silently forever. Backoff
+// keeps growing between alerts, so cadence is naturally exponential — fires
+// after ~5h cumulative, then ~2d, then ~5d, then ~9d, etc.
 const MAX_RETRIES_BEFORE_ALERT = 5;
+const LOCK_KEY = 'lock:base-trash-cleanup';
+const LOCK_TTL_SECONDS = 9 * 60;
 
 @Injectable()
 export class BaseTrashCleanUpProcessor {
@@ -32,6 +38,27 @@ export class BaseTrashCleanUpProcessor {
   async job(job: Job) {
     this.logger.debug(`Job started for ${job.id}`);
 
+    // Skip this tick if another worker is already running. Bull's jobId
+    // dedups within a single queue, but on multi-instance EE worker pools
+    // a long cleanup could overlap with the next cron fire and reprocess
+    // the same batch.
+    const lockId = randomUUID();
+    const gotLock = await acquireLock(LOCK_KEY, lockId, 0, LOCK_TTL_SECONDS);
+    if (!gotLock) {
+      this.logger.log(
+        `Skipping ${job.id} — another base-trash cleanup run is active`,
+      );
+      return;
+    }
+
+    try {
+      return await this.runCleanup(job);
+    } finally {
+      await releaseLock(LOCK_KEY, lockId);
+    }
+  }
+
+  private async runCleanup(job: Job) {
     const now = new Date().toISOString();
     let totalCleaned = 0;
 
@@ -118,7 +145,10 @@ export class BaseTrashCleanUpProcessor {
               meta,
             });
 
-            if (retryCount === MAX_RETRIES_BEFORE_ALERT) {
+            if (
+              retryCount >= MAX_RETRIES_BEFORE_ALERT &&
+              retryCount % MAX_RETRIES_BEFORE_ALERT === 0
+            ) {
               TelemetryHandlerService.sendPriorityError(context, {
                 trigger: 'base_trash_cleanup',
                 error_type: e?.name ?? 'Error',

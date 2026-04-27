@@ -378,21 +378,11 @@ export default class BaseTrash implements BaseTrashType {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ) {
-    const trashEntries = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.TRASH,
-      { condition: {} },
-    );
-
-    for (const entry of trashEntries) {
-      await ncMeta.metaDelete(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.TRASH,
-        entry.id,
-      );
-    }
+    return await ncMeta
+      .knexConnection(MetaTable.TRASH)
+      .where('fk_workspace_id', context.workspace_id)
+      .where('base_id', context.base_id)
+      .del();
   }
 
   public getRelatedItems(): {

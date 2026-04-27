@@ -7,6 +7,10 @@ import type { ExecutionContext } from '@nestjs/common';
 import { throttlerEnabled } from '~/helpers/redisHelpers';
 import { getApiTokenFromHeader } from '~/helpers';
 import { CanonicalThrottlerGuard } from '~/guards/canonical-throttler.guard';
+import {
+  decodeXcAuthUserId,
+  resolveApiTokenUserId,
+} from '~/guards/throttler-tracker.helpers';
 import Noco from '~/Noco';
 
 const HEADER_NAME_GUI = 'xc-auth';
@@ -42,9 +46,13 @@ export class DataApiLimiterGuardEE extends CanonicalThrottlerGuard {
   }
 
   protected async getTracker(req: Record<string, any>): Promise<string> {
-    return `data|${
-      req.headers[HEADER_NAME_GUI] || getApiTokenFromHeader(req as NcRequest)
-    }` as string;
+    // Plan-driven limit applies on the API-token path; bucket per (workspace, user).
+    const apiTokenId = await resolveApiTokenUserId(req as NcRequest);
+    if (apiTokenId !== null) {
+      return `data|${req.ncWorkspaceId ?? ''}|${apiTokenId}`;
+    }
+    const xcAuthId = decodeXcAuthUserId(req as NcRequest);
+    return `data-gui|${xcAuthId ?? 'anon'}`;
   }
 
   generateKey(context, suffix) {

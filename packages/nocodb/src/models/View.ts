@@ -371,9 +371,12 @@ export default class View implements ViewType {
         insertObj,
       );
 
+      // Include trashed columns so brand-new views still get a view-column
+      // row for them (with show: false). Without this, restoring a trashed
+      // column wouldn't surface it in views created during the trash window.
       let columns: any[] = await (
         await Model.getByIdOrName(context, { id: view.fk_model_id }, ncMeta)
-      ).getColumns(context, ncMeta);
+      ).getColumns(context, ncMeta, undefined, true, true);
 
       const levelIdMap = new Map<string, string>();
       let defaultLevelId: string | undefined;
@@ -738,10 +741,18 @@ export default class View implements ViewType {
 
           // if columns is list of virtual columns then get the parent column
           const col = vCol.fk_column_id
-            ? await Column.get(context, { colId: vCol.fk_column_id }, ncMeta)
+            ? await Column.get(
+                context,
+                { colId: vCol.fk_column_id, includeDeleted: true },
+                ncMeta,
+              )
             : vCol;
 
           if (isSystemColumn(col)) show = false;
+
+          // Trashed columns get a row but stay hidden — they only become
+          // visible if/when the field is restored.
+          if (col?.deleted) show = false;
 
           const resolvedLevelId =
             vCol.fk_level_id && levelIdMap.has(vCol.fk_level_id)

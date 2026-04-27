@@ -76,7 +76,7 @@ export const useBaseTrash = createSharedComposable(() => {
 
   const retentionDays = computed(() => {
     const limit = getLimit(PlanLimitTypes.LIMIT_TRASH_RETENTION)
-    return typeof limit === 'number' && limit > 0 ? limit : 30
+    return Number.isFinite(limit) && limit > 0 ? limit : 30
   })
 
   const isOpen = ref(false)

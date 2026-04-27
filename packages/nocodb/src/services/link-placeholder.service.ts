@@ -50,6 +50,22 @@ export class LinkPlaceholderService {
       ncMeta,
     );
 
+    // Capture per-view visibility of the column being replaced (the LTAR
+    // that's about to be soft-deleted on THIS table — i.e. the reverse-side
+    // column on the related table when the user deletes a link). The
+    // placeholder lives on the same table and should mirror that visibility:
+    // shown in views where the LTAR was shown, hidden in views where it was
+    // hidden. Without this, the placeholder is forced visible everywhere.
+    const views = await View.list(ctx, originalCol.fk_model_id, false, ncMeta);
+    const showByViewId = new Map<string, boolean>();
+    for (const view of views) {
+      const viewCols = await View.getColumns(ctx, view.id, ncMeta);
+      const entry = viewCols.find(
+        (vc: any) => vc.fk_column_id === originalCol.id,
+      );
+      if (entry) showByViewId.set(view.id, !!entry.show);
+    }
+
     const columnName = getUniqueColumnName(
       table.columns ?? [],
       `${columnNamePrefix}${originalCol.id}`,
@@ -161,6 +177,28 @@ export class LinkPlaceholderService {
         },
         ncMeta,
       );
+
+      // Mirror the soft-deleted LTAR's per-view visibility: hide the
+      // placeholder in views where the LTAR was hidden, leave it shown
+      // elsewhere.
+      for (const view of views) {
+        const desiredShow = showByViewId.get(view.id);
+        if (desiredShow === undefined || desiredShow) continue;
+        const phViewColId = await View.getViewColumnId(
+          ctx,
+          { viewId: view.id, colId: placeholderCol.id },
+          ncMeta,
+        );
+        if (phViewColId) {
+          await View.updateColumn(
+            ctx,
+            view.id,
+            phViewColId,
+            { show: false },
+            ncMeta,
+          );
+        }
+      }
     } catch (e) {
       this.logger.error(
         `insertColumnToAllViews failed for placeholder ${placeholderCol.id}; rolling back: ${e.message}`,

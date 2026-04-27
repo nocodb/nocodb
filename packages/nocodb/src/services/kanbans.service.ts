@@ -442,7 +442,7 @@ export class KanbansService {
       opt.order = maxOrder + idx + 1;
     });
 
-    return await this.kanbanViewUpdate(
+    const result = await this.kanbanViewUpdate(
       context,
       {
         kanbanViewId: param.kanbanViewId,
@@ -462,5 +462,7 @@ export class KanbansService {
     if (!param.viewWebhookManager) {
       (await viewWebhookManager.withNewViewId(modelView.id)).emit();
     }
+
+    return result;
   }
 }

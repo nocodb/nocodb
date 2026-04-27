@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
@@ -83,6 +84,7 @@ export class MapsService {
       map: MapUpdateReqType;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload('swagger.json#/components/schemas/MapUpdateReq', param.map);
 
@@ -99,7 +101,7 @@ export class MapsService {
     let owner = param.req.user;
 
     if (view.owned_by && view.owned_by !== param.req.user?.id) {
-      owner = await User.get(view.owned_by);
+      owner = await User.get(view.owned_by, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.MAP_UPDATE, {

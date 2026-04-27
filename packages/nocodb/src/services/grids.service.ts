@@ -104,7 +104,7 @@ export class GridsService {
     let owner = param.req.user;
 
     if (param.ownedBy) {
-      owner = await User.get(param.ownedBy);
+      owner = await User.get(param.ownedBy, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.GRID_CREATE, {

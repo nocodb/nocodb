@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import PQueue from 'p-queue';
 import Emittery from 'emittery';
 import { CronExpressionParser } from 'cron-parser';
@@ -17,6 +17,7 @@ export interface Job {
 
 @Injectable()
 export class QueueService {
+  protected readonly logger = new Logger(QueueService.name);
   static queue = new PQueue({ concurrency: 2 });
   static queueIdCounter = 1;
   static processed = 0;
@@ -183,7 +184,7 @@ export class QueueService {
                 this.queue.add(() => scheduleNextExecution());
               })
               .catch((error) => {
-                console.error(
+                this.logger.error(
                   `Failed to schedule recurring job ${name}:`,
                   error,
                 );
@@ -192,7 +193,7 @@ export class QueueService {
               });
           }, delayMs);
         } catch (error) {
-          console.error(`Invalid cron expression for job ${name}:`, error);
+          this.logger.error(`Invalid cron expression for job ${name}:`, error);
         }
       };
 

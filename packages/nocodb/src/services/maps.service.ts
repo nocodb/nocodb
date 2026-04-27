@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
@@ -26,6 +27,7 @@ export class MapsService {
       user: UserType;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
@@ -38,25 +40,29 @@ export class MapsService {
 
     await assertPersonalViewAllowed(context, param.map.lock_type);
 
-    const model = await Model.get(context, param.tableId);
+    const model = await Model.get(context, param.tableId, ncMeta);
 
-    const { id } = await View.insertMetaOnly(context, {
-      view: {
-        ...param.map,
-        // todo: sanitize
-        fk_model_id: param.tableId,
-        type: ViewTypes.MAP,
-        base_id: model.base_id,
-        source_id: model.source_id,
-        created_by: param.user?.id,
-        owned_by: param.user?.id,
+    const { id } = await View.insertMetaOnly(
+      context,
+      {
+        view: {
+          ...param.map,
+          // todo: sanitize
+          fk_model_id: param.tableId,
+          type: ViewTypes.MAP,
+          base_id: model.base_id,
+          source_id: model.source_id,
+          created_by: param.user?.id,
+          owned_by: param.user?.id,
+        },
+        model,
+        req: param.req,
       },
-      model,
-      req: param.req,
-    });
+      ncMeta,
+    );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(context, id);
+    const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
       context,
       CacheScope.VIEW,
@@ -83,10 +89,11 @@ export class MapsService {
       map: MapUpdateReqType;
       req: NcRequest;
     },
+    ncMeta?: MetaService,
   ) {
     validatePayload('swagger.json#/components/schemas/MapUpdateReq', param.map);
 
-    const view = await View.get(context, param.mapViewId);
+    const view = await View.get(context, param.mapViewId, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.mapViewId);
@@ -99,7 +106,7 @@ export class MapsService {
     let owner = param.req.user;
 
     if (view.owned_by && view.owned_by !== param.req.user?.id) {
-      owner = await User.get(view.owned_by);
+      owner = await User.get(view.owned_by, ncMeta);
     }
 
     this.appHooksService.emit(AppEvents.MAP_UPDATE, {

@@ -41,6 +41,7 @@ export default class ApiToken implements ApiTokenType {
         token,
         fk_user_id: apiToken.fk_user_id,
         fk_sso_client_id: apiToken.fk_sso_client_id ?? null,
+        expiry: apiToken.expiry ?? null,
       },
       true,
     );

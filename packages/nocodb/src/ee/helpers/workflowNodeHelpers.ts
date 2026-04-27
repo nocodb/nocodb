@@ -39,6 +39,7 @@ export const WorkflowNodePlanRequirements: Record<string, PlanTitles> = {
 
   // HubSpot CRM
   'hubspot_crm.*': PlanTitles.BUSINESS, // All HubSpot CRM nodes
+  'mailchimp.*': PlanTitles.BUSINESS, // All Mailchimp nodes
 };
 
 /**

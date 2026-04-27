@@ -177,7 +177,6 @@ onClickOutside(
               :key="`${_category}-${pkgName}`"
               class="flex-none"
               popup-class-name="nc-max-h-screen nc-scrollbar-thin"
-              :popup-offset="[6, -2]"
             >
               <template #title>
                 <div class="flex gap-2 items-center">

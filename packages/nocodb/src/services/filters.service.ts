@@ -86,7 +86,7 @@ export class FiltersService {
       NcError.get(context).schemaLocked();
     }
 
-    const filter = await Filter.get(context, param.filterId);
+    const filter = await Filter.get(context, param.filterId, ncMeta);
 
     if (!filter) {
       NcError.badRequest('Filter not found');
@@ -123,7 +123,7 @@ export class FiltersService {
         ).withViewId(rowColorCondition.fk_view_id)
       ).forUpdate();
     }
-    await Filter.delete(context, param.filterId);
+    await Filter.delete(context, param.filterId, ncMeta);
 
     this.appHooksService.emit(AppEvents.FILTER_DELETE, {
       filter,

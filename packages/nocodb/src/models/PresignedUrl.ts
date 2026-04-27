@@ -274,7 +274,7 @@ export default class PresignedUrl {
     }, attachment);
 
     if (attachment?.path) {
-      nestedObj.signedPath = await PresignedUrl.getSignedUrl(
+      const signed = await PresignedUrl.getSignedUrl(
         {
           pathOrUrl: attachment.path.replace(/^download[/\\]/i, ''),
           preview,
@@ -283,6 +283,20 @@ export default class PresignedUrl {
         },
         ncMeta,
       );
+
+      // When a cloud storage adapter (e.g. S3) generates a presigned URL for an
+      // attachment that was originally stored on local disk (identified by its
+      // `path` property), the returned value is a full absolute URL rather than
+      // a server-relative path.  Storing it in `signedPath` causes the frontend
+      // or downstream helpers to incorrectly prefix it with the NocoDB base URL,
+      // producing malformed URLs like `https://app/https://s3.bucket/…`.
+      // Store it in `signedUrl` instead so consumers know to use it as-is.
+      // (Issue #12685)
+      if (/^https?:\/\//i.test(signed)) {
+        nestedObj.signedUrl = signed;
+      } else {
+        nestedObj.signedPath = signed;
+      }
     } else if (attachment?.url && attachment.status !== 'uploading') {
       nestedObj.signedUrl = await PresignedUrl.getSignedUrl(
         {

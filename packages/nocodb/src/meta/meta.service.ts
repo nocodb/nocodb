@@ -555,13 +555,15 @@ export class MetaService {
       workspace_id === RootScopes.BYPASS &&
       base_id === RootScopes.BYPASS
     ) {
-      // bypass is only allowed for v2 bases, so we join the base table to ensure the base is v2
+      // bypass is only allowed for v2 and v3 bases, so we join the base table to
+      // ensure the base version is valid. V3 bases were introduced after this check
+      // was written and must also be accessible in bypass context.
       if (BaseRelatedMetaTables.includes(target as MetaTable)) {
         query.whereExists(function () {
           this.select(1)
             .from(`${MetaTable.PROJECT} as p`)
             .whereRaw('p.id = base_id')
-            .andWhere('p.version', BaseVersion.V2);
+            .andWhereIn('p.version', [BaseVersion.V2, BaseVersion.V3]);
         });
       }
     } else if (workspace_id === base_id) {

@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { Logger } from '@nestjs/common';
 import type { IEmailAdapter } from '~/types/nc-plugin';
 import type Mail from 'nodemailer/lib/mailer';
 import type { XcEmail } from '~/interface/IEmailAdapter';
@@ -7,6 +8,7 @@ import { NcError } from '~/helpers/ncError';
 export default class SMTP implements IEmailAdapter {
   private transporter: Mail;
   private input: any;
+  private readonly logger = new Logger(SMTP.name);
 
   constructor(input: any) {
     this.input = input;
@@ -59,7 +61,7 @@ export default class SMTP implements IEmailAdapter {
       } as any);
       return true;
     } catch (e) {
-      console.log('SMTP test error :: ', e);
+      this.logger.error('SMTP test error :: ', e?.message);
       NcError.pluginTestError(e?.message);
     }
   }

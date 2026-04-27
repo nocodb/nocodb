@@ -453,7 +453,7 @@ export class ViewColumnsService {
         }
       }
 
-      await Promise.all(updateOrInsertOptions);
+      result = await Promise.all(updateOrInsertOptions);
 
       await ncMeta.commit();
 

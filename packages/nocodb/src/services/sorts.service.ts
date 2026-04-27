@@ -38,7 +38,7 @@ export class SortsService {
     const sort = await Sort.get(context, param.sortId, ncMeta);
 
     if (!sort) {
-      NcError.badRequest('Sort not found');
+      NcError.get(context).badRequest('Sort not found');
     }
 
     const column = await Column.get(
@@ -107,7 +107,7 @@ export class SortsService {
     const sort = await Sort.get(context, param.sortId, ncMeta);
 
     if (!sort) {
-      NcError.badRequest('Sort not found');
+      NcError.get(context).badRequest('Sort not found');
     }
 
     const column = await Column.get(
@@ -181,7 +181,7 @@ export class SortsService {
     const view = await View.get(context, param.viewId, ncMeta);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.get(context).badRequest('View not found');
     }
     const viewWebhookManager =
       param.viewWebhookManager ??

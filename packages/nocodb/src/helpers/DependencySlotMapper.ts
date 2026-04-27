@@ -1,5 +1,8 @@
 import { DependencyTableType } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import { NcError } from '~/helpers/catchError';
+
+const logger = new Logger('DependencySlotMapper');
 
 export enum DependencySlotTypes {
   STRING = 'string',
@@ -198,7 +201,7 @@ export class DependencySlotMapper {
         }
       } catch (e) {
         // If JSON parsing fails, log error but don't break
-        console.error('Failed to parse dependency meta field:', e);
+        logger.error('Failed to parse dependency meta field:', e);
       }
     }
 

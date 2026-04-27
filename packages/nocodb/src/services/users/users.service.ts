@@ -478,7 +478,7 @@ export class UsersService {
       try {
         await UserRefreshToken.updateOldToken(oldRefreshToken, refreshToken);
       } catch (error) {
-        console.error('Failed to update old refresh token:', error);
+        this.logger.error('Failed to update old refresh token:', error);
         NcError.internalServerError('Failed to update refresh token');
       }
 

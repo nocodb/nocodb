@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   ClientType,
@@ -149,6 +149,8 @@ type MetaDiffChange = {
 
 @Injectable()
 export class MetaDiffsService {
+  private readonly logger = new Logger(MetaDiffsService.name);
+
   constructor(private appHooksService: AppHooksService) {}
 
   async getMetaDiff(
@@ -775,7 +777,7 @@ export class MetaDiffsService {
           await this.getMetaDiff(context, sqlClient, base, source),
         );
       } catch (e) {
-        console.log(e);
+        this.logger.error(`Failed to get meta diff for source ${source.id}`, e);
       }
     }
 

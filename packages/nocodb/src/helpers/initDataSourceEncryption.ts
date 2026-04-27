@@ -36,7 +36,7 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
       try {
         JSON.parse(source.config);
       } catch (e) {
-        console.error('Invalid JSON in integration config', source.alias);
+        logger.error('Invalid JSON in integration config', source.alias);
         successStatus.push(false);
         continue;
       }
@@ -111,7 +111,7 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
     await ncMeta.commit();
   } catch (e) {
     await ncMeta.rollback();
-    console.error('Failed to encrypt data sources');
+    logger.error('Failed to encrypt data sources');
     throw e;
   }
 }

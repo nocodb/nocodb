@@ -612,7 +612,7 @@ async function importViaJob() {
 
             try {
               const progress = JSON.parse(pollerData.data.message)
-              if (progress.rowsInserted === undefined) return
+              if (progress.status !== 'progress') return
               const tname = trackedNames.includes(progress.tableName) ? progress.tableName : trackedNames[0]
               const total = totals[tname] || progress.totalProcessed || 0
               updateImportTips(baseName, tname, progress.totalProcessed || 0, total)

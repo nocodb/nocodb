@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
+import { Logger } from '@nestjs/common';
 import type { IWebhookNotificationAdapter } from '~/types/nc-plugin';
 
 export default class Slack implements IWebhookNotificationAdapter {
+  private readonly logger = new Logger(Slack.name);
+
   public init(): Promise<any> {
     return Promise.resolve(undefined);
   }
@@ -19,7 +22,7 @@ export default class Slack implements IWebhookNotificationAdapter {
           },
         );
       } catch (e) {
-        console.log(e);
+        this.logger.error('Failed to send Slack webhook message', e);
         throw e;
       }
     }

@@ -3674,67 +3674,73 @@ export function useCanvasRender({
 
     // Save state at frame start to isolate clip regions and transforms.
     // Previously, resizing the canvas every frame implicitly reset all state.
+    // The try/finally guarantees ctx.restore() runs even if a render path throws —
+    // without it, a throw mid-frame leaves the clip applied to the canvas state and
+    // every subsequent frame inherits it. The visible symptom is the header (which
+    // sits outside the clipped area) freezing while the body keeps repainting.
     ctx.save()
-
-    ctx.clearRect(0, 0, width.value, height.value)
-    ctx.fillStyle = getColor(themeV4Colors.gray['50'])
-    ctx.fillRect(0, 0, width.value, height.value)
-
-    let activeState
-
-    elementMap.clear()
-    let postRenderCbk
-
-    const _headerRowHeight = headerRowHeight.value
-
-    if (!groupByColumns.value?.length) {
-      activeState = renderRows(ctx)
-    } else {
-      ctx.save()
-      ctx.fillStyle = baseColor.value
+    try {
+      ctx.clearRect(0, 0, width.value, height.value)
+      ctx.fillStyle = getColor(themeV4Colors.gray['50'])
       ctx.fillRect(0, 0, width.value, height.value)
-      ctx.restore()
 
-      const { startIndex, endIndex, startGroupYOffset } = calculateGroupRange(
-        cachedGroups.value,
-        scrollTop.value,
-        rowHeight.value,
-        _headerRowHeight,
-        totalGroups.value,
-        height.value,
-        false,
-        isAddingEmptyRowAllowed.value,
-      )
+      let activeState
 
-      const { missingChunks, postRenderCbk: _postRenderCbk } = renderGroups(ctx, {
-        level: 0,
-        yOffset: startGroupYOffset,
-        startIndex,
-        endIndex,
-      })
-      postRenderCbk = _postRenderCbk
+      elementMap.clear()
+      let postRenderCbk
 
-      if (missingChunks.length) {
-        const minIndex = Math.min(...missingChunks)
-        const maxIndex = Math.max(...missingChunks)
+      const _headerRowHeight = headerRowHeight.value
 
-        fetchMissingGroupChunks(minIndex, maxIndex)
+      if (!groupByColumns.value?.length) {
+        activeState = renderRows(ctx)
+      } else {
+        ctx.save()
+        ctx.fillStyle = baseColor.value
+        ctx.fillRect(0, 0, width.value, height.value)
+        ctx.restore()
+
+        const { startIndex, endIndex, startGroupYOffset } = calculateGroupRange(
+          cachedGroups.value,
+          scrollTop.value,
+          rowHeight.value,
+          _headerRowHeight,
+          totalGroups.value,
+          height.value,
+          false,
+          isAddingEmptyRowAllowed.value,
+        )
+
+        const { missingChunks, postRenderCbk: _postRenderCbk } = renderGroups(ctx, {
+          level: 0,
+          yOffset: startGroupYOffset,
+          startIndex,
+          endIndex,
+        })
+        postRenderCbk = _postRenderCbk
+
+        if (missingChunks.length) {
+          const minIndex = Math.min(...missingChunks)
+          const maxIndex = Math.max(...missingChunks)
+
+          fetchMissingGroupChunks(minIndex, maxIndex)
+        }
       }
+
+      renderHeader(ctx, activeState)
+
+      renderColumnDragIndicator(ctx)
+      renderRowDragPreview(ctx, draggedRowGroupPath.value)
+
+      renderAggregations(ctx)
+
+      // render the active cell state and clip the header and aggregation footer areas
+      ctx.beginPath()
+      ctx.rect(0, _headerRowHeight, totalWidth.value, height.value - _headerRowHeight - AGGREGATION_HEIGHT)
+      ctx.clip()
+      postRenderCbk?.()
+    } finally {
+      ctx.restore()
     }
-
-    renderHeader(ctx, activeState)
-
-    renderColumnDragIndicator(ctx)
-    renderRowDragPreview(ctx, draggedRowGroupPath.value)
-
-    renderAggregations(ctx)
-
-    // render the active cell state and clip the header and aggregation footer areas
-    ctx.beginPath()
-    ctx.rect(0, _headerRowHeight, totalWidth.value, height.value - _headerRowHeight - AGGREGATION_HEIGHT)
-    ctx.clip()
-    postRenderCbk?.()
-    ctx.restore()
   }
 
   return {

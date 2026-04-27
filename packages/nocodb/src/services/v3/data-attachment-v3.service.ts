@@ -115,7 +115,7 @@ export class DataAttachmentV3Service {
           }
         }
       } catch (error) {
-        console.error(`Failed to process attachment:`, error);
+        this.logger.error(`Failed to process attachment: ${(error as Error)?.message}`, error);
       }
     }
     // direct update to prevent prepare noco data again

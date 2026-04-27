@@ -4,7 +4,6 @@ import type { ColumnType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
-import { isGridlineBoundary } from '../../../utils/timelineUtils'
 
 const props = defineProps<{
   records: RowType[]
@@ -43,38 +42,10 @@ const {
   onScrollAdjustment,
   headerConfig,
   majorHeaderTiers,
+  gridlineOffsets,
+  weekendOffsets,
+  minorLabels,
 } = useTimelineViewStoreOrThrow()
-
-// Format the per-day weekday label for the minor header row, depending on
-// how compact the current scale wants the cell to be.
-const minorWeekdayLabel = (date: dayjs.Dayjs) => {
-  switch (headerConfig.value.minorLabel) {
-    case 'weekday-full':
-      return date.format('dddd')
-    case 'weekday-short':
-      return date.format('ddd')
-    case 'weekday-letter':
-      return date.format('dd').charAt(0)
-    default:
-      return ''
-  }
-}
-
-// Day number visibility per cell — `mondays` shows it only on Mondays.
-const minorDayNumLabel = (date: dayjs.Dayjs) => {
-  const mode = headerConfig.value.minorLabel
-  if (mode === 'none') return ''
-  if (mode === 'mondays') return date.day() === 1 ? date.format('D') : ''
-  return date.format('D')
-}
-
-const showMinorWeekday = computed(() =>
-  ['weekday-full', 'weekday-short', 'weekday-letter'].includes(headerConfig.value.minorLabel),
-)
-
-// True when the date's right edge sits on a gridline boundary for the
-// current scale. Used to suppress per-day gridlines at coarser scales.
-const isCellBoundary = (date: dayjs.Dayjs) => isGridlineBoundary(date, headerConfig.value.gridlineUnit)
 
 // Visible fields from the Fields menu (injected by parent Smartsheet/shared-view)
 const fields = inject(FieldsInj, ref())
@@ -647,16 +618,6 @@ const getBarTooltip = (row: RowType) => {
   return `${startDate.format(startFmt)} — ${effectiveEnd.format('MMM D, YYYY')}  ·  ${days} days`
 }
 
-// Determine if a date is today
-const isToday = (date: dayjs.Dayjs) => {
-  return date.isSame(today.value, 'day')
-}
-
-// Determine if a date is a weekend
-const isWeekend = (date: dayjs.Dayjs) => {
-  return date.day() === 0 || date.day() === 6
-}
-
 // Check if record's start date is visible (not clamped to before the viewport)
 const isStartVisible = (row: RowType) => {
   const range = props.timelineRange[0]
@@ -681,13 +642,20 @@ const isEndVisible = (row: RowType) => {
   return !effectiveEnd.isAfter(lastVisibleDate, 'day')
 }
 
-// Today indicator position
-const todayPosition = computed(() => {
+// Today indicator position (center of today's column, for the body's
+// vertical line). `todayDayIdx` exposes the column index so overlays can
+// position themselves at the cell's left edge with `colWidth` width.
+const todayDayIdx = computed(() => {
   const firstDate = props.visibleDates[0]
-  if (!firstDate) return null
+  if (!firstDate) return -1
   const offset = today.value.diff(firstDate, 'day')
-  if (offset < 0 || offset >= props.visibleDates.length) return null
-  return offset * colWidth.value + colWidth.value / 2
+  if (offset < 0 || offset >= props.visibleDates.length) return -1
+  return offset
+})
+
+const todayPosition = computed(() => {
+  if (todayDayIdx.value < 0) return null
+  return todayDayIdx.value * colWidth.value + colWidth.value / 2
 })
 
 // Per-bar navigation: get the start/end date for a clipped record
@@ -978,42 +946,67 @@ const onGridMouseLeave = () => {
             </div>
           </div>
 
-          <!-- Minor row — one cell per day. Labels fade out at coarser zoom
-               levels per `headerConfig.minorLabel`. Cell right-borders only
-               render at gridline boundaries (week/month/quarter). -->
-          <div class="flex bg-nc-bg-default border-b border-nc-border-gray-medium">
+          <!-- Minor row. Per-day cells were replaced with absolute overlays
+               so coarse zooms don't iterate 1.5k–3.7k cells per render: a
+               single bg div + sparse weekend / gridline / label arrays. -->
+          <div
+            class="relative bg-nc-bg-default border-b border-nc-border-gray-medium"
+            :style="{ height: `${HEADER_HEIGHT}px`, width: `${totalGridWidth}px` }"
+          >
+            <!-- Weekend stripes (only at fine zooms) -->
             <div
-              v-for="(date, dateIdx) in visibleDates"
-              :key="date.format('YYYY-MM-DD')"
-              class="flex-shrink-0 flex flex-col items-center justify-center transition-colors duration-100"
-              :class="{
-                'border-r border-nc-border-gray-light': isCellBoundary(date),
-                'bg-nc-bg-brand': isToday(date),
-                'nc-timeline-header-hover': hoverColIndex === dateIdx && !isToday(date),
-                'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date) && hoverColIndex !== dateIdx,
-              }"
-              :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
+              v-for="off in weekendOffsets"
+              :key="`hwk-${off.key}`"
+              class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight pointer-events-none"
+              :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
+            />
+            <!-- Today column highlight -->
+            <div
+              v-if="todayDayIdx >= 0"
+              class="absolute top-0 bottom-0 bg-nc-bg-brand pointer-events-none"
+              :style="{ left: `${todayDayIdx * colWidth}px`, width: `${colWidth}px` }"
+            />
+            <!-- Hover column highlight -->
+            <div
+              v-if="hoverColIndex !== null && hoverColIndex !== todayDayIdx"
+              class="absolute top-0 bottom-0 nc-timeline-header-hover pointer-events-none"
+              :style="{ left: `${hoverColIndex * colWidth}px`, width: `${colWidth}px` }"
+            />
+            <!-- Gridline boundaries -->
+            <div
+              v-for="off in gridlineOffsets"
+              :key="`hgl-${off.key}`"
+              class="absolute top-0 bottom-0 border-r border-nc-border-gray-light pointer-events-none"
+              :style="{ left: `${off.leftPx}px` }"
+            />
+            <!-- Sparse labels (mondays / weekday-short / per-day at fine zooms) -->
+            <div
+              v-for="lbl in minorLabels"
+              :key="`hl-${lbl.key}`"
+              class="absolute top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
+              :style="{ left: `${lbl.leftPx}px`, width: `${colWidth}px` }"
             >
               <span
-                v-if="showMinorWeekday"
+                v-if="lbl.weekday"
                 class="text-[10px] font-normal leading-tight"
                 :class="{
-                  'text-nc-content-brand': isToday(date),
-                  'text-nc-content-gray-subtle': hoverColIndex === dateIdx && !isToday(date),
-                  'text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
+                  'text-nc-content-brand': lbl.idx === todayDayIdx,
+                  'text-nc-content-gray-subtle': lbl.idx === hoverColIndex && lbl.idx !== todayDayIdx,
+                  'text-nc-content-gray-muted': lbl.idx !== hoverColIndex && lbl.idx !== todayDayIdx,
                 }"
               >
-                {{ minorWeekdayLabel(date) }}
+                {{ lbl.weekday }}
               </span>
               <span
+                v-if="lbl.dayNum"
                 class="text-[11px] leading-tight whitespace-nowrap"
                 :class="{
-                  'text-nc-content-brand': isToday(date),
-                  'font-semibold text-nc-content-gray-emphasis': hoverColIndex === dateIdx && !isToday(date),
-                  'font-normal text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
+                  'text-nc-content-brand': lbl.idx === todayDayIdx,
+                  'font-semibold text-nc-content-gray-emphasis': lbl.idx === hoverColIndex && lbl.idx !== todayDayIdx,
+                  'font-normal text-nc-content-gray-muted': lbl.idx !== hoverColIndex && lbl.idx !== todayDayIdx,
                 }"
               >
-                {{ minorDayNumLabel(date) }}
+                {{ lbl.dayNum }}
               </span>
             </div>
           </div>
@@ -1037,27 +1030,20 @@ const onGridMouseLeave = () => {
       <div class="relative" :style="{ width: `${totalGridWidth}px`, minHeight: '100%' }">
         <!-- Background layer: grid lines, weekend shading, today line — fills full height -->
         <div class="absolute inset-0 pointer-events-none">
-          <!-- Weekend backgrounds -->
+          <!-- Weekend stripes (only at fine zooms — see weekendOffsets in store) -->
           <div
-            v-for="(date, dateIdx) in visibleDates"
-            :key="`bg-${date.format('YYYY-MM-DD')}`"
-            class="absolute top-0 bottom-0"
-            :class="{ 'bg-nc-bg-gray-extralight': isWeekend(date) }"
-            :style="{
-              left: `${dateIdx * colWidth}px`,
-              width: `${colWidth}px`,
-            }"
+            v-for="off in weekendOffsets"
+            :key="`bg-${off.key}`"
+            class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight"
+            :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
           />
-          <!-- Grid lines (vertical) — only at gridline boundaries for the
-               current scale (every day for fine zooms, every week / month /
-               quarter for coarser zooms). -->
-          <template v-for="(date, dateIdx) in visibleDates" :key="`line-${date.format('YYYY-MM-DD')}`">
-            <div
-              v-if="isCellBoundary(date)"
-              class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
-              :style="{ left: `${(dateIdx + 1) * colWidth}px` }"
-            />
-          </template>
+          <!-- Grid lines at the current scale's gridline cadence -->
+          <div
+            v-for="off in gridlineOffsets"
+            :key="`line-${off.key}`"
+            class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
+            :style="{ left: `${off.leftPx}px` }"
+          />
           <!-- Today indicator line -->
           <div
             v-if="todayPosition !== null"

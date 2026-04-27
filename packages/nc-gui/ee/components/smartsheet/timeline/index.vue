@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import type { Row as RowType } from '#imports'
 import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
-import { TIMELINE_ZOOM_LEVELS, isGridlineBoundary } from '../../../utils/timelineUtils'
+import { TIMELINE_ZOOM_LEVELS } from '../../../utils/timelineUtils'
 
 const meta = inject(MetaInj, ref())
 
@@ -54,35 +54,12 @@ const {
   scrollLeft: storeScrollLeft,
   setViewportWidth,
   onScrollUpdate,
-  headerConfig,
   majorHeaderTiers,
+  gridlineOffsets,
+  weekendOffsets,
+  minorLabels,
 } = useTimelineViewStoreOrThrow()
 
-const minorWeekdayLabel = (date: dayjs.Dayjs) => {
-  switch (headerConfig.value.minorLabel) {
-    case 'weekday-full':
-      return date.format('dddd')
-    case 'weekday-short':
-      return date.format('ddd')
-    case 'weekday-letter':
-      return date.format('dd').charAt(0)
-    default:
-      return ''
-  }
-}
-
-const minorDayNumLabel = (date: dayjs.Dayjs) => {
-  const mode = headerConfig.value.minorLabel
-  if (mode === 'none') return ''
-  if (mode === 'mondays') return date.day() === 1 ? date.format('D') : ''
-  return date.format('D')
-}
-
-const showMinorWeekday = computed(() =>
-  ['weekday-full', 'weekday-short', 'weekday-letter'].includes(headerConfig.value.minorLabel),
-)
-
-const isCellBoundary = (date: dayjs.Dayjs) => isGridlineBoundary(date, headerConfig.value.gridlineUnit)
 
 const zoomOptions = TIMELINE_ZOOM_LEVELS
 
@@ -280,8 +257,16 @@ const groupByFieldLabel = computed(() => {
 
 // #18: Reactive today
 const today = ref(dayjs())
-const isToday = (date: dayjs.Dayjs) => date.isSame(today.value, 'day')
-const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
+
+// Today's column index (relative to bufferStart) — drives the today
+// highlight overlay in the grouped header without a per-day cell.
+const todayDayIdx = computed(() => {
+  const firstDate = visibleDates.value[0]
+  if (!firstDate) return -1
+  const offset = today.value.diff(firstDate, 'day')
+  if (offset < 0 || offset >= visibleDates.value.length) return -1
+  return offset
+})
 
 // #7: Date picker dropdown
 const datePickerVisible = ref(false)
@@ -549,37 +534,48 @@ const recordCountLabel = computed(() => {
                   </div>
                 </div>
 
-                <!-- Minor row -->
-                <div class="flex bg-nc-bg-default">
+                <!-- Minor row — bg div + sparse overlays so coarse zooms
+                     don't iterate 1.5k–3.7k cells per scroll. -->
+                <div
+                  class="relative bg-nc-bg-default"
+                  :style="{ height: `${GROUP_HEADER_HEIGHT}px`, width: `${totalGridWidth}px` }"
+                >
                   <div
-                    v-for="date in visibleDates"
-                    :key="date.format('YYYY-MM-DD')"
-                    class="flex-shrink-0 flex flex-col items-center justify-center"
-                    :class="{
-                      'border-r border-nc-border-gray-light': isCellBoundary(date),
-                      'bg-nc-bg-brand': isToday(date),
-                      'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date),
-                    }"
-                    :style="{ width: `${colWidth}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
+                    v-for="off in weekendOffsets"
+                    :key="`gwk-${off.key}`"
+                    class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight pointer-events-none"
+                    :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
+                  />
+                  <div
+                    v-if="todayDayIdx >= 0"
+                    class="absolute top-0 bottom-0 bg-nc-bg-brand pointer-events-none"
+                    :style="{ left: `${todayDayIdx * colWidth}px`, width: `${colWidth}px` }"
+                  />
+                  <div
+                    v-for="off in gridlineOffsets"
+                    :key="`ggl-${off.key}`"
+                    class="absolute top-0 bottom-0 border-r border-nc-border-gray-light pointer-events-none"
+                    :style="{ left: `${off.leftPx}px` }"
+                  />
+                  <div
+                    v-for="lbl in minorLabels"
+                    :key="`gl-${lbl.key}`"
+                    class="absolute top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
+                    :style="{ left: `${lbl.leftPx}px`, width: `${colWidth}px` }"
                   >
                     <span
-                      v-if="showMinorWeekday"
+                      v-if="lbl.weekday"
                       class="text-[10px] font-normal leading-tight"
-                      :class="{
-                        'text-nc-content-brand': isToday(date),
-                        'text-nc-content-gray-muted': !isToday(date),
-                      }"
+                      :class="lbl.idx === todayDayIdx ? 'text-nc-content-brand' : 'text-nc-content-gray-muted'"
                     >
-                      {{ minorWeekdayLabel(date) }}
+                      {{ lbl.weekday }}
                     </span>
                     <span
+                      v-if="lbl.dayNum"
                       class="text-[11px] font-normal leading-tight whitespace-nowrap"
-                      :class="{
-                        'text-nc-content-brand': isToday(date),
-                        'text-nc-content-gray-muted': !isToday(date),
-                      }"
+                      :class="lbl.idx === todayDayIdx ? 'text-nc-content-brand' : 'text-nc-content-gray-muted'"
                     >
-                      {{ minorDayNumLabel(date) }}
+                      {{ lbl.dayNum }}
                     </span>
                   </div>
                 </div>

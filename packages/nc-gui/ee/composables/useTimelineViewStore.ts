@@ -7,6 +7,7 @@ import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
 import { validateRowFilters } from '~/utils/dataUtils'
 import type { TimelineZoomLevel } from '../utils/timelineUtils'
+import { isGridlineBoundary } from '../utils/timelineUtils'
 
 // Per-scale config drives column width, buffer size, prev/next step, and
 // header rendering. `colWidth` is the fixed pixel width of one day-column.
@@ -137,6 +138,80 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     const headerConfig = computed(() => {
       const cfg = SCALE_CONFIG[zoomLevel.value]
       return { majorTiers: cfg.majorTiers, minorLabel: cfg.minorLabel, gridlineUnit: cfg.gridlineUnit }
+    })
+
+    // Sparse gridline + label arrays, replacing per-day v-for loops in the
+    // header and body. At year/5-year zoom levels the buffer holds 1.4k–3.7k
+    // dates; iterating that many cells per scroll frame stalls Vue's diff
+    // even though most cells produce no DOM. By pre-filtering once per zoom
+    // change we render only the few hundred elements that actually paint.
+
+    // Show weekend stripes only when columns are wide enough to make them
+    // visually distinct — at quarter+ zoom each weekend day collapses to
+    // ≤12px and the alternating shade reads as noise.
+    const SHOW_WEEKEND_MIN_COL_WIDTH = 30
+
+    // Vertical gridlines at the current scale's cadence (day / week /
+    // fortnight / month / quarter). The leftPx is the right edge of the
+    // boundary date — i.e. the start of the next cell.
+    const gridlineOffsets = computed(() => {
+      const cw = colWidth.value
+      const unit = headerConfig.value.gridlineUnit
+      const dates = visibleDates.value
+      const offsets: Array<{ leftPx: number; key: string }> = []
+      for (let i = 0; i < dates.length; i++) {
+        if (isGridlineBoundary(dates[i], unit)) {
+          offsets.push({ leftPx: (i + 1) * cw, key: dates[i].format('YYYY-MM-DD') })
+        }
+      }
+      return offsets
+    })
+
+    // Weekend day positions — only emitted at fine zooms so we don't paint
+    // thousands of useless 1-2px stripes at 5-year scale.
+    const weekendOffsets = computed(() => {
+      const cw = colWidth.value
+      if (cw < SHOW_WEEKEND_MIN_COL_WIDTH) return []
+      const dates = visibleDates.value
+      const offsets: Array<{ leftPx: number; key: string }> = []
+      for (let i = 0; i < dates.length; i++) {
+        const d = dates[i].day()
+        if (d === 0 || d === 6) {
+          offsets.push({ leftPx: i * cw, key: dates[i].format('YYYY-MM-DD') })
+        }
+      }
+      return offsets
+    })
+
+    // Header minor-row labels — only entries that produce non-empty text.
+    // At 'mondays' that's 1-in-7; at 'none' it's empty; at 'weekday-*' modes
+    // it's still per-day but those scales have small buffers anyway.
+    const minorLabels = computed(() => {
+      const cw = colWidth.value
+      const mode = headerConfig.value.minorLabel
+      if (mode === 'none') return []
+      const dates = visibleDates.value
+      const showWeekday = mode === 'weekday-full' || mode === 'weekday-short' || mode === 'weekday-letter'
+      const labels: Array<{ idx: number; leftPx: number; weekday: string; dayNum: string; key: string }> = []
+      for (let i = 0; i < dates.length; i++) {
+        const date = dates[i]
+        let weekday = ''
+        let dayNum = ''
+        if (showWeekday) {
+          if (mode === 'weekday-full') weekday = date.format('dddd')
+          else if (mode === 'weekday-short') weekday = date.format('ddd')
+          else weekday = date.format('dd').charAt(0)
+        }
+        if (mode === 'mondays') {
+          if (date.day() === 1) dayNum = date.format('D')
+        } else if (showWeekday) {
+          dayNum = date.format('D')
+        }
+        if (weekday || dayNum) {
+          labels.push({ idx: i, leftPx: i * cw, weekday, dayNum, key: date.format('YYYY-MM-DD') })
+        }
+      }
+      return labels
     })
 
     // Stacked major rows. Each tier is one row of consecutive same-unit spans
@@ -765,6 +840,9 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       // Header rendering
       headerConfig,
       majorHeaderTiers,
+      gridlineOffsets,
+      weekendOffsets,
+      minorLabels,
 
       updateFormat,
 

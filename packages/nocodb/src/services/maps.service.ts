@@ -40,6 +40,24 @@ export class MapsService {
 
     const model = await Model.get(context, param.tableId);
 
+    // check for duplicated view title
+    param.map.title = param.map.title?.trim();
+    const existingView = await View.getByTitleOrId(context, {
+      titleOrId: param.map.title,
+      fk_model_id: param.tableId,
+    });
+    if (existingView) {
+      NcError.get(context).duplicateAlias({
+        type: 'view',
+        alias: param.map.title,
+        label: 'title',
+        base: context.base_id,
+        additionalTrace: {
+          table: param.tableId,
+        },
+      });
+    }
+
     const { id } = await View.insertMetaOnly(context, {
       view: {
         ...param.map,

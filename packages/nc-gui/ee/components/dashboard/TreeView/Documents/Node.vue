@@ -473,8 +473,12 @@ function onStopEdit() {
                 :label="`DOCUMENT ID: ${doc.id}`"
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
               />
+
+              <NcDivider
+                v-if="isCreatorOrAbove || isUIAllowed('documentCreate') || (doc.parent_id && isUIAllowed('documentUpdate'))"
+              />
+
               <template v-if="isCreatorOrAbove">
-                <NcDivider />
                 <NcMenuItem
                   v-e="['c:document:rename']"
                   :data-testid="`sidebar-doc-rename-${doc.title}`"

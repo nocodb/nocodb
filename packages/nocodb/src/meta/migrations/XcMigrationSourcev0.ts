@@ -52,6 +52,7 @@ import * as nc_202604071201_scim_config_default_role from './v0/nc_202604071201_
 import * as nc_202604100000_audit_org_id from './v0/nc_202604100000_audit_org_id';
 import * as nc_202604160000_docs_in_data from './v0/nc_202604160000_docs_in_data';
 import * as nc_202604200002_trash_cleanup_due_at from './v0/nc_202604200002_trash_cleanup_due_at';
+import * as nc_202604220000_uuid_readonly from './v0/nc_202604220000_uuid_readonly';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -115,6 +116,7 @@ export default class XcMigrationSourcev0 {
       'nc_202604160000_docs_in_data',
       'nc_202604200002_trash_cleanup_due_at',
       'nc_202603180000_user_mfa',
+      'nc_202604220000_uuid_readonly',
     ]);
   }
 
@@ -232,6 +234,8 @@ export default class XcMigrationSourcev0 {
         return nc_202604200002_trash_cleanup_due_at;
       case 'nc_202603180000_user_mfa':
         return nc_202603180000_user_mfa;
+      case 'nc_202604220000_uuid_readonly':
+        return nc_202604220000_uuid_readonly;
     }
   }
 }

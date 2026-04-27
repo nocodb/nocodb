@@ -3662,15 +3662,21 @@ export function useCanvasRender({
     if (canvas.style.width !== cssWidth) canvas.style.width = cssWidth
     if (canvas.style.height !== cssHeight) canvas.style.height = cssHeight
 
-    // Only resize canvas buffer when dimensions actually change — resizing forces
-    // GPU buffer reallocation which is extremely expensive (causes 100ms+ frames)
-    if (canvas.width !== targetWidth || canvas.height !== targetHeight || dpr !== lastDpr) {
-      canvas.width = targetWidth
-      canvas.height = targetHeight
-
-      lastDpr = dpr
-      ctx.scale(dpr, dpr)
-    }
+    // DIAGNOSTIC: force-reset all 2D context state every frame by reassigning
+    // canvas.width. Setting canvas.width (even to the same value) is the only
+    // guaranteed way to clear a stale clip when the state stack is empty —
+    // ctx.restore() on an empty stack is a no-op, and setTransform does not
+    // affect clip. This trades GPU buffer reallocation cost (~5–15ms/frame) for
+    // certainty that a leaked clip from a previous frame can't persist.
+    //
+    // If this fixes the user's "header & aggregation footer stuck while body
+    // scrolls" bug, we've confirmed it's a clip-leak and need to find the
+    // upstream save/restore imbalance. If it doesn't fix it, the bug is
+    // somewhere other than canvas state corruption.
+    canvas.width = targetWidth
+    canvas.height = targetHeight
+    lastDpr = dpr
+    ctx.scale(dpr, dpr)
 
     // Save state at frame start to isolate clip regions and transforms.
     // Previously, resizing the canvas every frame implicitly reset all state.

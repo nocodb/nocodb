@@ -456,9 +456,20 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     }
 
     // Re-anchor + scroll when zoom level changes — keeps `currentDate` centred.
+    //
+    // We also project `scrollLeft.value` to the new target synchronously so
+    // any layout that derives from it (bar labels, viewport tests) stays
+    // consistent with the new buffer/colWidth on the very first frame. The
+    // imperative DOM scroll catches up via the hook below; its scroll event
+    // then fires onScrollUpdate with the same value (no-op).
     watch(zoomLevel, () => {
       const center = currentDate.value
       reAnchorBuffer(center)
+      if (viewportWidth.value > 0) {
+        const dayOffset = center.diff(bufferStart.value, 'day')
+        const target = dayOffset * colWidth.value + colWidth.value / 2 - viewportWidth.value / 2
+        scrollLeft.value = Math.max(0, target)
+      }
       // Wait for re-render before requesting scroll, since visibleDates length
       // changes synchronously but DOM hasn't reflected it yet.
       nextTick(() => requestScrollToDate(center))
@@ -490,6 +501,11 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           currentDate.value = date
           selectedDate.value = date
           reAnchorBuffer(date)
+          if (viewportWidth.value > 0) {
+            const dayOffset = date.diff(bufferStart.value, 'day')
+            const target = dayOffset * colWidth.value + colWidth.value / 2 - viewportWidth.value / 2
+            scrollLeft.value = Math.max(0, target)
+          }
           nextTick(() => requestScrollToDate(date))
           _lastCachedViewId = newViewId
         }

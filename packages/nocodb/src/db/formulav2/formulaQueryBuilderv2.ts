@@ -585,7 +585,7 @@ export default async function formulaQueryBuilderv2({
           e instanceof NcBaseErrorv2 &&
           e.error === NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA))
     ) {
-      console.error(e);
+      logger.error(e.message, e.stack);
 
       if (column) {
         if (column?.uidt === UITypes.Button) {

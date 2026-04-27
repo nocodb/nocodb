@@ -219,6 +219,10 @@ export class FiltersService {
 
     const filter = await Filter.get(context, param.filterId, ncMeta);
 
+    if (!filter) {
+      NcError.badRequest('Filter not found');
+    }
+
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
       const view = await View.get(context, filter.fk_view_id, ncMeta);
@@ -247,10 +251,6 @@ export class FiltersService {
           )
         ).withViewId(rowColorCondition.fk_view_id)
       ).forUpdate();
-    }
-
-    if (!filter) {
-      NcError.badRequest('Filter not found');
     }
     // todo: type correction
     const res = await Filter.update(

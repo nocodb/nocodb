@@ -119,7 +119,7 @@ export default class NcUpgrader {
         msg: e.message,
         err: e?.stack?.split?.('\n').slice(0, 2).join('\n'),
       });
-      console.log(getUpgradeErrorLog(e, oldVersion, process.env.NC_VERSION));
+      log(getUpgradeErrorLog(e, oldVersion, process.env.NC_VERSION));
       throw e;
     }
   }

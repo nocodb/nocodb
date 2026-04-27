@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
+import { Logger } from '@nestjs/common';
 import type { IWebhookNotificationAdapter } from '~/types/nc-plugin';
 
 export default class Teams implements IWebhookNotificationAdapter {
+  private readonly logger = new Logger(Teams.name);
   public init(): Promise<any> {
     return Promise.resolve(undefined);
   }
@@ -19,7 +21,7 @@ export default class Teams implements IWebhookNotificationAdapter {
           },
         );
       } catch (e) {
-        console.log(e);
+        this.logger.error('Teams webhook sendMessage error', e);
         throw e;
       }
     }

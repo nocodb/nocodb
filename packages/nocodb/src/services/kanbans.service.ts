@@ -442,7 +442,7 @@ export class KanbansService {
       opt.order = maxOrder + idx + 1;
     });
 
-    return await this.kanbanViewUpdate(
+    await this.kanbanViewUpdate(
       context,
       {
         kanbanViewId: param.kanbanViewId,

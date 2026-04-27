@@ -148,7 +148,7 @@ export class FiltersV3Service {
       }
     }
 
-    const list = this.filterList(context, param);
+    const list = await this.filterList(context, param);
 
     return list;
   }

@@ -33,6 +33,16 @@ const isAllowed = toRef(props, 'isAllowed', true)
 
 provide(ColumnInj, column)
 
+provide(
+  FormFieldAutocompleteInj,
+  computed(() => {
+    const val = parseProp(column.value.meta)?.autocomplete as string | undefined
+    // Chrome ignores autocomplete="off" for fields it recognises (name, email, address, etc.)
+    // Using a non-standard value like "nope" forces all browsers to actually disable autofill
+    return val === 'off' ? 'nope' : val
+  }),
+)
+
 const editEnabled = useVModel(props, 'editEnabled', emit)
 
 const localEditEnabled = ref(false)

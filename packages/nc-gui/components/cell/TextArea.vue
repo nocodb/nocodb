@@ -28,6 +28,8 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const formFieldAutocomplete = inject(FormFieldAutocompleteInj, ref(undefined))
+
 const isGrid = inject(IsGridInj, ref(false))
 
 const isGallery = inject(IsGalleryInj, ref(false))
@@ -579,6 +581,7 @@ useResizeObserver(inputWrapperRef, () => {
             maxHeight: 'min(800px, calc(100vh - 200px))',
           }"
           :disabled="!!readOnly || (props.isAi && !!isEditColumn) || isAiGenerating"
+          :autocomplete="formFieldAutocomplete"
           @blur="editEnabled = false"
           @keydown.alt.stop
           @keydown.alt.enter.stop

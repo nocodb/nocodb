@@ -388,11 +388,15 @@ const handleKeydownEnter = (event: KeyboardEvent) => {
  * Focuses the input box when the list is opened
  */
 const focusInputBox = () => {
-  if (!vOpen.value) return
+  if (!vOpen.value || !isSearchEnabled.value) return
 
-  setTimeout(() => {
-    inputRef.value?.focus()
-  }, 100)
+  until(() => !!inputRef.value?.input)
+    .toBeTruthy()
+    .then(() => {
+      forcedNextTick(() => {
+        inputRef.value?.focus()
+      })
+    })
 }
 
 /**

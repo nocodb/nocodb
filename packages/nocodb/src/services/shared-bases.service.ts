@@ -26,6 +26,10 @@ export class SharedBasesService {
 
     const base = await Base.get(context, param.baseId);
 
+    if (!base) {
+      NcError.baseNotFound(param.baseId);
+    }
+
     let roles = param?.roles;
     if (!roles || (roles !== 'editor' && roles !== 'viewer')) {
       roles = 'viewer';
@@ -33,10 +37,6 @@ export class SharedBasesService {
 
     if (roles === 'editor') {
       NcError.badRequest('Only viewer role is supported');
-    }
-
-    if (!base) {
-      NcError.baseNotFound(param.baseId);
     }
 
     const data: any = {

@@ -159,6 +159,9 @@ export class FindContactsNode extends HubspotNodeBase<FindContactsConfig> {
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      group: 'contact',
+      groupLabel: 'Contact',
+      groupOrder: 1,
       keywords: ['hubspot', 'crm', 'contact', 'find', 'search', 'query'],
     };
   }

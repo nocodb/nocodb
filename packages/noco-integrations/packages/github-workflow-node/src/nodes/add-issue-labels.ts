@@ -91,6 +91,9 @@ export class AddIssueLabelsNode extends GitHubIssueLabelActionNode<AddIssueLabel
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/github',
+      group: 'issue',
+      groupLabel: 'Issue',
+      groupOrder: 1,
       keywords: ['github', 'issue', 'label', 'add', 'tag'],
     };
   }

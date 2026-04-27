@@ -172,6 +172,7 @@ onClickOutside(
             <NcDivider v-if="data.core.length" />
             <NcMenuItemLabel class="!capitalize">Integrations</NcMenuItemLabel>
             <NcSubMenu
+              variant="medium"
               v-for="(pkg, pkgName) in data.packages"
               :key="`${_category}-${pkgName}`"
               class="flex-none"

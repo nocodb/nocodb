@@ -156,6 +156,9 @@ export class FindDealsNode extends HubspotNodeBase<FindDealsConfig> {
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      group: 'deal',
+      groupLabel: 'Deal',
+      groupOrder: 3,
       keywords: ['hubspot', 'crm', 'deal', 'find', 'search', 'query'],
     };
   }

@@ -413,7 +413,7 @@ export class FiltersService {
         });
       }
     } catch (error) {
-      console.warn(
+      this.logger.warn(
         `Failed to query filters for column ${columnId}: ${error.message}`,
       );
     }

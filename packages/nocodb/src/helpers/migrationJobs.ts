@@ -1,5 +1,8 @@
+import { Logger } from '@nestjs/common';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
+
+const logger = new Logger('migrationJobs');
 
 export const MIGRATION_JOBS_STORE_KEY = 'NC_MIGRATION_JOBS';
 
@@ -50,7 +53,7 @@ export const getMigrationJobsState = async (): Promise<{
 
     return initState;
   } catch (e) {
-    console.error('Error parsing migration jobs state', e);
+    logger.error('Error parsing migration jobs state', e);
     return initState;
   }
 };
@@ -119,7 +122,7 @@ export const setMigrationJobsStallInterval = () => {
 
       await updateMigrationJobsState(migrationJobsState);
     } catch (e) {
-      console.error('Error updating stall check for migration job', e);
+      logger.error('Error updating stall check for migration job', e);
     }
   }, 5 * 60 * 1000).unref();
 

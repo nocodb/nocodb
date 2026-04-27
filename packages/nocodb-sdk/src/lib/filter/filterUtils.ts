@@ -940,8 +940,10 @@ export const deleteFilterWithSub = async (
       result = [...result, ...(await deleteFilterWithSub($api, child))];
     }
   }
-  await $api.dbTableFilter.delete(filter.id);
-  result.push(filter.id);
+  if (filter.id) {
+    await $api.dbTableFilter.delete(filter.id);
+    result.push(filter.id);
+  }
   return result;
 };
 

@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
 import { v7 as uuidv7 } from 'uuid';
 import { BaseVersion } from 'nocodb-sdk';
@@ -34,6 +34,7 @@ const nanoidWorkspace = customAlphabet(
 
 @Injectable()
 export class MetaService {
+  protected readonly logger = new Logger(MetaService.name);
   protected _knex: knex.Knex;
   protected _config: any;
 
@@ -651,7 +652,7 @@ export class MetaService {
 
       const r = RootScopeTables[workspace_id];
       if (!r) {
-        console.log('Invalid scope', RootScopeTables);
+        this.logger.warn(`Invalid scope: ${workspace_id}`, JSON.stringify(RootScopeTables));
       }
 
       if (!RootScopeTables[workspace_id].includes(target)) {
@@ -902,8 +903,10 @@ export class MetaService {
     if (target === MetaTable.PROJECT) {
       if (!qStr.includes('fk_workspace_id') || !qStr.includes('id')) {
         if (!(workspace_id in RootScopeTables)) {
-          console.log(`Missing tenant isolation (${workspace_id}): ${qStr}`);
-          console.log(new Error().stack);
+          this.logger.warn(
+            `Missing tenant isolation (${workspace_id}): ${qStr}`,
+            new Error().stack,
+          );
         }
       }
     } else {
@@ -912,8 +915,10 @@ export class MetaService {
         (base_id !== RootScopes.WORKSPACE && !qStr.includes('base_id'))
       ) {
         if (!(workspace_id in RootScopeTables)) {
-          console.log(`Missing tenant isolation (${workspace_id}): ${qStr}`);
-          console.log(new Error().stack);
+          this.logger.warn(
+            `Missing tenant isolation (${workspace_id}): ${qStr}`,
+            new Error().stack,
+          );
         }
       }
     }

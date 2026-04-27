@@ -87,6 +87,9 @@ const isCellBoundary = (date: dayjs.Dayjs) => isGridlineBoundary(date, headerCon
 const zoomOptions = TIMELINE_ZOOM_LEVELS
 
 const zoomLabel = (option: TimelineZoomLevel) => {
+  if (option === '2week') return t('objects.twoWeek')
+  if (option === '6month') return t('objects.sixMonth')
+  if (option === '2year') return t('objects.twoYear')
   if (option === '5year') return t('objects.fiveYear')
   return t(`objects.${option}`)
 }
@@ -328,8 +331,14 @@ const recordCountLabel = computed(() => {
         <NcDropdown v-model:visible="datePickerVisible" :trigger="['click']">
           <NcButton
             :class="{
-              'w-29': zoomLevel === 'month' || zoomLevel === 'quarter' || zoomLevel === 'year' || zoomLevel === '5year',
-              'w-38': zoomLevel === 'week',
+              'w-29':
+                zoomLevel === 'month' ||
+                zoomLevel === 'quarter' ||
+                zoomLevel === '6month' ||
+                zoomLevel === 'year' ||
+                zoomLevel === '2year' ||
+                zoomLevel === '5year',
+              'w-38': zoomLevel === 'week' || zoomLevel === '2week',
               'w-48': zoomLevel === 'day',
             }"
             class="nc-timeline-prev-next-btn !h-7"
@@ -340,7 +349,7 @@ const recordCountLabel = computed(() => {
             <div class="flex w-full px-1 items-center justify-between">
               <span
                 :class="{
-                  'max-w-38 truncate': zoomLevel === 'week',
+                  'max-w-38 truncate': zoomLevel === 'week' || zoomLevel === '2week',
                 }"
                 class="font-medium text-[13px] text-center text-nc-content-gray"
                 data-testid="nc-timeline-active-date"
@@ -353,7 +362,7 @@ const recordCountLabel = computed(() => {
           <template #overlay>
             <div v-if="datePickerVisible" class="w-[287px] pb-2" @click.stop>
               <NcDateWeekSelector
-                v-if="zoomLevel === 'week'"
+                v-if="zoomLevel === 'week' || zoomLevel === '2week'"
                 v-model:page-date="pageDate"
                 :selected-date="currentDate"
                 is-week-picker
@@ -451,7 +460,8 @@ const recordCountLabel = computed(() => {
           v-e="['c:timeline:change-zoom-level']"
           :value="zoomLevel"
           class="nc-select-shadow nc-timeline-mode-select !w-24 !rounded-lg"
-          dropdown-class-name="!rounded-lg !min-w-28"
+          dropdown-class-name="nc-timeline-zoom-dropdown !rounded-lg !min-w-28"
+          :list-height="320"
           size="small"
           data-testid="nc-timeline-view-mode"
           @change="setZoomLevel"
@@ -463,7 +473,7 @@ const recordCountLabel = computed(() => {
           <a-select-option v-for="option in zoomOptions" :key="option" :value="option">
             <div class="w-full flex gap-2 items-center justify-between" :title="zoomLabel(option)">
               <div class="flex items-center gap-1">
-                <NcTooltip class="flex-1 capitalize mt-0.5 truncate" show-on-truncate-only>
+                <NcTooltip class="flex-1 capitalize truncate" show-on-truncate-only>
                   <template #title>{{ zoomLabel(option) }}</template>
                   <template #default>{{ zoomLabel(option) }}</template>
                 </NcTooltip>
@@ -678,6 +688,16 @@ const recordCountLabel = computed(() => {
   }
   :deep(.ant-select-selection-item) {
     @apply !text-[13px] !flex !items-center;
+  }
+}
+</style>
+
+<style lang="scss">
+// Teleported dropdown — needs unscoped styles. Match the action menu's
+// density: 13px font, 30px row height, no extra vertical padding.
+.nc-timeline-zoom-dropdown {
+  .ant-select-item {
+    @apply !min-h-[30px] !py-1 !px-3 !text-[13px] !leading-tight;
   }
 }
 </style>

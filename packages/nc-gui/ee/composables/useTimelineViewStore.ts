@@ -35,9 +35,12 @@ interface ScaleConfig {
 const SCALE_CONFIG: Record<TimelineZoomLevel, ScaleConfig> = {
   day: { colWidth: 160, bufferDays: 30, navUnit: 'day', navAmount: 1, majorTiers: [], minorLabel: 'weekday-full', gridlineUnit: 'day' },
   week: { colWidth: 72, bufferDays: 60, navUnit: 'week', navAmount: 1, majorTiers: [], minorLabel: 'weekday-short', gridlineUnit: 'day' },
+  '2week': { colWidth: 56, bufferDays: 90, navUnit: 'week', navAmount: 2, majorTiers: ['month'], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
   month: { colWidth: 36, bufferDays: 120, navUnit: 'month', navAmount: 1, majorTiers: [], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
   quarter: { colWidth: 12, bufferDays: 365, navUnit: 'month', navAmount: 3, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
+  '6month': { colWidth: 6, bufferDays: 540, navUnit: 'month', navAmount: 6, majorTiers: ['quarter', 'month'], minorLabel: 'none', gridlineUnit: 'fortnight' },
   year: { colWidth: 4, bufferDays: 730, navUnit: 'year', navAmount: 1, majorTiers: ['month'], minorLabel: 'none', gridlineUnit: 'fortnight' },
+  '2year': { colWidth: 2, bufferDays: 1095, navUnit: 'year', navAmount: 2, majorTiers: ['year', 'quarter'], minorLabel: 'none', gridlineUnit: 'month' },
   '5year': { colWidth: 1, bufferDays: 1825, navUnit: 'year', navAmount: 5, majorTiers: ['year'], minorLabel: 'none', gridlineUnit: 'quarter' },
 }
 
@@ -253,12 +256,31 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           }
           return `${start.format('D MMM')} - ${end.format('D MMM YYYY')}`
         }
+        case '2week': {
+          const start = currentDate.value.startOf('week')
+          const end = start.add(13, 'day')
+          if (start.year() !== end.year()) {
+            return `${start.format('D MMM YYYY')} - ${end.format('D MMM YYYY')}`
+          }
+          if (start.month() === end.month()) {
+            return `${start.format('D')} - ${end.format('D MMM YYYY')}`
+          }
+          return `${start.format('D MMM')} - ${end.format('D MMM YYYY')}`
+        }
         case 'month':
           return currentDate.value.format('MMMM YYYY')
         case 'quarter':
           return `Q${quarterOf(currentDate.value)} ${currentDate.value.format('YYYY')}`
+        case '6month': {
+          const half = currentDate.value.month() < 6 ? 'H1' : 'H2'
+          return `${half} ${currentDate.value.format('YYYY')}`
+        }
         case 'year':
           return currentDate.value.format('YYYY')
+        case '2year': {
+          const startYear = currentDate.value.year()
+          return `${startYear} - ${startYear + 1}`
+        }
         case '5year': {
           const startYear = currentDate.value.year() - 2
           return `${startYear} - ${startYear + 4}`

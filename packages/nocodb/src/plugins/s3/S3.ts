@@ -64,6 +64,34 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
     }
 
     this.s3Client = new S3Client(s3Options);
+
+    if (this.input.endpoint) {
+      // Some S3-compatible providers (e.g. Wasabi) return a Date response header
+      // in a non-RFC7231 format such as "2026-01-22 10:31:53.050863199 +0000 UTC".
+      // The AWS SDK v3 cannot parse this format and throws an uncaught error that
+      // surfaces as an "invalid date" or "Cannot set headers after they are sent"
+      // failure. Add a deserialize middleware that normalises the Date header to a
+      // valid RFC7231 string before the SDK processes the response.
+      this.s3Client.middlewareStack.add(
+        (next) => async (args) => {
+          const result = await next(args);
+          const response = result.response as any;
+          if (response?.headers?.date) {
+            const raw: string = response.headers.date;
+            const parsed = new Date(raw);
+            if (!isNaN(parsed.getTime())) {
+              response.headers.date = parsed.toUTCString();
+            }
+          }
+          return result;
+        },
+        {
+          step: 'deserialize',
+          name: 'normalizeNonRfc7231DateHeaderMiddleware',
+          priority: 'high',
+        },
+      );
+    }
   }
 
   protected async upload(uploadParams): Promise<any> {

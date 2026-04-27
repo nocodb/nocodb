@@ -1,9 +1,11 @@
 import twilio from 'twilio';
+import { Logger } from '@nestjs/common';
 import type { IWebhookNotificationAdapter } from '~/types/nc-plugin';
 
 export default class Twilio implements IWebhookNotificationAdapter {
   private input: any;
   private client: any;
+  protected logger = new Logger(Twilio.name);
 
   constructor(input: any) {
     this.input = input;
@@ -22,7 +24,7 @@ export default class Twilio implements IWebhookNotificationAdapter {
           to: num,
         });
       } catch (e) {
-        console.log(e);
+        this.logger.error(e);
         throw e;
       }
     }

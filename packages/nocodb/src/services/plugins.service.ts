@@ -40,7 +40,15 @@ export class PluginsService {
     validatePayload('swagger.json#/components/schemas/PluginReq', param.plugin);
 
     const pluginInfo = await Plugin.get(param.pluginId);
-    if (pluginInfo?.title && pluginInfo.category && !isPlayWrightNode()) {
+    // Only test the plugin when input is provided (i.e. not when resetting/deactivating).
+    // Calling test() with a null input causes adapters to crash when they access
+    // properties of this.input (e.g. "Cannot read properties of null (reading 'from')").
+    if (
+      pluginInfo?.title &&
+      pluginInfo.category &&
+      param.plugin.input != null &&
+      !isPlayWrightNode()
+    ) {
       await NcPluginMgrv2.test({
         title: pluginInfo.title,
         category: pluginInfo.category,

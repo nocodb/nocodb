@@ -1136,8 +1136,10 @@ export class DatasService {
       cookie: any;
     },
   ) {
+    const view = await View.get(context, param.viewId);
+
     const model = await Model.getByIdOrName(context, {
-      id: param.viewId,
+      id: view?.fk_model_id || param.viewId,
     });
     if (!model) NcError.get(context).tableNotFound(param.viewId);
 
@@ -1145,6 +1147,7 @@ export class DatasService {
 
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
+      viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
       source,
     });
@@ -1165,8 +1168,10 @@ export class DatasService {
       cookie: any;
     },
   ) {
+    const view = await View.get(context, param.viewId);
+
     const model = await Model.getByIdOrName(context, {
-      id: param.viewId,
+      id: view?.fk_model_id || param.viewId,
     });
     if (!model) NcError.get(context).tableNotFound(param.viewId);
 
@@ -1174,6 +1179,7 @@ export class DatasService {
 
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
+      viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
       source,
     });

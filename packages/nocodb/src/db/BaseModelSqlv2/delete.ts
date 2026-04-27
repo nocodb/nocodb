@@ -880,24 +880,13 @@ export class BaseModelDelete {
           })
         : rowIds;
 
-    // Fetch old records directly (bypass soft-delete filter since these ARE trashed records)
-    const pk = this.baseModel.model.primaryKey;
-    const oldRecords = await this.baseModel.execAndParse(
-      this.baseModel
-        .dbDriver(this.baseModel.tnPath)
-        .whereIn(pk.column_name, rowIds)
-        .select(columns.filter((c) => c.column_name).map((c) => c.column_name)),
-      columns,
-      { raw: true },
-    );
+    const oldRecords = await this.baseModel.chunkList({
+      pks: rowIds,
+      deletedOnly: true,
+    });
 
-    // Verify all rows are actually soft-deleted before permanently deleting
-    const deletedCol = columns.find((c) => isDeletedCol(c));
-    if (deletedCol) {
-      const activeRows = oldRecords.filter((r) => !r[deletedCol.column_name]);
-      if (activeRows.length > 0) {
-        NcError.get(this.baseModel.context).recordNotTrashed();
-      }
+    if (oldRecords.length !== rowIds.length) {
+      NcError.get(this.baseModel.context).recordNotTrashed();
     }
 
     const rows = oldRecords;

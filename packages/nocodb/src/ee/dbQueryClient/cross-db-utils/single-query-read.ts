@@ -6,7 +6,6 @@ import {
 } from 'nocodb-sdk';
 import debug from 'debug';
 import { normalizeIdForQuery } from '../utils';
-import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { NcContext } from '~/interface/config';
 import type { Source, View } from '~/models';
 import type { DBQueryClient } from '~/dbQueryClient/types';
@@ -48,7 +47,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
       ignoreRls?: boolean;
       deletedOnly?: boolean;
     },
-  ): Promise<PagedResponseImpl<Record<string, any>>> {
+  ): Promise<Record<string, any>> {
     client.validateClientType(ctx.source.type);
 
     await ctx.model.getColumns(context);

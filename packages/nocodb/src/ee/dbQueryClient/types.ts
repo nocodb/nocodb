@@ -108,5 +108,5 @@ export interface DBQueryClient extends DBQueryClientCE {
       extractOrderColumn?: boolean;
       ignoreRls?: boolean;
     },
-  ): Promise<PagedResponseImpl<Record<string, any>>>;
+  ): Promise<Record<string, any>>;
 }

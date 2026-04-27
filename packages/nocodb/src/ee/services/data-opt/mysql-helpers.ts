@@ -30,7 +30,7 @@ export async function singleQueryRead(
     ignoreRls?: boolean;
     deletedOnly?: boolean;
   },
-): Promise<PagedResponseImpl<Record<string, any>>> {
+): Promise<Record<string, any>> {
   const dbQuery = DBQueryClient.get(ClientType.MYSQL);
   return dbQuery.singleQueryRead(context, ctx);
 }

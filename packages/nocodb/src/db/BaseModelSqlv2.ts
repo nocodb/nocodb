@@ -176,6 +176,31 @@ const MAX_RECURSION_DEPTH = 2;
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
 
+export interface ExecAndParseOptions {
+  skipDateConversion?: boolean;
+  skipAttachmentConversion?: boolean;
+  skipSubstitutingColumnIds?: boolean;
+  skipUserConversion?: boolean;
+  skipJsonConversion?: boolean;
+  raw?: boolean;
+  first?: boolean;
+  bulkAggregate?: boolean;
+  apiVersion?: NcApiVersion;
+}
+
+/** Args stashed on DataLoader instances for relation queries (hm/mm/bt/oo). */
+interface RelationLoaderArgs {
+  limit?: number;
+  offset?: number;
+  fieldsSet?: Set<string>;
+  fieldSet?: Set<string>;
+}
+
+/** DataLoader with a typed side-channel for query args. */
+class DataLoaderWithArgs<K, V> extends DataLoader<K, V> {
+  args?: RelationLoaderArgs;
+}
+
 /**
  * Base class for models
  *
@@ -546,7 +571,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     validateFormula = false,
   ): Promise<any> {
     const columns = await this.model.getColumns(this.context);
-    const { where, ...rest } = this._getListArgs(args as any);
+    const { where, ...rest } = this._getListArgs(args);
     const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ ...args, qb, validateFormula, columns });
 
@@ -662,7 +687,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const columns = await this.model.getColumns(this.context);
 
-    const { where, fields, ...rest } = this._getListArgs(args as any);
+    const { where, fields, ...rest } = this._getListArgs(args);
 
     const qb = this.dbDriver(this.tnPath);
 
@@ -998,7 +1023,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     const columns = await this.model.getColumns(this.context);
 
-    const { where, ...rest } = this._getListArgs(args as any);
+    const { where, ...rest } = this._getListArgs(args);
 
     const qb = this.dbDriver(this.tnPath);
     const aggregateStatement = `${aggregateColumnName} as ${aggregateFn}__${aggregateColumnName}`;
@@ -1141,7 +1166,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         return {};
       }
 
-      const { where, aggregation } = this._getListArgs(args as any);
+      const { where, aggregation } = this._getListArgs(args);
 
       const columns = await this.model.getColumns(this.context);
 
@@ -1364,7 +1389,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async aggregate(args: { filterArr?: Filter[]; where?: string }, view?: View) {
     try {
-      const { where, aggregation } = this._getListArgs(args as any);
+      const { where, aggregation } = this._getListArgs(args);
 
       const columns = await this.model.getColumns(this.context);
 
@@ -1773,7 +1798,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     where: string;
     filters?: Filter[];
     qb;
-    sort?: string;
+    sort?: string | string[];
     onlySort?: boolean;
     skipViewFilter?: boolean;
     skipSort?: boolean;
@@ -1978,7 +2003,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // DataLoader collects all .load(id) calls from the same microtick
                 // into a single batch. The batch callback is wrapped in _queryQueue.add()
                 // to serialize actual DB execution across all relation types.
-                const listLoader = new DataLoader(
+                const listLoader = new DataLoaderWithArgs(
                   (ids: string[]) =>
                     this._queryQueue.add(async () => {
                       if (ids.length > 1) {
@@ -1989,7 +2014,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                             apiVersion,
                             linksAsLtar,
                           },
-                          (listLoader as any).args,
+                          listLoader.args,
                         );
                         return ids.map((id: string) =>
                           data[id] ? data[id] : [],
@@ -2004,7 +2029,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                               nested: true,
                               linksAsLtar,
                             },
-                            (listLoader as any).args,
+                            listLoader.args,
                           ),
                         ];
                       }
@@ -2019,8 +2044,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   column.uidt === UITypes.Links && !linksAsLtar
                     ? `_nc_lk_${column.title}`
                     : column.title
-                ] = async function (args): Promise<any> {
-                  (listLoader as any).args = args;
+                ] = async function (args?: RelationLoaderArgs): Promise<any> {
+                  listLoader.args = args;
                   return listLoader.load(
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
@@ -2028,7 +2053,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               } else if (isBtLikeV2Junction(column)) {
                 // V2 MO/OO: single-record — return object (like BT)
                 // Use multipleMmList for batching, take first record per parent
-                const readLoader = new DataLoader(
+                const readLoader = new DataLoaderWithArgs(
                   (ids: string[]) =>
                     this._queryQueue.add(async () => {
                       if (ids?.length > 1) {
@@ -2037,14 +2062,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                             parentIds: ids as string[],
                             colId: column.id,
                           },
-                          (readLoader as any).args,
+                          readLoader.args,
                         );
                         return lists.map((list) => list?.[0] ?? null);
                       } else {
                         return [
                           await this.mmRead(
                             { parentId: ids[0], colId: column.id },
-                            (readLoader as any).args,
+                            readLoader.args,
                           ),
                         ];
                       }
@@ -2055,14 +2080,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 );
 
                 const self: BaseModelSqlv2 = this;
-                proto[column.title] = async function (args?: any) {
-                  (readLoader as any).args = args;
+                proto[column.title] = async function (
+                  args?: RelationLoaderArgs,
+                ) {
+                  readLoader.args = args;
                   return await readLoader.load(
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
               } else if (colOptions.type === 'mm' || isMMLike) {
-                const listLoader = new DataLoader(
+                const listLoader = new DataLoaderWithArgs(
                   (ids: string[]) =>
                     this._queryQueue.add(async () => {
                       if (ids?.length > 1) {
@@ -2074,7 +2101,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                             nested: true,
                             linksAsLtar,
                           },
-                          (listLoader as any).args,
+                          listLoader.args,
                         );
 
                         return data;
@@ -2088,7 +2115,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                               nested: true,
                               linksAsLtar,
                             },
-                            (listLoader as any).args,
+                            listLoader.args,
                           ),
                         ];
                       }
@@ -2103,8 +2130,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   column.uidt === UITypes.Links && !linksAsLtar
                     ? `_nc_lk_${column.title}`
                     : column.title
-                ] = async function (args): Promise<any> {
-                  (listLoader as any).args = args;
+                ] = async function (args?: RelationLoaderArgs): Promise<any> {
+                  listLoader.args = args;
                   return await listLoader.load(
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
@@ -2126,7 +2153,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // it takes individual keys and callback is invoked with an array of values and we can get the
                 // result for all those together and return the value in the same order as in the array
                 // this way all parents data extracted together
-                const readLoader = new DataLoader(
+                const readLoader = new DataLoaderWithArgs(
                   (_ids: string[]) =>
                     this._queryQueue.add(async () => {
                       // handle binary(16) foreign keys
@@ -2161,7 +2188,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                         })
                       ).list(
                         {
-                          fieldsSet: (readLoader as any).args?.fieldsSet,
+                          fieldsSet: readLoader.args?.fieldsSet,
                           filterArr: [
                             new Filter({
                               id: null,
@@ -2189,14 +2216,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 );
 
                 // defining BelongsTo read resolver method
-                proto[column.title] = async function (args?: any) {
+                proto[column.title] = async function (
+                  args?: RelationLoaderArgs,
+                ) {
                   if (
                     this?.[cCol?.title] === null ||
                     this?.[cCol?.title] === undefined
                   )
                     return null;
 
-                  (readLoader as any).args = args;
+                  readLoader.args = args;
 
                   return await readLoader.load(this?.[cCol?.title]);
                 };
@@ -2219,7 +2248,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   // it takes individual keys and callback is invoked with an array of values and we can get the
                   // result for all those together and return the value in the same order as in the array
                   // this way all parents data extracted together
-                  const readLoader = new DataLoader(
+                  const readLoader = new DataLoaderWithArgs(
                     (_ids: string[]) =>
                       this._queryQueue.add(async () => {
                         // handle binary(16) foreign keys
@@ -2255,7 +2284,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                           })
                         ).list(
                           {
-                            fieldsSet: (readLoader as any).args?.fieldsSet,
+                            fieldsSet: readLoader.args?.fieldsSet,
                             filterArr: [
                               new Filter({
                                 id: null,
@@ -2283,19 +2312,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   );
 
                   // defining BelongsTo read resolver method
-                  proto[column.title] = async function (args?: any) {
+                  proto[column.title] = async function (
+                    args?: RelationLoaderArgs,
+                  ) {
                     if (
                       this?.[cCol?.title] === null ||
                       this?.[cCol?.title] === undefined
                     )
                       return null;
 
-                    (readLoader as any).args = args;
+                    readLoader.args = args;
 
                     return await readLoader.load(this?.[cCol?.title]);
                   };
                 } else {
-                  const listLoader = new DataLoader(
+                  const listLoader = new DataLoaderWithArgs(
                     (ids: string[]) =>
                       this._queryQueue.add(async () => {
                         if (ids.length > 1) {
@@ -2304,7 +2335,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                               colId: column.id,
                               ids,
                             },
-                            (listLoader as any).args,
+                            listLoader.args,
                           );
                           return ids.map((id: string) =>
                             data[id] ? data[id]?.[0] : null,
@@ -2317,7 +2348,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                                   colId: column.id,
                                   id: ids[0],
                                 },
-                                (listLoader as any).args,
+                                listLoader.args,
                               )
                             )?.[0] ?? null,
                           ];
@@ -2333,8 +2364,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     column.uidt === UITypes.Links && !linksAsLtar
                       ? `_nc_lk_${column.title}`
                       : column.title
-                  ] = async function (args): Promise<any> {
-                    (listLoader as any).args = args;
+                  ] = async function (args?: RelationLoaderArgs): Promise<any> {
+                    listLoader.args = args;
                     return listLoader.load(
                       getCompositePkValue(self.model.primaryKeys, this),
                     );
@@ -3442,7 +3473,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    */
   public async findByMergeFields(
     mergeColumns: Column[],
-    mergeValuesPerRecord: any[][],
+    mergeValuesPerRecord: unknown[][],
   ): Promise<Record<string, any>[]> {
     if (mergeValuesPerRecord.length === 0) return [];
 
@@ -3452,7 +3483,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // Deduplicate merge value tuples
     const seen = new Set<string>();
-    const uniqueTuples: any[][] = [];
+    const uniqueTuples: unknown[][] = [];
     for (const tuple of mergeValuesPerRecord) {
       const key = tuple
         .map((v) => (v === null ? '\0NULL\0' : String(v)))
@@ -3989,7 +4020,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   // Helper method to format date
-  private formatDate(val: string): any {
+  private formatDate(val: string): Knex.Raw | string {
     const { isMySQL, isSqlite, isPg } = this.clientMeta;
     if (val.indexOf('-') < 0 && val.indexOf('+') < 0 && val.slice(-1) !== 'Z') {
       // if no timezone is given,
@@ -5006,17 +5037,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    * */
 
   public async handleRichTextMentions(
-    _prevData,
-    _newData: Record<string, any> | Array<Record<string, any>>,
-    _req,
+    _prevData: Record<string, any> | Record<string, any>[] | null,
+    _newData: Record<string, any> | Record<string, any>[],
+    _req: NcRequest,
   ) {
     return;
   }
 
   public async beforeInsert(
-    data: any,
+    data: Record<string, any>,
     _trx: any,
-    req,
+    req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
     },
@@ -5034,9 +5065,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async beforeBulkInsert(
-    data: any,
+    data: Record<string, any>[],
     _trx: any,
-    req,
+    req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
     },
@@ -5059,8 +5090,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     trx: _trx,
     req,
   }: {
-    data: any;
-    insertData: any;
+    data: Record<string, any>;
+    insertData: Record<string, any>;
     trx: any;
     req: NcRequest;
   }): Promise<void> {
@@ -5102,7 +5133,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await this.handleRichTextMentions(null, data, req);
   }
 
-  public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
+  public async afterBulkInsert(
+    data: Record<string, any>[],
+    _trx: any,
+    req: NcRequest,
+  ): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
     let parentAuditId;
 
@@ -5176,9 +5211,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async afterDelete(
-    data: any,
+    data: Record<string, any>,
     _trx: any,
-    req,
+    req: NcRequest,
     eventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
     const id = this.extractPksValues(data);
@@ -5206,9 +5241,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async afterBulkDelete(
-    data: any,
+    data: Record<string, any>[],
     _trx: any,
-    req,
+    req: NcRequest,
     isBulkAllOperation = false,
     bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
     rowEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
@@ -5348,17 +5383,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async afterBulkUpdate(
-    prevData: any,
-    newData: any,
+    prevData: Record<string, any>[] | null,
+    newData: Record<string, any>[] | number,
     _trx: any,
-    req,
+    req: NcRequest,
     isBulkAllOperation = false,
   ): Promise<void> {
-    if (!isBulkAllOperation) {
+    if (!isBulkAllOperation && Array.isArray(newData)) {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
 
-    if (newData && newData.length > 0) {
+    if (!Array.isArray(newData)) return;
+
+    if (newData.length > 0) {
       const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
       // disable external source audit in cloud
@@ -5459,7 +5496,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await this.handleRichTextMentions(prevData, newData, req);
   }
 
-  public async beforeUpdate(data: any, _trx: any, req): Promise<void> {
+  public async beforeUpdate(
+    data: Record<string, any>,
+    _trx: any,
+    req: NcRequest,
+  ): Promise<void> {
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
@@ -5474,10 +5515,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async afterUpdate(
-    prevData: any,
-    newData: any,
+    prevData: Record<string, any>,
+    newData: Record<string, any>,
     _trx: any,
-    req,
+    req: NcRequest,
     updateObj?: Record<string, any>,
   ): Promise<void> {
     // TODO this is a temporary fix for the audit log / DOMPurify causes issue for long text
@@ -5556,7 +5597,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await this.handleRichTextMentions(prevData, newData, req);
   }
 
-  public async beforeDelete(data: any, _trx: any, req): Promise<void> {
+  public async beforeDelete(
+    data: Record<string, any>,
+    _trx: any,
+    req: NcRequest,
+  ): Promise<void> {
     if (this.model.synced) {
       NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
@@ -5567,7 +5612,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     await this.handleHooks('before.delete', null, data, req);
   }
 
-  public async beforeBulkDelete(_data: any, _trx: any, _req): Promise<void> {
+  public async beforeBulkDelete(
+    _data: Record<string, any>[],
+    _trx: any,
+    _req: NcRequest,
+  ): Promise<void> {
     if (this.model.synced) {
       NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
@@ -5576,7 +5625,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
-  protected async handleHooks(hookName, prevData, newData, req): Promise<void> {
+  protected async handleHooks(
+    hookName: string,
+    prevData: Record<string, any> | Record<string, any>[] | null,
+    newData: Record<string, any> | Record<string, any>[] | null,
+    req: NcRequest,
+  ): Promise<void> {
     Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
       context: { ...this.context, cache: false, cacheMap: undefined },
       hookName,
@@ -5589,16 +5643,31 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
   }
 
-  public async errorInsert(_e, _data, _trx, _cookie) {}
+  public async errorInsert(
+    _e: Error,
+    _data: Record<string, any>,
+    _trx: any,
+    _cookie: NcRequest,
+  ) {}
 
-  public async errorUpdate(_e, _data, _trx, _cookie) {}
+  public async errorUpdate(
+    _e: Error,
+    _data: Record<string, any>,
+    _trx: any,
+    _cookie: NcRequest,
+  ) {}
 
   // todo: handle composite primary key
-  public extractPksValues(data: any, asString = false) {
+  public extractPksValues(data: Record<string, any>, asString = false) {
     return dataWrapper(data).extractPksValue(this.model, asString);
   }
 
-  protected async errorDelete(_e, _id, _trx, _cookie) {}
+  protected async errorDelete(
+    _e: Error,
+    _id: Record<string, any>,
+    _trx: any,
+    _cookie: NcRequest,
+  ) {}
 
   async validate(
     data: Record<string, any>,
@@ -6368,7 +6437,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }[]
   > {
     try {
-      const { where, ...rest } = this._getListArgs(args as any);
+      const { where, ...rest } = this._getListArgs(args);
       const columns = await this.model.getColumns(this.context);
       const column = columns?.find((col) => col.id === args.groupColumnId);
 
@@ -6650,7 +6719,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return await this.execAndParse(qb);
   }
 
-  public async execAndGetRows(query: string, trx?: Knex | CustomKnex) {
+  public async execAndGetRows(
+    query: string,
+    trx?: Knex | CustomKnex,
+  ): Promise<Record<string, any>[]> {
     trx = trx || this.dbDriver;
 
     query = this.sanitizeQuery(query);
@@ -6662,7 +6734,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     } else if (this.isMySQL && INSERT_REGEX.test(query)) {
       const res = await trx.raw(query);
       if (res?.[0] && res[0].insertId !== undefined) {
-        return res[0].insertId;
+        return [{ insertId: res[0].insertId }];
       }
       return res;
     } else {
@@ -6672,18 +6744,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async execAndParse(
     qb: Knex.QueryBuilder | string,
+    dependencyColumns: Column[] | undefined | null,
+    options: ExecAndParseOptions & { first: true },
+  ): Promise<Record<string, any>>;
+  public async execAndParse(
+    qb: Knex.QueryBuilder | string,
+    dependencyColumns?: Column[] | null,
+    options?: ExecAndParseOptions,
+  ): Promise<Record<string, any>[]>;
+  public async execAndParse(
+    qb: Knex.QueryBuilder | string,
     dependencyColumns?: Column[],
-    options: {
-      skipDateConversion?: boolean;
-      skipAttachmentConversion?: boolean;
-      skipSubstitutingColumnIds?: boolean;
-      skipUserConversion?: boolean;
-      skipJsonConversion?: boolean;
-      raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
-      first?: boolean;
-      bulkAggregate?: boolean;
-      apiVersion?: NcApiVersion;
-    } = {
+    options: ExecAndParseOptions = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
@@ -6814,7 +6886,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return data;
   }
 
-  sanitizeQuery(query: string | string[]) {
+  sanitizeQuery(query: string): string;
+  sanitizeQuery(query: string[]): string[];
+  sanitizeQuery(query: string | string[]): string | string[];
+  sanitizeQuery(query: string | string[]): string | string[] {
     const fn = (q: string) => {
       if (!this.isPg && !this.isSnowflake) {
         return unsanitize(q);
@@ -6986,6 +7061,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
   }
 
+  protected async convertUserFormat(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+    apiVersion?: NcApiVersion,
+  ): Promise<Record<string, any>[]>;
+  protected async convertUserFormat(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+    apiVersion?: NcApiVersion,
+  ): Promise<Record<string, any>>;
   protected async convertUserFormat(
     data: Record<string, any>,
     dependencyColumns?: Column[],
@@ -7365,6 +7450,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async convertJsonTypes(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>[]>;
+  public async convertJsonTypes(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>>;
+  public async convertJsonTypes(
     data: Record<string, any>,
     dependencyColumns?: Column[],
   ) {
@@ -7427,6 +7520,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async convertMultiSelectTypes(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>[]>;
+  public async convertMultiSelectTypes(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>>;
+  public async convertMultiSelectTypes(
     data: Record<string, any>,
     dependencyColumns?: Column[],
   ) {
@@ -7452,6 +7553,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
   }
 
+  public async convertAttachmentType(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>[]>;
+  public async convertAttachmentType(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ): Promise<Record<string, any>>;
   public async convertAttachmentType(
     data: Record<string, any>,
     dependencyColumns?: Column[],
@@ -7663,6 +7772,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public convertDateFormat(
+    data: Record<string, any>[],
+    dependencyColumns?: Column[],
+  ): Record<string, any>[];
+  public convertDateFormat(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ): Record<string, any>;
+  public convertDateFormat(
     data: Record<string, any>,
     dependencyColumns?: Column[],
   ) {
@@ -7785,7 +7902,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       await this.model.getColumns(this.context);
 
-      const { where, sort } = this._getListArgs(args as any);
+      const { where, sort } = this._getListArgs(args);
       // todo: get only required fields
 
       const relColumn = this.model.columnsById[colId];

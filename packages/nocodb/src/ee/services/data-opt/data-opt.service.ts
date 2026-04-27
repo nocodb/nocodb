@@ -92,7 +92,7 @@ export class DataOptService {
       apiVersion?: NcApiVersion;
       customConditions?: Filter[];
     },
-  ): Promise<PagedResponseImpl<Record<string, any>>> {
+  ): Promise<Record<string, any>> {
     try {
       if (['mysql', 'mysql2'].includes(ctx.source.type)) {
         return mysqlSingleQueryRead(context, ctx);

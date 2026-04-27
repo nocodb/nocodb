@@ -2,19 +2,15 @@ import { Knex } from 'knex';
 import { SnowflakeClient } from 'knex-snowflake';
 import { DatabricksClient } from 'knex-databricks';
 import CustomKnexCE from 'src/db/CustomKnex';
+import type { ExtDbConfig } from 'src/db/CustomKnex';
 export { Condition, ConditionVal } from 'src/db/CustomKnex';
+export type { ExtDbConfig } from 'src/db/CustomKnex';
 
-type CustomKnex = CustomKnexCE & {
-  extDb?: {
-    client: string;
-    connection: Record<string, string>;
-  };
-  isExtDb?: boolean;
-};
+type CustomKnex = CustomKnexCE;
 
 function CustomKnex(
   arg: string | Knex.Config<any> | any,
-  extDb?: any,
+  extDb?: ExtDbConfig,
 ): CustomKnex {
   if (arg?.client === 'snowflake') arg.client = SnowflakeClient;
   if (arg?.client === 'databricks') arg.client = DatabricksClient;

@@ -45,7 +45,7 @@ export const LTARColsUpdater = (param: {
           if (!(col.title in d)) continue;
 
           // extract existing link values to current record
-          let existingLinks = [];
+          let existingLinks: Record<string, any>[] | Record<string, any> = [];
 
           profiler.log(`${col.colOptions.type} list start`);
           if (isMMOrMMLike(col)) {

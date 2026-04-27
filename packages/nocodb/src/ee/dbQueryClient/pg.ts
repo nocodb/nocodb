@@ -1369,7 +1369,7 @@ export class PGDBQueryClient
         break;
       }
       case UITypes.LongText: {
-        if ((baseModel.dbDriver as any).isExternal) {
+        if (baseModel.dbDriver.isExternal) {
           qb.select(
             knex.raw(`SUBSTR(??.??::TEXT, 1, ?) as ??`, [
               rootAlias,
@@ -1435,7 +1435,7 @@ export class PGDBQueryClient
       validateFormula?: boolean;
       apiVersion?: NcApiVersion;
     },
-  ): Promise<PagedResponseImpl<Record<string, any>>> {
+  ): Promise<Record<string, any>> {
     return singleQueryRead(this).read(context, ctx);
   }
 

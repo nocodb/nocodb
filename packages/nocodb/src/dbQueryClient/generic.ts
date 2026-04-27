@@ -69,7 +69,7 @@ export abstract class GenericDBQueryClient implements DBQueryClient {
   async singleQueryRead(
     _context: any,
     _ctx: any,
-  ): Promise<PagedResponseImpl<Record<string, any>>> {
+  ): Promise<Record<string, any>> {
     throw new Error('Not implemented');
   }
 

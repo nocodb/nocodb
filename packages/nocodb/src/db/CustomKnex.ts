@@ -1046,12 +1046,23 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
   return qb;
 }
 
+interface ExtDbConfig {
+  dbMux?: string;
+  sourceId?: string;
+  client?: string;
+  upgrader?: boolean;
+  source?: { upgraderQueries?: string[] };
+  [key: string]: any;
+}
+
 type CustomKnex = Knex & {
   attachToTransaction?: (fn: () => void) => void;
   ops?: (() => void)[];
   _cteGenerator?: CTEGenerator;
   cteGenerator?: (context?: NcContext) => CTEGenerator;
   applyCte?: (qb: Knex.QueryInterface) => void;
+  extDb?: ExtDbConfig;
+  isExternal?: boolean;
 };
 
 type CustomTransaction = Knex.Transaction & {
@@ -1063,7 +1074,7 @@ type CustomTransaction = Knex.Transaction & {
 
 function CustomKnex(
   arg: string | Knex.Config<any> | any,
-  extDb?: any,
+  extDb?: ExtDbConfig,
 ): CustomKnex {
   if (arg?.client === 'sqlite3') {
     arg.useNullAsDefault = true;
@@ -1604,3 +1615,4 @@ const parseConditionv2 = (_obj: Filter | FilterType, qb: Knex.QueryBuilder) => {
 
 export default CustomKnex;
 export { Knex, CustomKnex as XKnex };
+export type { ExtDbConfig };

@@ -36,6 +36,7 @@ import { customAlphabet } from 'nanoid';
 import { NcApiVersion } from 'nocodb-sdk';
 import { AttachmentUrlUploadPreparator } from 'src/db/BaseModelSqlv2/attachment-url-upload-preparator';
 import { ncIsStringHasValue } from 'src/db/field-handler/utils/handlerUtils';
+import type { ExecAndParseOptions } from 'src/db/BaseModelSqlv2';
 import type {
   DataBulkDeletePayload,
   DataBulkUpdateAllPayload,
@@ -315,17 +316,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async execAndParse(
     qb: Knex.QueryBuilder | string,
     dependencyColumns?: Column[],
-    options: {
-      skipDateConversion?: boolean;
-      skipAttachmentConversion?: boolean;
-      skipSubstitutingColumnIds?: boolean;
-      skipUserConversion?: boolean;
-      skipJsonConversion?: boolean;
-      bulkAggregate?: boolean;
-      raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
-      first?: boolean;
-      apiVersion?: NcApiVersion;
-    } = {
+    options?: ExecAndParseOptions & { first: true },
+  ): Promise<Record<string, any>>;
+  public async execAndParse(
+    qb: Knex.QueryBuilder | string,
+    dependencyColumns?: Column[],
+    options?: ExecAndParseOptions,
+  ): Promise<Record<string, any>[]>;
+  public async execAndParse(
+    qb: Knex.QueryBuilder | string,
+    dependencyColumns?: Column[],
+    options: ExecAndParseOptions = {
       skipDateConversion: false,
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
@@ -357,11 +358,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     let data;
 
-    if ((this.dbDriver as any).isExternal) {
-      data = await runExternal(
-        this.sanitizeQuery(query),
-        (this.dbDriver as any).extDb,
-      );
+    if (this.dbDriver.isExternal) {
+      data = await runExternal(this.sanitizeQuery(query), this.dbDriver.extDb);
     } else {
       data = await this.execAndGetRows(query);
     }
@@ -501,11 +499,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const queries = (await Promise.all(ops)).filter((query) =>
       ncIsStringHasValue(query),
     );
-    if ((this.dbDriver as any).isExternal) {
-      await runExternal(
-        this.sanitizeQuery(queries),
-        (this.dbDriver as any).extDb,
-      );
+    if (this.dbDriver.isExternal) {
+      await runExternal(this.sanitizeQuery(queries), this.dbDriver.extDb);
     } else {
       for (const query of queries) {
         await trx.raw(this.sanitizeQuery(query));
@@ -593,8 +588,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         } else {
           const res = await this.execAndParse(query, null, {
             raw: true,
+            first: true,
           });
-          id = res.id ?? res[0]?.insertId ?? res;
+          id = res?.id ?? res?.insertId ?? res;
         }
 
         if (ai) {
@@ -887,10 +883,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     let res;
 
-    if ((this.dbDriver as any).isExternal) {
+    if (this.dbDriver.isExternal) {
       res = await runExternal(
         this.sanitizeQuery(orderQuery.toQuery()),
-        (this.dbDriver as any).extDb,
+        this.dbDriver.extDb,
       );
     } else {
       res = await orderQuery;
@@ -940,10 +936,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       let result;
 
-      if ((this.dbDriver as any).isExternal) {
+      if (this.dbDriver.isExternal) {
         result = await runExternal(
           this.sanitizeQuery(resultQuery.toQuery()),
-          (this.dbDriver as any).extDb,
+          this.dbDriver.extDb,
         );
       } else {
         result = await resultQuery;
@@ -1047,10 +1043,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       let response;
       const formattedQuery = this.dbDriver.raw(query, parameters).toQuery();
 
-      if ((this.dbDriver as any).isExternal) {
+      if (this.dbDriver.isExternal) {
         response = await runExternal(
           this.sanitizeQuery(formattedQuery),
-          (this.dbDriver as any).extDb,
+          this.dbDriver.extDb,
         );
       } else {
         response = await this.execAndGetRows(formattedQuery);
@@ -1108,10 +1104,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     let response;
 
-    if ((this.dbDriver as any).isExternal) {
+    if (this.dbDriver.isExternal) {
       response = await runExternal(
         this.sanitizeQuery(query),
-        (this.dbDriver as any).extDb,
+        this.dbDriver.extDb,
       );
     } else {
       response = await this.dbDriver.raw(query);
@@ -1424,7 +1420,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       isDatePropagating: true,
     };
     try {
-      const isExternal = (this.dbDriver as any).isExternal;
+      const isExternal = this.dbDriver.isExternal;
 
       // Run backward propagation first (push predecessors earlier),
       // then forward propagation (push successors later)
@@ -1434,7 +1430,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const rawSql = this.dbDriver.raw(sql, bindings).toQuery();
           const rowStream = runExternalStream(
             this.sanitizeQuery(rawSql),
-            (this.dbDriver as any).extDb,
+            this.dbDriver.extDb,
           );
           let batch: Record<string, any>[] = [];
 
@@ -1481,9 +1477,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async beforeInsert(
-    data: any,
+    data: Record<string, any>,
     _trx: any,
-    req,
+    req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
     },
@@ -1536,9 +1532,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async beforeBulkInsert(
-    data: any,
+    data: Record<string, any>[],
     _trx: any,
-    req,
+    req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
     },
@@ -1596,8 +1592,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     trx: _trx,
     req,
   }: {
-    data: any;
-    insertData: any;
+    data: Record<string, any>;
+    insertData: Record<string, any>;
     trx: any;
     req: NcRequest;
   }): Promise<void> {
@@ -1659,7 +1655,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     await this.propagateDateDependency([insertedId], req);
   }
 
-  public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
+  public async afterBulkInsert(
+    data: Record<string, any>[],
+    _trx: any,
+    req: NcRequest,
+  ): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
 
     for (const d of data) {
@@ -1754,9 +1754,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async afterDelete(
-    data: any,
+    data: Record<string, any>,
     _trx: any,
-    req,
+    req: NcRequest,
     eventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
     const id = this.extractPksValues(data);
@@ -1799,9 +1799,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async afterBulkDelete(
-    data: any,
+    data: Record<string, any>[],
     _trx: any,
-    req,
+    req: NcRequest,
     isBulkAllOperation = false,
     bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
     rowEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
@@ -2319,10 +2319,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       let responses;
 
-      if ((this.dbDriver as any).isExternal) {
+      if (this.dbDriver.isExternal) {
         responses = await runExternal(
           this.sanitizeQuery(queries),
-          (this.dbDriver as any).extDb,
+          this.dbDriver.extDb,
         );
         responses = Array.isArray(responses) ? responses : [responses];
       } else {
@@ -2781,7 +2781,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const usingInsertOneByOneTrxPath =
         insertOneByOneAsFallback &&
         (this.clientMeta.isSqlite || this.clientMeta.isMySQL) &&
-        !(this.dbDriver as any).isExternal;
+        !this.dbDriver.isExternal;
 
       const postSingleRecordInsertionCbk = async (responses, trx?) => {
         // insert nested link data for single record insertion
@@ -2790,15 +2790,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             const row = responses[i];
             let rowId;
             if (this.isSqlite || this.isMySQL) {
-              if (
-                insertOneByOneAsFallback &&
-                !(this.dbDriver as any).isExternal
-              ) {
+              if (insertOneByOneAsFallback && !this.dbDriver.isExternal) {
                 // new path: row is {pk_col: id} from extractCompositePK
                 rowId = row?.[this.model.primaryKey?.title];
               } else if (this.isMySQL) {
-                // legacy path: execAndGetRows returned raw last-insert-id
-                rowId = row;
+                // execAndGetRows returns { insertId: N } for MySQL INSERTs
+                rowId = row?.insertId;
               }
 
               if (agPkCol) {
@@ -2823,10 +2820,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       };
 
-      if ((this.dbDriver as any).isExternal) {
+      if (this.dbDriver.isExternal) {
         responses = await runExternal(
           this.sanitizeQuery(queries),
-          (this.dbDriver as any).extDb,
+          this.dbDriver.extDb,
         );
         profiler.log('runExternal done');
 
@@ -2868,12 +2865,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           } else {
             for (const q of queries) {
               const result = await this.execAndGetRows(q, trx);
-              if (this.isMySQL && !Array.isArray(result)) {
-                // this is the case of returnedId from mySql, which is number
-                responses.push(result);
-              } else {
-                responses.push(...result);
-              }
+              responses.push(...result);
             }
           }
           profiler.log('execAndGetRows done');
@@ -2905,14 +2897,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         // skip when usingInsertOneByOneTrxPath already wrapped them via extractCompositePK
         if (this.isMySQL && !usingInsertOneByOneTrxPath) {
           responses = responses.map((r, idx) => {
+            const id = r?.insertId ?? r;
             const rowId = this.extractCompositePK({
-              rowId: r,
+              rowId: id,
               ai: aiPkCol,
               ag: agPkCol,
               insertObj: insertDatas[idx],
             });
             if (rowId && typeof rowId === 'object') return rowId;
-            return { [this.model.primaryKey.column_name]: rowId ?? r };
+            return { [this.model.primaryKey.column_name]: rowId ?? id };
           });
         }
 
@@ -3453,10 +3446,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       let updateResponses = [];
       let insertResponses = [];
 
-      if ((this.dbDriver as any).isExternal) {
+      if (this.dbDriver.isExternal) {
         const runExternalResponse = await runExternal(
           this.sanitizeQuery(insertQueries),
-          (this.dbDriver as any).extDb,
+          this.dbDriver.extDb,
         );
         insertResponses = Array.isArray(runExternalResponse)
           ? runExternalResponse
@@ -3464,18 +3457,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         await runExternal(
           this.sanitizeQuery(updateQueries),
-          (this.dbDriver as any).extDb,
+          this.dbDriver.extDb,
         );
       } else {
         const trx = await this.dbDriver.transaction();
         try {
           for (const q of insertQueries) {
             const result = await this.execAndGetRows(q, trx);
-            if (Array.isArray(result)) {
-              insertResponses.push(...result);
-            } else {
-              insertResponses.push(result);
-            }
+            insertResponses.push(...result);
           }
           for (const q of updateQueries) {
             await trx.raw(this.sanitizeQuery(q));
@@ -3791,11 +3780,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      if ((this.dbDriver as any).isExternal) {
-        await runExternal(
-          this.sanitizeQuery(queries),
-          (this.dbDriver as any).extDb,
-        );
+      if (this.dbDriver.isExternal) {
+        await runExternal(this.sanitizeQuery(queries), this.dbDriver.extDb);
       } else {
         const trx = await this.dbDriver.transaction();
         try {
@@ -4305,11 +4291,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      if ((this.dbDriver as any).isExternal) {
-        await runExternal(
-          this.sanitizeQuery(queries),
-          (this.dbDriver as any).extDb,
-        );
+      if (this.dbDriver.isExternal) {
+        await runExternal(this.sanitizeQuery(queries), this.dbDriver.extDb);
       } else {
         const trx = await this.dbDriver.transaction();
         try {
@@ -4418,10 +4401,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async afterUpdate(
-    prevData: any,
-    newData: any,
+    prevData: Record<string, any>,
+    newData: Record<string, any>,
     _trx: any,
-    req,
+    req: NcRequest,
     updateObj?: Record<string, any>,
   ): Promise<void> {
     // TODO this is a temporary fix for the audit log / DOMPurify causes issue for long text
@@ -4524,17 +4507,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async afterBulkUpdate(
-    prevData: any,
-    newData: any,
+    prevData: Record<string, any>[] | null,
+    newData: Record<string, any>[] | number,
     _trx: any,
-    req,
+    req: NcRequest,
     isBulkAllOperation = false,
   ): Promise<void> {
-    if (!isBulkAllOperation) {
+    if (!isBulkAllOperation && Array.isArray(newData)) {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
 
-    if (newData && newData.length > 0) {
+    if (!Array.isArray(newData)) return;
+
+    if (newData.length > 0) {
       for (const data of newData) {
         // Strip __nc_rls_hidden from broadcast — other clients have different
         // RLS policies and the flag would be incorrect for them
@@ -4644,7 +4629,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
-  public async beforeDelete(data: any, _trx: any, req): Promise<void> {
+  public async beforeDelete(
+    data: Record<string, any>,
+    _trx: any,
+    req: NcRequest,
+  ): Promise<void> {
     await this.checkPermission({
       entity: PermissionEntity.TABLE,
       entityId: this.model.id,
@@ -4656,7 +4645,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     return super.beforeDelete(data, _trx, req);
   }
 
-  public async beforeBulkDelete(_data: any, _trx: any, req): Promise<void> {
+  public async beforeBulkDelete(
+    _data: Record<string, any>[],
+    _trx: any,
+    req: NcRequest,
+  ): Promise<void> {
     await this.checkPermission({
       entity: PermissionEntity.TABLE,
       entityId: this.model.id,

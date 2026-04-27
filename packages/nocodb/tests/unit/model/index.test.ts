@@ -1,11 +1,13 @@
 import 'mocha';
 import { runOnSet } from '../utils/runOnSet';
 import baseModelSqlTest from './tests/baseModelSql.test';
+import execAndParseTest from './tests/execAndParse.test';
 import { tableHelpersTest } from './tableHelpers/tableHelpers.test';
 import { isEE } from '../utils/helpers';
 
 function modelTests() {
   baseModelSqlTest();
+  execAndParseTest();
 
   if (isEE()) {
     // Document model + service tests require EE model implementations

@@ -22,6 +22,7 @@ import type {
   NestedLinkAuditEntry,
   NestedLinkLastModifiedEntry,
 } from '~/db/BaseModelSqlv2/nested-link-preparator';
+import type { ExecAndParseOptions } from 'src/db/BaseModelSqlv2';
 
 export interface IBaseModelSqlV2 {
   context: NcContext;
@@ -43,19 +44,14 @@ export interface IBaseModelSqlV2 {
   ): Promise<any>;
   execAndParse(
     qb: Knex.QueryBuilder | string,
-    dependencyColumns?: Column[],
-    options?: {
-      skipDateConversion?: boolean;
-      skipAttachmentConversion?: boolean;
-      skipSubstitutingColumnIds?: boolean;
-      skipUserConversion?: boolean;
-      skipJsonConversion?: boolean;
-      raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
-      first?: boolean;
-      bulkAggregate?: boolean;
-      apiVersion?: NcApiVersion;
-    },
-  ): Promise<any>;
+    dependencyColumns: Column[] | undefined | null,
+    options: ExecAndParseOptions & { first: true },
+  ): Promise<Record<string, any>>;
+  execAndParse(
+    qb: Knex.QueryBuilder | string,
+    dependencyColumns?: Column[] | null,
+    options?: ExecAndParseOptions,
+  ): Promise<Record<string, any>[]>;
 
   prepareNocoData(
     data,

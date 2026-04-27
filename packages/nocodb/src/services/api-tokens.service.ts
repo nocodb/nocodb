@@ -63,6 +63,9 @@ export class ApiTokensService {
       NcError.notFound('Token not found');
     }
 
+    // todo: verify token belongs to the user
+    const res = await ApiToken.delete(param.tokenId);
+
     this.appHooksService.emit(AppEvents.API_TOKEN_DELETE, {
       userId: param.user?.id,
       tokenId: apiToken.id,
@@ -70,7 +73,6 @@ export class ApiTokensService {
       req: param.req,
     });
 
-    // todo: verify token belongs to the user
-    return await ApiToken.delete(param.tokenId);
+    return res;
   }
 }

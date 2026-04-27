@@ -156,25 +156,81 @@ export const isUrlType = (colData: [], col?: number) =>
     return v && isURL(v.toString())
   })
 
+// ISO 8601 date: YYYY-MM-DD  (time part must be absent)
+const ISO_DATE_RE = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/
+
+// ISO 8601 date-time or common datetime strings, e.g.:
+//   2024-01-15T14:30:00   2024-01-15 14:30:00   2024-01-15T14:30:00.000Z
+const ISO_DATETIME_RE = /^\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/
+
+// HH:MM or HH:MM:SS (24-hour)
+const TIME_RE = /^\d{2}:\d{2}(:\d{2})?$/
+
+/**
+ * Returns true if every non-empty value in colData looks like a date-only
+ * string (no time component).
+ */
+export const isDateType = (colData: [], col?: number): boolean => {
+  let hasValue = false
+  for (const r of colData) {
+    const v = String(getColVal(r, col) ?? '').trim()
+    if (!v) continue
+    hasValue = true
+    if (!ISO_DATE_RE.test(v)) return false
+  }
+  return hasValue
+}
+
+/**
+ * Returns true if every non-empty value in colData looks like a date-time
+ * string (has both date and time components).
+ */
+export const isDateTimeType = (colData: [], col?: number): boolean => {
+  let hasValue = false
+  for (const r of colData) {
+    const v = String(getColVal(r, col) ?? '').trim()
+    if (!v) continue
+    hasValue = true
+    if (!ISO_DATETIME_RE.test(v)) return false
+  }
+  return hasValue
+}
+
+/**
+ * Returns true if every non-empty value in colData looks like a time string.
+ */
+export const isTimeType = (colData: [], col?: number): boolean => {
+  let hasValue = false
+  for (const r of colData) {
+    const v = String(getColVal(r, col) ?? '').trim()
+    if (!v) continue
+    hasValue = true
+    if (!TIME_RE.test(v)) return false
+  }
+  return hasValue
+}
+
 export const getColumnUIDTAndMetas = (colData: [], defaultType: string) => {
   const colProps = { uidt: defaultType }
 
   if (colProps.uidt === UITypes.SingleLineText) {
     // check for long text
-    if (isMultiLineTextType(colData)) {
+    if (isDateTimeType(colData)) {
+      colProps.uidt = UITypes.DateTime
+    } else if (isDateType(colData)) {
+      colProps.uidt = UITypes.Date
+    } else if (isTimeType(colData)) {
+      colProps.uidt = UITypes.Time
+    } else if (isMultiLineTextType(colData)) {
       colProps.uidt = UITypes.LongText
-    }
-    if (isEmailType(colData)) {
+    } else if (isEmailType(colData)) {
       colProps.uidt = UITypes.Email
-    }
-    if (isUrlType(colData)) {
+    } else if (isUrlType(colData)) {
       colProps.uidt = UITypes.URL
+    } else if (isCheckboxType(colData)) {
+      colProps.uidt = UITypes.Checkbox
     } else {
-      if (isCheckboxType(colData)) {
-        colProps.uidt = UITypes.Checkbox
-      } else {
-        Object.assign(colProps, extractMultiOrSingleSelectProps(colData))
-      }
+      Object.assign(colProps, extractMultiOrSingleSelectProps(colData))
     }
   } else if (colProps.uidt === UITypes.Number) {
     if (isDecimalType(colData)) {

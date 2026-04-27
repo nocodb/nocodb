@@ -1,5 +1,8 @@
 import { type Readable } from 'stream';
+import { Logger } from '@nestjs/common';
 import pdf from 'pdf-parse';
+
+const logger = new Logger('serialize');
 
 const serializers = {
   'application/pdf': async (
@@ -74,7 +77,7 @@ export const serialize = async (
 
     return data;
   } catch (error) {
-    console.error(error);
+    logger.error('Failed to serialize stream', error);
     return {
       text: fallback ?? '@file_not_supported',
       images: [],

@@ -502,7 +502,13 @@ defineExpose({
   @apply relative h-full w-full;
   min-width: 100%;
   min-height: 100%;
-  will-change: transform;
+  /* No will-change here — this wrapper is never transformed itself (only the
+     scrollbar thumbs are, and they have their own will-change). Promoting it
+     to a GPU layer caused Chromium/Brave to keep the cached texture for the
+     canvas inside this element across frames: the JS would repaint the canvas
+     pixel buffer, but the compositor would keep showing the old texture for
+     the header and aggregation footer regions until a resize invalidated the
+     layer. Symptom: header/footer "stuck" while body kept scrolling. */
 }
 
 .custom-scrollbar-track {

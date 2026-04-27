@@ -242,8 +242,13 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       where: where?.value ?? '',
     }))
 
-    // In timezone is removed from the date string for mysql for reverse compatibility upto mysql5
+    // Date columns should only store the date part (no time/timezone) to avoid
+    // timezone conversion shifting the date by ±1 day.
+    // For DateTime, timezone is removed from the date string for mysql for reverse compatibility upto mysql5
     const updateFormat = computed(() => {
+      if (calDataType.value === UITypes.Date) {
+        return 'YYYY-MM-DD'
+      }
       return isMysql(meta.value?.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
     })
 

@@ -1,4 +1,4 @@
-import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
+import { Injectable, Logger, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
   CloudOrgUserRoles,
@@ -1019,6 +1019,8 @@ function getUserRoleForScope(user: any, scope: string) {
 
 @Injectable()
 export class AclMiddleware implements NestInterceptor {
+  private readonly logger = new Logger(AclMiddleware.name);
+
   constructor(private reflector: Reflector, private jwtStrategy: JwtStrategy) {}
 
   async aclFn(
@@ -1049,7 +1051,7 @@ export class AclMiddleware implements NestInterceptor {
         const guard = new GlobalGuard(this.jwtStrategy);
         await guard.canActivate(context);
       } catch (e) {
-        console.log(e);
+        this.logger.warn(e);
       }
     }
 

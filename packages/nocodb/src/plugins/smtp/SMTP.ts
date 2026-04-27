@@ -25,6 +25,13 @@ export default class SMTP implements IEmailAdapter {
         typeof this.input?.ignoreTLS === 'boolean'
           ? this.input?.ignoreTLS
           : this.input?.ignoreTLS === 'true',
+      // When requireTLS is true, nodemailer will fail if the server does not
+      // advertise STARTTLS.  This is required by some providers (e.g. Office 365
+      // / Outlook.com on port 587) that will silently time out otherwise.
+      requireTLS:
+        typeof this.input?.requireTLS === 'boolean'
+          ? this.input?.requireTLS
+          : this.input?.requireTLS === 'true',
       tls: {
         rejectUnauthorized:
           typeof this.input?.rejectUnauthorized === 'boolean'

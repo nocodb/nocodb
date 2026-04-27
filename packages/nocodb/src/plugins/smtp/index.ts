@@ -90,6 +90,15 @@ const config: XcPluginConfig = {
           'Enable this if you want to ignore any TLS errors that may occur during the connection. Enabling this disables STARTTLS even if SMTP servers support it, hence may compromise security.',
       },
       {
+        key: 'requireTLS',
+        label: 'Require STARTTLS',
+        placeholder: 'Require TLS',
+        type: XcType.Checkbox,
+        required: false,
+        help_text:
+          'Enable this to require STARTTLS (e.g. for Office 365 / Outlook.com on port 587). The connection will fail if the server does not support STARTTLS, which prevents accidental cleartext transmission.',
+      },
+      {
         key: 'rejectUnauthorized',
         label: 'Reject unauthorized',
         placeholder: 'Reject unauthorized',

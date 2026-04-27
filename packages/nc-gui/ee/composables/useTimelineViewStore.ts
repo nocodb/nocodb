@@ -7,7 +7,7 @@ import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
 import { validateRowFilters } from '~/utils/dataUtils'
 import type { TimelineZoomLevel } from '../utils/timelineUtils'
-import { isGridlineBoundary } from '../utils/timelineUtils'
+import { isFortnightMonday, isGridlineBoundary } from '../utils/timelineUtils'
 
 // Per-scale config drives column width, buffer size, prev/next step, and
 // header rendering. `colWidth` is the fixed pixel width of one day-column.
@@ -26,7 +26,15 @@ interface ScaleConfig {
   navUnit: 'day' | 'week' | 'month' | 'year'
   navAmount: number
   majorTiers: MajorTier[]
-  minorLabel: 'weekday-full' | 'weekday-short' | 'weekday-letter' | 'day-number' | 'mondays' | 'none'
+  minorLabel:
+    | 'weekday-full'
+    | 'weekday-short'
+    | 'weekday-letter'
+    | 'day-number'
+    | 'mondays'
+    | 'fortnight'
+    | 'quarter-month'
+    | 'none'
   // Gridline cadence — only render vertical lines at boundaries of this unit.
   // At fine zooms this matches the day cells; at coarse zooms it strips away
   // daily gridlines so the grid reads as week/fortnight/month/quarter chunks.
@@ -40,9 +48,9 @@ const SCALE_CONFIG: Record<TimelineZoomLevel, ScaleConfig> = {
   month: { colWidth: 36, bufferDays: 120, navUnit: 'month', navAmount: 1, majorTiers: [], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
   quarter: { colWidth: 12, bufferDays: 365, navUnit: 'month', navAmount: 3, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
   '6month': { colWidth: 6, bufferDays: 540, navUnit: 'month', navAmount: 6, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
-  year: { colWidth: 4, bufferDays: 730, navUnit: 'year', navAmount: 1, majorTiers: ['month'], minorLabel: 'none', gridlineUnit: 'fortnight' },
-  '2year': { colWidth: 2, bufferDays: 1095, navUnit: 'year', navAmount: 2, majorTiers: ['year', 'quarter'], minorLabel: 'none', gridlineUnit: 'month' },
-  '5year': { colWidth: 1, bufferDays: 1825, navUnit: 'year', navAmount: 5, majorTiers: ['year'], minorLabel: 'none', gridlineUnit: 'quarter' },
+  year: { colWidth: 4, bufferDays: 730, navUnit: 'year', navAmount: 1, majorTiers: ['month'], minorLabel: 'fortnight', gridlineUnit: 'fortnight' },
+  '2year': { colWidth: 2, bufferDays: 1095, navUnit: 'year', navAmount: 2, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'month' },
+  '5year': { colWidth: 1, bufferDays: 1825, navUnit: 'year', navAmount: 5, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'quarter' },
 }
 
 
@@ -204,6 +212,10 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         }
         if (mode === 'mondays') {
           if (date.day() === 1) dayNum = date.format('D')
+        } else if (mode === 'fortnight') {
+          if (isFortnightMonday(date)) dayNum = date.format('D')
+        } else if (mode === 'quarter-month') {
+          if (date.date() === 1 && date.month() % 3 === 0) dayNum = date.format('MMM')
         } else if (showWeekday) {
           dayNum = date.format('D')
         }

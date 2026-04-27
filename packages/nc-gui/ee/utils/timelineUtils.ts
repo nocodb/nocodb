@@ -30,6 +30,18 @@ export type GridlineUnit = 'day' | 'week' | 'fortnight' | 'month' | 'quarter'
 const FORTNIGHT_REF_SUNDAY = dayjs('2000-01-02')
 
 /**
+ * True when the date is the Monday that starts a fortnight cycle —
+ * i.e. the day after a fortnight Sunday boundary. Used by the year scale's
+ * minor row to label every other Monday with its day-of-month.
+ */
+export function isFortnightMonday(date: dayjs.Dayjs): boolean {
+  if (date.day() !== 1) return false
+  // Monday is exactly 1 day after the prior Sunday; align to the same
+  // 14-day cycle as the gridline cadence.
+  return Math.abs(date.subtract(1, 'day').diff(FORTNIGHT_REF_SUNDAY, 'day')) % 14 === 0
+}
+
+/**
  * True when the date's right edge falls on a gridline boundary for the
  * given cadence — i.e. the cell ending here marks the start of the next
  * day / week / fortnight / month / quarter.

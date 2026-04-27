@@ -11,7 +11,15 @@ import type { GridViewColumn, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
-import { Base, Column, FormView, Model, Source, View } from '~/models';
+import {
+  Base,
+  Column,
+  FormView,
+  KanbanView,
+  Model,
+  Source,
+  View,
+} from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -92,6 +100,19 @@ export class PublicDatasService {
 
       if (view.type === ViewTypes.GRID && (vc as GridViewColumn).group_by) {
         groupByColumnIds.add(vc.fk_column_id);
+      }
+    }
+
+    // Kanban views always group records by `fk_grp_col_id`, even when that
+    // column is hidden from the view. The frontend issues a grouped-data
+    // request keyed on that column id, so it must be accessible via the
+    // shared-view group endpoint regardless of `show`. The values are
+    // already visible in the UI as stack headers, so allowing access here
+    // doesn't leak any data that isn't otherwise rendered.
+    if (view.type === ViewTypes.KANBAN) {
+      const kanbanView = await KanbanView.get(context, view.id);
+      if (kanbanView?.fk_grp_col_id) {
+        groupByColumnIds.add(kanbanView.fk_grp_col_id);
       }
     }
 

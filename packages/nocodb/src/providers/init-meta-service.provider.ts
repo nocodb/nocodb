@@ -1,4 +1,5 @@
 import { NcDebug } from 'nc-gui/utils/debug';
+import { Logger } from '@nestjs/common';
 import type { FactoryProvider } from '@nestjs/common';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
@@ -31,6 +32,8 @@ export const InitMetaServiceProvider: FactoryProvider = {
     eventEmitter: IEventEmitter,
     appHooksService: AppHooksService,
   ) => {
+    const logger = new Logger('InitMetaServiceProvider');
+
     // NC_DATABASE_URL_FILE, DATABASE_URL_FILE, DATABASE_URL, NC_DATABASE_URL to NC_DB
     await prepareEnv();
 
@@ -137,7 +140,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
         NcDebug.log('Cloud plugins initialized from env');
       } catch (e) {
         if (process.env.NC_CLOUD === 'true') throw e;
-        console.error('Plugin init failed', e?.message);
+        logger.error('Plugin init failed', e?.message);
       }
     }
 

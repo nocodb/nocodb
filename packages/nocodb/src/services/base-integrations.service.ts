@@ -390,6 +390,12 @@ export class BaseIntegrationsService {
       NcError.get(context).integrationNotFound(param.integrationId);
     }
 
+    if (!param.allBases && !param.baseIds?.length) {
+      NcError.get(context).badRequest(
+        'Either all_bases or base_ids must be provided.',
+      );
+    }
+
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
 
     try {
@@ -437,9 +443,5 @@ export class BaseIntegrationsService {
       this.logger.error(e.message, e.stack);
       NcError.get(context).internalServerError('Failed to update linked bases');
     }
-
-    NcError.get(context).badRequest(
-      'Either all_bases or base_ids must be provided.',
-    );
   }
 }

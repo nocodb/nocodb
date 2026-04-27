@@ -1,4 +1,4 @@
-import { parseProp, RelationTypes } from 'nocodb-sdk';
+import { isMMOrMMLike, parseProp, RelationTypes } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
 import type { Logger } from '@nestjs/common';
 import type { NcContext } from 'nocodb-sdk';
@@ -89,6 +89,13 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         relationType = relationColumn.meta?.bt
           ? RelationTypes.BELONGS_TO
           : RelationTypes.HAS_MANY;
+      }
+
+      // V2 links are all junction-table-based (MM-like), regardless of
+      // their stored type (om, oo, etc.). Treat them as MANY_TO_MANY so
+      // the filter subquery uses the junction table correctly.
+      if (isMMOrMMLike(relationColumn)) {
+        relationType = RelationTypes.MANY_TO_MANY;
       }
 
       if (relationType === RelationTypes.HAS_MANY) {

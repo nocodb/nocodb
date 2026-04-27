@@ -471,7 +471,7 @@ export async function populateMeta(
             // nested relations data apis
             info.apiCount += 5;
           } catch (e) {
-            console.log(e);
+            logger?.(`Error populating relation for column '${column.title}': ${e?.message ?? e}`);
           }
 
           logger?.(`Populated meta for column '${column.title}'`);

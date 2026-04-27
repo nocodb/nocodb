@@ -183,7 +183,7 @@ export class CommentsService {
     const base = await Base.getByTitleOrId(context, model.base_id);
 
     await this.mailService.sendMail({
-      mailEvent: MailEvent.COMMENT_CREATE,
+      mailEvent: MailEvent.COMMENT_UPDATE,
       payload: {
         base,
         model,

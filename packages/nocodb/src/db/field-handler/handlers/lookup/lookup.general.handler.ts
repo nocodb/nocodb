@@ -1,4 +1,4 @@
-import { parseProp, RelationTypes } from 'nocodb-sdk';
+import { isMMOrMMLike, parseProp, RelationTypes } from 'nocodb-sdk';
 import { ComputedFieldHandler } from '../computed';
 import type { Logger } from '@nestjs/common';
 import type { NcContext } from 'nocodb-sdk';
@@ -89,6 +89,16 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
         relationType = relationColumn.meta?.bt
           ? RelationTypes.BELONGS_TO
           : RelationTypes.HAS_MANY;
+      }
+
+      // V2 Links use junction tables for all relation types (HM, BT, OO, MM).
+      // isMMOrMMLike() returns true for any junction-table-backed link, so we must
+      // route those through the MANY_TO_MANY branch which correctly queries the
+      // junction table.  Without this, a V2 HM or BT link is incorrectly handled
+      // as a direct FK relationship, which generates invalid SQL because no FK
+      // column exists on the related table.
+      if (isMMOrMMLike(relationColumn)) {
+        relationType = RelationTypes.MANY_TO_MANY;
       }
 
       if (relationType === RelationTypes.HAS_MANY) {

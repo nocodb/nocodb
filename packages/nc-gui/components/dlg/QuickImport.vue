@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { type TableType, charsetOptions, charsetOptionsMap } from 'nocodb-sdk'
+import { type ColumnType, type TableType, charsetOptions, charsetOptionsMap } from 'nocodb-sdk'
 import { defineAsyncComponent } from 'vue'
 
 const {
@@ -65,7 +65,7 @@ const templateData = ref()
 
 const importData = ref()
 
-const importColumns = ref([])
+const importColumns = ref<ColumnType[][]>([])
 
 const templateEditorModal = ref(false)
 
@@ -308,7 +308,7 @@ async function handlePreImport() {
     const draftTableNames: string[] = []
     const tables: any[] = []
     const allImportData: Record<string, any[]> = {}
-    const allImportColumns: any[] = []
+    const allImportColumns: ColumnType[][] = []
 
     for (const target of targets) {
       const { sheets = [] } = (await $api.internal.postOperation(
@@ -320,7 +320,7 @@ async function handlePreImport() {
           attachment: target.attachment,
           parserConfig: buildPreviewParserConfig(target.encoding),
         },
-      )) as { sheets: Array<{ name?: string; columns: any[]; previewData: any[]; totalRows: number }> }
+      )) as { sheets: Array<{ name?: string; columns: ColumnType[]; previewData: any[]; totalRows: number }> }
 
       const baseName = sanitizeTableName(target.fileName)
       for (const sheet of sheets) {
@@ -331,7 +331,7 @@ async function handlePreImport() {
         tables.push({
           table_name: uniqueName,
           ref_table_name: uniqueName,
-          columns: (sheet.columns || []).map((col: any) => ({ ...col, selected: true })),
+          columns: (sheet.columns || []).map((col) => ({ ...col, selected: true })),
           _serverAttachment: target.attachment,
           _sheetName: sheet.name,
           _totalRows: sheet.totalRows ?? 0,
@@ -344,7 +344,7 @@ async function handlePreImport() {
     templateData.value = { tables }
     importData.value = allImportData
     if (importDataOnly) {
-      importColumns.value = allImportColumns as any
+      importColumns.value = allImportColumns
     }
 
     templateEditorModal.value = true

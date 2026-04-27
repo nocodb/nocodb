@@ -983,7 +983,7 @@ export class ColumnsService implements IColumnsService {
                 parsedTree: colBody.parsed_tree,
               });
             } catch (e) {
-              console.error(e);
+              this.logger.warn(`Formula validation failed: ${e.message}`);
               NcError.get(context).badRequest('Invalid Formula');
             }
           } else if (colBody.type === ButtonActionsType.Webhook) {
@@ -4496,7 +4496,7 @@ export class ColumnsService implements IColumnsService {
             foreignKeyName,
           });
         } catch (e) {
-          console.log(e.message);
+          this.logger.warn(`Failed to delete foreign key constraint: ${e.message}`);
         }
       }
     }
@@ -4752,7 +4752,7 @@ export class ColumnsService implements IColumnsService {
               foreignKeyName,
             });
           } catch (e) {
-            console.log(e.message);
+            this.logger.warn(`Failed to delete foreign key constraint: ${e.message}`);
           }
         }
       }

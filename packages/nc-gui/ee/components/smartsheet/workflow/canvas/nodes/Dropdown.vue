@@ -122,10 +122,6 @@ const getNodeIconClass = (category: WorkflowNodeCategoryType) => ({
   'bg-nc-bg-maroon-dark text-nc-content-maroon-dark': category === WorkflowNodeCategory.FLOW,
 })
 
-const getSubmenuContainer = (triggerNode: HTMLElement) => {
-  return (triggerNode.closest('.nc-workflow-node-dropdown-overlay') as HTMLElement) || document.body
-}
-
 onClickOutside(
   dropdownRef,
   (event) => {
@@ -139,134 +135,125 @@ onClickOutside(
 </script>
 
 <template>
-  <NcDropdown
-    ref="dropdownRef"
-    v-model:visible="showDropdown"
-    :disabled="disabled"
-    overlay-class-name="nc-workflow-node-dropdown-overlay"
-  >
+  <NcDropdown ref="dropdownRef" v-model:visible="showDropdown" :disabled="disabled">
     <slot :selected-node="selectedNode" :show-dropdown="showDropdown" :open-dropdown="() => (showDropdown = true)" />
 
     <template #overlay>
-      <div class="nc-workflow-node-dropdown-scroll">
-        <NcMenu class="w-77" variant="small" :get-popup-container="getSubmenuContainer">
-          <template v-for="(data, _category, index) in categorizedNodes" :key="_category">
-            <NcMenuItemLabel class="!capitalize">{{ _category }}</NcMenuItemLabel>
-            <NcMenuItem
-              v-for="node in data.core"
-              :key="node.id"
-              :class="{
+      <NcMenu class="w-77 nc-max-h-screen nc-scrollbar-thin" variant="medium">
+        <template v-for="(data, _category, index) in categorizedNodes" :key="_category">
+          <NcMenuItemLabel class="!capitalize">{{ _category }}</NcMenuItemLabel>
+          <NcMenuItem
+            v-for="node in data.core"
+            :key="node.id"
+            :class="{
                 'locked-node': (node as any).locked,
                 '!cursor-not-allowed': (node as any).locked,
               }"
-              inner-class="w-full"
-              @click="selectNodeOption(node)"
-            >
-              <div class="flex gap-2 items-center justify-between w-full">
-                <div class="flex flex-1 gap-2 items-center">
-                  <div :class="getNodeIconClass(node.category)" class="w-6 h-6 flex items-center justify-center rounded-md p-1">
-                    <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
-                  </div>
-                  <div :class="{'opacity-50': (node as any).locked,}" class="text-nc-content-gray text-caption">
-                    {{ node.title }}
-                  </div>
+            inner-class="w-full"
+            @click="selectNodeOption(node)"
+          >
+            <div class="flex gap-2 items-center justify-between w-full">
+              <div class="flex flex-1 gap-2 items-center">
+                <div :class="getNodeIconClass(node.category)" class="w-6 h-6 flex items-center justify-center rounded-md p-1">
+                  <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
                 </div>
-                <PaymentUpgradeBadge
-                  v-if="(node as any).locked"
-                  :content="`Upgrade to ${(node as any).requiredPlan} plan to use ${node.title} node`"
-                  :plan-title="(node as any).requiredPlan"
-                />
+                <div :class="{'opacity-50': (node as any).locked,}" class="text-nc-content-gray text-caption">
+                  {{ node.title }}
+                </div>
               </div>
-            </NcMenuItem>
-            <template v-if="Object.keys(data.packages).length">
-              <NcDivider v-if="data.core.length" />
-              <NcMenuItemLabel class="!capitalize">Integrations</NcMenuItemLabel>
-              <NcSubMenu
-                v-for="(pkg, pkgName) in data.packages"
-                :key="`${_category}-${pkgName}`"
-                :popup-class-name="pkg.hasGroups ? 'nc-workflow-pkg-submenu-popup' : ''"
-              >
-                <template #title>
-                  <div class="flex gap-2 items-center">
-                    <GeneralIcon v-if="pkg.icon" :icon="pkg.icon" class="!w-5 !h-5 stroke-transparent" />
-                    <span>{{ pkg.title }}</span>
-                  </div>
-                </template>
-                <NcMenuItem
-                  v-for="node in pkg.nodes"
-                  :key="node.id"
-                  :class="{
+              <PaymentUpgradeBadge
+                v-if="(node as any).locked"
+                :content="`Upgrade to ${(node as any).requiredPlan} plan to use ${node.title} node`"
+                :plan-title="(node as any).requiredPlan"
+              />
+            </div>
+          </NcMenuItem>
+          <template v-if="Object.keys(data.packages).length">
+            <NcDivider v-if="data.core.length" />
+            <NcMenuItemLabel class="!capitalize">Integrations</NcMenuItemLabel>
+            <NcSubMenu
+              v-for="(pkg, pkgName) in data.packages"
+              :key="`${_category}-${pkgName}`"
+              class="flex-none"
+              popup-class-name="nc-max-h-screen nc-scrollbar-thin"
+              :popup-offset="[6, -2]"
+            >
+              <template #title>
+                <div class="flex gap-2 items-center">
+                  <GeneralIcon v-if="pkg.icon" :icon="pkg.icon" class="!w-5 !h-5 stroke-transparent" />
+                  <span>{{ pkg.title }}</span>
+                </div>
+              </template>
+              <NcMenuItem
+                v-for="node in pkg.nodes"
+                :key="node.id"
+                :class="{
                     'locked-node': (node as any).locked,
                     '!cursor-not-allowed': (node as any).locked,
                   }"
-                  inner-class="w-full"
-                  class="w-65"
-                  @click="selectNodeOption(node)"
-                >
-                  <div class="flex gap-2 items-center justify-between w-full">
-                    <div class="flex gap-2 flex-1 items-center">
-                      <div
-                        :class="getNodeIconClass(node.category)"
-                        class="w-6 h-6 flex items-center justify-center rounded-md p-1"
-                      >
-                        <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
-                      </div>
-                      <div :class="{'opacity-50': (node as any).locked,}" class="text-nc-content-gray text-caption">
-                        {{ node.title }}
-                      </div>
+                inner-class="w-full"
+                class="w-65 flex-none"
+                @click="selectNodeOption(node)"
+              >
+                <div class="flex gap-2 items-center justify-between w-full">
+                  <div class="flex gap-2 flex-1 items-center">
+                    <div :class="getNodeIconClass(node.category)" class="w-6 h-6 flex items-center justify-center rounded-md p-1">
+                      <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
                     </div>
-                    <PaymentUpgradeBadge
-                      v-if="(node as any).locked"
-                      :content="`Upgrade to ${(node as any).requiredPlan} plan to use ${node.title} node`"
-                      :plan-title="(node as any).requiredPlan"
-                    />
+                    <div :class="{'opacity-50': (node as any).locked,}" class="text-nc-content-gray text-caption">
+                      {{ node.title }}
+                    </div>
                   </div>
-                </NcMenuItem>
+                  <PaymentUpgradeBadge
+                    v-if="(node as any).locked"
+                    :content="`Upgrade to ${(node as any).requiredPlan} plan to use ${node.title} node`"
+                    :plan-title="(node as any).requiredPlan"
+                  />
+                </div>
+              </NcMenuItem>
 
-                <!-- Sub-groups within package -->
-                <template v-if="pkg.hasGroups">
-                  <template v-for="group in pkg.groups" :key="group.label">
-                    <NcDivider v-if="pkg.nodes.length || pkg.groups.indexOf(group) > 0" />
-                    <NcMenuItemLabel class="!capitalize w-65">{{ group.label }}</NcMenuItemLabel>
-                    <NcMenuItem
-                      v-for="node in group.nodes"
-                      :key="node.id"
-                      :class="{
+              <!-- Sub-groups within package -->
+              <template v-if="pkg.hasGroups">
+                <template v-for="group in pkg.groups" :key="group.label">
+                  <NcDivider v-if="pkg.nodes.length || pkg.groups.indexOf(group) > 0" />
+                  <NcMenuItemLabel class="!capitalize w-65">{{ group.label }}</NcMenuItemLabel>
+                  <NcMenuItem
+                    v-for="node in group.nodes"
+                    :key="node.id"
+                    :class="{
                         'locked-node': (node as any).locked,
                         '!cursor-not-allowed': (node as any).locked,
                       }"
-                      inner-class="w-full"
-                      class="w-65"
-                      @click="selectNodeOption(node)"
-                    >
-                      <div class="flex gap-2 items-center justify-between w-full">
-                        <div class="flex gap-2 flex-1 items-center">
-                          <div
-                            :class="getNodeIconClass(node.category)"
-                            class="w-6 h-6 flex items-center justify-center rounded-md p-1"
-                          >
-                            <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
-                          </div>
-                          <div :class="{'opacity-50': (node as any).locked,}" class="text-nc-content-gray text-caption">
-                            {{ node.title }}
-                          </div>
+                    inner-class="w-full"
+                    class="w-65"
+                    @click="selectNodeOption(node)"
+                  >
+                    <div class="flex gap-2 items-center justify-between w-full">
+                      <div class="flex gap-2 flex-1 items-center">
+                        <div
+                          :class="getNodeIconClass(node.category)"
+                          class="w-6 h-6 flex items-center justify-center rounded-md p-1"
+                        >
+                          <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
                         </div>
-                        <PaymentUpgradeBadge
-                          v-if="(node as any).locked"
-                          :content="`Upgrade to ${(node as any).requiredPlan} plan to use ${node.title} node`"
-                          :plan-title="(node as any).requiredPlan"
-                        />
+                        <div :class="{'opacity-50': (node as any).locked,}" class="text-nc-content-gray text-caption">
+                          {{ node.title }}
+                        </div>
                       </div>
-                    </NcMenuItem>
-                  </template>
+                      <PaymentUpgradeBadge
+                        v-if="(node as any).locked"
+                        :content="`Upgrade to ${(node as any).requiredPlan} plan to use ${node.title} node`"
+                        :plan-title="(node as any).requiredPlan"
+                      />
+                    </div>
+                  </NcMenuItem>
                 </template>
-              </NcSubMenu>
-            </template>
-
-            <NcDivider v-if="index < Object.keys(categorizedNodes).length - 1" />
+              </template>
+            </NcSubMenu>
           </template>
-        </NcMenu>
-      </div>
+          <NcDivider v-if="index < Object.keys(categorizedNodes).length - 1" />
+        </template>
+      </NcMenu>
     </template>
   </NcDropdown>
 </template>
@@ -290,46 +277,6 @@ onClickOutside(
       rgba(251, 146, 60, 0.03) 20px
     );
     pointer-events: none;
-  }
-}
-</style>
-
-<style lang="scss">
-.nc-workflow-node-dropdown-overlay {
-  .nc-workflow-node-dropdown-scroll {
-    max-height: min(70vh, 560px);
-    overflow-y: auto;
-    border-radius: 8px;
-  }
-
-  .ant-dropdown-menu-item.nc-menu-item {
-    padding: 4px 8px;
-  }
-
-  .ant-dropdown-menu-submenu-title {
-    padding: 4px 8px;
-  }
-}
-
-// TODO: review, gap of main menu dropdown
-.nc-workflow-node-dropdown-scroll li {
-  height: auto !important;
-  padding-top: 0px;
-  padding-bottom: 0px;
-}
-
-// TODO: review, gap of integration nodes dropdown
-.nc-workflow-node-dropdown-scroll .ant-menu-submenu-title {
-  height: auto !important;
-}
-.nc-workflow-node-dropdown-scroll .nc-submenu-title span {
-  line-height: 8px !important;
-}
-
-.nc-workflow-pkg-submenu-popup {
-  .ant-dropdown-menu {
-    max-height: min(60vh, 480px);
-    overflow-y: auto;
   }
 }
 </style>

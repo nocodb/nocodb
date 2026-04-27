@@ -255,14 +255,14 @@ export class ViewColumnsService {
 
     const view = await View.get(context, viewId);
 
+    if (!view) {
+      NcError.get(context).viewNotFound('View not found');
+    }
+
     const updateOrInsertOptions: Promise<any>[] = [];
 
     let result: any;
     const ncMeta = await Noco.ncMeta.startTransaction();
-
-    if (!view) {
-      NcError.get(context).viewNotFound('View not found');
-    }
 
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {

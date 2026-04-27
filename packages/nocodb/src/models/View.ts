@@ -1951,7 +1951,7 @@ export default class View implements ViewType {
             },
           });
         })(link).catch((err) => {
-          console.log(`Error in related column cache clear:`, err);
+          logger.error(`Error in related column cache clear:`, err);
         });
       }
     }

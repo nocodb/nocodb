@@ -1,5 +1,8 @@
+import { Logger } from '@nestjs/common';
 import type { Base, Source } from '~/models';
 import KnexMigratorv2 from '~/db/sql-migrator/lib/KnexMigratorv2';
+
+const logger = new Logger('syncMigration');
 
 export default async function syncMigration(base: Base): Promise<void> {
   for (const source of await base.getSources()) {
@@ -17,8 +20,7 @@ export default async function syncMigration(base: Base): Promise<void> {
 
       await migrator.migrationsUp({ source });
     } catch (e) {
-      console.log(e);
-      // throw e;
+      logger.error(e);
     }
   }
 }

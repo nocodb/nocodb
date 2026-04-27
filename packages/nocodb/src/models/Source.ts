@@ -1,5 +1,6 @@
 import { UITypes } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import { Logger } from '@nestjs/common';
 import type { DriverClient } from '~/utils/nc-config';
 import type { BoolType, SourceType } from 'nocodb-sdk';
 import { NcContext } from '~/interface/config';
@@ -30,6 +31,8 @@ import {
   partialExtract,
 } from '~/utils';
 import { NcCache } from '~/decorators/nc-cache.decorator';
+
+const logger = new Logger('Source');
 
 export default class Source implements SourceType {
   id?: string;
@@ -222,7 +225,7 @@ export default class Source implements SourceType {
 
     // trigger cache clear and don't wait
     this.updateRelatedCaches(context, sourceId, ncMeta).catch((e) => {
-      console.error(e);
+      logger.error('Failed to update related caches for source', e);
     });
 
     // Bump Redis version so other servers invalidate on next read.

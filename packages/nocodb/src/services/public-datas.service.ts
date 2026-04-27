@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
   extractFilterFromXwhere,
   NcBaseError,
@@ -62,6 +62,8 @@ function sanitizePublicQuery<T extends Record<string, any>>(query: T): T {
 
 @Injectable()
 export class PublicDatasService {
+  protected readonly logger = new Logger(PublicDatasService.name);
+
   constructor(
     protected datasService: DatasService,
     @Inject(forwardRef(() => 'JobsService'))
@@ -409,7 +411,7 @@ export class PublicDatasService {
       count = await baseModel.count(listArgs);
     } catch (e) {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      console.log(e);
+      this.logger.error(e?.message ?? e);
       NcError.get(context).internalServerError(
         'Please check server log for more details',
       );
@@ -662,7 +664,7 @@ export class PublicDatasService {
         return item;
       });
     } catch (e) {
-      console.log(e);
+      this.logger.error(e?.message ?? e);
       NcError.internalServerError('Please check server log for more details');
     }
     return data;
@@ -831,7 +833,7 @@ export class PublicDatasService {
         count,
       });
     } catch (e) {
-      console.log(e);
+      this.logger.error(e?.message ?? e);
       NcError.internalServerError('Please check server log for more details');
     }
   }
@@ -1078,7 +1080,7 @@ export class PublicDatasService {
         customConditions,
       } as any);
     } catch (e) {
-      console.log(e);
+      this.logger.error(e?.message ?? e);
       NcError.internalServerError('Please check server log for more details');
     }
 

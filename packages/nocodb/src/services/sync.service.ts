@@ -88,7 +88,7 @@ export class SyncService {
     );
 
     this.appHooksService.emit(AppEvents.SYNC_SOURCE_UPDATE, {
-      syncSource,
+      syncSource: res,
       req: param.req,
       context,
     });

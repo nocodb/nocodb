@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerStorage } from '@nestjs/throttler/dist/throttler-storage.interface';
 import { Reflector } from '@nestjs/core';
 import { DataApiLimiterGuard as DataApiLimiterGuardCE } from 'src/guards/data-api-limiter.guard';
@@ -7,12 +6,13 @@ import type { NcRequest } from 'nocodb-sdk';
 import type { ExecutionContext } from '@nestjs/common';
 import { throttlerEnabled } from '~/helpers/redisHelpers';
 import { getApiTokenFromHeader } from '~/helpers';
+import { CanonicalThrottlerGuard } from '~/guards/canonical-throttler.guard';
 import Noco from '~/Noco';
 
 const HEADER_NAME_GUI = 'xc-auth';
 
 @Injectable()
-export class DataApiLimiterGuardEE extends ThrottlerGuard {
+export class DataApiLimiterGuardEE extends CanonicalThrottlerGuard {
   constructor(
     protected _config,
     protected storageService: ThrottlerStorage,

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerStorage } from '@nestjs/throttler/dist/throttler-storage.interface';
 import { Reflector } from '@nestjs/core';
 import { MetaApiLimiterGuard as MetaApiLimiterGuardCE } from 'src/guards/meta-api-limiter.guard';
 import type { ExecutionContext } from '@nestjs/common';
 import { throttlerEnabled } from '~/helpers/redisHelpers';
+import { CanonicalThrottlerGuard } from '~/guards/canonical-throttler.guard';
 import Noco from '~/Noco';
 
 /**
@@ -13,7 +13,7 @@ import Noco from '~/Noco';
  * Bearer token so each SCIM provisioning token gets its own bucket.
  */
 @Injectable()
-class ScimApiLimiterGuardEE extends ThrottlerGuard {
+class ScimApiLimiterGuardEE extends CanonicalThrottlerGuard {
   constructor(
     protected _config,
     protected storageService: ThrottlerStorage,

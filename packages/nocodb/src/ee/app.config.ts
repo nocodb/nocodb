@@ -60,7 +60,6 @@ const config: AppConfig = {
         30000,
     },
 
-    // todo: decide on xc-auth API limits
     data_gui: {
       ttl:
         +process.env.NC_RATE_LIMIT_DATA_GUI_DURATION ||
@@ -69,7 +68,7 @@ const config: AppConfig = {
       max_apis:
         +process.env.NC_RATE_LIMIT_DATA_GUI_MAX_REQUESTS ||
         +process.env.NC_DATA_GUI_COUNT ||
-        30000,
+        500,
       block_duration:
         +process.env.NC_RATE_LIMIT_DATA_GUI_BLOCK_DURATION ||
         +process.env.NC_DATA_GUI_BLOCK_DURATION ||
@@ -83,7 +82,7 @@ const config: AppConfig = {
       max_apis:
         +process.env.NC_RATE_LIMIT_META_GUI_MAX_REQUESTS ||
         +process.env.NC_META_GUI_COUNT ||
-        1000,
+        200,
       block_duration:
         +process.env.NC_RATE_LIMIT_META_GUI_BLOCK_DURATION ||
         +process.env.NC_META_GUI_BLOCK_DURATION ||

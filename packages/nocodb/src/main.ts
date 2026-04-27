@@ -8,7 +8,8 @@ server.disable('etag');
 server.disable('x-powered-by');
 server.use(
   cors({
-    exposedHeaders: 'xc-db-response',
+    exposedHeaders:
+      'xc-db-response, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-RateLimit-Policy, Retry-After',
   }),
 );
 

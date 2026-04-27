@@ -1,12 +1,15 @@
 import { Knex, knex } from 'knex';
 import { defaults, types } from 'pg';
 import dayjs from 'dayjs';
+import { Logger } from '@nestjs/common';
 import { CTEGenerator } from './cte-generator';
 import type { FilterType, NcContext } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
 import { NcError } from '~/helpers/catchError';
 import { isMuxEnabled } from '~/utils/envs';
+
+const logger = new Logger('CustomKnex');
 
 // refer : https://github.com/brianc/node-pg-types/blob/master/lib/builtins.js
 const pgTypes = {
@@ -1169,8 +1172,8 @@ function CustomKnex(
 
               if (!cb) {
                 // No callback => treat as “begin nested scope” and return same trx
-                console.warn(
-                  '[Warning]: Already in a transaction, returning the same transaction',
+                logger.warn(
+                  'Already in a transaction, returning the same transaction',
                 );
                 trx._nested++;
                 return trx;
@@ -1200,7 +1203,7 @@ function CustomKnex(
                 try {
                   return await fn();
                 } catch (error) {
-                  console.error(
+                  logger.error(
                     'Error occurred while running attached operation:',
                     error,
                   );
@@ -1280,7 +1283,7 @@ function CustomKnex(
           try {
             return await fn();
           } catch (error) {
-            console.error(
+            logger.error(
               'Error occurred while running attached operation:',
               error,
             );

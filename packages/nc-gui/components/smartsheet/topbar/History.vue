@@ -35,17 +35,23 @@ function onTrashClick() {
   <NcDropdown
     v-if="showHistoryTrigger"
     v-model:visible="visible"
-    placement="rightBottom"
-    overlay-class-name="!min-w-55 nc-history-menu-dropdown"
-    :align="{ offset: [0, 3] }"
+    placement="bottomRight"
+    overlay-class-name="!min-w-55"
+    :align="{ offset: [0, 6] }"
   >
-    <slot>
-      <div v-e="['c:sidebar:history']" class="nc-mini-sidebar-btn-full-width" data-testid="nc-sidebar-history-btn">
-        <div class="nc-mini-sidebar-btn" :class="{ active: visible }">
-          <GeneralIcon icon="ncHistory" class="h-4 w-4 !stroke-transparent" />
-        </div>
-      </div>
-    </slot>
+    <NcTooltip placement="bottom" :disabled="visible">
+      <template #title>{{ $t('labels.history') }}</template>
+      <NcButton
+        v-e="['c:topbar:history']"
+        type="text"
+        size="small"
+        class="nc-topbar-history-btn"
+        :class="{ '!bg-nc-bg-brand !text-nc-content-brand': visible }"
+        data-testid="nc-topbar-history-btn"
+      >
+        <GeneralIcon icon="ncHistory" class="w-4 h-4 !stroke-transparent" />
+      </NcButton>
+    </NcTooltip>
 
     <template #overlay>
       <NcMenu variant="small">
@@ -58,11 +64,11 @@ function onTrashClick() {
         <PaymentUpgradeBadgeProvider v-if="canSeeSnapshots" :feature="PlanFeatureTypes.FEATURE_EE_CORE">
           <template #default="{ click }">
             <NcMenuItem
-              data-testid="nc-sidebar-history-menu-snapshots"
+              data-testid="nc-topbar-history-menu-snapshots"
               inner-class="w-full"
               @click="click(PlanFeatureTypes.FEATURE_EE_CORE, isEeUI ? openSnapshots : undefined)"
             >
-              <div v-e="['c:sidebar:history-menu:snapshots']" class="flex gap-2 items-center w-full">
+              <div v-e="['c:topbar:history-menu:snapshots']" class="flex gap-2 items-center w-full">
                 <GeneralIcon icon="camera" class="h-4 w-4 text-nc-content-gray-subtle2" />
                 <div class="flex-1">{{ $t('labels.snapshots') }}</div>
                 <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_EE_CORE" show-as-lock />
@@ -74,11 +80,11 @@ function onTrashClick() {
         <PaymentUpgradeBadgeProvider v-if="canSeeBaseTrash" :feature="PlanFeatureTypes.FEATURE_EE_CORE">
           <template #default="{ click }">
             <NcMenuItem
-              data-testid="nc-sidebar-history-menu-trash"
+              data-testid="nc-topbar-history-menu-trash"
               inner-class="w-full"
               @click="click(PlanFeatureTypes.FEATURE_EE_CORE, isEeUI ? onTrashClick : undefined)"
             >
-              <div v-e="['c:sidebar:history-menu:trash']" class="flex gap-2 items-center w-full">
+              <div v-e="['c:topbar:history-menu:trash']" class="flex gap-2 items-center w-full">
                 <GeneralIcon icon="ncTrash2" class="h-4 w-4 text-nc-content-gray-subtle2" />
                 <div class="flex-1">{{ $t('title.baseTrash') }}</div>
                 <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_EE_CORE" show-as-lock />
@@ -89,35 +95,4 @@ function onTrashClick() {
       </NcMenu>
     </template>
   </NcDropdown>
-  <NcSpanHidden v-else />
 </template>
-
-<style lang="scss">
-.nc-history-menu-dropdown.nc-history-menu-dropdown {
-  overflow: visible !important;
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: -6px;
-    bottom: 13px;
-    width: 0;
-    height: 0;
-    border-top: 7px solid transparent;
-    border-bottom: 7px solid transparent;
-    border-right: 7px solid var(--nc-border-gray-medium);
-  }
-
-  &::after {
-    content: '';
-    position: absolute;
-    left: -5px;
-    bottom: 14px;
-    width: 0;
-    height: 0;
-    border-top: 6px solid transparent;
-    border-bottom: 6px solid transparent;
-    border-right: 6px solid var(--nc-bg-default);
-  }
-}
-</style>

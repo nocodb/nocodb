@@ -347,17 +347,6 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
     <!-- Bottom group -->
     <div class="nc-dock-bottom-group" :class="{ 'is-hovering': isHovering }">
-      <div
-        v-if="isEeUI && isBaseOpen"
-        :ref="(el: any) => setItemRef('history', el)"
-        class="nc-dock-magnify-wrapper"
-        :style="getMagnifyStyle('history')"
-      >
-        <DashboardMiniSidebarHistory>
-          <DashboardMiniSidebarV2DockItem icon="ncHistory" label="History" panel-key="history" :scale="1" />
-        </DashboardMiniSidebarHistory>
-      </div>
-
       <!-- Help -->
       <div :ref="(el: any) => setItemRef('help', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('help')">
         <DashboardMiniSidebarHelp>

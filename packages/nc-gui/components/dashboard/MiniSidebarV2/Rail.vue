@@ -271,10 +271,6 @@ const mainItems = computed<NavItem[]>(() => [
 
     <!-- Bottom group -->
     <div class="nc-rail-bottom-group">
-      <DashboardMiniSidebarHistory v-if="isEeUI && isBaseOpen">
-        <DashboardMiniSidebarV2RailItem icon="ncHistory" label="History" panel-key="history" is-dropdown />
-      </DashboardMiniSidebarHistory>
-
       <!-- Help -->
       <DashboardMiniSidebarHelp>
         <DashboardMiniSidebarV2RailItem icon="ncHelp" label="Help" panel-key="help" is-dropdown />

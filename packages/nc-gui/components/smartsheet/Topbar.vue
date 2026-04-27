@@ -85,6 +85,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
           v-if="!isPublic && !isSharedBase && !isMobileMode && openedViewsTab === 'view' && appInfo.ee"
         />
 
+        <LazySmartsheetTopbarHistory v-if="!isSharedBase && !isMobileMode && isEeUI" />
+
         <NcTooltip
           v-if="
             (isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&

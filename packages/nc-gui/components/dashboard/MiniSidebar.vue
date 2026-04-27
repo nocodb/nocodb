@@ -306,11 +306,6 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
           </div>
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
-      <DashboardMiniSidebarItemWrapper v-if="isEeUI && activeProjectId">
-        <NcTooltip :title="$t('labels.history')" placement="right" hide-on-click :arrow="false">
-          <DashboardMiniSidebarHistory />
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
     </div>
     <div class="flex flex-col items-center">
       <DashboardMiniSidebarItemWrapper>

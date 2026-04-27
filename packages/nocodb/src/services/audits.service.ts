@@ -1,17 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { UITypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 import { Audit, PresignedUrl } from '~/models';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { processConcurrently } from '~/utils/dataUtils';
 
 @Injectable()
 export class AuditsService {
-  constructor(
-    protected readonly appHooksListenerService: AppHooksListenerService,
-    protected readonly appHooksService: AppHooksService,
-  ) {}
+  constructor() {}
 
   async recordAuditList(
     context: NcContext,

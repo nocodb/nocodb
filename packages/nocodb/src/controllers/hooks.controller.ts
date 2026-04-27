@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  Logger,
   Param,
   Patch,
   Post,
@@ -25,6 +26,8 @@ import { NcContext, NcRequest } from '~/interface/config';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class HooksController {
+  private readonly logger = new Logger(HooksController.name);
+
   constructor(private readonly hooksService: HooksService) {}
 
   @Get([
@@ -111,7 +114,7 @@ export class HooksController {
       });
       return { msg: 'The hook has been tested successfully' };
     } catch (e) {
-      console.error(e);
+      this.logger.error(e.message, e.stack);
       NcError.get(context).webhookError(e.message);
     }
   }

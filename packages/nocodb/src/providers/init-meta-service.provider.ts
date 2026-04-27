@@ -41,7 +41,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
     process.env.NC_VERSION = '0258003';
 
     // set migration jobs version
-    process.env.NC_MIGRATION_JOBS_VERSION = '9';
+    process.env.NC_MIGRATION_JOBS_VERSION = '12';
 
     // init cache
     await NocoCache.init();

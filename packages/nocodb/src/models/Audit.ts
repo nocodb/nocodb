@@ -1,11 +1,14 @@
 import { type AuditV1OperationTypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
+import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { stringifyMetaProp } from '~/utils/modelUtils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+
+const logger = new Logger('Audit');
 
 export default class Audit {
   id?: string;
@@ -108,7 +111,7 @@ export default class Audit {
         return await insertAudit();
       } else {
         insertAudit().catch((e) => {
-          console.error('Error inserting audit', e);
+          logger.error('Error inserting audit', e);
         });
         return;
       }
@@ -207,7 +210,7 @@ export default class Audit {
     const offset = (Math.max(1, page ?? 1) - 1) * this.limit;
 
     if (!context.base_id) {
-      console.error('Invalid context for baseAuditList', context);
+      logger.error('Invalid context for baseAuditList', context);
       return [];
     }
 

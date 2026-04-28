@@ -14,7 +14,7 @@ import {
   shareViewActions,
   viewActions,
 } from '~/decorators/trace-command-descriptions';
-import { User, View } from '~/models';
+import { Model, User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { NcError } from '~/helpers/catchError';

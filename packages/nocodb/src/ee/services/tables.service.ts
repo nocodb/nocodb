@@ -42,46 +42,6 @@ export class TablesService extends TableServiceCE {
     );
   }
 
-  async tableDelete(
-    context: NcContext,
-    param: {
-      tableId: string;
-      user: User | UserType;
-      forceDeleteRelations?: boolean;
-      forceDeleteSyncs?: boolean;
-      skipLinkPlaceholder?: boolean;
-      skipTrash?: boolean;
-      req?: any;
-    },
-    ncMeta?: MetaService,
-  ) {
-    if (param.skipTrash) {
-      return super.tableDelete(context, param as any, ncMeta);
-    }
-
-    const table = await Model.get(context, param.tableId, false, ncMeta);
-    if (!table) {
-      NcError.get(context).tableNotFound(param.tableId);
-    }
-
-    await this.baseTrashService.trashResource(context, {
-      resourceId: param.tableId,
-      resourceType: 'table',
-      user: param.user,
-      req: param.req,
-      ncMeta,
-    });
-
-    this.appHooksServiceEE.emit(AppEvents.TABLE_DELETE, {
-      table,
-      user: param.user,
-      req: param.req,
-      context,
-    });
-
-    return true;
-  }
-
   @EEOnly()
   @TraceCommand({
     entity: MetaTable.MODELS,
@@ -266,17 +226,44 @@ export class TablesService extends TableServiceCE {
     context: NcContext,
     param: {
       tableId: string;
-      user: User;
+      user: User | UserType;
       forceDeleteRelations?: boolean;
       forceDeleteSyncs?: boolean;
+      skipLinkPlaceholder?: boolean;
+      skipTrash?: boolean;
       req?: any;
     },
+    ncMeta?: MetaService,
   ) {
     await assertNotSandboxMaster(
       context,
       'Deleting tables is not allowed on a base with an active sandbox. Delete the table in the sandbox.',
     );
 
-    return super.tableDelete(context, param);
+    if (param.skipTrash) {
+      return super.tableDelete(context, param as any, ncMeta);
+    }
+
+    const table = await Model.get(context, param.tableId, false, ncMeta);
+    if (!table) {
+      NcError.get(context).tableNotFound(param.tableId);
+    }
+
+    await this.baseTrashService.trashResource(context, {
+      resourceId: param.tableId,
+      resourceType: 'table',
+      user: param.user,
+      req: param.req,
+      ncMeta,
+    });
+
+    this.appHooksServiceEE.emit(AppEvents.TABLE_DELETE, {
+      table,
+      user: param.user,
+      req: param.req,
+      context,
+    });
+
+    return true;
   }
 }

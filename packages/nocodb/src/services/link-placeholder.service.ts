@@ -16,8 +16,9 @@ import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
+import { getUniqueColumnName } from '~/helpers/getUniqueName';
 import { Altered } from '~/services/columns.service';
-import { CacheScope, MetaTable } from '~/utils/globals';
+import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
@@ -40,8 +41,6 @@ export class LinkPlaceholderService {
   ): Promise<{ id: string } | null> {
     if (!table) return null;
 
-    const columnName = `${columnNamePrefix}${originalCol.id}`;
-
     const base = await Base.getWithInfo(ctx, table.base_id, true, ncMeta);
     const source = base?.sources?.find((s) => s.id === table.source_id);
     if (!source) return null;
@@ -49,6 +48,11 @@ export class LinkPlaceholderService {
     await table.getColumns(
       { ...ctx, workspace_id: table.fk_workspace_id, base_id: table.base_id },
       ncMeta,
+    );
+
+    const columnName = getUniqueColumnName(
+      table.columns ?? [],
+      `${columnNamePrefix}${originalCol.id}`,
     );
 
     const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
@@ -107,7 +111,11 @@ export class LinkPlaceholderService {
         dt: typeProps.dt,
         dtxp: typeProps.dtxp,
         dtxs: typeProps.dtxs,
-        order: originalCol.order,
+        order:
+          Math.max(
+            0,
+            ...(table.columns ?? []).map((c) => Number(c.order ?? 0)),
+          ) + 1,
       },
     );
 
@@ -142,16 +150,65 @@ export class LinkPlaceholderService {
     );
 
     // Add view column entries so the placeholder is visible in all views
-    await View.insertColumnToAllViews(
-      ctx,
-      {
-        fk_column_id: placeholderCol.id,
-        fk_model_id: originalCol.fk_model_id,
-        order: originalCol.order,
-        column_show: { show: true },
-      },
-      ncMeta,
-    );
+    try {
+      await View.insertColumnToAllViews(
+        ctx,
+        {
+          fk_column_id: placeholderCol.id,
+          fk_model_id: originalCol.fk_model_id,
+          order: placeholderCol.order,
+          column_show: { show: true },
+        },
+        ncMeta,
+      );
+    } catch (e) {
+      this.logger.error(
+        `insertColumnToAllViews failed for placeholder ${placeholderCol.id}; rolling back: ${e.message}`,
+        e.stack,
+      );
+
+      try {
+        await ncMeta.metaDelete(
+          ctx.workspace_id,
+          ctx.base_id,
+          MetaTable.COLUMNS,
+          placeholderCol.id,
+        );
+        await NocoCache.deepDel(
+          ctx,
+          `${CacheScope.COLUMN}:${placeholderCol.id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+
+        const sqlMgr = ProjectMgrv2.getSqlMgr(
+          ctx,
+          { id: source.base_id },
+          ncMeta,
+        );
+        await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
+          ...table,
+          tn: table.table_name,
+          originalColumns: [
+            ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
+            {
+              ...typeProps,
+              cn: columnName,
+              column_name: columnName,
+              title: originalCol.title,
+              uidt: UITypes.SingleLineText,
+            },
+          ],
+          columns: table.columns.map((c) => ({ ...c, cn: c.column_name })),
+        });
+      } catch (rollbackErr) {
+        this.logger.error(
+          `Rollback of placeholder ${placeholderCol.id} failed — manual cleanup required: ${rollbackErr.message}`,
+          rollbackErr.stack,
+        );
+      }
+
+      throw e;
+    }
 
     return placeholderCol;
   }
@@ -174,7 +231,12 @@ export class LinkPlaceholderService {
       MetaTable.COL_RELATIONS,
       { fk_column_id: originalCol.id },
     );
-    if (!colOpt) return;
+    if (!colOpt) {
+      this.logger.warn(
+        `populatePlaceholder skipped — no col_relations row for ${originalCol.id}`,
+      );
+      return;
+    }
 
     const relatedTable = await Model.get(
       ctx,
@@ -182,7 +244,12 @@ export class LinkPlaceholderService {
       true,
       ncMeta,
     );
-    if (!relatedTable) return;
+    if (!relatedTable) {
+      this.logger.warn(
+        `populatePlaceholder skipped — related table ${colOpt.fk_related_model_id} missing for ${originalCol.id}`,
+      );
+      return;
+    }
 
     await relatedTable.getColumns(
       {
@@ -199,10 +266,20 @@ export class LinkPlaceholderService {
     const pvCol =
       relatedTable.columns?.find((c) => c.pv) ??
       relatedTable.columns?.find((c) => c.pk);
-    if (!pvCol) return;
+    if (!pvCol) {
+      this.logger.warn(
+        `populatePlaceholder skipped — no pv/pk column on related table ${relatedTable.id}`,
+      );
+      return;
+    }
 
     const dbDriver = await NcConnectionMgrv2.get(source);
-    if (!dbDriver) return;
+    if (!dbDriver) {
+      this.logger.warn(
+        `populatePlaceholder skipped — no dbDriver for source ${source?.id}`,
+      );
+      return;
+    }
 
     const baseModel = await Model.getBaseModelSQL(
       ctx,
@@ -261,9 +338,12 @@ export class LinkPlaceholderService {
     const relTn = qTn(relatedTable);
     const phCn = placeholderColumnName;
 
+    // COALESCE so a single NULL doesn't contaminate the whole aggregate to
+    // NULL (PG behaviour). Ambiguity with values containing ", " is
+    // accepted as a placeholder-readability tradeoff.
     const aggFn = baseModel.isPg
-      ? `string_agg(${pvExpr}::text, ', ')`
-      : `GROUP_CONCAT(${pvExpr}, ', ')`;
+      ? `string_agg(COALESCE(${pvExpr}::text, ''), ', ')`
+      : `GROUP_CONCAT(COALESCE(${pvExpr}, '') SEPARATOR ', ')`;
 
     const isMMLike = isMMOrMMLike({ ...originalCol, colOptions: colOpt });
 

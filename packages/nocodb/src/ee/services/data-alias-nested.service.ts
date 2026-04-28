@@ -25,7 +25,7 @@ import {
 import { _wherePk } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
-import { Model, Source } from '~/models';
+import { Filter, Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const debugDataAliasNested = debug('nc:db:query:DataAliasNested');
@@ -188,6 +188,13 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
             )) ??
           refTable.views?.[0];
 
+        const customConditions = relColumn.meta?.enableConditions
+          ? (await Filter.rootFilterListByLink(
+              { ...baseModel.context, base_id: relColumn.base_id },
+              { columnId: relColumn.id },
+            )) || []
+          : [];
+
         const enriched = await listQueryEnrichment(
           dbQueryClient,
           this.logger,
@@ -207,6 +214,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           skipSortBasedOnOrderCol: true,
           listArgs,
           throwErrorIfInvalidParams,
+          customConditions,
         });
 
         const finalQb = enriched.finalQb;
@@ -348,6 +356,15 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           context.user,
         ));
 
+        // Load link conditions (dynamic field-to-field filters defined on
+        // the link column) so they are applied in the optimized query path
+        const customConditions = relColumn.meta?.enableConditions
+          ? (await Filter.rootFilterListByLink(
+              { ...baseModel.context, base_id: relColumn.base_id },
+              { columnId: relColumn.id },
+            )) || []
+          : [];
+
         const enriched = await listQueryEnrichment(
           dbQueryClient,
           this.logger,
@@ -368,6 +385,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           listArgs,
           throwErrorIfInvalidParams,
           innerQb: qb,
+          customConditions,
         });
 
         const finalQb = enriched.finalQb;
@@ -485,6 +503,13 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
             )) ??
           childTable.views?.[0];
 
+        const customConditions = relColumn.meta?.enableConditions
+          ? (await Filter.rootFilterListByLink(
+              { ...baseModel.context, base_id: relColumn.base_id },
+              { columnId: relColumn.id },
+            )) || []
+          : [];
+
         const enriched = await listQueryEnrichment(
           dbQueryClient,
           this.logger,
@@ -503,6 +528,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           listArgs,
           throwErrorIfInvalidParams,
           innerQb: qb,
+          customConditions,
         });
 
         const finalQb = enriched.finalQb;
@@ -625,6 +651,13 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           context.user,
         ));
 
+        const customConditions = relColumn.meta?.enableConditions
+          ? (await Filter.rootFilterListByLink(
+              { ...baseModel.context, base_id: relColumn.base_id },
+              { columnId: relColumn.id },
+            )) || []
+          : [];
+
         const enriched = await listQueryEnrichment(
           dbQueryClient,
           this.logger,
@@ -645,6 +678,7 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           listArgs,
           throwErrorIfInvalidParams,
           innerQb: qb,
+          customConditions,
         });
 
         const finalQb = enriched.finalQb;

@@ -253,7 +253,7 @@ export const CloudPlanDefinitions: Record<
     },
     limits: {
       [PlanLimitTypes.LIMIT_AI_TOKEN]: 10000,
-      [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
+      [PlanLimitTypes.LIMIT_API_PER_SECOND]: 5,
       [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180,
       [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 90,

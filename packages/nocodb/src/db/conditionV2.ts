@@ -246,16 +246,19 @@ const parseConditionV2 = async (
       return { clause: () => {}, rootApply: () => {} };
     }
 
-    // Handle dynamic filters (field-to-field comparison)
+    // Handle dynamic filters (field-to-field comparison):
+    // resolve fk_value_col_id to a knex.ref() so the normal conditionV2
+    // comparison logic compares column-to-column instead of column-to-literal
     if (filter.fk_value_col_id) {
-      const result = await handleDynamicFilter(
+      const resolved = await resolveDynamicFilterValue(
         context,
         knex,
         filter,
-        column,
         alias,
       );
-      if (result) return result;
+      if (resolved === false) {
+        return { clause: () => {}, rootApply: () => {} };
+      }
     }
 
     if (
@@ -1399,90 +1402,32 @@ const parseConditionV2 = async (
 };
 
 /**
- * Handle dynamic filters (field-to-field comparison).
- * When fk_value_col_id is set, the filter compares one column against
- * another column instead of a literal value (e.g. "FieldA = FieldB").
- * Returns undefined if the comparison_op is not supported for dynamic filters,
- * allowing the caller to fall through to normal handling.
+ * Resolve dynamic filter value column reference.
+ * When fk_value_col_id is set, replaces filter.value with a knex.ref()
+ * pointing to the target column, so the normal conditionV2 comparison
+ * logic produces column-to-column SQL (e.g. "FieldA" = "FieldB").
+ * Returns false if the value column cannot be found (caller should skip).
  */
-async function handleDynamicFilter(
+async function resolveDynamicFilterValue(
   context: NcContext,
   knex: Knex,
   filter: Filter,
-  column: Column,
   alias?: string,
-): Promise<FilterOperationResult | undefined> {
+): Promise<boolean> {
   const valueColumn = await Column.get(context, {
     colId: filter.fk_value_col_id,
   });
   if (!valueColumn) {
-    return { clause: () => {}, rootApply: () => {} };
+    return false;
   }
 
-  const sourceField = alias
-    ? `${alias}.${column.column_name}`
-    : column.column_name;
   const valueField = alias
     ? `${alias}.${valueColumn.column_name}`
     : valueColumn.column_name;
 
-  const comparisonOpMap: Record<string, string> = {
-    eq: '=',
-    neq: '!=',
-    gt: '>',
-    gte: '>=',
-    ge: '>=',
-    lt: '<',
-    lte: '<=',
-    le: '<=',
-  };
+  filter.value = knex.ref(valueField) as any;
 
-  const sqlOp = comparisonOpMap[filter.comparison_op];
-
-  if (sqlOp) {
-    return {
-      rootApply: undefined,
-      clause: (qb: Knex.QueryBuilder) => {
-        qb.where(knex.raw(`?? ${sqlOp} ??`, [sourceField, valueField]));
-      },
-    };
-  }
-
-  if (filter.comparison_op === 'like') {
-    return {
-      rootApply: undefined,
-      clause: (qb: Knex.QueryBuilder) => {
-        if (knex.clientType() === 'pg') {
-          qb.where(knex.raw(`?? ILIKE ??`, [sourceField, valueField]));
-        } else {
-          qb.where(knex.raw(`?? LIKE ??`, [sourceField, valueField]));
-        }
-      },
-    };
-  }
-
-  if (filter.comparison_op === 'nlike') {
-    return {
-      rootApply: undefined,
-      clause: (qb: Knex.QueryBuilder) => {
-        qb.where((nestedQb) => {
-          if (knex.clientType() === 'pg') {
-            nestedQb.whereNot(
-              knex.raw(`?? ILIKE ??`, [sourceField, valueField]),
-            );
-          } else {
-            nestedQb.whereNot(
-              knex.raw(`?? LIKE ??`, [sourceField, valueField]),
-            );
-          }
-          nestedQb.orWhereNull(sourceField);
-        });
-      },
-    };
-  }
-
-  // Unsupported op — fall through to normal handling
-  return undefined;
+  return true;
 }
 
 export async function extractLinkRelFiltersAndApply(_: {

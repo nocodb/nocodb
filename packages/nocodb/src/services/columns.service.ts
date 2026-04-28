@@ -151,6 +151,19 @@ const hasDuplicateOptionTitles = (
   );
 };
 
+// True when this column is a SingleSelect backed by a native PostgreSQL enum
+// type (introspected from an external source, with the type name remembered
+// in internal_meta.pg_enum_type_name). For these columns option add/rename
+// must go through ALTER TYPE; option delete needs a type rebuild (PG has no
+// DROP VALUE).
+const isPgNativeEnumColumn = (column: any, driverType: string): boolean => {
+  return (
+    driverType === 'pg' &&
+    column?.dt === 'USER-DEFINED' &&
+    !!column?.internal_meta?.pg_enum_type_name
+  );
+};
+
 function validateDateFormatMeta(context: NcContext, meta: unknown) {
   let parsed;
   try {
@@ -849,6 +862,48 @@ export class ColumnsService implements IColumnsService {
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
     sqlUi.adjustLengthAndScale(colBody);
 
+    // Native PG enum SingleSelect → another uidt: pre-convert the column to
+    // text in the DB (with USING cast) and clear the enum binding. This lets
+    // every downstream branch (MultiSelect conversion, text/number/etc.)
+    // operate on a plain text-backed column without dialect-specific casts.
+    // PG will keep the enum type itself in the catalog; the user can DROP TYPE
+    // manually if they no longer need it.
+    if (
+      column.uidt === UITypes.SingleSelect &&
+      colBody.uidt &&
+      colBody.uidt !== UITypes.SingleSelect &&
+      isPgNativeEnumColumn(column, sqlClientType)
+    ) {
+      const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+        Model.getBaseModelSQL(context, {
+          id: table.id,
+          dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+            NcConnectionMgrv2.get(source),
+          ),
+        }),
+      );
+      await sqlClient.raw(
+        `ALTER TABLE ?? ALTER COLUMN ?? TYPE text USING ??::text`,
+        [
+          baseModel.getTnPath(table.table_name),
+          column.column_name,
+          column.column_name,
+        ],
+      );
+      // Strip the enum binding from in-memory state so subsequent code paths
+      // see a vanilla text column.
+      const cleanedInternalMeta = { ...(column.internal_meta || {}) };
+      delete (cleanedInternalMeta as any).pg_enum_type_name;
+      column.internal_meta = cleanedInternalMeta;
+      column.dt = 'text';
+      // Persist immediately so a mid-update failure doesn't leave NocoDB
+      // metadata claiming the column is still bound to the enum type.
+      await Column.update(context, column.id, {
+        dt: 'text',
+        internal_meta: cleanedInternalMeta,
+      });
+    }
+
     // Store unique constraint name in internal_meta field when enabling unique constraint
     // This ensures we can drop the constraint even if table/column name changes later
     // internal_meta is an internal field (not exposed via API)
@@ -1216,6 +1271,79 @@ export class ColumnsService implements IColumnsService {
           NcConnectionMgrv2.get(source),
         );
         const driverType = dbDriver.clientType();
+
+        // Native PG enum staying as SingleSelect: option adds/renames go
+        // through ALTER TYPE on the existing type; option removes need a
+        // type rebuild (PG has no DROP VALUE). The existing text-backed PG
+        // branches further down (array_replace, array_remove) are skipped
+        // by this flag. Per-branch consumers re-derive the schema-qualified
+        // type name from `column.internal_meta` and `source` directly.
+        const isNativeEnumStaying =
+          colBody.uidt === UITypes.SingleSelect &&
+          isPgNativeEnumColumn(column, driverType);
+        // Whether the rebuild path runs after the rename loop. Set inside
+        // the entry block; gates the rebuild block further down.
+        let nativeEnumHasRemoves = false;
+
+        if (isNativeEnumStaying) {
+          const enumTypeName = column.internal_meta!.pg_enum_type_name!;
+          const enumSchema = source.getConfig()?.schema || 'public';
+          const qualifiedEnumType = `${enumSchema}.${enumTypeName}`;
+
+          // Validate: PG enums must have at least one value.
+          if ((colBody.colOptions?.options || []).length === 0) {
+            NcError.get(context).badRequest(
+              `Cannot remove all options from this field. ` +
+                `At least one option is required.`,
+            );
+          }
+
+          const removedTitles = (column.colOptions?.options || [])
+            .filter(
+              (oldOp) =>
+                !(colBody.colOptions?.options || []).find(
+                  (newOp) =>
+                    newOp.id === oldOp.id || newOp.title === oldOp.title,
+                ),
+            )
+            .map((op) => op.title);
+          nativeEnumHasRemoves = removedTitles.length > 0;
+
+          // If the column's existing default is one of the options being
+          // removed, the rebuild's `ALTER COLUMN TYPE … USING` would fail
+          // because PG tries to recast the default expression against the
+          // new (smaller) type. Bail with a clear message before any SQL
+          // runs — the user can clear/change the default in a separate edit
+          // (or include cdf in the same payload pointing at a kept option).
+          if (
+            nativeEnumHasRemoves &&
+            column.cdf &&
+            removedTitles.includes(column.cdf)
+          ) {
+            NcError.get(context).badRequest(
+              `Cannot remove option '${column.cdf}' because it is set as the ` +
+                `default value for this field. ` +
+                `Clear or change the default first.`,
+            );
+          }
+
+          // Apply ADDs only if no removes are pending. When removes exist we
+          // rebuild the type after the rename loop and the new option list
+          // is baked into CREATE TYPE — no separate ADD VALUE needed.
+          if (!nativeEnumHasRemoves) {
+            for (const newOp of colBody.colOptions?.options || []) {
+              const isExisting = (column.colOptions?.options || []).some(
+                (o) => o.id === newOp.id || o.title === newOp.title,
+              );
+              if (!isExisting) {
+                await sqlClient.raw('ALTER TYPE ?? ADD VALUE IF NOT EXISTS ?', [
+                  qualifiedEnumType,
+                  newOp.title,
+                ]);
+              }
+            }
+          }
+        }
 
         if (
           column.uidt === UITypes.SingleSelect &&
@@ -1699,16 +1827,30 @@ export class ColumnsService implements IColumnsService {
             }
 
             if (column.uidt === UITypes.SingleSelect) {
-              await baseModel.bulkUpdateAll(
-                {
-                  where: `(${column.title},eq,${option.title})`,
-                  skipValidationAndHooks: true,
-                  // include trash rows so restore lands on the renamed option
-                  includeSoftDeleted: true,
-                },
-                { [column.column_name]: newOp.title },
-                { cookie: req },
-              );
+              if (isNativeEnumStaying) {
+                // Native PG enum: RENAME VALUE rewrites the type catalog in
+                // place. Existing rows store enum OIDs, so they automatically
+                // reflect the new label — no row UPDATE needed.
+                const qualifiedEnumType = `${
+                  source.getConfig()?.schema || 'public'
+                }.${column.internal_meta!.pg_enum_type_name!}`;
+                await sqlClient.raw('ALTER TYPE ?? RENAME VALUE ? TO ?', [
+                  qualifiedEnumType,
+                  option.title,
+                  newOp.title,
+                ]);
+              } else {
+                await baseModel.bulkUpdateAll(
+                  {
+                    where: `(${column.title},eq,${option.title})`,
+                    skipValidationAndHooks: true,
+                    // include trash rows so restore lands on the renamed option
+                    includeSoftDeleted: true,
+                  },
+                  { [column.column_name]: newOp.title },
+                  { cookie: req },
+                );
+              }
             } else if (column.uidt === UITypes.MultiSelect) {
               if (driverType === 'mysql' || driverType === 'mysql2') {
                 if (colBody.dt === 'set') {
@@ -1767,16 +1909,30 @@ export class ColumnsService implements IColumnsService {
         for (const ch of interchange) {
           const newOp = ch.def_option;
           if (column.uidt === UITypes.SingleSelect) {
-            await baseModel.bulkUpdateAll(
-              {
-                where: `(${column.title},eq,${ch.temp_title})`,
-                skipValidationAndHooks: true,
-                // include trash rows so cyclic renames apply uniformly
-                includeSoftDeleted: true,
-              },
-              { [column.column_name]: newOp.title },
-              { cookie: req },
-            );
+            if (isNativeEnumStaying) {
+              // Second-pass rename: temp → final. By now every conflicting
+              // original value has been renamed away, so the destination
+              // label is free.
+              const qualifiedEnumType = `${
+                source.getConfig()?.schema || 'public'
+              }.${column.internal_meta!.pg_enum_type_name!}`;
+              await sqlClient.raw('ALTER TYPE ?? RENAME VALUE ? TO ?', [
+                qualifiedEnumType,
+                ch.temp_title,
+                newOp.title,
+              ]);
+            } else {
+              await baseModel.bulkUpdateAll(
+                {
+                  where: `(${column.title},eq,${ch.temp_title})`,
+                  skipValidationAndHooks: true,
+                  // include trash rows so cyclic renames apply uniformly
+                  includeSoftDeleted: true,
+                },
+                { [column.column_name]: newOp.title },
+                { cookie: req },
+              );
+            }
           } else if (column.uidt === UITypes.MultiSelect) {
             if (driverType === 'mysql' || driverType === 'mysql2') {
               if (colBody.dt === 'set') {
@@ -1832,6 +1988,65 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
+        // Native PG enum: rebuild the type when options were removed. PG has
+        // no `ALTER TYPE … DROP VALUE`, so rename the old type aside, CREATE
+        // a new one with the final option list, ALTER COLUMN to point at it,
+        // and DROP the old type. Renames were already applied to the old
+        // type by the loop above, so rows carry their final labels — the
+        // `value::text::newtype` cast resolves cleanly. The delete loop
+        // above also already NULLed cells holding removed values via
+        // bulkUpdateAll, so the cast for those rows yields NULL.
+        if (isNativeEnumStaying && nativeEnumHasRemoves) {
+          const enumTypeName = column.internal_meta!.pg_enum_type_name!;
+          const enumSchema = source.getConfig()?.schema || 'public';
+          const qualifiedEnumType = `${enumSchema}.${enumTypeName}`;
+          const tableNameRef = baseModel.getTnPath(table.table_name);
+          const finalLabels = (colBody.colOptions?.options || []).map(
+            (o) => o.title,
+          );
+          const tempTypeName = `${enumTypeName}_nc_old_${Date.now()}`;
+          const tempQualifiedEnumType = `${enumSchema}.${tempTypeName}`;
+          const labelPlaceholders = finalLabels.map(() => '?').join(', ');
+
+          // 1. Rename the existing type out of the way.
+          await sqlClient.raw('ALTER TYPE ?? RENAME TO ??', [
+            qualifiedEnumType,
+            tempTypeName,
+          ]);
+
+          // 2. Create the new type at the original name with the final list.
+          await sqlClient.raw(`CREATE TYPE ?? AS ENUM (${labelPlaceholders})`, [
+            qualifiedEnumType,
+            ...finalLabels,
+          ]);
+
+          // 3. Re-point the column at the new type.
+          await sqlClient.raw(
+            'ALTER TABLE ?? ALTER COLUMN ?? TYPE ?? USING ??::text::??',
+            [
+              tableNameRef,
+              column.column_name,
+              qualifiedEnumType,
+              column.column_name,
+              qualifiedEnumType,
+            ],
+          );
+
+          // 4. Drop the old type. May fail if PG finds another column /
+          //    function / index referencing it — in that case the rebuild
+          //    has still succeeded (column re-pointed, data preserved), the
+          //    orphan type just lingers in the catalog. Log and move on.
+          try {
+            await sqlClient.raw('DROP TYPE ??', [tempQualifiedEnumType]);
+          } catch (e: any) {
+            this.logger.warn(
+              `Could not drop ${tempQualifiedEnumType} after enum rebuild — ` +
+                `it is still referenced by another database object. ` +
+                `Field changes are persisted; orphan type left for manual cleanup.`,
+            );
+          }
+        }
+
         // handle trim value when converting it from SingleLineText cell to SingleSelect
         if (
           column.uidt === UITypes.SingleLineText &&
@@ -1878,6 +2093,18 @@ export class ColumnsService implements IColumnsService {
             });
           }
         }
+      }
+
+      // Native PG enum: getColumnPropsFromUIDT sets colBody.dt='text', but
+      // the column is actually still typed as USER-DEFINED in PG. Without
+      // this pin, alterTableColumn would see dt change from USER-DEFINED to
+      // text and emit a destructive ALTER COLUMN that tears down the native
+      // enum binding.
+      if (
+        colBody.uidt === UITypes.SingleSelect &&
+        isPgNativeEnumColumn(column, sqlClientType)
+      ) {
+        colBody.dt = 'USER-DEFINED';
       }
 
       await this.updateMetaAndDatabase(context, {

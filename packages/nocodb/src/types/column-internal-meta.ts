@@ -8,6 +8,13 @@ export interface ColumnInternalMeta {
    * Used to drop constraints even if table/column name changes
    */
   unique_constraint_name?: string;
+
+  /**
+   * PostgreSQL enum type name (udt_name) backing this SingleSelect column.
+   * Set during external schema introspection when pg_type.typtype = 'e'.
+   * Cleared when the column is converted away from native enum (to text/etc.).
+   */
+  pg_enum_type_name?: string;
 }
 
 /**
@@ -27,7 +34,7 @@ export function validateColumnInternalMeta(
   }
 
   // Check for unknown properties
-  const allowedKeys = ['unique_constraint_name'];
+  const allowedKeys = ['unique_constraint_name', 'pg_enum_type_name'];
   const keys = Object.keys(value);
   for (const key of keys) {
     if (!allowedKeys.includes(key)) {
@@ -46,6 +53,16 @@ export function validateColumnInternalMeta(
     }
     if (value.unique_constraint_name.trim() === '') {
       throw new Error('unique_constraint_name cannot be empty');
+    }
+  }
+
+  // Validate pg_enum_type_name if present
+  if (value.pg_enum_type_name !== undefined) {
+    if (typeof value.pg_enum_type_name !== 'string') {
+      throw new Error('pg_enum_type_name must be a string');
+    }
+    if (value.pg_enum_type_name.trim() === '') {
+      throw new Error('pg_enum_type_name cannot be empty');
     }
   }
 

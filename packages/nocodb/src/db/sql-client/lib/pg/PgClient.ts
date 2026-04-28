@@ -857,7 +857,12 @@ class PGClient extends KnexClient {
         INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
         INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
         WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
-                ) enum_values
+                ) enum_values,
+                (SELECT t.typtype
+        FROM "pg_type" "t"
+        INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
+        WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
+                ) udt_typtype
 
 
             from information_schema.columns c
@@ -933,8 +938,17 @@ class PGClient extends KnexClient {
         column.dtxs = response.rows[i].ns;
         column.au = response.rows[i].au;
         column.data_type_custom = response.rows[i].udt_name;
+        column.udt_typtype = response.rows[i].udt_typtype;
         if (column.dt === 'USER-DEFINED') {
           column.dtxp = response.rows[i].enum_values;
+          // Bind the column to its native PG enum type so columnUpdate can
+          // emit ALTER TYPE for option add/rename instead of touching cell data.
+          if (column.udt_typtype === 'e' && response.rows[i].udt_name) {
+            column.internal_meta = {
+              ...(column.internal_meta || {}),
+              pg_enum_type_name: response.rows[i].udt_name,
+            };
+          }
         }
 
         // handle identity column

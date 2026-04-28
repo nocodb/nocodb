@@ -1459,6 +1459,13 @@ export class PgUi implements SqlUi {
     switch (col.dt?.toLowerCase()) {
       case 'anyenum':
         return 'enum';
+      case 'user-defined':
+        // PG groups every user-defined type under data_type='USER-DEFINED'.
+        // Disambiguate via pg_type.typtype (plumbed by PgClient.columnList):
+        // 'e' enum, 'c' composite, 'd' domain, 'r' range, 'm' multirange,
+        // 'b' base (extensions like PostGIS, citext). Today only enum maps;
+        // future contributors can add cases here without conflicting.
+        return col.udt_typtype === 'e' ? 'enum' : 'string';
       case 'anynonarray':
       case 'anyrange':
         return 'string';

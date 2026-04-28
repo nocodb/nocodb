@@ -2428,12 +2428,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }): Promise<void> {
     // No-op — overridden in EE.
   }
-  public async afterSoftDeleteCompleted(_params: {
-    cookie: NcRequest;
-    operationNow: string;
-  }): Promise<void> {
-    // No-op — overridden in EE.
-  }
 
   async insert(data, request: NcRequest, trx?, _disableOptimization = false) {
     return await baseModelInsert(this).single(

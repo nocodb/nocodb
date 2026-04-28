@@ -849,6 +849,13 @@ export const dataWrapper = (data: any) => {
       id: string;
       title: string;
     }) => {
+      // Guard: callers occasionally pass null/undefined (e.g. an LTAR
+      // field with `null` value to mean unlink). The `in` operator
+      // throws on non-objects; treat as "not present".
+      if (data === null || typeof data !== 'object') {
+        return undefined;
+      }
+
       if (column.column_name in data) {
         return data[column.column_name];
       }

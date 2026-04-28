@@ -67,10 +67,11 @@ export class ImportTemplatePage extends BasePage {
 
     await this.get().locator('button:has-text("Back"):visible').waitFor();
     await this.waitForResponse({
-      requestUrlPathToMatch: '/api/v1/db/data/bulk/',
+      requestUrlPathToMatch: 'operation=dataImportFile',
       httpMethodsToMatch: ['POST'],
       uiAction: () => this.get().locator('button:has-text("Import"):visible').click(),
     });
+    await this.get().waitFor({ state: 'hidden' });
   }
 
   private async expandTableList(param: { index: number }) {

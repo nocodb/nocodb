@@ -270,6 +270,10 @@ const permissionScopes = {
     'mcpUpdate',
     'mcpDelete',
 
+    // Data Import
+    'dataImportPreview',
+    'dataImportFile',
+
     // etc
     'fetchViaUrl',
 
@@ -962,6 +966,9 @@ const permissionDescriptions: Record<string, string> = {
   mcpCreate: 'create a new MCP token',
   mcpUpdate: 'update an MCP token',
   mcpDelete: 'delete an MCP token',
+
+  dataImportPreview: 'preview file for import',
+  dataImportFile: 'import file into a table',
 };
 
 // Human-readable descriptions for roles

@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { toRaw, unref } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { type TableType, charsetOptions, charsetOptionsMap, ncHasProperties } from 'nocodb-sdk'
+import { type ColumnType, type TableType, charsetOptions, charsetOptionsMap } from 'nocodb-sdk'
 import { defineAsyncComponent } from 'vue'
-import rfdc from 'rfdc'
-import type { ProgressMessageObjType } from '../../helpers/parsers/TemplateGenerator'
 
 const {
   importType,
@@ -42,24 +39,13 @@ enum ImportTypeTabs {
   'uploadJSON' = 'uploadJSON',
 }
 
-const { $api, $importWorker } = useNuxtApp()
-
-let importWorker: Worker
+const { $api } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
-const config = useRuntimeConfig()
-
-const meta = inject(MetaInj, ref())
-
-const existingColumns = computed(() => meta.value?.columns?.filter((col) => !col.system) || [])
-
-const isWorkerSupport = typeof Worker !== 'undefined'
-
 const { t } = useI18n()
 
-const progressMsg = ref('Reading data ...')
-const progressMsgNew = ref<Record<string, string>>({})
+const progressMsg = 'Reading data ...'
 
 const workspace = useWorkspace()
 
@@ -79,11 +65,9 @@ const templateData = ref()
 
 const importData = ref()
 
-const importColumns = ref([])
+const importColumns = ref<ColumnType[][]>([])
 
 const templateEditorModal = ref(false)
-
-const isParsingData = ref(false)
 
 const collapseKey = ref('')
 
@@ -105,28 +89,38 @@ const { clone } = useUndoRedo()
 
 const useForm = Form.useForm
 
+// Parser settings (how to read the file) live here.
+const defaultParserConfig = {
+  firstRowAsHeaders: true,
+  normalizeNested: true,
+  autoSelectFieldTypes: true,
+  maxRowsToParse: 500,
+}
+
+// Post-parse decisions (what to do with the rows) live here. This matches
+// the backend shape — see `FileImportOptions` in nocodb-sdk.
+const defaultOptions = {
+  shouldImportData: true,
+  importDataOnly: false,
+  typecast: false,
+}
+
 const defaultImportState = {
   fileList: [] as importFileList | streamImportFileList,
   url: '',
   jsonEditor: {},
-  parserConfig: {
-    maxRowsToParse: 500,
-    normalizeNested: true,
-    autoSelectFieldTypes: true,
-    firstRowAsHeaders: true,
-    shouldImportData: true,
-    importDataOnly: true,
-  },
+  parserConfig: { ...defaultParserConfig },
+  options: { ...defaultOptions, importDataOnly },
 }
 const importState = reactive(clone(defaultImportState))
-
-const { token } = useGlobal()
 
 const isImportTypeJson = computed(() => importType === 'json')
 
 const isImportTypeCsv = computed(() => importType === 'csv')
 
 const IsImportTypeExcel = computed(() => importType === 'excel')
+
+const showMaxFileLimitError = ref(false)
 
 const validators = computed(() => ({
   url: [importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
@@ -141,7 +135,6 @@ const importMeta = computed(() => {
       icon: 'importExcel',
       uploadHint: '',
       urlInputLabel: t('msg.info.excelURL'),
-      loadUrlDirective: ['c:quick-import:excel:load-url'],
       acceptTypes: '.xls, .xlsx, .xlsm, .ods, .ots',
     }
   } else if (isImportTypeCsv.value) {
@@ -150,7 +143,6 @@ const importMeta = computed(() => {
       icon: 'importCsv',
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
-      loadUrlDirective: ['c:quick-import:csv:load-url'],
       acceptTypes: '.csv, text/csv, text/comma-separated-values, application/csv',
     }
   } else if (isImportTypeJson.value) {
@@ -171,9 +163,6 @@ watch(
   async (newValue) => {
     if (newValue) {
       Object.assign(importState, clone(defaultImportState))
-      if (isWorkerSupport) {
-        importWorker = await $importWorker?.get()
-      }
     }
   },
   { immediate: true },
@@ -199,6 +188,7 @@ const localImportError = ref('')
 
 const importError = computed(() => localImportError.value ?? templateEditorRef.value?.importError ?? '')
 
+// Only CSV supports multiple files; Excel and JSON are one file at a time.
 const maxFileUploadLimit = computed(() => (isImportTypeCsv.value ? 3 : 1))
 
 const hideUpload = computed(() => preImportLoading.value || importState.fileList.length >= maxFileUploadLimit.value)
@@ -243,68 +233,132 @@ const importBtnText = computed(() => {
 
 const disableImportButton = computed(() => !templateEditorRef.value?.isValid || isError.value)
 
-let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateAdapter | null
+function buildPreviewParserConfig(encoding = 'utf-8') {
+  return {
+    ...importState.parserConfig,
+    encoding,
+    delimiter: undefined as string | undefined,
+  }
+}
 
+function sanitizeTableName(raw: string) {
+  return (raw || 'file_import')
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
+    .trim()
+}
+
+async function uploadImportFile(file: File, contentType = 'multipart/form-data') {
+  const formData = new FormData()
+  formData.append('files', file)
+  const { data } = await $api.instance.post('/api/v1/db/data-import/upload', formData, {
+    headers: { 'Content-Type': contentType },
+  })
+  return data[0]
+}
+
+/**
+ * Uploads the selected source (files, URL, or JSON editor), previews each,
+ * and turns each preview sheet into a table entry for the editor.
+ */
 async function handlePreImport() {
   preImportLoading.value = true
-  isParsingData.value = true
   localImportError.value = ''
 
   if (!baseTables.value.get(baseId)) {
     await loadProjectTables(baseId)
   }
 
-  const isPreImportFileMode = isPreImportFileFilled.value && activeTab.value === ImportTypeTabs.upload
+  try {
+    // ── Collect upload targets: one entry per physical file
+    const isFileMode = isPreImportFileFilled.value && activeTab.value === ImportTypeTabs.upload
+    const targets: Array<{ attachment: any; fileName: string; encoding?: string }> = []
 
-  if (isImportTypeCsv.value) {
-    if (isPreImportFileMode) {
-      await parseAndExtractData(importState.fileList as streamImportFileList)
+    if (isFileMode) {
+      for (const file of importState.fileList as streamImportFileList) {
+        if (!file?.originFileObj) continue
+        targets.push({
+          attachment: await uploadImportFile(file.originFileObj as any),
+          fileName: file.name || 'file_import',
+          encoding: (file as any).encoding || 'utf-8',
+        })
+      }
+    } else if (isImportTypeJson.value && isPreImportJsonFilled.value) {
+      const blob = new Blob([JSON.stringify(importState.jsonEditor)], { type: 'application/json' })
+      targets.push({
+        attachment: await uploadImportFile(new File([blob], 'editor_input.json', { type: 'application/json' })),
+        fileName: 'editor_input.json',
+        encoding: 'utf-8',
+      })
     } else if (isPreImportUrlFilled.value) {
-      try {
-        await validate()
-        await parseAndExtractData(importState.url)
-      } catch (e: any) {
-        localImportError.value = await extractSdkResponseErrorMsg(e)
+      await validate()
+      const result = await $api.storage.uploadByUrl({}, [
+        { url: importState.url, fileName: importState.url.split('/').pop() || 'file-import' },
+      ])
+      targets.push({
+        attachment: result[0],
+        fileName: importState.url.split('/').pop() || 'file_import',
+        encoding: 'utf-8',
+      })
+    }
+
+    if (!targets.length) return
+
+    // ── Preview each file and fan its sheets into editor tables
+    const draftTableNames: string[] = []
+    const tables: any[] = []
+    const allImportData: Record<string, any[]> = {}
+    const allImportColumns: ColumnType[][] = []
+
+    for (const target of targets) {
+      const { sheets = [] } = (await $api.internal.postOperation(
+        activeWorkspace.value?.id,
+        baseId,
+        { operation: 'dataImportPreview' },
+        {
+          importType,
+          attachment: target.attachment,
+          parserConfig: buildPreviewParserConfig(target.encoding),
+        },
+      )) as { sheets: Array<{ name?: string; columns: ColumnType[]; previewData: any[]; totalRows: number }> }
+
+      const baseName = sanitizeTableName(target.fileName)
+      for (const sheet of sheets) {
+        const rawName = sheet.name ? sanitizeTableName(sheet.name) : baseName
+        const uniqueName = populateUniqueTableName(rawName, draftTableNames)
+        draftTableNames.push(uniqueName)
+
+        tables.push({
+          table_name: uniqueName,
+          ref_table_name: uniqueName,
+          columns: (sheet.columns || []).map((col) => ({ ...col, selected: true })),
+          _serverAttachment: target.attachment,
+          _sheetName: sheet.name,
+          _totalRows: sheet.totalRows ?? 0,
+        })
+        allImportData[uniqueName] = sheet.previewData ?? []
+        allImportColumns.push(sheet.columns ?? [])
       }
     }
-  } else if (isImportTypeJson.value) {
-    if (isPreImportFileMode) {
-      if (isWorkerSupport && importWorker) {
-        await parseAndExtractData(importState.fileList as streamImportFileList)
-      } else {
-        await parseAndExtractData((importState.fileList as importFileList)[0].data)
-      }
-    } else if (isPreImportJsonFilled.value) {
-      await parseAndExtractData(JSON.stringify(importState.jsonEditor))
+
+    templateData.value = { tables }
+    importData.value = allImportData
+    if (importDataOnly) {
+      importColumns.value = allImportColumns
     }
-  } else if (IsImportTypeExcel) {
-    if (isPreImportFileMode) {
-      if (isWorkerSupport && importWorker) {
-        await parseAndExtractData(importState.fileList as streamImportFileList)
-      } else {
-        await parseAndExtractData((importState.fileList as importFileList)[0].data)
-      }
-    } else if (isPreImportUrlFilled.value) {
-      try {
-        await validate()
-        await parseAndExtractData(importState.url)
-      } catch (e: any) {
-        localImportError.value = await extractSdkResponseErrorMsg(e)
-      }
-    }
+
+    templateEditorModal.value = true
+    showMaxFileLimitError.value = false
+  } catch (e: any) {
+    localImportError.value = (await extractSdkResponseErrorMsg(e)) || e?.toString()
+  } finally {
+    preImportLoading.value = false
   }
-
-  isParsingData.value = false
-  preImportLoading.value = false
 }
 
 async function handleImport() {
   localImportError.value = ''
   try {
-    if (!templateGenerator && !importWorker) {
-      localImportError.value = t('msg.error.templateGeneratorNotFound')
-      return
-    }
     importLoading.value = true
     await templateEditorRef.value.importTemplate()
 
@@ -316,8 +370,6 @@ async function handleImport() {
       workspace.loadWorkspace(activeWorkspace.value.id)
     }
   } catch (e: any) {
-    console.log(e)
-
     const errorMsg = await extractSdkResponseErrorMsg(e)
     localImportError.value = errorMsg
     return
@@ -336,37 +388,14 @@ function handleChange(info: UploadChangeParam) {
   const status = info.file.status
 
   if (status && status !== 'uploading' && status !== 'removed') {
-    if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
-      if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
-        ;(importState.fileList as streamImportFileList).push({
-          ...info.file,
-          status: 'done',
-          encoding: 'utf-8',
-        })
-      } else {
-        // need to set default encoding to utf-8
-        importState.fileList.find((f) => f.uid === info.file.uid)!.encoding = 'utf-8'
-      }
+    if (!importState.fileList.find((f) => f.uid === info.file.uid)) {
+      ;(importState.fileList as streamImportFileList).push({
+        ...info.file,
+        status: 'done',
+        encoding: 'utf-8',
+      })
     } else {
-      const reader = new FileReader()
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        const target = (importState.fileList as importFileList).find((f) => f.uid === info.file.uid)
-        if (e.target && e.target.result) {
-          /** if the file was pushed into the list by `<a-upload-dragger>` we just add the data to the file */
-          if (target) {
-            target.data = e.target.result
-          } else if (!target) {
-            /** if the file was added programmatically and not with d&d, we create file infos and push it into the list */
-            importState.fileList.push({
-              ...info.file,
-              status: 'done',
-              data: e.target.result,
-              encoding: 'utf-8',
-            })
-          }
-        }
-      }
-      reader.readAsArrayBuffer(info.file.originFileObj!)
+      importState.fileList.find((f) => f.uid === info.file.uid)!.encoding = 'utf-8'
     }
   }
 
@@ -395,48 +424,6 @@ function populateUniqueTableName(tn: string, draftTn: string[] = []) {
   return tn
 }
 
-function getAdapter(val: any) {
-  const isPreImportFileMode = isPreImportFileFilled.value && activeTab.value === ImportTypeTabs.upload
-
-  if (isImportTypeCsv.value) {
-    if (isPreImportFileMode) {
-      return new CSVTemplateAdapter(
-        val,
-        {
-          ...importState.parserConfig,
-          importFromURL: false,
-        },
-        undefined,
-        unref(existingColumns),
-      )
-    } else {
-      return new CSVTemplateAdapter(
-        val,
-        {
-          ...importState.parserConfig,
-          importFromURL: true,
-        },
-        undefined,
-        unref(existingColumns),
-      )
-    }
-  } else if (IsImportTypeExcel.value) {
-    if (isPreImportFileMode) {
-      return new ExcelTemplateAdapter(val, importState.parserConfig, undefined, undefined, unref(existingColumns))
-    } else {
-      return new ExcelUrlTemplateAdapter(val, importState.parserConfig, $api, undefined, undefined, unref(existingColumns))
-    }
-  } else if (isImportTypeJson.value) {
-    if (isPreImportFileMode) {
-      return new JSONTemplateAdapter(val, importState.parserConfig)
-    } else {
-      return new JSONTemplateAdapter(val, importState.parserConfig)
-    }
-  }
-
-  return null
-}
-
 defineExpose({
   handleChange,
 })
@@ -452,177 +439,18 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
   customReqArgs.onSuccess()
 }
 
-const showMaxFileLimitError = ref(false)
-
 /** check if the file size exceeds the limit */
 const beforeUpload = (file: UploadFile, fileList: UploadFile[]) => {
   if (importState.fileList.length + fileList.length > maxFileUploadLimit.value) {
     showMaxFileLimitError.value = true
   }
 
-  const exceedLimit = file.size! / 1024 / 1024 > 25
+  const maxSizeMB = Math.round((appInfo.value.ncDataImportFileSize || 100 * 1024 * 1024) / (1024 * 1024))
+  const exceedLimit = file.size! / 1024 / 1024 > maxSizeMB
   if (exceedLimit) {
-    message.error(`File ${file.name} is too big. The accepted file size is less than 25MB.`)
+    message.error(t('msg.error.fileTooLarge', { name: file.name, size: `${maxSizeMB}MB` }))
   }
   return !exceedLimit || Upload.LIST_IGNORE
-}
-
-// UploadFile[] for csv import (streaming)
-// ArrayBuffer for excel import
-function extractImportWorkerPayload(value: UploadFile[] | ArrayBuffer | string) {
-  let importType: ImportType
-  if (isImportTypeCsv.value) {
-    importType = ImportType.CSV
-  } else if (IsImportTypeExcel.value) {
-    importType = ImportType.EXCEL
-  } else if (isImportTypeJson.value) {
-    importType = ImportType.JSON
-  }
-  importType = importType! ?? ImportType.CSV
-
-  let importSource: ImportSource
-
-  const isPreImportFileMode = isPreImportFileFilled.value && activeTab.value === ImportTypeTabs.upload
-
-  if (isPreImportFileMode) {
-    importSource = ImportSource.FILE
-  } else if (isPreImportUrlFilled.value && importType !== ImportType.JSON) {
-    importSource = ImportSource.URL
-  } else if (importType === ImportType.JSON) {
-    importSource = ImportSource.STRING
-  }
-  importSource = importSource! ?? ImportSource.FILE
-
-  return {
-    config: {
-      ...toRaw(importState.parserConfig),
-      importFromURL: importSource === ImportSource.URL,
-      isEeUI,
-    },
-    existingColumns: rfdc()(unref(existingColumns)),
-    value,
-    importType,
-    importSource,
-  }
-}
-
-// string for json import
-async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
-  templateData.value = null
-  importData.value = null
-  importColumns.value = []
-  try {
-    // if the browser supports web worker, use it to parse the file and process the data
-    if (isWorkerSupport && importWorker) {
-      importWorker.postMessage([
-        ImportWorkerOperations.INIT_SDK,
-        {
-          baseURL: config.public.ncBackendUrl || appInfo.value.ncSiteUrl || BASE_FALLBACK_URL,
-          token: token.value,
-        },
-      ])
-
-      let value = toRaw(val)
-
-      // if array, iterate and unwrap proxy
-      if (Array.isArray(value)) value = value.map((v) => toRaw(v))
-
-      const payload = extractImportWorkerPayload(value)
-
-      importWorker.postMessage([
-        ImportWorkerOperations.SET_TABLES,
-        unref(baseTables.value.get(baseId) ?? []).map((t) => ({
-          table_name: t.table_name,
-          title: t.title,
-        })),
-      ])
-      importWorker.postMessage([
-        ImportWorkerOperations.SET_CONFIG,
-        {
-          importDataOnly,
-          importColumns: !!importColumns.value,
-          importData: !!importData.value,
-          isEeUI,
-        },
-      ])
-
-      const response: {
-        templateData: any
-        importColumns: any
-        importData: any
-      } = await new Promise((resolve, reject) => {
-        const handler = (e: MessageEvent) => {
-          const [type, payload] = e.data
-          switch (type) {
-            case ImportWorkerResponse.PROCESSED_DATA:
-              resolve(payload)
-              importWorker?.removeEventListener('message', handler, false)
-              break
-            case ImportWorkerResponse.PROGRESS:
-              if (ncHasProperties<ProgressMessageObjType>(payload, ['title', 'value'])) {
-                progressMsgNew.value = { ...progressMsgNew.value, [payload.title]: payload?.value ?? '' }
-              } else {
-                progressMsg.value = payload
-              }
-
-              break
-            case ImportWorkerResponse.ERROR:
-              reject(payload)
-              importWorker?.removeEventListener('message', handler, false)
-              break
-          }
-        }
-        importWorker?.addEventListener('message', handler, false)
-
-        importWorker?.postMessage([ImportWorkerOperations.PROCESS, payload])
-      })
-      templateData.value = response.templateData
-      importColumns.value = response.importColumns
-      importData.value = response.importData
-    }
-    // otherwise, use the main thread to parse the file and process the data
-    else {
-      templateGenerator = getAdapter(val)
-
-      if (!templateGenerator) {
-        localImportError.value = t('msg.error.templateGeneratorNotFound')
-        return
-      }
-
-      await templateGenerator.init()
-
-      await templateGenerator.parse()
-
-      templateData.value = templateGenerator!.getTemplate()
-      if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
-      else {
-        // ensure the target table name not exist in current table list
-        const draftTableNames = [] as string[]
-
-        templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => {
-          const table_name = populateUniqueTableName(table.table_name, draftTableNames)
-          draftTableNames.push(table_name)
-          return { ...table, table_name }
-        })
-      }
-      importData.value = templateGenerator!.getData()
-    }
-
-    templateEditorModal.value = true
-    showMaxFileLimitError.value = false
-  } catch (e: any) {
-    console.log(e)
-
-    /**
-     * If it is import url and it fail to send req due to cross origin or any other reason the e type will be string
-     * @example: Failed to execute 'send' on 'XMLHttpRequest': Failed to load '<url>'
-     */
-    if (typeof e === 'string' && isPreImportUrlFilled.value && activeTab.value === ImportTypeTabs.uploadFromUrl) {
-      localImportError.value = e.replace(importState.url, '').replace(/''/, '')
-    } else {
-      localImportError.value = (await extractSdkResponseErrorMsg(e)) || e?.toString()
-    }
-  }
 }
 
 const onError = () => {
@@ -634,12 +462,13 @@ const onChange = () => {
 }
 
 onMounted(() => {
-  importState.parserConfig.importDataOnly = importDataOnly
-  importState.parserConfig.autoSelectFieldTypes = importDataOnly
+  // When importing into an existing table we want exact column names from the
+  // source so the user-supplied mapping wins — skip type auto-detection.
+  importState.parserConfig.autoSelectFieldTypes = !importDataOnly
+  importState.options.importDataOnly = importDataOnly
 })
 
 const onCancelImport = () => {
-  $importWorker.terminate()
   Object.assign(importState, defaultImportState)
   preImportLoading.value = false
   importLoading.value = false
@@ -648,7 +477,6 @@ const onCancelImport = () => {
   importColumns.value = []
 
   templateEditorModal.value = false
-  isParsingData.value = false
   temporaryJson.value = {}
   jsonErrorText.value = ''
   isError.value = false
@@ -750,9 +578,10 @@ watch(
           :import-data-only="importDataOnly"
           :quick-import-type="importType"
           :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+          :parser-config="importState.parserConfig"
+          :options="importState.options"
           :base-id="baseId"
           :source-id="sourceIdRef"
-          :import-worker="importWorker"
           :table-icon="importMeta.icon"
           class="nc-quick-import-template-editor"
           @import="handleImport"
@@ -863,14 +692,14 @@ watch(
                       </template>
                       <template v-else>
                         <NcTooltip
-                          :key="progressMsgNew[file.name] || progressMsg"
+                          :key="progressMsg"
                           class="!max-w-[120px] min-w-[120p] !leading-[18px] truncate"
                           show-on-truncate-only
                         >
-                          <template #title> {{ progressMsgNew[file.name] || progressMsg }}</template>
+                          <template #title> {{ progressMsg }}</template>
 
                           <span class="!text-small text-nc-content-gray-muted">
-                            {{ progressMsgNew[file.name] || progressMsg }}
+                            {{ progressMsg }}
                           </span>
                         </NcTooltip>
                         <GeneralLoader class="flex text-nc-content-brand" size="medium" />
@@ -921,16 +750,14 @@ watch(
                         </span>
                         <template v-if="preImportLoading">
                           <NcTooltip
-                            :key="progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg"
+                            :key="progressMsg"
                             class="!max-w-1/2 min-w-[120p] !leading-[18px] truncate"
                             show-on-truncate-only
                           >
-                            <template #title>
-                              {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}</template
-                            >
+                            <template #title> {{ progressMsg }}</template>
 
                             <span class="!text-small text-nc-content-gray-muted">
-                              {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}
+                              {{ progressMsg }}
                             </span>
                           </NcTooltip>
                           <GeneralLoader class="flex text-nc-content-brand" size="medium" />
@@ -959,15 +786,11 @@ watch(
                   <div class="flex-1" />
 
                   <template v-if="preImportLoading">
-                    <NcTooltip
-                      :key="progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg"
-                      class="!max-w-1/2 min-w-[120p] !leading-[25px] truncate"
-                      show-on-truncate-only
-                    >
-                      <template #title> {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}</template>
+                    <NcTooltip :key="progressMsg" class="!max-w-1/2 min-w-[120p] !leading-[25px] truncate" show-on-truncate-only>
+                      <template #title> {{ progressMsg }}</template>
 
                       <span class="!text-small text-nc-content-gray-muted">
-                        {{ progressMsgNew[importState.url.split('/').pop() ?? ''] || progressMsg }}
+                        {{ progressMsg }}
                       </span>
                     </NcTooltip>
                     <GeneralLoader class="flex text-nc-content-brand" size="medium" />
@@ -1070,7 +893,7 @@ watch(
             </a-form-item>
 
             <a-form-item v-if="!importDataOnly" class="!my-2 nc-dense-checkbox-container">
-              <NcCheckbox v-model:checked="importState.parserConfig.shouldImportData">{{ $t('labels.importData') }} </NcCheckbox>
+              <NcCheckbox v-model:checked="importState.options.shouldImportData">{{ $t('labels.importData') }} </NcCheckbox>
             </a-form-item>
           </a-collapse-panel>
         </a-collapse>

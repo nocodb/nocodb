@@ -383,3 +383,5 @@ These are backend-specific — see root CLAUDE.md for universal anti-patterns.
 | Add `AppEvents` enum without wiring overloads | Add event interface in `interfaces.ts`, `on()` + `emit()` overloads in `app-hooks.service.ts`, include `context` in payload |
 | Add operation to `operationScopes` but not ACL | Every operation needs entries in BOTH `permissionScopes` AND `permissionDescriptions` in `acl.ts` |
 | Broadcast realtime base events without `base_id` in payload | Frontend relies on `payload.base_id` (table events) or `payload.table.base_id` (column events) to scope updates — missing it causes cross-base leaks |
+| Use inline `require()` instead of top-level `import` | Always use `import` at the top of the file — inline `require()` breaks type checking, tree-shaking, and is inconsistent with the codebase |
+| Fetch user-supplied URLs without SSRF protection | Use `request-filtering-agent` (`useAgent(url)` for `httpAgent`/`httpsAgent`) to block private IPs and internal endpoints |

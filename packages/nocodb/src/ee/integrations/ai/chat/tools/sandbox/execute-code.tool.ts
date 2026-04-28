@@ -1,4 +1,3 @@
-import path from 'path';
 import { Readable } from 'stream';
 import { z } from 'zod';
 import { Sandbox } from '@e2b/code-interpreter';
@@ -7,7 +6,7 @@ import { ChatToolName } from '~/integrations/ai/chat/tools/tool-names';
 import { defineChatTool } from '~/integrations/ai/chat/tools/define-chat-tool';
 import { E2B_API_KEY, E2B_TEMPLATE_ID } from '~/integrations/ai/chat/constants';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { getPathFromUrl } from '~/helpers/attachmentHelpers';
+import { resolveAttachmentFilePath } from '~/helpers/attachmentHelpers';
 
 const logger = new Logger('ExecuteCodeTool');
 
@@ -69,14 +68,8 @@ export const executeCodeTool = defineChatTool({
           try {
             let relativePath: string | undefined;
 
-            if (file.path) {
-              relativePath = path.join(
-                'nc',
-                'uploads',
-                file.path.replace(/^download[/\\]/i, ''),
-              );
-            } else if (file.url) {
-              relativePath = getPathFromUrl(file.url).replace(/^\/+/, '');
+            if (file.path || file.url) {
+              relativePath = resolveAttachmentFilePath(file);
             }
 
             if (!relativePath) continue;

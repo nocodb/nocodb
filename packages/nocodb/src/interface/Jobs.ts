@@ -1,7 +1,12 @@
 import type { AttachmentUrlUploadParam } from '~/types/data-columns/attachment';
 import type {
+  AttachmentReqType,
   AttachmentResType,
   ChatUIContext,
+  FileImportOptions,
+  FileImportParserConfig,
+  FileImportSheet,
+  FileImportType,
   PublicAttachmentScope,
   SnapshotType,
   SupportedExportCharset,
@@ -71,6 +76,7 @@ export enum JobTypes {
   ChatMessage = 'chat-message',
   ChatApproval = 'chat-approval',
   BaseTrashCleanUp = 'base-trash-clean-up',
+  DataImport = 'data-import',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -334,4 +340,15 @@ export interface ChatApprovalJobData extends JobData {
   sessionId: string;
   messageId: string;
   decisions: Record<string, 'approved' | 'denied'>;
+}
+
+export interface DataImportJobData extends JobData {
+  baseId: string;
+  sourceId: string;
+  importType: FileImportType;
+  attachment: AttachmentReqType;
+  sheets: FileImportSheet[];
+  parserConfig: FileImportParserConfig;
+  options: FileImportOptions;
+  req: NcRequest;
 }

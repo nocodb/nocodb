@@ -95,7 +95,18 @@ export type InternalPOSTResponseType = Promise<
       unlink: (string | number | Record<string, any>)[];
     }[]
   | { message: string }
+  | {
+      sheets: {
+        name?: string;
+        columns: any[];
+        previewData: any[];
+        totalSampleRows: number;
+        totalRows: number;
+        detectedDelimiter?: string;
+      }[];
+    }
   | { deleted: number; failed: { id: string; error: string }[] }
+  | { id: string; name?: string }
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

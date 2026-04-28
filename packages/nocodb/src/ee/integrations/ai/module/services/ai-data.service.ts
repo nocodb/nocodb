@@ -1,4 +1,3 @@
-import path from 'path';
 import { Readable } from 'stream';
 import { Injectable, Logger } from '@nestjs/common';
 import {
@@ -35,7 +34,7 @@ import {
   generateFromButtonSystemMessage,
   generateRowsSystemMessage,
 } from '~/integrations/ai/module/prompts';
-import { getPathFromUrl } from '~/helpers/attachmentHelpers';
+import { resolveAttachmentFilePath } from '~/helpers/attachmentHelpers';
 import { serialize } from '~/helpers/serialize';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
 
@@ -207,14 +206,8 @@ const prepareAttachments = async (referencedColumns, records) => {
       for (const at of record[col.title] || []) {
         let relativePath;
 
-        if (at.path) {
-          relativePath = path.join(
-            'nc',
-            'uploads',
-            at.path.replace(/^download[/\\]/i, ''),
-          );
-        } else if (at.url) {
-          relativePath = getPathFromUrl(at.url).replace(/^\/+/, '');
+        if (at.path || at.url) {
+          relativePath = resolveAttachmentFilePath(at);
         }
 
         const attachment = {

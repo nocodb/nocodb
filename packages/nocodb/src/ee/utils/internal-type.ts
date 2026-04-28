@@ -194,6 +194,16 @@ export type InternalPOSTResponseType = Promise<
   | { added: boolean; reaction: any }
   | { [key: string]: string }[]
   | {
+      sheets: {
+        name?: string;
+        columns: any[];
+        previewData: any[];
+        totalSampleRows: number;
+        totalRows: number;
+        detectedDelimiter?: string;
+      }[];
+    }
+  | {
       link: (string | number | Record<string, any>)[];
       unlink: (string | number | Record<string, any>)[];
     }[]

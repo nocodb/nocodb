@@ -30,6 +30,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
 import { ATTACHMENT_ROOTS, localFileExists } from '~/helpers/attachmentHelpers';
+import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
 
 @Controller()
 export class AttachmentsSecureController {
@@ -72,6 +73,27 @@ export class AttachmentsSecureController {
     });
 
     return attachments;
+  }
+
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Post(['/api/v1/db/data-import/upload'])
+  @HttpCode(200)
+  @UseInterceptors(
+    UploadAllowedInterceptor,
+    AnyFilesInterceptor({
+      limits: {
+        fileSize: NC_DATA_IMPORT_FILE_SIZE,
+      },
+    }),
+  )
+  async dataImportUpload(
+    @UploadedFiles() files: Array<FileType>,
+    @Req() req: NcRequest & { user: { id: string } },
+  ) {
+    return await this.attachmentsService.upload({
+      files,
+      req,
+    });
   }
 
   @Get('/dltemp/:param(*)')

@@ -1,14 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { EventType, MetaEventType, SqlUiFactory } from 'nocodb-sdk';
+import { MetaEventType, SqlUiFactory } from 'nocodb-sdk';
 import type { NcContext, UITypes } from 'nocodb-sdk';
 import type {
   AffectedDependencyResult,
   MetaDependencyEventRequest,
   MetaEventHandler,
 } from '~/services/meta-dependency/types';
-import { Source, View } from '~/models';
-import { MetaTable } from '~/utils/globals';
-import NocoSocket from '~/socket/NocoSocket';
+import { Source } from '~/models';
 import Noco from '~/Noco';
 import { FiltersService } from '~/services/filters.service';
 
@@ -58,20 +56,6 @@ export class ColumnUpdateFilterOperatorDependencyHandler
     const newCol = param.newEntity;
     if (!oldCol?.id || !newCol?.id) return;
 
-    // Snapshot view IDs whose filters may be rewritten so we can broadcast.
-    const affectedViewIds = new Set<string>(
-      (
-        await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.FILTER_EXP,
-          { condition: { fk_column_id: oldCol.id } },
-        )
-      )
-        .map((f: any) => f.fk_view_id)
-        .filter(Boolean),
-    );
-
     try {
       const source = await Source.get(context, oldCol.source_id, false, ncMeta);
       const sqlUi = source
@@ -92,32 +76,6 @@ export class ColumnUpdateFilterOperatorDependencyHandler
       this.logger.error(
         `Failed to transform filters for column type change: ${error.message}`,
         error.stack,
-      );
-    }
-
-    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
-      this.logger.error(
-        `Failed to broadcast view_update events: ${e?.message}`,
-        e?.stack,
-      ),
-    );
-  }
-
-  private async broadcastViewUpdates(
-    context: NcContext,
-    viewIds: Set<string>,
-  ): Promise<void> {
-    for (const viewId of viewIds) {
-      const view = await View.get(context, viewId, false, Noco.ncMeta);
-      if (!view) continue;
-      await view.getView(context, Noco.ncMeta);
-      NocoSocket.broadcastEvent(
-        context,
-        {
-          event: EventType.META_EVENT,
-          payload: { action: 'view_update', payload: view },
-        },
-        context.socket_id,
       );
     }
   }

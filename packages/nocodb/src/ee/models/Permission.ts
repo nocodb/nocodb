@@ -96,9 +96,9 @@ export default class Permission {
         )
       `,
       sqlite3: `
-        CASE 
-          WHEN COUNT(${subjectIdField}) = 0 
-          THEN '[]' 
+        CASE
+          WHEN COUNT(${subjectIdField}) = 0
+          THEN '[]'
           ELSE json_group_array(${query})
         END
       `,
@@ -106,6 +106,36 @@ export default class Permission {
 
     // fallback to mysql2 query
     return knex.raw(exprMap[client] || exprMap.mysql2);
+  }
+
+  /**
+   * Build a subquery that aggregates permission subjects into a JSON array,
+   * grouped by fk_permission_id. This avoids GROUP BY on the main permissions
+   * table, which can fail on PostgreSQL if the primary key state is ambiguous
+   * (e.g. during composite PK migration).
+   */
+  private static getSubjectsSubquery(ncMeta = Noco.ncMeta) {
+    const jsonObjectExpr = this.getJsonObjectExpression(
+      ncMeta,
+      'subject_type',
+      'subject_id',
+      'hierarchy_scope',
+    );
+
+    const jsonArrayAggExpr = this.getJsonArrayAggExpression(
+      ncMeta,
+      jsonObjectExpr,
+      'subject_id',
+    );
+
+    return ncMeta
+      .knexConnection(MetaTable.PERMISSION_SUBJECTS)
+      .select([
+        'fk_permission_id',
+        ncMeta.knex.raw(`${jsonArrayAggExpr.toQuery()} as subjects`),
+      ])
+      .groupBy('fk_permission_id')
+      .as('_ps');
   }
 
   public static async get(
@@ -120,44 +150,34 @@ export default class Permission {
     );
 
     if (!permission) {
-      // Use JOIN query to fetch permission with subjects
-      const jsonObjectExpr = this.getJsonObjectExpression(
-        ncMeta,
-        `${MetaTable.PERMISSION_SUBJECTS}.subject_type`,
-        `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
-        `${MetaTable.PERMISSION_SUBJECTS}.hierarchy_scope`,
-      );
-
-      const jsonArrayAggExpr = this.getJsonArrayAggExpression(
-        ncMeta,
-        jsonObjectExpr,
-        `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
-      );
+      // Use a subquery for subjects aggregation to avoid GROUP BY on the
+      // main permissions table (which can fail on PG with ambiguous PK state).
+      const subjectsSubquery = this.getSubjectsSubquery(ncMeta);
 
       const query = ncMeta
         .knexConnection(MetaTable.PERMISSIONS)
         .select([
           `${MetaTable.PERMISSIONS}.*`,
-          ncMeta.knex.raw(`${jsonArrayAggExpr.toQuery()} as subjects`),
+          ncMeta.knex.raw("COALESCE(_ps.subjects, '[]') as subjects"),
         ])
         .leftJoin(
-          MetaTable.PERMISSION_SUBJECTS,
+          subjectsSubquery,
           `${MetaTable.PERMISSIONS}.id`,
-          `${MetaTable.PERMISSION_SUBJECTS}.fk_permission_id`,
+          '_ps.fk_permission_id',
         )
         .where(`${MetaTable.PERMISSIONS}.id`, permissionId)
         .where(`${MetaTable.PERMISSIONS}.fk_workspace_id`, context.workspace_id)
         .where(`${MetaTable.PERMISSIONS}.base_id`, context.base_id)
-        .groupBy([
-          `${MetaTable.PERMISSIONS}.base_id`,
-          `${MetaTable.PERMISSIONS}.id`,
-        ])
         .first();
 
       permission = await query;
 
       if (permission) {
-        // Subjects are already JSON objects from the aggregation function
+        // Parse subjects from JSON string if needed (SQLite/MySQL may return string)
+        if (typeof permission.subjects === 'string') {
+          permission.subjects = parseProp(permission.subjects, []);
+        }
+
         // Ensure subjects is always an array
         if (!permission.subjects || !Array.isArray(permission.subjects)) {
           permission.subjects = [];
@@ -205,37 +225,23 @@ export default class Permission {
     const { list: permissionList } = cachedList;
 
     if (!cachedList.isNoneList && !permissionList.length) {
-      // Use single query with JOIN to fetch permissions and subjects
-      const jsonObjectExpr = this.getJsonObjectExpression(
-        ncMeta,
-        `${MetaTable.PERMISSION_SUBJECTS}.subject_type`,
-        `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
-        `${MetaTable.PERMISSION_SUBJECTS}.hierarchy_scope`,
-      );
-
-      const jsonArrayAggExpr = this.getJsonArrayAggExpression(
-        ncMeta,
-        jsonObjectExpr,
-        `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
-      );
+      // Use a subquery for subjects aggregation to avoid GROUP BY on the
+      // main permissions table (which can fail on PG with ambiguous PK state).
+      const subjectsSubquery = this.getSubjectsSubquery(ncMeta);
 
       const query = ncMeta
         .knexConnection(MetaTable.PERMISSIONS)
         .select([
           `${MetaTable.PERMISSIONS}.*`,
-          ncMeta.knex.raw(`${jsonArrayAggExpr.toQuery()} as subjects`),
+          ncMeta.knex.raw("COALESCE(_ps.subjects, '[]') as subjects"),
         ])
         .leftJoin(
-          MetaTable.PERMISSION_SUBJECTS,
+          subjectsSubquery,
           `${MetaTable.PERMISSIONS}.id`,
-          `${MetaTable.PERMISSION_SUBJECTS}.fk_permission_id`,
+          '_ps.fk_permission_id',
         )
         .where(`${MetaTable.PERMISSIONS}.fk_workspace_id`, context.workspace_id)
         .where(`${MetaTable.PERMISSIONS}.base_id`, context.base_id)
-        .groupBy([
-          `${MetaTable.PERMISSIONS}.base_id`,
-          `${MetaTable.PERMISSIONS}.id`,
-        ])
         .orderBy(`${MetaTable.PERMISSIONS}.created_at`, 'asc');
 
       const permissionsWithSubjects = await query;

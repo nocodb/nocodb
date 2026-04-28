@@ -1,6 +1,7 @@
 import {
   isBtLikeV2Junction,
   isMMOrMMLike,
+  NC_ERROR_SENTINEL,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -78,6 +79,12 @@ export default async function generateLookupSelectQuery({
 
     if (column.uidt === UITypes.Lookup) {
       lookupColOpt = await column.getColOptions<LookupColumn>(context);
+      if (lookupColOpt?.error) {
+        return {
+          builder: NC_ERROR_SENTINEL,
+          applyCte: () => {},
+        };
+      }
     } else if (
       column.uidt !== UITypes.LinkToAnotherRecord &&
       column.uidt !== UITypes.Links
@@ -91,6 +98,14 @@ export default async function generateLookupSelectQuery({
       const relationCol = lookupColOpt
         ? await lookupColOpt.getRelationColumn(context)
         : column;
+
+      if (!relationCol) {
+        return {
+          builder: NC_ERROR_SENTINEL,
+          applyCte: () => {},
+        };
+      }
+
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
 
@@ -268,15 +283,29 @@ export default async function generateLookupSelectQuery({
       ? await lookupColOpt.getLookupColumn(refContext)
       : await getDisplayValueOfRefTable(refContext, column);
 
+    if (!lookupColumn) {
+      return {
+        builder: NC_ERROR_SENTINEL,
+        applyCte: () => {},
+      };
+    }
+
     // if lookup column is qr code or barcode extract the referencing column
     if ([UITypes.QrCode, UITypes.Barcode].includes(lookupColumn.uidt)) {
       // For cross-base lookups, lookupColumn might belong to a different base than context
       const lookupColContext = lookupColumn.base_id
         ? { ...context, base_id: lookupColumn.base_id }
         : context;
-      lookupColumn = await lookupColumn
-        .getColOptions<BarcodeColumn | QrCodeColumn>(lookupColContext)
-        .then((barcode) => barcode.getValueColumn(refContext));
+      const colOpt = await lookupColumn.getColOptions<
+        BarcodeColumn | QrCodeColumn
+      >(lookupColContext);
+      lookupColumn = colOpt ? await colOpt.getValueColumn(refContext) : null;
+      if (!lookupColumn) {
+        return {
+          builder: NC_ERROR_SENTINEL,
+          applyCte: () => {},
+        };
+      }
     }
     {
       let prevAlias = alias;
@@ -294,9 +323,22 @@ export default async function generateLookupSelectQuery({
           nestedLookupColOpt = await lookupColumn.getColOptions<LookupColumn>(
             context,
           );
+          if (nestedLookupColOpt?.error) {
+            return {
+              builder: NC_ERROR_SENTINEL,
+              applyCte: () => {},
+            };
+          }
           relationCol = await nestedLookupColOpt.getRelationColumn(context);
         } else {
           relationCol = lookupColumn;
+        }
+
+        if (!relationCol) {
+          return {
+            builder: NC_ERROR_SENTINEL,
+            applyCte: () => {},
+          };
         }
 
         const relation =
@@ -461,6 +503,14 @@ export default async function generateLookupSelectQuery({
             nestedRefContext,
             relationCol,
           );
+
+        if (!lookupColumn) {
+          return {
+            builder: NC_ERROR_SENTINEL,
+            applyCte: () => {},
+          };
+        }
+
         prevAlias = nestedAlias;
         context = nestedRefContext;
       }

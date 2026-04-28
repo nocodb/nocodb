@@ -1,0 +1,176 @@
+import type { UserType } from 'nocodb-sdk';
+import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
+import type BaseTrash from '~/models/BaseTrash';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+
+export interface TrashCallParam {
+  user: Partial<UserType>;
+  req: NcRequest;
+  /**
+   * Conflict-resolution flags consumed by the record handler's restore
+   * path (force = auto-resolve by nulling offending columns / dropping
+   * junction rows; partial = skip conflicted rows). Other handlers
+   * ignore these — they're only meaningful for resource_type === 'record'.
+   */
+  force?: boolean;
+  partial?: boolean;
+}
+
+/**
+ * Cache buckets that a resource type may affect. Each handler declares its
+ * own via `affectedCaches`; the base class's `invalidateCaches()` fires them.
+ */
+export type TrashAffectedCache = 'commandPalette' | 'baseSchema';
+
+export interface TrashResult<T = any> {
+  entity: T;
+  relatedItems?: Record<string, any>;
+  meta?: Record<string, any>;
+  parentType?: string;
+  parentId?: string;
+  parentName?: string;
+  /** When true, the resource was hard-deleted (e.g. external source) — skip trash entry creation */
+  skipTrashEntry?: boolean;
+}
+
+/**
+ * Result handlers may return from `restore()` / `permanentDelete()` to control
+ * whether the BaseTrash row is auto-deleted by the service after the call. The
+ * record handler uses `keepEntry: true` when only a subset of records under
+ * the entry were affected (e.g. RLS-bounded user pass) and others remain.
+ * Other handlers return `void` for the default delete-after-success behavior.
+ */
+export interface TrashLifecycleResult {
+  keepEntry?: boolean;
+}
+
+/**
+ * Per-handler enrichment for trash list entries. Returned from `enrich`;
+ * consumed by `BaseTrashService.trashList`. Tagged union — exactly one of:
+ *
+ *   - `{ drop: true }` — hide this entry from the list (e.g. RLS hid every
+ *     underlying row). The trash row itself stays in `nc_trash` and may
+ *     resurface for users with broader RLS.
+ *   - `{ extra: {...} }` — merge those fields onto the entry in the response
+ *     (e.g. inline records for `record` entries).
+ *
+ * Handlers with no enrichment to perform should just not implement the hook.
+ */
+export type TrashListEnrichment =
+  | { drop: true }
+  | { extra: Record<string, any> };
+
+export interface TrashHandler<T = any> {
+  resourceType: string;
+
+  /** Child resource types whose trash entries should be cleaned on permanent delete */
+  childTypes?: string[];
+
+  /**
+   * Caches to invalidate after each successful trash / restore / permanent-delete
+   * of this resource type. Consumed by `invalidateCaches`.
+   */
+  affectedCaches?: readonly TrashAffectedCache[];
+
+  trash(
+    ctx: NcContext,
+    id: string,
+    param: TrashCallParam,
+    ncMeta?: MetaService,
+  ): Promise<TrashResult<T>>;
+
+  restore(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    param: TrashCallParam,
+    ncMeta?: MetaService,
+  ): Promise<TrashLifecycleResult | void>;
+
+  permanentDelete(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    param: TrashCallParam,
+    ncMeta?: MetaService,
+  ): Promise<TrashLifecycleResult | void>;
+
+  /**
+   * Optional pre-restore plan-limit check. Each handler decides whether the
+   * resource type has a per-base / per-workspace cap and throws
+   * NcError.planLimitExceeded when restoration would cross it. No-op if the
+   * resource type has no quota.
+   */
+  checkRestoreLimit?(ctx: NcContext, trashEntry: BaseTrash): Promise<void>;
+
+  /**
+   * Optional per-entry enrichment for `BaseTrashService.trashList`. Use this
+   * to attach resource-type-specific data to the entry (e.g. inline record
+   * rows for `record` entries) or to filter the entry out of the response
+   * (e.g. RLS hid every underlying row).
+   *
+   * Return `null` to pass the entry through unchanged.
+   */
+  enrich?(ctx: NcContext, trashEntry: BaseTrash): Promise<TrashListEnrichment>;
+
+  /**
+   * Fire the cache invalidations declared in `affectedCaches`. Called by the
+   * service after each successful lifecycle operation. Fire-and-forget:
+   * failures are swallowed so cache cleanup cannot bubble up to the user.
+   */
+  invalidateCaches(workspaceId: string, baseId?: string): void;
+}
+
+/**
+ * Shared base class that implements `invalidateCaches` from `affectedCaches`.
+ * Concrete handlers extend this and only need to declare their own
+ * `resourceType`, `affectedCaches`, and lifecycle methods.
+ */
+export abstract class BaseTrashHandler<T = any> implements TrashHandler<T> {
+  abstract resourceType: string;
+  childTypes?: string[];
+  affectedCaches?: readonly TrashAffectedCache[];
+
+  abstract trash(
+    ctx: NcContext,
+    id: string,
+    param: TrashCallParam,
+    ncMeta?: MetaService,
+  ): Promise<TrashResult<T>>;
+
+  abstract restore(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    param: TrashCallParam,
+    ncMeta?: MetaService,
+  ): Promise<TrashLifecycleResult | void>;
+
+  abstract permanentDelete(
+    ctx: NcContext,
+    trashEntry: BaseTrash,
+    param: TrashCallParam,
+    ncMeta?: MetaService,
+  ): Promise<TrashLifecycleResult | void>;
+
+  checkRestoreLimit?(ctx: NcContext, trashEntry: BaseTrash): Promise<void>;
+
+  enrich?(ctx: NcContext, trashEntry: BaseTrash): Promise<TrashListEnrichment>;
+
+  invalidateCaches(workspaceId: string, baseId?: string): void {
+    const caches = this.affectedCaches;
+    if (!caches?.length) return;
+
+    for (const cache of caches) {
+      switch (cache) {
+        case 'commandPalette':
+          cleanCommandPaletteCache(workspaceId).catch(() => {});
+          break;
+        case 'baseSchema':
+          if (baseId) cleanBaseSchemaCacheForBase(baseId).catch(() => {});
+          break;
+      }
+    }
+  }
+}
+
+export const TRASH_HANDLER_TOKEN = 'TRASH_HANDLERS';

@@ -1,16 +1,19 @@
-import { UITypes } from 'nocodb-sdk';
+import { NC_ERROR_SENTINEL, UITypes } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from 'knex';
 import type {
   BarcodeColumn,
   FormulaColumn,
+  LookupColumn,
   QrCodeColumn,
   RollupColumn,
 } from '~/models';
 import type { NcContext } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { Column } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import Noco from '~/Noco';
 
 /**
  * Get the column name query for a column
@@ -26,19 +29,30 @@ export async function getColumnNameQuery({
   baseModelSqlv2,
   column,
   context,
+  ncMeta = Noco.ncMeta,
 }: {
   baseModelSqlv2: IBaseModelSqlV2;
   column: Column;
   context: NcContext;
+  ncMeta?: MetaService;
 }): Promise<{
   builder: Knex.QueryBuilder | string;
 }> {
   // If the column is a barcode or qr code column, we fetch the column that the virtual column refers to.
   if (column.uidt === UITypes.Barcode || column.uidt === UITypes.QrCode) {
+    const colOpt = await column.getColOptions<BarcodeColumn | QrCodeColumn>(
+      context,
+      ncMeta,
+    );
+    if (!colOpt || colOpt.error) {
+      return { builder: NC_ERROR_SENTINEL };
+    }
+    const valueColumn = await colOpt.getValueColumn(context, ncMeta);
+    if (!valueColumn) {
+      return { builder: NC_ERROR_SENTINEL };
+    }
     column = new Column({
-      ...(await column
-        .getColOptions<BarcodeColumn | QrCodeColumn>(context)
-        .then((col) => col.getValueColumn(context))),
+      ...valueColumn,
       id: column.id,
     });
   }
@@ -66,17 +80,25 @@ export async function getColumnNameQuery({
   switch (column.uidt) {
     case UITypes.Links:
     case UITypes.Rollup: {
+      const rollupOpt = (await column.getColOptions(
+        context,
+        ncMeta,
+      )) as RollupColumn;
+      if (!rollupOpt || rollupOpt.error) break;
       const knex = baseModelSqlv2.dbDriver;
       column_name_query = await genRollupSelectv2({
         baseModelSqlv2,
         knex,
-        columnOptions: (await column.getColOptions(context)) as RollupColumn,
+        columnOptions: rollupOpt,
       });
       break;
     }
 
     case UITypes.Formula: {
-      const formula = await column.getColOptions<FormulaColumn>(context);
+      const formula = await column.getColOptions<FormulaColumn>(
+        context,
+        ncMeta,
+      );
       if (!formula.error) {
         column_name_query =
           await baseModelSqlv2.getSelectQueryBuilderForFormula(column);
@@ -86,7 +108,14 @@ export async function getColumnNameQuery({
 
     case UITypes.LinkToAnotherRecord:
     case UITypes.Lookup: {
-      const model = await column.getModel(context);
+      if (column.uidt === UITypes.Lookup) {
+        const lookupOpt = await column.getColOptions<LookupColumn>(
+          context,
+          ncMeta,
+        );
+        if (lookupOpt?.error) break;
+      }
+      const model = await column.getModel(context, ncMeta);
       column_name_query = await generateLookupSelectQuery({
         baseModelSqlv2,
         column: column,

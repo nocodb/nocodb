@@ -49,6 +49,9 @@ export default class View extends ViewCE implements ViewType {
         condition: {
           fk_model_id: model.id,
         },
+        xcCondition: {
+          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+        },
       },
     );
 
@@ -95,7 +98,7 @@ export default class View extends ViewCE implements ViewType {
     modelId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const views = await this.list(context, modelId, ncMeta);
+    const views = await this.list(context, modelId, false, ncMeta);
 
     if (!views.length) return;
 

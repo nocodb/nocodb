@@ -55,6 +55,7 @@ export async function singleQueryList(
     source: Source;
     params;
     throwErrorIfInvalidParams?: boolean;
+    extractOnlyPrimaries?: boolean;
     validateFormula?: boolean;
     ignorePagination?: boolean;
     limitOverride?: number;

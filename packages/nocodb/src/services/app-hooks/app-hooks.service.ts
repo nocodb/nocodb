@@ -47,6 +47,8 @@ import type {
   RecordsRestoreEvent,
   RecordsSoftDeleteEvent,
   RelationEvent,
+  ResourcePermanentDeleteEvent,
+  ResourceRestoreEvent,
   RowCommentEvent,
   RowMentionEvent,
   SharedBaseDeleteEvent,
@@ -213,6 +215,14 @@ export class AppHooksService {
   on(
     event: AppEvents.RECORDS_PERMANENT_DELETE,
     listener: (data: RecordsPermanentDeleteEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RESOURCE_RESTORE,
+    listener: (data: ResourceRestoreEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RESOURCE_PERMANENT_DELETE,
+    listener: (data: ResourcePermanentDeleteEvent) => void,
   ): () => void;
   on(event, listener): () => void {
     const unsubscribe = this.eventEmitter.on(event, listener);
@@ -494,6 +504,11 @@ export class AppHooksService {
   emit(
     event: AppEvents.RECORDS_PERMANENT_DELETE,
     data: RecordsPermanentDeleteEvent,
+  ): void;
+  emit(event: AppEvents.RESOURCE_RESTORE, data: ResourceRestoreEvent): void;
+  emit(
+    event: AppEvents.RESOURCE_PERMANENT_DELETE,
+    data: ResourcePermanentDeleteEvent,
   ): void;
 
   emit(event, data): void {

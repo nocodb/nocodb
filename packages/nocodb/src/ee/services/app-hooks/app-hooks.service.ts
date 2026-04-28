@@ -31,6 +31,8 @@ import type {
   RecordTemplateDeleteEvent,
   RecordTemplateUpdateEvent,
   RecordTemplateUseEvent,
+  ResourcePermanentDeleteEvent,
+  ResourceRestoreEvent,
   RlsPolicyCreateEvent,
   RlsPolicyDeleteEvent,
   RlsPolicyUpdateEvent,
@@ -549,6 +551,14 @@ export class AppHooksService extends ApppHookServiceCE {
     event: AppEvents.DOCUMENT_COMMENT_DELETE,
     listener: (data: DocumentCommentDeleteEvent) => void,
   ): () => void;
+  on(
+    event: AppEvents.RESOURCE_RESTORE,
+    listener: (data: ResourceRestoreEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.RESOURCE_PERMANENT_DELETE,
+    listener: (data: ResourcePermanentDeleteEvent) => void,
+  ): () => void;
 
   // Org Domain Events
   on(
@@ -1042,6 +1052,11 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.DATE_DEPENDENCY_DELETE,
     data: DateDependencyDeleteEvent,
+  ): void;
+  emit(event: AppEvents.RESOURCE_RESTORE, data: ResourceRestoreEvent): void;
+  emit(
+    event: AppEvents.RESOURCE_PERMANENT_DELETE,
+    data: ResourcePermanentDeleteEvent,
   ): void;
 
   // Org Domain Events

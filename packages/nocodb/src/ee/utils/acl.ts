@@ -241,14 +241,8 @@ const permissionScopes = {
     // SCIM Config
   ],
   base: [
-    // Record Trash
-    'recordTrashEvents',
-    'recordTrashCount',
-    'recordTrashRestore',
-    'recordTrashPermanentDelete',
-    'recordTrashEmpty',
-    'recordTrashSettingsList',
-    'recordTrashSettingsUpdate',
+    'baseTrashSettingsList',
+    'baseTrashSettingsUpdate',
 
     'nestedDataListCopyPasteOrDeleteAll',
     'nestedDataBulkCopyPasteOrDeleteAll',
@@ -578,6 +572,13 @@ const permissionScopes = {
     'baseIntegrationUpdate',
     'baseIntegrationLink',
     'baseIntegrationUnlink',
+
+    // Base trash
+    'baseTrashList',
+    'baseTrashRestore',
+    'baseTrashRestoreRows',
+    'baseTrashPermanentDelete',
+    'baseTrashEmpty',
   ],
 } as const;
 
@@ -906,11 +907,6 @@ const rolePermissions:
   },
   [ProjectRoles.EDITOR]: {
     include: {
-      // Record Trash
-      recordTrashEvents: true,
-      recordTrashCount: true,
-      recordTrashRestore: true,
-
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
@@ -1036,14 +1032,22 @@ const rolePermissions:
       recordTemplateUpdate: true,
       recordTemplateDelete: true,
       recordTemplateUse: true,
+
+      // Base trash — editors see the list and can restore (per-entry +
+      // per-row). Permanent-delete / empty / per-table settings are
+      // owner-only via CREATOR.exclude below. Restoring non-record entries
+      // (table / view / field / dashboard / widget / workflow / script) is
+      // gated at the service layer (`BaseTrashService.restore`) since the
+      // ACL can't see resource_type.
+      baseTrashList: true,
+      baseTrashRestore: true,
+      baseTrashRestoreRows: true,
     },
   },
   [ProjectRoles.CREATOR]: {
     exclude: {
       createBase: true,
       migrateBase: true,
-      recordTrashPermanentDelete: true,
-      recordTrashEmpty: true,
       manageSnapshots: true,
       baseAuditList: true,
       rlsPolicyList: true,
@@ -1054,6 +1058,12 @@ const rolePermissions:
       rlsPolicySetSubjects: true,
       rlsPolicyFilterList: true,
       rlsPolicyFilterCreate: true,
+
+      // Base trash — destructive ops + per-table settings are owner-only.
+      baseTrashPermanentDelete: true,
+      baseTrashEmpty: true,
+      baseTrashSettingsList: true,
+      baseTrashSettingsUpdate: true,
     },
   },
   [ProjectRoles.OWNER]: {
@@ -1398,6 +1408,13 @@ const permissionDescriptions: Record<string, string> = {
   baseIntegrationLink: 'link an integration to a base',
   baseIntegrationUnlink: 'unlink an integration from a base',
 
+  // base trash
+  baseTrashList: 'view trash for a base',
+  baseTrashRestore: 'restore an item from base trash',
+  baseTrashRestoreRows: 'restore specific records from base trash by row id',
+  baseTrashPermanentDelete: 'permanently delete an item from base trash',
+  baseTrashEmpty: 'empty all trash for a base',
+
   // Teams permissions
   teamList: 'view list of teams in the workspace',
   teamTree: 'view team hierarchy tree in the workspace',
@@ -1670,14 +1687,8 @@ const permissionDescriptions: Record<string, string> = {
   aiDataFillRows: 'fill rows using AI',
   aiDataExtractRows: 'extract rows from input using AI',
 
-  // Record Trash
-  recordTrashEvents: 'view record trash events',
-  recordTrashCount: 'view count of deleted records',
-  recordTrashRestore: 'restore deleted records',
-  recordTrashPermanentDelete: 'permanently delete records from trash',
-  recordTrashEmpty: 'empty the record trash',
-  recordTrashSettingsList: 'view trash settings for tables',
-  recordTrashSettingsUpdate: 'update trash settings for a table',
+  baseTrashSettingsList: 'view per-table trash settings for the base',
+  baseTrashSettingsUpdate: 'update per-table trash settings for the base',
 
   migrateBase: 'migrate a base to another instance',
 };

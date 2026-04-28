@@ -513,6 +513,7 @@ export interface DataExportEvent extends NcBaseEvent {
 export interface RecordsSoftDeleteEvent extends NcBaseEvent {
   tableId: string;
   rowIds: string[];
+  deletedAt: string;
 }
 
 export interface RecordsRestoreEvent extends NcBaseEvent {
@@ -540,4 +541,20 @@ export type AppEventPayload =
   | RowCommentEvent
   | RowMentionEvent
   | WebhookTriggerEvent
-  | ColumnEvent;
+  | ColumnEvent
+  | ResourceRestoreEvent
+  | ResourcePermanentDeleteEvent;
+
+export interface ResourceRestoreEvent extends NcBaseEvent {
+  resourceType: string;
+  resourceId: string;
+  name: string;
+  user: Partial<UserType>;
+}
+
+export interface ResourcePermanentDeleteEvent extends NcBaseEvent {
+  resourceType: string;
+  resourceId: string;
+  name: string;
+  user: Partial<UserType>;
+}

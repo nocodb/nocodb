@@ -923,6 +923,7 @@ defineExpose({
     :base-id="base?.id"
   />
   <DlgBaseDelete v-model:visible="isProjectDeleteDialogVisible" :base-id="base?.id" />
+  <DlgBaseTrash />
 
   <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
   <DlgManagedApp v-if="base?.id" v-model:visible="isConvertToManagedAppDlgOpen" modal-size="sm">

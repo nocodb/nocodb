@@ -5,6 +5,7 @@ import {
   extractFilterFromXwhere,
   isBtLikeV2Junction,
   isMMOrMMLike,
+  NC_ERROR_SENTINEL,
   NcDataErrorCodes,
   parseProp,
   RelationTypes,
@@ -708,7 +709,18 @@ export class PGDBQueryClient
             context,
           );
 
+          if (lookupColOpt.error) {
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
+            break;
+          }
+
           const relationColumn = await lookupColOpt.getRelationColumn(context);
+
+          if (!relationColumn) {
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
+            break;
+          }
+
           const relationColOpts =
             await relationColumn.getColOptions<LinkToAnotherRecordColumn>(
               context,
@@ -720,6 +732,11 @@ export class PGDBQueryClient
             await relationColOpts.getParentChildContext(context);
 
           const lookupColumn = await lookupColOpt.getLookupColumn(refContext);
+
+          if (!lookupColumn) {
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
+            break;
+          }
 
           let relQb;
           const relTableAlias = getAlias();
@@ -1228,28 +1245,42 @@ export class PGDBQueryClient
         }
       // eslint-disable-next-line no-fallthrough -- falls through to Rollup when linksAsLtar is not set
       case UITypes.Rollup:
-        qb.select(
-          knex.raw(
-            `(${(
-              await genRollupSelectv2({
-                baseModelSqlv2: baseModel,
-                knex,
-                columnOptions: await column.getColOptions(context),
-                alias: rootAlias,
-              })
-            ).builder
-              .toQuery()
-              .replaceAll('?', '\\?')}) as ??`,
-            [getAs(column)],
-          ),
-        );
+        {
+          const rollupColOptions = await column.getColOptions(context);
+
+          if (rollupColOptions.error) {
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
+            break;
+          }
+
+          qb.select(
+            knex.raw(
+              `(${(
+                await genRollupSelectv2({
+                  baseModelSqlv2: baseModel,
+                  knex,
+                  columnOptions: rollupColOptions,
+                  alias: rootAlias,
+                })
+              ).builder
+                .toQuery()
+                .replaceAll('?', '\\?')}) as ??`,
+              [getAs(column)],
+            ),
+          );
+        }
         break;
       case UITypes.Barcode:
         {
           const barcodeCol = await column.getColOptions<BarcodeColumn>(context);
 
+          if (barcodeCol.error) {
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
+            break;
+          }
+
           if (!barcodeCol.fk_barcode_value_column_id) {
-            qb.select(knex.raw(`? as ??`, ['ERR!', getAs(column)]));
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
             break;
           }
 
@@ -1283,8 +1314,13 @@ export class PGDBQueryClient
         {
           const qrCol = await column.getColOptions<QrCodeColumn>(context);
 
+          if (qrCol.error) {
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
+            break;
+          }
+
           if (!qrCol.fk_qr_value_column_id) {
-            qb.select(knex.raw(`? as ??`, ['ERR!', getAs(column)]));
+            qb.select(knex.raw(`? as ??`, [NC_ERROR_SENTINEL, getAs(column)]));
             break;
           }
 

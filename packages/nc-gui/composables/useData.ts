@@ -34,7 +34,7 @@ export function useData(args: {
 
   const { $api } = useNuxtApp()
 
-  const { restoreFromTrash, trashUnavailableReason } = useRecordTrash()
+  const { restoreFromTrash, trashUnavailableReason } = useBaseTrash()
 
   const { isPaginationLoading } = storeToRefs(useViewsStore())
 

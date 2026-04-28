@@ -78,6 +78,9 @@ import {
   singleQueryGroupedList,
   singleQueryList,
 } from '~/services/data-opt/pg-helpers';
+import BaseTrash from '~/models/BaseTrash';
+import { buildRecordResourceId } from '~/services/base-trash/record-trash.helpers';
+import { resolveTrashRetentionDays } from '~/ee/helpers/trashHelpers';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
 import {
   UPDATE_WORKSPACE_COUNTER,
@@ -1927,6 +1930,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         (await this.model.isTrashEnabledForWorkspace(this.context));
 
       if (isSoftDelete) {
+        const operationNow = this.now();
         const where = await this._wherePk(id);
         const softDeletePayload: Record<string, any> = {
           [deletedColumn.column_name]: true,
@@ -1938,7 +1942,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const lmbCol = this.model.columns.find(
           (c) => c.uidt === UITypes.LastModifiedBy && c.system,
         );
-        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = operationNow;
         if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
 
         const updateQb = this.dbDriver(this.tnPath)
@@ -1963,12 +1967,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           await this.execAndParse(updateQb, null, { raw: true });
         }
 
-        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
-          context: this.context,
-          req: cookie,
-          tableId: this.model.id,
-          rowIds: [id],
-        });
+        await this.afterSoftDeleteCompleted({ cookie, operationNow });
 
         await this.afterDelete(
           data,
@@ -1986,15 +1985,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         await this.updateLinkedRecordsOnDelete([id], cookie);
 
         await this.statsUpdate({ count: -1 });
-
-        // Set trash_cleanup_due_at on first soft-delete if not already scheduled
-        if (!this.model.trash_cleanup_due_at) {
-          await Model.updateTrashCleanupDueAt(
-            this.context,
-            this.model.id,
-            new Date().toISOString(),
-          );
-        }
 
         return 1;
       }
@@ -3014,6 +3004,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         ignoreRls: args.ignoreRls,
         getHiddenColumns: args.extractOrderColumn,
         deletedOnly: args.deletedOnly,
+        extractOnlyPrimaries: args.extractOnlyPrimaries,
       };
 
       if (['mysql', 'mysql2'].includes(source.type)) {
@@ -4147,8 +4138,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         colId: string;
       }[] = [];
 
+      let bulkOperationNow: string | null = null;
       if (isSoftDelete) {
         // Soft-delete: flag records instead of removing them, skip link cleanup
+        bulkOperationNow = this.now();
         const softDeletePayload: Record<string, any> = {
           [deletedColumn.column_name]: true,
         };
@@ -4158,7 +4151,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const lmbCol = this.model.columns.find(
           (c) => c.uidt === UITypes.LastModifiedBy && c.system,
         );
-        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = bulkOperationNow;
         if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
 
         for (const d of res) {
@@ -4337,11 +4330,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (isSoftDelete) {
-        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
-          context: this.context,
-          req: cookie,
-          tableId: this.model.id,
-          rowIds: idsVals,
+        await this.afterSoftDeleteCompleted({
+          cookie,
+          operationNow: bulkOperationNow!,
         });
       }
 
@@ -4360,17 +4351,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             ? AuditV1OperationTypes.DATA_SOFT_DELETE
             : AuditV1OperationTypes.DATA_DELETE,
         );
-      }
-
-      if (isSoftDelete) {
-        // Set trash_cleanup_due_at on first soft-delete if not already scheduled
-        if (!this.model.trash_cleanup_due_at) {
-          await Model.updateTrashCleanupDueAt(
-            this.context,
-            this.model.id,
-            new Date().toISOString(),
-          );
-        }
       }
 
       await this.statsUpdate({
@@ -5136,6 +5116,40 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       ];
     }
     return [];
+  }
+
+  /**
+   * Insert the unified `nc_trash` row inline so the trash entry lands in the
+   * same request as the soft-delete write — no fire-and-forget event listener
+   * gap. Idempotent on (base_id, resource_type, resource_id): concurrent
+   * deletes that map to the same (table, user, deletedAt) tuple collapse onto
+   * the first row instead of erroring. Per-table `trash_retention_days` wins
+   * over the workspace plan limit.
+   */
+  override async afterSoftDeleteCompleted(params: {
+    cookie: NcRequest;
+    operationNow: string;
+  }): Promise<void> {
+    const deletedAtIso = new Date(params.operationNow).toISOString();
+    const fkUserId = params.cookie?.user?.id ?? null;
+    const retentionDays = await resolveTrashRetentionDays(
+      this.context,
+      this.model,
+    );
+    const cleanupDueAt = new Date(
+      new Date(deletedAtIso).getTime() + retentionDays * 86400000,
+    ).toISOString();
+    await BaseTrash.insert(this.context, {
+      resource_type: 'record',
+      resource_id: buildRecordResourceId(this.model.id, fkUserId, deletedAtIso),
+      name: this.model.title,
+      parent_type: 'table',
+      parent_id: this.model.id,
+      parent_name: this.model.title,
+      deleted_by: fkUserId ?? undefined,
+      deleted_at: deletedAtIso,
+      cleanup_due_at: cleanupDueAt,
+    });
   }
 }
 

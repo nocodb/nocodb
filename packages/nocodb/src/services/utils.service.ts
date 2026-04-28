@@ -332,11 +332,19 @@ export class UtilsService {
                     },
                   );
                 })(),
-                // webhooks count
+                // webhooks count (excluding trashed)
                 Noco.ncMeta.metaCount(
                   base.fk_workspace_id,
                   base.id,
                   MetaTable.HOOKS,
+                  {
+                    xcCondition: {
+                      _or: [
+                        { deleted: { eq: false } },
+                        { deleted: { eq: null } },
+                      ],
+                    },
+                  },
                 ),
                 // filters count
                 Noco.ncMeta.metaCount(

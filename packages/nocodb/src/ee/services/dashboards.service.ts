@@ -12,15 +12,20 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import type { DashboardType, WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { CustomUrl, Dashboard, DependencyTracker, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getWidgetData, getWidgetHandler } from '~/db/widgets';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { checkLimit } from '~/helpers/paymentHelpers';
 @Injectable()
 export class DashboardsService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly baseTrashService: BaseTrashService,
+  ) {}
 
   async dashboardList(context: NcContext, baseId: string) {
     return await Dashboard.list(context, baseId);
@@ -140,39 +145,30 @@ export class DashboardsService {
     context: NcContext,
     dashboardId: string,
     req: NcRequest,
+    ncMeta?: MetaService,
   ) {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
 
-    const dashboard = await Dashboard.get(context, dashboardId);
+    const dashboard = await Dashboard.get(context, dashboardId, false, ncMeta);
 
     if (!dashboard) {
       NcError.get(context).dashboardNotFound(dashboardId);
     }
 
-    try {
-      const widgets = await Widget.list(context, dashboardId);
-      for (const widget of widgets) {
-        await DependencyTracker.clearDependencies(
-          context,
-          DependencyTableType.Widget,
-          widget.id,
-        );
-      }
-    } catch (error) {
-      console.error(
-        'Failed to clear widget dependencies for dashboard:',
-        error,
-      );
-    }
-
-    await Dashboard.delete(context, dashboardId);
+    await this.baseTrashService.trashResource(context, {
+      resourceId: dashboardId,
+      resourceType: 'dashboard',
+      user: req.user,
+      req,
+      ncMeta,
+    });
 
     this.appHooksService.emit(AppEvents.DASHBOARD_DELETE, {
       dashboard,
       context,
-      req: req,
+      req,
       user: context.user,
     });
 
@@ -192,12 +188,20 @@ export class DashboardsService {
     return true;
   }
 
-  async widgetList(context: NcContext, dashboardId: string) {
-    const dashboard = await Dashboard.get(context, dashboardId);
-
+  private async assertDashboardLive(
+    context: NcContext,
+    dashboardId: string,
+    ncMeta?: MetaService,
+  ) {
+    const dashboard = await Dashboard.get(context, dashboardId, false, ncMeta);
     if (!dashboard) {
       NcError.get(context).dashboardNotFound(dashboardId);
     }
+    return dashboard;
+  }
+
+  async widgetList(context: NcContext, dashboardId: string) {
+    await this.assertDashboardLive(context, dashboardId);
 
     return await Widget.list(context, dashboardId);
   }
@@ -209,6 +213,8 @@ export class DashboardsService {
       NcError.get(context).widgetNotFound(widgetId);
     }
 
+    await this.assertDashboardLive(context, widget.fk_dashboard_id);
+
     return widget;
   }
 
@@ -217,6 +223,10 @@ export class DashboardsService {
     insertObj: Partial<Widget>,
     req: NcRequest,
   ) {
+    if (insertObj.fk_dashboard_id) {
+      await this.assertDashboardLive(context, insertObj.fk_dashboard_id);
+    }
+
     const widget = await Widget.insert(context, insertObj);
 
     const handler = await getWidgetHandler(context, {
@@ -279,6 +289,8 @@ export class DashboardsService {
     if (!widget) {
       NcError.get(context).widgetNotFound(widgetId);
     }
+
+    await this.assertDashboardLive(context, widget.fk_dashboard_id);
 
     const existingWidgets = await Widget.list(context, widget.fk_dashboard_id);
 
@@ -371,6 +383,8 @@ export class DashboardsService {
       NcError.get(context).widgetNotFound(widgetId);
     }
 
+    await this.assertDashboardLive(context, widget.fk_dashboard_id);
+
     const updatedWidget = await Widget.update(context, widgetId, updateObj);
 
     const handler = await getWidgetHandler(context, {
@@ -430,23 +444,27 @@ export class DashboardsService {
     return updatedWidget;
   }
 
-  async widgetDelete(context: NcContext, widgetId: string, req: NcRequest) {
-    const widget = await Widget.get(context, widgetId);
+  async widgetDelete(
+    context: NcContext,
+    widgetId: string,
+    req: NcRequest,
+    ncMeta?: MetaService,
+  ) {
+    const widget = await Widget.get(context, widgetId, false, ncMeta);
 
     if (!widget) {
       NcError.get(context).widgetNotFound(widgetId);
     }
-    try {
-      await DependencyTracker.clearDependencies(
-        context,
-        DependencyTableType.Widget,
-        widgetId,
-      );
-    } catch (error) {
-      console.error('Failed to clear widget dependencies:', error);
-    }
 
-    await Widget.delete(context, widgetId);
+    await this.assertDashboardLive(context, widget.fk_dashboard_id, ncMeta);
+
+    await this.baseTrashService.trashResource(context, {
+      resourceId: widgetId,
+      resourceType: 'widget',
+      user: req.user,
+      req,
+      ncMeta,
+    });
 
     this.appHooksService.emit(AppEvents.WIDGET_DELETE, {
       context,
@@ -478,6 +496,8 @@ export class DashboardsService {
     if (!widget) {
       NcError.get(context).widgetNotFound(widgetId);
     }
+
+    await this.assertDashboardLive(context, widget.fk_dashboard_id);
 
     return await getWidgetData(context, { widget: widget as WidgetType, req });
   }

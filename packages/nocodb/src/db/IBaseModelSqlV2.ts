@@ -346,6 +346,7 @@ export interface IBaseModelSqlV2 {
     apiVersion?: NcApiVersion;
     args?: any;
     extractOnlyPrimaries?: boolean;
+    deletedOnly?: boolean;
   }): Promise<any[]>;
 
   list(
@@ -434,4 +435,8 @@ export interface IBaseModelSqlV2 {
   getRlsConditions(): Promise<Filter[]>;
   getSoftDeleteFilter(): Promise<Knex.QueryCallback | null>;
   updateLinkedRecordsOnDelete(deletedIds: any[], cookie?: any): Promise<void>;
+  afterSoftDeleteCompleted(params: {
+    cookie: NcRequest;
+    operationNow: string;
+  }): Promise<void>;
 }

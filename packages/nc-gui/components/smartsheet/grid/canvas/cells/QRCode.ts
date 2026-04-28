@@ -1,20 +1,17 @@
-import { isBoxHovered, renderMultiLineText } from '../utils/canvas'
+import { NC_ERROR_SENTINEL } from 'nocodb-sdk'
+import { isBoxHovered, renderCellError, renderMultiLineText } from '../utils/canvas'
 
 export const QRCodeCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {}, cellRenderStore }) => {
+  render: (ctx, { value, x, y, width, height, column, imageLoader, padding, tag = {}, cellRenderStore, getColor }) => {
     const { renderAsTag } = tag
     padding = 4
-    if (!value || value === 'ERR!') {
-      if (value === 'ERR!') {
-        renderMultiLineText(ctx, {
-          x: x + padding,
-          y,
-          text: 'ERR!',
-          maxWidth: width - padding * 2,
-          fontFamily: '500 13px Inter',
-          fillStyle: '#e65100',
-          height,
-        })
+    if (parseProp(column.colOptions)?.error) {
+      renderCellError(ctx, { x, y, width, height, padding, getColor })
+      return
+    }
+    if (!value || value === NC_ERROR_SENTINEL) {
+      if (value === NC_ERROR_SENTINEL) {
+        renderCellError(ctx, { x, y, width, height, padding, getColor })
       }
       return
     }
@@ -29,7 +26,7 @@ export const QRCodeCellRenderer: CellRenderer = {
         text: 'Too many characters for a QR Code',
         maxWidth: width - padding * 2,
         fontFamily: '500 13px Inter',
-        fillStyle: '#e65100',
+        fillStyle: getColor(themeV4Colors.orange['700']),
         height,
       })
       return

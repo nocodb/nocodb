@@ -1,4 +1,9 @@
-import { ButtonActionsType, isBtLikeV2Junction, UITypes } from 'nocodb-sdk';
+import {
+  ButtonActionsType,
+  isBtLikeV2Junction,
+  NC_ERROR_SENTINEL,
+  UITypes,
+} from 'nocodb-sdk';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import type { ColumnType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
@@ -6,6 +11,7 @@ import type {
   BarcodeColumn,
   ButtonColumn,
   GridViewColumn,
+  LookupColumn,
   QrCodeColumn,
   RollupColumn,
 } from '~/models';
@@ -153,16 +159,42 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           break;
         case UITypes.LinkToAnotherRecord:
-        case UITypes.Lookup:
           break;
+        case UITypes.Lookup: {
+          const lookupOpt = await column.getColOptions<LookupColumn>(
+            baseModel.context,
+          );
+          if (lookupOpt?.error) {
+            qb.select(
+              baseModel.dbDriver.raw(`? as ??`, [
+                NC_ERROR_SENTINEL,
+                getAs(column),
+              ]),
+            );
+          }
+          break;
+        }
         case UITypes.QrCode: {
           const qrCodeColumn = await column.getColOptions<QrCodeColumn>(
             baseModel.context,
           );
 
+          if (qrCodeColumn.error) {
+            qb.select(
+              baseModel.dbDriver.raw(`? as ??`, [
+                NC_ERROR_SENTINEL,
+                getAs(column),
+              ]),
+            );
+            break;
+          }
+
           if (!qrCodeColumn.fk_qr_value_column_id) {
             qb.select(
-              baseModel.dbDriver.raw(`? as ??`, ['ERR!', getAs(column)]),
+              baseModel.dbDriver.raw(`? as ??`, [
+                NC_ERROR_SENTINEL,
+                getAs(column),
+              ]),
             );
             break;
           }
@@ -206,9 +238,22 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             baseModel.context,
           );
 
+          if (barcodeColumn.error) {
+            qb.select(
+              baseModel.dbDriver.raw(`? as ??`, [
+                NC_ERROR_SENTINEL,
+                getAs(column),
+              ]),
+            );
+            break;
+          }
+
           if (!barcodeColumn.fk_barcode_value_column_id) {
             qb.select(
-              baseModel.dbDriver.raw(`? as ??`, ['ERR!', getAs(column)]),
+              baseModel.dbDriver.raw(`? as ??`, [
+                NC_ERROR_SENTINEL,
+                getAs(column),
+              ]),
             );
             break;
           }
@@ -400,7 +445,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         case UITypes.Rollup:
-        case UITypes.Links:
+        case UITypes.Links: {
           if (
             column.uidt === UITypes.Links &&
             (linksAsLtar || isBtLikeV2Junction(column))
@@ -409,21 +454,29 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             // skip the rollup count select so getProto resolves nested data under column.title
             break;
           }
+          const rollupColOptions = (await column.getColOptions(
+            baseModel.context,
+          )) as RollupColumn;
+
+          // Errored rollup/link (e.g. its relation was cascade-deleted):
+          // emit a NULL dummy select instead of attempting the rollup.
+          if (rollupColOptions?.error) {
+            qb.select(baseModel.dbDriver.raw(`? as ??`, [null, getAs(column)]));
+            break;
+          }
+
           qb.select(
             (
               await genRollupSelectv2({
                 baseModelSqlv2: baseModel,
-                // tn: baseModel.title,
                 knex: baseModel.dbDriver,
-                // column,
                 alias,
-                columnOptions: (await column.getColOptions(
-                  baseModel.context,
-                )) as RollupColumn,
+                columnOptions: rollupColOptions,
               })
             ).builder.as(getAs(column)),
           );
           break;
+        }
         case UITypes.CreatedBy:
         case UITypes.LastModifiedBy: {
           const columnName = await getColumnName(

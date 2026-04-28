@@ -77,7 +77,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
     return this.fk_view_id
-      ? (await View.get(context, this.fk_view_id, ncMeta)).getModel(
+      ? (await View.get(context, this.fk_view_id, false, ncMeta)).getModel(
           context,
           ncMeta,
         )
@@ -136,9 +136,9 @@ export default class Filter implements FilterType {
     if (!filter.source_id) {
       let model: { base_id?: string; source_id?: string };
       if (filter.fk_view_id && !filter.fk_parent_column_id) {
-        model = await View.get(context, filter.fk_view_id, ncMeta);
+        model = await View.get(context, filter.fk_view_id, false, ncMeta);
       } else if (filter.fk_hook_id) {
-        model = await Hook.get(context, filter.fk_hook_id, ncMeta);
+        model = await Hook.get(context, filter.fk_hook_id, false, ncMeta);
       } else if (filter.fk_link_col_id) {
         model = await Column.get(
           context,
@@ -170,7 +170,7 @@ export default class Filter implements FilterType {
           ncMeta,
         );
         if (level?.fk_model_id) {
-          model = await Model.get(context, level.fk_model_id, ncMeta);
+          model = await Model.get(context, level.fk_model_id, false, ncMeta);
         }
       } else {
         NcError.invalidFilter(JSON.stringify(filter));
@@ -370,7 +370,7 @@ export default class Filter implements FilterType {
     {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
-        const view = await View.get(context, filter.fk_view_id, ncMeta);
+        const view = await View.get(context, filter.fk_view_id, false, ncMeta);
 
         await View.clearSingleQueryCache(
           context,
@@ -434,7 +434,7 @@ export default class Filter implements FilterType {
       const filter = await this.get(context, id, ncMeta);
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
-        const view = await View.get(context, filter.fk_view_id, ncMeta);
+        const view = await View.get(context, filter.fk_view_id, false, ncMeta);
         await View.clearSingleQueryCache(
           context,
           view.fk_model_id,
@@ -475,7 +475,7 @@ export default class Filter implements FilterType {
     {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
-        const view = await View.get(context, filter.fk_view_id, ncMeta);
+        const view = await View.get(context, filter.fk_view_id, false, ncMeta);
 
         await View.clearSingleQueryCache(
           context,
@@ -795,7 +795,7 @@ export default class Filter implements FilterType {
 
     // on update delete any optimised single query cache
     {
-      const view = await View.get(context, viewId, ncMeta);
+      const view = await View.get(context, viewId, false, ncMeta);
       await View.clearSingleQueryCache(
         context,
         view.fk_model_id,
@@ -1382,9 +1382,13 @@ export default class Filter implements FilterType {
         };
 
     if (this.fk_view_id) {
-      parentData = { view: await View.get(context, this.fk_view_id, ncMeta) };
+      parentData = {
+        view: await View.get(context, this.fk_view_id, false, ncMeta),
+      };
     } else if (this.fk_hook_id) {
-      parentData = { hook: await Hook.get(context, this.fk_hook_id, ncMeta) };
+      parentData = {
+        hook: await Hook.get(context, this.fk_hook_id, false, ncMeta),
+      };
     } else if (this.fk_link_col_id) {
       parentData = {
         linkColumn: await Column.get(

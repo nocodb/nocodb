@@ -1,14 +1,16 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { AppEvents, MetaEventType } from 'nocodb-sdk';
 import { HooksService as HooksServiceCE } from 'src/services/hooks.service';
 import type { OnModuleInit } from '@nestjs/common';
 import type { HookReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { Model } from '~/models';
+import { Hook, Model } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
@@ -17,6 +19,8 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobTypes } from '~/interface/Jobs';
 import { HookSubscribersService } from '~/services/hook-subscribers.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 
 @Injectable()
 export class HooksService extends HooksServiceCE implements OnModuleInit {
@@ -28,8 +32,15 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
     @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly nocoJobsService: NocoJobsService,
     protected readonly hookSubscribersService: HookSubscribersService,
+    protected readonly baseTrashService: BaseTrashService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {
-    super(appHooksService, datasService, jobsService);
+    super(
+      appHooksService,
+      datasService,
+      jobsService,
+      metaDependencyEventHandler,
+    );
   }
 
   async onModuleInit() {
@@ -71,8 +82,9 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
       context.base_id,
       MetaTable.HOOKS,
       {
-        condition: {
-          fk_model_id: model.id,
+        condition: { fk_model_id: model.id },
+        xcCondition: {
+          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
         },
       },
     );
@@ -98,8 +110,9 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
       RootScopes.WORKSPACE,
       MetaTable.HOOKS,
       {
-        condition: {
-          fk_workspace_id: context.workspace_id,
+        condition: { fk_workspace_id: context.workspace_id },
+        xcCondition: {
+          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
         },
       },
     );
@@ -140,8 +153,24 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
 
   async hookDelete(
     context: NcContext,
-    param: { hookId: string; req: NcRequest },
+    param: { hookId: string; req: NcRequest; skipTrash?: boolean },
+    ncMeta?: MetaService,
   ) {
+    // `skipTrash: true` is set by `HookTrashHandler.permanentDelete` to bypass
+    // the trash flow and run the CE hard-delete directly.
+    if (param.skipTrash) {
+      return super.hookDelete(context, param, ncMeta);
+    }
+
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
+    const hook = await Hook.get(context, param.hookId, false, ncMeta);
+    if (!hook) {
+      NcError.get(context).hookNotFound(param.hookId);
+    }
+
     try {
       await this.hookSubscribersService.deleteAllSubscribers(
         context,
@@ -154,6 +183,29 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
       );
     }
 
-    return await super.hookDelete(context, param);
+    await this.baseTrashService.trashResource(context, {
+      resourceId: param.hookId,
+      resourceType: 'hook',
+      user: param.req.user,
+      req: param.req,
+      ncMeta,
+    });
+
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.HOOK_DELETED,
+        oldEntity: hook,
+      },
+      ncMeta,
+    );
+
+    this.appHooksService.emit(AppEvents.WEBHOOK_DELETE, {
+      hook,
+      req: param.req,
+      context,
+      tableId: hook.fk_model_id,
+    });
+    return true;
   }
 }

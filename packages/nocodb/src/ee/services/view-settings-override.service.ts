@@ -55,11 +55,21 @@ export class ViewSettingsOverrideService {
       context,
       PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER,
     );
-    const sourceView = await View.get(context, param.sourceViewId, ncMeta);
+    const sourceView = await View.get(
+      context,
+      param.sourceViewId,
+      false,
+      ncMeta,
+    );
     if (!sourceView) {
       NcError.get(context).viewNotFound(param.sourceViewId);
     }
-    const destView = await View.get(context, param.destinationViewId, ncMeta);
+    const destView = await View.get(
+      context,
+      param.destinationViewId,
+      false,
+      ncMeta,
+    );
     if (!destView) {
       NcError.get(context).viewNotFound(param.destinationViewId);
     }
@@ -101,7 +111,7 @@ export class ViewSettingsOverrideService {
         await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId());
         viewWebhookManager.emit();
       }
-      const resultView = await View.get(context, destView.id, ncMeta);
+      const resultView = await View.get(context, destView.id, false, ncMeta);
       await resultView.getViewWithInfo(context);
       return { view: resultView } as any;
     } catch (ex) {

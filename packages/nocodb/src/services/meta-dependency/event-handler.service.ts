@@ -21,6 +21,7 @@ export class MetaDependencyEventHandler {
     COLUMN_ADDED: [],
     COLUMN_DELETED: [],
     COLUMN_UPDATED: [],
+    HOOK_DELETED: [],
   };
 
   registerEvents(metaEventHandler: MetaEventHandler[]) {

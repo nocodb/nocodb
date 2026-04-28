@@ -4,7 +4,11 @@ import { getLimit } from '~/helpers/paymentHelpers';
 
 export async function resolveTrashRetentionDays(
   context: NcContext,
+  model?: { trash_retention_days?: number | null },
 ): Promise<number> {
+  if (model?.trash_retention_days != null && model.trash_retention_days > 0) {
+    return model.trash_retention_days;
+  }
   try {
     const { limit } = await getLimit(
       PlanLimitTypes.LIMIT_TRASH_RETENTION,

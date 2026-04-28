@@ -52,8 +52,7 @@ export async function getPatResourceFilter(
 
   for (const s of scopes) {
     if (s.resource_type === 'base') baseIds.push(s.resource_id);
-    else if (s.resource_type === 'workspace')
-      workspaceIds.push(s.resource_id);
+    else if (s.resource_type === 'workspace') workspaceIds.push(s.resource_id);
   }
 
   return { baseIds, workspaceIds };

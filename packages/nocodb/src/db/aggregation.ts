@@ -93,6 +93,10 @@ export default async function applyAggregation({
     return;
   }
 
+  if (column.colOptions?.error) {
+    return;
+  }
+
   const { context, dbDriver: knex } = baseModelSqlv2;
 
   /*

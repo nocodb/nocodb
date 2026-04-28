@@ -669,12 +669,14 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
             .knexConnection(MetaTable.HOOKS)
             .count('*')
             .where('fk_workspace_id', id)
-            .whereIn('base_id', activeBaseIds),
+            .whereIn('base_id', activeBaseIds)
+            .where((qb) => qb.where('deleted', false).orWhereNull('deleted')),
           [PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.EXTENSIONS)
             .count('*')
             .where('fk_workspace_id', id)
-            .whereIn('base_id', activeBaseIds),
+            .whereIn('base_id', activeBaseIds)
+            .where((qb) => qb.where('deleted', false).orWhereNull('deleted')),
           [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.SNAPSHOT)
             .count('*')
@@ -685,13 +687,15 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
             .count('*')
             .where('type', ModelTypes.DASHBOARD)
             .where('fk_workspace_id', id)
-            .whereIn('base_id', activeBaseIds),
+            .whereIn('base_id', activeBaseIds)
+            .where((qb) => qb.where('deleted', false).orWhereNull('deleted')),
           [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.AUTOMATIONS)
             .count('*')
             .where('fk_workspace_id', id)
             .whereIn('base_id', activeBaseIds)
-            .where('type', AutomationTypes.SCRIPT),
+            .where('type', AutomationTypes.SCRIPT)
+            .where((qb) => qb.where('deleted', false).orWhereNull('deleted')),
           [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.SOURCES)
             .count('*')

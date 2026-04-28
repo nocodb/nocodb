@@ -26134,6 +26134,10 @@
             "type": "number",
             "description": "The order among the list",
             "example": 1
+          },
+          "error": {
+            "description": "Error Message",
+            "type": "string"
           }
         },
         "x-stoplight": {
@@ -27541,6 +27545,10 @@
               "sumDistinct",
               "avgDistinct"
             ]
+          },
+          "error": {
+            "description": "Error Message",
+            "type": "string"
           }
         },
         "x-stoplight": {
@@ -30956,6 +30964,89 @@
             "uniqueItems": true,
             "items": {
               "$ref": "#/components/schemas/Integration"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Pagination Info"
+          }
+        },
+        "required": [
+          "list",
+          "pageInfo"
+        ]
+      },
+      "BaseTrash": {
+        "description": "Model for Base Trash Entry",
+        "title": "Base Trash Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Trash Entry ID"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workspace ID"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID"
+          },
+          "resource_type": {
+            "type": "string",
+            "description": "Type of the trashed resource",
+            "enum": ["table", "view", "field", "dashboard", "widget", "script", "workflow", "extension", "record", "hook"]
+          },
+          "resource_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of the trashed resource"
+          },
+          "parent_type": {
+            "type": "string",
+            "description": "Type of the parent entity"
+          },
+          "parent_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of the parent entity"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name of the trashed resource"
+          },
+          "parent_name": {
+            "type": "string",
+            "description": "Display name of the parent entity"
+          },
+          "deleted_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of the user who deleted"
+          },
+          "deleted_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of deletion"
+          },
+          "related_items": {
+            "type": "string",
+            "description": "JSON string tracking cascade effects"
+          },
+          "meta": {
+            "description": "Resource-specific metadata for UI rendering (e.g. view type, table icon, field uidt)",
+            "type": "object"
+          }
+        }
+      },
+      "BaseTrashList": {
+        "description": "Model for Base Trash List",
+        "title": "Base Trash List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "description": "List of Base Trash Entries",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BaseTrash"
             }
           },
           "pageInfo": {

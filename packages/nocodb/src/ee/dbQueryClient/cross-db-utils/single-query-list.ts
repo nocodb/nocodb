@@ -42,6 +42,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       skipPaginateWrapper?: boolean;
       skipSortBasedOnOrderCol?: boolean;
       ignoreViewFilterAndSort?: boolean;
+      extractOnlyPrimaries?: boolean;
       ignoreRls?: boolean;
       deletedOnly?: boolean;
     },
@@ -86,6 +87,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     const cacheKeySuffix =
       (linksAsLtar ? ':ltar' : '') +
       (ctx.deletedOnly ? ':deleted' : '') +
+      (ctx.extractOnlyPrimaries ? ':primaries' : '') +
       rlsCacheSegment;
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
@@ -188,6 +190,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       ignoreViewFilterAndSort: ctx.ignoreViewFilterAndSort,
       ignoreRls: ctx.ignoreRls,
       deletedOnly: ctx.deletedOnly,
+      extractOnlyPrimaries: ctx.extractOnlyPrimaries,
       skipCache,
       listArgs,
       limitOffsetPlaceholder: skipCache ? undefined : limitOffsetPlaceholder,

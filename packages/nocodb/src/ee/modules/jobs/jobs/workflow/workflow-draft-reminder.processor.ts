@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { hasWorkflowDraftChanges } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import { notDeletedKnexCondition } from '~/utils/trashUtils';
 import { Base, User, Workflow, Workspace } from '~/models';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
@@ -41,6 +42,7 @@ export class WorkflowDraftReminderProcessor {
         'updated_at',
       )
       .from(MetaTable.AUTOMATIONS)
+      .where(notDeletedKnexCondition)
       .whereNotNull('draft')
       .where('updated_at', '<', cutoffTime)
       .andWhere((builder) => {

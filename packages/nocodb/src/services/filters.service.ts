@@ -10,7 +10,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
-import { Filter, Hook, View } from '~/models';
+import { Column, Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
@@ -96,7 +96,7 @@ export class FiltersService {
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
-      const view = await View.get(context, filter.fk_view_id, ncMeta);
+      const view = await View.get(context, filter.fk_view_id, false, ncMeta);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -113,6 +113,7 @@ export class FiltersService {
       const view = await View.get(
         context,
         rowColorCondition.fk_view_id,
+        false,
         ncMeta,
       );
       viewWebhookManager = (
@@ -162,6 +163,17 @@ export class FiltersService {
     },
   ) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
+
+    if (param.filter.fk_column_id) {
+      const column = await Column.get(context, {
+        colId: param.filter.fk_column_id,
+      });
+      if (column?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${column.title}' in filter: ${column.colOptions.error}`,
+        );
+      }
+    }
 
     const view = await View.get(context, param.viewId);
 
@@ -217,11 +229,24 @@ export class FiltersService {
   ) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
+    if (param.filter.fk_column_id) {
+      const column = await Column.get(
+        context,
+        { colId: param.filter.fk_column_id },
+        ncMeta,
+      );
+      if (column?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${column.title}' in filter: ${column.colOptions.error}`,
+        );
+      }
+    }
+
     const filter = await Filter.get(context, param.filterId, ncMeta);
 
     let viewWebhookManager: ViewWebhookManager;
     if (filter.fk_view_id) {
-      const view = await View.get(context, filter.fk_view_id, ncMeta);
+      const view = await View.get(context, filter.fk_view_id, false, ncMeta);
       viewWebhookManager = (
         await (
           await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
@@ -238,6 +263,7 @@ export class FiltersService {
       const view = await View.get(
         context,
         rowColorCondition.fk_view_id,
+        false,
         ncMeta,
       );
       viewWebhookManager = (

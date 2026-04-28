@@ -28,7 +28,7 @@ export const useRealtime = createSharedComposable(() => {
   const basesStore = useBases()
   const { bases, basesUser } = storeToRefs(basesStore)
 
-  const { setMeta, getMeta, removeMeta } = useMetas()
+  const { setMeta, getMeta, removeMeta, clearDeletedTableId } = useMetas()
   const { tables: _tables, baseId: activeBaseId, base } = storeToRefs(useBase())
 
   const tableStore = useTablesStore()
@@ -36,7 +36,7 @@ export const useRealtime = createSharedComposable(() => {
   const { baseTables, activeTableId } = storeToRefs(tableStore)
 
   const viewStore = useViewsStore()
-  const { changeView } = viewStore
+  const { changeView, removeFromRecentViews } = viewStore
   const { viewsByTable, activeViewTitleOrId } = storeToRefs(viewStore)
 
   const dashboardStore = useDashboardStore()
@@ -126,10 +126,15 @@ export const useRealtime = createSharedComposable(() => {
       const eventBaseId = event.payload.base_id
       if (!eventBaseId || eventBaseId !== activeBaseId.value) return
 
+      // Clear from deleted set in case this is a restore from trash
+      if (event.payload.id) {
+        clearDeletedTableId(event.payload.id)
+      }
+
       const tables = baseTables.value.get(eventBaseId)
       if (!tables) {
         loadProjectTables(eventBaseId, true)
-      } else {
+      } else if (!tables.some((t) => t.id === event.payload.id)) {
         tables.push(event.payload)
         baseTables.value.set(eventBaseId, tables)
       }
@@ -200,16 +205,20 @@ export const useRealtime = createSharedComposable(() => {
       } else {
         loadProjectTables(eventBaseId, true)
       }
+
+      removeFromRecentViews({
+        tableId: deletedTableId,
+        baseId: eventBaseId,
+      })
+
       refreshCommandPalette()
     } else if (event.action === 'column_add' || event.action === 'column_update' || event.action === 'column_delete') {
       const { table, column, skipDataReload = false } = event.payload
       if (!table.base_id || table.base_id !== activeBaseId.value) return
 
       setMeta(table)
-      if (event.action === 'column_update' || (event.action === 'column_add' && (isVirtualCol(column) || !!column?.cdf))) {
-        $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
-        if (!skipDataReload) $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
-      }
+      $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+      if (!skipDataReload) $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
     } else if (event.action === 'view_create') {
       if (!event.payload.base_id || !event.payload.fk_model_id) return
 
@@ -304,6 +313,14 @@ export const useRealtime = createSharedComposable(() => {
           getMeta(event.payload.base_id, event.payload.fk_model_id, true)
         }
       }
+
+      // Remove from recent views to prevent stale entries
+      removeFromRecentViews({
+        viewId: event.payload.id,
+        tableId: event.payload.fk_model_id,
+        baseId: event.payload.base_id,
+      })
+
       refreshCommandPalette()
     } else if (event.action === 'permission_update') {
       const { payload, baseId } = event
@@ -392,6 +409,39 @@ export const useRealtime = createSharedComposable(() => {
           baseExtensions.value[activeBaseId.value].extensions.splice(index, 1)
         }
       }
+    } else if (event.action === 'view_restore') {
+      if (!event.payload?.base_id || !event.payload?.fk_model_id) return
+
+      const key = `${event.payload.base_id}:${event.payload.fk_model_id}`
+      const views = viewsByTable.value.get(key)
+
+      if (views) {
+        // Guard against duplicate events
+        if (!views.some((v) => v.id === event.payload.id)) {
+          const oldFirstCollabGridView = getFirstNonPersonalView(views, {
+            includeViewType: ViewTypes.GRID,
+          })
+
+          views.push(event.payload)
+          views.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+
+          const newFirstCollabGridView = getFirstNonPersonalView(views, {
+            includeViewType: ViewTypes.GRID,
+          })
+
+          if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id) {
+            getMeta(event.payload.base_id, event.payload.fk_model_id, true)
+          }
+        }
+      }
+
+      refreshCommandPalette()
+    } else if (event.action === 'extension_restore') {
+      updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
+      const eventBaseId = event.payload.base_id
+      if (eventBaseId && baseExtensions.value[eventBaseId]) {
+        delete baseExtensions.value[eventBaseId]
+      }
     }
   }
 
@@ -451,6 +501,16 @@ export const useRealtime = createSharedComposable(() => {
         }
         break
       }
+      case 'restore': {
+        if (script && !existingScripts.some((d) => d.id === id)) {
+          const updatedScripts = [...existingScripts, script]
+          updatedScripts.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+          scripts.value.set(baseId, updatedScripts)
+          updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, 1)
+          refreshCommandPalette()
+        }
+        break
+      }
     }
   }
 
@@ -503,6 +563,15 @@ export const useRealtime = createSharedComposable(() => {
               content: `${workflow.title} may have been deleted or your access removed.`,
             })
           }
+        }
+        break
+      }
+      case 'restore': {
+        if (workflow && !existingWorkflows.some((d) => d.id === id)) {
+          const updatedWorkflows = [...existingWorkflows, workflow]
+          updatedWorkflows.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+          workflows.value.set(baseId, updatedWorkflows)
+          refreshCommandPalette()
         }
         break
       }
@@ -560,6 +629,16 @@ export const useRealtime = createSharedComposable(() => {
         }
         break
       }
+      case 'restore': {
+        if (dashboard && !existingDashboards.some((d) => d.id === id)) {
+          const updatedDashboards = [...existingDashboards, dashboard]
+          updatedDashboards.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+          updateStatLimit(PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE, 1)
+          dashboards.value.set(baseId, updatedDashboards)
+          refreshCommandPalette()
+        }
+        break
+      }
     }
   }
 
@@ -588,6 +667,13 @@ export const useRealtime = createSharedComposable(() => {
 
         if (selectedWidget.value?.id === id) {
           selectedWidget.value = null
+        }
+        break
+      }
+      case 'restore': {
+        if (widget && !existingWidgets.some((w) => w.id === id)) {
+          const updatedWidgets = [...existingWidgets, widget]
+          widgets.value.set(dashboardId, updatedWidgets)
         }
         break
       }
@@ -1114,6 +1200,7 @@ export const useRealtime = createSharedComposable(() => {
       activeUserListener.value,
       activeBaseMetaListener.value,
       activeScriptListener.value,
+      activeWorkflowListener.value,
       activeDashboardListener.value,
       activeWidgetListener.value,
       activeTeamListener.value,

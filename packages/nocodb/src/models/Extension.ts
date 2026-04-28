@@ -29,6 +29,7 @@ export default class Extension {
   public static async get(
     context: NcContext,
     extensionId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     let extension = await NocoCache.get(
@@ -55,10 +56,17 @@ export default class Extension {
       }
     }
 
+    if (extension?.deleted && !includeDeleted) return null;
+
     return extension && new Extension(extension);
   }
 
-  static async list(context: NcContext, baseId: string, ncMeta = Noco.ncMeta) {
+  static async list(
+    context: NcContext,
+    baseId: string,
+    includeDeleted = false,
+    ncMeta = Noco.ncMeta,
+  ) {
     const cachedList = await NocoCache.getList(context, CacheScope.EXTENSION, [
       baseId,
     ]);
@@ -90,6 +98,10 @@ export default class Extension {
           extensionList,
         );
       }
+    }
+
+    if (!includeDeleted) {
+      extensionList = extensionList.filter((e) => !e.deleted);
     }
 
     return extensionList
@@ -133,7 +145,7 @@ export default class Extension {
       1,
     );
 
-    return this.get(context, id, ncMeta).then(async (res) => {
+    return this.get(context, id, false, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
         context,
         CacheScope.EXTENSION,
@@ -174,7 +186,34 @@ export default class Extension {
       prepareForResponse(updateObj, ['kv_store', 'meta']),
     );
 
-    return this.get(context, extensionId, ncMeta);
+    return this.get(context, extensionId, false, ncMeta);
+  }
+
+  static async softDelete(
+    context: NcContext,
+    extensionId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.EXTENSIONS,
+      { deleted },
+      extensionId,
+    );
+
+    await NocoCache.update(context, `${CacheScope.EXTENSION}:${extensionId}`, {
+      deleted,
+    });
+
+    // Adjust workspace resource stats cache: -1 on trash, +1 on restore
+    await NocoCache.incrHashField(
+      'root',
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE,
+      deleted ? -1 : 1,
+    );
   }
 
   static async delete(

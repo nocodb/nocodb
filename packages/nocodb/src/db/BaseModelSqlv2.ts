@@ -9,7 +9,6 @@ import utc from 'dayjs/plugin/utc.js';
 import equal from 'fast-deep-equal';
 import groupBy from 'lodash/groupBy';
 import {
-  AppEvents,
   AuditOperationSubTypes,
   AuditV1OperationTypes,
   ClientType,
@@ -1969,6 +1968,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               const colOptions: LookupColumn = await column.getColOptions(
                 this.context,
               );
+              // Skip registering lookup alias if column has an error — sentinel value
+              // is already selected in selectObject
+              if (colOptions?.error) break;
               const relCol = await Column.get(this.context, {
                 colId: colOptions.fk_relation_column_id,
               });
@@ -2420,6 +2422,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }): Promise<void> {
     return await selectObject(this, logger)(params);
   }
+  public async afterSoftDeleteCompleted(_params: {
+    cookie: NcRequest;
+    operationNow: string;
+  }): Promise<void> {
+    // No-op — overridden in EE.
+  }
 
   async insert(data, request: NcRequest, trx?, _disableOptimization = false) {
     return await baseModelInsert(this).single(
@@ -2452,6 +2460,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (isSoftDelete) {
         // Soft-delete: flag the record instead of removing it
         const where = await this._wherePk(id);
+        const operationNow = this.now();
         const softDeletePayload: Record<string, any> = {
           [deletedColumn.column_name]: true,
         };
@@ -2462,7 +2471,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const lmbCol = this.model.columns.find(
           (c) => c.uidt === UITypes.LastModifiedBy && c.system,
         );
-        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = operationNow;
         if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
 
         // Use the caller's transaction or run without one (single UPDATE, no link cleanup)
@@ -2471,13 +2480,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           : await this.dbDriver(this.tnPath)
               .update(softDeletePayload)
               .where(where);
-
-        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
-          context: this.context,
-          req: cookie,
-          tableId: this.model.id,
-          rowIds: [id],
-        });
 
         await this.softDeleteFileReferences({
           oldData: [data],
@@ -2494,15 +2496,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           AuditV1OperationTypes.DATA_SOFT_DELETE,
         );
         await this.statsUpdate({ count: -1 });
-
-        // Set trash_cleanup_due_at on first soft-delete if not already scheduled
-        if (!this.model.trash_cleanup_due_at) {
-          await Model.updateTrashCleanupDueAt(
-            this.context,
-            this.model.id,
-            new Date().toISOString(),
-          );
-        }
 
         return response;
       }
@@ -4553,6 +4546,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (isSoftDelete) {
         transaction = await this.dbDriver.transaction();
         // Soft-delete: flag records instead of removing them, skip link cleanup
+        const operationNow = this.now();
         const softDeletePayload: Record<string, any> = {
           [deletedColumn.column_name]: true,
         };
@@ -4563,7 +4557,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const lmbCol = this.model.columns.find(
           (c) => c.uidt === UITypes.LastModifiedBy && c.system,
         );
-        if (lmtCol) softDeletePayload[lmtCol.column_name] = this.now();
+        if (lmtCol) softDeletePayload[lmtCol.column_name] = operationNow;
         if (lmbCol) softDeletePayload[lmbCol.column_name] = cookie?.user?.id;
 
         if (this.model.primaryKeys.length === 1) {
@@ -4578,17 +4572,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             await transaction(this.tnPath).update(softDeletePayload).where(d);
           }
         }
-
-        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
-          context: this.context,
-          req: cookie,
-          tableId: this.model.id,
-          rowIds: res.map((d) =>
-            this.model.primaryKeys.length === 1
-              ? d[this.model.primaryKey.column_name]
-              : this.extractPksValues(d, true),
-          ),
-        });
       } else {
         const execQueries: ((
           trx: Knex.Transaction,
@@ -4985,15 +4968,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       if (isSoftDelete) {
         await this.statsUpdate({ count: -deleted.length });
-
-        // Set trash_cleanup_due_at on first soft-delete if not already scheduled
-        if (!this.model.trash_cleanup_due_at) {
-          await Model.updateTrashCleanupDueAt(
-            this.context,
-            this.model.id,
-            new Date().toISOString(),
-          );
-        }
       }
 
       return res;
@@ -7433,14 +7407,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return column;
     }
     const colOptions = await column.getColOptions<LookupColumn>(context);
-    const relationColOpt = await colOptions
-      .getRelationColumn(context)
-      .then((col) => {
-        return (
-          col?.colOptions ??
-          col?.getColOptions<LinkToAnotherRecordColumn>(context)
-        );
-      });
+    if (colOptions?.error) return { uidt: UITypes.SingleLineText };
+    const relationCol = await colOptions.getRelationColumn(context);
+    if (!relationCol) return { uidt: UITypes.SingleLineText };
+    const relationColOpt = await (relationCol.colOptions ??
+      relationCol.getColOptions<LinkToAnotherRecordColumn>(context));
+    if (!relationColOpt) return { uidt: UITypes.SingleLineText };
 
     const { refContext } = relationColOpt.getRelContext(context);
     return this.getNestedColumn(

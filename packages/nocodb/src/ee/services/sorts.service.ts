@@ -33,7 +33,7 @@ export class SortsService extends SortsServiceCE {
   ) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
-    const view = await View.get(context, param.viewId, ncMeta);
+    const view = await View.get(context, param.viewId, false, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.viewId);

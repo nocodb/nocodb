@@ -52,26 +52,26 @@ export {
 
 export interface DashboardPayload extends BaseSocketPayload {
   id: string;
-  action: 'create' | 'update' | 'delete';
+  action: 'create' | 'update' | 'delete' | 'restore';
   payload: DashboardType;
 }
 
 export interface WidgetPayload extends BaseSocketPayload {
   id: string;
   dashboardId: string;
-  action: 'create' | 'update' | 'delete';
+  action: 'create' | 'update' | 'delete' | 'restore';
   payload: WidgetType;
 }
 
 export interface ScriptPayload extends BaseSocketPayload {
   id: string;
-  action: 'create' | 'update' | 'delete';
+  action: 'create' | 'update' | 'delete' | 'restore';
   payload: ScriptType;
 }
 
 export interface WorkflowPayload extends BaseSocketPayload {
   id: string;
-  action: 'create' | 'update' | 'delete';
+  action: 'create' | 'update' | 'delete' | 'restore';
   payload: WorkflowType;
 }
 

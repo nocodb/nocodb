@@ -178,7 +178,7 @@ export class ViewsService {
       NcError.get(context).schemaLocked();
     }
 
-    const oldView = await View.get(context, param.viewId, ncMeta);
+    const oldView = await View.get(context, param.viewId, false, ncMeta);
 
     if (!oldView) {
       NcError.get(context).viewNotFound(param.viewId);
@@ -290,7 +290,12 @@ export class ViewsService {
       await assertPersonalViewAllowed(context, param.view.lock_type);
       // Prevent changing the last collaborative grid view to personal
       if (oldView.type === ViewTypes.GRID) {
-        const views = await View.list(context, oldView.fk_model_id, ncMeta);
+        const views = await View.list(
+          context,
+          oldView.fk_model_id,
+          false,
+          ncMeta,
+        );
         const otherNonPersonalGridView = getFirstNonPersonalView(
           views.filter((v) => v.id !== oldView.id),
           { includeViewType: ViewTypes.GRID },
@@ -430,6 +435,7 @@ export class ViewsService {
       // `base_roles` is attached by extract-ids.middleware when the caller
       // comes through the HTTP pipeline (shape mirrors NcRequest['user']).
       user: UserType & { base_roles?: Record<string, boolean> | string };
+      skipTrash?: boolean;
       req: NcRequest;
     },
     ncMeta = Noco.ncMeta,
@@ -438,7 +444,7 @@ export class ViewsService {
       NcError.get(context).schemaLocked();
     }
 
-    const view = await View.get(context, param.viewId, ncMeta);
+    const view = await View.get(context, param.viewId, false, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);
@@ -470,7 +476,7 @@ export class ViewsService {
       );
     }
 
-    const views = await View.list(context, view.fk_model_id, ncMeta);
+    const views = await View.list(context, view.fk_model_id, false, ncMeta);
 
     // Check if this is the last collaborative grid view
     // Use helper to find if there's at least one other non-personal grid view
@@ -667,7 +673,7 @@ export class ViewsService {
   ) {
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const view = await View.get(context, param.viewId, ncMeta);
+      const view = await View.get(context, param.viewId, false, ncMeta);
       viewWebhookManager =
         param.viewWebhookManager ??
         (
@@ -721,7 +727,7 @@ export class ViewsService {
   ) {
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const view = await View.get(context, param.viewId, ncMeta);
+      const view = await View.get(context, param.viewId, false, ncMeta);
       viewWebhookManager =
         param.viewWebhookManager ??
         (

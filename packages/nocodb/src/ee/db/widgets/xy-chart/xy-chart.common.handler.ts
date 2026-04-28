@@ -116,6 +116,14 @@ export class XyChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
       return errors;
     }
 
+    if (xAxisColumn.colOptions?.error) {
+      addError(
+        'data.xAxis.column_id',
+        `X-Axis column has an error: ${xAxisColumn.colOptions.error}`,
+      );
+      return errors;
+    }
+
     if (xAxis.orderBy && !['default', 'asc', 'desc'].includes(xAxis.orderBy)) {
       addError(
         'data.xAxis.orderBy',
@@ -164,6 +172,14 @@ export class XyChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
         continue;
       }
 
+      if (yAxisColumn.colOptions?.error) {
+        addError(
+          `${fieldPath}.column_id`,
+          `Y-Axis column has an error: ${yAxisColumn.colOptions.error}`,
+        );
+        continue;
+      }
+
       if (!field.aggregation) {
         addError(
           `${fieldPath}.aggregation`,
@@ -195,6 +211,11 @@ export class XyChartCommonHandler extends BaseWidgetHandler<ChartWidgetType> {
 
       if (!groupByColumn || groupByColumn.fk_model_id !== widget.fk_model_id) {
         addError('data.yAxis.groupBy', 'Group by column not found');
+      } else if (groupByColumn.colOptions?.error) {
+        addError(
+          'data.yAxis.groupBy',
+          `Group by column has an error: ${groupByColumn.colOptions.error}`,
+        );
       }
     }
 

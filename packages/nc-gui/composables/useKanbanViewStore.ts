@@ -41,7 +41,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { $e, $api, $ncSocket } = useNuxtApp()
 
-    const { restoreFromTrash, trashUnavailableReason } = useRecordTrash()
+    const { restoreFromTrash, trashUnavailableReason } = useBaseTrash()
 
     const { sorts, nestedFilters, eventBus, xWhere, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 

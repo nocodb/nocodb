@@ -51,7 +51,7 @@ export class FormsService {
 
     await assertPersonalViewAllowed(context, param.body.lock_type);
 
-    const model = await Model.get(context, param.tableId, ncMeta);
+    const model = await Model.get(context, param.tableId, false, ncMeta);
 
     if (model.synced) {
       NcError._.prohibitedSyncTableOperation({
@@ -113,7 +113,7 @@ export class FormsService {
     );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(context, id, ncMeta);
+    const view = await View.get(context, id, false, ncMeta);
     await NocoCache.appendToList(
       context,
       CacheScope.VIEW,
@@ -170,7 +170,7 @@ export class FormsService {
       'swagger.json#/components/schemas/FormUpdateReq',
       param.form,
     );
-    const view = await View.get(context, param.formViewId, ncMeta);
+    const view = await View.get(context, param.formViewId, false, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.formViewId);

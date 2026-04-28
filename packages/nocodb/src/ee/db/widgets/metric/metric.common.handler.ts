@@ -66,6 +66,11 @@ export class MetricCommonHandler extends BaseWidgetHandler<MetricWidgetType> {
       const column = await Column.get(context, { colId: metric.column_id });
       if (!column) {
         addError('metric.column_id', 'Column not found');
+      } else if (column.colOptions?.error) {
+        addError(
+          'metric.column_id',
+          `Column has an error: ${column.colOptions.error}`,
+        );
       } else if (
         !validateAggregationColType(context, column, metric.aggregation, false)
       ) {

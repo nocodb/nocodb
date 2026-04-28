@@ -9,6 +9,7 @@ export default class Script {
   public static async get(
     _context: NcContext,
     _param1: string,
+    _includeDeleted = false,
     _ncMeta = Noco.ncMeta,
   ) {
     return null;
@@ -17,10 +18,13 @@ export default class Script {
   public static async list(
     _context: NcContext,
     _param1: string,
+    _includeDeleted = false,
     _ncMeta = Noco.ncMeta,
   ) {
     return [];
   }
+
+  static async softDelete(..._args: any) {}
 
   static async delete(
     _context: NcContext,

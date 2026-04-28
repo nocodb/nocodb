@@ -53,6 +53,14 @@ export class NcError {
     return NcError._.widgetNotFound(id, args);
   }
 
+  static trashNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.trashNotFound(id, args);
+  }
+
+  static parentInTrash(parentType: string, args?: NcErrorArgs): never {
+    return NcError._.parentInTrash(parentType, args);
+  }
+
   static dashboardNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.dashboardNotFound(id, args);
   }

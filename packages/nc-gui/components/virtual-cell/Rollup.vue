@@ -88,7 +88,15 @@ const isIntegerResult = computed(() => {
 </script>
 
 <template>
-  <div @dblclick="activateShowEditNonEditableFieldWarning">
+  <div v-if="column && column.colOptions && column.colOptions.error" class="nc-cell-field">
+    <NcTooltip placement="bottom" class="text-nc-content-orange-dark">
+      <template #title>
+        <span class="font-bold">{{ column.colOptions.error }}</span>
+      </template>
+      <span>ERR!</span>
+    </NcTooltip>
+  </div>
+  <div v-else @dblclick="activateShowEditNonEditableFieldWarning">
     <CellInteger
       v-if="isIntegerResult && renderAsTextFun.includes((colOptions as RollupType).rollup_function!)"
       :model-value="value"

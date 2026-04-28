@@ -109,9 +109,9 @@ export default class Filter extends FilterCE implements FilterType {
     if (!filter.source_id) {
       let model: { base_id?: string; source_id?: string };
       if (filter.fk_view_id && !filter.fk_parent_column_id) {
-        model = await View.get(context, filter.fk_view_id, ncMeta);
+        model = await View.get(context, filter.fk_view_id, false, ncMeta);
       } else if (filter.fk_hook_id) {
-        model = await Hook.get(context, filter.fk_hook_id, ncMeta);
+        model = await Hook.get(context, filter.fk_hook_id, false, ncMeta);
       } else if (filter.fk_rls_policy_id) {
         const policy = await RlsPolicy.get(
           context,
@@ -119,7 +119,7 @@ export default class Filter extends FilterCE implements FilterType {
           ncMeta,
         );
         if (policy?.fk_model_id) {
-          model = await Model.get(context, policy.fk_model_id, ncMeta);
+          model = await Model.get(context, policy.fk_model_id, false, ncMeta);
         }
       } else if (filter.fk_link_col_id) {
         model = await Column.get(
@@ -139,7 +139,12 @@ export default class Filter extends FilterCE implements FilterType {
           filter.fk_row_color_condition_id,
           ncMeta,
         );
-        model = await View.get(context, rowColorCondition.fk_view_id, ncMeta);
+        model = await View.get(
+          context,
+          rowColorCondition.fk_view_id,
+          false,
+          ncMeta,
+        );
       } else if (filter.fk_parent_column_id) {
         model = await Column.get(
           context,
@@ -153,11 +158,16 @@ export default class Filter extends FilterCE implements FilterType {
           ncMeta,
         );
       } else if (filter.fk_widget_id) {
-        const widget = await Widget.get(context, filter.fk_widget_id, ncMeta);
+        const widget = await Widget.get(
+          context,
+          filter.fk_widget_id,
+          false,
+          ncMeta,
+        );
         if (!widget.fk_model_id) {
           NcError.invalidFilter(JSON.stringify(filter));
         }
-        model = await Model.get(context, widget.fk_model_id, ncMeta);
+        model = await Model.get(context, widget.fk_model_id, false, ncMeta);
       } else if (filter.fk_level_id) {
         const level = await ListViewLevel.get(
           context,
@@ -165,7 +175,7 @@ export default class Filter extends FilterCE implements FilterType {
           ncMeta,
         );
         if (level?.fk_model_id) {
-          model = await Model.get(context, level.fk_model_id, ncMeta);
+          model = await Model.get(context, level.fk_model_id, false, ncMeta);
         }
       } else {
         NcError.invalidFilter(JSON.stringify(filter));
@@ -423,7 +433,7 @@ export default class Filter extends FilterCE implements FilterType {
     {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
-        const view = await View.get(context, filter.fk_view_id, ncMeta);
+        const view = await View.get(context, filter.fk_view_id, false, ncMeta);
         await View.clearSingleQueryCache(
           context,
           view.fk_model_id,

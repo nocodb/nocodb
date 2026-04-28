@@ -1,9 +1,15 @@
-import { isBoxHovered, renderBarcode } from '../utils/canvas'
+import { isBoxHovered, renderBarcode, renderCellError } from '../utils/canvas'
 import { validateBarcode } from '../utils/cell'
 
 export const BarcodeCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, column, tag = {}, spriteLoader, cellRenderStore, isDark, getColor } = props
+    const { value, x, y, width, height, column, tag = {}, spriteLoader, cellRenderStore, isDark, getColor, padding = 10 } = props
+
+    if (parseProp(column.colOptions)?.error) {
+      renderCellError(ctx, { x, y, width, height, padding, getColor })
+      return
+    }
+
     const { renderAsTag } = tag
     const returnValue = renderBarcode(ctx, {
       x,

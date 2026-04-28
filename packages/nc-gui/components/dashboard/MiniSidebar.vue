@@ -27,7 +27,7 @@ const {
   isTemplatesFeatureEnabled,
 } = workspaceStore
 
-const { basesList } = storeToRefs(useBases())
+const { basesList, activeProjectId } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 

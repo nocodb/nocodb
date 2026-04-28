@@ -55,7 +55,7 @@ export class TimelinesService {
 
     await assertPersonalViewAllowed(context, param.timeline.lock_type);
 
-    const model = await Model.get(context, param.tableId, ncMeta);
+    const model = await Model.get(context, param.tableId, false, ncMeta);
 
     param.timeline.title = param.timeline.title?.trim();
     const existingView = await View.getByTitleOrId(
@@ -104,7 +104,7 @@ export class TimelinesService {
       ncMeta,
     );
 
-    const view = await View.get(context, id, ncMeta);
+    const view = await View.get(context, id, false, ncMeta);
 
     await NocoCache.appendToList(
       context,
@@ -160,7 +160,7 @@ export class TimelinesService {
     },
     ncMeta?: MetaService,
   ) {
-    const view = await View.get(context, param.timelineViewId, ncMeta);
+    const view = await View.get(context, param.timelineViewId, false, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.timelineViewId);

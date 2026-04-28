@@ -172,8 +172,8 @@ export class UiPostOperations
         return await this.tablesService.tableDelete(context, {
           tableId: req.query.tableId,
           user: req.user,
-          forceDeleteRelations: payload?.forceDeleteRelations,
           req,
+          forceDeleteRelations: payload?.forceDeleteRelations,
         });
       case 'tableReorder':
         return await this.tablesService.reorderTable(context, {

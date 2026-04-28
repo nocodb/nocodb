@@ -45,6 +45,7 @@ export default class Widget extends WidgetCE implements IWidget {
   public static async get(
     context: NcContext,
     widgetId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ): Promise<Widget | null> {
     let widget =
@@ -71,6 +72,8 @@ export default class Widget extends WidgetCE implements IWidget {
       }
     }
 
+    if (widget?.deleted && !includeDeleted) return null;
+
     // If called from extractIds middleware, we don't want to fetch filters
     if (
       widget &&
@@ -88,6 +91,7 @@ export default class Widget extends WidgetCE implements IWidget {
   public static async list(
     context: NcContext,
     dashboardId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ): Promise<Widget[]> {
     const cachedList = await NocoCache.getList(context, CacheScope.WIDGET, [
@@ -118,12 +122,17 @@ export default class Widget extends WidgetCE implements IWidget {
         [dashboardId],
         widgetsList,
       );
-      widgetsList.sort(
-        (a, b) =>
-          (a.order != null ? a.order : Infinity) -
-          (b.order != null ? b.order : Infinity),
-      );
     }
+
+    if (!includeDeleted) {
+      widgetsList = widgetsList.filter((w) => !w.deleted);
+    }
+
+    widgetsList.sort(
+      (a, b) =>
+        (a.order != null ? a.order : Infinity) -
+        (b.order != null ? b.order : Infinity),
+    );
 
     if (!widgetsList.length) {
       return [];
@@ -170,15 +179,17 @@ export default class Widget extends WidgetCE implements IWidget {
       insertObj,
     );
 
-    return Widget.get(context, insertRes.id, ncMeta).then(async (widget) => {
-      await NocoCache.appendToList(
-        context,
-        CacheScope.WIDGET,
-        [widget.fk_dashboard_id],
-        `${CacheScope.WIDGET}:${insertRes.id}`,
-      );
-      return widget;
-    });
+    return Widget.get(context, insertRes.id, false, ncMeta).then(
+      async (widget) => {
+        await NocoCache.appendToList(
+          context,
+          CacheScope.WIDGET,
+          [widget.fk_dashboard_id],
+          `${CacheScope.WIDGET}:${insertRes.id}`,
+        );
+        return widget;
+      },
+    );
   }
 
   static async update(
@@ -218,6 +229,24 @@ export default class Widget extends WidgetCE implements IWidget {
     );
 
     return await this.get(context, widgetId);
+  }
+
+  static async softDelete(
+    context: NcContext,
+    widgetId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.WIDGETS,
+      { deleted },
+      widgetId,
+    );
+    await NocoCache.update(context, `${CacheScope.WIDGET}:${widgetId}`, {
+      deleted,
+    });
   }
 
   static async delete(

@@ -14,6 +14,7 @@ import {
   CacheScope,
   MetaTable,
 } from '~/utils/globals';
+import { notDeletedXcCondition } from '~/utils/trashUtils';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { CustomUrl, Source } from '~/models';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
@@ -48,6 +49,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
   public static async get(
     context: NcContext,
     dashboardId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     if (!dashboardId) {
@@ -81,18 +83,21 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       }
     }
 
+    if (dashboard?.deleted && !includeDeleted) return null;
+
     return dashboard && new Dashboard(dashboard);
   }
 
   public static async list(
     context: NcContext,
     baseId: string,
+    includeDeleted = false,
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(context, CacheScope.DASHBOARD, [
       baseId,
     ]);
-    let { list: dashboardsList } = cachedList;
+    let dashboardsList = cachedList.list;
     const { isNoneList } = cachedList;
     if (!isNoneList && !dashboardsList.length) {
       dashboardsList = await ncMeta.metaList2(
@@ -119,6 +124,11 @@ export default class Dashboard extends DashboardCE implements DashboardType {
         dashboardsList,
       );
     }
+
+    if (!includeDeleted) {
+      dashboardsList = dashboardsList.filter((d) => !d.deleted);
+    }
+
     dashboardsList.sort(
       (a, b) =>
         (a.order != null ? a.order : Infinity) -
@@ -188,7 +198,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       logger.error('Failed to clean command palette cache');
     });
 
-    return Dashboard.get(context, id, ncMeta).then(async (dashboard) => {
+    return Dashboard.get(context, id, false, ncMeta).then(async (dashboard) => {
       await NocoCache.appendToList(
         context,
         CacheScope.DASHBOARD,
@@ -245,7 +255,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       logger.error('Failed to clean command palette cache');
     });
 
-    return this.get(context, dashboardId, ncMeta);
+    return this.get(context, dashboardId, false, ncMeta);
   }
 
   static async verifyPassword(
@@ -267,6 +277,36 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     return dashboard.password === inputPassword;
   }
 
+  static async softDelete(
+    context: NcContext,
+    dashboardId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      { deleted },
+      dashboardId,
+    );
+    await NocoCache.update(context, `${CacheScope.DASHBOARD}:${dashboardId}`, {
+      deleted,
+    });
+
+    // Adjust workspace resource stats cache: -1 on trash, +1 on restore
+    await NocoCache.incrHashField(
+      'root',
+      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
+      PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE,
+      deleted ? -1 : 1,
+    );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+  }
+
   static async delete(
     context: NcContext,
     dashboardId: string,
@@ -275,8 +315,8 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     await CustomUrl.bulkDelete({
       fk_dashboard_id: dashboardId,
     });
-    // Delete all widgets in this dashboard
-    const widgets = await Widget.list(context, dashboardId, ncMeta);
+    // Delete all widgets in this dashboard (including soft-deleted)
+    const widgets = await Widget.list(context, dashboardId, true, ncMeta);
     for (const widget of widgets) {
       await Widget.delete(context, widget.id, ncMeta);
     }
@@ -313,7 +353,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Widget[]> {
-    return (this.widgets = await Widget.list(context, this.id, ncMeta));
+    return (this.widgets = await Widget.list(context, this.id, false, ncMeta));
   }
 
   static async getByUUID(
@@ -329,6 +369,8 @@ export default class Dashboard extends DashboardCE implements DashboardType {
         type: ModelTypes.DASHBOARD,
         uuid,
       },
+      undefined,
+      notDeletedXcCondition,
     );
     return dashboard && new Dashboard(prepareForResponse(dashboard, ['meta']));
   }
@@ -338,7 +380,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     base_id: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const dashboards = await this.list(context, base_id, ncMeta);
+    const dashboards = await this.list(context, base_id, true, ncMeta);
 
     for (const dashboard of dashboards) {
       await this.delete(context, dashboard.id, ncMeta);

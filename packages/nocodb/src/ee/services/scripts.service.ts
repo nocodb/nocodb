@@ -7,15 +7,20 @@ import {
 } from 'nocodb-sdk';
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { ButtonColumn, Script, Workspace } from '~/models';
 import { checkLimit } from '~/helpers/paymentHelpers';
 
 @Injectable()
 export class ScriptsService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly baseTrashService: BaseTrashService,
+  ) {}
 
   async listScripts(context: NcContext) {
     return await Script.list(context, context.base_id);
@@ -123,34 +128,56 @@ export class ScriptsService {
     return updatedScript;
   }
 
-  async deleteScript(context: NcContext, scriptId: string, req: NcRequest) {
+  async deleteScript(
+    context: NcContext,
+    scriptId: string,
+    req: NcRequest,
+    ncMeta?: MetaService,
+  ) {
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
 
-    const script = await Script.get(context, scriptId);
+    const script = await Script.get(context, scriptId, false, ncMeta);
 
     if (!script) {
       return NcError.get(context).scriptNotFound(scriptId);
     }
 
-    const buttonCols = await ButtonColumn.buttonUsages(context, scriptId);
+    // Detach button columns before trashing
+    const buttonCols = await ButtonColumn.buttonUsages(
+      context,
+      scriptId,
+      ncMeta,
+    );
 
     if (buttonCols.length) {
       for (const button of buttonCols) {
-        await ButtonColumn.update(context, button.fk_column_id, {
-          fk_script_id: null,
-          type: ButtonActionsType.Script,
-        });
+        await ButtonColumn.update(
+          context,
+          button.fk_column_id,
+          {
+            fk_script_id: null,
+            type: ButtonActionsType.Script,
+            error: 'Script has been moved to trash',
+          },
+          ncMeta,
+        );
       }
     }
 
-    await Script.delete(context, scriptId);
+    await this.baseTrashService.trashResource(context, {
+      resourceId: scriptId,
+      resourceType: 'script',
+      user: req.user,
+      req,
+      ncMeta,
+    });
 
     this.appHooksService.emit(AppEvents.SCRIPT_DELETE, {
       script,
       context,
-      req: req,
+      req,
       user: context.user,
     });
 

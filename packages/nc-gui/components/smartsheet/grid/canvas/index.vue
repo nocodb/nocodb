@@ -1567,6 +1567,13 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         return
       }
 
+      // Skip opening aggregation menu for errored columns (e.g. Lookup/Rollup
+      // whose relation column was cascade-deleted).
+      if (clickedColumn.columnObj?.colOptions?.error) {
+        triggerRefreshCanvas()
+        return
+      }
+
       openAggregationField.value = clickedColumn
       isDropdownVisible.value = true
       overlayStyle.value = {
@@ -1635,6 +1642,10 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           prevMenuState.openAggregationFieldId &&
           prevMenuState.openAggregationFieldId === clickedColumn.id
         ) {
+          return
+        }
+        // Skip opening aggregation menu for errored columns.
+        if (clickedColumn.columnObj?.colOptions?.error) {
           return
         }
         openAggregationField.value = clickedColumn

@@ -117,8 +117,9 @@ export const checkForCurrentUserFilters = async ({
           return true;
         }
         if ([UITypes.Lookup].includes(column.uidt)) {
-          const actualColumn = travelLookupColumn({ context, column });
+          const actualColumn = await travelLookupColumn({ context, column });
           if (
+            actualColumn &&
             [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
               actualColumn.uidt,
             )

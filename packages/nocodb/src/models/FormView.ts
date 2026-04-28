@@ -135,7 +135,7 @@ export default class FormView implements FormViewType {
       );
     }
 
-    const viewRef = await View.get(context, view.fk_view_id, ncMeta);
+    const viewRef = await View.get(context, view.fk_view_id, false, ncMeta);
 
     if (!view.source_id) {
       insertObj.source_id = viewRef.source_id;

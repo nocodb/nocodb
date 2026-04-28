@@ -47,7 +47,7 @@ export class SortsService {
       ncMeta,
     );
 
-    const view = await View.get(context, sort.fk_view_id, ncMeta);
+    const view = await View.get(context, sort.fk_view_id, false, ncMeta);
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -104,6 +104,19 @@ export class SortsService {
 
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
+    if (param.sort.fk_column_id) {
+      const col = await Column.get(
+        context,
+        { colId: param.sort.fk_column_id },
+        ncMeta,
+      );
+      if (col?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${col.title}' in sort: ${col.colOptions.error}`,
+        );
+      }
+    }
+
     const sort = await Sort.get(context, param.sortId, ncMeta);
 
     if (!sort) {
@@ -116,7 +129,7 @@ export class SortsService {
       ncMeta,
     );
 
-    const view = await View.get(context, sort.fk_view_id, ncMeta);
+    const view = await View.get(context, sort.fk_view_id, false, ncMeta);
 
     const viewWebhookManager =
       param.viewWebhookManager ??
@@ -178,7 +191,20 @@ export class SortsService {
     }
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
-    const view = await View.get(context, param.viewId, ncMeta);
+    if (param.sort.fk_column_id) {
+      const col = await Column.get(
+        context,
+        { colId: param.sort.fk_column_id },
+        ncMeta,
+      );
+      if (col?.colOptions?.error) {
+        NcError.get(context).badRequest(
+          `Cannot use column '${col.title}' in sort: ${col.colOptions.error}`,
+        );
+      }
+    }
+
+    const view = await View.get(context, param.viewId, false, ncMeta);
 
     if (!view) {
       NcError.badRequest('View not found');

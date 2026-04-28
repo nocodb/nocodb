@@ -385,6 +385,7 @@ watch(
       <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
         <SmartsheetTopbarManagedAppStatus />
         <SmartsheetTopbarSandboxStatus />
+        <LazySmartsheetTopbarHistory />
         <LazyGeneralShareProject v-if="!props.tab" />
       </div>
     </div>
@@ -553,7 +554,7 @@ watch(
           </div>
         </a-tab-pane>
         <a-tab-pane
-          v-if="isEeUI && showEEFeatures && isUIAllowed('recordTrashSettingsList') && base.id && !isMobileMode"
+          v-if="isEeUI && showEEFeatures && isUIAllowed('baseTrashSettingsList') && base.id && !isMobileMode"
           key="record-trash"
         >
           <template #tab>

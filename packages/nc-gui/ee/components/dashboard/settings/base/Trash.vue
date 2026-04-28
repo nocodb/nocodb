@@ -41,7 +41,7 @@ async function loadSettings() {
   isLoading.value = true
   try {
     const result = (await $api.internal.getOperation(activeWorkspaceId.value!, baseId.value!, {
-      operation: 'recordTrashSettingsList',
+      operation: 'baseTrashSettingsList',
     })) as any
 
     tables.value = (result.tables ?? []).map((t: any) => ({
@@ -70,7 +70,7 @@ async function saveTableSetting(
     await $api.internal.postOperation(
       activeWorkspaceId.value!,
       baseId.value!,
-      { operation: 'recordTrashSettingsUpdate' } as any,
+      { operation: 'baseTrashSettingsUpdate' } as any,
       {
         tableId: table.id,
         [field]: value,
@@ -177,7 +177,7 @@ onMounted(async () => {
           <NcSwitch
             v-else
             :checked="isTrashEnabled(table)"
-            :disabled="!isUIAllowed('recordTrashSettingsUpdate')"
+            :disabled="!isUIAllowed('baseTrashSettingsUpdate')"
             :loading="table._saving"
             size="small"
             data-testid="nc-trash-settings-toggle"
@@ -203,7 +203,7 @@ onMounted(async () => {
           <NcDropdown
             v-else
             v-model:visible="retentionDropdownVisible[table.id]"
-            :disabled="!isUIAllowed('recordTrashSettingsUpdate')"
+            :disabled="!isUIAllowed('baseTrashSettingsUpdate')"
             :trigger="['click']"
             placement="bottom"
           >

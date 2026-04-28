@@ -105,7 +105,7 @@ export default class HookLog implements HookLogType {
       'triggered_by',
     ]);
 
-    const hook = await Hook.get(context, hookLog.fk_hook_id, ncMeta);
+    const hook = await Hook.get(context, hookLog.fk_hook_id, false, ncMeta);
 
     if (!hookLog.source_id) {
       insertObj.source_id = hook.source_id;

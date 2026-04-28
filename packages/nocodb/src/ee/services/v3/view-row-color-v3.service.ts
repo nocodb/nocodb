@@ -37,7 +37,7 @@ export class ViewRowColorV3Service {
     const { viewId, body } = params;
 
     await checkForFeature(context, PlanFeatureTypes.FEATURE_ROW_COLOUR, ncMeta);
-    const view = await View.get(context, params.viewId, ncMeta);
+    const view = await View.get(context, params.viewId, false, ncMeta);
 
     const viewWebhookManager =
       params.viewWebhookManager ??

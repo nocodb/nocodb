@@ -553,6 +553,8 @@
     "seconds": "Seconds",
     "paste": "Paste",
     "restore": "Restore",
+    "permanentDelete": "Permanently Delete",
+    "emptyTrash": "Empty Trash",
     "replace": "Replace",
     "banner": "Banner",
     "logo": "Logo",
@@ -659,6 +661,8 @@
     "automations": "Automations",
     "dashboard": "Dashboard",
     "dashboards": "Dashboards",
+    "widget": "Widget",
+    "extension": "Extension",
     "workflow": "Workflow",
     "workflows": "Workflows",
     "file": "file",
@@ -1051,6 +1055,9 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "trash": "Trash",
+    "baseTrash": "Base Trash",
+    "recordTrash": "Record Trash",
     "noWorkspaceAccess": "No workspace access",
     "convertLegacyLink": "Upgrade Link Field",
     "versionHistory": "Version History",
@@ -2975,7 +2982,11 @@
     "selectSyncCategory": "Select a sync category",
     "categoryNotEditableInEditMode": "Category not editable in edit mode",
     "syncScopeNotEditableInEditMode": "Sync scope can't be modified",
-    "organizeViewsIntoSections": "Organize views into collapsible sections"
+    "organizeViewsIntoSections": "Organize views into collapsible sections",
+    "filteringNotSupportedForFieldsWithErrors": "Filtering is not supported for fields with errors",
+    "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
+    "sortingNotSupportedForField": "Sorting is not supported for {type} field",
+    "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors"
   },
   "placeholder": {
     "enterVerificationCode": "Enter 6-digit code",
@@ -3309,6 +3320,7 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
+      "trashEmpty": "Trash is empty",
       "contactAdminForAccess": "You haven't been added to any workspace yet. Contact your administrator to get access.",
       "licenseRequiresPostgres": "Enterprise licensing requires PostgreSQL. Please migrate to PostgreSQL to activate your license key.",
       "licensesUpToDate": "All licenses are up to date",
@@ -3773,6 +3785,10 @@
       "nRecordsCreated": "{n} records created"
     },
     "success": {
+      "restored": "Item restored successfully",
+      "partiallyRestored": "Restored conflict-free items — conflicting ones remain in trash",
+      "permanentlyDeleted": "Item permanently deleted",
+      "trashEmptied": "Trash emptied successfully",
       "licensesSynced": "{count} license synced from Stripe | {count} licenses synced from Stripe",
       "twoFactorEnabled": "Two-factor authentication has been enabled",
       "twoFactorDisabled": "Two-factor authentication has been disabled",
@@ -3966,5 +3982,23 @@
         "force": "Restore all and clear conflicts"
       }
     }
+  },
+  "baseTrash": {
+    "title": "Trash",
+    "header": "Deleted from {base}",
+    "description": "Restore items deleted from this base in the past {days} days. To restore deleted bases and workspaces, go to your workspace trash.",
+    "autoExpiry": "Items are permanently deleted after {days} days",
+    "noDeletedItems": "No deleted items",
+    "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
+    "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
+    "confirmPermanentDelete": "{name} will be permanently deleted. This cannot be undone.",
+    "restoreParentFirst": "Restore \"{parent}\" first to restore this item",
+    "restoreRequiresCreator": "Restoring this item requires Creator or Owner role",
+    "secondsAgo": "{count} seconds ago",
+    "youDeleted": "You deleted a {type} from {parent}: {name}",
+    "userDeleted": "{user} deleted a {type} from {parent}: {name}",
+    "youDeletedNoParent": "You deleted a {type}: {name}",
+    "userDeletedNoParent": "{user} deleted a {type}: {name}",
+    "someoneDeleted": "A {type} was deleted: {name}"
   }
 }

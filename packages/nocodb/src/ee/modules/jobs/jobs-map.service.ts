@@ -1,6 +1,7 @@
 import { JobsMap as JobsMapCE } from 'src/modules/jobs/jobs-map.service';
 import { Injectable } from '@nestjs/common';
 import { AttachmentUrlUploadProcessor } from 'src/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
+import { BaseTrashCleanUpProcessor } from '~/modules/jobs/jobs/base-trash-clean-up/base-trash-clean-up.processor';
 import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
 import { AtImportProcessor } from '~/modules/jobs/jobs/at-import/at-import.processor';
 import { MetaSyncProcessor } from '~/modules/jobs/jobs/meta-sync/meta-sync.processor';
@@ -34,8 +35,6 @@ import { WorkflowDraftReminderProcessor } from '~/modules/jobs/jobs/workflow/wor
 import { HookErrorNotificationProcessor } from '~/modules/jobs/jobs/hook-error-notification.processor';
 import { ChatMessageProcessor } from '~/modules/jobs/jobs/chat-message.processor';
 import { ChatApprovalProcessor } from '~/modules/jobs/jobs/chat-approval.processor';
-import { RecordTrashCleanupJob } from '~/modules/jobs/jobs/record-trash-cleanup/record-trash-cleanup.job';
-
 @Injectable()
 export class JobsMap extends JobsMapCE {
   constructor(
@@ -62,6 +61,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly updateUsageStatsProcessor: UpdateUsageStatsProcessor,
     protected readonly cloudDbMigrateProcessor: CloudDbMigrateProcessor,
     protected readonly attachmentUrlUploadProcessor: AttachmentUrlUploadProcessor,
+    protected readonly baseTrashCleanUpProcessor: BaseTrashCleanUpProcessor,
     protected readonly actionExecutionProcessor: ActionExecutionProcessor,
     protected readonly reseatSubscriptionProcessor: ReseatSubscriptionProcessor,
     protected readonly workflowProcessor: WorkflowProcessor,
@@ -73,7 +73,6 @@ export class JobsMap extends JobsMapCE {
     protected readonly hookErrorNotificationProcessor: HookErrorNotificationProcessor,
     protected readonly chatMessageProcessor: ChatMessageProcessor,
     protected readonly chatApprovalProcessor: ChatApprovalProcessor,
-    protected readonly recordTrashCleanupJob: RecordTrashCleanupJob,
   ) {
     super(
       duplicateProcessor,
@@ -192,8 +191,8 @@ export class JobsMap extends JobsMapCE {
       [JobTypes.ChatApproval]: {
         this: this.chatApprovalProcessor,
       },
-      [JobTypes.RecordTrashCleanup]: {
-        this: this.recordTrashCleanupJob,
+      [JobTypes.BaseTrashCleanUp]: {
+        this: this.baseTrashCleanUpProcessor,
       },
     };
   }

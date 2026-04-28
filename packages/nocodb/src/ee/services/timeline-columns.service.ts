@@ -54,6 +54,7 @@ export class TimelineColumnsService {
     const view = await View.get(
       context,
       oldTimelineViewColumn.fk_view_id,
+      false,
       ncMeta,
     );
 
@@ -134,7 +135,7 @@ export class TimelineColumnsService {
 
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
-      const view = await View.get(context, param.viewId, ncMeta);
+      const view = await View.get(context, param.viewId, false, ncMeta);
       viewWebhookManager =
         param.viewWebhookManager ??
         (

@@ -299,6 +299,8 @@ export const useExtensions = createSharedComposable(() => {
     )
 
     if (newExtension) {
+      updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
+
       const duplicatedExtension = new Extension(newExtension)
       baseExtensions.value[base.value.id].extensions.push(duplicatedExtension)
       eventBus.emit(ExtensionsEvents.DUPLICATE, duplicatedExtension.id)

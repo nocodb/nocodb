@@ -90,6 +90,7 @@ const isBasesOptionsOpen = ref<Record<string, boolean>>({})
 
 const activeKey = ref<string[]>([])
 const isTableDeleteDialogVisible = ref(false)
+
 const isBaseDeleteDialogVisible = ref(false)
 
 const { refreshViewTabTitle } = useViewsStore()

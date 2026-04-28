@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { ConflictState, RestoreConflict } from '~/composables/useRecordTrash'
+import type { ConflictState, RestoreConflict } from '~/composables/useBaseTrash'
 
 interface Props {
-  eventId: string
+  entryId: string
   rowCount: number
   state: ConflictState
 }
@@ -11,7 +11,7 @@ const props = defineProps<Props>()
 
 const { t } = useI18n()
 
-const { partialRestoreEvent, forceRestoreEvent, dismissConflict } = useRecordTrash()
+const { partialRestoreItem, forceRestoreItem, dismissConflict } = useBaseTrash()
 
 const groups = computed(() => {
   const link: RestoreConflict[] = []
@@ -51,7 +51,7 @@ const cleanCount = computed(() => Math.max(0, props.rowCount - conflictedRowCoun
 </script>
 
 <template>
-  <div class="nc-trash-conflict-panel border-t-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight">
+  <div class="nc-base-trash-conflict-panel border-t-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight">
     <div class="px-6 py-4 flex flex-col gap-3">
       <!-- Header -->
       <div class="flex items-start gap-2.5">
@@ -78,18 +78,18 @@ const cleanCount = computed(() => Math.max(0, props.rowCount - conflictedRowCoun
 
       <!-- Groups -->
       <div class="flex flex-col gap-2">
-        <SmartsheetToolbarRecordTrashConflictGroup v-if="groups.link.length" kind="link" :conflicts="groups.link" />
-        <SmartsheetToolbarRecordTrashConflictGroup
+        <BaseTrashConflictGroup v-if="groups.link.length" kind="link" :conflicts="groups.link" />
+        <BaseTrashConflictGroup
           v-if="groups.validation.length"
           kind="validation"
           :conflicts="groups.validation"
         />
-        <SmartsheetToolbarRecordTrashConflictGroup
+        <BaseTrashConflictGroup
           v-if="groups.uniqueActive.length"
           kind="unique-active"
           :conflicts="groups.uniqueActive"
         />
-        <SmartsheetToolbarRecordTrashConflictGroup
+        <BaseTrashConflictGroup
           v-if="groups.uniqueIntra.length"
           kind="unique-intra"
           :conflicts="groups.uniqueIntra"
@@ -105,34 +105,34 @@ const cleanCount = computed(() => Math.max(0, props.rowCount - conflictedRowCoun
       <!-- Actions -->
       <div class="flex items-center justify-end gap-2 pt-1">
         <NcButton
-          v-e="['c:trash:restore:cancel']"
+          v-e="['c:base-trash:restore:cancel']"
           size="small"
           type="secondary"
           :disabled="state.isSubmitting"
-          @click="dismissConflict(eventId)"
+          @click="dismissConflict(entryId)"
         >
           {{ t('trash.conflict.action.cancel') }}
         </NcButton>
 
         <NcButton
           v-if="cleanCount > 0"
-          v-e="['c:trash:restore:partial']"
+          v-e="['c:base-trash:restore:partial']"
           size="small"
           type="secondary"
           :loading="state.isSubmitting"
           :disabled="state.isSubmitting"
-          @click="partialRestoreEvent(eventId)"
+          @click="partialRestoreItem(entryId)"
         >
           {{ t('trash.conflict.action.partial', { count: cleanCount }) }}
         </NcButton>
 
         <NcButton
-          v-e="['c:trash:restore:force']"
+          v-e="['c:base-trash:restore:force']"
           size="small"
           type="danger"
           :loading="state.isSubmitting"
           :disabled="state.isSubmitting"
-          @click="forceRestoreEvent(eventId)"
+          @click="forceRestoreItem(entryId)"
         >
           {{ t('trash.conflict.action.force') }}
         </NcButton>
@@ -142,14 +142,14 @@ const cleanCount = computed(() => Math.max(0, props.rowCount - conflictedRowCoun
 </template>
 
 <style lang="scss" scoped>
-.nc-trash-conflict-panel {
+.nc-base-trash-conflict-panel {
   animation: panelOpen 180ms ease-out;
   box-shadow: inset 3px 0 0 var(--nc-fill-red-medium, #ef4444);
 }
 @keyframes panelOpen {
   from {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(-2px);
   }
   to {
     opacity: 1;

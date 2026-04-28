@@ -138,9 +138,12 @@ const rolePermissions = {
       baseAuditList: true,
       rlsManage: true,
 
-      // Record Trash — permanent delete + empty are owner-only
-      recordTrashPermanentDelete: true,
-      recordTrashEmpty: true,
+      // Base trash — destructive operations + per-table settings
+      // are owner-only.
+      baseTrashPermanentDelete: true,
+      baseTrashEmpty: true,
+      baseTrashSettingsList: true,
+      baseTrashSettingsUpdate: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -198,10 +201,6 @@ const rolePermissions = {
       workflowExecutionList: true,
       workflowList: true,
 
-      // Record Trash settings — creators can view and update
-      recordTrashSettingsList: true,
-      recordTrashSettingsUpdate: true,
-
       // Documents — creators can create and delete documents
       documentCreate: true,
       documentDelete: true,
@@ -251,10 +250,11 @@ const rolePermissions = {
       // Extensions
       extensionUpdate: true,
 
-      // Record Trash — editors can list/count/restore but NOT permanent delete or empty
-      recordTrashEvents: true,
-      recordTrashCount: true,
-      recordTrashRestore: true,
+      // Base trash — editors can list / restore (per-entry + per-row),
+      // but permanent delete + empty are owner-only.
+      baseTrashList: true,
+      baseTrashRestore: true,
+      baseTrashRestoreRows: true,
 
       // Documents — editors can update and reorder, but NOT create/delete
       documentUpdate: true,

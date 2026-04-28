@@ -70,7 +70,12 @@ export default class MapView implements MapType {
       meta: view.meta,
     };
 
-    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+    const viewRef = await View.get(
+      context,
+      insertObj.fk_view_id,
+      false,
+      ncMeta,
+    );
 
     if (!insertObj.source_id) {
       insertObj.source_id = viewRef.source_id;

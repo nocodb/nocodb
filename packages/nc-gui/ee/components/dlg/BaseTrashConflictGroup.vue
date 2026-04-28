@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RestoreConflict } from '~/composables/useRecordTrash'
+import type { RestoreConflict } from '~/composables/useBaseTrash'
 
 interface Props {
   kind: 'link' | 'validation' | 'unique-active' | 'unique-intra'
@@ -97,7 +97,7 @@ function willClear(c: RestoreConflict): boolean {
 </script>
 
 <template>
-  <div class="nc-trash-conflict-group rounded-lg border-1 border-nc-border-gray-medium overflow-hidden bg-white">
+  <div class="nc-base-trash-conflict-group rounded-lg border-1 border-nc-border-gray-medium overflow-hidden bg-white">
     <button
       type="button"
       class="w-full flex items-center gap-2 px-3 py-2 text-left bg-nc-bg-gray-extralight hover:bg-nc-bg-gray-light transition-colors"

@@ -65,7 +65,7 @@ export default class ModelStat {
   ) {
     const insertObject = extractProps(stat, ['row_count']);
 
-    const model = await Model.get(context, modelId, ncMeta);
+    const model = await Model.get(context, modelId, false, ncMeta);
     const source = await Source.get(context, model.source_id, false, ncMeta);
     const is_external = !source.isMeta();
 

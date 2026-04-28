@@ -5,8 +5,12 @@ import { expect } from 'chai';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
 import {
+  createBarcodeColumn,
   createColumn,
+  createLookupColumn,
+  createLtarColumn,
   createQrCodeColumn,
+  createRollupColumn,
   deleteColumn,
 } from '../../factory/column';
 import { createTable, getColumnsByAPI, getTable } from '../../factory/table';
@@ -127,7 +131,7 @@ function columnTypeSpecificTests() {
       ).to.eql(resp.body.list.map((row) => row[qrCodeReferenceColumnTitle]));
     });
 
-    it('gets deleted if the referenced column gets deleted', async () => {
+    it('gets error-marked if the referenced column gets deleted', async () => {
       const ctx = {
         workspace_id: sakilaProject.fk_workspace_id,
         base_id: sakilaProject.id,
@@ -150,11 +154,16 @@ function columnTypeSpecificTests() {
 
       const columnsAfterReferencedColumnDeleted =
         await customerTable.getColumns(ctx);
-      expect(
-        columnsAfterReferencedColumnDeleted.some(
-          (col) => col['title'] === qrCodeReferenceColumnTitle,
-        ),
-      ).to.eq(false);
+
+      // QR code column should still exist (not cascade-deleted)
+      const qrCodeColumn = columnsAfterReferencedColumnDeleted.find(
+        (col) => col['title'] === qrCodeReferenceColumnTitle,
+      );
+      expect(qrCodeColumn).to.not.be.undefined;
+
+      // but should be marked with an error
+      const qrCodeColOption = await qrCodeColumn.getColOptions(ctx);
+      expect(qrCodeColOption.error).to.be.a('string').and.not.be.empty;
     });
   });
 
@@ -558,6 +567,362 @@ function columnTypeSpecificTests() {
   });
 }
 
+function columnDeleteDependencyTests() {
+  let context;
+  let base: Base;
+  let table1: Model;
+  let table2: Model;
+
+  beforeEach(async function () {
+    context = await init(true);
+    base = await createProject(context);
+
+    table1 = await createTable(context, base, {
+      table_name: 'parent',
+      title: 'parent',
+      columns: [
+        { column_name: 'Id', title: 'Id', uidt: UITypes.ID },
+        {
+          column_name: 'Title',
+          title: 'Title',
+          uidt: UITypes.SingleLineText,
+        },
+      ],
+    });
+
+    table2 = await createTable(context, base, {
+      table_name: 'child',
+      title: 'child',
+      columns: [
+        { column_name: 'Id', title: 'Id', uidt: UITypes.ID },
+        {
+          column_name: 'Name',
+          title: 'Name',
+          uidt: UITypes.SingleLineText,
+        },
+      ],
+    });
+
+    await createLtarColumn(context, {
+      title: 'Parent Link',
+      parentTable: table1,
+      childTable: table2,
+      type: 'hm',
+    });
+  });
+
+  const ctx = () => ({
+    workspace_id: base.fk_workspace_id,
+    base_id: base.id,
+  });
+
+  const getColOptions = async (table: Model, colTitle: string) => {
+    const columns = await table.getColumns(ctx());
+    const col = columns.find((c) => c.title === colTitle);
+    expect(col, `Column "${colTitle}" should exist`).to.not.be.undefined;
+    return col.getColOptions(ctx());
+  };
+
+  const colExists = async (table: Model, colTitle: string) => {
+    const columns = await table.getColumns(ctx());
+    return columns.find((c) => c.title === colTitle);
+  };
+
+  describe('Lookup error-marking', () => {
+    it('error-marks lookup when referenced column is deleted', async () => {
+      await createLookupColumn(context, {
+        base,
+        title: 'Child Name Lookup',
+        table: table1,
+        relatedTableName: table2.table_name,
+        relatedTableColumnTitle: 'Name',
+      });
+
+      // Delete the "Name" column in the child table
+      const childCols = await table2.getColumns(ctx());
+      const nameCol = childCols.find((c) => c.title === 'Name');
+      await deleteColumn(context, { table: table2, column: nameCol });
+
+      const opts = await getColOptions(table1, 'Child Name Lookup');
+      expect(opts.error).to.be.a('string').and.not.be.empty;
+    });
+
+    it('error-marks lookup when LTAR relation column is deleted', async () => {
+      await createLookupColumn(context, {
+        base,
+        title: 'Child Name Lookup',
+        table: table1,
+        relatedTableName: table2.table_name,
+        relatedTableColumnTitle: 'Name',
+      });
+
+      // Delete the LTAR column
+      const parentCols = await table1.getColumns(ctx());
+      const ltarCol = parentCols.find((c) => c.title === 'Parent Link');
+      await deleteColumn(context, { table: table1, column: ltarCol });
+
+      const opts = await getColOptions(table1, 'Child Name Lookup');
+      expect(opts.error).to.be.a('string').and.not.be.empty;
+    });
+  });
+
+  describe('Rollup error-marking', () => {
+    it('error-marks rollup when referenced column is deleted', async () => {
+      await createRollupColumn(context, {
+        base,
+        title: 'Child Name Count',
+        table: table1,
+        relatedTableName: table2.table_name,
+        relatedTableColumnTitle: 'Name',
+        rollupFunction: 'count',
+      });
+
+      const childCols = await table2.getColumns(ctx());
+      const nameCol = childCols.find((c) => c.title === 'Name');
+      await deleteColumn(context, { table: table2, column: nameCol });
+
+      const opts = await getColOptions(table1, 'Child Name Count');
+      expect(opts.error).to.be.a('string').and.not.be.empty;
+    });
+
+    it('error-marks rollup when LTAR relation column is deleted', async () => {
+      await createRollupColumn(context, {
+        base,
+        title: 'Child Name Count',
+        table: table1,
+        relatedTableName: table2.table_name,
+        relatedTableColumnTitle: 'Name',
+        rollupFunction: 'count',
+      });
+
+      const parentCols = await table1.getColumns(ctx());
+      const ltarCol = parentCols.find((c) => c.title === 'Parent Link');
+      await deleteColumn(context, { table: table1, column: ltarCol });
+
+      const opts = await getColOptions(table1, 'Child Name Count');
+      expect(opts.error).to.be.a('string').and.not.be.empty;
+    });
+  });
+
+  describe('Barcode error-marking', () => {
+    it('error-marks barcode when referenced column is deleted', async () => {
+      await createBarcodeColumn(context, {
+        title: 'Title Barcode',
+        table: table1,
+        referencedBarcodeValueTableColumnTitle: 'Title',
+      });
+
+      const cols = await table1.getColumns(ctx());
+      const titleCol = cols.find((c) => c.title === 'Title');
+      await deleteColumn(context, { table: table1, column: titleCol });
+
+      const opts = await getColOptions(table1, 'Title Barcode');
+      expect(opts.error).to.be.a('string').and.not.be.empty;
+    });
+  });
+
+  describe('Transitive dependency error-marking', () => {
+    it('error-marks lookup-of-lookup when root column is deleted', async () => {
+      // Create Lookup B → child.Name
+      await createLookupColumn(context, {
+        base,
+        title: 'Lookup B',
+        table: table1,
+        relatedTableName: table2.table_name,
+        relatedTableColumnTitle: 'Name',
+      });
+
+      // Create a self-referencing LTAR on table1 to use for Lookup C
+      await createLtarColumn(context, {
+        title: 'Self Link',
+        parentTable: table1,
+        childTable: table1,
+        type: 'hm',
+      });
+
+      // Create Lookup C → table1."Lookup B" (via Self Link)
+      await createLookupColumn(context, {
+        base,
+        title: 'Lookup C',
+        table: table1,
+        relatedTableName: table1.table_name,
+        relatedTableColumnTitle: 'Lookup B',
+      });
+
+      // Delete the root "Name" column in child table
+      const childCols = await table2.getColumns(ctx());
+      const nameCol = childCols.find((c) => c.title === 'Name');
+      await deleteColumn(context, { table: table2, column: nameCol });
+
+      // Both Lookup B and Lookup C should be error-marked
+      const optsB = await getColOptions(table1, 'Lookup B');
+      expect(optsB.error).to.be.a('string').and.not.be.empty;
+
+      const optsC = await getColOptions(table1, 'Lookup C');
+      expect(optsC.error).to.be.a('string').and.not.be.empty;
+    });
+
+    it('error-marks lookup chain across 3 tables (t1→t2→t3)', async () => {
+      // t1 HM t2 (already created in beforeEach)
+      // t2 HM t3
+      const table3 = await createTable(context, base, {
+        table_name: 'grandchild',
+        title: 'grandchild',
+        columns: [
+          { column_name: 'Id', title: 'Id', uidt: UITypes.ID },
+          {
+            column_name: 'TextField',
+            title: 'TextField',
+            uidt: UITypes.SingleLineText,
+          },
+        ],
+      });
+
+      await createLtarColumn(context, {
+        title: 'Child Link',
+        parentTable: table2,
+        childTable: table3,
+        type: 'hm',
+      });
+
+      // t2: lookup to t3's TextField
+      await createLookupColumn(context, {
+        base,
+        title: 'T3 Text Lookup',
+        table: table2,
+        relatedTableName: table3.table_name,
+        relatedTableColumnTitle: 'TextField',
+      });
+
+      // t1: lookup to t2's lookup (via t1→t2 relation)
+      await createLookupColumn(context, {
+        base,
+        title: 'T2 Lookup of T3',
+        table: table1,
+        relatedTableName: table2.table_name,
+        relatedTableColumnTitle: 'T3 Text Lookup',
+      });
+
+      // Delete t3's TextField
+      const t3Cols = await table3.getColumns(ctx());
+      const textField = t3Cols.find((c) => c.title === 'TextField');
+      await deleteColumn(context, { table: table3, column: textField });
+
+      // t2's lookup should be error-marked
+      const t2Opts = await getColOptions(table2, 'T3 Text Lookup');
+      expect(t2Opts.error).to.be.a('string').and.not.be.empty;
+
+      // t1's lookup (transitive) should also be error-marked
+      const t1Opts = await getColOptions(table1, 'T2 Lookup of T3');
+      expect(t1Opts.error).to.be.a('string').and.not.be.empty;
+    });
+
+    it('error-marks QR code depending on a lookup when root column is deleted', async () => {
+      // Create Lookup → child.Name
+      await createLookupColumn(context, {
+        base,
+        title: 'Name Lookup',
+        table: table1,
+        relatedTableName: table2.table_name,
+        relatedTableColumnTitle: 'Name',
+      });
+
+      // Create QR Code referencing the Lookup
+      await createQrCodeColumn(context, {
+        title: 'QR from Lookup',
+        table: table1,
+        referencedQrValueTableColumnTitle: 'Name Lookup',
+      });
+
+      // Delete root "Name" column
+      const childCols = await table2.getColumns(ctx());
+      const nameCol = childCols.find((c) => c.title === 'Name');
+      await deleteColumn(context, { table: table2, column: nameCol });
+
+      // Lookup should be error-marked
+      const lookupOpts = await getColOptions(table1, 'Name Lookup');
+      expect(lookupOpts.error).to.be.a('string').and.not.be.empty;
+
+      // QR Code should also be error-marked (transitive)
+      const qrOpts = await getColOptions(table1, 'QR from Lookup');
+      expect(qrOpts.error).to.be.a('string').and.not.be.empty;
+    });
+  });
+
+  describe('Sort/filter cleanup on error-marked columns', () => {
+    it('deletes sorts referencing error-marked columns', async () => {
+      await createLookupColumn(context, {
+        base,
+        title: 'Name Lookup',
+        table: table1,
+        relatedTableName: table2.table_name,
+        relatedTableColumnTitle: 'Name',
+      });
+
+      const parentCols = await table1.getColumns(ctx());
+      const lookupCol = parentCols.find((c) => c.title === 'Name Lookup');
+
+      // Add a sort on the lookup column via API
+      const views = await request(context.app)
+        .get(`/api/v1/db/meta/tables/${table1.id}`)
+        .set('xc-auth', context.token)
+        .expect(200);
+      const defaultViewId = views.body.views[0].id;
+
+      await request(context.app)
+        .post(`/api/v1/db/meta/views/${defaultViewId}/sorts`)
+        .set('xc-auth', context.token)
+        .send({ fk_column_id: lookupCol.id, direction: 'asc' })
+        .expect(200);
+
+      // Verify sort exists
+      let sortsRes = await request(context.app)
+        .get(`/api/v1/db/meta/views/${defaultViewId}/sorts`)
+        .set('xc-auth', context.token)
+        .expect(200);
+      expect(sortsRes.body.list.length).to.be.greaterThan(0);
+
+      // Delete the "Name" column to trigger error-marking
+      const childCols = await table2.getColumns(ctx());
+      const nameCol = childCols.find((c) => c.title === 'Name');
+      await deleteColumn(context, { table: table2, column: nameCol });
+
+      // Sort on the error-marked lookup should be cleaned up
+      sortsRes = await request(context.app)
+        .get(`/api/v1/db/meta/views/${defaultViewId}/sorts`)
+        .set('xc-auth', context.token)
+        .expect(200);
+
+      const lookupSorts = (sortsRes.body.list || []).filter(
+        (s) => s.fk_column_id === lookupCol.id,
+      );
+      expect(lookupSorts.length).to.equal(0);
+    });
+  });
+
+  describe('Error-marked columns are preserved (not deleted)', () => {
+    it('lookup column still exists after source column deleted', async () => {
+      await createLookupColumn(context, {
+        base,
+        title: 'Preserved Lookup',
+        table: table1,
+        relatedTableName: table2.table_name,
+        relatedTableColumnTitle: 'Name',
+      });
+
+      const childCols = await table2.getColumns(ctx());
+      const nameCol = childCols.find((c) => c.title === 'Name');
+      await deleteColumn(context, { table: table2, column: nameCol });
+
+      // Column should still exist
+      const col = await colExists(table1, 'Preserved Lookup');
+      expect(col).to.not.be.undefined;
+      expect(col.uidt).to.equal(UITypes.Lookup);
+    });
+  });
+}
+
 export default function () {
   describe('Column types specific behavior', columnTypeSpecificTests);
+  describe('Column delete dependency handler', columnDeleteDependencyTests);
 }

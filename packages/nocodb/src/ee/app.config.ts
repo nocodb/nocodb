@@ -68,7 +68,7 @@ const config: AppConfig = {
       max_apis:
         +process.env.NC_RATE_LIMIT_DATA_GUI_MAX_REQUESTS ||
         +process.env.NC_DATA_GUI_COUNT ||
-        500,
+        30000,
       block_duration:
         +process.env.NC_RATE_LIMIT_DATA_GUI_BLOCK_DURATION ||
         +process.env.NC_DATA_GUI_BLOCK_DURATION ||
@@ -82,7 +82,7 @@ const config: AppConfig = {
       max_apis:
         +process.env.NC_RATE_LIMIT_META_GUI_MAX_REQUESTS ||
         +process.env.NC_META_GUI_COUNT ||
-        200,
+        1000,
       block_duration:
         +process.env.NC_RATE_LIMIT_META_GUI_BLOCK_DURATION ||
         +process.env.NC_META_GUI_BLOCK_DURATION ||

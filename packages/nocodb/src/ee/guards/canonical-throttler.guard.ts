@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import type { ThrottlerRequest } from '@nestjs/throttler';
+import { getApiTokenFromHeader } from '~/helpers';
 
 const NC_RATE_LIMIT_ACCUMULATOR = Symbol('nc-rate-limit-accumulator');
 
@@ -60,6 +61,11 @@ export class CanonicalThrottlerGuard extends ThrottlerGuard {
         isBlocked,
         timeToBlockExpire,
       });
+    }
+
+    // Only expose rate-limit headers on xc-token (API access) requests.
+    if (!getApiTokenFromHeader(req)) {
+      return true;
     }
 
     const remaining = Math.max(0, limit - totalHits);

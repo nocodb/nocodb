@@ -103,6 +103,7 @@ export class ColumnDeleteCoverImageDependencyHandler
     for (const viewId of viewIds) {
       const view = await View.get(context, viewId, false, Noco.ncMeta);
       if (!view) continue;
+      await view.getView(context, Noco.ncMeta);
       NocoSocket.broadcastEvent(
         context,
         {

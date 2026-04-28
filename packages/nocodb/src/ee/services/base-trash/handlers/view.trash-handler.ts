@@ -104,9 +104,13 @@ export class ViewTrashHandler extends BaseTrashHandler<View> {
       )
     ).forCreate();
 
+    await View.softDelete(ctx, trashEntry.resource_id, false, ncMeta);
+
     if (trashEntry.name && trashEntry.parent_id) {
       const views = await View.list(ctx, trashEntry.parent_id, false, ncMeta);
-      const existingNames = views.map((v) => v.title);
+      const existingNames = views
+        .filter((v) => v.id !== trashEntry.resource_id)
+        .map((v) => v.title);
       if (existingNames.includes(trashEntry.name)) {
         const newTitle = generateUniqueCopyName(
           trashEntry.name,
@@ -124,8 +128,6 @@ export class ViewTrashHandler extends BaseTrashHandler<View> {
         );
       }
     }
-
-    await View.softDelete(ctx, trashEntry.resource_id, false, ncMeta);
 
     NocoSocket.broadcastEvent(ctx, {
       event: EventType.META_EVENT,

@@ -519,6 +519,27 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
 
       if (colTable?.deleted) continue; // Deferred
 
+      await ncMeta.metaUpdate(
+        ctx.workspace_id,
+        ctx.base_id,
+        MetaTable.COLUMNS,
+        { deleted: false },
+        item.id,
+      );
+      const freshRevCol = await ncMeta.metaGet2(
+        ctx.workspace_id,
+        ctx.base_id,
+        MetaTable.COLUMNS,
+        item.id,
+      );
+      if (freshRevCol) {
+        await NocoCache.set(
+          ctx,
+          `${CacheScope.COLUMN}:${item.id}`,
+          freshRevCol,
+        );
+      }
+
       // Delete placeholder column (skip if already deleted)
       if (item.placeholder_id) {
         const phCol = await Column.get(
@@ -539,28 +560,6 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
             ncMeta,
           );
         }
-      }
-
-      // Restore original column — update DB
-      await ncMeta.metaUpdate(
-        ctx.workspace_id,
-        ctx.base_id,
-        MetaTable.COLUMNS,
-        { deleted: false },
-        item.id,
-      );
-      const freshRevCol = await ncMeta.metaGet2(
-        ctx.workspace_id,
-        ctx.base_id,
-        MetaTable.COLUMNS,
-        item.id,
-      );
-      if (freshRevCol) {
-        await NocoCache.set(
-          ctx,
-          `${CacheScope.COLUMN}:${item.id}`,
-          freshRevCol,
-        );
       }
 
       if (colTable) {

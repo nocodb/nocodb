@@ -8,6 +8,7 @@ import {
   isAIPromptCol,
   isDateMonthFormat,
   isNumericCol,
+  isVirtualCol,
   UITypes,
 } from 'nocodb-sdk';
 import { FieldHandler } from './field-handler';
@@ -244,6 +245,22 @@ const parseConditionV2 = async (
         NcError.get(context).fieldNotFound(filter.fk_column_id);
       }
       return { clause: () => {}, rootApply: () => {} };
+    }
+
+    // Handle dynamic filters (field-to-field comparison):
+    // resolve fk_value_col_id to a knex.ref() so the normal conditionV2
+    // comparison logic compares column-to-column instead of column-to-literal
+    if (filter.fk_value_col_id) {
+      const resolved = await resolveDynamicFilterValue(
+        context,
+        knex,
+        filter,
+        column,
+        alias,
+      );
+      if (resolved === false) {
+        return { clause: () => {}, rootApply: () => {} };
+      }
     }
 
     if (
@@ -1385,6 +1402,52 @@ const parseConditionV2 = async (
     }
   }
 };
+
+/**
+ * Resolve dynamic filter value column reference.
+ * When fk_value_col_id is set, replaces filter.value with a knex.ref()
+ * pointing to the target column, so the normal conditionV2 comparison
+ * logic produces column-to-column SQL (e.g. "FieldA" = "FieldB").
+ * Returns false if the value column cannot be resolved (caller should skip).
+ *
+ * Only physical columns in the same table are supported — virtual columns
+ * (Lookup, Rollup, Formula, etc.) have no real DB column to reference.
+ */
+async function resolveDynamicFilterValue(
+  context: NcContext,
+  knex: Knex,
+  filter: Filter,
+  filterColumn: Column,
+  alias?: string,
+): Promise<boolean> {
+  const valueColumn = await Column.get(context, {
+    colId: filter.fk_value_col_id,
+  });
+  if (!valueColumn) {
+    return false;
+  }
+
+  // Virtual columns (Lookup, Rollup, Formula, etc.) don't have a physical
+  // DB column — skip so the filter is silently ignored rather than producing
+  // invalid SQL.
+  if (isVirtualCol(valueColumn)) {
+    return false;
+  }
+
+  // The value column must belong to the same table as the filter column.
+  // Cross-table references would require a join that isn't set up here.
+  if (valueColumn.fk_model_id !== filterColumn.fk_model_id) {
+    return false;
+  }
+
+  const valueField = alias
+    ? `${alias}.${valueColumn.column_name}`
+    : valueColumn.column_name;
+
+  filter.value = knex.ref(valueField) as any;
+
+  return true;
+}
 
 export async function extractLinkRelFiltersAndApply(_: {
   qb: Knex.QueryBuilder & Knex.QueryInterface;

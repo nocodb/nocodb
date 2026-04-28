@@ -40,7 +40,7 @@ const up = async (knex: Knex) => {
     table.string('base_id', 20);
 
     table.primary(['base_id', 'id']);
-    table.unique(['resource_type', 'resource_id']);
+    table.unique(['base_id', 'resource_type', 'resource_id']);
     table.index(['base_id', 'fk_workspace_id']);
     table.index(['cleanup_due_at']);
   });

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerStorage } from '@nestjs/throttler/dist/throttler-storage.interface';
 import { Reflector } from '@nestjs/core';
 import { MetaApiLimiterGuard as MetaApiLimiterGuardCE } from 'src/guards/meta-api-limiter.guard';
@@ -7,12 +6,17 @@ import type { NcRequest } from 'nocodb-sdk';
 import type { ExecutionContext } from '@nestjs/common';
 import { throttlerEnabled } from '~/helpers/redisHelpers';
 import { getApiTokenFromHeader } from '~/helpers';
+import { CanonicalThrottlerGuard } from '~/guards/canonical-throttler.guard';
+import {
+  decodeXcAuthUserId,
+  resolveApiTokenUserId,
+} from '~/guards/throttler-tracker.helpers';
 import Noco from '~/Noco';
 
 const HEADER_NAME_GUI = 'xc-auth';
 
 @Injectable()
-export class MetaApiLimiterGuardEE extends ThrottlerGuard {
+export class MetaApiLimiterGuardEE extends CanonicalThrottlerGuard {
   constructor(
     protected _config,
     protected storageService: ThrottlerStorage,
@@ -42,9 +46,10 @@ export class MetaApiLimiterGuardEE extends ThrottlerGuard {
   }
 
   protected async getTracker(req: Record<string, any>): Promise<string> {
-    return `meta|${
-      req.headers[HEADER_NAME_GUI] || getApiTokenFromHeader(req as NcRequest)
-    }` as string;
+    const xcAuthId = decodeXcAuthUserId(req as NcRequest);
+    if (xcAuthId) return `meta-gui|${xcAuthId}`;
+    const apiTokenId = await resolveApiTokenUserId(req as NcRequest);
+    return `meta|${apiTokenId ?? 'anon'}`;
   }
 
   generateKey(context, suffix) {

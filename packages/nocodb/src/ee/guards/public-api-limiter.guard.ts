@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import { ThrottlerStorage } from '@nestjs/throttler/dist/throttler-storage.interface';
 import { Reflector } from '@nestjs/core';
 import { PublicApiLimiterGuard as PublicApiLimiterGuardCE } from 'src/guards/public-api-limiter.guard';
 import requestIp from 'request-ip';
 import type { ExecutionContext } from '@nestjs/common';
 import { throttlerEnabled } from '~/helpers/redisHelpers';
+import { CanonicalThrottlerGuard } from '~/guards/canonical-throttler.guard';
 import Noco from '~/Noco';
 
 @Injectable()
-class PublicApiLimiterGuardEE extends ThrottlerGuard {
+class PublicApiLimiterGuardEE extends CanonicalThrottlerGuard {
   constructor(
     protected _config,
     protected storageService: ThrottlerStorage,

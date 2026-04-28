@@ -60,7 +60,6 @@ const config: AppConfig = {
         30000,
     },
 
-    // todo: decide on xc-auth API limits
     data_gui: {
       ttl:
         +process.env.NC_RATE_LIMIT_DATA_GUI_DURATION ||

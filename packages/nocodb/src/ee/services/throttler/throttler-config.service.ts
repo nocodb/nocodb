@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis';
 import { ConfigService } from '@nestjs/config';
+import { PlanLimitTypes } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import type {
   ThrottlerModuleOptions,
@@ -49,11 +50,26 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
         },
         {
           ttl: config.data.ttl,
-          limit: config.data.max_apis,
+          limit: (context) => {
+            const req = context.switchToHttp().getRequest();
+            const planLimit =
+              req.ncWorkspace?.payment?.plan?.meta?.[
+                PlanLimitTypes.LIMIT_API_PER_SECOND
+              ];
+            return typeof planLimit === 'number' && planLimit > 0
+              ? planLimit
+              : config.data.max_apis;
+          },
           blockDuration: config.data.block_duration,
           skipIf: (context) => {
             const req = context.switchToHttp().getRequest();
-            return !getApiTokenFromHeader(req);
+            if (!getApiTokenFromHeader(req)) return true;
+            // Unlimited plan ⇒ skip throttling for this request
+            const planLimit =
+              req.ncWorkspace?.payment?.plan?.meta?.[
+                PlanLimitTypes.LIMIT_API_PER_SECOND
+              ];
+            return planLimit === -1;
           },
           name: 'data',
         },

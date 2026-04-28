@@ -536,17 +536,21 @@ export class DataV3Service {
         // common shorthand variants — capital `Id` (the default PK
         // column title in NocoDB), `ID`, or a bare scalar primary key.
         if (Array.isArray(fieldValue)) {
+          // Normalize first, drop entries that didn't yield a usable PK,
+          // then convert. Doing the filter before the map avoids passing
+          // null into convertRecordIdToInternal.
           transformedFields[key] = fieldValue
-            .map((nestedRecord) =>
+            .map((nestedRecord) => this.extractRecordIdFromNested(nestedRecord))
+            .filter((normalized): normalized is { id: any } => normalized !== null)
+            .map((normalized) =>
               this.convertRecordIdToInternal(
                 context,
-                this.extractRecordIdFromNested(nestedRecord),
+                normalized,
                 relatedPrimaryKey,
                 relatedPrimaryKeys,
                 getPrimaryKey,
               ),
-            )
-            .filter((v) => v !== null);
+            );
         } else if (fieldValue !== null && fieldValue !== undefined) {
           const normalized = this.extractRecordIdFromNested(fieldValue);
           if (normalized !== null) {

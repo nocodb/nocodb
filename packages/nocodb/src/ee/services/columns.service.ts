@@ -414,6 +414,23 @@ export class ColumnsService extends ColumnsServiceCE {
         (param.column as any).custom,
       );
 
+      // Custom links are V1 only — reject V2-only relation types up front.
+      // Without this check the if/else chain below silently no-ops for
+      // mo/om and the column never gets inserted (no error, no log).
+      const customLinkType = (param.column as LinkToAnotherColumnReqType).type;
+      if (
+        ![
+          RelationTypes.HAS_MANY,
+          RelationTypes.BELONGS_TO,
+          RelationTypes.ONE_TO_ONE,
+          RelationTypes.MANY_TO_MANY,
+        ].includes(customLinkType as RelationTypes)
+      ) {
+        NcError.get(context).badRequest(
+          `Custom links only support relation types 'hm', 'bt', 'oo', 'mm'. Got '${customLinkType}'.`,
+        );
+      }
+
       const ltarCustomProps: CustomLinkProps = (param.column as any).custom;
 
       const child = await Model.get(context, ltarCustomProps.ref_model_id);

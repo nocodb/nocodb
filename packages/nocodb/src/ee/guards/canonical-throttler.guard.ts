@@ -85,7 +85,6 @@ export class CanonicalThrottlerGuard extends ThrottlerGuard {
     res.header('X-RateLimit-Limit', winner.limit);
     res.header('X-RateLimit-Remaining', winner.remaining);
     res.header('X-RateLimit-Reset', winner.reset);
-    res.header('X-RateLimit-Policy', winner.name);
 
     return true;
   }

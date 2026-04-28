@@ -59,7 +59,11 @@ export class LinkPlaceholderService {
     typeProps.dtxs = sqlUi.getDefaultScaleForDatatype(typeProps.dt);
 
     try {
-      const sqlMgr = await ProjectMgrv2.getSqlMgr(ctx, { id: source.base_id });
+      const sqlMgr = ProjectMgrv2.getSqlMgr(
+        ctx,
+        { id: source.base_id },
+        ncMeta,
+      );
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
         ...table,
@@ -200,11 +204,15 @@ export class LinkPlaceholderService {
     const dbDriver = await NcConnectionMgrv2.get(source);
     if (!dbDriver) return;
 
-    const baseModel = await Model.getBaseModelSQL(ctx, {
-      model: table,
-      dbDriver,
-      source,
-    });
+    const baseModel = await Model.getBaseModelSQL(
+      ctx,
+      {
+        model: table,
+        dbDriver,
+        source,
+      },
+      ncMeta,
+    );
 
     const relContext = {
       ...ctx,
@@ -212,18 +220,25 @@ export class LinkPlaceholderService {
       base_id: relatedTable.base_id,
     };
 
-    const relBaseModel = await Model.getBaseModelSQL(relContext, {
-      model: relatedTable,
-      dbDriver,
-      source,
-    });
+    const relBaseModel = await Model.getBaseModelSQL(
+      relContext,
+      {
+        model: relatedTable,
+        dbDriver,
+        source,
+      },
+      ncMeta,
+    );
 
     // Resolve pv column SQL — handles both physical and virtual (Formula, Lookup, etc.)
-    const { builder: pvBuilder } = await getColumnNameQuery({
-      baseModelSqlv2: relBaseModel,
-      column: pvCol,
-      context: relContext,
-    });
+    const { builder: pvBuilder } = await getColumnNameQuery(
+      {
+        baseModelSqlv2: relBaseModel,
+        column: pvCol,
+        context: relContext,
+      },
+      ncMeta,
+    );
 
     const pvExpr =
       typeof pvBuilder === 'string'
@@ -528,12 +543,7 @@ export class LinkPlaceholderService {
     placeholder: { id: string };
     table_id: string;
   } | null> {
-    const revTable = await Model.get(
-      ctx,
-      reverseCol.fk_model_id,
-      true,
-      ncMeta,
-    );
+    const revTable = await Model.get(ctx, reverseCol.fk_model_id, true, ncMeta);
     if (!revTable) return null;
 
     const placeholder = await this.createPlaceholder(

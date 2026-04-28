@@ -7410,10 +7410,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (colOptions?.error) return { uidt: UITypes.SingleLineText };
     const relationCol = await colOptions.getRelationColumn(context);
     if (!relationCol) return { uidt: UITypes.SingleLineText };
-    const relationColOpt = await (
-      relationCol.colOptions ??
-      relationCol.getColOptions<LinkToAnotherRecordColumn>(context)
-    );
+    const relationColOpt = await (relationCol.colOptions ??
+      relationCol.getColOptions<LinkToAnotherRecordColumn>(context));
     if (!relationColOpt) return { uidt: UITypes.SingleLineText };
 
     const { refContext } = relationColOpt.getRelContext(context);

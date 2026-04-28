@@ -2421,6 +2421,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     linksAsLtar?: boolean;
   }): Promise<void> {
     return await selectObject(this, logger)(params);
+
+  }
+  public async afterSoftDeleteCompleted(_params: {
+    cookie: NcRequest;
+    operationNow: string;
+  }): Promise<void> {
+    // No-op — overridden in EE.
   }
   public async afterSoftDeleteCompleted(_params: {
     cookie: NcRequest;
@@ -2480,14 +2487,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           : await this.dbDriver(this.tnPath)
               .update(softDeletePayload)
               .where(where);
-
-        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
-          context: this.context,
-          req: cookie,
-          tableId: this.model.id,
-          rowIds: [id],
-          deletedAt: operationNow,
-        });
 
         await this.softDeleteFileReferences({
           oldData: [data],
@@ -4581,17 +4580,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         }
 
-        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
-          context: this.context,
-          req: cookie,
-          tableId: this.model.id,
-          rowIds: res.map((d) =>
-            this.model.primaryKeys.length === 1
-              ? d[this.model.primaryKey.column_name]
-              : this.extractPksValues(d, true),
-          ),
-          deletedAt: operationNow,
-        });
       } else {
         const execQueries: ((
           trx: Knex.Transaction,

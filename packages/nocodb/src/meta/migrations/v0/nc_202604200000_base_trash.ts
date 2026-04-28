@@ -64,6 +64,16 @@ const up = async (knex: Knex) => {
       });
     }
   }
+
+  if (await knex.schema.hasColumn(MetaTable.MODELS, 'trash_cleanup_due_at')) {
+    await knex.schema.alterTable(MetaTable.MODELS, (table) => {
+      table.dropIndex(
+        'trash_cleanup_due_at',
+        'idx_nc_models_trash_cleanup_due_at',
+      );
+      table.dropColumn('trash_cleanup_due_at');
+    });
+  }
 };
 
 const down = async (knex: Knex) => {
@@ -82,6 +92,15 @@ const down = async (knex: Knex) => {
   }
 
   await knex.schema.dropTableIfExists(MetaTable.TRASH);
+
+  if (
+    !(await knex.schema.hasColumn(MetaTable.MODELS, 'trash_cleanup_due_at'))
+  ) {
+    await knex.schema.alterTable(MetaTable.MODELS, (table) => {
+      table.timestamp('trash_cleanup_due_at').defaultTo(null);
+      table.index('trash_cleanup_due_at', 'idx_nc_models_trash_cleanup_due_at');
+    });
+  }
 
   // Only drop columns we added (views, automations, dashboards, widgets)
   // models and columns already had `deleted` before this migration

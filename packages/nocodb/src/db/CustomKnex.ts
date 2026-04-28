@@ -1052,6 +1052,7 @@ type CustomKnex = Knex & {
   _cteGenerator?: CTEGenerator;
   cteGenerator?: (context?: NcContext) => CTEGenerator;
   applyCte?: (qb: Knex.QueryInterface) => void;
+  clearCte?: () => void;
 };
 
 type CustomTransaction = Knex.Transaction & {
@@ -1258,6 +1259,29 @@ function CustomKnex(
 
           _nested: { enumerable: true, writable: true, value: 0 },
           _aborted: { enumerable: true, writable: true, value: false },
+
+          // CTE methods inherited from the parent customKnex.
+          // BaseModelSqlv2 callers occasionally end up holding a
+          // transaction as their `_dbDriver` (e.g. ltar-cols-updater
+          // creates a trx, then mmList constructs a child baseModel
+          // with `dbDriver: baseModel.dbDriver` — the getter returns
+          // the active trx, not the parent kn). `execAndParse` calls
+          // `this.knex.applyCte(qb)` and would otherwise throw
+          // `applyCte is not a function`. Delegate to the parent so
+          // CTE state is shared (the generator is keyed by knex
+          // instance, and a transaction runs against the same pool).
+          cteGenerator: {
+            enumerable: true,
+            value: (context?: NcContext) => kn.cteGenerator(context),
+          },
+          applyCte: {
+            enumerable: true,
+            value: (qb: Knex.QueryInterface) => kn.applyCte(qb),
+          },
+          clearCte: {
+            enumerable: true,
+            value: () => kn.clearCte(),
+          },
         });
 
         return trx;

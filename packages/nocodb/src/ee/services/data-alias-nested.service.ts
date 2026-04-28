@@ -26,6 +26,7 @@ import { _wherePk } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import { Filter, Model, Source } from '~/models';
+import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const debugDataAliasNested = debug('nc:db:query:DataAliasNested');
@@ -188,12 +189,21 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
             )) ??
           refTable.views?.[0];
 
-        const customConditions = relColumn.meta?.enableConditions
+        const mmLinkConditions = relColumn.meta?.enableConditions
           ? (await Filter.rootFilterListByLink(
               { ...baseModel.context, base_id: relColumn.base_id },
               { columnId: relColumn.id },
             )) || []
           : [];
+
+        const mmReplaceWithValue = replaceDynamicFieldWithValue(
+          null,
+          parentId,
+          refTable.columns,
+          refBaseModel.readByPk.bind(refBaseModel),
+          param.query,
+        );
+        const customConditions = await mmReplaceWithValue(mmLinkConditions);
 
         const enriched = await listQueryEnrichment(
           dbQueryClient,
@@ -358,12 +368,24 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
 
         // Load link conditions (dynamic field-to-field filters defined on
         // the link column) so they are applied in the optimized query path
-        const customConditions = relColumn.meta?.enableConditions
+        const linkConditions = relColumn.meta?.enableConditions
           ? (await Filter.rootFilterListByLink(
               { ...baseModel.context, base_id: relColumn.base_id },
               { columnId: relColumn.id },
             )) || []
           : [];
+
+        // Process dynamic filters — resolve same-table values and annotate
+        // cross-table filters with the source row ID for EXISTS subquery
+        const refTableColumns = await refTable.getColumns(refContext);
+        const replaceWithValue = replaceDynamicFieldWithValue(
+          null,
+          parentId,
+          refTableColumns,
+          refBaseModel.readByPk.bind(refBaseModel),
+          param.query,
+        );
+        const customConditions = await replaceWithValue(linkConditions);
 
         const enriched = await listQueryEnrichment(
           dbQueryClient,
@@ -503,12 +525,21 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
             )) ??
           childTable.views?.[0];
 
-        const customConditions = relColumn.meta?.enableConditions
+        const hmLinkConditions = relColumn.meta?.enableConditions
           ? (await Filter.rootFilterListByLink(
               { ...baseModel.context, base_id: relColumn.base_id },
               { columnId: relColumn.id },
             )) || []
           : [];
+
+        const hmReplaceWithValue = replaceDynamicFieldWithValue(
+          null,
+          rowId,
+          await childTable.getColumns(childBaseModel.context),
+          childBaseModel.readByPk.bind(childBaseModel),
+          param.query,
+        );
+        const customConditions = await hmReplaceWithValue(hmLinkConditions);
 
         const enriched = await listQueryEnrichment(
           dbQueryClient,
@@ -651,12 +682,21 @@ export class DataAliasNestedService extends DataAliasNestedServiceCE {
           context.user,
         ));
 
-        const customConditions = relColumn.meta?.enableConditions
+        const hmExLinkConditions = relColumn.meta?.enableConditions
           ? (await Filter.rootFilterListByLink(
               { ...baseModel.context, base_id: relColumn.base_id },
               { columnId: relColumn.id },
             )) || []
           : [];
+
+        const hmExReplaceWithValue = replaceDynamicFieldWithValue(
+          null,
+          rowId,
+          await refTable.getColumns(refBaseModel.context),
+          refBaseModel.readByPk.bind(refBaseModel),
+          param.query,
+        );
+        const customConditions = await hmExReplaceWithValue(hmExLinkConditions);
 
         const enriched = await listQueryEnrichment(
           dbQueryClient,

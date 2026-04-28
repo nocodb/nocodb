@@ -152,31 +152,37 @@ export function replaceDynamicFieldWithValue(
 
       const condition = { ...conditions[i] } as Filter;
 
-      // if value follows pattern like '{{ columnName }}' then replace it with row value
-      if (!row) {
-        row = await readByPk(
-          rowId,
-          false,
-          {},
-          { ignoreView: true, getHiddenColumn: true },
-        );
+      const valueCol = tableColumns.find(
+        (c) => c.id === condition.fk_value_col_id,
+      );
 
-        // if linkRowData is passed over queryParams, then override props from the row
-        if (queryParams?.linkRowData) {
-          try {
-            const rowDataFromReq = JSON.parse(queryParams.linkRowData);
-            if (rowDataFromReq && typeof rowDataFromReq === 'object')
-              Object.assign(row, rowDataFromReq);
-          } catch {
-            // do nothing
+      if (valueCol) {
+        // Same-table column — replace with the actual row value
+        if (!row) {
+          row = await readByPk(
+            rowId,
+            false,
+            {},
+            { ignoreView: true, getHiddenColumn: true },
+          );
+
+          // if linkRowData is passed over queryParams, then override props from the row
+          if (queryParams?.linkRowData) {
+            try {
+              const rowDataFromReq = JSON.parse(queryParams.linkRowData);
+              if (rowDataFromReq && typeof rowDataFromReq === 'object')
+                Object.assign(row, rowDataFromReq);
+            } catch {
+              // do nothing
+            }
           }
         }
+        condition.value = row[valueCol.title] ?? null;
+      } else {
+        // Cross-table column — annotate with rowId so conditionV2
+        // can build an EXISTS subquery filtered to this source row
+        (condition as any)._crossTableRowId = rowId;
       }
-      const columnName = tableColumns.find(
-        (c) => c.id === condition.fk_value_col_id,
-      )?.title;
-
-      condition.value = row[columnName] ?? null;
       filters.push(condition);
     }
 

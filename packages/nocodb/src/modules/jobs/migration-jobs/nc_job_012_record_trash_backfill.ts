@@ -277,14 +277,10 @@ export class RecordTrashBackfillMigration {
       ? [lmtCol.column_name, lmbCol.column_name]
       : [lmtCol.column_name];
 
-    // Per-table override → env fallback. Plan-tier retention is applied at
-    // runtime by the soft-delete listener on new deletes; this is a one-shot
-    // backfill of stale entries, so env (or the per-table override) is the
-    // pragmatic compromise that keeps this job CE-safe (no EE imports).
-    const retentionDays =
-      typeof trash_retention_days === 'number' && trash_retention_days > 0
-        ? trash_retention_days
-        : parseInt(process.env.NC_TRASH_RETENTION_DAYS || '30', 10);
+    const retentionDays = await this.resolveRetentionDays(
+      fk_workspace_id,
+      trash_retention_days,
+    );
 
     let inserted = 0;
     let offset = 0;
@@ -321,7 +317,7 @@ export class RecordTrashBackfillMigration {
           deletedAtIso,
         )}`;
         const cleanupDueAt = new Date(deletedAtIso);
-        cleanupDueAt.setDate(cleanupDueAt.getDate() + retentionDays);
+        cleanupDueAt.setUTCDate(cleanupDueAt.getUTCDate() + retentionDays);
 
         rowsToInsert.push({
           id: await ncMeta.genNanoid(MetaTable.TRASH),
@@ -367,6 +363,17 @@ export class RecordTrashBackfillMigration {
     }
 
     await this.markProcessed(modelId, true);
+  }
+
+  protected async resolveRetentionDays(
+    _workspaceId: string | undefined,
+    perTableOverride: number | null | undefined,
+  ): Promise<number> {
+    if (typeof perTableOverride === 'number' && perTableOverride > 0) {
+      return perTableOverride;
+    }
+    const envVal = parseInt(process.env.NC_TRASH_RETENTION_DAYS || '30', 10);
+    return Number.isFinite(envVal) && envVal > 0 ? envVal : 30;
   }
 
   private getModelsQuery(concurrency: number) {

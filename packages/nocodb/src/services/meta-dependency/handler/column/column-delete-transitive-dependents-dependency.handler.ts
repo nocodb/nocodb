@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { EventType, isLinksOrLTAR, MetaEventType } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type {
@@ -72,6 +72,10 @@ const DEPENDENT_QUERIES: [MetaTable, string, AffectedColumnType][] = [
 export class ColumnDeleteTransitiveDependentsDependencyHandler
   implements MetaEventHandler
 {
+  private readonly logger = new Logger(
+    ColumnDeleteTransitiveDependentsDependencyHandler.name,
+  );
+
   triggerMetaEvents: MetaEventType[] = [MetaEventType.COLUMN_DELETED];
 
   /**
@@ -366,11 +370,26 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
       await View.clearSingleQueryCache(modelCtx, modelId, null, ncMeta);
     }
 
+    // Realtime: fire-and-forget `column_update` per affected model so other
+    // clients refresh field metadata for tables whose virtual columns got
+    // error-marked. Outside the trx (uses Noco.ncMeta) — broadcast failures
+    // are logged but don't fail the request.
+    this.broadcastColumnUpdates(affectedModelCtxMap).catch((e) =>
+      this.logger.error(
+        `Failed to broadcast column_update events: ${e?.message}`,
+        e?.stack,
+      ),
+    );
+  }
+
+  private async broadcastColumnUpdates(
+    affectedModelCtxMap: Map<string, NcContext>,
+  ): Promise<void> {
     for (const [modelId, modelCtx] of affectedModelCtxMap) {
-      const model = await Model.get(modelCtx, modelId, false, ncMeta);
+      const model = await Model.get(modelCtx, modelId, false, Noco.ncMeta);
       if (!model) continue;
 
-      await model.getColumns(modelCtx, ncMeta);
+      await model.getColumns(modelCtx, Noco.ncMeta);
 
       NocoSocket.broadcastEvent(modelCtx, {
         event: EventType.META_EVENT,

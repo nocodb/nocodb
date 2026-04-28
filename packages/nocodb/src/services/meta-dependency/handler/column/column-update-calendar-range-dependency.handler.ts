@@ -1,12 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { MetaEventType, UITypes } from 'nocodb-sdk';
+import { Injectable, Logger } from '@nestjs/common';
+import { EventType, MetaEventType, UITypes } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type {
   AffectedDependencyResult,
   MetaDependencyEventRequest,
   MetaEventHandler,
 } from '~/services/meta-dependency/types';
-import { CalendarRange, Column } from '~/models';
+import { CalendarRange, Column, View } from '~/models';
+import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
 
 const DATE_TIME_TYPES: UITypes[] = [
@@ -30,6 +31,10 @@ const DATE_TIME_TYPES: UITypes[] = [
 export class ColumnUpdateCalendarRangeDependencyHandler
   implements MetaEventHandler
 {
+  private readonly logger = new Logger(
+    ColumnUpdateCalendarRangeDependencyHandler.name,
+  );
+
   triggerMetaEvents: MetaEventType[] = [MetaEventType.COLUMN_UPDATED];
 
   async getAffectedDependency(
@@ -68,6 +73,8 @@ export class ColumnUpdateCalendarRangeDependencyHandler
     const wasDate = DATE_TIME_TYPES.includes(oldCol.uidt as UITypes);
     const isDate = DATE_TIME_TYPES.includes(newCol.uidt as UITypes);
 
+    const affectedViewIds = new Set<string>();
+
     if (wasDate && !isDate) {
       // Type left the date family entirely — drop every range pinned to this col.
       const ranges = await CalendarRange.IsColumnBeingUsedAsRange(
@@ -77,7 +84,14 @@ export class ColumnUpdateCalendarRangeDependencyHandler
       );
       for (const range of ranges ?? []) {
         await CalendarRange.delete(range.id, context, ncMeta);
+        if (range.fk_view_id) affectedViewIds.add(range.fk_view_id);
       }
+      this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+        this.logger.error(
+          `Failed to broadcast view_update events: ${e?.message}`,
+          e?.stack,
+        ),
+      );
       return;
     }
 
@@ -103,7 +117,10 @@ export class ColumnUpdateCalendarRangeDependencyHandler
           : null;
 
       if (!partnerColId) {
-        if (shouldDelete) await CalendarRange.delete(range.id, context, ncMeta);
+        if (shouldDelete) {
+          await CalendarRange.delete(range.id, context, ncMeta);
+          if (range.fk_view_id) affectedViewIds.add(range.fk_view_id);
+        }
         continue;
       }
 
@@ -122,7 +139,35 @@ export class ColumnUpdateCalendarRangeDependencyHandler
         }
       }
 
-      if (shouldDelete) await CalendarRange.delete(range.id, context, ncMeta);
+      if (shouldDelete) {
+        await CalendarRange.delete(range.id, context, ncMeta);
+        if (range.fk_view_id) affectedViewIds.add(range.fk_view_id);
+      }
+    }
+
+    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+      this.logger.error(
+        `Failed to broadcast view_update events: ${e?.message}`,
+        e?.stack,
+      ),
+    );
+  }
+
+  private async broadcastViewUpdates(
+    context: NcContext,
+    viewIds: Set<string>,
+  ): Promise<void> {
+    for (const viewId of viewIds) {
+      const view = await View.get(context, viewId, false, Noco.ncMeta);
+      if (!view) continue;
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: { action: 'view_update', payload: view },
+        },
+        context.socket_id,
+      );
     }
   }
 }

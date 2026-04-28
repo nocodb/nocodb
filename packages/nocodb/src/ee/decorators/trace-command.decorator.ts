@@ -27,7 +27,7 @@ export interface TraceCommandDep {
 export interface ResolvedCtx {
   entityTitle?: string;
   parentEntityTitle?: string;
-  extra?: Record<string, string | undefined>;
+  extra?: Record<string, any>;
 }
 
 export interface TraceCommandOptions {
@@ -68,6 +68,21 @@ export interface TraceCommandOptions {
    * Example: FiltersV3Service.filterCreate sets operation: 'filterCreateV3'.
    */
   operation?: string;
+  /**
+   * Conditionally skip changelog recording even when the base is a sandbox.
+   * Evaluated AFTER the method runs (so post-state is observable via `result`)
+   * but BEFORE the changelog write. Receives the pre-execution `resolvedCtx`
+   * for cases where post-state has lost relevant info (e.g. deletes).
+   * Returning truthy (or throwing) skips recording.
+   * Example: base variables skip recording for already-inherited vars — those
+   * are sandbox-local overrides and must not propagate back to master.
+   */
+  skipIf?: (
+    context: any,
+    param: any,
+    result: any,
+    resolvedCtx: ResolvedCtx | undefined,
+  ) => Promise<boolean> | boolean;
 }
 
 export function dotGet(obj: any, path: string): any {
@@ -167,6 +182,15 @@ export function TraceCommand(options: TraceCommandOptions) {
       }
 
       const result = await originalMethod.apply(this, args);
+
+      if (options.skipIf) {
+        try {
+          if (await options.skipIf(context, param, result, resolvedCtx))
+            return result;
+        } catch (e: any) {
+          logger.warn(`Trace skipIf ${opName}: ${e.message}`);
+        }
+      }
 
       // Awaited (not fire-and-forget) so changelog rows are inserted in strict
       // execution order — out-of-order rows cause replay failures (e.g. viewDelete

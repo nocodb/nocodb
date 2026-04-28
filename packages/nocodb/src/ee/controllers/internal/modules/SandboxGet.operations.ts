@@ -52,6 +52,7 @@ export class SandboxGetOperations
         return (await this.sandboxesService.sandboxChangelog(context, {
           user: req.user,
           req,
+          excludeMerged: req.query?.excludeMerged !== 'false',
         })) as any;
       default:
         return null;

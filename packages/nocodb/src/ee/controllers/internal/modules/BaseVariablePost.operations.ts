@@ -39,27 +39,24 @@ export class BaseVariablePostOperations
   ): InternalPOSTResponseType {
     switch (operation) {
       case 'baseVariableCreate':
-        return await this.baseVariablesService.create(
-          context,
+        return await this.baseVariablesService.create(context, {
           baseId,
-          payload,
+          variable: payload,
           req,
-        );
+        });
 
       case 'baseVariableUpdate':
-        return await this.baseVariablesService.update(
-          context,
-          req.query.variableId as string,
-          payload,
+        return await this.baseVariablesService.update(context, {
+          variableId: req.query.variableId as string,
+          variable: payload,
           req,
-        );
+        });
 
       case 'baseVariableDelete':
-        return await this.baseVariablesService.delete(
-          context,
-          req.query.variableId as string,
+        return await this.baseVariablesService.delete(context, {
+          variableId: req.query.variableId as string,
           req,
-        );
+        });
 
       case 'baseVariableBulkUpdate':
         return await this.baseVariablesService.bulkUpdate(

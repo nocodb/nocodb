@@ -415,9 +415,10 @@ export class SandboxesService {
    */
   async sandboxChangelog(
     context: NcContext,
-    _param: {
+    param: {
       user: { id: string };
       req: NcRequest;
+      excludeMerged?: boolean;
     },
   ) {
     const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
@@ -425,8 +426,11 @@ export class SandboxesService {
       NcError._.genericNotFound('Sandbox', context.base_id);
     }
 
+    // Default to true (UI lists pending entries); pass false to inspect merge
+    // history (applied/skipped/failed). Accepts query param ?excludeMerged=false.
+    const excludeMerged = param?.excludeMerged !== false;
     const changelog = await SandboxChangelog.listBySandboxId(sandbox.id, {
-      excludeMerged: true,
+      excludeMerged,
     });
 
     // Batch-load user display info for avatar rendering in the UI

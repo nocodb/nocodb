@@ -3,7 +3,7 @@ import { AppEvents, EventType } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { NcContext } from '~/interface/config';
 import type { SandboxMergeJobData } from '~/interface/Jobs';
-import { Base, Sandbox, SandboxChangelog } from '~/models';
+import { Base, BaseVariable, Sandbox, SandboxChangelog } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -110,6 +110,34 @@ export class SandboxMergeProcessor {
         await SandboxChangelog.markAsFailed(entry.id);
         throw e;
       }
+    }
+
+    // Promote sandbox-only base vars now that they live on master: flip
+    // is_inherited=true so subsequent sandbox edits become local overrides
+    // (skipIf in @TraceCommand reads this flag to skip recording).
+    const promotedVarIds = new Set<string>();
+    for (const entry of entries) {
+      if (
+        (entry.event === 'baseVariableCreate' ||
+          entry.event === 'baseVariableUpdate') &&
+        entry.entity_id
+      ) {
+        promotedVarIds.add(entry.entity_id);
+      }
+    }
+    for (const varId of promotedVarIds) {
+      const sandboxVar = await BaseVariable.get(sandboxContext, varId);
+      if (!sandboxVar || sandboxVar.is_inherited) continue;
+      const masterVar = await BaseVariable.get(masterContext, varId);
+      if (!masterVar) continue;
+      // Flag both: var now exists on master (is_inherited) AND the sandbox
+      // value is sandbox-specific from this point on (is_overridden — keeps
+      // the sandbox user's value visible past the masking rule for inherited
+      // editable vars).
+      await BaseVariable.update(sandboxContext, varId, {
+        is_inherited: true,
+        is_overridden: true,
+      });
     }
 
     this.appHooksService.emit(AppEvents.SANDBOX_MERGE, {

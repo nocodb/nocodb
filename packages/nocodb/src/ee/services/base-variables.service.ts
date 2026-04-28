@@ -98,12 +98,20 @@ export class BaseVariablesService {
   // Create
   // ────────────────────────────────────────────
 
+  @TraceCommand({
+    entity: MetaTable.BASE_VARIABLES,
+    operation: 'baseVariableCreate',
+    entityId: 'id',
+    entityTitle: 'key',
+    description: baseVariableActions.add,
+    idField: 'variable',
+  })
   async create(
     context: NcContext,
-    baseId: string,
-    body: BaseVariableReqType,
-    req: NcRequest,
+    param: { baseId: string; variable: BaseVariableReqType; req: NcRequest },
   ): Promise<BaseVariableType> {
+    const { baseId, variable: body, req } = param;
+
     await checkForFeature(context, PlanFeatureTypes.FEATURE_BASE_VARIABLES);
 
     const flags = await this.getBaseFlags(context, baseId);
@@ -149,12 +157,29 @@ export class BaseVariablesService {
   // Update
   // ────────────────────────────────────────────
 
+  @TraceCommand({
+    entity: MetaTable.BASE_VARIABLES,
+    operation: 'baseVariableUpdate',
+    entityId: (p) => p?.variableId,
+    entityTitle: (p) => p?.variable?.key,
+    description: baseVariableActions.edit,
+    // Inherited vars (master-defined or already-promoted) carry only sandbox-local
+    // overrides; replaying their edits would clobber master's value.
+    skipIf: async (context, param) => {
+      const v = await BaseVariable.get(context, param?.variableId);
+      return v?.is_inherited === true;
+    },
+  })
   async update(
     context: NcContext,
-    variableId: string,
-    body: Partial<BaseVariableReqType>,
-    req: NcRequest,
+    param: {
+      variableId: string;
+      variable: Partial<BaseVariableReqType>;
+      req: NcRequest;
+    },
   ): Promise<BaseVariableType> {
+    const { variableId, variable: body, req } = param;
+
     await checkForFeature(context, PlanFeatureTypes.FEATURE_BASE_VARIABLES);
 
     const existing = await BaseVariable.get(context, variableId);
@@ -226,6 +251,12 @@ export class BaseVariablesService {
         description: body.description,
         inheritance: body.inheritance,
         type: body.type,
+        // Sandbox edits of inherited vars are local overrides — flag them so
+        // prepareForResponse keeps the user's value visible (it would otherwise
+        // mask editable+inherited+!overridden values).
+        ...(flags.isSandbox && existing.is_inherited
+          ? { is_overridden: true }
+          : {}),
       };
     }
 
@@ -297,11 +328,28 @@ export class BaseVariablesService {
   // Delete
   // ────────────────────────────────────────────
 
+  @TraceCommand({
+    entity: MetaTable.BASE_VARIABLES,
+    operation: 'baseVariableDelete',
+    entityId: (p) => p?.variableId,
+    description: baseVariableActions.delete,
+    resolveCtx: async (context, param) => {
+      const variable = await BaseVariable.get(context, param?.variableId);
+      return {
+        entityTitle: variable?.key,
+        extra: { is_inherited: !!variable?.is_inherited },
+      };
+    },
+    // Inherited vars (master-defined or already-promoted) carry only sandbox-local
+    // state; their deletion is a sandbox-side override and must not propagate.
+    skipIf: (_c, _p, _r, ctx) => ctx?.extra?.is_inherited === true,
+  })
   async delete(
     context: NcContext,
-    variableId: string,
-    req: NcRequest,
+    param: { variableId: string; req: NcRequest },
   ): Promise<boolean> {
+    const { variableId, req } = param;
+
     await checkForFeature(context, PlanFeatureTypes.FEATURE_BASE_VARIABLES);
 
     const existing = await BaseVariable.get(context, variableId);
@@ -398,57 +446,5 @@ export class BaseVariablesService {
     ) {
       NcError.badRequest(`Invalid type: ${body.type}`);
     }
-  }
-
-  // ────────────────────────────────────────────
-  // Sandbox-traced wrappers (standard (context, param) signature)
-  // These are called by the sandbox replay service and record to the changelog.
-  // ────────────────────────────────────────────
-
-  @TraceCommand({
-    entity: MetaTable.BASE_VARIABLES,
-    entityId: 'id',
-    entityTitle: 'key',
-    description: baseVariableActions.add,
-    idField: 'variable',
-  })
-  async baseVariableCreate(
-    context: NcContext,
-    param: { baseId: string; variable: BaseVariableReqType; req: NcRequest },
-  ): Promise<BaseVariableType> {
-    return this.create(context, param.baseId, param.variable, param.req);
-  }
-
-  @TraceCommand({
-    entity: MetaTable.BASE_VARIABLES,
-    entityId: (p) => p?.variableId,
-    entityTitle: (p) => p?.variable?.key,
-    description: baseVariableActions.edit,
-  })
-  async baseVariableUpdate(
-    context: NcContext,
-    param: {
-      variableId: string;
-      variable: Partial<BaseVariableReqType>;
-      req: NcRequest;
-    },
-  ): Promise<BaseVariableType> {
-    return this.update(context, param.variableId, param.variable, param.req);
-  }
-
-  @TraceCommand({
-    entity: MetaTable.BASE_VARIABLES,
-    entityId: (p) => p?.variableId,
-    description: baseVariableActions.delete,
-    resolveCtx: async (context, param) => {
-      const variable = await BaseVariable.get(context, param?.variableId);
-      return { entityTitle: variable?.key };
-    },
-  })
-  async baseVariableDelete(
-    context: NcContext,
-    param: { variableId: string; req: NcRequest },
-  ): Promise<boolean> {
-    return this.delete(context, param.variableId, param.req);
   }
 }

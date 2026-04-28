@@ -7,8 +7,20 @@ import {
   stringifyMetaProp,
 } from '~/utils/modelUtils';
 
+// App-managed monotonic counter (microsecond clock + intra-tick increment).
+// Replay iterates by `seq` ASC. created_at alone has only second precision
+// (see meta.service.ts now()) so same-second entries would otherwise replay
+// non-deterministically.
+let lastSeq = 0;
+function nextSeq(): number {
+  const now = Date.now() * 1000;
+  lastSeq = now > lastSeq ? now : lastSeq + 1;
+  return lastSeq;
+}
+
 export default class SandboxChangelog {
   id: string;
+  seq: number;
   fk_sandbox_id: string;
   base_id: string;
   event: string;
@@ -50,6 +62,8 @@ export default class SandboxChangelog {
       insertObj.meta = stringifyMetaProp(insertObj);
     }
 
+    insertObj.seq = nextSeq();
+
     const result = await ncMeta.metaInsert2(
       RootScopes.ROOT,
       RootScopes.ROOT,
@@ -69,7 +83,7 @@ export default class SandboxChangelog {
 
     let query = knex(MetaTable.SANDBOX_CHANGELOG)
       .where('fk_sandbox_id', sandboxId)
-      .orderBy('created_at', 'asc');
+      .orderBy('seq', 'asc');
 
     if (opts?.excludeMerged) {
       query = query.where('status', 'pending');
@@ -91,7 +105,7 @@ export default class SandboxChangelog {
 
     let query = knex(MetaTable.SANDBOX_CHANGELOG)
       .where('base_id', baseId)
-      .orderBy('created_at', 'asc');
+      .orderBy('seq', 'asc');
 
     if (opts?.excludeMerged) {
       query = query.where('status', 'pending');

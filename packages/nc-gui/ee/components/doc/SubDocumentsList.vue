@@ -16,7 +16,9 @@ const { ncNavigateTo, isMobileMode, isLeftSidebarOpen } = useGlobal()
 const currentDoc = computed(() => activeDocuments.value.find((d) => d.id === props.docId))
 
 const children = computed(() => {
-  return activeDocuments.value.filter((d) => d.parent_id === props.docId).sort((a, b) => (a.order || 0) - (b.order || 0))
+  return activeDocuments.value
+    .filter((d) => d.parent_id === props.docId)
+    .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
 })
 
 watch(

@@ -8,6 +8,7 @@ import {
   isAIPromptCol,
   isDateMonthFormat,
   isNumericCol,
+  isVirtualCol,
   UITypes,
 } from 'nocodb-sdk';
 import { FieldHandler } from './field-handler';
@@ -254,6 +255,7 @@ const parseConditionV2 = async (
         context,
         knex,
         filter,
+        column,
         alias,
       );
       if (resolved === false) {
@@ -1406,18 +1408,35 @@ const parseConditionV2 = async (
  * When fk_value_col_id is set, replaces filter.value with a knex.ref()
  * pointing to the target column, so the normal conditionV2 comparison
  * logic produces column-to-column SQL (e.g. "FieldA" = "FieldB").
- * Returns false if the value column cannot be found (caller should skip).
+ * Returns false if the value column cannot be resolved (caller should skip).
+ *
+ * Only physical columns in the same table are supported — virtual columns
+ * (Lookup, Rollup, Formula, etc.) have no real DB column to reference.
  */
 async function resolveDynamicFilterValue(
   context: NcContext,
   knex: Knex,
   filter: Filter,
+  filterColumn: Column,
   alias?: string,
 ): Promise<boolean> {
   const valueColumn = await Column.get(context, {
     colId: filter.fk_value_col_id,
   });
   if (!valueColumn) {
+    return false;
+  }
+
+  // Virtual columns (Lookup, Rollup, Formula, etc.) don't have a physical
+  // DB column — skip so the filter is silently ignored rather than producing
+  // invalid SQL.
+  if (isVirtualCol(valueColumn)) {
+    return false;
+  }
+
+  // The value column must belong to the same table as the filter column.
+  // Cross-table references would require a join that isn't set up here.
+  if (valueColumn.fk_model_id !== filterColumn.fk_model_id) {
     return false;
   }
 

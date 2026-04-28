@@ -16,9 +16,8 @@ import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
-import { getUniqueColumnName } from '~/helpers/getUniqueName';
 import { Altered } from '~/services/columns.service';
-import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
+import { CacheScope, MetaTable } from '~/utils/globals';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
@@ -41,6 +40,8 @@ export class LinkPlaceholderService {
   ): Promise<{ id: string } | null> {
     if (!table) return null;
 
+    const columnName = `${columnNamePrefix}${originalCol.id}`;
+
     const base = await Base.getWithInfo(ctx, table.base_id, true, ncMeta);
     const source = base?.sources?.find((s) => s.id === table.source_id);
     if (!source) return null;
@@ -48,27 +49,6 @@ export class LinkPlaceholderService {
     await table.getColumns(
       { ...ctx, workspace_id: table.fk_workspace_id, base_id: table.base_id },
       ncMeta,
-    );
-
-    // Capture per-view visibility of the column being replaced (the LTAR
-    // that's about to be soft-deleted on THIS table — i.e. the reverse-side
-    // column on the related table when the user deletes a link). The
-    // placeholder lives on the same table and should mirror that visibility:
-    // shown in views where the LTAR was shown, hidden in views where it was
-    // hidden. Without this, the placeholder is forced visible everywhere.
-    const views = await View.list(ctx, originalCol.fk_model_id, false, ncMeta);
-    const showByViewId = new Map<string, boolean>();
-    for (const view of views) {
-      const viewCols = await View.getColumns(ctx, view.id, ncMeta);
-      const entry = viewCols.find(
-        (vc: any) => vc.fk_column_id === originalCol.id,
-      );
-      if (entry) showByViewId.set(view.id, !!entry.show);
-    }
-
-    const columnName = getUniqueColumnName(
-      table.columns ?? [],
-      `${columnNamePrefix}${originalCol.id}`,
     );
 
     const sqlUi = SqlUiFactory.create(await source.getConnectionConfig());
@@ -79,11 +59,7 @@ export class LinkPlaceholderService {
     typeProps.dtxs = sqlUi.getDefaultScaleForDatatype(typeProps.dt);
 
     try {
-      const sqlMgr = ProjectMgrv2.getSqlMgr(
-        ctx,
-        { id: source.base_id },
-        ncMeta,
-      );
+      const sqlMgr = await ProjectMgrv2.getSqlMgr(ctx, { id: source.base_id });
 
       await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
         ...table,
@@ -127,11 +103,7 @@ export class LinkPlaceholderService {
         dt: typeProps.dt,
         dtxp: typeProps.dtxp,
         dtxs: typeProps.dtxs,
-        order:
-          Math.max(
-            0,
-            ...(table.columns ?? []).map((c) => Number(c.order ?? 0)),
-          ) + 1,
+        order: originalCol.order,
       },
     );
 
@@ -166,87 +138,16 @@ export class LinkPlaceholderService {
     );
 
     // Add view column entries so the placeholder is visible in all views
-    try {
-      await View.insertColumnToAllViews(
-        ctx,
-        {
-          fk_column_id: placeholderCol.id,
-          fk_model_id: originalCol.fk_model_id,
-          order: placeholderCol.order,
-          column_show: { show: true },
-        },
-        ncMeta,
-      );
-
-      // Mirror the soft-deleted LTAR's per-view visibility: hide the
-      // placeholder in views where the LTAR was hidden, leave it shown
-      // elsewhere.
-      for (const view of views) {
-        const desiredShow = showByViewId.get(view.id);
-        if (desiredShow === undefined || desiredShow) continue;
-        const phViewColId = await View.getViewColumnId(
-          ctx,
-          { viewId: view.id, colId: placeholderCol.id },
-          ncMeta,
-        );
-        if (phViewColId) {
-          await View.updateColumn(
-            ctx,
-            view.id,
-            phViewColId,
-            { show: false },
-            ncMeta,
-          );
-        }
-      }
-    } catch (e) {
-      this.logger.error(
-        `insertColumnToAllViews failed for placeholder ${placeholderCol.id}; rolling back: ${e.message}`,
-        e.stack,
-      );
-
-      try {
-        await ncMeta.metaDelete(
-          ctx.workspace_id,
-          ctx.base_id,
-          MetaTable.COLUMNS,
-          placeholderCol.id,
-        );
-        await NocoCache.deepDel(
-          ctx,
-          `${CacheScope.COLUMN}:${placeholderCol.id}`,
-          CacheDelDirection.CHILD_TO_PARENT,
-        );
-
-        const sqlMgr = ProjectMgrv2.getSqlMgr(
-          ctx,
-          { id: source.base_id },
-          ncMeta,
-        );
-        await sqlMgr.sqlOpPlus(source, 'tableUpdate', {
-          ...table,
-          tn: table.table_name,
-          originalColumns: [
-            ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
-            {
-              ...typeProps,
-              cn: columnName,
-              column_name: columnName,
-              title: originalCol.title,
-              uidt: UITypes.SingleLineText,
-            },
-          ],
-          columns: table.columns.map((c) => ({ ...c, cn: c.column_name })),
-        });
-      } catch (rollbackErr) {
-        this.logger.error(
-          `Rollback of placeholder ${placeholderCol.id} failed — manual cleanup required: ${rollbackErr.message}`,
-          rollbackErr.stack,
-        );
-      }
-
-      throw e;
-    }
+    await View.insertColumnToAllViews(
+      ctx,
+      {
+        fk_column_id: placeholderCol.id,
+        fk_model_id: originalCol.fk_model_id,
+        order: originalCol.order,
+        column_show: { show: true },
+      },
+      ncMeta,
+    );
 
     return placeholderCol;
   }
@@ -269,12 +170,7 @@ export class LinkPlaceholderService {
       MetaTable.COL_RELATIONS,
       { fk_column_id: originalCol.id },
     );
-    if (!colOpt) {
-      this.logger.warn(
-        `populatePlaceholder skipped — no col_relations row for ${originalCol.id}`,
-      );
-      return;
-    }
+    if (!colOpt) return;
 
     const relatedTable = await Model.get(
       ctx,
@@ -282,12 +178,7 @@ export class LinkPlaceholderService {
       true,
       ncMeta,
     );
-    if (!relatedTable) {
-      this.logger.warn(
-        `populatePlaceholder skipped — related table ${colOpt.fk_related_model_id} missing for ${originalCol.id}`,
-      );
-      return;
-    }
+    if (!relatedTable) return;
 
     await relatedTable.getColumns(
       {
@@ -304,30 +195,16 @@ export class LinkPlaceholderService {
     const pvCol =
       relatedTable.columns?.find((c) => c.pv) ??
       relatedTable.columns?.find((c) => c.pk);
-    if (!pvCol) {
-      this.logger.warn(
-        `populatePlaceholder skipped — no pv/pk column on related table ${relatedTable.id}`,
-      );
-      return;
-    }
+    if (!pvCol) return;
 
     const dbDriver = await NcConnectionMgrv2.get(source);
-    if (!dbDriver) {
-      this.logger.warn(
-        `populatePlaceholder skipped — no dbDriver for source ${source?.id}`,
-      );
-      return;
-    }
+    if (!dbDriver) return;
 
-    const baseModel = await Model.getBaseModelSQL(
-      ctx,
-      {
-        model: table,
-        dbDriver,
-        source,
-      },
-      ncMeta,
-    );
+    const baseModel = await Model.getBaseModelSQL(ctx, {
+      model: table,
+      dbDriver,
+      source,
+    });
 
     const relContext = {
       ...ctx,
@@ -335,22 +212,17 @@ export class LinkPlaceholderService {
       base_id: relatedTable.base_id,
     };
 
-    const relBaseModel = await Model.getBaseModelSQL(
-      relContext,
-      {
-        model: relatedTable,
-        dbDriver,
-        source,
-      },
-      ncMeta,
-    );
+    const relBaseModel = await Model.getBaseModelSQL(relContext, {
+      model: relatedTable,
+      dbDriver,
+      source,
+    });
 
     // Resolve pv column SQL — handles both physical and virtual (Formula, Lookup, etc.)
     const { builder: pvBuilder } = await getColumnNameQuery({
       baseModelSqlv2: relBaseModel,
       column: pvCol,
       context: relContext,
-      ncMeta,
     });
 
     const pvExpr =
@@ -376,13 +248,9 @@ export class LinkPlaceholderService {
     const relTn = qTn(relatedTable);
     const phCn = placeholderColumnName;
 
-    // COALESCE so a single NULL doesn't contaminate the whole aggregate to
-    // NULL (PG behaviour).
     const aggFn = baseModel.isPg
-      ? `string_agg(COALESCE(${pvExpr}::text, ''), ', ')`
-      : baseModel.isMySQL
-      ? `GROUP_CONCAT(COALESCE(${pvExpr}, '') SEPARATOR ', ')`
-      : `GROUP_CONCAT(COALESCE(${pvExpr}, ''), ', ')`;
+      ? `string_agg(${pvExpr}::text, ', ')`
+      : `GROUP_CONCAT(${pvExpr}, ', ')`;
 
     const isMMLike = isMMOrMMLike({ ...originalCol, colOptions: colOpt });
 
@@ -660,7 +528,12 @@ export class LinkPlaceholderService {
     placeholder: { id: string };
     table_id: string;
   } | null> {
-    const revTable = await Model.get(ctx, reverseCol.fk_model_id, true, ncMeta);
+    const revTable = await Model.get(
+      ctx,
+      reverseCol.fk_model_id,
+      true,
+      ncMeta,
+    );
     if (!revTable) return null;
 
     const placeholder = await this.createPlaceholder(

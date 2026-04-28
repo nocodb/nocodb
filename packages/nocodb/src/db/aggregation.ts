@@ -93,7 +93,7 @@ export default async function applyAggregation({
     return;
   }
 
-  if (column.colOptions?.error) {
+  if ((column.colOptions as any)?.error) {
     return;
   }
 

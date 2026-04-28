@@ -3514,7 +3514,6 @@ export class ColumnsService implements IColumnsService {
       user: UserType;
       forceDeleteSystem?: boolean;
       skipLinkPlaceholder?: boolean;
-      skipTrash?: boolean;
       reuse?: ReusableParams;
       columnWebhookManager?: ColumnWebhookManager;
     },
@@ -4210,6 +4209,10 @@ export class ColumnsService implements IColumnsService {
         );
       }
     }
+
+    await applyRowColorInvolvement();
+
+    await Hook.deleteTriggersByColumnId(context, column.id, ncMeta);
 
     if (!param.columnWebhookManager) {
       await columnWebhookManager.populateNewColumns();

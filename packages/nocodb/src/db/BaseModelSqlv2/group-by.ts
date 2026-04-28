@@ -569,7 +569,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             const rollupColOptions = (await column.getColOptions(
               baseModel.context,
             )) as RollupColumn;
-            if (rollupColOptions?.error) {
+            if ((rollupColOptions as any)?.error) {
               selectors.push(
                 baseModel.dbDriver.raw(`? as ??`, [null, getAs(column)]),
               );
@@ -901,7 +901,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 const rollupColOptions = (await column.getColOptions(
                   baseModel.context,
                 )) as RollupColumn;
-                if (rollupColOptions?.error) {
+                if ((rollupColOptions as any)?.error) {
                   colSelectors.push(
                     baseModel.dbDriver.raw(`? as ??`, [null, getAs(column)]),
                   );
@@ -1269,7 +1269,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 const rollupColOptions = (await column.getColOptions(
                   baseModel.context,
                 )) as RollupColumn;
-                if (rollupColOptions?.error) {
+                if ((rollupColOptions as any)?.error) {
                   colSelectors.push(
                     baseModel.dbDriver.raw(`? as ??`, [null, getAs(column)]),
                   );

@@ -460,7 +460,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
           // Errored rollup/link (e.g. its relation was cascade-deleted):
           // emit a NULL dummy select instead of attempting the rollup.
-          if (rollupColOptions?.error) {
+          if ((rollupColOptions as any)?.error) {
             qb.select(baseModel.dbDriver.raw(`? as ??`, [null, getAs(column)]));
             break;
           }

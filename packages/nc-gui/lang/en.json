@@ -1057,7 +1057,6 @@
   "title": {
     "trash": "Trash",
     "baseTrash": "Base Trash",
-    "recordTrash": "Record Trash",
     "noWorkspaceAccess": "No workspace access",
     "convertLegacyLink": "Upgrade Link Field",
     "versionHistory": "Version History",
@@ -2985,7 +2984,6 @@
     "organizeViewsIntoSections": "Organize views into collapsible sections",
     "filteringNotSupportedForFieldsWithErrors": "Filtering is not supported for fields with errors",
     "sortingNotSupportedForFieldsWithErrors": "Sorting is not supported for fields with errors",
-    "sortingNotSupportedForField": "Sorting is not supported for {type} field",
     "groupingNotSupportedForFieldsWithErrors": "Grouping is not supported for fields with errors"
   },
   "placeholder": {
@@ -3786,7 +3784,6 @@
     },
     "success": {
       "restored": "Item restored successfully",
-      "partiallyRestored": "Restored conflict-free items — conflicting ones remain in trash",
       "permanentlyDeleted": "Item permanently deleted",
       "trashEmptied": "Trash emptied successfully",
       "licensesSynced": "{count} license synced from Stripe | {count} licenses synced from Stripe",
@@ -3984,21 +3981,9 @@
     }
   },
   "baseTrash": {
-    "title": "Trash",
-    "header": "Deleted from {base}",
-    "description": "Restore items deleted from this base in the past {days} days. To restore deleted bases and workspaces, go to your workspace trash.",
-    "autoExpiry": "Items are permanently deleted after {days} days",
-    "noDeletedItems": "No deleted items",
-    "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
+    "autoExpiry": "Items are automatically deleted after the retention period",
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "confirmPermanentDelete": "{name} will be permanently deleted. This cannot be undone.",
-    "restoreParentFirst": "Restore \"{parent}\" first to restore this item",
-    "restoreRequiresCreator": "Restoring this item requires Creator or Owner role",
-    "secondsAgo": "{count} seconds ago",
-    "youDeleted": "You deleted a {type} from {parent}: {name}",
-    "userDeleted": "{user} deleted a {type} from {parent}: {name}",
-    "youDeletedNoParent": "You deleted a {type}: {name}",
-    "userDeletedNoParent": "{user} deleted a {type}: {name}",
-    "someoneDeleted": "A {type} was deleted: {name}"
+    "restoreParentFirst": "Restore \"{parent}\" first to restore this item"
   }
 }

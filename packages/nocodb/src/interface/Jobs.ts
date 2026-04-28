@@ -70,7 +70,6 @@ export enum JobTypes {
   WorkflowDraftReminder = 'workflow-draft-reminder',
   ChatMessage = 'chat-message',
   ChatApproval = 'chat-approval',
-  RecordTrashCleanup = 'record-trash-cleanup',
   BaseTrashCleanUp = 'base-trash-clean-up',
 }
 

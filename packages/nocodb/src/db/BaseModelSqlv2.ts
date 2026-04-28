@@ -2481,6 +2481,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               .update(softDeletePayload)
               .where(where);
 
+        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
+          context: this.context,
+          req: cookie,
+          tableId: this.model.id,
+          rowIds: [id],
+          deletedAt: operationNow,
+        });
+
         await this.softDeleteFileReferences({
           oldData: [data],
           columns: this.model.columns,
@@ -4572,6 +4580,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             await transaction(this.tnPath).update(softDeletePayload).where(d);
           }
         }
+
+        Noco.eventEmitter.emit(AppEvents.RECORDS_SOFT_DELETE, {
+          context: this.context,
+          req: cookie,
+          tableId: this.model.id,
+          rowIds: res.map((d) =>
+            this.model.primaryKeys.length === 1
+              ? d[this.model.primaryKey.column_name]
+              : this.extractPksValues(d, true),
+          ),
+          deletedAt: operationNow,
+        });
       } else {
         const execQueries: ((
           trx: Knex.Transaction,

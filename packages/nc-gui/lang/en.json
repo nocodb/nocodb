@@ -3981,7 +3981,10 @@
     }
   },
   "baseTrash": {
-    "autoExpiry": "Items are automatically deleted after the retention period",
+    "title": "Trash",
+    "autoExpiry": "Items are permanently deleted after {days} days",
+    "noDeletedItems": "No deleted items",
+    "deletedItemsWillAppearHere": "Deleted tables, views, fields and more will appear here",
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "confirmPermanentDelete": "{name} will be permanently deleted. This cannot be undone.",
     "restoreParentFirst": "Restore \"{parent}\" first to restore this item"

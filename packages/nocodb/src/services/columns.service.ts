@@ -3514,6 +3514,7 @@ export class ColumnsService implements IColumnsService {
       user: UserType;
       forceDeleteSystem?: boolean;
       skipLinkPlaceholder?: boolean;
+      skipTrash?: boolean;
       reuse?: ReusableParams;
       columnWebhookManager?: ColumnWebhookManager;
     },

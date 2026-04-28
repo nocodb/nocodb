@@ -2428,12 +2428,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }): Promise<void> {
     // No-op — overridden in EE.
   }
-  public async afterSoftDeleteCompleted(_params: {
-    cookie: NcRequest;
-    operationNow: string;
-  }): Promise<void> {
-    // No-op — overridden in EE.
-  }
 
   async insert(data, request: NcRequest, trx?, _disableOptimization = false) {
     return await baseModelInsert(this).single(
@@ -8876,14 +8870,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     for (const item of list) {
       const extractedId = this.extractPksValues(item);
-      NocoSocket.broadcastEvent(this.context, {
-        event: EventType.DATA_EVENT,
+      // Route through broadcastDataEvent so this matches the regular update
+      // path: RLS-aware fan-out to access groups, plus emit to the standard
+      // room. broadcastEvent() only hits the standard room — RLS-subscribed
+      // sockets wouldn't see link updates and would render stale link cells
+      // until refresh.
+      NocoSocket.broadcastDataEvent(this.context, {
         payload: {
           action: 'update',
           payload: item,
           id: extractedId,
         },
-        scopes: [this.model.id],
+        tableId: this.model.id,
       });
     }
   }

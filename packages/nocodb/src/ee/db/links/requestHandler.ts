@@ -1,7 +1,6 @@
 import {
   arrFlatMap,
   AuditV1OperationTypes,
-  EventType,
   isMMOrMMLike,
   LinksVersion,
   type NcContext,
@@ -1288,14 +1287,15 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         });
 
         for (const item of sourceRows) {
-          NocoSocket.broadcastEvent(context, {
-            event: EventType.DATA_EVENT,
+          // Use broadcastDataEvent so RLS-subscribed clients also receive the
+          // update — broadcastEvent only hits the standard room.
+          NocoSocket.broadcastDataEvent(context, {
             payload: {
               action: 'update',
               payload: item,
               id: sourceBaseModel.extractPksValues(item),
             },
-            scopes: [baseModel.model.id],
+            tableId: baseModel.model.id,
           });
         }
 
@@ -1306,14 +1306,13 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         });
 
         for (const item of relatedRows) {
-          NocoSocket.broadcastEvent(relatedContext, {
-            event: EventType.DATA_EVENT,
+          NocoSocket.broadcastDataEvent(relatedContext, {
             payload: {
               action: 'update',
               payload: item,
               id: relatedBaseModelClone.extractPksValues(item),
             },
-            scopes: [relatedBaseModel.model.id],
+            tableId: relatedBaseModel.model.id,
           });
         }
 

@@ -79,7 +79,7 @@ const options = computed<ColumnType[]>(() =>
       c.ncItemDisabled = true
       c.ncItemTooltip = isColumnInError(c)
         ? t('tooltip.sortingNotSupportedForFieldsWithErrors')
-        : `Sorting is not supported for ${UITypesName[c.uidt]} field`
+        : t('tooltip.sortingNotSupportedForField', { type: UITypesName[c.uidt] })
     }
 
     return c

@@ -1,12 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import debug from 'debug';
 import PQueue from 'p-queue';
-import { isDeletedCol, UITypes } from 'nocodb-sdk';
+import { isDeletedCol, PlanLimitTypes, UITypes } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import { Model, Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import SimpleLRUCache from '~/utils/cache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { getLimit } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 
 /**
@@ -277,10 +278,41 @@ export class RecordTrashBackfillMigration {
       ? [lmtCol.column_name, lmbCol.column_name]
       : [lmtCol.column_name];
 
-    const retentionDays = await this.resolveRetentionDays(
-      fk_workspace_id,
-      trash_retention_days,
-    );
+    // Resolve retention with the same hierarchy as the runtime listener
+    // (`resolveTrashRetentionDays`): per-table override on the model →
+    // workspace plan limit → env → fallback 30. Backfilled entries inherit
+    // the original deleted_at, so cleanup_due_at = deleted_at +
+    // retentionDays. Long-stale entries get a due date in the past and
+    // the next cleanup tick purges them.
+    let retentionDays: number;
+    if (
+      typeof trash_retention_days === 'number' &&
+      trash_retention_days > 0
+    ) {
+      retentionDays = trash_retention_days;
+    } else {
+      try {
+        const { limit } = await getLimit(
+          PlanLimitTypes.LIMIT_TRASH_RETENTION,
+          fk_workspace_id,
+        );
+        if (limit === 0) {
+          retentionDays = 0;
+        } else if (limit !== Infinity && limit > 0) {
+          retentionDays = limit;
+        } else {
+          retentionDays = parseInt(
+            process.env.NC_TRASH_RETENTION_DAYS || '30',
+            10,
+          );
+        }
+      } catch {
+        retentionDays = parseInt(
+          process.env.NC_TRASH_RETENTION_DAYS || '30',
+          10,
+        );
+      }
+    }
 
     let inserted = 0;
     let offset = 0;
@@ -317,7 +349,7 @@ export class RecordTrashBackfillMigration {
           deletedAtIso,
         )}`;
         const cleanupDueAt = new Date(deletedAtIso);
-        cleanupDueAt.setUTCDate(cleanupDueAt.getUTCDate() + retentionDays);
+        cleanupDueAt.setDate(cleanupDueAt.getDate() + retentionDays);
 
         rowsToInsert.push({
           id: await ncMeta.genNanoid(MetaTable.TRASH),
@@ -363,17 +395,6 @@ export class RecordTrashBackfillMigration {
     }
 
     await this.markProcessed(modelId, true);
-  }
-
-  protected async resolveRetentionDays(
-    _workspaceId: string | undefined,
-    perTableOverride: number | null | undefined,
-  ): Promise<number> {
-    if (typeof perTableOverride === 'number' && perTableOverride > 0) {
-      return perTableOverride;
-    }
-    const envVal = parseInt(process.env.NC_TRASH_RETENTION_DAYS || '30', 10);
-    return Number.isFinite(envVal) && envVal > 0 ? envVal : 30;
   }
 
   private getModelsQuery(concurrency: number) {

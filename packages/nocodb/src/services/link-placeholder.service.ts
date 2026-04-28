@@ -231,14 +231,12 @@ export class LinkPlaceholderService {
     );
 
     // Resolve pv column SQL — handles both physical and virtual (Formula, Lookup, etc.)
-    const { builder: pvBuilder } = await getColumnNameQuery(
-      {
-        baseModelSqlv2: relBaseModel,
-        column: pvCol,
-        context: relContext,
-      },
+    const { builder: pvBuilder } = await getColumnNameQuery({
+      baseModelSqlv2: relBaseModel,
+      column: pvCol,
+      context: relContext,
       ncMeta,
-    );
+    });
 
     const pvExpr =
       typeof pvBuilder === 'string'

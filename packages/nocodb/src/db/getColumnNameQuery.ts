@@ -34,7 +34,7 @@ export async function getColumnNameQuery({
   baseModelSqlv2: IBaseModelSqlV2;
   column: Column;
   context: NcContext;
-  ncMeta: MetaService;
+  ncMeta?: MetaService;
 }): Promise<{
   builder: Knex.QueryBuilder | string;
 }> {

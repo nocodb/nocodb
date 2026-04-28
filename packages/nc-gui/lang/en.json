@@ -3786,6 +3786,7 @@
     },
     "success": {
       "restored": "Item restored successfully",
+      "partiallyRestored": "Restored conflict-free items — conflicting ones remain in trash",
       "permanentlyDeleted": "Item permanently deleted",
       "trashEmptied": "Trash emptied successfully",
       "licensesSynced": "{count} license synced from Stripe | {count} licenses synced from Stripe",
@@ -3992,6 +3993,7 @@
     "confirmEmpty": "All items in trash will be permanently deleted. This cannot be undone.",
     "confirmPermanentDelete": "{name} will be permanently deleted. This cannot be undone.",
     "restoreParentFirst": "Restore \"{parent}\" first to restore this item",
+    "restoreRequiresCreator": "Restoring this item requires Creator or Owner role",
     "secondsAgo": "{count} seconds ago",
     "youDeleted": "You deleted a {type} from {parent}: {name}",
     "userDeleted": "{user} deleted a {type} from {parent}: {name}",

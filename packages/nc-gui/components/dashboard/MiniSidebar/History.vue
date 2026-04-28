@@ -7,7 +7,15 @@ const { resolvedProject } = storeToRefs(useBases())
 
 const { open: openBaseTrash } = useBaseTrash()
 
+const { isUIAllowed } = useRoles()
+
 const visible = ref(false)
+
+const canSeeBaseTrash = computed(() => isUIAllowed('baseTrashList'))
+
+const canSeeSnapshots = computed(() => isUIAllowed('manageSnapshots'))
+
+const showHistoryTrigger = computed(() => canSeeBaseTrash.value || canSeeSnapshots.value)
 
 function openSnapshots() {
   const baseId = resolvedProject.value?.id
@@ -25,6 +33,7 @@ function onTrashClick() {
 
 <template>
   <NcDropdown
+    v-if="showHistoryTrigger"
     v-model:visible="visible"
     placement="rightBottom"
     overlay-class-name="!min-w-55 nc-history-menu-dropdown"
@@ -46,7 +55,7 @@ function onTrashClick() {
           </span>
         </NcMenuItemLabel>
 
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_EE_CORE">
+        <PaymentUpgradeBadgeProvider v-if="canSeeSnapshots" :feature="PlanFeatureTypes.FEATURE_EE_CORE">
           <template #default="{ click }">
             <NcMenuItem
               data-testid="nc-sidebar-history-menu-snapshots"
@@ -62,7 +71,7 @@ function onTrashClick() {
           </template>
         </PaymentUpgradeBadgeProvider>
 
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_EE_CORE">
+        <PaymentUpgradeBadgeProvider v-if="canSeeBaseTrash" :feature="PlanFeatureTypes.FEATURE_EE_CORE">
           <template #default="{ click }">
             <NcMenuItem
               data-testid="nc-sidebar-history-menu-trash"
@@ -80,6 +89,7 @@ function onTrashClick() {
       </NcMenu>
     </template>
   </NcDropdown>
+  <NcSpanHidden v-else />
 </template>
 
 <style lang="scss">

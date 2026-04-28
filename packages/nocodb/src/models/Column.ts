@@ -1067,65 +1067,6 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
-    // Relation-based lookup/rollup error-marking is handled by ColumnDeleteDependencyHandler.
-
-    // delete sorts
-    {
-      const cachedList = await NocoCache.getList(context, CacheScope.SORT, [
-        id,
-      ]);
-      let { list: sorts } = cachedList;
-      const { isNoneList } = cachedList;
-      if (!isNoneList && !sorts.length) {
-        sorts = await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.SORT,
-          {
-            condition: {
-              fk_column_id: id,
-            },
-          },
-        );
-      }
-      for (const sort of sorts) {
-        await Sort.delete(context, sort.id, ncMeta);
-      }
-    }
-    // delete filters
-    {
-      const cachedList = await NocoCache.getList(
-        context,
-        CacheScope.FILTER_EXP,
-        [FilterCacheScope.COLUMN, id],
-      );
-      let { list: filters } = cachedList;
-      const { isNoneList } = cachedList;
-      if (!isNoneList && !filters.length) {
-        filters = await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.FILTER_EXP,
-          {
-            condition: {
-              fk_column_id: id,
-            },
-          },
-        );
-      }
-      // Delete all filters referencing this column, including child filters
-      // nested inside filter groups (which have fk_parent_id set).
-      for (const filter of filters) {
-        await Filter.delete(context, filter.id, ncMeta);
-      }
-    }
-    {
-      await Filter.deleteAllByParentColumn(context, id, ncMeta);
-    }
-
-    // Set Gallery & Kanban view `fk_cover_image_col_id` value to null
-    await Column.deleteCoverImageColumnId(context, id, ncMeta);
-
     // Delete from view columns
     let colOptionTableName = null;
     let cacheScopeName = null;

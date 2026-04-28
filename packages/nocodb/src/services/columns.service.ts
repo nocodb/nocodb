@@ -4211,10 +4211,6 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    await applyRowColorInvolvement();
-
-    await Hook.deleteTriggersByColumnId(context, column.id, ncMeta);
-
     if (!param.columnWebhookManager) {
       await columnWebhookManager.populateNewColumns();
       columnWebhookManager.emit();

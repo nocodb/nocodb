@@ -1521,7 +1521,7 @@ async function resolveCrossTableDynamicFilter(
   // - fk_value_col_id can only point to source or reference table columns
   // - same-table columns are resolved inline by replaceDynamicFieldWithValue
   // - so cross-table always means the value column is in the reference table
-  const crossTableRowId = (filter as any)._crossTableRowId;
+  const crossTableRowId = filter._crossTableRowId;
   if (crossTableRowId && relatedModel.primaryKeys?.length) {
     const pkWhere = _wherePk(relatedModel.primaryKeys, crossTableRowId);
     if (typeof pkWhere === 'function') {

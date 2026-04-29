@@ -181,7 +181,7 @@ export function replaceDynamicFieldWithValue(
       } else {
         // Cross-table column — annotate with rowId so conditionV2
         // can build an EXISTS subquery filtered to this source row
-        (condition as any)._crossTableRowId = rowId;
+        condition._crossTableRowId = rowId;
       }
       filters.push(condition);
     }

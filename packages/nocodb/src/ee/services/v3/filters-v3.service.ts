@@ -9,35 +9,11 @@ import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { filterActions } from '~/decorators/trace-command-descriptions';
-import { Column, Model, View } from '~/models';
-import { MetaTable } from '~/utils/globals';
+import { FilterCreateV3Contract } from '~/command-registry/operations/filters-v3.operations';
 
 @Injectable()
 export class FiltersV3Service extends FiltersV3ServiceCE {
-  @TraceCommand({
-    operation: 'filterCreateV3',
-    entity: MetaTable.FILTER_EXP,
-    entityId: (_p, r) => r?.filters?.[0]?.id,
-    parentId: 'viewId',
-    description: filterActions.add,
-    resolveCtx: async (context, param) => {
-      const view = await View.get(context, param?.viewId);
-      const table = view?.fk_model_id
-        ? await Model.get(context, view.fk_model_id)
-        : undefined;
-      const colId = (param?.filter as any)?.fk_column_id;
-      const field = colId ? await Column.get(context, { colId }) : undefined;
-      return {
-        parentEntityTitle: view?.title,
-        extra: { fieldTitle: field?.title, tableTitle: table?.title },
-      };
-    },
-    deps: (_p, r) => {
-      const colId = r?.filters?.[0]?.fk_column_id;
-      return colId ? [{ entity: MetaTable.COLUMNS, id: colId }] : [];
-    },
-  })
+  @TraceCommand(FilterCreateV3Contract)
   async filterCreate(
     context: NcContext,
     param: {

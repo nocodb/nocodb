@@ -7,11 +7,15 @@ import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { sortActions } from '~/decorators/trace-command-descriptions';
+import {
+  SortCreateContract,
+  SortUpdateContract,
+  SortDeleteContract,
+} from '~/command-registry/operations/sorts-visibilities.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { Column, Model, Sort, View } from '~/models';
+import { View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
@@ -23,30 +27,7 @@ export class SortsService extends SortsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.SORT,
-    entityId: 'id',
-    parentId: 'viewId',
-    description: sortActions.add,
-    resolveCtx: async (context, param) => {
-      const view = await View.get(context, param?.viewId);
-      const field = param?.sort?.fk_column_id
-        ? await Column.get(context, { colId: param.sort.fk_column_id })
-        : undefined;
-      const table = view?.fk_model_id
-        ? await Model.get(context, view.fk_model_id)
-        : undefined;
-      return {
-        parentEntityTitle: view?.title,
-        extra: { fieldTitle: field?.title, tableTitle: table?.title },
-      };
-    },
-    deps: (_p, r) =>
-      r?.fk_column_id
-        ? [{ entity: MetaTable.COLUMNS, id: r.fk_column_id }]
-        : [],
-    idField: 'sort',
-  })
+  @TraceCommand(SortCreateContract)
   async sortCreate(
     context: NcContext,
     param: {
@@ -96,31 +77,7 @@ export class SortsService extends SortsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.SORT,
-    entityId: (p) => p?.sortId,
-    description: sortActions.edit,
-    resolveCtx: async (context, param) => {
-      const sort = await Sort.get(context, param?.sortId);
-      if (!sort) return {};
-      const view = sort.fk_view_id
-        ? await View.get(context, sort.fk_view_id)
-        : undefined;
-      const table = view?.fk_model_id
-        ? await Model.get(context, view.fk_model_id)
-        : undefined;
-      const colId = param?.sort?.fk_column_id ?? sort.fk_column_id;
-      const field = colId ? await Column.get(context, { colId }) : undefined;
-      return {
-        parentEntityTitle: view?.title,
-        extra: { fieldTitle: field?.title, tableTitle: table?.title },
-      };
-    },
-    deps: (p, r) => {
-      const colId = r?.fk_column_id ?? p?.sort?.fk_column_id;
-      return colId ? [{ entity: MetaTable.COLUMNS, id: colId }] : [];
-    },
-  })
+  @TraceCommand(SortUpdateContract)
   async sortUpdate(
     context: NcContext,
     param: {
@@ -135,28 +92,7 @@ export class SortsService extends SortsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.SORT,
-    entityId: (p) => p?.sortId,
-    description: sortActions.delete,
-    resolveCtx: async (context, param) => {
-      const sort = await Sort.get(context, param?.sortId);
-      if (!sort) return {};
-      const view = sort.fk_view_id
-        ? await View.get(context, sort.fk_view_id)
-        : undefined;
-      const table = view?.fk_model_id
-        ? await Model.get(context, view.fk_model_id)
-        : undefined;
-      const field = sort.fk_column_id
-        ? await Column.get(context, { colId: sort.fk_column_id })
-        : undefined;
-      return {
-        parentEntityTitle: view?.title,
-        extra: { fieldTitle: field?.title, tableTitle: table?.title },
-      };
-    },
-  })
+  @TraceCommand(SortDeleteContract)
   async sortDelete(
     context: NcContext,
     param: {

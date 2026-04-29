@@ -8,7 +8,11 @@ import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { hookActions } from '~/decorators/trace-command-descriptions';
+import {
+  HookCreateContract,
+  HookUpdateContract,
+  HookDeleteContract,
+} from '~/command-registry/operations/hooks.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -58,18 +62,7 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.HOOKS,
-    entityId: 'id',
-    entityTitle: 'title',
-    parentId: 'tableId',
-    description: hookActions.add,
-    resolveCtx: async (context, param) => {
-      const table = await Model.get(context, param?.tableId);
-      return { parentEntityTitle: table?.title };
-    },
-    idField: 'hook',
-  })
+  @TraceCommand(HookCreateContract)
   async hookCreate(
     context: NcContext,
     param: {
@@ -166,26 +159,7 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.HOOKS,
-    entityId: (p) => p?.hookId,
-    entityTitle: (p) => p?.hook?.title,
-    parentId: (_p, r) => r?.fk_model_id,
-    description: (ctx) =>
-      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
-        ? hookActions.rename(ctx)
-        : hookActions.edit(ctx),
-    resolveCtx: async (context, param) => {
-      const hook = await Hook.get(context, param?.hookId);
-      const table = hook?.fk_model_id
-        ? await Model.get(context, hook.fk_model_id)
-        : undefined;
-      return {
-        parentEntityTitle: table?.title,
-        extra: { oldTitle: hook?.title },
-      };
-    },
-  })
+  @TraceCommand(HookUpdateContract)
   async hookUpdate(
     context: NcContext,
     param: {
@@ -198,21 +172,7 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.HOOKS,
-    entityId: (p) => p?.hookId,
-    description: hookActions.delete,
-    resolveCtx: async (context, param) => {
-      const hook = await Hook.get(context, param?.hookId);
-      const table = hook?.fk_model_id
-        ? await Model.get(context, hook.fk_model_id)
-        : undefined;
-      return {
-        entityTitle: hook?.title,
-        parentEntityTitle: table?.title,
-      };
-    },
-  })
+  @TraceCommand(HookDeleteContract)
   async hookDelete(
     context: NcContext,
     param: { hookId: string; req: NcRequest; skipTrash?: boolean },

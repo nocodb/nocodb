@@ -11,20 +11,22 @@ import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  shareViewActions,
-  viewActions,
-} from '~/decorators/trace-command-descriptions';
 import { Model, User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
-import { MetaTable } from '~/utils/globals';
 import {
   assertNotSandbox,
   assertNotSandboxProduction,
 } from '~/helpers/sandboxGuards';
+import {
+  ViewUpdateContract,
+  ViewDeleteContract,
+  ShareViewContract,
+  ShareViewUpdateContract,
+  ShareViewDeleteContract,
+} from '~/command-registry/operations/views.operations';
 
 @Injectable()
 export class ViewsService extends ViewsServiceCE {
@@ -35,27 +37,7 @@ export class ViewsService extends ViewsServiceCE {
     super(appHooksServiceEE);
   }
 
-  @TraceCommand({
-    entity: MetaTable.VIEWS,
-    entityId: (p) => p?.viewId,
-    entityTitle: (p) => p?.view?.title,
-    parentId: (_p, r) => r?.fk_model_id,
-    description: (ctx) =>
-      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
-        ? viewActions.rename(ctx)
-        : viewActions.edit(ctx),
-    resolveCtx: async (context, param) => {
-      const view = await View.get(context, param?.viewId);
-      const table = view?.fk_model_id
-        ? await Model.get(context, view.fk_model_id)
-        : undefined;
-      return {
-        entityTitle: view?.title,
-        parentEntityTitle: table?.title,
-        extra: { oldTitle: view?.title },
-      };
-    },
-  })
+  @TraceCommand(ViewUpdateContract)
   async viewUpdate(
     context: NcContext,
     param: {
@@ -76,21 +58,7 @@ export class ViewsService extends ViewsServiceCE {
     return super.viewUpdate(context, param);
   }
 
-  @TraceCommand({
-    entity: MetaTable.VIEWS,
-    entityId: (p) => p?.viewId,
-    description: viewActions.delete,
-    resolveCtx: async (context, param) => {
-      const view = await View.get(context, param?.viewId);
-      const table = view?.fk_model_id
-        ? await Model.get(context, view.fk_model_id)
-        : undefined;
-      return {
-        entityTitle: view?.title,
-        parentEntityTitle: table?.title,
-      };
-    },
-  })
+  @TraceCommand(ViewDeleteContract)
   async viewDelete(
     context: NcContext,
     param: {
@@ -166,11 +134,7 @@ export class ViewsService extends ViewsServiceCE {
     return true;
   }
 
-  @TraceCommand({
-    entity: MetaTable.VIEWS,
-    entityId: (p) => p?.viewId,
-    description: shareViewActions.create,
-  })
+  @TraceCommand(ShareViewContract)
   async shareView(
     context: NcContext,
     param: { viewId: string; user: UserType; req: NcRequest },
@@ -189,11 +153,7 @@ export class ViewsService extends ViewsServiceCE {
     return super.shareView(context, param);
   }
 
-  @TraceCommand({
-    entity: MetaTable.VIEWS,
-    entityId: (p) => p?.viewId,
-    description: shareViewActions.update,
-  })
+  @TraceCommand(ShareViewUpdateContract)
   async shareViewUpdate(
     context: NcContext,
     param: {
@@ -217,11 +177,7 @@ export class ViewsService extends ViewsServiceCE {
     return super.shareViewUpdate(context, param);
   }
 
-  @TraceCommand({
-    entity: MetaTable.VIEWS,
-    entityId: (p) => p?.viewId,
-    description: shareViewActions.delete,
-  })
+  @TraceCommand(ShareViewDeleteContract)
   async shareViewDelete(
     context: NcContext,
     param: { viewId: string; user: UserType; req: NcRequest },

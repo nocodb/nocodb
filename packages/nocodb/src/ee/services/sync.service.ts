@@ -4,18 +4,15 @@ import type { NcRequest } from '~/interface/config';
 import type { SyncSource } from '~/models';
 import { NcContext } from '~/interface/config';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { syncActions } from '~/decorators/trace-command-descriptions';
-import { MetaTable } from '~/utils/globals';
+import {
+  SyncCreateContract,
+  SyncUpdateContract,
+  SyncDeleteContract,
+} from '~/command-registry/operations/sync.operations';
 
 @Injectable()
 export class SyncService extends SyncServiceCE {
-  @TraceCommand({
-    entity: MetaTable.SYNC_SOURCE,
-    entityId: 'id',
-    entityTitle: (p, r) => p?.syncPayload?.title ?? r?.title,
-    description: syncActions.add,
-    idField: 'syncPayload',
-  })
+  @TraceCommand(SyncCreateContract)
   async syncCreate(
     context: NcContext,
     param: {
@@ -29,12 +26,7 @@ export class SyncService extends SyncServiceCE {
     return super.syncCreate(context, param);
   }
 
-  @TraceCommand({
-    entity: MetaTable.SYNC_SOURCE,
-    entityId: (p) => p?.syncId,
-    entityTitle: (p) => p?.syncPayload?.title,
-    description: syncActions.edit,
-  })
+  @TraceCommand(SyncUpdateContract)
   async syncUpdate(
     context: NcContext,
     param: {
@@ -46,11 +38,7 @@ export class SyncService extends SyncServiceCE {
     return super.syncUpdate(context, param);
   }
 
-  @TraceCommand({
-    entity: MetaTable.SYNC_SOURCE,
-    entityId: (p) => p?.syncId,
-    description: syncActions.delete,
-  })
+  @TraceCommand(SyncDeleteContract)
   async syncDelete(
     context: NcContext,
     param: { syncId: string; req: NcRequest },

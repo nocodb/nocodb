@@ -177,6 +177,9 @@ import { ScimResourceTypesController } from '~/ee/controllers/v3/scim-resource-t
 /* License */
 import { LicenseGuard } from '~/guards/license.guard';
 
+/* Command Registry */
+import { OperationRegistryBootstrap } from '~/command-registry/_bootstrap';
+
 export const nocoModuleEeMetadata = {
   imports: [
     NocoAiModule,
@@ -317,6 +320,9 @@ export const nocoModuleEeMetadata = {
     /* EE Meta Dependency Handlers (overrides CE provider) */
     ...MetaDependencyServices,
     MetaDependencyModuleProvider,
+
+    /* Command Registry — registers all replay handlers + freezes registry on boot */
+    OperationRegistryBootstrap,
   ],
   controllers: [
     ActionsController,

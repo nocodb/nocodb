@@ -10,7 +10,6 @@ import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { tableActions } from '~/decorators/trace-command-descriptions';
 import { NcError } from '~/helpers/catchError';
 import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import { Base, Model } from '~/models';
@@ -23,6 +22,11 @@ import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import DateDependency from '~/models/DateDependency';
+import {
+  TableCreateContract,
+  TableUpdateContract,
+  TableDeleteContract,
+} from '~/command-registry/operations/tables.operations';
 
 @Injectable()
 export class TablesService extends TableServiceCE {
@@ -43,25 +47,7 @@ export class TablesService extends TableServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.MODELS,
-    entityId: 'id',
-    entityTitle: 'title',
-    description: tableActions.add,
-    idField: 'table',
-    // Store sandbox column IDs so replay can seed auto-created columns
-    // (Title column etc.) with matching IDs on production.
-    // Also store the auto-created default view ID so sorts/filters that
-    // reference it by ID continue to work after replay on production.
-    extraCommandMeta: (_p, result) => ({
-      sandboxColumns: (result?.columns ?? []).map((c: any) => ({
-        id: c.id,
-        cn: c.cn,
-        title: c.title,
-      })),
-      sandboxDefaultViewId: (result?.views ?? [])[0]?.id,
-    }),
-  })
+  @TraceCommand(TableCreateContract)
   async tableCreate(
     context: NcContext,
     param: {
@@ -184,16 +170,7 @@ export class TablesService extends TableServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.MODELS,
-    entityId: (p) => p?.tableId,
-    entityTitle: (p) => p?.table?.title,
-    description: tableActions.rename,
-    resolveCtx: async (context, param) => {
-      const table = await Model.get(context, param?.tableId);
-      return { extra: { oldTitle: table?.title } };
-    },
-  })
+  @TraceCommand(TableUpdateContract)
   async tableUpdate(
     context: NcContext,
     param: {
@@ -213,15 +190,7 @@ export class TablesService extends TableServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.MODELS,
-    entityId: (p) => p?.tableId,
-    description: tableActions.delete,
-    resolveCtx: async (context, param) => {
-      const table = await Model.get(context, param?.tableId);
-      return { entityTitle: table?.title };
-    },
-  })
+  @TraceCommand(TableDeleteContract)
   async tableDelete(
     context: NcContext,
     param: {

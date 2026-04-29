@@ -13,8 +13,11 @@ import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { viewSectionActions } from '~/decorators/trace-command-descriptions';
-import { MetaTable } from '~/utils/globals';
+import {
+  ViewSectionCreateContract,
+  ViewSectionUpdateContract,
+  ViewSectionDeleteContract,
+} from '~/command-registry/operations/view-sections.operations';
 
 @Injectable()
 export class ViewSectionsService {
@@ -182,14 +185,7 @@ export class ViewSectionsService {
   // Sandbox-traced wrappers (standard (context, param) signature)
   // ────────────────────────────────────────────
 
-  @TraceCommand({
-    entity: MetaTable.VIEW_SECTIONS,
-    entityId: 'id',
-    entityTitle: 'title',
-    parentId: 'viewId',
-    description: viewSectionActions.add,
-    idField: 'section',
-  })
+  @TraceCommand(ViewSectionCreateContract)
   async viewSectionCreate(
     context: NcContext,
     param: {
@@ -201,19 +197,7 @@ export class ViewSectionsService {
     return this.create(context, param.viewId, param.section, param.req);
   }
 
-  @TraceCommand({
-    entity: MetaTable.VIEW_SECTIONS,
-    entityId: (p) => p?.viewSectionId,
-    entityTitle: (p) => p?.section?.title,
-    description: (ctx) =>
-      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
-        ? viewSectionActions.rename(ctx)
-        : viewSectionActions.edit(ctx),
-    resolveCtx: async (context, param) => {
-      const section = await ViewSection.get(context, param?.viewSectionId);
-      return { extra: { oldTitle: section?.title } };
-    },
-  })
+  @TraceCommand(ViewSectionUpdateContract)
   async viewSectionUpdate(
     context: NcContext,
     param: {
@@ -225,15 +209,7 @@ export class ViewSectionsService {
     return this.update(context, param.viewSectionId, param.section, param.req);
   }
 
-  @TraceCommand({
-    entity: MetaTable.VIEW_SECTIONS,
-    entityId: (p) => p?.viewSectionId,
-    description: viewSectionActions.delete,
-    resolveCtx: async (context, param) => {
-      const section = await ViewSection.get(context, param?.viewSectionId);
-      return { entityTitle: section?.title };
-    },
-  })
+  @TraceCommand(ViewSectionDeleteContract)
   async viewSectionDelete(
     context: NcContext,
     param: { viewSectionId: string; req: NcRequest },

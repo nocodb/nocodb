@@ -30,8 +30,11 @@ import type { Source } from '~/models';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { fieldActions } from '~/decorators/trace-command-descriptions';
-import { extractFormulaColumnRefs } from '~/ee/helpers/formulaDeps';
+import {
+  ColumnAddContract,
+  ColumnUpdateContract,
+  ColumnDeleteContract,
+} from '~/command-registry/operations/columns.operations';
 import {
   Base,
   Column,
@@ -97,33 +100,7 @@ export class ColumnsService extends ColumnsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.COLUMNS,
-    entityId: (_p, r) => {
-      // V3 path: result is Column (has fk_model_id)
-      if ((r as any)?.fk_model_id !== undefined) return (r as any).id;
-      // V1 path: result is Model; find the added column by title
-      const title =
-        (_p?.column as any)?.title ?? (_p?.column as any)?.column_name;
-      return (r as any)?.columns?.find((c: any) => c.title === title)?.id;
-    },
-    entityTitle: (p) => p?.column?.title,
-    parentId: 'tableId',
-    description: fieldActions.add,
-    resolveCtx: async (context, param) => {
-      const table = await Model.get(context, param?.tableId);
-      return { parentEntityTitle: table?.title };
-    },
-    deps: (_p, r) => {
-      if (!r || r.uidt !== UITypes.Formula) return [];
-      const parsed = r.parsed_tree ?? r.colOptions?.parsed_tree;
-      return extractFormulaColumnRefs(parsed).map((id) => ({
-        entity: MetaTable.COLUMNS,
-        id,
-      }));
-    },
-    idField: 'column',
-  })
+  @TraceCommand(ColumnAddContract)
   async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {
@@ -253,34 +230,7 @@ export class ColumnsService extends ColumnsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.COLUMNS,
-    entityId: (p) => p?.columnId,
-    entityTitle: (p) => p?.column?.title,
-    parentId: (p) => p?.column?.fk_model_id ?? p?.tableId,
-    description: (ctx) =>
-      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
-        ? fieldActions.rename(ctx)
-        : fieldActions.edit(ctx),
-    resolveCtx: async (context, param) => {
-      const col = await Column.get(context, { colId: param?.columnId });
-      const tableId = col?.fk_model_id;
-      if (!tableId) return { extra: { oldTitle: col?.title } };
-      const table = await Model.get(context, tableId);
-      return {
-        parentEntityTitle: table?.title,
-        extra: { oldTitle: col?.title },
-      };
-    },
-    deps: (_p, r) => {
-      if (!r || r.uidt !== UITypes.Formula) return [];
-      const parsed = r.parsed_tree ?? r.colOptions?.parsed_tree;
-      return extractFormulaColumnRefs(parsed).map((id) => ({
-        entity: MetaTable.COLUMNS,
-        id,
-      }));
-    },
-  })
+  @TraceCommand(ColumnUpdateContract)
   async columnUpdate(
     context: NcContext,
     param: {
@@ -313,22 +263,7 @@ export class ColumnsService extends ColumnsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand({
-    entity: MetaTable.COLUMNS,
-    entityId: (p) => p?.columnId,
-    description: fieldActions.delete,
-    resolveCtx: async (context, param) => {
-      const col = await Column.get(context, { colId: param?.columnId });
-      if (!col) return {};
-      const table = col.fk_model_id
-        ? await Model.get(context, col.fk_model_id)
-        : undefined;
-      return {
-        entityTitle: col.title,
-        parentEntityTitle: table?.title,
-      };
-    },
-  })
+  @TraceCommand(ColumnDeleteContract)
   async columnDelete(
     context: NcContext,
     param: {

@@ -47,9 +47,11 @@ import { MetaTable } from '~/utils/globals';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import {
-  bWorkflow,
-  workflowActions,
-} from '~/decorators/trace-command-descriptions';
+  WorkflowCreateContract,
+  WorkflowUpdateContract,
+  WorkflowDeleteContract,
+  WorkflowPublishContract,
+} from '~/command-registry/operations/workflows.operations';
 
 @Injectable()
 export class WorkflowsService implements OnModuleInit {
@@ -212,13 +214,7 @@ export class WorkflowsService implements OnModuleInit {
     return workflow;
   }
 
-  @TraceCommand({
-    entity: MetaTable.AUTOMATIONS,
-    entityId: 'id',
-    entityTitle: 'title',
-    description: workflowActions.add,
-    idField: 'body',
-  })
+  @TraceCommand(WorkflowCreateContract)
   async createWorkflow(
     context: NcContext,
     param: { body: Partial<Workflow>; req: NcRequest },
@@ -286,19 +282,7 @@ export class WorkflowsService implements OnModuleInit {
     return workflow;
   }
 
-  @TraceCommand({
-    entity: MetaTable.AUTOMATIONS,
-    entityId: (p) => p?.workflowId,
-    entityTitle: (_p, r) => r?.title,
-    description: (ctx) =>
-      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
-        ? workflowActions.rename(ctx)
-        : workflowActions.edit(ctx),
-    resolveCtx: async (context, param) => {
-      const wf = await Workflow.get(context, param?.workflowId);
-      return { extra: { oldTitle: wf?.title } };
-    },
-  })
+  @TraceCommand(WorkflowUpdateContract)
   async updateWorkflow(
     context: NcContext,
     param: { workflowId: string; body: Partial<Workflow>; req: NcRequest },
@@ -364,15 +348,7 @@ export class WorkflowsService implements OnModuleInit {
     return updatedWorkflow;
   }
 
-  @TraceCommand({
-    entity: MetaTable.AUTOMATIONS,
-    entityId: (p) => p?.workflowId,
-    description: workflowActions.delete,
-    resolveCtx: async (context, param) => {
-      const wf = await Workflow.get(context, param?.workflowId);
-      return { entityTitle: wf?.title };
-    },
-  })
+  @TraceCommand(WorkflowDeleteContract)
   async deleteWorkflow(
     context: NcContext,
     param: { workflowId: string; req: NcRequest; ncMeta?: MetaService },
@@ -635,16 +611,7 @@ export class WorkflowsService implements OnModuleInit {
     return execution;
   }
 
-  @TraceCommand({
-    entity: MetaTable.AUTOMATIONS,
-    entityId: (p) => p?.workflowId,
-    description: ({ entityTitle }) =>
-      `Publish ${bWorkflow(entityTitle)} workflow`,
-    resolveCtx: async (context, param) => {
-      const wf = await Workflow.get(context, param?.workflowId);
-      return { entityTitle: wf?.title };
-    },
-  })
+  @TraceCommand(WorkflowPublishContract)
   async publishWorkflow(
     context: NcContext,
     param: {

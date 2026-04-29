@@ -18,8 +18,11 @@ import { parseMetaProp } from '~/utils/modelUtils';
 import { checkForFeature, checkLimit } from '~/helpers/paymentHelpers';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { rlsPolicyActions } from '~/decorators/trace-command-descriptions';
-import { MetaTable } from '~/utils/globals';
+import {
+  RlsPolicyCreateContract,
+  RlsPolicyUpdateContract,
+  RlsPolicyDeleteContract,
+} from '~/command-registry/operations/rls.operations';
 
 @Injectable()
 export class RlsService {
@@ -87,19 +90,7 @@ export class RlsService {
     return { ...policy, filters };
   }
 
-  @TraceCommand({
-    entity: MetaTable.RLS_POLICIES,
-    entityId: 'id',
-    entityTitle: 'title',
-    parentId: (p) => p?.body?.fk_model_id,
-    description: rlsPolicyActions.add,
-    resolveCtx: async (context, param) => {
-      const tableId = param?.body?.fk_model_id;
-      const table = tableId ? await Model.get(context, tableId) : undefined;
-      return { parentEntityTitle: table?.title };
-    },
-    idField: 'body',
-  })
+  @TraceCommand(RlsPolicyCreateContract)
   async createPolicy(
     context: NcContext,
     param: {
@@ -218,27 +209,7 @@ export class RlsService {
     return this.getPolicy(context, { policyId: policy.id });
   }
 
-  @TraceCommand({
-    entity: MetaTable.RLS_POLICIES,
-    entityId: (p) => p?.body?.id,
-    entityTitle: (p) => p?.body?.title,
-    description: (ctx) =>
-      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
-        ? rlsPolicyActions.rename(ctx)
-        : rlsPolicyActions.edit(ctx),
-    resolveCtx: async (context, param) => {
-      const policy = param?.body?.id
-        ? await RlsPolicy.get(context, param.body.id)
-        : undefined;
-      const table = policy?.fk_model_id
-        ? await Model.get(context, policy.fk_model_id)
-        : undefined;
-      return {
-        parentEntityTitle: table?.title,
-        extra: { oldTitle: policy?.title },
-      };
-    },
-  })
+  @TraceCommand(RlsPolicyUpdateContract)
   async updatePolicy(
     context: NcContext,
     param: {
@@ -307,23 +278,7 @@ export class RlsService {
     return this.getPolicy(context, { policyId: body.id });
   }
 
-  @TraceCommand({
-    entity: MetaTable.RLS_POLICIES,
-    entityId: (p) => p?.policyId,
-    description: rlsPolicyActions.delete,
-    resolveCtx: async (context, param) => {
-      const policy = param?.policyId
-        ? await RlsPolicy.get(context, param.policyId)
-        : undefined;
-      const table = policy?.fk_model_id
-        ? await Model.get(context, policy.fk_model_id)
-        : undefined;
-      return {
-        entityTitle: policy?.title,
-        parentEntityTitle: table?.title,
-      };
-    },
-  })
+  @TraceCommand(RlsPolicyDeleteContract)
   async deletePolicy(
     context: NcContext,
     param: {

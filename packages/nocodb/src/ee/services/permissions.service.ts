@@ -21,12 +21,15 @@ import Document from '~/ee/models/Document';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/ncError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
-import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
+import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { permissionActions } from '~/decorators/trace-command-descriptions';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import {
+  PermissionSetContract,
+  PermissionDropContract,
+} from '~/command-registry/operations/permissions.operations';
 
 @Injectable()
 export class PermissionsService {
@@ -605,11 +608,7 @@ export class PermissionsService {
   // Sandbox-traced wrappers (standard (context, param) signature)
   // ────────────────────────────────────────────
 
-  @TraceCommand({
-    entity: MetaTable.PERMISSIONS,
-    entityId: (_p, r) => r?.id,
-    description: permissionActions.set,
-  })
+  @TraceCommand(PermissionSetContract)
   async permissionSet(
     context: NcContext,
     param: {
@@ -630,11 +629,7 @@ export class PermissionsService {
     return this.setPermission(context, param.permission, param.req);
   }
 
-  @TraceCommand({
-    entity: MetaTable.PERMISSIONS,
-    entityId: (p) => p?.permission?.id,
-    description: permissionActions.drop,
-  })
+  @TraceCommand(PermissionDropContract)
   async permissionDrop(
     context: NcContext,
     param: { permission: Partial<Permission>; req: NcRequest },

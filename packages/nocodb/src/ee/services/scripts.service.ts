@@ -16,8 +16,11 @@ import NocoSocket from '~/socket/NocoSocket';
 import { ButtonColumn, Script, Workspace } from '~/models';
 import { checkLimit } from '~/helpers/paymentHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { scriptActions } from '~/decorators/trace-command-descriptions';
-import { MetaTable } from '~/utils/globals';
+import {
+  ScriptCreateContract,
+  ScriptUpdateContract,
+  ScriptDeleteContract,
+} from '~/command-registry/operations/scripts.operations';
 
 @Injectable()
 export class ScriptsService {
@@ -40,13 +43,7 @@ export class ScriptsService {
     return script;
   }
 
-  @TraceCommand({
-    entity: MetaTable.AUTOMATIONS,
-    entityId: 'id',
-    entityTitle: 'title',
-    description: scriptActions.add,
-    idField: 'body',
-  })
+  @TraceCommand(ScriptCreateContract)
   async createScript(
     context: NcContext,
     param: { body: Partial<ScriptType>; req: NcRequest },
@@ -95,19 +92,7 @@ export class ScriptsService {
     return script;
   }
 
-  @TraceCommand({
-    entity: MetaTable.AUTOMATIONS,
-    entityId: (p) => p?.scriptId,
-    entityTitle: (_p, r) => r?.title,
-    description: (ctx) =>
-      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
-        ? scriptActions.rename(ctx)
-        : scriptActions.edit(ctx),
-    resolveCtx: async (context, param) => {
-      const script = await Script.get(context, param?.scriptId);
-      return { extra: { oldTitle: script?.title } };
-    },
-  })
+  @TraceCommand(ScriptUpdateContract)
   async updateScript(
     context: NcContext,
     param: {
@@ -155,15 +140,7 @@ export class ScriptsService {
     return updatedScript;
   }
 
-  @TraceCommand({
-    entity: MetaTable.AUTOMATIONS,
-    entityId: (p) => p?.scriptId,
-    description: scriptActions.delete,
-    resolveCtx: async (context, param) => {
-      const script = await Script.get(context, param?.scriptId);
-      return { entityTitle: script?.title };
-    },
-  })
+  @TraceCommand(ScriptDeleteContract)
   async deleteScript(
     context: NcContext,
     param: { scriptId: string; req: NcRequest; ncMeta?: MetaService },

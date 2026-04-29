@@ -10,11 +10,12 @@ import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { viewActions } from '~/decorators/trace-command-descriptions';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { Model, View } from '~/models';
-import { MetaTable } from '~/utils/globals';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import {
+  CalendarViewCreateContract,
+  CalendarViewUpdateContract,
+} from '~/command-registry/operations/view-types.operations';
 
 @Injectable()
 export class CalendarsService extends CalendarsServiceCE {
@@ -22,18 +23,7 @@ export class CalendarsService extends CalendarsServiceCE {
     super(appHooksService);
   }
 
-  @TraceCommand({
-    entity: MetaTable.VIEWS,
-    entityId: 'id',
-    entityTitle: (p) => p?.calendar?.title,
-    parentId: 'tableId',
-    description: viewActions.add,
-    resolveCtx: async (context, param) => {
-      const table = await Model.get(context, param?.tableId);
-      return { parentEntityTitle: table?.title };
-    },
-    idField: 'calendar',
-  })
+  @TraceCommand(CalendarViewCreateContract)
   async calendarViewCreate(
     context: NcContext,
     param: {
@@ -55,26 +45,7 @@ export class CalendarsService extends CalendarsServiceCE {
     return super.calendarViewCreate(context, param, ncMeta);
   }
 
-  @TraceCommand({
-    entity: MetaTable.VIEWS,
-    entityId: (p) => p?.calendarViewId,
-    entityTitle: (p) => p?.calendar?.title,
-    description: (ctx) =>
-      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
-        ? viewActions.rename(ctx)
-        : viewActions.edit(ctx),
-    resolveCtx: async (context, param) => {
-      const view = await View.get(context, param?.calendarViewId);
-      const table = view?.fk_model_id
-        ? await Model.get(context, view.fk_model_id)
-        : undefined;
-      return {
-        entityTitle: view?.title,
-        parentEntityTitle: table?.title,
-        extra: { oldTitle: view?.title },
-      };
-    },
-  })
+  @TraceCommand(CalendarViewUpdateContract)
   async calendarViewUpdate(
     context: NcContext,
     param: {

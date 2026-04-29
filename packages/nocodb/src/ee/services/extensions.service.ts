@@ -6,13 +6,16 @@ import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { extensionActions } from '~/decorators/trace-command-descriptions';
+import {
+  ExtensionCreateContract,
+  ExtensionUpdateContract,
+  ExtensionDeleteContract,
+} from '~/command-registry/operations/extensions.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { Extension } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
-import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class ExtensionsService extends ExtensionsServiceCE {
@@ -23,13 +26,7 @@ export class ExtensionsService extends ExtensionsServiceCE {
     super(appHooksServiceEE);
   }
 
-  @TraceCommand({
-    entity: MetaTable.EXTENSIONS,
-    entityId: 'id',
-    entityTitle: (p, r) => p?.extension?.title ?? r?.title,
-    description: extensionActions.add,
-    idField: 'extension',
-  })
+  @TraceCommand(ExtensionCreateContract)
   async extensionCreate(
     context: NcContext,
     param: {
@@ -40,19 +37,7 @@ export class ExtensionsService extends ExtensionsServiceCE {
     return super.extensionCreate(context, param);
   }
 
-  @TraceCommand({
-    entity: MetaTable.EXTENSIONS,
-    entityId: (p) => p?.extensionId,
-    entityTitle: (p) => p?.extension?.title,
-    description: (ctx) =>
-      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
-        ? extensionActions.rename(ctx)
-        : extensionActions.edit(ctx),
-    resolveCtx: async (context, param) => {
-      const ext = await Extension.get(context, param?.extensionId);
-      return { extra: { oldTitle: ext?.title } };
-    },
-  })
+  @TraceCommand(ExtensionUpdateContract)
   async extensionUpdate(
     context: NcContext,
     param: {
@@ -64,15 +49,7 @@ export class ExtensionsService extends ExtensionsServiceCE {
     return super.extensionUpdate(context, param);
   }
 
-  @TraceCommand({
-    entity: MetaTable.EXTENSIONS,
-    entityId: (p) => p?.extensionId,
-    description: extensionActions.delete,
-    resolveCtx: async (context, param) => {
-      const ext = await Extension.get(context, param?.extensionId);
-      return { entityTitle: ext?.title };
-    },
-  })
+  @TraceCommand(ExtensionDeleteContract)
   async extensionDelete(
     context: NcContext,
     param: {

@@ -23,12 +23,15 @@ import NocoSocket from '~/socket/NocoSocket';
 import { checkLimit } from '~/helpers/paymentHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
-  bDashboard,
-  bWidget,
-  dashboardActions,
-  widgetActions,
-} from '~/decorators/trace-command-descriptions';
-import { MetaTable } from '~/utils/globals';
+  DashboardCreateContract,
+  DashboardUpdateContract,
+  DashboardDeleteContract,
+  WidgetCreateContract,
+  DuplicateWidgetContract,
+  WidgetUpdateContract,
+  WidgetDeleteContract,
+} from '~/command-registry/operations/dashboards.operations';
+
 @Injectable()
 export class DashboardsService {
   constructor(
@@ -52,13 +55,7 @@ export class DashboardsService {
     return dashboard;
   }
 
-  @TraceCommand({
-    entity: MetaTable.DASHBOARDS,
-    entityId: 'id',
-    entityTitle: 'title',
-    description: dashboardActions.add,
-    idField: 'dashboard',
-  })
+  @TraceCommand(DashboardCreateContract)
   async dashboardCreate(
     context: NcContext,
     param: {
@@ -114,19 +111,7 @@ export class DashboardsService {
     return dashboard;
   }
 
-  @TraceCommand({
-    entity: MetaTable.DASHBOARDS,
-    entityId: (p) => p?.dashboardId,
-    entityTitle: (p) => p?.dashboard?.title,
-    description: (ctx) =>
-      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
-        ? dashboardActions.rename(ctx)
-        : dashboardActions.edit(ctx),
-    resolveCtx: async (context, param) => {
-      const dashboard = await Dashboard.get(context, param?.dashboardId);
-      return { extra: { oldTitle: dashboard?.title } };
-    },
-  })
+  @TraceCommand(DashboardUpdateContract)
   async dashboardUpdate(
     context: NcContext,
     param: {
@@ -180,15 +165,7 @@ export class DashboardsService {
     return updatedDashboard;
   }
 
-  @TraceCommand({
-    entity: MetaTable.DASHBOARDS,
-    entityId: (p) => p?.dashboardId,
-    description: dashboardActions.delete,
-    resolveCtx: async (context, param) => {
-      const dashboard = await Dashboard.get(context, param?.dashboardId);
-      return { entityTitle: dashboard?.title };
-    },
-  })
+  @TraceCommand(DashboardDeleteContract)
   async dashboardDelete(
     context: NcContext,
     param: {
@@ -270,21 +247,7 @@ export class DashboardsService {
     return widget;
   }
 
-  @TraceCommand({
-    entity: MetaTable.WIDGETS,
-    entityId: 'id',
-    entityTitle: 'title',
-    parentId: (p, r) =>
-      p?.dashboardId ?? p?.widget?.fk_dashboard_id ?? r?.fk_dashboard_id,
-    description: widgetActions.add,
-    resolveCtx: async (context, param) => {
-      const dashboardId = param?.dashboardId ?? param?.widget?.fk_dashboard_id;
-      if (!dashboardId) return {};
-      const dashboard = await Dashboard.get(context, dashboardId);
-      return { parentEntityTitle: dashboard?.title };
-    },
-    idField: 'widget',
-  })
+  @TraceCommand(WidgetCreateContract)
   async widgetCreate(
     context: NcContext,
     param: {
@@ -356,26 +319,7 @@ export class DashboardsService {
     return widget;
   }
 
-  @TraceCommand({
-    entity: MetaTable.WIDGETS,
-    entityId: (_p, r) => r?.id,
-    parentId: (_p, r) => r?.fk_dashboard_id,
-    description: ({ entityTitle, parentEntityTitle }) =>
-      parentEntityTitle
-        ? `Duplicate ${bWidget(entityTitle)} widget in ${bDashboard(
-            parentEntityTitle,
-          )}`
-        : `Duplicate ${bWidget(entityTitle)} widget`,
-    resolveCtx: async (context, param) => {
-      const widget = await Widget.get(context, param?.widgetId);
-      if (!widget) return {};
-      const dashboard = await Dashboard.get(context, widget.fk_dashboard_id);
-      return {
-        entityTitle: widget.title,
-        parentEntityTitle: dashboard?.title,
-      };
-    },
-  })
+  @TraceCommand(DuplicateWidgetContract)
   async duplicateWidget(
     context: NcContext,
     param: { widgetId: string; req: NcRequest },
@@ -468,25 +412,7 @@ export class DashboardsService {
     return newWidget;
   }
 
-  @TraceCommand({
-    entity: MetaTable.WIDGETS,
-    entityId: (p) => p?.widgetId,
-    parentId: (p, r) => r?.fk_dashboard_id,
-    description: (ctx) =>
-      ctx.extra?.oldTitle && ctx.extra.oldTitle !== ctx.entityTitle
-        ? widgetActions.rename(ctx)
-        : widgetActions.edit(ctx),
-    resolveCtx: async (context, param) => {
-      const widget = await Widget.get(context, param?.widgetId);
-      if (!widget) return {};
-      const dashboard = await Dashboard.get(context, widget.fk_dashboard_id);
-      return {
-        entityTitle: widget.title,
-        parentEntityTitle: dashboard?.title,
-        extra: { oldTitle: widget.title },
-      };
-    },
-  })
+  @TraceCommand(WidgetUpdateContract)
   async widgetUpdate(
     context: NcContext,
     param: {
@@ -565,20 +491,7 @@ export class DashboardsService {
     return updatedWidget;
   }
 
-  @TraceCommand({
-    entity: MetaTable.WIDGETS,
-    entityId: (p) => p?.widgetId,
-    description: widgetActions.delete,
-    resolveCtx: async (context, param) => {
-      const widget = await Widget.get(context, param?.widgetId);
-      if (!widget) return {};
-      const dashboard = await Dashboard.get(context, widget.fk_dashboard_id);
-      return {
-        entityTitle: widget.title,
-        parentEntityTitle: dashboard?.title,
-      };
-    },
-  })
+  @TraceCommand(WidgetDeleteContract)
   async widgetDelete(
     context: NcContext,
     param: {

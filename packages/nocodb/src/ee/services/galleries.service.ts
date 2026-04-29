@@ -10,11 +10,12 @@ import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { viewActions } from '~/decorators/trace-command-descriptions';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { Model, View } from '~/models';
-import { MetaTable } from '~/utils/globals';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import {
+  GalleryViewCreateContract,
+  GalleryViewUpdateContract,
+} from '~/command-registry/operations/view-types.operations';
 
 @Injectable()
 export class GalleriesService extends GalleriesServiceCE {
@@ -22,18 +23,7 @@ export class GalleriesService extends GalleriesServiceCE {
     super(appHooksService);
   }
 
-  @TraceCommand({
-    entity: MetaTable.VIEWS,
-    entityId: 'id',
-    entityTitle: (p) => p?.gallery?.title,
-    parentId: 'tableId',
-    description: viewActions.add,
-    resolveCtx: async (context, param) => {
-      const table = await Model.get(context, param?.tableId);
-      return { parentEntityTitle: table?.title };
-    },
-    idField: 'gallery',
-  })
+  @TraceCommand(GalleryViewCreateContract)
   async galleryViewCreate(
     context: NcContext,
     param: {
@@ -55,22 +45,7 @@ export class GalleriesService extends GalleriesServiceCE {
     return super.galleryViewCreate(context, param, ncMeta);
   }
 
-  @TraceCommand({
-    entity: MetaTable.VIEWS,
-    entityId: (p) => p?.galleryViewId,
-    entityTitle: (p) => p?.gallery?.title,
-    description: viewActions.edit,
-    resolveCtx: async (context, param) => {
-      const view = await View.get(context, param?.galleryViewId);
-      const table = view?.fk_model_id
-        ? await Model.get(context, view.fk_model_id)
-        : undefined;
-      return {
-        entityTitle: view?.title,
-        parentEntityTitle: table?.title,
-      };
-    },
-  })
+  @TraceCommand(GalleryViewUpdateContract)
   async galleryViewUpdate(
     context: NcContext,
     param: {

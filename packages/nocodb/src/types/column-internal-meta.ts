@@ -15,6 +15,13 @@ export interface ColumnInternalMeta {
    * Cleared when the column is converted away from native enum (to text/etc.).
    */
   pg_enum_type_name?: string;
+
+  /**
+   * Schema (namespace) the PG enum type lives in. Captured at introspection
+   * because an enum can live in a different schema from the table that uses
+   * it — we cannot assume the source's configured schema.
+   */
+  pg_enum_schema_name?: string;
 }
 
 /**
@@ -34,7 +41,11 @@ export function validateColumnInternalMeta(
   }
 
   // Check for unknown properties
-  const allowedKeys = ['unique_constraint_name', 'pg_enum_type_name'];
+  const allowedKeys = [
+    'unique_constraint_name',
+    'pg_enum_type_name',
+    'pg_enum_schema_name',
+  ];
   const keys = Object.keys(value);
   for (const key of keys) {
     if (!allowedKeys.includes(key)) {
@@ -63,6 +74,16 @@ export function validateColumnInternalMeta(
     }
     if (value.pg_enum_type_name.trim() === '') {
       throw new Error('pg_enum_type_name cannot be empty');
+    }
+  }
+
+  // Validate pg_enum_schema_name if present
+  if (value.pg_enum_schema_name !== undefined) {
+    if (typeof value.pg_enum_schema_name !== 'string') {
+      throw new Error('pg_enum_schema_name must be a string');
+    }
+    if (value.pg_enum_schema_name.trim() === '') {
+      throw new Error('pg_enum_schema_name cannot be empty');
     }
   }
 

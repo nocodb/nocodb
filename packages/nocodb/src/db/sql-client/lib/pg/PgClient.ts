@@ -840,6 +840,7 @@ class PGClient extends KnexClient {
                     -- c.collation_name as clnn,
                     pk.ordinal_position as pk_ordinal_position, pk.constraint_name as pk_constraint_name,
                     c.udt_name,
+                    c.udt_schema,
                     ${identitySelector}
 
        (SELECT count(*)
@@ -856,12 +857,12 @@ class PGClient extends KnexClient {
         FROM "pg_enum" "e"
         INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
         INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
-        WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
+        WHERE "n"."nspname" = c.udt_schema AND "t"."typname"=c.udt_name
                 ) enum_values,
                 (SELECT t.typtype
         FROM "pg_type" "t"
         INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
-        WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
+        WHERE "n"."nspname" = c.udt_schema AND "t"."typname"=c.udt_name
                 ) udt_typtype
 
 
@@ -942,11 +943,19 @@ class PGClient extends KnexClient {
         if (column.dt === 'USER-DEFINED') {
           column.dtxp = response.rows[i].enum_values;
           // Bind the column to its native PG enum type so columnUpdate can
-          // emit ALTER TYPE for option add/rename instead of touching cell data.
-          if (column.udt_typtype === 'e' && response.rows[i].udt_name) {
+          // emit ALTER TYPE for option add/rename instead of touching cell
+          // data. Both name and schema are captured (the enum can live in a
+          // different schema from the table) and we require both — partial
+          // metadata would force callers to guess the schema later.
+          if (
+            column.udt_typtype === 'e' &&
+            response.rows[i].udt_name &&
+            response.rows[i].udt_schema
+          ) {
             column.internal_meta = {
               ...(column.internal_meta || {}),
               pg_enum_type_name: response.rows[i].udt_name,
+              pg_enum_schema_name: response.rows[i].udt_schema,
             };
           }
         }
@@ -971,6 +980,70 @@ class PGClient extends KnexClient {
 
     return result;
   }
+
+  /**
+   * Find columns referencing a given user-defined type. Used to decide
+   * whether mutating a native enum in place is safe (sole owner) vs.
+   * requires forking into a new type (shared with other columns).
+   *
+   * @param args.typeSchema    Schema the type lives in (e.g. 'public').
+   * @param args.typeName      Type name (e.g. 'mood').
+   * @param args.excludeTableSchema  Optional — schema of a column to exclude.
+   * @param args.excludeTableName    Optional — table of a column to exclude.
+   * @param args.excludeColumnName   Optional — name of a column to exclude.
+   *                                 The three excludeX args go together: pass
+   *                                 all three to skip the calling column, or
+   *                                 none to list every reference.
+   * @returns Array of {table_schema, table_name, column_name} references.
+   */
+  async findColumnsUsingType(args: {
+    typeSchema: string;
+    typeName: string;
+    excludeTableSchema?: string;
+    excludeTableName?: string;
+    excludeColumnName?: string;
+  }): Promise<
+    {
+      table_schema: string;
+      table_name: string;
+      column_name: string;
+    }[]
+  > {
+    const hasExclude =
+      !!args.excludeTableSchema &&
+      !!args.excludeTableName &&
+      !!args.excludeColumnName;
+    const excludeClause = hasExclude
+      ? 'AND NOT (n_tbl.nspname = ? AND cls.relname = ? AND attr.attname = ?)'
+      : '';
+    const params: any[] = [args.typeSchema, args.typeName];
+    if (hasExclude) {
+      params.push(
+        args.excludeTableSchema,
+        args.excludeTableName,
+        args.excludeColumnName,
+      );
+    }
+    const { rows } = await this.sqlClient.raw(
+      `SELECT n_tbl.nspname AS table_schema,
+              cls.relname     AS table_name,
+              attr.attname    AS column_name
+       FROM pg_attribute attr
+       JOIN pg_class cls ON cls.oid = attr.attrelid
+       JOIN pg_namespace n_tbl ON n_tbl.oid = cls.relnamespace
+       JOIN pg_type typ ON typ.oid = attr.atttypid
+       JOIN pg_namespace n_typ ON n_typ.oid = typ.typnamespace
+       WHERE n_typ.nspname = ?
+         AND typ.typname = ?
+         AND cls.relkind IN ('r', 'p')
+         AND attr.attnum > 0
+         AND NOT attr.attisdropped
+         ${excludeClause}`,
+      params,
+    );
+    return rows;
+  }
+
   /**
    *
    * @param {Object} - args - Input arguments

@@ -1,5 +1,6 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { pluralize, singularize } from 'inflection';
+import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   ButtonActionsType,
@@ -160,9 +161,16 @@ const isPgNativeEnumColumn = (column: any, driverType: string): boolean => {
   return (
     driverType === 'pg' &&
     column?.dt === 'USER-DEFINED' &&
-    !!column?.internal_meta?.pg_enum_type_name
+    !!column?.internal_meta?.pg_enum_type_name &&
+    !!column?.internal_meta?.pg_enum_schema_name
   );
 };
+
+// Lowercase alphanumeric — safe inside a PG identifier when concatenated.
+const enumRebuildSuffix = customAlphabet(
+  'abcdefghijklmnopqrstuvwxyz0123456789',
+  8,
+);
 
 function validateDateFormatMeta(context: NcContext, meta: unknown) {
   let parsed;
@@ -893,7 +901,8 @@ export class ColumnsService implements IColumnsService {
       // Strip the enum binding from in-memory state so subsequent code paths
       // see a vanilla text column.
       const cleanedInternalMeta = { ...(column.internal_meta || {}) };
-      delete (cleanedInternalMeta as any).pg_enum_type_name;
+      delete cleanedInternalMeta.pg_enum_type_name;
+      delete cleanedInternalMeta.pg_enum_schema_name;
       column.internal_meta = cleanedInternalMeta;
       column.dt = 'text';
       // Persist immediately so a mid-update failure doesn't leave NocoDB
@@ -1284,11 +1293,24 @@ export class ColumnsService implements IColumnsService {
         // Whether the rebuild path runs after the rename loop. Set inside
         // the entry block; gates the rebuild block further down.
         let nativeEnumHasRemoves = false;
+        // True when the underlying PG enum type is referenced by other
+        // columns. In that case we MUST NOT mutate the shared type in place
+        // (ADD VALUE / RENAME VALUE leak to siblings). The rebuild block
+        // forks instead: creates a new type with the final option list,
+        // casts existing values via CASE for renames, re-points only this
+        // column, leaves the shared old type alone.
+        let enumIsShared = false;
+        // Record renames as {old → new} so the fork's USING clause can map
+        // existing row values to the new enum's labels.
+        const enumTitleRenames: { old_title: string; new_title: string }[] = [];
+        let enumTypeName = '';
+        let enumSchema = '';
+        let qualifiedEnumType = '';
 
         if (isNativeEnumStaying) {
-          const enumTypeName = column.internal_meta!.pg_enum_type_name!;
-          const enumSchema = source.getConfig()?.schema || 'public';
-          const qualifiedEnumType = `${enumSchema}.${enumTypeName}`;
+          enumTypeName = column.internal_meta!.pg_enum_type_name!;
+          enumSchema = column.internal_meta!.pg_enum_schema_name!;
+          qualifiedEnumType = `${enumSchema}.${enumTypeName}`;
 
           // Validate: PG enums must have at least one value.
           if ((colBody.colOptions?.options || []).length === 0) {
@@ -1327,10 +1349,26 @@ export class ColumnsService implements IColumnsService {
             );
           }
 
-          // Apply ADDs only if no removes are pending. When removes exist we
-          // rebuild the type after the rename loop and the new option list
-          // is baked into CREATE TYPE — no separate ADD VALUE needed.
-          if (!nativeEnumHasRemoves) {
+          // Detect whether the enum is shared with other columns. Result is
+          // used by the rename loop (skip in-place RENAME VALUE) and the
+          // rebuild block (fork into a new type instead of replacing).
+          const sharedRefs = await sqlClient.findColumnsUsingType({
+            typeSchema: enumSchema,
+            typeName: enumTypeName,
+            excludeTableSchema: source.getConfig()?.schema || 'public',
+            excludeTableName: table.table_name,
+            excludeColumnName: column.column_name,
+          });
+          enumIsShared = sharedRefs.length > 0;
+
+          // Apply in-place ADDs only when (a) we're sole owner of the type
+          // and (b) no removes are pending. When shared, the fork rebuild
+          // creates a new type with the full final list — no separate ADD
+          // VALUE needed and the shared type stays untouched.
+          // ALTER TYPE … ADD VALUE cannot run inside a transaction block on
+          // PG <12; columnUpdate is not currently wrapped in one, so this is
+          // safe today — keep this in mind if that ever changes.
+          if (!enumIsShared && !nativeEnumHasRemoves) {
             for (const newOp of colBody.colOptions?.options || []) {
               const isExisting = (column.colOptions?.options || []).some(
                 (o) => o.id === newOp.id || o.title === newOp.title,
@@ -1762,6 +1800,19 @@ export class ColumnsService implements IColumnsService {
               new_title: newOp.title,
             });
 
+            // Shared native PG enum: collect the rename for the fork's
+            // CASE-based USING clause and skip every in-place mutation
+            // below (interchange/temp-title is unnecessary because CASE
+            // evaluates each row's old text once and handles cycles
+            // natively).
+            if (isNativeEnumStaying && enumIsShared) {
+              enumTitleRenames.push({
+                old_title: option.title,
+                new_title: newOp.title,
+              });
+              continue;
+            }
+
             // Handle title conflicts by creating unique temporary titles.
             // On MySQL ENUM/SET the comparison must be case-insensitive so
             // case-only renames (apple → Apple) are routed through the
@@ -1828,12 +1879,10 @@ export class ColumnsService implements IColumnsService {
 
             if (column.uidt === UITypes.SingleSelect) {
               if (isNativeEnumStaying) {
-                // Native PG enum: RENAME VALUE rewrites the type catalog in
-                // place. Existing rows store enum OIDs, so they automatically
-                // reflect the new label — no row UPDATE needed.
-                const qualifiedEnumType = `${
-                  source.getConfig()?.schema || 'public'
-                }.${column.internal_meta!.pg_enum_type_name!}`;
+                // Native PG enum, sole owner: RENAME VALUE rewrites the
+                // type catalog in place. Existing rows store enum OIDs,
+                // so they automatically reflect the new label — no row
+                // UPDATE needed. Shared enums are diverted earlier.
                 await sqlClient.raw('ALTER TYPE ?? RENAME VALUE ? TO ?', [
                   qualifiedEnumType,
                   option.title,
@@ -1913,9 +1962,6 @@ export class ColumnsService implements IColumnsService {
               // Second-pass rename: temp → final. By now every conflicting
               // original value has been renamed away, so the destination
               // label is free.
-              const qualifiedEnumType = `${
-                source.getConfig()?.schema || 'public'
-              }.${column.internal_meta!.pg_enum_type_name!}`;
               await sqlClient.raw('ALTER TYPE ?? RENAME VALUE ? TO ?', [
                 qualifiedEnumType,
                 ch.temp_title,
@@ -1988,62 +2034,154 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
-        // Native PG enum: rebuild the type when options were removed. PG has
-        // no `ALTER TYPE … DROP VALUE`, so rename the old type aside, CREATE
-        // a new one with the final option list, ALTER COLUMN to point at it,
-        // and DROP the old type. Renames were already applied to the old
-        // type by the loop above, so rows carry their final labels — the
-        // `value::text::newtype` cast resolves cleanly. The delete loop
-        // above also already NULLed cells holding removed values via
-        // bulkUpdateAll, so the cast for those rows yields NULL.
-        if (isNativeEnumStaying && nativeEnumHasRemoves) {
-          const enumTypeName = column.internal_meta!.pg_enum_type_name!;
-          const enumSchema = source.getConfig()?.schema || 'public';
-          const qualifiedEnumType = `${enumSchema}.${enumTypeName}`;
-          const tableNameRef = baseModel.getTnPath(table.table_name);
-          const finalLabels = (colBody.colOptions?.options || []).map(
-            (o) => o.title,
-          );
-          const tempTypeName = `${enumTypeName}_nc_old_${Date.now()}`;
-          const tempQualifiedEnumType = `${enumSchema}.${tempTypeName}`;
-          const labelPlaceholders = finalLabels.map(() => '?').join(', ');
-
-          // 1. Rename the existing type out of the way.
-          await sqlClient.raw('ALTER TYPE ?? RENAME TO ??', [
-            qualifiedEnumType,
-            tempTypeName,
-          ]);
-
-          // 2. Create the new type at the original name with the final list.
-          await sqlClient.raw(`CREATE TYPE ?? AS ENUM (${labelPlaceholders})`, [
-            qualifiedEnumType,
-            ...finalLabels,
-          ]);
-
-          // 3. Re-point the column at the new type.
-          await sqlClient.raw(
-            'ALTER TABLE ?? ALTER COLUMN ?? TYPE ?? USING ??::text::??',
-            [
-              tableNameRef,
-              column.column_name,
-              qualifiedEnumType,
-              column.column_name,
-              qualifiedEnumType,
-            ],
-          );
-
-          // 4. Drop the old type. May fail if PG finds another column /
-          //    function / index referencing it — in that case the rebuild
-          //    has still succeeded (column re-pointed, data preserved), the
-          //    orphan type just lingers in the catalog. Log and move on.
-          try {
-            await sqlClient.raw('DROP TYPE ??', [tempQualifiedEnumType]);
-          } catch (e: any) {
-            this.logger.warn(
-              `Could not drop ${tempQualifiedEnumType} after enum rebuild — ` +
-                `it is still referenced by another database object. ` +
-                `Field changes are persisted; orphan type left for manual cleanup.`,
+        // Native PG enum: rebuild the type when in-place ALTER TYPE isn't
+        // sufficient. Two paths:
+        //   - Sole owner: rename existing type aside, CREATE new at original
+        //     name, re-point column, DROP old. Triggered by removes (PG has
+        //     no DROP VALUE).
+        //   - Shared with other columns: forking — CREATE a new type with a
+        //     unique name, re-point only this column, leave old type alone.
+        //     Triggered by ANY option change (adds, renames, removes), since
+        //     mutating the shared type in place would leak to siblings.
+        if (isNativeEnumStaying) {
+          const hasAdds =
+            enumIsShared &&
+            (colBody.colOptions?.options || []).some(
+              (newOp) =>
+                !(column.colOptions?.options || []).some(
+                  (oldOp) =>
+                    oldOp.id === newOp.id || oldOp.title === newOp.title,
+                ),
             );
+          const enumNeedsFork =
+            enumIsShared &&
+            (nativeEnumHasRemoves || hasAdds || enumTitleRenames.length > 0);
+          const enumNeedsSoleOwnerRebuild =
+            !enumIsShared && nativeEnumHasRemoves;
+
+          if (enumNeedsFork || enumNeedsSoleOwnerRebuild) {
+            const tableNameRef = baseModel.getTnPath(table.table_name);
+            const finalLabels = (colBody.colOptions?.options || []).map(
+              (o) => o.title,
+            );
+            const labelPlaceholders = finalLabels.map(() => '?').join(', ');
+
+            // The type name we'll point the column at after the rebuild.
+            // Sole-owner reuses the original name; fork uses a fresh name
+            // so the shared type can keep its identity for siblings.
+            const newEnumTypeName = enumNeedsFork
+              ? `${enumTypeName}_${enumRebuildSuffix()}`
+              : enumTypeName;
+            const newQualifiedEnumType = `${enumSchema}.${newEnumTypeName}`;
+
+            // Sole-owner only: stash the existing type aside before recreating.
+            const tempTypeName = enumNeedsSoleOwnerRebuild
+              ? `${enumTypeName}_nc_old_${enumRebuildSuffix()}`
+              : '';
+            const tempQualifiedEnumType = enumNeedsSoleOwnerRebuild
+              ? `${enumSchema}.${tempTypeName}`
+              : '';
+
+            if (enumNeedsSoleOwnerRebuild) {
+              // 1. Rename the existing type out of the way.
+              await sqlClient.raw('ALTER TYPE ?? RENAME TO ??', [
+                qualifiedEnumType,
+                tempTypeName,
+              ]);
+            }
+
+            // 2. Create the new type with the final option list.
+            await sqlClient.raw(
+              `CREATE TYPE ?? AS ENUM (${labelPlaceholders})`,
+              [newQualifiedEnumType, ...finalLabels],
+            );
+
+            // 3. Re-point the column at the new type. For the fork, build a
+            //    CASE in USING that maps renamed old labels to new ones —
+            //    rows store labels of the OLD shared type (which we never
+            //    touched), so direct text→new_enum casts would fail for any
+            //    renamed value. Removed values were already NULLed by the
+            //    option-delete loop above, so they don't appear in the cast.
+            if (enumNeedsFork && enumTitleRenames.length > 0) {
+              const whenClauses = enumTitleRenames
+                .map(() => 'WHEN ? THEN ?')
+                .join(' ');
+              const renameParams = enumTitleRenames.flatMap((r) => [
+                r.old_title,
+                r.new_title,
+              ]);
+              await sqlClient.raw(
+                `ALTER TABLE ?? ALTER COLUMN ?? TYPE ?? USING (CASE ??::text ${whenClauses} ELSE ??::text END)::??`,
+                [
+                  tableNameRef,
+                  column.column_name,
+                  newQualifiedEnumType,
+                  column.column_name,
+                  ...renameParams,
+                  column.column_name,
+                  newQualifiedEnumType,
+                ],
+              );
+            } else {
+              await sqlClient.raw(
+                'ALTER TABLE ?? ALTER COLUMN ?? TYPE ?? USING ??::text::??',
+                [
+                  tableNameRef,
+                  column.column_name,
+                  newQualifiedEnumType,
+                  column.column_name,
+                  newQualifiedEnumType,
+                ],
+              );
+            }
+
+            // 4. Re-apply the column default. ALTER COLUMN TYPE drops the
+            //    DEFAULT when PG can't implicitly cast it across distinct
+            //    enum types. Cast the literal to the new enum type
+            //    explicitly so PG doesn't fall back to text inference.
+            //    Pre-flight already ensured cdf points at a kept option.
+            if (column.cdf) {
+              // For the fork, the default may reference an old (renamed)
+              // label. Map it through enumTitleRenames first.
+              const newCdf = enumNeedsFork
+                ? enumTitleRenames.find((r) => r.old_title === column.cdf)
+                    ?.new_title ?? column.cdf
+                : column.cdf;
+              await sqlClient.raw(
+                'ALTER TABLE ?? ALTER COLUMN ?? SET DEFAULT ?::??',
+                [
+                  tableNameRef,
+                  column.column_name,
+                  newCdf,
+                  newQualifiedEnumType,
+                ],
+              );
+            }
+
+            if (enumNeedsSoleOwnerRebuild) {
+              // 5. Drop the old type. No other column references it (we're
+              //    sole owner), but functions/indexes/views could still hold
+              //    references — log and leave for manual cleanup if so.
+              try {
+                await sqlClient.raw('DROP TYPE ??', [tempQualifiedEnumType]);
+              } catch {
+                this.logger.warn(
+                  `Could not drop ${tempQualifiedEnumType} after enum rebuild — ` +
+                    `it is still referenced by another database object. ` +
+                    `Field changes are persisted; orphan type left for manual cleanup.`,
+                );
+              }
+            }
+
+            if (enumNeedsFork) {
+              // Persist the new type name so future updates target it.
+              const updatedInternalMeta = {
+                ...(column.internal_meta || {}),
+                pg_enum_type_name: newEnumTypeName,
+              };
+              column.internal_meta = updatedInternalMeta;
+              colBody.internal_meta = updatedInternalMeta;
+            }
           }
         }
 

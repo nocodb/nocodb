@@ -186,6 +186,7 @@ class PGClient extends PGClientCE {
                     pk1.ordinal_position as pk_ordinal_position1,
                     pk1.constraint_name as pk_constraint_name1,
                     c.udt_name,
+                    c.udt_schema,
                     ${identitySelector}
 
        (SELECT count(*)
@@ -202,12 +203,12 @@ class PGClient extends PGClientCE {
         FROM "pg_enum" "e"
         INNER JOIN "pg_type" "t" ON "t"."oid" = "e"."enumtypid"
         INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
-        WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
+        WHERE "n"."nspname" = c.udt_schema AND "t"."typname"=c.udt_name
                 ) enum_values,
                 (SELECT t.typtype
         FROM "pg_type" "t"
         INNER JOIN "pg_namespace" "n" ON "n"."oid" = "t"."typnamespace"
-        WHERE "n"."nspname" = table_schema AND "t"."typname"=udt_name
+        WHERE "n"."nspname" = c.udt_schema AND "t"."typname"=c.udt_name
                 ) udt_typtype
             from information_schema.columns c
                           LEFT JOIN (
@@ -320,11 +321,19 @@ class PGClient extends PGClientCE {
         if (column.dt === 'USER-DEFINED') {
           column.dtxp = response.rows[i].enum_values;
           // Bind the column to its native PG enum type so columnUpdate can
-          // emit ALTER TYPE for option add/rename instead of touching cell data.
-          if (column.udt_typtype === 'e' && response.rows[i].udt_name) {
+          // emit ALTER TYPE for option add/rename instead of touching cell
+          // data. Both name and schema are captured (the enum can live in a
+          // different schema from the table) and we require both — partial
+          // metadata would force callers to guess the schema later.
+          if (
+            column.udt_typtype === 'e' &&
+            response.rows[i].udt_name &&
+            response.rows[i].udt_schema
+          ) {
             column.internal_meta = {
               ...(column.internal_meta || {}),
               pg_enum_type_name: response.rows[i].udt_name,
+              pg_enum_schema_name: response.rows[i].udt_schema,
             };
           }
         }

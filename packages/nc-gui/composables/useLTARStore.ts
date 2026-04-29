@@ -597,6 +597,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             }
           })
         }
+
+        // Seed the virtual-scroll chunk cache from this response. pagination.size is
+        // aligned with CHUNK_SIZE so the first page fills exactly chunk 0 — deeper
+        // chunks are still lazy-loaded by fetchExcludedChunk on viewport scroll.
+        if (offset === 0 && ncIsArray(childrenExcludedList.value?.list)) {
+          childrenExcludedList.value.list.forEach((row: Record<string, any>, index: number) => {
+            excludedCachedRows.value.set(index, row)
+            excludedLinkedState.value.set(index, isChildrenExcludedListLinked.value[index] || false)
+            excludedLoadingState.value.set(index, false)
+          })
+          if (childrenExcludedList.value.list.length > 0) {
+            excludedChunkStates.value[0] = 'loaded'
+          }
+          if (childrenExcludedList.value.pageInfo?.totalRows != null) {
+            excludedTotalRows.value = +childrenExcludedList.value.pageInfo.totalRows
+          }
+        }
       } catch (e: any) {
         // temporary fix to handle when offset is beyond limit
         const error = await extractSdkResponseErrorMsgv2(e)
@@ -693,6 +710,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         if (!childrenListPagination.query) {
           childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0
+        }
+
+        // Seed the virtual-scroll chunk cache from this response. pagination.size is
+        // aligned with CHUNK_SIZE so the first page fills exactly chunk 0 — deeper
+        // chunks are still lazy-loaded by fetchChildrenChunk on viewport scroll.
+        if (offset === 0 && ncIsArray(childrenList.value?.list)) {
+          childrenList.value.list.forEach((row: Record<string, any>, index: number) => {
+            childrenCachedRows.value.set(index, row)
+            childrenCachedLinkedState.value.set(index, true)
+            childrenCachedLoadingState.value.set(index, false)
+          })
+          if (childrenList.value.list.length > 0) {
+            childrenChunkStates.value[0] = 'loaded'
+          }
+          if (childrenList.value.pageInfo?.totalRows != null) {
+            childrenCachedTotalRows.value = +childrenList.value.pageInfo.totalRows
+          }
         }
       } catch (e: any) {
         message.error(`${t('msg.error.failedToLoadChildrenList')}: ${await extractSdkResponseErrorMsg(e)}`)
@@ -1164,19 +1198,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const debounceLoadChildrenList = useDebounceFn(loadChildrenList, 500)
 
-    const debounceFetchExcludedChunk0 = useDebounceFn(() => fetchExcludedChunk(0), 500)
-
-    const debounceFetchChildrenChunk0 = useDebounceFn(() => fetchChildrenChunk(0), 500)
-
-    // watchers — only trigger on query change
+    // watchers — only trigger on query change. The legacy loaders also seed
+    // chunk 0 of the virtual-scroll cache so a single API call covers both
+    // the legacy ref consumers (count, Enter-key, isLinked, expanded form)
+    // and the virtualized dropdown.
     watch(
       () => childrenExcludedListPagination.query,
       async () => {
         childrenExcludedListPagination.page = 1
         resetExcludedCache()
-        // Fetch chunk 0 with new query for virtual scroll cache
-        debounceFetchExcludedChunk0()
-        // Also keep legacy load for backward compat (expanded form, etc.)
         await debounceLoadChildrenExcludedList(newRowState.state)
       },
     )
@@ -1186,7 +1216,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       async () => {
         childrenListPagination.page = 1
         resetChildrenCache()
-        debounceFetchChildrenChunk0()
         await debounceLoadChildrenList(false, newRowState.state)
       },
     )

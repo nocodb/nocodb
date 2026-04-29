@@ -213,16 +213,23 @@ export class GenericFieldHandler
     _options: FilterOptions,
   ) {
     const { val, sourceField } = args;
-    const { knex } = rootArgs;
+    const { knex, column } = rootArgs;
+    // Native PG enum cells can't be '' — `IS NOT NULL` already covers
+    // "any non-empty value"; the explicit `!= ''` check would error.
+    const isNativePgEnum = !!column?.internal_meta?.pg_enum_type_name;
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         if (!ncIsStringHasValue(val)) {
           qb.where((nestedQb) => {
-            nestedQb
-              .where(knex.raw("?? != ''", [sourceField]))
-              .whereNotNull(sourceField as any);
+            if (isNativePgEnum) {
+              nestedQb.whereNotNull(sourceField as any);
+            } else {
+              nestedQb
+                .where(knex.raw("?? != ''", [sourceField]))
+                .whereNotNull(sourceField as any);
+            }
           });
         } else {
           qb.where((nestedQb) => {
@@ -263,14 +270,15 @@ export class GenericFieldHandler
     _options: FilterOptions,
   ) {
     const { val, sourceField } = args;
-    const { knex } = rootArgs;
+    const { knex, column } = rootArgs;
+    const isNativePgEnum = !!column?.internal_meta?.pg_enum_type_name;
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         if (!ncIsStringHasValue(val)) {
           qb.where((subQb) => {
-            subQb.where(sourceField as any, '');
+            if (!isNativePgEnum) subQb.where(sourceField as any, '');
             subQb.whereNull(sourceField as any);
           });
         } else {
@@ -294,22 +302,28 @@ export class GenericFieldHandler
   ) {
     const { sourceField } = args;
     let { val } = args;
-    const { knex } = rootArgs;
+    const { knex, column } = rootArgs;
+    const isNativePgEnum = !!column?.internal_meta?.pg_enum_type_name;
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         if (!ncIsStringHasValue(val)) {
           // val is empty -> all values including NULL but empty strings
-          qb.whereNot(sourceField as any, '');
-          qb.orWhereNull(sourceField as any);
+          if (isNativePgEnum) {
+            qb.whereNotNull(sourceField as any);
+            qb.orWhereNull(sourceField as any);
+          } else {
+            qb.whereNot(sourceField as any, '');
+            qb.orWhereNull(sourceField as any);
+          }
         } else {
           val = val.startsWith('%') || val.endsWith('%') ? val : `%${val}%`;
 
           qb.whereNot(knex.raw(`?? like ?`, [sourceField, val]));
           if (val !== '%%') {
             // if value is not empty, empty or null should be included
-            qb.orWhere(sourceField as any, '');
+            if (!isNativePgEnum) qb.orWhere(sourceField as any, '');
             qb.orWhereNull(sourceField as any);
           } else {
             // if value is empty, then only null is included
@@ -333,15 +347,17 @@ export class GenericFieldHandler
     _options: FilterOptions,
   ) {
     const { sourceField } = args;
-    const { knex } = rootArgs;
+    const { knex, column } = rootArgs;
+    const isNativePgEnum = !!column?.internal_meta?.pg_enum_type_name;
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         qb.where((nestedQb) => {
-          nestedQb
-            .whereNull(sourceField as any)
-            .orWhere(knex.raw("?? = ''", [sourceField]));
+          nestedQb.whereNull(sourceField as any);
+          if (!isNativePgEnum) {
+            nestedQb.orWhere(knex.raw("?? = ''", [sourceField]));
+          }
         });
       },
     };
@@ -360,15 +376,17 @@ export class GenericFieldHandler
     _options: FilterOptions,
   ) {
     const { sourceField } = args;
-    const { knex } = rootArgs;
+    const { knex, column } = rootArgs;
+    const isNativePgEnum = !!column?.internal_meta?.pg_enum_type_name;
 
     return {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         qb.where((nestedQb) => {
-          nestedQb
-            .whereNotNull(sourceField as any)
-            .orWhere(knex.raw("?? != ''", [sourceField]));
+          nestedQb.whereNotNull(sourceField as any);
+          if (!isNativePgEnum) {
+            nestedQb.orWhere(knex.raw("?? != ''", [sourceField]));
+          }
         });
       },
     };

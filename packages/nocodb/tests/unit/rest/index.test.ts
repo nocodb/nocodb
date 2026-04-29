@@ -24,6 +24,7 @@ import { paymentTest } from './tests/payment/payment.test';
 import { planGatingTests } from './tests/payment/planGating.test';
 import convertDateFormatTests from './tests/convertDateFormat.test';
 import linkPlaceholderTests from './tests/linkPlaceholder.test';
+import pgEnumTests from './tests/pg-enum.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
@@ -94,6 +95,7 @@ function restTests() {
     oauthDCRTest();
     mfaTests();
     linkPlaceholderTests();
+    pgEnumTests();
   }
   if (willRunOnSet(3)) {
     viewRowTests();

@@ -274,7 +274,15 @@ export class MetaDiffsService {
           // if mysql and data type is set or enum then compare dtxp as well
           (['mysql', 'mysql2'].includes(source.type) &&
             ['set', 'enum'].includes(column.dt) &&
-            column.dtxp !== oldCol.dtxp)
+            column.dtxp !== oldCol.dtxp) ||
+          // PG native enum: dt stays 'USER-DEFINED' but option list can
+          // change via ALTER TYPE ADD/RENAME VALUE, or the underlying enum
+          // type itself can be swapped (different udt_name).
+          (source.type === 'pg' &&
+            column.udt_typtype === 'e' &&
+            (column.dtxp !== oldCol.dtxp ||
+              column.data_type_custom !==
+                oldCol.internal_meta?.pg_enum_type_name))
         ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
@@ -708,7 +716,15 @@ export class MetaDiffsService {
           // if mysql and data type is set or enum then compare dtxp as well
           (['mysql', 'mysql2'].includes(source.type) &&
             ['set', 'enum'].includes(column.dt) &&
-            column.dtxp !== oldCol.dtxp)
+            column.dtxp !== oldCol.dtxp) ||
+          // PG native enum: dt stays 'USER-DEFINED' but option list can
+          // change via ALTER TYPE ADD/RENAME VALUE, or the underlying enum
+          // type itself can be swapped (different udt_name).
+          (source.type === 'pg' &&
+            column.udt_typtype === 'e' &&
+            (column.dtxp !== oldCol.dtxp ||
+              column.data_type_custom !==
+                oldCol.internal_meta?.pg_enum_type_name))
         ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
@@ -968,6 +984,25 @@ export class MetaDiffsService {
               }
 
               column.title = change.column.title;
+              // For PG native enum: persist internal_meta so the new
+              // (introspected) enum type name and schema land in the
+              // metadata. The introspected `column` carries the udt under
+              // data_type_custom + udt_schema; Column.update reads
+              // internal_meta directly so we translate here. (The
+              // select-option rows themselves are regenerated from dtxp
+              // by Column.update → insertColOption.)
+              if (
+                source.type === 'pg' &&
+                (column as any).udt_typtype === 'e' &&
+                (column as any).data_type_custom &&
+                (column as any).udt_schema
+              ) {
+                (column as any).internal_meta = {
+                  ...((column as any).internal_meta || {}),
+                  pg_enum_type_name: (column as any).data_type_custom,
+                  pg_enum_schema_name: (column as any).udt_schema,
+                };
+              }
               await Column.update(context, change.column.id, column);
             }
             break;

@@ -41,6 +41,9 @@ export function genPgAggregateQuery({
   const { dbDriver: knex } = baseModelSqlv2;
 
   let condnValue: any = "''";
+  // Native PG enum columns reject '' with "invalid input value for enum",
+  // and an enum cell can't hold '' anyway — IS NULL alone covers "empty".
+  const isNativePgEnum = !!column.internal_meta?.pg_enum_type_name;
   if (
     [
       UITypes.CreatedTime,
@@ -60,7 +63,8 @@ export function genPgAggregateQuery({
     ].includes(column.uidt) ||
     [FormulaDataTypes.DATE, FormulaDataTypes.NUMERIC].includes(
       parsedFormulaType,
-    )
+    ) ||
+    isNativePgEnum
   ) {
     condnValue = 'NULL';
   } else if ([UITypes.Rating].includes(column.uidt)) {

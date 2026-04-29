@@ -79,6 +79,7 @@ import {
 } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { pgQuoteLiteral } from '~/helpers/sqlSanitize';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import {
   getUniqueColumnAliasName,
@@ -905,6 +906,7 @@ export class ColumnsService implements IColumnsService {
       delete cleanedInternalMeta.pg_enum_schema_name;
       column.internal_meta = cleanedInternalMeta;
       column.dt = 'text';
+      colBody.internal_meta = cleanedInternalMeta;
       // Persist immediately so a mid-update failure doesn't leave NocoDB
       // metadata claiming the column is still bound to the enum type.
       await Column.update(context, column.id, {
@@ -1374,10 +1376,12 @@ export class ColumnsService implements IColumnsService {
                 (o) => o.id === newOp.id || o.title === newOp.title,
               );
               if (!isExisting) {
-                await sqlClient.raw('ALTER TYPE ?? ADD VALUE IF NOT EXISTS ?', [
-                  qualifiedEnumType,
-                  newOp.title,
-                ]);
+                await sqlClient.raw(
+                  `ALTER TYPE ?? ADD VALUE IF NOT EXISTS ${pgQuoteLiteral(
+                    newOp.title,
+                  )}`,
+                  [qualifiedEnumType],
+                );
               }
             }
           }
@@ -1883,11 +1887,12 @@ export class ColumnsService implements IColumnsService {
                 // type catalog in place. Existing rows store enum OIDs,
                 // so they automatically reflect the new label — no row
                 // UPDATE needed. Shared enums are diverted earlier.
-                await sqlClient.raw('ALTER TYPE ?? RENAME VALUE ? TO ?', [
-                  qualifiedEnumType,
-                  option.title,
-                  newOp.title,
-                ]);
+                await sqlClient.raw(
+                  `ALTER TYPE ?? RENAME VALUE ${pgQuoteLiteral(
+                    option.title,
+                  )} TO ${pgQuoteLiteral(newOp.title)}`,
+                  [qualifiedEnumType],
+                );
               } else {
                 await baseModel.bulkUpdateAll(
                   {
@@ -1962,11 +1967,12 @@ export class ColumnsService implements IColumnsService {
               // Second-pass rename: temp → final. By now every conflicting
               // original value has been renamed away, so the destination
               // label is free.
-              await sqlClient.raw('ALTER TYPE ?? RENAME VALUE ? TO ?', [
-                qualifiedEnumType,
-                ch.temp_title,
-                newOp.title,
-              ]);
+              await sqlClient.raw(
+                `ALTER TYPE ?? RENAME VALUE ${pgQuoteLiteral(
+                  ch.temp_title,
+                )} TO ${pgQuoteLiteral(newOp.title)}`,
+                [qualifiedEnumType],
+              );
             } else {
               await baseModel.bulkUpdateAll(
                 {
@@ -2064,7 +2070,7 @@ export class ColumnsService implements IColumnsService {
             const finalLabels = (colBody.colOptions?.options || []).map(
               (o) => o.title,
             );
-            const labelPlaceholders = finalLabels.map(() => '?').join(', ');
+            const inlinedLabels = finalLabels.map(pgQuoteLiteral).join(', ');
 
             // The type name we'll point the column at after the rebuild.
             // Sole-owner reuses the original name; fork uses a fresh name
@@ -2091,10 +2097,21 @@ export class ColumnsService implements IColumnsService {
             }
 
             // 2. Create the new type with the final option list.
-            await sqlClient.raw(
-              `CREATE TYPE ?? AS ENUM (${labelPlaceholders})`,
-              [newQualifiedEnumType, ...finalLabels],
-            );
+            await sqlClient.raw(`CREATE TYPE ?? AS ENUM (${inlinedLabels})`, [
+              newQualifiedEnumType,
+            ]);
+
+            // 2b. Drop any existing column default before the type change.
+            //     The default expression is bound to the OLD type's oid; PG
+            //     can't auto-cast `'label'::oldtype → newtype` even when the
+            //     label exists in both. Step 4 below re-applies the default
+            //     against the new type.
+            if (column.cdf) {
+              await sqlClient.raw(
+                'ALTER TABLE ?? ALTER COLUMN ?? DROP DEFAULT',
+                [tableNameRef, column.column_name],
+              );
+            }
 
             // 3. Re-point the column at the new type. For the fork, build a
             //    CASE in USING that maps renamed old labels to new ones —
@@ -2104,12 +2121,13 @@ export class ColumnsService implements IColumnsService {
             //    option-delete loop above, so they don't appear in the cast.
             if (enumNeedsFork && enumTitleRenames.length > 0) {
               const whenClauses = enumTitleRenames
-                .map(() => 'WHEN ? THEN ?')
+                .map(
+                  (r) =>
+                    `WHEN ${pgQuoteLiteral(r.old_title)} THEN ${pgQuoteLiteral(
+                      r.new_title,
+                    )}`,
+                )
                 .join(' ');
-              const renameParams = enumTitleRenames.flatMap((r) => [
-                r.old_title,
-                r.new_title,
-              ]);
               await sqlClient.raw(
                 `ALTER TABLE ?? ALTER COLUMN ?? TYPE ?? USING (CASE ??::text ${whenClauses} ELSE ??::text END)::??`,
                 [
@@ -2117,7 +2135,6 @@ export class ColumnsService implements IColumnsService {
                   column.column_name,
                   newQualifiedEnumType,
                   column.column_name,
-                  ...renameParams,
                   column.column_name,
                   newQualifiedEnumType,
                 ],
@@ -2148,13 +2165,10 @@ export class ColumnsService implements IColumnsService {
                     ?.new_title ?? column.cdf
                 : column.cdf;
               await sqlClient.raw(
-                'ALTER TABLE ?? ALTER COLUMN ?? SET DEFAULT ?::??',
-                [
-                  tableNameRef,
-                  column.column_name,
+                `ALTER TABLE ?? ALTER COLUMN ?? SET DEFAULT ${pgQuoteLiteral(
                   newCdf,
-                  newQualifiedEnumType,
-                ],
+                )}::??`,
+                [tableNameRef, column.column_name, newQualifiedEnumType],
               );
             }
 

@@ -320,7 +320,11 @@ export async function singleQueryGroupedList(
 
   let groupColumnSql: string;
   const quotedGroupAlias = `"${String(groupColumnAlias).replace(/"/g, '""')}"`;
-  if (groupColumn.uidt === UITypes.SingleSelect) {
+  // Native PG enum columns reject NULLIF(col, '') with "invalid input value
+  // for enum"; native enum cells can't hold '' anyway, so use the column
+  // directly for those.
+  const isNativePgEnum = !!groupColumn.internal_meta?.pg_enum_type_name;
+  if (groupColumn.uidt === UITypes.SingleSelect && !isNativePgEnum) {
     groupColumnSql = `COALESCE(NULLIF(__nc_base.${quotedGroupAlias}, ''), NULL)`;
   } else {
     groupColumnSql = `__nc_base.${quotedGroupAlias}`;
@@ -347,7 +351,8 @@ export async function singleQueryGroupedList(
       const nullIndex = groupValues.indexOf(null);
       if (nullIndex >= 0) {
         groupValues.splice(nullIndex, 1);
-        if (groupColumn.uidt === UITypes.SingleSelect) {
+        // Skip the '' fallback for native PG enums (can't compare to '').
+        if (groupColumn.uidt === UITypes.SingleSelect && !isNativePgEnum) {
           qb.whereNull(groupColumnAlias).orWhere(groupColumnAlias, '=', '');
         } else {
           qb.whereNull(groupColumnAlias);

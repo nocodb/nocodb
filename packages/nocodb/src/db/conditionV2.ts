@@ -1522,6 +1522,13 @@ async function resolveCrossTableDynamicFilter(
   // - same-table columns are resolved inline by replaceDynamicFieldWithValue
   // - so cross-table always means the value column is in the reference table
   const crossTableRowId = filter._crossTableRowId;
+
+  // Without a row context the EXISTS would match ANY row in the related table,
+  // producing meaningless results. Silently skip — same as pre-patch behavior.
+  if (!crossTableRowId) {
+    return false;
+  }
+
   if (crossTableRowId && relatedModel.primaryKeys?.length) {
     const pkWhere = _wherePk(relatedModel.primaryKeys, crossTableRowId);
     if (typeof pkWhere === 'function') {
@@ -1560,11 +1567,17 @@ async function resolveCrossTableDynamicFilter(
   });
   comparisonFilter.value = valueColumnRef;
 
+  // Always qualify the source column — when alias is undefined, unqualified
+  // column names inside the EXISTS resolve to the inner table first, which
+  // produces wrong results if both tables share a column name.
+  const sourceAlias =
+    alias || baseModelSqlv2.getTnPath(baseModelSqlv2.model.table_name);
+
   const compResult = await parseConditionV2(
     baseModelSqlv2,
     comparisonFilter,
     aliasCount,
-    alias,
+    sourceAlias,
   );
   compResult.clause(existsQb);
 

@@ -195,7 +195,7 @@ onClickOutside(
                 class="flex-none"
                 @click="selectNodeOption(node)"
               >
-                <div class="max-w-68 flex gap-2 items-center w-full">
+                <div class="min-w-60 max-w-68 flex gap-2 items-center w-full">
                   <div :class="getNodeIconClass(node.category)" class="w-6 h-6 flex items-center justify-center rounded-md p-1">
                     <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
                   </div>
@@ -235,7 +235,7 @@ onClickOutside(
                     class="flex-none"
                     @click="selectNodeOption(node)"
                   >
-                    <div class="max-w-68 flex gap-2 items-center w-full">
+                    <div class="min-w-60 max-w-68 flex gap-2 items-center w-full">
                       <div
                         :class="getNodeIconClass(node.category)"
                         class="w-6 h-6 flex items-center justify-center rounded-md p-1"

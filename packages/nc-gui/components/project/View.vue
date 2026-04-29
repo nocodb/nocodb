@@ -235,7 +235,10 @@ watch(projectPageTab, () => {
     const wsId = route.value.params.typeOrId
 
     const baseId = route.value.params.baseId
-    navigateTo(`/${wsId}/${baseId}/settings/${slug}`)
+    navigateTo({
+      path: `/${wsId}/${baseId}/settings/${slug}`,
+      query: route.value.query,
+    })
     return
   }
 

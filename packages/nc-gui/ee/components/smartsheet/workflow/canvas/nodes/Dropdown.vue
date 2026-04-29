@@ -192,18 +192,25 @@ onClickOutside(
                     '!cursor-not-allowed': (node as any).locked,
                   }"
                 inner-class="w-full"
-                class="w-65 flex-none"
+                class="flex-none"
                 @click="selectNodeOption(node)"
               >
-                <div class="flex gap-2 items-center justify-between w-full">
-                  <div class="flex gap-2 flex-1 items-center">
-                    <div :class="getNodeIconClass(node.category)" class="w-6 h-6 flex items-center justify-center rounded-md p-1">
-                      <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
-                    </div>
-                    <div :class="{'opacity-50': (node as any).locked,}" class="text-nc-content-gray text-caption">
-                      {{ node.title }}
-                    </div>
+                <div class="max-w-68 flex gap-2 items-center w-full">
+                  <div :class="getNodeIconClass(node.category)" class="w-6 h-6 flex items-center justify-center rounded-md p-1">
+                    <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
                   </div>
+                  <NcTooltip
+                    show-on-truncate-only
+                    :class="{ 'opacity-50': (node as any).locked }"
+                    class="flex-1 text-nc-content-gray text-caption truncate min-w-0"
+                  >
+                    <template #title>
+                      {{ node.title }}
+                    </template>
+
+                    {{ node.title }}
+                  </NcTooltip>
+
                   <PaymentUpgradeBadge
                     v-if="(node as any).locked"
                     :content="`Upgrade to ${(node as any).requiredPlan} plan to use ${node.title} node`"
@@ -216,7 +223,7 @@ onClickOutside(
               <template v-if="pkg.hasGroups">
                 <template v-for="group in pkg.groups" :key="group.label">
                   <NcDivider v-if="pkg.nodes.length || pkg.groups.indexOf(group) > 0" />
-                  <NcMenuItemLabel class="!capitalize w-65">{{ group.label }}</NcMenuItemLabel>
+                  <NcMenuItemLabel class="!capitalize">{{ group.label }}</NcMenuItemLabel>
                   <NcMenuItem
                     v-for="node in group.nodes"
                     :key="node.id"
@@ -225,21 +232,27 @@ onClickOutside(
                         '!cursor-not-allowed': (node as any).locked,
                       }"
                     inner-class="w-full"
-                    class="w-65"
+                    class="flex-none"
                     @click="selectNodeOption(node)"
                   >
-                    <div class="flex gap-2 items-center justify-between w-full">
-                      <div class="flex gap-2 flex-1 items-center">
-                        <div
-                          :class="getNodeIconClass(node.category)"
-                          class="w-6 h-6 flex items-center justify-center rounded-md p-1"
-                        >
-                          <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
-                        </div>
-                        <div :class="{'opacity-50': (node as any).locked,}" class="text-nc-content-gray text-caption">
-                          {{ node.title }}
-                        </div>
+                    <div class="max-w-68 flex gap-2 items-center w-full">
+                      <div
+                        :class="getNodeIconClass(node.category)"
+                        class="w-6 h-6 flex items-center justify-center rounded-md p-1"
+                      >
+                        <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
                       </div>
+                      <NcTooltip
+                        show-on-truncate-only
+                        :class="{ 'opacity-50': (node as any).locked }"
+                        class="flex-1 min-w-0 text-nc-content-gray text-caption truncate"
+                      >
+                        <template #title>
+                          {{ node.title }}
+                        </template>
+                        {{ node.title }}
+                      </NcTooltip>
+
                       <PaymentUpgradeBadge
                         v-if="(node as any).locked"
                         :content="`Upgrade to ${(node as any).requiredPlan} plan to use ${node.title} node`"

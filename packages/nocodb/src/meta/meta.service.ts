@@ -890,7 +890,19 @@ export class MetaService {
   }
 
   protected async logHelper(workspace_id, base_id, target, q) {
-    const qStr = q.toQuery();
+    // logHelper is invoked fire-and-forget by metaGet2/metaList2/etc., so any
+    // throw here becomes an unhandledRejection that crashes the process under
+    // --unhandled-rejections=throw. q.toQuery() throws on undefined bindings,
+    // which can happen when an upstream caller passes a malformed condition
+    // (e.g. {table_name: undefined}). The actual query execution will surface
+    // the same error through the normal request error handler — diagnostic
+    // logging must never crash the process.
+    let qStr: string;
+    try {
+      qStr = q.toQuery();
+    } catch {
+      return;
+    }
 
     if (
       (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) ||

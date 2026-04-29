@@ -67,7 +67,7 @@ const { viewsByTable } = storeToRefs(viewsStore)
 
 const { t } = useI18n()
 
-const { getPlanTitle, showEEFeatures } = useEeConfig()
+const { getPlanTitle, showEEFeatures, isEEFeatureBlocked } = useEeConfig()
 
 const { getMeta, getMetaByKey } = useMetas()
 
@@ -627,7 +627,7 @@ const handleScrollIntoView = () => {
         {{ $t('general.upgrade') }}
       </NcButton>
     </div>
-    <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI">
+    <div v-if="isFeatureEnabled(FEATURE_FLAG.CUSTOM_LINK) && isEeUI && !isEEFeatureBlocked">
       <a-switch
         v-model:checked="vModel.is_custom_link"
         :disabled="isEdit"

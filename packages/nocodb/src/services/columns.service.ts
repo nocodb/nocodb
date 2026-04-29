@@ -4810,6 +4810,12 @@ export class ColumnsService implements IColumnsService {
   ) {
     let savedColumn: Column;
 
+    if ((param.column as any).is_custom_link) {
+      NcError.get(context).badRequest(
+        'Custom links require an Enterprise license.',
+      );
+    }
+
     validateParams(['parentId', 'childId', 'type'], param.column, context);
 
     const reuse = param.reuse ?? {};
@@ -4821,6 +4827,13 @@ export class ColumnsService implements IColumnsService {
       meta?: Record<string, any>;
       ref_base_id?: string;
     };
+
+    if (!ltarReq.parentId) {
+      NcError.get(context).invalidRequestBody(`'parentId' is required`);
+    }
+    if (!ltarReq.childId) {
+      NcError.get(context).invalidRequestBody(`'childId' is required`);
+    }
 
     const relationType = ltarReq.type;
 

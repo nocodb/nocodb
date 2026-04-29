@@ -133,17 +133,18 @@ const onClickRow = (e: MouseEvent) => {
         <div v-if="!children.length" class="flex items-center justify-center px-3 py-3">
           <GeneralLoader size="regular" />
         </div>
-        <DocBreadcrumbMenuRow
-          v-for="child in children"
-          v-else
-          :key="child.id"
-          :doc="child"
-          :active-ids="activeIds"
-          :get-children="getChildren"
-          :load-children="loadChildren"
-          :on-select="onSelect"
-          @open-change="(val: boolean) => onDescendantOpenChange(child.id, val)"
-        />
+        <template v-else>
+          <DocBreadcrumbMenuRow
+            v-for="child in children"
+            :key="child.id"
+            :doc="child"
+            :active-ids="activeIds"
+            :get-children="getChildren"
+            :load-children="loadChildren"
+            :on-select="onSelect"
+            @open-change="(val: boolean) => onDescendantOpenChange(child.id, val)"
+          />
+        </template>
       </div>
     </template>
   </NcDropdown>

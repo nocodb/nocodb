@@ -127,6 +127,7 @@ const ORDER_STEP_INCREMENT = 1;
 const MAX_RECURSION_DEPTH = 2;
 const READ_CHUNK_SIZE = 100;
 
+import { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 export { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 
 /**

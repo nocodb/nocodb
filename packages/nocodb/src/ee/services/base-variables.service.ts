@@ -12,9 +12,12 @@ import { Base, BaseVariable } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { baseVariableActions } from '~/decorators/trace-command-descriptions';
 import { checkForFeature } from '~/helpers/paymentHelpers';
-import { MetaTable } from '~/utils/globals';
+import {
+  BaseVariableCreateContract,
+  BaseVariableUpdateContract,
+  BaseVariableDeleteContract,
+} from '~/command-registry/operations/base-variables.operations';
 
 const SECRET_MASK = '***';
 
@@ -104,14 +107,7 @@ export class BaseVariablesService {
   // Create
   // ────────────────────────────────────────────
 
-  @TraceCommand({
-    entity: MetaTable.BASE_VARIABLES,
-    operation: 'baseVariableCreate',
-    entityId: 'id',
-    entityTitle: 'key',
-    description: baseVariableActions.add,
-    idField: 'variable',
-  })
+  @TraceCommand(BaseVariableCreateContract)
   async create(
     context: NcContext,
     param: { baseId: string; variable: BaseVariableReqType; req: NcRequest },
@@ -163,19 +159,7 @@ export class BaseVariablesService {
   // Update
   // ────────────────────────────────────────────
 
-  @TraceCommand({
-    entity: MetaTable.BASE_VARIABLES,
-    operation: 'baseVariableUpdate',
-    entityId: (p) => p?.variableId,
-    entityTitle: (p) => p?.variable?.key,
-    description: baseVariableActions.edit,
-    // Inherited vars (production-defined or already-promoted) carry only sandbox-local
-    // overrides; replaying their edits would clobber production's value.
-    skipIf: async (context, param) => {
-      const v = await BaseVariable.get(context, param?.variableId);
-      return v?.is_inherited === true;
-    },
-  })
+  @TraceCommand(BaseVariableUpdateContract)
   async update(
     context: NcContext,
     param: {
@@ -334,22 +318,7 @@ export class BaseVariablesService {
   // Delete
   // ────────────────────────────────────────────
 
-  @TraceCommand({
-    entity: MetaTable.BASE_VARIABLES,
-    operation: 'baseVariableDelete',
-    entityId: (p) => p?.variableId,
-    description: baseVariableActions.delete,
-    resolveCtx: async (context, param) => {
-      const variable = await BaseVariable.get(context, param?.variableId);
-      return {
-        entityTitle: variable?.key,
-        extra: { is_inherited: !!variable?.is_inherited },
-      };
-    },
-    // Inherited vars (production-defined or already-promoted) carry only sandbox-local
-    // state; their deletion is a sandbox-side override and must not propagate.
-    skipIf: (_c, _p, _r, ctx) => ctx?.extra?.is_inherited === true,
-  })
+  @TraceCommand(BaseVariableDeleteContract)
   async delete(
     context: NcContext,
     param: { variableId: string; req: NcRequest },

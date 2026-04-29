@@ -17,6 +17,10 @@ const emits = defineEmits<{
   'open-change': [boolean]
 }>()
 
+// Explicit name for recursive `<DocBreadcrumbMenuRow>` use inside its own
+// template — keeps Vue devtools and HMR stable across edits.
+defineOptions({ name: 'DocBreadcrumbMenuRow' })
+
 const { t } = useI18n()
 
 const { isRtl } = useRtl()
@@ -72,7 +76,10 @@ watch(isOpen, (open) => {
   }
   // Cascade close to descendants when this row closes (Ant Design popups are
   // body-mounted so they don't tear down on parent overlay hide on their own).
-  if (!open) closeToken.value++
+  if (!open) {
+    closeToken.value++
+    openChildId.value = null
+  }
 })
 
 // React to ancestor closing (e.g. segment dropdown collapses, or a higher
@@ -123,8 +130,12 @@ const onClickRow = (e: MouseEvent) => {
 
     <template #overlay>
       <div class="nc-doc-breadcrumb-submenu">
+        <div v-if="!children.length" class="flex items-center justify-center px-3 py-3">
+          <GeneralLoader size="regular" />
+        </div>
         <DocBreadcrumbMenuRow
           v-for="child in children"
+          v-else
           :key="child.id"
           :doc="child"
           :active-ids="activeIds"

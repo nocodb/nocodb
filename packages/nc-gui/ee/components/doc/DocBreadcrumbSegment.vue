@@ -87,7 +87,10 @@ const onSelectNested = (doc: DocumentType) => {
 }
 
 watch(isOpen, (open) => {
-  if (!open) closeToken.value++
+  if (!open) {
+    closeToken.value++
+    openChildId.value = null
+  }
 })
 </script>
 

@@ -10,6 +10,7 @@ let dateDependencyHelperTests = () => {};
 let verifyDefaultOrgTests = () => {};
 let mfaHelperTests = () => {};
 let patResourceFilterTest = () => {};
+let dynamicFieldFilterTests = () => {};
 if (process.env.EE === 'true') {
   dashboardV3ConfigTransformTest =
     require('./ee/dashboardV3ConfigTransform.test').dashboardV3ConfigTransformTest;
@@ -20,6 +21,8 @@ if (process.env.EE === 'true') {
   mfaHelperTests = require('./mfa.test').mfaHelperTests;
   patResourceFilterTest =
     require('./patResourceFilter.test').patResourceFilterTest;
+  dynamicFieldFilterTests =
+    require('./ee/dynamicFieldFilter.test').dynamicFieldFilterTests;
 }
 
 function _helperTests() {
@@ -34,6 +37,7 @@ function _helperTests() {
   apiTokenPermissionTest();
   patResourceFilterTest();
   verifyDefaultOrgTests();
+  dynamicFieldFilterTests();
 }
 export const helperTests = runOnSet(1, function () {
   describe('helpersTest', _helperTests);

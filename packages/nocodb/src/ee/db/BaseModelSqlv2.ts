@@ -127,63 +127,8 @@ const ORDER_STEP_INCREMENT = 1;
 const MAX_RECURSION_DEPTH = 2;
 const READ_CHUNK_SIZE = 100;
 
-export function replaceDynamicFieldWithValue(
-  row: any,
-  rowId,
-  tableColumns: Column[],
-  readByPk: typeof BaseModelSqlv2.prototype.readByPk,
-  queryParams?: Record<string, string>,
-) {
-  const replaceWithValue = async (conditions: Filter[]) => {
-    const filters: Filter[] = [];
-
-    for (let i = 0; i < conditions.length; i++) {
-      if (conditions[i].is_group) {
-        const children = await replaceWithValue(conditions[i].children);
-        filters.push({
-          ...conditions[i],
-          children,
-        } as Filter);
-        continue;
-      } else if (!conditions[i].fk_value_col_id) {
-        filters.push(conditions[i]);
-        continue;
-      }
-
-      const condition = { ...conditions[i] } as Filter;
-
-      // if value follows pattern like '{{ columnName }}' then replace it with row value
-      if (!row) {
-        row = await readByPk(
-          rowId,
-          false,
-          {},
-          { ignoreView: true, getHiddenColumn: true },
-        );
-
-        // if linkRowData is passed over queryParams, then override props from the row
-        if (queryParams?.linkRowData) {
-          try {
-            const rowDataFromReq = JSON.parse(queryParams.linkRowData);
-            if (rowDataFromReq && typeof rowDataFromReq === 'object')
-              Object.assign(row, rowDataFromReq);
-          } catch {
-            // do nothing
-          }
-        }
-      }
-      const columnName = tableColumns.find(
-        (c) => c.id === condition.fk_value_col_id,
-      )?.title;
-
-      condition.value = row[columnName] ?? null;
-      filters.push(condition);
-    }
-
-    return filters;
-  };
-  return replaceWithValue;
-}
+import { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
+export { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 
 /**
  * Base class for models

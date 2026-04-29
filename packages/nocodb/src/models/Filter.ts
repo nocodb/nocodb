@@ -40,6 +40,11 @@ export default class Filter implements FilterType {
   fk_rls_policy_id?: string;
   fk_button_col_id?: string;
 
+  // Set by replaceDynamicFieldWithValue (EE) when fk_value_col_id points to a
+  // cross-table column. Carries the source/parent row PK so conditionV2 can
+  // build an EXISTS subquery filtered to that specific row.
+  _crossTableRowId?: string;
+
   comparison_op?: (typeof COMPARISON_OPS)[number];
   comparison_sub_op?: (typeof COMPARISON_SUB_OPS)[number];
 

@@ -1450,7 +1450,12 @@ async function resolveDynamicFilterValue(
   }
 
   // Same-table: simple column ref
-  if (valueColumn.fk_model_id === filterColumn.fk_model_id) {
+  // Skip when _crossTableRowId is set — self-referencing links need the
+  // cross-table EXISTS path to pin the comparison to a specific linked row.
+  if (
+    valueColumn.fk_model_id === filterColumn.fk_model_id &&
+    !filter._crossTableRowId
+  ) {
     const valueField = alias
       ? `${alias}.${valueColumn.column_name}`
       : valueColumn.column_name;

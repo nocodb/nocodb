@@ -156,8 +156,8 @@ export function replaceDynamicFieldWithValue(
         (c) => c.id === condition.fk_value_col_id,
       );
 
-      if (valueCol) {
-        // Same-table column — replace with the actual row value
+      if (valueCol && !condition.fk_link_col_id) {
+        // Same-table column (no link involved) — replace with the actual row value
         if (!row) {
           row = await readByPk(
             rowId,
@@ -179,8 +179,9 @@ export function replaceDynamicFieldWithValue(
         }
         condition.value = row[valueCol.title] ?? null;
       } else {
-        // Cross-table column — annotate with rowId so conditionV2
-        // can build an EXISTS subquery filtered to this source row
+        // Cross-table column (or self-referencing via link) — annotate with
+        // rowId so conditionV2 can build an EXISTS subquery filtered to this
+        // source row
         condition._crossTableRowId = rowId;
       }
       filters.push(condition);

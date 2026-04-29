@@ -6,7 +6,6 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
 
   const { isMobileMode } = useGlobal()
 
-
   const isOpen = ref(false)
   const activeRowId = ref<string | null>(null)
   const activeRowIndex = ref<number | null>(null)
@@ -25,6 +24,11 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
   const rowNavigator = ref<{
     getRow: (index: number) => { rowId: string; row: Row } | null
     totalRows: () => number
+    // Resolves a rowId to its visible index (or -1 if not in the loaded set, e.g.
+    // evicted from the infinite-scroll cache). Used to keep prev/next + canvas
+    // active-row indicator in sync when the panel opens without an explicit index
+    // (deep-link, page reload, surface switch from modal).
+    findIndexByRowId?: (rowId: string) => number
   } | null>(null)
 
   const hasPrev = computed(() => activeRowIndex.value != null && activeRowIndex.value > 0)

@@ -319,7 +319,11 @@ watch(
       return
     if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
 
-    expandedFormPanelStore.openPanel({ row: {}, oldRow: {}, rowMeta: {} } as Row, undefined, undefined, rowId)
+    // Look up rowIndex so prev/next + canvas active-row indicator work right
+    // away on page reload / direct link. Returns -1 if the row isn't loaded
+    // yet (infinite-scroll cache miss); openPanel treats that as "no index".
+    const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId) ?? -1
+    expandedFormPanelStore.openPanel({ row: {}, oldRow: {}, rowMeta: {} } as Row, idx >= 0 ? idx : undefined, undefined, rowId)
   },
   { immediate: true },
 )
@@ -431,6 +435,18 @@ expandedFormPanelRowNavigator.value = {
     return { rowId, row }
   },
   totalRows: () => (isInfiniteScrollingEnabled.value ? totalRows.value ?? 0 : pData.value.length),
+  findIndexByRowId: (rowId: string) => {
+    const cols = meta.value?.columns as ColumnType[] | undefined
+    if (!cols) return -1
+    if (isInfiniteScrollingEnabled.value) {
+      // cachedRows is a Map<index, Row> — only loaded rows are searchable
+      for (const [idx, row] of cachedRows.value) {
+        if (extractPkFromRow(row.row, cols) === rowId) return idx
+      }
+      return -1
+    }
+    return pData.value.findIndex((row: Row) => extractPkFromRow(row.row, cols) === rowId)
+  },
 }
 
 const isCanvasTableEnabled = computed(() => !ncIsPlaywright())

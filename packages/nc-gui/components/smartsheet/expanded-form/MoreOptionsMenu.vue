@@ -93,10 +93,12 @@ const onToggleMode = async () => {
     router.push({ query: { ...router.currentRoute.value.query, rowId } })
   } else {
     // modal → panel: open the panel imperatively with the row data we already
-    // have, then re-push rowId. rowIndex is unknown (the modal doesn't track
-    // one), so prev/next stay disabled until the user navigates from the grid.
+    // have, then re-push rowId. Resolve rowIndex via the grid's row navigator
+    // so prev/next + canvas active-row indicator work immediately. Falls back
+    // to undefined if the row isn't loaded (infinite-scroll cache miss).
     emits('requestClose')
-    expandedFormPanelStore.openPanel(capturedRow, undefined, undefined, rowId)
+    const idx = expandedFormPanelStore.rowNavigator.value?.findIndexByRowId?.(rowId) ?? -1
+    expandedFormPanelStore.openPanel(capturedRow, idx >= 0 ? idx : undefined, undefined, rowId)
     await nextTick()
     router.push({ query: { ...router.currentRoute.value.query, rowId } })
   }

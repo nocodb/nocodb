@@ -349,8 +349,6 @@ const showActivity = computed(() => {
           </NcButton>
         </NcTooltip>
 
-        <SmartsheetExpandedFormMoreOptionsMenu :is-loading="isLoading" :view="view" @after-delete="closePanel" />
-
         <div v-if="!isNew" class="flex items-center">
           <NcTooltip :title="$t('labels.prevRow')">
             <NcButton
@@ -419,6 +417,7 @@ const showActivity = computed(() => {
         </div>
 
         <div class="flex items-center">
+          <SmartsheetExpandedFormMoreOptionsMenu :is-loading="isLoading" :view="view" compact @after-delete="closePanel" />
           <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
             <NcButton
               v-e="[`c:row-expand-panel:${isFullscreen ? 'exit' : 'enter'}-fullscreen`]"

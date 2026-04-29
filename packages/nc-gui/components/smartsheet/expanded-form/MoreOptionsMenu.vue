@@ -7,12 +7,16 @@ interface Props {
   templateMode?: boolean
   blueprintMode?: boolean
   view?: ViewType
+  // Side-panel header is space-constrained — drop the standalone copy-URL
+  // button and surface "Copy URL" inside the dropdown instead.
+  compact?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isLoading: false,
   templateMode: false,
   blueprintMode: false,
+  compact: false,
 })
 
 const emits = defineEmits<{
@@ -134,8 +138,15 @@ const visibleMoreOptions = computed(() => {
     ...result,
     showDeleteDivider: result.deleteRecord && hasItemsAboveDelete,
     showMoreOptionsMenu: hasItemsAboveDelete || result.deleteRecord,
+    // Only meaningful when there's a standalone copy-URL button — in compact mode
+    // the dropdown is the ONLY surface for copy-URL, so it must always render.
     allHiddenExceptCopyRecordUrl:
-      !result.reloadRecord && !result.sendRecord && !result.duplicateRecord && !result.modeToggle && !result.deleteRecord,
+      !props.compact &&
+      !result.reloadRecord &&
+      !result.sendRecord &&
+      !result.duplicateRecord &&
+      !result.modeToggle &&
+      !result.deleteRecord,
   }
 })
 
@@ -190,7 +201,7 @@ const onConfirmDeleteRowClick = async () => {
 </script>
 
 <template>
-  <NcTooltip v-if="visibleMoreOptions.copyRecordUrl && !isMobileMode" class="!<lg:hidden">
+  <NcTooltip v-if="visibleMoreOptions.copyRecordUrl && !isMobileMode && !compact" class="!<lg:hidden">
     <template #title>
       {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }}
     </template>
@@ -243,7 +254,7 @@ const onConfirmDeleteRowClick = async () => {
         <NcMenuItem
           v-if="visibleMoreOptions.copyRecordUrl"
           type="secondary"
-          class="!lg:hidden"
+          :class="{ '!lg:hidden': !compact }"
           :disabled="isLoading"
           @click="copyRecordUrl()"
         >

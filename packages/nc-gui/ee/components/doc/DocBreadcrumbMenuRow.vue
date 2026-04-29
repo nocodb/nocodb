@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DocumentType } from 'nocodb-sdk'
-import { DocBreadcrumbCloseTokenInj } from './docBreadcrumbInjections'
+import { DocBreadcrumbCloseTokenInj, DocBreadcrumbOpenChildInj } from './docBreadcrumbInjections'
 
 interface Props {
   doc: DocumentType
@@ -21,10 +21,18 @@ const { t } = useI18n()
 
 const { isRtl } = useRtl()
 
-// Incremented by the top-level segment when its dropdown closes — every open
-// descendant submenu watches this and force-closes itself, otherwise Ant
-// Design's body-mounted popups stay visible after the parent hides.
-const closeToken = inject(DocBreadcrumbCloseTokenInj, ref(0))
+// Inject ancestor signals: parentCloseToken bumps when an ancestor closes,
+// parentOpenChildId tracks which sibling is currently active under our
+// immediate parent. We also provide our own versions, shadowing for our
+// descendant subtree.
+const parentCloseToken = inject(DocBreadcrumbCloseTokenInj, ref(0))
+const parentOpenChildId = inject(DocBreadcrumbOpenChildInj, ref<string | null>(null))
+
+const closeToken = ref(0)
+provide(DocBreadcrumbCloseTokenInj, closeToken)
+
+const openChildId = ref<string | null>(null)
+provide(DocBreadcrumbOpenChildInj, openChildId)
 
 const label = computed(() => props.doc.title || t('general.untitled'))
 
@@ -42,23 +50,18 @@ const isActive = computed(() => !!props.doc.id && !!props.activeIds?.includes(pr
 
 const isOpen = ref(false)
 
-// Parent must stay open while any descendant is visible, otherwise moving the
-// mouse from level N+1 back through level N to level N+2 closes level N
-// prematurely. Tracked as a Set keyed by child id so duplicate events are
-// idempotent and the counter can't drift positive from missed decrements.
-const openDescendantIds = ref(new Set<string>())
-
+// Siblings are mutually exclusive — at most one child of this row may have
+// its submenu open. When that child closes, we clear the slot.
 const onDescendantOpenChange = (childId: string | undefined, val: boolean) => {
   if (!childId) return
-  const next = new Set(openDescendantIds.value)
-  if (val) next.add(childId)
-  else next.delete(childId)
-  openDescendantIds.value = next
+  if (val) openChildId.value = childId
+  else if (openChildId.value === childId) openChildId.value = null
 }
 
+// Block hover-out close while a deeper submenu is still alive — moving the
+// cursor through this row to reach a child popup must not collapse this row.
 const onVisibleChange = (val: boolean) => {
-  // Ignore close requests while a descendant is still open
-  if (!val && openDescendantIds.value.size > 0) return
+  if (!val && openChildId.value) return
   isOpen.value = val
 }
 
@@ -67,10 +70,23 @@ watch(isOpen, (open) => {
   if (open && props.doc.has_children && props.doc.id) {
     props.loadChildren(props.doc.id)
   }
+  // Cascade close to descendants when this row closes (Ant Design popups are
+  // body-mounted so they don't tear down on parent overlay hide on their own).
+  if (!open) closeToken.value++
 })
 
-watch(closeToken, () => {
+// React to ancestor closing (e.g. segment dropdown collapses, or a higher
+// ancestor row closes due to a sibling switch).
+watch(parentCloseToken, () => {
   if (isOpen.value) isOpen.value = false
+})
+
+// React to a sibling switch — when our immediate parent's active child is no
+// longer us, force-close immediately, bypassing the hover-out block above.
+watch(parentOpenChildId, (newId) => {
+  if (newId !== null && newId !== props.doc.id && isOpen.value) {
+    isOpen.value = false
+  }
 })
 
 // Guarantee the parent's tracker releases this row even if a close event

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { DocumentType } from 'nocodb-sdk'
-import { DocBreadcrumbCloseTokenInj } from './docBreadcrumbInjections'
+import { DocBreadcrumbCloseTokenInj, DocBreadcrumbOpenChildInj } from './docBreadcrumbInjections'
 
 interface Item {
   id: string
@@ -53,6 +53,17 @@ const segmentPlacement = computed(() => (isRtl.value ? 'bottomRight' : 'bottomLe
 
 const closeToken = ref(0)
 provide(DocBreadcrumbCloseTokenInj, closeToken)
+
+// Track which top-level row currently has its submenu open, so when the user
+// moves to a different sibling the previous branch collapses.
+const openChildId = ref<string | null>(null)
+provide(DocBreadcrumbOpenChildInj, openChildId)
+
+const onTopLevelOpenChange = (childId: string | undefined, val: boolean) => {
+  if (!childId) return
+  if (val) openChildId.value = childId
+  else if (openChildId.value === childId) openChildId.value = null
+}
 
 const listItems = computed<NcListItemType[]>(() =>
   props.items.map((doc) => ({
@@ -142,6 +153,7 @@ watch(isOpen, (open) => {
           :get-children="getChildren"
           :load-children="loadChildren"
           :on-select="onSelectNested"
+          @open-change="(val: boolean) => onTopLevelOpenChange(item.id, val)"
         />
       </div>
 

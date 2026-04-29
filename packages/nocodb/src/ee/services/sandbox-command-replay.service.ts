@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
+import type { Type } from '@nestjs/common';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { SandboxChangelog } from '~/models';
 import { CommandReplayRegistry } from '~/decorators/command-replay-registry';
@@ -25,7 +26,7 @@ function buildReplayRequest(originalReq: NcRequest, userId: string): NcRequest {
 @Injectable()
 export class SandboxCommandReplayService {
   private readonly logger = new Logger(SandboxCommandReplayService.name);
-  private readonly serviceCache = new Map<Function, any>();
+  private readonly serviceCache = new Map<Type<unknown>, unknown>();
 
   constructor(private readonly moduleRef: ModuleRef) {}
 
@@ -34,11 +35,10 @@ export class SandboxCommandReplayService {
    * Uses ModuleRef with { strict: false } to search across all modules.
    * Caches resolved instances for performance.
    */
-  private getService(serviceClass: Function): any {
-    if (this.serviceCache.has(serviceClass)) {
-      return this.serviceCache.get(serviceClass);
-    }
-    const service = this.moduleRef.get(serviceClass as any, { strict: false });
+  private getService(serviceClass: Type<unknown>): any {
+    const cached = this.serviceCache.get(serviceClass);
+    if (cached) return cached;
+    const service = this.moduleRef.get(serviceClass, { strict: false });
     this.serviceCache.set(serviceClass, service);
     return service;
   }
@@ -107,11 +107,12 @@ export class SandboxCommandReplayService {
       replayParams[idField] = { ...replayParams[idField], id: entry.entity_id };
     }
 
-    // For tableCreate: inject sandbox column IDs so auto-created columns
-    // (Title etc.) get the same IDs on master. Passed as _sandboxColumnIds
-    // which the EE tableCreate override reads and strips before calling super.
+    // tableCreate: thread sandbox column IDs to master. _sandboxColumnIds
+    // covers user cols (EE override); additionalContext covers system cols
+    // (Column.bulkInsert, since CE repopulateCreateTableSystemColumns regenerates them).
+    let colIdMap: Record<string, string> | undefined;
     if (sandboxColumns?.length && replayParams.table) {
-      const colIdMap: Record<string, string> = {};
+      colIdMap = {};
       for (const c of sandboxColumns) {
         if (c.title) colIdMap[c.title] = c.id;
         if (c.cn) colIdMap[c.cn] = c.id;
@@ -139,6 +140,7 @@ export class SandboxCommandReplayService {
       additionalContext: {
         ...targetContext.additionalContext,
         is_replay: true,
+        ...(colIdMap ? { sandboxColumnIds: colIdMap } : {}),
       },
     };
 

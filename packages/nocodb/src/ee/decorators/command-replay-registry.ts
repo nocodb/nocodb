@@ -1,5 +1,7 @@
+import type { Type } from '@nestjs/common';
+
 export interface ReplayEntry {
-  serviceClass: Function;
+  serviceClass: Type<unknown>;
   method: string;
 }
 

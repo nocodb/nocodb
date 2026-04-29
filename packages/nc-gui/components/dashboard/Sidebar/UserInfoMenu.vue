@@ -115,7 +115,7 @@ const openKeyboardShortcutDialog = () => {
 
       <!-- Dock Mode -->
       <NcMenuItem v-if="isMiniSidebar" @click="toggleMode">
-        <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon mt-0.5" />
+        <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon" />
         <span class="menu-btn">Dock Mode</span>
         <NcBadgeBeta />
       </NcMenuItem>

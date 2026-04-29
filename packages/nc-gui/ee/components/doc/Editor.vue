@@ -68,7 +68,11 @@ const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInse
 
 const { activeDocuments } = storeToRefs(documentsStore)
 
-const hasSubDocuments = computed(() => activeDocuments.value.some((d) => d.parent_id === docId.value))
+const hasSubDocuments = computed(
+  () =>
+    activeDocuments.value.find((d) => d.id === docId.value)?.has_children ||
+    activeDocuments.value.some((d) => d.parent_id === docId.value),
+)
 
 const base = inject(ProjectInj, ref())
 

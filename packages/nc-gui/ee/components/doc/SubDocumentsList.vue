@@ -58,7 +58,7 @@ const navigateToChild = (child: { id?: string; title?: string }) => {
         :key="child.id"
         v-e="['c:document:sub-document:open']"
         class="nc-doc-sub-documents-item"
-        :data-testid="`nc-doc-sub-documents-item-${child.title}`"
+        :data-testid="`nc-doc-sub-documents-item-${child.id}`"
         @click="navigateToChild(child)"
       >
         <div class="nc-doc-sub-documents-icon">

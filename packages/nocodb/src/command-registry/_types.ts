@@ -1,5 +1,6 @@
 import type { z, ZodTypeAny } from 'zod';
 import type { MetaTable } from '~/utils/globals';
+import type { NcContext, NcRequest } from '~/interface/config';
 
 export interface OperationContract<S extends ZodTypeAny = ZodTypeAny> {
   readonly name: string;
@@ -17,9 +18,9 @@ export interface OperationContract<S extends ZodTypeAny = ZodTypeAny> {
   readonly parentTitle?: string | EntityRefFn<S>;
   readonly description?: string | DescFn;
 
-  readonly resolveCtx?: (ctx: any, p: z.infer<S>) => Promise<ResolvedCtx>;
+  readonly resolveCtx?: (ctx: NcContext, p: z.infer<S>) => Promise<ResolvedCtx>;
   readonly skipIf?: (
-    ctx: any,
+    ctx: NcContext,
     p: z.infer<S>,
     r: any,
     resolved?: ResolvedCtx,
@@ -36,7 +37,7 @@ export type EntityRefFn<S extends ZodTypeAny> = (
 export type ParamsOf<C> = C extends OperationContract<infer S> ? z.infer<S> : never;
 
 export type CommandHandler<C extends OperationContract = OperationContract> = (
-  ctx: any,
+  ctx: NcContext,
   params: ParamsOf<C>,
   meta: HandlerMeta,
 ) => Promise<unknown>;
@@ -44,7 +45,7 @@ export type CommandHandler<C extends OperationContract = OperationContract> = (
 export interface HandlerMeta {
   entryId: string;
   entityId?: string;
-  originalReq: any;
+  originalReq: NcRequest;
   createdBy: string;
   extra?: Record<string, unknown>;
 }

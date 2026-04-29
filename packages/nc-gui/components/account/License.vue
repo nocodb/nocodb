@@ -272,7 +272,10 @@ loadLicense()
           </div>
 
           <!-- Buy / Manage License card -->
-          <div v-if="isSelfServeLicensePurchaseEnabled" class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4">
+          <div
+            v-if="isSelfServeLicensePurchaseEnabled"
+            class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4"
+          >
             <div class="flex flex-col gap-1">
               <span class="font-bold text-base text-nc-content-gray">
                 {{ licenseStatus === 'none' ? $t('labels.buyLicense') : $t('labels.manageLicense') }}

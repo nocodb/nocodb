@@ -1986,7 +1986,10 @@ export default class Column<T = any> implements ColumnType {
     // add fk_model_id
     for (const column of param.columns) {
       // pre-populate column meta to use while inserting colOptions
-      const id = await ncMeta.genNanoid(MetaTable.COLUMNS);
+      const id =
+        context?.additionalContext?.is_replay && column.id
+          ? column.id
+          : await ncMeta.genNanoid(MetaTable.COLUMNS);
       const colWithId = {
         ...column,
         id,

@@ -22,7 +22,7 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class FormsService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async formViewGet(context: NcContext, param: { formViewId: string }) {
     return await FormView.getWithInfo(context, param.formViewId);

@@ -18,7 +18,7 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class GridsService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async gridViewCreate(
     context: NcContext,

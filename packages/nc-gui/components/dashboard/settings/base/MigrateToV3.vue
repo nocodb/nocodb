@@ -8,7 +8,7 @@ const baseStore = useBase()
 const basesStore = useBases()
 const { base } = storeToRefs(baseStore)
 
-const { navigateToProject } = useGlobal()
+const route = useRoute()
 
 const _projectId = inject(ProjectIdInj, undefined)
 
@@ -35,13 +35,7 @@ const migrateToV3 = async () => {
 
     isModalVisible.value = false
 
-    await navigateToProject({
-      workspaceId: base.value?.fk_workspace_id,
-      baseId: baseId.value,
-      query: {
-        page: 'overview',
-      },
-    })
+    await navigateTo(`/${route.params.typeOrId}/${baseId.value}/settings/settings?tab=baseType`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

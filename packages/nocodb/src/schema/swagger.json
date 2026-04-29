@@ -27170,9 +27170,9 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Indicates if the base is a sandbox"
           },
-          "is_sandbox_master": {
+          "is_sandbox_production": {
             "$ref": "#/components/schemas/Bool",
-            "description": "Indicates if the base is a sandbox master"
+            "description": "Indicates if the base is a sandbox production base (has at least one sandbox derived from it)"
           }
         },
         "x-stoplight": {

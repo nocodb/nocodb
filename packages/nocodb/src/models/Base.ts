@@ -65,7 +65,7 @@ export default class Base implements BaseType {
   managed_app_schema_locked?: boolean; // Computed: whether schema modifications are allowed
 
   // sandbox props
-  is_sandbox_master?: boolean; // Is this base a master base that has sandbox(es)?
+  is_sandbox_production?: boolean; // Is this base a production base that has sandbox(es) derived from it?
   is_sandbox?: boolean; // Is this base a sandbox base?
 
   constructor(base: Partial<Base>) {
@@ -99,7 +99,7 @@ export default class Base implements BaseType {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'is_sandbox_master',
+      'is_sandbox_production',
       'is_sandbox',
     ]);
 
@@ -482,7 +482,7 @@ export default class Base implements BaseType {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'is_sandbox_master',
+      'is_sandbox_production',
       'is_sandbox',
     ]);
 

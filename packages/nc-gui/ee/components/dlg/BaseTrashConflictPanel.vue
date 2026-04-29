@@ -79,21 +79,9 @@ const cleanCount = computed(() => Math.max(0, props.rowCount - conflictedRowCoun
       <!-- Groups -->
       <div class="flex flex-col gap-2">
         <BaseTrashConflictGroup v-if="groups.link.length" kind="link" :conflicts="groups.link" />
-        <BaseTrashConflictGroup
-          v-if="groups.validation.length"
-          kind="validation"
-          :conflicts="groups.validation"
-        />
-        <BaseTrashConflictGroup
-          v-if="groups.uniqueActive.length"
-          kind="unique-active"
-          :conflicts="groups.uniqueActive"
-        />
-        <BaseTrashConflictGroup
-          v-if="groups.uniqueIntra.length"
-          kind="unique-intra"
-          :conflicts="groups.uniqueIntra"
-        />
+        <BaseTrashConflictGroup v-if="groups.validation.length" kind="validation" :conflicts="groups.validation" />
+        <BaseTrashConflictGroup v-if="groups.uniqueActive.length" kind="unique-active" :conflicts="groups.uniqueActive" />
+        <BaseTrashConflictGroup v-if="groups.uniqueIntra.length" kind="unique-intra" :conflicts="groups.uniqueIntra" />
       </div>
 
       <!-- Clean-count hint -->

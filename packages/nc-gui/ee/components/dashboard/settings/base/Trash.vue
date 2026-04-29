@@ -67,15 +67,10 @@ async function saveTableSetting(
 
   table._saving = true
   try {
-    await $api.internal.postOperation(
-      activeWorkspaceId.value!,
-      baseId.value!,
-      { operation: 'baseTrashSettingsUpdate' } as any,
-      {
-        tableId: table.id,
-        [field]: value,
-      },
-    )
+    await $api.internal.postOperation(activeWorkspaceId.value!, baseId.value!, { operation: 'baseTrashSettingsUpdate' } as any, {
+      tableId: table.id,
+      [field]: value,
+    })
 
     table[field] = value
     message.toast(t('trash.settingsUpdated'))

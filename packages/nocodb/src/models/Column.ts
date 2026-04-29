@@ -1069,33 +1069,9 @@ export default class Column<T = any> implements ColumnType {
     }
 
     // Clear fk_display_value_column_id on LTAR columns referencing the deleted column.
-    // Direct knex query (not metaList2) catches cross-base LTAR references; scoped by
-    // fk_workspace_id for tenant safety. The lookup is backed by the
-    // nc_col_relations_v2_fk_display_value_column_id_index added in
-    // nc_202605050000_ltar_display_value_column.
-    {
-      const links = await ncMeta
-        .knex(MetaTable.COL_RELATIONS)
-        .select('fk_column_id', 'base_id', 'fk_workspace_id')
-        .where({
-          fk_display_value_column_id: id,
-          fk_workspace_id: context.workspace_id,
-        });
-
-      for (const link of links) {
-        await Column.updateDisplayValueColumn(
-          {
-            workspace_id: link.fk_workspace_id,
-            base_id: link.base_id,
-          },
-          {
-            colId: link.fk_column_id,
-            fk_display_value_column_id: null,
-          },
-          ncMeta,
-        );
-      }
-    }
+    // Reused from the EE trash flow, where soft-delete must clear the FK before
+    // the runtime ever queries against a soft-deleted display column.
+    await Column.clearDisplayValueColumnReferences(context, id, ncMeta);
 
 
     // Delete from view columns
@@ -2028,6 +2004,39 @@ export default class Column<T = any> implements ColumnType {
         fk_display_value_column_id,
       },
     );
+  }
+
+  // Clear fk_display_value_column_id on every LTAR row that points at `colId`.
+  // Direct knex (not metaList2) catches cross-base LTAR references; scoped by
+  // fk_workspace_id for tenant safety. The lookup is backed by the
+  // nc_col_relations_v2_fk_display_value_column_id_index added in
+  // nc_202605040000_ltar_display_value_column.
+  static async clearDisplayValueColumnReferences(
+    context: NcContext,
+    colId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const links = await ncMeta
+      .knex(MetaTable.COL_RELATIONS)
+      .select('fk_column_id', 'base_id', 'fk_workspace_id')
+      .where({
+        fk_display_value_column_id: colId,
+        fk_workspace_id: context.workspace_id,
+      });
+
+    for (const link of links) {
+      await Column.updateDisplayValueColumn(
+        {
+          workspace_id: link.fk_workspace_id,
+          base_id: link.base_id,
+        },
+        {
+          colId: link.fk_column_id,
+          fk_display_value_column_id: null,
+        },
+        ncMeta,
+      );
+    }
   }
 
   static async bulkInsert(

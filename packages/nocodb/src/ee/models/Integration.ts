@@ -495,7 +495,7 @@ export default class Integration extends IntegrationCE {
     return (this.sources = sources.map((src) => new Source(src)));
   }
 
-  async authenticateOAuth() {
+  async authenticateOAuth(ncMeta = Noco.ncMeta) {
     if (this.type !== IntegrationsType.Auth) {
       return;
     }
@@ -521,6 +521,7 @@ export default class Integration extends IntegrationCE {
           ...exchangedConfig,
         },
       },
+      ncMeta,
     );
   }
 }

@@ -314,7 +314,7 @@ export class IntegrationsService extends IntegrationsServiceCE {
       ncMeta,
     );
 
-    await integration.authenticateOAuth();
+    await integration.authenticateOAuth(ncMeta);
 
     integration.config = undefined;
 

@@ -24,7 +24,10 @@ const uniqueEnumName = (prefix = 'nc_test_enum') =>
 async function getSqlClientFor(base: Base) {
   const source = (await base.getSources())[0];
   const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
-  return { sqlClient, source };
+  // Reflection mode places NocoDB tables in a per-source schema rather than
+  // `public`. Default to 'public' if no schema is configured.
+  const tableSchema = source.getConfig()?.schema || 'public';
+  return { sqlClient, source, tableSchema };
 }
 
 async function insertRows(
@@ -61,7 +64,7 @@ async function bindColumnToNativeEnum({
   enumSchema?: string;
   enumName: string;
 }) {
-  const { sqlClient } = await getSqlClientFor(base);
+  const { sqlClient, tableSchema } = await getSqlClientFor(base);
 
   await sqlClient.raw(`DROP TYPE IF EXISTS ??.?? CASCADE`, [
     enumSchema,
@@ -73,8 +76,9 @@ async function bindColumnToNativeEnum({
     [enumSchema, enumName],
   );
   await sqlClient.raw(
-    `ALTER TABLE ?? ALTER COLUMN ?? TYPE ??.?? USING ??::text::??.??`,
+    `ALTER TABLE ??.?? ALTER COLUMN ?? TYPE ??.?? USING ??::text::??.??`,
     [
+      tableSchema,
       table.table_name,
       column.column_name,
       enumSchema,
@@ -135,28 +139,30 @@ async function pgTypeExists(base: Base, enumName: string, schema = ENUM_SCHEMA_D
 }
 
 async function columnDefault(base: Base, table: Model, columnName: string) {
-  const { sqlClient } = await getSqlClientFor(base);
+  const { sqlClient, tableSchema } = await getSqlClientFor(base);
   const { rows } = await sqlClient.raw(
     `SELECT column_default FROM information_schema.columns
-      WHERE table_schema = current_schema()
+      WHERE table_schema = ?
         AND table_name = ?
         AND column_name = ?`,
-    [table.table_name, columnName],
+    [tableSchema, table.table_name, columnName],
   );
   return rows[0]?.column_default ?? null;
 }
 
 async function columnTypeName(base: Base, table: Model, columnName: string) {
-  const { sqlClient } = await getSqlClientFor(base);
+  const { sqlClient, tableSchema } = await getSqlClientFor(base);
   const { rows } = await sqlClient.raw(
     `SELECT t.typname AS typname
        FROM pg_attribute a
        JOIN pg_class c ON c.oid = a.attrelid
+       JOIN pg_namespace n ON n.oid = c.relnamespace
        JOIN pg_type t ON t.oid = a.atttypid
-      WHERE c.relname = ?
+      WHERE n.nspname = ?
+        AND c.relname = ?
         AND a.attname = ?
         AND a.attnum > 0`,
-    [table.table_name, columnName],
+    [tableSchema, table.table_name, columnName],
   );
   return rows[0]?.typname ?? null;
 }
@@ -363,12 +369,18 @@ function pgEnumTests() {
         ...(native as any),
         cdf: 'red',
       } as any);
-      const { sqlClient } = await getSqlClientFor(base);
+      const { sqlClient, tableSchema } = await getSqlClientFor(base);
       await sqlClient.raw(
-        `ALTER TABLE ?? ALTER COLUMN ?? SET DEFAULT ${pgQuoteLiteral(
+        `ALTER TABLE ??.?? ALTER COLUMN ?? SET DEFAULT ${pgQuoteLiteral(
           'red',
         )}::??.??`,
-        [table.table_name, native.column_name, ENUM_SCHEMA_DEFAULT, enumName],
+        [
+          tableSchema,
+          table.table_name,
+          native.column_name,
+          ENUM_SCHEMA_DEFAULT,
+          enumName,
+        ],
       );
       const refreshed = (await table.getColumns(ctx)).find(
         (c) => c.id === native.id,
@@ -435,12 +447,18 @@ function pgEnumTests() {
         ...(native as any),
         cdf: 'red',
       } as any);
-      const { sqlClient } = await getSqlClientFor(base);
+      const { sqlClient, tableSchema } = await getSqlClientFor(base);
       await sqlClient.raw(
-        `ALTER TABLE ?? ALTER COLUMN ?? SET DEFAULT ${pgQuoteLiteral(
+        `ALTER TABLE ??.?? ALTER COLUMN ?? SET DEFAULT ${pgQuoteLiteral(
           'red',
         )}::??.??`,
-        [table.table_name, native.column_name, ENUM_SCHEMA_DEFAULT, enumName],
+        [
+          tableSchema,
+          table.table_name,
+          native.column_name,
+          ENUM_SCHEMA_DEFAULT,
+          enumName,
+        ],
       );
       const refreshed = (await table.getColumns(ctx)).find(
         (c) => c.id === native.id,
@@ -523,10 +541,11 @@ function pgEnumTests() {
         options: ['red', 'green'],
         enumName,
       });
-      const { sqlClient } = await getSqlClientFor(base);
+      const { sqlClient, tableSchema } = await getSqlClientFor(base);
       await sqlClient.raw(
-        `ALTER TABLE ?? ALTER COLUMN ?? TYPE ??.?? USING ??::text::??.??`,
+        `ALTER TABLE ??.?? ALTER COLUMN ?? TYPE ??.?? USING ??::text::??.??`,
         [
+          tableSchema,
           tableB.table_name,
           colB.column_name,
           ENUM_SCHEMA_DEFAULT,
@@ -653,10 +672,11 @@ function pgEnumTests() {
         options: ['red', 'green', 'blue'],
         enumName,
       });
-      const { sqlClient } = await getSqlClientFor(base);
+      const { sqlClient, tableSchema } = await getSqlClientFor(base);
       await sqlClient.raw(
-        `ALTER TABLE ?? ALTER COLUMN ?? TYPE ??.?? USING ??::text::??.??`,
+        `ALTER TABLE ??.?? ALTER COLUMN ?? TYPE ??.?? USING ??::text::??.??`,
         [
+          tableSchema,
           tableB.table_name,
           colB.column_name,
           ENUM_SCHEMA_DEFAULT,

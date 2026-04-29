@@ -1523,21 +1523,19 @@ async function resolveCrossTableDynamicFilter(
   // - so cross-table always means the value column is in the reference table
   const crossTableRowId = filter._crossTableRowId;
 
-  // Without a row context the EXISTS would match ANY row in the related table,
-  // producing meaningless results. Silently skip — same as pre-patch behavior.
-  if (!crossTableRowId) {
+  // Without a row context or primary keys the EXISTS would match ANY row in
+  // the related table, producing meaningless results. Silently skip.
+  if (!crossTableRowId || !relatedModel.primaryKeys?.length) {
     return false;
   }
 
-  if (crossTableRowId && relatedModel.primaryKeys?.length) {
-    const pkWhere = _wherePk(relatedModel.primaryKeys, crossTableRowId);
-    if (typeof pkWhere === 'function') {
-      existsQb.where(pkWhere);
-    } else {
-      // Qualify PK columns with the alias
-      for (const [col, val] of Object.entries(pkWhere)) {
-        existsQb.where(`${relatedAlias}.${col}`, val);
-      }
+  const pkWhere = _wherePk(relatedModel.primaryKeys, crossTableRowId);
+  if (typeof pkWhere === 'function') {
+    existsQb.where(pkWhere);
+  } else {
+    // Qualify PK columns with the alias
+    for (const [col, val] of Object.entries(pkWhere)) {
+      existsQb.where(`${relatedAlias}.${col}`, val);
     }
   }
 

@@ -30,19 +30,8 @@ export const bViewSection = token('viewSection');
 export const bRecordTemplate = token('recordTemplate');
 export const bDateDependency = token('dateDependency');
 
-/**
- * Context passed to description functions.
- * `entityTitle` and `parentEntityTitle` are resolved from TraceCommand options + prefetch.
- * `extra` carries any additional context from resolveCtx for richer descriptions.
- */
-export interface DescCtx {
-  entityTitle?: string;
-  parentEntityTitle?: string;
-  operation: string;
-  extra: Record<string, string | undefined>;
-}
-
-export type DescFn = (ctx: DescCtx) => string;
+import type { DescCtx, DescFn } from 'src/command-registry/_types';
+export type { DescCtx, DescFn };
 
 type BFn = (t?: string) => string;
 

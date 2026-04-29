@@ -127,7 +127,8 @@ export async function recordCommand(
   result: any,
   resolvedCtx: ResolvedCtx | undefined,
 ): Promise<void> {
-  if (!context?.base_id) return;
+  // Skip unmigrated call sites that still pass old-format objects (no schema/name).
+  if (!context?.base_id || !contract.schema || !contract.name) return;
 
   // Lazy import to avoid circular dependency at module load time.
   const { Sandbox, SandboxChangelog } = await import('~/models');

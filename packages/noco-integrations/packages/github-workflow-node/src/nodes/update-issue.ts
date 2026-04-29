@@ -146,6 +146,9 @@ export class UpdateIssueNode extends WorkflowNodeIntegration<UpdateIssueNodeConf
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/github',
+      group: 'issue',
+      groupLabel: 'Issue',
+      groupOrder: 1,
       keywords: ['github', 'issue', 'update', 'edit', 'modify', 'ticket'],
     };
   }

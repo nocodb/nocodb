@@ -159,6 +159,9 @@ export class FindCompaniesNode extends HubspotNodeBase<FindCompaniesConfig> {
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      group: 'company',
+      groupLabel: 'Company',
+      groupOrder: 2,
       keywords: ['hubspot', 'crm', 'company', 'find', 'search', 'query'],
     };
   }

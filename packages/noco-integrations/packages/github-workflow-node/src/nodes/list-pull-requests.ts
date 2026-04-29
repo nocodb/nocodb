@@ -144,6 +144,9 @@ export class ListPullRequestsNode extends WorkflowNodeIntegration<ListPullReques
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/github',
+      group: 'pullRequest',
+      groupLabel: 'Pull Request',
+      groupOrder: 2,
       keywords: ['github', 'pull request', 'pr', 'list', 'query'],
     };
   }

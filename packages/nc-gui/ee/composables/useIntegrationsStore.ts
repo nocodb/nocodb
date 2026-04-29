@@ -135,7 +135,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     // eslint-disable-next-line no-unused-expressions
     integrationsRefreshKey.value
 
-    return allIntegrations
+    const syncSubtypes = allIntegrations
       .filter(
         (i) =>
           i.type === IntegrationCategoryType.SYNC &&
@@ -144,6 +144,16 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
           (SyncCategoryMeta[i.sync_category!].beta ? isSyncAdvancedFeaturesEnabled.value : true),
       )
       .map((i) => i.sub_type)
+
+    // Auth integrations may also be consumed by workflow-node integrations
+    // (e.g. Mailchimp/Slack/Twilio have no sync but power workflow nodes).
+    // Workflow node sub_types are dotted (e.g. "mailchimp.send_transactional_email"),
+    // so extract the leading provider segment to match the auth sub_type.
+    const workflowSubtypes = allIntegrations
+      .filter((i) => i.type === IntegrationsType.WorkflowNode)
+      .map((i) => i.sub_type.split('.')[0])
+
+    return Array.from(new Set([...syncSubtypes, ...workflowSubtypes]))
   })
 
   const loadIntegrations = async (type: IntegrationsType | null = null, baseId: string | undefined = undefined) => {

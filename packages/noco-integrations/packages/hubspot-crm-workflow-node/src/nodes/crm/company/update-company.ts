@@ -271,6 +271,9 @@ export class UpdateCompanyNode extends HubspotNodeBase<UpdateCompanyConfig> {
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      group: 'company',
+      groupLabel: 'Company',
+      groupOrder: 2,
       keywords: ['hubspot', 'crm', 'company', 'update', 'edit', 'modify'],
     };
   }

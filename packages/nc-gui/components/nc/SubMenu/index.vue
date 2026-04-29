@@ -2,12 +2,14 @@
 const props = withDefaults(
   defineProps<{
     popupOffset?: number[]
+    popupClassName?: string
     variant?: 'default' | 'small' | 'medium' | 'large'
     titleClass?: string
   }>(),
   {
     variant: 'default',
     titleClass: '',
+    popupClassName: '',
   },
 )
 
@@ -27,7 +29,7 @@ const responsiveVariant = computed(() => {
     :popup-offset="props.popupOffset"
     class="nc-sub-menu"
     :class="`nc-variant-${responsiveVariant}`"
-    :popup-class-name="`nc-variant-${responsiveVariant} nc-submenu-popup`"
+    :popup-class-name="`nc-variant-${responsiveVariant} nc-submenu-popup ${popupClassName}`"
   >
     <template #title>
       <div class="nc-submenu-title flex flex-row items-center gap-x-1.5 py-1.75 justify-between group" :class="titleClass">

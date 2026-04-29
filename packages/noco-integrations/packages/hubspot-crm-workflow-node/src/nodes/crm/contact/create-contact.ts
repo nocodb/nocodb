@@ -114,6 +114,9 @@ export class CreateContactNode extends HubspotNodeBase<CreateContactConfig> {
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      group: 'contact',
+      groupLabel: 'Contact',
+      groupOrder: 1,
       keywords: ['hubspot', 'crm', 'contact', 'create', 'add'],
     };
   }

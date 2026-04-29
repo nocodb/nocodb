@@ -87,6 +87,8 @@
     "@google-cloud/storage": "^7.15.0",
     "@govtechsg/passport-openidconnect": "^1.0.3",
     "@linear/sdk": "^40.0.0",
+    "@mailchimp/mailchimp_marketing": "^3.0.80",
+    "@mailchimp/mailchimp_transactional": "^1.0.50",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@nest-lab/throttler-storage-redis": "^1.1.0",

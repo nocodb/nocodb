@@ -1332,6 +1332,7 @@ export const iconMap = {
   'microsoftAccess': NcMicrosoftAccess,
   'microsoftExcel': NcMicrosoftExcel,
   'microsoftOutlook': NcMicrosoftOutlook,
+  'ncMailchimp': h(NcMailchimp, { stroke: 'transparent' }),
   'miro': NcMiro,
   'salesforce': h(NcSalesforce, { stroke: 'transparent' }),
   'snowflake': NcSnowflake,

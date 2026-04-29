@@ -59,7 +59,7 @@ const getSiblingsByParent = (parentId: string | null | undefined) => {
   const target = normalizeParentId(parentId)
   return activeDocuments.value
     .filter((d) => normalizeParentId(d.parent_id) === target)
-    .sort((a, b) => (a.order || 0) - (b.order || 0))
+    .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
 }
 
 const getChildren = (docId: string) => getSiblingsByParent(docId)

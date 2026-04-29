@@ -69,6 +69,8 @@ const indentStyle = computed(() => {
   return isRtl.value ? { paddingRight: padding } : { paddingLeft: padding }
 })
 
+const canUpdateDocument = computed(() => isUIAllowed('documentUpdate'))
+
 // Show chevron if either the tree node has loaded children OR the API says children exist
 const showChevron = computed(() => props.hasChildren || !!props.doc.has_children)
 
@@ -150,7 +152,7 @@ const focusInput = () => {
 /** Enable editing document name on dbl click */
 const onDblClick = () => {
   if (isMobileMode.value) return
-  if (!isUIAllowed('documentUpdate')) return
+  if (!canUpdateDocument.value) return
 
   if (!isEditing.value) {
     isEditing.value = true
@@ -263,7 +265,7 @@ onKeyStroke('Enter', (event) => {
 })
 
 const onRenameMenuClick = () => {
-  if (isMobileMode.value || !isUIAllowed('documentUpdate')) return
+  if (isMobileMode.value || !canUpdateDocument.value) return
 
   isDropdownOpen.value = false
 
@@ -382,7 +384,7 @@ function onStopEdit() {
             :key="doc?.meta?.icon"
             :clearable="true"
             :emoji="doc?.meta?.icon"
-            :readonly="isMobileMode || !isUIAllowed('documentUpdate')"
+            :readonly="isMobileMode || !canUpdateDocument"
             class="nc-document-icon"
             size="small"
             @emoji-selected="updateDocumentIcon($event)"
@@ -469,9 +471,9 @@ function onStopEdit() {
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
               />
 
-              <NcDivider v-if="isUIAllowed('documentUpdate')" />
+              <NcDivider v-if="canUpdateDocument" />
 
-              <template v-if="isUIAllowed('documentUpdate')">
+              <template v-if="canUpdateDocument">
                 <NcMenuItem
                   v-e="['c:document:rename']"
                   :data-testid="`sidebar-doc-rename-${doc.title}`"
@@ -508,7 +510,7 @@ function onStopEdit() {
                 {{ $t('labels.newSubDocument') }}
               </NcMenuItem>
               <NcMenuItem
-                v-if="doc.parent_id && isUIAllowed('documentUpdate')"
+                v-if="doc.parent_id && canUpdateDocument"
                 v-e="['c:document:move-to-root']"
                 :data-testid="`sidebar-doc-move-root-${doc.title}`"
                 @click="onMoveToRoot"

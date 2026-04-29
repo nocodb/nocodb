@@ -183,6 +183,7 @@
     "c:document:move-to-root": "Move document to root level",
     "c:document:option": "Open document options",
     "c:document:rename": "Click rename document",
+    "c:document:sub-document:open": "Open a sub-document from the parent doc's children list",
     "c:document:toggle-expand": "Toggle document expand in sidebar",
     "c:documents:toggle-expand": "Toggle documents section expand",
     "c:doc:copy-link": "Copy document link",

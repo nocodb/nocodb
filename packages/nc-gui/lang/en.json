@@ -1371,6 +1371,7 @@
     "addNewPage": "Add page",
     "newDocument": "New document",
     "newSubDocument": "New sub-document",
+    "subDocuments": "Sub documents",
     "moveToRoot": "Move to root",
     "inlineComment": "Inline comment",
     "referencedTextRemoved": "Referenced text was removed",

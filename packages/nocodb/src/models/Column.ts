@@ -1072,7 +1072,7 @@ export default class Column<T = any> implements ColumnType {
     // Direct knex query (not metaList2) catches cross-base LTAR references; scoped by
     // fk_workspace_id for tenant safety. The lookup is backed by the
     // nc_col_relations_v2_fk_display_value_column_id_index added in
-    // nc_202604180000_ltar_display_value_column.
+    // nc_202605050000_ltar_display_value_column.
     {
       const links = await ncMeta
         .knex(MetaTable.COL_RELATIONS)

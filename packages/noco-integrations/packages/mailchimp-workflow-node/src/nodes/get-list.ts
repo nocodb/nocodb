@@ -82,6 +82,8 @@ export class GetListNode extends WorkflowNodeIntegration<GetListConfig> {
   }
 
   public async fetchOptions(key: string): Promise<unknown> {
+    if (!this.config.authIntegrationId) return [];
+
     if (key === 'lists') {
       const auth = await this.getIntegration<MailchimpAuthIntegration>(
         this.config.authIntegrationId,

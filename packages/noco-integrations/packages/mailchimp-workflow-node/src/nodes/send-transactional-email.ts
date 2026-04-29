@@ -138,6 +138,8 @@ export class SendTransactionalEmailNode extends WorkflowNodeIntegration<SendTran
   }
 
   public async fetchOptions(key: string): Promise<unknown> {
+    if (!this.config.authIntegrationId) return [];
+
     if (key === 'mandrillTemplates') {
       const auth =
         await this.getIntegration<MailchimpAuthIntegration>(

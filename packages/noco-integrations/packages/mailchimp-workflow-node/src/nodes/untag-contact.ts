@@ -112,6 +112,8 @@ export class UntagContactNode extends WorkflowNodeIntegration<UntagContactConfig
   }
 
   public async fetchOptions(key: string): Promise<unknown> {
+    if (!this.config.authIntegrationId) return [];
+
     if (key === 'lists') {
       const auth = await this.getIntegration<MailchimpAuthIntegration>(
         this.config.authIntegrationId,

@@ -1049,7 +1049,7 @@ export class NcErrorBase {
       {
         params: limit.toString(),
         ...args,
-      },
+      }
     );
   }
 
@@ -1080,13 +1080,13 @@ export class NcErrorBase {
     });
   }
 
-  sandboxMasterBlocked(message?: string, args?: NcErrorArgs): never {
+  sandboxProductionBlocked(message?: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
-      NcErrorType.ERR_SANDBOX_MASTER_BLOCKED,
+      NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED,
       {
         params: message || '',
         ...args,
-      },
+      }
     );
   }
 }

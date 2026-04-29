@@ -12,7 +12,7 @@ import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { tableActions } from '~/decorators/trace-command-descriptions';
 import { NcError } from '~/helpers/catchError';
-import { assertNotSandboxMaster } from '~/helpers/sandboxGuards';
+import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import { Base, Model } from '~/models';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -50,9 +50,9 @@ export class TablesService extends TableServiceCE {
     description: tableActions.add,
     idField: 'table',
     // Store sandbox column IDs so replay can seed auto-created columns
-    // (Title column etc.) with matching IDs on master.
+    // (Title column etc.) with matching IDs on production.
     // Also store the auto-created default view ID so sorts/filters that
-    // reference it by ID continue to work after replay on master.
+    // reference it by ID continue to work after replay on production.
     extraCommandMeta: (_p, result) => ({
       sandboxColumns: (result?.columns ?? []).map((c: any) => ({
         id: c.id,
@@ -79,13 +79,13 @@ export class TablesService extends TableServiceCE {
       operationSource?: OperationSource;
     },
   ) {
-    await assertNotSandboxMaster(
+    await assertNotSandboxProduction(
       context,
       'Creating tables is not allowed on a base with an active sandbox. Create tables in the sandbox.',
     );
 
     // During replay: inject sandbox column IDs into the column definitions so
-    // auto-created columns (Title etc.) get the same IDs on master as in sandbox.
+    // auto-created columns (Title etc.) get the same IDs on production as in sandbox.
     const { _sandboxColumnIds, _sandboxDefaultViewId, ...tableBody } =
       param.table ?? {};
     const tableParam: any = { ...tableBody };
@@ -204,7 +204,7 @@ export class TablesService extends TableServiceCE {
       req: NcRequest;
     },
   ) {
-    await assertNotSandboxMaster(
+    await assertNotSandboxProduction(
       context,
       'Renaming tables is not allowed on a base with an active sandbox. Make the change in the sandbox.',
     );
@@ -235,7 +235,7 @@ export class TablesService extends TableServiceCE {
     },
     ncMeta?: MetaService,
   ) {
-    await assertNotSandboxMaster(
+    await assertNotSandboxProduction(
       context,
       'Deleting tables is not allowed on a base with an active sandbox. Delete the table in the sandbox.',
     );

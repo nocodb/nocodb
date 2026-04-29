@@ -3,23 +3,23 @@ import type { SandboxChangelog } from '~/models';
 /**
  * Validate that a sequence of changelog commands forms a consistent
  * dependency chain. Each command may reference entities by ID — those
- * entities must exist on master or be created by a prior command in
+ * entities must exist on production or be created by a prior command in
  * the sequence.
  *
  * Returns an array of error messages. Empty = valid.
  */
 export function validateCommandSequence(
   entries: SandboxChangelog[],
-  masterEntityIds?: Set<string>,
+  productionEntityIds?: Set<string>,
 ): string[] {
   const errors: string[] = [];
   const createdEntities = new Set<string>();
 
   for (const entry of entries) {
-    // Check that parent entity exists (in master or created by prior command)
+    // Check that parent entity exists (in production or created by prior command)
     if (entry.parent_entity_id) {
       const parentExists =
-        masterEntityIds?.has(entry.parent_entity_id) ||
+        productionEntityIds?.has(entry.parent_entity_id) ||
         createdEntities.has(entry.parent_entity_id);
 
       if (!parentExists) {

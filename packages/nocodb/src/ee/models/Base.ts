@@ -227,7 +227,7 @@ export default class Base extends BaseCE {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'is_sandbox_master',
+      'is_sandbox_production',
       'is_sandbox',
     ]);
 
@@ -324,7 +324,7 @@ export default class Base extends BaseCE {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'is_sandbox_master',
+      'is_sandbox_production',
       'is_sandbox',
     ]);
 
@@ -470,7 +470,7 @@ export default class Base extends BaseCE {
     }
 
     // --- SANDBOX LOGIC ---
-    // If this is a sandbox base, update master's is_sandbox_master flag and delete sandbox record
+    // If this is a sandbox base, update production's is_sandbox_production flag and delete sandbox record
     if (base.is_sandbox) {
       const sandbox = await Sandbox.getBySandboxBaseId(base.id, ncMeta);
 
@@ -478,24 +478,24 @@ export default class Base extends BaseCE {
         // Delete sandbox record
         await Sandbox.delete(sandbox.id, ncMeta);
 
-        const remainingSandboxes = await Sandbox.listByMasterBaseId(
-          sandbox.master_base_id,
+        const remainingSandboxes = await Sandbox.listByProductionBaseId(
+          sandbox.production_base_id,
           ncMeta,
         );
         if (remainingSandboxes.length === 0) {
           await Base.update(
-            { ...context, base_id: sandbox.master_base_id },
-            sandbox.master_base_id,
-            { is_sandbox_master: false },
+            { ...context, base_id: sandbox.production_base_id },
+            sandbox.production_base_id,
+            { is_sandbox_production: false },
             ncMeta,
           );
         }
       }
     }
 
-    // If this is a master base with sandboxes, delete all sandbox bases first
-    if (base.is_sandbox_master) {
-      const sandboxes = await Sandbox.listByMasterBaseId(baseId, ncMeta);
+    // If this is a production base with sandboxes, delete all sandbox bases first
+    if (base.is_sandbox_production) {
+      const sandboxes = await Sandbox.listByProductionBaseId(baseId, ncMeta);
       for (const sandbox of sandboxes) {
         // Delete sandbox record
         await Sandbox.delete(sandbox.id, ncMeta);

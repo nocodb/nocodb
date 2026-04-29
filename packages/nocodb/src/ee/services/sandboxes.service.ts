@@ -29,7 +29,7 @@ export class SandboxesService {
   ) {}
 
   async sandboxList(param: { baseId: string }): Promise<Sandbox[] | null> {
-    const sandboxes = await Sandbox.listByMasterBaseId(param.baseId);
+    const sandboxes = await Sandbox.listByProductionBaseId(param.baseId);
 
     return sandboxes;
   }
@@ -49,8 +49,8 @@ export class SandboxesService {
     const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
     if (sandbox) return sandbox;
 
-    // Fall back to master base ID lookup (called from master context)
-    const sandboxes = await Sandbox.listByMasterBaseId(context.base_id);
+    // Fall back to production base ID lookup (called from production context)
+    const sandboxes = await Sandbox.listByProductionBaseId(context.base_id);
     return sandboxes?.[0] ?? null;
   }
 
@@ -90,11 +90,11 @@ export class SandboxesService {
       // Hard delete the sandbox base
       await Base.delete(sandboxContext, sandbox.sandbox_base_id, ncMeta);
 
-      // Clear schema lock on master (one sandbox per base, so always clear)
+      // Clear schema lock on production (one sandbox per base, so always clear)
       await Base.update(
-        { ...context, base_id: sandbox.master_base_id },
-        sandbox.master_base_id,
-        { is_sandbox_master: false },
+        { ...context, base_id: sandbox.production_base_id },
+        sandbox.production_base_id,
+        { is_sandbox_production: false },
         ncMeta,
       );
 
@@ -152,7 +152,7 @@ export class SandboxesService {
     }
 
     // Enforce one sandbox per base
-    const existingSandboxes = await Sandbox.listByMasterBaseId(baseId);
+    const existingSandboxes = await Sandbox.listByProductionBaseId(baseId);
     if (existingSandboxes.length > 0) {
       NcError.get(context).badRequest(
         'Base already has a sandbox. Only one sandbox per base is allowed.',
@@ -184,7 +184,7 @@ export class SandboxesService {
       const sandbox = await Sandbox.insert(
         context,
         {
-          master_base_id: baseId,
+          production_base_id: baseId,
           sandbox_base_id: sandboxBase.id,
           fk_workspace_id: context.workspace_id,
           created_by: user.id,
@@ -192,18 +192,23 @@ export class SandboxesService {
         },
         ncMeta,
       );
-      // Update master base with is_sandbox_master flag
-      await Base.update(context, baseId, { is_sandbox_master: true }, ncMeta);
+      // Update production base with is_sandbox_production flag
+      await Base.update(
+        context,
+        baseId,
+        { is_sandbox_production: true },
+        ncMeta,
+      );
 
-      // Mirror master base Owners & Creators onto the sandbox base. Initiator
+      // Mirror production base Owners & Creators onto the sandbox base. Initiator
       // is already added as owner by basesService.baseCreate — skip to avoid
       // a duplicate (fk_user_id, base_id) row.
-      const masterUsers = await BaseUser.getUsersList(
+      const productionUsers = await BaseUser.getUsersList(
         context,
         { base_id: baseId },
         ncMeta,
       );
-      const sandboxUserPayloads = masterUsers
+      const sandboxUserPayloads = productionUsers
         .filter(
           (u) =>
             u.id !== user.id &&
@@ -293,24 +298,27 @@ export class SandboxesService {
       NcError.get(context).baseNotFound(sandbox.sandbox_base_id);
     }
 
-    // Get the master base
-    const masterBase = await Base.get(context, sandbox.master_base_id);
-    if (!masterBase) {
-      NcError.get(context).badRequest('Master base not found.');
+    // Get the production base
+    const productionBase = await Base.get(context, sandbox.production_base_id);
+    if (!productionBase) {
+      NcError.get(context).badRequest('Production base not found.');
     }
 
-    // Get NcContext for master base
-    const masterContext: NcContext = { ...context, base_id: masterBase.id };
+    // Get NcContext for production base
+    const productionContext: NcContext = {
+      ...context,
+      base_id: productionBase.id,
+    };
     const sandboxContext: NcContext = {
       ...context,
       base_id: sandbox.sandbox_base_id,
     };
 
-    // Get sources for master base
-    const masterSources = await masterBase.getSources();
-    const masterSourceId = masterSources?.[0]?.id;
-    if (!masterSourceId) {
-      NcError.get(context).badRequest('No sources found in master base.');
+    // Get sources for production base
+    const productionSources = await productionBase.getSources();
+    const productionSourceId = productionSources?.[0]?.id;
+    if (!productionSourceId) {
+      NcError.get(context).badRequest('No sources found in production base.');
     }
     // Get sources for sandbox base
     const sandboxSources = await base.getSources();
@@ -320,16 +328,16 @@ export class SandboxesService {
     }
 
     // Serialize metadata from both bases
-    const masterMeta = await serializeMeta(masterContext, {
+    const productionMeta = await serializeMeta(productionContext, {
       override: {
         fk_workspace_id: sandboxContext.workspace_id,
         base_id: base.id,
         source_id: sandboxSourceId,
       },
-      ...(masterBase.prefix
+      ...(productionBase.prefix
         ? {
             prefix: {
-              old: masterBase.prefix,
+              old: productionBase.prefix,
               new: base.prefix || '',
             },
           }
@@ -355,16 +363,16 @@ export class SandboxesService {
     // not touch sandbox-owned docs.
     const diff = await diffMeta(
       stripDocuments(sandboxMeta),
-      stripDocuments(masterMeta),
+      stripDocuments(productionMeta),
     );
 
     // Discard policy: preserve sandbox base variables — they are
-    // environment-specific and should not be reverted to master values
+    // environment-specific and should not be reverted to production values
     delete diff.add[MetaTable.BASE_VARIABLES];
     delete diff.update[MetaTable.BASE_VARIABLES];
     delete diff.delete[MetaTable.BASE_VARIABLES];
 
-    // Apply the diff in a transaction to revert sandbox to master state
+    // Apply the diff in a transaction to revert sandbox to production state
     const ncMeta = await Noco.ncMeta.startTransaction();
     try {
       await applyMeta(sandboxContext, diff, ncMeta);
@@ -373,7 +381,7 @@ export class SandboxesService {
       // requests to repopulate cache with stale pre-commit DB state.
       await NocoCache.clear(sandboxContext);
 
-      // Clear changelog — sandbox reverted to master state, all prior changes void
+      // Clear changelog — sandbox reverted to production state, all prior changes void
       await SandboxChangelog.deleteBySandboxId(sandbox.id);
 
       this.appHooksService.emit(AppEvents.SANDBOX_DISCARD, {
@@ -421,15 +429,15 @@ export class SandboxesService {
       NcError.get(context).baseNotFound(sandbox.sandbox_base_id);
     }
 
-    const masterBase = await Base.get(context, sandbox.master_base_id);
-    if (!masterBase) {
-      NcError.get(context).badRequest('Master base not found.');
+    const productionBase = await Base.get(context, sandbox.production_base_id);
+    if (!productionBase) {
+      NcError.get(context).badRequest('Production base not found.');
     }
 
     const job = await this.jobsService.add(JobTypes.SandboxMerge, {
       context,
       sandboxBaseId: sandbox.sandbox_base_id,
-      masterBaseId: sandbox.master_base_id,
+      productionBaseId: sandbox.production_base_id,
       sandboxId: sandbox.id,
       req: _param.req,
       selectedChangelogIds: _param.selectedChangelogIds,
@@ -439,7 +447,7 @@ export class SandboxesService {
   }
 
   /**
-   * Computes the schema diff between a sandbox and its master base.
+   * Computes the schema diff between a sandbox and its production base.
    * Used for previewing changes before merge.
    */
   async sandboxChangelog(
@@ -509,19 +517,22 @@ export class SandboxesService {
       NcError.get(context).baseNotFound(sandbox.sandbox_base_id);
     }
 
-    // Get the master base
-    const masterBase = await Base.get(context, sandbox.master_base_id);
-    if (!masterBase) {
-      NcError.get(context).badRequest('Master base not found.');
+    // Get the production base
+    const productionBase = await Base.get(context, sandbox.production_base_id);
+    if (!productionBase) {
+      NcError.get(context).badRequest('Production base not found.');
     }
-    // Get NcContext for master base
-    const masterContext: NcContext = { ...context, base_id: masterBase.id };
+    // Get NcContext for production base
+    const productionContext: NcContext = {
+      ...context,
+      base_id: productionBase.id,
+    };
     const sandboxContext: NcContext = { ...context, base_id: base.id };
-    // Get sources for master base
-    const masterSources = await masterBase.getSources();
-    const masterSourceId = masterSources?.[0]?.id;
-    if (!masterSourceId) {
-      NcError.get(context).badRequest('No sources found in master base.');
+    // Get sources for production base
+    const productionSources = await productionBase.getSources();
+    const productionSourceId = productionSources?.[0]?.id;
+    if (!productionSourceId) {
+      NcError.get(context).badRequest('No sources found in production base.');
     }
     // Get sources for sandbox base
     const sandboxSources = await base.getSources();
@@ -530,32 +541,32 @@ export class SandboxesService {
       NcError.get(context).badRequest('No sources found in sandbox base.');
     }
     // Serialize metadata from both bases
-    const masterMeta = await serializeMeta(masterContext, {
+    const productionMeta = await serializeMeta(productionContext, {
       override: {
-        fk_workspace_id: masterContext.workspace_id,
-        base_id: masterBase.id,
-        source_id: masterSourceId,
+        fk_workspace_id: productionContext.workspace_id,
+        base_id: productionBase.id,
+        source_id: productionSourceId,
       },
-      ...(masterBase.prefix
+      ...(productionBase.prefix
         ? {
             prefix: {
-              old: masterBase.prefix,
-              new: masterBase.prefix || '',
+              old: productionBase.prefix,
+              new: productionBase.prefix || '',
             },
           }
         : {}),
     });
     const sandboxMeta = await serializeMeta(sandboxContext, {
       override: {
-        fk_workspace_id: masterContext.workspace_id,
-        base_id: masterBase.id,
-        source_id: masterSourceId,
+        fk_workspace_id: productionContext.workspace_id,
+        base_id: productionBase.id,
+        source_id: productionSourceId,
       },
       ...(base.prefix
         ? {
             prefix: {
               old: base.prefix,
-              new: masterBase.prefix || '',
+              new: productionBase.prefix || '',
             },
           }
         : {}),
@@ -563,7 +574,7 @@ export class SandboxesService {
     // Documents are treated as data — exclude from the diff preview so
     // doc add/update/delete never appears as a schema change.
     const diff = await diffMeta(
-      stripDocuments(masterMeta),
+      stripDocuments(productionMeta),
       stripDocuments(sandboxMeta),
     );
 

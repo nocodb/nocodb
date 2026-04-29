@@ -55,7 +55,7 @@ export class SnapshotController {
 
     if (base.is_sandbox) {
       NcError.badRequest(
-        'Sandbox bases cannot be snapshotted. Take the snapshot on the master base.',
+        'Sandbox bases cannot be snapshotted. Take the snapshot on the production base.',
       );
     }
 
@@ -174,7 +174,7 @@ export class SnapshotController {
 
     if (base.is_sandbox) {
       NcError.badRequest(
-        'Cannot restore a snapshot into a sandbox. Restore on the master base.',
+        'Cannot restore a snapshot into a sandbox. Restore on the production base.',
       );
     }
 

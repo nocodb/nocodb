@@ -49,7 +49,7 @@ export class GalleriesService extends GalleriesServiceCE {
     if (param?.ownedBy) {
       await assertNotSandbox(
         context,
-        'Personal views cannot be created in a sandbox. Create them on the master base.',
+        'Personal views cannot be created in a sandbox. Create them on the production base.',
       );
     }
     return super.galleryViewCreate(context, param, ncMeta);

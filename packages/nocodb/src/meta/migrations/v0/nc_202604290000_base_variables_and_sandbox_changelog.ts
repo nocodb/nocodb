@@ -58,8 +58,9 @@ const up = async (knex: Knex) => {
     table.index(['entity_type', 'entity_id'], 'nc_scl_entity_type_id_index');
   });
 
-  // Re-scope subscriber unique index to include base_id so sandbox and master
-  // can hold parallel subscriber rows for the same (workflow, user) pair.
+  // Re-scope subscriber unique index to include base_id so sandbox and
+  // production can hold parallel subscriber rows for the same (workflow, user)
+  // pair.
   await knex.schema.alterTable(MetaTable.AUTOMATION_SUBSCRIBERS, (table) => {
     table.dropUnique(
       ['fk_automation_id', 'fk_user_id'],
@@ -72,9 +73,65 @@ const up = async (knex: Knex) => {
       indexName: 'nc_automation_subscribers_unique_idx',
     });
   });
+
+  // Sandbox terminology: rename "master" → "production" on sandbox-related
+  // tables. Managed-app `managed_app_master` is a separate concept (template
+  // vs installed instance) and is left unchanged.
+  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+    table.dropIndex(['master_base_id'], 'nc_sandboxes_v2_master_base_id_idx');
+  });
+  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+    table.renameColumn('master_base_id', 'production_base_id');
+  });
+  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+    table.index(
+      ['production_base_id'],
+      'nc_sandboxes_v2_production_base_id_idx',
+    );
+  });
+
+  await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
+    table.dropIndex(['is_sandbox_master'], 'nc_bases_is_sandbox_master_idx');
+  });
+  await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
+    table.renameColumn('is_sandbox_master', 'is_sandbox_production');
+  });
+  await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
+    table.index(
+      ['is_sandbox_production'],
+      'nc_bases_is_sandbox_production_idx',
+    );
+  });
 };
 
 const down = async (knex: Knex) => {
+  // Reverse sandbox terminology rename
+  await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
+    table.dropIndex(
+      ['is_sandbox_production'],
+      'nc_bases_is_sandbox_production_idx',
+    );
+  });
+  await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
+    table.renameColumn('is_sandbox_production', 'is_sandbox_master');
+  });
+  await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
+    table.index(['is_sandbox_master'], 'nc_bases_is_sandbox_master_idx');
+  });
+
+  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+    table.dropIndex(
+      ['production_base_id'],
+      'nc_sandboxes_v2_production_base_id_idx',
+    );
+  });
+  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+    table.renameColumn('production_base_id', 'master_base_id');
+  });
+  await knex.schema.alterTable(MetaTable.SANDBOXES, (table) => {
+    table.index(['master_base_id'], 'nc_sandboxes_v2_master_base_id_idx');
+  });
+
   await knex.schema.alterTable(MetaTable.AUTOMATION_SUBSCRIBERS, (table) => {
     table.dropUnique(
       ['base_id', 'fk_automation_id', 'fk_user_id'],

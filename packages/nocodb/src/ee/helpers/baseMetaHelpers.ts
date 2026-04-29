@@ -180,7 +180,7 @@ export type BaseMetaDiff = {
 // Documents are treated as data on sandboxes — they live alongside the schema
 // but their lifecycle is independent. Strip them from any meta snapshot that
 // feeds sandbox create / discard / diff so doc rows never participate in the
-// sandbox↔master sync.
+// sandbox↔production sync.
 export function stripDocuments(meta: BaseMetaSchema): BaseMetaSchema {
   const models: any[] = meta[MetaTable.MODELS] ?? [];
   const docIds = new Set(

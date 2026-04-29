@@ -385,8 +385,8 @@ export const managedAppRestrictions: Record<Permission, boolean> = {
 // and get merged back. We reuse the managed-app blocklist, but allow view CRUD so owners can
 // still work with personal/collaborative views directly on master. Per-view exceptions
 // (delete-collaborative, any-op-on-locked) are enforced by the backend and surfaced inline.
-const { viewCreateOrEdit: _viewCreateOrEdit, ...sandboxMasterRestrictionsRest } = managedAppRestrictions
-export const sandboxMasterRestrictions: Partial<Record<Permission, boolean>> = sandboxMasterRestrictionsRest
+const { viewCreateOrEdit: _viewCreateOrEdit, ...sandboxProductionRestrictionsRest } = managedAppRestrictions
+export const sandboxProductionRestrictions: Partial<Record<Permission, boolean>> = sandboxProductionRestrictionsRest
 
 // Sandbox bases — user/team-scoped configuration (permissions, RLS) must be
 // managed on master and is filtered out of sandbox duplicates. Block the UI entry

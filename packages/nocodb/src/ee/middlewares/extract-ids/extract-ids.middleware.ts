@@ -131,8 +131,8 @@ const getApiVersionFromUrl = (url: string) => {
 };
 
 // Keep local for now, later if we need it elsewhere we can move to utils
-// Only managed apps fully lock the schema. Sandbox master restrictions are
-// enforced per-operation via assertNotSandboxMaster() in EE service overrides.
+// Only managed apps fully lock the schema. Sandbox production restrictions are
+// enforced per-operation via assertNotSandboxProduction() in EE service overrides.
 const isBaseLocked = (base: Base): boolean => {
   return !!base.managed_app_schema_locked;
 };

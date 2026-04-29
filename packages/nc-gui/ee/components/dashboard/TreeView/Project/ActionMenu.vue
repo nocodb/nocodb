@@ -48,7 +48,7 @@ const navigateToMigrateV3 = async () => {
 }
 
 const isOptionVisible = computed(() => {
-  const isSandboxMaster = !!base.value?.is_sandbox_master
+  const isSandboxProduction = !!base.value?.is_sandbox_production
   const isSandboxBase = !!base.value?.is_sandbox
   const isInstalledManagedApp = !!base.value?.managed_app_id && !base.value?.managed_app_master
 
@@ -59,9 +59,9 @@ const isOptionVisible = computed(() => {
       !base.value?.managed_app_id &&
       isUIAllowed('baseMiscSettings') &&
       isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS),
-    createSandbox: !isSandboxBase && !isSandboxMaster && !isInstalledManagedApp && isUIAllowed('baseMiscSettings'),
+    createSandbox: !isSandboxBase && !isSandboxProduction && !isInstalledManagedApp && isUIAllowed('baseMiscSettings'),
     createSandboxDisabled: base.value?.version !== BaseVersion.V3,
-    goToSandbox: isSandboxMaster && !isSandboxBase,
+    goToSandbox: isSandboxProduction && !isSandboxBase,
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&

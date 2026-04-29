@@ -488,7 +488,7 @@ export const presetErrorCodexMap: Partial<
       message || 'This operation is not allowed in a sandbox base.',
     code: 403,
   },
-  [NcErrorType.ERR_SANDBOX_MASTER_BLOCKED]: {
+  [NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED]: {
     message: (message: string) =>
       message ||
       'This operation is not allowed while a sandbox is active. Make the change in the sandbox instead.',

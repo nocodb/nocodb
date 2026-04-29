@@ -11,7 +11,7 @@ import type { DateDependencyReqType, NcRequest } from 'nocodb-sdk';
 import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
-import { assertNotSandboxMaster } from '~/helpers/sandboxGuards';
+import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import { validatePayload } from '~/helpers/apiHelpers';
 import { Column, DateDependency, DependencyTracker, Model } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -52,7 +52,7 @@ export class DateDependencyService {
       req: NcRequest;
     },
   ): Promise<DateDependency> {
-    await assertNotSandboxMaster(context);
+    await assertNotSandboxProduction(context);
 
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
 
@@ -124,7 +124,7 @@ export class DateDependencyService {
     context: NcContext,
     param: { modelId: string; req: NcRequest },
   ): Promise<void> {
-    await assertNotSandboxMaster(context);
+    await assertNotSandboxProduction(context);
 
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
 

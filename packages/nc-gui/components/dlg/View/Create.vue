@@ -105,7 +105,7 @@ const { baseId: activeBaseId } = storeToRefs(baseStore)
 
 const basesStore = useBases()
 
-const isSandboxMaster = computed(() => !!basesStore.bases.get(props.baseId)?.is_sandbox_master)
+const isSandboxProduction = computed(() => !!basesStore.bases.get(props.baseId)?.is_sandbox_production)
 
 const isSandbox = computed(() => !!basesStore.bases.get(props.baseId)?.is_sandbox)
 
@@ -243,7 +243,7 @@ const canLockView = computed(() => isUIAllowed('fieldAdd'))
 const lockTypeOptions = computed(() => {
   const options: Array<{ value: ViewLockType; disabled?: boolean }> = [{ value: ViewLockType.Collaborative }]
   if (isEeUI) options.push({ value: ViewLockType.Personal, disabled: isSandbox.value })
-  if (canLockView.value) options.push({ value: ViewLockType.Locked, disabled: isSandboxMaster.value })
+  if (canLockView.value) options.push({ value: ViewLockType.Locked, disabled: isSandboxProduction.value })
   return options
 })
 

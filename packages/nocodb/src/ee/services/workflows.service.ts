@@ -45,7 +45,7 @@ import { NocoJobsService } from '~/services/noco-jobs.service';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { assertNotSandboxMaster } from '~/helpers/sandboxGuards';
+import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import {
   bWorkflow,
   workflowActions,
@@ -654,12 +654,12 @@ export class WorkflowsService implements OnModuleInit {
     },
   ) {
     // While a sandbox is active, publish must come from the sandbox so the
-    // change goes through the changelog and replays onto master at merge —
+    // change goes through the changelog and replays onto production at merge —
     // matches the broader "edit only in sandbox" pattern. The guard ignores
-    // is_replay so the merge-time replay still publishes the master row.
-    await assertNotSandboxMaster(
+    // is_replay so the merge-time replay still publishes the production row.
+    await assertNotSandboxProduction(
       context,
-      'Publish workflows from the sandbox while one is active — the change will reach master at merge.',
+      'Publish workflows from the sandbox while one is active — the change will reach production at merge.',
     );
 
     const { workflowId, req } = param;

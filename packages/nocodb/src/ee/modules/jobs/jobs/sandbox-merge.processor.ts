@@ -34,7 +34,7 @@ export class SandboxMergeProcessor {
     const {
       context,
       sandboxBaseId,
-      masterBaseId,
+      productionBaseId,
       sandboxId,
       req,
       selectedChangelogIds,
@@ -50,12 +50,15 @@ export class SandboxMergeProcessor {
       NcError._.genericNotFound('Base', sandboxBaseId);
     }
 
-    const masterBase = await Base.get(context, masterBaseId);
-    if (!masterBase) {
-      NcError._.genericNotFound('Base', masterBaseId);
+    const productionBase = await Base.get(context, productionBaseId);
+    if (!productionBase) {
+      NcError._.genericNotFound('Base', productionBaseId);
     }
 
-    const masterContext: NcContext = { ...context, base_id: masterBase.id };
+    const productionContext: NcContext = {
+      ...context,
+      base_id: productionBase.id,
+    };
     const sandboxContext: NcContext = { ...context, base_id: base.id };
 
     // Load changelog entries (all or selected with dependency expansion)
@@ -87,13 +90,13 @@ export class SandboxMergeProcessor {
     }
 
     this.logger.log(
-      `Replaying ${entries.length} command(s) from sandbox ${sandboxId} to master ${masterBaseId}`,
+      `Replaying ${entries.length} command(s) from sandbox ${sandboxId} to production ${productionBaseId}`,
     );
 
     // Replay each command sequentially through the service layer
     for (const entry of entries) {
       try {
-        await this.replayService.replayCommand(masterContext, entry, req);
+        await this.replayService.replayCommand(productionContext, entry, req);
         await SandboxChangelog.markAsMerged([entry.id]);
       } catch (e: any) {
         if (isUniqueViolation(e) || isDuplicateColumn(e)) {
@@ -112,7 +115,7 @@ export class SandboxMergeProcessor {
       }
     }
 
-    // Promote sandbox-only base vars now that they live on master: flip
+    // Promote sandbox-only base vars now that they live on production: flip
     // is_inherited=true so subsequent sandbox edits become local overrides
     // (skipIf in @TraceCommand reads this flag to skip recording).
     const promotedVarIds = new Set<string>();
@@ -128,9 +131,9 @@ export class SandboxMergeProcessor {
     for (const varId of promotedVarIds) {
       const sandboxVar = await BaseVariable.get(sandboxContext, varId);
       if (!sandboxVar || sandboxVar.is_inherited) continue;
-      const masterVar = await BaseVariable.get(masterContext, varId);
-      if (!masterVar) continue;
-      // Flag both: var now exists on master (is_inherited) AND the sandbox
+      const productionVar = await BaseVariable.get(productionContext, varId);
+      if (!productionVar) continue;
+      // Flag both: var now exists on production (is_inherited) AND the sandbox
       // value is sandbox-specific from this point on (is_overridden — keeps
       // the sandbox user's value visible past the masking rule for inherited
       // editable vars).
@@ -144,7 +147,7 @@ export class SandboxMergeProcessor {
       context,
       sandboxId: sandbox.id,
       baseId: sandbox.sandbox_base_id,
-      masterBaseId: sandbox.master_base_id,
+      productionBaseId: sandbox.production_base_id,
       req,
     });
 
@@ -162,13 +165,13 @@ export class SandboxMergeProcessor {
       },
     });
 
-    // Notify master base users — merge modifies master schema.
-    NocoSocket.broadcastEventToBaseUsers(masterContext, {
+    // Notify production base users — merge modifies production schema.
+    NocoSocket.broadcastEventToBaseUsers(productionContext, {
       event: EventType.USER_EVENT,
       payload: {
         action: 'base_meta_reload',
         payload: {
-          base_id: sandbox.master_base_id,
+          base_id: sandbox.production_base_id,
         },
       },
     });

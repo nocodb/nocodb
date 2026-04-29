@@ -44,7 +44,7 @@ export class GridsService extends GridsServiceCE {
     if (param?.ownedBy) {
       await assertNotSandbox(
         context,
-        'Personal views cannot be created in a sandbox. Create them on the master base.',
+        'Personal views cannot be created in a sandbox. Create them on the production base.',
       );
     }
     return super.gridViewCreate(context, param, ncMeta);

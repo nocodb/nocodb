@@ -44,7 +44,7 @@ export class SandboxCommandReplayService {
   }
 
   /**
-   * Replay a single command on the target context (master base).
+   * Replay a single command on the target context (production base).
    * Looks up the service + method via CommandReplayRegistry, which is populated
    * automatically by @TraceCommand at class-definition time — no manual mapping needed.
    */
@@ -91,12 +91,12 @@ export class SandboxCommandReplayService {
       req,
     };
 
-    // Override baseId to target master
+    // Override baseId to target production
     if (replayParams.baseId) {
       replayParams.baseId = targetContext.base_id;
     }
 
-    // For create operations: inject the sandbox entity ID so the master entity
+    // For create operations: inject the sandbox entity ID so the production entity
     // gets the same ID. metaInsert2 preserves pre-set IDs: id: data?.id || genNanoid()
     if (
       idField &&
@@ -107,7 +107,7 @@ export class SandboxCommandReplayService {
       replayParams[idField] = { ...replayParams[idField], id: entry.entity_id };
     }
 
-    // tableCreate: thread sandbox column IDs to master. _sandboxColumnIds
+    // tableCreate: thread sandbox column IDs to production. _sandboxColumnIds
     // covers user cols (EE override); additionalContext covers system cols
     // (Column.bulkInsert, since CE repopulateCreateTableSystemColumns regenerates them).
     let colIdMap: Record<string, string> | undefined;
@@ -124,7 +124,7 @@ export class SandboxCommandReplayService {
     }
 
     // Inject the sandbox's auto-created default view ID so sorts/filters that
-    // reference the new table's default view by ID resolve correctly on master.
+    // reference the new table's default view by ID resolve correctly on production.
     if (sandboxDefaultViewId && replayParams.table) {
       replayParams.table = {
         ...replayParams.table,
@@ -132,8 +132,8 @@ export class SandboxCommandReplayService {
       };
     }
 
-    // Mark context as replay so assertNotSandboxMaster guards are bypassed.
-    // The master base still has an active sandbox during merge — without this flag
+    // Mark context as replay so assertNotSandboxProduction guards are bypassed.
+    // The production base still has an active sandbox during merge — without this flag
     // every schema mutation would be rejected by the sandbox enforcement guards.
     const replayContext: NcContext = {
       ...targetContext,

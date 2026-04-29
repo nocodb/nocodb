@@ -81,7 +81,7 @@ export class BaseVariablesService {
           result.value = SECRET_MASK;
         }
       }
-      // Sandbox: hide master-provided values so the sandbox user can see only
+      // Sandbox: hide production-provided values so the sandbox user can see only
       // their own overrides. Fixed inherited values and non-overridden editable
       // inherited values are masked.
       else if (flags.isSandbox) {
@@ -169,8 +169,8 @@ export class BaseVariablesService {
     entityId: (p) => p?.variableId,
     entityTitle: (p) => p?.variable?.key,
     description: baseVariableActions.edit,
-    // Inherited vars (master-defined or already-promoted) carry only sandbox-local
-    // overrides; replaying their edits would clobber master's value.
+    // Inherited vars (production-defined or already-promoted) carry only sandbox-local
+    // overrides; replaying their edits would clobber production's value.
     skipIf: async (context, param) => {
       const v = await BaseVariable.get(context, param?.variableId);
       return v?.is_inherited === true;
@@ -203,7 +203,7 @@ export class BaseVariablesService {
         existing.is_inherited
       ) {
         NcError.badRequest(
-          'Cannot modify fixed variables inherited from master',
+          'Cannot modify fixed variables inherited from production',
         );
       }
     }
@@ -346,7 +346,7 @@ export class BaseVariablesService {
         extra: { is_inherited: !!variable?.is_inherited },
       };
     },
-    // Inherited vars (master-defined or already-promoted) carry only sandbox-local
+    // Inherited vars (production-defined or already-promoted) carry only sandbox-local
     // state; their deletion is a sandbox-side override and must not propagate.
     skipIf: (_c, _p, _r, ctx) => ctx?.extra?.is_inherited === true,
   })
@@ -376,7 +376,9 @@ export class BaseVariablesService {
       existing.inheritance === BaseVariableInheritance.FIXED &&
       existing.is_inherited
     ) {
-      NcError.badRequest('Cannot delete fixed variables inherited from master');
+      NcError.badRequest(
+        'Cannot delete fixed variables inherited from production',
+      );
     }
 
     await BaseVariable.delete(context, variableId);

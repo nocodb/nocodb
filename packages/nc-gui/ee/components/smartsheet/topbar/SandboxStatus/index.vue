@@ -10,14 +10,14 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
-const { base, isSandbox, isSandboxMaster, sandboxInfo } = storeToRefs(baseStore)
+const { base, isSandbox, isSandboxProduction, sandboxInfo } = storeToRefs(baseStore)
 
 const { baseUrl } = baseStore
 
 const { openDrawer, loadChangelog, data: changelogData, isLoading: isCheckingChanges } = useSandboxChangelog()
 
 const isOpenDropdown = ref<boolean>(false)
-const isMasterDropdownOpen = ref<boolean>(false)
+const isProductionDropdownOpen = ref<boolean>(false)
 
 const isDiscarding = ref(false)
 
@@ -37,13 +37,13 @@ const openSandboxDrawer = () => {
 }
 
 const goToMasterBase = async () => {
-  if (!sandboxInfo.value?.master_base_id) return
+  if (!sandboxInfo.value?.production_base_id) return
 
   isOpenDropdown.value = false
 
   await navigateTo(
     baseUrl({
-      id: sandboxInfo.value.master_base_id,
+      id: sandboxInfo.value.production_base_id,
       type: 'database',
       isSharedBase: false,
     }),
@@ -97,7 +97,7 @@ const discardSandbox = async () => {
 const goToSandbox = async () => {
   if (!sandboxInfo.value?.sandbox_base_id) return
 
-  isMasterDropdownOpen.value = false
+  isProductionDropdownOpen.value = false
 
   await navigateTo(
     baseUrl({
@@ -113,7 +113,7 @@ const isDeletingSandbox = ref(false)
 const deleteSandbox = () => {
   if (!sandboxInfo.value?.sandbox_base_id || !activeWorkspaceId.value) return
 
-  isMasterDropdownOpen.value = false
+  isProductionDropdownOpen.value = false
 
   showWarningModal({
     title: t('labels.deleteSandbox'),
@@ -198,7 +198,7 @@ const deleteSandbox = () => {
 
         <!-- Go to master base -->
         <SmartsheetTopbarManagedAppStatusMenuItem
-          v-if="sandboxInfo?.master_base_id"
+          v-if="sandboxInfo?.production_base_id"
           clickable
           :label="t('labels.goToMasterBase')"
           :subtext="t('labels.viewOriginalBase')"
@@ -249,7 +249,7 @@ const deleteSandbox = () => {
   </NcDropdown>
 
   <!-- Master: Schema Locked indicator -->
-  <NcDropdown v-if="isSandboxMaster && !isSandbox" v-model:visible="isMasterDropdownOpen" placement="bottomRight">
+  <NcDropdown v-if="isSandboxProduction && !isSandbox" v-model:visible="isProductionDropdownOpen" placement="bottomRight">
     <NcButton type="secondary" size="small" class="!border-nc-orange-200 !text-orange-600 !font-normal !bg-nc-orange-20">
       <div class="flex items-center gap-1.5">
         <GeneralIcon icon="ncLock" class="w-4 h-4" />
@@ -257,7 +257,7 @@ const deleteSandbox = () => {
         <GeneralIcon
           icon="chevronDown"
           class="w-3.5 h-3.5 text-orange-600 opacity-80 transform transition-all duration-200"
-          :class="{ 'rotate-180': isMasterDropdownOpen }"
+          :class="{ 'rotate-180': isProductionDropdownOpen }"
         />
       </div>
     </NcButton>

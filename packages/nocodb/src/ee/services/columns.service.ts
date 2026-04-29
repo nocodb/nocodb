@@ -56,7 +56,7 @@ import {
   PlanLimitTypes,
 } from '~/helpers/paymentHelpers';
 import { NcError } from '~/helpers/catchError';
-import { assertNotSandboxMaster } from '~/helpers/sandboxGuards';
+import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -139,7 +139,7 @@ export class ColumnsService extends ColumnsServiceCE {
     },
     _ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
-    await assertNotSandboxMaster(
+    await assertNotSandboxProduction(
       context,
       'Adding fields is not allowed on a base with an active sandbox. Add fields in the sandbox.',
     );
@@ -295,7 +295,7 @@ export class ColumnsService extends ColumnsServiceCE {
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model | Column<any>> {
-    await assertNotSandboxMaster(
+    await assertNotSandboxProduction(
       context,
       'Updating fields is not allowed on a base with an active sandbox. Update fields in the sandbox.',
     );
@@ -343,7 +343,7 @@ export class ColumnsService extends ColumnsServiceCE {
     },
     ncMeta?: MetaService,
   ) {
-    await assertNotSandboxMaster(
+    await assertNotSandboxProduction(
       context,
       'Deleting fields is not allowed on a base with an active sandbox. Delete fields in the sandbox.',
     );

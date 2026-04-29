@@ -367,7 +367,7 @@ export interface SandboxDiscardEvent extends NcBaseEvent {
 export interface SandboxMergeEvent extends NcBaseEvent {
   sandboxId: string;
   baseId: string;
-  masterBaseId: string;
+  productionBaseId: string;
 }
 
 // Record Template Events

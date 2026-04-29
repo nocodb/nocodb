@@ -38,7 +38,7 @@ import { processConcurrently } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 
 // Permissions reference users via fk_subject_id; the sandbox user base differs
-// from master, so these must be managed on master only. MODEL_ROLE_VISIBILITY
+// from production, so these must be managed on production only. MODEL_ROLE_VISIBILITY
 // is role-based (not user-based) and is intentionally kept.
 function stripPermissions(meta: BaseMetaSchema): BaseMetaSchema {
   return {
@@ -50,7 +50,7 @@ function stripPermissions(meta: BaseMetaSchema): BaseMetaSchema {
 
 // RLS policy subjects reference users/teams (same pattern as permissions) and
 // RLS filters live in FILTER_EXP scoped by fk_rls_policy_id. Strip all three
-// so sandboxes start with no row-level security — it's managed on master only.
+// so sandboxes start with no row-level security — it's managed on production only.
 function stripRls(meta: BaseMetaSchema): BaseMetaSchema {
   const filters: any[] = meta[MetaTable.FILTER_EXP] ?? [];
   return {
@@ -311,22 +311,22 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
     };
     operation: JobTypes;
   }) {
-    // Sandbox bases break the 1-1 master/sandbox contract if duplicated,
+    // Sandbox bases break the 1-1 production/sandbox contract if duplicated,
     // snapshotted, or restored into. Block at the job entry so both UI and
     // API paths are covered.
     if (operation === JobTypes.DuplicateBase && sourceBase.is_sandbox) {
       NcError.badRequest(
-        'Sandbox bases cannot be duplicated. Duplicate the master base instead.',
+        'Sandbox bases cannot be duplicated. Duplicate the production base instead.',
       );
     }
     if (operation === JobTypes.CreateSnapshot && sourceBase.is_sandbox) {
       NcError.badRequest(
-        'Sandbox bases cannot be snapshotted. Take the snapshot on the master base.',
+        'Sandbox bases cannot be snapshotted. Take the snapshot on the production base.',
       );
     }
     if (operation === JobTypes.RestoreSnapshot && targetBase.is_sandbox) {
       NcError.badRequest(
-        'Cannot restore a snapshot into a sandbox. Restore on the master base.',
+        'Cannot restore a snapshot into a sandbox. Restore on the production base.',
       );
     }
 
@@ -443,7 +443,7 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
 
         // Strip personal views, permissions, RLS, and documents when requested
         // (sandbox creation). Docs are treated as data — they should not flow
-        // from master into the sandbox.
+        // from production into the sandbox.
         let filteredMeta = options.excludePersonalViews
           ? stripPersonalViews(sourceMeta)
           : sourceMeta;

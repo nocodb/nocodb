@@ -84,10 +84,10 @@ export const useBase = defineStore('baseStore', () => {
 
   // Sandbox
   const isSandbox = computed(() => !!base.value?.is_sandbox)
-  const isSandboxMaster = computed(() => !!base.value?.is_sandbox_master)
+  const isSandboxProduction = computed(() => !!base.value?.is_sandbox_production)
 
-  const sandboxInfo = ref<{ id: string; master_base_id: string; sandbox_base_id: string } | null>(null)
-  const sandboxList = ref<{ id: string; master_base_id: string; sandbox_base_id: string }[]>([])
+  const sandboxInfo = ref<{ id: string; production_base_id: string; sandbox_base_id: string } | null>(null)
+  const sandboxList = ref<{ id: string; production_base_id: string; sandbox_base_id: string }[]>([])
 
   const loadSandboxInfo = async () => {
     if (!base.value?.id || !base.value?.fk_workspace_id) return
@@ -271,7 +271,7 @@ export const useBase = defineStore('baseStore', () => {
         // ignore
       })
 
-    if (base.value?.is_sandbox || base.value?.is_sandbox_master) {
+    if (base.value?.is_sandbox || base.value?.is_sandbox_production) {
       await loadSandboxInfo()
     }
 
@@ -497,7 +497,7 @@ export const useBase = defineStore('baseStore', () => {
     triggerManualUpdate,
     // Sandbox
     isSandbox,
-    isSandboxMaster,
+    isSandboxProduction,
     sandboxInfo,
     sandboxList,
     loadSandboxInfo,

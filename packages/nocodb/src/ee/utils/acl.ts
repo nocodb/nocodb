@@ -1683,9 +1683,9 @@ const permissionDescriptions: Record<string, string> = {
   sandboxGet: 'view sandbox status and details',
   sandboxCreate: 'create a sandbox environment for the base',
   sandboxDiscard: 'discard an active sandbox environment',
-  sandboxMerge: 'merge sandbox changes back to the master base',
+  sandboxMerge: 'merge sandbox changes back to the production base',
   sandboxDelete: 'delete a sandbox environment',
-  sandboxDiff: 'view differences between sandbox and master base',
+  sandboxDiff: 'view differences between sandbox and production base',
   sandboxChangelog: 'view sandbox change history',
 
   viewRowColorInfo: 'view row colouring info',

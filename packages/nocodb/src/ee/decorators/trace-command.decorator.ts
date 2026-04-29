@@ -48,7 +48,7 @@ export interface TraceCommandOptions {
   resolveCtx?: (context: any, param: any) => Promise<ResolvedCtx>;
   /**
    * For create operations: the key in `param` whose object gets the sandbox entity ID
-   * injected during master replay for ID preservation.
+   * injected during production replay for ID preservation.
    * Example: 'table' for tableCreate, 'column' for columnAdd.
    */
   idField?: string;
@@ -75,7 +75,7 @@ export interface TraceCommandOptions {
    * for cases where post-state has lost relevant info (e.g. deletes).
    * Returning truthy (or throwing) skips recording.
    * Example: base variables skip recording for already-inherited vars — those
-   * are sandbox-local overrides and must not propagate back to master.
+   * are sandbox-local overrides and must not propagate back to production.
    */
   skipIf?: (
     context: any,

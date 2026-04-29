@@ -231,7 +231,7 @@ export interface DuplicateDashboardJobData extends JobData {
 
 export interface SandboxMergeJobData extends JobData {
   sandboxBaseId: string;
-  masterBaseId: string;
+  productionBaseId: string;
   sandboxId: string;
   req: NcRequest;
   selectedChangelogIds?: string[];

@@ -147,7 +147,7 @@ export class ManagedAppPostOperations
 
       if (base.is_sandbox) {
         NcError.get(context).badRequest(
-          'Cannot create a managed app from a sandbox base. Publish the master base instead.',
+          'Cannot create a managed app from a sandbox base. Publish the production base instead.',
         );
       }
 

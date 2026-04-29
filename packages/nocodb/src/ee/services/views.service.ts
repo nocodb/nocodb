@@ -23,7 +23,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { MetaTable } from '~/utils/globals';
 import {
   assertNotSandbox,
-  assertNotSandboxMaster,
+  assertNotSandboxProduction,
 } from '~/helpers/sandboxGuards';
 
 @Injectable()
@@ -68,7 +68,7 @@ export class ViewsService extends ViewsServiceCE {
   ) {
     const view = await View.get(context, param.viewId);
     if (view?.lock_type === 'locked' || param.view?.lock_type === 'locked') {
-      await assertNotSandboxMaster(
+      await assertNotSandboxProduction(
         context,
         'Locked views cannot be created or modified on a base with an active sandbox. Make changes in the sandbox.',
       );
@@ -108,7 +108,7 @@ export class ViewsService extends ViewsServiceCE {
     }
 
     if (!view.owned_by) {
-      await assertNotSandboxMaster(
+      await assertNotSandboxProduction(
         context,
         'Collaborative views cannot be deleted from a base with an active sandbox. Delete the view in the sandbox and merge.',
       );
@@ -177,11 +177,11 @@ export class ViewsService extends ViewsServiceCE {
   ) {
     await assertNotSandbox(
       context,
-      'Shared view links cannot be created on a sandbox base. Share the view on the master base.',
+      'Shared view links cannot be created on a sandbox base. Share the view on the production base.',
     );
     const view = await View.get(context, param.viewId);
     if (view?.lock_type === 'locked') {
-      await assertNotSandboxMaster(
+      await assertNotSandboxProduction(
         context,
         'Locked views cannot be modified on a base with an active sandbox. Make changes in the sandbox.',
       );
@@ -205,11 +205,11 @@ export class ViewsService extends ViewsServiceCE {
   ) {
     await assertNotSandbox(
       context,
-      'Shared view links cannot be edited on a sandbox base. Manage sharing on the master base.',
+      'Shared view links cannot be edited on a sandbox base. Manage sharing on the production base.',
     );
     const view = await View.get(context, param.viewId);
     if (view?.lock_type === 'locked') {
-      await assertNotSandboxMaster(
+      await assertNotSandboxProduction(
         context,
         'Locked views cannot be modified on a base with an active sandbox. Make changes in the sandbox.',
       );
@@ -228,11 +228,11 @@ export class ViewsService extends ViewsServiceCE {
   ) {
     await assertNotSandbox(
       context,
-      'Shared view links cannot be removed on a sandbox base. Manage sharing on the master base.',
+      'Shared view links cannot be removed on a sandbox base. Manage sharing on the production base.',
     );
     const view = await View.get(context, param.viewId);
     if (view?.lock_type === 'locked') {
-      await assertNotSandboxMaster(
+      await assertNotSandboxProduction(
         context,
         'Locked views cannot be modified on a base with an active sandbox. Make changes in the sandbox.',
       );

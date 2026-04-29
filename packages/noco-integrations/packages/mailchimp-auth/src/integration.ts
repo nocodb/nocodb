@@ -98,8 +98,6 @@ export class MailchimpAuthIntegration extends AuthIntegration<
     code: string;
   }): Promise<{
     oauth_token: string;
-    refresh_token?: string;
-    expires_in?: number;
     server?: string;
   }> {
     const { code } = payload;

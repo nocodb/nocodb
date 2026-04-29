@@ -833,7 +833,6 @@ const rolePermissions:
       tableList: true,
       viewList: true,
       viewSectionList: true,
-      baseVariableList: true,
       functionList: true,
       sequenceList: true,
       procedureList: true,

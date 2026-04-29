@@ -61,33 +61,39 @@ export class BaseVariablesService {
     const { default_value: _, ...rest } = v as any;
     const result = { ...rest } as BaseVariableType;
 
-    // Secret values are always masked
-    if (v.type === BaseVariableValueType.SECRET) {
-      result.value = SECRET_MASK;
-    }
-    // On managed app instances: mask fixed values and non-overridden editable values
-    else if (flags.isManagedAppInstance) {
-      if (v.inheritance === BaseVariableInheritance.FIXED) {
-        result.value = SECRET_MASK;
-      } else if (
-        v.inheritance === BaseVariableInheritance.EDITABLE &&
-        !v.is_overridden
-      ) {
+    // Mask only when there's actually a value to hide — otherwise the GUI
+    // can't distinguish "set, hidden" from "not yet configured".
+    const hasValue = !!v.value;
+
+    if (hasValue) {
+      // Secret values are always masked
+      if (v.type === BaseVariableValueType.SECRET) {
         result.value = SECRET_MASK;
       }
-    }
-    // Sandbox: hide master-provided values so the sandbox user can see only
-    // their own overrides. Fixed inherited values and non-overridden editable
-    // inherited values are masked.
-    else if (flags.isSandbox) {
-      if (v.inheritance === BaseVariableInheritance.FIXED && v.is_inherited) {
-        result.value = SECRET_MASK;
-      } else if (
-        v.inheritance === BaseVariableInheritance.EDITABLE &&
-        v.is_inherited &&
-        !v.is_overridden
-      ) {
-        result.value = SECRET_MASK;
+      // On managed app instances: mask fixed values and non-overridden editable values
+      else if (flags.isManagedAppInstance) {
+        if (v.inheritance === BaseVariableInheritance.FIXED) {
+          result.value = SECRET_MASK;
+        } else if (
+          v.inheritance === BaseVariableInheritance.EDITABLE &&
+          !v.is_overridden
+        ) {
+          result.value = SECRET_MASK;
+        }
+      }
+      // Sandbox: hide master-provided values so the sandbox user can see only
+      // their own overrides. Fixed inherited values and non-overridden editable
+      // inherited values are masked.
+      else if (flags.isSandbox) {
+        if (v.inheritance === BaseVariableInheritance.FIXED && v.is_inherited) {
+          result.value = SECRET_MASK;
+        } else if (
+          v.inheritance === BaseVariableInheritance.EDITABLE &&
+          v.is_inherited &&
+          !v.is_overridden
+        ) {
+          result.value = SECRET_MASK;
+        }
       }
     }
 

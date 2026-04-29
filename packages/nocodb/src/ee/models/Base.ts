@@ -25,6 +25,7 @@ import Noco from '~/Noco';
 import {
   ApiTokenScope,
   BaseUser,
+  BaseVariable,
   CustomUrl,
   Dashboard,
   DataReflection,
@@ -534,6 +535,7 @@ export default class Base extends BaseCE {
     await Dashboard.deleteByBaseId(context, baseId, ncMeta);
     await Workflow.deleteByBaseId(context, baseId, ncMeta);
     await Script.deleteByBaseId(context, baseId, ncMeta);
+    await BaseVariable.deleteByBaseId(context, baseId, ncMeta);
 
     const sources = await Source.list(
       context,

@@ -19,9 +19,10 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { NcError } from '~/helpers/catchError';
 import ManagedApp from '~/models/ManagedApp';
 import ManagedAppVersion from '~/models/ManagedAppVersion';
-import { Base, BaseVariable } from '~/models';
+import { Base } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import { ManagedAppService } from '~/services/managed-app.service';
+import { BaseVariablesService } from '~/ee/services/base-variables.service';
 import ManagedAppDeploymentLog from '~/models/ManagedAppDeploymentLog';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import { serializeMeta } from '~/helpers/baseMetaHelpers';
@@ -50,6 +51,7 @@ export class ManagedAppPostOperations
   constructor(
     private readonly managedAppService: ManagedAppService,
     private readonly basesService: BasesService,
+    private readonly baseVariablesService: BaseVariablesService,
     private readonly appHooksService: AppHooksService,
     @Inject('JobsService') private readonly jobsService: IJobsService,
   ) {}
@@ -521,13 +523,16 @@ export class ManagedAppPostOperations
 
     const serializedSchema = await serializeMeta(sourceContext);
 
-    // Strip sensitive and required variable values before publishing
+    // Strip sensitive and required variable values before publishing.
+    // default_value is also nulled — it can carry the master's plaintext
+    // (decrypted on read) and we never want it leaked through the published
+    // schema or surfaced to installers.
     if (serializedSchema[MetaTable.BASE_VARIABLES]?.length) {
       serializedSchema[MetaTable.BASE_VARIABLES] = serializedSchema[
         MetaTable.BASE_VARIABLES
       ].map((v: any) => {
         if (v.inheritance === 'required' || v.type === 'secret') {
-          return { ...v, value: null };
+          return { ...v, value: null, default_value: null };
         }
         return v;
       });
@@ -707,8 +712,13 @@ export class ManagedAppPostOperations
         },
       });
 
-      // Check for variables that need configuration
-      const variables = await BaseVariable.list(targetContext, targetBase.id);
+      // Check for variables that need configuration. Route through the
+      // service so default_value is stripped and SECRET values are masked
+      // before any of this lands in the API response.
+      const variables = await this.baseVariablesService.list(
+        targetContext,
+        targetBase.id,
+      );
       const setupVariables = variables.filter(
         (v) =>
           (v.inheritance === 'required' && !v.value) ||

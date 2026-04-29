@@ -25,7 +25,7 @@ const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, blockExtensions, showUpgradeToUseExtensions } = useEeConfig()
 
 const isSharedBase = computed(() => route.params.typeOrId === 'base')
 
@@ -102,13 +102,13 @@ const topbarBreadcrumbItemWidth = computed(() => {
           "
           placement="bottom"
         >
-          <template #title>{{ isPanelExpanded ? $t('tooltip.hideExtensions') : $t('tooltip.showExtensions') }}</template>
+          <template #title>{{ $t('general.extensions') }}</template>
           <NcButton
             v-e="['c:extension-toggle']"
-            type="secondary"
+            type="text"
             size="small"
-            class="nc-topbar-extension-btn !font-normal"
-            :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
+            class="nc-topbar-extension-btn"
+            :class="{ '!bg-nc-bg-brand !text-nc-content-brand': isPanelExpanded }"
             data-testid="nc-topbar-extension-btn"
             @click="blockExtensions && !isPanelExpanded ? showUpgradeToUseExtensions() : toggleExtensionPanel()"
           >

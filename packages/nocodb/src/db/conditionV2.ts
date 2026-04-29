@@ -1508,14 +1508,6 @@ async function resolveCrossTableDynamicFilter(
 
   const relatedAlias = `__nc_df${aliasCount.count++}`;
 
-  // Reference to the source table's filter column (outer query)
-  const sourceTableRef =
-    alias || baseModelSqlv2.getTnPath(baseModelSqlv2.model.table_name);
-  const filterColumnRef = knex.raw('??.??', [
-    sourceTableRef,
-    filterColumn.column_name,
-  ]) as any;
-
   // EXISTS (SELECT 1 FROM relatedTable WHERE pk = rowId AND <comparison> AND <soft-delete>)
   const existsQb = knex(
     relatedBaseModel.getTnPath(relatedModel.table_name, relatedAlias),
@@ -1544,20 +1536,29 @@ async function resolveCrossTableDynamicFilter(
     existsQb.where(softDeleteFilter);
   }
 
-  // Delegate comparison to parseConditionV2 — supports all operators/types
+  // Delegate comparison to parseConditionV2 — supports all operators/types.
+  // Keep the original filterColumn as fk_column_id and reference the value
+  // column (in the related table) as the literal value. This preserves the
+  // original operator direction so asymmetric ops (gt, lt, gte, lte, like)
+  // are not accidentally inverted.
+  const valueColumnRef = knex.raw('??.??', [
+    relatedAlias,
+    valueColumn.column_name,
+  ]) as any;
+
   const comparisonFilter = new Filter({
     ...filter,
-    fk_column_id: valueColumn.id,
-    fk_model_id: relatedModel.id,
+    fk_column_id: filterColumn.id,
+    fk_model_id: filterColumn.fk_model_id,
     fk_value_col_id: null,
   });
-  comparisonFilter.value = filterColumnRef;
+  comparisonFilter.value = valueColumnRef;
 
   const compResult = await parseConditionV2(
-    relatedBaseModel,
+    baseModelSqlv2,
     comparisonFilter,
     aliasCount,
-    relatedAlias,
+    alias,
   );
   compResult.clause(existsQb);
 

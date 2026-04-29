@@ -170,8 +170,10 @@ watch(isOpen, (open) => {
       >
         <template #listItem="{ option }">
           <div class="flex items-center gap-2 flex-1 min-w-0">
-            <LazyGeneralEmojiPicker v-if="option.ncIcon" :emoji="option.ncIcon" readonly size="xsmall" class="flex-none" />
-            <GeneralIcon v-else icon="ncFileText" class="flex-none !w-4 !h-4 text-nc-content-gray-muted" />
+            <slot name="listItemIcon" :option="option">
+              <LazyGeneralEmojiPicker v-if="option.ncIcon" :emoji="option.ncIcon" readonly size="xsmall" class="flex-none" />
+              <GeneralIcon v-else icon="ncFileText" class="flex-none !w-4 !h-4 text-nc-content-gray-muted" />
+            </slot>
             <NcTooltip class="truncate flex-1 min-w-0" show-on-truncate-only>
               <template #title>{{ option.label }}</template>
               {{ option.label }}

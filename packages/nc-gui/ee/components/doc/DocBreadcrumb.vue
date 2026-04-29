@@ -149,6 +149,17 @@ const handleEllipsisSelect = (option: NcListItemType) => {
           class="!grayscale min-w-4"
         />
       </template>
+      <template #listItemIcon="{ option }">
+        <GeneralProjectIcon
+          :type="(option.raw as BaseType)?.type"
+          :color="(option.raw as BaseType)?.meta ? parseProp((option.raw as BaseType).meta).iconColor : undefined"
+          :managed-app="{
+            managed_app_master: (option.raw as BaseType)?.managed_app_master,
+            managed_app_id: (option.raw as BaseType)?.managed_app_id,
+          }"
+          class="flex-none !grayscale min-w-4"
+        />
+      </template>
     </DocBreadcrumbSegment>
     <GeneralIcon icon="ncSlash1" class="nc-doc-breadcrumb-divider" />
 

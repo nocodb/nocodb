@@ -32,6 +32,10 @@ const up = async (knex: Knex) => {
 
   await knex.schema.createTable(MetaTable.SANDBOX_CHANGELOG, (table) => {
     table.string('id', 20).notNullable().primary();
+    // App-managed monotonic counter (microseconds + intra-tick increment).
+    // Replay iterates in seq-ASC order. created_at has only second precision
+    // (meta.service.ts now()), so we cannot rely on it alone for ordering.
+    table.bigInteger('seq').notNullable();
     table.string('fk_sandbox_id', 20).notNullable();
     table.string('base_id', 20).notNullable();
     table.string('event', 80).notNullable();
@@ -49,7 +53,7 @@ const up = async (knex: Knex) => {
   });
 
   await knex.schema.alterTable(MetaTable.SANDBOX_CHANGELOG, (table) => {
-    table.index(['fk_sandbox_id'], 'nc_scl_sandbox_id_index');
+    table.index(['fk_sandbox_id', 'seq'], 'nc_scl_sandbox_seq_index');
     table.index(['base_id'], 'nc_scl_base_id_index');
     table.index(['entity_type', 'entity_id'], 'nc_scl_entity_type_id_index');
   });

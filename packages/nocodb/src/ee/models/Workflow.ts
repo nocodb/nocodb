@@ -327,7 +327,9 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       this.get(context, dependency.dependent_id, false, ncMeta),
     );
 
-    return workflows.filter((wf) => wf.enabled);
+    // Workflow.get returns null for soft-deleted/missing workflows; orphan
+    // dep rows pointing at them must not break the lookup for live workflows.
+    return workflows.filter((wf) => wf?.enabled);
   }
 
   /**

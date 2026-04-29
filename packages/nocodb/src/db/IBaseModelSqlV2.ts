@@ -99,7 +99,7 @@ export interface IBaseModelSqlV2 {
     }[],
   ): Promise<any[]>;
   fetchDisplayValueMap(
-    props: { model: Model; id: any }[],
+    props: { model: Model; id: any; displayColumn?: Column }[],
   ): Promise<Map<string, any>>;
   extractPksValues(data: any, asString?: boolean): any;
   readByPk(

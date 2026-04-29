@@ -451,11 +451,24 @@ export class RelationManager {
 
     const { baseModel } = this.relationContext;
 
-    // Batch-fetch display values for all evicted rows
+    // Batch-fetch display values for all evicted rows. Thread the LTAR's
+    // custom display column (fk_display_value_column_id) per side via
+    // getDisplayColForModel — returns the override only for the related side
+    // and undefined otherwise (so the source side falls back to default PV).
+    const parentDisplayColumn = await this.getDisplayColForModel(parentTable);
+    const childDisplayColumn = await this.getDisplayColForModel(childTable);
     const dvMap = await baseModel.fetchDisplayValueMap(
       removedPairs.flatMap((pair) => [
-        { model: parentTable, id: pair.parentFk },
-        { model: childTable, id: pair.childFk },
+        {
+          model: parentTable,
+          id: pair.parentFk,
+          displayColumn: parentDisplayColumn,
+        },
+        {
+          model: childTable,
+          id: pair.childFk,
+          displayColumn: childDisplayColumn,
+        },
       ]),
     );
 
@@ -1055,7 +1068,9 @@ export class RelationManager {
                   {
                     model: parentTable,
                     id: parentId,
-                    displayColumn: await this.getDisplayColForModel(parentTable),
+                    displayColumn: await this.getDisplayColForModel(
+                      parentTable,
+                    ),
                   },
                 ]);
 

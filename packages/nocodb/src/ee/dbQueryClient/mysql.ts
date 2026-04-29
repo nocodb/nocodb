@@ -144,6 +144,12 @@ export class MySqlDBQueryClient
             column.colOptions as LinkToAnotherRecordColumn
           ).getRelContext(context);
 
+          // Skip extraction when the related table is gone (orphaned LTAR
+          // — e.g. target table deleted, or cross-base link broken).
+          if (!relatedModel) {
+            return result;
+          }
+
           await relatedModel.getColumns(refContext);
           // @ts-ignore
           const pkColumn = relatedModel.primaryKey;

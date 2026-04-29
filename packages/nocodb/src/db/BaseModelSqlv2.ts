@@ -2977,6 +2977,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await this.prepareNocoData(updateObj, false, cookie, prevData);
 
+      // Reject empty payloads explicitly — knex would otherwise throw
+      // "Empty .update() call detected" with no usable context for the user.
+      if (!updateObj || Object.keys(updateObj).length === 0) {
+        NcError.get(this.context).invalidRequestBody(
+          'No valid fields provided in update payload',
+        );
+      }
+
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
         .where(await this._wherePk(id, true));

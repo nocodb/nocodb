@@ -53,7 +53,9 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
 
     const colOptions = await column.getColOptions<LookupColumn>(context);
 
-    if (colOptions?.error) {
+    // Skip filter when colOptions is missing (orphaned lookup) or carries
+    // a parse error — emitting an empty clause keeps the query valid.
+    if (!colOptions || colOptions.error) {
       return {
         clause: (_qb) => {},
         rootApply: undefined,

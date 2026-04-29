@@ -100,7 +100,7 @@ export class FiltersService extends FiltersServiceCE {
 
     const column = await Column.get(context, { colId: param.columnId });
 
-    if (!column && !isLinksOrLTAR(column)) {
+    if (!column || !isLinksOrLTAR(column)) {
       NcError.badRequest('Link column not found');
     }
 

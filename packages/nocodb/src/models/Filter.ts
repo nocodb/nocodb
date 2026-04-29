@@ -377,12 +377,16 @@ export default class Filter implements FilterType {
       if (filter.fk_view_id) {
         const view = await View.get(context, filter.fk_view_id, false, ncMeta);
 
-        await View.clearSingleQueryCache(
-          context,
-          view.fk_model_id,
-          [view],
-          ncMeta,
-        );
+        // View may be missing if it was deleted concurrently or the filter
+        // is orphaned — skip cache invalidation rather than throwing.
+        if (view) {
+          await View.clearSingleQueryCache(
+            context,
+            view.fk_model_id,
+            [view],
+            ncMeta,
+          );
+        }
       }
     }
 
@@ -438,14 +442,16 @@ export default class Filter implements FilterType {
     {
       const filter = await this.get(context, id, ncMeta);
       // if not a view filter then no need to delete
-      if (filter.fk_view_id) {
+      if (filter?.fk_view_id) {
         const view = await View.get(context, filter.fk_view_id, false, ncMeta);
-        await View.clearSingleQueryCache(
-          context,
-          view.fk_model_id,
-          [{ id: filter.fk_view_id }],
-          ncMeta,
-        );
+        if (view) {
+          await View.clearSingleQueryCache(
+            context,
+            view.fk_model_id,
+            [{ id: filter.fk_view_id }],
+            ncMeta,
+          );
+        }
       }
     }
 
@@ -482,12 +488,14 @@ export default class Filter implements FilterType {
       if (filter.fk_view_id) {
         const view = await View.get(context, filter.fk_view_id, false, ncMeta);
 
-        await View.clearSingleQueryCache(
-          context,
-          view.fk_model_id,
-          [{ id: filter.fk_view_id }],
-          ncMeta,
-        );
+        if (view) {
+          await View.clearSingleQueryCache(
+            context,
+            view.fk_model_id,
+            [{ id: filter.fk_view_id }],
+            ncMeta,
+          );
+        }
       }
     }
   }
@@ -801,12 +809,14 @@ export default class Filter implements FilterType {
     // on update delete any optimised single query cache
     {
       const view = await View.get(context, viewId, false, ncMeta);
-      await View.clearSingleQueryCache(
-        context,
-        view.fk_model_id,
-        [view],
-        ncMeta,
-      );
+      if (view) {
+        await View.clearSingleQueryCache(
+          context,
+          view.fk_model_id,
+          [view],
+          ncMeta,
+        );
+      }
     }
   }
 

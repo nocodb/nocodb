@@ -148,6 +148,14 @@ export class PGDBQueryClient
             column.colOptions as LinkToAnotherRecordColumn
           ).getRelatedTable(context);
 
+          // Skip extraction when the related table is gone (orphaned LTAR
+          // — e.g. target table deleted, or cross-base link broken).
+          // Without this guard relatedModel.getColumns throws a TypeError
+          // and aborts the whole list/count query.
+          if (!relatedModel) {
+            return result;
+          }
+
           const { refContext } = (
             column.colOptions as LinkToAnotherRecordColumn
           ).getRelContext(context);

@@ -37,7 +37,7 @@ export class FormulaGeneralHandler extends ComputedFieldHandler {
     ).builder;
     const parsedTree: ParsedFormulaNode = formula.getParsedTree();
     const value =
-      parsedTree.dataType === FormulaDataTypes.DATE
+      parsedTree?.dataType === FormulaDataTypes.DATE
         ? filter.value
         : knex.raw('?', [
             // convert value to number if formulaDataType if numeric

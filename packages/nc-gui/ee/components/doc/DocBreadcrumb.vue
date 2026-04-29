@@ -22,6 +22,10 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const { t } = useI18n()
 
+const { isRtl } = useRtl()
+
+const ellipsisPlacement = computed(() => (isRtl.value ? 'bottomRight' : 'bottomLeft'))
+
 const ancestors = computed(() => getDocumentAncestors(props.docId))
 
 const rootAncestor = computed(() => (ancestors.value.length > 0 ? ancestors.value[0] : null))
@@ -176,7 +180,7 @@ const handleEllipsisSelect = (option: NcListItemType) => {
 
     <!-- 2b. `...` dropdown for many collapsed middle ancestors -->
     <template v-if="hasCollapsed">
-      <NcDropdown v-model:visible="isEllipsisOpen" placement="bottomLeft">
+      <NcDropdown v-model:visible="isEllipsisOpen" :placement="ellipsisPlacement">
         <div
           class="nc-doc-breadcrumb-segment rounded-lg h-8 px-2 flex items-center gap-1 cursor-pointer text-nc-content-inverted-secondary font-weight-500 hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis)"
           @click.stop="isEllipsisOpen = !isEllipsisOpen"

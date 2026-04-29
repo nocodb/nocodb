@@ -45,7 +45,11 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+const { isRtl } = useRtl()
+
 const isOpen = ref(false)
+
+const segmentPlacement = computed(() => (isRtl.value ? 'bottomRight' : 'bottomLeft'))
 
 const closeToken = ref(0)
 provide(DocBreadcrumbCloseTokenInj, closeToken)
@@ -77,7 +81,7 @@ watch(isOpen, (open) => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen" :disabled="!hasDropdown" placement="bottomLeft" overlay-class-name="max-w-64">
+  <NcDropdown v-model:visible="isOpen" :disabled="!hasDropdown" :placement="segmentPlacement" overlay-class-name="max-w-64">
     <div
       class="nc-doc-breadcrumb-segment rounded-lg h-8 px-2 flex items-center gap-1 cursor-pointer"
       :class="[

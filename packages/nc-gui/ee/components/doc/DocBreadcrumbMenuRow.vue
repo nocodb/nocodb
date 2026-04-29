@@ -19,12 +19,20 @@ const emits = defineEmits<{
 
 const { t } = useI18n()
 
+const { isRtl } = useRtl()
+
 // Incremented by the top-level segment when its dropdown closes — every open
 // descendant submenu watches this and force-closes itself, otherwise Ant
 // Design's body-mounted popups stay visible after the parent hides.
 const closeToken = inject(DocBreadcrumbCloseTokenInj, ref(0))
 
 const label = computed(() => props.doc.title || t('general.untitled'))
+
+const submenuPlacement = computed(() => (isRtl.value ? 'leftTop' : 'rightTop'))
+
+const submenuAlign = computed(() => ({ offset: [isRtl.value ? -2 : 2, -5] as [number, number] }))
+
+const chevronIcon = computed(() => (isRtl.value ? 'ncChevronLeft' : 'ncChevronRight'))
 
 const children = computed(() => (props.doc.id ? props.getChildren(props.doc.id) : []))
 
@@ -82,8 +90,8 @@ const onClickRow = (e: MouseEvent) => {
     v-if="hasChildren"
     :visible="isOpen"
     :trigger="['hover']"
-    placement="rightTop"
-    :align="{ offset: [2, -5] }"
+    :placement="submenuPlacement"
+    :align="submenuAlign"
     overlay-class-name="nc-doc-breadcrumb-submenu-overlay"
     @update:visible="onVisibleChange"
   >
@@ -94,7 +102,7 @@ const onClickRow = (e: MouseEvent) => {
         <template #title>{{ label }}</template>
         {{ label }}
       </NcTooltip>
-      <GeneralIcon icon="ncChevronRight" class="flex-none !opacity-60" />
+      <GeneralIcon :icon="chevronIcon" class="flex-none !opacity-60" />
     </div>
 
     <template #overlay>

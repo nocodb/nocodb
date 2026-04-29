@@ -471,7 +471,7 @@ function onStopEdit() {
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
               />
 
-              <NcDivider v-if="canUpdateDocument" />
+              <NcDivider v-if="canUpdateDocument || isUIAllowed('documentCreate')" />
 
               <template v-if="canUpdateDocument">
                 <NcMenuItem

@@ -95,7 +95,7 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: isMysql(context) ? 'is' : 'is equal',
+      operation: isMysql(context) || isPg(context) ? 'is' : 'is equal',
       // Sakila Rating: MySQL ENUM and PG mpaa_rating (native enum, auto-detected
       // by introspection) both surface as SingleSelect. SQLite has no native
       // enum so it stays as plain text.
@@ -320,7 +320,7 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: isMysql(context) ? 'is' : 'is equal',
+      operation: isMysql(context) || isPg(context) ? 'is' : 'is equal',
       // Sakila Rating: MySQL ENUM and PG mpaa_rating (native enum, auto-detected
       // by introspection) both surface as SingleSelect. SQLite has no native
       // enum so it stays as plain text.
@@ -373,7 +373,7 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'NC-17',
-      operation: isMysql(context) ? 'is' : 'is equal',
+      operation: isMysql(context) || isPg(context) ? 'is' : 'is equal',
       // Sakila Rating: MySQL ENUM and PG mpaa_rating (native enum, auto-detected
       // by introspection) both surface as SingleSelect. SQLite has no native
       // enum so it stays as plain text.
@@ -399,7 +399,7 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: isMysql(context) ? 'is' : 'is equal',
+      operation: isMysql(context) || isPg(context) ? 'is' : 'is equal',
       // Sakila Rating: MySQL ENUM and PG mpaa_rating (native enum, auto-detected
       // by introspection) both surface as SingleSelect. SQLite has no native
       // enum so it stays as plain text.

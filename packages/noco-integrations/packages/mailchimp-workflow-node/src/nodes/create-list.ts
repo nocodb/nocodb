@@ -242,16 +242,6 @@ export class CreateListNode extends WorkflowNodeIntegration<CreateListConfig> {
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({ level: 'info', message: `[Test mode] Would create audience: ${name}`, ts: Date.now() });
-        return {
-          outputs: { listId: 'test-list-' + Date.now(), name, webId: 12345 },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({ level: 'info', message: `Creating audience: ${name}`, ts: Date.now() });
 
       const auth = await this.getIntegration<MailchimpAuthIntegration>(authIntegrationId);

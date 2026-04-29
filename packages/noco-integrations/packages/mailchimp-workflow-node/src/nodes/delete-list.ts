@@ -121,16 +121,6 @@ export class DeleteListNode extends WorkflowNodeIntegration<DeleteListConfig> {
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({ level: 'info', message: `[Test mode] Would delete audience: ${listId}`, ts: Date.now() });
-        return {
-          outputs: { deleted: true },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({ level: 'info', message: `Deleting audience: ${listId}`, ts: Date.now() });
 
       const auth = await this.getIntegration<MailchimpAuthIntegration>(authIntegrationId);

@@ -204,24 +204,6 @@ export class AddContactNode extends WorkflowNodeIntegration<AddContactConfig> {
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({
-          level: 'info',
-          message: `[Test mode] Would add contact ${email} to audience ${listId}`,
-          ts: Date.now(),
-        });
-        return {
-          outputs: {
-            contactId: 'test-contact-' + Date.now(),
-            email,
-            status: status || 'subscribed',
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({
         level: 'info',
         message: `Adding or updating contact ${email} in audience ${listId}`,

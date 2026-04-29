@@ -180,23 +180,6 @@ export class TagContactNode extends WorkflowNodeIntegration<TagContactConfig> {
         .map((t) => t.trim())
         .filter(Boolean);
 
-      if (ctx.testMode) {
-        logs.push({
-          level: 'info',
-          message: `[Test mode] Would add tags [${tagList.join(', ')}] to contact ${email}`,
-          ts: Date.now(),
-        });
-        return {
-          outputs: {
-            tagged: true,
-            tags: tagList,
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({
         level: 'info',
         message: `Adding tags [${tagList.join(', ')}] to contact ${email}`,

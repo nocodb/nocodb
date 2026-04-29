@@ -181,23 +181,6 @@ export class UntagContactNode extends WorkflowNodeIntegration<UntagContactConfig
         .map((t) => t.trim())
         .filter(Boolean);
 
-      if (ctx.testMode) {
-        logs.push({
-          level: 'info',
-          message: `[Test mode] Would remove tags [${tagList.join(', ')}] from contact ${email}`,
-          ts: Date.now(),
-        });
-        return {
-          outputs: {
-            untagged: true,
-            tags: tagList,
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({
         level: 'info',
         message: `Removing tags [${tagList.join(', ')}] from contact ${email}`,

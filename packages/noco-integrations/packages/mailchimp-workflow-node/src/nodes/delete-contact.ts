@@ -158,25 +158,6 @@ export class DeleteContactNode extends WorkflowNodeIntegration<DeleteContactConf
         };
       }
 
-      const action = permanent ? 'permanently delete' : 'archive';
-
-      if (ctx.testMode) {
-        logs.push({
-          level: 'info',
-          message: `[Test mode] Would ${action} contact ${email} from audience ${listId}`,
-          ts: Date.now(),
-        });
-        return {
-          outputs: {
-            deleted: true,
-            permanent: !!permanent,
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({
         level: 'info',
         message: `${permanent ? 'Permanently deleting' : 'Archiving'} contact ${email} from audience ${listId}`,

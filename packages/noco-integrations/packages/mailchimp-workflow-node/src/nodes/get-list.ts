@@ -122,24 +122,6 @@ export class GetListNode extends WorkflowNodeIntegration<GetListConfig> {
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({ level: 'info', message: `[Test mode] Would get audience: ${listId}`, ts: Date.now() });
-        return {
-          outputs: {
-            listId,
-            name: 'Test Audience',
-            memberCount: 1500,
-            unsubscribeCount: 42,
-            cleanedCount: 10,
-            campaignCount: 25,
-            dateCreated: '2024-01-01T00:00:00+00:00',
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({ level: 'info', message: `Getting audience: ${listId}`, ts: Date.now() });
 
       const auth = await this.getIntegration<MailchimpAuthIntegration>(authIntegrationId);

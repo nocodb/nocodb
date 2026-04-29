@@ -143,24 +143,6 @@ export class ListCampaignsNode extends WorkflowNodeIntegration<ListCampaignsConf
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({ level: 'info', message: '[Test mode] Would list campaigns', ts: Date.now() });
-        return {
-          outputs: {
-            success: true,
-            count: 2,
-            campaigns: [
-              { id: 'camp-1', type: 'regular', status: 'sent', subject: 'Newsletter #1', sendTime: '2024-06-01T10:00:00+00:00', emailsSent: 1200 },
-              { id: 'camp-2', type: 'regular', status: 'save', subject: 'Newsletter #2', sendTime: null, emailsSent: 0 },
-            ],
-            totalItems: 2,
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       const count = Math.min(Math.max(config.count || 100, 1), 1000);
 
       const filters: string[] = [];

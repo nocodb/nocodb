@@ -111,23 +111,6 @@ export class SendCampaignNode extends WorkflowNodeIntegration<SendCampaignConfig
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({
-          level: 'info',
-          message: `[Test mode] Would send campaign: ${campaignId}`,
-          ts: Date.now(),
-        });
-        return {
-          outputs: {
-            complete: true,
-            status: 'sent',
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({
         level: 'info',
         message: `Sending campaign: ${campaignId}`,

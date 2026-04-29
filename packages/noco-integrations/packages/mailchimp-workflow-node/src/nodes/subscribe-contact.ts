@@ -187,24 +187,6 @@ export class SubscribeContactNode extends WorkflowNodeIntegration<SubscribeConta
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({
-          level: 'info',
-          message: `[Test mode] Would subscribe ${email} to audience ${listId} with status ${status || 'subscribed'}`,
-          ts: Date.now(),
-        });
-        return {
-          outputs: {
-            contactId: 'test-contact-' + Date.now(),
-            email,
-            status: status || 'subscribed',
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({
         level: 'info',
         message: `Subscribing ${email} to audience ${listId}`,

@@ -209,24 +209,6 @@ export class SendTransactionalEmailNode extends WorkflowNodeIntegration<SendTran
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({
-          level: 'info',
-          message: `[Test mode] Would send transactional email to: ${to}`,
-          ts: Date.now(),
-        });
-        return {
-          outputs: {
-            messageId: 'test-msg-' + Date.now(),
-            status: 'sent',
-            rejectReason: null,
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({
         level: 'info',
         message: `Sending transactional email to: ${to}`,

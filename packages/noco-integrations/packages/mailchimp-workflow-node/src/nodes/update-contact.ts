@@ -176,24 +176,6 @@ export class UpdateContactNode extends WorkflowNodeIntegration<UpdateContactConf
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({
-          level: 'info',
-          message: `[Test mode] Would update contact ${email} in audience ${listId}`,
-          ts: Date.now(),
-        });
-        return {
-          outputs: {
-            contactId: 'test-contact-' + Date.now(),
-            email,
-            status: 'subscribed',
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({
         level: 'info',
         message: `Updating contact ${email} in audience ${listId}`,

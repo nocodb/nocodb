@@ -145,24 +145,6 @@ export class ListAudienceMembersNode extends WorkflowNodeIntegration<ListAudienc
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({ level: 'info', message: `[Test mode] Would list members of audience ${listId}`, ts: Date.now() });
-        return {
-          outputs: {
-            success: true,
-            count: 2,
-            members: [
-              { id: 'abc123', email: 'john@example.com', status: 'subscribed', firstName: 'John', lastName: 'Doe', tags: ['vip'] },
-              { id: 'def456', email: 'jane@example.com', status: 'subscribed', firstName: 'Jane', lastName: 'Smith', tags: [] },
-            ],
-            totalItems: 2,
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       const count = Math.min(Math.max(config.count || 100, 1), 1000);
 
       logs.push({

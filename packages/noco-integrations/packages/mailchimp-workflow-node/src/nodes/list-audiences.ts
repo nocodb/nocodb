@@ -96,24 +96,6 @@ export class ListAudiencesNode extends WorkflowNodeIntegration<ListAudiencesConf
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({ level: 'info', message: '[Test mode] Would list audiences', ts: Date.now() });
-        return {
-          outputs: {
-            success: true,
-            count: 2,
-            audiences: [
-              { id: 'list-1', name: 'Newsletter', memberCount: 1500, unsubscribeCount: 42, dateCreated: '2024-01-01T00:00:00+00:00' },
-              { id: 'list-2', name: 'Product Updates', memberCount: 800, unsubscribeCount: 10, dateCreated: '2024-06-01T00:00:00+00:00' },
-            ],
-            totalItems: 2,
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       const count = Math.min(Math.max(config.count || 100, 1), 1000);
 
       logs.push({ level: 'info', message: `Listing audiences (max ${count})`, ts: Date.now() });

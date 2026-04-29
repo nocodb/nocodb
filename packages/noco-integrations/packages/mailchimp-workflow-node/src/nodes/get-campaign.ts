@@ -111,27 +111,6 @@ export class GetCampaignNode extends WorkflowNodeIntegration<GetCampaignConfig> 
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({ level: 'info', message: `[Test mode] Would get campaign: ${campaignId}`, ts: Date.now() });
-        return {
-          outputs: {
-            campaignId,
-            type: 'regular',
-            status: 'save',
-            subject: 'Test Campaign',
-            fromName: 'Test User',
-            fromEmail: 'test@example.com',
-            listId: 'test-list-123',
-            sendTime: null,
-            webId: 12345,
-            emailsSent: 0,
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({ level: 'info', message: `Getting campaign: ${campaignId}`, ts: Date.now() });
 
       const auth = await this.getIntegration<MailchimpAuthIntegration>(authIntegrationId);

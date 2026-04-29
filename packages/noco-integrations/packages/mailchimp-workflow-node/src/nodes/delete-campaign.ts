@@ -110,16 +110,6 @@ export class DeleteCampaignNode extends WorkflowNodeIntegration<DeleteCampaignCo
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({ level: 'info', message: `[Test mode] Would delete campaign: ${campaignId}`, ts: Date.now() });
-        return {
-          outputs: { deleted: true },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({ level: 'info', message: `Deleting campaign: ${campaignId}`, ts: Date.now() });
 
       const auth = await this.getIntegration<MailchimpAuthIntegration>(authIntegrationId);

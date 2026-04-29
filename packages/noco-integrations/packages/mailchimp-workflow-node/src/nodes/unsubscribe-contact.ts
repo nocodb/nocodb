@@ -149,24 +149,6 @@ export class UnsubscribeContactNode extends WorkflowNodeIntegration<UnsubscribeC
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({
-          level: 'info',
-          message: `[Test mode] Would unsubscribe ${email} from audience ${listId}`,
-          ts: Date.now(),
-        });
-        return {
-          outputs: {
-            contactId: 'test-contact-' + Date.now(),
-            email,
-            status: 'unsubscribed',
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({
         level: 'info',
         message: `Unsubscribing ${email} from audience ${listId}`,

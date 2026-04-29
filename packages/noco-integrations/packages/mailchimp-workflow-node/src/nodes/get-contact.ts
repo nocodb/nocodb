@@ -149,28 +149,6 @@ export class GetContactNode extends WorkflowNodeIntegration<GetContactConfig> {
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({
-          level: 'info',
-          message: `[Test mode] Would get contact ${email} from audience ${listId}`,
-          ts: Date.now(),
-        });
-        return {
-          outputs: {
-            contactId: 'test-contact-' + Date.now(),
-            email,
-            status: 'subscribed',
-            firstName: 'Test',
-            lastName: 'User',
-            tags: [],
-            mergeFields: {},
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({
         level: 'info',
         message: `Getting contact ${email} from audience ${listId}`,

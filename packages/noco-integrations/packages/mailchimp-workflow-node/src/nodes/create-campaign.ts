@@ -248,24 +248,6 @@ export class CreateCampaignNode extends WorkflowNodeIntegration<CreateCampaignCo
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({
-          level: 'info',
-          message: `[Test mode] Would create ${type || 'regular'} campaign for audience: ${listId}`,
-          ts: Date.now(),
-        });
-        return {
-          outputs: {
-            campaignId: 'test-campaign-' + Date.now(),
-            webId: 12345,
-            status: 'save',
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({
         level: 'info',
         message: `Creating ${type || 'regular'} campaign`,

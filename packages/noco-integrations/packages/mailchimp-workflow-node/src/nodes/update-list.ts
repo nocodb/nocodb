@@ -217,16 +217,6 @@ export class UpdateListNode extends WorkflowNodeIntegration<UpdateListConfig> {
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({ level: 'info', message: `[Test mode] Would update audience: ${listId}`, ts: Date.now() });
-        return {
-          outputs: { listId, name: config.name || 'Test Audience' },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({ level: 'info', message: `Updating audience: ${listId}`, ts: Date.now() });
 
       const auth = await this.getIntegration<MailchimpAuthIntegration>(authIntegrationId);

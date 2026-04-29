@@ -202,19 +202,6 @@ export class UpdateCampaignNode extends WorkflowNodeIntegration<UpdateCampaignCo
         };
       }
 
-      if (ctx.testMode) {
-        logs.push({ level: 'info', message: `[Test mode] Would update campaign: ${campaignId}`, ts: Date.now() });
-        return {
-          outputs: {
-            campaignId,
-            status: 'save',
-          },
-          status: 'success',
-          logs,
-          metrics: { executionTimeMs: Date.now() - startTime },
-        };
-      }
-
       logs.push({ level: 'info', message: `Updating campaign: ${campaignId}`, ts: Date.now() });
 
       const auth = await this.getIntegration<MailchimpAuthIntegration>(authIntegrationId);

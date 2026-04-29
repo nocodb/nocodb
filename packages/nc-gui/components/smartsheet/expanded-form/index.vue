@@ -996,6 +996,7 @@ export default {
             :view="props.view"
             @duplicate-start="onDuplicateStart"
             @after-delete="onAfterDelete"
+            @request-close="onClose(true)"
           />
 
           <NcButton

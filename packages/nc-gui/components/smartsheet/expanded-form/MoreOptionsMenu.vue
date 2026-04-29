@@ -19,6 +19,7 @@ const emits = defineEmits<{
   duplicateStart: []
   duplicateApplied: []
   afterDelete: []
+  requestClose: []
 }>()
 
 const { isUIAllowed } = useRoles()
@@ -34,6 +35,8 @@ const { showRecordPlanLimitExceededModal } = useEeConfig()
 const { t } = useI18n()
 
 const route = useRoute()
+
+const router = useRouter()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -51,15 +54,48 @@ const { isNew, primaryKey, displayValue, baseRoles, meta, row: _row, loadRow: _l
 
 const { mode: expandedFormMode, toggle: toggleExpandedFormMode } = useExpandedFormMode()
 
-// Switching between panel and modal only makes sense on EE desktop where both
-// surfaces exist. CE (no panel) and mobile (forced to modal) hide the toggle.
-const showModeToggle = computed(() => isEeUI && !isMobileMode.value && !props.templateMode && !props.blueprintMode)
+// Panel store is provided by tabs/Smartsheet — only present when the user is on
+// a grid view inside a Smartsheet tab. In other contexts (kanban modal,
+// dashboard widgets) the toggle hides itself.
+const expandedFormPanelStore = useExpandedFormPanel()
 
-const onToggleMode = () => {
+// Switching between panel and modal only makes sense on EE desktop where both
+// surfaces exist AND a panel store is in scope (i.e., grid view on Smartsheet).
+const showModeToggle = computed(
+  () => isEeUI && !isMobileMode.value && !props.templateMode && !props.blueprintMode && !!expandedFormPanelStore,
+)
+
+const onToggleMode = async () => {
+  // Capture state BEFORE toggling — primaryKey/_row reactive refs belong to the
+  // current surface's store, which will be torn down when we close it.
+  const rowId = primaryKey.value
+  const capturedRow = _row.value
+  const fromMode = expandedFormMode.value
+
   toggleExpandedFormMode()
-  message.toast(
-    expandedFormMode.value === 'panel' ? t('msg.toast.expandedFormModeSidePanel') : t('msg.toast.expandedFormModeExpandedForm'),
-  )
+
+  message.toast(fromMode === 'panel' ? t('msg.toast.expandedFormModeExpandedForm') : t('msg.toast.expandedFormModeSidePanel'))
+
+  if (!rowId || !expandedFormPanelStore) return
+
+  // Both directions: closing the current surface clears rowId from the route
+  // (panel close watch in grid/index.vue, modal v-model setter). Re-push it
+  // after the close so the new surface stays addressable / reload-safe.
+  if (fromMode === 'panel') {
+    // panel → modal: route-based modal opens automatically once rowId is
+    // present and expandedFormOnRowIdDlg sees mode === 'modal'.
+    expandedFormPanelStore.closePanel()
+    await nextTick()
+    router.push({ query: { ...router.currentRoute.value.query, rowId } })
+  } else {
+    // modal → panel: open the panel imperatively with the row data we already
+    // have, then re-push rowId. rowIndex is unknown (the modal doesn't track
+    // one), so prev/next stay disabled until the user navigates from the grid.
+    emits('requestClose')
+    expandedFormPanelStore.openPanel(capturedRow, undefined, undefined, rowId)
+    await nextTick()
+    router.push({ query: { ...router.currentRoute.value.query, rowId } })
+  }
 }
 
 const isRecordLinkCopied = ref(false)
@@ -75,6 +111,7 @@ const visibleMoreOptions = computed(() => {
       copyRecordUrl: false,
       sendRecord: false,
       duplicateRecord: false,
+      modeToggle: false,
       deleteRecord: false,
       showDeleteDivider: false,
       showMoreOptionsMenu: false,

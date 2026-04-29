@@ -1,5 +1,4 @@
-import { OperationRegistry } from '~/command-registry/_registry';
-import { makeReplayReq } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/_replay-context';
 import {
   RecordTemplateCreateContract,
   RecordTemplateUpdateContract,
@@ -10,27 +9,7 @@ import type { RecordTemplatesService } from 'src/ee/services/record-templates/re
 export function registerRecordTemplateHandlers(
   svc: RecordTemplatesService,
 ): void {
-  OperationRegistry.register(
-    RecordTemplateCreateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return svc.recordTemplateCreate(ctx, { ...params, req } as any);
-    },
-  );
-
-  OperationRegistry.register(
-    RecordTemplateUpdateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return svc.recordTemplateUpdate(ctx, { ...params, req } as any);
-    },
-  );
-
-  OperationRegistry.register(
-    RecordTemplateDeleteContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return svc.recordTemplateDelete(ctx, { ...params, req } as any);
-    },
-  );
+  registerForward(RecordTemplateCreateContract, (ctx, p) => svc.recordTemplateCreate(ctx, p));
+  registerForward(RecordTemplateUpdateContract, (ctx, p) => svc.recordTemplateUpdate(ctx, p));
+  registerForward(RecordTemplateDeleteContract, (ctx, p) => svc.recordTemplateDelete(ctx, p));
 }

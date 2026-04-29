@@ -12,7 +12,7 @@ import {
   filterActions,
   rowColorConditionActions,
 } from '~/decorators/trace-command-descriptions';
-import type { TraceCommandDep } from '~/decorators/trace-command.decorator';
+import type { TraceCommandDep } from 'src/command-registry/_types';
 
 // ─── Reusable sub-schemas ───────────────────────────────────────────────────
 

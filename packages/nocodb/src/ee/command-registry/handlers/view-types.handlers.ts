@@ -1,5 +1,4 @@
-import { OperationRegistry } from '~/command-registry/_registry';
-import { makeReplayReq } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/_replay-context';
 import {
   GridViewCreateContract,
   GridViewUpdateContract,
@@ -25,93 +24,18 @@ export function registerViewTypeHandlers(
   kanbanSvc: KanbansService,
   calendarSvc: CalendarsService,
 ): void {
-  // ─── Grid ───────────────────────────────────────────────────────────────────
+  registerForward(GridViewCreateContract, (ctx, p) => gridSvc.gridViewCreate(ctx, p));
+  registerForward(GridViewUpdateContract, (ctx, p) => gridSvc.gridViewUpdate(ctx, p));
 
-  OperationRegistry.register(
-    GridViewCreateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return gridSvc.gridViewCreate(ctx, { ...params, req } as any);
-    },
-  );
+  registerForward(FormViewCreateContract, (ctx, p) => formSvc.formViewCreate(ctx, p));
+  registerForward(FormViewUpdateContract, (ctx, p) => formSvc.formViewUpdate(ctx, p));
 
-  OperationRegistry.register(
-    GridViewUpdateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return gridSvc.gridViewUpdate(ctx, { ...params, req } as any);
-    },
-  );
+  registerForward(GalleryViewCreateContract, (ctx, p) => gallerySvc.galleryViewCreate(ctx, p));
+  registerForward(GalleryViewUpdateContract, (ctx, p) => gallerySvc.galleryViewUpdate(ctx, p));
 
-  // ─── Form ───────────────────────────────────────────────────────────────────
+  registerForward(KanbanViewCreateContract, (ctx, p) => kanbanSvc.kanbanViewCreate(ctx, p));
+  registerForward(KanbanViewUpdateContract, (ctx, p) => kanbanSvc.kanbanViewUpdate(ctx, p));
 
-  OperationRegistry.register(
-    FormViewCreateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return formSvc.formViewCreate(ctx, { ...params, req } as any);
-    },
-  );
-
-  OperationRegistry.register(
-    FormViewUpdateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return formSvc.formViewUpdate(ctx, { ...params, req } as any);
-    },
-  );
-
-  // ─── Gallery ────────────────────────────────────────────────────────────────
-
-  OperationRegistry.register(
-    GalleryViewCreateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return gallerySvc.galleryViewCreate(ctx, { ...params, req } as any);
-    },
-  );
-
-  OperationRegistry.register(
-    GalleryViewUpdateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return gallerySvc.galleryViewUpdate(ctx, { ...params, req } as any);
-    },
-  );
-
-  // ─── Kanban ─────────────────────────────────────────────────────────────────
-
-  OperationRegistry.register(
-    KanbanViewCreateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return kanbanSvc.kanbanViewCreate(ctx, { ...params, req } as any);
-    },
-  );
-
-  OperationRegistry.register(
-    KanbanViewUpdateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return kanbanSvc.kanbanViewUpdate(ctx, { ...params, req } as any);
-    },
-  );
-
-  // ─── Calendar ───────────────────────────────────────────────────────────────
-
-  OperationRegistry.register(
-    CalendarViewCreateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return calendarSvc.calendarViewCreate(ctx, { ...params, req } as any);
-    },
-  );
-
-  OperationRegistry.register(
-    CalendarViewUpdateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return calendarSvc.calendarViewUpdate(ctx, { ...params, req } as any);
-    },
-  );
+  registerForward(CalendarViewCreateContract, (ctx, p) => calendarSvc.calendarViewCreate(ctx, p));
+  registerForward(CalendarViewUpdateContract, (ctx, p) => calendarSvc.calendarViewUpdate(ctx, p));
 }

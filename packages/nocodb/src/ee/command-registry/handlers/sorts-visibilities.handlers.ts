@@ -1,5 +1,4 @@
-import { OperationRegistry } from '~/command-registry/_registry';
-import { makeReplayReq } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/_replay-context';
 import {
   SortCreateContract,
   SortUpdateContract,
@@ -12,49 +11,17 @@ import type { ViewColumnsService } from 'src/ee/services/view-columns.service';
 import type { ModelVisibilitiesService } from 'src/ee/services/model-visibilities.service';
 
 export function registerSortHandlers(svc: SortsService): void {
-  OperationRegistry.register(
-    SortCreateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return svc.sortCreate(ctx, { ...params, req } as any);
-    },
-  );
-
-  OperationRegistry.register(
-    SortUpdateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return svc.sortUpdate(ctx, { ...params, req } as any);
-    },
-  );
-
-  OperationRegistry.register(
-    SortDeleteContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return svc.sortDelete(ctx, { ...params, req } as any);
-    },
-  );
+  registerForward(SortCreateContract, (ctx, p) => svc.sortCreate(ctx, p));
+  registerForward(SortUpdateContract, (ctx, p) => svc.sortUpdate(ctx, p));
+  registerForward(SortDeleteContract, (ctx, p) => svc.sortDelete(ctx, p));
 }
 
 export function registerViewColumnHandlers(svc: ViewColumnsService): void {
-  OperationRegistry.register(
-    ViewColumnUpdateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return svc.columnUpdate(ctx, { ...params, req } as any);
-    },
-  );
+  registerForward(ViewColumnUpdateContract, (ctx, p) => svc.columnUpdate(ctx, p));
 }
 
 export function registerVisibilityHandlers(
   svc: ModelVisibilitiesService,
 ): void {
-  OperationRegistry.register(
-    VisibilityUpdateContract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return svc.xcVisibilityMetaSetAll(ctx, { ...params, req } as any);
-    },
-  );
+  registerForward(VisibilityUpdateContract, (ctx, p) => svc.xcVisibilityMetaSetAll(ctx, p));
 }

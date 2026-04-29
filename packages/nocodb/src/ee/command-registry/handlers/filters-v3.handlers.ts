@@ -1,14 +1,7 @@
-import { OperationRegistry } from '~/command-registry/_registry';
-import { makeReplayReq } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/_replay-context';
 import { FilterCreateV3Contract } from '../operations/filters-v3.operations';
 import type { FiltersV3Service } from 'src/ee/services/v3/filters-v3.service';
 
 export function registerFiltersV3Handlers(svc: FiltersV3Service): void {
-  OperationRegistry.register(
-    FilterCreateV3Contract,
-    async (ctx, params, meta) => {
-      const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return svc.filterCreate(ctx, { ...params, req } as any);
-    },
-  );
+  registerForward(FilterCreateV3Contract, (ctx, p) => svc.filterCreate(ctx, p));
 }

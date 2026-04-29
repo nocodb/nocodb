@@ -469,9 +469,7 @@ function onStopEdit() {
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
               />
 
-              <NcDivider
-                v-if="isCreatorOrAbove || isUIAllowed('documentCreate') || (doc.parent_id && isUIAllowed('documentUpdate'))"
-              />
+              <NcDivider v-if="isUIAllowed('documentUpdate')" />
 
               <template v-if="isUIAllowed('documentUpdate')">
                 <NcMenuItem

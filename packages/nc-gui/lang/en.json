@@ -1843,6 +1843,8 @@
     "setup": "Setup",
     "configLabel": "Configure {label}",
     "switchToProd": "Switch to a production-ready app database",
+    "switchToExpandedForm": "Switch to expanded form",
+    "switchToSidePanel": "Switch to side panel",
     "sharedBase": "Shared Base",
     "fieldID": "Field ID",
     "uniqueValuesOnly": "Unique values only",
@@ -3907,6 +3909,8 @@
       "rlsPolicyUpdateFailed": "Failed to update record-level security policy"
     },
     "toast": {
+      "expandedFormModeSidePanel": "Records will now open in the side panel",
+      "expandedFormModeExpandedForm": "Records will now open in the expanded form",
       "exportMetadata": "Base metadata exported successfully",
       "importMetadata": "Base metadata imported successfully",
       "clearMetadata": "Base metadata cleared successfully",

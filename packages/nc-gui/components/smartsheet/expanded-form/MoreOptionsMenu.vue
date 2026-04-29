@@ -49,6 +49,19 @@ const expandedFormStore = useExpandedFormStoreOrThrow()
 
 const { isNew, primaryKey, displayValue, baseRoles, meta, row: _row, loadRow: _loadRow, deleteRowById } = expandedFormStore
 
+const { mode: expandedFormMode, toggle: toggleExpandedFormMode } = useExpandedFormMode()
+
+// Switching between panel and modal only makes sense on EE desktop where both
+// surfaces exist. CE (no panel) and mobile (forced to modal) hide the toggle.
+const showModeToggle = computed(() => isEeUI && !isMobileMode.value && !props.templateMode && !props.blueprintMode)
+
+const onToggleMode = () => {
+  toggleExpandedFormMode()
+  message.toast(
+    expandedFormMode.value === 'panel' ? t('msg.toast.expandedFormModeSidePanel') : t('msg.toast.expandedFormModeExpandedForm'),
+  )
+}
+
 const isRecordLinkCopied = ref(false)
 
 const showSendRecordModal = ref(false)
@@ -74,6 +87,7 @@ const visibleMoreOptions = computed(() => {
     copyRecordUrl: !isNew.value && !!primaryKey.value,
     sendRecord: appInfo.value.ee && !isNew.value && !!primaryKey.value && !isPublic.value,
     duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
+    modeToggle: showModeToggle.value,
     deleteRecord: !isNew.value && isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }
 
@@ -83,7 +97,8 @@ const visibleMoreOptions = computed(() => {
     ...result,
     showDeleteDivider: result.deleteRecord && hasItemsAboveDelete,
     showMoreOptionsMenu: hasItemsAboveDelete || result.deleteRecord,
-    allHiddenExceptCopyRecordUrl: !result.reloadRecord && !result.sendRecord && !result.duplicateRecord && !result.deleteRecord,
+    allHiddenExceptCopyRecordUrl:
+      !result.reloadRecord && !result.sendRecord && !result.duplicateRecord && !result.modeToggle && !result.deleteRecord,
   }
 })
 
@@ -237,6 +252,17 @@ const onConfirmDeleteRowClick = async () => {
             </NcMenuItem>
           </template>
         </PermissionsTooltip>
+        <NcMenuItem v-if="visibleMoreOptions.modeToggle" data-testid="nc-expanded-form-toggle-mode" @click="onToggleMode">
+          <div
+            v-e="[`c:row-expand:toggle-mode:${expandedFormMode === 'panel' ? 'modal' : 'panel'}`]"
+            class="flex gap-2 items-center"
+          >
+            <GeneralIcon :icon="expandedFormMode === 'panel' ? 'expand' : 'sidebar'" class="cursor-pointer w-4 h-4" />
+            <span class="-ml-0.25">
+              {{ expandedFormMode === 'panel' ? $t('labels.switchToExpandedForm') : $t('labels.switchToSidePanel') }}
+            </span>
+          </div>
+        </NcMenuItem>
         <NcDivider v-if="visibleMoreOptions.showDeleteDivider" />
         <NcTooltip v-if="visibleMoreOptions.deleteRecord && meta?.synced" placement="left">
           <template #title>

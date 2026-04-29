@@ -28,6 +28,8 @@ const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } 
 
 const expandedFormPanelStore = useExpandedFormPanel()
 
+const { mode: expandedFormMode } = useExpandedFormMode()
+
 const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore?.isOpen.value ?? false)
 
 const expandedFormPanelRowNavigator = expandedFormPanelStore?.rowNavigator ?? ref(null)
@@ -220,7 +222,7 @@ function updateRowIdRoute(rowId: string, path: Array<number> = []) {
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
-  if (isEeUI && !isMobileMode.value && !isPublic.value && rowId) {
+  if (isEeUI && !isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && rowId) {
     expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId)
     updateRowIdRoute(rowId, path)
     return
@@ -251,8 +253,8 @@ const expandedFormOnRowIdDlg = computed({
     if (!routeQuery.value.rowId) return false
     // When the side panel is open, don't trigger the modal
     if (isExpandedFormPanelOpen.value) return false
-    // EE desktop uses the side panel — modal stays closed (a separate watcher syncs the panel from the route).
-    if (isEeUI && !isMobileMode.value && !isPublic.value) return false
+    // EE desktop in panel mode uses the side panel — modal stays closed (a separate watcher syncs the panel from the route).
+    if (isEeUI && !isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel') return false
     // When ?colId points at a SmartText column the SmartText panel claims
     // the URL — expanded record dialog stays closed.
     const colId = routeQuery.value.colId
@@ -304,7 +306,16 @@ onBeforeUnmount(() => {
 watch(
   [() => routeQuery.value.rowId, () => meta.value?.columns?.length],
   ([rowId, columnsLen]) => {
-    if (!rowId || !columnsLen || !isEeUI || isMobileMode.value || isPublic.value || !expandedFormPanelStore || !meta.value?.id)
+    if (
+      !rowId ||
+      !columnsLen ||
+      !isEeUI ||
+      isMobileMode.value ||
+      isPublic.value ||
+      expandedFormMode.value !== 'panel' ||
+      !expandedFormPanelStore ||
+      !meta.value?.id
+    )
       return
     if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
 

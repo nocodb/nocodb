@@ -14,7 +14,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const emits = defineEmits<{
-  'open-change': [boolean]
+  openChange: [boolean]
 }>()
 
 // Explicit name for recursive `<DocBreadcrumbMenuRow>` use inside its own
@@ -70,7 +70,7 @@ const onVisibleChange = (val: boolean) => {
 }
 
 watch(isOpen, (open) => {
-  emits('open-change', open)
+  emits('openChange', open)
   if (open && props.doc.has_children && props.doc.id) {
     props.loadChildren(props.doc.id)
   }
@@ -99,7 +99,7 @@ watch(parentOpenChildId, (newId) => {
 // Guarantee the parent's tracker releases this row even if a close event
 // didn't fire (rapid unmount, route change, async teardown).
 onBeforeUnmount(() => {
-  if (isOpen.value) emits('open-change', false)
+  if (isOpen.value) emits('openChange', false)
 })
 
 const onClickRow = (e: MouseEvent) => {

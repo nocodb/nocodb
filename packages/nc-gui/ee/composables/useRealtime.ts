@@ -1012,7 +1012,23 @@ export const useRealtime = createSharedComposable(() => {
             widgetStore.widgets.delete(dashboardId)
           }
 
-          // If this is the active base, reload immediately
+          // Skip eager refetch when the base is in a workspace other than the
+          // active one — `loadXxx` send `activeWorkspaceId`, so a cross-workspace
+          // call would 404. The eviction above is enough; the data will refetch
+          // when the user navigates into that workspace.
+          if (!bases.value.has(baseId)) return
+
+          // Refetch base-scoped lists eagerly so the sidebar tree, list pages,
+          // and topbar dropdowns see fresh data even when the user is on
+          // another base (e.g. merged into master from the sandbox tab).
+          const refreshLists = Promise.all([
+            scriptStore.loadScripts({ baseId, force: true }).catch(() => undefined),
+            workflowStore.loadWorkflows({ baseId, force: true }).catch(() => undefined),
+            dashboardStore.loadDashboards({ baseId, force: true }).catch(() => undefined),
+          ])
+
+          // If this is the active base, also refresh tables/metas/widgets and
+          // emit smartsheet events so the open table view repaints.
           if (activeBaseId.value === baseId) {
             loadProjectTables(baseId, true).then(async () => {
               const tables = baseTables.value.get(baseId)
@@ -1023,12 +1039,9 @@ export const useRealtime = createSharedComposable(() => {
               }
 
               await Promise.all([
-                scriptStore.loadScripts({ baseId, force: true }),
-                workflowStore.loadWorkflows({ baseId, force: true }),
-                dashboardStore.loadDashboards({ baseId, force: true }),
+                refreshLists,
                 loadExtensionsForBase(baseId),
                 listVariables(),
-                // Refresh widgets for the currently open dashboard, if any.
                 activeDashboardId.value
                   ? widgetStore.loadWidgets({ dashboardId: activeDashboardId.value, force: true })
                   : Promise.resolve(),

@@ -2006,13 +2006,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // into a single batch. The batch callback is wrapped in _queryQueue.add()
                 // to serialize actual DB execution across all relation types.
                 const listLoader = new DataLoaderWithArgs(
-                  (ids: string[]) =>
+                  (ids: readonly string[]) =>
                     this._queryQueue.add(async () => {
                       if (ids.length > 1) {
                         const data = await this.multipleHmList(
                           {
                             colId: column.id,
-                            ids,
+                            ids: ids as string[],
                             apiVersion,
                             linksAsLtar,
                           },
@@ -2056,7 +2056,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // V2 MO/OO: single-record — return object (like BT)
                 // Use multipleMmList for batching, take first record per parent
                 const readLoader = new DataLoaderWithArgs(
-                  (ids: string[]) =>
+                  (ids: readonly string[]) =>
                     this._queryQueue.add(async () => {
                       if (ids?.length > 1) {
                         const lists = await this.multipleMmList(
@@ -2092,12 +2092,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 };
               } else if (colOptions.type === 'mm' || isMMLike) {
                 const listLoader = new DataLoaderWithArgs(
-                  (ids: string[]) =>
+                  (ids: readonly string[]) =>
                     this._queryQueue.add(async () => {
                       if (ids?.length > 1) {
                         const data = await this.multipleMmList(
                           {
-                            parentIds: ids,
+                            parentIds: ids as string[],
                             colId: column.id,
                             apiVersion,
                             nested: true,
@@ -2156,7 +2156,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // result for all those together and return the value in the same order as in the array
                 // this way all parents data extracted together
                 const readLoader = new DataLoaderWithArgs(
-                  (_ids: string[]) =>
+                  (_ids: readonly string[]) =>
                     this._queryQueue.add(async () => {
                       // handle binary(16) foreign keys
                       const ids = _ids.map((id) => {
@@ -2251,7 +2251,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   // result for all those together and return the value in the same order as in the array
                   // this way all parents data extracted together
                   const readLoader = new DataLoaderWithArgs(
-                    (_ids: string[]) =>
+                    (_ids: readonly string[]) =>
                       this._queryQueue.add(async () => {
                         // handle binary(16) foreign keys
                         const ids = _ids.map((id) => {
@@ -2329,13 +2329,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   };
                 } else {
                   const listLoader = new DataLoaderWithArgs(
-                    (ids: string[]) =>
+                    (ids: readonly string[]) =>
                       this._queryQueue.add(async () => {
                         if (ids.length > 1) {
                           const data = await this.multipleHmList(
                             {
                               colId: column.id,
-                              ids,
+                              ids: ids as string[],
                             },
                             listLoader.args,
                           );

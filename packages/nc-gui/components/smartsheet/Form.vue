@@ -622,6 +622,11 @@ async function onFieldMove(event: any, targetRowKey: string) {
     }
   }
 
+  // Snapshot BEFORE the diff/apply loop — the loop mutates localColumns
+  // and fields in place, so capturing after would record the post-mutation
+  // state and make restoreGridState() a no-op on rollback.
+  const snapshot = snapshotGridState()
+
   // Diff projected state against current localColumns, then apply.
   const flat = pruned.flat() as any[]
   const updates: Array<{ id: string; row_id?: string | null; order?: number }> = []
@@ -646,7 +651,6 @@ async function onFieldMove(event: any, targetRowKey: string) {
 
   if (!updates.length) return
 
-  const snapshot = snapshotGridState()
   gridUpdatePending.value = true
   try {
     await bulkUpdateColumns(updates)
@@ -689,6 +693,9 @@ async function onFieldMoveToNewRow(event: any) {
   const pruned: any[][] = next.filter((r: any[]) => r.length > 0)
   pruned.push([{ ...movedField, row_id: null } as any])
 
+  // Snapshot BEFORE the diff/apply loop (loop mutates localColumns/fields).
+  const snapshot = snapshotGridState()
+
   const flat = pruned.flat() as any[]
   const updates: Array<{ id: string; row_id?: string | null; order?: number }> = []
   for (let i = 0; i < flat.length; i++) {
@@ -710,7 +717,6 @@ async function onFieldMoveToNewRow(event: any) {
 
   if (!updates.length) return
 
-  const snapshot = snapshotGridState()
   gridUpdatePending.value = true
   try {
     await bulkUpdateColumns(updates)

@@ -148,35 +148,30 @@ export class SandboxMergeProcessor {
       req,
     });
 
-    // Notify sandbox base users so their UI refreshes after merge
-    NocoSocket.broadcastEventToBaseUsers(
-      sandboxContext,
-      {
-        event: EventType.USER_EVENT,
+    // Notify sandbox base users so their UI refreshes after merge.
+    // Omit socket_id so the initiator's own tab also processes the reload —
+    // the merge happens server-side via a job, not as a local mutation, so
+    // the initiator needs the broadcast just like everyone else.
+    NocoSocket.broadcastEventToBaseUsers(sandboxContext, {
+      event: EventType.USER_EVENT,
+      payload: {
+        action: 'base_meta_reload',
         payload: {
-          action: 'base_meta_reload',
-          payload: {
-            base_id: sandbox.sandbox_base_id,
-          },
+          base_id: sandbox.sandbox_base_id,
         },
       },
-      req?.context?.socket_id,
-    );
+    });
 
-    // Notify master base users — merge modifies master schema
-    NocoSocket.broadcastEventToBaseUsers(
-      masterContext,
-      {
-        event: EventType.USER_EVENT,
+    // Notify master base users — merge modifies master schema.
+    NocoSocket.broadcastEventToBaseUsers(masterContext, {
+      event: EventType.USER_EVENT,
+      payload: {
+        action: 'base_meta_reload',
         payload: {
-          action: 'base_meta_reload',
-          payload: {
-            base_id: sandbox.master_base_id,
-          },
+          base_id: sandbox.master_base_id,
         },
       },
-      req?.context?.socket_id,
-    );
+    });
 
     return { success: true };
   }

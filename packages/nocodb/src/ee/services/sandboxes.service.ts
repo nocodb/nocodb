@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { AppEvents, BaseVersion, EventType } from 'nocodb-sdk';
+import { AppEvents, BaseVersion, EventType, ProjectRoles } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { Base, Sandbox, SandboxChangelog } from '~/models';
+import { Base, BaseUser, Sandbox, SandboxChangelog } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BasesService } from '~/services/bases.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -194,6 +194,35 @@ export class SandboxesService {
       );
       // Update master base with is_sandbox_master flag
       await Base.update(context, baseId, { is_sandbox_master: true }, ncMeta);
+
+      // Mirror master base Owners & Creators onto the sandbox base. Initiator
+      // is already added as owner by basesService.baseCreate — skip to avoid
+      // a duplicate (fk_user_id, base_id) row.
+      const masterUsers = await BaseUser.getUsersList(
+        context,
+        { base_id: baseId },
+        ncMeta,
+      );
+      const sandboxUserPayloads = masterUsers
+        .filter(
+          (u) =>
+            u.id !== user.id &&
+            (u.roles === ProjectRoles.OWNER ||
+              u.roles === ProjectRoles.CREATOR),
+        )
+        .map((u) => ({
+          fk_user_id: u.id,
+          base_id: sandboxBase.id,
+          roles: u.roles,
+          invited_by: user.id,
+        }));
+      if (sandboxUserPayloads.length) {
+        await BaseUser.bulkInsert(
+          { ...context, base_id: sandboxBase.id },
+          sandboxUserPayloads,
+          ncMeta,
+        );
+      }
 
       await ncMeta.commit();
 

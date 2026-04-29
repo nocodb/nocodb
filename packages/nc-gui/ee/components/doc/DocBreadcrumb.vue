@@ -26,6 +26,10 @@ const { isRtl } = useRtl()
 
 const ellipsisPlacement = computed(() => (isRtl.value ? 'bottomRight' : 'bottomLeft'))
 
+const depthIcon = computed(() => (isRtl.value ? 'ncCornerDownLeft' : 'ncCornerDownRight'))
+
+const depthIconClass = computed(() => (isRtl.value ? 'mr-1 -ml-0.5' : 'ml-1 -mr-0.5'))
+
 const ancestors = computed(() => getDocumentAncestors(props.docId))
 
 const rootAncestor = computed(() => (ancestors.value.length > 0 ? ancestors.value[0] : null))
@@ -201,8 +205,9 @@ const handleEllipsisSelect = (option: NcListItemType) => {
               <div class="flex items-center gap-2 truncate">
                 <GeneralIcon
                   v-if="option.ncDepth > 0"
-                  icon="ncCornerDownRight"
-                  class="flex-none text-nc-content-gray-muted !w-3 !h-3 ml-1 -mr-0.5"
+                  :icon="depthIcon"
+                  class="flex-none text-nc-content-gray-muted !w-3 !h-3"
+                  :class="depthIconClass"
                 />
                 <LazyGeneralEmojiPicker v-if="option.ncIcon" :emoji="option.ncIcon" readonly size="xsmall" />
                 <GeneralIcon v-else icon="ncFileText" class="flex-none text-nc-content-gray-muted !w-4 !h-4" />

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DocumentType } from 'nocodb-sdk'
+import { DocBreadcrumbCloseTokenInj } from './docBreadcrumbInjections'
 
 interface Item {
   id: string
@@ -46,6 +47,9 @@ const { t } = useI18n()
 
 const isOpen = ref(false)
 
+const closeToken = ref(0)
+provide(DocBreadcrumbCloseTokenInj, closeToken)
+
 const listItems = computed<NcListItemType[]>(() =>
   props.items.map((doc) => ({
     value: doc.id!,
@@ -66,6 +70,10 @@ const onSelectNested = (doc: DocumentType) => {
   isOpen.value = false
   emit('select', doc)
 }
+
+watch(isOpen, (open) => {
+  if (!open) closeToken.value++
+})
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DocumentType } from 'nocodb-sdk'
+import { DocBreadcrumbCloseTokenInj } from './docBreadcrumbInjections'
 
 interface Props {
   doc: DocumentType
@@ -17,6 +18,11 @@ const emits = defineEmits<{
 }>()
 
 const { t } = useI18n()
+
+// Incremented by the top-level segment when its dropdown closes — every open
+// descendant submenu watches this and force-closes itself, otherwise Ant
+// Design's body-mounted popups stay visible after the parent hides.
+const closeToken = inject(DocBreadcrumbCloseTokenInj, ref(0))
 
 const label = computed(() => props.doc.title || t('general.untitled'))
 
@@ -55,6 +61,10 @@ watch(isOpen, (open) => {
   }
 })
 
+watch(closeToken, () => {
+  if (isOpen.value) isOpen.value = false
+})
+
 // Guarantee the parent's tracker releases this row even if a close event
 // didn't fire (rapid unmount, route change, async teardown).
 onBeforeUnmount(() => {
@@ -73,21 +83,18 @@ const onClickRow = (e: MouseEvent) => {
     :visible="isOpen"
     :trigger="['hover']"
     placement="rightTop"
+    :align="{ offset: [2, -5] }"
     overlay-class-name="nc-doc-breadcrumb-submenu-overlay"
     @update:visible="onVisibleChange"
   >
-    <div
-      class="nc-doc-breadcrumb-row"
-      :class="{ 'nc-doc-breadcrumb-row-active': isActive }"
-      @click="onClickRow"
-    >
+    <div class="nc-doc-breadcrumb-row" :class="{ 'nc-doc-breadcrumb-row-active': isActive }" @click="onClickRow">
       <LazyGeneralEmojiPicker v-if="doc.meta?.icon" :emoji="doc.meta.icon" readonly size="xsmall" class="flex-none" />
       <GeneralIcon v-else icon="ncFileText" class="flex-none !w-4 !h-4 text-nc-content-gray-muted" />
       <NcTooltip class="truncate flex-1 min-w-0" show-on-truncate-only>
         <template #title>{{ label }}</template>
         {{ label }}
       </NcTooltip>
-      <GeneralIcon icon="arrowRight" class="flex-none text-base text-nc-content-gray-subtle2" />
+      <GeneralIcon icon="ncChevronRight" class="flex-none !opacity-60" />
     </div>
 
     <template #overlay>
@@ -106,12 +113,7 @@ const onClickRow = (e: MouseEvent) => {
     </template>
   </NcDropdown>
 
-  <div
-    v-else
-    class="nc-doc-breadcrumb-row"
-    :class="{ 'nc-doc-breadcrumb-row-active': isActive }"
-    @click="onSelect(doc)"
-  >
+  <div v-else class="nc-doc-breadcrumb-row" :class="{ 'nc-doc-breadcrumb-row-active': isActive }" @click="onSelect(doc)">
     <LazyGeneralEmojiPicker v-if="doc.meta?.icon" :emoji="doc.meta.icon" readonly size="xsmall" class="flex-none" />
     <GeneralIcon v-else icon="ncFileText" class="flex-none !w-4 !h-4 text-nc-content-gray-muted" />
     <NcTooltip class="truncate flex-1 min-w-0" show-on-truncate-only>

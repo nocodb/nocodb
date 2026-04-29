@@ -994,6 +994,11 @@ type NcDropdownPlacement =
   | 'topCenter'
   | 'bottomCenter'
   | 'right'
+  | 'rightTop'
+  | 'rightBottom'
+  | 'left'
+  | 'leftTop'
+  | 'leftBottom'
 
 interface CreateViewForm {
   title: string

@@ -155,21 +155,10 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
           param.req.user.id,
         ]);
       } catch (e: any) {
-        // Replay path: subscriber row already exists from the sandbox-side create
-        // (preserved on duplicate). Suppress the unique-violation noise but keep
-        // the warning for genuine failures.
-        if (
-          /unique[_ ]constraint|duplicate key value/i.test(e?.message ?? '')
-        ) {
-          this.logger.debug(
-            `Hook subscriber already exists for hook ${hook.id} — skipping`,
-          );
-        } else {
-          this.logger.error(
-            `Failed to add hook creator as subscriber: ${e.message}`,
-            e.stack,
-          );
-        }
+        this.logger.error(
+          `Failed to add hook creator as subscriber: ${e.message}`,
+          e.stack,
+        );
       }
     }
 

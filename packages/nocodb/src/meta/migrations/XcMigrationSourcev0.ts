@@ -55,6 +55,7 @@ import * as nc_202604200002_trash_cleanup_due_at from './v0/nc_202604200002_tras
 import * as nc_202604200003_base_variables_and_sandbox_changelog from './v0/nc_202604200003_base_variables_and_sandbox_changelog';
 import * as nc_202604220000_uuid_readonly from './v0/nc_202604220000_uuid_readonly';
 import * as nc_202604270000_base_trash from './v0/nc_202604270000_base_trash';
+import * as nc_202604290000_subscriber_unique_with_base_id from './v0/nc_202604290000_subscriber_unique_with_base_id';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -121,6 +122,7 @@ export default class XcMigrationSourcev0 {
       'nc_202604200003_base_variables_and_sandbox_changelog',
       'nc_202604220000_uuid_readonly',
       'nc_202604270000_base_trash',
+      'nc_202604290000_subscriber_unique_with_base_id',
     ]);
   }
 
@@ -244,6 +246,8 @@ export default class XcMigrationSourcev0 {
         return nc_202604220000_uuid_readonly;
       case 'nc_202604270000_base_trash':
         return nc_202604270000_base_trash;
+      case 'nc_202604290000_subscriber_unique_with_base_id':
+        return nc_202604290000_subscriber_unique_with_base_id;
     }
   }
 }

@@ -257,13 +257,35 @@ export default class BaseVariable implements BaseVariableType {
       NcError.badRequest('Variable value exceeds 64KB limit');
     }
 
-    // If updating value, check if it needs encryption
-    if (updateObj.value !== undefined) {
-      const current = await BaseVariable.get(context, variableId, ncMeta);
-      const type = updateObj.type || current?.type;
+    // Resolve effective type after the patch and the existing row so we can
+    // (a) encrypt new value/default_value when SECRET, and (b) re-encrypt or
+    // decrypt the persisted row when type flips between PLAIN and SECRET.
+    const current = await BaseVariable.get(context, variableId, ncMeta);
+    const previousType = current?.type;
+    const nextType = updateObj.type ?? previousType;
+    const willBeSecret = nextType === BaseVariableValueType.SECRET;
+    const typeFlipped = !!previousType && previousType !== nextType;
 
-      if (type === BaseVariableValueType.SECRET && updateObj.value) {
+    // BaseVariable.get() returns decrypted values via prepareForRead, so when
+    // type flips and a field is not in the patch we pull it from `current`
+    // (already plaintext) and write it through under the new encryption state.
+    if (typeFlipped) {
+      if (updateObj.value === undefined && current?.value) {
+        updateObj.value = current.value;
+      }
+      if (updateObj.default_value === undefined && current?.default_value) {
+        updateObj.default_value = current.default_value;
+      }
+    }
+
+    if (willBeSecret) {
+      if (updateObj.value) {
         updateObj.value = BaseVariable.encryptValue(updateObj.value);
+      }
+      if (updateObj.default_value) {
+        updateObj.default_value = BaseVariable.encryptValue(
+          updateObj.default_value,
+        );
       }
     }
 
@@ -275,8 +297,9 @@ export default class BaseVariable implements BaseVariableType {
       variableId,
     );
 
-    // Cache stores encrypted values (same as DB). Reads always
-    // decrypt via prepareForRead, so this is safe.
+    // Cache mirrors the DB row exactly: SECRET stores ciphertext, PLAIN stores
+    // plaintext. Reads route through prepareForRead, which decrypts based on
+    // the row's current `type`.
     await NocoCache.update(
       context,
       `${CacheScope.BASE_VARIABLE}:${variableId}`,

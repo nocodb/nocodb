@@ -2850,6 +2850,8 @@
     "hideExtensions": "Hide extensions",
     "sandboxRequiresV3": "Sandbox requires a V3 base. Please migrate this base to V3 first.",
     "sandboxLimitReached": "This base already has a sandbox. Only one sandbox per base is allowed.",
+    "lockedViewDisabledOnSandboxMaster": "Locked views can only be created in the sandbox",
+    "personalViewDisabledOnSandbox": "Personal views can only be created on the master base",
     "noSchemaChanges": "No schema changes to publish",
     "scopeReadOnly": "View records, tables, fields, views, and comments. No modifications allowed.",
     "scopeReadWrite": "Create, read, update, and delete records and comments. Other resources are read-only.",

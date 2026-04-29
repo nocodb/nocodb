@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { NcApiVersion } from 'nocodb-sdk';
 import { MetaTable } from '~/utils/globals';
 import { Model } from '~/models';
 import type { OperationContract } from 'src/command-registry/_types';
@@ -21,7 +22,7 @@ const createSchema = z.object({
   sourceId: z.string().optional(),
   table: tableBodySchema,
   synced: z.boolean().optional(),
-  apiVersion: z.string().optional(),
+  apiVersion: z.nativeEnum(NcApiVersion).optional(),
   isDuplicateOperation: z.boolean().optional(),
 });
 

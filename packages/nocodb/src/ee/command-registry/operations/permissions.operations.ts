@@ -7,7 +7,6 @@ import { permissionActions } from '~/decorators/trace-command-descriptions';
 
 const permissionSetSchema = z.object({
   permission: z.record(z.unknown()),
-  req: z.any(),
 });
 
 export const PermissionSetContract: OperationContract<typeof permissionSetSchema> = {
@@ -26,7 +25,6 @@ export const PermissionSetContract: OperationContract<typeof permissionSetSchema
 
 const permissionDropSchema = z.object({
   permission: z.record(z.unknown()),
-  req: z.any(),
 });
 
 export const PermissionDropContract: OperationContract<typeof permissionDropSchema> = {

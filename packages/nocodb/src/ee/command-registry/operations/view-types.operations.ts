@@ -139,17 +139,8 @@ export const GalleryViewUpdateContract: OperationContract<typeof galleryUpdateSc
   schema: galleryUpdateSchema,
   entityId: (p) => p.galleryViewId,
   entityTitle: (p) => (p.gallery as any)?.title,
-  description: viewActions.edit,
-  resolveCtx: async (context, param) => {
-    const view = await View.get(context, param.galleryViewId);
-    const table = view?.fk_model_id
-      ? await Model.get(context, view.fk_model_id)
-      : undefined;
-    return {
-      entityTitle: view?.title,
-      parentEntityTitle: table?.title,
-    };
-  },
+  description: renameOrEdit,
+  resolveCtx: (context, param) => resolveUpdateCtx(context, param.galleryViewId),
 };
 
 // ─── Kanban ───────────────────────────────────────────────────────────────────

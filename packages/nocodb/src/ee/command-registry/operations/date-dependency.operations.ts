@@ -9,7 +9,6 @@ import { dateDependencyActions } from '~/decorators/trace-command-descriptions';
 const dateDependencyUpdateSchema = z.object({
   modelId: z.string(),
   body: z.record(z.unknown()),
-  req: z.any(),
 });
 
 export const DateDependencyUpdateContract: OperationContract<typeof dateDependencyUpdateSchema> = {
@@ -31,7 +30,6 @@ export const DateDependencyUpdateContract: OperationContract<typeof dateDependen
 
 const dateDependencyDeleteSchema = z.object({
   modelId: z.string(),
-  req: z.any(),
 });
 
 export const DateDependencyDeleteContract: OperationContract<typeof dateDependencyDeleteSchema> = {

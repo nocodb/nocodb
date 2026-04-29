@@ -96,8 +96,12 @@ export class SandboxMergeProcessor {
     // Replay each command sequentially through the service layer
     for (const entry of entries) {
       try {
-        await this.replayService.replayCommand(productionContext, entry, req);
-        await SandboxChangelog.markAsMerged([entry.id]);
+        const result = await this.replayService.replayCommand(productionContext, entry, req);
+        if (result === null) {
+          await SandboxChangelog.markAsSkipped(entry.id);
+        } else {
+          await SandboxChangelog.markAsMerged([entry.id]);
+        }
       } catch (e: any) {
         if (isUniqueViolation(e) || isDuplicateColumn(e)) {
           this.logger.warn(

@@ -12,6 +12,6 @@ export function makeReplayReq(originalReq: NcRequest, createdBy: string): NcRequ
     __commandTraced: false,
     user: originalReq?.user ?? { id: createdBy },
     __isReplay: true,
-  } as any as NcRequest;
+  } as NcRequest;
   return req;
 }

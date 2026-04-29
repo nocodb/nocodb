@@ -23,7 +23,6 @@ const rlsPolicyCreateSchema = z.object({
     filters: filtersSchema,
   }),
   userId: z.string(),
-  req: z.any(),
 });
 
 export const RlsPolicyCreateContract: OperationContract<typeof rlsPolicyCreateSchema> = {
@@ -54,7 +53,6 @@ const rlsPolicyUpdateSchema = z.object({
     order: z.number().optional(),
   }),
   userId: z.string(),
-  req: z.any(),
 });
 
 export const RlsPolicyUpdateContract: OperationContract<typeof rlsPolicyUpdateSchema> = {
@@ -87,7 +85,6 @@ export const RlsPolicyUpdateContract: OperationContract<typeof rlsPolicyUpdateSc
 const rlsPolicyDeleteSchema = z.object({
   policyId: z.string(),
   userId: z.string(),
-  req: z.any(),
 });
 
 export const RlsPolicyDeleteContract: OperationContract<typeof rlsPolicyDeleteSchema> = {

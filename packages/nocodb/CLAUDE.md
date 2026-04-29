@@ -280,6 +280,129 @@ export class FeatureService extends FeatureServiceCE {
 
 Register EE services in `src/ee/modules/noco.module.ts`.
 
+## Command Registry (EE — Sandbox Replay)
+
+The command-registry subsystem captures every state-mutating operation performed inside a sandbox and replays it at merge time against the production base. It lives entirely in `src/ee/command-registry/`.
+
+### Architecture
+
+```
+@TraceCommand(contract)        recordCommand()          nc_sandbox_changelog
+  ↓ decorator on service  →    writes JSON params   →   Postgres table
+                                                                ↓
+SandboxCommandReplayService ← OperationRegistry.resolve(name, version)
+  reads changelog rows,         returns { contract, handler }
+  feeds them to handlers    →   handler(replayCtx, params, meta)
+```
+
+### Core types
+
+| Type | File | Purpose |
+|------|------|---------|
+| `OperationContract<S>` | `src/ee/command-registry/_types.ts` | Versioned typed contract — name, version, entity, zod schema, id/title helpers |
+| `CommandHandler<C>` | `src/ee/command-registry/_types.ts` | `(ctx, params, meta) => Promise<unknown>` |
+| `HandlerMeta` | `src/ee/command-registry/_types.ts` | `{ entryId, entityId?, originalReq, createdBy, extra? }` |
+| `OperationRegistry` | `src/ee/command-registry/_registry.ts` | Singleton — `register`, `resolve`, `freeze`, `describe` |
+
+### Import path rule (critical)
+
+Operations files (`*.operations.ts`) **must** import `_types` via the `src/` prefix, never `~/`:
+
+```typescript
+// ✅ correct — avoids circular self-import under EE tsconfig
+import type { OperationContract } from 'src/command-registry/_types';
+
+// ❌ wrong — ~/  resolves to src/ee/* first, creating a circular self-import
+import type { OperationContract } from '~/command-registry/_types';
+```
+
+Service files importing contracts use `~/` normally:
+```typescript
+import { MyContract } from '~/command-registry/operations/my-feature.operations';
+```
+
+### Adding a new operation — end-to-end checklist
+
+**1. Declare the contract** — `src/ee/command-registry/operations/{feature}.operations.ts`
+
+```typescript
+import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
+import { MetaTable } from '~/utils/globals';
+// Use src/ import for _types but ~/ is fine for MetaTable/action-descriptions
+
+export const MyFeatureCreateContract: OperationContract<typeof createSchema> = {
+  name: 'myFeatureCreate',
+  version: 1,
+  entity: MetaTable.MY_FEATURE,
+  schema: z.object({ baseId: z.string(), body: z.object({ title: z.string() }) }),
+  idField: 'body',        // key in params whose value is the created entity
+  entityId: 'id',         // field on the entity holding its ID
+  entityTitle: 'title',   // field on the entity holding its display title
+  description: myFeatureActions.add,   // DescFn from trace-command-descriptions.ts
+};
+```
+
+**2. Write the handler** — `src/ee/command-registry/handlers/{feature}.handlers.ts`
+
+```typescript
+import { OperationRegistry } from 'src/ee/command-registry/_registry';
+import { makeReplayReq } from 'src/ee/command-registry/_replay-context';
+import { MyFeatureCreateContract } from 'src/ee/command-registry/operations/my-feature.operations';
+import type { MyFeatureService } from 'src/ee/services/my-feature.service';
+
+export function registerMyFeatureHandlers(svc: MyFeatureService): void {
+  OperationRegistry.register(MyFeatureCreateContract, async (ctx, params, meta) => {
+    const req = makeReplayReq(meta.originalReq, meta.createdBy);
+    return svc.create(ctx, { ...params, req } as any);
+  });
+}
+```
+
+**3. Wire `@TraceCommand` on the service method**
+
+```typescript
+import { MyFeatureCreateContract } from '~/command-registry/operations/my-feature.operations';
+
+@TraceCommand(MyFeatureCreateContract)
+async create(context: NcContext, param: { baseId: string; body: ...; req: NcRequest }) {
+  // ...
+}
+```
+
+**4. Register in `OperationRegistryBootstrap`** — `src/ee/command-registry/_bootstrap.ts`
+
+- Inject the new service in the constructor.
+- Call `registerMyFeatureHandlers(this.myFeatureSvc)` in `onApplicationBootstrap()`.
+
+That's it — no other wiring needed.
+
+### Replay pipeline
+
+At sandbox merge, `SandboxCommandReplayService.replayAll(sandboxBase, prodBase)`:
+
+1. Loads all `nc_sandbox_changelog` entries ordered by `created_at`.
+2. For each entry: `OperationRegistry.resolve(entry.name, entry.version)` → `{ contract, handler }`.
+3. Builds a replay `NcContext` pointing at the production base via `buildReplayContext()`.
+4. Calls `handler(replayCtx, entry.params, handlerMeta)`.
+5. Entity IDs are remapped via `contract.idField`/`entityId` so foreign-key references stay consistent.
+
+### `OperationRegistry.freeze()`
+
+Called once in `OperationRegistryBootstrap.onApplicationBootstrap()` — after that, any `register()` call throws. This prevents late or accidental handler additions at runtime.
+
+### Adding a new description function
+
+Description helpers live in `src/ee/decorators/trace-command-descriptions.ts`. Each domain section returns a `DescFn` (imported from `src/command-registry/_types`):
+
+```typescript
+export const myFeatureActions = {
+  add: (ctx: DescCtx) => `Add ${ctx.entityTitle ?? 'item'}`,
+  update: (ctx: DescCtx) => `Update ${ctx.entityTitle ?? 'item'}`,
+  delete: (ctx: DescCtx) => `Delete ${ctx.entityTitle ?? 'item'}`,
+};
+```
+
 ## Testing
 
 ### Unit Tests

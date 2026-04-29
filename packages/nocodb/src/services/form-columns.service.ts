@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, FORM_ROW_MAX_FIELDS } from 'nocodb-sdk';
+import {
+  AppEvents,
+  FORM_ROW_FULL_WIDTH_UI_TYPES,
+  FORM_ROW_MAX_FIELDS,
+} from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
@@ -209,6 +213,34 @@ export class FormColumnsService {
         NcError.get(context).invalidRequestBody(
           `Row ${rowId} would contain ${count} fields; maximum is ${FORM_ROW_MAX_FIELDS}`,
         );
+      }
+    }
+
+    // Reject row_id on columns whose underlying uidt is full-width.
+    // The frontend's onFieldMoveCallback rejects this drop, but a
+    // hand-crafted POST could still set row_id on a LongText etc.;
+    // groupFormColumnsByRow would then split that row visually so the
+    // row_id is dead data. Validate at the API boundary instead.
+    const fullWidthSet = new Set(FORM_ROW_FULL_WIDTH_UI_TYPES as string[]);
+    const targetingFullWidth = param.updates.filter((u) => {
+      if (!u.row_id) return false;
+      const fvc = existingById.get(u.id);
+      return !!fvc?.fk_column_id;
+    });
+    if (targetingFullWidth.length) {
+      const colCache = new Map<string, Column>();
+      for (const u of targetingFullWidth) {
+        const fvc = existingById.get(u.id)!;
+        const colId = fvc.fk_column_id!;
+        if (!colCache.has(colId)) {
+          colCache.set(colId, await Column.get(context, { colId }));
+        }
+        const col = colCache.get(colId)!;
+        if (col?.uidt && fullWidthSet.has(col.uidt)) {
+          NcError.get(context).invalidRequestBody(
+            `Field type '${col.uidt}' must occupy its own row; row_id cannot be set`,
+          );
+        }
       }
     }
 

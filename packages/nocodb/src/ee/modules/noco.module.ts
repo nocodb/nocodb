@@ -105,16 +105,6 @@ import { SnapshotService } from '~/services/snapshot.service';
 import { SandboxesService } from '~/services/sandboxes.service';
 import { SandboxCommandReplayService } from '~/services/sandbox-command-replay.service';
 
-/* Sandbox tracing — EE service overrides with @TraceCommand */
-import { ViewsService } from '~/services/views.service';
-import { GridsService } from '~/services/grids.service';
-import { FormsService } from '~/services/forms.service';
-import { GalleriesService } from '~/services/galleries.service';
-import { KanbansService } from '~/services/kanbans.service';
-import { CalendarsService } from '~/services/calendars.service';
-import { ExtensionsService } from '~/services/extensions.service';
-import { ViewColumnsService } from '~/services/view-columns.service';
-
 /* Scripts */
 import { ScriptsService } from '~/services/scripts.service';
 
@@ -240,16 +230,6 @@ export const nocoModuleEeMetadata = {
     /* Sandbox */
     SandboxesService,
     SandboxCommandReplayService,
-
-    /* Sandbox tracing */
-    ViewsService,
-    GridsService,
-    FormsService,
-    GalleriesService,
-    KanbansService,
-    CalendarsService,
-    ExtensionsService,
-    ViewColumnsService,
 
     /* Hooks V3 */
     HooksV3Service,

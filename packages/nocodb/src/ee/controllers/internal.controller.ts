@@ -514,11 +514,10 @@ export class InternalController extends InternalControllerCE {
           req,
         });
       case 'widgetDuplicate':
-        return await this.dashboardsService.duplicateWidget(
-          context,
-          payload.widgetId,
+        return await this.dashboardsService.duplicateWidget(context, {
+          widgetId: payload.widgetId,
           req,
-        );
+        });
       case 'widgetUpdate':
         return await this.dashboardsService.widgetUpdate(context, {
           widgetId: payload.widgetId,

@@ -43,7 +43,10 @@ export const duplicateWidgetTool = defineChatTool({
       args.widget_name,
     );
 
-    const newWidget = await service.duplicateWidget(context, widget.id, req);
+    const newWidget = await service.duplicateWidget(context, {
+      widgetId: widget.id,
+      req,
+    });
 
     return {
       id: newWidget.id,

@@ -23,6 +23,8 @@ import NocoSocket from '~/socket/NocoSocket';
 import { checkLimit } from '~/helpers/paymentHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
+  bDashboard,
+  bWidget,
   dashboardActions,
   widgetActions,
 } from '~/decorators/trace-command-descriptions';
@@ -354,7 +356,31 @@ export class DashboardsService {
     return widget;
   }
 
-  async duplicateWidget(context: NcContext, widgetId: string, req: NcRequest) {
+  @TraceCommand({
+    entity: MetaTable.WIDGETS,
+    entityId: (_p, r) => r?.id,
+    parentId: (_p, r) => r?.fk_dashboard_id,
+    description: ({ entityTitle, parentEntityTitle }) =>
+      parentEntityTitle
+        ? `Duplicate ${bWidget(entityTitle)} widget in ${bDashboard(
+            parentEntityTitle,
+          )}`
+        : `Duplicate ${bWidget(entityTitle)} widget`,
+    resolveCtx: async (context, param) => {
+      const widget = await Widget.get(context, param?.widgetId);
+      if (!widget) return {};
+      const dashboard = await Dashboard.get(context, widget.fk_dashboard_id);
+      return {
+        entityTitle: widget.title,
+        parentEntityTitle: dashboard?.title,
+      };
+    },
+  })
+  async duplicateWidget(
+    context: NcContext,
+    param: { widgetId: string; req: NcRequest },
+  ) {
+    const { widgetId, req } = param;
     const widget = await Widget.get(context, widgetId);
 
     if (!widget) {

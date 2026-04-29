@@ -137,12 +137,14 @@ export default class ListView extends ListViewCE implements ListType {
 
     const view = await View.get(context, listViewId);
 
-    await View.clearSingleQueryCache(
-      context,
-      view.fk_model_id,
-      [{ id: listViewId }],
-      ncMeta,
-    );
+    if (view) {
+      await View.clearSingleQueryCache(
+        context,
+        view.fk_model_id,
+        [{ id: listViewId }],
+        ncMeta,
+      );
+    }
 
     return res;
   }

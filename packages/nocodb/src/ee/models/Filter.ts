@@ -164,7 +164,7 @@ export default class Filter extends FilterCE implements FilterType {
           false,
           ncMeta,
         );
-        if (!widget.fk_model_id) {
+        if (!widget?.fk_model_id) {
           NcError.invalidFilter(JSON.stringify(filter));
         }
         model = await Model.get(context, widget.fk_model_id, false, ncMeta);
@@ -434,12 +434,14 @@ export default class Filter extends FilterCE implements FilterType {
       // if not a view filter then no need to delete
       if (filter.fk_view_id) {
         const view = await View.get(context, filter.fk_view_id, false, ncMeta);
-        await View.clearSingleQueryCache(
-          context,
-          view.fk_model_id,
-          [{ id: filter.fk_view_id }],
-          ncMeta,
-        );
+        if (view) {
+          await View.clearSingleQueryCache(
+            context,
+            view.fk_model_id,
+            [{ id: filter.fk_view_id }],
+            ncMeta,
+          );
+        }
       }
     }
 

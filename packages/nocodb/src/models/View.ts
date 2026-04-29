@@ -1263,6 +1263,7 @@ export default class View implements ViewType {
     ncMeta = Noco.ncMeta,
   ) {
     const view = await this.get(context, viewId, false, ncMeta);
+    if (!view) NcError.viewNotFound(viewId);
     let table;
     let cacheScope;
     switch (view.type) {
@@ -1426,6 +1427,7 @@ export default class View implements ViewType {
     | any
   > {
     const view = await this.get(context, viewId, false, ncMeta);
+    if (!view) NcError.viewNotFound(viewId);
     const table = this.extractViewColumnsTableName(view);
 
     const existingCol = await ncMeta.metaGet2(

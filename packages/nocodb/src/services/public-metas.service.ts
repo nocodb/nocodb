@@ -155,8 +155,15 @@ export class PublicMetasService {
 
       view.users = baseUsers.map((u) => ({
         id: u.id,
-        display_name: u.display_name,
-        email: u.email,
+        display_name:
+          u.display_name ||
+          (u.email
+            ? u.email
+                .split('@')[0]
+                .replace(/[._-]+/g, ' ')
+                .replace(/\b\w/g, (c) => c.toUpperCase())
+            : null),
+        email: '',
         meta: ncIsObject(u.meta)
           ? extractProps(u.meta, ['icon', 'iconType'])
           : null,

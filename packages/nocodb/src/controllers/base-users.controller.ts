@@ -28,7 +28,9 @@ export class BaseUsersController {
     '/api/v1/db/meta/projects/:baseId/users',
     '/api/v2/meta/bases/:baseId/users',
   ])
-  @Acl('baseUserList')
+  @Acl('baseUserList', {
+    blockPublicBaseAccess: true,
+  })
   async userList(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,

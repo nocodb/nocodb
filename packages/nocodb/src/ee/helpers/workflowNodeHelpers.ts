@@ -33,13 +33,13 @@ export const WorkflowNodePlanRequirements: Record<string, PlanTitles> = {
   'twilio.action.send_sms': PlanTitles.PLUS, // Twilio SMS
   'twilio.action.call_phone': PlanTitles.PLUS, // Twilio Call
   'twilio.action.send_whatsapp': PlanTitles.PLUS, // Twilio WhatsApp
+  'mailchimp.*': PlanTitles.PLUS, // All Mailchimp nodes
 
   // Google Calendar
   'google_calendar.*': PlanTitles.PLUS, // All Google Calendar nodes
 
   // HubSpot CRM
   'hubspot_crm.*': PlanTitles.BUSINESS, // All HubSpot CRM nodes
-  'mailchimp.*': PlanTitles.BUSINESS, // All Mailchimp nodes
 };
 
 /**

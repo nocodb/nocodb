@@ -1,13 +1,19 @@
-import { registerForward } from '~/command-registry/_replay-context';
 import {
   RlsPolicyCreateContract,
-  RlsPolicyUpdateContract,
   RlsPolicyDeleteContract,
+  RlsPolicyUpdateContract,
 } from '../operations/rls.operations';
-import type { RlsService } from 'src/ee/services/rls.service';
+import type { RlsService } from '~/services/rls.service';
+import { registerForward } from '~/command-registry/_replay-context';
 
 export function registerRlsHandlers(svc: RlsService): void {
-  registerForward(RlsPolicyCreateContract, (ctx, p) => svc.createPolicy(ctx, p));
-  registerForward(RlsPolicyUpdateContract, (ctx, p) => svc.updatePolicy(ctx, p));
-  registerForward(RlsPolicyDeleteContract, (ctx, p) => svc.deletePolicy(ctx, p));
+  registerForward(RlsPolicyCreateContract, (ctx, p) =>
+    svc.createPolicy(ctx, p),
+  );
+  registerForward(RlsPolicyUpdateContract, (ctx, p) =>
+    svc.updatePolicy(ctx, p),
+  );
+  registerForward(RlsPolicyDeleteContract, (ctx, p) =>
+    svc.deletePolicy(ctx, p),
+  );
 }

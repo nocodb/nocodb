@@ -10,8 +10,8 @@ import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
   HookCreateContract,
-  HookUpdateContract,
   HookDeleteContract,
+  HookUpdateContract,
 } from '~/command-registry/operations/hooks.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';

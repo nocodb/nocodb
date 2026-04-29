@@ -27,8 +27,8 @@ import NocoSocket from '~/socket/NocoSocket';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import {
-  PermissionSetContract,
   PermissionDropContract,
+  PermissionSetContract,
 } from '~/command-registry/operations/permissions.operations';
 
 @Injectable()

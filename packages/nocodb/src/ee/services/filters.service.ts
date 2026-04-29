@@ -13,12 +13,12 @@ import {
 } from '~/utils/view-webhook-manager';
 import {
   FilterCreateContract,
-  FilterUpdateContract,
   FilterDeleteContract,
+  FilterUpdateContract,
   LinkFilterCreateContract,
-  WidgetFilterCreateContract,
   RlsPolicyFilterCreateContract,
   RowColorConditionsCreateContract,
+  WidgetFilterCreateContract,
 } from '~/command-registry/operations/filters.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';

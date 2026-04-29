@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { MetaTable } from '~/utils/globals';
 import type { OperationContract } from 'src/command-registry/_types';
+import { MetaTable } from '~/utils/globals';
 import { permissionActions } from '~/decorators/trace-command-descriptions';
 
 // ─── permissionSet ────────────────────────────────────────────────────────────
@@ -9,7 +9,9 @@ const permissionSetSchema = z.object({
   permission: z.record(z.unknown()),
 });
 
-export const PermissionSetContract: OperationContract<typeof permissionSetSchema> = {
+export const PermissionSetContract: OperationContract<
+  typeof permissionSetSchema
+> = {
   name: 'permissionSet',
   version: 1,
   entity: MetaTable.PERMISSIONS,
@@ -27,7 +29,9 @@ const permissionDropSchema = z.object({
   permission: z.record(z.unknown()),
 });
 
-export const PermissionDropContract: OperationContract<typeof permissionDropSchema> = {
+export const PermissionDropContract: OperationContract<
+  typeof permissionDropSchema
+> = {
   name: 'permissionDrop',
   version: 1,
   entity: MetaTable.PERMISSIONS,

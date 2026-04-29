@@ -1,14 +1,14 @@
-import { registerForward } from '~/command-registry/_replay-context';
 import {
   SortCreateContract,
-  SortUpdateContract,
   SortDeleteContract,
+  SortUpdateContract,
   ViewColumnUpdateContract,
   VisibilityUpdateContract,
 } from '../operations/sorts-visibilities.operations';
-import type { SortsService } from 'src/ee/services/sorts.service';
-import type { ViewColumnsService } from 'src/ee/services/view-columns.service';
-import type { ModelVisibilitiesService } from 'src/ee/services/model-visibilities.service';
+import type { SortsService } from '~/services/sorts.service';
+import type { ViewColumnsService } from '~/services/view-columns.service';
+import type { ModelVisibilitiesService } from '~/services/model-visibilities.service';
+import { registerForward } from '~/command-registry/_replay-context';
 
 export function registerSortHandlers(svc: SortsService): void {
   registerForward(SortCreateContract, (ctx, p) => svc.sortCreate(ctx, p));
@@ -17,11 +17,15 @@ export function registerSortHandlers(svc: SortsService): void {
 }
 
 export function registerViewColumnHandlers(svc: ViewColumnsService): void {
-  registerForward(ViewColumnUpdateContract, (ctx, p) => svc.columnUpdate(ctx, p));
+  registerForward(ViewColumnUpdateContract, (ctx, p) =>
+    svc.columnUpdate(ctx, p),
+  );
 }
 
 export function registerVisibilityHandlers(
   svc: ModelVisibilitiesService,
 ): void {
-  registerForward(VisibilityUpdateContract, (ctx, p) => svc.xcVisibilityMetaSetAll(ctx, p));
+  registerForward(VisibilityUpdateContract, (ctx, p) =>
+    svc.xcVisibilityMetaSetAll(ctx, p),
+  );
 }

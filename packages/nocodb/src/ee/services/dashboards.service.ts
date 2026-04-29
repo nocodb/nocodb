@@ -24,12 +24,12 @@ import { checkLimit } from '~/helpers/paymentHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
   DashboardCreateContract,
-  DashboardUpdateContract,
   DashboardDeleteContract,
-  WidgetCreateContract,
+  DashboardUpdateContract,
   DuplicateWidgetContract,
-  WidgetUpdateContract,
+  WidgetCreateContract,
   WidgetDeleteContract,
+  WidgetUpdateContract,
 } from '~/command-registry/operations/dashboards.operations';
 
 @Injectable()

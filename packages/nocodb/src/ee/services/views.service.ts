@@ -21,11 +21,11 @@ import {
   assertNotSandboxProduction,
 } from '~/helpers/sandboxGuards';
 import {
-  ViewUpdateContract,
-  ViewDeleteContract,
   ShareViewContract,
-  ShareViewUpdateContract,
   ShareViewDeleteContract,
+  ShareViewUpdateContract,
+  ViewDeleteContract,
+  ViewUpdateContract,
 } from '~/command-registry/operations/views.operations';
 
 @Injectable()

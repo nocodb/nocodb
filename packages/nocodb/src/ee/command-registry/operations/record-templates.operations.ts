@@ -1,7 +1,7 @@
 import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import RecordTemplate from '~/models/RecordTemplate';
-import type { OperationContract } from 'src/command-registry/_types';
 import { recordTemplateActions } from '~/decorators/trace-command-descriptions';
 
 const createSchema = z.object({

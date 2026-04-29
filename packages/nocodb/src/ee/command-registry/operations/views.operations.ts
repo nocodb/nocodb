@@ -1,8 +1,11 @@
 import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import { Model, View } from '~/models';
-import type { OperationContract } from 'src/command-registry/_types';
-import { shareViewActions, viewActions } from '~/decorators/trace-command-descriptions';
+import {
+  shareViewActions,
+  viewActions,
+} from '~/decorators/trace-command-descriptions';
 
 const viewUpdateBodySchema = z
   .object({
@@ -110,7 +113,9 @@ const shareViewUpdateSchema = z.object({
   sharedView: sharedViewBodySchema,
 });
 
-export const ShareViewUpdateContract: OperationContract<typeof shareViewUpdateSchema> = {
+export const ShareViewUpdateContract: OperationContract<
+  typeof shareViewUpdateSchema
+> = {
   name: 'shareViewUpdate',
   version: 1,
   entity: MetaTable.VIEWS,
@@ -123,7 +128,9 @@ const shareViewDeleteSchema = z.object({
   viewId: z.string(),
 });
 
-export const ShareViewDeleteContract: OperationContract<typeof shareViewDeleteSchema> = {
+export const ShareViewDeleteContract: OperationContract<
+  typeof shareViewDeleteSchema
+> = {
   name: 'shareViewDelete',
   version: 1,
   entity: MetaTable.VIEWS,

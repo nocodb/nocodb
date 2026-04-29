@@ -1,10 +1,10 @@
-import { registerForward } from '~/command-registry/_replay-context';
 import {
   ColumnAddContract,
-  ColumnUpdateContract,
   ColumnDeleteContract,
+  ColumnUpdateContract,
 } from '../operations/columns.operations';
-import type { ColumnsService } from 'src/ee/services/columns.service';
+import type { ColumnsService } from '~/services/columns.service';
+import { registerForward } from '~/command-registry/_replay-context';
 
 export function registerColumnHandlers(svc: ColumnsService): void {
   registerForward(ColumnAddContract, (ctx, p) => svc.columnAdd(ctx, p));

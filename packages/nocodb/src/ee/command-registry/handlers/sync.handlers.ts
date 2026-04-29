@@ -1,10 +1,10 @@
-import { registerForward } from '~/command-registry/_replay-context';
 import {
   SyncCreateContract,
-  SyncUpdateContract,
   SyncDeleteContract,
+  SyncUpdateContract,
 } from '../operations/sync.operations';
-import type { SyncService } from 'src/ee/services/sync.service';
+import type { SyncService } from '~/services/sync.service';
+import { registerForward } from '~/command-registry/_replay-context';
 
 export function registerSyncHandlers(svc: SyncService): void {
   registerForward(SyncCreateContract, (ctx, p) => svc.syncCreate(ctx, p));

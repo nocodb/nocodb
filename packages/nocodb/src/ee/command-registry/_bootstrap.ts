@@ -1,5 +1,4 @@
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
-import { OperationRegistry } from '~/command-registry/_registry';
+import { Injectable, Logger } from '@nestjs/common';
 import { registerBaseVariableHandlers } from './handlers/base-variables.handlers';
 import { registerTableHandlers } from './handlers/tables.handlers';
 import { registerViewHandlers } from './handlers/views.handlers';
@@ -23,6 +22,8 @@ import { registerPermissionHandlers } from './handlers/permissions.handlers';
 import { registerRlsHandlers } from './handlers/rls.handlers';
 import { registerDateDependencyHandlers } from './handlers/date-dependency.handlers';
 import { registerFiltersV3Handlers } from './handlers/filters-v3.handlers';
+import type { OnApplicationBootstrap } from '@nestjs/common';
+import { OperationRegistry } from '~/command-registry/_registry';
 import { BaseVariablesService } from '~/ee/services/base-variables.service';
 import { TablesService } from '~/services/tables.service';
 import { ViewsService } from '~/services/views.service';
@@ -112,7 +113,9 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
 
     OperationRegistry.freeze();
     this.logger.log(
-      `OperationRegistry frozen with ${OperationRegistry.describe().length} handlers`,
+      `OperationRegistry frozen with ${
+        OperationRegistry.describe().length
+      } handlers`,
     );
   }
 }

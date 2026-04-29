@@ -6,7 +6,11 @@ import type { ResolvedCtx } from './_types';
  * here — caller passes the model class so this file stays a thin utility.
  */
 export interface ResolvableModel {
-  get(ctx: NcContext, idOrParams: any, ...rest: any[]): Promise<{ title?: string; [k: string]: any } | undefined>;
+  get(
+    ctx: NcContext,
+    idOrParams: any,
+    ...rest: any[]
+  ): Promise<{ title?: string; [k: string]: any } | undefined>;
 }
 
 /**

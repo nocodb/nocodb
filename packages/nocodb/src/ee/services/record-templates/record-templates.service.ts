@@ -14,8 +14,8 @@ import Column from '~/models/Column';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
   RecordTemplateCreateContract,
-  RecordTemplateUpdateContract,
   RecordTemplateDeleteContract,
+  RecordTemplateUpdateContract,
 } from '~/command-registry/operations/record-templates.operations';
 
 @Injectable()

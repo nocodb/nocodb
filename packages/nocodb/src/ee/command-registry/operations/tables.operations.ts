@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { NcApiVersion } from 'nocodb-sdk';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import { Model } from '~/models';
-import type { OperationContract } from 'src/command-registry/_types';
 import { tableActions } from '~/decorators/trace-command-descriptions';
 
 const tableBodySchema = z

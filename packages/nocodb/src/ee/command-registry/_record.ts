@@ -1,12 +1,12 @@
 import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import type {
-  OperationContract,
   ChangelogCommandPayload,
-  TraceCommandDep,
-  ResolvedCtx,
   DescCtx,
   DescFn,
+  OperationContract,
+  ResolvedCtx,
+  TraceCommandDep,
 } from './_types';
 
 const logger = new Logger('CommandRegistry');
@@ -22,10 +22,7 @@ const NON_SERIALIZABLE_KEYS = new Set([
 
 export function dotGet(obj: any, path: string): any {
   if (obj == null) return undefined;
-  return path.split('.').reduce(
-    (o, k) => (o == null ? undefined : o[k]),
-    obj,
-  );
+  return path.split('.').reduce((o, k) => (o == null ? undefined : o[k]), obj);
 }
 
 export function resolveField(
@@ -106,7 +103,11 @@ function resolveEntityInfo(
     entityTitle,
     parentEntityId,
     parentEntityTitle,
-    description: resolveDescription(contract.description, descCtx, contract.name),
+    description: resolveDescription(
+      contract.description,
+      descCtx,
+      contract.name,
+    ),
   };
 }
 
@@ -146,9 +147,10 @@ export async function recordCommand(
   const extraRaw = contract.extraCommandMeta
     ? contract.extraCommandMeta(param, result)
     : undefined;
-  const extra = contract.extraSchema && extraRaw
-    ? contract.extraSchema.parse(extraRaw)
-    : extraRaw;
+  const extra =
+    contract.extraSchema && extraRaw
+      ? contract.extraSchema.parse(extraRaw)
+      : extraRaw;
 
   const info = resolveEntityInfo(contract, param, result, resolvedCtx);
   const deps = contract.deps

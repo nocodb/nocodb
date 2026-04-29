@@ -20,8 +20,8 @@ import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
   RlsPolicyCreateContract,
-  RlsPolicyUpdateContract,
   RlsPolicyDeleteContract,
+  RlsPolicyUpdateContract,
 } from '~/command-registry/operations/rls.operations';
 
 @Injectable()

@@ -34,7 +34,9 @@ export type EntityRefFn<S extends ZodTypeAny> = (
   r: any,
 ) => string | undefined;
 
-export type ParamsOf<C> = C extends OperationContract<infer S> ? z.infer<S> : never;
+export type ParamsOf<C> = C extends OperationContract<infer S>
+  ? z.infer<S>
+  : never;
 
 export type CommandHandler<C extends OperationContract = OperationContract> = (
   ctx: NcContext,

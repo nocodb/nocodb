@@ -96,7 +96,11 @@ export class SandboxMergeProcessor {
     // Replay each command sequentially through the service layer
     for (const entry of entries) {
       try {
-        const result = await this.replayService.replayCommand(productionContext, entry, req);
+        const result = await this.replayService.replayCommand(
+          productionContext,
+          entry,
+          req,
+        );
         if (result === null) {
           await SandboxChangelog.markAsSkipped(entry.id);
         } else {

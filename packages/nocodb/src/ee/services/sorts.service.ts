@@ -9,8 +9,8 @@ import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
   SortCreateContract,
-  SortUpdateContract,
   SortDeleteContract,
+  SortUpdateContract,
 } from '~/command-registry/operations/sorts-visibilities.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';

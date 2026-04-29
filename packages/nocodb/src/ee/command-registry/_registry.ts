@@ -2,10 +2,7 @@ import * as crypto from 'crypto';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import type { ZodTypeAny } from 'zod';
 
-import type {
-  OperationContract,
-  CommandHandler,
-} from './_types';
+import type { CommandHandler, OperationContract } from './_types';
 
 interface RegistryEntry {
   contract: OperationContract;
@@ -65,10 +62,7 @@ class _OperationRegistry {
           ? hashSchema(e.contract.extraSchema)
           : undefined,
       }))
-      .sort(
-        (a, b) =>
-          a.name.localeCompare(b.name) || a.version - b.version,
-      );
+      .sort((a, b) => a.name.localeCompare(b.name) || a.version - b.version);
   }
 }
 

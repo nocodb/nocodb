@@ -74,4 +74,8 @@ export function TraceCommand<C extends OperationContract>(contract: C) {
 }
 
 // Re-export types so existing imports resolve.
-export type { OperationContract, ResolvedCtx, TraceCommandDep } from '~/command-registry/_types';
+export type {
+  OperationContract,
+  ResolvedCtx,
+  TraceCommandDep,
+} from '~/command-registry/_types';

@@ -6,8 +6,8 @@ import { NcContext } from '~/interface/config';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
   SyncCreateContract,
-  SyncUpdateContract,
   SyncDeleteContract,
+  SyncUpdateContract,
 } from '~/command-registry/operations/sync.operations';
 
 @Injectable()

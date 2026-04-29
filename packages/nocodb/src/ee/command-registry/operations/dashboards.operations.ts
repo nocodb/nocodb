@@ -1,7 +1,7 @@
 import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import { Dashboard, Widget } from '~/models';
-import type { OperationContract } from 'src/command-registry/_types';
 import {
   bDashboard,
   bWidget,

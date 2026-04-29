@@ -15,8 +15,8 @@ import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
   ViewSectionCreateContract,
-  ViewSectionUpdateContract,
   ViewSectionDeleteContract,
+  ViewSectionUpdateContract,
 } from '~/command-registry/operations/view-sections.operations';
 
 @Injectable()

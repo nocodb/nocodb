@@ -1,8 +1,8 @@
 import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import { Model } from '~/models';
 import RlsPolicy from '~/ee/models/RlsPolicy';
-import type { OperationContract } from 'src/command-registry/_types';
 import { rlsPolicyActions } from '~/decorators/trace-command-descriptions';
 
 // ─── Reusable sub-schemas ─────────────────────────────────────────────────────
@@ -25,7 +25,9 @@ const rlsPolicyCreateSchema = z.object({
   userId: z.string(),
 });
 
-export const RlsPolicyCreateContract: OperationContract<typeof rlsPolicyCreateSchema> = {
+export const RlsPolicyCreateContract: OperationContract<
+  typeof rlsPolicyCreateSchema
+> = {
   name: 'rlsPolicyCreate',
   version: 1,
   entity: MetaTable.RLS_POLICIES,
@@ -55,7 +57,9 @@ const rlsPolicyUpdateSchema = z.object({
   userId: z.string(),
 });
 
-export const RlsPolicyUpdateContract: OperationContract<typeof rlsPolicyUpdateSchema> = {
+export const RlsPolicyUpdateContract: OperationContract<
+  typeof rlsPolicyUpdateSchema
+> = {
   name: 'rlsPolicyUpdate',
   version: 1,
   entity: MetaTable.RLS_POLICIES,
@@ -87,7 +91,9 @@ const rlsPolicyDeleteSchema = z.object({
   userId: z.string(),
 });
 
-export const RlsPolicyDeleteContract: OperationContract<typeof rlsPolicyDeleteSchema> = {
+export const RlsPolicyDeleteContract: OperationContract<
+  typeof rlsPolicyDeleteSchema
+> = {
   name: 'rlsPolicyDelete',
   version: 1,
   entity: MetaTable.RLS_POLICIES,

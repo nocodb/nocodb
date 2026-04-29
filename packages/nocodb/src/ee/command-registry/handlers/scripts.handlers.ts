@@ -1,10 +1,10 @@
-import { registerForward } from '~/command-registry/_replay-context';
 import {
   ScriptCreateContract,
-  ScriptUpdateContract,
   ScriptDeleteContract,
+  ScriptUpdateContract,
 } from '../operations/scripts.operations';
-import type { ScriptsService } from 'src/ee/services/scripts.service';
+import type { ScriptsService } from '~/services/scripts.service';
+import { registerForward } from '~/command-registry/_replay-context';
 
 export function registerScriptHandlers(svc: ScriptsService): void {
   registerForward(ScriptCreateContract, (ctx, p) => svc.createScript(ctx, p));

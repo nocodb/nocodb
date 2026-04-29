@@ -8,8 +8,8 @@ import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
   ExtensionCreateContract,
-  ExtensionUpdateContract,
   ExtensionDeleteContract,
+  ExtensionUpdateContract,
 } from '~/command-registry/operations/extensions.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';

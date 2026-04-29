@@ -1,7 +1,7 @@
 import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import SyncSource from '~/models/SyncSource';
-import type { OperationContract } from 'src/command-registry/_types';
 import { syncActions } from '~/decorators/trace-command-descriptions';
 
 const createSchema = z.object({

@@ -1,7 +1,7 @@
 import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import { Model, View } from '~/models';
-import type { OperationContract } from 'src/command-registry/_types';
 import { viewActions } from '~/decorators/trace-command-descriptions';
 
 // ─── Shared schemas ───────────────────────────────────────────────────────────
@@ -40,7 +40,9 @@ const gridCreateSchema = z.object({
   ownedBy: z.string().optional(),
 });
 
-export const GridViewCreateContract: OperationContract<typeof gridCreateSchema> = {
+export const GridViewCreateContract: OperationContract<
+  typeof gridCreateSchema
+> = {
   name: 'gridViewCreate',
   version: 1,
   entity: MetaTable.VIEWS,
@@ -58,7 +60,9 @@ const gridUpdateSchema = z.object({
   grid: viewCreateBodySchema,
 });
 
-export const GridViewUpdateContract: OperationContract<typeof gridUpdateSchema> = {
+export const GridViewUpdateContract: OperationContract<
+  typeof gridUpdateSchema
+> = {
   name: 'gridViewUpdate',
   version: 1,
   entity: MetaTable.VIEWS,
@@ -77,7 +81,9 @@ const formCreateSchema = z.object({
   ownedBy: z.string().optional(),
 });
 
-export const FormViewCreateContract: OperationContract<typeof formCreateSchema> = {
+export const FormViewCreateContract: OperationContract<
+  typeof formCreateSchema
+> = {
   name: 'formViewCreate',
   version: 1,
   entity: MetaTable.VIEWS,
@@ -95,7 +101,9 @@ const formUpdateSchema = z.object({
   form: viewCreateBodySchema,
 });
 
-export const FormViewUpdateContract: OperationContract<typeof formUpdateSchema> = {
+export const FormViewUpdateContract: OperationContract<
+  typeof formUpdateSchema
+> = {
   name: 'formViewUpdate',
   version: 1,
   entity: MetaTable.VIEWS,
@@ -114,7 +122,9 @@ const galleryCreateSchema = z.object({
   ownedBy: z.string().optional(),
 });
 
-export const GalleryViewCreateContract: OperationContract<typeof galleryCreateSchema> = {
+export const GalleryViewCreateContract: OperationContract<
+  typeof galleryCreateSchema
+> = {
   name: 'galleryViewCreate',
   version: 1,
   entity: MetaTable.VIEWS,
@@ -132,7 +142,9 @@ const galleryUpdateSchema = z.object({
   gallery: viewCreateBodySchema,
 });
 
-export const GalleryViewUpdateContract: OperationContract<typeof galleryUpdateSchema> = {
+export const GalleryViewUpdateContract: OperationContract<
+  typeof galleryUpdateSchema
+> = {
   name: 'galleryViewUpdate',
   version: 1,
   entity: MetaTable.VIEWS,
@@ -140,7 +152,8 @@ export const GalleryViewUpdateContract: OperationContract<typeof galleryUpdateSc
   entityId: (p) => p.galleryViewId,
   entityTitle: (p) => (p.gallery as any)?.title,
   description: renameOrEdit,
-  resolveCtx: (context, param) => resolveUpdateCtx(context, param.galleryViewId),
+  resolveCtx: (context, param) =>
+    resolveUpdateCtx(context, param.galleryViewId),
 };
 
 // ─── Kanban ───────────────────────────────────────────────────────────────────
@@ -151,7 +164,9 @@ const kanbanCreateSchema = z.object({
   ownedBy: z.string().optional(),
 });
 
-export const KanbanViewCreateContract: OperationContract<typeof kanbanCreateSchema> = {
+export const KanbanViewCreateContract: OperationContract<
+  typeof kanbanCreateSchema
+> = {
   name: 'kanbanViewCreate',
   version: 1,
   entity: MetaTable.VIEWS,
@@ -169,7 +184,9 @@ const kanbanUpdateSchema = z.object({
   kanban: viewCreateBodySchema,
 });
 
-export const KanbanViewUpdateContract: OperationContract<typeof kanbanUpdateSchema> = {
+export const KanbanViewUpdateContract: OperationContract<
+  typeof kanbanUpdateSchema
+> = {
   name: 'kanbanViewUpdate',
   version: 1,
   entity: MetaTable.VIEWS,
@@ -188,7 +205,9 @@ const calendarCreateSchema = z.object({
   ownedBy: z.string().optional(),
 });
 
-export const CalendarViewCreateContract: OperationContract<typeof calendarCreateSchema> = {
+export const CalendarViewCreateContract: OperationContract<
+  typeof calendarCreateSchema
+> = {
   name: 'calendarViewCreate',
   version: 1,
   entity: MetaTable.VIEWS,
@@ -206,7 +225,9 @@ const calendarUpdateSchema = z.object({
   calendar: viewCreateBodySchema,
 });
 
-export const CalendarViewUpdateContract: OperationContract<typeof calendarUpdateSchema> = {
+export const CalendarViewUpdateContract: OperationContract<
+  typeof calendarUpdateSchema
+> = {
   name: 'calendarViewUpdate',
   version: 1,
   entity: MetaTable.VIEWS,
@@ -214,5 +235,6 @@ export const CalendarViewUpdateContract: OperationContract<typeof calendarUpdate
   entityId: (p) => p.calendarViewId,
   entityTitle: (p) => (p.calendar as any)?.title,
   description: renameOrEdit,
-  resolveCtx: (context, param) => resolveUpdateCtx(context, param.calendarViewId),
+  resolveCtx: (context, param) =>
+    resolveUpdateCtx(context, param.calendarViewId),
 };

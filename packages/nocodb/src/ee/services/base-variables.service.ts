@@ -15,8 +15,8 @@ import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import {
   BaseVariableCreateContract,
-  BaseVariableUpdateContract,
   BaseVariableDeleteContract,
+  BaseVariableUpdateContract,
 } from '~/command-registry/operations/base-variables.operations';
 
 const SECRET_MASK = '***';

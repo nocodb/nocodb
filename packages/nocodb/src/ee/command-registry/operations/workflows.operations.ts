@@ -1,8 +1,11 @@
 import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import { Workflow } from '~/models';
-import type { OperationContract } from 'src/command-registry/_types';
-import { bWorkflow, workflowActions } from '~/decorators/trace-command-descriptions';
+import {
+  bWorkflow,
+  workflowActions,
+} from '~/decorators/trace-command-descriptions';
 
 const workflowBodySchema = z.record(z.any()).optional();
 
@@ -65,16 +68,17 @@ const publishSchema = z.object({
   cancelPendingExecutions: z.boolean().optional(),
 });
 
-export const WorkflowPublishContract: OperationContract<typeof publishSchema> = {
-  name: 'workflowPublish',
-  version: 1,
-  entity: MetaTable.AUTOMATIONS,
-  schema: publishSchema,
-  entityId: (p) => p.workflowId,
-  description: ({ entityTitle }) =>
-    `Publish ${bWorkflow(entityTitle)} workflow`,
-  resolveCtx: async (context, param) => {
-    const wf = await Workflow.get(context, param.workflowId);
-    return { entityTitle: wf?.title };
-  },
-};
+export const WorkflowPublishContract: OperationContract<typeof publishSchema> =
+  {
+    name: 'workflowPublish',
+    version: 1,
+    entity: MetaTable.AUTOMATIONS,
+    schema: publishSchema,
+    entityId: (p) => p.workflowId,
+    description: ({ entityTitle }) =>
+      `Publish ${bWorkflow(entityTitle)} workflow`,
+    resolveCtx: async (context, param) => {
+      const wf = await Workflow.get(context, param.workflowId);
+      return { entityTitle: wf?.title };
+    },
+  };

@@ -18,8 +18,8 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
-  DateDependencyUpdateContract,
   DateDependencyDeleteContract,
+  DateDependencyUpdateContract,
 } from '~/command-registry/operations/date-dependency.operations';
 
 @Injectable()

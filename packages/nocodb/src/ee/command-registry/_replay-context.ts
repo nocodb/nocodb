@@ -1,6 +1,6 @@
 import type { NcContext, NcRequest } from '~/interface/config';
-import { OperationRegistry } from '~/command-registry/_registry';
 import type { OperationContract } from '~/command-registry/_types';
+import { OperationRegistry } from '~/command-registry/_registry';
 
 /**
  * Build a synthetic request object for replay-time service calls. The original
@@ -8,7 +8,10 @@ import type { OperationContract } from '~/command-registry/_types';
  * stays meaningful), but `__commandTraced` is unset so nested calls still trace
  * if needed (they shouldn't — replay is the outermost call).
  */
-export function makeReplayReq(originalReq: NcRequest, createdBy: string): NcRequest {
+export function makeReplayReq(
+  originalReq: NcRequest,
+  createdBy: string,
+): NcRequest {
   const req = {
     ...originalReq,
     __commandTraced: false,

@@ -1,10 +1,10 @@
-import { registerForward } from '~/command-registry/_replay-context';
 import {
   HookCreateContract,
-  HookUpdateContract,
   HookDeleteContract,
+  HookUpdateContract,
 } from '../operations/hooks.operations';
-import type { HooksService } from 'src/ee/services/hooks.service';
+import type { HooksService } from '~/services/hooks.service';
+import { registerForward } from '~/command-registry/_replay-context';
 
 export function registerHookHandlers(svc: HooksService): void {
   registerForward(HookCreateContract, (ctx, p) => svc.hookCreate(ctx, p));

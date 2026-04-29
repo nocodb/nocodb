@@ -1,11 +1,13 @@
-import { registerForward } from '~/command-registry/_replay-context';
 import {
-  PermissionSetContract,
   PermissionDropContract,
+  PermissionSetContract,
 } from '../operations/permissions.operations';
-import type { PermissionsService } from 'src/ee/services/permissions.service';
+import type { PermissionsService } from '~/services/permissions.service';
+import { registerForward } from '~/command-registry/_replay-context';
 
 export function registerPermissionHandlers(svc: PermissionsService): void {
   registerForward(PermissionSetContract, (ctx, p) => svc.permissionSet(ctx, p));
-  registerForward(PermissionDropContract, (ctx, p) => svc.permissionDrop(ctx, p));
+  registerForward(PermissionDropContract, (ctx, p) =>
+    svc.permissionDrop(ctx, p),
+  );
 }

@@ -1,7 +1,7 @@
 import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import { Extension } from '~/models';
-import type { OperationContract } from 'src/command-registry/_types';
 import { extensionActions } from '~/decorators/trace-command-descriptions';
 
 const extensionBodySchema = z.record(z.unknown());

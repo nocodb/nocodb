@@ -18,8 +18,8 @@ import { checkLimit } from '~/helpers/paymentHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
   ScriptCreateContract,
-  ScriptUpdateContract,
   ScriptDeleteContract,
+  ScriptUpdateContract,
 } from '~/command-registry/operations/scripts.operations';
 
 @Injectable()

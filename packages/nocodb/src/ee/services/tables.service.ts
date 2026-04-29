@@ -24,8 +24,8 @@ import { MetaTable } from '~/utils/globals';
 import DateDependency from '~/models/DateDependency';
 import {
   TableCreateContract,
-  TableUpdateContract,
   TableDeleteContract,
+  TableUpdateContract,
 } from '~/command-registry/operations/tables.operations';
 
 @Injectable()

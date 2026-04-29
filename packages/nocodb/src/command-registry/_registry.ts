@@ -1,7 +1,4 @@
-import type {
-  OperationContract,
-  CommandHandler,
-} from './_types';
+import type { CommandHandler, OperationContract } from './_types';
 
 /**
  * CE no-op OperationRegistry stub. EE overrides this with the real

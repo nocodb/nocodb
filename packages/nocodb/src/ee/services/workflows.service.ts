@@ -48,9 +48,9 @@ import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import {
   WorkflowCreateContract,
-  WorkflowUpdateContract,
   WorkflowDeleteContract,
   WorkflowPublishContract,
+  WorkflowUpdateContract,
 } from '~/command-registry/operations/workflows.operations';
 
 @Injectable()

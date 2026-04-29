@@ -1,7 +1,7 @@
 import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model, Sort, View } from '~/models';
-import type { OperationContract } from 'src/command-registry/_types';
 import {
   sortActions,
   viewColumnActions,
@@ -119,7 +119,9 @@ const viewColumnUpdateSchema = z.object({
   column: z.record(z.unknown()),
 });
 
-export const ViewColumnUpdateContract: OperationContract<typeof viewColumnUpdateSchema> = {
+export const ViewColumnUpdateContract: OperationContract<
+  typeof viewColumnUpdateSchema
+> = {
   name: 'viewColumnUpdate',
   version: 1,
   entity: MetaTable.GRID_VIEW_COLUMNS,
@@ -153,7 +155,9 @@ const visibilityUpdateSchema = z.object({
   visibilityRule: z.record(z.unknown()),
 });
 
-export const VisibilityUpdateContract: OperationContract<typeof visibilityUpdateSchema> = {
+export const VisibilityUpdateContract: OperationContract<
+  typeof visibilityUpdateSchema
+> = {
   name: 'visibilityUpdate',
   version: 1,
   entity: MetaTable.MODEL_ROLE_VISIBILITY,

@@ -32,8 +32,8 @@ import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
   ColumnAddContract,
-  ColumnUpdateContract,
   ColumnDeleteContract,
+  ColumnUpdateContract,
 } from '~/command-registry/operations/columns.operations';
 import {
   Base,

@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { SandboxChangelog } from '~/models';
-import type { ChangelogCommandPayload, HandlerMeta } from '~/command-registry/_types';
+import type {
+  ChangelogCommandPayload,
+  HandlerMeta,
+} from '~/command-registry/_types';
 import { OperationRegistry } from '~/command-registry/_registry';
 import { makeReplayReq } from '~/command-registry/_replay-context';
 
@@ -30,7 +33,10 @@ export class SandboxCommandReplayService {
       return null;
     }
 
-    const registration = OperationRegistry.resolve(command.name, command.version);
+    const registration = OperationRegistry.resolve(
+      command.name,
+      command.version,
+    );
     if (!registration) {
       this.logger.warn(
         `No handler for '${command.name}@${command.version}' — skipping entry ${entry.id}`,
@@ -42,7 +48,7 @@ export class SandboxCommandReplayService {
     const req = makeReplayReq(originalReq, entry.created_by);
 
     const replayParams: Record<string, any> = {
-      ...(command.params as Record<string, any> | null ?? {}),
+      ...((command.params as Record<string, any> | null) ?? {}),
       user: req.user,
       req,
     };

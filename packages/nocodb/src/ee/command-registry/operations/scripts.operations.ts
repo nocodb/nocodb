@@ -1,7 +1,7 @@
 import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import { Script } from '~/models';
-import type { OperationContract } from 'src/command-registry/_types';
 import { scriptActions } from '~/decorators/trace-command-descriptions';
 
 const scriptBodySchema = z

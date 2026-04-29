@@ -1,7 +1,7 @@
 import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/_types';
 import { MetaTable } from '~/utils/globals';
 import { Model } from '~/models';
-import type { OperationContract } from 'src/command-registry/_types';
 import { dateDependencyActions } from '~/decorators/trace-command-descriptions';
 
 // ─── dateDependencyUpdate ─────────────────────────────────────────────────────
@@ -11,7 +11,9 @@ const dateDependencyUpdateSchema = z.object({
   body: z.record(z.unknown()),
 });
 
-export const DateDependencyUpdateContract: OperationContract<typeof dateDependencyUpdateSchema> = {
+export const DateDependencyUpdateContract: OperationContract<
+  typeof dateDependencyUpdateSchema
+> = {
   name: 'dateDependencyUpdate',
   version: 1,
   entity: MetaTable.DATE_DEPENDENCY,
@@ -32,7 +34,9 @@ const dateDependencyDeleteSchema = z.object({
   modelId: z.string(),
 });
 
-export const DateDependencyDeleteContract: OperationContract<typeof dateDependencyDeleteSchema> = {
+export const DateDependencyDeleteContract: OperationContract<
+  typeof dateDependencyDeleteSchema
+> = {
   name: 'dateDependencyDelete',
   version: 1,
   entity: MetaTable.DATE_DEPENDENCY,

@@ -349,6 +349,8 @@ const showActivity = computed(() => {
           </NcButton>
         </NcTooltip>
 
+        <SmartsheetExpandedFormMoreOptionsMenu :is-loading="isLoading" :view="view" @after-delete="closePanel" />
+
         <div v-if="!isNew" class="flex items-center">
           <NcTooltip :title="$t('labels.prevRow')">
             <NcButton

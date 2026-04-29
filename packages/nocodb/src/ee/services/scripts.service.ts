@@ -6,8 +6,9 @@ import {
   PlanLimitTypes,
 } from 'nocodb-sdk';
 import type { ScriptType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';

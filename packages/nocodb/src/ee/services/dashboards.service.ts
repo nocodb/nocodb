@@ -11,8 +11,9 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { DashboardType, WidgetType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import { NcContext } from '~/interface/config';
 import { CustomUrl, Dashboard, DependencyTracker, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getWidgetData, getWidgetHandler } from '~/db/widgets';

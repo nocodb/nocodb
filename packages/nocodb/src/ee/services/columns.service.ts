@@ -96,7 +96,6 @@ export class ColumnsService extends ColumnsServiceCE {
     );
   }
 
-
   @EEOnly()
   @TraceCommand({
     entity: MetaTable.COLUMNS,

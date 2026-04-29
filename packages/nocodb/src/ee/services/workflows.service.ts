@@ -16,8 +16,9 @@ import { CronExpressionParser } from 'cron-parser';
 import type { WorkflowRunAs } from 'nocodb-sdk';
 import type { OnModuleInit } from '@nestjs/common';
 import type { IntegrationReqType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import { NcContext } from '~/interface/config';
 import { extractWorkflowDependencies } from '~/services/workflows/extractDependency';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { NcError } from '~/helpers/catchError';
@@ -636,7 +637,8 @@ export class WorkflowsService implements OnModuleInit {
   @TraceCommand({
     entity: MetaTable.AUTOMATIONS,
     entityId: (p) => p?.workflowId,
-    description: ({ entityTitle }) => `Publish ${bWorkflow(entityTitle)} workflow`,
+    description: ({ entityTitle }) =>
+      `Publish ${bWorkflow(entityTitle)} workflow`,
     resolveCtx: async (context, param) => {
       const wf = await Workflow.get(context, param?.workflowId);
       return { entityTitle: wf?.title };

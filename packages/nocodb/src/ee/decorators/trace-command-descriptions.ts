@@ -12,7 +12,7 @@ export const b = (t?: string) => (t ? `**${t}**` : '');
  * Keep the `:` separator in sync with the frontend parser:
  *   `nc-gui/ee/utils/changelogTokens.ts`
  */
-const token = (kind: string) => (t?: string) => (t ? `[[${kind}:${t}]]` : '');
+const token = (kind: string) => (t?: string) => t ? `[[${kind}:${t}]]` : '';
 
 export const bTable = token('table');
 export const bView = token('view');
@@ -82,7 +82,9 @@ function buildActions(bEntity: BFn, typeLabel: string, bParent?: BFn) {
       const oldTitle = extra?.oldTitle;
       const renamed =
         oldTitle && oldTitle !== entityTitle
-          ? `Rename ${bEntity(oldTitle)} ${typeLabel} to ${bEntity(entityTitle)}`
+          ? `Rename ${bEntity(oldTitle)} ${typeLabel} to ${bEntity(
+              entityTitle,
+            )}`
           : `Rename ${typeLabel} to ${bEntity(entityTitle)}`;
       return withParent(renamed, parentEntityTitle);
     }) as DescFn,
@@ -150,8 +152,7 @@ export const rowColorConditionActions = {
  * Share-view actions — no parent icon; the view is always the subject.
  */
 export const shareViewActions = {
-  create: (({ entityTitle }) =>
-    `Share ${bView(entityTitle)} view`) as DescFn,
+  create: (({ entityTitle }) => `Share ${bView(entityTitle)} view`) as DescFn,
   update: (({ entityTitle }) =>
     `Edit shared link of ${bView(entityTitle)} view`) as DescFn,
   delete: (({ entityTitle }) =>
@@ -168,9 +169,7 @@ export const permissionActions = {
       : `Set permission on ${b(entityTitle)}`) as DescFn,
   drop: (({ entityTitle, parentEntityTitle }) =>
     parentEntityTitle
-      ? `Remove permission on ${b(entityTitle)} in ${bTable(
-          parentEntityTitle,
-        )}`
+      ? `Remove permission on ${b(entityTitle)} in ${bTable(parentEntityTitle)}`
       : `Remove permission on ${b(entityTitle)}`) as DescFn,
 };
 

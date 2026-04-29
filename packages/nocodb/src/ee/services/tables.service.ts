@@ -6,7 +6,7 @@ import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { OperationSource } from '~/helpers/columnHelpers';
 import type { NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';

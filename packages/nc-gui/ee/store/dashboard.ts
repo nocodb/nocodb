@@ -25,8 +25,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
   // State
   const dashboards = ref<Map<string, DashboardType[]>>(new Map())
 
-  const dashboardsListLoaded = ref<Set<string>>(new Set())
-
   const sharedDashboardState = reactive({
     password: '',
     activeProjectId: null,
@@ -62,7 +60,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     // In shared base we are not showing dashboards, so better to avoid api call
     if (!activeWorkspaceId.value || isSharedBase.value) return []
 
-    if (dashboardsListLoaded.value.has(baseId) && !force) {
+    if (dashboards.value.has(baseId) && !force) {
       return dashboards.value.get(baseId) || []
     }
 
@@ -73,7 +71,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
       if (ncIsArray(response)) {
         dashboards.value.set(baseId, response)
-        dashboardsListLoaded.value.add(baseId)
         return response
       } else {
         return []

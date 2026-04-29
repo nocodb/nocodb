@@ -983,6 +983,12 @@ export const useRealtime = createSharedComposable(() => {
       } else if (event.action === 'base_meta_reload') {
         const baseId = event.payload?.base_id
         if (baseId) {
+          // Capture dashboard IDs before clearing — widgets are keyed by
+          // dashboardId, so we need them to invalidate the widget cache.
+          const dashboardIdsForBase = (dashboardStore.dashboards.get(baseId) || [])
+            .map((d) => d.id)
+            .filter((id): id is string => !!id)
+
           // Clear cached meta for this base — including deletedTableIds entries
           // which would block getMeta for tables restored after discard.
           clearBaseMeta(baseId)
@@ -991,6 +997,20 @@ export const useRealtime = createSharedComposable(() => {
           workflowStore.workflows.delete(baseId)
           dashboardStore.dashboards.delete(baseId)
           delete baseExtensions.value[baseId]
+
+          // Invalidate all view caches for this base (keys are `${baseId}:${tableId}`)
+          // so navigating to any table fetches fresh views/filters/sorts.
+          for (const key of viewsByTable.value.keys()) {
+            if (key.startsWith(`${baseId}:`)) {
+              viewsByTable.value.delete(key)
+            }
+          }
+
+          // Drop widget caches for any dashboard that belonged to this base
+          // so re-opening a dashboard refetches fresh widgets.
+          for (const dashboardId of dashboardIdsForBase) {
+            widgetStore.widgets.delete(dashboardId)
+          }
 
           // If this is the active base, reload immediately
           if (activeBaseId.value === baseId) {
@@ -1002,20 +1022,16 @@ export const useRealtime = createSharedComposable(() => {
                 }
               }
 
-              // Invalidate all view caches for this base so navigating
-              // to any table fetches fresh views with correct filters/sorts.
-              for (const key of viewsByTable.value.keys()) {
-                if (key.startsWith(`${baseId}:`)) {
-                  viewsByTable.value.delete(key)
-                }
-              }
-
               await Promise.all([
                 scriptStore.loadScripts({ baseId, force: true }),
                 workflowStore.loadWorkflows({ baseId, force: true }),
                 dashboardStore.loadDashboards({ baseId, force: true }),
                 loadExtensionsForBase(baseId),
                 listVariables(),
+                // Refresh widgets for the currently open dashboard, if any.
+                activeDashboardId.value
+                  ? widgetStore.loadWidgets({ dashboardId: activeDashboardId.value, force: true })
+                  : Promise.resolve(),
               ])
 
               $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)

@@ -133,8 +133,6 @@ provide(CanvasSelectCellInj, undefined)
 
 const isLoading = ref(true)
 
-const isSaving = ref(false)
-
 // Template mode: editable template name in the header
 const editableTemplateName = ref(props.templateName || '')
 
@@ -161,11 +159,13 @@ const {
   displayValue,
   state: rowState,
   isNew,
+  isSaving,
   loadRow: _loadRow,
   primaryKey,
   row: _row,
   comments,
   save: _save,
+  formatSaveError,
   loadComments,
   loadAudits,
   clearColumns,
@@ -441,11 +441,7 @@ const save = async () => {
 
     emits('createdRecord', _row.value.row)
   } catch (e: any) {
-    if (isNew.value) {
-      message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
-    } else {
-      message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
-    }
+    message.error(await formatSaveError(e))
   }
 
   isSaving.value = false
@@ -659,11 +655,7 @@ useActiveKeydownListener(
           reloadHook?.trigger(null)
         }
       } catch (e: any) {
-        if (isNew.value) {
-          message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
-        } else {
-          message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
-        }
+        message.error(await formatSaveError(e))
       }
       // on alt + n create new record
     } else if (e.code === 'KeyN') {
@@ -1320,24 +1312,12 @@ export default {
     </template>
   </GeneralDeleteModal>
 
-  <!-- Prevent unsaved change modal -->
-  <NcModal v-model:visible="preventModalStatus" size="small">
-    <div class="">
-      <div class="flex flex-row items-center gap-x-2 text-base font-bold">
-        {{ $t('tooltip.saveChanges') }}
-      </div>
-      <div class="flex font-medium mt-2">
-        {{ $t('activity.doYouWantToSaveTheChanges') }}
-      </div>
-      <div class="flex flex-row justify-end gap-x-2 mt-5">
-        <NcButton type="secondary" size="small" @click="discardPreventModal">{{ $t('labels.discard') }}</NcButton>
-
-        <NcButton key="submit" type="primary" size="small" :loading="isSaving" @click="saveChanges">
-          {{ $t('tooltip.saveChanges') }}
-        </NcButton>
-      </div>
-    </div>
-  </NcModal>
+  <SmartsheetExpandedFormDiscardChangesModal
+    v-model="preventModalStatus"
+    :loading="isSaving"
+    @discard="discardPreventModal"
+    @save-and-continue="saveChanges"
+  />
   <DlgSendRecordEmail
     v-if="visibleMoreOptions.sendRecord && primaryKey"
     v-model="showSendRecordModal"

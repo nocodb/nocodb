@@ -51,6 +51,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const saveRowAndStay = ref(0)
 
+    const isSaving = ref(false)
+
     const changedColumns = ref<Set<string>>(new Set<string>())
 
     const localOnlyChanges = ref<Record<string, any>>({})
@@ -495,6 +497,15 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       return data
     }
 
+    /**
+     * Build the save-failure toast message — same copy used by both modal and panel.
+     * Centralised here so all callers stay in sync if the wording or i18n keys change.
+     */
+    const formatSaveError = async (e: any, isNewRow = rowStore.isNew.value) => {
+      const detail = await extractSdkResponseErrorMsg(e)
+      return isNewRow ? `Add row failed: ${detail}` : `${t('msg.error.rowUpdateFailed')}: ${detail}`
+    }
+
     const clearColumns = () => {
       changedColumns.value = new Set()
     }
@@ -936,6 +947,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       deleteRowById,
       displayValue,
       save,
+      isSaving,
+      formatSaveError,
       changedColumns,
       localOnlyChanges,
       loadRow,

@@ -31,8 +31,6 @@ const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const { isUIAllowed } = useRoles()
 
-const { t } = useI18n()
-
 const { $e } = useNuxtApp()
 
 const { isMobileMode } = useGlobal()
@@ -94,10 +92,12 @@ const {
   displayValue,
   state: rowState,
   isNew,
+  isSaving,
   loadRow: _loadRow,
   primaryKey,
   row: _row,
   save: _save,
+  formatSaveError,
   loadComments,
   loadAudits,
   clearColumns,
@@ -137,8 +137,6 @@ watch([() => activityExpanded.value, () => activeActivityTab.value], async ([exp
     await loadAudits(primaryKey.value, false)
   }
 })
-
-const isSaving = ref(false)
 
 const isSaveDisabled = computed(() => {
   return changedColumns.value.size === 0
@@ -197,11 +195,7 @@ const save = async (): Promise<boolean> => {
     await reloadViewDataTrigger?.trigger()
     return true
   } catch (e: any) {
-    if (isNew.value) {
-      message.error(`Add row failed: ${await extractSdkResponseErrorMsg(e)}`)
-    } else {
-      message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
-    }
+    message.error(await formatSaveError(e))
     return false
   } finally {
     isSaving.value = false
@@ -505,23 +499,12 @@ const showActivity = computed(() => {
     </div>
   </Transition>
 
-  <!-- Discard changes modal (height=auto so the frame fits the short confirm copy) -->
-  <NcModal v-model:visible="showDiscardModal" size="xs" height="auto">
-    <div>
-      <div class="flex flex-row items-center gap-x-2 text-base font-bold">
-        {{ $t('labels.saveChanges') }}
-      </div>
-      <div class="flex font-medium mt-2">
-        {{ $t('activity.doYouWantToSaveTheChanges') }}
-      </div>
-      <div class="flex flex-row justify-end gap-x-2 mt-5">
-        <NcButton type="secondary" size="small" @click="discardAndNavigate">{{ $t('labels.discard') }}</NcButton>
-        <NcButton type="primary" size="small" :loading="isSaving" @click="saveAndContinue">
-          {{ $t('labels.saveChanges') }}
-        </NcButton>
-      </div>
-    </div>
-  </NcModal>
+  <SmartsheetExpandedFormDiscardChangesModal
+    v-model="showDiscardModal"
+    :loading="isSaving"
+    @discard="discardAndNavigate"
+    @save-and-continue="saveAndContinue"
+  />
 </template>
 
 <style lang="scss" scoped>

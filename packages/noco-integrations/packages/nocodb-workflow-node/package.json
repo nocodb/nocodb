@@ -9,10 +9,12 @@
     "dev": "tsc -w"
   },
   "dependencies": {
-    "@noco-integrations/core": "workspace:*"
+    "@noco-integrations/core": "workspace:*",
+    "ws": "^8.20.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.46",
+    "@types/ws": "^8.5.13",
     "typescript": "^5.8.3"
   }
 }

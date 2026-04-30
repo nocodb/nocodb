@@ -12,6 +12,23 @@ export function unsanitize(v) {
   return v?.replace(/\\[?]/g, '?');
 }
 
+/**
+ * Escape a string as a PostgreSQL string literal: wraps in single quotes
+ * and doubles any embedded single quotes. Use when an inline literal must
+ * be embedded directly in DDL (CREATE TYPE … AS ENUM, ALTER TYPE ADD/RENAME
+ * VALUE, ALTER COLUMN SET DEFAULT, USING expressions in ALTER TABLE) — PG's
+ * DDL parser rejects parameter placeholders for value literals, so knex's
+ * `?` binding (which becomes `$N`) cannot be used in those positions.
+ *
+ * Identifiers should still go through knex's `??` placeholder.
+ */
+export function pgQuoteLiteral(value: string): string {
+  if (value == null) {
+    throw new Error('pgQuoteLiteral: value must not be null or undefined');
+  }
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
 export function sanitizeAndEscapeDots(alias: string, knex: XKnex) {
   const sanitizedAlias = sanitize(alias);
   // if alias does not contain any dot then return as it is

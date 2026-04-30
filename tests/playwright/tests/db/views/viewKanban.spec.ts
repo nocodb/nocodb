@@ -35,7 +35,7 @@ test.describe('View', () => {
     // in hub, after table delete- first table in the list gets rendered
     await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
-    if (isSqlite(context) || isPg(context)) {
+    if (isSqlite(context)) {
       await dashboard.grid.column.openEdit({ title: 'Rating', type: 'SingleSelect' });
       await dashboard.grid.column.selectType({ type: 'SingleSelect' });
       let count = 0;

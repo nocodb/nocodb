@@ -274,7 +274,15 @@ export class MetaDiffsService {
           // if mysql and data type is set or enum then compare dtxp as well
           (['mysql', 'mysql2'].includes(source.type) &&
             ['set', 'enum'].includes(column.dt) &&
-            column.dtxp !== oldCol.dtxp)
+            column.dtxp !== oldCol.dtxp) ||
+          // PG native enum: dt stays 'USER-DEFINED' but option list can
+          // change via ALTER TYPE ADD/RENAME VALUE, or the underlying enum
+          // type itself can be swapped (different udt_name).
+          (source.type === 'pg' &&
+            column.udt_typtype === 'e' &&
+            (column.dtxp !== oldCol.dtxp ||
+              column.data_type_custom !==
+                oldCol.internal_meta?.pg_enum_type_name))
         ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,
@@ -708,7 +716,15 @@ export class MetaDiffsService {
           // if mysql and data type is set or enum then compare dtxp as well
           (['mysql', 'mysql2'].includes(source.type) &&
             ['set', 'enum'].includes(column.dt) &&
-            column.dtxp !== oldCol.dtxp)
+            column.dtxp !== oldCol.dtxp) ||
+          // PG native enum: dt stays 'USER-DEFINED' but option list can
+          // change via ALTER TYPE ADD/RENAME VALUE, or the underlying enum
+          // type itself can be swapped (different udt_name).
+          (source.type === 'pg' &&
+            column.udt_typtype === 'e' &&
+            (column.dtxp !== oldCol.dtxp ||
+              column.data_type_custom !==
+                oldCol.internal_meta?.pg_enum_type_name))
         ) {
           tableProp.detectedChanges.push({
             type: MetaDiffType.TABLE_COLUMN_TYPE_CHANGE,

@@ -400,6 +400,10 @@ class ModelXcMetaPg extends BaseModelXcMeta {
     switch (dt) {
       case 'anyenum':
         return 'enum';
+      case 'user-defined':
+        // PG groups every user-defined type under data_type='USER-DEFINED'.
+        // Disambiguate via pg_type.typtype (plumbed by PgClient.columnList).
+        return col.udt_typtype === 'e' ? 'enum' : dt;
       case 'anynonarray':
       case 'anyrange':
         return dt;

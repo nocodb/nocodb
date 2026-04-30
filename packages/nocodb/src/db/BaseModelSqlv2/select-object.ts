@@ -491,10 +491,19 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           break;
         }
         case UITypes.SingleSelect: {
-          res[sanitize(getAs(column) || column.column_name)] =
-            baseModel.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [
-              sanitize(column.column_name),
-            ]);
+          // NULLIF(col, '') casts '' to col's type; native PG enums reject
+          // '' with "invalid input value for enum". Native enum cells can't
+          // hold '' anyway, so select them directly.
+          if (column.internal_meta?.pg_enum_type_name) {
+            res[sanitize(getAs(column) || column.column_name)] = sanitize(
+              `${alias || baseModel.tnPath}.${column.column_name}`,
+            );
+          } else {
+            res[sanitize(getAs(column) || column.column_name)] =
+              baseModel.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [
+                sanitize(column.column_name),
+              ]);
+          }
           break;
         }
         case UITypes.LongText: {

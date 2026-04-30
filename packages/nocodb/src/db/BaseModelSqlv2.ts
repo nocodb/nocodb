@@ -6543,7 +6543,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (r === null) {
                 query.where((qb) => {
                   qb.whereNull(column.column_name);
-                  if (column.uidt === UITypes.SingleSelect) {
+                  // Native PG enum columns can't be compared to ''
+                  // (PG raises "invalid input value for enum"), and there's
+                  // no way for an enum-typed cell to hold an empty string
+                  // anyway. Only apply the '' fallback for text-backed
+                  // SingleSelect columns.
+                  if (
+                    column.uidt === UITypes.SingleSelect &&
+                    !column.internal_meta?.pg_enum_type_name
+                  ) {
                     qb.orWhere(column.column_name, '=', '');
                   }
                 });
@@ -6608,7 +6616,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const qb = this.dbDriver(this.tnPath).count('*', { as: 'count' });
 
-    if (column.uidt === UITypes.SingleSelect) {
+    if (
+      column.uidt === UITypes.SingleSelect &&
+      !column.internal_meta?.pg_enum_type_name
+    ) {
+      // NULLIF(col, '') casts '' to col's type; native PG enums reject ''
+      // with "invalid input value for enum". Native enum cells can't hold
+      // '' anyway, so skip the normalization for them.
       qb.groupBy(
         this.dbDriver.raw(`COALESCE(NULLIF(??, ''), NULL)`, [
           column.column_name,

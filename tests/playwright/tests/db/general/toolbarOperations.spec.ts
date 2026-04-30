@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import setup, { unsetup } from '../../../setup';
-import { enableQuickRun, isMysql } from '../../../setup/db';
+import { enableQuickRun, isMysql, isPg } from '../../../setup/db';
 import { UITypes } from 'nocodb-sdk';
 
 test.describe('Toolbar operations (GRID)', () => {
@@ -95,8 +95,11 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: isMysql(context) ? 'is' : 'is equal',
-      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
+      operation: isMysql(context) || isPg(context) ? 'is' : 'is equal',
+      // Sakila Rating: MySQL ENUM and PG mpaa_rating (native enum, auto-detected
+      // by introspection) both surface as SingleSelect. SQLite has no native
+      // enum so it stays as plain text.
+      dataType: isMysql(context) || isPg(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
     });
     await toolbar.clickFilter();
     await dashboard.grid.groupPage.verifyGroupHeader({
@@ -317,8 +320,11 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: isMysql(context) ? 'is' : 'is equal',
-      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
+      operation: isMysql(context) || isPg(context) ? 'is' : 'is equal',
+      // Sakila Rating: MySQL ENUM and PG mpaa_rating (native enum, auto-detected
+      // by introspection) both surface as SingleSelect. SQLite has no native
+      // enum so it stays as plain text.
+      dataType: isMysql(context) || isPg(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
       locallySaved: false,
     });
     await toolbar.clickFilter();
@@ -367,8 +373,11 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'NC-17',
-      operation: isMysql(context) ? 'is' : 'is equal',
-      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
+      operation: isMysql(context) || isPg(context) ? 'is' : 'is equal',
+      // Sakila Rating: MySQL ENUM and PG mpaa_rating (native enum, auto-detected
+      // by introspection) both surface as SingleSelect. SQLite has no native
+      // enum so it stays as plain text.
+      dataType: isMysql(context) || isPg(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
       locallySaved: false,
     });
     await toolbar.clickFilter();
@@ -390,8 +399,11 @@ test.describe('Toolbar operations (GRID)', () => {
     await toolbar.filter.add({
       title: 'Rating',
       value: 'PG-13',
-      operation: isMysql(context) ? 'is' : 'is equal',
-      dataType: isMysql(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
+      operation: isMysql(context) || isPg(context) ? 'is' : 'is equal',
+      // Sakila Rating: MySQL ENUM and PG mpaa_rating (native enum, auto-detected
+      // by introspection) both surface as SingleSelect. SQLite has no native
+      // enum so it stays as plain text.
+      dataType: isMysql(context) || isPg(context) ? UITypes.SingleSelect : UITypes.SingleLineText,
       locallySaved: false,
     });
     await toolbar.clickFilter();

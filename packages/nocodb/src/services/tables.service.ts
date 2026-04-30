@@ -630,62 +630,106 @@ export class TablesService {
 
   /**
    * Collect metadata for all tables referenced by LTAR/Links/Lookup/Rollup
-   * columns in the given table. Used to avoid N+1 tableGet calls from the UI.
+   * columns in the given table. Recursively follows nested lookups/rollups.
+   * Result is grouped by base ID for cross-base link support.
    */
   protected async getRelatedMetas(
     context: NcContext,
     table: Model,
-  ): Promise<Record<string, TableType>> {
-    const relatedMetas: Record<string, TableType> = {};
-    const seen = new Map<string, string>(); // tableId -> compositeKey
+  ): Promise<Record<string, Record<string, TableType>>> {
+    const result: Record<string, Record<string, TableType>> = {};
+    const seen = new Set<string>();
 
-    for (const col of table.columns ?? []) {
-      const opts = col.colOptions as any;
-      if (!opts) continue;
+    // Skip self — we don't need the source table in relatedMetas
+    seen.add(`${table.base_id}:${table.id}`);
 
-      if (isLinksOrLTAR(col) && opts.fk_related_model_id) {
-        // LTAR/Links — direct relation
-        const baseId = opts.fk_related_base_id || table.base_id;
-        const key = `${baseId}:${opts.fk_related_model_id}`;
-        if (opts.fk_related_model_id !== table.id) {
-          seen.set(opts.fk_related_model_id, key);
+    const addTable = async (
+      baseId: string,
+      tableId: string,
+      ctx: NcContext,
+    ) => {
+      const key = `${baseId}:${tableId}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+
+      try {
+        const relatedContext = { ...ctx, base_id: baseId };
+        const related = await Model.getWithInfo(relatedContext, {
+          id: tableId,
+        });
+        if (related) {
+          (result[baseId] ??= {})[tableId] = related as unknown as TableType;
         }
-      } else if (col.uidt === UITypes.Lookup || col.uidt === UITypes.Rollup) {
-        // Lookup/Rollup — resolve through the relation column
-        const relationCol = (table.columns ?? []).find(
-          (c) => c.id === opts.fk_relation_column_id,
-        );
-        const relOpts = relationCol?.colOptions as any;
-        if (
-          relOpts?.fk_related_model_id &&
-          relOpts.fk_related_model_id !== table.id
+      } catch {
+        // User may lack access to the related table — skip silently.
+        // Frontend falls back to getPartialMeta for these cases.
+      }
+    };
+
+    const collect = async (
+      cols: Column[],
+      colContext: NcContext,
+      colBaseId: string,
+      depth = 0,
+    ) => {
+      if (depth > 10) return; // safety cap — circular lookups rejected at creation
+
+      for (const col of cols) {
+        const opts = col.colOptions as any;
+        if (!opts) continue;
+
+        if (isLinksOrLTAR(col) && opts.fk_related_model_id) {
+          // LTAR/Links — direct relation
+          const baseId = opts.fk_related_base_id || colBaseId;
+          await addTable(baseId, opts.fk_related_model_id, colContext);
+
+          // MM junction table
+          if (opts.fk_mm_model_id) {
+            const mmBaseId = opts.fk_mm_base_id || colBaseId;
+            await addTable(mmBaseId, opts.fk_mm_model_id, colContext);
+          }
+        } else if (
+          col.uidt === UITypes.Lookup ||
+          col.uidt === UITypes.Rollup
         ) {
-          const baseId = relOpts.fk_related_base_id || table.base_id;
-          const key = `${baseId}:${relOpts.fk_related_model_id}`;
-          seen.set(relOpts.fk_related_model_id, key);
+          // Lookup/Rollup — resolve through the relation column
+          const relationCol = cols.find(
+            (c) => c.id === opts.fk_relation_column_id,
+          );
+          const relOpts = relationCol?.colOptions as any;
+          if (!relOpts?.fk_related_model_id) continue;
+
+          const baseId = relOpts.fk_related_base_id || colBaseId;
+          const relatedContext = { ...colContext, base_id: baseId };
+          await addTable(baseId, relOpts.fk_related_model_id, relatedContext);
+
+          // Recurse: if the lookup/rollup target column is itself virtual, follow it
+          const targetMeta = result[baseId]?.[relOpts.fk_related_model_id];
+          if (targetMeta?.columns) {
+            const targetCol = (targetMeta.columns as Column[]).find(
+              (c) => c.id === opts.fk_lookup_column_id,
+            );
+            if (
+              targetCol &&
+              (targetCol.uidt === UITypes.Lookup ||
+                targetCol.uidt === UITypes.Rollup ||
+                isLinksOrLTAR(targetCol))
+            ) {
+              await collect(
+                targetMeta.columns as Column[],
+                relatedContext,
+                baseId,
+                depth + 1,
+              );
+            }
+          }
         }
       }
-    }
+    };
 
-    await Promise.all(
-      [...seen.entries()].map(async ([tableId, compositeKey]) => {
-        try {
-          const baseId = compositeKey.split(':')[0];
-          const relatedContext = { ...context, base_id: baseId };
-          const related = await Model.getWithInfo(relatedContext, {
-            id: tableId,
-          });
-          if (related) {
-            relatedMetas[compositeKey] = related as unknown as TableType;
-          }
-        } catch {
-          // User may lack access to the related table — skip silently.
-          // Frontend falls back to getPartialMeta for these cases.
-        }
-      }),
-    );
+    await collect(table.columns ?? [], context, table.base_id);
 
-    return relatedMetas;
+    return result;
   }
 
   async xcVisibilityMetaGet(

@@ -228,15 +228,6 @@ export default abstract class CacheMgr {
     }
   }
 
-  async setIfNotExist(
-    key: string,
-    value: string,
-    seconds: number,
-  ): Promise<boolean> {
-    const res = await this.client.set(key, value, 'EX', seconds, 'NX');
-    return res === 'OK';
-  }
-
   // @ts-ignore
   async incrby(key: string, value = 1): Promise<any> {
     return this.client.incrby(key, value);
@@ -256,6 +247,15 @@ export default abstract class CacheMgr {
     const [err, total] = results[0];
     if (err) throw err;
     return Number(total);
+  }
+
+  async setIfNotExist(
+    key: string,
+    value: string,
+    seconds: number,
+  ): Promise<boolean> {
+    const res = await this.client.set(key, value, 'EX', seconds, 'NX');
+    return res === 'OK';
   }
 
   async getList(

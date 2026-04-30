@@ -13,18 +13,9 @@ interface Bucket {
   baseId?: string;
 }
 
-class ThrottlerLogger {
+export class ThrottlerLogger {
   private readonly logger = new Logger('ThrottlerLogger');
   private buckets = new Map<string, Bucket>();
-  private timer: NodeJS.Timeout | null = null;
-
-  constructor() {
-    this.timer = setInterval(
-      () => this.flush().catch((err) => this.logger.error(err)),
-      FLUSH_INTERVAL_MS,
-    );
-    this.timer.unref?.();
-  }
 
   record({ workspaceId, baseId }: { workspaceId?: string; baseId?: string }) {
     const key = `${workspaceId ?? 'anon'}:${baseId ?? '-'}`;
@@ -41,7 +32,7 @@ class ThrottlerLogger {
     });
   }
 
-  private async flush() {
+  async flush() {
     if (this.buckets.size === 0) return;
 
     const snapshot = this.buckets;
@@ -90,4 +81,19 @@ class ThrottlerLogger {
   }
 }
 
-export const throttlerLogger = new ThrottlerLogger();
+// Module-level singleton — guarded against re-evaluation under nest watch /
+// hot reload to avoid leaking a setInterval per reload.
+const SINGLETON_KEY = Symbol.for('nocodb.throttlerLogger');
+const g = globalThis as { [SINGLETON_KEY]?: ThrottlerLogger };
+
+if (!g[SINGLETON_KEY]) {
+  const instance = new ThrottlerLogger();
+  const fallbackLogger = new Logger('ThrottlerLogger');
+  setInterval(
+    () => instance.flush().catch((err) => fallbackLogger.error(err)),
+    FLUSH_INTERVAL_MS,
+  ).unref?.();
+  g[SINGLETON_KEY] = instance;
+}
+
+export const throttlerLogger: ThrottlerLogger = g[SINGLETON_KEY]!;

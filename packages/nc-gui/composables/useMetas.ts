@@ -138,8 +138,11 @@ export const useMetas = createSharedComposable(() => {
     loadingState.value[loadingKey] = true
 
     try {
-      if (!force && metas.value[metaKey]) {
-        return metas.value[metaKey]
+      // When includeRelatedMetas is requested (direct table open), skip slim cached entries
+      // since they lack full column details, views, etc. needed by the grid
+      const cached = metas.value[metaKey]
+      if (!force && cached && !(includeRelatedMetas && cached._isSlimMeta)) {
+        return cached
       }
       const modelId =
         (tables.find((t) => t.id === tableIdOrTitle) || tables.find((t) => t.title === tableIdOrTitle))?.id || tableIdOrTitle
@@ -160,12 +163,14 @@ export const useMetas = createSharedComposable(() => {
             const key = getMetaKey(relatedBaseId, tableId)
             // Only populate if not already cached (avoid overwriting fresher data)
             if (!updated[key]) {
-              updated[key] = relatedModel as TableType
+              // Mark as slim so cache checks can distinguish from full metas
+              const slimModel = { ...relatedModel, _isSlimMeta: true } as TableType
+              updated[key] = slimModel
 
               // Also cache by title
               const titleKey = getMetaKey(relatedBaseId, (relatedModel as TableType).title)
               if (!updated[titleKey]) {
-                updated[titleKey] = relatedModel as TableType
+                updated[titleKey] = slimModel
               }
             }
           }

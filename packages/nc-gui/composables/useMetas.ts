@@ -147,7 +147,7 @@ export const useMetas = createSharedComposable(() => {
       const model = await $api.internal.getOperation(activeWorkspaceId.value!, baseId, {
         operation: 'tableGet',
         tableId: modelId,
-        ...(includeRelatedMetas ? { includeRelatedMetas: 'true' } : {}),
+        ...(includeRelatedMetas ? { includeRelatedMetas: 'true', slimRelatedMetas: 'true' } : {}),
       })
 
       // Populate cache with related table metas before caching the primary model

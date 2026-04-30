@@ -109,8 +109,6 @@ export default class Model implements TableType {
 
   synced?: boolean;
 
-  relatedMetas?: Record<string, Record<string, TableType>>;
-
   constructor(data: Partial<TableType | Model>) {
     Object.assign(this, data);
   }

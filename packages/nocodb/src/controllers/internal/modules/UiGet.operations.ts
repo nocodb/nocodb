@@ -105,9 +105,6 @@ export class UiGetOperations
           includeRelatedMetas:
             req.query.includeRelatedMetas === 'true' ||
             req.query.includeRelatedMetas === true,
-          slimRelatedMetas:
-            req.query.slimRelatedMetas === 'true' ||
-            req.query.slimRelatedMetas === true,
         });
       case 'columnsHash':
         return await this.columnsService.columnsHash(

@@ -138,11 +138,11 @@ export const useMetas = createSharedComposable(() => {
     loadingState.value[loadingKey] = true
 
     try {
-      // When includeRelatedMetas is requested (direct table open), skip slim cached entries
-      // since they lack full column details, views, etc. needed by the grid
       const cached = metas.value[metaKey]
-      if (!force && cached && !(includeRelatedMetas && cached._isSlimMeta)) {
-        return cached
+      if (!force && cached) {
+        if (!includeRelatedMetas || (includeRelatedMetas && cached._includeRelatedMetas)) {
+          return cached
+        }
       }
       const modelId =
         (tables.find((t) => t.id === tableIdOrTitle) || tables.find((t) => t.title === tableIdOrTitle))?.id || tableIdOrTitle
@@ -150,7 +150,7 @@ export const useMetas = createSharedComposable(() => {
       const model = await $api.internal.getOperation(activeWorkspaceId.value!, baseId, {
         operation: 'tableGet',
         tableId: modelId,
-        ...(includeRelatedMetas ? { includeRelatedMetas: 'true', slimRelatedMetas: 'true' } : {}),
+        ...(includeRelatedMetas ? { includeRelatedMetas: 'true' } : {}),
       })
 
       // Populate cache with related table metas before caching the primary model
@@ -164,7 +164,7 @@ export const useMetas = createSharedComposable(() => {
             // Only populate if not already cached (avoid overwriting fresher data)
             if (!updated[key]) {
               // Mark as slim so cache checks can distinguish from full metas
-              const slimModel = { ...relatedModel, _isSlimMeta: true } as TableType
+              const slimModel = { ...relatedModel, _includeRelatedMetas: includeRelatedMetas } as TableType
               updated[key] = slimModel
 
               // Also cache by title

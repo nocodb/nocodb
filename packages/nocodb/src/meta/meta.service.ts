@@ -951,8 +951,12 @@ export class MetaService {
       ? this.connection
       : await this.connection.transaction();
 
-    // todo: tobe done
-    return new MetaService(
+    // Instantiate via this.constructor so subclasses (e.g. EE MetaService)
+    // returned from startTransaction keep their overridden methods.
+    // Hard-coding `new MetaService(...)` here would always return a CE
+    // instance even when called on an EE/EE-Cloud subclass.
+    const Ctor = this.constructor as typeof MetaService;
+    return new Ctor(
       this.config,
       trx,
       // we need to keep track of the nested transaction level

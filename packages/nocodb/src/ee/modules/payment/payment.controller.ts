@@ -179,6 +179,15 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/payment/:workspaceId/move-to-new-org')
+  async moveWorkspaceToNewOrg(
+    @Param('workspaceId') workspaceId: string,
+    @Body() payload: { orgTitle?: string } = {},
+  ) {
+    return this.paymentService.moveWorkspaceToNewOrg(workspaceId, payload);
+  }
+
+  @UseGuards(AuthGuard('basic'))
   @Post('/api/internal/payment/:workspaceOrOrgId/recount')
   async recountWorkspace(@Param('workspaceOrOrgId') workspaceOrOrgId: string) {
     return this.paymentService.recountWorkspace(workspaceOrOrgId);

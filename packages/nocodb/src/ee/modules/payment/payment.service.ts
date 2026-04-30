@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { nanoid } from 'nanoid';
 import {
   AppEvents,
+  CloudOrgUserRoles,
   EventType,
   getUpgradeMessage,
   LOYALTY_GRACE_PERIOD_END_DATE,
@@ -20,6 +21,7 @@ import { JobTypes } from '~/interface/Jobs';
 import {
   ModelStat,
   Org,
+  OrgUser,
   Plan,
   Subscription,
   User,
@@ -286,6 +288,212 @@ export class PaymentService {
     this.clearBaseListCacheForEntity(workspaceOrOrg);
 
     return subscription;
+  }
+
+  /**
+   * Moves a workspace into a freshly created organization, transferring its
+   * Stripe customer (and active subscription, if any) to the org. The Stripe
+   * customer/subscription objects are preserved when present — only their
+   * metadata and linked entity are rebound, so future invoices and webhooks
+   * reference the org.
+   *
+   * Customer handling:
+   *   - Workspace has a real Stripe customer  → copied to org, metadata rebound
+   *   - Workspace has internal/no customer    → fresh Stripe customer created
+   *                                              for the org so a subscription
+   *                                              can be set up later
+   *
+   * Steps:
+   *   1. Validate workspace (subscription + Stripe customer are both optional)
+   *   2. Create new org (workspace OWNER(s) become org OWNER(s); other members → VIEWER)
+   *   3. Attach workspace to org (fk_org_id), move stripe_customer_id workspace → org
+   *   4. If active subscription exists: move subscription record (fk_workspace_id → fk_org_id)
+   *   5. Stripe customer: rebind existing customer metadata, or mint a new one for the org
+   *   6. Stripe subscription metadata + schedule phases (if a subscription was moved)
+   */
+  async moveWorkspaceToNewOrg(
+    workspaceId: string,
+    opts: { orgTitle?: string } = {},
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ org: Org; subscription: Subscription | null }> {
+    const workspace = await Workspace.get(workspaceId, false, ncMeta);
+    if (!workspace) NcError.workspaceNotFound(workspaceId);
+
+    if (workspace.fk_org_id) {
+      NcError.badRequest('Workspace is already part of an organization');
+    }
+
+    // Subscription is optional — workspace may have a customer but no
+    // active sub (e.g. trial expired, or customer pre-created for self-serve).
+    const subscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceId,
+      ncMeta,
+    );
+
+    if (subscription?.stripe_subscription_id?.startsWith('internal_')) {
+      NcError.badRequest('Internal subscriptions cannot be moved to an org');
+    }
+
+    const wsUsers = await WorkspaceUser.userList(
+      { fk_workspace_id: workspaceId },
+      ncMeta,
+    );
+
+    const owners = wsUsers.filter(
+      (u) => u.roles === WorkspaceUserRoles.OWNER && u.fk_user_id,
+    );
+    if (!owners.length) {
+      NcError.badRequest('Workspace has no owner to assign as org owner');
+    }
+
+    // A "real" Stripe customer is one that exists and isn't the internal
+    // sentinel. Internal customers (NOCODB_INTERNAL) are placeholders for
+    // free/internal subs and should not be carried over — the org gets a
+    // fresh Stripe customer instead.
+    const hasRealCustomer =
+      !!workspace.stripe_customer_id &&
+      workspace.stripe_customer_id !== NOCODB_INTERNAL;
+
+    const transaction = await ncMeta.startTransaction();
+
+    let org: Org;
+    try {
+      org = await Org.insert(
+        {
+          title: opts.orgTitle ?? workspace.title,
+          fk_user_id: owners[0].fk_user_id,
+          // Carry over the workspace's Stripe customer if real; otherwise
+          // leave null and create a fresh one after commit.
+          stripe_customer_id: hasRealCustomer
+            ? workspace.stripe_customer_id
+            : null,
+        },
+        transaction,
+      );
+
+      // Workspace owners → org OWNERs; other members → org VIEWERs.
+      const seen = new Set<string>();
+      for (const u of wsUsers) {
+        if (!u.fk_user_id || seen.has(u.fk_user_id)) continue;
+        seen.add(u.fk_user_id);
+        await OrgUser.insert(
+          {
+            fk_org_id: org.id,
+            fk_user_id: u.fk_user_id,
+            roles:
+              u.roles === WorkspaceUserRoles.OWNER
+                ? CloudOrgUserRoles.OWNER
+                : CloudOrgUserRoles.VIEWER,
+          },
+          transaction,
+        );
+      }
+
+      // Once the workspace is under an org, billing flows through the org —
+      // the workspace itself should not carry a Stripe customer.
+      await Workspace.update(
+        workspaceId,
+        {
+          fk_org_id: org.id,
+          stripe_customer_id: null,
+        },
+        transaction,
+      );
+
+      if (subscription) {
+        await Subscription.move(
+          subscription.id,
+          { fk_workspace_id: null, fk_org_id: org.id },
+          transaction,
+        );
+      }
+
+      await transaction.commit();
+    } catch (e) {
+      await transaction.rollback();
+      // Best-effort cache invalidation in case anything was partially primed
+      await NocoCache.del('root', `${CacheScope.WORKSPACE}:${workspaceId}`);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error(e?.message ?? String(e), e?.stack);
+      return NcError.internalServerError('Failed to move workspace to new org');
+    }
+
+    // Stripe metadata rebind — best-effort. DB is already consistent; if Stripe
+    // call fails, webhook handlers will self-correct on next event using
+    // workspace.fk_org_id resolution.
+    try {
+      if (hasRealCustomer) {
+        // 1a. Existing customer: rebind metadata + invoice custom fields
+        //     workspace → org. Stripe customer object is otherwise preserved.
+        await stripe.customers.update(workspace.stripe_customer_id, {
+          metadata: {
+            fk_workspace_id: '',
+            fk_org_id: org.id,
+            entity: `org_${org.id}`,
+          },
+          invoice_settings: {
+            custom_fields: [
+              { name: 'NocoDB Org ID', value: org.id },
+              { name: 'NocoDB Org Title', value: org.title },
+            ],
+          },
+        });
+      } else {
+        // 1b. No real customer existed — mint a fresh Stripe customer for
+        //     the org so a subscription can be created against it later.
+        await this.createStripeCustomer(org.id, owners[0].fk_user_id, ncMeta);
+      }
+
+      if (subscription) {
+        // 2. Subscription metadata
+        await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+          metadata: {
+            fk_workspace_id: '',
+            fk_org_id: org.id,
+          },
+        });
+
+        // 3. Schedule phase metadata (phase metadata propagates to the live
+        //    subscription on phase activation, so it must reflect the new org)
+        if (subscription.stripe_schedule_id) {
+          const schedule = await stripe.subscriptionSchedules.retrieve(
+            subscription.stripe_schedule_id,
+          );
+          const phases = schedule.phases.map((phase, idx) => ({
+            items: phase.items.map((item) => ({
+              price:
+                typeof item.price === 'string' ? item.price : item.price.id,
+              quantity: item.quantity ?? 1,
+            })),
+            ...(idx > 0 ? { start_date: phase.start_date } : {}),
+            ...(phase.end_date ? { end_date: phase.end_date } : {}),
+            metadata: {
+              ...(phase.metadata ?? {}),
+              fk_workspace_id: '',
+              fk_org_id: org.id,
+            },
+          }));
+          await stripe.subscriptionSchedules.update(
+            subscription.stripe_schedule_id,
+            { phases },
+          );
+        }
+      }
+    } catch (e) {
+      this.logger.error(
+        `Failed to set up Stripe state for org ${org.id}: ${e?.message}`,
+        e?.stack,
+      );
+    }
+
+    // Re-fetch org so the response reflects post-Stripe state (a freshly
+    // minted stripe_customer_id, if one was created).
+    const finalOrg = (await Org.get(org.id, ncMeta)) ?? org;
+    const moved = subscription
+      ? await Subscription.get(subscription.id, ncMeta)
+      : null;
+
+    return { org: finalOrg, subscription: moved };
   }
 
   async addTrial(

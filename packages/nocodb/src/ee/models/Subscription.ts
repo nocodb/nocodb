@@ -191,6 +191,55 @@ export default class Subscription {
     return true;
   }
 
+  /**
+   * Rebinds a subscription between a workspace and an org (or vice versa).
+   * Updates fk_workspace_id / fk_org_id in DB and re-primes SUBSCRIPTIONS_ALIAS
+   * cache entries so lookups by either entity ID resolve correctly.
+   */
+  public static async move(
+    subscriptionId: string,
+    target: { fk_workspace_id?: string | null; fk_org_id?: string | null },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const existing = await this.get(subscriptionId, ncMeta);
+    if (!existing) return false;
+
+    const updateObj = {
+      fk_workspace_id: target.fk_workspace_id ?? null,
+      fk_org_id: target.fk_org_id ?? null,
+    };
+
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.SUBSCRIPTIONS,
+      updateObj,
+      subscriptionId,
+    );
+
+    const cacheKey = `${CacheScope.SUBSCRIPTIONS}:${subscriptionId}`;
+    await NocoCache.update('root', cacheKey, updateObj);
+
+    // Re-prime alias cache: drop old workspace/org alias, set the new one
+    const oldAliasId = existing.fk_org_id || existing.fk_workspace_id;
+    if (oldAliasId) {
+      await NocoCache.del(
+        'root',
+        `${CacheScope.SUBSCRIPTIONS_ALIAS}:${oldAliasId}`,
+      );
+    }
+    const newAliasId = updateObj.fk_org_id || updateObj.fk_workspace_id;
+    if (newAliasId) {
+      await NocoCache.set(
+        'root',
+        `${CacheScope.SUBSCRIPTIONS_ALIAS}:${newAliasId}`,
+        cacheKey,
+      );
+    }
+
+    return true;
+  }
+
   public static async delete(subscriptionId: string, ncMeta = Noco.ncMeta) {
     const subscription = await this.get(subscriptionId, ncMeta);
 

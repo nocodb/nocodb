@@ -338,7 +338,7 @@ function pgEnumTests() {
       expect(moods).to.deep.equal(['blue', null, 'red']);
     });
 
-    it('Removing the option used as default is rejected', async () => {
+    it('Removing the option used as default clears the default', async () => {
       if (!isPg(context)) return;
 
       const enumName = uniqueEnumName();
@@ -386,35 +386,41 @@ function pgEnumTests() {
         (c) => c.id === native.id,
       ) as Column;
 
-      let threw = false;
       const greenId = refreshed.colOptions?.options?.find(
         (o: any) => o.title === 'green',
       )?.id;
       expect(greenId).to.be.a('string');
 
-      try {
-        await updateColumn(context, {
-          table,
-          column: refreshed,
-          attr: {
-            ...refreshed,
-            uidt: UITypes.SingleSelect,
-            colOptions: {
-              options: [{ id: greenId, title: 'green' }],
-            },
+      await updateColumn(context, {
+        table,
+        column: refreshed,
+        attr: {
+          ...refreshed,
+          uidt: UITypes.SingleSelect,
+          colOptions: {
+            options: [{ id: greenId, title: 'green' }],
           },
-        });
-      } catch (e) {
-        threw = true;
-      }
+        },
+      });
 
-      // Either supertest throws on 4xx, or the API returns 4xx and the column is
-      // unchanged. Both outcomes are acceptable; what we MUST see is the type
-      // still has both labels (no destructive DDL ran).
+      // The rebuild proceeds: 'red' is gone from the type, 'green' remains.
       const labels = await pgEnumValues(base, enumName);
-      expect(labels).to.have.members(['red', 'green']);
-      // Reference threw so unused-var lint stays quiet.
-      expect(typeof threw).to.equal('boolean');
+      expect(labels).to.have.members(['green']);
+
+      // Default was the removed option ('red'), so it's cleared on the
+      // metadata and on the PG column.
+      const post = (await table.getColumns(ctx)).find(
+        (c) => c.id === native.id,
+      ) as Column;
+      expect(post.cdf == null || post.cdf === '').to.equal(true);
+
+      const { rows: defaultRows } = await sqlClient.raw(
+        `SELECT column_default
+           FROM information_schema.columns
+          WHERE table_schema = ? AND table_name = ? AND column_name = ?`,
+        [tableSchema, table.table_name, native.column_name],
+      );
+      expect(defaultRows[0]?.column_default == null).to.equal(true);
     });
 
     it('Default value survives a rebuild (kept option)', async () => {

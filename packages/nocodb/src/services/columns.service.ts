@@ -1358,21 +1358,32 @@ export class ColumnsService implements IColumnsService {
           nativeEnumHasRemoves = removedTitles.length > 0;
 
           // If the column's existing default is one of the options being
-          // removed, the rebuild's `ALTER COLUMN TYPE … USING` would fail
-          // because PG tries to recast the default expression against the
-          // new (smaller) type. Bail with a clear message before any SQL
-          // runs — the user can clear/change the default in a separate edit
-          // (or include cdf in the same payload pointing at a kept option).
+          // removed, clear it so the rebuild can proceed. The DROP DEFAULT
+          // (step 2b) still runs against the original column.cdf; step 4
+          // checks finalLabels and skips the SET DEFAULT when the would-be
+          // new default isn't in the post-rebuild option set. The metadata
+          // persist picks up colBody.cdf=null and stores it.
           if (
             nativeEnumHasRemoves &&
             column.cdf &&
             removedTitles.includes(column.cdf)
           ) {
-            NcError.get(context).badRequest(
-              `Cannot remove option '${column.cdf}' because it is set as the ` +
-                `default value for this field. ` +
-                `Clear or change the default first.`,
+            colBody.cdf = null;
+          }
+
+          // If the column is NOT NULL, the option-delete loop's UPDATE that
+          // NULLs rows with removed values fails with 23502. Drop NOT NULL
+          // up front so the row updates succeed, and persist rqd=false so
+          // the metadata reflects the new shape. We sync column.rqd too so
+          // the later sqlMgr.tableUpdate doesn't re-emit DROP NOT NULL.
+          if (nativeEnumHasRemoves && column.rqd) {
+            const tableNameRef = baseModel.getTnPath(table.table_name);
+            await sqlClient.raw(
+              'ALTER TABLE ?? ALTER COLUMN ?? DROP NOT NULL',
+              [tableNameRef, column.column_name],
             );
+            column.rqd = false;
+            colBody.rqd = false;
           }
 
           // Detect whether the enum is shared with other columns. Result is
@@ -2182,7 +2193,10 @@ export class ColumnsService implements IColumnsService {
             //    DEFAULT when PG can't implicitly cast it across distinct
             //    enum types. Cast the literal to the new enum type
             //    explicitly so PG doesn't fall back to text inference.
-            //    Pre-flight already ensured cdf points at a kept option.
+            //    Skip when the default points at a removed option — the
+            //    pre-flight clearing left column.cdf untouched (so step 2b
+            //    above could DROP DEFAULT) but colBody.cdf=null, and the
+            //    target label isn't in finalLabels.
             if (column.cdf) {
               // For the fork, the default may reference an old (renamed)
               // label. Map it through enumTitleRenames first.
@@ -2190,17 +2204,19 @@ export class ColumnsService implements IColumnsService {
                 ? enumTitleRenames.find((r) => r.old_title === column.cdf)
                     ?.new_title ?? column.cdf
                 : column.cdf;
-              await sqlClient.raw(
-                `ALTER TABLE ?? ALTER COLUMN ?? SET DEFAULT ${pgQuoteLiteral(
-                  newCdf,
-                )}::??.??`,
-                [
-                  tableNameRef,
-                  column.column_name,
-                  enumSchema,
-                  newEnumTypeName,
-                ],
-              );
+              if (finalLabels.includes(newCdf)) {
+                await sqlClient.raw(
+                  `ALTER TABLE ?? ALTER COLUMN ?? SET DEFAULT ${pgQuoteLiteral(
+                    newCdf,
+                  )}::??.??`,
+                  [
+                    tableNameRef,
+                    column.column_name,
+                    enumSchema,
+                    newEnumTypeName,
+                  ],
+                );
+              }
             }
 
             if (enumNeedsSoleOwnerRebuild) {

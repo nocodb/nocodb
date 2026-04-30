@@ -7,8 +7,8 @@ import {
   UITypes,
   isBtLikeV2Junction,
   isDateMonthFormat,
+  isLTAR,
   isLink,
-  isMMOrMMLike,
 } from 'nocodb-sdk'
 
 type FormViewColumn = ColumnType & Record<string, any>
@@ -126,35 +126,8 @@ export class FormFilters {
     return column.order < parentColumn.order
   }
 
-  // V1 (legacy LTAR) — single-record relations only (bt / oo). Kept as-is for backward compat.
-  async getOoOrBtColVal(column: FormViewColumn) {
-    const fk_related_model_id = (column?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
-
-    if (!fk_related_model_id || typeof this.getMeta !== 'function' || !this.baseId) return null
-
-    const relatedTableMeta = await this.getMeta(this.baseId, fk_related_model_id)
-
-    if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
-
-    const customDisplayColId = (column?.colOptions as LinkToAnotherRecordType)?.fk_display_value_column_id
-    const customDisplayCol = customDisplayColId ? relatedTableMeta.columns.find((c) => c.id === customDisplayColId) : undefined
-    const displayValTitle =
-      (customDisplayCol || relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
-
-    if (
-      !displayValTitle ||
-      !this.formState[column.title] ||
-      !ncIsObject(this.formState[column.title]) ||
-      this.formState[column.title][displayValTitle] === undefined
-    ) {
-      return null
-    }
-
-    return this.formState[column.title][displayValTitle]
-  }
-
-  // V2 (new LTAR — mm / mo / om / oo with junction tables). Handles both single-row objects
-  // and arrays of linked rows, returning the display value(s) so string operators work.
+  // Extract display value(s) from an LTAR cell for filter comparisons.
+  // Handles both single-row objects (bt / oo / mo) and arrays of rows (hm / mm / om).
   async getLinkV2DisplayValue(column: FormViewColumn): Promise<string | null> {
     const colOptions = column?.colOptions as LinkToAnotherRecordType | undefined
     const fk_related_model_id = colOptions?.fk_related_model_id
@@ -166,7 +139,10 @@ export class FormFilters {
 
     if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
 
-    const displayValTitle = (relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
+    const customDisplayColId = colOptions?.fk_display_value_column_id
+    const customDisplayCol = customDisplayColId ? relatedTableMeta.columns.find((c) => c.id === customDisplayColId) : undefined
+    const displayValTitle =
+      (customDisplayCol || relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
 
     if (!displayValTitle) return null
 
@@ -383,20 +359,14 @@ export class FormFilters {
                 break
             }
 
-            // Mirror VirtualCell.vue's dispatch order so filter semantics match what
-            // users see in the cell:
-            //   - V2 single-record (mo / oo / bt with junction) → chip cell, display value
-            //   - uidt=Links (V1 Links count cell, OR V2 mm/om using Links uidt) → count
-            //   - V2 mm-like with LTAR uidt → chip cell, display value(s)
-            //   - V1 single-record bt / oo → legacy display value
+            // Match VirtualCell.vue's dispatch: V2 single-record junction → chip (display value);
+            // uidt=Links → count cell; everything else LTAR → linked-row display value(s).
             if (isBtLikeV2Junction(column)) {
               val = await this.getLinkV2DisplayValue(column)
             } else if (isLink(column)) {
               val = (this.formState[field] ?? []).length
-            } else if (isMMOrMMLike(column)) {
+            } else if (isLTAR(column.uidt, column.colOptions)) {
               val = await this.getLinkV2DisplayValue(column)
-            } else if (isOo(column) || isBt(column)) {
-              val = await this.getOoOrBtColVal(column)
             }
 
             switch (filter.comparison_op) {

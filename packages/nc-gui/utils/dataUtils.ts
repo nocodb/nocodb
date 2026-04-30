@@ -619,9 +619,8 @@ export const parsePlainCellValue = (
   if (isRollup(col)) {
     return getRollupValue(value, params)
   }
-  // Match VirtualCell.vue's dispatch: V2 single-record junction columns render as a chip
-  // (display value), uidt=Links columns render as a count, everything else LTAR/Lookup
-  // renders the linked row(s) display values.
+  // Match VirtualCell.vue's dispatch: V2 single-record junction → chip (display value);
+  // uidt=Links → count cell; everything else LTAR/Lookup → linked-row display value(s).
   if (isBtLikeV2Junction(col)) {
     return getLookupValue(value, params)
   }

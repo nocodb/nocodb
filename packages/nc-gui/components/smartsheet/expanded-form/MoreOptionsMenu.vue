@@ -54,7 +54,22 @@ const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const expandedFormStore = useExpandedFormStoreOrThrow()
 
-const { isNew, primaryKey, displayValue, baseRoles, meta, row: _row, loadRow: _loadRow, deleteRowById } = expandedFormStore
+const {
+  isNew,
+  isSaving,
+  primaryKey,
+  displayValue,
+  baseRoles,
+  meta,
+  row: _row,
+  state: rowState,
+  loadRow: _loadRow,
+  save: _save,
+  formatSaveError,
+  changedColumns,
+  clearColumns,
+  deleteRowById,
+} = expandedFormStore
 
 const { mode: expandedFormMode, toggle: toggleExpandedFormMode } = useExpandedFormMode()
 
@@ -69,18 +84,26 @@ const showModeToggle = computed(
   () => isEeUI && !isMobileMode.value && !props.templateMode && !props.blueprintMode && !!expandedFormPanelStore,
 )
 
-const onToggleMode = async () => {
-  // Capture state BEFORE toggling — primaryKey/_row reactive refs belong to the
-  // current surface's store, which will be torn down when we close it.
-  const rowId = primaryKey.value
-  const capturedRow = _row.value
-  const fromMode = expandedFormMode.value
+// State for "switch with unsaved changes" prompt. We capture the row + fromMode
+// at click time because the active surface's store will be torn down before the
+// new surface mounts; we can't read these refs again afterwards.
+const showSwitchDiscardModal = ref(false)
+let pendingSwitch: { fromMode: 'panel' | 'modal'; rowId: string; capturedRow: Row } | null = null
 
+const performSwitch = async ({
+  fromMode,
+  rowId,
+  capturedRow,
+}: {
+  fromMode: 'panel' | 'modal'
+  rowId: string
+  capturedRow: Row
+}) => {
   toggleExpandedFormMode()
 
   message.toast(fromMode === 'panel' ? t('msg.toast.expandedFormModeExpandedForm') : t('msg.toast.expandedFormModeSidePanel'))
 
-  if (!rowId || !expandedFormPanelStore) return
+  if (!expandedFormPanelStore) return
 
   // Both directions: closing the current surface clears rowId from the route
   // (panel close watch in grid/index.vue, modal v-model setter). Re-push it
@@ -93,14 +116,63 @@ const onToggleMode = async () => {
     router.push({ query: { ...router.currentRoute.value.query, rowId } })
   } else {
     // modal → panel: open the panel imperatively with the row data we already
-    // have, then re-push rowId. Resolve rowIndex via the grid's row navigator
-    // so prev/next + canvas active-row indicator work immediately. Falls back
-    // to undefined if the row isn't loaded (infinite-scroll cache miss).
+    // have. Resolve rowIndex via the grid's row navigator so prev/next + canvas
+    // active-row indicator work immediately. Falls back to undefined if the row
+    // isn't loaded (infinite-scroll cache miss).
     emits('requestClose')
     const idx = expandedFormPanelStore.rowNavigator.value?.findIndexByRowId?.(rowId) ?? -1
     expandedFormPanelStore.openPanel(capturedRow, idx >= 0 ? idx : undefined, undefined, rowId)
     await nextTick()
     router.push({ query: { ...router.currentRoute.value.query, rowId } })
+  }
+}
+
+const onToggleMode = () => {
+  const rowId = primaryKey.value
+  const capturedRow = _row.value
+  const fromMode = expandedFormMode.value
+
+  if (!rowId || !expandedFormPanelStore) return
+
+  // Without this guard, a fresh API fetch on the new surface would silently
+  // clobber any pending edits the user has made on the current surface.
+  if (changedColumns.value.size > 0) {
+    pendingSwitch = { fromMode, rowId, capturedRow }
+    showSwitchDiscardModal.value = true
+    return
+  }
+
+  performSwitch({ fromMode, rowId, capturedRow })
+}
+
+const onDiscardAndSwitch = () => {
+  if (!pendingSwitch) return
+  clearColumns()
+  showSwitchDiscardModal.value = false
+  const target = pendingSwitch
+  pendingSwitch = null
+  performSwitch(target)
+}
+
+const onSaveAndSwitch = async () => {
+  if (!pendingSwitch) return
+  isSaving.value = true
+  try {
+    if (isNew.value) {
+      await _save(rowState.value)
+    } else {
+      await _save()
+      await _loadRow()
+    }
+    await reloadViewDataTrigger?.trigger()
+    showSwitchDiscardModal.value = false
+    const target = pendingSwitch
+    pendingSwitch = null
+    await performSwitch(target)
+  } catch (e: any) {
+    message.error(await formatSaveError(e))
+  } finally {
+    isSaving.value = false
   }
 }
 
@@ -377,5 +449,12 @@ const onConfirmDeleteRowClick = async () => {
     :meta="meta"
     :view="view"
     :row-id="primaryKey"
+  />
+
+  <SmartsheetExpandedFormDiscardChangesModal
+    v-model="showSwitchDiscardModal"
+    :loading="isSaving"
+    @discard="onDiscardAndSwitch"
+    @save-and-continue="onSaveAndSwitch"
   />
 </template>

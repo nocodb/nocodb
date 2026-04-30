@@ -66,6 +66,20 @@ export default class NocoCache {
     );
   }
 
+  public static async setIfNotExist(
+    context: CacheContext,
+    key: string,
+    value: string,
+    expireSeconds: number,
+  ): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    return this.client.setIfNotExist(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+      value,
+      expireSeconds,
+    );
+  }
+
   public static async incrby(
     context: CacheContext,
     key,
@@ -75,6 +89,22 @@ export default class NocoCache {
     return this.client.incrby(
       `${this.prefix}:${cacheContext(context)}:${key}`,
       value,
+    );
+  }
+
+  // cache-disabled fallback returns the caller's own delta — for counters
+  // where callers expect a numeric running total, not a boolean success flag.
+  public static async incrbyExpiring(
+    context: CacheContext,
+    key: string,
+    value: number,
+    expireSeconds: number,
+  ): Promise<number> {
+    if (this.cacheDisabled) return Promise.resolve(value);
+    return this.client.incrbyExpiring(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+      value,
+      expireSeconds,
     );
   }
 

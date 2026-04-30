@@ -1,5 +1,5 @@
 import type { NcContext } from '~/interface/config';
-import type { ResolvedCtx } from './_types';
+import type { ResolvedCtx } from './types';
 
 /**
  * Anything with `.get(ctx, id) → { title?, ... }`. We don't import models

@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import type { ZodTypeAny } from 'zod';
 
-import type { CommandHandler, OperationContract } from './_types';
+import type { CommandHandler, OperationContract } from './types';
 
 interface RegistryEntry {
   contract: OperationContract;

@@ -7,7 +7,7 @@ import type {
   OperationContract,
   ResolvedCtx,
   TraceCommandDep,
-} from './_types';
+} from './types';
 
 const logger = new Logger('CommandRegistry');
 

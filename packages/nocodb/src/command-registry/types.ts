@@ -1,7 +1,7 @@
 import type { z, ZodTypeAny } from 'zod';
 import type { MetaTable } from '~/utils/globals';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { OperationName } from './_op-names';
+import type { OperationName } from './op-names';
 
 export interface OperationContract<S extends ZodTypeAny = ZodTypeAny> {
   readonly name: OperationName;

@@ -1,4 +1,4 @@
-import type { CommandHandler, OperationContract } from './_types';
+import type { CommandHandler, OperationContract } from './types';
 
 // CE no-op stub. EE overrides with the real Map-backed singleton.
 class _OperationRegistryNoop {

@@ -87,5 +87,17 @@ export function validateColumnInternalMeta(
     }
   }
 
+  // pg_enum_type_name and pg_enum_schema_name must be set together — an
+  // unqualified type name is not addressable, and a schema with no type name
+  // is meaningless. Reject partial state so it cannot be persisted via
+  // direct Column.update calls.
+  const hasEnumTypeName = value.pg_enum_type_name !== undefined;
+  const hasEnumSchemaName = value.pg_enum_schema_name !== undefined;
+  if (hasEnumTypeName !== hasEnumSchemaName) {
+    throw new Error(
+      'pg_enum_type_name and pg_enum_schema_name must be set together',
+    );
+  }
+
   return true;
 }

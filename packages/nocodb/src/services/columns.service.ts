@@ -875,8 +875,9 @@ export class ColumnsService implements IColumnsService {
     // text in the DB (with USING cast) and clear the enum binding. This lets
     // every downstream branch (MultiSelect conversion, text/number/etc.)
     // operate on a plain text-backed column without dialect-specific casts.
-    // PG will keep the enum type itself in the catalog; the user can DROP TYPE
-    // manually if they no longer need it.
+    // After the cast we attempt to DROP the enum type if we're the sole
+    // owner; if the type is shared or referenced by other DB objects we leave
+    // it in place.
     if (
       column.uidt === UITypes.SingleSelect &&
       colBody.uidt &&
@@ -891,6 +892,8 @@ export class ColumnsService implements IColumnsService {
           ),
         }),
       );
+      const enumTypeName = column.internal_meta!.pg_enum_type_name!;
+      const enumSchema = column.internal_meta!.pg_enum_schema_name!;
       await sqlClient.raw(
         `ALTER TABLE ?? ALTER COLUMN ?? TYPE text USING ??::text`,
         [
@@ -899,6 +902,29 @@ export class ColumnsService implements IColumnsService {
           column.column_name,
         ],
       );
+
+      // After the ALTER the column no longer references the enum. If no
+      // other column in the database uses this type, attempt to drop it.
+      // Other DB objects (functions, indexes, views) could still hold
+      // references — in that case PG raises and we log a warning rather
+      // than fail the conversion.
+      try {
+        const otherRefs = await sqlClient.findColumnsUsingType({
+          typeSchema: enumSchema,
+          typeName: enumTypeName,
+        });
+        if (otherRefs.length === 0) {
+          await sqlClient.raw('DROP TYPE ??.??', [enumSchema, enumTypeName]);
+        }
+      } catch (e) {
+        this.logger.warn(
+          `Could not drop ${enumSchema}.${enumTypeName} after column ` +
+            `conversion — it is still referenced by another database object. ` +
+            `Column conversion is persisted; orphan type left for manual cleanup. ` +
+            `Reason: ${e?.message ?? e}`,
+        );
+      }
+
       // Strip the enum binding from in-memory state so subsequent code paths
       // see a vanilla text column.
       const cleanedInternalMeta = { ...(column.internal_meta || {}) };
@@ -1307,12 +1333,10 @@ export class ColumnsService implements IColumnsService {
         const enumTitleRenames: { old_title: string; new_title: string }[] = [];
         let enumTypeName = '';
         let enumSchema = '';
-        let qualifiedEnumType = '';
 
         if (isNativeEnumStaying) {
           enumTypeName = column.internal_meta!.pg_enum_type_name!;
           enumSchema = column.internal_meta!.pg_enum_schema_name!;
-          qualifiedEnumType = `${enumSchema}.${enumTypeName}`;
 
           // Validate: PG enums must have at least one value.
           if ((colBody.colOptions?.options || []).length === 0) {
@@ -1377,10 +1401,10 @@ export class ColumnsService implements IColumnsService {
               );
               if (!isExisting) {
                 await sqlClient.raw(
-                  `ALTER TYPE ?? ADD VALUE IF NOT EXISTS ${pgQuoteLiteral(
+                  `ALTER TYPE ??.?? ADD VALUE IF NOT EXISTS ${pgQuoteLiteral(
                     newOp.title,
                   )}`,
-                  [qualifiedEnumType],
+                  [enumSchema, enumTypeName],
                 );
               }
             }
@@ -1888,10 +1912,10 @@ export class ColumnsService implements IColumnsService {
                 // so they automatically reflect the new label — no row
                 // UPDATE needed. Shared enums are diverted earlier.
                 await sqlClient.raw(
-                  `ALTER TYPE ?? RENAME VALUE ${pgQuoteLiteral(
+                  `ALTER TYPE ??.?? RENAME VALUE ${pgQuoteLiteral(
                     option.title,
                   )} TO ${pgQuoteLiteral(newOp.title)}`,
-                  [qualifiedEnumType],
+                  [enumSchema, enumTypeName],
                 );
               } else {
                 await baseModel.bulkUpdateAll(
@@ -1968,10 +1992,10 @@ export class ColumnsService implements IColumnsService {
               // original value has been renamed away, so the destination
               // label is free.
               await sqlClient.raw(
-                `ALTER TYPE ?? RENAME VALUE ${pgQuoteLiteral(
+                `ALTER TYPE ??.?? RENAME VALUE ${pgQuoteLiteral(
                   ch.temp_title,
                 )} TO ${pgQuoteLiteral(newOp.title)}`,
-                [qualifiedEnumType],
+                [enumSchema, enumTypeName],
               );
             } else {
               await baseModel.bulkUpdateAll(
@@ -2078,28 +2102,26 @@ export class ColumnsService implements IColumnsService {
             const newEnumTypeName = enumNeedsFork
               ? `${enumTypeName}_${enumRebuildSuffix()}`
               : enumTypeName;
-            const newQualifiedEnumType = `${enumSchema}.${newEnumTypeName}`;
 
             // Sole-owner only: stash the existing type aside before recreating.
             const tempTypeName = enumNeedsSoleOwnerRebuild
               ? `${enumTypeName}_nc_old_${enumRebuildSuffix()}`
               : '';
-            const tempQualifiedEnumType = enumNeedsSoleOwnerRebuild
-              ? `${enumSchema}.${tempTypeName}`
-              : '';
 
             if (enumNeedsSoleOwnerRebuild) {
               // 1. Rename the existing type out of the way.
-              await sqlClient.raw('ALTER TYPE ?? RENAME TO ??', [
-                qualifiedEnumType,
+              await sqlClient.raw('ALTER TYPE ??.?? RENAME TO ??', [
+                enumSchema,
+                enumTypeName,
                 tempTypeName,
               ]);
             }
 
             // 2. Create the new type with the final option list.
-            await sqlClient.raw(`CREATE TYPE ?? AS ENUM (${inlinedLabels})`, [
-              newQualifiedEnumType,
-            ]);
+            await sqlClient.raw(
+              `CREATE TYPE ??.?? AS ENUM (${inlinedLabels})`,
+              [enumSchema, newEnumTypeName],
+            );
 
             // 2b. Drop any existing column default before the type change.
             //     The default expression is bound to the OLD type's oid; PG
@@ -2129,25 +2151,29 @@ export class ColumnsService implements IColumnsService {
                 )
                 .join(' ');
               await sqlClient.raw(
-                `ALTER TABLE ?? ALTER COLUMN ?? TYPE ?? USING (CASE ??::text ${whenClauses} ELSE ??::text END)::??`,
+                `ALTER TABLE ?? ALTER COLUMN ?? TYPE ??.?? USING (CASE ??::text ${whenClauses} ELSE ??::text END)::??.??`,
                 [
                   tableNameRef,
                   column.column_name,
-                  newQualifiedEnumType,
+                  enumSchema,
+                  newEnumTypeName,
                   column.column_name,
                   column.column_name,
-                  newQualifiedEnumType,
+                  enumSchema,
+                  newEnumTypeName,
                 ],
               );
             } else {
               await sqlClient.raw(
-                'ALTER TABLE ?? ALTER COLUMN ?? TYPE ?? USING ??::text::??',
+                'ALTER TABLE ?? ALTER COLUMN ?? TYPE ??.?? USING ??::text::??.??',
                 [
                   tableNameRef,
                   column.column_name,
-                  newQualifiedEnumType,
+                  enumSchema,
+                  newEnumTypeName,
                   column.column_name,
-                  newQualifiedEnumType,
+                  enumSchema,
+                  newEnumTypeName,
                 ],
               );
             }
@@ -2167,8 +2193,13 @@ export class ColumnsService implements IColumnsService {
               await sqlClient.raw(
                 `ALTER TABLE ?? ALTER COLUMN ?? SET DEFAULT ${pgQuoteLiteral(
                   newCdf,
-                )}::??`,
-                [tableNameRef, column.column_name, newQualifiedEnumType],
+                )}::??.??`,
+                [
+                  tableNameRef,
+                  column.column_name,
+                  enumSchema,
+                  newEnumTypeName,
+                ],
               );
             }
 
@@ -2177,10 +2208,13 @@ export class ColumnsService implements IColumnsService {
               //    sole owner), but functions/indexes/views could still hold
               //    references — log and leave for manual cleanup if so.
               try {
-                await sqlClient.raw('DROP TYPE ??', [tempQualifiedEnumType]);
+                await sqlClient.raw('DROP TYPE ??.??', [
+                  enumSchema,
+                  tempTypeName,
+                ]);
               } catch (e) {
                 this.logger.warn(
-                  `Could not drop ${tempQualifiedEnumType} after enum rebuild — ` +
+                  `Could not drop ${enumSchema}.${tempTypeName} after enum rebuild — ` +
                     `it is still referenced by another database object. ` +
                     `Field changes are persisted; orphan type left for manual cleanup. ` +
                     `Reason: ${e?.message ?? e}`,

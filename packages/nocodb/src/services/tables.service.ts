@@ -580,6 +580,7 @@ export class TablesService {
     param: {
       tableId: string;
       user: User | UserType;
+      includeRelatedMetas?: boolean;
     },
   ) {
     const table = await Model.getWithInfo(context, {
@@ -620,7 +621,71 @@ export class TablesService {
       });
     }
 
+    if (param.includeRelatedMetas) {
+      table.relatedMetas = await this.getRelatedMetas(context, table);
+    }
+
     return table;
+  }
+
+  /**
+   * Collect metadata for all tables referenced by LTAR/Links/Lookup/Rollup
+   * columns in the given table. Used to avoid N+1 tableGet calls from the UI.
+   */
+  protected async getRelatedMetas(
+    context: NcContext,
+    table: Model,
+  ): Promise<Record<string, TableType>> {
+    const relatedMetas: Record<string, TableType> = {};
+    const seen = new Map<string, string>(); // tableId -> compositeKey
+
+    for (const col of table.columns ?? []) {
+      const opts = col.colOptions as any;
+      if (!opts) continue;
+
+      if (isLinksOrLTAR(col) && opts.fk_related_model_id) {
+        // LTAR/Links — direct relation
+        const baseId = opts.fk_related_base_id || table.base_id;
+        const key = `${baseId}:${opts.fk_related_model_id}`;
+        if (opts.fk_related_model_id !== table.id) {
+          seen.set(opts.fk_related_model_id, key);
+        }
+      } else if (
+        col.uidt === UITypes.Lookup ||
+        col.uidt === UITypes.Rollup
+      ) {
+        // Lookup/Rollup — resolve through the relation column
+        const relationCol = (table.columns ?? []).find(
+          (c) => c.id === opts.fk_relation_column_id,
+        );
+        const relOpts = relationCol?.colOptions as any;
+        if (relOpts?.fk_related_model_id && relOpts.fk_related_model_id !== table.id) {
+          const baseId = relOpts.fk_related_base_id || table.base_id;
+          const key = `${baseId}:${relOpts.fk_related_model_id}`;
+          seen.set(relOpts.fk_related_model_id, key);
+        }
+      }
+    }
+
+    await Promise.all(
+      [...seen.entries()].map(async ([tableId, compositeKey]) => {
+        try {
+          const baseId = compositeKey.split(':')[0];
+          const relatedContext = { ...context, base_id: baseId };
+          const related = await Model.getWithInfo(relatedContext, {
+            id: tableId,
+          });
+          if (related) {
+            relatedMetas[compositeKey] = related as unknown as TableType;
+          }
+        } catch {
+          // User may lack access to the related table — skip silently.
+          // Frontend falls back to getPartialMeta for these cases.
+        }
+      }),
+    );
+
+    return relatedMetas;
   }
 
   async xcVisibilityMetaGet(

@@ -1,6 +1,15 @@
 import type { ColumnType } from 'ant-design-vue/lib/table'
 import dayjs from 'dayjs'
-import { type FilterType, type LinkToAnotherRecordType, type TableType, UITypes, isDateMonthFormat, isLinkV2 } from 'nocodb-sdk'
+import {
+  type FilterType,
+  type LinkToAnotherRecordType,
+  type TableType,
+  UITypes,
+  isBtLikeV2Junction,
+  isDateMonthFormat,
+  isLink,
+  isMMOrMMLike,
+} from 'nocodb-sdk'
 
 type FormViewColumn = ColumnType & Record<string, any>
 
@@ -374,26 +383,20 @@ export class FormFilters {
                 break
             }
 
-            // V2 LTAR (mm / mo / om / oo with junction tables) — uidt may be Links or
-            // LinkToAnotherRecord; the discriminator is colOptions.version. Compare against
-            // linked record display value(s) so eq / neq / like / nlike / allof / anyof work.
-            if (isLinkV2(column)) {
+            // Mirror VirtualCell.vue's dispatch order so filter semantics match what
+            // users see in the cell:
+            //   - V2 single-record (mo / oo / bt with junction) → chip cell, display value
+            //   - uidt=Links (V1 Links count cell, OR V2 mm/om using Links uidt) → count
+            //   - V2 mm-like with LTAR uidt → chip cell, display value(s)
+            //   - V1 single-record bt / oo → legacy display value
+            if (isBtLikeV2Junction(column)) {
               val = await this.getLinkV2DisplayValue(column)
-            } else {
-              switch (column.uidt) {
-                case UITypes.Links:
-                  // Legacy V1 Links (deprecated count cell) — only count-based filtering is meaningful.
-                  if (isMm(column) || isHm(column)) {
-                    val = (this.formState[field] ?? []).length
-                  }
-                  break
-                case UITypes.LinkToAnotherRecord:
-                  // V1 LTAR single-record (bt / oo) — preserve legacy display-value extraction
-                  if (isOo(column) || isBt(column)) {
-                    val = await this.getOoOrBtColVal(column)
-                  }
-                  break
-              }
+            } else if (isLink(column)) {
+              val = (this.formState[field] ?? []).length
+            } else if (isMMOrMMLike(column)) {
+              val = await this.getLinkV2DisplayValue(column)
+            } else if (isOo(column) || isBt(column)) {
+              val = await this.getOoOrBtColVal(column)
             }
 
             switch (filter.comparison_op) {

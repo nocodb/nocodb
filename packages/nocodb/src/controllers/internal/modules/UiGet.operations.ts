@@ -102,6 +102,12 @@ export class UiGetOperations
         return await this.tablesService.getTableWithAccessibleViews(context, {
           tableId: req.query.tableId,
           user: req.user,
+          includeRelatedMetas:
+            req.query.includeRelatedMetas === 'true' ||
+            req.query.includeRelatedMetas === true,
+          slimRelatedMetas:
+            req.query.slimRelatedMetas === 'true' ||
+            req.query.slimRelatedMetas === true,
         });
       case 'columnsHash':
         return await this.columnsService.columnsHash(

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Model } from '~/models';
 import { dateDependencyActions } from '~/decorators/trace-command-descriptions';
@@ -14,7 +15,7 @@ const dateDependencyUpdateSchema = z.object({
 export const DateDependencyUpdateContract: OperationContract<
   typeof dateDependencyUpdateSchema
 > = {
-  name: 'dateDependencyUpdate',
+  name: OperationName.dateDependencyUpdate,
   version: 1,
   entity: MetaTable.DATE_DEPENDENCY,
   schema: dateDependencyUpdateSchema,
@@ -37,7 +38,7 @@ const dateDependencyDeleteSchema = z.object({
 export const DateDependencyDeleteContract: OperationContract<
   typeof dateDependencyDeleteSchema
 > = {
-  name: 'dateDependencyDelete',
+  name: OperationName.dateDependencyDelete,
   version: 1,
   entity: MetaTable.DATE_DEPENDENCY,
   schema: dateDependencyDeleteSchema,

@@ -18,6 +18,7 @@ import type { OnModuleInit } from '@nestjs/common';
 import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { extractWorkflowDependencies } from '~/services/workflows/extractDependency';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
@@ -46,13 +47,6 @@ import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
-import {
-  WorkflowCreateContract,
-  WorkflowDeleteContract,
-  WorkflowPublishContract,
-  WorkflowUpdateContract,
-} from '~/command-registry/operations/workflows.operations';
-
 @Injectable()
 export class WorkflowsService implements OnModuleInit {
   private readonly logger = new Logger(WorkflowsService.name);
@@ -214,7 +208,7 @@ export class WorkflowsService implements OnModuleInit {
     return workflow;
   }
 
-  @TraceCommand(WorkflowCreateContract)
+  @TraceCommand(OperationName.workflowCreate)
   async createWorkflow(
     context: NcContext,
     param: { body: Partial<Workflow>; req: NcRequest },
@@ -282,7 +276,7 @@ export class WorkflowsService implements OnModuleInit {
     return workflow;
   }
 
-  @TraceCommand(WorkflowUpdateContract)
+  @TraceCommand(OperationName.workflowUpdate)
   async updateWorkflow(
     context: NcContext,
     param: { workflowId: string; body: Partial<Workflow>; req: NcRequest },
@@ -348,7 +342,7 @@ export class WorkflowsService implements OnModuleInit {
     return updatedWorkflow;
   }
 
-  @TraceCommand(WorkflowDeleteContract)
+  @TraceCommand(OperationName.workflowDelete)
   async deleteWorkflow(
     context: NcContext,
     param: { workflowId: string; req: NcRequest; ncMeta?: MetaService },
@@ -611,7 +605,7 @@ export class WorkflowsService implements OnModuleInit {
     return execution;
   }
 
-  @TraceCommand(WorkflowPublishContract)
+  @TraceCommand(OperationName.workflowPublish)
   async publishWorkflow(
     context: NcContext,
     param: {

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
 import type { TraceCommandDep } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Column, Filter, Model, View } from '~/models';
 import RlsPolicy from '~/ee/models/RlsPolicy';
@@ -28,7 +29,7 @@ const filterCreateSchema = z.object({
 export const FilterCreateContract: OperationContract<
   typeof filterCreateSchema
 > = {
-  name: 'filterCreate',
+  name: OperationName.filterCreate,
   version: 1,
   entity: MetaTable.FILTER_EXP,
   schema: filterCreateSchema,
@@ -65,7 +66,7 @@ const filterUpdateSchema = z.object({
 export const FilterUpdateContract: OperationContract<
   typeof filterUpdateSchema
 > = {
-  name: 'filterUpdate',
+  name: OperationName.filterUpdate,
   version: 1,
   entity: MetaTable.FILTER_EXP,
   schema: filterUpdateSchema,
@@ -104,7 +105,7 @@ const filterDeleteSchema = z.object({
 export const FilterDeleteContract: OperationContract<
   typeof filterDeleteSchema
 > = {
-  name: 'filterDelete',
+  name: OperationName.filterDelete,
   version: 1,
   entity: MetaTable.FILTER_EXP,
   schema: filterDeleteSchema,
@@ -139,7 +140,7 @@ const linkFilterCreateSchema = z.object({
 export const LinkFilterCreateContract: OperationContract<
   typeof linkFilterCreateSchema
 > = {
-  name: 'linkFilterCreate',
+  name: OperationName.linkFilterCreate,
   version: 1,
   entity: MetaTable.FILTER_EXP,
   schema: linkFilterCreateSchema,
@@ -187,7 +188,7 @@ const widgetFilterCreateSchema = z.object({
 export const WidgetFilterCreateContract: OperationContract<
   typeof widgetFilterCreateSchema
 > = {
-  name: 'widgetFilterCreate',
+  name: OperationName.widgetFilterCreate,
   version: 1,
   entity: MetaTable.FILTER_EXP,
   schema: widgetFilterCreateSchema,
@@ -231,7 +232,7 @@ const rlsPolicyFilterCreateSchema = z.object({
 export const RlsPolicyFilterCreateContract: OperationContract<
   typeof rlsPolicyFilterCreateSchema
 > = {
-  name: 'rlsPolicyFilterCreate',
+  name: OperationName.rlsPolicyFilterCreate,
   version: 1,
   entity: MetaTable.FILTER_EXP,
   schema: rlsPolicyFilterCreateSchema,
@@ -279,7 +280,7 @@ const rowColorConditionsCreateSchema = z.object({
 export const RowColorConditionsCreateContract: OperationContract<
   typeof rowColorConditionsCreateSchema
 > = {
-  name: 'rowColorConditionsCreate',
+  name: OperationName.rowColorConditionsCreate,
   version: 1,
   entity: MetaTable.FILTER_EXP,
   schema: rowColorConditionsCreateSchema,

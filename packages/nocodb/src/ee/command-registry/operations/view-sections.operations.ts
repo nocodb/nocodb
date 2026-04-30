@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { ViewSection } from '~/models';
 import { viewSectionActions } from '~/decorators/trace-command-descriptions';
@@ -17,7 +18,7 @@ const createSchema = z.object({
 
 export const ViewSectionCreateContract: OperationContract<typeof createSchema> =
   {
-    name: 'viewSectionCreate',
+    name: OperationName.viewSectionCreate,
     version: 1,
     entity: MetaTable.VIEW_SECTIONS,
     schema: createSchema,
@@ -41,7 +42,7 @@ const updateSchema = z.object({
 
 export const ViewSectionUpdateContract: OperationContract<typeof updateSchema> =
   {
-    name: 'viewSectionUpdate',
+    name: OperationName.viewSectionUpdate,
     version: 1,
     entity: MetaTable.VIEW_SECTIONS,
     schema: updateSchema,
@@ -63,7 +64,7 @@ const deleteSchema = z.object({
 
 export const ViewSectionDeleteContract: OperationContract<typeof deleteSchema> =
   {
-    name: 'viewSectionDelete',
+    name: OperationName.viewSectionDelete,
     version: 1,
     entity: MetaTable.VIEW_SECTIONS,
     schema: deleteSchema,

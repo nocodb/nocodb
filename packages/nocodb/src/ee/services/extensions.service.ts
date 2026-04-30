@@ -3,14 +3,10 @@ import { AppEvents, EventType } from 'nocodb-sdk';
 import { ExtensionsService as ExtensionsServiceCE } from 'src/services/extensions.service';
 import type { ExtensionReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  ExtensionCreateContract,
-  ExtensionDeleteContract,
-  ExtensionUpdateContract,
-} from '~/command-registry/operations/extensions.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { Extension } from '~/models';
@@ -26,7 +22,7 @@ export class ExtensionsService extends ExtensionsServiceCE {
     super(appHooksServiceEE);
   }
 
-  @TraceCommand(ExtensionCreateContract)
+  @TraceCommand(OperationName.extensionCreate)
   async extensionCreate(
     context: NcContext,
     param: {
@@ -37,7 +33,7 @@ export class ExtensionsService extends ExtensionsServiceCE {
     return super.extensionCreate(context, param);
   }
 
-  @TraceCommand(ExtensionUpdateContract)
+  @TraceCommand(OperationName.extensionUpdate)
   async extensionUpdate(
     context: NcContext,
     param: {
@@ -49,7 +45,7 @@ export class ExtensionsService extends ExtensionsServiceCE {
     return super.extensionUpdate(context, param);
   }
 
-  @TraceCommand(ExtensionDeleteContract)
+  @TraceCommand(OperationName.extensionDelete)
   async extensionDelete(
     context: NcContext,
     param: {

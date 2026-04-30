@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Script } from '~/models';
 import { scriptActions } from '~/decorators/trace-command-descriptions';
@@ -18,7 +19,7 @@ const createSchema = z.object({
 });
 
 export const ScriptCreateContract: OperationContract<typeof createSchema> = {
-  name: 'scriptCreate',
+  name: OperationName.scriptCreate,
   version: 1,
   entity: MetaTable.AUTOMATIONS,
   schema: createSchema,
@@ -39,7 +40,7 @@ const updateSchema = z.object({
 });
 
 export const ScriptUpdateContract: OperationContract<typeof updateSchema> = {
-  name: 'scriptUpdate',
+  name: OperationName.scriptUpdate,
   version: 1,
   entity: MetaTable.AUTOMATIONS,
   schema: updateSchema,
@@ -60,7 +61,7 @@ const deleteSchema = z.object({
 });
 
 export const ScriptDeleteContract: OperationContract<typeof deleteSchema> = {
-  name: 'scriptDelete',
+  name: OperationName.scriptDelete,
   version: 1,
   entity: MetaTable.AUTOMATIONS,
   schema: deleteSchema,

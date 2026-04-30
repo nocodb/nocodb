@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Extension } from '~/models';
 import { extensionActions } from '~/decorators/trace-command-descriptions';
@@ -11,7 +12,7 @@ const createSchema = z.object({
 });
 
 export const ExtensionCreateContract: OperationContract<typeof createSchema> = {
-  name: 'extensionCreate',
+  name: OperationName.extensionCreate,
   version: 1,
   entity: MetaTable.EXTENSIONS,
   schema: createSchema,
@@ -27,7 +28,7 @@ const updateSchema = z.object({
 });
 
 export const ExtensionUpdateContract: OperationContract<typeof updateSchema> = {
-  name: 'extensionUpdate',
+  name: OperationName.extensionUpdate,
   version: 1,
   entity: MetaTable.EXTENSIONS,
   schema: updateSchema,
@@ -48,7 +49,7 @@ const deleteSchema = z.object({
 });
 
 export const ExtensionDeleteContract: OperationContract<typeof deleteSchema> = {
-  name: 'extensionDelete',
+  name: OperationName.extensionDelete,
   version: 1,
   entity: MetaTable.EXTENSIONS,
   schema: deleteSchema,

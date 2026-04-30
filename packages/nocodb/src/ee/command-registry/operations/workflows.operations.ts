@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Workflow } from '~/models';
 import {
@@ -14,7 +15,7 @@ const createSchema = z.object({
 });
 
 export const WorkflowCreateContract: OperationContract<typeof createSchema> = {
-  name: 'workflowCreate',
+  name: OperationName.workflowCreate,
   version: 1,
   entity: MetaTable.AUTOMATIONS,
   schema: createSchema,
@@ -30,7 +31,7 @@ const updateSchema = z.object({
 });
 
 export const WorkflowUpdateContract: OperationContract<typeof updateSchema> = {
-  name: 'workflowUpdate',
+  name: OperationName.workflowUpdate,
   version: 1,
   entity: MetaTable.AUTOMATIONS,
   schema: updateSchema,
@@ -51,7 +52,7 @@ const deleteSchema = z.object({
 });
 
 export const WorkflowDeleteContract: OperationContract<typeof deleteSchema> = {
-  name: 'workflowDelete',
+  name: OperationName.workflowDelete,
   version: 1,
   entity: MetaTable.AUTOMATIONS,
   schema: deleteSchema,
@@ -70,7 +71,7 @@ const publishSchema = z.object({
 
 export const WorkflowPublishContract: OperationContract<typeof publishSchema> =
   {
-    name: 'workflowPublish',
+    name: OperationName.workflowPublish,
     version: 1,
     entity: MetaTable.AUTOMATIONS,
     schema: publishSchema,

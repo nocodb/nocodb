@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Hook, Model } from '~/models';
 import { hookActions } from '~/decorators/trace-command-descriptions';
@@ -12,7 +13,7 @@ const createSchema = z.object({
 });
 
 export const HookCreateContract: OperationContract<typeof createSchema> = {
-  name: 'hookCreate',
+  name: OperationName.hookCreate,
   version: 1,
   entity: MetaTable.HOOKS,
   schema: createSchema,
@@ -33,7 +34,7 @@ const updateSchema = z.object({
 });
 
 export const HookUpdateContract: OperationContract<typeof updateSchema> = {
-  name: 'hookUpdate',
+  name: OperationName.hookUpdate,
   version: 1,
   entity: MetaTable.HOOKS,
   schema: updateSchema,
@@ -60,7 +61,7 @@ const deleteSchema = z.object({
 });
 
 export const HookDeleteContract: OperationContract<typeof deleteSchema> = {
-  name: 'hookDelete',
+  name: OperationName.hookDelete,
   version: 1,
   entity: MetaTable.HOOKS,
   schema: deleteSchema,

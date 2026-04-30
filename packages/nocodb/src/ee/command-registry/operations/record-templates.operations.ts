@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import RecordTemplate from '~/models/RecordTemplate';
 import { recordTemplateActions } from '~/decorators/trace-command-descriptions';
@@ -20,7 +21,7 @@ const createSchema = z.object({
 export const RecordTemplateCreateContract: OperationContract<
   typeof createSchema
 > = {
-  name: 'recordTemplateCreate',
+  name: OperationName.recordTemplateCreate,
   version: 1,
   entity: MetaTable.RECORD_TEMPLATES,
   schema: createSchema,
@@ -47,7 +48,7 @@ const updateSchema = z.object({
 export const RecordTemplateUpdateContract: OperationContract<
   typeof updateSchema
 > = {
-  name: 'recordTemplateUpdate',
+  name: OperationName.recordTemplateUpdate,
   version: 1,
   entity: MetaTable.RECORD_TEMPLATES,
   schema: updateSchema,
@@ -71,7 +72,7 @@ const deleteSchema = z.object({
 export const RecordTemplateDeleteContract: OperationContract<
   typeof deleteSchema
 > = {
-  name: 'recordTemplateDelete',
+  name: OperationName.recordTemplateDelete,
   version: 1,
   entity: MetaTable.RECORD_TEMPLATES,
   schema: deleteSchema,

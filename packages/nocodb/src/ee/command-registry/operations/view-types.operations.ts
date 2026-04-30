@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Model, View } from '~/models';
 import { viewActions } from '~/decorators/trace-command-descriptions';
@@ -43,7 +44,7 @@ const gridCreateSchema = z.object({
 export const GridViewCreateContract: OperationContract<
   typeof gridCreateSchema
 > = {
-  name: 'gridViewCreate',
+  name: OperationName.gridViewCreate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: gridCreateSchema,
@@ -63,7 +64,7 @@ const gridUpdateSchema = z.object({
 export const GridViewUpdateContract: OperationContract<
   typeof gridUpdateSchema
 > = {
-  name: 'gridViewUpdate',
+  name: OperationName.gridViewUpdate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: gridUpdateSchema,
@@ -84,7 +85,7 @@ const formCreateSchema = z.object({
 export const FormViewCreateContract: OperationContract<
   typeof formCreateSchema
 > = {
-  name: 'formViewCreate',
+  name: OperationName.formViewCreate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: formCreateSchema,
@@ -104,7 +105,7 @@ const formUpdateSchema = z.object({
 export const FormViewUpdateContract: OperationContract<
   typeof formUpdateSchema
 > = {
-  name: 'formViewUpdate',
+  name: OperationName.formViewUpdate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: formUpdateSchema,
@@ -125,7 +126,7 @@ const galleryCreateSchema = z.object({
 export const GalleryViewCreateContract: OperationContract<
   typeof galleryCreateSchema
 > = {
-  name: 'galleryViewCreate',
+  name: OperationName.galleryViewCreate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: galleryCreateSchema,
@@ -145,7 +146,7 @@ const galleryUpdateSchema = z.object({
 export const GalleryViewUpdateContract: OperationContract<
   typeof galleryUpdateSchema
 > = {
-  name: 'galleryViewUpdate',
+  name: OperationName.galleryViewUpdate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: galleryUpdateSchema,
@@ -167,7 +168,7 @@ const kanbanCreateSchema = z.object({
 export const KanbanViewCreateContract: OperationContract<
   typeof kanbanCreateSchema
 > = {
-  name: 'kanbanViewCreate',
+  name: OperationName.kanbanViewCreate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: kanbanCreateSchema,
@@ -187,7 +188,7 @@ const kanbanUpdateSchema = z.object({
 export const KanbanViewUpdateContract: OperationContract<
   typeof kanbanUpdateSchema
 > = {
-  name: 'kanbanViewUpdate',
+  name: OperationName.kanbanViewUpdate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: kanbanUpdateSchema,
@@ -208,7 +209,7 @@ const calendarCreateSchema = z.object({
 export const CalendarViewCreateContract: OperationContract<
   typeof calendarCreateSchema
 > = {
-  name: 'calendarViewCreate',
+  name: OperationName.calendarViewCreate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: calendarCreateSchema,
@@ -228,7 +229,7 @@ const calendarUpdateSchema = z.object({
 export const CalendarViewUpdateContract: OperationContract<
   typeof calendarUpdateSchema
 > = {
-  name: 'calendarViewUpdate',
+  name: OperationName.calendarViewUpdate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: calendarUpdateSchema,

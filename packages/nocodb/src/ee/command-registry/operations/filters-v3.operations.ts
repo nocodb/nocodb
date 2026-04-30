@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model, View } from '~/models';
 import { filterActions } from '~/decorators/trace-command-descriptions';
@@ -16,7 +17,7 @@ const filterCreateV3Schema = z.object({
 export const FilterCreateV3Contract: OperationContract<
   typeof filterCreateV3Schema
 > = {
-  name: 'filterCreateV3',
+  name: OperationName.filterCreateV3,
   version: 1,
   entity: MetaTable.FILTER_EXP,
   schema: filterCreateV3Schema,

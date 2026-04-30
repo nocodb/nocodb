@@ -13,6 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { DashboardType, WidgetType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { CustomUrl, Dashboard, DependencyTracker, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -22,16 +23,6 @@ import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { checkLimit } from '~/helpers/paymentHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  DashboardCreateContract,
-  DashboardDeleteContract,
-  DashboardUpdateContract,
-  DuplicateWidgetContract,
-  WidgetCreateContract,
-  WidgetDeleteContract,
-  WidgetUpdateContract,
-} from '~/command-registry/operations/dashboards.operations';
-
 @Injectable()
 export class DashboardsService {
   constructor(
@@ -55,7 +46,7 @@ export class DashboardsService {
     return dashboard;
   }
 
-  @TraceCommand(DashboardCreateContract)
+  @TraceCommand(OperationName.dashboardCreate)
   async dashboardCreate(
     context: NcContext,
     param: {
@@ -111,7 +102,7 @@ export class DashboardsService {
     return dashboard;
   }
 
-  @TraceCommand(DashboardUpdateContract)
+  @TraceCommand(OperationName.dashboardUpdate)
   async dashboardUpdate(
     context: NcContext,
     param: {
@@ -165,7 +156,7 @@ export class DashboardsService {
     return updatedDashboard;
   }
 
-  @TraceCommand(DashboardDeleteContract)
+  @TraceCommand(OperationName.dashboardDelete)
   async dashboardDelete(
     context: NcContext,
     param: {
@@ -247,7 +238,7 @@ export class DashboardsService {
     return widget;
   }
 
-  @TraceCommand(WidgetCreateContract)
+  @TraceCommand(OperationName.widgetCreate)
   async widgetCreate(
     context: NcContext,
     param: {
@@ -319,7 +310,7 @@ export class DashboardsService {
     return widget;
   }
 
-  @TraceCommand(DuplicateWidgetContract)
+  @TraceCommand(OperationName.duplicateWidget)
   async duplicateWidget(
     context: NcContext,
     param: { widgetId: string; req: NcRequest },
@@ -412,7 +403,7 @@ export class DashboardsService {
     return newWidget;
   }
 
-  @TraceCommand(WidgetUpdateContract)
+  @TraceCommand(OperationName.widgetUpdate)
   async widgetUpdate(
     context: NcContext,
     param: {
@@ -491,7 +482,7 @@ export class DashboardsService {
     return updatedWidget;
   }
 
-  @TraceCommand(WidgetDeleteContract)
+  @TraceCommand(OperationName.widgetDelete)
   async widgetDelete(
     context: NcContext,
     param: {

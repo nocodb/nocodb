@@ -27,14 +27,10 @@ import type {
 import type { ReusableParams } from '~/services/columns.service.type';
 import type { NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  ColumnAddContract,
-  ColumnDeleteContract,
-  ColumnUpdateContract,
-} from '~/command-registry/operations/columns.operations';
 import {
   Base,
   Column,
@@ -100,7 +96,7 @@ export class ColumnsService extends ColumnsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(ColumnAddContract)
+  @TraceCommand(OperationName.columnAdd)
   async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {
@@ -230,7 +226,7 @@ export class ColumnsService extends ColumnsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(ColumnUpdateContract)
+  @TraceCommand(OperationName.columnUpdate)
   async columnUpdate(
     context: NcContext,
     param: {
@@ -263,7 +259,7 @@ export class ColumnsService extends ColumnsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(ColumnDeleteContract)
+  @TraceCommand(OperationName.columnDelete)
   async columnDelete(
     context: NcContext,
     param: {

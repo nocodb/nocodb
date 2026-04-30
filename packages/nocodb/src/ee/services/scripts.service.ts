@@ -8,6 +8,7 @@ import {
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -16,12 +17,6 @@ import NocoSocket from '~/socket/NocoSocket';
 import { ButtonColumn, Script, Workspace } from '~/models';
 import { checkLimit } from '~/helpers/paymentHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  ScriptCreateContract,
-  ScriptDeleteContract,
-  ScriptUpdateContract,
-} from '~/command-registry/operations/scripts.operations';
-
 @Injectable()
 export class ScriptsService {
   constructor(
@@ -43,7 +38,7 @@ export class ScriptsService {
     return script;
   }
 
-  @TraceCommand(ScriptCreateContract)
+  @TraceCommand(OperationName.scriptCreate)
   async createScript(
     context: NcContext,
     param: { body: Partial<ScriptType>; req: NcRequest },
@@ -92,7 +87,7 @@ export class ScriptsService {
     return script;
   }
 
-  @TraceCommand(ScriptUpdateContract)
+  @TraceCommand(OperationName.scriptUpdate)
   async updateScript(
     context: NcContext,
     param: {
@@ -140,7 +135,7 @@ export class ScriptsService {
     return updatedScript;
   }
 
-  @TraceCommand(ScriptDeleteContract)
+  @TraceCommand(OperationName.scriptDelete)
   async deleteScript(
     context: NcContext,
     param: { scriptId: string; req: NcRequest; ncMeta?: MetaService },

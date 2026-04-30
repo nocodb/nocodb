@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { UITypes } from 'nocodb-sdk';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model } from '~/models';
 import { fieldActions } from '~/decorators/trace-command-descriptions';
@@ -14,7 +15,7 @@ const columnAddSchema = z.object({
 });
 
 export const ColumnAddContract: OperationContract<typeof columnAddSchema> = {
-  name: 'columnAdd',
+  name: OperationName.columnAdd,
   version: 1,
   entity: MetaTable.COLUMNS,
   schema: columnAddSchema,
@@ -55,7 +56,7 @@ const columnUpdateSchema = z.object({
 export const ColumnUpdateContract: OperationContract<
   typeof columnUpdateSchema
 > = {
-  name: 'columnUpdate',
+  name: OperationName.columnUpdate,
   version: 1,
   entity: MetaTable.COLUMNS,
   schema: columnUpdateSchema,
@@ -95,7 +96,7 @@ const columnDeleteSchema = z.object({
 export const ColumnDeleteContract: OperationContract<
   typeof columnDeleteSchema
 > = {
-  name: 'columnDelete',
+  name: OperationName.columnDelete,
   version: 1,
   entity: MetaTable.COLUMNS,
   schema: columnDeleteSchema,

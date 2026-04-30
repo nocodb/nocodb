@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Model } from '~/models';
 import RlsPolicy from '~/ee/models/RlsPolicy';
@@ -28,7 +29,7 @@ const rlsPolicyCreateSchema = z.object({
 export const RlsPolicyCreateContract: OperationContract<
   typeof rlsPolicyCreateSchema
 > = {
-  name: 'rlsPolicyCreate',
+  name: OperationName.rlsPolicyCreate,
   version: 1,
   entity: MetaTable.RLS_POLICIES,
   schema: rlsPolicyCreateSchema,
@@ -60,7 +61,7 @@ const rlsPolicyUpdateSchema = z.object({
 export const RlsPolicyUpdateContract: OperationContract<
   typeof rlsPolicyUpdateSchema
 > = {
-  name: 'rlsPolicyUpdate',
+  name: OperationName.rlsPolicyUpdate,
   version: 1,
   entity: MetaTable.RLS_POLICIES,
   schema: rlsPolicyUpdateSchema,
@@ -94,7 +95,7 @@ const rlsPolicyDeleteSchema = z.object({
 export const RlsPolicyDeleteContract: OperationContract<
   typeof rlsPolicyDeleteSchema
 > = {
-  name: 'rlsPolicyDelete',
+  name: OperationName.rlsPolicyDelete,
   version: 1,
   entity: MetaTable.RLS_POLICIES,
   schema: rlsPolicyDeleteSchema,

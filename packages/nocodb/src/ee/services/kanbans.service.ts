@@ -7,23 +7,19 @@ import type {
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
-import {
-  KanbanViewCreateContract,
-  KanbanViewUpdateContract,
-} from '~/command-registry/operations/view-types.operations';
-
 @Injectable()
 export class KanbansService extends KanbansServiceCE {
   constructor(protected readonly appHooksService: AppHooksService) {
     super(appHooksService);
   }
 
-  @TraceCommand(KanbanViewCreateContract)
+  @TraceCommand(OperationName.kanbanViewCreate)
   async kanbanViewCreate(
     context: NcContext,
     param: {
@@ -45,7 +41,7 @@ export class KanbansService extends KanbansServiceCE {
     return super.kanbanViewCreate(context, param, ncMeta);
   }
 
-  @TraceCommand(KanbanViewUpdateContract)
+  @TraceCommand(OperationName.kanbanViewUpdate)
   async kanbanViewUpdate(
     context: NcContext,
     param: {

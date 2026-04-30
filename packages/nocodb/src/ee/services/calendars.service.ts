@@ -7,23 +7,19 @@ import type {
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
-import {
-  CalendarViewCreateContract,
-  CalendarViewUpdateContract,
-} from '~/command-registry/operations/view-types.operations';
-
 @Injectable()
 export class CalendarsService extends CalendarsServiceCE {
   constructor(protected readonly appHooksService: AppHooksService) {
     super(appHooksService);
   }
 
-  @TraceCommand(CalendarViewCreateContract)
+  @TraceCommand(OperationName.calendarViewCreate)
   async calendarViewCreate(
     context: NcContext,
     param: {
@@ -45,7 +41,7 @@ export class CalendarsService extends CalendarsServiceCE {
     return super.calendarViewCreate(context, param, ncMeta);
   }
 
-  @TraceCommand(CalendarViewUpdateContract)
+  @TraceCommand(OperationName.calendarViewUpdate)
   async calendarViewUpdate(
     context: NcContext,
     param: {

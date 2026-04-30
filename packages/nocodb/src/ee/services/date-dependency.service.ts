@@ -8,6 +8,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { DateDependencyReqType, NcRequest } from 'nocodb-sdk';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
@@ -17,11 +18,6 @@ import { Column, DateDependency, DependencyTracker, Model } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  DateDependencyDeleteContract,
-  DateDependencyUpdateContract,
-} from '~/command-registry/operations/date-dependency.operations';
-
 @Injectable()
 export class DateDependencyService {
   protected logger = new Logger(DateDependencyService.name);
@@ -35,7 +31,7 @@ export class DateDependencyService {
     return DateDependency.getByModelId(context, param.modelId);
   }
 
-  @TraceCommand(DateDependencyUpdateContract)
+  @TraceCommand(OperationName.dateDependencyUpdate)
   async update(
     context: NcContext,
     param: {
@@ -101,7 +97,7 @@ export class DateDependencyService {
     return result;
   }
 
-  @TraceCommand(DateDependencyDeleteContract)
+  @TraceCommand(OperationName.dateDependencyDelete)
   async delete(
     context: NcContext,
     param: { modelId: string; req: NcRequest },

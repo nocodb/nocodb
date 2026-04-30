@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Dashboard, Widget } from '~/models';
 import {
@@ -22,7 +23,7 @@ const dashboardCreateSchema = z.object({
 export const DashboardCreateContract: OperationContract<
   typeof dashboardCreateSchema
 > = {
-  name: 'dashboardCreate',
+  name: OperationName.dashboardCreate,
   version: 1,
   entity: MetaTable.DASHBOARDS,
   schema: dashboardCreateSchema,
@@ -40,7 +41,7 @@ const dashboardUpdateSchema = z.object({
 export const DashboardUpdateContract: OperationContract<
   typeof dashboardUpdateSchema
 > = {
-  name: 'dashboardUpdate',
+  name: OperationName.dashboardUpdate,
   version: 1,
   entity: MetaTable.DASHBOARDS,
   schema: dashboardUpdateSchema,
@@ -63,7 +64,7 @@ const dashboardDeleteSchema = z.object({
 export const DashboardDeleteContract: OperationContract<
   typeof dashboardDeleteSchema
 > = {
-  name: 'dashboardDelete',
+  name: OperationName.dashboardDelete,
   version: 1,
   entity: MetaTable.DASHBOARDS,
   schema: dashboardDeleteSchema,
@@ -89,7 +90,7 @@ const widgetCreateSchema = z.object({
 export const WidgetCreateContract: OperationContract<
   typeof widgetCreateSchema
 > = {
-  name: 'widgetCreate',
+  name: OperationName.widgetCreate,
   version: 1,
   entity: MetaTable.WIDGETS,
   schema: widgetCreateSchema,
@@ -115,7 +116,7 @@ const duplicateWidgetSchema = z.object({
 export const DuplicateWidgetContract: OperationContract<
   typeof duplicateWidgetSchema
 > = {
-  name: 'duplicateWidget',
+  name: OperationName.duplicateWidget,
   version: 1,
   entity: MetaTable.WIDGETS,
   schema: duplicateWidgetSchema,
@@ -146,7 +147,7 @@ const widgetUpdateSchema = z.object({
 export const WidgetUpdateContract: OperationContract<
   typeof widgetUpdateSchema
 > = {
-  name: 'widgetUpdate',
+  name: OperationName.widgetUpdate,
   version: 1,
   entity: MetaTable.WIDGETS,
   schema: widgetUpdateSchema,
@@ -175,7 +176,7 @@ const widgetDeleteSchema = z.object({
 export const WidgetDeleteContract: OperationContract<
   typeof widgetDeleteSchema
 > = {
-  name: 'widgetDelete',
+  name: OperationName.widgetDelete,
   version: 1,
   entity: MetaTable.WIDGETS,
   schema: widgetDeleteSchema,

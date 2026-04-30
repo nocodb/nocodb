@@ -6,6 +6,7 @@ import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
 import type { OperationSource } from '~/helpers/columnHelpers';
 import type { NcRequest } from '~/interface/config';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
@@ -22,12 +23,6 @@ import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import DateDependency from '~/models/DateDependency';
-import {
-  TableCreateContract,
-  TableDeleteContract,
-  TableUpdateContract,
-} from '~/command-registry/operations/tables.operations';
-
 @Injectable()
 export class TablesService extends TableServiceCE {
   constructor(
@@ -47,7 +42,7 @@ export class TablesService extends TableServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(TableCreateContract)
+  @TraceCommand(OperationName.tableCreate)
   async tableCreate(
     context: NcContext,
     param: {
@@ -170,7 +165,7 @@ export class TablesService extends TableServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(TableUpdateContract)
+  @TraceCommand(OperationName.tableUpdate)
   async tableUpdate(
     context: NcContext,
     param: {
@@ -190,7 +185,7 @@ export class TablesService extends TableServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(TableDeleteContract)
+  @TraceCommand(OperationName.tableDelete)
   async tableDelete(
     context: NcContext,
     param: {

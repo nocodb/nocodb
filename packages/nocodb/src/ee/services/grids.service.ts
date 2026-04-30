@@ -3,23 +3,19 @@ import { GridsService as GridsServiceCE } from 'src/services/grids.service';
 import type { GridUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
-import {
-  GridViewCreateContract,
-  GridViewUpdateContract,
-} from '~/command-registry/operations/view-types.operations';
-
 @Injectable()
 export class GridsService extends GridsServiceCE {
   constructor(protected readonly appHooksService: AppHooksService) {
     super(appHooksService);
   }
 
-  @TraceCommand(GridViewCreateContract)
+  @TraceCommand(OperationName.gridViewCreate)
   async gridViewCreate(
     context: NcContext,
     param: {
@@ -40,7 +36,7 @@ export class GridsService extends GridsServiceCE {
     return super.gridViewCreate(context, param, ncMeta);
   }
 
-  @TraceCommand(GridViewUpdateContract)
+  @TraceCommand(OperationName.gridViewUpdate)
   async gridViewUpdate(
     context: NcContext,
     param: {

@@ -7,18 +7,13 @@ import {
 } from 'nocodb-sdk';
 import type { BaseVariableReqType, BaseVariableType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { Base, BaseVariable } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { checkForFeature } from '~/helpers/paymentHelpers';
-import {
-  BaseVariableCreateContract,
-  BaseVariableDeleteContract,
-  BaseVariableUpdateContract,
-} from '~/command-registry/operations/base-variables.operations';
-
 const SECRET_MASK = '***';
 
 @Injectable()
@@ -107,7 +102,7 @@ export class BaseVariablesService {
   // Create
   // ────────────────────────────────────────────
 
-  @TraceCommand(BaseVariableCreateContract)
+  @TraceCommand(OperationName.baseVariableCreate)
   async create(
     context: NcContext,
     param: { baseId: string; variable: BaseVariableReqType; req: NcRequest },
@@ -159,7 +154,7 @@ export class BaseVariablesService {
   // Update
   // ────────────────────────────────────────────
 
-  @TraceCommand(BaseVariableUpdateContract)
+  @TraceCommand(OperationName.baseVariableUpdate)
   async update(
     context: NcContext,
     param: {
@@ -318,7 +313,7 @@ export class BaseVariablesService {
   // Delete
   // ────────────────────────────────────────────
 
-  @TraceCommand(BaseVariableDeleteContract)
+  @TraceCommand(OperationName.baseVariableDelete)
   async delete(
     context: NcContext,
     param: { variableId: string; req: NcRequest },

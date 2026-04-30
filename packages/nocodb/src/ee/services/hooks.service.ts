@@ -4,15 +4,11 @@ import { HooksService as HooksServiceCE } from 'src/services/hooks.service';
 import type { OnModuleInit } from '@nestjs/common';
 import type { HookReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  HookCreateContract,
-  HookDeleteContract,
-  HookUpdateContract,
-} from '~/command-registry/operations/hooks.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -62,7 +58,7 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
   }
 
   @EEOnly()
-  @TraceCommand(HookCreateContract)
+  @TraceCommand(OperationName.hookCreate)
   async hookCreate(
     context: NcContext,
     param: {
@@ -159,7 +155,7 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
   }
 
   @EEOnly()
-  @TraceCommand(HookUpdateContract)
+  @TraceCommand(OperationName.hookUpdate)
   async hookUpdate(
     context: NcContext,
     param: {
@@ -172,7 +168,7 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
   }
 
   @EEOnly()
-  @TraceCommand(HookDeleteContract)
+  @TraceCommand(OperationName.hookDelete)
   async hookDelete(
     context: NcContext,
     param: { hookId: string; req: NcRequest; skipTrash?: boolean },

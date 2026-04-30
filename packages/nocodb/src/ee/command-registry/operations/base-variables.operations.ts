@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BaseVariableInheritance, BaseVariableValueType } from 'nocodb-sdk';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { BaseVariable } from '~/models';
 import { baseVariableActions } from '~/decorators/trace-command-descriptions';
@@ -21,7 +22,7 @@ const createSchema = z.object({
 export const BaseVariableCreateContract: OperationContract<
   typeof createSchema
 > = {
-  name: 'baseVariableCreate',
+  name: OperationName.baseVariableCreate,
   version: 1,
   entity: MetaTable.BASE_VARIABLES,
   schema: createSchema,
@@ -39,7 +40,7 @@ const updateSchema = z.object({
 export const BaseVariableUpdateContract: OperationContract<
   typeof updateSchema
 > = {
-  name: 'baseVariableUpdate',
+  name: OperationName.baseVariableUpdate,
   version: 1,
   entity: MetaTable.BASE_VARIABLES,
   schema: updateSchema,
@@ -58,7 +59,7 @@ const deleteSchema = z.object({
 export const BaseVariableDeleteContract: OperationContract<
   typeof deleteSchema
 > = {
-  name: 'baseVariableDelete',
+  name: OperationName.baseVariableDelete,
   version: 1,
   entity: MetaTable.BASE_VARIABLES,
   schema: deleteSchema,

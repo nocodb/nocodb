@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Model, View } from '~/models';
 import {
@@ -38,7 +39,7 @@ const updateSchema = z.object({
 });
 
 export const ViewUpdateContract: OperationContract<typeof updateSchema> = {
-  name: 'viewUpdate',
+  name: OperationName.viewUpdate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: updateSchema,
@@ -68,7 +69,7 @@ const deleteSchema = z.object({
 });
 
 export const ViewDeleteContract: OperationContract<typeof deleteSchema> = {
-  name: 'viewDelete',
+  name: OperationName.viewDelete,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: deleteSchema,
@@ -91,7 +92,7 @@ const shareViewSchema = z.object({
 });
 
 export const ShareViewContract: OperationContract<typeof shareViewSchema> = {
-  name: 'shareView',
+  name: OperationName.shareView,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: shareViewSchema,
@@ -116,7 +117,7 @@ const shareViewUpdateSchema = z.object({
 export const ShareViewUpdateContract: OperationContract<
   typeof shareViewUpdateSchema
 > = {
-  name: 'shareViewUpdate',
+  name: OperationName.shareViewUpdate,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: shareViewUpdateSchema,
@@ -131,7 +132,7 @@ const shareViewDeleteSchema = z.object({
 export const ShareViewDeleteContract: OperationContract<
   typeof shareViewDeleteSchema
 > = {
-  name: 'shareViewDelete',
+  name: OperationName.shareViewDelete,
   version: 1,
   entity: MetaTable.VIEWS,
   schema: shareViewDeleteSchema,

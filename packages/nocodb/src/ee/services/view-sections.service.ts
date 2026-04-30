@@ -7,18 +7,13 @@ import type {
   ViewSectionUpdateReqType,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { Model, ViewSection } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  ViewSectionCreateContract,
-  ViewSectionDeleteContract,
-  ViewSectionUpdateContract,
-} from '~/command-registry/operations/view-sections.operations';
-
 @Injectable()
 export class ViewSectionsService {
   constructor(protected readonly appHooksService: AppHooksService) {}
@@ -185,7 +180,7 @@ export class ViewSectionsService {
   // Sandbox-traced wrappers (standard (context, param) signature)
   // ────────────────────────────────────────────
 
-  @TraceCommand(ViewSectionCreateContract)
+  @TraceCommand(OperationName.viewSectionCreate)
   async viewSectionCreate(
     context: NcContext,
     param: {
@@ -197,7 +192,7 @@ export class ViewSectionsService {
     return this.create(context, param.viewId, param.section, param.req);
   }
 
-  @TraceCommand(ViewSectionUpdateContract)
+  @TraceCommand(OperationName.viewSectionUpdate)
   async viewSectionUpdate(
     context: NcContext,
     param: {
@@ -209,7 +204,7 @@ export class ViewSectionsService {
     return this.update(context, param.viewSectionId, param.section, param.req);
   }
 
-  @TraceCommand(ViewSectionDeleteContract)
+  @TraceCommand(OperationName.viewSectionDelete)
   async viewSectionDelete(
     context: NcContext,
     param: { viewSectionId: string; req: NcRequest },

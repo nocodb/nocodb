@@ -7,23 +7,19 @@ import type {
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
-import {
-  GalleryViewCreateContract,
-  GalleryViewUpdateContract,
-} from '~/command-registry/operations/view-types.operations';
-
 @Injectable()
 export class GalleriesService extends GalleriesServiceCE {
   constructor(protected readonly appHooksService: AppHooksService) {
     super(appHooksService);
   }
 
-  @TraceCommand(GalleryViewCreateContract)
+  @TraceCommand(OperationName.galleryViewCreate)
   async galleryViewCreate(
     context: NcContext,
     param: {
@@ -45,7 +41,7 @@ export class GalleriesService extends GalleriesServiceCE {
     return super.galleryViewCreate(context, param, ncMeta);
   }
 
-  @TraceCommand(GalleryViewUpdateContract)
+  @TraceCommand(OperationName.galleryViewUpdate)
   async galleryViewUpdate(
     context: NcContext,
     param: {

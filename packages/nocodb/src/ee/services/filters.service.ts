@@ -3,6 +3,7 @@ import { FiltersService as FiltersServiceCE } from 'src/services/filters.service
 import { AppEvents, isLinksOrLTAR, UITypes } from 'nocodb-sdk';
 import type { FilterReqType, UserType, WidgetType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
@@ -11,20 +12,11 @@ import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
-import {
-  FilterCreateContract,
-  FilterDeleteContract,
-  FilterUpdateContract,
-  LinkFilterCreateContract,
-  RlsPolicyFilterCreateContract,
-  RowColorConditionsCreateContract,
-  WidgetFilterCreateContract,
-} from '~/command-registry/operations/filters.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
-import { Column, Filter, Model, View } from '~/models';
+import { Column, Filter, View } from '~/models';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -39,7 +31,7 @@ export class FiltersService extends FiltersServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(FilterCreateContract)
+  @TraceCommand(OperationName.filterCreate)
   async filterCreate(
     context: NcContext,
     param: {
@@ -100,7 +92,7 @@ export class FiltersService extends FiltersServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(FilterUpdateContract)
+  @TraceCommand(OperationName.filterUpdate)
   async filterUpdate(
     context: NcContext,
     param: {
@@ -115,7 +107,7 @@ export class FiltersService extends FiltersServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(FilterDeleteContract)
+  @TraceCommand(OperationName.filterDelete)
   async filterDelete(
     context: NcContext,
     param: { filterId: string; req: NcRequest },
@@ -124,7 +116,7 @@ export class FiltersService extends FiltersServiceCE {
     return super.filterDelete(context, param, ncMeta);
   }
 
-  @TraceCommand(LinkFilterCreateContract)
+  @TraceCommand(OperationName.linkFilterCreate)
   async linkFilterCreate(
     context: NcContext,
     param: {
@@ -171,7 +163,7 @@ export class FiltersService extends FiltersServiceCE {
     return filter;
   }
 
-  @TraceCommand(WidgetFilterCreateContract)
+  @TraceCommand(OperationName.widgetFilterCreate)
   async widgetFilterCreate(
     context: NcContext,
     param: {
@@ -211,7 +203,7 @@ export class FiltersService extends FiltersServiceCE {
     return filter;
   }
 
-  @TraceCommand(RlsPolicyFilterCreateContract)
+  @TraceCommand(OperationName.rlsPolicyFilterCreate)
   async rlsPolicyFilterCreate(
     context: NcContext,
     param: {
@@ -254,7 +246,7 @@ export class FiltersService extends FiltersServiceCE {
     return Filter.rootFilterListByWidget(context, { widgetId: param.widgetId });
   }
 
-  @TraceCommand(RowColorConditionsCreateContract)
+  @TraceCommand(OperationName.rowColorConditionsCreate)
   async rowColorConditionsCreate(
     context: NcContext,
     param: {

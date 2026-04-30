@@ -8,10 +8,11 @@ import type {
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { Model, User, View } from '~/models';
+import { User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { NcError } from '~/helpers/catchError';
@@ -20,14 +21,6 @@ import {
   assertNotSandbox,
   assertNotSandboxProduction,
 } from '~/helpers/sandboxGuards';
-import {
-  ShareViewContract,
-  ShareViewDeleteContract,
-  ShareViewUpdateContract,
-  ViewDeleteContract,
-  ViewUpdateContract,
-} from '~/command-registry/operations/views.operations';
-
 @Injectable()
 export class ViewsService extends ViewsServiceCE {
   constructor(
@@ -37,7 +30,7 @@ export class ViewsService extends ViewsServiceCE {
     super(appHooksServiceEE);
   }
 
-  @TraceCommand(ViewUpdateContract)
+  @TraceCommand(OperationName.viewUpdate)
   async viewUpdate(
     context: NcContext,
     param: {
@@ -58,7 +51,7 @@ export class ViewsService extends ViewsServiceCE {
     return super.viewUpdate(context, param);
   }
 
-  @TraceCommand(ViewDeleteContract)
+  @TraceCommand(OperationName.viewDelete)
   async viewDelete(
     context: NcContext,
     param: {
@@ -134,7 +127,7 @@ export class ViewsService extends ViewsServiceCE {
     return true;
   }
 
-  @TraceCommand(ShareViewContract)
+  @TraceCommand(OperationName.shareView)
   async shareView(
     context: NcContext,
     param: { viewId: string; user: UserType; req: NcRequest },
@@ -153,7 +146,7 @@ export class ViewsService extends ViewsServiceCE {
     return super.shareView(context, param);
   }
 
-  @TraceCommand(ShareViewUpdateContract)
+  @TraceCommand(OperationName.shareViewUpdate)
   async shareViewUpdate(
     context: NcContext,
     param: {
@@ -177,7 +170,7 @@ export class ViewsService extends ViewsServiceCE {
     return super.shareViewUpdate(context, param);
   }
 
-  @TraceCommand(ShareViewDeleteContract)
+  @TraceCommand(OperationName.shareViewDelete)
   async shareViewDelete(
     context: NcContext,
     param: { viewId: string; user: UserType; req: NcRequest },

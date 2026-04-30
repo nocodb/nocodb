@@ -13,6 +13,7 @@ import {
   ProjectRoles,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import { Team } from '~/models';
@@ -26,11 +27,6 @@ import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
-import {
-  PermissionDropContract,
-  PermissionSetContract,
-} from '~/command-registry/operations/permissions.operations';
-
 @Injectable()
 export class PermissionsService {
   protected logger: Logger = new Logger(PermissionsService.name);
@@ -608,7 +604,7 @@ export class PermissionsService {
   // Sandbox-traced wrappers (standard (context, param) signature)
   // ────────────────────────────────────────────
 
-  @TraceCommand(PermissionSetContract)
+  @TraceCommand(OperationName.permissionSet)
   async permissionSet(
     context: NcContext,
     param: {
@@ -629,7 +625,7 @@ export class PermissionsService {
     return this.setPermission(context, param.permission, param.req);
   }
 
-  @TraceCommand(PermissionDropContract)
+  @TraceCommand(OperationName.permissionDrop)
   async permissionDrop(
     context: NcContext,
     param: { permission: Partial<Permission>; req: NcRequest },

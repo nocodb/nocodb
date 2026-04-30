@@ -3,10 +3,10 @@ import { ViewColumnsService as ViewColumnsServiceCE } from 'src/services/view-co
 import type { ViewColumnUpdateReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { ViewColumnUpdateContract } from '~/command-registry/operations/sorts-visibilities.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
@@ -15,7 +15,7 @@ export class ViewColumnsService extends ViewColumnsServiceCE {
     super(appHooksService);
   }
 
-  @TraceCommand(ViewColumnUpdateContract)
+  @TraceCommand(OperationName.viewColumnUpdate)
   async columnUpdate(
     context: NcContext,
     param: {

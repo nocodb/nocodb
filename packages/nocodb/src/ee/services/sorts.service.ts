@@ -3,15 +3,11 @@ import { SortsService as SortsServiceCE } from 'src/services/sorts.service';
 import type { SortReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  SortCreateContract,
-  SortDeleteContract,
-  SortUpdateContract,
-} from '~/command-registry/operations/sorts-visibilities.operations';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -27,7 +23,7 @@ export class SortsService extends SortsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(SortCreateContract)
+  @TraceCommand(OperationName.sortCreate)
   async sortCreate(
     context: NcContext,
     param: {
@@ -77,7 +73,7 @@ export class SortsService extends SortsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(SortUpdateContract)
+  @TraceCommand(OperationName.sortUpdate)
   async sortUpdate(
     context: NcContext,
     param: {
@@ -92,7 +88,7 @@ export class SortsService extends SortsServiceCE {
   }
 
   @EEOnly()
-  @TraceCommand(SortDeleteContract)
+  @TraceCommand(OperationName.sortDelete)
   async sortDelete(
     context: NcContext,
     param: {

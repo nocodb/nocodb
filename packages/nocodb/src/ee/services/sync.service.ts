@@ -2,17 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { SyncService as SyncServiceCE } from 'src/services/sync.service';
 import type { NcRequest } from '~/interface/config';
 import type { SyncSource } from '~/models';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  SyncCreateContract,
-  SyncDeleteContract,
-  SyncUpdateContract,
-} from '~/command-registry/operations/sync.operations';
-
 @Injectable()
 export class SyncService extends SyncServiceCE {
-  @TraceCommand(SyncCreateContract)
+  @TraceCommand(OperationName.syncCreate)
   async syncCreate(
     context: NcContext,
     param: {
@@ -26,7 +21,7 @@ export class SyncService extends SyncServiceCE {
     return super.syncCreate(context, param);
   }
 
-  @TraceCommand(SyncUpdateContract)
+  @TraceCommand(OperationName.syncUpdate)
   async syncUpdate(
     context: NcContext,
     param: {
@@ -38,7 +33,7 @@ export class SyncService extends SyncServiceCE {
     return super.syncUpdate(context, param);
   }
 
-  @TraceCommand(SyncDeleteContract)
+  @TraceCommand(OperationName.syncDelete)
   async syncDelete(
     context: NcContext,
     param: { syncId: string; req: NcRequest },

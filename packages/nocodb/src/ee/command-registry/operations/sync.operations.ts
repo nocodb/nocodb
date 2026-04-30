@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import SyncSource from '~/models/SyncSource';
 import { syncActions } from '~/decorators/trace-command-descriptions';
@@ -12,7 +13,7 @@ const createSchema = z.object({
 });
 
 export const SyncCreateContract: OperationContract<typeof createSchema> = {
-  name: 'syncCreate',
+  name: OperationName.syncCreate,
   version: 1,
   entity: MetaTable.SYNC_SOURCE,
   schema: createSchema,
@@ -28,7 +29,7 @@ const updateSchema = z.object({
 });
 
 export const SyncUpdateContract: OperationContract<typeof updateSchema> = {
-  name: 'syncUpdate',
+  name: OperationName.syncUpdate,
   version: 1,
   entity: MetaTable.SYNC_SOURCE,
   schema: updateSchema,
@@ -42,7 +43,7 @@ const deleteSchema = z.object({
 });
 
 export const SyncDeleteContract: OperationContract<typeof deleteSchema> = {
-  name: 'syncDelete',
+  name: OperationName.syncDelete,
   version: 1,
   entity: MetaTable.SYNC_SOURCE,
   schema: deleteSchema,

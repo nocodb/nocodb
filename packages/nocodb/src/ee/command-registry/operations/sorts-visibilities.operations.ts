@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { OperationContract } from 'src/command-registry/_types';
+import { OperationName } from '~/command-registry/_op-names';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model, Sort, View } from '~/models';
 import {
@@ -20,7 +21,7 @@ const sortCreateSchema = z.object({
 });
 
 export const SortCreateContract: OperationContract<typeof sortCreateSchema> = {
-  name: 'sortCreate',
+  name: OperationName.sortCreate,
   version: 1,
   entity: MetaTable.SORT,
   schema: sortCreateSchema,
@@ -51,7 +52,7 @@ const sortUpdateSchema = z.object({
 });
 
 export const SortUpdateContract: OperationContract<typeof sortUpdateSchema> = {
-  name: 'sortUpdate',
+  name: OperationName.sortUpdate,
   version: 1,
   entity: MetaTable.SORT,
   schema: sortUpdateSchema,
@@ -84,7 +85,7 @@ const sortDeleteSchema = z.object({
 });
 
 export const SortDeleteContract: OperationContract<typeof sortDeleteSchema> = {
-  name: 'sortDelete',
+  name: OperationName.sortDelete,
   version: 1,
   entity: MetaTable.SORT,
   schema: sortDeleteSchema,
@@ -122,7 +123,7 @@ const viewColumnUpdateSchema = z.object({
 export const ViewColumnUpdateContract: OperationContract<
   typeof viewColumnUpdateSchema
 > = {
-  name: 'viewColumnUpdate',
+  name: OperationName.viewColumnUpdate,
   version: 1,
   entity: MetaTable.GRID_VIEW_COLUMNS,
   schema: viewColumnUpdateSchema,
@@ -158,7 +159,7 @@ const visibilityUpdateSchema = z.object({
 export const VisibilityUpdateContract: OperationContract<
   typeof visibilityUpdateSchema
 > = {
-  name: 'visibilityUpdate',
+  name: OperationName.visibilityUpdate,
   version: 1,
   entity: MetaTable.MODEL_ROLE_VISIBILITY,
   schema: visibilityUpdateSchema,

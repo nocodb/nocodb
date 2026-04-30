@@ -3,6 +3,7 @@ import { AppEvents, PlanFeatureTypes } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { CreateRecordTemplateDto } from './dto/create-record-template.dto';
 import type { UpdateRecordTemplateDto } from './dto/update-record-template.dto';
+import { OperationName } from '~/command-registry/_op-names';
 import { NcContext } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { DatasService } from '~/services/datas.service';
@@ -12,12 +13,6 @@ import RecordTemplate from '~/models/RecordTemplate';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import {
-  RecordTemplateCreateContract,
-  RecordTemplateDeleteContract,
-  RecordTemplateUpdateContract,
-} from '~/command-registry/operations/record-templates.operations';
-
 @Injectable()
 export class RecordTemplatesService {
   constructor(
@@ -405,7 +400,7 @@ export class RecordTemplatesService {
   // Sandbox-traced wrappers (standard (context, param) signature)
   // ────────────────────────────────────────────
 
-  @TraceCommand(RecordTemplateCreateContract)
+  @TraceCommand(OperationName.recordTemplateCreate)
   async recordTemplateCreate(
     context: NcContext,
     param: {
@@ -426,7 +421,7 @@ export class RecordTemplatesService {
     });
   }
 
-  @TraceCommand(RecordTemplateUpdateContract)
+  @TraceCommand(OperationName.recordTemplateUpdate)
   async recordTemplateUpdate(
     context: NcContext,
     param: {
@@ -445,7 +440,7 @@ export class RecordTemplatesService {
     });
   }
 
-  @TraceCommand(RecordTemplateDeleteContract)
+  @TraceCommand(OperationName.recordTemplateDelete)
   async recordTemplateDelete(
     context: NcContext,
     param: { templateId: string; userId: string; req: NcRequest },

@@ -10,6 +10,7 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isIntegerUiType,
+  isLinkV2,
   isSystemColumn,
   isValidValue,
   isVirtualCol,

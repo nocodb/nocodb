@@ -49,6 +49,8 @@ export default class Bookmark implements BookmarkType {
       },
     );
 
+    await NocoCache.set('root', `${CacheScope.BOOKMARK}:${insertData.id}`, insertData);
+
     await NocoCache.appendToList(
       'root',
       CacheScope.BOOKMARK,

@@ -30,6 +30,8 @@ export default class BookmarkGroup implements BookmarkGroupType {
       },
     );
 
+    await NocoCache.set('root', `${CacheScope.BOOKMARK_GROUP}:${insertData.id}`, insertData);
+
     await NocoCache.appendToList(
       'root',
       CacheScope.BOOKMARK_GROUP,

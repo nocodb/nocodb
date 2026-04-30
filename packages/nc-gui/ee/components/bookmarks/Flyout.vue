@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { bookmarksByGroup, orderedGroups, isLoading, removeBookmark, navigateToBookmark, loadBookmarks } = useBookmarks()
+const { bookmarksByGroup, orderedGroups, isLoading, navigateToBookmark, loadBookmarks } = useBookmarks()
 
 const emit = defineEmits<{ close: [] }>()
 
@@ -26,10 +26,6 @@ const columns = computed(() => {
 })
 
 const isEmpty = computed(() => orderedGroups.value.length === 0)
-
-async function onDeleteBookmark(bookmarkId: string) {
-  await removeBookmark(bookmarkId)
-}
 
 onMounted(() => {
   loadBookmarks()
@@ -68,7 +64,6 @@ onMounted(() => {
             :key="bm.id"
             :bookmark="bm"
             @click="navigateToBookmark(bm); emit('close')"
-            @delete="onDeleteBookmark"
           />
 
           <!-- Empty group -->

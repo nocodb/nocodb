@@ -285,6 +285,18 @@ const mainItems = computed<NavItem[]>(() => [
       @click="onTabClick('settings')"
     />
 
+    <!-- Bottom group -->
+    <div class="nc-rail-bottom-group">
+      <!-- Help -->
+      <DashboardMiniSidebarHelp>
+        <DashboardMiniSidebarV2RailItem icon="ncHelp" label="Help" panel-key="help" is-dropdown />
+      </DashboardMiniSidebarHelp>
+    </div>
+
+    <NcDivider class="!w-8 !min-w-8 !max-w-8 !my-0 !border-nc-border-gray-medium" />
+
+    <DashboardMiniSidebarCreateNewActionMenu v-if="!isMobileMode" />
+
     <!-- Bookmarks -->
     <div v-if="isEeUI" ref="bookmarksContainerRef" class="relative">
       <DashboardMiniSidebarV2RailItem
@@ -307,18 +319,6 @@ const mainItems = computed<NavItem[]>(() => [
         @close="isBookmarksFlyoutOpen = false"
       />
     </div>
-
-    <!-- Bottom group -->
-    <div class="nc-rail-bottom-group">
-      <!-- Help -->
-      <DashboardMiniSidebarHelp>
-        <DashboardMiniSidebarV2RailItem icon="ncHelp" label="Help" panel-key="help" is-dropdown />
-      </DashboardMiniSidebarHelp>
-    </div>
-
-    <NcDivider class="!w-8 !min-w-8 !max-w-8 !my-0 !border-nc-border-gray-medium" />
-
-    <DashboardMiniSidebarCreateNewActionMenu v-if="!isMobileMode" />
 
     <!-- Activity / Notifications -->
     <NcDropdown

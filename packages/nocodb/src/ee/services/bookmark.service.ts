@@ -1,9 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, DependencyTableType } from 'nocodb-sdk';
-import type { BookmarkGroupReqType, BookmarkReqType, NcContext, NcRequest } from 'nocodb-sdk';
+import type { BookmarkGroupReqType, BookmarkReqType, BookmarkType, NcContext, NcRequest } from 'nocodb-sdk';
 import { Bookmark, BookmarkGroup, DependencyTracker } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
+import Base from '~/models/Base';
+import Model from '~/models/Model';
+import View from '~/models/View';
+import Workspace from '~/ee/models/Workspace';
+import { parseMetaProp } from '~/utils/modelUtils';
 
 @Injectable()
 export class BookmarkService {
@@ -13,7 +18,7 @@ export class BookmarkService {
 
   // --- Bookmarks ---
 
-  async bookmarkList(_context: NcContext, param: { req: NcRequest }) {
+  async bookmarkList(context: NcContext, param: { req: NcRequest }) {
     const userId = param.req.user?.id;
     if (!userId) NcError.unauthorized('User not found');
 
@@ -22,7 +27,10 @@ export class BookmarkService {
       BookmarkGroup.list(userId),
     ]);
 
-    return { bookmarks, groups };
+    // Enrich bookmarks with current entity metadata (icons, titles)
+    const enriched = await this.enrichBookmarks(context, bookmarks);
+
+    return { bookmarks: enriched, groups };
   }
 
   async bookmarkCreate(
@@ -208,6 +216,87 @@ export class BookmarkService {
     await BookmarkGroup.delete(param.groupId);
 
     return true;
+  }
+
+  // --- Enrichment ---
+
+  private async enrichBookmarks(
+    _context: NcContext,
+    bookmarks: Bookmark[],
+  ): Promise<BookmarkType[]> {
+    return Promise.all(
+      bookmarks.map(async (bm) => {
+        const meta = (bm.meta as Record<string, any>) ?? {};
+
+        // Build context from bookmark's stored meta
+        const ctx = {
+          workspace_id: meta.workspace_id,
+          base_id: meta.base_id,
+        } as NcContext;
+
+        try {
+          switch (bm.target_type) {
+            case 'workspace': {
+              const ws = await Workspace.get(bm.target_id);
+              if (ws) {
+                const wsMeta = parseMetaProp(ws);
+                meta.icon = wsMeta?.icon;
+                meta.iconType = wsMeta?.iconType;
+                meta.color = wsMeta?.color;
+                bm.title = ws.title ?? bm.title;
+              }
+              break;
+            }
+            case 'base': {
+              const base = await Base.get(ctx, bm.target_id);
+              if (base) {
+                const baseMeta = parseMetaProp(base);
+                meta.icon_color = baseMeta?.iconColor;
+                meta.workspace_id = base.fk_workspace_id;
+                bm.title = base.title ?? bm.title;
+              }
+              break;
+            }
+            case 'table': {
+              const table = await Model.get(ctx, bm.target_id);
+              if (table) {
+                const tableMeta = parseMetaProp(table);
+                meta.icon = tableMeta?.icon;
+                meta.workspace_id = meta.workspace_id || table.fk_workspace_id;
+                meta.base_id = meta.base_id || table.base_id;
+                bm.title = table.title ?? bm.title;
+              }
+              break;
+            }
+            case 'view': {
+              const view = await View.get(ctx, bm.target_id);
+              if (view) {
+                meta.view_type = view.type;
+                meta.table_id = view.fk_model_id;
+                bm.title = view.title ?? bm.title;
+
+                // Also resolve table's base_id for routing
+                if (!meta.base_id && view.fk_model_id) {
+                  const table = await Model.get(ctx, view.fk_model_id);
+                  if (table) {
+                    meta.base_id = table.base_id;
+                    meta.workspace_id = meta.workspace_id || table.fk_workspace_id;
+                  }
+                }
+              }
+              break;
+            }
+            // document, workflow, script use static icons — just refresh title
+            default:
+              break;
+          }
+        } catch (e) {
+          this.logger.warn(`Failed to enrich bookmark ${bm.id}: ${e.message}`);
+        }
+
+        return { ...bm, meta } as BookmarkType;
+      }),
+    );
   }
 
   // --- Helpers ---

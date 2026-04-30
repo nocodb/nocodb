@@ -441,6 +441,10 @@ export default class Filter extends FilterCE implements FilterType {
             [{ id: filter.fk_view_id }],
             ncMeta,
           );
+        } else {
+          logger.warn(
+            `Filter ${filter.id} references missing view ${filter.fk_view_id} — skipping single-query cache clear`,
+          );
         }
       }
     }

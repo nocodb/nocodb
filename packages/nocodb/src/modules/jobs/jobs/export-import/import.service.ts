@@ -1300,7 +1300,24 @@ export class ImportService {
               // create filters
               const filters = colOptions.filter?.children;
 
+              // Track filters that fail to create so descendants can be
+              // skipped too — otherwise a child whose fk_parent_id maps
+              // to undefined would be persisted at root level, leaving
+              // orphan filters that are hard to clean up later.
+              const failedFilterIds = new Set<string>();
+
               for (const fl of filters) {
+                if (
+                  fl.fk_parent_id &&
+                  failedFilterIds.has(fl.fk_parent_id)
+                ) {
+                  failedFilterIds.add(fl.id);
+                  this.logger.warn(
+                    `Skipping link filter ${fl.id} on column ${col.id} — parent ${fl.fk_parent_id} failed earlier in this import`,
+                  );
+                  continue;
+                }
+
                 // A single broken link filter (e.g. column lookup resolves
                 // to undefined when the source export references something
                 // outside the duplicated scope) shouldn't abort the entire
@@ -1325,8 +1342,10 @@ export class ImportService {
                     idMap.set(fl.id, fg.id);
                   }
                 } catch (e) {
+                  failedFilterIds.add(fl.id);
                   this.logger.warn(
                     `Skipping link filter ${fl.id} on column ${col.id} during import: ${e?.message}`,
+                    e?.stack,
                   );
                 }
               }

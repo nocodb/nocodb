@@ -147,6 +147,12 @@ export class MySqlDBQueryClient
           // Skip extraction when the related table is gone (orphaned LTAR
           // — e.g. target table deleted, or cross-base link broken).
           if (!relatedModel) {
+            this.logger.warn(
+              `Skipping orphaned LTAR column ${column.id} (${column.title}) — related model ${
+                (column.colOptions as LinkToAnotherRecordColumn)
+                  ?.fk_related_model_id
+              } not found`,
+            );
             return result;
           }
 

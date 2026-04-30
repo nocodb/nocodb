@@ -151,19 +151,22 @@ export const useMetas = createSharedComposable(() => {
       })
 
       // Populate cache with related table metas before caching the primary model
+      // relatedMetas is grouped by baseId: { baseId: { tableId: TableType } }
       if (model.relatedMetas) {
         const updated = { ...metas.value }
 
-        for (const [compositeKey, relatedModel] of Object.entries(model.relatedMetas)) {
-          // Only populate if not already cached (avoid overwriting fresher data)
-          if (!updated[compositeKey]) {
-            updated[compositeKey] = relatedModel as TableType
+        for (const [relatedBaseId, tables] of Object.entries(model.relatedMetas)) {
+          for (const [tableId, relatedModel] of Object.entries(tables as Record<string, TableType>)) {
+            const key = getMetaKey(relatedBaseId, tableId)
+            // Only populate if not already cached (avoid overwriting fresher data)
+            if (!updated[key]) {
+              updated[key] = relatedModel as TableType
 
-            // Also cache by title
-            const relatedBaseId = compositeKey.split(':')[0]
-            const titleKey = getMetaKey(relatedBaseId, (relatedModel as TableType).title)
-            if (!updated[titleKey]) {
-              updated[titleKey] = relatedModel as TableType
+              // Also cache by title
+              const titleKey = getMetaKey(relatedBaseId, (relatedModel as TableType).title)
+              if (!updated[titleKey]) {
+                updated[titleKey] = relatedModel as TableType
+              }
             }
           }
         }

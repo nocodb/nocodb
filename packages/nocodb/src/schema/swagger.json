@@ -28691,11 +28691,14 @@
             "description": "Custom trash retention period in days. null = use default."
           },
           "relatedMetas": {
-            "description": "Metadata of related tables referenced by Link/Lookup/Rollup columns. Only present when includeRelatedMetas is requested.",
+            "description": "Metadata of related tables referenced by Link/Lookup/Rollup columns, grouped by base ID. Only present when includeRelatedMetas is requested.",
             "type": "object",
             "nullable": true,
             "additionalProperties": {
-              "$ref": "#/components/schemas/Table"
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/components/schemas/Table"
+              }
             }
           }
         },

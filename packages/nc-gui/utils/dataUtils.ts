@@ -618,7 +618,9 @@ export const parsePlainCellValue = (
   if (isRollup(col)) {
     return getRollupValue(value, params)
   }
-  if (isLink(col)) {
+  // V1 Links (count cell) — value is a number. V2 Links has the same uidt but stores
+  // linked row objects/arrays, so route those through getLookupValue (LTAR branch) instead.
+  if (isLink(col) && !isLinkV2(col)) {
     return getLinksValue(value, params)
   }
   if (isLookup(col) || isLTAR(col.uidt, col.colOptions)) {

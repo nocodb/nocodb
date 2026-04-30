@@ -650,16 +650,16 @@ export class TablesService {
         if (opts.fk_related_model_id !== table.id) {
           seen.set(opts.fk_related_model_id, key);
         }
-      } else if (
-        col.uidt === UITypes.Lookup ||
-        col.uidt === UITypes.Rollup
-      ) {
+      } else if (col.uidt === UITypes.Lookup || col.uidt === UITypes.Rollup) {
         // Lookup/Rollup — resolve through the relation column
         const relationCol = (table.columns ?? []).find(
           (c) => c.id === opts.fk_relation_column_id,
         );
         const relOpts = relationCol?.colOptions as any;
-        if (relOpts?.fk_related_model_id && relOpts.fk_related_model_id !== table.id) {
+        if (
+          relOpts?.fk_related_model_id &&
+          relOpts.fk_related_model_id !== table.id
+        ) {
           const baseId = relOpts.fk_related_base_id || table.base_id;
           const key = `${baseId}:${relOpts.fk_related_model_id}`;
           seen.set(relOpts.fk_related_model_id, key);

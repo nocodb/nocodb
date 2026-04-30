@@ -103,12 +103,14 @@ export default class CalendarViewColumn {
 
     {
       const view = await View.get(context, column.fk_view_id, false, ncMeta);
-      await View.clearSingleQueryCache(
-        context,
-        view.fk_model_id,
-        [view],
-        ncMeta,
-      );
+      if (view) {
+        await View.clearSingleQueryCache(
+          context,
+          view.fk_model_id,
+          [view],
+          ncMeta,
+        );
+      }
     }
 
     return this.get(context, id, ncMeta).then(async (viewColumn) => {
@@ -200,8 +202,17 @@ export default class CalendarViewColumn {
     // on view column update, delete any optimised single query cache
     {
       const viewCol = await this.get(context, columnId, ncMeta);
-      const view = await View.get(context, viewCol.fk_view_id, false, ncMeta);
-      await View.clearSingleQueryCache(context, view.fk_model_id, [view]);
+      if (viewCol?.fk_view_id) {
+        const view = await View.get(
+          context,
+          viewCol.fk_view_id,
+          false,
+          ncMeta,
+        );
+        if (view) {
+          await View.clearSingleQueryCache(context, view.fk_model_id, [view]);
+        }
+      }
     }
 
     return res;

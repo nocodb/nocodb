@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { FiltersService as FiltersServiceCE } from 'src/services/filters.service';
-import { AppEvents, isLinksOrLTAR } from 'nocodb-sdk';
+import { AppEvents, isLinksOrLTAR, UITypes } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { FilterReqType, UserType, WidgetType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
@@ -100,7 +100,16 @@ export class FiltersService extends FiltersServiceCE {
 
     const column = await Column.get(context, { colId: param.columnId });
 
-    if (!column && !isLinksOrLTAR(column)) {
+    // Accept link columns (LTAR/Links) as well as Rollup/Lookup columns —
+    // their "limit linked records" filters are also persisted via
+    // linkFilterCreate, with fk_link_col_id pointing at the rollup/lookup
+    // column itself (the field name is overloaded across these types).
+    if (
+      !column ||
+      (!isLinksOrLTAR(column) &&
+        column.uidt !== UITypes.Rollup &&
+        column.uidt !== UITypes.Lookup)
+    ) {
       NcError.badRequest('Link column not found');
     }
 

@@ -102,6 +102,8 @@ export class ColumnUpdateKanbanGroupByDependencyHandler
         false,
         ncMeta,
       );
+      // Skip orphaned kanban entries whose parent view was deleted concurrently
+      if (!view) continue;
       view.meta = parseMetaProp(view);
 
       if (stillSingleSelect) {

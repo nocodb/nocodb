@@ -98,6 +98,12 @@ export function _wherePk(
     ids = (id + '').split('___').map((val) => val.replaceAll('\\_', '_'));
   }
 
+  // Reject incomplete composite ids up-front — otherwise knex builds a
+  // WHERE with `undefined` bindings and throws a generic 500.
+  if (!skipPkValidation && (ids as unknown[]).length < primaryKeys.length) {
+    NcError.invalidPrimaryKey(id, primaryKeys.map((pk) => pk.title).join(','));
+  }
+
   for (let i = 0; i < primaryKeys.length; ++i) {
     if (primaryKeys[i].dt === 'bytea') {
       // if column is bytea, then we need to encode the id to hex based on format

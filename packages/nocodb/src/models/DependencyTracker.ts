@@ -131,6 +131,15 @@ export default class DependencyTracker implements DependencyTrackerType {
 
   public static async trackDependencies(
     context: NcContext,
+    dependentType: DependencyTableType.Bookmark,
+    dependentId: string,
+    dependencies: Dependencies,
+    ncMeta?: any,
+    ignoreClear?: boolean,
+  ): Promise<void>;
+
+  public static async trackDependencies(
+    context: NcContext,
     dependentType: DependencyTableType,
     dependentId: string,
     dependencies: Dependencies | WidgetDependencies | WorkflowDependencies,

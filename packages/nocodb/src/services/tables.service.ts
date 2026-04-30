@@ -692,10 +692,7 @@ export class TablesService {
             const mmBaseId = opts.fk_mm_base_id || colBaseId;
             await addTable(mmBaseId, opts.fk_mm_model_id, colContext);
           }
-        } else if (
-          col.uidt === UITypes.Lookup ||
-          col.uidt === UITypes.Rollup
-        ) {
+        } else if (col.uidt === UITypes.Lookup || col.uidt === UITypes.Rollup) {
           // Lookup/Rollup — resolve through the relation column
           const relationCol = cols.find(
             (c) => c.id === opts.fk_relation_column_id,

@@ -161,7 +161,6 @@ export class TablesService extends TableServiceCE {
     param: {
       tableId: string;
       user: User | UserType;
-      includeRelatedMetas?: boolean;
     },
   ) {
     const table = await super.getTableWithAccessibleViews(context, param);

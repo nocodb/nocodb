@@ -74,7 +74,6 @@ export const useMetas = createSharedComposable(() => {
     skipIfCacheMiss = false,
     disableError = false,
     navigateOnNotFound = false,
-    includeRelatedMetas = false,
   ): Promise<TableType | null> => {
     if (!baseId) {
       console.error('[getMeta] baseId is required but was not provided')
@@ -138,11 +137,8 @@ export const useMetas = createSharedComposable(() => {
     loadingState.value[loadingKey] = true
 
     try {
-      const cached = metas.value[metaKey]
-      if (!force && cached) {
-        if (!includeRelatedMetas || (includeRelatedMetas && cached._includeRelatedMetas)) {
-          return cached
-        }
+      if (!force && metas.value[metaKey]) {
+        return metas.value[metaKey]
       }
       const modelId =
         (tables.find((t) => t.id === tableIdOrTitle) || tables.find((t) => t.title === tableIdOrTitle))?.id || tableIdOrTitle
@@ -150,37 +146,7 @@ export const useMetas = createSharedComposable(() => {
       const model = await $api.internal.getOperation(activeWorkspaceId.value!, baseId, {
         operation: 'tableGet',
         tableId: modelId,
-        ...(includeRelatedMetas ? { includeRelatedMetas: 'true' } : {}),
       })
-
-      // Populate cache with related table metas before caching the primary model
-      // relatedMetas is grouped by baseId: { baseId: { tableId: TableType } }
-      if (model.relatedMetas) {
-        const updated = { ...metas.value }
-
-        for (const [relatedBaseId, tables] of Object.entries(model.relatedMetas)) {
-          for (const [tableId, relatedModel] of Object.entries(tables as Record<string, TableType>)) {
-            const key = getMetaKey(relatedBaseId, tableId)
-            // Only populate if not already cached (avoid overwriting fresher data)
-            if (!updated[key]) {
-              // Mark as slim so cache checks can distinguish from full metas
-              const slimModel = { ...relatedModel, _includeRelatedMetas: includeRelatedMetas } as TableType
-              updated[key] = slimModel
-
-              // Also cache by title
-              const titleKey = getMetaKey(relatedBaseId, (relatedModel as TableType).title)
-              if (!updated[titleKey]) {
-                updated[titleKey] = slimModel
-              }
-            }
-          }
-        }
-
-        metas.value = updated
-
-        // Remove relatedMetas from the model to avoid storing it in cache
-        delete model.relatedMetas
-      }
 
       // Ensure base_id is set on the model
       if (!model.base_id) {

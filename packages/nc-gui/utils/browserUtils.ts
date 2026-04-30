@@ -5,8 +5,27 @@ import { ncIsArray } from 'nocodb-sdk'
 export const isMac = () => /Mac/i.test(navigator.platform)
 export const isDrawerExist = () => document.querySelector('.ant-drawer-open')
 export const isLinkDropdownExist = () => document.querySelector('.nc-links-dropdown.active')
-export const isDrawerOrModalExist = () => document.querySelector('.ant-modal.active, .ant-drawer-open')
-export const isExpandedFormOpenExist = () => document.querySelector('.nc-drawer-expanded-form.active')
+
+// EE side-panel is inline (sibling of the grid) — both surfaces can be active
+// simultaneously. So unlike the modal, we only treat it as "blocking" when the
+// user is actually editing a field inside it (input / textarea / contenteditable).
+// Focus on the panel root div (tabindex=-1, set on after-enter so Esc closes the
+// panel) doesn't count — grid arrow nav and Backspace must keep working there.
+const isEditableInsideExpandedFormPanel = () => {
+  const panel = document.querySelector('.nc-expanded-form-panel')
+  if (!panel) return false
+  const el = document.activeElement
+  if (!el || !panel.contains(el)) return false
+  return (
+    el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || (el instanceof HTMLElement && el.isContentEditable)
+  )
+}
+
+export const isDrawerOrModalExist = () =>
+  !!document.querySelector('.ant-modal.active, .ant-drawer-open') || isEditableInsideExpandedFormPanel()
+
+export const isExpandedFormOpenExist = () =>
+  !!document.querySelector('.nc-drawer-expanded-form.active') || isEditableInsideExpandedFormPanel()
 export const isNestedExpandedFormOpenExist = () => document.querySelectorAll('.nc-drawer-expanded-form.active')?.length > 1
 export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')
 export const isNcListSearchInputActive = () => document.activeElement?.closest('.nc-list-search-input')

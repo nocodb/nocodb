@@ -164,6 +164,16 @@ const permissionScopes = {
 
     'getUserProfile',
 
+    // Bookmarks
+    'bookmarkList',
+    'bookmarkGroupList',
+    'bookmarkCreate',
+    'bookmarkUpdate',
+    'bookmarkDelete',
+    'bookmarkGroupCreate',
+    'bookmarkGroupUpdate',
+    'bookmarkGroupDelete',
+
     // Managed App (public operations)
     'managedAppStoreList',
     'managedAppGet',
@@ -1742,6 +1752,15 @@ const permissionDescriptions: Record<string, string> = {
   baseTrashSettingsUpdate: 'update per-table trash settings for the base',
 
   migrateBase: 'migrate a base to another instance',
+
+  bookmarkList: 'view list of bookmarks',
+  bookmarkGroupList: 'view list of bookmark groups',
+  bookmarkCreate: 'create a new bookmark',
+  bookmarkUpdate: 'update a bookmark',
+  bookmarkDelete: 'delete a bookmark',
+  bookmarkGroupCreate: 'create a new bookmark group',
+  bookmarkGroupUpdate: 'update a bookmark group',
+  bookmarkGroupDelete: 'delete a bookmark group',
 };
 
 // Human-readable descriptions for roles

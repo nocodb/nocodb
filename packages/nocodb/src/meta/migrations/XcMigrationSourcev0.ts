@@ -58,6 +58,7 @@ import * as nc_202604290000_base_variables_and_sandbox_changelog from './v0/nc_2
 import * as nc_202605040000_form_view_columns_row_id from './v0/nc_202605040000_form_view_columns_row_id';
 import * as nc_202605050000_ltar_display_value_column from './v0/nc_202605050000_ltar_display_value_column';
 import * as nc_202605060000_smart_text from './v0/nc_202605060000_smart_text';
+import * as nc_202604300000_bookmarks from './v0/nc_202604300000_bookmarks';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -127,6 +128,7 @@ export default class XcMigrationSourcev0 {
       'nc_202605040000_form_view_columns_row_id',
       'nc_202605050000_ltar_display_value_column',
       'nc_202605060000_smart_text',
+      'nc_202604300000_bookmarks',
     ]);
   }
 
@@ -256,6 +258,8 @@ export default class XcMigrationSourcev0 {
         return nc_202605050000_ltar_display_value_column;
       case 'nc_202605060000_smart_text':
         return nc_202605060000_smart_text;
+      case 'nc_202604300000_bookmarks':
+        return nc_202604300000_bookmarks;
     }
   }
 }

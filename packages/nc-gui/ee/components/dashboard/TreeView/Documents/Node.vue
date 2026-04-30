@@ -39,6 +39,10 @@ const { activeDocumentId, expandedDocIds } = storeToRefs(documentsStore)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
+const { blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+
+const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
+
 const base = inject(ProjectInj, ref())
 
 const input = ref<HTMLInputElement>()
@@ -552,6 +556,27 @@ function onStopEdit() {
                   </template>
                 </PaymentUpgradeBadgeProvider>
               </template>
+              <NcMenuItem
+                @click="() => {
+                  if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
+                  const bm = getBookmark('document', doc.id!)
+                  if (bm) {
+                    removeBookmark(bm.id!)
+                  } else {
+                    addBookmark({
+                      target_type: 'document',
+                      target_id: doc.id!,
+                      title: doc.title,
+                      meta: { workspace_id: activeWorkspaceId.value, base_id: base.value?.id || doc.base_id },
+                    })
+                  }
+                }"
+              >
+                <div class="flex gap-2 items-center">
+                  <GeneralIcon icon="ncBookmark" :class="isBookmarked('document', doc.id!) ? 'text-nc-content-brand' : 'opacity-80'" />
+                  {{ isBookmarked('document', doc.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+                </div>
+              </NcMenuItem>
               <template v-if="isUIAllowed('documentDelete')">
                 <NcDivider />
                 <NcMenuItem v-e="['c:document:delete']" :data-testid="`sidebar-doc-delete-${doc.title}`" danger @click="onDelete">

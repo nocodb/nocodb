@@ -338,6 +338,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseWorkflows = (..._args: any[]) => {}
 
+  const blockBookmarks = computed(() => true)
+
+  const showUpgradeToUseBookmarks = (..._args: any[]) => {}
+
   return {
     calculatePrice,
     getLimit,
@@ -494,6 +498,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseScripts,
     blockWorkflows,
     showUpgradeToUseWorkflows,
+    blockBookmarks,
+    showUpgradeToUseBookmarks,
     blockTrashSettings,
     showUpgradeToUseTrashSettings,
     blockFormGridLayout,

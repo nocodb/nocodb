@@ -45,6 +45,7 @@ export type DependencyFieldsMap = {
   [DependencyTableType.Model]: GeneralDependencyFields;
   [DependencyTableType.View]: GeneralDependencyFields;
   [DependencyTableType.DateDependency]: GeneralDependencyFields;
+  [DependencyTableType.Bookmark]: GeneralDependencyFields;
 };
 
 /**

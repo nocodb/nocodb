@@ -126,6 +126,9 @@ import { SmartTextService } from '~/services/smart-text.service';
 /* Dashboards */
 import { DashboardsService } from '~/services/dashboards.service';
 
+/* Bookmarks */
+import { BookmarkService } from '~/services/bookmark.service';
+
 /* Record Templates */
 import { RecordTemplatesController } from '~/controllers/record-templates.controller';
 import { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
@@ -268,6 +271,9 @@ export const nocoModuleEeMetadata = {
 
     /* Dashboards */
     DashboardsService,
+
+    /* Bookmarks */
+    BookmarkService,
 
     /* Record Templates */
     RecordTemplatesService,

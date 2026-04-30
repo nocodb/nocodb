@@ -26,6 +26,10 @@ const { isUIAllowed } = useRoles()
 
 const scriptStore = useScriptStore()
 
+const { blockBookmarks, showUpgradeToUseBookmarks, showScriptPlanLimitExceededModal } = useEeConfig()
+
+const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
+
 const basesStore = useBases()
 
 const { activeProjectId } = storeToRefs(basesStore)
@@ -35,8 +39,6 @@ const { duplicateScript: _duplicateScript, updateScript } = scriptStore
 const { activeScriptId, activeBaseScripts } = storeToRefs(scriptStore)
 
 const { meta: metaKey, control } = useMagicKeys()
-
-const { showScriptPlanLimitExceededModal } = useEeConfig()
 
 const { openScriptDescriptionDialog: _openScriptDescriptionDialog } = inject(TreeViewInj)!
 
@@ -515,6 +517,28 @@ const deleteScript = () => {
                     <GeneralLoader v-if="isLoading" />
                     <GeneralIcon v-else class="text-nc-content-gray-subtle" icon="duplicate" />
                     {{ $t('general.duplicate') }} {{ $t('objects.script').toLowerCase() }}
+                  </NcMenuItem>
+                  <NcDivider />
+                  <NcMenuItem
+                    @click="() => {
+                      if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
+                      const bm = getBookmark('script', vModel.id!)
+                      if (bm) {
+                        removeBookmark(bm.id!)
+                      } else {
+                        addBookmark({
+                          target_type: 'script',
+                          target_id: vModel.id!,
+                          title: vModel.title,
+                          meta: { workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id },
+                        })
+                      }
+                    }"
+                  >
+                    <div class="flex gap-2 items-center">
+                      <GeneralIcon icon="ncBookmark" :class="isBookmarked('script', vModel.id!) ? 'text-nc-content-brand' : 'opacity-80'" />
+                      {{ isBookmarked('script', vModel.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+                    </div>
                   </NcMenuItem>
                   <NcDivider />
                   <NcMenuItem

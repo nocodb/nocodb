@@ -37,7 +37,9 @@ const { appInfo } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+
+const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
 
 const { isUIAllowed } = useRoles()
 
@@ -237,6 +239,30 @@ const isOptionVisible = computed(() => {
     </NcSubMenu>
 
     <DashboardTreeViewBaseOptions v-if="isOptionVisible.baseOptions" v-model:base="base" :source="base.sources[0]" />
+
+    <NcDivider />
+
+    <NcMenuItem
+      @click="() => {
+        if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
+        const bm = getBookmark('base', base.id!)
+        if (bm) {
+          removeBookmark(bm.id!)
+        } else {
+          addBookmark({
+            target_type: 'base',
+            target_id: base.id!,
+            title: base.title,
+            meta: { workspace_id: base.fk_workspace_id },
+          })
+        }
+      }"
+    >
+      <div class="flex gap-2 items-center">
+        <GeneralIcon icon="ncBookmark" :class="isBookmarked('base', base.id!) ? 'text-nc-content-brand' : 'opacity-80'" />
+        {{ isBookmarked('base', base.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+      </div>
+    </NcMenuItem>
 
     <NcDivider v-if="isOptionVisible.baseMiscSettings || isOptionVisible.baseDelete" />
 

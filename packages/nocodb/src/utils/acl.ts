@@ -82,6 +82,16 @@ const permissionScopes = {
 
     'getUserProfile',
 
+    // Bookmarks
+    'bookmarkList',
+    'bookmarkGroupList',
+    'bookmarkCreate',
+    'bookmarkUpdate',
+    'bookmarkDelete',
+    'bookmarkGroupCreate',
+    'bookmarkGroupUpdate',
+    'bookmarkGroupDelete',
+
     // Connection + upload (matches EE org scope)
     'testConnection',
     'upload',
@@ -976,6 +986,15 @@ const permissionDescriptions: Record<string, string> = {
 
   dataImportPreview: 'preview file for import',
   dataImportFile: 'import file into a table',
+
+  bookmarkList: 'view list of bookmarks',
+  bookmarkGroupList: 'view list of bookmark groups',
+  bookmarkCreate: 'create a new bookmark',
+  bookmarkUpdate: 'update a bookmark',
+  bookmarkDelete: 'delete a bookmark',
+  bookmarkGroupCreate: 'create a new bookmark group',
+  bookmarkGroupUpdate: 'update a bookmark group',
+  bookmarkGroupDelete: 'delete a bookmark group',
 };
 
 // Human-readable descriptions for roles

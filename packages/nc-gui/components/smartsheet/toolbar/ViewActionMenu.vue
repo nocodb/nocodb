@@ -51,7 +51,9 @@ const { base } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { showEEFeatures, showRecordPlanLimitExceededModal, getPlanTitle } = useEeConfig()
+const { showEEFeatures, showRecordPlanLimitExceededModal, getPlanTitle, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+
+const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
 
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
 
@@ -811,6 +813,29 @@ defineOptions({
           </template>
         </PaymentUpgradeBadgeProvider>
       </template>
+
+      <NcMenuItem
+        v-if="isEeUI"
+        @click="() => {
+          if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
+          const bm = getBookmark('view', view.id!)
+          if (bm) {
+            removeBookmark(bm.id!)
+          } else {
+            addBookmark({
+              target_type: 'view',
+              target_id: view.id!,
+              title: view.title,
+              meta: { view_type: view.type, workspace_id: base.fk_workspace_id, base_id: table.base_id, table_id: table.id },
+            })
+          }
+        }"
+      >
+        <div class="flex gap-2 items-center">
+          <GeneralIcon icon="ncBookmark" :class="isBookmarked('view', view.id!) ? 'text-nc-content-brand' : 'opacity-80'" />
+          {{ isBookmarked('view', view.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+        </div>
+      </NcMenuItem>
 
       <template v-if="isUIAllowed('viewCreateOrEdit')">
         <NcDivider />

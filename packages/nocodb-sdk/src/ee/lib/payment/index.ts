@@ -673,4 +673,13 @@ export const InternalOpToOnPremPlanFeature: Record<
   // Audit
   workspaceAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
   baseAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+  // Bookmarks
+  bookmarkList: PlanFeatureTypes.FEATURE_BOOKMARKS,
+  bookmarkGroupList: PlanFeatureTypes.FEATURE_BOOKMARKS,
+  bookmarkCreate: PlanFeatureTypes.FEATURE_BOOKMARKS,
+  bookmarkUpdate: PlanFeatureTypes.FEATURE_BOOKMARKS,
+  bookmarkDelete: PlanFeatureTypes.FEATURE_BOOKMARKS,
+  bookmarkGroupCreate: PlanFeatureTypes.FEATURE_BOOKMARKS,
+  bookmarkGroupUpdate: PlanFeatureTypes.FEATURE_BOOKMARKS,
+  bookmarkGroupDelete: PlanFeatureTypes.FEATURE_BOOKMARKS,
 };

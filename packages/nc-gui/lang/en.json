@@ -1060,6 +1060,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "bookmarks": "Bookmarks",
     "trash": "Trash",
     "baseTrash": "Base Trash",
     "recordTrash": "Record Trash",
@@ -1344,6 +1345,12 @@
     "manyToOne": "Many to One"
   },
   "labels": {
+    "bookmarks": "Bookmarks",
+    "bookmarkGroup": "Bookmark Group",
+    "addToBookmarks": "Add to Bookmarks",
+    "removeFromBookmarks": "Remove from Bookmarks",
+    "ungrouped": "Ungrouped",
+    "createGroup": "Create Group",
     "history": "History",
     "trash": "Trash",
     "snapshots": "Snapshots",
@@ -2935,6 +2942,7 @@
     "personalViewDisabledOnSandbox": "Personal views can only be created on the master base",
     "noSchemaChanges": "No schema changes to publish",
     "conditionallyVisibleField": "Conditionally visible field",
+    "bookmarks": "Bookmarks",
     "scopeReadOnly": "View records, tables, fields, views, and comments. No modifications allowed.",
     "scopeReadWrite": "Create, read, update, and delete records and comments. Other resources are read-only.",
     "scopeFullAccess": "Full read and write access to all resources including tables, fields, views, webhooks, and users.",
@@ -3192,6 +3200,10 @@
     "searchRecordTemplates": "Search record templates"
   },
   "msg": {
+    "bookmarkAdded": "Bookmark added",
+    "bookmarkRemoved": "Bookmark removed",
+    "bookmarkUpdated": "Bookmark updated",
+    "bookmarkGroupDeleted": "Group deleted. Bookmarks moved to Ungrouped.",
     "noActionsAvailable": "No actions available",
     "manageBaseIntegrations": "Manage connections and discover new integrations for this base",
     "noIntegrationsLinked": "No integrations linked to this base",

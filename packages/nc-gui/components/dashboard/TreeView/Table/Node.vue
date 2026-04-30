@@ -49,7 +49,9 @@ const { loadViews: _loadViews } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { showEEFeatures, showRecordPlanLimitExceededModal } = useEeConfig()
+const { showEEFeatures, showRecordPlanLimitExceededModal, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+
+const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
 
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
@@ -719,6 +721,28 @@ const enabledOptions = computed(() => {
                     </template>
                   </PaymentUpgradeBadgeProvider>
                 </template>
+                <NcMenuItem
+                  v-if="isEeUI"
+                  @click="() => {
+                    if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
+                    const bm = getBookmark('table', table.id!)
+                    if (bm) {
+                      removeBookmark(bm.id!)
+                    } else {
+                      addBookmark({
+                        target_type: 'table',
+                        target_id: table.id!,
+                        title: table.title,
+                        meta: { workspace_id: table.fk_workspace_id, base_id: table.base_id },
+                      })
+                    }
+                  }"
+                >
+                  <div class="flex gap-2 items-center">
+                    <GeneralIcon icon="ncBookmark" :class="isBookmarked('table', table.id!) ? 'text-nc-content-brand' : 'opacity-80'" />
+                    {{ isBookmarked('table', table.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+                  </div>
+                </NcMenuItem>
                 <template v-if="enabledOptions.tableDelete">
                   <NcDivider />
                   <NcMenuItem

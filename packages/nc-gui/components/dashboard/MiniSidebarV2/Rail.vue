@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { PlanFeatureTypes, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 
 interface NavItem {
   key: string
@@ -45,7 +45,23 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, showEEFeatures } = useEeConfig()
+const { blockAiChat, showEEFeatures, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+
+const isBookmarksFlyoutOpen = ref(false)
+
+const bookmarksContainerRef = ref<HTMLElement | null>(null)
+
+function onBookmarksClick() {
+  if (blockBookmarks.value) {
+    showUpgradeToUseBookmarks()
+    return
+  }
+  isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
+}
+
+onClickOutside(bookmarksContainerRef, () => {
+  isBookmarksFlyoutOpen.value = false
+})
 
 const { isRtl } = useRtl()
 
@@ -268,6 +284,29 @@ const mainItems = computed<NavItem[]>(() => [
       :disable-tooltip="true"
       @click="onTabClick('settings')"
     />
+
+    <!-- Bookmarks -->
+    <div v-if="isEeUI" ref="bookmarksContainerRef" class="relative">
+      <DashboardMiniSidebarV2RailItem
+        icon="ncBookmark"
+        :tooltip="$t('tooltip.bookmarks')"
+        :label="$t('labels.bookmarks')"
+        :active="isBookmarksFlyoutOpen"
+        is-dropdown
+        data-testid="nc-rail-bookmarks"
+        @click="onBookmarksClick"
+      />
+      <LazyPaymentUpgradeBadge
+        :feature="PlanFeatureTypes.FEATURE_BOOKMARKS"
+        class="absolute -top-1 -right-1 pointer-events-none"
+        size="xs"
+      />
+
+      <LazyBookmarksFlyout
+        v-if="isBookmarksFlyoutOpen && !blockBookmarks"
+        @close="isBookmarksFlyoutOpen = false"
+      />
+    </div>
 
     <!-- Bottom group -->
     <div class="nc-rail-bottom-group">

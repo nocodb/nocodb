@@ -419,6 +419,12 @@ export const useEeConfig = createSharedComposable(() => {
   })
   const blockScripts = computed(() => isEEFeatureBlocked.value)
   const blockWorkflows = computed(() => isEEFeatureBlocked.value)
+  const blockBookmarks = computed(() => {
+    if (isEEFeatureBlocked.value) {
+      return !getFeature(PlanFeatureTypes.FEATURE_BOOKMARKS)
+    }
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_BOOKMARKS)
+  })
   const blockExtensions = computed(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS)
   })
@@ -2155,6 +2161,11 @@ export const useEeConfig = createSharedComposable(() => {
     return showUpgradeForEEFeature(t('upgrade.features.workflows'))
   }
 
+  const showUpgradeToUseBookmarks = () => {
+    handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_BOOKMARKS })
+    return true
+  }
+
   const showUpgradeToUseExtensions = () => {
     if (!blockExtensions.value) return
     return showUpgradeForEEFeature(t('upgrade.features.extensions'))
@@ -2329,6 +2340,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockCustomUrls,
     blockScripts,
     blockWorkflows,
+    blockBookmarks,
     blockExtensions,
     showUpgradeToUseExtensions,
     blockWorkspaceCreate,
@@ -2339,6 +2351,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCustomUrls,
     showUpgradeToUseScripts,
     showUpgradeToUseWorkflows,
+    showUpgradeToUseBookmarks,
     showUpgradeToCreateWorkspace,
     showUpgradeToManageWorkspaceMembers,
     showUpgradeForEEFeature,

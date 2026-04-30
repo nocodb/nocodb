@@ -1,0 +1,245 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { AppEvents, DependencyTableType } from 'nocodb-sdk';
+import type { BookmarkGroupReqType, BookmarkReqType, NcContext, NcRequest } from 'nocodb-sdk';
+import { Bookmark, BookmarkGroup, DependencyTracker } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
+
+@Injectable()
+export class BookmarkService {
+  protected logger = new Logger(BookmarkService.name);
+
+  constructor(protected readonly appHooksService: AppHooksService) {}
+
+  // --- Bookmarks ---
+
+  async bookmarkList(_context: NcContext, param: { req: NcRequest }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const [bookmarks, groups] = await Promise.all([
+      Bookmark.list(userId),
+      BookmarkGroup.list(userId),
+    ]);
+
+    return { bookmarks, groups };
+  }
+
+  async bookmarkCreate(
+    context: NcContext,
+    param: { body: BookmarkReqType; req: NcRequest },
+  ) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    let groupId = param.body.fk_group_id;
+
+    if (!groupId) {
+      const ungrouped = await BookmarkGroup.getOrCreateUngrouped(userId);
+      groupId = ungrouped.id;
+    } else {
+      const group = await BookmarkGroup.get(groupId);
+      if (!group || group.fk_user_id !== userId) {
+        NcError.badRequest('Invalid group');
+      }
+    }
+
+    const bookmark = await Bookmark.insert({
+      fk_user_id: userId,
+      fk_group_id: groupId,
+      title: param.body.title,
+      target_type: param.body.target_type,
+      target_id: param.body.target_id,
+      order: param.body.order,
+      meta: param.body.meta,
+    });
+
+    // Register dependency for future cleanup
+    const depSourceType = this.mapTargetTypeToDependency(
+      param.body.target_type,
+    );
+    if (depSourceType) {
+      try {
+        await DependencyTracker.trackDependencies(
+          context,
+          DependencyTableType.Bookmark,
+          bookmark.id!,
+          this.buildDependencyPayload(depSourceType, param.body.target_id),
+          undefined,
+          true, // ignoreClear — no prior deps to clear on create
+        );
+      } catch (e) {
+        this.logger.error('Failed to track bookmark dependency', e.stack);
+      }
+    }
+
+    this.appHooksService.emit(AppEvents.BOOKMARK_CREATE, {
+      context,
+      req: param.req,
+      bookmarkId: bookmark.id,
+      targetType: param.body.target_type,
+    });
+
+    return bookmark;
+  }
+
+  async bookmarkUpdate(
+    _context: NcContext,
+    param: { bookmarkId: string; body: Partial<BookmarkReqType>; req: NcRequest },
+  ) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const bookmark = await Bookmark.get(param.bookmarkId);
+    if (!bookmark || bookmark.fk_user_id !== userId) {
+      NcError.genericNotFound('Bookmark', param.bookmarkId);
+    }
+
+    if (param.body.fk_group_id) {
+      const group = await BookmarkGroup.get(param.body.fk_group_id);
+      if (!group || group.fk_user_id !== userId) {
+        NcError.badRequest('Invalid group');
+      }
+    }
+
+    return Bookmark.update(param.bookmarkId, {
+      title: param.body.title,
+      fk_group_id: param.body.fk_group_id,
+      order: param.body.order,
+      meta: param.body.meta,
+    });
+  }
+
+  async bookmarkDelete(
+    context: NcContext,
+    param: { bookmarkId: string; req: NcRequest },
+  ) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const bookmark = await Bookmark.get(param.bookmarkId);
+    if (!bookmark || bookmark.fk_user_id !== userId) {
+      NcError.genericNotFound('Bookmark', param.bookmarkId);
+    }
+
+    await Bookmark.delete(param.bookmarkId);
+
+    try {
+      await DependencyTracker.clearDependencies(
+        context,
+        DependencyTableType.Bookmark,
+        param.bookmarkId,
+      );
+    } catch (e) {
+      this.logger.error('Failed to clear bookmark dependency', e.stack);
+    }
+
+    this.appHooksService.emit(AppEvents.BOOKMARK_DELETE, {
+      context,
+      req: param.req,
+      bookmarkId: param.bookmarkId,
+      targetType: bookmark.target_type,
+    });
+
+    return true;
+  }
+
+  // --- Groups ---
+
+  async bookmarkGroupList(_context: NcContext, param: { req: NcRequest }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    return BookmarkGroup.list(userId);
+  }
+
+  async bookmarkGroupCreate(
+    _context: NcContext,
+    param: { body: BookmarkGroupReqType; req: NcRequest },
+  ) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    return BookmarkGroup.insert({
+      fk_user_id: userId,
+      name: param.body.name,
+      order: param.body.order,
+    });
+  }
+
+  async bookmarkGroupUpdate(
+    _context: NcContext,
+    param: { groupId: string; body: Partial<BookmarkGroupReqType>; req: NcRequest },
+  ) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const group = await BookmarkGroup.get(param.groupId);
+    if (!group || group.fk_user_id !== userId) {
+      NcError.genericNotFound('BookmarkGroup', param.groupId);
+    }
+
+    return BookmarkGroup.update(param.groupId, {
+      name: param.body.name,
+      order: param.body.order,
+    });
+  }
+
+  async bookmarkGroupDelete(
+    _context: NcContext,
+    param: { groupId: string; req: NcRequest },
+  ) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const group = await BookmarkGroup.get(param.groupId);
+    if (!group || group.fk_user_id !== userId) {
+      NcError.genericNotFound('BookmarkGroup', param.groupId);
+    }
+
+    if (group.name === 'Ungrouped') {
+      NcError.badRequest('Cannot delete the Ungrouped group');
+    }
+
+    // Move bookmarks to Ungrouped
+    const ungrouped = await BookmarkGroup.getOrCreateUngrouped(userId);
+    await Bookmark.moveToGroup(param.groupId, ungrouped.id!);
+
+    await BookmarkGroup.delete(param.groupId);
+
+    return true;
+  }
+
+  // --- Helpers ---
+
+  private mapTargetTypeToDependency(
+    targetType: string,
+  ): DependencyTableType | null {
+    switch (targetType) {
+      case 'table':
+        return DependencyTableType.Model;
+      case 'view':
+        return DependencyTableType.View;
+      case 'workflow':
+        return DependencyTableType.Workflow;
+      default:
+        return null;
+    }
+  }
+
+  private buildDependencyPayload(
+    sourceType: DependencyTableType,
+    sourceId: string,
+  ) {
+    switch (sourceType) {
+      case DependencyTableType.Model:
+        return { models: [{ id: sourceId }] };
+      case DependencyTableType.View:
+        return { views: [{ id: sourceId }] };
+      case DependencyTableType.Workflow:
+        return { workflows: [{ id: sourceId }] };
+      default:
+        return {};
+    }
+  }
+}

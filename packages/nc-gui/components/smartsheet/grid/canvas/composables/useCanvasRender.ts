@@ -522,9 +522,7 @@ export function useCanvasRender({
       // The issue is the border gets drawn over the active state border.
       // For quick hack, we skip rendering border over the y values of the active state to avoid the overlap.
       if (
-        (activeState &&
-          xOffset - _scrollLeft >= activeState.x &&
-          xOffset - _scrollLeft <= activeState.x + activeState.width) ||
+        (activeState && xOffset - _scrollLeft >= activeState.x && xOffset - _scrollLeft <= activeState.x + activeState.width) ||
         (fillHandler && xOffset - _scrollLeft + 1 >= fillHandler.x && xOffset - _scrollLeft - 1 <= fillHandler.x)
       ) {
         // Draw line above active state
@@ -557,19 +555,13 @@ export function useCanvasRender({
           // Draw line below the fill handler
           ctx.beginPath()
           ctx.moveTo(xOffset - _scrollLeft, fillHandler.y + fillHandler.size / 2)
-          ctx.lineTo(
-            xOffset - _scrollLeft,
-            (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + _headerRowHeight,
-          )
+          ctx.lineTo(xOffset - _scrollLeft, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + _headerRowHeight)
           ctx.stroke()
         } else if (activeState?.y && activeState?.height) {
           // Draw line below active state
           ctx.beginPath()
           ctx.moveTo(xOffset - _scrollLeft, activeState.y + activeState.height)
-          ctx.lineTo(
-            xOffset - _scrollLeft,
-            (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + _headerRowHeight,
-          )
+          ctx.lineTo(xOffset - _scrollLeft, (rowSlice.value.end - rowSlice.value.start + 1) * rowHeight.value + _headerRowHeight)
           ctx.stroke()
         }
       } else if (visibleCols.filter((f) => !f.fixed).length) {
@@ -2203,11 +2195,7 @@ export function useCanvasRender({
         if (column.agg_prefix) {
           ctx.font = '400 12px Inter'
           ctx.fillStyle = getColor(themeV4Colors.gray['500'])
-          ctx.fillText(
-            column.agg_prefix,
-            xOffset + width - aggWidth - 16 - _scrollLeft,
-            _height - AGGREGATION_HEIGHT / 2,
-          )
+          ctx.fillText(column.agg_prefix, xOffset + width - aggWidth - 16 - _scrollLeft, _height - AGGREGATION_HEIGHT / 2)
         }
 
         ctx.font = '600 12px Inter'
@@ -2591,8 +2579,7 @@ export function useCanvasRender({
         // add column header height since it's not included
         _headerRowHeight
     } else {
-      targetRowLine =
-        (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + _headerRowHeight
+      targetRowLine = (targetRowIndex.value - rowSlice.value.start) * rowHeight.value - partialRowHeight.value + _headerRowHeight
     }
 
     // First render the blue line indicator

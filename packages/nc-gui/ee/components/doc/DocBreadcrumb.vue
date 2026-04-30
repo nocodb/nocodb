@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DocumentType } from 'nocodb-sdk'
+import type { BaseType, DocumentType } from 'nocodb-sdk'
 
 interface Props {
   docId: string
@@ -11,20 +11,27 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const documentsStore = useDocumentsStore()
-const { activeDocument } = storeToRefs(documentsStore)
-const { getDocumentAncestors } = documentsStore
+const { activeDocument, activeDocuments } = storeToRefs(documentsStore)
+const { getDocumentAncestors, loadChildren } = documentsStore
 
 const { ncNavigateTo } = useGlobal()
 
 const basesStore = useBases()
-const { activeProjectId } = storeToRefs(basesStore)
+const { activeProjectId, openedProject, basesList } = storeToRefs(basesStore)
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const { t } = useI18n()
 
+const { isRtl } = useRtl()
+
+const ellipsisPlacement = computed(() => (isRtl.value ? 'bottomRight' : 'bottomLeft'))
+
+const depthIcon = computed(() => (isRtl.value ? 'ncCornerDownLeft' : 'ncCornerDownRight'))
+
+const depthIconClass = computed(() => (isRtl.value ? 'mr-1 -ml-0.5' : 'ml-1 -mr-0.5'))
+
 const ancestors = computed(() => getDocumentAncestors(props.docId))
 
-// Fixed 4-item layout: Root / ... / Parent / Current
 const rootAncestor = computed(() => (ancestors.value.length > 0 ? ancestors.value[0] : null))
 
 const parentAncestor = computed(() => (ancestors.value.length > 1 ? ancestors.value[ancestors.value.length - 1] : null))
@@ -42,25 +49,41 @@ const hasCollapsed = computed(() => collapsedMiddle.value.length > 0)
 
 const isEllipsisOpen = ref(false)
 
-// Dropdown: show collapsed ancestor chain as nested tree (parent path, not siblings)
-const dropdownItems = computed<NcListItemType[]>(() => {
-  if (!collapsedMiddle.value.length) return []
+const displayTitle = computed(() => props.currentTitle || activeDocument.value?.title || t('general.untitled'))
 
-  return collapsedMiddle.value.map((ancestor, index) => ({
-    value: ancestor.id!,
-    label: ancestor.title || t('general.untitled'),
-    ncIcon: ancestor.meta?.icon,
-    ncDepth: index,
-  }))
+// Every doc on the active path — ancestors plus the currently-open doc. Any row
+// whose id appears here is highlighted as active, so the full trail stays lit
+// regardless of how deep the user drills into a segment's submenu tree.
+const activePathIds = computed<string[]>(() => {
+  const ids = ancestors.value.map((a) => a.id).filter((id): id is string => !!id)
+  if (activeDocument.value?.id) ids.push(activeDocument.value.id)
+  return ids
 })
 
-const collapsedDocsMap = computed(() => {
-  const map = new Map<string, DocumentType>()
-  for (const doc of collapsedMiddle.value) {
-    if (doc.id) map.set(doc.id, doc)
-  }
-  return map
-})
+// Treat null, undefined, and empty string as "no parent" (matches sidebar's `!d.parent_id`)
+const normalizeParentId = (v: string | null | undefined) => v || null
+
+const getSiblingsByParent = (parentId: string | null | undefined) => {
+  const target = normalizeParentId(parentId)
+  return activeDocuments.value
+    .filter((d) => normalizeParentId(d.parent_id) === target)
+    .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+}
+
+const getChildren = (docId: string) => getSiblingsByParent(docId)
+
+const ensureChildrenLoaded = (docId: string) => {
+  if (!activeProjectId.value) return
+  loadChildren(activeProjectId.value, docId)
+}
+
+const rootSiblings = computed(() => (rootAncestor.value ? getSiblingsByParent(rootAncestor.value.parent_id) : []))
+
+const middleSiblings = computed(() => (middleAncestor.value ? getSiblingsByParent(middleAncestor.value.parent_id) : []))
+
+const parentSiblings = computed(() => (parentAncestor.value ? getSiblingsByParent(parentAncestor.value.parent_id) : []))
+
+const currentSiblings = computed(() => (activeDocument.value ? getSiblingsByParent(activeDocument.value.parent_id) : []))
 
 const navigateToDoc = (doc: DocumentType) => {
   if (!doc.id || !activeProjectId.value) return
@@ -73,37 +96,108 @@ const navigateToDoc = (doc: DocumentType) => {
   })
 }
 
-const handleDropdownSelect = (option: NcListItemType) => {
+const navigateToBase = (base: BaseType) => {
+  if (!base.id) return
+  ncNavigateTo({
+    workspaceId: activeWorkspaceId.value,
+    baseId: base.id,
+  })
+}
+
+// Ellipsis dropdown — existing NcList behavior for collapsed ancestors
+const collapsedDropdownItems = computed<NcListItemType[]>(() =>
+  collapsedMiddle.value.map((ancestor, index) => ({
+    value: ancestor.id!,
+    label: ancestor.title || t('general.untitled'),
+    ncIcon: ancestor.meta?.icon,
+    ncDepth: index,
+  })),
+)
+
+const collapsedDocsMap = computed(() => {
+  const map = new Map<string, DocumentType>()
+  for (const doc of collapsedMiddle.value) {
+    if (doc.id) map.set(doc.id, doc)
+  }
+  return map
+})
+
+const handleEllipsisSelect = (option: NcListItemType) => {
   const doc = collapsedDocsMap.value.get(option.value as string)
   if (doc) navigateToDoc(doc)
 }
-
-const displayTitle = computed(() => props.currentTitle || activeDocument.value?.title || t('general.untitled'))
 </script>
 
 <template>
-  <div class="nc-doc-breadcrumb" data-testid="nc-doc-breadcrumb">
+  <div class="nc-doc-breadcrumb flex items-center min-w-0 w-full" data-testid="nc-doc-breadcrumb">
+    <!-- 0. Base — icon-only with tooltip, matches table breadcrumb -->
+    <DocBreadcrumbSegment
+      :label="openedProject?.title || $t('general.untitled')"
+      :items="basesList"
+      :active-id="activeProjectId ?? null"
+      icon-only
+      @select="navigateToBase"
+    >
+      <template #icon>
+        <GeneralProjectIcon
+          :type="openedProject?.type"
+          :color="openedProject?.meta ? parseProp(openedProject.meta).iconColor : undefined"
+          :managed-app="{
+            managed_app_master: openedProject?.managed_app_master,
+            managed_app_id: openedProject?.managed_app_id,
+          }"
+          class="!grayscale min-w-4"
+        />
+      </template>
+      <template #listItemIcon="{ option }">
+        <GeneralProjectIcon
+          :type="(option.raw as BaseType)?.type"
+          :color="(option.raw as BaseType)?.meta ? parseProp((option.raw as BaseType).meta).iconColor : undefined"
+          :managed-app="{
+            managed_app_master: (option.raw as BaseType)?.managed_app_master,
+            managed_app_id: (option.raw as BaseType)?.managed_app_id,
+          }"
+          class="flex-none !grayscale min-w-4"
+        />
+      </template>
+    </DocBreadcrumbSegment>
+    <GeneralIcon icon="ncSlash1" class="nc-doc-breadcrumb-divider" />
+
     <!-- 1. Root ancestor -->
     <template v-if="rootAncestor">
-      <div class="nc-doc-breadcrumb-item nc-clickable" @click="navigateToDoc(rootAncestor)">
-        <span class="nc-doc-breadcrumb-text">{{ rootAncestor.title || $t('general.untitled') }}</span>
-      </div>
+      <DocBreadcrumbSegment
+        :label="rootAncestor.title || $t('general.untitled')"
+        :icon-emoji="rootAncestor.meta?.icon"
+        :items="rootSiblings"
+        :active-ids="activePathIds"
+        nested
+        :get-children="getChildren"
+        :load-children="ensureChildrenLoaded"
+        @select="navigateToDoc"
+      />
       <GeneralIcon icon="ncSlash1" class="nc-doc-breadcrumb-divider" />
     </template>
 
     <!-- 2a. Single middle ancestor shown inline -->
     <template v-if="middleAncestor">
-      <div class="nc-doc-breadcrumb-item nc-clickable" @click="navigateToDoc(middleAncestor)">
-        <span class="nc-doc-breadcrumb-text">{{ middleAncestor.title || $t('general.untitled') }}</span>
-      </div>
+      <DocBreadcrumbSegment
+        :label="middleAncestor.title || $t('general.untitled')"
+        :icon-emoji="middleAncestor.meta?.icon"
+        :items="middleSiblings"
+        :active-ids="activePathIds"
+        nested
+        :get-children="getChildren"
+        :load-children="ensureChildrenLoaded"
+        @select="navigateToDoc"
+      />
       <GeneralIcon icon="ncSlash1" class="nc-doc-breadcrumb-divider" />
     </template>
 
-    <!-- 2b. `...` dropdown -->
+    <!-- 2b. `...` dropdown for many collapsed middle ancestors -->
     <template v-if="hasCollapsed">
-      <NcDropdown v-model:visible="isEllipsisOpen" placement="bottomLeft">
+      <NcDropdown v-model:visible="isEllipsisOpen" :placement="ellipsisPlacement">
         <div
-          class="nc-doc-breadcrumb-item nc-clickable nc-doc-breadcrumb-ellipsis"
+          class="nc-doc-breadcrumb-segment rounded-lg h-8 px-2 flex items-center gap-1 cursor-pointer text-nc-content-inverted-secondary font-weight-500 hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis)"
           @click.stop="isEllipsisOpen = !isEllipsisOpen"
         >
           ...
@@ -111,19 +205,20 @@ const displayTitle = computed(() => props.currentTitle || activeDocument.value?.
         <template #overlay>
           <NcList
             v-model:open="isEllipsisOpen"
-            :list="dropdownItems"
-            :show-search-always="dropdownItems.length > 4"
+            :list="collapsedDropdownItems"
+            :show-search-always="collapsedDropdownItems.length > 4"
             :search-input-placeholder="$t('general.search')"
-            variant="small"
+            variant="medium"
             class="!w-64"
-            @change="handleDropdownSelect"
+            @change="handleEllipsisSelect"
           >
             <template #listItem="{ option }">
               <div class="flex items-center gap-2 truncate">
                 <GeneralIcon
                   v-if="option.ncDepth > 0"
-                  icon="ncCornerDownRight"
-                  class="flex-none text-nc-content-gray-muted !w-3 !h-3 ml-1 -mr-0.5"
+                  :icon="depthIcon"
+                  class="flex-none text-nc-content-gray-muted !w-3 !h-3"
+                  :class="depthIconClass"
                 />
                 <LazyGeneralEmojiPicker v-if="option.ncIcon" :emoji="option.ncIcon" readonly size="xsmall" />
                 <GeneralIcon v-else icon="ncFileText" class="flex-none text-nc-content-gray-muted !w-4 !h-4" />
@@ -141,61 +236,36 @@ const displayTitle = computed(() => props.currentTitle || activeDocument.value?.
 
     <!-- 3. Parent ancestor -->
     <template v-if="parentAncestor">
-      <div class="nc-doc-breadcrumb-item nc-clickable" @click="navigateToDoc(parentAncestor)">
-        <span class="nc-doc-breadcrumb-text">{{ parentAncestor.title || $t('general.untitled') }}</span>
-      </div>
+      <DocBreadcrumbSegment
+        :label="parentAncestor.title || $t('general.untitled')"
+        :icon-emoji="parentAncestor.meta?.icon"
+        :items="parentSiblings"
+        :active-ids="activePathIds"
+        nested
+        :get-children="getChildren"
+        :load-children="ensureChildrenLoaded"
+        @select="navigateToDoc"
+      />
       <GeneralIcon icon="ncSlash1" class="nc-doc-breadcrumb-divider" />
     </template>
 
-    <!-- 4. Current page (active) -->
-    <div
-      class="nc-doc-breadcrumb-item active"
-      :class="{
-        'nc-doc-breadcrumb-item-full-size': !ancestors.length,
-      }"
-    >
-      <span class="nc-doc-breadcrumb-text">{{ displayTitle }}</span>
-    </div>
+    <!-- 4. Current page -->
+    <DocBreadcrumbSegment
+      :label="displayTitle"
+      :icon-emoji="activeDocument?.meta?.icon"
+      :items="currentSiblings"
+      :active-ids="activePathIds"
+      max-width-class="max-w-1/2"
+      nested
+      :get-children="getChildren"
+      :load-children="ensureChildrenLoaded"
+      @select="navigateToDoc"
+    />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.nc-doc-breadcrumb {
-  @apply flex items-center text-body text-nc-content-gray-subtle max-w-full w-full min-w-0;
-
-  .nc-doc-breadcrumb-item {
-    @apply h-7 px-2 leading-7 overflow-hidden;
-    max-width: 20%;
-    flex: 0 1 auto;
-
-    &.nc-clickable {
-      @apply cursor-pointer select-none rounded-md hover:(bg-nc-bg-gray-light text-nc-content-gray);
-    }
-
-    &.active {
-      @apply !font-medium !text-nc-content-gray;
-      max-width: 45%;
-      flex: 1 1 auto;
-
-      &.nc-doc-breadcrumb-item-full-size {
-        max-width: fit-content !important;
-      }
-    }
-  }
-
-  .nc-doc-breadcrumb-text {
-    @apply block truncate;
-  }
-
-  .nc-doc-breadcrumb-divider {
-    @apply mx-0.5 flex-none text-nc-content-gray-muted/80 !stroke-transparent;
-  }
-
-  .nc-doc-breadcrumb-ellipsis {
-    @apply font-medium;
-    flex: 0 0 auto;
-    max-width: none;
-    overflow: visible;
-  }
+.nc-doc-breadcrumb-divider {
+  @apply mx-0.5 flex-none text-nc-content-gray-muted/80 !stroke-transparent;
 }
 </style>

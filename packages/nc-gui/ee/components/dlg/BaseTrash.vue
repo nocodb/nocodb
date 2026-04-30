@@ -238,12 +238,7 @@ function handleEmptyTrash() {
             :data-testid="`nc-base-trash-item-${item.id}`"
           >
             <div class="nc-base-trash-item flex items-center gap-3 px-6 py-4 hover:bg-nc-bg-gray-extralight transition-colors">
-              <NcTooltip
-                placement="bottom"
-                color="light"
-                :disabled="!item.deleted_by"
-                overlay-class-name="nc-tooltip-trash-user"
-              >
+              <NcTooltip placement="bottom" color="light" :disabled="!item.deleted_by" overlay-class-name="nc-tooltip-trash-user">
                 <template #title>
                   <div class="flex items-center gap-2.5 py-1 pr-1">
                     <div

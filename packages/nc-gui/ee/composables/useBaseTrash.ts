@@ -1,4 +1,4 @@
-import { isDeletedCol, NcErrorType, PlanLimitTypes } from 'nocodb-sdk'
+import { NcErrorType, PlanLimitTypes, isDeletedCol } from 'nocodb-sdk'
 import type { BaseTrashType, TableType } from 'nocodb-sdk'
 
 // Restore-conflict shapes mirror the backend (`record-trash.helpers.ts`) —
@@ -91,18 +91,6 @@ export const useBaseTrash = createSharedComposable(() => {
 
   const isLoadingMore = ref(false)
 
-  const open = () => {
-    isOpen.value = true
-    loadTrash()
-    $e('c:base-trash:open')
-  }
-
-  const close = () => {
-    isOpen.value = false
-    trashItems.value = []
-    nextCursor.value = null
-  }
-
   /**
    * Cursor-paginated load. `append=false` resets the list and pulls the first
    * page; `append=true` follows `nextCursor` to fetch and append the next.
@@ -138,6 +126,18 @@ export const useBaseTrash = createSharedComposable(() => {
 
   const loadMore = () => loadTrash(true)
 
+  const open = () => {
+    isOpen.value = true
+    loadTrash()
+    $e('c:base-trash:open')
+  }
+
+  const close = () => {
+    isOpen.value = false
+    trashItems.value = []
+    nextCursor.value = null
+  }
+
   // ── Per-entry conflict state ──────────────────────────────────
   //
   // When a record entry restore fails with ERR_RECORD_RESTORE_CONFLICT, the
@@ -160,10 +160,7 @@ export const useBaseTrash = createSharedComposable(() => {
     return Array.isArray(conflicts) ? (conflicts as RestoreConflict[]) : null
   }
 
-  const callBaseTrashRestore = (
-    trashId: string,
-    opts: { force?: boolean; partial?: boolean } = {},
-  ) =>
+  const callBaseTrashRestore = (trashId: string, opts: { force?: boolean; partial?: boolean } = {}) =>
     $api.internal.postOperation(
       activeWorkspaceId.value!,
       activeProjectId.value!,

@@ -1,4 +1,4 @@
-import { EventType, PlanLimitTypes, ViewTypes, getFirstNonPersonalView, isVirtualCol } from 'nocodb-sdk'
+import { EventType, PlanLimitTypes, ViewTypes, getFirstNonPersonalView } from 'nocodb-sdk'
 import type {
   DashboardPayload,
   DocumentCommentPayload,
@@ -213,7 +213,7 @@ export const useRealtime = createSharedComposable(() => {
 
       refreshCommandPalette()
     } else if (event.action === 'column_add' || event.action === 'column_update' || event.action === 'column_delete') {
-      const { table, column, skipDataReload = false } = event.payload
+      const { table, skipDataReload = false } = event.payload
       if (!table.base_id || table.base_id !== activeBaseId.value) return
 
       setMeta(table)

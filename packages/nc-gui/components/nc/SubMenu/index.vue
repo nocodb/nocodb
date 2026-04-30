@@ -15,6 +15,8 @@ const props = withDefaults(
 
 const { isMobileMode } = useGlobal()
 
+const { isRtl } = useRtl()
+
 const responsiveVariant = computed(() => {
   if (isMobileMode.value && ['small', 'medium'].includes(props.variant)) {
     return 'large'
@@ -22,6 +24,8 @@ const responsiveVariant = computed(() => {
 
   return props.variant
 })
+
+const chevronIcon = computed(() => (isRtl.value ? 'ncChevronLeft' : 'ncChevronRight'))
 </script>
 
 <template>
@@ -38,7 +42,7 @@ const responsiveVariant = computed(() => {
         </div>
 
         <slot v-if="$slots.expandIcon" name="expandIcon" />
-        <GeneralIcon v-else icon="ncChevronRight" class="nc-submenu-arrow !opacity-60" />
+        <GeneralIcon v-else :icon="chevronIcon" class="nc-submenu-arrow !opacity-60" />
       </div>
     </template>
 

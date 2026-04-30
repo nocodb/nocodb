@@ -166,6 +166,7 @@ const permissionScopes = {
 
     // Bookmarks
     'bookmarkList',
+    'bookmarkCheck',
     'bookmarkGroupList',
     'bookmarkCreate',
     'bookmarkUpdate',
@@ -1754,6 +1755,7 @@ const permissionDescriptions: Record<string, string> = {
   migrateBase: 'migrate a base to another instance',
 
   bookmarkList: 'view list of bookmarks',
+  bookmarkCheck: 'check bookmark status of items',
   bookmarkGroupList: 'view list of bookmark groups',
   bookmarkCreate: 'create a new bookmark',
   bookmarkUpdate: 'update a bookmark',

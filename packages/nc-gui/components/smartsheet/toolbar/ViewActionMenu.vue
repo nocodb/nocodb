@@ -832,8 +832,8 @@ defineOptions({
         }"
       >
         <div class="flex gap-2 items-center">
-          <GeneralIcon icon="ncBookmark" :class="isBookmarked('view', view.id!) ? 'text-nc-content-brand' : 'opacity-80'" />
-          {{ isBookmarked('view', view.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+          <GeneralIcon icon="ncBookmark" :class="isBookmarked('view', view.id!, { workspace_id: base.fk_workspace_id, base_id: table.base_id, table_id: table.id }) ? 'text-nc-content-brand' : 'opacity-80'" />
+          {{ isBookmarked('view', view.id!, { workspace_id: base.fk_workspace_id, base_id: table.base_id, table_id: table.id }) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
         </div>
       </NcMenuItem>
 

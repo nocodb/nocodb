@@ -739,8 +739,8 @@ const enabledOptions = computed(() => {
                   }"
                 >
                   <div class="flex gap-2 items-center">
-                    <GeneralIcon icon="ncBookmark" :class="isBookmarked('table', table.id!) ? 'text-nc-content-brand' : 'opacity-80'" />
-                    {{ isBookmarked('table', table.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+                    <GeneralIcon icon="ncBookmark" :class="isBookmarked('table', table.id!, { workspace_id: table.fk_workspace_id, base_id: table.base_id }) ? 'text-nc-content-brand' : 'opacity-80'" />
+                    {{ isBookmarked('table', table.id!, { workspace_id: table.fk_workspace_id, base_id: table.base_id }) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
                   </div>
                 </NcMenuItem>
                 <template v-if="enabledOptions.tableDelete">

@@ -84,6 +84,7 @@ const permissionScopes = {
 
     // Bookmarks
     'bookmarkList',
+    'bookmarkCheck',
     'bookmarkGroupList',
     'bookmarkCreate',
     'bookmarkUpdate',
@@ -988,6 +989,7 @@ const permissionDescriptions: Record<string, string> = {
   dataImportFile: 'import file into a table',
 
   bookmarkList: 'view list of bookmarks',
+  bookmarkCheck: 'check bookmark status of items',
   bookmarkGroupList: 'view list of bookmark groups',
   bookmarkCreate: 'create a new bookmark',
   bookmarkUpdate: 'update a bookmark',

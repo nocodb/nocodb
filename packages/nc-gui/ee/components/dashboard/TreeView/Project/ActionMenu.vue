@@ -259,8 +259,8 @@ const isOptionVisible = computed(() => {
       }"
     >
       <div class="flex gap-2 items-center">
-        <GeneralIcon icon="ncBookmark" :class="isBookmarked('base', base.id!) ? 'text-nc-content-brand' : 'opacity-80'" />
-        {{ isBookmarked('base', base.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+        <GeneralIcon icon="ncBookmark" :class="isBookmarked('base', base.id!, { workspace_id: base.fk_workspace_id }) ? 'text-nc-content-brand' : 'opacity-80'" />
+        {{ isBookmarked('base', base.id!, { workspace_id: base.fk_workspace_id }) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
       </div>
     </NcMenuItem>
 

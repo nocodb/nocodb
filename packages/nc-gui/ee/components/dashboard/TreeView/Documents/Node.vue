@@ -573,8 +573,8 @@ function onStopEdit() {
                 }"
               >
                 <div class="flex gap-2 items-center">
-                  <GeneralIcon icon="ncBookmark" :class="isBookmarked('document', doc.id!) ? 'text-nc-content-brand' : 'opacity-80'" />
-                  {{ isBookmarked('document', doc.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+                  <GeneralIcon icon="ncBookmark" :class="isBookmarked('document', doc.id!, { workspace_id: activeWorkspaceId, base_id: base?.id || doc.base_id }) ? 'text-nc-content-brand' : 'opacity-80'" />
+                  {{ isBookmarked('document', doc.id!, { workspace_id: activeWorkspaceId, base_id: base?.id || doc.base_id }) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
                 </div>
               </NcMenuItem>
               <template v-if="isUIAllowed('documentDelete')">

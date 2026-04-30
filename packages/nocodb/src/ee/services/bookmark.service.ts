@@ -33,6 +33,64 @@ export class BookmarkService {
     return { bookmarks: enriched, groups };
   }
 
+  async bookmarkCheck(_context: NcContext, param: { req: NcRequest }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const bookmarks = await Bookmark.list(userId);
+
+    const result: Record<string, any> = {};
+
+    for (const bm of bookmarks) {
+      const meta = (bm.meta as Record<string, any>) ?? {};
+
+      switch (bm.target_type) {
+        case 'workspace': {
+          if (!result[bm.target_id]) result[bm.target_id] = {};
+          result[bm.target_id]._exists = true;
+          break;
+        }
+        case 'base': {
+          const wsId = meta.workspace_id;
+          if (wsId) {
+            if (!result[wsId]) result[wsId] = {};
+            if (!result[wsId][bm.target_id]) result[wsId][bm.target_id] = {};
+            result[wsId][bm.target_id]._exists = true;
+          }
+          break;
+        }
+        case 'table':
+        case 'document':
+        case 'workflow':
+        case 'script': {
+          const wsId = meta.workspace_id;
+          const baseId = meta.base_id;
+          if (wsId && baseId) {
+            if (!result[wsId]) result[wsId] = {};
+            if (!result[wsId][baseId]) result[wsId][baseId] = {};
+            result[wsId][baseId][bm.target_id] = {};
+          }
+          break;
+        }
+        case 'view': {
+          const wsId = meta.workspace_id;
+          const baseId = meta.base_id;
+          const tableId = meta.table_id;
+          if (wsId && baseId && tableId) {
+            if (!result[wsId]) result[wsId] = {};
+            if (!result[wsId][baseId]) result[wsId][baseId] = {};
+            if (!result[wsId][baseId][tableId])
+              result[wsId][baseId][tableId] = {};
+            result[wsId][baseId][tableId][bm.target_id] = {};
+          }
+          break;
+        }
+      }
+    }
+
+    return result;
+  }
+
   async bookmarkCreate(
     context: NcContext,
     param: { body: BookmarkReqType; req: NcRequest },

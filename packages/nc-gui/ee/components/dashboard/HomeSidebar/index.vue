@@ -262,9 +262,9 @@ const hasNoResults = computed(() => {
                       >
                         <GeneralIcon
                           icon="ncBookmark"
-                          :class="isBookmarked('workspace', ws.id!) ? 'text-nc-content-brand' : 'opacity-80'"
+                          :class="isBookmarked('workspace', ws.id!, {}) ? 'text-nc-content-brand' : 'opacity-80'"
                         />
-                        {{ isBookmarked('workspace', ws.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+                        {{ isBookmarked('workspace', ws.id!, {}) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
                       </NcMenuItem>
                     </NcMenu>
                   </template>

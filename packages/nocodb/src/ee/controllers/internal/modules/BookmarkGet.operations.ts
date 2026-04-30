@@ -15,6 +15,7 @@ export class BookmarkGetOperations
 
   operations = [
     'bookmarkList',
+    'bookmarkCheck',
     'bookmarkGroupList',
   ] as (keyof typeof OPERATION_SCOPES)[];
   httpMethod = 'GET' as const;
@@ -35,6 +36,8 @@ export class BookmarkGetOperations
     switch (operation) {
       case 'bookmarkList':
         return await this.bookmarkService.bookmarkList(context, { req });
+      case 'bookmarkCheck':
+        return await this.bookmarkService.bookmarkCheck(context, { req });
       case 'bookmarkGroupList':
         return await this.bookmarkService.bookmarkGroupList(context, { req });
     }

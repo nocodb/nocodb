@@ -531,8 +531,8 @@ const deleteWorkflow = () => {
                     }"
                   >
                     <div class="flex gap-2 items-center">
-                      <GeneralIcon icon="ncBookmark" :class="isBookmarked('workflow', vModel.id!) ? 'text-nc-content-brand' : 'opacity-80'" />
-                      {{ isBookmarked('workflow', vModel.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+                      <GeneralIcon icon="ncBookmark" :class="isBookmarked('workflow', vModel.id!, { workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id }) ? 'text-nc-content-brand' : 'opacity-80'" />
+                      {{ isBookmarked('workflow', vModel.id!, { workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id }) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
                     </div>
                   </NcMenuItem>
                   <NcDivider />

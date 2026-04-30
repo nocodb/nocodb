@@ -1,5 +1,11 @@
 import type { BookmarkType } from 'nocodb-sdk';
-import { CacheDelDirection, CacheGetType, CacheScope, MetaTable, RootScopes } from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 
@@ -8,7 +14,14 @@ export default class Bookmark implements BookmarkType {
   fk_user_id?: string;
   fk_group_id?: string;
   title: string;
-  target_type: 'workspace' | 'base' | 'table' | 'view' | 'document' | 'workflow' | 'script';
+  target_type:
+    | 'workspace'
+    | 'base'
+    | 'table'
+    | 'view'
+    | 'document'
+    | 'workflow'
+    | 'script';
   target_id: string;
   order?: number;
   meta?: Record<string, any>;
@@ -49,7 +62,11 @@ export default class Bookmark implements BookmarkType {
       },
     );
 
-    await NocoCache.set('root', `${CacheScope.BOOKMARK}:${insertData.id}`, insertData);
+    await NocoCache.set(
+      'root',
+      `${CacheScope.BOOKMARK}:${insertData.id}`,
+      insertData,
+    );
 
     await NocoCache.appendToList(
       'root',
@@ -88,12 +105,7 @@ export default class Bookmark implements BookmarkType {
     for (const item of list) {
       await NocoCache.set('root', `${CacheScope.BOOKMARK}:${item.id}`, item);
     }
-    await NocoCache.setList(
-      'root',
-      CacheScope.BOOKMARK,
-      [userId],
-      list,
-    );
+    await NocoCache.setList('root', CacheScope.BOOKMARK, [userId], list);
 
     return list.map((item) => this.castType(new Bookmark(item)));
   }
@@ -134,7 +146,8 @@ export default class Bookmark implements BookmarkType {
     const updateObj: Record<string, any> = {};
 
     if (data.title !== undefined) updateObj.title = data.title;
-    if (data.fk_group_id !== undefined) updateObj.fk_group_id = data.fk_group_id;
+    if (data.fk_group_id !== undefined)
+      updateObj.fk_group_id = data.fk_group_id;
     if (data.order !== undefined) updateObj.order = data.order;
     if (data.meta !== undefined) updateObj.meta = JSON.stringify(data.meta);
 

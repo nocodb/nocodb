@@ -269,9 +269,9 @@ const onMenuClick = (e: Event) => {
               >
                 <GeneralIcon
                   icon="ncBookmark"
-                  :class="isBookmarked('base', base.id!) ? 'text-nc-content-brand' : 'opacity-80'"
+                  :class="isBookmarked('base', base.id!, { workspace_id: base.fk_workspace_id }) ? 'text-nc-content-brand' : 'opacity-80'"
                 />
-                {{ isBookmarked('base', base.id!) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
+                {{ isBookmarked('base', base.id!, { workspace_id: base.fk_workspace_id }) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
               </NcMenuItem>
 
               <!-- Settings -->

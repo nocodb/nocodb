@@ -12,6 +12,7 @@ export const useBookmarks = createSharedComposable(() => {
   const bookmarks = ref<BookmarkType[]>([])
   const groups = ref<BookmarkGroupType[]>([])
   const isLoading = ref(false)
+  const bookmarkCheckMap = ref<Record<string, any>>({})
 
   const orderedGroups = computed(() =>
     [...groups.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
@@ -53,6 +54,39 @@ export const useBookmarks = createSharedComposable(() => {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isLoading.value = false
+    }
+  }
+
+  async function loadBookmarkCheck() {
+    if (!activeWorkspaceId.value) return
+
+    try {
+      const res = (await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
+        operation: 'bookmarkCheck',
+      })) as Record<string, any>
+      bookmarkCheckMap.value = res ?? {}
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  function isBookmarkedByCheck(targetType: string, targetId: string, meta?: Record<string, any>): boolean {
+    const map = bookmarkCheckMap.value
+
+    switch (targetType) {
+      case 'workspace':
+        return !!map[targetId]?._exists
+      case 'base':
+        return !!map[meta?.workspace_id]?.[targetId]?._exists
+      case 'table':
+      case 'document':
+      case 'workflow':
+      case 'script':
+        return !!map[meta?.workspace_id]?.[meta?.base_id]?.[targetId]
+      case 'view':
+        return !!map[meta?.workspace_id]?.[meta?.base_id]?.[meta?.table_id]?.[targetId]
+      default:
+        return false
     }
   }
 
@@ -193,7 +227,11 @@ export const useBookmarks = createSharedComposable(() => {
     }
   }
 
-  function isBookmarked(targetType: string, targetId: string): boolean {
+  function isBookmarked(targetType: string, targetId: string, meta?: Record<string, any>): boolean {
+    if (Object.keys(bookmarkCheckMap.value).length) {
+      return isBookmarkedByCheck(targetType, targetId, meta)
+    }
+
     return bookmarks.value.some(
       (b) => b.target_type === targetType && b.target_id === targetId,
     )
@@ -262,13 +300,28 @@ export const useBookmarks = createSharedComposable(() => {
     }
   }
 
+  // Auto-load check map on init and workspace change
+  watch(
+    activeWorkspaceId,
+    (wsId) => {
+      if (wsId) {
+        loadBookmarkCheck()
+      } else {
+        bookmarkCheckMap.value = {}
+      }
+    },
+    { immediate: true },
+  )
+
   return {
     bookmarks,
     groups,
     isLoading,
+    bookmarkCheckMap,
     orderedGroups,
     bookmarksByGroup,
     loadBookmarks,
+    loadBookmarkCheck,
     addBookmark,
     removeBookmark,
     updateBookmark,
@@ -276,6 +329,7 @@ export const useBookmarks = createSharedComposable(() => {
     removeGroup,
     updateGroup,
     isBookmarked,
+    isBookmarkedByCheck,
     getBookmark,
     resolveBookmarkRoute,
     navigateToBookmark,

@@ -197,6 +197,7 @@ export const OPERATION_SCOPES = {
 
   // Bookmarks
   bookmarkList: 'org',
+  bookmarkCheck: 'org',
   bookmarkGroupList: 'org',
   bookmarkCreate: 'org',
   bookmarkUpdate: 'org',

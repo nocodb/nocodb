@@ -168,14 +168,15 @@ export class FormFilters {
     // Multi-record relations (mm / om) — value is an array of linked rows
     if (Array.isArray(value)) {
       const displayValues = value
-        .filter((row) => ncIsObject(row) && row[displayValTitle] !== undefined && row[displayValTitle] !== null)
-        .map((row) => `${row[displayValTitle]}`)
+        .map((row) => (row && typeof row === 'object' ? row[displayValTitle] : undefined))
+        .filter((v): v is string | number | boolean => v !== undefined && v !== null)
+        .map((v) => `${v}`)
 
       return displayValues.length ? displayValues.join(', ') : null
     }
 
     // Single-record relations (mo / oo) — value is a single linked row
-    if (ncIsObject(value) && value[displayValTitle] !== undefined && value[displayValTitle] !== null) {
+    if (typeof value === 'object' && value[displayValTitle] !== undefined && value[displayValTitle] !== null) {
       return `${value[displayValTitle]}`
     }
 
@@ -373,23 +374,26 @@ export class FormFilters {
                 break
             }
 
-            switch (column.uidt) {
-              case UITypes.Links:
-                // Legacy V1 Links (deprecated count cell) — only count-based filtering is meaningful.
-                if (isMm(column) || isHm(column)) {
-                  val = (this.formState[field] ?? []).length
-                }
-                break
-              case UITypes.LinkToAnotherRecord:
-                if (isLinkV2(column)) {
-                  // V2 LTAR (mm / mo / om / oo) — compare against linked record display value(s)
-                  // so operators like eq / neq / like / nlike / allof / anyof work as users expect.
-                  val = await this.getLinkV2DisplayValue(column)
-                } else if (isOo(column) || isBt(column)) {
+            // V2 LTAR (mm / mo / om / oo with junction tables) — uidt may be Links or
+            // LinkToAnotherRecord; the discriminator is colOptions.version. Compare against
+            // linked record display value(s) so eq / neq / like / nlike / allof / anyof work.
+            if (isLinkV2(column)) {
+              val = await this.getLinkV2DisplayValue(column)
+            } else {
+              switch (column.uidt) {
+                case UITypes.Links:
+                  // Legacy V1 Links (deprecated count cell) — only count-based filtering is meaningful.
+                  if (isMm(column) || isHm(column)) {
+                    val = (this.formState[field] ?? []).length
+                  }
+                  break
+                case UITypes.LinkToAnotherRecord:
                   // V1 LTAR single-record (bt / oo) — preserve legacy display-value extraction
-                  val = await this.getOoOrBtColVal(column)
-                }
-                break
+                  if (isOo(column) || isBt(column)) {
+                    val = await this.getOoOrBtColVal(column)
+                  }
+                  break
+              }
             }
 
             switch (filter.comparison_op) {

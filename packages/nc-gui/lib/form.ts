@@ -1,6 +1,6 @@
 import type { ColumnType } from 'ant-design-vue/lib/table'
 import dayjs from 'dayjs'
-import { type FilterType, type LinkToAnotherRecordType, type TableType, UITypes, isDateMonthFormat } from 'nocodb-sdk'
+import { type FilterType, type LinkToAnotherRecordType, type TableType, UITypes, isDateMonthFormat, isLinkV2 } from 'nocodb-sdk'
 
 type FormViewColumn = ColumnType & Record<string, any>
 
@@ -117,6 +117,7 @@ export class FormFilters {
     return column.order < parentColumn.order
   }
 
+  // V1 (legacy LTAR) — single-record relations only (bt / oo). Kept as-is for backward compat.
   async getOoOrBtColVal(column: FormViewColumn) {
     const fk_related_model_id = (column?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
 
@@ -141,6 +142,44 @@ export class FormFilters {
     }
 
     return this.formState[column.title][displayValTitle]
+  }
+
+  // V2 (new LTAR — mm / mo / om / oo with junction tables). Handles both single-row objects
+  // and arrays of linked rows, returning the display value(s) so string operators work.
+  async getLinkV2DisplayValue(column: FormViewColumn): Promise<string | null> {
+    const colOptions = column?.colOptions as LinkToAnotherRecordType | undefined
+    const fk_related_model_id = colOptions?.fk_related_model_id
+
+    if (!fk_related_model_id || typeof this.getMeta !== 'function' || !this.baseId) return null
+
+    const relatedBaseId = colOptions?.fk_related_base_id || this.baseId
+    const relatedTableMeta = await this.getMeta(relatedBaseId, fk_related_model_id)
+
+    if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
+
+    const displayValTitle = (relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
+
+    if (!displayValTitle) return null
+
+    const value = this.formState[column.title] as Record<string, any> | Record<string, any>[] | null | undefined
+
+    if (value === null || value === undefined) return null
+
+    // Multi-record relations (mm / om) — value is an array of linked rows
+    if (Array.isArray(value)) {
+      const displayValues = value
+        .filter((row) => ncIsObject(row) && row[displayValTitle] !== undefined && row[displayValTitle] !== null)
+        .map((row) => `${row[displayValTitle]}`)
+
+      return displayValues.length ? displayValues.join(', ') : null
+    }
+
+    // Single-record relations (mo / oo) — value is a single linked row
+    if (ncIsObject(value) && value[displayValTitle] !== undefined && value[displayValTitle] !== null) {
+      return `${value[displayValTitle]}`
+    }
+
+    return null
   }
 
   async validateCondition(
@@ -336,12 +375,18 @@ export class FormFilters {
 
             switch (column.uidt) {
               case UITypes.Links:
+                // Legacy V1 Links (deprecated count cell) — only count-based filtering is meaningful.
                 if (isMm(column) || isHm(column)) {
                   val = (this.formState[field] ?? []).length
                 }
                 break
               case UITypes.LinkToAnotherRecord:
-                if (isOo(column) || isBt(column)) {
+                if (isLinkV2(column)) {
+                  // V2 LTAR (mm / mo / om / oo) — compare against linked record display value(s)
+                  // so operators like eq / neq / like / nlike / allof / anyof work as users expect.
+                  val = await this.getLinkV2DisplayValue(column)
+                } else if (isOo(column) || isBt(column)) {
+                  // V1 LTAR single-record (bt / oo) — preserve legacy display-value extraction
                   val = await this.getOoOrBtColVal(column)
                 }
                 break

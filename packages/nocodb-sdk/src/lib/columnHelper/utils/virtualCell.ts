@@ -33,6 +33,14 @@ export const isOo = (column: ColumnType) =>
   isLTAR(column.uidt!, column.colOptions) &&
   column.colOptions?.type === RelationTypes.ONE_TO_ONE;
 
+export const isMo = (column: ColumnType) =>
+  isLTAR(column.uidt!, column.colOptions) &&
+  column.colOptions?.type === RelationTypes.MANY_TO_ONE;
+
+export const isOm = (column: ColumnType) =>
+  isLTAR(column.uidt!, column.colOptions) &&
+  column.colOptions?.type === RelationTypes.ONE_TO_MANY;
+
 export const isLookup = (column: ColumnType) => column.uidt === UITypes.Lookup;
 
 export const isRollup = (column: ColumnType) => column.uidt === UITypes.Rollup;

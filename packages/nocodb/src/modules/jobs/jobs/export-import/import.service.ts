@@ -1307,10 +1307,7 @@ export class ImportService {
               const failedFilterIds = new Set<string>();
 
               for (const fl of filters) {
-                if (
-                  fl.fk_parent_id &&
-                  failedFilterIds.has(fl.fk_parent_id)
-                ) {
+                if (fl.fk_parent_id && failedFilterIds.has(fl.fk_parent_id)) {
                   failedFilterIds.add(fl.id);
                   this.logger.warn(
                     `Skipping link filter ${fl.id} on column ${col.id} — parent ${fl.fk_parent_id} failed earlier in this import`,

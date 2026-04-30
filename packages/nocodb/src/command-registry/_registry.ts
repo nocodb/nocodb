@@ -1,10 +1,6 @@
 import type { CommandHandler, OperationContract } from './_types';
 
-/**
- * CE no-op OperationRegistry stub. EE overrides this with the real
- * Map-backed singleton. CE never registers anything; resolve() always
- * returns undefined.
- */
+// CE no-op stub. EE overrides with the real Map-backed singleton.
 class _OperationRegistryNoop {
   register<C extends OperationContract>(_c: C, _h: CommandHandler<C>) {}
   freeze() {}

@@ -1,84 +1,12 @@
-import { Logger } from '@nestjs/common';
 import type { OperationName } from '~/command-registry/_op-names';
-import type { ResolvedCtx } from '~/command-registry/_types';
-import { OperationRegistry } from '~/command-registry/_registry';
-import { recordCommand } from '~/command-registry/_record';
 
-const logger = new Logger('TraceCommand');
-
-/**
- * `@TraceCommand(OperationName.x)` decorator for service methods that mutate
- * schema. The contract is resolved at invocation time via name+version, so
- * this decorator can be applied on CE service methods without the file
- * importing any EE-only contract definition.
- *
- * When the registry has no entry for the given name (CE build, or contract
- * simply not registered yet), the decorator is a transparent passthrough.
- *
- * Re-entrancy: sets `req.__commandTraced = true` so nested decorated calls
- * skip recording — only the outermost call in the stack records.
- *
- * Strict: throws on schema-validation failure at write time.
- */
-export function TraceCommand(name: OperationName, version: number = 1) {
+// CE no-op stub. EE overrides with the real implementation.
+export function TraceCommand(_name: OperationName, _version: number = 1) {
   return function (
     _target: unknown,
     _propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
-    const originalMethod = descriptor.value;
-
-    descriptor.value = async function (...args: any[]) {
-      const contract = OperationRegistry.contract(name, version);
-      // CE build, or contract not yet registered — passthrough.
-      if (!contract) return originalMethod.apply(this, args);
-
-      const ctx = args[0];
-      const param = args[1];
-
-      // Re-entrancy guard
-      if (param?.req?.__commandTraced) {
-        return originalMethod.apply(this, args);
-      }
-      if (param?.req) {
-        (param.req as any).__commandTraced = true;
-      }
-
-      let resolvedCtx: ResolvedCtx | undefined;
-      if (contract.resolveCtx) {
-        try {
-          resolvedCtx = await contract.resolveCtx(ctx, param);
-        } catch (e: any) {
-          logger.warn(`Trace resolveCtx ${name}@${version}: ${e.message}`);
-        }
-      }
-
-      const result = await originalMethod.apply(this, args);
-
-      if (contract.skipIf) {
-        try {
-          if (await contract.skipIf(ctx, param, result, resolvedCtx)) {
-            return result;
-          }
-        } catch (e: any) {
-          logger.warn(`Trace skipIf ${name}@${version}: ${e.message}`);
-        }
-      }
-
-      // Awaited — strict ordering of changelog inserts.
-      // Throws on schema-validation failure (strict mode).
-      await recordCommand(ctx, contract, param, result, resolvedCtx);
-
-      return result;
-    };
-
     return descriptor;
   };
 }
-
-// Re-export legacy types so existing imports resolve.
-export type {
-  OperationContract,
-  ResolvedCtx,
-  TraceCommandDep,
-} from '~/command-registry/_types';

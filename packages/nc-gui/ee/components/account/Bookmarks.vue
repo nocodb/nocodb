@@ -63,6 +63,28 @@ function isAutoResolved(bm: BookmarkType): boolean {
   return !bm.title
 }
 
+// Group inline rename state
+const renamingGroupId = ref<string | null>(null)
+const renameGroupValue = ref('')
+
+function startGroupRename(group: BookmarkGroupType) {
+  renamingGroupId.value = group.id!
+  renameGroupValue.value = group.name
+}
+
+function cancelGroupRename() {
+  renamingGroupId.value = null
+  renameGroupValue.value = ''
+}
+
+async function saveGroupRename(groupId: string) {
+  const newName = renameGroupValue.value.trim()
+  if (!newName) return
+
+  await updateGroup(groupId, { name: newName })
+  cancelGroupRename()
+}
+
 // Mutable copy of ordered groups for drag-and-drop reordering
 const draggableGroups = ref<BookmarkGroupType[]>([])
 
@@ -222,20 +244,55 @@ watch(
                 :is="iconMap.drag"
                 class="nc-group-drag-handle !h-3.75 text-nc-content-gray-subtle2 cursor-move"
               />
-              <span class="text-sm font-semibold text-nc-content-gray">
+
+              <!-- Group inline rename mode -->
+              <template v-if="renamingGroupId === group.id">
+                <a-input
+                  v-model:value="renameGroupValue"
+                  class="!w-60"
+                  size="small"
+                  @keyup.enter="saveGroupRename(group.id!)"
+                  @keyup.escape="cancelGroupRename"
+                />
+                <NcButton size="xs" @click="saveGroupRename(group.id!)">
+                  {{ $t('general.save') }}
+                </NcButton>
+                <NcButton size="xs" type="text" @click="cancelGroupRename">
+                  {{ $t('general.cancel') }}
+                </NcButton>
+              </template>
+
+              <!-- Group name display -->
+              <span v-else class="text-sm font-semibold text-nc-content-gray">
                 {{ group.name }}
               </span>
             </div>
 
-            <NcButton
-              v-if="group.name !== 'Ungrouped'"
-              type="text"
-              size="xs"
-              class="!text-nc-content-red-dark"
-              @click="onDeleteGroup(group.id!)"
-            >
-              <GeneralIcon icon="delete" class="w-4 h-4" />
-            </NcButton>
+            <!-- Group three-dot menu (not shown for Ungrouped) -->
+            <NcDropdown v-if="group.name !== 'Ungrouped' && renamingGroupId !== group.id" :trigger="['click']">
+              <NcButton type="text" size="xs">
+                <GeneralIcon icon="threeDotVertical" class="w-4 h-4" />
+              </NcButton>
+              <template #overlay>
+                <NcMenu>
+                  <NcMenuItem @click="startGroupRename(group)">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="rename" class="w-4 h-4" />
+                      {{ $t('general.rename') }}
+                    </div>
+                  </NcMenuItem>
+
+                  <NcDivider />
+
+                  <NcMenuItem class="!text-nc-content-red-dark !hover:bg-red-50" @click="onDeleteGroup(group.id!)">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="delete" class="w-4 h-4" />
+                      {{ $t('general.delete') }}
+                    </div>
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
           </div>
 
           <!-- Bookmarks in group (draggable, cross-group) -->

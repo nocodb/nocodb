@@ -9,6 +9,8 @@ import { NcError } from '~/helpers/catchError';
 import { MapView, Model, User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { CacheScope } from '~/utils/globals';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class MapsService {
@@ -18,6 +20,7 @@ export class MapsService {
     return await MapView.get(context, param.mapViewId);
   }
 
+  @TraceCommand(OperationName.mapViewCreate)
   async mapViewCreate(
     context: NcContext,
     param: {
@@ -76,6 +79,7 @@ export class MapsService {
     return view;
   }
 
+  @TraceCommand(OperationName.mapViewUpdate)
   async mapViewUpdate(
     context: NcContext,
     param: {

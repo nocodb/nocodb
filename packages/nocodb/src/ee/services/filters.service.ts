@@ -203,7 +203,6 @@ export class FiltersService extends FiltersServiceCE {
     return filter;
   }
 
-  @TraceCommand(OperationName.rlsPolicyFilterCreate)
   async rlsPolicyFilterCreate(
     context: NcContext,
     param: {

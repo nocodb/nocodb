@@ -18,12 +18,14 @@ export function registerDashboardHandlers(svc: DashboardsService): void {
     svc.dashboardUpdate(ctx, p),
   );
   registerForward(DashboardDeleteContract, (ctx, p) =>
-    svc.dashboardDelete(ctx, p),
+    svc.dashboardDelete(ctx, { ...p, skipTrash: true }),
   );
   registerForward(WidgetCreateContract, (ctx, p) => svc.widgetCreate(ctx, p));
   registerForward(DuplicateWidgetContract, (ctx, p) =>
     svc.duplicateWidget(ctx, p),
   );
   registerForward(WidgetUpdateContract, (ctx, p) => svc.widgetUpdate(ctx, p));
-  registerForward(WidgetDeleteContract, (ctx, p) => svc.widgetDelete(ctx, p));
+  registerForward(WidgetDeleteContract, (ctx, p) =>
+    svc.widgetDelete(ctx, { ...p, skipTrash: true }),
+  );
 }

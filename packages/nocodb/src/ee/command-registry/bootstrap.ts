@@ -8,7 +8,6 @@ import { registerFilterHandlers } from './handlers/filters.handlers';
 import {
   registerSortHandlers,
   registerViewColumnHandlers,
-  registerVisibilityHandlers,
 } from './handlers/sorts-visibilities.handlers';
 import { registerHookHandlers } from './handlers/hooks.handlers';
 import { registerExtensionHandlers } from './handlers/extensions.handlers';
@@ -18,8 +17,6 @@ import { registerWorkflowHandlers } from './handlers/workflows.handlers';
 import { registerViewSectionHandlers } from './handlers/view-sections.handlers';
 import { registerRecordTemplateHandlers } from './handlers/record-templates.handlers';
 import { registerSyncHandlers } from './handlers/sync.handlers';
-import { registerPermissionHandlers } from './handlers/permissions.handlers';
-import { registerRlsHandlers } from './handlers/rls.handlers';
 import { registerDateDependencyHandlers } from './handlers/date-dependency.handlers';
 import { registerFiltersV3Handlers } from './handlers/filters-v3.handlers';
 import type { OnApplicationBootstrap } from '@nestjs/common';
@@ -33,10 +30,12 @@ import { FormsService } from '~/services/forms.service';
 import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { CalendarsService } from '~/services/calendars.service';
+import { ListsService } from '~/ee/services/lists.service';
+import { TimelinesService } from '~/services/timelines.service';
+import { MapsService } from '~/services/maps.service';
 import { FiltersService } from '~/services/filters.service';
 import { SortsService } from '~/services/sorts.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
-import { ModelVisibilitiesService } from '~/services/model-visibilities.service';
 import { HooksService } from '~/services/hooks.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DashboardsService } from '~/services/dashboards.service';
@@ -45,8 +44,6 @@ import { WorkflowsService } from '~/services/workflows.service';
 import { ViewSectionsService } from '~/ee/services/view-sections.service';
 import { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
 import { SyncService } from '~/services/sync.service';
-import { PermissionsService } from '~/services/permissions.service';
-import { RlsService } from '~/services/rls.service';
 import { DateDependencyService } from '~/services/date-dependency.service';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 
@@ -64,10 +61,12 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly galleriesSvc: GalleriesService,
     private readonly kanbansSvc: KanbansService,
     private readonly calendarsSvc: CalendarsService,
+    private readonly listsSvc: ListsService,
+    private readonly timelinesSvc: TimelinesService,
+    private readonly mapsSvc: MapsService,
     private readonly filtersSvc: FiltersService,
     private readonly sortsSvc: SortsService,
     private readonly viewColumnsSvc: ViewColumnsService,
-    private readonly modelVisibilitiesSvc: ModelVisibilitiesService,
     private readonly hooksSvc: HooksService,
     private readonly extensionsSvc: ExtensionsService,
     private readonly dashboardsSvc: DashboardsService,
@@ -76,8 +75,6 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly viewSectionsSvc: ViewSectionsService,
     private readonly recordTemplatesSvc: RecordTemplatesService,
     private readonly syncSvc: SyncService,
-    private readonly permissionsSvc: PermissionsService,
-    private readonly rlsSvc: RlsService,
     private readonly dateDependencySvc: DateDependencyService,
     private readonly filtersV3Svc: FiltersV3Service,
   ) {}
@@ -93,11 +90,13 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
       this.galleriesSvc,
       this.kanbansSvc,
       this.calendarsSvc,
+      this.listsSvc,
+      this.timelinesSvc,
+      this.mapsSvc,
     );
     registerFilterHandlers(this.filtersSvc);
     registerSortHandlers(this.sortsSvc);
     registerViewColumnHandlers(this.viewColumnsSvc);
-    registerVisibilityHandlers(this.modelVisibilitiesSvc);
     registerHookHandlers(this.hooksSvc);
     registerExtensionHandlers(this.extensionsSvc);
     registerDashboardHandlers(this.dashboardsSvc);
@@ -106,8 +105,6 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     registerViewSectionHandlers(this.viewSectionsSvc);
     registerRecordTemplateHandlers(this.recordTemplatesSvc);
     registerSyncHandlers(this.syncSvc);
-    registerPermissionHandlers(this.permissionsSvc);
-    registerRlsHandlers(this.rlsSvc);
     registerDateDependencyHandlers(this.dateDependencySvc);
     registerFiltersV3Handlers(this.filtersV3Svc);
 

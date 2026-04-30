@@ -14,6 +14,6 @@ export function registerExtensionHandlers(svc: ExtensionsService): void {
     svc.extensionUpdate(ctx, p),
   );
   registerForward(ExtensionDeleteContract, (ctx, p) =>
-    svc.extensionDelete(ctx, p),
+    svc.extensionDelete(ctx, { ...p, skipTrash: true }),
   );
 }

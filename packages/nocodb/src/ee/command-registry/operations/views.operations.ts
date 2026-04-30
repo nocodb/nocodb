@@ -3,10 +3,7 @@ import type { OperationContract } from 'src/command-registry/types';
 import { OperationName } from '~/command-registry/op-names';
 import { MetaTable } from '~/utils/globals';
 import { Model, View } from '~/models';
-import {
-  shareViewActions,
-  viewActions,
-} from '~/decorators/trace-command-descriptions';
+import { viewActions } from '~/decorators/trace-command-descriptions';
 
 const viewUpdateBodySchema = z
   .object({
@@ -87,55 +84,3 @@ export const ViewDeleteContract: OperationContract<typeof deleteSchema> = {
   },
 };
 
-const shareViewSchema = z.object({
-  viewId: z.string(),
-});
-
-export const ShareViewContract: OperationContract<typeof shareViewSchema> = {
-  name: OperationName.shareView,
-  version: 1,
-  entity: MetaTable.VIEWS,
-  schema: shareViewSchema,
-  entityId: (p) => p.viewId,
-  description: shareViewActions.create,
-};
-
-const sharedViewBodySchema = z
-  .object({
-    password: z.string().nullable().optional(),
-    allow_comments: z.boolean().optional(),
-    meta: z.record(z.any()).optional(),
-    custom_url_path: z.string().optional(),
-  })
-  .passthrough();
-
-const shareViewUpdateSchema = z.object({
-  viewId: z.string(),
-  sharedView: sharedViewBodySchema,
-});
-
-export const ShareViewUpdateContract: OperationContract<
-  typeof shareViewUpdateSchema
-> = {
-  name: OperationName.shareViewUpdate,
-  version: 1,
-  entity: MetaTable.VIEWS,
-  schema: shareViewUpdateSchema,
-  entityId: (p) => p.viewId,
-  description: shareViewActions.update,
-};
-
-const shareViewDeleteSchema = z.object({
-  viewId: z.string(),
-});
-
-export const ShareViewDeleteContract: OperationContract<
-  typeof shareViewDeleteSchema
-> = {
-  name: OperationName.shareViewDelete,
-  version: 1,
-  entity: MetaTable.VIEWS,
-  schema: shareViewDeleteSchema,
-  entityId: (p) => p.viewId,
-  description: shareViewActions.delete,
-};

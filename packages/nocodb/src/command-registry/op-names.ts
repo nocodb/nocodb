@@ -23,9 +23,6 @@ export const OperationName = {
   // Views (generic)
   viewUpdate: 'viewUpdate',
   viewDelete: 'viewDelete',
-  shareView: 'shareView',
-  shareViewUpdate: 'shareViewUpdate',
-  shareViewDelete: 'shareViewDelete',
 
   // Per-type view ops
   gridViewCreate: 'gridViewCreate',
@@ -38,10 +35,15 @@ export const OperationName = {
   kanbanViewUpdate: 'kanbanViewUpdate',
   calendarViewCreate: 'calendarViewCreate',
   calendarViewUpdate: 'calendarViewUpdate',
+  listViewCreate: 'listViewCreate',
+  listViewUpdate: 'listViewUpdate',
+  timelineViewCreate: 'timelineViewCreate',
+  timelineViewUpdate: 'timelineViewUpdate',
+  mapViewCreate: 'mapViewCreate',
+  mapViewUpdate: 'mapViewUpdate',
 
   // View columns + visibility
   viewColumnUpdate: 'viewColumnUpdate',
-  visibilityUpdate: 'visibilityUpdate',
 
   // Sorts
   sortCreate: 'sortCreate',
@@ -55,7 +57,6 @@ export const OperationName = {
   filterCreateV3: 'filterCreateV3',
   linkFilterCreate: 'linkFilterCreate',
   widgetFilterCreate: 'widgetFilterCreate',
-  rlsPolicyFilterCreate: 'rlsPolicyFilterCreate',
   rowColorConditionsCreate: 'rowColorConditionsCreate',
 
   // Hooks
@@ -102,15 +103,6 @@ export const OperationName = {
   syncCreate: 'syncCreate',
   syncUpdate: 'syncUpdate',
   syncDelete: 'syncDelete',
-
-  // Permissions
-  permissionSet: 'permissionSet',
-  permissionDrop: 'permissionDrop',
-
-  // RLS
-  rlsPolicyCreate: 'rlsPolicyCreate',
-  rlsPolicyUpdate: 'rlsPolicyUpdate',
-  rlsPolicyDelete: 'rlsPolicyDelete',
 
   // Date dependency
   dateDependencyUpdate: 'dateDependencyUpdate',

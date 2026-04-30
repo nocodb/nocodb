@@ -127,7 +127,6 @@ export class ViewsService extends ViewsServiceCE {
     return true;
   }
 
-  @TraceCommand(OperationName.shareView)
   async shareView(
     context: NcContext,
     param: { viewId: string; user: UserType; req: NcRequest },
@@ -146,7 +145,6 @@ export class ViewsService extends ViewsServiceCE {
     return super.shareView(context, param);
   }
 
-  @TraceCommand(OperationName.shareViewUpdate)
   async shareViewUpdate(
     context: NcContext,
     param: {
@@ -170,7 +168,6 @@ export class ViewsService extends ViewsServiceCE {
     return super.shareViewUpdate(context, param);
   }
 
-  @TraceCommand(OperationName.shareViewDelete)
   async shareViewDelete(
     context: NcContext,
     param: { viewId: string; user: UserType; req: NcRequest },

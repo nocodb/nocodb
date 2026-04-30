@@ -7,7 +7,6 @@ import {
 } from 'nocodb-sdk';
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import NocoSocket from '~/ee/socket/NocoSocket';
@@ -18,7 +17,6 @@ import { Model, View } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { checkForFeature, checkLimit } from '~/helpers/paymentHelpers';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
-import { TraceCommand } from '~/decorators/trace-command.decorator';
 @Injectable()
 export class RlsService {
   protected logger: Logger = new Logger(RlsService.name);
@@ -85,7 +83,6 @@ export class RlsService {
     return { ...policy, filters };
   }
 
-  @TraceCommand(OperationName.rlsPolicyCreate)
   async createPolicy(
     context: NcContext,
     param: {
@@ -204,7 +201,6 @@ export class RlsService {
     return this.getPolicy(context, { policyId: policy.id });
   }
 
-  @TraceCommand(OperationName.rlsPolicyUpdate)
   async updatePolicy(
     context: NcContext,
     param: {
@@ -273,7 +269,6 @@ export class RlsService {
     return this.getPolicy(context, { policyId: body.id });
   }
 
-  @TraceCommand(OperationName.rlsPolicyDelete)
   async deletePolicy(
     context: NcContext,
     param: {

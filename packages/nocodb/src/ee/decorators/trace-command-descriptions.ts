@@ -24,7 +24,6 @@ export const bScript = token('script');
 export const bWorkflow = token('workflow');
 export const bBaseVariable = token('baseVariable');
 export const bSync = token('sync');
-export const bRlsPolicy = token('rlsPolicy');
 export const bExtension = token('extension');
 export const bViewSection = token('viewSection');
 export const bRecordTemplate = token('recordTemplate');
@@ -91,7 +90,6 @@ export const workflowActions = buildActions(bWorkflow, 'workflow');
 export const baseVariableActions = buildActions(bBaseVariable, 'variable');
 export const syncActions = buildActions(bSync, 'sync');
 export const extensionActions = buildActions(bExtension, 'extension');
-export const rlsPolicyActions = buildActions(bRlsPolicy, 'RLS policy', bTable);
 export const viewSectionActions = buildActions(bViewSection, 'view section');
 export const recordTemplateActions = buildActions(
   bRecordTemplate,
@@ -137,31 +135,6 @@ export const rowColorConditionActions = {
   delete: nestedUnderView('Delete', 'row color filter', 'on'),
 };
 
-/**
- * Share-view actions — no parent icon; the view is always the subject.
- */
-export const shareViewActions = {
-  create: (({ entityTitle }) => `Share ${bView(entityTitle)} view`) as DescFn,
-  update: (({ entityTitle }) =>
-    `Edit shared link of ${bView(entityTitle)} view`) as DescFn,
-  delete: (({ entityTitle }) =>
-    `Remove shared link of ${bView(entityTitle)} view`) as DescFn,
-};
-
-/**
- * Permission & misc entities that don't fit the standard CRUD shape.
- */
-export const permissionActions = {
-  set: (({ entityTitle, parentEntityTitle }) =>
-    parentEntityTitle
-      ? `Set permission on ${b(entityTitle)} in ${bTable(parentEntityTitle)}`
-      : `Set permission on ${b(entityTitle)}`) as DescFn,
-  drop: (({ entityTitle, parentEntityTitle }) =>
-    parentEntityTitle
-      ? `Remove permission on ${b(entityTitle)} in ${bTable(parentEntityTitle)}`
-      : `Remove permission on ${b(entityTitle)}`) as DescFn,
-};
-
 export const dateDependencyActions = {
   edit: (({ parentEntityTitle }) =>
     parentEntityTitle
@@ -171,13 +144,6 @@ export const dateDependencyActions = {
     parentEntityTitle
       ? `Remove date dependencies from ${bTable(parentEntityTitle)}`
       : `Remove date dependencies`) as DescFn,
-};
-
-export const visibilityActions = {
-  update: (({ parentEntityTitle }) =>
-    parentEntityTitle
-      ? `Update field visibility in ${bTable(parentEntityTitle)}`
-      : `Update field visibility`) as DescFn,
 };
 
 export const viewColumnActions = {

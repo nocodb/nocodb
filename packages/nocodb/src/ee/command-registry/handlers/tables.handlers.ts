@@ -68,6 +68,6 @@ export function registerTableHandlers(svc: TablesService): void {
 
   OperationRegistry.register(TableDeleteContract, async (ctx, params, meta) => {
     const req = makeReplayReq(meta.originalReq, meta.createdBy);
-    return svc.tableDelete(ctx, { ...params, req } as any);
+    return svc.tableDelete(ctx, { ...params, req, skipTrash: true } as any);
   });
 }

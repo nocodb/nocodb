@@ -6,7 +6,6 @@ import { Column, Model, Sort, View } from '~/models';
 import {
   sortActions,
   viewColumnActions,
-  visibilityActions,
 } from '~/decorators/trace-command-descriptions';
 
 // ─────────────────────────────────────────────────────────────
@@ -147,22 +146,3 @@ export const ViewColumnUpdateContract: OperationContract<
     p.columnId ? [{ entity: MetaTable.COLUMNS, id: p.columnId }] : [],
 };
 
-// ─────────────────────────────────────────────────────────────
-// ModelVisibility contract
-// ─────────────────────────────────────────────────────────────
-
-const visibilityUpdateSchema = z.object({
-  baseId: z.string(),
-  visibilityRule: z.record(z.unknown()),
-});
-
-export const VisibilityUpdateContract: OperationContract<
-  typeof visibilityUpdateSchema
-> = {
-  name: OperationName.visibilityUpdate,
-  version: 1,
-  entity: MetaTable.MODEL_ROLE_VISIBILITY,
-  schema: visibilityUpdateSchema,
-  entityId: (p) => p.baseId,
-  description: visibilityActions.update,
-};

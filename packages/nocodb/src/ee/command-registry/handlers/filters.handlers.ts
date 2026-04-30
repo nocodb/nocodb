@@ -3,7 +3,6 @@ import {
   FilterDeleteContract,
   FilterUpdateContract,
   LinkFilterCreateContract,
-  RlsPolicyFilterCreateContract,
   RowColorConditionsCreateContract,
   WidgetFilterCreateContract,
 } from '../operations/filters.operations';
@@ -19,9 +18,6 @@ export function registerFilterHandlers(svc: FiltersService): void {
   );
   registerForward(WidgetFilterCreateContract, (ctx, p) =>
     svc.widgetFilterCreate(ctx, p),
-  );
-  registerForward(RlsPolicyFilterCreateContract, (ctx, p) =>
-    svc.rlsPolicyFilterCreate(ctx, p),
   );
   registerForward(RowColorConditionsCreateContract, (ctx, p) =>
     svc.rowColorConditionsCreate(ctx, p),

@@ -21,6 +21,8 @@ import TimelineView from '~/models/TimelineView';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class TimelinesService {
@@ -30,6 +32,7 @@ export class TimelinesService {
     return await TimelineView.get(context, param.timelineViewId);
   }
 
+  @TraceCommand(OperationName.timelineViewCreate)
   async timelineViewCreate(
     context: NcContext,
     param: {
@@ -150,6 +153,7 @@ export class TimelinesService {
     return view;
   }
 
+  @TraceCommand(OperationName.timelineViewUpdate)
   async timelineViewUpdate(
     context: NcContext,
     param: {

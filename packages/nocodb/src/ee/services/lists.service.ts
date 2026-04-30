@@ -17,6 +17,8 @@ import ListViewLevel from '~/models/ListViewLevel';
 import { CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
@@ -26,6 +28,7 @@ import {
 export class ListsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
+  @TraceCommand(OperationName.listViewCreate)
   async listViewCreate(
     context: NcContext,
     param: {
@@ -141,6 +144,7 @@ export class ListsService {
     return view;
   }
 
+  @TraceCommand(OperationName.listViewUpdate)
   async listViewUpdate(
     context: NcContext,
     param: {

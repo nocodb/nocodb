@@ -9,5 +9,7 @@ import { registerForward } from '~/command-registry/replay-context';
 export function registerScriptHandlers(svc: ScriptsService): void {
   registerForward(ScriptCreateContract, (ctx, p) => svc.createScript(ctx, p));
   registerForward(ScriptUpdateContract, (ctx, p) => svc.updateScript(ctx, p));
-  registerForward(ScriptDeleteContract, (ctx, p) => svc.deleteScript(ctx, p));
+  registerForward(ScriptDeleteContract, (ctx, p) =>
+    svc.deleteScript(ctx, { ...p, skipTrash: true }),
+  );
 }

@@ -13,7 +13,6 @@ import {
   ProjectRoles,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import { Team } from '~/models';
@@ -25,7 +24,6 @@ import { checkForFeature } from '~/helpers/paymentHelpers';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
-import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
 @Injectable()
 export class PermissionsService {
@@ -600,36 +598,4 @@ export class PermissionsService {
     });
   }
 
-  // ────────────────────────────────────────────
-  // Sandbox-traced wrappers (standard (context, param) signature)
-  // ────────────────────────────────────────────
-
-  @TraceCommand(OperationName.permissionSet)
-  async permissionSet(
-    context: NcContext,
-    param: {
-      permission: Pick<
-        Permission,
-        | 'entity'
-        | 'entity_id'
-        | 'permission'
-        | 'granted_type'
-        | 'granted_role'
-        | 'enforce_for_automation'
-        | 'enforce_for_form'
-        | 'subjects'
-      >;
-      req: NcRequest;
-    },
-  ) {
-    return this.setPermission(context, param.permission, param.req);
-  }
-
-  @TraceCommand(OperationName.permissionDrop)
-  async permissionDrop(
-    context: NcContext,
-    param: { permission: Partial<Permission>; req: NcRequest },
-  ) {
-    return this.dropPermission(context, param.permission, param.req);
-  }
 }

@@ -64,9 +64,16 @@ export function TraceCommand(name: OperationName, version: number = 1) {
         }
       }
 
-      // Awaited — strict ordering of changelog inserts.
-      // Throws on schema-validation failure (strict mode).
-      await recordCommand(ctx, contract, param, result, resolvedCtx);
+      // Swallow recording failures — the user-facing operation already
+      // succeeded; a changelog write error must not propagate or roll back.
+      try {
+        await recordCommand(ctx, contract, param, result, resolvedCtx);
+      } catch (e: any) {
+        logger.error(
+          `recordCommand ${name}@${version} failed: ${e?.message}`,
+          e?.stack,
+        );
+      }
 
       return result;
     };

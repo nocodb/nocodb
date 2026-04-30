@@ -7,10 +7,10 @@ import {
   integerPreservingRollupFunctions,
   integerRollupFunctions,
   isAIPromptCol,
+  isBtLikeV2Junction,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isIntegerUiType,
-  isLinkV2,
   isSystemColumn,
   isValidValue,
   isVirtualCol,
@@ -619,9 +619,13 @@ export const parsePlainCellValue = (
   if (isRollup(col)) {
     return getRollupValue(value, params)
   }
-  // V1 Links (count cell) — value is a number. V2 Links has the same uidt but stores
-  // linked row objects/arrays, so route those through getLookupValue (LTAR branch) instead.
-  if (isLink(col) && !isLinkV2(col)) {
+  // Match VirtualCell.vue's dispatch: V2 single-record junction columns render as a chip
+  // (display value), uidt=Links columns render as a count, everything else LTAR/Lookup
+  // renders the linked row(s) display values.
+  if (isBtLikeV2Junction(col)) {
+    return getLookupValue(value, params)
+  }
+  if (isLink(col)) {
     return getLinksValue(value, params)
   }
   if (isLookup(col) || isLTAR(col.uidt, col.colOptions)) {

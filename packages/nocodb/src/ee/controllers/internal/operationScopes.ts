@@ -195,14 +195,4 @@ export const OPERATION_SCOPES = {
   baseTrashSettingsList: 'base',
   baseTrashSettingsUpdate: 'base',
 
-  // Bookmarks
-  bookmarkList: 'org',
-  bookmarkCheck: 'org',
-  bookmarkGroupList: 'org',
-  bookmarkCreate: 'org',
-  bookmarkUpdate: 'org',
-  bookmarkDelete: 'org',
-  bookmarkGroupCreate: 'org',
-  bookmarkGroupUpdate: 'org',
-  bookmarkGroupDelete: 'org',
 } as const;

@@ -156,15 +156,6 @@ const LICENSE_REQUIRED_OPS = new Set([
   // expiry, restore from backup) reads/writes must still be blocked.
   'smartTextGetContent',
   'smartTextUpdateContent',
-  // Bookmarks
-  'bookmarkList',
-  'bookmarkGroupList',
-  'bookmarkCreate',
-  'bookmarkUpdate',
-  'bookmarkDelete',
-  'bookmarkGroupCreate',
-  'bookmarkGroupUpdate',
-  'bookmarkGroupDelete',
 ]);
 
 @Controller()

@@ -128,6 +128,7 @@ import { DashboardsService } from '~/services/dashboards.service';
 
 /* Bookmarks */
 import { BookmarkService } from '~/services/bookmark.service';
+import { BookmarkController } from '~/controllers/bookmark.controller';
 
 /* Record Templates */
 import { RecordTemplatesController } from '~/controllers/record-templates.controller';
@@ -390,6 +391,9 @@ export const nocoModuleEeMetadata = {
 
     /* Record Templates */
     RecordTemplatesController,
+
+    /* Bookmarks */
+    BookmarkController,
 
     /* Attachment Proxy */
     AttachmentProxyController,

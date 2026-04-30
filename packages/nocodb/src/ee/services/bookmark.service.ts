@@ -18,7 +18,7 @@ export class BookmarkService {
 
   // --- Bookmarks ---
 
-  async bookmarkList(context: NcContext, param: { req: NcRequest }) {
+  async bookmarkList(param: { req: NcRequest }) {
     const userId = param.req.user?.id;
     if (!userId) NcError.unauthorized('User not found');
 
@@ -28,12 +28,12 @@ export class BookmarkService {
     ]);
 
     // Enrich bookmarks with current entity metadata (icons, titles)
-    const enriched = await this.enrichBookmarks(context, bookmarks);
+    const enriched = await this.enrichBookmarks(bookmarks);
 
     return { bookmarks: enriched, groups };
   }
 
-  async bookmarkCheck(_context: NcContext, param: { req: NcRequest }) {
+  async bookmarkCheck(param: { req: NcRequest }) {
     const userId = param.req.user?.id;
     if (!userId) NcError.unauthorized('User not found');
 
@@ -92,11 +92,13 @@ export class BookmarkService {
   }
 
   async bookmarkCreate(
-    context: NcContext,
     param: { body: BookmarkReqType; req: NcRequest },
   ) {
     const userId = param.req.user?.id;
     if (!userId) NcError.unauthorized('User not found');
+
+    const meta = (param.body.meta as Record<string, any>) ?? {};
+    const context = { workspace_id: meta.workspace_id, base_id: meta.base_id } as NcContext;
 
     let groupId = param.body.fk_group_id;
 
@@ -150,7 +152,6 @@ export class BookmarkService {
   }
 
   async bookmarkUpdate(
-    _context: NcContext,
     param: { bookmarkId: string; body: Partial<BookmarkReqType>; req: NcRequest },
   ) {
     const userId = param.req.user?.id;
@@ -177,7 +178,6 @@ export class BookmarkService {
   }
 
   async bookmarkDelete(
-    context: NcContext,
     param: { bookmarkId: string; req: NcRequest },
   ) {
     const userId = param.req.user?.id;
@@ -187,6 +187,9 @@ export class BookmarkService {
     if (!bookmark || bookmark.fk_user_id !== userId) {
       NcError.genericNotFound('Bookmark', param.bookmarkId);
     }
+
+    const meta = (bookmark.meta as Record<string, any>) ?? {};
+    const context = { workspace_id: meta.workspace_id, base_id: meta.base_id } as NcContext;
 
     await Bookmark.delete(param.bookmarkId);
 
@@ -212,7 +215,7 @@ export class BookmarkService {
 
   // --- Groups ---
 
-  async bookmarkGroupList(_context: NcContext, param: { req: NcRequest }) {
+  async bookmarkGroupList(param: { req: NcRequest }) {
     const userId = param.req.user?.id;
     if (!userId) NcError.unauthorized('User not found');
 
@@ -220,7 +223,6 @@ export class BookmarkService {
   }
 
   async bookmarkGroupCreate(
-    _context: NcContext,
     param: { body: BookmarkGroupReqType; req: NcRequest },
   ) {
     const userId = param.req.user?.id;
@@ -234,7 +236,6 @@ export class BookmarkService {
   }
 
   async bookmarkGroupUpdate(
-    _context: NcContext,
     param: { groupId: string; body: Partial<BookmarkGroupReqType>; req: NcRequest },
   ) {
     const userId = param.req.user?.id;
@@ -252,7 +253,6 @@ export class BookmarkService {
   }
 
   async bookmarkGroupDelete(
-    _context: NcContext,
     param: { groupId: string; req: NcRequest },
   ) {
     const userId = param.req.user?.id;
@@ -279,7 +279,6 @@ export class BookmarkService {
   // --- Enrichment ---
 
   private async enrichBookmarks(
-    _context: NcContext,
     bookmarks: Bookmark[],
   ): Promise<BookmarkType[]> {
     return Promise.all(

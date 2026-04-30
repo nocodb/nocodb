@@ -30,8 +30,6 @@ import { BaseTrashGetOperations } from '~/controllers/internal/modules/BaseTrash
 import { BaseTrashPostOperations } from '~/controllers/internal/modules/BaseTrashPost.operations';
 import { SmartTextGetOperations } from '~/controllers/internal/modules/SmartTextGet.operations';
 import { SmartTextPostOperations } from '~/controllers/internal/modules/SmartTextPost.operations';
-import { BookmarkGetOperations } from '~/controllers/internal/modules/BookmarkGet.operations';
-import { BookmarkPostOperations } from '~/controllers/internal/modules/BookmarkPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -66,8 +64,6 @@ export const InternalApiModules = [
   BaseTrashPostOperations,
   SmartTextGetOperations,
   SmartTextPostOperations,
-  BookmarkGetOperations,
-  BookmarkPostOperations,
 ];
 
 export const InternalApiModuleProvider = {

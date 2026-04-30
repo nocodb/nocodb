@@ -1,13 +1,10 @@
 import type { BookmarkGroupReqType, BookmarkGroupType, BookmarkReqType, BookmarkType } from 'nocodb-sdk'
-import { NO_SCOPE } from 'nocodb-sdk'
 import type { RouteLocationRaw } from 'vue-router'
 
 export const useBookmarks = createSharedComposable(() => {
   const { $api, $e } = useNuxtApp()
   const { t } = useI18n()
   const router = useRouter()
-
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const bookmarks = ref<BookmarkType[]>([])
   const groups = ref<BookmarkGroupType[]>([])
@@ -40,14 +37,10 @@ export const useBookmarks = createSharedComposable(() => {
   })
 
   async function loadBookmarks() {
-    if (!activeWorkspaceId.value) return
-
     try {
       isLoading.value = true
 
-      const res = (await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
-        operation: 'bookmarkList',
-      })) as any
+      const res = (await $api.bookmark.list()) as any
       bookmarks.value = res.bookmarks ?? []
       groups.value = res.groups ?? []
     } catch (e: any) {
@@ -58,12 +51,8 @@ export const useBookmarks = createSharedComposable(() => {
   }
 
   async function loadBookmarkCheck() {
-    if (!activeWorkspaceId.value) return
-
     try {
-      const res = (await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
-        operation: 'bookmarkCheck',
-      })) as Record<string, any>
+      const res = (await $api.bookmark.check()) as Record<string, any>
       bookmarkCheckMap.value = res ?? {}
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -91,15 +80,8 @@ export const useBookmarks = createSharedComposable(() => {
   }
 
   async function addBookmark(data: BookmarkReqType) {
-    if (!activeWorkspaceId.value) return
-
     try {
-      const bm = (await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        NO_SCOPE,
-        { operation: 'bookmarkCreate' },
-        data,
-      )) as BookmarkType
+      const bm = (await $api.bookmark.create(data)) as BookmarkType
       bookmarks.value.push(bm)
 
       // If groups were empty, the backend created "Ungrouped" — reload to get it
@@ -117,17 +99,10 @@ export const useBookmarks = createSharedComposable(() => {
   }
 
   async function removeBookmark(id: string) {
-    if (!activeWorkspaceId.value) return
-
     try {
       const bm = bookmarks.value.find((b) => b.id === id)
 
-      await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        NO_SCOPE,
-        { operation: 'bookmarkDelete' },
-        { bookmarkId: id },
-      )
+      await $api.bookmark.delete(id)
       bookmarks.value = bookmarks.value.filter((b) => b.id !== id)
 
       message.success(t('msg.bookmarkRemoved'))
@@ -141,18 +116,8 @@ export const useBookmarks = createSharedComposable(() => {
   }
 
   async function updateBookmark(id: string, data: Partial<BookmarkType>) {
-    if (!activeWorkspaceId.value) return
-
     try {
-      const updated = (await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        NO_SCOPE,
-        { operation: 'bookmarkUpdate' },
-        {
-          bookmarkId: id,
-          ...data,
-        },
-      )) as BookmarkType
+      const updated = (await $api.bookmark.update(id, data)) as BookmarkType
 
       const idx = bookmarks.value.findIndex((b) => b.id === id)
       if (idx !== -1) {
@@ -166,15 +131,8 @@ export const useBookmarks = createSharedComposable(() => {
   }
 
   async function addGroup(data: BookmarkGroupReqType) {
-    if (!activeWorkspaceId.value) return
-
     try {
-      const group = (await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        NO_SCOPE,
-        { operation: 'bookmarkGroupCreate' },
-        data,
-      )) as BookmarkGroupType
+      const group = (await $api.bookmark.groupCreate(data)) as BookmarkGroupType
       groups.value.push(group)
       return group
     } catch (e: any) {
@@ -183,15 +141,8 @@ export const useBookmarks = createSharedComposable(() => {
   }
 
   async function removeGroup(id: string) {
-    if (!activeWorkspaceId.value) return
-
     try {
-      await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        NO_SCOPE,
-        { operation: 'bookmarkGroupDelete' },
-        { groupId: id },
-      )
+      await $api.bookmark.groupDelete(id)
 
       // Reload to get updated bookmarks (moved to Ungrouped)
       await loadBookmarks()
@@ -203,18 +154,8 @@ export const useBookmarks = createSharedComposable(() => {
   }
 
   async function updateGroup(id: string, data: Partial<BookmarkGroupType>) {
-    if (!activeWorkspaceId.value) return
-
     try {
-      const updated = (await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        NO_SCOPE,
-        { operation: 'bookmarkGroupUpdate' },
-        {
-          groupId: id,
-          ...data,
-        },
-      )) as BookmarkGroupType
+      const updated = (await $api.bookmark.groupUpdate(id, data)) as BookmarkGroupType
 
       const idx = groups.value.findIndex((g) => g.id === id)
       if (idx !== -1) {
@@ -300,18 +241,7 @@ export const useBookmarks = createSharedComposable(() => {
     }
   }
 
-  // Auto-load check map on init and workspace change
-  watch(
-    activeWorkspaceId,
-    (wsId) => {
-      if (wsId) {
-        loadBookmarkCheck()
-      } else {
-        bookmarkCheckMap.value = {}
-      }
-    },
-    { immediate: true },
-  )
+  loadBookmarkCheck()
 
   return {
     bookmarks,

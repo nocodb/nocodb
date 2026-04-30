@@ -1,0 +1,220 @@
+name: "Enterprise : On-prem PR / Daily Docker build"
+
+# This workflow builds the Enterprise Edition on-prem Docker image as a "daily/PR" build
+# and pushes it to the `nocodb/nocodb-daily` Docker Hub repository.
+#
+# Two triggers are supported:
+#   1. workflow_dispatch (manual) — caller provides a `version` input and the image is
+#      pushed as `nocodb/nocodb-daily:<version>`.
+#   2. pull_request labeled with `on-prem-build` — image is built for the PR head commit
+#      and pushed with an auto-generated tag, then a comment with the pull command is
+#      added to the PR.
+#
+# Tag format for PR builds:
+#   <YYYY.MM.DD>-pr<PR_NUMBER>.<HHMM>
+#
+# Why not the bare `YYYY.MM.DD.PR_NUM` the user asked about?
+#   - Date + PR number alone is not unique: pushing a second commit on the same day to
+#     the same PR would overwrite the previous image.
+#   - Adding `HHMM` keeps the build chronologically sortable, identifies the PR, and
+#     guarantees uniqueness for re-runs on the same day.
+#   - We additionally publish a moving `pr-<PR_NUMBER>` tag that always points at the
+#     latest build for that PR — convenient for testers who don't want to bump the tag
+#     every time.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Docker image tag to publish (e.g. 2026.05.01-test or pr-1234.20260501.1530)"
+        required: true
+        type: string
+  pull_request:
+    types: [labeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  buildx:
+    # Run on manual dispatch, or on a PR that just received the `on-prem-build` label.
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.label.name == 'on-prem-build') }}
+    runs-on: ubicloud-standard-8
+    env:
+      working-directory: ./packages/nocodb
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+          ref: ${{ github.event.pull_request.head.sha || github.ref }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.14.0
+          cache: 'pnpm'
+
+      # Resolve the docker tag(s) we will publish.
+      # - Manual dispatch: use the provided `version` as-is.
+      # - PR labeled:      generate `<YYYY.MM.DD>-pr<num>.<HHMM>` plus a moving `pr-<num>` tag.
+      - name: Resolve docker tag
+        id: resolve-tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PRIMARY_TAG="${{ github.event.inputs.version }}"
+            MOVING_TAG=""
+          else
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            DATE_PART=$(date -u +"%Y.%m.%d")
+            TIME_PART=$(date -u +"%H%M")
+            PRIMARY_TAG="${DATE_PART}-pr${PR_NUMBER}.${TIME_PART}"
+            MOVING_TAG="pr-${PR_NUMBER}"
+          fi
+          echo "PRIMARY_TAG=${PRIMARY_TAG}" >> "$GITHUB_OUTPUT"
+          echo "MOVING_TAG=${MOVING_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Primary tag: ${PRIMARY_TAG}"
+          echo "Moving tag : ${MOVING_TAG}"
+
+      - name: remove use-node-version line from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+
+      - name: Cache integration dists
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/noco-integrations/packages/*/dist
+            packages/noco-integrations/core/dist
+            packages/noco-integrations/.build-checksums.json
+          key: integrations-dist-${{ hashFiles('packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
+          restore-keys: |
+            integrations-dist-
+
+      - name: install dependencies
+        run: pnpm bootstrap
+
+      - name: Set outputs
+        id: vars
+        run: echo "release_version=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: Create nc.txt version identifier file
+        run: |
+          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+          echo "User: ${{ github.actor }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Commit: ${{ github.sha }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Branch: ${{ github.ref }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Action ID: ${{ github.run_id }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Tag: ${{ steps.resolve-tag.outputs.PRIMARY_TAG }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          date >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nocodb/src/public/
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nc-sql-executor/src/public/nc.txt
+
+      - name: build nc-gui and copy to nocodb
+        env:
+          NC_ON_PREM: true
+          NUXT_CHATWOOT_WEBSITE_TOKEN: ${{ secrets.NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM }}
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          cd packages/nc-gui &&
+          pnpm run generate:ee &&
+
+          find ./ee/dist/ -type f -name '*.js.map' -delete &&
+          find ./ee/dist/ -type f -name '*.css.map' -delete &&
+
+          rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
+
+      - name: build nocodb
+        run: |
+          cd packages/nocodb &&
+          EE=true pnpm exec rspack --config rspack.ee-on-prem.config.js &&
+          pnpm uninstall --save-prod nocodb-sdk knex-snowflake knex-databricks
+
+      - name: Stamp version into package.json
+        run: |
+          sed -i "s/\"version\": \".*\"/\"version\": \"${{ steps.resolve-tag.outputs.PRIMARY_TAG }}\"/g" ./packages/nocodb/package.json
+          echo "Stamped version: ${{ steps.resolve-tag.outputs.PRIMARY_TAG }}"
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-onprem-daily-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-onprem-daily-
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          file: "./packages/nocodb/src/ee-on-prem/Dockerfile-on-prem"
+          context: "./packages/nocodb"
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          push: true
+          tags: |
+            nocodb/nocodb-daily:${{ steps.resolve-tag.outputs.PRIMARY_TAG }}
+            ${{ steps.resolve-tag.outputs.MOVING_TAG != '' && format('nocodb/nocodb-daily:{0}', steps.resolve-tag.outputs.MOVING_TAG) || '' }}
+
+      # https://github.com/docker/build-push-action/issues/252
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Find existing PR comment
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: peter-evans/find-comment@v3
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: '<!-- on-prem-pr-build -->'
+
+      - name: Comment on PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          edit-mode: replace
+          body: |
+            <!-- on-prem-pr-build -->
+            ### On-prem PR build ready
+
+            **Image:** `nocodb/nocodb-daily:${{ steps.resolve-tag.outputs.PRIMARY_TAG }}`
+            **Latest for this PR:** `nocodb/nocodb-daily:${{ steps.resolve-tag.outputs.MOVING_TAG }}`
+
+            Pull it with:
+            ```bash
+            docker pull nocodb/nocodb-daily:${{ steps.resolve-tag.outputs.PRIMARY_TAG }}
+            ```
+
+            Run it locally:
+            ```bash
+            docker run -d --name nocodb-pr -p 8080:8080 nocodb/nocodb-daily:${{ steps.resolve-tag.outputs.PRIMARY_TAG }}
+            ```
+
+            Built from commit `${{ github.event.pull_request.head.sha }}` ([workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})).

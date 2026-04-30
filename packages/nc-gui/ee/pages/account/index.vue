@@ -267,6 +267,21 @@ onMounted(() => {
                 </div>
               </NcMenuItem>
 
+              <NcMenuItem
+                v-if="isEeUI"
+                key="bookmarks"
+                :class="{
+                  active: $route.params.page === 'bookmarks',
+                }"
+                class="item"
+                @click="navigateTo('/account/bookmarks')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncBookmark" class="!h-4 !w-4" />
+                  <div class="select-none">{{ $t('title.bookmarks') }}</div>
+                </div>
+              </NcMenuItem>
+
               <NcDivider class="!mt-0" />
 
               <template v-if="isPaymentEnabled && showEEFeatures">

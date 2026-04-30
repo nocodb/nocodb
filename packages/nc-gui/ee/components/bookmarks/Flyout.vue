@@ -3,6 +3,13 @@ const { bookmarksByGroup, orderedGroups, isLoading, navigateToBookmark, loadBook
 
 const emit = defineEmits<{ close: [] }>()
 
+const router = useRouter()
+
+const goToSettings = () => {
+  router.push('/account/bookmarks')
+  emit('close')
+}
+
 // Distribute groups across 3 columns (top-to-bottom, then next column)
 const columns = computed(() => {
   const cols: typeof orderedGroups.value[] = [[], [], []]
@@ -34,44 +41,60 @@ onMounted(() => {
 
 <template>
   <div
-    class="nc-bookmarks-flyout fixed bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl shadow-lg z-50 p-3.5"
-    style="left: 60px; bottom: 18px; width: 760px; max-height: 80vh; overflow-y: auto"
+    class="nc-bookmarks-flyout fixed bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl shadow-lg z-50 flex flex-col"
+    style="left: 60px; bottom: 18px; width: 760px; max-height: 80vh"
     @click.stop
   >
-    <!-- Loading state -->
-    <div v-if="isLoading" class="flex items-center justify-center py-8">
-      <GeneralLoader />
+    <!-- Header -->
+    <div class="flex items-center justify-between px-4 py-3 border-b-1 border-nc-border-gray-medium flex-none">
+      <span class="text-sm font-bold text-nc-content-gray">{{ $t('title.bookmarks') }}</span>
+      <NcButton type="text" size="xxsmall" class="!rounded-md" @click="goToSettings">
+        <GeneralIcon icon="settings" class="text-nc-content-gray-muted" />
+      </NcButton>
     </div>
 
-    <!-- Empty state -->
-    <div v-else-if="isEmpty" class="flex flex-col items-center justify-center py-8 gap-2">
-      <GeneralIcon icon="ncBookmark" class="w-8 h-8 text-nc-content-gray-subtle" />
-      <span class="text-sm text-nc-content-gray-subtle">{{ $t('labels.noData') }}</span>
-    </div>
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-3.5">
+      <!-- Loading state -->
+      <div v-if="isLoading" class="flex items-center justify-center py-8">
+        <GeneralLoader />
+      </div>
 
-    <!-- 3-column grid -->
-    <div v-else class="grid grid-cols-3 gap-x-5 gap-y-4">
-      <div v-for="(col, colIdx) in columns" :key="colIdx" class="flex flex-col gap-4">
-        <div v-for="group in col" :key="group.id" class="flex flex-col gap-0.5">
-          <!-- Group title -->
-          <div class="text-[11px] font-semibold text-nc-content-gray-subtle px-1.5 mb-1.5">
-            {{ group.name }}
-          </div>
+      <!-- Empty state -->
+      <div v-else-if="isEmpty" class="flex flex-col items-center justify-center py-8 gap-2">
+        <GeneralIcon icon="ncBookmark" class="w-8 h-8 text-nc-content-gray-subtle" />
+        <span class="text-sm text-nc-content-gray-subtle">{{ $t('labels.noData') }}</span>
+      </div>
 
-          <!-- Bookmark items -->
-          <BookmarksItem
-            v-for="bm in bookmarksByGroup[group.id!]"
-            :key="bm.id"
-            :bookmark="bm"
-            @click="navigateToBookmark(bm); emit('close')"
-          />
+      <!-- 3-column grid -->
+      <div v-else class="grid grid-cols-3 gap-x-5 gap-y-4">
+        <div v-for="(col, colIdx) in columns" :key="colIdx" class="flex flex-col gap-4">
+          <div v-for="group in col" :key="group.id" class="flex flex-col gap-0.5">
+            <!-- Group title -->
+            <div class="text-[11px] font-semibold text-nc-content-gray-subtle px-1.5 mb-1.5">
+              {{ group.name }}
+            </div>
 
-          <!-- Empty group -->
-          <div
-            v-if="!(bookmarksByGroup[group.id!]?.length)"
-            class="text-xs text-nc-content-gray-muted px-1.5 py-1"
-          >
-            {{ $t('labels.noData') }}
+            <!-- Bookmark items -->
+            <BookmarksItem
+              v-for="bm in bookmarksByGroup[group.id!]"
+              :key="bm.id"
+              :bookmark="bm"
+              @click="
+                () => {
+                  navigateToBookmark(bm)
+                  emit('close')
+                }
+              "
+            />
+
+            <!-- Empty group -->
+            <div
+              v-if="!(bookmarksByGroup[group.id!]?.length)"
+              class="text-xs text-nc-content-gray-muted px-1.5 py-1"
+            >
+              {{ $t('labels.noData') }}
+            </div>
           </div>
         </div>
       </div>

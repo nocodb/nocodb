@@ -79,10 +79,67 @@ export const useBookmarks = createSharedComposable(() => {
     }
   }
 
+  function ensureObj(parent: Record<string, any>, key: string): Record<string, any> {
+    if (!parent[key] || typeof parent[key] !== 'object') parent[key] = {}
+    return parent[key]
+  }
+
+  function setBookmarkCheck(targetType: string, targetId: string, meta: Record<string, any> | undefined, value: boolean) {
+    const map = bookmarkCheckMap.value
+
+    switch (targetType) {
+      case 'workspace': {
+        const node = ensureObj(map, targetId)
+        node._exists = value
+        break
+      }
+      case 'base': {
+        if (meta?.workspace_id) {
+          const wsNode = ensureObj(map, meta.workspace_id)
+          const baseNode = ensureObj(wsNode, targetId)
+          baseNode._exists = value
+        }
+        break
+      }
+      case 'table':
+      case 'document':
+      case 'workflow':
+      case 'script': {
+        if (meta?.workspace_id && meta?.base_id) {
+          const wsNode = ensureObj(map, meta.workspace_id)
+          const baseNode = ensureObj(wsNode, meta.base_id)
+          if (value) {
+            ensureObj(baseNode, targetId)
+          } else {
+            delete baseNode[targetId]
+          }
+        }
+        break
+      }
+      case 'view': {
+        if (meta?.workspace_id && meta?.base_id && meta?.table_id) {
+          const wsNode = ensureObj(map, meta.workspace_id)
+          const baseNode = ensureObj(wsNode, meta.base_id)
+          const tableNode = ensureObj(baseNode, meta.table_id)
+          if (value) {
+            ensureObj(tableNode, targetId)
+          } else {
+            delete tableNode[targetId]
+          }
+        }
+        break
+      }
+    }
+
+    bookmarkCheckMap.value = { ...map }
+  }
+
   async function addBookmark(data: BookmarkReqType) {
     try {
       const bm = (await $api.bookmark.create(data)) as BookmarkType
       bookmarks.value.push(bm)
+
+      setBookmarkCheck(data.target_type!, data.target_id!, data.meta as Record<string, any>, true)
 
       // If groups were empty, the backend created "Ungrouped" — reload to get it
       if (!groups.value.length) {
@@ -105,11 +162,12 @@ export const useBookmarks = createSharedComposable(() => {
       await $api.bookmark.delete(id)
       bookmarks.value = bookmarks.value.filter((b) => b.id !== id)
 
-      message.success(t('msg.bookmarkRemoved'))
-
       if (bm) {
+        setBookmarkCheck(bm.target_type!, bm.target_id!, bm.meta as Record<string, any>, false)
         $e('a:bookmark:delete', { target_type: bm.target_type })
       }
+
+      message.success(t('msg.bookmarkRemoved'))
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

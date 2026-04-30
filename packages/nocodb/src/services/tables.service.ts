@@ -581,6 +581,7 @@ export class TablesService {
       tableId: string;
       user: User | UserType;
       includeRelatedMetas?: boolean;
+      slimRelatedMetas?: boolean;
     },
   ) {
     const table = await Model.getWithInfo(context, {
@@ -622,7 +623,10 @@ export class TablesService {
     }
 
     if (param.includeRelatedMetas) {
-      table.relatedMetas = await this.getRelatedMetas(context, table);
+      const relatedMetas = await this.getRelatedMetas(context, table);
+      table.relatedMetas = param.slimRelatedMetas
+        ? this.slimRelatedMetas(relatedMetas)
+        : relatedMetas;
     }
 
     return table;
@@ -728,6 +732,83 @@ export class TablesService {
     };
 
     await collect(table.columns ?? [], context, table.base_id);
+
+    return result;
+  }
+
+  /**
+   * Strip related table metas to only the properties needed by the frontend
+   * for LTAR display, Lookup/Rollup type resolution, and column rendering.
+   */
+  protected slimRelatedMetas(
+    metas: Record<string, Record<string, TableType>>,
+  ): Record<string, Record<string, TableType>> {
+    const result: Record<string, Record<string, TableType>> = {};
+
+    for (const [baseId, tables] of Object.entries(metas)) {
+      result[baseId] = {};
+      for (const [tableId, table] of Object.entries(tables)) {
+        const slim: Record<string, any> = {
+          id: table.id,
+          base_id: table.base_id,
+          title: table.title,
+        };
+
+        // Preserve first view id — useLTARStore needs it for view column ordering
+        const firstView = (table as any).views?.[0];
+        if (firstView?.id) {
+          slim.views = [{ id: firstView.id }];
+        }
+
+        if (table.columns) {
+          slim.columns = (table.columns as ColumnType[]).map((col) => {
+            const slimCol: Record<string, any> = {
+              id: col.id,
+              fk_model_id: (col as any).fk_model_id,
+              title: col.title,
+              uidt: col.uidt,
+            };
+
+            if (col.pk) slimCol.pk = col.pk;
+            if (col.pv) slimCol.pv = col.pv;
+            if (col.meta) slimCol.meta = col.meta;
+            if (col.dtxp) slimCol.dtxp = col.dtxp;
+            if (col.dtxs) slimCol.dtxs = col.dtxs;
+            if (col.dt) slimCol.dt = col.dt;
+            if (col.system) slimCol.system = col.system;
+
+            if (col.colOptions) {
+              const opts = col.colOptions as Record<string, any>;
+              const slimOpts: Record<string, any> = {};
+              let hasOpt = false;
+
+              for (const k of [
+                'fk_relation_column_id',
+                'fk_related_model_id',
+                'fk_related_base_id',
+                'fk_lookup_column_id',
+                'fk_rollup_column_id',
+                'fk_mm_model_id',
+                'fk_mm_base_id',
+                'type',
+                'version',
+              ]) {
+                if (opts[k] != null) {
+                  slimOpts[k] = opts[k];
+                  hasOpt = true;
+                }
+              }
+
+              if (hasOpt) slimCol.colOptions = slimOpts;
+            }
+
+            return slimCol;
+          });
+        }
+
+        result[baseId][tableId] = slim as TableType;
+      }
+    }
 
     return result;
   }

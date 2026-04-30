@@ -8,7 +8,7 @@ import {
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';

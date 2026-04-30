@@ -4,7 +4,7 @@ import {
   RecordTemplateUpdateContract,
 } from '../operations/record-templates.operations';
 import type { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerRecordTemplateHandlers(
   svc: RecordTemplatesService,

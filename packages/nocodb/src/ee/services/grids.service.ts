@@ -3,7 +3,7 @@ import { GridsService as GridsServiceCE } from 'src/services/grids.service';
 import type { GridUpdateReqType, ViewCreateReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';

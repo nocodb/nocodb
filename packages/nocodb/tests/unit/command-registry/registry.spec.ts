@@ -1,10 +1,10 @@
 import { expect } from 'chai';
 import { z } from 'zod';
-import { OperationRegistry } from '../../../src/ee/command-registry/_registry';
+import { OperationRegistry } from '../../../src/ee/command-registry/registry';
 import type {
   OperationContract,
   CommandHandler,
-} from '../../../src/ee/command-registry/_types';
+} from '../../../src/ee/command-registry/types';
 import { MetaTable } from '../../../src/utils/globals';
 
 describe('OperationRegistry', () => {

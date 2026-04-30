@@ -15,7 +15,7 @@ import type { FormsService } from '~/services/forms.service';
 import type { GalleriesService } from '~/services/galleries.service';
 import type { KanbansService } from '~/services/kanbans.service';
 import type { CalendarsService } from '~/services/calendars.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerViewTypeHandlers(
   gridSvc: GridsService,

@@ -4,7 +4,7 @@ import {
   ViewSectionUpdateContract,
 } from '../operations/view-sections.operations';
 import type { ViewSectionsService } from '~/services/view-sections.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerViewSectionHandlers(svc: ViewSectionsService): void {
   registerForward(ViewSectionCreateContract, (ctx, p) =>

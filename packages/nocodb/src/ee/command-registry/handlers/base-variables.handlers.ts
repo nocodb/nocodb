@@ -4,7 +4,7 @@ import {
   BaseVariableUpdateContract,
 } from '../operations/base-variables.operations';
 import type { BaseVariablesService } from '~/services/base-variables.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerBaseVariableHandlers(svc: BaseVariablesService): void {
   registerForward(BaseVariableCreateContract, (ctx, p) => svc.create(ctx, p));

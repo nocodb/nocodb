@@ -8,7 +8,7 @@ import {
 import type { SortsService } from '~/services/sorts.service';
 import type { ViewColumnsService } from '~/services/view-columns.service';
 import type { ModelVisibilitiesService } from '~/services/model-visibilities.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerSortHandlers(svc: SortsService): void {
   registerForward(SortCreateContract, (ctx, p) => svc.sortCreate(ctx, p));

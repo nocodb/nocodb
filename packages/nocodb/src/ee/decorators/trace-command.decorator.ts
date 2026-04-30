@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
-import { OperationRegistry } from '~/command-registry/_registry';
-import { recordCommand } from '~/command-registry/_record';
-import type { OperationName } from '~/command-registry/_op-names';
-import type { ResolvedCtx } from '~/command-registry/_types';
+import { OperationRegistry } from '~/command-registry/registry';
+import { recordCommand } from '~/command-registry/record';
+import type { OperationName } from '~/command-registry/op-names';
+import type { ResolvedCtx } from '~/command-registry/types';
 
 const logger = new Logger('TraceCommand');
 

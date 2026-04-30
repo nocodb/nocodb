@@ -8,7 +8,7 @@ import {
   WidgetFilterCreateContract,
 } from '../operations/filters.operations';
 import type { FiltersService } from '~/services/filters.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerFilterHandlers(svc: FiltersService): void {
   registerForward(FilterCreateContract, (ctx, p) => svc.filterCreate(ctx, p));

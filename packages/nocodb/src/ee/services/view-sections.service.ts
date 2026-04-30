@@ -7,7 +7,7 @@ import type {
   ViewSectionUpdateReqType,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { Model, ViewSection } from '~/models';
 import { NcError } from '~/helpers/catchError';

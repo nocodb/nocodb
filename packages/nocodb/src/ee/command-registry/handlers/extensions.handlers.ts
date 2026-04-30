@@ -4,7 +4,7 @@ import {
   ExtensionUpdateContract,
 } from '../operations/extensions.operations';
 import type { ExtensionsService } from '~/services/extensions.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerExtensionHandlers(svc: ExtensionsService): void {
   registerForward(ExtensionCreateContract, (ctx, p) =>

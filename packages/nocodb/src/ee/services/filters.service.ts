@@ -3,7 +3,7 @@ import { FiltersService as FiltersServiceCE } from 'src/services/filters.service
 import { AppEvents, isLinksOrLTAR, UITypes } from 'nocodb-sdk';
 import type { FilterReqType, UserType, WidgetType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';

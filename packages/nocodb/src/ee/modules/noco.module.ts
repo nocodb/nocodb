@@ -178,7 +178,7 @@ import { ScimResourceTypesController } from '~/ee/controllers/v3/scim-resource-t
 import { LicenseGuard } from '~/guards/license.guard';
 
 /* Command Registry */
-import { OperationRegistryBootstrap } from '~/command-registry/_bootstrap';
+import { OperationRegistryBootstrap } from '~/command-registry/bootstrap';
 
 export const nocoModuleEeMetadata = {
   imports: [

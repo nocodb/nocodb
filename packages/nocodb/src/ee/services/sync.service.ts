@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SyncService as SyncServiceCE } from 'src/services/sync.service';
 import type { NcRequest } from '~/interface/config';
 import type { SyncSource } from '~/models';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 @Injectable()

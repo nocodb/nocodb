@@ -4,7 +4,7 @@ import {
   RlsPolicyUpdateContract,
 } from '../operations/rls.operations';
 import type { RlsService } from '~/services/rls.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerRlsHandlers(svc: RlsService): void {
   registerForward(RlsPolicyCreateContract, (ctx, p) =>

@@ -13,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { DashboardType, WidgetType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { CustomUrl, Dashboard, DependencyTracker, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';

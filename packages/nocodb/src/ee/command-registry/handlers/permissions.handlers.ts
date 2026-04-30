@@ -3,7 +3,7 @@ import {
   PermissionSetContract,
 } from '../operations/permissions.operations';
 import type { PermissionsService } from '~/services/permissions.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerPermissionHandlers(svc: PermissionsService): void {
   registerForward(PermissionSetContract, (ctx, p) => svc.permissionSet(ctx, p));

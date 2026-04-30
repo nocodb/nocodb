@@ -1,6 +1,6 @@
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { OperationContract } from '~/command-registry/_types';
-import { OperationRegistry } from '~/command-registry/_registry';
+import type { OperationContract } from '~/command-registry/types';
+import { OperationRegistry } from '~/command-registry/registry';
 
 /**
  * Build a synthetic request object for replay-time service calls. The original

@@ -7,7 +7,7 @@ import {
 } from 'nocodb-sdk';
 import type { BaseVariableReqType, BaseVariableType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { Base, BaseVariable } from '~/models';
 import { NcError } from '~/helpers/catchError';

@@ -8,7 +8,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { DateDependencyReqType, NcRequest } from 'nocodb-sdk';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';

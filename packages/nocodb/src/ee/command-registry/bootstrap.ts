@@ -23,7 +23,7 @@ import { registerRlsHandlers } from './handlers/rls.handlers';
 import { registerDateDependencyHandlers } from './handlers/date-dependency.handlers';
 import { registerFiltersV3Handlers } from './handlers/filters-v3.handlers';
 import type { OnApplicationBootstrap } from '@nestjs/common';
-import { OperationRegistry } from '~/command-registry/_registry';
+import { OperationRegistry } from '~/command-registry/registry';
 import { BaseVariablesService } from '~/ee/services/base-variables.service';
 import { TablesService } from '~/services/tables.service';
 import { ViewsService } from '~/services/views.service';

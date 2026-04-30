@@ -4,9 +4,9 @@ import type { SandboxChangelog } from '~/models';
 import type {
   ChangelogCommandPayload,
   HandlerMeta,
-} from '~/command-registry/_types';
-import { OperationRegistry } from '~/command-registry/_registry';
-import { makeReplayReq } from '~/command-registry/_replay-context';
+} from '~/command-registry/types';
+import { OperationRegistry } from '~/command-registry/registry';
+import { makeReplayReq } from '~/command-registry/replay-context';
 
 @Injectable()
 export class SandboxCommandReplayService {

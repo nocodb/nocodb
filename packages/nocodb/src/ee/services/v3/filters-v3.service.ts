@@ -9,7 +9,7 @@ import type { UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class FiltersV3Service extends FiltersV3ServiceCE {

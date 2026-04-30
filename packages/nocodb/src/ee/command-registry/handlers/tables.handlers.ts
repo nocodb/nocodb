@@ -4,8 +4,8 @@ import {
   TableUpdateContract,
 } from '../operations/tables.operations';
 import type { TablesService } from '~/services/tables.service';
-import { OperationRegistry } from '~/command-registry/_registry';
-import { makeReplayReq } from '~/command-registry/_replay-context';
+import { OperationRegistry } from '~/command-registry/registry';
+import { makeReplayReq } from '~/command-registry/replay-context';
 
 interface SandboxColumn {
   id?: string;

@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { OperationContract } from 'src/command-registry/_types';
-import { OperationName } from '~/command-registry/_op-names';
+import type { OperationContract } from 'src/command-registry/types';
+import { OperationName } from '~/command-registry/op-names';
 import { MetaTable } from '~/utils/globals';
 import { ViewSection } from '~/models';
 import { viewSectionActions } from '~/decorators/trace-command-descriptions';

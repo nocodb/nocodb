@@ -18,7 +18,7 @@ import type { OnModuleInit } from '@nestjs/common';
 import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { extractWorkflowDependencies } from '~/services/workflows/extractDependency';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';

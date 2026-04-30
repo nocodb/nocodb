@@ -13,7 +13,7 @@ import {
   ProjectRoles,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import { Team } from '~/models';

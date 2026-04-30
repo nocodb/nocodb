@@ -5,7 +5,7 @@ import {
   WorkflowUpdateContract,
 } from '../operations/workflows.operations';
 import type { WorkflowsService } from '~/services/workflows.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerWorkflowHandlers(svc: WorkflowsService): void {
   registerForward(WorkflowCreateContract, (ctx, p) =>

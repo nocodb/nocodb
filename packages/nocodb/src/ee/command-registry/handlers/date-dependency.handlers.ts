@@ -3,7 +3,7 @@ import {
   DateDependencyUpdateContract,
 } from '../operations/date-dependency.operations';
 import type { DateDependencyService } from '~/services/date-dependency.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerDateDependencyHandlers(
   svc: DateDependencyService,

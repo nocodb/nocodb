@@ -4,7 +4,7 @@ import {
   lookupEntity,
   captureOldTitle,
   lookupEntityWithParent,
-} from '../../../src/ee/command-registry/_resolvers';
+} from '../../../src/ee/command-registry/resolvers';
 
 const fakeCtx = {} as any;
 

@@ -3,7 +3,7 @@ import {
   extractReplayableParams,
   resolveField,
   dotGet,
-} from '../../../src/ee/command-registry/_record';
+} from '../../../src/ee/command-registry/record';
 
 describe('_record helpers', () => {
   describe('extractReplayableParams', () => {

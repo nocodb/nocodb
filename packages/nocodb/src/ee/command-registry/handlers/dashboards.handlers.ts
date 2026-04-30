@@ -8,7 +8,7 @@ import {
   WidgetUpdateContract,
 } from '../operations/dashboards.operations';
 import type { DashboardsService } from '~/services/dashboards.service';
-import { registerForward } from '~/command-registry/_replay-context';
+import { registerForward } from '~/command-registry/replay-context';
 
 export function registerDashboardHandlers(svc: DashboardsService): void {
   registerForward(DashboardCreateContract, (ctx, p) =>

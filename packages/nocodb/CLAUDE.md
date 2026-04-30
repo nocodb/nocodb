@@ -299,10 +299,10 @@ SandboxCommandReplayService ← OperationRegistry.resolve(name, version)
 
 | Type | File | Purpose |
 |------|------|---------|
-| `OperationContract<S>` | `src/ee/command-registry/_types.ts` | Versioned typed contract — name, version, entity, zod schema, id/title helpers |
-| `CommandHandler<C>` | `src/ee/command-registry/_types.ts` | `(ctx, params, meta) => Promise<unknown>` |
-| `HandlerMeta` | `src/ee/command-registry/_types.ts` | `{ entryId, entityId?, originalReq, createdBy, extra? }` |
-| `OperationRegistry` | `src/ee/command-registry/_registry.ts` | Singleton — `register`, `resolve`, `freeze`, `describe` |
+| `OperationContract<S>` | `src/ee/command-registry/types.ts` | Versioned typed contract — name, version, entity, zod schema, id/title helpers |
+| `CommandHandler<C>` | `src/ee/command-registry/types.ts` | `(ctx, params, meta) => Promise<unknown>` |
+| `HandlerMeta` | `src/ee/command-registry/types.ts` | `{ entryId, entityId?, originalReq, createdBy, extra? }` |
+| `OperationRegistry` | `src/ee/command-registry/registry.ts` | Singleton — `register`, `resolve`, `freeze`, `describe` |
 
 ### Import path rule (critical)
 
@@ -310,10 +310,10 @@ Operations files (`*.operations.ts`) **must** import `_types` via the `src/` pre
 
 ```typescript
 // ✅ correct — avoids circular self-import under EE tsconfig
-import type { OperationContract } from 'src/command-registry/_types';
+import type { OperationContract } from 'src/command-registry/types';
 
 // ❌ wrong — ~/  resolves to src/ee/* first, creating a circular self-import
-import type { OperationContract } from '~/command-registry/_types';
+import type { OperationContract } from '~/command-registry/types';
 ```
 
 Service files importing contracts use `~/` normally:
@@ -327,7 +327,7 @@ import { MyContract } from '~/command-registry/operations/my-feature.operations'
 
 ```typescript
 import { z } from 'zod';
-import type { OperationContract } from 'src/command-registry/_types';
+import type { OperationContract } from 'src/command-registry/types';
 import { MetaTable } from '~/utils/globals';
 // Use src/ import for _types but ~/ is fine for MetaTable/action-descriptions
 
@@ -346,8 +346,8 @@ export const MyFeatureCreateContract: OperationContract<typeof createSchema> = {
 **2. Write the handler** — `src/ee/command-registry/handlers/{feature}.handlers.ts`
 
 ```typescript
-import { OperationRegistry } from 'src/ee/command-registry/_registry';
-import { makeReplayReq } from 'src/ee/command-registry/_replay-context';
+import { OperationRegistry } from 'src/ee/command-registry/registry';
+import { makeReplayReq } from 'src/ee/command-registry/replay-context';
 import { MyFeatureCreateContract } from 'src/ee/command-registry/operations/my-feature.operations';
 import type { MyFeatureService } from 'src/ee/services/my-feature.service';
 
@@ -370,7 +370,7 @@ async create(context: NcContext, param: { baseId: string; body: ...; req: NcRequ
 }
 ```
 
-**4. Register in `OperationRegistryBootstrap`** — `src/ee/command-registry/_bootstrap.ts`
+**4. Register in `OperationRegistryBootstrap`** — `src/ee/command-registry/bootstrap.ts`
 
 - Inject the new service in the constructor.
 - Call `registerMyFeatureHandlers(this.myFeatureSvc)` in `onApplicationBootstrap()`.
@@ -393,7 +393,7 @@ Called once in `OperationRegistryBootstrap.onApplicationBootstrap()` — after t
 
 ### Adding a new description function
 
-Description helpers live in `src/ee/decorators/trace-command-descriptions.ts`. Each domain section returns a `DescFn` (imported from `src/command-registry/_types`):
+Description helpers live in `src/ee/decorators/trace-command-descriptions.ts`. Each domain section returns a `DescFn` (imported from `src/command-registry/types`):
 
 ```typescript
 export const myFeatureActions = {

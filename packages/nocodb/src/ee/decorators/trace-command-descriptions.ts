@@ -30,7 +30,7 @@ export const bViewSection = token('viewSection');
 export const bRecordTemplate = token('recordTemplate');
 export const bDateDependency = token('dateDependency');
 
-import type { DescCtx, DescFn } from 'src/command-registry/_types';
+import type { DescCtx, DescFn } from 'src/command-registry/types';
 export type { DescCtx, DescFn };
 
 type BFn = (t?: string) => string;

@@ -3,7 +3,7 @@ import { AppEvents, PlanFeatureTypes } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { CreateRecordTemplateDto } from './dto/create-record-template.dto';
 import type { UpdateRecordTemplateDto } from './dto/update-record-template.dto';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { DatasService } from '~/services/datas.service';

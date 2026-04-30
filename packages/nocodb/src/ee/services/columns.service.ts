@@ -27,7 +27,7 @@ import type {
 import type { ReusableParams } from '~/services/columns.service.type';
 import type { NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
-import { OperationName } from '~/command-registry/_op-names';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { TraceCommand } from '~/decorators/trace-command.decorator';

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { BaseVariableInheritance, BaseVariableValueType } from 'nocodb-sdk';
-import type { OperationContract } from 'src/command-registry/_types';
-import { OperationName } from '~/command-registry/_op-names';
+import type { OperationContract } from 'src/command-registry/types';
+import { OperationName } from '~/command-registry/op-names';
 import { MetaTable } from '~/utils/globals';
 import { BaseVariable } from '~/models';
 import { baseVariableActions } from '~/decorators/trace-command-descriptions';

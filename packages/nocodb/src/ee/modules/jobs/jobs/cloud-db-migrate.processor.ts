@@ -28,6 +28,10 @@ export class CloudDbMigrateProcessor {
       conditions = {},
       targetOrgId = null,
       oldDbServerId = null,
+      // When true, force `skipCreateDb=false` regardless of whether
+      // targetOrg is set. Used when placing a workspace into a freshly
+      // created org whose DB does not yet exist on the target server.
+      createTargetDb = false,
     } = job.data;
 
     const logBasic = (log) => {
@@ -103,6 +107,13 @@ export class CloudDbMigrateProcessor {
           return;
         }
       } else {
+        // Default-for-orgs servers are reserved as a fallback bucket for
+        // org databases — they must never be picked by the workspace
+        // auto-picker, even if they happen to also match the job's
+        // conditions.
+        const isDefaultForOrgs = (s: DbServer) =>
+          (s.conditions as any)?.default_for_orgs === true;
+
         const matchingDbServers = dbServers
           .filter((dbServer) => {
             if (
@@ -116,6 +127,8 @@ export class CloudDbMigrateProcessor {
             return true;
           })
           .filter((dbServer) => {
+            if (isDefaultForOrgs(dbServer)) return false;
+
             // if dbServer has no conditions, skip
             if (!dbServer.conditions) return false;
 
@@ -139,6 +152,10 @@ export class CloudDbMigrateProcessor {
             ) {
               return false;
             }
+
+            // already excluded by the !dbServer.conditions guard, but be
+            // explicit so the intent is clear
+            if (isDefaultForOrgs(dbServer)) return false;
 
             // check if server has no conditions
             return !dbServer.conditions;
@@ -172,8 +189,16 @@ export class CloudDbMigrateProcessor {
         }
       }
 
-      if (workspaceOrOrg.fk_db_instance_id === dbServer.id) {
-        logBasic('Workspace already has the same db server');
+      // Skip only when source and target are identical at BOTH layers:
+      // same physical server AND same logical database name.
+      //   - entity=workspace, no targetOrg  → target db = workspace.id (same as source)
+      //   - entity=org, no targetOrg        → target db = org.id (same as source)
+      //   - entity=workspace, targetOrg=O   → target db = O.id, source db = workspace.id (different)
+      //   - entity=org A, targetOrg=B       → target db = B.id, source db = A.id (different)
+      const sameServer = workspaceOrOrg.fk_db_instance_id === dbServer.id;
+      const sameDbName = !targetOrg || workspaceOrOrg.id === targetOrg.id;
+      if (sameServer && sameDbName) {
+        logBasic('Workspace/Org already at the target location');
         return;
       }
 
@@ -231,7 +256,10 @@ export class CloudDbMigrateProcessor {
         sourceUrl: dataDbUrl,
         targetUrl: targetDbUrl,
         schemas,
-        skipCreateDb: targetOrg ? true : false,
+        // When createTargetDb is set, force creation regardless of targetOrg.
+        // This is the path used when placing a workspace into a freshly
+        // created org whose DB does not yet exist on the target server.
+        skipCreateDb: createTargetDb ? false : targetOrg ? true : false,
       });
 
       const { jobId } = response.data;

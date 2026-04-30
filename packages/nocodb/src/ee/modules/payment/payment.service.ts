@@ -19,6 +19,7 @@ import type { NcRequest } from '~/interface/config';
 import type { ReseatSubscriptionJobData } from '~/interface/Jobs';
 import { JobTypes } from '~/interface/Jobs';
 import {
+  DbServer,
   ModelStat,
   Org,
   OrgUser,
@@ -313,7 +314,7 @@ export class PaymentService {
    */
   async moveWorkspaceToNewOrg(
     workspaceId: string,
-    opts: { orgTitle?: string } = {},
+    opts: { orgTitle?: string; dbServerId?: string } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<{ org: Org; subscription: Subscription | null }> {
     const workspace = await Workspace.get(workspaceId, false, ncMeta);
@@ -354,6 +355,25 @@ export class PaymentService {
       !!workspace.stripe_customer_id &&
       workspace.stripe_customer_id !== NOCODB_INTERNAL;
 
+    // Resolve the db server for the new org. Order:
+    //   1. Explicit override from caller
+    //   2. The default-for-orgs bucket (set via DbServer.conditions)
+    //   3. Workspace's existing server (avoids creating a broken state where
+    //      the workspace is on its own server but the org has no server —
+    //      cloudDb.ts would then look for `org.id` on the workspace's server
+    //      while the data still lives in the `workspace.id` DB)
+    //   4. null → both fall back to NC_DATA_DB; no migration needed
+    let resolvedServerId: string | null = null;
+    if (opts.dbServerId) {
+      const explicit = await DbServer.get(opts.dbServerId, ncMeta);
+      if (!explicit) NcError.genericNotFound('DbServer', opts.dbServerId);
+      resolvedServerId = explicit.id;
+    } else {
+      const defaultServer = await DbServer.getDefaultForOrgs(ncMeta);
+      resolvedServerId =
+        defaultServer?.id ?? workspace.fk_db_instance_id ?? null;
+    }
+
     const transaction = await ncMeta.startTransaction();
 
     let org: Org;
@@ -367,6 +387,7 @@ export class PaymentService {
           stripe_customer_id: hasRealCustomer
             ? workspace.stripe_customer_id
             : null,
+          fk_db_instance_id: resolvedServerId ?? undefined,
         },
         transaction,
       );
@@ -417,6 +438,12 @@ export class PaymentService {
       this.logger.error(e?.message ?? String(e), e?.stack);
       return NcError.internalServerError('Failed to move workspace to new org');
     }
+
+    // Note: do NOT invalidate the cloudDb connection cache here. Until
+    // the migrate job below moves data into the org's `org.id` DB, the
+    // workspace's bases still live in the source location. The processor
+    // sets `fk_db_instance_id` on the workspace at the end of migration,
+    // which triggers `resetWorkspaceDbServer` via `Workspace.update`.
 
     // Stripe metadata rebind — best-effort. DB is already consistent; if Stripe
     // call fails, webhook handlers will self-correct on next event using
@@ -484,6 +511,36 @@ export class PaymentService {
         `Failed to set up Stripe state for org ${org.id}: ${e?.message}`,
         e?.stack,
       );
+    }
+
+    // Move workspace data from `workspace.id` DB on its current server
+    // to `org.id` DB on the org's server. Skipped only when both sides
+    // already resolve to the same NC_DATA_DB shared bucket (workspace had
+    // no dedicated server AND the org also got no dedicated server).
+    const sourceServerId = workspace.fk_db_instance_id ?? null;
+    const targetServerId = resolvedServerId ?? null;
+    const skipMigration = sourceServerId === null && targetServerId === null;
+
+    if (!skipMigration) {
+      try {
+        await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
+          workspaceOrOrgId: workspaceId,
+          targetOrgId: org.id,
+          // Pass workspace's existing server only if it had one. When
+          // omitted, the processor uses NC_DATA_DB defaults for the source
+          // URL (with the default DB name) — correct for workspaces whose
+          // schemas live in the shared NC_DATA_DB bucket.
+          ...(sourceServerId ? { oldDbServerId: sourceServerId } : {}),
+          // Fresh org → its DB does not yet exist on the target server.
+          // Tell the migrator to create it.
+          createTargetDb: true,
+        });
+      } catch (e) {
+        this.logger.error(
+          `Failed to queue CloudDbMigrate for workspace ${workspaceId} → org ${org.id}: ${e?.message}`,
+          e?.stack,
+        );
+      }
     }
 
     // Re-fetch org so the response reflects post-Stripe state (a freshly

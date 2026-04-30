@@ -182,7 +182,7 @@ export class PaymentController {
   @Post('/api/internal/payment/:workspaceId/move-to-new-org')
   async moveWorkspaceToNewOrg(
     @Param('workspaceId') workspaceId: string,
-    @Body() payload: { orgTitle?: string } = {},
+    @Body() payload: { orgTitle?: string; dbServerId?: string } = {},
   ) {
     return this.paymentService.moveWorkspaceToNewOrg(workspaceId, payload);
   }

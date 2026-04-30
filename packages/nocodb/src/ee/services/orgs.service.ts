@@ -46,18 +46,24 @@ export class OrgsService {
       return ownedOrgs[0];
     }
 
-    if (param.dbServerId) {
-      const dbServer = await DbServer.get(param.dbServerId);
+    let resolvedDbServerId: string | undefined = param.dbServerId;
+    if (resolvedDbServerId) {
+      const dbServer = await DbServer.get(resolvedDbServerId);
 
       if (!dbServer) {
-        NcError.genericNotFound('DB Server', param.dbServerId);
+        NcError.genericNotFound('DB Server', resolvedDbServerId);
       }
+    } else {
+      // Fall back to the default-for-orgs bucket so new orgs have a
+      // dedicated DB out of the gate (cloudDb resolution depends on it).
+      const defaultServer = await DbServer.getDefaultForOrgs();
+      resolvedDbServerId = defaultServer?.id;
     }
 
     const org = await Org.insert({
       title: param.title.trim(),
       fk_user_id: user.id,
-      fk_db_instance_id: param.dbServerId,
+      fk_db_instance_id: resolvedDbServerId,
     });
 
     // assign org role

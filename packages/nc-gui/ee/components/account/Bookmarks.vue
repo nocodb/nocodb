@@ -25,6 +25,44 @@ const newGroupName = ref('')
 const isDraggingGroup = ref(false)
 const isDraggingBookmark = ref(false)
 
+// Inline rename state
+const renamingBookmarkId = ref<string | null>(null)
+const renameValue = ref('')
+const useOriginalName = ref(false)
+
+function startRename(bm: BookmarkType) {
+  renamingBookmarkId.value = bm.id!
+  useOriginalName.value = !bm.title
+  renameValue.value = bm.title ?? bm.resolved_title ?? ''
+}
+
+function cancelRename() {
+  renamingBookmarkId.value = null
+  renameValue.value = ''
+  useOriginalName.value = false
+}
+
+async function saveRename(bmId: string) {
+  const newTitle = useOriginalName.value ? null : (renameValue.value.trim() || null)
+  await updateBookmark(bmId, { title: newTitle })
+  cancelRename()
+}
+
+function onToggleOriginalName(bm: BookmarkType) {
+  useOriginalName.value = !useOriginalName.value
+  if (useOriginalName.value) {
+    renameValue.value = bm.resolved_title ?? ''
+  }
+}
+
+function getDisplayTitle(bm: BookmarkType): string {
+  return bm.title ?? bm.resolved_title ?? ''
+}
+
+function isAutoResolved(bm: BookmarkType): boolean {
+  return !bm.title
+}
+
 // Mutable copy of ordered groups for drag-and-drop reordering
 const draggableGroups = ref<BookmarkGroupType[]>([])
 
@@ -213,61 +251,105 @@ watch(
             @end="isDraggingBookmark = false"
           >
             <template #item="{ element: bm }">
-              <div class="flex items-center gap-3 px-2 py-1.5 rounded-md hover:bg-nc-bg-gray-light">
-                <component
-                  :is="iconMap.drag"
-                  class="nc-bookmark-drag-handle !h-3.75 text-nc-content-gray-subtle2 cursor-move flex-shrink-0"
-                />
+              <div class="flex flex-col gap-1 px-2 py-1.5 rounded-md hover:bg-nc-bg-gray-light">
+                <div class="flex items-center gap-3">
+                  <component
+                    :is="iconMap.drag"
+                    class="nc-bookmark-drag-handle !h-3.75 text-nc-content-gray-subtle2 cursor-move flex-shrink-0"
+                  />
 
-                <BookmarksItem :bookmark="bm" class="flex-1 pointer-events-none" />
-
-                <span class="text-xs text-nc-content-gray-subtle capitalize">
-                  {{ bm.target_type }}
-                </span>
-
-                <NcDropdown :trigger="['click']">
-                  <NcButton type="text" size="xs">
-                    <GeneralIcon icon="threeDotVertical" class="w-4 h-4" />
-                  </NcButton>
-                  <template #overlay>
-                    <NcMenu>
-                      <!-- Open -->
-                      <NcMenuItem @click="navigateToBookmark(bm)">
-                        <div class="flex items-center gap-2">
-                          <GeneralIcon icon="ncExternalLink" class="w-4 h-4" />
-                          {{ $t('general.open') }}
-                        </div>
-                      </NcMenuItem>
-
-                      <NcDivider />
-
-                      <!-- Move to group submenu -->
-                      <NcSubMenu key="move-to-group">
-                        <template #title>
-                          <div class="flex items-center gap-2">
-                            <GeneralIcon icon="ncMove" class="w-4 h-4" />
-                            {{ $t('general.move') }}
-                          </div>
-                        </template>
-                        <template v-for="g in orderedGroups" :key="g.id">
-                          <NcMenuItem v-if="g.id !== group.id" @click="onMoveToGroup(bm.id!, g.id!)">
-                            {{ g.name }}
-                          </NcMenuItem>
-                        </template>
-                      </NcSubMenu>
-
-                      <NcDivider />
-
-                      <!-- Delete -->
-                      <NcMenuItem class="!text-nc-content-red-dark !hover:bg-red-50" @click="removeBookmark(bm.id!)">
-                        <div class="flex items-center gap-2">
-                          <GeneralIcon icon="delete" class="w-4 h-4" />
-                          {{ $t('general.delete') }}
-                        </div>
-                      </NcMenuItem>
-                    </NcMenu>
+                  <!-- Inline rename mode -->
+                  <template v-if="renamingBookmarkId === bm.id">
+                    <a-input
+                      v-model:value="renameValue"
+                      class="!flex-1"
+                      size="small"
+                      :disabled="useOriginalName"
+                      :placeholder="bm.resolved_title"
+                      @keyup.enter="saveRename(bm.id!)"
+                      @keyup.escape="cancelRename"
+                    />
+                    <NcButton size="xs" @click="saveRename(bm.id!)">
+                      {{ $t('general.save') }}
+                    </NcButton>
+                    <NcButton size="xs" type="text" @click="cancelRename">
+                      {{ $t('general.cancel') }}
+                    </NcButton>
                   </template>
-                </NcDropdown>
+
+                  <!-- Normal display mode -->
+                  <template v-else>
+                    <BookmarksItem
+                      :bookmark="bm"
+                      class="flex-1 pointer-events-none"
+                      :class="{ 'italic underline': !isAutoResolved(bm) }"
+                    />
+
+                    <span class="text-xs text-nc-content-gray-subtle capitalize flex-shrink-0">
+                      {{ bm.target_type }}
+                    </span>
+
+                    <NcDropdown :trigger="['click']">
+                      <NcButton type="text" size="xs">
+                        <GeneralIcon icon="threeDotVertical" class="w-4 h-4" />
+                      </NcButton>
+                      <template #overlay>
+                        <NcMenu>
+                          <!-- Open -->
+                          <NcMenuItem @click="navigateToBookmark(bm)">
+                            <div class="flex items-center gap-2">
+                              <GeneralIcon icon="ncExternalLink" class="w-4 h-4" />
+                              {{ $t('general.open') }}
+                            </div>
+                          </NcMenuItem>
+
+                          <NcDivider />
+
+                          <!-- Rename -->
+                          <NcMenuItem @click="startRename(bm)">
+                            <div class="flex items-center gap-2">
+                              <GeneralIcon icon="rename" class="w-4 h-4" />
+                              {{ $t('general.rename') }}
+                            </div>
+                          </NcMenuItem>
+
+                          <!-- Move to group submenu -->
+                          <NcSubMenu key="move-to-group">
+                            <template #title>
+                              <div class="flex items-center gap-2">
+                                <GeneralIcon icon="ncMove" class="w-4 h-4" />
+                                {{ $t('general.move') }}
+                              </div>
+                            </template>
+                            <template v-for="g in orderedGroups" :key="g.id">
+                              <NcMenuItem v-if="g.id !== group.id" @click="onMoveToGroup(bm.id!, g.id!)">
+                                {{ g.name }}
+                              </NcMenuItem>
+                            </template>
+                          </NcSubMenu>
+
+                          <NcDivider />
+
+                          <!-- Delete -->
+                          <NcMenuItem class="!text-nc-content-red-dark !hover:bg-red-50" @click="removeBookmark(bm.id!)">
+                            <div class="flex items-center gap-2">
+                              <GeneralIcon icon="delete" class="w-4 h-4" />
+                              {{ $t('general.delete') }}
+                            </div>
+                          </NcMenuItem>
+                        </NcMenu>
+                      </template>
+                    </NcDropdown>
+                  </template>
+                </div>
+
+                <!-- Use original name toggle (shown only during rename) -->
+                <div v-if="renamingBookmarkId === bm.id" class="flex items-center gap-2 ml-7.5">
+                  <NcSwitch :checked="useOriginalName" size="small" @update:checked="onToggleOriginalName(bm)" />
+                  <span class="text-xs text-nc-content-gray-subtle">
+                    {{ $t('labels.useOriginalName') }}
+                  </span>
+                </div>
               </div>
             </template>
           </Draggable>

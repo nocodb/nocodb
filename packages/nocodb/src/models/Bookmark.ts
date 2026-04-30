@@ -13,7 +13,7 @@ export default class Bookmark implements BookmarkType {
   id?: string;
   fk_user_id?: string;
   fk_group_id?: string;
-  title: string;
+  title?: string | null;
   target_type:
     | 'workspace'
     | 'base'
@@ -54,7 +54,7 @@ export default class Bookmark implements BookmarkType {
       {
         fk_user_id: data.fk_user_id,
         fk_group_id: data.fk_group_id,
-        title: data.title,
+        title: data.title ?? null,
         target_type: data.target_type,
         target_id: data.target_id,
         order: data.order ?? 0,

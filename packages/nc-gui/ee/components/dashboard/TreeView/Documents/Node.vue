@@ -566,7 +566,6 @@ function onStopEdit() {
                     addBookmark({
                       target_type: 'document',
                       target_id: doc.id!,
-                      title: doc.title,
                       meta: { workspace_id: activeWorkspaceId.value, base_id: base.value?.id || doc.base_id },
                     })
                   }

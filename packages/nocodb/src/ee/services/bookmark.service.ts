@@ -291,6 +291,8 @@ export class BookmarkService {
           base_id: meta.base_id,
         } as NcContext;
 
+        let resolvedTitle: string | undefined;
+
         try {
           switch (bm.target_type) {
             case 'workspace': {
@@ -300,7 +302,7 @@ export class BookmarkService {
                 meta.icon = wsMeta?.icon;
                 meta.iconType = wsMeta?.iconType;
                 meta.color = wsMeta?.color;
-                bm.title = ws.title ?? bm.title;
+                resolvedTitle = ws.title;
               }
               break;
             }
@@ -310,7 +312,7 @@ export class BookmarkService {
                 const baseMeta = parseMetaProp(base);
                 meta.icon_color = baseMeta?.iconColor;
                 meta.workspace_id = base.fk_workspace_id;
-                bm.title = base.title ?? bm.title;
+                resolvedTitle = base.title;
               }
               break;
             }
@@ -321,7 +323,7 @@ export class BookmarkService {
                 meta.icon = tableMeta?.icon;
                 meta.workspace_id = meta.workspace_id || table.fk_workspace_id;
                 meta.base_id = meta.base_id || table.base_id;
-                bm.title = table.title ?? bm.title;
+                resolvedTitle = table.title;
               }
               break;
             }
@@ -330,7 +332,7 @@ export class BookmarkService {
               if (view) {
                 meta.view_type = view.type;
                 meta.table_id = view.fk_model_id;
-                bm.title = view.title ?? bm.title;
+                resolvedTitle = view.title;
 
                 // Also resolve table's base_id for routing
                 if (!meta.base_id && view.fk_model_id) {
@@ -351,7 +353,11 @@ export class BookmarkService {
           this.logger.warn(`Failed to enrich bookmark ${bm.id}: ${e.message}`);
         }
 
-        return { ...bm, meta } as BookmarkType;
+        return {
+          ...bm,
+          meta,
+          resolved_title: resolvedTitle ?? bm.title ?? undefined,
+        } as BookmarkType;
       }),
     );
   }

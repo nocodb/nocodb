@@ -260,7 +260,6 @@ const onMenuClick = (e: Event) => {
                     addBookmark({
                       target_type: 'base',
                       target_id: base.id!,
-                      title: base.title!,
                       meta: { workspace_id: base.fk_workspace_id },
                     })
                   }

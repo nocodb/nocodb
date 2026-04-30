@@ -825,7 +825,6 @@ defineOptions({
             addBookmark({
               target_type: 'view',
               target_id: view.id!,
-              title: view.title,
               meta: { view_type: view.type, workspace_id: base.fk_workspace_id, base_id: table.base_id, table_id: table.id },
             })
           }

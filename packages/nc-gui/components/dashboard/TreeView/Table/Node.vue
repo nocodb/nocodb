@@ -732,7 +732,6 @@ const enabledOptions = computed(() => {
                       addBookmark({
                         target_type: 'table',
                         target_id: table.id!,
-                        title: table.title,
                         meta: { workspace_id: table.fk_workspace_id, base_id: table.base_id },
                       })
                     }

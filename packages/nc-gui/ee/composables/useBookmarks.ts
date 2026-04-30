@@ -179,6 +179,10 @@ export const useBookmarks = createSharedComposable(() => {
 
       const idx = bookmarks.value.findIndex((b) => b.id === id)
       if (idx !== -1) {
+        // Preserve resolved_title from the enriched list if backend didn't return it
+        if (!updated.resolved_title && bookmarks.value[idx].resolved_title) {
+          updated.resolved_title = bookmarks.value[idx].resolved_title
+        }
         bookmarks.value[idx] = updated
       }
 

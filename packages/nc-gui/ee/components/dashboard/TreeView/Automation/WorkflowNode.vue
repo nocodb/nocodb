@@ -524,7 +524,6 @@ const deleteWorkflow = () => {
                         addBookmark({
                           target_type: 'workflow',
                           target_id: vModel.id!,
-                          title: vModel.title,
                           meta: { workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id },
                         })
                       }

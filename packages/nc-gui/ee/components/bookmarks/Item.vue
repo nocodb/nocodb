@@ -20,6 +20,8 @@ const tableEmoji = computed(() => {
   if (bookmark.value.target_type !== 'table') return null
   return meta.value.icon || null
 })
+
+const displayTitle = computed(() => bookmark.value.title ?? bookmark.value.resolved_title ?? '')
 </script>
 
 <template>
@@ -32,7 +34,7 @@ const tableEmoji = computed(() => {
       <!-- Workspace -->
       <GeneralWorkspaceIcon
         v-if="bookmark.target_type === 'workspace'"
-        :workspace="{ id: bookmark.target_id, title: bookmark.title, meta: meta }"
+        :workspace="{ id: bookmark.target_id, title: displayTitle, meta: meta }"
         size="small"
       />
 
@@ -90,7 +92,7 @@ const tableEmoji = computed(() => {
 
     <!-- Title -->
     <NcTooltip show-on-truncate-only class="truncate flex-1 text-small text-nc-content-gray">
-      {{ bookmark.title }}
+      {{ displayTitle }}
     </NcTooltip>
   </div>
 </template>

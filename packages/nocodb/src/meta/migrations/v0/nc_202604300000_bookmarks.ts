@@ -15,7 +15,7 @@ const up = async (knex: Knex) => {
     table.string('id', 20).primary();
     table.string('fk_user_id', 20).notNullable();
     table.string('fk_group_id', 20).notNullable();
-    table.string('title', 255).notNullable();
+    table.string('title', 255).nullable().defaultTo(null);
     table.string('target_type', 20).notNullable();
     table.string('target_id', 128).notNullable();
     table.float('order').defaultTo(0);

@@ -254,7 +254,6 @@ const hasNoResults = computed(() => {
                             addBookmark({
                               target_type: 'workspace',
                               target_id: ws.id!,
-                              title: ws.title!,
                             })
                           }
                           openMenuWsId = null

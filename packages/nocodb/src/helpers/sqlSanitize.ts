@@ -23,6 +23,9 @@ export function unsanitize(v) {
  * Identifiers should still go through knex's `??` placeholder.
  */
 export function pgQuoteLiteral(value: string): string {
+  if (value == null) {
+    throw new Error('pgQuoteLiteral: value must not be null or undefined');
+  }
   return `'${String(value).replace(/'/g, "''")}'`;
 }
 

@@ -309,10 +309,11 @@ export class GenericFieldHandler
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         if (!ncIsStringHasValue(val)) {
-          // val is empty -> all values including NULL but empty strings
+          // val is empty -> all values including NULL but empty strings.
+          // Native PG enums can't hold '', so every row qualifies — emit an
+          // explicit no-op to keep the subquery group syntactically valid.
           if (isNativePgEnum) {
-            qb.whereNotNull(sourceField as any);
-            qb.orWhereNull(sourceField as any);
+            qb.whereRaw('TRUE');
           } else {
             qb.whereNot(sourceField as any, '');
             qb.orWhereNull(sourceField as any);

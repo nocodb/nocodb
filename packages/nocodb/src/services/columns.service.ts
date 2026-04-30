@@ -2178,11 +2178,12 @@ export class ColumnsService implements IColumnsService {
               //    references — log and leave for manual cleanup if so.
               try {
                 await sqlClient.raw('DROP TYPE ??', [tempQualifiedEnumType]);
-              } catch {
+              } catch (e) {
                 this.logger.warn(
                   `Could not drop ${tempQualifiedEnumType} after enum rebuild — ` +
                     `it is still referenced by another database object. ` +
-                    `Field changes are persisted; orphan type left for manual cleanup.`,
+                    `Field changes are persisted; orphan type left for manual cleanup. ` +
+                    `Reason: ${e?.message ?? e}`,
                 );
               }
             }

@@ -984,25 +984,6 @@ export class MetaDiffsService {
               }
 
               column.title = change.column.title;
-              // For PG native enum: persist internal_meta so the new
-              // (introspected) enum type name and schema land in the
-              // metadata. The introspected `column` carries the udt under
-              // data_type_custom + udt_schema; Column.update reads
-              // internal_meta directly so we translate here. (The
-              // select-option rows themselves are regenerated from dtxp
-              // by Column.update → insertColOption.)
-              if (
-                source.type === 'pg' &&
-                (column as any).udt_typtype === 'e' &&
-                (column as any).data_type_custom &&
-                (column as any).udt_schema
-              ) {
-                (column as any).internal_meta = {
-                  ...((column as any).internal_meta || {}),
-                  pg_enum_type_name: (column as any).data_type_custom,
-                  pg_enum_schema_name: (column as any).udt_schema,
-                };
-              }
               await Column.update(context, change.column.id, column);
             }
             break;

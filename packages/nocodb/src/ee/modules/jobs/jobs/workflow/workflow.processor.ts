@@ -117,7 +117,7 @@ export class WorkflowProcessor {
         const delayMs = result.resumeAt - Date.now();
         const resumeAtISO = new Date(result.resumeAt).toISOString();
 
-        this.logger.log(
+        this.logger.debug(
           `Workflow ${workflowId} execution ${executionRecord.id} paused, will resume at ${resumeAtISO} (in ${delayMs}ms)`,
         );
 
@@ -370,7 +370,7 @@ export class WorkflowProcessor {
   async resumeWorkflow(job: Job<ResumeWorkflowJobData>) {
     const { context, executionId } = job.data;
 
-    this.logger.log(
+    this.logger.debug(
       `Processing resume-workflow job for execution: ${executionId}`,
     );
 
@@ -439,7 +439,7 @@ export class WorkflowProcessor {
       delete state.pausedAt;
       delete state.resumeAt;
 
-      this.logger.log(`Resuming from node ${state.nextNodeId}`);
+      this.logger.debug(`Resuming from node ${state.nextNodeId}`);
 
       execution = await WorkflowExecution.update(context, executionId, {
         status: 'running',
@@ -510,7 +510,7 @@ export class WorkflowProcessor {
         'update',
       );
 
-      this.logger.log(
+      this.logger.debug(
         `Successfully resumed workflow execution: ${executionId} (status: ${result.status})`,
       );
 

@@ -34,7 +34,7 @@ export class UpdateUsageStatsProcessor {
         return;
       }
 
-      this.logger.log(`Processing key: ${key}`);
+      this.logger.debug(`Processing key: ${key}`);
 
       if (hash) {
         for (const [k, v] of Object.entries(hash)) {

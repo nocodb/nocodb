@@ -24,7 +24,7 @@ export class WorkflowDraftReminderProcessor {
   constructor(private readonly mailService: MailService) {}
 
   async job() {
-    this.logger.log('WorkflowDraftReminderProcessor job started');
+    this.logger.debug('WorkflowDraftReminderProcessor job started');
 
     const ncMeta = Noco.ncMeta;
 

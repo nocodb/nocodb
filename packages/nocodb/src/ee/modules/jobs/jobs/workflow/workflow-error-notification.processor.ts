@@ -24,7 +24,7 @@ export class WorkflowErrorNotificationProcessor {
   constructor(private readonly mailService: MailService) {}
 
   async job() {
-    this.logger.log('WorkflowErrorNotificationProcessor job started');
+    this.logger.debug('WorkflowErrorNotificationProcessor job started');
 
     const ncMeta = Noco.ncMeta;
 

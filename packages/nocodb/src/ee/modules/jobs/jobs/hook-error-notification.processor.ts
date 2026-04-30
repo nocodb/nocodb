@@ -30,7 +30,7 @@ export class HookErrorNotificationProcessor {
   constructor(private readonly mailService: MailService) {}
 
   async job() {
-    this.logger.log('HookErrorNotificationProcessor job started');
+    this.logger.debug('HookErrorNotificationProcessor job started');
 
     const ncMeta = Noco.ncMeta;
 

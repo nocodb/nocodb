@@ -647,14 +647,14 @@ export class WebhookInvoker {
       }
     } catch (e) {
       if (e.response) {
-        this.logger.error({
+        this.logger.debug({
           data: e.response.data,
           status: e.response.status,
           url: e.response.config?.url,
           message: e.message,
         });
       } else {
-        this.logger.error(e.message, e.stack);
+        this.logger.debug(e.message, e.stack);
       }
       if (['ERROR', 'ALL'].includes(webhookLogLevel) || isEE) {
         hookLog = {

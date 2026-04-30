@@ -15,7 +15,7 @@ export class WorkflowResumeProcessor {
   ) {}
 
   async job() {
-    this.logger.log('WorkflowResumeProcessor job started');
+    this.logger.debug('WorkflowResumeProcessor job started');
 
     const ncMeta = Noco.ncMeta;
 
@@ -27,7 +27,7 @@ export class WorkflowResumeProcessor {
         .where('resume_at', '<=', new Date())
         .limit(100); // Process 100 at a time
 
-      this.logger.log(`Found ${dueExecutions.length} executions to resume`);
+      this.logger.debug(`Found ${dueExecutions.length} executions to resume`);
 
       for (const execution of dueExecutions) {
         try {
@@ -58,7 +58,7 @@ export class WorkflowResumeProcessor {
         }
       }
 
-      this.logger.log('WorkflowResumeProcessor job completed');
+      this.logger.debug('WorkflowResumeProcessor job completed');
     } catch (error) {
       this.logger.error('WorkflowResumeProcessor job failed:', error);
       throw error;

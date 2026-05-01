@@ -23726,9 +23726,16 @@
             "example": 1
           },
           "row_id": {
-            "type": "string",
-            "description": "Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width).",
-            "example": "fr_12ab34cd"
+            "description": "Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width). null means the field is solo / not grouped.",
+            "example": "fr_12ab34cd",
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^fr_[a-z0-9]+$",
+                "maxLength": 32
+              },
+              { "type": "null" }
+            ]
           },
           "required": {
             "$ref": "#/components/schemas/Bool",
@@ -23807,8 +23814,15 @@
             "description": "The order among all the columns in the form"
           },
           "row_id": {
-            "type": "string",
-            "description": "Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width)."
+            "description": "Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width). null means the field is solo / not grouped.",
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^fr_[a-z0-9]+$",
+                "maxLength": 32
+              },
+              { "type": "null" }
+            ]
           },
           "required": {
             "$ref": "#/components/schemas/Bool",

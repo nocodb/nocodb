@@ -5,8 +5,8 @@ import { OperationRegistry } from '~/command-registry/registry';
 /**
  * Build a synthetic request object for replay-time service calls. The original
  * request from the sandbox-side mutation is reused (so audit/webhook context
- * stays meaningful), but `__commandTraced` is unset so nested calls still trace
- * if needed (they shouldn't — replay is the outermost call).
+ * stays meaningful) — replay-time tracing is naturally a no-op because
+ * `recordCommand` early-exits when the target base isn't a sandbox.
  */
 export function makeReplayReq(
   originalReq: NcRequest,
@@ -14,7 +14,6 @@ export function makeReplayReq(
 ): NcRequest {
   const req = {
     ...originalReq,
-    __commandTraced: false,
     user: originalReq?.user ?? { id: createdBy },
     __isReplay: true,
   } as NcRequest;

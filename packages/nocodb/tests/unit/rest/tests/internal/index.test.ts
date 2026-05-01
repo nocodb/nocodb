@@ -16,6 +16,7 @@ export const internalTests = runOnSet(2, function () {
         require('./ee/date-dependency.test').dateDependencyTests();
         require('./ee/sandbox-trace-command.test').sandboxTraceCommandTests();
         require('./ee/sandbox-merge-roundtrip.test').sandboxMergeRoundtripTests();
+        require('./ee/sandbox-merge-delete.test').sandboxMergeDeleteTests();
       } catch (e) {
         // EE test files not available in CE
       }

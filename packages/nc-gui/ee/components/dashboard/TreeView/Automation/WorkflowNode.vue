@@ -26,7 +26,7 @@ const { isUIAllowed } = useRoles()
 
 const workflowStore = useWorkflowStore()
 
-const { blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+const { blockBookmarks } = useEeConfig()
 
 const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
 
@@ -515,8 +515,8 @@ const deleteWorkflow = () => {
                   </NcMenuItem>
                   <NcDivider />
                   <NcMenuItem
+                    v-if="!blockBookmarks"
                     @click="() => {
-                      if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
                       const bm = getBookmark('workflow', vModel.id!)
                       if (bm) {
                         removeBookmark(bm.id!)

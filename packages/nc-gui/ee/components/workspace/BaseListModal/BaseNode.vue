@@ -14,7 +14,7 @@ const { onRename, onToggleStarred, onDuplicate, onOpenErd, onOpenSettings, onDel
   useWsBaseListActionsOrThrow()
 
 const { isUIAllowed } = useRoles()
-const { showRecordPlanLimitExceededModal, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+const { showRecordPlanLimitExceededModal, blockBookmarks } = useEeConfig()
 
 const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
 
@@ -250,9 +250,9 @@ const onMenuClick = (e: Event) => {
 
               <!-- Bookmark -->
               <NcMenuItem
+                v-if="!blockBookmarks"
                 data-testid="nc-base-node-bookmark"
                 @click="() => {
-                  if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
                   const bm = getBookmark('base', base.id!)
                   if (bm) {
                     removeBookmark(bm.id!)

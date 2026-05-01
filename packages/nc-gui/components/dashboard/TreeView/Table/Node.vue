@@ -49,7 +49,7 @@ const { loadViews: _loadViews } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { showEEFeatures, showRecordPlanLimitExceededModal, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+const { showEEFeatures, showRecordPlanLimitExceededModal, blockBookmarks } = useEeConfig()
 
 const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
 
@@ -722,9 +722,8 @@ const enabledOptions = computed(() => {
                   </PaymentUpgradeBadgeProvider>
                 </template>
                 <NcMenuItem
-                  v-if="isEeUI"
+                  v-if="isEeUI && !blockBookmarks"
                   @click="() => {
-                    if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
                     const bm = getBookmark('table', table.id!)
                     if (bm) {
                       removeBookmark(bm.id!)

@@ -15,7 +15,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { orgRoles } = useRoles()
 
-const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace, blockWorkspaceCreate, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace, blockWorkspaceCreate, blockBookmarks } = useEeConfig()
 
 const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
 
@@ -244,9 +244,9 @@ const hasNoResults = computed(() => {
                       />
                       <NcDivider />
                       <NcMenuItem
+                        v-if="!blockBookmarks"
                         data-testid="nc-ws-bookmark"
                         @click="() => {
-                          if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
                           const bm = getBookmark('workspace', ws.id!)
                           if (bm) {
                             removeBookmark(bm.id!)

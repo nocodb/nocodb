@@ -5,6 +5,7 @@ export const useBookmarks = createSharedComposable(() => {
   const { $api, $e } = useNuxtApp()
   const { t } = useI18n()
   const router = useRouter()
+  const { blockBookmarks } = useEeConfig()
 
   const bookmarks = ref<BookmarkType[]>([])
   const groups = ref<BookmarkGroupType[]>([])
@@ -37,6 +38,8 @@ export const useBookmarks = createSharedComposable(() => {
   })
 
   async function loadBookmarks() {
+    if (blockBookmarks.value) return
+
     try {
       isLoading.value = true
 
@@ -51,6 +54,8 @@ export const useBookmarks = createSharedComposable(() => {
   }
 
   async function loadBookmarkCheck() {
+    if (blockBookmarks.value) return
+
     try {
       const res = (await $api.bookmark.check()) as Record<string, any>
       bookmarkCheckMap.value = res ?? {}

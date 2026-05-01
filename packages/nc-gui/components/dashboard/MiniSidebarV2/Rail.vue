@@ -45,19 +45,11 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, showEEFeatures, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+const { blockAiChat, showEEFeatures, blockBookmarks } = useEeConfig()
 
 const isBookmarksFlyoutOpen = ref(false)
 
 const bookmarksContainerRef = ref<HTMLElement | null>(null)
-
-function onBookmarksClick() {
-  if (blockBookmarks.value) {
-    showUpgradeToUseBookmarks()
-    return
-  }
-  isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
-}
 
 onClickOutside(bookmarksContainerRef, () => {
   isBookmarksFlyoutOpen.value = false
@@ -298,7 +290,7 @@ const mainItems = computed<NavItem[]>(() => [
     <DashboardMiniSidebarCreateNewActionMenu v-if="!isMobileMode" />
 
     <!-- Bookmarks -->
-    <div v-if="isEeUI" ref="bookmarksContainerRef" class="relative">
+    <div v-if="isEeUI && !blockBookmarks" ref="bookmarksContainerRef" class="relative">
       <DashboardMiniSidebarV2RailItem
         icon="ncBookmark"
         :tooltip="$t('tooltip.bookmarks')"
@@ -306,16 +298,11 @@ const mainItems = computed<NavItem[]>(() => [
         :active="isBookmarksFlyoutOpen"
         is-dropdown
         data-testid="nc-rail-bookmarks"
-        @click="onBookmarksClick"
-      />
-      <LazyPaymentUpgradeBadge
-        :feature="PlanFeatureTypes.FEATURE_BOOKMARKS"
-        class="absolute -top-1 -right-1 pointer-events-none"
-        size="xs"
+        @click="isBookmarksFlyoutOpen = !isBookmarksFlyoutOpen"
       />
 
       <LazyBookmarksFlyout
-        v-if="isBookmarksFlyoutOpen && !blockBookmarks"
+        v-if="isBookmarksFlyoutOpen"
         @close="isBookmarksFlyoutOpen = false"
       />
     </div>

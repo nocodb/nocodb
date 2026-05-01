@@ -343,6 +343,17 @@ const rolePermissions:
 
       mcpRootList: true,
       getUserProfile: true,
+
+      // Bookmarks
+      bookmarkList: true,
+      bookmarkCheck: true,
+      bookmarkGroupList: true,
+      bookmarkCreate: true,
+      bookmarkUpdate: true,
+      bookmarkDelete: true,
+      bookmarkGroupCreate: true,
+      bookmarkGroupUpdate: true,
+      bookmarkGroupDelete: true,
     },
   },
   [OrgUserRoles.CREATOR]: {

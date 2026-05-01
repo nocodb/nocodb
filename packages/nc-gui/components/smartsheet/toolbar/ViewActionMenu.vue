@@ -51,7 +51,7 @@ const { base } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { showEEFeatures, showRecordPlanLimitExceededModal, getPlanTitle, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+const { showEEFeatures, showRecordPlanLimitExceededModal, getPlanTitle, blockBookmarks } = useEeConfig()
 
 const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
 
@@ -815,9 +815,8 @@ defineOptions({
       </template>
 
       <NcMenuItem
-        v-if="isEeUI"
+        v-if="isEeUI && !blockBookmarks"
         @click="() => {
-          if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
           const bm = getBookmark('view', view.id!)
           if (bm) {
             removeBookmark(bm.id!)

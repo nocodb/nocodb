@@ -26,7 +26,7 @@ const { isUIAllowed } = useRoles()
 
 const scriptStore = useScriptStore()
 
-const { blockBookmarks, showUpgradeToUseBookmarks, showScriptPlanLimitExceededModal } = useEeConfig()
+const { blockBookmarks, showScriptPlanLimitExceededModal } = useEeConfig()
 
 const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
 
@@ -520,8 +520,8 @@ const deleteScript = () => {
                   </NcMenuItem>
                   <NcDivider />
                   <NcMenuItem
+                    v-if="!blockBookmarks"
                     @click="() => {
-                      if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
                       const bm = getBookmark('script', vModel.id!)
                       if (bm) {
                         removeBookmark(bm.id!)

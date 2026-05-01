@@ -39,7 +39,7 @@ const { activeDocumentId, expandedDocIds } = storeToRefs(documentsStore)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-const { blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+const { blockBookmarks } = useEeConfig()
 
 const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
 
@@ -557,8 +557,8 @@ function onStopEdit() {
                 </PaymentUpgradeBadgeProvider>
               </template>
               <NcMenuItem
+                v-if="!blockBookmarks"
                 @click="() => {
-                  if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
                   const bm = getBookmark('document', doc.id!)
                   if (bm) {
                     removeBookmark(bm.id!)

@@ -11,7 +11,7 @@ const { appInfo, signedIn, signOut } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
-const { isPaymentEnabled, isEEFeatureBlocked, showEEFeatures } = useEeConfig()
+const { isPaymentEnabled, isEEFeatureBlocked, showEEFeatures, blockBookmarks } = useEeConfig()
 
 const workspaceStore = useWorkspace()
 
@@ -268,7 +268,7 @@ onMounted(() => {
               </NcMenuItem>
 
               <NcMenuItem
-                v-if="isEeUI"
+                v-if="isEeUI && !blockBookmarks"
                 key="bookmarks"
                 :class="{
                   active: $route.params.page === 'bookmarks',

@@ -683,6 +683,17 @@ const rolePermissions:
       managedAppStoreList: true,
       managedAppGet: true,
       managedAppVersionsList: true,
+
+      // Bookmarks
+      bookmarkList: true,
+      bookmarkCheck: true,
+      bookmarkGroupList: true,
+      bookmarkCreate: true,
+      bookmarkUpdate: true,
+      bookmarkDelete: true,
+      bookmarkGroupCreate: true,
+      bookmarkGroupUpdate: true,
+      bookmarkGroupDelete: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {

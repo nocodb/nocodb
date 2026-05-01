@@ -37,7 +37,7 @@ const { appInfo } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isEEFeatureBlocked, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+const { isEEFeatureBlocked, blockBookmarks } = useEeConfig()
 
 const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
 
@@ -243,8 +243,8 @@ const isOptionVisible = computed(() => {
     <NcDivider />
 
     <NcMenuItem
+      v-if="!blockBookmarks"
       @click="() => {
-        if (blockBookmarks.value) { showUpgradeToUseBookmarks(); return }
         const bm = getBookmark('base', base.id!)
         if (bm) {
           removeBookmark(bm.id!)

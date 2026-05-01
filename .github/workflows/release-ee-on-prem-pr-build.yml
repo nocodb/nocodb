@@ -12,19 +12,15 @@ name: "Enterprise : On-prem PR / Daily Docker build"
 #   3. workflow_call — invoked by another workflow (e.g. cloud production deploy). If no
 #      `version` is supplied, an auto-generated `<YYYY.MM.DD>.<HHMM>` tag is used.
 #
-# Tag format:
-#   - PR labeled:    <YYYY.MM.DD>-pr<PR_NUMBER>.<HHMM>  (+ moving `pr-<PR_NUMBER>`)
-#   - workflow_call: <YYYY.MM.DD>.<HHMM>                (PR-less daily-style tag)
+# Tag format (single tag pushed per build):
+#   - PR labeled:    <YYYY.MM.DD>-pr<PR_NUMBER>.<HHMM>
+#   - workflow_call: <YYYY.MM.DD>.<HHMM>     (PR-less daily-style tag)
 #   - dispatch:      caller-supplied
 #
-# Why not the bare `YYYY.MM.DD.PR_NUM` the user asked about?
-#   - Date + PR number alone is not unique: pushing a second commit on the same day to
-#     the same PR would overwrite the previous image.
-#   - Adding `HHMM` keeps the build chronologically sortable, identifies the PR, and
-#     guarantees uniqueness for re-runs on the same day.
-#   - We additionally publish a moving `pr-<PR_NUMBER>` tag that always points at the
-#     latest build for that PR — convenient for testers who don't want to bump the tag
-#     every time.
+# Date + PR number alone (the user's original suggestion) isn't unique — a second
+# commit on the same day to the same PR would overwrite the previous image. Appending
+# `HHMM` keeps tags chronologically sortable, identifies the PR, and guarantees
+# uniqueness for re-runs on the same day.
 
 on:
   workflow_dispatch:
@@ -84,9 +80,9 @@ jobs:
           node-version: 24.14.0
           cache: 'pnpm'
 
-      # Resolve the docker tag(s) we will publish.
+      # Resolve the single docker tag we will publish.
       # - Caller-supplied version (dispatch or workflow_call):    use as-is.
-      # - PR labeled:                                             <YYYY.MM.DD>-pr<num>.<HHMM> + moving pr-<num>.
+      # - PR labeled:                                             <YYYY.MM.DD>-pr<num>.<HHMM>.
       # - workflow_call without version (e.g. prod deploy):       <YYYY.MM.DD>.<HHMM>.
       - name: Resolve docker tag
         id: resolve-tag
@@ -98,18 +94,13 @@ jobs:
 
           if [ -n "$PROVIDED_VERSION" ]; then
             PRIMARY_TAG="$PROVIDED_VERSION"
-            MOVING_TAG=""
           elif [ -n "$PR_NUMBER" ]; then
             PRIMARY_TAG="${DATE_PART}-pr${PR_NUMBER}.${TIME_PART}"
-            MOVING_TAG="pr-${PR_NUMBER}"
           else
             PRIMARY_TAG="${DATE_PART}.${TIME_PART}"
-            MOVING_TAG=""
           fi
           echo "PRIMARY_TAG=${PRIMARY_TAG}" >> "$GITHUB_OUTPUT"
-          echo "MOVING_TAG=${MOVING_TAG}" >> "$GITHUB_OUTPUT"
           echo "Primary tag: ${PRIMARY_TAG}"
-          echo "Moving tag : ${MOVING_TAG}"
 
       - name: remove use-node-version line from .npmrc
         run: sed -i '/^use-node-version/d' .npmrc
@@ -201,7 +192,6 @@ jobs:
           push: true
           tags: |
             nocodb/nocodb-daily:${{ steps.resolve-tag.outputs.PRIMARY_TAG }}
-            ${{ steps.resolve-tag.outputs.MOVING_TAG != '' && format('nocodb/nocodb-daily:{0}', steps.resolve-tag.outputs.MOVING_TAG) || '' }}
 
       # https://github.com/docker/build-push-action/issues/252
       - name: Move cache
@@ -230,7 +220,6 @@ jobs:
             ### On-prem PR build ready
 
             **Image:** `nocodb/nocodb-daily:${{ steps.resolve-tag.outputs.PRIMARY_TAG }}`
-            **Latest for this PR:** `nocodb/nocodb-daily:${{ steps.resolve-tag.outputs.MOVING_TAG }}`
 
             Pull it with:
             ```bash

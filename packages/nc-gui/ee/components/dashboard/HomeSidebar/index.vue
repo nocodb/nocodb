@@ -15,9 +15,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { orgRoles } = useRoles()
 
-const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace, blockWorkspaceCreate, blockBookmarks } = useEeConfig()
-
-const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace, blockWorkspaceCreate } = useEeConfig()
 
 const { $e } = useNuxtApp()
 
@@ -243,28 +241,10 @@ const hasNoResults = computed(() => {
                         :label="$t('labels.workspaceId', { workspaceId: ws.id })"
                       />
                       <NcDivider />
-                      <NcMenuItem
-                        v-if="!blockBookmarks"
-                        data-testid="nc-ws-bookmark"
-                        @click="() => {
-                          const bm = getBookmark('workspace', ws.id!)
-                          if (bm) {
-                            removeBookmark(bm.id!)
-                          } else {
-                            addBookmark({
-                              target_type: 'workspace',
-                              target_id: ws.id!,
-                            })
-                          }
-                          openMenuWsId = null
-                        }"
-                      >
-                        <GeneralIcon
-                          icon="ncBookmark"
-                          :class="isBookmarked('workspace', ws.id!, {}) ? 'text-nc-content-brand' : 'opacity-80'"
-                        />
-                        {{ isBookmarked('workspace', ws.id!, {}) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
-                      </NcMenuItem>
+                      <BookmarksMenuAction
+                        target-type="workspace"
+                        :target-id="ws.id!"
+                      />
                     </NcMenu>
                   </template>
                 </NcDropdown>

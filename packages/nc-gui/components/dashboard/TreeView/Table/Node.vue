@@ -49,9 +49,7 @@ const { loadViews: _loadViews } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { showEEFeatures, showRecordPlanLimitExceededModal, blockBookmarks } = useEeConfig()
-
-const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
+const { showEEFeatures, showRecordPlanLimitExceededModal } = useEeConfig()
 
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
@@ -721,26 +719,12 @@ const enabledOptions = computed(() => {
                     </template>
                   </PaymentUpgradeBadgeProvider>
                 </template>
-                <NcMenuItem
-                  v-if="isEeUI && !blockBookmarks"
-                  @click="() => {
-                    const bm = getBookmark('table', table.id!)
-                    if (bm) {
-                      removeBookmark(bm.id!)
-                    } else {
-                      addBookmark({
-                        target_type: 'table',
-                        target_id: table.id!,
-                        meta: { workspace_id: table.fk_workspace_id, base_id: table.base_id },
-                      })
-                    }
-                  }"
-                >
-                  <div class="flex gap-2 items-center">
-                    <GeneralIcon icon="ncBookmark" :class="isBookmarked('table', table.id!, { workspace_id: table.fk_workspace_id, base_id: table.base_id }) ? 'text-nc-content-brand' : 'opacity-80'" />
-                    {{ isBookmarked('table', table.id!, { workspace_id: table.fk_workspace_id, base_id: table.base_id }) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
-                  </div>
-                </NcMenuItem>
+                <BookmarksMenuAction
+                  v-if="isEeUI"
+                  target-type="table"
+                  :target-id="table.id!"
+                  :meta="{ workspace_id: table.fk_workspace_id, base_id: table.base_id }"
+                />
                 <template v-if="enabledOptions.tableDelete">
                   <NcDivider />
                   <NcMenuItem

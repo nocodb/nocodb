@@ -26,9 +26,7 @@ const { isUIAllowed } = useRoles()
 
 const scriptStore = useScriptStore()
 
-const { blockBookmarks, showScriptPlanLimitExceededModal } = useEeConfig()
-
-const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
+const { showScriptPlanLimitExceededModal } = useEeConfig()
 
 const basesStore = useBases()
 
@@ -519,26 +517,11 @@ const deleteScript = () => {
                     {{ $t('general.duplicate') }} {{ $t('objects.script').toLowerCase() }}
                   </NcMenuItem>
                   <NcDivider />
-                  <NcMenuItem
-                    v-if="!blockBookmarks"
-                    @click="() => {
-                      const bm = getBookmark('script', vModel.id!)
-                      if (bm) {
-                        removeBookmark(bm.id!)
-                      } else {
-                        addBookmark({
-                          target_type: 'script',
-                          target_id: vModel.id!,
-                          meta: { workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id },
-                        })
-                      }
-                    }"
-                  >
-                    <div class="flex gap-2 items-center">
-                      <GeneralIcon icon="ncBookmark" :class="isBookmarked('script', vModel.id!, { workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id }) ? 'text-nc-content-brand' : 'opacity-80'" />
-                      {{ isBookmarked('script', vModel.id!, { workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id }) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
-                    </div>
-                  </NcMenuItem>
+                  <BookmarksMenuAction
+                    target-type="script"
+                    :target-id="vModel.id!"
+                    :meta="{ workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id }"
+                  />
                   <NcDivider />
                   <NcMenuItem
                     v-e="['c:table:delete']"

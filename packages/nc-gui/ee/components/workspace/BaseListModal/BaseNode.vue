@@ -14,9 +14,7 @@ const { onRename, onToggleStarred, onDuplicate, onOpenErd, onOpenSettings, onDel
   useWsBaseListActionsOrThrow()
 
 const { isUIAllowed } = useRoles()
-const { showRecordPlanLimitExceededModal, blockBookmarks } = useEeConfig()
-
-const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
+const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const { activeProjectId } = storeToRefs(useBases())
 
@@ -249,29 +247,11 @@ const onMenuClick = (e: Event) => {
               </NcMenuItem>
 
               <!-- Bookmark -->
-              <NcMenuItem
-                v-if="!blockBookmarks"
-                data-testid="nc-base-node-bookmark"
-                @click="() => {
-                  const bm = getBookmark('base', base.id!)
-                  if (bm) {
-                    removeBookmark(bm.id!)
-                  } else {
-                    addBookmark({
-                      target_type: 'base',
-                      target_id: base.id!,
-                      meta: { workspace_id: base.fk_workspace_id },
-                    })
-                  }
-                  isMenuOpen = false
-                }"
-              >
-                <GeneralIcon
-                  icon="ncBookmark"
-                  :class="isBookmarked('base', base.id!, { workspace_id: base.fk_workspace_id }) ? 'text-nc-content-brand' : 'opacity-80'"
-                />
-                {{ isBookmarked('base', base.id!, { workspace_id: base.fk_workspace_id }) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
-              </NcMenuItem>
+              <BookmarksMenuAction
+                target-type="base"
+                :target-id="base.id!"
+                :meta="{ workspace_id: base.fk_workspace_id }"
+              />
 
               <!-- Settings -->
               <NcMenuItem v-if="isOptionVisible.baseMiscSettings" data-testid="nc-base-node-settings" @click="handleOpenSettings">

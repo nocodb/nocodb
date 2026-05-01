@@ -63,7 +63,7 @@ onMounted(() => {
       <!-- Empty state -->
       <div v-else-if="isEmpty" class="flex flex-col items-center justify-center py-8 gap-2">
         <GeneralIcon icon="ncBookmark" class="w-8 h-8 text-nc-content-gray-subtle" />
-        <span class="text-sm text-nc-content-gray-subtle">{{ $t('labels.noData') }}</span>
+        <span class="text-sm text-nc-content-gray-subtle text-center px-4">{{ $t('msg.noBookmarksYet') }}</span>
       </div>
 
       <!-- 3-column grid -->

@@ -424,7 +424,7 @@ watch(
 
     <!-- No groups at all -->
     <div v-if="!isLoading && !orderedGroups.length" class="text-sm text-nc-content-gray-muted">
-      {{ $t('labels.noData') }}
+      {{ $t('msg.noBookmarksYet') }}
     </div>
   </div>
 </template>

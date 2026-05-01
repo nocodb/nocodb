@@ -39,10 +39,6 @@ const { activeDocumentId, expandedDocIds } = storeToRefs(documentsStore)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-const { blockBookmarks } = useEeConfig()
-
-const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
-
 const base = inject(ProjectInj, ref())
 
 const input = ref<HTMLInputElement>()
@@ -556,26 +552,11 @@ function onStopEdit() {
                   </template>
                 </PaymentUpgradeBadgeProvider>
               </template>
-              <NcMenuItem
-                v-if="!blockBookmarks"
-                @click="() => {
-                  const bm = getBookmark('document', doc.id!)
-                  if (bm) {
-                    removeBookmark(bm.id!)
-                  } else {
-                    addBookmark({
-                      target_type: 'document',
-                      target_id: doc.id!,
-                      meta: { workspace_id: activeWorkspaceId.value, base_id: base.value?.id || doc.base_id },
-                    })
-                  }
-                }"
-              >
-                <div class="flex gap-2 items-center">
-                  <GeneralIcon icon="ncBookmark" :class="isBookmarked('document', doc.id!, { workspace_id: activeWorkspaceId, base_id: base?.id || doc.base_id }) ? 'text-nc-content-brand' : 'opacity-80'" />
-                  {{ isBookmarked('document', doc.id!, { workspace_id: activeWorkspaceId, base_id: base?.id || doc.base_id }) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
-                </div>
-              </NcMenuItem>
+              <BookmarksMenuAction
+                target-type="document"
+                :target-id="doc.id!"
+                :meta="{ workspace_id: activeWorkspaceId.value, base_id: base.value?.id || doc.base_id }"
+              />
               <template v-if="isUIAllowed('documentDelete')">
                 <NcDivider />
                 <NcMenuItem v-e="['c:document:delete']" :data-testid="`sidebar-doc-delete-${doc.title}`" danger @click="onDelete">

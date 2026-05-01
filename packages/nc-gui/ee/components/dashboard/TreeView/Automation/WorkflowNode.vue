@@ -26,10 +26,6 @@ const { isUIAllowed } = useRoles()
 
 const workflowStore = useWorkflowStore()
 
-const { blockBookmarks } = useEeConfig()
-
-const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
-
 const basesStore = useBases()
 
 const { activeProjectId } = storeToRefs(basesStore)
@@ -514,26 +510,11 @@ const deleteWorkflow = () => {
                     {{ $t('general.duplicate') }} {{ 'Workflow'.toLowerCase() }}
                   </NcMenuItem>
                   <NcDivider />
-                  <NcMenuItem
-                    v-if="!blockBookmarks"
-                    @click="() => {
-                      const bm = getBookmark('workflow', vModel.id!)
-                      if (bm) {
-                        removeBookmark(bm.id!)
-                      } else {
-                        addBookmark({
-                          target_type: 'workflow',
-                          target_id: vModel.id!,
-                          meta: { workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id },
-                        })
-                      }
-                    }"
-                  >
-                    <div class="flex gap-2 items-center">
-                      <GeneralIcon icon="ncBookmark" :class="isBookmarked('workflow', vModel.id!, { workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id }) ? 'text-nc-content-brand' : 'opacity-80'" />
-                      {{ isBookmarked('workflow', vModel.id!, { workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id }) ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
-                    </div>
-                  </NcMenuItem>
+                  <BookmarksMenuAction
+                    target-type="workflow"
+                    :target-id="vModel.id!"
+                    :meta="{ workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id }"
+                  />
                   <NcDivider />
                   <NcMenuItem
                     v-e="['c:table:delete']"

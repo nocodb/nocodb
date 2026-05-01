@@ -3205,6 +3205,7 @@
     "bookmarkRemoved": "Bookmark removed",
     "bookmarkUpdated": "Bookmark updated",
     "bookmarkGroupDeleted": "Group deleted. Bookmarks moved to Ungrouped.",
+    "noBookmarksYet": "No bookmarks added yet. You can bookmark a base, table, or view from its context menu.",
     "noActionsAvailable": "No actions available",
     "manageBaseIntegrations": "Manage connections and discover new integrations for this base",
     "noIntegrationsLinked": "No integrations linked to this base",

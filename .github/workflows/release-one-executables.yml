@@ -69,7 +69,9 @@ jobs:
       - name: Install QEMU
         run: |
           sudo apt update
-          sudo apt install -y qemu binfmt-support qemu-user-static
+          # `qemu` meta-package was removed on newer Ubuntu (Noble+); we only
+          # need `qemu-user-static` for cross-arch binfmt registration.
+          sudo apt install -y binfmt-support qemu-user-static
 
       - name: Prepare nocodb tarball for pkg-executable
         run: |

@@ -66,13 +66,6 @@ jobs:
           sed -i "s/\"version\": \".*\"/\"version\": \"${CE_TAG}\"/g" ./packages/nocodb/package.json
           echo "Set nocodb package.json version to ${CE_TAG}"
 
-      - name: Install QEMU
-        run: |
-          sudo apt update
-          # `qemu` meta-package was removed on newer Ubuntu (Noble+); we only
-          # need `qemu-user-static` for cross-arch binfmt registration.
-          sudo apt install -y binfmt-support qemu-user-static
-
       - name: Prepare nocodb tarball for pkg-executable
         run: |
           cd packages/nocodb

@@ -3,15 +3,19 @@ name: "Enterprise : On-prem PR / Daily Docker build"
 # This workflow builds the Enterprise Edition on-prem Docker image as a "daily/PR" build
 # and pushes it to the `nocodb/nocodb-daily` Docker Hub repository.
 #
-# Two triggers are supported:
+# Three triggers are supported:
 #   1. workflow_dispatch (manual) — caller provides a `version` input and the image is
 #      pushed as `nocodb/nocodb-daily:<version>`.
 #   2. pull_request labeled with `on-prem-build` — image is built for the PR head commit
 #      and pushed with an auto-generated tag, then a comment with the pull command is
 #      added to the PR.
+#   3. workflow_call — invoked by another workflow (e.g. cloud production deploy). If no
+#      `version` is supplied, an auto-generated `<YYYY.MM.DD>.<HHMM>` tag is used.
 #
-# Tag format for PR builds:
-#   <YYYY.MM.DD>-pr<PR_NUMBER>.<HHMM>
+# Tag format:
+#   - PR labeled:    <YYYY.MM.DD>-pr<PR_NUMBER>.<HHMM>  (+ moving `pr-<PR_NUMBER>`)
+#   - workflow_call: <YYYY.MM.DD>.<HHMM>                (PR-less daily-style tag)
+#   - dispatch:      caller-supplied
 #
 # Why not the bare `YYYY.MM.DD.PR_NUM` the user asked about?
 #   - Date + PR number alone is not unique: pushing a second commit on the same day to
@@ -29,6 +33,19 @@ on:
         description: "Docker image tag to publish (e.g. 2026.05.01-test or pr-1234.20260501.1530)"
         required: true
         type: string
+  workflow_call:
+    inputs:
+      version:
+        description: "Docker image tag to publish (optional — auto-generated if omitted)"
+        required: false
+        type: string
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+      NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM:
+        required: false
   pull_request:
     types: [labeled]
 
@@ -42,8 +59,9 @@ permissions:
 
 jobs:
   buildx:
-    # Run on manual dispatch, or on a PR that just received the `on-prem-build` label.
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.label.name == 'on-prem-build') }}
+    # Run unless this is a PR event without the `on-prem-build` label.
+    # Always runs for workflow_dispatch and workflow_call.
+    if: ${{ github.event_name != 'pull_request' || github.event.label.name == 'on-prem-build' }}
     runs-on: ubicloud-standard-8
     timeout-minutes: 30
     env:
@@ -67,20 +85,26 @@ jobs:
           cache: 'pnpm'
 
       # Resolve the docker tag(s) we will publish.
-      # - Manual dispatch: use the provided `version` as-is.
-      # - PR labeled:      generate `<YYYY.MM.DD>-pr<num>.<HHMM>` plus a moving `pr-<num>` tag.
+      # - Caller-supplied version (dispatch or workflow_call):    use as-is.
+      # - PR labeled:                                             <YYYY.MM.DD>-pr<num>.<HHMM> + moving pr-<num>.
+      # - workflow_call without version (e.g. prod deploy):       <YYYY.MM.DD>.<HHMM>.
       - name: Resolve docker tag
         id: resolve-tag
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            PRIMARY_TAG="${{ github.event.inputs.version }}"
+          PROVIDED_VERSION="${{ github.event.inputs.version || inputs.version }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          DATE_PART=$(date -u +"%Y.%m.%d")
+          TIME_PART=$(date -u +"%H%M")
+
+          if [ -n "$PROVIDED_VERSION" ]; then
+            PRIMARY_TAG="$PROVIDED_VERSION"
             MOVING_TAG=""
-          else
-            PR_NUMBER="${{ github.event.pull_request.number }}"
-            DATE_PART=$(date -u +"%Y.%m.%d")
-            TIME_PART=$(date -u +"%H%M")
+          elif [ -n "$PR_NUMBER" ]; then
             PRIMARY_TAG="${DATE_PART}-pr${PR_NUMBER}.${TIME_PART}"
             MOVING_TAG="pr-${PR_NUMBER}"
+          else
+            PRIMARY_TAG="${DATE_PART}.${TIME_PART}"
+            MOVING_TAG=""
           fi
           echo "PRIMARY_TAG=${PRIMARY_TAG}" >> "$GITHUB_OUTPUT"
           echo "MOVING_TAG=${MOVING_TAG}" >> "$GITHUB_OUTPUT"

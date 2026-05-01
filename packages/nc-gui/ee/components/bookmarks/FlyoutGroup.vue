@@ -217,12 +217,19 @@ function handleDrop() {
         </template>
       </div>
 
-      <!-- Group actions (hidden for Ungrouped) -->
-      <NcDropdown v-if="!isDefaultGroup" v-model:visible="isGroupMenuOpen" :trigger="['click']" placement="bottomRight" overlay-class-name="nc-bookmark-group-menu">
+      <!-- Group actions — invisible for Ungrouped to preserve alignment -->
+      <NcDropdown
+        v-model:visible="isGroupMenuOpen"
+        :trigger="isDefaultGroup ? [] : ['click']"
+        :disabled="isDefaultGroup"
+        placement="bottomRight"
+        overlay-class-name="nc-bookmark-group-menu"
+      >
         <NcButton
           type="text"
           size="xxsmall"
           class="!rounded-md flex-none"
+          :class="{ invisible: isDefaultGroup }"
           data-testid="nc-bookmark-group-kebab"
           @click.stop
         >

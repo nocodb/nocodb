@@ -85,13 +85,21 @@ export class DbServerController {
       conditions?: Record<string, string>;
       targetOrgId?: string;
       oldDbServerId?: string;
+      // Direct target server override. When set, bypasses the conditions
+      // picker. Mutually exclusive with `targetOrgId`.
+      dbServerId?: string;
     },
   ) {
+    if (body.dbServerId && body.targetOrgId) {
+      NcError.badRequest('dbServerId and targetOrgId are mutually exclusive');
+    }
+
     const job = await this.jobsService.add(JobTypes.CloudDbMigrate, {
       workspaceOrOrgId,
       conditions: body.conditions,
       ...(body.targetOrgId ? { targetOrgId: body.targetOrgId } : {}),
       ...(body.oldDbServerId ? { oldDbServerId: body.oldDbServerId } : {}),
+      ...(body.dbServerId ? { dbServerId: body.dbServerId } : {}),
     });
 
     return {

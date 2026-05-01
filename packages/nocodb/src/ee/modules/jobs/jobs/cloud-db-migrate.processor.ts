@@ -28,6 +28,10 @@ export class CloudDbMigrateProcessor {
       conditions = {},
       targetOrgId = null,
       oldDbServerId = null,
+      // Direct target server override. When set, bypasses the conditions
+      // picker entirely and uses this server (subject to existence and
+      // capacity checks). Mutually exclusive with `targetOrgId`.
+      dbServerId = null,
       // When true, force `skipCreateDb=false` regardless of whether
       // targetOrg is set. Used when placing a workspace into a freshly
       // created org whose DB does not yet exist on the target server.
@@ -94,7 +98,24 @@ export class CloudDbMigrateProcessor {
 
       const useDbServers: DbServer[] = [];
 
-      if (targetOrg) {
+      if (dbServerId) {
+        // Direct override — pick the named server, ignore the picker.
+        // Still respect capacity. Default-for-orgs is allowed here since
+        // the caller named the server explicitly.
+        const dbServer = dbServers.find((s) => s.id === dbServerId);
+        if (!dbServer) {
+          logBasic(`Target db server ${dbServerId} not found`);
+          return;
+        }
+        if (
+          dbServer.max_tenant_count &&
+          dbServer.current_tenant_count >= dbServer.max_tenant_count
+        ) {
+          logBasic(`Target db server ${dbServerId} is at capacity`);
+          return;
+        }
+        useDbServers.push(dbServer);
+      } else if (targetOrg) {
         if (!targetOrg.fk_db_instance_id) {
           logBasic('Target Org has no db server assigned');
           return;
@@ -108,9 +129,11 @@ export class CloudDbMigrateProcessor {
         }
       } else {
         // Default-for-orgs servers are reserved as a fallback bucket for
-        // org databases — they must never be picked by the workspace
-        // auto-picker, even if they happen to also match the job's
-        // conditions.
+        // org databases — they must never be auto-picked for workspace
+        // migrations, even if they match the job's conditions. Org
+        // migrations are allowed to land on them (that's literally the
+        // whole point of the bucket).
+        const excludeDefaultForOrgs = workspaceOrOrg.entity === 'workspace';
         const isDefaultForOrgs = (s: DbServer) =>
           (s.conditions as any)?.default_for_orgs === true;
 
@@ -127,7 +150,8 @@ export class CloudDbMigrateProcessor {
             return true;
           })
           .filter((dbServer) => {
-            if (isDefaultForOrgs(dbServer)) return false;
+            if (excludeDefaultForOrgs && isDefaultForOrgs(dbServer))
+              return false;
 
             // if dbServer has no conditions, skip
             if (!dbServer.conditions) return false;
@@ -154,8 +178,10 @@ export class CloudDbMigrateProcessor {
             }
 
             // already excluded by the !dbServer.conditions guard, but be
-            // explicit so the intent is clear
-            if (isDefaultForOrgs(dbServer)) return false;
+            // explicit so the intent is clear (and a no-op for orgs since
+            // default-for-orgs servers always carry the marker condition)
+            if (excludeDefaultForOrgs && isDefaultForOrgs(dbServer))
+              return false;
 
             // check if server has no conditions
             return !dbServer.conditions;

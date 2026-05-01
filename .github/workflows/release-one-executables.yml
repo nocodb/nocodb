@@ -167,6 +167,18 @@ jobs:
           path: /tmp/pkg-executable.tar
           retention-days: 1
 
+      # Pre-create the draft release so the 4 non-mac matrix entries don't
+      # race trying to create it themselves; their gh-release uploads will
+      # then just attach files to an existing draft.
+      - name: Ensure draft release exists
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN1 }}
+        with:
+          draft: true
+          tag_name: ${{ github.event.inputs.tag || inputs.tag }}
+          repository: nocodb/nocodb
+
   # ---------------------------------------------------------------------------
   # Job 2: Build a single platform executable. Runs in parallel for every
   #         target so wall-clock is bounded by the slowest target rather
@@ -272,43 +284,19 @@ jobs:
           export NODE_OPTIONS="--max-old-space-size=8192"
           pkg . --compress GZip -t ${{ matrix.target }} -o ${{ matrix.output }}
 
-      - name: Upload binary
+      # mac binaries go to the sign job via artifact; everything else uploads
+      # straight to the GitHub draft release so we don't pay the cost of a
+      # collector job re-uploading the same files.
+      - name: Upload mac binary as artifact (feeds sign job)
+        if: matrix.kind == 'mac'
         uses: actions/upload-artifact@v4
         with:
           name: noco-binary-${{ matrix.name }}
           path: scripts/pkg-executable/${{ matrix.output }}
           retention-days: 1
 
-  # ---------------------------------------------------------------------------
-  # Job 3: build-executables — collects matrix outputs, uploads Linux/Windows
-  #         to the GitHub draft release, and re-uploads macOS binaries under
-  #         the `<tag>` artifact name expected by `sign-mac-executables`.
-  #         Kept under this job name so the workflow's existing `needs:`
-  #         contract is preserved.
-  # ---------------------------------------------------------------------------
-  build-executables:
-    needs: build-executable
-    runs-on: ubicloud-standard-2
-    steps:
-      - name: Download all platform binaries
-        uses: actions/download-artifact@v4
-        with:
-          pattern: noco-binary-*
-          path: /tmp/binaries
-          merge-multiple: true
-
-      - name: Arrange into dist / mac-dist
-        run: |
-          mkdir -p scripts/pkg-executable/dist scripts/pkg-executable/mac-dist
-          mv /tmp/binaries/Noco-macos-x64       scripts/pkg-executable/mac-dist/
-          mv /tmp/binaries/Noco-macos-arm64     scripts/pkg-executable/mac-dist/
-          mv /tmp/binaries/Noco-linux-x64       scripts/pkg-executable/dist/
-          mv /tmp/binaries/Noco-linux-arm64     scripts/pkg-executable/dist/
-          mv /tmp/binaries/Noco-win-x64.exe     scripts/pkg-executable/dist/
-          mv /tmp/binaries/Noco-win-arm64.exe   scripts/pkg-executable/dist/
-          chmod +x scripts/pkg-executable/dist/Noco-linux-* scripts/pkg-executable/mac-dist/Noco-macos-*
-
-      - name: Upload Linux and Windows executables to draft release
+      - name: Upload non-mac binary to draft release
+        if: matrix.kind == 'nix'
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN1 }}
@@ -316,34 +304,25 @@ jobs:
           draft: true
           tag_name: ${{ github.event.inputs.tag || inputs.tag }}
           repository: nocodb/nocodb
-          files: |
-            ./scripts/pkg-executable/dist/Noco-win-arm64.exe
-            ./scripts/pkg-executable/dist/Noco-win-x64.exe
-            ./scripts/pkg-executable/dist/Noco-linux-arm64
-            ./scripts/pkg-executable/dist/Noco-linux-x64
-
-      - name: Upload macOS artifacts for signing
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ github.event.inputs.tag || inputs.tag }}
-          path: scripts/pkg-executable/mac-dist
-          retention-days: 1
+          files: scripts/pkg-executable/${{ matrix.output }}
 
   # ---------------------------------------------------------------------------
-  # Job 4: Sign macOS executables
+  # Job 3: Sign macOS executables
   # ---------------------------------------------------------------------------
   sign-mac-executables:
     runs-on: macos-latest
-    needs: build-executables
+    needs: build-executable
     steps:
-      - name: Download macOS artifacts
+      - name: Download macOS binaries from matrix
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.event.inputs.tag || inputs.tag }}
+          pattern: noco-binary-macos-*
           path: scripts/pkg-executable/mac-dist
+          merge-multiple: true
 
       - name: Sign macOS executables
         run: |
+          chmod +x ./scripts/pkg-executable/mac-dist/Noco-macos-arm64 ./scripts/pkg-executable/mac-dist/Noco-macos-x64
           /usr/bin/codesign --force -s - ./scripts/pkg-executable/mac-dist/Noco-macos-arm64 -v
           /usr/bin/codesign --force -s - ./scripts/pkg-executable/mac-dist/Noco-macos-x64 -v
 
@@ -355,10 +334,10 @@ jobs:
           retention-days: 1
 
   # ---------------------------------------------------------------------------
-  # Job 5: Publish macOS executables and update Homebrew
+  # Job 4: Publish macOS executables and update Homebrew
   # ---------------------------------------------------------------------------
   publish-mac-executables-and-homebrew:
-    needs: [sign-mac-executables, build-executables]
+    needs: sign-mac-executables
     runs-on: ubuntu-22.04
     steps:
       - name: Download signed macOS artifacts

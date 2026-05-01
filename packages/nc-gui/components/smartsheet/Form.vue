@@ -523,6 +523,10 @@ const rowsWithKey = computed(() =>
 // ship inconsistent projected states to the server.
 const gridUpdatePending = ref(false)
 
+// Shared field body markup — reused across the grid and stacked layouts so
+// the input rendering (a-form-item + cell + config error) lives in one place.
+const [DefineFormFieldBody, ReuseFormFieldBody] = createReusableTemplate<{ element: any }>()
+
 function snapshotGridState() {
   return localColumns.value.map((c: any) => ({
     id: c.id,
@@ -1631,6 +1635,47 @@ const { message: templatedMessage } = useTemplatedMessage(
                         </div>
                       </div>
 
+                      <DefineFormFieldBody v-slot="{ element }">
+                        <div class="nc-form-field-body">
+                          <div class="mt-2">
+                            <a-form-item
+                              v-if="fieldMappings[element.title]"
+                              :name="fieldMappings[element.title]"
+                              class="!my-0 nc-input-required-error nc-form-input-item"
+                              v-bind="validateInfos[fieldMappings[element.title]]"
+                            >
+                              <LazySmartsheetDivDataCell class="relative" @click.stop>
+                                <LazySmartsheetVirtualCell
+                                  v-if="isVirtualCol(element)"
+                                  v-model="formState[element.title]"
+                                  :row="row"
+                                  class="nc-input"
+                                  :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                                  :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                                  :column="element"
+                                />
+                                <LazySmartsheetCell
+                                  v-else
+                                  v-model="formState[element.title]"
+                                  class="nc-input truncate"
+                                  :class="[
+                                    `nc-form-input-${element.title.replaceAll(' ', '')}`,
+                                    { 'layout-list': element.meta.isList },
+                                  ]"
+                                  :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                                  :column="element"
+                                  :edit-enabled="true"
+                                />
+                              </LazySmartsheetDivDataCell>
+                            </a-form-item>
+
+                            <div>
+                              <LazySmartsheetFormFieldConfigError :column="element" mode="preview" />
+                            </div>
+                          </div>
+                        </div>
+                      </DefineFormFieldBody>
+
                       <!-- EE: multi-column grid layout (gated by plan feature) -->
                       <div v-if="!blockFormGridLayout" class="h-full px-4 lg:px-6 nc-form-rows">
                         <div v-for="row in rowsWithKey" :key="row._key" class="nc-form-row flex items-stretch gap-1 min-w-0">
@@ -1749,46 +1794,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   @update:value="updateColMeta(element)"
                                 />
 
-                                <!-- Field Body  -->
-
-                                <div class="nc-form-field-body">
-                                  <div class="mt-2">
-                                    <a-form-item
-                                      v-if="fieldMappings[element.title]"
-                                      :name="fieldMappings[element.title]"
-                                      class="!my-0 nc-input-required-error nc-form-input-item"
-                                      v-bind="validateInfos[fieldMappings[element.title]]"
-                                    >
-                                      <LazySmartsheetDivDataCell class="relative" @click.stop>
-                                        <LazySmartsheetVirtualCell
-                                          v-if="isVirtualCol(element)"
-                                          v-model="formState[element.title]"
-                                          :row="row"
-                                          class="nc-input"
-                                          :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                          :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                          :column="element"
-                                        />
-                                        <LazySmartsheetCell
-                                          v-else
-                                          v-model="formState[element.title]"
-                                          class="nc-input truncate"
-                                          :class="[
-                                            `nc-form-input-${element.title.replaceAll(' ', '')}`,
-                                            { 'layout-list': element.meta.isList },
-                                          ]"
-                                          :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                          :column="element"
-                                          :edit-enabled="true"
-                                        />
-                                      </LazySmartsheetDivDataCell>
-                                    </a-form-item>
-
-                                    <div>
-                                      <LazySmartsheetFormFieldConfigError :column="element" mode="preview" />
-                                    </div>
-                                  </div>
-                                </div>
+                                <ReuseFormFieldBody :element="element" />
                               </div>
                             </template>
                           </Draggable>
@@ -1949,46 +1955,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               @update:value="updateColMeta(element)"
                             />
 
-                            <!-- Field Body  -->
-
-                            <div class="nc-form-field-body">
-                              <div class="mt-2">
-                                <a-form-item
-                                  v-if="fieldMappings[element.title]"
-                                  :name="fieldMappings[element.title]"
-                                  class="!my-0 nc-input-required-error nc-form-input-item"
-                                  v-bind="validateInfos[fieldMappings[element.title]]"
-                                >
-                                  <LazySmartsheetDivDataCell class="relative" @click.stop>
-                                    <LazySmartsheetVirtualCell
-                                      v-if="isVirtualCol(element)"
-                                      v-model="formState[element.title]"
-                                      :row="row"
-                                      class="nc-input"
-                                      :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :column="element"
-                                    />
-                                    <LazySmartsheetCell
-                                      v-else
-                                      v-model="formState[element.title]"
-                                      class="nc-input truncate"
-                                      :class="[
-                                        `nc-form-input-${element.title.replaceAll(' ', '')}`,
-                                        { 'layout-list': element.meta.isList },
-                                      ]"
-                                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :column="element"
-                                      :edit-enabled="true"
-                                    />
-                                  </LazySmartsheetDivDataCell>
-                                </a-form-item>
-
-                                <div>
-                                  <LazySmartsheetFormFieldConfigError :column="element" mode="preview" />
-                                </div>
-                              </div>
-                            </div>
+                            <ReuseFormFieldBody :element="element" />
                           </div>
                         </template>
 

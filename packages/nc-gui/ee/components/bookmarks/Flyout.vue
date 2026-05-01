@@ -43,6 +43,27 @@ const filteredGroups = computed(() => {
 
 const isEmpty = computed(() => orderedGroups.value.length === 0)
 
+const COLUMN_COUNT = 3
+
+const groupColumns = computed(() => {
+  const cols: Array<Array<{ group: (typeof filteredGroups.value)[0]; originalIndex: number }>> = Array.from(
+    { length: COLUMN_COUNT },
+    () => [],
+  )
+
+  filteredGroups.value.forEach((group, idx) => {
+    cols[idx % COLUMN_COUNT].push({ group, originalIndex: idx })
+  })
+
+  return cols
+})
+
+// Which group should show a drop indicator line above it
+const dropTargetGroupId = computed(() => {
+  if (!draggingGroupId.value || groupDropIndex.value == null) return null
+  return filteredGroups.value[groupDropIndex.value]?.id ?? null
+})
+
 let groupRafId: number | null = null
 
 function handleGroupListDragOver(e: DragEvent) {
@@ -53,6 +74,7 @@ function handleGroupListDragOver(e: DragEvent) {
     e.dataTransfer.dropEffect = 'move'
   }
 
+  const clientX = e.clientX
   const clientY = e.clientY
 
   if (groupRafId != null) return
@@ -61,20 +83,33 @@ function handleGroupListDragOver(e: DragEvent) {
 
     if (!groupListRef.value) return
 
-    const groupEls = groupListRef.value.querySelectorAll('[data-testid="nc-bookmark-group-header"]')
-    let idx = orderedGroups.value.length
+    // 1. Find which column the cursor is in
+    const colEls = groupListRef.value.children
+    let colIdx = -1
+    for (let i = 0; i < colEls.length; i++) {
+      const rect = colEls[i].getBoundingClientRect()
+      if (clientX >= rect.left && clientX <= rect.right) {
+        colIdx = i
+        break
+      }
+    }
+    if (colIdx === -1) return
 
+    // 2. Find position within column by checking group elements
+    const col = groupColumns.value[colIdx]
+    const groupEls = colEls[colIdx].querySelectorAll('[data-group-id]')
+    let posInCol = col.length
     for (let i = 0; i < groupEls.length; i++) {
       const rect = groupEls[i].getBoundingClientRect()
-      const midY = rect.top + rect.height / 2
-
-      if (clientY < midY) {
-        idx = i
+      if (clientY < rect.top + rect.height / 2) {
+        posInCol = i
         break
       }
     }
 
-    updateGroupDropIndex(idx)
+    // 3. Convert column position to logical index: row * COLUMN_COUNT + col
+    const logicalIdx = posInCol * COLUMN_COUNT + colIdx
+    updateGroupDropIndex(Math.min(logicalIdx, filteredGroups.value.length))
   })
 }
 
@@ -128,7 +163,7 @@ onMounted(() => {
 <template>
   <div
     class="nc-bookmarks-flyout fixed bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl shadow-lg z-50 flex flex-col"
-    style="left: 60px; bottom: 18px; width: 340px; height: 80vh"
+    style="left: 60px; bottom: 18px; width: 540px; height: 80vh"
     @click.stop
   >
     <!-- Header -->
@@ -171,54 +206,59 @@ onMounted(() => {
         {{ $t('labels.noResults') }}
       </div>
 
-      <!-- Single column list -->
+      <!-- Groups in columns -->
       <div
         v-else-if="!isEmpty"
         ref="groupListRef"
-        class="flex flex-col gap-4"
+        class="flex gap-4"
         @dragover="handleGroupListDragOver"
         @drop="handleGroupListDrop"
         @dragend="handleGroupListDragEnd"
       >
-        <template v-for="(group, idx) in filteredGroups" :key="group.id">
-          <!-- Group drop indicator line -->
-          <div
-            v-if="draggingGroupId && groupDropIndex === idx && group.id !== draggingGroupId"
-            class="h-0.5 mx-1.5 bg-nc-content-brand rounded-full"
-          />
-
-          <BookmarksFlyoutGroup
-            :group="group"
-            :bookmarks="filteredBookmarksByGroup[group.id!] ?? []"
-            :all-groups="orderedGroups"
-            @navigate="onNavigate"
-          />
-        </template>
-
-        <!-- Group drop indicator at end -->
-        <div
-          v-if="draggingGroupId && groupDropIndex === filteredGroups.length"
-          class="h-0.5 mx-1.5 bg-nc-content-brand rounded-full"
-        />
-
-        <!-- New folder placeholder -->
-        <div v-if="isCreatingFolder" class="flex flex-col gap-0.5 rounded-lg">
-          <div class="flex items-center gap-1 px-1">
-            <a-input
-              ref="newFolderInput"
-              v-model:value="newFolderName"
-              :placeholder="$t('labels.bookmarkGroup')"
-              class="!rounded-lg flex-1"
-              data-testid="nc-bookmark-new-folder-input"
-              @keydown.enter="confirmNewFolder"
-              @keydown.escape="cancelNewFolder"
+        <div v-for="(col, colIdx) in groupColumns" :key="colIdx" class="flex-1 flex flex-col gap-3 min-w-0">
+          <template v-for="{ group } in col" :key="group.id">
+            <!-- Drop indicator line before this group -->
+            <div
+              v-if="dropTargetGroupId === group.id && group.id !== draggingGroupId"
+              class="h-0.5 bg-nc-content-brand rounded-full -mb-2"
             />
-            <NcButton type="text" size="xxsmall" @click="confirmNewFolder">
-              <GeneralIcon icon="check" class="text-nc-content-brand" />
-            </NcButton>
-            <NcButton type="text" size="xxsmall" @click="cancelNewFolder">
-              <GeneralIcon icon="close" class="text-nc-content-gray-muted" />
-            </NcButton>
+
+            <BookmarksFlyoutGroup
+              :group="group"
+              :bookmarks="filteredBookmarksByGroup[group.id!] ?? []"
+              :all-groups="orderedGroups"
+              @navigate="onNavigate"
+            />
+          </template>
+
+          <!-- Drop indicator at end of column if dropping past last item -->
+          <div
+            v-if="draggingGroupId && groupDropIndex === filteredGroups.length && colIdx === filteredGroups.length % COLUMN_COUNT"
+            class="h-0.5 bg-nc-content-brand rounded-full"
+          />
+
+          <!-- New folder placeholder in last column -->
+          <div
+            v-if="isCreatingFolder && colIdx === filteredGroups.length % COLUMN_COUNT"
+            class="flex flex-col gap-0.5 rounded-lg"
+          >
+            <div class="flex items-center gap-1 px-1">
+              <a-input
+                ref="newFolderInput"
+                v-model:value="newFolderName"
+                :placeholder="$t('labels.bookmarkGroup')"
+                class="!rounded-lg flex-1"
+                data-testid="nc-bookmark-new-folder-input"
+                @keydown.enter="confirmNewFolder"
+                @keydown.escape="cancelNewFolder"
+              />
+              <NcButton type="text" size="xxsmall" @click="confirmNewFolder">
+                <GeneralIcon icon="check" class="text-nc-content-brand" />
+              </NcButton>
+              <NcButton type="text" size="xxsmall" @click="cancelNewFolder">
+                <GeneralIcon icon="close" class="text-nc-content-gray-muted" />
+              </NcButton>
+            </div>
           </div>
         </div>
       </div>

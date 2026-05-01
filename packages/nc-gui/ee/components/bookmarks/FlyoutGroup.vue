@@ -24,9 +24,11 @@ const {
   dropIndex,
   draggingBookmarkId,
   draggingGroupId,
+  groupDropIndex,
   onDragEnterGroup,
   onDragLeaveGroup,
   onDropOnGroup,
+  onDropGroup,
   updateDropIndex,
   onGroupDragStart,
   onDragEnd,
@@ -151,6 +153,16 @@ function handleDragEnter(e: DragEvent) {
     onDragEnterGroup(group.value.id!)
   }
 }
+
+function handleDrop() {
+  if (draggingGroupId.value) {
+    // Group drag — reorder to the current drop index
+    onDropGroup(groupDropIndex.value ?? 0)
+  } else {
+    // Bookmark drag — drop into this group
+    onDropOnGroup(group.value.id!)
+  }
+}
 </script>
 
 <template>
@@ -160,10 +172,11 @@ function handleDragEnter(e: DragEvent) {
       'bg-nc-bg-brand-light/40': isDropTarget,
       'opacity-40': isDraggingGroup,
     }"
+    :data-group-id="group.id"
     @dragover="handleDragOver"
     @dragenter="handleDragEnter"
     @dragleave="onDragLeaveGroup(group.id!)"
-    @drop.prevent="onDropOnGroup(group.id!)"
+    @drop.prevent="handleDrop"
   >
     <!-- Group title row (draggable + clickable to collapse) -->
     <div

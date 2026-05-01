@@ -679,7 +679,7 @@ function onFieldMoveToNewRowCallback(event: any) {
   return true
 }
 
-async function onFieldMoveToNewRow(event: any) {
+async function onFieldMoveToNewRow(event: any, beforeRowKey?: string) {
   if (isLocked.value || !isEditable) return
   const added = event.added
   if (!added?.element) return
@@ -688,14 +688,30 @@ async function onFieldMoveToNewRow(event: any) {
   const movedField = localColumns.value.find((c: any) => c.id === fieldId) as any
   if (!movedField) return
 
-  // Rebuild rows: pull field out of its source row, append as a new solo row.
+  // Resolve the anchor BEFORE removing the field — index math has to account
+  // for the source row collapsing if it had only the dragged field.
+  const beforeIdxOriginal =
+    typeof beforeRowKey === 'string' ? rowsWithKey.value.findIndex((r) => r._key === beforeRowKey) : -1
+  const sourceIdx = rowsWithKey.value.findIndex((r) => r.fields.some((f: any) => f.id === fieldId))
+  const sourceCollapses = sourceIdx >= 0 && rowsWithKey.value[sourceIdx].fields.length === 1
+
+  // Rebuild rows: pull field out of its source row, splice as a new solo row
+  // at the anchor position (or append if no anchor).
   const next: any[][] = (rows.value as any[][]).map((r: any[]) => [...r])
   for (const r of next) {
     const i = r.findIndex((c: any) => c.id === fieldId)
     if (i >= 0) r.splice(i, 1)
   }
   const pruned: any[][] = next.filter((r: any[]) => r.length > 0)
-  pruned.push([{ ...movedField, row_id: null } as any])
+
+  if (beforeIdxOriginal === -1) {
+    pruned.push([{ ...movedField, row_id: null } as any])
+  } else {
+    let insertIdx = beforeIdxOriginal
+    if (sourceCollapses && sourceIdx < beforeIdxOriginal) insertIdx -= 1
+    insertIdx = Math.max(0, Math.min(insertIdx, pruned.length))
+    pruned.splice(insertIdx, 0, [{ ...movedField, row_id: null } as any])
+  }
 
   // Snapshot BEFORE the diff/apply loop (loop mutates localColumns/fields).
   const snapshot = snapshotGridState()
@@ -1678,7 +1694,27 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                       <!-- EE: multi-column grid layout (gated by plan feature) -->
                       <div v-if="!blockFormGridLayout" class="h-full px-4 lg:px-6 nc-form-rows">
-                        <div v-for="row in rowsWithKey" :key="row._key" class="nc-form-row flex items-stretch gap-1 min-w-0">
+                        <template v-for="row in rowsWithKey" :key="row._key">
+                          <!--
+                            Inter-row drop zone: lets the user extract a field
+                            from a row and drop it as a new solo row at this
+                            position. Without it the only way to make a solo
+                            row is to drop at the very end.
+                          -->
+                          <Draggable
+                            v-if="isEditable && !isLocked"
+                            :model-value="[]"
+                            item-key="id"
+                            group="form-inputs"
+                            class="nc-form-row-gap min-h-2"
+                            :move="onFieldMoveToNewRowCallback"
+                            @change="onFieldMoveToNewRow($event, row._key)"
+                          >
+                            <template #item>
+                              <div />
+                            </template>
+                          </Draggable>
+                          <div class="nc-form-row flex items-stretch gap-1 min-w-0">
                           <Draggable
                             :model-value="row.fields"
                             item-key="id"
@@ -1699,7 +1735,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 :class="[
                                   `nc-form-drag-${element.title.replaceAll(' ', '')}`,
                                   {
-                                    'nc-form-field-drag-handler rounded-xl my-1 cursor-move': isEditable,
+                                    'nc-form-field-drag-handler rounded-xl border-2 border-transparent my-1 cursor-move': isEditable,
                                   },
                                   {
                                     'my-0': !isEditable,
@@ -1707,12 +1743,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   {
                                     'hover:(bg-nc-bg-gray-extralight)': activeRow !== element.id && isEditable,
                                   },
-
                                   {
-                                    'ring-1 ring-inset ring-nc-border-brand': activeRow === element.id,
+                                    'border-nc-border-brand': activeRow === element.id,
                                   },
                                   {
-                                    '!hover:bg-nc-bg-default !ring-0 !cursor-auto': isLocked,
+                                    '!hover:bg-nc-bg-default !border-transparent !cursor-auto': isLocked,
                                   },
                                 ]"
                                 :data-title="element.title"
@@ -1798,7 +1833,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                               </div>
                             </template>
                           </Draggable>
-                        </div>
+                          </div>
+                        </template>
 
                         <div
                           v-if="!visibleColumns.length && isEditable"

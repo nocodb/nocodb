@@ -282,10 +282,10 @@ export class CloudDbMigrateProcessor {
         sourceUrl: dataDbUrl,
         targetUrl: targetDbUrl,
         schemas,
-        // When createTargetDb is set, force creation regardless of targetOrg.
-        // This is the path used when placing a workspace into a freshly
-        // created org whose DB does not yet exist on the target server.
-        skipCreateDb: createTargetDb ? false : targetOrg ? true : false,
+        // Skip target DB creation only for "merge into existing org"
+        // (targetOrg set, createTargetDb not requested). Fresh-org placement
+        // sets createTargetDb=true so the new `org.id` DB gets created.
+        skipCreateDb: !createTargetDb && !!targetOrg,
       });
 
       const { jobId } = response.data;

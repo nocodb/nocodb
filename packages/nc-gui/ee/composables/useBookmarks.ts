@@ -308,6 +308,64 @@ export const useBookmarks = createSharedComposable(() => {
     }
   }
 
+  function calcOrderForIndex(groupId: string, targetIndex: number, excludeId?: string): number {
+    const items = bookmarks.value
+      .filter((b) => b.fk_group_id === groupId && b.id !== excludeId)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+    if (items.length === 0) return 1
+    if (targetIndex <= 0) return (items[0].order ?? 0) / 2
+    if (targetIndex >= items.length) return (items[items.length - 1].order ?? 0) + 1
+
+    const prev = items[targetIndex - 1].order ?? 0
+    const next = items[targetIndex].order ?? 0
+    return (prev + next) / 2
+  }
+
+  async function moveBookmarkToGroup(bookmarkId: string, targetGroupId: string, targetIndex?: number) {
+    const bm = bookmarks.value.find((b) => b.id === bookmarkId)
+    if (!bm || bm.fk_group_id === targetGroupId) return
+
+    const prevGroupId = bm.fk_group_id
+    const prevOrder = bm.order
+
+    const newOrder = targetIndex != null ? calcOrderForIndex(targetGroupId, targetIndex) : undefined
+
+    // Optimistic update
+    bm.fk_group_id = targetGroupId
+    if (newOrder != null) bm.order = newOrder
+
+    try {
+      const update: any = { fk_group_id: targetGroupId }
+      if (newOrder != null) update.order = newOrder
+      await $api.bookmark.update(bookmarkId, update)
+      $e('a:bookmark:move', { target_type: bm.target_type })
+    } catch (e: any) {
+      // Revert on failure
+      bm.fk_group_id = prevGroupId
+      bm.order = prevOrder
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function reorderBookmark(bookmarkId: string, groupId: string, targetIndex: number) {
+    const bm = bookmarks.value.find((b) => b.id === bookmarkId)
+    if (!bm) return
+
+    const prevOrder = bm.order
+    const newOrder = calcOrderForIndex(groupId, targetIndex, bookmarkId)
+
+    // Optimistic update
+    bm.order = newOrder
+
+    try {
+      await $api.bookmark.update(bookmarkId, { order: newOrder } as any)
+    } catch (e: any) {
+      bm.order = prevOrder
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   loadBookmarkCheck()
 
   return {
@@ -330,5 +388,7 @@ export const useBookmarks = createSharedComposable(() => {
     getBookmark,
     resolveBookmarkRoute,
     navigateToBookmark,
+    moveBookmarkToGroup,
+    reorderBookmark,
   }
 })

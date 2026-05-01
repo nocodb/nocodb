@@ -322,6 +322,9 @@ export enum AppEvents {
 
   BOOKMARK_CREATE = 'bookmark.create',
   BOOKMARK_DELETE = 'bookmark.delete',
+  BOOKMARK_MOVE = 'bookmark.move',
+  BOOKMARK_GROUP_CREATE = 'bookmark.group.create',
+  BOOKMARK_GROUP_DELETE = 'bookmark.group.delete',
 
   SANDBOX_CREATE = 'sandbox.create',
   SANDBOX_DELETE = 'sandbox.delete',

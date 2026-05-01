@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { BookmarkType } from 'nocodb-sdk'
+
 const { bookmarksByGroup, orderedGroups, isLoading, navigateToBookmark, loadBookmarks } = useBookmarks()
 
 const emit = defineEmits<{ close: [] }>()
@@ -34,6 +36,11 @@ const columns = computed(() => {
 
 const isEmpty = computed(() => orderedGroups.value.length === 0)
 
+function onNavigate(bm: BookmarkType) {
+  navigateToBookmark(bm)
+  emit('close')
+}
+
 onMounted(() => {
   loadBookmarks()
 })
@@ -48,9 +55,12 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex items-center justify-between px-4 py-3 border-b-1 border-nc-border-gray-medium flex-none">
       <span class="text-sm font-bold text-nc-content-gray">{{ $t('title.bookmarks') }}</span>
-      <NcButton type="text" size="xxsmall" class="!rounded-md" @click="goToSettings">
-        <GeneralIcon icon="settings" class="text-nc-content-gray-muted" />
-      </NcButton>
+      <div class="flex items-center gap-1">
+        <BookmarksAddBookmarkDropdown />
+        <NcButton type="text" size="xxsmall" class="!rounded-md" @click="goToSettings">
+          <GeneralIcon icon="settings" class="text-nc-content-gray-muted" />
+        </NcButton>
+      </div>
     </div>
 
     <!-- Content -->
@@ -69,33 +79,14 @@ onMounted(() => {
       <!-- 3-column grid -->
       <div v-else class="grid grid-cols-3 gap-x-5 gap-y-4">
         <div v-for="(col, colIdx) in columns" :key="colIdx" class="flex flex-col gap-4">
-          <div v-for="group in col" :key="group.id" class="flex flex-col gap-0.5">
-            <!-- Group title -->
-            <div class="text-[11px] font-semibold text-nc-content-gray-subtle px-1.5 mb-1.5">
-              {{ group.name }}
-            </div>
-
-            <!-- Bookmark items -->
-            <BookmarksItem
-              v-for="bm in bookmarksByGroup[group.id!]"
-              :key="bm.id"
-              :bookmark="bm"
-              @click="
-                () => {
-                  navigateToBookmark(bm)
-                  emit('close')
-                }
-              "
-            />
-
-            <!-- Empty group -->
-            <div
-              v-if="!(bookmarksByGroup[group.id!]?.length)"
-              class="text-xs text-nc-content-gray-muted px-1.5 py-1"
-            >
-              {{ $t('labels.noData') }}
-            </div>
-          </div>
+          <BookmarksFlyoutGroup
+            v-for="group in col"
+            :key="group.id"
+            :group="group"
+            :bookmarks="bookmarksByGroup[group.id!] ?? []"
+            :all-groups="orderedGroups"
+            @navigate="onNavigate"
+          />
         </div>
       </div>
     </div>

@@ -51,9 +51,13 @@ const isBookmarksFlyoutOpen = ref(false)
 
 const bookmarksContainerRef = ref<HTMLElement | null>(null)
 
-onClickOutside(bookmarksContainerRef, () => {
-  isBookmarksFlyoutOpen.value = false
-})
+onClickOutside(
+  bookmarksContainerRef,
+  () => {
+    isBookmarksFlyoutOpen.value = false
+  },
+  { ignore: ['.nc-bookmark-add-dropdown', '.nc-bookmark-context-menu'] },
+)
 
 const { isRtl } = useRtl()
 

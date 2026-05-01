@@ -8,6 +8,14 @@ on:
         description: 'Promote ws-pre-release(staging) to ws'
         required: false
         default: 'false'
+      triggerOnPremBuild:
+        description: 'Also trigger on-prem daily docker build (nocodb/nocodb-daily)'
+        required: false
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+        default: 'true'
 
 
 jobs:
@@ -25,3 +33,8 @@ jobs:
       - name: Run promote script
         run: |
           ./scripts/release/production.sh ${{ github.event.inputs.promote }}
+
+  trigger-onprem-build:
+    if: ${{ github.event.inputs.triggerOnPremBuild == 'true' }}
+    uses: ./.github/workflows/release-ee-on-prem-pr-build.yml
+    secrets: inherit

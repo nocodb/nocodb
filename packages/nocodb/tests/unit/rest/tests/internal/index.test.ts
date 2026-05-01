@@ -21,6 +21,7 @@ export const internalTests = runOnSet(2, function () {
         require('./ee/sandbox-discard.test').sandboxDiscardTests();
         require('./ee/sandbox-master-guard.test').sandboxMasterGuardTests();
         require('./ee/sandbox-base-variables.test').sandboxBaseVariablesTests();
+        require('./ee/sandbox-id-preservation.test').sandboxIdPreservationTests();
       } catch (e) {
         // EE test files not available in CE
       }

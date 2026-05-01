@@ -181,7 +181,7 @@ jobs:
   # ---------------------------------------------------------------------------
   build-executable:
     needs: prep
-    runs-on: ubicloud-standard-8
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
@@ -192,36 +192,42 @@ jobs:
             sharp_os: darwin
             output: Noco-macos-x64
             kind: mac
+            runner: ubicloud-standard-8
           - name: macos-arm64
             target: node24-macos-arm64
             sharp_cpu: arm64
             sharp_os: darwin
             output: Noco-macos-arm64
             kind: mac
+            runner: ubicloud-standard-8-arm
           - name: linux-x64
             target: node24-linux-x64
             sharp_cpu: x64
             sharp_os: linux
             output: Noco-linux-x64
             kind: nix
+            runner: ubicloud-standard-8
           - name: linux-arm64
             target: node24-linux-arm64
             sharp_cpu: arm64
             sharp_os: linux
             output: Noco-linux-arm64
             kind: nix
+            runner: ubicloud-standard-8-arm
           - name: win-x64
             target: node24-win-x64
             sharp_cpu: x64
             sharp_os: win32
             output: Noco-win-x64.exe
             kind: nix
+            runner: ubicloud-standard-8
           - name: win-arm64
             target: node24-win-arm64
             sharp_cpu: arm64
             sharp_os: win32
             output: Noco-win-arm64.exe
             kind: nix
+            runner: ubicloud-standard-8-arm
     steps:
       - name: Setup Node
         uses: actions/setup-node@v5

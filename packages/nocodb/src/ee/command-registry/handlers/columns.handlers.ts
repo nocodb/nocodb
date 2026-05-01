@@ -10,9 +10,7 @@ import { registerForward } from '~/command-registry/replay-context';
 export function registerColumnHandlers(svc: ColumnsService): void {
   registerForward(ColumnAddContract, (ctx, p) => svc.columnAdd(ctx, p));
   registerForward(ColumnUpdateContract, (ctx, p) => svc.columnUpdate(ctx, p));
-  registerForward(ColumnDeleteContract, (ctx, p) =>
-    svc.columnDelete(ctx, { ...p, skipTrash: true }),
-  );
+  registerForward(ColumnDeleteContract, (ctx, p) => svc.columnDelete(ctx, p));
   registerForward(ColumnSetAsPrimaryContract, (ctx, p) =>
     svc.columnSetAsPrimary(ctx, p),
   );

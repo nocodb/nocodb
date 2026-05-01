@@ -15,7 +15,7 @@ export function registerWorkflowHandlers(svc: WorkflowsService): void {
     svc.updateWorkflow(ctx, p),
   );
   registerForward(WorkflowDeleteContract, (ctx, p) =>
-    svc.deleteWorkflow(ctx, { ...p, skipTrash: true }),
+    svc.deleteWorkflow(ctx, p),
   );
   registerForward(WorkflowPublishContract, (ctx, p) =>
     svc.publishWorkflow(ctx, p),

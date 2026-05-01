@@ -23,7 +23,5 @@ export function registerViewHandlers(svc: ViewsService): void {
     }
     return svc.viewUpdate(ctx, p);
   });
-  registerForward(ViewDeleteContract, (ctx, p) =>
-    svc.viewDelete(ctx, { ...p, skipTrash: true }),
-  );
+  registerForward(ViewDeleteContract, (ctx, p) => svc.viewDelete(ctx, p));
 }

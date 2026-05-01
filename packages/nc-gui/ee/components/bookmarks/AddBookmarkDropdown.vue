@@ -3,7 +3,7 @@ import type { BookmarkReqType } from 'nocodb-sdk'
 
 const { $api, $e } = useNuxtApp()
 
-const { addBookmark, isBookmarked, getBookmark, removeBookmark, addGroup } = useBookmarks()
+const { addBookmark, isBookmarked, getBookmark, removeBookmark, isCreatingFolder } = useBookmarks()
 
 const workspaceStore = useWorkspace()
 
@@ -12,12 +12,6 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 const isDropdownOpen = ref(false)
 
 const isModalOpen = ref(false)
-
-const isFolderModalOpen = ref(false)
-
-const newFolderName = ref('')
-
-const folderInput = ref<any>()
 
 const searchInputRef = ref<any>()
 
@@ -38,26 +32,7 @@ function onNewBookmark() {
 
 function onNewFolder() {
   isDropdownOpen.value = false
-  isFolderModalOpen.value = true
-  nextTick(() => {
-    folderInput.value?.focus()
-  })
-}
-
-// --- Folder creation ---
-
-async function createFolder() {
-  const name = newFolderName.value.trim()
-  if (!name) {
-    isCreatingFolder.value = false
-    newFolderName.value = ''
-    return
-  }
-
-  const group = await addGroup({ name })
-  if (group) $e('a:bookmark:group:create')
-  isFolderModalOpen.value = false
-  newFolderName.value = ''
+  isCreatingFolder.value = true
 }
 
 // --- Search modal ---
@@ -217,29 +192,6 @@ function getResultIcon(item: any): string {
       </NcMenu>
     </template>
   </NcDropdown>
-
-  <!-- New folder modal -->
-  <NcModal v-model:visible="isFolderModalOpen" size="xs" :mask-closable="true">
-    <div class="flex flex-col px-4 py-4 gap-4">
-      <span class="text-sm font-bold text-nc-content-gray">{{ $t('labels.newFolder') }}</span>
-      <a-input
-        ref="folderInput"
-        v-model:value="newFolderName"
-        :placeholder="$t('labels.bookmarkGroup')"
-        class="!rounded-lg"
-        data-testid="nc-bookmark-new-folder-input"
-        @keydown.enter="createFolder"
-      />
-      <div class="flex justify-end gap-2">
-        <NcButton type="secondary" size="small" @click="isFolderModalOpen = false">
-          {{ $t('general.cancel') }}
-        </NcButton>
-        <NcButton type="primary" size="small" :disabled="!newFolderName.trim()" @click="createFolder">
-          {{ $t('general.create') }}
-        </NcButton>
-      </div>
-    </div>
-  </NcModal>
 
   <!-- Search modal for adding bookmarks -->
   <NcModal v-model:visible="isModalOpen" size="sm" :mask-closable="true">

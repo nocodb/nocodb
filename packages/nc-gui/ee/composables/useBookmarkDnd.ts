@@ -1,16 +1,25 @@
 import type { BookmarkType } from 'nocodb-sdk'
 
 export const useBookmarkDnd = createSharedComposable(() => {
-  const { moveBookmarkToGroup, reorderBookmark } = useBookmarks()
+  const { moveBookmarkToGroup, reorderBookmark, reorderGroup } = useBookmarks()
 
+  // Bookmark drag state
   const draggingBookmarkId = ref<string | null>(null)
   const draggingFromGroupId = ref<string | null>(null)
   const hoverGroupId = ref<string | null>(null)
   const dropIndex = ref<number | null>(null)
 
+  // Group drag state
+  const draggingGroupId = ref<string | null>(null)
+  const groupDropIndex = ref<number | null>(null)
+
   function onDragStart(bookmark: BookmarkType) {
     draggingBookmarkId.value = bookmark.id!
     draggingFromGroupId.value = bookmark.fk_group_id!
+  }
+
+  function onGroupDragStart(groupId: string) {
+    draggingGroupId.value = groupId
   }
 
   function onDragEnd() {
@@ -18,6 +27,8 @@ export const useBookmarkDnd = createSharedComposable(() => {
     draggingFromGroupId.value = null
     hoverGroupId.value = null
     dropIndex.value = null
+    draggingGroupId.value = null
+    groupDropIndex.value = null
   }
 
   function onDragEnterGroup(groupId: string) {
@@ -60,16 +71,36 @@ export const useBookmarkDnd = createSharedComposable(() => {
     onDragEnd()
   }
 
+  function updateGroupDropIndex(index: number) {
+    groupDropIndex.value = index
+  }
+
+  async function onDropGroup(targetIndex: number) {
+    const groupId = draggingGroupId.value
+    if (!groupId) {
+      onDragEnd()
+      return
+    }
+
+    await reorderGroup(groupId, targetIndex)
+    onDragEnd()
+  }
+
   return {
     draggingBookmarkId,
     draggingFromGroupId,
     hoverGroupId,
     dropIndex,
+    draggingGroupId,
+    groupDropIndex,
     onDragStart,
+    onGroupDragStart,
     onDragEnd,
     onDragEnterGroup,
     onDragLeaveGroup,
     updateDropIndex,
     onDropOnGroup,
+    updateGroupDropIndex,
+    onDropGroup,
   }
 })

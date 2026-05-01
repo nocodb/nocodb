@@ -11,6 +11,8 @@ export const useBookmarks = createSharedComposable(() => {
   const groups = ref<BookmarkGroupType[]>([])
   const isLoading = ref(false)
   const bookmarkCheckMap = ref<Record<string, any>>({})
+  const isCreatingFolder = ref(false)
+  const collapsedGroupIds = ref<Set<string>>(new Set())
 
   const orderedGroups = computed(() =>
     [...groups.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
@@ -308,6 +310,50 @@ export const useBookmarks = createSharedComposable(() => {
     }
   }
 
+  function toggleGroupCollapsed(groupId: string) {
+    const s = new Set(collapsedGroupIds.value)
+    if (s.has(groupId)) {
+      s.delete(groupId)
+    } else {
+      s.add(groupId)
+    }
+    collapsedGroupIds.value = s
+  }
+
+  function isGroupCollapsed(groupId: string): boolean {
+    return collapsedGroupIds.value.has(groupId)
+  }
+
+  function calcGroupOrderForIndex(targetIndex: number, excludeId?: string): number {
+    const items = [...groups.value].filter((g) => g.id !== excludeId).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+    if (items.length === 0) return 1
+    if (targetIndex <= 0) return (items[0].order ?? 0) / 2
+    if (targetIndex >= items.length) return (items[items.length - 1].order ?? 0) + 1
+
+    const prev = items[targetIndex - 1].order ?? 0
+    const next = items[targetIndex].order ?? 0
+    return (prev + next) / 2
+  }
+
+  async function reorderGroup(groupId: string, targetIndex: number) {
+    const group = groups.value.find((g) => g.id === groupId)
+    if (!group) return
+
+    const prevOrder = group.order
+    const newOrder = calcGroupOrderForIndex(targetIndex, groupId)
+
+    // Optimistic update
+    group.order = newOrder
+
+    try {
+      await $api.bookmark.groupUpdate(groupId, { order: newOrder } as any)
+    } catch (e: any) {
+      group.order = prevOrder
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   function calcOrderForIndex(groupId: string, targetIndex: number, excludeId?: string): number {
     const items = bookmarks.value
       .filter((b) => b.fk_group_id === groupId && b.id !== excludeId)
@@ -373,6 +419,7 @@ export const useBookmarks = createSharedComposable(() => {
     groups,
     isLoading,
     bookmarkCheckMap,
+    isCreatingFolder,
     orderedGroups,
     bookmarksByGroup,
     loadBookmarks,
@@ -390,5 +437,9 @@ export const useBookmarks = createSharedComposable(() => {
     navigateToBookmark,
     moveBookmarkToGroup,
     reorderBookmark,
+    collapsedGroupIds,
+    toggleGroupCollapsed,
+    isGroupCollapsed,
+    reorderGroup,
   }
 })

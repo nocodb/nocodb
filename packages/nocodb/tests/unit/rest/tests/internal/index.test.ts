@@ -18,6 +18,7 @@ export const internalTests = runOnSet(2, function () {
         require('./ee/sandbox-merge-roundtrip.test').sandboxMergeRoundtripTests();
         require('./ee/sandbox-merge-delete.test').sandboxMergeDeleteTests();
         require('./ee/sandbox-merge-selective.test').sandboxMergeSelectiveTests();
+        require('./ee/sandbox-discard.test').sandboxDiscardTests();
       } catch (e) {
         // EE test files not available in CE
       }

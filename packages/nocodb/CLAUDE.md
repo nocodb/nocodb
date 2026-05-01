@@ -403,6 +403,89 @@ export const myFeatureActions = {
 };
 ```
 
+### Decorate CE methods — don't write EE-only override stubs
+
+Put `@TraceCommand(OperationName.x)` directly on the CE service method. The decorator argument is `OperationName` (CE-aware enum); CE has a no-op stub at `src/decorators/trace-command.decorator.ts`, EE has the real impl.
+
+```typescript
+// ✅ correct — CE method, decorator works in both builds
+@TraceCommand(OperationName.gridViewCreate)
+async gridViewCreate(ctx, p) { /* … */ }
+```
+
+```typescript
+// ❌ wrong — EE override that exists only to add the decorator
+@Injectable()
+export class GridsService extends GridsServiceCE {
+  @TraceCommand(OperationName.gridViewCreate)
+  async gridViewCreate(ctx, p) { return super.gridViewCreate(ctx, p); }
+}
+```
+
+Reach for an EE override only when EE adds real logic on top (sandbox guards, payment checks, license gating). Adding `@TraceCommand` alone is not enough reason.
+
+### Sandbox guards
+
+Use one of three guards from `~/helpers/sandboxGuards` (CE stubs are no-ops; EE has real impl):
+
+| Guard | Use before |
+|-------|------------|
+| `assertNotSandboxProduction(ctx, msg?)` | schema mutations on master that should flow through the sandbox |
+| `assertNotSandbox(ctx, msg?)` | operations only valid on production (e.g. personal views) |
+| `assertNotLockedViewOnSandboxProduction(ctx, viewId, msg?)` | view-update paths where locked views must be edited via the sandbox |
+
+All three short-circuit when `context.additionalContext.is_replay === true`. Don't gate by `isEE` — the CE stub already no-ops.
+
+### `is_replay` — honor pre-set IDs at insert time
+
+The replay layer sets `context.additionalContext.is_replay = true` and pre-injects the sandbox-side ID into params via `contract.idField`. Insert paths must propagate that ID:
+
+```typescript
+// In a model insert (e.g. src/models/Hook.ts, src/ee/models/Script.ts):
+if (context?.additionalContext?.is_replay && entity.id) {
+  insertObj.id = entity.id;
+}
+const row = await ncMeta.metaInsert2(/* … */, insertObj);
+```
+
+`metaInsert2` honors a pre-set `id`. Without this hook, the production-side row gets a fresh nanoid and downstream FK references break.
+
+When adding a new sandbox-replayable entity:
+1. Set `idField` on the contract so the registry knows where to inject the id.
+2. Add the `is_replay && entity.id` guard in the model/service insert path.
+3. Extend `tests/unit/rest/tests/internal/ee/sandbox-id-preservation.test.ts` (`IdSnapshot` + `collectIds`) to assert the ID survives the merge.
+
+### `registerForward` vs custom handler
+
+Default is `registerForward(Contract, (ctx, p) => svc.foo(ctx, p))`. Switch to `OperationRegistry.register(Contract, async (ctx, p, meta) => …)` when the handler needs to thread `meta`:
+
+| Need | Use |
+|------|-----|
+| Entity ID isn't in `params` (only carried as `meta.entityId`, e.g. `duplicateWidget`) | Pass through as a service-level `_replayXxxId` param. See `dashboards.handlers.ts:33`. |
+| Recording side captured side-effect data (`meta.extra`) the replay needs (e.g. `_sandboxColumnIds` / `_sandboxDefaultViewId` for `tableCreate`) | Inject onto params or `additionalContext`. See `tables.handlers.ts`. |
+| Deeply nested model code needs replay context but doesn't see params | Put it on `additionalContext` (e.g. `sandboxColumnIds`) and read it from there. |
+
+### `skipIf` — conditionally suppress recording
+
+Set `skipIf` on a contract when the operation is a no-op on replay (e.g. local override on an inherited entity). The decorator runs the body, then `skipIf(ctx, params, result, resolvedCtx)`, then writes the changelog row only if `skipIf` returns falsy. Reference: `BaseVariableUpdateContract` skips when `is_inherited === true` (`base-variables.operations.ts:75`).
+
+### Re-entrancy is automatic — don't add manual flags
+
+`@TraceCommand` uses `AsyncLocalStorage`; only the outermost decorated call in an async tree records. Nested calls (`tableDelete` → per-column `columnDelete`) auto-skip. Sequential siblings (importer calling `tableCreate` repeatedly) each record.
+
+```typescript
+// ❌ wrong — old pattern, removed
+if (param.req?.__commandTraced) return originalMethod.apply(this, args);
+(param.req as any).__commandTraced = true;
+```
+
+Never set re-entrancy flags on `req` or `param`. The ALS scope handles it.
+
+### Known gaps — don't extend tests against these
+
+- **LTAR ID preservation on sandbox→master replay is broken**. The LTAR column add path regenerates both the column ID and the hidden mm junction table ID. Lookup/Rollup/linkFilter ops that reference the LTAR by ID then fail validation on replay. Master→sandbox works (DuplicateProcessor copies meta verbatim). `sandbox-id-preservation.test.ts` gates relational seeding behind `includeRelational: false` for direction 2 — leave it off until the LTAR/mm replay path honors pre-set IDs.
+- **A traced wrapper without a route is dead code**. Some services expose both `.create(...)` (legacy) and `.fooCreate(context, param)` (`@TraceCommand`-wrapped); the controller calls `.create(...)` so the wrapper never fires. **View sections** and **record templates** are in this state. If you ship a sandbox-aware change in either surface, migrate the controller to call the wrapped method first — otherwise the trace doesn't fire and replay sees nothing.
+
 ## Testing
 
 ### Unit Tests

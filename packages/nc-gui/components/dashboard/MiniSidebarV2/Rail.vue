@@ -56,7 +56,7 @@ onClickOutside(
   () => {
     isBookmarksFlyoutOpen.value = false
   },
-  { ignore: ['.nc-bookmark-add-dropdown', '.nc-bookmark-context-menu'] },
+  { ignore: ['.nc-bookmark-add-dropdown', '.nc-bookmark-context-menu', '.nc-bookmark-group-menu', '.nc-modal-wrapper'] },
 )
 
 const { isRtl } = useRtl()

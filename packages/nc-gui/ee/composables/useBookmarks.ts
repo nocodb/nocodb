@@ -144,14 +144,10 @@ export const useBookmarks = createSharedComposable(() => {
   async function addBookmark(data: BookmarkReqType) {
     try {
       const bm = (await $api.bookmark.create(data)) as BookmarkType
-      bookmarks.value.push(bm)
-
       setBookmarkCheck(data.target_type!, data.target_id!, data.meta as Record<string, any>, true)
 
-      // If groups were empty, the backend created "Ungrouped" — reload to get it
-      if (!groups.value.length) {
-        await loadBookmarks()
-      }
+      // Reload to get enriched data (resolved_title, icons) and any auto-created groups
+      await loadBookmarks()
 
       message.success(t('msg.bookmarkAdded'))
       $e('a:bookmark:create', { target_type: data.target_type })

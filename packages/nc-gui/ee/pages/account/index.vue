@@ -267,6 +267,8 @@ onMounted(() => {
                 </div>
               </NcMenuItem>
 
+              <!-- TODO: re-enable when bookmark management page is ready -->
+              <!--
               <NcMenuItem
                 v-if="isEeUI && !blockBookmarks"
                 key="bookmarks"
@@ -281,6 +283,7 @@ onMounted(() => {
                   <div class="select-none">{{ $t('title.bookmarks') }}</div>
                 </div>
               </NcMenuItem>
+              -->
 
               <NcDivider class="!mt-0" />
 

@@ -10,16 +10,9 @@ const { $e } = useNuxtApp()
 
 const emit = defineEmits<{ close: [] }>()
 
-const router = useRouter()
-
 const newFolderName = ref('')
 
 const newFolderInput = ref<any>()
-
-const goToSettings = () => {
-  router.push('/account/bookmarks')
-  emit('close')
-}
 
 const groupListRef = ref<HTMLElement>()
 
@@ -105,12 +98,7 @@ onMounted(() => {
     <!-- Header -->
     <div class="flex items-center justify-between px-4 py-3 border-b-1 border-nc-border-gray-medium flex-none">
       <span class="text-sm font-bold text-nc-content-gray">{{ $t('title.bookmarks') }}</span>
-      <div class="flex items-center gap-1">
-        <BookmarksAddBookmarkDropdown />
-        <NcButton type="text" size="xxsmall" class="!rounded-md" @click="goToSettings">
-          <GeneralIcon icon="settings" class="text-nc-content-gray-muted" />
-        </NcButton>
-      </div>
+      <BookmarksAddBookmarkDropdown />
     </div>
 
     <!-- Content -->
@@ -163,8 +151,7 @@ onMounted(() => {
               ref="newFolderInput"
               v-model:value="newFolderName"
               :placeholder="$t('labels.bookmarkGroup')"
-              class="!rounded-lg flex-1 !text-[11px]"
-              size="small"
+              class="!rounded-lg flex-1"
               data-testid="nc-bookmark-new-folder-input"
               @keydown.enter="confirmNewFolder"
               @keydown.escape="cancelNewFolder"

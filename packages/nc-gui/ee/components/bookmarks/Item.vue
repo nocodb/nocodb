@@ -32,6 +32,8 @@ function handleDragStart(e: DragEvent) {
   e.dataTransfer?.setData('text/plain', bookmark.value.id!)
   onDragStart(bookmark.value)
 }
+
+
 </script>
 
 <template>

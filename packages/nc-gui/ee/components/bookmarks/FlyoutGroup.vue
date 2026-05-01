@@ -55,7 +55,7 @@ const localDropIndex = computed(() => {
   return dropIndex.value
 })
 
-function onRenameGroup() {
+function startGroupRename() {
   isGroupMenuOpen.value = false
   renameValue.value = group.value.name ?? ''
   isRenaming.value = true
@@ -65,20 +65,21 @@ function onRenameGroup() {
   })
 }
 
-async function confirmRename() {
-  const name = renameValue.value.trim()
-  if (!name || name === group.value.name) {
-    isRenaming.value = false
+async function saveGroupRename() {
+  const newName = renameValue.value.trim()
+  if (!newName) {
+    cancelGroupRename()
     return
   }
 
-  await updateGroup(group.value.id!, { name })
+  await updateGroup(group.value.id!, { name: newName })
   $e('a:bookmark:group:rename')
-  isRenaming.value = false
+  cancelGroupRename()
 }
 
-function cancelRename() {
+function cancelGroupRename() {
   isRenaming.value = false
+  renameValue.value = ''
 }
 
 async function onDeleteGroup() {
@@ -181,9 +182,8 @@ function handleDragEnter(e: DragEvent) {
           class="!rounded-lg flex-1 !text-[11px]"
           size="small"
           data-testid="nc-bookmark-group-rename-input"
-          @keydown.enter="confirmRename"
-          @keydown.escape="cancelRename"
-          @blur="confirmRename"
+          @keyup.enter="saveGroupRename"
+          @keyup.escape="cancelGroupRename"
           @click.stop
         />
 
@@ -198,7 +198,7 @@ function handleDragEnter(e: DragEvent) {
       </div>
 
       <!-- Group actions (hidden for Ungrouped) -->
-      <NcDropdown v-if="!isDefaultGroup" v-model:visible="isGroupMenuOpen" :trigger="['click']">
+      <NcDropdown v-if="!isDefaultGroup" v-model:visible="isGroupMenuOpen" :trigger="['click']" placement="bottomRight" overlay-class-name="nc-bookmark-group-menu">
         <NcButton
           type="text"
           size="xxsmall"
@@ -212,7 +212,7 @@ function handleDragEnter(e: DragEvent) {
           <NcMenu variant="small">
             <NcMenuItem
               data-testid="nc-bookmark-group-rename"
-              @click="onRenameGroup"
+              @click="startGroupRename"
             >
               <div v-e="['c:bookmark:group:rename']" class="flex gap-2 items-center">
                 <GeneralIcon icon="rename" class="w-4 h-4" />

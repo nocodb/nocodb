@@ -35,10 +35,10 @@ function open() {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen" :trigger="['contextmenu']" overlay-class-name="nc-bookmark-context-menu">
+  <NcDropdown v-model:visible="isOpen" :trigger="['contextmenu']" placement="bottomRight" overlay-class-name="nc-bookmark-context-menu">
     <slot :open="open" :is-open="isOpen" />
     <template #overlay>
-      <NcMenu variant="small" @click.stop>
+      <NcMenu variant="small">
         <template v-if="otherGroups.length">
           <NcSubMenu key="moveTo">
             <template #title>

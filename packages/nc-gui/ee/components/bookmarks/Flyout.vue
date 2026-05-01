@@ -10,11 +10,36 @@ const { $e } = useNuxtApp()
 
 const emit = defineEmits<{ close: [] }>()
 
+const searchQuery = ref('')
+
 const newFolderName = ref('')
 
 const newFolderInput = ref<any>()
 
 const groupListRef = ref<HTMLElement>()
+
+const filteredBookmarksByGroup = computed<Record<string, BookmarkType[]>>(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return bookmarksByGroup.value
+
+  const map: Record<string, BookmarkType[]> = {}
+  for (const groupId in bookmarksByGroup.value) {
+    const filtered = bookmarksByGroup.value[groupId].filter((bm) => {
+      const title = (bm.title ?? bm.resolved_title ?? '').toLowerCase()
+      return title.includes(q)
+    })
+    if (filtered.length) {
+      map[groupId] = filtered
+    }
+  }
+  return map
+})
+
+const filteredGroups = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return orderedGroups.value
+  return orderedGroups.value.filter((g) => filteredBookmarksByGroup.value[g.id!]?.length)
+})
 
 const isEmpty = computed(() => orderedGroups.value.length === 0)
 
@@ -92,7 +117,7 @@ onMounted(() => {
 <template>
   <div
     class="nc-bookmarks-flyout fixed bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl shadow-lg z-50 flex flex-col"
-    style="left: 60px; bottom: 18px; width: 340px; min-height: 300px; max-height: 80vh"
+    style="left: 60px; bottom: 18px; width: 340px; height: 80vh"
     @click.stop
   >
     <!-- Header -->
@@ -114,16 +139,37 @@ onMounted(() => {
         <span class="text-sm text-nc-content-gray-subtle text-center px-4">{{ $t('msg.noBookmarksYet') }}</span>
       </div>
 
+      <!-- Search filter -->
+      <div v-if="!isEmpty" class="mb-3">
+        <a-input
+          v-model:value="searchQuery"
+          :placeholder="$t('general.search')"
+          class="!rounded-lg"
+          size="small"
+          allow-clear
+          data-testid="nc-bookmark-flyout-search"
+        >
+          <template #prefix>
+            <GeneralIcon icon="search" class="text-nc-content-gray-muted mr-1" />
+          </template>
+        </a-input>
+      </div>
+
+      <!-- No search results -->
+      <div v-if="!isEmpty && searchQuery.trim() && !filteredGroups.length" class="text-xs text-nc-content-gray-muted text-center py-6">
+        {{ $t('labels.noResults') }}
+      </div>
+
       <!-- Single column list -->
       <div
-        v-else
+        v-else-if="!isEmpty"
         ref="groupListRef"
         class="flex flex-col gap-4"
         @dragover="handleGroupListDragOver"
         @drop="handleGroupListDrop"
         @dragend="handleGroupListDragEnd"
       >
-        <template v-for="(group, idx) in orderedGroups" :key="group.id">
+        <template v-for="(group, idx) in filteredGroups" :key="group.id">
           <!-- Group drop indicator line -->
           <div
             v-if="draggingGroupId && groupDropIndex === idx && group.id !== draggingGroupId"
@@ -132,7 +178,7 @@ onMounted(() => {
 
           <BookmarksFlyoutGroup
             :group="group"
-            :bookmarks="bookmarksByGroup[group.id!] ?? []"
+            :bookmarks="filteredBookmarksByGroup[group.id!] ?? []"
             :all-groups="orderedGroups"
             @navigate="onNavigate"
           />
@@ -140,7 +186,7 @@ onMounted(() => {
 
         <!-- Group drop indicator at end -->
         <div
-          v-if="draggingGroupId && groupDropIndex === orderedGroups.length"
+          v-if="draggingGroupId && groupDropIndex === filteredGroups.length"
           class="h-0.5 mx-1.5 bg-nc-content-brand rounded-full"
         />
 

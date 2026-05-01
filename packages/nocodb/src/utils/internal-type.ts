@@ -36,6 +36,7 @@ export type InternalGETResponseType = Promise<
   | Hook[]
   | HookLog[]
   | { hash: string }
+  | { path?: string; url?: string }
   | OAuthClient
   | OAuthClient[]
   | Extension

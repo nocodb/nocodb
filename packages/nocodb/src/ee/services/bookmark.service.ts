@@ -16,6 +16,7 @@ import Model from '~/models/Model';
 import View from '~/models/View';
 import Workspace from '~/ee/models/Workspace';
 import WorkspaceUser from '~/ee/models/WorkspaceUser';
+import { NcConcurrent } from '~/utils/NcConcurrent';
 import { parseMetaProp } from '~/utils/modelUtils';
 
 @Injectable()
@@ -373,8 +374,8 @@ export class BookmarkService {
   private async enrichBookmarks(
     bookmarks: Bookmark[],
   ): Promise<BookmarkType[]> {
-    return Promise.all(
-      bookmarks.map(async (bm) => {
+    return NcConcurrent(
+      bookmarks.map((bm) => async () => {
         const meta = (bm.meta as Record<string, any>) ?? {};
 
         // Build context from bookmark's stored meta
@@ -382,6 +383,9 @@ export class BookmarkService {
           workspace_id: meta.workspace_id,
           base_id: meta.base_id,
         } as NcContext;
+
+        //TODO: validateTargetAccess before continuing
+        // performance consideration
 
         let resolvedTitle: string | undefined;
 

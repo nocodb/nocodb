@@ -1,13 +1,21 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, DependencyTableType } from 'nocodb-sdk';
-import type { BookmarkGroupReqType, BookmarkReqType, BookmarkType, NcContext, NcRequest } from 'nocodb-sdk';
+import type {
+  BookmarkGroupReqType,
+  BookmarkReqType,
+  BookmarkType,
+  NcContext,
+  NcRequest,
+} from 'nocodb-sdk';
 import { Bookmark, BookmarkGroup, DependencyTracker } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import Base from '~/models/Base';
+import BaseUser from '~/models/BaseUser';
 import Model from '~/models/Model';
 import View from '~/models/View';
 import Workspace from '~/ee/models/Workspace';
+import WorkspaceUser from '~/ee/models/WorkspaceUser';
 import { parseMetaProp } from '~/utils/modelUtils';
 
 @Injectable()
@@ -91,14 +99,21 @@ export class BookmarkService {
     return result;
   }
 
-  async bookmarkCreate(
-    param: { body: BookmarkReqType; req: NcRequest },
-  ) {
+  async bookmarkCreate(param: { body: BookmarkReqType; req: NcRequest }) {
     const userId = param.req.user?.id;
     if (!userId) NcError.unauthorized('User not found');
 
     const meta = (param.body.meta as Record<string, any>) ?? {};
-    const context = { workspace_id: meta.workspace_id, base_id: meta.base_id } as NcContext;
+    const context = {
+      workspace_id: meta.workspace_id,
+      base_id: meta.base_id,
+    } as NcContext;
+
+    await this.validateTargetAccess(context, {
+      userId,
+      targetType: param.body.target_type,
+      targetId: param.body.target_id,
+    });
 
     let groupId = param.body.fk_group_id;
 
@@ -151,9 +166,11 @@ export class BookmarkService {
     return bookmark;
   }
 
-  async bookmarkUpdate(
-    param: { bookmarkId: string; body: Partial<BookmarkReqType>; req: NcRequest },
-  ) {
+  async bookmarkUpdate(param: {
+    bookmarkId: string;
+    body: Partial<BookmarkReqType>;
+    req: NcRequest;
+  }) {
     const userId = param.req.user?.id;
     if (!userId) NcError.unauthorized('User not found');
 
@@ -177,9 +194,7 @@ export class BookmarkService {
     });
   }
 
-  async bookmarkDelete(
-    param: { bookmarkId: string; req: NcRequest },
-  ) {
+  async bookmarkDelete(param: { bookmarkId: string; req: NcRequest }) {
     const userId = param.req.user?.id;
     if (!userId) NcError.unauthorized('User not found');
 
@@ -189,7 +204,10 @@ export class BookmarkService {
     }
 
     const meta = (bookmark.meta as Record<string, any>) ?? {};
-    const context = { workspace_id: meta.workspace_id, base_id: meta.base_id } as NcContext;
+    const context = {
+      workspace_id: meta.workspace_id,
+      base_id: meta.base_id,
+    } as NcContext;
 
     await Bookmark.delete(param.bookmarkId);
 
@@ -222,9 +240,10 @@ export class BookmarkService {
     return BookmarkGroup.list(userId);
   }
 
-  async bookmarkGroupCreate(
-    param: { body: BookmarkGroupReqType; req: NcRequest },
-  ) {
+  async bookmarkGroupCreate(param: {
+    body: BookmarkGroupReqType;
+    req: NcRequest;
+  }) {
     const userId = param.req.user?.id;
     if (!userId) NcError.unauthorized('User not found');
 
@@ -235,9 +254,11 @@ export class BookmarkService {
     });
   }
 
-  async bookmarkGroupUpdate(
-    param: { groupId: string; body: Partial<BookmarkGroupReqType>; req: NcRequest },
-  ) {
+  async bookmarkGroupUpdate(param: {
+    groupId: string;
+    body: Partial<BookmarkGroupReqType>;
+    req: NcRequest;
+  }) {
     const userId = param.req.user?.id;
     if (!userId) NcError.unauthorized('User not found');
 
@@ -252,9 +273,7 @@ export class BookmarkService {
     });
   }
 
-  async bookmarkGroupDelete(
-    param: { groupId: string; req: NcRequest },
-  ) {
+  async bookmarkGroupDelete(param: { groupId: string; req: NcRequest }) {
     const userId = param.req.user?.id;
     if (!userId) NcError.unauthorized('User not found');
 
@@ -274,6 +293,79 @@ export class BookmarkService {
     await BookmarkGroup.delete(param.groupId);
 
     return true;
+  }
+
+  // --- Access validation ---
+  private async validateTargetAccess(
+    context: NcContext,
+    param: { userId: string; targetType: string; targetId: string },
+  ) {
+    const { userId, targetType, targetId } = param;
+
+    switch (targetType) {
+      case 'workspace': {
+        const wsUser = await WorkspaceUser.get(targetId, userId);
+        if (!wsUser) {
+          NcError.get(context).badRequest(
+            'You do not have access to this workspace',
+          );
+        }
+        break;
+      }
+      case 'base': {
+        const baseUser = await BaseUser.get(context, targetId, userId);
+        if (!baseUser?.roles && !(baseUser as any)?.workspace_roles) {
+          NcError.get(context).badRequest(
+            'You do not have access to this base',
+          );
+        }
+        break;
+      }
+      case 'table':
+      case 'document':
+      case 'workflow':
+      case 'script': {
+        const model = await Model.get(context, targetId);
+        if (!model) {
+          NcError.get(context).badRequest('Target not found');
+        }
+
+        const baseUser = await BaseUser.get(
+          { ...context, base_id: model.base_id } as NcContext,
+          model.base_id!,
+          userId,
+        );
+        if (!baseUser?.roles && !(baseUser as any)?.workspace_roles) {
+          NcError.get(context).badRequest(
+            'You do not have access to this item',
+          );
+        }
+        break;
+      }
+      case 'view': {
+        const view = await View.get(context, targetId);
+        if (!view) {
+          NcError.get(context).badRequest('Target not found');
+        }
+
+        const table = await Model.get(context, view.fk_model_id!);
+        if (!table) {
+          NcError.get(context).badRequest('Target not found');
+        }
+
+        const baseUser = await BaseUser.get(
+          { ...context, base_id: table.base_id } as NcContext,
+          table.base_id!,
+          userId,
+        );
+        if (!baseUser?.roles && !(baseUser as any)?.workspace_roles) {
+          NcError.get(context).badRequest(
+            'You do not have access to this view',
+          );
+        }
+        break;
+      }
+    }
   }
 
   // --- Enrichment ---
@@ -339,7 +431,8 @@ export class BookmarkService {
                   const table = await Model.get(ctx, view.fk_model_id);
                   if (table) {
                     meta.base_id = table.base_id;
-                    meta.workspace_id = meta.workspace_id || table.fk_workspace_id;
+                    meta.workspace_id =
+                      meta.workspace_id || table.fk_workspace_id;
                   }
                 }
               }

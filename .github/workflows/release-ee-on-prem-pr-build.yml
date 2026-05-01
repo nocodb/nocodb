@@ -45,6 +45,7 @@ jobs:
     # Run on manual dispatch, or on a PR that just received the `on-prem-build` label.
     if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.label.name == 'on-prem-build') }}
     runs-on: ubicloud-standard-8
+    timeout-minutes: 30
     env:
       working-directory: ./packages/nocodb
     steps:

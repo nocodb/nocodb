@@ -7,6 +7,7 @@ import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { assertNotLockedViewOnSandboxProduction } from '~/helpers/sandboxGuards';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
@@ -28,6 +29,7 @@ export class ViewColumnsService extends ViewColumnsServiceCE {
     },
     ncMeta?: MetaService,
   ) {
+    await assertNotLockedViewOnSandboxProduction(context, param.viewId);
     return super.columnUpdate(context, param, ncMeta);
   }
 }

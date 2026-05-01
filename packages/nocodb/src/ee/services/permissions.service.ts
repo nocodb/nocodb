@@ -13,7 +13,7 @@ import {
   ProjectRoles,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { NcContext } from '~/interface/config';
+import type { NcContext } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import { Team } from '~/models';
 import Workspace from '~/ee/models/Workspace';
@@ -597,5 +597,4 @@ export class PermissionsService {
       },
     });
   }
-
 }

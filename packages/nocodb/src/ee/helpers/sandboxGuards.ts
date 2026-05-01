@@ -1,5 +1,6 @@
+import { ViewLockType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import { Sandbox } from '~/models';
+import { Sandbox, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
 /**
@@ -31,4 +32,22 @@ export async function assertNotSandboxProduction(
   if (sandboxes.length > 0) {
     NcError.get(context).sandboxProductionBlocked(message);
   }
+}
+
+/**
+ * Throws if the target view is locked AND the base has an active sandbox.
+ * Mirrors `views.service.ts viewUpdate` — locked views are frozen on
+ * production while a sandbox is active so changes flow through the sandbox.
+ * Personal and collaborative (non-locked) views are unaffected.
+ */
+export async function assertNotLockedViewOnSandboxProduction(
+  context: NcContext,
+  viewId: string,
+  message = 'Locked views cannot be modified on a base with an active sandbox. Make changes in the sandbox.',
+): Promise<void> {
+  if (context.additionalContext?.is_replay) return;
+  if (!viewId) return;
+  const view = await View.get(context, viewId);
+  if (view?.lock_type !== ViewLockType.Locked) return;
+  await assertNotSandboxProduction(context, message);
 }

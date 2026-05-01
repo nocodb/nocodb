@@ -5,8 +5,9 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
-import type { MetaService } from '~/meta/meta.service';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
+import { NcContext } from '~/interface/config';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,

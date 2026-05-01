@@ -1,17 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType } from 'nocodb-sdk';
 import type { GridColumnReqType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import { MetaTable } from '~/cli';
 import NocoCache from '~/cache/NocoCache';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
+import { assertNotLockedViewOnSandboxProduction } from '~/helpers/sandboxGuards';
 import { Column, GridViewColumn, View } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
@@ -29,6 +33,7 @@ export class GridColumnsService {
     return await GridViewColumn.list(context, param.gridViewId, ncMeta);
   }
 
+  @TraceCommand(OperationName.gridColumnUpdate)
   async gridColumnUpdate(
     context: NcContext,
     param: {
@@ -49,6 +54,13 @@ export class GridColumnsService {
       param.gridViewColumnId,
       ncMeta,
     );
+
+    if (oldGridViewColumn?.fk_view_id) {
+      await assertNotLockedViewOnSandboxProduction(
+        context,
+        oldGridViewColumn.fk_view_id,
+      );
+    }
 
     const column = await Column.get(
       context,

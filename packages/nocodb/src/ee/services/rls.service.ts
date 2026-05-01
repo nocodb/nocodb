@@ -7,7 +7,7 @@ import {
 } from 'nocodb-sdk';
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { NcContext } from '~/interface/config';
+import type { NcContext } from '~/interface/config';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import NocoSocket from '~/ee/socket/NocoSocket';
 import Filter from '~/models/Filter';

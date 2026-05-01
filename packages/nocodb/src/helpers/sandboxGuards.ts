@@ -12,3 +12,9 @@ export async function assertNotSandboxProduction(
   _context: NcContext,
   _message?: string,
 ): Promise<void> {}
+
+export async function assertNotLockedViewOnSandboxProduction(
+  _context: NcContext,
+  _viewId: string,
+  _message?: string,
+): Promise<void> {}

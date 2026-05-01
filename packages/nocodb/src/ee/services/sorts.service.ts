@@ -11,7 +11,8 @@ import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { View } from '~/models';
+import { assertNotLockedViewOnSandboxProduction } from '~/helpers/sandboxGuards';
+import { Sort, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
@@ -34,6 +35,8 @@ export class SortsService extends SortsServiceCE {
     },
     ncMeta?: MetaService,
   ) {
+    await assertNotLockedViewOnSandboxProduction(context, param.viewId);
+
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const view = await View.get(context, param.viewId, false, ncMeta);
@@ -84,6 +87,10 @@ export class SortsService extends SortsServiceCE {
     },
     ncMeta?: MetaService,
   ) {
+    const sort = await Sort.get(context, param.sortId, ncMeta);
+    if (sort?.fk_view_id) {
+      await assertNotLockedViewOnSandboxProduction(context, sort.fk_view_id);
+    }
     return super.sortUpdate(context, param, ncMeta);
   }
 
@@ -98,6 +105,10 @@ export class SortsService extends SortsServiceCE {
     },
     ncMeta?: MetaService,
   ) {
+    const sort = await Sort.get(context, param.sortId, ncMeta);
+    if (sort?.fk_view_id) {
+      await assertNotLockedViewOnSandboxProduction(context, sort.fk_view_id);
+    }
     return super.sortDelete(context, param, ncMeta);
   }
 }

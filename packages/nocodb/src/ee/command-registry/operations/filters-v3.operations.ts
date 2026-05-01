@@ -42,3 +42,64 @@ export const FilterCreateV3Contract: OperationContract<
     return colId ? [{ entity: MetaTable.COLUMNS, id: colId }] : [];
   },
 };
+
+// ─── filterReplaceV3 ──────────────────────────────────────────────────────────
+// Atomic op: PUT /filters replaces every filter on a view with a new set.
+// Recording it as one event keeps changelog small; replay does deleteAll +
+// insertFilterGroup to reach the new state on the production base.
+
+const filterReplaceV3Schema = z.object({
+  filter: z.record(z.unknown()),
+  viewId: z.string(),
+  user: z.any().optional(),
+});
+
+export const FilterReplaceV3Contract: OperationContract<
+  typeof filterReplaceV3Schema
+> = {
+  name: OperationName.filterReplaceV3,
+  version: 1,
+  entity: MetaTable.FILTER_EXP,
+  schema: filterReplaceV3Schema,
+  parentId: 'viewId',
+  description: filterActions.replace,
+  resolveCtx: async (context, param) => {
+    const view = await View.get(context, param?.viewId);
+    const table = view?.fk_model_id
+      ? await Model.get(context, view.fk_model_id)
+      : undefined;
+    return {
+      parentEntityTitle: view?.title,
+      extra: { tableTitle: table?.title },
+    };
+  },
+};
+
+// ─── filterDeleteAllV3 ────────────────────────────────────────────────────────
+// Atomic op: clears every filter on a view. Used internally by view services
+// (e.g. switching view types) and exposed via the V3 controller indirectly.
+
+const filterDeleteAllV3Schema = z.object({
+  viewId: z.string(),
+});
+
+export const FilterDeleteAllV3Contract: OperationContract<
+  typeof filterDeleteAllV3Schema
+> = {
+  name: OperationName.filterDeleteAllV3,
+  version: 1,
+  entity: MetaTable.FILTER_EXP,
+  schema: filterDeleteAllV3Schema,
+  parentId: 'viewId',
+  description: filterActions.deleteAll,
+  resolveCtx: async (context, param) => {
+    const view = await View.get(context, param?.viewId);
+    const table = view?.fk_model_id
+      ? await Model.get(context, view.fk_model_id)
+      : undefined;
+    return {
+      parentEntityTitle: view?.title,
+      extra: { tableTitle: table?.title },
+    };
+  },
+};

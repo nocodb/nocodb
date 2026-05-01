@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
+import { assertNotLockedViewOnSandboxProduction } from '~/helpers/sandboxGuards';
 import { Column, FormViewColumn, View } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/ncError';
@@ -16,6 +20,7 @@ import { NcError } from '~/helpers/ncError';
 export class FormColumnsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
+  @TraceCommand(OperationName.formColumnUpdate)
   async columnUpdate(
     context: NcContext,
     param: {
@@ -40,6 +45,13 @@ export class FormColumnsService {
       param.formViewColumnId,
       ncMeta,
     );
+
+    if (oldFormViewColumn?.fk_view_id) {
+      await assertNotLockedViewOnSandboxProduction(
+        context,
+        oldFormViewColumn.fk_view_id,
+      );
+    }
 
     const view = await View.get(
       context,

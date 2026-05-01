@@ -116,7 +116,9 @@ export default [
   ...(Array.isArray(LinearAuth) ? LinearAuth : [LinearAuth]),
   ...(Array.isArray(LinearSync) ? LinearSync : [LinearSync]),
   ...(Array.isArray(MailchimpAuth) ? MailchimpAuth : [MailchimpAuth]),
-  ...(Array.isArray(MailchimpWorkflowNode) ? MailchimpWorkflowNode : [MailchimpWorkflowNode]),
+  ...(Array.isArray(MailchimpWorkflowNode)
+    ? MailchimpWorkflowNode
+    : [MailchimpWorkflowNode]),
   ...(Array.isArray(MysqlAuth) ? MysqlAuth : [MysqlAuth]),
   ...(Array.isArray(MysqlSync) ? MysqlSync : [MysqlSync]),
   ...(Array.isArray(NocodbAi) ? NocodbAi : [NocodbAi]),

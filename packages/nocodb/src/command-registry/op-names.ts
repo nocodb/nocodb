@@ -19,6 +19,7 @@ export const OperationName = {
   columnAdd: 'columnAdd',
   columnUpdate: 'columnUpdate',
   columnDelete: 'columnDelete',
+  columnSetAsPrimary: 'columnSetAsPrimary',
 
   // Views (generic)
   viewUpdate: 'viewUpdate',
@@ -44,6 +45,8 @@ export const OperationName = {
 
   // View columns + visibility
   viewColumnUpdate: 'viewColumnUpdate',
+  gridColumnUpdate: 'gridColumnUpdate',
+  formColumnUpdate: 'formColumnUpdate',
 
   // Sorts
   sortCreate: 'sortCreate',
@@ -55,6 +58,8 @@ export const OperationName = {
   filterUpdate: 'filterUpdate',
   filterDelete: 'filterDelete',
   filterCreateV3: 'filterCreateV3',
+  filterReplaceV3: 'filterReplaceV3',
+  filterDeleteAllV3: 'filterDeleteAllV3',
   linkFilterCreate: 'linkFilterCreate',
   widgetFilterCreate: 'widgetFilterCreate',
   rowColorConditionsCreate: 'rowColorConditionsCreate',

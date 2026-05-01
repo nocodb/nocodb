@@ -15,7 +15,10 @@ import {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import {
+  assertNotLockedViewOnSandboxProduction,
+  assertNotSandbox,
+} from '~/helpers/sandboxGuards';
 import { Column, Filter, View } from '~/models';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import Noco from '~/Noco';
@@ -42,6 +45,8 @@ export class FiltersService extends FiltersServiceCE {
       viewWebhookManager?: ViewWebhookManager;
     },
   ) {
+    await assertNotLockedViewOnSandboxProduction(context, param.viewId);
+
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
     const view = await View.get(context, param.viewId);
@@ -103,6 +108,10 @@ export class FiltersService extends FiltersServiceCE {
     },
     ncMeta?: MetaService,
   ) {
+    const filter = await Filter.get(context, param.filterId, ncMeta);
+    if (filter?.fk_view_id) {
+      await assertNotLockedViewOnSandboxProduction(context, filter.fk_view_id);
+    }
     return super.filterUpdate(context, param, ncMeta);
   }
 
@@ -113,6 +122,10 @@ export class FiltersService extends FiltersServiceCE {
     param: { filterId: string; req: NcRequest },
     ncMeta?: MetaService,
   ) {
+    const filter = await Filter.get(context, param.filterId, ncMeta);
+    if (filter?.fk_view_id) {
+      await assertNotLockedViewOnSandboxProduction(context, filter.fk_view_id);
+    }
     return super.filterDelete(context, param, ncMeta);
   }
 

@@ -80,7 +80,15 @@ function buildActions(bEntity: BFn, typeLabel: string, bParent?: BFn) {
 }
 
 export const tableActions = buildActions(bTable, 'table');
-export const fieldActions = buildActions(bField, 'field', bTable);
+export const fieldActions = {
+  ...buildActions(bField, 'field', bTable),
+  setAsPrimary: (({ entityTitle, parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Set ${bField(entityTitle)} as primary field in ${bTable(
+          parentEntityTitle,
+        )}`
+      : `Set ${bField(entityTitle)} as primary field`) as DescFn,
+};
 export const viewActions = buildActions(bView, 'view', bTable);
 export const hookActions = buildActions(bHook, 'webhook', bTable);
 export const dashboardActions = buildActions(bDashboard, 'dashboard');
@@ -121,6 +129,18 @@ export const filterActions = {
   add: nestedUnderView('Add', 'filter', 'on'),
   edit: nestedUnderView('Edit', 'filter', 'on'),
   delete: nestedUnderView('Delete', 'filter', 'on'),
+  replace: (({ parentEntityTitle, extra }) => {
+    const parts = ['Replace filters'];
+    if (parentEntityTitle) parts.push(`in ${bView(parentEntityTitle)}`);
+    if (extra?.tableTitle) parts.push(`in ${bTable(extra.tableTitle)}`);
+    return parts.join(' ');
+  }) as DescFn,
+  deleteAll: (({ parentEntityTitle, extra }) => {
+    const parts = ['Clear all filters'];
+    if (parentEntityTitle) parts.push(`from ${bView(parentEntityTitle)}`);
+    if (extra?.tableTitle) parts.push(`in ${bTable(extra.tableTitle)}`);
+    return parts.join(' ');
+  }) as DescFn,
 };
 
 export const sortActions = {

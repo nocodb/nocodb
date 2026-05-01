@@ -1,9 +1,13 @@
 import {
+  FormColumnUpdateContract,
+  GridColumnUpdateContract,
   SortCreateContract,
   SortDeleteContract,
   SortUpdateContract,
   ViewColumnUpdateContract,
 } from '../operations/sorts-visibilities.operations';
+import type { FormColumnsService } from '~/services/form-columns.service';
+import type { GridColumnsService } from '~/services/grid-columns.service';
 import type { SortsService } from '~/services/sorts.service';
 import type { ViewColumnsService } from '~/services/view-columns.service';
 import { registerForward } from '~/command-registry/replay-context';
@@ -16,6 +20,18 @@ export function registerSortHandlers(svc: SortsService): void {
 
 export function registerViewColumnHandlers(svc: ViewColumnsService): void {
   registerForward(ViewColumnUpdateContract, (ctx, p) =>
+    svc.columnUpdate(ctx, p),
+  );
+}
+
+export function registerGridColumnHandlers(svc: GridColumnsService): void {
+  registerForward(GridColumnUpdateContract, (ctx, p) =>
+    svc.gridColumnUpdate(ctx, p),
+  );
+}
+
+export function registerFormColumnHandlers(svc: FormColumnsService): void {
+  registerForward(FormColumnUpdateContract, (ctx, p) =>
     svc.columnUpdate(ctx, p),
   );
 }

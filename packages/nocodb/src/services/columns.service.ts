@@ -50,12 +50,13 @@ import type {
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type CustomKnex from '~/db/CustomKnex';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type {
   IColumnsService,
   ReusableParams,
 } from '~/services/columns.service.type';
+import { NcContext } from '~/interface/config';
 import {
   type ColumnWebhookManager,
   ColumnWebhookManagerBuilder,
@@ -78,6 +79,8 @@ import {
   validateRequiredField,
   validateRollupPayload,
 } from '~/helpers';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { pgQuoteLiteral } from '~/helpers/sqlSanitize';
@@ -2803,6 +2806,7 @@ export class ColumnsService implements IColumnsService {
     return Column.get(context, { colId: param.columnId });
   }
 
+  @TraceCommand(OperationName.columnSetAsPrimary)
   async columnSetAsPrimary(
     context: NcContext,
     param: { columnId: string; req: NcRequest },

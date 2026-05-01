@@ -146,3 +146,78 @@ export const ViewColumnUpdateContract: OperationContract<
     p.columnId ? [{ entity: MetaTable.COLUMNS, id: p.columnId }] : [],
 };
 
+// ─────────────────────────────────────────────────────────────
+// GridColumn contract — grid-specific props (width, group_by, aggregation)
+// ─────────────────────────────────────────────────────────────
+
+const gridColumnUpdateSchema = z.object({
+  gridViewColumnId: z.string(),
+  grid: z.record(z.unknown()),
+});
+
+export const GridColumnUpdateContract: OperationContract<
+  typeof gridColumnUpdateSchema
+> = {
+  name: OperationName.gridColumnUpdate,
+  version: 1,
+  entity: MetaTable.GRID_VIEW_COLUMNS,
+  schema: gridColumnUpdateSchema,
+  entityId: (p) => p.gridViewColumnId,
+  description: viewColumnActions.update,
+  resolveCtx: async (context, param) => {
+    const { GridViewColumn } = await import('~/models');
+    const gridCol = await GridViewColumn.get(context, param.gridViewColumnId);
+    if (!gridCol) return {};
+    const view = gridCol.fk_view_id
+      ? await View.get(context, gridCol.fk_view_id)
+      : undefined;
+    const table = view?.fk_model_id
+      ? await Model.get(context, view.fk_model_id)
+      : undefined;
+    const field = gridCol.fk_column_id
+      ? await Column.get(context, { colId: gridCol.fk_column_id })
+      : undefined;
+    return {
+      parentEntityTitle: view?.title,
+      extra: { fieldTitle: field?.title, tableTitle: table?.title },
+    };
+  },
+};
+
+// ─────────────────────────────────────────────────────────────
+// FormColumn contract — form-specific props (label, help, required, etc.)
+// ─────────────────────────────────────────────────────────────
+
+const formColumnUpdateSchema = z.object({
+  formViewColumnId: z.string(),
+  formViewColumn: z.record(z.unknown()),
+});
+
+export const FormColumnUpdateContract: OperationContract<
+  typeof formColumnUpdateSchema
+> = {
+  name: OperationName.formColumnUpdate,
+  version: 1,
+  entity: MetaTable.FORM_VIEW_COLUMNS,
+  schema: formColumnUpdateSchema,
+  entityId: (p) => p.formViewColumnId,
+  description: viewColumnActions.update,
+  resolveCtx: async (context, param) => {
+    const { FormViewColumn } = await import('~/models');
+    const formCol = await FormViewColumn.get(context, param.formViewColumnId);
+    if (!formCol) return {};
+    const view = formCol.fk_view_id
+      ? await View.get(context, formCol.fk_view_id)
+      : undefined;
+    const table = view?.fk_model_id
+      ? await Model.get(context, view.fk_model_id)
+      : undefined;
+    const field = formCol.fk_column_id
+      ? await Column.get(context, { colId: formCol.fk_column_id })
+      : undefined;
+    return {
+      parentEntityTitle: view?.title,
+      extra: { fieldTitle: field?.title, tableTitle: table?.title },
+    };
+  },
+};

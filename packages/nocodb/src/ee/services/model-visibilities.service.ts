@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ModelVisibilitiesService as ModelVisibilitiesServiceCE } from 'src/services/model-visibilities.service';
 import type { VisibilityRuleReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { NcContext } from '~/interface/config';
+import type { NcContext } from '~/interface/config';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
 
 @Injectable()

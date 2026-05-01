@@ -6,6 +6,8 @@ import { registerColumnHandlers } from './handlers/columns.handlers';
 import { registerViewTypeHandlers } from './handlers/view-types.handlers';
 import { registerFilterHandlers } from './handlers/filters.handlers';
 import {
+  registerFormColumnHandlers,
+  registerGridColumnHandlers,
   registerSortHandlers,
   registerViewColumnHandlers,
 } from './handlers/sorts-visibilities.handlers';
@@ -36,6 +38,8 @@ import { MapsService } from '~/services/maps.service';
 import { FiltersService } from '~/services/filters.service';
 import { SortsService } from '~/services/sorts.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
+import { GridColumnsService } from '~/services/grid-columns.service';
+import { FormColumnsService } from '~/services/form-columns.service';
 import { HooksService } from '~/services/hooks.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { DashboardsService } from '~/services/dashboards.service';
@@ -67,6 +71,8 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly filtersSvc: FiltersService,
     private readonly sortsSvc: SortsService,
     private readonly viewColumnsSvc: ViewColumnsService,
+    private readonly gridColumnsSvc: GridColumnsService,
+    private readonly formColumnsSvc: FormColumnsService,
     private readonly hooksSvc: HooksService,
     private readonly extensionsSvc: ExtensionsService,
     private readonly dashboardsSvc: DashboardsService,
@@ -97,6 +103,8 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     registerFilterHandlers(this.filtersSvc);
     registerSortHandlers(this.sortsSvc);
     registerViewColumnHandlers(this.viewColumnsSvc);
+    registerGridColumnHandlers(this.gridColumnsSvc);
+    registerFormColumnHandlers(this.formColumnsSvc);
     registerHookHandlers(this.hooksSvc);
     registerExtensionHandlers(this.extensionsSvc);
     registerDashboardHandlers(this.dashboardsSvc);

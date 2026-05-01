@@ -83,4 +83,3 @@ export const ViewDeleteContract: OperationContract<typeof deleteSchema> = {
     };
   },
 };
-

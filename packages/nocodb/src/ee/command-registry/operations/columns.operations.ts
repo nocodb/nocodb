@@ -114,3 +114,31 @@ export const ColumnDeleteContract: OperationContract<
     };
   },
 };
+
+// ─── columnSetAsPrimary ───────────────────────────────────────────────────────
+
+const columnSetAsPrimarySchema = z.object({
+  columnId: z.string(),
+});
+
+export const ColumnSetAsPrimaryContract: OperationContract<
+  typeof columnSetAsPrimarySchema
+> = {
+  name: OperationName.columnSetAsPrimary,
+  version: 1,
+  entity: MetaTable.COLUMNS,
+  schema: columnSetAsPrimarySchema,
+  entityId: (p) => p?.columnId,
+  description: fieldActions.setAsPrimary,
+  resolveCtx: async (context, param) => {
+    const col = await Column.get(context, { colId: param?.columnId });
+    if (!col) return {};
+    const table = col.fk_model_id
+      ? await Model.get(context, col.fk_model_id)
+      : undefined;
+    return {
+      entityTitle: col.title,
+      parentEntityTitle: table?.title,
+    };
+  },
+};

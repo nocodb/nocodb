@@ -13,6 +13,7 @@ import {
   Sandbox,
   Script,
   Sort,
+  SyncSource,
   Widget,
   Workflow,
 } from '~/models';
@@ -133,6 +134,8 @@ interface IdSnapshot {
   defaultViewIdsByTable: Record<string, string>;
   sorts: Set<string>;
   filters: Set<string>;
+  linkFilters: Set<string>;
+  widgetFilters: Set<string>;
   hooks: Set<string>;
   extensions: Set<string>;
   dashboards: Set<string>;
@@ -140,6 +143,7 @@ interface IdSnapshot {
   scripts: Set<string>;
   workflows: Set<string>;
   baseVariables: Set<string>;
+  syncSources: Set<string>;
 }
 
 async function collectIds(
@@ -157,7 +161,12 @@ async function collectIds(
   const defaultViewIdsByTable: Record<string, string> = {};
   const sortIds = new Set<string>();
   const filterIds = new Set<string>();
+  const linkFilterIds = new Set<string>();
   const hookIds = new Set<string>();
+  // LTAR / Lookup / Rollup / Formula columns are caught by the per-table
+  // column iteration, but we also probe per-link-column filters so a
+  // `linkFilterCreate` row enters the snapshot.
+  const linkColumnIds: string[] = [];
 
   for (const t of tables) {
     const cols = await t.getColumns(ctx);
@@ -167,6 +176,12 @@ async function collectIds(
       // explicit cross-base equality on those specific rows.
       if ((c as any).system) {
         systemColumnIdsByTitle[`${t.id}:${c.title}`] = c.id;
+      }
+      if (
+        (c as any).uidt === 'Links' ||
+        (c as any).uidt === 'LinkToAnotherRecord'
+      ) {
+        linkColumnIds.push(c.id);
       }
     }
 
@@ -188,6 +203,13 @@ async function collectIds(
     hooksForTable?.forEach((h) => hookIds.add(h.id));
   }
 
+  for (const linkColId of linkColumnIds) {
+    const linkFilters = await Filter.allLinkFilterList(ctx, {
+      linkColumnId: linkColId,
+    });
+    linkFilters?.forEach((f) => linkFilterIds.add(f.id));
+  }
+
   const extensions = await Extension.list(ctx, baseId);
   const extensionIds = new Set((extensions as any[]).map((e: any) => e.id));
 
@@ -195,9 +217,16 @@ async function collectIds(
   const dashboardIds = new Set((dashboards as any[]).map((d: any) => d.id));
 
   const widgetIds = new Set<string>();
+  const widgetFilterIds = new Set<string>();
   for (const d of dashboards as any[]) {
     const widgets = await Widget.list(ctx, d.id);
-    (widgets as any[]).forEach((w: any) => widgetIds.add(w.id));
+    for (const w of widgets as any[]) {
+      widgetIds.add(w.id);
+      const widgetFilters = await Filter.rootFilterListByWidget(ctx, {
+        widgetId: w.id,
+      });
+      widgetFilters?.forEach((f) => widgetFilterIds.add(f.id));
+    }
   }
 
   const scripts = await Script.list(ctx, baseId);
@@ -209,6 +238,9 @@ async function collectIds(
   const baseVariables = await BaseVariable.list(ctx, baseId);
   const baseVarIds = new Set((baseVariables as any[]).map((v: any) => v.id));
 
+  const syncList = await SyncSource.list(ctx, baseId);
+  const syncIds = new Set((syncList as any[]).map((s: any) => s.id));
+
   return {
     tables: tableIds,
     columns: columnIds,
@@ -217,6 +249,8 @@ async function collectIds(
     defaultViewIdsByTable,
     sorts: sortIds,
     filters: filterIds,
+    linkFilters: linkFilterIds,
+    widgetFilters: widgetFilterIds,
     hooks: hookIds,
     extensions: extensionIds,
     dashboards: dashboardIds,
@@ -224,6 +258,7 @@ async function collectIds(
     scripts: scriptIds,
     workflows: workflowIds,
     baseVariables: baseVarIds,
+    syncSources: syncIds,
   };
 }
 
@@ -267,6 +302,16 @@ function expectSnapshotEqual(
   );
   expectSetsEqual(expected.sorts, actual.sorts, `${direction}: sorts`);
   expectSetsEqual(expected.filters, actual.filters, `${direction}: filters`);
+  expectSetsEqual(
+    expected.linkFilters,
+    actual.linkFilters,
+    `${direction}: link filters`,
+  );
+  expectSetsEqual(
+    expected.widgetFilters,
+    actual.widgetFilters,
+    `${direction}: widget filters`,
+  );
   expectSetsEqual(expected.hooks, actual.hooks, `${direction}: hooks`);
   expectSetsEqual(
     expected.extensions,
@@ -290,6 +335,11 @@ function expectSnapshotEqual(
     actual.baseVariables,
     `${direction}: base variables`,
   );
+  expectSetsEqual(
+    expected.syncSources,
+    actual.syncSources,
+    `${direction}: sync sources`,
+  );
 }
 
 // ── Seed all entity types on a base ─────────────────────────────
@@ -299,11 +349,18 @@ function expectSnapshotEqual(
 // every entity type the sandbox replay layer cares about, so the snapshot
 // covers system columns, default views, all view-types, sort, filter, hook,
 // extension, dashboard, widget, duplicate-widget, script, workflow, baseVar.
+//
+// `includeRelational` toggles LTAR / Lookup / Rollup / link-filter seeding.
+// These all hinge on LTAR column ID preservation, which is implemented for the
+// master→sandbox direction (DuplicateProcessor copies meta verbatim) but not
+// yet for the sandbox→master replay direction (the LTAR + hidden-mm-table IDs
+// are regenerated). Direction-2 leaves them out to avoid masking that gap.
 
 async function seedAllEntities(
   context: Context,
   workspaceId: string,
   baseId: string,
+  options: { includeRelational: boolean } = { includeRelational: true },
 ) {
   const tCreate = await v3Post(
     context,
@@ -443,6 +500,7 @@ async function seedAllEntities(
     },
   );
   expect(widgetRes.status).to.eq(200);
+  const widgetId = widgetRes.body.id;
 
   // Duplicate so widgetIds includes the duplicate too. Replay path threads
   // entity_id through `_replayWidgetId` (see dashboards.handlers.ts).
@@ -451,7 +509,25 @@ async function seedAllEntities(
     workspaceId,
     baseId,
     { operation: 'widgetDuplicate' },
-    { widgetId: widgetRes.body.id },
+    { widgetId },
+  );
+
+  // Filter scoped to the widget — exercises `widgetFilterCreate` so a
+  // FILTER_EXP row keyed by `fk_widget_id` enters the snapshot.
+  const wfRes = await internalPost(
+    context,
+    workspaceId,
+    baseId,
+    { operation: 'widgetFilterCreate', widgetId },
+    {
+      fk_column_id: titleColId,
+      comparison_op: 'eq',
+      value: 'wf',
+      logical_op: 'and',
+    },
+  );
+  expect(wfRes.status, `widgetFilterCreate: ${JSON.stringify(wfRes.body)}`).to.eq(
+    200,
   );
 
   await internalPost(
@@ -482,6 +558,138 @@ async function seedAllEntities(
       inheritance: 'editable',
     },
   );
+
+  // Formula column — pure local computed col, no LTAR dependency. Its ID
+  // must round-trip even when relational columns are skipped.
+  const formulaRes = await v3Post(
+    context,
+    `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
+    {
+      title: 'IDP_Formula',
+      type: 'Formula',
+      options: { formula: '1 + 1' },
+    },
+  );
+  expect(
+    formulaRes.status,
+    `formula columnAdd: ${JSON.stringify(formulaRes.body)}`,
+  ).to.eq(200);
+
+  if (options.includeRelational) {
+    // Second table to host the LTAR / Lookup / Rollup target columns.
+    const tTarget = await v3Post(
+      context,
+      `/api/v3/meta/bases/${baseId}/tables`,
+      {
+        title: 'IDP_Target',
+        fields: [
+          { title: 'TName', type: 'SingleLineText' },
+          { title: 'TNum', type: 'Number' },
+        ],
+      },
+    );
+    expect(
+      tTarget.status,
+      `target tableCreate: ${JSON.stringify(tTarget.body)}`,
+    ).to.eq(200);
+    const targetTableId = tTarget.body.id;
+    const targetNameColId = tTarget.body.fields.find(
+      (f: any) => f.title === 'TName',
+    ).id;
+    const targetNumColId = tTarget.body.fields.find(
+      (f: any) => f.title === 'TNum',
+    ).id;
+
+    // LTAR (mm) — creates a hidden junction table whose IDs also need to
+    // round-trip across replay.
+    const ltarRes = await v3Post(
+      context,
+      `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
+      {
+        title: 'IDP_Link',
+        type: 'Links',
+        options: { relation_type: 'mm', related_table_id: targetTableId },
+      },
+    );
+    expect(
+      ltarRes.status,
+      `ltar columnAdd: ${JSON.stringify(ltarRes.body)}`,
+    ).to.eq(200);
+    const ltarColId = ltarRes.body.id;
+
+    // Lookup on top of the LTAR.
+    const lookupRes = await v3Post(
+      context,
+      `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
+      {
+        title: 'IDP_Lookup',
+        type: 'Lookup',
+        options: {
+          related_field_id: ltarColId,
+          related_table_lookup_field_id: targetNameColId,
+        },
+      },
+    );
+    expect(
+      lookupRes.status,
+      `lookup columnAdd: ${JSON.stringify(lookupRes.body)}`,
+    ).to.eq(200);
+
+    // Rollup on top of the LTAR.
+    const rollupRes = await v3Post(
+      context,
+      `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
+      {
+        title: 'IDP_Rollup',
+        type: 'Rollup',
+        options: {
+          related_field_id: ltarColId,
+          related_table_rollup_field_id: targetNumColId,
+          rollup_function: 'count',
+        },
+      },
+    );
+    expect(
+      rollupRes.status,
+      `rollup columnAdd: ${JSON.stringify(rollupRes.body)}`,
+    ).to.eq(200);
+
+    // Filter scoped to the LTAR — exercises `linkFilterCreate` so a
+    // FILTER_EXP row keyed by `fk_link_col_id` enters the snapshot.
+    const lfRes = await internalPost(
+      context,
+      workspaceId,
+      baseId,
+      { operation: 'linkFilterCreate', columnId: ltarColId },
+      {
+        fk_column_id: targetNameColId,
+        comparison_op: 'eq',
+        value: 'lf',
+        logical_op: 'and',
+      },
+    );
+    expect(
+      lfRes.status,
+      `linkFilterCreate: ${JSON.stringify(lfRes.body)}`,
+    ).to.eq(200);
+  }
+
+  // Sync source — exercises `syncSourceCreate` route → `syncCreate` contract.
+  const syncRes = await internalPost(
+    context,
+    workspaceId,
+    baseId,
+    { operation: 'syncSourceCreate' },
+    {
+      title: 'IDP_Sync',
+      type: 'Airtable',
+      details: {},
+    },
+  );
+  expect(
+    syncRes.status,
+    `syncSourceCreate: ${JSON.stringify(syncRes.body)}`,
+  ).to.eq(200);
 }
 
 // ── Tests ────────────────────────────────────────────────────────
@@ -533,8 +741,12 @@ export function sandboxIdPreservationTests() {
         masterId,
       );
 
-      // Seed sandbox (master starts empty).
-      await seedAllEntities(context, workspaceId, sandboxBaseId);
+      // Seed sandbox (master starts empty). Skip relational columns until
+      // sandbox→master replay learns to preserve LTAR + hidden-mm-table IDs;
+      // this is the same gap noted in the seedAllEntities header comment.
+      await seedAllEntities(context, workspaceId, sandboxBaseId, {
+        includeRelational: false,
+      });
 
       const sandboxSnapshot = await collectIds(workspaceId, sandboxBaseId);
 

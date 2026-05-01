@@ -105,37 +105,44 @@ function handleGroupDragEnd() {
   onDragEnd()
 }
 
+let rafId: number | null = null
+
 function handleDragOver(e: DragEvent) {
   e.preventDefault()
   if (e.dataTransfer) {
     e.dataTransfer.dropEffect = 'move'
   }
 
-  // If dragging a group, don't calculate bookmark drop index
   if (draggingGroupId.value) return
 
-  // Calculate drop index from cursor Y position relative to items
-  if (!listRef.value) return
+  const clientY = e.clientY
 
-  const items = listRef.value.querySelectorAll('[data-testid="nc-bookmark-item"]')
-  let idx = groupBookmarks.value.length
+  if (rafId != null) return
+  rafId = requestAnimationFrame(() => {
+    rafId = null
 
-  for (let i = 0; i < items.length; i++) {
-    const rect = items[i].getBoundingClientRect()
-    const midY = rect.top + rect.height / 2
+    if (!listRef.value) return
 
-    if (e.clientY < midY) {
-      const bmId = groupBookmarks.value[i]?.id
-      if (bmId === draggingBookmarkId.value) {
+    const items = listRef.value.querySelectorAll('[data-testid="nc-bookmark-item"]')
+    let idx = groupBookmarks.value.length
+
+    for (let i = 0; i < items.length; i++) {
+      const rect = items[i].getBoundingClientRect()
+      const midY = rect.top + rect.height / 2
+
+      if (clientY < midY) {
+        const bmId = groupBookmarks.value[i]?.id
+        if (bmId === draggingBookmarkId.value) {
+          idx = i
+          break
+        }
         idx = i
         break
       }
-      idx = i
-      break
     }
-  }
 
-  updateDropIndex(group.value.id!, idx)
+    updateDropIndex(group.value.id!, idx)
+  })
 }
 
 function handleDragEnter(e: DragEvent) {

@@ -186,6 +186,18 @@ export default class Bookmark implements BookmarkType {
     );
   }
 
+  public static async maxOrder(
+    groupId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    const result = await ncMeta.knex(MetaTable.BOOKMARKS)
+      .where('fk_group_id', groupId)
+      .max('order as maxOrder')
+      .first();
+
+    return result?.maxOrder ?? 0;
+  }
+
   public static async listByGroup(
     groupId: string,
     ncMeta = Noco.ncMeta,

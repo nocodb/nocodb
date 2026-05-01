@@ -356,7 +356,7 @@ export const useBookmarks = createSharedComposable(() => {
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
     if (items.length === 0) return 1
-    if (targetIndex <= 0) return (items[0].order ?? 0) / 2
+    if (targetIndex <= 0) return (items[0].order ?? 0) / 2 || 0.5
     if (targetIndex >= items.length) return (items[items.length - 1].order ?? 0) + 1
 
     const prev = items[targetIndex - 1].order ?? 0

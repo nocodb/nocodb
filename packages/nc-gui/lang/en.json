@@ -1349,6 +1349,8 @@
     "bookmarkGroup": "Bookmark Group",
     "addToBookmarks": "Add to Bookmarks",
     "removeFromBookmarks": "Remove from Bookmarks",
+    "bookmarkThisPage": "Bookmark this page",
+    "removePageBookmark": "Remove page bookmark",
     "newBookmark": "New Bookmark",
     "newFolder": "New folder",
     "deleteFolder": "Delete folder",

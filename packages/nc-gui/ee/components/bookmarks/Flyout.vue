@@ -43,6 +43,8 @@ const filteredGroups = computed(() => {
 
 const isEmpty = computed(() => orderedGroups.value.length === 0)
 
+let groupRafId: number | null = null
+
 function handleGroupListDragOver(e: DragEvent) {
   if (!draggingGroupId.value || !groupListRef.value) return
 
@@ -51,20 +53,29 @@ function handleGroupListDragOver(e: DragEvent) {
     e.dataTransfer.dropEffect = 'move'
   }
 
-  const groupEls = groupListRef.value.querySelectorAll('[data-testid="nc-bookmark-group-header"]')
-  let idx = orderedGroups.value.length
+  const clientY = e.clientY
 
-  for (let i = 0; i < groupEls.length; i++) {
-    const rect = groupEls[i].getBoundingClientRect()
-    const midY = rect.top + rect.height / 2
+  if (groupRafId != null) return
+  groupRafId = requestAnimationFrame(() => {
+    groupRafId = null
 
-    if (e.clientY < midY) {
-      idx = i
-      break
+    if (!groupListRef.value) return
+
+    const groupEls = groupListRef.value.querySelectorAll('[data-testid="nc-bookmark-group-header"]')
+    let idx = orderedGroups.value.length
+
+    for (let i = 0; i < groupEls.length; i++) {
+      const rect = groupEls[i].getBoundingClientRect()
+      const midY = rect.top + rect.height / 2
+
+      if (clientY < midY) {
+        idx = i
+        break
+      }
     }
-  }
 
-  updateGroupDropIndex(idx)
+    updateGroupDropIndex(idx)
+  })
 }
 
 function handleGroupListDrop(e: DragEvent) {

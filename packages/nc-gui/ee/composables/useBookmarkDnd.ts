@@ -49,7 +49,7 @@ export const useBookmarkDnd = createSharedComposable(() => {
 
   async function onDropOnGroup(groupId: string) {
     const bookmarkId = draggingBookmarkId.value
-    const targetIndex = dropIndex.value
+    let targetIndex = dropIndex.value
 
     if (!bookmarkId) {
       onDragEnd()
@@ -60,7 +60,15 @@ export const useBookmarkDnd = createSharedComposable(() => {
 
     if (isSameGroup) {
       // Reorder within same group
+      // The visual drop index includes the dragged item, but calcOrderForIndex
+      // excludes it. When dragging downward, adjust index to compensate.
       if (targetIndex != null) {
+        const { bookmarksByGroup } = useBookmarks()
+        const groupItems = bookmarksByGroup.value[groupId] ?? []
+        const currentIdx = groupItems.findIndex((b) => b.id === bookmarkId)
+        if (currentIdx !== -1 && currentIdx < targetIndex) {
+          targetIndex--
+        }
         await reorderBookmark(bookmarkId, groupId, targetIndex)
       }
     } else {

@@ -128,13 +128,16 @@ export class BookmarkService {
       }
     }
 
+    // Race condition on order is fine — bookmarks are per-user and reorderable
+    const maxOrder = await Bookmark.maxOrder(groupId);
+
     const bookmark = await Bookmark.insert({
       fk_user_id: userId,
       fk_group_id: groupId,
       title: param.body.title,
       target_type: param.body.target_type,
       target_id: param.body.target_id,
-      order: param.body.order,
+      order: maxOrder + 1,
       meta: param.body.meta,
     });
 

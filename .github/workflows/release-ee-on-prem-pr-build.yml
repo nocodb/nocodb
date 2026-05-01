@@ -13,14 +13,13 @@ name: "Enterprise : On-prem PR / Daily Docker build"
 #      `version` is supplied, an auto-generated `<YYYY.MM.DD>.<HHMM>` tag is used.
 #
 # Tag format (single tag pushed per build):
-#   - PR labeled:    <YYYY.MM.DD>-pr<PR_NUMBER>.<HHMM>
-#   - workflow_call: <YYYY.MM.DD>.<HHMM>     (PR-less daily-style tag)
+#   - PR labeled:    pr-<PR_NUMBER>-<YYYY.MM.DD.HHMM>
+#   - workflow_call: daily-<YYYY.MM.DD.HHMM>
 #   - dispatch:      caller-supplied
 #
-# Date + PR number alone (the user's original suggestion) isn't unique — a second
-# commit on the same day to the same PR would overwrite the previous image. Appending
-# `HHMM` keeps tags chronologically sortable, identifies the PR, and guarantees
-# uniqueness for re-runs on the same day.
+# Both auto-generated tags lead with a channel prefix (`pr-N` / `daily`) so they
+# group naturally in the docker registry, and append `<YYYY.MM.DD.HHMM>` so re-runs
+# on the same day produce distinct tags.
 
 on:
   workflow_dispatch:
@@ -82,22 +81,21 @@ jobs:
 
       # Resolve the single docker tag we will publish.
       # - Caller-supplied version (dispatch or workflow_call):    use as-is.
-      # - PR labeled:                                             <YYYY.MM.DD>-pr<num>.<HHMM>.
-      # - workflow_call without version (e.g. prod deploy):       <YYYY.MM.DD>.<HHMM>.
+      # - PR labeled:                                             pr-<num>-<YYYY.MM.DD.HHMM>.
+      # - workflow_call without version (e.g. prod deploy):       daily-<YYYY.MM.DD.HHMM>.
       - name: Resolve docker tag
         id: resolve-tag
         run: |
           PROVIDED_VERSION="${{ github.event.inputs.version || inputs.version }}"
           PR_NUMBER="${{ github.event.pull_request.number }}"
-          DATE_PART=$(date -u +"%Y.%m.%d")
-          TIME_PART=$(date -u +"%H%M")
+          STAMP=$(date -u +"%Y.%m.%d.%H%M")
 
           if [ -n "$PROVIDED_VERSION" ]; then
             PRIMARY_TAG="$PROVIDED_VERSION"
           elif [ -n "$PR_NUMBER" ]; then
-            PRIMARY_TAG="${DATE_PART}-pr${PR_NUMBER}.${TIME_PART}"
+            PRIMARY_TAG="pr-${PR_NUMBER}-${STAMP}"
           else
-            PRIMARY_TAG="${DATE_PART}.${TIME_PART}"
+            PRIMARY_TAG="daily-${STAMP}"
           fi
           echo "PRIMARY_TAG=${PRIMARY_TAG}" >> "$GITHUB_OUTPUT"
           echo "Primary tag: ${PRIMARY_TAG}"

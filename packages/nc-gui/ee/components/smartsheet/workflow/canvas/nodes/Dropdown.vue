@@ -172,9 +172,9 @@ onClickOutside(
             <NcDivider v-if="data.core.length" />
             <NcMenuItemLabel class="!capitalize">Integrations</NcMenuItemLabel>
             <NcSubMenu
-              variant="medium"
               v-for="(pkg, pkgName) in data.packages"
               :key="`${_category}-${pkgName}`"
+              variant="medium"
               class="flex-none"
               popup-class-name="nc-max-h-screen nc-scrollbar-thin"
             >

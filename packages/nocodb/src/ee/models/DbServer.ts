@@ -138,6 +138,42 @@ export default class DbServer {
     return true;
   }
 
+  /**
+   * Returns the db server reserved as the fallback for new orgs.
+   *
+   * A server is marked as a default-for-orgs bucket via
+   * `conditions.default_for_orgs = true`. When multiple are configured,
+   * the one with the lowest current tenant count is returned (subject to
+   * max_tenant_count). Returns null if no default server is configured.
+   *
+   * Default-for-orgs servers are deliberately invisible to the workspace
+   * auto-picker in cloud-db-migrate.processor — they exist solely to host
+   * org databases.
+   */
+  public static async getDefaultForOrgs(ncMeta = Noco.ncMeta) {
+    const servers = await this.list({}, ncMeta);
+
+    const candidates = servers.filter((s: DbServer) => {
+      const conds = s.conditions as Record<string, any> | null | undefined;
+      return conds?.default_for_orgs === true;
+    });
+
+    const eligible = candidates.filter(
+      (s: DbServer) =>
+        !s.max_tenant_count ||
+        (s.current_tenant_count ?? 0) < s.max_tenant_count,
+    );
+
+    if (!eligible.length) return null;
+
+    eligible.sort(
+      (a: DbServer, b: DbServer) =>
+        (a.current_tenant_count ?? 0) - (b.current_tenant_count ?? 0),
+    );
+
+    return eligible[0];
+  }
+
   public static async list(_param: any = {}, ncMeta = Noco.ncMeta) {
     const cachedList = await NocoCache.getList(
       'root',

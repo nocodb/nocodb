@@ -12,7 +12,13 @@ import type { NcRequest } from '~/interface/config';
 import type { User } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { parseMetaProp } from '~/utils/modelUtils';
-import { OrgUser, PresignedUrl, Workspace, WorkspaceUser } from '~/models';
+import {
+  DbServer,
+  OrgUser,
+  PresignedUrl,
+  Workspace,
+  WorkspaceUser,
+} from '~/models';
 import { PrincipalAssignment, Team } from '~/ee/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -92,6 +98,7 @@ export class OrgWorkspacesService {
     }
 
     let org;
+    let orgIsFreshlyCreated = false;
 
     // check if orgId is present and if it is, then move the workspace to the org
     if (param.orgId) {
@@ -112,11 +119,22 @@ export class OrgWorkspacesService {
       if (ownedOrgs?.length > 0) {
         org = await Org.get(ownedOrgs[0].fk_org_id);
       } else {
-        // create a new org
+        // create a new org. New orgs default to the configured
+        // default-for-orgs DB server so they have a dedicated DB to host
+        // workspace data on first migration. Falls back to the workspace's
+        // current server if no default is configured (avoids creating an
+        // org with no server while the workspace has one — cloudDb would
+        // then look for `org.id` on the workspace's server).
+        const defaultServer = await DbServer.getDefaultForOrgs();
+        const orgServerId =
+          defaultServer?.id ?? workspace.fk_db_instance_id ?? undefined;
+
         org = await Org.insert({
           title: 'Organization Name',
           fk_user_id: param.user.id,
+          fk_db_instance_id: orgServerId,
         });
+        orgIsFreshlyCreated = true;
         // assign org role
         await OrgUser.insert({
           fk_user_id: param.user.id,
@@ -150,14 +168,29 @@ export class OrgWorkspacesService {
       }
     }
 
-    await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
-      workspaceOrOrgId: param.workspaceId,
-      conditions: {
-        fk_org_id: org.id,
-      },
-      targetOrgId: org.id,
-      oldDbServerId: workspace.fk_db_instance_id,
-    });
+    // Skip migration only when both sides resolve to the shared NC_DATA_DB
+    // bucket — i.e. workspace has no dedicated server AND the org didn't
+    // get one either. Otherwise queue the migrate so the workspace's data
+    // is moved into the org's `org.id`-named database.
+    const sourceServerId = workspace.fk_db_instance_id ?? null;
+    const orgServerId = (org as any).fk_db_instance_id ?? null;
+    const skipMigration = sourceServerId === null && orgServerId === null;
+
+    if (!skipMigration) {
+      await this.nocoJobsService.add(JobTypes.CloudDbMigrate, {
+        workspaceOrOrgId: param.workspaceId,
+        targetOrgId: org.id,
+        // Pass workspace's existing server only if it had one. When
+        // omitted, the processor uses NC_DATA_DB defaults for the source
+        // URL (with the default DB name) — correct for workspaces whose
+        // schemas live in the shared NC_DATA_DB bucket.
+        ...(sourceServerId ? { oldDbServerId: sourceServerId } : {}),
+        // Tell the migrator to create the target DB only when the org
+        // was just created — its DB doesn't yet exist on the server.
+        // For existing orgs being reused, the DB is already populated.
+        createTargetDb: orgIsFreshlyCreated,
+      });
+    }
 
     return org;
   }

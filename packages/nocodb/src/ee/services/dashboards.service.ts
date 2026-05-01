@@ -313,7 +313,13 @@ export class DashboardsService {
   @TraceCommand(OperationName.duplicateWidget)
   async duplicateWidget(
     context: NcContext,
-    param: { widgetId: string; req: NcRequest },
+    param: {
+      widgetId: string;
+      req: NcRequest;
+      // Internal: sandbox replay threads the changelog entity_id here so the
+      // duplicated widget on production keeps the same ID as on sandbox.
+      _replayWidgetId?: string;
+    },
   ) {
     const { widgetId, req } = param;
     const widget = await Widget.get(context, widgetId);
@@ -331,6 +337,7 @@ export class DashboardsService {
     });
 
     const newWidget = await Widget.insert(context, {
+      ...(param._replayWidgetId ? { id: param._replayWidgetId } : {}),
       title: newTitle,
       config: widget.config,
       fk_dashboard_id: widget.fk_dashboard_id,

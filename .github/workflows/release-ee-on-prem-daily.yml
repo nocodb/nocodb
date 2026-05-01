@@ -1,0 +1,63 @@
+name: "Enterprise : On-prem daily build & deploy"
+
+# Builds the on-prem EE image every morning and deploys it to a long-lived
+# `onprem` dev environment. Mirrors the cadence of the cloud daily build —
+# cloud uses a morning + evening slot; on-prem only needs the morning one
+# since this is meant to give the team a fresh image to test against
+# during the day.
+#
+# Pipeline:
+#   1. compute-tag → produces `daily-<YYYY.MM.DD.HHMM>`.
+#   2. build       → calls release-ee-on-prem-pr-build.yml with that tag,
+#                    which pushes `nocodb/nocodb-daily:<tag>`.
+#   3. deploy      → POSTs to https://devenv.nocopod.com/api/v1/devenv with
+#                    custom_prefix=onprem, pr=onprem, custom_app_image=<tag>.
+
+on:
+  schedule:
+    # 6:00 AM IST (0:30 GMT). Single morning run to mirror the cloud build's
+    # morning slot.
+    - cron: '30 0 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  compute-tag:
+    runs-on: ubicloud-standard-2
+    outputs:
+      tag: ${{ steps.t.outputs.tag }}
+    steps:
+      - id: t
+        run: |
+          TAG="daily-$(date -u +"%Y.%m.%d.%H%M")"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Tag: ${TAG}"
+
+  build:
+    needs: compute-tag
+    uses: ./.github/workflows/release-ee-on-prem-pr-build.yml
+    with:
+      version: ${{ needs.compute-tag.outputs.tag }}
+    secrets: inherit
+
+  deploy:
+    needs: [compute-tag, build]
+    runs-on: ubicloud-standard-2
+    steps:
+      - name: Deploy to onprem dev environment
+        run: |
+          set -e
+          IMAGE="nocodb/nocodb-daily:${{ needs.compute-tag.outputs.tag }}"
+          echo "Deploying ${IMAGE}"
+          RESPONSE=$(curl -fsS -X POST https://devenv.nocopod.com/api/v1/devenv \
+            -H 'Content-Type: application/json' \
+            -d "{
+              \"custom_prefix\": \"onprem\",
+              \"custom_app_image\": \"${IMAGE}\",
+              \"pr\": \"onprem\",
+              \"template\": null
+            }")
+          echo "Response: ${RESPONSE}"

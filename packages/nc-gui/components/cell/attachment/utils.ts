@@ -410,7 +410,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
               columnId: columnId!,
               rowId: rowId!,
               urlOrPath: src,
-            } as any)
+            })
           }
         } catch {}
 
@@ -504,7 +504,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
             columnId,
             rowId,
             urlOrPath: src,
-          } as any)
+          })
         }
 
         if (res?.path) {

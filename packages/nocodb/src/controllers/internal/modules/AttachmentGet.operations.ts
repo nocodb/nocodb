@@ -6,9 +6,6 @@ import type {
   InternalGETResponseType,
 } from '~/utils/internal-type';
 import { AttachmentsService } from '~/services/attachments.service';
-import { DataTableService } from '~/services/data-table.service';
-import { Column } from '~/models';
-import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class AttachmentGetOperations
@@ -16,7 +13,6 @@ export class AttachmentGetOperations
 {
   constructor(
     protected readonly attachmentsService: AttachmentsService,
-    protected readonly dataTableService: DataTableService,
   ) {}
 
   operations = ['attachmentDownload' as const];
@@ -37,41 +33,12 @@ export class AttachmentGetOperations
   ): InternalGETResponseType {
     switch (operation) {
       case 'attachmentDownload':
-        return await this.downloadAttachment(context, req);
+        return await this.attachmentsService.downloadAttachment(context, {
+          modelId: req.query.modelId as string,
+          columnId: req.query.columnId as string,
+          rowId: req.query.rowId as string,
+          urlOrPath: req.query.urlOrPath as string,
+        });
     }
-  }
-
-  protected async downloadAttachment(context: NcContext, req: NcRequest) {
-    const modelId = req.query.modelId as string;
-    const columnId = req.query.columnId as string;
-    const rowId = req.query.rowId as string;
-    const urlOrPath = req.query.urlOrPath as string;
-
-    const column = await Column.get(context, {
-      colId: columnId,
-    });
-
-    if (!column) {
-      NcError.fieldNotFound(columnId);
-    }
-
-    const record = await this.dataTableService.dataRead(context, {
-      baseId: context.base_id,
-      modelId,
-      rowId,
-      query: {
-        fields: column.title,
-      },
-    });
-
-    if (!record) {
-      NcError.recordNotFound(rowId);
-    }
-
-    return this.attachmentsService.getAttachmentFromRecord({
-      record,
-      column,
-      urlOrPath,
-    });
   }
 }

@@ -29,19 +29,15 @@ import {
   isPreviewAllowed,
   localFileExists,
 } from '~/helpers/attachmentHelpers';
-import { DataTableService } from '~/services/data-table.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { Column } from '~/models';
-import { NcError } from '~/helpers/catchError';
 import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
 
 @Controller()
 export class AttachmentsController {
   constructor(
     private readonly attachmentsService: AttachmentsService,
-    private readonly dataTableService: DataTableService,
   ) {}
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -251,30 +247,10 @@ export class AttachmentsController {
     @Param('rowId') rowId: string,
     @Query('urlOrPath') urlOrPath: string,
   ) {
-    const column = await Column.get(context, {
-      colId: columnId,
-    });
-
-    if (!column) {
-      NcError.fieldNotFound(columnId);
-    }
-
-    const record = await this.dataTableService.dataRead(context, {
-      baseId: context.base_id,
+    return this.attachmentsService.downloadAttachment(context, {
       modelId,
+      columnId,
       rowId,
-      query: {
-        fields: column.title,
-      },
-    });
-
-    if (!record) {
-      NcError.recordNotFound(rowId);
-    }
-
-    return this.attachmentsService.getAttachmentFromRecord({
-      record,
-      column,
       urlOrPath,
     });
   }

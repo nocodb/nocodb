@@ -11,12 +11,13 @@ import axios from 'axios';
 import hash from 'object-hash';
 import moment from 'moment';
 import { useAgent } from 'request-filtering-agent';
-import type { AttachmentReqType, FileType } from 'nocodb-sdk';
+import type { AttachmentReqType, FileType, NcContext } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { DataTableService } from '~/services/data-table.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
-import { FileReference, PresignedUrl } from '~/models';
+import { Column, FileReference, PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -52,6 +53,8 @@ export class AttachmentsService {
     private readonly appHooksService: AppHooksService,
     @Inject(forwardRef(() => 'JobsService'))
     private readonly jobsService: IJobsService,
+    @Inject(forwardRef(() => DataTableService))
+    private readonly dataTableService: DataTableService,
   ) {}
 
   async upload(param: {
@@ -492,6 +495,43 @@ export class AttachmentsService {
 
     const filePath = validateAndNormaliseLocalPath(param.path, true);
     return { path: filePath, type };
+  }
+
+  async downloadAttachment(
+    context: NcContext,
+    param: {
+      modelId: string;
+      columnId: string;
+      rowId: string;
+      urlOrPath: string;
+    },
+  ) {
+    const column = await Column.get(context, {
+      colId: param.columnId,
+    });
+
+    if (!column) {
+      NcError.fieldNotFound(param.columnId);
+    }
+
+    const record = await this.dataTableService.dataRead(context, {
+      baseId: context.base_id,
+      modelId: param.modelId,
+      rowId: param.rowId,
+      query: {
+        fields: column.title,
+      },
+    });
+
+    if (!record) {
+      NcError.recordNotFound(param.rowId);
+    }
+
+    return this.getAttachmentFromRecord({
+      record,
+      column,
+      urlOrPath: param.urlOrPath,
+    });
   }
 
   async getAttachmentFromRecord(param: {

@@ -21,14 +21,12 @@ import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
-import { Column, PresignedUrl } from '~/models';
+import { PresignedUrl } from '~/models';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { DataTableService } from '~/services/data-table.service';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { NcError } from '~/helpers/catchError';
 import { ATTACHMENT_ROOTS, localFileExists } from '~/helpers/attachmentHelpers';
 import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
 
@@ -36,7 +34,6 @@ import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
 export class AttachmentsSecureController {
   constructor(
     private readonly attachmentsService: AttachmentsService,
-    private readonly dataTableService: DataTableService,
   ) {}
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -152,30 +149,10 @@ export class AttachmentsSecureController {
     @Param('rowId') rowId: string,
     @Query('urlOrPath') urlOrPath: string,
   ) {
-    const column = await Column.get(context, {
-      colId: columnId,
-    });
-
-    if (!column) {
-      NcError.fieldNotFound(columnId);
-    }
-
-    const record = await this.dataTableService.dataRead(context, {
-      baseId: context.base_id,
+    return this.attachmentsService.downloadAttachment(context, {
       modelId,
+      columnId,
       rowId,
-      query: {
-        fields: column.title,
-      },
-    });
-
-    if (!record) {
-      NcError.recordNotFound(rowId);
-    }
-
-    return this.attachmentsService.getAttachmentFromRecord({
-      record,
-      column,
       urlOrPath,
     });
   }

@@ -16,6 +16,7 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { PlanFeatureTypes } from 'nocodb-sdk';
+import type { OperationSource } from '~/helpers/columnHelpers';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type {
   ColumnReqType,
@@ -175,6 +176,7 @@ export class ColumnsService extends ColumnsServiceCE {
       suppressFormulaError?: boolean;
       apiVersion?: T;
       columnWebhookManager?: ColumnWebhookManager;
+      operationSource?: OperationSource;
     },
     _ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {

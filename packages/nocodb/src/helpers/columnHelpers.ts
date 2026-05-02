@@ -777,7 +777,14 @@ export const TableSystemColumns = (isMetaColSupport = false, isMeta = true) => [
     : []),
 ];
 
-export const deleteColumnSystemPropsFromRequest = (col: any) => {
+export enum OperationSource {
+  AT_IMPORT = 'at_import',
+}
+
+export const deleteColumnSystemPropsFromRequest = (
+  col: any,
+  opts?: { operationSource?: OperationSource },
+) => {
   // remove all properties not in documentations
   delete col.dt;
   delete col.np;
@@ -795,7 +802,20 @@ export const deleteColumnSystemPropsFromRequest = (col: any) => {
   // delete col.dtxs;
   delete col.au;
   delete col.validate;
-  delete col.system;
+  switch (opts?.operationSource) {
+    case OperationSource.AT_IMPORT: {
+      const isNcRecordColumn = col.system &&
+        ['ncRecordId', 'ncRecordHash'].includes(col.title);
+      if (!isNcRecordColumn) {
+        delete col.system;
+      }
+      break;
+    }
+    deafult: {
+      delete col.system;
+    }
+  }
+  
 };
 
 // get the reverse type of the relation

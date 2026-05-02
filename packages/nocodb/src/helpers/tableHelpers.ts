@@ -14,6 +14,7 @@ import type { User } from '~/models';
 import { Permission } from '~/models';
 import {
   deleteColumnSystemPropsFromRequest,
+  type OperationSource,
   TableSystemColumns,
 } from '~/helpers/columnHelpers';
 import {
@@ -29,10 +30,12 @@ export const repopulateCreateTableSystemColumns = (
     columns,
     clientType,
     isMeta = true,
+    operationSource,
   }: {
     columns: (ColumnType & { cn?: string })[];
     clientType: DriverClient;
     isMeta?: boolean;
+    operationSource?: OperationSource;
   },
 ) => {
   const tableSystemColumns = TableSystemColumns(
@@ -85,7 +88,7 @@ export const repopulateCreateTableSystemColumns = (
         col.cn = col.column_name;
       }
     }
-    deleteColumnSystemPropsFromRequest(col);
+    deleteColumnSystemPropsFromRequest(col, { operationSource });
   }
   return result;
 };

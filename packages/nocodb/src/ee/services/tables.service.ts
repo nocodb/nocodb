@@ -4,6 +4,7 @@ import { TablesService as TableServiceCE } from 'src/services/tables.service';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
+import type { OperationSource } from '~/helpers/columnHelpers';
 import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
@@ -90,6 +91,7 @@ export class TablesService extends TableServiceCE {
       synced?: boolean;
       apiVersion?: NcApiVersion;
       isDuplicateOperation?: boolean;
+      operationSource?: OperationSource;
     },
   ) {
     const base = await Base.getWithInfo(context, param.baseId);

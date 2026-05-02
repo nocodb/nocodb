@@ -795,7 +795,14 @@ export const deleteColumnSystemPropsFromRequest = (col: any) => {
   // delete col.dtxs;
   delete col.au;
   delete col.validate;
-  delete col.system;
+  if (
+    !(
+      col.system &&
+      ['ncRecordId', 'ncRecordHash'].includes(col.title)
+    )
+  ) {
+    delete col.system;
+  }
 };
 
 // get the reverse type of the relation

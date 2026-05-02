@@ -564,9 +564,14 @@ function onFieldMoveCallback(event: any, targetRow: Record<string, any>[]) {
 
   if (event.from === event.to) return true
 
-  if (isFullWidthField(dragged) && targetRow.length >= 1) return false
+  // vuedraggable's `:move` fires on the source Draggable, so the closure's
+  // `targetRow` is the SOURCE row's fields. Use event.relatedContext.list to
+  // read the actual destination row's fields.
+  const destFields: any[] = event.relatedContext?.list ?? targetRow
 
-  if (targetRow.some((f) => isFullWidthField(f))) return false
+  if (isFullWidthField(dragged) && destFields.length >= 1) return false
+
+  if (destFields.some((f) => isFullWidthField(f))) return false
 
   return true
 }
@@ -616,6 +621,16 @@ async function onFieldMove(event: any, targetRowKey: string) {
 
   // Assign row_ids: multi-field rows share one id; solo rows get null
   // (they may carry a stale row_id from their previous shared row).
+  // Reject the move if it would land any full-width field (LongText,
+  // Attachment, JSON) in a multi-field row — the backend rejects this with
+  // 'Field type X must occupy its own row', and onFieldMoveCallback may not
+  // catch it if the source uidt isn't on the form-column object.
+  for (const r of pruned) {
+    if (r.length >= 2 && r.some((c: any) => isFullWidthField(c))) {
+      return
+    }
+  }
+
   for (const r of pruned) {
     if (r.length >= 2) {
       const existing = r.find((c: any) => c.row_id)?.row_id

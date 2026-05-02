@@ -332,6 +332,7 @@ const onDuplicateRow = () => {
   isUnsavedDuplicatedRecordExist.value = true
   const oldRow = { ..._row.value.row }
   delete oldRow.ncRecordId
+  delete oldRow.ncRecordHash
   const newRow = Object.assign(
     {},
     {

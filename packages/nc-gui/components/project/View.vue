@@ -179,6 +179,8 @@ watch(
         projectPageTab.value = 'workflows'
       } else if (newVal === 'mcp') {
         projectPageTab.value = 'mcp'
+      } else if (newVal === 'variables') {
+        projectPageTab.value = 'variables'
       } else if (newVal === 'snapshots' && isEeUI) {
         projectPageTab.value = 'snapshots'
       } else if (newVal === 'record-trash' && isEeUI) {
@@ -208,6 +210,7 @@ const settingsPageTitle = computed(() => {
     'permissions': t('labels.dataPermissions'),
     'docs-permissions': t('labels.docsPermissions'),
     'mcp': t('title.mcpServer'),
+    'variables': t('title.baseVariables'),
     'syncs': t('labels.manageSyncs'),
     'snapshots': t('labels.manageSnapshots'),
     'record-trash': t('trash.settings'),
@@ -232,7 +235,10 @@ watch(projectPageTab, () => {
     const wsId = route.value.params.typeOrId
 
     const baseId = route.value.params.baseId
-    navigateTo(`/${wsId}/${baseId}/settings/${slug}`)
+    navigateTo({
+      path: `/${wsId}/${baseId}/settings/${slug}`,
+      query: route.value.query,
+    })
     return
   }
 
@@ -383,6 +389,7 @@ watch(
         </div>
       </div>
       <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
+        <SmartsheetTopbarVariableSetupWarning />
         <SmartsheetTopbarManagedAppStatus />
         <SmartsheetTopbarSandboxStatus />
         <LazySmartsheetTopbarHistory />
@@ -551,6 +558,17 @@ watch(
           </template>
           <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
             <DashboardSettingsBaseMCP />
+          </div>
+        </a-tab-pane>
+        <a-tab-pane v-if="isEeUI && base.id && !isMobileMode" key="variables">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__variables">
+              <GeneralIcon icon="ncSettings" />
+              <div>{{ $t('title.baseVariables') }}</div>
+            </div>
+          </template>
+          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+            <DashboardSettingsBaseVariables />
           </div>
         </a-tab-pane>
         <a-tab-pane

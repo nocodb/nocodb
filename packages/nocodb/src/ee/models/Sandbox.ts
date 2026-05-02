@@ -17,7 +17,7 @@ import {
 export default class Sandbox {
   id: string;
   fk_workspace_id: string;
-  master_base_id: string;
+  production_base_id: string;
   sandbox_base_id: string;
   created_by: string;
   meta?: Record<string, any> | string;
@@ -60,29 +60,52 @@ export default class Sandbox {
     return new Sandbox(sandbox);
   }
 
-  // Each sandbox belongs to a unique master hence returns single record
+  // Each sandbox belongs to a unique production base hence returns single record
   public static async getBySandboxBaseId(
     sandboxBaseId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Sandbox> {
-    const sandboxes = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.SANDBOXES,
-      {
-        xcCondition: {
-          _and: [{ sandbox_base_id: { eq: sandboxBaseId } }],
-        },
-      },
+    let sandbox = await NocoCache.get(
+      'root',
+      `${CacheScope.SANDBOX}:sandbox_base_id:${sandboxBaseId}`,
+      CacheGetType.TYPE_OBJECT,
     );
 
-    if (!sandboxes || sandboxes.length === 0) return null;
+    if (!sandbox) {
+      const sandboxes = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.SANDBOXES,
+        {
+          xcCondition: {
+            _and: [{ sandbox_base_id: { eq: sandboxBaseId } }],
+          },
+        },
+      );
 
-    return new Sandbox(prepareForResponse(sandboxes[0]));
+      if (!sandboxes || sandboxes.length === 0) return null;
+
+      sandbox = prepareForResponse(sandboxes[0]);
+
+      await NocoCache.set(
+        'root',
+        `${CacheScope.SANDBOX}:sandbox_base_id:${sandboxBaseId}`,
+        sandbox,
+      );
+
+      // Also populate primary cache
+      await NocoCache.set(
+        'root',
+        `${CacheScope.SANDBOX}:${sandbox.id}`,
+        sandbox,
+      );
+    }
+
+    return new Sandbox(sandbox);
   }
 
-  public static async listByMasterBaseId(
-    masterBaseId: string,
+  public static async listByProductionBaseId(
+    productionBaseId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Sandbox[]> {
     const sandboxes = await ncMeta.metaList2(
@@ -91,7 +114,7 @@ export default class Sandbox {
       MetaTable.SANDBOXES,
       {
         xcCondition: {
-          _and: [{ master_base_id: { eq: masterBaseId } }],
+          _and: [{ production_base_id: { eq: productionBaseId } }],
         },
         orderBy: { created_at: 'desc' },
       },
@@ -108,7 +131,7 @@ export default class Sandbox {
     ncMeta = Noco.ncMeta,
   ): Promise<Sandbox> {
     const insertObj = extractProps(sandbox, [
-      'master_base_id',
+      'production_base_id',
       'sandbox_base_id',
       'fk_workspace_id',
       'created_by',
@@ -157,6 +180,9 @@ export default class Sandbox {
     sandboxId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
+    // Fetch before deletion to clear secondary cache key
+    const existing = await this.get(sandboxId, ncMeta);
+
     await ncMeta.metaDelete(
       RootScopes.ROOT,
       RootScopes.ROOT,
@@ -165,6 +191,13 @@ export default class Sandbox {
     );
 
     await NocoCache.del('root', `${CacheScope.SANDBOX}:${sandboxId}`);
+
+    if (existing?.sandbox_base_id) {
+      await NocoCache.del(
+        'root',
+        `${CacheScope.SANDBOX}:sandbox_base_id:${existing.sandbox_base_id}`,
+      );
+    }
 
     return true;
   }

@@ -28,7 +28,7 @@ export const useRealtime = createSharedComposable(() => {
   const basesStore = useBases()
   const { bases, basesUser } = storeToRefs(basesStore)
 
-  const { setMeta, getMeta, removeMeta, clearDeletedTableId } = useMetas()
+  const { setMeta, getMeta, clearBaseMeta, clearDeletedTableId } = useMetas()
   const { tables: _tables, baseId: activeBaseId, base } = storeToRefs(useBase())
 
   const tableStore = useTablesStore()
@@ -54,7 +54,9 @@ export const useRealtime = createSharedComposable(() => {
   const documentStore = useDocumentsStore()
   const { documents, activeDocumentId, loadedParentIds } = storeToRefs(documentStore)
 
-  const { baseExtensions, Extension } = useExtensions()
+  const { baseExtensions, Extension, loadExtensionsForBase } = useExtensions()
+
+  const { listVariables } = useBaseVariables()
 
   const notificationStore = useNotification()
 
@@ -128,7 +130,7 @@ export const useRealtime = createSharedComposable(() => {
 
       // Clear from deleted set in case this is a restore from trash
       if (event.payload.id) {
-        clearDeletedTableId(event.payload.id)
+        clearDeletedTableId(eventBaseId, event.payload.id)
       }
 
       const tables = baseTables.value.get(eventBaseId)
@@ -981,21 +983,52 @@ export const useRealtime = createSharedComposable(() => {
       } else if (event.action === 'base_meta_reload') {
         const baseId = event.payload?.base_id
         if (baseId) {
-          // Clear cached metadata only for the affected base
-          const cachedTables = baseTables.value.get(baseId)
-          if (cachedTables) {
-            for (const table of cachedTables) {
-              if (table.id) {
-                removeMeta(baseId, table.id)
-              }
-            }
-          }
+          // Capture dashboard IDs before clearing — widgets are keyed by
+          // dashboardId, so we need them to invalidate the widget cache.
+          const dashboardIdsForBase = (dashboardStore.dashboards.get(baseId) || [])
+            .map((d) => d.id)
+            .filter((id): id is string => !!id)
+
+          // Clear cached meta for this base — including deletedTableIds entries
+          // which would block getMeta for tables restored after discard.
+          clearBaseMeta(baseId)
           baseTables.value.delete(baseId)
           scriptStore.scripts.delete(baseId)
           workflowStore.workflows.delete(baseId)
           dashboardStore.dashboards.delete(baseId)
+          delete baseExtensions.value[baseId]
 
-          // If this is the active base, reload immediately
+          // Invalidate all view caches for this base (keys are `${baseId}:${tableId}`)
+          // so navigating to any table fetches fresh views/filters/sorts.
+          for (const key of viewsByTable.value.keys()) {
+            if (key.startsWith(`${baseId}:`)) {
+              viewsByTable.value.delete(key)
+            }
+          }
+
+          // Drop widget caches for any dashboard that belonged to this base
+          // so re-opening a dashboard refetches fresh widgets.
+          for (const dashboardId of dashboardIdsForBase) {
+            widgetStore.widgets.delete(dashboardId)
+          }
+
+          // Skip eager refetch when the base is in a workspace other than the
+          // active one — `loadXxx` send `activeWorkspaceId`, so a cross-workspace
+          // call would 404. The eviction above is enough; the data will refetch
+          // when the user navigates into that workspace.
+          if (!bases.value.has(baseId)) return
+
+          // Refetch base-scoped lists eagerly so the sidebar tree, list pages,
+          // and topbar dropdowns see fresh data even when the user is on
+          // another base (e.g. merged into master from the sandbox tab).
+          const refreshLists = Promise.all([
+            scriptStore.loadScripts({ baseId, force: true }).catch(() => undefined),
+            workflowStore.loadWorkflows({ baseId, force: true }).catch(() => undefined),
+            dashboardStore.loadDashboards({ baseId, force: true }).catch(() => undefined),
+          ])
+
+          // If this is the active base, also refresh tables/metas/widgets and
+          // emit smartsheet events so the open table view repaints.
           if (activeBaseId.value === baseId) {
             loadProjectTables(baseId, true).then(async () => {
               const tables = baseTables.value.get(baseId)
@@ -1006,9 +1039,12 @@ export const useRealtime = createSharedComposable(() => {
               }
 
               await Promise.all([
-                scriptStore.loadScripts({ baseId, force: true }),
-                workflowStore.loadWorkflows({ baseId, force: true }),
-                dashboardStore.loadDashboards({ baseId, force: true }),
+                refreshLists,
+                loadExtensionsForBase(baseId),
+                listVariables(),
+                activeDashboardId.value
+                  ? widgetStore.loadWidgets({ dashboardId: activeDashboardId.value, force: true })
+                  : Promise.resolve(),
               ])
 
               $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)

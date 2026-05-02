@@ -5,8 +5,9 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
@@ -17,6 +18,8 @@ import ListViewLevel from '~/models/ListViewLevel';
 import { CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
@@ -26,6 +29,7 @@ import {
 export class ListsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
+  @TraceCommand(OperationName.listViewCreate)
   async listViewCreate(
     context: NcContext,
     param: {
@@ -141,6 +145,7 @@ export class ListsService {
     return view;
   }
 
+  @TraceCommand(OperationName.listViewUpdate)
   async listViewUpdate(
     context: NcContext,
     param: {

@@ -46,7 +46,10 @@ export const deleteWidgetTool = defineChatTool({
       args.widget_name,
     );
 
-    await service.widgetDelete(context, widget.id, req);
+    await service.widgetDelete(context, {
+      widgetId: widget.id,
+      req,
+    });
 
     return {
       message: `Widget "${args.widget_name}" has been permanently removed from dashboard "${args.dashboard_name}".`,

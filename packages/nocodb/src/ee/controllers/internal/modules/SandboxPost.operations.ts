@@ -60,6 +60,7 @@ export class SandboxPostOperations
         return await this.sandboxesService.sandboxMerge(context, {
           user: req.user,
           req,
+          selectedChangelogIds: payload?.selectedChangelogIds,
         });
       default:
         return null;

@@ -84,10 +84,10 @@ export const useBase = defineStore('baseStore', () => {
 
   // Sandbox
   const isSandbox = computed(() => !!base.value?.is_sandbox)
-  const isSandboxMaster = computed(() => !!base.value?.is_sandbox_master)
+  const isSandboxProduction = computed(() => !!base.value?.is_sandbox_production)
 
-  const sandboxInfo = ref<{ id: string; master_base_id: string; sandbox_base_id: string } | null>(null)
-  const sandboxList = ref<{ id: string; master_base_id: string; sandbox_base_id: string }[]>([])
+  const sandboxInfo = ref<{ id: string; production_base_id: string; sandbox_base_id: string } | null>(null)
+  const sandboxList = ref<{ id: string; production_base_id: string; sandbox_base_id: string }[]>([])
 
   const loadSandboxInfo = async () => {
     if (!base.value?.id || !base.value?.fk_workspace_id) return
@@ -271,7 +271,7 @@ export const useBase = defineStore('baseStore', () => {
         // ignore
       })
 
-    if (base.value?.is_sandbox) {
+    if (base.value?.is_sandbox || base.value?.is_sandbox_production) {
       await loadSandboxInfo()
     }
 
@@ -393,6 +393,30 @@ export const useBase = defineStore('baseStore', () => {
     }
   }
 
+  const isManualUpdating = ref(false)
+
+  const triggerManualUpdate = async () => {
+    if (!base.value?.fk_workspace_id || !base.value?.id) return
+
+    isManualUpdating.value = true
+    try {
+      await api.internal.postOperation(
+        base.value.fk_workspace_id,
+        base.value.id,
+        { operation: 'managedAppManualUpdate' } as any,
+        {
+          baseId: base.value.id,
+        },
+      )
+      message.success(getI18n().global.t('msg.success.updated'))
+      await loadCurrentVersion()
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+    } finally {
+      isManualUpdating.value = false
+    }
+  }
+
   watch(
     () => route.value.params.baseType,
     (n) => {
@@ -469,9 +493,11 @@ export const useBase = defineStore('baseStore', () => {
     loadCurrentVersion,
     managedAppVersions,
     managedAppVersionsInfo,
+    isManualUpdating,
+    triggerManualUpdate,
     // Sandbox
     isSandbox,
-    isSandboxMaster,
+    isSandboxProduction,
     sandboxInfo,
     sandboxList,
     loadSandboxInfo,

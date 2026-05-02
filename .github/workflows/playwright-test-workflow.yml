@@ -187,6 +187,28 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-playwright-
 
+      - name: Configure apt for CI
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          # Override the runner's default Azure mirror (which intermittently hangs
+          # from ubicloud) with the canonical Ubuntu archive. Sources files reference
+          # mirror+file:///etc/apt/apt-mirrors.txt, so this is the single source of truth.
+          sudo tee /etc/apt/apt-mirrors.txt > /dev/null <<'EOF'
+          http://archive.ubuntu.com/ubuntu/
+          http://security.ubuntu.com/ubuntu/
+          EOF
+
+          sudo tee /etc/apt/apt.conf.d/99-ci > /dev/null <<'EOF'
+          Acquire::Retries "5";
+          Acquire::http::Timeout "30";
+          Acquire::https::Timeout "30";
+          Acquire::ForceIPv4 "true";
+          APT::Get::Assume-Yes "true";
+          EOF
+
+          sudo apt-get update -qq
+
       - name: Install Playwright Browsers
         working-directory: ./tests/playwright
         run: pnpm exec playwright install --with-deps chromium

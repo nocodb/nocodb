@@ -45,8 +45,8 @@ const { addUndo, defineProjectScope } = useUndoRedo()
 
 const baseCreateDlg = ref(false)
 
-const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
-const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred))
+const starredProjectList = computed(() => basesList.value.filter((base) => base.starred && !base.is_sandbox))
+const nonStarredProjectList = computed(() => basesList.value.filter((base) => !base.starred && !base.is_sandbox))
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'table' | 'main'; value?: any }>({})
 

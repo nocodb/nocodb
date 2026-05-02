@@ -1432,6 +1432,12 @@ export class ImportService {
           !getIdOrExternalId(colOptions.fk_lookup_column_id)
         ) {
           if (colOptions.error) {
+            // NOTE: bypasses `columnsService.columnAdd` (and its `@TraceCommand`)
+            // intentionally — `columnAdd` validates references and would throw
+            // for an unmapped Lookup. Error-state columns are a degraded
+            // outcome of cross-base imports where the lookup target couldn't be
+            // resolved; sandbox-replay won't reproduce them, but the original
+            // column is already broken so this is acceptable.
             const tableId = getIdOrExternalId(getParentIdentifier(col.id));
             const insertedColumn = await Column.insert(targetContext, {
               ...withoutId(flatCol),
@@ -1486,6 +1492,7 @@ export class ImportService {
           !getIdOrExternalId(colOptions.fk_rollup_column_id)
         ) {
           if (colOptions.error) {
+            // See Lookup branch above — same rationale applies here.
             const tableId = getIdOrExternalId(getParentIdentifier(col.id));
             const insertedColumn = await Column.insert(targetContext, {
               ...withoutId(flatCol),

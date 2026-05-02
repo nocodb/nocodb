@@ -30,16 +30,15 @@ export const createDashboardTool = defineChatTool({
   async execute(context, args, req) {
     const service: DashboardsService = Noco.nestApp.get(DashboardsService);
 
-    const dashboard = await service.dashboardCreate(
-      context,
-      {
+    const dashboard = await service.dashboardCreate(context, {
+      dashboard: {
         title: args.title,
         ...(args.description && { description: args.description }),
         base_id: context.base_id,
         fk_workspace_id: context.workspace_id,
       },
       req,
-    );
+    });
 
     return {
       id: dashboard.id,

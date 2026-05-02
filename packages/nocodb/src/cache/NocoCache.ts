@@ -1,5 +1,6 @@
 import RedisCacheMgr from './RedisCacheMgr';
 import RedisMockCacheMgr from './RedisMockCacheMgr';
+import { isCacheBypassed } from './cacheBypassScope';
 import type { NcContext } from 'nocodb-sdk';
 import type CacheMgr from './CacheMgr';
 import { CACHE_PREFIX, CacheGetType } from '~/utils/globals';
@@ -45,7 +46,7 @@ export default class NocoCache {
   }
 
   public static async set(context: CacheContext, key, value): Promise<boolean> {
-    if (this.cacheDisabled) return Promise.resolve(true);
+    if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(true);
     return this.client.set(
       `${this.prefix}:${cacheContext(context)}:${key}`,
       value,
@@ -58,7 +59,7 @@ export default class NocoCache {
     value,
     expireSeconds,
   ): Promise<boolean> {
-    if (this.cacheDisabled) return Promise.resolve(true);
+    if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(true);
     return this.client.setExpiring(
       `${this.prefix}:${cacheContext(context)}:${key}`,
       value,
@@ -79,7 +80,7 @@ export default class NocoCache {
   }
 
   public static async get(context: CacheContext, key, type): Promise<any> {
-    if (this.cacheDisabled) {
+    if (this.cacheDisabled || isCacheBypassed()) {
       if (type === CacheGetType.TYPE_ARRAY) return Promise.resolve([]);
       else if (type === CacheGetType.TYPE_OBJECT) return Promise.resolve(null);
       return Promise.resolve(null);
@@ -112,7 +113,7 @@ export default class NocoCache {
     list: any[];
     isNoneList: boolean;
   }> {
-    if (this.cacheDisabled)
+    if (this.cacheDisabled || isCacheBypassed())
       return Promise.resolve({
         list: [],
         isNoneList: false,
@@ -131,7 +132,7 @@ export default class NocoCache {
     list: any[],
     props: string[] = [],
   ): Promise<boolean> {
-    if (this.cacheDisabled) return Promise.resolve(true);
+    if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(true);
     return this.client.setList(
       `${this.prefix}:${cacheContext(context)}:${scope}`,
       subListKeys,
@@ -159,7 +160,7 @@ export default class NocoCache {
 
     key: string,
   ): Promise<boolean> {
-    if (this.cacheDisabled) return Promise.resolve(true);
+    if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(true);
     return this.client.appendToList(
       `${this.prefix}:${cacheContext(context)}:${scope}`,
       subListKeys,
@@ -172,7 +173,7 @@ export default class NocoCache {
     key: string,
     updateObj: Record<string, any>,
   ): Promise<boolean> {
-    if (this.cacheDisabled) return Promise.resolve(true);
+    if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(true);
     return this.client.update(
       `${this.prefix}:${cacheContext(context)}:${key}`,
       updateObj,
@@ -187,7 +188,7 @@ export default class NocoCache {
       ttl?: number;
     } = {},
   ): Promise<boolean> {
-    if (this.cacheDisabled) return Promise.resolve(true);
+    if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(true);
     if (Object.keys(hash).length === 0) {
       return;
     }
@@ -202,7 +203,7 @@ export default class NocoCache {
     context: CacheContext,
     key: string,
   ): Promise<Record<string, string | number>> {
-    if (this.cacheDisabled) return Promise.resolve({});
+    if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve({});
     return this.client.getHash(
       `${this.prefix}:${cacheContext(context)}:${key}`,
     );
@@ -213,7 +214,7 @@ export default class NocoCache {
     key: string,
     field: string,
   ): Promise<string> {
-    if (this.cacheDisabled) return Promise.resolve(null);
+    if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(null);
     return this.client.getHashField(
       `${this.prefix}:${cacheContext(context)}:${key}`,
       field,
@@ -226,7 +227,7 @@ export default class NocoCache {
     field: string,
     value: string | number,
   ): Promise<boolean> {
-    if (this.cacheDisabled) return Promise.resolve(true);
+    if (this.cacheDisabled || isCacheBypassed()) return Promise.resolve(true);
     return !!this.client.setHashField(
       `${this.prefix}:${cacheContext(context)}:${key}`,
       field,

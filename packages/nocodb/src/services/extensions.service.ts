@@ -10,7 +10,7 @@ import { NcError } from '~/helpers/ncError';
 
 @Injectable()
 export class ExtensionsService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async extensionList(context: NcContext, param: { baseId: string }) {
     return await Extension.list(context, param.baseId);

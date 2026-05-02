@@ -6,6 +6,7 @@ import { useAgent } from 'request-filtering-agent';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base, Source } from '~/models';
 import { NcError } from '~/helpers/ncError';
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
 
 @Injectable()
@@ -28,6 +29,11 @@ export class MigrateService {
     instanceUrl: string;
     req: NcRequest;
   }) {
+    await assertNotSandbox(
+      context,
+      'Migrating a base is not allowed from a sandbox. Run the migration on the production base.',
+    );
+
     if (!base) {
       NcError.get(context).baseNotFound('Base not found!');
     }

@@ -280,6 +280,211 @@ export class FeatureService extends FeatureServiceCE {
 
 Register EE services in `src/ee/modules/noco.module.ts`.
 
+## Command Registry (EE — Sandbox Replay)
+
+The command-registry subsystem captures every state-mutating operation performed inside a sandbox and replays it at merge time against the production base. It lives entirely in `src/ee/command-registry/`.
+
+### Architecture
+
+```
+@TraceCommand(contract)        recordCommand()          nc_sandbox_changelog
+  ↓ decorator on service  →    writes JSON params   →   Postgres table
+                                                                ↓
+SandboxCommandReplayService ← OperationRegistry.resolve(name, version)
+  reads changelog rows,         returns { contract, handler }
+  feeds them to handlers    →   handler(replayCtx, params, meta)
+```
+
+### Core types
+
+| Type | File | Purpose |
+|------|------|---------|
+| `OperationContract<S>` | `src/ee/command-registry/types.ts` | Versioned typed contract — name, version, entity, zod schema, id/title helpers |
+| `CommandHandler<C>` | `src/ee/command-registry/types.ts` | `(ctx, params, meta) => Promise<unknown>` |
+| `HandlerMeta` | `src/ee/command-registry/types.ts` | `{ entryId, entityId?, originalReq, createdBy, extra? }` |
+| `OperationRegistry` | `src/ee/command-registry/registry.ts` | Singleton — `register`, `resolve`, `freeze`, `describe` |
+
+### Import path rule (critical)
+
+Operations files (`*.operations.ts`) **must** import `_types` via the `src/` prefix, never `~/`:
+
+```typescript
+// ✅ correct — avoids circular self-import under EE tsconfig
+import type { OperationContract } from 'src/command-registry/types';
+
+// ❌ wrong — ~/  resolves to src/ee/* first, creating a circular self-import
+import type { OperationContract } from '~/command-registry/types';
+```
+
+Service files importing contracts use `~/` normally:
+```typescript
+import { MyContract } from '~/command-registry/operations/my-feature.operations';
+```
+
+### Adding a new operation — end-to-end checklist
+
+**1. Declare the contract** — `src/ee/command-registry/operations/{feature}.operations.ts`
+
+```typescript
+import { z } from 'zod';
+import type { OperationContract } from 'src/command-registry/types';
+import { MetaTable } from '~/utils/globals';
+// Use src/ import for _types but ~/ is fine for MetaTable/action-descriptions
+
+export const MyFeatureCreateContract: OperationContract<typeof createSchema> = {
+  name: 'myFeatureCreate',
+  version: 1,
+  entity: MetaTable.MY_FEATURE,
+  schema: z.object({ baseId: z.string(), body: z.object({ title: z.string() }) }),
+  idField: 'body',        // key in params whose value is the created entity
+  entityId: 'id',         // field on the entity holding its ID
+  entityTitle: 'title',   // field on the entity holding its display title
+  description: myFeatureActions.add,   // DescFn from trace-command-descriptions.ts
+};
+```
+
+**2. Write the handler** — `src/ee/command-registry/handlers/{feature}.handlers.ts`
+
+```typescript
+import { OperationRegistry } from 'src/ee/command-registry/registry';
+import { makeReplayReq } from 'src/ee/command-registry/replay-context';
+import { MyFeatureCreateContract } from 'src/ee/command-registry/operations/my-feature.operations';
+import type { MyFeatureService } from 'src/ee/services/my-feature.service';
+
+export function registerMyFeatureHandlers(svc: MyFeatureService): void {
+  OperationRegistry.register(MyFeatureCreateContract, async (ctx, params, meta) => {
+    const req = makeReplayReq(meta.originalReq, meta.createdBy);
+    return svc.create(ctx, { ...params, req } as any);
+  });
+}
+```
+
+**3. Wire `@TraceCommand` on the service method**
+
+```typescript
+import { MyFeatureCreateContract } from '~/command-registry/operations/my-feature.operations';
+
+@TraceCommand(MyFeatureCreateContract)
+async create(context: NcContext, param: { baseId: string; body: ...; req: NcRequest }) {
+  // ...
+}
+```
+
+**4. Register in `OperationRegistryBootstrap`** — `src/ee/command-registry/bootstrap.ts`
+
+- Inject the new service in the constructor.
+- Call `registerMyFeatureHandlers(this.myFeatureSvc)` in `onApplicationBootstrap()`.
+
+That's it — no other wiring needed.
+
+### Replay pipeline
+
+At sandbox merge, `SandboxCommandReplayService.replayAll(sandboxBase, prodBase)`:
+
+1. Loads all `nc_sandbox_changelog` entries ordered by `created_at`.
+2. For each entry: `OperationRegistry.resolve(entry.name, entry.version)` → `{ contract, handler }`.
+3. Builds a replay `NcContext` pointing at the production base via `buildReplayContext()`.
+4. Calls `handler(replayCtx, entry.params, handlerMeta)`.
+5. Entity IDs are remapped via `contract.idField`/`entityId` so foreign-key references stay consistent.
+
+### `OperationRegistry.freeze()`
+
+Called once in `OperationRegistryBootstrap.onApplicationBootstrap()` — after that, any `register()` call throws. This prevents late or accidental handler additions at runtime.
+
+### Adding a new description function
+
+Description helpers live in `src/ee/decorators/trace-command-descriptions.ts`. Each domain section returns a `DescFn` (imported from `src/command-registry/types`):
+
+```typescript
+export const myFeatureActions = {
+  add: (ctx: DescCtx) => `Add ${ctx.entityTitle ?? 'item'}`,
+  update: (ctx: DescCtx) => `Update ${ctx.entityTitle ?? 'item'}`,
+  delete: (ctx: DescCtx) => `Delete ${ctx.entityTitle ?? 'item'}`,
+};
+```
+
+### Decorate CE methods — don't write EE-only override stubs
+
+Put `@TraceCommand(OperationName.x)` directly on the CE service method. The decorator argument is `OperationName` (CE-aware enum); CE has a no-op stub at `src/decorators/trace-command.decorator.ts`, EE has the real impl.
+
+```typescript
+// ✅ correct — CE method, decorator works in both builds
+@TraceCommand(OperationName.gridViewCreate)
+async gridViewCreate(ctx, p) { /* … */ }
+```
+
+```typescript
+// ❌ wrong — EE override that exists only to add the decorator
+@Injectable()
+export class GridsService extends GridsServiceCE {
+  @TraceCommand(OperationName.gridViewCreate)
+  async gridViewCreate(ctx, p) { return super.gridViewCreate(ctx, p); }
+}
+```
+
+Reach for an EE override only when EE adds real logic on top (sandbox guards, payment checks, license gating). Adding `@TraceCommand` alone is not enough reason.
+
+### Sandbox guards
+
+Use one of three guards from `~/helpers/sandboxGuards` (CE stubs are no-ops; EE has real impl):
+
+| Guard | Use before |
+|-------|------------|
+| `assertNotSandboxProduction(ctx, msg?)` | schema mutations on master that should flow through the sandbox |
+| `assertNotSandbox(ctx, msg?)` | operations only valid on production (e.g. personal views) |
+| `assertNotLockedViewOnSandboxProduction(ctx, viewId, msg?)` | view-update paths where locked views must be edited via the sandbox |
+
+All three short-circuit when `context.additionalContext.is_replay === true`. Don't gate by `isEE` — the CE stub already no-ops.
+
+### `is_replay` — honor pre-set IDs at insert time
+
+The replay layer sets `context.additionalContext.is_replay = true` and pre-injects the sandbox-side ID into params via `contract.idField`. Insert paths must propagate that ID:
+
+```typescript
+// In a model insert (e.g. src/models/Hook.ts, src/ee/models/Script.ts):
+if (context?.additionalContext?.is_replay && entity.id) {
+  insertObj.id = entity.id;
+}
+const row = await ncMeta.metaInsert2(/* … */, insertObj);
+```
+
+`metaInsert2` honors a pre-set `id`. Without this hook, the production-side row gets a fresh nanoid and downstream FK references break.
+
+When adding a new sandbox-replayable entity:
+1. Set `idField` on the contract so the registry knows where to inject the id.
+2. Add the `is_replay && entity.id` guard in the model/service insert path.
+3. Extend `tests/unit/rest/tests/internal/ee/sandbox-id-preservation.test.ts` (`IdSnapshot` + `collectIds`) to assert the ID survives the merge.
+
+### `registerForward` vs custom handler
+
+Default is `registerForward(Contract, (ctx, p) => svc.foo(ctx, p))`. Switch to `OperationRegistry.register(Contract, async (ctx, p, meta) => …)` when the handler needs to thread `meta`:
+
+| Need | Use |
+|------|-----|
+| Entity ID isn't in `params` (only carried as `meta.entityId`, e.g. `duplicateWidget`) | Pass through as a service-level `_replayXxxId` param. See `dashboards.handlers.ts:33`. |
+| Recording side captured side-effect data (`meta.extra`) the replay needs (e.g. `_sandboxColumnIds` / `_sandboxDefaultViewId` for `tableCreate`) | Inject onto params or `additionalContext`. See `tables.handlers.ts`. |
+| Deeply nested model code needs replay context but doesn't see params | Put it on `additionalContext` (e.g. `sandboxColumnIds`) and read it from there. |
+
+### `skipIf` — conditionally suppress recording
+
+Set `skipIf` on a contract when the operation is a no-op on replay (e.g. local override on an inherited entity). The decorator runs the body, then `skipIf(ctx, params, result, resolvedCtx)`, then writes the changelog row only if `skipIf` returns falsy. Reference: `BaseVariableUpdateContract` skips when `is_inherited === true` (`base-variables.operations.ts:75`).
+
+### Re-entrancy is automatic — don't add manual flags
+
+`@TraceCommand` uses `AsyncLocalStorage`; only the outermost decorated call in an async tree records. Nested calls (`tableDelete` → per-column `columnDelete`) auto-skip. Sequential siblings (importer calling `tableCreate` repeatedly) each record.
+
+```typescript
+// ❌ wrong — old pattern, removed
+if (param.req?.__commandTraced) return originalMethod.apply(this, args);
+(param.req as any).__commandTraced = true;
+```
+
+Never set re-entrancy flags on `req` or `param`. The ALS scope handles it.
+
+### LTAR replay — capture side-effect IDs
+
+LTAR creates aren't a single insert — they trigger a fan of side-effect rows (junction model, FK columns, back-link columns, reverse LTAR) that must keep stable IDs across the merge. The recording side captures them onto `param._ltarCapture` (filtered from the changelog params via `NON_SERIALIZABLE_KEYS`, surfaced via `extraCommandMeta` → `meta.extra.ltar`). The replay handler in `columns.handlers.ts` threads `assocColumnIds` onto `additionalContext.sandboxColumnIds` (read by `Column.bulkInsert`) and the rest onto `param._ltarReplayIds` (read at each `Column.insert` / `Model.insert` site inside `createLTARColumn`). When you add a new fan-out create path (e.g. a new entity with hidden side-effect rows), follow this pattern — don't rely on `idField` alone.
+
 ## Testing
 
 ### Unit Tests

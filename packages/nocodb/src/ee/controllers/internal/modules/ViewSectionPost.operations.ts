@@ -36,27 +36,24 @@ export class ViewSectionPostOperations
   ): InternalPOSTResponseType {
     switch (operation) {
       case 'viewSectionCreate':
-        return await this.viewSectionsService.create(
-          context,
-          req.query.tableId as string,
-          payload,
+        return await this.viewSectionsService.viewSectionCreate(context, {
+          tableId: req.query.tableId as string,
+          section: payload,
           req,
-        );
+        });
 
       case 'viewSectionUpdate':
-        return await this.viewSectionsService.update(
-          context,
-          req.query.sectionId as string,
-          payload,
+        return await this.viewSectionsService.viewSectionUpdate(context, {
+          viewSectionId: req.query.sectionId as string,
+          section: payload,
           req,
-        );
+        });
 
       case 'viewSectionDelete':
-        return await this.viewSectionsService.delete(
-          context,
-          req.query.sectionId as string,
+        return await this.viewSectionsService.viewSectionDelete(context, {
+          viewSectionId: req.query.sectionId as string,
           req,
-        );
+        });
     }
   }
 }

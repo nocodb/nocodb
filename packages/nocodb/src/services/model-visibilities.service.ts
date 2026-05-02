@@ -6,6 +6,7 @@ import type { UIAclEvent } from '~/services/app-hooks/interfaces';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { Base, Model, ModelRoleVisibility, View } from '~/models';
 
 @Injectable()
@@ -20,6 +21,8 @@ export class ModelVisibilitiesService {
       req: NcRequest;
     },
   ) {
+    await assertNotSandbox(context);
+
     validatePayload(
       'swagger.json#/components/schemas/VisibilityRuleReq',
       param.visibilityRule,

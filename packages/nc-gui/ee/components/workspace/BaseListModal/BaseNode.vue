@@ -159,6 +159,11 @@ const onMenuClick = (e: Event) => {
 
           <template #title>{{ base.title }}</template>
         </NcTooltip>
+        <!-- Sandbox indicator -->
+        <NcTooltip v-if="base.is_sandbox" class="flex flex-none">
+          <GeneralIcon icon="ncGitBranch" class="w-3.5 h-3.5 text-orange-600" />
+          <template #title>{{ $t('labels.sandbox') }}</template>
+        </NcTooltip>
         <!-- Last opened badge -->
         <div
           v-if="lastVisitedBase?.id === base.id"

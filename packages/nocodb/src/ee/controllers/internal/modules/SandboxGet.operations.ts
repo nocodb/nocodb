@@ -16,6 +16,7 @@ export class SandboxGetOperations
     'sandboxList',
     'sandboxGet',
     'sandboxDiff',
+    'sandboxChangelog',
   ] as (keyof typeof OPERATION_SCOPES)[];
 
   constructor(private readonly sandboxesService: SandboxesService) {}
@@ -43,12 +44,16 @@ export class SandboxGetOperations
           sandboxId: req.query?.sandboxId as string,
         });
       case 'sandboxDiff':
-        return {
-          diff: await this.sandboxesService.sandboxDiff(context, {
-            user: req.user,
-            req,
-          }),
-        };
+        return (await this.sandboxesService.sandboxDiff(context, {
+          user: req.user,
+          req,
+        })) as any;
+      case 'sandboxChangelog':
+        return (await this.sandboxesService.sandboxChangelog(context, {
+          user: req.user,
+          req,
+          excludeMerged: req.query?.excludeMerged !== 'false',
+        })) as any;
       default:
         return null;
     }

@@ -91,12 +91,11 @@ export const updateWidgetTool = defineChatTool({
       updateObj.position = args.position as Widget['position'];
     }
 
-    const updated = await service.widgetUpdate(
-      context,
-      widget.id,
-      updateObj,
+    const updated = await service.widgetUpdate(context, {
+      widgetId: widget.id,
+      widget: updateObj,
       req,
-    );
+    });
 
     return {
       id: updated.id,

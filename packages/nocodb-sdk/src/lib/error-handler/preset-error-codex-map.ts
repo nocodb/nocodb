@@ -483,4 +483,15 @@ export const presetErrorCodexMap: Partial<
       message || 'Too many requests. Please try again later.',
     code: 429,
   },
+  [NcErrorType.ERR_SANDBOX_BLOCKED]: {
+    message: (message: string) =>
+      message || 'This operation is not allowed in a sandbox base.',
+    code: 403,
+  },
+  [NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED]: {
+    message: (message: string) =>
+      message ||
+      'This operation is not allowed while a sandbox is active. Make the change in the sandbox instead.',
+    code: 403,
+  },
 };

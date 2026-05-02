@@ -375,6 +375,25 @@ export const managedAppRestrictions: Record<Permission, boolean> = {
   dashboardDuplicate: true,
   // Workflows
   workflowCreateOrEdit: true,
+  // Scripts
+  scriptCreateOrEdit: true,
+  // Date dependencies reference columns — schema-level, managed in sandbox
+  dateDependencyManage: true,
+}
+
+// Sandbox master bases (base with an active sandbox) — schema changes must happen in the sandbox
+// and get merged back. We reuse the managed-app blocklist, but allow view CRUD so owners can
+// still work with personal/collaborative views directly on master. Per-view exceptions
+// (delete-collaborative, any-op-on-locked) are enforced by the backend and surfaced inline.
+const { viewCreateOrEdit: _viewCreateOrEdit, ...sandboxProductionRestrictionsRest } = managedAppRestrictions
+export const sandboxProductionRestrictions: Partial<Record<Permission, boolean>> = sandboxProductionRestrictionsRest
+
+// Sandbox bases — user/team-scoped configuration (permissions, RLS) must be
+// managed on master and is filtered out of sandbox duplicates. Block the UI entry
+// points so users don't discover a dead-end.
+export const sandboxRestrictions: Partial<Record<Permission, boolean>> = {
+  tablePermission: true,
+  rlsManage: true,
 }
 
 /*

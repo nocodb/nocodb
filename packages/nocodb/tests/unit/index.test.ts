@@ -35,6 +35,7 @@ dotenv.config({
     } catch (e) {
       // EE test files not available in CE
     }
+    require('./command-registry/index.test').commandRegistryTests();
   }
   modelTests();
   formulaTests();

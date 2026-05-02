@@ -5,8 +5,9 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
@@ -14,7 +15,10 @@ import {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { NcError } from '~/helpers/catchError';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import { GalleryView, Model, User, View } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
@@ -22,12 +26,13 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class GalleriesService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async galleryViewGet(context: NcContext, param: { galleryViewId: string }) {
     return await GalleryView.get(context, param.galleryViewId);
   }
 
+  @TraceCommand(OperationName.galleryViewCreate)
   async galleryViewCreate(
     context: NcContext,
     param: {
@@ -40,6 +45,13 @@ export class GalleriesService {
     },
     ncMeta?: MetaService,
   ) {
+    if (param?.ownedBy) {
+      await assertNotSandbox(
+        context,
+        'Personal views cannot be created in a sandbox. Create them on the production base.',
+      );
+    }
+
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.gallery,
@@ -145,6 +157,7 @@ export class GalleriesService {
     return view;
   }
 
+  @TraceCommand(OperationName.galleryViewUpdate)
   async galleryViewUpdate(
     context: NcContext,
     param: {

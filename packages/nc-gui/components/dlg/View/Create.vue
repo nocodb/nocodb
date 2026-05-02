@@ -103,6 +103,12 @@ const workspaceStore = useWorkspace()
 const baseStore = useBase()
 const { baseId: activeBaseId } = storeToRefs(baseStore)
 
+const basesStore = useBases()
+
+const isSandboxProduction = computed(() => !!basesStore.bases.get(props.baseId)?.is_sandbox_production)
+
+const isSandbox = computed(() => !!basesStore.bases.get(props.baseId)?.is_sandbox)
+
 const { blockCalendarRange, getPlanTitle, showEEFeatures, getFeature } = useEeConfig()
 
 const isPersonalViewFeatureEnabled = computed(() => getFeature(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS))
@@ -232,10 +238,12 @@ const canLockView = computed(() => isUIAllowed('fieldAdd'))
 
 // Personal views are an EE-only concept — CE has only Collaborative
 // and the legacy Locked lock_types.
+// Locked views cannot be created on a sandbox master — make the change in the sandbox instead.
+// Personal views cannot be created on a sandbox — they belong to the master base.
 const lockTypeOptions = computed(() => {
   const options: Array<{ value: ViewLockType; disabled?: boolean }> = [{ value: ViewLockType.Collaborative }]
-  if (isEeUI) options.push({ value: ViewLockType.Personal })
-  if (canLockView.value) options.push({ value: ViewLockType.Locked })
+  if (isEeUI) options.push({ value: ViewLockType.Personal, disabled: isSandbox.value })
+  if (canLockView.value) options.push({ value: ViewLockType.Locked, disabled: isSandboxProduction.value })
   return options
 })
 
@@ -1017,42 +1025,56 @@ watch(activeBaseId, () => {
               <template v-for="option in lockTypeOptions" :key="option.value">
                 <!-- Personal is payment-gated: on unlicensed on-prem / non-Plus cloud,
                      the radio shows an upgrade badge and clicks open the upgrade
-                     modal instead of setting lock_type. Mirrors the View mode
-                     submenu pattern in ViewActionMenu.vue. -->
-                <PaymentUpgradeBadgeProvider
+                     modal instead of setting lock_type. On a sandbox base, personal
+                     views are disabled — they must be created on the master base. -->
+                <NcTooltip
                   v-if="option.value === ViewLockType.Personal && isEeUI && showEEFeatures"
-                  :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
+                  :disabled="!option.disabled"
+                  :title="$t('tooltip.personalViewDisabledOnSandbox')"
                 >
-                  <template #default="{ click }">
-                    <a-radio
-                      :value="option.value"
-                      :data-testid="`nc-create-view-lock-type-${option.value}`"
-                      @click.capture="
-                        (e) => {
-                          if (!isPersonalViewFeatureEnabled) {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS)
+                  <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS">
+                    <template #default="{ click }">
+                      <a-radio
+                        :value="option.value"
+                        :disabled="option.disabled"
+                        :data-testid="`nc-create-view-lock-type-${option.value}`"
+                        @click.capture="
+                          (e) => {
+                            if (!isPersonalViewFeatureEnabled) {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              click(PlanFeatureTypes.FEATURE_PERSONAL_VIEWS)
+                            }
                           }
-                        }
-                      "
-                    >
-                      <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
-                        <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
-                        {{ $t(viewLockIcons[option.value].title) }}
-                        <!-- show-as-lock renders a compact lock icon when gated
-                             and auto-hides when the feature is enabled -->
-                        <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS" show-as-lock />
-                      </span>
-                    </a-radio>
-                  </template>
-                </PaymentUpgradeBadgeProvider>
-                <a-radio v-else :value="option.value" :data-testid="`nc-create-view-lock-type-${option.value}`">
-                  <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
-                    <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
-                    {{ $t(viewLockIcons[option.value].title) }}
-                  </span>
-                </a-radio>
+                        "
+                      >
+                        <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
+                          <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
+                          {{ $t(viewLockIcons[option.value].title) }}
+                          <!-- show-as-lock renders a compact lock icon when gated
+                               and auto-hides when the feature is enabled -->
+                          <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS" show-as-lock />
+                        </span>
+                      </a-radio>
+                    </template>
+                  </PaymentUpgradeBadgeProvider>
+                </NcTooltip>
+                <NcTooltip
+                  v-else
+                  :disabled="!option.disabled || option.value !== ViewLockType.Locked"
+                  :title="$t('tooltip.lockedViewDisabledOnSandboxMaster')"
+                >
+                  <a-radio
+                    :value="option.value"
+                    :disabled="option.disabled"
+                    :data-testid="`nc-create-view-lock-type-${option.value}`"
+                  >
+                    <span class="inline-flex items-center gap-1.5 whitespace-nowrap text-[13px]">
+                      <component :is="viewLockIcons[option.value].icon" class="w-3.5 h-3.5 flex-none" />
+                      {{ $t(viewLockIcons[option.value].title) }}
+                    </span>
+                  </a-radio>
+                </NcTooltip>
               </template>
             </a-radio-group>
             <div class="text-[12px] text-nc-content-gray-subtle2 leading-[16px]">

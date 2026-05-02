@@ -206,6 +206,16 @@ onMounted(() => {
       </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
+      v-if="isEeUI && !isMobileMode"
+      v-e="['c:settings:base:variables']"
+      icon="ncSettings"
+      data-testid="base-variables"
+      :active="activeBaseSettingsTab === 'variables'"
+      @click="navigateToBaseSettings('variables')"
+    >
+      {{ $t('title.baseVariables') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
       v-if="
         isEeUI &&
         showEEFeatures &&

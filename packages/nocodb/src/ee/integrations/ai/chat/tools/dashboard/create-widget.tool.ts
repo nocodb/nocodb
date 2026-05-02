@@ -101,7 +101,11 @@ export const createWidgetTool = defineChatTool({
       }),
     };
 
-    const widget = await service.widgetCreate(context, insertObj, req);
+    const widget = await service.widgetCreate(context, {
+      widget: insertObj,
+      dashboardId: dashboard.id,
+      req,
+    });
 
     return {
       id: widget.id,

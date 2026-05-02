@@ -5,6 +5,7 @@ import type {
 } from 'src/services/app-hooks/interfaces';
 import type {
   BaseType,
+  BaseVariableType,
   DashboardType,
   DocumentType,
   IntegrationType,
@@ -221,6 +222,18 @@ export interface ViewSectionDeleteEvent extends NcBaseEvent {
   user: UserType;
 }
 
+export interface BaseVariableCreateEvent extends NcBaseEvent {
+  variable: BaseVariableType;
+}
+
+export interface BaseVariableUpdateEvent extends NcBaseEvent {
+  variable: BaseVariableType;
+}
+
+export interface BaseVariableDeleteEvent extends NcBaseEvent {
+  variable: BaseVariableType;
+}
+
 export interface SharedDashboardEvent extends NcBaseEvent {
   dashboard: DashboardType;
   link?: string;
@@ -354,7 +367,7 @@ export interface SandboxDiscardEvent extends NcBaseEvent {
 export interface SandboxMergeEvent extends NcBaseEvent {
   sandboxId: string;
   baseId: string;
-  masterBaseId: string;
+  productionBaseId: string;
 }
 
 // Record Template Events
@@ -539,6 +552,37 @@ export interface UserMfaVerifyEvent extends Optional<NcBaseEvent, 'context'> {
 export interface UserMfaBackupCodeUsedEvent
   extends Optional<NcBaseEvent, 'context'> {
   user: UserType;
+}
+
+// Managed App Events
+export interface ManagedAppCreateEvent extends NcBaseEvent {
+  managedApp: { id?: string; title?: string; base_id?: string };
+}
+
+export interface ManagedAppUpdateEvent extends NcBaseEvent {
+  managedApp: { id?: string; title?: string; base_id?: string };
+}
+
+export interface ManagedAppDeleteEvent extends NcBaseEvent {
+  managedApp: { id?: string; title?: string; base_id?: string };
+}
+
+export interface ManagedAppPublishEvent extends NcBaseEvent {
+  managedApp: { id?: string; title?: string; base_id?: string };
+  version: { id?: string; version?: string };
+}
+
+export interface ManagedAppInstallEvent extends NcBaseEvent {
+  managedApp: { id?: string; title?: string };
+  installedBaseId: string;
+  version: { id?: string; version?: string };
+}
+
+export interface ManagedAppUpdateDeploymentEvent extends NcBaseEvent {
+  managedApp: { id?: string; title?: string };
+  installedBaseId: string;
+  version: { id?: string; version?: string };
+  error?: string;
 }
 
 export * from 'src/services/app-hooks/interfaces';

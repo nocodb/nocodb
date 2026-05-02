@@ -6,15 +6,17 @@ import {
   PlanLimitTypes,
 } from 'nocodb-sdk';
 import type { ScriptType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import { OperationName } from '~/command-registry/op-names';
+import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { ButtonColumn, Script, Workspace } from '~/models';
 import { checkLimit } from '~/helpers/paymentHelpers';
-
+import { TraceCommand } from '~/decorators/trace-command.decorator';
 @Injectable()
 export class ScriptsService {
   constructor(
@@ -36,11 +38,12 @@ export class ScriptsService {
     return script;
   }
 
+  @TraceCommand(OperationName.scriptCreate)
   async createScript(
     context: NcContext,
-    scriptBody: Partial<ScriptType>,
-    req: NcRequest,
+    param: { body: Partial<ScriptType>; req: NcRequest },
   ) {
+    const { body: scriptBody, req } = param;
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -84,12 +87,16 @@ export class ScriptsService {
     return script;
   }
 
+  @TraceCommand(OperationName.scriptUpdate)
   async updateScript(
     context: NcContext,
-    scriptId: string,
-    body: Pick<ScriptType, 'title'>,
-    req: NcRequest,
+    param: {
+      scriptId: string;
+      body: Pick<ScriptType, 'title'>;
+      req: NcRequest;
+    },
   ) {
+    const { scriptId, body, req } = param;
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -128,12 +135,12 @@ export class ScriptsService {
     return updatedScript;
   }
 
+  @TraceCommand(OperationName.scriptDelete)
   async deleteScript(
     context: NcContext,
-    scriptId: string,
-    req: NcRequest,
-    ncMeta?: MetaService,
+    param: { scriptId: string; req: NcRequest; ncMeta?: MetaService },
   ) {
+    const { scriptId, req, ncMeta } = param;
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }

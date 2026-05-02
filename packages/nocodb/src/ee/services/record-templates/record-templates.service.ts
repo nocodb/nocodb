@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, PlanFeatureTypes } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { CreateRecordTemplateDto } from './dto/create-record-template.dto';
 import type { UpdateRecordTemplateDto } from './dto/update-record-template.dto';
+import { OperationName } from '~/command-registry/op-names';
+import { NcContext } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/catchError';
@@ -11,7 +12,7 @@ import { checkForFeature } from '~/helpers/paymentHelpers';
 import RecordTemplate from '~/models/RecordTemplate';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
-
+import { TraceCommand } from '~/decorators/trace-command.decorator';
 @Injectable()
 export class RecordTemplatesService {
   constructor(
@@ -76,6 +77,9 @@ export class RecordTemplatesService {
     );
 
     const template = await RecordTemplate.insert(param.context, {
+      ...(param.context?.additionalContext?.is_replay && (param.body as any).id
+        ? { id: (param.body as any).id }
+        : {}),
       base_id: param.baseId,
       fk_workspace_id: param.context.workspace_id,
       fk_model_id: param.modelId,
@@ -390,5 +394,62 @@ export class RecordTemplatesService {
 
     // Return the created record's ID
     return result?.Id || result?.id || result;
+  }
+
+  // ────────────────────────────────────────────
+  // Sandbox-traced wrappers (standard (context, param) signature)
+  // ────────────────────────────────────────────
+
+  @TraceCommand(OperationName.recordTemplateCreate)
+  async recordTemplateCreate(
+    context: NcContext,
+    param: {
+      baseId: string;
+      tableId: string;
+      body: CreateRecordTemplateDto;
+      userId: string;
+      req: NcRequest;
+    },
+  ) {
+    return this.create({
+      context,
+      baseId: param.baseId,
+      modelId: param.tableId,
+      body: param.body,
+      userId: param.userId,
+      req: param.req,
+    });
+  }
+
+  @TraceCommand(OperationName.recordTemplateUpdate)
+  async recordTemplateUpdate(
+    context: NcContext,
+    param: {
+      templateId: string;
+      template: UpdateRecordTemplateDto;
+      userId: string;
+      req: NcRequest;
+    },
+  ) {
+    return this.update({
+      context,
+      templateId: param.templateId,
+      body: param.template,
+      userId: param.userId,
+      req: param.req,
+    });
+  }
+
+  @TraceCommand(OperationName.recordTemplateDelete)
+  async recordTemplateDelete(
+    context: NcContext,
+    param: { templateId: string; userId: string; req: NcRequest },
+  ) {
+    return this.delete({
+      context,
+      templateId: param.templateId,
+      userId: param.userId,
+      req: param.req,
+    });
   }
 }

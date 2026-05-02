@@ -1,5 +1,6 @@
 import hash from 'object-hash';
-import { EventType, isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
+import { isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import Noco from '~/Noco';
@@ -10,9 +11,10 @@ import {
 } from '~/utils/globals';
 import { Base, Column, Model, Source } from '~/models';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
-import NocoCache from '~/cache/NocoCache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import NocoSocket from '~/socket/NocoSocket';
+import { runWithoutCache } from '~/cache/cacheBypassScope';
+
+const logger = new Logger('BaseMetaHelpers');
 
 // Altered enum from columns service
 enum Altered {
@@ -40,6 +42,10 @@ const isMetadataOnly = (modelType: ModelTypes) => {
   );
 };
 
+// Fields excluded from hash comparison — timestamps cause spurious diffs
+const hashExcludeKeys = (key: string) =>
+  key === 'created_at' || key === 'updated_at' || key === 'pgSerialLastVal';
+
 const serializableMetaTables = BaseRelatedMetaTables.filter(
   (t) =>
     ![
@@ -56,8 +62,15 @@ const tablePrimaryKeys: Record<string, string | string[]> = {
   [MetaTable.KANBAN_VIEW]: 'fk_view_id',
   [MetaTable.CALENDAR_VIEW]: 'fk_view_id',
   [MetaTable.MAP_VIEW]: 'fk_view_id',
+  [MetaTable.LIST_VIEW]: 'fk_view_id',
   [MetaTable.MODEL_STAT]: ['fk_workspace_id', 'base_id', 'fk_model_id'],
   [MetaTable.DOC_CONTENT]: ['base_id', 'fk_doc_id'],
+  [MetaTable.PERMISSION_SUBJECTS]: [
+    'base_id',
+    'fk_permission_id',
+    'subject_type',
+    'subject_id',
+  ],
   // Default to 'id' for all other tables
 };
 
@@ -116,6 +129,9 @@ const orderedSerializableMetaTables = [
   MetaTable.HOOKS,
   MetaTable.EXTENSIONS,
 
+  // Base variables
+  MetaTable.BASE_VARIABLES,
+
   // Permissions and visibility
   MetaTable.MODEL_ROLE_VISIBILITY,
   MetaTable.PERMISSIONS,
@@ -146,7 +162,10 @@ const orderedSerializableMetaTables = [
   MetaTable.MODEL_STAT,
 ].filter((table) => serializableMetaTables.includes(table));
 
-export const skipOverrideTables = [MetaTable.DEPENDENCY_TRACKER];
+// Tables where `source_id` has a different meaning than data-source ID
+// (e.g. dependency tracker's source_id is an entity reference, not a DB source).
+// base_id and fk_workspace_id are still overridden for correct cross-base diffing.
+export const skipSourceIdOverrideTables = [MetaTable.DEPENDENCY_TRACKER];
 
 export type BaseMetaSchema = {
   [K in (typeof serializableMetaTables)[number]]?: any;
@@ -157,6 +176,24 @@ export type BaseMetaDiff = {
   delete: BaseMetaSchema;
   update: BaseMetaSchema;
 };
+
+// Documents are treated as data on sandboxes — they live alongside the schema
+// but their lifecycle is independent. Strip them from any meta snapshot that
+// feeds sandbox create / discard / diff so doc rows never participate in the
+// sandbox↔production sync.
+export function stripDocuments(meta: BaseMetaSchema): BaseMetaSchema {
+  const models: any[] = meta[MetaTable.MODELS] ?? [];
+  const docIds = new Set(
+    models.filter((m) => m.type === ModelTypes.DOCUMENT).map((m) => m.id),
+  );
+  if (docIds.size === 0 && !meta[MetaTable.DOC_CONTENT]?.length) return meta;
+
+  return {
+    ...meta,
+    [MetaTable.MODELS]: models.filter((m) => !docIds.has(m.id)),
+    [MetaTable.DOC_CONTENT]: [],
+  };
+}
 
 export async function serializeMeta(
   sourceContext: NcContext,
@@ -201,11 +238,9 @@ export async function serializeMeta(
         const records = await query.select();
 
         // Apply overrides if provided (for changing base_id/workspace_id/source_id)
-        if (
-          override &&
-          records.length > 0 &&
-          !skipOverrideTables.includes(metaTable)
-        ) {
+        if (override && records.length > 0) {
+          const skipSourceId = skipSourceIdOverrideTables.includes(metaTable);
+
           for (const record of records) {
             // Only override specified fields, preserve all other data
             if (override.base_id !== undefined) {
@@ -215,6 +250,7 @@ export async function serializeMeta(
               record.fk_workspace_id = override.fk_workspace_id;
             }
             if (
+              !skipSourceId &&
               override.source_id !== undefined &&
               record.source_id !== undefined
             ) {
@@ -227,24 +263,30 @@ export async function serializeMeta(
         if (prefix && records.length > 0) {
           if (metaTable === MetaTable.MODELS) {
             for (const record of records) {
-              const oldRegexp = new RegExp(`^${prefix.old}`);
-              record.table_name = record.table_name.replace(
-                oldRegexp,
-                prefix.new,
-              );
+              // Metadata-only models (dashboards, documents) have no underlying
+              // DB table and therefore no table_name to rewrite.
+              if (
+                prefix.old &&
+                record.table_name?.startsWith(prefix.old)
+              ) {
+                record.table_name =
+                  prefix.new + record.table_name.slice(prefix.old.length);
+              }
             }
           }
         }
 
         // Extract pgSerialLastVal for PostgreSQL tables
         if (metaTable === MetaTable.MODELS && records.length > 0) {
-          const base = await Base.get(sourceContext, base_id);
+          const base = await Base.get(sourceContext, base_id, ncMeta);
           if (base) {
             for (const record of records) {
               if (record.type === ModelTypes.TABLE) {
                 const source = await Source.get(
                   sourceContext,
                   record.source_id,
+                  false,
+                  ncMeta,
                 );
                 if (source?.type === 'pg') {
                   try {
@@ -279,6 +321,9 @@ export async function serializeMeta(
                         );
 
                         if (seq.rows.length > 0 && seq.rows[0].seq) {
+                          // seqName is a pre-formatted identifier from
+                          // pg_get_serial_sequence (e.g. schema."Table_id_seq").
+                          // Using ?? would double-quote it, so interpolate directly.
                           const seqName = seq.rows[0].seq;
                           const res = await sqlClient.raw(
                             `SELECT last_value as last FROM ${seqName};`,
@@ -291,9 +336,9 @@ export async function serializeMeta(
                       }
                     }
                   } catch (error) {
-                    console.error(
-                      `Failed to extract pgSerialLastVal for table ${record.table_name}:`,
-                      error,
+                    logger.error(
+                      `Failed to extract pgSerialLastVal for table ${record.table_name}: ${error.message}`,
+                      error.stack,
                     );
                     // Continue without pgSerialLastVal
                   }
@@ -314,15 +359,22 @@ export async function serializeMeta(
 
         baseSchema[metaTable] = records;
       } catch (error) {
-        console.error(`Failed to serialize table ${metaTable}:`, error);
-        // Continue with other tables, but log the error
-        baseSchema[metaTable] = [];
+        logger.error(
+          `Failed to serialize table ${metaTable}: ${error.message}`,
+          error.stack,
+        );
+        throw new Error(
+          `Failed to serialize table ${metaTable}: ${error.message}`,
+        );
       }
     }
 
     return baseSchema;
   } catch (error) {
-    console.error('Failed to serialize base metadata:', error);
+    logger.error(
+      `Failed to serialize base metadata: ${error.message}`,
+      error.stack,
+    );
     throw new Error(`Failed to serialize base metadata: ${error.message}`);
   }
 }
@@ -361,14 +413,20 @@ export async function diffMeta(
         if (!oldRecordMap.has(key)) return false;
         const oldRecord = oldRecordMap.get(key);
         try {
-          return hash(oldRecord) !== hash(r);
-        } catch (error) {
-          console.warn(
-            `Hash comparison failed for ${metaTable} record ${key}:`,
-            error,
+          return (
+            hash(oldRecord, { excludeKeys: hashExcludeKeys }) !==
+            hash(r, { excludeKeys: hashExcludeKeys })
           );
-          // Fallback to JSON comparison
-          return JSON.stringify(oldRecord) !== JSON.stringify(r);
+        } catch (error) {
+          logger.warn(
+            `Hash comparison failed for ${metaTable} record ${key}: ${error.message}`,
+          );
+          // Fallback to JSON comparison (exclude timestamps for consistency)
+          const strip = (o: any) => {
+            const { created_at, updated_at, ...rest } = o;
+            return rest;
+          };
+          return JSON.stringify(strip(oldRecord)) !== JSON.stringify(strip(r));
         }
       });
 
@@ -381,7 +439,7 @@ export async function diffMeta(
 
     return diffedMeta;
   } catch (error) {
-    console.error('Failed to diff base metadata:', error);
+    logger.error(`Failed to diff base metadata: ${error.message}`, error.stack);
     throw new Error(`Failed to diff base metadata: ${error.message}`);
   }
 }
@@ -428,6 +486,7 @@ async function setPostgresSequenceValue(
     source: Source;
     pgSerialLastVal?: number;
   },
+  ncMeta = Noco.ncMeta,
 ) {
   if (source.type !== 'pg' || !pgSerialLastVal) {
     return;
@@ -440,11 +499,17 @@ async function setPostgresSequenceValue(
   }
 
   try {
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: table.id,
-      viewId: null,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
+    const baseModel = await Model.getBaseModelSQL(
+      context,
+      {
+        // Pass the already-loaded model so getBaseModelSQL doesn't re-fetch via
+        // a non-transactional handle — the model may still be mid-transaction.
+        model: table,
+        viewId: null,
+        dbDriver: await NcConnectionMgrv2.get(source),
+      },
+      ncMeta,
+    );
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
     await sqlClient.raw(`SELECT setval(pg_get_serial_sequence('??', ?), ?);`, [
       baseModel.getTnPath(table.table_name),
@@ -452,14 +517,22 @@ async function setPostgresSequenceValue(
       pgSerialLastVal,
     ]);
   } catch (error) {
-    console.error(
-      `Failed to set PostgreSQL sequence value for table ${table.table_name}:`,
-      error,
+    logger.error(
+      `Failed to set PostgreSQL sequence value for table ${table.table_name}: ${error.message}`,
+      error.stack,
     );
     // Don't throw - this is not critical enough to fail the entire operation
   }
 }
 
+/**
+ * Callers MUST do both of the following AFTER this function returns:
+ *   1. Commit the transaction (`trx.commit()`)
+ *   2. Clear cache (`await NocoCache.clear(targetContext)`)
+ *
+ * Cache clearing inside the transaction causes a race: concurrent requests
+ * see a cache miss, query the pre-commit DB, and repopulate with stale data.
+ */
 export async function applyMeta(
   targetContext: NcContext,
   metaDiff: BaseMetaDiff,
@@ -468,84 +541,82 @@ export async function applyMeta(
     progressCallback?: (step: string, progress: number) => void;
   } = {},
 ): Promise<void> {
-  const base_id = targetContext.base_id;
+  // Bypass NocoCache within the entire transaction: reads inside a trx would
+  // return stale pre-commit state (e.g. a cMASTER column inserted in Step 4
+  // being masked by a cached cSANDBOX row deleted in Step 2), and writes would
+  // leak transaction-local data into the shared cache. See cacheBypassScope.ts.
+  return runWithoutCache(async () => {
+    const base_id = targetContext.base_id;
 
-  if (!base_id) {
-    throw new Error('Target base ID is required');
-  }
+    if (!base_id) {
+      throw new Error('Target base ID is required');
+    }
 
-  const base = await Base.get(targetContext, base_id);
-  if (!base) {
-    throw new Error(`Target base not found: ${base_id}`);
-  }
+    const base = await Base.get(targetContext, base_id, ncMeta);
+    if (!base) {
+      throw new Error(`Target base not found: ${base_id}`);
+    }
 
-  const { progressCallback } = options;
+    const { progressCallback } = options;
 
-  try {
-    // Step 1: Handle table deletions first (this cascades to delete columns)
-    progressCallback?.('Deleting tables', 10);
-    await handleTableDeletions(targetContext, metaDiff, base, ncMeta);
+    try {
+      // Step 1: Handle table deletions first (this cascades to delete columns)
+      progressCallback?.('Deleting tables', 10);
+      await handleTableDeletions(targetContext, metaDiff, base, ncMeta);
 
-    // Step 2: Handle standalone column deletions (columns deleted from existing tables)
-    progressCallback?.('Deleting columns', 20);
-    await handleStandaloneColumnDeletions(
-      targetContext,
-      metaDiff,
-      base,
-      ncMeta,
-    );
+      // Step 2: Handle standalone column deletions (columns deleted from existing tables)
+      progressCallback?.('Deleting columns', 20);
+      await handleStandaloneColumnDeletions(
+        targetContext,
+        metaDiff,
+        base,
+        ncMeta,
+      );
 
-    // Step 3: Handle table creations with their columns
-    progressCallback?.('Creating tables', 40);
-    await handleTableCreations(targetContext, metaDiff, base, ncMeta);
+      // Step 3: Handle table creations with their columns
+      progressCallback?.('Creating tables', 40);
+      await handleTableCreations(targetContext, metaDiff, base, ncMeta);
 
-    // Step 4: Handle standalone column additions (columns added to existing tables)
-    progressCallback?.('Adding columns', 60);
-    await handleStandaloneColumnAdditions(
-      targetContext,
-      metaDiff,
-      base,
-      ncMeta,
-    );
+      // Step 4: Handle standalone column additions (columns added to existing tables)
+      progressCallback?.('Adding columns', 60);
+      await handleStandaloneColumnAdditions(
+        targetContext,
+        metaDiff,
+        base,
+        ncMeta,
+      );
 
-    // Step 5: Handle table and column updates
-    progressCallback?.('Updating tables and columns', 70);
-    await handleTableUpdates(targetContext, metaDiff, base_id, ncMeta);
-    await handleColumnUpdates(targetContext, metaDiff, base_id, ncMeta);
+      // Step 5: Handle table and column updates
+      progressCallback?.('Updating tables and columns', 70);
+      await handleTableUpdates(targetContext, metaDiff, base_id, ncMeta);
+      await handleColumnUpdates(targetContext, metaDiff, base_id, ncMeta);
 
-    // Step 6: Handle all non-DDL metadata changes
-    progressCallback?.('Applying metadata changes', 90);
-    await handleNonDDLChanges(targetContext, metaDiff, base_id, ncMeta);
+      // Step 6: Handle all non-DDL metadata changes
+      progressCallback?.('Applying metadata changes', 90);
+      await handleNonDDLChanges(targetContext, metaDiff, base_id, ncMeta);
 
-    // Step 7: Create missing indexes
-    progressCallback?.('Creating indexes', 95);
-    await createMissingIndexes(targetContext, metaDiff, base, ncMeta);
+      // Step 7: Create missing indexes
+      progressCallback?.('Creating indexes', 95);
+      await createMissingIndexes(targetContext, metaDiff, base, ncMeta);
 
-    // Step 8: Clear relevant caches
-    progressCallback?.('Clearing caches', 98);
-    await clearRelatedCaches(targetContext);
+      // NOTE: Cache clearing intentionally omitted here.
+      // Cache is not transactional — callers must call NocoCache.clear(targetContext)
+      // both AFTER commit (so concurrent reads during the transaction cannot cache stale
+      // pre-commit DB state) AND AFTER rollback (so any cache entries written during the
+      // aborted transaction are evicted).
+      //
+      // Callers are also responsible for broadcasting base_meta_reload AFTER
+      // committing — broadcasting here is premature and causes stale reloads.
 
-    // Step 9: Broadcast realtime event to trigger UI reload for all base users
-    progressCallback?.('Broadcasting changes', 99);
-    NocoSocket.broadcastEventToBaseUsers(
-      targetContext,
-      {
-        event: EventType.USER_EVENT,
-        payload: {
-          action: 'base_meta_reload',
-          payload: {
-            base_id: base_id,
-          },
-        },
-      },
-      targetContext.socket_id,
-    );
-
-    progressCallback?.('Completed', 100);
-  } catch (error) {
-    console.error('Failed to apply metadata changes:', error);
-    throw new Error(`Failed to apply metadata changes: ${error.message}`);
-  }
+      progressCallback?.('Completed', 100);
+    } catch (error) {
+      logger.error(
+        `Failed to apply metadata changes: ${error.message}`,
+        error.stack,
+      );
+      throw new Error(`Failed to apply metadata changes: ${error.message}`);
+    }
+  });
 }
 
 async function handleTableDeletions(
@@ -584,7 +655,7 @@ async function handleTableDeletions(
 
     // Skip if still no source available
     if (!source) {
-      console.warn(`No source found for table deletion ${tableRecord.id}`);
+      logger.warn(`No source found for table deletion ${tableRecord.id}`);
       // Just delete the metadata record using composite key
       await ncMeta
         .knex(MetaTable.MODELS)
@@ -625,7 +696,7 @@ async function handleTableDeletions(
     } catch (error) {
       // If table doesn't exist (42P01), that's okay - it was already deleted
       if (error.code === '42P01') {
-        console.warn(
+        logger.warn(
           `Table ${tableRecord.table_name} already deleted, skipping DDL`,
         );
       } else {
@@ -633,7 +704,8 @@ async function handleTableDeletions(
       }
     }
 
-    // Delete the table metadata (columns will be cascade deleted) using composite key
+    // Delete the table metadata
+    // (column metadata is cleaned up by handleStandaloneColumnDeletions)
     await ncMeta
       .knex(MetaTable.MODELS)
       .where('id', tableRecord.id)
@@ -654,8 +726,14 @@ async function handleStandaloneColumnDeletions(
   );
 
   for (const columnRecord of columnsToDelete) {
-    // Skip columns that belong to deleted tables (already handled)
+    // Columns belonging to deleted tables only need metadata cleanup (no DDL —
+    // the physical table was already dropped by handleTableDeletions)
     if (deletedTableIds.has(columnRecord.fk_model_id)) {
+      await ncMeta
+        .knex(MetaTable.COLUMNS)
+        .where('id', columnRecord.id)
+        .where('base_id', targetContext.base_id)
+        .delete();
       continue;
     }
 
@@ -695,7 +773,7 @@ async function handleStandaloneColumnDeletions(
 
         // Skip if still no source available
         if (!source) {
-          console.warn(
+          logger.warn(
             `No source found for column deletion in table ${parentTable.id}`,
           );
           continue;
@@ -742,17 +820,18 @@ async function handleStandaloneColumnDeletions(
         try {
           await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
         } catch (error) {
-          // If column doesn't exist in database (42703), that's okay - it was already deleted
-          if (error.code === '42703') {
-            console.warn(
-              `Column ${columnRecord.column_name} already deleted from ${parentTable.table_name}, skipping DDL`,
+          // 42703: column doesn't exist (already deleted)
+          // 42P01: table doesn't exist (already dropped by handleTableDeletions or missing)
+          if (error.code === '42703' || error.code === '42P01') {
+            logger.warn(
+              `Column ${columnRecord.column_name} or table ${parentTable.table_name} already deleted, skipping DDL`,
             );
           } else {
             throw error;
           }
         }
       } else {
-        console.log(
+        logger.debug(
           `Column ${columnRecord.column_name} already removed from ${parentTable.table_name} metadata, skipping DDL`,
         );
       }
@@ -802,7 +881,7 @@ async function handleTableCreations(
         // Store pgSerialLastVal for later use
         tableRecord.pgSerialLastVal = pgSerialLastVal;
       } else {
-        console.log(
+        logger.debug(
           `Table ${tableRecord.table_name} metadata already exists, skipping metadata insertion`,
         );
       }
@@ -834,7 +913,7 @@ async function handleTableCreations(
 
           await ncMeta.knex(MetaTable.COLUMNS).insert(columnToInsert);
         } else {
-          console.log(
+          logger.debug(
             `Column ${columnRecord.column_name} metadata already exists, skipping`,
           );
         }
@@ -878,7 +957,7 @@ async function handleTableCreations(
         } catch (error) {
           // If table already exists in database (42P07), that's okay
           if (error.code === '42P07') {
-            console.warn(
+            logger.warn(
               `Table ${tableRecord.table_name} already exists in database, skipping DDL`,
             );
           } else {
@@ -896,17 +975,20 @@ async function handleTableCreations(
               ncMeta,
             );
             if (table) {
-              await setPostgresSequenceValue(targetContext, {
-                table,
-                columns: tableColumns,
-                source,
-                pgSerialLastVal: tableRecord.pgSerialLastVal,
-              });
+              await setPostgresSequenceValue(
+                targetContext,
+                {
+                  table,
+                  columns: tableColumns,
+                  source,
+                  pgSerialLastVal: tableRecord.pgSerialLastVal,
+                },
+                ncMeta,
+              );
             }
           } catch (error) {
-            console.warn(
-              `Failed to set PostgreSQL sequence for ${tableRecord.table_name}:`,
-              error,
+            logger.warn(
+              `Failed to set PostgreSQL sequence for ${tableRecord.table_name}: ${error.message}`,
             );
             // Don't throw - this is not critical
           }
@@ -921,7 +1003,7 @@ async function handleTableCreations(
         } catch (error) {
           // If view already exists, that's okay
           if (error.code === '42P07') {
-            console.warn(
+            logger.warn(
               `View ${tableRecord.table_name} already exists in database, skipping DDL`,
             );
           } else {
@@ -934,16 +1016,16 @@ async function handleTableCreations(
     } catch (error) {
       // Only throw if it's not an idempotency-related error that we've already handled
       if (error.code !== '42P07' && error.code !== '42701') {
-        console.error(
-          `Failed to create table ${tableRecord.table_name}:`,
-          error,
+        logger.error(
+          `Failed to create table ${tableRecord.table_name}: ${error.message}`,
+          error.stack,
         );
         throw new Error(
           `Failed to create table ${tableRecord.table_name}: ${error.message}`,
         );
       } else {
         // Log but don't throw for already-exists errors
-        console.log(
+        logger.debug(
           `Skipped table ${tableRecord.table_name} creation due to existing object`,
         );
       }
@@ -986,7 +1068,7 @@ async function handleStandaloneColumnAdditions(
         // Insert column metadata
         await ncMeta.knex(MetaTable.COLUMNS).insert(columnToInsert);
       } else {
-        console.log(
+        logger.debug(
           `Column ${columnRecord.column_name} metadata already exists, skipping metadata insertion`,
         );
       }
@@ -1064,24 +1146,28 @@ async function handleStandaloneColumnAdditions(
                 ncMeta,
               );
             } catch (error) {
-              // If column already exists in database (42701), that's okay
-              if (error.code === '42701') {
-                console.warn(
-                  `Column ${columnRecord.column_name} already exists in ${parentTable.table_name}, skipping DDL`,
+              // 42701: column already exists
+              // 42P01: table doesn't exist (already dropped or missing)
+              if (error.code === '42701' || error.code === '42P01') {
+                logger.warn(
+                  `Column ${columnRecord.column_name} already exists in or table ${parentTable.table_name} not found, skipping DDL`,
                 );
               } else {
                 throw error;
               }
             }
           } else {
-            console.log(
+            logger.debug(
               `Column ${columnRecord.column_name} already exists in ${parentTable.table_name}, skipping DDL`,
             );
           }
         }
       }
     } catch (error) {
-      console.error(`Failed to add column ${columnRecord.column_name}:`, error);
+      logger.error(
+        `Failed to add column ${columnRecord.column_name}: ${error.message}`,
+        error.stack,
+      );
       throw new Error(
         `Failed to add column ${columnRecord.column_name}: ${error.message}`,
       );
@@ -1096,6 +1182,7 @@ async function handleTableUpdates(
   ncMeta = Noco.ncMeta,
 ) {
   const tablesToUpdate = metaDiff.update[MetaTable.MODELS] || [];
+  const base = await Base.get(targetContext, base_id, ncMeta);
 
   for (const tableRecord of tablesToUpdate) {
     try {
@@ -1107,7 +1194,7 @@ async function handleTableUpdates(
         .first();
 
       if (!existingTable) {
-        console.warn(`Table not found for update: ${tableRecord.id}`);
+        logger.warn(`Table not found for update: ${tableRecord.id}`);
         continue;
       }
 
@@ -1123,7 +1210,6 @@ async function handleTableUpdates(
           );
 
           if (source) {
-            const base = await Base.get(targetContext, base_id);
             const sqlMgr = await ProjectMgrv2.getSqlMgr(
               targetContext,
               base,
@@ -1151,7 +1237,10 @@ async function handleTableUpdates(
         .where('base_id', base_id)
         .update({ ...updateData, base_id });
     } catch (error) {
-      console.error(`Failed to update table ${tableRecord.table_name}:`, error);
+      logger.error(
+        `Failed to update table ${tableRecord.table_name}: ${error.message}`,
+        error.stack,
+      );
       throw new Error(
         `Failed to update table ${tableRecord.table_name}: ${error.message}`,
       );
@@ -1167,7 +1256,24 @@ async function handleColumnUpdates(
 ) {
   const columnsToUpdate = metaDiff.update[MetaTable.COLUMNS] || [];
 
+  // Skip columns whose parent table is being deleted or created — those are handled elsewhere
+  const deletedTableIds = new Set(
+    (metaDiff.delete[MetaTable.MODELS] || []).map((t) => t.id),
+  );
+  const newTableIds = new Set(
+    (metaDiff.add[MetaTable.MODELS] || []).map((t) => t.id),
+  );
+
+  const base = await Base.get(targetContext, base_id, ncMeta);
+
   for (const columnRecord of columnsToUpdate) {
+    if (
+      deletedTableIds.has(columnRecord.fk_model_id) ||
+      newTableIds.has(columnRecord.fk_model_id)
+    ) {
+      continue;
+    }
+
     try {
       // Get the existing column record to compare changes
       const existingColumn = await Column.get(
@@ -1177,7 +1283,7 @@ async function handleColumnUpdates(
       );
 
       if (!existingColumn) {
-        console.warn(`Column not found for update: ${columnRecord.id}`);
+        logger.warn(`Column not found for update: ${columnRecord.id}`);
         continue;
       }
 
@@ -1202,7 +1308,6 @@ async function handleColumnUpdates(
           );
 
           if (source) {
-            const base = await Base.get(targetContext, base_id);
             const sqlMgr = await ProjectMgrv2.getSqlMgr(
               targetContext,
               base,
@@ -1250,7 +1355,18 @@ async function handleColumnUpdates(
               };
 
               // Perform DDL operation
-              await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+              try {
+                await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+              } catch (error) {
+                // 42P01: table doesn't exist (already dropped or missing)
+                if (error.code === '42P01') {
+                  logger.warn(
+                    `Table ${parentTable.table_name} not found for column update of ${columnRecord.column_name}, skipping DDL`,
+                  );
+                } else {
+                  throw error;
+                }
+              }
             }
           }
         }
@@ -1264,9 +1380,9 @@ async function handleColumnUpdates(
         .where('base_id', base_id)
         .update({ ...updateData, base_id });
     } catch (error) {
-      console.error(
-        `Failed to update column ${columnRecord.column_name}:`,
-        error,
+      logger.error(
+        `Failed to update column ${columnRecord.column_name}: ${error.message}`,
+        error.stack,
       );
       throw new Error(
         `Failed to update column ${columnRecord.column_name}: ${error.message}`,
@@ -1282,6 +1398,7 @@ async function handleNonDDLChanges(
   ncMeta = Noco.ncMeta,
 ) {
   const ddlTables = [MetaTable.MODELS, MetaTable.COLUMNS];
+  const errors: { table: string; op: string; message: string }[] = [];
 
   // Process tables in dependency order
   for (const metaTable of orderedSerializableMetaTables) {
@@ -1319,8 +1436,11 @@ async function handleNonDDLChanges(
             .where('base_id', base_id)
             .delete();
         } catch (error) {
-          console.warn(`Failed to delete ${metaTable} record:`, error);
-          // Continue with other deletions
+          errors.push({
+            table: metaTable,
+            op: 'delete',
+            message: error.message,
+          });
         }
       }
 
@@ -1359,9 +1479,8 @@ async function handleNonDDLChanges(
             Object.keys(whereClause).length === 0 ||
             Object.values(whereClause).some((v) => v === undefined)
           ) {
-            console.warn(
-              `Skipping update for ${metaTable} record without valid primary key:`,
-              record,
+            logger.warn(
+              `Skipping update for ${metaTable} record without valid primary key`,
             );
             continue;
           }
@@ -1372,25 +1491,65 @@ async function handleNonDDLChanges(
             .where('base_id', base_id)
             .update({ ...updateData, base_id });
         } catch (error) {
-          console.warn(`Failed to update ${metaTable} record:`, error);
-          // Continue with other updates
+          errors.push({
+            table: metaTable,
+            op: 'update',
+            message: error.message,
+          });
         }
       }
 
-      // Handle additions
+      // Handle additions (with idempotency check)
       for (const record of toAdd) {
         try {
+          const pkFields = tablePrimaryKeys[metaTable] || 'id';
+
+          // Build where clause to check if record already exists
+          let whereClause: any;
+          if (Array.isArray(pkFields)) {
+            whereClause = {};
+            for (const field of pkFields) {
+              whereClause[field] = record[field];
+            }
+          } else {
+            whereClause = { [pkFields]: record[pkFields] };
+          }
+
+          const existing = await ncMeta
+            .knex(metaTable)
+            .where(whereClause)
+            .where('base_id', base_id)
+            .first();
+
+          if (existing) {
+            continue; // Already exists — skip for idempotency
+          }
+
           const recordToInsert = { ...record, base_id };
           await ncMeta.knex(metaTable).insert(recordToInsert);
         } catch (error) {
-          console.warn(`Failed to add ${metaTable} record:`, error);
-          // Continue with other additions
+          errors.push({
+            table: metaTable,
+            op: 'add',
+            message: error.message,
+          });
         }
       }
     } catch (error) {
-      console.error(`Failed to process ${metaTable}:`, error);
+      logger.error(
+        `Failed to process ${metaTable}: ${error.message}`,
+        error.stack,
+      );
       // Continue with other tables
     }
+  }
+
+  if (errors.length) {
+    logger.warn(
+      `handleNonDDLChanges completed with ${
+        errors.length
+      } error(s): ${JSON.stringify(errors)}`,
+    );
   }
 }
 
@@ -1413,7 +1572,7 @@ async function createOrderIndexForTable(
     // Get the actual model and column objects
     const model = await Model.get(targetContext, tableRecord.id, false, ncMeta);
     if (!model) {
-      console.warn(`Model not found for table ${tableRecord.table_name}`);
+      logger.warn(`Model not found for table ${tableRecord.table_name}`);
       return;
     }
 
@@ -1431,7 +1590,7 @@ async function createOrderIndexForTable(
     } catch (indexError) {
       // If index already exists (42P07), that's okay
       if (indexError.code === '42P07') {
-        console.log(
+        logger.debug(
           `Index ${indexName} already exists for ${tableRecord.table_name}, skipping`,
         );
       } else {
@@ -1440,9 +1599,9 @@ async function createOrderIndexForTable(
     }
   } catch (e) {
     // Log the error but don't fail the entire operation
-    console.error(
-      `Failed to create order index for ${tableRecord.table_name}:`,
-      e,
+    logger.error(
+      `Failed to create order index for ${tableRecord.table_name}: ${e.message}`,
+      e.stack,
     );
   }
 }
@@ -1470,14 +1629,14 @@ async function createForeignKeyIndexesForTable(
           ncMeta,
         );
         if (!column) {
-          console.warn(`Column not found for FK ${fkColumn.column_name}`);
+          logger.warn(`Column not found for FK ${fkColumn.column_name}`);
           continue;
         }
 
         // Get the model
         const model = await column.getModel(targetContext, ncMeta);
         if (!model) {
-          console.warn(`Model not found for FK column ${fkColumn.column_name}`);
+          logger.warn(`Model not found for FK column ${fkColumn.column_name}`);
           continue;
         }
 
@@ -1520,7 +1679,7 @@ async function createForeignKeyIndexesForTable(
         } catch (indexError) {
           // If index already exists (42P07), that's okay
           if (indexError.code === '42P07') {
-            console.log(
+            logger.debug(
               `Index ${indexName} already exists for ${fkColumn.column_name}, skipping`,
             );
           } else {
@@ -1528,17 +1687,16 @@ async function createForeignKeyIndexesForTable(
           }
         }
       } catch (e) {
-        console.warn(
-          `Failed to create FK index for ${fkColumn.column_name}:`,
-          e,
+        logger.warn(
+          `Failed to create FK index for ${fkColumn.column_name}: ${e.message}`,
         );
         // Continue with other indexes
       }
     }
   } catch (e) {
-    console.error(
-      `Failed to create FK indexes for ${tableRecord.table_name}:`,
-      e,
+    logger.error(
+      `Failed to create FK indexes for ${tableRecord.table_name}: ${e.message}`,
+      e.stack,
     );
   }
 }
@@ -1552,7 +1710,7 @@ async function createForeignKeyConstraint(
   ncMeta = Noco.ncMeta,
 ) {
   try {
-    // Only create foreign key constraint for UITypes.ForeignKey that are not virtual
+    // Skip ForeignKey columns — they don't need index creation here
     if (columnRecord.uidt === UITypes.ForeignKey) {
       return;
     }
@@ -1592,7 +1750,10 @@ async function createForeignKeyConstraint(
     });
   } catch (e) {
     // Log the error but don't fail the entire operation
-    console.error('Failed to create foreign key constraint:', e);
+    logger.error(
+      `Failed to create foreign key constraint: ${e.message}`,
+      e.stack,
+    );
   }
 }
 
@@ -1650,25 +1811,17 @@ async function createMissingIndexes(
           ncMeta,
         );
       } catch (error) {
-        console.warn(
-          `Failed to create indexes for table ${tableRecord.table_name}:`,
-          error,
+        logger.warn(
+          `Failed to create indexes for table ${tableRecord.table_name}: ${error.message}`,
         );
         // Continue with other tables
       }
     }
   } catch (error) {
-    console.error('Failed to create missing indexes:', error);
+    logger.error(
+      `Failed to create missing indexes: ${error.message}`,
+      error.stack,
+    );
     // Don't throw - index creation failures shouldn't break the entire operation
-  }
-}
-
-// New cache clearing function
-async function clearRelatedCaches(targetContext: NcContext): Promise<void> {
-  try {
-    await NocoCache.clear(targetContext);
-  } catch (error) {
-    console.warn('Failed to clear some caches:', error);
-    // Don't throw - cache clearing failures shouldn't break the operation
   }
 }

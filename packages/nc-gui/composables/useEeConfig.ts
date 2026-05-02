@@ -260,6 +260,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseViewSections = (..._args: any[]) => {}
 
+  const blockBaseVariables = computed(() => true)
+
+  const showUpgradeToUseBaseVariables = (..._args: any[]) => {}
+
   const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
   const showUpgradeToUseListView = (..._args: any[]) => {}
 
@@ -439,6 +443,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseFormScheduling,
     blockViewSections,
     showUpgradeToUseViewSections,
+    blockBaseVariables,
+    showUpgradeToUseBaseVariables,
     blockListView,
     showUpgradeToUseListView,
     blockMapView,

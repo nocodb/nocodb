@@ -90,7 +90,7 @@ export class BasesService extends BasesServiceCE {
   async baseCreate(param: {
     base: ProjectReqType & {
       version?: BaseVersion;
-      is_sandbox_master?: boolean;
+      is_sandbox_production?: boolean;
       is_sandbox?: boolean;
     };
     user: any;
@@ -362,6 +362,12 @@ export class BasesService extends BasesServiceCE {
 
     if (!base) {
       NcError.baseNotFound(param.baseId);
+    }
+
+    if (base.is_sandbox) {
+      NcError.badRequest(
+        'Sandbox bases cannot be deleted directly. Use "Discard sandbox" on the production base instead.',
+      );
     }
 
     if (isEE) {

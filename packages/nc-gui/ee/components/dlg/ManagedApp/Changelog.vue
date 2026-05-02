@@ -15,7 +15,7 @@ const baseStore = useBase()
 
 const { managedAppVersionsInfo, managedAppVersions, isManagedAppMaster, isManagedAppInstaller } = storeToRefs(baseStore)
 
-const isUpdating = ref(false)
+const { isManualUpdating: isUpdating } = storeToRefs(baseStore)
 
 // Pagination state
 const currentPage = ref(1)
@@ -68,10 +68,11 @@ const isDraftVersion = (version: any) => {
   return version.status === 'draft'
 }
 
-const showUpdateButton = false
+// Show manual update button for installers when an update is available
+const showUpdateButton = computed(() => isManagedAppInstaller.value && managedAppVersionsInfo.value.updateAvailable)
 
 const updateToVersion = async (_version: any) => {
-  // Todo: Currently we have auto update, we have to use this when we support manual update
+  await baseStore.triggerManualUpdate()
 }
 
 // Reset pagination when modal opens

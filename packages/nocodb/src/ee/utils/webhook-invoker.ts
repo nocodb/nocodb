@@ -8,7 +8,13 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { NcError } from '~/helpers/ncError';
 import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
-import { type Hook, HookLog, type Model, type View } from '~/models';
+import {
+  BaseVariable,
+  type Hook,
+  HookLog,
+  type Model,
+  type View,
+} from '~/models';
 import {
   handleHttpWebHook,
   parseBody,
@@ -218,6 +224,10 @@ export class WebhookInvoker extends WebhookInvokerCE {
 
     let hookLog: HookLogType;
     const startTime = process.hrtime();
+
+    // Load base variables for template resolution
+    const vars = await BaseVariable.listAsMap(context, model.base_id);
+
     let notification, filters;
     let reqPayload;
     try {
@@ -238,9 +248,13 @@ export class WebhookInvoker extends WebhookInvokerCE {
             });
 
             const parsedPayload = {
-              to: parseBody(notification?.payload?.to, webhookData),
-              subject: parseBody(notification?.payload?.subject, webhookData),
-              html: parseBody(notification?.payload?.body, webhookData),
+              to: parseBody(notification?.payload?.to, webhookData, vars),
+              subject: parseBody(
+                notification?.payload?.subject,
+                webhookData,
+                vars,
+              ),
+              html: parseBody(notification?.payload?.body, webhookData, vars),
             };
             const res = await (
               await NcPluginMgrv2.emailAdapter(false)
@@ -269,6 +283,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
               view,
               prevData,
               newData,
+              vars,
             });
 
             const { requestPayload, responsePayload } = await handleHttpWebHook(
@@ -309,12 +324,12 @@ export class WebhookInvoker extends WebhookInvokerCE {
             const res = await (
               await NcPluginMgrv2.webhookNotificationAdapters(notification.type)
             ).sendMessage(
-              parseBody(notification?.payload?.body, webhookData),
+              parseBody(notification?.payload?.body, webhookData, vars),
               JSON.parse(
                 JSON.stringify(notification?.payload),
                 (_key, value) => {
                   return typeof value === 'string'
-                    ? parseBody(value, webhookData)
+                    ? parseBody(value, webhookData, vars)
                     : value;
                 },
               ),

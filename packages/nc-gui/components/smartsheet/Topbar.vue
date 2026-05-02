@@ -75,6 +75,9 @@ const topbarBreadcrumbItemWidth = computed(() => {
       <div class="flex items-center justify-end gap-2 flex-1">
         <GeneralApiLoader v-if="!isMobileMode && !activeScriptId && !activeDashboardId" />
 
+        <!-- Variable Setup Warning -->
+        <SmartsheetTopbarVariableSetupWarning v-if="!isSharedBase && !isMobileMode" />
+
         <!-- Managed App Status -->
         <LazySmartsheetTopbarManagedAppStatus v-if="!isSharedBase && !isMobileMode" />
 

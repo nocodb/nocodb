@@ -77,6 +77,8 @@ export enum JobTypes {
   ChatApproval = 'chat-approval',
   BaseTrashCleanUp = 'base-trash-clean-up',
   DataImport = 'data-import',
+  SandboxMerge = 'sandbox-merge',
+  ManagedAppUpdate = 'managed-app-update',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -188,6 +190,10 @@ export interface DuplicateBaseJobData extends JobData {
     excludeScripts?: boolean;
     excludeDashboards?: boolean;
     excludeWorkflows?: boolean;
+    excludeDocuments?: boolean;
+    excludePersonalViews?: boolean;
+    excludePermissions?: boolean;
+    excludeRls?: boolean;
   };
 }
 
@@ -221,6 +227,24 @@ export interface DuplicateDashboardJobData extends JobData {
   dashboardId: string;
   req: NcRequest;
   options: never;
+}
+
+export interface SandboxMergeJobData extends JobData {
+  sandboxBaseId: string;
+  productionBaseId: string;
+  sandboxId: string;
+  req: NcRequest;
+  selectedChangelogIds?: string[];
+}
+
+export interface ManagedAppUpdateJobData extends JobData {
+  managedAppId: string;
+  managedAppTitle: string;
+  masterBaseId: string;
+  masterWorkspaceId: string;
+  newVersionId: string;
+  newVersion: string;
+  req: NcRequest;
 }
 
 export interface HandleWebhookJobData extends JobData {

@@ -138,6 +138,7 @@ export class UiPostOperations
         return await this.filtersService.rowColorConditionsCreate(context, {
           rowColorConditionsId: req.query.rowColorConditionId,
           filter: payload,
+          req,
         });
       case 'buttonFilterCreate':
         return await this.filtersService.buttonFilterCreate(context, {

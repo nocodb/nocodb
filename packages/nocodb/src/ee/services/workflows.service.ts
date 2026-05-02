@@ -16,8 +16,10 @@ import { CronExpressionParser } from 'cron-parser';
 import type { WorkflowRunAs } from 'nocodb-sdk';
 import type { OnModuleInit } from '@nestjs/common';
 import type { IntegrationReqType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import { OperationName } from '~/command-registry/op-names';
+import { NcContext } from '~/interface/config';
 import { extractWorkflowDependencies } from '~/services/workflows/extractDependency';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { NcError } from '~/helpers/catchError';
@@ -43,7 +45,8 @@ import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 @Injectable()
 export class WorkflowsService implements OnModuleInit {
   private readonly logger = new Logger(WorkflowsService.name);
@@ -205,11 +208,13 @@ export class WorkflowsService implements OnModuleInit {
     return workflow;
   }
 
+  @TraceCommand(OperationName.workflowCreate)
   async createWorkflow(
     context: NcContext,
-    workflowBody: Partial<Workflow>,
-    req: NcRequest,
+    param: { body: Partial<Workflow>; req: NcRequest },
   ) {
+    const { body: workflowBody, req } = param;
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -271,12 +276,12 @@ export class WorkflowsService implements OnModuleInit {
     return workflow;
   }
 
+  @TraceCommand(OperationName.workflowUpdate)
   async updateWorkflow(
     context: NcContext,
-    workflowId: string,
-    workflowBody: Partial<Workflow>,
-    req: NcRequest,
+    param: { workflowId: string; body: Partial<Workflow>; req: NcRequest },
   ) {
+    const { workflowId, body: workflowBody, req } = param;
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -337,12 +342,12 @@ export class WorkflowsService implements OnModuleInit {
     return updatedWorkflow;
   }
 
+  @TraceCommand(OperationName.workflowDelete)
   async deleteWorkflow(
     context: NcContext,
-    workflowId: string,
-    req: NcRequest,
-    ncMeta?: MetaService,
+    param: { workflowId: string; req: NcRequest; ncMeta?: MetaService },
   ) {
+    const { workflowId, req, ncMeta } = param;
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -600,14 +605,26 @@ export class WorkflowsService implements OnModuleInit {
     return execution;
   }
 
+  @TraceCommand(OperationName.workflowPublish)
   async publishWorkflow(
     context: NcContext,
-    workflowId: string,
-    req: NcRequest,
-    params?: {
+    param: {
+      workflowId: string;
+      req: NcRequest;
       cancelPendingExecutions?: boolean;
     },
   ) {
+    // While a sandbox is active, publish must come from the sandbox so the
+    // change goes through the changelog and replays onto production at merge —
+    // matches the broader "edit only in sandbox" pattern. The guard ignores
+    // is_replay so the merge-time replay still publishes the production row.
+    await assertNotSandboxProduction(
+      context,
+      'Publish workflows from the sandbox while one is active — the change will reach production at merge.',
+    );
+
+    const { workflowId, req } = param;
+    const params = param;
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {

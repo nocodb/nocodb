@@ -445,18 +445,23 @@ export class InternalController extends InternalControllerCE {
         )) as any;
 
       case 'createScript':
-        return await this.scriptsService.createScript(context, payload, req);
+        return await this.scriptsService.createScript(context, {
+          body: payload,
+          req,
+        });
 
       case 'updateScript':
-        return await this.scriptsService.updateScript(
-          context,
-          payload.id,
-          payload,
+        return await this.scriptsService.updateScript(context, {
+          scriptId: payload.id,
+          body: payload,
           req,
-        );
+        });
 
       case 'deleteScript':
-        return await this.scriptsService.deleteScript(context, payload.id, req);
+        return await this.scriptsService.deleteScript(context, {
+          scriptId: payload.id,
+          req,
+        });
 
       case 'duplicateScript':
         return await this.scriptsService.duplicateScript(
@@ -487,45 +492,43 @@ export class InternalController extends InternalControllerCE {
         );
 
       case 'dashboardCreate':
-        return await this.dashboardsService.dashboardCreate(
-          context,
-          payload,
+        return await this.dashboardsService.dashboardCreate(context, {
+          dashboard: payload,
           req,
-        );
+        });
       case 'dashboardUpdate':
-        return await this.dashboardsService.dashboardUpdate(
-          context,
-          payload.dashboardId,
-          payload,
+        return await this.dashboardsService.dashboardUpdate(context, {
+          dashboardId: payload.dashboardId,
+          dashboard: payload,
           req,
-        );
+        });
       case 'dashboardDelete':
-        return await this.dashboardsService.dashboardDelete(
-          context,
-          payload.dashboardId,
+        return await this.dashboardsService.dashboardDelete(context, {
+          dashboardId: payload.dashboardId,
           req,
-        );
+        });
       case 'widgetCreate':
-        return await this.dashboardsService.widgetCreate(context, payload, req);
+        return await this.dashboardsService.widgetCreate(context, {
+          widget: payload,
+          dashboardId: payload?.fk_dashboard_id,
+          req,
+        });
       case 'widgetDuplicate':
-        return await this.dashboardsService.duplicateWidget(
-          context,
-          payload.widgetId,
+        return await this.dashboardsService.duplicateWidget(context, {
+          widgetId: payload.widgetId,
           req,
-        );
+        });
       case 'widgetUpdate':
-        return await this.dashboardsService.widgetUpdate(
-          context,
-          payload.widgetId,
-          payload,
+        return await this.dashboardsService.widgetUpdate(context, {
+          widgetId: payload.widgetId,
+          widget: payload,
           req,
-        );
+        });
       case 'widgetDelete':
-        return await this.dashboardsService.widgetDelete(
-          context,
-          payload.widgetId,
+        return await this.dashboardsService.widgetDelete(context, {
+          widgetId: payload.widgetId,
           req,
-        );
+        });
 
       case 'widgetDataGet':
         return await this.dashboardsService.widgetDataGet(

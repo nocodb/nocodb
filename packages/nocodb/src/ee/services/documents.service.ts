@@ -21,6 +21,7 @@ import {
   checkLimit,
   getLimit,
 } from '~/helpers/paymentHelpers';
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { Document, FileReference, Permission } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
@@ -370,6 +371,13 @@ export class DocumentsService extends DocumentsServiceCE {
   ) {
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS);
 
+    // Docs are excluded from sandbox creation — they are treated as data and
+    // never duplicated to the sandbox base.
+    await assertNotSandbox(
+      context,
+      'Documents are not available in a sandbox.',
+    );
+
     const docCount = await Document.countForBase(context, context.base_id);
 
     await checkLimit({
@@ -498,6 +506,11 @@ export class DocumentsService extends DocumentsServiceCE {
     payload: Partial<DocumentType>,
     req: NcRequest,
   ) {
+    await assertNotSandbox(
+      context,
+      'Documents are not available in a sandbox.',
+    );
+
     const existing = await Document.get(context, docId);
     if (!existing) {
       NcError.get(context).genericNotFound('Document', docId);
@@ -632,6 +645,11 @@ export class DocumentsService extends DocumentsServiceCE {
 
   /** Soft-delete a document (and cascade to descendants). */
   async delete(context: NcContext, docId: string, req: NcRequest) {
+    await assertNotSandbox(
+      context,
+      'Documents are not available in a sandbox.',
+    );
+
     const doc = await Document.get(context, docId);
     if (!doc) {
       NcError.get(context).genericNotFound('Document', docId);
@@ -700,6 +718,11 @@ export class DocumentsService extends DocumentsServiceCE {
     payload: { order: number; parent_id?: string | null },
     req: NcRequest,
   ) {
+    await assertNotSandbox(
+      context,
+      'Documents are not available in a sandbox.',
+    );
+
     const doc = await Document.get(context, docId);
     if (!doc) {
       NcError.get(context).genericNotFound('Document', docId);

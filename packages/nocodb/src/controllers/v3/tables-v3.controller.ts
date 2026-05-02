@@ -66,6 +66,7 @@ export class TablesV3Controller {
       sourceId: sourceId,
       table: body,
       user: req.user,
+      req,
     });
 
     return result;

@@ -291,6 +291,10 @@ export enum NcErrorType {
   // System configuration errors
   ERR_SYSTEM_MISCONFIGURED = 'ERR_SYSTEM_MISCONFIGURED',
   ERR_TOO_MANY_REQUESTS = 'ERR_TOO_MANY_REQUESTS',
+
+  // Sandbox errors
+  ERR_SANDBOX_BLOCKED = 'ERR_SANDBOX_BLOCKED',
+  ERR_SANDBOX_PRODUCTION_BLOCKED = 'ERR_SANDBOX_PRODUCTION_BLOCKED',
 }
 
 export enum ROW_COLORING_MODE {
@@ -437,4 +441,15 @@ export enum DeploymentStatus {
 export enum DeploymentType {
   INSTALL = 'install',
   UPDATE = 'update',
+}
+
+export enum BaseVariableInheritance {
+  FIXED = 'fixed',
+  EDITABLE = 'editable',
+  REQUIRED = 'required',
+}
+
+export enum BaseVariableValueType {
+  TEXT = 'text',
+  SECRET = 'secret',
 }

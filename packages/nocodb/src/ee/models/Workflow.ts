@@ -175,6 +175,11 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       'created_by',
     ]);
 
+    // Replay-only: preserve sandbox entity ID for idempotent merge
+    if (context?.additionalContext?.is_replay && workflow.id) {
+      insertObj.id = workflow.id;
+    }
+
     if (!insertObj.order) {
       insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.AUTOMATIONS, {
         fk_workspace_id: context.workspace_id,

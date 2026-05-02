@@ -25,6 +25,7 @@ import Noco from '~/Noco';
 import {
   ApiTokenScope,
   BaseUser,
+  BaseVariable,
   CustomUrl,
   Dashboard,
   DataReflection,
@@ -62,25 +63,57 @@ export default class Base extends BaseCE {
     return base && new Base(base);
   }
 
+  private static applyManagedAppVersion(
+    base: Base,
+    version?: ManagedAppVersion,
+  ): void {
+    base.managed_app_schema_locked = !base.managed_app_master;
+
+    if (version) {
+      base.managed_app_schema_locked =
+        version.status === ManagedAppVersionStatus.PUBLISHED;
+      base.managed_app_version = version.version || null;
+      base.managed_app_published_at = version.published_at || null;
+    }
+  }
+
   public static async populateManagedAppInfo(base: Base): Promise<void> {
-    // Extra check to avoid unwanted behaviour
     if (!base.managed_app_id) return;
 
-    // default values
-    base.managed_app_schema_locked = false;
+    const version = base.managed_app_version_id
+      ? await ManagedAppVersion.get(base.managed_app_version_id)
+      : undefined;
 
-    // Installed instance (non-master) - always locked
-    if (!base.managed_app_master) {
-      base.managed_app_schema_locked = true;
-    }
+    Base.applyManagedAppVersion(base, version);
+  }
 
-    // Master base - check if current version is published
-    if (base.managed_app_version_id) {
-      const version = await ManagedAppVersion.get(base.managed_app_version_id);
-      base.managed_app_schema_locked =
-        version?.status === ManagedAppVersionStatus.PUBLISHED;
-      base.managed_app_version = version?.version || null;
-      base.managed_app_published_at = version?.published_at || null;
+  /**
+   * Batch-populate managed app info for a list of bases.
+   * Loads all needed versions in a single query instead of N+1.
+   */
+  public static async batchPopulateManagedAppInfo(
+    bases: Base[],
+  ): Promise<void> {
+    const managedBases = bases.filter((b) => b.managed_app_id);
+    if (!managedBases.length) return;
+
+    const versionIds = [
+      ...new Set(
+        managedBases
+          .map((b) => b.managed_app_version_id)
+          .filter(Boolean) as string[],
+      ),
+    ];
+
+    const versionMap = versionIds.length
+      ? await ManagedAppVersion.getByIds(versionIds)
+      : new Map();
+
+    for (const base of managedBases) {
+      const version = base.managed_app_version_id
+        ? versionMap.get(base.managed_app_version_id)
+        : undefined;
+      Base.applyManagedAppVersion(base, version);
     }
   }
 
@@ -152,8 +185,6 @@ export default class Base extends BaseCE {
       );
     }
 
-    const promises = [];
-
     const castedProjectList = baseList
       .filter(
         (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
@@ -163,17 +194,10 @@ export default class Base extends BaseCE {
           (a.order != null ? a.order : Infinity) -
           (b.order != null ? b.order : Infinity),
       )
-      .map((m) => {
-        const base = this.castType(m);
+      .map((m) => this.castType(m));
 
-        if (base.managed_app_id) {
-          promises.push(Base.populateManagedAppInfo(base));
-        }
-
-        return base;
-      });
-
-    await Promise.all(promises);
+    // Batch-populate managed app info to avoid N+1
+    await Base.batchPopulateManagedAppInfo(castedProjectList);
 
     return castedProjectList;
   }
@@ -203,7 +227,7 @@ export default class Base extends BaseCE {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'is_sandbox_master',
+      'is_sandbox_production',
       'is_sandbox',
     ]);
 
@@ -300,7 +324,7 @@ export default class Base extends BaseCE {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'is_sandbox_master',
+      'is_sandbox_production',
       'is_sandbox',
     ]);
 
@@ -446,7 +470,7 @@ export default class Base extends BaseCE {
     }
 
     // --- SANDBOX LOGIC ---
-    // If this is a sandbox base, update master's is_sandbox_master flag and delete sandbox record
+    // If this is a sandbox base, update production's is_sandbox_production flag and delete sandbox record
     if (base.is_sandbox) {
       const sandbox = await Sandbox.getBySandboxBaseId(base.id, ncMeta);
 
@@ -454,24 +478,24 @@ export default class Base extends BaseCE {
         // Delete sandbox record
         await Sandbox.delete(sandbox.id, ncMeta);
 
-        const remainingSandboxes = await Sandbox.listByMasterBaseId(
-          sandbox.master_base_id,
+        const remainingSandboxes = await Sandbox.listByProductionBaseId(
+          sandbox.production_base_id,
           ncMeta,
         );
         if (remainingSandboxes.length === 0) {
           await Base.update(
-            { ...context, base_id: sandbox.master_base_id },
-            sandbox.master_base_id,
-            { is_sandbox_master: false },
+            { ...context, base_id: sandbox.production_base_id },
+            sandbox.production_base_id,
+            { is_sandbox_production: false },
             ncMeta,
           );
         }
       }
     }
 
-    // If this is a master base with sandboxes, delete all sandbox bases first
-    if (base.is_sandbox_master) {
-      const sandboxes = await Sandbox.listByMasterBaseId(baseId, ncMeta);
+    // If this is a production base with sandboxes, delete all sandbox bases first
+    if (base.is_sandbox_production) {
+      const sandboxes = await Sandbox.listByProductionBaseId(baseId, ncMeta);
       for (const sandbox of sandboxes) {
         // Delete sandbox record
         await Sandbox.delete(sandbox.id, ncMeta);
@@ -511,6 +535,7 @@ export default class Base extends BaseCE {
     await Dashboard.deleteByBaseId(context, baseId, ncMeta);
     await Workflow.deleteByBaseId(context, baseId, ncMeta);
     await Script.deleteByBaseId(context, baseId, ncMeta);
+    await BaseVariable.deleteByBaseId(context, baseId, ncMeta);
 
     const sources = await Source.list(
       context,
@@ -762,12 +787,10 @@ export default class Base extends BaseCE {
           base.meta = parseMetaProp(base);
           (base as any).project_role = ProjectRoles.OWNER;
           promises.push(base.getSources(false, ncMeta));
-          if (base.managed_app_id) {
-            promises.push(Base.populateManagedAppInfo(base));
-          }
           return base;
         });
 
+        promises.push(Base.batchPopulateManagedAppInfo(castedList));
         await Promise.all(promises);
         return castedList;
       }
@@ -882,6 +905,7 @@ export default class Base extends BaseCE {
       .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
       .whereNot(`${MetaTable.PROJECT}.deleted`, true)
       .whereNot(`${MetaTable.PROJECT}.is_snapshot`, true)
+      .whereNot(`${MetaTable.PROJECT}.is_sandbox`, true)
       .andWhere(function () {
         // Priority order:
         // 1. base_role (direct project user role)
@@ -1120,14 +1144,10 @@ export default class Base extends BaseCE {
           const base = this.castType(p);
           base.meta = parseMetaProp(base);
           promises.push(base.getSources(false, ncMeta));
-
-          if (base.managed_app_id) {
-            promises.push(Base.populateManagedAppInfo(base));
-          }
-
           return base;
         });
 
+      promises.push(Base.batchPopulateManagedAppInfo(castedProjectList));
       await Promise.all(promises);
 
       return castedProjectList;
@@ -1138,10 +1158,18 @@ export default class Base extends BaseCE {
 
   static async listByWorkspace(
     fk_workspace_id: string,
-    opts?: { includeDeleted?: boolean; includeSnapshot?: boolean },
+    opts?: {
+      includeDeleted?: boolean;
+      includeSnapshot?: boolean;
+      includeSandbox?: boolean;
+    },
     ncMeta = Noco.ncMeta,
   ) {
-    const { includeDeleted = false, includeSnapshot = false } = opts || {};
+    const {
+      includeDeleted = false,
+      includeSnapshot = false,
+      includeSandbox = false,
+    } = opts || {};
 
     const baseListQb = ncMeta
       .knex(MetaTable.PROJECT)
@@ -1153,6 +1181,14 @@ export default class Base extends BaseCE {
       baseListQb.where((qb) => {
         qb.where(`${MetaTable.PROJECT}.is_snapshot`, false).orWhereNull(
           `${MetaTable.PROJECT}.is_snapshot`,
+        );
+      });
+    }
+
+    if (!includeSandbox) {
+      baseListQb.where((qb) => {
+        qb.where(`${MetaTable.PROJECT}.is_sandbox`, false).orWhereNull(
+          `${MetaTable.PROJECT}.is_sandbox`,
         );
       });
     }
@@ -1180,14 +1216,10 @@ export default class Base extends BaseCE {
           const base = this.castType(p);
           base.meta = parseMetaProp(base);
           promises.push(base.getSources(false, ncMeta));
-
-          if (base.managed_app_id) {
-            promises.push(Base.populateManagedAppInfo(base));
-          }
-
           return base;
         });
 
+      promises.push(Base.batchPopulateManagedAppInfo(castedProjectList));
       await Promise.all(promises);
 
       return castedProjectList;

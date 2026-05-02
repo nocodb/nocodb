@@ -6,12 +6,14 @@ import type {
   ViewSectionType,
   ViewSectionUpdateReqType,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { OperationName } from '~/command-registry/op-names';
+import { NcContext } from '~/interface/config';
 import { Model, ViewSection } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
-
+import { TraceCommand } from '~/decorators/trace-command.decorator';
 @Injectable()
 export class ViewSectionsService {
   constructor(protected readonly appHooksService: AppHooksService) {}
@@ -52,6 +54,9 @@ export class ViewSectionsService {
     }
 
     const section = await ViewSection.insert(context, {
+      ...(context?.additionalContext?.is_replay && (body as any).id
+        ? { id: (body as any).id }
+        : {}),
       fk_model_id: tableId,
       title,
       order: body.order,
@@ -169,5 +174,41 @@ export class ViewSectionsService {
     });
 
     return true;
+  }
+
+  // ────────────────────────────────────────────
+  // Sandbox-traced wrappers (standard (context, param) signature)
+  // ────────────────────────────────────────────
+
+  @TraceCommand(OperationName.viewSectionCreate)
+  async viewSectionCreate(
+    context: NcContext,
+    param: {
+      tableId: string;
+      section: ViewSectionCreateReqType;
+      req: NcRequest;
+    },
+  ): Promise<ViewSectionType> {
+    return this.create(context, param.tableId, param.section, param.req);
+  }
+
+  @TraceCommand(OperationName.viewSectionUpdate)
+  async viewSectionUpdate(
+    context: NcContext,
+    param: {
+      viewSectionId: string;
+      section: ViewSectionUpdateReqType;
+      req: NcRequest;
+    },
+  ): Promise<ViewSectionType> {
+    return this.update(context, param.viewSectionId, param.section, param.req);
+  }
+
+  @TraceCommand(OperationName.viewSectionDelete)
+  async viewSectionDelete(
+    context: NcContext,
+    param: { viewSectionId: string; req: NcRequest },
+  ): Promise<boolean> {
+    return this.delete(context, param.viewSectionId, param.req);
   }
 }

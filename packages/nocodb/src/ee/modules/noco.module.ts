@@ -87,6 +87,9 @@ import { ScriptsV3Service } from '~/services/v3/scripts-v3.service';
 import { DashboardsV3Controller } from '~/controllers/v3/dashboards-v3.controller';
 import { DashboardsV3Service } from '~/services/v3/dashboards-v3.service';
 
+/* Filters V3 (EE override — adds @TraceCommand to filterCreate) */
+import { FiltersV3Service } from '~/services/v3/filters-v3.service';
+
 /* Documents V3 */
 import { DocumentsV3Controller } from '~/ee/controllers/v3/documents-v3.controller';
 import { DocumentsV3Service } from '~/services/v3/documents-v3.service';
@@ -100,6 +103,7 @@ import { SnapshotService } from '~/services/snapshot.service';
 
 /* Sandbox */
 import { SandboxesService } from '~/services/sandboxes.service';
+import { SandboxCommandReplayService } from '~/services/sandbox-command-replay.service';
 
 /* Scripts */
 import { ScriptsService } from '~/services/scripts.service';
@@ -143,6 +147,9 @@ import {
 /* View Sections */
 import { ViewSectionsService } from '~/ee/services/view-sections.service';
 
+/* Base Variables */
+import { BaseVariablesService } from '~/ee/services/base-variables.service';
+
 /* Timelines */
 import { TimelinesService } from '~/services/timelines.service';
 import { TimelineColumnsService } from '~/services/timeline-columns.service';
@@ -169,6 +176,9 @@ import { ScimResourceTypesController } from '~/ee/controllers/v3/scim-resource-t
 
 /* License */
 import { LicenseGuard } from '~/guards/license.guard';
+
+/* Command Registry */
+import { OperationRegistryBootstrap } from '~/command-registry/bootstrap';
 
 export const nocoModuleEeMetadata = {
   imports: [
@@ -222,6 +232,7 @@ export const nocoModuleEeMetadata = {
 
     /* Sandbox */
     SandboxesService,
+    SandboxCommandReplayService,
 
     /* Hooks V3 */
     HooksV3Service,
@@ -269,6 +280,9 @@ export const nocoModuleEeMetadata = {
     /* View Sections */
     ViewSectionsService,
 
+    /* Base Variables */
+    BaseVariablesService,
+
     /* Timelines */
     TimelinesService,
     TimelineColumnsService,
@@ -300,9 +314,15 @@ export const nocoModuleEeMetadata = {
     BaseTrashSettingsService,
     ...EeTrashHandlerProvider,
 
+    /* EE V3 service overrides */
+    FiltersV3Service,
+
     /* EE Meta Dependency Handlers (overrides CE provider) */
     ...MetaDependencyServices,
     MetaDependencyModuleProvider,
+
+    /* Command Registry — registers all replay handlers + freezes registry on boot */
+    OperationRegistryBootstrap,
   ],
   controllers: [
     ActionsController,

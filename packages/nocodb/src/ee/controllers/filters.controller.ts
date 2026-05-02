@@ -90,11 +90,12 @@ export class FiltersController extends FiltersControllerCE {
     @TenantContext() context: NcContext,
     @Param('rowColorConditionId') rowColorConditionId: string,
     @Body() body: FilterReqType,
-    @Req() _req: NcRequest,
+    @Req() req: NcRequest,
   ) {
     const filter = await this.filtersService.rowColorConditionsCreate(context, {
       filter: body,
       rowColorConditionsId: rowColorConditionId,
+      req,
     });
     return filter;
   }

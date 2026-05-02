@@ -240,6 +240,11 @@ export default class RlsPolicy {
       'created_by',
     ]);
 
+    // Replay-only: preserve sandbox entity ID for idempotent merge
+    if (context?.additionalContext?.is_replay && policy.id) {
+      insertObj.id = policy.id;
+    }
+
     if (insertObj.meta && typeof insertObj.meta === 'object') {
       insertObj.meta = JSON.stringify(insertObj.meta);
     }

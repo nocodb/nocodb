@@ -12,7 +12,8 @@ import {
   PlanFeatureTypes,
   ProjectRoles,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import type { NcContext } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import { Team } from '~/models';
 import Workspace from '~/ee/models/Workspace';
@@ -23,7 +24,7 @@ import { checkForFeature } from '~/helpers/paymentHelpers';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
-
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 @Injectable()
 export class PermissionsService {
   protected logger: Logger = new Logger(PermissionsService.name);
@@ -84,6 +85,8 @@ export class PermissionsService {
     >,
     req: NcRequest,
   ) {
+    await assertNotSandbox(context);
+
     const {
       entity,
       entity_id,
@@ -381,6 +384,8 @@ export class PermissionsService {
     permissionObj: Partial<Permission>,
     req: NcRequest,
   ) {
+    await assertNotSandbox(context);
+
     const { entity, entity_id, permission: permission_key } = permissionObj;
 
     this.assertRoleForPermissionKey(context, permission_key, req);
@@ -473,6 +478,8 @@ export class PermissionsService {
     permissionIds: string[],
     req: NcRequest,
   ) {
+    await assertNotSandbox(context);
+
     if (!permissionIds.length) return;
 
     const oldPermissions = await Permission.list(context, context.base_id);

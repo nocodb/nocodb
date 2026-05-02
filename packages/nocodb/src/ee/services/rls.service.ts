@@ -6,7 +6,8 @@ import {
   PlanLimitTypes,
 } from 'nocodb-sdk';
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import type { NcContext } from '~/interface/config';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import NocoSocket from '~/ee/socket/NocoSocket';
 import Filter from '~/models/Filter';
@@ -15,7 +16,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { Model, View } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { checkForFeature, checkLimit } from '~/helpers/paymentHelpers';
-
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 @Injectable()
 export class RlsService {
   protected logger: Logger = new Logger(RlsService.name);
@@ -86,6 +87,7 @@ export class RlsService {
     context: NcContext,
     param: {
       body: {
+        id?: string;
         fk_model_id: string;
         title?: string;
         is_default?: boolean;
@@ -98,6 +100,8 @@ export class RlsService {
     },
   ) {
     const { body, userId, req } = param;
+
+    await assertNotSandbox(context);
 
     // Check if RLS feature is available on the workspace plan
     await checkForFeature(context, PlanFeatureTypes.FEATURE_RLS);
@@ -132,6 +136,9 @@ export class RlsService {
 
     // Create the policy
     const policy = await RlsPolicy.insert(context, {
+      ...(context?.additionalContext?.is_replay && body.id
+        ? { id: body.id }
+        : {}),
       base_id: context.base_id,
       fk_model_id: body.fk_model_id,
       title: body.title || (body.is_default ? 'Default Policy' : 'New Policy'),
@@ -210,6 +217,8 @@ export class RlsService {
   ) {
     const { body, userId, req } = param;
 
+    await assertNotSandbox(context);
+
     const policy = await RlsPolicy.get(context, body.id);
 
     if (!policy) {
@@ -270,6 +279,8 @@ export class RlsService {
   ) {
     const { policyId, userId, req } = param;
 
+    await assertNotSandbox(context);
+
     const policy = await RlsPolicy.get(context, policyId);
 
     if (!policy) {
@@ -329,6 +340,8 @@ export class RlsService {
     },
   ) {
     const { policyId, subjects, userId, req } = param;
+
+    await assertNotSandbox(context);
 
     const policy = await RlsPolicy.get(context, policyId);
 

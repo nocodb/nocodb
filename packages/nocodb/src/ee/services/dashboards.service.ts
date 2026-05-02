@@ -11,8 +11,10 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { DashboardType, WidgetType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import { OperationName } from '~/command-registry/op-names';
+import { NcContext } from '~/interface/config';
 import { CustomUrl, Dashboard, DependencyTracker, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getWidgetData, getWidgetHandler } from '~/db/widgets';
@@ -20,6 +22,7 @@ import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { checkLimit } from '~/helpers/paymentHelpers';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
 @Injectable()
 export class DashboardsService {
   constructor(
@@ -43,11 +46,17 @@ export class DashboardsService {
     return dashboard;
   }
 
+  @TraceCommand(OperationName.dashboardCreate)
   async dashboardCreate(
     context: NcContext,
-    insertObj: Partial<Dashboard>,
-    req: NcRequest,
+    param: {
+      dashboard: Partial<Dashboard>;
+      req: NcRequest;
+    },
   ) {
+    const { req } = param;
+    const insertObj = param.dashboard;
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -93,12 +102,18 @@ export class DashboardsService {
     return dashboard;
   }
 
+  @TraceCommand(OperationName.dashboardUpdate)
   async dashboardUpdate(
     context: NcContext,
-    dashboardId: string,
-    updateObj: Partial<Dashboard>,
-    req: NcRequest,
+    param: {
+      dashboardId: string;
+      dashboard: Partial<Dashboard>;
+      req: NcRequest;
+    },
   ) {
+    const { dashboardId, req } = param;
+    const updateObj = param.dashboard;
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -141,12 +156,17 @@ export class DashboardsService {
     return updatedDashboard;
   }
 
+  @TraceCommand(OperationName.dashboardDelete)
   async dashboardDelete(
     context: NcContext,
-    dashboardId: string,
-    req: NcRequest,
-    ncMeta?: MetaService,
+    param: {
+      dashboardId: string;
+      req: NcRequest;
+      ncMeta?: MetaService;
+    },
   ) {
+    const { dashboardId, req, ncMeta } = param;
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -218,11 +238,18 @@ export class DashboardsService {
     return widget;
   }
 
+  @TraceCommand(OperationName.widgetCreate)
   async widgetCreate(
     context: NcContext,
-    insertObj: Partial<Widget>,
-    req: NcRequest,
+    param: {
+      widget: Partial<Widget>;
+      dashboardId?: string;
+      req: NcRequest;
+    },
   ) {
+    const { req } = param;
+    const insertObj = param.widget;
+
     if (insertObj.fk_dashboard_id) {
       await this.assertDashboardLive(context, insertObj.fk_dashboard_id);
     }
@@ -283,7 +310,18 @@ export class DashboardsService {
     return widget;
   }
 
-  async duplicateWidget(context: NcContext, widgetId: string, req: NcRequest) {
+  @TraceCommand(OperationName.duplicateWidget)
+  async duplicateWidget(
+    context: NcContext,
+    param: {
+      widgetId: string;
+      req: NcRequest;
+      // Internal: sandbox replay threads the changelog entity_id here so the
+      // duplicated widget on production keeps the same ID as on sandbox.
+      _replayWidgetId?: string;
+    },
+  ) {
+    const { widgetId, req } = param;
     const widget = await Widget.get(context, widgetId);
 
     if (!widget) {
@@ -299,6 +337,7 @@ export class DashboardsService {
     });
 
     const newWidget = await Widget.insert(context, {
+      ...(param._replayWidgetId ? { id: param._replayWidgetId } : {}),
       title: newTitle,
       config: widget.config,
       fk_dashboard_id: widget.fk_dashboard_id,
@@ -371,12 +410,18 @@ export class DashboardsService {
     return newWidget;
   }
 
+  @TraceCommand(OperationName.widgetUpdate)
   async widgetUpdate(
     context: NcContext,
-    widgetId: string,
-    updateObj: Partial<Widget>,
-    req: NcRequest,
+    param: {
+      widgetId: string;
+      widget: Partial<Widget>;
+      req: NcRequest;
+    },
   ) {
+    const { widgetId, req } = param;
+    const updateObj = param.widget;
+
     const widget = await Widget.get(context, widgetId);
 
     if (!widget) {
@@ -444,12 +489,16 @@ export class DashboardsService {
     return updatedWidget;
   }
 
+  @TraceCommand(OperationName.widgetDelete)
   async widgetDelete(
     context: NcContext,
-    widgetId: string,
-    req: NcRequest,
-    ncMeta?: MetaService,
+    param: {
+      widgetId: string;
+      req: NcRequest;
+      ncMeta?: MetaService;
+    },
   ) {
+    const { widgetId, req, ncMeta } = param;
     const widget = await Widget.get(context, widgetId, false, ncMeta);
 
     if (!widget) {

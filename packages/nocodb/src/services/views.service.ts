@@ -92,7 +92,7 @@ async function xcVisibilityMetaGet(
 
 @Injectable()
 export class ViewsService {
-  constructor(private appHooksService: AppHooksService) {}
+  constructor(protected appHooksService: AppHooksService) {}
 
   async viewList(
     context: NcContext,

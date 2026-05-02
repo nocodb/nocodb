@@ -46,24 +46,21 @@ export class WorkflowPostOperations
   ): InternalPOSTResponseType {
     switch (operation) {
       case 'workflowCreate':
-        return await this.workflowsService.createWorkflow(
-          context,
-          payload,
+        return await this.workflowsService.createWorkflow(context, {
+          body: payload,
           req,
-        );
+        });
       case 'workflowUpdate':
-        return await this.workflowsService.updateWorkflow(
-          context,
-          payload.workflowId,
-          payload,
+        return await this.workflowsService.updateWorkflow(context, {
+          workflowId: payload.workflowId,
+          body: payload,
           req,
-        );
+        });
       case 'workflowDelete':
-        return await this.workflowsService.deleteWorkflow(
-          context,
-          payload.workflowId,
+        return await this.workflowsService.deleteWorkflow(context, {
+          workflowId: payload.workflowId,
           req,
-        );
+        });
 
       case 'workflowDuplicate':
         return await this.workflowsService.duplicateWorkflow(
@@ -99,14 +96,11 @@ export class WorkflowPostOperations
           req,
         );
       case 'workflowPublish':
-        return await this.workflowsService.publishWorkflow(
-          context,
-          payload.workflowId,
+        return await this.workflowsService.publishWorkflow(context, {
+          workflowId: payload.workflowId,
           req,
-          {
-            cancelPendingExecutions: payload.cancelPendingExecutions,
-          },
-        );
+          cancelPendingExecutions: payload.cancelPendingExecutions,
+        });
       case 'workflowAddSubscribers':
         return await this.workflowSubscribersService.addSubscribers(
           context,

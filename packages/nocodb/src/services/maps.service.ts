@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
@@ -9,6 +10,8 @@ import { NcError } from '~/helpers/catchError';
 import { MapView, Model, User, View } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { CacheScope } from '~/utils/globals';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class MapsService {
@@ -18,6 +21,7 @@ export class MapsService {
     return await MapView.get(context, param.mapViewId);
   }
 
+  @TraceCommand(OperationName.mapViewCreate)
   async mapViewCreate(
     context: NcContext,
     param: {
@@ -76,6 +80,7 @@ export class MapsService {
     return view;
   }
 
+  @TraceCommand(OperationName.mapViewUpdate)
   async mapViewUpdate(
     context: NcContext,
     param: {

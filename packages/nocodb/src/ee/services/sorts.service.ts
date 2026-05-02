@@ -3,13 +3,16 @@ import { SortsService as SortsServiceCE } from 'src/services/sorts.service';
 import type { SortReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { MetaService } from '~/meta/meta.service';
 import { EEOnly } from '~/decorators/ee-only.decorator';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { View } from '~/models';
+import { assertNotLockedViewOnSandboxProduction } from '~/helpers/sandboxGuards';
+import { Sort, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
@@ -21,6 +24,7 @@ export class SortsService extends SortsServiceCE {
   }
 
   @EEOnly()
+  @TraceCommand(OperationName.sortCreate)
   async sortCreate(
     context: NcContext,
     param: {
@@ -31,6 +35,8 @@ export class SortsService extends SortsServiceCE {
     },
     ncMeta?: MetaService,
   ) {
+    await assertNotLockedViewOnSandboxProduction(context, param.viewId);
+
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const view = await View.get(context, param.viewId, false, ncMeta);
@@ -67,5 +73,42 @@ export class SortsService extends SortsServiceCE {
     }
 
     return super.sortCreate(context, param, ncMeta);
+  }
+
+  @EEOnly()
+  @TraceCommand(OperationName.sortUpdate)
+  async sortUpdate(
+    context: NcContext,
+    param: {
+      sortId: any;
+      sort: SortReqType;
+      req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
+    ncMeta?: MetaService,
+  ) {
+    const sort = await Sort.get(context, param.sortId, ncMeta);
+    if (sort?.fk_view_id) {
+      await assertNotLockedViewOnSandboxProduction(context, sort.fk_view_id);
+    }
+    return super.sortUpdate(context, param, ncMeta);
+  }
+
+  @EEOnly()
+  @TraceCommand(OperationName.sortDelete)
+  async sortDelete(
+    context: NcContext,
+    param: {
+      sortId: string;
+      req: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
+    ncMeta?: MetaService,
+  ) {
+    const sort = await Sort.get(context, param.sortId, ncMeta);
+    if (sort?.fk_view_id) {
+      await assertNotLockedViewOnSandboxProduction(context, sort.fk_view_id);
+    }
+    return super.sortDelete(context, param, ncMeta);
   }
 }

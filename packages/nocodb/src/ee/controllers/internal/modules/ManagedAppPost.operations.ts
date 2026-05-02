@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
+  AppEvents,
   BaseVersion,
   DeploymentStatus,
   DeploymentType,
@@ -14,23 +15,28 @@ import type {
   InternalApiModule,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { NcError } from '~/helpers/catchError';
 import ManagedApp from '~/models/ManagedApp';
 import ManagedAppVersion from '~/models/ManagedAppVersion';
 import { Base } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import { ManagedAppService } from '~/services/managed-app.service';
+import { BaseVariablesService } from '~/ee/services/base-variables.service';
 import ManagedAppDeploymentLog from '~/models/ManagedAppDeploymentLog';
-import Noco from '~/Noco';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import { serializeMeta } from '~/helpers/baseMetaHelpers';
 import NocoCache from '~/cache/NocoCache';
+import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
+import { JobTypes } from '~/interface/Jobs';
 
 @Injectable()
 export class ManagedAppPostOperations
   implements InternalApiModule<InternalPOSTResponseType>
 {
   httpMethod = 'POST' as const;
+  private readonly logger = new Logger(ManagedAppPostOperations.name);
+
   operations = [
     'managedAppCreate',
     'managedAppUpdate',
@@ -39,11 +45,15 @@ export class ManagedAppPostOperations
     'managedAppCreateDraft',
     'managedAppDiscardDraft',
     'managedAppInstall',
+    'managedAppManualUpdate',
   ] as (keyof typeof OPERATION_SCOPES)[];
 
   constructor(
     private readonly managedAppService: ManagedAppService,
     private readonly basesService: BasesService,
+    private readonly baseVariablesService: BaseVariablesService,
+    private readonly appHooksService: AppHooksService,
+    @Inject('JobsService') private readonly jobsService: IJobsService,
   ) {}
 
   async handle(
@@ -77,8 +87,30 @@ export class ManagedAppPostOperations
         return await this.discardDraft(context, payload, req);
       case 'managedAppInstall':
         return await this.install(context, payload, req);
+      case 'managedAppManualUpdate':
+        return await this.manualUpdate(context, payload, req);
       default:
         return NcError.notFound('Operation');
+    }
+  }
+
+  /**
+   * Validates version string: supports semver (1.2.3) and calver (2026.1.0).
+   * Format: N.N.N where N is a non-negative integer.
+   */
+  private validateVersion(context: NcContext, version: string) {
+    const parts = version.split('.');
+    if (parts.length !== 3) {
+      NcError.get(context).badRequest(
+        'Version must have exactly three numeric parts (e.g. 1.2.3 or 2026.1.0)',
+      );
+    }
+    for (const part of parts) {
+      if (!/^\d+$/.test(part)) {
+        NcError.get(context).badRequest(
+          'Each version part must be a non-negative integer (e.g. 1.2.3 or 2026.1.0)',
+        );
+      }
     }
   }
 
@@ -108,18 +140,21 @@ export class ManagedAppPostOperations
       baseId = base.id;
       delete body.basePayload;
     } else {
-      // Check if base is already an installed managed app instance
-      const existingBase = await Base.get(context, baseId);
-      if (existingBase?.managed_app_id && !existingBase?.managed_app_master) {
-        NcError.get(context).badRequest(
-          'Cannot create managed app from an installed managed app instance',
-        );
-      }
-
-      // Validate base exists and belongs to workspace
       const base = await Base.get(context, baseId);
       if (!base) {
         NcError.get(context).baseNotFound(baseId);
+      }
+
+      if (base.is_sandbox) {
+        NcError.get(context).badRequest(
+          'Cannot create a managed app from a sandbox base. Publish the production base instead.',
+        );
+      }
+
+      if (base.managed_app_id && !base.managed_app_master) {
+        NcError.get(context).badRequest(
+          'Cannot create managed app from an installed managed app instance',
+        );
       }
 
       if (base.fk_workspace_id !== workspaceId) {
@@ -170,7 +205,6 @@ export class ManagedAppPostOperations
     const initialVersion = await ManagedAppVersion.insert({
       fk_managed_app_id: managedApp.id,
       version: '1.0.0',
-      version_number: 1,
       status: ManagedAppVersionStatus.DRAFT,
       fk_workspace_id: workspaceId,
       schema: JSON.stringify(serializedSchema),
@@ -179,6 +213,16 @@ export class ManagedAppPostOperations
     // Set the version on the base
     await Base.update(context, baseId, {
       managed_app_version_id: initialVersion.id,
+    });
+
+    this.appHooksService.emit(AppEvents.MANAGED_APP_CREATE, {
+      context,
+      req,
+      managedApp: {
+        id: managedApp.id,
+        title: managedApp.title,
+        base_id: baseId,
+      },
     });
 
     return {
@@ -218,6 +262,16 @@ export class ManagedAppPostOperations
     // Allow updating: title, description, category, tags, visibility
     const updatedManagedApp = await ManagedApp.update(managedAppId, updateData);
 
+    this.appHooksService.emit(AppEvents.MANAGED_APP_UPDATE, {
+      context,
+      req,
+      managedApp: {
+        id: managedAppId,
+        title: updatedManagedApp?.title,
+        base_id: managedApp.base_id,
+      },
+    });
+
     return updatedManagedApp;
   }
 
@@ -249,6 +303,17 @@ export class ManagedAppPostOperations
     }
 
     await ManagedApp.softDelete(managedAppId);
+
+    this.appHooksService.emit(AppEvents.MANAGED_APP_DELETE, {
+      context,
+      req,
+      managedApp: {
+        id: managedAppId,
+        title: managedApp.title,
+        base_id: managedApp.base_id,
+      },
+    });
+
     return {
       message: 'ManagedApp deleted successfully',
     } as any;
@@ -264,6 +329,8 @@ export class ManagedAppPostOperations
     if (!version) {
       NcError.get(context).badRequest('version is required');
     }
+
+    this.validateVersion(context, version);
 
     const managedApp = await ManagedApp.get(managedAppId);
     if (!managedApp) {
@@ -456,6 +523,21 @@ export class ManagedAppPostOperations
 
     const serializedSchema = await serializeMeta(sourceContext);
 
+    // Strip sensitive and required variable values before publishing.
+    // default_value is also nulled — it can carry the master's plaintext
+    // (decrypted on read) and we never want it leaked through the published
+    // schema or surfaced to installers.
+    if (serializedSchema[MetaTable.BASE_VARIABLES]?.length) {
+      serializedSchema[MetaTable.BASE_VARIABLES] = serializedSchema[
+        MetaTable.BASE_VARIABLES
+      ].map((v: any) => {
+        if (v.inheritance === 'required' || v.type === 'secret') {
+          return { ...v, value: null, default_value: null };
+        }
+        return v;
+      });
+    }
+
     // Update version to published
     await ManagedAppVersion.update(managedAppVersionId, {
       status: ManagedAppVersionStatus.PUBLISHED,
@@ -478,8 +560,32 @@ export class ManagedAppPostOperations
       });
     }
 
-    // Apply updates to installations with auto_update=true
-    await this.updateAllInstallations(context, managedApp.id, base, req);
+    this.appHooksService.emit(AppEvents.MANAGED_APP_PUBLISH, {
+      context,
+      req,
+      managedApp: {
+        id: managedApp.id,
+        title: managedApp.title,
+        base_id: managedApp.base_id,
+      },
+      version: { id: managedAppVersionId, version: version.version },
+    });
+
+    // Queue background job to update all installations with auto_update=true
+    const job = await this.jobsService.add(JobTypes.ManagedAppUpdate, {
+      context: {
+        workspace_id: base.fk_workspace_id,
+        base_id: base.id,
+      },
+      user: req.user,
+      managedAppId: managedApp.id,
+      managedAppTitle: managedApp.title,
+      masterBaseId: base.id,
+      masterWorkspaceId: base.fk_workspace_id,
+      newVersionId: managedAppVersionId,
+      newVersion: version.version,
+      req,
+    });
 
     return {
       message: 'Version published successfully',
@@ -487,6 +593,7 @@ export class ManagedAppPostOperations
       versionId: managedAppVersionId,
       version: version.version,
       isInitialPublish,
+      updateJobId: job.id,
     } as any;
   }
 
@@ -507,6 +614,16 @@ export class ManagedAppPostOperations
       NcError.get(context).notFound('ManagedApp not found');
     }
 
+    // Rate limit: max 10 installations per workspace per hour
+    const recentInstalls = await ManagedAppDeploymentLog.countRecentInstalls(
+      target_workspace_id,
+    );
+    if (recentInstalls >= 10) {
+      NcError.get(context).badRequest(
+        'Too many installations. Please try again later.',
+      );
+    }
+
     // Can only install if managed app has published versions
     if (!managedApp.published_at) {
       NcError.get(context).badRequest(
@@ -515,19 +632,15 @@ export class ManagedAppPostOperations
     }
 
     // Get the latest published version
-    const versions = await ManagedAppVersion.list(managedAppId);
-    const publishedVersions = versions.filter(
-      (v) => v.status === ManagedAppVersionStatus.PUBLISHED,
+    const managedAppVersion = await ManagedAppVersion.getLatest(
+      managedAppId,
+      ManagedAppVersionStatus.PUBLISHED,
     );
-
-    if (!publishedVersions || publishedVersions.length === 0) {
+    if (!managedAppVersion) {
       NcError.get(context).notFound(
         'No published versions found for this managed app',
       );
     }
-
-    // Use the latest published version
-    const managedAppVersion = publishedVersions[0];
 
     // 1. Create new base in target workspace using BasesService
     const targetBase = await this.basesService.baseCreate({
@@ -573,14 +686,44 @@ export class ManagedAppPostOperations
         managedAppId,
       });
 
-      // Mark deployment as successful
-      await ManagedAppDeploymentLog.update(deploymentLog.id, {
-        status: DeploymentStatus.SUCCESS,
-        completed_at: new Date().toISOString(),
+      // These are independent — run in parallel
+      await Promise.all([
+        ManagedAppDeploymentLog.update(deploymentLog.id, {
+          status: DeploymentStatus.SUCCESS,
+          completed_at: new Date().toISOString(),
+        }),
+        ManagedApp.incrementInstallCount(managedAppId),
+        this.basesService.baseUpdate(targetContext, {
+          baseId: targetBase.id,
+          base: { status: null },
+          user: req.user,
+          req,
+        }),
+      ]);
+
+      this.appHooksService.emit(AppEvents.MANAGED_APP_INSTALL, {
+        context: targetContext,
+        req,
+        managedApp: { id: managedAppId, title: managedApp.title },
+        installedBaseId: targetBase.id,
+        version: {
+          id: managedAppVersion.id,
+          version: managedAppVersion.version,
+        },
       });
 
-      // Increment install count
-      await ManagedApp.incrementInstallCount(managedAppId);
+      // Check for variables that need configuration. Route through the
+      // service so default_value is stripped and SECRET values are masked
+      // before any of this lands in the API response.
+      const variables = await this.baseVariablesService.list(
+        targetContext,
+        targetBase.id,
+      );
+      const setupVariables = variables.filter(
+        (v) =>
+          (v.inheritance === 'required' && !v.value) ||
+          (v.type === 'secret' && !v.value),
+      );
 
       return {
         message: 'ManagedApp installed successfully',
@@ -597,6 +740,8 @@ export class ManagedAppPostOperations
           managed_app_version_id: managedAppVersion.id,
           auto_update: true,
         },
+        setupRequired: setupVariables.length > 0,
+        setupVariables: setupVariables.length > 0 ? setupVariables : undefined,
       } as any;
     } catch (error) {
       // Mark deployment as failed
@@ -606,158 +751,133 @@ export class ManagedAppPostOperations
         completed_at: new Date().toISOString(),
       });
 
-      // Cleanup: Delete the target base if installation fails
+      // Delete the failed install base — it was never used
       await this.basesService.baseSoftDelete(targetContext, {
         baseId: targetBase.id,
         user: req.user,
         req,
       });
 
-      console.error(error);
+      this.logger.error(
+        `Failed to install managed app ${managedAppId}: ${error.message}`,
+        error.stack,
+      );
 
       throw error;
     }
   }
 
   /**
-   * Isolated method to update all installations of a managed app
-   * Can be called manually or automatically during publish
-   * In the future, this can be replaced with a pull-based approach
+   * Manual update: triggered by installer when auto_update failed or is off.
+   * Applies the latest published version to the caller's installed base.
    */
-  private async updateAllInstallations(
-    context: NcContext,
-    managedAppId: string,
-    masterBase: Base,
-    req: NcRequest,
-  ) {
-    // Get the new version ID from the master base
-    const newVersionId = masterBase.managed_app_version_id;
+  private async manualUpdate(context: NcContext, body: any, req: NcRequest) {
+    const { baseId } = body;
 
-    // Find all bases that were installed from this managed apps (have managed_app_id and managed_app_master=false)
-    const installedBases = await Noco.ncMeta
-      .knexConnection(MetaTable.PROJECT)
-      .where('managed_app_id', managedAppId)
-      .where((qb) => {
-        qb.where('managed_app_master', false).orWhere(
-          'managed_app_master',
-          null,
-        );
-      })
-      .where((qb) => {
-        qb.where('deleted', false).orWhere('deleted', null);
-      })
-      .where((qb) => {
-        qb.where('is_snapshot', false).orWhere('is_snapshot', null);
-      })
-      .where('auto_update', true);
-
-    if (!installedBases || installedBases.length === 0) {
-      return {
-        message: 'No installations found',
-        managedAppId,
-        updatedCount: 0,
-      };
+    if (!baseId) {
+      NcError.get(context).badRequest('baseId is required');
     }
 
-    const results = [];
-    const errors = [];
-
-    // Iterate over all installed bases and apply updates
-    for (const installedBaseData of installedBases) {
-      let deploymentLog;
-      try {
-        console.log(
-          `Applying updates to installed base ${installedBaseData.id} from managed app ${managedAppId}`,
-        );
-        const installedBase = new Base(installedBaseData);
-
-        const installedContext: NcContext = {
-          workspace_id: installedBase.fk_workspace_id,
-          base_id: installedBase.id,
-        };
-
-        const masterContext: NcContext = {
-          workspace_id: masterBase.fk_workspace_id,
-          base_id: masterBase.id,
-        };
-
-        // For master base itself, skip
-        if (installedBase.id === masterBase.id) {
-          continue;
-        }
-
-        // Create deployment log
-        deploymentLog = await ManagedAppDeploymentLog.insert({
-          fk_workspace_id: installedBase.fk_workspace_id,
-          base_id: installedBase.id,
-          fk_managed_app_id: managedAppId,
-          from_version_id: installedBase.managed_app_version_id,
-          to_version_id: newVersionId,
-          status: DeploymentStatus.IN_PROGRESS,
-          deployment_type: DeploymentType.UPDATE,
-          started_at: new Date().toISOString(),
-        });
-
-        // Use the ManagedAppService to apply metadata diff and update version
-        const updateResult =
-          await this.managedAppService.applyUpdatesToInstallation({
-            masterBase,
-            installedBase,
-            req,
-            masterContext,
-            installedContext,
-            newVersionId, // Pass the new version ID to update
-          });
-
-        // Mark deployment as successful
-        await ManagedAppDeploymentLog.update(deploymentLog.id, {
-          status: DeploymentStatus.SUCCESS,
-          completed_at: new Date().toISOString(),
-          deployment_log: `Successfully updated from version ${updateResult.fromVersionId} to ${updateResult.toVersionId}`,
-        });
-
-        console.log(
-          `Successfully applied updates to installed base ${installedBaseData.id}`,
-        );
-
-        results.push({
-          baseId: installedBase.id,
-          title: installedBase.title,
-          status: 'success',
-          fromVersion: updateResult.fromVersionId,
-          toVersion: updateResult.toVersionId,
-        });
-      } catch (error) {
-        console.error(
-          `Failed to apply updates to installed base ${installedBaseData.id}:`,
-          error,
-        );
-
-        // Mark deployment as failed if we created a log
-        if (deploymentLog) {
-          await ManagedAppDeploymentLog.update(deploymentLog.id, {
-            status: DeploymentStatus.FAILED,
-            error_message: error.message,
-            completed_at: new Date().toISOString(),
-          });
-        }
-
-        errors.push({
-          baseId: installedBaseData.id,
-          title: installedBaseData.title,
-          error: error.message,
-        });
-      }
+    const installedBase = await Base.get(context, baseId);
+    if (!installedBase) {
+      NcError.get(context).baseNotFound(baseId);
     }
 
-    return {
-      message: 'Updates applied to all installations',
-      managedAppId,
-      totalInstallations: installedBases.length,
-      successfulUpdates: results.length,
-      failedUpdates: errors.length,
-      results,
-      errors,
+    if (!installedBase.managed_app_id || installedBase.managed_app_master) {
+      NcError.get(context).badRequest(
+        'Manual update is only available on installed managed app instances',
+      );
+    }
+
+    const managedApp = await ManagedApp.get(installedBase.managed_app_id);
+    if (!managedApp) {
+      NcError.get(context).notFound('ManagedApp not found');
+    }
+
+    const masterBase = await Base.get(
+      { workspace_id: managedApp.fk_workspace_id, base_id: managedApp.base_id },
+      managedApp.base_id,
+    );
+    if (!masterBase) {
+      NcError.get(context).badRequest('Master base not found');
+    }
+
+    // Get latest published version
+    const latestPublished = await ManagedAppVersion.getLatest(
+      managedApp.id,
+      ManagedAppVersionStatus.PUBLISHED,
+    );
+    if (!latestPublished) {
+      NcError.get(context).badRequest('No published version available');
+    }
+
+    // Skip if already on latest
+    if (installedBase.managed_app_version_id === latestPublished.id) {
+      return { message: 'Already up to date' } as any;
+    }
+
+    const installedContext: NcContext = {
+      workspace_id: installedBase.fk_workspace_id,
+      base_id: installedBase.id,
     };
+    const masterContext: NcContext = {
+      workspace_id: masterBase.fk_workspace_id,
+      base_id: masterBase.id,
+    };
+
+    const deploymentLog = await ManagedAppDeploymentLog.insert({
+      fk_workspace_id: installedBase.fk_workspace_id,
+      base_id: installedBase.id,
+      fk_managed_app_id: managedApp.id,
+      from_version_id: installedBase.managed_app_version_id,
+      to_version_id: latestPublished.id,
+      status: DeploymentStatus.IN_PROGRESS,
+      deployment_type: DeploymentType.UPDATE,
+      started_at: new Date().toISOString(),
+    });
+
+    try {
+      const updateResult =
+        await this.managedAppService.applyUpdatesToInstallation({
+          masterBase,
+          installedBase,
+          req,
+          masterContext,
+          installedContext,
+          newVersionId: latestPublished.id,
+        });
+
+      await ManagedAppDeploymentLog.update(deploymentLog.id, {
+        status: DeploymentStatus.SUCCESS,
+        completed_at: new Date().toISOString(),
+        deployment_log: `Updated from ${updateResult.fromVersionId} to ${updateResult.toVersionId}`,
+      });
+
+      this.appHooksService.emit(AppEvents.MANAGED_APP_UPDATE_COMPLETE, {
+        context: installedContext,
+        req,
+        managedApp: { id: managedApp.id, title: managedApp.title },
+        installedBaseId: installedBase.id,
+        version: { id: latestPublished.id, version: latestPublished.version },
+      });
+
+      return {
+        message: 'Updated successfully',
+        version: latestPublished.version,
+      } as any;
+    } catch (error) {
+      await ManagedAppDeploymentLog.update(deploymentLog.id, {
+        status: DeploymentStatus.FAILED,
+        error_message: error.message,
+        completed_at: new Date().toISOString(),
+      });
+
+      this.logger.error(
+        `Manual update failed for base ${baseId}: ${error.message}`,
+        error.stack,
+      );
+
+      throw error;
+    }
   }
 }

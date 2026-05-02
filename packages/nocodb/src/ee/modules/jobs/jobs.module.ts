@@ -33,6 +33,9 @@ import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.pr
 import { NocoAiModule } from '~/integrations/ai/module/ai.module';
 import { JobsController } from '~/modules/jobs/jobs.controller';
 import { BaseTrashCleanUpProcessor } from '~/modules/jobs/jobs/base-trash-clean-up/base-trash-clean-up.processor';
+import { SandboxMergeProcessor } from '~/modules/jobs/jobs/sandbox-merge.processor';
+import { SandboxCommandReplayService } from '~/services/sandbox-command-replay.service';
+import { ManagedAppUpdateProcessor } from '~/modules/jobs/jobs/managed-app-update/managed-app-update.processor';
 import { CACHE_PREFIX } from '~/utils/globals';
 
 @Module({
@@ -93,6 +96,9 @@ import { CACHE_PREFIX } from '~/utils/globals';
     WorkflowDraftReminderProcessor,
     HookErrorNotificationProcessor,
     BaseTrashCleanUpProcessor,
+    SandboxMergeProcessor,
+    SandboxCommandReplayService,
+    ManagedAppUpdateProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

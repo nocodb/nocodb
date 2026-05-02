@@ -8,14 +8,16 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { DateDependencyReqType, NcRequest } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
+import { OperationName } from '~/command-registry/op-names';
+import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
+import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import { validatePayload } from '~/helpers/apiHelpers';
 import { Column, DateDependency, DependencyTracker, Model } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
-
+import { TraceCommand } from '~/decorators/trace-command.decorator';
 @Injectable()
 export class DateDependencyService {
   protected logger = new Logger(DateDependencyService.name);
@@ -29,6 +31,7 @@ export class DateDependencyService {
     return DateDependency.getByModelId(context, param.modelId);
   }
 
+  @TraceCommand(OperationName.dateDependencyUpdate)
   async update(
     context: NcContext,
     param: {
@@ -37,6 +40,8 @@ export class DateDependencyService {
       req: NcRequest;
     },
   ): Promise<DateDependency> {
+    await assertNotSandboxProduction(context);
+
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
 
     validatePayload(
@@ -92,10 +97,13 @@ export class DateDependencyService {
     return result;
   }
 
+  @TraceCommand(OperationName.dateDependencyDelete)
   async delete(
     context: NcContext,
     param: { modelId: string; req: NcRequest },
   ): Promise<void> {
+    await assertNotSandboxProduction(context);
+
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
 
     const model = param.modelId && (await Model.get(context, param.modelId));

@@ -224,6 +224,7 @@
     "scim-patch": "^0.8.3",
     "scim2-parse-filter": "^0.2.10",
     "sharp": "0.33.4",
+    "simple-git": "3.33.0",
     "slash": "^3.0.0",
     "slug": "^8.2.3",
     "snowflake-sdk": "^2.1.0",
@@ -239,7 +240,8 @@
     "validator": "^13.15.22",
     "ws": "^8.20.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.23.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^11.0.7",

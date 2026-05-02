@@ -14,6 +14,14 @@ export const internalTests = runOnSet(2, function () {
         require('./ee/base-trash-field.test').baseTrashFieldTests();
         require('./ee/base-trash-table.test').baseTrashTableTests();
         require('./ee/date-dependency.test').dateDependencyTests();
+        require('./ee/sandbox-trace-command.test').sandboxTraceCommandTests();
+        require('./ee/sandbox-merge-roundtrip.test').sandboxMergeRoundtripTests();
+        require('./ee/sandbox-merge-delete.test').sandboxMergeDeleteTests();
+        require('./ee/sandbox-merge-selective.test').sandboxMergeSelectiveTests();
+        require('./ee/sandbox-discard.test').sandboxDiscardTests();
+        require('./ee/sandbox-master-guard.test').sandboxMasterGuardTests();
+        require('./ee/sandbox-base-variables.test').sandboxBaseVariablesTests();
+        require('./ee/sandbox-id-preservation.test').sandboxIdPreservationTests();
       } catch (e) {
         // EE test files not available in CE
       }

@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { FiltersService as FiltersServiceCE } from 'src/services/filters.service';
 import { AppEvents, isLinksOrLTAR, UITypes } from 'nocodb-sdk';
-import type { MetaService } from '~/meta/meta.service';
 import type { FilterReqType, UserType, WidgetType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { OperationName } from '~/command-registry/op-names';
+import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
@@ -13,6 +15,10 @@ import {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import {
+  assertNotLockedViewOnSandboxProduction,
+  assertNotSandbox,
+} from '~/helpers/sandboxGuards';
 import { Column, Filter, View } from '~/models';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import Noco from '~/Noco';
@@ -28,6 +34,7 @@ export class FiltersService extends FiltersServiceCE {
   }
 
   @EEOnly()
+  @TraceCommand(OperationName.filterCreate)
   async filterCreate(
     context: NcContext,
     param: {
@@ -38,6 +45,8 @@ export class FiltersService extends FiltersServiceCE {
       viewWebhookManager?: ViewWebhookManager;
     },
   ) {
+    await assertNotLockedViewOnSandboxProduction(context, param.viewId);
+
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
     const view = await View.get(context, param.viewId);
@@ -87,6 +96,40 @@ export class FiltersService extends FiltersServiceCE {
     return super.filterCreate(context, param);
   }
 
+  @EEOnly()
+  @TraceCommand(OperationName.filterUpdate)
+  async filterUpdate(
+    context: NcContext,
+    param: {
+      filter: FilterReqType;
+      filterId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+    ncMeta?: MetaService,
+  ) {
+    const filter = await Filter.get(context, param.filterId, ncMeta);
+    if (filter?.fk_view_id) {
+      await assertNotLockedViewOnSandboxProduction(context, filter.fk_view_id);
+    }
+    return super.filterUpdate(context, param, ncMeta);
+  }
+
+  @EEOnly()
+  @TraceCommand(OperationName.filterDelete)
+  async filterDelete(
+    context: NcContext,
+    param: { filterId: string; req: NcRequest },
+    ncMeta?: MetaService,
+  ) {
+    const filter = await Filter.get(context, param.filterId, ncMeta);
+    if (filter?.fk_view_id) {
+      await assertNotLockedViewOnSandboxProduction(context, filter.fk_view_id);
+    }
+    return super.filterDelete(context, param, ncMeta);
+  }
+
+  @TraceCommand(OperationName.linkFilterCreate)
   async linkFilterCreate(
     context: NcContext,
     param: {
@@ -129,9 +172,11 @@ export class FiltersService extends FiltersServiceCE {
       req: param.req,
       context,
     });
+
     return filter;
   }
 
+  @TraceCommand(OperationName.widgetFilterCreate)
   async widgetFilterCreate(
     context: NcContext,
     param: {
@@ -167,6 +212,7 @@ export class FiltersService extends FiltersServiceCE {
       req: param.req,
       context,
     });
+
     return filter;
   }
 
@@ -179,6 +225,8 @@ export class FiltersService extends FiltersServiceCE {
       req: NcRequest;
     },
   ) {
+    await assertNotSandbox(context);
+
     const policy = await RlsPolicy.get(context, param.rlsPolicyId);
 
     if (!policy) {
@@ -210,12 +258,14 @@ export class FiltersService extends FiltersServiceCE {
     return Filter.rootFilterListByWidget(context, { widgetId: param.widgetId });
   }
 
+  @TraceCommand(OperationName.rowColorConditionsCreate)
   async rowColorConditionsCreate(
     context: NcContext,
     param: {
       rowColorConditionsId: string;
       filter: FilterReqType;
       viewWebhookManager?: ViewWebhookManager;
+      req?: NcRequest;
     },
     ncMeta?: MetaService,
   ) {
@@ -258,6 +308,7 @@ export class FiltersService extends FiltersServiceCE {
         )
       ).emit();
     }
+
     return filter;
   }
 }

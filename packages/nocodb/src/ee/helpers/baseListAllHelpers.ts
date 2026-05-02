@@ -99,6 +99,9 @@ export async function getBaseListAll(
         this.where(function () {
           this.where('b.is_snapshot', false).orWhereNull('b.is_snapshot');
         });
+        this.where(function () {
+          this.where('b.is_sandbox', false).orWhereNull('b.is_sandbox');
+        });
       })
       .orderBy([
         { column: 'ws.title', order: 'asc' },

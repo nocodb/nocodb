@@ -28,7 +28,7 @@ const { baseUrl } = useBase()
 
 const { setMenuContext, duplicateTable, contextMenuTarget, tableRenameId } = inject(TreeViewInj)!
 
-const { isMobileMode, user } = useGlobal()
+const { isMobileMode, user, navigateToProject } = useGlobal()
 
 const base = inject(ProjectInj)!
 
@@ -91,7 +91,11 @@ const { isUIAllowed } = useRoles()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { $e } = useNuxtApp()
+const { $e, $api, $poller } = useNuxtApp()
+
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+const { loadProjects } = basesStore
 
 const { copy } = useCopy()
 
@@ -435,26 +439,96 @@ const convertToManagedApp = () => {
 }
 
 /* Sandbox */
-const isSandboxCreateDlgOpen = ref(false)
-const isSandboxListDlgOpen = ref(false)
-
 const { showSandboxPlanLimitExceededModal } = useEeConfig()
 
-const openSandboxCreateDialog = () => {
+const isCreatingSandbox = ref(false)
+
+const createSandbox = async () => {
+  if (isCreatingSandbox.value) return
+  if (!base.value?.id || !activeWorkspaceId.value) return
   if (showSandboxPlanLimitExceededModal()) return
 
-  isSandboxCreateDlgOpen.value = true
+  isCreatingSandbox.value = true
+  const loadingMsg = message.loading(t('labels.creatingSandbox'), 0)
+
+  const finalize = async (sandboxBaseId: string) => {
+    try {
+      await loadProjects('workspace', activeWorkspaceId.value!)
+    } catch (_e: any) {
+      // ignore
+    }
+    refreshCommandPalette()
+    navigateToProject({
+      workspaceId: activeWorkspaceId.value,
+      baseId: sandboxBaseId,
+      type: 'database',
+    })
+  }
+
+  const stopLoading = () => {
+    loadingMsg()
+    isCreatingSandbox.value = false
+  }
+
+  try {
+    const response = await $api.internal.postOperation(activeWorkspaceId.value, base.value.id, { operation: 'sandboxCreate' }, {})
+
+    $e('a:sandbox:create')
+
+    if (response?.job_id) {
+      $poller.subscribe(
+        { id: response.job_id },
+        async (data: {
+          id: string
+          status?: string
+          data?: {
+            error?: { message: string }
+            result?: any
+          }
+        }) => {
+          if (data.status === 'close') return
+
+          if (data.status === JobStatus.COMPLETED) {
+            await finalize(response.sandbox_base_id)
+            stopLoading()
+          } else if (data.status === JobStatus.FAILED) {
+            message.error(data?.data?.error?.message || t('labels.failedToCreateSandbox'))
+            stopLoading()
+          }
+        },
+      )
+    } else if (response?.sandbox_base_id) {
+      await finalize(response.sandbox_base_id)
+      stopLoading()
+    } else {
+      stopLoading()
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+    stopLoading()
+  }
 }
 
-const openSandboxListDialog = () => {
-  isSandboxListDlgOpen.value = true
-}
+const goToSandbox = async () => {
+  if (!base.value?.id || !base.value?.fk_workspace_id) return
 
-const handleCreateSandboxFromList = () => {
-  if (showSandboxPlanLimitExceededModal()) return
+  try {
+    const sandbox = (await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id, {
+      operation: 'sandboxGet',
+    })) as { sandbox_base_id?: string } | null
 
-  isSandboxListDlgOpen.value = false
-  isSandboxCreateDlgOpen.value = true
+    if (sandbox?.sandbox_base_id) {
+      await navigateTo(
+        baseUrl({
+          id: sandbox.sandbox_base_id,
+          type: 'database',
+          isSharedBase: false,
+        }),
+      )
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 const getSource = (sourceId: string) => {
@@ -788,8 +862,8 @@ defineExpose({
                       @toggle-starred="toggleStarred($event)"
                       @duplicate-project="duplicateProject($event)"
                       @convert-to-managed-app="convertToManagedApp"
-                      @create-sandbox="openSandboxCreateDialog"
-                      @view-all-sandboxes="openSandboxListDialog"
+                      @create-sandbox="createSandbox"
+                      @go-to-sandbox="goToSandbox"
                       @open-erd-view="openErdView($event)"
                       @on-data-reflection="onDataReflection"
                       @open-base-settings="openBaseSettings($event)"
@@ -842,8 +916,8 @@ defineExpose({
         @toggle-starred="toggleStarred($event)"
         @duplicate-project="duplicateProject($event)"
         @convert-to-managed-app="convertToManagedApp"
-        @create-sandbox="openSandboxCreateDialog"
-        @view-all-sandboxes="openSandboxListDialog"
+        @create-sandbox="createSandbox"
+        @go-to-sandbox="goToSandbox"
         @open-erd-view="openErdView($event)"
         @on-data-reflection="onDataReflection"
         @open-base-settings="openBaseSettings($event)"
@@ -929,6 +1003,7 @@ defineExpose({
   <DlgManagedApp v-if="base?.id" v-model:visible="isConvertToManagedAppDlgOpen" modal-size="sm">
     <WorkspaceProjectCreateManagedApp
       v-model:visible="isConvertToManagedAppDlgOpen"
+      :workspace-id="base.fk_workspace_id!"
       :base-id="base.id"
       title="Convert to Managed App"
       :sub-title="$t('labels.publishToAppStore')"
@@ -936,10 +1011,6 @@ defineExpose({
       alert-description="Convert this base into a living application that can be published to the App Store. You'll be able to manage versions and push updates to all installations."
     />
   </DlgManagedApp>
-
-  <!-- Sandbox Modals -->
-  <DlgSandboxCreate v-if="base?.id" v-model="isSandboxCreateDlgOpen" :base="base" />
-  <DlgSandboxList v-if="base?.id" v-model="isSandboxListDlgOpen" :base="base" @create-sandbox="handleCreateSandboxFromList" />
 </template>
 
 <style lang="scss" scoped>

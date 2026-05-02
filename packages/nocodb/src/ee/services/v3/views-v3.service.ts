@@ -893,17 +893,18 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
             },
             trxNcMeta,
           );
-          await this.kanbansService.kanbanOptionsReorder(
-            context,
-            {
-              kanbanViewId: insertedV2View.id,
-              optionsOrder: requestBody.options.stack_by.stack_order ?? [],
-              req,
-            },
-            trxNcMeta,
-          );
-
-          requestBody.options.stack_by = undefined;
+          if (requestBody.options?.stack_by) {
+            await this.kanbansService.kanbanOptionsReorder(
+              context,
+              {
+                kanbanViewId: insertedV2View.id,
+                optionsOrder: requestBody.options.stack_by.stack_order ?? [],
+                req,
+              },
+              trxNcMeta,
+            );
+            requestBody.options.stack_by = undefined;
+          }
 
           break;
         }
@@ -1401,17 +1402,19 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
             trxNcMeta,
           );
 
-          await this.kanbansService.kanbanOptionsReorder(
-            context,
-            {
-              kanbanViewId: existingView.id,
-              optionsOrder: requestBody.options.stack_by.stack_order ?? [],
-              req,
-              viewWebhookManager,
-            },
-            trxNcMeta,
-          );
-          requestBody.options.stack_by = undefined;
+          if (requestBody.options?.stack_by) {
+            await this.kanbansService.kanbanOptionsReorder(
+              context,
+              {
+                kanbanViewId: existingView.id,
+                optionsOrder: requestBody.options.stack_by.stack_order ?? [],
+                req,
+                viewWebhookManager,
+              },
+              trxNcMeta,
+            );
+            requestBody.options.stack_by = undefined;
+          }
           break;
         }
         case ViewTypes.GALLERY: {

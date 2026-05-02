@@ -24,7 +24,7 @@ interface Emits {
   (e: 'toggleStarred', id: string): void
   (e: 'convertToManagedApp'): void
   (e: 'createSandbox'): void
-  (e: 'viewAllSandboxes'): void
+  (e: 'goToSandbox'): void
 }
 
 const { dataReflectionState, dataReflectionText } = toRefs(props)
@@ -41,8 +41,14 @@ const { isEEFeatureBlocked } = useEeConfig()
 
 const { isUIAllowed } = useRoles()
 
+const route = useRoute()
+
+const navigateToMigrateV3 = async () => {
+  await navigateTo(`/${route.params.typeOrId}/${base.value.id}/settings/settings?tab=migrateToV3`)
+}
+
 const isOptionVisible = computed(() => {
-  const isSandboxMaster = !!base.value?.is_sandbox_master
+  const isSandboxProduction = !!base.value?.is_sandbox_production
   const isSandboxBase = !!base.value?.is_sandbox
   const isInstalledManagedApp = !!base.value?.managed_app_id && !base.value?.managed_app_master
 
@@ -52,16 +58,10 @@ const isOptionVisible = computed(() => {
       base.value?.version === BaseVersion.V3 &&
       !base.value?.managed_app_id &&
       isUIAllowed('baseMiscSettings') &&
-      isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS) &&
-      !isEEFeatureBlocked.value,
-    createSandbox:
-      base.value?.version === BaseVersion.V3 &&
-      !isSandboxBase &&
-      !isInstalledManagedApp &&
-      isUIAllowed('baseMiscSettings') &&
-      isFeatureEnabled(FEATURE_FLAG.SANDBOX) &&
-      !isEEFeatureBlocked.value,
-    viewAllSandboxes: isSandboxMaster && !isSandboxBase && isFeatureEnabled(FEATURE_FLAG.SANDBOX) && !isEEFeatureBlocked.value,
+      isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS),
+    createSandbox: !isSandboxBase && !isSandboxProduction && !isInstalledManagedApp && isUIAllowed('baseMiscSettings'),
+    createSandboxDisabled: base.value?.version !== BaseVersion.V3,
+    goToSandbox: isSandboxProduction && !isSandboxBase,
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&
@@ -129,20 +129,34 @@ const isOptionVisible = computed(() => {
       Convert to managed app
     </NcMenuItem>
 
-    <NcDivider v-if="isOptionVisible.createSandbox || isOptionVisible.viewAllSandboxes" />
+    <NcDivider v-if="isOptionVisible.createSandbox || isOptionVisible.goToSandbox" />
 
-    <NcMenuItem v-if="isOptionVisible.createSandbox" data-testid="nc-sidebar-base-create-sandbox" @click="emits('createSandbox')">
-      <GeneralIcon icon="ncGitBranch" />
-      {{ $t('labels.createNewSandbox') }}
-    </NcMenuItem>
+    <NcTooltip v-if="isOptionVisible.createSandbox" :disabled="!isOptionVisible.createSandboxDisabled">
+      <template #title>
+        {{ $t('tooltip.sandboxRequiresV3') }}
+      </template>
+      <NcMenuItem
+        data-testid="nc-sidebar-base-create-sandbox"
+        :disabled="isOptionVisible.createSandboxDisabled"
+        @click="!isOptionVisible.createSandboxDisabled && emits('createSandbox')"
+      >
+        <GeneralIcon icon="ncGitBranch" />
+        {{ $t('labels.createNewSandbox') }}
+      </NcMenuItem>
+    </NcTooltip>
 
     <NcMenuItem
-      v-if="isOptionVisible.viewAllSandboxes"
-      data-testid="nc-sidebar-base-view-all-sandboxes"
-      @click="emits('viewAllSandboxes')"
+      v-if="isOptionVisible.createSandbox && isOptionVisible.createSandboxDisabled"
+      data-testid="nc-sidebar-base-migrate-to-v3"
+      @click="navigateToMigrateV3"
     >
-      <GeneralIcon icon="ncList" />
-      {{ $t('labels.viewAllSandboxes') }}
+      <GeneralIcon icon="ncArrowUp" />
+      {{ $t('labels.migrateToV3') }}
+    </NcMenuItem>
+
+    <NcMenuItem v-if="isOptionVisible.goToSandbox" data-testid="nc-sidebar-base-go-to-sandbox" @click="emits('goToSandbox')">
+      <GeneralIcon icon="ncGitBranch" />
+      {{ $t('labels.goToSandbox') }}
     </NcMenuItem>
 
     <NcDivider />

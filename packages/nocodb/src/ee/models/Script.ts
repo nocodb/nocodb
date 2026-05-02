@@ -250,6 +250,11 @@ export default class Script extends ScriptCE implements ScriptType {
       'created_by',
     ]);
 
+    // Replay-only: preserve sandbox entity ID for idempotent merge
+    if (context?.additionalContext?.is_replay && script.id) {
+      insertObj.id = script.id;
+    }
+
     if (!insertObj.script) {
       insertObj.script = defaultScript;
     }

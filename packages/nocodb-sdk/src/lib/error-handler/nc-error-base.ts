@@ -1049,7 +1049,7 @@ export class NcErrorBase {
       {
         params: limit.toString(),
         ...args,
-      },
+      }
     );
   }
 
@@ -1071,5 +1071,22 @@ export class NcErrorBase {
     throw this.errorCodex.generateError(NcErrorType.ERR_LICENSE_SUSPENDED, {
       ...args,
     });
+  }
+
+  sandboxBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_SANDBOX_BLOCKED, {
+      params: message || '',
+      ...args,
+    });
+  }
+
+  sandboxProductionBlocked(message?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SANDBOX_PRODUCTION_BLOCKED,
+      {
+        params: message || '',
+        ...args,
+      }
+    );
   }
 }

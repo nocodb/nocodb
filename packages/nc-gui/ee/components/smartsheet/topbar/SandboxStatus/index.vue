@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -8,180 +8,197 @@ const baseStore = useBase()
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const { base, isSandbox, sandboxInfo } = storeToRefs(baseStore)
+const basesStore = useBases()
+
+const { base, isSandbox, isSandboxProduction, sandboxInfo } = storeToRefs(baseStore)
 
 const { baseUrl } = baseStore
 
-const basesStore = useBases()
+const { openDrawer, loadChangelog, data: changelogData, isLoading: isCheckingChanges } = useSandboxChangelog()
 
 const isOpenDropdown = ref<boolean>(false)
+const isProductionDropdownOpen = ref<boolean>(false)
 
-const isPublishDialogOpen = ref(false)
-const isMerging = ref(false)
-const publishStatus = ref<'pending' | 'loading' | 'success' | 'error'>('pending')
-const publishErrorMessage = ref('')
+const isDiscarding = ref(false)
 
-const openPublishDialog = async () => {
+// Sandbox has unpublished changes when its changelog is non-empty.
+// Discard clears the changelog; merge also clears it on success.
+const hasChanges = computed(() => (changelogData.value.changelog?.length || 0) > 0)
+
+watch(isOpenDropdown, (open) => {
+  if (open) {
+    loadChangelog()
+  }
+})
+
+const openSandboxDrawer = () => {
   isOpenDropdown.value = false
-  isPublishDialogOpen.value = true
-  publishStatus.value = 'pending'
-  publishErrorMessage.value = ''
+  openDrawer()
 }
 
 const goToMasterBase = async () => {
-  if (!sandboxInfo.value?.master_base_id) return
+  if (!sandboxInfo.value?.production_base_id) return
 
   isOpenDropdown.value = false
 
   await navigateTo(
     baseUrl({
-      id: sandboxInfo.value.master_base_id,
+      id: sandboxInfo.value.production_base_id,
       type: 'database',
       isSharedBase: false,
     }),
   )
 }
 
-const mergeSandbox = async () => {
-  if (!base.value?.id || !activeWorkspaceId.value || isMerging.value) return
-
-  try {
-    isMerging.value = true
-    publishStatus.value = 'loading'
-    publishErrorMessage.value = ''
-
-    await $api.internal.postOperation(
-      activeWorkspaceId.value,
-      base.value.id,
-      {
-        operation: 'sandboxMerge',
-      },
-      {},
-    )
-
-    publishStatus.value = 'success'
-  } catch (e: any) {
-    publishStatus.value = 'error'
-    publishErrorMessage.value = await extractSdkResponseErrorMsg(e)
-  } finally {
-    isMerging.value = false
-  }
-}
-
-const goToMasterBaseFromDialog = async () => {
-  if (!sandboxInfo.value?.master_base_id) return
-  isPublishDialogOpen.value = false
-  // Reload master base to get updated state
-  await basesStore.loadProject(sandboxInfo.value.master_base_id, true)
-  await navigateTo(
-    baseUrl({
-      id: sandboxInfo.value.master_base_id,
-      type: 'database',
-      isSharedBase: false,
-    }),
-  )
-}
-
-const handlePublishDialogAction = () => {
-  switch (publishStatus.value) {
-    case 'pending':
-      mergeSandbox()
-      break
-    case 'success':
-      goToMasterBaseFromDialog()
-      break
-    case 'error':
-      publishStatus.value = 'pending'
-      publishErrorMessage.value = ''
-      break
-  }
-}
+const { showWarningModal } = useNcConfirmModal()
 
 const discardSandbox = async () => {
-  if (!base.value?.id || !activeWorkspaceId.value) return
+  if (!base.value?.id || !activeWorkspaceId.value || isDiscarding.value) return
 
-  try {
-    await $api.internal.postOperation(
-      activeWorkspaceId.value,
-      base.value.id,
-      {
-        operation: 'sandboxDiscard',
-      },
-      {},
-    )
+  isOpenDropdown.value = false
 
-    message.success(t('labels.sandboxChangesReverted'))
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
+  showWarningModal({
+    title: t('labels.discardChanges'),
+    content: t('labels.discardSandboxWarning'),
+    showCancelBtn: true,
+    showOkLoading: true,
+    okCallback: async () => {
+      if (isDiscarding.value) return
+      isDiscarding.value = true
+
+      try {
+        const baseId = base.value!.id!
+        const wsId = activeWorkspaceId.value!
+
+        await $api.internal.postOperation(wsId, baseId, { operation: 'sandboxDiscard' }, {})
+
+        message.success(t('labels.sandboxChangesReverted'))
+
+        loadChangelog()
+
+        await navigateTo(
+          baseUrl({
+            id: baseId,
+            type: 'database',
+            isSharedBase: false,
+          }),
+        )
+
+        $e('a:sandbox:discard')
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      } finally {
+        isDiscarding.value = false
+      }
+    },
+  })
 }
 
-const colors = {
-  orange: {
-    bg: 'bg-nc-orange-20 dark:bg-nc-orange-20',
-    border: 'border-nc-orange-200 dark:border-orange-600/40',
-    text: 'text-orange-600',
-  },
+const goToSandbox = async () => {
+  if (!sandboxInfo.value?.sandbox_base_id) return
+
+  isProductionDropdownOpen.value = false
+
+  await navigateTo(
+    baseUrl({
+      id: sandboxInfo.value.sandbox_base_id,
+      type: 'database',
+      isSharedBase: false,
+    }),
+  )
+}
+
+const isDeletingSandbox = ref(false)
+
+const deleteSandbox = () => {
+  if (!sandboxInfo.value?.sandbox_base_id || !activeWorkspaceId.value) return
+
+  isProductionDropdownOpen.value = false
+
+  showWarningModal({
+    title: t('labels.deleteSandbox'),
+    content: t('labels.deleteSandboxWarning'),
+    showCancelBtn: true,
+    showOkLoading: true,
+    okCallback: async () => {
+      if (isDeletingSandbox.value) return
+      isDeletingSandbox.value = true
+
+      try {
+        await $api.internal.postOperation(
+          activeWorkspaceId.value!,
+          sandboxInfo.value!.sandbox_base_id,
+          { operation: 'sandboxDelete' },
+          {},
+        )
+
+        const sandboxBaseId = sandboxInfo.value!.sandbox_base_id
+
+        message.success(t('labels.sandboxDeleted'))
+
+        sandboxInfo.value = null
+        basesStore.bases.delete(sandboxBaseId)
+        await baseStore.loadProject(true)
+
+        $e('a:sandbox:delete')
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      } finally {
+        isDeletingSandbox.value = false
+      }
+    },
+  })
 }
 </script>
 
 <template>
   <NcDropdown v-if="isSandbox" v-model:visible="isOpenDropdown" placement="bottomRight">
-    <div class="flex items-center gap-2">
-      <div
-        class="flex items-center gap-2 px-2.5 py-1 h-8 rounded-lg border-1 cursor-pointer transition-colors select-none"
-        :class="[colors.orange.bg, colors.orange.border, colors.orange.text]"
-      >
-        <GeneralIcon icon="ncGitBranch" class="w-3.5 h-3.5 text-current" />
-        <span class="text-xs font-medium whitespace-nowrap"> {{ t('labels.sandbox') }} </span>
+    <NcButton type="secondary" size="small" class="!border-nc-orange-200 !text-orange-600 !font-normal !bg-nc-orange-20">
+      <div class="flex items-center gap-1.5">
+        <GeneralIcon icon="ncGitBranch" class="w-4 h-4 !stroke-transparent" />
+        <span>{{ t('labels.sandbox') }}</span>
         <GeneralIcon
           icon="chevronDown"
-          class="w-3.5 h-3.5 text-nc-content-gray-muted opacity-80 transform transition-all duration-200"
-          :class="{
-            'rotate-180': isOpenDropdown,
-          }"
+          class="w-3.5 h-3.5 text-orange-600 opacity-80 transform transition-all duration-200"
+          :class="{ 'rotate-180': isOpenDropdown }"
         />
       </div>
-    </div>
+    </NcButton>
     <template #overlay>
       <div class="nc-sandbox-status-menu flex flex-col">
         <div class="nc-sandbox-status-menu-header">
           <span class="uppercase">{{ t('labels.sandboxEnvironment') }}</span>
         </div>
 
-        <!-- Current sandbox state -->
-        <SmartsheetTopbarManagedAppStatusMenuItem
-          :label="t('labels.sandboxActive')"
-          icon-wrapper-class="bg-orange-50 dark:bg-nc-orange-20"
-        >
-          <template #icon>
-            <GeneralIcon icon="ncGitBranch" class="text-orange-600" />
-          </template>
-          <template #subtext>
-            <span class="text-orange-600"> {{ t('labels.editingInIsolatedEnvironment') }} </span>
-          </template>
-        </SmartsheetTopbarManagedAppStatusMenuItem>
+        <div class="flex items-start gap-2 mx-2 my-1 px-3 py-2.5 rounded-lg bg-orange-50 text-xs leading-4">
+          <GeneralIcon icon="ncGitBranch" class="w-4 h-4 text-orange-600 mt-0.5 flex-none" />
+          <span class="text-orange-600">{{ t('labels.editingInIsolatedEnvironment') }}</span>
+        </div>
 
         <NcDivider class="!my-1" />
 
-        <!-- Publish changes to master -->
+        <!-- Publish changes to master — only shown when the sandbox changelog has entries -->
         <SmartsheetTopbarManagedAppStatusMenuItem
+          v-if="hasChanges"
           clickable
           icon-wrapper-class="bg-green-50 dark:bg-nc-green-20"
-          @click="openPublishDialog"
+          @click="openSandboxDrawer"
         >
           <template #icon>
-            <GeneralIcon icon="ncArrowUp" class="text-green-600" />
+            <GeneralLoader v-if="isCheckingChanges" size="small" />
+            <GeneralIcon v-else icon="ncArrowUp" class="text-green-600" />
           </template>
           <template #label>
-            <span class="text-green-600"> {{ t('labels.publishToMaster') }} </span>
+            <span class="text-green-600">
+              {{ t('labels.publishToMaster') }}
+            </span>
           </template>
           <template #subtext> {{ t('labels.pushChangesToMainBase') }} </template>
         </SmartsheetTopbarManagedAppStatusMenuItem>
 
         <!-- Go to master base -->
         <SmartsheetTopbarManagedAppStatusMenuItem
-          v-if="sandboxInfo?.master_base_id"
+          v-if="sandboxInfo?.production_base_id"
           clickable
           :label="t('labels.goToMasterBase')"
           :subtext="t('labels.viewOriginalBase')"
@@ -193,93 +210,104 @@ const colors = {
           </template>
         </SmartsheetTopbarManagedAppStatusMenuItem>
 
-        <NcDivider class="!my-1" />
-
-        <!-- Discard changes (revert to master) -->
+        <!-- Sandbox changes
         <SmartsheetTopbarManagedAppStatusMenuItem
           clickable
-          :label="t('labels.discardChanges')"
-          :subtext="t('labels.revertAllChangesToMatchMaster')"
-          icon-wrapper-class="bg-nc-bg-gray-light"
-          @click="discardSandbox"
+          icon-wrapper-class="bg-orange-50 dark:bg-nc-orange-20"
+          @click="openSandboxDrawer"
         >
           <template #icon>
-            <GeneralIcon icon="ncRefreshCcw" class="text-nc-content-gray-muted" />
+            <GeneralIcon icon="ncGitBranch" class="text-orange-600" />
+          </template>
+          <template #label>
+            <span class="text-nc-content-gray-emphasis">{{ t('labels.sandboxChanges') }}</span>
+          </template>
+          <template #subtext>{{ t('labels.viewSandboxChanges') }}</template>
+        </SmartsheetTopbarManagedAppStatusMenuItem>
+        -->
+
+        <NcDivider class="!my-1" />
+
+        <!-- Discard changes -->
+        <NcTooltip :disabled="hasChanges" placement="bottom">
+          <template #title>{{ $t('tooltip.noSchemaChanges') }}</template>
+          <SmartsheetTopbarManagedAppStatusMenuItem
+            :clickable="hasChanges"
+            :label="t('labels.discardChanges')"
+            :subtext="t('labels.revertAllChangesToMatchMaster')"
+            icon-wrapper-class="bg-nc-bg-gray-light"
+            :class="{ 'opacity-50 cursor-not-allowed': !hasChanges }"
+            @click="hasChanges && discardSandbox()"
+          >
+            <template #icon>
+              <GeneralIcon icon="ncRefreshCcw" class="text-nc-content-gray-muted" />
+            </template>
+          </SmartsheetTopbarManagedAppStatusMenuItem>
+        </NcTooltip>
+      </div>
+    </template>
+  </NcDropdown>
+
+  <!-- Master: Schema Locked indicator -->
+  <NcDropdown v-if="isSandboxProduction && !isSandbox" v-model:visible="isProductionDropdownOpen" placement="bottomRight">
+    <NcButton type="secondary" size="small" class="!border-nc-orange-200 !text-orange-600 !font-normal !bg-nc-orange-20">
+      <div class="flex items-center gap-1.5">
+        <GeneralIcon icon="ncLock" class="w-4 h-4" />
+        <span>{{ t('labels.master') }}</span>
+        <GeneralIcon
+          icon="chevronDown"
+          class="w-3.5 h-3.5 text-orange-600 opacity-80 transform transition-all duration-200"
+          :class="{ 'rotate-180': isProductionDropdownOpen }"
+        />
+      </div>
+    </NcButton>
+    <template #overlay>
+      <div class="nc-sandbox-status-menu flex flex-col">
+        <div class="nc-sandbox-status-menu-header">
+          <span class="uppercase">{{ t('labels.schemaLocked') }}</span>
+        </div>
+
+        <div
+          class="flex items-start gap-2 mx-2 my-1 px-3 py-2.5 rounded-lg bg-nc-bg-gray-extralight text-xs text-nc-content-gray-subtle2 leading-4"
+        >
+          <GeneralIcon icon="ncLock" class="w-4 h-4 text-nc-content-gray-subtle mt-0.5 flex-none" />
+          <span>{{ t('labels.schemaLockedDescription') }}</span>
+        </div>
+
+        <NcDivider class="!my-1" />
+
+        <SmartsheetTopbarManagedAppStatusMenuItem
+          clickable
+          icon-wrapper-class="bg-orange-50 dark:bg-nc-orange-20"
+          @click="goToSandbox"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncGitBranch" class="text-orange-600" />
+          </template>
+          <template #label>
+            {{ t('labels.goToSandbox') }}
+          </template>
+          <template #subtext>
+            {{ t('labels.openSandboxToEditSchema') }}
+          </template>
+        </SmartsheetTopbarManagedAppStatusMenuItem>
+
+        <NcDivider class="!my-1" />
+
+        <SmartsheetTopbarManagedAppStatusMenuItem clickable icon-wrapper-class="bg-nc-bg-gray-light" @click="deleteSandbox">
+          <template #icon>
+            <GeneralIcon icon="delete" class="text-nc-content-red-dark" />
+          </template>
+          <template #label>
+            <span class="text-nc-content-red-dark">{{ t('labels.deleteSandbox') }}</span>
+          </template>
+          <template #subtext>
+            {{ t('labels.permanentlyRemoveSandbox') }}
           </template>
         </SmartsheetTopbarManagedAppStatusMenuItem>
       </div>
     </template>
   </NcDropdown>
-
-  <!-- Publish Dialog -->
-
-  <NcModal v-model:visible="isPublishDialogOpen" size="small" wrap-class-name="nc-modal-sandbox-publish">
-    <div class="flex flex-col gap-4 p-1">
-      <!-- Header -->
-      <div class="text-base text-nc-content-gray-emphasis leading-6 font-bold">
-        <template v-if="['pending', 'loading'].includes(publishStatus)">
-          <div class="flex items-center gap-2">
-            <GeneralIcon icon="ncArrowUp" class="w-5 h-5 text-green-600" />
-            <span>{{ t('labels.publishSandboxChanges') }}</span>
-          </div>
-        </template>
-        <template v-else-if="publishStatus === 'success'">
-          <div class="flex items-center gap-2">
-            <GeneralIcon class="text-green-600 w-6 h-6" icon="checkFill" />
-            <div class="text-nc-content-gray-emphasis font-semibold">{{ t('labels.sandboxChangesPublished') }}</div>
-          </div>
-        </template>
-        <template v-else-if="publishStatus === 'error'">
-          <div class="flex items-center gap-2">
-            <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-6 h-6" />
-            <div class="text-nc-content-gray-emphasis font-semibold">{{ t('labels.failedToPublishChanges') }}</div>
-          </div>
-        </template>
-      </div>
-
-      <!-- Content -->
-      <template v-if="['pending', 'loading'].includes(publishStatus)">
-        <div class="mt-2">
-          <NcAlert type="warning" class="!p-3">
-            <template #icon>
-              <GeneralIcon icon="ncAlertTriangle" class="w-4 h-4 text-nc-content-orange-dark" />
-            </template>
-            <template #description> {{ t('labels.mergeSchemaChangesWarning') }} </template>
-          </NcAlert>
-        </div>
-      </template>
-      <template v-else-if="publishStatus === 'success'">
-        <div class="text-nc-content-gray-emphasis my-5 font-medium">
-          {{ t('labels.sandboxChangesPublishedSuccess') }}<br /><br />
-          {{ t('labels.viewChangesOnMaster') }}
-        </div>
-      </template>
-      <template v-else-if="publishStatus === 'error'">
-        <div class="text-nc-content-gray-emphasis my-5 font-medium">
-          {{ publishErrorMessage }}
-        </div>
-      </template>
-
-      <!-- Footer -->
-      <div class="flex flex-row gap-x-2 justify-end mt-5">
-        <NcButton v-if="!isMerging" type="secondary" size="small" @click="isPublishDialogOpen = false">
-          {{ publishStatus === 'success' ? $t('general.close') : $t('general.cancel') }}
-        </NcButton>
-        <NcButton size="small" :loading="isMerging" :disabled="isMerging" @click="handlePublishDialogAction">
-          <template v-if="publishStatus === 'pending'">
-            <GeneralIcon icon="ncArrowUp" class="w-4 h-4 mr-1" />
-            {{ t('labels.publishChangesAction') }}
-          </template>
-          <template v-else-if="publishStatus === 'loading'"> {{ `${t('labels.publishing')}...` }} </template>
-          <template v-else-if="publishStatus === 'success'">
-            <GeneralIcon icon="ncArrowRight" class="w-4 h-4 mr-1" />
-            {{ t('labels.goToMasterBase') }}
-          </template>
-          <template v-else-if="publishStatus === 'error'"> {{ $t('general.tryAgain') }} </template>
-        </NcButton>
-      </div>
-    </div>
-  </NcModal>
 </template>
 
 <style lang="scss" scoped>

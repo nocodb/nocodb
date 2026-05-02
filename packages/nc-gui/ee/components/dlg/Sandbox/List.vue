@@ -10,7 +10,7 @@ const emit = defineEmits(['update:modelValue', 'createSandbox'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -98,20 +98,36 @@ const isDeleting = ref<string | null>(null)
 const deleteSandbox = async (sandbox: any) => {
   if (!sandbox.sandbox_base_id || !activeWorkspaceId.value) return
 
-  isDeleting.value = sandbox.id
+  const { showWarningModal } = useNcConfirmModal()
 
-  try {
-    await $api.internal.postOperation(activeWorkspaceId.value, sandbox.sandbox_base_id, {
-      operation: 'sandboxDelete',
-    })
+  showWarningModal({
+    title: t('labels.deleteSandbox'),
+    content: t('labels.deleteSandboxWarning'),
+    showCancelBtn: true,
+    okCallback: async () => {
+      isDeleting.value = sandbox.id
 
-    // Remove from local list
-    sandboxes.value = sandboxes.value.filter((s) => s.id !== sandbox.id)
-  } catch (e: any) {
-    error.value = await extractSdkResponseErrorMsg(e)
-  } finally {
-    isDeleting.value = null
-  }
+      try {
+        await $api.internal.postOperation(
+          activeWorkspaceId.value!,
+          sandbox.sandbox_base_id,
+          {
+            operation: 'sandboxDelete',
+          },
+          {},
+        )
+
+        // Remove from local list and bases store
+        sandboxes.value = sandboxes.value.filter((s) => s.id !== sandbox.id)
+        bases.value.delete(sandbox.sandbox_base_id)
+        $e('a:sandbox:delete')
+      } catch (e: any) {
+        error.value = await extractSdkResponseErrorMsg(e)
+      } finally {
+        isDeleting.value = null
+      }
+    },
+  })
 }
 
 watch(
@@ -231,10 +247,18 @@ watch(
 
       <!-- Footer -->
       <div class="flex flex-row gap-x-2 justify-end mt-4">
-        <NcButton type="primary" size="small" @click="handleCreateSandbox">
-          <GeneralIcon icon="ncGitBranch" class="w-4 h-4 mr-1" />
-          {{ t('labels.createSandbox') }}
-        </NcButton>
+        <NcTooltip :disabled="!sandboxes.length" :title="t('tooltip.sandboxLimitReached')">
+          <NcButton
+            type="text"
+            size="small"
+            :class="sandboxes.length ? '' : '!text-nc-content-brand'"
+            :disabled="!!sandboxes.length"
+            @click="handleCreateSandbox"
+          >
+            <GeneralIcon icon="ncGitBranch" class="w-4 h-4 mr-1" />
+            {{ t('labels.createSandbox') }}
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
   </GeneralModal>

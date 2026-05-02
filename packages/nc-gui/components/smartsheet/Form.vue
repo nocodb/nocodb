@@ -1176,7 +1176,7 @@ useEventListener(
     if (
       (draggableRef.value?.targetDomElement && draggableRef.value?.targetDomElement.contains(e.target)) ||
       (e.target as HTMLElement)?.closest(
-        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button, .nc-form-right-sidebar-content-resizable-wrapper .splitpanes__splitter, .nc-sidebar-toggle-btn',
+        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button, .nc-form-right-sidebar-content-resizable-wrapper .splitpanes__splitter, .nc-sidebar-toggle-btn, .nc-form-field-hide',
       )
     ) {
       return
@@ -1705,7 +1705,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             :model-value="[]"
                             item-key="id"
                             group="form-inputs"
-                            class="nc-form-row-gap min-h-2"
+                            class="nc-form-row-gap min-h-0"
                             :move="onFieldMoveToNewRowCallback"
                             @change="onFieldMoveToNewRow($event, row._key)"
                           >
@@ -1855,7 +1855,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                               <div />
                             </template>
                             <template #footer>
-                              <span class="pointer-events-none text-nc-content-gray-muted absolute -bottom-4 w-full text-center text-xs">
+                              <span
+                                class="pointer-events-none text-nc-content-gray-muted absolute -bottom-4 w-full text-center text-xs"
+                              >
                                 {{ $t('title.dropHereToStartNewRow') }}
                               </span>
                             </template>

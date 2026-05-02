@@ -12,6 +12,25 @@ const emit = defineEmits<{ close: [] }>()
 
 const searchQuery = ref('')
 
+const showSearchBox = ref(false)
+
+const searchInputRef = ref<HTMLInputElement>()
+
+const isSearchButtonVisible = computed(() => !searchQuery.value && !showSearchBox.value)
+
+function handleShowSearchInput() {
+  showSearchBox.value = true
+  nextTick(() => {
+    searchInputRef.value?.focus()
+  })
+}
+
+function handleSearchBlur() {
+  if (!searchQuery.value) {
+    showSearchBox.value = false
+  }
+}
+
 const newFolderName = ref('')
 
 const newFolderInput = ref<any>()
@@ -165,10 +184,36 @@ onMounted(() => {
     class="nc-bookmarks-flyout fixed bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl shadow-lg z-50 flex flex-col"
     style="left: 60px; bottom: 18px; width: 540px; height: 80vh"
     @click.stop
+    @keydown.stop
   >
     <!-- Header -->
-    <div class="flex items-center justify-between px-4 py-3 border-b-1 border-nc-border-gray-medium flex-none">
+    <div class="flex items-center gap-2 px-4 py-3 border-b-1 border-nc-border-gray-medium flex-none">
       <span class="text-sm font-bold text-nc-content-gray">{{ $t('title.bookmarks') }}</span>
+
+      <div class="flex-1" />
+
+      <template v-if="!isEmpty">
+        <a-input
+          v-if="!isSearchButtonVisible"
+          ref="searchInputRef"
+          v-model:value="searchQuery"
+          :placeholder="$t('general.search')"
+          class="!rounded-lg !w-52"
+          size="small"
+          allow-clear
+          data-testid="nc-bookmark-flyout-search"
+          @blur="handleSearchBlur"
+          @keydown.escape="handleSearchBlur"
+        >
+          <template #prefix>
+            <GeneralIcon icon="search" class="text-nc-content-gray-muted mr-1" />
+          </template>
+        </a-input>
+        <NcButton v-else type="text" size="small" @click="handleShowSearchInput">
+          <GeneralIcon icon="search" class="text-nc-content-gray-muted" />
+        </NcButton>
+      </template>
+
       <BookmarksAddBookmarkDropdown />
     </div>
 
@@ -183,22 +228,6 @@ onMounted(() => {
       <div v-else-if="isEmpty && !isCreatingFolder" class="flex flex-col items-center justify-center py-8 gap-2">
         <GeneralIcon icon="ncBookmark" class="w-8 h-8 text-nc-content-gray-subtle" />
         <span class="text-sm text-nc-content-gray-subtle text-center px-4">{{ $t('msg.noBookmarksYet') }}</span>
-      </div>
-
-      <!-- Search filter -->
-      <div v-if="!isEmpty" class="mb-3">
-        <a-input
-          v-model:value="searchQuery"
-          :placeholder="$t('general.search')"
-          class="!rounded-lg"
-          size="small"
-          allow-clear
-          data-testid="nc-bookmark-flyout-search"
-        >
-          <template #prefix>
-            <GeneralIcon icon="search" class="text-nc-content-gray-muted mr-1" />
-          </template>
-        </a-input>
       </div>
 
       <!-- No search results -->

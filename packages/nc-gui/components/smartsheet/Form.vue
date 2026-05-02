@@ -1693,7 +1693,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                       <!-- EE: multi-column grid layout (gated by plan feature) -->
                       <div v-if="!blockFormGridLayout" class="h-full px-4 lg:px-6 nc-form-rows">
-                        <template v-for="row in rowsWithKey" :key="row._key">
+                        <template v-for="formRow in rowsWithKey" :key="formRow._key">
                           <!--
                             Inter-row drop zone: lets the user extract a field
                             from a row and drop it as a new solo row at this
@@ -1707,7 +1707,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             group="form-inputs"
                             class="nc-form-row-gap min-h-0"
                             :move="onFieldMoveToNewRowCallback"
-                            @change="onFieldMoveToNewRow($event, row._key)"
+                            @change="onFieldMoveToNewRow($event, formRow._key)"
                           >
                             <template #item>
                               <div />
@@ -1715,16 +1715,16 @@ const { message: templatedMessage } = useTemplatedMessage(
                           </Draggable>
                           <div class="nc-form-row flex items-stretch gap-1 min-w-0">
                             <Draggable
-                              :model-value="row.fields"
+                              :model-value="formRow.fields"
                               item-key="id"
                               draggable=".item"
                               handle=".nc-form-field-drag-handler"
                               group="form-inputs"
                               ghost-class="nc-form-field-ghost"
                               class="flex items-stretch gap-1 flex-1 min-w-0 nc-form-row-fields"
-                              :move="(ev: any) => onFieldMoveCallback(ev, row.fields)"
+                              :move="(ev: any) => onFieldMoveCallback(ev, formRow.fields)"
                               :disabled="isLocked || !isEditable || gridUpdatePending"
-                              @change="onFieldMove($event, row._key)"
+                              @change="onFieldMove($event, formRow._key)"
                             >
                               <template #item="{ element }">
                                 <div

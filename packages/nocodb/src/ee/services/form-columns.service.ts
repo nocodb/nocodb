@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { FormColumnsService as FormColumnsServiceCE } from 'src/services/form-columns.service';
 import { PlanFeatureTypes } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { checkForFeature } from '~/helpers/paymentHelpers';

@@ -415,6 +415,104 @@ export default class FileReference {
   }
 
   /**
+   * Bulk-delete FileReferences for SmartText cells when their parent rows are
+   * deleted. Hard-deletes (matches the row-delete attachment cleanup contract
+   * in BaseModelSqlv2/delete.ts which uses FileReference.delete, not soft).
+   * Uses nc_fr_row_idx (base_id, fk_column_id, fk_row_id).
+   */
+  public static async bulkDeleteForCells(
+    context: NcContext,
+    modelId: string,
+    columnIds: string[],
+    rowIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!columnIds.length || !rowIds.length) return;
+
+    let totalSize = 0;
+    try {
+      const sizeResult = await ncMeta
+        .knexConnection(MetaTable.FILE_REFERENCES)
+        .where({
+          base_id: context.base_id,
+          fk_model_id: modelId,
+          deleted: false,
+        })
+        .whereIn('fk_column_id', columnIds)
+        .whereIn('fk_row_id', rowIds)
+        .sum('file_size as totalSize')
+        .first();
+      totalSize = sizeResult?.totalSize ? +sizeResult.totalSize : 0;
+    } catch (error) {
+      totalSize = -1;
+      logger.error('Error while summing file reference size');
+      logger.error(error);
+    }
+
+    await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_model_id: modelId,
+        deleted: false,
+      })
+      .whereIn('fk_column_id', columnIds)
+      .whereIn('fk_row_id', rowIds)
+      .update({ deleted: true });
+
+    await this.updateWorkspaceCache(context, totalSize, true);
+  }
+
+  /**
+   * Bulk soft-delete FileReferences for SmartText cells when their parent rows
+   * are soft-deleted (sent to trash). Mirrors `softDelete` semantics —
+   * `soft_deleted` flag set, `deleted` left intact, physical files preserved.
+   */
+  public static async bulkSoftDeleteForCells(
+    context: NcContext,
+    modelId: string,
+    columnIds: string[],
+    rowIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!columnIds.length || !rowIds.length) return;
+
+    let totalSize = 0;
+    try {
+      const sizeResult = await ncMeta
+        .knexConnection(MetaTable.FILE_REFERENCES)
+        .where({
+          base_id: context.base_id,
+          fk_model_id: modelId,
+          soft_deleted: false,
+          deleted: false,
+        })
+        .whereIn('fk_column_id', columnIds)
+        .whereIn('fk_row_id', rowIds)
+        .sum('file_size as totalSize')
+        .first();
+      totalSize = sizeResult?.totalSize ? +sizeResult.totalSize : 0;
+    } catch (error) {
+      totalSize = -1;
+      logger.error('Error while summing file reference size');
+      logger.error(error);
+    }
+
+    await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_model_id: modelId,
+        deleted: false,
+      })
+      .whereIn('fk_column_id', columnIds)
+      .whereIn('fk_row_id', rowIds)
+      .update({ soft_deleted: true });
+
+    await this.updateWorkspaceCache(context, totalSize, true);
+  }
+
+  /**
    * Bulk soft-delete FileReferences for multiple docs in a single query.
    * Uses nc_fr_doc_idx (base_id, fk_doc_id) with WHERE IN for doc tree cascade.
    */

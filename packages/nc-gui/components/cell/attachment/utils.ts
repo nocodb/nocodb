@@ -404,16 +404,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           if (isPublic.value) {
             res = await fetchSharedViewAttachment(columnId!, rowId!, src)
           } else {
-            const { data } = await $api.instance.get(`/api/v2/internal/${meta.value!.fk_workspace_id}/${meta.value!.base_id}`, {
-              params: {
-                operation: 'attachmentDownload',
-                modelId: modelId!,
-                columnId: columnId!,
-                rowId: rowId!,
-                urlOrPath: src,
-              },
-            })
-            res = data
+            res = await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              operation: 'attachmentDownload',
+              modelId: modelId!,
+              columnId: columnId!,
+              rowId: rowId!,
+              urlOrPath: src,
+            } as any)
           }
         } catch {}
 
@@ -501,16 +498,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         if (isPublic.value) {
           res = await fetchSharedViewAttachment(columnId, rowId, src)
         } else {
-          const { data } = await $api.instance.get(`/api/v2/internal/${meta.value.fk_workspace_id}/${meta.value.base_id}`, {
-            params: {
-              operation: 'attachmentDownload',
-              modelId,
-              columnId,
-              rowId,
-              urlOrPath: src,
-            },
-          })
-          res = data
+          res = await $api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
+            operation: 'attachmentDownload',
+            modelId,
+            columnId,
+            rowId,
+            urlOrPath: src,
+          } as any)
         }
 
         if (res?.path) {

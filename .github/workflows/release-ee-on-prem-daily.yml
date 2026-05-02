@@ -10,7 +10,7 @@ name: "Enterprise : On-prem daily build & deploy"
 #   1. compute-tag → produces `daily-<YYYY.MM.DD.HHMM>`.
 #   2. build       → calls release-ee-on-prem-pr-build.yml with that tag,
 #                    which pushes `nocodb/nocodb-daily:<tag>`.
-#   3. deploy      → POSTs to https://devenv.nocopod.com/api/v1/devenv with
+#   3. deploy      → POSTs to https://controller.nocopod.com/api/v1/devenv with
 #                    custom_prefix=onprem, pr=onprem, custom_app_image=<tag>.
 
 on:
@@ -52,7 +52,7 @@ jobs:
           set -e
           IMAGE="nocodb/nocodb-daily:${{ needs.compute-tag.outputs.tag }}"
           echo "Deploying ${IMAGE}"
-          RESPONSE=$(curl -fsS -X POST https://devenv.nocopod.com/api/v1/devenv \
+          RESPONSE=$(curl -fsS -X POST https://controller.nocopod.com/api/v1/devenv \
             -H 'Content-Type: application/json' \
             -d "{
               \"custom_prefix\": \"onprem\",

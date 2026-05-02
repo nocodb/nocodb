@@ -68,6 +68,7 @@ export const UITypesName = {
   [UITypes.SingleLineText]: 'Single line text',
   [UITypes.LongText]: 'Long text',
   RichText: 'Rich text',
+  SmartText: 'Smart Text',
   [UITypes.Attachment]: 'Attachment',
   [UITypes.Checkbox]: 'Checkbox',
   [UITypes.MultiSelect]: 'Multi select',

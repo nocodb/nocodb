@@ -211,8 +211,8 @@ const panelClasses = computed(() => {
 })
 
 const saveStatusLabel = computed(() => {
-  if (isSaving.value) return t('general.saving') || 'Saving...'
-  if (isDirty.value) return 'Unsaved changes'
+  if (isSaving.value) return t('general.saving')
+  if (isDirty.value) return t('labels.unsavedChanges')
   return ''
 })
 

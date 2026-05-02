@@ -200,19 +200,14 @@ const smartMode = computed({
 })
 
 // SmartText requires nc_row_meta — only available on internal PG sources.
-const isSmartTextEligible = computed(
-  () => isXcdbBase.value && isPg.value && isEeUI,
-)
+const isSmartTextEligible = computed(() => isXcdbBase.value && isPg.value && isEeUI)
 
 const smartTextDisableReason = computed(() => {
-  if (!isSmartTextEligible.value)
-    return 'Smart Text is only available on internal PostgreSQL sources'
-  if (richMode.value)
-    return 'Smart Text and Rich Text are mutually exclusive'
-  if (isEnabledGenerateText.value)
-    return 'Smart Text and AI generation are mutually exclusive'
+  if (!isSmartTextEligible.value) return t('labels.smartText.disableReason.notInternalPg')
+  if (richMode.value) return t('labels.smartText.disableReason.mutuallyExclusiveRichText')
+  if (isEnabledGenerateText.value) return t('labels.smartText.disableReason.mutuallyExclusiveAi')
   if (isPvColumn.value && !smartMode.value)
-    return `${UITypesName.LongText} field cannot be used as display value field`
+    return t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: UITypesName.SmartText })
   return ''
 })
 
@@ -252,17 +247,14 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
         <template #title>
           {{
             isPvColumn && !richMode
-              ? `${UITypesName.RichText} field cannot be used as display value field`
+              ? $t('tooltip.fieldCannotBeUsedAsDisplayValueField', { field: UITypesName.RichText })
               : smartMode
-              ? 'Rich text formatting is not supported when Smart Text is enabled'
-              : 'Rich text formatting is not supported when generate text using AI is enabled'
+              ? $t('labels.smartText.richTextDisabledWhenSmart')
+              : $t('labels.smartText.richTextDisabledWhenAi')
           }}
         </template>
         <div class="flex items-center gap-1">
-          <NcSwitch
-            v-model:checked="richMode"
-            :disabled="isEnabledGenerateText || smartMode || (isPvColumn && !richMode)"
-          >
+          <NcSwitch v-model:checked="richMode" :disabled="isEnabledGenerateText || smartMode || (isPvColumn && !richMode)">
             <div class="text-sm text-nc-content-gray select-none">
               {{ $t('labels.enableRichText') }}
             </div>
@@ -276,12 +268,11 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
         <template #title>{{ smartTextDisableReason }}</template>
         <div class="flex items-center gap-1">
           <NcSwitch v-model:checked="smartMode" :disabled="isSmartTextDisabled" data-testid="nc-long-text-smart-mode-toggle">
-            <div class="text-sm text-nc-content-gray select-none">Enable Smart Text</div>
+            <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.enableSmartText') }}</div>
           </NcSwitch>
           <NcTooltip class="ml-1 flex cursor-pointer">
             <template #title>
-              Smart Text uses a rich block-based editor with formatting, images, tables, and more. Content is stored
-              in-row, so it's searchable and filterable.
+              {{ $t('labels.smartText.description') }}
             </template>
             <GeneralIcon
               icon="info"

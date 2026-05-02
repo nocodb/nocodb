@@ -2057,6 +2057,18 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "Enable rich text",
+    "enableSmartText": "Enable Smart Text",
+    "unsavedChanges": "Unsaved changes",
+    "smartText": {
+      "disableReason": {
+        "notInternalPg": "Smart Text is only available on internal PostgreSQL sources",
+        "mutuallyExclusiveRichText": "Smart Text and Rich Text are mutually exclusive",
+        "mutuallyExclusiveAi": "Smart Text and AI generation are mutually exclusive"
+      },
+      "richTextDisabledWhenSmart": "Rich text formatting is not supported when Smart Text is enabled",
+      "richTextDisabledWhenAi": "Rich text formatting is not supported when generate text using AI is enabled",
+      "description": "Smart Text uses a rich block-based editor with formatting, images, tables, and more. Content is stored in-row, so it's searchable and filterable."
+    },
     "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",

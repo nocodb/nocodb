@@ -211,12 +211,7 @@ export default class GridViewColumn implements GridColumnType {
     {
       const gridCol = await this.get(context, columnId, ncMeta);
       if (gridCol?.fk_view_id) {
-        const view = await View.get(
-          context,
-          gridCol.fk_view_id,
-          false,
-          ncMeta,
-        );
+        const view = await View.get(context, gridCol.fk_view_id, false, ncMeta);
         if (view) {
           await View.clearSingleQueryCache(
             context,

@@ -166,12 +166,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
     {
       const viewCol = await this.get(context, columnId, ncMeta);
       if (viewCol?.fk_view_id) {
-        const view = await View.get(
-          context,
-          viewCol.fk_view_id,
-          false,
-          ncMeta,
-        );
+        const view = await View.get(context, viewCol.fk_view_id, false, ncMeta);
         if (view) {
           await View.clearSingleQueryCache(context, view.fk_model_id, [view]);
         }

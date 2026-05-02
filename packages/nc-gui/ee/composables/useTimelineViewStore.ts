@@ -1,10 +1,11 @@
 import dayjs from 'dayjs'
-import type { ColumnType, TableType, TimelineType, ViewType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { ColumnType, DataPayload, TableType, TimelineType, ViewType } from 'nocodb-sdk'
+import { EventType, UITypes } from 'nocodb-sdk'
 import { type ComputedRef, type Ref, computed, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
+import { validateRowFilters } from '~/utils/dataUtils'
 
 // Module-level cache to persist timeline navigation state across view switches.
 // Keyed by view ID so each timeline view remembers its own position.
@@ -27,15 +28,19 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-    const { $api } = useNuxtApp()
+    const { $api, $ncSocket } = useNuxtApp()
+
+    const { user } = useGlobal()
 
     const baseStore = useBase()
-    const { isMysql } = baseStore
+    const { isMysql, getBaseType } = baseStore
     const { base } = storeToRefs(baseStore)
 
     const { sharedView, fetchSharedViewData } = useSharedView()
 
-    const { sorts, nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
+    const { sorts, nestedFilters, eventBus, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
+
+    const { metas } = useMetas()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
@@ -389,8 +394,114 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     eventBus.on(smartsheetEventHandler)
 
+    const activeDataListener = ref<string | null>(null)
+
+    const findRowIndexByPk = (pkVal: string | number) => {
+      return formattedData.value.findIndex((row) => {
+        const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+        return pk && `${pk}` === `${pkVal}`
+      })
+    }
+
+    const passesViewFilters = (rowPayload: Record<string, any>) => {
+      return validateRowFilters(
+        [...allFilters.value, ...validFiltersFromUrlParams.value],
+        rowPayload,
+        meta.value?.columns as ColumnType[],
+        getBaseType(viewMeta.value?.view?.source_id),
+        metas.value,
+        meta.value?.base_id,
+        {
+          currentUser: user.value,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      )
+    }
+
+    const handleDataEvent = (data: DataPayload) => {
+      const { id, action, payload } = data
+
+      if (action === 'add') {
+        try {
+          if (!payload || !passesViewFilters(payload)) return
+
+          const existingIndex = findRowIndexByPk(id)
+          if (existingIndex !== -1) return
+
+          formattedData.value.push({
+            row: payload,
+            oldRow: { ...payload },
+            rowMeta: {
+              new: false,
+              ...getEvaluatedRowMetaRowColorInfo(payload),
+            },
+          })
+        } catch (e) {
+          console.error('Failed to add timeline row on socket event', e)
+        }
+      } else if (action === 'update') {
+        try {
+          if (!payload) return
+
+          const existingIndex = findRowIndexByPk(id)
+          const matchesFilters = passesViewFilters(payload)
+
+          if (!matchesFilters) {
+            if (existingIndex !== -1) {
+              formattedData.value.splice(existingIndex, 1)
+            }
+            return
+          }
+
+          if (existingIndex === -1) {
+            handleDataEvent({ ...data, action: 'add' })
+            return
+          }
+
+          const existingRow = formattedData.value[existingIndex]
+          Object.assign(existingRow.row, payload)
+          Object.assign(existingRow.oldRow, payload)
+          Object.assign(existingRow.rowMeta, getEvaluatedRowMetaRowColorInfo(existingRow.row))
+          existingRow.rowMeta.changed = false
+        } catch (e) {
+          console.error('Failed to update timeline row on socket event', e)
+        }
+      } else if (action === 'delete') {
+        try {
+          const existingIndex = findRowIndexByPk(id)
+          if (existingIndex !== -1) {
+            formattedData.value.splice(existingIndex, 1)
+          }
+        } catch (e) {
+          console.error('Failed to delete timeline row on socket event', e)
+        }
+      }
+    }
+
+    watch(
+      meta,
+      (newMeta: any, oldMeta: any) => {
+        if (newMeta?.fk_workspace_id && newMeta?.base_id && newMeta?.id) {
+          if (oldMeta?.id && oldMeta.id === newMeta.id) return
+
+          if (activeDataListener.value) {
+            $ncSocket.offMessage(activeDataListener.value)
+          }
+          activeDataListener.value = $ncSocket.onMessage(
+            `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
+            handleDataEvent,
+          )
+        }
+      },
+      { immediate: true },
+    )
+
     onBeforeUnmount(() => {
       eventBus.off(smartsheetEventHandler)
+
+      if (activeDataListener.value) {
+        $ncSocket.offMessage(activeDataListener.value)
+      }
     })
 
     return {

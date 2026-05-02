@@ -200,7 +200,7 @@ const smartMode = computed({
 })
 
 // SmartText requires nc_row_meta — only available on internal PG sources.
-const isSmartTextEligible = computed(() => isXcdbBase.value && isPg.value && isEeUI)
+const isSmartTextEligible = computed(() => isXcdbBase.value && isPg.value && appInfo.value.ee)
 
 const smartTextDisableReason = computed(() => {
   if (!isSmartTextEligible.value) return t('labels.smartText.disableReason.notInternalPg')

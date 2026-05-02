@@ -182,6 +182,8 @@ const showSendRecordModal = ref(false)
 
 const showDeleteRowModal = ref(false)
 
+const duplicatingRowInProgress = ref(false)
+
 const visibleMoreOptions = computed(() => {
   if (props.templateMode || props.blueprintMode) {
     return {
@@ -243,15 +245,24 @@ const copyRecordUrl = async () => {
 const onDuplicateRow = () => {
   if (showRecordPlanLimitExceededModal()) return
 
+  duplicatingRowInProgress.value = true
   emits('duplicateStart')
 
   const oldRow = { ..._row.value.row }
   delete oldRow.ncRecordId
   delete oldRow.ncRecordHash
-  const newRow = { row: oldRow, oldRow: {}, rowMeta: { new: true } } as Row
+  const newRow = Object.assign(
+    {},
+    {
+      row: oldRow,
+      oldRow: {},
+      rowMeta: { new: true },
+    },
+  ) as Row
 
   setTimeout(async () => {
     _row.value = newRow
+    duplicatingRowInProgress.value = false
     emits('duplicateApplied')
     message.toast(t('msg.success.rowDuplicatedWithoutSavedYet'))
   }, 500)
@@ -436,7 +447,7 @@ const onConfirmDeleteRowClick = async () => {
           class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-inverted-secondary"
         >
           <div class="text-ellipsis overflow-hidden select-none w-full pl-1.75 break-keep whitespace-nowrap">
-            <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
+            <LazySmartsheetPlainCell v-if="displayField" v-model="displayValue" :column="displayField" />
           </div>
         </div>
       </span>

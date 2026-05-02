@@ -70,11 +70,9 @@ export type ParamsOf<C> = C extends OperationContract<infer S>
   ? z.infer<S>
   : never;
 
-export type CommandHandler<C extends OperationContract = OperationContract> = (
-  ctx: NcContext,
-  params: ParamsOf<C>,
-  meta: HandlerMeta,
-) => Promise<unknown>;
+export type CommandHandler<
+  C extends OperationContract<any> = OperationContract<any>,
+> = (ctx: NcContext, params: ParamsOf<C>, meta: HandlerMeta) => Promise<unknown>;
 
 export interface HandlerMeta {
   entryId: string;

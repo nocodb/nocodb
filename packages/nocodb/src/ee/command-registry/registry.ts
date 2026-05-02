@@ -22,7 +22,7 @@ class _OperationRegistry {
   private readonly entries = new Map<string, RegistryEntry>();
   private frozen = false;
 
-  register<C extends OperationContract>(
+  register<C extends OperationContract<any>>(
     contract: C,
     handler: CommandHandler<C>,
   ): void {

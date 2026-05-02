@@ -54,6 +54,7 @@ import type { NcRequest } from '~/interface/config';
 import type { Base, LinkToAnotherRecordColumn } from '~/models';
 import type {
   IColumnsService,
+  LtarSideEffectIds,
   ReusableParams,
 } from '~/services/columns.service.type';
 import { NcContext } from '~/interface/config';
@@ -129,7 +130,10 @@ import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 import { backfillAutoNumber } from '~/helpers/autonumberHelpers';
 
-export type { ReusableParams } from '~/services/columns.service.type';
+export type {
+  LtarSideEffectIds,
+  ReusableParams,
+} from '~/services/columns.service.type';
 
 const deepClone = rfdc();
 
@@ -2896,6 +2900,12 @@ export class ColumnsService implements IColumnsService {
       apiVersion?: T;
       columnWebhookManager?: ColumnWebhookManager;
       operationSource?: OperationSource;
+      // Sandbox-replay LTAR side-effect IDs — set by the columnAdd handler
+      // on replay, threaded down into `createLTARColumn`.
+      _ltarReplayIds?: LtarSideEffectIds;
+      // Capture slot populated by `createLTARColumn` during recording;
+      // surfaced via `extraCommandMeta` on `ColumnAddContract`.
+      _ltarCapture?: LtarSideEffectIds;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
@@ -3123,19 +3133,23 @@ export class ColumnsService implements IColumnsService {
         // side-effect IDs (assoc model, FK cols, back-link cols, reverse LTAR)
         // and read by `extraCommandMeta` on `ColumnAddContract` to thread
         // them into the changelog. Filtered from replay params via
-        // `NON_SERIALIZABLE_KEYS`. Object reference is shared with the
-        // spread param below so inner mutations are visible here.
-        const ltarCapture: Record<string, unknown> = {};
-        (param as any)._ltarCapture = ltarCapture;
+        // `NON_SERIALIZABLE_KEYS`. Object reference is shared so inner
+        // mutations are visible to the calling decorator.
+        const ltarCapture: LtarSideEffectIds = {};
+        param._ltarCapture = ltarCapture;
         savedColumn = await this.createLTARColumn(context, {
-          ...param,
+          tableId: param.tableId,
+          column: param.column,
+          user: param.user,
+          req: param.req,
+          reuse: param.reuse,
+          columnWebhookManager,
+          _ltarReplayIds: param._ltarReplayIds,
+          _ltarCapture: ltarCapture,
           source,
           base,
-          reuse,
           colExtra,
-          columnWebhookManager,
-          _ltarCapture: ltarCapture,
-        } as any);
+        });
 
         this.appHooksService.emit(AppEvents.RELATION_CREATE, {
           column: {
@@ -5257,26 +5271,11 @@ export class ColumnsService implements IColumnsService {
       // Sandbox-replay only — set by the columnAdd handler when replaying a
       // recorded LTAR create. Each insert site below honors the matching id
       // so dependent ops (Lookup/Rollup/linkFilter) keep stable references.
-      _ltarReplayIds?: {
-        fkColumnId?: string;
-        assocModelId?: string;
-        // Auto-created default grid view on the assoc model. Threaded into
-        // `Model.insert` via `_sandboxDefaultViewId` so the production-side
-        // view keeps the sandbox-side id.
-        assocDefaultViewId?: string;
-        reverseColumnId?: string;
-        // FK columns on the assoc table (mm path). Pre-set on
-        // `associateTableCols` so `Column.bulkInsert` honors them.
-        assocChildColId?: string;
-        assocParentColId?: string;
-        // Two `createHmAndBtColumn` calls for mm — assoc→ref and assoc→table.
-        hmBtCallRef?: { childRelColId?: string; savedColumnId?: string };
-        hmBtCallTable?: { childRelColId?: string; savedColumnId?: string };
-      };
+      _ltarReplayIds?: LtarSideEffectIds;
       // Sandbox-replay only — capture slot populated during recording so
       // `extraCommandMeta` on `ColumnAddContract` can thread the side-effect
       // IDs into the changelog. Object ref shared with `columnAdd`'s param.
-      _ltarCapture?: Record<string, any>;
+      _ltarCapture?: LtarSideEffectIds;
     },
   ) {
     let savedColumn: Column;
@@ -5299,6 +5298,9 @@ export class ColumnsService implements IColumnsService {
       readonly?: boolean;
       meta?: Record<string, any>;
       ref_base_id?: string;
+      // Sandbox-replay — pre-injected by `idField: 'column'` so each
+      // back-link/oo/mm `Column.insert` can honor the recorded id.
+      id?: string;
     };
 
     if (!ltarReq.parentId) {
@@ -5515,7 +5517,7 @@ export class ColumnsService implements IColumnsService {
         param.columnWebhookManager,
         {
           childRelColId: replayIds?.reverseColumnId,
-          savedColumnId: (param.column as any).id,
+          savedColumnId: ltarReq.id,
         },
         hmBtOut,
       );
@@ -5630,7 +5632,7 @@ export class ColumnsService implements IColumnsService {
         param.columnWebhookManager,
         {
           childRelColId: replayIds?.reverseColumnId,
-          savedColumnId: (param.column as any).id,
+          savedColumnId: ltarReq.id,
         },
         ooOut,
       );
@@ -5855,9 +5857,7 @@ export class ColumnsService implements IColumnsService {
         : pluralize(refTable.title);
 
       savedColumn = await Column.insert(context, {
-        ...((param.column as any).id
-          ? { id: (param.column as any).id }
-          : {}),
+        ...(ltarReq.id ? { id: ltarReq.id } : {}),
         title: getUniqueColumnAliasName(
           await table.getColumns(context),
           param.column.title ?? defaultTitle,

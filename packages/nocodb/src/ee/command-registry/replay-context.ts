@@ -26,7 +26,7 @@ export function makeReplayReq(
  * need to thread extra metadata (e.g. `tables.handlers.ts` injecting sandbox
  * column IDs) should call `OperationRegistry.register` directly.
  */
-export function registerForward<C extends OperationContract>(
+export function registerForward<C extends OperationContract<any>>(
   contract: C,
   forward: (ctx: NcContext, p: any) => Promise<unknown>,
 ): void {

@@ -24,7 +24,10 @@ import type {
   NcApiVersion,
   UserType,
 } from 'nocodb-sdk';
-import type { ReusableParams } from '~/services/columns.service.type';
+import type {
+  LtarSideEffectIds,
+  ReusableParams,
+} from '~/services/columns.service.type';
 import type { NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
 import { OperationName } from '~/command-registry/op-names';
@@ -109,6 +112,8 @@ export class ColumnsService extends ColumnsServiceCE {
       apiVersion?: T;
       columnWebhookManager?: ColumnWebhookManager;
       operationSource?: OperationSource;
+      _ltarReplayIds?: LtarSideEffectIds;
+      _ltarCapture?: LtarSideEffectIds;
     },
     _ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {

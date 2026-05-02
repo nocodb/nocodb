@@ -24,6 +24,7 @@ import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type Model from '~/models/Model';
+import type { LtarHmBtIds } from '~/services/columns.service.type';
 import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
@@ -57,8 +58,8 @@ export async function createHmAndBtColumn(
   columnWebhookManager?: ColumnWebhookManager,
   // Sandbox-replay only — pre-set IDs honored by `Column.insert` and ID
   // capture for the recording side. CE callers leave both undefined.
-  idHints?: { childRelColId?: string; savedColumnId?: string },
-  out?: { childRelColId?: string; savedColumnId?: string },
+  idHints?: LtarHmBtIds,
+  out?: LtarHmBtIds,
 ) {
   let savedColumn: Column;
   let crossBaseProps: {
@@ -240,8 +241,8 @@ export async function createOOColumn(
   isCustom = false,
   columnWebhookManager?: ColumnWebhookManager,
   // Sandbox-replay only — see `createHmAndBtColumn` for shape and rationale.
-  idHints?: { childRelColId?: string; savedColumnId?: string },
-  out?: { childRelColId?: string; savedColumnId?: string },
+  idHints?: LtarHmBtIds,
+  out?: LtarHmBtIds,
 ) {
   let savedColumn: Column;
 

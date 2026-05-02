@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { UITypes } from 'nocodb-sdk';
 import type { OperationContract } from 'src/command-registry/types';
+import type { LtarSideEffectIds } from '~/services/columns.service.type';
 import { OperationName } from '~/command-registry/op-names';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model } from '~/models';
@@ -74,11 +75,9 @@ export const ColumnAddContract: OperationContract<typeof columnAddSchema> = {
     }));
   },
   extraCommandMeta: (p) => {
-    const ltar = (p as any)?._ltarCapture as
-      | Record<string, unknown>
-      | undefined;
-    if (!ltar || Object.keys(ltar).length === 0) return undefined;
-    return { ltar };
+    const capture = (p as { _ltarCapture?: LtarSideEffectIds })._ltarCapture;
+    if (!capture || Object.keys(capture).length === 0) return undefined;
+    return { ltar: capture };
   },
 };
 

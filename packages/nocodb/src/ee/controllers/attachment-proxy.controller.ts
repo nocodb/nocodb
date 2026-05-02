@@ -1,9 +1,11 @@
 import path from 'path';
 import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { License } from '~/ee/decorators/license.decorator';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { AttachmentsService } from '~/services/attachments.service';
@@ -54,6 +56,7 @@ export class AttachmentProxyController {
   @Get(
     '/api/v2/data/bases/:baseId/tables/:tableId/columns/:columnId/rows/:rowId/attachment/:fileId',
   )
+  @License(PlanFeatureTypes.FEATURE_EE_CORE)
   @Acl('smartTextGetAttachment')
   async serveSmartTextAttachment(
     @TenantContext() context: NcContext,

@@ -48,27 +48,40 @@ export class SmartTextService extends SmartTextServiceCE {
       );
     }
 
-    // Read the markdown via baseModel.readByPk (handles aliasing/AST/RLS) and
-    // the PM JSON via a targeted JSONB extract (nc_row_meta is excluded from
-    // standard reads). The two queries run sequentially against the same row.
-    const fullRow = await baseModel.readByPk(param.rowId);
-    if (!fullRow) {
-      NcError.get(context).recordNotFound(param.rowId);
-    }
-
-    const markdownRaw = fullRow[column.title];
-    const markdown: string | null =
-      typeof markdownRaw === 'string' ? markdownRaw : null;
-
-    const pmRow = (await dbDriver(tnPath)
+    // Read the markdown cell value AND the PM JSON extract in a single query so
+    // both reflect the same row snapshot. Two separate reads are racy: a
+    // concurrent updateContent (atomic UPDATE of both cell + nc_row_meta) can
+    // land between the markdown and PM reads, leaving us with empty markdown
+    // + non-empty PM. The cleanup branch below would then wipe the freshly
+    // written PM, causing data loss (image refs, custom attrs lost — only the
+    // markdown→PM regeneration survives).
+    //
+    // Skipping baseModel.readByPk here forfeits its AST / aliasing / RLS
+    // wrapping, but for a SmartText cell this is acceptable: the panel is
+    // always opened from a row already visible in the grid (RLS already
+    // enforced on the parent list read), and ACL is enforced at the operation
+    // level via smartTextGetContent.
+    const row = (await dbDriver(tnPath)
       .where(pkColumn.column_name, param.rowId)
       .select(
+        column.column_name,
         dbDriver.raw(`??->?->>'pm' as nc_smart_pm`, [
           META_COL_NAME,
           column.id,
         ]),
       )
-      .first()) as { nc_smart_pm?: string | object } | undefined;
+      .first()) as
+      | { [key: string]: any; nc_smart_pm?: string | object }
+      | undefined;
+    if (!row) {
+      NcError.get(context).recordNotFound(param.rowId);
+    }
+
+    const markdownRaw = row[column.column_name];
+    const markdown: string | null =
+      typeof markdownRaw === 'string' ? markdownRaw : null;
+
+    const pmRow = row;
 
     let pm: ProseMirrorDoc | null = null;
 

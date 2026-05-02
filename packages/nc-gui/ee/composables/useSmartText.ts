@@ -105,6 +105,15 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     return activeRowIndex.value < rowNavigator.value.totalRows() - 1
   })
 
+  // Last cell key we successfully loaded content for (`${tableId}|${rowId}|${columnId}`).
+  // Used as the cache-hit predicate in the deep-link recovery watcher and to
+  // discard stale-cell responses when the user switches cells faster than
+  // the API resolves (rapid clicks / row navigation).
+  const loadedKey = ref<string | null>(null)
+
+  const _cellKey = (tableId: string, rowId: string, columnId: string) =>
+    `${tableId}|${rowId}|${columnId}`
+
   /** Load PM JSON + markdown for the current cell from the backend. */
   const _loadContent = async () => {
     if (
@@ -116,40 +125,75 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     )
       return
 
+    // Capture the cell identity at call time. If the user navigates to a
+    // different cell while this request is in flight, the captured key will
+    // no longer match `activeRowId/activeColumnId` when the response lands —
+    // discard it instead of clobbering the new cell's state. Without this
+    // guard, an out-of-order response can write cell A's content into cell B's
+    // editor, and the next save flushes A's content into B's storage.
+    const tableId = meta.value.id
+    const rowId = activeRowId.value
+    const columnId = activeColumnId.value
+    const requestKey = _cellKey(tableId, rowId, columnId)
+
     isLoading.value = true
+    loadedKey.value = null
     pmContent.value = null
     markdown.value = null
 
     try {
       const result = (await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
         operation: 'smartTextGetContent',
-        tableId: meta.value.id,
-        rowId: activeRowId.value,
-        columnId: activeColumnId.value,
+        tableId,
+        rowId,
+        columnId,
       })) as SmartTextGetResponse
+
+      // Stale-response guard — only apply if user is still on the same cell.
+      const currentKey =
+        meta.value?.id && activeRowId.value && activeColumnId.value
+          ? _cellKey(meta.value.id, activeRowId.value, activeColumnId.value)
+          : null
+      if (currentKey !== requestKey) return
 
       pmContent.value = result?.pm ?? null
       markdown.value = result?.markdown ?? null
+      loadedKey.value = requestKey
       isDirty.value = false
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      // Only surface the error if the user is still on the cell that errored.
+      const currentKey =
+        meta.value?.id && activeRowId.value && activeColumnId.value
+          ? _cellKey(meta.value.id, activeRowId.value, activeColumnId.value)
+          : null
+      if (currentKey === requestKey) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
     } finally {
-      isLoading.value = false
+      // Only release the loading flag for the cell that was loading; if a newer
+      // request started, it owns the flag now.
+      const currentKey =
+        meta.value?.id && activeRowId.value && activeColumnId.value
+          ? _cellKey(meta.value.id, activeRowId.value, activeColumnId.value)
+          : null
+      if (currentKey === requestKey) isLoading.value = false
     }
   }
 
   // Deep-link recovery — when the panel is opened from a URL on a fresh page
   // load, meta / workspace / project IDs may not be ready yet, so the initial
   // _loadContent call inside openEditor silently early-returns. Re-attempt
-  // once the missing prerequisites resolve.
+  // once the missing prerequisites resolve. Use loadedKey (not "no content as
+  // proxy") so genuinely-empty cells aren't re-loaded on unrelated meta changes.
   watch(
     [isOpen, activeRowId, activeColumnId, () => meta.value?.id, activeWorkspaceId, activeProjectId],
     () => {
       if (!isOpen.value) return
       if (!activeRowId.value || !activeColumnId.value) return
       if (!meta.value?.id || !activeWorkspaceId.value || !activeProjectId.value) return
-      // Already loaded for this cell — nothing to do
-      if (pmContent.value || markdown.value || isLoading.value) return
+      const currentKey = _cellKey(meta.value.id, activeRowId.value, activeColumnId.value)
+      // Already loaded this exact cell, or load already in flight — skip.
+      if (loadedKey.value === currentKey || isLoading.value) return
       _loadContent()
     },
   )
@@ -171,6 +215,17 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     )
       return
 
+    // Capture cell identity at call time so the post-save markdown sync only
+    // writes back into the row data of the cell that was actually saved.
+    // Without this, a save flushed mid-navigation would overwrite the new
+    // cell's markdown / row data with the old cell's response.
+    const tableId = meta.value.id
+    const savedRowId = activeRowId.value
+    const savedColumnId = activeColumnId.value
+    const savedColTitle = activeColumn.value?.title ?? null
+    const savedRowData = activeRowData.value
+    const requestKey = _cellKey(tableId, savedRowId, savedColumnId)
+
     isSaving.value = true
     try {
       const result = (await $api.internal.postOperation(
@@ -178,23 +233,38 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
         activeProjectId.value,
         {
           operation: 'smartTextUpdateContent',
-          tableId: meta.value.id,
-          rowId: activeRowId.value,
-          columnId: activeColumnId.value,
+          tableId,
+          rowId: savedRowId,
+          columnId: savedColumnId,
         },
         { pmContent: pmContent.value },
       )) as SmartTextGetResponse
 
-      // Sync derived markdown back into the grid row so the cell preview updates.
+      // Always update the saved cell's row data in place — it remains
+      // referenced by the grid even after the user navigates away.
       const newMarkdown = result?.markdown ?? null
-      markdown.value = newMarkdown
-      const colTitle = activeColumn.value?.title
-      if (activeRowData.value && colTitle) {
-        activeRowData.value[colTitle] = newMarkdown
+      if (savedRowData && savedColTitle) {
+        savedRowData[savedColTitle] = newMarkdown
       }
-      isDirty.value = false
+
+      // Only sync the panel-visible refs (markdown, isDirty) when the user
+      // is still on the cell that was saved.
+      const currentKey =
+        meta.value?.id && activeRowId.value && activeColumnId.value
+          ? _cellKey(meta.value.id, activeRowId.value, activeColumnId.value)
+          : null
+      if (currentKey === requestKey) {
+        markdown.value = newMarkdown
+        isDirty.value = false
+      }
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      const currentKey =
+        meta.value?.id && activeRowId.value && activeColumnId.value
+          ? _cellKey(meta.value.id, activeRowId.value, activeColumnId.value)
+          : null
+      if (currentKey === requestKey) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
     } finally {
       isSaving.value = false
     }
@@ -296,6 +366,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     activeRowData.value = null
     pmContent.value = null
     markdown.value = null
+    loadedKey.value = null
     isLoading.value = false
     isDirty.value = false
     _syncUrl()

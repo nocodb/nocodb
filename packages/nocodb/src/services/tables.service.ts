@@ -40,6 +40,7 @@ import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
+import type { OperationSource } from '~/helpers/columnHelpers';
 import { NcError } from '~/helpers/catchError';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '~/helpers/getColumnUiType';
@@ -774,6 +775,7 @@ export class TablesService {
       synced?: boolean;
       apiVersion?: NcApiVersion;
       isDuplicateOperation?: boolean;
+      operationSource?: OperationSource;
     },
   ) {
     // before validating add title for columns if only column name is present
@@ -820,6 +822,7 @@ export class TablesService {
         columns: tableCreatePayLoad.columns,
         clientType: source.type,
         isMeta: !!source.isMeta(),
+        operationSource: param.operationSource,
       });
     }
 

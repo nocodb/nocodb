@@ -68,6 +68,7 @@ import {
   createHmAndBtColumn,
   createOOColumn,
   deleteColumnSystemPropsFromRequest,
+  type OperationSource,
   generateFkName,
   getMMColumnNames,
   getRevType,
@@ -2890,6 +2891,7 @@ export class ColumnsService implements IColumnsService {
       suppressFormulaError?: boolean;
       apiVersion?: T;
       columnWebhookManager?: ColumnWebhookManager;
+      operationSource?: OperationSource;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
@@ -2941,7 +2943,9 @@ export class ColumnsService implements IColumnsService {
         `Cannot manually create system columns`,
       );
     } else {
-      deleteColumnSystemPropsFromRequest(param.column);
+      deleteColumnSystemPropsFromRequest(param.column, {
+        operationSource: param.operationSource,
+      });
     }
 
     const base = await reuseOrSave('base', reuse, async () =>

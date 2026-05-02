@@ -33,6 +33,7 @@ import {
 } from '~/utils';
 import { type Base, Model, Source } from '~/models';
 import { sanitizeColumnName } from '~/helpers';
+import { OperationSource } from '~/helpers/columnHelpers';
 import { AttachmentsService } from '~/services/attachments.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
@@ -761,6 +762,7 @@ export class AtImportProcessor {
           table: tables[idx],
           user: syncDB.user,
           req,
+          operationSource: OperationSource.AT_IMPORT,
         });
         recordPerfStats(_perfStart, 'dbTable.create');
 
@@ -914,6 +916,7 @@ export class AtImportProcessor {
                 },
                 req,
                 user: syncDB.user,
+                operationSource: OperationSource.AT_IMPORT,
               });
               recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1140,6 +1143,7 @@ export class AtImportProcessor {
               },
               req,
               user: syncDB.user,
+              operationSource: OperationSource.AT_IMPORT,
             });
             recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1226,6 +1230,7 @@ export class AtImportProcessor {
               clientIp: '',
             } as any,
             user: syncDB.user,
+            operationSource: OperationSource.AT_IMPORT,
           });
           recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1390,6 +1395,7 @@ export class AtImportProcessor {
                 },
                 req,
                 user: syncDB.user,
+                operationSource: OperationSource.AT_IMPORT,
               });
               recordPerfStats(_perfStart, 'dbTableColumn.create');
 
@@ -1457,6 +1463,7 @@ export class AtImportProcessor {
           },
           req,
           user: syncDB.user,
+          operationSource: OperationSource.AT_IMPORT,
         });
         recordPerfStats(_perfStart, 'dbTableColumn.create');
 

@@ -8,6 +8,7 @@ import type {
   ResolvedCtx,
   TraceCommandDep,
 } from './types';
+import { Sandbox, SandboxChangelog } from '~/models';
 
 const logger = new Logger('CommandRegistry');
 
@@ -117,12 +118,6 @@ function resolveEntityInfo(
 /**
  * Validate params + extras, resolve metadata, insert changelog row.
  * Throws on schema-validation failure (strict mode).
- *
- * Models are lazily imported to avoid circular-dependency issues at module
- * load time (Sandbox → Noco → app.module → services → models barrel).
- * The lazy import is resolved only when recordCommand is actually invoked
- * (runtime, not import time), so unit tests that test the pure helpers in
- * this module are not affected by the circular chain.
  */
 export async function recordCommand(
   context: NcContext,
@@ -132,9 +127,6 @@ export async function recordCommand(
   resolvedCtx: ResolvedCtx | undefined,
 ): Promise<void> {
   if (!context?.base_id) return;
-
-  // Lazy import to avoid circular dependency at module load time.
-  const { Sandbox, SandboxChangelog } = await import('~/models');
 
   const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
   if (!sandbox) return;

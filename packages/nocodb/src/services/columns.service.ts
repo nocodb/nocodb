@@ -3118,7 +3118,15 @@ export class ColumnsService implements IColumnsService {
         break;
 
       case UITypes.Links:
-      case UITypes.LinkToAnotherRecord:
+      case UITypes.LinkToAnotherRecord: {
+        // Sandbox-replay capture slot — populated by `createLTARColumn` with
+        // side-effect IDs (assoc model, FK cols, back-link cols, reverse LTAR)
+        // and read by `extraCommandMeta` on `ColumnAddContract` to thread
+        // them into the changelog. Filtered from replay params via
+        // `NON_SERIALIZABLE_KEYS`. Object reference is shared with the
+        // spread param below so inner mutations are visible here.
+        const ltarCapture: Record<string, unknown> = {};
+        (param as any)._ltarCapture = ltarCapture;
         savedColumn = await this.createLTARColumn(context, {
           ...param,
           source,
@@ -3126,7 +3134,8 @@ export class ColumnsService implements IColumnsService {
           reuse,
           colExtra,
           columnWebhookManager,
-        });
+          _ltarCapture: ltarCapture,
+        } as any);
 
         this.appHooksService.emit(AppEvents.RELATION_CREATE, {
           column: {
@@ -3139,6 +3148,7 @@ export class ColumnsService implements IColumnsService {
           context,
         });
         break;
+      }
 
       case UITypes.QrCode:
         validateParams(['fk_qr_value_column_id'], param.column, context);
@@ -5244,9 +5254,34 @@ export class ColumnsService implements IColumnsService {
       user: UserType;
       req: NcRequest;
       columnWebhookManager?: ColumnWebhookManager;
+      // Sandbox-replay only — set by the columnAdd handler when replaying a
+      // recorded LTAR create. Each insert site below honors the matching id
+      // so dependent ops (Lookup/Rollup/linkFilter) keep stable references.
+      _ltarReplayIds?: {
+        fkColumnId?: string;
+        assocModelId?: string;
+        // Auto-created default grid view on the assoc model. Threaded into
+        // `Model.insert` via `_sandboxDefaultViewId` so the production-side
+        // view keeps the sandbox-side id.
+        assocDefaultViewId?: string;
+        reverseColumnId?: string;
+        // FK columns on the assoc table (mm path). Pre-set on
+        // `associateTableCols` so `Column.bulkInsert` honors them.
+        assocChildColId?: string;
+        assocParentColId?: string;
+        // Two `createHmAndBtColumn` calls for mm — assoc→ref and assoc→table.
+        hmBtCallRef?: { childRelColId?: string; savedColumnId?: string };
+        hmBtCallTable?: { childRelColId?: string; savedColumnId?: string };
+      };
+      // Sandbox-replay only — capture slot populated during recording so
+      // `extraCommandMeta` on `ColumnAddContract` can thread the side-effect
+      // IDs into the changelog. Object ref shared with `columnAdd`'s param.
+      _ltarCapture?: Record<string, any>;
     },
   ) {
     let savedColumn: Column;
+    const replayIds = param._ltarReplayIds;
+    const capture = param._ltarCapture;
 
     if ((param.column as any).is_custom_link) {
       NcError.get(context).badRequest(
@@ -5415,12 +5450,14 @@ export class ColumnsService implements IColumnsService {
         await refSqlMgr.sqlOpPlus(refSource, 'tableUpdate', tableUpdateBody);
 
         const { id } = await Column.insert(refContext, {
+          ...(replayIds?.fkColumnId ? { id: replayIds.fkColumnId } : {}),
           ...newColumn,
           uidt: UITypes.ForeignKey,
           fk_model_id: refTable.id,
         });
 
         refColumn = await Column.get(refContext, { colId: id });
+        if (capture) capture.fkColumnId = refColumn.id;
 
         // ignore relation creation if virtual
         if (!ltarReq.virtual) {
@@ -5454,6 +5491,7 @@ export class ColumnsService implements IColumnsService {
         }
       }
 
+      const hmBtOut: { childRelColId?: string; savedColumnId?: string } = {};
       savedColumn = await createHmAndBtColumn(
         context,
         param.req,
@@ -5475,7 +5513,13 @@ export class ColumnsService implements IColumnsService {
         undefined,
         undefined,
         param.columnWebhookManager,
+        {
+          childRelColId: replayIds?.reverseColumnId,
+          savedColumnId: (param.column as any).id,
+        },
+        hmBtOut,
       );
+      if (capture) capture.reverseColumnId = hmBtOut.childRelColId;
     } else if (!isMMLike && ltarReq.type === 'oo') {
       // populate fk column name
       const fkColName = getUniqueColumnName(
@@ -5523,12 +5567,14 @@ export class ColumnsService implements IColumnsService {
         await sqlMgr.sqlOpPlus(refSource, 'tableUpdate', tableUpdateBody);
 
         const { id } = await Column.insert(refContext, {
+          ...(replayIds?.fkColumnId ? { id: replayIds.fkColumnId } : {}),
           ...newColumn,
           uidt: UITypes.ForeignKey,
           fk_model_id: refTable.id,
         });
 
         refColumn = await Column.get(refContext, { colId: id });
+        if (capture) capture.fkColumnId = refColumn.id;
 
         // ignore relation creation if virtual
         if (!ltarReq.virtual) {
@@ -5561,6 +5607,7 @@ export class ColumnsService implements IColumnsService {
           });
         }
       }
+      const ooOut: { childRelColId?: string; savedColumnId?: string } = {};
       savedColumn = await createOOColumn(
         context,
         param.req,
@@ -5581,7 +5628,13 @@ export class ColumnsService implements IColumnsService {
         undefined,
         undefined,
         param.columnWebhookManager,
+        {
+          childRelColId: replayIds?.reverseColumnId,
+          savedColumnId: (param.column as any).id,
+        },
+        ooOut,
       );
+      if (capture) capture.reverseColumnId = ooOut.childRelColId;
     } else if (isMMLike || ltarReq.type === 'mm') {
       const aTn = await getJunctionTableName(param, table, refTable);
       const aTnAlias = aTn;
@@ -5598,6 +5651,12 @@ export class ColumnsService implements IColumnsService {
 
       associateTableCols.push(
         {
+          // Pre-set ID on replay so `Column.bulkInsert` honors it (the
+          // `column_name` map lookup wouldn't match — assoc-table column
+          // names embed the source prefix which differs across bases).
+          ...(replayIds?.assocChildColId
+            ? { id: replayIds.assocChildColId }
+            : {}),
           cn: refColumnName,
           column_name: refColumnName,
           title: refColumnName,
@@ -5613,6 +5672,9 @@ export class ColumnsService implements IColumnsService {
           uidt: UITypes.ForeignKey,
         },
         {
+          ...(replayIds?.assocParentColId
+            ? { id: replayIds.assocParentColId }
+            : {}),
           cn: columnName,
           column_name: columnName,
           title: columnName,
@@ -5640,6 +5702,10 @@ export class ColumnsService implements IColumnsService {
         param.base.id,
         param.source.id,
         {
+          ...(replayIds?.assocModelId ? { id: replayIds.assocModelId } : {}),
+          ...(replayIds?.assocDefaultViewId
+            ? { _sandboxDefaultViewId: replayIds.assocDefaultViewId }
+            : {}),
           table_name: aTn,
           title: aTnAlias,
           // todo: sanitize
@@ -5687,6 +5753,7 @@ export class ColumnsService implements IColumnsService {
       );
 
       // todo: skip hm and bt if new type
+      const hmBtRefOut: { childRelColId?: string; savedColumnId?: string } = {};
       await createHmAndBtColumn(
         context,
         param.req,
@@ -5706,7 +5773,11 @@ export class ColumnsService implements IColumnsService {
         undefined,
         // not need to pass columnWebhookManager here
         undefined,
+        replayIds?.hmBtCallRef,
+        hmBtRefOut,
       );
+      const hmBtTableOut: { childRelColId?: string; savedColumnId?: string } =
+        {};
       await createHmAndBtColumn(
         context,
         param.req,
@@ -5726,6 +5797,8 @@ export class ColumnsService implements IColumnsService {
         undefined,
         // not need to pass columnWebhookManager here
         undefined,
+        replayIds?.hmBtCallTable,
+        hmBtTableOut,
       );
 
       let refCrossBaseLinkProps: {
@@ -5782,6 +5855,9 @@ export class ColumnsService implements IColumnsService {
         : pluralize(refTable.title);
 
       savedColumn = await Column.insert(context, {
+        ...((param.column as any).id
+          ? { id: (param.column as any).id }
+          : {}),
         title: getUniqueColumnAliasName(
           await table.getColumns(context),
           param.column.title ?? defaultTitle,
@@ -5831,6 +5907,9 @@ export class ColumnsService implements IColumnsService {
         : pluralize(table.title);
 
       const parentRelCol = await Column.insert(refContext, {
+        ...(replayIds?.reverseColumnId
+          ? { id: replayIds.reverseColumnId }
+          : {}),
         title: getUniqueColumnAliasName(
           [
             ...(await refTable.getColumns(refContext)),
@@ -5874,6 +5953,17 @@ export class ColumnsService implements IColumnsService {
         // include cross base link props
         ...refCrossBaseLinkProps,
       });
+
+      if (capture) {
+        capture.assocModelId = assocModel.id;
+        const assocViews = await assocModel.getViews(context);
+        capture.assocDefaultViewId = assocViews?.[0]?.id;
+        capture.reverseColumnId = parentRelCol.id;
+        capture.assocChildColId = childCol.id;
+        capture.assocParentColId = parentCol.id;
+        capture.hmBtCallRef = hmBtRefOut;
+        capture.hmBtCallTable = hmBtTableOut;
+      }
 
       this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
         table: refTable,

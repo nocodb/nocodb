@@ -55,7 +55,10 @@ export interface OperationContract<S extends ZodTypeAny = ZodTypeAny> {
     resolved?: ResolvedCtx,
   ) => Promise<boolean> | boolean;
   readonly deps?: (p: z.infer<S>, r: any) => TraceCommandDep[];
-  readonly extraCommandMeta?: (p: z.infer<S>, r: any) => Record<string, any>;
+  readonly extraCommandMeta?: (
+    p: z.infer<S>,
+    r: any,
+  ) => Record<string, any> | undefined;
 }
 
 export type EntityRefFn<S extends ZodTypeAny> = (

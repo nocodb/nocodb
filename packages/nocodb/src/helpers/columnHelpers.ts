@@ -55,6 +55,10 @@ export async function createHmAndBtColumn(
   parentColumn?: Column,
   isCustom = false,
   columnWebhookManager?: ColumnWebhookManager,
+  // Sandbox-replay only — pre-set IDs honored by `Column.insert` and ID
+  // capture for the recording side. CE callers leave both undefined.
+  idHints?: { childRelColId?: string; savedColumnId?: string },
+  out?: { childRelColId?: string; savedColumnId?: string },
 ) {
   let savedColumn: Column;
   let crossBaseProps: {
@@ -80,6 +84,7 @@ export async function createHmAndBtColumn(
     const childRelCol = await Column.insert<LinkToAnotherRecordColumn>(
       { ...context, base_id: child.base_id },
       {
+        ...(idHints?.childRelColId ? { id: idHints.childRelColId } : {}),
         title,
 
         fk_model_id: child.id,
@@ -115,6 +120,7 @@ export async function createHmAndBtColumn(
         },
       },
     );
+    if (out) out.childRelColId = childRelCol.id;
     await columnWebhookManager?.addNewColumnById({
       columnId: childRelCol.id,
       action: WebhookActions.INSERT,
@@ -157,6 +163,7 @@ export async function createHmAndBtColumn(
     savedColumn = await Column.insert(
       { ...context, base_id: parent.base_id },
       {
+        ...(idHints?.savedColumnId ? { id: idHints.savedColumnId } : {}),
         title,
         fk_model_id: parent.id,
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
@@ -179,6 +186,7 @@ export async function createHmAndBtColumn(
         ...crossBaseProps,
       },
     );
+    if (out) out.savedColumnId = savedColumn.id;
     await columnWebhookManager?.addNewColumnById({
       columnId: savedColumn.id,
       action: WebhookActions.INSERT,
@@ -231,6 +239,9 @@ export async function createOOColumn(
   parentColumn?: Column,
   isCustom = false,
   columnWebhookManager?: ColumnWebhookManager,
+  // Sandbox-replay only — see `createHmAndBtColumn` for shape and rationale.
+  idHints?: { childRelColId?: string; savedColumnId?: string },
+  out?: { childRelColId?: string; savedColumnId?: string },
 ) {
   let savedColumn: Column;
 
@@ -260,6 +271,7 @@ export async function createOOColumn(
     const childRelCol = await Column.insert<LinkToAnotherRecordColumn>(
       childContext,
       {
+        ...(idHints?.childRelColId ? { id: idHints.childRelColId } : {}),
         title,
         fk_model_id: child.id,
         // ref_db_alias
@@ -291,6 +303,7 @@ export async function createOOColumn(
         ...crossBaseProps,
       },
     );
+    if (out) out.childRelColId = childRelCol.id;
 
     await columnWebhookManager?.addNewColumnById({
       columnId: childRelCol.id,
@@ -337,6 +350,7 @@ export async function createOOColumn(
     };
 
     savedColumn = await Column.insert(parentContext, {
+      ...(idHints?.savedColumnId ? { id: idHints.savedColumnId } : {}),
       title,
       fk_model_id: parent.id,
       uidt: UITypes.LinkToAnotherRecord,
@@ -358,6 +372,7 @@ export async function createOOColumn(
       ...crossBaseProps,
       ...(colExtra || {}),
     });
+    if (out) out.savedColumnId = savedColumn.id;
 
     await columnWebhookManager?.addNewColumnById({
       columnId: savedColumn.id,

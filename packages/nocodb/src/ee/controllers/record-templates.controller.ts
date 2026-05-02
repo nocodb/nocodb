@@ -103,10 +103,9 @@ export class RecordTemplatesController {
     @Param('modelId') modelId: string,
     @Body() body: CreateRecordTemplateDto,
   ) {
-    return await this.recordTemplatesService.create({
-      context,
+    return await this.recordTemplatesService.recordTemplateCreate(context, {
       baseId,
-      modelId,
+      tableId: modelId,
       body,
       userId: req['user'].id,
       req,
@@ -124,10 +123,9 @@ export class RecordTemplatesController {
     @Param('templateId') templateId: string,
     @Body() body: UpdateRecordTemplateDto,
   ) {
-    return await this.recordTemplatesService.update({
-      context,
+    return await this.recordTemplatesService.recordTemplateUpdate(context, {
       templateId,
-      body,
+      template: body,
       userId: req['user'].id,
       req,
     });
@@ -143,8 +141,7 @@ export class RecordTemplatesController {
     @Req() req: NcRequest,
     @Param('templateId') templateId: string,
   ) {
-    return await this.recordTemplatesService.delete({
-      context,
+    return await this.recordTemplatesService.recordTemplateDelete(context, {
       templateId,
       userId: req['user'].id,
       req,

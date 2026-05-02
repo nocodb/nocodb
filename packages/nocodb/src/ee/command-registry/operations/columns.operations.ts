@@ -14,11 +14,41 @@ const columnAddSchema = z.object({
   column: z.record(z.unknown()),
 });
 
+// LTAR side-effect IDs captured by `createLTARColumn` into `param._ltarCapture`
+// during recording. Threaded onto the changelog row via `extraCommandMeta` and
+// read by the columnAdd handler (`columns.handlers.ts`) at replay time so the
+// junction model, FK columns, back-link columns, and reverse LTAR all keep
+// stable IDs across the merge boundary.
+const ltarHmBtCallSchema = z
+  .object({
+    childRelColId: z.string().optional(),
+    savedColumnId: z.string().optional(),
+  })
+  .optional();
+
+const columnAddExtraSchema = z
+  .object({
+    ltar: z
+      .object({
+        fkColumnId: z.string().optional(),
+        assocModelId: z.string().optional(),
+        assocDefaultViewId: z.string().optional(),
+        reverseColumnId: z.string().optional(),
+        assocChildColId: z.string().optional(),
+        assocParentColId: z.string().optional(),
+        hmBtCallRef: ltarHmBtCallSchema,
+        hmBtCallTable: ltarHmBtCallSchema,
+      })
+      .optional(),
+  })
+  .optional();
+
 export const ColumnAddContract: OperationContract<typeof columnAddSchema> = {
   name: OperationName.columnAdd,
   version: 1,
   entity: MetaTable.COLUMNS,
   schema: columnAddSchema,
+  extraSchema: columnAddExtraSchema,
   idField: 'column',
   entityId: (_p, r) => {
     // V3 path: result is Column (has fk_model_id)
@@ -42,6 +72,13 @@ export const ColumnAddContract: OperationContract<typeof columnAddSchema> = {
       entity: MetaTable.COLUMNS,
       id,
     }));
+  },
+  extraCommandMeta: (p) => {
+    const ltar = (p as any)?._ltarCapture as
+      | Record<string, unknown>
+      | undefined;
+    if (!ltar || Object.keys(ltar).length === 0) return undefined;
+    return { ltar };
   },
 };
 

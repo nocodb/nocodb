@@ -18,6 +18,9 @@ const NON_SERIALIZABLE_KEYS = new Set([
   'reuse',
   'viewWebhookManager',
   'columnWebhookManager',
+  // Transient capture slot for side-effect IDs (e.g. LTAR junction model id).
+  // Populated during recording, read by `extraCommandMeta`, never replayed.
+  '_ltarCapture',
 ]);
 
 export function dotGet(obj: any, path: string): any {

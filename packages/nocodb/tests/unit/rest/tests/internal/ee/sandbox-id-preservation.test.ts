@@ -175,7 +175,14 @@ async function collectIds(
       // system columns are flagged `system: true`; capture by title for
       // explicit cross-base equality on those specific rows.
       if ((c as any).system) {
-        systemColumnIdsByTitle[`${t.id}:${c.title}`] = c.id;
+        // Auto-generated hm-side back-link cols on mm path embed the assoc
+        // model's table title (which contains a source prefix like
+        // `nc_<src>___…`) — the prefix differs across bases, so skip those
+        // from the title-keyed map. The id itself is still asserted via
+        // the broader `columns` set.
+        if (!c.title?.includes('___')) {
+          systemColumnIdsByTitle[`${t.id}:${c.title}`] = c.id;
+        }
       }
       if (
         (c as any).uidt === 'Links' ||
@@ -348,19 +355,21 @@ function expectSnapshotEqual(
 // in direction-2 it seeds the sandbox after manual setup. Generates one of
 // every entity type the sandbox replay layer cares about, so the snapshot
 // covers system columns, default views, all view-types, sort, filter, hook,
-// extension, dashboard, widget, duplicate-widget, script, workflow, baseVar.
+// extension, dashboard, widget, duplicate-widget, script, workflow, baseVar,
+// and the relational chain (LTAR / Lookup / Rollup / linkFilter, including
+// the hidden mm junction).
 //
-// `includeRelational` toggles LTAR / Lookup / Rollup / link-filter seeding.
-// These all hinge on LTAR column ID preservation, which is implemented for the
-// master→sandbox direction (DuplicateProcessor copies meta verbatim) but not
-// yet for the sandbox→master replay direction (the LTAR + hidden-mm-table IDs
-// are regenerated). Direction-2 leaves them out to avoid masking that gap.
+// View sections and record templates are exercised by `seedSandboxOnlyEntities`
+// which only runs on the sandbox-side seed: the trace pipeline records and
+// replays them, but the snapshot test doesn't assert on their IDs because
+// (a) `applyMeta` (master→sandbox copy) doesn't list those tables yet, and
+// (b) `nc_view_sections` PK is `id` alone — master+sandbox rows would
+// collide on replay. Both are pre-existing gaps tracked separately.
 
 async function seedAllEntities(
   context: Context,
   workspaceId: string,
   baseId: string,
-  options: { includeRelational: boolean } = { includeRelational: true },
 ) {
   const tCreate = await v3Post(
     context,
@@ -575,104 +584,103 @@ async function seedAllEntities(
     `formula columnAdd: ${JSON.stringify(formulaRes.body)}`,
   ).to.eq(200);
 
-  if (options.includeRelational) {
-    // Second table to host the LTAR / Lookup / Rollup target columns.
-    const tTarget = await v3Post(
-      context,
-      `/api/v3/meta/bases/${baseId}/tables`,
-      {
-        title: 'IDP_Target',
-        fields: [
-          { title: 'TName', type: 'SingleLineText' },
-          { title: 'TNum', type: 'Number' },
-        ],
-      },
-    );
-    expect(
-      tTarget.status,
-      `target tableCreate: ${JSON.stringify(tTarget.body)}`,
-    ).to.eq(200);
-    const targetTableId = tTarget.body.id;
-    const targetNameColId = tTarget.body.fields.find(
-      (f: any) => f.title === 'TName',
-    ).id;
-    const targetNumColId = tTarget.body.fields.find(
-      (f: any) => f.title === 'TNum',
-    ).id;
+  // Second table to host the LTAR / Lookup / Rollup target columns.
+  const tTarget = await v3Post(
+    context,
+    `/api/v3/meta/bases/${baseId}/tables`,
+    {
+      title: 'IDP_Target',
+      fields: [
+        { title: 'TName', type: 'SingleLineText' },
+        { title: 'TNum', type: 'Number' },
+      ],
+    },
+  );
+  expect(
+    tTarget.status,
+    `target tableCreate: ${JSON.stringify(tTarget.body)}`,
+  ).to.eq(200);
+  const targetTableId = tTarget.body.id;
+  const targetNameColId = tTarget.body.fields.find(
+    (f: any) => f.title === 'TName',
+  ).id;
+  const targetNumColId = tTarget.body.fields.find(
+    (f: any) => f.title === 'TNum',
+  ).id;
 
-    // LTAR (mm) — creates a hidden junction table whose IDs also need to
-    // round-trip across replay.
-    const ltarRes = await v3Post(
-      context,
-      `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
-      {
-        title: 'IDP_Link',
-        type: 'Links',
-        options: { relation_type: 'mm', related_table_id: targetTableId },
-      },
-    );
-    expect(
-      ltarRes.status,
-      `ltar columnAdd: ${JSON.stringify(ltarRes.body)}`,
-    ).to.eq(200);
-    const ltarColId = ltarRes.body.id;
+  // LTAR (mm) — creates a hidden junction table whose IDs also need to
+  // round-trip across replay.
+  const ltarRes = await v3Post(
+    context,
+    `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
+    {
+      title: 'IDP_Link',
+      type: 'Links',
+      options: { relation_type: 'mm', related_table_id: targetTableId },
+    },
+  );
+  expect(
+    ltarRes.status,
+    `ltar columnAdd: ${JSON.stringify(ltarRes.body)}`,
+  ).to.eq(200);
+  const ltarColId = ltarRes.body.id;
 
-    // Lookup on top of the LTAR.
-    const lookupRes = await v3Post(
-      context,
-      `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
-      {
-        title: 'IDP_Lookup',
-        type: 'Lookup',
-        options: {
-          related_field_id: ltarColId,
-          related_table_lookup_field_id: targetNameColId,
-        },
+  // Lookup on top of the LTAR.
+  const lookupRes = await v3Post(
+    context,
+    `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
+    {
+      title: 'IDP_Lookup',
+      type: 'Lookup',
+      options: {
+        related_field_id: ltarColId,
+        related_table_lookup_field_id: targetNameColId,
       },
-    );
-    expect(
-      lookupRes.status,
-      `lookup columnAdd: ${JSON.stringify(lookupRes.body)}`,
-    ).to.eq(200);
+    },
+  );
+  expect(
+    lookupRes.status,
+    `lookup columnAdd: ${JSON.stringify(lookupRes.body)}`,
+  ).to.eq(200);
 
-    // Rollup on top of the LTAR.
-    const rollupRes = await v3Post(
-      context,
-      `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
-      {
-        title: 'IDP_Rollup',
-        type: 'Rollup',
-        options: {
-          related_field_id: ltarColId,
-          related_table_rollup_field_id: targetNumColId,
-          rollup_function: 'count',
-        },
+  // Rollup on top of the LTAR.
+  const rollupRes = await v3Post(
+    context,
+    `/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`,
+    {
+      title: 'IDP_Rollup',
+      type: 'Rollup',
+      options: {
+        related_field_id: ltarColId,
+        related_table_rollup_field_id: targetNumColId,
+        rollup_function: 'count',
       },
-    );
-    expect(
-      rollupRes.status,
-      `rollup columnAdd: ${JSON.stringify(rollupRes.body)}`,
-    ).to.eq(200);
+    },
+  );
+  expect(
+    rollupRes.status,
+    `rollup columnAdd: ${JSON.stringify(rollupRes.body)}`,
+  ).to.eq(200);
 
-    // Filter scoped to the LTAR — exercises `linkFilterCreate` so a
-    // FILTER_EXP row keyed by `fk_link_col_id` enters the snapshot.
-    const lfRes = await internalPost(
-      context,
-      workspaceId,
-      baseId,
-      { operation: 'linkFilterCreate', columnId: ltarColId },
-      {
-        fk_column_id: targetNameColId,
-        comparison_op: 'eq',
-        value: 'lf',
-        logical_op: 'and',
-      },
-    );
-    expect(
-      lfRes.status,
-      `linkFilterCreate: ${JSON.stringify(lfRes.body)}`,
-    ).to.eq(200);
-  }
+  // Filter scoped to the LTAR — exercises `linkFilterCreate` so a
+  // FILTER_EXP row keyed by `fk_link_col_id` enters the snapshot.
+  const lfRes = await internalPost(
+    context,
+    workspaceId,
+    baseId,
+    { operation: 'linkFilterCreate', columnId: ltarColId },
+    {
+      fk_column_id: targetNameColId,
+      comparison_op: 'eq',
+      value: 'lf',
+      logical_op: 'and',
+    },
+  );
+  expect(
+    lfRes.status,
+    `linkFilterCreate: ${JSON.stringify(lfRes.body)}`,
+  ).to.eq(200);
+
 
   // Sync source — exercises `syncSourceCreate` route → `syncCreate` contract.
   const syncRes = await internalPost(
@@ -689,6 +697,47 @@ async function seedAllEntities(
   expect(
     syncRes.status,
     `syncSourceCreate: ${JSON.stringify(syncRes.body)}`,
+  ).to.eq(200);
+}
+
+// View sections + record templates — exercise the trace pipeline. Skipped
+// for master→sandbox because `applyMeta` doesn't yet copy these tables and
+// `nc_view_sections.id` is the lone PK (sandbox+master rows would collide).
+async function seedSandboxOnlyEntities(
+  context: Context,
+  workspaceId: string,
+  baseId: string,
+) {
+  const tables = await Model.list(
+    { workspace_id: workspaceId, base_id: baseId },
+    { base_id: baseId },
+  );
+  const tableId = tables.find((t) => t.title === 'IDP_Table')!.id;
+
+  const vsRes = await internalPost(
+    context,
+    workspaceId,
+    baseId,
+    { operation: 'viewSectionCreate', tableId },
+    { title: 'IDP_Section', order: 1 },
+  );
+  expect(
+    vsRes.status,
+    `viewSectionCreate: ${JSON.stringify(vsRes.body)}`,
+  ).to.eq(200);
+
+  const rtRes = await v3Post(
+    context,
+    `/api/v2/meta/bases/${baseId}/tables/${tableId}/record-templates`,
+    {
+      title: 'IDP_Template',
+      template_data: { fields: {} },
+      enabled: true,
+    },
+  );
+  expect(
+    rtRes.status,
+    `record template create: ${JSON.stringify(rtRes.body)}`,
   ).to.eq(200);
 }
 
@@ -741,12 +790,11 @@ export function sandboxIdPreservationTests() {
         masterId,
       );
 
-      // Seed sandbox (master starts empty). Skip relational columns until
-      // sandbox→master replay learns to preserve LTAR + hidden-mm-table IDs;
-      // this is the same gap noted in the seedAllEntities header comment.
-      await seedAllEntities(context, workspaceId, sandboxBaseId, {
-        includeRelational: false,
-      });
+      // Seed sandbox (master starts empty). Full snapshot — relational and
+      // sandbox-aware surfaces (view sections, record templates) all
+      // round-trip via the replay path.
+      await seedAllEntities(context, workspaceId, sandboxBaseId);
+      await seedSandboxOnlyEntities(context, workspaceId, sandboxBaseId);
 
       const sandboxSnapshot = await collectIds(workspaceId, sandboxBaseId);
 

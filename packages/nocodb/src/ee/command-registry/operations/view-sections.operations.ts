@@ -6,7 +6,7 @@ import { ViewSection } from '~/models';
 import { viewSectionActions } from '~/decorators/trace-command-descriptions';
 
 const createSchema = z.object({
-  viewId: z.string(),
+  tableId: z.string(),
   section: z
     .object({
       title: z.string().optional(),

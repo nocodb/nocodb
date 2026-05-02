@@ -481,10 +481,9 @@ if (param.req?.__commandTraced) return originalMethod.apply(this, args);
 
 Never set re-entrancy flags on `req` or `param`. The ALS scope handles it.
 
-### Known gaps — don't extend tests against these
+### LTAR replay — capture side-effect IDs
 
-- **LTAR ID preservation on sandbox→master replay is broken**. The LTAR column add path regenerates both the column ID and the hidden mm junction table ID. Lookup/Rollup/linkFilter ops that reference the LTAR by ID then fail validation on replay. Master→sandbox works (DuplicateProcessor copies meta verbatim). `sandbox-id-preservation.test.ts` gates relational seeding behind `includeRelational: false` for direction 2 — leave it off until the LTAR/mm replay path honors pre-set IDs.
-- **A traced wrapper without a route is dead code**. Some services expose both `.create(...)` (legacy) and `.fooCreate(context, param)` (`@TraceCommand`-wrapped); the controller calls `.create(...)` so the wrapper never fires. **View sections** and **record templates** are in this state. If you ship a sandbox-aware change in either surface, migrate the controller to call the wrapped method first — otherwise the trace doesn't fire and replay sees nothing.
+LTAR creates aren't a single insert — they trigger a fan of side-effect rows (junction model, FK columns, back-link columns, reverse LTAR) that must keep stable IDs across the merge. The recording side captures them onto `param._ltarCapture` (filtered from the changelog params via `NON_SERIALIZABLE_KEYS`, surfaced via `extraCommandMeta` → `meta.extra.ltar`). The replay handler in `columns.handlers.ts` threads `assocColumnIds` onto `additionalContext.sandboxColumnIds` (read by `Column.bulkInsert`) and the rest onto `param._ltarReplayIds` (read at each `Column.insert` / `Model.insert` site inside `createLTARColumn`). When you add a new fan-out create path (e.g. a new entity with hidden side-effect rows), follow this pattern — don't rely on `idField` alone.
 
 ## Testing
 

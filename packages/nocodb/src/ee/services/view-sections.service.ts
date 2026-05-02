@@ -184,12 +184,12 @@ export class ViewSectionsService {
   async viewSectionCreate(
     context: NcContext,
     param: {
-      viewId: string;
+      tableId: string;
       section: ViewSectionCreateReqType;
       req: NcRequest;
     },
   ): Promise<ViewSectionType> {
-    return this.create(context, param.viewId, param.section, param.req);
+    return this.create(context, param.tableId, param.section, param.req);
   }
 
   @TraceCommand(OperationName.viewSectionUpdate)

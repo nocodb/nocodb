@@ -117,7 +117,8 @@ export const relationDataFetcher = (param: {
           extractPkAndPv: true,
           fieldsSet: args.fieldsSet,
           pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
-          fk_display_value_column_id: relationColOpts.fk_display_value_column_id,
+          fk_display_value_column_id:
+            relationColOpts.fk_display_value_column_id,
           linksAsLtar,
         });
         const view = relationColOpts.fk_target_view_id
@@ -601,7 +602,8 @@ export const relationDataFetcher = (param: {
           qb,
           fieldsSet: args.fieldSet,
           pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
-          fk_display_value_column_id: relationColOpts.fk_display_value_column_id,
+          fk_display_value_column_id:
+            relationColOpts.fk_display_value_column_id,
           linksAsLtar,
         });
 

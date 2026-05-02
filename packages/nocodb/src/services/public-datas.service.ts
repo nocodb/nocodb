@@ -1040,7 +1040,8 @@ export class PublicDatasService {
       query: sanitizePublicQuery(param.query),
       model,
       extractOnlyPrimaries: true,
-      fk_display_value_column_id: (colOptions as any).fk_display_value_column_id,
+      fk_display_value_column_id: (colOptions as any)
+        .fk_display_value_column_id,
     });
 
     const listArgs: DependantFields & {

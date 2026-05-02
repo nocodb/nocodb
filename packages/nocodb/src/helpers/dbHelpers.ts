@@ -358,7 +358,11 @@ export function checkColumnRequired(
 
   // keep the LTAR's custom display value column whenever we're extracting
   // pk/pv-only rows — treat it as if it were pv for downstream rendering
-  if (extractPkAndPv && fk_display_value_column_id && column.id === fk_display_value_column_id)
+  if (
+    extractPkAndPv &&
+    fk_display_value_column_id &&
+    column.id === fk_display_value_column_id
+  )
     return true;
 
   // check fields defined and if not, then select all

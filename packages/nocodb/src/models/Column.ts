@@ -1073,7 +1073,6 @@ export default class Column<T = any> implements ColumnType {
     // the runtime ever queries against a soft-deleted display column.
     await Column.clearDisplayValueColumnReferences(context, id, ncMeta);
 
-
     // Delete from view columns
     let colOptionTableName = null;
     let cacheScopeName = null;
@@ -1997,13 +1996,9 @@ export default class Column<T = any> implements ColumnType {
       },
     );
 
-    await NocoCache.update(
-      context,
-      `${CacheScope.COL_RELATION}:${colId}`,
-      {
-        fk_display_value_column_id,
-      },
-    );
+    await NocoCache.update(context, `${CacheScope.COL_RELATION}:${colId}`, {
+      fk_display_value_column_id,
+    });
   }
 
   // Clear fk_display_value_column_id on every LTAR row that points at `colId`.

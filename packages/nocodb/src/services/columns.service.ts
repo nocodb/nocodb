@@ -13,8 +13,8 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isMMOrMMLike,
-  isSupportedDisplayValueColumn,
   isServiceUser,
+  isSupportedDisplayValueColumn,
   isSystemColumn,
   isVirtualCol,
   LinksVersion,
@@ -5573,8 +5573,7 @@ export class ColumnsService implements IColumnsService {
       // The override column always lives on the linked table (never "self").
       const linkedTableId =
         ltarReq.type === 'bt' ? ltarReq.parentId : ltarReq.childId;
-      const linkedTable =
-        table.id === linkedTableId ? table : refTable;
+      const linkedTable = table.id === linkedTableId ? table : refTable;
       const hmBtDisplayValueColumnId = resolveDisplayValueColumnOrThrow(
         context,
         linkedTable,
@@ -7131,8 +7130,7 @@ export class ColumnsService implements IColumnsService {
             fk_mm_parent_column_id: parentCol.id,
             fk_related_model_id: btColOptions.fk_related_model_id,
             fk_target_view_id: btColOptions.fk_target_view_id,
-            fk_display_value_column_id:
-              btColOptions.fk_display_value_column_id,
+            fk_display_value_column_id: btColOptions.fk_display_value_column_id,
             virtual: isVirtual,
             version: LinksVersion.V2,
             ...refCrossBaseLinkProps,
@@ -7566,8 +7564,7 @@ export class ColumnsService implements IColumnsService {
             fk_mm_parent_column_id: colOptions.fk_mm_parent_column_id,
             fk_related_model_id: colOptions.fk_related_model_id,
             fk_target_view_id: colOptions.fk_target_view_id,
-            fk_display_value_column_id:
-              colOptions.fk_display_value_column_id,
+            fk_display_value_column_id: colOptions.fk_display_value_column_id,
             virtual: colOptions.virtual,
             column_order: mmColumnOrder,
             // Cross-base properties — needed for cross-base relations

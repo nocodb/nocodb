@@ -112,7 +112,15 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         continue;
       }
 
-      if (!checkColumnRequired(column, fields, extractPkAndPv, fk_display_value_column_id)) continue;
+      if (
+        !checkColumnRequired(
+          column,
+          fields,
+          extractPkAndPv,
+          fk_display_value_column_id,
+        )
+      )
+        continue;
 
       switch (column.uidt) {
         case UITypes.CreatedTime:

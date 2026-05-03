@@ -34,6 +34,8 @@ import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 // todo: move
 async function xcVisibilityMetaGet(
@@ -670,12 +672,14 @@ export class ViewsService {
     return true;
   }
 
+  @TraceCommand(OperationName.showAllColumns)
   async showAllColumns(
     context: NcContext,
     param: {
       viewId: string;
       ignoreIds?: string[];
       levelId?: string;
+      req?: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
@@ -724,12 +728,14 @@ export class ViewsService {
     return true;
   }
 
+  @TraceCommand(OperationName.hideAllColumns)
   async hideAllColumns(
     context: NcContext,
     param: {
       viewId: string;
       ignoreIds?: string[];
       levelId?: string;
+      req?: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
@@ -781,5 +787,64 @@ export class ViewsService {
 
   async shareViewList(context: NcContext, param: { tableId: string }) {
     return await View.shareViewList(context, param.tableId);
+  }
+
+  async viewColumnsBulkSetVisibility(
+    context: NcContext,
+    param: {
+      viewId: string;
+      // Map of view-column id (NOT underlying column id) → desired show flag.
+      columnVisibility: Record<string, boolean>;
+      req?: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
+    ncMeta?: MetaService,
+  ) {
+    const view = await View.get(context, param.viewId, false, ncMeta);
+    if (!view) {
+      NcError.get(context).viewNotFound(param.viewId);
+    }
+
+    const viewWebhookManager: ViewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
+
+    for (const [viewColumnId, show] of Object.entries(
+      param.columnVisibility ?? {},
+    )) {
+      await View.updateColumn(
+        context,
+        param.viewId,
+        viewColumnId,
+        { show: !!show },
+        ncMeta,
+      );
+    }
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_column_refresh',
+          payload: { fk_view_id: param.viewId },
+        },
+      },
+      context.socket_id,
+    );
+
+    if (!param.viewWebhookManager) {
+      (
+        await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())
+      ).emit();
+    }
+
+    return true;
   }
 }

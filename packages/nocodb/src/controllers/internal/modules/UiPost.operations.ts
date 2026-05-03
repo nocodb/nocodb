@@ -260,12 +260,14 @@ export class UiPostOperations
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
           levelId: req.query.levelId,
+          req,
         });
       case 'hideAllColumns':
         return await this.viewsService.hideAllColumns(context, {
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
           levelId: req.query.levelId,
+          req,
         });
       case 'viewColumnUpdate':
         return await this.viewColumnsService.columnUpdate(context, {

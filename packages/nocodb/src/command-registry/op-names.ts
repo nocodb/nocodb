@@ -47,6 +47,9 @@ export const OperationName = {
   viewColumnUpdate: 'viewColumnUpdate',
   gridColumnUpdate: 'gridColumnUpdate',
   formColumnUpdate: 'formColumnUpdate',
+  showAllColumns: 'showAllColumns',
+  hideAllColumns: 'hideAllColumns',
+  viewColumnsBulkSetVisibility: 'viewColumnsBulkSetVisibility',
 
   // Sorts
   sortCreate: 'sortCreate',

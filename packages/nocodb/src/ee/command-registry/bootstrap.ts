@@ -8,6 +8,7 @@ import { registerFilterHandlers } from './handlers/filters.handlers';
 import {
   registerFormColumnHandlers,
   registerGridColumnHandlers,
+  registerShowHideAllHandlers,
   registerSortHandlers,
   registerViewColumnHandlers,
 } from './handlers/sorts-visibilities.handlers';
@@ -105,6 +106,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     registerViewColumnHandlers(this.viewColumnsSvc);
     registerGridColumnHandlers(this.gridColumnsSvc);
     registerFormColumnHandlers(this.formColumnsSvc);
+    registerShowHideAllHandlers(this.viewsSvc);
     registerHookHandlers(this.hooksSvc);
     registerExtensionHandlers(this.extensionsSvc);
     registerDashboardHandlers(this.dashboardsSvc);

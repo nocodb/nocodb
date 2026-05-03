@@ -6,7 +6,7 @@ import type {
   MetaDependencyEventRequest,
   MetaEventHandler,
 } from '~/services/meta-dependency/types';
-import { Source, View } from '~/models';
+import { Filter, Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
@@ -58,18 +58,11 @@ export class ColumnUpdateFilterOperatorDependencyHandler
     const newCol = param.newEntity;
     if (!oldCol?.id || !newCol?.id) return;
 
-    // Snapshot view IDs whose filters may be rewritten so we can broadcast.
-    const affectedViewIds = new Set<string>(
-      (
-        await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.FILTER_EXP,
-          { condition: { fk_column_id: oldCol.id } },
-        )
-      )
-        .map((f: any) => f.fk_view_id)
-        .filter(Boolean),
+    const affectedFilters = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILTER_EXP,
+      { condition: { fk_column_id: oldCol.id } },
     );
 
     try {
@@ -95,30 +88,31 @@ export class ColumnUpdateFilterOperatorDependencyHandler
       );
     }
 
-    this.broadcastViewUpdates(context, affectedViewIds).catch((e) =>
+    this.broadcastFilterChanges(context, affectedFilters).catch((e) =>
       this.logger.error(
-        `Failed to broadcast view_update events: ${e?.message}`,
+        `Failed to broadcast filter_update/filter_delete events: ${e?.message}`,
         e?.stack,
       ),
     );
   }
 
-  private async broadcastViewUpdates(
+  private async broadcastFilterChanges(
     context: NcContext,
-    viewIds: Set<string>,
+    beforeFilters: any[],
   ): Promise<void> {
-    for (const viewId of viewIds) {
-      const view = await View.get(context, viewId, false, Noco.ncMeta);
-      if (!view) continue;
-      await view.getView(context, Noco.ncMeta);
-      NocoSocket.broadcastEvent(
-        context,
-        {
+    for (const before of beforeFilters) {
+      const after = await Filter.get(context, before.id, Noco.ncMeta);
+      if (after) {
+        NocoSocket.broadcastEvent(context, {
           event: EventType.META_EVENT,
-          payload: { action: 'view_update', payload: view },
-        },
-        context.socket_id,
-      );
+          payload: { action: 'filter_update', payload: after },
+        });
+      } else {
+        NocoSocket.broadcastEvent(context, {
+          event: EventType.META_EVENT,
+          payload: { action: 'filter_delete', payload: before },
+        });
+      }
     }
   }
 }

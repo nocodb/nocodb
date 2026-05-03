@@ -684,7 +684,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       : super.readRecord(param);
   }
 
-  async updateByPk(id, data, trx?, cookie?, disableOptimization = false) {
+  async updateByPk(
+    id,
+    data,
+    trx?,
+    cookie?,
+    disableOptimization = false,
+    { typecast = false }: { typecast?: boolean } = {},
+  ) {
     try {
       const columns = await this.model.getColumns(this.context);
 
@@ -696,7 +703,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         columns,
       );
 
-      await this.validate(data, columns);
+      await this.validate(data, columns, { typecast });
 
       await this.beforeUpdate(data, cookie);
 
@@ -3064,6 +3071,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       undo = false,
       mergeColumns,
       throwOnDuplicate = false,
+      typecast = false,
     }: {
       _chunkSize?: number;
       cookie?: any;
@@ -3073,6 +3081,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       undo?: boolean;
       mergeColumns?: Column[];
       throwOnDuplicate?: boolean;
+      typecast?: boolean;
     } = {},
   ) {
     const insertQueries: string[] = [];
@@ -3083,12 +3092,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       let order = await this.getHighestOrderInTable();
 
-      // validate and prepare data
+      // When `typecast` is true, validate sequentially — missing select
+      // options are added inline via `Column.update`, and concurrent
+      // validates would race on the option-title unique constraint.
+      // Without typecast there's no Column.update, so concurrent is safe.
+      if (!raw && typecast) {
+        for (const d of datas) {
+          await this.validate(d, columns, { typecast });
+        }
+      }
+
       const preparedDatas = raw
         ? datas
         : await Promise.all(
             datas.map(async (d) => {
-              await this.validate(d, columns);
+              if (!typecast) await this.validate(d, columns);
               return this.model.mapAliasToColumn(
                 this.context,
                 d,

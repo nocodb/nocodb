@@ -131,14 +131,13 @@ export class ColumnDeleteRowColorDependencyHandler implements MetaEventHandler {
       const view = await View.get(context, viewId, false, Noco.ncMeta);
       if (!view) continue;
       await view.getView(context, Noco.ncMeta);
-      NocoSocket.broadcastEvent(
-        context,
-        {
-          event: EventType.META_EVENT,
-          payload: { action: 'view_update', payload: view },
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_update',
+          payload: { ...view, from_row_color: true },
         },
-        context.socket_id,
-      );
+      });
     }
   }
 }

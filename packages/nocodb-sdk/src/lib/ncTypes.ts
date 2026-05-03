@@ -24,13 +24,51 @@ export interface NcContext {
   nc_site_url?: string;
   timezone?: string;
   suppressDependencyEvaluation?: boolean;
-  additionalContext?: Record<string, any>;
+  additionalContext?: NcAdditionalContext;
   schema_locked?: boolean;
   cache?: boolean;
   cacheMap?: any;
   permissions?: any;
   is_api_token?: boolean;
   is_public?: boolean;
+}
+
+/**
+ * Optional bag of cross-cutting flags threaded down the call chain via
+ * `NcContext`. Keep this list short and named — adding a key here is the
+ * preferred way to flow request-scoped state into deep model code without
+ * resorting to globals or AsyncLocalStorage.
+ *
+ * `[key: string]: unknown` keeps the door open for ad-hoc additions, but
+ * new in-tree usage should declare a typed key here so reads at the model
+ * layer don't require casts.
+ */
+export interface NcAdditionalContext {
+  /**
+   * Set by the sandbox merge replay AND by the per-tab undo/redo dispatcher.
+   * Models that auto-generate IDs honor a pre-set `id` only when this flag
+   * is true — preserves the original id across replay/undo cycles so
+   * downstream FKs and inverse params stay valid.
+   */
+  is_replay?: boolean;
+  /**
+   * During sandbox replay of `tableCreate`: maps sandbox-side column IDs
+   * to the production-side IDs assigned earlier in the same merge, so
+   * `Column.bulkInsert` can preserve cross-references.
+   */
+  sandboxColumnIds?: Record<string, string>;
+  /**
+   * During sandbox replay of `tableCreate`: id of the default view created
+   * sandbox-side, so the production-side default view gets the same id.
+   */
+  sandboxDefaultViewId?: string;
+  /**
+   * Set inside the date-dependency propagation loop to break recursion —
+   * downstream BaseModel ops skip propagating again when this is true.
+   */
+  isDatePropagating?: boolean;
+  /** Allow ad-hoc keys without forcing every caller through this interface. */
+  [key: string]: unknown;
 }
 
 export interface NcRequest extends Partial<Request> {

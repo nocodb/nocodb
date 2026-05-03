@@ -3050,7 +3050,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       .where(await this._wherePk(rowId));
   }
 
-  async updateByPk(id, data, trx?, cookie?, _disableOptimization = false) {
+  async updateByPk(
+    id,
+    data,
+    trx?,
+    cookie?,
+    _disableOptimization = false,
+    { typecast = false }: { typecast?: boolean } = {},
+  ) {
     try {
       const columns = await this.model.getColumns(this.context);
 
@@ -3062,7 +3069,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         columns,
       );
 
-      await this.validate(data, columns);
+      await this.validate(data, columns, { typecast });
 
       await this.beforeUpdate(data, cookie);
 
@@ -3671,6 +3678,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo = false,
       mergeColumns,
       throwOnDuplicate = false,
+      typecast = false,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -3679,6 +3687,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo?: boolean;
       mergeColumns?: Column[];
       throwOnDuplicate?: boolean;
+      typecast?: boolean;
     } = {},
   ) {
     let trx;
@@ -3693,12 +3702,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
       const agPkCol = this.model.primaryKeys.find((pk) => pk.meta?.ag);
 
-      // validate and prepare data
+      // When `typecast` is true, validate sequentially — missing select
+      // options are added inline via `Column.update`, and concurrent
+      // validates would race on the option-title unique constraint.
+      // Without typecast there's no Column.update, so concurrent is safe.
+      if (!raw && typecast) {
+        for (const d of datas) {
+          await this.validate(d, columns, { typecast });
+        }
+      }
+
       const preparedDatas = raw
         ? datas
         : await Promise.all(
             datas.map(async (d) => {
-              await this.validate(d, columns);
+              if (!typecast) await this.validate(d, columns);
               return this.model.mapAliasToColumn(
                 this.context,
                 d,

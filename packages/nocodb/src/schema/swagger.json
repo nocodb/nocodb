@@ -11859,6 +11859,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       },
@@ -12115,6 +12123,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       },
@@ -12476,6 +12492,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       }
@@ -12687,6 +12711,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       },

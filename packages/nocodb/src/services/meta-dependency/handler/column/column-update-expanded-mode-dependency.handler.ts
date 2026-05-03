@@ -86,14 +86,10 @@ export class ColumnUpdateExpandedModeDependencyHandler
       const view = await View.get(context, viewId, false, Noco.ncMeta);
       if (!view) continue;
       await view.getView(context, Noco.ncMeta);
-      NocoSocket.broadcastEvent(
-        context,
-        {
-          event: EventType.META_EVENT,
-          payload: { action: 'view_update', payload: view },
-        },
-        context.socket_id,
-      );
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: { action: 'view_update', payload: view },
+      });
     }
   }
 }

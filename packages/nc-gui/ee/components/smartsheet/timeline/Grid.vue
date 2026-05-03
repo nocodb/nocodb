@@ -102,6 +102,19 @@ const handleVisibilityChange = () => {
 
 onMounted(() => {
   document.addEventListener('visibilitychange', handleVisibilityChange)
+
+  // Sync DOM scrollLeft to the store's scrollLeft on mount. New Grid
+  // instances (e.g., after a data reload that swapped in the loader, or after
+  // switching back to the timeline view) start with scrollLeft=0; without
+  // this, the first native scroll event from any source would call
+  // onScrollUpdate(0) and stomp currentDate to "the date at viewport-centre
+  // when scrolled to 0", which is not what the store says we're looking at.
+  nextTick(() => {
+    const target = storeScrollLeft.value
+    if (target <= 0) return
+    if (bodyScrollRef.value) bodyScrollRef.value.scrollLeft = target
+    if (headerScrollRef.value) headerScrollRef.value.scrollLeft = target
+  })
 })
 
 const ROW_HEIGHT = 36

@@ -500,10 +500,18 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       bufferEnd.value = date.startOf('day').add(days, 'day')
     }
 
+    // Both extend* functions are () => void. They mutate buffer refs and emit
+    // any scroll-delta the user's viewport needs to stay anchored on the same
+    // logical date — extendLeft prepends days (visible content shifts right
+    // in pixel space, so scrollLeft must shift right to compensate); extendRight
+    // appends days (no compensation unless the trim cap kicks in and bufferStart
+    // moves forward, in which case scrollLeft must shift left).
     const extendBufferLeft = () => {
+      const cw = colWidth.value
       const days = SCALE_CONFIG[zoomLevel.value].bufferDays
       const maxSpan = days * MAX_BUFFER_MULTIPLIER
       bufferStart.value = bufferStart.value.subtract(days, 'day')
+      scrollAdjustmentHook.trigger({ type: 'delta', value: days * cw })
       // Trim the far (right) edge if total span exceeds the cap. Safe because
       // edge-extension only fires when the user is near the *opposite* edge,
       // so the trimmed dates aren't visible.
@@ -511,10 +519,10 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       if (span > maxSpan) {
         bufferEnd.value = bufferEnd.value.subtract(span - maxSpan, 'day')
       }
-      return days * colWidth.value
     }
 
     const extendBufferRight = () => {
+      const cw = colWidth.value
       const days = SCALE_CONFIG[zoomLevel.value].bufferDays
       const maxSpan = days * MAX_BUFFER_MULTIPLIER
       bufferEnd.value = bufferEnd.value.add(days, 'day')
@@ -524,7 +532,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       if (span > maxSpan) {
         const trimDays = span - maxSpan
         bufferStart.value = bufferStart.value.add(trimDays, 'day')
-        scrollAdjustmentHook.trigger({ type: 'delta', value: -trimDays * colWidth.value })
+        scrollAdjustmentHook.trigger({ type: 'delta', value: -trimDays * cw })
       }
     }
 
@@ -570,8 +578,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
       // Edge-driven extension
       if (newScrollLeft < EXTEND_THRESHOLD_PX) {
-        const delta = extendBufferLeft()
-        scrollAdjustmentHook.trigger({ type: 'delta', value: delta })
+        extendBufferLeft()
       } else if (
         viewportWidth.value > 0 &&
         newScrollLeft + viewportWidth.value > totalGridWidth.value - EXTEND_THRESHOLD_PX

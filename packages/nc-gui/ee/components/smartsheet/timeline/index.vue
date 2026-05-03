@@ -291,6 +291,20 @@ const recordCountLabel = computed(() => {
   }
   return total > 0 ? t('msg.timelineRecordsCount', { total }) : ''
 })
+
+// Date-picker button width per zoom level. Wider scales need less space
+// (just a year/quarter label); finer scales need a full date.
+const dateButtonWidthClass: Record<TimelineZoomLevel, string> = {
+  day: 'w-48',
+  week: 'w-38',
+  '2week': 'w-38',
+  month: 'w-29',
+  quarter: 'w-29',
+  '6month': 'w-29',
+  year: 'w-29',
+  '2year': 'w-29',
+  '5year': 'w-29',
+}
 </script>
 
 <template>
@@ -314,18 +328,7 @@ const recordCountLabel = computed(() => {
         <!-- #7: Date Header with picker dropdown -->
         <NcDropdown v-model:visible="datePickerVisible" :trigger="['click']">
           <NcButton
-            :class="{
-              'w-29':
-                zoomLevel === 'month' ||
-                zoomLevel === 'quarter' ||
-                zoomLevel === '6month' ||
-                zoomLevel === 'year' ||
-                zoomLevel === '2year' ||
-                zoomLevel === '5year',
-              'w-38': zoomLevel === 'week' || zoomLevel === '2week',
-              'w-48': zoomLevel === 'day',
-            }"
-            class="nc-timeline-prev-next-btn !h-7"
+            :class="[dateButtonWidthClass[zoomLevel], 'nc-timeline-prev-next-btn !h-7']"
             full-width
             size="small"
             type="secondary"

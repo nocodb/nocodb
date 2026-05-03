@@ -338,7 +338,7 @@ const dateButtonWidthClass: Record<TimelineZoomLevel, string> = {
                 :class="{
                   'max-w-38 truncate': zoomLevel === 'week' || zoomLevel === '2week',
                 }"
-                class="font-medium text-[13px] text-center text-nc-content-gray"
+                class="font-medium text-[13px] leading-tight text-center text-nc-content-gray"
                 data-testid="nc-timeline-active-date"
               >
                 {{ dateRangeLabel }}

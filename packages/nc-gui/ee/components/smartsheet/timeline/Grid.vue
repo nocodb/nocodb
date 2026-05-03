@@ -5,6 +5,25 @@ import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
 
+// Pre-computed per-bar geometry + style. Built once per swimlanes recompute
+// (record / buffer / colWidth / rowMeta changes) so per-frame scroll
+// handlers and the template only do numeric / property reads.
+interface BarMeta {
+  record: RowType
+  colorIndex: number
+  startDate: dayjs.Dayjs
+  endDate: dayjs.Dayjs
+  startVisible: boolean
+  endVisible: boolean
+  leftPx: number
+  widthPx: number
+  // Row-coloring outputs (extractRowBackgroundColorStyle), pre-resolved so
+  // the template doesn't call it 4× per bar.
+  bgStyle: Record<string, string>
+  borderStyle: Record<string, string>
+  hasBgColor: boolean
+}
+
 const props = defineProps<{
   records: RowType[]
   visibleDates: dayjs.Dayjs[]
@@ -63,11 +82,6 @@ const fieldStyles = computed(() => {
     return acc
   }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
-
-// Extract row color styles (from Colour toolbar config)
-const getRowColorStyle = (record: RowType) => {
-  return extractRowBackgroundColorStyle(record)
-}
 
 // #18: Reactive today — re-evaluates on visibility change so it stays current past midnight
 const today = ref(dayjs())
@@ -475,14 +489,21 @@ const visibleRecords = computed(() => {
     })
 })
 
-// Swimlane packing: group non-overlapping records into lanes so bars sit side by side
-// Each lane is an array of { record, colorIndex } where colorIndex is the record's
-// position in the global visibleRecords list (for stable coloring).
-const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>>(() => {
+// Swimlane packing: group non-overlapping records into lanes so bars sit side
+// by side. Each entry carries pre-computed bar geometry (parsed dates,
+// visibility flags, leftPx/widthPx) so the per-scroll-tick render path
+// (`getLabelStyle`, bar `:style`, `:class`) only does numeric arithmetic.
+// `colorIndex` is the record's position in `visibleRecords` (stable coloring).
+const swimlanes = computed<BarMeta[][]>(() => {
   const range = props.timelineRange[0]
   if (!range) return []
 
-  const lanes: Array<{ records: Array<{ record: RowType; colorIndex: number }>; lastEnd: dayjs.Dayjs }> = []
+  const firstVisibleDate = props.visibleDates[0]
+  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
+  if (!firstVisibleDate || !lastVisibleDate) return []
+
+  const cw = colWidth.value
+  const lanes: Array<{ records: BarMeta[]; lastEnd: dayjs.Dayjs }> = []
 
   visibleRecords.value.forEach((record, idx) => {
     const startDate = parseDate(record, range.fk_from_col)
@@ -490,61 +511,72 @@ const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>
     if (!startDate) return
 
     const effectiveEnd = endDate || startDate
+    if (endDate && effectiveEnd.isBefore(startDate, 'day')) return
 
-    // Find the first lane where this record fits (no overlap)
+    const startVisible = !startDate.isBefore(firstVisibleDate, 'day')
+    const endVisible = !effectiveEnd.isAfter(lastVisibleDate, 'day')
+    const clampedStart = startVisible ? startDate : firstVisibleDate
+    const clampedEnd = endVisible ? effectiveEnd : lastVisibleDate
+    const startOffset = clampedStart.diff(firstVisibleDate, 'day')
+    const duration = clampedEnd.diff(clampedStart, 'day') + 1
+
+    const colorStyle = extractRowBackgroundColorStyle(record)
+    const leftBorder = colorStyle.rowLeftBorderColor as { backgroundColor?: string }
+    const meta: BarMeta = {
+      record,
+      colorIndex: idx,
+      startDate,
+      endDate: effectiveEnd,
+      startVisible,
+      endVisible,
+      leftPx: startOffset * cw,
+      // Allow bars to shrink to a 1px hairline at coarse zooms.
+      widthPx: Math.max(duration * cw - 4, 1),
+      bgStyle: colorStyle.rowBgColor as Record<string, string>,
+      borderStyle: leftBorder?.backgroundColor
+        ? (leftBorder as Record<string, string>)
+        : { backgroundColor: 'var(--color-gray-900, #101015)' },
+      hasBgColor: !!(colorStyle.rowBgColor as { backgroundColor?: string })?.backgroundColor,
+    }
+
     let placed = false
     for (const lane of lanes) {
       if (startDate.isAfter(lane.lastEnd, 'day')) {
-        lane.records.push({ record, colorIndex: idx })
+        lane.records.push(meta)
         lane.lastEnd = effectiveEnd
         placed = true
         break
       }
     }
 
-    // No existing lane fits — create a new one
     if (!placed) {
-      lanes.push({
-        records: [{ record, colorIndex: idx }],
-        lastEnd: effectiveEnd,
-      })
+      lanes.push({ records: [meta], lastEnd: effectiveEnd })
     }
   })
 
   return lanes.map((lane) => lane.records)
 })
 
-// Compute the position of the inner label relative to the bar so it stays
-// visible when the bar's start has scrolled past the viewport's left edge.
-// The label slides rightward as the user scrolls, but is clamped so it
-// never extends past the bar's right edge minus a small reserve for the
-// right resize handle / nav arrow.
-//
-// The 28px reserves for the per-bar nav arrows only apply when the
-// matching bar edge is actually in the viewport. Once the user has
-// scrolled past a bar edge, the arrow attached to it is off-screen too,
-// so the label can hug the visible portion with the smaller padding.
-const getLabelStyle = (row: RowType) => {
-  const bar = getBarStyle(row)
-  if (!bar) return null
-  const barLeftPx = parseFloat(bar.left)
-  const barWidthPx = parseFloat(bar.width)
-  const barRightPx = barLeftPx + barWidthPx
-
+// Pure arithmetic — no dayjs allocations, no string parsing. Reactive on
+// `storeScrollLeft` / `storeViewportWidth`; everything else comes from the
+// pre-computed `BarMeta`. The 28px reserves for the per-bar nav arrows
+// only apply when the matching bar edge is actually in the viewport — once
+// the user has scrolled past a bar edge, the arrow is off-screen too and
+// the label can hug the visible portion with the smaller padding.
+const getLabelStyle = (bar: BarMeta) => {
   const vpLeft = storeScrollLeft.value
   const vpRight = vpLeft + storeViewportWidth.value
+  const barRightPx = bar.leftPx + bar.widthPx
 
-  const leftArrowInView = !isStartVisible(row) && barLeftPx >= vpLeft
-  const rightArrowInView = !isEndVisible(row) && barRightPx <= vpRight
+  const leftArrowInView = !bar.startVisible && bar.leftPx >= vpLeft
+  const rightArrowInView = !bar.endVisible && barRightPx <= vpRight
   const startPad = leftArrowInView ? 28 : 10
   const endPad = rightArrowInView ? 28 : 8
 
-  const scrolledPast = Math.max(0, vpLeft - barLeftPx)
-  let leftInBar = scrolledPast + startPad
-
+  const scrolledPast = Math.max(0, vpLeft - bar.leftPx)
   const minLabelWidth = 8
-  const maxLeftInBar = Math.max(startPad, barWidthPx - endPad - minLabelWidth)
-  leftInBar = Math.min(leftInBar, maxLeftInBar)
+  const maxLeftInBar = Math.max(startPad, bar.widthPx - endPad - minLabelWidth)
+  const leftInBar = Math.min(scrolledPast + startPad, maxLeftInBar)
 
   return {
     left: `${leftInBar}px`,
@@ -552,93 +584,18 @@ const getLabelStyle = (row: RowType) => {
   }
 }
 
-// Get bar position and width for a record
-const getBarStyle = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return null
-
-  const startDate = parseDate(row, range.fk_from_col)
-  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
-
-  if (!startDate) return null
-
-  const effectiveEnd = endDate || startDate
-
-  // Skip records where end date is before start date
-  if (endDate && effectiveEnd.isBefore(startDate, 'day')) {
-    return null
-  }
-
-  const firstVisibleDate = props.visibleDates[0]
-  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
-
-  if (!firstVisibleDate || !lastVisibleDate) return null
-
-  // Check if bar is within visible range at all
-  if (effectiveEnd.isBefore(firstVisibleDate, 'day') || startDate.isAfter(lastVisibleDate, 'day')) {
-    return null
-  }
-
-  // Calculate start position
-  const clampedStart = startDate.isBefore(firstVisibleDate, 'day') ? firstVisibleDate : startDate
-  const clampedEnd = effectiveEnd.isAfter(lastVisibleDate, 'day') ? lastVisibleDate : effectiveEnd
-
-  const startOffset = clampedStart.diff(firstVisibleDate, 'day')
-  const duration = clampedEnd.diff(clampedStart, 'day') + 1
-
-  return {
-    left: `${startOffset * colWidth.value}px`,
-    // Allow bars to shrink to a thin line at coarse zoom levels — only floor
-    // at 1px so a single-day record still renders as a hairline.
-    width: `${Math.max(duration * colWidth.value - 4, 1)}px`,
-  }
-}
-
 // #11: Build tooltip text for a record bar — improved format with em-dash and year
-const getBarTooltip = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return ''
-
-  const startDate = parseDate(row, range.fk_from_col)
-  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
-
-  if (!startDate) return ''
-
-  const effectiveEnd = endDate || startDate
-  const days = effectiveEnd.diff(startDate, 'day') + 1
+const getBarTooltip = (bar: BarMeta) => {
+  const days = bar.endDate.diff(bar.startDate, 'day') + 1
 
   if (days <= 1) {
-    return startDate.format('MMM D, YYYY')
+    return bar.startDate.format('MMM D, YYYY')
   }
 
   // Show year on both sides if they differ, otherwise only on end
-  const sameYear = startDate.year() === effectiveEnd.year()
+  const sameYear = bar.startDate.year() === bar.endDate.year()
   const startFmt = sameYear ? 'MMM D' : 'MMM D, YYYY'
-  return `${startDate.format(startFmt)} — ${effectiveEnd.format('MMM D, YYYY')}  ·  ${days} days`
-}
-
-// Check if record's start date is visible (not clamped to before the viewport)
-const isStartVisible = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return false
-  const startDate = parseDate(row, range.fk_from_col)
-  if (!startDate) return false
-  const firstVisibleDate = props.visibleDates[0]
-  if (!firstVisibleDate) return false
-  return !startDate.isBefore(firstVisibleDate, 'day')
-}
-
-// Check if record's end date is visible (not clamped to after the viewport)
-const isEndVisible = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return false
-  const startDate = parseDate(row, range.fk_from_col)
-  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
-  const effectiveEnd = endDate || startDate
-  if (!effectiveEnd) return false
-  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
-  if (!lastVisibleDate) return false
-  return !effectiveEnd.isAfter(lastVisibleDate, 'day')
+  return `${bar.startDate.format(startFmt)} — ${bar.endDate.format('MMM D, YYYY')}  ·  ${days} days`
 }
 
 // Today indicator position (center of today's column, for the body's
@@ -656,31 +613,6 @@ const todayPosition = computed(() => {
   if (todayDayIdx.value < 0) return null
   return todayDayIdx.value * colWidth.value + colWidth.value / 2
 })
-
-// Per-bar navigation: get the start/end date for a clipped record
-const getRecordStartDate = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return null
-  return parseDate(row, range.fk_from_col)
-}
-
-const getRecordEndDate = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return null
-  const startDate = parseDate(row, range.fk_from_col)
-  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
-  return endDate || startDate
-}
-
-const navigateToRecordStart = (row: RowType) => {
-  const startDate = getRecordStartDate(row)
-  if (startDate) emit('navigateTo', startDate)
-}
-
-const navigateToRecordEnd = (row: RowType) => {
-  const endDate = getRecordEndDate(row)
-  if (endDate) emit('navigateTo', endDate)
-}
 
 // Grid-level navigation: for fully off-screen records (no bars visible at all)
 const hasFullyOffScreenBefore = computed(() => {
@@ -1072,70 +1004,62 @@ const onGridMouseLeave = () => {
 
             <!-- Bars in this lane -->
             <NcTooltip
-              v-for="({ record, colorIndex }, barIdx) in lane"
-              :key="colorIndex"
+              v-for="(bar, barIdx) in lane"
+              :key="bar.colorIndex"
               :disabled="isInteracting"
               placement="top"
               class="absolute top-1"
-              :style="getBarStyle(record)"
+              :style="{ left: `${bar.leftPx}px`, width: `${bar.widthPx}px` }"
             >
               <template #title>
-                <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
+                <span class="text-xs font-semibold">{{ getBarTooltip(bar) }}</span>
               </template>
               <div
                 class="nc-timeline-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group w-full relative overflow-hidden"
                 :class="{
-                  'cursor-grabbing': dragInProgress && dragRecord === record && canDrag,
+                  'cursor-grabbing': dragInProgress && dragRecord === bar.record && canDrag,
                   'cursor-grab': !isInteracting && canDrag,
                   'cursor-pointer hover:shadow-md': !isInteracting && !canDrag,
-                  'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
-                  'z-100 shadow-lg': isInteracting && interactionRecord === record,
-                  'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray':
-                    !getRowColorStyle(record).rowBgColor?.backgroundColor,
-                  'rounded-l-md': isStartVisible(record),
-                  'rounded-r-md': isEndVisible(record),
+                  'pointer-events-none opacity-30': isInteracting && interactionRecord !== bar.record,
+                  'z-100 shadow-lg': isInteracting && interactionRecord === bar.record,
+                  'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray': !bar.hasBgColor,
+                  'rounded-l-md': bar.startVisible,
+                  'rounded-r-md': bar.endVisible,
                 }"
                 :style="{
                   height: `${ROW_HEIGHT - 8}px`,
-                  ...getRowColorStyle(record).rowBgColor,
+                  ...bar.bgStyle,
                 }"
                 :data-lane="laneIdx"
                 :data-bar="barIdx"
                 data-testid="nc-timeline-bar"
-                :data-unique-id="record.rowMeta?.id"
+                :data-unique-id="bar.record.rowMeta?.id"
                 role="button"
                 tabindex="0"
-                @click="!isInteracting && !justFinishedResize && emit('expandRecord', record)"
-                @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
-                @mousedown.stop="onDragStart($event, record)"
+                @click="!isInteracting && !justFinishedResize && emit('expandRecord', bar.record)"
+                @keydown="onBarKeydown($event, bar.record, laneIdx, barIdx)"
+                @mousedown.stop="onDragStart($event, bar.record)"
               >
                 <!-- #17: Left border color accent — only when the record's start is in the visible range -->
                 <div
-                  v-if="isStartVisible(record)"
+                  v-if="bar.startVisible"
                   class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md pointer-events-none"
-                  :style="
-                    getRowColorStyle(record).rowLeftBorderColor?.backgroundColor
-                      ? getRowColorStyle(record).rowLeftBorderColor
-                      : { backgroundColor: 'var(--color-gray-900, #101015)' }
-                  "
+                  :style="bar.borderStyle"
                 />
                 <!-- Left resize handle (start date) — offset past the accent -->
                 <div
                   v-if="canResizeLeft"
                   class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-                  @mousedown.stop="onResizeStart('left', $event, record)"
+                  @mousedown.stop="onResizeStart('left', $event, bar.record)"
                 >
                   <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
-                <span
-                  class="absolute top-0 bottom-0 truncate inline-flex items-center"
-                  :style="getLabelStyle(record) ?? {}"
-                >
+                <span class="absolute top-0 bottom-0 truncate inline-flex items-center" :style="getLabelStyle(bar)">
                   <template v-for="field in fields" :key="field.id">
                     <LazySmartsheetPlainCell
-                      v-if="!isRowEmpty(record, field!)"
-                      v-model="record.row[field!.title!]"
+                      v-if="!isRowEmpty(bar.record, field!)"
+                      v-model="bar.record.row[field!.title!]"
                       class="text-xs"
                       :bold="fieldStyles[field.id]?.bold"
                       :column="field"
@@ -1147,9 +1071,9 @@ const onGridMouseLeave = () => {
 
                 <!-- Per-bar left nav arrow — when start is clipped -->
                 <div
-                  v-if="!isStartVisible(record)"
+                  v-if="!bar.startVisible"
                   class="nc-timeline-nav-arrow absolute left-0 top-0 h-full z-20 flex items-center"
-                  @click.stop="navigateToRecordStart(record)"
+                  @click.stop="emit('navigateTo', bar.startDate)"
                   @mousedown.stop
                 >
                   <div
@@ -1163,16 +1087,16 @@ const onGridMouseLeave = () => {
                 <div
                   v-if="canResizeRight && timelineRange[0]?.fk_to_col"
                   class="nc-timeline-resize-handle nc-timeline-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-                  @mousedown.stop="onResizeStart('right', $event, record)"
+                  @mousedown.stop="onResizeStart('right', $event, bar.record)"
                 >
                   <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
                 <!-- Per-bar right nav arrow — when end is clipped -->
                 <div
-                  v-if="!isEndVisible(record)"
+                  v-if="!bar.endVisible"
                   class="nc-timeline-nav-arrow absolute right-0 top-0 h-full z-20 flex items-center"
-                  @click.stop="navigateToRecordEnd(record)"
+                  @click.stop="emit('navigateTo', bar.endDate)"
                   @mousedown.stop
                 >
                   <div

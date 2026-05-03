@@ -59,6 +59,11 @@ const quarterOf = (d: dayjs.Dayjs): number => Math.floor(d.month() / 3) + 1
 // Extend the buffer once the user scrolls within this many pixels of an edge.
 const EXTEND_THRESHOLD_PX = 240
 
+// Cap total buffer span at this multiple of one extension chunk. Long
+// scroll sessions trim the opposite edge so visibleDates and the four
+// derived sparse arrays don't grow without bound.
+const MAX_BUFFER_MULTIPLIER = 6
+
 // Module-level cache to persist timeline navigation state across view switches.
 // Keyed by view ID so each timeline view remembers its own position.
 const _viewStateCache = new Map<string, { currentDate: string; zoomLevel: TimelineZoomLevel }>()
@@ -377,11 +382,14 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const recordsWithoutDates = computed(() => {
       if (!timelineRange.value?.length) return 0
-      const range = timelineRange.value[0]
-      return formattedData.value.filter((row) => {
-        const fromVal = range.fk_from_col?.title ? row.row?.[range.fk_from_col.title] : undefined
-        return !fromVal || !dayjs(fromVal).isValid()
-      }).length
+      const colTitle = timelineRange.value[0].fk_from_col?.title
+      if (!colTitle) return 0
+      let count = 0
+      for (const row of formattedData.value) {
+        const fromVal = row.row?.[colTitle]
+        if (!fromVal || !dayjs(fromVal).isValid()) count++
+      }
+      return count
     })
 
     const loadTimelineData = async () => {
@@ -475,13 +483,30 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const extendBufferLeft = () => {
       const days = SCALE_CONFIG[zoomLevel.value].bufferDays
+      const maxSpan = days * MAX_BUFFER_MULTIPLIER
       bufferStart.value = bufferStart.value.subtract(days, 'day')
+      // Trim the far (right) edge if total span exceeds the cap. Safe because
+      // edge-extension only fires when the user is near the *opposite* edge,
+      // so the trimmed dates aren't visible.
+      const span = bufferEnd.value.diff(bufferStart.value, 'day')
+      if (span > maxSpan) {
+        bufferEnd.value = bufferEnd.value.subtract(span - maxSpan, 'day')
+      }
       return days * colWidth.value
     }
 
     const extendBufferRight = () => {
       const days = SCALE_CONFIG[zoomLevel.value].bufferDays
+      const maxSpan = days * MAX_BUFFER_MULTIPLIER
       bufferEnd.value = bufferEnd.value.add(days, 'day')
+      // Trim the far (left) edge if total span exceeds the cap. Adjust
+      // scrollLeft so the visible content stays put after the trim.
+      const span = bufferEnd.value.diff(bufferStart.value, 'day')
+      if (span > maxSpan) {
+        const trimDays = span - maxSpan
+        bufferStart.value = bufferStart.value.add(trimDays, 'day')
+        scrollAdjustmentHook.trigger({ type: 'delta', value: -trimDays * colWidth.value })
+      }
     }
 
     // Compute and emit a scroll target so `date` ends up centred in the
@@ -561,16 +586,23 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     })
 
     // ---- Persistence: cache writes + cross-view restore ----
-    // Persist navigation state whenever currentDate or zoomLevel changes.
+    // Debounced cache write. `_lastCachedViewId` updates synchronously so the
+    // view-id watcher's "is this the view we were just navigating?" check
+    // stays correct even if the user switches views before the next flush.
+    // The Map write itself can lag without losing state — we capture values
+    // at change time, not at flush time.
+    const _persistViewState = useDebounceFn(
+      (viewId: string, isoDate: string, zoom: TimelineZoomLevel) => {
+        _viewStateCache.set(viewId, { currentDate: isoDate, zoomLevel: zoom })
+      },
+      250,
+    )
+
     watch([currentDate, zoomLevel], () => {
       const viewId = viewMeta.value?.id
-      if (viewId) {
-        _viewStateCache.set(viewId, {
-          currentDate: currentDate.value.toISOString(),
-          zoomLevel: zoomLevel.value,
-        })
-        _lastCachedViewId = viewId
-      }
+      if (!viewId) return
+      _lastCachedViewId = viewId
+      _persistViewState(viewId, currentDate.value.toISOString(), zoomLevel.value)
     })
 
     // When the active view changes (e.g., user switches back to timeline from

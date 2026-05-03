@@ -129,7 +129,6 @@ onMounted(() => {
 })
 
 const ROW_HEIGHT = 36
-const HEADER_HEIGHT = 32
 
 // Measure the grid container — drives viewport width for scroll math
 const gridContainerRef = ref<HTMLElement | null>(null)
@@ -908,7 +907,7 @@ const onGridMouseLeave = () => {
                single bg div + sparse weekend / gridline / label arrays. -->
           <div
             class="relative bg-nc-bg-default border-b border-nc-border-gray-medium"
-            :style="{ height: `${HEADER_HEIGHT}px`, width: `${totalGridWidth}px` }"
+            :style="{ height: `${TIMELINE_GROUP_HEADER_HEIGHT}px`, width: `${totalGridWidth}px` }"
           >
             <!-- Weekend stripes (only at fine zooms) -->
             <div

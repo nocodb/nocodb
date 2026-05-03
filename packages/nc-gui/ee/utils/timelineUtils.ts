@@ -1,17 +1,6 @@
 import dayjs from 'dayjs'
 
-export type TimelineZoomLevel =
-  | 'day'
-  | 'week'
-  | '2week'
-  | 'month'
-  | 'quarter'
-  | '6month'
-  | 'year'
-  | '2year'
-  | '5year'
-
-export const TIMELINE_ZOOM_LEVELS: TimelineZoomLevel[] = [
+export const TIMELINE_ZOOM_LEVELS = [
   'day',
   'week',
   '2week',
@@ -21,7 +10,9 @@ export const TIMELINE_ZOOM_LEVELS: TimelineZoomLevel[] = [
   'year',
   '2year',
   '5year',
-]
+] as const
+
+export type TimelineZoomLevel = (typeof TIMELINE_ZOOM_LEVELS)[number]
 
 export type GridlineUnit = 'day' | 'week' | 'fortnight' | 'month' | 'quarter'
 

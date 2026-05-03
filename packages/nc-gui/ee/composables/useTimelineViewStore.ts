@@ -170,13 +170,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const totalGridWidth = computed(() => visibleDates.value.length * colWidth.value)
 
-    // Header config for the current scale — drives whether/which major rows
-    // render, what the per-cell minor row shows, and the gridline cadence.
-    const headerConfig = computed(() => {
-      const cfg = SCALE_CONFIG[zoomLevel.value]
-      return { majorTiers: cfg.majorTiers, minorLabel: cfg.minorLabel, gridlineUnit: cfg.gridlineUnit }
-    })
-
     // Sparse gridline + label arrays, replacing per-day v-for loops in the
     // header and body. At year/5-year zoom levels the buffer holds 1.4k–3.7k
     // dates; iterating that many cells per scroll frame stalls Vue's diff
@@ -193,7 +186,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     // boundary date — i.e. the start of the next cell.
     const gridlineOffsets = computed(() => {
       const cw = colWidth.value
-      const unit = headerConfig.value.gridlineUnit
+      const unit = SCALE_CONFIG[zoomLevel.value].gridlineUnit
       const dates = visibleDates.value
       const offsets: Array<{ leftPx: number; key: string }> = []
       for (let i = 0; i < dates.length; i++) {
@@ -225,7 +218,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     // it's still per-day but those scales have small buffers anyway.
     const minorLabels = computed(() => {
       const cw = colWidth.value
-      const mode = headerConfig.value.minorLabel
+      const mode = SCALE_CONFIG[zoomLevel.value].minorLabel
       if (mode === 'none') return []
       const dates = visibleDates.value
       const showWeekday = mode === 'weekday-full' || mode === 'weekday-short' || mode === 'weekday-letter'

@@ -565,24 +565,48 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       viewportWidth.value = w
     }
 
-    // Re-anchor + scroll when zoom level changes — keeps `currentDate` centred.
+    // Re-anchor + scroll when zoom level changes — keep the *fractional* date
+    // at viewport centre stable across the scale switch.
     //
-    // We also project `scrollLeft.value` to the new target synchronously so
-    // any layout that derives from it (bar labels, viewport tests) stays
-    // consistent with the new buffer/colWidth on the very first frame. The
-    // imperative DOM scroll catches up via the hook below; its scroll event
-    // then fires onScrollUpdate with the same value (no-op).
-    watch(zoomLevel, () => {
-      const center = currentDate.value
+    // `currentDate` is rounded to whole days (via Math.floor in onScrollUpdate),
+    // so using it as the centre source loses up to half a day's worth of
+    // pixels. At fine zoom (day = 160 px) that's a visible 80 px shift on
+    // each scale change. Reading `scrollLeft + viewportWidth/2` against the
+    // OLD colWidth gives the exact fractional day offset, which we then
+    // re-position to viewport centre in the new layout.
+    //
+    // We also project `scrollLeft.value` synchronously so derived layout
+    // (bar labels, viewport tests) is consistent with new buffer/colWidth on
+    // the first frame. The imperative DOM scroll catches up in nextTick to
+    // handle scrollWidth changes (which can clamp the sync write if the new
+    // grid is wider than the old DOM had room for).
+    watch(zoomLevel, (_newLevel, oldLevel) => {
+      const oldColWidth = SCALE_CONFIG[oldLevel].colWidth
+      const newBufferDays = SCALE_CONFIG[zoomLevel.value].bufferDays
+
+      const fracOffset =
+        viewportWidth.value > 0 && oldColWidth > 0
+          ? (scrollLeft.value + viewportWidth.value / 2) / oldColWidth
+          : 0
+      const wholeDays = Math.floor(fracOffset)
+      const subdayFrac = fracOffset - wholeDays
+
+      const center = bufferStart.value.add(wholeDays, 'day')
+      currentDate.value = center
       reAnchorBuffer(center)
+
+      // After reAnchor: center is exactly `newBufferDays` whole days from
+      // the new bufferStart. Add `subdayFrac` to keep the fractional position.
+      const computeTarget = () =>
+        (newBufferDays + subdayFrac) * colWidth.value - viewportWidth.value / 2
+
       if (viewportWidth.value > 0) {
-        const dayOffset = center.diff(bufferStart.value, 'day')
-        const target = dayOffset * colWidth.value + colWidth.value / 2 - viewportWidth.value / 2
-        scrollLeft.value = Math.max(0, target)
+        scrollLeft.value = Math.max(0, computeTarget())
       }
-      // Wait for re-render before requesting scroll, since visibleDates length
-      // changes synchronously but DOM hasn't reflected it yet.
-      nextTick(() => requestScrollToDate(center))
+      nextTick(() => {
+        if (viewportWidth.value <= 0) return
+        scrollAdjustmentHook.trigger({ type: 'absolute', value: Math.max(0, computeTarget()) })
+      })
     })
 
     // ---- Persistence: cache writes + cross-view restore ----

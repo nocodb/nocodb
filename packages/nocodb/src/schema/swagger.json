@@ -21067,6 +21067,33 @@
           "in": "query",
           "description": "Team ID",
           "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "modelId",
+          "in": "query",
+          "description": "Model ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "query",
+          "description": "Row ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "urlOrPath",
+          "in": "query",
+          "description": "URL or Path of the attachment",
+          "required": false
         }
       ]
     },

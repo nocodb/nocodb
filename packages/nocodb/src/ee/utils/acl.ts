@@ -250,6 +250,7 @@ const permissionScopes = {
     'formViewGet',
     'baseGet',
     'tableGet',
+    'attachmentDownload',
     'dataList',
     'linkDataList',
     'bulkDataList',
@@ -795,6 +796,8 @@ const rolePermissions:
       baseGet: true,
       //table
       tableGet: true,
+      // attachment
+      attachmentDownload: true,
       // data
       dataList: true,
       linkDataList: true,
@@ -1469,6 +1472,7 @@ const permissionDescriptions: Record<string, string> = {
   formViewGet: 'view forms',
   baseGet: 'view base details',
   tableGet: 'view table details',
+  attachmentDownload: 'download attachments',
   dataList: 'view data',
   linkDataList: 'view data',
   bulkDataList: 'view data',

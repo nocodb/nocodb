@@ -20,6 +20,9 @@ export const OPERATION_SCOPES = {
   oAuthClientRegenerateSecret: 'org',
   checkDependency: 'base',
 
+  // Attachment Operations
+  attachmentDownload: 'base',
+
   // UI Get Operations
   tableGet: 'base',
   columnsHash: 'base',

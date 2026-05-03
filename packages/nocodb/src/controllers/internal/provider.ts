@@ -11,6 +11,7 @@ import { BaseListAllGetOperations } from '~/controllers/internal/modules/BaseLis
 import { InstanceAdminGetOperations } from '~/controllers/internal/modules/InstanceAdminGet.operations';
 import { IntegrationGetOperations } from '~/controllers/internal/modules/IntegrationGet.operations';
 import { IntegrationPostOperations } from '~/controllers/internal/modules/IntegrationPost.operations';
+import { AttachmentGetOperations } from '~/controllers/internal/modules/AttachmentGet.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -26,6 +27,7 @@ export const InternalApiModules = [
   InstanceAdminGetOperations,
   IntegrationGetOperations,
   IntegrationPostOperations,
+  AttachmentGetOperations,
 ];
 
 export const InternalApiModuleProvider = {

@@ -96,6 +96,7 @@ export type InternalGETResponseType = Promise<
   | HookLog[]
   | SyncConfig[]
   | { hash: string }
+  | { path?: string; url?: string }
   | { diff: BaseMetaDiff }
   | (RlsPolicy & { filters: Filter[] })
   | (RlsPolicy & { filters: Filter[] })[]

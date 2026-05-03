@@ -67,8 +67,6 @@ const _viewStateCache = new Map<string, { currentDate: string; zoomLevel: Timeli
 // so we don't re-navigate on every data reload.
 const _initializedViews = new Set<string>()
 
-// (FORTNIGHT_REF_SUNDAY moved to timelineUtils.ts for reuse by isCellBoundary helpers)
-
 const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
   (
     meta: Ref<TableType | undefined>,
@@ -850,7 +848,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       viewportWidth,
 
       // Header rendering
-      headerConfig,
       majorHeaderTiers,
       gridlineOffsets,
       weekendOffsets,

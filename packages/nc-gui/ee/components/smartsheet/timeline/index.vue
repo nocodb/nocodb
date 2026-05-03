@@ -142,8 +142,6 @@ const onFloatingNewRecord = () => {
   const range = timelineRange.value?.[0]
   if (!range?.fk_from_col?.title) return
 
-  $e('c:timeline:new-record-btn', { zoomLevel: zoomLevel.value })
-
   const midIdx = Math.floor(visibleDates.value.length / 2)
   const medianDate = visibleDates.value[midIdx] ?? visibleDates.value[0]
   if (!medianDate) return

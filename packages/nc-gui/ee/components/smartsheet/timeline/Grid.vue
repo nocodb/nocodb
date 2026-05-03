@@ -40,7 +40,6 @@ const {
   onScrollUpdate,
   setViewportWidth,
   onScrollAdjustment,
-  headerConfig,
   majorHeaderTiers,
   gridlineOffsets,
   weekendOffsets,

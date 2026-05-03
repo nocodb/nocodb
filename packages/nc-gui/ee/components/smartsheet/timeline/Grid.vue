@@ -10,6 +10,12 @@ import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
 // handlers and the template only do numeric / property reads.
 interface BarMeta {
   record: RowType
+  // Stable per-record key for v-for. Comes from the row's primary key when
+  // available — falls back to the records-array index so unsaved rows still
+  // diff correctly. Stable across swimlanes recomputes (visibleRecords
+  // changes, buffer trims) so Vue patches in place rather than remounting,
+  // preserving NcTooltip hover state.
+  key: string | number
   colorIndex: number
   startDate: dayjs.Dayjs
   endDate: dayjs.Dayjs
@@ -67,6 +73,11 @@ const {
 
 // Visible fields from the Fields menu (injected by parent Smartsheet/shared-view)
 const fields = inject(FieldsInj, ref())
+
+// Table meta — needed for primary-key extraction so each bar has a stable
+// v-for key across swimlanes recomputes (instead of using its index in
+// visibleRecords, which shifts when records are added/removed/reordered).
+const meta = inject(MetaInj, ref())
 
 // View column configs (for bold/italic/underline styles)
 const { fields: viewFields } = useViewColumnsOrThrow()
@@ -535,8 +546,10 @@ const swimlanes = computed<BarMeta[][]>(() => {
 
     const colorStyle = extractRowBackgroundColorStyle(record)
     const leftBorder = colorStyle.rowLeftBorderColor as { backgroundColor?: string }
-    const meta: BarMeta = {
+    const pk = extractPkFromRow(record.row, (meta.value?.columns ?? []) as ColumnType[])
+    const barMeta: BarMeta = {
       record,
+      key: pk ?? `__idx_${idx}`,
       colorIndex: idx,
       startDate,
       endDate: effectiveEnd,
@@ -555,7 +568,7 @@ const swimlanes = computed<BarMeta[][]>(() => {
     let placed = false
     for (const lane of lanes) {
       if (startDate.isAfter(lane.lastEnd, 'day')) {
-        lane.records.push(meta)
+        lane.records.push(barMeta)
         lane.lastEnd = effectiveEnd
         placed = true
         break
@@ -563,7 +576,7 @@ const swimlanes = computed<BarMeta[][]>(() => {
     }
 
     if (!placed) {
-      lanes.push({ records: [meta], lastEnd: effectiveEnd })
+      lanes.push({ records: [barMeta], lastEnd: effectiveEnd })
     }
   })
 
@@ -1018,7 +1031,7 @@ const onGridMouseLeave = () => {
             <!-- Bars in this lane -->
             <NcTooltip
               v-for="(bar, barIdx) in lane"
-              :key="bar.colorIndex"
+              :key="bar.key"
               :disabled="isInteracting"
               placement="top"
               class="absolute top-1"

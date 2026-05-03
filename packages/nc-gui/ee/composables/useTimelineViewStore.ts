@@ -65,12 +65,38 @@ const EXTEND_THRESHOLD_PX = 240
 const MAX_BUFFER_MULTIPLIER = 6
 
 // Module-level cache to persist timeline navigation state across view switches.
-// Keyed by view ID so each timeline view remembers its own position.
+// Keyed by view ID so each timeline view remembers its own position. Bounded
+// LRU — every view a user opens leaves an entry, so without a cap this would
+// grow unboundedly across long sessions.
+const MAX_CACHED_VIEWS = 50
 const _viewStateCache = new Map<string, { currentDate: string; zoomLevel: TimelineZoomLevel }>()
-
-// Track which views have already had their initial navigation performed,
-// so we don't re-navigate on every data reload.
 const _initializedViews = new Set<string>()
+
+// LRU helpers: re-insert on access so the most recently touched entry is
+// always last. When the cache exceeds MAX_CACHED_VIEWS, evict the oldest
+// entry from the head of the Map (insertion order is the LRU order).
+const lruViewCacheGet = (viewId: string) => {
+  const entry = _viewStateCache.get(viewId)
+  if (entry) {
+    _viewStateCache.delete(viewId)
+    _viewStateCache.set(viewId, entry)
+  }
+  return entry
+}
+
+const lruViewCacheSet = (
+  viewId: string,
+  entry: { currentDate: string; zoomLevel: TimelineZoomLevel },
+) => {
+  if (_viewStateCache.has(viewId)) _viewStateCache.delete(viewId)
+  _viewStateCache.set(viewId, entry)
+  while (_viewStateCache.size > MAX_CACHED_VIEWS) {
+    const oldest = _viewStateCache.keys().next().value
+    if (oldest === undefined) break
+    _viewStateCache.delete(oldest)
+    _initializedViews.delete(oldest)
+  }
+}
 
 const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
   (
@@ -617,7 +643,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     // at change time, not at flush time.
     const _persistViewState = useDebounceFn(
       (viewId: string, isoDate: string, zoom: TimelineZoomLevel) => {
-        _viewStateCache.set(viewId, { currentDate: isoDate, zoomLevel: zoom })
+        lruViewCacheSet(viewId, { currentDate: isoDate, zoomLevel: zoom })
       },
       250,
     )
@@ -635,7 +661,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       () => viewMeta.value?.id,
       (newViewId) => {
         if (!newViewId || newViewId === _lastCachedViewId) return
-        const cached = _viewStateCache.get(newViewId)
+        const cached = lruViewCacheGet(newViewId)
         if (cached) {
           zoomLevel.value = cached.zoomLevel
           const date = dayjs(cached.currentDate)
@@ -721,8 +747,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
                 if (row) {
                   Object.assign(row.row, updatedRow)
                   Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+                  Object.assign(row.oldRow, updatedRow)
                 }
-                Object.assign(row?.oldRow, updatedRow)
               },
               args: [clone(toUpdate), property],
             },
@@ -737,8 +763,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
                 if (row) {
                   Object.assign(row.row, updatedData)
                   Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+                  Object.assign(row.oldRow, updatedData)
                 }
-                Object.assign(row!.oldRow, updatedData)
               },
               args: [clone(toUpdate), property],
             },

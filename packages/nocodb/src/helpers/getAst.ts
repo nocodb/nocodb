@@ -30,6 +30,7 @@ import {
   GridViewColumn,
   KanbanView,
   KanbanViewColumn,
+  TimelineRange,
   View,
 } from '~/models';
 import { MetaTable } from '~/cli';
@@ -116,6 +117,19 @@ const getAst = async (
     const calenderRanges = await CalendarRange.read(context, view.id);
     if (calenderRanges) {
       dependencyFieldsForCalenderView = calenderRanges.ranges
+        .flatMap((obj) =>
+          [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
+        )
+        .map(String);
+    }
+  } else if (view && view.type === ViewTypes.TIMELINE) {
+    // Timeline date columns (start/end) drive the bar position. They are
+    // typically hidden in the Fields menu, so without explicitly forcing
+    // them through `allowedCols`, the data response would strip the values
+    // and the frontend would treat every record as "without dates".
+    const timelineRanges = await TimelineRange.read(context, view.id);
+    if (timelineRanges) {
+      dependencyFieldsForCalenderView = timelineRanges.ranges
         .flatMap((obj) =>
           [obj.fk_from_column_id, (obj as any).fk_to_column_id].filter(Boolean),
         )

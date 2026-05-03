@@ -426,12 +426,18 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
               getHiddenColumns: true,
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value]) }),
             })
-          : await fetchSharedViewData({
-              sortsArr: sorts.value,
-              filtersArr: [...nestedFilters.value],
-              where: where?.value ?? '',
-              limit: 400,
-            })
+          : await fetchSharedViewData(
+              {
+                sortsArr: sorts.value,
+                filtersArr: [...nestedFilters.value],
+                where: where?.value ?? '',
+                limit: 400,
+              },
+              // Preserve our limit. Without this opt, fetchSharedViewData
+              // overrides limit with paginationData.pageSize (default 25),
+              // which would cap the timeline at 25 records on shared views.
+              { isInfiniteScroll: true },
+            )
 
         formattedData.value = (res?.list ?? []).map((row: any) => ({
           row,

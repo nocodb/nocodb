@@ -355,7 +355,7 @@ const dateButtonWidthClass: Record<TimelineZoomLevel, string> = {
                 is-week-picker
                 header="v2"
                 size="medium"
-                @update:selected-date="onDatePickerSelect"
+                @update:selected-week="(w: { start: dayjs.Dayjs; end: dayjs.Dayjs }) => onDatePickerSelect(w.start)"
               />
               <NcDateWeekSelector
                 v-else-if="zoomLevel === 'day'"

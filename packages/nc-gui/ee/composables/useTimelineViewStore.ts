@@ -421,7 +421,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         const res = !isPublic.value
           ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id as string, {
               where: where?.value ?? '',
-              limit: 400,
+              limit: TIMELINE_RECORD_LIMIT,
               include_row_color: true,
               getHiddenColumns: true,
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value]) }),
@@ -431,7 +431,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
                 sortsArr: sorts.value,
                 filtersArr: [...nestedFilters.value],
                 where: where?.value ?? '',
-                limit: 400,
+                limit: TIMELINE_RECORD_LIMIT,
               },
               // Preserve our limit. Without this opt, fetchSharedViewData
               // overrides limit with paginationData.pageSize (default 25),

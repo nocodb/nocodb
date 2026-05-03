@@ -434,7 +434,7 @@ const dateButtonWidthClass: Record<TimelineZoomLevel, string> = {
             <span v-if="recordsWithoutDates > 0">
               {{ $t('msg.timelineRecordsMissingDates', { count: recordsWithoutDates }, recordsWithoutDates) }}
             </span>
-            <span v-else>{{ $t('msg.timelineTotalRecordsLoaded', { max: 400 }) }}</span>
+            <span v-else>{{ $t('msg.timelineTotalRecordsLoaded', { max: TIMELINE_RECORD_LIMIT }) }}</span>
           </template>
 
           {{ recordCountLabel }}

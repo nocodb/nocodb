@@ -55,3 +55,11 @@ export function isGridlineBoundary(date: dayjs.Dayjs, unit: GridlineUnit): boole
 /** Shared layout constants for timeline views */
 export const TIMELINE_GROUP_SIDEBAR_WIDTH = 200
 export const TIMELINE_GROUP_HEADER_HEIGHT = 32
+
+/**
+ * Maximum number of records loaded into the timeline at once. The timeline
+ * fetches everything up-front (no date-windowed pagination yet) and renders
+ * bars in-memory. This cap balances memory + initial-fetch cost against
+ * realistic dataset sizes; raise it once the windowed-fetch follow-up lands.
+ */
+export const TIMELINE_RECORD_LIMIT = 2000

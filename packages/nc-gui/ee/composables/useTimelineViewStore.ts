@@ -610,14 +610,23 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       const oldColWidth = SCALE_CONFIG[oldLevel].colWidth
       const newBufferDays = SCALE_CONFIG[zoomLevel.value].bufferDays
 
-      const fracOffset =
-        viewportWidth.value > 0 && oldColWidth > 0
-          ? (scrollLeft.value + viewportWidth.value / 2) / oldColWidth
-          : 0
-      const wholeDays = Math.floor(fracOffset)
-      const subdayFrac = fracOffset - wholeDays
+      // When the viewport has been measured (the normal case — user clicked
+      // the zoom dropdown), read the *fractional* date at viewport centre
+      // off the old layout. When it hasn't been measured yet (initial mount
+      // via the cache-restore path, before Grid measures itself), fall back
+      // to the current `currentDate` so we don't stomp it to bufferStart;
+      // the pending-scroll mechanism re-issues once the viewport arrives.
+      let center: dayjs.Dayjs
+      let subdayFrac = 0
+      if (viewportWidth.value > 0 && oldColWidth > 0) {
+        const fracOffset = (scrollLeft.value + viewportWidth.value / 2) / oldColWidth
+        const wholeDays = Math.floor(fracOffset)
+        subdayFrac = fracOffset - wholeDays
+        center = bufferStart.value.add(wholeDays, 'day')
+      } else {
+        center = currentDate.value
+      }
 
-      const center = bufferStart.value.add(wholeDays, 'day')
       currentDate.value = center
       reAnchorBuffer(center)
 
@@ -628,11 +637,15 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
       if (viewportWidth.value > 0) {
         scrollLeft.value = Math.max(0, computeTarget())
+        nextTick(() => {
+          if (viewportWidth.value <= 0) return
+          scrollAdjustmentHook.trigger({ type: 'absolute', value: Math.max(0, computeTarget()) })
+        })
+      } else {
+        // No viewport yet — defer to the pending-scroll path so the date
+        // ends up centred once Grid measures itself.
+        _pendingScrollDate.value = center
       }
-      nextTick(() => {
-        if (viewportWidth.value <= 0) return
-        scrollAdjustmentHook.trigger({ type: 'absolute', value: Math.max(0, computeTarget()) })
-      })
     })
 
     // ---- Persistence: cache writes + cross-view restore ----

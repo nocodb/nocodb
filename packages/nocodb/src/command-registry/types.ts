@@ -31,7 +31,16 @@ import type { OperationName } from './op-names';
  * a handler in the matching `handlers/` file — see `CLAUDE.md` for the full
  * end-to-end checklist.
  */
-export interface OperationContract<S extends ZodTypeAny = ZodTypeAny> {
+export interface OperationContract<
+  S extends ZodTypeAny = ZodTypeAny,
+  /**
+   * Shape of `ResolvedCtx['extra']` for this contract. Lets `resolveCtx` /
+   * `buildInverse` / `skipIf` see typed pre-state instead of casting through
+   * `as any`. Defaults to `Record<string, any>` so existing contracts that
+   * stash `{ fieldTitle, tableTitle }` keep compiling.
+   */
+  E = Record<string, any>,
+> {
   readonly name: OperationName;
   readonly version: number;
   readonly entity: MetaTable;
@@ -47,18 +56,51 @@ export interface OperationContract<S extends ZodTypeAny = ZodTypeAny> {
   readonly parentTitle?: string | EntityRefFn<S>;
   readonly description?: string | DescFn;
 
-  readonly resolveCtx?: (ctx: NcContext, p: z.infer<S>) => Promise<ResolvedCtx>;
+  readonly resolveCtx?: (
+    ctx: NcContext,
+    p: z.infer<S>,
+  ) => Promise<ResolvedCtx<E>>;
   readonly skipIf?: (
     ctx: NcContext,
     p: z.infer<S>,
     r: any,
-    resolved?: ResolvedCtx,
+    resolved?: ResolvedCtx<E>,
   ) => Promise<boolean> | boolean;
   readonly deps?: (p: z.infer<S>, r: any) => TraceCommandDep[];
   readonly extraCommandMeta?: (
     p: z.infer<S>,
     r: any,
   ) => Record<string, any> | undefined;
+
+  /**
+   * If defined, the operation is undoable. `recordCommand` writes a row to
+   * `nc_operation_logs` after the forward op succeeds, capturing the inverse
+   * op name + params returned here. Undo dispatches the inverse via
+   * `OperationRegistry.resolve(name, version)`.
+   *
+   * Return `null` to skip recording (e.g. operation was a no-op).
+   *
+   * Runs after the forward op completes — has access to the result so it can
+   * read auto-assigned IDs or pre-state captured via `resolveCtx`.
+   */
+  readonly buildInverse?: (
+    ctx: NcContext,
+    p: z.infer<S>,
+    r: any,
+    resolved?: ResolvedCtx<E>,
+  ) => Promise<InverseOp | null> | InverseOp | null;
+}
+
+/**
+ * The inverse of a forward op — what undo dispatches via the OperationRegistry.
+ * `name` must match a registered contract's `name`. `params` is `unknown` at
+ * the type level (the forward and inverse contracts are decoupled); the
+ * dispatcher narrows via the resolved contract's schema at runtime.
+ */
+export interface InverseOp {
+  name: OperationName;
+  version?: number;
+  params: unknown;
 }
 
 export type EntityRefFn<S extends ZodTypeAny> = (
@@ -98,10 +140,10 @@ export interface TraceCommandDep {
   id: string;
 }
 
-export interface ResolvedCtx {
+export interface ResolvedCtx<E = Record<string, any>> {
   entityTitle?: string;
   parentEntityTitle?: string;
-  extra?: Record<string, any>;
+  extra?: E;
 }
 
 export interface DescCtx {

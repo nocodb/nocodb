@@ -65,3 +65,6 @@ export { default as WorkflowSubscriber } from './WorkflowSubscriber';
 // Bookmark-related models (EE only)
 export { default as Bookmark } from './Bookmark';
 export { default as BookmarkGroup } from './BookmarkGroup';
+
+// Undo/redo
+export { default as OperationLog } from './OperationLog';

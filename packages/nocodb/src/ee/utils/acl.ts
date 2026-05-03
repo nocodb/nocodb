@@ -613,6 +613,11 @@ const permissionScopes = {
     'baseTrashRestoreRows',
     'baseTrashPermanentDelete',
     'baseTrashEmpty',
+
+    // Undo / redo (per-(user, base, tab))
+    'undo',
+    'redo',
+    'undoStatus',
   ],
 } as const;
 
@@ -1102,6 +1107,12 @@ const rolePermissions:
       baseTrashList: true,
       baseTrashRestore: true,
       baseTrashRestoreRows: true,
+
+      // Undo / redo — editor is the min role since undo/redo only reverts
+      // mutations, and editors are the lowest role allowed to mutate.
+      undo: true,
+      redo: true,
+      undoStatus: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -1475,6 +1486,11 @@ const permissionDescriptions: Record<string, string> = {
   baseTrashRestoreRows: 'restore specific records from base trash by row id',
   baseTrashPermanentDelete: 'permanently delete an item from base trash',
   baseTrashEmpty: 'empty all trash for a base',
+
+  // undo / redo
+  undo: 'undo the latest action in this base + tab',
+  redo: 'redo the latest undone action in this base + tab',
+  undoStatus: 'check whether undo / redo are available',
 
   // Teams permissions
   teamList: 'view list of teams in the workspace',

@@ -35,6 +35,8 @@ useUserSync()
 
 useRealtime()
 
+useUndoRedo()
+
 applyNonSelectable()
 
 const { chatwootInit } = useProvideChatwoot()

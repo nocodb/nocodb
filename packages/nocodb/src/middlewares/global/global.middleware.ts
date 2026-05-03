@@ -13,6 +13,11 @@ export class GlobalMiddleware implements NestMiddleware {
       Noco.config?.ncSiteUrl || req.protocol + '://' + req.get('host');
     req.ncFullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 
+    const tabId = req.headers?.['x-nc-tab-id'];
+    if (typeof tabId === 'string' && tabId) {
+      req.ncTabId = tabId;
+    }
+
     const dashboardPath = this.config.get('dashboardPath', {
       infer: true,
     });

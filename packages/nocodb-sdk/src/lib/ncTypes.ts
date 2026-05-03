@@ -15,6 +15,12 @@ export interface NcContext {
   };
   fk_model_id?: string;
   socket_id?: string;
+  /**
+   * Per-tab UUID propagated from the GUI via the `x-nc-tab-id` request header.
+   * Used to scope per-tab server-side state (e.g. undo/redo) so Cmd-Z in tab A
+   * doesn't see edits made in tab B by the same user.
+   */
+  tab_id?: string;
   nc_site_url?: string;
   timezone?: string;
   suppressDependencyEvaluation?: boolean;
@@ -30,6 +36,7 @@ export interface NcContext {
 export interface NcRequest extends Partial<Request> {
   context: NcContext;
   ncSocketId?: string;
+  ncTabId?: string;
   ncWorkspaceId?: string;
   ncBaseId?: string;
   ncSourceId?: string;

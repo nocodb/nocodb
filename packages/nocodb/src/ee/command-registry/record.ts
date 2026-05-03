@@ -8,7 +8,7 @@ import type {
   ResolvedCtx,
   TraceCommandDep,
 } from './types';
-import { Sandbox, SandboxChangelog } from '~/models';
+import { OperationLog, Sandbox, SandboxChangelog } from '~/models';
 
 const logger = new Logger('CommandRegistry');
 
@@ -116,7 +116,20 @@ function resolveEntityInfo(
 }
 
 /**
- * Validate params + extras, resolve metadata, insert changelog row.
+ * Validate params + extras, resolve metadata, write changelog rows.
+ *
+ * Two destinations:
+ *  - `nc_sandbox_changelog` — when called against a sandbox base. Drives the
+ *    sandbox→production replay pipeline.
+ *  - `nc_operation_logs` — when the contract has `buildInverse` AND the
+ *    request carries a tab id (`x-nc-tab-id`). Drives per-tab undo/redo.
+ *
+ * The two are independent: a non-sandbox call with an undoable contract
+ * writes only the operation log; a sandbox call with no `buildInverse`
+ * writes only the sandbox changelog. Replay calls (`__isReplay`) skip the
+ * operation log to avoid recording the inverse-as-forward and ending up
+ * with a stack that fights itself.
+ *
  * Throws on schema-validation failure (strict mode).
  */
 export async function recordCommand(
@@ -128,11 +141,19 @@ export async function recordCommand(
 ): Promise<void> {
   if (!context?.base_id) return;
 
-  const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
-  if (!sandbox) return;
-
   const userId = param?.req?.user?.id || param?.user?.id;
   if (!userId) return;
+
+  // Decide upfront whether either destination will write — schema.parse and
+  // resolveEntityInfo can be expensive (deep zod), so skip both when nothing
+  // is recorded. This matters for API-token / job traffic on a production
+  // base with no `x-nc-tab-id`: previously we paid the full validation cost
+  // for every traced op only to drop the row.
+  const isUndoableCandidate =
+    !!contract.buildInverse && !param?.req?.__isReplay && !!param?.req?.ncTabId;
+
+  const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
+  if (!sandbox && !isUndoableCandidate) return;
 
   const replayableParams = extractReplayableParams(param);
 
@@ -148,6 +169,47 @@ export async function recordCommand(
       : extraRaw;
 
   const info = resolveEntityInfo(contract, param, result, resolvedCtx);
+
+  await Promise.all([
+    sandbox
+      ? insertSandboxChangelog(
+          context,
+          contract,
+          sandbox,
+          param,
+          result,
+          info,
+          validatedParams,
+          extra,
+          userId,
+        )
+      : null,
+    isUndoableCandidate
+      ? maybeRecordUndoEntry(
+          context,
+          contract,
+          param,
+          result,
+          resolvedCtx,
+          info,
+          validatedParams,
+          userId,
+        )
+      : null,
+  ]);
+}
+
+async function insertSandboxChangelog(
+  context: NcContext,
+  contract: OperationContract,
+  sandbox: Sandbox,
+  param: any,
+  result: any,
+  info: EntityInfo,
+  validatedParams: unknown,
+  extra: Record<string, unknown> | undefined,
+  userId: string,
+): Promise<void> {
   const deps = contract.deps
     ? safeExtractDeps(contract.deps, param, result)
     : [];
@@ -174,5 +236,52 @@ export async function recordCommand(
       command,
       ...(deps.length ? { deps } : {}),
     }),
+  });
+}
+
+async function maybeRecordUndoEntry(
+  context: NcContext,
+  contract: OperationContract,
+  param: any,
+  result: any,
+  resolvedCtx: ResolvedCtx | undefined,
+  info: EntityInfo,
+  validatedParams: unknown,
+  userId: string,
+): Promise<void> {
+  if (!contract.buildInverse) return;
+
+  // Don't record undo entries during sandbox replay — replay would otherwise
+  // build inverses for operations that were already recorded by the original
+  // user mutation, doubling the stack and breaking redo.
+  if (param?.req?.__isReplay) return;
+
+  const tabId = param?.req?.ncTabId;
+  if (!tabId) return;
+
+  let inverse: Awaited<ReturnType<NonNullable<typeof contract.buildInverse>>>;
+  try {
+    inverse = await contract.buildInverse(context, param, result, resolvedCtx);
+  } catch (e: any) {
+    logger.warn(
+      `buildInverse ${contract.name}@${contract.version}: ${e?.message}`,
+    );
+    return;
+  }
+  if (!inverse) return;
+
+  await OperationLog.insert(context, {
+    fk_user_id: userId,
+    tab_id: tabId,
+    forward_op: contract.name,
+    forward_op_version: contract.version,
+    forward_params: validatedParams,
+    inverse_op: inverse.name,
+    inverse_op_version: inverse.version ?? 1,
+    inverse_params: inverse.params,
+    entity_type: contract.entity,
+    entity_id: info.entityId,
+    entity_title: info.entityTitle?.substring(0, 255),
+    description: info.description?.substring(0, 500),
   });
 }

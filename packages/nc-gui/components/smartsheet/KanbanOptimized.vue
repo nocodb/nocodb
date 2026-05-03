@@ -69,7 +69,6 @@ const {
   updateKanbanMeta,
   shouldScrollToRight,
   deleteRow,
-  moveHistory,
   addNewStackId,
   removeRowFromUncategorizedStack,
   uncategorizedStackId,
@@ -82,8 +81,6 @@ const { isViewDataLoading, isActiveViewFieldHeaderVisible } = storeToRefs(useVie
 const { isUIAllowed } = useRoles()
 
 const { appInfo, isMobileMode } = useGlobal()
-
-const { addUndo, defineViewScope } = useUndoRedo()
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
@@ -400,7 +397,7 @@ function onMoveCallback(event: { draggedContext: { futureIndex: number } }) {
   }
 }
 
-async function onMoveStack(event: any, undo = false) {
+async function onMoveStack(event: any) {
   if (event.moved) {
     const { oldIndex, newIndex } = event.moved
 
@@ -420,67 +417,17 @@ async function onMoveStack(event: any, undo = false) {
     await updateKanbanMeta({
       meta: updatedStackMetaObj,
     })
-
-    if (!undo) {
-      addUndo({
-        undo: {
-          fn: async (e: any) => {
-            const undoStackMeta = [...groupingFieldColOptions.value]
-            undoStackMeta[e.moved.newIndex] = { ...undoStackMeta[e.moved.newIndex], order: e.moved.oldIndex }
-            undoStackMeta[e.moved.oldIndex] = { ...undoStackMeta[e.moved.oldIndex], order: e.moved.newIndex }
-
-            const undoStackMetaObj = {
-              ...stackMetaObj.value,
-              [kanbanMetaData.value.fk_grp_col_id!]: undoStackMeta,
-            }
-
-            await updateKanbanMeta({ meta: undoStackMetaObj })
-          },
-          args: [{ moved: { oldIndex, newIndex } }],
-        },
-        redo: {
-          fn: async (e: any) => {
-            const redoStackMeta = [...groupingFieldColOptions.value]
-            redoStackMeta[e.moved.oldIndex] = { ...redoStackMeta[e.moved.oldIndex], order: e.moved.newIndex }
-            redoStackMeta[e.moved.newIndex] = { ...redoStackMeta[e.moved.newIndex], order: e.moved.oldIndex }
-
-            const redoStackMetaObj = {
-              ...stackMetaObj.value,
-              [kanbanMetaData.value.fk_grp_col_id!]: redoStackMeta,
-            }
-
-            await updateKanbanMeta({ meta: redoStackMetaObj })
-          },
-          args: [{ moved: { oldIndex, newIndex } }],
-        },
-        scope: defineViewScope({ view: view.value }),
-      })
-    }
   }
 }
 
 async function onMove(event: any, stackKey: string) {
   if (event.added) {
     const ele = event.added.element
-
-    moveHistory.value.unshift({
-      op: 'added',
-      pk: extractPkFromRow(event.added.element.row, meta.value!.columns!),
-      index: event.added.newIndex,
-      stack: stackKey,
-    })
-
     ele.row[groupingField.value] = stackKey
     countByStack.value.set(stackKey, countByStack.value.get(stackKey)! + 1)
     await updateOrSaveRow(ele)
   } else if (event.removed) {
     countByStack.value.set(stackKey, countByStack.value.get(stackKey)! - 1)
-    moveHistory.value.unshift({
-      op: 'removed',
-      pk: extractPkFromRow(event.removed.element.row, meta.value!.columns!),
-      index: event.removed.oldIndex,
-      stack: stackKey,
-    })
   }
 }
 

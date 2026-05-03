@@ -37,8 +37,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const { extension, tables, getViewsForTable, getTableMeta, updateData, reloadData, activeBaseId, activeTableId, activeViewId } =
     useExtensionHelperOrThrow()
 
-  const { clone } = useUndoRedo()
-
   const { isAllowed } = usePermissions()
 
   const { getMeta } = useMetas()
@@ -402,7 +400,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   }
 
   const getFieldValue = (fieldId: string, recordIndex: number) => {
-    const record = cachedRows.value.get(recordIndex) ? clone(cachedRows.value.get(recordIndex)!) : null
+    const record = cachedRows.value.get(recordIndex) ? deepClone(cachedRows.value.get(recordIndex)!) : null
     if (!record) return null
 
     const field = meta.value?.columns?.find((col) => col.id === fieldId)
@@ -423,7 +421,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
     if (!ncIsNumber(mergeState.value.primaryRecordIndex)) return row
 
-    const primaryRecord = clone(cachedRows.value.get(mergeState.value.primaryRecordIndex!))
+    const primaryRecord = deepClone(cachedRows.value.get(mergeState.value.primaryRecordIndex!))
 
     row.row = primaryRecord?.row ?? {}
     row.oldRow = primaryRecord?.oldRow ?? {}
@@ -599,7 +597,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     try {
       const mergedData: Record<string, any> = {}
 
-      const primaryRecord = clone(cachedRows.value.get(mergeState.value.primaryRecordIndex!))
+      const primaryRecord = deepClone(cachedRows.value.get(mergeState.value.primaryRecordIndex!))
 
       const linkPromises = []
 
@@ -629,7 +627,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
           mergedData[fieldKey] = primaryRecordRowInfo.value.row[fieldKey]
         } else if (isMm(field)) {
-          const copyFromRow = clone(cachedRows.value.get(mergeState.value.selectedFields[field.id!]!))
+          const copyFromRow = deepClone(cachedRows.value.get(mergeState.value.selectedFields[field.id!]!))
 
           if (!copyFromRow || !primaryRecord || mergeState.value.selectedFields[field.id!] === undefined) continue
 

@@ -139,7 +139,7 @@ const saveData = async () => {
           }
         }
       }
-      await props.bulkUpdateRows(props.rows, propsToUpdate, undefined, false, path.value)
+      await props.bulkUpdateRows(props.rows, propsToUpdate, undefined, path.value)
     }
   } finally {
     isExpanded.value = false

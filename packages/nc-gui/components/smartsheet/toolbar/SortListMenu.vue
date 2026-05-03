@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { type ColumnType, type LinkToAnotherRecordType, UITypesName, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isColumnInError, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import rfdc from 'rfdc'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
 const meta = inject(MetaInj, ref())
@@ -9,7 +8,6 @@ const view = inject(ActiveViewInj, ref())
 const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 const isPublic = inject(IsPublicInj, ref(false))
-const clone = rfdc()
 const { t } = useI18n()
 const { eventBus, isList } = useSmartsheetStoreOrThrow()
 
@@ -89,7 +87,7 @@ const levelTableColumns = computed(() => {
 })
 
 const columns = computed(() =>
-  clone(levelTableColumns.value).map((c) => {
+  deepClone(levelTableColumns.value).map((c) => {
     const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt) || isColumnInError(c)
 
     if (isDisabled) {
@@ -145,7 +143,7 @@ const open = ref(false)
 useMenuCloseOnEsc(open)
 
 const addSort = (column: ColumnType) => {
-  _addSort(true, column)
+  _addSort(column)
 
   const createdSort = sorts.value[sorts.value.length - 1]
 

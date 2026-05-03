@@ -1,4 +1,3 @@
-import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
@@ -12,8 +11,6 @@ import {
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
-
-const clone = rfdc()
 
 const useForm = Form.useForm
 
@@ -125,7 +122,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const formState = ref<Record<string, any>>({
       ...defaultFormState,
       uidt: fromTableExplorer?.value ? defaultType : null,
-      ...clone(column.value || {}),
+      ...deepClone(column.value || {}),
     })
 
     const isAiMode = computed(() => {

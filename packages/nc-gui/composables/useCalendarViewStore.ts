@@ -215,8 +215,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { t } = useI18n()
 
-    const { addUndo, clone, defineViewScope } = useUndoRedo()
-
     const baseStore = useBase()
 
     const { base } = storeToRefs(baseStore)
@@ -724,15 +722,6 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     }
 
-    function findRowInState(rowData: Record<string, any>) {
-      const pk: Record<string, string> = rowPkData(rowData, meta?.value?.columns as ColumnType[])
-      for (const row of formattedData.value) {
-        if (Object.keys(pk).every((k) => pk[k] === row.row[k])) {
-          return row
-        }
-      }
-    }
-
     const paginateCalendarView = async (action: 'next' | 'prev') => {
       switch (activeCalendarView.value) {
         case 'month':
@@ -810,7 +799,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     }
 
-    async function updateRowProperty(toUpdate: Row, property: string[], undo = false) {
+    async function updateRowProperty(toUpdate: Row, property: string[], isDelete = false) {
       try {
         const id = extractPkFromRow(toUpdate.row, meta?.value?.columns as ColumnType[])
 
@@ -840,36 +829,9 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           // }
         )
 
-        if (!undo) {
-          addUndo({
-            redo: {
-              fn: async (toUpdate: Row, property: string[]) => {
-                const updatedRow = await updateRowProperty(toUpdate, property, true)
-                const row = findRowInState(toUpdate.row)
-                if (row) {
-                  Object.assign(row.row, updatedRow)
-                }
-                Object.assign(row?.oldRow, updatedRow)
-              },
-              args: [clone(toUpdate), property],
-            },
-            undo: {
-              fn: async (toUpdate: Row, property: string[]) => {
-                const updatedData = await updateRowProperty(
-                  { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
-                  property,
-                  true,
-                )
-                const row = findRowInState(toUpdate.row)
-                if (row) {
-                  Object.assign(row.row, updatedData)
-                }
-                Object.assign(row!.oldRow, updatedData)
-              },
-              args: [clone(toUpdate), property],
-            },
-            scope: defineViewScope({ view: viewMeta.value as ViewType }),
-          })
+        // Skip local row mutation when the row is being deleted —
+        // the row is about to be removed from the view, no point updating it.
+        if (!isDelete) {
           Object.assign(toUpdate.row, updatedRowData)
           Object.assign(toUpdate.oldRow, updatedRowData)
         }

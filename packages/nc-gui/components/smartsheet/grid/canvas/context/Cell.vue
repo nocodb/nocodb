@@ -27,7 +27,7 @@ const props = defineProps<{
   actionManager: ActionManager
   isInsertBelowDisabled: boolean
   isOrderColumnExists: boolean
-  deleteRow?: (rowIndex: number, undo?: boolean, path?: Array<number>) => Promise<void>
+  deleteRow?: (rowIndex: number, path?: Array<number>) => Promise<void>
   deleteRangeOfRows: (cellRange: CellRange, path?: Array<number>) => Promise<void>
   deleteSelectedRows: (path?: Array<number>) => Promise<void>
   bulkDeleteAll: (path?: Array<number>) => Promise<void>
@@ -37,7 +37,6 @@ const props = defineProps<{
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
@@ -175,7 +174,7 @@ async function deleteAllRecords() {
 
 const confirmDeleteRow = (row: number, path: Array<number>) => {
   try {
-    deleteRow?.(row, false, path)
+    deleteRow?.(row, path)
 
     if (selection.value.isRowInRange(row)) {
       selection.value.clear()

@@ -59,8 +59,6 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const hidingViewColumnsMap = ref<Record<string, boolean>>({})
 
-    const { addUndo, defineViewScope } = useUndoRedo()
-
     const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
 
     const canEditViewFields = hasPersonalViewPermission('viewFieldEdit')
@@ -568,23 +566,6 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
 
       if (!fieldIndex && fieldIndex !== 0) return
-      addUndo({
-        undo: {
-          fn: (v: boolean) => {
-            field.show = !v
-            saveOrUpdate(field, fieldIndex, false, isDefaultView.value)
-          },
-          args: [checked],
-        },
-        redo: {
-          fn: (v: boolean) => {
-            field.show = v
-            saveOrUpdate(field, fieldIndex, false, isDefaultView.value)
-          },
-          args: [checked],
-        },
-        scope: defineViewScope({ view: view.value }),
-      })
       saveOrUpdate(field, fieldIndex, !checked, isDefaultView.value)
     }
 
@@ -624,27 +605,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const resizingColOldWith = ref('180px')
 
-    const updateGridViewColumn = async (id: string, props: Partial<GridColumnReqType>, undo = false) => {
-      if (!undo) {
-        const oldProps = Object.keys(props).reduce<Partial<GridColumnReqType>>((o: any, k) => {
-          if (gridViewCols.value[id][k as keyof GridColumnType]) {
-            if (k === 'width') o[k] = `${resizingColOldWith.value}px`
-            else o[k] = gridViewCols.value[id][k as keyof GridColumnType]
-          }
-          return o
-        }, {})
-        addUndo({
-          redo: {
-            fn: (w: Partial<GridColumnReqType>) => updateGridViewColumn(id, w, true),
-            args: [props],
-          },
-          undo: {
-            fn: (w: Partial<GridColumnReqType>) => updateGridViewColumn(id, w, true),
-            args: [oldProps],
-          },
-          scope: defineViewScope({ view: view.value }),
-        })
-      }
+    const updateGridViewColumn = async (id: string, props: Partial<GridColumnReqType>) => {
       try {
         // sync with server if allowed
         if (!isPublic && canEditViewFields.value && gridViewCols.value[id]?.id) {

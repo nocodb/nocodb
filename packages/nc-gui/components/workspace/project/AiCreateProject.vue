@@ -36,8 +36,6 @@ const { navigateToProject } = useGlobal()
 
 const { $e } = useNuxtApp()
 
-const { clone } = useUndoRedo()
-
 const { isWorkspaceLoading } = storeToRefs(useWorkspace())
 
 const { aiIntegrationAvailable, aiError, aiLoading, createSchema, predictSchema } = useNocoAi()
@@ -204,7 +202,7 @@ const onPredictSchema = async () => {
 
       previewExpansionPanel.value = ((predictedSchema.value || {}).tables || []).map((t) => t?.title).filter(Boolean)
       aiStep.value = AI_STEP.MODIFY
-      oldAiFormState.value = clone(aiFormState.value)
+      oldAiFormState.value = deepClone(aiFormState.value)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

@@ -14,8 +14,6 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { addUndo, defineModelScope } = useUndoRedo()
-
 const { isMobileMode, user, ncNavigateTo } = useGlobal()
 
 const { isSharedBase } = useBase()
@@ -180,35 +178,13 @@ const onChangeIcon = () => {
   })
 }
 
-async function onRenameScript(script: ScriptType, originalTitle?: string, undo = false) {
+async function onRenameScript(script: ScriptType) {
   if (!script?.id || !script?.base_id) return
   try {
     await updateScript(script.base_id, script.id, {
       title: script.title,
       order: script.order,
     })
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (s: ScriptType, title: string) => {
-            const tempTitle = s.title
-            s.title = title
-            onRenameScript(s, tempTitle, true)
-          },
-          args: [script, script.title],
-        },
-        undo: {
-          fn: (s: ScriptType, title: string) => {
-            const tempTitle = s.title
-            s.title = title
-            onRenameScript(s, tempTitle, true)
-          },
-          args: [script, originalTitle],
-        },
-        scope: defineModelScope({ base_id: script.base_id }),
-      })
-    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

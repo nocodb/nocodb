@@ -14,8 +14,6 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { addUndo, defineModelScope } = useUndoRedo()
-
 const { isMobileMode, ncNavigateTo, user } = useGlobal()
 
 const { isSharedBase } = useBase()
@@ -175,34 +173,12 @@ const onChangeIcon = () => {
   })
 }
 
-async function onRenameDashboard(dashboard: DashboardType, originalTitle?: string, undo = false) {
+async function onRenameDashboard(dashboard: DashboardType) {
   try {
     await updateDashboard(dashboard.base_id, dashboard.id!, {
       title: dashboard.title,
       order: dashboard.order,
     })
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (s: DashboardType, title: string) => {
-            const tempTitle = s.title
-            s.title = title
-            onRenameDashboard(s, tempTitle, true)
-          },
-          args: [dashboard, dashboard.title],
-        },
-        undo: {
-          fn: (s: DashboardType, title: string) => {
-            const tempTitle = s.title
-            s.title = title
-            onRenameDashboard(s, tempTitle, true)
-          },
-          args: [dashboard, originalTitle],
-        },
-        scope: defineModelScope({ base_id: dashboard.base_id }),
-      })
-    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

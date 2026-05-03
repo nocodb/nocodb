@@ -40,8 +40,6 @@ const { $e } = useNuxtApp()
 
 const { isUserViewOwner, updateViewMeta } = useViewsStore()
 
-const { addUndo, defineViewScope } = useUndoRedo()
-
 const isRestrictedEditor = computed(() => !isPublic.value && (isLocked.value || !canSyncGroupBy.value))
 
 const isPersonalViewNonOwner = computed(() => view.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(view.value))
@@ -290,18 +288,6 @@ const hideEmptyGroupsToggle = computed({
   get: () => hideEmptyGroups.value,
   set: async (val: boolean) => {
     isHideEmptyGroupsLoading.value = true
-
-    addUndo({
-      undo: {
-        fn: updateHideEmptyGroups,
-        args: [hideEmptyGroups.value],
-      },
-      redo: {
-        fn: updateHideEmptyGroups,
-        args: [val],
-      },
-      scope: defineViewScope({ view: view.value }),
-    })
 
     await updateHideEmptyGroups(val)
 

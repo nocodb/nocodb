@@ -1,9 +1,6 @@
 import type { SyncConfig } from 'nocodb-sdk'
 import { IntegrationCategoryType, SyncCategory } from 'nocodb-sdk'
 import { Form } from 'ant-design-vue'
-import rfdc from 'rfdc'
-
-const deepClone = rfdc()
 
 const [useProvideSyncForm, useSyncForm] = useInjectionState(
   (baseId: MaybeRef<string>, mode: 'create' | 'edit', syncId?: MaybeRef<string>) => {

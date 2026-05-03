@@ -34,8 +34,6 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { canUpdateViewMeta } = useViewColumnsOrThrow()
 
-const { addUndo, defineViewScope } = useUndoRedo()
-
 const { isList } = useSmartsheetStoreOrThrow()
 
 const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
@@ -55,24 +53,11 @@ const currentRowHeight = computed(() => {
   return (view.value?.view as GridType)?.row_height
 })
 
-const updateRowHeight = async (rh: number, undo = false) => {
+const updateRowHeight = async (rh: number) => {
   if (isLocked.value) return
 
   if (view.value?.id) {
     if (rh === currentRowHeight.value) return
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (r: number) => updateRowHeight(r, true),
-          args: [rh],
-        },
-        undo: {
-          fn: (r: number) => updateRowHeight(r, true),
-          args: [currentRowHeight.value || 0],
-        },
-        scope: defineViewScope({ view: view.value }),
-      })
-    }
 
     try {
       await updateViewMeta(

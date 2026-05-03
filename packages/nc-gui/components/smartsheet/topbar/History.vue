@@ -9,13 +9,21 @@ const { open: openBaseTrash } = useBaseTrash()
 
 const { isUIAllowed } = useRoles()
 
+const { undo, redo } = useUndoRedo()
+
 const visible = ref(false)
 
 const canSeeBaseTrash = computed(() => isUIAllowed('baseTrashList'))
 
 const canSeeSnapshots = computed(() => isUIAllowed('manageSnapshot'))
 
-const showHistoryTrigger = computed(() => canSeeBaseTrash.value || canSeeSnapshots.value)
+const canSeeUndoRedo = computed(() => isUIAllowed('undo'))
+
+const showHistoryTrigger = computed(() => canSeeBaseTrash.value || canSeeSnapshots.value || canSeeUndoRedo.value)
+
+const cmdKey = renderCmdOrCtrlKey(true)
+
+const shiftKey = isMac() ? '⇧' : 'Shift'
 
 function openSnapshots() {
   const baseId = resolvedProject.value?.id
@@ -61,6 +69,22 @@ function onTrashClick() {
           </span>
         </NcMenuItemLabel>
 
+        <NcMenuItem v-if="canSeeUndoRedo" data-testid="nc-topbar-history-menu-undo" inner-class="w-full" @click="undo">
+          <div v-e="['c:topbar:history-menu:undo']" class="flex gap-2 items-center w-full">
+            <GeneralIcon icon="ncUndo" class="h-4 w-4 text-nc-content-gray-subtle2" />
+            <div class="flex-1">{{ $t('labels.undo') }}</div>
+            <span class="nc-shortcut-hint">{{ cmdKey }} Z</span>
+          </div>
+        </NcMenuItem>
+
+        <NcMenuItem v-if="canSeeUndoRedo" data-testid="nc-topbar-history-menu-redo" inner-class="w-full" @click="redo">
+          <div v-e="['c:topbar:history-menu:redo']" class="flex gap-2 items-center w-full">
+            <GeneralIcon icon="ncRedo" class="h-4 w-4 text-nc-content-gray-subtle2" />
+            <div class="flex-1">{{ $t('labels.redo') }}</div>
+            <span class="nc-shortcut-hint">{{ cmdKey }} {{ shiftKey }} Z</span>
+          </div>
+        </NcMenuItem>
+
         <PaymentUpgradeBadgeProvider v-if="canSeeSnapshots" :feature="PlanFeatureTypes.FEATURE_EE_CORE">
           <template #default="{ click }">
             <NcMenuItem
@@ -96,3 +120,9 @@ function onTrashClick() {
     </template>
   </NcDropdown>
 </template>
+
+<style scoped lang="scss">
+.nc-shortcut-hint {
+  @apply text-nc-content-gray-muted text-bodySm tracking-wide;
+}
+</style>

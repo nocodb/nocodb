@@ -17,8 +17,6 @@ const { $e } = useNuxtApp()
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { addUndo, defineProjectScope } = useUndoRedo()
-
 const inputEl = ref<ComponentPublicInstance>()
 
 const loading = ref(false)
@@ -43,7 +41,7 @@ watchEffect(
   { flush: 'post' },
 )
 
-const updateDescription = async (undo = false) => {
+const updateDescription = async () => {
   if (!dashboard) return
 
   if (formState.description) {
@@ -57,26 +55,6 @@ const updateDescription = async (undo = false) => {
     })
 
     dialogShow.value = false
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (t: string) => {
-            formState.description = t
-            updateDescription(true)
-          },
-          args: [formState.description],
-        },
-        undo: {
-          fn: (t: string) => {
-            formState.description = t
-            updateDescription(true)
-          },
-          args: [dashboard.description],
-        },
-        scope: defineProjectScope({ base_id: dashboard.base_id }),
-      })
-    }
 
     await loadDashboards({ baseId: dashboard.base_id, force: true })
 

@@ -16,6 +16,9 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
     config.headers['xc-gui'] = 'true'
     config.headers['xc-socket-id'] = skipSocket ? null : $ncSocket.id() || null
 
+    const tabId = getTabId()
+    if (tabId) config.headers['x-nc-tab-id'] = tabId
+
     if (state.token.value && !config.headers['xc-short-token']) {
       config.headers['xc-auth'] = state.token.value
     }

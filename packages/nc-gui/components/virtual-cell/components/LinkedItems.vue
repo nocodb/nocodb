@@ -115,7 +115,7 @@ const unlinkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
     await removeLTARRef(row, injectedColumn?.value as ColumnType)
   } else {
-    await unlink(row, {}, false, id)
+    await unlink(row, {}, id)
   }
 }
 
@@ -123,7 +123,7 @@ const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
     await addLTARRef(row, injectedColumn?.value as ColumnType)
   } else {
-    await link(row, {}, false, id)
+    await link(row, {}, id)
   }
 }
 

@@ -64,8 +64,6 @@ const isAddingColumnAllowed = computed(
   () => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value && !isMobileMode.value,
 )
 
-const { addUndo, defineViewScope } = useUndoRedo()
-
 const viewStore = useViewsStore()
 
 const { updateViewMeta } = viewStore
@@ -117,44 +115,10 @@ const localFilteredFieldList = computed(() => {
   return list
 })
 
-const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
+const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }) => {
   try {
     // todo : sync with server
     if (!fields.value) return
-
-    if (!undo) {
-      addUndo({
-        undo: {
-          fn: () => {
-            if (!fields.value) return
-            const temp = fields.value[_event.moved.newIndex]
-            fields.value[_event.moved.newIndex] = fields.value[_event.moved.oldIndex]
-            fields.value[_event.moved.oldIndex] = temp
-            onMove(
-              {
-                moved: {
-                  newIndex: _event.moved.oldIndex,
-                  oldIndex: _event.moved.newIndex,
-                },
-              },
-              true,
-            )
-          },
-          args: [],
-        },
-        redo: {
-          fn: () => {
-            if (!fields.value) return
-            const temp = fields.value[_event.moved.oldIndex]
-            fields.value[_event.moved.oldIndex] = fields.value[_event.moved.newIndex]
-            fields.value[_event.moved.newIndex] = temp
-            onMove(_event, true)
-          },
-          args: [],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-    }
 
     if (fields.value.length < 2) return
 
@@ -227,18 +191,6 @@ const coverImageColumnId = computed({
   },
   set: async (val) => {
     if (val !== coverImageColumnId.value) {
-      addUndo({
-        undo: {
-          fn: await updateCoverImage,
-          args: [coverImageColumnId.value],
-        },
-        redo: {
-          fn: await updateCoverImage,
-          args: [val],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-
       await updateCoverImage(val)
     }
   },
@@ -286,18 +238,6 @@ const coverImageObjectFit = computed({
     if (val !== coverImageObjectFit.value) {
       coverImageObjectFitDropdown.value.isSaving = val
 
-      addUndo({
-        undo: {
-          fn: updateCoverImageObjectFit,
-          args: [coverImageObjectFit.value],
-        },
-        redo: {
-          fn: updateCoverImageObjectFit,
-          args: [val],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-
       await updateCoverImageObjectFit(val)
     }
     coverImageObjectFitDropdown.value.isSaving = null
@@ -314,41 +254,11 @@ const getSelectedLevelId = () => {
 
 const onShowAll = async () => {
   const levelId = getSelectedLevelId()
-  addUndo({
-    undo: {
-      fn: async () => {
-        await hideAll(undefined, levelId)
-      },
-      args: [],
-    },
-    redo: {
-      fn: async () => {
-        await showAll(undefined, levelId)
-      },
-      args: [],
-    },
-    scope: defineViewScope({ view: activeView.value }),
-  })
   await showAll(undefined, levelId)
 }
 
 const onHideAll = async () => {
   const levelId = getSelectedLevelId()
-  addUndo({
-    undo: {
-      fn: async () => {
-        await showAll(undefined, levelId)
-      },
-      args: [],
-    },
-    redo: {
-      fn: async () => {
-        await hideAll(undefined, levelId)
-      },
-      args: [],
-    },
-    scope: defineViewScope({ view: activeView.value }),
-  })
   await hideAll(undefined, levelId)
 }
 
@@ -415,21 +325,6 @@ const showSystemField = computed({
     return showSystemFields.value
   },
   set: (val) => {
-    addUndo({
-      undo: {
-        fn: (v: boolean) => {
-          showSystemFields.value = !v
-        },
-        args: [val],
-      },
-      redo: {
-        fn: (v: boolean) => {
-          showSystemFields.value = v
-        },
-        args: [val],
-      },
-      scope: defineViewScope({ view: activeView.value }),
-    })
     showSystemFields.value = val
   },
 })
@@ -545,18 +440,6 @@ const prefixColumnId = computed({
   },
   set: async (val) => {
     if (val !== prefixColumnId.value) {
-      addUndo({
-        undo: {
-          fn: updatePrefixColumn,
-          args: [prefixColumnId.value],
-        },
-        redo: {
-          fn: updatePrefixColumn,
-          args: [val],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-
       await updatePrefixColumn(val)
     }
   },

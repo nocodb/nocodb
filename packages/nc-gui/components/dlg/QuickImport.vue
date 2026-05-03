@@ -85,8 +85,6 @@ const sourceSelectorRef = ref()
 
 const sourceIdRef = ref(sourceId)
 
-const { clone } = useUndoRedo()
-
 const useForm = Form.useForm
 
 // Parser settings (how to read the file) live here.
@@ -112,7 +110,7 @@ const defaultImportState = {
   parserConfig: { ...defaultParserConfig },
   options: { ...defaultOptions, importDataOnly },
 }
-const importState = reactive(clone(defaultImportState))
+const importState = reactive(deepClone(defaultImportState))
 
 const isImportTypeJson = computed(() => importType === 'json')
 
@@ -162,7 +160,7 @@ watch(
   dialogShow,
   async (newValue) => {
     if (newValue) {
-      Object.assign(importState, clone(defaultImportState))
+      Object.assign(importState, deepClone(defaultImportState))
     }
   },
   { immediate: true },

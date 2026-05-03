@@ -73,8 +73,6 @@ export function useViewFilters(
 
   const { getMeta, getMetaByKey } = useMetas()
 
-  const { addUndo, clone, defineViewScope } = useUndoRedo()
-
   const meta = inject(MetaInj, ref())
 
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
@@ -160,8 +158,6 @@ export function useViewFilters(
   // nonDeletedFilters are those filters that are not deleted physically & virtually
   const nonDeletedFilters = computed(() => filters.value.filter((f) => f.status !== 'delete'))
 
-  const activeView = inject(ActiveViewInj, ref())
-
   const {
     showSystemFields,
     fieldsMap,
@@ -217,15 +213,8 @@ export function useViewFilters(
   const lastFilters = ref<ColumnFilterType[]>([])
 
   watchOnce(filters, (filters: ColumnFilterType[]) => {
-    lastFilters.value = clone(filters)
+    lastFilters.value = deepClone(filters)
   })
-
-  // get delta between two objects and return the changed fields (value is from b)
-  const getFieldDelta = (a: any, b: any) => {
-    return Object.entries(b)
-      .filter(([key, val]) => a[key] !== val && key in a)
-      .reduce((a, [key, v]) => ({ ...a, [key]: v }), {})
-  }
 
   const isComparisonOpAllowed = (
     filter: ColumnFilterType,
@@ -335,20 +324,6 @@ export function useViewFilters(
       order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
       enabled: true,
     }
-  }
-
-  const findFilterById = (filters: ColumnFilterType[] = [], parentId: string): ColumnFilterType | null => {
-    for (const filter of filters) {
-      if (filter.id === parentId || filter.tmp_id === parentId) {
-        return filter
-      }
-
-      if (filter.children?.length) {
-        const found = findFilterById(filter.children, parentId)
-        if (found) return found
-      }
-    }
-    return null
   }
 
   const loadAllChildFilters = async (filters: ColumnFilterType[]) => {
@@ -702,17 +677,17 @@ export function useViewFilters(
     filter: ColumnFilterType,
     i: number,
     force = false,
-    undo = false,
+    resortAfterSave = false,
     skipDataReload = false,
     lastFilterIndex: number | undefined = undefined,
   ) {
     // if already in progress the debounced function which will call this function again with 500ms delay until it's not saving
     if (savingStatus[i]) {
-      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload, lastFilterIndex)
+      return saveOrUpdateDebounced(filter, i, force, resortAfterSave, skipDataReload, lastFilterIndex)
     }
     // wait if any previous filter save is in progress, it's to avoid messing up the order of filters
     else if (Array.from({ length: i }).some((_, index) => savingStatus[index])) {
-      return saveOrUpdateDebounced(filter, i, force, undo, skipDataReload, lastFilterIndex)
+      return saveOrUpdateDebounced(filter, i, force, resortAfterSave, skipDataReload, lastFilterIndex)
     }
     savingStatus[i] = true
     if (ncIsUndefined(lastFilterIndex)) {
@@ -721,62 +696,6 @@ export function useViewFilters(
 
     if (!view.value && !linkColId?.value && !widgetId?.value && !buttonColId?.value) return
 
-    if (!undo && !(isForm.value && !isWebhook)) {
-      const lastFilter = lastFilters.value[lastFilterIndex]
-
-      if (lastFilter) {
-        const delta = clone(getFieldDelta(filter, lastFilter)) as Partial<ColumnFilterType>
-        const keys = Object.keys(delta)
-
-        if (keys.length > 0) {
-          // Define extra keys to track
-          const extraKeys = ['value', 'order', 'logical_op', 'enabled']
-
-          // Always include the 0th key + any of the extra ones present
-          const targetKeys = Array.from(
-            new Set([
-              keys[0], // backward compat
-              ...keys.filter((k) => extraKeys.includes(k)), // allowed extras
-            ]),
-          )
-
-          const undoChanges = Object.fromEntries(targetKeys.map((k) => [k, delta[k as keyof ColumnFilterType]]))
-          const redoChanges = Object.fromEntries(targetKeys.map((k) => [k, filter[k as keyof ColumnFilterType]]))
-
-          addUndo({
-            undo: {
-              fn: (changes: Partial<ColumnFilterType>, index: number) => {
-                const f = filters.value[index]
-
-                // If parent filter is deleted then skip
-                if (f && (!f.fk_parent_id || findFilterById(filters.value, f.fk_parent_id))) {
-                  for (const [prop, val] of Object.entries(changes)) {
-                    f[prop as keyof ColumnFilterType] = val
-                  }
-                  saveOrUpdate(f, index, force, true)
-                }
-              },
-              args: [undoChanges, i],
-            },
-            redo: {
-              fn: (changes: Partial<ColumnFilterType>, index: number) => {
-                const f = filters.value[index]
-
-                // If parent filter is deleted then skip
-                if (f && (!f.fk_parent_id || findFilterById(filters.value, f.fk_parent_id))) {
-                  for (const [prop, val] of Object.entries(changes)) {
-                    f[prop as keyof ColumnFilterType] = val
-                  }
-                  saveOrUpdate(f, index, force, true)
-                }
-              },
-              args: [redoChanges, lastFilterIndex],
-            },
-            scope: defineViewScope({ view: activeView.value }),
-          })
-        }
-      }
-    }
     try {
       if (nestedMode.value || isWorkflow) {
         filters.value[i] = { ...filter }
@@ -823,7 +742,7 @@ export function useViewFilters(
           }
         }
 
-        if (undo) {
+        if (resortAfterSave) {
           filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
         }
       } else {
@@ -922,7 +841,7 @@ export function useViewFilters(
       savingStatus[i] = false
     }
 
-    lastFilters.value = clone(filters.value)
+    lastFilters.value = deepClone(filters.value)
 
     if (!isWebhook && !skipDataReload && !isLink && !isWidget && !isRlsPolicy) reloadData?.()
   }
@@ -946,7 +865,7 @@ export function useViewFilters(
     allFilters.value = allFilters.value.filter((f) => f && f.id !== filter.id && f.fk_parent_id !== filter.id)
   }
 
-  const deleteFilter = async (filter: ColumnFilterType, i: number, undo = false) => {
+  const deleteFilter = async (filter: ColumnFilterType, i: number) => {
     if (!filter) return
 
     // update the filter status
@@ -954,25 +873,6 @@ export function useViewFilters(
 
     isFilterUpdated.value = true
 
-    if (!undo && !filter.is_group && !(isForm.value && !isWebhook)) {
-      addUndo({
-        undo: {
-          fn: async (fl: ColumnFilterType) => {
-            fl.status = 'create'
-            filters.value.splice(i, 0, fl)
-            await saveOrUpdate(fl, i, false, true)
-          },
-          args: [clone(filter)],
-        },
-        redo: {
-          fn: async (index: number) => {
-            await deleteFilter(filters.value[index], index, true)
-          },
-          args: [i],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-    }
     // if shared or sync permission not allowed simply remove it from array
     if (nestedMode.value || isWorkflow) {
       filters.value.splice(i, 1)
@@ -1030,7 +930,7 @@ export function useViewFilters(
   const STRIP_KEYS = ['id', 'tmp_id', 'status', 'fk_parent_id']
 
   function normalizeFilterNode(filter: FilterType = {}, extra_strip_keys: Array<string> = []): ColumnFilterType {
-    const raw = clone(filter) as any
+    const raw = deepClone(filter) as any
 
     // remove runtime / persisted props
     for (const key of STRIP_KEYS) {
@@ -1068,7 +968,7 @@ export function useViewFilters(
     return leaf
   }
 
-  const addFilter = async (undo = false, draftFilter: Partial<FilterType> = {}) => {
+  const addFilter = async (draftFilter: Partial<FilterType> = {}) => {
     isFilterUpdated.value = true
 
     filters.value.push(
@@ -1086,33 +986,13 @@ export function useViewFilters(
               : {}),
           }) as ColumnFilterType,
     )
-    if (!undo && !(isForm.value && !isWebhook)) {
-      addUndo({
-        undo: {
-          fn: async function undo(this: UndoRedoAction, i: number) {
-            this.redo.args = [i, clone(filters.value[i])]
-            await deleteFilter(filters.value[i], i, true)
-          },
-          args: [filters.value.length - 1],
-        },
-        redo: {
-          fn: async (i: number, fl: ColumnFilterType) => {
-            fl.status = 'create'
-            filters.value.splice(i, 0, fl)
-            await saveOrUpdate(fl, i, false, true)
-          },
-          args: [],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-    }
 
     // if we copy filter then save it immediately
     if (draftFilter && Object.keys(draftFilter).length > 1 && !(isForm.value && !isWebhook)) {
       await saveOrUpdate(filters.value[filters.value.length - 1], filters.value.length - 1, false, true)
     }
 
-    lastFilters.value = clone(filters.value)
+    lastFilters.value = deepClone(filters.value)
 
     $e('a:filter:add', {
       length: filters.value.length,
@@ -1148,30 +1028,9 @@ export function useViewFilters(
 
     const index = filters.value.length - 1
 
-    if (draftFilterHasChildren && !(isForm.value && !isWebhook)) {
-      addUndo({
-        undo: {
-          fn: async function undo(this: UndoRedoAction, i: number) {
-            this.redo.args = [i, clone(filters.value[i])]
-            await deleteFilter(filters.value[i], i, true)
-          },
-          args: [filters.value.length - 1],
-        },
-        redo: {
-          fn: async (i: number, fl: ColumnFilterType) => {
-            fl.status = 'create'
-            filters.value.splice(i, 0, fl)
-            await saveOrUpdate(fl, i, false, true)
-          },
-          args: [],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-    }
-
     await saveOrUpdate(filters.value[index], index, false, !!draftFilterHasChildren)
 
-    lastFilters.value = clone(filters.value)
+    lastFilters.value = deepClone(filters.value)
 
     $e('a:filter:add', {
       length: filters.value.length,

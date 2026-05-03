@@ -27,8 +27,6 @@ export function useViewRowColorOption(params: {
 
   const { eventBus } = useSmartsheetStoreOrThrow()
 
-  const { clone } = useUndoRedo()
-
   const { t } = useI18n()
 
   const meta = inject(MetaInj, ref())
@@ -72,7 +70,7 @@ export function useViewRowColorOption(params: {
       rootMeta: meta.value,
       getMeta: async (id) => getMetaByKey(meta.value?.base_id, id),
     })
-    return clone(cols).map((c) => {
+    return deepClone(cols).map((c) => {
       if (isColumnInError(c)) {
         c.ncItemDisabled = true
         c.ncItemTooltip = t('tooltip.filteringNotSupportedForFieldsWithErrors')
@@ -712,7 +710,7 @@ export function useViewRowColorOption(params: {
     await popPendingAction()
 
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
-    const conditionToCopy = conditions[index] ? clone(conditions[index]!) : null
+    const conditionToCopy = conditions[index] ? deepClone(conditions[index]!) : null
 
     if (!conditionToCopy) {
       isLoadingFilter.value = false

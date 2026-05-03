@@ -50,8 +50,6 @@ const { api, isLoading: loading } = useApi()
 
 const modalVisible = useVModel(props, 'value')
 
-const { clone } = useUndoRedo()
-
 const { hooks } = storeToRefs(useWebhooksStore())
 
 const { base } = storeToRefs(useBase())
@@ -548,7 +546,7 @@ function setHook(newHook: HookType) {
 
   hookRef.trigger_field = !!hookRef?.trigger_field
 
-  oldHookRef.value = clone(hookRef)
+  oldHookRef.value = deepClone(hookRef)
 
   loadSampleData()
 }

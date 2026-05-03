@@ -94,8 +94,6 @@ const {
   onToggleTag: _onToggleTag,
 } = usePredictFields(ref(false))
 
-const { clone } = useUndoRedo()
-
 onBeforeMount(() => {
   if (props.fromTableExplorer || isEdit.value) return
 
@@ -634,7 +632,7 @@ watch(
 
         if (!selectedField) return
 
-        selectedField.formState = clone(formState.value)
+        selectedField.formState = deepClone(formState.value)
       }
     }
   },

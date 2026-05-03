@@ -29,7 +29,7 @@ const props = defineProps<{
   rowHeightEnum?: number
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
   callAddEmptyRow?: (addAfter?: number) => Row | undefined
-  deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
+  deleteRow?: (rowIndex: number) => Promise<void>
   updateOrSaveRow?: (
     row: Row,
     property?: string,
@@ -43,16 +43,10 @@ const props = defineProps<{
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
-    undo?: boolean,
     isFailed?: boolean,
     path?: Array<number>,
   ) => Promise<void>
-  bulkUpdateRows?: (
-    rows: Row[],
-    props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
-    undo?: boolean,
-  ) => Promise<void>
+  bulkUpdateRows?: (rows: Row[], props: string[], metas?: { metaValue?: TableType; viewMetaValue?: ViewType }) => Promise<void>
   bulkDeleteAll?: () => Promise<void>
   bulkUpsertRows?: (
     insertRows: Row[],
@@ -127,13 +121,11 @@ const { isPkAvail, isSqlView, eventBus, allFilters, sorts, isExternalSource, isV
 
 const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
-const { $e, $api } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
 const { getMeta } = useMetas()
-
-const { addUndo, clone, defineViewScope } = useUndoRedo()
 
 const {
   isViewColumnsLoading: _isViewColumnsLoading,
@@ -147,7 +139,7 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const { paste } = usePaste()
 
-const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
+const { clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
 
 const { loadViewAggregate } = useViewAggregateOrThrow()
 
@@ -520,100 +512,13 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
-    let mmClearResult
-    const mmOldResult = rowObj.row[columnObj.title]
-
     // This will used to reload view data if it is self link column
     const isSelfLinkColumn = columnObj.fk_model_id === columnObj.colOptions?.fk_related_model_id
 
     if (isMm(columnObj) && rowObj) {
-      mmClearResult = await cleaMMCell(rowObj, columnObj)
+      await cleaMMCell(rowObj, columnObj)
     }
 
-    addUndo({
-      undo: {
-        fn: async (
-          ctx: { row: number; col: number },
-          col: ColumnType,
-          row: Row,
-          mmClearResult: any[],
-          mmOldResult: any,
-          isSelfLinkColumn: boolean,
-        ) => {
-          const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-          const rowObj = cachedRows.value.get(ctx.row)
-          const columnObj = fields.value[ctx.col]
-          if (
-            rowObj &&
-            columnObj.title &&
-            rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-            columnObj.id === col.id
-          ) {
-            if (isBt(columnObj) || isOo(columnObj)) {
-              rowObj.row[columnObj.title] = row.row[columnObj.title]
-
-              await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
-              await syncLTARRefs(rowObj, rowObj.row)
-            } else if (isMm(columnObj)) {
-              await $api.internal.postOperation(
-                meta.value?.fk_workspace_id as string,
-                meta.value?.base_id as string,
-                {
-                  operation: 'nestedDataLink',
-                  tableId: meta.value?.id as string,
-                  columnId: columnObj.id as string,
-                  rowId: encodeURIComponent(rowId as string),
-                },
-                mmClearResult,
-              )
-              rowObj.row[columnObj.title] = mmOldResult ?? null
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            activeCell.col = ctx.col
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            activeCell.row = ctx.row
-
-            if (isSelfLinkColumn) {
-              reloadViewDataHook.trigger({ shouldShowLoading: false })
-            }
-
-            scrollToCell?.()
-          } else {
-            throw new Error(t('msg.recordCouldNotBeFound'))
-          }
-        },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult, mmOldResult],
-      },
-      redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, isSelfLinkColumn: boolean) => {
-          const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-          const rowObj = cachedRows.value.get(ctx.row)
-          const columnObj = fields.value[ctx.col]
-          if (rowObj && rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
-            if (isBt(columnObj) || isOo(columnObj)) {
-              await clearLTARCell(rowObj, columnObj)
-            } else if (isMm(columnObj)) {
-              await cleaMMCell(rowObj, columnObj)
-            }
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            activeCell.col = ctx.col
-            // eslint-disable-next-line @typescript-eslint/no-use-before-define
-            activeCell.row = ctx.row
-
-            if (isSelfLinkColumn) {
-              reloadViewDataHook.trigger({ shouldShowLoading: false })
-            }
-
-            scrollToCell?.()
-          } else {
-            throw new Error(t('msg.recordCouldNotBeFound'))
-          }
-        },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), isSelfLinkColumn],
-      },
-      scope: defineViewScope({ view: view.value }),
-    })
     if (isBt(columnObj) || isOo(columnObj)) await clearLTARCell(rowObj, columnObj)
 
     if (isSelfLinkColumn) {
@@ -1487,7 +1392,7 @@ const saveOrUpdateRecords = async (
 
     /** if new record save row and save the LTAR cells */
     if (currentRow.rowMeta?.new) {
-      const beforeSave = clone(currentRow)
+      const beforeSave = deepClone(currentRow)
       const savedRow = await updateOrSaveRow?.(currentRow, '', currentRow.rowMeta.ltarState || {}, args)
       if (savedRow) {
         currentRow.rowMeta.changed = false

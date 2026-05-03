@@ -123,8 +123,6 @@ const { t } = useI18n()
 
 const { appInfo, isMobileMode } = useGlobal()
 
-const { clone } = useUndoRedo()
-
 const logicalOps = [
   { value: 'and', text: t('general.and') },
   { value: 'or', text: t('general.or') },
@@ -191,7 +189,7 @@ const { showSystemFields } =
   widget.value || workflow.value || rlsPolicyId?.value ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
 
 const fieldsToFilter = computed(() =>
-  clone(columns.value)
+  deepClone(columns.value)
     .filter((c) => {
       if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
 
@@ -610,7 +608,7 @@ const addFilterGroup = async (filter?: Partial<FilterType>) => {
 }
 
 const copyFilter = (filter: Filter, isGroup = false) => {
-  const filterToCopy = clone(filter)
+  const filterToCopy = deepClone(filter)
 
   // EE only: Strip pinned state from copied filter (pinned filters are EE feature)
   if (isEeUI && filterToCopy.meta) {

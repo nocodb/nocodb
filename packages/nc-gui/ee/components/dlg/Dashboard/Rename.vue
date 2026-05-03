@@ -23,8 +23,6 @@ const { updateDashboard } = dashboardStore
 
 const { $e } = useNuxtApp()
 
-const { addUndo, defineProjectScope } = useUndoRedo()
-
 const inputEl = ref<ComponentPublicInstance>()
 
 const loading = ref(false)
@@ -72,7 +70,7 @@ watchEffect(
   { flush: 'post' },
 )
 
-const renameDashboard = async (undo = false, disableTitleDiffCheck?: boolean | undefined) => {
+const renameDashboard = async (disableTitleDiffCheck?: boolean | undefined) => {
   if (!dashboard) return
 
   if (formState.title) {
@@ -89,26 +87,6 @@ const renameDashboard = async (undo = false, disableTitleDiffCheck?: boolean | u
     })
 
     dialogShow.value = false
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (t: string) => {
-            formState.title = t
-            renameDashboard(true, true)
-          },
-          args: [formState.title],
-        },
-        undo: {
-          fn: (t: string) => {
-            formState.title = t
-            renameDashboard(true, true)
-          },
-          args: [dashboard.value.title],
-        },
-        scope: defineProjectScope({ base_id: dashboard.value.base_id }),
-      })
-    }
 
     $e('a:dashboard:rename')
 

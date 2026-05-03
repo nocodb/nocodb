@@ -108,6 +108,10 @@ export default class Sort {
         .increment('order', 1);
     }
 
+    if (context?.additionalContext?.is_replay && sortObj.id) {
+      insertObj.id = sortObj.id;
+    }
+
     const row = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,

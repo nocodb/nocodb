@@ -195,6 +195,7 @@ export class DatasService {
       null,
       param.cookie,
       param.disableOptimization,
+      { typecast: (param.cookie?.query?.typecast ?? '') === 'true' },
     );
   }
 

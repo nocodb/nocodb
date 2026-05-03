@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import type { BoolType, FilterType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import type { OperationContract } from 'src/command-registry/types';
 import type { TraceCommandDep } from 'src/command-registry/types';
 import { OperationName } from '~/command-registry/op-names';
@@ -52,6 +54,14 @@ export const FilterCreateContract: OperationContract<
   },
   deps: (_p, r) =>
     r?.fk_column_id ? [{ entity: MetaTable.COLUMNS, id: r.fk_column_id }] : [],
+  buildInverse: (_ctx, _p, r) => {
+    if (!r?.id) return null;
+    return {
+      name: OperationName.filterDelete,
+      version: 1,
+      params: { filterId: r.id },
+    };
+  },
 };
 
 // ─── filterUpdate ────────────────────────────────────────────────────────────
@@ -61,8 +71,30 @@ const filterUpdateSchema = z.object({
   filterId: z.string(),
 });
 
+interface FilterPrevState {
+  fk_column_id?: string | null;
+  comparison_op?: string | null;
+  comparison_sub_op?: string | null;
+  value?: string | null;
+  fk_parent_id?: string | null;
+  // `BoolType` (= boolean | 0 | 1) — matches Filter model's storage.
+  is_group?: BoolType;
+  logical_op?: string | null;
+  fk_value_col_id?: string | null;
+  meta?: unknown;
+  order?: number | null;
+  enabled?: BoolType;
+}
+
+interface FilterUpdateExtra {
+  fieldTitle?: string;
+  tableTitle?: string;
+  prevFilter?: FilterPrevState;
+}
+
 export const FilterUpdateContract: OperationContract<
-  typeof filterUpdateSchema
+  typeof filterUpdateSchema,
+  FilterUpdateExtra
 > = {
   name: OperationName.filterUpdate,
   version: 1,
@@ -85,12 +117,40 @@ export const FilterUpdateContract: OperationContract<
       : undefined;
     return {
       parentEntityTitle: view?.title,
-      extra: { fieldTitle: field?.title, tableTitle: table?.title },
+      extra: {
+        fieldTitle: field?.title,
+        tableTitle: table?.title,
+        // Snapshot the exact set of mutable fields. Reorder is a special
+        // case of update (just `order` changes) — captured here too.
+        prevFilter: {
+          fk_column_id: filter.fk_column_id,
+          comparison_op: filter.comparison_op,
+          comparison_sub_op: filter.comparison_sub_op,
+          value: filter.value,
+          fk_parent_id: filter.fk_parent_id,
+          is_group: filter.is_group,
+          logical_op: filter.logical_op,
+          fk_value_col_id: filter.fk_value_col_id,
+          meta: filter.meta,
+          order: filter.order,
+          enabled: filter.enabled,
+        },
+      },
     };
   },
   deps: (p, r) => {
     const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
     return colId ? [{ entity: MetaTable.COLUMNS, id: colId as string }] : [];
+  },
+  // Undo: re-apply the pre-update filter body captured in resolveCtx.
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevFilter;
+    if (!prev) return null;
+    return {
+      name: OperationName.filterUpdate,
+      version: 1,
+      params: { filterId: p.filterId, filter: prev },
+    };
   },
 };
 
@@ -100,8 +160,40 @@ const filterDeleteSchema = z.object({
   filterId: z.string(),
 });
 
+interface FilterDeleteExtra {
+  fieldTitle?: string;
+  tableTitle?: string;
+  deletedTree?: FilterType;
+}
+
+/**
+ * Walk a filter and its descendants into a serializable tree. Reads via
+ * `getChildren` which is cache-aware and ordered. `Filter.insert` will
+ * recursively walk the returned `children` array on undo.
+ */
+async function snapshotFilterTree(
+  context: NcContext,
+  filter: Filter,
+): Promise<FilterType> {
+  const children = filter.is_group
+    ? (await filter.getChildren(context)) ?? []
+    : [];
+  const childNodes = await Promise.all(
+    children.map((child) => snapshotFilterTree(context, child as Filter)),
+  );
+  // `Filter` already implements `FilterType` — spread the row and attach
+  // the recursive snapshot. Children are explicit (not just `filter.children`)
+  // so we always get the freshly-walked tree even when the in-memory filter
+  // had a partial `children` cache.
+  return {
+    ...(filter as FilterType),
+    ...(childNodes.length ? { children: childNodes } : {}),
+  };
+}
+
 export const FilterDeleteContract: OperationContract<
-  typeof filterDeleteSchema
+  typeof filterDeleteSchema,
+  FilterDeleteExtra
 > = {
   name: OperationName.filterDelete,
   version: 1,
@@ -123,7 +215,30 @@ export const FilterDeleteContract: OperationContract<
       : undefined;
     return {
       parentEntityTitle: view?.title,
-      extra: { fieldTitle: field?.title, tableTitle: table?.title },
+      extra: {
+        fieldTitle: field?.title,
+        tableTitle: table?.title,
+        // Capture the entire subtree before deletion. The recursive walk
+        // matches `Filter.delete`'s recursion so nothing the delete drops
+        // is missed by undo.
+        deletedTree: await snapshotFilterTree(context, filter),
+      },
+    };
+  },
+  // Undo: recreate the filter (and its children, if any). Phase 2 supports
+  // view-scoped filters only — that's what the GUI uses. Hook / row-color /
+  // RLS / button-column filters return `null` here so undo is a no-op for
+  // those flows (they aren't reached from Cmd-Z anyway).
+  buildInverse: (_ctx, _p, _r, resolved) => {
+    const tree = resolved?.extra?.deletedTree;
+    if (!tree?.fk_view_id) return null;
+    return {
+      name: OperationName.filterCreate,
+      version: 1,
+      // `Filter.insert` recursively walks `children`. Each level honors
+      // pre-set `id` (via `extractProps`) and pre-set `order` (via the
+      // `is_replay` guard), so the entire subtree comes back identical.
+      params: { viewId: tree.fk_view_id, filter: tree },
     };
   },
 };

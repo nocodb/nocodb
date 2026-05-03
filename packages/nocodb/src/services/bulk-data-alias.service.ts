@@ -99,6 +99,7 @@ export class BulkDataAliasService {
           raw: param.raw,
           allowSystemColumn: param.allowSystemColumn,
           apiVersion: param.apiVersion,
+          typecast: (param.cookie?.query?.typecast ?? '') === 'true',
         },
       ],
     });
@@ -177,7 +178,14 @@ export class BulkDataAliasService {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpsert',
-      options: [param.body, { cookie: param.cookie, undo: param.undo }],
+      options: [
+        param.body,
+        {
+          cookie: param.cookie,
+          undo: param.undo,
+          typecast: (param.cookie?.query?.typecast ?? '') === 'true',
+        },
+      ],
     });
   }
 }

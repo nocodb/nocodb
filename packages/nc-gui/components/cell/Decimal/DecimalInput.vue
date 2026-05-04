@@ -25,6 +25,8 @@ const { isMobileMode } = useGlobal()
 
 const inputRef = templateRef('input-ref')
 
+const { getCurrentCopiedCellClipboardData } = useNcClipboardData()
+
 const pasteText = (target: HTMLInputElement, value: string) => {
   if (!value || value === '') {
     return { changed: false }
@@ -199,6 +201,34 @@ const onInputPaste = (e: ClipboardEvent) => {
   if (value === null || value === '' || typeof value === 'undefined') {
     return
   }
+
+  // Check ncClipboardData for a stored numeric dbCellValue
+  const storedData = getCurrentCopiedCellClipboardData(value)
+  if (storedData) {
+    const clipboardItem = storedData.dbCellValueArr?.[0]?.[0]
+    if (clipboardItem !== undefined && clipboardItem !== null && !isNaN(Number(clipboardItem))) {
+      e.preventDefault()
+      e.stopPropagation()
+      const numValue = Number(clipboardItem)
+      const decSep = props.decimalSeparator || '.'
+      // Format the number with the target's decimal separator for display
+      let displayValue: string
+      if (props.precision) {
+        displayValue = numValue.toFixed(props.precision)
+      } else {
+        displayValue = numValue.toString()
+      }
+      if (decSep !== '.') {
+        displayValue = displayValue.replace('.', decSep)
+      }
+      target.value = displayValue
+      target.setSelectionRange(target.value.length, target.value.length)
+      saveValue(target.value)
+      return
+    }
+  }
+
+  // Fall through to existing text-based paste
   e.preventDefault()
   e.stopPropagation()
   pasteText(target, value)

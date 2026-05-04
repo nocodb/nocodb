@@ -27,6 +27,8 @@ const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const inputRef = ref<HTMLInputElement>()
 const _vModel = useVModel(props, 'modelValue', emits)
 
+const { getCurrentCopiedCellClipboardData } = useNcClipboardData()
+
 const vModel = computed({
   get: () => _vModel.value,
   set: (value) => {
@@ -80,6 +82,23 @@ function onKeyDown(e: any) {
   }
 }
 
+const onPaste = (e: ClipboardEvent) => {
+  const value = e.clipboardData?.getData('text/plain')
+  if (!value) return
+
+  const storedData = getCurrentCopiedCellClipboardData(value)
+  if (storedData) {
+    const clipboardItem = storedData.dbCellValueArr?.[0]?.[0]
+    if (clipboardItem !== undefined && clipboardItem !== null && !isNaN(Number(clipboardItem))) {
+      e.preventDefault()
+      e.stopPropagation()
+      vModel.value = parseInt(String(clipboardItem), 10)
+      return
+    }
+  }
+  // Fall through to browser native paste for external clipboard
+}
+
 onMounted(() => {
   if (isCanvasInjected && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
     inputRef.value?.focus()
@@ -97,6 +116,7 @@ onMounted(() => {
     style="letter-spacing: 0.06rem"
     :disabled="readOnly"
     @blur="editEnabled = false"
+    @paste="onPaste"
     @keydown="onKeyDown"
     @keydown.down.stop
     @keydown.left.stop

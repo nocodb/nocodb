@@ -111,11 +111,12 @@ const dropTargetGroupId = computed(() => {
 <style lang="scss" scoped>
 .nc-v2-stack-layout {
   @apply grid gap-0;
-  &.cols-1 { grid-template-columns: 1fr; }
-  &.cols-2 { grid-template-columns: 1fr 1fr; }
+  /* minmax(0, 1fr) — true equal columns regardless of content size */
+  &.cols-1 { grid-template-columns: minmax(0, 1fr); }
+  &.cols-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
 .nc-v2-stack-col {
-  @apply flex flex-col;
+  @apply flex flex-col min-w-0;
   & + & {
     @apply border-l-1 border-dashed border-nc-border-gray-medium;
   }

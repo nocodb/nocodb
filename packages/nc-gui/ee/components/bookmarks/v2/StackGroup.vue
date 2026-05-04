@@ -159,9 +159,14 @@ function handleDrop() {
         @blur="saveRename"
         @click.stop
       />
-      <span v-else class="nc-v2-stack-name" :title="group.name">
-        {{ group.name }}
-      </span>
+      <div v-else class="nc-v2-stack-name-wrap">
+        <NcTooltip
+          show-on-truncate-only
+          :attrs="{ class: 'nc-v2-stack-name truncate block' }"
+        >
+          {{ group.name }}
+        </NcTooltip>
+      </div>
 
       <span class="nc-v2-stack-count">{{ String(groupBookmarks.length).padStart(2, '0') }}</span>
 
@@ -224,8 +229,10 @@ function handleDrop() {
 .nc-v2-stack-group:hover .nc-v2-stack-folder-icon {
   @apply text-nc-content-gray-subtle;
 }
-.nc-v2-stack-name {
-  @apply flex-1 min-w-0 truncate;
+.nc-v2-stack-name-wrap {
+  @apply flex-1 min-w-0;
+}
+.nc-v2-stack-name-wrap :deep(.nc-v2-stack-name) {
   font-size: 11px;
   line-height: 16px;
   letter-spacing: 0.08em;

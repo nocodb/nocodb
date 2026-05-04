@@ -126,9 +126,14 @@ function handleDragStart(e: DragEvent) {
     </div>
 
     <!-- Title — fills remaining space; truncates -->
-    <span class="nc-v2-item-title" :title="displayTitle">
-      {{ displayTitle }}
-    </span>
+    <div class="nc-v2-item-title-wrap">
+      <NcTooltip
+        show-on-truncate-only
+        :attrs="{ class: 'nc-v2-item-title truncate block' }"
+      >
+        {{ displayTitle }}
+      </NcTooltip>
+    </div>
 
     <!-- Hover breadcrumb (Stack only) -->
     <span
@@ -165,8 +170,11 @@ function handleDragStart(e: DragEvent) {
   @apply flex-none w-5 h-5 flex items-center justify-center;
 }
 
-.nc-v2-item-title {
-  @apply flex-1 min-w-0 truncate text-bodyDefaultSm text-nc-content-gray;
+.nc-v2-item-title-wrap {
+  @apply flex-1 min-w-0;
+}
+.nc-v2-item-title-wrap :deep(.nc-v2-item-title) {
+  @apply text-bodyDefaultSm text-nc-content-gray;
   font-weight: 450;
 }
 

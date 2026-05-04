@@ -154,9 +154,14 @@ function handleDrop() {
         @blur="saveRename"
         @click.stop
       />
-      <span v-else class="nc-v2-mosaic-name" :title="group.name" @click="onToggleCollapse">
-        {{ group.name }}
-      </span>
+      <div v-else class="nc-v2-mosaic-name-wrap" @click="onToggleCollapse">
+        <NcTooltip
+          show-on-truncate-only
+          :attrs="{ class: 'nc-v2-mosaic-name truncate block' }"
+        >
+          {{ group.name }}
+        </NcTooltip>
+      </div>
 
       <span class="nc-v2-mosaic-count">{{ String(groupBookmarks.length).padStart(2, '0') }}</span>
 
@@ -211,8 +216,11 @@ function handleDrop() {
 .nc-v2-mosaic-card:hover .nc-v2-mosaic-folder-icon {
   @apply text-nc-content-gray-subtle;
 }
-.nc-v2-mosaic-name {
-  @apply flex-1 min-w-0 truncate text-bodyDefaultSm font-semibold text-nc-content-gray;
+.nc-v2-mosaic-name-wrap {
+  @apply flex-1 min-w-0;
+}
+.nc-v2-mosaic-name-wrap :deep(.nc-v2-mosaic-name) {
+  @apply text-bodyDefaultSm font-semibold text-nc-content-gray;
 }
 .nc-v2-mosaic-rename {
   @apply flex-1 !text-bodyDefaultSm;

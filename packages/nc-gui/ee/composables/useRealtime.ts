@@ -482,9 +482,14 @@ export const useRealtime = createSharedComposable(() => {
       refreshCommandPalette()
     } else if (event.action === 'extension_restore') {
       updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
-      const eventBaseId = event.payload.base_id
-      if (eventBaseId && baseExtensions.value[eventBaseId]) {
-        delete baseExtensions.value[eventBaseId]
+      const { payload } = event
+      if (payload?.base_id && activeBaseId.value === payload.base_id && baseExtensions.value[activeBaseId.value]) {
+        const arr = baseExtensions.value[activeBaseId.value].extensions
+        // Guard against duplicate events: only push if not already present.
+        if (!arr.some((ext) => ext.id === payload.id)) {
+          arr.push(new Extension(payload))
+          arr.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+        }
       }
     }
   }

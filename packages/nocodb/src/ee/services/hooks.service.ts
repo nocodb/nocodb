@@ -255,7 +255,7 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
       ncMeta,
     );
     if (!trashEntry?.id) {
-     return false;
+      return false;
     }
 
     await this.baseTrashService.restore(context, {
@@ -264,28 +264,6 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
       req: param.req,
       ncMeta,
     });
-
-    const hook = await Hook.get(context, param.hookId, false, ncMeta);
-    if (!hook) return false;
-
-    this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
-      hook,
-      req: param.req,
-      context,
-      tableId: hook.fk_model_id,
-    });
-
-    NocoSocket.broadcastEvent(
-      context,
-      {
-        event: EventType.META_EVENT,
-        payload: {
-          action: 'hook_create',
-          payload: hook,
-        },
-      },
-      context.socket_id,
-    );
 
     return true;
   }

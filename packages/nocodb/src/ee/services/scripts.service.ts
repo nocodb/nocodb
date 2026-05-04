@@ -283,16 +283,6 @@ export class ScriptsService {
       ncMeta,
     });
 
-    const script = await Script.get(context, param.scriptId, false, ncMeta);
-    if (!script) return false;
-
-    this.appHooksService.emit(AppEvents.SCRIPT_CREATE, {
-      script,
-      req: param.req,
-      context,
-      user: param.req?.user,
-    });
-
     return true;
   }
 }

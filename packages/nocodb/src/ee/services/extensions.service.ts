@@ -10,6 +10,7 @@ import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { Extension } from '~/models';
+import BaseTrash from '~/models/BaseTrash';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -93,6 +94,32 @@ export class ExtensionsService extends ExtensionsServiceCE {
       },
       context.socket_id,
     );
+
+    return true;
+  }
+
+  async restoreExtension(
+    context: NcContext,
+    param: { extensionId: string; req: NcRequest },
+    ncMeta?: MetaService,
+  ) {
+    const trashEntry = await BaseTrash.getByResourceId(
+      context,
+      'extension',
+      param.extensionId,
+      ncMeta,
+    );
+    if (!trashEntry?.id) {
+      // Already restored / never trashed.
+      return false;
+    }
+
+    await this.baseTrashService.restore(context, {
+      trashId: trashEntry.id,
+      user: param.req?.user ?? { id: '' },
+      req: param.req,
+      ncMeta,
+    });
 
     return true;
   }

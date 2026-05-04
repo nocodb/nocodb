@@ -35,13 +35,24 @@ const updateSchema = z.object({
   view: viewUpdateBodySchema,
 });
 
-interface ViewUpdatePrevState {
-  title?: string;
-  order?: number;
-  lock_type?: string;
-  meta?: unknown;
-  show_system_fields?: boolean;
-}
+const VIEW_PREV_FIELDS = [
+  'title',
+  'order',
+  'description',
+  'show_system_fields',
+  'lock_type',
+  'password',
+  'meta',
+  'uuid',
+  'row_coloring_mode',
+  'fk_custom_url_id',
+  'fk_view_section_id',
+  'expanded_record_mode',
+  'attachment_mode_column_id',
+] as const;
+
+interface ViewUpdatePrevState
+  extends Partial<Record<(typeof VIEW_PREV_FIELDS)[number], unknown>> {}
 
 interface ViewUpdateExtra {
   oldTitle?: string;
@@ -68,22 +79,18 @@ export const ViewUpdateContract: OperationContract<
     const table = view?.fk_model_id
       ? await Model.get(context, view.fk_model_id)
       : undefined;
+    let prevView: ViewUpdatePrevState | undefined;
+    if (view) {
+      const src = view as unknown as Record<string, unknown>;
+      prevView = {};
+      for (const k of VIEW_PREV_FIELDS) (prevView as any)[k] = src[k];
+    }
     return {
       entityTitle: view?.title,
       parentEntityTitle: table?.title,
       extra: {
         oldTitle: view?.title,
-        prevView: view
-          ? {
-              title: view.title,
-              order: view.order,
-              lock_type: view.lock_type,
-              meta: view.meta,
-              show_system_fields: view.show_system_fields as
-                | boolean
-                | undefined,
-            }
-          : undefined,
+        prevView,
       },
     };
   },

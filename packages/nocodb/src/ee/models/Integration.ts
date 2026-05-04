@@ -1,6 +1,6 @@
 import { Integration as IntegrationCE } from 'src/models';
 import { integrationCategoryNeedDefault } from 'nocodb-sdk';
-import { IntegrationsType } from 'nocodb-sdk';
+import { IntegrationsType, SyncDataType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type {
   BoolType,
@@ -305,6 +305,37 @@ export default class Integration extends IntegrationCE {
       count: integrations.length,
       limit: integrations.length,
     });
+  }
+
+  static async countAiIntegrations(
+    _context: Omit<NcContext, 'base_id'>,
+    workspaceId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    const aiSubTypes: string[] = [
+      SyncDataType.OPENAI,
+      SyncDataType.CLAUDE,
+      SyncDataType.OLLAMA,
+      SyncDataType.GROQ,
+    ];
+
+    const qb = ncMeta.knex(MetaTable.INTEGRATIONS);
+
+    qb.where(`${MetaTable.INTEGRATIONS}.fk_workspace_id`, workspaceId)
+      .whereIn(`${MetaTable.INTEGRATIONS}.sub_type`, aiSubTypes)
+      .where((whereQb) => {
+        whereQb
+          .where(`${MetaTable.INTEGRATIONS}.deleted`, false)
+          .orWhereNull(`${MetaTable.INTEGRATIONS}.deleted`);
+      });
+
+    const row = await qb
+      .count<{ count: string | number }>(
+        `${MetaTable.INTEGRATIONS}.id as count`,
+      )
+      .first();
+
+    return Number(row?.count ?? 0);
   }
 
   static async get(

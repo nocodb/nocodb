@@ -48,7 +48,10 @@ export const useBookmarkDnd = createSharedComposable(() => {
   }
 
   async function onDropOnGroup(groupId: string) {
+    // Capture all drag state up-front because dragend fires on the source after drop
+    // and clears these refs. The async work below must not depend on the live refs.
     const bookmarkId = draggingBookmarkId.value
+    const fromGroupId = draggingFromGroupId.value
     let targetIndex = dropIndex.value
 
     if (!bookmarkId) {
@@ -56,7 +59,7 @@ export const useBookmarkDnd = createSharedComposable(() => {
       return
     }
 
-    const isSameGroup = draggingFromGroupId.value === groupId
+    const isSameGroup = fromGroupId === groupId
 
     if (isSameGroup) {
       // Reorder within same group
@@ -68,6 +71,11 @@ export const useBookmarkDnd = createSharedComposable(() => {
         const currentIdx = groupItems.findIndex((b) => b.id === bookmarkId)
         if (currentIdx !== -1 && currentIdx < targetIndex) {
           targetIndex--
+        }
+        // No-op: dropping at its own current position
+        if (currentIdx !== -1 && currentIdx === targetIndex) {
+          onDragEnd()
+          return
         }
         await reorderBookmark(bookmarkId, groupId, targetIndex)
       }
@@ -84,6 +92,7 @@ export const useBookmarkDnd = createSharedComposable(() => {
   }
 
   async function onDropGroup(targetIndex: number) {
+    // Capture group id up-front (see onDropOnGroup for rationale)
     const groupId = draggingGroupId.value
     if (!groupId) {
       onDragEnd()

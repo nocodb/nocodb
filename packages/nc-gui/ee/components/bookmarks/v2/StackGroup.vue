@@ -131,10 +131,11 @@ function handleDrop() {
     @dragleave="onDragLeaveGroup(group.id!)"
     @drop.prevent="handleDrop"
   >
-    <!-- Header — full width, right-click opens the same menu as the kebab -->
+    <!-- Header — full width, right-click opens the same menu as the kebab.
+         Ungrouped is pinned and not draggable. -->
     <div
       class="nc-v2-stack-h group"
-      draggable="true"
+      :draggable="!isDefault"
       data-testid="nc-bookmark-group-header"
       @dragstart="handleGroupDragStart"
       @dragend="onDragEnd"

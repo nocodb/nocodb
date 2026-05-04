@@ -121,7 +121,7 @@ function handleDrop() {
     class="nc-v2-mosaic-card"
     :class="{ 'is-drop-target': isDropTarget, 'is-dragging': isDraggingGroup, 'is-collapsed': isCollapsed }"
     :data-group-id="group.id"
-    draggable="true"
+    :draggable="!isDefault"
     @dragstart="handleGroupDragStart"
     @dragend="onDragEnd"
     @dragover="handleDragOver"

@@ -14,9 +14,15 @@ export const useBookmarks = createSharedComposable(() => {
   const isCreatingFolder = ref(false)
   const collapsedGroupIds = ref<Set<string>>(new Set())
 
-  const orderedGroups = computed(() =>
-    [...groups.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0)),
-  )
+  // Ungrouped is always pinned first; the rest follow `order` ascending.
+  const orderedGroups = computed(() => {
+    const isUngrouped = (g: BookmarkGroupType) => g.name === 'Ungrouped'
+    return [...groups.value].sort((a, b) => {
+      if (isUngrouped(a) && !isUngrouped(b)) return -1
+      if (!isUngrouped(a) && isUngrouped(b)) return 1
+      return (a.order ?? 0) - (b.order ?? 0)
+    })
+  })
 
   const bookmarksByGroup = computed<Record<string, BookmarkType[]>>(() => {
     const map: Record<string, BookmarkType[]> = {}

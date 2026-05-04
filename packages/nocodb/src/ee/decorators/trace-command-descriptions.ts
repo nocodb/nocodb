@@ -29,6 +29,7 @@ export const bViewSection = token('viewSection');
 export const bRecordTemplate = token('recordTemplate');
 export const bDateDependency = token('dateDependency');
 export const bDocument = token('document');
+export const bRlsPolicy = token('rlsPolicy');
 
 import type { DescCtx, DescFn } from 'src/command-registry/types';
 export type { DescCtx, DescFn };

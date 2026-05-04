@@ -4,6 +4,8 @@ import {
   TableUpdateContract,
 } from '../operations/tables.operations';
 import type { TablesService } from '~/services/tables.service';
+import type { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import BaseTrash from '~/models/BaseTrash';
 import { OperationRegistry } from '~/command-registry/registry';
 import { makeReplayReq } from '~/command-registry/replay-context';
 
@@ -13,9 +15,28 @@ interface SandboxColumn {
   title?: string;
 }
 
-export function registerTableHandlers(svc: TablesService): void {
+export function registerTableHandlers(
+  svc: TablesService,
+  baseTrashSvc: BaseTrashService,
+): void {
   OperationRegistry.register(TableCreateContract, async (ctx, params, meta) => {
     const req = makeReplayReq(meta.originalReq, meta.createdBy);
+
+    if (ctx.additionalContext?.is_replay && meta.entityId) {
+      const trashEntry = await BaseTrash.getByResourceId(
+        ctx,
+        'table',
+        meta.entityId,
+      );
+      if (trashEntry?.id) {
+        await baseTrashSvc.restore(ctx, {
+          trashId: trashEntry.id,
+          user: req.user,
+          req,
+        });
+        return { id: meta.entityId };
+      }
+    }
 
     // Thread sandbox column IDs + default-view ID into the production-side
     // table create so columns and the default grid view keep stable IDs
@@ -68,6 +89,16 @@ export function registerTableHandlers(svc: TablesService): void {
 
   OperationRegistry.register(TableDeleteContract, async (ctx, params, meta) => {
     const req = makeReplayReq(meta.originalReq, meta.createdBy);
-    return svc.tableDelete(ctx, { ...params, req } as any);
+    return svc.tableDelete(
+      ctx,
+      {
+        tableId: params.tableId,
+        forceDeleteRelations: params.forceDeleteRelations,
+        forceDeleteSyncs: params.forceDeleteSyncs,
+        skipLinkPlaceholder: params.skipLinkPlaceholder,
+        skipTrash: params.skipTrash,
+        req,
+      },
+    );
   });
 }

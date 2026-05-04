@@ -190,12 +190,11 @@ export class TablesService extends TableServiceCE {
     context: NcContext,
     param: {
       tableId: string;
-      user: User | UserType;
       forceDeleteRelations?: boolean;
       forceDeleteSyncs?: boolean;
       skipLinkPlaceholder?: boolean;
       skipTrash?: boolean;
-      req?: any;
+      req: NcRequest;
     },
     ncMeta?: MetaService,
   ) {
@@ -205,7 +204,7 @@ export class TablesService extends TableServiceCE {
     );
 
     if (param.skipTrash) {
-      return super.tableDelete(context, param as any, ncMeta);
+      return super.tableDelete(context, param, ncMeta);
     }
 
     const table = await Model.get(context, param.tableId, false, ncMeta);
@@ -213,17 +212,19 @@ export class TablesService extends TableServiceCE {
       NcError.get(context).tableNotFound(param.tableId);
     }
 
+    const user = param.req?.user;
+
     await this.baseTrashService.trashResource(context, {
       resourceId: param.tableId,
       resourceType: 'table',
-      user: param.user,
+      user,
       req: param.req,
       ncMeta,
     });
 
     this.appHooksServiceEE.emit(AppEvents.TABLE_DELETE, {
       table,
-      user: param.user,
+      user,
       req: param.req,
       context,
     });

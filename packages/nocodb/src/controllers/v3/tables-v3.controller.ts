@@ -116,7 +116,6 @@ export class TablesV3Controller {
   ) {
     const result = await this.tablesV3Service.tableDelete(context, {
       tableId,
-      user: (req as any).user,
       req,
     });
 

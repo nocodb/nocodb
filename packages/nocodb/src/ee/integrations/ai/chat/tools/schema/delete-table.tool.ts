@@ -32,7 +32,6 @@ export const deleteTableTool = defineChatTool({
 
     await tablesV3Service.tableDelete(context, {
       tableId: model.id,
-      user: req.user,
       forceDeleteRelations: true,
       req,
     });

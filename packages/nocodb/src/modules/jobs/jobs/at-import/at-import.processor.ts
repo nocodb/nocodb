@@ -2590,8 +2590,8 @@ export class AtImportProcessor {
         for (const table of tables) {
           await this.tablesService.tableDelete(context, {
             tableId: table.id,
-            user: syncDB.user,
             forceDeleteRelations: true,
+            req,
           });
         }
       }
@@ -2804,8 +2804,8 @@ export class AtImportProcessor {
       for (const table of ncSchema.tables) {
         await this.tablesService.tableDelete(context, {
           tableId: table.id,
-          user: syncDB.user,
           forceDeleteRelations: true,
+          req,
         });
       }
       if (e.message) {

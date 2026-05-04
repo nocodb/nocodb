@@ -97,7 +97,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
 
   onApplicationBootstrap(): void {
     registerBaseVariableHandlers(this.baseVariablesSvc);
-    registerTableHandlers(this.tablesSvc);
+    registerTableHandlers(this.tablesSvc, this.baseTrashSvc);
     registerViewHandlers(this.viewsSvc);
     registerTrashHandlers(this.baseTrashSvc);
     registerColumnHandlers(this.columnsSvc);

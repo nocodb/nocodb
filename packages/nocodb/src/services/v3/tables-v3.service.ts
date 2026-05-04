@@ -77,9 +77,8 @@ export class TablesV3Service {
     context: NcContext,
     param: {
       tableId: string;
-      user: User;
       forceDeleteRelations?: boolean;
-      req?: any;
+      req: NcRequest;
     },
   ) {
     await this.tablesService.tableDelete(context, param);
@@ -223,7 +222,6 @@ export class TablesV3Service {
         this.tablesService
           .tableDelete(context, {
             tableId: tableCreateOutput.id,
-            user: param.user as User,
             forceDeleteRelations: true,
             req: param.req,
           })

@@ -108,7 +108,6 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
         ctx,
         {
           tableId: id,
-          user: param.user as UserType,
           req: param.req,
           skipTrash: true,
         },
@@ -356,7 +355,6 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
       ctx,
       {
         tableId: trashEntry.resource_id,
-        user: param.user as UserType,
         req: param.req,
         forceDeleteRelations: true,
         skipLinkPlaceholder: true,

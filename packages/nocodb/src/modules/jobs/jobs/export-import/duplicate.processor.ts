@@ -571,7 +571,6 @@ export class DuplicateProcessor {
         for (const modelId of createdModels) {
           await this.tablesService.tableDelete(context, {
             tableId: modelId,
-            user: req.user,
             forceDeleteRelations: true,
             req,
           });

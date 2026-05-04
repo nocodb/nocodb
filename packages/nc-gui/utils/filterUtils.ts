@@ -263,3 +263,38 @@ export function getTimezoneFromColumn(col: ColumnType, defaultValue = Intl.DateT
   const columnMeta = parseProp(col.meta)
   return columnMeta.timezone || defaultValue
 }
+
+// Fields the backend actually persists on a filter row. UI-only fields like
+// `tmp_id`, `children`, and `id` are deliberately excluded so callers can
+// diff/snapshot the persistable subset without reacting to UI noise.
+export const FILTER_PERSISTABLE_FIELDS = [
+  'fk_column_id',
+  'comparison_op',
+  'comparison_sub_op',
+  'value',
+  'fk_parent_id',
+  'is_group',
+  'logical_op',
+  'fk_value_col_id',
+  'meta',
+  'order',
+  'enabled',
+] as const
+
+// Returns true if any persistable field differs between two filter rows.
+// Used to skip redundant `filterUpdate` API calls when nothing the backend
+// would store has changed.
+export function filtersDiffer(a: Record<string, any> | null | undefined, b: Record<string, any> | null | undefined): boolean {
+  if (!a || !b) return true
+  for (const k of FILTER_PERSISTABLE_FIELDS) {
+    if (a[k] !== b[k]) return true
+  }
+  return false
+}
+
+// Extract the persistable subset of a filter for diff/snapshot comparisons.
+export function snapshotFilter(f: Record<string, any>): Record<string, any> {
+  const snap: Record<string, any> = {}
+  for (const k of FILTER_PERSISTABLE_FIELDS) snap[k] = f[k]
+  return snap
+}

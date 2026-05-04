@@ -65,6 +65,12 @@ export const OperationName = {
   linkFilterCreate: 'linkFilterCreate',
   widgetFilterCreate: 'widgetFilterCreate',
   rowColorConditionsCreate: 'rowColorConditionsCreate',
+  rowColorConditionAdd: 'rowColorConditionAdd',
+  rowColorConditionUpdate: 'rowColorConditionUpdate',
+  rowColorConditionDelete: 'rowColorConditionDelete',
+  rowColorSelectSet: 'rowColorSelectSet',
+  rowColoringRemove: 'rowColoringRemove',
+  rowColoringRestore: 'rowColoringRestore',
   // Hooks
   hookCreate: 'hookCreate',
   hookUpdate: 'hookUpdate',

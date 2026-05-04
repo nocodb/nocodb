@@ -155,6 +155,21 @@ export const rowColorConditionActions = {
   delete: nestedUnderView('Delete', 'row color filter', 'on'),
 };
 
+export const rowColoringActions = {
+  selectSet: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Set row coloring on ${bView(parentEntityTitle)}`
+      : `Set row coloring`) as DescFn,
+  remove: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Remove row coloring from ${bView(parentEntityTitle)}`
+      : `Remove row coloring`) as DescFn,
+  restore: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Restore row coloring on ${bView(parentEntityTitle)}`
+      : `Restore row coloring`) as DescFn,
+};
+
 export const dateDependencyActions = {
   edit: (({ parentEntityTitle }) =>
     parentEntityTitle

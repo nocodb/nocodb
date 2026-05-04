@@ -23,6 +23,7 @@ import { registerSyncHandlers } from './handlers/sync.handlers';
 import { registerDateDependencyHandlers } from './handlers/date-dependency.handlers';
 import { registerFiltersV3Handlers } from './handlers/filters-v3.handlers';
 import { registerTrashHandlers } from './handlers/trash.handlers';
+import { registerRowColorHandlers } from './handlers/row-color.handlers';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import { OperationRegistry } from '~/command-registry/registry';
 import { BaseVariablesService } from '~/ee/services/base-variables.service';
@@ -53,6 +54,7 @@ import { SyncService } from '~/services/sync.service';
 import { DateDependencyService } from '~/services/date-dependency.service';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { BaseTrashService } from '~/ee/services/base-trash/base-trash.service';
+import { ViewRowColorService } from '~/services/view-row-color.service';
 
 @Injectable()
 export class OperationRegistryBootstrap implements OnApplicationBootstrap {
@@ -87,6 +89,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly dateDependencySvc: DateDependencyService,
     private readonly filtersV3Svc: FiltersV3Service,
     private readonly baseTrashSvc: BaseTrashService,
+    private readonly viewRowColorSvc: ViewRowColorService,
   ) {}
 
   onApplicationBootstrap(): void {
@@ -122,6 +125,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     registerSyncHandlers(this.syncSvc);
     registerDateDependencyHandlers(this.dateDependencySvc);
     registerFiltersV3Handlers(this.filtersV3Svc);
+    registerRowColorHandlers(this.viewRowColorSvc);
 
     OperationRegistry.freeze();
     this.logger.log(

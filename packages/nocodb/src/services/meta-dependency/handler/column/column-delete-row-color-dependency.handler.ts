@@ -107,8 +107,7 @@ export class ColumnDeleteRowColorDependencyHandler implements MetaEventHandler {
     }
 
     const { applyRowColorInvolvement } =
-      await this.viewRowColorService.checkIfColumnInvolved({
-        context,
+      await this.viewRowColorService.checkIfColumnInvolved(context, {
         existingColumn: oldCol,
         action: 'delete',
         ncMeta,

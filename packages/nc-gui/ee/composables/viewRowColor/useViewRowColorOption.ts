@@ -467,6 +467,8 @@ export function useViewRowColorOption(params: {
   }
 
   const onRowColorConditionFilterUpdate = async (colorIndex: number, params: FilterRowChangeEvent) => {
+    const preFlushSnapshot = params.filter ? snapshotFilter(params.filter as any) : null
+    const hadPendingCreate = !!pendingAction.value
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToUpdate = conditions[colorIndex]!
@@ -493,6 +495,8 @@ export function useViewRowColorOption(params: {
         ? conditionToUpdate.conditions.find((f) => f.id === filter.fk_parent_id)?.children
         : conditionToUpdate.conditions.filter((f) => !f.fk_parent_id)
       for (const sibling of siblings ?? []) {
+        // Skip siblings already at the target value — pure diff, no state.
+        if (sibling.logical_op === params.value) continue
         sibling.logical_op = params.value
         const updateObj = { ...sibling }
         delete updateObj.children
@@ -511,6 +515,11 @@ export function useViewRowColorOption(params: {
     delete updateObj.children
 
     if (filter.id) {
+      const isNoOp = hadPendingCreate || (preFlushSnapshot && !filtersDiffer(preFlushSnapshot, filter))
+      if (isNoOp) {
+        eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+        return
+      }
       await $api.internal.postOperation(
         view.value!.fk_workspace_id!,
         view.value!.base_id!,

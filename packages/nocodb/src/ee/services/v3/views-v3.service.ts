@@ -639,8 +639,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
 
       formattedView.sorts = sorts?.length ? sorts : undefined;
 
-      const rowColor = await this.viewRowColorService.getByViewId({
-        context,
+      const rowColor = await this.viewRowColorService.getByViewId(context, {
         fk_view_id: view.id,
         ncMeta,
       });

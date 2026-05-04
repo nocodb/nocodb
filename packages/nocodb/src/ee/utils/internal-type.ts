@@ -5,6 +5,7 @@ import type {
   NcRequest,
   NodeExecutionResult,
   ProseMirrorDoc,
+  RowColoringInfo,
 } from 'nocodb-sdk';
 import type { TestConnectionResponse } from '@noco-local-integrations/core';
 import type { JobTypes } from 'src/interface/Jobs';
@@ -49,6 +50,8 @@ import type {
 
 export type InternalGETResponseType = Promise<
   | void
+  | RowColoringInfo
+  | null
   | DataReflection
   | Document
   | Document[]

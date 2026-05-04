@@ -3,22 +3,26 @@ import {
   arrayToNested,
   EventType,
   NcBaseError,
+  NcContext,
   parseProp,
   PlanFeatureTypes,
   ROW_COLORING_MODE,
   UITypes,
 } from 'nocodb-sdk';
-import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
+import {
+  type RowColorConditionBody,
+  ViewRowColorService as ViewRowColorServiceCE,
+} from 'src/services/view-row-color.service';
 import type {
   ColumnReqType,
   FilterType,
-  NcContext,
+  NcRequest,
   RowColoringInfo,
   RowColoringInfoFilter,
   RowColoringInfoFilterRow,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
-import type { Column, Filter, SelectOption } from '~/models';
+import type { Column, SelectOption } from '~/models';
 import type { ViewMetaRowColoring } from '~/models/View';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import {
@@ -33,33 +37,37 @@ import { Model, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class ViewRowColorService extends ViewRowColorServiceCE {
   protected logger = new Logger(ViewRowColorService.name);
 
   @EEOnly()
-  async getByViewId(params: {
-    context: NcContext;
-    fk_view_id?: string;
-    ncMeta?: MetaService;
-  }) {
-    const ncMeta = params.ncMeta ?? Noco.ncMeta;
+  async getByViewId(
+    context: NcContext,
+    param: {
+      fk_view_id?: string;
+      ncMeta?: MetaService;
+    },
+  ) {
+    const ncMeta = param.ncMeta ?? Noco.ncMeta;
 
     let view: View;
-    if (params.fk_view_id) {
-      view = await View.get(params.context, params.fk_view_id);
+    if (param.fk_view_id) {
+      view = await View.get(context, param.fk_view_id);
       if (!view) {
-        NcError.get(params.context).viewNotFound(params.fk_view_id);
+        NcError.get(context).viewNotFound(param.fk_view_id);
       }
     } else {
       NcError.requiredFieldMissing('view_id');
     }
 
     if (view.row_coloring_mode === ROW_COLORING_MODE.SELECT) {
-      const model = await Model.get(params.context, view.fk_model_id);
+      const model = await Model.get(context, view.fk_model_id);
 
-      await model.getColumns(params.context);
+      await model.getColumns(context);
 
       const meta: ViewMetaRowColoring = parseProp(view.meta);
 
@@ -73,7 +81,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       }
 
       const selectOptions = await selectColumn.getColOptions<SelectOption>(
-        params.context,
+        context,
       );
 
       return {
@@ -95,12 +103,12 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       } as RowColoringInfo;
 
       const rowColorConditions = await RowColorCondition.getByViewId(
-        params.context,
+        context,
         view.id,
       );
       const rawFilters = await ncMeta.metaList2(
-        params.context.workspace_id,
-        params.context.base_id,
+        context.workspace_id,
+        context.base_id,
         MetaTable.FILTER_EXP,
         {
           xcCondition: (knex) =>
@@ -142,116 +150,161 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
   }
 
+  // Recursively inserts a row-color filter and its descendants. Each node
+  // honors a pre-set `id` and `order` under `is_replay` so undo of
+  // `rowColorConditionDelete` can rebuild the original tree shape verbatim.
+  // We don't go through `Filter.insert` because that path requires one of
+  // {fk_view_id, fk_hook_id, fk_parent_column_id, fk_level_id, fk_button_col_id}
+  // which row-color filters don't have.
+  private async insertRowColorFilterSubtree(
+    context: NcContext,
+    rowColorConditionId: string,
+    filter: Partial<FilterType> & { children?: Partial<FilterType>[] },
+    ncMeta: MetaService,
+    fkParentId: string | null = null,
+  ) {
+    const isReplay = context?.additionalContext?.is_replay === true;
+    const insertObj = extractProps(filter as any, [
+      'fk_column_id',
+      'comparison_op',
+      'comparison_sub_op',
+      'value',
+      'is_group',
+      'logical_op',
+      'base_id',
+      'source_id',
+      'meta',
+      'enabled',
+      ...(isReplay ? (['order'] as const) : []),
+    ]) as Record<string, unknown>;
+    insertObj.fk_row_color_condition_id = rowColorConditionId;
+    insertObj.fk_parent_id = fkParentId ?? filter.fk_parent_id ?? null;
+    if (isReplay && (filter as { id?: string }).id) {
+      insertObj.id = (filter as { id?: string }).id;
+    }
+    if (!isReplay) {
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
+        fk_row_color_condition_id: rowColorConditionId,
+        fk_parent_id: insertObj.fk_parent_id,
+      });
+    }
+    const inserted = await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILTER_EXP,
+      insertObj,
+    );
+    if (filter.children?.length) {
+      for (const child of filter.children) {
+        await this.insertRowColorFilterSubtree(
+          context,
+          rowColorConditionId,
+          child as Partial<FilterType>,
+          ncMeta,
+          inserted.id as string,
+        );
+      }
+    }
+    return inserted;
+  }
+
+  @TraceCommand(OperationName.rowColorConditionAdd)
   @EEOnly()
-  async addRowColoringCondition(params: {
-    context: NcContext;
-    fk_view_id?: string;
-    color: string;
-    is_set_as_background: boolean;
-    nc_order: number;
-    type?: string;
-    fk_target_column_id?: string;
-    filter?: FilterType;
-    viewWebhookManager?: ViewWebhookManager;
-    ncMeta?: MetaService;
-  }) {
-    const { context } = params;
-    const ncMeta = params.ncMeta ?? Noco.ncMeta;
+  async addRowColoringCondition(
+    context: NcContext,
+    param: {
+      fk_view_id?: string;
+      condition: RowColorConditionBody & { id?: string };
+      req?: NcRequest;
+      filter?: FilterType;
+      filters?: FilterType[];
+      viewWebhookManager?: ViewWebhookManager;
+      ncMeta?: MetaService;
+    },
+  ) {
+    const ncMeta = param.ncMeta ?? Noco.ncMeta;
+    const { condition } = param;
     await checkForFeature(context, PlanFeatureTypes.FEATURE_ROW_COLOUR, ncMeta);
 
-    if (params.type === 'cell') {
+    if (condition.type === 'cell') {
       await checkForFeature(
         context,
         PlanFeatureTypes.FEATURE_CELL_COLOUR,
         ncMeta,
       );
 
-      if (!params.fk_target_column_id) {
-        NcError.get(params.context).requiredFieldMissing('fk_target_column_id');
+      if (!condition.fk_target_column_id) {
+        NcError.get(context).requiredFieldMissing('fk_target_column_id');
       }
     }
 
     let view: View;
-    if (params.fk_view_id) {
-      view = await View.get(params.context, params.fk_view_id);
+    if (param.fk_view_id) {
+      view = await View.get(context, param.fk_view_id);
       if (!view) {
-        NcError.get(params.context).viewNotFound(params.fk_view_id);
+        NcError.get(context).viewNotFound(param.fk_view_id);
       }
     } else {
-      NcError.get(params.context).requiredFieldMissing('view_id');
+      NcError.get(context).requiredFieldMissing('view_id');
     }
     if (
       view.row_coloring_mode &&
       view.row_coloring_mode !== ROW_COLORING_MODE.FILTER
     ) {
-      NcError.get(params.context).invalidRequestBody(
+      NcError.get(context).invalidRequestBody(
         'Cannot directly change row coloring mode, remove it first',
       );
     }
-    if (!params.color || !params.nc_order) {
-      NcError.get(params.context).invalidRequestBody(
+    if (!condition.color || !condition.nc_order) {
+      NcError.get(context).invalidRequestBody(
         'Invalid payload for row coloring condition',
       );
     }
 
     const viewWebhookManager =
-      params.viewWebhookManager ??
+      param.viewWebhookManager ??
       (
         await (
-          await new ViewWebhookManagerBuilder(
-            params.context,
-            ncMeta,
-          ).withModelId(view.fk_model_id)
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
         ).withViewId(view.id)
       ).forUpdate();
 
     const ncMetaTrans = await ncMeta.startTransaction();
 
     try {
-      const rowColoringCondition = await ncMetaTrans.metaInsert2(
-        params.context.workspace_id,
-        params.context.base_id,
-        MetaTable.ROW_COLOR_CONDITIONS,
+      const rowColoringCondition = await RowColorCondition.insert(
+        context,
         {
+          // `is_replay` honors a pre-set id; ignored on the normal path.
+          id: condition.id,
           fk_view_id: view.id,
-          fk_workspace_id: params.context.workspace_id,
-          base_id: params.context.base_id,
-          color: params.color,
-          nc_order: params.nc_order,
-          is_set_as_background: params.is_set_as_background ?? false,
-          type: params.type ?? 'row',
-          fk_target_column_id: params.fk_target_column_id,
+          fk_workspace_id: context.workspace_id,
+          base_id: context.base_id,
+          color: condition.color,
+          nc_order: condition.nc_order,
+          is_set_as_background: condition.is_set_as_background ?? false,
+          type: condition.type ?? 'row',
+          fk_target_column_id: condition.fk_target_column_id,
         },
+        ncMetaTrans,
       );
       const rowColoringConditionId = rowColoringCondition.id;
 
-      if (params.filter) {
-        const filterToInsert = {
-          ...extractProps(params.filter as any, [
-            'comparison_op',
-            'comparison_sub_op',
-            'value',
-            'fk_parent_id',
-            'is_group',
-            'logical_op',
-            'base_id',
-            'source_id',
-            'order',
-          ]),
-          fk_row_color_condition_id: rowColoringConditionId,
-        } as Filter;
-
-        await ncMetaTrans.metaInsert2(
-          params.context.workspace_id,
-          params.context.base_id,
-          MetaTable.FILTER_EXP,
-          filterToInsert,
+      const filterRoots = param.filters ?? (param.filter ? [param.filter] : []);
+      for (const root of filterRoots) {
+        await this.insertRowColorFilterSubtree(
+          context,
+          rowColoringConditionId,
+          root,
+          ncMetaTrans,
         );
       }
 
       if (!view.row_coloring_mode) {
         await View.update(
-          params.context,
+          context,
           view.id,
           {
             row_coloring_mode: ROW_COLORING_MODE.FILTER,
@@ -263,7 +316,10 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
 
       await ncMetaTrans.commit();
 
-      const rowColorInfo = await this.getByViewId({ ...params });
+      const rowColorInfo = await this.getByViewId(context, {
+        fk_view_id: view.id,
+        ncMeta,
+      });
 
       NocoSocket.broadcastEvent(
         context,
@@ -276,7 +332,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         },
         context.socket_id,
       );
-      if (!params.viewWebhookManager) {
+      if (!param.viewWebhookManager) {
         (await viewWebhookManager.withNewViewId(view.id)).emit();
       }
 
@@ -288,44 +344,45 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       await ncMetaTrans.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error('Failed to add row color condition', e);
-      NcError.get(params.context).internalServerError(
+      NcError.get(context).internalServerError(
         'Failed to add row color condition',
       );
     }
   }
 
+  @TraceCommand(OperationName.rowColorConditionUpdate)
   @EEOnly()
-  async updateRowColoringCondition(params: {
-    context: NcContext;
-    fk_view_id?: string;
-    fk_row_coloring_conditions_id: string;
-    color: string;
-    is_set_as_background: boolean;
-    nc_order: number;
-    type?: string;
-    fk_target_column_id?: string;
-    viewWebhookManager?: ViewWebhookManager;
-    ncMeta?: MetaService;
-  }) {
-    const ncMeta = params.ncMeta ?? Noco.ncMeta;
+  async updateRowColoringCondition(
+    context: NcContext,
+    param: {
+      fk_view_id?: string;
+      fk_row_coloring_conditions_id: string;
+      condition: RowColorConditionBody;
+      req?: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+      ncMeta?: MetaService;
+    },
+  ) {
+    const ncMeta = param.ncMeta ?? Noco.ncMeta;
+    const { condition } = param;
 
-    if (params.type === 'cell') {
+    if (condition.type === 'cell') {
       await checkForFeature(
-        params.context,
+        context,
         PlanFeatureTypes.FEATURE_CELL_COLOUR,
         ncMeta,
       );
 
-      if (!params.fk_target_column_id) {
-        NcError.get(params.context).requiredFieldMissing('fk_target_column_id');
+      if (!condition.fk_target_column_id) {
+        NcError.get(context).requiredFieldMissing('fk_target_column_id');
       }
     }
 
     let view: View;
-    if (params.fk_view_id) {
-      view = await View.get(params.context, params.fk_view_id);
+    if (param.fk_view_id) {
+      view = await View.get(context, param.fk_view_id);
       if (!view) {
-        NcError.get(params.context).viewNotFound(params.fk_view_id);
+        NcError.get(context).viewNotFound(param.fk_view_id);
       }
     } else {
       NcError.requiredFieldMissing('view_id');
@@ -340,169 +397,191 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
 
     const viewWebhookManager =
-      params.viewWebhookManager ??
+      param.viewWebhookManager ??
       (
         await (
-          await new ViewWebhookManagerBuilder(
-            params.context,
-            ncMeta,
-          ).withModelId(view.fk_model_id)
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
         ).withViewId(view.id)
       ).forUpdate();
 
     const rowColorCondition = await ncMeta.metaUpdate(
-      params.context.workspace_id,
-      params.context.base_id,
+      context.workspace_id,
+      context.base_id,
       MetaTable.ROW_COLOR_CONDITIONS,
       {
-        fk_workspace_id: params.context.workspace_id,
-        base_id: params.context.base_id,
-        color: params.color,
-        nc_order: params.nc_order,
-        is_set_as_background: params.is_set_as_background,
-        ...(params.type !== undefined && { type: params.type }),
-        ...(params.fk_target_column_id !== undefined && {
-          fk_target_column_id: params.fk_target_column_id,
+        fk_workspace_id: context.workspace_id,
+        base_id: context.base_id,
+        color: condition.color,
+        nc_order: condition.nc_order,
+        is_set_as_background: condition.is_set_as_background,
+        ...(condition.type !== undefined && { type: condition.type }),
+        ...(condition.fk_target_column_id !== undefined && {
+          fk_target_column_id: condition.fk_target_column_id,
         }),
       },
-      params.fk_row_coloring_conditions_id,
+      param.fk_row_coloring_conditions_id,
     );
 
     NocoSocket.broadcastEvent(
-      params.context,
+      context,
       {
         event: EventType.META_EVENT,
         payload: {
           action: 'row_color_update',
-          payload: await this.getByViewId({ ...params }),
+          payload: await this.getByViewId(context, {
+            fk_view_id: view.id,
+            ncMeta,
+          }),
         },
       },
-      params.context.socket_id,
+      context.socket_id,
     );
-    if (!params.viewWebhookManager) {
+    if (!param.viewWebhookManager) {
       (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
 
     return rowColorCondition;
   }
 
+  @TraceCommand(OperationName.rowColorConditionDelete)
   @EEOnly()
-  async deleteRowColoringCondition(params: {
-    context: NcContext;
-    fk_view_id?: string;
-    fk_row_coloring_conditions_id: string;
-    viewWebhookManager?: ViewWebhookManager;
-    ncMeta?: MetaService;
-  }) {
-    const ncMeta = params.ncMeta ?? Noco.ncMeta;
+  async deleteRowColoringCondition(
+    context: NcContext,
+    param: {
+      fk_view_id?: string;
+      fk_row_coloring_conditions_id: string;
+      req?: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+      ncMeta?: MetaService;
+    },
+  ) {
+    const ncMeta = param.ncMeta ?? Noco.ncMeta;
     const exists = await ncMeta.metaGet2(
-      params.context.workspace_id,
-      params.context.base_id,
+      context.workspace_id,
+      context.base_id,
       MetaTable.ROW_COLOR_CONDITIONS,
       {
-        id: params.fk_row_coloring_conditions_id,
+        id: param.fk_row_coloring_conditions_id,
       },
     );
     if (!exists) {
       NcError.notFound(
-        `Row color condition with id ${params.fk_row_coloring_conditions_id} does not exists`,
+        `Row color condition with id ${param.fk_row_coloring_conditions_id} does not exists`,
       );
     }
-    if (params.fk_view_id && params.fk_view_id !== exists.fk_view_id) {
+    if (param.fk_view_id && param.fk_view_id !== exists.fk_view_id) {
       NcError.notFound(
-        `Row color condition with id ${params.fk_row_coloring_conditions_id} does not exists`,
+        `Row color condition with id ${param.fk_row_coloring_conditions_id} does not exists`,
       );
     }
 
-    const view = await View.get(params.context, exists.fk_view_id);
+    const view = await View.get(context, exists.fk_view_id);
 
     if (!view) {
-      NcError.get(params.context).viewNotFound(params.fk_view_id);
+      NcError.get(context).viewNotFound(param.fk_view_id);
     }
 
     const viewWebhookManager =
-      params.viewWebhookManager ??
+      param.viewWebhookManager ??
       (
         await (
-          await new ViewWebhookManagerBuilder(
-            params.context,
-            ncMeta,
-          ).withModelId(view.fk_model_id)
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
         ).withViewId(view.id)
       ).forUpdate();
 
     await RowColorCondition.delete(
-      params.context,
-      params.fk_row_coloring_conditions_id,
-      params.ncMeta,
+      context,
+      param.fk_row_coloring_conditions_id,
+      param.ncMeta,
     );
 
+    const remaining = await RowColorCondition.getByViewId(context, view.id);
+    if (remaining.length === 0 && view.row_coloring_mode) {
+      await View.update(
+        context,
+        view.id,
+        { row_coloring_mode: null },
+        false,
+        ncMeta,
+      );
+    }
+
     NocoSocket.broadcastEvent(
-      params.context,
+      context,
       {
         event: EventType.META_EVENT,
         payload: {
           action: 'row_color_update',
-          payload: await this.getByViewId({ ...params }),
+          payload: await this.getByViewId(context, {
+            fk_view_id: view.id,
+            ncMeta,
+          }),
         },
       },
-      params.context.socket_id,
+      context.socket_id,
     );
-    if (!params.viewWebhookManager) {
+    if (!param.viewWebhookManager) {
       (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
   }
 
+  @TraceCommand(OperationName.rowColorSelectSet)
   @EEOnly()
-  async setRowColoringSelect(params: {
-    context: NcContext;
-    fk_view_id?: string;
-    fk_column_id: string;
-    is_set_as_background: boolean;
-    viewWebhookManager?: ViewWebhookManager;
-    ncMeta?: MetaService;
-  }) {
-    const { context, ncMeta } = params;
+  async setRowColoringSelect(
+    context: NcContext,
+    param: {
+      fk_view_id?: string;
+      fk_column_id: string;
+      is_set_as_background: boolean;
+      req?: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+      ncMeta?: MetaService;
+    },
+  ) {
+    const ncMeta = param.ncMeta ?? Noco.ncMeta;
 
     await checkForFeature(context, PlanFeatureTypes.FEATURE_ROW_COLOUR, ncMeta);
 
     let view: View;
-    if (params.fk_view_id) {
-      view = await View.get(params.context, params.fk_view_id);
+    if (param.fk_view_id) {
+      view = await View.get(context, param.fk_view_id);
       if (!view) {
-        NcError.get(params.context).viewNotFound(params.fk_view_id);
+        NcError.get(context).viewNotFound(param.fk_view_id);
       }
     } else {
       NcError.get(context).requiredFieldMissing('view_id');
     }
-    if (!params.fk_column_id) {
+    if (!param.fk_column_id) {
       NcError.get(context).requiredFieldMissing('fk_column_id');
     } else {
       const columns = await view.getColumns(context);
-      if (!columns.find((col) => col.fk_column_id === params.fk_column_id)) {
-        NcError.get(context).fieldNotFound(params.fk_column_id);
+      if (!columns.find((col) => col.fk_column_id === param.fk_column_id)) {
+        NcError.get(context).fieldNotFound(param.fk_column_id);
       }
     }
 
     const viewWebhookManager =
-      params.viewWebhookManager ??
+      param.viewWebhookManager ??
       (
         await (
-          await new ViewWebhookManagerBuilder(
-            params.context,
-            ncMeta,
-          ).withModelId(view.fk_model_id)
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
         ).withViewId(view.id)
       ).forUpdate();
 
     const viewMeta: ViewMetaRowColoring = parseProp(view.meta);
     viewMeta.rowColoringInfo = {
-      fk_column_id: params.fk_column_id,
-      is_set_as_background: params.is_set_as_background ?? false,
+      fk_column_id: param.fk_column_id,
+      is_set_as_background: param.is_set_as_background ?? false,
     };
 
     const result = await View.update(
-      params.context,
+      context,
       view.id,
       {
         row_coloring_mode: ROW_COLORING_MODE.SELECT,
@@ -526,43 +605,46 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       },
       context.socket_id,
     );
-    if (!params.viewWebhookManager) {
+    if (!param.viewWebhookManager) {
       (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
   }
 
+  @TraceCommand(OperationName.rowColoringRemove)
   @EEOnly()
-  async removeRowColorInfo(params: {
-    context: NcContext;
-    fk_view_id?: string;
-    ncMeta?: MetaService;
-    viewWebhookManager?: ViewWebhookManager;
-  }) {
-    const ncMeta = params.ncMeta ?? Noco.ncMeta;
+  async removeRowColorInfo(
+    context: NcContext,
+    param: {
+      fk_view_id?: string;
+      req?: NcRequest;
+      ncMeta?: MetaService;
+      viewWebhookManager?: ViewWebhookManager;
+    },
+  ) {
+    const ncMeta = param.ncMeta ?? Noco.ncMeta;
     let view: View;
-    if (params.fk_view_id) {
-      view = await View.get(params.context, params.fk_view_id);
+    if (param.fk_view_id) {
+      view = await View.get(context, param.fk_view_id);
       if (!view) {
-        NcError.get(params.context).viewNotFound(params.fk_view_id);
+        NcError.get(context).viewNotFound(param.fk_view_id);
       }
     } else {
-      NcError.get(params.context).requiredFieldMissing('view_id');
+      NcError.get(context).requiredFieldMissing('view_id');
     }
 
     const viewWebhookManager =
-      params.viewWebhookManager ??
+      param.viewWebhookManager ??
       (
         await (
-          await new ViewWebhookManagerBuilder(
-            params.context,
-            ncMeta,
-          ).withModelId(view.fk_model_id)
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
         ).withViewId(view.id)
       ).forUpdate();
 
     if (view.row_coloring_mode === ROW_COLORING_MODE.FILTER) {
       const rowColorConditions = await RowColorCondition.getByViewId(
-        params.context,
+        context,
         view.id,
       );
 
@@ -571,23 +653,23 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       try {
         for (const rowColorCondition of rowColorConditions) {
           await ncMetaTrans.metaDelete(
-            params.context.workspace_id,
-            params.context.base_id,
+            context.workspace_id,
+            context.base_id,
             MetaTable.FILTER_EXP,
             {
               fk_row_color_condition_id: rowColorCondition.id,
             },
           );
           await ncMetaTrans.metaDelete(
-            params.context.workspace_id,
-            params.context.base_id,
+            context.workspace_id,
+            context.base_id,
             MetaTable.ROW_COLOR_CONDITIONS,
             rowColorCondition.id,
           );
         }
 
         const result = await View.update(
-          params.context,
+          context,
           view.id,
           {
             row_coloring_mode: null,
@@ -597,7 +679,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         );
 
         NocoSocket.broadcastEvent(
-          params.context,
+          context,
           {
             event: EventType.META_EVENT,
             payload: {
@@ -608,7 +690,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
               },
             },
           },
-          params.context.socket_id,
+          context.socket_id,
         );
 
         await ncMetaTrans.commit();
@@ -616,7 +698,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         await ncMetaTrans.rollback(e);
         if (e instanceof NcError || e instanceof NcBaseError) throw e;
         this.logger.error('Failed to remove row color info', e);
-        NcError.get(params.context).internalServerError(
+        NcError.get(context).internalServerError(
           'Failed to remove row color info',
         );
       }
@@ -625,7 +707,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       delete viewMeta.rowColoringInfo;
 
       const result = await View.update(
-        params.context,
+        context,
         view.id,
         {
           row_coloring_mode: null,
@@ -636,7 +718,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       );
 
       NocoSocket.broadcastEvent(
-        params.context,
+        context,
         {
           event: EventType.META_EVENT,
           payload: {
@@ -647,24 +729,26 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
             },
           },
         },
-        params.context.socket_id,
+        context.socket_id,
       );
     }
 
-    if (!params.viewWebhookManager) {
+    if (!param.viewWebhookManager) {
       (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
   }
 
   @EEOnly()
-  async checkIfColumnInvolved(param: {
-    context: NcContext;
-    existingColumn: Column;
-    newColumn?: Column | ColumnReqType;
-    action: 'delete' | 'update';
-    ncMeta?: MetaService;
-  }) {
-    const { context, existingColumn, newColumn, action } = param;
+  async checkIfColumnInvolved(
+    context: NcContext,
+    param: {
+      existingColumn: Column;
+      newColumn?: Column | ColumnReqType;
+      action: 'delete' | 'update';
+      ncMeta?: MetaService;
+    },
+  ) {
+    const { existingColumn, newColumn, action } = param;
     const ncMeta = param.ncMeta ?? Noco.ncMeta;
     const commitHandlers: (() => Promise<void>)[] = [];
 
@@ -683,8 +767,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
             metaRowColoring?.rowColoringInfo?.fk_column_id === existingColumn.id
           ) {
             commitHandlers.push(() =>
-              this.removeRowColorInfo({
-                context,
+              this.removeRowColorInfo(context, {
                 fk_view_id: view.id,
               }),
             );
@@ -711,8 +794,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         for (const condition of cellColorConditions) {
           // Delete the cell-type condition (this will cascade delete filters)
           commitHandlers.push(() =>
-            this.deleteRowColoringCondition({
-              context,
+            this.deleteRowColoringCondition(context, {
               fk_view_id: condition.fk_view_id,
               fk_row_coloring_conditions_id: condition.id,
               ncMeta,
@@ -732,8 +814,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           if (remainingConditions.length === 0) {
             // If no other conditions remain, remove row coloring mode entirely
             commitHandlers.push(() =>
-              this.removeRowColorInfo({
-                context,
+              this.removeRowColorInfo(context, {
                 fk_view_id: condition.fk_view_id,
                 ncMeta,
               }),
@@ -788,8 +869,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
               affectedRowColorConditionId,
             );
             commitHandlers.push(() =>
-              this.deleteRowColoringCondition({
-                context,
+              this.deleteRowColoringCondition(context, {
                 fk_view_id: rowColorCondition.fk_view_id,
                 fk_row_coloring_conditions_id: affectedRowColorConditionId,
                 ncMeta,
@@ -807,8 +887,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
             ) {
               // if not has other condition, remove the row coloring setting altogether
               commitHandlers.push(() =>
-                this.removeRowColorInfo({
-                  context,
+                this.removeRowColorInfo(context, {
                   fk_view_id: rowColorCondition.fk_view_id,
                   ncMeta,
                 }),
@@ -821,8 +900,177 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
 
     return {
       applyRowColorInvolvement: async () => {
-        Promise.all(commitHandlers.map((k) => k()));
+        for (const handler of commitHandlers) {
+          await handler();
+        }
       },
     };
+  }
+
+  // Atomic wipe-and-rebuild of a view's row coloring state. Used by the
+  // command-registry as the inverse of `rowColorSelectSet` and
+  // `rowColoringRemove` — both flip `row_coloring_mode` so a point inverse
+  // would have to branch on prior mode and reconstruct meta or the
+  // condition+filter tree case-by-case. One restore primitive keeps the
+  // dispatch simple.
+  @TraceCommand(OperationName.rowColoringRestore)
+  @EEOnly()
+  async restoreRowColoring(
+    context: NcContext,
+    param: {
+      fk_view_id: string;
+      snapshot: {
+        row_coloring_mode: string | null;
+        meta?: unknown;
+        conditions?: Array<
+          Partial<RowColorCondition> & {
+            id: string;
+            nestedFilters?: Array<
+              Partial<FilterType> & { children?: Partial<FilterType>[] }
+            >;
+          }
+        >;
+      };
+      req?: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+      ncMeta?: MetaService;
+    },
+  ) {
+    const ncMeta = param.ncMeta ?? Noco.ncMeta;
+
+    const view = await View.get(context, param.fk_view_id);
+    if (!view) {
+      NcError.get(context).viewNotFound(param.fk_view_id);
+    }
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
+
+    const ncMetaTrans = await ncMeta.startTransaction();
+    try {
+      // Wipe current state regardless of the snapshot mode — the snapshot is
+      // authoritative and we want to fully replace, not merge.
+      const existing = await RowColorCondition.getByViewId(
+        context,
+        view.id,
+        ncMetaTrans,
+      );
+      for (const cond of existing) {
+        await ncMetaTrans.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          { fk_row_color_condition_id: cond.id },
+        );
+        await ncMetaTrans.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.ROW_COLOR_CONDITIONS,
+          cond.id,
+        );
+      }
+
+      const targetMode = param.snapshot.row_coloring_mode ?? null;
+
+      if (targetMode === ROW_COLORING_MODE.FILTER) {
+        for (const cond of param.snapshot.conditions ?? []) {
+          await RowColorCondition.insert(
+            context,
+            {
+              id: cond.id,
+              fk_view_id: view.id,
+              fk_workspace_id: context.workspace_id,
+              base_id: context.base_id,
+              color: cond.color as string,
+              nc_order: cond.nc_order as number,
+              is_set_as_background: !!cond.is_set_as_background,
+              type: (cond.type as string) ?? 'row',
+              fk_target_column_id: cond.fk_target_column_id,
+            },
+            ncMetaTrans,
+          );
+          for (const root of cond.nestedFilters ?? []) {
+            await this.insertRowColorFilterSubtree(
+              context,
+              cond.id,
+              root,
+              ncMetaTrans,
+            );
+          }
+        }
+      }
+
+      const viewUpdate: Record<string, unknown> = {
+        row_coloring_mode: targetMode,
+      };
+      if (targetMode === ROW_COLORING_MODE.SELECT && param.snapshot.meta) {
+        viewUpdate.meta = param.snapshot.meta;
+      } else if (targetMode === null) {
+        // Clear any lingering rowColoringInfo on the view's meta.
+        const currentMeta = parseProp(view.meta) ?? {};
+        delete (currentMeta as Record<string, unknown>).rowColoringInfo;
+        viewUpdate.meta = currentMeta;
+      }
+      // `View.update` accepts a partial of the typed view shape; the dynamic
+      // `viewUpdate` is built per-mode above (mode + optional meta), so cast.
+      await View.update(
+        context,
+        view.id,
+        viewUpdate as Parameters<typeof View.update>[2],
+        false,
+        ncMetaTrans,
+      );
+
+      await ncMetaTrans.commit();
+    } catch (e) {
+      await ncMetaTrans.rollback(e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Failed to restore row coloring', e);
+      NcError.get(context).internalServerError(
+        'Failed to restore row coloring',
+      );
+    }
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'row_color_update',
+          payload: await this.getByViewId(context, {
+            fk_view_id: view.id,
+            ncMeta,
+          }),
+        },
+      },
+      context.socket_id,
+    );
+    // Mode/meta changes also need a `view_update` so the FE picks up the
+    // mode flip on the cached view object.
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_update',
+          payload: {
+            ...(await View.get(context, view.id)),
+            from_row_color: true,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
   }
 }

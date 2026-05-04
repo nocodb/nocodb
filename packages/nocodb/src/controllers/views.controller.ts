@@ -53,8 +53,7 @@ export class ViewsController {
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
   ) {
-    return await this.viewRowColorService.getByViewId({
-      context,
+    return await this.viewRowColorService.getByViewId(context, {
       fk_view_id: viewId,
     });
   }
@@ -64,10 +63,11 @@ export class ViewsController {
   async viewRowColorInfoDelete(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
+    @Req() req: NcRequest,
   ) {
-    return await this.viewRowColorService.removeRowColorInfo({
-      context,
+    return await this.viewRowColorService.removeRowColorInfo(context, {
       fk_view_id: viewId,
+      req,
     });
   }
 

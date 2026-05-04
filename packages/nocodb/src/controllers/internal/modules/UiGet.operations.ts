@@ -122,10 +122,9 @@ export class UiGetOperations
           }),
         );
       case 'viewRowColorInfo':
-        return (await this.viewRowColorService.getByViewId({
-          context,
+        return await this.viewRowColorService.getByViewId(context, {
           fk_view_id: req.query.viewId as string,
-        })) as any;
+        });
       case 'filterList':
         return new PagedResponseImpl(
           await this.filtersService.filterList(context, {

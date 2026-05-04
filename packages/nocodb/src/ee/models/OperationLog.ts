@@ -81,7 +81,8 @@ export default class OperationLog implements OperationLogType {
     key: { fk_user_id: string; tab_id: string },
     ncMeta: MetaService = Noco.ncMeta,
   ): Promise<OperationLog | null> {
-    return this.getLatestByStatus(context, key, 'active', ncMeta);
+    // Active stack: most-recently-performed op = highest insertion seq.
+    return this.getLatestByStatus(context, key, 'active', 'seq', ncMeta);
   }
 
   public static async getLatestUndone(
@@ -89,7 +90,12 @@ export default class OperationLog implements OperationLogType {
     key: { fk_user_id: string; tab_id: string },
     ncMeta: MetaService = Noco.ncMeta,
   ): Promise<OperationLog | null> {
-    return this.getLatestByStatus(context, key, 'undone', ncMeta);
+    // Undone stack: most-recently-undone op = greatest `undone_at`. Ordering
+    // by `seq` here would let redo pick a later op whose dependencies are
+    // still undone (e.g. redo an update on a condition whose creating add
+    // is still undone — the update would silently no-op against a missing
+    // row, leaving the log out of sync with the actual DB).
+    return this.getLatestByStatus(context, key, 'undone', 'undone_at', ncMeta);
   }
 
   public static async countByStatus(
@@ -138,6 +144,7 @@ export default class OperationLog implements OperationLogType {
     context: NcContext,
     key: { fk_user_id: string; tab_id: string },
     status: OperationLogStatus,
+    orderField: 'seq' | 'undone_at',
     ncMeta: MetaService,
   ): Promise<OperationLog | null> {
     const rows = await ncMeta.metaList2(
@@ -151,7 +158,7 @@ export default class OperationLog implements OperationLogType {
           tab_id: key.tab_id,
           status,
         },
-        orderBy: { seq: 'desc' },
+        orderBy: { [orderField]: 'desc' },
         limit: 1,
       },
     );

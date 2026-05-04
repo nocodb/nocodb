@@ -225,21 +225,32 @@ export const FilterDeleteContract: OperationContract<
       },
     };
   },
-  // Undo: recreate the filter (and its children, if any). Phase 2 supports
-  // view-scoped filters only — that's what the GUI uses. Hook / row-color /
-  // RLS / button-column filters return `null` here so undo is a no-op for
-  // those flows (they aren't reached from Cmd-Z anyway).
+  // Undo: recreate the filter (and its children, if any). Routes to the
+  // matching forward op based on the deleted filter's parent FK:
+  //   - view-scoped → `filterCreate`
+  //   - row-color condition → `rowColorConditionsCreate`
+  // Hook / RLS / button-column filters still no-op (not reachable from Cmd-Z).
   buildInverse: (_ctx, _p, _r, resolved) => {
     const tree = resolved?.extra?.deletedTree;
-    if (!tree?.fk_view_id) return null;
-    return {
-      name: OperationName.filterCreate,
-      version: 1,
-      // `Filter.insert` recursively walks `children`. Each level honors
-      // pre-set `id` (via `extractProps`) and pre-set `order` (via the
-      // `is_replay` guard), so the entire subtree comes back identical.
-      params: { viewId: tree.fk_view_id, filter: tree },
-    };
+    if (!tree) return null;
+    if (tree.fk_row_color_condition_id) {
+      return {
+        name: OperationName.rowColorConditionsCreate,
+        version: 1,
+        params: {
+          rowColorConditionsId: tree.fk_row_color_condition_id,
+          filter: tree,
+        },
+      };
+    }
+    if (tree.fk_view_id) {
+      return {
+        name: OperationName.filterCreate,
+        version: 1,
+        params: { viewId: tree.fk_view_id, filter: tree },
+      };
+    }
+    return null;
   },
 };
 
@@ -376,5 +387,14 @@ export const RowColorConditionsCreateContract: OperationContract<
   deps: (p, r) => {
     const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
     return colId ? [{ entity: MetaTable.COLUMNS, id: colId as string }] : [];
+  },
+  buildInverse: (_ctx, _p, r) => {
+    const newId = (r as { id?: string } | undefined)?.id;
+    if (!newId) return null;
+    return {
+      name: OperationName.filterDelete,
+      version: 1,
+      params: { filterId: newId },
+    };
   },
 };

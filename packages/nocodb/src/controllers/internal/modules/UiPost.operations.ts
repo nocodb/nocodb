@@ -287,44 +287,54 @@ export class UiPostOperations
           req,
         });
       case 'viewRowColorConditionAdd':
-        return await this.viewRowColorService.addRowColoringCondition({
-          context,
+        return await this.viewRowColorService.addRowColoringCondition(context, {
           fk_view_id: req.query.viewId,
-          color: payload.color,
-          is_set_as_background: payload.is_set_as_background,
-          nc_order: payload.nc_order,
-          type: payload.type,
-          fk_target_column_id: payload.fk_target_column_id,
+          condition: {
+            color: payload.color,
+            is_set_as_background: payload.is_set_as_background,
+            nc_order: payload.nc_order,
+            type: payload.type,
+            fk_target_column_id: payload.fk_target_column_id,
+          },
           filter: payload.filter,
+          req,
         });
       case 'viewRowColorConditionUpdate':
-        return await this.viewRowColorService.updateRowColoringCondition({
+        return await this.viewRowColorService.updateRowColoringCondition(
           context,
-          fk_view_id: req.query.viewId,
-          fk_row_coloring_conditions_id: req.query.rowColorConditionId,
-          color: payload.color,
-          is_set_as_background: payload.is_set_as_background,
-          nc_order: payload.nc_order,
-          type: payload.type,
-          fk_target_column_id: payload.fk_target_column_id,
-        });
+          {
+            fk_view_id: req.query.viewId,
+            fk_row_coloring_conditions_id: req.query.rowColorConditionId,
+            condition: {
+              color: payload.color,
+              is_set_as_background: payload.is_set_as_background,
+              nc_order: payload.nc_order,
+              type: payload.type,
+              fk_target_column_id: payload.fk_target_column_id,
+            },
+            req,
+          },
+        );
       case 'viewRowColorConditionDelete':
-        return await this.viewRowColorService.deleteRowColoringCondition({
+        return await this.viewRowColorService.deleteRowColoringCondition(
           context,
-          fk_view_id: req.query.viewId,
-          fk_row_coloring_conditions_id: req.query.rowColorConditionId,
-        });
+          {
+            fk_view_id: req.query.viewId,
+            fk_row_coloring_conditions_id: req.query.rowColorConditionId,
+            req,
+          },
+        );
       case 'viewRowColorSelectAdd':
-        return await this.viewRowColorService.setRowColoringSelect({
-          context,
+        return await this.viewRowColorService.setRowColoringSelect(context, {
           fk_view_id: req.query.viewId,
           fk_column_id: payload.fk_column_id,
           is_set_as_background: payload.is_set_as_background,
+          req,
         });
       case 'viewRowColorInfoDelete':
-        return await this.viewRowColorService.removeRowColorInfo({
-          context,
+        return await this.viewRowColorService.removeRowColorInfo(context, {
           fk_view_id: req.query.viewId,
+          req,
         });
       case 'filterCreate':
         return await this.filtersService.filterCreate(context, {

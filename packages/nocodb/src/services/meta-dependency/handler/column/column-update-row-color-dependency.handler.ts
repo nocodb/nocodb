@@ -83,8 +83,7 @@ export class ColumnUpdateRowColorDependencyHandler implements MetaEventHandler {
     }
 
     const { applyRowColorInvolvement } =
-      await this.viewRowColorService.checkIfColumnInvolved({
-        context,
+      await this.viewRowColorService.checkIfColumnInvolved(context, {
         existingColumn: oldCol,
         newColumn: newCol,
         action: 'update',

@@ -112,7 +112,7 @@ const saveValue = (targetValue: string) => {
   let cleaned = targetValue
   const decSep = props.decimalSeparator || '.'
   if (decSep !== '.') {
-    cleaned = cleaned.replace(new RegExp('\\' + decSep), '.')
+    cleaned = cleaned.replace(new RegExp('\\' + decSep, 'g'), '.')
   }
   const value = Number(cleaned)
   if (ncIsNaN(value)) {

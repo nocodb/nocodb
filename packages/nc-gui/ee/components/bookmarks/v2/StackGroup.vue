@@ -95,6 +95,9 @@ function handleDragOver(e: DragEvent) {
   if (rafId != null) return
   rafId = requestAnimationFrame(() => {
     rafId = null
+    // Drag may have ended (drop + dragend) before the raf fires; bail to avoid
+    // re-asserting drop state that onDragEnd just cleared.
+    if (!draggingBookmarkId.value && !draggingGroupId.value) return
     if (!listRef.value) return
     const items = listRef.value.querySelectorAll('[data-testid="nc-bookmark-item"]')
     let idx = groupBookmarks.value.length

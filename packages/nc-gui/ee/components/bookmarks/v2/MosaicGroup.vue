@@ -91,6 +91,8 @@ function handleDragOver(e: DragEvent) {
   if (rafId != null) return
   rafId = requestAnimationFrame(() => {
     rafId = null
+    // Bail if drag already ended (avoids stale drop indicator after drop)
+    if (!draggingBookmarkId.value && !draggingGroupId.value) return
     if (!listRef.value) return
     const items = listRef.value.querySelectorAll('[data-testid="nc-bookmark-item"]')
     let idx = groupBookmarks.value.length

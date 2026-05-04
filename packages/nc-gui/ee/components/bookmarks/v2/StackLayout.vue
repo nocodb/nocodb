@@ -38,6 +38,8 @@ function handleDragOver(e: DragEvent) {
   if (rafId != null) return
   rafId = requestAnimationFrame(() => {
     rafId = null
+    // Bail if drag already ended (avoids stale drop indicator after drop)
+    if (!draggingGroupId.value) return
     if (!listRef.value) return
 
     const colEls = Array.from(listRef.value.children) as HTMLElement[]

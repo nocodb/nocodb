@@ -358,11 +358,11 @@ const getAst = async (
     if (col.uidt === UITypes.Meta) {
       isRequested = false;
     } else if (isSortOrFilterColumn) {
-      // For LTAR / Lookup columns `value` holds the nested AST that tells the
-      // query builder which related-table fields to include (pk, pv, custom
-      // display value). Collapsing it to a boolean `true` drops that info and
-      // the nested rows come back with only pk+pv.
-      isRequested = value ?? true;
+      // For LTAR / Lookup columns with a custom display value override, `value`
+      // holds the nested AST that tells the query builder to include that
+      // override column. Without an override, the legacy `true` is correct
+      // (pk + pv) — using `value` could narrow the response to a stale subset.
+      isRequested = fk_display_value_column_id ? value : true;
     } else if (
       rowColoringColumnIds.has(col.id) ||
       buttonFilterColumnIds.has(col.id)
@@ -387,23 +387,31 @@ const getAst = async (
     } else if (isDeletedCol(col) && col.system) {
       isRequested = false;
     } else if (getHiddenColumn) {
-      isRequested =
-        (!isSystemColumn(col) ||
-          ((!view || !!view?.show_system_fields) && !isHiddenCol(col, model)) ||
-          (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
-          // include all non-has-many system links(self-link) columns since has-many is part of mm relation and which is not required
-          (isLinksOrLTAR(col) &&
-            col.system &&
-            [
-              RelationTypes.BELONGS_TO,
-              RelationTypes.MANY_TO_MANY,
-              RelationTypes.ONE_TO_ONE,
-            ].includes(
-              (col.colOptions as LinkToAnotherRecordColumn)
-                ?.type as RelationTypes,
-            )) ||
-          col.pk) &&
-        value;
+      const isVisibleNonHiddenColumn =
+        (!view || !!view?.show_system_fields) && !isHiddenCol(col, model);
+      const isCreatedOrLastModifiedSystemCol =
+        isCreatedOrLastModifiedTimeCol(col) && col.system;
+      // include non-has-many system links (self-link); has-many is part of
+      // the mm relation and isn't needed on its own
+      const isNonHasManySystemLink =
+        isLinksOrLTAR(col) &&
+        col.system &&
+        [
+          RelationTypes.BELONGS_TO,
+          RelationTypes.MANY_TO_MANY,
+          RelationTypes.ONE_TO_ONE,
+        ].includes(
+          (col.colOptions as LinkToAnotherRecordColumn)?.type as RelationTypes,
+        );
+
+      const shouldIncludeColumn =
+        !isSystemColumn(col) ||
+        isVisibleNonHiddenColumn ||
+        isCreatedOrLastModifiedSystemCol ||
+        isNonHasManySystemLink ||
+        col.pk;
+
+      isRequested = shouldIncludeColumn && value;
     } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =
         allowedCols[col.id] &&

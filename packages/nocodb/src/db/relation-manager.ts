@@ -9,10 +9,10 @@ import {
 } from 'nocodb-sdk';
 import { extractCorrespondingLinkColumn } from './BaseModelSqlv2/add-remove-links';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
-import type { Column, LinkToAnotherRecordColumn } from '~/models';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from 'knex';
-import { Model } from '~/models';
+import { Column, Model } from '~/models';
 import { RelationUpdateWebhookHandler } from '~/db/relation-update-webhook-handler';
 import { NcError } from '~/helpers/catchError';
 import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
@@ -106,15 +106,42 @@ export class RelationManager {
     return undefined;
   }
 
-  // Returns the display column to use for a given model when that model is
-  // the "related" side of this LTAR column. For the other side we fall back
-  // to the model's PV (returned as undefined so callers use the default).
+  // Resolve the override column on the reverse-side LTAR column (the one on
+  // the related table that points back to the source table). Cached.
+  private _reverseDisplayCol: Column | null | undefined = undefined;
+  protected async getReverseDisplayCol(): Promise<Column | undefined> {
+    if (this._reverseDisplayCol !== undefined) {
+      return this._reverseDisplayCol ?? undefined;
+    }
+    const ctx = this.relationContext.baseModel.context;
+    const reverseCol = await extractCorrespondingLinkColumn(ctx, {
+      ltarColumn: this.relationContext.relationColumn,
+    });
+    const reverseOpts = await reverseCol?.getColOptions<LinkToAnotherRecordColumn>(
+      ctx,
+    );
+    const reverseDisplayId = (reverseOpts as any)?.fk_display_value_column_id;
+    if (!reverseDisplayId) {
+      this._reverseDisplayCol = null;
+      return undefined;
+    }
+    const resolved = await Column.get(ctx, { colId: reverseDisplayId });
+    this._reverseDisplayCol = resolved ?? null;
+    return resolved ?? undefined;
+  }
+
+  // Returns the display column override to use for a given model.
+  //   - related side (model = fk_related_model_id) → this LTAR's override
+  //   - source side (the other model) → reverse LTAR column's override
+  // Returns undefined when no override applies (callers fall back to PV).
   protected async getDisplayColForModel(
     model: Model,
   ): Promise<Column | undefined> {
     const colOpts = this.relationContext.relationColOptions;
-    if (model.id !== colOpts?.fk_related_model_id) return undefined;
-    return this.getCustomDisplayCol();
+    if (model.id === colOpts?.fk_related_model_id) {
+      return this.getCustomDisplayCol();
+    }
+    return this.getReverseDisplayCol();
   }
 
   // for M2M and Belongs to relation, the relation stored in column option is reversed

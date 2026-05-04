@@ -405,6 +405,19 @@ export const useEeConfig = createSharedComposable(() => {
   const blockFormGridLayout = computed(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT)
   })
+  const blockTableVisibility = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TABLE_VISIBILITY)
+  })
+  const blockFieldVisibility = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FIELD_VISIBILITY)
+  })
+  const blockAiIntegrationsLimit = computed(() => {
+    // True when the plan caps AI integrations to a finite number. Callers
+    // compare against current count. Enterprise = unlimited (Infinity).
+    if (!(isPaymentEnabled.value || isOnPrem.value)) return false
+    const limit = getLimit(PlanLimitTypes.LIMIT_AI_INTEGRATIONS)
+    return limit !== Infinity && limit !== -1
+  })
   const blockScripts = computed(() => isEEFeatureBlocked.value)
   const blockWorkflows = computed(() => isEEFeatureBlocked.value)
   const blockExtensions = computed(() => {
@@ -1619,6 +1632,39 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToAddAiIntegration = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAiIntegrationsLimit.value) return
+
+    handleUpgradePlan({
+      callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_AI_INTEGRATIONS,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUseTableVisibility = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockTableVisibility.value) return
+
+    handleUpgradePlan({
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_VISIBILITY,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUseFieldVisibility = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockFieldVisibility.value) return
+
+    handleUpgradePlan({
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_FIELD_VISIBILITY,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseDocAi = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockDocAi.value) return
 
@@ -2168,6 +2214,10 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCellColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
+    blockTableVisibility,
+    showUpgradeToUseTableVisibility,
+    blockFieldVisibility,
+    showUpgradeToUseFieldVisibility,
     blockDocumentPermissions,
     showUpgradeToUseDocumentPermissions,
     isUnderLoyaltyCutoffDate,
@@ -2204,6 +2254,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiChat,
     blockAiIntegrations,
     showUpgradeToUseAiIntegrations,
+    blockAiIntegrationsLimit,
+    showUpgradeToAddAiIntegration,
     blockDocAi,
     showUpgradeToUseDocAi,
     blockButtonVisibility,

@@ -54,6 +54,8 @@ export const useRealtime = createSharedComposable(() => {
   const viewSectionsStore = useViewSectionsStore()
   const { sectionsByTable } = storeToRefs(viewSectionsStore)
 
+  const { templates: recordTemplates } = useRecordTemplate()
+
   const documentStore = useDocumentsStore()
   const { documents, activeDocumentId, loadedParentIds } = storeToRefs(documentStore)
 
@@ -536,6 +538,29 @@ export const useRealtime = createSharedComposable(() => {
             if (orphanedViewIds.includes(v.id!)) v.fk_view_section_id = null as any
           }
         }
+      }
+    } else if (event.action === 'record_template_create') {
+      const { payload } = event
+      if (!payload?.id) return
+      if (payload.base_id && payload.base_id !== activeBaseId.value) return
+      if (!recordTemplates.value.some((t) => t.id === payload.id)) {
+        recordTemplates.value.push(payload)
+      }
+    } else if (event.action === 'record_template_update') {
+      const { payload } = event
+      if (!payload?.id) return
+      if (payload.base_id && payload.base_id !== activeBaseId.value) return
+      const idx = recordTemplates.value.findIndex((t) => t.id === payload.id)
+      if (idx !== -1) {
+        recordTemplates.value[idx] = { ...recordTemplates.value[idx], ...payload }
+      }
+    } else if (event.action === 'record_template_delete') {
+      const { payload } = event
+      if (!payload?.id) return
+      if (payload.base_id && payload.base_id !== activeBaseId.value) return
+      const idx = recordTemplates.value.findIndex((t) => t.id === payload.id)
+      if (idx !== -1) {
+        recordTemplates.value.splice(idx, 1)
       }
     } else if (event.action === 'extension_restore') {
       updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)

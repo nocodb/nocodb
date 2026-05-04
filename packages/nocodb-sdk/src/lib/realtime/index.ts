@@ -110,7 +110,10 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'date_dependency_delete'
     | 'view_section_create'
     | 'view_section_update'
-    | 'view_section_delete';
+    | 'view_section_delete'
+    | 'record_template_create'
+    | 'record_template_update'
+    | 'record_template_delete';
   payload: T;
   baseId?: string;
 }

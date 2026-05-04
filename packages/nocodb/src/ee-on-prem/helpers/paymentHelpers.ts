@@ -24,10 +24,20 @@ export * from 'src/ee/helpers/paymentHelpers';
 export const getOnPremPlan = () => {
   try {
     const config = NocoLicense.getConfig();
-    const planTitle = config?.plan_title;
+    let planTitle = config?.plan_title;
 
-    // JWTs carry plan_title — apply SDK plan definitions as the base
-    // restrictions, then overlay JWT config for per-subscription overrides.
+    // Defensive: legacy JWTs (Plus/Starter/Scale) issued before the
+    // Business refactor resolve to Business. No real customers are on
+    // those tiers, but in-flight tokens during a deploy can still carry
+    // old values.
+    if (
+      planTitle === 'Self-hosted Plus' ||
+      planTitle === 'Self-hosted Starter' ||
+      planTitle === 'Self-hosted Scale'
+    ) {
+      planTitle = OnPremPlanTitles.SELF_HOSTED_BUSINESS;
+    }
+
     if (planTitle && Object.values(OnPremPlanTitles).includes(planTitle)) {
       const planDef = OnPremPlanDefinitions[planTitle];
       return Plan.prepare({

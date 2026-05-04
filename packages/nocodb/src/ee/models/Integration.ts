@@ -322,11 +322,9 @@ export default class Integration extends IntegrationCE {
           .orWhereNull(`${MetaTable.INTEGRATIONS}.deleted`);
       });
 
-    const row = await qb
-      .count<{ count: string | number }>(
-        `${MetaTable.INTEGRATIONS}.id as count`,
-      )
-      .first();
+    const row = (await qb
+      .count(`${MetaTable.INTEGRATIONS}.id as count`)
+      .first()) as { count: string | number } | undefined;
 
     return Number(row?.count ?? 0);
   }

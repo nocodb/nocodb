@@ -117,7 +117,7 @@ const ON_PREM_PLANS: PlanDef[] = [
       {
         lookup_key: 'on_prem_business_yearly', // OnPremPlanPriceLookupKeys.BUSINESS_YEARLY
         interval: 'year',
-        tiers: [{ up_to: 'inf', unit_amount: 28800 }], // $30 × 12 × 0.8 = $288
+        tiers: [{ up_to: 'inf', unit_amount: 28800 }], // $24/seat/month × 12 = $288/seat/year
       },
     ],
   },

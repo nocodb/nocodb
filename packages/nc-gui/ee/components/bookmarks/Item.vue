@@ -106,6 +106,13 @@ function handleDragStart(e: DragEvent) {
             icon="ncScript"
             class="w-4 h-4 text-nc-content-gray-subtle"
           />
+
+          <!-- Dashboard -->
+          <GeneralIcon
+            v-else-if="bookmark.target_type === 'dashboard'"
+            icon="dashboards"
+            class="w-4 h-4 text-nc-content-gray-subtle"
+          />
         </div>
 
         <!-- Title -->

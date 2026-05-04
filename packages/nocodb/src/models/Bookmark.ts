@@ -21,7 +21,8 @@ export default class Bookmark implements BookmarkType {
     | 'view'
     | 'document'
     | 'workflow'
-    | 'script';
+    | 'script'
+    | 'dashboard';
   target_id: string;
   order?: number;
   meta?: Record<string, any>;

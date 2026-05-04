@@ -123,7 +123,12 @@ async function loadItems() {
     const list = Array.isArray(res) ? res : []
     bookmarkableItems.value = list.filter((item: any) => {
       const id = item.id || ''
-      return id.startsWith('p-') || id.startsWith('tbl-') || id.startsWith('vw-')
+      return (
+        id.startsWith('p-') ||
+        id.startsWith('tbl-') ||
+        id.startsWith('vw-') ||
+        id.startsWith('dashboard-')
+      )
     })
   } catch (e: any) {
     console.error('[bookmark-search] commandPalette failed', e)
@@ -165,11 +170,15 @@ function getResultTargetType(item: any): string | null {
   if (id.startsWith('p-')) return 'base'
   if (id.startsWith('tbl-')) return 'table'
   if (id.startsWith('vw-')) return 'view'
+  if (id.startsWith('dashboard-')) return 'dashboard'
   return null
 }
 
 function getResultTargetId(item: any): string {
   const id = item.id || ''
+  // Strip the section prefix; for `dashboard-` the id may itself contain dashes,
+  // so use the known prefix length rather than the first dash.
+  if (id.startsWith('dashboard-')) return id.slice('dashboard-'.length)
   const dashIdx = id.indexOf('-')
   return dashIdx >= 0 ? id.slice(dashIdx + 1) : id
 }
@@ -196,6 +205,12 @@ function getResultMeta(item: any): Record<string, any> {
       base_id: parts[1],
       table_id: parts[2],
     }
+  }
+
+  if (targetType === 'dashboard') {
+    const parent = item.parent || ''
+    const baseId = parent.startsWith('p-') ? parent.slice(2) : undefined
+    return { workspace_id: workspaceId, base_id: baseId }
   }
 
   return {}
@@ -227,11 +242,12 @@ async function toggleBookmark(item: any) {
   }
 }
 
-function getResultIcon(item: any): string {
+function getResultIcon(item: any): keyof typeof iconMap {
   const targetType = getResultTargetType(item)
   if (targetType === 'base') return 'ncDatabase'
   if (targetType === 'table') return 'table'
   if (targetType === 'view') return 'grid'
+  if (targetType === 'dashboard') return 'dashboards'
   return 'search'
 }
 </script>

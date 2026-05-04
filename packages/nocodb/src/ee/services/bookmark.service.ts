@@ -19,6 +19,7 @@ import WorkspaceUser from '~/ee/models/WorkspaceUser';
 import Document from '~/ee/models/Document';
 import Workflow from '~/ee/models/Workflow';
 import Script from '~/ee/models/Script';
+import Dashboard from '~/ee/models/Dashboard';
 import { NcConcurrent } from '~/utils/NcConcurrent';
 import { parseMetaProp } from '~/utils/modelUtils';
 
@@ -74,7 +75,8 @@ export class BookmarkService {
         case 'table':
         case 'document':
         case 'workflow':
-        case 'script': {
+        case 'script':
+        case 'dashboard': {
           const wsId = meta.workspace_id;
           const baseId = meta.base_id;
           if (wsId && baseId) {
@@ -349,7 +351,8 @@ export class BookmarkService {
       }
       case 'document':
       case 'workflow':
-      case 'script': {
+      case 'script':
+      case 'dashboard': {
         // Verify the target exists. Each type has its own model class.
         // Model.get won't work for documents (xcCondition restricts to
         // table|view) and workflows/scripts live in nc_automations entirely.
@@ -360,6 +363,8 @@ export class BookmarkService {
           target = await Workflow.get(context, targetId);
         } else if (targetType === 'script') {
           target = await Script.get(context, targetId);
+        } else if (targetType === 'dashboard') {
+          target = await Dashboard.get(context, targetId);
         }
 
         if (!target) {
@@ -500,6 +505,15 @@ export class BookmarkService {
               const script = await Script.get(ctx, bm.target_id);
               if (script) {
                 resolvedTitle = script.title;
+              }
+              break;
+            }
+            case 'dashboard': {
+              const dashboard = await Dashboard.get(ctx, bm.target_id);
+              if (dashboard) {
+                const dashMeta = parseMetaProp(dashboard);
+                meta.icon = dashMeta?.icon;
+                resolvedTitle = dashboard.title;
               }
               break;
             }

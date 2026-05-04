@@ -84,6 +84,7 @@ export const useBookmarks = createSharedComposable(() => {
       case 'document':
       case 'workflow':
       case 'script':
+      case 'dashboard':
         return !!map[meta?.workspace_id]?.[meta?.base_id]?.[targetId]
       case 'view':
         return !!map[meta?.workspace_id]?.[meta?.base_id]?.[meta?.table_id]?.[targetId]
@@ -117,7 +118,8 @@ export const useBookmarks = createSharedComposable(() => {
       case 'table':
       case 'document':
       case 'workflow':
-      case 'script': {
+      case 'script':
+      case 'dashboard': {
         if (meta?.workspace_id && meta?.base_id) {
           const wsNode = ensureObj(map, meta.workspace_id)
           const baseNode = ensureObj(wsNode, meta.base_id)
@@ -306,6 +308,11 @@ export const useBookmarks = createSharedComposable(() => {
       case 'script':
         if (meta.workspace_id && meta.base_id) {
           return { path: `/${meta.workspace_id}/${meta.base_id}/scripts/${bookmark.target_id}` }
+        }
+        return null
+      case 'dashboard':
+        if (meta.workspace_id && meta.base_id) {
+          return { path: `/${meta.workspace_id}/${meta.base_id}/dashboards/${bookmark.target_id}` }
         }
         return null
       default:

@@ -57,6 +57,8 @@ const crumb = computed(() => {
       return 'workflow'
     case 'script':
       return 'script'
+    case 'dashboard':
+      return 'dashboard'
     default:
       return ''
   }
@@ -121,6 +123,11 @@ function handleDragStart(e: DragEvent) {
       <GeneralIcon
         v-else-if="bookmark.target_type === 'script'"
         icon="ncScript"
+        class="w-4 h-4 text-nc-content-gray-subtle"
+      />
+      <GeneralIcon
+        v-else-if="bookmark.target_type === 'dashboard'"
+        icon="dashboards"
         class="w-4 h-4 text-nc-content-gray-subtle"
       />
     </div>

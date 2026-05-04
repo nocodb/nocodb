@@ -76,67 +76,46 @@ interface PlanDef {
 
 const ON_PREM_PLANS: PlanDef[] = [
   {
-    name: 'Self-hosted Starter', // OnPremPlanTitles.SELF_HOSTED_STARTER
-    description: 'Self-hosted NocoDB for small teams',
+    name: 'Self-hosted Business', // OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    description: 'Self-hosted NocoDB for growing teams (self-serve)',
     metadata: {
       // Limits (from OnPremPlanDefinitions)
       limit_workspace: '1',
+      limit_ai_integrations: '1',
       limit_snapshot: '5',
-      limit_audit_retention: '180',
-      limit_automation_retention: '90',
-      limit_workflow_retention: '180',
-      // Features disabled (Scale+ / Enterprise only)
+      limit_audit_retention: '0',
+      limit_trash_retention: '21',
+      limit_automation_retention: '21',
+      limit_workflow_retention: '21',
+      limit_sandbox_per_base: '1',
+      // Features disabled (Enterprise only)
       feature_audit_workspace: 'false',
-      feature_sso: 'false',
       feature_private_bases: 'false',
       feature_rls: 'false',
       feature_scim: 'false',
-      // Descriptions
+      feature_force_2fa: 'false',
+      feature_workspace_custom_logo: 'false',
+      feature_hide_branding: 'false',
+      feature_team_management: 'false',
+      feature_team_hierarchy: 'false',
+      feature_ai_chat: 'false',
+      feature_table_visibility: 'false',
+      feature_field_visibility: 'false',
+      feature_trash_settings: 'false',
+      // Descriptions (shown on the plan card)
       description_1: 'Unlimited editors & records',
-      description_2: 'Personal Views & Dynamic Filters',
-      description_3: 'Form Validations & Custom Logo',
-      description_4: 'Calendar, Timeline, Map & List Views',
+      description_2: 'SSO, 2FA, Admin Panel',
+      description_3: 'Permissions, Sync, Scripts',
+      description_4: 'Snapshots, Webhooks, Workflows',
     },
     prices: [
       {
-        lookup_key: 'on_prem_starter_monthly', // OnPremPlanPriceLookupKeys.STARTER_MONTHLY
-        interval: 'month',
-        tiers: [{ up_to: 'inf', unit_amount: 1500 }],
-      },
-      {
-        lookup_key: 'on_prem_starter_yearly', // OnPremPlanPriceLookupKeys.STARTER_YEARLY
-        interval: 'year',
-        tiers: [{ up_to: 'inf', unit_amount: 14400 }], // $15 × 12 × 0.8 = $144
-      },
-    ],
-  },
-  {
-    name: 'Self-hosted Scale', // OnPremPlanTitles.SELF_HOSTED_SCALE
-    description: 'Self-hosted NocoDB for growing teams',
-    metadata: {
-      // Limits (from OnPremPlanDefinitions)
-      limit_workspace: '1',
-      limit_snapshot: '5',
-      limit_audit_retention: '365',
-      limit_automation_retention: '180',
-      limit_workflow_retention: '365',
-      // Features disabled (Enterprise only)
-      feature_rls: 'false',
-      feature_scim: 'false',
-      // Descriptions
-      description_1: 'Everything in Starter',
-      description_2: 'SSO & Private Bases',
-      description_3: 'Workspace Audit & Advanced Security',
-      description_4: 'Extended retention & Snapshots',
-    },
-    prices: [
-      {
-        lookup_key: 'on_prem_scale_monthly', // OnPremPlanPriceLookupKeys.SCALE_MONTHLY
+        lookup_key: 'on_prem_business_monthly', // OnPremPlanPriceLookupKeys.BUSINESS_MONTHLY
         interval: 'month',
         tiers: [{ up_to: 'inf', unit_amount: 3000 }],
       },
       {
-        lookup_key: 'on_prem_scale_yearly', // OnPremPlanPriceLookupKeys.SCALE_YEARLY
+        lookup_key: 'on_prem_business_yearly', // OnPremPlanPriceLookupKeys.BUSINESS_YEARLY
         interval: 'year',
         tiers: [{ up_to: 'inf', unit_amount: 28800 }], // $30 × 12 × 0.8 = $288
       },

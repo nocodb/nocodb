@@ -225,7 +225,7 @@ function handleDrop() {
   @apply text-bodyDefaultSm font-semibold text-nc-content-gray;
 }
 .nc-v2-mosaic-rename {
-  @apply flex-1 !text-bodyDefaultSm;
+  @apply flex-1 !text-bodyDefaultSm !rounded-md;
 }
 .nc-v2-mosaic-rename :deep(.ant-input) {
   font-size: 13px !important;

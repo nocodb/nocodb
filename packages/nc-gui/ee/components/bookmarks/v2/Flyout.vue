@@ -104,7 +104,7 @@ const flyoutWidth = computed(() => {
   transition: width 0.2s ease;
 }
 .nc-v2-body {
-  @apply flex-1 overflow-y-auto overflow-x-hidden py-3;
+  @apply flex-1 overflow-y-auto overflow-x-hidden pb-3;
 }
 .nc-v2-loader {
   @apply flex items-center justify-center py-8;

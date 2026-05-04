@@ -37,7 +37,7 @@ const columnGroups = computed(() => {
 
 <style lang="scss" scoped>
 .nc-v2-mosaic-layout {
-  @apply grid gap-2 px-3 pb-3;
+  @apply grid gap-2 px-3 py-3;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 .nc-v2-mosaic-col {

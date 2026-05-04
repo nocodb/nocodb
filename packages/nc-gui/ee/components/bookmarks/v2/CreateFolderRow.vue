@@ -43,6 +43,7 @@ function cancel() {
       :placeholder="$t('labels.bookmarkGroup')"
       class="nc-v2-create-input"
       data-testid="nc-bookmark-new-folder-input"
+      :bordered="false"
       @keyup.enter="confirm"
       @keyup.escape="cancel"
       @blur="confirm"
@@ -56,12 +57,12 @@ function cancel() {
 
 <style lang="scss" scoped>
 .nc-v2-create-row {
-  @apply flex items-center gap-2 mx-3 mb-3 px-3 py-2 rounded-lg;
+  @apply flex items-center gap-2 mx-3 mb-3 px-3 py-2 rounded-lg mt-3;
   @apply bg-nc-bg-default border-1 border-dashed;
   border-color: var(--nc-content-brand);
 }
 .nc-v2-create-input {
-  @apply flex-1 min-w-0 bg-transparent border-0 outline-0 p-0;
+  @apply flex-1 min-w-0 bg-transparent !border-none !outline-none p-0;
   @apply text-bodyDefaultSm text-nc-content-gray;
   font-weight: 500;
 }

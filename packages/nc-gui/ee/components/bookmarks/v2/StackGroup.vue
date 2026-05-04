@@ -245,7 +245,7 @@ function handleDrop() {
   color: var(--nc-content-gray-muted);
 }
 .nc-v2-stack-rename {
-  @apply flex-1 !text-bodySm;
+  @apply flex-1 !text-bodySm !rounded-md;
 }
 .nc-v2-stack-rename :deep(.ant-input) {
   font-size: 11px !important;

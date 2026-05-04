@@ -63,10 +63,12 @@ export async function serializeCellValue(
     value,
     column,
     siteUrl,
+    locale,
   }: {
     column?: Column;
     value: any;
     siteUrl: string;
+    locale?: string;
   },
 ) {
   if (!column) {
@@ -137,6 +139,7 @@ export async function serializeCellValue(
                 value: v,
                 column: lookupColumn,
                 siteUrl,
+                locale,
               }),
             ),
           )
@@ -184,6 +187,7 @@ export async function serializeCellValue(
 
         return parseDecimalValue(value, column, {
           skipThousandSeparator: true,
+          locale,
         });
       }
       break;
@@ -193,6 +197,7 @@ export async function serializeCellValue(
 
         return parseIntValue(value, column, {
           skipThousandSeparator: true,
+          locale,
         });
       }
       break;

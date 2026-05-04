@@ -24,13 +24,13 @@ export function resolveColumnSeparator(
  * Get the actual thousand/decimal separator characters for a SeparatorType.
  * For Locale, uses Intl.NumberFormat to detect from runtime environment.
  */
-export function getSeparatorChars(separator: SeparatorType): {
+export function getSeparatorChars(separator: SeparatorType, locale?: string): {
   thousandSeparator: string | null;
   decimalSeparator: string;
 } {
   switch (separator) {
     case SeparatorType.Locale: {
-      const formatter = new Intl.NumberFormat();
+      const formatter = new Intl.NumberFormat(locale);
       const parts = formatter.formatToParts(12345.6);
       const group =
         parts.find((p) => p.type === 'group')?.value || null;

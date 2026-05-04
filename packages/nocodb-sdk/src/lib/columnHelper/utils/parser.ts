@@ -36,7 +36,7 @@ export const parseDefault = (value: any) => {
 export const parseIntValue = (
   value: string | null | number,
   col?: ColumnType,
-  options?: { skipThousandSeparator?: boolean }
+  options?: { skipThousandSeparator?: boolean; locale?: string }
 ) => {
   if (ncIsNaN(value)) {
     return null;
@@ -52,7 +52,7 @@ export const parseIntValue = (
   }
 
   if (separator === SeparatorType.Locale) {
-    return Number(value).toLocaleString();
+    return Number(value).toLocaleString(options?.locale || undefined);
   }
 
   const { thousandSeparator } = getSeparatorChars(separator);
@@ -67,7 +67,7 @@ export const parseIntValue = (
 export const parseDecimalValue = (
   value: string | null | number,
   col: ColumnType,
-  options?: { skipThousandSeparator?: boolean }
+  options?: { skipThousandSeparator?: boolean; locale?: string }
 ) => {
   if (ncIsNaN(value)) {
     return null;
@@ -78,7 +78,7 @@ export const parseDecimalValue = (
   const precision = columnMeta.precision ?? 1;
 
   if (options?.skipThousandSeparator) {
-    const { decimalSeparator } = getSeparatorChars(separator);
+    const { decimalSeparator } = getSeparatorChars(separator, options?.locale || undefined);
     const rounded = Number(roundUpToPrecision(Number(value), precision));
 
     return formatNumberWithSeparator(
@@ -92,7 +92,7 @@ export const parseDecimalValue = (
   if (separator === SeparatorType.Locale) {
     return Number(
       roundUpToPrecision(Number(value), precision)
-    ).toLocaleString(undefined, {
+    ).toLocaleString(options?.locale || undefined, {
       minimumFractionDigits: precision,
       maximumFractionDigits: precision,
     });

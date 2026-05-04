@@ -813,6 +813,7 @@ export class ExportService {
       includeCrossBaseColumns?: boolean;
       filterArrJson?: any;
       sortArrJson?: any;
+      locale?: string;
     },
   ) {
     context = { ...context, cache: true };
@@ -1033,6 +1034,7 @@ export class ExportService {
               value: v,
               column: col,
               siteUrl: param.ncSiteUrl,
+              locale: param.locale,
             });
             includedColumns.push({
               col,
@@ -1187,6 +1189,7 @@ export class ExportService {
       includeCrossBaseColumns?: boolean;
       filterArrJson?: any;
       sortArrJson?: any;
+      locale?: string;
     },
   ) {
     context = { ...context, cache: true };
@@ -1256,6 +1259,7 @@ export class ExportService {
               value: v,
               column: col,
               siteUrl: param.ncSiteUrl,
+              locale: param.locale,
             });
             includedColumns.push({
               col,
@@ -1322,6 +1326,7 @@ export class ExportService {
       includeCrossBaseColumns?: boolean;
       filterArrJson?: any;
       sortArrJson?: any;
+      locale?: string;
     },
   ) {
     context = { ...context, cache: true };
@@ -1379,6 +1384,7 @@ export class ExportService {
               value: v,
               column: col,
               siteUrl: param.ncSiteUrl,
+              locale: param.locale,
             });
             includedColumns.push({
               col,

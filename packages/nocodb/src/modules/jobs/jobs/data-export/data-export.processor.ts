@@ -35,6 +35,7 @@ export class DataExportProcessor {
       user: _user,
       exportAs,
       ncSiteUrl,
+      locale,
     } = job.data;
 
     if (exportAs !== 'csv' && exportAs !== 'json' && exportAs !== 'excel')
@@ -118,6 +119,7 @@ export class DataExportProcessor {
             includeCrossBaseColumns: true,
             filterArrJson: options.filterArrJson,
             sortArrJson: options.sortArrJson,
+            locale,
           })
           .catch((e) => {
             this.logger.debug(e);
@@ -135,6 +137,7 @@ export class DataExportProcessor {
             includeCrossBaseColumns: true,
             filterArrJson: options.filterArrJson,
             sortArrJson: options.sortArrJson,
+            locale,
           })
           .catch((e) => {
             this.logger.debug(e);
@@ -154,6 +157,7 @@ export class DataExportProcessor {
             includeCrossBaseColumns: true,
             filterArrJson: options.filterArrJson,
             sortArrJson: options.sortArrJson,
+            locale,
           })
           .catch((e) => {
             this.logger.debug(e);

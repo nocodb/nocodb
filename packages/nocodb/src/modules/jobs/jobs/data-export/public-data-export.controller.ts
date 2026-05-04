@@ -66,6 +66,7 @@ export class PublicDataExportController {
       user: req.user,
       exportAs,
       ncSiteUrl: req.ncSiteUrl,
+      locale: (req.headers?.['accept-language'] || '').split(',')[0] || undefined,
     });
 
     return {

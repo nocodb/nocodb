@@ -273,6 +273,7 @@ export interface DataExportJobData extends JobData {
   viewId: string;
   exportAs: 'csv' | 'json' | 'excel';
   ncSiteUrl: string;
+  locale?: string;
 }
 
 export interface ThumbnailGeneratorJobData extends JobData {

@@ -19,10 +19,13 @@ on:
 
 jobs:
   # ---------------------------------------------------------------------------
-  # Job 1: Build executables for all platforms
+  # Job 1: Prep — heavy one-time setup (bootstrap, rspack, sqlite3 prebuilds,
+  #               modclean) shared by every platform's pkg invocation.
+  #               Uploads the prepared `scripts/pkg-executable/` directory as
+  #               an artifact for the matrix to consume.
   # ---------------------------------------------------------------------------
-  build-executables:
-    runs-on: ubuntu-22.04
+  prep:
+    runs-on: ubicloud-standard-8
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -62,28 +65,6 @@ jobs:
           CE_TAG="${{ github.event.inputs.tag || inputs.tag }}"
           sed -i "s/\"version\": \".*\"/\"version\": \"${CE_TAG}\"/g" ./packages/nocodb/package.json
           echo "Set nocodb package.json version to ${CE_TAG}"
-
-      - name: Cache pkg modules
-        id: cache-pkg
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-pkg
-        with:
-          path: ~/.pkg-cache
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - name: Install QEMU and ldid
-        run: |
-          sudo apt update
-          sudo apt install qemu binfmt-support qemu-user-static
-          git clone https://github.com/daeken/ldid.git
-          cd ./ldid
-          ./make.sh
-          sudo cp ./ldid /usr/local/bin
 
       - name: Prepare nocodb tarball for pkg-executable
         run: |
@@ -173,54 +154,23 @@ jobs:
           node -e "const p=require('./package.json'); delete p.overrides; require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2));"
           npx modclean --patterns="default:*" --ignore="nocodb/**,dayjs/**,express-status-monitor/**,sqlite3/**,jsdom/**,lru-cache/**,@csstools/**,@asamuzakjp/**" --run
 
-      - name: Build executables
+      # Tarball into a single file — actions/upload-artifact with hundreds of
+      # thousands of small files inside node_modules is painfully slow.
+      - name: Pack pkg-executable directory
         run: |
-          cd scripts/pkg-executable
+          tar -cf /tmp/pkg-executable.tar -C scripts pkg-executable
 
-          export NODE_OPTIONS="--max-old-space-size=8192"
+      - name: Upload pkg-executable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pkg-executable-prep
+          path: /tmp/pkg-executable.tar
+          retention-days: 1
 
-          mkdir ./mac-dist
-          mkdir ./dist
-
-          npm install -g @yao-pkg/pkg
-
-          # build darwin x64 executable
-          npm uninstall sharp
-          npm install --cpu=x64 --os=darwin sharp
-          pkg . --compress GZip -t node24-macos-x64 -o Noco-macos-x64
-          mv ./Noco-macos-x64 ./mac-dist/
-
-          # build darwin arm64 executable
-          npm uninstall sharp
-          npm install --cpu=arm64 --os=darwin sharp
-          pkg . --compress GZip -t node24-macos-arm64 -o Noco-macos-arm64
-          mv ./Noco-macos-arm64 ./mac-dist/
-
-          # build linux x64 executable
-          npm uninstall sharp
-          npm install --cpu=x64 --os=linux sharp
-          pkg . --compress GZip -t node24-linux-x64 -o Noco-linux-x64
-          mv ./Noco-linux-x64 ./dist/
-
-          # build linux arm64 executable
-          npm uninstall sharp
-          npm install --cpu=arm64 --os=linux sharp
-          pkg . --compress GZip -t node24-linux-arm64 -o Noco-linux-arm64
-          mv ./Noco-linux-arm64 ./dist/
-
-          # build windows x64 executable
-          npm uninstall sharp
-          npm install --cpu=x64 --os=win32 sharp
-          pkg . --compress GZip -t node24-win-x64 -o Noco-win-x64.exe
-          mv ./Noco-win-x64.exe ./dist/
-
-          # build windows arm64 executable
-          npm uninstall sharp
-          npm install --cpu=arm64 --os=win32 sharp
-          pkg . --compress GZip -t node24-win-arm64 -o Noco-win-arm64.exe
-          mv ./Noco-win-arm64.exe ./dist/
-
-      - name: Upload Linux and Windows executables to draft release
+      # Pre-create the draft release so the 4 non-mac matrix entries don't
+      # race trying to create it themselves; their gh-release uploads will
+      # then just attach files to an existing draft.
+      - name: Ensure draft release exists
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN1 }}
@@ -228,34 +178,145 @@ jobs:
           draft: true
           tag_name: ${{ github.event.inputs.tag || inputs.tag }}
           repository: nocodb/nocodb
-          files: |
-            ./scripts/pkg-executable/dist/Noco-win-arm64.exe
-            ./scripts/pkg-executable/dist/Noco-win-x64.exe
-            ./scripts/pkg-executable/dist/Noco-linux-arm64
-            ./scripts/pkg-executable/dist/Noco-linux-x64
-
-      - name: Upload macOS artifacts for signing
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ github.event.inputs.tag || inputs.tag }}
-          path: scripts/pkg-executable/mac-dist
-          retention-days: 1
 
   # ---------------------------------------------------------------------------
-  # Job 2: Sign macOS executables
+  # Job 2: Build a single platform executable. Runs in parallel for every
+  #         target so wall-clock is bounded by the slowest target rather
+  #         than the sum of all six.
+  # ---------------------------------------------------------------------------
+  build-executable:
+    needs: prep
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macos-x64
+            target: node24-macos-x64
+            sharp_cpu: x64
+            sharp_os: darwin
+            output: Noco-macos-x64
+            runner: ubicloud-standard-8
+          - name: macos-arm64
+            target: node24-macos-arm64
+            sharp_cpu: arm64
+            sharp_os: darwin
+            output: Noco-macos-arm64
+            runner: ubicloud-standard-8-arm
+          - name: linux-x64
+            target: node24-linux-x64
+            sharp_cpu: x64
+            sharp_os: linux
+            output: Noco-linux-x64
+            runner: ubicloud-standard-8
+          - name: linux-arm64
+            target: node24-linux-arm64
+            sharp_cpu: arm64
+            sharp_os: linux
+            output: Noco-linux-arm64
+            runner: ubicloud-standard-8-arm
+          - name: win-x64
+            target: node24-win-x64
+            sharp_cpu: x64
+            sharp_os: win32
+            output: Noco-win-x64.exe
+            runner: ubicloud-standard-8
+          - name: win-arm64
+            target: node24-win-arm64
+            sharp_cpu: arm64
+            sharp_os: win32
+            output: Noco-win-arm64.exe
+            runner: ubicloud-standard-8-arm
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24.14.0
+
+      - name: Download pkg-executable artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pkg-executable-prep
+          path: /tmp/
+
+      - name: Unpack pkg-executable
+        run: |
+          mkdir -p scripts
+          tar -xf /tmp/pkg-executable.tar -C scripts
+
+      - name: Cache pkg base binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.pkg-cache
+          # Salt by target — pkg downloads a separate base binary per target.
+          # Each matrix entry only ever needs its own target's binary, so
+          # keying per-target gives 100% hit rate after first build.
+          key: pkg-cache-${{ matrix.target }}-v1
+          restore-keys: |
+            pkg-cache-${{ matrix.target }}-
+
+      - name: Install ldid (mac targets only)
+        if: startsWith(matrix.name, 'macos-')
+        run: |
+          git clone --depth=1 https://github.com/daeken/ldid.git /tmp/ldid
+          cd /tmp/ldid
+          ./make.sh
+          sudo cp ./ldid /usr/local/bin
+
+      - name: Install pkg
+        run: npm install -g @yao-pkg/pkg
+
+      - name: Swap sharp for target platform
+        run: |
+          cd scripts/pkg-executable
+          npm uninstall sharp
+          npm install --cpu=${{ matrix.sharp_cpu }} --os=${{ matrix.sharp_os }} sharp
+
+      - name: Build executable
+        run: |
+          cd scripts/pkg-executable
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          pkg . --compress GZip -t ${{ matrix.target }} -o ${{ matrix.output }}
+
+      # mac binaries go to the sign job via artifact; everything else uploads
+      # straight to the GitHub draft release so we don't pay the cost of a
+      # collector job re-uploading the same files.
+      - name: Upload mac binary as artifact (feeds sign job)
+        if: startsWith(matrix.name, 'macos-')
+        uses: actions/upload-artifact@v4
+        with:
+          name: noco-binary-${{ matrix.name }}
+          path: scripts/pkg-executable/${{ matrix.output }}
+          retention-days: 1
+
+      - name: Upload non-mac binary to draft release
+        if: ${{ !startsWith(matrix.name, 'macos-') }}
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN1 }}
+        with:
+          draft: true
+          tag_name: ${{ github.event.inputs.tag || inputs.tag }}
+          repository: nocodb/nocodb
+          files: scripts/pkg-executable/${{ matrix.output }}
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Sign macOS executables
   # ---------------------------------------------------------------------------
   sign-mac-executables:
     runs-on: macos-latest
-    needs: build-executables
+    needs: build-executable
     steps:
-      - name: Download macOS artifacts
+      - name: Download macOS binaries from matrix
         uses: actions/download-artifact@v4
         with:
-          name: ${{ github.event.inputs.tag || inputs.tag }}
+          pattern: noco-binary-macos-*
           path: scripts/pkg-executable/mac-dist
+          merge-multiple: true
 
       - name: Sign macOS executables
         run: |
+          chmod +x ./scripts/pkg-executable/mac-dist/Noco-macos-arm64 ./scripts/pkg-executable/mac-dist/Noco-macos-x64
           /usr/bin/codesign --force -s - ./scripts/pkg-executable/mac-dist/Noco-macos-arm64 -v
           /usr/bin/codesign --force -s - ./scripts/pkg-executable/mac-dist/Noco-macos-x64 -v
 
@@ -267,10 +328,10 @@ jobs:
           retention-days: 1
 
   # ---------------------------------------------------------------------------
-  # Job 3: Publish macOS executables and update Homebrew
+  # Job 4: Publish macOS executables and update Homebrew
   # ---------------------------------------------------------------------------
   publish-mac-executables-and-homebrew:
-    needs: [sign-mac-executables, build-executables]
+    needs: sign-mac-executables
     runs-on: ubuntu-22.04
     steps:
       - name: Download signed macOS artifacts

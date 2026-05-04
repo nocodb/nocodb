@@ -44,6 +44,32 @@ export class OrgUsersController {
     });
   }
 
+  /**
+   * Invite-picker endpoint — admin-only. Workspace owners who are *not* org
+   * admins shouldn't expose other org members' identities to themselves, so
+   * this surface is gated separately from the admin-panel listing above.
+   */
+  @Get('/api/v2/orgs/:orgId/users/invitable')
+  @HttpCode(200)
+  @UseGuards(GlobalGuard, MetaApiLimiterGuard)
+  @Acl('orgUserListForInvite', {
+    scope: 'cloud-org',
+  })
+  async getInvitableOrgUsers(
+    @Req() req: NcRequest,
+    @Param('orgId') orgId: string,
+    @Query('excludeWorkspaceId') excludeWorkspaceId?: string,
+    @Query('excludeBaseId') excludeBaseId?: string,
+  ) {
+    return this.orgUsersService.getOrgUsers({
+      orgId,
+      req,
+      user: req.user,
+      excludeWorkspaceId,
+      excludeBaseId,
+    });
+  }
+
   // api for adding user to org
   @Post('/api/v2/orgs/:orgId/user/:userId')
   @HttpCode(200)

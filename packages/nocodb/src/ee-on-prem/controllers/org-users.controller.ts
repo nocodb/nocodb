@@ -46,16 +46,17 @@ export class OrgUsersController extends OrgUsersControllerCE {
   }
 
   /**
-   * Invite-picker endpoint — mirrors cloud's `GET /api/v2/orgs/:orgId/users`.
-   * Open to any cloud-org role (VIEWER / CREATOR / ADMIN) so a workspace
-   * creator can see who else is in the org. Scope must be `cloud-org` so the
-   * check reads from `user.org_roles` instead of the global `user.roles`.
-   * `excludeWorkspaceId` / `excludeBaseId` return only users not already in
-   * the given workspace/base.
+   * Invite-picker endpoint — mirrors cloud's
+   * `GET /api/v2/orgs/:orgId/users/invitable`. Admin-only: only org admins
+   * (cloud-org-level-owner) and global super admins can see other org
+   * members in the picker. Workspace owners who lack org admin rights get a
+   * 403 — the frontend swallows that and falls back to plain email input.
+   * `excludeWorkspaceId` / `excludeBaseId` filter out users already in that
+   * workspace/base.
    */
-  @Get('/api/v2/orgs/:orgId/users')
+  @Get('/api/v2/orgs/:orgId/users/invitable')
   @HttpCode(200)
-  @Acl('orgUserList', {
+  @Acl('orgUserListForInvite', {
     scope: 'cloud-org',
     blockApiTokenAccess: true,
   })

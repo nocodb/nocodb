@@ -18,5 +18,6 @@ export function useOrgUserInvitePicker(_opts: {
     fetchOrgUsers: async () => {},
     resetOrgUsers: () => {},
     orgUsers: ref<OrgUserPickerItem[]>([]),
+    isOrgAdmin: computed(() => false),
   }
 }

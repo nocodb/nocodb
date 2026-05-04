@@ -1355,6 +1355,28 @@
           "Org User"
         ],
         "operationId": "org-user-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgUserList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/orgs/{orgId}/users/invitable": {
+      "get": {
+        "summary": "Get Invitable Org Users",
+        "description": "Admin-only listing used by the workspace/base invite picker. Only org admins (cloud-org-level-owner) and on-prem super admins can call it; lower roles get a 403.",
+        "tags": [
+          "Org User"
+        ],
+        "operationId": "org-user-list-invitable",
         "parameters": [
           {
             "schema": {
@@ -1363,7 +1385,7 @@
             "name": "excludeWorkspaceId",
             "in": "query",
             "required": false,
-            "description": "Exclude users who are already members of the given workspace. Used by the invite picker to show only invitable users."
+            "description": "Exclude users who are already members of the given workspace."
           },
           {
             "schema": {
@@ -1372,7 +1394,7 @@
             "name": "excludeBaseId",
             "in": "query",
             "required": false,
-            "description": "Exclude users who are already members of the given base. Used by the invite picker to show only invitable users."
+            "description": "Exclude users who are already members of the given base."
           },
           {
             "schema": {

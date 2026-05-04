@@ -7,12 +7,20 @@ import { WorkspacePage } from '../../pages/WorkspacePage';
  * Org-user invite picker — verifies the dropdown that surfaces existing org
  * members as suggestions inside the workspace/base invite dialog.
  *
- * The picker calls `GET /api/v2/orgs/:orgId/users` under the hood. Tests
- * stub that route so they can exercise the UI behaviour independently of
- * which backend mode (cloud / on-prem) is actually running — all we care
- * about here is that the frontend renders, filters, selects, and forwards
- * the exclude filters correctly.
+ * The picker is **admin-only**: only org admins (cloud-org-level-owner) and
+ * on-prem super admins can call `GET /api/v2/orgs/:orgId/users/invitable`.
+ * The frontend mirrors that gate so a non-admin user never even attempts the
+ * call. These tests cover both:
+ *   - admin happy path (route is stubbed so we exercise UI behaviour without
+ *     depending on which backend mode is running)
+ *   - non-admin negative path (no request fired, picker stays hidden even
+ *     when the user clicks the email input)
+ *
+ * Video is enabled for this spec so the recorded run can be attached to the
+ * PR description.
  */
+
+test.use({ video: 'on' });
 
 type StubUser = { id: string; email: string; display_name?: string };
 
@@ -22,12 +30,12 @@ const STUB_USERS: StubUser[] = [
   { id: 'usr_carol', email: 'carol.invite-picker@nocodb.com', display_name: 'Carol Picker' },
 ];
 
-async function stubOrgUsers(
+async function stubInvitableUsers(
   page: Page,
   users: StubUser[],
   capture: { excludeWorkspaceId?: string; excludeBaseId?: string; hits: number }
 ) {
-  await page.route('**/api/v2/orgs/*/users*', async route => {
+  await page.route('**/api/v2/orgs/*/users/invitable*', async route => {
     const url = new URL(route.request().url());
     capture.excludeWorkspaceId = url.searchParams.get('excludeWorkspaceId') || undefined;
     capture.excludeBaseId = url.searchParams.get('excludeBaseId') || undefined;
@@ -40,13 +48,16 @@ async function stubOrgUsers(
   });
 }
 
-test.describe('Org-user invite picker', () => {
+test.describe('Org-user invite picker — admin', () => {
   let dashboard: DashboardPage;
   let workspacePage: WorkspacePage;
   let context: NcContext;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    // Sign in as the seeded super admin (`user@nocodb.com`). The picker is
+    // admin-only on the frontend, so a regular user wouldn't even fire the
+    // backend call; the admin variant is the happy path.
+    context = await setup({ page, isEmptyProject: true, isSuperUser: true });
     dashboard = new DashboardPage(page, context.base);
     workspacePage = new WorkspacePage(page);
   });
@@ -66,7 +77,7 @@ test.describe('Org-user invite picker', () => {
 
   test('hidden on dialog open until the user interacts with the input', async ({ page }) => {
     const capture = { hits: 0 } as { excludeWorkspaceId?: string; excludeBaseId?: string; hits: number };
-    await stubOrgUsers(page, STUB_USERS, capture);
+    await stubInvitableUsers(page, STUB_USERS, capture);
 
     const inviteModal = await openWorkspaceInviteDlg();
     const picker = inviteModal.locator('[data-testid="nc-invite-org-user-picker"]');
@@ -85,7 +96,7 @@ test.describe('Org-user invite picker', () => {
 
   test('shows matching org users and forwards excludeWorkspaceId', async ({ page }) => {
     const capture = { hits: 0 } as { excludeWorkspaceId?: string; excludeBaseId?: string; hits: number };
-    await stubOrgUsers(page, STUB_USERS, capture);
+    await stubInvitableUsers(page, STUB_USERS, capture);
 
     const inviteModal = await openWorkspaceInviteDlg();
     const input = inviteModal.locator('input[id="email"]');
@@ -107,7 +118,7 @@ test.describe('Org-user invite picker', () => {
 
   test('filters suggestions by typed query (email or display name)', async ({ page }) => {
     const capture = { hits: 0 } as { excludeWorkspaceId?: string; excludeBaseId?: string; hits: number };
-    await stubOrgUsers(page, STUB_USERS, capture);
+    await stubInvitableUsers(page, STUB_USERS, capture);
 
     const inviteModal = await openWorkspaceInviteDlg();
     const input = inviteModal.locator('input[id="email"]');
@@ -133,7 +144,7 @@ test.describe('Org-user invite picker', () => {
 
   test('click adds email as a chip and removes user from further suggestions', async ({ page }) => {
     const capture = { hits: 0 } as { excludeWorkspaceId?: string; excludeBaseId?: string; hits: number };
-    await stubOrgUsers(page, STUB_USERS, capture);
+    await stubInvitableUsers(page, STUB_USERS, capture);
 
     const inviteModal = await openWorkspaceInviteDlg();
     const input = inviteModal.locator('input[id="email"]');
@@ -156,7 +167,7 @@ test.describe('Org-user invite picker', () => {
 
   test('keyboard: ArrowDown + Enter selects the highlighted suggestion', async ({ page }) => {
     const capture = { hits: 0 } as { excludeWorkspaceId?: string; excludeBaseId?: string; hits: number };
-    await stubOrgUsers(page, STUB_USERS, capture);
+    await stubInvitableUsers(page, STUB_USERS, capture);
 
     const inviteModal = await openWorkspaceInviteDlg();
     const input = inviteModal.locator('input[id="email"]');
@@ -170,5 +181,47 @@ test.describe('Org-user invite picker', () => {
     await input.press('Enter');
 
     await expect(inviteModal.getByText(STUB_USERS[1].email, { exact: true })).toBeVisible();
+  });
+});
+
+test.describe('Org-user invite picker — non-admin', () => {
+  let dashboard: DashboardPage;
+  let workspacePage: WorkspacePage;
+  let context: NcContext;
+
+  test.beforeEach(async ({ page }) => {
+    // Default setup signs in as `user-${parallelId}@nocodb.com`, which is a
+    // regular workspace user — *not* an org admin. The frontend gate should
+    // suppress the picker entirely for them.
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.base);
+    workspacePage = new WorkspacePage(page);
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
+  test('non-admin user does not see picker even after clicking the input', async ({ page }) => {
+    const capture = { hits: 0 } as { excludeWorkspaceId?: string; excludeBaseId?: string; hits: number };
+    await stubInvitableUsers(page, STUB_USERS, capture);
+
+    await dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('ws-collaborators');
+    await workspacePage.collaboration.waitFor({ state: 'visible' });
+    await workspacePage.collaboration.get().getByTestId('nc-add-member-btn').click();
+
+    const inviteModal = dashboard.rootPage.locator('.nc-invite-dlg');
+    await inviteModal.waitFor({ state: 'visible' });
+
+    const input = inviteModal.locator('input[id="email"]');
+    const picker = inviteModal.locator('[data-testid="nc-invite-org-user-picker"]');
+
+    // Click the input — admin would surface the picker, non-admin should not.
+    await input.click();
+    await page.waitForTimeout(1000);
+
+    // Frontend gate prevents the call entirely; route stub should never fire.
+    expect(capture.hits).toBe(0);
+    await expect(picker).toBeHidden();
   });
 });

@@ -1,4 +1,4 @@
-import { NC_DEFAULT_ORG_ID } from 'nocodb-sdk'
+import { CloudOrgUserRoles, NC_DEFAULT_ORG_ID, OrgUserRoles, extractRolesObj } from 'nocodb-sdk'
 import type { OrgUserPickerItem } from '~/composables/useOrgUserInvitePicker'
 
 export type { OrgUserPickerItem }
@@ -7,6 +7,13 @@ export type { OrgUserPickerItem }
  * EE implementation — fetches org users from the backend so the invite dialog
  * can surface existing org members as suggestions. Filtering happens in the
  * parent component; this only owns the data load.
+ *
+ * The picker is intentionally limited to **org admins** (cloud-org-level-owner)
+ * and **on-prem super admins**. Workspace owners who don't hold one of those
+ * org-level roles get nothing — exposing every other org member's identity to
+ * any workspace creator would leak information across workspaces in a shared
+ * org. Both the backend ACL on `/users/invitable` and this client gate enforce
+ * the rule; the gate is here purely so we don't fire a guaranteed-403 request.
  */
 export function useOrgUserInvitePicker(opts: {
   type?: 'base' | 'workspace' | 'organization'
@@ -14,7 +21,7 @@ export function useOrgUserInvitePicker(opts: {
   baseId?: string
 }) {
   const { $api } = useNuxtApp()
-  const { appInfo } = useGlobal()
+  const { appInfo, user } = useGlobal()
   const workspaceStore = useWorkspace()
   const { activeWorkspace, workspacesList } = storeToRefs(workspaceStore)
 
@@ -32,9 +39,18 @@ export function useOrgUserInvitePicker(opts: {
     return appInfo.value?.defaultOrgId || NC_DEFAULT_ORG_ID
   })
 
+  const isOrgAdmin = computed(() => {
+    const u = user.value as any
+    if (!u) return false
+    const globalRoles = extractRolesObj(u.roles ?? {}) ?? {}
+    const cloudOrgRoles = extractRolesObj(u.org_roles ?? {}) ?? {}
+    return !!(globalRoles[OrgUserRoles.SUPER_ADMIN] || cloudOrgRoles[CloudOrgUserRoles.OWNER])
+  })
+
   const fetchOrgUsers = async () => {
     if (!isEeUI) return
     if (opts.type !== 'workspace' && opts.type !== 'base') return
+    if (!isOrgAdmin.value) return
 
     const orgId = orgIdForPicker.value
     if (!orgId) return
@@ -44,7 +60,7 @@ export function useOrgUserInvitePicker(opts: {
       if (opts.type === 'workspace' && opts.workspaceId) query.excludeWorkspaceId = opts.workspaceId
       if (opts.type === 'base' && opts.baseId) query.excludeBaseId = opts.baseId
 
-      const res = await $api.orgUser.list(orgId, query)
+      const res = await $api.orgUser.listInvitable(orgId, query)
       orgUsers.value = Array.isArray(res) ? (res as OrgUserPickerItem[]) : []
     } catch {
       // Progressive enhancement — fall back to plain email input on failure.
@@ -60,5 +76,6 @@ export function useOrgUserInvitePicker(opts: {
     fetchOrgUsers,
     resetOrgUsers,
     orgUsers,
+    isOrgAdmin,
   }
 }

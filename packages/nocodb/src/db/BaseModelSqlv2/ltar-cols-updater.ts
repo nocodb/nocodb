@@ -72,12 +72,22 @@ export const LTARColsUpdater = (param: {
             existingLinks = [existingLinks];
           }
 
-          const idsToLink = [
-            ...(Array.isArray(d[col.title])
-              ? d[col.title]
-              : [d[col.title]]
-            ).map((rec) => baseModel.extractPksValues(rec, true)),
-          ];
+          // Normalize the requested-link value into an array of PKs.
+          // `null` (or an array containing null) means "set this field
+          // to no links" — translate that to an empty target list so
+          // the diff below produces only unlinks. Without this, a null
+          // value would be passed through to addLinks/validateRefIds
+          // and throw on the typeof-null-is-object quirk.
+          const requestedValue = d[col.title];
+          const requestedItems =
+            requestedValue === null || requestedValue === undefined
+              ? []
+              : Array.isArray(requestedValue)
+              ? requestedValue.filter((v) => v !== null && v !== undefined)
+              : [requestedValue];
+          const idsToLink = requestedItems.map((rec) =>
+            baseModel.extractPksValues(rec, true),
+          );
 
           // check for any missing links then unlink
           const idsToUnlink = existingLinks

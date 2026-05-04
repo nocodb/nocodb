@@ -530,31 +530,38 @@ export class DataV3Service {
 
         const fieldValue = fields[key];
 
-        // Handle v3 format consistently for all relation types
+        // Handle v3 format consistently for all relation types. Each
+        // shape funnels through `extractRecordIdFromNested` so we can
+        // accept the canonical lowercase `id` envelope as well as
+        // common shorthand variants — capital `Id` (the default PK
+        // column title in NocoDB), `ID`, or a bare scalar primary key.
         if (Array.isArray(fieldValue)) {
-          // Array of records - each should have id property
-          transformedFields[key] = fieldValue.map((nestedRecord) =>
-            this.convertRecordIdToInternal(
+          // Normalize first, drop entries that didn't yield a usable PK,
+          // then convert. Doing the filter before the map avoids passing
+          // null into convertRecordIdToInternal.
+          transformedFields[key] = fieldValue
+            .map((nestedRecord) => this.extractRecordIdFromNested(nestedRecord))
+            .filter((normalized): normalized is { id: any } => normalized !== null)
+            .map((normalized) =>
+              this.convertRecordIdToInternal(
+                context,
+                normalized,
+                relatedPrimaryKey,
+                relatedPrimaryKeys,
+                getPrimaryKey,
+              ),
+            );
+        } else if (fieldValue !== null && fieldValue !== undefined) {
+          const normalized = this.extractRecordIdFromNested(fieldValue);
+          if (normalized !== null) {
+            transformedFields[key] = this.convertRecordIdToInternal(
               context,
-              nestedRecord,
+              normalized,
               relatedPrimaryKey,
               relatedPrimaryKeys,
               getPrimaryKey,
-            ),
-          );
-        } else if (
-          fieldValue &&
-          typeof fieldValue === 'object' &&
-          fieldValue.id
-        ) {
-          // Single record with id property (v3 format)
-          transformedFields[key] = this.convertRecordIdToInternal(
-            context,
-            fieldValue,
-            relatedPrimaryKey,
-            relatedPrimaryKeys,
-            getPrimaryKey,
-          );
+            );
+          }
         } else if (fieldValue === null) {
           transformedFields[key] = null;
         }
@@ -562,6 +569,23 @@ export class DataV3Service {
     }
 
     return transformedFields;
+  }
+
+  /**
+   * Normalize a user-supplied LTAR record reference to the internal
+   * `{ id }` envelope. Accepts:
+   *   - a scalar (number | string) — treated as the PK directly
+   *   - an object with `id` / `Id` / `ID` — extracts whichever is set
+   *   - anything else — returns null (caller filters)
+   */
+  private extractRecordIdFromNested(value: any): { id: any } | null {
+    if (value === null || value === undefined) return null;
+    if (typeof value === 'object') {
+      const pk = value.id ?? value.Id ?? value.ID;
+      if (pk === undefined || pk === null) return null;
+      return { id: pk };
+    }
+    return { id: value };
   }
 
   /**

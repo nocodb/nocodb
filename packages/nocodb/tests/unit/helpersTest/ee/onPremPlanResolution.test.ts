@@ -88,30 +88,6 @@ function onPremPlanResolutionTests() {
       expect(plan.meta?.[PlanLimitTypes.LIMIT_AUDIT_RETENTION]).to.equal(-1);
     });
 
-    it("legacy 'Self-hosted Plus' resolves to SELF_HOSTED_BUSINESS", () => {
-      getConfigStub.returns({ plan_title: 'Self-hosted Plus' });
-
-      const plan = getOnPremPlan();
-
-      expect(plan.title).to.equal(OnPremPlanTitles.SELF_HOSTED_BUSINESS);
-    });
-
-    it("legacy 'Self-hosted Scale' resolves to SELF_HOSTED_BUSINESS", () => {
-      getConfigStub.returns({ plan_title: 'Self-hosted Scale' });
-
-      const plan = getOnPremPlan();
-
-      expect(plan.title).to.equal(OnPremPlanTitles.SELF_HOSTED_BUSINESS);
-    });
-
-    it("legacy 'Self-hosted Starter' resolves to SELF_HOSTED_BUSINESS", () => {
-      getConfigStub.returns({ plan_title: 'Self-hosted Starter' });
-
-      const plan = getOnPremPlan();
-
-      expect(plan.title).to.equal(OnPremPlanTitles.SELF_HOSTED_BUSINESS);
-    });
-
     it('empty config with isEE=true and no seat limit falls back to EnterprisePlan', () => {
       getConfigStub.returns({});
       // The EE stub already returns isEE=true via a getter, and our

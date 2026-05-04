@@ -1,6 +1,6 @@
 import { Integration as IntegrationCE } from 'src/models';
 import { integrationCategoryNeedDefault } from 'nocodb-sdk';
-import { IntegrationsType, SyncDataType } from 'nocodb-sdk';
+import { IntegrationsType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type {
   BoolType,
@@ -312,17 +312,10 @@ export default class Integration extends IntegrationCE {
     workspaceId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    const aiSubTypes: string[] = [
-      SyncDataType.OPENAI,
-      SyncDataType.CLAUDE,
-      SyncDataType.OLLAMA,
-      SyncDataType.GROQ,
-    ];
-
     const qb = ncMeta.knex(MetaTable.INTEGRATIONS);
 
     qb.where(`${MetaTable.INTEGRATIONS}.fk_workspace_id`, workspaceId)
-      .whereIn(`${MetaTable.INTEGRATIONS}.sub_type`, aiSubTypes)
+      .where(`${MetaTable.INTEGRATIONS}.type`, IntegrationsType.Ai)
       .where((whereQb) => {
         whereQb
           .where(`${MetaTable.INTEGRATIONS}.deleted`, false)

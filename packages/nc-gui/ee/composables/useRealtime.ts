@@ -54,6 +54,9 @@ export const useRealtime = createSharedComposable(() => {
   const documentStore = useDocumentsStore()
   const { documents, activeDocumentId, loadedParentIds } = storeToRefs(documentStore)
 
+  const webhooksStore = useWebhooksStore()
+  const { hooks } = storeToRefs(webhooksStore)
+
   const { baseExtensions, Extension, loadExtensionsForBase } = useExtensions()
 
   const { listVariables } = useBaseVariables()
@@ -342,6 +345,38 @@ export const useRealtime = createSharedComposable(() => {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
     } else if (event.action === 'view_column_update' || event.action === 'view_column_refresh') {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
+    } else if (event.action === 'hook_create') {
+      // Only mutate if the affected table matches the user's currently-loaded
+      // hook list (the store loads on a per-table basis). For other tables
+      // the next visit will fetch fresh.
+      const fkModelId = event.payload?.fk_model_id
+      if (!fkModelId || activeTableId.value !== fkModelId) return
+      // Avoid duplicates if the originator already pushed locally.
+      if (!hooks.value.some((h) => h.id === event.payload.id)) {
+        hooks.value = [event.payload, ...hooks.value]
+      }
+    } else if (event.action === 'hook_update') {
+      const fkModelId = event.payload?.fk_model_id
+      if (!fkModelId || activeTableId.value !== fkModelId) return
+      const existing = hooks.value.find((h) => h.id === event.payload.id)
+      if (existing) {
+        Object.assign(existing, event.payload)
+      }
+      // Forward to internal bus so an open webhook editor can react —
+      // either to refetch filters (replace-all) or to surface a "modified
+      // by another user" banner.
+      $eventBus.realtimeViewMetaEventBus.emit('hook_update', event.payload)
+      if (event.payload?.had_filters_replaced) {
+        $eventBus.realtimeViewMetaEventBus.emit('hook_filters_replaced', {
+          hookId: event.payload.id,
+        })
+      }
+    } else if (event.action === 'hook_delete') {
+      const fkModelId = event.payload?.fk_model_id
+      if (!fkModelId || activeTableId.value !== fkModelId) return
+      const idx = hooks.value.findIndex((h) => h.id === event.payload.id)
+      if (idx !== -1) hooks.value.splice(idx, 1)
+      $eventBus.realtimeViewMetaEventBus.emit('hook_delete', event.payload)
     } else if (event.action === 'row_color_update') {
       $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE, { rowColorInfo: event.payload || {} })
     } else if (event.action === 'rls_policy_update') {

@@ -2,6 +2,7 @@
 import { diff } from 'deep-object-diff'
 import { defineAsyncComponent } from 'vue'
 import {
+  type FilterType,
   type HookReqType,
   type HookTestReqType,
   type HookType,
@@ -186,6 +187,14 @@ const mattermostChannels = ref<Record<string, any>[]>([])
 const sendMeEverythingChecked = ref(true)
 
 const filterRef = ref()
+
+// Surfaces the "modified by another user" banner. Set when a `hook_update`
+// realtime event arrives for the hook currently being edited; cleared when
+// the user reloads or closes.
+const externallyModified = ref(false)
+// Set to true when another user deletes the hook we're editing — disables
+// further saves and tells the user to close the dialog.
+const externallyDeleted = ref(false)
 
 const isDropdownOpen = ref()
 
@@ -655,6 +664,42 @@ async function saveHooks() {
     operations = eventList.value.filter((k) => k.value[0] === hookRef.event).map((k) => k.value[1])
   }
 
+  const projectFilter = (f: any): any => {
+    const out: any = {
+      id: f.id,
+      fk_column_id: f.fk_column_id,
+      fk_parent_id: f.fk_parent_id,
+      comparison_op: f.comparison_op,
+      comparison_sub_op: f.comparison_sub_op,
+      value: f.value,
+      is_group: f.is_group,
+      logical_op: f.logical_op,
+      order: f.order,
+      enabled: f.enabled,
+      meta: f.meta,
+      fk_value_col_id: f.fk_value_col_id,
+    }
+    if (f.children?.length) {
+      out.children = f.children
+        .filter((c: any) => c.status !== 'delete')
+        .map(projectFilter)
+    }
+    return out
+  }
+  let bundledFilters: FilterType[] | undefined
+  if (filterRef.value && isConditionSupport.value && hookRef.condition) {
+    const tree = (filterRef.value.filters?.value ?? filterRef.value.filters ?? []) as Array<
+      FilterType & { status?: string; children?: any[] }
+    >
+    bundledFilters = tree
+      .filter((f) => f.status !== 'delete')
+      .map(projectFilter) as FilterType[]
+  } else if (!isConditionSupport.value) {
+    // The condition is forced off (e.g. bulk webhook) — replace-all with
+    // an empty array clears server-side filters.
+    bundledFilters = []
+  }
+
   try {
     let res
     if (hookRef.id) {
@@ -673,6 +718,7 @@ async function saveHooks() {
             ...hookRef.notification,
             payload: hookRef.notification.payload,
           },
+          ...(bundledFilters !== undefined ? { filters: bundledFilters } : {}),
         },
       )
     } else {
@@ -691,6 +737,7 @@ async function saveHooks() {
             ...hookRef.notification,
             payload: hookRef.notification.payload,
           },
+          ...(bundledFilters !== undefined ? { filters: bundledFilters } : {}),
         } as HookReqType,
       )
 
@@ -705,11 +752,6 @@ async function saveHooks() {
     if (!hookRef.id && res) {
       hookRef = { ...hookRef, ...res } as any
     }
-
-    if (filterRef.value) {
-      await filterRef.value.applyChanges(hookRef.id, false, isConditionSupport.value)
-    }
-
     // Webhook details updated successfully
     hooks.value = hooks.value.map((h) => {
       if (h.id === hookRef.id) {
@@ -730,6 +772,14 @@ async function saveHooks() {
       message.success('Webhook upgraded to v3 successfully!')
     }
   } catch (e: any) {
+    console.error('[saveHooks] failed', {
+      error: e,
+      message: e?.message,
+      stack: e?.stack,
+      bundledFilters,
+      hookId: hookRef.id,
+      hookCondition: hookRef.condition,
+    })
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     getMeta(activeTable.value.base_id!, activeTable.value.id, true)
@@ -909,7 +959,16 @@ watch(
   { immediate: true },
 )
 
+const { $eventBus } = useNuxtApp()
+const realtimeListener = (evt: string, payload: any) => {
+  if (!hookRef.id || payload?.id !== hookRef.id) return
+  if (evt === 'hook_update') externallyModified.value = true
+  else if (evt === 'hook_delete') externallyDeleted.value = true
+}
+
 onMounted(async () => {
+  $eventBus.realtimeViewMetaEventBus.on(realtimeListener)
+
   await loadPluginList()
 
   onNotificationTypeChange()
@@ -923,6 +982,30 @@ onMounted(async () => {
       })
   }
 })
+
+onBeforeUnmount(() => {
+  $eventBus.realtimeViewMetaEventBus.off(realtimeListener)
+})
+
+// Refetch the hook fields from the server, replacing local edits with the
+// authoritative state. Used by the "modified by another user" banner so the
+// user can pull the remote change without losing the editor.
+async function reloadFromRemote() {
+  if (!hookRef.id) return
+  try {
+    const fresh = hooks.value.find((h) => h.id === hookRef.id)
+    if (fresh) {
+      Object.assign(hookRef, fresh)
+      if (typeof hookRef.notification === 'string') {
+        hookRef.notification = JSON.parse(hookRef.notification as any)
+      }
+      oldHookRef.value = JSON.parse(JSON.stringify(hookRef))
+    }
+    externallyModified.value = false
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 
 const toggleIncludeUser = async () => {
   hookRef.notification.include_user = !hookRef.notification.include_user
@@ -1061,7 +1144,7 @@ const webhookV2AndV3Diff = computed(() => {
               :loading="loading"
               type="primary"
               size="small"
-              :disabled="!hasUnsavedChanges"
+              :disabled="!hasUnsavedChanges || externallyDeleted"
               data-testid="nc-save-webhook"
               @click.stop="saveHooks"
             >
@@ -1152,6 +1235,26 @@ const webhookV2AndV3Diff = computed(() => {
           class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-6 md:px-12 py-6 mx-auto"
         >
           <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 flex flex-col">
+            <NcAlert
+              v-if="externallyDeleted"
+              type="error"
+              :show-icon="true"
+              message="This webhook was deleted by another user"
+              description="You can no longer save changes here. Close this dialog to dismiss."
+            />
+            <NcAlert
+              v-else-if="externallyModified"
+              type="warning"
+              :show-icon="true"
+              message="This webhook was modified by another user"
+              description="Saving now will overwrite their changes."
+            >
+              <template #action>
+                <NcButton size="small" type="secondary" @click="reloadFromRemote">
+                  Reload
+                </NcButton>
+              </template>
+            </NcAlert>
             <a-form-item v-bind="validateInfos.title">
               <div
                 class="flex flex-grow px-2 py-1 title-input items-center border-b-1 rounded-t-md border-nc-border-gray-medium bg-nc-bg-gray-light"

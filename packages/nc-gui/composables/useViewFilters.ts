@@ -48,6 +48,8 @@ export function useViewFilters(
 
   const currentFilters = ref(_currentFilters)
 
+  const lastLoadedHookId = ref<string | undefined>()
+
   const btLookupTypesMap = ref<Record<string, any>>({})
 
   const reloadHook = inject(ReloadViewDataHookInj)
@@ -379,6 +381,11 @@ export function useViewFilters(
     loadAllFilters?: boolean
     isLink?: boolean
   } = {}) => {
+    // Stash for the realtime `hook_filters_replaced` listener below — knowing
+    // the hookId here lets us match the event without leaking it as a public
+    // composable param.
+    if (hookId) lastLoadedHookId.value = hookId
+
     // Wait for meta to be available before loading filters (up to 5 seconds)
     if (!meta.value && view.value?.id) {
       await until(meta).toBeTruthy({ timeout: 5000 })
@@ -1107,6 +1114,13 @@ export function useViewFilters(
   }
 
   const evtListener = (evt: string, payload: any) => {
+    // Webhook filters: bundled-update on the backend wipes + re-inserts all
+    // filter rows. Refetch from the server to pick up the new ids/order.
+    if (evt === 'hook_filters_replaced' && isWebhook && lastLoadedHookId.value && payload?.hookId === lastLoadedHookId.value) {
+      loadFilters({ hookId: lastLoadedHookId.value, isWebhook: true })
+      return
+    }
+
     if (payload.fk_view_id !== view.value?.id || isTempFilters) return
 
     if (evt === 'filter_create') {

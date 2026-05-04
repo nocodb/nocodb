@@ -25024,6 +25024,13 @@
             "items": {
               "type": "string"
             }
+          },
+          "filters": {
+            "type": "array",
+            "description": "Optional list of filter rows to attach to this hook in the same call. Useful for atomic save (one op = hook + filters) so undo restores both as one unit.",
+            "items": {
+              "$ref": "#/components/schemas/FilterReq"
+            }
           }
         },
         "required": [

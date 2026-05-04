@@ -4,7 +4,7 @@ import type { BookmarkGroupType, BookmarkType } from 'nocodb-sdk'
 interface Props {
   groups: BookmarkGroupType[]
   bookmarksByGroup: Record<string, BookmarkType[]>
-  columns: 1 | 2
+  columns: 1 | 2 | 3
 }
 
 const props = defineProps<Props>()
@@ -116,6 +116,7 @@ const dropTargetGroupId = computed(() => {
   /* minmax(0, 1fr) — true equal columns regardless of content size */
   &.cols-1 { grid-template-columns: minmax(0, 1fr); }
   &.cols-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  &.cols-3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); }
 }
 .nc-bookmark-list-col {
   @apply flex flex-col min-w-0;

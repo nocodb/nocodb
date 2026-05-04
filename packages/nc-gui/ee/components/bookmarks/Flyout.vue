@@ -5,8 +5,6 @@ const emit = defineEmits<{ close: [] }>()
 
 const { bookmarksByGroup, orderedGroups, isLoading, navigateToBookmark, loadBookmarks, isCreatingFolder } = useBookmarks()
 
-const { prefs } = useBookmarkPrefs()
-
 const search = ref('')
 
 const isEmpty = computed(() => orderedGroups.value.length === 0)
@@ -40,9 +38,32 @@ onMounted(() => {
   loadBookmarks()
 })
 
-const flyoutWidth = computed(() => {
-  return prefs.value.listColumns === 2 ? 540 : 380
+// Auto-columns: grow horizontally so the body stays scroll-free in the
+// common case. Capped at 3 columns. Heuristic: pick the smallest column
+// count where each column holds <= ~10 group "rows" (group header + items),
+// while honoring a minimum item-density threshold.
+const COL_W = { 1: 380, 2: 540, 3: 700 } as const
+
+const totalRows = computed(() => {
+  // Each group contributes 1 row for the header + N rows for items
+  return filteredGroups.value.reduce(
+    (sum, g) => sum + 1 + (filteredBookmarksByGroup.value[g.id!]?.length ?? 0),
+    0,
+  )
 })
+
+const cols = computed<1 | 2 | 3>(() => {
+  const groupCount = filteredGroups.value.length
+  const rows = totalRows.value
+
+  // 3 columns: many groups OR a lot of total items
+  if (groupCount >= 5 || rows > 36) return 3
+  // 2 columns: a couple groups OR a moderate item count
+  if (groupCount >= 2 || rows > 14) return 2
+  return 1
+})
+
+const flyoutWidth = computed(() => COL_W[cols.value])
 </script>
 
 <template>
@@ -76,7 +97,7 @@ const flyoutWidth = computed(() => {
         v-else
         :groups="filteredGroups"
         :bookmarks-by-group="filteredBookmarksByGroup"
-        :columns="prefs.listColumns"
+        :columns="cols"
         @navigate="onNavigate"
       />
     </div>

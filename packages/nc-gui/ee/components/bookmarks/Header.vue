@@ -47,8 +47,6 @@ function onBlur() {
     </template>
 
     <BookmarksAddBookmarkDropdown />
-
-    <BookmarksSettingsMenu />
   </div>
 </template>
 

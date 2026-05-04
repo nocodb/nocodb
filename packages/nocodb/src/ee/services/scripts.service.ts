@@ -15,6 +15,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { ButtonColumn, Script, Workspace } from '~/models';
+import BaseTrash from '~/models/BaseTrash';
 import { checkLimit } from '~/helpers/paymentHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 @Injectable()
@@ -258,5 +259,40 @@ export class ScriptsService {
     });
 
     return newScript;
+  }
+
+  async restoreScript(
+    context: NcContext,
+    param: { scriptId: string; req: NcRequest },
+    ncMeta?: MetaService,
+  ) {
+    const trashEntry = await BaseTrash.getByResourceId(
+      context,
+      'script',
+      param.scriptId,
+      ncMeta,
+    );
+    if (!trashEntry?.id) {
+      return false;
+    }
+
+    await this.baseTrashService.restore(context, {
+      trashId: trashEntry.id,
+      user: param.req?.user ?? { id: '' },
+      req: param.req,
+      ncMeta,
+    });
+
+    const script = await Script.get(context, param.scriptId, false, ncMeta);
+    if (!script) return false;
+
+    this.appHooksService.emit(AppEvents.SCRIPT_CREATE, {
+      script,
+      req: param.req,
+      context,
+      user: param.req?.user,
+    });
+
+    return true;
   }
 }

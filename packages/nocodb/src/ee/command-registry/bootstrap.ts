@@ -117,7 +117,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     registerShowHideAllHandlers(this.viewsSvc);
     registerHookHandlers(this.hooksSvc);
     registerExtensionHandlers(this.extensionsSvc);
-    registerDashboardHandlers(this.dashboardsSvc);
+    registerDashboardHandlers(this.dashboardsSvc, this.baseTrashSvc);
     registerScriptHandlers(this.scriptsSvc);
     registerWorkflowHandlers(this.workflowsSvc);
     registerViewSectionHandlers(this.viewSectionsSvc);

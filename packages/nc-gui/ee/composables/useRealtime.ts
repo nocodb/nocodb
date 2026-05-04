@@ -700,7 +700,9 @@ export const useRealtime = createSharedComposable(() => {
   }
 
   const handleRealtimeWidgetEvent = (payload: WidgetPayload) => {
-    const { id, dashboardId, action, payload: widget } = payload
+    const { id, action, payload: widget } = payload
+    const dashboardId = payload.dashboardId ?? widget?.fk_dashboard_id
+    if (!dashboardId) return
     const existingWidgets = widgets.value.get(dashboardId) || []
 
     switch (action) {

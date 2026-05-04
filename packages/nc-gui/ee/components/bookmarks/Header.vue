@@ -21,8 +21,8 @@ function onBlur() {
 </script>
 
 <template>
-  <div class="nc-v2-header">
-    <span class="nc-v2-title">{{ $t('title.bookmarks') }}</span>
+  <div class="nc-bookmark-header">
+    <span class="nc-bookmark-title">{{ $t('title.bookmarks') }}</span>
     <span class="grow" />
 
     <template v-if="!isEmpty">
@@ -31,7 +31,7 @@ function onBlur() {
         ref="searchInput"
         v-model:value="search"
         :placeholder="$t('general.search')"
-        class="!rounded-lg !w-44 nc-v2-search"
+        class="!rounded-lg !w-44 nc-bookmark-search"
         allow-clear
         data-testid="nc-bookmark-flyout-search"
         @blur="onBlur"
@@ -48,21 +48,21 @@ function onBlur() {
 
     <BookmarksAddBookmarkDropdown />
 
-    <BookmarksV2SettingsMenu />
+    <BookmarksSettingsMenu />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.nc-v2-header {
+.nc-bookmark-header {
   @apply flex items-center gap-2 px-3 py-2.5 border-b-1 border-nc-border-gray-medium flex-none;
 }
-.nc-v2-title {
+.nc-bookmark-title {
   @apply text-bodyBold text-nc-content-gray pl-1;
 }
 .grow {
   flex: 1;
 }
-.nc-v2-search :deep(.ant-input) {
+.nc-bookmark-search :deep(.ant-input) {
   font-size: 13px;
 }
 </style>

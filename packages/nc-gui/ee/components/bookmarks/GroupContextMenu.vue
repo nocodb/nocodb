@@ -63,7 +63,7 @@ async function onChangeColor(color: string) {
     <NcButton
       type="text"
       size="xxsmall"
-      class="nc-v2-group-kebab !rounded-md flex-none"
+      class="nc-bookmark-group-kebab !rounded-md flex-none"
       :class="{ invisible: isDefault, '!opacity-100': isOpen }"
       data-testid="nc-bookmark-group-kebab"
       @click.stop
@@ -71,7 +71,7 @@ async function onChangeColor(color: string) {
       <GeneralIcon icon="threeDotVertical" class="!w-3.5 !h-3.5 text-nc-content-gray-muted" />
     </NcButton>
     <template #overlay>
-      <NcMenu variant="small" class="nc-v2-group-menu">
+      <NcMenu variant="small" class="nc-bookmark-group-menu">
         <NcMenuItem class="!hover:bg-transparent !cursor-default !pb-0.5">
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="ncPalette" class="w-4 h-4 opacity-80" />
@@ -83,7 +83,7 @@ async function onChangeColor(color: string) {
             :model-value="iconColor"
             :colors="baseIconColors"
             :is-new-design="true"
-            class="nc-v2-group-color-picker"
+            class="nc-bookmark-group-color-picker"
             @input="onChangeColor"
           />
         </div>
@@ -111,7 +111,7 @@ async function onChangeColor(color: string) {
 </template>
 
 <style lang="scss">
-.nc-v2-group-color-picker.nc-v2-group-color-picker {
+.nc-bookmark-group-color-picker.nc-bookmark-group-color-picker {
   @apply !p-0;
   .color-picker-row {
     @apply !space-x-0.5 mb-1;

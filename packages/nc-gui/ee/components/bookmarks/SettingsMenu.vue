@@ -1,13 +1,7 @@
 <script setup lang="ts">
-import type { BookmarkLayout } from '~/composables/useBookmarkPrefs'
-
-const { prefs, setLayout, setListColumns } = useBookmarkPrefs()
+const { prefs, setListColumns } = useBookmarkPrefs()
 
 const isOpen = ref(false)
-
-function pickLayout(l: BookmarkLayout) {
-  setLayout(l)
-}
 
 function pickColumns(n: 1 | 2) {
   setListColumns(n)
@@ -25,41 +19,10 @@ function pickColumns(n: 1 | 2) {
       <GeneralIcon icon="ncSettings" class="text-nc-content-gray-muted" />
     </NcButton>
     <template #overlay>
-      <div class="nc-v2-settings">
-        <div class="nc-v2-settings-section">
-          <span class="nc-v2-settings-label">Layout</span>
-          <div class="nc-v2-settings-segments">
-            <button
-              class="seg"
-              :class="{ active: prefs.layout === 'list' }"
-              data-testid="nc-bookmark-layout-list"
-              @click="pickLayout('list')"
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
-                <path d="M3 4h10M3 8h10M3 12h10" />
-              </svg>
-              List
-            </button>
-            <button
-              class="seg"
-              :class="{ active: prefs.layout === 'card' }"
-              data-testid="nc-bookmark-layout-card"
-              @click="pickLayout('card')"
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
-                <rect x="2.5" y="2.5" width="5" height="5" rx="1" />
-                <rect x="8.5" y="2.5" width="5" height="5" rx="1" />
-                <rect x="2.5" y="8.5" width="5" height="5" rx="1" />
-                <rect x="8.5" y="8.5" width="5" height="5" rx="1" />
-              </svg>
-              Card
-            </button>
-          </div>
-        </div>
-
-        <div v-if="prefs.layout === 'list'" class="nc-v2-settings-section">
-          <span class="nc-v2-settings-label">Columns</span>
-          <div class="nc-v2-settings-segments">
+      <div class="nc-bookmark-settings">
+        <div class="nc-bookmark-settings-section">
+          <span class="nc-bookmark-settings-label">Columns</span>
+          <div class="nc-bookmark-settings-segments">
             <button
               class="seg"
               :class="{ active: prefs.listColumns === 1 }"
@@ -84,16 +47,16 @@ function pickColumns(n: 1 | 2) {
 </template>
 
 <style lang="scss" scoped>
-.nc-v2-settings {
+.nc-bookmark-settings {
   @apply flex flex-col gap-3 p-3 min-w-56;
 }
-.nc-v2-settings-section {
+.nc-bookmark-settings-section {
   @apply flex flex-col gap-2;
 }
-.nc-v2-settings-label {
+.nc-bookmark-settings-label {
   @apply text-captionXs uppercase tracking-wide font-semibold text-nc-content-gray-muted;
 }
-.nc-v2-settings-segments {
+.nc-bookmark-settings-segments {
   @apply grid gap-1;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;

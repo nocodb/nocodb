@@ -35,20 +35,20 @@ function cancel() {
 </script>
 
 <template>
-  <div v-if="isCreatingFolder" class="nc-v2-create-row">
+  <div v-if="isCreatingFolder" class="nc-bookmark-create-row">
     <GeneralIcon icon="ncFolderPlus" class="w-3.5 h-3.5 text-nc-content-brand flex-none" />
     <input
       ref="inputRef"
       v-model="value"
       :placeholder="$t('labels.bookmarkGroup')"
-      class="nc-v2-create-input"
+      class="nc-bookmark-create-input"
       data-testid="nc-bookmark-new-folder-input"
       :bordered="false"
       @keyup.enter="confirm"
       @keyup.escape="cancel"
       @blur="confirm"
     />
-    <div class="nc-v2-create-hints">
+    <div class="nc-bookmark-create-hints">
       <span><kbd>↵</kbd></span>
       <span><kbd>esc</kbd></span>
     </div>
@@ -56,25 +56,25 @@ function cancel() {
 </template>
 
 <style lang="scss" scoped>
-.nc-v2-create-row {
+.nc-bookmark-create-row {
   @apply flex items-center gap-2 mx-3 mb-3 px-3 py-2 rounded-lg mt-3;
   @apply bg-nc-bg-default border-1 border-dashed;
   border-color: var(--nc-content-brand);
 }
-.nc-v2-create-input {
+.nc-bookmark-create-input {
   @apply flex-1 min-w-0 bg-transparent !border-none !outline-none p-0;
   @apply text-bodyDefaultSm text-nc-content-gray;
   font-weight: 500;
 }
-.nc-v2-create-input::placeholder {
+.nc-bookmark-create-input::placeholder {
   @apply text-nc-content-gray-muted;
   font-weight: 400;
 }
-.nc-v2-create-hints {
+.nc-bookmark-create-hints {
   @apply flex gap-1.5 flex-none text-captionXs text-nc-content-gray-muted;
   font-family: 'JetBrainsMono', ui-monospace, monospace;
 }
-.nc-v2-create-hints kbd {
+.nc-bookmark-create-hints kbd {
   @apply px-1 py-0.5 rounded bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium text-captionXs;
 }
 </style>

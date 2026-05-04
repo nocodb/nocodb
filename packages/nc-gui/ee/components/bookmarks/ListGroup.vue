@@ -126,7 +126,7 @@ function handleDrop() {
 
 <template>
   <div
-    class="nc-v2-list-group"
+    class="nc-bookmark-list-group"
     :class="{ 'is-drop-target': isDropTarget, 'is-dragging': isDraggingGroup }"
     :data-group-id="group.id"
     @dragover="handleDragOver"
@@ -137,7 +137,7 @@ function handleDrop() {
     <!-- Header — full width, right-click opens the same menu as the kebab.
          Ungrouped is pinned and not draggable. -->
     <div
-      class="nc-v2-list-h group"
+      class="nc-bookmark-list-h group"
       :draggable="!isDefault"
       data-testid="nc-bookmark-group-header"
       @dragstart="handleGroupDragStart"
@@ -147,7 +147,7 @@ function handleDrop() {
     >
       <GeneralIcon
         :icon="isCollapsed ? 'ncFolderClosed' : 'ncFolderOpen'"
-        class="nc-v2-list-folder-icon"
+        class="nc-bookmark-list-folder-icon"
         :style="iconColor ? { color: iconColor } : undefined"
       />
 
@@ -155,7 +155,7 @@ function handleDrop() {
         v-if="isRenaming"
         ref="renameInputRef"
         v-model:value="renameValue"
-        class="nc-v2-list-rename"
+        class="nc-bookmark-list-rename"
         size="small"
         data-testid="nc-bookmark-group-rename-input"
         @keyup.enter="saveRename"
@@ -163,34 +163,34 @@ function handleDrop() {
         @blur="saveRename"
         @click.stop
       />
-      <div v-else class="nc-v2-list-name-wrap">
+      <div v-else class="nc-bookmark-list-name-wrap">
         <NcTooltip
           show-on-truncate-only
-          :attrs="{ class: 'nc-v2-list-name truncate block' }"
+          :attrs="{ class: 'nc-bookmark-list-name truncate block' }"
         >
           {{ group.name }}
         </NcTooltip>
       </div>
 
-      <span class="nc-v2-list-count">{{ String(groupBookmarks.length).padStart(2, '0') }}</span>
+      <span class="nc-bookmark-list-count">{{ String(groupBookmarks.length).padStart(2, '0') }}</span>
 
-      <BookmarksV2GroupContextMenu
+      <BookmarksGroupContextMenu
         ref="ctxMenuRef"
         :group="group"
-        class="nc-v2-list-kebab opacity-0 group-hover:opacity-100"
+        class="nc-bookmark-list-kebab opacity-0 group-hover:opacity-100"
         @rename="startRename"
       />
     </div>
 
     <!-- Items -->
     <template v-if="!isCollapsed">
-      <div ref="listRef" class="nc-v2-list-items">
+      <div ref="listRef" class="nc-bookmark-list-items">
         <template v-for="(bm, idx) in groupBookmarks" :key="bm.id">
           <div
             v-if="localDropIndex === idx && bm.id !== draggingBookmarkId"
-            class="nc-v2-list-drop-line"
+            class="nc-bookmark-list-drop-line"
           />
-          <BookmarksV2Item
+          <BookmarksItem
             :bookmark="bm"
             :groups="allGroups"
             :show-crumb-on-hover="true"
@@ -199,11 +199,11 @@ function handleDrop() {
         </template>
         <div
           v-if="localDropIndex === groupBookmarks.length && groupBookmarks.length > 0"
-          class="nc-v2-list-drop-line"
+          class="nc-bookmark-list-drop-line"
         />
       </div>
 
-      <div v-if="!groupBookmarks.length" class="nc-v2-list-empty">
+      <div v-if="!groupBookmarks.length" class="nc-bookmark-list-empty">
         {{ $t('labels.noData') }}
       </div>
     </template>
@@ -211,7 +211,7 @@ function handleDrop() {
 </template>
 
 <style lang="scss" scoped>
-.nc-v2-list-group {
+.nc-bookmark-list-group {
   @apply px-3 pt-3 pb-1;
   & + & {
     @apply mt-1 border-t-1 border-dashed border-nc-border-gray-medium;
@@ -224,19 +224,19 @@ function handleDrop() {
   }
 }
 
-.nc-v2-list-h {
+.nc-bookmark-list-h {
   @apply flex items-center gap-2.5 mb-1.5 px-1 cursor-pointer select-none min-w-0;
 }
-.nc-v2-list-folder-icon {
+.nc-bookmark-list-folder-icon {
   @apply flex-none w-3.5 h-3.5 text-nc-content-gray-muted;
 }
-.nc-v2-list-group:hover .nc-v2-list-folder-icon {
+.nc-bookmark-list-group:hover .nc-bookmark-list-folder-icon {
   @apply text-nc-content-gray-subtle;
 }
-.nc-v2-list-name-wrap {
+.nc-bookmark-list-name-wrap {
   @apply flex-1 min-w-0;
 }
-.nc-v2-list-name-wrap :deep(.nc-v2-list-name) {
+.nc-bookmark-list-name-wrap :deep(.nc-bookmark-list-name) {
   font-size: 11px;
   line-height: 16px;
   letter-spacing: 0.08em;
@@ -244,34 +244,34 @@ function handleDrop() {
   font-weight: 600;
   color: var(--nc-content-gray-muted);
 }
-.nc-v2-list-rename {
+.nc-bookmark-list-rename {
   @apply flex-1 !text-bodySm !rounded-md;
 }
-.nc-v2-list-rename :deep(.ant-input) {
+.nc-bookmark-list-rename :deep(.ant-input) {
   font-size: 11px !important;
   line-height: 16px !important;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 600;
 }
-.nc-v2-list-count {
+.nc-bookmark-list-count {
   @apply flex-none text-captionXs text-nc-content-gray-disabled;
   font-family: 'JetBrainsMono', ui-monospace, monospace;
 }
-.nc-v2-list-kebab {
+.nc-bookmark-list-kebab {
   @apply !rounded-md flex-none transition-opacity;
 }
-.nc-v2-list-kebab.invisible {
+.nc-bookmark-list-kebab.invisible {
   @apply invisible;
 }
 
-.nc-v2-list-items {
+.nc-bookmark-list-items {
   @apply flex flex-col;
 }
-.nc-v2-list-drop-line {
+.nc-bookmark-list-drop-line {
   @apply h-0.5 mx-2 my-0.5 rounded-full bg-nc-content-brand;
 }
-.nc-v2-list-empty {
+.nc-bookmark-list-empty {
   @apply px-2.5 py-1 text-bodySm text-nc-content-gray-muted;
 }
 </style>

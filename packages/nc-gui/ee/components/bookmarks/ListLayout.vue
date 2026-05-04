@@ -83,19 +83,19 @@ const dropTargetGroupId = computed(() => {
 <template>
   <div
     ref="listRef"
-    class="nc-v2-list-layout"
+    class="nc-bookmark-list-layout"
     :class="`cols-${columns}`"
     @dragover="handleDragOver"
     @drop="handleDrop"
     @dragend="onDragEnd"
   >
-    <div v-for="(col, colIdx) in columnGroups" :key="colIdx" class="nc-v2-list-col">
+    <div v-for="(col, colIdx) in columnGroups" :key="colIdx" class="nc-bookmark-list-col">
       <template v-for="group in col" :key="group.id">
         <div
           v-if="dropTargetGroupId === group.id && group.id !== draggingGroupId"
-          class="nc-v2-list-group-drop-line"
+          class="nc-bookmark-list-group-drop-line"
         />
-        <BookmarksV2ListGroup
+        <BookmarksListGroup
           :group="group"
           :bookmarks="bookmarksByGroup[group.id!] ?? []"
           :all-groups="groups"
@@ -104,26 +104,26 @@ const dropTargetGroupId = computed(() => {
       </template>
       <div
         v-if="draggingGroupId && groupDropIndex === groups.length && colIdx === groups.length % columns"
-        class="nc-v2-list-group-drop-line"
+        class="nc-bookmark-list-group-drop-line"
       />
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.nc-v2-list-layout {
+.nc-bookmark-list-layout {
   @apply grid gap-0;
   /* minmax(0, 1fr) — true equal columns regardless of content size */
   &.cols-1 { grid-template-columns: minmax(0, 1fr); }
   &.cols-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 }
-.nc-v2-list-col {
+.nc-bookmark-list-col {
   @apply flex flex-col min-w-0;
   & + & {
     @apply border-l-1 border-dashed border-nc-border-gray-medium;
   }
 }
-.nc-v2-list-group-drop-line {
+.nc-bookmark-list-group-drop-line {
   @apply h-0.5 mx-3 my-1 rounded-full bg-nc-content-brand;
 }
 </style>

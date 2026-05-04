@@ -313,7 +313,7 @@ const mainItems = computed<NavItem[]>(() => [
         @click="isBookmarksFlyoutOpen = !isBookmarksFlyoutOpen"
       />
 
-      <LazyBookmarksV2Flyout
+      <LazyBookmarksFlyout
         v-if="isBookmarksFlyoutOpen"
         @close="isBookmarksFlyoutOpen = false"
       />

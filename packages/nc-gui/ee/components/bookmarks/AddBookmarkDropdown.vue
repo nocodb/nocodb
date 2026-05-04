@@ -33,7 +33,6 @@ const isSearching = ref(false)
 
 const searchResults = ref<any[]>([])
 
-
 // --- Current page bookmark ---
 
 const currentPageBookmarkInfo = computed<{ targetType: string; targetId: string; meta: Record<string, any> } | null>(() => {
@@ -142,9 +141,7 @@ const debouncedFilter = useDebounceFn(() => {
     searchResults.value = []
     return
   }
-  searchResults.value = bookmarkableItems.value.filter((item: any) =>
-    (item.title || '').toLowerCase().includes(q),
-  )
+  searchResults.value = bookmarkableItems.value.filter((item: any) => (item.title || '').toLowerCase().includes(q))
 }, 200)
 
 watch(searchQuery, () => {
@@ -242,13 +239,7 @@ function getResultIcon(item: any): string {
 <template>
   <!-- "+" dropdown with two options -->
   <NcDropdown v-model:visible="isDropdownOpen" placement="bottomRight" overlay-class-name="nc-bookmark-add-dropdown">
-    <NcButton
-      type="text"
-      size="small"
-      class="!rounded-md"
-      data-testid="nc-bookmark-add-btn"
-      @click.stop
-    >
+    <NcButton type="text" size="small" class="!rounded-md" data-testid="nc-bookmark-add-btn" @click.stop>
       <GeneralIcon icon="plus" class="text-nc-content-gray-muted" />
     </NcButton>
 
@@ -260,11 +251,7 @@ function getResultIcon(item: any): string {
           @click="toggleCurrentPageBookmark"
         >
           <div class="flex gap-2 items-center">
-            <GeneralIcon
-              icon="ncBookmark"
-              class="w-4 h-4"
-              :class="isCurrentPageBookmarked ? 'text-nc-content-brand' : ''"
-            />
+            <GeneralIcon icon="ncBookmark" class="w-4 h-4" :class="isCurrentPageBookmarked ? 'text-nc-content-brand' : ''" />
             {{ isCurrentPageBookmarked ? $t('labels.removePageBookmark') : $t('labels.bookmarkThisPage') }}
           </div>
         </NcMenuItem>
@@ -289,12 +276,12 @@ function getResultIcon(item: any): string {
   <NcModal v-model:visible="isModalOpen" size="sm" :mask-closable="true">
     <div class="flex flex-col">
       <!-- Header -->
-      <div class="flex items-center justify-between px-4 pt-4 pb-3">
+      <div class="flex items-center justify-between pb-3">
         <span class="text-sm font-bold text-nc-content-gray">{{ $t('labels.addToBookmarks') }}</span>
       </div>
 
       <!-- Search input -->
-      <div class="px-4 pb-3">
+      <div class="pb-3">
         <a-input
           ref="searchInputRef"
           v-model:value="searchQuery"
@@ -310,7 +297,7 @@ function getResultIcon(item: any): string {
       </div>
 
       <!-- Search results -->
-      <div class="max-h-64 overflow-y-auto nc-scrollbar-thin px-2">
+      <div class="max-h-64 overflow-y-auto nc-scrollbar-thin">
         <!-- Loading -->
         <div v-if="isSearching" class="flex items-center justify-center py-6">
           <GeneralLoader size="small" />
@@ -327,11 +314,7 @@ function getResultIcon(item: any): string {
           >
             <GeneralIcon :icon="getResultIcon(item)" class="w-4 h-4 text-nc-content-gray-muted flex-none" />
             <span class="truncate flex-1 text-small text-nc-content-gray">{{ item.title }}</span>
-            <GeneralIcon
-              v-if="isResultBookmarked(item)"
-              icon="ncBookmark"
-              class="w-4 h-4 text-nc-content-brand flex-none"
-            />
+            <GeneralIcon v-if="isResultBookmarked(item)" icon="ncBookmark" class="w-4 h-4 text-nc-content-brand flex-none" />
           </div>
         </template>
 

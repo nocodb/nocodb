@@ -38,6 +38,12 @@ interface NcTooltipProps {
    * Key to be pressed on hover to trigger the tooltip
    */
   modifierKey?: string
+  /**
+   * Tooltip text. When omitted (and no `#title` slot is provided), the default slot content
+   * is reused as the tooltip — handy for `show-on-truncate-only` cases where the trigger and
+   * the tooltip share the same string.
+   */
+  title?: string
   tooltipStyle?: CSSProperties
   attrs?: Record<string, unknown>
   color?: 'dark' | 'light'
@@ -224,7 +230,11 @@ const onClick = () => {
   >
     <template #title>
       <div ref="element">
-        <slot name="title" />
+        <!-- Priority: #title slot → title prop → default slot -->
+        <slot name="title">
+          <template v-if="title">{{ title }}</template>
+          <slot v-else />
+        </slot>
       </div>
     </template>
 

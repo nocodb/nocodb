@@ -2,7 +2,6 @@ import { Catch, Logger, NotFoundException } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
 
 import { ThrottlerException } from '@nestjs/throttler';
-import hash from 'object-hash';
 import {
   NcApiVersion,
   NcErrorType,
@@ -12,8 +11,7 @@ import {
 } from 'nocodb-sdk';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import NocoCache from '~/cache/NocoCache';
-import { CacheGetType } from '~/utils/globals';
+import { throttlerLogger } from '~/helpers/throttlerLogger';
 import {
   AjvError,
   BadRequest,
@@ -90,64 +88,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       this.logError(exception, request);
 
     if (exception instanceof ThrottlerException) {
-      const key = hash({
-        ip: request.ip,
-        baseId: (request as any).ncBaseId,
+      throttlerLogger.record({
         workspaceId: (request as any).ncWorkspaceId,
-        path: request.path,
+        baseId: (request as any).ncBaseId,
       });
-
-      const cacheKey = `throttler:${key}`;
-
-      NocoCache.get('root', cacheKey, CacheGetType.TYPE_OBJECT)
-        .then((data) => {
-          if (!data) {
-            this.logger.warn(
-              `ThrottlerException: ${exception.message}, Path: ${
-                request.path
-              }, Workspace ID: ${(request as any).ncWorkspaceId}, Base ID: ${
-                (request as any).ncBaseId
-              }`,
-            );
-
-            NocoCache.setExpiring(
-              'root',
-              cacheKey,
-              { value: true, count: 1, timestamp: Date.now() },
-              300,
-            ).catch((err) => {
-              this.logger.error(err);
-            });
-          } else {
-            data.count += 1;
-
-            const ttlInSeconds = Math.floor(
-              (data.timestamp + 300000 - Date.now()) / 1000,
-            );
-
-            if (ttlInSeconds > 0) {
-              NocoCache.setExpiring('root', cacheKey, data, ttlInSeconds).catch(
-                (err) => {
-                  this.logger.error(err);
-                },
-              );
-            }
-
-            // log every 50th request in last 5 minutes after first
-            if (data.count % 50 === 0) {
-              this.logger.warn(
-                `ThrottlerException: ${exception.message}, Path: ${
-                  request.path
-                }, Workspace ID: ${(request as any).ncWorkspaceId}, Base ID: ${
-                  (request as any).ncBaseId
-                }, Requests in last 5 minutes: ${data.count}`,
-              );
-            }
-          }
-        })
-        .catch((err) => {
-          this.logger.error(err);
-        });
     }
 
     // if sso error then redirect to ui with error in query parameter

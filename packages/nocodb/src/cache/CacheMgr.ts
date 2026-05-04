@@ -233,6 +233,31 @@ export default abstract class CacheMgr {
     return this.client.incrby(key, value);
   }
 
+  async incrbyExpiring(
+    key: string,
+    value: number,
+    seconds: number,
+  ): Promise<number> {
+    const results = await this.client
+      .pipeline()
+      .incrby(key, value)
+      .expire(key, seconds)
+      .exec();
+    if (!results || !results[0]) return value;
+    const [err, total] = results[0];
+    if (err) throw err;
+    return Number(total);
+  }
+
+  async setIfNotExist(
+    key: string,
+    value: string,
+    seconds: number,
+  ): Promise<boolean> {
+    const res = await this.client.set(key, value, 'EX', seconds, 'NX');
+    return res === 'OK';
+  }
+
   async getList(
     scope: string,
     subKeys: string[],
@@ -720,7 +745,27 @@ export default abstract class CacheMgr {
 
   async processPattern(
     pattern: string,
-    callback: (key: string | string[]) => Promise<void>,
+    callback: (key: string) => Promise<void>,
+    options?: {
+      count?: number;
+      type?: string;
+      raw?: boolean;
+      batch?: false;
+    },
+  ): Promise<void>;
+  async processPattern(
+    pattern: string,
+    callback: (keys: string[]) => Promise<void>,
+    options: {
+      count?: number;
+      type?: string;
+      raw?: boolean;
+      batch: true;
+    },
+  ): Promise<void>;
+  async processPattern(
+    pattern: string,
+    callback: (key: any) => Promise<void>,
     options: {
       count?: number;
       type?: string;

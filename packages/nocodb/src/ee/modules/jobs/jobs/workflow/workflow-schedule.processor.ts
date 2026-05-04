@@ -21,7 +21,7 @@ export class WorkflowScheduleProcessor {
   ) {}
 
   async job() {
-    this.logger.log('WorkflowScheduleProcessor job started');
+    this.logger.debug('WorkflowScheduleProcessor job started');
     await this.scheduleCronTrigger();
     this.logger.debug('WorkflowScheduleProcessor job completed');
   }

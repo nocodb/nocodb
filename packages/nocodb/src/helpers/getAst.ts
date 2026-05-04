@@ -362,7 +362,7 @@ const getAst = async (
       // holds the nested AST that tells the query builder to include that
       // override column. Without an override, the legacy `true` is correct
       // (pk + pv) — using `value` could narrow the response to a stale subset.
-      isRequested = fk_display_value_column_id ? value : true;
+      isRequested = value;
     } else if (
       rowColoringColumnIds.has(col.id) ||
       buttonFilterColumnIds.has(col.id)

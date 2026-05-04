@@ -51,6 +51,9 @@ export const useRealtime = createSharedComposable(() => {
   const workflowStore = useWorkflowStore()
   const { workflows, activeWorkflowId } = storeToRefs(workflowStore)
 
+  const viewSectionsStore = useViewSectionsStore()
+  const { sectionsByTable } = storeToRefs(viewSectionsStore)
+
   const documentStore = useDocumentsStore()
   const { documents, activeDocumentId, loadedParentIds } = storeToRefs(documentStore)
 
@@ -480,6 +483,60 @@ export const useRealtime = createSharedComposable(() => {
       }
 
       refreshCommandPalette()
+    } else if (event.action === 'view_section_create') {
+      const { payload } = event
+      if (!payload?.base_id || !payload?.fk_model_id || !payload?.id) return
+      const key = `${payload.base_id}:${payload.fk_model_id}`
+      const existing = sectionsByTable.value.get(key) ?? []
+      // Guard against duplicate events (e.g. originating tab + broadcast)
+      if (!existing.some((s) => s.id === payload.id)) {
+        const updated = [...existing, payload].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        sectionsByTable.value.set(key, updated)
+      }
+
+      const restoreViewIds = (payload as { restoreViewIds?: string[] }).restoreViewIds
+      if (restoreViewIds?.length) {
+        const tableViews = viewsByTable.value.get(key)
+        if (tableViews) {
+          for (const v of tableViews) {
+            if (restoreViewIds.includes(v.id!)) v.fk_view_section_id = payload.id
+          }
+        }
+      }
+    } else if (event.action === 'view_section_update') {
+      const { payload } = event
+      if (!payload?.base_id || !payload?.fk_model_id || !payload?.id) return
+      const key = `${payload.base_id}:${payload.fk_model_id}`
+      const sections = sectionsByTable.value.get(key)
+      if (sections) {
+        const idx = sections.findIndex((s) => s.id === payload.id)
+        if (idx !== -1) {
+          sections[idx] = { ...sections[idx], ...payload }
+          sections.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+          sectionsByTable.value.set(key, [...sections])
+        }
+      }
+    } else if (event.action === 'view_section_delete') {
+      const { payload } = event
+      if (!payload?.base_id || !payload?.fk_model_id || !payload?.id) return
+      const key = `${payload.base_id}:${payload.fk_model_id}`
+      const sections = sectionsByTable.value.get(key)
+      if (sections) {
+        sectionsByTable.value.set(
+          key,
+          sections.filter((s) => s.id !== payload.id),
+        )
+      }
+
+      const orphanedViewIds = (payload as { orphanedViewIds?: string[] }).orphanedViewIds
+      if (orphanedViewIds?.length) {
+        const tableViews = viewsByTable.value.get(key)
+        if (tableViews) {
+          for (const v of tableViews) {
+            if (orphanedViewIds.includes(v.id!)) v.fk_view_section_id = null as any
+          }
+        }
+      }
     } else if (event.action === 'extension_restore') {
       updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
       const { payload } = event

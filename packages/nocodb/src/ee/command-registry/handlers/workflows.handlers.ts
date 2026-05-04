@@ -71,7 +71,7 @@ export function registerWorkflowHandlers(
         }
       }
       return svc.duplicateWorkflow(ctx, {
-        ...p,
+        workflowId: p.workflowId,
         req,
         ...(meta.entityId ? { _replayWorkflowId: meta.entityId } : {}),
       });

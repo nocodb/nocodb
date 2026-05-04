@@ -83,7 +83,20 @@ export const ViewUpdateContract: OperationContract<
     if (view) {
       const src = view as unknown as Record<string, unknown>;
       prevView = {};
-      for (const k of VIEW_PREV_FIELDS) (prevView as any)[k] = src[k];
+      for (const k of VIEW_PREV_FIELDS) {
+        const v = src[k];
+       const STRICT_STRING = new Set([
+          'uuid',
+          'password',
+          'attachment_mode_column_id',
+        ]);
+        if (v === null && STRICT_STRING.has(k)) continue;
+        if (v === undefined && k === 'fk_view_section_id') {
+          (prevView as any)[k] = null;
+          continue;
+        }
+        (prevView as any)[k] = v;
+      }
     }
     return {
       entityTitle: view?.title,

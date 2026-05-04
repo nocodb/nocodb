@@ -92,7 +92,7 @@ export class RowFilterValidator {
             UITypes.CreatedTime,
             UITypes.LastModifiedTime,
           ].includes(column.uidt! as UITypes) &&
-          !['empty', 'blank', 'notempty', 'notblank'].includes(
+          !['empty', 'blank', 'notempty', 'notblank', 'gb_null'].includes(
             filter.comparison_op!
           )
         ) {
@@ -320,6 +320,7 @@ export class RowFilterValidator {
                   userIds.length === filterValues.length &&
                   filterValues.every((id) => userIds.includes(id));
                 break;
+              case 'gb_null':
               case 'empty':
               case 'blank':
                 res = userIds.length === 0;
@@ -361,7 +362,7 @@ export class RowFilterValidator {
                   })
                   .filter((val) => val !== '');
 
-                switch (filter.comparison_op) {
+                switch (filter.comparison_op as any) {
                   case 'eq':
                     res = childValues.includes(ncToString(filter.value));
                     break;
@@ -420,6 +421,7 @@ export class RowFilterValidator {
                     );
                     break;
                   }
+                  case 'gb_null':
                   case 'empty':
                   case 'blank':
                     res = linkData.length === 0;
@@ -485,7 +487,11 @@ export class RowFilterValidator {
                 res = !data[field];
                 break;
               case 'null':
-                res = data[field] === null;
+              case 'gb_null':
+                res =
+                  data[field] === null ||
+                  data[field] === undefined ||
+                  data[field] === '';
                 break;
               case 'notnull':
                 res = data[field] !== null;

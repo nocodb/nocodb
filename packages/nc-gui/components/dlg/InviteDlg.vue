@@ -659,26 +659,12 @@ const onTeamChange = async (_teamIds: RawValueType) => {
                 v-for="(orgUser, i) in filteredOrgUsers"
                 :key="orgUser.id"
                 :class="{ 'bg-nc-bg-gray-light': i === pickerSelectedIndex }"
-                class="flex items-center gap-3 px-3 py-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light"
+                class="px-3 py-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light"
                 :data-testid="`nc-invite-org-user-${orgUser.email}`"
                 @click="selectOrgUser(orgUser)"
                 @mouseenter="pickerSelectedIndex = i"
               >
-                <GeneralUserIcon :user="orgUser" size="medium" class="flex-none" />
-                <div class="flex flex-col min-w-0 flex-1">
-                  <NcTooltip
-                    v-if="orgUser.display_name"
-                    show-on-truncate-only
-                    class="truncate text-bodyDefaultBold !leading-5 capitalize text-nc-content-gray"
-                  >
-                    <template #title>{{ orgUser.display_name }}</template>
-                    {{ orgUser.display_name }}
-                  </NcTooltip>
-                  <NcTooltip show-on-truncate-only class="truncate text-bodySm !leading-4 text-nc-content-gray-muted">
-                    <template #title>{{ orgUser.email }}</template>
-                    {{ orgUser.email }}
-                  </NcTooltip>
-                </div>
+                <NcUserInfo :user="(orgUser as any)" />
               </div>
             </div>
           </div>

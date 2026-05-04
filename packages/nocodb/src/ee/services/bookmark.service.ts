@@ -411,6 +411,10 @@ export class BookmarkService {
         }
         break;
       }
+      default:
+        NcError.get(context).badRequest(
+          `Unsupported bookmark target_type: ${targetType}`,
+        );
     }
   }
 

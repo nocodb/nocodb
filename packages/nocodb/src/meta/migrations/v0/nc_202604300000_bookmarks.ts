@@ -23,6 +23,7 @@ const up = async (knex: Knex) => {
     table.text('meta');
     table.timestamps(true, true);
     table.index('fk_user_id');
+    table.index('fk_group_id');
     table.unique(['fk_user_id', 'target_type', 'target_id']);
   });
 };

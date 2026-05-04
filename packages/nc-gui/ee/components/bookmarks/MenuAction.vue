@@ -35,7 +35,10 @@ async function onClick() {
 <template>
   <NcMenuItem v-if="!blockBookmarks" @click="onClick">
     <div class="flex gap-2 items-center">
-      <GeneralIcon icon="ncBookmark" :class="bookmarked ? 'text-nc-content-brand' : 'opacity-80'" />
+      <GeneralIcon
+        :icon="bookmarked ? 'ncBookmarkSolid' : 'ncBookmark'"
+        :class="bookmarked ? 'text-nc-content-brand' : 'opacity-80'"
+      />
       {{ bookmarked ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
     </div>
   </NcMenuItem>

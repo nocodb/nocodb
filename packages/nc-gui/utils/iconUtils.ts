@@ -552,6 +552,7 @@ import NcTrendingDownIcon from '~icons/nc-icons-v2/trending-down.svg'
 import NcPauseIcon from '~icons/nc-icons-v2/pause.svg'
 import NcArrowDownCircleIcon from '~icons/nc-icons-v2/arrow-down-circle.svg'
 import NcBookmarkIcon from '~icons/nc-icons-v2/bookmark.svg'
+import NcBookmarkSolidIcon from '~icons/nc-icons-v2/bookmark-solid.svg'
 import NcAlertTriangleIcon from '~icons/nc-icons-v2/alert-triangle.svg'
 import NcUserCheckIcon from '~icons/nc-icons-v2/user-check.svg'
 import NcTabletIcon from '~icons/nc-icons-v2/tablet.svg'
@@ -1635,6 +1636,7 @@ export const iconMap = {
   'ncPause': NcPauseIcon,
   'ncArrowDownCircle': NcArrowDownCircleIcon,
   'ncBookmark': NcBookmarkIcon,
+  'ncBookmarkSolid': h(NcBookmarkSolidIcon, { stroke: 'transparent' }),
   'ncAlertTriangle': NcAlertTriangleIcon,
   'ncUserCheck': NcUserCheckIcon,
   'ncTablet': NcTabletIcon,

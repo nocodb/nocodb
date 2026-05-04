@@ -163,7 +163,7 @@ async function onDeleteGroup(groupId: string) {
   const { showConfirmModal } = useNcConfirmModal()
   showConfirmModal({
     title: t('general.delete') + ' ' + t('labels.bookmarkGroup'),
-    content: t('msg.bookmarkGroupDeleted'),
+    content: t('msg.confirmDeleteBookmarkGroup'),
     okCallback: async () => {
       await removeGroup(groupId)
     },

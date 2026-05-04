@@ -105,7 +105,11 @@ function onNewFolder() {
           @click="toggleCurrentPageBookmark"
         >
           <div class="flex gap-2 items-center">
-            <GeneralIcon icon="ncBookmark" class="w-4 h-4" :class="isCurrentPageBookmarked ? 'text-nc-content-brand' : ''" />
+            <GeneralIcon
+              :icon="isCurrentPageBookmarked ? 'ncBookmarkSolid' : 'ncBookmark'"
+              class="w-4 h-4"
+              :class="isCurrentPageBookmarked ? 'text-nc-content-brand' : ''"
+            />
             {{ isCurrentPageBookmarked ? $t('labels.removePageBookmark') : $t('labels.bookmarkThisPage') }}
           </div>
         </NcMenuItem>

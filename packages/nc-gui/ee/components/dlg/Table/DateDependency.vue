@@ -186,16 +186,25 @@ async function save() {
   }
 }
 
+function syncFormFromRule() {
+  const initial = rule.value ? { ...defaultForm, ...rule.value } : { ...defaultForm }
+  initial.dependency_buffer_days = Number(initial.dependency_buffer_days) || 0
+  Object.assign(form, initial)
+  savedForm.value = { ...initial }
+}
+
 watch(visible, async (val) => {
   if (val) {
     await loadTableMeta(props.tableId)
-    const initial = rule.value ? { ...defaultForm, ...rule.value } : { ...defaultForm }
-    initial.dependency_buffer_days = Number(initial.dependency_buffer_days) || 0
-
-    Object.assign(form, initial)
-    savedForm.value = { ...initial }
+    syncFormFromRule()
     saveError.value = ''
   }
+})
+
+watch(rule, () => {
+  if (!visible.value) return
+  if (hasChanges.value) return
+  syncFormFromRule()
 })
 </script>
 

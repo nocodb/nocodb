@@ -34,6 +34,7 @@ export enum PlanLimitTypes {
   LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
   LIMIT_WORKSPACE = 'limit_workspace',
   LIMIT_TRASH_RETENTION = 'limit_trash_retention',
+  LIMIT_AI_INTEGRATIONS = 'limit_ai_integrations',
 }
 
 export enum PlanFeatureTypes {
@@ -113,6 +114,8 @@ export enum PlanFeatureTypes {
   FEATURE_EE_CORE = 'feature_ee_core',
   FEATURE_TRASH_SETTINGS = 'feature_trash_settings',
   FEATURE_FORM_GRID_LAYOUT = 'feature_form_grid_layout',
+  FEATURE_TABLE_VISIBILITY = 'feature_table_visibility',
+  FEATURE_FIELD_VISIBILITY = 'feature_field_visibility',
 }
 
 export enum PlanTitles {
@@ -124,8 +127,7 @@ export enum PlanTitles {
 
 export enum OnPremPlanTitles {
   FREE = 'Free',
-  SELF_HOSTED_STARTER = 'Self-hosted Starter',
-  SELF_HOSTED_SCALE = 'Self-hosted Scale',
+  SELF_HOSTED_BUSINESS = 'Self-hosted Business',
   SELF_HOSTED_ENTERPRISE = 'Self-hosted Enterprise',
 }
 
@@ -292,6 +294,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]:
     'to increase the document page size limit.',
   [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 'for extended trash retention.',
+  [PlanLimitTypes.LIMIT_AI_INTEGRATIONS]: 'to add more AI integrations.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -394,6 +397,10 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to configure per-table trash settings.',
   [PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT]:
     'to arrange form fields in multi-column rows.',
+  [PlanFeatureTypes.FEATURE_TABLE_VISIBILITY]:
+    'to control table-level visibility.',
+  [PlanFeatureTypes.FEATURE_FIELD_VISIBILITY]:
+    'to control field-level visibility.',
 };
 
 export const getUpgradeMessage = (

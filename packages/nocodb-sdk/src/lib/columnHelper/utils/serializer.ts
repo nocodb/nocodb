@@ -190,7 +190,8 @@ export const serializeCurrencyValue = (
 ) => {
   // If we have clipboard data, use it
   if (
-    params?.clipboardItem?.dbCellValue &&
+    params?.clipboardItem?.dbCellValue !== undefined &&
+    params?.clipboardItem?.dbCellValue !== null &&
     ncIsNumber(params.clipboardItem.dbCellValue)
   ) {
     return params.clipboardItem.dbCellValue;

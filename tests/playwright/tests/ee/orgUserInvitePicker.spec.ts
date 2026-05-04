@@ -64,6 +64,25 @@ test.describe('Org-user invite picker', () => {
     return inviteModal;
   };
 
+  test('hidden on dialog open until the user interacts with the input', async ({ page }) => {
+    const capture = { hits: 0 } as { excludeWorkspaceId?: string; excludeBaseId?: string; hits: number };
+    await stubOrgUsers(page, STUB_USERS, capture);
+
+    const inviteModal = await openWorkspaceInviteDlg();
+    const picker = inviteModal.locator('[data-testid="nc-invite-org-user-picker"]');
+    const input = inviteModal.locator('input[id="email"]');
+
+    // Backend was hit on open (data is preloaded), but the dropdown should not
+    // appear until the user explicitly engages with the email input.
+    await expect.poll(() => capture.hits, { timeout: 5000 }).toBeGreaterThan(0);
+    await page.waitForTimeout(500);
+    await expect(picker).toBeHidden();
+
+    // First user click surfaces the dropdown.
+    await input.click();
+    await expect(picker).toBeVisible();
+  });
+
   test('shows matching org users and forwards excludeWorkspaceId', async ({ page }) => {
     const capture = { hits: 0 } as { excludeWorkspaceId?: string; excludeBaseId?: string; hits: number };
     await stubOrgUsers(page, STUB_USERS, capture);

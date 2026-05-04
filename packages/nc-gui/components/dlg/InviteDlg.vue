@@ -469,6 +469,11 @@ interface OrgUserPickerItem {
 
 const pickerSelectedIndex = ref(0)
 
+// Suppress the dropdown until the user actually clicks the input or types.
+// Without this, the dialog's auto-focus on open would surface the picker
+// immediately, which is jarring.
+const hasUserInteracted = ref(false)
+
 const filteredOrgUsers = computed<OrgUserPickerItem[]>(() => {
   const q = inviteData.email.trim().toLowerCase()
   const selected = new Set<string>(emailBadges.value.map((e) => e.toLowerCase()))
@@ -488,6 +493,7 @@ const isOrgUserPickerVisible = computed(
     isEeUI &&
     !props.isTeam &&
     (props.type === 'workspace' || props.type === 'base') &&
+    hasUserInteracted.value &&
     isDivFocused.value &&
     filteredOrgUsers.value.length > 0,
 )
@@ -544,8 +550,13 @@ watch(
 )
 
 watch(dialogShow, async (v) => {
-  if (v) await fetchOrgUsers()
-  else resetOrgUsers()
+  if (v) {
+    hasUserInteracted.value = false
+    await fetchOrgUsers()
+  } else {
+    resetOrgUsers()
+    hasUserInteracted.value = false
+  }
 })
 
 onMounted(async () => {
@@ -629,11 +640,12 @@ const onTeamChange = async (_teamIds: RawValueType) => {
                 class="flex-1 md:min-w-36 outline-none px-2"
                 data-testid="email-input"
                 @blur="isDivFocused = false"
+                @click="hasUserInteracted = true"
                 @keydown.down="onPickerArrowDown"
                 @keydown.up="onPickerArrowUp"
                 @keydown.enter="onInputEnter"
                 @paste.prevent="onPaste"
-                @input="warningMsg = null"
+                @input="hasUserInteracted = true; warningMsg = null"
               />
             </div>
 
@@ -812,5 +824,16 @@ const onTeamChange = async (_teamIds: RawValueType) => {
 <style lang="scss" scoped>
 :deep(.nc-invite-role-selector .nc-role-badge) {
   @apply w-full;
+}
+</style>
+
+<style lang="scss">
+// The picker dropdown is absolutely positioned underneath the email input,
+// but ant-modal's body clips overflow by default. Allow visible overflow only
+// for this dialog so the dropdown isn't cut off when it extends past the
+// modal's inner edge.
+.nc-invite-dlg .ant-modal-body,
+.nc-invite-dlg .ant-modal-content {
+  overflow: visible !important;
 }
 </style>

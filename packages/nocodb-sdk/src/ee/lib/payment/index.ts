@@ -354,10 +354,8 @@ export function resolvePlanMeta(
 // ---------------------------------------------------------------------------
 
 export enum OnPremPlanPriceLookupKeys {
-  STARTER_MONTHLY = 'on_prem_starter_monthly',
-  STARTER_YEARLY = 'on_prem_starter_yearly',
-  SCALE_MONTHLY = 'on_prem_scale_monthly',
-  SCALE_YEARLY = 'on_prem_scale_yearly',
+  BUSINESS_MONTHLY = 'on_prem_business_monthly',
+  BUSINESS_YEARLY = 'on_prem_business_yearly',
 }
 
 // ---------------------------------------------------------------------------
@@ -365,22 +363,9 @@ export enum OnPremPlanPriceLookupKeys {
 // ---------------------------------------------------------------------------
 
 export const OnPremPlanMeta = {
-  // Starter = blue (first tier), Scale = pink (second tier), Enterprise = orange (third tier)
-  [OnPremPlanTitles.SELF_HOSTED_STARTER]: {
-    title: OnPremPlanTitles.SELF_HOSTED_STARTER,
-    color: 'var(--plus-plan-color, #EDF9FF)',
-    accent: 'var(--plus-plan-accent, #AFE5FF)',
-    primary: 'var(--plus-plan-primary, #207399)',
-    bgLight: 'var(--plus-plan-bg-light, #EDF9FF)',
-    bgDark: 'var(--plus-plan-bg-dark, #D7F2FF)',
-    border: 'var(--plus-plan-border, #AFE5FF)',
-    badgeBgColor: 'var(--plus-plan-badge-bg-color, #D7F2FF)',
-    badgeTextColor: 'var(--plus-plan-badge-text-color, #207399)',
-    staticBadgeBgColor: '#D7F2FF',
-    staticBadgeTextColor: '#207399',
-  },
-  [OnPremPlanTitles.SELF_HOSTED_SCALE]: {
-    title: OnPremPlanTitles.SELF_HOSTED_SCALE,
+  // Business = pink (first paid tier), Enterprise = teal (second paid tier)
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: {
+    title: OnPremPlanTitles.SELF_HOSTED_BUSINESS,
     color: 'var(--business-plan-color, #FAF5FF)',
     accent: 'var(--business-plan-accent, #FEB0E8)',
     primary: 'var(--business-plan-primary, #972377)',
@@ -409,15 +394,13 @@ export const OnPremPlanMeta = {
 
 export const OnPremPlanOrder: Record<string, number> = {
   [OnPremPlanTitles.FREE]: -1,
-  [OnPremPlanTitles.SELF_HOSTED_STARTER]: 0,
-  [OnPremPlanTitles.SELF_HOSTED_SCALE]: 1,
-  [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: 2,
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: 0,
+  [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: 1,
 };
 
 export const OnPremHigherPlan = {
-  [OnPremPlanTitles.FREE]: OnPremPlanTitles.SELF_HOSTED_STARTER,
-  [OnPremPlanTitles.SELF_HOSTED_STARTER]: OnPremPlanTitles.SELF_HOSTED_SCALE,
-  [OnPremPlanTitles.SELF_HOSTED_SCALE]: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
+  [OnPremPlanTitles.FREE]: OnPremPlanTitles.SELF_HOSTED_BUSINESS,
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
 } as Record<string, OnPremPlanTitles>;
 
 // ---------------------------------------------------------------------------
@@ -489,57 +472,37 @@ export const OnPremPlanDefinitions: Record<
     },
   },
 
-  // -------------------------------------------------------------------------
-  // STARTER — first paid tier; Scale+ and Enterprise features disabled
-  // -------------------------------------------------------------------------
-  [OnPremPlanTitles.SELF_HOSTED_STARTER]: {
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: {
     features: {
-      // Scale+ only
+      // Enterprise-only
       [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
-      [PlanFeatureTypes.FEATURE_SSO]: false,
       [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: false,
-      [PlanFeatureTypes.FEATURE_MFA]: false,
-      [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
-      // Enterprise only
       [PlanFeatureTypes.FEATURE_RLS]: false,
       [PlanFeatureTypes.FEATURE_SCIM]: false,
+      [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
+      [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: false,
+      [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: false,
+      [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: false,
+      [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
+      [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
+      [PlanFeatureTypes.FEATURE_TABLE_VISIBILITY]: false,
+      [PlanFeatureTypes.FEATURE_FIELD_VISIBILITY]: false,
       [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
     },
     limits: {
       [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
-      [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
+      [PlanLimitTypes.LIMIT_AI_INTEGRATIONS]: 1,
       [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 5,
-      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 60, // days
-      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 180, // days
-      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 90, // days
-      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 180, // days
-    },
-  },
-  [OnPremPlanTitles.SELF_HOSTED_SCALE]: {
-    features: {
-      // Enterprise only
-      [PlanFeatureTypes.FEATURE_RLS]: false,
-      [PlanFeatureTypes.FEATURE_SCIM]: false,
-      [PlanFeatureTypes.FEATURE_TRASH_SETTINGS]: false,
-      [PlanFeatureTypes.FEATURE_MFA]: false,
-      [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
-    },
-    limits: {
-      [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
+      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 0,
+      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 21, // days
+      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 21, // days
+      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 21, // days
       [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
-      [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 5,
-      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 180, // days
-      [PlanLimitTypes.LIMIT_AUDIT_RETENTION]: 365, // days
-      [PlanLimitTypes.LIMIT_AUTOMATION_RETENTION]: 180, // days
-      [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 365, // days
     },
   },
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
     features: {},
-    limits: {
-      [PlanLimitTypes.LIMIT_TRASH_RETENTION]: 365, // days
-      [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
-    },
+    limits: {},
   },
 };
 

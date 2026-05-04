@@ -1,15 +1,15 @@
-export type BookmarkLayout = 'stack' | 'mosaic'
+export type BookmarkLayout = 'list' | 'card'
 
 export interface BookmarkPrefs {
   layout: BookmarkLayout
-  stackColumns: 1 | 2
+  listColumns: 1 | 2
 }
 
 export const useBookmarkPrefs = createSharedComposable(() => {
-  const prefs = ref<BookmarkPrefs>({ layout: 'stack', stackColumns: 1 })
+  const prefs = ref<BookmarkPrefs>({ layout: 'list', listColumns: 1 })
 
   function setLayout(_l: BookmarkLayout) {}
-  function setStackColumns(_n: 1 | 2) {}
+  function setListColumns(_n: 1 | 2) {}
 
-  return { prefs, setLayout, setStackColumns }
+  return { prefs, setLayout, setListColumns }
 })

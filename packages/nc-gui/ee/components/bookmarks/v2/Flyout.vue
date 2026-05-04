@@ -41,8 +41,8 @@ onMounted(() => {
 })
 
 const flyoutWidth = computed(() => {
-  if (prefs.value.layout === 'mosaic') return 580
-  return prefs.value.stackColumns === 2 ? 540 : 380
+  if (prefs.value.layout === 'card') return 580
+  return prefs.value.listColumns === 2 ? 540 : 380
 })
 </script>
 
@@ -73,15 +73,15 @@ const flyoutWidth = computed(() => {
         {{ $t('labels.noResults') }}
       </div>
 
-      <BookmarksV2StackLayout
-        v-else-if="prefs.layout === 'stack'"
+      <BookmarksV2ListLayout
+        v-else-if="prefs.layout === 'list'"
         :groups="filteredGroups"
         :bookmarks-by-group="filteredBookmarksByGroup"
-        :columns="prefs.stackColumns"
+        :columns="prefs.listColumns"
         @navigate="onNavigate"
       />
 
-      <BookmarksV2MosaicLayout
+      <BookmarksV2CardLayout
         v-else
         :groups="filteredGroups"
         :bookmarks-by-group="filteredBookmarksByGroup"

@@ -21,9 +21,9 @@ const columnGroups = computed(() => {
 </script>
 
 <template>
-  <div class="nc-v2-mosaic-layout">
-    <div v-for="(col, ci) in columnGroups" :key="ci" class="nc-v2-mosaic-col">
-      <BookmarksV2MosaicGroup
+  <div class="nc-v2-card-layout">
+    <div v-for="(col, ci) in columnGroups" :key="ci" class="nc-v2-card-col">
+      <BookmarksV2CardGroup
         v-for="group in col"
         :key="group.id"
         :group="group"
@@ -36,11 +36,11 @@ const columnGroups = computed(() => {
 </template>
 
 <style lang="scss" scoped>
-.nc-v2-mosaic-layout {
+.nc-v2-card-layout {
   @apply grid gap-2 px-3 py-3;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
-.nc-v2-mosaic-col {
+.nc-v2-card-col {
   @apply flex flex-col gap-2 min-w-0;
 }
 </style>

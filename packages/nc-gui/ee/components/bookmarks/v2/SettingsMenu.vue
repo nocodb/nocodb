@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BookmarkLayout } from '~/composables/useBookmarkPrefs'
 
-const { prefs, setLayout, setStackColumns } = useBookmarkPrefs()
+const { prefs, setLayout, setListColumns } = useBookmarkPrefs()
 
 const isOpen = ref(false)
 
@@ -10,7 +10,7 @@ function pickLayout(l: BookmarkLayout) {
 }
 
 function pickColumns(n: 1 | 2) {
-  setStackColumns(n)
+  setListColumns(n)
 }
 </script>
 
@@ -31,20 +31,20 @@ function pickColumns(n: 1 | 2) {
           <div class="nc-v2-settings-segments">
             <button
               class="seg"
-              :class="{ active: prefs.layout === 'stack' }"
-              data-testid="nc-bookmark-layout-stack"
-              @click="pickLayout('stack')"
+              :class="{ active: prefs.layout === 'list' }"
+              data-testid="nc-bookmark-layout-list"
+              @click="pickLayout('list')"
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
                 <path d="M3 4h10M3 8h10M3 12h10" />
               </svg>
-              Stack
+              List
             </button>
             <button
               class="seg"
-              :class="{ active: prefs.layout === 'mosaic' }"
-              data-testid="nc-bookmark-layout-mosaic"
-              @click="pickLayout('mosaic')"
+              :class="{ active: prefs.layout === 'card' }"
+              data-testid="nc-bookmark-layout-card"
+              @click="pickLayout('card')"
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4">
                 <rect x="2.5" y="2.5" width="5" height="5" rx="1" />
@@ -52,26 +52,26 @@ function pickColumns(n: 1 | 2) {
                 <rect x="2.5" y="8.5" width="5" height="5" rx="1" />
                 <rect x="8.5" y="8.5" width="5" height="5" rx="1" />
               </svg>
-              Mosaic
+              Card
             </button>
           </div>
         </div>
 
-        <div v-if="prefs.layout === 'stack'" class="nc-v2-settings-section">
+        <div v-if="prefs.layout === 'list'" class="nc-v2-settings-section">
           <span class="nc-v2-settings-label">Columns</span>
           <div class="nc-v2-settings-segments">
             <button
               class="seg"
-              :class="{ active: prefs.stackColumns === 1 }"
-              data-testid="nc-bookmark-stack-cols-1"
+              :class="{ active: prefs.listColumns === 1 }"
+              data-testid="nc-bookmark-list-cols-1"
               @click="pickColumns(1)"
             >
               1
             </button>
             <button
               class="seg"
-              :class="{ active: prefs.stackColumns === 2 }"
-              data-testid="nc-bookmark-stack-cols-2"
+              :class="{ active: prefs.listColumns === 2 }"
+              data-testid="nc-bookmark-list-cols-2"
               @click="pickColumns(2)"
             >
               2

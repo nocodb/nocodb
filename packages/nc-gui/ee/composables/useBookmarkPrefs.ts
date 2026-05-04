@@ -1,15 +1,15 @@
 import { useStorage } from '@vueuse/core'
 
-export type BookmarkLayout = 'stack' | 'mosaic'
+export type BookmarkLayout = 'list' | 'card'
 
 export interface BookmarkPrefs {
   layout: BookmarkLayout
-  stackColumns: 1 | 2
+  listColumns: 1 | 2
 }
 
 const DEFAULT_PREFS: BookmarkPrefs = {
-  layout: 'stack',
-  stackColumns: 1,
+  layout: 'list',
+  listColumns: 1,
 }
 
 export const useBookmarkPrefs = createSharedComposable(() => {
@@ -21,13 +21,13 @@ export const useBookmarkPrefs = createSharedComposable(() => {
     stored.value = { ...stored.value, layout }
   }
 
-  function setStackColumns(n: 1 | 2) {
-    stored.value = { ...stored.value, stackColumns: n }
+  function setListColumns(n: 1 | 2) {
+    stored.value = { ...stored.value, listColumns: n }
   }
 
   return {
     prefs: stored,
     setLayout,
-    setStackColumns,
+    setListColumns,
   }
 })

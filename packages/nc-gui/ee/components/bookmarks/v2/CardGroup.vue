@@ -17,14 +17,11 @@ const { updateGroup, isGroupCollapsed, toggleGroupCollapsed } = useBookmarks()
 
 const {
   hoverGroupId,
-  dropIndex,
   draggingBookmarkId,
   draggingGroupId,
-  groupDropIndex,
   onDragEnterGroup,
   onDragLeaveGroup,
   onDropOnGroup,
-  onDropGroup,
   updateDropIndex,
   onGroupDragStart,
   onDragEnd,
@@ -42,7 +39,6 @@ const isDefault = computed(() => group.value.name === 'Ungrouped')
 const isCollapsed = computed(() => isGroupCollapsed(group.value.id!))
 const isDraggingGroup = computed(() => draggingGroupId.value === group.value.id)
 const isDropTarget = computed(() => hoverGroupId.value === group.value.id && !draggingGroupId.value)
-const localDropIndex = computed(() => (isDropTarget.value ? dropIndex.value : null))
 
 const iconColor = computed(() => (group.value.meta as Record<string, any> | undefined)?.iconColor || '')
 
@@ -95,15 +91,14 @@ function handleDragOver(e: DragEvent) {
   if (rafId != null) return
   rafId = requestAnimationFrame(() => {
     rafId = null
-    // Drag may have ended (drop + dragend) before the raf fires; bail to avoid
-    // re-asserting drop state that onDragEnd just cleared.
+    // Bail if drag already ended (avoids stale drop indicator after drop)
     if (!draggingBookmarkId.value && !draggingGroupId.value) return
     if (!listRef.value) return
     const items = listRef.value.querySelectorAll('[data-testid="nc-bookmark-item"]')
     let idx = groupBookmarks.value.length
     for (let i = 0; i < items.length; i++) {
-      const rect = items[i].getBoundingClientRect()
-      const midY = rect.top + rect.height / 2
+      const r = items[i].getBoundingClientRect()
+      const midY = r.top + r.height / 2
       if (clientY < midY) {
         idx = i
         break
@@ -119,43 +114,41 @@ function handleDragEnter(e: DragEvent) {
 }
 
 function handleDrop() {
-  if (draggingGroupId.value) onDropGroup(groupDropIndex.value ?? 0)
-  else onDropOnGroup(group.value.id!)
+  onDropOnGroup(group.value.id!)
 }
 </script>
 
 <template>
   <div
-    class="nc-v2-stack-group"
-    :class="{ 'is-drop-target': isDropTarget, 'is-dragging': isDraggingGroup }"
+    class="nc-v2-card-card"
+    :class="{ 'is-drop-target': isDropTarget, 'is-dragging': isDraggingGroup, 'is-collapsed': isCollapsed }"
     :data-group-id="group.id"
+    :draggable="!isDefault"
+    @dragstart="handleGroupDragStart"
+    @dragend="onDragEnd"
     @dragover="handleDragOver"
     @dragenter="handleDragEnter"
     @dragleave="onDragLeaveGroup(group.id!)"
     @drop.prevent="handleDrop"
   >
-    <!-- Header — full width, right-click opens the same menu as the kebab.
-         Ungrouped is pinned and not draggable. -->
+    <!-- Header — right-click on row opens same menu as kebab -->
     <div
-      class="nc-v2-stack-h group"
-      :draggable="!isDefault"
-      data-testid="nc-bookmark-group-header"
-      @dragstart="handleGroupDragStart"
-      @dragend="onDragEnd"
+      class="nc-v2-card-h group"
       @click="onToggleCollapse"
       @contextmenu.prevent="ctxMenuRef?.open()"
     >
       <GeneralIcon
         :icon="isCollapsed ? 'ncFolderClosed' : 'ncFolderOpen'"
-        class="nc-v2-stack-folder-icon"
+        class="nc-v2-card-folder-icon"
         :style="iconColor ? { color: iconColor } : undefined"
+        @click.stop="onToggleCollapse"
       />
 
       <a-input
         v-if="isRenaming"
         ref="renameInputRef"
         v-model:value="renameValue"
-        class="nc-v2-stack-rename"
+        class="nc-v2-card-rename"
         size="small"
         data-testid="nc-bookmark-group-rename-input"
         @keyup.enter="saveRename"
@@ -163,47 +156,39 @@ function handleDrop() {
         @blur="saveRename"
         @click.stop
       />
-      <div v-else class="nc-v2-stack-name-wrap">
+      <div v-else class="nc-v2-card-name-wrap" @click="onToggleCollapse">
         <NcTooltip
           show-on-truncate-only
-          :attrs="{ class: 'nc-v2-stack-name truncate block' }"
+          :attrs="{ class: 'nc-v2-card-name truncate block' }"
         >
           {{ group.name }}
         </NcTooltip>
       </div>
 
-      <span class="nc-v2-stack-count">{{ String(groupBookmarks.length).padStart(2, '0') }}</span>
+      <span class="nc-v2-card-count">{{ String(groupBookmarks.length).padStart(2, '0') }}</span>
 
       <BookmarksV2GroupContextMenu
         ref="ctxMenuRef"
         :group="group"
-        class="nc-v2-stack-kebab opacity-0 group-hover:opacity-100"
+        class="nc-v2-card-kebab opacity-0 group-hover:opacity-100"
         @rename="startRename"
       />
     </div>
 
     <!-- Items -->
     <template v-if="!isCollapsed">
-      <div ref="listRef" class="nc-v2-stack-items">
-        <template v-for="(bm, idx) in groupBookmarks" :key="bm.id">
-          <div
-            v-if="localDropIndex === idx && bm.id !== draggingBookmarkId"
-            class="nc-v2-stack-drop-line"
-          />
-          <BookmarksV2Item
-            :bookmark="bm"
-            :groups="allGroups"
-            :show-crumb-on-hover="true"
-            @click="emit('navigate', bm)"
-          />
-        </template>
-        <div
-          v-if="localDropIndex === groupBookmarks.length && groupBookmarks.length > 0"
-          class="nc-v2-stack-drop-line"
+      <div ref="listRef" class="nc-v2-card-items">
+        <BookmarksV2Item
+          v-for="bm in groupBookmarks"
+          :key="bm.id"
+          :bookmark="bm"
+          :groups="allGroups"
+          :show-crumb-on-hover="false"
+          :compact="true"
+          @click="emit('navigate', bm)"
         />
       </div>
-
-      <div v-if="!groupBookmarks.length" class="nc-v2-stack-empty">
+      <div v-if="!groupBookmarks.length" class="nc-v2-card-empty">
         {{ $t('labels.noData') }}
       </div>
     </template>
@@ -211,67 +196,57 @@ function handleDrop() {
 </template>
 
 <style lang="scss" scoped>
-.nc-v2-stack-group {
-  @apply px-3 pt-3 pb-1;
-  & + & {
-    @apply mt-1 border-t-1 border-dashed border-nc-border-gray-medium;
-  }
+.nc-v2-card-card {
+  @apply bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl px-3 pt-3 pb-2;
+  @apply transition-colors;
   &.is-drop-target {
-    background: color-mix(in srgb, var(--nc-content-brand) 6%, transparent);
+    border-color: var(--nc-content-brand);
   }
   &.is-dragging {
     @apply opacity-40;
   }
 }
 
-.nc-v2-stack-h {
-  @apply flex items-center gap-2.5 mb-1.5 px-1 cursor-pointer select-none min-w-0;
+.nc-v2-card-h {
+  @apply flex items-center gap-2 pb-2 mb-1.5 border-b-1 border-nc-border-gray-medium min-w-0;
+  cursor: pointer;
+  user-select: none;
 }
-.nc-v2-stack-folder-icon {
-  @apply flex-none w-3.5 h-3.5 text-nc-content-gray-muted;
+.nc-v2-card-folder-icon {
+  @apply flex-none w-4 h-4 text-nc-content-gray-muted cursor-pointer;
 }
-.nc-v2-stack-group:hover .nc-v2-stack-folder-icon {
+.nc-v2-card-card:hover .nc-v2-card-folder-icon {
   @apply text-nc-content-gray-subtle;
 }
-.nc-v2-stack-name-wrap {
+.nc-v2-card-name-wrap {
   @apply flex-1 min-w-0;
 }
-.nc-v2-stack-name-wrap :deep(.nc-v2-stack-name) {
-  font-size: 11px;
-  line-height: 16px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 600;
-  color: var(--nc-content-gray-muted);
+.nc-v2-card-name-wrap :deep(.nc-v2-card-name) {
+  @apply text-bodyDefaultSm font-semibold text-nc-content-gray;
 }
-.nc-v2-stack-rename {
-  @apply flex-1 !text-bodySm !rounded-md;
+.nc-v2-card-rename {
+  @apply flex-1 !text-bodyDefaultSm !rounded-md;
 }
-.nc-v2-stack-rename :deep(.ant-input) {
-  font-size: 11px !important;
-  line-height: 16px !important;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-weight: 600;
+.nc-v2-card-rename :deep(.ant-input) {
+  font-size: 13px !important;
+  line-height: 18px !important;
+  font-weight: 600 !important;
 }
-.nc-v2-stack-count {
+.nc-v2-card-count {
   @apply flex-none text-captionXs text-nc-content-gray-disabled;
   font-family: 'JetBrainsMono', ui-monospace, monospace;
 }
-.nc-v2-stack-kebab {
+.nc-v2-card-kebab {
   @apply !rounded-md flex-none transition-opacity;
 }
-.nc-v2-stack-kebab.invisible {
+.nc-v2-card-kebab.invisible {
   @apply invisible;
 }
 
-.nc-v2-stack-items {
-  @apply flex flex-col;
+.nc-v2-card-items {
+  @apply flex flex-col gap-0;
 }
-.nc-v2-stack-drop-line {
-  @apply h-0.5 mx-2 my-0.5 rounded-full bg-nc-content-brand;
-}
-.nc-v2-stack-empty {
-  @apply px-2.5 py-1 text-bodySm text-nc-content-gray-muted;
+.nc-v2-card-empty {
+  @apply px-2 py-1 text-bodySm text-nc-content-gray-muted italic;
 }
 </style>

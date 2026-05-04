@@ -4,9 +4,9 @@ import type { BookmarkType, BookmarkGroupType } from 'nocodb-sdk'
 interface Props {
   bookmark: BookmarkType
   groups: BookmarkGroupType[]
-  /** Render trailing breadcrumb on hover (Stack mode) */
+  /** Render trailing breadcrumb on hover (List mode) */
   showCrumbOnHover?: boolean
-  /** Density: compact = stack/mosaic mode standard padding */
+  /** Density: compact = card-mode standard padding */
   compact?: boolean
 }
 
@@ -135,7 +135,7 @@ function handleDragStart(e: DragEvent) {
       </NcTooltip>
     </div>
 
-    <!-- Hover breadcrumb (Stack only) -->
+    <!-- Hover breadcrumb (List only) -->
     <span
       v-if="showCrumbOnHover && crumb"
       class="nc-v2-item-crumb opacity-0 group-hover:opacity-100"

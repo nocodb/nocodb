@@ -38,12 +38,7 @@ async function onMoveTo(groupId: string) {
 </script>
 
 <template>
-  <NcDropdown
-    v-model:visible="isOpen"
-    :trigger="['click']"
-    placement="bottomRight"
-    overlay-class-name="nc-bookmark-context-menu"
-  >
+  <NcDropdown v-model:visible="isOpen" :trigger="['click']" placement="bottomRight" overlay-class-name="nc-bookmark-context-menu">
     <NcButton
       type="text"
       size="xxsmall"
@@ -57,7 +52,7 @@ async function onMoveTo(groupId: string) {
     <template #overlay>
       <NcMenu variant="small">
         <template v-if="otherGroups.length">
-          <NcSubMenu key="moveTo">
+          <NcSubMenu key="moveTo" variant="small">
             <template #title>
               <div class="flex gap-2 items-center">
                 <GeneralIcon icon="ncMove" class="w-4 h-4" />
@@ -71,7 +66,11 @@ async function onMoveTo(groupId: string) {
               @click="onMoveTo(group.id!)"
             >
               <div v-e="['c:bookmark:move']" class="flex gap-2 items-center">
-                <GeneralIcon icon="ncFolder" class="w-4 h-4" />
+                <GeneralIcon
+                  icon="ncFolder"
+                  class="w-4 h-4"
+                  :style="parseProp(group?.meta).iconColor ? { color: parseProp(group?.meta).iconColor } : undefined"
+                />
                 {{ group.name }}
               </div>
             </NcMenuItem>

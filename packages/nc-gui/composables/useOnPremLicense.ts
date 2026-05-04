@@ -1,5 +1,5 @@
 export const useOnPremLicense = createSharedComposable(() => {
-  const isSelfServeLicensePurchaseEnabled = ref(false)
+  const isSelfServeLicensePurchaseEnabled = ref(true)
 
   return {
     isSelfServeLicensePurchaseEnabled,

@@ -8,11 +8,23 @@ export default class BookmarkGroup implements BookmarkGroupType {
   fk_user_id?: string;
   name: string;
   order?: number;
+  meta?: Record<string, any>;
   created_at?: string;
   updated_at?: string;
 
   constructor(data: Partial<BookmarkGroup>) {
     Object.assign(this, data);
+  }
+
+  protected static castType(group: BookmarkGroup): BookmarkGroup {
+    if (group.meta && typeof group.meta === 'string') {
+      try {
+        group.meta = JSON.parse(group.meta);
+      } catch {
+        group.meta = {};
+      }
+    }
+    return group;
   }
 
   public static async insert(
@@ -27,6 +39,7 @@ export default class BookmarkGroup implements BookmarkGroupType {
         fk_user_id: data.fk_user_id,
         name: data.name,
         order: data.order ?? 0,
+        meta: data.meta ? JSON.stringify(data.meta) : null,
       },
     );
 
@@ -39,7 +52,7 @@ export default class BookmarkGroup implements BookmarkGroupType {
       `${CacheScope.BOOKMARK_GROUP}:${insertData.id}`,
     );
 
-    return new BookmarkGroup(insertData);
+    return this.castType(new BookmarkGroup(insertData));
   }
 
   public static async list(
@@ -53,7 +66,7 @@ export default class BookmarkGroup implements BookmarkGroupType {
     );
 
     if (!isNoneList && cachedList.length) {
-      return cachedList.map((item) => new BookmarkGroup(item));
+      return cachedList.map((item) => this.castType(new BookmarkGroup(item)));
     }
 
     const list = await ncMeta.metaList2(
@@ -76,7 +89,7 @@ export default class BookmarkGroup implements BookmarkGroupType {
       list,
     );
 
-    return list.map((item) => new BookmarkGroup(item));
+    return list.map((item) => this.castType(new BookmarkGroup(item)));
   }
 
   public static async get(
@@ -108,7 +121,7 @@ export default class BookmarkGroup implements BookmarkGroupType {
       }
     }
 
-    return data ? new BookmarkGroup(data) : null;
+    return data ? this.castType(new BookmarkGroup(data)) : null;
   }
 
   public static async update(
@@ -116,10 +129,11 @@ export default class BookmarkGroup implements BookmarkGroupType {
     data: Partial<BookmarkGroupType>,
     ncMeta = Noco.ncMeta,
   ): Promise<BookmarkGroup> {
-    const updateObj: Partial<BookmarkGroupType> = {};
+    const updateObj: Record<string, any> = {};
 
     if (data.name !== undefined) updateObj.name = data.name;
     if (data.order !== undefined) updateObj.order = data.order;
+    if (data.meta !== undefined) updateObj.meta = JSON.stringify(data.meta);
 
     await ncMeta.metaUpdate(
       RootScopes.ROOT,

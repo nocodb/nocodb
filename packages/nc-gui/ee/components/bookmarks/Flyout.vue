@@ -181,7 +181,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="nc-bookmarks-flyout fixed bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl shadow-lg z-50 flex flex-col"
+    class="nc-bookmarks-flyout fixed bg-nc-bg-default dark:bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-xl shadow-lg z-50 flex flex-col"
     style="left: 60px; bottom: 18px; width: 540px; height: 80vh"
     @click.stop
     @keydown.stop
@@ -198,8 +198,7 @@ onMounted(() => {
           ref="searchInputRef"
           v-model:value="searchQuery"
           :placeholder="$t('general.search')"
-          class="!rounded-lg !w-52"
-          size="small"
+          class="!rounded-lg !w-52 nc-input-sm"
           allow-clear
           data-testid="nc-bookmark-flyout-search"
           @blur="handleSearchBlur"
@@ -231,7 +230,10 @@ onMounted(() => {
       </div>
 
       <!-- No search results -->
-      <div v-if="!isEmpty && searchQuery.trim() && !filteredGroups.length" class="text-xs text-nc-content-gray-muted text-center py-6">
+      <div
+        v-if="!isEmpty && searchQuery.trim() && !filteredGroups.length"
+        class="text-xs text-nc-content-gray-muted text-center py-6"
+      >
         {{ $t('labels.noResults') }}
       </div>
 

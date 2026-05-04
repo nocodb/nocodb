@@ -3,6 +3,7 @@ export interface BookmarkGroupType {
   fk_user_id?: string;
   name: string;
   order?: number;
+  meta?: Record<string, any>;
   created_at?: string;
   updated_at?: string;
 }
@@ -24,6 +25,7 @@ export interface BookmarkType {
 export interface BookmarkGroupReqType {
   name: string;
   order?: number;
+  meta?: Record<string, any>;
 }
 
 export interface BookmarkReqType {

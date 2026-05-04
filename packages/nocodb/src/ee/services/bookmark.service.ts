@@ -255,6 +255,7 @@ export class BookmarkService {
       fk_user_id: userId,
       name: param.body.name,
       order: param.body.order,
+      meta: param.body.meta,
     });
   }
 
@@ -274,6 +275,7 @@ export class BookmarkService {
     return BookmarkGroup.update(param.groupId, {
       name: param.body.name,
       order: param.body.order,
+      meta: param.body.meta,
     });
   }
 

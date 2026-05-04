@@ -238,10 +238,10 @@ function getResultIcon(item: any): string {
 
 <template>
   <!-- "+" dropdown with two options -->
-  <NcDropdown v-model:visible="isDropdownOpen" :trigger="['click']" overlay-class-name="nc-bookmark-add-dropdown">
+  <NcDropdown v-model:visible="isDropdownOpen" placement="bottomRight" overlay-class-name="nc-bookmark-add-dropdown">
     <NcButton
       type="text"
-      size="xxsmall"
+      size="small"
       class="!rounded-md"
       data-testid="nc-bookmark-add-btn"
       @click.stop

@@ -7,6 +7,7 @@ const up = async (knex: Knex) => {
     table.string('fk_user_id', 20).notNullable();
     table.string('name', 100).notNullable();
     table.float('order').defaultTo(0);
+    table.text('meta');
     table.timestamps(true, true);
     table.index('fk_user_id');
   });

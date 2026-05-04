@@ -56,7 +56,15 @@ onClickOutside(
   () => {
     isBookmarksFlyoutOpen.value = false
   },
-  { ignore: ['.nc-bookmark-add-dropdown', '.nc-bookmark-context-menu', '.nc-bookmark-group-menu', '.nc-modal-wrapper'] },
+  {
+    ignore: [
+      '.nc-bookmark-add-dropdown',
+      '.nc-bookmark-context-menu',
+      '.nc-bookmark-group-menu',
+      '.nc-bookmark-settings-menu',
+      '.nc-modal-wrapper',
+    ],
+  },
 )
 
 const { isRtl } = useRtl()
@@ -305,7 +313,7 @@ const mainItems = computed<NavItem[]>(() => [
         @click="isBookmarksFlyoutOpen = !isBookmarksFlyoutOpen"
       />
 
-      <LazyBookmarksFlyout
+      <LazyBookmarksV2Flyout
         v-if="isBookmarksFlyoutOpen"
         @close="isBookmarksFlyoutOpen = false"
       />

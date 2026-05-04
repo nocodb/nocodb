@@ -72,17 +72,17 @@ const filterUpdateSchema = z.object({
 });
 
 interface FilterPrevState {
-  fk_column_id?: string | null;
-  comparison_op?: string | null;
-  comparison_sub_op?: string | null;
-  value?: string | null;
-  fk_parent_id?: string | null;
+  fk_column_id?: string;
+  comparison_op?: string;
+  comparison_sub_op?: string;
+  value?: string;
+  fk_parent_id?: string;
   // `BoolType` (= boolean | 0 | 1) — matches Filter model's storage.
   is_group?: BoolType;
-  logical_op?: string | null;
-  fk_value_col_id?: string | null;
+  logical_op?: string;
+  fk_value_col_id?: string;
   meta?: unknown;
-  order?: number | null;
+  order?: number;
   enabled?: BoolType;
 }
 

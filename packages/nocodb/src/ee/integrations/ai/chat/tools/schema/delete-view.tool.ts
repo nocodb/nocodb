@@ -42,7 +42,6 @@ export const deleteViewTool = defineChatTool({
 
     await viewsService.viewDelete(context, {
       viewId: view.id,
-      user: req.user,
       req,
     });
 

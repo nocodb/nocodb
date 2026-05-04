@@ -13,10 +13,11 @@ import { checkForFeature } from '~/helpers/paymentHelpers';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { ListView, Model, Source, User, View } from '~/models';
+import { ListView, ListViewColumn, Model, Source, User, View } from '~/models';
 import ListViewLevel from '~/models/ListViewLevel';
-import { CacheScope } from '~/utils/globals';
+import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
+import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
@@ -227,5 +228,137 @@ export class ListsService {
     }
 
     return safeView;
+  }
+
+  // Inverse of `listViewUpdate{levels: ...}`. Delegates to
+  // `ListViewLevel.bulkInsertOrUpdate` for the level diff, then replaces
+  // each level's list-view-columns from the snapshot so removed-then-
+  // restored levels keep their original column ids + width/visibility/order.
+  // TODO: per-level sorts/filters are not preserved across an undo→redo of
+  // a level removal.
+  @TraceCommand(OperationName.listViewLevelsRestore)
+  async restoreListViewLevels(
+    context: NcContext,
+    param: {
+      viewId: string;
+      list?: Partial<ListView>;
+      levels: Array<
+        Partial<ListViewLevel> & {
+          id: string;
+          columns?: Array<Partial<ListViewColumn> & { id?: string }>;
+        }
+      >;
+      req?: NcRequest;
+      viewWebhookManager?: ViewWebhookManager;
+    },
+    ncMeta: MetaService = Noco.ncMeta,
+  ) {
+    const view = await View.get(context, param.viewId, false, ncMeta);
+    if (!view) {
+      NcError.get(context).viewNotFound(param.viewId);
+    }
+    if (view.type !== ViewTypes.LIST) {
+      NcError.get(context).badRequest(
+        `restoreListViewLevels expected a list view, got type=${view.type}`,
+      );
+    }
+
+    const viewWebhookManager =
+      param.viewWebhookManager ??
+      (
+        await (
+          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            view.fk_model_id,
+          )
+        ).withViewId(view.id)
+      ).forUpdate();
+
+    await ListViewLevel.bulkInsertOrUpdate(
+      context,
+      param.viewId,
+      param.levels,
+      ncMeta,
+    );
+
+    // Replace columns per level from the snapshot. `bulkInsertOrUpdate`
+    // auto-creates columns for newly-inserted (= removed-then-restored)
+    // levels via `createColumnsForLevel`, but with fresh ids — we wipe
+    // those and re-insert from the snapshot so ids + widths + visibility
+    // round-trip correctly. `ListViewColumn.insert` honors pre-set ids
+    // under `is_replay`.
+    for (const lvl of param.levels) {
+      if (!lvl.columns) continue;
+      const currentCols = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.LIST_VIEW_COLUMNS,
+        { condition: { fk_level_id: lvl.id } },
+      );
+      for (const c of currentCols) {
+        await NocoCache.deepDel(
+          context,
+          `${CacheScope.LIST_VIEW_COLUMN}:${c.id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.LIST_VIEW_COLUMNS,
+        { fk_level_id: lvl.id },
+      );
+      for (const col of lvl.columns) {
+        await ListViewColumn.insert(
+          context,
+          { ...col, fk_level_id: lvl.id, fk_view_id: param.viewId },
+          ncMeta,
+        );
+      }
+    }
+
+    if (param.list) {
+      await ListView.update(context, param.viewId, param.list);
+    }
+
+    const refreshedListView = await ListView.get(context, param.viewId, ncMeta);
+    let owner = param.req?.user;
+    if (view.owned_by && view.owned_by !== param.req?.user?.id) {
+      owner = await User.get(view.owned_by);
+    }
+    this.appHooksService.emit(AppEvents.LIST_UPDATE, {
+      view,
+      listView: refreshedListView,
+      oldListView: refreshedListView,
+      req: param.req,
+      context,
+      owner,
+    });
+
+    await view.getView(context, ncMeta);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: { action: 'view_update', payload: view },
+      },
+      context.socket_id,
+    );
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_column_refresh',
+          payload: { fk_view_id: param.viewId },
+        },
+      },
+      context.socket_id,
+    );
+
+    if (!param.viewWebhookManager) {
+      (await viewWebhookManager.withNewViewId(view.id)).emit();
+    }
   }
 }

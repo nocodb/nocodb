@@ -46,7 +46,6 @@ export const renameViewTool = defineChatTool({
     await viewsService.viewUpdate(context, {
       viewId: view.id,
       view: { title: args.new_name },
-      user: req.user,
       req,
     });
 

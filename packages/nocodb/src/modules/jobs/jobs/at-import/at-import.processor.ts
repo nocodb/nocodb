@@ -818,7 +818,6 @@ export class AtImportProcessor {
         await this.viewsService.viewUpdate(context, {
           viewId: view.list[0].id,
           view: { title: aTbl_grid.name },
-          user: syncDB.user,
           req,
         });
         recordPerfStats(_perfStart, 'dbView.update');

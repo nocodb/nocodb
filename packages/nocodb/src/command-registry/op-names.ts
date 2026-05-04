@@ -49,7 +49,6 @@ export const OperationName = {
   formColumnUpdate: 'formColumnUpdate',
   showAllColumns: 'showAllColumns',
   hideAllColumns: 'hideAllColumns',
-  viewColumnsBulkSetVisibility: 'viewColumnsBulkSetVisibility',
 
   // Sorts
   sortCreate: 'sortCreate',
@@ -66,7 +65,6 @@ export const OperationName = {
   linkFilterCreate: 'linkFilterCreate',
   widgetFilterCreate: 'widgetFilterCreate',
   rowColorConditionsCreate: 'rowColorConditionsCreate',
-
   // Hooks
   hookCreate: 'hookCreate',
   hookUpdate: 'hookUpdate',
@@ -120,6 +118,11 @@ export const OperationName = {
   baseVariableCreate: 'baseVariableCreate',
   baseVariableUpdate: 'baseVariableUpdate',
   baseVariableDelete: 'baseVariableDelete',
+
+  // Undo redo primitives
+  trashRestore: 'trashRestore',
+  listViewLevelsRestore: 'listViewLevelsRestore',
+  viewColumnsBulkSetVisibility: 'viewColumnsBulkSetVisibility',
 } as const;
 
 export type OperationName = (typeof OperationName)[keyof typeof OperationName];

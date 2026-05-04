@@ -75,18 +75,24 @@ export default class Sort {
       'source_id',
     ]);
 
-    // todo: implement a generic function
-    insertObj.order = sortObj.push_to_top
-      ? 1
-      : (+(
-          await ncMeta
-            .knex(MetaTable.SORT)
-            .max('order', { as: 'order' })
-            .where({
-              fk_view_id: sortObj.fk_view_id,
-            })
-            .first()
-        )?.order || 0) + 1;
+    const replayKeepOrder =
+      context?.additionalContext?.is_replay && sortObj.order != null;
+    if (replayKeepOrder) {
+      insertObj.order = sortObj.order;
+    } else {
+      // todo: implement a generic function
+      insertObj.order = sortObj.push_to_top
+        ? 1
+        : (+(
+            await ncMeta
+              .knex(MetaTable.SORT)
+              .max('order', { as: 'order' })
+              .where({
+                fk_view_id: sortObj.fk_view_id,
+              })
+              .first()
+          )?.order || 0) + 1;
+    }
 
     const model = await Column.get(
       context,

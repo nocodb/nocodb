@@ -82,7 +82,6 @@ export class ViewsController {
     const result = await this.viewsService.viewUpdate(context, {
       viewId,
       view: body,
-      user: req.user,
       req,
     });
     return result;
@@ -97,7 +96,6 @@ export class ViewsController {
   ) {
     const result = await this.viewsService.viewDelete(context, {
       viewId,
-      user: req.user,
       req,
     });
     return result;

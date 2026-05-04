@@ -1,8 +1,22 @@
 import { z } from 'zod';
+import type { NcContext } from '~/interface/config';
 import type { OperationContract } from 'src/command-registry/types';
 import { OperationName } from '~/command-registry/op-names';
 import { MetaTable } from '~/utils/globals';
-import { Model, View } from '~/models';
+import {
+  CalendarView,
+  FormView,
+  GalleryView,
+  GridView,
+  KanbanView,
+  ListView,
+  ListViewLevel,
+  MapView,
+  Model,
+  TimelineView,
+  View,
+} from '~/models';
+import Noco from '~/Noco';
 import { viewActions } from '~/decorators/trace-command-descriptions';
 
 // ─── Shared schemas ───────────────────────────────────────────────────────────
@@ -33,6 +47,16 @@ const renameOrEdit = (ctx: any) =>
     ? viewActions.rename(ctx)
     : viewActions.edit(ctx);
 
+const buildViewCreateInverse = (_ctx: any, _p: any, r: any) => {
+  const newId = (r as { id?: string } | undefined)?.id;
+  if (!newId) return null;
+  return {
+    name: OperationName.viewDelete,
+    version: 1,
+    params: { viewId: newId },
+  };
+};
+
 // ─── Grid ─────────────────────────────────────────────────────────────────────
 
 const gridCreateSchema = z.object({
@@ -54,6 +78,7 @@ export const GridViewCreateContract: OperationContract<
   parentId: 'tableId',
   description: viewActions.add,
   resolveCtx: (context, param) => resolveCreateCtx(context, param.tableId),
+  buildInverse: buildViewCreateInverse,
 };
 
 const gridUpdateSchema = z.object({
@@ -61,8 +86,14 @@ const gridUpdateSchema = z.object({
   grid: viewCreateBodySchema,
 });
 
+interface GridUpdateExtra {
+  oldTitle?: string;
+  prevGrid?: { row_height?: number; meta?: unknown };
+}
+
 export const GridViewUpdateContract: OperationContract<
-  typeof gridUpdateSchema
+  typeof gridUpdateSchema,
+  GridUpdateExtra
 > = {
   name: OperationName.gridViewUpdate,
   version: 1,
@@ -71,7 +102,28 @@ export const GridViewUpdateContract: OperationContract<
   entityId: (p) => p.viewId,
   entityTitle: (p) => (p.grid as any)?.title,
   description: renameOrEdit,
-  resolveCtx: (context, param) => resolveUpdateCtx(context, param.viewId),
+  resolveCtx: async (context, param) => {
+    const base = await resolveUpdateCtx(context, param.viewId);
+    const gridRow = await GridView.get(context, param.viewId);
+    return {
+      ...base,
+      extra: {
+        ...(base.extra ?? {}),
+        prevGrid: gridRow
+          ? { row_height: gridRow.row_height, meta: gridRow.meta }
+          : undefined,
+      },
+    };
+  },
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevGrid;
+    if (!prev) return null;
+    return {
+      name: OperationName.gridViewUpdate,
+      version: 1,
+      params: { viewId: p.viewId, grid: prev },
+    };
+  },
 };
 
 // ─── Form ─────────────────────────────────────────────────────────────────────
@@ -95,6 +147,7 @@ export const FormViewCreateContract: OperationContract<
   parentId: 'tableId',
   description: viewActions.add,
   resolveCtx: (context, param) => resolveCreateCtx(context, param.tableId),
+  buildInverse: buildViewCreateInverse,
 };
 
 const formUpdateSchema = z.object({
@@ -102,8 +155,29 @@ const formUpdateSchema = z.object({
   form: viewCreateBodySchema,
 });
 
+interface FormUpdateExtra {
+  oldTitle?: string;
+  prevForm?: {
+    title?: string;
+    heading?: string;
+    subheading?: string;
+    success_msg?: string;
+    redirect_url?: string;
+    redirect_after_secs?: string;
+    email?: string;
+    banner_image_url?: unknown;
+    logo_url?: unknown;
+    submit_another_form?: unknown;
+    show_blank_form?: unknown;
+    meta?: unknown;
+    starts_at?: string;
+    expires_at?: string;
+  };
+}
+
 export const FormViewUpdateContract: OperationContract<
-  typeof formUpdateSchema
+  typeof formUpdateSchema,
+  FormUpdateExtra
 > = {
   name: OperationName.formViewUpdate,
   version: 1,
@@ -112,7 +186,43 @@ export const FormViewUpdateContract: OperationContract<
   entityId: (p) => p.formViewId,
   entityTitle: (p) => (p.form as any)?.title,
   description: renameOrEdit,
-  resolveCtx: (context, param) => resolveUpdateCtx(context, param.formViewId),
+  resolveCtx: async (context, param) => {
+    const base = await resolveUpdateCtx(context, param.formViewId);
+    const formRow = await FormView.get(context, param.formViewId);
+    return {
+      ...base,
+      extra: {
+        ...(base.extra ?? {}),
+        prevForm: formRow
+          ? {
+              title: formRow.title,
+              heading: formRow.heading,
+              subheading: formRow.subheading,
+              success_msg: formRow.success_msg,
+              redirect_url: formRow.redirect_url,
+              redirect_after_secs: formRow.redirect_after_secs,
+              email: formRow.email,
+              banner_image_url: formRow.banner_image_url,
+              logo_url: formRow.logo_url,
+              submit_another_form: formRow.submit_another_form,
+              show_blank_form: formRow.show_blank_form,
+              meta: formRow.meta,
+              starts_at: (formRow as { starts_at?: string }).starts_at,
+              expires_at: (formRow as { expires_at?: string }).expires_at,
+            }
+          : undefined,
+      },
+    };
+  },
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevForm;
+    if (!prev) return null;
+    return {
+      name: OperationName.formViewUpdate,
+      version: 1,
+      params: { formViewId: p.formViewId, form: prev },
+    };
+  },
 };
 
 // ─── Gallery ──────────────────────────────────────────────────────────────────
@@ -136,6 +246,7 @@ export const GalleryViewCreateContract: OperationContract<
   parentId: 'tableId',
   description: viewActions.add,
   resolveCtx: (context, param) => resolveCreateCtx(context, param.tableId),
+  buildInverse: buildViewCreateInverse,
 };
 
 const galleryUpdateSchema = z.object({
@@ -143,8 +254,14 @@ const galleryUpdateSchema = z.object({
   gallery: viewCreateBodySchema,
 });
 
+interface GalleryUpdateExtra {
+  oldTitle?: string;
+  prevGallery?: { fk_cover_image_col_id?: string; meta?: unknown };
+}
+
 export const GalleryViewUpdateContract: OperationContract<
-  typeof galleryUpdateSchema
+  typeof galleryUpdateSchema,
+  GalleryUpdateExtra
 > = {
   name: OperationName.galleryViewUpdate,
   version: 1,
@@ -153,8 +270,31 @@ export const GalleryViewUpdateContract: OperationContract<
   entityId: (p) => p.galleryViewId,
   entityTitle: (p) => (p.gallery as any)?.title,
   description: renameOrEdit,
-  resolveCtx: (context, param) =>
-    resolveUpdateCtx(context, param.galleryViewId),
+  resolveCtx: async (context, param) => {
+    const base = await resolveUpdateCtx(context, param.galleryViewId);
+    const galleryRow = await GalleryView.get(context, param.galleryViewId);
+    return {
+      ...base,
+      extra: {
+        ...(base.extra ?? {}),
+        prevGallery: galleryRow
+          ? {
+              fk_cover_image_col_id: galleryRow.fk_cover_image_col_id,
+              meta: galleryRow.meta,
+            }
+          : undefined,
+      },
+    };
+  },
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevGallery;
+    if (!prev) return null;
+    return {
+      name: OperationName.galleryViewUpdate,
+      version: 1,
+      params: { galleryViewId: p.galleryViewId, gallery: prev },
+    };
+  },
 };
 
 // ─── Kanban ───────────────────────────────────────────────────────────────────
@@ -178,6 +318,7 @@ export const KanbanViewCreateContract: OperationContract<
   parentId: 'tableId',
   description: viewActions.add,
   resolveCtx: (context, param) => resolveCreateCtx(context, param.tableId),
+  buildInverse: buildViewCreateInverse,
 };
 
 const kanbanUpdateSchema = z.object({
@@ -185,8 +326,18 @@ const kanbanUpdateSchema = z.object({
   kanban: viewCreateBodySchema,
 });
 
+interface KanbanUpdateExtra {
+  oldTitle?: string;
+  prevKanban?: {
+    fk_grp_col_id?: string;
+    fk_cover_image_col_id?: string;
+    meta?: unknown;
+  };
+}
+
 export const KanbanViewUpdateContract: OperationContract<
-  typeof kanbanUpdateSchema
+  typeof kanbanUpdateSchema,
+  KanbanUpdateExtra
 > = {
   name: OperationName.kanbanViewUpdate,
   version: 1,
@@ -195,7 +346,32 @@ export const KanbanViewUpdateContract: OperationContract<
   entityId: (p) => p.kanbanViewId,
   entityTitle: (p) => (p.kanban as any)?.title,
   description: renameOrEdit,
-  resolveCtx: (context, param) => resolveUpdateCtx(context, param.kanbanViewId),
+  resolveCtx: async (context, param) => {
+    const base = await resolveUpdateCtx(context, param.kanbanViewId);
+    const kanbanRow = await KanbanView.get(context, param.kanbanViewId);
+    return {
+      ...base,
+      extra: {
+        ...(base.extra ?? {}),
+        prevKanban: kanbanRow
+          ? {
+              fk_grp_col_id: kanbanRow.fk_grp_col_id,
+              fk_cover_image_col_id: kanbanRow.fk_cover_image_col_id,
+              meta: kanbanRow.meta,
+            }
+          : undefined,
+      },
+    };
+  },
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevKanban;
+    if (!prev) return null;
+    return {
+      name: OperationName.kanbanViewUpdate,
+      version: 1,
+      params: { kanbanViewId: p.kanbanViewId, kanban: prev },
+    };
+  },
 };
 
 // ─── Calendar ─────────────────────────────────────────────────────────────────
@@ -219,6 +395,7 @@ export const CalendarViewCreateContract: OperationContract<
   parentId: 'tableId',
   description: viewActions.add,
   resolveCtx: (context, param) => resolveCreateCtx(context, param.tableId),
+  buildInverse: buildViewCreateInverse,
 };
 
 const calendarUpdateSchema = z.object({
@@ -226,8 +403,19 @@ const calendarUpdateSchema = z.object({
   calendar: viewCreateBodySchema,
 });
 
+interface CalendarUpdateExtra {
+  oldTitle?: string;
+  prevCalendar?: {
+    title?: string;
+    fk_cover_image_col_id?: string;
+    calendar_range?: unknown;
+    meta?: unknown;
+  };
+}
+
 export const CalendarViewUpdateContract: OperationContract<
-  typeof calendarUpdateSchema
+  typeof calendarUpdateSchema,
+  CalendarUpdateExtra
 > = {
   name: OperationName.calendarViewUpdate,
   version: 1,
@@ -236,8 +424,33 @@ export const CalendarViewUpdateContract: OperationContract<
   entityId: (p) => p.calendarViewId,
   entityTitle: (p) => (p.calendar as any)?.title,
   description: renameOrEdit,
-  resolveCtx: (context, param) =>
-    resolveUpdateCtx(context, param.calendarViewId),
+  resolveCtx: async (context, param) => {
+    const base = await resolveUpdateCtx(context, param.calendarViewId);
+    const calendarRow = await CalendarView.get(context, param.calendarViewId);
+    return {
+      ...base,
+      extra: {
+        ...(base.extra ?? {}),
+        prevCalendar: calendarRow
+          ? {
+              title: calendarRow.title,
+              fk_cover_image_col_id: calendarRow.fk_cover_image_col_id,
+              calendar_range: calendarRow.calendar_range,
+              meta: calendarRow.meta,
+            }
+          : undefined,
+      },
+    };
+  },
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevCalendar;
+    if (!prev) return null;
+    return {
+      name: OperationName.calendarViewUpdate,
+      version: 1,
+      params: { calendarViewId: p.calendarViewId, calendar: prev },
+    };
+  },
 };
 
 // ─── List ─────────────────────────────────────────────────────────────────────
@@ -261,6 +474,7 @@ export const ListViewCreateContract: OperationContract<
   parentId: 'tableId',
   description: viewActions.add,
   resolveCtx: (context, param) => resolveCreateCtx(context, param.tableId),
+  buildInverse: buildViewCreateInverse,
 };
 
 const listUpdateSchema = z.object({
@@ -268,8 +482,34 @@ const listUpdateSchema = z.object({
   list: viewCreateBodySchema,
 });
 
+interface ListLevelSnapshot {
+  id: string;
+  level: number;
+  fk_model_id: string;
+  fk_link_column_id?: string;
+  enable_nested_records?: unknown;
+  fk_self_link_column_id?: string;
+  wrap_headers?: unknown;
+  meta?: unknown;
+  columns: Array<Record<string, unknown>>;
+}
+
+interface ListParentSnapshot {
+  meta?: unknown;
+  show_empty_parents?: unknown;
+  row_height?: number;
+  fk_prefix_column_id?: string;
+}
+
+interface ListUpdateExtra {
+  oldTitle?: string;
+  prevList?: ListParentSnapshot;
+  prevLevelsFull?: ListLevelSnapshot[];
+}
+
 export const ListViewUpdateContract: OperationContract<
-  typeof listUpdateSchema
+  typeof listUpdateSchema,
+  ListUpdateExtra
 > = {
   name: OperationName.listViewUpdate,
   version: 1,
@@ -278,7 +518,119 @@ export const ListViewUpdateContract: OperationContract<
   entityId: (p) => p.listViewId,
   entityTitle: (p) => (p.list as any)?.title,
   description: renameOrEdit,
-  resolveCtx: (context, param) => resolveUpdateCtx(context, param.listViewId),
+  resolveCtx: async (context, param) => {
+    const base = await resolveUpdateCtx(context, param.listViewId);
+    const listRow = (await ListView.get(context, param.listViewId)) as
+      | (Partial<ListView> & {
+          show_empty_parents?: unknown;
+          row_height?: number;
+          fk_prefix_column_id?: string;
+        })
+      | null
+      | undefined;
+
+    const forward = (param.list as Record<string, unknown> | undefined) ?? {};
+    const SNAPSHOT_KEYS = [
+      'meta',
+      'show_empty_parents',
+      'row_height',
+      'fk_prefix_column_id',
+    ] as const;
+    let prevList: ListParentSnapshot | undefined;
+    if (listRow) {
+      const snap: Record<string, unknown> = {};
+      for (const key of SNAPSHOT_KEYS) {
+        if (!(key in forward)) continue;
+        const prevVal = (listRow as Record<string, unknown>)[key];
+        if (prevVal === null || prevVal === undefined) continue;
+        snap[key] = prevVal;
+      }
+      if (Object.keys(snap).length > 0) prevList = snap as ListParentSnapshot;
+    }
+
+    let prevLevelsFull: ListLevelSnapshot[] | undefined;
+    if ((param.list as { levels?: unknown[] })?.levels !== undefined) {
+      prevLevelsFull = await snapshotListLevels(context, param.listViewId);
+    }
+
+    return {
+      ...base,
+      extra: {
+        ...(base.extra ?? {}),
+        ...(prevList ? { prevList } : {}),
+        ...(prevLevelsFull ? { prevLevelsFull } : {}),
+      },
+    };
+  },
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevList;
+    const prevLevelsFull = resolved?.extra?.prevLevelsFull;
+
+    if (prevLevelsFull) {
+      return {
+        name: OperationName.listViewLevelsRestore,
+        version: 1,
+        params: {
+          viewId: p.listViewId,
+          list: prev,
+          levels: prevLevelsFull,
+        },
+      };
+    }
+
+    if (!prev) return null;
+    return {
+      name: OperationName.listViewUpdate,
+      version: 1,
+      params: { listViewId: p.listViewId, list: prev },
+    };
+  },
+};
+
+async function snapshotListLevels(
+  context: NcContext,
+  viewId: string,
+): Promise<ListLevelSnapshot[]> {
+  const ncMeta = Noco.ncMeta;
+  const levels = await ListViewLevel.list(context, viewId);
+  const snapshots: ListLevelSnapshot[] = [];
+  for (const lvl of levels) {
+    const columns = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.LIST_VIEW_COLUMNS,
+      { condition: { fk_level_id: lvl.id } },
+    );
+    snapshots.push({
+      id: lvl.id,
+      level: lvl.level as number,
+      fk_model_id: lvl.fk_model_id as string,
+      fk_link_column_id: lvl.fk_link_column_id,
+      enable_nested_records: lvl.enable_nested_records,
+      fk_self_link_column_id: lvl.fk_self_link_column_id,
+      wrap_headers: lvl.wrap_headers,
+      meta: lvl.meta,
+      columns: columns as Array<Record<string, unknown>>,
+    });
+  }
+  return snapshots;
+}
+
+const listLevelsRestoreSchema = z.object({
+  viewId: z.string(),
+  list: z.record(z.unknown()).optional(),
+  levels: z.array(z.record(z.unknown())),
+});
+
+export const ListViewLevelsRestoreContract: OperationContract<
+  typeof listLevelsRestoreSchema
+> = {
+  name: OperationName.listViewLevelsRestore,
+  version: 1,
+  entity: MetaTable.LIST_VIEW_LEVELS,
+  schema: listLevelsRestoreSchema,
+  entityId: (p) => p.viewId,
+  description: () => 'Restore list view levels',
 };
 
 // ─── Timeline ────────────────────────────────────────────────────────────────
@@ -302,6 +654,7 @@ export const TimelineViewCreateContract: OperationContract<
   parentId: 'tableId',
   description: viewActions.add,
   resolveCtx: (context, param) => resolveCreateCtx(context, param.tableId),
+  buildInverse: buildViewCreateInverse,
 };
 
 const timelineUpdateSchema = z.object({
@@ -309,8 +662,14 @@ const timelineUpdateSchema = z.object({
   timeline: viewCreateBodySchema,
 });
 
+interface TimelineUpdateExtra {
+  oldTitle?: string;
+  prevTimeline?: { title?: string; timeline_range?: unknown; meta?: unknown };
+}
+
 export const TimelineViewUpdateContract: OperationContract<
-  typeof timelineUpdateSchema
+  typeof timelineUpdateSchema,
+  TimelineUpdateExtra
 > = {
   name: OperationName.timelineViewUpdate,
   version: 1,
@@ -319,8 +678,32 @@ export const TimelineViewUpdateContract: OperationContract<
   entityId: (p) => p.timelineViewId,
   entityTitle: (p) => (p.timeline as any)?.title,
   description: renameOrEdit,
-  resolveCtx: (context, param) =>
-    resolveUpdateCtx(context, param.timelineViewId),
+  resolveCtx: async (context, param) => {
+    const base = await resolveUpdateCtx(context, param.timelineViewId);
+    const timelineRow = await TimelineView.get(context, param.timelineViewId);
+    return {
+      ...base,
+      extra: {
+        ...(base.extra ?? {}),
+        prevTimeline: timelineRow
+          ? {
+              title: timelineRow.title,
+              timeline_range: timelineRow.timeline_range,
+              meta: timelineRow.meta,
+            }
+          : undefined,
+      },
+    };
+  },
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevTimeline;
+    if (!prev) return null;
+    return {
+      name: OperationName.timelineViewUpdate,
+      version: 1,
+      params: { timelineViewId: p.timelineViewId, timeline: prev },
+    };
+  },
 };
 
 // ─── Map ──────────────────────────────────────────────────────────────────────
@@ -342,6 +725,7 @@ export const MapViewCreateContract: OperationContract<typeof mapCreateSchema> =
     parentId: 'tableId',
     description: viewActions.add,
     resolveCtx: (context, param) => resolveCreateCtx(context, param.tableId),
+    buildInverse: buildViewCreateInverse,
   };
 
 const mapUpdateSchema = z.object({
@@ -349,14 +733,45 @@ const mapUpdateSchema = z.object({
   map: viewCreateBodySchema,
 });
 
-export const MapViewUpdateContract: OperationContract<typeof mapUpdateSchema> =
-  {
-    name: OperationName.mapViewUpdate,
-    version: 1,
-    entity: MetaTable.VIEWS,
-    schema: mapUpdateSchema,
-    entityId: (p) => p.mapViewId,
-    entityTitle: (p) => (p.map as any)?.title,
-    description: renameOrEdit,
-    resolveCtx: (context, param) => resolveUpdateCtx(context, param.mapViewId),
-  };
+interface MapUpdateExtra {
+  oldTitle?: string;
+  prevMap?: { fk_geo_data_col_id?: string; meta?: unknown };
+}
+
+export const MapViewUpdateContract: OperationContract<
+  typeof mapUpdateSchema,
+  MapUpdateExtra
+> = {
+  name: OperationName.mapViewUpdate,
+  version: 1,
+  entity: MetaTable.VIEWS,
+  schema: mapUpdateSchema,
+  entityId: (p) => p.mapViewId,
+  entityTitle: (p) => (p.map as any)?.title,
+  description: renameOrEdit,
+  resolveCtx: async (context, param) => {
+    const base = await resolveUpdateCtx(context, param.mapViewId);
+    const mapRow = await MapView.get(context, param.mapViewId);
+    return {
+      ...base,
+      extra: {
+        ...(base.extra ?? {}),
+        prevMap: mapRow
+          ? {
+              fk_geo_data_col_id: mapRow.fk_geo_data_col_id,
+              meta: mapRow.meta,
+            }
+          : undefined,
+      },
+    };
+  },
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevMap;
+    if (!prev) return null;
+    return {
+      name: OperationName.mapViewUpdate,
+      version: 1,
+      params: { mapViewId: p.mapViewId, map: prev },
+    };
+  },
+};

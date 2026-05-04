@@ -1307,7 +1307,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       await this.viewsService.viewUpdate(context, {
         viewId,
         view: requestBody,
-        user: context.user,
         req,
         viewWebhookManager,
       });
@@ -1541,7 +1540,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
     const { req, viewId } = param;
     await this.viewsService.viewDelete(context, {
       viewId,
-      user: context.user,
       req,
     });
   }

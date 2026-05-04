@@ -22,6 +22,7 @@ import { registerRecordTemplateHandlers } from './handlers/record-templates.hand
 import { registerSyncHandlers } from './handlers/sync.handlers';
 import { registerDateDependencyHandlers } from './handlers/date-dependency.handlers';
 import { registerFiltersV3Handlers } from './handlers/filters-v3.handlers';
+import { registerTrashHandlers } from './handlers/trash.handlers';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import { OperationRegistry } from '~/command-registry/registry';
 import { BaseVariablesService } from '~/ee/services/base-variables.service';
@@ -51,6 +52,7 @@ import { RecordTemplatesService } from '~/services/record-templates/record-templ
 import { SyncService } from '~/services/sync.service';
 import { DateDependencyService } from '~/services/date-dependency.service';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
+import { BaseTrashService } from '~/ee/services/base-trash/base-trash.service';
 
 @Injectable()
 export class OperationRegistryBootstrap implements OnApplicationBootstrap {
@@ -84,12 +86,14 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly syncSvc: SyncService,
     private readonly dateDependencySvc: DateDependencyService,
     private readonly filtersV3Svc: FiltersV3Service,
+    private readonly baseTrashSvc: BaseTrashService,
   ) {}
 
   onApplicationBootstrap(): void {
     registerBaseVariableHandlers(this.baseVariablesSvc);
     registerTableHandlers(this.tablesSvc);
     registerViewHandlers(this.viewsSvc);
+    registerTrashHandlers(this.baseTrashSvc);
     registerColumnHandlers(this.columnsSvc);
     registerViewTypeHandlers(
       this.gridsSvc,
@@ -100,6 +104,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
       this.listsSvc,
       this.timelinesSvc,
       this.mapsSvc,
+      this.baseTrashSvc,
     );
     registerFilterHandlers(this.filtersSvc);
     registerSortHandlers(this.sortsSvc);

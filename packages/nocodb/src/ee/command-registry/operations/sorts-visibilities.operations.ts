@@ -383,8 +383,15 @@ const gridColumnUpdateSchema = z.object({
   grid: z.record(z.unknown()),
 });
 
+interface GridColumnUpdateExtra {
+  fieldTitle?: string;
+  tableTitle?: string;
+  prevGrid?: Record<string, unknown>;
+}
+
 export const GridColumnUpdateContract: OperationContract<
-  typeof gridColumnUpdateSchema
+  typeof gridColumnUpdateSchema,
+  GridColumnUpdateExtra
 > = {
   name: OperationName.gridColumnUpdate,
   version: 1,
@@ -405,9 +412,39 @@ export const GridColumnUpdateContract: OperationContract<
     const field = gridCol.fk_column_id
       ? await Column.get(context, { colId: gridCol.fk_column_id })
       : undefined;
+
+    const prevGrid: Record<string, unknown> = {};
+    for (const key of [
+      'show',
+      'order',
+      'width',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
+      'aggregation',
+    ] as const) {
+      if (key in (param.grid as Record<string, unknown>)) {
+        prevGrid[key] = (gridCol as unknown as Record<string, unknown>)[key];
+      }
+    }
+
     return {
       parentEntityTitle: view?.title,
-      extra: { fieldTitle: field?.title, tableTitle: table?.title },
+      extra: {
+        fieldTitle: field?.title,
+        tableTitle: table?.title,
+        prevGrid,
+      },
+    };
+  },
+  // Undo: re-apply the pre-update grid-column body.
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevGrid;
+    if (!prev || Object.keys(prev).length === 0) return null;
+    return {
+      name: OperationName.gridColumnUpdate,
+      version: 1,
+      params: { gridViewColumnId: p.gridViewColumnId, grid: prev },
     };
   },
 };
@@ -421,8 +458,16 @@ const formColumnUpdateSchema = z.object({
   formViewColumn: z.record(z.unknown()),
 });
 
+interface FormColumnUpdateExtra {
+  fieldTitle?: string;
+  tableTitle?: string;
+  // Only the keys the forward op actually changed are snapshotted.
+  prevFormColumn?: Record<string, unknown>;
+}
+
 export const FormColumnUpdateContract: OperationContract<
-  typeof formColumnUpdateSchema
+  typeof formColumnUpdateSchema,
+  FormColumnUpdateExtra
 > = {
   name: OperationName.formColumnUpdate,
   version: 1,
@@ -443,9 +488,46 @@ export const FormColumnUpdateContract: OperationContract<
     const field = formCol.fk_column_id
       ? await Column.get(context, { colId: formCol.fk_column_id })
       : undefined;
+
+    const prevFormColumn: Record<string, unknown> = {};
+    const body = param.formViewColumn as Record<string, unknown>;
+    for (const key of [
+      'label',
+      'help',
+      'description',
+      'required',
+      'enable_scanner',
+      'show',
+      'order',
+      'meta',
+    ] as const) {
+      if (key in body) {
+        prevFormColumn[key] = (formCol as unknown as Record<string, unknown>)[
+          key
+        ];
+      }
+    }
+
     return {
       parentEntityTitle: view?.title,
-      extra: { fieldTitle: field?.title, tableTitle: table?.title },
+      extra: {
+        fieldTitle: field?.title,
+        tableTitle: table?.title,
+        prevFormColumn,
+      },
+    };
+  },
+  // Undo: re-apply the pre-update form-column body.
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevFormColumn;
+    if (!prev || Object.keys(prev).length === 0) return null;
+    return {
+      name: OperationName.formColumnUpdate,
+      version: 1,
+      params: {
+        formViewColumnId: p.formViewColumnId,
+        formViewColumn: prev,
+      },
     };
   },
 };

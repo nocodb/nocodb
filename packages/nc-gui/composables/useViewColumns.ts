@@ -653,6 +653,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         const col = gridViewCols.value?.[payload.fk_column_id]
         if (col) {
           const reloadNeeded = payload?.group_by !== col?.group_by || (!col.show && payload?.show)
+          const aggregationChanged = 'aggregation' in payload && payload.aggregation !== col?.aggregation
 
           Object.assign(col, payload)
 
@@ -670,6 +671,10 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
           if (reloadNeeded) {
             nextTick(() => reloadData?.({ shouldShowLoading: false }))
+          }
+
+          if (aggregationChanged) {
+            $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.AGGREGATION_RELOAD)
           }
 
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)

@@ -35,7 +35,23 @@ const updateSchema = z.object({
   view: viewUpdateBodySchema,
 });
 
-export const ViewUpdateContract: OperationContract<typeof updateSchema> = {
+interface ViewUpdatePrevState {
+  title?: string;
+  order?: number;
+  lock_type?: string;
+  meta?: unknown;
+  show_system_fields?: boolean;
+}
+
+interface ViewUpdateExtra {
+  oldTitle?: string;
+  prevView?: ViewUpdatePrevState;
+}
+
+export const ViewUpdateContract: OperationContract<
+  typeof updateSchema,
+  ViewUpdateExtra
+> = {
   name: OperationName.viewUpdate,
   version: 1,
   entity: MetaTable.VIEWS,
@@ -55,7 +71,29 @@ export const ViewUpdateContract: OperationContract<typeof updateSchema> = {
     return {
       entityTitle: view?.title,
       parentEntityTitle: table?.title,
-      extra: { oldTitle: view?.title },
+      extra: {
+        oldTitle: view?.title,
+        prevView: view
+          ? {
+              title: view.title,
+              order: view.order,
+              lock_type: view.lock_type,
+              meta: view.meta,
+              show_system_fields: view.show_system_fields as
+                | boolean
+                | undefined,
+            }
+          : undefined,
+      },
+    };
+  },
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prevView;
+    if (!prev) return null;
+    return {
+      name: OperationName.viewUpdate,
+      version: 1,
+      params: { viewId: p.viewId, view: prev },
     };
   },
 };
@@ -80,6 +118,14 @@ export const ViewDeleteContract: OperationContract<typeof deleteSchema> = {
     return {
       entityTitle: view?.title,
       parentEntityTitle: table?.title,
+    };
+  },
+  buildInverse: (_ctx, p) => {
+    if (p.skipTrash) return null;
+    return {
+      name: OperationName.trashRestore,
+      version: 1,
+      params: { resourceType: 'view', resourceId: p.viewId },
     };
   },
 };

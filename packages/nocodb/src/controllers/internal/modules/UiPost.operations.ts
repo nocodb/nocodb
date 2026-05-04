@@ -227,13 +227,11 @@ export class UiPostOperations
         return await this.viewsService.viewUpdate(context, {
           viewId: req.query.viewId,
           view: payload,
-          user: req.user,
           req,
         });
       case 'viewDelete':
         return await this.viewsService.viewDelete(context, {
           viewId: req.query.viewId,
-          user: req.user,
           req,
         });
       case 'shareView':

@@ -1,5 +1,9 @@
 import AuditCE from 'src/models/Audit';
-import { AuditV1OperationTypes, NO_SCOPE } from 'nocodb-sdk';
+import {
+  AuditV1OperationTypes,
+  NO_SCOPE,
+  PlanFeatureTypes,
+} from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
@@ -13,6 +17,7 @@ import {
 } from '~/utils/cloudAudit';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { isOnPrem } from '~/utils';
+import { getFeature } from '~/helpers/paymentHelpers';
 
 export default class Audit extends AuditCE {
   public static async recordAuditList(
@@ -386,6 +391,19 @@ export default class Audit extends AuditCE {
       if (process.env.NC_DISABLE_AUDIT === 'true') {
         return;
       }
+      // Gate: skip audit storage for plans that don't have the feature.
+      // Workspace-scoped audits require FEATURE_AUDIT_WORKSPACE; ROOT-scope
+      // (system) audits always pass through.
+      const sample = Array.isArray(audit) ? audit.find((a) => a) : audit;
+      const wsId = sample?.fk_workspace_id;
+      if (wsId) {
+        const allowed = await getFeature(
+          PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+          wsId,
+        );
+        if (!allowed) return;
+      }
+
       const propsToExtract = [
         'id',
         'user',

@@ -4,6 +4,7 @@ import type {
   DocumentCommentPayload,
   DocumentPayload,
   MetaPayload,
+  RlsPolicyType,
   ScriptPayload,
   WidgetPayload,
   WorkflowPayload,
@@ -61,6 +62,9 @@ export const useRealtime = createSharedComposable(() => {
 
   const webhooksStore = useWebhooksStore()
   const { hooks } = storeToRefs(webhooksStore)
+
+  const rlsStore = useRlsStore()
+  const { policies: rlsPolicies } = storeToRefs(rlsStore)
 
   const { baseExtensions, Extension, loadExtensionsForBase } = useExtensions()
 
@@ -385,7 +389,19 @@ export const useRealtime = createSharedComposable(() => {
     } else if (event.action === 'row_color_update') {
       $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE, { rowColorInfo: event.payload || {} })
     } else if (event.action === 'rls_policy_update') {
-      const { tableId, base_id: eventBaseId } = event.payload
+      const {
+        tableId,
+        base_id: eventBaseId,
+        op,
+        policy,
+        policyId,
+      } = event.payload as {
+        tableId?: string
+        base_id?: string
+        op?: 'create' | 'update' | 'delete'
+        policy?: RlsPolicyType
+        policyId?: string
+      }
       if (!eventBaseId || eventBaseId !== activeBaseId.value || !tableId) return
 
       // Refresh table meta to pick up updated is_rls_enabled flag
@@ -402,6 +418,21 @@ export const useRealtime = createSharedComposable(() => {
           }
         }
       })
+
+      // Patch the cached policy list for this table — same find/splice/push
+      // shape the hook handler uses, just keyed by tableId in the Map.
+      const list = rlsPolicies.value.get(tableId)
+      if (list) {
+        if (op === 'delete' && policyId) {
+          const idx = list.findIndex((p) => p.id === policyId)
+          if (idx !== -1) list.splice(idx, 1)
+        } else if ((op === 'create' || op === 'update') && policy) {
+          const idx = list.findIndex((p) => p.id === policy.id)
+          if (idx === -1) list.push(policy)
+          else list[idx] = policy
+        }
+        rlsPolicies.value.set(tableId, list)
+      }
 
       // If the affected table is currently open, reload its data (RLS may change visible rows)
       if (tableId === activeTableId.value) {

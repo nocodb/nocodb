@@ -132,6 +132,13 @@ export const OperationName = {
   permissionBulkDrop: 'permissionBulkDrop',
   permissionBulkRestore: 'permissionBulkRestore',
 
+  // Row-level security
+  rlsPolicyCreate: 'rlsPolicyCreate',
+  rlsPolicyUpdate: 'rlsPolicyUpdate',
+  rlsPolicyDelete: 'rlsPolicyDelete',
+  rlsPolicySetSubjects: 'rlsPolicySetSubjects',
+  rlsPolicyFilterCreate: 'rlsPolicyFilterCreate',
+
   // Undo redo primitives
   trashRestore: 'trashRestore',
   listViewLevelsRestore: 'listViewLevelsRestore',

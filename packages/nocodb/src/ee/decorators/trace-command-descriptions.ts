@@ -217,3 +217,44 @@ export const permissionActions = {
   bulkDrop: (() => `Reset permissions`) as DescFn,
   bulkRestore: (() => `Restore permissions`) as DescFn,
 };
+
+export const rlsPolicyActions = {
+  add: (({ entityTitle, parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Add ${bRlsPolicy(entityTitle)} RLS policy to ${bTable(
+          parentEntityTitle,
+        )}`
+      : `Add ${bRlsPolicy(entityTitle)} RLS policy`) as DescFn,
+  edit: (({ entityTitle, parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Edit ${bRlsPolicy(entityTitle)} RLS policy in ${bTable(
+          parentEntityTitle,
+        )}`
+      : `Edit ${bRlsPolicy(entityTitle)} RLS policy`) as DescFn,
+  rename: (({ entityTitle, parentEntityTitle, extra }) => {
+    const oldTitle = extra?.oldTitle as string | undefined;
+    const renamed =
+      oldTitle && oldTitle !== entityTitle
+        ? `Rename ${bRlsPolicy(oldTitle)} RLS policy to ${bRlsPolicy(
+            entityTitle,
+          )}`
+        : `Rename RLS policy to ${bRlsPolicy(entityTitle)}`;
+    return parentEntityTitle
+      ? `${renamed} in ${bTable(parentEntityTitle)}`
+      : renamed;
+  }) as DescFn,
+  delete: (({ entityTitle, parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Delete ${bRlsPolicy(entityTitle)} RLS policy from ${bTable(
+          parentEntityTitle,
+        )}`
+      : `Delete ${bRlsPolicy(entityTitle)} RLS policy`) as DescFn,
+  setSubjects: (({ entityTitle, parentEntityTitle }) => {
+    const base = `Update subjects on ${bRlsPolicy(entityTitle)} RLS policy`;
+    return parentEntityTitle ? `${base} in ${bTable(parentEntityTitle)}` : base;
+  }) as DescFn,
+  filterAdd: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Add filter on ${bRlsPolicy(parentEntityTitle)} RLS policy`
+      : `Add filter on RLS policy`) as DescFn,
+};

@@ -227,9 +227,10 @@ export const FilterDeleteContract: OperationContract<
   },
   // Undo: recreate the filter (and its children, if any). Routes to the
   // matching forward op based on the deleted filter's parent FK:
-  //   - view-scoped → `filterCreate`
-  //   - row-color condition → `rowColorConditionsCreate`
-  // Hook / RLS / button-column filters still no-op (not reachable from Cmd-Z).
+  //   - view-scoped       → `filterCreate`
+  //   - row-color cond.   → `rowColorConditionsCreate`
+  //   - RLS policy        → `rlsPolicyFilterCreate`
+  // Hook / button-column filters still no-op (not reachable from Cmd-Z).
   buildInverse: (_ctx, _p, _r, resolved) => {
     const tree = resolved?.extra?.deletedTree;
     if (!tree) return null;
@@ -239,6 +240,17 @@ export const FilterDeleteContract: OperationContract<
         version: 1,
         params: {
           rowColorConditionsId: tree.fk_row_color_condition_id,
+          filter: tree,
+        },
+      };
+    }
+    if ((tree as { fk_rls_policy_id?: string }).fk_rls_policy_id) {
+      return {
+        name: OperationName.rlsPolicyFilterCreate,
+        version: 1,
+        params: {
+          rlsPolicyId: (tree as { fk_rls_policy_id?: string })
+            .fk_rls_policy_id,
           filter: tree,
         },
       };

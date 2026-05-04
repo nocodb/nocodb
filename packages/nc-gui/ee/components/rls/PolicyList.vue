@@ -16,10 +16,9 @@ const tableId = computed(() => props.tableId)
 
 const { showUpgradeToUseRls } = useEeConfig()
 
-const { policies, isLoading, loadPolicies, createPolicy, deletePolicy, togglePolicy } = useRlsPolicies(
-  base as Ref<BaseType>,
-  tableId,
-)
+const rlsStore = useRlsStore()
+const { activePolicies: policies, isLoading } = storeToRefs(rlsStore)
+const { loadPolicies, createPolicy, deletePolicy, togglePolicy } = rlsStore
 
 const basesStore = useBases()
 const { basesUser, basesTeams } = storeToRefs(basesStore)
@@ -31,7 +30,7 @@ const editingPolicyId = ref<string | null>(null)
 const showEditor = ref(false)
 
 onMounted(async () => {
-  loadPolicies()
+  loadPolicies(props.tableId)
   if (props.base?.id) {
     await basesStore.getBaseUsers({ baseId: props.base.id })
   }

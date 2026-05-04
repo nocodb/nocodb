@@ -44,21 +44,18 @@ export class RlsPostOperations
       case 'rlsPolicyCreate':
         return (await this.rlsService.createPolicy(context, {
           body: payload,
-          userId: req.user?.id,
           req,
         })) as any;
 
       case 'rlsPolicyUpdate':
         return (await this.rlsService.updatePolicy(context, {
           body: payload,
-          userId: req.user?.id,
           req,
         })) as any;
 
       case 'rlsPolicyDelete':
         return (await this.rlsService.deletePolicy(context, {
           policyId: payload.policyId,
-          userId: req.user?.id,
           req,
         })) as any;
 
@@ -66,7 +63,6 @@ export class RlsPostOperations
         return (await this.rlsService.setSubjects(context, {
           policyId: payload.policyId,
           subjects: payload.subjects,
-          userId: req.user?.id,
           req,
         })) as any;
 
@@ -74,7 +70,6 @@ export class RlsPostOperations
         return (await this.filtersService.rlsPolicyFilterCreate(context, {
           filter: payload,
           rlsPolicyId: payload.fk_rls_policy_id,
-          user: req.user,
           req,
         })) as any;
     }

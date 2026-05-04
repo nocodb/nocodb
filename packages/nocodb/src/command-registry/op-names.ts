@@ -126,6 +126,12 @@ export const OperationName = {
   baseVariableUpdate: 'baseVariableUpdate',
   baseVariableDelete: 'baseVariableDelete',
 
+  // Permissions (table / field / document)
+  permissionSet: 'permissionSet',
+  permissionDrop: 'permissionDrop',
+  permissionBulkDrop: 'permissionBulkDrop',
+  permissionBulkRestore: 'permissionBulkRestore',
+
   // Undo redo primitives
   trashRestore: 'trashRestore',
   listViewLevelsRestore: 'listViewLevelsRestore',

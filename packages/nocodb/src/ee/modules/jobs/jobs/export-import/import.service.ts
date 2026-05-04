@@ -398,14 +398,11 @@ export class ImportService extends ImportServiceCE {
         workspaceUsers.some((u) => u.id === p.id),
       );
 
-      await this.permissionsService.setPermission(
-        context,
-        {
-          ...permission,
-          entity_id: getIdOrExternalId(permission.entity_id),
-        },
+      await this.permissionsService.setPermission(context, {
+        ...permission,
+        entity_id: getIdOrExternalId(permission.entity_id),
         req,
-      );
+      });
     }
   }
 

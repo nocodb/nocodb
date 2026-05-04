@@ -28,6 +28,7 @@ export const bExtension = token('extension');
 export const bViewSection = token('viewSection');
 export const bRecordTemplate = token('recordTemplate');
 export const bDateDependency = token('dateDependency');
+export const bDocument = token('document');
 
 import type { DescCtx, DescFn } from 'src/command-registry/types';
 export type { DescCtx, DescFn };
@@ -188,4 +189,30 @@ export const viewColumnActions = {
     if (extra?.tableTitle) parts.push(`in ${bTable(extra.tableTitle)}`);
     return parts.join(' ');
   }) as DescFn,
+};
+
+// Pick the right entity sentinel for permission descriptions based on the
+// `entity` discriminator stashed in `extra` by the contract's resolveCtx.
+// Falls back to plain bold for unknown / missing entity.
+const bPermissionEntity = (
+  entity: string | undefined,
+  title: string | undefined,
+): string => {
+  if (entity === 'table') return bTable(title);
+  if (entity === 'field') return bField(title);
+  if (entity === 'document') return bDocument(title);
+  return b(title);
+};
+
+export const permissionActions = {
+  set: (({ entityTitle, extra }) =>
+    entityTitle
+      ? `Set permission on ${bPermissionEntity(extra?.entity, entityTitle)}`
+      : `Set permission`) as DescFn,
+  drop: (({ entityTitle, extra }) =>
+    entityTitle
+      ? `Reset permission on ${bPermissionEntity(extra?.entity, entityTitle)}`
+      : `Reset permission`) as DescFn,
+  bulkDrop: (() => `Reset permissions`) as DescFn,
+  bulkRestore: (() => `Restore permissions`) as DescFn,
 };

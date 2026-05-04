@@ -486,25 +486,22 @@ export class InternalController extends InternalControllerCE {
         );
 
       case 'setPermission':
-        return await this.permissionsService.setPermission(
-          context,
-          payload,
+        return await this.permissionsService.setPermission(context, {
+          ...payload,
           req,
-        );
+        });
 
       case 'dropPermission':
-        return await this.permissionsService.dropPermission(
-          context,
-          payload,
+        return await this.permissionsService.dropPermission(context, {
+          ...payload,
           req,
-        );
+        });
 
       case 'bulkDropPermissions':
-        return await this.permissionsService.bulkDropPermissions(
-          context,
-          payload?.permissionIds || [],
+        return await this.permissionsService.bulkDropPermissions(context, {
+          permissionIds: payload?.permissionIds || [],
           req,
-        );
+        });
 
       case 'dashboardCreate':
         return await this.dashboardsService.dashboardCreate(context, {

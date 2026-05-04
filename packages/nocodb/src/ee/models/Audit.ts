@@ -391,17 +391,20 @@ export default class Audit extends AuditCE {
       if (process.env.NC_DISABLE_AUDIT === 'true') {
         return;
       }
-      // Gate: skip audit storage for plans that don't have the feature.
-      // Workspace-scoped audits require FEATURE_AUDIT_WORKSPACE; ROOT-scope
-      // (system) audits always pass through.
-      const sample = Array.isArray(audit) ? audit.find((a) => a) : audit;
-      const wsId = sample?.fk_workspace_id;
-      if (wsId) {
-        const allowed = await getFeature(
-          PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
-          wsId,
-        );
-        if (!allowed) return;
+      // On-prem only: skip audit storage when the plan does not enable
+      // FEATURE_AUDIT_WORKSPACE. Workspace-scoped audits are gated;
+      // ROOT-scope (system) audits always pass through. Cloud audit
+      // retention is handled at read time, not at insert.
+      if (isOnPrem) {
+        const sample = Array.isArray(audit) ? audit.find((a) => a) : audit;
+        const wsId = sample?.fk_workspace_id;
+        if (wsId) {
+          const allowed = await getFeature(
+            PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+            wsId,
+          );
+          if (!allowed) return;
+        }
       }
 
       const propsToExtract = [

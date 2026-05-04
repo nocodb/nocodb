@@ -15,12 +15,7 @@ import { WorkspacePage } from '../../pages/WorkspacePage';
  *     depending on which backend mode is running)
  *   - non-admin negative path (no request fired, picker stays hidden even
  *     when the user clicks the email input)
- *
- * Video is enabled for this spec so the recorded run can be attached to the
- * PR description.
  */
-
-test.use({ video: 'on' });
 
 type StubUser = { id: string; email: string; display_name?: string };
 

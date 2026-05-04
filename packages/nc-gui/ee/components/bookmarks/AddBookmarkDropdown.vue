@@ -33,7 +33,6 @@ const isSearching = ref(false)
 
 const searchResults = ref<any[]>([])
 
-const allItems = ref<any[]>([])
 
 // --- Current page bookmark ---
 
@@ -111,27 +110,31 @@ function onNewFolder() {
 
 // --- Search modal ---
 
+// Workspace-scoped fetch — independent of the global command palette so the
+// modal works even if the user has never opened ⌘K.
 async function loadItems() {
   if (!activeWorkspace.value?.id) return
 
   isSearching.value = true
-
   try {
     const res = await $api.utils.commandPalette({
       scope: `ws-${activeWorkspace.value.id}`,
       data: { workspace_id: activeWorkspace.value.id },
     })
-
-    allItems.value = (res || []).filter((item: any) => {
+    const list = Array.isArray(res) ? res : []
+    bookmarkableItems.value = list.filter((item: any) => {
       const id = item.id || ''
       return id.startsWith('p-') || id.startsWith('tbl-') || id.startsWith('vw-')
     })
-  } catch {
-    allItems.value = []
+  } catch (e: any) {
+    console.error('[bookmark-search] commandPalette failed', e)
+    bookmarkableItems.value = []
   } finally {
     isSearching.value = false
   }
 }
+
+const bookmarkableItems = ref<any[]>([])
 
 const debouncedFilter = useDebounceFn(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -139,7 +142,7 @@ const debouncedFilter = useDebounceFn(() => {
     searchResults.value = []
     return
   }
-  searchResults.value = allItems.value.filter((item: any) =>
+  searchResults.value = bookmarkableItems.value.filter((item: any) =>
     (item.title || '').toLowerCase().includes(q),
   )
 }, 200)

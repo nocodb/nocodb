@@ -344,11 +344,13 @@ export const useEeConfig = createSharedComposable(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_UNIQUE)
   })
 
-  // UUID is available on all cloud plans + self-hosted EE — never blocked in EE
-  const blockUuidField = computed(() => false)
+  const blockUuidField = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_UUID_FIELD)
+  })
 
-  // AutoNumber is available on all cloud plans + self-hosted EE — never blocked in EE
-  const blockAutoNumberField = computed(() => false)
+  const blockAutoNumberField = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD)
+  })
 
   const blockRecordTemplates = computed(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES)

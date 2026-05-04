@@ -2176,6 +2176,8 @@ export default class Column<T = any> implements ColumnType {
             fk_child_column_id: column.fk_child_column_id,
             fk_parent_column_id: column.fk_parent_column_id,
 
+            fk_display_value_column_id: column.fk_display_value_column_id,
+
             fk_mm_model_id: column.fk_mm_model_id,
             fk_mm_child_column_id: column.fk_mm_child_column_id,
             fk_mm_parent_column_id: column.fk_mm_parent_column_id,

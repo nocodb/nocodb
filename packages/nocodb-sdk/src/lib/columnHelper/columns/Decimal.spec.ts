@@ -118,9 +118,9 @@ describe('DecimalHelper', () => {
       expect(helper.serializeValue('ignored', params)).toBe(99.99);
     });
 
-    it('ignores clipboard dbCellValue when source and target separators differ', () => {
+    it('uses clipboard dbCellValue even when source and target separators differ', () => {
       // Source uses NonePeriod (dot decimal), target uses NoneComma (comma decimal)
-      // Pasting "1.23" should strip the dot and produce 123
+      // dbCellValue is the canonical number — use it directly
       const params = makeParams(
         {
           clipboardItem: {
@@ -130,7 +130,7 @@ describe('DecimalHelper', () => {
         },
         { separator: SeparatorType.NoneComma },
       );
-      expect(helper.serializeValue('1.23', params)).toBe(123);
+      expect(helper.serializeValue('1.23', params)).toBe(1.23);
     });
 
     it('strips dot from pasted text for NoneComma separator', () => {

@@ -158,5 +158,16 @@ describe('serializeDecimalValue', () => {
       } as any;
       expect(serializeDecimalValue('ignored', undefined, params)).toBe(99.99);
     });
+
+    it('uses dbCellValue even when source and target separators differ', () => {
+      const params = {
+        col: { meta: JSON.stringify({ separator: SeparatorType.NoneComma }) },
+        clipboardItem: {
+          dbCellValue: 1.23,
+          column: { meta: JSON.stringify({ separator: SeparatorType.NonePeriod }) },
+        },
+      } as any;
+      expect(serializeDecimalValue('1.23', undefined, params)).toBe(1.23);
+    });
   });
 });

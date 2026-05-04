@@ -56,7 +56,10 @@ jobs:
   buildx:
     # Run unless this is a PR event without the `on-prem-build` label.
     # Always runs for workflow_dispatch and workflow_call.
-    if: ${{ github.event_name != 'pull_request' || github.event.label.name == 'on-prem-build' }}
+    # For PR events, check the PR's current labels rather than `github.event.label.name` —
+    # adding multiple labels in one batch fires a `labeled` event per label, and only the
+    # event whose label happens to be `on-prem-build` would otherwise run the job.
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'on-prem-build') }}
     runs-on: ubicloud-standard-8
     timeout-minutes: 30
     env:

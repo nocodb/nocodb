@@ -100,6 +100,7 @@ export const OperationName = {
   workflowUpdate: 'workflowUpdate',
   workflowDelete: 'workflowDelete',
   workflowPublish: 'workflowPublish',
+  workflowDuplicate: 'workflowDuplicate',
 
   // View sections
   viewSectionCreate: 'viewSectionCreate',

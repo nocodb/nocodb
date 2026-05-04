@@ -396,11 +396,16 @@ export class WorkflowsService implements OnModuleInit {
     return true;
   }
 
+  @TraceCommand(OperationName.workflowDuplicate)
   async duplicateWorkflow(
     context: NcContext,
-    workflowId: string,
-    req: NcRequest,
+    param: {
+      workflowId: string;
+      req: NcRequest;
+      _replayWorkflowId?: string;
+    },
   ) {
+    const { workflowId, req } = param;
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {
@@ -414,6 +419,7 @@ export class WorkflowsService implements OnModuleInit {
     });
 
     const newWorkflow = await Workflow.insert(context, {
+      ...(param._replayWorkflowId ? { id: param._replayWorkflowId } : {}),
       title: newTitle,
       meta: workflow.meta,
       nodes: workflow.nodes,

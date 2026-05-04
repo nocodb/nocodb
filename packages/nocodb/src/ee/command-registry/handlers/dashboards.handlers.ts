@@ -79,6 +79,21 @@ export function registerDashboardHandlers(
   // duplicate — otherwise downstream references diverge between bases.
   OperationRegistry.register(DuplicateWidgetContract, async (ctx, p, meta) => {
     const req = makeReplayReq(meta.originalReq, meta.createdBy);
+    if (ctx.additionalContext?.is_replay && meta.entityId) {
+      const trashEntry = await BaseTrash.getByResourceId(
+        ctx,
+        'widget',
+        meta.entityId,
+      );
+      if (trashEntry?.id) {
+        await baseTrashSvc.restore(ctx, {
+          trashId: trashEntry.id,
+          user: req.user,
+          req,
+        });
+        return { id: meta.entityId };
+      }
+    }
     return svc.duplicateWidget(ctx, {
       ...p,
       req,

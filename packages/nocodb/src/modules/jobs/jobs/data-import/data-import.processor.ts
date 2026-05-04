@@ -3,10 +3,14 @@ import {
   AuditV1OperationTypes,
   NcBaseErrorv2,
   NcErrorType,
+  serializeCurrencyValue,
+  serializeDecimalValue,
+  serializeIntValue,
   UITypes,
 } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type {
+  ColumnType,
   FileImportOptions,
   FileImportSheet,
   FileImportType,
@@ -47,6 +51,32 @@ const ROW_LEVEL_ERRORS = new Set<NcErrorType>([
 interface ColumnMapEntry {
   destCn: string;
   uidt: string;
+  col: ColumnType;
+}
+
+/** Coerce a raw imported value into the type expected by the destination column. */
+function coerceValue(raw: any, mapping: ColumnMapEntry): any {
+  const value = raw === '' || raw === undefined || raw === null ? null : raw;
+
+  switch (mapping.uidt) {
+    case UITypes.Checkbox:
+      return getCheckboxValue(value);
+
+    case UITypes.SingleSelect:
+    case UITypes.MultiSelect:
+      return (value ?? '').toString().trim() || null;
+
+    case UITypes.Decimal:
+    case UITypes.Percent:
+      return serializeDecimalValue(value, undefined, { col: mapping.col });
+
+    case UITypes.Number:
+    case UITypes.Rating:
+      return serializeIntValue(value, { col: mapping.col });
+
+    default:
+      return value;
+  }
 }
 
 interface SheetResult {
@@ -288,6 +318,7 @@ export class DataImportProcessor {
           colMap[src.column_name] = {
             destCn: dest.column_name,
             uidt: dest.uidt,
+            col: dest,
           };
         }
       }
@@ -298,6 +329,7 @@ export class DataImportProcessor {
           colMap[col.column_name] = {
             destCn: dest.column_name,
             uidt: dest.uidt,
+            col: dest,
           };
         }
       }
@@ -482,20 +514,7 @@ export class DataImportProcessor {
       // Map source columns to dest columns + type coercion
       const dbRow: Record<string, any> = {};
       for (const [srcCol, mapping] of Object.entries(colMap)) {
-        const raw = sourceRow[srcCol];
-        const value =
-          raw === '' || raw === undefined || raw === null ? null : raw;
-
-        if (mapping.uidt === UITypes.Checkbox) {
-          dbRow[mapping.destCn] = getCheckboxValue(value);
-        } else if (
-          mapping.uidt === UITypes.SingleSelect ||
-          mapping.uidt === UITypes.MultiSelect
-        ) {
-          dbRow[mapping.destCn] = (value ?? '').toString().trim() || null;
-        } else {
-          dbRow[mapping.destCn] = value;
-        }
+        dbRow[mapping.destCn] = coerceValue(sourceRow[srcCol], mapping);
       }
 
       batch.push(dbRow);

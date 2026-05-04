@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DatasService as DatasServiceCE } from 'src/services/datas.service';
-import { isLinksOrLTAR, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR } from 'nocodb-sdk';
 import canUseOptimisedQuery from '../utils/canUseOptimisedQuery';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
@@ -10,7 +10,7 @@ import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { View } from '~/models';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
-import { Column, Document, Filter, Model, Source } from '~/models';
+import { Column, Filter, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
@@ -166,64 +166,7 @@ export class DatasService extends DatasServiceCE {
       });
     }
 
-    await this.injectDocFieldValues(context, model, responseData?.list);
-
     return responseData;
-  }
-
-  /**
-   * Inject doc existence (doc_id or null) into row data for Doc virtual columns.
-   * Runs a single batch query against nc_docs_v2 per page load.
-   */
-  private async injectDocFieldValues(
-    context: NcContext,
-    model: Model,
-    rows: Record<string, any>[],
-  ) {
-    if (!rows?.length) return;
-
-    const columns = model.columns || (await model.getColumns(context));
-    const docColumns = columns.filter((c) => c.uidt === UITypes.Doc);
-    if (!docColumns.length) return;
-
-    // Extract PKs from rows — must match the escaping used by the frontend
-    // when it builds fk_row_id for docFieldGetOrCreate.
-    // Single PK: raw value. Composite PK: escape underscores, join with '___'.
-    const pkColumns = columns.filter((c) => c.pk);
-    const buildPk = (row: Record<string, any>) => {
-      if (pkColumns.length > 1) {
-        return pkColumns
-          .map(
-            (c) =>
-              String(row[c.title] ?? '').replaceAll('_', '\\_'),
-          )
-          .join('___');
-      }
-      const id = row[pkColumns[0].title];
-      return id == null ? '' : `${id}`;
-    };
-
-    const rowIds: string[] = [];
-    for (const row of rows) {
-      const pk = buildPk(row);
-      if (pk) rowIds.push(pk);
-    }
-    if (!rowIds.length) return;
-
-    const columnIds = docColumns.map((c) => c.id);
-    const existenceMap = await Document.listExistenceByColumnsAndRows(
-      context,
-      columnIds,
-      rowIds,
-    );
-
-    for (const row of rows) {
-      const pk = buildPk(row);
-      for (const col of docColumns) {
-        const docInfo = existenceMap.get(col.id)?.get(pk);
-        row[col.title] = docInfo || null;
-      }
-    }
   }
 
   @EEOnly()
@@ -273,8 +216,6 @@ export class DatasService extends DatasServiceCE {
     if (!row) {
       NcError.recordNotFound(param.rowId);
     }
-
-    await this.injectDocFieldValues(context, model, [row]);
 
     return row;
   }

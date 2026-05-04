@@ -69,8 +69,6 @@ export const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
     case UITypes.CreatedBy:
     case UITypes.LastModifiedBy:
       return { icon: iconMap.cellSystemUser }
-    case UITypes.Doc:
-      return { icon: iconMap.cellDoc }
   }
 
   return { icon: iconMap.cellSystemText }

@@ -192,7 +192,6 @@ import NcCellSystemUser from '~icons/nc-icons/system-user'
 import NcCellSystemText from '~icons/nc-icons/system-text'
 import NcCellAttachment from '~icons/nc-icons/cell-attachment'
 import NcCellButton from '~icons/nc-icons/cell-button'
-import NcCellDoc from '~icons/nc-icons/cell-doc'
 import NcCellAiButton from '~icons/nc-icons/cell-ai-button'
 import NcCellAi from '~icons/nc-icons/cell-ai'
 import NcCellColour from '~icons/nc-icons/cell-colour'
@@ -1048,7 +1047,6 @@ export const iconMap = {
   'cellSystemText': NcCellSystemText,
   'cellAttachment': NcCellAttachment,
   'cellButton': NcCellButton,
-  'cellDoc': NcCellDoc,
   'cellAiButton': h(NcCellAiButton, { stroke: 'transparent' }),
   'cellAi': h(NcCellAi, { stroke: 'transparent' }),
   'camera': NcCamera,

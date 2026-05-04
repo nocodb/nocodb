@@ -99,7 +99,6 @@ import { MetaService } from '~/meta/meta.service';
 import {
   BaseUser,
   Column,
-  Document,
   Filter,
   FormulaColumn,
   Hook,
@@ -1077,7 +1076,6 @@ export class ColumnsService implements IColumnsService {
         UITypes.ForeignKey,
         UITypes.Links,
         UITypes.Button,
-        UITypes.Doc,
       ].includes(column.uidt)
     ) {
       if (column.uidt === colBody.uidt) {
@@ -3577,13 +3575,6 @@ export class ColumnsService implements IColumnsService {
         });
         break;
       }
-      case UITypes.Doc: {
-        savedColumn = await Column.insert(context, {
-          ...colBody,
-          fk_model_id: table.id,
-        });
-        break;
-      }
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
       case UITypes.CreatedBy:
@@ -4308,19 +4299,6 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
         break;
-      case UITypes.Doc:
-        // Soft-delete all documents associated with this field column
-        await Document.softDeleteByColumn(context, param.columnId, ncMeta);
-        await Column.delete2(
-          context,
-          {
-            id: param.columnId,
-            ...generateColumnDeleteHandler(columnWebhookManager),
-          },
-          ncMeta,
-        );
-        break;
-
       case UITypes.Formula:
         await Column.delete(context, param.columnId, ncMeta);
         break;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import { ExpandedFormMode, PermissionEntity, PermissionKey, UITypes, ViewTypes } from 'nocodb-sdk'
+import { ExpandedFormMode, PermissionEntity, PermissionKey, ViewTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
@@ -101,12 +101,6 @@ const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const { withLoading } = useLoadingTrigger()
-
-const { $api } = useNuxtApp()
-
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
-
-const { activeProjectId } = storeToRefs(useBases())
 
 // override cell click hook to avoid unexpected behavior at form fields
 provide(CellClickHookInj, undefined)
@@ -330,9 +324,6 @@ const onClose = (force = false) => {
   }
 }
 
-// Doc field duplication state — stores original row's doc fields to clone after save
-const pendingDocDuplications = ref<{ columnId: string; sourceRowId: string }[]>([])
-
 const onDuplicateRow = () => {
   if (showRecordPlanLimitExceededModal()) return
 
@@ -340,27 +331,9 @@ const onDuplicateRow = () => {
   isUnsavedFormExist.value = true
   isUnsavedDuplicatedRecordExist.value = true
 
-  // Collect Doc field columns that have values so we can duplicate them after save
-  const sourceRowId = extractPkFromRow(_row.value.row, meta.value.columns as ColumnType[])
-  const docCols = (meta.value.columns || []).filter((c) => c.uidt === UITypes.Doc)
-  pendingDocDuplications.value = docCols
-    .filter((c) => {
-      const val = _row.value.row[c.title!]
-      return val && val.id
-    })
-    .map((c) => ({ columnId: c.id!, sourceRowId: sourceRowId! }))
-
   const oldRow = { ..._row.value.row }
   delete oldRow.ncRecordId
   delete oldRow.ncRecordHash
-
-  // Clear Doc field values from the copy — they're virtual and will be
-  // replaced after save with properly duplicated documents
-  for (const col of docCols) {
-    if (col.title && oldRow[col.title]) {
-      delete oldRow[col.title]
-    }
-  }
 
   const newRow = Object.assign(
     {},
@@ -375,35 +348,6 @@ const onDuplicateRow = () => {
     duplicatingRowInProgress.value = false
     message.toast(t('msg.success.rowDuplicatedWithoutSavedYet'))
   }, 500)
-}
-
-/** After a duplicated row is saved, clone each Doc field document into the new row. */
-const duplicateDocFields = async (newRowId: string) => {
-  if (!activeWorkspaceId.value || !activeProjectId.value) return
-
-  const dupes = [...pendingDocDuplications.value]
-  pendingDocDuplications.value = []
-
-  for (const { columnId, sourceRowId } of dupes) {
-    try {
-      const result = (await $api.internal.postOperation(activeWorkspaceId.value, activeProjectId.value, {
-        operation: 'docFieldDuplicate',
-        sourceColumnId: columnId,
-        sourceRowId,
-        targetColumnId: columnId,
-        targetRowId: newRowId,
-      })) as { id?: string; title?: string }
-      // Update cell display value
-      if (result?.id) {
-        const col = (meta.value.columns || []).find((c) => c.id === columnId)
-        if (col?.title) {
-          _row.value.row[col.title] = { id: result.id, title: result.title || 'Untitled' }
-        }
-      }
-    } catch {
-      // Best-effort — doc duplication failure shouldn't block row save
-    }
-  }
 }
 
 const save = async () => {
@@ -487,11 +431,6 @@ const save = async () => {
         const newRowId = extractPkFromRow(_row.value.row, meta.value.columns as ColumnType[])
         if (newRowId !== rowId.value) {
           props?.expandForm?.(_row.value)
-        }
-
-        // Duplicate Doc field documents for the new row
-        if (pendingDocDuplications.value.length && newRowId) {
-          duplicateDocFields(newRowId)
         }
 
         setTimeout(() => {

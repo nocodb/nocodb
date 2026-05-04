@@ -32,4 +32,3 @@ export * from './Lookup';
 export * from './Links';
 export * from './LTAR/index';
 export * from './Button';
-export * from './Doc';

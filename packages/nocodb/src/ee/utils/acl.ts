@@ -455,14 +455,6 @@ const permissionScopes = {
     'dropPermission',
     'bulkDropPermissions',
 
-    // Doc Field
-    'docFieldGet',
-    'docFieldGetOrCreate',
-    'docFieldUpdate',
-    'docFieldDelete',
-    'docFieldDuplicate',
-    'docFieldRestore',
-
     // SmartText
     'smartTextGetContent',
     'smartTextUpdateContent',
@@ -887,9 +879,6 @@ const rolePermissions:
       documentListAll: true,
       documentGet: true,
 
-      // Doc Field — read-only for viewers
-      docFieldGet: true,
-
       // SmartText — read-only for viewers
       smartTextGetContent: true,
       smartTextGetAttachment: true,
@@ -1004,13 +993,6 @@ const rolePermissions:
       // so that document lifecycle is controlled by project admins.
       documentUpdate: true,
       documentReorder: true,
-
-      // Doc Field — editors can create (lazy) and update field docs
-      docFieldGetOrCreate: true,
-      docFieldUpdate: true,
-      docFieldDelete: true,
-      docFieldDuplicate: true,
-      docFieldRestore: true,
 
       // SmartText — editors can update cell content
       smartTextUpdateContent: true,
@@ -1660,13 +1642,6 @@ const permissionDescriptions: Record<string, string> = {
   documentUpdate: 'update a document',
   documentDelete: 'delete a document',
   documentReorder: 'reorder documents',
-
-  docFieldGet: 'view a doc field document',
-  docFieldGetOrCreate: 'open or create a doc field document',
-  docFieldUpdate: 'update a doc field document',
-  docFieldDelete: 'delete a doc field document',
-  docFieldDuplicate: 'duplicate a doc field document',
-  docFieldRestore: 'restore a deleted doc field document',
 
   smartTextGetContent: 'read SmartText cell content',
   smartTextUpdateContent: 'update SmartText cell content',

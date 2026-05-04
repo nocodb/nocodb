@@ -244,36 +244,6 @@ function isV0Audit(audit: AuditType) {
                 </div>
               </div>
             </div>
-            <div
-              v-else-if="
-                ['DOCUMENT_CREATE', 'DOCUMENT_UPDATE', 'DOCUMENT_DELETE'].includes(audit?.op_type) &&
-                safeJsonParse(audit.details).doc_field_id
-              "
-              class="pl-9"
-            >
-              <div class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight py-2 px-3">
-                <div class="flex items-center gap-2 !text-nc-content-gray-subtle2 text-xs nc-audit-mini-item-header mb-2">
-                  <SmartsheetHeaderVirtualCellIcon :column-meta="{ uidt: 'Doc' }" class="!m-0" />
-                  {{ safeJsonParse(audit.details).doc_field_title }}
-                </div>
-                <div class="!border-none audit-link-container">
-                  <div v-if="audit.op_type === 'DOCUMENT_DELETE'" class="audit-link-removal">
-                    <span class="audit-link-item">{{ safeJsonParse(audit.details).document_title }}</span>
-                  </div>
-                  <template v-else-if="audit.op_type === 'DOCUMENT_UPDATE' && safeJsonParse(audit.details).old_title">
-                    <div class="audit-link-removal">
-                      <span class="audit-link-item">{{ safeJsonParse(audit.details).old_title }}</span>
-                    </div>
-                    <div class="audit-link-addition">
-                      <span class="audit-link-item">{{ safeJsonParse(audit.details).document_title }}</span>
-                    </div>
-                  </template>
-                  <div v-else class="audit-link-addition">
-                    <span class="audit-link-item">{{ safeJsonParse(audit.details).document_title }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
             <template
               v-else-if="
                 ['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE', 'DATA_CASCADE_UPDATE'].includes(audit?.op_type)

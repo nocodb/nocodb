@@ -28,8 +28,6 @@ import { ApiTokenGetOperations } from '~/controllers/internal/modules/ApiTokenGe
 import { ApiTokenPostOperations } from '~/controllers/internal/modules/ApiTokenPost.operations';
 import { BaseTrashGetOperations } from '~/controllers/internal/modules/BaseTrashGet.operations';
 import { BaseTrashPostOperations } from '~/controllers/internal/modules/BaseTrashPost.operations';
-import { DocFieldGetOperations } from '~/controllers/internal/modules/DocFieldGet.operations';
-import { DocFieldPostOperations } from '~/controllers/internal/modules/DocFieldPost.operations';
 import { SmartTextGetOperations } from '~/controllers/internal/modules/SmartTextGet.operations';
 import { SmartTextPostOperations } from '~/controllers/internal/modules/SmartTextPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
@@ -64,8 +62,6 @@ export const InternalApiModules = [
   ApiTokenPostOperations,
   BaseTrashGetOperations,
   BaseTrashPostOperations,
-  DocFieldGetOperations,
-  DocFieldPostOperations,
   SmartTextGetOperations,
   SmartTextPostOperations,
 ];

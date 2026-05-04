@@ -1,7 +1,7 @@
 import { ModelTypes } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
 import DocumentCE from 'src/models/Document';
-import type { DocumentSource, DocumentType, NcContext } from 'nocodb-sdk';
+import type { DocumentType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -13,7 +13,6 @@ import {
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
-import FileReference from '~/models/FileReference';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -117,7 +116,6 @@ export default class Document extends DocumentCE implements DocumentType {
           deleted: false,
           parent_id: parentId,
           ...this.typeCondition,
-          doc_source: 'sidebar',
         },
         orderBy: {
           order: 'asc',
@@ -298,7 +296,6 @@ export default class Document extends DocumentCE implements DocumentType {
           base_id: baseId,
           deleted: false,
           ...this.typeCondition,
-          doc_source: 'sidebar',
         },
         orderBy: {
           order: 'asc',
@@ -381,9 +378,6 @@ export default class Document extends DocumentCE implements DocumentType {
       'has_children',
       'created_by',
       'updated_by',
-      'fk_column_id',
-      'fk_row_id',
-      'doc_source',
     ]);
 
     // Extract content before inserting metadata
@@ -560,28 +554,6 @@ export default class Document extends DocumentCE implements DocumentType {
     }
   }
 
-  /**
-   * Restore a soft-deleted document (set deleted=false).
-   * Used for undo operations on Doc field cells.
-   */
-  public static async restore(
-    context: NcContext,
-    docId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.MODELS,
-      { deleted: false },
-      docId,
-    );
-
-    // Clear cache so next read fetches fresh data
-    const key = `${CacheScope.DOCUMENT}:${docId}`;
-    await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
-  }
-
   private static async cascadeSoftDelete(
     context: NcContext,
     parentId: string,
@@ -745,160 +717,10 @@ export default class Document extends DocumentCE implements DocumentType {
       .where('fk_workspace_id', context.workspace_id)
       .where('deleted', false)
       .where('type', ModelTypes.DOCUMENT)
-      .where('doc_source', 'sidebar')
       .count('id as count')
       .first();
 
     return +(result?.count || 0);
-  }
-
-  /**
-   * Find a field-linked document by column ID and row ID.
-   * Returns the document with content if found, null otherwise.
-   */
-  public static async getByFieldAndRow(
-    context: NcContext,
-    columnId: string,
-    rowId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const doc = await ncMeta.metaGet2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.MODELS,
-      {
-        fk_column_id: columnId,
-        fk_row_id: rowId,
-        doc_source: 'field',
-        deleted: false,
-        ...this.typeCondition,
-      },
-    );
-
-    if (!doc) return null;
-
-    // Fetch content from separate table
-    const contentRow = await Noco.ncDocsContent.metaGet2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.DOC_CONTENT,
-      { fk_doc_id: doc.id },
-      ['content'],
-    );
-    doc.content = contentRow?.content;
-
-    return new Document(this.parseDocument(doc));
-  }
-
-  /**
-   * Create a document linked to a specific field + row.
-   * Used for lazy doc creation when user first edits a Doc field cell.
-   */
-  public static async createForField(
-    context: NcContext,
-    payload: {
-      base_id: string;
-      fk_workspace_id: string;
-      fk_column_id: string;
-      fk_row_id: string;
-      title?: string;
-      content?: Record<string, any>;
-      created_by?: string;
-      updated_by?: string;
-    },
-    ncMeta = Noco.ncMeta,
-  ) {
-    return this.insert(
-      context,
-      {
-        ...payload,
-        doc_source: 'field' as DocumentSource,
-        parent_id: null,
-      },
-      ncMeta,
-    );
-  }
-
-  /**
-   * Batch-check which (columnId, rowId) pairs have a document.
-   * Returns a nested map: columnId → rowId → { id, title }.
-   */
-  public static async listExistenceByColumnsAndRows(
-    context: NcContext,
-    columnIds: string[],
-    rowIds: string[],
-    ncMeta = Noco.ncMeta,
-  ): Promise<Map<string, Map<string, { id: string; title: string }>>> {
-    const result = new Map<string, Map<string, { id: string; title: string }>>();
-    if (!columnIds.length || !rowIds.length) return result;
-
-    const rows = await ncMeta
-      .knexConnection(MetaTable.MODELS)
-      .where('fk_workspace_id', context.workspace_id)
-      .where('base_id', context.base_id)
-      .where('type', ModelTypes.DOCUMENT)
-      .where('doc_source', 'field')
-      .where('deleted', false)
-      .whereIn('fk_column_id', columnIds)
-      .whereIn('fk_row_id', rowIds)
-      .select('id', 'title', 'fk_column_id', 'fk_row_id');
-
-    for (const row of rows) {
-      if (!result.has(row.fk_column_id)) {
-        result.set(row.fk_column_id, new Map());
-      }
-      result.get(row.fk_column_id)!.set(row.fk_row_id, {
-        id: row.id,
-        title: row.title || 'Untitled',
-      });
-    }
-
-    return result;
-  }
-
-  /**
-   * Soft-delete all field-linked documents for a given column.
-   * Called when a Doc column is deleted.
-   */
-  public static async softDeleteByColumn(
-    context: NcContext,
-    columnId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const docs = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.MODELS,
-      {
-        condition: {
-          fk_column_id: columnId,
-          doc_source: 'field',
-          deleted: false,
-          ...this.typeCondition,
-        },
-        fields: ['id'],
-      },
-    );
-
-    const docIds = docs.map((d) => d.id);
-
-    for (const doc of docs) {
-      await ncMeta.metaUpdate(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.MODELS,
-        { deleted: true },
-        doc.id,
-      );
-
-      const key = `${CacheScope.DOCUMENT}:${doc.id}`;
-      await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
-    }
-
-    // Cascade: soft-delete file references and decrement workspace storage
-    if (docIds.length) {
-      await FileReference.bulkDeleteForDocs(context, docIds, ncMeta);
-    }
   }
 
   /**

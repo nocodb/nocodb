@@ -140,14 +140,6 @@ export const OPERATION_SCOPES = {
   documentDelete: 'base',
   documentReorder: 'base',
 
-  // Doc Field (EE-only)
-  docFieldGet: 'base',
-  docFieldGetOrCreate: 'base',
-  docFieldUpdate: 'base',
-  docFieldDelete: 'base',
-  docFieldDuplicate: 'base',
-  docFieldRestore: 'base',
-
   // SmartText (EE-only)
   smartTextGetContent: 'base',
   smartTextUpdateContent: 'base',

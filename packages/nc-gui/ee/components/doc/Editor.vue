@@ -93,7 +93,6 @@ const { batchUploadFiles } = useAttachment()
 const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload()
 
 const { activeDocuments } = storeToRefs(documentsStore)
-const docFieldStore = useDocField()
 
 const hasSubDocuments = computed(
   () =>
@@ -1757,10 +1756,6 @@ const onTitleBlur = () => {
   if (activeDocument.value?.id === doc.value.id && effectiveTitle !== activeDocument.value?.title) {
     activeDocument.value!.title = effectiveTitle
   }
-  // Sync title to grid cell on blur (covers cases where blur fires before debounce)
-  if (props.embedded && docFieldStore) {
-    docFieldStore.updateDocTitle(effectiveTitle)
-  }
 
   // Compare against last-saved title to decide whether to persist.
   // We must compare against lastSavedTitle (not doc.value.title) because
@@ -1783,10 +1778,6 @@ const debouncedTitleSync = useDebounceFn(() => {
   // Guard: only sync to store if activeDocument still matches the editor's doc
   if (activeDocument.value?.id === doc.value.id && effectiveTitle !== activeDocument.value?.title) {
     activeDocument.value!.title = effectiveTitle
-  }
-  // Sync title to grid cell when editing a doc-field document
-  if (props.embedded && docFieldStore) {
-    docFieldStore.updateDocTitle(effectiveTitle)
   }
   // Trigger a save if the title differs from what was last persisted
   if (effectiveTitle !== lastSavedTitle.value) {

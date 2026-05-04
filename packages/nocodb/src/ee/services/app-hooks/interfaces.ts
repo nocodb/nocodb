@@ -438,7 +438,6 @@ export interface DocumentCreateEvent extends NcBaseEvent {
 export interface DocumentUpdateEvent extends NcBaseEvent {
   doc: DocumentType;
   user: UserType;
-  oldTitle?: string;
 }
 
 export interface DocumentDeleteEvent extends NcBaseEvent {

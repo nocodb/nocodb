@@ -1334,23 +1334,16 @@ export interface DocumentCreatePayload {
   document_title: string;
   document_id: string;
   parent_id?: string | null;
-  doc_field_title?: string;
-  doc_field_id?: string;
 }
 
 export interface DocumentUpdatePayload {
   document_title: string;
   document_id: string;
-  doc_field_title?: string;
-  doc_field_id?: string;
-  old_title?: string;
 }
 
 export interface DocumentDeletePayload {
   document_title: string;
   document_id: string;
-  doc_field_title?: string;
-  doc_field_id?: string;
 }
 
 export interface DocumentCommentCreatePayload {

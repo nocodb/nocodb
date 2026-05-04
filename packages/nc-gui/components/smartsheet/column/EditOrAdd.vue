@@ -256,10 +256,6 @@ const uiFilters = (t: UiTypesType) => {
   // AutoNumber is only supported for PostgreSQL databases
   const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
 
-  // Doc field is disabled scaffolding — hidden from the column type picker.
-  // Existing Doc columns keep their type during edit via the early-return at the top of this function.
-  const showDoc = t.name !== UITypes.Doc
-
   return (
     systemFiledNotEdited &&
     isVirtualEditAllowed &&
@@ -271,8 +267,7 @@ const uiFilters = (t: UiTypesType) => {
     showLTAR &&
     formulaColumnTypeValid &&
     showUUID &&
-    showAutoNumber &&
-    showDoc
+    showAutoNumber
   )
 }
 

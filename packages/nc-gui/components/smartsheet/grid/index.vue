@@ -41,10 +41,6 @@ const tableRef = ref<typeof InfiniteTable>()
 
 useProvideViewAggregate(view, meta, xWhere, reloadVisibleDataHook)
 
-const docFieldStore = useProvideDocField()
-
-const { isOpen: isDocFieldPanelOpen, isPinned: isDocFieldPinned, rowNavigator: docRowNavigator } = docFieldStore
-
 const smartTextStore = useProvideSmartText()
 
 const { isOpen: isSmartTextPanelOpen, rowNavigator: smartTextRowNavigator } = smartTextStore
@@ -92,19 +88,7 @@ const {
   groupDataCache,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
-// Wire up doc field panel row navigation
-docRowNavigator.value = {
-  getRow: (index: number) => {
-    const row = cachedRows.value.get(index)
-    if (!row) return null
-    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-    if (!rowId) return null
-    return { rowId, rowData: row.row }
-  },
-  totalRows: () => totalRows.value,
-}
-
-// SmartText panel uses the same row navigation contract.
+// SmartText panel row navigation contract.
 smartTextRowNavigator.value = {
   getRow: (index: number) => {
     const row = cachedRows.value.get(index)
@@ -637,7 +621,6 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
     </Suspense>
     </div>
 
-    <SmartsheetGridDocFieldPanel />
     <SmartsheetGridSmartTextPanel />
   </div>
 </template>

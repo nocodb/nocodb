@@ -88,7 +88,7 @@ export function useKeyboardNavigation({
     // Skip keyboard handling during IME composition (e.g. Japanese, Chinese, Korean input)
     if (e.isComposing) return
 
-    if ((e.target as HTMLElement)?.closest?.('.nc-doc-field-panel,.nc-smart-text-panel')) return
+    if ((e.target as HTMLElement)?.closest?.('.nc-smart-text-panel')) return
     if (isViewSearchActive() || isCreateViewActive() || isActiveElementInsideScriptPane() || isActiveElementInsideExtension())
       return
     const activeDropdownEl = document.querySelector(
@@ -166,9 +166,6 @@ export function useKeyboardNavigation({
         const res = await handleCellKeyDown({ e, column, row, pk, value, path: groupPath })
 
         if (res) {
-          if (e.key === 'Delete' || e.key === 'Backspace') {
-            requestAnimationFrame(triggerReRender)
-          }
           return
         }
       }

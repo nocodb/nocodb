@@ -37,7 +37,7 @@ import {
   repopulateCreateTableSystemColumns,
 } from '~/helpers/tableHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
-import { Base, Column, Document, Model, ModelRoleVisibility, Permission } from '~/models';
+import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import type { OperationSource } from '~/helpers/columnHelpers';
@@ -501,12 +501,6 @@ export class TablesService {
           },
           ncMeta,
         );
-      }
-
-      // Soft-delete documents for all Doc field columns in this table
-      const docColumns = table.columns.filter((c) => c.uidt === UITypes.Doc);
-      for (const col of docColumns) {
-        await Document.softDeleteByColumn(context, col.id, ncMeta);
       }
 
       const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base, ncMeta);

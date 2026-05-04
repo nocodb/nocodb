@@ -1127,9 +1127,6 @@ export class MySqlDBQueryClient
           }
         }
         break;
-      case UITypes.Doc:
-        // Doc is a virtual column — data lives in nc_docs_v2, not the row table
-        break;
       case UITypes.Button:
         {
           const model: Model = await column.getModel(context);

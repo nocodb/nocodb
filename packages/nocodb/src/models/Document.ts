@@ -1,4 +1,4 @@
-import type { DocumentSource, DocumentType } from 'nocodb-sdk';
+import type { DocumentType } from 'nocodb-sdk';
 
 export default class Document implements DocumentType {
   id: string;
@@ -17,9 +17,6 @@ export default class Document implements DocumentType {
   created_at: string;
   updated_at: string;
   comment_count?: number;
-  fk_column_id?: string;
-  fk_row_id?: string;
-  doc_source?: DocumentSource;
 
   constructor(doc: Document | DocumentType) {
     Object.assign(this, doc);
@@ -63,23 +60,5 @@ export default class Document implements DocumentType {
 
   public static async countForBase(..._args): Promise<number> {
     return 0;
-  }
-
-  public static async getByFieldAndRow(..._args) {
-    return null;
-  }
-
-  public static async createForField(..._args) {
-    return null;
-  }
-
-  public static async softDeleteByColumn(..._args) {
-    return;
-  }
-
-  public static async listExistenceByColumnsAndRows(
-    ..._args
-  ): Promise<Map<string, Map<string, { id: string; title: string }>>> {
-    return new Map();
   }
 }

@@ -42,7 +42,12 @@ on:
       NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM:
         required: false
   pull_request:
-    types: [labeled]
+    types: [labeled, synchronize]
+    paths:
+      - "packages/nocodb-sdk/**"
+      - "packages/nc-gui/**"
+      - "packages/nocodb/**"
+      - "packages/noco-integrations/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

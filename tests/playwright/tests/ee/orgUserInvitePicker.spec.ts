@@ -177,6 +177,47 @@ test.describe('Org-user invite picker — admin', () => {
 
     await expect(inviteModal.getByText(STUB_USERS[1].email, { exact: true })).toBeVisible();
   });
+
+  test('end-to-end: pick org user, set role, submit, verify invite landed', async ({ page }) => {
+    // Real seeded test user — exists in the backend, so the invite call below
+    // hits a real persisted account rather than auto-creating cruft.
+    const realUser = {
+      id: 'usr_test_seeded_1',
+      email: 'user-1@nocodb.com',
+      display_name: 'User One',
+    };
+
+    const capture = { hits: 0 } as { excludeWorkspaceId?: string; excludeBaseId?: string; hits: number };
+    await stubInvitableUsers(page, [realUser], capture);
+
+    const inviteModal = await openWorkspaceInviteDlg();
+    const input = inviteModal.locator('input[id="email"]');
+    const picker = inviteModal.locator('[data-testid="nc-invite-org-user-picker"]');
+
+    // Pick user-1 from the dropdown.
+    await input.click();
+    await expect(picker).toBeVisible();
+    await picker.locator(`[data-testid="nc-invite-org-user-${realUser.email}"]`).click();
+    await expect(inviteModal.getByText(realUser.email, { exact: true })).toBeVisible();
+
+    // Set role to viewer (default is no-access, which can't be invited).
+    await inviteModal.locator('.nc-roles-selector').first().click();
+    const roleMenu = page.locator('.nc-role-selector-dropdown:visible');
+    await roleMenu.locator('.nc-role-select-workspace-level-viewer:visible').first().click();
+
+    // allow the invite button to flip enabled
+    await page.waitForTimeout(300);
+
+    // Submit — real backend call, not stubbed.
+    await inviteModal.locator('.nc-invite-btn').click();
+
+    // Toast confirms the backend accepted the invite.
+    await expect(page.locator('.ant-message').getByText(/Invitation sent successfully/i)).toBeVisible();
+
+    // Dialog closes, and the invitee shows up in the workspace members list.
+    await inviteModal.waitFor({ state: 'hidden' });
+    await expect(page.getByText(realUser.email).first()).toBeVisible();
+  });
 });
 
 test.describe('Org-user invite picker — non-admin', () => {

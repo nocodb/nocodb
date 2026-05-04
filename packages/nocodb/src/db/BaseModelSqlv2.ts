@@ -200,6 +200,16 @@ class DataLoaderWithArgs<K, V> extends DataLoader<K, V> {
   args?: RelationLoaderArgs;
 }
 
+// Stable key for `fetchDisplayValueMap`. Two LTAR columns can resolve to the
+// same (model, row) but pull different display columns (each LTAR can override
+// `fk_display_value_column_id`); without the column id in the key the second
+// `set()` would silently overwrite the first.
+export const displayValueMapKey = (props: {
+  model: Model;
+  id: any;
+  displayColumn?: Column;
+}): string => `${props.model.id}:${props.id}:${props.displayColumn?.id ?? ''}`;
+
 /**
  * Base class for models
  *
@@ -553,7 +563,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (!props.length) return dvMap;
     const values = await this.readOnlyPrimariesByPkFromModel(props);
     for (let i = 0; i < props.length; i++) {
-      dvMap.set(`${props[i].model.id}:${props[i].id}`, values[i]);
+      dvMap.set(displayValueMapKey(props[i]), values[i]);
     }
     return dvMap;
   }
@@ -3344,6 +3354,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           // Batch-fetch all display values into a KV map. Thread the LTAR's
           // custom display column (fk_display_value_column_id) for the ref
           // side so audit entries render the overridden value, matching UI.
+          // Pre-resolve display column per unique (columnId, refModelId) so
+          // we don't pay N+1 inside the loop.
+          const refDisplayColCache = new Map<string, Column | undefined>();
+          for (const entry of resolvedEntries) {
+            if (!entry.columnId) continue;
+            const cacheKey = `${entry.columnId}:${entry.refModel.id}`;
+            if (refDisplayColCache.has(cacheKey)) continue;
+            refDisplayColCache.set(
+              cacheKey,
+              await this.resolveLtarDisplayCol(
+                entry.columnId,
+                entry.refModel,
+              ),
+            );
+          }
           const dvProps: {
             model: Model;
             id: any;
@@ -3354,9 +3379,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             dvProps.push({
               model: entry.refModel,
               id: entry.refRowId,
-              displayColumn: await this.resolveLtarDisplayCol(
-                entry.columnId,
-                entry.refModel,
+              displayColumn: refDisplayColCache.get(
+                `${entry.columnId}:${entry.refModel.id}`,
               ),
             });
           }
@@ -3364,9 +3388,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           // Write audits with per-entry isolation
           for (const entry of resolvedEntries) {
-            const displayValue = dvMap.get(`${entry.model.id}:${entry.rowId}`);
+            const displayValue = dvMap.get(
+              displayValueMapKey({ model: entry.model, id: entry.rowId }),
+            );
             const refDisplayValue = dvMap.get(
-              `${entry.refModel.id}:${entry.refRowId}`,
+              displayValueMapKey({
+                model: entry.refModel,
+                id: entry.refRowId,
+                displayColumn: refDisplayColCache.get(
+                  `${entry.columnId}:${entry.refModel.id}`,
+                ),
+              }),
             );
 
             try {
@@ -6015,6 +6047,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // Batch-fetch missing display values into a KV map. Thread the LTAR's
       // custom display column (fk_display_value_column_id) for the ref side
       // so audit entries render the overridden value, matching the UI.
+      // Pre-resolve display column per unique (columnId, refModelId) so we
+      // don't pay N+1 inside the loop.
+      const refDisplayColCache = new Map<string, Column | undefined>();
+      for (const obj of auditObjs) {
+        if (!obj.columnId || !obj.refModel) continue;
+        const cacheKey = `${obj.columnId}:${obj.refModel.id}`;
+        if (refDisplayColCache.has(cacheKey)) continue;
+        refDisplayColCache.set(
+          cacheKey,
+          await this.resolveLtarDisplayCol(obj.columnId, obj.refModel),
+        );
+      }
       const missingDvProps: {
         model: Model;
         id: any;
@@ -6027,9 +6071,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           missingDvProps.push({
             model: obj.refModel,
             id: obj.refRowId,
-            displayColumn: await this.resolveLtarDisplayCol(
-              obj.columnId,
-              obj.refModel,
+            displayColumn: refDisplayColCache.get(
+              `${obj.columnId}:${obj.refModel.id}`,
             ),
           });
         }
@@ -6038,10 +6081,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       for (const obj of auditObjs) {
         const displayValue =
-          obj.displayValue ?? dvMap.get(`${obj.model.id}:${obj.rowId}`);
+          obj.displayValue ??
+          dvMap.get(displayValueMapKey({ model: obj.model, id: obj.rowId }));
         const refDisplayValue =
           obj.refDisplayValue ??
-          dvMap.get(`${obj.refModel.id}:${obj.refRowId}`);
+          dvMap.get(
+            displayValueMapKey({
+              model: obj.refModel,
+              id: obj.refRowId,
+              displayColumn: refDisplayColCache.get(
+                `${obj.columnId}:${obj.refModel.id}`,
+              ),
+            }),
+          );
 
         const opType =
           obj.opSubType === AuditOperationSubTypes.LINK_RECORD

@@ -8,6 +8,7 @@ import {
   RelationTypes,
 } from 'nocodb-sdk';
 import { extractCorrespondingLinkColumn } from './BaseModelSqlv2/add-remove-links';
+import { displayValueMapKey } from './BaseModelSqlv2';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -501,9 +502,19 @@ export class RelationManager {
 
     for (const pair of removedPairs) {
       const parentDisplayValue = dvMap.get(
-        `${parentTable.id}:${pair.parentFk}`,
+        displayValueMapKey({
+          model: parentTable,
+          id: pair.parentFk,
+          displayColumn: parentDisplayColumn,
+        }),
       );
-      const childDisplayValue = dvMap.get(`${childTable.id}:${pair.childFk}`);
+      const childDisplayValue = dvMap.get(
+        displayValueMapKey({
+          model: childTable,
+          id: pair.childFk,
+          displayColumn: childDisplayColumn,
+        }),
+      );
 
       this.auditUpdateObj.push({
         rowId: pair.parentFk,
@@ -1523,25 +1534,34 @@ export class RelationManager {
         )
       : null;
 
-    const [childRelatedPkValue] =
-      await baseModel.readOnlyPrimariesByPkFromModel([
-        {
-          model: childTable,
-          id: childId,
-          displayColumn: await this.getDisplayColForModel(childTable),
-        },
-      ]);
+    // Re-fetch the old parent's display value via readOnlyPrimariesByPkFromModel
+    // rather than reading from prevData[column.title] — the upstream readByPk
+    // that produced prevData doesn't thread fk_display_value_column_id, so the
+    // nested LTAR object only has pk+pv and never carries the override column.
+    const childDisplayColumn = await this.getDisplayColForModel(childTable);
+    const parentDisplayColumn = oldChildRowId
+      ? await this.getDisplayColForModel(parentTable)
+      : undefined;
+    const dvProps = [
+      {
+        model: childTable,
+        id: childId,
+        displayColumn: childDisplayColumn,
+      },
+      ...(oldChildRowId
+        ? [
+            {
+              model: parentTable,
+              id: oldChildRowId,
+              displayColumn: parentDisplayColumn,
+            },
+          ]
+        : []),
+    ];
+    const [childRelatedPkValue, oldParentDisplayValue = null] =
+      await baseModel.readOnlyPrimariesByPkFromModel(dvProps);
 
     if (oldChildRowId) {
-      // Honor the LTAR's custom display value override when reading the
-      // previous parent display value from prevData — parentTable.displayValue
-      // is always the PV, which is wrong when the column has an override set.
-      const parentDisplayCol = await this.getDisplayColForModel(parentTable);
-      const parentDisplayTitle =
-        parentDisplayCol?.title ?? parentTable.displayValue.title;
-      const oldParentDisplayValue =
-        prevData[column.title]?.[parentDisplayTitle] ?? null;
-
       this.auditUpdateObj.push({
         rowId: parentId,
         refRowId: oldChildRowId as string,

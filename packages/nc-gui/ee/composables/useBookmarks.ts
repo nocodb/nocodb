@@ -244,15 +244,11 @@ export const useBookmarks = createSharedComposable(() => {
       return isBookmarkedByCheck(targetType, targetId, meta)
     }
 
-    return bookmarks.value.some(
-      (b) => b.target_type === targetType && b.target_id === targetId,
-    )
+    return bookmarks.value.some((b) => b.target_type === targetType && b.target_id === targetId)
   }
 
   function getBookmark(targetType: string, targetId: string): BookmarkType | undefined {
-    return bookmarks.value.find(
-      (b) => b.target_type === targetType && b.target_id === targetId,
-    )
+    return bookmarks.value.find((b) => b.target_type === targetType && b.target_id === targetId)
   }
 
   function resolveBookmarkRoute(bookmark: BookmarkType): RouteLocationRaw | null {
@@ -274,24 +270,23 @@ export const useBookmarks = createSharedComposable(() => {
       case 'view':
         if (meta.workspace_id && meta.base_id && meta.table_id) {
           return {
-            path: `/${meta.workspace_id}/${meta.base_id}/${meta.table_id}`,
-            query: { viewId: bookmark.target_id },
+            path: `/${meta.workspace_id}/${meta.base_id}/${meta.table_id}/${bookmark.target_id}`,
           }
         }
         return null
       case 'document':
         if (meta.workspace_id && meta.base_id) {
-          return { path: `/${meta.workspace_id}/${meta.base_id}/doc/${bookmark.target_id}` }
+          return { path: `/${meta.workspace_id}/${meta.base_id}/docs/${bookmark.target_id}` }
         }
         return null
       case 'workflow':
         if (meta.workspace_id && meta.base_id) {
-          return { path: `/${meta.workspace_id}/${meta.base_id}/automation/${bookmark.target_id}` }
+          return { path: `/${meta.workspace_id}/${meta.base_id}/workflows/${bookmark.target_id}` }
         }
         return null
       case 'script':
         if (meta.workspace_id && meta.base_id) {
-          return { path: `/${meta.workspace_id}/${meta.base_id}/automation/script/${bookmark.target_id}` }
+          return { path: `/${meta.workspace_id}/${meta.base_id}/scripts/${bookmark.target_id}` }
         }
         return null
       default:
@@ -326,48 +321,57 @@ export const useBookmarks = createSharedComposable(() => {
     return collapsedGroupIds.value.has(groupId)
   }
 
-  function calcGroupOrderForIndex(targetIndex: number, excludeId?: string): number {
-    const items = [...groups.value].filter((g) => g.id !== excludeId).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-
-    if (items.length === 0) return 1
-    if (targetIndex <= 0) return (items[0].order ?? 0) / 2
-    if (targetIndex >= items.length) return (items[items.length - 1].order ?? 0) + 1
-
-    const prev = items[targetIndex - 1].order ?? 0
-    const next = items[targetIndex].order ?? 0
-    return (prev + next) / 2
+  /**
+   * Reindex helper — assigns clean sequential integer orders.
+   * Solves the "everyone has order=0" / "fractional collisions" problem:
+   * existing data may have many duplicate or near-duplicate order values
+   * (drift from repeated midpoint math). Each reorder normalizes the affected
+   * list to 1..N so subsequent reorders behave reliably.
+   *
+   * Returns the optimistic update objects so callers can fire the API calls
+   * in parallel and roll back if something fails.
+   */
+  function buildReindexUpdates<T extends { id?: string; order?: number }>(
+    items: T[],
+  ): Array<{ item: T; nextOrder: number; prevOrder: number | undefined }> {
+    const updates: Array<{ item: T; nextOrder: number; prevOrder: number | undefined }> = []
+    items.forEach((it, idx) => {
+      const nextOrder = idx + 1
+      if (it.order !== nextOrder) {
+        updates.push({ item: it, nextOrder, prevOrder: it.order })
+        it.order = nextOrder
+      }
+    })
+    return updates
   }
 
   async function reorderGroup(groupId: string, targetIndex: number) {
     const group = groups.value.find((g) => g.id === groupId)
     if (!group) return
+    // Ungrouped is pinned first; never reorder it
+    if (group.name === 'Ungrouped') return
 
-    const prevOrder = group.order
-    const newOrder = calcGroupOrderForIndex(targetIndex, groupId)
+    // Build the list as the user wants to see it, excluding Ungrouped
+    // (Ungrouped stays at index 0 via orderedGroups sort logic).
+    const reorderable = orderedGroups.value.filter((g) => g.name !== 'Ungrouped' && g.id !== groupId)
+    // targetIndex is computed against orderedGroups (which has Ungrouped at 0).
+    // Convert to an index inside `reorderable` by shifting past the Ungrouped slot.
+    const ungroupedExists = groups.value.some((g) => g.name === 'Ungrouped')
+    const finalIdx = Math.max(0, Math.min(reorderable.length, ungroupedExists ? targetIndex - 1 : targetIndex))
 
-    // Optimistic update
-    group.order = newOrder
+    const desired = [...reorderable.slice(0, finalIdx), group, ...reorderable.slice(finalIdx)]
+
+    // Reindex everyone to clean integers
+    const updates = buildReindexUpdates(desired)
+    if (updates.length === 0) return
 
     try {
-      await $api.bookmark.groupUpdate(groupId, { order: newOrder } as any)
+      await Promise.all(updates.map((u) => $api.bookmark.groupUpdate(u.item.id!, { order: u.nextOrder } as any)))
     } catch (e: any) {
-      group.order = prevOrder
+      // Roll back optimistic updates
+      updates.forEach((u) => (u.item.order = u.prevOrder))
       message.error(await extractSdkResponseErrorMsg(e))
     }
-  }
-
-  function calcOrderForIndex(groupId: string, targetIndex: number, excludeId?: string): number {
-    const items = bookmarks.value
-      .filter((b) => b.fk_group_id === groupId && b.id !== excludeId)
-      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-
-    if (items.length === 0) return 1
-    if (targetIndex <= 0) return (items[0].order ?? 0) / 2 || 0.5
-    if (targetIndex >= items.length) return (items[items.length - 1].order ?? 0) + 1
-
-    const prev = items[targetIndex - 1].order ?? 0
-    const next = items[targetIndex].order ?? 0
-    return (prev + next) / 2
   }
 
   async function moveBookmarkToGroup(bookmarkId: string, targetGroupId: string, targetIndex?: number) {
@@ -377,21 +381,32 @@ export const useBookmarks = createSharedComposable(() => {
     const prevGroupId = bm.fk_group_id
     const prevOrder = bm.order
 
-    const newOrder = targetIndex != null ? calcOrderForIndex(targetGroupId, targetIndex) : undefined
-
-    // Optimistic update
+    // Optimistic group change first
     bm.fk_group_id = targetGroupId
-    if (newOrder != null) bm.order = newOrder
+
+    // Build the desired final order in the destination group
+    const inTarget = bookmarks.value
+      .filter((b) => b.fk_group_id === targetGroupId && b.id !== bookmarkId)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    const insertAt = targetIndex != null ? Math.max(0, Math.min(inTarget.length, targetIndex)) : inTarget.length
+    const desired = [...inTarget.slice(0, insertAt), bm, ...inTarget.slice(insertAt)]
+
+    const updates = buildReindexUpdates(desired)
 
     try {
-      const update: any = { fk_group_id: targetGroupId }
-      if (newOrder != null) update.order = newOrder
-      await $api.bookmark.update(bookmarkId, update)
+      // The moved bookmark gets group_id + order; siblings only get order.
+      await $api.bookmark.update(bookmarkId, { fk_group_id: targetGroupId, order: bm.order } as any)
+      await Promise.all(
+        updates
+          .filter((u) => u.item.id !== bookmarkId)
+          .map((u) => $api.bookmark.update(u.item.id!, { order: u.nextOrder } as any)),
+      )
       $e('a:bookmark:move', { target_type: bm.target_type })
     } catch (e: any) {
-      // Revert on failure
+      // Revert: group + all reindexed siblings
       bm.fk_group_id = prevGroupId
       bm.order = prevOrder
+      updates.forEach((u) => (u.item.order = u.prevOrder))
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -400,16 +415,20 @@ export const useBookmarks = createSharedComposable(() => {
     const bm = bookmarks.value.find((b) => b.id === bookmarkId)
     if (!bm) return
 
-    const prevOrder = bm.order
-    const newOrder = calcOrderForIndex(groupId, targetIndex, bookmarkId)
+    // Reindex the whole group's bookmarks to clean integer orders
+    const inGroup = bookmarks.value
+      .filter((b) => b.fk_group_id === groupId && b.id !== bookmarkId)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    const insertAt = Math.max(0, Math.min(inGroup.length, targetIndex))
+    const desired = [...inGroup.slice(0, insertAt), bm, ...inGroup.slice(insertAt)]
 
-    // Optimistic update
-    bm.order = newOrder
+    const updates = buildReindexUpdates(desired)
+    if (updates.length === 0) return
 
     try {
-      await $api.bookmark.update(bookmarkId, { order: newOrder } as any)
+      await Promise.all(updates.map((u) => $api.bookmark.update(u.item.id!, { order: u.nextOrder } as any)))
     } catch (e: any) {
-      bm.order = prevOrder
+      updates.forEach((u) => (u.item.order = u.prevOrder))
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }

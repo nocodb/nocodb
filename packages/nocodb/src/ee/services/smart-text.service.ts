@@ -159,6 +159,26 @@ export class SmartTextService extends SmartTextServiceCE {
       }
     }
 
+    // Stale PM: when markdown was rewritten via grid (e.g. cell-to-cell paste
+    // or data API update), the cached PM in nc_row_meta still reflects the
+    // previous content. Markdown is authoritative — discard the stale PM so
+    // the lazy backfill below regenerates it from the current markdown.
+    // Compare the PM's serialized markdown against the cell's markdown; a
+    // mismatch means they diverged.
+    if (!isMarkdownEmpty && pm) {
+      try {
+        const pmMarkdown = prosemirrorToMarkdown(pm).trim();
+        if (pmMarkdown !== (markdown as string).trim()) {
+          pm = null;
+        }
+      } catch (e) {
+        this.logger.warn(
+          `PM↔markdown sync check failed for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,
+        );
+        pm = null;
+      }
+    }
+
     // Lazy backfill: if PM JSON is missing but markdown exists, convert and
     // persist. Run FileReference reconciliation too — markdown pasted from
     // another cell still references storage paths that need a fresh

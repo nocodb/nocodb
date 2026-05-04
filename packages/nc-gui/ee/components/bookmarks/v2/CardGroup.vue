@@ -132,16 +132,11 @@ function handleDrop() {
     @drop.prevent="handleDrop"
   >
     <!-- Header — right-click on row opens same menu as kebab -->
-    <div
-      class="nc-v2-card-h group"
-      @click="onToggleCollapse"
-      @contextmenu.prevent="ctxMenuRef?.open()"
-    >
+    <div class="nc-v2-card-h group" @click="onToggleCollapse" @contextmenu.prevent="ctxMenuRef?.open()">
       <GeneralIcon
         :icon="isCollapsed ? 'ncFolderClosed' : 'ncFolderOpen'"
         class="nc-v2-card-folder-icon"
         :style="iconColor ? { color: iconColor } : undefined"
-        @click.stop="onToggleCollapse"
       />
 
       <a-input
@@ -156,11 +151,8 @@ function handleDrop() {
         @blur="saveRename"
         @click.stop
       />
-      <div v-else class="nc-v2-card-name-wrap" @click="onToggleCollapse">
-        <NcTooltip
-          show-on-truncate-only
-          :attrs="{ class: 'nc-v2-card-name truncate block' }"
-        >
+      <div v-else class="nc-v2-card-name-wrap">
+        <NcTooltip show-on-truncate-only :attrs="{ class: 'nc-v2-card-name truncate block' }">
           {{ group.name }}
         </NcTooltip>
       </div>

@@ -16,6 +16,9 @@ import Model from '~/models/Model';
 import View from '~/models/View';
 import Workspace from '~/ee/models/Workspace';
 import WorkspaceUser from '~/ee/models/WorkspaceUser';
+import Document from '~/ee/models/Document';
+import Workflow from '~/ee/models/Workflow';
+import Script from '~/ee/models/Script';
 import { NcConcurrent } from '~/utils/NcConcurrent';
 import { parseMetaProp } from '~/utils/modelUtils';
 
@@ -327,18 +330,50 @@ export class BookmarkService {
         }
         break;
       }
-      case 'table':
-      case 'document':
-      case 'workflow':
-      case 'script': {
+      case 'table': {
         const model = await Model.get(context, targetId);
         if (!model) {
           NcError.get(context).badRequest('Target not found');
         }
-
         const baseUser = await BaseUser.get(
           { ...context, base_id: model.base_id } as NcContext,
           model.base_id!,
+          userId,
+        );
+        if (!baseUser?.roles && !(baseUser as any)?.workspace_roles) {
+          NcError.get(context).badRequest(
+            'You do not have access to this item',
+          );
+        }
+        break;
+      }
+      case 'document':
+      case 'workflow':
+      case 'script': {
+        // Verify the target exists. Each type has its own model class.
+        // Model.get won't work for documents (xcCondition restricts to
+        // table|view) and workflows/scripts live in nc_automations entirely.
+        let target: { base_id?: string } | null = null;
+        if (targetType === 'document') {
+          target = await Document.get(context, targetId);
+        } else if (targetType === 'workflow') {
+          target = await Workflow.get(context, targetId);
+        } else if (targetType === 'script') {
+          target = await Script.get(context, targetId);
+        }
+
+        if (!target) {
+          NcError.get(context).badRequest('Target not found');
+        }
+
+        const baseId = target!.base_id || context.base_id;
+        if (!baseId) {
+          NcError.get(context).badRequest('Missing base_id for target');
+        }
+
+        const baseUser = await BaseUser.get(
+          { ...context, base_id: baseId } as NcContext,
+          baseId!,
           userId,
         );
         if (!baseUser?.roles && !(baseUser as any)?.workspace_roles) {
@@ -447,7 +482,27 @@ export class BookmarkService {
               }
               break;
             }
-            // document, workflow, script use static icons — just refresh title
+            case 'document': {
+              const doc = await Document.get(ctx, bm.target_id);
+              if (doc) {
+                resolvedTitle = doc.title;
+              }
+              break;
+            }
+            case 'workflow': {
+              const workflow = await Workflow.get(ctx, bm.target_id);
+              if (workflow) {
+                resolvedTitle = workflow.title;
+              }
+              break;
+            }
+            case 'script': {
+              const script = await Script.get(ctx, bm.target_id);
+              if (script) {
+                resolvedTitle = script.title;
+              }
+              break;
+            }
             default:
               break;
           }

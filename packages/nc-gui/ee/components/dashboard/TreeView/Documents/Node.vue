@@ -555,7 +555,7 @@ function onStopEdit() {
               <BookmarksMenuAction
                 target-type="document"
                 :target-id="doc.id!"
-                :meta="{ workspace_id: activeWorkspaceId.value, base_id: base.value?.id || doc.base_id }"
+                :meta="{ workspace_id: activeWorkspaceId, base_id: base?.id || doc.base_id }"
               />
               <template v-if="isUIAllowed('documentDelete')">
                 <NcDivider />

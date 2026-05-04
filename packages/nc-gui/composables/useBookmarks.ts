@@ -11,6 +11,7 @@ export const useBookmarks = createSharedComposable(() => {
   async function loadBookmarkCheck() {}
   async function addBookmark(_data: any) {}
   async function removeBookmark(_id: string) {}
+  async function removeBookmarkByTarget(_targetType: string, _targetId: string, _meta?: Record<string, any>) {}
   async function updateBookmark(_id: string, _data: any) {}
   async function addGroup(_data: any) {}
   async function removeGroup(_id: string) {}
@@ -32,6 +33,7 @@ export const useBookmarks = createSharedComposable(() => {
     loadBookmarkCheck,
     addBookmark,
     removeBookmark,
+    removeBookmarkByTarget,
     updateBookmark,
     addGroup,
     removeGroup,

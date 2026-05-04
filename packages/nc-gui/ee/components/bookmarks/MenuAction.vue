@@ -15,18 +15,15 @@ const { targetType, targetId, meta } = toRefs(props)
 
 const { blockBookmarks } = useEeConfig()
 
-const { isBookmarked, addBookmark, removeBookmark, getBookmark } = useBookmarks()
-
-const { t } = useI18n()
+const { isBookmarked, addBookmark, removeBookmarkByTarget } = useBookmarks()
 
 const bookmarked = computed(() => isBookmarked(targetType.value, targetId.value, meta.value))
 
-function onClick() {
-  const bm = getBookmark(targetType.value, targetId.value)
-  if (bm) {
-    removeBookmark(bm.id!)
+async function onClick() {
+  if (bookmarked.value) {
+    await removeBookmarkByTarget(targetType.value, targetId.value, meta.value)
   } else {
-    addBookmark({
+    await addBookmark({
       target_type: targetType.value,
       target_id: targetId.value,
       meta: meta.value,

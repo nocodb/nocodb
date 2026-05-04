@@ -251,6 +251,25 @@ export const useBookmarks = createSharedComposable(() => {
     return bookmarks.value.find((b) => b.target_type === targetType && b.target_id === targetId)
   }
 
+  /**
+   * Remove a bookmark by its target (works even when `bookmarks.value` hasn't been loaded yet —
+   * `isBookmarked` knows a bookmark exists via the eagerly-loaded check map but `getBookmark`
+   * needs the full list to find the id).
+   */
+  async function removeBookmarkByTarget(targetType: string, targetId: string, meta?: Record<string, any>) {
+    let bm = getBookmark(targetType, targetId)
+    if (!bm) {
+      await loadBookmarks()
+      bm = getBookmark(targetType, targetId)
+    }
+    if (bm) {
+      await removeBookmark(bm.id!)
+    } else {
+      // Not in our list — clear it from the check map anyway so UI stays consistent
+      setBookmarkCheck(targetType, targetId, meta, false)
+    }
+  }
+
   function resolveBookmarkRoute(bookmark: BookmarkType): RouteLocationRaw | null {
     const meta = bookmark.meta ?? {}
 
@@ -447,6 +466,7 @@ export const useBookmarks = createSharedComposable(() => {
     loadBookmarkCheck,
     addBookmark,
     removeBookmark,
+    removeBookmarkByTarget,
     updateBookmark,
     addGroup,
     removeGroup,

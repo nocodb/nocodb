@@ -35,21 +35,27 @@ export const usePermissionSelector = (
 
   const { permissionsByEntity } = usePermissions()
 
+  const { blockTableVisibility } = useEeConfig()
+
   // Use centralized permission options from SDK
   const allPermissionOptions = PermissionOptions
 
   // Filter options based on minimum role requirement
   const permissionOptions = computed(() => {
     const minimumRole = config.value.minimumRole
-    if (!minimumRole) return allPermissionOptions
-
-    const roleHierarchy = ['viewer', 'editor', 'creator', 'owner']
-    const minRoleIndex = roleHierarchy.indexOf(minimumRole)
 
     // Check if this is a visibility permission (table or document)
     const isTableVisibility = config.value.permission === PermissionKey.TABLE_VISIBILITY
     const isDocVisibility = config.value.permission === PermissionKey.DOCUMENT_VISIBILITY
     const isVisibilityPermission = isTableVisibility || isDocVisibility
+
+    // Hide all options when table visibility is blocked by the active plan
+    if (isTableVisibility && blockTableVisibility.value) return []
+
+    if (!minimumRole) return allPermissionOptions
+
+    const roleHierarchy = ['viewer', 'editor', 'creator', 'owner']
+    const minRoleIndex = roleHierarchy.indexOf(minimumRole)
 
     return allPermissionOptions.filter((option) => {
       // For record/edit permissions, exclude Viewers & up, Commenters & up, and Everyone

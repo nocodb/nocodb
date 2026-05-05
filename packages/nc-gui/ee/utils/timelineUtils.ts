@@ -57,9 +57,10 @@ export const TIMELINE_GROUP_SIDEBAR_WIDTH = 200
 export const TIMELINE_GROUP_HEADER_HEIGHT = 32
 
 /**
- * Maximum number of records loaded into the timeline at once. The timeline
- * fetches everything up-front (no date-windowed pagination yet) and renders
- * bars in-memory. This cap balances memory + initial-fetch cost against
- * realistic dataset sizes; raise it once the windowed-fetch follow-up lands.
+ * Maximum number of records returned per windowed fetch. The timeline
+ * fetches only records whose date range overlaps the visible buffer, so
+ * each request scopes to the user's current viewport (plus buffer). 400 is
+ * sized to comfortably cover a typical buffer at any zoom level — chunks
+ * that saturate would need viewport-virtualised bars to render anyway.
  */
-export const TIMELINE_RECORD_LIMIT = 2000
+export const TIMELINE_RECORD_LIMIT = 400

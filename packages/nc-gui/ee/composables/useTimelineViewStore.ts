@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import type { ColumnType, DataPayload, TableType, TimelineType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, DataPayload, FilterType, TableType, TimelineType, ViewType } from 'nocodb-sdk'
 import { EventType, UITypes } from 'nocodb-sdk'
 import { type ComputedRef, type Ref, computed, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
@@ -411,11 +411,81 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       return count
     })
 
-    const loadTimelineData = async () => {
+    // Build the bar-overlap filter for the current buffer window. Records are
+    // included when their from/to span overlaps [bufferStart, bufferEnd].
+    //
+    // NOTE: ideally we'd also OR in null-end / null-start clauses so that
+    // single-day events whose other column is blank still render — but the
+    // backend filter parser currently mis-handles `comparison_op: 'blank'`
+    // inside an OR group (verified: OR(strict-overlap, anything-with-blank)
+    // returns 0 rows even when the strict-overlap clause alone returns tens
+    // of thousands). Until that's fixed, records with a null from/to column
+    // won't appear in the windowed fetch. Tracked separately.
+    const buildWindowFilter = (
+      fromCol: ColumnType,
+      toCol: ColumnType | null | undefined,
+      fromStr: string,
+      toStr: string,
+    ): FilterType => {
+      if (toCol?.id) {
+        // Strict overlap: from <= bufferEnd AND to >= bufferStart
+        return {
+          is_group: true,
+          logical_op: 'and',
+          children: [
+            { fk_column_id: fromCol.id, comparison_op: 'lte', comparison_sub_op: 'exactDate', value: toStr },
+            { fk_column_id: toCol.id, comparison_op: 'gte', comparison_sub_op: 'exactDate', value: fromStr },
+          ],
+        } as FilterType
+      }
+      // From-only range: bar is single-day at `from`.
+      return {
+        is_group: true,
+        logical_op: 'and',
+        children: [
+          { fk_column_id: fromCol.id, comparison_op: 'gte', comparison_sub_op: 'exactDate', value: fromStr },
+          { fk_column_id: fromCol.id, comparison_op: 'lte', comparison_sub_op: 'exactDate', value: toStr },
+        ],
+      } as FilterType
+    }
+
+    // Format buffer endpoints to match the column type. Date columns store
+    // `YYYY-MM-DD`; DateTime needs a TZ-aware boundary so a record with a
+    // mid-day timestamp on the boundary day still falls inside the window.
+    const formatBufferDate = (d: dayjs.Dayjs, col: ColumnType, end: boolean) => {
+      if (col?.uidt === UITypes.Date) return d.format('YYYY-MM-DD')
+      const anchored = end ? d.endOf('day') : d.startOf('day')
+      return anchored.format('YYYY-MM-DD HH:mm:ssZ')
+    }
+
+    // Sequence number — fast scrolling can fire several refetches in flight
+    // at once. Increment on every dispatch and only commit the response whose
+    // seq matches when it returns; older inflight responses drop on the floor.
+    let _fetchSeq = 0
+
+    const fetchTimelineRecords = async ({ showLoading }: { showLoading: boolean }) => {
       if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !timelineRange.value?.length)
         return
 
-      isTimelineDataLoading.value = true
+      const range = timelineRange.value[0]
+      const fromCol = range.fk_from_col
+      const toCol = range.fk_to_col
+      if (!fromCol?.id) return
+
+      const fromStr = formatBufferDate(bufferStart.value, fromCol, false)
+      const toStr = formatBufferDate(bufferEnd.value, toCol ?? fromCol, true)
+      const windowFilter = buildWindowFilter(fromCol, toCol, fromStr, toStr)
+
+      // When the view's filterSync is server-managed, saved filters are
+      // already applied — only attach the window predicate. Otherwise merge
+      // the user's nested filters in here too so they apply on top of the
+      // window scope.
+      const filtersArr: FilterType[] = isUIAllowed('filterSync')
+        ? [windowFilter]
+        : [...nestedFilters.value, windowFilter]
+
+      const seq = ++_fetchSeq
+      if (showLoading) isTimelineDataLoading.value = true
 
       try {
         const res = !isPublic.value
@@ -424,12 +494,12 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
               limit: TIMELINE_RECORD_LIMIT,
               include_row_color: true,
               getHiddenColumns: true,
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value]) }),
+              filterArrJson: stringifyFilterOrSortArr(filtersArr),
             })
           : await fetchSharedViewData(
               {
                 sortsArr: sorts.value,
-                filtersArr: [...nestedFilters.value],
+                filtersArr,
                 where: where?.value ?? '',
                 limit: TIMELINE_RECORD_LIMIT,
               },
@@ -438,6 +508,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
               // which would cap the timeline at 25 records on shared views.
               { isInfiniteScroll: true },
             )
+
+        if (seq !== _fetchSeq) return
 
         formattedData.value = (res?.list ?? []).map((row: any) => ({
           row,
@@ -450,9 +522,27 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       } catch (e) {
         console.error('Error loading timeline data:', e)
       } finally {
-        isTimelineDataLoading.value = false
+        if (seq === _fetchSeq && showLoading) {
+          isTimelineDataLoading.value = false
+        }
       }
     }
+
+    const loadTimelineData = () => fetchTimelineRecords({ showLoading: true })
+
+    // Silent refetch on buffer changes — fires when the user pans, zooms, or
+    // jumps to a date that re-anchors the buffer. Debounced so a fast scroll
+    // that triggers multiple `extendBuffer*` calls collapses into one fetch.
+    // Doesn't toggle isTimelineDataLoading — the existing bars stay visible
+    // until the new window arrives, then patch in place.
+    const _silentRefetch = useDebounceFn(
+      () => fetchTimelineRecords({ showLoading: false }),
+      250,
+    )
+
+    watch([bufferStart, bufferEnd], () => {
+      _silentRefetch()
+    })
 
     const navigateToClosestRecord = () => {
       const viewId = viewMeta.value?.id
@@ -837,12 +927,33 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       )
     }
 
+    // True when the row's bar overlaps the current buffer window — used to
+    // gate realtime add/update events so out-of-window rows don't bloat
+    // formattedData (the next windowed fetch would re-include them anyway
+    // when the user pans there).
+    const passesWindow = (rowPayload: Record<string, any>) => {
+      const range = timelineRange.value?.[0]
+      const fromCol = range?.fk_from_col
+      if (!fromCol?.title) return true
+
+      const fromVal = rowPayload[fromCol.title]
+      const toVal = range?.fk_to_col?.title ? rowPayload[range.fk_to_col.title] : null
+
+      const fromDate = fromVal ? dayjs(fromVal) : null
+      const toDate = toVal ? dayjs(toVal) : null
+      const start = fromDate?.isValid() ? fromDate : toDate?.isValid() ? toDate : null
+      const end = toDate?.isValid() ? toDate : fromDate?.isValid() ? fromDate : null
+      if (!start || !end) return false
+
+      return !end.isBefore(bufferStart.value, 'day') && !start.isAfter(bufferEnd.value, 'day')
+    }
+
     const handleDataEvent = (data: DataPayload) => {
       const { id, action, payload } = data
 
       if (action === 'add') {
         try {
-          if (!payload || !passesViewFilters(payload)) return
+          if (!payload || !passesViewFilters(payload) || !passesWindow(payload)) return
 
           const existingIndex = findRowIndexByPk(id)
           if (existingIndex !== -1) return
@@ -864,8 +975,9 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
           const existingIndex = findRowIndexByPk(id)
           const matchesFilters = passesViewFilters(payload)
+          const inWindow = passesWindow(payload)
 
-          if (!matchesFilters) {
+          if (!matchesFilters || !inWindow) {
             if (existingIndex !== -1) {
               formattedData.value.splice(existingIndex, 1)
             }

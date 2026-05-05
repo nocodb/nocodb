@@ -573,6 +573,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   // was set as the override display value (`fk_display_value_column_id`). Used
   // by audit paths to render linked-record display values consistently with
   // what the UI shows in LTAR dropdowns / chips.
+  //
+  // The override is set per-direction. If the caller passes the auto-paired
+  // side (which has no override of its own) we fall back to the paired LTAR's
+  // override so audits resolve correctly regardless of which side initiates.
   protected async resolveLtarDisplayCol(
     columnId: string | undefined,
     refModel: Model,
@@ -580,13 +584,43 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (!columnId) return undefined;
     const col = await Column.get(this.context, { colId: columnId });
     if (!col) return undefined;
-    const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
+    if (!refModel.columns?.length) await refModel.getColumns(this.context);
+
+    const ownColOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
       this.context,
     );
-    const displayColId = (colOpts as any)?.fk_display_value_column_id;
-    if (!displayColId) return undefined;
-    if (!refModel.columns?.length) await refModel.getColumns(this.context);
-    return refModel.columns?.find((c) => c.id === displayColId);
+    const ownDisplayColId = (ownColOpts as any)?.fk_display_value_column_id;
+    if (ownDisplayColId) {
+      const found = refModel.columns?.find((c) => c.id === ownDisplayColId);
+      if (found) return found;
+    }
+
+    // Fallback: paired LTAR direction may carry the override. The paired
+    // column lives on the table this LTAR links to, which is `refModel` if
+    // the caller passed it that way, or otherwise resolved via colOpts.
+    const linkedModelId =
+      (ownColOpts as any)?.fk_related_model_id ?? refModel.id;
+    const pairedColumns =
+      linkedModelId === refModel.id
+        ? refModel.columns
+        : await (async () => {
+            const m = await Model.get(this.context, linkedModelId);
+            if (!m) return undefined;
+            if (!m.columns?.length) await m.getColumns(this.context);
+            return m.columns;
+          })();
+    if (!pairedColumns?.length) return undefined;
+    const pairedCol = await extractCorrespondingLinkColumn(this.context, {
+      ltarColumn: col,
+      referencedTableColumns: pairedColumns,
+    });
+    if (!pairedCol) return undefined;
+    const pairedColOpts =
+      await pairedCol.getColOptions<LinkToAnotherRecordColumn>(this.context);
+    const pairedDisplayColId = (pairedColOpts as any)
+      ?.fk_display_value_column_id;
+    if (!pairedDisplayColId) return undefined;
+    return refModel.columns?.find((c) => c.id === pairedDisplayColId);
   }
 
   // Source-side override: resolves the paired (reverse) LTAR's

@@ -34,7 +34,6 @@ export default class RecordTemplate {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(template, [
-      'id',
       'base_id',
       'fk_workspace_id',
       'fk_model_id',
@@ -44,6 +43,11 @@ export default class RecordTemplate {
       'enabled',
       'created_by',
     ]);
+
+    // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
+    if (context?.additionalContext?.is_replay && template.id) {
+      insertObj.id = template.id;
+    }
 
     if (!insertObj.id) {
       insertObj.id = await ncMeta.genNanoid(MetaTable.RECORD_TEMPLATES);

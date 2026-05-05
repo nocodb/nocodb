@@ -29,7 +29,16 @@ export function registerHookHandlers(svc: HooksService): void {
         return svc.hookRestore(ctx, { hookId: meta.entityId, req });
       }
     }
-    return svc.hookCreate(ctx, { ...params, req } as any);
+    const capturedFilters = (meta.extra as { filters?: unknown[] } | undefined)
+      ?.filters;
+    return svc.hookCreate(ctx, {
+      ...params,
+      hook: {
+        ...(params.hook as Record<string, unknown>),
+        ...(capturedFilters?.length ? { filters: capturedFilters } : {}),
+      },
+      req,
+    } as any);
   });
 
   registerForward(HookUpdateContract, (ctx, p) => svc.hookUpdate(ctx, p));

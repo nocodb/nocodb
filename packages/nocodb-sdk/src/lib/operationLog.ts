@@ -52,4 +52,9 @@ export interface OperationLogType {
   updated_at?: string;
 }
 
-export type OperationLogStatus = 'active' | 'undone' | 'redone' | 'errored';
+export type OperationLogStatus =
+  | 'active'
+  | 'undone'
+  | 'redone'
+  | 'errored'
+  | 'discarded';

@@ -140,6 +140,24 @@ export default class OperationLog implements OperationLogType {
     );
   }
 
+  public static async discardUndoneForTab(
+    context: NcContext,
+    key: { fk_user_id: string; tab_id: string },
+    ncMeta: MetaService = Noco.ncMeta,
+  ): Promise<void> {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.OPERATION_LOGS,
+      { status: 'discarded' as OperationLogStatus },
+      {
+        fk_user_id: key.fk_user_id,
+        tab_id: key.tab_id,
+        status: 'undone' as OperationLogStatus,
+      },
+    );
+  }
+
   private static async getLatestByStatus(
     context: NcContext,
     key: { fk_user_id: string; tab_id: string },

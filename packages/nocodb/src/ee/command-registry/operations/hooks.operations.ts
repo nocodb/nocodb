@@ -78,6 +78,11 @@ export const HookCreateContract: OperationContract<typeof createSchema> = {
     const table = await Model.get(context, param.tableId);
     return { parentEntityTitle: table?.title };
   },
+  extraCommandMeta: (p) => {
+    const captured = (p as { _capturedFilters?: unknown[] })._capturedFilters;
+    if (!captured?.length) return undefined;
+    return { filters: captured };
+  },
   buildInverse: (_ctx, _p, r) => {
     const newId = (r as { id?: string } | undefined)?.id;
     if (!newId) return null;

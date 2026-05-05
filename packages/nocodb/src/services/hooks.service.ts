@@ -129,6 +129,31 @@ export class HooksService {
           fk_hook_id: hook.id,
         });
       }
+
+      // Snapshot the inserted tree so `HookCreateContract.extraCommandMeta`
+      // can surface it as `meta.extra.filters` for downstream changelog
+      // ops. Skipped during replay — `recordCommand` early-exits when
+      // `req.__isReplay` is set, so this would just be wasted I/O.
+      if (!(param.req as { __isReplay?: boolean })?.__isReplay) {
+        const roots = await Filter.rootFilterListByHook(context, {
+          hookId: hook.id,
+        });
+        const walk = async (f: Filter): Promise<Record<string, unknown>> => {
+          const children = f.is_group
+            ? (await f.getChildren(context)) ?? []
+            : [];
+          const childNodes = await Promise.all(
+            children.map((c) => walk(c as Filter)),
+          );
+          return {
+            ...(f as unknown as Record<string, unknown>),
+            ...(childNodes.length ? { children: childNodes } : {}),
+          };
+        };
+        (param as any)._capturedFilters = await Promise.all(
+          roots.map((r) => walk(r as Filter)),
+        );
+      }
     }
 
     this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {

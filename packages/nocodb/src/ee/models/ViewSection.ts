@@ -145,7 +145,6 @@ export default class ViewSection
     ncMeta = Noco.ncMeta,
   ) {
     let insertObj = extractProps(section, [
-      'id',
       'fk_model_id',
       'title',
       'meta',
@@ -153,6 +152,11 @@ export default class ViewSection
       'updated_by',
       'source_id',
     ]);
+
+    // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
+    if (context?.additionalContext?.is_replay && section.id) {
+      insertObj.id = section.id;
+    }
 
     // get order value
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.VIEW_SECTIONS, {

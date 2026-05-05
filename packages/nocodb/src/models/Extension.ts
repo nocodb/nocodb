@@ -115,7 +115,6 @@ export default class Extension {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(extension, [
-      'id',
       'base_id',
       'fk_user_id',
       'extension_id',
@@ -124,6 +123,11 @@ export default class Extension {
       'meta',
       'order',
     ]);
+
+    // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
+    if (context?.additionalContext?.is_replay && extension.id) {
+      insertObj.id = extension.id;
+    }
 
     if (insertObj.order === null || insertObj.order === undefined) {
       insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.EXTENSIONS, {

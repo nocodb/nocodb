@@ -115,10 +115,9 @@ export const RowColorConditionAddContract: OperationContract<
   version: 1,
   entity: MetaTable.ROW_COLOR_CONDITIONS,
   schema: conditionAddSchema,
-  // Service returns `{ id, info }` — `id` lives at the top level. We mirror
-  // that into `idField` so the registry seeds replay params with the original
-  // entity id when redoing a previously-undone add.
+  // Service returns `{ id, info }` — `id` lives at the top level.
   entityId: 'id',
+  idField: 'condition',
   parentId: 'fk_view_id',
   description: rowColorConditionActions.add,
   resolveCtx: async (context, param) => {

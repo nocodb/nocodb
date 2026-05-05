@@ -187,7 +187,6 @@ export default class BaseVariable implements BaseVariableType {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(data, [
-      'id',
       'base_id',
       'key',
       'value',
@@ -199,6 +198,11 @@ export default class BaseVariable implements BaseVariableType {
       'is_overridden',
       'is_inherited',
     ]);
+
+    // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
+    if (context?.additionalContext?.is_replay && data.id) {
+      insertObj.id = data.id;
+    }
 
     // Validate key format
     if (!insertObj.key || !KEY_REGEX.test(insertObj.key)) {

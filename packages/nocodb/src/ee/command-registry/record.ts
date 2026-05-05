@@ -22,6 +22,10 @@ const NON_SERIALIZABLE_KEYS = new Set([
   // Transient capture slot for side-effect IDs (e.g. LTAR junction model id).
   // Populated during recording, read by `extraCommandMeta`, never replayed.
   '_ltarCapture',
+  // captures the filter tree (with ids) the
+  // service generated, so sandbox replay onto a fresh production base can
+  // re-insert each filter with its original id.
+  '_capturedFilters',
 ]);
 
 export function dotGet(obj: any, path: string): any {
@@ -269,6 +273,11 @@ async function maybeRecordUndoEntry(
     return;
   }
   if (!inverse) return;
+
+  await OperationLog.discardUndoneForTab(context, {
+    fk_user_id: userId,
+    tab_id: tabId,
+  });
 
   await OperationLog.insert(context, {
     fk_user_id: userId,

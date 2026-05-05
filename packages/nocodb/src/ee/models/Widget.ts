@@ -153,7 +153,6 @@ export default class Widget extends WidgetCE implements IWidget {
     ncMeta = Noco.ncMeta,
   ): Promise<Widget> {
     let insertObj = extractProps(widget, [
-      'id',
       'title',
       'description',
       'fk_dashboard_id',
@@ -165,6 +164,11 @@ export default class Widget extends WidgetCE implements IWidget {
       'fk_view_id',
       'error',
     ]);
+
+    // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
+    if (context?.additionalContext?.is_replay && widget.id) {
+      insertObj.id = widget.id;
+    }
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.WIDGETS, {
       fk_dashboard_id: widget.fk_dashboard_id,

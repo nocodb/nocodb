@@ -847,6 +847,7 @@ const handleScrollIntoView = () => {
           v-model:value="vModel.fk_display_value_column_id"
           :placeholder="$t('labels.selectFieldAsDisplayName')"
           show-search
+          :disabled="isEEFeatureBlocked"
           :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
           dropdown-class-name="nc-dropdown-ltar-display-value-field"
         >

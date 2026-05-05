@@ -21,6 +21,11 @@ import type { Model } from '../../../../../src/models';
  * cascade test that covers the null-on-delete cleanup.
  */
 describe('dataApiV3', () => {
+  // Custom display value field is gated as an EE-only feature in the backend
+  // (see resolveDisplayValueColumnOrThrow in columns.service.ts). The
+  // ltar-custom-display-value suite therefore only runs against the EE build.
+  if (process.env.EE !== 'true') return;
+
   describe('ltar-custom-display-value', () => {
     let testContext: ITestContext;
     // Two neutral-named tables so the tests read without HM/BT bias.

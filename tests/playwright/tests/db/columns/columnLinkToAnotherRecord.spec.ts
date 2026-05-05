@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
-import { enableQuickRun } from '../../../setup/db';
+import { enableQuickRun, isEE } from '../../../setup/db';
 
 test.describe('LTAR create & update', () => {
   if (enableQuickRun()) test.skip();
@@ -343,6 +343,10 @@ test.describe('Links after edit record', () => {
 });
 
 test.describe('LTAR custom display field', () => {
+  // Custom display field toggle is hidden in CE (v-if="isEeUI"). Skip the
+  // whole suite on non-EE runs — the dropdown the test clicks doesn't exist.
+  if (!isEE()) test.skip();
+
   let dashboard: DashboardPage;
   let context: any;
 

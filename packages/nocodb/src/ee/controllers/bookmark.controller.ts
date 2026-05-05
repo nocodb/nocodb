@@ -58,6 +58,16 @@ export class BookmarkController {
     });
   }
 
+  @Post('/api/v1/bookmarks/:bookmarkId/refresh')
+  @HttpCode(200)
+  @Acl('bookmarkRefresh', { scope: 'org' })
+  async bookmarkRefresh(
+    @Param('bookmarkId') bookmarkId: string,
+    @Req() req: NcRequest,
+  ) {
+    return await this.bookmarkService.bookmarkRefresh({ bookmarkId, req });
+  }
+
   @Delete('/api/v1/bookmarks/:bookmarkId')
   @Acl('bookmarkDelete', { scope: 'org' })
   async bookmarkDelete(

@@ -4008,7 +4008,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object"
+                "$ref": "#/components/schemas/BookmarkReqType"
               }
             }
           }
@@ -4057,7 +4057,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object"
+                "$ref": "#/components/schemas/BookmarkReqType"
               }
             }
           }
@@ -4197,6 +4197,29 @@
   },
   "components": {
     "schemas": {
+      "BookmarkReqType": {
+        "description": "Model for Bookmark Request",
+        "type": "object",
+        "properties": {
+          "fk_group_id": {
+            "type": "string"
+          },
+          "target_type": {
+            "type": "string",
+            "enum": ["workspace", "base", "table", "view", "document", "workflow", "script", "dashboard"]
+          },
+          "target_id": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "meta": {
+            "type": "object"
+          }
+        },
+        "required": ["target_type", "target_id"]
+      },
       "PasswordSetReq": {
         "description": "Model for Password Set Request",
         "examples": [

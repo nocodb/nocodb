@@ -13,9 +13,10 @@ export interface BookmarkType {
   fk_user_id?: string;
   fk_group_id?: string;
   title?: string | null;
-  resolved_title?: string;
   target_type: 'workspace' | 'base' | 'table' | 'view' | 'document' | 'workflow' | 'script' | 'dashboard';
   target_id: string;
+  icon?: string | null;
+  icon_color?: string | null;
   order?: number;
   meta?: Record<string, any>;
   created_at?: string;
@@ -33,6 +34,8 @@ export interface BookmarkReqType {
   title?: string | null;
   target_type: 'workspace' | 'base' | 'table' | 'view' | 'document' | 'workflow' | 'script' | 'dashboard';
   target_id: string;
+  icon?: string | null;
+  icon_color?: string | null;
   order?: number;
   meta?: Record<string, any>;
 }

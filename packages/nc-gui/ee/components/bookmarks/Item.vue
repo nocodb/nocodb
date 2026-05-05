@@ -40,13 +40,13 @@ const customEmoji = computed<string | undefined>(() => {
     case 'workflow':
     case 'script':
     case 'dashboard':
-      return meta.value.icon || undefined
+      return bookmark.value.icon || undefined
     default:
       return undefined
   }
 })
 
-const displayTitle = computed(() => bookmark.value.title ?? bookmark.value.resolved_title ?? '')
+const displayTitle = computed(() => bookmark.value.title ?? '')
 
 const isDragging = computed(() => draggingBookmarkId.value === bookmark.value.id)
 

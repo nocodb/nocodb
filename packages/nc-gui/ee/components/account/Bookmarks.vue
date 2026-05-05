@@ -33,7 +33,7 @@ const useOriginalName = ref(false)
 function startRename(bm: BookmarkType) {
   renamingBookmarkId.value = bm.id!
   useOriginalName.value = !bm.title
-  renameValue.value = bm.title ?? bm.resolved_title ?? ''
+  renameValue.value = bm.title ?? ''
 }
 
 function cancelRename() {
@@ -51,12 +51,12 @@ async function saveRename(bmId: string) {
 function onToggleOriginalName(bm: BookmarkType) {
   useOriginalName.value = !useOriginalName.value
   if (useOriginalName.value) {
-    renameValue.value = bm.resolved_title ?? ''
+    renameValue.value = bm.title ?? ''
   }
 }
 
 function getDisplayTitle(bm: BookmarkType): string {
-  return bm.title ?? bm.resolved_title ?? ''
+  return bm.title ?? ''
 }
 
 function isAutoResolved(bm: BookmarkType): boolean {
@@ -322,7 +322,7 @@ watch(
                       class="!flex-1"
                       size="small"
                       :disabled="useOriginalName"
-                      :placeholder="bm.resolved_title"
+                      :placeholder="bm.title ?? ''"
                       @keyup.enter="saveRename(bm.id!)"
                       @keyup.escape="cancelRename"
                     />

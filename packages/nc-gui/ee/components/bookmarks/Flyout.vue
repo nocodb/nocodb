@@ -21,7 +21,7 @@ const filteredBookmarksByGroup = computed<Record<string, BookmarkType[]>>(() => 
   const map: Record<string, BookmarkType[]> = {}
   for (const groupId in bookmarksByGroup.value) {
     map[groupId] = bookmarksByGroup.value[groupId]!.filter((bm) => {
-      const title = (bm.title ?? bm.resolved_title ?? '').toLowerCase()
+      const title = (bm.title ?? '').toLowerCase()
       return title.includes(q)
     })
   }

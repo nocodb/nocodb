@@ -156,7 +156,7 @@ export const useBookmarks = createSharedComposable(() => {
       const bm = (await $api.bookmark.create(data)) as BookmarkType
       setBookmarkCheck(data.target_type!, data.target_id!, data.meta as Record<string, any>, true)
 
-      // Reload to get enriched data (resolved_title, icons) and any auto-created groups
+      // Reload to pick up any auto-created Ungrouped group
       await loadBookmarks()
 
       message.success(t('msg.bookmarkAdded'))
@@ -192,10 +192,6 @@ export const useBookmarks = createSharedComposable(() => {
 
       const idx = bookmarks.value.findIndex((b) => b.id === id)
       if (idx !== -1) {
-        // Preserve resolved_title from the enriched list if backend didn't return it
-        if (!updated.resolved_title && bookmarks.value[idx].resolved_title) {
-          updated.resolved_title = bookmarks.value[idx].resolved_title
-        }
         bookmarks.value[idx] = updated
       }
 
@@ -343,11 +339,29 @@ export const useBookmarks = createSharedComposable(() => {
     if (route) {
       try {
         await router.push(route)
+
+        // Fire-and-forget: refresh title/icon from the target entity
+        refreshBookmark(bookmark)
       } catch {
         message.error(t('msg.info.targetNotFound'))
       }
     } else {
       message.error(t('msg.info.targetNotFound'))
+    }
+  }
+
+  async function refreshBookmark(bookmark: BookmarkType) {
+    try {
+      const { data: updated } = await $api.instance.post(`/api/v1/bookmarks/${bookmark.id}/refresh`)
+
+      if (updated) {
+        const idx = bookmarks.value.findIndex((b) => b.id === bookmark.id)
+        if (idx !== -1) {
+          bookmarks.value[idx] = updated
+        }
+      }
+    } catch {
+      // Silent — refresh is best-effort
     }
   }
 

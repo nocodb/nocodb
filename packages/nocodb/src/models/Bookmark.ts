@@ -24,6 +24,8 @@ export default class Bookmark implements BookmarkType {
     | 'script'
     | 'dashboard';
   target_id: string;
+  icon?: string | null;
+  icon_color?: string | null;
   order?: number;
   meta?: Record<string, any>;
   created_at?: string;
@@ -58,6 +60,8 @@ export default class Bookmark implements BookmarkType {
         title: data.title ?? null,
         target_type: data.target_type,
         target_id: data.target_id,
+        icon: data.icon ?? null,
+        icon_color: data.icon_color ?? null,
         order: data.order ?? 0,
         meta: data.meta ? JSON.stringify(data.meta) : null,
       },
@@ -149,6 +153,8 @@ export default class Bookmark implements BookmarkType {
     if (data.title !== undefined) updateObj.title = data.title;
     if (data.fk_group_id !== undefined)
       updateObj.fk_group_id = data.fk_group_id;
+    if (data.icon !== undefined) updateObj.icon = data.icon;
+    if (data.icon_color !== undefined) updateObj.icon_color = data.icon_color;
     if (data.order !== undefined) updateObj.order = data.order;
     if (data.meta !== undefined) updateObj.meta = JSON.stringify(data.meta);
 

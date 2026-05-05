@@ -118,6 +118,7 @@ import {
 } from '~/helpers/dbHelpers';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
+import { extractDisplayNameFromEmail } from '~/utils/emailUtils';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import {
@@ -7201,6 +7202,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               metaObj = ncIsObject(meta)
                 ? extractProps(meta, ['icon', 'iconType'])
                 : null;
+            }
+
+            if (this.context?.is_public) {
+              return {
+                id,
+                display_name: extractDisplayNameFromEmail(email, display_name),
+                email: '',
+                meta: metaObj,
+              };
             }
 
             return {

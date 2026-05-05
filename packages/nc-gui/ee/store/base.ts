@@ -259,17 +259,19 @@ export const useBase = defineStore('baseStore', () => {
 
     await loadTables()
 
-    await basesStore.getBaseUsers({
-      baseId: base.value.id || baseId.value,
-    })
-
-    basesStore
-      .getBaseTeams({
+    if (!isSharedBase.value) {
+      await basesStore.getBaseUsers({
         baseId: base.value.id || baseId.value,
       })
-      .catch(() => {
-        // ignore
-      })
+
+      basesStore
+        .getBaseTeams({
+          baseId: base.value.id || baseId.value,
+        })
+        .catch(() => {
+          // ignore
+        })
+    }
 
     if (base.value?.is_sandbox || base.value?.is_sandbox_production) {
       await loadSandboxInfo()

@@ -24,6 +24,7 @@ export interface NcContext {
   cacheMap?: any;
   permissions?: any;
   is_api_token?: boolean;
+  is_public?: boolean;
 }
 
 export interface NcRequest extends Partial<Request> {

@@ -525,11 +525,33 @@ export function useCanvasTable({
     values: Record<string, any>
     scopedTitles: Set<string>
   }>(() => {
-    const checkboxRows = selectedRows.value || []
     const range = selection.value
-    const hasCheckbox = checkboxRows.length > 0
     const hasRange = !range.isEmpty() && range.cellCount > 1
+    const topLevelCheckboxRows = selectedRows.value || []
 
+    // In group-by mode each group has its own cachedRows + selectedRows under
+    // getDataCache(path). Reading the top-level cache for a grouped selection
+    // pulls rows from the wrong index space (which is why the footer summed
+    // unrelated values pre-fix). Walk all groups to find any checkbox state.
+    const collectGroupPaths = (groups: Map<number, any> | undefined, parent: any[] = [], out: any[][] = []): any[][] => {
+      if (!groups) return out
+      for (const [, group] of groups) {
+        const cur = [...parent, ...(group?.path ?? [])]
+        if (cur.length) out.push(cur)
+        if (group?.groups?.size > 0) collectGroupPaths(group.groups, cur, out)
+      }
+      return out
+    }
+
+    const groupCheckboxRows: Row[] = []
+    if (isGroupBy.value && cachedGroups?.value) {
+      for (const path of collectGroupPaths(cachedGroups.value)) {
+        const groupChecked = getDataCache(path as number[]).selectedRows?.value ?? []
+        if (groupChecked.length) groupCheckboxRows.push(...groupChecked)
+      }
+    }
+
+    const hasCheckbox = topLevelCheckboxRows.length > 0 || groupCheckboxRows.length > 0
     if (!hasCheckbox && !hasRange) {
       return { active: false, values: {}, scopedTitles: new Set<string>() }
     }
@@ -556,19 +578,31 @@ export function useCanvasTable({
     }
 
     if (hasCheckbox) {
+      const checkboxRows = topLevelCheckboxRows.length ? topLevelCheckboxRows : groupCheckboxRows
       for (const f of fields.value) computeFor(f, checkboxRows)
-    } else {
-      const startCol = range.start.col
-      const endCol = range.end.col
-      const startRow = range.start.row
-      const endRow = range.end.row
+    } else if (isGroupBy.value && activeCell.value?.path) {
+      // Grouped cell-range: read from the active cell's group cache.
+      const dataCache = getDataCache(activeCell.value.path as number[])
       const rangeRows: Row[] = []
-      for (let r = startRow; r <= endRow; r++) {
+      for (let r = range.start.row; r <= range.end.row; r++) {
+        const row = dataCache.cachedRows.value.get(r)
+        if (row) rangeRows.push(row)
+      }
+      const baseCols = _columnsBase.value
+      for (let c = range.start.col; c <= range.end.col; c++) {
+        const colObj = baseCols[c]
+        if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
+        computeFor(colObj.columnObj, rangeRows)
+      }
+    } else {
+      // Non-grouped cell-range.
+      const rangeRows: Row[] = []
+      for (let r = range.start.row; r <= range.end.row; r++) {
         const row = cachedRows.value.get(r)
         if (row) rangeRows.push(row)
       }
       const baseCols = _columnsBase.value
-      for (let c = startCol; c <= endCol; c++) {
+      for (let c = range.start.col; c <= range.end.col; c++) {
         const colObj = baseCols[c]
         if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
         computeFor(colObj.columnObj, rangeRows)

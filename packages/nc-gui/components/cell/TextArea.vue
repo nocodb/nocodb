@@ -193,8 +193,15 @@ const isRichMode = computed(() => {
 // expand modal would just show raw markdown, so suppress the expand affordance.
 const isSmartMode = computed(() => isSmartText(column?.value))
 
+// Render-only flag — SmartText cells preview their stored markdown the same
+// way the grid canvas does (LongText.ts treats SmartText as rich-mode for
+// rendering). Form view still uses the textarea so users can type input.
+// Edit-mode flows continue to gate on isRichMode so the LongText rich modal
+// doesn't auto-open for SmartText cells (they have their own modal).
+const isRichPreview = computed(() => isRichMode.value || (isSmartMode.value && !isForm.value))
+
 const richTextContent = computedAsync(async () => {
-  if (isRichMode.value && vModel.value) {
+  if (isRichPreview.value && vModel.value) {
     return Promise.resolve(
       NcMarkdownParser.parse(
         unref(vModel.value),
@@ -216,8 +223,14 @@ const richTextContent = computedAsync(async () => {
 const isSmartTextModalOpen = ref(false)
 
 const onExpand = () => {
-  if (isSmartMode.value && isExpandedFormOpen.value) {
-    isSmartTextModalOpen.value = true
+  if (isSmartMode.value) {
+    if (isExpandedFormOpen.value) {
+      isSmartTextModalOpen.value = true
+    }
+    // Outside the expanded form (gallery / kanban card) the SmartText modal
+    // isn't mounted here — opening the LongText rich modal would surface raw
+    // markdown, which is worse than no-op. The user reaches the modal by
+    // opening the row.
     return
   }
   isVisible.value = true
@@ -531,7 +544,7 @@ useResizeObserver(inputWrapperRef, () => {
       </div>
 
       <div
-        v-else-if="isRichMode"
+        v-else-if="isRichPreview"
         class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
         :class="[
           isExpandedFormOpen ? 'nc-scrollbar-thin' : 'overflow-hidden',

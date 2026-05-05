@@ -2179,6 +2179,17 @@ export function useCanvasRender({
           mousePosition,
         ) && isViewOperationsAllowed.value
       ctx.fillStyle = isHovered ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.gray['50'])
+      if (column.aggregationSuppressed) {
+        // Selection-mode footer: column is either out-of-selection or has no
+        // aggregator configured. Render the divider but skip value + hover.
+        ctx.beginPath()
+        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
+        ctx.moveTo(xOffset - _scrollLeft, _height - AGGREGATION_HEIGHT)
+        ctx.lineTo(xOffset - _scrollLeft, _height)
+        ctx.stroke()
+        xOffset += width
+        return
+      }
       if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
         ctx.save()
         ctx.beginPath()
@@ -2293,7 +2304,10 @@ export function useCanvasRender({
         ctx.textBaseline = 'middle'
         let availWidth = mergedWidth - 16
 
-        if (firstFixedCol.agg_fn && ![AllAggregations.None].includes(firstFixedCol.agg_fn as any)) {
+        if (firstFixedCol.aggregationSuppressed) {
+          // Selection-mode: skip the right-aligned aggregation but still draw
+          // the "X cells selected" / "X records" label below.
+        } else if (firstFixedCol.agg_fn && ![AllAggregations.None].includes(firstFixedCol.agg_fn as any)) {
           ctx.save()
           ctx.beginPath()
           ctx.rect(xOffset, _height - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)

@@ -1,7 +1,9 @@
 import {
+  CommonAggregations,
   PermissionEntity,
   PermissionKey,
   UITypes,
+  computeAggregation,
   isAIPromptCol,
   isLinksOrLTAR,
   isOrderCol,
@@ -513,14 +515,113 @@ export function useCanvasTable({
     return cols as unknown as CanvasGridColumn[]
   })
 
+  // Selection-scoped aggregation. When the user has a multi-cell rectangular
+  // range or any row-checkbox selection, footer aggregators recompute over the
+  // selected cells (per-field), via SDK's computeAggregation. Fields outside
+  // the selection scope blank out so the footer reflects only what's selected.
+  // Single-cell active is NOT a selection (cellCount === 1 → leaves footer alone).
+  const selectionAggregations = computed<{
+    active: boolean
+    values: Record<string, any>
+    scopedTitles: Set<string>
+  }>(() => {
+    const checkboxRows = selectedRows.value || []
+    const range = selection.value
+    const hasCheckbox = checkboxRows.length > 0
+    const hasRange = !range.isEmpty() && range.cellCount > 1
+
+    if (!hasCheckbox && !hasRange) {
+      return { active: false, values: {}, scopedTitles: new Set<string>() }
+    }
+
+    const values: Record<string, any> = {}
+    const scopedTitles = new Set<string>()
+
+    const computeFor = (col: ColumnType, rows: Row[]) => {
+      if (!col?.id || !col?.title) return
+      scopedTitles.add(col.title)
+      const aggType = gridViewCols.value[col.id]?.aggregation
+      if (!aggType || aggType === CommonAggregations.None) return
+      const cellValues = rows.map((r) => r?.row?.[col.title!])
+      try {
+        values[col.title] = computeAggregation({
+          aggregation: aggType,
+          values: cellValues,
+          column: col,
+          parsedFormulaType: (col.colOptions as any)?.parsed_tree?.dataType,
+        })
+      } catch {
+        // swallow — leaving the field unscored is safer than crashing render
+      }
+    }
+
+    if (hasCheckbox) {
+      for (const f of fields.value) computeFor(f, checkboxRows)
+    } else {
+      const startCol = range.start.col
+      const endCol = range.end.col
+      const startRow = range.start.row
+      const endRow = range.end.row
+      const rangeRows: Row[] = []
+      for (let r = startRow; r <= endRow; r++) {
+        const row = cachedRows.value.get(r)
+        if (row) rangeRows.push(row)
+      }
+      const baseCols = _columnsBase.value
+      for (let c = startCol; c <= endCol; c++) {
+        const colObj = baseCols[c]
+        if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
+        computeFor(colObj.columnObj, rangeRows)
+      }
+    }
+
+    return { active: true, values, scopedTitles }
+  })
+
   // Lightweight wrapper: during resize, patches only the resizing column's width
   // without recomputing _columnsBase (which does heavy meta/aggregation/permission work).
+  // Also layers the selection-scoped aggregation override on top.
   const columns = computed<CanvasGridColumn[]>(() => {
     const base = _columnsBase.value
     const override = resizeWidthOverride.value
-    if (!override) return base
+    const widthApplied = override
+      ? base.map((col) => (col.id === override.columnId ? { ...col, width: override.width } : col))
+      : base
 
-    return base.map((col) => (col.id === override.columnId ? { ...col, width: override.width } : col))
+    const sel = selectionAggregations.value
+    if (!sel.active) return widthApplied
+
+    return widthApplied.map((col) => {
+      if (col.id === 'row_number') return col
+
+      if (sel.scopedTitles.has(col.title)) {
+        // In-selection field: replace footer value with JS-computed selection aggregation.
+        // If the column has no aggregation configured (`agg_fn` empty/None), nothing to override —
+        // existing "Summary" affordance stays as-is, but suppress hover via the sentinel anyway
+        // so the user isn't tempted to configure aggregation while a selection is active.
+        const rawValue = sel.values[col.title]
+        if (rawValue === undefined || !col.agg_fn || col.agg_fn === CommonAggregations.None) {
+          return { ...col, aggregationSuppressed: true } as CanvasGridColumn
+        }
+        const formatted = getFormattedAggrationValue(col.agg_fn, rawValue, col.columnObj, [], {
+          col: col.columnObj,
+          meta: meta.value as TableType,
+          metas: metas.value,
+          isMysql,
+          isPg,
+        })
+        return { ...col, aggregation: formatted ?? '' }
+      }
+
+      // Out-of-selection field: blank out and suppress hover affordance.
+      return {
+        ...col,
+        aggregation: '',
+        agg_prefix: '',
+        agg_fn: '',
+        aggregationSuppressed: true,
+      } as CanvasGridColumn
+    })
   })
 
   const columnWidths = computed(() =>

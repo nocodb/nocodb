@@ -327,6 +327,7 @@ const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || pr
 .nc-code-block-lang-dropdown {
   width: auto !important;
   min-width: 0 !important;
+  z-index: 1052;
 }
 
 .nc-code-block-lang-list {

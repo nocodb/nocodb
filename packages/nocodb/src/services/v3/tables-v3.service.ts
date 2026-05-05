@@ -210,6 +210,13 @@ export class TablesV3Service {
         });
       }
 
+      const finalModel = await this.tablesService.getTableWithAccessibleViews(
+        context,
+        { tableId: tableCreateOutput.id, user: param.user },
+      );
+      (param as { _capturedColumns?: unknown })._capturedColumns =
+        finalModel.columns;
+
       return this.getTableWithAccessibleViews(context, {
         tableId: tableCreateOutput.id,
         user: param.user,

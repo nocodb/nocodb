@@ -36,16 +36,20 @@ export const TableV3CreateContract: OperationContract<
     p.table?.table_name,
   parentId: (p) => p.baseId,
   description: tableActions.add,
-  extraCommandMeta: (_p, result) => {
-    const fields = (result?.fields ?? []) as Array<{
-      id?: string;
-      title?: string;
-      name?: string;
-    }>;
+  extraCommandMeta: (p, result) => {
+    const captured = (
+      p as {
+        _capturedColumns?: Array<{
+          id?: string;
+          title?: string;
+          column_name?: string;
+        }>;
+      }
+    )._capturedColumns;
     return {
-      sandboxColumns: fields.map((f) => ({
-        id: f.id,
-        title: f.title ?? f.name,
+      sandboxColumns: (captured ?? []).map((c) => ({
+        id: c.id,
+        title: c.title ?? c.column_name,
       })),
       sandboxDefaultViewId: (result?.views ?? [])[0]?.id,
     };

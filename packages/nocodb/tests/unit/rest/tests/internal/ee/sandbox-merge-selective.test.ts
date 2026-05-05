@@ -287,8 +287,8 @@ export function sandboxMergeSelectiveTests() {
       const pendingNames = pending.map(getCommandName);
       expect(
         pendingNames,
-        'unrelated tableCreate still pending after selective merge',
-      ).to.include('tableCreate');
+        'unrelated tableV3Create still pending after selective merge',
+      ).to.include('tableV3Create');
     });
 
     it('4.3: filter-only selection auto-includes parent view AND table transitively', async () => {
@@ -385,7 +385,7 @@ export function sandboxMergeSelectiveTests() {
 
       const tEntry = await findEntryByCommand(
         sandboxBaseId,
-        'tableCreate',
+        'tableV3Create',
         (e) => e.entity_id === tableId,
       );
 

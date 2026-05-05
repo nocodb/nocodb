@@ -26,6 +26,9 @@ const NON_SERIALIZABLE_KEYS = new Set([
   // service generated, so sandbox replay onto a fresh production base can
   // re-insert each filter with its original id.
   '_capturedFilters',
+  // V3 tableCreate stash: every column id (system + junction included) the
+  // create produced. Read by `tableV3Create.extraCommandMeta`; never replayed.
+  '_capturedColumns',
 ]);
 
 export function dotGet(obj: any, path: string): any {

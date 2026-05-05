@@ -395,7 +395,7 @@ export function sandboxMergeDeleteTests() {
           return m?.command?.name as string | undefined;
         });
         expect(cmdNames, 'changelog ops').to.include.members([
-          'tableCreate',
+          'tableV3Create',
           'tableDelete',
         ]);
 

@@ -312,7 +312,7 @@ export function sandboxTraceCommandTests() {
 
       // 1.1 Each expected op appears at least once.
       const expectedOps = [
-        'tableCreate',
+        'tableV3Create',
         // 'tableUpdate', // see TODO above
         'columnAdd',
         'columnUpdate',
@@ -375,11 +375,11 @@ export function sandboxTraceCommandTests() {
       // 1.5 entity_title populated for ops whose contract sets entityTitle
       const tableCreateEntry = entries.find((e) => {
         const meta = typeof e.meta === 'string' ? JSON.parse(e.meta) : e.meta;
-        return meta?.command?.name === 'tableCreate';
+        return meta?.command?.name === 'tableV3Create';
       });
       expect(
         tableCreateEntry?.entity_title,
-        'tableCreate entity_title',
+        'tableV3Create entity_title',
       ).to.eq('TraceTable');
     });
   });

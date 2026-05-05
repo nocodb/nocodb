@@ -111,12 +111,43 @@ const columnUpdateSchema = z.object({
   tableId: z.string().optional(),
 });
 
-// Metadata-only fields the service treats as cleanly reversible — these can
-// be snapshotted and replayed without altering the underlying DB type or
-// touching cell data. Anything outside this list (uidt, dt, np, ns, dtxp,
-// column_name on a non-rename, etc.) means a schema-touching change that
-// Phase 2 (`ColumnDataBackupHandler`) will own. We deliberately skip
-// recording those for now in `skipIf`.
+const TOP_LEVEL_LIFT_BY_UIDT: Record<string, readonly string[]> = {
+  [UITypes.Lookup]: ['fk_relation_column_id', 'fk_lookup_column_id'],
+  [UITypes.Rollup]: [
+    'fk_relation_column_id',
+    'fk_rollup_column_id',
+    'rollup_function',
+  ],
+  [UITypes.QrCode]: ['fk_qr_value_column_id'],
+  [UITypes.Barcode]: ['fk_barcode_value_column_id', 'barcode_format'],
+  [UITypes.Formula]: ['formula', 'formula_raw', 'parsed_tree'],
+  [UITypes.Button]: [
+    'type',
+    'formula',
+    'formula_raw',
+    'webhook_id',
+    'theme',
+    'color',
+    'icon',
+    'label',
+    'color_meta',
+  ],
+};
+
+// Lossless schema-light fields the service can replay without converting
+// cell data. Splits into two groups:
+//   - true meta-only (early-return path, no DB op): `description`, `meta`,
+//     and `colOptions` for virtual columns (Formula/Lookup/Rollup/QR/Barcode
+//     /Button) where `colOptions` is the entire config.
+//   - schema-light but lossless (DB op runs but no data conversion):
+//     `title` + `column_name` (rename), `cdf` (default), `rqd` (NOT NULL),
+//     `unique` (constraint). On undo these issue an ALTER TABLE but no rows
+//     are recast. Edge case: NOT-NULL-add or unique-add could fail on data
+//     that drifted between forward and undo — same failure mode as the
+//     original forward call, surfaced to the user.
+// Anything outside this list (uidt, dt, np, ns, dtxp, dtxs, …) means a
+// type-changing schema mutation that Phase 2's `ColumnDataBackupHandler`
+// will own; we skip recording those in `skipIf`.
 const COLUMN_PREV_FIELDS = [
   'title',
   'description',
@@ -222,7 +253,19 @@ export const ColumnUpdateContract: OperationContract<
   buildInverse: (_ctx, p, _r, resolved) => {
     const prev = resolved?.extra?.prev;
     const prevFilters = resolved?.extra?.prevFilters;
+    const oldUidt = resolved?.extra?.oldUidt;
     if (!prev && !prevFilters) return null;
+
+    const liftFields = oldUidt ? TOP_LEVEL_LIFT_BY_UIDT[oldUidt] ?? [] : [];
+    const colOptions = (prev as { colOptions?: Record<string, unknown> })
+      ?.colOptions;
+    const liftedTopLevel: Record<string, unknown> = {};
+    if (colOptions && typeof colOptions === 'object') {
+      for (const k of liftFields) {
+        if (colOptions[k] !== undefined) liftedTopLevel[k] = colOptions[k];
+      }
+    }
+
     return {
       name: OperationName.columnUpdate,
       version: 1,
@@ -230,6 +273,7 @@ export const ColumnUpdateContract: OperationContract<
         columnId: p.columnId,
         column: {
           ...(prev ?? {}),
+          ...liftedTopLevel,
           ...(prevFilters
             ? { filters: prevFilters, _replaceFilters: true }
             : {}),

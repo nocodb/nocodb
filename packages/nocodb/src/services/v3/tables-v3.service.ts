@@ -23,6 +23,8 @@ import { TablesService } from '~/services/tables.service';
 import { tableReadBuilder, tableViewBuilder } from '~/utils/builders/table';
 import { validatePayload } from '~/helpers';
 import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class TablesV3Service {
@@ -146,6 +148,7 @@ export class TablesV3Service {
     ) as unknown as TableV3Type[];
   }
 
+  @TraceCommand(OperationName.tableV3Create)
   async tableCreate(
     context: NcContext,
     param: {
@@ -183,14 +186,10 @@ export class TablesV3Service {
         }
       }
 
-      const tableCreateReq: any = param.table;
-
-      // remap the columns if provided
-      if (columns.length) {
-        tableCreateReq.columns = columnV3ToV2Builder().build(columns);
-      } else {
-        tableCreateReq.columns = [];
-      }
+      const tableCreateReq = {
+        ...param.table,
+        columns: columns?.length ? columnV3ToV2Builder().build(columns) : [],
+      } as TableReqType;
 
       tableCreateOutput = await this.tablesService.tableCreate(context, {
         baseId: param.baseId,

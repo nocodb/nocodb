@@ -26,6 +26,7 @@ import { registerTrashHandlers } from './handlers/trash.handlers';
 import { registerRowColorHandlers } from './handlers/row-color.handlers';
 import { registerPermissionHandlers } from './handlers/permissions.handlers';
 import { registerRlsHandlers } from './handlers/rls.handlers';
+import { registerTablesV3Handlers } from './handlers/tables-v3.handlers';
 import type { OnApplicationBootstrap } from '@nestjs/common';
 import { OperationRegistry } from '~/command-registry/registry';
 import { BaseVariablesService } from '~/ee/services/base-variables.service';
@@ -59,6 +60,7 @@ import { BaseTrashService } from '~/ee/services/base-trash/base-trash.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { PermissionsService } from '~/ee/services/permissions.service';
 import { RlsService } from '~/services/rls.service';
+import { TablesV3Service } from '~/services/v3/tables-v3.service';
 
 @Injectable()
 export class OperationRegistryBootstrap implements OnApplicationBootstrap {
@@ -96,6 +98,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly viewRowColorSvc: ViewRowColorService,
     private readonly permissionsSvc: PermissionsService,
     private readonly rlsSvc: RlsService,
+    private readonly tablesV3Svc: TablesV3Service,
   ) {}
 
   onApplicationBootstrap(): void {
@@ -134,6 +137,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     registerRowColorHandlers(this.viewRowColorSvc);
     registerPermissionHandlers(this.permissionsSvc);
     registerRlsHandlers(this.rlsSvc, this.filtersSvc);
+    registerTablesV3Handlers(this.tablesV3Svc, this.baseTrashSvc);
 
     OperationRegistry.freeze();
     this.logger.log(

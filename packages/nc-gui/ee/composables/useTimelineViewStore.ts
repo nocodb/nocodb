@@ -7,7 +7,7 @@ import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
 import { validateRowFilters } from '~/utils/dataUtils'
 import type { TimelineZoomLevel } from '../utils/timelineUtils'
-import { isFortnightMonday, isGridlineBoundary } from '../utils/timelineUtils'
+import { TIMELINE_RECORD_LIMIT, isFortnightMonday, isGridlineBoundary } from '../utils/timelineUtils'
 
 // Per-scale config drives column width, buffer size, prev/next step, and
 // header rendering. `colWidth` is the fixed pixel width of one day-column.

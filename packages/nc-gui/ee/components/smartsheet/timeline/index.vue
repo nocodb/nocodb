@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import type { Row as RowType } from '#imports'
 import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
-import { TIMELINE_ZOOM_LEVELS } from '../../../utils/timelineUtils'
+import { TIMELINE_GROUP_HEADER_HEIGHT, TIMELINE_GROUP_SIDEBAR_WIDTH, TIMELINE_RECORD_LIMIT, TIMELINE_ZOOM_LEVELS } from '../../../utils/timelineUtils'
 
 const meta = inject(MetaInj, ref())
 
@@ -187,11 +187,11 @@ onBeforeUnmount(() => {
 })
 
 // Reload only on timelineRange change. The data fetch is scale-independent
-// (400 records, no date filter), so reloading on zoomLevel is wasteful — and
-// worse, the loading flip unmounts the Grid via v-else-if, which loses the
-// DOM scrollLeft we just projected for the new scale and leaves the new Grid
-// scrolled to 0. timelineRange is critical: it may be empty on mount
-// (view data loads async) and gets populated later when
+// (capped at TIMELINE_RECORD_LIMIT, no date filter), so reloading on zoomLevel
+// is wasteful — and worse, the loading flip unmounts the Grid via v-else-if,
+// which loses the DOM scrollLeft we just projected for the new scale and
+// leaves the new Grid scrolled to 0. timelineRange is critical: it may be
+// empty on mount (view data loads async) and gets populated later when
 // activeView.view.timeline_range arrives.
 watch(timelineRange, () => {
   reloadData()

@@ -13,6 +13,8 @@ import type {
   LinkToAnotherRecordColumn,
   LookupColumn,
   RollupColumn,
+  TimelineRange,
+  TimelineView,
 } from '~/models';
 import type { NcContext } from '~/interface/config';
 import {
@@ -91,10 +93,9 @@ export class PublicMetasService {
       }
     } else if (view.type === ViewTypes.TIMELINE) {
       // Timeline ranges can have both from and to date columns.
-      for (const c of ((view.view as any)?.timeline_range ?? []) as Array<{
-        fk_from_column_id?: string;
-        fk_to_column_id?: string;
-      }>) {
+      const timelineRange = ((view.view as TimelineView)?.timeline_range ??
+        []) as TimelineRange[];
+      for (const c of timelineRange) {
         if (c.fk_from_column_id) rangeColumns.push(c.fk_from_column_id);
         if (c.fk_to_column_id) rangeColumns.push(c.fk_to_column_id);
       }

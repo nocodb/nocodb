@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
-import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
+import { TIMELINE_GROUP_HEADER_HEIGHT, type TimelineZoomLevel } from '../../../utils/timelineUtils'
 
 // Pre-computed per-bar geometry + style. Built once per swimlanes recompute
 // (record / buffer / colWidth / rowMeta changes) so per-frame scroll

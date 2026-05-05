@@ -32,7 +32,8 @@ const licenseStatus = computed(() => {
 
 const buildBuyLicenseUrl = (seatCount?: number) => {
   const instanceUrl = window.location.origin
-  let url = `${NC_CLOUD_URL}/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`
+  const licenseServerUrl = appInfo.value.licenseServerUrl || NC_CLOUD_URL
+  let url = `${licenseServerUrl}/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`
   if (seatCount && seatCount > 0) {
     url += `&seat_count=${seatCount}`
   }

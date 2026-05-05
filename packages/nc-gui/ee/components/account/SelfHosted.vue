@@ -55,12 +55,14 @@ const checkoutLoading = ref(false)
 
 const successLicense = ref<(typeof licenses.value)[0] | null>(null)
 
-const instanceUrl = computed(() => (route.query.instance_url as string) || '')
+const instanceUrl = ref<string>((route.query.instance_url as string) || '')
 
-const requestedSeatCount = computed(() => {
-  const raw = Number(route.query.seat_count)
-  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0
-})
+const parseSeatCount = (raw: unknown) => {
+  const n = Number(raw)
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 1
+}
+
+const requestedSeatCount = ref<number>(parseSeatCount(route.query.seat_count))
 
 const copiedKeyId = ref<string | null>(null)
 
@@ -234,6 +236,12 @@ if (isSelfServeLicensePurchaseEnabled.value && cameFromInstance.value) {
 }
 
 onMounted(async () => {
+  // Strip instance_url / seat_count from the URL once we've snapshotted them.
+  if (route.query.instance_url || route.query.seat_count) {
+    const { instance_url: _i, seat_count: _s, ...rest } = route.query
+    router.replace({ query: rest })
+  }
+
   if (isSelfServeLicensePurchaseEnabled.value && afterPayment.value && sessionId.value) {
     await handleAfterPayment()
     return
@@ -414,7 +422,7 @@ onBeforeUnmount(async () => {
             <div v-if="requestedSeatCount > 0">
               <div class="text-xs text-nc-content-gray-subtle mb-1">{{ $t('labels.editorsOnInstance') }}</div>
               <div class="text-sm font-medium">
-                {{ requestedSeatCount }} {{ requestedSeatCount === 1 ? $t('objects.roleType.editor') : $t('labels.editors') }}
+                {{ requestedSeatCount }} {{ requestedSeatCount === 1 ? $t('objects.roleType.editor') : $t('title.editors') }}
               </div>
             </div>
           </div>

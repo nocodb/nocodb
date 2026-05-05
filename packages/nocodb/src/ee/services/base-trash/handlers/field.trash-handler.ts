@@ -146,6 +146,10 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
     await NocoCache.update(ctx, `${CacheScope.COLUMN}:${col.id}`, {
       deleted: true,
     });
+    // Clear LTAR fk_display_value_column_id pointers at trash time so the
+    // read paths don't try to resolve a soft-deleted display column. The same
+    // cascade re-runs (no-op) at retention purge via Column.delete2.
+    await Column.clearDisplayValueColumnReferences(ctx, col.id, ncMeta);
     await View.clearSingleQueryCache(ctx, col.fk_model_id, null, ncMeta);
 
     // Soft-delete reverse link column in the same transaction

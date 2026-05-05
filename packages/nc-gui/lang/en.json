@@ -283,7 +283,8 @@
       "teams": "Teams",
       "permissions": "Table & Field Permissions",
       "audit": "Workspace Audit",
-      "privateBases": "Private Bases"
+      "privateBases": "Private Bases",
+      "ltarCustomDisplayValue": "Custom Display Value Field"
     },
     "upgradeGenericSubtitle": "Unlock more seats, additional records, more storage, conditional webhooks, and much more!"
   },
@@ -1859,6 +1860,8 @@
     "allowMetaWrite": "Allow Schema Change",
     "allowDataWrite": "Allow Data Write/Edit",
     "selectView": "Select a View",
+    "useCustomDisplayField": "Use custom display value field",
+    "selectFieldAsDisplayName": "Select a field to use as the display name",
     "privateTable": "Private table",
     "privateView": "Private view",
     "connectionDetails": "Source Connection Details",

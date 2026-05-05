@@ -362,6 +362,7 @@ export default class Column<T = any> implements ColumnType {
             fk_parent_column_id: column.fk_parent_column_id,
 
             fk_target_view_id: column.fk_target_view_id,
+            fk_display_value_column_id: column.fk_display_value_column_id,
             fk_mm_model_id: column.fk_mm_model_id,
             fk_mm_child_column_id: column.fk_mm_child_column_id,
             fk_mm_parent_column_id: column.fk_mm_parent_column_id,
@@ -1066,6 +1067,11 @@ export default class Column<T = any> implements ColumnType {
         }
       }
     }
+
+    // Clear fk_display_value_column_id on LTAR columns referencing the deleted column.
+    // Reused from the EE trash flow, where soft-delete must clear the FK before
+    // the runtime ever queries against a soft-deleted display column.
+    await Column.clearDisplayValueColumnReferences(context, id, ncMeta);
 
     // Delete from view columns
     let colOptionTableName = null;
@@ -1970,6 +1976,64 @@ export default class Column<T = any> implements ColumnType {
     });
   }
 
+  static async updateDisplayValueColumn(
+    context: NcContext,
+    {
+      colId,
+      fk_display_value_column_id,
+    }: { colId: string; fk_display_value_column_id: string | null },
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_RELATIONS,
+      {
+        fk_display_value_column_id,
+      },
+      {
+        fk_column_id: colId,
+      },
+    );
+
+    await NocoCache.update(context, `${CacheScope.COL_RELATION}:${colId}`, {
+      fk_display_value_column_id,
+    });
+  }
+
+  // Clear fk_display_value_column_id on every LTAR row that points at `colId`.
+  // Direct knex (not metaList2) catches cross-base LTAR references; scoped by
+  // fk_workspace_id for tenant safety. The lookup is backed by the
+  // nc_col_relations_v2_fk_display_value_column_id_index added in
+  // nc_202605050000_ltar_display_value_column.
+  static async clearDisplayValueColumnReferences(
+    context: NcContext,
+    colId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const links = await ncMeta
+      .knex(MetaTable.COL_RELATIONS)
+      .select('fk_column_id', 'base_id', 'fk_workspace_id')
+      .where({
+        fk_display_value_column_id: colId,
+        fk_workspace_id: context.workspace_id,
+      });
+
+    for (const link of links) {
+      await Column.updateDisplayValueColumn(
+        {
+          workspace_id: link.fk_workspace_id,
+          base_id: link.base_id,
+        },
+        {
+          colId: link.fk_column_id,
+          fk_display_value_column_id: null,
+        },
+        ncMeta,
+      );
+    }
+  }
+
   static async bulkInsert(
     context: NcContext,
     param: {
@@ -2111,6 +2175,8 @@ export default class Column<T = any> implements ColumnType {
 
             fk_child_column_id: column.fk_child_column_id,
             fk_parent_column_id: column.fk_parent_column_id,
+
+            fk_display_value_column_id: column.fk_display_value_column_id,
 
             fk_mm_model_id: column.fk_mm_model_id,
             fk_mm_child_column_id: column.fk_mm_child_column_id,

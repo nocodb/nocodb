@@ -42,6 +42,7 @@ export default class LinkToAnotherRecordColumn {
   fk_mm_source_id?: string;
 
   fk_target_view_id?: string | null;
+  fk_display_value_column_id?: string | null;
 
   dr?: string;
   ur?: string;
@@ -184,6 +185,7 @@ export default class LinkToAnotherRecordColumn {
       'fk_mm_child_column_id',
       'fk_mm_parent_column_id',
       'fk_target_view_id',
+      'fk_display_value_column_id',
       'ur',
       'dr',
       'fk_index_name',
@@ -247,7 +249,10 @@ export default class LinkToAnotherRecordColumn {
   static async update(
     _context: NcContext,
     _fk_column_id: string,
-    _param: { fk_target_view_id: string | null },
+    _param: {
+      fk_target_view_id?: string | null;
+      fk_display_value_column_id?: string | null;
+    },
   ) {
     // placeholder method
   }

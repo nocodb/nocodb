@@ -188,6 +188,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       apiVersion,
       extractOrderColumn = false,
       ignoreRls = false,
+      fk_display_value_column_id,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -196,6 +197,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
       ignoreRls?: boolean;
+      fk_display_value_column_id?: string | null;
     } = {},
     disableOptimization = false,
   ): Promise<any> {
@@ -226,6 +228,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         extractOnlyPrimaries,
         extractOrderColumn,
         ignoreRls,
+        fk_display_value_column_id,
       });
 
       // Ensure we return null instead of undefined for consistency with CE version
@@ -241,6 +244,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       apiVersion,
       extractOrderColumn,
       ignoreRls,
+      fk_display_value_column_id,
     });
   }
 
@@ -2918,6 +2922,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     extractOnlyPrimaries?: boolean;
     extractOrderColumn?: boolean;
     deletedOnly?: boolean;
+    fk_display_value_column_id?: string | null;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -2928,6 +2933,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       query: args.args || {},
       extractOnlyPrimaries: args.extractOnlyPrimaries,
       extractOrderColumn: args.extractOrderColumn,
+      fk_display_value_column_id: args.fk_display_value_column_id,
     });
 
     const chunkedPks = chunkArray(pks, chunkSize);
@@ -2950,6 +2956,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         getHiddenColumns: args.extractOrderColumn,
         deletedOnly: args.deletedOnly,
         extractOnlyPrimaries: args.extractOnlyPrimaries,
+        fk_display_value_column_id: args.fk_display_value_column_id,
       };
 
       if (['mysql', 'mysql2'].includes(source.type)) {

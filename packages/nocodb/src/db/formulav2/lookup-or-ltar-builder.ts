@@ -22,6 +22,7 @@ import type {
 } from '~/models';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
+import { getDisplayValueOfRefTable } from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { getRefColumnIfAlias } from '~/helpers';
 import { getAliasedSoftDeleteFilter } from '~/helpers/dbHelpers';
@@ -112,7 +113,9 @@ export const lookupOrLtarBuilder =
                 }.${childColumn.column_name}`,
               ]),
             );
-            lookupColumn = lookupColumn ?? parentModel.displayValue;
+            lookupColumn =
+              lookupColumn ??
+              (await getDisplayValueOfRefTable(context, relationCol));
 
             await extractLinkRelFiltersAndApply({
               context,
@@ -152,7 +155,9 @@ export const lookupOrLtarBuilder =
                 }.${parentColumn.column_name}`,
               ]),
             );
-            lookupColumn = lookupColumn ?? childModel.displayValue;
+            lookupColumn =
+              lookupColumn ??
+              (await getDisplayValueOfRefTable(context, relationCol));
 
             await extractLinkRelFiltersAndApply({
               context,
@@ -217,7 +222,9 @@ export const lookupOrLtarBuilder =
               selectQb.limit(1);
             }
 
-            lookupColumn = lookupColumn ?? parentModel.displayValue;
+            lookupColumn =
+              lookupColumn ??
+              (await getDisplayValueOfRefTable(context, relationCol));
 
             await extractLinkRelFiltersAndApply({
               context,
@@ -486,6 +493,12 @@ export const lookupOrLtarBuilder =
                 : RelationTypes.HAS_MANY;
             }
 
+            // Resolve display column once — honors fk_display_value_column_id
+            const nestedDisplayCol = await getDisplayValueOfRefTable(
+              context,
+              relationCol,
+            );
+
             switch (relationType) {
               case RelationTypes.BELONGS_TO:
                 {
@@ -499,7 +512,7 @@ export const lookupOrLtarBuilder =
                   );
                   cn = knex.raw('??.??', [
                     nestedAlias,
-                    parentModel?.displayValue?.column_name,
+                    nestedDisplayCol?.column_name,
                   ]);
                 }
                 break;
@@ -516,7 +529,7 @@ export const lookupOrLtarBuilder =
                   );
                   cn = knex.raw('??.??', [
                     nestedAlias,
-                    childModel?.displayValue?.column_name,
+                    nestedDisplayCol?.column_name,
                   ]);
                 }
                 break;
@@ -558,7 +571,7 @@ export const lookupOrLtarBuilder =
                 }
                 cn = knex.raw('??.??', [
                   nestedAlias,
-                  parentModel?.displayValue?.column_name,
+                  nestedDisplayCol?.column_name,
                 ]);
             }
 

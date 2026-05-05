@@ -349,11 +349,21 @@ export function checkColumnRequired(
   column: Column<any>,
   fields: string[],
   extractPkAndPv?: boolean,
+  fk_display_value_column_id?: string | null,
 ) {
   // if primary key or foreign key included in fields, it's required
   if (column.pk || column.uidt === UITypes.ForeignKey) return true;
 
   if (extractPkAndPv && column.pv) return true;
+
+  // keep the LTAR's custom display value column whenever we're extracting
+  // pk/pv-only rows — treat it as if it were pv for downstream rendering
+  if (
+    extractPkAndPv &&
+    fk_display_value_column_id &&
+    column.id === fk_display_value_column_id
+  )
+    return true;
 
   // check fields defined and if not, then select all
   // if defined check if it is in the fields
@@ -556,6 +566,7 @@ export function shouldSkipField(
   column,
   extractPkAndPv,
   pkAndPvOnly = false,
+  fk_display_value_column_id?: string | null,
 ) {
   // skip row meta column
   if (column.uidt === UITypes.Meta) return true;
@@ -586,8 +597,15 @@ export function shouldSkipField(
       }
     }
 
-    // skip all other columns if pkAndPvOnly passed as true
-    if (pkAndPvOnly && !column.pk && !column.pv) return true;
+    // skip all other columns if pkAndPvOnly passed as true,
+    // but always keep the LTAR's custom display value column when requested
+    if (
+      pkAndPvOnly &&
+      !column.pk &&
+      !column.pv &&
+      column.id !== fk_display_value_column_id
+    )
+      return true;
 
     return false;
   }
@@ -601,12 +619,14 @@ export async function getQueriedColumns(
     view,
     extractPkAndPv,
     pkAndPvOnly,
+    fk_display_value_column_id,
   }: {
     model?: Model;
     view?: View;
     fieldsSet?: Set<string>;
     extractPkAndPv?: boolean;
     pkAndPvOnly?: boolean;
+    fk_display_value_column_id?: string | null;
   },
   ncMeta?: MetaService,
 ) {
@@ -633,6 +653,7 @@ export async function getQueriedColumns(
         viewOrTableColumn,
         extractPkAndPv || pkAndPvOnly,
         pkAndPvOnly,
+        fk_display_value_column_id,
       ),
   );
 }

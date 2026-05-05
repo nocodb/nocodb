@@ -91,10 +91,15 @@ export interface IBaseModelSqlV2 {
     timestamp?: string;
   }): Promise<void>;
   readOnlyPrimariesByPkFromModel(
-    props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
+    props: {
+      model: Model;
+      id: any;
+      extractDisplayValueData?: boolean;
+      displayColumn?: Column;
+    }[],
   ): Promise<any[]>;
   fetchDisplayValueMap(
-    props: { model: Model; id: any }[],
+    props: { model: Model; id: any; displayColumn?: Column }[],
   ): Promise<Map<string, any>>;
   extractPksValues(data: any, asString?: boolean): any;
   readByPk(
@@ -383,6 +388,7 @@ export interface IBaseModelSqlV2 {
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
     linksAsLtar?: boolean;
+    fk_display_value_column_id?: string | null;
   }): Promise<void>;
   getProto(param?: {
     apiVersion?: NcApiVersion;

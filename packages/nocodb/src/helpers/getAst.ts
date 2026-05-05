@@ -65,6 +65,7 @@ const getAst = async (
     includeRowColorColumns = false,
     includeButtonFilterColumns = false,
     skipSubstitutingColumnIds = false,
+    fk_display_value_column_id,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -82,6 +83,7 @@ const getAst = async (
     includeRowColorColumns?: boolean;
     includeButtonFilterColumns?: boolean;
     skipSubstitutingColumnIds?: boolean;
+    fk_display_value_column_id?: string | null;
   },
 ): Promise<{
   ast: Ast;
@@ -173,6 +175,17 @@ const getAst = async (
     );
 
     await extractDependencies(context, model.displayValue, dependencyFields);
+
+    // Include custom display value column if specified by the parent LTAR relation
+    if (fk_display_value_column_id) {
+      const customDisplayCol = model.columns?.find(
+        (c) => c.id === fk_display_value_column_id,
+      );
+      if (customDisplayCol) {
+        ast[getFieldKey(customDisplayCol)] = 1;
+        await extractDependencies(context, customDisplayCol, dependencyFields);
+      }
+    }
 
     return { ast, dependencyFields, parsedQuery: dependencyFields };
   }
@@ -278,6 +291,7 @@ const getAst = async (
         const { ast: childAst } = await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
+          fk_display_value_column_id: colOpt.fk_display_value_column_id,
           dependencyFields: (dependencyFields.nested[col.title] =
             dependencyFields.nested[col.title] || {
               nested: {},
@@ -323,6 +337,7 @@ const getAst = async (
           model,
           query: query?.nested?.[col.title],
           extractOnlyPrimaries: nestedFields !== '*',
+          fk_display_value_column_id: colOpt.fk_display_value_column_id,
           dependencyFields: (dependencyFields.nested[col.title] =
             dependencyFields.nested[col.title] || {
               nested: {},
@@ -343,7 +358,11 @@ const getAst = async (
     if (col.uidt === UITypes.Meta) {
       isRequested = false;
     } else if (isSortOrFilterColumn) {
-      isRequested = true;
+      // For LTAR / Lookup columns with a custom display value override, `value`
+      // holds the nested AST that tells the query builder to include that
+      // override column. Without an override, the legacy `true` is correct
+      // (pk + pv) — using `value` could narrow the response to a stale subset.
+      isRequested = value;
     } else if (
       rowColoringColumnIds.has(col.id) ||
       buttonFilterColumnIds.has(col.id)
@@ -368,22 +387,31 @@ const getAst = async (
     } else if (isDeletedCol(col) && col.system) {
       isRequested = false;
     } else if (getHiddenColumn) {
-      isRequested =
+      const isVisibleNonHiddenColumn =
+        (!view || !!view?.show_system_fields) && !isHiddenCol(col, model);
+      const isCreatedOrLastModifiedSystemCol =
+        isCreatedOrLastModifiedTimeCol(col) && col.system;
+      // include non-has-many system links (self-link); has-many is part of
+      // the mm relation and isn't needed on its own
+      const isNonHasManySystemLink =
+        isLinksOrLTAR(col) &&
+        col.system &&
+        [
+          RelationTypes.BELONGS_TO,
+          RelationTypes.MANY_TO_MANY,
+          RelationTypes.ONE_TO_ONE,
+        ].includes(
+          (col.colOptions as LinkToAnotherRecordColumn)?.type as RelationTypes,
+        );
+
+      const shouldIncludeColumn =
         !isSystemColumn(col) ||
-        ((!view || !!view?.show_system_fields) && !isHiddenCol(col, model)) ||
-        (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
-        // include all non-has-many system links(self-link) columns since has-many is part of mm relation and which is not required
-        (isLinksOrLTAR(col) &&
-          col.system &&
-          [
-            RelationTypes.BELONGS_TO,
-            RelationTypes.MANY_TO_MANY,
-            RelationTypes.ONE_TO_ONE,
-          ].includes(
-            (col.colOptions as LinkToAnotherRecordColumn)
-              ?.type as RelationTypes,
-          )) ||
+        isVisibleNonHiddenColumn ||
+        isCreatedOrLastModifiedSystemCol ||
+        isNonHasManySystemLink ||
         col.pk;
+
+      isRequested = shouldIncludeColumn && value;
     } else if (allowedCols && (!includePkByDefault || !col.pk)) {
       isRequested =
         allowedCols[col.id] &&

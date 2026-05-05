@@ -1221,10 +1221,15 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       baseModel.model.columns.find((col) => col.pv) ??
       baseModel.model.primaryKey;
 
+    // Honor LTAR custom display value for the related side — the related
+    // record's audit/broadcast label should match what the user sees in UI.
+    const relatedCols = await relatedBaseModel.model.getColumns(relatedContext);
+    const customDisplayColId = (colOptions as any).fk_display_value_column_id;
     const relatedModelPvCol =
-      (await relatedBaseModel.model.getColumns(relatedContext)).find(
-        (col) => col.pv,
-      ) ?? relatedBaseModel.model.primaryKey;
+      (customDisplayColId &&
+        relatedCols.find((col) => col.id === customDisplayColId)) ||
+      relatedCols.find((col) => col.pv) ||
+      relatedBaseModel.model.primaryKey;
 
     const linkInArray = arrFlatMap(
       payload.links.map((l) =>
@@ -1299,10 +1304,12 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
           });
         }
 
-        // 2. Fetch + broadcast related rows
+        // 2. Fetch + broadcast related rows — include the LTAR's custom
+        // display column when set, so the label map below reflects the override.
         const relatedRows = await relatedBaseModelClone.chunkList({
           pks: [...relatedRowIds],
           chunkSize: 100,
+          fk_display_value_column_id: customDisplayColId,
         });
 
         for (const item of relatedRows) {

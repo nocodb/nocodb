@@ -14,6 +14,7 @@ import {
   isLinksOrLTAR,
   isMMOrMMLike,
   isServiceUser,
+  isSupportedDisplayValueColumn,
   isSystemColumn,
   isVirtualCol,
   LinksVersion,
@@ -191,6 +192,34 @@ function validateDateFormatMeta(context: NcContext, meta: unknown) {
   if (parsed?.date_format && !ALLOWED_DATE_FORMATS.has(parsed.date_format)) {
     NcError.get(context).badRequest('Invalid date format');
   }
+}
+
+// Resolves the LTAR custom display value column id against the related table.
+// Missing column silently falls back to null (handles stale client state and
+// cross-session schema drift). Existing-but-unsupported column type throws —
+// that's a caller-contract violation we want to surface.
+//
+// Also enforces the enterprise-license gate: the override is an EE-only
+// feature, so any non-null payload on a non-EE instance is rejected.
+function resolveDisplayValueColumnOrThrow(
+  context: NcContext,
+  relatedTable: Model,
+  requestedId: string | null | undefined,
+): string | null {
+  if (!requestedId) return null;
+  if (!Noco.isEE()) {
+    NcError.get(context).badRequest(
+      'Custom display value field is an enterprise feature',
+    );
+  }
+  const col = relatedTable.columns?.find((c) => c.id === requestedId);
+  if (!col) return null;
+  if (!isSupportedDisplayValueColumn(col)) {
+    NcError.get(context).badRequest(
+      'Selected column type is not supported as a display value field',
+    );
+  }
+  return col.id;
 }
 
 // todo: move
@@ -1206,6 +1235,55 @@ export class ColumnsService implements IColumnsService {
                   colBody as Column<LinkToAnotherRecordColumn>
                 ).colOptions.fk_target_view_id,
               });
+            }
+
+            // update custom display value column
+            if (
+              (colBody as any).fk_display_value_column_id === null ||
+              (colBody as any).fk_display_value_column_id
+            ) {
+              // Resolve via shared helper — missing column silently becomes
+              // null, unsupported type throws. Mirrors the create path.
+              let resolvedDisplayValueColumnId: string | null =
+                (colBody as any).fk_display_value_column_id ?? null;
+              if (resolvedDisplayValueColumnId) {
+                const colOptions =
+                  await column.getColOptions<LinkToAnotherRecordColumn>(
+                    context,
+                  );
+                // For cross-base LTAR the related model lives in a different
+                // base — use the ref context so Model.getWithInfo can find it.
+                const { refContext: colRefContext } =
+                  colOptions.getRelContext(context);
+                const relatedModel = await Model.getWithInfo(colRefContext, {
+                  id: colOptions.fk_related_model_id,
+                });
+                if (!relatedModel) {
+                  NcError.get(context).tableNotFound(
+                    colOptions.fk_related_model_id,
+                  );
+                }
+                resolvedDisplayValueColumnId = resolveDisplayValueColumnOrThrow(
+                  context,
+                  relatedModel,
+                  resolvedDisplayValueColumnId,
+                );
+              }
+
+              await Column.updateDisplayValueColumn(context, {
+                colId: param.columnId,
+                fk_display_value_column_id: resolvedDisplayValueColumnId,
+              });
+
+              // Re-clear after the write — changing the display value column
+              // changes the generated SQL for any query that expands this LTAR
+              // nested list. Clearing before the update leaves a small window
+              // where a concurrent request repopulates the cache with stale SQL.
+              await View.clearSingleQueryCache(
+                context,
+                column.fk_model_id,
+                null,
+              );
             }
           }
           // handle reorder column
@@ -5301,6 +5379,7 @@ export class ColumnsService implements IColumnsService {
       // Sandbox-replay — pre-injected by `idField: 'column'` so each
       // back-link/oo/mm `Column.insert` can honor the recorded id.
       id?: string;
+      fk_display_value_column_id?: string | null;
     };
 
     if (!ltarReq.parentId) {
@@ -5494,6 +5573,21 @@ export class ColumnsService implements IColumnsService {
       }
 
       const hmBtOut: { childRelColId?: string; savedColumnId?: string } = {};
+      // Resolve the linked table — the one whose rows the user-facing LTAR
+      // column surfaces in the chip. This matches fk_related_model_id of
+      // the user-facing column after createHmAndBtColumn runs:
+      //   HM → fk_related_model_id = childId (= refTable.id)
+      //   BT → fk_related_model_id = parentId (= table.id)
+      // The override column always lives on the linked table (never "self").
+      const linkedTableId =
+        ltarReq.type === 'bt' ? ltarReq.parentId : ltarReq.childId;
+      const linkedTable = table.id === linkedTableId ? table : refTable;
+      const hmBtDisplayValueColumnId = resolveDisplayValueColumnOrThrow(
+        context,
+        linkedTable,
+        ltarReq.fk_display_value_column_id,
+      );
+
       savedColumn = await createHmAndBtColumn(
         context,
         param.req,
@@ -5511,6 +5605,7 @@ export class ColumnsService implements IColumnsService {
         {
           ...param.colExtra,
           readonly: ltarReq.readonly || false,
+          fk_display_value_column_id: hmBtDisplayValueColumnId,
         },
         undefined,
         undefined,
@@ -5610,6 +5705,13 @@ export class ColumnsService implements IColumnsService {
         }
       }
       const ooOut: { childRelColId?: string; savedColumnId?: string } = {};
+      // OO user-facing column (HM-side) displays refTable records
+      const ooDisplayValueColumnId = resolveDisplayValueColumnOrThrow(
+        context,
+        refTable,
+        ltarReq.fk_display_value_column_id,
+      );
+
       savedColumn = await createOOColumn(
         context,
         param.req,
@@ -5626,6 +5728,7 @@ export class ColumnsService implements IColumnsService {
         {
           ...param.colExtra,
           readonly: ltarReq.readonly || false,
+          fk_display_value_column_id: ooDisplayValueColumnId,
         },
         undefined,
         undefined,
@@ -5877,6 +5980,11 @@ export class ColumnsService implements IColumnsService {
         fk_child_column_id: primaryKey.id,
         fk_parent_column_id: refPrimaryKey.id,
         fk_target_view_id: childView?.id,
+        fk_display_value_column_id: resolveDisplayValueColumnOrThrow(
+          context,
+          refTable,
+          ltarReq.fk_display_value_column_id,
+        ),
 
         fk_mm_model_id: assocModel.id,
         fk_mm_child_column_id: parentCol.id,
@@ -6375,9 +6483,14 @@ export class ColumnsService implements IColumnsService {
       NcError.get(context).badRequest('Invalid table id');
     }
 
-    // filter out columns other than primary key and display column
+    // filter out columns other than primary key, display column, and the
+    // LTAR's custom display value override (fk_display_value_column_id).
+    // Without including the override here, shared-base + cross-base LTAR
+    // chips fall back to the PV because the frontend meta doesn't have
+    // the override column.
+    const customDisplayColId = (colOptions as any).fk_display_value_column_id;
     table.columns = table.columns.filter((col) => {
-      return col.pk || col.pv;
+      return col.pk || col.pv || col.id === customDisplayColId;
     });
 
     // Check table visibility access and add flag
@@ -6983,6 +7096,8 @@ export class ColumnsService implements IColumnsService {
               fk_mm_parent_column_id: childCol.id,
               fk_related_model_id: hmColOptions.fk_related_model_id,
               fk_target_view_id: hmColOptions.fk_target_view_id,
+              fk_display_value_column_id:
+                hmColOptions.fk_display_value_column_id,
               virtual: isVirtual,
               version: LinksVersion.V2,
               ...crossBaseLinkProps,
@@ -7023,6 +7138,7 @@ export class ColumnsService implements IColumnsService {
             fk_mm_parent_column_id: parentCol.id,
             fk_related_model_id: btColOptions.fk_related_model_id,
             fk_target_view_id: btColOptions.fk_target_view_id,
+            fk_display_value_column_id: btColOptions.fk_display_value_column_id,
             virtual: isVirtual,
             version: LinksVersion.V2,
             ...refCrossBaseLinkProps,
@@ -7057,6 +7173,8 @@ export class ColumnsService implements IColumnsService {
               fk_mm_parent_column_id: childCol.id,
               fk_related_model_id: hmColOptions.fk_related_model_id,
               fk_target_view_id: hmColOptions.fk_target_view_id,
+              fk_display_value_column_id:
+                hmColOptions.fk_display_value_column_id,
               virtual: isVirtual,
               column_order: columnOrder,
               ...crossBaseLinkProps,
@@ -7454,6 +7572,7 @@ export class ColumnsService implements IColumnsService {
             fk_mm_parent_column_id: colOptions.fk_mm_parent_column_id,
             fk_related_model_id: colOptions.fk_related_model_id,
             fk_target_view_id: colOptions.fk_target_view_id,
+            fk_display_value_column_id: colOptions.fk_display_value_column_id,
             virtual: colOptions.virtual,
             column_order: mmColumnOrder,
             // Cross-base properties — needed for cross-base relations

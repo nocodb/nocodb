@@ -8,9 +8,12 @@ import {
   ProjectRoles,
   RelationTypes,
   SqliteUi,
+  type TableType,
   UITypes,
   ViewTypes,
   WorkspaceUserRoles,
+  isSupportedDisplayValueColumn,
+  isSystemColumn,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -67,7 +70,7 @@ const { viewsByTable } = storeToRefs(viewsStore)
 
 const { t } = useI18n()
 
-const { getPlanTitle, showEEFeatures, isEEFeatureBlocked } = useEeConfig()
+const { getPlanTitle, showEEFeatures, isEEFeatureBlocked, showUpgradeForEEFeature } = useEeConfig()
 
 const { getMeta, getMetaByKey } = useMetas()
 
@@ -129,6 +132,36 @@ if (!vModel.value.childId) vModel.value.childId = vModel.value?.colOptions?.fk_r
 if (!vModel.value.childViewId) vModel.value.childViewId = vModel.value?.colOptions?.fk_target_view_id || null
 if (!vModel.value.type) vModel.value.type = vModel.value?.colOptions?.type || 'mm'
 
+// Initialize custom display value field from colOptions
+if (vModel.value.fk_display_value_column_id === undefined) {
+  vModel.value.fk_display_value_column_id =
+    (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_display_value_column_id || null
+}
+
+const useCustomDisplayField = ref(!!vModel.value.fk_display_value_column_id)
+
+watch(useCustomDisplayField, (val) => {
+  if (!val) {
+    vModel.value.fk_display_value_column_id = null
+  }
+})
+
+// Custom display value field is an enterprise feature. showUpgradeForEEFeature
+// auto-routes: on unlicensed on-prem → license upgrade modal; on licensed
+// Starter → Enterprise upgrade modal. CE: no-op (the section is hidden).
+const onToggleCustomDisplayField = (val: boolean) => {
+  if (val && isEEFeatureBlocked.value) {
+    showUpgradeForEEFeature(t('upgrade.features.ltarCustomDisplayValue'))
+    return
+  }
+  useCustomDisplayField.value = val
+}
+
+const onCustomDisplayLabelClick = () => {
+  if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
+  onToggleCustomDisplayField(!useCustomDisplayField.value)
+}
+
 const advancedOptions = ref(false)
 
 const tablesStore = useTablesStore()
@@ -145,6 +178,24 @@ const isLinkedViewPrivate = computed(() => {
   const tableMeta = getMetaByKey(baseId, childId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
+})
+
+// Fields eligible for custom display value — same filter as useLTARStore's `fields`
+const eligibleDisplayFields = computed(() => {
+  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+  if (!childId) return []
+
+  const relatedBaseId = crossBase.value
+    ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+    : meta.value?.base_id
+
+  if (!relatedBaseId) return []
+
+  const tableMeta = getMetaByKey(relatedBaseId, childId)
+
+  return ((tableMeta as TableType)?.columns ?? []).filter(
+    (col) => !isSystemColumn(col) && !isPrimary(col) && isSupportedDisplayValueColumn(col),
+  )
 })
 
 const refTables = computed(() => {
@@ -771,6 +822,49 @@ const handleScrollIntoView = () => {
         </NcTooltip>
       </a-form-item>
     </template>
+
+    <div v-if="isEeUI" class="flex flex-col gap-2">
+      <div class="flex gap-2 items-center">
+        <a-switch
+          v-e="['c:link:custom-display-field', { status: useCustomDisplayField }]"
+          :checked="useCustomDisplayField"
+          size="small"
+          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
+          @change="onToggleCustomDisplayField"
+        />
+        <span class="cursor-pointer" data-testid="nc-use-custom-display-field" @click="onCustomDisplayLabelClick">
+          {{ $t('labels.useCustomDisplayField') }}
+        </span>
+        <LazyPaymentUpgradeBadge
+          v-if="!useCustomDisplayField"
+          :feature-enabled-callback="() => !isEEFeatureBlocked"
+          :plan-title="PlanTitles.ENTERPRISE"
+          class="ml-1"
+        />
+      </div>
+      <a-form-item v-if="useCustomDisplayField" class="!pl-8 flex w-full pb-2 mt-4 space-y-2">
+        <NcSelect
+          v-model:value="vModel.fk_display_value_column_id"
+          :placeholder="$t('labels.selectFieldAsDisplayName')"
+          show-search
+          :disabled="isEEFeatureBlocked"
+          :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
+          dropdown-class-name="nc-dropdown-ltar-display-value-field"
+        >
+          <a-select-option v-for="field of eligibleDisplayFields" :key="field.id" :value="field.id" :data-label="field.title">
+            <div class="flex w-full items-center gap-2">
+              <div class="min-w-5 flex items-center justify-center">
+                <SmartsheetHeaderIcon :column="field" class="text-nc-content-gray-muted" />
+              </div>
+              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <template #title>{{ field.title }}</template>
+                <span>{{ field.title }}</span>
+              </NcTooltip>
+            </div>
+          </a-select-option>
+        </NcSelect>
+      </a-form-item>
+    </div>
 
     <div class="flex flex-col gap-2">
       <NcTooltip :disabled="!isSyncedField && !isLinkedViewPrivate" placement="right">

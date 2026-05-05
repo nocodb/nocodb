@@ -43,7 +43,6 @@ const {
   isChildrenExcludedListLinked,
   childrenExcludedOffsetCount,
   childrenListOffsetCount,
-  isChildrenExcludedListLoading,
   isChildrenExcludedLoading,
   childrenListCount,
   loadChildrenExcludedList,
@@ -65,6 +64,16 @@ const {
   rowId,
   externalBaseUserRoles,
   isLinkedTableAccessible,
+  // Chunked cache
+  CHUNK_SIZE,
+  ROW_HEIGHT,
+  excludedCachedRows,
+  excludedTotalRows,
+  excludedLinkedState,
+  excludedLoadingState,
+  fetchExcludedChunk,
+  clearExcludedCache,
+  resetExcludedCache,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -364,15 +373,73 @@ const linkedShortcuts = (e: KeyboardEvent) => {
   }
 }
 
-const childrenExcludedListRef = ref<HTMLDivElement>()
+const scrollContainerRef = ref<HTMLElement>()
 
-watch(childrenExcludedListPagination, () => {
-  childrenExcludedListRef.value?.scrollTo({ top: 0, behavior: 'smooth' })
+const ROW_VIRTUAL_MARGIN = 5
+
+const rowSlice = reactive({ start: 0, end: 0 })
+
+const calculateSlices = () => {
+  const container = scrollContainerRef.value
+  if (!container || excludedTotalRows.value === 0) return
+
+  const scrollTop = container.scrollTop
+  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT))
+  const visibleCount = Math.ceil(container.clientHeight / ROW_HEIGHT)
+  const endIndex = Math.min(startIndex + visibleCount, excludedTotalRows.value)
+
+  rowSlice.start = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
+  rowSlice.end = Math.min(excludedTotalRows.value, endIndex + ROW_VIRTUAL_MARGIN)
+}
+
+// Recalculate slices when totalRows changes (e.g., after first chunk load)
+watch(excludedTotalRows, () => {
+  calculateSlices()
+})
+
+const updateVisibleChunks = () => {
+  if (excludedTotalRows.value === 0 && excludedCachedRows.value.size === 0) return
+
+  const firstChunk = Math.floor(rowSlice.start / CHUNK_SIZE)
+  const lastChunk = Math.floor(Math.max(0, rowSlice.end - 1) / CHUNK_SIZE)
+
+  for (let c = firstChunk; c <= lastChunk; c++) {
+    fetchExcludedChunk(c)
+  }
+
+  // Evict chunks outside buffer
+  const bufferStart = Math.max(0, rowSlice.start - 20)
+  const bufferEnd = Math.min(excludedTotalRows.value, rowSlice.end + 20)
+  clearExcludedCache(bufferStart, bufferEnd)
+}
+
+// Debounce chunk fetching — short delay for normal scroll responsiveness,
+// maxWait ensures chunks load within 100ms even during continuous scrolling
+const debouncedUpdateVisibleChunks = useDebounceFn(updateVisibleChunks, 50, { maxWait: 100 })
+
+const onListScroll = () => {
+  calculateSlices()
+  debouncedUpdateVisibleChunks()
+}
+
+const visibleRows = computed(() => {
+  const { start, end } = rowSlice
+  return Array.from({ length: Math.max(0, end - start) }, (_, i) => {
+    const idx = start + i
+    const row = excludedCachedRows.value.get(idx)
+    const isLinked = excludedLinkedState.value.get(idx) ?? false
+    const isLoading = excludedLoadingState.value.get(idx) ?? false
+    if (!row) return { _placeholder: true, _index: idx, _isLinked: false, _isLoading: false }
+    return { ...row, _index: idx, _isLinked: isLinked, _isLoading: isLoading }
+  })
 })
 
 onMounted(() => {
   window.addEventListener('keydown', linkedShortcuts)
   loadRelatedTableMeta()
+
+  // Load initial chunk
+  fetchExcludedChunk(0)
 
   // Don't focus input on open dropdown in mobile mode
   if (isMobileMode.value) return
@@ -383,6 +450,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   resetChildrenExcludedOffsetCount()
+  resetExcludedCache()
   childrenExcludedListPagination.query = ''
   window.removeEventListener('keydown', linkedShortcuts)
 })
@@ -390,6 +458,8 @@ onUnmounted(() => {
 const onFilterChange = () => {
   childrenExcludedListPagination.page = 1
   resetChildrenExcludedOffsetCount()
+  resetExcludedCache()
+  // Fetch first chunk with new query (watcher handles API call via debounce)
 }
 
 const isSearchInputFocused = ref(false)
@@ -465,60 +535,78 @@ const handleKeyDown = (e: KeyboardEvent) => {
           :table-title="meta?.title"
         />
       </div>
-      <div class="flex-1 overflow-auto nc-scrollbar-thin">
-        <template v-if="childrenExcludedList?.pageInfo?.totalRows">
-          <div ref="childrenExcludedListRef">
-            <template v-if="isChildrenExcludedLoading">
+      <div ref="scrollContainerRef" class="flex-1 overflow-auto nc-scrollbar-thin" @scroll="onListScroll">
+        <template v-if="excludedTotalRows > 0 || isChildrenExcludedLoading">
+          <template v-if="isChildrenExcludedLoading && excludedCachedRows.size === 0">
+            <div
+              v-for="(_x, i) in Array.from({ length: 10 })"
+              :key="i"
+              class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium hover:c"
+            >
+              <div class="flex items-center">
+                <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
+              </div>
+              <div class="flex flex-col gap-2 flex-grow justify-center">
+                <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
+                <div class="flex flex-row gap-6 w-10/12">
+                  <a-skeleton-input
+                    v-for="idx of [1, 2, 3]"
+                    :key="idx"
+                    active
+                    class="!h-3 !w-24 !rounded-md overflow-hidden"
+                    size="small"
+                  />
+                </div>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <!-- Top spacer for virtual scroll -->
+            <div :style="{ height: `${rowSlice.start * ROW_HEIGHT}px` }" />
+
+            <template v-for="item in visibleRows" :key="item._index">
+              <!-- Skeleton placeholder for unloaded rows -->
               <div
-                v-for="(_x, i) in Array.from({ length: 10 })"
-                :key="i"
-                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium hover:c"
+                v-if="item._placeholder"
+                :style="{ height: `${ROW_HEIGHT}px` }"
+                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium"
               >
                 <div class="flex items-center">
                   <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
                 </div>
                 <div class="flex flex-col gap-2 flex-grow justify-center">
                   <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
-                  <div class="flex flex-row gap-6 w-10/12">
-                    <a-skeleton-input
-                      v-for="idx of [1, 2, 3]"
-                      :key="idx"
-                      active
-                      class="!h-3 !w-24 !rounded-md overflow-hidden"
-                      size="small"
-                    />
-                  </div>
                 </div>
               </div>
-            </template>
-            <template v-else>
+              <!-- Actual ListItem for loaded rows -->
               <LazyVirtualCellComponentsListItem
-                v-for="(refRow, id) in childrenExcludedList?.list ?? []"
-                :key="id"
+                v-else
                 :attachment="attachmentCol"
                 :display-value-column="relatedTableDisplayValueColumn"
                 :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
                 :fields="fields"
-                :is-linked="isChildrenExcludedListLinked[Number.parseInt(id)]"
-                :is-loading="isChildrenExcludedListLoading[Number.parseInt(id)]"
-                :is-selected="!!(isSearchInputFocused && childrenExcludedListPagination.query && Number.parseInt(id) === 0)"
+                :is-linked="item._isLinked"
+                :is-loading="item._isLoading"
+                :is-selected="!!(isSearchInputFocused && childrenExcludedListPagination.query && item._index === 0)"
                 :related-table-display-value-prop="relatedTableDisplayValueProp"
-                :row="refRow"
+                :row="item"
                 data-testid="nc-excluded-list-item"
-                @link-or-unlink="onClick(refRow, id)"
+                @link-or-unlink="onClick(item, String(item._index))"
                 @expand="
                   () => {
-                    // Don't allow expanding if linked table is not accessible
                     if (!isLinkedTableAccessible) return
-                    expandedFormRow = refRow
+                    expandedFormRow = item
                     expandedFormDlg = true
                   }
                 "
-                @keydown.space.prevent.stop="() => onClick(refRow, id)"
-                @keydown.enter.prevent.stop="() => onClick(refRow, id)"
+                @keydown.space.prevent.stop="() => onClick(item, String(item._index))"
+                @keydown.enter.prevent.stop="() => onClick(item, String(item._index))"
               />
             </template>
-          </div>
+
+            <!-- Bottom spacer for virtual scroll -->
+            <div :style="{ height: `${Math.max(0, excludedTotalRows - rowSlice.end) * ROW_HEIGHT}px` }" />
+          </template>
         </template>
         <div v-else class="h-full my-auto py-2 flex flex-col gap-3 items-center justify-center text-nc-content-gray-muted">
           <InboxIcon class="w-16 h-16 mx-auto" />
@@ -586,29 +674,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
             </template>
           </PermissionsTooltip>
         </div>
-        <template
-          v-if="
-            childrenExcludedList?.pageInfo && +childrenExcludedList?.pageInfo?.totalRows > childrenExcludedListPagination.size
-          "
-        >
-          <div v-if="isMobileMode" class="flex items-center">
-            <NcPagination
-              v-model:current="childrenExcludedListPagination.page"
-              v-model:page-size="childrenExcludedListPagination.size"
-              :total="+childrenExcludedList?.pageInfo?.totalRows"
-              entity-name="links-excluded-list"
-            />
-          </div>
-          <div v-else class="flex items-center">
-            <NcPagination
-              v-model:current="childrenExcludedListPagination.page"
-              v-model:page-size="childrenExcludedListPagination.size"
-              :total="+childrenExcludedList?.pageInfo?.totalRows"
-              entity-name="links-excluded-list"
-              mode="simple"
-            />
-          </div>
-        </template>
+        <div v-if="excludedTotalRows > 0" class="text-nc-content-gray-muted text-small">
+          {{ excludedTotalRows }} {{ excludedTotalRows === 1 ? 'record' : 'records' }}
+        </div>
       </div>
     </div>
     <Suspense>

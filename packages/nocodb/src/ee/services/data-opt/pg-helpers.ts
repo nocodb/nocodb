@@ -41,6 +41,7 @@ export async function singleQueryRead(
     customConditions?: Filter[];
     ignoreRls?: boolean;
     deletedOnly?: boolean;
+    fk_display_value_column_id?: string | null;
   },
 ): Promise<Record<string, any>> {
   const dbQuery = DBQueryClient.get(ClientType.PG);
@@ -69,6 +70,7 @@ export async function singleQueryList(
     ignoreViewFilterAndSort?: boolean;
     ignoreRls?: boolean;
     deletedOnly?: boolean;
+    fk_display_value_column_id?: string | null;
   },
 ): Promise<
   PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>

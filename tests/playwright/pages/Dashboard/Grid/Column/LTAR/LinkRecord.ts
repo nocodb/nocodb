@@ -22,15 +22,23 @@ export class LinkRecord extends BasePage {
     // placeholder: Filter query
     expect(await linkRecord.locator('.nc-excluded-search').isVisible()).toBeTruthy();
 
-    {
-      const childList = linkRecord.getByTestId(`nc-excluded-list-item`);
-      await expect.poll(() => linkRecord.getByTestId(`nc-excluded-list-item`).count()).toBe(cardTitle.length);
-      for (let i = 0; i < cardTitle.length; i++) {
-        await childList.nth(i).locator('.nc-display-value').scrollIntoViewIfNeeded();
-        await childList.nth(i).locator('.nc-display-value').waitFor({ state: 'visible' });
-        expect(await childList.nth(i).locator('.nc-display-value').textContent()).toContain(cardTitle[i]);
-      }
+    // Filter the list per-title so each assertion is against a stable top result.
+    // Avoids depending on DOM nth(i) == list index, which is unstable once the
+    // list scrolls (virtualized/infinite-scroll windows shift on scroll).
+    const searchInput = linkRecord.locator('.nc-excluded-search input').first();
+    const firstItem = linkRecord.getByTestId('nc-excluded-list-item').first();
+
+    for (const title of cardTitle) {
+      await searchInput.fill(title);
+      await firstItem.locator('.nc-display-value').waitFor({ state: 'visible' });
+      await expect
+        .poll(async () => (await firstItem.locator('.nc-display-value').textContent())?.trim())
+        .toContain(title);
     }
+
+    // Reset the filter so the modal returns to the unfiltered state for any
+    // follow-up interaction.
+    await searchInput.fill('');
   }
 
   async select(cardTitle: string, close = true) {

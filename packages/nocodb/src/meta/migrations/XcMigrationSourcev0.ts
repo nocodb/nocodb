@@ -56,6 +56,7 @@ import * as nc_202604220000_uuid_readonly from './v0/nc_202604220000_uuid_readon
 import * as nc_202604270000_base_trash from './v0/nc_202604270000_base_trash';
 import * as nc_202604290000_base_variables_and_sandbox_changelog from './v0/nc_202604290000_base_variables_and_sandbox_changelog';
 import * as nc_202605040000_form_view_columns_row_id from './v0/nc_202605040000_form_view_columns_row_id';
+import * as nc_202605050000_ltar_display_value_column from './v0/nc_202605050000_ltar_display_value_column';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -123,6 +124,7 @@ export default class XcMigrationSourcev0 {
       'nc_202604270000_base_trash',
       'nc_202604290000_base_variables_and_sandbox_changelog',
       'nc_202605040000_form_view_columns_row_id',
+      'nc_202605050000_ltar_display_value_column',
     ]);
   }
 
@@ -248,6 +250,8 @@ export default class XcMigrationSourcev0 {
         return nc_202604290000_base_variables_and_sandbox_changelog;
       case 'nc_202605040000_form_view_columns_row_id':
         return nc_202605040000_form_view_columns_row_id;
+      case 'nc_202605050000_ltar_display_value_column':
+        return nc_202605050000_ltar_display_value_column;
     }
   }
 }

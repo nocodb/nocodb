@@ -1,6 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RequestParams, TableType } from 'nocodb-sdk'
 import {
-  FormulaDataTypes,
   RelationTypes,
   UITypes,
   dateFormats,
@@ -9,9 +8,7 @@ import {
   isDateOrDateTimeCol,
   isLinkV2,
   isLinksOrLTAR,
-  isNumericCol,
   isSystemColumn,
-  ncIsNaN,
   parseStringDateTime,
   timeFormats,
 } from 'nocodb-sdk'
@@ -45,7 +42,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // state
     const { getMeta, getMetaByKey, getPartialMeta, metas } = useMetas()
 
-    const { base, sqlUis } = storeToRefs(useBase())
+    const { base, isSharedBase } = storeToRefs(useBase())
 
     const { getBaseRoles } = useBases()
 
@@ -106,6 +103,25 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const isChildrenExcludedListLinked = ref<Array<boolean>>([])
 
+    // --- Chunked cache for virtual scroll ---
+    const CHUNK_SIZE = 10
+    const MAX_CACHE_SIZE = 50
+    const ROW_HEIGHT = 56
+
+    // Excluded list (unlinked items) cache
+    const excludedCachedRows = ref<Map<number, Record<string, any>>>(new Map())
+    const excludedTotalRows = ref(0)
+    const excludedChunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
+    const excludedLinkedState = ref<Map<number, boolean>>(new Map())
+    const excludedLoadingState = ref<Map<number, boolean>>(new Map())
+
+    // Children list (linked items) cache
+    const childrenCachedRows = ref<Map<number, Record<string, any>>>(new Map())
+    const childrenCachedTotalRows = ref(0)
+    const childrenChunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
+    const childrenCachedLinkedState = ref<Map<number, boolean>>(new Map())
+    const childrenCachedLoadingState = ref<Map<number, boolean>>(new Map())
+
     const newRowState = reactive({
       state: null,
     })
@@ -151,10 +167,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return !(relatedTableMeta.value as any)?.is_private
     })
 
-    const sqlUi = computed(() =>
-      (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
-    )
-
     const rowId = computed(() => extractPkFromRow(currentRow.value.row, meta.value.columns))
 
     const showExtraFields = computed(() => {
@@ -177,13 +189,19 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       const tableId = colOptions.value.fk_related_model_id as string
       const colId = colOptions.value.fk_column_id as string
 
-      // Try fetching full table meta first. If it fails (e.g., user lacks permission
-      // to access the related table), fall back to partial meta which only fetches
-      // the linked column metadata needed to render the LTAR cell.
-      try {
-        await getMeta(relatedBaseId, tableId, false, false, true)
-      } catch {}
       const metaKey = `${relatedBaseId}:${tableId}`
+
+      // Only skip the full-meta call for a cross-base LTAR rendered inside a
+      // shared view or shared base — the viewer has no access to the external
+      // base there, so getMeta would 403. In the logged-in dashboard always
+      // try getMeta (the user may have access to both bases).
+      const isCrossBase = relatedBaseId !== column.value.base_id
+      const skipGetMeta = isCrossBase && (isPublic.value || isSharedBase.value)
+      if (!skipGetMeta) {
+        try {
+          await getMeta(relatedBaseId, tableId, false, false, true)
+        } catch {}
+      }
       if (!metas.value[metaKey]) {
         await getPartialMeta(relatedBaseId, colId, tableId)
       }
@@ -206,6 +224,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     }
 
     const relatedTableDisplayValueColumn = computed(() => {
+      const colOptions = (column.value?.colOptions as LinkToAnotherRecordType) || {}
+
+      if (colOptions.fk_display_value_column_id) {
+        const overrideCol = relatedTableMeta.value?.columns?.find((c) => c.id === colOptions.fk_display_value_column_id)
+        if (overrideCol) return overrideCol
+      }
+
       return relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
     })
 
@@ -227,7 +252,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         type: '',
         format: '',
       }
-      const currentColumn = relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0]
+      const currentColumn = relatedTableDisplayValueColumn.value
 
       if (currentColumn) {
         if (currentColumn?.uidt === UITypes.DateTime) {
@@ -274,21 +299,35 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const fields = computedInject(
       FieldsInj,
       (_fields) => {
-        return (relatedTableMeta.value.columns ?? [])
-          .filter((col) => {
-            // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
-            return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
-          })
-          .sort((a, b) => {
-            if (isPublic.value) {
-              return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-            }
+        const colOptions = (column.value?.colOptions as LinkToAnotherRecordType) || {}
+        const hasCustomDisplayValue = !!colOptions.fk_display_value_column_id
 
-            return (
-              (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
-            )
-          })
-          .slice(0, isMobileMode.value ? 1 : 3)
+        const filteredFields = (relatedTableMeta.value.columns ?? []).filter((col) => {
+          // Hide the custom display value column from extra fields since it's already shown as the primary display
+          if (hasCustomDisplayValue && col.id === colOptions.fk_display_value_column_id) return false
+
+          // Hiding lookup field from dropdown as we don't send lookup field info in list response due to performance reasons
+          return !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col) && !isLookup(col)
+        })
+
+        const sortedFields = filteredFields.sort((a, b) => {
+          if (isPublic.value) {
+            return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+          }
+
+          return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
+        })
+
+        // When a custom display value is set, prepend the original PV as the first extra field
+        // so it's guaranteed to be present regardless of the slice limit below.
+        if (hasCustomDisplayValue) {
+          const pvCol = (relatedTableMeta.value.columns ?? []).find(
+            (c) => isPrimary(c) && !isSystemColumn(c) && !isLinksOrLTAR(c) && !isAttachment(c) && !isLookup(c),
+          )
+          if (pvCol) sortedFields.unshift(pvCol)
+        }
+
+        return sortedFields.slice(0, isMobileMode.value ? 1 : 3)
       },
       ref([]),
     )
@@ -407,37 +446,31 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const getWhereClause = (searchQuery?: string) => {
       if (!searchQuery || !relatedTableDisplayValueColumn.value) return
 
-      const field = relatedTableDisplayValueColumn.value
-      let operator = 'like'
-      let query = searchQuery.trim()
-
-      if (isDateOrDateTimeCol(field)) {
-        operator = 'eq,exactDate'
-      } else {
-        query = getValidSearchQueryForColumn(field, query, relatedTableMeta.value) as string
-
-        if (!isValidValue(query)) return
-
-        if (
-          (field.uidt !== UITypes.Formula || getFormulaColDataType(field) !== FormulaDataTypes.NUMERIC) &&
-          !isNumericCol(field) &&
-          sqlUi.value &&
-          ['text', 'string'].includes(sqlUi.value.getAbstractType(field)) &&
-          field.dt !== 'bigint'
-        ) {
-          operator = 'like'
-          if (!query) return
-
-          query = `%${query}%`
-        } else {
-          operator = 'eq'
-          query = !ncIsNaN(query) ? query : ''
-        }
-      }
-
+      const query = searchQuery.trim()
       if (!query) return
 
-      return `(${field.title},${operator},${query})`
+      const displayCol = relatedTableDisplayValueColumn.value
+
+      // Date/DateTime display value: keep single-column exact date search (used with date picker input)
+      if (isDateOrDateTimeCol(displayCol)) {
+        return `(${displayCol.title},eq,exactDate,${query})`
+      }
+
+      // Collect all searchable columns: display value + extra fields shown in dropdown
+      const columnsToSearch = [displayCol, ...(fields.value || [])].filter((col) => isSearchableColumn(col))
+
+      const clauses = columnsToSearch
+        .map((col) => {
+          return getValidSearchQueryForColumn(col, query, relatedTableMeta.value, {
+            getWhereQueryAs: 'string',
+            serializeLinkRecordSearchQuery: true,
+          }) as string
+        })
+        .filter(Boolean)
+
+      if (clauses.length === 0) return
+
+      return clauses.join('~or')
     }
 
     const loadChildrenExcludedList = async (activeState?: any, resetOffset = false) => {
@@ -564,6 +597,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             }
           })
         }
+
+        // Seed the virtual-scroll chunk cache from this response. pagination.size is
+        // aligned with CHUNK_SIZE so the first page fills exactly chunk 0 — deeper
+        // chunks are still lazy-loaded by fetchExcludedChunk on viewport scroll.
+        if (offset === 0 && ncIsArray(childrenExcludedList.value?.list)) {
+          childrenExcludedList.value.list.forEach((row: Record<string, any>, index: number) => {
+            excludedCachedRows.value.set(index, row)
+            excludedLinkedState.value.set(index, isChildrenExcludedListLinked.value[index] || false)
+            excludedLoadingState.value.set(index, false)
+          })
+          if (childrenExcludedList.value.list.length > 0) {
+            excludedChunkStates.value[0] = 'loaded'
+          }
+          if (childrenExcludedList.value.pageInfo?.totalRows != null) {
+            excludedTotalRows.value = +childrenExcludedList.value.pageInfo.totalRows
+          }
+        }
       } catch (e: any) {
         // temporary fix to handle when offset is beyond limit
         const error = await extractSdkResponseErrorMsgv2(e)
@@ -661,6 +711,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         if (!childrenListPagination.query) {
           childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0
         }
+
+        // Seed the virtual-scroll chunk cache from this response. pagination.size is
+        // aligned with CHUNK_SIZE so the first page fills exactly chunk 0 — deeper
+        // chunks are still lazy-loaded by fetchChildrenChunk on viewport scroll.
+        if (offset === 0 && ncIsArray(childrenList.value?.list)) {
+          childrenList.value.list.forEach((row: Record<string, any>, index: number) => {
+            childrenCachedRows.value.set(index, row)
+            childrenCachedLinkedState.value.set(index, true)
+            childrenCachedLoadingState.value.set(index, false)
+          })
+          if (childrenList.value.list.length > 0) {
+            childrenChunkStates.value[0] = 'loaded'
+          }
+          if (childrenList.value.pageInfo?.totalRows != null) {
+            childrenCachedTotalRows.value = +childrenList.value.pageInfo.totalRows
+          }
+        }
       } catch (e: any) {
         message.error(`${t('msg.error.failedToLoadChildrenList')}: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
@@ -731,6 +798,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
+        excludedLinkedState.value.set(index, false)
+        childrenCachedLinkedState.value.set(index, false)
         return
       }
       try {
@@ -745,6 +814,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true
+        excludedLoadingState.value.set(index, true)
+        childrenCachedLoadingState.value.set(index, true)
         await $api.dbTableRow.nestedRemove(
           NOCO,
           metaValue?.base_id ?? (base.value.id as string),
@@ -771,6 +842,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
+        excludedLinkedState.value.set(index, false)
+        childrenCachedLinkedState.value.set(index, false)
         if (!isSingleTargetRelation.value) {
           childrenListCount.value = childrenListCount.value - 1
         }
@@ -779,6 +852,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       } finally {
         isChildrenExcludedListLoading.value[index] = false
         isChildrenListLoading.value[index] = false
+        excludedLoadingState.value.set(index, false)
+        childrenCachedLoadingState.value.set(index, false)
       }
 
       _reloadData?.({ shouldShowLoading: false, path: path.value })
@@ -811,11 +886,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = true
         isChildrenListLinked.value[index] = true
+        excludedLinkedState.value.set(index, true)
         return
       }
       try {
         isChildrenExcludedListLoading.value[index] = true
         isChildrenListLoading.value[index] = true
+        excludedLoadingState.value.set(index, true)
 
         childrenListOffsetCount.value = childrenListOffsetCount.value + 1
         childrenExcludedOffsetCount.value = childrenExcludedOffsetCount.value + 1
@@ -862,20 +939,25 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = true
         isChildrenListLinked.value[index] = true
+        excludedLinkedState.value.set(index, true)
 
         if (!isSingleTargetRelation.value) {
           childrenListCount.value = childrenListCount.value + 1
         } else {
           isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)
           isChildrenExcludedListLinked.value[index] = true
+          // Reset Map-based linked state for single-target: only the selected row is linked
+          for (const [key] of excludedLinkedState.value) {
+            excludedLinkedState.value.set(key, false)
+          }
+          excludedLinkedState.value.set(index, true)
         }
       } catch (e: any) {
         message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
       } finally {
-        // To Keep the Loading State for Minimum 600ms
-
         isChildrenExcludedListLoading.value[index] = false
         isChildrenListLoading.value[index] = false
+        excludedLoadingState.value.set(index, false)
       }
 
       _reloadData?.({ shouldShowLoading: false, path: path.value })
@@ -887,18 +969,256 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       $e('a:links:link')
     }
 
+    // --- Chunk-based fetch and cache eviction for virtual scroll ---
+
+    const _fetchExcludedChunkData = async (offset: number, limit: number) => {
+      const where = getWhereClause(childrenExcludedListPagination.query)
+
+      if (isPublic.value) {
+        const router = useRouter()
+        const route = router.currentRoute
+        let rowData
+        if (isForm.value) {
+          const { formState, additionalState } = useSharedFormStoreOrThrow()
+          rowData = await sanitizeRowData({ ...(formState?.value || {}), ...(additionalState?.value || {}) })
+        }
+        return await $api.public.dataRelationList(
+          route.value.params.viewId as string,
+          column.value.id,
+          {},
+          {
+            headers: { 'xc-password': sharedViewPassword.value },
+            query: {
+              limit,
+              offset,
+              where,
+              fields: requiredFieldsToLoad.value,
+              rowData: JSON.stringify(rowData),
+            } as RequestParams,
+          },
+        )
+      } else if (isNewRow?.value) {
+        const linkRowData = await sanitizeRowData(row.value.row)
+        return await $api.internal.getOperation((column.value as any).fk_workspace_id!, column.value!.base_id!, {
+          operation: 'linkDataList',
+          limit,
+          offset,
+          where,
+          columnId: column.value.fk_column_id || column.value.id,
+          linkRowData: JSON.stringify(linkRowData),
+        })
+      } else {
+        let changedRowData
+        try {
+          if (row.value?.row) {
+            changedRowData = Object.keys(row.value?.row).reduce((acc: Record<string, any>, key: string) => {
+              if (row.value.row[key] !== row.value.oldRow[key]) acc[key] = row.value.row[key]
+              return acc
+            }, {})
+            changedRowData = await sanitizeRowData(changedRowData)
+          }
+        } catch {}
+        return await $api.dbTableRow.nestedChildrenExcludedList(
+          NOCO,
+          meta.value?.base_id ?? baseId,
+          meta.value.id,
+          encodeURIComponent(rowId.value),
+          type.value,
+          column?.value?.id,
+          {
+            limit: String(limit),
+            offset: String(offset),
+            where,
+            linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
+            fields: requiredFieldsToLoad.value,
+          } as any,
+        )
+      }
+    }
+
+    const clearExcludedCache = (bufferStart: number, bufferEnd: number) => {
+      if (excludedCachedRows.value.size <= MAX_CACHE_SIZE) return
+      const safeStartChunk = Math.floor(bufferStart / CHUNK_SIZE)
+      const safeEndChunk = Math.floor(bufferEnd / CHUNK_SIZE)
+      const newMap = new Map<number, Record<string, any>>()
+      const newLinked = new Map<number, boolean>()
+      const newLoading = new Map<number, boolean>()
+      for (const [idx, row] of excludedCachedRows.value) {
+        const chunk = Math.floor(idx / CHUNK_SIZE)
+        if (chunk >= safeStartChunk && chunk <= safeEndChunk) {
+          newMap.set(idx, row)
+          if (excludedLinkedState.value.has(idx)) newLinked.set(idx, excludedLinkedState.value.get(idx)!)
+          if (excludedLoadingState.value.has(idx)) newLoading.set(idx, excludedLoadingState.value.get(idx)!)
+        }
+      }
+      // Reset evicted chunk states
+      for (let i = 0; i < excludedChunkStates.value.length; i++) {
+        if (excludedChunkStates.value[i] === 'loaded' && (i < safeStartChunk || i > safeEndChunk)) {
+          excludedChunkStates.value[i] = undefined
+        }
+      }
+      excludedCachedRows.value = newMap
+      excludedLinkedState.value = newLinked
+      excludedLoadingState.value = newLoading
+    }
+
+    const fetchExcludedChunk = async (chunkId: number) => {
+      if (excludedChunkStates.value[chunkId]) return
+      const offset = chunkId * CHUNK_SIZE
+      if (offset >= excludedTotalRows.value && excludedTotalRows.value > 0) return
+
+      excludedChunkStates.value[chunkId] = 'loading'
+      try {
+        const result = await _fetchExcludedChunkData(offset, CHUNK_SIZE)
+        if (result?.list) {
+          result.list.forEach((item: Record<string, any>, i: number) => {
+            excludedCachedRows.value.set(offset + i, item)
+            excludedLinkedState.value.set(offset + i, false)
+            excludedLoadingState.value.set(offset + i, false)
+          })
+        }
+        if (result?.pageInfo?.totalRows != null) {
+          excludedTotalRows.value = +result.pageInfo.totalRows
+        }
+        excludedChunkStates.value[chunkId] = 'loaded'
+      } catch (e: any) {
+        excludedChunkStates.value[chunkId] = undefined
+        console.error(`Error fetching excluded chunk ${chunkId}:`, e)
+      }
+    }
+
+    const resetExcludedCache = () => {
+      excludedCachedRows.value = new Map()
+      excludedLinkedState.value = new Map()
+      excludedLoadingState.value = new Map()
+      excludedChunkStates.value = []
+      excludedTotalRows.value = 0
+    }
+
+    // --- Children (linked items) cache ---
+
+    const _fetchChildrenChunkData = async (offset: number, limit: number) => {
+      const where = getWhereClause(childrenListPagination.query)
+
+      if (isNewRow?.value || !rowId.value) {
+        // Client-side filtering for new rows
+        const colTitle = column.value?.title || ''
+        const rawList = newRowState.state?.[colTitle] ?? []
+        const query = childrenListPagination.query.toLocaleLowerCase()
+        const list = query
+          ? rawList.filter((record: Record<string, any>) =>
+              `${record[relatedTableDisplayValueProp.value] ?? ''}`.toLocaleLowerCase().includes(query),
+            )
+          : rawList
+        return {
+          list: list.slice(offset, offset + limit),
+          pageInfo: { totalRows: list.length },
+        }
+      } else if (isPublic.value) {
+        return await $api.public.dataNestedList(
+          sharedView.value?.uuid as string,
+          encodeURIComponent(rowId.value),
+          type.value as RelationTypes,
+          column.value.id,
+          { limit: String(limit), offset: String(offset), where } as any,
+          { headers: { 'xc-password': sharedViewPassword.value } },
+        )
+      } else {
+        return await $api.dbTableRow.nestedList(
+          NOCO,
+          meta.value?.base_id ?? ((base?.value?.id || (sharedView.value?.view as any)?.base_id) as string),
+          meta.value.id,
+          encodeURIComponent(rowId.value),
+          type.value as RelationTypes,
+          column?.value?.id,
+          { limit: String(limit), offset: String(offset), where, fields: requiredFieldsToLoad.value } as any,
+        )
+      }
+    }
+
+    const clearChildrenCache = (bufferStart: number, bufferEnd: number) => {
+      if (childrenCachedRows.value.size <= MAX_CACHE_SIZE) return
+      const safeStartChunk = Math.floor(bufferStart / CHUNK_SIZE)
+      const safeEndChunk = Math.floor(bufferEnd / CHUNK_SIZE)
+      const newMap = new Map<number, Record<string, any>>()
+      const newLinked = new Map<number, boolean>()
+      const newLoading = new Map<number, boolean>()
+      for (const [idx, row] of childrenCachedRows.value) {
+        const chunk = Math.floor(idx / CHUNK_SIZE)
+        if (chunk >= safeStartChunk && chunk <= safeEndChunk) {
+          newMap.set(idx, row)
+          if (childrenCachedLinkedState.value.has(idx)) newLinked.set(idx, childrenCachedLinkedState.value.get(idx)!)
+          if (childrenCachedLoadingState.value.has(idx)) newLoading.set(idx, childrenCachedLoadingState.value.get(idx)!)
+        }
+      }
+      for (let i = 0; i < childrenChunkStates.value.length; i++) {
+        if (childrenChunkStates.value[i] === 'loaded' && (i < safeStartChunk || i > safeEndChunk)) {
+          childrenChunkStates.value[i] = undefined
+        }
+      }
+      childrenCachedRows.value = newMap
+      childrenCachedLinkedState.value = newLinked
+      childrenCachedLoadingState.value = newLoading
+    }
+
+    const fetchChildrenChunk = async (chunkId: number) => {
+      if (childrenChunkStates.value[chunkId]) return
+      const offset = chunkId * CHUNK_SIZE
+      if (offset >= childrenCachedTotalRows.value && childrenCachedTotalRows.value > 0) return
+
+      childrenChunkStates.value[chunkId] = 'loading'
+      try {
+        const result = await _fetchChildrenChunkData(offset, CHUNK_SIZE)
+        if (result?.list) {
+          result.list.forEach((item: Record<string, any>, i: number) => {
+            childrenCachedRows.value.set(offset + i, item)
+            childrenCachedLinkedState.value.set(offset + i, true)
+            childrenCachedLoadingState.value.set(offset + i, false)
+          })
+        }
+        if (result?.pageInfo?.totalRows != null) {
+          childrenCachedTotalRows.value = +result.pageInfo.totalRows
+        }
+        childrenChunkStates.value[chunkId] = 'loaded'
+      } catch (e: any) {
+        childrenChunkStates.value[chunkId] = undefined
+        console.error(`Error fetching children chunk ${chunkId}:`, e)
+      }
+    }
+
+    const resetChildrenCache = () => {
+      childrenCachedRows.value = new Map()
+      childrenCachedLinkedState.value = new Map()
+      childrenCachedLoadingState.value = new Map()
+      childrenChunkStates.value = []
+      childrenCachedTotalRows.value = 0
+    }
+
     const debounceLoadChildrenExcludedList = useDebounceFn(loadChildrenExcludedList, 500)
 
     const debounceLoadChildrenList = useDebounceFn(loadChildrenList, 500)
 
-    // watchers
-    watch(childrenExcludedListPagination, async () => {
-      await debounceLoadChildrenExcludedList(newRowState.state)
-    })
+    // watchers — only trigger on query change. The legacy loaders also seed
+    // chunk 0 of the virtual-scroll cache so a single API call covers both
+    // the legacy ref consumers (count, Enter-key, isLinked, expanded form)
+    // and the virtualized dropdown.
+    watch(
+      () => childrenExcludedListPagination.query,
+      async () => {
+        childrenExcludedListPagination.page = 1
+        resetExcludedCache()
+        await debounceLoadChildrenExcludedList(newRowState.state)
+      },
+    )
 
-    watch(childrenListPagination, async () => {
-      await debounceLoadChildrenList(false, newRowState.state)
-    })
+    watch(
+      () => childrenListPagination.query,
+      async () => {
+        childrenListPagination.page = 1
+        resetChildrenCache()
+        await debounceLoadChildrenList(false, newRowState.state)
+      },
+    )
 
     watch(childrenList, async () => {
       if (ncIsArray(childrenList.value?.list)) {
@@ -958,6 +1278,26 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       refreshCurrentRow,
       externalBaseUserRoles,
       showExtraFields,
+      // Chunked cache for virtual scroll
+      CHUNK_SIZE,
+      MAX_CACHE_SIZE,
+      ROW_HEIGHT,
+      excludedCachedRows,
+      excludedTotalRows,
+      excludedChunkStates,
+      excludedLinkedState,
+      excludedLoadingState,
+      fetchExcludedChunk,
+      clearExcludedCache,
+      resetExcludedCache,
+      childrenCachedRows,
+      childrenCachedTotalRows,
+      childrenChunkStates,
+      childrenCachedLinkedState,
+      childrenCachedLoadingState,
+      fetchChildrenChunk,
+      clearChildrenCache,
+      resetChildrenCache,
     }
   },
   'ltar-store',

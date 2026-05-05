@@ -26071,7 +26071,8 @@
             "type": "string",
             "ur": "string",
             "virtual": true,
-            "version": 2
+            "version": 2,
+            "fk_display_value_column_id": "string"
           }
         ],
         "properties": {
@@ -26142,6 +26143,10 @@
           },
           "version": {
             "type": "number"
+          },
+          "fk_display_value_column_id": {
+            "type": "string",
+            "nullable": true
           }
         },
         "title": "LinkToAnotherRecord Model",

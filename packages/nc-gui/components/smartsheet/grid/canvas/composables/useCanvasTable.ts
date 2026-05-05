@@ -252,7 +252,7 @@ export function useCanvasTable({
 
   const { isMysql, isPg } = baseStore
 
-  const { sqlUis } = storeToRefs(baseStore)
+  const { sqlUis, isSharedBase } = storeToRefs(baseStore)
 
   const { basesUser } = storeToRefs(useBases())
 
@@ -1569,12 +1569,17 @@ export function useCanvasTable({
         await Promise.all(
           metaIdsToFetch.map(async ([colId, tableId, relatedBaseId]) => {
             if (!tableId || !relatedBaseId) return
-            // Try fetching full table meta first. If it fails (e.g., user lacks permission
-            // to access the related table), fall back to partial meta which only fetches
-            // the linked column metadata needed to render the LTAR cell.
-            try {
-              await getMeta(relatedBaseId, tableId, false, false, true)
-            } catch {}
+            // Skip the full-meta call for a cross-base LTAR rendered inside a
+            // shared view or shared base — the viewer has no access to the
+            // external base there, so getMeta would 401 and kick off a token
+            // refresh loop. Fall straight through to partial meta.
+            const isCrossBase = relatedBaseId !== meta.value?.base_id
+            const skipGetMeta = isCrossBase && (isPublicView.value || isSharedBase.value)
+            if (!skipGetMeta) {
+              try {
+                await getMeta(relatedBaseId, tableId, false, false, true)
+              } catch {}
+            }
             const metaKey = `${relatedBaseId}:${tableId}`
             if (!metas.value[metaKey]) {
               await getPartialMeta(relatedBaseId, colId, tableId)

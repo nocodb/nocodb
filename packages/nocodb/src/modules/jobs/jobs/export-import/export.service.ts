@@ -297,6 +297,7 @@ export class ExportService {
               case 'fk_qr_value_column_id':
               case 'fk_barcode_value_column_id':
               case 'fk_model_id':
+              case 'fk_display_value_column_id':
                 column.colOptions[k] = idMap.get(v as string);
                 break;
               // Preserve the values on export

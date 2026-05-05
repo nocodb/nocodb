@@ -178,9 +178,25 @@ export class MySqlDBQueryClient
           );
 
           // todo: check if fields are allowed
+          const customDisplayCol = (
+            column.colOptions as LinkToAnotherRecordColumn
+          ).fk_display_value_column_id
+            ? relatedModel.columns?.find(
+                (c) =>
+                  c.id ===
+                  (column.colOptions as LinkToAnotherRecordColumn)
+                    .fk_display_value_column_id,
+              )
+            : undefined;
+
           let fields = [
             pkColumn,
             ...(pvColumn && pvColumn !== pkColumn ? [pvColumn] : []),
+            ...(customDisplayCol &&
+            customDisplayCol.id !== pkColumn?.id &&
+            customDisplayCol.id !== pvColumn?.id
+              ? [customDisplayCol]
+              : []),
           ];
 
           if (listArgs?.fields === '*') {
@@ -190,6 +206,14 @@ export class MySqlDBQueryClient
               ?.split(',')
               .map((f) => aliasColObjMap[f])
               .filter(Boolean);
+
+            // Ensure custom display column is always included
+            if (
+              customDisplayCol &&
+              !fields.find((f) => f?.id === customDisplayCol.id)
+            ) {
+              fields.push(customDisplayCol);
+            }
           }
 
           const sorts = extractSortsObject(
@@ -339,6 +363,15 @@ export class MySqlDBQueryClient
                   apiVersion,
                 });
 
+                const mmSelectedFields = fields.filter(
+                  (f) =>
+                    f.pk ||
+                    f.pv ||
+                    (ast &&
+                      typeof ast === 'object' &&
+                      (ast[f.title] || ast[f.id])),
+                );
+
                 qb.joinRaw(
                   `LEFT OUTER JOIN LATERAL
                      (${knex
@@ -347,7 +380,7 @@ export class MySqlDBQueryClient
                          this.generateNestedRowSelectQuery({
                            knex,
                            alias: alias3,
-                           columns: fields,
+                           columns: mmSelectedFields,
                            title: getAs(column),
                            ...(isSingleTargetV2 ? { isBtOrOo: true } : {}),
                          }),
@@ -582,6 +615,15 @@ export class MySqlDBQueryClient
                     apiVersion,
                   });
 
+                  const ooHmSelectedFields = fields.filter(
+                    (f) =>
+                      f.pk ||
+                      f.pv ||
+                      (ast &&
+                        typeof ast === 'object' &&
+                        (ast[f.title] || ast[f.id])),
+                  );
+
                   qb.joinRaw(
                     `LEFT OUTER JOIN LATERAL (${knex
                       .from(hmAggQb.as(alias2))
@@ -589,7 +631,7 @@ export class MySqlDBQueryClient
                         this.generateNestedRowSelectQuery({
                           knex,
                           alias: alias2,
-                          columns: fields,
+                          columns: ooHmSelectedFields,
                           title: getAs(column),
                           isBtOrOo: true,
                         }),
@@ -687,6 +729,15 @@ export class MySqlDBQueryClient
                   apiVersion,
                 });
 
+                const hmSelectedFields = fields.filter(
+                  (f) =>
+                    f.pk ||
+                    f.pv ||
+                    (ast &&
+                      typeof ast === 'object' &&
+                      (ast[f.title] || ast[f.id])),
+                );
+
                 qb.joinRaw(
                   `LEFT OUTER JOIN LATERAL (${knex
                     .from(hmAggQb.as(alias2))
@@ -694,7 +745,7 @@ export class MySqlDBQueryClient
                       this.generateNestedRowSelectQuery({
                         knex,
                         alias: alias2,
-                        columns: fields,
+                        columns: hmSelectedFields,
                         title: getAs(column),
                       }),
                     )

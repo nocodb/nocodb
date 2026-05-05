@@ -62,7 +62,6 @@ const {
   relatedTableDisplayValueProp,
   displayValueTypeAndFormatProp,
   unlink,
-  isChildrenListLoading,
   isChildrenListLinked,
   isChildrenLoading,
   relatedTableMeta,
@@ -78,6 +77,16 @@ const {
   rowId,
   relatedTableDisplayValueColumn,
   externalBaseUserRoles,
+  // Chunked cache
+  CHUNK_SIZE: _CHUNK_SIZE,
+  ROW_HEIGHT,
+  childrenCachedRows,
+  childrenCachedTotalRows,
+  childrenCachedLinkedState,
+  childrenCachedLoadingState,
+  fetchChildrenChunk,
+  clearChildrenCache,
+  resetChildrenCache,
 } = useLTARStoreOrThrow()
 
 const { withLoading } = useLoadingTrigger()
@@ -362,6 +371,9 @@ onMounted(() => {
   loadRelatedTableMeta()
   window.addEventListener('keydown', linkedShortcuts)
 
+  // Load initial chunk for virtual scroll
+  fetchChildrenChunk(0)
+
   // Don't focus input on open dropdown in mobile mode
   if (isMobileMode.value) return
   setTimeout(() => {
@@ -369,20 +381,76 @@ onMounted(() => {
   }, 100)
 })
 
-const childrenListRef = ref<HTMLDivElement>()
+const scrollContainerRef = ref<HTMLElement>()
 
-watch(childrenListPagination, () => {
-  childrenListRef.value?.scrollTo({ top: 0, behavior: 'smooth' })
+const ROW_VIRTUAL_MARGIN = 5
+
+const rowSlice = reactive({ start: 0, end: 0 })
+
+const calculateSlices = () => {
+  const container = scrollContainerRef.value
+  if (!container || childrenCachedTotalRows.value === 0) return
+
+  const scrollTop = container.scrollTop
+  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT))
+  const visibleCount = Math.ceil(container.clientHeight / ROW_HEIGHT)
+  const endIndex = Math.min(startIndex + visibleCount, childrenCachedTotalRows.value)
+
+  rowSlice.start = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
+  rowSlice.end = Math.min(childrenCachedTotalRows.value, endIndex + ROW_VIRTUAL_MARGIN)
+}
+
+// Recalculate slices when totalRows changes (e.g., after first chunk load)
+watch(childrenCachedTotalRows, () => {
+  calculateSlices()
+})
+
+const updateVisibleChunks = () => {
+  if (childrenCachedTotalRows.value === 0 && childrenCachedRows.value.size === 0) return
+
+  const firstChunk = Math.floor(rowSlice.start / _CHUNK_SIZE)
+  const lastChunk = Math.floor(Math.max(0, rowSlice.end - 1) / _CHUNK_SIZE)
+
+  for (let c = firstChunk; c <= lastChunk; c++) {
+    fetchChildrenChunk(c)
+  }
+
+  const bufferStart = Math.max(0, rowSlice.start - 20)
+  const bufferEnd = Math.min(childrenCachedTotalRows.value, rowSlice.end + 20)
+  clearChildrenCache(bufferStart, bufferEnd)
+}
+
+// Debounce chunk fetching — short delay for normal scroll responsiveness,
+// maxWait ensures chunks load within 100ms even during continuous scrolling
+const debouncedUpdateVisibleChunks = useDebounceFn(updateVisibleChunks, 50, { maxWait: 100 })
+
+const onListScroll = () => {
+  calculateSlices()
+  debouncedUpdateVisibleChunks()
+}
+
+const visibleRows = computed(() => {
+  const { start, end } = rowSlice
+  return Array.from({ length: Math.max(0, end - start) }, (_, i) => {
+    const idx = start + i
+    const row = childrenCachedRows.value.get(idx)
+    const isLinked = childrenCachedLinkedState.value.get(idx) ?? true
+    const isLoading = childrenCachedLoadingState.value.get(idx) ?? false
+    if (!row) return { _placeholder: true, _index: idx, _isLinked: true, _isLoading: false }
+    return { ...row, _index: idx, _isLinked: isLinked, _isLoading: isLoading }
+  })
 })
 
 onUnmounted(() => {
   resetChildrenListOffsetCount()
+  resetChildrenCache()
   childrenListPagination.query = ''
   window.removeEventListener('keydown', linkedShortcuts)
 })
 
 const onFilterChange = () => {
   childrenListPagination.page = 1
+  resetChildrenCache()
   // reset offset count when filter changes
   resetChildrenListOffsetCount()
 }
@@ -448,53 +516,72 @@ const handleKeyDown = (e: KeyboardEvent) => {
           :table-title="meta?.title"
         />
       </div>
-      <div ref="childrenListRef" class="flex-1 overflow-auto nc-scrollbar-thin">
-        <div v-if="isDataExist || isChildrenLoading">
-          <div class="cursor-pointer">
-            <template v-if="isChildrenLoading">
+      <div ref="scrollContainerRef" class="flex-1 overflow-auto nc-scrollbar-thin" @scroll="onListScroll">
+        <div v-if="isDataExist || isChildrenLoading || childrenCachedTotalRows > 0">
+          <template v-if="isChildrenLoading && childrenCachedRows.size === 0">
+            <div
+              v-for="(_x, i) in Array.from({ length: skeletonCount })"
+              :key="i"
+              class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium hover:bg-nc-bg-gray-extralight"
+            >
+              <div class="flex items-center">
+                <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
+              </div>
+              <div class="flex flex-col gap-2 flex-grow justify-center">
+                <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
+                <div class="flex flex-row gap-6 w-10/12">
+                  <a-skeleton-input
+                    v-for="idx of [1, 2, 3]"
+                    :key="idx"
+                    active
+                    class="!h-3 !w-24 !rounded-md overflow-hidden"
+                    size="small"
+                  />
+                </div>
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <!-- Top spacer for virtual scroll -->
+            <div :style="{ height: `${rowSlice.start * ROW_HEIGHT}px` }" />
+
+            <template v-for="item in visibleRows" :key="item._index">
+              <!-- Skeleton placeholder for unloaded rows -->
               <div
-                v-for="(_x, i) in Array.from({ length: skeletonCount })"
-                :key="i"
-                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium hover:bg-nc-bg-gray-extralight"
+                v-if="item._placeholder"
+                :style="{ height: `${ROW_HEIGHT}px` }"
+                class="flex flex-row gap-3 px-3 py-2 transition-all relative border-b-1 border-nc-border-gray-medium"
               >
                 <div class="flex items-center">
                   <a-skeleton-image class="!h-11 !w-11 !rounded-md overflow-hidden children:(!h-full !w-full)" />
                 </div>
                 <div class="flex flex-col gap-2 flex-grow justify-center">
                   <a-skeleton-input active class="h-4 !w-48 !rounded-md overflow-hidden" size="small" />
-                  <div class="flex flex-row gap-6 w-10/12">
-                    <a-skeleton-input
-                      v-for="idx of [1, 2, 3]"
-                      :key="idx"
-                      active
-                      class="!h-3 !w-24 !rounded-md overflow-hidden"
-                      size="small"
-                    />
-                  </div>
                 </div>
               </div>
-            </template>
-            <template v-else>
+              <!-- Actual ListItem for loaded rows -->
               <LazyVirtualCellComponentsListItem
-                v-for="(refRow, id) in childrenList?.list ?? state?.[colTitle] ?? []"
-                :key="id"
+                v-else
                 :attachment="attachmentCol"
                 :display-value-type-and-format-prop="displayValueTypeAndFormatProp"
                 :fields="fields"
                 :display-value-column="relatedTableDisplayValueColumn"
-                :is-linked="childrenList?.list ? isChildrenListLinked[Number.parseInt(id)] : true"
-                :is-loading="isChildrenListLoading[Number.parseInt(id)]"
-                :is-selected="!!(isSearchInputFocused && childrenListPagination.query && Number.parseInt(id) === 0)"
+                :is-linked="item._isLinked"
+                :is-loading="item._isLoading"
+                :is-selected="!!(isSearchInputFocused && childrenListPagination.query && item._index === 0)"
                 :related-table-display-value-prop="relatedTableDisplayValueProp"
-                :row="refRow"
+                :row="item"
                 data-testid="nc-child-list-item"
-                @link-or-unlink="linkOrUnLink(refRow, id)"
-                @expand="onClick(refRow)"
-                @keydown.space.prevent.stop="() => linkOrUnLink(refRow, id)"
-                @keydown.enter.prevent.stop="() => linkOrUnLink(refRow, id)"
+                @link-or-unlink="linkOrUnLink(item, String(item._index))"
+                @expand="onClick(item)"
+                @keydown.space.prevent.stop="() => linkOrUnLink(item, String(item._index))"
+                @keydown.enter.prevent.stop="() => linkOrUnLink(item, String(item._index))"
               />
             </template>
-          </div>
+
+            <!-- Bottom spacer for virtual scroll -->
+            <div :style="{ height: `${Math.max(0, childrenCachedTotalRows - rowSlice.end) * ROW_HEIGHT}px` }" />
+          </template>
         </div>
         <div v-else class="h-full flex flex-col gap-2 my-auto items-center justify-center text-nc-content-gray-muted text-center">
           <img
@@ -571,16 +658,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
             </div>
           </NcButton>
         </div>
-        <template v-if="!isNew && childrenList?.pageInfo && +childrenList.pageInfo.totalRows! > childrenListPagination.size">
-          <div class="flex justify-center items-center">
-            <NcPagination
-              v-model:current="childrenListPagination.page"
-              v-model:page-size="childrenListPagination.size"
-              :total="+childrenList.pageInfo.totalRows!"
-              mode="simple"
-            />
-          </div>
-        </template>
+        <div v-if="childrenCachedTotalRows > 0" class="text-nc-content-gray-muted text-small">
+          {{ childrenCachedTotalRows }} {{ childrenCachedTotalRows === 1 ? 'record' : 'records' }}
+        </div>
       </div>
     </div>
 

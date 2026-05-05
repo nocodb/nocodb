@@ -1,4 +1,4 @@
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { isBoxHovered } from '../../utils/canvas'
 import { PlainCellRenderer } from '../Plain'
 import { renderAsCellLookupOrLtarValue } from '../../utils/cell'
@@ -26,11 +26,17 @@ export const OneToOneCellRenderer: CellRenderer = {
 
     const hasValue = !!row[column.title!]
 
+    const fkDisplayValueColumnId = (column?.colOptions as LinkToAnotherRecordType)?.fk_display_value_column_id
+
+    const displayValueCol = fkDisplayValueColumnId
+      ? relatedTableMeta?.columns?.find((c) => c.id === fkDisplayValueColumnId)
+      : undefined
+
     const relatedTableDisplayValueProp =
-      (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
+      displayValueCol?.title || (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.title || ''
 
     const relatedTableDisplayValuePropId =
-      (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.id || ''
+      displayValueCol?.id || (relatedTableMeta?.columns?.find((c) => c.pv) || relatedTableMeta?.columns?.[0])?.id || ''
 
     const ooColumn = relatedTableMeta?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp) as
       | ColumnType

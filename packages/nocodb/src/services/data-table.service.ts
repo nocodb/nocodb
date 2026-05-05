@@ -474,6 +474,8 @@ export class DataTableService {
       model: relatedModel,
       query: param.query,
       extractOnlyPrimaries: !(param.query?.f || param.query?.fields),
+      fk_display_value_column_id: (colOptions as any)
+        .fk_display_value_column_id,
     });
 
     const listArgs: any = dependencyFields;
@@ -768,6 +770,8 @@ export class DataTableService {
       model: relatedModel,
       query: param.query,
       extractOnlyPrimaries: !(param.query?.f || param.query?.fields),
+      fk_display_value_column_id: (colOptions as any)
+        .fk_display_value_column_id,
     });
 
     const listArgs: any = dependencyFields;
@@ -966,6 +970,8 @@ export class DataTableService {
         model: groupCtx.relatedModel,
         query: param.query,
         extractOnlyPrimaries: true,
+        fk_display_value_column_id: (groupCtx.colOptions as any)
+          .fk_display_value_column_id,
       });
 
       const listArgs: any = dependencyFields;
@@ -1040,7 +1046,15 @@ export class DataTableService {
     const relatedModel = await colOptions.getRelatedTable(refContext);
     await relatedModel.getColumns(refContext);
 
-    const displayValueColumn = relatedModel.displayValue;
+    // Prefer the LTAR's custom display value column when set — that's what
+    // the user sees in the cell chip / dropdown and would be copying. Fall
+    // back to the related table's PV when no override is configured or the
+    // override points to a stale / missing column.
+    const customDisplayColId = (colOptions as any).fk_display_value_column_id;
+    const customDisplayCol =
+      customDisplayColId &&
+      relatedModel.columns?.find((c) => c.id === customDisplayColId);
+    const displayValueColumn = customDisplayCol ?? relatedModel.displayValue;
     if (!displayValueColumn) {
       NcError.get(context).badRequest(
         'Related table has no display value column',

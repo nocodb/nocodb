@@ -190,9 +190,25 @@ export class PGDBQueryClient
           );
 
           // todo: check if fields are allowed
+          const customDisplayCol = (
+            column.colOptions as LinkToAnotherRecordColumn
+          ).fk_display_value_column_id
+            ? relatedModel.columns?.find(
+                (c) =>
+                  c.id ===
+                  (column.colOptions as LinkToAnotherRecordColumn)
+                    .fk_display_value_column_id,
+              )
+            : undefined;
+
           let fields = [
             pkColumn,
             ...(pvColumn && pvColumn !== pkColumn ? [pvColumn] : []),
+            ...(customDisplayCol &&
+            customDisplayCol.id !== pkColumn?.id &&
+            customDisplayCol.id !== pvColumn?.id
+              ? [customDisplayCol]
+              : []),
           ];
 
           if (listArgs?.fields === '*') {
@@ -202,6 +218,14 @@ export class PGDBQueryClient
               ?.split(',')
               .map((f) => aliasColObjMap[f])
               .filter(Boolean);
+
+            // Ensure custom display column is always included
+            if (
+              customDisplayCol &&
+              !fields.find((f) => f?.id === customDisplayCol.id)
+            ) {
+              fields.push(customDisplayCol);
+            }
           }
 
           const sorts = extractSortsObject(
@@ -362,6 +386,17 @@ export class PGDBQueryClient
                   apiVersion,
                 });
 
+                // Filter fields to only those actually selected by extractColumns
+                // (ast may set some columns to false, excluding them from the subquery)
+                const selectedMmFields = fields.filter(
+                  (f) =>
+                    f.pk ||
+                    f.pv ||
+                    (ast &&
+                      typeof ast === 'object' &&
+                      (ast[f.title] || ast[f.id])),
+                );
+
                 qb.joinRaw(
                   `LEFT OUTER JOIN LATERAL
                        (${knex
@@ -370,7 +405,7 @@ export class PGDBQueryClient
                            this.generateNestedRowSelectQuery({
                              knex,
                              alias: alias3,
-                             columns: fields,
+                             columns: selectedMmFields,
                              title: getAs(column),
                              ...(isSingleTargetV2 ? { isBtOrOo: true } : {}),
                            }),
@@ -447,6 +482,15 @@ export class PGDBQueryClient
                   apiVersion: apiVersion,
                 });
 
+                const selectedBtFields = fields.filter(
+                  (f) =>
+                    f.pk ||
+                    f.pv ||
+                    (ast &&
+                      typeof ast === 'object' &&
+                      (ast[f.title] || ast[f.id])),
+                );
+
                 qb.joinRaw(
                   `LEFT OUTER JOIN LATERAL (${knex
                     .from(btAggQb.as(alias2))
@@ -454,7 +498,7 @@ export class PGDBQueryClient
                       this.generateNestedRowSelectQuery({
                         knex,
                         alias: alias2,
-                        columns: fields,
+                        columns: selectedBtFields,
                         title: getAs(column),
                         isBtOrOo: true,
                       }),
@@ -533,6 +577,15 @@ export class PGDBQueryClient
                     apiVersion,
                   });
 
+                  const selectedOoBtFields = fields.filter(
+                    (f) =>
+                      f.pk ||
+                      f.pv ||
+                      (ast &&
+                        typeof ast === 'object' &&
+                        (ast[f.title] || ast[f.id])),
+                  );
+
                   qb.joinRaw(
                     `LEFT OUTER JOIN LATERAL (${knex
                       .from(btAggQb.as(alias2))
@@ -540,7 +593,7 @@ export class PGDBQueryClient
                         this.generateNestedRowSelectQuery({
                           knex,
                           alias: alias2,
-                          columns: fields,
+                          columns: selectedOoBtFields,
                           title: getAs(column),
                           isBtOrOo: true,
                         }),
@@ -589,6 +642,15 @@ export class PGDBQueryClient
                     apiVersion,
                   });
 
+                  const selectedOoHmFields = fields.filter(
+                    (f) =>
+                      f.pk ||
+                      f.pv ||
+                      (ast &&
+                        typeof ast === 'object' &&
+                        (ast[f.title] || ast[f.id])),
+                  );
+
                   qb.joinRaw(
                     `LEFT OUTER JOIN LATERAL (${knex
                       .from(hmAggQb.as(alias2))
@@ -596,7 +658,7 @@ export class PGDBQueryClient
                         this.generateNestedRowSelectQuery({
                           knex,
                           alias: alias2,
-                          columns: fields,
+                          columns: selectedOoHmFields,
                           title: getAs(column),
                           isBtOrOo: true,
                         }),
@@ -695,6 +757,15 @@ export class PGDBQueryClient
                   apiVersion,
                 });
 
+                const selectedHmFields = fields.filter(
+                  (f) =>
+                    f.pk ||
+                    f.pv ||
+                    (ast &&
+                      typeof ast === 'object' &&
+                      (ast[f.title] || ast[f.id])),
+                );
+
                 qb.joinRaw(
                   `LEFT OUTER JOIN LATERAL (${knex
                     .from(hmAggQb.as(alias2))
@@ -702,7 +773,7 @@ export class PGDBQueryClient
                       this.generateNestedRowSelectQuery({
                         knex,
                         alias: alias2,
-                        columns: fields,
+                        columns: selectedHmFields,
                         title: getAs(column),
                       }),
                     )

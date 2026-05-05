@@ -126,7 +126,10 @@ export class FormFilters {
 
     if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
 
-    const displayValTitle = (relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
+    const customDisplayColId = (column?.colOptions as LinkToAnotherRecordType)?.fk_display_value_column_id
+    const customDisplayCol = customDisplayColId ? relatedTableMeta.columns.find((c) => c.id === customDisplayColId) : undefined
+    const displayValTitle =
+      (customDisplayCol || relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
 
     if (
       !displayValTitle ||

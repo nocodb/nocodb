@@ -37,6 +37,16 @@ const { isSyncedTable } = useSmartsheetStoreOrThrow()
 
 const meta = inject(MetaInj, ref())
 
+const { metas } = useMetas()
+
+const { basesUser } = storeToRefs(useBases())
+
+const baseStore = useBase()
+
+const { isMysql, isXcdbBase } = baseStore
+
+const { t } = useI18n()
+
 const view = inject(ActiveViewInj, ref())
 
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
@@ -121,9 +131,25 @@ const buildTooltipContent = (row: Row, lat: number, long: number): string => {
   const lines = tooltipFields
     .map((f) => {
       const rawValue = row.row[f.title!]
-      if (rawValue == null || rawValue === '') return null
+      if (rawValue == null || rawValue === '' || (Array.isArray(rawValue) && !rawValue.length)) return null
 
-      let displayValue = String(rawValue)
+      // Delegate to the shared cell formatter — handles LTAR chips,
+      // Attachments, Users, Multi-select, Date/Time, Formula, Currency,
+      // LTAR custom display value, etc. Raw `String(rawValue)` used to emit
+      // `[object Object]` for any structured cell.
+      let displayValue = parsePlainCellValue(rawValue, {
+        col: f,
+        abstractType: baseStore.getSqlUiBySourceId(f.source_id)?.getAbstractType(f),
+        meta: meta.value,
+        metas: metas.value,
+        baseUsers: basesUser.value,
+        isMysql,
+        isXcdbBase,
+        t,
+      })
+
+      if (displayValue == null || displayValue === '') return null
+
       if (displayValue.length > MAX_TOOLTIP_VALUE_LENGTH) {
         displayValue = `${displayValue.substring(0, MAX_TOOLTIP_VALUE_LENGTH)}…`
       }

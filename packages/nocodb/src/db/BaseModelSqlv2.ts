@@ -201,6 +201,16 @@ class DataLoaderWithArgs<K, V> extends DataLoader<K, V> {
   args?: RelationLoaderArgs;
 }
 
+// Stable key for `fetchDisplayValueMap`. Two LTAR columns can resolve to the
+// same (model, row) but pull different display columns (each LTAR can override
+// `fk_display_value_column_id`); without the column id in the key the second
+// `set()` would silently overwrite the first.
+export const displayValueMapKey = (props: {
+  model: Model;
+  id: any;
+  displayColumn?: Column;
+}): string => `${props.model.id}:${props.id}:${props.displayColumn?.id ?? ''}`;
+
 /**
  * Base class for models
  *
@@ -312,6 +322,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       apiVersion,
       extractOrderColumn = false,
       ignoreRls = false,
+      fk_display_value_column_id,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -320,6 +331,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
       ignoreRls?: boolean;
+      fk_display_value_column_id?: string | null;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -334,6 +346,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOnlyPrimaries,
       extractOrderColumn,
       apiVersion,
+      fk_display_value_column_id,
       skipSubstitutingColumnIds:
         this.context.api_version === NcApiVersion.V3 &&
         query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
@@ -438,52 +451,75 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   public async readOnlyPrimariesByPkFromModel(
-    props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
+    props: {
+      model: Model;
+      id: any;
+      extractDisplayValueData?: boolean;
+      // When set, the returned display value is taken from this column
+      // (the LTAR's custom display value override) and this column is
+      // requested in the underlying getAst so it's present in the record.
+      displayColumn?: Column;
+    }[],
   ): Promise<any[]> {
     if (!props.length) return [];
 
     // Small inputs (1-2 items): direct readByPk is cheaper than chunkList setup
     if (props.length <= 2) {
       const results: any[] = [];
-      for (const { model, id, extractDisplayValueData = true } of props) {
-        results.push(
-          await this.readByPkFromModel(
-            model,
-            undefined,
-            extractDisplayValueData,
-            id,
-            false,
-            {},
-            {
-              ignoreView: true,
-              getHiddenColumn: true,
-              extractOnlyPrimaries: true,
-            },
-          ),
+      for (const {
+        model,
+        id,
+        extractDisplayValueData = true,
+        displayColumn,
+      } of props) {
+        const data = await this.readByPkFromModel(
+          model,
+          undefined,
+          false, // don't let readByPkFromModel extract PV — we pick the field ourselves below
+          id,
+          false,
+          {},
+          {
+            ignoreView: true,
+            getHiddenColumn: true,
+            extractOnlyPrimaries: true,
+            fk_display_value_column_id: displayColumn?.id,
+          },
         );
+        if (extractDisplayValueData) {
+          const titleKey = displayColumn?.title ?? model.displayValue?.title;
+          results.push(data ? data[titleKey] ?? null : '');
+        } else {
+          results.push(data);
+        }
       }
       return results;
     }
 
-    // Bulk: group by model and batch-fetch via chunkList (1 SQL query per chunk)
-    const modelGroups = new Map<string, { model: Model; pks: Set<string> }>();
+    // Bulk: group by model and batch-fetch via chunkList (1 SQL query per chunk).
+    // Group key is model.id + displayColumn.id so each group has a single AST.
+    const modelGroups = new Map<
+      string,
+      { model: Model; pks: Set<string>; displayColumn?: Column }
+    >();
 
-    for (const { model, id } of props) {
-      let group = modelGroups.get(model.id);
+    for (const { model, id, displayColumn } of props) {
+      const key = `${model.id}::${displayColumn?.id ?? ''}`;
+      let group = modelGroups.get(key);
       if (!group) {
-        group = { model, pks: new Set() };
-        modelGroups.set(model.id, group);
+        group = { model, pks: new Set(), displayColumn };
+        modelGroups.set(key, group);
       }
       group.pks.add(String(id));
     }
 
-    // Fetch all records per model using chunkList (batched SQL queries)
-    const recordsByModel = new Map<string, Map<string, any>>();
+    // Fetch all records per (model, displayColumn) using chunkList
+    const recordsByKey = new Map<string, Map<string, any>>();
 
-    for (const [modelId, { model, pks }] of modelGroups) {
+    for (const [key, { model, pks, displayColumn }] of modelGroups) {
       const context = { ...this.context, base_id: model.base_id };
       const baseModel =
-        this.model.id === modelId
+        this.model.id === model.id
           ? this
           : await Model.getBaseModelSQL(context, {
               model,
@@ -494,6 +530,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const records = await baseModel.chunkList({
         pks: [...pks],
         extractOnlyPrimaries: true,
+        fk_display_value_column_id: displayColumn?.id,
       });
 
       await model.getCachedColumns(context);
@@ -503,29 +540,75 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const pk = baseModel.extractPksValues(record, true);
         pkMap.set(String(pk), record);
       }
-      recordsByModel.set(modelId, pkMap);
+      recordsByKey.set(key, pkMap);
     }
 
     // Reassemble results in original order
-    return props.map(({ model, id, extractDisplayValueData = true }) => {
-      const record = recordsByModel.get(model.id)?.get(String(id));
-      if (extractDisplayValueData) {
-        return record ? record[model.displayValue.title] ?? null : '';
-      }
-      return record ?? null;
-    });
+    return props.map(
+      ({ model, id, extractDisplayValueData = true, displayColumn }) => {
+        const key = `${model.id}::${displayColumn?.id ?? ''}`;
+        const record = recordsByKey.get(key)?.get(String(id));
+        if (extractDisplayValueData) {
+          const titleKey = displayColumn?.title ?? model.displayValue?.title;
+          return record ? record[titleKey] ?? null : '';
+        }
+        return record ?? null;
+      },
+    );
   }
 
   public async fetchDisplayValueMap(
-    props: { model: Model; id: any }[],
+    props: { model: Model; id: any; displayColumn?: Column }[],
   ): Promise<Map<string, any>> {
     const dvMap = new Map<string, any>();
     if (!props.length) return dvMap;
     const values = await this.readOnlyPrimariesByPkFromModel(props);
     for (let i = 0; i < props.length; i++) {
-      dvMap.set(`${props[i].model.id}:${props[i].id}`, values[i]);
+      dvMap.set(displayValueMapKey(props[i]), values[i]);
     }
     return dvMap;
+  }
+
+  // Given a source-side LTAR columnId, return the related table's column that
+  // was set as the override display value (`fk_display_value_column_id`). Used
+  // by audit paths to render linked-record display values consistently with
+  // what the UI shows in LTAR dropdowns / chips.
+  protected async resolveLtarDisplayCol(
+    columnId: string | undefined,
+    refModel: Model,
+  ): Promise<Column | undefined> {
+    if (!columnId) return undefined;
+    const col = await Column.get(this.context, { colId: columnId });
+    if (!col) return undefined;
+    const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
+      this.context,
+    );
+    const displayColId = (colOpts as any)?.fk_display_value_column_id;
+    if (!displayColId) return undefined;
+    if (!refModel.columns?.length) await refModel.getColumns(this.context);
+    return refModel.columns?.find((c) => c.id === displayColId);
+  }
+
+  // Source-side override: resolves the paired (reverse) LTAR's
+  // `fk_display_value_column_id` against `model`. The paired column lives on
+  // `refModel` and points back to `model`; its override is what determines how
+  // the source row renders in audits/UI viewed from refModel's perspective.
+  // Falls back to undefined when no paired column or no override is set.
+  protected async resolveReverseLtarDisplayCol(
+    columnId: string | undefined,
+    model: Model,
+    refModel: Model,
+  ): Promise<Column | undefined> {
+    if (!columnId) return undefined;
+    const col = await Column.get(this.context, { colId: columnId });
+    if (!col) return undefined;
+    if (!refModel.columns?.length) await refModel.getColumns(this.context);
+    const pairedCol = await extractCorrespondingLinkColumn(this.context, {
+      ltarColumn: col,
+      referencedTableColumns: refModel.columns,
+    });
+    if (!pairedCol) return undefined;
+    return this.resolveLtarDisplayCol(pairedCol.id, model);
   }
 
   public async exist(id?: any): Promise<any> {
@@ -2420,6 +2503,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
     linksAsLtar?: boolean;
+    fk_display_value_column_id?: string | null;
   }): Promise<void> {
     return await selectObject(this, logger)(params);
   }
@@ -3290,19 +3374,54 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             refRowId: entry.refRowIdIsInsertedRow ? rowId : entry.refRowId,
           }));
 
-          // Batch-fetch all display values into a KV map
-          const dvMap = await this.fetchDisplayValueMap(
-            resolvedEntries.flatMap((entry) => [
-              { model: entry.model, id: entry.rowId },
-              { model: entry.refModel, id: entry.refRowId },
-            ]),
-          );
+          // Batch-fetch all display values into a KV map. Thread the LTAR's
+          // custom display column (fk_display_value_column_id) for the ref
+          // side so audit entries render the overridden value, matching UI.
+          // Pre-resolve display column per unique (columnId, refModelId) so
+          // we don't pay N+1 inside the loop.
+          const refDisplayColCache = new Map<string, Column | undefined>();
+          for (const entry of resolvedEntries) {
+            if (!entry.columnId) continue;
+            const cacheKey = `${entry.columnId}:${entry.refModel.id}`;
+            if (refDisplayColCache.has(cacheKey)) continue;
+            refDisplayColCache.set(
+              cacheKey,
+              await this.resolveLtarDisplayCol(
+                entry.columnId,
+                entry.refModel,
+              ),
+            );
+          }
+          const dvProps: {
+            model: Model;
+            id: any;
+            displayColumn?: Column;
+          }[] = [];
+          for (const entry of resolvedEntries) {
+            dvProps.push({ model: entry.model, id: entry.rowId });
+            dvProps.push({
+              model: entry.refModel,
+              id: entry.refRowId,
+              displayColumn: refDisplayColCache.get(
+                `${entry.columnId}:${entry.refModel.id}`,
+              ),
+            });
+          }
+          const dvMap = await this.fetchDisplayValueMap(dvProps);
 
           // Write audits with per-entry isolation
           for (const entry of resolvedEntries) {
-            const displayValue = dvMap.get(`${entry.model.id}:${entry.rowId}`);
+            const displayValue = dvMap.get(
+              displayValueMapKey({ model: entry.model, id: entry.rowId }),
+            );
             const refDisplayValue = dvMap.get(
-              `${entry.refModel.id}:${entry.refRowId}`,
+              displayValueMapKey({
+                model: entry.refModel,
+                id: entry.refRowId,
+                displayColumn: refDisplayColCache.get(
+                  `${entry.columnId}:${entry.refModel.id}`,
+                ),
+              }),
             );
 
             try {
@@ -3863,6 +3982,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     args?: Record<string, any>;
     extractOnlyPrimaries?: boolean;
     deletedOnly?: boolean;
+    fk_display_value_column_id?: string | null;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -3874,6 +3994,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       model: this.model,
       query: args.args || {},
       extractOnlyPrimaries: args.extractOnlyPrimaries,
+      fk_display_value_column_id: args.fk_display_value_column_id,
     });
 
     for (const chunk of chunkedPks) {
@@ -5946,22 +6067,85 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       if (!auditObjs.length || !(await this.isDataAuditEnabled())) return;
 
-      // Batch-fetch missing display values into a KV map
-      const missingDvProps: { model: Model; id: any }[] = [];
+      // Batch-fetch missing display values into a KV map. Thread the LTAR's
+      // custom display column (fk_display_value_column_id) for the ref side
+      // so audit entries render the overridden value, matching the UI.
+      // Pre-resolve display column per unique (columnId, modelId) so we
+      // don't pay N+1 inside the loop. Two caches: ref side reads this LTAR's
+      // fk_display_value_column_id, source side reads the paired (reverse)
+      // LTAR's override.
+      const refDisplayColCache = new Map<string, Column | undefined>();
+      const sourceDisplayColCache = new Map<string, Column | undefined>();
+      for (const obj of auditObjs) {
+        if (!obj.columnId || !obj.refModel) continue;
+        const refKey = `${obj.columnId}:${obj.refModel.id}`;
+        if (!refDisplayColCache.has(refKey)) {
+          refDisplayColCache.set(
+            refKey,
+            await this.resolveLtarDisplayCol(obj.columnId, obj.refModel),
+          );
+        }
+        const srcKey = `${obj.columnId}:${obj.model.id}`;
+        if (!sourceDisplayColCache.has(srcKey)) {
+          sourceDisplayColCache.set(
+            srcKey,
+            await this.resolveReverseLtarDisplayCol(
+              obj.columnId,
+              obj.model,
+              obj.refModel,
+            ),
+          );
+        }
+      }
+      const missingDvProps: {
+        model: Model;
+        id: any;
+        displayColumn?: Column;
+      }[] = [];
       for (const obj of auditObjs) {
         if (obj.displayValue === undefined)
-          missingDvProps.push({ model: obj.model, id: obj.rowId });
-        if (obj.refDisplayValue === undefined)
-          missingDvProps.push({ model: obj.refModel, id: obj.refRowId });
+          missingDvProps.push({
+            model: obj.model,
+            id: obj.rowId,
+            displayColumn: sourceDisplayColCache.get(
+              `${obj.columnId}:${obj.model.id}`,
+            ),
+          });
+        if (obj.refDisplayValue === undefined && obj.refModel) {
+          missingDvProps.push({
+            model: obj.refModel,
+            id: obj.refRowId,
+            displayColumn: refDisplayColCache.get(
+              `${obj.columnId}:${obj.refModel.id}`,
+            ),
+          });
+        }
       }
       const dvMap = await this.fetchDisplayValueMap(missingDvProps);
 
       for (const obj of auditObjs) {
         const displayValue =
-          obj.displayValue ?? dvMap.get(`${obj.model.id}:${obj.rowId}`);
+          obj.displayValue ??
+          dvMap.get(
+            displayValueMapKey({
+              model: obj.model,
+              id: obj.rowId,
+              displayColumn: sourceDisplayColCache.get(
+                `${obj.columnId}:${obj.model.id}`,
+              ),
+            }),
+          );
         const refDisplayValue =
           obj.refDisplayValue ??
-          dvMap.get(`${obj.refModel.id}:${obj.refRowId}`);
+          dvMap.get(
+            displayValueMapKey({
+              model: obj.refModel,
+              id: obj.refRowId,
+              displayColumn: refDisplayColCache.get(
+                `${obj.columnId}:${obj.refModel.id}`,
+              ),
+            }),
+          );
 
         const opType =
           obj.opSubType === AuditOperationSubTypes.LINK_RECORD
@@ -6140,8 +6324,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       (auditObj) => !auditObj.refDisplayValue,
     );
 
-    const displayValueColumn = model.displayValue;
-    const refDisplayValueColumn = refModel.displayValue;
+    // Per-LTAR display value override: ref-side reads this LTAR's
+    // fk_display_value_column_id; source-side reads the paired (reverse) LTAR's
+    // override. Both fall back to the table PV when no override is configured.
+    const sourceDisplayCol = await this.resolveReverseLtarDisplayCol(
+      columnId,
+      model,
+      refModel,
+    );
+    const refDisplayCol = await this.resolveLtarDisplayCol(columnId, refModel);
+
+    const displayValueColumn = sourceDisplayCol ?? model.displayValue;
+    const refDisplayValueColumn = refDisplayCol ?? refModel.displayValue;
 
     const displayValueMap = new Map<string, string>();
     const refDisplayValueMap = new Map<string, string>();

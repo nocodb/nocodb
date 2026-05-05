@@ -46,6 +46,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
       extractOrderColumn?: boolean;
       ignoreRls?: boolean;
       deletedOnly?: boolean;
+      fk_display_value_column_id?: string | null;
     },
   ): Promise<Record<string, any>> {
     client.validateClientType(ctx.source.type);
@@ -91,9 +92,14 @@ export const singleQueryRead = (client: DBQueryClient) => {
       (linksAsLtar ? 8 : 0) |
       (ctx.deletedOnly ? 16 : 0);
 
+    // Different fk_display_value_column_id overrides produce different ASTs —
+    // include in cache key so LTAR readers don't share a cached plan/result
+    const displayColSegment = ctx.fk_display_value_column_id
+      ? `:dvc:${ctx.fk_display_value_column_id}`
+      : '';
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
-    }:read:${flags}${rlsCacheSegment}`;
+    }:read:${flags}${rlsCacheSegment}${displayColSegment}`;
     if (!skipCache) {
       const cachedQuery = await NocoCache.get(
         context,
@@ -231,6 +237,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
       includeButtonFilterColumns: ctx.params.include_button_filter_columns,
       extractOnlyPrimaries: ctx.extractOnlyPrimaries,
       extractOrderColumn: ctx.extractOrderColumn,
+      fk_display_value_column_id: ctx.fk_display_value_column_id,
     });
 
     await client.extractColumns({

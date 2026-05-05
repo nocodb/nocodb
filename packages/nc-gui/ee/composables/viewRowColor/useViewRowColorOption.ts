@@ -468,7 +468,6 @@ export function useViewRowColorOption(params: {
 
   const onRowColorConditionFilterUpdate = async (colorIndex: number, params: FilterRowChangeEvent) => {
     const preFlushSnapshot = params.filter ? snapshotFilter(params.filter as any) : null
-    const hadPendingCreate = !!pendingAction.value
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToUpdate = conditions[colorIndex]!
@@ -515,8 +514,8 @@ export function useViewRowColorOption(params: {
     delete updateObj.children
 
     if (filter.id) {
-      const isNoOp = hadPendingCreate || (preFlushSnapshot && !filtersDiffer(preFlushSnapshot, filter))
-      if (isNoOp) {
+      // Skip only when nothing actually changed — pure diff.
+      if (preFlushSnapshot && !filtersDiffer(preFlushSnapshot, filter)) {
         eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
         return
       }

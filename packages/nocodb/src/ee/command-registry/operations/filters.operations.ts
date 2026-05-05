@@ -230,6 +230,8 @@ export const FilterDeleteContract: OperationContract<
   //   - view-scoped       → `filterCreate`
   //   - row-color cond.   → `rowColorConditionsCreate`
   //   - RLS policy        → `rlsPolicyFilterCreate`
+  //   - widget            → `widgetFilterCreate`
+  //   - link column       → `linkFilterCreate`
   // Hook / button-column filters still no-op (not reachable from Cmd-Z).
   buildInverse: (_ctx, _p, _r, resolved) => {
     const tree = resolved?.extra?.deletedTree;
@@ -253,6 +255,23 @@ export const FilterDeleteContract: OperationContract<
             .fk_rls_policy_id,
           filter: tree,
         },
+      };
+    }
+    if ((tree as { fk_widget_id?: string }).fk_widget_id) {
+      return {
+        name: OperationName.widgetFilterCreate,
+        version: 1,
+        params: {
+          widgetId: (tree as { fk_widget_id?: string }).fk_widget_id,
+          filter: tree,
+        },
+      };
+    }
+    if (tree.fk_link_col_id) {
+      return {
+        name: OperationName.linkFilterCreate,
+        version: 1,
+        params: { columnId: tree.fk_link_col_id, filter: tree },
       };
     }
     if (tree.fk_view_id) {
@@ -312,6 +331,14 @@ export const LinkFilterCreateContract: OperationContract<
     if (linkColId) deps.push({ entity: MetaTable.COLUMNS, id: linkColId });
     return deps;
   },
+  buildInverse: (_ctx, _p, r) => {
+    if (!r?.id) return null;
+    return {
+      name: OperationName.filterDelete,
+      version: 1,
+      params: { filterId: r.id },
+    };
+  },
 };
 
 // ─── widgetFilterCreate ───────────────────────────────────────────────────────
@@ -355,6 +382,14 @@ export const WidgetFilterCreateContract: OperationContract<
   deps: (p, r) => {
     const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
     return colId ? [{ entity: MetaTable.COLUMNS, id: colId as string }] : [];
+  },
+  buildInverse: (_ctx, _p, r) => {
+    if (!r?.id) return null;
+    return {
+      name: OperationName.filterDelete,
+      version: 1,
+      params: { filterId: r.id },
+    };
   },
 };
 

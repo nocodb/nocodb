@@ -485,7 +485,6 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
             ctx,
             {
               columnId: item.placeholder_id,
-              user: param.user as UserType,
               req: param.req,
               forceDeleteSystem: true,
               skipTrash: true,
@@ -589,7 +588,6 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
               ctx,
               {
                 columnId: item.placeholder_id,
-                user: param.user as UserType,
                 req: param.req,
                 forceDeleteSystem: true,
                 skipTrash: true,

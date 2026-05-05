@@ -927,7 +927,6 @@ export class SyncModuleService implements OnModuleInit {
                     {
                       columnId: existingColumn.id,
                       forceDeleteSystem: true,
-                      user: req.user,
                       req,
                     },
                   );

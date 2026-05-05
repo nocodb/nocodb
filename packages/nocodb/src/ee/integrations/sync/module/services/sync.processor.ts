@@ -1013,7 +1013,6 @@ export class SyncModuleSyncDataProcessor {
       for (const column of columnsToRemove) {
         await this.columnsService.columnDelete(context, {
           columnId: column.id,
-          user: req.user,
           forceDeleteSystem: true,
           req,
         });

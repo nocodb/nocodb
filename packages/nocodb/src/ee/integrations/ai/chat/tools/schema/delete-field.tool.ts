@@ -40,7 +40,6 @@ export const deleteFieldTool = defineChatTool({
 
     await columnsV3Service.columnDelete(context, {
       columnId: column.id,
-      user: req.user,
       req,
     });
 

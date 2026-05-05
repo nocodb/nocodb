@@ -268,9 +268,8 @@ export class ColumnsService extends ColumnsServiceCE {
   async columnDelete(
     context: NcContext,
     param: {
-      req?: any;
+      req: NcRequest;
       columnId: string;
-      user: UserType;
       forceDeleteSystem?: boolean;
       skipLinkPlaceholder?: boolean;
       skipTrash?: boolean;
@@ -325,7 +324,7 @@ export class ColumnsService extends ColumnsServiceCE {
     await this.baseTrashService.trashResource(context, {
       resourceId: param.columnId,
       resourceType: 'field',
-      user: param.user,
+      user: param.req?.user,
       req: param.req,
       ncMeta,
     });

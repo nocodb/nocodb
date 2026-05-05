@@ -76,7 +76,6 @@ export class ColumnsController {
     return await this.columnsService.columnDelete(context, {
       columnId,
       req,
-      user: req.user,
     });
   }
 

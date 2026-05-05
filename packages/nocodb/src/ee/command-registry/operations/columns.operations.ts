@@ -79,6 +79,22 @@ export const ColumnAddContract: OperationContract<typeof columnAddSchema> = {
     if (!capture || Object.keys(capture).length === 0) return undefined;
     return { ltar: capture };
   },
+  buildInverse: (_ctx, p, r) => {
+    let newId: string | undefined;
+    if ((r as any)?.fk_model_id !== undefined) {
+      newId = (r as any).id;
+    } else {
+      const title =
+        (p?.column as any)?.title ?? (p?.column as any)?.column_name;
+      newId = (r as any)?.columns?.find((c: any) => c.title === title)?.id;
+    }
+    if (!newId) return null;
+    return {
+      name: OperationName.columnDelete,
+      version: 1,
+      params: { columnId: newId },
+    };
+  },
 };
 
 // ─── columnUpdate ─────────────────────────────────────────────────────────────
@@ -149,6 +165,11 @@ export const ColumnDeleteContract: OperationContract<
       parentEntityTitle: table?.title,
     };
   },
+  buildInverse: (_ctx, p) => ({
+    name: OperationName.trashRestore,
+    version: 1,
+    params: { resourceType: 'field', resourceId: p.columnId },
+  }),
 };
 
 // ─── columnSetAsPrimary ───────────────────────────────────────────────────────
@@ -157,8 +178,13 @@ const columnSetAsPrimarySchema = z.object({
   columnId: z.string(),
 });
 
+interface ColumnSetAsPrimaryExtra {
+  prevPrimaryColumnId?: string;
+}
+
 export const ColumnSetAsPrimaryContract: OperationContract<
-  typeof columnSetAsPrimarySchema
+  typeof columnSetAsPrimarySchema,
+  ColumnSetAsPrimaryExtra
 > = {
   name: OperationName.columnSetAsPrimary,
   version: 1,
@@ -172,9 +198,26 @@ export const ColumnSetAsPrimaryContract: OperationContract<
     const table = col.fk_model_id
       ? await Model.get(context, col.fk_model_id)
       : undefined;
+    // Capture the table's current primary column BEFORE the toggle so undo
+    // can flip it back. `pv` is unique per table, so this is a single id.
+    let prevPrimaryColumnId: string | undefined;
+    if (table) {
+      const cols = await table.getColumns(context);
+      prevPrimaryColumnId = cols.find((c) => c.pv)?.id;
+    }
     return {
       entityTitle: col.title,
       parentEntityTitle: table?.title,
+      extra: { prevPrimaryColumnId },
+    };
+  },
+  buildInverse: (_ctx, _p, _r, resolved) => {
+    const prev = resolved?.extra?.prevPrimaryColumnId;
+    if (!prev) return null;
+    return {
+      name: OperationName.columnSetAsPrimary,
+      version: 1,
+      params: { columnId: prev },
     };
   },
 };

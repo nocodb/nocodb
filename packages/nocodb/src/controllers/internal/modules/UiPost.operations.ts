@@ -202,7 +202,6 @@ export class UiPostOperations
       case 'columnDelete':
         return await this.columnsService.columnDelete(context, {
           columnId: req.query.columnId,
-          user: req.user,
           req,
         });
       case 'columnSetAsPrimary':

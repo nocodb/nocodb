@@ -107,7 +107,6 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
         await this.columnsService.columnDelete(context, {
           columnId: newColumn.id,
           req: params.req,
-          user: params.user,
           reuse: params.reuse,
           forceDeleteSystem: false,
         });

@@ -77,7 +77,6 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
         ctx,
         {
           columnId: id,
-          user: param.user as UserType,
           req: param.req,
           skipTrash: true,
         },
@@ -491,7 +490,6 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       ctx,
       {
         columnId: trashEntry.resource_id,
-        user: param.user as UserType,
         req: param.req,
         forceDeleteSystem: true,
         skipLinkPlaceholder: true,
@@ -556,7 +554,6 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
             ctx,
             {
               columnId: item.placeholder_id,
-              user: param.user as UserType,
               req: param.req,
               forceDeleteSystem: true,
               skipTrash: true,

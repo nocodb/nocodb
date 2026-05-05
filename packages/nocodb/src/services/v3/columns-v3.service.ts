@@ -242,9 +242,8 @@ export class ColumnsV3Service {
   async columnDelete(
     context: NcContext,
     param: {
-      req?: any;
+      req: NcRequest;
       columnId: string;
-      user: UserType;
       forceDeleteSystem?: boolean;
       reuse?: ReusableParams;
       columnWebhookManager?: ColumnWebhookManager;

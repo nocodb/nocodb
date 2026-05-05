@@ -400,7 +400,6 @@ export class BasesService extends BasesServiceCE {
         await this.columnsService.columnDelete(context, {
           columnId: link.fk_column_id,
           req: param.req,
-          user: param.user,
         });
       }
     }

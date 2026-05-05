@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { encodeOnPremCheckoutState } from '~/lib/onPremCheckoutState'
+
 const { api, isLoading } = useApi()
 
 const { t } = useI18n()
@@ -30,14 +32,19 @@ const licenseStatus = computed(() => {
   return isEEActive.value ? 'active' : 'expired'
 })
 
-const buildBuyLicenseUrl = (seatCount?: number) => {
-  const instanceUrl = window.location.origin
+const buildBuyLicenseUrl = (seatCount?: number, instanceId?: string) => {
+  // Prefer the backend-computed site URL — it's derived from the actual
+  // request headers (incl. X-Forwarded-Host) and is more reliable behind
+  // proxies than window.location.origin.
+  const instanceUrl = appInfo.value.ncSiteUrl || window.location.origin
   const licenseServerUrl = appInfo.value.licenseServerUrl || NC_CLOUD_URL
-  let url = `${licenseServerUrl}/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`
-  if (seatCount && seatCount > 0) {
-    url += `&seat_count=${seatCount}`
-  }
-  return url
+  const state = encodeOnPremCheckoutState({
+    v: 1,
+    instance_url: instanceUrl,
+    ...(seatCount && seatCount > 0 ? { seat_count: seatCount } : {}),
+    ...(instanceId ? { instance_id: instanceId } : {}),
+  })
+  return `${licenseServerUrl}/account/self-hosted?state=${state}`
 }
 
 const loadLicense = async () => {
@@ -134,12 +141,13 @@ const onBuyLicense = async () => {
   $e('c:account:license:buy')
 
   // Best-effort: fetch the seat-consuming user count (editor+, matching how
-  // billing reseats) so the cloud checkout can pre-fill seats and prevent
-  // the user from buying fewer seats than the instance will auto-bump to.
+  // billing reseats) and a stable instance_id so the cloud checkout can
+  // pre-fill seats and bind the resulting license to this instance.
   let seatCount: number | undefined
+  let instanceId: string | undefined
   try {
     const baseURL = $api.instance.defaults.baseURL
-    const status = await $fetch<{ seatCount?: number }>('/api/v1/license/status', {
+    const status = await $fetch<{ seatCount?: number; instanceId?: string }>('/api/v1/license/status', {
       baseURL,
       method: 'GET',
       headers: { 'xc-auth': token.value as string },
@@ -147,11 +155,14 @@ const onBuyLicense = async () => {
     if (typeof status?.seatCount === 'number' && status.seatCount > 0) {
       seatCount = status.seatCount
     }
+    if (typeof status?.instanceId === 'string' && status.instanceId) {
+      instanceId = status.instanceId
+    }
   } catch {
-    // Ignore — fall back to the URL without a seat hint.
+    // Ignore — fall back to the URL without instance hints.
   }
 
-  window.open(buildBuyLicenseUrl(seatCount), '_blank')
+  window.open(buildBuyLicenseUrl(seatCount, instanceId), '_blank')
 }
 
 loadLicense()
@@ -220,13 +231,19 @@ loadLicense()
                 "
               />
               <span class="text-sm font-medium">
-                {{
-                  licenseStatus === 'active'
-                    ? $t('title.licenseActive')
-                    : licenseStatus === 'expired'
-                    ? $t('title.licenseInvalid')
-                    : $t('title.licenseNone')
-                }}
+                <template v-if="licenseStatus === 'active'">
+                  {{
+                    appInfo.onPremPlanTitle
+                      ? $t('title.licenseActiveWithPlan', { plan: appInfo.onPremPlanTitle })
+                      : $t('title.licenseActive')
+                  }}
+                </template>
+                <template v-else-if="licenseStatus === 'expired'">
+                  {{ $t('title.licenseInvalid') }}
+                </template>
+                <template v-else>
+                  {{ $t('title.licenseNone') }}
+                </template>
               </span>
             </div>
 

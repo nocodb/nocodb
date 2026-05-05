@@ -1,4 +1,8 @@
+import type Stripe from 'stripe'
+import type { PaginatedType } from 'nocodb-sdk'
 import { OnPremPlanPriceLookupKeys, OnPremPlanTitles } from 'nocodb-sdk'
+
+export type OnPremInvoice = Stripe.Invoice & { license_key_masked?: string | null }
 
 interface OnPremPlanPriceTier {
   unit_amount: number
@@ -35,7 +39,11 @@ interface OnPremLicense {
   min_seats: number
   expires_at: string | null
   created_at: string
-  meta: Record<string, any>
+  meta: {
+    instance_id?: string
+    instance_url?: string
+    [key: string]: any
+  }
   config: Record<string, any>
   plan: {
     id: string
@@ -64,6 +72,23 @@ export const useOnPremLicense = createSharedComposable(() => {
   const isLoading = ref(false)
 
   const paymentMode = ref<'year' | 'month'>('year')
+
+  const defaultInvoicePaginationData = {
+    page: 1,
+    pageSize: 10,
+    totalRows: 0,
+    isLoading: true,
+    hasMore: false,
+    pageCursors: [undefined] as (string | undefined)[],
+  }
+
+  const invoices = ref<OnPremInvoice[]>([])
+
+  const invoicePaginationData = ref<
+    PaginatedType & { isLoading?: boolean; hasMore?: boolean; pageCursors: (string | undefined)[] }
+  >({ ...defaultInvoicePaginationData, pageCursors: [undefined] })
+
+  const hasAnySubscription = computed(() => licenses.value.some((l) => !!l.subscription))
 
   const fetchHeaders = computed(() => ({
     'xc-auth': token.value as string,
@@ -119,6 +144,7 @@ export const useOnPremLicense = createSharedComposable(() => {
     price_id: string
     quantity?: number
     instance_url?: string
+    instance_id?: string
   }) => {
     return await $fetch('/api/payment/on-premise/create-checkout', {
       baseURL,
@@ -188,6 +214,43 @@ export const useOnPremLicense = createSharedComposable(() => {
     return effectiveMode === 'year' ? Math.round(amount / 12) : amount
   }
 
+  const loadInvoices = async () => {
+    if (!hasAnySubscription.value) {
+      invoicePaginationData.value.isLoading = false
+      return
+    }
+
+    const page = invoicePaginationData.value.page!
+    const starting_after = invoicePaginationData.value.pageCursors[page - 1]
+    const nextPage_starting_after = invoicePaginationData.value.pageCursors[page]
+
+    if (nextPage_starting_after) {
+      if (!invoicePaginationData.value.hasMore) {
+        invoicePaginationData.value.hasMore = true
+      }
+      return
+    }
+
+    try {
+      const res = await $fetch<Stripe.ApiList<OnPremInvoice>>('/api/payment/on-premise/invoices', {
+        baseURL,
+        method: 'GET',
+        headers: fetchHeaders.value,
+        query: { starting_after },
+      })
+
+      const resData = res?.data || []
+      invoices.value = [...invoices.value, ...resData]
+
+      invoicePaginationData.value.pageCursors[page] = res?.data[res?.data.length - 1]?.id
+      invoicePaginationData.value.hasMore = res?.has_more ?? false
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      invoicePaginationData.value.isLoading = false
+    }
+  }
+
   const getCustomerPortal = async (): Promise<{ url: string } | null> => {
     try {
       return await $fetch('/api/payment/on-premise/customer-portal', {
@@ -216,5 +279,10 @@ export const useOnPremLicense = createSharedComposable(() => {
     createCheckoutSession,
     getCheckoutSession,
     getCustomerPortal,
+    invoices,
+    invoicePaginationData,
+    defaultInvoicePaginationData,
+    hasAnySubscription,
+    loadInvoices,
   }
 })

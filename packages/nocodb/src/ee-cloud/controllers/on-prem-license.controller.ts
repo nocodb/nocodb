@@ -5,6 +5,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -56,6 +57,7 @@ export class OnPremLicenseController {
       price_id: string;
       quantity?: number;
       instance_url?: string;
+      instance_id?: string;
     },
     @Req() req: NcRequest,
   ) {
@@ -79,5 +81,20 @@ export class OnPremLicenseController {
   @Acl('onPremLicenseManage', { scope: 'org' })
   async getCustomerPortal(@Req() req: NcRequest) {
     return this.onPremLicenseService.getCustomerPortal(req.user.id, req);
+  }
+
+  @UseGuards(GlobalGuard)
+  @HttpCode(200)
+  @Get('/api/payment/on-premise/invoices')
+  @Acl('onPremLicenseList', { scope: 'org' })
+  async listInvoices(
+    @Req() req: NcRequest,
+    @Query('starting_after') starting_after: string,
+    @Query('ending_before') ending_before: string,
+  ) {
+    return this.onPremLicenseService.listInvoices(req.user.id, {
+      starting_after,
+      ending_before,
+    });
   }
 }

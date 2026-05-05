@@ -75,6 +75,7 @@ export class UtilsService extends UtilsServiceEE {
     // which features are enabled on the current plan via OnPremPlanDefinitions.
     const plan = getOnPremPlan();
     result.onPremPlan = plan?.meta ?? null;
+    result.onPremPlanTitle = plan?.title ?? null;
 
     return result;
   }

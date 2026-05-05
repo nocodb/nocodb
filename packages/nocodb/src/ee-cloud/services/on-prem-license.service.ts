@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import { OnPremPlanTitles, ReturnToBillingPage } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { Plan, Subscription, User } from '~/models';
@@ -46,6 +46,20 @@ function buildConfigFromPlan(
   return config;
 }
 
+function maskLicenseKey(key: string): string {
+  if (!key) return '';
+  if (key.length <= 10) return `${key}***`;
+  return `${key.slice(0, 6)}***${key.slice(-4)}`;
+}
+
+// Alphanumeric-only generator — avoids `_` / `-` from the default nanoid
+// alphabet so license keys are easy to copy/paste and select in terminals.
+// 32 chars × 62 symbols ≈ 190 bits of entropy.
+const generateLicenseKeySuffix = customAlphabet(
+  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+  32,
+);
+
 @Injectable()
 export class OnPremLicenseService {
   protected logger = new Logger(OnPremLicenseService.name);
@@ -56,7 +70,7 @@ export class OnPremLicenseService {
    * Generate a unique license key for a new on-prem installation
    */
   private generateLicenseKey(): string {
-    return `nc_${nanoid(32)}`;
+    return `nc_${generateLicenseKeySuffix()}`;
   }
 
   /**
@@ -103,11 +117,12 @@ export class OnPremLicenseService {
       price_id: string;
       quantity?: number;
       instance_url?: string;
+      instance_id?: string;
     },
     req: NcRequest,
     ncMeta = Noco.ncMeta,
   ) {
-    const { plan_id, price_id, instance_url } = payload;
+    const { plan_id, price_id, instance_url, instance_id } = payload;
     const seats = Math.max(1, Math.floor(payload.quantity || 1));
     const { user } = req;
 
@@ -188,8 +203,12 @@ export class OnPremLicenseService {
           fk_plan_id: plan_id,
           plan_title: plan.title,
           period: price.recurring.interval,
-          min_seats: String(seats),
+          // Floor used by reseat — stays at 1 so reductions in instance editor
+          // count get prorated down. Initial purchase quantity is captured by
+          // the Stripe line item itself.
+          min_seats: '1',
           ...(instance_url ? { instance_url } : {}),
+          ...(instance_id ? { instance_id } : {}),
         },
       },
     });
@@ -292,6 +311,18 @@ export class OnPremLicenseService {
     const licenseKey = this.generateLicenseKey();
     const user = await User.get(userId, ncMeta);
 
+    // Pre-bind license to originating instance when available — first
+    // activation (and all subsequent ones) must come from this instance_id.
+    const preBoundInstanceId = stripeSub.metadata.instance_id;
+    const originatingInstanceUrl = stripeSub.metadata.instance_url;
+    const installationMeta: Record<string, any> = {};
+    if (preBoundInstanceId) {
+      installationMeta.instance_id = preBoundInstanceId;
+    }
+    if (originatingInstanceUrl) {
+      installationMeta.instance_url = originatingInstanceUrl;
+    }
+
     const installation = await Installation.insert(
       {
         fk_subscription_id: subRec.id,
@@ -303,6 +334,9 @@ export class OnPremLicenseService {
         seat_count: 0,
         min_seats: minSeats,
         config,
+        ...(Object.keys(installationMeta).length
+          ? { meta: installationMeta }
+          : {}),
       },
       ncMeta,
     );
@@ -966,6 +1000,70 @@ export class OnPremLicenseService {
     }
 
     return session;
+  }
+
+  /**
+   * List Stripe invoices for the user's on-prem stripe customer.
+   * The on-prem stripe customer is dedicated (created with metadata.type='on_prem'),
+   * so all invoices on it belong to on-prem subscriptions.
+   */
+  async listInvoices(
+    userId: string,
+    options: {
+      starting_after?: string;
+      ending_before?: string;
+    } = {},
+    ncMeta = Noco.ncMeta,
+  ) {
+    const user = await User.get(userId, ncMeta);
+    if (!user?.stripe_customer_id) {
+      return { data: [], has_more: false };
+    }
+
+    const invoices = await stripe.invoices.list({
+      customer: user.stripe_customer_id,
+      limit: 10,
+      starting_after: options.starting_after,
+      ending_before: options.ending_before,
+    });
+
+    const stripeSubIds = Array.from(
+      new Set(
+        invoices.data
+          .map((inv) => inv.parent?.subscription_details?.subscription)
+          .filter((id): id is string => typeof id === 'string'),
+      ),
+    );
+
+    const licenseKeyByStripeSub = new Map<string, string>();
+    for (const stripeSubId of stripeSubIds) {
+      const subRec = await Subscription.getByStripeSubscriptionId(
+        stripeSubId,
+        ncMeta,
+      );
+      if (!subRec) continue;
+      const installation = await Installation.getBySubscriptionId(
+        subRec.id,
+        ncMeta,
+      );
+      if (installation?.license_key) {
+        licenseKeyByStripeSub.set(stripeSubId, installation.license_key);
+      }
+    }
+
+    const data = invoices.data.map((inv) => {
+      const stripeSubId = inv.parent?.subscription_details?.subscription;
+      const licenseKey =
+        typeof stripeSubId === 'string'
+          ? licenseKeyByStripeSub.get(stripeSubId)
+          : undefined;
+      return {
+        ...inv,
+        license_key_masked: licenseKey ? maskLicenseKey(licenseKey) : null,
+      };
+    });
+
+    return { ...invoices, data };
   }
 
   /**

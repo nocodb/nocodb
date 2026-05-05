@@ -124,11 +124,21 @@ export class OrgLicenseService extends OrgLicenseServiceEE {
       this.onPremLogger.warn(`Failed to calculate seat count: ${e.message}`);
     }
 
+    // Stable instance ID — used to bind a self-serve license to this
+    // specific instance at purchase time.
+    let instanceId: string | undefined;
+    try {
+      instanceId = await getInstanceId();
+    } catch {
+      // Non-PG instance — binding is unsupported, leave undefined
+    }
+
     return {
       ...base,
       isAirgapped: NocoLicense.isAirgapped,
       seatLimit: NocoLicense.getSeatLimit(),
       seatCount,
+      instanceId,
       isPostgres,
     };
   }

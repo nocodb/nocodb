@@ -158,6 +158,22 @@ export class OnPremiseController {
     if (existingInstallation) {
       // If installation is PENDING, activate it
       if (existingInstallation.status === InstallationStatus.PENDING) {
+        // If the license was pre-bound at purchase to a specific instance,
+        // refuse to activate it from a different instance.
+        const preBoundInstanceId = existingInstallation.meta?.instance_id;
+        if (preBoundInstanceId) {
+          if (!instanceId) {
+            NcError._.badRequest(
+              'This license is bound to a specific instance and cannot be activated without an instance ID.',
+            );
+          }
+          if (preBoundInstanceId !== instanceId) {
+            NcError._.badRequest(
+              'This license is bound to a different instance and cannot be activated here.',
+            );
+          }
+        }
+
         const rawSecret = await Installation.deriveClientSecret(
           existingInstallation.id,
           ncMeta,
@@ -167,7 +183,8 @@ export class OnPremiseController {
           ? `${LICENSE_CONFIG.INSTANCE_BOUND_SECRET_PREFIX}${rawSecret}`
           : rawSecret;
 
-        // Activate the PENDING installation
+        // Activate the PENDING installation — preserve any pre-set meta
+        // (e.g. instance_url captured at purchase) by spreading existing meta.
         await Installation.update(
           existingInstallation.id,
           {
@@ -176,6 +193,7 @@ export class OnPremiseController {
             installed_at: new Date(),
             last_seen_at: new Date(),
             meta: {
+              ...(existingInstallation.meta || {}),
               environment: body.environment,
               ...(instanceId ? { instance_id: instanceId } : {}),
               ...(isAirgapped ? { airgapped: true } : {}),

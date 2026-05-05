@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BookmarkType } from 'nocodb-sdk'
+import type { BookmarkGroupType, BookmarkType } from 'nocodb-sdk'
 
 const emit = defineEmits<{ close: [] }>()
 
@@ -38,32 +38,36 @@ onMounted(() => {
   loadBookmarks()
 })
 
-// Auto-columns: grow horizontally so the body stays scroll-free in the
-// common case. Capped at 3 columns. Heuristic: pick the smallest column
-// count where each column holds <= ~10 group "rows" (group header + items),
-// while honoring a minimum item-density threshold.
+// Sequential column fill — pack groups into column 1 until the height
+// cap is reached, then spill to column 2, then 3 (max). Width grows
+// in step so the dialog only takes the room it actually needs.
+const ROWS_PER_COL = 20 // ~ flyout max-height (720px) ÷ row height (32px) ÷ header overhead
+const MAX_COLS = 3
 const COL_W = { 1: 380, 2: 540, 3: 700 } as const
 
-const totalRows = computed(() => {
-  // Each group contributes 1 row for the header + N rows for items
-  return filteredGroups.value.reduce(
-    (sum, g) => sum + 1 + (filteredBookmarksByGroup.value[g.id!]?.length ?? 0),
-    0,
-  )
+// "row" = one visual line: a group header, an item, or an empty-state line.
+function rowsForGroup(g: BookmarkGroupType): number {
+  const items = filteredBookmarksByGroup.value[g.id!]?.length ?? 0
+  // group header (1) + items (or 1 line for the "No data" empty state)
+  return 1 + Math.max(items, 1)
+}
+
+const columnGroups = computed<BookmarkGroupType[][]>(() => {
+  const cols: BookmarkGroupType[][] = [[]]
+  let used = 0
+  for (const g of filteredGroups.value) {
+    const r = rowsForGroup(g)
+    if (used > 0 && used + r > ROWS_PER_COL && cols.length < MAX_COLS) {
+      cols.push([])
+      used = 0
+    }
+    cols[cols.length - 1].push(g)
+    used += r
+  }
+  return cols
 })
 
-const cols = computed<1 | 2 | 3>(() => {
-  const groupCount = filteredGroups.value.length
-  const rows = totalRows.value
-
-  // 3 columns: many groups OR a lot of total items
-  if (groupCount >= 5 || rows > 36) return 3
-  // 2 columns: a couple groups OR a moderate item count
-  if (groupCount >= 2 || rows > 14) return 2
-  return 1
-})
-
-const flyoutWidth = computed(() => COL_W[cols.value])
+const flyoutWidth = computed(() => COL_W[columnGroups.value.length as 1 | 2 | 3] ?? COL_W[1])
 </script>
 
 <template>
@@ -96,8 +100,8 @@ const flyoutWidth = computed(() => COL_W[cols.value])
       <BookmarksListLayout
         v-else
         :groups="filteredGroups"
+        :column-groups="columnGroups"
         :bookmarks-by-group="filteredBookmarksByGroup"
-        :columns="cols"
         @navigate="onNavigate"
       />
     </div>
@@ -111,8 +115,8 @@ const flyoutWidth = computed(() => COL_W[cols.value])
   @apply border-1 border-nc-border-gray-medium rounded-xl shadow-lg;
   left: 60px;
   bottom: 18px;
-  height: 80vh;
-  max-height: 720px;
+  /* size to content; cap so we don't overflow the viewport */
+  max-height: min(80vh, 720px);
   z-index: 50;
   transition: width 0.2s ease;
 }

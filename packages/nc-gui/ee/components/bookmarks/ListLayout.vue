@@ -3,25 +3,28 @@ import type { BookmarkGroupType, BookmarkType } from 'nocodb-sdk'
 
 interface Props {
   groups: BookmarkGroupType[]
+  columnGroups: BookmarkGroupType[][]
   bookmarksByGroup: Record<string, BookmarkType[]>
-  columns: 1 | 2 | 3
 }
 
 const props = defineProps<Props>()
 
-const { groups, bookmarksByGroup, columns } = toRefs(props)
+const { groups, columnGroups, bookmarksByGroup } = toRefs(props)
 
 const emit = defineEmits<{ navigate: [bookmark: BookmarkType] }>()
 
 const { draggingGroupId, groupDropIndex, updateGroupDropIndex, onDropGroup, onDragEnd } = useBookmarkDnd()
 
-// Distribute groups across columns. We use a simple round-robin so columns balance.
-const columnGroups = computed(() => {
-  const cols: BookmarkGroupType[][] = Array.from({ length: columns.value }, () => [])
-  groups.value.forEach((g, i) => {
-    cols[i % columns.value].push(g)
-  })
-  return cols
+const colCount = computed(() => columnGroups.value.length)
+
+// Prefix sum of column lengths — used to convert (colIdx, posInCol) into
+// the linear index in `groups` (sequential column-major fill).
+const columnOffsets = computed(() => {
+  const offsets: number[] = [0]
+  for (const col of columnGroups.value) {
+    offsets.push(offsets[offsets.length - 1] + col.length)
+  }
+  return offsets
 })
 
 const listRef = ref<HTMLElement>()
@@ -38,7 +41,6 @@ function handleDragOver(e: DragEvent) {
   if (rafId != null) return
   rafId = requestAnimationFrame(() => {
     rafId = null
-    // Bail if drag already ended (avoids stale drop indicator after drop)
     if (!draggingGroupId.value) return
     if (!listRef.value) return
 
@@ -63,7 +65,7 @@ function handleDragOver(e: DragEvent) {
       }
     }
 
-    const logicalIdx = posInCol * columns.value + colIdx
+    const logicalIdx = (columnOffsets.value[colIdx] ?? 0) + posInCol
     updateGroupDropIndex(Math.min(logicalIdx, groups.value.length))
   })
 }
@@ -78,13 +80,16 @@ const dropTargetGroupId = computed(() => {
   if (!draggingGroupId.value || groupDropIndex.value == null) return null
   return groups.value[groupDropIndex.value]?.id ?? null
 })
+
+// Drop indicator at the very end belongs in the last column
+const lastColIdx = computed(() => Math.max(0, colCount.value - 1))
 </script>
 
 <template>
   <div
     ref="listRef"
     class="nc-bookmark-list-layout"
-    :class="`cols-${columns}`"
+    :class="`cols-${colCount}`"
     @dragover="handleDragOver"
     @drop="handleDrop"
     @dragend="onDragEnd"
@@ -103,7 +108,7 @@ const dropTargetGroupId = computed(() => {
         />
       </template>
       <div
-        v-if="draggingGroupId && groupDropIndex === groups.length && colIdx === groups.length % columns"
+        v-if="draggingGroupId && groupDropIndex === groups.length && colIdx === lastColIdx"
         class="nc-bookmark-list-group-drop-line"
       />
     </div>

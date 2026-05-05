@@ -339,7 +339,7 @@ function addTab() {
           :data-testid="`nc-doc-tab-rename-${index}`"
           maxlength="50"
           @blur="commitRename"
-          @keydown="onRenameKeydown"
+          @keydown.stop="onRenameKeydown"
           @vue:mounted="({ el }: { el: HTMLInputElement }) => el.focus()"
         />
 
@@ -367,7 +367,7 @@ function addTab() {
           </button>
 
           <template #overlay>
-            <div class="nc-slash-menu" style="min-width: 140px" data-testid="nc-doc-tab-menu">
+            <div class="nc-slash-menu nc-doc-tab-menu" style="min-width: 140px" data-testid="nc-doc-tab-menu">
               <div class="nc-slash-menu-item" data-testid="nc-doc-tab-menu-rename" @click="onMenuRename">
                 <span class="nc-slash-menu-icon">
                   <GeneralIcon icon="rename" />
@@ -404,6 +404,10 @@ function addTab() {
 <style lang="scss" scoped>
 .nc-doc-tabs {
   @apply border-1 border-nc-border-gray-medium rounded-lg my-3;
+}
+
+.nc-doc-tab-menu.nc-slash-menu {
+  @apply border-none;
 }
 
 .nc-doc-tabs-header {

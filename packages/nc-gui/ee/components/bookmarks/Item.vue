@@ -106,22 +106,10 @@ function handleDragStart(e: DragEvent) {
         class="w-4 h-4"
         :style="{ color: viewIcon?.color }"
       />
-      <GeneralIcon
-        v-else-if="bookmark.target_type === 'document'"
-        icon="ncFileText"
-        class="w-4 h-4 text-nc-content-gray-subtle"
-      />
-      <GeneralIcon
-        v-else-if="bookmark.target_type === 'workflow'"
-        icon="ncAutomation"
-        class="w-4 h-4 text-nc-content-gray-subtle"
-      />
-      <GeneralIcon v-else-if="bookmark.target_type === 'script'" icon="ncScript" class="w-4 h-4 text-nc-content-gray-subtle" />
-      <GeneralIcon
-        v-else-if="bookmark.target_type === 'dashboard'"
-        icon="dashboards"
-        class="w-4 h-4 text-nc-content-gray-subtle"
-      />
+      <GeneralIcon v-else-if="bookmark.target_type === 'document'" icon="ncFileText" class="w-4 h-4 !text-nc-gray-600/75" />
+      <GeneralIcon v-else-if="bookmark.target_type === 'workflow'" icon="ncAutomation" class="w-4 h-4 !text-nc-gray-600/75" />
+      <GeneralIcon v-else-if="bookmark.target_type === 'script'" icon="ncScript" class="w-4 h-4 !text-nc-gray-600/75" />
+      <GeneralIcon v-else-if="bookmark.target_type === 'dashboard'" icon="dashboards" class="w-4 h-4 !text-nc-gray-600/75" />
     </div>
 
     <!-- Title — fills remaining space; truncates -->

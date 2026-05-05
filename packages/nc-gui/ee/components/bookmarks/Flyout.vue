@@ -142,7 +142,12 @@ const columnGroups = computed<BookmarkGroupType[][]>(() => {
   return rebalanceToColumns(filteredGroups.value, filteredItemCount, unfilteredPacked.value.colCount)
 })
 
-const flyoutWidth = computed(() => COL_W[unfilteredPacked.value.colCount])
+const flyoutWidth = computed<string>(() => {
+  // On mobile the desktop COL_W[1] (380px) is often wider than the viewport
+  // itself — fill the screen minus the rail and a small breathing margin.
+  if (isMobileMode.value) return 'calc(100vw - var(--mini-sidebar-width) - 16px)'
+  return `${COL_W[unfilteredPacked.value.colCount]}px`
+})
 
 // Even-split helper used to keep the column count stable across filter
 // reflows. Always produces exactly `target` columns (possibly empty) by
@@ -201,7 +206,7 @@ function rebalanceToColumns(
 </script>
 
 <template>
-  <div class="nc-bookmark-flyout" :style="{ width: `${flyoutWidth}px` }" @click.stop @keydown.stop>
+  <div class="nc-bookmark-flyout" :style="{ width: flyoutWidth }" @click.stop @keydown.stop>
     <BookmarksHeader v-model:search="search" :is-empty="isEmpty" />
 
     <BookmarksCreateFolderRow v-if="isCreatingFolder" />

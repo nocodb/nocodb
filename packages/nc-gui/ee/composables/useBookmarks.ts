@@ -205,7 +205,23 @@ export const useBookmarks = createSharedComposable(() => {
 
   async function addGroup(data: BookmarkGroupReqType) {
     try {
-      const group = (await $api.bookmark.groupCreate(data)) as BookmarkGroupType
+      // Place new groups directly after the pinned "Ungrouped" group so the
+      // user sees their newly-created folder without scrolling. Pick an
+      // order strictly less than every existing non-Ungrouped group's order.
+      let payload = data
+      if (payload.order === undefined) {
+        const others = groups.value.filter((g) => g.name !== 'Ungrouped')
+        const minOrder = others.length ? Math.min(...others.map((g) => g.order ?? 0)) : 0
+        payload = { ...payload, order: minOrder - 1 }
+      }
+      // Default a random folder color so the user has something distinctive
+      // straight away (matches the palette shown in the colour picker).
+      const meta = (payload.meta as Record<string, any> | undefined) ?? {}
+      if (!meta.iconColor) {
+        const randomColor = baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length]
+        payload = { ...payload, meta: { ...meta, iconColor: randomColor } }
+      }
+      const group = (await $api.bookmark.groupCreate(payload)) as BookmarkGroupType
       groups.value.push(group)
       return group
     } catch (e: any) {

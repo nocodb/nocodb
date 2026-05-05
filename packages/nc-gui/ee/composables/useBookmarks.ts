@@ -85,9 +85,9 @@ export const useBookmarks = createSharedComposable(() => {
       case 'workflow':
       case 'script':
       case 'dashboard':
-        return !!map[meta?.workspace_id]?.[meta?.base_id]?.[targetId]
+        return !!map[meta?.workspace_id]?.[meta?.base_id]?.[targetId]?._exists
       case 'view':
-        return !!map[meta?.workspace_id]?.[meta?.base_id]?.[meta?.table_id]?.[targetId]
+        return !!map[meta?.workspace_id]?.[meta?.base_id]?.[meta?.table_id]?.[targetId]?._exists
       default:
         return false
     }
@@ -124,7 +124,8 @@ export const useBookmarks = createSharedComposable(() => {
           const wsNode = ensureObj(map, meta.workspace_id)
           const baseNode = ensureObj(wsNode, meta.base_id)
           if (value) {
-            ensureObj(baseNode, targetId)
+            const node = ensureObj(baseNode, targetId)
+            node._exists = true
           } else {
             delete baseNode[targetId]
           }
@@ -137,7 +138,8 @@ export const useBookmarks = createSharedComposable(() => {
           const baseNode = ensureObj(wsNode, meta.base_id)
           const tableNode = ensureObj(baseNode, meta.table_id)
           if (value) {
-            ensureObj(tableNode, targetId)
+            const node = ensureObj(tableNode, targetId)
+            node._exists = true
           } else {
             delete tableNode[targetId]
           }

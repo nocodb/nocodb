@@ -90,7 +90,7 @@ export class BookmarkService {
           if (wsId && baseId) {
             if (!result[wsId]) result[wsId] = {};
             if (!result[wsId][baseId]) result[wsId][baseId] = {};
-            result[wsId][baseId][bm.target_id] = {};
+            result[wsId][baseId][bm.target_id] = { _exists: true };
           }
           break;
         }
@@ -103,7 +103,7 @@ export class BookmarkService {
             if (!result[wsId][baseId]) result[wsId][baseId] = {};
             if (!result[wsId][baseId][tableId])
               result[wsId][baseId][tableId] = {};
-            result[wsId][baseId][tableId][bm.target_id] = {};
+            result[wsId][baseId][tableId][bm.target_id] = { _exists: true };
           }
           break;
         }

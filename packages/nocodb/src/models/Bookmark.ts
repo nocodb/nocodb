@@ -219,6 +219,7 @@ export default class Bookmark implements BookmarkType {
   public static async moveToGroup(
     fromGroupId: string,
     toGroupId: string,
+    userId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
     await ncMeta.metaUpdate(
@@ -227,6 +228,15 @@ export default class Bookmark implements BookmarkType {
       MetaTable.BOOKMARKS,
       { fk_group_id: toGroupId },
       { fk_group_id: fromGroupId },
+    );
+
+    // Bulk update bypassed the per-row cache writes, so the user's bookmark
+    // list and each individual entry now hold a stale fk_group_id. Drop the
+    // list (and its children) so the next read reloads from the DB.
+    await NocoCache.deepDel(
+      'root',
+      `${CacheScope.BOOKMARK}:${userId}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
     );
   }
 }

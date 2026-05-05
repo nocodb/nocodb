@@ -299,7 +299,7 @@ export class BookmarkService {
 
     // Move bookmarks to Ungrouped
     const ungrouped = await BookmarkGroup.getOrCreateUngrouped(userId);
-    await Bookmark.moveToGroup(param.groupId, ungrouped.id!);
+    await Bookmark.moveToGroup(param.groupId, ungrouped.id!, userId);
 
     await BookmarkGroup.delete(param.groupId);
 

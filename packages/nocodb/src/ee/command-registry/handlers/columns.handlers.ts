@@ -8,6 +8,7 @@ import type { ColumnReqType } from 'nocodb-sdk';
 import type { ColumnsService } from '~/services/columns.service';
 import type { LtarSideEffectIds } from '~/services/columns.service.type';
 import type { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import type { ColumnBackupRef } from '~/services/column-data-backup-handler';
 import BaseTrash from '~/models/BaseTrash';
 import { OperationRegistry } from '~/command-registry/registry';
 import {
@@ -63,17 +64,44 @@ export function registerColumnHandlers(
     });
   });
 
+  // On replay:
+  //   - threads the originally-captured `ColumnBackupRef` as `_replayBackup`
+  //     so the service can restore the pre-conversion cell data into the
+  //     destination column after the type change;
+  //   - returns the freshly-created backup ref via `metaUpdate`. The service
+  //     drops the old backup as part of restore and creates a new sibling
+  //     for the OPPOSITE direction. The dispatcher writes that fresh ref
+  //     onto the op log row's `meta.backup` so the next undo/redo cycle
+  //     can find it — without this swap, the next cycle tries to restore
+  //     from the column we just dropped.
   OperationRegistry.register(
     ColumnUpdateContract,
     async (ctx, params, meta) => {
       const req = makeReplayReq(meta.originalReq, meta.createdBy);
-      return svc.columnUpdate(ctx, {
+      const replayBackup = (
+        meta.extra as { backup?: ColumnBackupRef } | undefined
+      )?.backup;
+
+      const svcParams: Record<string, any> = {
         ...params,
         ...(ctx.additionalContext?.is_replay
-          ? { forceUpdateSystem: true }
+          ? {
+              forceUpdateSystem: true,
+              ...(replayBackup ? { _replayBackup: replayBackup } : {}),
+            }
           : {}),
         req,
-      } as any);
+      };
+
+      const result = await svc.columnUpdate(ctx, svcParams as any);
+
+      if (ctx.additionalContext?.is_replay && svcParams._columnBackup) {
+        return {
+          result,
+          metaUpdate: { backup: svcParams._columnBackup },
+        };
+      }
+      return result;
     },
   );
 

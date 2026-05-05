@@ -60,6 +60,7 @@ import type {
   LtarSideEffectIds,
   ReusableParams,
 } from '~/services/columns.service.type';
+import type { ColumnBackupRef } from '~/services/column-data-backup-handler';
 import { NcContext } from '~/interface/config';
 import {
   type ColumnWebhookManager,
@@ -114,6 +115,7 @@ import {
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
+import { ColumnDataBackupHandler } from '~/services/column-data-backup-handler.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
@@ -433,7 +435,35 @@ export class ColumnsService implements IColumnsService {
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
     protected readonly duplicateDetectionService: DuplicateDetectionService,
     protected readonly linkPlaceholderService: LinkPlaceholderService,
+    protected readonly columnDataBackupHandler: ColumnDataBackupHandler,
   ) {}
+
+  /**
+   * Decide whether to snapshot cell data before a type change. Returns true
+   * only when:
+   *   - the request actually changes `uidt`
+   *   - both old and new types are scalars (virtual types have no backing
+   *     data;
+   *   - the backup driver supports the source dialect (resolution happens
+   *     inside the handler — we only gate on uidt here)
+   */
+  private shouldBackupBeforeTypeChange(
+    oldColumn: Column<any> | null | undefined,
+    requestColumn: any,
+  ): boolean {
+    if (!oldColumn || !requestColumn) return false;
+    const oldUidt = oldColumn.uidt as UITypes | undefined;
+    const newUidt = requestColumn.uidt as UITypes | undefined;
+    if (!oldUidt || !newUidt || oldUidt === newUidt) return false;
+    if (isVirtualCol({ uidt: oldUidt }) || isVirtualCol({ uidt: newUidt })) {
+      return false;
+    }
+    // Service rejects LTAR↔scalar — guard anyway.
+    if (isLinksOrLTAR({ uidt: oldUidt }) || isLinksOrLTAR({ uidt: newUidt })) {
+      return false;
+    }
+    return true;
+  }
 
   /**
    * Stores unique constraint name in internal_meta field when enabling unique constraint.
@@ -724,15 +754,73 @@ export class ColumnsService implements IColumnsService {
       apiVersion?: NcApiVersion;
       forceUpdateSystem?: boolean;
       columnWebhookManager?: ColumnWebhookManager;
+      _replayBackup?: ColumnBackupRef;
+      _columnBackup?: ColumnBackupRef;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model | Column<any>> {
     const reuse = param.reuse || {};
-
-    const { req } = param;
-
     const column = await Column.get(context, { colId: param.columnId });
     const oldColumn = deepClone(column);
+
+    if (this.shouldBackupBeforeTypeChange(column, param.column)) {
+      try {
+        param._columnBackup = await this.columnDataBackupHandler.backup(
+          context,
+          {
+            sourceColumn: column,
+            backupUid: ColumnDataBackupHandler.newBackupUid(),
+            forUndo: !!param._replayBackup,
+          },
+        );
+      } catch (e) {
+        this.logger.warn(
+          `Column data backup failed for ${column.id} (${column.uidt} → ${
+            (param.column as any).uidt
+          }): ${
+            (e as Error).message
+          }. Type change will proceed without undo support.`,
+        );
+      }
+    }
+
+    try {
+      return await this._runColumnUpdate(
+        context,
+        param,
+        column,
+        oldColumn,
+        reuse,
+        ncMeta,
+      );
+    } catch (err) {
+      if (param._columnBackup) {
+        try {
+          await this.columnDataBackupHandler.drop(context, {
+            backupRef: param._columnBackup,
+          });
+        } catch (dropErr) {
+          this.logger.warn(
+            `Failed to drop orphaned backup column for ${column.id}: ${
+              (dropErr as Error).message
+            }`,
+          );
+        }
+        param._columnBackup = undefined;
+      }
+      throw err;
+    }
+  }
+
+  protected async _runColumnUpdate(
+    context: NcContext,
+    param: Parameters<ColumnsService['columnUpdate']>[1],
+    column: Column<any>,
+    oldColumn: any,
+    reuse: ReusableParams,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Model | Column<any>> {
+    const { req } = param;
 
     validateDateFormatMeta(context, (param.column as any)?.meta);
 
@@ -3079,6 +3167,13 @@ export class ColumnsService implements IColumnsService {
     if (!param.columnWebhookManager) {
       await columnWebhookManager.populateNewColumns();
       columnWebhookManager.emit();
+    }
+
+    if (param._replayBackup) {
+      await this.columnDataBackupHandler.restore(context, {
+        destinationColumn: updatedColumn,
+        backupRef: param._replayBackup,
+      });
     }
 
     if (param.apiVersion === NcApiVersion.V3) {

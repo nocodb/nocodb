@@ -39,6 +39,9 @@ const up = async (knex: Knex) => {
     table.string('status', 20).defaultTo('active');
     table.text('error');
     table.timestamp('undone_at');
+    table.text('meta');
+    table.timestamp('cleanup_due_at');
+
     table.timestamps(true, true);
   });
 
@@ -50,7 +53,7 @@ const up = async (knex: Knex) => {
     );
     // Cleanup queries (per-workspace pruning, TTL sweeps).
     table.index(['fk_workspace_id', 'base_id'], 'nc_op_logs_ws_base_idx');
-    table.index(['created_at'], 'nc_op_logs_created_at_idx');
+    table.index(['cleanup_due_at'], 'nc_op_logs_cleanup_due_at_idx');
   });
 };
 

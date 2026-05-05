@@ -197,6 +197,7 @@ export async function recordCommand(
           resolvedCtx,
           info,
           validatedParams,
+          extra,
           userId,
         )
       : null,
@@ -251,6 +252,7 @@ async function maybeRecordUndoEntry(
   resolvedCtx: ResolvedCtx | undefined,
   info: EntityInfo,
   validatedParams: unknown,
+  extra: Record<string, unknown> | undefined,
   userId: string,
 ): Promise<void> {
   if (!contract.buildInverse) return;
@@ -292,5 +294,6 @@ async function maybeRecordUndoEntry(
     entity_id: info.entityId,
     entity_title: info.entityTitle?.substring(0, 255),
     description: info.description?.substring(0, 500),
+    ...(extra ? { meta: extra } : {}),
   });
 }

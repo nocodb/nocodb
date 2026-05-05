@@ -9,6 +9,22 @@ import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
+const DEFAULT_RETENTION_DAYS = 7;
+const RETRY_BACKOFF_MS = 60 * 60 * 1000; // 1h per cleanup-retry failure
+
+/**
+ * Default retention: 7 days. Rows older than this have their backup columns
+ * dropped and the row is deleted. Override via `NC_OP_LOG_RETENTION_DAYS`.
+ */
+function getRetentionMs(): number {
+  const raw = process.env.NC_OP_LOG_RETENTION_DAYS;
+  const days = raw ? Number(raw) : DEFAULT_RETENTION_DAYS;
+  if (!Number.isFinite(days) || days <= 0) {
+    return DEFAULT_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+  }
+  return days * 24 * 60 * 60 * 1000;
+}
+
 export default class OperationLog implements OperationLogType {
   id?: string;
   seq?: number;
@@ -29,6 +45,8 @@ export default class OperationLog implements OperationLogType {
   status?: OperationLogStatus;
   error?: string;
   undone_at?: string | null;
+  meta?: Record<string, any>;
+  cleanup_due_at?: string | null;
   created_at?: string;
   updated_at?: string;
 
@@ -54,6 +72,8 @@ export default class OperationLog implements OperationLogType {
       'description',
       'forward_params',
       'inverse_params',
+      'meta',
+      'cleanup_due_at',
     ]);
 
     insertData = {
@@ -62,9 +82,16 @@ export default class OperationLog implements OperationLogType {
       forward_op_version: input.forward_op_version ?? 1,
       inverse_op_version: input.inverse_op_version ?? 1,
       status: 'active',
+      cleanup_due_at:
+        input.cleanup_due_at ??
+        new Date(Date.now() + getRetentionMs()).toISOString(),
     };
 
-    insertData = prepareForDb(insertData, ['forward_params', 'inverse_params']);
+    insertData = prepareForDb(insertData, [
+      'forward_params',
+      'inverse_params',
+      'meta',
+    ]);
 
     const row = await ncMeta.metaInsert2(
       context.workspace_id,
@@ -123,19 +150,45 @@ export default class OperationLog implements OperationLogType {
     context: NcContext,
     id: string,
     status: OperationLogStatus,
-    extra: { error?: string; undone_at?: Date | string | null } = {},
+    extra: {
+      error?: string;
+      undone_at?: Date | string | null;
+      meta?: Record<string, any>;
+    } = {},
     ncMeta: MetaService = Noco.ncMeta,
   ): Promise<void> {
-    const updateObj = extractProps({ status, ...extra }, [
+    let updateObj = extractProps({ status, ...extra }, [
       'status',
       'error',
       'undone_at',
+      'meta',
     ]);
+    updateObj = prepareForDb(updateObj, ['meta']);
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.OPERATION_LOGS,
       updateObj,
+      id,
+    );
+  }
+
+  /**
+   * Push the row's cleanup retry forward by `RETRY_BACKOFF_MS`. Used by the
+   * cleanup processor when the per-row cleanup throws — keeps a poisoned row from
+   * burning the per-tick budget on every sweep.
+   */
+  public static async bumpCleanupDueAt(
+    context: NcContext,
+    id: string,
+    ncMeta: MetaService = Noco.ncMeta,
+  ): Promise<void> {
+    const next = new Date(Date.now() + RETRY_BACKOFF_MS).toISOString();
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.OPERATION_LOGS,
+      { cleanup_due_at: next },
       id,
     );
   }
@@ -188,6 +241,7 @@ export default class OperationLog implements OperationLogType {
     const prepared = prepareForResponse(row, [
       'forward_params',
       'inverse_params',
+      'meta',
     ]);
     return new OperationLog(prepared);
   }

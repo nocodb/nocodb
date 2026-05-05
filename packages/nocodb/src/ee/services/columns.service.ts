@@ -68,6 +68,7 @@ import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-han
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import { ColumnDataBackupHandler } from '~/services/column-data-backup-handler.service';
 import ListViewLevel from '~/models/ListViewLevel';
 import ListViewColumn from '~/models/ListViewColumn';
 
@@ -85,16 +86,18 @@ export class ColumnsService extends ColumnsServiceCE {
     protected readonly linkPlaceholderService: LinkPlaceholderService,
     @Inject(forwardRef(() => BaseTrashService))
     protected readonly baseTrashService: BaseTrashService,
+    protected readonly columnDataBackupHandler: ColumnDataBackupHandler,
   ) {
     super(
       metaService,
       appHooksService,
       formulaColumnTypeChanger,
-      formulaColumnTypeChanger,
+      viewRowColorService,
       filtersService,
       metaDependencyEventHandler,
       duplicateDetectionService,
       linkPlaceholderService,
+      columnDataBackupHandler,
     );
   }
 

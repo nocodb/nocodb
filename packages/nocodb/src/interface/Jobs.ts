@@ -82,6 +82,7 @@ export enum JobTypes {
   MailDispatch = 'mail-dispatch',
   MailOutboxRecovery = 'mail-outbox-recovery',
   MailScanner = 'mail-scanner',
+  OperationCleanup = 'operation-cleanup',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -98,6 +99,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.WorkflowCronSchedule,
   JobTypes.WorkflowResumeSchedule,
   JobTypes.BaseTrashCleanUp,
+  JobTypes.OperationCleanup,
   JobTypes.ResumeWorkflow,
   JobTypes.HeartbeatWorkflow,
   JobTypes.PollWorkflow,

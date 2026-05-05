@@ -134,27 +134,45 @@ const TOP_LEVEL_LIFT_BY_UIDT: Record<string, readonly string[]> = {
   ],
 };
 
-// Lossless schema-light fields the service can replay without converting
-// cell data. Splits into two groups:
-//   - true meta-only (early-return path, no DB op): `description`, `meta`,
-//     and `colOptions` for virtual columns (Formula/Lookup/Rollup/QR/Barcode
-//     /Button) where `colOptions` is the entire config.
-//   - schema-light but lossless (DB op runs but no data conversion):
-//     `title` + `column_name` (rename), `cdf` (default), `rqd` (NOT NULL),
-//     `unique` (constraint). On undo these issue an ALTER TABLE but no rows
-//     are recast. Edge case: NOT-NULL-add or unique-add could fail on data
-//     that drifted between forward and undo — same failure mode as the
-//     original forward call, surfaced to the user.
-// Anything outside this list (uidt, dt, np, ns, dtxp, dtxs, …) means a
-// type-changing schema mutation that Phase 2's `ColumnDataBackupHandler`
-// will own; we skip recording those in `skipIf`.
+// Snapshot fields captured before a forward `columnUpdate` so the inverse
+// can replay the previous shape on undo. Three layers of fields:
+//
+//   1. Identity / labels:    `title`, `column_name`, `description`
+//   2. UI + DB type:          `uidt`, `dt`, `dtxp`, `dtxs`, `np`, `ns`,
+//                             `clen`, `ct`
+//      → required for type-change undo. Service reads these to
+//        rebuild the original ALTER; cell data is restored separately
+//        from the backup column captured by `ColumnDataBackupHandler`.
+//   3. Constraints + flags:  `cdf`, `rqd`, `unique`, `un`, `ai`, `pk`,
+//                             `pv`, `validate`
+//   4. Virtual config:        `colOptions` (Lookup/Rollup/QR/Barcode/
+//                             Formula/Button — entire colOptions blob),
+//                             `meta` (UI metadata)
+//
+// Edge case: NOT-NULL-add / unique-add can fail on data that drifted
+// between forward and undo — same failure mode as the original forward
+// call, surfaced to the user via the dispatch error path.
 const COLUMN_PREV_FIELDS = [
   'title',
+  'column_name',
   'description',
-  'meta',
+  'uidt',
+  'dt',
+  'dtxp',
+  'dtxs',
+  'np',
+  'ns',
+  'clen',
+  'ct',
   'cdf',
   'rqd',
   'unique',
+  'un',
+  'ai',
+  'pk',
+  'pv',
+  'validate',
+  'meta',
   'colOptions',
 ] as const;
 
@@ -164,6 +182,19 @@ interface ColumnUpdateExtra {
   prev?: Record<string, unknown>;
   prevFilters?: Array<Record<string, unknown>>;
 }
+
+const columnBackupRefSchema = z.object({
+  tableName: z.string(),
+  backupColumnName: z.string(),
+  sourceColumnId: z.string(),
+  fkModelId: z.string(),
+});
+
+const columnUpdateExtraSchema = z
+  .object({
+    backup: columnBackupRefSchema.optional(),
+  })
+  .optional();
 
 function snapshotColumnFields(
   col: Column | null | undefined,
@@ -213,6 +244,7 @@ export const ColumnUpdateContract: OperationContract<
   version: 1,
   entity: MetaTable.COLUMNS,
   schema: columnUpdateSchema,
+  extraSchema: columnUpdateExtraSchema,
   entityId: (p) => p?.columnId,
   entityTitle: (p) => (p?.column as any)?.title,
   parentId: (p) => (p?.column as any)?.fk_model_id ?? p?.tableId,
@@ -241,14 +273,9 @@ export const ColumnUpdateContract: OperationContract<
       },
     };
   },
-  // Phase 1 scope: metadata-only undo. Skip recording when the request changes
-  // the column type — schema-touching transitions need cell-data backup
-  // (Phase 2's `ColumnDataBackupHandler`).
-  skipIf: (_ctx, p, _r, resolved) => {
-    const oldUidt = resolved?.extra?.oldUidt;
-    const newUidt = (p?.column as { uidt?: string } | undefined)?.uidt;
-    if (newUidt && oldUidt && newUidt !== oldUidt) return true;
-    return false;
+  extraCommandMeta: (p) => {
+    const backup = (p as { _columnBackup?: unknown })._columnBackup;
+    return backup ? { backup } : undefined;
   },
   buildInverse: (_ctx, p, _r, resolved) => {
     const prev = resolved?.extra?.prev;

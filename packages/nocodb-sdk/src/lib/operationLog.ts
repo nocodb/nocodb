@@ -47,6 +47,8 @@ export interface OperationLogType {
   /** Populated when status is 'errored'. */
   error?: string;
   undone_at?: string | null;
+  meta?: Record<string, any>;
+  cleanup_due_at?: string | null;
 
   created_at?: string;
   updated_at?: string;

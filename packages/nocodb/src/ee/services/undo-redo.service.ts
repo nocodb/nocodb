@@ -170,17 +170,41 @@ export class UndoRedoService {
       },
     };
 
+    let metaUpdate: Record<string, unknown> | undefined;
     try {
       // `__isReplay` on req tells `recordCommand` to skip writing a new
       // operation log entry — we manage the stack here.
       const replayReq = { ...req, __isReplay: true } as NcRequest;
 
-      await resolved.handler(replayContext, replayParams as any, {
-        entryId: entry.id ?? '',
-        entityId: entry.entity_id,
-        originalReq: replayReq,
-        createdBy: (context.user?.id ?? (req as any)?.user?.id ?? '') as string,
-      });
+      const handlerResult = await resolved.handler(
+        replayContext,
+        replayParams as any,
+        {
+          entryId: entry.id ?? '',
+          entityId: entry.entity_id,
+          originalReq: replayReq,
+          createdBy: (context.user?.id ??
+            (req as any)?.user?.id ??
+            '') as string,
+          // Side-channel meta written at record time via `extraCommandMeta`.
+          // Handlers read this for replay-only signals like the column-data
+          // backup ref (so the inverse can restore cell data after the type
+          // change).
+          ...(entry.meta ? { extra: entry.meta } : {}),
+        },
+      );
+
+      // Some handlers (currently only `columnUpdate`) need to mutate the
+      // row's `meta` after a successful replay because the side-effect
+      // resource it pointed at was consumed. Detected via a duck-typed
+      // `{ metaUpdate }` shape on the return value — keeps the protocol
+      // narrow without forcing every handler to wrap its result.
+      const ret = handlerResult as
+        | { metaUpdate?: Record<string, unknown> }
+        | undefined;
+      if (ret && typeof ret === 'object' && ret.metaUpdate) {
+        metaUpdate = ret.metaUpdate;
+      }
     } catch (e: any) {
       const message = e?.message ?? String(e);
       this.logger.error(
@@ -200,11 +224,19 @@ export class UndoRedoService {
       // again. We lose the 'redone' audit distinction, but the alternative
       // requires a query that ORs ('active', 'redone'), and the simple
       // model is good enough for the MVP. Revisit if we need audit fidelity.
+      const statusExtra: {
+        error?: string;
+        undone_at?: Date | string | null;
+        meta?: Record<string, any>;
+      } = direction === 'undo' ? { undone_at: new Date().toISOString() } : {};
+      if (metaUpdate) {
+        statusExtra.meta = { ...(entry.meta ?? {}), ...metaUpdate };
+      }
       await OperationLog.markStatus(
         context,
         entry.id,
         direction === 'undo' ? 'undone' : 'active',
-        direction === 'undo' ? { undone_at: new Date().toISOString() } : {},
+        statusExtra,
       );
     }
 

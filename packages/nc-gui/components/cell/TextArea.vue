@@ -213,8 +213,23 @@ const richTextContent = computedAsync(async () => {
   return Promise.resolve('')
 })
 
+const isSmartTextModalOpen = ref(false)
+
 const onExpand = () => {
+  if (isSmartMode.value && isExpandedFormOpen.value) {
+    isSmartTextModalOpen.value = true
+    return
+  }
   isVisible.value = true
+}
+
+const onSmartTextSaved = (markdown: string | null) => {
+  // Mutate the underlying row in place — same pattern as the SmartText panel
+  // (useSmartText:savedRowData[savedColTitle] = newMarkdown). Avoids tripping
+  // the expanded form's dirty-tracking with a value the backend already saved.
+  if (currentRow.value?.row && column?.value?.title) {
+    currentRow.value.row[column.value.title] = markdown
+  }
 }
 
 const onMouseMove = (e: MouseEvent) => {
@@ -586,6 +601,7 @@ useResizeObserver(inputWrapperRef, () => {
             maxHeight: 'min(800px, calc(100vh - 200px))',
           }"
           :disabled="!!readOnly || (props.isAi && !!isEditColumn) || isAiGenerating"
+          :readonly="isSmartMode && isExpandedFormOpen"
           :autocomplete="formFieldAutocomplete"
           @blur="editEnabled = false"
           @keydown.alt.stop
@@ -722,7 +738,11 @@ useResizeObserver(inputWrapperRef, () => {
             </template>
           </NcButton>
         </NcTooltip>
-        <NcTooltip v-if="!isVisible && !isForm && !isSmartMode" placement="bottom" class="nc-action-icon">
+        <NcTooltip
+          v-if="!isVisible && !isForm && (!isSmartMode || isExpandedFormOpen)"
+          placement="bottom"
+          class="nc-action-icon"
+        >
           <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
           <NcButton
             type="secondary"
@@ -887,6 +907,18 @@ useResizeObserver(inputWrapperRef, () => {
         <CellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" @close="handleClose" />
       </div>
     </a-modal>
+
+    <CellSmartTextModal
+      v-if="isEeUI && isSmartMode && isExpandedFormOpen"
+      v-model:visible="isSmartTextModalOpen"
+      :table-id="meta?.id"
+      :row-id="rowId"
+      :column-id="column?.id"
+      :column-title="column?.title"
+      :column="column"
+      :read-only="readOnly"
+      @saved="onSmartTextSaved"
+    />
   </div>
 </template>
 

@@ -59,8 +59,10 @@ const props = withDefaults(
     mode?: 'doc' | 'cell'
     /** Initial PM JSON for cell mode. Re-applied when the prop reference changes. */
     initialContent?: Record<string, any> | null
+    /** Force editor non-editable regardless of role / doc permissions (e.g. locked / shared views). */
+    readOnly?: boolean
   }>(),
-  { docId: '', embedded: false, mode: 'doc', initialContent: null },
+  { docId: '', embedded: false, mode: 'doc', initialContent: null, readOnly: false },
 )
 
 const emit = defineEmits<{
@@ -126,7 +128,7 @@ const isDocEditAllowed = computed(() => {
 })
 
 /** Whether the current user can edit document content (base role + doc-level permission). */
-const isEditable = computed(() => isUIAllowed('documentUpdate') && isDocEditAllowed.value)
+const isEditable = computed(() => !props.readOnly && isUIAllowed('documentUpdate') && isDocEditAllowed.value)
 
 // Resolve created_by user ID to display name
 const idUserMap = computed<Record<string, any>>(() => {

@@ -612,6 +612,102 @@ export function useCanvasTable({
     return { active: true, values, scopedTitles }
   })
 
+  // Per-group selection-scoped aggregations. Keyed by JSON.stringify(group.path).
+  // Each entry holds pre-formatted display values for that group's columns
+  // and the scopedTitles set (column titles in selection scope; others blank).
+  // Cell-range selection: only the active group gets an entry. Row-checkbox
+  // selection: every group with checked rows gets its own entry.
+  const groupSelectionAggregations = computed<
+    Map<string, { values: Record<string, string | undefined>; scopedTitles: Set<string> }>
+  >(() => {
+    const result = new Map<string, { values: Record<string, string | undefined>; scopedTitles: Set<string> }>()
+    if (!isGroupBy.value) return result
+
+    const range = selection.value
+    const hasRange = !range.isEmpty() && range.cellCount > 1
+
+    const formatFor = (col: ColumnType, rawValue: any): string | undefined => {
+      const aggType = gridViewCols.value[col.id!]?.aggregation
+      if (!aggType || aggType === CommonAggregations.None || rawValue === undefined) return undefined
+      return getFormattedAggrationValue(aggType, rawValue, col, [], {
+        col,
+        meta: meta.value as TableType,
+        metas: metas.value,
+        isMysql,
+        isPg,
+      })
+    }
+
+    const computePerGroup = (
+      rows: Row[],
+      colsForScope: ColumnType[],
+    ): { values: Record<string, string | undefined>; scopedTitles: Set<string> } => {
+      const values: Record<string, string | undefined> = {}
+      const scopedTitles = new Set<string>()
+      for (const f of colsForScope) {
+        if (!f?.id || !f?.title) continue
+        scopedTitles.add(f.title)
+        const aggType = gridViewCols.value[f.id]?.aggregation
+        if (!aggType || aggType === CommonAggregations.None) continue
+        const cellValues = rows.map((r) => r?.row?.[f.title!])
+        try {
+          const raw = computeAggregation({
+            aggregation: aggType,
+            values: cellValues,
+            column: f,
+            parsedFormulaType: (f.colOptions as any)?.parsed_tree?.dataType,
+          })
+          values[f.title] = formatFor(f, raw)
+        } catch {
+          // swallow — fall back to undefined; renderer treats as blank
+        }
+      }
+      return { values, scopedTitles }
+    }
+
+    // Cell-range: scope is the column slice [start.col, end.col] in the active group
+    if (hasRange && activeCell.value?.path?.length) {
+      const path = activeCell.value.path as number[]
+      const dataCache = getDataCache(path)
+      const rangeRows: Row[] = []
+      for (let r = range.start.row; r <= range.end.row; r++) {
+        const row = dataCache.cachedRows.value.get(r)
+        if (row) rangeRows.push(row)
+      }
+      const baseCols = _columnsBase.value
+      const colsForScope: ColumnType[] = []
+      for (let c = range.start.col; c <= range.end.col; c++) {
+        const colObj = baseCols[c]
+        if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
+        colsForScope.push(colObj.columnObj)
+      }
+      result.set(JSON.stringify(path), computePerGroup(rangeRows, colsForScope))
+    }
+
+    // Row-checkbox: each group with checked rows scopes ALL fields
+    if (cachedGroups?.value) {
+      const collectGroupPaths = (groups: Map<number, any> | undefined, parent: any[] = [], out: any[][] = []): any[][] => {
+        if (!groups) return out
+        for (const [, group] of groups) {
+          const cur = [...parent, ...(group?.path ?? [])]
+          if (cur.length) out.push(cur)
+          if (group?.groups?.size > 0) collectGroupPaths(group.groups, cur, out)
+        }
+        return out
+      }
+      for (const path of collectGroupPaths(cachedGroups.value)) {
+        const checked = getDataCache(path as number[]).selectedRows?.value ?? []
+        if (!checked.length) continue
+        // Only override if not already set by cell-range branch above
+        const key = JSON.stringify(path)
+        if (result.has(key)) continue
+        result.set(key, computePerGroup(checked, fields.value as ColumnType[]))
+      }
+    }
+
+    return result
+  })
+
   // Lightweight wrapper: during resize, patches only the resizing column's width
   // without recomputing _columnsBase (which does heavy meta/aggregation/permission work).
   // Also layers the selection-scoped aggregation override on top.
@@ -647,14 +743,10 @@ export function useCanvasTable({
         return { ...col, aggregation: formatted ?? '' }
       }
 
-      // Out-of-selection field: blank out and suppress hover affordance.
-      return {
-        ...col,
-        aggregation: '',
-        agg_prefix: '',
-        agg_fn: '',
-        aggregationSuppressed: true,
-      } as CanvasGridColumn
+      // Out-of-selection field at the global level: just set the suppression
+      // flag. Don't blank agg_fn / agg_prefix / aggregation — per-group
+      // rendering is a separate decision and reads them independently.
+      return { ...col, aggregationSuppressed: true } as CanvasGridColumn
     })
   })
 
@@ -1080,6 +1172,7 @@ export function useCanvasTable({
     rowColouringBorderWidth,
     isRecordSelected,
     isViewOperationsAllowed,
+    groupSelectionAggregations,
   })
 
   const { handleDragStart } = useRowReorder({

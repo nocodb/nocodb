@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PlanFeatureTypes } from 'nocodb-sdk'
 import type { BookmarkReqType } from 'nocodb-sdk'
 
 interface Props {
@@ -12,8 +13,6 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { targetType, targetId, meta } = toRefs(props)
-
-const { blockBookmarks } = useEeConfig()
 
 const { isBookmarked, addBookmark, removeBookmarkByTarget } = useBookmarks()
 
@@ -33,13 +32,18 @@ async function onClick() {
 </script>
 
 <template>
-  <NcMenuItem v-if="!blockBookmarks" @click="onClick">
-    <div class="flex gap-2 items-center">
-      <GeneralIcon
-        :icon="bookmarked ? 'ncBookmarkSolid' : 'ncBookmark'"
-        :class="bookmarked ? 'text-nc-content-brand' : 'opacity-80'"
-      />
-      {{ bookmarked ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}
-    </div>
-  </NcMenuItem>
+  <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_BOOKMARKS">
+    <template #default="{ click }">
+      <NcMenuItem @click="click(PlanFeatureTypes.FEATURE_BOOKMARKS, onClick)">
+        <div class="w-full flex items-center gap-2">
+          <GeneralIcon
+            :icon="bookmarked ? 'ncBookmarkSolid' : 'ncBookmark'"
+            :class="bookmarked ? 'text-nc-content-brand' : 'opacity-80'"
+          />
+          <span class="flex-1">{{ bookmarked ? $t('labels.removeFromBookmarks') : $t('labels.addToBookmarks') }}</span>
+          <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_BOOKMARKS" show-as-lock/>
+        </div>
+      </NcMenuItem>
+    </template>
+  </PaymentUpgradeBadgeProvider>
 </template>

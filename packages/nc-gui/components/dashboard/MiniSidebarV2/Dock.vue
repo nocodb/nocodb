@@ -45,7 +45,7 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, showEEFeatures, blockBookmarks } = useEeConfig()
+const { blockAiChat, showEEFeatures, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
 
 const isBookmarksFlyoutOpen = ref(false)
 
@@ -387,7 +387,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     </div>
 
     <!-- Bookmarks -->
-    <div v-if="isEeUI && !blockBookmarks" ref="bookmarksContainerRef" class="relative">
+    <div v-if="isEeUI" ref="bookmarksContainerRef" class="relative">
       <div
         :ref="(el: any) => setItemRef('bookmarks', el)"
         class="nc-dock-magnify-wrapper"
@@ -399,7 +399,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
           :active="isBookmarksFlyoutOpen"
           data-testid="nc-dock-bookmarks"
           :scale="getScale('bookmarks')"
-          @click="isBookmarksFlyoutOpen = !isBookmarksFlyoutOpen"
+          @click="blockBookmarks ? showUpgradeToUseBookmarks() : (isBookmarksFlyoutOpen = !isBookmarksFlyoutOpen)"
         />
       </div>
 

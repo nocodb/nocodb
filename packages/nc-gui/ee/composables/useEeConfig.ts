@@ -420,10 +420,7 @@ export const useEeConfig = createSharedComposable(() => {
   const blockScripts = computed(() => isEEFeatureBlocked.value)
   const blockWorkflows = computed(() => isEEFeatureBlocked.value)
   const blockBookmarks = computed(() => {
-    if (isEEFeatureBlocked.value) {
-      return !getFeature(PlanFeatureTypes.FEATURE_BOOKMARKS)
-    }
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_BOOKMARKS)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_BOOKMARKS)
   })
   const blockExtensions = computed(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS)
@@ -2162,6 +2159,8 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   const showUpgradeToUseBookmarks = () => {
+    if (!blockBookmarks.value) return
+
     handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_BOOKMARKS })
     return true
   }

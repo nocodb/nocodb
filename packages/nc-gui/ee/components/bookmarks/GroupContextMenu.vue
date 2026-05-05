@@ -53,18 +53,12 @@ async function onChangeColor(color: string) {
 </script>
 
 <template>
-  <NcDropdown
-    v-model:visible="isOpen"
-    :trigger="['click']"
-    :disabled="isDefault"
-    placement="bottomRight"
-    overlay-class-name="nc-bookmark-group-menu"
-  >
+  <NcDropdown v-model:visible="isOpen" :disabled="isDefault" placement="bottomRight" overlay-class-name="nc-bookmark-group-menu">
     <NcButton
       type="text"
       size="xxsmall"
       class="nc-bookmark-group-kebab !rounded-md flex-none"
-      :class="{ invisible: isDefault, '!opacity-100': isOpen }"
+      :class="{ 'invisible': isDefault, '!opacity-100': isOpen }"
       data-testid="nc-bookmark-group-kebab"
       @click.stop
     >
@@ -95,11 +89,7 @@ async function onChangeColor(color: string) {
           </div>
         </NcMenuItem>
         <NcDivider />
-        <NcMenuItem
-          data-testid="nc-bookmark-group-delete"
-          class="!text-nc-content-red-dark"
-          @click="onDelete"
-        >
+        <NcMenuItem data-testid="nc-bookmark-group-delete" class="!text-nc-content-red-dark" @click="onDelete">
           <div v-e="['c:bookmark:group:delete']" class="flex gap-2 items-center">
             <GeneralIcon icon="delete" class="w-4 h-4" />
             {{ $t('labels.deleteFolder') }}

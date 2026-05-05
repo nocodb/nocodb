@@ -30,9 +30,20 @@ const viewIcon = computed(() => {
   return getViewIcon(meta.value.view_type)
 })
 
-const tableEmoji = computed(() => {
-  if (bookmark.value.target_type !== 'table') return null
-  return meta.value.icon || null
+// Custom emoji icon configured on the underlying entity. Workspace and
+// base have their own icon components and aren't emoji-driven.
+const customEmoji = computed<string | undefined>(() => {
+  switch (bookmark.value.target_type) {
+    case 'table':
+    case 'view':
+    case 'document':
+    case 'workflow':
+    case 'script':
+    case 'dashboard':
+      return meta.value.icon || undefined
+    default:
+      return undefined
+  }
 })
 
 const displayTitle = computed(() => bookmark.value.title ?? bookmark.value.resolved_title ?? '')
@@ -92,24 +103,25 @@ function handleDragStart(e: DragEvent) {
         size="small"
       />
       <GeneralProjectIcon v-else-if="bookmark.target_type === 'base'" :color="meta.icon_color" class="!text-base" />
-      <template v-else-if="bookmark.target_type === 'table'">
-        <LazyGeneralEmojiPicker v-if="tableEmoji" :emoji="tableEmoji" size="small" :readonly="true">
-          <template #default>
-            <component :is="iconMap.table" class="w-4 text-sm text-nc-content-gray-muted" />
-          </template>
-        </LazyGeneralEmojiPicker>
-        <component :is="iconMap.table" v-else class="w-4 text-sm text-nc-content-gray-muted" />
-      </template>
-      <component
-        :is="viewIcon?.icon || iconMap.grid"
-        v-else-if="bookmark.target_type === 'view'"
-        class="w-4 h-4"
-        :style="{ color: viewIcon?.color }"
-      />
-      <GeneralIcon v-else-if="bookmark.target_type === 'document'" icon="ncFileText" class="w-4 h-4 !text-nc-gray-600/75" />
-      <GeneralIcon v-else-if="bookmark.target_type === 'workflow'" icon="ncAutomation" class="w-4 h-4 !text-nc-gray-600/75" />
-      <GeneralIcon v-else-if="bookmark.target_type === 'script'" icon="ncScript" class="w-4 h-4 !text-nc-gray-600/75" />
-      <GeneralIcon v-else-if="bookmark.target_type === 'dashboard'" icon="dashboards" class="w-4 h-4 !text-nc-gray-600/75" />
+      <LazyGeneralEmojiPicker v-else :emoji="customEmoji" size="small" :readonly="true">
+        <template #default>
+          <component
+            :is="viewIcon?.icon || iconMap.grid"
+            v-if="bookmark.target_type === 'view'"
+            class="w-4 h-4"
+            :style="{ color: viewIcon?.color }"
+          />
+          <component
+            :is="iconMap.table"
+            v-else-if="bookmark.target_type === 'table'"
+            class="w-4 text-sm text-nc-content-gray-muted"
+          />
+          <GeneralIcon v-else-if="bookmark.target_type === 'document'" icon="ncFileText" class="w-4 h-4 !text-nc-gray-600/75" />
+          <GeneralIcon v-else-if="bookmark.target_type === 'workflow'" icon="ncAutomation" class="w-4 h-4 !text-nc-gray-600/75" />
+          <GeneralIcon v-else-if="bookmark.target_type === 'script'" icon="ncScript" class="w-4 h-4 !text-nc-gray-600/75" />
+          <GeneralIcon v-else-if="bookmark.target_type === 'dashboard'" icon="dashboards" class="w-4 h-4 !text-nc-gray-600/75" />
+        </template>
+      </LazyGeneralEmojiPicker>
     </div>
 
     <!-- Title — fills remaining space; truncates -->

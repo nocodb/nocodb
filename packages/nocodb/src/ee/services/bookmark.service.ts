@@ -477,6 +477,7 @@ export class BookmarkService {
               if (view) {
                 meta.view_type = view.type;
                 meta.table_id = view.fk_model_id;
+                meta.icon = parseMetaProp(view)?.icon;
                 resolvedTitle = view.title;
 
                 // Also resolve table's base_id for routing
@@ -494,6 +495,7 @@ export class BookmarkService {
             case 'document': {
               const doc = await Document.get(ctx, bm.target_id);
               if (doc) {
+                meta.icon = parseMetaProp(doc)?.icon;
                 resolvedTitle = doc.title;
               }
               break;
@@ -501,6 +503,7 @@ export class BookmarkService {
             case 'workflow': {
               const workflow = await Workflow.get(ctx, bm.target_id);
               if (workflow) {
+                meta.icon = parseMetaProp(workflow)?.icon;
                 resolvedTitle = workflow.title;
               }
               break;
@@ -508,6 +511,7 @@ export class BookmarkService {
             case 'script': {
               const script = await Script.get(ctx, bm.target_id);
               if (script) {
+                meta.icon = parseMetaProp(script)?.icon;
                 resolvedTitle = script.title;
               }
               break;

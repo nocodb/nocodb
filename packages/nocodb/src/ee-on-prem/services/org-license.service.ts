@@ -115,10 +115,20 @@ export class OrgLicenseService extends OrgLicenseServiceEE {
       // ignore
     }
 
+    // Count seat-consuming users (editor+, excludes viewer/commenter) so the
+    // self-serve checkout can pre-fill seats matching how billing reseats.
+    let seatCount: number | undefined;
+    try {
+      seatCount = await NocoLicense.calculateGlobalSeatCount();
+    } catch (e) {
+      this.onPremLogger.warn(`Failed to calculate seat count: ${e.message}`);
+    }
+
     return {
       ...base,
       isAirgapped: NocoLicense.isAirgapped,
       seatLimit: NocoLicense.getSeatLimit(),
+      seatCount,
       isPostgres,
     };
   }

@@ -57,6 +57,11 @@ const successLicense = ref<(typeof licenses.value)[0] | null>(null)
 
 const instanceUrl = computed(() => (route.query.instance_url as string) || '')
 
+const requestedSeatCount = computed(() => {
+  const raw = Number(route.query.seat_count)
+  return Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : 0
+})
+
 const copiedKeyId = ref<string | null>(null)
 
 const revealedKeys = ref<Set<string>>(new Set())
@@ -220,12 +225,21 @@ const backToList = async () => {
   await listLicenses()
 }
 
+const cameFromInstance = computed(() => !!instanceUrl.value || requestedSeatCount.value > 0)
+
+// If the user landed here from an on-prem "Buy License" click (URL carries
+// instance_url and/or seat_count), jump straight to plan selection.
+if (isSelfServeLicensePurchaseEnabled.value && cameFromInstance.value) {
+  viewState.value = 'plan-select'
+}
+
 onMounted(async () => {
   if (isSelfServeLicensePurchaseEnabled.value && afterPayment.value && sessionId.value) {
     await handleAfterPayment()
-  } else {
-    await listLicenses()
+    return
   }
+
+  await listLicenses()
 })
 
 onBeforeUnmount(async () => {
@@ -234,7 +248,7 @@ onBeforeUnmount(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col h-full transition-colors">
     <NcPageHeader>
       <template #icon>
         <GeneralIcon icon="ncServer" class="flex-none !h-5 !w-5" />
@@ -243,7 +257,7 @@ onBeforeUnmount(async () => {
         {{ $t('title.selfHostedLicenses') }}
       </template>
     </NcPageHeader>
-    <div class="h-full overflow-y-auto nc-scrollbar-thin">
+    <div class="flex-1 overflow-y-auto nc-scrollbar-thin">
       <div class="mx-auto mt-8 px-4 pb-16" :class="viewState === 'list' ? 'max-w-[640px]' : 'max-w-[960px]'">
         <!-- List View -->
         <template v-if="viewState === 'list'">
@@ -389,12 +403,23 @@ onBeforeUnmount(async () => {
             </NcButton>
           </div>
 
-          <div v-if="instanceUrl" class="p-3 rounded-lg bg-nc-bg-gray-light border border-nc-border-gray-medium mb-6">
-            <div class="text-xs text-nc-content-gray-subtle mb-1">{{ $t('labels.instanceUrl') }}</div>
-            <div class="text-sm font-medium break-all">{{ instanceUrl }}</div>
+          <div
+            v-if="instanceUrl || requestedSeatCount > 0"
+            class="p-3 rounded-lg bg-nc-bg-gray-light border border-nc-border-gray-medium mb-6 flex flex-col gap-2"
+          >
+            <div v-if="instanceUrl">
+              <div class="text-xs text-nc-content-gray-subtle mb-1">{{ $t('labels.instanceUrl') }}</div>
+              <div class="text-sm font-medium break-all">{{ instanceUrl }}</div>
+            </div>
+            <div v-if="requestedSeatCount > 0">
+              <div class="text-xs text-nc-content-gray-subtle mb-1">{{ $t('labels.editorsOnInstance') }}</div>
+              <div class="text-sm font-medium">
+                {{ requestedSeatCount }} {{ requestedSeatCount === 1 ? $t('objects.roleType.editor') : $t('labels.editors') }}
+              </div>
+            </div>
           </div>
 
-          <AccountSelfHostedPlanSelector @select="initCheckout" />
+          <AccountSelfHostedPlanSelector :min-seats="requestedSeatCount" @select="initCheckout" />
         </template>
 
         <!-- Checkout View -->
@@ -414,7 +439,12 @@ onBeforeUnmount(async () => {
             </div>
           </div>
 
-          <div v-show="!checkoutLoading" id="on-prem-checkout" class="w-full pb-10" />
+          <div
+            v-show="!checkoutLoading"
+            class="nc-stripe-checkout-frame mx-auto w-full max-w-[640px] rounded-2xl bg-white px-2 py-4 shadow-sm border-1 border-nc-border-gray-medium mb-10"
+          >
+            <div id="on-prem-checkout" class="w-full" />
+          </div>
         </template>
 
         <!-- Success View -->

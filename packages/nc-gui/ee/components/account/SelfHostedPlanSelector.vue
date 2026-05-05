@@ -1,6 +1,14 @@
 <script lang="ts" setup>
 import { OnPremPlanMeta, OnPremPlanTitles } from 'nocodb-sdk'
 
+interface Props {
+  minSeats?: number
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  minSeats: 0,
+})
+
 const emit = defineEmits<{
   (e: 'select', planId: string, priceId: string, quantity: number): void
 }>()
@@ -13,26 +21,29 @@ const isLoadingPlans = ref(false)
 
 const MAX_SELF_SERVE_SEATS = 100
 
-const seatCount = ref(1)
+const sliderMin = computed(() => Math.max(1, props.minSeats || 1))
+
+const seatCount = ref(sliderMin.value)
 
 const SEAT_PRESETS = [10, 25, 50, 100]
 
+const visibleSeatPresets = computed(() => SEAT_PRESETS.filter((p) => p >= sliderMin.value && p <= MAX_SELF_SERVE_SEATS))
+
 const isContactSales = computed(() => seatCount.value > MAX_SELF_SERVE_SEATS)
 
-const businessPlan = computed(
-  () => plans.value.find((p) => p.title === OnPremPlanTitles.SELF_HOSTED_BUSINESS) ?? null,
-)
+const businessPlan = computed(() => plans.value.find((p) => p.title === OnPremPlanTitles.SELF_HOSTED_BUSINESS) ?? null)
 
 const businessMeta = OnPremPlanMeta[OnPremPlanTitles.SELF_HOSTED_BUSINESS]
 const enterpriseMeta = OnPremPlanMeta[OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]
 
-const businessDescriptions = computed(() =>
-  businessPlan.value?.descriptions ?? [
-    t('labels.businessDescUnlimitedEditors'),
-    t('labels.businessDescPermissionsAdmin'),
-    t('labels.businessDescSnapshotsWebhooks'),
-    t('labels.businessDescSyncScripts'),
-  ],
+const businessDescriptions = computed(
+  () =>
+    businessPlan.value?.descriptions ?? [
+      t('labels.businessDescUnlimitedEditors'),
+      t('labels.businessDescPermissionsAdmin'),
+      t('labels.businessDescSnapshotsWebhooks'),
+      t('labels.businessDescSyncScripts'),
+    ],
 )
 
 const enterpriseDescriptions = computed(() => [
@@ -58,19 +69,31 @@ const onSliderInput = (e: Event) => {
 }
 
 const onSeatInputBlur = () => {
-  if (!seatCount.value || seatCount.value < 1) {
-    seatCount.value = 1
+  if (!seatCount.value || seatCount.value < sliderMin.value) {
+    seatCount.value = sliderMin.value
   } else {
     seatCount.value = Math.floor(seatCount.value)
   }
 }
 
 const sliderProgress = computed(() => {
-  const clamped = Math.min(seatCount.value, MAX_SELF_SERVE_SEATS)
-  return ((clamped - 1) / (MAX_SELF_SERVE_SEATS - 1)) * 100
+  const range = MAX_SELF_SERVE_SEATS - sliderMin.value
+  if (range <= 0) return 100
+  const clamped = Math.min(Math.max(seatCount.value, sliderMin.value), MAX_SELF_SERVE_SEATS)
+  return ((clamped - sliderMin.value) / range) * 100
 })
 
-const presetPct = (value: number) => ((value - 1) / (MAX_SELF_SERVE_SEATS - 1)) * 100
+const presetPct = (value: number) => {
+  const range = MAX_SELF_SERVE_SEATS - sliderMin.value
+  if (range <= 0) return 100
+  return ((value - sliderMin.value) / range) * 100
+}
+
+watch(sliderMin, (next) => {
+  if (seatCount.value < next) {
+    seatCount.value = next
+  }
+})
 
 onMounted(async () => {
   if (plans.value.length === 0) {
@@ -96,20 +119,25 @@ onMounted(async () => {
       <!-- Seat selector -->
       <div class="nc-seat-selector-panel" data-testid="nc-self-hosted-seat-selector">
         <div class="flex items-center justify-between">
-          <span class="text-sm font-semibold text-nc-content-gray-emphasis">
-            {{ $t('labels.seatCount') }}
-          </span>
+          <div class="flex items-center gap-1.5">
+            <span class="text-sm font-semibold text-nc-content-gray-emphasis">
+              {{ $t('labels.minimumSeats') }}
+            </span>
+            <NcTooltip :title="$t('tooltip.minimumSeatsAutoScale')" placement="top">
+              <GeneralIcon icon="ncInfo" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+            </NcTooltip>
+          </div>
 
           <div class="nc-seat-input-wrapper">
-            <input v-model.number="seatCount" type="number" min="1" class="nc-seat-input" @blur="onSeatInputBlur" />
+            <input v-model.number="seatCount" type="number" :min="sliderMin" class="nc-seat-input" @blur="onSeatInputBlur" />
           </div>
         </div>
 
         <!-- Slider track -->
         <input
           type="range"
-          :value="Math.min(seatCount, MAX_SELF_SERVE_SEATS)"
-          min="1"
+          :value="Math.min(Math.max(seatCount, sliderMin), MAX_SELF_SERVE_SEATS)"
+          :min="sliderMin"
           :max="MAX_SELF_SERVE_SEATS"
           step="1"
           class="nc-seat-slider"
@@ -118,9 +146,9 @@ onMounted(async () => {
         />
 
         <!-- Preset chips positioned at slider values -->
-        <div class="nc-preset-track">
+        <div v-if="visibleSeatPresets.length" class="nc-preset-track">
           <button
-            v-for="preset in SEAT_PRESETS"
+            v-for="preset in visibleSeatPresets"
             :key="preset"
             class="nc-seat-preset"
             :class="{ active: seatCount === preset }"
@@ -130,6 +158,11 @@ onMounted(async () => {
             <span class="nc-seat-preset-caret" />
             {{ preset }}
           </button>
+        </div>
+
+        <div v-if="props.minSeats > 0" class="flex items-center gap-1.5 text-xs text-nc-content-gray-subtle">
+          <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" />
+          <span>{{ $t('labels.minSeatsFromInstance', { count: props.minSeats }) }}</span>
         </div>
       </div>
 
@@ -172,7 +205,7 @@ onMounted(async () => {
           <!-- Total summary -->
           <div class="nc-plan-total-row">
             <span class="text-sm text-nc-content-gray-subtle">
-              {{ seatCount }} {{ seatCount === 1 ? $t('general.seat') : $t('general.seats') }}
+              {{ $t('labels.fromNSeats', { count: seatCount }) }}
             </span>
             <span class="text-sm font-bold text-nc-content-gray-emphasis">
               ${{ getPlanPriceAmount(businessPlan) * seatCount }}
@@ -255,11 +288,7 @@ onMounted(async () => {
 
           <!-- Features -->
           <div class="flex flex-col gap-2.5 mt-4">
-            <div
-              v-for="desc in enterpriseDescriptions"
-              :key="desc"
-              class="flex items-start gap-2 text-sm text-nc-content-gray"
-            >
+            <div v-for="desc in enterpriseDescriptions" :key="desc" class="flex items-start gap-2 text-sm text-nc-content-gray">
               <GeneralIcon icon="circleCheckSolid" class="flex-none w-4 h-4 mt-0.5 text-nc-content-green-dark" />
               {{ desc }}
             </div>

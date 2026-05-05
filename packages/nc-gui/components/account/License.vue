@@ -30,10 +30,14 @@ const licenseStatus = computed(() => {
   return isEEActive.value ? 'active' : 'expired'
 })
 
-const buyLicenseUrl = computed(() => {
+const buildBuyLicenseUrl = (seatCount?: number) => {
   const instanceUrl = window.location.origin
-  return `${NC_CLOUD_URL}/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`
-})
+  let url = `${NC_CLOUD_URL}/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`
+  if (seatCount && seatCount > 0) {
+    url += `&seat_count=${seatCount}`
+  }
+  return url
+}
 
 const loadLicense = async () => {
   try {
@@ -125,9 +129,28 @@ const copyLicenseKey = async () => {
   }
 }
 
-const onBuyLicense = () => {
+const onBuyLicense = async () => {
   $e('c:account:license:buy')
-  window.open(buyLicenseUrl.value, '_blank')
+
+  // Best-effort: fetch the seat-consuming user count (editor+, matching how
+  // billing reseats) so the cloud checkout can pre-fill seats and prevent
+  // the user from buying fewer seats than the instance will auto-bump to.
+  let seatCount: number | undefined
+  try {
+    const baseURL = $api.instance.defaults.baseURL
+    const status = await $fetch<{ seatCount?: number }>('/api/v1/license/status', {
+      baseURL,
+      method: 'GET',
+      headers: { 'xc-auth': token.value as string },
+    })
+    if (typeof status?.seatCount === 'number' && status.seatCount > 0) {
+      seatCount = status.seatCount
+    }
+  } catch {
+    // Ignore — fall back to the URL without a seat hint.
+  }
+
+  window.open(buildBuyLicenseUrl(seatCount), '_blank')
 }
 
 loadLicense()

@@ -309,6 +309,12 @@ export class ExpandedFormPage extends BasePage {
     // present alongside the fields. In panel mode it's tab-toggled — so open
     // the comments tab first, then assert on `.nc-comment-input` directly.
     if (await this.isPanelMode()) {
+      // Close any open more-actions dropdown so it doesn't intercept the
+      // comments toggle click. Clicking the trigger again toggles it closed.
+      if ((await this.rootPage.locator('.ant-dropdown:visible').count()) && (await this.btn_moreActions.isVisible())) {
+        await this.btn_moreActions.click();
+        await this.rootPage.locator('.ant-dropdown:visible').first().waitFor({ state: 'hidden' });
+      }
       await this.rootPage.getByTestId('nc-expanded-form-panel-comments-toggle').click();
       if (role === 'viewer') {
         await expect(this.get().locator('.nc-comment-input')).toHaveCount(0);

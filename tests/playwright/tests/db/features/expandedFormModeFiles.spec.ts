@@ -100,8 +100,11 @@ test.describe('Expanded form files mode', () => {
 
     await dashboard.expandedForm.close();
     await dashboard.grid.openExpandedRow({ index: 1 });
-    // Panel resets fullscreen on close, so re-enter to expose the mode tabs.
+    // Panel resets fullscreen + mode on close (each panel mount starts fresh
+    // with `activeViewMode = FIELD`), so re-enter fullscreen and re-select
+    // files mode. No-op in modal mode where mode persists via the view.
     await dashboard.expandedForm.enterFullscreen();
+    await dashboard.expandedForm.switchToFilesMode();
 
     await dashboard.expandedForm.verifyIsInFilesMode();
 

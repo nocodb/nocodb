@@ -88,6 +88,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]: false,
       [PlanFeatureTypes.FEATURE_FORM_SCHEDULING]: false,
       [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]: false,
+      [PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT]: false,
       [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: false,
       [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]: false,
       [PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER]: false,

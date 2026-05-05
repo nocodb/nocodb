@@ -525,6 +525,16 @@ export function useCanvasTable({
     values: Record<string, any>
     scopedTitles: Set<string>
   }>(() => {
+    // "Select all records" via the header checkbox sets vSelectedAllRecords
+    // true, but the actual selectedRows array only reflects rows currently
+    // loaded into the virtualized cache. Computing client-side over that
+    // partial set yields a sum that drifts as the user scrolls. The SQL
+    // footer already shows the correct total for the all-rows case, so
+    // deactivating selection-mode here lets it pass through unchanged.
+    if (vSelectedAllRecords.value) {
+      return { active: false, values: {}, scopedTitles: new Set<string>() }
+    }
+
     const range = selection.value
     const hasRange = !range.isEmpty() && range.cellCount > 1
     const topLevelCheckboxRows = selectedRows.value || []
@@ -588,6 +598,11 @@ export function useCanvasTable({
         const row = dataCache.cachedRows.value.get(r)
         if (row) rangeRows.push(row)
       }
+      // Bail if the range overlaps unloaded rows — better to keep the SQL
+      // footer than display a misleading partial-set sum.
+      if (rangeRows.length === 0) {
+        return { active: false, values: {}, scopedTitles: new Set<string>() }
+      }
       const baseCols = _columnsBase.value
       for (let c = range.start.col; c <= range.end.col; c++) {
         const colObj = baseCols[c]
@@ -600,6 +615,9 @@ export function useCanvasTable({
       for (let r = range.start.row; r <= range.end.row; r++) {
         const row = cachedRows.value.get(r)
         if (row) rangeRows.push(row)
+      }
+      if (rangeRows.length === 0) {
+        return { active: false, values: {}, scopedTitles: new Set<string>() }
       }
       const baseCols = _columnsBase.value
       for (let c = range.start.col; c <= range.end.col; c++) {
@@ -622,6 +640,10 @@ export function useCanvasTable({
   >(() => {
     const result = new Map<string, { values: Record<string, string | undefined>; scopedTitles: Set<string> }>()
     if (!isGroupBy.value) return result
+    // Same loading-state caveat as selectionAggregations: select-all gives a
+    // partial selectedRows that grows with scroll. Skip per-group overrides;
+    // SQL group totals are correct for the all-rows case.
+    if (vSelectedAllRecords.value) return result
 
     const range = selection.value
     const hasRange = !range.isEmpty() && range.cellCount > 1
@@ -674,14 +696,16 @@ export function useCanvasTable({
         const row = dataCache.cachedRows.value.get(r)
         if (row) rangeRows.push(row)
       }
-      const baseCols = _columnsBase.value
-      const colsForScope: ColumnType[] = []
-      for (let c = range.start.col; c <= range.end.col; c++) {
-        const colObj = baseCols[c]
-        if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
-        colsForScope.push(colObj.columnObj)
+      if (rangeRows.length > 0) {
+        const baseCols = _columnsBase.value
+        const colsForScope: ColumnType[] = []
+        for (let c = range.start.col; c <= range.end.col; c++) {
+          const colObj = baseCols[c]
+          if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
+          colsForScope.push(colObj.columnObj)
+        }
+        result.set(JSON.stringify(path), computePerGroup(rangeRows, colsForScope))
       }
-      result.set(JSON.stringify(path), computePerGroup(rangeRows, colsForScope))
     }
 
     // Row-checkbox: each group with checked rows scopes ALL fields

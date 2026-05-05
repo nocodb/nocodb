@@ -7,6 +7,7 @@ import { validatePayload } from '~/helpers';
 import { Store } from '~/models';
 import Noco from '~/Noco';
 import NocoLicense from '~/NocoLicense';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { LICENSE_CONFIG, LICENSE_ENV_VARS } from '~/utils/license/constants';
 
 @Injectable()
@@ -16,9 +17,16 @@ export class OrgLicenseService extends OrgLicenseServiceEE {
   async licenseSet(param: { key: string }) {
     validatePayload('swagger.json#/components/schemas/LicenseReq', param);
 
-    // Removing a license key — just clear and reset
+    // Removing a license key — clear the env-stored key AND wipe the
+    // cached server-issued JWT/installation.
     if (!param.key) {
       await Store.saveOrUpdate({ value: '', key: NC_LICENSE_KEY });
+      await Noco.ncMeta.metaDelete(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.STORE,
+        { key: 'NC_LICENSE_DATA' },
+      );
       NocoLicense.reset();
       await Noco.syncEEState();
       return true;
@@ -34,9 +42,12 @@ export class OrgLicenseService extends OrgLicenseServiceEE {
     }
 
     // Validate the key by attempting activation BEFORE saving.
-    // DB cache is preserved intentionally — init() loads from cache for
-    // airgapped licenses (fallback if server unreachable), and the
-    // subsequent refreshAirgappedFromServer() handles the online refresh.
+    // For airgapped keys, init() loads from cache as a fallback when the
+    // server is unreachable, and refreshAirgappedFromServer() (called
+    // after a successful activation below) handles the online refresh.
+    // For standard keys, init() now requires the cached license_key to
+    // match the new env key — otherwise it falls through to a fresh
+    // server activation, so EE only re-engages with server approval.
     process.env[LICENSE_ENV_VARS.LICENSE_KEY] = param.key;
     NocoLicense.reset();
 

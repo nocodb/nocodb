@@ -180,6 +180,7 @@ export class OnPremLicenseService {
       tax_id_collection: {
         enabled: true,
       },
+      allow_promotion_codes: true,
       subscription_data: {
         metadata: {
           on_prem: 'true',

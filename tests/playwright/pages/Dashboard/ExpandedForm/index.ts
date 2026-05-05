@@ -244,7 +244,14 @@ export class ExpandedFormPage extends BasePage {
         .catch(() => {});
     }
     await this.rootPage.keyboard.press('Escape');
-    await this.get().waitFor({ state: 'hidden' });
+    // Best-effort wait for the form to hide. The previous selector chain
+    // (`.nc-drawer-expanded-form` nested inside `.nc-drawer-expanded-form`)
+    // matched nothing and resolved instantly, masking flows where Escape is
+    // ignored (Gallery's modal when focus has shifted). Downstream steps
+    // navigate the URL anyway, so swallow timeouts here rather than block.
+    await this.get()
+      .waitFor({ state: 'hidden', timeout: 3000 })
+      .catch(() => {});
 
     await this.rootPage.waitForLoadState('networkidle');
     await this.rootPage.waitForLoadState('domcontentloaded');
@@ -292,11 +299,25 @@ export class ExpandedFormPage extends BasePage {
     await this.rootPage.waitForTimeout(200);
 
     // Panel mode tab-toggles the comments drawer (modal renders it inline).
-    // Click the toggle first, BEFORE opening the more-actions dropdown — the
-    // open dropdown overlay can intercept clicks elsewhere in the header.
+    // Click the toggle first, BEFORE opening the more-actions dropdown.
+    //
+    // Use native DOM `.click()` via `evaluate` instead of Playwright's click —
+    // the toggle sits inside an `NcTooltip` wrapper that sometimes intercepts
+    // synthesized pointer events on slow CI runners, making Playwright report
+    // a successful click even when the @click handler never fires. A native
+    // dispatch goes straight through. Then verify the toggle reaches `.active`
+    // before relying on the comment-input render.
     const panelMode = await this.isPanelMode();
     if (panelMode) {
-      await this.rootPage.getByTestId('nc-expanded-form-panel-comments-toggle').click();
+      const commentsToggle = this.rootPage.getByTestId('nc-expanded-form-panel-comments-toggle');
+      await commentsToggle.waitFor({ state: 'visible' });
+      await this.rootPage.evaluate(() => {
+        const el = document.querySelector(
+          '[data-testid="nc-expanded-form-panel-comments-toggle"]'
+        ) as HTMLElement | null;
+        el?.click();
+      });
+      await expect(commentsToggle).toHaveClass(/active/);
     }
 
     if (await this.btn_moreActions.isVisible()) {

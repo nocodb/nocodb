@@ -62,9 +62,6 @@ export const useOnPremLicense = createSharedComposable(() => {
 
   const baseURL = $api.instance.defaults.baseURL
 
-  // Static flag — flip to `true` to enable self-serve license purchasing
-  const isSelfServeLicensePurchaseEnabled = ref(true)
-
   const licenses = ref<OnPremLicense[]>([])
 
   const plans = ref<OnPremPlan[]>([])
@@ -265,7 +262,6 @@ export const useOnPremLicense = createSharedComposable(() => {
   }
 
   return {
-    isSelfServeLicensePurchaseEnabled,
     licenses,
     plans,
     isLoading,

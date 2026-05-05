@@ -26,6 +26,8 @@ export const getOnPremPlan = () => {
     const config = NocoLicense.getConfig();
     const planTitle = config?.plan_title;
 
+    // JWTs carry plan_title — apply SDK plan definitions as the base
+    // restrictions, then overlay JWT config for per-subscription overrides.
     if (planTitle && Object.values(OnPremPlanTitles).includes(planTitle)) {
       const planDef = OnPremPlanDefinitions[planTitle];
       return Plan.prepare({

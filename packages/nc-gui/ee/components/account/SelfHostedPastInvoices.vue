@@ -22,25 +22,25 @@ const getPlanTitle = (record: OnPremInvoice) => {
   const invoiceLines = record?.lines?.data
   const seatCount = invoiceLines?.length > 0 ? invoiceLines[invoiceLines.length - 1].quantity : 0
 
-  let returnPlan = ''
+  if (!planTitle) return ''
 
-  if (planTitle && planPeriod) {
-    if (seatCount > 0) {
-      returnPlan = `${planTitle} (${seatCount === 1 ? '1 seat' : `${seatCount} seats`} billed ${
-        planPeriod === 'month' ? 'monthly' : 'annually'
-      })`
-    } else {
-      returnPlan = `${planTitle} (${planPeriod === 'month' ? 'Monthly' : 'Annual'})`
-    }
-  } else if (planTitle) {
-    if (seatCount > 0) {
-      returnPlan = `${planTitle} (${seatCount === 1 ? '1 seat' : `${seatCount} seats`})`
-    } else {
-      returnPlan = planTitle
-    }
+  const seatLabel =
+    seatCount > 0 ? `${seatCount} ${seatCount === 1 ? t('general.seat').toLowerCase() : t('general.seats').toLowerCase()}` : ''
+
+  const billedLabel = planPeriod ? t(planPeriod === 'month' ? 'labels.billedMonthly' : 'labels.billedAnnuallyLower') : ''
+
+  const periodLabel = planPeriod ? t(planPeriod === 'month' ? 'general.monthly' : 'labels.annual') : ''
+
+  if (seatLabel && billedLabel) {
+    return `${planTitle} (${seatLabel} ${billedLabel})`
   }
-
-  return returnPlan
+  if (periodLabel) {
+    return `${planTitle} (${periodLabel})`
+  }
+  if (seatLabel) {
+    return `${planTitle} (${seatLabel})`
+  }
+  return planTitle
 }
 
 const columns: NcTableColumnProps<OnPremInvoice>[] = [
@@ -168,9 +168,11 @@ onMounted(() => {
             <a
               v-e="['c:on-prem:billing:view-invoice']"
               :href="record.invoice_pdf"
+              target="_blank"
+              rel="noopener noreferrer"
               class="!no-underline !hover:underline font-700 text-small text-nc-content-brand"
             >
-              View invoice
+              {{ $t('labels.viewInvoice') }}
             </a>
           </template>
         </template>
@@ -178,7 +180,7 @@ onMounted(() => {
           <div class="flex flex-row justify-center items-center bg-nc-bg-gray-extralight min-h-10">
             <div class="flex items-center justify-end gap-6 w-full px-6">
               <div v-if="paginationCaption" class="text-nc-content-gray-muted text-bodyDefaultSm">
-                Viewing {{ paginationCaption.start }}-{{ paginationCaption.end }} invoices
+                {{ $t('labels.viewingInvoicesRange', { start: paginationCaption.start, end: paginationCaption.end }) }}
               </div>
 
               <NcPaginationStripe

@@ -17,16 +17,8 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const {
-  isSelfServeLicensePurchaseEnabled,
-  licenses,
-  isLoading,
-  listLicenses,
-  syncLicenses,
-  createCheckoutSession,
-  getCheckoutSession,
-  getCustomerPortal,
-} = useOnPremLicense()
+const { licenses, isLoading, listLicenses, syncLicenses, createCheckoutSession, getCheckoutSession, getCustomerPortal } =
+  useOnPremLicense()
 
 const isSyncing = ref(false)
 
@@ -239,7 +231,7 @@ const cameFromInstance = computed(() => !!instanceUrl.value || requestedSeatCoun
 
 // If the user landed here from an on-prem "Buy License" click (URL carries
 // instance_url and/or seat_count), jump straight to plan selection.
-if (isSelfServeLicensePurchaseEnabled.value && cameFromInstance.value) {
+if (cameFromInstance.value) {
   viewState.value = 'plan-select'
 }
 
@@ -250,7 +242,7 @@ onMounted(async () => {
     router.replace({ query: rest })
   }
 
-  if (isSelfServeLicensePurchaseEnabled.value && afterPayment.value && sessionId.value) {
+  if (afterPayment.value && sessionId.value) {
     await handleAfterPayment()
     return
   }
@@ -286,7 +278,7 @@ onBeforeUnmount(async () => {
             <div class="text-sm text-nc-content-gray-subtle text-center">
               {{ $t('labels.noSelfHostedLicenses') }}
             </div>
-            <div v-if="isSelfServeLicensePurchaseEnabled" class="flex items-center gap-3">
+            <div class="flex items-center gap-3">
               <NcButton type="primary" size="small" @click="onBuyLicense">
                 {{ $t('labels.buyYourFirstLicense') }}
               </NcButton>
@@ -310,13 +302,7 @@ onBeforeUnmount(async () => {
                   {{ $t('labels.manageBilling') }}
                 </NcButton>
               </template>
-              <NcButton
-                v-if="isSelfServeLicensePurchaseEnabled"
-                type="primary"
-                size="small"
-                data-testid="nc-self-hosted-buy-btn"
-                @click="onBuyLicense"
-              >
+              <NcButton type="primary" size="small" data-testid="nc-self-hosted-buy-btn" @click="onBuyLicense">
                 {{ $t('labels.buyNewLicense') }}
               </NcButton>
             </div>
@@ -435,7 +421,7 @@ onBeforeUnmount(async () => {
         </template>
 
         <!-- Plan Select View -->
-        <template v-if="isSelfServeLicensePurchaseEnabled && viewState === 'plan-select'">
+        <template v-if="viewState === 'plan-select'">
           <div class="mb-6 flex items-center justify-between gap-3 min-h-8">
             <NcButton type="text" size="small" class="!-ml-2" @click="backToList">
               <div class="flex items-center gap-1">
@@ -457,7 +443,7 @@ onBeforeUnmount(async () => {
         </template>
 
         <!-- Checkout View -->
-        <template v-if="isSelfServeLicensePurchaseEnabled && viewState === 'checkout'">
+        <template v-if="viewState === 'checkout'">
           <div class="mb-6">
             <NcButton type="text" size="small" class="!-ml-2" @click="backToPlanSelect">
               <div class="flex items-center gap-1">
@@ -482,7 +468,7 @@ onBeforeUnmount(async () => {
         </template>
 
         <!-- Success View -->
-        <template v-if="isSelfServeLicensePurchaseEnabled && viewState === 'success' && successLicense">
+        <template v-if="viewState === 'success' && successLicense">
           <div class="flex flex-col items-center gap-6 py-10">
             <div
               class="w-full max-w-[560px] border-1 border-nc-border-gray-medium rounded-2xl p-8 flex flex-col items-center gap-5"

@@ -39,8 +39,21 @@ export function decodeOnPremCheckoutState(encoded: string): OnPremCheckoutState 
     const bytes = new Uint8Array(binary.length)
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
     const parsed = JSON.parse(new TextDecoder().decode(bytes))
-    if (!parsed || parsed.v !== 1) return null
-    return parsed
+    if (!parsed || typeof parsed !== 'object' || parsed.v !== 1) return null
+
+    const result: OnPremCheckoutState = { v: 1 }
+
+    if (typeof parsed.instance_url === 'string' && parsed.instance_url) {
+      result.instance_url = parsed.instance_url
+    }
+    if (typeof parsed.instance_id === 'string' && parsed.instance_id) {
+      result.instance_id = parsed.instance_id
+    }
+    if (typeof parsed.seat_count === 'number' && Number.isFinite(parsed.seat_count) && parsed.seat_count > 0) {
+      result.seat_count = Math.floor(parsed.seat_count)
+    }
+
+    return result
   } catch {
     return null
   }

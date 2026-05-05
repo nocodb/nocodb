@@ -1,9 +1,5 @@
 import AuditCE from 'src/models/Audit';
-import {
-  AuditV1OperationTypes,
-  NO_SCOPE,
-  PlanFeatureTypes,
-} from 'nocodb-sdk';
+import { AuditV1OperationTypes, NO_SCOPE, PlanFeatureTypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
@@ -17,7 +13,7 @@ import {
 } from '~/utils/cloudAudit';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { isOnPrem } from '~/utils';
-import { getFeature } from '~/helpers/paymentHelpers';
+import { getOnPremPlan } from '~/helpers/paymentHelpers';
 
 export default class Audit extends AuditCE {
   public static async recordAuditList(
@@ -391,19 +387,23 @@ export default class Audit extends AuditCE {
       if (process.env.NC_DISABLE_AUDIT === 'true') {
         return;
       }
-      // On-prem only: skip audit storage when the plan does not enable
-      // FEATURE_AUDIT_WORKSPACE. Workspace-scoped audits are gated;
-      // ROOT-scope (system) audits always pass through. Cloud audit
-      // retention is handled at read time, not at insert.
+      // On-prem only: gate by the instance-global plan (a single license
+      // covers the whole instance — there is no per-workspace plan).
+      // When FEATURE_AUDIT_WORKSPACE is disabled, only data revision
+      // audits (DATA_* op_types) are preserved; everything else is
+      // dropped. Cloud audit retention is handled at read time, not
+      // at insert.
       if (isOnPrem) {
-        const sample = Array.isArray(audit) ? audit.find((a) => a) : audit;
-        const wsId = sample?.fk_workspace_id;
-        if (wsId) {
-          const allowed = await getFeature(
-            PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
-            wsId,
+        const plan = getOnPremPlan();
+        const allowed =
+          !!plan?.meta?.[PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE];
+        if (!allowed) {
+          const audits = Array.isArray(audit) ? audit : [audit];
+          const filtered = audits.filter((a) =>
+            a?.op_type?.startsWith('DATA_'),
           );
-          if (!allowed) return;
+          if (filtered.length === 0) return;
+          audit = Array.isArray(audit) ? filtered : filtered[0];
         }
       }
 

@@ -52,7 +52,7 @@ async function onMoveTo(groupId: string) {
     <template #overlay>
       <NcMenu variant="small">
         <template v-if="otherGroups.length">
-          <NcSubMenu key="moveTo" variant="small">
+          <NcSubMenu key="moveTo" variant="small" popup-class-name="nc-bookmark-move-to-popup">
             <template #title>
               <div class="flex gap-2 items-center">
                 <GeneralIcon icon="ncMove" class="w-4 h-4" />
@@ -87,3 +87,13 @@ async function onMoveTo(groupId: string) {
     </template>
   </NcDropdown>
 </template>
+
+<style lang="scss">
+/* Cap the "Move to" submenu's height so a large folder list scrolls
+   instead of overflowing the viewport. Unscoped because the submenu
+   popup is portal-rendered. */
+.nc-bookmark-move-to-popup .ant-dropdown-menu {
+  @apply nc-scrollbar-thin min-w-42;
+  max-height: 320px;
+}
+</style>

@@ -221,6 +221,12 @@ watch(open, () => {
   }
 })
 
+// For realtime sync when dropdown is open
+watch(syncedGroupByEntries, (next) => {
+  if (!open.value) return
+  _groupBy.value = [...next]
+})
+
 const smartSheetListener = async (event: SmartsheetStoreEvents, payload: any = {}) => {
   const column = payload?.column
 

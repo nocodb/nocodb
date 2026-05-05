@@ -138,6 +138,13 @@ const copyLicenseKey = async () => {
 const onBuyLicense = async () => {
   $e('c:account:license:buy')
 
+  // Manage license: skip state and go straight to the cloud self-hosted page.
+  if (licenseStatus.value !== 'none') {
+    const licenseServerUrl = appInfo.value.licenseServerUrl || NC_CLOUD_URL
+    window.open(`${licenseServerUrl}/account/self-hosted`, '_blank')
+    return
+  }
+
   // Best-effort: fetch the seat-consuming user count (editor+, matching how
   // billing reseats) and a stable instance_id so the cloud checkout can
   // pre-fill seats and bind the resulting license to this instance.

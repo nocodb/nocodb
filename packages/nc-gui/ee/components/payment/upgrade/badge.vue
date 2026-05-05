@@ -3,7 +3,16 @@
  * PaymentUpgradeBadge component - will only visible if feature is not available in current plan
  */
 import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
-import { OnPremFeatureToMinPlan, OnPremPlanMeta, PlanFeatureTypesToPlanTitles, PlanMeta, PlanTitles } from 'nocodb-sdk'
+import {
+  OnPremFeatureToMinPlan,
+  OnPremHigherPlan,
+  OnPremLimitToMinPlan,
+  OnPremPlanMeta,
+  OnPremPlanTitles,
+  PlanFeatureTypesToPlanTitles,
+  PlanMeta,
+  PlanTitles,
+} from 'nocodb-sdk'
 interface Props {
   /** Required plan to access new feature */
   planTitle?: PlanTitles
@@ -38,7 +47,8 @@ const { disabled, removeClick } = toRefs(props)
 
 const planUpgraderClick = inject(PlanUpgraderClickHookInj, createEventHook())
 
-const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled, isOnPrem, isEEFeatureBlocked } = useEeConfig()
+const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled, isOnPrem, isEEFeatureBlocked, activePlan, activePlanTitle } =
+  useEeConfig()
 
 const isFeatureEnabled = computed(() => {
   if (ncIsFunction(props.featureEnabledCallback)) {
@@ -48,19 +58,59 @@ const isFeatureEnabled = computed(() => {
   return props.feature && getFeature(props.feature)
 })
 
+// Cloud plans don't exist on on-prem — translate cloud titles passed via :plan-title
+// (PLUS / BUSINESS / TEAM / ENTERPRISE) to their on-prem equivalent so badges never
+// show "Plus" or "Business" cloud labels in an on-prem deployment.
+const cloudToOnPremTitle = (title: PlanTitles | OnPremPlanTitles | string): OnPremPlanTitles | string => {
+  switch (title) {
+    case PlanTitles.FREE:
+      return OnPremPlanTitles.FREE
+    case PlanTitles.PLUS:
+    case PlanTitles.BUSINESS:
+    case PlanTitles.TEAM:
+      return OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    case PlanTitles.ENTERPRISE:
+      return OnPremPlanTitles.SELF_HOSTED_ENTERPRISE
+    default:
+      return title
+  }
+}
+
 const effectivePlanTitle = computed(() => {
-  if (isEEFeatureBlocked.value) {
-    return PlanTitles.ENTERPRISE
+  if (props.planTitle) {
+    return isOnPrem.value || isEEFeatureBlocked.value ? cloudToOnPremTitle(props.planTitle) : props.planTitle
   }
 
-  if (props.planTitle) return props.planTitle
+  if (isOnPrem.value || isEEFeatureBlocked.value) {
+    // Licensed on-prem: the upgrade target is the next paid tier above the active plan.
+    // Gate on `activePlan` being loaded — `activePlanTitle` falls back to `PlanTitles.FREE`
+    // before payment data resolves, which would resolve OnPremHigherPlan['Free'] to Business
+    // and flash a wrong "Business" badge on a Business-licensed instance.
+    if (isOnPrem.value && !isEEFeatureBlocked.value && activePlan.value && activePlanTitle.value !== PlanTitles.FREE) {
+      const next = OnPremHigherPlan[activePlanTitle.value as string]
+      if (next) return next
+    }
 
-  // On-prem uses a different feature→plan mapping than cloud
-  if (isOnPrem.value) {
-    return OnPremFeatureToMinPlan[props.feature as PlanFeatureTypes] || PlanTitles.ENTERPRISE
+    // Unlicensed (Free): resolve from the feature/limit → min-plan maps.
+    if (props.feature) {
+      return OnPremFeatureToMinPlan[props.feature] || OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    }
+    if (props.limitOrFeature) {
+      const fromLimit = OnPremLimitToMinPlan[props.limitOrFeature as PlanLimitTypes]
+      if (fromLimit) return fromLimit
+      const fromFeature = OnPremFeatureToMinPlan[props.limitOrFeature as PlanFeatureTypes]
+      if (fromFeature) return fromFeature
+    }
+    return OnPremPlanTitles.SELF_HOSTED_BUSINESS
   }
 
   return PlanFeatureTypesToPlanTitles[props.feature as PlanFeatureTypes] || PlanTitles.PLUS
+})
+
+const lockTooltipKey = computed(() => {
+  const title = effectivePlanTitle.value
+  const isEnterpriseTier = title === OnPremPlanTitles.SELF_HOSTED_ENTERPRISE || title === PlanTitles.ENTERPRISE
+  return isEnterpriseTier ? 'upgrade.enterpriseFeatureTitle' : 'upgrade.businessFeatureTitle'
 })
 
 const activeBadgeColors = computed(() => {
@@ -107,8 +157,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <NcTooltip v-if="!isFeatureEnabled && showAsLock && isEEFeatureBlocked" @click="showUpgradeModal">
-    <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
+  <NcTooltip v-if="!isFeatureEnabled && showAsLock && (isPaymentEnabled || isOnPrem)" @click="showUpgradeModal">
+    <template #title>{{ $t(lockTooltipKey) }}</template>
     <GeneralIcon icon="ncUpgradeSparkle" class="h-3.5 w-3.5 cursor-pointer" :style="{ color: activeBadgeColors.text }" />
   </NcTooltip>
   <NcBadge

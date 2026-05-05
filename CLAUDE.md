@@ -118,7 +118,6 @@ When building features that span SDK → Backend → Frontend:
 1. **SDK**: Add types to `src/lib/`, add events to `enums.ts`, rebuild with `pnpm run build:ee`
 2. **Backend**: Create model + service, register in internal controllers + ACL + noco.module, create migration
 3. **Frontend**: Create composable/store, build components, import types from `nocodb-sdk`
-4. **Verify**: Run typechecks across all three packages
 
 ## Branch Memory
 

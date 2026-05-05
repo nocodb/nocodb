@@ -1,10 +1,13 @@
-import type { OnPremPlanTitles, PlanLimitExceededDetailsType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { PlanLimitExceededDetailsType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   GRACE_PERIOD_DURATION,
   HigherPlan,
   LOYALTY_GRACE_PERIOD_END_DATE,
   NON_SEAT_ROLES,
+  OnPremFeatureToMinPlan,
   OnPremHigherPlan,
+  OnPremLimitToMinPlan,
+  OnPremPlanTitles,
   PlanFeatureTypes,
   PlanFeatureTypesToPlanTitles,
   PlanLimitTypes,
@@ -753,13 +756,23 @@ export const useEeConfig = createSharedComposable(() => {
 
     const upgradeMessage = limitOrFeature ? getUpgradeMessage(limitOrFeature) : ''
 
-    const modalTitle = ref(title || t('upgrade.enterpriseFeatureTitle'))
+    // Resolve the lowest paid on-prem plan that unlocks this feature/limit so the
+    // modal copy matches the badge tier (Business vs Enterprise).
+    const minPlan =
+      (limitOrFeature &&
+        (OnPremFeatureToMinPlan[limitOrFeature as PlanFeatureTypes] ||
+          OnPremLimitToMinPlan[limitOrFeature as PlanLimitTypes])) ||
+      OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    const isBusinessTier = minPlan === OnPremPlanTitles.SELF_HOSTED_BUSINESS
+
+    const modalTitle = ref(title || (isBusinessTier ? t('upgrade.businessFeatureTitle') : t('upgrade.enterpriseFeatureTitle')))
+
+    const subtitleKey = isBusinessTier ? 'upgrade.businessFeatureSubtitle' : 'upgrade.enterpriseFeatureSubtitle'
+    const enterLicenseKey = isBusinessTier ? 'upgrade.businessFeatureEnterLicense' : 'upgrade.enterpriseFeatureEnterLicense'
 
     const modalContent = ref(
       content ||
-        (upgradeMessage
-          ? t('upgrade.enterpriseFeatureEnterLicense', { detail: upgradeMessage })
-          : t('upgrade.enterpriseFeatureSubtitle', { feature: t('general.thisFeature') })),
+        (upgradeMessage ? t(enterLicenseKey, { detail: upgradeMessage }) : t(subtitleKey, { feature: t('general.thisFeature') })),
     )
 
     const { close } = useDialog(NcModalConfirm, {
@@ -2052,15 +2065,28 @@ export const useEeConfig = createSharedComposable(() => {
 
   /** EE-only upgrade prompts for self-hosted CE mode / licensed Starter */
   const showUpgradeForEEFeature = (featureTitle: string, limitOrFeature?: PlanLimitTypes | PlanFeatureTypes) => {
+    const minPlan =
+      (limitOrFeature &&
+        (OnPremFeatureToMinPlan[limitOrFeature as PlanFeatureTypes] ||
+          OnPremLimitToMinPlan[limitOrFeature as PlanLimitTypes])) ||
+      OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    const isBusinessTier = minPlan === OnPremPlanTitles.SELF_HOSTED_BUSINESS
+
+    const titleKey = isBusinessTier ? 'upgrade.businessFeatureTitle' : 'upgrade.enterpriseFeatureTitle'
+    const subtitleKey = isBusinessTier ? 'upgrade.businessFeatureSubtitle' : 'upgrade.enterpriseFeatureSubtitle'
+
     if (isEEFeatureBlocked.value) {
       handleOnPremUpgrade({
-        title: t('upgrade.enterpriseFeatureTitle'),
-        content: t('upgrade.enterpriseFeatureSubtitle', { feature: featureTitle }),
+        title: t(titleKey),
+        content: t(subtitleKey, { feature: featureTitle }),
+        limitOrFeature,
       })
     } else {
       handleOnPremLicensedUpgrade({
-        title: t('upgrade.upgradeToEnterpriseTitle'),
-        content: t('upgrade.enterpriseFeatureSubtitle', { feature: featureTitle }),
+        title: isBusinessTier
+          ? t('upgrade.upgradeToOnPremPlanTitle', { plan: getPlanTitle(OnPremPlanTitles.SELF_HOSTED_BUSINESS) })
+          : t('upgrade.upgradeToEnterpriseTitle'),
+        content: t(subtitleKey, { feature: featureTitle }),
         limitOrFeature,
       })
     }

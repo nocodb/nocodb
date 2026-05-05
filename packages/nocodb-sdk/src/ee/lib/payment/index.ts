@@ -545,6 +545,50 @@ export const OnPremFeatureToMinPlan: Partial<
   return result;
 })();
 
+/**
+ * On-prem: limit → lowest *paid* plan that is more permissive than the Free plan.
+ * "More permissive" = unlimited (-1) or strictly greater than Free's value.
+ * Used by the upgrade badge to show the right plan tier when a limit blocks the user.
+ */
+export const OnPremLimitToMinPlan: Partial<
+  Record<PlanLimitTypes, OnPremPlanTitles>
+> = (() => {
+  const result: Partial<Record<PlanLimitTypes, OnPremPlanTitles>> = {};
+  const paidPlans = (Object.keys(OnPremPlanOrder) as OnPremPlanTitles[])
+    .filter((p) => p !== OnPremPlanTitles.FREE)
+    .sort((a, b) => OnPremPlanOrder[a] - OnPremPlanOrder[b]);
+
+  const freeDef = OnPremPlanDefinitions[OnPremPlanTitles.FREE];
+
+  // Free is default-deny (base 0); paid plans are default-allow (base -1).
+  const getFreeLimit = (limit: PlanLimitTypes): number => {
+    const v = freeDef?.limits?.[limit];
+    return v !== undefined ? v : 0;
+  };
+  const getPaidLimit = (
+    plan: OnPremPlanTitles,
+    limit: PlanLimitTypes
+  ): number => {
+    const v = OnPremPlanDefinitions[plan]?.limits?.[limit];
+    return v !== undefined ? v : -1;
+  };
+
+  for (const limit of Object.values(PlanLimitTypes)) {
+    const freeVal = getFreeLimit(limit);
+    for (const plan of paidPlans) {
+      const planVal = getPaidLimit(plan, limit);
+      const isMorePermissive =
+        planVal === -1 || (freeVal !== -1 && planVal > freeVal);
+      if (isMorePermissive) {
+        result[limit] = plan;
+        break;
+      }
+    }
+  }
+
+  return result;
+})();
+
 // ---------------------------------------------------------------------------
 // resolveOnPremPlanMeta — computes the full feature/limit meta for an on-prem plan
 // ---------------------------------------------------------------------------

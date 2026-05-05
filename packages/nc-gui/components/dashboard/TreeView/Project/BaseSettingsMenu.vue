@@ -27,7 +27,9 @@ const {
   showUpgradeToUseSync,
   showUpgradeToUseSnapshots,
   showUpgradeToUseTrashSettings,
+  showUpgradeToUseBaseVariables,
   blockTrashSettings,
+  blockBaseVariables,
   isEEFeatureBlocked,
   showEEFeatures,
 } = useEeConfig()
@@ -42,6 +44,10 @@ const navigateToBaseSettings = (page: string) => {
   }
   if (page === 'record-trash' && blockTrashSettings.value) {
     showUpgradeToUseTrashSettings()
+    return
+  }
+  if (page === 'variables' && blockBaseVariables.value) {
+    showUpgradeToUseBaseVariables()
     return
   }
 
@@ -214,6 +220,12 @@ onMounted(() => {
       @click="navigateToBaseSettings('variables')"
     >
       {{ $t('title.baseVariables') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge
+          :feature="PlanFeatureTypes.FEATURE_BASE_VARIABLES"
+          :feature-enabled-callback="() => !blockBaseVariables"
+        />
+      </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="

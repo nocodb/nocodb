@@ -164,10 +164,7 @@ function handleDrop() {
         @click.stop
       />
       <div v-else class="nc-bookmark-list-name-wrap">
-        <NcTooltip
-          show-on-truncate-only
-          :attrs="{ class: 'nc-bookmark-list-name truncate block' }"
-        >
+        <NcTooltip show-on-truncate-only :attrs="{ class: 'nc-bookmark-list-name truncate block' }">
           {{ group.name }}
         </NcTooltip>
       </div>
@@ -186,21 +183,10 @@ function handleDrop() {
     <template v-if="!isCollapsed">
       <div ref="listRef" class="nc-bookmark-list-items">
         <template v-for="(bm, idx) in groupBookmarks" :key="bm.id">
-          <div
-            v-if="localDropIndex === idx && bm.id !== draggingBookmarkId"
-            class="nc-bookmark-list-drop-line"
-          />
-          <BookmarksItem
-            :bookmark="bm"
-            :groups="allGroups"
-            :show-crumb-on-hover="true"
-            @click="emit('navigate', bm)"
-          />
+          <div v-if="localDropIndex === idx && bm.id !== draggingBookmarkId" class="nc-bookmark-list-drop-line" />
+          <BookmarksItem :bookmark="bm" :groups="allGroups" :show-crumb-on-hover="true" @click="emit('navigate', bm)" />
         </template>
-        <div
-          v-if="localDropIndex === groupBookmarks.length && groupBookmarks.length > 0"
-          class="nc-bookmark-list-drop-line"
-        />
+        <div v-if="localDropIndex === groupBookmarks.length && groupBookmarks.length > 0" class="nc-bookmark-list-drop-line" />
       </div>
 
       <div v-if="!groupBookmarks.length" class="nc-bookmark-list-empty">
@@ -212,7 +198,7 @@ function handleDrop() {
 
 <style lang="scss" scoped>
 .nc-bookmark-list-group {
-  @apply px-3 pt-3 pb-1;
+  @apply px-3 pt-3 pb-1 last-of-type:pb-3;
   & + & {
     @apply mt-1 border-t-1 border-dashed border-nc-border-gray-medium;
   }

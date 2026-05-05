@@ -91,11 +91,7 @@ function handleDragStart(e: DragEvent) {
         :workspace="{ id: bookmark.target_id, title: displayTitle, meta: meta }"
         size="small"
       />
-      <GeneralProjectIcon
-        v-else-if="bookmark.target_type === 'base'"
-        :color="meta.icon_color"
-        class="!text-base"
-      />
+      <GeneralProjectIcon v-else-if="bookmark.target_type === 'base'" :color="meta.icon_color" class="!text-base" />
       <template v-else-if="bookmark.target_type === 'table'">
         <LazyGeneralEmojiPicker v-if="tableEmoji" :emoji="tableEmoji" size="small" :readonly="true">
           <template #default>
@@ -120,11 +116,7 @@ function handleDragStart(e: DragEvent) {
         icon="ncAutomation"
         class="w-4 h-4 text-nc-content-gray-subtle"
       />
-      <GeneralIcon
-        v-else-if="bookmark.target_type === 'script'"
-        icon="ncScript"
-        class="w-4 h-4 text-nc-content-gray-subtle"
-      />
+      <GeneralIcon v-else-if="bookmark.target_type === 'script'" icon="ncScript" class="w-4 h-4 text-nc-content-gray-subtle" />
       <GeneralIcon
         v-else-if="bookmark.target_type === 'dashboard'"
         icon="dashboards"
@@ -134,29 +126,18 @@ function handleDragStart(e: DragEvent) {
 
     <!-- Title — fills remaining space; truncates -->
     <div class="nc-bookmark-item-title-wrap">
-      <NcTooltip
-        show-on-truncate-only
-        :attrs="{ class: 'nc-bookmark-item-title truncate block' }"
-      >
+      <NcTooltip show-on-truncate-only :attrs="{ class: 'nc-bookmark-item-title truncate block' }">
         {{ displayTitle }}
       </NcTooltip>
     </div>
 
     <!-- Hover breadcrumb (List only) -->
-    <span
-      v-if="showCrumbOnHover && crumb"
-      class="nc-bookmark-item-crumb opacity-0 group-hover:opacity-100"
-    >
+    <span v-if="showCrumbOnHover && crumb" class="nc-bookmark-item-crumb opacity-0 hidden group-hover:(opacity-100 inline)">
       {{ crumb }}
     </span>
 
     <!-- Kebab + dropdown — kebab is the trigger, no wrapper around the row -->
-    <BookmarksItemContextMenu
-      ref="ctxMenuRef"
-      :bookmark="bookmark"
-      :groups="groups"
-      class="opacity-0 group-hover:opacity-100"
-    />
+    <BookmarksItemContextMenu ref="ctxMenuRef" :bookmark="bookmark" :groups="groups" class="opacity-0 group-hover:opacity-100" />
   </div>
 </template>
 

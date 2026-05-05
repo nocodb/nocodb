@@ -3,7 +3,15 @@ import type { BookmarkGroupType, BookmarkType } from 'nocodb-sdk'
 
 const emit = defineEmits<{ close: [] }>()
 
-const { bookmarksByGroup, orderedGroups, isLoading, navigateToBookmark, loadBookmarks, isCreatingFolder } = useBookmarks()
+const {
+  bookmarksByGroup,
+  orderedGroups,
+  isLoading,
+  navigateToBookmark,
+  loadBookmarks,
+  isCreatingFolder,
+  isGroupCollapsed,
+} = useBookmarks()
 
 const search = ref('')
 
@@ -41,12 +49,15 @@ onMounted(() => {
 // Sequential column fill — pack groups into column 1 until the height
 // cap is reached, then spill to column 2, then 3 (max). Width grows
 // in step so the dialog only takes the room it actually needs.
-const ROWS_PER_COL = 20 // ~ flyout max-height (720px) ÷ row height (32px) ÷ header overhead
+const ROWS_PER_COL = 12 // tuned so content stays within max-height (720px); groups + items render taller than 32px each, so the previous 20 over-counted and produced a scrollbar
 const MAX_COLS = 3
 const COL_W = { 1: 380, 2: 540, 3: 700 } as const
 
-// "row" = one visual line: a group header, an item, or an empty-state line.
+// "row" = one visual line. Collapsed groups render as a single header
+// row regardless of item count, so the packer must reflect that to keep
+// columns visually balanced when the user collapses/expands groups.
 function rowsForGroup(g: BookmarkGroupType): number {
+  if (isGroupCollapsed(g.id!)) return 1
   const items = filteredBookmarksByGroup.value[g.id!]?.length ?? 0
   // group header (1) + items (or 1 line for the "No data" empty state)
   return 1 + Math.max(items, 1)
@@ -121,7 +132,7 @@ const flyoutWidth = computed(() => COL_W[columnGroups.value.length as 1 | 2 | 3]
   transition: width 0.2s ease;
 }
 .nc-bookmark-body {
-  @apply flex-1 overflow-y-auto overflow-x-hidden pb-3;
+  @apply flex-1 overflow-y-auto overflow-x-hidden;
 }
 .nc-bookmark-loader {
   @apply flex items-center justify-center py-8;

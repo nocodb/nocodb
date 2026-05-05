@@ -63,8 +63,7 @@ function cancel() {
 <style lang="scss" scoped>
 .nc-bookmark-create-row {
   @apply flex items-center gap-2 mx-3 mb-3 px-3 py-2 rounded-lg mt-3;
-  @apply bg-nc-bg-default border-1 border-dashed;
-  border-color: var(--nc-content-brand);
+  @apply bg-nc-bg-default border-1 border-dashed border-nc-border-brand;
 }
 .nc-bookmark-create-input {
   @apply flex-1 min-w-0 bg-transparent !border-none !outline-none p-0;

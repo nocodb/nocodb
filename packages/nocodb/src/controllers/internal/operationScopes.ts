@@ -97,6 +97,7 @@ export const OPERATION_SCOPES = {
   gridViewUpdate: 'base',
   formViewUpdate: 'base',
   formColumnUpdate: 'base',
+  formColumnBulkUpdate: 'base',
   galleryViewUpdate: 'base',
   kanbanViewUpdate: 'base',
   mapViewUpdate: 'base',

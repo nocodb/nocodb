@@ -7,6 +7,8 @@ import 'splitpanes/dist/splitpanes.css'
 import {
   type AttachmentResType,
   type ColumnType,
+  FORM_ROW_FULL_WIDTH_UI_TYPES,
+  FORM_ROW_MAX_FIELDS,
   type LinkToAnotherRecordType,
   PermissionEntity,
   PermissionKey,
@@ -84,6 +86,8 @@ const {
   isRequired,
   updateView,
   updateColMeta,
+  bulkUpdateColumns,
+  rows,
   validateInfos,
   validate,
   clearValidate,
@@ -137,7 +141,8 @@ const { state, row } = useProvideSmartsheetRowStore(
   }),
 )
 
-const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwner, showEEFeatures } = useEeConfig()
+const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwner, showEEFeatures, blockFormGridLayout } =
+  useEeConfig()
 
 const columns = computed(() => meta?.value?.columns || [])
 
@@ -493,6 +498,271 @@ async function onMove(event: any, isVisibleFormFields = false) {
   checkFieldVisibility()
 
   $e('a:form-view:reorder')
+}
+
+// ─── Grid layout (multi-field rows) ────────────────────────────────────
+
+function makeRowId() {
+  return `fr_${Math.random().toString(36).slice(2, 10)}${Date.now().toString(36).slice(-4)}`
+}
+
+function isFullWidthField(col: Record<string, any>) {
+  return col?.uidt != null && (FORM_ROW_FULL_WIDTH_UI_TYPES as readonly string[]).includes(col.uidt)
+}
+
+const rowsWithKey = computed(() =>
+  (rows.value as any[][]).map((fields: any[], idx: number) => ({
+    _key: fields[0]?.row_id || `_solo_${fields[0]?.id || idx}`,
+    row_id: (fields[0]?.row_id ?? null) as string | null,
+    fields,
+  })),
+)
+
+// Serializes drag-drop re-layouts: blocks new drags while a bulk update
+// is in flight so rapid consecutive moves can't race each other and
+// ship inconsistent projected states to the server.
+const gridUpdatePending = ref(false)
+
+// Shared field body markup — reused across the grid and stacked layouts so
+// the input rendering (a-form-item + cell + config error) lives in one place.
+const [DefineFormFieldBody, ReuseFormFieldBody] = createReusableTemplate<{ element: any }>()
+
+function snapshotGridState() {
+  return localColumns.value.map((c: any) => ({
+    id: c.id,
+    order: c.order,
+    row_id: c.row_id ?? null,
+  }))
+}
+
+function restoreGridState(snap: Array<{ id: string; order: number; row_id: string | null }>) {
+  for (const s of snap) {
+    const lc = localColumns.value.find((c: any) => c.id === s.id) as any
+    if (lc) {
+      lc.order = s.order
+      lc.row_id = s.row_id
+    }
+    const fc = fields.value?.find((f: any) => f?.id === s.id) as any
+    if (fc) {
+      fc.order = s.order
+      fc.row_id = s.row_id
+    }
+  }
+}
+
+/**
+ * Reject drops that would violate grid-layout invariants we cannot recover
+ * from — full-width fields must stay alone. Capacity overflow (dropping a
+ * 6th field into a 5-field row) is NOT rejected here; `onFieldMove` catches
+ * it and silently splits the incoming field into a fresh row below.
+ */
+function onFieldMoveCallback(event: any, targetRow: Record<string, any>[]) {
+  if (gridUpdatePending.value) return false
+
+  const dragged = event.draggedContext?.element
+  if (!dragged) return true
+
+  if (event.from === event.to) return true
+
+  // vuedraggable's `:move` fires on the source Draggable, so the closure's
+  // `targetRow` is the SOURCE row's fields. Use event.relatedContext.list to
+  // read the actual destination row's fields.
+  const destFields: any[] = event.relatedContext?.list ?? targetRow
+
+  if (isFullWidthField(dragged) && destFields.length >= 1) return false
+
+  if (destFields.some((f) => isFullWidthField(f))) return false
+
+  return true
+}
+
+async function onFieldMove(event: any, targetRowKey: string) {
+  if (isLocked.value || !isEditable) return
+
+  // We only handle @change events that affect THIS row as a destination:
+  //  • `added`  — a field was moved INTO this row from another
+  //  • `moved`  — a field was reordered WITHIN this row
+  // `removed` fires on the source row — ignore it; the destination row's
+  // event will reassign all affected fields in one write.
+  const destEvent = event.added || event.moved
+  if (!destEvent) return
+
+  const movedId = destEvent.element?.id
+  const newIndexInRow = destEvent.newIndex
+  if (!movedId || typeof newIndexInRow !== 'number') return
+
+  const targetIdx = rowsWithKey.value.findIndex((r) => r._key === targetRowKey)
+  if (targetIdx === -1) return
+
+  // Work on shallow clones so row_id reassignment below doesn't mutate
+  // localColumns before we can diff against it.
+  const workingRows: any[][] = (rows.value as any[][]).map((r: any[]) => r.map((c: any) => ({ ...c })))
+
+  let movedFieldCopy: any = null
+  for (const r of workingRows) {
+    const i = r.findIndex((c: any) => c.id === movedId)
+    if (i >= 0) {
+      movedFieldCopy = r.splice(i, 1)[0]
+      break
+    }
+  }
+  if (!movedFieldCopy) return
+
+  // Capacity overflow: if the target row is already full, don't force the
+  // drop into it — split the incoming field into a new row right below.
+  const targetOverflow = workingRows[targetIdx].length >= FORM_ROW_MAX_FIELDS
+  if (targetOverflow) {
+    workingRows.splice(targetIdx + 1, 0, [movedFieldCopy])
+  } else {
+    workingRows[targetIdx].splice(newIndexInRow, 0, movedFieldCopy)
+  }
+
+  const pruned: any[][] = workingRows.filter((r: any[]) => r.length > 0)
+
+  // Assign row_ids: multi-field rows share one id; solo rows get null
+  // (they may carry a stale row_id from their previous shared row).
+  // Reject the move if it would land any full-width field (LongText,
+  // Attachment, JSON) in a multi-field row — the backend rejects this with
+  // 'Field type X must occupy its own row', and onFieldMoveCallback may not
+  // catch it if the source uidt isn't on the form-column object.
+  for (const r of pruned) {
+    if (r.length >= 2 && r.some((c: any) => isFullWidthField(c))) {
+      return
+    }
+  }
+
+  for (const r of pruned) {
+    if (r.length >= 2) {
+      const existing = r.find((c: any) => c.row_id)?.row_id
+      const rowId = existing || makeRowId()
+      for (const c of r) c.row_id = rowId
+    } else if (r.length === 1) {
+      r[0].row_id = null
+    }
+  }
+
+  // Snapshot BEFORE the diff/apply loop — the loop mutates localColumns
+  // and fields in place, so capturing after would record the post-mutation
+  // state and make restoreGridState() a no-op on rollback.
+  const snapshot = snapshotGridState()
+
+  // Diff projected state against current localColumns, then apply.
+  const flat = pruned.flat() as any[]
+  const updates: Array<{ id: string; row_id?: string | null; order?: number }> = []
+  for (let i = 0; i < flat.length; i++) {
+    const newCol = flat[i]
+    const newOrder = i + 1
+    const original = localColumns.value.find((c: any) => c.id === newCol.id) as any
+    if (!original) continue
+    const orderChanged = (original.order ?? null) !== newOrder
+    const rowIdChanged = (original.row_id ?? null) !== (newCol.row_id ?? null)
+    if (orderChanged || rowIdChanged) {
+      updates.push({ id: newCol.id, row_id: newCol.row_id ?? null, order: newOrder })
+      original.order = newOrder
+      original.row_id = newCol.row_id ?? null
+      const fc = fields.value?.find((f: any) => f?.id === newCol.id) as any
+      if (fc) {
+        fc.order = newOrder
+        fc.row_id = newCol.row_id ?? null
+      }
+    }
+  }
+
+  if (!updates.length) return
+
+  gridUpdatePending.value = true
+  try {
+    await bulkUpdateColumns(updates)
+  } catch (e: any) {
+    restoreGridState(snapshot)
+    message.error(await extractSdkResponseErrorMsg(e))
+    return
+  } finally {
+    gridUpdatePending.value = false
+  }
+  checkFieldVisibility()
+
+  const finalRow = pruned.find((r: any[]) => r.some((c: any) => c.id === movedId))
+  $e('a:form-view:grid:field-move', { fieldCount: finalRow?.length ?? 1 })
+}
+
+function onFieldMoveToNewRowCallback(event: any) {
+  if (gridUpdatePending.value) return false
+  const dragged = event.draggedContext?.element
+  if (!dragged) return false
+  // Always allowed — incoming field gets its own fresh row
+  return true
+}
+
+async function onFieldMoveToNewRow(event: any, beforeRowKey?: string) {
+  if (isLocked.value || !isEditable) return
+  const added = event.added
+  if (!added?.element) return
+
+  const fieldId = added.element.id
+  const movedField = localColumns.value.find((c: any) => c.id === fieldId) as any
+  if (!movedField) return
+
+  // Resolve the anchor BEFORE removing the field — index math has to account
+  // for the source row collapsing if it had only the dragged field.
+  const beforeIdxOriginal = typeof beforeRowKey === 'string' ? rowsWithKey.value.findIndex((r) => r._key === beforeRowKey) : -1
+  const sourceIdx = rowsWithKey.value.findIndex((r) => r.fields.some((f: any) => f.id === fieldId))
+  const sourceCollapses = sourceIdx >= 0 && rowsWithKey.value[sourceIdx].fields.length === 1
+
+  // Rebuild rows: pull field out of its source row, splice as a new solo row
+  // at the anchor position (or append if no anchor).
+  const next: any[][] = (rows.value as any[][]).map((r: any[]) => [...r])
+  for (const r of next) {
+    const i = r.findIndex((c: any) => c.id === fieldId)
+    if (i >= 0) r.splice(i, 1)
+  }
+  const pruned: any[][] = next.filter((r: any[]) => r.length > 0)
+
+  if (beforeIdxOriginal === -1) {
+    pruned.push([{ ...movedField, row_id: null } as any])
+  } else {
+    let insertIdx = beforeIdxOriginal
+    if (sourceCollapses && sourceIdx < beforeIdxOriginal) insertIdx -= 1
+    insertIdx = Math.max(0, Math.min(insertIdx, pruned.length))
+    pruned.splice(insertIdx, 0, [{ ...movedField, row_id: null } as any])
+  }
+
+  // Snapshot BEFORE the diff/apply loop (loop mutates localColumns/fields).
+  const snapshot = snapshotGridState()
+
+  const flat = pruned.flat() as any[]
+  const updates: Array<{ id: string; row_id?: string | null; order?: number }> = []
+  for (let i = 0; i < flat.length; i++) {
+    const col = flat[i]
+    const newOrder = i + 1
+    const prev = localColumns.value.find((c: any) => c.id === col.id) as any
+    if (!prev) continue
+    if ((prev.order ?? null) !== newOrder || (prev.row_id ?? null) !== (col.row_id ?? null)) {
+      updates.push({ id: col.id, row_id: col.row_id ?? null, order: newOrder })
+      prev.order = newOrder
+      prev.row_id = col.row_id ?? null
+      const fc = fields.value?.find((f: any) => f?.id === col.id) as any
+      if (fc) {
+        fc.order = newOrder
+        fc.row_id = col.row_id ?? null
+      }
+    }
+  }
+
+  if (!updates.length) return
+
+  gridUpdatePending.value = true
+  try {
+    await bulkUpdateColumns(updates)
+  } catch (e: any) {
+    restoreGridState(snapshot)
+    message.error(await extractSdkResponseErrorMsg(e))
+    return
+  } finally {
+    gridUpdatePending.value = false
+  }
+  checkFieldVisibility()
+  $e('a:form-view:grid:new-row')
 }
 
 async function showOrHideColumn(column: Record<string, any>, show: boolean, isFormSettings = false) {
@@ -921,7 +1191,7 @@ useEventListener(
     if (
       (draggableRef.value?.targetDomElement && draggableRef.value?.targetDomElement.contains(e.target)) ||
       (e.target as HTMLElement)?.closest(
-        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button, .nc-form-right-sidebar-content-resizable-wrapper .splitpanes__splitter, .nc-sidebar-toggle-btn',
+        '.nc-form-right-panel, [class*="dropdown"], .nc-form-rich-text-field, .ant-modal, .ant-modal-wrap, .nc-share-base-button, .nc-form-right-sidebar-content-resizable-wrapper .splitpanes__splitter, .nc-sidebar-toggle-btn, .nc-form-field-hide',
       )
     ) {
       return
@@ -1309,9 +1579,10 @@ const { message: templatedMessage } = useTemplatedMessage(
                           class="border-transparent px-4 lg:px-6"
                           :class="[
                             {
-                              'rounded-2xl overflow-hidden border-2 cursor-pointer mb-1 py-4 lg:py-6 focus-within:bg-nc-bg-gray-extralight':
+                              'overflow-hidden border-2 cursor-pointer mb-1 py-4 lg:py-6 focus-within:bg-nc-bg-gray-extralight':
                                 isEditable,
                             },
+                            isEditable && (blockFormGridLayout ? 'rounded-2xl' : 'rounded-xl'),
                             {
                               'mb-4 py-0 lg:py-0': !isEditable,
                             },
@@ -1351,9 +1622,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                           class="border-transparent px-4 lg:px-6 empty:hidden"
                           :class="[
                             {
-                              'rounded-2xl border-2 cursor-pointer mb-1 py-4 lg:py-6 focus-within:bg-nc-bg-gray-extralight':
-                                isEditable,
+                              'border-2 cursor-pointer mb-1 py-4 lg:py-6 focus-within:bg-nc-bg-gray-extralight': isEditable,
                             },
+                            isEditable && (blockFormGridLayout ? 'rounded-2xl' : 'rounded-xl'),
                             {
                               'mb-4 py-0 lg:py-0': !isEditable,
                             },
@@ -1394,7 +1665,224 @@ const { message: templatedMessage } = useTemplatedMessage(
                         </div>
                       </div>
 
+                      <DefineFormFieldBody v-slot="{ element }">
+                        <div class="nc-form-field-body">
+                          <div class="mt-2">
+                            <a-form-item
+                              v-if="fieldMappings[element.title]"
+                              :name="fieldMappings[element.title]"
+                              class="!my-0 nc-input-required-error nc-form-input-item"
+                              v-bind="validateInfos[fieldMappings[element.title]]"
+                            >
+                              <LazySmartsheetDivDataCell class="relative" @click.stop>
+                                <LazySmartsheetVirtualCell
+                                  v-if="isVirtualCol(element)"
+                                  v-model="formState[element.title]"
+                                  :row="row"
+                                  class="nc-input"
+                                  :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                                  :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                                  :column="element"
+                                />
+                                <LazySmartsheetCell
+                                  v-else
+                                  v-model="formState[element.title]"
+                                  class="nc-input truncate"
+                                  :class="[
+                                    `nc-form-input-${element.title.replaceAll(' ', '')}`,
+                                    { 'layout-list': element.meta.isList },
+                                  ]"
+                                  :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                                  :column="element"
+                                  :edit-enabled="true"
+                                />
+                              </LazySmartsheetDivDataCell>
+                            </a-form-item>
+
+                            <div>
+                              <LazySmartsheetFormFieldConfigError :column="element" mode="preview" />
+                            </div>
+                          </div>
+                        </div>
+                      </DefineFormFieldBody>
+
+                      <!-- EE: multi-column grid layout (gated by plan feature) -->
+                      <div v-if="!blockFormGridLayout" class="h-full px-4 lg:px-6 nc-form-rows">
+                        <template v-for="formRow in rowsWithKey" :key="formRow._key">
+                          <!--
+                            Inter-row drop zone: lets the user extract a field
+                            from a row and drop it as a new solo row at this
+                            position. Without it the only way to make a solo
+                            row is to drop at the very end.
+                          -->
+                          <Draggable
+                            v-if="isEditable && !isLocked"
+                            :model-value="[]"
+                            item-key="id"
+                            group="form-inputs"
+                            class="nc-form-row-gap min-h-0"
+                            :move="onFieldMoveToNewRowCallback"
+                            @change="onFieldMoveToNewRow($event, formRow._key)"
+                          >
+                            <template #item>
+                              <div />
+                            </template>
+                          </Draggable>
+                          <div class="nc-form-row flex items-stretch gap-1 min-w-0">
+                            <Draggable
+                              :model-value="formRow.fields"
+                              item-key="id"
+                              draggable=".item"
+                              handle=".nc-form-field-drag-handler"
+                              group="form-inputs"
+                              ghost-class="nc-form-field-ghost"
+                              class="flex items-stretch gap-1 flex-1 min-w-0 nc-form-row-fields"
+                              :move="(ev: any) => onFieldMoveCallback(ev, formRow.fields)"
+                              :disabled="isLocked || !isEditable || gridUpdatePending"
+                              @change="onFieldMove($event, formRow._key)"
+                            >
+                              <template #item="{ element }">
+                                <div
+                                  v-if="!isLocked || (isLocked && element?.visible)"
+                                  :key="element.id"
+                                  class="nc-editable nc-form-focus-element item relative bg-nc-bg-default p-2 flex-1 basis-0 min-w-0"
+                                  :class="[
+                                    `nc-form-drag-${element.title.replaceAll(' ', '')}`,
+                                    {
+                                      'nc-form-field-drag-handler rounded-xl border-2 border-transparent my-1 cursor-move':
+                                        isEditable,
+                                    },
+                                    {
+                                      'my-0': !isEditable,
+                                    },
+                                    {
+                                      'hover:(bg-nc-bg-gray-extralight)': activeRow !== element.id && isEditable,
+                                    },
+                                    {
+                                      'border-nc-border-brand': activeRow === element.id,
+                                    },
+                                    {
+                                      '!hover:bg-nc-bg-default !border-transparent !cursor-auto': isLocked,
+                                    },
+                                  ]"
+                                  :data-title="element.title"
+                                  :data-row-id="element.row_id || ''"
+                                  data-testid="nc-form-fields"
+                                  @click.stop="onFormItemClick(element)"
+                                >
+                                  <template v-if="activeRow === element.id">
+                                    <div class="absolute right-1 top-1">
+                                      <NcTooltip
+                                        :title="
+                                          isRequired(element, element.required)
+                                            ? $t('tooltip.youCantRemoveARequiredField')
+                                            : $t('tooltip.removeFromForm')
+                                        "
+                                      >
+                                        <NcButton
+                                          type="link"
+                                          size="xsmall"
+                                          class="nc-form-field-hide !bg-white !h-5 !w-5 !min-w-5 !rounded-full"
+                                          :class="{
+                                            '!text-nc-content-gray-muted !hover:text-nc-content-brand': !isRequired(
+                                              element,
+                                              element.required,
+                                            ),
+                                          }"
+                                          icon-only
+                                          :disabled="isRequired(element, element.required)"
+                                          @click="showOrHideColumn(element, false, false)"
+                                        >
+                                          <template #icon>
+                                            <GeneralIcon icon="close" class="!w-4 !h-4" />
+                                          </template>
+                                        </NcButton>
+                                      </NcTooltip>
+                                    </div>
+                                  </template>
+                                  <div class="flex items-center gap-3">
+                                    <NcTooltip
+                                      v-if="allViewFilters[element.fk_column_id]?.length && !isLocked"
+                                      class="relative h-3.5 w-3.5 flex cursor-pointer"
+                                      placement="topLeft"
+                                    >
+                                      <template #title> Conditionally visible field </template>
+                                      <Transition name="icon-fade" :duration="500">
+                                        <GeneralIcon
+                                          v-if="element?.visible"
+                                          icon="eye"
+                                          class="nc-field-visibility-icon nc-field-visible w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
+                                        />
+                                        <GeneralIcon
+                                          v-else
+                                          icon="eyeSlash"
+                                          class="nc-field-visibility-icon w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
+                                        />
+                                      </Transition>
+                                    </NcTooltip>
+                                    <div class="text-sm font-medium text-nc-content-gray">
+                                      <span data-testid="nc-form-input-label">
+                                        {{ element.label || element.title }}
+                                      </span>
+                                      <span
+                                        v-if="isRequired(element, element.required)"
+                                        class="text-nc-content-red-medium text-base leading-[18px]"
+                                      >
+                                        &nbsp;*
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <LazyCellRichText
+                                    v-if="element.description"
+                                    :value="element.description"
+                                    is-form-field
+                                    read-only
+                                    sync-value-change
+                                    class="nc-form-help-text !h-auto text-nc-content-gray-muted text-xs mt-1 -ml-1"
+                                    data-testid="nc-form-help-text"
+                                    @update:value="updateColMeta(element)"
+                                  />
+
+                                  <ReuseFormFieldBody :element="element" />
+                                </div>
+                              </template>
+                            </Draggable>
+                          </div>
+                        </template>
+
+                        <div
+                          v-if="!visibleColumns.length && isEditable"
+                          class="mt-4 border-dashed border-2 border-nc-border-gray-extradark py-3 text-nc-content-gray-disabled text-center"
+                        >
+                          {{ $t('title.selectFieldsFromRightPannelToAddHere') }}
+                        </div>
+                        <div v-if="isEditable && !isLocked && visibleColumns.length" class="relative mt-2">
+                          <Draggable
+                            :model-value="[]"
+                            item-key="id"
+                            group="form-inputs"
+                            class="nc-form-new-row-zone min-h-2 rounded-md border border-dashed border-nc-border-gray-medium"
+                            :move="onFieldMoveToNewRowCallback"
+                            @change="onFieldMoveToNewRow($event)"
+                          >
+                            <template #item>
+                              <div />
+                            </template>
+                            <template #footer>
+                              <span
+                                class="pointer-events-none text-nc-content-gray-muted absolute -bottom-4 w-full text-center text-xs"
+                              >
+                                {{ $t('title.dropHereToStartNewRow') }}
+                              </span>
+                            </template>
+                          </Draggable>
+                        </div>
+                      </div>
+
+                      <!-- CE: single-column stacked layout -->
                       <Draggable
+                        v-else
                         ref="draggableRef"
                         v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
                         :model-value="visibleColumns"
@@ -1523,46 +2011,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               @update:value="updateColMeta(element)"
                             />
 
-                            <!-- Field Body  -->
-
-                            <div class="nc-form-field-body">
-                              <div class="mt-2">
-                                <a-form-item
-                                  v-if="fieldMappings[element.title]"
-                                  :name="fieldMappings[element.title]"
-                                  class="!my-0 nc-input-required-error nc-form-input-item"
-                                  v-bind="validateInfos[fieldMappings[element.title]]"
-                                >
-                                  <LazySmartsheetDivDataCell class="relative" @click.stop>
-                                    <LazySmartsheetVirtualCell
-                                      v-if="isVirtualCol(element)"
-                                      v-model="formState[element.title]"
-                                      :row="row"
-                                      class="nc-input"
-                                      :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :column="element"
-                                    />
-                                    <LazySmartsheetCell
-                                      v-else
-                                      v-model="formState[element.title]"
-                                      class="nc-input truncate"
-                                      :class="[
-                                        `nc-form-input-${element.title.replaceAll(' ', '')}`,
-                                        { 'layout-list': element.meta.isList },
-                                      ]"
-                                      :data-testid="`nc-form-input-${element.title.replaceAll(' ', '')}`"
-                                      :column="element"
-                                      :edit-enabled="true"
-                                    />
-                                  </LazySmartsheetDivDataCell>
-                                </a-form-item>
-
-                                <div>
-                                  <LazySmartsheetFormFieldConfigError :column="element" mode="preview" />
-                                </div>
-                              </div>
-                            </div>
+                            <ReuseFormFieldBody :element="element" />
                           </div>
                         </template>
 

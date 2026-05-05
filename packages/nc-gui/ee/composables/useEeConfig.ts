@@ -402,6 +402,9 @@ export const useEeConfig = createSharedComposable(() => {
   const blockTrashSettings = computed(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TRASH_SETTINGS)
   })
+  const blockFormGridLayout = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT)
+  })
   const blockScripts = computed(() => isEEFeatureBlocked.value)
   const blockWorkflows = computed(() => isEEFeatureBlocked.value)
   const blockExtensions = computed(() => {
@@ -2065,6 +2068,11 @@ export const useEeConfig = createSharedComposable(() => {
     return handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_TRASH_SETTINGS })
   }
 
+  const showUpgradeToUseFormGridLayout = () => {
+    if (!blockFormGridLayout.value) return
+    return handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT })
+  }
+
   const showUpgradeToUseCustomUrls = () => {
     if (!blockCustomUrls.value) return
     return showUpgradeForEEFeature(t('upgrade.features.customUrls'))
@@ -2243,6 +2251,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseScim,
     blockSnapshots,
     blockTrashSettings,
+    blockFormGridLayout,
+    showUpgradeToUseFormGridLayout,
     blockCustomUrls,
     blockScripts,
     blockWorkflows,

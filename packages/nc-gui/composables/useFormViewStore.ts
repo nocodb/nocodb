@@ -1,7 +1,7 @@
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { ColumnType, FilterType, FormType, TableType, ViewType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, UITypes, groupFormColumnsByRow, isLinksOrLTAR } from 'nocodb-sdk'
 import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
 
 const useForm = Form.useForm
@@ -59,6 +59,9 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     const visibleColumns = computed(() =>
       localColumns.value.filter((f) => f.show).sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)),
     )
+
+    const rows = computed(() => groupFormColumnsByRow(visibleColumns.value))
+
     const activeField = computed(() => visibleColumns.value.find((c) => c.id === activeRow.value) || null)
 
     const activeColumn = computed(() => {
@@ -205,6 +208,22 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       }
     }, 250)
 
+    /**
+     * Atomically re-layout multiple form columns after a drag-drop reflow.
+     * Each update carries the new `row_id` and/or `order` for a column.
+     * Throws on API failure so callers can roll back optimistic UI state.
+     */
+    async function bulkUpdateColumns(updates: Array<{ id: string; row_id?: string | null; order?: number }>) {
+      if (!isEditable || !updates.length || !viewMeta.value?.id) return
+
+      await $api.internal.postOperation(
+        viewMeta.value.fk_workspace_id!,
+        viewMeta.value.base_id!,
+        { operation: 'formColumnBulkUpdate', viewId: viewMeta.value.id },
+        { updates },
+      )
+    }
+
     function isRequired(_columnObj: Record<string, any>, required = false) {
       let columnObj = _columnObj
       if (isLinksOrLTAR(columnObj.uidt) && columnObj.colOptions && columnObj.colOptions.type === RelationTypes.BELONGS_TO) {
@@ -249,12 +268,14 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       formState,
       localColumns,
       visibleColumns,
+      rows,
       activeRow,
       activeField,
       activeColumn,
       isRequired,
       updateView,
       updateColMeta,
+      bulkUpdateColumns,
       validate,
       validateInfos,
       clearValidate,

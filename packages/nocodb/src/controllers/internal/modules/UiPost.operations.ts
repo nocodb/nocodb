@@ -111,6 +111,7 @@ export class UiPostOperations
     'gridViewUpdate' as const,
     'formViewUpdate' as const,
     'formColumnUpdate' as const,
+    'formColumnBulkUpdate' as const,
     'galleryViewUpdate' as const,
     'kanbanViewUpdate' as const,
     'mapViewUpdate' as const,
@@ -460,6 +461,12 @@ export class UiPostOperations
         return await this.formColumnsService.columnUpdate(context, {
           formViewColumnId: req.query.formColumnId,
           formViewColumn: payload,
+          req,
+        });
+      case 'formColumnBulkUpdate':
+        return await this.formColumnsService.columnBulkUpdate(context, {
+          formViewId: req.query.viewId,
+          updates: payload?.updates ?? [],
           req,
         });
       case 'galleryViewUpdate':

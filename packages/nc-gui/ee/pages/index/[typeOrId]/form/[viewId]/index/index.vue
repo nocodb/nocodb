@@ -10,6 +10,7 @@ const {
   formState,
   notFound,
   formColumns,
+  rows,
   submitted,
   secondsRemain,
   isLoading,
@@ -27,7 +28,11 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const { blockAddNewRecord } = useEeConfig()
+const { blockAddNewRecord, blockFormGridLayout } = useEeConfig()
+
+// When grid layout is disabled for the current plan we fall back to one
+// field per row so the rest of the template stays identical.
+const displayRows = computed(() => (blockFormGridLayout.value ? (formColumns.value || []).map((f: any) => [f]) : rows.value))
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -227,80 +232,89 @@ const { message: templatedMessage } = useTemplatedMessage(
               <div class="nc-form h-full">
                 <div class="flex flex-col gap-3 md:gap-6">
                   <div
-                    v-for="(field, index) in formColumns"
-                    :key="index"
-                    class="flex flex-col gap-2"
-                    :data-testid="`nc-shared-form-item-${field.title?.replace(' ', '')}`"
+                    v-for="(row, rowIdx) in displayRows"
+                    :key="rowIdx"
+                    class="nc-shared-form-row flex flex-col gap-3"
+                    :class="{ 'md:flex-row md:items-stretch md:gap-3': !blockFormGridLayout }"
                   >
-                    <div class="nc-form-column-label text-sm font-semibold text-nc-content-gray">
-                      <span>
-                        {{ field.label || field.title }}
-                      </span>
-                      <span v-if="isRequired(field, field.required)" class="text-nc-content-red-medium text-base leading-[18px]"
-                        >&nbsp;*</span
-                      >
-                    </div>
-                    <div v-if="field?.description" class="nc-form-column-description text-nc-content-gray-muted text-sm">
-                      <LazyCellRichText
-                        :value="field?.description"
-                        class="!h-auto -ml-1"
-                        is-form-field
-                        read-only
-                        sync-value-change
-                      />
-                    </div>
-
-                    <div>
-                      <NcTooltip :disabled="!field?.read_only">
-                        <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
-                        <a-form-item
-                          v-if="field.title && fieldMappings[field.title]"
-                          :name="fieldMappings[field.title]"
-                          class="!my-0 nc-input-required-error"
-                          v-bind="validateInfos[fieldMappings[field.title]]"
+                    <div
+                      v-for="(field, index) in row"
+                      :key="field.id || index"
+                      class="flex flex-col gap-2"
+                      :class="{ 'flex-1 md:basis-0 md:min-w-0': !blockFormGridLayout }"
+                      :data-testid="`nc-shared-form-item-${field.title?.replace(' ', '')}`"
+                      :data-row-id="field.row_id || ''"
+                    >
+                      <div class="nc-form-column-label text-sm font-medium text-nc-content-gray">
+                        <span>
+                          {{ field.label || field.title }}
+                        </span>
+                        <span v-if="isRequired(field, field.required)" class="text-nc-content-red-medium text-base leading-[18px]"
+                          >&nbsp;*</span
                         >
-                          <LazySmartsheetDivDataCell class="flex relative">
-                            <LazySmartsheetVirtualCell
-                              v-if="isVirtualCol(field)"
-                              :model-value="null"
-                              class="mt-0 nc-input nc-cell"
-                              :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                              :column="field"
-                              :read-only="field?.read_only"
-                            />
+                      </div>
+                      <div v-if="field?.description" class="nc-form-column-description text-nc-content-gray-muted text-xs">
+                        <LazyCellRichText
+                          :value="field?.description"
+                          class="!h-auto -ml-1"
+                          is-form-field
+                          read-only
+                          sync-value-change
+                        />
+                      </div>
 
-                            <LazySmartsheetCell
-                              v-else
-                              v-model="formState[field.title]"
-                              class="nc-input truncate"
-                              :data-testid="`nc-form-input-cell-${field.label || field.title}`"
-                              :class="[
-                                `nc-form-input-${field.title?.replaceAll(' ', '')}`,
-                                { 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only },
-                              ]"
-                              :column="field"
-                              :edit-enabled="!field?.read_only"
-                              :read-only="field?.read_only"
-                              @update:model-value="
-                                () => {
-                                  validateField(field.title)
-                                }
-                              "
-                            />
-                            <a-button
-                              v-if="field.enable_scanner"
-                              class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
-                              :alt="$t('activity.fillByCodeScan')"
-                              @click="showCodeScannerForFieldTitle(field.title)"
-                            >
-                              <div class="flex items-center gap-1">
-                                <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
-                              </div>
-                            </a-button>
-                          </LazySmartsheetDivDataCell>
-                        </a-form-item>
-                      </NcTooltip>
+                      <div>
+                        <NcTooltip :disabled="!field?.read_only">
+                          <template #title> {{ $t('activity.preFilledFields.lockedFieldTooltip') }} </template>
+                          <a-form-item
+                            v-if="field.title && fieldMappings[field.title]"
+                            :name="fieldMappings[field.title]"
+                            class="!my-0 nc-input-required-error"
+                            v-bind="validateInfos[fieldMappings[field.title]]"
+                          >
+                            <LazySmartsheetDivDataCell class="flex relative">
+                              <LazySmartsheetVirtualCell
+                                v-if="isVirtualCol(field)"
+                                :model-value="null"
+                                class="mt-0 nc-input nc-cell"
+                                :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                                :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                                :column="field"
+                                :read-only="field?.read_only"
+                              />
+
+                              <LazySmartsheetCell
+                                v-else
+                                v-model="formState[field.title]"
+                                class="nc-input truncate"
+                                :data-testid="`nc-form-input-cell-${field.label || field.title}`"
+                                :class="[
+                                  `nc-form-input-${field.title?.replaceAll(' ', '')}`,
+                                  { 'layout-list': parseProp(field?.meta)?.isList, 'readonly': field?.read_only },
+                                ]"
+                                :column="field"
+                                :edit-enabled="!field?.read_only"
+                                :read-only="field?.read_only"
+                                @update:model-value="
+                                  () => {
+                                    validateField(field.title)
+                                  }
+                                "
+                              />
+                              <a-button
+                                v-if="field.enable_scanner"
+                                class="nc-btn-fill-form-column-by-scan nc-toolbar-btn"
+                                :alt="$t('activity.fillByCodeScan')"
+                                @click="showCodeScannerForFieldTitle(field.title)"
+                              >
+                                <div class="flex items-center gap-1">
+                                  <component :is="iconMap.qrCodeScan" class="h-5 w-5" />
+                                </div>
+                              </a-button>
+                            </LazySmartsheetDivDataCell>
+                          </a-form-item>
+                        </NcTooltip>
+                      </div>
                     </div>
                   </div>
                 </div>

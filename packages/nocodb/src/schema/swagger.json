@@ -23725,6 +23725,18 @@
             "description": "The order among all the columns in the form",
             "example": 1
           },
+          "row_id": {
+            "description": "Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width). null means the field is solo / not grouped.",
+            "example": "fr_12ab34cd",
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^fr_[a-z0-9]+$",
+                "maxLength": 32
+              },
+              { "type": "null" }
+            ]
+          },
           "required": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is this form column required in submission?"
@@ -23800,6 +23812,17 @@
           "order": {
             "type": "number",
             "description": "The order among all the columns in the form"
+          },
+          "row_id": {
+            "description": "Grid layout row grouping id. Columns sharing a row_id render on the same horizontal row (equal width). null means the field is solo / not grouped.",
+            "oneOf": [
+              {
+                "type": "string",
+                "pattern": "^fr_[a-z0-9]+$",
+                "maxLength": 32
+              },
+              { "type": "null" }
+            ]
           },
           "required": {
             "$ref": "#/components/schemas/Bool",

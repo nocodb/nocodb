@@ -131,7 +131,7 @@ function onPremPlanResolutionTests() {
   // re-bind through the proxy.
   // ────────────────────────────────────────────────────────────────────────
   describe('Audit.insert — on-prem feature gate', () => {
-    let getFeatureFake: sinon.SinonStub;
+    let getOnPremPlanFake: sinon.SinonStub;
     let bulkMetaInsertStub: sinon.SinonStub;
     let metaInsert2Stub: sinon.SinonStub;
     let AuditWithFakeOnPrem: any;
@@ -139,8 +139,8 @@ function onPremPlanResolutionTests() {
     let originalPaymentHelpersExports: any;
     let originalCloudAuditExports: any;
     // Mutable holder so the Proxy can return whatever the current test set.
-    const getFeatureHolder: { fn: (...args: any[]) => Promise<boolean> } = {
-      fn: async () => true,
+    const getOnPremPlanHolder: { fn: (...args: any[]) => any } = {
+      fn: () => null,
     };
 
     before(() => {
@@ -160,8 +160,8 @@ function onPremPlanResolutionTests() {
         },
       });
 
-      // 2. Wrap `src/ee/helpers/paymentHelpers` so that `getFeature` is
-      //    routed through `getFeatureHolder.fn` — sinon can't stub the
+      // 2. Wrap `src/ee/helpers/paymentHelpers` so that `getOnPremPlan` is
+      //    routed through `getOnPremPlanHolder.fn` — sinon can't stub the
       //    original because its descriptors are non-configurable getters.
       const paymentHelpersModule = require.cache[paymentHelpersCacheKey];
       if (!paymentHelpersModule) {
@@ -172,8 +172,8 @@ function onPremPlanResolutionTests() {
       originalPaymentHelpersExports = paymentHelpersModule.exports;
       paymentHelpersModule.exports = new Proxy(originalPaymentHelpersExports, {
         get(target, prop) {
-          if (prop === 'getFeature') {
-            return (...args: any[]) => getFeatureHolder.fn(...args);
+          if (prop === 'getOnPremPlan') {
+            return (...args: any[]) => getOnPremPlanHolder.fn(...args);
           }
           return (target as any)[prop];
         },
@@ -221,8 +221,8 @@ function onPremPlanResolutionTests() {
     });
 
     beforeEach(() => {
-      getFeatureFake = sinon.stub();
-      getFeatureHolder.fn = getFeatureFake;
+      getOnPremPlanFake = sinon.stub();
+      getOnPremPlanHolder.fn = getOnPremPlanFake;
 
       bulkMetaInsertStub = sinon.stub().resolves([]);
       metaInsert2Stub = sinon.stub().resolves({});
@@ -238,47 +238,64 @@ function onPremPlanResolutionTests() {
         metaInsert2: metaInsert2Stub,
       } as any);
 
-    it('skips insert when on-prem and workspace lacks FEATURE_AUDIT_WORKSPACE', async () => {
-      getFeatureFake.resolves(false);
+    const planWithFeature = (allowed: boolean) => ({
+      meta: {
+        [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: allowed,
+      },
+    });
+
+    it('skips non-DATA audit when on-prem plan lacks FEATURE_AUDIT_WORKSPACE', async () => {
+      getOnPremPlanFake.returns(planWithFeature(false));
 
       await AuditWithFakeOnPrem.insert(
-        { fk_workspace_id: 'ws_1', op_type: 'TEST' as any },
+        { fk_workspace_id: 'ws_1', op_type: 'TABLE_CREATE' as any },
         ncAuditMock(),
         { forceAwait: true },
       );
 
-      expect(getFeatureFake.calledOnce).to.be.true;
-      expect(getFeatureFake.firstCall.args[0]).to.equal(
-        PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
-      );
-      expect(getFeatureFake.firstCall.args[1]).to.equal('ws_1');
+      expect(getOnPremPlanFake.calledOnce).to.be.true;
       expect(metaInsert2Stub.called).to.be.false;
       expect(bulkMetaInsertStub.called).to.be.false;
     });
 
-    it('proceeds with insert when on-prem and workspace has FEATURE_AUDIT_WORKSPACE', async () => {
-      getFeatureFake.resolves(true);
+    it('proceeds with insert when on-prem plan has FEATURE_AUDIT_WORKSPACE', async () => {
+      getOnPremPlanFake.returns(planWithFeature(true));
 
       await AuditWithFakeOnPrem.insert(
-        { fk_workspace_id: 'ws_2', op_type: 'TEST' as any },
+        { fk_workspace_id: 'ws_2', op_type: 'TABLE_CREATE' as any },
         ncAuditMock(),
         { forceAwait: true },
       );
 
-      expect(getFeatureFake.calledOnce).to.be.true;
+      expect(getOnPremPlanFake.calledOnce).to.be.true;
       expect(metaInsert2Stub.calledOnce).to.be.true;
       expect(bulkMetaInsertStub.called).to.be.false;
     });
 
-    it('proceeds with insert without consulting plan when fk_workspace_id is absent (ROOT scope)', async () => {
+    it('preserves DATA_* audit even when on-prem plan lacks FEATURE_AUDIT_WORKSPACE', async () => {
+      getOnPremPlanFake.returns(planWithFeature(false));
+
       await AuditWithFakeOnPrem.insert(
-        { op_type: 'TEST' as any },
+        { fk_workspace_id: 'ws_3', op_type: 'DATA_INSERT' as any },
         ncAuditMock(),
         { forceAwait: true },
       );
 
-      expect(getFeatureFake.called).to.be.false;
+      expect(getOnPremPlanFake.calledOnce).to.be.true;
       expect(metaInsert2Stub.calledOnce).to.be.true;
+      expect(bulkMetaInsertStub.called).to.be.false;
+    });
+
+    it('drops ROOT-scope (no fk_workspace_id) non-DATA audits when feature is disabled', async () => {
+      getOnPremPlanFake.returns(planWithFeature(false));
+
+      await AuditWithFakeOnPrem.insert(
+        { op_type: 'USER_SIGNIN' as any },
+        ncAuditMock(),
+        { forceAwait: true },
+      );
+
+      expect(metaInsert2Stub.called).to.be.false;
       expect(bulkMetaInsertStub.called).to.be.false;
     });
   });

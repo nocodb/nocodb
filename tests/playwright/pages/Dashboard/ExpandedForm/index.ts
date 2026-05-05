@@ -34,10 +34,10 @@ export class ExpandedFormPage extends BasePage {
     this.duplicateRowButton = this.dashboard.get().locator('.nc-duplicate-row:visible');
     this.deleteRowButton = this.dashboard.get().locator('.nc-delete-row:visible');
 
-    this.btn_save = this.dashboard.get().locator('button.nc-expand-form-save-btn');
+    this.btn_save = this.get().getByTestId('nc-expanded-form-save');
     this.btn_moreActions = this.get().locator('.nc-expand-form-more-actions');
-    this.btn_nextField = this.get().locator('.nc-expanded-form-header button.nc-button.nc-next-arrow');
-    this.btn_previousField = this.get().locator('.nc-expanded-form-header button.nc-button.nc-prev-arrow');
+    this.btn_nextField = this.get().getByTestId('nc-expanded-form-next');
+    this.btn_previousField = this.get().getByTestId('nc-expanded-form-prev');
     this.span_tableName = this.get().locator('.nc-expanded-form-header').last().locator('.nc-expanded-form-table-name');
     this.span_modeFields = this.get().locator('.nc-expanded-form-mode-switch').last().locator('.tab').nth(0);
     this.span_modeFiles = this.get().locator('.nc-expanded-form-mode-switch').last().locator('.tab').nth(1);
@@ -53,8 +53,29 @@ export class ExpandedFormPage extends BasePage {
     this.cnt_filesNoAttachment = this.get().locator('.nc-files-no-attachment');
   }
 
+  // Matches either the modal (.nc-drawer-expanded-form) or the EE side panel
+  // (.nc-expanded-form-panel). Both expose a unique data-testid on the root,
+  // so tests don't depend on which surface the user has selected via the
+  // expanded-form mode toggle.
   get() {
-    return this.dashboard.get().locator(`.nc-drawer-expanded-form`);
+    return this.dashboard
+      .get()
+      .locator('[data-testid="nc-expanded-form-modal"], [data-testid="nc-expanded-form-panel"]');
+  }
+
+  // True when the EE side-panel surface is the one currently open. Used to
+  // branch behaviour for surface-specific UI (e.g. comments are tab-toggled
+  // in the panel but always present in the modal).
+  async isPanelMode() {
+    return (await this.dashboard.get().locator('[data-testid="nc-expanded-form-panel"]').count()) > 0;
+  }
+
+  // Promotes the panel into fullscreen so the same fields/files/discussion
+  // mode selector the modal uses becomes visible. No-op in modal mode — the
+  // modal is already laid out with the selector inline.
+  async enterFullscreen() {
+    if (!(await this.isPanelMode())) return;
+    await this.rootPage.getByTestId('nc-expanded-form-panel-fullscreen').click();
   }
 
   async click3DotsMenu(menuItem: string) {
@@ -166,7 +187,7 @@ export class ExpandedFormPage extends BasePage {
   }: {
     waitForRowsData?: boolean;
   } = {}) {
-    const saveRowAction = () => this.get().locator('button.nc-expand-form-save-btn').click();
+    const saveRowAction = () => this.get().getByTestId('nc-expanded-form-save').click();
 
     if (waitForRowsData) {
       await this.waitForResponse({
@@ -188,9 +209,17 @@ export class ExpandedFormPage extends BasePage {
 
     // removing focus from toast
     await this.rootPage.waitForTimeout(1000);
-    await this.rootPage.locator('.nc-modal').click();
+    // Modal mode renders inside an `.nc-modal` wrapper which we click to
+    // dismiss toast focus. Panel mode has no such wrapper — click the panel
+    // root instead so we don't reach into stale, hidden modals.
+    const visibleModal = this.rootPage.locator('.nc-modal:visible').first();
+    if (await visibleModal.count()) {
+      await visibleModal.click();
+    } else {
+      await this.get().click({ position: { x: 4, y: 4 } });
+    }
     await this.rootPage.waitForTimeout(1000);
-    await this.get().locator('.nc-expanded-form-header').locator('.nc-expand-form-close-btn').click();
+    await this.get().getByTestId('nc-expanded-form-close').last().click();
     await this.get().waitFor({ state: 'hidden' });
   }
 
@@ -205,7 +234,7 @@ export class ExpandedFormPage extends BasePage {
 
   async escape() {
     await this.rootPage.keyboard.press('Escape');
-    await this.get().locator('.nc-drawer-expanded-form').waitFor({ state: 'hidden' });
+    await this.get().waitFor({ state: 'hidden' });
 
     await this.rootPage.waitForLoadState('networkidle');
     await this.rootPage.waitForLoadState('domcontentloaded');
@@ -213,7 +242,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async close() {
-    await this.get().locator('.nc-expand-form-close-btn').last().click();
+    await this.get().getByTestId('nc-expanded-form-close').last().click();
   }
 
   async openChildCard(param: { column: string; title: string }) {
@@ -241,7 +270,9 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async verifyCount({ count }: { count: number }) {
-    return await expect(this.rootPage.locator(`.nc-drawer-expanded-form`)).toHaveCount(count);
+    return await expect(
+      this.rootPage.locator('[data-testid="nc-expanded-form-modal"], [data-testid="nc-expanded-form-panel"]')
+    ).toHaveCount(count);
   }
 
   async verifyRoleAccess(param: { role: string }) {
@@ -274,7 +305,17 @@ export class ExpandedFormPage extends BasePage {
       await expect(this.rootPage.getByTestId('nc-expanded-form-save')).toHaveCount(0);
     }
 
-    if (role === 'viewer') {
+    // In modal mode, the comments drawer (`.nc-comments-drawer`) is always
+    // present alongside the fields. In panel mode it's tab-toggled — so open
+    // the comments tab first, then assert on `.nc-comment-input` directly.
+    if (await this.isPanelMode()) {
+      await this.rootPage.getByTestId('nc-expanded-form-panel-comments-toggle').click();
+      if (role === 'viewer') {
+        await expect(this.get().locator('.nc-comment-input')).toHaveCount(0);
+      } else {
+        await expect(this.get().locator('.nc-comment-input')).toHaveCount(1);
+      }
+    } else if (role === 'viewer') {
       await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(0);
     } else {
       await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(1);

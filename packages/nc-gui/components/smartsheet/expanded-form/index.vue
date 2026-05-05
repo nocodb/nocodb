@@ -842,7 +842,7 @@ export default {
     v-bind="modalProps"
     @update:visible="onIsExpandedUpdate"
   >
-    <div class="h-[85vh] xs:(max-h-full h-full) max-h-215 flex flex-col">
+    <div class="h-[85vh] xs:(max-h-full h-full) max-h-215 flex flex-col" data-testid="nc-expanded-form-modal">
       <div v-if="isMobileMode" class="flex-none h-4 flex items-center justify-center">
         <div
           class="flex-none h-full flex items-center justify-center cursor-pointer"
@@ -864,6 +864,7 @@ export default {
               <NcButton
                 :disabled="isFirstRow || isLoading"
                 class="nc-prev-arrow !w-7 !h-7 !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
+                data-testid="nc-expanded-form-prev"
                 type="text"
                 size="xsmall"
                 @click="onPrev"
@@ -876,6 +877,7 @@ export default {
               <NcButton
                 :disabled="isLastRow || isLoading"
                 class="nc-next-arrow !w-7 !h-7 !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
+                data-testid="nc-expanded-form-next"
                 type="text"
                 size="xsmall"
                 @click="onNext"

@@ -340,7 +340,7 @@ const showActivity = computed(() => {
             :disabled="isSaveDisabled"
             :loading="isSaving"
             class="!w-7 !h-7"
-            data-testid="nc-expanded-form-panel-save"
+            data-testid="nc-expanded-form-save"
             type="primary"
             size="xsmall"
             @click="save"
@@ -356,7 +356,7 @@ const showActivity = computed(() => {
               type="text"
               :disabled="!hasPrev"
               class="!border-0"
-              data-testid="nc-expanded-form-panel-prev"
+              data-testid="nc-expanded-form-prev"
               @click="guardedNavigate('prev')"
             >
               <GeneralIcon icon="arrowUp" class="w-3.5 h-3.5" />
@@ -368,7 +368,7 @@ const showActivity = computed(() => {
               type="text"
               :disabled="!hasNext"
               class="!border-0"
-              data-testid="nc-expanded-form-panel-next"
+              data-testid="nc-expanded-form-next"
               @click="guardedNavigate('next')"
             >
               <GeneralIcon icon="arrowDown" class="w-3.5 h-3.5" />
@@ -376,7 +376,12 @@ const showActivity = computed(() => {
           </NcTooltip>
         </div>
 
-        <SmartsheetExpandedFormViewModeSelector v-if="isFullscreen" v-model="activeViewMode" :view="view" class="mr-2" />
+        <SmartsheetExpandedFormViewModeSelector
+          v-if="isFullscreen"
+          v-model="activeViewMode"
+          :view="view"
+          class="mr-2 nc-expanded-form-mode-switch"
+        />
 
         <div
           v-if="showActivity && !isFullscreen"
@@ -434,7 +439,7 @@ const showActivity = computed(() => {
               v-e="['c:row-expand-panel:close']"
               size="xs"
               type="text"
-              data-testid="nc-expanded-form-panel-close"
+              data-testid="nc-expanded-form-close"
               @click="onClose"
             >
               <GeneralIcon icon="close" class="w-4 h-4" />

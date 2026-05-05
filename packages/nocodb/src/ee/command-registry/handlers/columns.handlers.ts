@@ -42,19 +42,41 @@ export function registerColumnHandlers(
 
     const ltarIds = (meta.extra as { ltar?: LtarSideEffectIds } | undefined)
       ?.ltar;
+    const capturedFilters = (
+      meta.extra as { filters?: Array<Record<string, unknown>> } | undefined
+    )?.filters;
     // Schema validates `column` as `Record<string, unknown>`; the recorded
     // payload was a `ColumnReqType` from the original create call, so the
     // double-step cast is safe.
+    const columnPayload = capturedFilters?.length
+      ? {
+          ...(params.column as Record<string, unknown>),
+          filters: capturedFilters,
+        }
+      : params.column;
     return svc.columnAdd(ctx, {
       tableId: params.tableId,
-      column: params.column as unknown as ColumnReqType,
+      column: columnPayload as unknown as ColumnReqType,
       user: req.user,
       _ltarReplayIds: ltarIds,
       req,
     });
   });
 
-  registerForward(ColumnUpdateContract, (ctx, p) => svc.columnUpdate(ctx, p));
+  OperationRegistry.register(
+    ColumnUpdateContract,
+    async (ctx, params, meta) => {
+      const req = makeReplayReq(meta.originalReq, meta.createdBy);
+      return svc.columnUpdate(ctx, {
+        ...params,
+        ...(ctx.additionalContext?.is_replay
+          ? { forceUpdateSystem: true }
+          : {}),
+        req,
+      } as any);
+    },
+  );
+
   registerForward(ColumnDeleteContract, (ctx, p) => svc.columnDelete(ctx, p));
   registerForward(ColumnSetAsPrimaryContract, (ctx, p) =>
     svc.columnSetAsPrimary(ctx, p),

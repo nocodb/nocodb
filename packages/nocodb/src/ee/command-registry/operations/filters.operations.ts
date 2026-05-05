@@ -232,7 +232,8 @@ export const FilterDeleteContract: OperationContract<
   //   - RLS policy        → `rlsPolicyFilterCreate`
   //   - widget            → `widgetFilterCreate`
   //   - link column       → `linkFilterCreate`
-  // Hook / button-column filters still no-op (not reachable from Cmd-Z).
+  //   - button column     → `buttonFilterCreate`
+  // Hook filters still no-op (bundled into `hookCreate` / `hookUpdate`).
   buildInverse: (_ctx, _p, _r, resolved) => {
     const tree = resolved?.extra?.deletedTree;
     if (!tree) return null;
@@ -272,6 +273,13 @@ export const FilterDeleteContract: OperationContract<
         name: OperationName.linkFilterCreate,
         version: 1,
         params: { columnId: tree.fk_link_col_id, filter: tree },
+      };
+    }
+    if (tree.fk_button_col_id) {
+      return {
+        name: OperationName.buttonFilterCreate,
+        version: 1,
+        params: { buttonColId: tree.fk_button_col_id, filter: tree },
       };
     }
     if (tree.fk_view_id) {
@@ -329,6 +337,64 @@ export const LinkFilterCreateContract: OperationContract<
     const deps: TraceCommandDep[] = [];
     if (colId) deps.push({ entity: MetaTable.COLUMNS, id: colId as string });
     if (linkColId) deps.push({ entity: MetaTable.COLUMNS, id: linkColId });
+    return deps;
+  },
+  buildInverse: (_ctx, _p, r) => {
+    if (!r?.id) return null;
+    return {
+      name: OperationName.filterDelete,
+      version: 1,
+      params: { filterId: r.id },
+    };
+  },
+};
+
+// ─── buttonFilterCreate ───────────────────────────────────────────────────────
+
+const buttonFilterCreateSchema = z.object({
+  filter: filterBodySchema,
+  buttonColId: z.string(),
+});
+
+export const ButtonFilterCreateContract: OperationContract<
+  typeof buttonFilterCreateSchema
+> = {
+  name: OperationName.buttonFilterCreate,
+  version: 1,
+  entity: MetaTable.FILTER_EXP,
+  schema: buttonFilterCreateSchema,
+  idField: 'filter',
+  entityId: 'id',
+  parentId: (p) => p?.buttonColId,
+  description: ({ parentEntityTitle, extra }) => {
+    const parts: string[] = ['Add filter'];
+    if (extra?.fieldTitle)
+      parts.push(`on ${bField(extra.fieldTitle as string)}`);
+    if (parentEntityTitle)
+      parts.push(`for button ${bField(parentEntityTitle)}`);
+    return parts.join(' ');
+  },
+  resolveCtx: async (context, param) => {
+    const buttonCol = param?.buttonColId
+      ? await Column.get(context, { colId: param.buttonColId })
+      : undefined;
+    const field = param?.filter?.fk_column_id
+      ? await Column.get(context, {
+          colId: param.filter.fk_column_id as string,
+        })
+      : undefined;
+    return {
+      parentEntityTitle: buttonCol?.title,
+      extra: { fieldTitle: field?.title },
+    };
+  },
+  deps: (p, r) => {
+    const colId = r?.fk_column_id ?? p?.filter?.fk_column_id;
+    const buttonColId = p?.buttonColId;
+    const deps: TraceCommandDep[] = [];
+    if (colId) deps.push({ entity: MetaTable.COLUMNS, id: colId as string });
+    if (buttonColId)
+      deps.push({ entity: MetaTable.COLUMNS, id: buttonColId as string });
     return deps;
   },
   buildInverse: (_ctx, _p, r) => {

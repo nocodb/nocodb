@@ -414,9 +414,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             formState.value.validate = ''
           }
 
-          // ignore filters from payload since it's not required
-          const { filters: _, ...restData } = formState.value
-          let updateData = restData
+          let updateData: typeof formState.value = formState.value
 
           // For system datetime fields, only send meta and description
           // to avoid triggering the system field non-modifiable check

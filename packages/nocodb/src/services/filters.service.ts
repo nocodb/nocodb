@@ -13,6 +13,8 @@ import NocoSocket from '~/socket/NocoSocket';
 import { Column, Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class FiltersService {
@@ -54,6 +56,7 @@ export class FiltersService {
     return Filter.rootFilterListByHook(context, { hookId: param.hookId });
   }
 
+  @TraceCommand(OperationName.buttonFilterCreate)
   async buttonFilterCreate(
     context: NcContext,
     param: {

@@ -341,21 +341,36 @@ export class ColumnsService extends ColumnsServiceCE {
     return table;
   }
 
-  // if column is links or ltar, insert filters if passed
+  protected getColumnFilterFkField(
+    columnBody: ColumnReqType,
+  ): 'fk_link_col_id' | 'fk_button_col_id' | null {
+    const uidt = (columnBody as any).uidt;
+    if (uidt === UITypes.Button) return 'fk_button_col_id';
+    if (
+      isLinksOrLTAR(columnBody) ||
+      uidt === UITypes.Lookup ||
+      uidt === UITypes.Rollup
+    ) {
+      return 'fk_link_col_id';
+    }
+    return null;
+  }
+
   protected async postColumnAdd(
     context: NcContext,
     columnBody: ColumnReqType,
     tableMeta: Model,
   ) {
-    if (isLinksOrLTAR(columnBody) && (columnBody as any).filters) {
+    const fkField = this.getColumnFilterFkField(columnBody);
+    if (fkField && (columnBody as any).filters) {
       const insertedColumn = tableMeta.columns.find(
-        (c) => c.title === columnBody.title && isLinksOrLTAR(c),
+        (c) => c.title === columnBody.title,
       );
       for (const filter of (columnBody as any).filters) {
         await Filter.insert(context, {
           ...filter,
           fk_parent_id: null,
-          fk_link_col_id: insertedColumn.id,
+          [fkField]: insertedColumn.id,
           fk_view_id: undefined,
         });
       }
@@ -366,11 +381,37 @@ export class ColumnsService extends ColumnsServiceCE {
     context: NcContext,
     columnBody: ColumnReqType,
   ) {
-    // if column is links or ltar then iterate and update/delete/insert accordingly
-    if (isLinksOrLTAR(columnBody) && (columnBody as any).filters) {
+    // Apply status-tagged filter changes for any filter-bearing column type.
+    const fkField = this.getColumnFilterFkField(columnBody);
+    if (fkField && (columnBody as any).filters) {
       const colId = (columnBody as any).id;
 
       if (!colId) {
+        return;
+      }
+
+      // Undo path: `ColumnUpdateContract.buildInverse` tags the snapshot with
+      // `_replaceFilters` so we wipe the current set and re-insert the prev
+      // tree. `Filter.insert` under `is_replay` honors pre-set IDs, so the
+      // restored rows match the pre-update state byte-for-byte.
+      if ((columnBody as any)._replaceFilters) {
+        const existing =
+          fkField === 'fk_button_col_id'
+            ? await Filter.rootFilterListByButtonColumn(context, {
+                buttonColId: colId,
+              })
+            : await Filter.rootFilterListByLink(context, { columnId: colId });
+        for (const f of existing) {
+          await Filter.delete(context, f.id);
+        }
+        for (const filter of (columnBody as any).filters) {
+          await Filter.insert(context, {
+            ...filter,
+            fk_parent_id: null,
+            [fkField]: colId,
+            fk_view_id: undefined,
+          });
+        }
         return;
       }
 
@@ -382,13 +423,13 @@ export class ColumnsService extends ColumnsServiceCE {
 
             const existingFilter = await Filter.get(context, filter.id);
 
-            if (existingFilter.fk_link_col_id !== colId) {
+            if (existingFilter[fkField] !== colId) {
               NcError.get(context).invalidRequestBody('Filter not found');
             }
             if (filter.status === 'update') {
               await Filter.update(context, filter.id, {
                 ...filter,
-                fk_link_col_id: colId,
+                [fkField]: colId,
                 fk_view_id: undefined,
               });
 
@@ -402,13 +443,13 @@ export class ColumnsService extends ColumnsServiceCE {
             await Filter.insert(context, {
               ...filter,
               fk_parent_id: parentId,
-              fk_link_col_id: colId,
+              [fkField]: colId,
               fk_view_id: undefined,
             });
           } else if (filter.id && filter.children) {
             const existingFilter = await Filter.get(context, filter.id);
 
-            if (existingFilter.fk_link_col_id !== colId) {
+            if (existingFilter[fkField] !== colId) {
               NcError.get(context).invalidRequestBody('Filter not found');
             }
 

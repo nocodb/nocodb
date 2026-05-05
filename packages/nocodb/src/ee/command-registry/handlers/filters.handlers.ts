@@ -1,4 +1,5 @@
 import {
+  ButtonFilterCreateContract,
   FilterCreateContract,
   FilterDeleteContract,
   FilterUpdateContract,
@@ -18,6 +19,9 @@ export function registerFilterHandlers(svc: FiltersService): void {
   );
   registerForward(WidgetFilterCreateContract, (ctx, p) =>
     svc.widgetFilterCreate(ctx, p),
+  );
+  registerForward(ButtonFilterCreateContract, (ctx, p) =>
+    svc.buttonFilterCreate(ctx, p),
   );
   registerForward(RowColorConditionsCreateContract, (ctx, p) =>
     svc.rowColorConditionsCreate(ctx, p),

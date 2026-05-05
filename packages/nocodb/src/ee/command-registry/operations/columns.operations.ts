@@ -1,10 +1,11 @@
 import { z } from 'zod';
-import { UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, UITypes } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import type { OperationContract } from 'src/command-registry/types';
 import type { LtarSideEffectIds } from '~/services/columns.service.type';
 import { OperationName } from '~/command-registry/op-names';
 import { MetaTable } from '~/utils/globals';
-import { Column, Model } from '~/models';
+import { Column, Filter, Model } from '~/models';
 import { fieldActions } from '~/decorators/trace-command-descriptions';
 import { extractFormulaColumnRefs } from '~/ee/helpers/formulaDeps';
 
@@ -41,6 +42,7 @@ const columnAddExtraSchema = z
         hmBtCallTable: ltarHmBtCallSchema,
       })
       .optional(),
+    filters: z.array(z.record(z.unknown())).optional(),
   })
   .optional();
 
@@ -76,8 +78,12 @@ export const ColumnAddContract: OperationContract<typeof columnAddSchema> = {
   },
   extraCommandMeta: (p) => {
     const capture = (p as { _ltarCapture?: LtarSideEffectIds })._ltarCapture;
-    if (!capture || Object.keys(capture).length === 0) return undefined;
-    return { ltar: capture };
+    const filters = (p as { _capturedFilters?: Array<Record<string, unknown>> })
+      ._capturedFilters;
+    const meta: Record<string, unknown> = {};
+    if (capture && Object.keys(capture).length > 0) meta.ltar = capture;
+    if (filters?.length) meta.filters = filters;
+    return Object.keys(meta).length > 0 ? meta : undefined;
   },
   buildInverse: (_ctx, p, r) => {
     let newId: string | undefined;
@@ -105,8 +111,72 @@ const columnUpdateSchema = z.object({
   tableId: z.string().optional(),
 });
 
+// Metadata-only fields the service treats as cleanly reversible — these can
+// be snapshotted and replayed without altering the underlying DB type or
+// touching cell data. Anything outside this list (uidt, dt, np, ns, dtxp,
+// column_name on a non-rename, etc.) means a schema-touching change that
+// Phase 2 (`ColumnDataBackupHandler`) will own. We deliberately skip
+// recording those for now in `skipIf`.
+const COLUMN_PREV_FIELDS = [
+  'title',
+  'description',
+  'meta',
+  'cdf',
+  'rqd',
+  'unique',
+  'colOptions',
+] as const;
+
+interface ColumnUpdateExtra {
+  oldTitle?: string;
+  oldUidt?: string;
+  prev?: Record<string, unknown>;
+  prevFilters?: Array<Record<string, unknown>>;
+}
+
+function snapshotColumnFields(
+  col: Column | null | undefined,
+): Record<string, unknown> | undefined {
+  if (!col) return undefined;
+  const src = col as unknown as Record<string, unknown>;
+  const snap: Record<string, unknown> = {};
+  for (const k of COLUMN_PREV_FIELDS) snap[k] = src[k];
+  return snap;
+}
+
+async function snapshotColumnFilterTree(
+  context: NcContext,
+  col: Column,
+): Promise<Array<Record<string, unknown>> | undefined> {
+  const uidt = (col as unknown as { uidt?: string }).uidt;
+  if (!uidt) return undefined;
+  const isLinkLike =
+    isLinksOrLTAR({ uidt }) ||
+    uidt === UITypes.Lookup ||
+    uidt === UITypes.Rollup;
+  const isButton = uidt === UITypes.Button;
+  if (!isLinkLike && !isButton) return undefined;
+  const roots = isButton
+    ? await Filter.rootFilterListByButtonColumn(context, {
+        buttonColId: col.id,
+      })
+    : await Filter.rootFilterListByLink(context, { columnId: col.id });
+  const walk = async (f: Filter): Promise<Record<string, unknown>> => {
+    const children = f.is_group ? (await f.getChildren(context)) ?? [] : [];
+    const childNodes = await Promise.all(
+      children.map((c) => walk(c as Filter)),
+    );
+    return {
+      ...(f as unknown as Record<string, unknown>),
+      ...(childNodes.length ? { children: childNodes } : {}),
+    };
+  };
+  return Promise.all(roots.map((r) => walk(r as Filter)));
+}
+
 export const ColumnUpdateContract: OperationContract<
-  typeof columnUpdateSchema
+  typeof columnUpdateSchema,
+  ColumnUpdateExtra
 > = {
   name: OperationName.columnUpdate,
   version: 1,
@@ -122,11 +192,50 @@ export const ColumnUpdateContract: OperationContract<
   resolveCtx: async (context, param) => {
     const col = await Column.get(context, { colId: param?.columnId });
     const tableId = col?.fk_model_id;
-    if (!tableId) return { extra: { oldTitle: col?.title } };
-    const table = await Model.get(context, tableId);
+    const table = tableId ? await Model.get(context, tableId) : undefined;
+    const willReplaceFilters = Array.isArray(
+      (param?.column as Record<string, unknown>)?.filters,
+    );
+    const prevFilters =
+      willReplaceFilters && col
+        ? await snapshotColumnFilterTree(context, col)
+        : undefined;
     return {
       parentEntityTitle: table?.title,
-      extra: { oldTitle: col?.title },
+      extra: {
+        oldTitle: col?.title,
+        oldUidt: col?.uidt,
+        ...(col ? { prev: snapshotColumnFields(col) } : {}),
+        ...(prevFilters ? { prevFilters } : {}),
+      },
+    };
+  },
+  // Phase 1 scope: metadata-only undo. Skip recording when the request changes
+  // the column type — schema-touching transitions need cell-data backup
+  // (Phase 2's `ColumnDataBackupHandler`).
+  skipIf: (_ctx, p, _r, resolved) => {
+    const oldUidt = resolved?.extra?.oldUidt;
+    const newUidt = (p?.column as { uidt?: string } | undefined)?.uidt;
+    if (newUidt && oldUidt && newUidt !== oldUidt) return true;
+    return false;
+  },
+  buildInverse: (_ctx, p, _r, resolved) => {
+    const prev = resolved?.extra?.prev;
+    const prevFilters = resolved?.extra?.prevFilters;
+    if (!prev && !prevFilters) return null;
+    return {
+      name: OperationName.columnUpdate,
+      version: 1,
+      params: {
+        columnId: p.columnId,
+        column: {
+          ...(prev ?? {}),
+          ...(prevFilters
+            ? { filters: prevFilters, _replaceFilters: true }
+            : {}),
+        },
+        ...(p.tableId ? { tableId: p.tableId } : {}),
+      },
     };
   },
   deps: (_p, r) => {

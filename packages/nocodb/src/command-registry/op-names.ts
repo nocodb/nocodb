@@ -65,6 +65,7 @@ export const OperationName = {
   filterDeleteAllV3: 'filterDeleteAllV3',
   linkFilterCreate: 'linkFilterCreate',
   widgetFilterCreate: 'widgetFilterCreate',
+  buttonFilterCreate: 'buttonFilterCreate',
   rowColorConditionsCreate: 'rowColorConditionsCreate',
   rowColorConditionAdd: 'rowColorConditionAdd',
   rowColorConditionUpdate: 'rowColorConditionUpdate',

@@ -3035,6 +3035,11 @@ export class ColumnsService implements IColumnsService {
     // Get all the columns in the table and return
     await table.getColumns(context, undefined, defaultView?.id);
 
+    await this.postColumnUpdate(context, {
+      ...param.column,
+      id: param.columnId,
+    } as unknown as ColumnReqType);
+
     const updatedColumn = await Column.get(context, { colId: param.columnId });
 
     this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
@@ -4204,7 +4209,32 @@ export class ColumnsService implements IColumnsService {
 
     await table.getColumns(context, undefined, defaultView?.id);
 
+    await this.postColumnAdd(context, param.column, table);
+
     const newColumn = table.columns.find((c) => c.title === param.column.title);
+
+    const columnFilterKind: 'link' | 'button' | null = isLinksOrLTAR(
+      param.column,
+    )
+      ? 'link'
+      : (param.column as any).uidt === UITypes.Lookup ||
+        (param.column as any).uidt === UITypes.Rollup
+      ? 'link'
+      : (param.column as any).uidt === UITypes.Button
+      ? 'button'
+      : null;
+    if (
+      columnFilterKind &&
+      (param.column as any).filters?.length &&
+      newColumn &&
+      !(param.req as { __isReplay?: boolean })?.__isReplay
+    ) {
+      (param as any)._capturedFilters = await this.snapshotColumnFilterTree(
+        context,
+        newColumn.id,
+        columnFilterKind,
+      );
+    }
 
     if (!isLinksOrLTAR(param.column)) {
       this.appHooksService.emit(AppEvents.COLUMN_CREATE, {
@@ -6534,15 +6564,13 @@ export class ColumnsService implements IColumnsService {
 
       if (op.op === 'add') {
         try {
-          const tableMeta = (await this.columnAdd(context, {
+          await this.columnAdd(context, {
             tableId,
             column: column as ColumnReqType,
             req,
             user: req.user,
             reuse,
-          })) as Model;
-
-          await this.postColumnAdd(context, column as ColumnReqType, tableMeta);
+          });
         } catch (e) {
           const dbError = DBErrorExtractor.get().extractDbError(e, {
             clientType: source.type as unknown as ClientType, // Pass the client type from source
@@ -6562,8 +6590,6 @@ export class ColumnsService implements IColumnsService {
             user: req.user,
             reuse,
           });
-
-          await this.postColumnUpdate(context, column as ColumnReqType);
         } catch (e) {
           const dbError = DBErrorExtractor.get().extractDbError(e, {
             clientType: source.type as unknown as ClientType, // Pass the client type from source
@@ -6608,6 +6634,30 @@ export class ColumnsService implements IColumnsService {
     _columnBody: ColumnReqType,
   ) {
     // placeholder for post column update hook
+  }
+
+  protected async snapshotColumnFilterTree(
+    context: NcContext,
+    columnId: string,
+    kind: 'link' | 'button',
+  ): Promise<Array<Record<string, unknown>>> {
+    const roots =
+      kind === 'button'
+        ? await Filter.rootFilterListByButtonColumn(context, {
+            buttonColId: columnId,
+          })
+        : await Filter.rootFilterListByLink(context, { columnId });
+    const walk = async (f: Filter): Promise<Record<string, unknown>> => {
+      const children = f.is_group ? (await f.getChildren(context)) ?? [] : [];
+      const childNodes = await Promise.all(
+        children.map((c) => walk(c as Filter)),
+      );
+      return {
+        ...(f as unknown as Record<string, unknown>),
+        ...(childNodes.length ? { children: childNodes } : {}),
+      };
+    };
+    return Promise.all(roots.map((r) => walk(r as Filter)));
   }
 
   // Hook used by columnBulk's delete branch. CE hard-deletes; EE overrides

@@ -1,18 +1,23 @@
 <script setup lang="ts">
+import type { VNodeRef } from '@vue/runtime-core'
+
 const { isCreatingFolder, addGroup } = useBookmarks()
 
 const { $e } = useNuxtApp()
 
 const value = ref('')
 
-const inputRef = ref<any>()
+const focus: VNodeRef = (el) => {
+  if (!el) return
+
+  nextTick(() => {
+    ;(el as HTMLInputElement)?.focus?.()
+  })
+}
 
 watch(isCreatingFolder, (val) => {
   if (val) {
     value.value = ''
-    nextTick(() => {
-      inputRef.value?.focus?.()
-    })
   }
 })
 
@@ -38,7 +43,7 @@ function cancel() {
   <div v-if="isCreatingFolder" class="nc-bookmark-create-row">
     <GeneralIcon icon="ncFolderPlus" class="w-3.5 h-3.5 text-nc-content-brand flex-none" />
     <input
-      ref="inputRef"
+      :ref="focus"
       v-model="value"
       :placeholder="$t('labels.bookmarkGroup')"
       class="nc-bookmark-create-input"

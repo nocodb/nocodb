@@ -2726,7 +2726,14 @@ defineExpose({ editor })
                 </div>
 
                 <!-- Link edit popover -->
-                <div v-if="isLinkEditOpen" :style="linkHoverStyle" class="nc-link-edit-popover" @mouseenter="keepLinkHoverAlive">
+                <div
+                  v-if="isLinkEditOpen"
+                  :style="linkHoverStyle"
+                  class="nc-link-edit-popover"
+                  @mouseenter="keepLinkHoverAlive"
+                  @keydown.stop
+                  @paste.stop
+                >
                   <div class="nc-link-edit-field">
                     <label class="nc-link-edit-label">{{ $t('labels.pageOrUrl') }}</label>
                     <input

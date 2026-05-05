@@ -145,6 +145,8 @@ const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || pr
         <template #overlay>
           <div
             class="nc-code-block-lang-list"
+            @keydown.stop
+            @paste.stop
             @keydown.arrow-down.prevent="onArrowDown"
             @keydown.arrow-up.prevent="onArrowUp"
             @keydown.enter.prevent="onEnter"

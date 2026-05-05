@@ -198,12 +198,20 @@ function validateDateFormatMeta(context: NcContext, meta: unknown) {
 // Missing column silently falls back to null (handles stale client state and
 // cross-session schema drift). Existing-but-unsupported column type throws —
 // that's a caller-contract violation we want to surface.
+//
+// Also enforces the enterprise-license gate: the override is an EE-only
+// feature, so any non-null payload on a non-EE instance is rejected.
 function resolveDisplayValueColumnOrThrow(
   context: NcContext,
   relatedTable: Model,
   requestedId: string | null | undefined,
 ): string | null {
   if (!requestedId) return null;
+  if (!Noco.isEE()) {
+    NcError.get(context).badRequest(
+      'Custom display value field is an enterprise feature',
+    );
+  }
   const col = relatedTable.columns?.find((c) => c.id === requestedId);
   if (!col) return null;
   if (!isSupportedDisplayValueColumn(col)) {

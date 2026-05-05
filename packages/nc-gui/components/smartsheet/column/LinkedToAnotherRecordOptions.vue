@@ -70,7 +70,7 @@ const { viewsByTable } = storeToRefs(viewsStore)
 
 const { t } = useI18n()
 
-const { getPlanTitle, showEEFeatures, isEEFeatureBlocked } = useEeConfig()
+const { getPlanTitle, showEEFeatures, isEEFeatureBlocked, showUpgradeForEEFeature } = useEeConfig()
 
 const { getMeta, getMetaByKey } = useMetas()
 
@@ -145,6 +145,22 @@ watch(useCustomDisplayField, (val) => {
     vModel.value.fk_display_value_column_id = null
   }
 })
+
+// Custom display value field is an enterprise feature. showUpgradeForEEFeature
+// auto-routes: on unlicensed on-prem → license upgrade modal; on licensed
+// Starter → Enterprise upgrade modal. CE: no-op (the section is hidden).
+const onToggleCustomDisplayField = (val: boolean) => {
+  if (val && isEEFeatureBlocked.value) {
+    showUpgradeForEEFeature(t('upgrade.features.ltarCustomDisplayValue'))
+    return
+  }
+  useCustomDisplayField.value = val
+}
+
+const onCustomDisplayLabelClick = () => {
+  if (!vModel.value.childId && !(vModel.value.is_custom_link && vModel.value.custom?.ref_model_id)) return
+  onToggleCustomDisplayField(!useCustomDisplayField.value)
+}
 
 const advancedOptions = ref(false)
 
@@ -807,26 +823,24 @@ const handleScrollIntoView = () => {
       </a-form-item>
     </template>
 
-    <div class="flex flex-col gap-2">
+    <div v-if="isEeUI" class="flex flex-col gap-2">
       <div class="flex gap-2 items-center">
         <a-switch
-          v-model:checked="useCustomDisplayField"
           v-e="['c:link:custom-display-field', { status: useCustomDisplayField }]"
+          :checked="useCustomDisplayField"
           size="small"
           :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
+          @change="onToggleCustomDisplayField"
         />
-        <span
-          class="cursor-pointer"
-          data-testid="nc-use-custom-display-field"
-          @click="
-            () => {
-              if (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) return
-              useCustomDisplayField = !useCustomDisplayField
-            }
-          "
-        >
+        <span class="cursor-pointer" data-testid="nc-use-custom-display-field" @click="onCustomDisplayLabelClick">
           {{ $t('labels.useCustomDisplayField') }}
         </span>
+        <LazyPaymentUpgradeBadge
+          v-if="!useCustomDisplayField"
+          :feature-enabled-callback="() => !isEEFeatureBlocked"
+          :plan-title="PlanTitles.ENTERPRISE"
+          class="ml-1"
+        />
       </div>
       <a-form-item v-if="useCustomDisplayField" class="!pl-8 flex w-full pb-2 mt-4 space-y-2">
         <NcSelect

@@ -283,7 +283,8 @@
       "teams": "Teams",
       "permissions": "Table & Field Permissions",
       "audit": "Workspace Audit",
-      "privateBases": "Private Bases"
+      "privateBases": "Private Bases",
+      "ltarCustomDisplayValue": "Custom Display Value Field"
     },
     "upgradeGenericSubtitle": "Unlock more seats, additional records, more storage, conditional webhooks, and much more!"
   },

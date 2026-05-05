@@ -17,6 +17,7 @@ export interface BookmarkType {
   target_id: string;
   icon?: string | null;
   icon_color?: string | null;
+  icon_type?: string | null;
   order?: number;
   meta?: Record<string, any>;
   created_at?: string;
@@ -36,6 +37,7 @@ export interface BookmarkReqType {
   target_id: string;
   icon?: string | null;
   icon_color?: string | null;
+  icon_type?: string | null;
   order?: number;
   meta?: Record<string, any>;
 }

@@ -146,6 +146,7 @@ export class BookmarkService {
       target_id: param.body.target_id,
       icon: resolved.icon,
       icon_color: resolved.icon_color,
+      icon_type: resolved.icon_type,
       order: maxOrder + 1,
       meta: param.body.meta,
     });
@@ -344,7 +345,7 @@ export class BookmarkService {
     );
 
     // Only update if something actually changed
-    const updates: Partial<{ title: string | null; icon: string | null; icon_color: string | null }> = {};
+    const updates: Partial<{ title: string | null; icon: string | null; icon_color: string | null; icon_type: string | null }> = {};
 
     if (resolved.title != null && resolved.title !== bookmark.title) {
       updates.title = resolved.title;
@@ -354,6 +355,9 @@ export class BookmarkService {
     }
     if (resolved.icon_color !== undefined && resolved.icon_color !== bookmark.icon_color) {
       updates.icon_color = resolved.icon_color;
+    }
+    if (resolved.icon_type !== undefined && resolved.icon_type !== bookmark.icon_type) {
+      updates.icon_type = resolved.icon_type;
     }
 
     if (Object.keys(updates).length) {
@@ -485,6 +489,7 @@ export class BookmarkService {
     title?: string | null;
     icon?: string | null;
     icon_color?: string | null;
+    icon_type?: string | null;
   }> {
     try {
       switch (targetType) {
@@ -496,6 +501,7 @@ export class BookmarkService {
               title: ws.title ?? null,
               icon: m?.icon ?? null,
               icon_color: m?.color ?? null,
+              icon_type: m?.iconType ?? null,
             };
           }
           break;

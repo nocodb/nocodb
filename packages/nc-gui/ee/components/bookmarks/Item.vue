@@ -99,7 +99,11 @@ function handleDragStart(e: DragEvent) {
     <div class="nc-bookmark-item-ic">
       <GeneralWorkspaceIcon
         v-if="bookmark.target_type === 'workspace'"
-        :workspace="{ id: bookmark.target_id, title: displayTitle, meta: meta }"
+        :workspace="{
+          id: bookmark.target_id,
+          title: displayTitle,
+          meta: { ...meta, icon: bookmark.icon, iconType: bookmark.icon_type, color: bookmark.icon_color },
+        }"
         size="small"
       />
       <GeneralProjectIcon v-else-if="bookmark.target_type === 'base'" :color="meta.icon_color" class="!text-base" />

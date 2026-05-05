@@ -21,6 +21,7 @@ const up = async (knex: Knex) => {
     table.string('target_id', 128).notNullable();
     table.string('icon', 255).nullable().defaultTo(null);
     table.string('icon_color', 50).nullable().defaultTo(null);
+    table.string('icon_type', 20).nullable().defaultTo(null);
     table.float('order').defaultTo(0);
     table.text('meta');
     table.timestamps(true, true);

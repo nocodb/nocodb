@@ -233,6 +233,16 @@ export class ExpandedFormPage extends BasePage {
   // }
 
   async escape() {
+    // Panel handles Escape via @keydown on its root element, which only
+    // fires when the panel has focus. After interactions (cell clicks, URL
+    // navigation), focus may have moved away — re-focus the panel root so
+    // Escape reliably closes the panel. No-op for the modal where Escape is
+    // captured at body level by ant-design.
+    if (await this.isPanelMode()) {
+      await this.get()
+        .focus()
+        .catch(() => {});
+    }
     await this.rootPage.keyboard.press('Escape');
     await this.get().waitFor({ state: 'hidden' });
 
@@ -280,6 +290,15 @@ export class ExpandedFormPage extends BasePage {
 
     // expect(await this.btn_moreActions.count()).toBe(1);
     await this.rootPage.waitForTimeout(200);
+
+    // Panel mode tab-toggles the comments drawer (modal renders it inline).
+    // Click the toggle first, BEFORE opening the more-actions dropdown — the
+    // open dropdown overlay can intercept clicks elsewhere in the header.
+    const panelMode = await this.isPanelMode();
+    if (panelMode) {
+      await this.rootPage.getByTestId('nc-expanded-form-panel-comments-toggle').click();
+    }
+
     if (await this.btn_moreActions.isVisible()) {
       // In large screen, the more actions button will be hidden as copy record url button will be visible inline (outside)
       await this.btn_moreActions.click();
@@ -305,17 +324,10 @@ export class ExpandedFormPage extends BasePage {
       await expect(this.rootPage.getByTestId('nc-expanded-form-save')).toHaveCount(0);
     }
 
-    // In modal mode, the comments drawer (`.nc-comments-drawer`) is always
-    // present alongside the fields. In panel mode it's tab-toggled — so open
-    // the comments tab first, then assert on `.nc-comment-input` directly.
-    if (await this.isPanelMode()) {
-      // Close any open more-actions dropdown so it doesn't intercept the
-      // comments toggle click. Clicking the trigger again toggles it closed.
-      if ((await this.rootPage.locator('.ant-dropdown:visible').count()) && (await this.btn_moreActions.isVisible())) {
-        await this.btn_moreActions.click();
-        await this.rootPage.locator('.ant-dropdown:visible').first().waitFor({ state: 'hidden' });
-      }
-      await this.rootPage.getByTestId('nc-expanded-form-panel-comments-toggle').click();
+    // Comments-input role gating. Panel mode: comments tab was opened above,
+    // so `.nc-comment-input` is rendered inside the panel root. Modal mode:
+    // comments drawer is always inline with `.nc-comments-drawer` wrapper.
+    if (panelMode) {
       if (role === 'viewer') {
         await expect(this.get().locator('.nc-comment-input')).toHaveCount(0);
       } else {

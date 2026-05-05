@@ -139,7 +139,11 @@ watch([() => activityExpanded.value, () => activeActivityTab.value], async ([exp
 })
 
 const isSaveDisabled = computed(() => {
-  return changedColumns.value.size === 0
+  // Enable save whenever there's anything to commit: explicit cell edits OR
+  // a freshly duplicated row (`rowMeta.new` is set by MoreOptionsMenu's
+  // duplicate handler — it replaces the row wholesale, so `changedColumns`
+  // stays empty even though the form holds unsaved data).
+  return changedColumns.value.size === 0 && !isNew.value
 })
 
 const isInitialLoad = ref(true)

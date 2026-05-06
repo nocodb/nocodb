@@ -22,4 +22,22 @@ export class PublicDatasController extends PublicDatasControllerCE {
       req,
     });
   }
+
+  @Get([
+    '/api/v2/public/shared-view/:sharedViewUuid/smart-text/rows/:rowId/columns/:columnId',
+  ])
+  async dataReadSmartText(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+    @Param('rowId') rowId: string,
+    @Param('columnId') columnId: string,
+  ) {
+    return await this.publicDatasService.dataReadSmartText(context, {
+      sharedViewUuid,
+      rowId,
+      columnId,
+      password: req.headers?.['xc-password'] as string,
+    });
+  }
 }

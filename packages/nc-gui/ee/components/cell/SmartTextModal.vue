@@ -43,6 +43,19 @@ const basesStore = useBases()
 
 const { activeProjectId } = storeToRefs(basesStore)
 
+// Shared-view context — when present we use the public endpoint instead of
+// the internal op (the latter requires workspace/base auth which a shared
+// view token doesn't grant). The modal stays read-only in that mode.
+const isPublic = inject(IsPublicInj, ref(false))
+
+const sharedViewPassword = inject(SharedViewPasswordInj, ref<string | null>(null))
+
+const route = useRoute()
+
+const sharedViewUuid = computed(() =>
+  isPublic.value ? (route.params.viewId as string | undefined) ?? null : null,
+)
+
 const isVisible = useVModel(props, 'visible', emits)
 
 const pmContent = ref<Record<string, any> | null>(null)
@@ -57,9 +70,11 @@ const loadedKey = ref<string | null>(null)
 
 const cellKey = (tableId: string, rowId: string, columnId: string) => `${tableId}|${rowId}|${columnId}`
 
-const hasIds = computed(
-  () => !!(props.tableId && props.rowId && props.columnId && activeWorkspaceId.value && activeProjectId.value),
-)
+const hasIds = computed(() => {
+  if (!props.tableId || !props.rowId || !props.columnId) return false
+  if (isPublic.value) return !!sharedViewUuid.value
+  return !!(activeWorkspaceId.value && activeProjectId.value)
+})
 
 const currentKey = () => {
   if (!hasIds.value) return null
@@ -76,12 +91,27 @@ const loadContent = async () => {
   loadedKey.value = null
 
   try {
-    const result = (await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value!, {
-      operation: 'smartTextGetContent',
-      tableId: props.tableId!,
-      rowId: props.rowId!,
-      columnId: props.columnId!,
-    })) as SmartTextGetResponse
+    let result: SmartTextGetResponse
+
+    if (isPublic.value) {
+      // Public-shared-view path — uses the dedicated public endpoint with
+      // the shared-view password header. Read-only; no save endpoint.
+      result = (await $api.public.dataSmartTextRead(
+        sharedViewUuid.value!,
+        props.rowId!,
+        props.columnId!,
+        sharedViewPassword.value
+          ? { headers: { 'xc-password': sharedViewPassword.value } }
+          : {},
+      )) as unknown as SmartTextGetResponse
+    } else {
+      result = (await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value!, {
+        operation: 'smartTextGetContent',
+        tableId: props.tableId!,
+        rowId: props.rowId!,
+        columnId: props.columnId!,
+      })) as SmartTextGetResponse
+    }
 
     if (currentKey() !== reqKey) return
 
@@ -98,7 +128,7 @@ const loadContent = async () => {
 }
 
 const flushSave = async () => {
-  if (props.readOnly) return
+  if (props.readOnly || isPublic.value) return
   if (!isDirty.value || isSaving.value) return
   if (!hasIds.value || !pmContent.value) return
 
@@ -263,7 +293,7 @@ const editorInitialContent = computed(() => pmContent.value ?? null)
           <LazyDocEditor
             mode="cell"
             embedded
-            :read-only="readOnly"
+            :read-only="readOnly || isPublic"
             :initial-content="editorInitialContent"
             @update:content="onContentUpdate"
           />

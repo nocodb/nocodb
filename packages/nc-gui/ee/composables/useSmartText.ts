@@ -20,8 +20,17 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
 
   const meta = inject(MetaInj, ref())
 
+  // Shared-view (public) context — when present we use the dedicated public
+  // endpoint instead of the internal op. Read-only — flushSave is a no-op.
+  const isPublic = inject(IsPublicInj, ref(false))
+  const sharedViewPassword = inject(SharedViewPasswordInj, ref<string | null>(null))
+
   const router = useRouter()
   const route = router.currentRoute
+
+  const sharedViewUuid = computed(() =>
+    isPublic.value ? (route.value.params.viewId as string | undefined) ?? null : null,
+  )
 
   const isOpen = ref(false)
   const activeRowId = ref<string | null>(null)
@@ -116,14 +125,13 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
 
   /** Load PM JSON + markdown for the current cell from the backend. */
   const _loadContent = async () => {
-    if (
-      !activeWorkspaceId.value ||
-      !activeProjectId.value ||
-      !meta.value?.id ||
-      !activeRowId.value ||
-      !activeColumnId.value
-    )
+    if (!meta.value?.id || !activeRowId.value || !activeColumnId.value) return
+
+    if (isPublic.value) {
+      if (!sharedViewUuid.value) return
+    } else if (!activeWorkspaceId.value || !activeProjectId.value) {
       return
+    }
 
     // Capture the cell identity at call time. If the user navigates to a
     // different cell while this request is in flight, the captured key will
@@ -142,12 +150,25 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     markdown.value = null
 
     try {
-      const result = (await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
-        operation: 'smartTextGetContent',
-        tableId,
-        rowId,
-        columnId,
-      })) as SmartTextGetResponse
+      let result: SmartTextGetResponse
+
+      if (isPublic.value) {
+        result = (await $api.public.dataSmartTextRead(
+          sharedViewUuid.value!,
+          rowId,
+          columnId,
+          sharedViewPassword.value
+            ? { headers: { 'xc-password': sharedViewPassword.value } }
+            : {},
+        )) as unknown as SmartTextGetResponse
+      } else {
+        result = (await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value!, {
+          operation: 'smartTextGetContent',
+          tableId,
+          rowId,
+          columnId,
+        })) as SmartTextGetResponse
+      }
 
       // Stale-response guard — only apply if user is still on the same cell.
       const currentKey =
@@ -186,11 +207,16 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
   // once the missing prerequisites resolve. Use loadedKey (not "no content as
   // proxy") so genuinely-empty cells aren't re-loaded on unrelated meta changes.
   watch(
-    [isOpen, activeRowId, activeColumnId, () => meta.value?.id, activeWorkspaceId, activeProjectId],
+    [isOpen, activeRowId, activeColumnId, () => meta.value?.id, activeWorkspaceId, activeProjectId, sharedViewUuid],
     () => {
       if (!isOpen.value) return
       if (!activeRowId.value || !activeColumnId.value) return
-      if (!meta.value?.id || !activeWorkspaceId.value || !activeProjectId.value) return
+      if (!meta.value?.id) return
+      if (isPublic.value) {
+        if (!sharedViewUuid.value) return
+      } else if (!activeWorkspaceId.value || !activeProjectId.value) {
+        return
+      }
       const currentKey = _cellKey(meta.value.id, activeRowId.value, activeColumnId.value)
       // Already loaded this exact cell, or load already in flight — skip.
       if (loadedKey.value === currentKey || isLoading.value) return
@@ -204,6 +230,12 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
    * No-op when nothing is dirty.
    */
   const flushSave = async () => {
+    // Public shared views are read-only — no save endpoint exists for the
+    // public path. Drop any pending dirty state without persisting.
+    if (isPublic.value) {
+      isDirty.value = false
+      return
+    }
     if (!isDirty.value || isSaving.value) return
     if (
       !activeWorkspaceId.value ||
@@ -281,7 +313,11 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     rowData?: Record<string, any>,
     rowIndex?: number,
   ) => {
-    if (!activeWorkspaceId.value || !activeProjectId.value) return
+    if (isPublic.value) {
+      if (!sharedViewUuid.value) return
+    } else if (!activeWorkspaceId.value || !activeProjectId.value) {
+      return
+    }
 
     // Already showing this exact cell — no-op (avoids reload during re-clicks)
     if (isOpen.value && activeRowId.value === rowId && activeColumnId.value === columnId) {

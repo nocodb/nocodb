@@ -146,6 +146,7 @@ export const UITypesSearchTerms = {
     'formatted text',
     'styled text',
     'html text',
+    'Smart text'
   ],
   [UITypes.Attachment]: ['Attachment', 'file', 'document', 'image', 'upload'],
   [UITypes.Checkbox]: ['Checkbox', 'yes/no', 'true/false', 'completed', 'done'],
@@ -265,6 +266,10 @@ export const columnTypeName = (column?: ColumnType) => {
     case UITypes.LongText: {
       if (parseProp(column.meta)?.richMode) {
         return UITypesName.RichText;
+      }
+
+      if (parseProp(column.meta)?.smartMode) {
+        return UITypesName.SmartText;
       }
 
       if (parseProp(column.meta)[LongTextAiMetaProp]) {

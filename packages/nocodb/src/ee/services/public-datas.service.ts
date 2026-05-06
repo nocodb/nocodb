@@ -1,10 +1,10 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { ViewTypes, type WidgetType } from 'nocodb-sdk';
+import { isSmartText, ViewTypes, type WidgetType } from 'nocodb-sdk';
 import { PublicDatasService as PublicDatasServiceCE } from 'src/services/public-datas.service';
 import type { NcRequest } from 'nocodb-sdk';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
-import { Base, Dashboard, Model, Source, View, Widget } from '~/models';
+import { Base, Column, Dashboard, Model, Source, View, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
@@ -14,6 +14,7 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DatasService } from '~/services/datas.service';
 import { AttachmentsService } from '~/services/attachments.service';
 import { PublicMetasService } from '~/services/public-metas.service';
+import { SmartTextService } from '~/services/smart-text.service';
 import { getWidgetData } from '~/db/widgets';
 
 @Injectable()
@@ -26,6 +27,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
     private readonly listDatasService: ListDatasService,
     protected readonly attachmentsService: AttachmentsService,
     protected readonly publicMetasService: PublicMetasService,
+    private readonly smartTextService: SmartTextService,
   ) {
     super(dataService, jobsService, attachmentsService, publicMetasService);
   }
@@ -172,6 +174,72 @@ export class PublicDatasService extends PublicDatasServiceCE {
     return await getWidgetData(context, {
       widget: widget as WidgetType,
       req: param.req,
+    });
+  }
+
+  /**
+   * Public-shared-view variant of `smartTextGetContent`. Resolves the shared
+   * view from its UUID, verifies password, ensures the requested column is a
+   * visible SmartText field on the view's table, and confirms the row is
+   * within the view's filtered scope before returning the PM JSON. Read-only
+   * — public viewers cannot mutate SmartText content.
+   */
+  async dataReadSmartText(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      rowId: string;
+      columnId: string;
+      password?: string;
+    },
+  ) {
+    const { sharedViewUuid, rowId, columnId, password } = param;
+
+    const view = await View.getByUUID(context, sharedViewUuid);
+    if (!view) NcError.get(context).viewNotFound(sharedViewUuid);
+
+    if (view.type === ViewTypes.FORM) NcError.get(context).notFound('Not found');
+
+    const base = await Base.get(context, view.base_id);
+    this.publicMetasService.checkViewBaseType(view, base);
+
+    if (!(await View.verifyPassword(view, password))) {
+      return NcError.get(context).invalidSharedViewPassword();
+    }
+
+    // Column must belong to the view's table and be a SmartText field.
+    const column = await Column.get(context, { colId: columnId });
+    if (!column || column.fk_model_id !== view.fk_model_id || !isSmartText(column)) {
+      NcError.get(context).fieldNotFound(columnId);
+    }
+
+    // Column must be visible in this shared view — don't expose hidden
+    // SmartText cells via the public endpoint.
+    const viewColumns = await View.getColumns(context, view.id);
+    const viewColumn = viewColumns.find((vc) => vc.fk_column_id === columnId);
+    if (!viewColumn || !viewColumn.show) {
+      NcError.get(context).fieldNotFound(columnId);
+    }
+
+    // Row must be within the view's filtered scope. baseModel scoped to
+    // viewId applies the view's filters; readByPk returns null for rows
+    // hidden by the filter.
+    const model = await Model.getByIdOrName(context, { id: view.fk_model_id });
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    const row = await baseModel.readByPk(rowId, false, {});
+    if (!row) NcError.get(context).recordNotFound(rowId);
+
+    return await this.smartTextService.getContent(context, {
+      tableId: view.fk_model_id,
+      rowId,
+      columnId,
     });
   }
 }

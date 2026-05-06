@@ -2640,6 +2640,16 @@ export default class View implements ViewType {
           if (!calendarRangeColumns) break;
           if (calendarRangeColumns.includes(column.id)) {
             show = true;
+          } else if (!copyFromView && !column.pv) {
+            // Fresh timeline views default to a minimal visible set:
+            // display value (pv) + the configured range columns. Other
+            // fields stay hidden so the windowed-fetch payload is a few
+            // fields × N records, not the entire row. Users can opt
+            // additional fields into the bar via the Fields menu —
+            // visibility is per-view-column, fully reversible. Skipped
+            // when duplicating a view so the source's column choices
+            // carry over.
+            show = false;
           }
         }
 

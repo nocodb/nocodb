@@ -9,6 +9,13 @@ export async function resolveTrashRetentionDays(
   if (model?.trash_retention_days != null && model.trash_retention_days > 0) {
     return model.trash_retention_days;
   }
+
+  const raw = process.env.NC_TRASH_RETENTION_DAYS;
+  if (raw !== undefined && raw !== '') {
+    const n = Number.parseInt(raw, 10);
+    if (Number.isFinite(n) && n >= 0) return n;
+  }
+
   try {
     const { limit } = await getLimit(
       PlanLimitTypes.LIMIT_TRASH_RETENTION,
@@ -19,7 +26,8 @@ export async function resolveTrashRetentionDays(
   } catch {
     // fallback below
   }
-  return parseInt(process.env.NC_TRASH_RETENTION_DAYS || '30', 10);
+
+  return 30;
 }
 
 /**

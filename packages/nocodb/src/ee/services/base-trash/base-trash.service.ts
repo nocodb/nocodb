@@ -54,6 +54,18 @@ export class BaseTrashService implements OnModuleInit {
   }
 
   async getRetentionDays(workspaceId: string): Promise<number> {
+    const raw = process.env.NC_TRASH_RETENTION_DAYS;
+    if (raw !== undefined && raw !== '') {
+      const n = Number.parseInt(raw, 10);
+      // 0 explicitly disables trash (soft-delete falls back to hard-delete).
+      if (Number.isFinite(n) && n >= 0) return n;
+      this.logger.warn(
+        `Ignoring invalid NC_TRASH_RETENTION_DAYS=${JSON.stringify(
+          raw,
+        )} — falling back to plan limit / 30 days`,
+      );
+    }
+
     try {
       const { limit } = await getLimit(
         PlanLimitTypes.LIMIT_TRASH_RETENTION,
@@ -66,15 +78,6 @@ export class BaseTrashService implements OnModuleInit {
       // Fall through to default
     }
 
-    const raw = process.env.NC_TRASH_RETENTION_DAYS;
-    if (raw === undefined || raw === '') return 30;
-    const n = Number.parseInt(raw, 10);
-    if (Number.isFinite(n) && n > 0) return n;
-    this.logger.warn(
-      `Ignoring invalid NC_TRASH_RETENTION_DAYS=${JSON.stringify(
-        raw,
-      )} — falling back to 30 days`,
-    );
     return 30;
   }
 

@@ -227,6 +227,7 @@ const onCreatedRecord = async (record: any) => {
   if (!isNewRecord.value) return
 
   if (!isNew.value) {
+    await link(record)
     vModel.value = false
   } else {
     await addLTARRef(record, injectedColumn?.value as ColumnType)

@@ -59,6 +59,7 @@ const searchState = ref<SearchState>({
   regex: false,
   matches: [],
   activeIndex: 0,
+  truncated: false,
 })
 
 // ── Plugin state sync ────────────────────────────────────────────────────
@@ -111,11 +112,12 @@ onBeforeUnmount(() => {
 const matchCount = computed(() => searchState.value.matches.length)
 const activeIndex = computed(() => searchState.value.activeIndex)
 
-/** Display label: "2 / 5" when matches exist, "No results" when query has no hits. */
+/** Display label: "2 / 5" when matches exist, "1 / 1000+" when scan was capped, "No results" when no hits. */
 const matchLabel = computed(() => {
   if (!searchQuery.value) return ''
   if (matchCount.value === 0) return t('labels.noResults')
-  return `${activeIndex.value + 1} / ${matchCount.value}`
+  const total = searchState.value.truncated ? `${matchCount.value}+` : `${matchCount.value}`
+  return `${activeIndex.value + 1} / ${total}`
 })
 
 // ── Search dispatch (debounced) ──────────────────────────────────────────

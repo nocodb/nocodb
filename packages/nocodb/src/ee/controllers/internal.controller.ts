@@ -43,6 +43,7 @@ import {
   getLimit,
   PlanLimitTypes,
 } from '~/helpers/paymentHelpers';
+import { isCloud } from '~/utils';
 import { ActionsService } from '~/services/actions.service';
 import { MailService } from '~/services/mail/mail.service';
 import { TablesService } from '~/services/tables.service';
@@ -262,10 +263,15 @@ export class InternalController extends InternalControllerCE {
           context,
           PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
         );
-        const { limit } = await getLimit(
-          PlanLimitTypes.LIMIT_AUDIT_RETENTION,
-          context.workspace_id,
-        );
+
+        let retentionLimit: number | undefined;
+        if (isCloud) {
+          const { limit } = await getLimit(
+            PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+            context.workspace_id,
+          );
+          retentionLimit = limit;
+        }
 
         return await this.auditsService.workspaceAuditList(context, {
           cursor: req.query.cursor,
@@ -275,20 +281,24 @@ export class InternalController extends InternalControllerCE {
           startDate: req.query.startDate,
           endDate: req.query.endDate,
           orderBy: req.query.orderBy,
-          retentionLimit: limit,
+          retentionLimit,
         });
       }
       case 'recordAuditList': {
-        const { limit } = await getLimit(
-          PlanLimitTypes.LIMIT_AUDIT_RETENTION,
-          context.workspace_id,
-        );
+        let retentionLimit: number | undefined;
+        if (isCloud) {
+          const { limit } = await getLimit(
+            PlanLimitTypes.LIMIT_AUDIT_RETENTION,
+            context.workspace_id,
+          );
+          retentionLimit = limit;
+        }
 
         return await this.auditsService.recordAuditList(context, {
           row_id: req.query.row_id as string,
           fk_model_id: req.query.fk_model_id as string,
           cursor: req.query.cursor as string,
-          retentionLimit: limit,
+          retentionLimit,
         });
       }
       case 'dashboardList':

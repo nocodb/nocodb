@@ -16,10 +16,6 @@ const { isUIAllowed } = useRoles()
 
 const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
-const { appInfo } = useGlobal()
-
-const isCeRetentionLimited = computed(() => !appInfo.value?.ee)
-
 /* flags */
 
 const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
@@ -86,27 +82,6 @@ export default {
         <div
           class="w-full h-0 flex-grow ml-15.8 rtl:(mr-15.8 ml-0 border-l-0 border-r-1) border-l-1 border-nc-border-gray-dark"
         />
-      </div>
-      <div v-if="isCeRetentionLimited" class="w-[680px] max-w-full flex-grow-0 flex-shrink-0 flex flex-col px-6 2xl:px-0 pt-2">
-        <div class="flex flex-col items-center gap-2 py-2">
-          <div class="text-center text-nc-content-gray-subtle2 text-xs">
-            {{ $t('upgrade.ceAuditRetentionNotice') }}
-          </div>
-          <a
-            v-e="['c:audit:retention:upgrade']"
-            href="https://app.nocodb.com/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=audit_retention"
-            target="_blank"
-            rel="noopener"
-            class="!no-underline"
-          >
-            <NcButton type="secondary" size="xs">
-              <div class="flex items-center gap-1">
-                <GeneralIcon icon="ncArrowUpCircle" class="h-3 w-3" />
-                {{ $t('general.upgrade') }}
-              </div>
-            </NcButton>
-          </a>
-        </div>
       </div>
       <div v-if="hasMoreAudits" class="w-[680px] max-w-full fflex-grow-0 flex-shrink-0 flex flex-col px-6 2xl:px-0">
         <div class="w-full h-15 flex-grow-0 flex-shrink-0 ml-15.8 border-l-1 border-nc-border-gray-dark relative">

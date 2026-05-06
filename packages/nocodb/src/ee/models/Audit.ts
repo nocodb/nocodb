@@ -36,10 +36,15 @@ export default class Audit extends AuditCE {
 
     const [id, created_at] = cursor?.split('|') ?? [];
 
-    const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
-
-    if (cursorDiff > retentionLimit) {
-      return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
+    if (retentionLimit !== undefined) {
+      const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
+      if (cursorDiff < -retentionLimit) {
+        return new PagedResponseImpl(
+          [],
+          {},
+          { pageInfo: { isLastPage: true } },
+        );
+      }
     }
 
     const query = Noco.ncAudit
@@ -49,14 +54,6 @@ export default class Audit extends AuditCE {
       .where('fk_model_id', fk_model_id)
       .where('row_id', row_id)
       .orderBy('id', 'desc');
-
-    if (!Noco.isEE()) {
-      query.where(
-        'created_at',
-        '>=',
-        dayjs().subtract(30, 'days').toISOString(),
-      );
-    }
 
     if (id) {
       query.where('id', '<', id);
@@ -136,10 +133,15 @@ export default class Audit extends AuditCE {
 
     const [id, created_at] = cursor?.split('|') ?? [];
 
-    const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
-
-    if (cursorDiff > retentionLimit) {
-      return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
+    if (retentionLimit !== undefined) {
+      const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
+      if (cursorDiff < -retentionLimit) {
+        return new PagedResponseImpl(
+          [],
+          {},
+          { pageInfo: { isLastPage: true } },
+        );
+      }
     }
 
     const query = Noco.ncAudit
@@ -157,14 +159,6 @@ export default class Audit extends AuditCE {
 
     if (type) {
       query.whereIn('op_type', Array.isArray(type) ? type : [type]);
-    }
-
-    if (!Noco.isEE()) {
-      query.where(
-        'created_at',
-        '>=',
-        dayjs().subtract(30, 'days').toISOString(),
-      );
     }
 
     if (startDate) {
@@ -276,9 +270,9 @@ export default class Audit extends AuditCE {
 
     const [id, created_at] = cursor?.split('|') ?? [];
 
-    if (retentionLimit) {
+    if (retentionLimit !== undefined) {
       const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
-      if (cursorDiff > retentionLimit) {
+      if (cursorDiff < -retentionLimit) {
         return new PagedResponseImpl(
           [],
           {},

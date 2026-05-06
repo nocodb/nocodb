@@ -55,7 +55,7 @@ export default class Audit extends AuditCE {
       .where('row_id', row_id)
       .orderBy('id', 'desc');
 
-    if (!Noco.isEE()) {
+    if (!Noco.isEE() && !isOnPrem) {
       query.where(
         'created_at',
         '>=',
@@ -169,7 +169,7 @@ export default class Audit extends AuditCE {
       query.whereIn('op_type', Array.isArray(type) ? type : [type]);
     }
 
-    if (!Noco.isEE()) {
+    if (!Noco.isEE() && !isOnPrem) {
       query.where(
         'created_at',
         '>=',

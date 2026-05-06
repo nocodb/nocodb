@@ -38,7 +38,7 @@ export default class Audit extends AuditCE {
 
     if (retentionLimit !== undefined) {
       const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
-      if (cursorDiff > retentionLimit) {
+      if (cursorDiff < -retentionLimit) {
         return new PagedResponseImpl(
           [],
           {},
@@ -54,14 +54,6 @@ export default class Audit extends AuditCE {
       .where('fk_model_id', fk_model_id)
       .where('row_id', row_id)
       .orderBy('id', 'desc');
-
-    if (!Noco.isEE() && !isOnPrem) {
-      query.where(
-        'created_at',
-        '>=',
-        dayjs().subtract(30, 'days').toISOString(),
-      );
-    }
 
     if (id) {
       query.where('id', '<', id);
@@ -143,7 +135,7 @@ export default class Audit extends AuditCE {
 
     if (retentionLimit !== undefined) {
       const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
-      if (cursorDiff > retentionLimit) {
+      if (cursorDiff < -retentionLimit) {
         return new PagedResponseImpl(
           [],
           {},
@@ -167,14 +159,6 @@ export default class Audit extends AuditCE {
 
     if (type) {
       query.whereIn('op_type', Array.isArray(type) ? type : [type]);
-    }
-
-    if (!Noco.isEE() && !isOnPrem) {
-      query.where(
-        'created_at',
-        '>=',
-        dayjs().subtract(30, 'days').toISOString(),
-      );
     }
 
     if (startDate) {
@@ -288,7 +272,7 @@ export default class Audit extends AuditCE {
 
     if (retentionLimit !== undefined) {
       const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
-      if (cursorDiff > retentionLimit) {
+      if (cursorDiff < -retentionLimit) {
         return new PagedResponseImpl(
           [],
           {},

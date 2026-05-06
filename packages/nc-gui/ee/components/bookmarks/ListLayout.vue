@@ -9,9 +9,9 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { groups, columnGroups, bookmarksByGroup } = toRefs(props)
-
 const emit = defineEmits<{ navigate: [bookmark: BookmarkType] }>()
+
+const { groups, columnGroups, bookmarksByGroup } = toRefs(props)
 
 const { draggingGroupId, groupDropIndex, updateGroupDropIndex, onDropGroup, onDragEnd } = useBookmarkDnd()
 
@@ -96,10 +96,7 @@ const lastColIdx = computed(() => Math.max(0, colCount.value - 1))
   >
     <div v-for="(col, colIdx) in columnGroups" :key="colIdx" class="nc-bookmark-list-col">
       <template v-for="group in col" :key="group.id">
-        <div
-          v-if="dropTargetGroupId === group.id && group.id !== draggingGroupId"
-          class="nc-bookmark-list-group-drop-line"
-        />
+        <div v-if="dropTargetGroupId === group.id && group.id !== draggingGroupId" class="nc-bookmark-list-group-drop-line" />
         <BookmarksListGroup
           :group="group"
           :bookmarks="bookmarksByGroup[group.id!] ?? []"
@@ -119,9 +116,15 @@ const lastColIdx = computed(() => Math.max(0, colCount.value - 1))
 .nc-bookmark-list-layout {
   @apply grid gap-0;
   /* minmax(0, 1fr) — true equal columns regardless of content size */
-  &.cols-1 { grid-template-columns: minmax(0, 1fr); }
-  &.cols-2 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  &.cols-3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); }
+  &.cols-1 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  &.cols-2 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  &.cols-3 {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
 }
 .nc-bookmark-list-col {
   @apply flex flex-col min-w-0;

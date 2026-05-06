@@ -356,7 +356,12 @@ export class BookmarkService {
     );
 
     // Only update if something actually changed
-    const updates: Partial<{ title: string | null; icon: string | null; icon_color: string | null; icon_type: string | null }> = {};
+    const updates: Partial<{
+      title: string | null;
+      icon: string | null;
+      icon_color: string | null;
+      icon_type: string | null;
+    }> = {};
 
     if (resolved.title != null && resolved.title !== bookmark.title) {
       updates.title = resolved.title;
@@ -364,10 +369,16 @@ export class BookmarkService {
     if (resolved.icon !== undefined && resolved.icon !== bookmark.icon) {
       updates.icon = resolved.icon;
     }
-    if (resolved.icon_color !== undefined && resolved.icon_color !== bookmark.icon_color) {
+    if (
+      resolved.icon_color !== undefined &&
+      resolved.icon_color !== bookmark.icon_color
+    ) {
       updates.icon_color = resolved.icon_color;
     }
-    if (resolved.icon_type !== undefined && resolved.icon_type !== bookmark.icon_type) {
+    if (
+      resolved.icon_type !== undefined &&
+      resolved.icon_type !== bookmark.icon_type
+    ) {
       updates.icon_type = resolved.icon_type;
     }
 

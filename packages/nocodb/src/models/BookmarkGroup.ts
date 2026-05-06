@@ -1,5 +1,11 @@
 import type { BookmarkGroupType } from 'nocodb-sdk';
-import { CacheDelDirection, CacheGetType, CacheScope, MetaTable, RootScopes } from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 
@@ -43,7 +49,11 @@ export default class BookmarkGroup implements BookmarkGroupType {
       },
     );
 
-    await NocoCache.set('root', `${CacheScope.BOOKMARK_GROUP}:${insertData.id}`, insertData);
+    await NocoCache.set(
+      'root',
+      `${CacheScope.BOOKMARK_GROUP}:${insertData.id}`,
+      insertData,
+    );
 
     await NocoCache.appendToList(
       'root',
@@ -80,14 +90,13 @@ export default class BookmarkGroup implements BookmarkGroupType {
     );
 
     for (const item of list) {
-      await NocoCache.set('root', `${CacheScope.BOOKMARK_GROUP}:${item.id}`, item);
+      await NocoCache.set(
+        'root',
+        `${CacheScope.BOOKMARK_GROUP}:${item.id}`,
+        item,
+      );
     }
-    await NocoCache.setList(
-      'root',
-      CacheScope.BOOKMARK_GROUP,
-      [userId],
-      list,
-    );
+    await NocoCache.setList('root', CacheScope.BOOKMARK_GROUP, [userId], list);
 
     return list.map((item) => this.castType(new BookmarkGroup(item)));
   }

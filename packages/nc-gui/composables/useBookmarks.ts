@@ -16,10 +16,18 @@ export const useBookmarks = createSharedComposable(() => {
   async function addGroup(_data: any) {}
   async function removeGroup(_id: string) {}
   async function updateGroup(_id: string, _data: any) {}
-  function isBookmarked(_targetType: string, _targetId: string, _meta?: Record<string, any>): boolean { return false }
-  function isBookmarkedByCheck(_targetType: string, _targetId: string, _meta?: Record<string, any>): boolean { return false }
-  function getBookmark(_targetType: string, _targetId: string): any { return undefined }
-  function resolveBookmarkRoute(_bookmark: any): any { return null }
+  function isBookmarked(_targetType: string, _targetId: string, _meta?: Record<string, any>): boolean {
+    return false
+  }
+  function isBookmarkedByCheck(_targetType: string, _targetId: string, _meta?: Record<string, any>): boolean {
+    return false
+  }
+  function getBookmark(_targetType: string, _targetId: string): any {
+    return undefined
+  }
+  function resolveBookmarkRoute(_bookmark: any): any {
+    return null
+  }
   async function navigateToBookmark(_bookmark: any) {}
 
   return {

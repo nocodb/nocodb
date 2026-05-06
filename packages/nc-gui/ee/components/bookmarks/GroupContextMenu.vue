@@ -12,9 +12,9 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { group } = toRefs(props)
-
 const emit = defineEmits<{ rename: [] }>()
+
+const { group } = toRefs(props)
 
 const { removeGroup, updateGroup } = useBookmarks()
 

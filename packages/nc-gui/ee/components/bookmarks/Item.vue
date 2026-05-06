@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BookmarkType, BookmarkGroupType } from 'nocodb-sdk'
+import type { BookmarkGroupType, BookmarkType } from 'nocodb-sdk'
 
 interface Props {
   bookmark: BookmarkType
@@ -15,9 +15,9 @@ const props = withDefaults(defineProps<Props>(), {
   compact: false,
 })
 
-const { bookmark, groups, showCrumbOnHover, compact } = toRefs(props)
-
 const emit = defineEmits<{ click: [] }>()
+
+const { bookmark, groups, showCrumbOnHover, compact } = toRefs(props)
 
 const ctxMenuRef = ref<any>()
 

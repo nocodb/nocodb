@@ -200,7 +200,8 @@ export default class Bookmark implements BookmarkType {
     groupId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    const result = await ncMeta.knex(MetaTable.BOOKMARKS)
+    const result = await ncMeta
+      .knex(MetaTable.BOOKMARKS)
       .where('fk_group_id', groupId)
       .max('order as maxOrder')
       .first();

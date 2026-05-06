@@ -3,8 +3,6 @@ import type { BookmarkGroupType, BookmarkType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 const {
-  bookmarks,
-  groups,
   orderedGroups,
   bookmarksByGroup,
   isLoading,
@@ -52,10 +50,6 @@ function onToggleOriginalName(bm: BookmarkType) {
   if (useOriginalName.value) {
     renameValue.value = bm.title ?? ''
   }
-}
-
-function getDisplayTitle(bm: BookmarkType): string {
-  return bm.title ?? ''
 }
 
 function isAutoResolved(bm: BookmarkType): boolean {
@@ -159,9 +153,9 @@ async function onCreateGroup() {
 }
 
 async function onDeleteGroup(groupId: string) {
-  const { showConfirmModal } = useNcConfirmModal()
-  showConfirmModal({
-    title: t('general.delete') + ' ' + t('labels.bookmarkGroup'),
+  const { showWarningModal } = useNcConfirmModal()
+  showWarningModal({
+    title: `${t('general.delete')} ${t('labels.bookmarkGroup')}`,
     content: t('msg.confirmDeleteBookmarkGroup'),
     okCallback: async () => {
       await removeGroup(groupId)

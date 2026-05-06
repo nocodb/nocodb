@@ -3,7 +3,7 @@
  * Renders the kebab + dropdown menu for a bookmark item. Parent owns layout — it places the kebab
  * via `<BookmarksItemContextMenu ref="..." />` and forwards right-click via the exposed open().
  */
-import type { BookmarkType, BookmarkGroupType } from 'nocodb-sdk'
+import type { BookmarkGroupType, BookmarkType } from 'nocodb-sdk'
 
 interface Props {
   bookmark: BookmarkType

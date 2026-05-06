@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 
 interface NavItem {
   key: string

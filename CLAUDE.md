@@ -476,12 +476,17 @@ message.error('Something went wrong')
 
 #### Confirm / info dialogs — use `useNcConfirmModal`
 
-Use `useNcConfirmModal()` instead of `Modal.confirm()` from ant-design-vue.
+Use `useNcConfirmModal()` instead of `Modal.confirm()` from ant-design-vue. It exposes four typed variants — `showInfoModal`, `showSuccessModal`, `showWarningModal`, `showErrorModal` (no generic `showConfirmModal`). Set `showCancelBtn: true` for a confirm prompt.
 
 ```ts
-const { showConfirmModal } = useNcConfirmModal()
-showConfirmModal({ title: 'Delete item?', content: 'This cannot be undone.', okCallback: async () => { await deleteItem() } })
-// also: showInfoModal, showSuccessModal, showWarningModal, showErrorModal
+const { showWarningModal } = useNcConfirmModal()
+showWarningModal({
+  title: 'Delete item?',
+  content: 'This cannot be undone.',
+  okText: 'Delete',
+  showCancelBtn: true,
+  okCallback: async () => { await deleteItem() },
+})
 ```
 
 #### Programmatic dialogs — use `useDialog`

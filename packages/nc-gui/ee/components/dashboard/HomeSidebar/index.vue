@@ -102,7 +102,7 @@ const { isDark } = useTheme()
 
 // ── Search — shared composable ──
 
-const { isBaseListAllLoading, loadBaseListAll, getBaseMatchCountByWs, baseListAllWsMap } = useWsBaseListAll()
+const { isBaseListAllLoading, loadBaseListAll, getBaseMatchCountByWs } = useWsBaseListAll()
 
 const searchQuery = useState<string>('ws-home-search', () => '')
 

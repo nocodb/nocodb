@@ -10,13 +10,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import type { BookmarkGroupReqType, BookmarkReqType } from 'nocodb-sdk';
 import { PlanFeatureTypes } from 'nocodb-sdk';
+import { BookmarkGroupReqType, BookmarkReqType } from 'nocodb-sdk';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { License } from '~/decorators/license.decorator';
 import { BookmarkService } from '~/services/bookmark.service';
-import type { NcRequest } from '~/interface/config';
+import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)

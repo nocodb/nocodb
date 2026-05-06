@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { BookmarkType, BookmarkGroupType } from 'nocodb-sdk'
+import type { BookmarkGroupType, BookmarkType } from 'nocodb-sdk'
 
 interface Props {
   group: BookmarkGroupType
@@ -9,9 +9,9 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { group, bookmarks: groupBookmarks, allGroups } = toRefs(props)
-
 const emit = defineEmits<{ navigate: [bookmark: BookmarkType] }>()
+
+const { group, bookmarks: groupBookmarks, allGroups } = toRefs(props)
 
 const { updateGroup, isGroupCollapsed, toggleGroupCollapsed } = useBookmarks()
 

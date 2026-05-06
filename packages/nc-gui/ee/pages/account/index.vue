@@ -11,7 +11,7 @@ const { appInfo, signedIn, signOut } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
-const { isPaymentEnabled, isEEFeatureBlocked, showEEFeatures, blockBookmarks } = useEeConfig()
+const { isPaymentEnabled, isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const workspaceStore = useWorkspace()
 

@@ -298,3 +298,7 @@ export const getDateValue = (
     /^\d+$/.test(String(modelValue)) ? +modelValue : modelValue
   ).format(dateFormat);
 };
+
+export const newSnapshotTitle = () => {
+  return dayjs().format('D MMMM YYYY, h mm A');
+};

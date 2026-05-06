@@ -1279,7 +1279,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       timezone: context.timezone,
       schema_locked: req.ncSchemaLocked || false,
       is_api_token: req.user?.is_api_token,
-      ...(params.publicDataUuid || params.sharedViewUuid || params.sharedBaseUuid
+      ...(params.publicDataUuid ||
+      params.sharedViewUuid ||
+      params.sharedBaseUuid
         ? { is_public: true }
         : {}),
     };

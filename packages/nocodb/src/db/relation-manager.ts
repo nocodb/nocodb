@@ -118,9 +118,8 @@ export class RelationManager {
     const reverseCol = await extractCorrespondingLinkColumn(ctx, {
       ltarColumn: this.relationContext.relationColumn,
     });
-    const reverseOpts = await reverseCol?.getColOptions<LinkToAnotherRecordColumn>(
-      ctx,
-    );
+    const reverseOpts =
+      await reverseCol?.getColOptions<LinkToAnotherRecordColumn>(ctx);
     const reverseDisplayId = (reverseOpts as any)?.fk_display_value_column_id;
     if (!reverseDisplayId) {
       this._reverseDisplayCol = null;

@@ -3386,10 +3386,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             if (refDisplayColCache.has(cacheKey)) continue;
             refDisplayColCache.set(
               cacheKey,
-              await this.resolveLtarDisplayCol(
-                entry.columnId,
-                entry.refModel,
-              ),
+              await this.resolveLtarDisplayCol(entry.columnId, entry.refModel),
             );
           }
           const dvProps: {

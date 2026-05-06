@@ -265,10 +265,7 @@ export async function serializeMeta(
             for (const record of records) {
               // Metadata-only models (dashboards, documents) have no underlying
               // DB table and therefore no table_name to rewrite.
-              if (
-                prefix.old &&
-                record.table_name?.startsWith(prefix.old)
-              ) {
+              if (prefix.old && record.table_name?.startsWith(prefix.old)) {
                 record.table_name =
                   prefix.new + record.table_name.slice(prefix.old.length);
               }

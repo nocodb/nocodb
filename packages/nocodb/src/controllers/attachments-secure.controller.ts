@@ -32,9 +32,7 @@ import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
 
 @Controller()
 export class AttachmentsSecureController {
-  constructor(
-    private readonly attachmentsService: AttachmentsService,
-  ) {}
+  constructor(private readonly attachmentsService: AttachmentsService) {}
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post(['/api/v1/db/storage/upload', '/api/v2/storage/upload'])

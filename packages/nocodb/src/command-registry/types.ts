@@ -72,7 +72,11 @@ export type ParamsOf<C> = C extends OperationContract<infer S>
 
 export type CommandHandler<
   C extends OperationContract<any> = OperationContract<any>,
-> = (ctx: NcContext, params: ParamsOf<C>, meta: HandlerMeta) => Promise<unknown>;
+> = (
+  ctx: NcContext,
+  params: ParamsOf<C>,
+  meta: HandlerMeta,
+) => Promise<unknown>;
 
 export interface HandlerMeta {
   entryId: string;

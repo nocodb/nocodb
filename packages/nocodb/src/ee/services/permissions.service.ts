@@ -109,10 +109,7 @@ export class PermissionsService {
 
     // Enforce plan gating for table visibility permissions
     if (permission_key === PermissionKey.TABLE_VISIBILITY) {
-      await checkForFeature(
-        context,
-        PlanFeatureTypes.FEATURE_TABLE_VISIBILITY,
-      );
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_TABLE_VISIBILITY);
     }
 
     let permission: Permission;
@@ -408,10 +405,7 @@ export class PermissionsService {
 
     // Enforce plan gating for table visibility permissions
     if (permission_key === PermissionKey.TABLE_VISIBILITY) {
-      await checkForFeature(
-        context,
-        PlanFeatureTypes.FEATURE_TABLE_VISIBILITY,
-      );
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_TABLE_VISIBILITY);
     }
 
     const permission = await Permission.getByEntity(
@@ -534,10 +528,7 @@ export class PermissionsService {
         PermissionKey.TABLE_VISIBILITY,
         req,
       );
-      await checkForFeature(
-        context,
-        PlanFeatureTypes.FEATURE_TABLE_VISIBILITY,
-      );
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_TABLE_VISIBILITY);
     }
 
     const ncMeta = await Noco.ncMeta.startTransaction();

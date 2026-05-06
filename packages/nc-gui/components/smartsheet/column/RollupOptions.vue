@@ -265,12 +265,6 @@ const separatorOptions = [
   { value: SeparatorType.SpaceComma, label: t('labels.separatorSpaceComma'), preview: '1 000 000,00' },
 ]
 
-const selectedSeparatorDisplay = computed(() => {
-  const option = separatorOptions.find((o) => o.value === vModel.value.meta.separator)
-  if (!option) return ''
-  if (option.label) return `${option.label} (${option.preview})`
-  return option.preview
-})
 
 // Backward compat: resolve isLocaleString to separator if separator is not yet set
 if (!vModel.value.meta.separator) {
@@ -471,18 +465,21 @@ const handleScrollIntoView = () => {
     <a-form-item v-if="enableFormattingOptions" :label="$t('labels.separator')">
       <a-select
         v-model:value="vModel.meta.separator"
+        option-label-prop="label"
         dropdown-class-name="nc-dropdown-rollup-separator-format"
       >
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
         </template>
-        <template #selectedValue>
-          {{ selectedSeparatorDisplay }}
-        </template>
-        <a-select-option v-for="option of separatorOptions" :key="option.value" :value="option.value">
+        <a-select-option
+          v-for="option of separatorOptions"
+          :key="option.value"
+          :value="option.value"
+          :label="option.label ? `${option.label} (${option.preview})` : option.preview"
+        >
           <div class="flex w-full justify-between items-center">
             <span>{{ option.label }}</span>
-            <span class="text-nc-content-gray-subtle">{{ option.preview }}</span>
+            <span class="text-nc-content-gray-muted">{{ option.preview }}</span>
           </div>
         </a-select-option>
       </a-select>

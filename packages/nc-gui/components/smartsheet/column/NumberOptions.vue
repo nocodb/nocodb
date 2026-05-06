@@ -27,13 +27,6 @@ const separatorOptions = [
   { value: SeparatorType.SpacePeriod, label: t('labels.separatorSpacePeriod'), preview: '1 000 000' },
 ]
 
-const selectedSeparatorDisplay = computed(() => {
-  const option = separatorOptions.find((o) => o.value === vModel.value.meta.separator)
-  if (!option) return ''
-  if (option.label) return `${option.label} (${option.preview})`
-  return option.preview
-})
-
 // Backward compat: resolve isLocaleString to separator if separator is not yet set
 if (!vModel.value.meta.separator) {
   vModel.value.meta.separator = vModel.value.meta.isLocaleString
@@ -47,18 +40,21 @@ if (!vModel.value.meta.separator) {
     <a-select
       v-model:value="vModel.meta.separator"
       :disabled="isSystem"
+      option-label-prop="label"
       dropdown-class-name="nc-dropdown-number-separator-format"
     >
       <template #suffixIcon>
         <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
       </template>
-      <template #selectedValue>
-        {{ selectedSeparatorDisplay }}
-      </template>
-      <a-select-option v-for="option of separatorOptions" :key="option.value" :value="option.value">
+      <a-select-option
+        v-for="option of separatorOptions"
+        :key="option.value"
+        :value="option.value"
+        :label="option.label ? `${option.label} (${option.preview})` : option.preview"
+      >
         <div class="flex w-full justify-between items-center">
           <span>{{ option.label }}</span>
-          <span class="text-nc-content-gray-subtle">{{ option.preview }}</span>
+          <span class="text-nc-content-gray-muted">{{ option.preview }}</span>
         </div>
       </a-select-option>
     </a-select>

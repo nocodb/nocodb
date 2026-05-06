@@ -91,6 +91,7 @@ export class UiPostOperations
     'filterCreate' as const,
     'filterUpdate' as const,
     'filterDelete' as const,
+    'filterBulkLogicalOpUpdate' as const,
     'sortCreate' as const,
     'sortUpdate' as const,
     'sortDelete' as const,
@@ -351,6 +352,11 @@ export class UiPostOperations
       case 'filterDelete':
         return await this.filtersService.filterDelete(context, {
           filterId: req.query.filterId,
+          req,
+        });
+      case 'filterBulkLogicalOpUpdate':
+        return await this.filtersService.filterBulkLogicalOpUpdate(context, {
+          filters: payload?.filters,
           req,
         });
       case 'sortCreate':

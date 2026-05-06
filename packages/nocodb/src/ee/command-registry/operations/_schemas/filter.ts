@@ -174,3 +174,16 @@ export const rowColorConditionsCreateSchema = z
     filter: filterBodySchema,
   })
   .strict();
+
+export const filterBulkLogicalOpUpdateSchema = z
+  .object({
+    filters: z.array(
+      z
+        .object({
+          filterId: z.string(),
+          logical_op: z.enum(LOGICAL_OPS),
+        })
+        .strict(),
+    ),
+  })
+  .strict();

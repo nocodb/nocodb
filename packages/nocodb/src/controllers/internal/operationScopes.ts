@@ -77,6 +77,7 @@ export const OPERATION_SCOPES = {
   filterCreate: 'base',
   filterUpdate: 'base',
   filterDelete: 'base',
+  filterBulkLogicalOpUpdate: 'base',
   sortCreate: 'base',
   sortUpdate: 'base',
   sortDelete: 'base',

@@ -60,6 +60,7 @@ export const OperationName = {
   filterCreate: 'filterCreate',
   filterUpdate: 'filterUpdate',
   filterDelete: 'filterDelete',
+  filterBulkLogicalOpUpdate: 'filterBulkLogicalOpUpdate',
   filterCreateV3: 'filterCreateV3',
   filterReplaceV3: 'filterReplaceV3',
   filterDeleteAllV3: 'filterDeleteAllV3',

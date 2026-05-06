@@ -17,6 +17,7 @@ import {
 } from '~/decorators/trace-command-descriptions';
 import {
   buttonFilterCreateSchema,
+  filterBulkLogicalOpUpdateSchema,
   filterCreateSchema,
   filterDeleteSchema,
   filterUpdateSchema,
@@ -489,6 +490,48 @@ export const RowColorConditionsCreateContract: OperationContract<
   },
 };
 
+interface FilterBulkLogicalOpUpdateExtra {
+  prev?: Record<string, string>;
+}
+
+export const FilterBulkLogicalOpUpdateContract: OperationContract<
+  typeof filterBulkLogicalOpUpdateSchema,
+  FilterBulkLogicalOpUpdateExtra,
+  Filter[] | undefined
+> = {
+  name: OperationName.filterBulkLogicalOpUpdate,
+  entity: MetaTable.FILTER_EXP,
+  schema: filterBulkLogicalOpUpdateSchema,
+  entry: {
+    description: filterActions.edit,
+    before: async (context, params) => {
+      const prev: Record<string, string> = {};
+      for (const { filterId } of params?.filters ?? []) {
+        const f = await Filter.get(context, filterId);
+        if (f?.logical_op) prev[filterId] = f.logical_op;
+      }
+      return { extra: { prev } };
+    },
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prev;
+      if (!prev) return null;
+      const reversed = (params.filters ?? [])
+        .map(({ filterId }) => ({
+          filterId,
+          logical_op: prev[filterId] as 'and' | 'not' | 'or',
+        }))
+        .filter((f) => !!f.logical_op);
+      if (!reversed.length) return null;
+      return {
+        name: OperationName.filterBulkLogicalOpUpdate,
+        params: { filters: reversed },
+      };
+    },
+  },
+};
+
 export function registerFilterHandlers(svc: FiltersService): void {
   registerForward(FilterCreateContract, (context, params) =>
     svc.filterCreate(context, params),
@@ -498,6 +541,9 @@ export function registerFilterHandlers(svc: FiltersService): void {
   );
   registerForward(FilterDeleteContract, (context, params) =>
     svc.filterDelete(context, params),
+  );
+  registerForward(FilterBulkLogicalOpUpdateContract, (context, params) =>
+    svc.filterBulkLogicalOpUpdate(context, params),
   );
   registerForward(LinkFilterCreateContract, (context, params) =>
     svc.linkFilterCreate(context, params),

@@ -18,10 +18,11 @@ import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { ToolbarGroupByPage } from './Groupby';
 import { ToolbarCalendarViewModePage } from './CalendarViewMode';
 import { CalendarPage } from '../../Calendar';
+import { TimelinePage } from '../../Timeline';
 import { ToolbarCalendarRangePage } from './CalendarRange';
 
 export class ToolbarPage extends BasePage {
-  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage;
+  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage | TimelinePage;
   readonly fields: ToolbarFieldsPage;
   readonly sort: ToolbarSortPage;
   readonly filter: ToolbarFilterPage;
@@ -43,7 +44,7 @@ export class ToolbarPage extends BasePage {
   readonly btn_calendarSettings: Locator;
   readonly today_btn: Locator;
 
-  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage) {
+  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage | TimelinePage) {
     super(parent.rootPage);
     this.parent = parent;
     this.fields = new ToolbarFieldsPage(this);

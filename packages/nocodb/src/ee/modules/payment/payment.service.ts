@@ -3107,11 +3107,7 @@ export class PaymentService {
    */
   protected async handleOnPremInvoicePaid(
     _invoice: Stripe.Invoice,
-  ): Promise<void> {
-    this.logger.warn(
-      'On-prem invoice.paid webhook received but handler not available (not running in cloud mode)',
-    );
-  }
+  ): Promise<void> {}
 
   /**
    * Handle invoice.payment_failed for an on-prem subscription.
@@ -3119,9 +3115,5 @@ export class PaymentService {
    */
   protected async handleOnPremInvoicePaymentFailed(
     _invoice: Stripe.Invoice,
-  ): Promise<void> {
-    this.logger.warn(
-      'On-prem invoice.payment_failed webhook received but handler not available (not running in cloud mode)',
-    );
-  }
+  ): Promise<void> {}
 }

@@ -3,9 +3,12 @@ export const useBookmarks = createSharedComposable(() => {
   const groups = ref([])
   const isLoading = ref(false)
   const bookmarkCheckMap = ref({})
+  const isCreatingFolder = ref(false)
+  const collapsedGroupIds = ref<Set<string>>(new Set())
 
   const orderedGroups = computed(() => [])
   const bookmarksByGroup = computed(() => ({}))
+  const isBookmarkAllowed = computed(() => false)
 
   async function loadBookmarks() {}
   async function loadBookmarkCheck() {}
@@ -29,14 +32,23 @@ export const useBookmarks = createSharedComposable(() => {
     return null
   }
   async function navigateToBookmark(_bookmark: any) {}
+  async function moveBookmarkToGroup(_bookmarkId: string, _targetGroupId: string, _targetIndex?: number) {}
+  async function reorderBookmark(_bookmarkId: string, _groupId: string, _targetIndex: number) {}
+  async function reorderGroup(_groupId: string, _targetIndex: number) {}
+  function toggleGroupCollapsed(_groupId: string) {}
+  function isGroupCollapsed(_groupId: string): boolean {
+    return false
+  }
 
   return {
     bookmarks,
     groups,
     isLoading,
     bookmarkCheckMap,
+    isCreatingFolder,
     orderedGroups,
     bookmarksByGroup,
+    isBookmarkAllowed,
     loadBookmarks,
     loadBookmarkCheck,
     addBookmark,
@@ -51,5 +63,11 @@ export const useBookmarks = createSharedComposable(() => {
     getBookmark,
     resolveBookmarkRoute,
     navigateToBookmark,
+    moveBookmarkToGroup,
+    reorderBookmark,
+    collapsedGroupIds,
+    toggleGroupCollapsed,
+    isGroupCollapsed,
+    reorderGroup,
   }
 })

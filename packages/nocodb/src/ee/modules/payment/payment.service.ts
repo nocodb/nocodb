@@ -2716,11 +2716,12 @@ export class PaymentService {
             });
           }
 
-          // Skip workspace/org logic for on-prem subscriptions (no workspace/org)
+          // On-prem subscriptions: emit alert and stop (no workspace/org logic)
           if (!subRec.fk_org_id && !subRec.fk_workspace_id) {
             this.logger.log(
-              `Invoice paid for on-prem subscription ${subRec.id} — skipping workspace logic`,
+              `Invoice paid for on-prem subscription ${subRec.id} — dispatching on-prem handler`,
             );
+            await this.handleOnPremInvoicePaid(invoiceObj);
             break;
           }
 
@@ -2772,11 +2773,12 @@ export class PaymentService {
           );
           if (!subRec) NcError.genericNotFound('Subscription', subscriptionId);
 
-          // Skip workspace/org logic for on-prem subscriptions (no workspace/org)
+          // On-prem subscriptions: emit alert and stop (no workspace/org logic)
           if (!subRec.fk_org_id && !subRec.fk_workspace_id) {
             this.logger.log(
-              `Invoice payment failed for on-prem subscription ${subRec.id} — skipping workspace logic`,
+              `Invoice payment failed for on-prem subscription ${subRec.id} — dispatching on-prem handler`,
             );
+            await this.handleOnPremInvoicePaymentFailed(invoiceObj);
             break;
           }
 
@@ -3098,4 +3100,20 @@ export class PaymentService {
       'On-prem subscription update webhook received but handler not available (not running in cloud mode)',
     );
   }
+
+  /**
+   * Handle invoice.paid for an on-prem subscription.
+   * No-op in base EE — overridden in ee-cloud to emit the on-prem alert.
+   */
+  protected async handleOnPremInvoicePaid(
+    _invoice: Stripe.Invoice,
+  ): Promise<void> {}
+
+  /**
+   * Handle invoice.payment_failed for an on-prem subscription.
+   * No-op in base EE — overridden in ee-cloud to emit the on-prem alert.
+   */
+  protected async handleOnPremInvoicePaymentFailed(
+    _invoice: Stripe.Invoice,
+  ): Promise<void> {}
 }

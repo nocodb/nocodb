@@ -30,4 +30,16 @@ export class PaymentService extends PaymentServiceEE {
   ): Promise<void> {
     await this.onPremLicenseService.handleSubscriptionUpdated(stripeSub);
   }
+
+  protected async handleOnPremInvoicePaid(
+    invoice: Stripe.Invoice,
+  ): Promise<void> {
+    await this.onPremLicenseService.handleInvoicePaid(invoice);
+  }
+
+  protected async handleOnPremInvoicePaymentFailed(
+    invoice: Stripe.Invoice,
+  ): Promise<void> {
+    await this.onPremLicenseService.handleInvoicePaymentFailed(invoice);
+  }
 }

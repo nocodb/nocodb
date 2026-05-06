@@ -66,6 +66,43 @@ export class OnPremLicenseService {
   constructor(protected readonly telemetryService: TelemetryService) {}
 
   /**
+   * Emit a system event for an on-prem flow with first-class identity fields.
+   * At least one of `installation`, `subscription`, or `plan` MUST be set —
+   * the Lambda renderer detects on-prem events by their presence.
+   *
+   * Distinct from the cloud-side pattern of calling `sendSystemEvent` inline
+   * with a hand-rolled `extra: { ... }` blob; this helper is the canonical
+   * entry point for all on-prem payment alerts so the wire payload stays
+   * uniform.
+   */
+  private async emitOnPremAlert(args: {
+    payment_type: string;
+    message: string;
+    user?: { id?: string; email?: string };
+    installation?: { id: string; license_type?: string };
+    subscription?: { id: string; stripe_subscription_id?: string };
+    plan?: { id?: string; title?: string };
+    extra?: Record<string, any>;
+  }): Promise<void> {
+    if (!args.installation && !args.subscription && !args.plan) {
+      this.logger.warn(
+        `emitOnPremAlert called for ${args.payment_type} without any identity field — dropping`,
+      );
+      return;
+    }
+    await this.telemetryService.sendSystemEvent({
+      event_type: 'payment_alert',
+      payment_type: args.payment_type,
+      message: args.message,
+      ...(args.user ? { user: args.user } : {}),
+      ...(args.installation ? { installation: args.installation } : {}),
+      ...(args.subscription ? { subscription: args.subscription } : {}),
+      ...(args.plan ? { plan: args.plan } : {}),
+      ...(args.extra ? { extra: args.extra } : {}),
+    });
+  }
+
+  /**
    * Generate a unique license key for a new on-prem installation
    */
   private generateLicenseKey(): string {
@@ -212,15 +249,13 @@ export class OnPremLicenseService {
       },
     });
 
-    await this.telemetryService.sendSystemEvent({
-      event_type: 'payment_alert',
+    await this.emitOnPremAlert({
       payment_type: 'on_prem_checkout_initiated',
       message: `On-prem license checkout initiated (${plan.title})`,
       user: { id: user.id, email: user.email },
+      plan: { id: plan_id, title: plan.title },
       extra: {
         checkout_session_id: session.id,
-        plan_id,
-        plan_title: plan.title,
         price_id,
         period: price.recurring.interval,
       },
@@ -245,13 +280,18 @@ export class OnPremLicenseService {
       this.logger.error(
         `On-prem subscription webhook missing required metadata: fk_user_id=${userId}, fk_plan_id=${planId}, stripe_sub=${stripeSub.id}`,
       );
-      await this.telemetryService.sendSystemEvent({
-        event_type: 'payment_alert',
+      // No local Subscription row exists at this point in the webhook —
+      // surface the Stripe sub id in both `id` and `stripe_subscription_id`.
+      await this.emitOnPremAlert({
         payment_type: 'on_prem_webhook_error',
         message: `On-prem subscription created webhook missing metadata (stripe_sub: ${stripeSub.id})`,
-        extra: {
+        subscription: {
+          id: stripeSub.id,
           stripe_subscription_id: stripeSub.id,
+        },
+        extra: {
           metadata: stripeSub.metadata,
+          reason: 'missing_required_metadata',
         },
       });
       return;
@@ -260,11 +300,17 @@ export class OnPremLicenseService {
     const plan = await Plan.get(planId, ncMeta);
     if (!plan) {
       this.logger.error(`Plan not found: ${planId}`);
-      await this.telemetryService.sendSystemEvent({
-        event_type: 'payment_alert',
+      // No local Subscription row exists at this point in the webhook —
+      // surface the Stripe sub id in both `id` and `stripe_subscription_id`.
+      await this.emitOnPremAlert({
         payment_type: 'on_prem_webhook_error',
         message: `On-prem subscription created but plan not found: ${planId}`,
-        extra: { stripe_subscription_id: stripeSub.id, fk_plan_id: planId },
+        subscription: {
+          id: stripeSub.id,
+          stripe_subscription_id: stripeSub.id,
+        },
+        plan: { id: planId },
+        extra: { reason: 'plan_not_found' },
       });
       return;
     }
@@ -340,19 +386,14 @@ export class OnPremLicenseService {
       ncMeta,
     );
 
-    await this.telemetryService.sendSystemEvent({
-      event_type: 'payment_alert',
+    await this.emitOnPremAlert({
       payment_type: 'on_prem_license_created',
       message: `On-prem license created (${planTitle}) for ${user?.email}`,
       user: { id: userId, email: user?.email },
-      extra: {
-        installation_id: installation.id,
-        subscription_id: subRec.id,
-        stripe_subscription_id: stripeSub.id,
-        plan_title: planTitle,
-        license_type: licenseType,
-        period,
-      },
+      installation: { id: installation.id, license_type: licenseType },
+      subscription: { id: subRec.id, stripe_subscription_id: stripeSub.id },
+      plan: { id: planId, title: planTitle },
+      extra: { period },
     });
 
     this.logger.log(
@@ -380,11 +421,17 @@ export class OnPremLicenseService {
       return;
     }
 
+    const previousPlanId = subRec.fk_plan_id;
+
     // Check if plan changed and update Subscription + Installation config
     const newPlanId = stripeSub.metadata?.fk_plan_id;
-    if (newPlanId && newPlanId !== subRec.fk_plan_id) {
+    if (newPlanId && newPlanId !== previousPlanId) {
       const newPlan = await Plan.get(newPlanId, ncMeta);
       if (newPlan) {
+        const previousPlan = previousPlanId
+          ? await Plan.get(previousPlanId, ncMeta).catch(() => null)
+          : null;
+
         await Subscription.update(
           subRec.id,
           { fk_plan_id: newPlanId, status: stripeSub.status },
@@ -407,6 +454,24 @@ export class OnPremLicenseService {
           this.logger.log(
             `On-prem installation ${inst.id} config updated for plan change to ${newPlan.title}`,
           );
+
+          await this.emitOnPremAlert({
+            payment_type: 'on_prem_plan_changed',
+            message: `On-prem installation ${inst.id} plan changed: ${
+              previousPlan?.title || 'unknown'
+            } → ${newPlan.title}`,
+            installation: { id: inst.id, license_type: newLicenseType },
+            subscription: {
+              id: subRec.id,
+              stripe_subscription_id: stripeSub.id,
+            },
+            plan: { id: newPlan.id, title: newPlan.title },
+            extra: {
+              previous_plan_id: previousPlanId,
+              previous_plan_title: previousPlan?.title,
+              new_plan_id: newPlanId,
+            },
+          });
         }
       }
     }
@@ -435,8 +500,9 @@ export class OnPremLicenseService {
     }
 
     // Sync min_seats if Stripe item quantity changed (e.g. via customer portal)
+    const previousMinSeats = installation.min_seats || 1;
     const stripeQuantity = stripeSub.items.data[0]?.quantity;
-    if (stripeQuantity && stripeQuantity !== (installation.min_seats || 1)) {
+    if (stripeQuantity && stripeQuantity !== previousMinSeats) {
       await Installation.update(
         installation.id,
         { min_seats: stripeQuantity },
@@ -451,10 +517,28 @@ export class OnPremLicenseService {
       this.logger.log(
         `On-prem installation ${installation.id} min_seats synced to ${stripeQuantity} from Stripe`,
       );
+
+      await this.emitOnPremAlert({
+        payment_type: 'on_prem_seat_synced',
+        message: `On-prem installation ${installation.id} seats synced ${previousMinSeats} → ${stripeQuantity}`,
+        installation: {
+          id: installation.id,
+          license_type: installation.license_type,
+        },
+        subscription: { id: subRec.id, stripe_subscription_id: stripeSub.id },
+        extra: {
+          previous_seat_count: previousMinSeats,
+          new_seat_count: stripeQuantity,
+          source: 'stripe_drift',
+        },
+      });
     }
 
-    // Suspend installation if subscription is canceled or unpaid
-    if (stripeSub.status === 'canceled' || stripeSub.status === 'unpaid') {
+    // Suspend installation if subscription is canceled or unpaid (skip if already suspended — idempotent across Stripe webhook retries)
+    if (
+      (stripeSub.status === 'canceled' || stripeSub.status === 'unpaid') &&
+      installation.status !== InstallationStatus.SUSPENDED
+    ) {
       await Installation.updateStatus(
         installation.id,
         InstallationStatus.SUSPENDED,
@@ -464,6 +548,17 @@ export class OnPremLicenseService {
       this.logger.log(
         `On-prem installation ${installation.id} suspended (subscription ${stripeSub.status})`,
       );
+
+      await this.emitOnPremAlert({
+        payment_type: 'on_prem_installation_suspended',
+        message: `On-prem installation ${installation.id} suspended (subscription ${stripeSub.status})`,
+        installation: {
+          id: installation.id,
+          license_type: installation.license_type,
+        },
+        subscription: { id: subRec.id, stripe_subscription_id: stripeSub.id },
+        extra: { stripe_status: stripeSub.status },
+      });
     }
     // Reactivate if subscription returns to active (e.g. after payment retry)
     else if (
@@ -477,6 +572,16 @@ export class OnPremLicenseService {
       );
 
       this.logger.log(`On-prem installation ${installation.id} reactivated`);
+
+      await this.emitOnPremAlert({
+        payment_type: 'on_prem_installation_reactivated',
+        message: `On-prem installation ${installation.id} reactivated`,
+        installation: {
+          id: installation.id,
+          license_type: installation.license_type,
+        },
+        subscription: { id: subRec.id, stripe_subscription_id: stripeSub.id },
+      });
     }
   }
 
@@ -636,18 +741,23 @@ export class OnPremLicenseService {
       ncMeta,
     );
 
-    await this.telemetryService.sendSystemEvent({
-      event_type: 'payment_alert',
+    await this.emitOnPremAlert({
       payment_type: 'on_prem_subscription_linked',
       message: `On-prem installation ${installationId} linked to stripe subscription ${stripeSubscriptionId}`,
       user: { id: userId },
-      extra: {
-        installation_id: installationId,
-        subscription_id: subRec.id,
+      installation: {
+        id: installationId,
+        license_type: installation.license_type,
+      },
+      subscription: {
+        id: subRec.id,
         stripe_subscription_id: stripeSubscriptionId,
-        plan_title: plan?.title || 'custom',
+      },
+      ...(plan ? { plan: { id: plan.id, title: plan.title } } : {}),
+      extra: {
         stripe_quantity: stripeQuantity,
         min_seats: minSeats,
+        ...(plan ? {} : { plan_title: 'custom' }),
       },
     });
 
@@ -683,54 +793,87 @@ export class OnPremLicenseService {
     const minSeats = installation.min_seats || 1;
     const billedSeats = Math.max(minSeats, reportedSeats);
 
-    // Get current Stripe quantity
-    const stripeSub = await stripe.subscriptions.retrieve(
-      subscription.stripe_subscription_id,
-    );
-    const item = stripeSub.items.data[0];
-    if (!item || billedSeats === (item.quantity || 1)) return;
-
-    // Yearly: always_invoice creates a separate proration invoice immediately,
-    // so we must consolidate any unpaid proration invoices first.
-    // Monthly: default proration (prorations roll into the next invoice),
-    // no separate invoices are created, so no consolidation needed.
-    const isYearly = subscription.period === 'year';
-
-    if (isYearly) {
-      const customerId =
-        typeof stripeSub.customer === 'string'
-          ? stripeSub.customer
-          : stripeSub.customer.id;
-
-      await this.consolidateUnpaidProrationInvoices(
-        stripeSub,
-        subscription,
-        customerId,
-        billedSeats,
+    try {
+      // Get current Stripe quantity
+      const stripeSub = await stripe.subscriptions.retrieve(
+        subscription.stripe_subscription_id,
       );
-    } else {
-      // Monthly — prorate to next invoice (no separate invoice)
-      await stripe.subscriptions.update(stripeSub.id, {
-        items: [
-          {
-            id: item.id,
-            price: subscription.stripe_price_id,
-            quantity: billedSeats,
-          },
-        ],
+      const item = stripeSub.items.data[0];
+      if (!item) return;
+      const previousSeatCount = item.quantity || 1;
+      if (billedSeats === previousSeatCount) return;
+
+      // Yearly: always_invoice creates a separate proration invoice immediately,
+      // so we must consolidate any unpaid proration invoices first.
+      // Monthly: default proration (prorations roll into the next invoice),
+      // no separate invoices are created, so no consolidation needed.
+      const isYearly = subscription.period === 'year';
+
+      if (isYearly) {
+        const customerId =
+          typeof stripeSub.customer === 'string'
+            ? stripeSub.customer
+            : stripeSub.customer.id;
+
+        await this.consolidateUnpaidProrationInvoices(
+          stripeSub,
+          subscription,
+          customerId,
+          billedSeats,
+        );
+      } else {
+        // Monthly — prorate to next invoice (no separate invoice)
+        await stripe.subscriptions.update(stripeSub.id, {
+          items: [
+            {
+              id: item.id,
+              price: subscription.stripe_price_id,
+              quantity: billedSeats,
+            },
+          ],
+        });
+      }
+
+      // Update local records
+      await Subscription.update(
+        subscription.id,
+        { seat_count: billedSeats },
+        ncMeta,
+      );
+
+      this.logger.log(
+        `Reseated installation ${installationId}: reported=${reportedSeats}, min=${minSeats}, billed=${billedSeats}`,
+      );
+
+      await this.emitOnPremAlert({
+        payment_type: 'on_prem_reseated',
+        message: `On-prem installation ${installationId} reseated ${previousSeatCount} → ${billedSeats} seats`,
+        installation: {
+          id: installationId,
+          license_type: installation.license_type,
+        },
+        subscription: {
+          id: subscription.id,
+          stripe_subscription_id: subscription.stripe_subscription_id,
+        },
+        extra: {
+          previous_seat_count: previousSeatCount,
+          new_seat_count: billedSeats,
+          min_seats: minSeats,
+          reported_seats: reportedSeats,
+        },
       });
+    } catch (err) {
+      await this.telemetryService.sendSystemEvent({
+        event_type: 'priority_error',
+        error_trigger: 'reseatInstallation',
+        error_type: err?.name,
+        message: err?.message,
+        error_details: err?.stack,
+        affected_resources: [installationId, subscription.id],
+      });
+      throw err;
     }
-
-    // Update local records
-    await Subscription.update(
-      subscription.id,
-      { seat_count: billedSeats },
-      ncMeta,
-    );
-
-    this.logger.log(
-      `Reseated installation ${installationId}: reported=${reportedSeats}, min=${minSeats}, billed=${billedSeats}`,
-    );
   }
 
   /**
@@ -846,19 +989,21 @@ export class OnPremLicenseService {
       });
     }
 
-    await this.telemetryService.sendSystemEvent({
-      event_type: 'payment_alert',
+    await this.emitOnPremAlert({
       payment_type: 'proration_consolidated',
       message:
         `Consolidated ${prorationInvoices.length} unpaid proration invoices for on-prem subscription ${subscription.id}. ` +
         `Reset from ${stripeSub.items.data[0].quantity} to ${lastPaidSeatCount} (last paid), ` +
         `then updated to ${newSeatCount} seats.`,
+      subscription: {
+        id: subscription.id,
+        stripe_subscription_id: subscription.stripe_subscription_id,
+      },
       extra: {
         voided_invoice_ids: prorationInvoices.map((i) => i.id),
         voided_invoice_amounts: prorationInvoices.map((i) => i.amount_due),
         last_paid_seat_count: lastPaidSeatCount,
         new_seat_count: newSeatCount,
-        subscription_id: subscription.id,
       },
     });
   }
@@ -1084,5 +1229,129 @@ export class OnPremLicenseService {
     });
 
     return { url: session.url };
+  }
+
+  /**
+   * Handle invoice.paid for an on-prem subscription. Called by the cloud-EE
+   * webhook router when the resolved Subscription has no workspace/org.
+   */
+  async handleInvoicePaid(
+    invoice: Stripe.Invoice,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const subscriptionId =
+      typeof invoice.parent?.subscription_details?.subscription === 'string'
+        ? invoice.parent.subscription_details.subscription
+        : invoice.parent?.subscription_details?.subscription?.id;
+    if (!subscriptionId) return;
+
+    const subRec = await Subscription.getByStripeSubscriptionId(
+      subscriptionId,
+      ncMeta,
+    );
+    if (!subRec) {
+      this.logger.warn(
+        `On-prem invoice.paid: no Subscription record found for stripe_sub=${subscriptionId}`,
+      );
+      return;
+    }
+
+    // Defensive: caller (cloud-EE webhook router) should only route on-prem
+    // subscriptions here. If a workspace/org sub slipped through, drop with
+    // a warn rather than emit it on the on-prem channel.
+    if (subRec.fk_workspace_id || subRec.fk_org_id) {
+      this.logger.warn(
+        `handleInvoicePaid received non-on-prem subscription ${subRec.id} (workspace=${subRec.fk_workspace_id}, org=${subRec.fk_org_id})`,
+      );
+      return;
+    }
+
+    const installation = await Installation.getBySubscriptionId(
+      subRec.id,
+      ncMeta,
+    );
+
+    await this.emitOnPremAlert({
+      payment_type: 'on_prem_payment_succeeded',
+      message: installation
+        ? `On-prem installation ${installation.id} payment succeeded`
+        : `On-prem subscription ${subRec.id} payment succeeded`,
+      ...(installation
+        ? {
+            installation: {
+              id: installation.id,
+              license_type: installation.license_type,
+            },
+          }
+        : {}),
+      subscription: { id: subRec.id, stripe_subscription_id: subscriptionId },
+      extra: {
+        invoice_id: invoice.id,
+        amount_paid: invoice.amount_paid,
+      },
+    });
+  }
+
+  /**
+   * Handle invoice.payment_failed for an on-prem subscription. Called by the
+   * cloud-EE webhook router when the resolved Subscription has no
+   * workspace/org.
+   */
+  async handleInvoicePaymentFailed(
+    invoice: Stripe.Invoice,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const subscriptionId =
+      typeof invoice.parent?.subscription_details?.subscription === 'string'
+        ? invoice.parent.subscription_details.subscription
+        : invoice.parent?.subscription_details?.subscription?.id;
+    if (!subscriptionId) return;
+
+    const subRec = await Subscription.getByStripeSubscriptionId(
+      subscriptionId,
+      ncMeta,
+    );
+    if (!subRec) {
+      this.logger.warn(
+        `On-prem invoice.payment_failed: no Subscription record found for stripe_sub=${subscriptionId}`,
+      );
+      return;
+    }
+
+    // Defensive: caller (cloud-EE webhook router) should only route on-prem
+    // subscriptions here. If a workspace/org sub slipped through, drop with
+    // a warn rather than emit it on the on-prem channel.
+    if (subRec.fk_workspace_id || subRec.fk_org_id) {
+      this.logger.warn(
+        `handleInvoicePaymentFailed received non-on-prem subscription ${subRec.id} (workspace=${subRec.fk_workspace_id}, org=${subRec.fk_org_id})`,
+      );
+      return;
+    }
+
+    const installation = await Installation.getBySubscriptionId(
+      subRec.id,
+      ncMeta,
+    );
+
+    await this.emitOnPremAlert({
+      payment_type: 'on_prem_payment_failed',
+      message: installation
+        ? `On-prem installation ${installation.id} payment failed`
+        : `On-prem subscription ${subRec.id} payment failed`,
+      ...(installation
+        ? {
+            installation: {
+              id: installation.id,
+              license_type: installation.license_type,
+            },
+          }
+        : {}),
+      subscription: { id: subRec.id, stripe_subscription_id: subscriptionId },
+      extra: {
+        invoice_id: invoice.id,
+        failure_reason:
+          invoice.last_finalization_error?.message || 'Payment failed',
+      },
+    });
   }
 }

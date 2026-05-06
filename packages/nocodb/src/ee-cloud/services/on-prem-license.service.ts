@@ -48,7 +48,6 @@ function buildConfigFromPlan(
 
 function maskLicenseKey(key: string): string {
   if (!key) return '';
-  if (key.length <= 10) return `${key}***`;
   return `${key.slice(0, 6)}***${key.slice(-4)}`;
 }
 

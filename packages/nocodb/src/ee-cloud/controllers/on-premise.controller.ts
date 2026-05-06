@@ -478,6 +478,9 @@ export class OnPremiseController {
     if (!payload.license_key) {
       NcError._.badRequest('License key is required');
     }
+    if (payload.license_key.length < 10) {
+      NcError._.badRequest('License key must be at least 10 characters');
+    }
     if (!payload.licensed_to) {
       NcError._.badRequest('Licensed to is required');
     }

@@ -22,6 +22,7 @@ const {
   isFormExpired,
   isFormNotStarted,
   formStartsAt,
+  meta,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -110,6 +111,8 @@ const validateField = async (title: string) => {
 const { message: templatedMessage } = useTemplatedMessage(
   computed(() => sharedFormView?.value?.success_msg),
   computed(() => formState.value),
+  formColumns,
+  meta,
 )
 </script>
 

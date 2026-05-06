@@ -1,6 +1,15 @@
 import type { ColumnType } from 'ant-design-vue/lib/table'
 import dayjs from 'dayjs'
-import { type FilterType, type LinkToAnotherRecordType, type TableType, UITypes, isDateMonthFormat } from 'nocodb-sdk'
+import {
+  type FilterType,
+  type LinkToAnotherRecordType,
+  type TableType,
+  UITypes,
+  isBtLikeV2Junction,
+  isDateMonthFormat,
+  isLTAR,
+  isLink,
+} from 'nocodb-sdk'
 
 type FormViewColumn = ColumnType & Record<string, any>
 
@@ -117,30 +126,46 @@ export class FormFilters {
     return column.order < parentColumn.order
   }
 
-  async getOoOrBtColVal(column: FormViewColumn) {
-    const fk_related_model_id = (column?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+  // Extract display value(s) from an LTAR cell for filter comparisons.
+  // Handles both single-row objects (bt / oo / mo) and arrays of rows (hm / mm / om).
+  async getLtarDisplayValue(column: FormViewColumn): Promise<string | null> {
+    const colOptions = column?.colOptions as LinkToAnotherRecordType | undefined
+    const fk_related_model_id = colOptions?.fk_related_model_id
 
     if (!fk_related_model_id || typeof this.getMeta !== 'function' || !this.baseId) return null
 
-    const relatedTableMeta = await this.getMeta(this.baseId, fk_related_model_id)
+    const relatedBaseId = colOptions?.fk_related_base_id || this.baseId
+    const relatedTableMeta = await this.getMeta(relatedBaseId, fk_related_model_id)
 
     if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
 
-    const customDisplayColId = (column?.colOptions as LinkToAnotherRecordType)?.fk_display_value_column_id
+    const customDisplayColId = colOptions?.fk_display_value_column_id
     const customDisplayCol = customDisplayColId ? relatedTableMeta.columns.find((c) => c.id === customDisplayColId) : undefined
     const displayValTitle =
       (customDisplayCol || relatedTableMeta.columns.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
 
-    if (
-      !displayValTitle ||
-      !this.formState[column.title] ||
-      !ncIsObject(this.formState[column.title]) ||
-      this.formState[column.title][displayValTitle] === undefined
-    ) {
-      return null
+    if (!displayValTitle) return null
+
+    const value = this.formState[column.title] as Record<string, any> | Record<string, any>[] | null | undefined
+
+    if (value === null || value === undefined) return null
+
+    // Multi-record relations (mm / om) — value is an array of linked rows
+    if (Array.isArray(value)) {
+      const displayValues = value
+        .map((row) => (row && typeof row === 'object' ? row[displayValTitle] : undefined))
+        .filter((v): v is string | number | boolean => v !== undefined && v !== null)
+        .map((v) => `${v}`)
+
+      return displayValues.length ? displayValues.join(', ') : null
     }
 
-    return this.formState[column.title][displayValTitle]
+    // Single-record relations (mo / oo) — value is a single linked row
+    if (typeof value === 'object' && value[displayValTitle] !== undefined && value[displayValTitle] !== null) {
+      return `${value[displayValTitle]}`
+    }
+
+    return null
   }
 
   async validateCondition(
@@ -334,17 +359,14 @@ export class FormFilters {
                 break
             }
 
-            switch (column.uidt) {
-              case UITypes.Links:
-                if (isMm(column) || isHm(column)) {
-                  val = (this.formState[field] ?? []).length
-                }
-                break
-              case UITypes.LinkToAnotherRecord:
-                if (isOo(column) || isBt(column)) {
-                  val = await this.getOoOrBtColVal(column)
-                }
-                break
+            // Match VirtualCell.vue's dispatch: V2 single-record junction → chip (display value);
+            // uidt=Links → count cell; everything else LTAR → linked-row display value(s).
+            if (isBtLikeV2Junction(column)) {
+              val = await this.getLtarDisplayValue(column)
+            } else if (isLink(column)) {
+              val = (this.formState[field] ?? []).length
+            } else if (isLTAR(column.uidt, column.colOptions)) {
+              val = await this.getLtarDisplayValue(column)
             }
 
             switch (filter.comparison_op) {

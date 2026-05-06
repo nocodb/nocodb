@@ -197,9 +197,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const rows = computed(() => groupFormColumnsByRow(formColumns.value))
 
   function supportedFields(col: ColumnType) {
-    return (
-      !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && !isAI(col) && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt))
-    )
+    return !isSystemColumn(col) && !isFormViewHiddenCol(col) && !isAI(col) && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt))
   }
 
   const loadSharedView = async () => {

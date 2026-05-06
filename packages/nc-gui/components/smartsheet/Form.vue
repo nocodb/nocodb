@@ -1217,6 +1217,8 @@ const handleOnClick = (e: MouseEvent) => {
 const { message: templatedMessage } = useTemplatedMessage(
   computed(() => formViewData?.value?.success_msg),
   computed(() => formState.value),
+  localColumns,
+  meta,
 )
 </script>
 

@@ -457,6 +457,7 @@ const formViewHiddenColTypes = [
   UITypes.LastModifiedBy,
   UITypes.Meta,
   UITypes.UUID,
+  UITypes.AutoNumber,
   AIButton,
   AIPrompt,
 ]

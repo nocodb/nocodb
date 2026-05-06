@@ -763,11 +763,7 @@ useResizeObserver(inputWrapperRef, () => {
             </template>
           </NcButton>
         </NcTooltip>
-        <NcTooltip
-          v-if="!isVisible && !isForm && (!isSmartMode || isExpandedFormOpen)"
-          placement="bottom"
-          class="nc-action-icon"
-        >
+        <NcTooltip v-if="!isVisible && !isForm && (!isSmartMode || isExpandedFormOpen)" placement="bottom" class="nc-action-icon">
           <template #title>{{ isExpandedFormOpen ? $t('title.expand') : $t('tooltip.expandShiftSpace') }}</template>
           <NcButton
             type="secondary"

@@ -73,10 +73,10 @@ import {
   createHmAndBtColumn,
   createOOColumn,
   deleteColumnSystemPropsFromRequest,
-  type OperationSource,
   generateFkName,
   getMMColumnNames,
   getRevType,
+  type OperationSource,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -673,12 +673,7 @@ export class ColumnsService implements IColumnsService {
         incomingMeta !== undefined && incomingMeta !== null
           ? { ...existingMeta, ...incomingMeta }
           : existingMeta;
-      validateLongTextMetaExclusivity(
-        context,
-        column.uidt,
-        mergedMeta,
-        source,
-      );
+      validateLongTextMetaExclusivity(context, column.uidt, mergedMeta, source);
     }
 
     const columnWebhookManager =

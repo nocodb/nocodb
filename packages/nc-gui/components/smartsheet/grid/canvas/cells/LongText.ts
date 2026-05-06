@@ -129,8 +129,18 @@ export const LongTextCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column, getCellPosition, row, mousePosition, makeCellEditable, cellRenderStore, isDoubleClick, selected, openSmartText, pk } =
-      props
+    const {
+      column,
+      getCellPosition,
+      row,
+      mousePosition,
+      makeCellEditable,
+      cellRenderStore,
+      isDoubleClick,
+      selected,
+      openSmartText,
+      pk,
+    } = props
 
     if (isAIPromptCol(column?.columnObj)) {
       return AILongTextCellRenderer.handleClick!(props)

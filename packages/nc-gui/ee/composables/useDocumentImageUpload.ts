@@ -56,9 +56,9 @@ export function useDocumentImageUpload() {
 
     const cell = smartTextCell?.value
     if (cell?.tableId && cell?.columnId && cell?.rowId) {
-      return `${appInfo.value.ncSiteUrl}/api/v2/data/bases/${baseId}/tables/${cell.tableId}/columns/${cell.columnId}/rows/${encodeURIComponent(
-        cell.rowId,
-      )}/attachment/${encodeURIComponent(fileRefId)}`
+      return `${appInfo.value.ncSiteUrl}/api/v2/data/bases/${baseId}/tables/${cell.tableId}/columns/${
+        cell.columnId
+      }/rows/${encodeURIComponent(cell.rowId)}/attachment/${encodeURIComponent(fileRefId)}`
     }
 
     const docIdVal = docId?.value

@@ -39,10 +39,7 @@ import { marked } from 'marked';
  */
 function encodeMarkdownUrl(url: string): string {
   if (!url) return '';
-  return url
-    .replace(/ /g, '%20')
-    .replace(/\(/g, '%28')
-    .replace(/\)/g, '%29');
+  return url.replace(/ /g, '%20').replace(/\(/g, '%28').replace(/\)/g, '%29');
 }
 
 /**

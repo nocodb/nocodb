@@ -28,12 +28,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
 
   const rowNavigator = ref(null)
 
-  const openEditor = async (
-    _rowId: string,
-    _columnId: string,
-    _rowData?: Record<string, any>,
-    _rowIndex?: number,
-  ) => {}
+  const openEditor = async (_rowId: string, _columnId: string, _rowData?: Record<string, any>, _rowIndex?: number) => {}
   const closeEditor = async () => {}
   const flushSave = async () => {}
   const setPmContent = (_pm: Record<string, any>) => {}

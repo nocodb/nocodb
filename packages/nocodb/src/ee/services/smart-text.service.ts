@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { isSmartText, SMART_TEXT_MAX_BYTES, UITypes } from 'nocodb-sdk';
-import type { ProseMirrorDoc } from 'nocodb-sdk';
 import { SmartTextService as SmartTextServiceCE } from 'src/services/smart-text.service';
+import type { ProseMirrorDoc } from 'nocodb-sdk';
 import type { SmartTextGetResult } from 'src/services/smart-text.service';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type Column from '~/models/Column';
 import { NcError } from '~/helpers/catchError';
 import {
   markdownToProseMirror,
@@ -12,7 +13,6 @@ import {
 import { prepareMetaUpdateQuery } from '~/ee/helpers/metaColumnHelpers';
 import Model from '~/models/Model';
 import Source from '~/models/Source';
-import Column from '~/models/Column';
 import FileReference from '~/models/FileReference';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -65,10 +65,7 @@ export class SmartTextService extends SmartTextServiceCE {
       .where(pkColumn.column_name, param.rowId)
       .select(
         column.column_name,
-        dbDriver.raw(`??->?->>'pm' as nc_smart_pm`, [
-          META_COL_NAME,
-          column.id,
-        ]),
+        dbDriver.raw(`??->?->>'pm' as nc_smart_pm`, [META_COL_NAME, column.id]),
       )
       .first()) as
       | { [key: string]: any; nc_smart_pm?: string | object }

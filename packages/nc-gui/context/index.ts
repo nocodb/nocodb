@@ -177,6 +177,6 @@ export const DocIdInj: InjectionKey<Ref<string>> = Symbol('doc-id-injection')
  * file attachment nodes resolve their URLs via the cell-keyed proxy endpoint
  * (table+column+row triple) instead of the doc-keyed one.
  */
-export const SmartTextCellAttachmentInj: InjectionKey<
-  Ref<{ tableId: string; columnId: string; rowId: string } | null>
-> = Symbol('smart-text-cell-attachment-injection')
+export const SmartTextCellAttachmentInj: InjectionKey<Ref<{ tableId: string; columnId: string; rowId: string } | null>> = Symbol(
+  'smart-text-cell-attachment-injection',
+)

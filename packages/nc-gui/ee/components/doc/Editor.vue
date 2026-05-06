@@ -2387,15 +2387,11 @@ defineExpose({ editor })
 
         <div
           class="nc-doc-editor-inner w-full mx-auto"
-          :class="[
-            isCellMode ? 'px-10' : 'px-6 sm:px-10 lg:px-16',
-            { 'max-w-[900px]': !isFullWidth },
-          ]"
+          :class="[isCellMode ? 'px-10' : 'px-6 sm:px-10 lg:px-16', { 'max-w-[900px]': !isFullWidth }]"
           :dir="resolvedDir"
         >
           <!-- Title — hidden in cell mode (the panel header already shows the column name) -->
           <div v-if="!isCellMode" class="nc-doc-editor-header pb-4" :class="embedded ? 'pt-4' : 'pt-12'">
-
             <NcTooltip v-if="!coverImageSrc && isUIAllowed('documentUpdate')" :disabled="isEditable">
               <template #title>{{ $t('msg.info.editingRestrictedForThisPage') }}</template>
               <div
@@ -2462,7 +2458,12 @@ defineExpose({ editor })
                 </svg>
                 {{ $t('labels.taskProgress', { completed: taskCompleted, total: taskTotal }) }}
               </span>
-              <span v-if="!embedded" v-e="['c:doc:comments:subtitle-toggle']" class="nc-doc-subtitle-comments" @click="toggleCommentsPanel()">
+              <span
+                v-if="!embedded"
+                v-e="['c:doc:comments:subtitle-toggle']"
+                class="nc-doc-subtitle-comments"
+                @click="toggleCommentsPanel()"
+              >
                 <GeneralIcon icon="ncMessageCircle" class="!w-3.5 !h-3.5" />
                 <template v-if="commentCount">
                   {{ commentCount }} {{ commentCount === 1 ? $t('general.comment') : $t('general.comments') }}
@@ -2477,10 +2478,7 @@ defineExpose({ editor })
           <!-- Editor — always mounted so ProseMirror view stays attached -->
           <div
             class="nc-doc-editor-body relative"
-            :class="[
-              hasSubDocuments ? 'pb-8' : 'pb-48',
-              { 'pt-6': isCellMode },
-            ]"
+            :class="[hasSubDocuments ? 'pb-8' : 'pb-48', { 'pt-6': isCellMode }]"
             :style="docColorVars"
             data-testid="docs-page-content"
             @click="onEditorBodyClick"

@@ -198,7 +198,8 @@ export class PublicDatasService extends PublicDatasServiceCE {
     const view = await View.getByUUID(context, sharedViewUuid);
     if (!view) NcError.get(context).viewNotFound(sharedViewUuid);
 
-    if (view.type === ViewTypes.FORM) NcError.get(context).notFound('Not found');
+    if (view.type === ViewTypes.FORM)
+      NcError.get(context).notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
     this.publicMetasService.checkViewBaseType(view, base);
@@ -209,7 +210,11 @@ export class PublicDatasService extends PublicDatasServiceCE {
 
     // Column must belong to the view's table and be a SmartText field.
     const column = await Column.get(context, { colId: columnId });
-    if (!column || column.fk_model_id !== view.fk_model_id || !isSmartText(column)) {
+    if (
+      !column ||
+      column.fk_model_id !== view.fk_model_id ||
+      !isSmartText(column)
+    ) {
       NcError.get(context).fieldNotFound(columnId);
     }
 

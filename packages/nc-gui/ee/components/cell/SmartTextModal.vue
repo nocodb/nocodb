@@ -52,9 +52,7 @@ const sharedViewPassword = inject(SharedViewPasswordInj, ref<string | null>(null
 
 const route = useRoute()
 
-const sharedViewUuid = computed(() =>
-  isPublic.value ? (route.params.viewId as string | undefined) ?? null : null,
-)
+const sharedViewUuid = computed(() => (isPublic.value ? (route.params.viewId as string | undefined) ?? null : null))
 
 const isVisible = useVModel(props, 'visible', emits)
 
@@ -100,9 +98,7 @@ const loadContent = async () => {
         sharedViewUuid.value!,
         props.rowId!,
         props.columnId!,
-        sharedViewPassword.value
-          ? { headers: { 'xc-password': sharedViewPassword.value } }
-          : {},
+        sharedViewPassword.value ? { headers: { 'xc-password': sharedViewPassword.value } } : {},
       )) as unknown as SmartTextGetResponse
     } else {
       result = (await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value!, {
@@ -190,22 +186,19 @@ const onBeforeUnload = () => {
   if (isDirty.value) flushSave()
 }
 
-watch(
-  isVisible,
-  (open) => {
-    if (open) {
-      loadContent()
-      document.addEventListener('visibilitychange', onVisibilityChange)
-      window.addEventListener('beforeunload', onBeforeUnload)
-    } else {
-      document.removeEventListener('visibilitychange', onVisibilityChange)
-      window.removeEventListener('beforeunload', onBeforeUnload)
-      pmContent.value = null
-      loadedKey.value = null
-      isDirty.value = false
-    }
-  },
-)
+watch(isVisible, (open) => {
+  if (open) {
+    loadContent()
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    window.addEventListener('beforeunload', onBeforeUnload)
+  } else {
+    document.removeEventListener('visibilitychange', onVisibilityChange)
+    window.removeEventListener('beforeunload', onBeforeUnload)
+    pmContent.value = null
+    loadedKey.value = null
+    isDirty.value = false
+  }
+})
 
 onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', onVisibilityChange)
@@ -247,9 +240,7 @@ const editorInitialContent = computed(() => pmContent.value ?? null)
       @keydown="onKeydown"
     >
       <!-- Header -->
-      <div
-        class="flex items-center gap-2 h-[var(--topbar-height)] px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
-      >
+      <div class="flex items-center gap-2 h-[var(--topbar-height)] px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0">
         <div class="flex items-center gap-2 text-nc-content-gray-subtle px-1 min-w-0">
           <SmartsheetHeaderIcon v-if="column" :column="column" />
           <GeneralIcon v-else icon="ncFileText" class="w-4 h-4 flex-shrink-0" />

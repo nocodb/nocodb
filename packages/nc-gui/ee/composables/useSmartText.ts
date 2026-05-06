@@ -28,9 +28,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
   const router = useRouter()
   const route = router.currentRoute
 
-  const sharedViewUuid = computed(() =>
-    isPublic.value ? (route.value.params.viewId as string | undefined) ?? null : null,
-  )
+  const sharedViewUuid = computed(() => (isPublic.value ? (route.value.params.viewId as string | undefined) ?? null : null))
 
   const isOpen = ref(false)
   const activeRowId = ref<string | null>(null)
@@ -63,11 +61,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
    */
   const _syncUrl = () => {
     const next = { ...route.value.query } as Record<string, any>
-    if (
-      isOpen.value &&
-      activeRowId.value &&
-      activeColumnId.value
-    ) {
+    if (isOpen.value && activeRowId.value && activeColumnId.value) {
       next.rowId = activeRowId.value
       next.colId = activeColumnId.value
       if (mode.value === 'fullscreen') {
@@ -120,8 +114,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
   // the API resolves (rapid clicks / row navigation).
   const loadedKey = ref<string | null>(null)
 
-  const _cellKey = (tableId: string, rowId: string, columnId: string) =>
-    `${tableId}|${rowId}|${columnId}`
+  const _cellKey = (tableId: string, rowId: string, columnId: string) => `${tableId}|${rowId}|${columnId}`
 
   /** Load PM JSON + markdown for the current cell from the backend. */
   const _loadContent = async () => {
@@ -157,9 +150,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
           sharedViewUuid.value!,
           rowId,
           columnId,
-          sharedViewPassword.value
-            ? { headers: { 'xc-password': sharedViewPassword.value } }
-            : {},
+          sharedViewPassword.value ? { headers: { 'xc-password': sharedViewPassword.value } } : {},
         )) as unknown as SmartTextGetResponse
       } else {
         result = (await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value!, {
@@ -206,23 +197,20 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
   // _loadContent call inside openEditor silently early-returns. Re-attempt
   // once the missing prerequisites resolve. Use loadedKey (not "no content as
   // proxy") so genuinely-empty cells aren't re-loaded on unrelated meta changes.
-  watch(
-    [isOpen, activeRowId, activeColumnId, () => meta.value?.id, activeWorkspaceId, activeProjectId, sharedViewUuid],
-    () => {
-      if (!isOpen.value) return
-      if (!activeRowId.value || !activeColumnId.value) return
-      if (!meta.value?.id) return
-      if (isPublic.value) {
-        if (!sharedViewUuid.value) return
-      } else if (!activeWorkspaceId.value || !activeProjectId.value) {
-        return
-      }
-      const currentKey = _cellKey(meta.value.id, activeRowId.value, activeColumnId.value)
-      // Already loaded this exact cell, or load already in flight — skip.
-      if (loadedKey.value === currentKey || isLoading.value) return
-      _loadContent()
-    },
-  )
+  watch([isOpen, activeRowId, activeColumnId, () => meta.value?.id, activeWorkspaceId, activeProjectId, sharedViewUuid], () => {
+    if (!isOpen.value) return
+    if (!activeRowId.value || !activeColumnId.value) return
+    if (!meta.value?.id) return
+    if (isPublic.value) {
+      if (!sharedViewUuid.value) return
+    } else if (!activeWorkspaceId.value || !activeProjectId.value) {
+      return
+    }
+    const currentKey = _cellKey(meta.value.id, activeRowId.value, activeColumnId.value)
+    // Already loaded this exact cell, or load already in flight — skip.
+    if (loadedKey.value === currentKey || isLoading.value) return
+    _loadContent()
+  })
 
   /**
    * Persist current PM content to the backend. Called on session-end triggers
@@ -307,12 +295,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     isDirty.value = true
   }
 
-  const openEditor = async (
-    rowId: string,
-    columnId: string,
-    rowData?: Record<string, any>,
-    rowIndex?: number,
-  ) => {
+  const openEditor = async (rowId: string, columnId: string, rowData?: Record<string, any>, rowIndex?: number) => {
     if (isPublic.value) {
       if (!sharedViewUuid.value) return
     } else if (!activeWorkspaceId.value || !activeProjectId.value) {

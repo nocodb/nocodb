@@ -27,6 +27,7 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { OperationSource } from '~/helpers/columnHelpers';
 import { ColumnsService } from '~/services/columns.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
@@ -40,7 +41,6 @@ import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
-import type { OperationSource } from '~/helpers/columnHelpers';
 import { NcError } from '~/helpers/catchError';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '~/helpers/getColumnUiType';

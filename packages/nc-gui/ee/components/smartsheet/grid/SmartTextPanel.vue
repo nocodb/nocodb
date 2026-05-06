@@ -18,15 +18,7 @@ const {
   hasNext,
 } = smartTextStore
 
-const {
-  closeEditor,
-  flushSave,
-  switchField,
-  setFullscreen,
-  setPmContent,
-  navigatePrev,
-  navigateNext,
-} = smartTextStore
+const { closeEditor, flushSave, switchField, setFullscreen, setPmContent, navigatePrev, navigateNext } = smartTextStore
 
 const { t } = useI18n()
 const view = inject(ActiveViewInj, ref())
@@ -87,15 +79,6 @@ const getMaxWidth = () => {
   return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.75))
 }
 
-const onResizeStart = (e: MouseEvent) => {
-  isResizing.value = true
-  resizeStartX.value = e.clientX
-  resizeStartWidth.value = panelWidth.value
-  document.body.style.cursor = 'col-resize'
-  window.addEventListener('mousemove', onResizeMove)
-  window.addEventListener('mouseup', onResizeEnd)
-}
-
 const onResizeMove = (e: MouseEvent) => {
   if (!isResizing.value) return
   const delta = resizeStartX.value - e.clientX
@@ -107,6 +90,15 @@ const onResizeEnd = () => {
   document.body.style.cursor = ''
   window.removeEventListener('mousemove', onResizeMove)
   window.removeEventListener('mouseup', onResizeEnd)
+}
+
+const onResizeStart = (e: MouseEvent) => {
+  isResizing.value = true
+  resizeStartX.value = e.clientX
+  resizeStartWidth.value = panelWidth.value
+  document.body.style.cursor = 'col-resize'
+  window.addEventListener('mousemove', onResizeMove)
+  window.addEventListener('mouseup', onResizeEnd)
 }
 
 // ---- Session-end save triggers ---------------------------------------------
@@ -158,6 +150,10 @@ watch(
   },
   { immediate: true },
 )
+
+// Action menu copy-URL feedback timer — cleared on unmount and on each new
+// copy. Declared here so onBeforeUnmount can reference it.
+let copyResetTimer: ReturnType<typeof setTimeout> | null = null
 
 onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', onVisibilityChange)
@@ -263,7 +259,6 @@ const { copy } = useCopy()
 
 const isActionsMenuOpen = ref(false)
 const isUrlCopied = ref(false)
-let copyResetTimer: ReturnType<typeof setTimeout> | null = null
 
 const onCopyUrl = async () => {
   try {
@@ -306,9 +301,7 @@ const onDownloadPDF = () => downloadPDF()
       />
 
       <!-- Header -->
-      <div
-        class="flex items-center h-[var(--topbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
-      >
+      <div class="flex items-center h-[var(--topbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0">
         <div
           v-if="isFullscreen"
           class="flex items-center gap-2 text-bodyDefaultSm font-medium text-nc-content-gray-subtle2 leading-normal min-w-0"
@@ -359,11 +352,7 @@ const onDownloadPDF = () => downloadPDF()
         </div>
 
         <!-- Save status -->
-        <span
-          v-if="saveStatusLabel"
-          class="text-captionSm text-nc-content-gray-muted"
-          data-testid="nc-smart-text-save-status"
-        >
+        <span v-if="saveStatusLabel" class="text-captionSm text-nc-content-gray-muted" data-testid="nc-smart-text-save-status">
           {{ saveStatusLabel }}
         </span>
 
@@ -413,20 +402,12 @@ const onDownloadPDF = () => downloadPDF()
         </NcTooltip>
 
         <NcDropdown v-model:visible="isActionsMenuOpen" placement="bottomRight">
-          <NcButton
-            size="xs"
-            type="text"
-            :aria-label="$t('general.actions')"
-            data-testid="nc-smart-text-panel-more"
-          >
+          <NcButton size="xs" type="text" :aria-label="$t('general.actions')" data-testid="nc-smart-text-panel-more">
             <GeneralIcon icon="ncMoreVertical" class="w-4 h-4" />
           </NcButton>
           <template #overlay>
             <NcMenu variant="small">
-              <NcMenuItem
-                data-testid="nc-smart-text-panel-copy-url"
-                @click.stop="onCopyUrl"
-              >
+              <NcMenuItem data-testid="nc-smart-text-panel-copy-url" @click.stop="onCopyUrl">
                 <GeneralIcon
                   :icon="isUrlCopied ? 'check' : 'ncCopy'"
                   :class="isUrlCopied ? 'text-nc-content-green-medium' : 'text-nc-content-gray-subtle'"

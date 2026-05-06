@@ -56,6 +56,7 @@ onMounted(() => {
     :disabled="readOnly"
     :precision="precision"
     :decimal-separator="separatorChars.decimalSeparator"
+    :thousand-separator="separatorChars.thousandSeparator"
     @blur="editEnabled = false"
   />
 </template>

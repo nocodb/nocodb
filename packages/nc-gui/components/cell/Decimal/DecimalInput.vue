@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { composeNewDecimalValue, ncIsNaN } from 'nocodb-sdk'
+import { composeNewDecimalValue, formatNumberWithSeparator, ncIsNaN } from 'nocodb-sdk'
 import type { StyleValue } from 'vue'
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
   precision?: number
   isFocusOnMounted?: boolean
   decimalSeparator?: string
+  thousandSeparator?: string | null
 }
 
 interface Emits {
@@ -84,16 +85,15 @@ const getFormattedModelValue = (format = true) => {
     }
 
     if (numValue !== undefined) {
-      let result: string
-      if (props.precision && format) {
-        result = numValue.toFixed(props.precision) ?? ''
-      } else {
-        result = numValue.toString()
+      // Idle/non-focused: apply thousand grouping and precision so the input
+      // matches the readonly display (e.g. "1,234,567.89" / "1 234 567,89").
+      // Focused/editing: bare number with only the decimal separator so the
+      // user can type/paste cleanly.
+      if (format) {
+        return formatNumberWithSeparator(numValue, props.thousandSeparator ?? null, decSep, props.precision)
       }
-      if (decSep !== '.') {
-        result = result.replace('.', decSep)
-      }
-      return result
+      const result = numValue.toString()
+      return decSep !== '.' ? result.replace('.', decSep) : result
     }
   }
 
@@ -109,8 +109,11 @@ const saveValue = (targetValue: string) => {
     vModel.value = null
     return
   }
-  let cleaned = targetValue
   const decSep = props.decimalSeparator || '.'
+  // Strip everything that isn't a digit, minus, or the column's decimal separator.
+  // This lets users type/paste thousand-separator chars (`,` `.` ` ` NBSP) freely;
+  // they're treated as visual noise and removed before parsing.
+  let cleaned = targetValue.replace(new RegExp(`[^0-9\\-\\${decSep}]`, 'g'), '')
   if (decSep !== '.') {
     cleaned = cleaned.replace(new RegExp('\\' + decSep, 'g'), '.')
   }
@@ -177,14 +180,34 @@ const onInputKeyDown = (e: KeyboardEvent) => {
   } else if (e.key === 'ArrowUp') {
     target.setSelectionRange(0, 0)
     return
-  } else if (e.key.match(`[^-0-9\\${props.decimalSeparator || '.'}]`)) {
-    // prevent everything non ctrl / alt and non . and non number
+  }
+
+  const decSep = props.decimalSeparator || '.'
+
+  // Allow only one decimal separator
+  if (e.key === decSep && target.value.includes(decSep)) {
     e.preventDefault()
     e.stopPropagation()
     return
   }
 
-  pasteText(target, e.key)
+  // Minus must be unique and at the beginning of the input
+  if (e.key === '-') {
+    if (target.value.includes('-') || (target.selectionStart ?? 0) !== 0) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    return
+  }
+
+  // Allow digits, the column's decimal separator, and "noise" thousand-separator
+  // candidates (comma, period, space, NBSP). Noise chars are kept visually and
+  // stripped at save-time — same behavior as Airtable.
+  if (/^[0-9]$/.test(e.key) || e.key === decSep || /^[,.  ]$/.test(e.key)) {
+    return
+  }
+
+  // Block everything else
   e.preventDefault()
   e.stopPropagation()
 }
@@ -269,9 +292,9 @@ const removeEvents = (input: HTMLInputElement) => {
 const onBeforeInput = (e: InputEvent) => {
   if (!e.data || !isMobileMode.value) return // may be null for deletions etc.
 
-  // allow only digits, minus, dot
+  // allow digits, minus, the decimal separator, and noise thousand-separator chars
   const decSep = props.decimalSeparator || '.'
-  if (!(new RegExp(`^[0-9\\-\\${decSep}]$`).test(e.data))) {
+  if (!(new RegExp(`^[0-9\\-\\${decSep},. \\u00A0]$`).test(e.data))) {
     e.preventDefault()
   }
 }

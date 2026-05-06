@@ -55,3 +55,18 @@ export function validateEntityName(
 
   return { valid: true };
 }
+
+const DISALLOWED_CHARS_PATTERN = /[^\p{L}\p{N} \-_.,&'()]/gu;
+
+/**
+ * Coerces an arbitrary string into a value that passes ENTITY_NAME_ALLOWED_PATTERN
+ * by replacing disallowed characters with spaces, collapsing runs of whitespace,
+ * and trimming. Returns an empty string if no allowed characters remain.
+ */
+export function sanitizeEntityName(name: string | undefined | null): string {
+  if (name == null) return '';
+  return name
+    .replace(DISALLOWED_CHARS_PATTERN, ' ')
+    .replace(CONSECUTIVE_SPACES_PATTERN, ' ')
+    .trim();
+}

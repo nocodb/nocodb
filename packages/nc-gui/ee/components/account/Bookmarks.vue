@@ -17,7 +17,6 @@ const {
   navigateToBookmark,
 } = useBookmarks()
 
-const { blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
 const { t } = useI18n()
 
 const isCreatingGroup = ref(false)
@@ -43,7 +42,7 @@ function cancelRename() {
 }
 
 async function saveRename(bmId: string) {
-  const newTitle = useOriginalName.value ? null : (renameValue.value.trim() || null)
+  const newTitle = useOriginalName.value ? null : renameValue.value.trim() || null
   await updateBookmark(bmId, { title: newTitle })
   cancelRename()
 }
@@ -177,11 +176,6 @@ watch(
   (id) => {
     if (!id) return
 
-    if (blockBookmarks.value) {
-      showUpgradeToUseBookmarks()
-      return
-    }
-
     loadBookmarks()
   },
   { immediate: true },
@@ -240,10 +234,7 @@ watch(
           <!-- Group header -->
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
-              <component
-                :is="iconMap.drag"
-                class="nc-group-drag-handle !h-3.75 text-nc-content-gray-subtle2 cursor-move"
-              />
+              <component :is="iconMap.drag" class="nc-group-drag-handle !h-3.75 text-nc-content-gray-subtle2 cursor-move" />
 
               <!-- Group inline rename mode -->
               <template v-if="renamingGroupId === group.id">

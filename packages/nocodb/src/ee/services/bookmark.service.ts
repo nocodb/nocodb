@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, DependencyTableType } from 'nocodb-sdk';
+import { AppEvents, DependencyTableType, PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   BookmarkGroupReqType,
   BookmarkReqType,
@@ -9,6 +9,7 @@ import type {
 import { Bookmark, BookmarkGroup, DependencyTracker } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import Base from '~/models/Base';
 import BaseUser from '~/models/BaseUser';
 import Model from '~/models/Model';
@@ -109,6 +110,11 @@ export class BookmarkService {
       workspace_id: meta.workspace_id,
       base_id: meta.base_id,
     } as NcContext;
+
+    // Plan gate: only adding a new bookmark is restricted by FEATURE_BOOKMARKS.
+    // Existing bookmarks remain manageable (list/update/move/delete/group ops)
+    // even after a downgrade, since bookmarks are user-scoped.
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_BOOKMARKS);
 
     await this.validateTargetAccess(context, {
       userId,

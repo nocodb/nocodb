@@ -556,6 +556,7 @@ function onStopEdit() {
                 target-type="document"
                 :target-id="doc.id!"
                 :meta="{ workspace_id: activeWorkspaceId, base_id: base?.id || doc.base_id }"
+                @close="isDropdownOpen = false"
               />
               <template v-if="isUIAllowed('documentDelete')">
                 <NcDivider />

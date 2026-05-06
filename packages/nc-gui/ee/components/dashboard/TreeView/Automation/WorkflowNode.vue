@@ -514,6 +514,7 @@ const deleteWorkflow = () => {
                     target-type="workflow"
                     :target-id="vModel.id!"
                     :meta="{ workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id }"
+                    @close="isDropdownOpen = false"
                   />
                   <NcDivider />
                   <NcMenuItem

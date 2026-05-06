@@ -251,6 +251,7 @@ const onMenuClick = (e: Event) => {
                 target-type="base"
                 :target-id="base.id!"
                 :meta="{ workspace_id: base.fk_workspace_id }"
+                @close="isMenuOpen = false"
               />
 
               <!-- Settings -->

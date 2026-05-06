@@ -102,7 +102,7 @@ const { isDark } = useTheme()
 
 // ── Search — shared composable ──
 
-const { isBaseListAllLoading, loadBaseListAll, getBaseMatchCountByWs } = useWsBaseListAll()
+const { isBaseListAllLoading, loadBaseListAll, getBaseMatchCountByWs, baseListAllWsMap } = useWsBaseListAll()
 
 const searchQuery = useState<string>('ws-home-search', () => '')
 
@@ -241,10 +241,7 @@ const hasNoResults = computed(() => {
                         :label="$t('labels.workspaceId', { workspaceId: ws.id })"
                       />
                       <NcDivider />
-                      <BookmarksMenuAction
-                        target-type="workspace"
-                        :target-id="ws.id!"
-                      />
+                      <BookmarksMenuAction target-type="workspace" :target-id="ws.id!" />
                     </NcMenu>
                   </template>
                 </NcDropdown>

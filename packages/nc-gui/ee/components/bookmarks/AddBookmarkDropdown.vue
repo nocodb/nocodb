@@ -36,7 +36,7 @@ const currentPageBookmarkInfo = computed<{ targetType: string; targetId: string;
     return {
       targetType: 'view',
       targetId: viewId,
-      meta: { workspace_id: workspaceId, base_id: baseId, table_id: tableId },
+      meta: { workspace_id: workspaceId, base_id: baseId, table_id: tableId, view_type: activeView.value?.type },
     }
   }
 

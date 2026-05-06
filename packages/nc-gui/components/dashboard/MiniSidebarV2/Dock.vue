@@ -45,7 +45,7 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, showEEFeatures, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+const { blockAiChat, showEEFeatures, isEEFeatureBlocked, showUpgradeToUseBookmarks } = useEeConfig()
 
 const isBookmarksFlyoutOpen = ref(false)
 
@@ -289,6 +289,14 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     handleChatToggle()
   }
 })
+
+const handleOpenBookmarkPanel = () => {
+  if (isEEFeatureBlocked.value) {
+    showUpgradeToUseBookmarks()
+  } else {
+    isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
+  }
+}
 </script>
 
 <template>
@@ -388,18 +396,14 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
     <!-- Bookmarks -->
     <div v-if="isEeUI" ref="bookmarksContainerRef" class="relative">
-      <div
-        :ref="(el: any) => setItemRef('bookmarks', el)"
-        class="nc-dock-magnify-wrapper"
-        :style="getMagnifyStyle('bookmarks')"
-      >
+      <div :ref="(el: any) => setItemRef('bookmarks', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('bookmarks')">
         <DashboardMiniSidebarV2DockItem
           icon="ncBookmark"
           :label="$t('labels.bookmarks')"
           :active="isBookmarksFlyoutOpen"
           data-testid="nc-dock-bookmarks"
           :scale="getScale('bookmarks')"
-          @click="blockBookmarks ? showUpgradeToUseBookmarks() : (isBookmarksFlyoutOpen = !isBookmarksFlyoutOpen)"
+          @click="handleOpenBookmarkPanel"
         />
       </div>
 

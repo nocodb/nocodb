@@ -724,6 +724,7 @@ const enabledOptions = computed(() => {
                   target-type="table"
                   :target-id="table.id!"
                   :meta="{ workspace_id: table.fk_workspace_id, base_id: table.base_id }"
+                  @close="isOptionsOpen = false"
                 />
                 <template v-if="enabledOptions.tableDelete">
                   <NcDivider />

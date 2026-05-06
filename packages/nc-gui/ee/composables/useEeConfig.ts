@@ -2161,7 +2161,13 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseBookmarks = () => {
     if (!blockBookmarks.value) return
 
-    handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_BOOKMARKS })
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseBookmarks'),
+      content: t('upgrade.upgradeToUseBookmarksSubtitle', {
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      limitOrFeature: PlanFeatureTypes.FEATURE_BOOKMARKS,
+    })
     return true
   }
 

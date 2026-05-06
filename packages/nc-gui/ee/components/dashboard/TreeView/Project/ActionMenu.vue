@@ -244,6 +244,7 @@ const isOptionVisible = computed(() => {
       target-type="base"
       :target-id="base.id!"
       :meta="{ workspace_id: base.fk_workspace_id }"
+      @close="emits('clickMenu')"
     />
 
     <NcDivider v-if="isOptionVisible.baseMiscSettings || isOptionVisible.baseDelete" />

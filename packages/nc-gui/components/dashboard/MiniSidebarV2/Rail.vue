@@ -45,7 +45,7 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, showEEFeatures, blockBookmarks, showUpgradeToUseBookmarks } = useEeConfig()
+const { blockAiChat, showEEFeatures, isEEFeatureBlocked, showUpgradeToUseBookmarks } = useEeConfig()
 
 const isBookmarksFlyoutOpen = ref(false)
 
@@ -212,6 +212,14 @@ const mainItems = computed<NavItem[]>(() => [
       ]
     : []),
 ])
+
+const handleOpenBookmarkPanel = () => {
+  if (isEEFeatureBlocked.value) {
+    showUpgradeToUseBookmarks()
+  } else {
+    isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
+  }
+}
 </script>
 
 <template>
@@ -310,13 +318,10 @@ const mainItems = computed<NavItem[]>(() => [
         :active="isBookmarksFlyoutOpen"
         is-dropdown
         data-testid="nc-rail-bookmarks"
-        @click="blockBookmarks ? showUpgradeToUseBookmarks() : (isBookmarksFlyoutOpen = !isBookmarksFlyoutOpen)"
+        @click="handleOpenBookmarkPanel"
       />
 
-      <LazyBookmarksFlyout
-        v-if="isBookmarksFlyoutOpen"
-        @close="isBookmarksFlyoutOpen = false"
-      />
+      <LazyBookmarksFlyout v-if="isBookmarksFlyoutOpen" @close="isBookmarksFlyoutOpen = false" />
     </div>
 
     <!-- Activity / Notifications -->

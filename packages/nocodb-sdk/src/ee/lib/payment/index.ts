@@ -111,6 +111,7 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: false,
       [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]: false,
       [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]: false,
+      [PlanFeatureTypes.FEATURE_BOOKMARKS]: false,
       // Business+ features (disabled at Free)
       [PlanFeatureTypes.FEATURE_DOCS_APIS]: false,
       [PlanFeatureTypes.FEATURE_AI_INTEGRATIONS]: false,
@@ -673,13 +674,4 @@ export const InternalOpToOnPremPlanFeature: Record<
   // Audit
   workspaceAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
   baseAuditList: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
-  // Bookmarks
-  bookmarkList: PlanFeatureTypes.FEATURE_BOOKMARKS,
-  bookmarkGroupList: PlanFeatureTypes.FEATURE_BOOKMARKS,
-  bookmarkCreate: PlanFeatureTypes.FEATURE_BOOKMARKS,
-  bookmarkUpdate: PlanFeatureTypes.FEATURE_BOOKMARKS,
-  bookmarkDelete: PlanFeatureTypes.FEATURE_BOOKMARKS,
-  bookmarkGroupCreate: PlanFeatureTypes.FEATURE_BOOKMARKS,
-  bookmarkGroupUpdate: PlanFeatureTypes.FEATURE_BOOKMARKS,
-  bookmarkGroupDelete: PlanFeatureTypes.FEATURE_BOOKMARKS,
 };

@@ -168,7 +168,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <NcTooltip v-if="!isFeatureEnabled && showAsLock && (isPaymentEnabled || isOnPrem)" @click="showUpgradeModal">
+  <NcTooltip v-if="!isFeatureEnabled && showAsLock && isOnPrem" @click="showUpgradeModal">
     <template #title>{{ lockTooltipText }}</template>
     <GeneralIcon icon="ncUpgradeSparkle" class="h-3.5 w-3.5 cursor-pointer" :style="{ color: activeBadgeColors.text }" />
   </NcTooltip>

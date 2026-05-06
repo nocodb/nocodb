@@ -70,6 +70,7 @@ async function onClick() {
   <PaymentUpgradeBadgeProvider v-if="isBookmarkAllowed" :feature="PlanFeatureTypes.FEATURE_BOOKMARKS">
     <template #default="{ click }">
       <NcMenuItem
+        :data-testid="`nc-sidebar-bookmark-${targetType}`"
         inner-class="w-full"
         @click="
           () => {

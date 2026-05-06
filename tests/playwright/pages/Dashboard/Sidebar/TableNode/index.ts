@@ -1,6 +1,7 @@
 import BasePage from '../../../Base';
 import { SidebarPage } from '..';
 import { expect } from '@playwright/test';
+import { isEE } from '../../../../setup/db';
 
 export class SidebarTableNodeObject extends BasePage {
   readonly sidebar: SidebarPage;
@@ -62,6 +63,10 @@ export class SidebarTableNodeObject extends BasePage {
       await this.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
     }
 
+    // EE renders the bookmark menu item for any authenticated user, regardless of base role.
+    // Treat it as an "always present" item so the role-based assertions count it correctly.
+    const bookmarkItemCount = isEE() ? 1 : 0;
+
     if (isVisible) {
       await this.clickOptions({ tableTitle });
       await this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).waitFor({ state: 'visible' });
@@ -69,6 +74,11 @@ export class SidebarTableNodeObject extends BasePage {
       await expect(
         this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).locator('li.ant-dropdown-menu-item')
       ).not.toHaveCount(0);
+
+      if (isEE()) {
+        await expect(this.rootPage.getByTestId('nc-sidebar-bookmark-table')).toHaveCount(1);
+      }
+
       if (!checkMenuOptions) {
         // close table options context menu
         await this.clickOptions({ tableTitle });
@@ -78,9 +88,10 @@ export class SidebarTableNodeObject extends BasePage {
       await this.clickOptions({ tableTitle });
       await this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).waitFor({ state: 'visible' });
 
+      // Only the bookmark item (when EE) should remain — other actions (rename/duplicate/delete) must be hidden.
       await expect(
         this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).locator('li.ant-dropdown-menu-item')
-      ).toHaveCount(0);
+      ).toHaveCount(bookmarkItemCount);
 
       await this.clickOptions({ tableTitle });
       return;

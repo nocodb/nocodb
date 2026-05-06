@@ -1,4 +1,4 @@
-import { isLinkV2, type NcRequest, RelationTypes } from 'nocodb-sdk';
+import { isBtLikeV2Junction, isLinkV2, type NcRequest, RelationTypes } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import {
   extractIdPropIfObjectOrReturn,
@@ -85,9 +85,9 @@ export class NestedLinkPreparator {
           dbDriver: baseModel.dbDriver,
         });
 
-        // V2 OO uses junction table (like MO), not FK-based like V1 OO
+        // V2 OO/BT uses junction table (like MO), not FK-based like V1
         const effectiveType =
-          isLinkV2(col) && colOptions.type === RelationTypes.ONE_TO_ONE
+          isLinkV2(col) && isBtLikeV2Junction(col)
             ? RelationTypes.MANY_TO_ONE
             : colOptions.type;
 

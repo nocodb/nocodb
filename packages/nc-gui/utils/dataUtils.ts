@@ -7,6 +7,7 @@ import {
   integerPreservingRollupFunctions,
   integerRollupFunctions,
   isAIPromptCol,
+  isBtLikeV2Junction,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isIntegerUiType,
@@ -114,7 +115,8 @@ export async function populateInsertObject({
     if (
       ltarState &&
       col.uidt === UITypes.LinkToAnotherRecord &&
-      (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO
+      (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO &&
+      !isBtLikeV2Junction(col)
     ) {
       if (ltarState[col.title!] || row[col.title!]) {
         const ltarVal = ltarState[col.title!] || row[col.title!]

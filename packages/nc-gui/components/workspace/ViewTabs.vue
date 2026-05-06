@@ -13,7 +13,7 @@ const { loadCollaborators } = workspaceStore
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { isWsAuditEnabled, handleUpgradePlan, showUpgradeToUseTeams, blockTeamsManagement, isEEFeatureBlocked } = useEeConfig()
+const { isWsAuditEnabled, handleUpgradePlan, showUpgradeToUseTeams, blockTeamsManagement } = useEeConfig()
 
 const { hasTeamsEditPermission, wsTabVisibility } = useWorkspaceTabVisibility(activeWorkspace)
 
@@ -38,9 +38,7 @@ const tabItems = computed<TabItem[]>(() => {
       key: 'teams',
       icon: 'ncBuilding',
       label: t('general.teams'),
-      upgradeBadge: isEEFeatureBlocked.value
-        ? { feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, blocked: blockTeamsManagement.value }
-        : undefined, // Only show badge in On-prem without license
+      upgradeBadge: { feature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT, blocked: blockTeamsManagement.value },
       hidden: !wsTabVisibility.value.teams,
     },
     {
@@ -59,9 +57,7 @@ const tabItems = computed<TabItem[]>(() => {
       key: 'audits',
       icon: 'audit',
       label: t('title.audits'),
-      upgradeBadge: isEEFeatureBlocked.value
-        ? { feature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE, blocked: !isWsAuditEnabled.value }
-        : undefined, // Only show badge in On-prem without license
+      upgradeBadge: { feature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE, blocked: !isWsAuditEnabled.value },
       hidden: !wsTabVisibility.value.audits,
     },
     {

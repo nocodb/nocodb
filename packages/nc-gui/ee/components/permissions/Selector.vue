@@ -6,6 +6,7 @@ import {
   PermissionOptionRestrictiveness,
   PermissionOptionValue,
   PermissionRolePower,
+  PlanFeatureTypes,
   getPermissionOption,
 } from 'nocodb-sdk'
 import PermissionsInlineUserSelector from './InlineUserSelector.vue'
@@ -227,6 +228,10 @@ const minimumRoleFromParent = computed<string | undefined>(() => {
 
 const { getPermissionTextColor } = usePermissions()
 
+const { blockTableVisibility } = useEeConfig()
+
+const isTableVisibilityBlocked = computed(() => isTableVisibility.value && blockTableVisibility.value)
+
 const isOpenPermissionDropdown = ref(false)
 
 const onPermissionChange = (value: any) => {
@@ -264,7 +269,10 @@ const handleClickDropdown = (e: MouseEvent) => {
     }"
   >
     <div v-if="mode === 'full' && !horizontal" :class="horizontal ? 'flex-1' : ''">
-      {{ permissionLabel }}
+      <div class="flex items-center gap-2">
+        <span>{{ permissionLabel }}</span>
+        <PaymentUpgradeBadge v-if="isTableVisibility" :feature="PlanFeatureTypes.FEATURE_TABLE_VISIBILITY" />
+      </div>
     </div>
 
     <div
@@ -277,7 +285,10 @@ const handleClickDropdown = (e: MouseEvent) => {
       <div class="flex flex-col flex-none">
         <div class="flex items-center gap-3">
           <div v-if="mode === 'full' && horizontal" class="flex-1">
-            {{ permissionLabel }}
+            <div class="flex items-center gap-2">
+              <span>{{ permissionLabel }}</span>
+              <PaymentUpgradeBadge v-if="isTableVisibility" :feature="PlanFeatureTypes.FEATURE_TABLE_VISIBILITY" />
+            </div>
           </div>
 
           <NcListDropdown
@@ -294,7 +305,7 @@ const handleClickDropdown = (e: MouseEvent) => {
                 : '!border-0'
             "
             :placement="placement"
-            :disabled="readonly || config.disabled || isDisabledByVisibility"
+            :disabled="readonly || config.disabled || isDisabledByVisibility || isTableVisibilityBlocked"
             :show-as-disabled="false"
             :border-on-hover="borderOnHover && !inlineStyle"
             @click="handleClickDropdown"

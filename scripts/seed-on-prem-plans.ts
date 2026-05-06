@@ -28,25 +28,29 @@
  *   NC_HTTP_BASIC_PASS    (optional) — Basic auth pass (default: defaultpassword)
  */
 
-import Stripe from 'stripe';
+import Stripe from "stripe";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 const STRIPE_SECRET_KEY = process.env.NC_STRIPE_SECRET_KEY;
-const BACKEND_URL = process.env.NC_BACKEND_URL || 'http://localhost:8080';
-const BASIC_USER = process.env.NC_HTTP_BASIC_USER || 'defaultusername';
-const BASIC_PASS = process.env.NC_HTTP_BASIC_PASS || 'defaultpassword';
-const FORCE_MODE = process.argv.includes('--force');
+const BACKEND_URL = process.env.NC_BACKEND_URL || "http://localhost:8080";
+const BASIC_USER = process.env.NC_HTTP_BASIC_USER || "defaultusername";
+const BASIC_PASS = process.env.NC_HTTP_BASIC_PASS || "defaultpassword";
+const FORCE_MODE = process.argv.includes("--force");
 
 if (!STRIPE_SECRET_KEY) {
-  console.error('Error: NC_STRIPE_SECRET_KEY is required.');
-  console.error('Usage: NC_STRIPE_SECRET_KEY=sk_test_... npx tsx scripts/seed-on-prem-plans.ts');
+  console.error("Error: NC_STRIPE_SECRET_KEY is required.");
+  console.error(
+    "Usage: NC_STRIPE_SECRET_KEY=sk_test_... npx tsx scripts/seed-on-prem-plans.ts",
+  );
   process.exit(1);
 }
 
 const stripe = new Stripe(STRIPE_SECRET_KEY);
 
-const BASIC_AUTH = Buffer.from(`${BASIC_USER}:${BASIC_PASS}`).toString('base64');
+const BASIC_AUTH = Buffer.from(`${BASIC_USER}:${BASIC_PASS}`).toString(
+  "base64",
+);
 
 // ─── Plan definitions ────────────────────────────────────────────────────────
 // Values match OnPremPlanTitles and OnPremPlanPriceLookupKeys from nocodb-sdk.
@@ -56,14 +60,14 @@ const BASIC_AUTH = Buffer.from(`${BASIC_USER}:${BASIC_PASS}`).toString('base64')
 // All amounts are in cents. Adjust tiers before production deployment.
 
 interface TierDef {
-  up_to: number | 'inf';
+  up_to: number | "inf";
   unit_amount: number; // cents per seat
   flat_amount?: number;
 }
 
 interface PriceDef {
   lookup_key: string;
-  interval: 'month' | 'year';
+  interval: "month" | "year";
   tiers: TierDef[];
 }
 
@@ -76,69 +80,49 @@ interface PlanDef {
 
 const ON_PREM_PLANS: PlanDef[] = [
   {
-    name: 'Self-hosted Starter', // OnPremPlanTitles.SELF_HOSTED_STARTER
-    description: 'Self-hosted NocoDB for small teams',
+    name: "Self-hosted Business", // OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    description: "Self-hosted NocoDB for growing teams (self-serve)",
     metadata: {
       // Limits (from OnPremPlanDefinitions)
-      limit_workspace: '1',
-      limit_snapshot: '5',
-      limit_audit_retention: '180',
-      limit_automation_retention: '90',
-      limit_workflow_retention: '180',
-      // Features disabled (Scale+ / Enterprise only)
-      feature_audit_workspace: 'false',
-      feature_sso: 'false',
-      feature_private_bases: 'false',
-      feature_rls: 'false',
-      feature_scim: 'false',
-      // Descriptions
-      description_1: 'Unlimited editors & records',
-      description_2: 'Personal Views & Dynamic Filters',
-      description_3: 'Form Validations & Custom Logo',
-      description_4: 'Calendar, Timeline, Map & List Views',
-    },
-    prices: [
-      {
-        lookup_key: 'on_prem_starter_monthly', // OnPremPlanPriceLookupKeys.STARTER_MONTHLY
-        interval: 'month',
-        tiers: [{ up_to: 'inf', unit_amount: 1500 }],
-      },
-      {
-        lookup_key: 'on_prem_starter_yearly', // OnPremPlanPriceLookupKeys.STARTER_YEARLY
-        interval: 'year',
-        tiers: [{ up_to: 'inf', unit_amount: 14400 }], // $15 × 12 × 0.8 = $144
-      },
-    ],
-  },
-  {
-    name: 'Self-hosted Scale', // OnPremPlanTitles.SELF_HOSTED_SCALE
-    description: 'Self-hosted NocoDB for growing teams',
-    metadata: {
-      // Limits (from OnPremPlanDefinitions)
-      limit_workspace: '1',
-      limit_snapshot: '5',
-      limit_audit_retention: '365',
-      limit_automation_retention: '180',
-      limit_workflow_retention: '365',
+      limit_workspace: "1",
+      limit_ai_integrations: "1",
+      limit_snapshot: "5",
+      limit_audit_retention: "0",
+      limit_trash_retention: "21",
+      limit_automation_retention: "21",
+      limit_workflow_retention: "21",
+      limit_sandbox_per_base: "1",
       // Features disabled (Enterprise only)
-      feature_rls: 'false',
-      feature_scim: 'false',
-      // Descriptions
-      description_1: 'Everything in Starter',
-      description_2: 'SSO & Private Bases',
-      description_3: 'Workspace Audit & Advanced Security',
-      description_4: 'Extended retention & Snapshots',
+      feature_audit_workspace: "false",
+      feature_private_bases: "false",
+      feature_rls: "false",
+      feature_scim: "false",
+      feature_force_2fa: "false",
+      feature_workspace_custom_logo: "false",
+      feature_hide_branding: "false",
+      feature_team_management: "false",
+      feature_team_hierarchy: "false",
+      feature_ai_chat: "false",
+      feature_table_visibility: "false",
+      feature_field_visibility: "false",
+      feature_trash_settings: "false",
+      // Descriptions (shown on the plan card)
+      description_1: "Unlimited records",
+      description_2: "Unlimited commenters & viewers",
+      description_3: "SSO, 2FA, Admin Panel",
+      description_4: "Permissions, Sync, Scripts",
+      description_5: "Snapshots, Webhooks, Workflows",
     },
     prices: [
       {
-        lookup_key: 'on_prem_scale_monthly', // OnPremPlanPriceLookupKeys.SCALE_MONTHLY
-        interval: 'month',
-        tiers: [{ up_to: 'inf', unit_amount: 3000 }],
+        lookup_key: "on_prem_business_monthly", // OnPremPlanPriceLookupKeys.BUSINESS_MONTHLY
+        interval: "month",
+        tiers: [{ up_to: "inf", unit_amount: 3000 }],
       },
       {
-        lookup_key: 'on_prem_scale_yearly', // OnPremPlanPriceLookupKeys.SCALE_YEARLY
-        interval: 'year',
-        tiers: [{ up_to: 'inf', unit_amount: 28800 }], // $30 × 12 × 0.8 = $288
+        lookup_key: "on_prem_business_yearly", // OnPremPlanPriceLookupKeys.BUSINESS_YEARLY
+        interval: "year",
+        tiers: [{ up_to: "inf", unit_amount: 28800 }], // $24/seat/month × 12 = $288/seat/year
       },
     ],
   },
@@ -159,7 +143,9 @@ const fail = (msg: string) => console.error(`  ✗ ${msg}`);
  * Uses products.list() with pagination — unlike products.search(), this is
  * strongly consistent and will find products immediately after creation.
  */
-async function findExistingProduct(name: string): Promise<Stripe.Product | null> {
+async function findExistingProduct(
+  name: string,
+): Promise<Stripe.Product | null> {
   let hasMore = true;
   let startingAfter: string | undefined;
 
@@ -181,11 +167,15 @@ async function findExistingProduct(name: string): Promise<Stripe.Product | null>
   return null;
 }
 
-async function backendRequest(method: string, path: string, body?: Record<string, unknown>): Promise<{ ok: boolean; status: number; data: any }> {
+async function backendRequest(
+  method: string,
+  path: string,
+  body?: Record<string, unknown>,
+): Promise<{ ok: boolean; status: number; data: any }> {
   const res = await fetch(`${BACKEND_URL}${path}`, {
     method,
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Basic ${BASIC_AUTH}`,
     },
     ...(body ? { body: JSON.stringify(body) } : {}),
@@ -210,7 +200,10 @@ async function backendRequest(method: string, path: string, body?: Record<string
 async function forceRemoveProduct(product: Stripe.Product): Promise<void> {
   // Collect all prices for this product
   const prices: Stripe.Price[] = [];
-  for await (const price of stripe.prices.list({ product: product.id, limit: 100 })) {
+  for await (const price of stripe.prices.list({
+    product: product.id,
+    limit: 100,
+  })) {
     prices.push(price);
   }
 
@@ -234,38 +227,40 @@ async function forceRemoveProduct(product: Stripe.Product): Promise<void> {
 
 function formatTierPrice(tier: TierDef, interval: string): string {
   const perSeat = tier.unit_amount / 100;
-  const upTo = tier.up_to === 'inf' ? '∞' : tier.up_to;
+  const upTo = tier.up_to === "inf" ? "∞" : tier.up_to;
   return `up_to=${upTo} → $${perSeat}/seat/${interval}`;
 }
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log(`\n=== Seed On-Prem Plans${FORCE_MODE ? ' (--force)' : ''} ===\n`);
+  console.log(
+    `\n=== Seed On-Prem Plans${FORCE_MODE ? " (--force)" : ""} ===\n`,
+  );
 
   // 1. Verify Stripe connection
-  console.log('  Checking Stripe connection...');
+  console.log("  Checking Stripe connection...");
   try {
     await stripe.products.list({ limit: 1 });
-    ok('Stripe connected');
+    ok("Stripe connected");
   } catch (e: any) {
     fail(`Stripe connection failed: ${e.message}`);
     process.exit(1);
   }
 
   // 2. Verify backend is reachable
-  console.log('  Checking backend connection...');
+  console.log("  Checking backend connection...");
   try {
     const res = await fetch(`${BACKEND_URL}/api/v1/health`);
     if (!res.ok) throw new Error(`Health check returned ${res.status}`);
     ok(`Backend reachable at ${BACKEND_URL}`);
   } catch (e: any) {
     fail(`Backend not reachable at ${BACKEND_URL}: ${e.message}`);
-    fail('Make sure the backend is running with NC_STRIPE_SECRET_KEY set');
+    fail("Make sure the backend is running with NC_STRIPE_SECRET_KEY set");
     process.exit(1);
   }
 
-  console.log('');
+  console.log("");
 
   // 3. Process each plan
   for (const planDef of ON_PREM_PLANS) {
@@ -304,26 +299,30 @@ async function main() {
         });
 
         if (existing.data.length > 0) {
-          skip(`Price ${priceDef.lookup_key} already exists: ${existing.data[0].id}`);
+          skip(
+            `Price ${priceDef.lookup_key} already exists: ${existing.data[0].id}`,
+          );
           continue;
         }
       }
 
-      const stripeTiers: Stripe.PriceCreateParams.Tier[] = priceDef.tiers.map((t) => ({
-        up_to: t.up_to === 'inf' ? 'inf' : t.up_to,
-        unit_amount: t.unit_amount,
-        flat_amount: t.flat_amount ?? 0,
-      }));
+      const stripeTiers: Stripe.PriceCreateParams.Tier[] = priceDef.tiers.map(
+        (t) => ({
+          up_to: t.up_to === "inf" ? "inf" : t.up_to,
+          unit_amount: t.unit_amount,
+          flat_amount: t.flat_amount ?? 0,
+        }),
+      );
 
       const price = await stripe.prices.create({
         product: product.id,
-        currency: 'usd',
-        billing_scheme: 'tiered',
-        tiers_mode: 'volume',
+        currency: "usd",
+        billing_scheme: "tiered",
+        tiers_mode: "volume",
         tiers: stripeTiers,
         recurring: {
           interval: priceDef.interval,
-          usage_type: 'licensed',
+          usage_type: "licensed",
         },
         lookup_key: priceDef.lookup_key,
         // In force mode, transfer the lookup key from any existing price
@@ -337,17 +336,27 @@ async function main() {
     }
 
     // 3c. Register or sync plan in backend DB
-    const createResult = await backendRequest('POST', '/api/internal/payment/plan', {
-      stripe_product_id: product.id,
-    });
+    const createResult = await backendRequest(
+      "POST",
+      "/api/internal/payment/plan",
+      {
+        stripe_product_id: product.id,
+      },
+    );
 
     if (createResult.ok) {
-      ok('Registered plan in database');
-    } else if (createResult.data?.msg?.includes('already exists') || createResult.status === 409) {
+      ok("Registered plan in database");
+    } else if (
+      createResult.data?.msg?.includes("already exists") ||
+      createResult.status === 409
+    ) {
       // Plan exists — sync to pick up metadata/price changes
-      const syncResult = await backendRequest('PATCH', '/api/internal/payment/plan');
+      const syncResult = await backendRequest(
+        "PATCH",
+        "/api/internal/payment/plan",
+      );
       if (syncResult.ok) {
-        ok('Synced all plans from Stripe');
+        ok("Synced all plans from Stripe");
       } else {
         fail(`Failed to sync plans: ${JSON.stringify(syncResult.data)}`);
       }
@@ -355,13 +364,13 @@ async function main() {
       fail(`Failed to register plan: ${JSON.stringify(createResult.data)}`);
     }
 
-    console.log('');
+    console.log("");
   }
 
-  console.log('=== Done ===\n');
+  console.log("=== Done ===\n");
 }
 
 main().catch((e) => {
-  console.error('\nFatal error:', e.message);
+  console.error("\nFatal error:", e.message);
   process.exit(1);
 });

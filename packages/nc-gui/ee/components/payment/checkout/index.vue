@@ -126,9 +126,9 @@ onBeforeUnmount(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col w-full justify-center md:mt-4">
+  <div class="flex flex-col w-full justify-center md:mt-4 bg-nc-bg-gray-extralight">
     <div class="flex flex-col w-full gap-6">
-      <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-nc-bg-default py-3 md:-mx-6 z-10">
+      <div v-if="selectedPlan" class="nc-payment-pay-header sticky top-0 bg-nc-bg-gray-extralight py-3 md:-mx-6 z-10">
         <div class="max-w-[920px] mx-auto flex flex-col gap-2 px-4">
           <PaymentCheckoutHeader
             :title="
@@ -190,8 +190,13 @@ onBeforeUnmount(async () => {
         <PaymentSkeleton class="w-full" />
       </div>
 
-      <div v-show="!isLoading" id="checkout" class="w-full pb-10">
-        <!-- Checkout inserts the payment form here -->
+      <div
+        v-show="!isLoading"
+        class="nc-stripe-checkout-frame mx-auto w-full max-w-[640px] rounded-2xl bg-white px-2 py-4 shadow-sm border-1 border-nc-border-gray-medium mb-10"
+      >
+        <div id="checkout" class="w-full">
+          <!-- Checkout inserts the payment form here -->
+        </div>
       </div>
     </div>
   </div>

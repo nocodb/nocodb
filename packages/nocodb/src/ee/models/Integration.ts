@@ -307,6 +307,28 @@ export default class Integration extends IntegrationCE {
     });
   }
 
+  static async countAiIntegrations(
+    _context: Omit<NcContext, 'base_id'>,
+    workspaceId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    const qb = ncMeta.knex(MetaTable.INTEGRATIONS);
+
+    qb.where(`${MetaTable.INTEGRATIONS}.fk_workspace_id`, workspaceId)
+      .where(`${MetaTable.INTEGRATIONS}.type`, IntegrationsType.Ai)
+      .where((whereQb) => {
+        whereQb
+          .where(`${MetaTable.INTEGRATIONS}.deleted`, false)
+          .orWhereNull(`${MetaTable.INTEGRATIONS}.deleted`);
+      });
+
+    const row = (await qb
+      .count(`${MetaTable.INTEGRATIONS}.id as count`)
+      .first()) as { count: string | number } | undefined;
+
+    return Number(row?.count ?? 0);
+  }
+
   static async get(
     context: Omit<NcContext, 'base_id'>,
     id: string,

@@ -92,9 +92,15 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAiIntegrations = computed(() => true)
 
+  const blockAiIntegrationsLimit = computed(() => true)
+
   const blockDocAi = computed(() => true)
 
   const blockButtonVisibility = computed(() => true)
+
+  const blockTableVisibility = computed(() => true)
+
+  const blockFieldVisibility = computed(() => true)
 
   const blockColourField = computed(() => true)
 
@@ -177,6 +183,12 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseCellColoring = (..._args: any[]) => {}
 
   const showUpgradeToUseTableAndFieldPermissions = (..._args: any[]) => {}
+
+  const showUpgradeToUseTableVisibility = (..._args: any[]) => {}
+
+  const showUpgradeToUseFieldVisibility = (..._args: any[]) => {}
+
+  const showUpgradeToAddAiIntegration = (..._args: any[]) => {}
 
   const blockDocumentPermissions = computed(() => true)
 
@@ -380,6 +392,10 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCellColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
+    blockTableVisibility,
+    showUpgradeToUseTableVisibility,
+    blockFieldVisibility,
+    showUpgradeToUseFieldVisibility,
     blockDocumentPermissions,
     showUpgradeToUseDocumentPermissions,
     blockPrivateBases,
@@ -413,6 +429,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiChat,
     blockAiIntegrations,
     showUpgradeToUseAiIntegrations,
+    blockAiIntegrationsLimit,
+    showUpgradeToAddAiIntegration,
     blockDocAi,
     showUpgradeToUseDocAi,
     blockButtonVisibility,

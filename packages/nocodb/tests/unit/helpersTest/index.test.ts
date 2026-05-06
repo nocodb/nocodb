@@ -11,6 +11,7 @@ let verifyDefaultOrgTests = () => {};
 let mfaHelperTests = () => {};
 let patResourceFilterTest = () => {};
 let dynamicFieldFilterTests = () => {};
+let onPremPlanResolutionTests = () => {};
 if (process.env.EE === 'true') {
   dashboardV3ConfigTransformTest =
     require('./ee/dashboardV3ConfigTransform.test').dashboardV3ConfigTransformTest;
@@ -23,6 +24,8 @@ if (process.env.EE === 'true') {
     require('./patResourceFilter.test').patResourceFilterTest;
   dynamicFieldFilterTests =
     require('./ee/dynamicFieldFilter.test').dynamicFieldFilterTests;
+  onPremPlanResolutionTests =
+    require('./ee/onPremPlanResolution.test').onPremPlanResolutionTests;
 }
 
 function _helperTests() {
@@ -32,6 +35,7 @@ function _helperTests() {
   dashboardV3ConfigTransformTest();
   dateDependencyHelperTests();
   planResolutionTests();
+  onPremPlanResolutionTests();
   mfaHelperTests();
   describe('PublicDatasService - shared view column sanitization', publicDatasSanitizeTest);
   apiTokenPermissionTest();

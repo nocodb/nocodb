@@ -229,70 +229,85 @@ export default class NocoLicense {
         try {
           const cached: CachedLicenseData = JSON.parse(storedData.value);
 
-          // Verify JWT
-          const licenseData = this.verifyAndDecodeLicenseJWT(
-            cached.license_jwt,
-          );
-
-          if (licenseData) {
-            // Verify instance ID if this is an instance-bound installation
-            if (
-              cached.installation_secret?.startsWith(
-                LICENSE_CONFIG.INSTANCE_BOUND_SECRET_PREFIX,
-              )
-            ) {
-              const currentInstanceId = await getInstanceId(ncMeta);
-              if (
-                licenseData.instance_id &&
-                licenseData.instance_id !== currentInstanceId
-              ) {
-                throw new Error(
-                  'This license is bound to a different installation. Please ensure you are using the correct license for this instance.',
-                );
-              }
-            }
-
-            // JWT valid - use it
-            this.licenseData = {
-              ...licenseData,
-              installation_secret: cached.installation_secret,
-              license_key: cached.license_key,
-            };
-            this._isExpired = !this.isValidStatus(this.licenseData.status);
-
-            // Load heartbeat state
-            this.heartbeatState = cached.heartbeat_state || null;
-
-            // Validate cached license
-            if (
-              this.licenseData.status === InstallationStatus.REVOKED ||
-              this.licenseData.status === InstallationStatus.SUSPENDED
-            ) {
-              throw new Error(
-                `Your license is currently ${this.licenseData.status}. Please contact support for assistance.`,
-              );
-            }
+          // SECURITY: the cached JWT/installation_id is bound to whichever
+          // license key was activated when it was issued. If the operator
+          // has since changed the key (e.g. removed it and entered a new
+          // one), trusting the cache would unlock EE on a stale installation
+          // — and the server would reject heartbeats with "Installation
+          // not found". EE must only re-engage after the server explicitly
+          // approves the new key. Skip the cache and fall through to
+          // activateLicense. (Airgapped flows return early at the top of
+          // init() and never reach this branch.)
+          if (cached.license_key !== licenseKey) {
+            this.logger.log(
+              'Cached license differs from current key — re-activating with server',
+            );
           } else {
-            // JWT invalid/expired - refresh from server
-            this.logger.warn('Cached JWT invalid, refreshing from server');
+            // Verify JWT
+            const licenseData = this.verifyAndDecodeLicenseJWT(
+              cached.license_jwt,
+            );
 
-            // Decode JWT without verification to get installation_secret for refresh
-            const tempData = jwt.decode(cached.license_jwt) as any;
-            if (tempData) {
+            if (licenseData) {
+              // Verify instance ID if this is an instance-bound installation
+              if (
+                cached.installation_secret?.startsWith(
+                  LICENSE_CONFIG.INSTANCE_BOUND_SECRET_PREFIX,
+                )
+              ) {
+                const currentInstanceId = await getInstanceId(ncMeta);
+                if (
+                  licenseData.instance_id &&
+                  licenseData.instance_id !== currentInstanceId
+                ) {
+                  throw new Error(
+                    'This license is bound to a different installation. Please ensure you are using the correct license for this instance.',
+                  );
+                }
+              }
+
+              // JWT valid - use it
               this.licenseData = {
-                ...tempData,
+                ...licenseData,
                 installation_secret: cached.installation_secret,
                 license_key: cached.license_key,
               };
+              this._isExpired = !this.isValidStatus(this.licenseData.status);
 
-              const refreshed = await this.refreshLicenseFromServer(ncMeta);
-              if (!refreshed) {
+              // Load heartbeat state
+              this.heartbeatState = cached.heartbeat_state || null;
+
+              // Validate cached license
+              if (
+                this.licenseData.status === InstallationStatus.REVOKED ||
+                this.licenseData.status === InstallationStatus.SUSPENDED
+              ) {
                 throw new Error(
-                  'Failed to refresh license from server. Please check your license key and network connectivity.',
+                  `Your license is currently ${this.licenseData.status}. Please contact support for assistance.`,
                 );
               }
             } else {
-              this.logger.warn('Could not decode JWT, will re-activate');
+              // JWT invalid/expired - refresh from server
+              this.logger.warn('Cached JWT invalid, refreshing from server');
+
+              // Decode JWT without verification to get installation_secret for refresh
+              const tempData = jwt.decode(cached.license_jwt) as any;
+              if (tempData) {
+                this.licenseData = {
+                  ...tempData,
+                  installation_secret: cached.installation_secret,
+                  license_key: cached.license_key,
+                };
+
+                const refreshed = await this.refreshLicenseFromServer(ncMeta);
+                if (!refreshed) {
+                  throw new Error(
+                    'Failed to refresh license from server. Please check your license key and network connectivity.',
+                  );
+                }
+              } else {
+                this.logger.warn('Could not decode JWT, will re-activate');
+              }
             }
           }
         } catch (error) {

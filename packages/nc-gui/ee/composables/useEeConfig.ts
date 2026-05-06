@@ -1,10 +1,13 @@
-import type { OnPremPlanTitles, PlanLimitExceededDetailsType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
+import type { PlanLimitExceededDetailsType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   GRACE_PERIOD_DURATION,
   HigherPlan,
   LOYALTY_GRACE_PERIOD_END_DATE,
   NON_SEAT_ROLES,
+  OnPremFeatureToMinPlan,
   OnPremHigherPlan,
+  OnPremLimitToMinPlan,
+  OnPremPlanTitles,
   PlanFeatureTypes,
   PlanFeatureTypesToPlanTitles,
   PlanLimitTypes,
@@ -405,6 +408,19 @@ export const useEeConfig = createSharedComposable(() => {
   const blockFormGridLayout = computed(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT)
   })
+  const blockTableVisibility = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TABLE_VISIBILITY)
+  })
+  const blockFieldVisibility = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FIELD_VISIBILITY)
+  })
+  const blockAiIntegrationsLimit = computed(() => {
+    // True when the plan caps AI integrations to a finite number. Callers
+    // compare against current count. Enterprise = unlimited (Infinity).
+    if (!(isPaymentEnabled.value || isOnPrem.value)) return false
+    const limit = getLimit(PlanLimitTypes.LIMIT_AI_INTEGRATIONS)
+    return limit !== Infinity && limit !== -1
+  })
   const blockScripts = computed(() => isEEFeatureBlocked.value)
   const blockWorkflows = computed(() => isEEFeatureBlocked.value)
   const blockExtensions = computed(() => {
@@ -740,13 +756,23 @@ export const useEeConfig = createSharedComposable(() => {
 
     const upgradeMessage = limitOrFeature ? getUpgradeMessage(limitOrFeature) : ''
 
-    const modalTitle = ref(title || t('upgrade.enterpriseFeatureTitle'))
+    // Resolve the lowest paid on-prem plan that unlocks this feature/limit so the
+    // modal copy matches the badge tier (Business vs Enterprise).
+    const minPlan =
+      (limitOrFeature &&
+        (OnPremFeatureToMinPlan[limitOrFeature as PlanFeatureTypes] ||
+          OnPremLimitToMinPlan[limitOrFeature as PlanLimitTypes])) ||
+      OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    const isBusinessTier = minPlan === OnPremPlanTitles.SELF_HOSTED_BUSINESS
+
+    const modalTitle = ref(title || (isBusinessTier ? t('upgrade.businessFeatureTitle') : t('upgrade.enterpriseFeatureTitle')))
+
+    const subtitleKey = isBusinessTier ? 'upgrade.businessFeatureSubtitle' : 'upgrade.enterpriseFeatureSubtitle'
+    const enterLicenseKey = isBusinessTier ? 'upgrade.businessFeatureEnterLicense' : 'upgrade.enterpriseFeatureEnterLicense'
 
     const modalContent = ref(
       content ||
-        (upgradeMessage
-          ? t('upgrade.enterpriseFeatureEnterLicense', { detail: upgradeMessage })
-          : t('upgrade.enterpriseFeatureSubtitle', { feature: t('general.thisFeature') })),
+        (upgradeMessage ? t(enterLicenseKey, { detail: upgradeMessage }) : t(subtitleKey, { feature: t('general.thisFeature') })),
     )
 
     const { close } = useDialog(NcModalConfirm, {
@@ -807,7 +833,8 @@ export const useEeConfig = createSharedComposable(() => {
       'okText': t('upgrade.upgradeLicense'),
       'onOk': () => {
         const instanceUrl = window.location.origin
-        window.open(`${NC_CLOUD_URL}/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`, '_blank')
+        const licenseServerUrl = appInfo.value.licenseServerUrl || NC_CLOUD_URL
+        window.open(`${licenseServerUrl}/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`, '_blank')
         toggleDialog()
       },
       'cancelText': t('general.close'),
@@ -1619,6 +1646,39 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToAddAiIntegration = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAiIntegrationsLimit.value) return
+
+    handleUpgradePlan({
+      callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_AI_INTEGRATIONS,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUseTableVisibility = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockTableVisibility.value) return
+
+    handleUpgradePlan({
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_VISIBILITY,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUseFieldVisibility = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockFieldVisibility.value) return
+
+    handleUpgradePlan({
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_FIELD_VISIBILITY,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseDocAi = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockDocAi.value) return
 
@@ -2005,15 +2065,28 @@ export const useEeConfig = createSharedComposable(() => {
 
   /** EE-only upgrade prompts for self-hosted CE mode / licensed Starter */
   const showUpgradeForEEFeature = (featureTitle: string, limitOrFeature?: PlanLimitTypes | PlanFeatureTypes) => {
+    const minPlan =
+      (limitOrFeature &&
+        (OnPremFeatureToMinPlan[limitOrFeature as PlanFeatureTypes] ||
+          OnPremLimitToMinPlan[limitOrFeature as PlanLimitTypes])) ||
+      OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    const isBusinessTier = minPlan === OnPremPlanTitles.SELF_HOSTED_BUSINESS
+
+    const titleKey = isBusinessTier ? 'upgrade.businessFeatureTitle' : 'upgrade.enterpriseFeatureTitle'
+    const subtitleKey = isBusinessTier ? 'upgrade.businessFeatureSubtitle' : 'upgrade.enterpriseFeatureSubtitle'
+
     if (isEEFeatureBlocked.value) {
       handleOnPremUpgrade({
-        title: t('upgrade.enterpriseFeatureTitle'),
-        content: t('upgrade.enterpriseFeatureSubtitle', { feature: featureTitle }),
+        title: t(titleKey),
+        content: t(subtitleKey, { feature: featureTitle }),
+        limitOrFeature,
       })
     } else {
       handleOnPremLicensedUpgrade({
-        title: t('upgrade.upgradeToEnterpriseTitle'),
-        content: t('upgrade.enterpriseFeatureSubtitle', { feature: featureTitle }),
+        title: isBusinessTier
+          ? t('upgrade.upgradeToOnPremPlanTitle', { plan: getPlanTitle(OnPremPlanTitles.SELF_HOSTED_BUSINESS) })
+          : t('upgrade.upgradeToEnterpriseTitle'),
+        content: t(subtitleKey, { feature: featureTitle }),
         limitOrFeature,
       })
     }
@@ -2168,6 +2241,10 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCellColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
+    blockTableVisibility,
+    showUpgradeToUseTableVisibility,
+    blockFieldVisibility,
+    showUpgradeToUseFieldVisibility,
     blockDocumentPermissions,
     showUpgradeToUseDocumentPermissions,
     isUnderLoyaltyCutoffDate,
@@ -2204,6 +2281,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiChat,
     blockAiIntegrations,
     showUpgradeToUseAiIntegrations,
+    blockAiIntegrationsLimit,
+    showUpgradeToAddAiIntegration,
     blockDocAi,
     showUpgradeToUseDocAi,
     blockButtonVisibility,

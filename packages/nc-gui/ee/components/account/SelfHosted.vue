@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { Stripe, StripeEmbeddedCheckout } from '@stripe/stripe-js'
 import { OnPremPlanMeta, type OnPremPlanTitles } from 'nocodb-sdk'
+import { decodeOnPremCheckoutState } from '~/lib/onPremCheckoutState'
 
 interface CheckoutSessionResult {
   client_secret: string
@@ -16,16 +17,8 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const {
-  isSelfServeLicensePurchaseEnabled,
-  licenses,
-  isLoading,
-  listLicenses,
-  syncLicenses,
-  createCheckoutSession,
-  getCheckoutSession,
-  getCustomerPortal,
-} = useOnPremLicense()
+const { licenses, isLoading, listLicenses, syncLicenses, createCheckoutSession, getCheckoutSession, getCustomerPortal } =
+  useOnPremLicense()
 
 const isSyncing = ref(false)
 
@@ -55,7 +48,20 @@ const checkoutLoading = ref(false)
 
 const successLicense = ref<(typeof licenses.value)[0] | null>(null)
 
-const instanceUrl = computed(() => (route.query.instance_url as string) || '')
+const handoffState = computed(() => {
+  const raw = route.query.state
+  return typeof raw === 'string' && raw ? decodeOnPremCheckoutState(raw) : null
+})
+
+const instanceUrl = ref<string>(handoffState.value?.instance_url || '')
+
+const instanceId = ref<string>(handoffState.value?.instance_id || '')
+
+const requestedSeatCount = ref<number>(
+  Number.isFinite(handoffState.value?.seat_count) && (handoffState.value?.seat_count ?? 0) > 0
+    ? Math.floor(handoffState.value!.seat_count!)
+    : 0,
+)
 
 const copiedKeyId = ref<string | null>(null)
 
@@ -150,6 +156,7 @@ const initCheckout = async (planId: string, priceId: string, quantity: number = 
       price_id: priceId,
       quantity,
       instance_url: instanceUrl.value || undefined,
+      instance_id: instanceId.value || undefined,
     })
 
     checkoutRef.value = await stripeInstance.value.initEmbeddedCheckout({
@@ -220,12 +227,27 @@ const backToList = async () => {
   await listLicenses()
 }
 
+const cameFromInstance = computed(() => !!instanceUrl.value || requestedSeatCount.value > 0)
+
+// If the user landed here from an on-prem "Buy License" click (URL carries
+// instance_url and/or seat_count), jump straight to plan selection.
+if (cameFromInstance.value) {
+  viewState.value = 'plan-select'
+}
+
 onMounted(async () => {
-  if (isSelfServeLicensePurchaseEnabled.value && afterPayment.value && sessionId.value) {
-    await handleAfterPayment()
-  } else {
-    await listLicenses()
+  // Strip the handoff state from the URL once we've snapshotted it.
+  if (route.query.state) {
+    const { state: _s, ...rest } = route.query
+    router.replace({ query: rest })
   }
+
+  if (afterPayment.value && sessionId.value) {
+    await handleAfterPayment()
+    return
+  }
+
+  await listLicenses()
 })
 
 onBeforeUnmount(async () => {
@@ -234,7 +256,7 @@ onBeforeUnmount(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col h-full transition-colors">
     <NcPageHeader>
       <template #icon>
         <GeneralIcon icon="ncServer" class="flex-none !h-5 !w-5" />
@@ -243,8 +265,8 @@ onBeforeUnmount(async () => {
         {{ $t('title.selfHostedLicenses') }}
       </template>
     </NcPageHeader>
-    <div class="h-full overflow-y-auto nc-scrollbar-thin">
-      <div class="mx-auto mt-8 px-4 pb-16" :class="viewState === 'list' ? 'max-w-[640px]' : 'max-w-[960px]'">
+    <div class="flex-1 overflow-y-auto nc-scrollbar-thin">
+      <div class="mx-auto mt-8 px-4 pb-16 max-w-[960px]">
         <!-- List View -->
         <template v-if="viewState === 'list'">
           <div v-if="isLoading" class="flex items-center justify-center py-20">
@@ -256,7 +278,7 @@ onBeforeUnmount(async () => {
             <div class="text-sm text-nc-content-gray-subtle text-center">
               {{ $t('labels.noSelfHostedLicenses') }}
             </div>
-            <div v-if="isSelfServeLicensePurchaseEnabled" class="flex items-center gap-3">
+            <div class="flex items-center gap-3">
               <NcButton type="primary" size="small" @click="onBuyLicense">
                 {{ $t('labels.buyYourFirstLicense') }}
               </NcButton>
@@ -280,13 +302,7 @@ onBeforeUnmount(async () => {
                   {{ $t('labels.manageBilling') }}
                 </NcButton>
               </template>
-              <NcButton
-                v-if="isSelfServeLicensePurchaseEnabled"
-                type="primary"
-                size="small"
-                data-testid="nc-self-hosted-buy-btn"
-                @click="onBuyLicense"
-              >
+              <NcButton type="primary" size="small" data-testid="nc-self-hosted-buy-btn" @click="onBuyLicense">
                 {{ $t('labels.buyNewLicense') }}
               </NcButton>
             </div>
@@ -363,7 +379,7 @@ onBeforeUnmount(async () => {
                 </div>
               </div>
 
-              <div class="flex items-center gap-1.5 text-xs text-nc-content-gray-subtle">
+              <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-nc-content-gray-subtle">
                 <span>{{ $t('labels.createdBy') }} {{ license.licensed_to }}</span>
                 <template v-if="license.min_seats > 1">
                   <span>|</span>
@@ -373,32 +389,61 @@ onBeforeUnmount(async () => {
                   <span>|</span>
                   <span>{{ $t('labels.createdOn') }} {{ new Date(license.created_at).toLocaleDateString() }}</span>
                 </template>
+                <template v-if="license.meta?.instance_url">
+                  <span>|</span>
+                  <NcTooltip
+                    v-if="license.meta?.instance_id"
+                    :title="`${$t('labels.instanceId')}: ${license.meta.instance_id}`"
+                    placement="top"
+                  >
+                    <span class="inline-flex items-center gap-1">
+                      <GeneralIcon icon="ncServer" class="h-3 w-3" />
+                      <span class="break-all">{{ license.meta.instance_url }}</span>
+                    </span>
+                  </NcTooltip>
+                  <span v-else class="inline-flex items-center gap-1">
+                    <GeneralIcon icon="ncServer" class="h-3 w-3" />
+                    <span class="break-all">{{ license.meta.instance_url }}</span>
+                  </span>
+                </template>
+                <template v-else-if="license.meta?.instance_id">
+                  <span>|</span>
+                  <span class="inline-flex items-center gap-1">
+                    <GeneralIcon icon="ncServer" class="h-3 w-3" />
+                    <span>{{ $t('labels.instanceId') }}: {{ license.meta.instance_id.slice(0, 12) }}…</span>
+                  </span>
+                </template>
               </div>
             </div>
+
+            <AccountSelfHostedPastInvoices />
           </div>
         </template>
 
         <!-- Plan Select View -->
-        <template v-if="isSelfServeLicensePurchaseEnabled && viewState === 'plan-select'">
-          <div class="mb-6">
+        <template v-if="viewState === 'plan-select'">
+          <div class="mb-6 flex items-center justify-between gap-3 min-h-8">
             <NcButton type="text" size="small" class="!-ml-2" @click="backToList">
               <div class="flex items-center gap-1">
                 <GeneralIcon icon="ncArrowLeft" class="h-4 w-4" />
                 {{ $t('labels.back') }}
               </div>
             </NcButton>
+            <div v-if="instanceUrl" class="flex items-center gap-1.5 text-xs text-nc-content-gray-subtle min-w-0">
+              <GeneralIcon icon="ncServer" class="flex-none h-3.5 w-3.5" />
+              <span class="flex-none">{{ $t('labels.buyingFor') }}</span>
+              <NcTooltip v-if="instanceId" :title="`${$t('labels.instanceId')}: ${instanceId}`" placement="top" class="truncate">
+                <span class="font-medium text-nc-content-gray-emphasis truncate">{{ instanceUrl }}</span>
+              </NcTooltip>
+              <span v-else class="font-medium text-nc-content-gray-emphasis truncate">{{ instanceUrl }}</span>
+            </div>
           </div>
 
-          <div v-if="instanceUrl" class="p-3 rounded-lg bg-nc-bg-gray-light border border-nc-border-gray-medium mb-6">
-            <div class="text-xs text-nc-content-gray-subtle mb-1">{{ $t('labels.instanceUrl') }}</div>
-            <div class="text-sm font-medium break-all">{{ instanceUrl }}</div>
-          </div>
-
-          <AccountSelfHostedPlanSelector @select="initCheckout" />
+          <AccountSelfHostedPlanSelector :initial-seats="requestedSeatCount" @select="initCheckout" />
         </template>
 
         <!-- Checkout View -->
-        <template v-if="isSelfServeLicensePurchaseEnabled && viewState === 'checkout'">
+        <template v-if="viewState === 'checkout'">
           <div class="mb-6">
             <NcButton type="text" size="small" class="!-ml-2" @click="backToPlanSelect">
               <div class="flex items-center gap-1">
@@ -414,11 +459,16 @@ onBeforeUnmount(async () => {
             </div>
           </div>
 
-          <div v-show="!checkoutLoading" id="on-prem-checkout" class="w-full pb-10" />
+          <div
+            v-show="!checkoutLoading"
+            class="nc-stripe-checkout-frame mx-auto w-full max-w-[640px] rounded-2xl bg-white px-2 py-4 shadow-sm border-1 border-nc-border-gray-medium mb-10"
+          >
+            <div id="on-prem-checkout" class="w-full" />
+          </div>
         </template>
 
         <!-- Success View -->
-        <template v-if="isSelfServeLicensePurchaseEnabled && viewState === 'success' && successLicense">
+        <template v-if="viewState === 'success' && successLicense">
           <div class="flex flex-col items-center gap-6 py-10">
             <div
               class="w-full max-w-[560px] border-1 border-nc-border-gray-medium rounded-2xl p-8 flex flex-col items-center gap-5"

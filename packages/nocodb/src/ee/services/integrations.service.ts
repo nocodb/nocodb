@@ -1,15 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, PlanFeatureTypes, SyncDataType } from 'nocodb-sdk';
+import {
+  AppEvents,
+  IntegrationsType,
+  PlanFeatureTypes,
+  PlanLimitTypes,
+} from 'nocodb-sdk';
 import axios from 'axios';
 import { IntegrationsService as IntegrationsServiceCE } from 'src/services/integrations.service';
 import type {
   AuthIntegration,
   TestConnectionResponse,
 } from '@noco-local-integrations/core';
-import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
+import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { validatePayload } from '~/helpers';
-import { checkForFeature } from '~/helpers/paymentHelpers';
+import { checkForFeature, checkLimit } from '~/helpers/paymentHelpers';
 import { Base, Integration } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { Source, Workspace } from '~/models';
@@ -252,14 +257,24 @@ export class IntegrationsService extends IntegrationsServiceCE {
     );
 
     // Gate AI integration creation behind FEATURE_AI_INTEGRATIONS
-    const aiSubTypes: string[] = [
-      SyncDataType.OPENAI,
-      SyncDataType.CLAUDE,
-      SyncDataType.OLLAMA,
-      SyncDataType.GROQ,
-    ];
-    if (aiSubTypes.includes(param.integration.sub_type as string)) {
+    if (param.integration.type === IntegrationsType.Ai) {
       await checkForFeature(context, PlanFeatureTypes.FEATURE_AI_INTEGRATIONS);
+
+      // Enforce per-workspace limit on AI integrations
+      const existingAiCount = await Integration.countAiIntegrations(
+        context,
+        param.workspaceId,
+        ncMeta,
+      );
+      await checkLimit({
+        workspaceId: param.workspaceId,
+        type: PlanLimitTypes.LIMIT_AI_INTEGRATIONS,
+        count: existingAiCount,
+        delta: 1,
+        message: ({ limit, plan }) =>
+          `You have reached the limit of ${limit} AI integrations on the ${plan} plan.`,
+        ncMeta,
+      });
     }
 
     let integrationBody;

@@ -490,6 +490,13 @@ async function checkGlobalSeatHeadroom(_additionalSeats = 1) {
   // No-op on cloud — seat limits are handled by reseatSubscription
 }
 
+/**
+ * Overridden in `src/ee-on-prem/helpers/paymentHelpers.ts`.
+ */
+export function getOnPremPlan(): Plan | null {
+  return null;
+}
+
 export {
   PlanLimitTypes,
   PlanFeatureTypes,

@@ -64,7 +64,7 @@ const hasAccessibleWorkspace = computed(() => {
 })
 
 const onCreateWorkspace = () => {
-  if (isEEFeatureBlocked.value) {
+  if (isEEFeatureBlocked.value || blockWorkspaceCreate.value) {
     showUpgradeToCreateWorkspace()
     return
   }

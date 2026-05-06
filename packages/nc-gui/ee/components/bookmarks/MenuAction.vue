@@ -26,7 +26,7 @@ const emits = defineEmits<{
 
 const { targetType, targetId, meta, workspace } = toRefs(props)
 
-const { isBookmarked, addBookmark, removeBookmarkByTarget } = useBookmarks()
+const { isBookmarkAllowed, isBookmarked, addBookmark, removeBookmarkByTarget } = useBookmarks()
 
 const { isEEFeatureBlocked, getPlanTitle, getFeatureForPlanTitle } = useEeConfig()
 
@@ -67,7 +67,7 @@ async function onClick() {
 </script>
 
 <template>
-  <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_BOOKMARKS">
+  <PaymentUpgradeBadgeProvider v-if="isBookmarkAllowed" :feature="PlanFeatureTypes.FEATURE_BOOKMARKS">
     <template #default="{ click }">
       <NcMenuItem
         inner-class="w-full"

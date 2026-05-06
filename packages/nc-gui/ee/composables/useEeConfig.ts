@@ -976,7 +976,13 @@ export const useEeConfig = createSharedComposable(() => {
                */
               if (isWsOwner.value && !requestUpgrade) {
                 e.preventDefault()
-                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: newPlanTitle, triggerEvent: false })
+                navigateToPricing({
+                  autoScroll: 'compare',
+                  newTab: true,
+                  ctaPlan: newPlanTitle,
+                  triggerEvent: false,
+                  workspaceId,
+                })
               }
 
               $e('c:payment:upgrade:modal:learn-more', {
@@ -1030,7 +1036,7 @@ export const useEeConfig = createSharedComposable(() => {
               slots.value = {}
             }
           } else {
-            navigateToPricing({ limitOrFeature, ctaPlan: newPlanTitle })
+            navigateToPricing({ limitOrFeature, ctaPlan: newPlanTitle, workspaceId })
             closeDialog()
             callback?.('ok')
           }

@@ -28,6 +28,8 @@ export function ncIsStringHasValue(val: string | undefined | null) {
 export const negatedMapping = {
   nlike: { comparison_op: 'like' },
   neq: { comparison_op: 'eq' },
+  neq_id: { comparison_op: 'eq_id' },
+  nin_id: { comparison_op: 'in_id' },
   blank: { comparison_op: 'notblank' },
   notchecked: { comparison_op: 'checked' },
   nanyof: { comparison_op: 'anyof' },

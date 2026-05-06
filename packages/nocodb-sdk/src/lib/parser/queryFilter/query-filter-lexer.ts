@@ -37,6 +37,10 @@ export const COMPARISON_OPS = <const>[
   'isWithin',
   'btw',
   'nbtw',
+  'eq_id',
+  'neq_id',
+  'in_id',
+  'nin_id',
 ];
 
 export const COMPARISON_OPS_ALIAS = <const>[

@@ -14,7 +14,8 @@ export class LinksGeneralHandler extends GenericFieldHandler {
     options: FilterOptions,
   ) {
     // V2 MO/OO: single-record semantics — filter by display value (like BT)
-    if (isBtLikeV2Junction(column)) {
+    // _id operators: always route to LTAR handler for primary key filtering
+    if (isBtLikeV2Junction(column) || filter.comparison_op?.endsWith('_id')) {
       return new LtarGeneralHandler().filter(knex, filter, column, options);
     }
 

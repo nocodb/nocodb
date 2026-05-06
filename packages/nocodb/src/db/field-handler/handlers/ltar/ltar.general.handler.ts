@@ -51,6 +51,15 @@ export class LtarGeneralHandler extends GenericFieldHandler {
         : RelationTypes.HAS_MANY;
     }
 
+    // _id operators: filter by related record's primary key instead of display value
+    const isIdOp = filter.comparison_op?.endsWith('_id') ?? false;
+    const effectiveFilter = isIdOp
+      ? new Filter({
+          ...filter,
+          comparison_op: filter.comparison_op.replace(/_id$/, ''),
+        })
+      : filter;
+
     if (relationType === RelationTypes.HAS_MANY) {
       const childTableAlias = getAlias(aliasCount);
 
@@ -117,12 +126,14 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       const parseOperationResult = await parseConditionV2(
         childBaseModel,
         new Filter({
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
+          ...effectiveFilter,
+          ...(effectiveFilter.comparison_op in negatedMapping
+            ? negatedMapping[effectiveFilter.comparison_op]
             : {}),
           fk_model_id: childModel.id,
-          fk_column_id: (await getDisplayValueOfRefTable(context, column))?.id,
+          fk_column_id: isIdOp
+            ? childModel.primaryKey?.id
+            : (await getDisplayValueOfRefTable(context, column))?.id,
         }),
         aliasCount,
         childTableAlias,
@@ -210,12 +221,14 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       const parseOperationResult = await parseConditionV2(
         parentBaseModel,
         new Filter({
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
+          ...effectiveFilter,
+          ...(effectiveFilter.comparison_op in negatedMapping
+            ? negatedMapping[effectiveFilter.comparison_op]
             : {}),
           fk_model_id: parentModel.id,
-          fk_column_id: (await getDisplayValueOfRefTable(context, column))?.id,
+          fk_column_id: isIdOp
+            ? parentModel.primaryKey?.id
+            : (await getDisplayValueOfRefTable(context, column))?.id,
         }),
         aliasCount,
         parentTableAlias,
@@ -362,12 +375,14 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       const parseOperationResult = await parseConditionV2(
         parentBaseModel,
         new Filter({
-          ...filter,
-          ...(filter.comparison_op in negatedMapping
-            ? negatedMapping[filter.comparison_op]
+          ...effectiveFilter,
+          ...(effectiveFilter.comparison_op in negatedMapping
+            ? negatedMapping[effectiveFilter.comparison_op]
             : {}),
           fk_model_id: parentModel.id,
-          fk_column_id: (await getDisplayValueOfRefTable(context, column))?.id,
+          fk_column_id: isIdOp
+            ? parentModel.primaryKey?.id
+            : (await getDisplayValueOfRefTable(context, column))?.id,
         }),
         aliasCount,
         parentTableAlias,

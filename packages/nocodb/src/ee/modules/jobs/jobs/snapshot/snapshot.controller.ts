@@ -11,6 +11,7 @@ import {
   AppEvents,
   PlanLimitTypes,
   ProjectStatus,
+  sanitizeEntityName,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
@@ -201,7 +202,9 @@ export class SnapshotController {
 
     const targetBase = await this.basesService.baseCreate({
       base: {
-        title: `${base.title} - ${snapshot.title}`.substring(0, 49),
+        title: sanitizeEntityName(
+          `${base.title} - ${snapshot.title}`,
+        ).substring(0, 49),
         status: ProjectStatus.JOB,
         meta: base.meta,
         color: base.color ?? '',

@@ -19,8 +19,6 @@ const isPostgresRequired = computed(() => appInfo.value.isOnPrem && appInfo.valu
 
 const isLicenseKeySetByEnv = computed(() => !!appInfo.value.isLicenseKeySetByEnv)
 
-const { isSelfServeLicensePurchaseEnabled } = useOnPremLicense()
-
 const licenseStatus = computed(() => {
   // When key is managed via env var, DB may be empty — derive from appInfo directly
   if (isLicenseKeySetByEnv.value) {
@@ -313,10 +311,7 @@ loadLicense()
           </div>
 
           <!-- Buy / Manage License card -->
-          <div
-            v-if="isSelfServeLicensePurchaseEnabled"
-            class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4"
-          >
+          <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-4">
             <div class="flex flex-col gap-1">
               <span class="font-bold text-base text-nc-content-gray">
                 {{ licenseStatus === 'none' ? $t('labels.buyLicense') : $t('labels.manageLicense') }}

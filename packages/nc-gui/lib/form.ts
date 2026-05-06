@@ -128,7 +128,7 @@ export class FormFilters {
 
   // Extract display value(s) from an LTAR cell for filter comparisons.
   // Handles both single-row objects (bt / oo / mo) and arrays of rows (hm / mm / om).
-  async getLinkV2DisplayValue(column: FormViewColumn): Promise<string | null> {
+  async getLtarDisplayValue(column: FormViewColumn): Promise<string | null> {
     const colOptions = column?.colOptions as LinkToAnotherRecordType | undefined
     const fk_related_model_id = colOptions?.fk_related_model_id
 
@@ -362,11 +362,11 @@ export class FormFilters {
             // Match VirtualCell.vue's dispatch: V2 single-record junction → chip (display value);
             // uidt=Links → count cell; everything else LTAR → linked-row display value(s).
             if (isBtLikeV2Junction(column)) {
-              val = await this.getLinkV2DisplayValue(column)
+              val = await this.getLtarDisplayValue(column)
             } else if (isLink(column)) {
               val = (this.formState[field] ?? []).length
             } else if (isLTAR(column.uidt, column.colOptions)) {
-              val = await this.getLinkV2DisplayValue(column)
+              val = await this.getLtarDisplayValue(column)
             }
 
             switch (filter.comparison_op) {

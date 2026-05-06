@@ -62,7 +62,7 @@ export default class BaseTrash implements BaseTrashType {
   parent_name?: string;
   deleted_by?: string;
   deleted_at?: string;
-  cleanup_due_at?: string;
+  cleanup_due_at?: string | null;
   related_items?: string;
   meta?: Record<string, any>;
   is_restorable?: boolean;

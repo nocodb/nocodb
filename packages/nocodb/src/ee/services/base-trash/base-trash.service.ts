@@ -3,7 +3,6 @@ import {
   AppEvents,
   extractRolesObj,
   ncHasProperties,
-  PlanLimitTypes,
   ProjectRoles,
 } from 'nocodb-sdk';
 import type { OnModuleInit } from '@nestjs/common';
@@ -20,8 +19,11 @@ import { NcBaseError, NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobTypes } from '~/interface/Jobs';
-import { getLimit } from '~/helpers/paymentHelpers';
 import { processConcurrently } from '~/utils/dataUtils';
+import {
+  computeCleanupDueAt,
+  resolveTrashRetentionDays,
+} from '~/ee/helpers/trashHelpers';
 import Noco from '~/Noco';
 
 @Injectable()
@@ -54,30 +56,10 @@ export class BaseTrashService implements OnModuleInit {
   }
 
   async getRetentionDays(workspaceId: string): Promise<number> {
-    const raw = process.env.NC_TRASH_RETENTION_DAYS;
-    if (raw !== undefined && raw !== '') {
-      const n = Number.parseInt(raw, 10);
-      if (Number.isFinite(n) && n > 0) return n;
-      this.logger.warn(
-        `Ignoring invalid NC_TRASH_RETENTION_DAYS=${JSON.stringify(
-          raw,
-        )} — falling back to plan limit / 30 days`,
-      );
-    }
-
-    try {
-      const { limit } = await getLimit(
-        PlanLimitTypes.LIMIT_TRASH_RETENTION,
-        workspaceId,
-      );
-      if (limit && limit !== Infinity) {
-        return limit;
-      }
-    } catch {
-      // Fall through to default
-    }
-
-    return 30;
+    return resolveTrashRetentionDays(
+      { workspace_id: workspaceId },
+      { source: 'base' },
+    );
   }
 
   protected getHandler(resourceType: string): TrashHandler {
@@ -147,25 +129,22 @@ export class BaseTrashService implements OnModuleInit {
       ncMeta?: MetaService;
       deletedAt?: string;
       cleanupDueAt?: string;
+      retentionDays: number;
     },
     result: Awaited<ReturnType<TrashHandler['trash']>>,
   ) {
-    const retentionDays = await this.getRetentionDays(context.workspace_id);
     const deletedAt = param.deletedAt ? new Date(param.deletedAt) : new Date();
     // The PG type parser at db/CustomKnex.ts truncates fractional seconds when
     // reading timestamps, so cursor pagination on `deleted_at` reads back at
     // second precision. Insert at the same precision so cursor `<`/`=` checks
     // match the stored value exactly.
     deletedAt.setMilliseconds(0);
-    const cleanupDueAt = param.cleanupDueAt
-      ? new Date(param.cleanupDueAt)
-      : (() => {
-          const due = new Date(deletedAt);
-          due.setUTCDate(due.getUTCDate() + retentionDays);
-          return due;
-        })();
 
-    await BaseTrash.insert(
+    const cleanupDueAtIso = param.cleanupDueAt
+      ? new Date(param.cleanupDueAt).toISOString()
+      : computeCleanupDueAt(deletedAt.toISOString(), param.retentionDays);
+
+    return BaseTrash.insert(
       context,
       {
         fk_workspace_id: context.workspace_id,
@@ -175,7 +154,7 @@ export class BaseTrashService implements OnModuleInit {
         name: result.entity.title,
         deleted_by: param.user.id,
         deleted_at: deletedAt.toISOString(),
-        cleanup_due_at: cleanupDueAt.toISOString(),
+        cleanup_due_at: cleanupDueAtIso,
         ...(result.parentType
           ? {
               parent_type: result.parentType,
@@ -215,6 +194,8 @@ export class BaseTrashService implements OnModuleInit {
       : await (Noco.ncMeta as MetaService).startTransaction();
 
     try {
+      const retentionDays = await this.getRetentionDays(context.workspace_id);
+
       const result = await handler.trash(
         context,
         param.resourceId,
@@ -222,7 +203,19 @@ export class BaseTrashService implements OnModuleInit {
         ncMeta,
       );
       if (!result.skipTrashEntry) {
-        await this.insertTrashEntry(context, { ...param, ncMeta }, result);
+        const trashRow = await this.insertTrashEntry(
+          context,
+          { ...param, ncMeta, retentionDays },
+          result,
+        );
+        if (retentionDays === 0 && trashRow?.id) {
+          await this.permanentDelete(context, {
+            trashId: trashRow.id,
+            user: param.user,
+            req: param.req,
+            ncMeta,
+          });
+        }
       }
       if (!param.ncMeta) await ncMeta.commit();
       handler.invalidateCaches(

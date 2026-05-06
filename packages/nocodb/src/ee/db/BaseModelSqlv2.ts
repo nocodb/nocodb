@@ -80,7 +80,10 @@ import {
 } from '~/services/data-opt/pg-helpers';
 import BaseTrash from '~/models/BaseTrash';
 import { buildRecordResourceId } from '~/services/base-trash/record-trash.helpers';
-import { resolveTrashRetentionDays } from '~/ee/helpers/trashHelpers';
+import {
+  computeCleanupDueAt,
+  resolveTrashRetentionDays,
+} from '~/ee/helpers/trashHelpers';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
 import {
   UPDATE_WORKSPACE_COUNTER,
@@ -5084,13 +5087,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }): Promise<void> {
     const deletedAtIso = new Date(params.operationNow).toISOString();
     const fkUserId = params.cookie?.user?.id ?? null;
-    const retentionDays = await resolveTrashRetentionDays(
-      this.context,
-      this.model,
-    );
-    const cleanupDueAt = new Date(
-      new Date(deletedAtIso).getTime() + retentionDays * 86400000,
-    ).toISOString();
+    const retentionDays = await resolveTrashRetentionDays(this.context, {
+      source: 'record',
+      model: this.model,
+    });
+    const cleanupDueAt = computeCleanupDueAt(deletedAtIso, retentionDays);
     await BaseTrash.insert(this.context, {
       resource_type: 'record',
       resource_id: buildRecordResourceId(this.model.id, fkUserId, deletedAtIso),

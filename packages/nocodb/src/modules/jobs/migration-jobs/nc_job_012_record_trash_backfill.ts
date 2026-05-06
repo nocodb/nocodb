@@ -8,6 +8,10 @@ import { MetaTable } from '~/utils/globals';
 import SimpleLRUCache from '~/utils/cache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
+import {
+  computeCleanupDueAt,
+  parseTrashRetentionEnv,
+} from '~/helpers/trashHelpers';
 
 /**
  * Backfill `nc_trash` with one record-type entry per pre-existing
@@ -281,6 +285,10 @@ export class RecordTrashBackfillMigration {
       fk_workspace_id,
       trash_retention_days,
     );
+    if (retentionDays === 0) {
+      await this.markProcessed(modelId, true);
+      return;
+    }
 
     let inserted = 0;
     let offset = 0;
@@ -316,8 +324,7 @@ export class RecordTrashBackfillMigration {
           fkUserId,
           deletedAtIso,
         )}`;
-        const cleanupDueAt = new Date(deletedAtIso);
-        cleanupDueAt.setUTCDate(cleanupDueAt.getUTCDate() + retentionDays);
+        const cleanupDueAt = computeCleanupDueAt(deletedAtIso, retentionDays);
 
         rowsToInsert.push({
           id: await ncMeta.genNanoid(MetaTable.TRASH),
@@ -331,7 +338,7 @@ export class RecordTrashBackfillMigration {
           parent_name: title,
           deleted_by: fkUserId,
           deleted_at: deletedAtIso,
-          cleanup_due_at: cleanupDueAt.toISOString(),
+          cleanup_due_at: cleanupDueAt,
         });
       }
 
@@ -372,8 +379,11 @@ export class RecordTrashBackfillMigration {
     if (typeof perTableOverride === 'number' && perTableOverride > 0) {
       return perTableOverride;
     }
-    const envVal = parseInt(process.env.NC_TRASH_RETENTION_DAYS || '30', 10);
-    return Number.isFinite(envVal) && envVal > 0 ? envVal : 30;
+    const fromEnv = parseTrashRetentionEnv(
+      process.env.NC_RECORD_TRASH_RETENTION_DAYS,
+    );
+    if (fromEnv !== null) return fromEnv;
+    return 30;
   }
 
   private getModelsQuery(concurrency: number) {

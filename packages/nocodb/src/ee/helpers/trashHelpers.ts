@@ -1,31 +1,50 @@
 import { PlanLimitTypes } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import { getLimit } from '~/helpers/paymentHelpers';
+import { parseTrashRetentionEnv } from '~/helpers/trashHelpers';
+
+// -1 = infinite (cleanup_due_at NULL); 0 = disabled; >0 = retention days.
+
+function parsePlan(limit: number | undefined | null): number | null {
+  if (limit === Infinity) return -1;
+  if (limit === 0) return 0;
+  if (typeof limit === 'number' && limit > 0) return limit;
+  return null;
+}
 
 export async function resolveTrashRetentionDays(
-  context: NcContext,
-  model?: { trash_retention_days?: number | null },
+  context: Pick<NcContext, 'workspace_id'>,
+  opts: {
+    source: 'record' | 'base';
+    model?: { trash_retention_days?: number | null };
+  },
 ): Promise<number> {
-  if (model?.trash_retention_days != null && model.trash_retention_days > 0) {
-    return model.trash_retention_days;
+  if (
+    opts.source === 'record' &&
+    opts.model?.trash_retention_days != null &&
+    opts.model.trash_retention_days > 0
+  ) {
+    return opts.model.trash_retention_days;
   }
 
-  const raw = process.env.NC_RECORD_TRASH_RETENTION_DAYS;
-  if (raw !== undefined && raw !== '') {
-    const n = Number.parseInt(raw, 10);
-    // 0 explicitly disables record trash (soft-delete falls back to hard-delete).
-    if (Number.isFinite(n) && n >= 0) return n;
-  }
+  const env =
+    opts.source === 'record'
+      ? process.env.NC_RECORD_TRASH_RETENTION_DAYS
+      : process.env.NC_BASE_TRASH_RETENTION_DAYS;
+  const fromEnv = parseTrashRetentionEnv(env);
+  if (fromEnv !== null) return fromEnv;
 
-  try {
-    const { limit } = await getLimit(
-      PlanLimitTypes.LIMIT_TRASH_RETENTION,
-      context.workspace_id,
-    );
-    if (limit === 0) return 0;
-    if (limit !== Infinity && limit > 0) return limit;
-  } catch {
-    // fallback below
+  if (context.workspace_id) {
+    try {
+      const { limit } = await getLimit(
+        PlanLimitTypes.LIMIT_TRASH_RETENTION,
+        context.workspace_id,
+      );
+      const fromPlan = parsePlan(limit);
+      if (fromPlan !== null) return fromPlan;
+    } catch {
+      // Workspace lookup failed — fall through.
+    }
   }
 
   return 30;

@@ -9,9 +9,11 @@ import {
 } from '@nestjs/common';
 import {
   AppEvents,
+  newSnapshotTitle,
   PlanLimitTypes,
   ProjectStatus,
   sanitizeEntityName,
+  validateEntityName,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
@@ -80,6 +82,13 @@ export class SnapshotController {
       }
     }
 
+    if (body?.title) {
+      const { valid, error } = validateEntityName(body.title, 'Snapshot title');
+      if (!valid) {
+        NcError.badRequest(error);
+      }
+    }
+
     const source = (await base.getSources())[0];
 
     if (!source) {
@@ -108,7 +117,7 @@ export class SnapshotController {
       snapshot_base_id: snapshotBase.id,
       created_by: req.user.id,
       status: ProjectStatus.JOB,
-      title: body?.title ?? dayjs().format('Snapshot YYYY-MM-DD HH:mm:ss'),
+      title: body?.title ?? newSnapshotTitle(),
     });
 
     req.skipAudit = true;

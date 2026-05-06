@@ -1,5 +1,4 @@
-import { type PlanLimitExceededDetailsType, PlanLimitTypes, type SnapshotType, type WorkspaceType } from 'nocodb-sdk'
-import dayjs from 'dayjs'
+import { type PlanLimitExceededDetailsType, PlanLimitTypes, type SnapshotType, type WorkspaceType, newSnapshotTitle as generateSnapshotTitle } from 'nocodb-sdk'
 
 export type SnapshotExtendedType = SnapshotType & {
   isNew?: boolean
@@ -291,7 +290,7 @@ export const useBaseSettings = createSharedComposable(() => {
       return
     }
 
-    newSnapshotTitle.value = dayjs().format('D MMMM YYYY, h:mm A')
+    newSnapshotTitle.value = generateSnapshotTitle()
     snapshots.value = [
       {
         title: newSnapshotTitle,

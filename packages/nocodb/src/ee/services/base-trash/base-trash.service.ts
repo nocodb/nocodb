@@ -57,8 +57,7 @@ export class BaseTrashService implements OnModuleInit {
     const raw = process.env.NC_TRASH_RETENTION_DAYS;
     if (raw !== undefined && raw !== '') {
       const n = Number.parseInt(raw, 10);
-      // 0 explicitly disables trash (soft-delete falls back to hard-delete).
-      if (Number.isFinite(n) && n >= 0) return n;
+      if (Number.isFinite(n) && n > 0) return n;
       this.logger.warn(
         `Ignoring invalid NC_TRASH_RETENTION_DAYS=${JSON.stringify(
           raw,

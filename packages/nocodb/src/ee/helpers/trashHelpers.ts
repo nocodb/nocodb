@@ -10,9 +10,10 @@ export async function resolveTrashRetentionDays(
     return model.trash_retention_days;
   }
 
-  const raw = process.env.NC_TRASH_RETENTION_DAYS;
+  const raw = process.env.NC_RECORD_TRASH_RETENTION_DAYS;
   if (raw !== undefined && raw !== '') {
     const n = Number.parseInt(raw, 10);
+    // 0 explicitly disables record trash (soft-delete falls back to hard-delete).
     if (Number.isFinite(n) && n >= 0) return n;
   }
 

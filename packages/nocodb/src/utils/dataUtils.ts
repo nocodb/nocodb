@@ -173,6 +173,7 @@ export function batchUpdate(
 
   columns.forEach((column) => {
     const filteredData = data.filter((row) => !ncIsUndefined(row[column]));
+    if (filteredData.length === 0) return;
     updateObj[column] = kn.raw(
       `CASE ?? ${filteredData
         .map(() => 'WHEN ? THEN ?')

@@ -36,10 +36,15 @@ export default class Audit extends AuditCE {
 
     const [id, created_at] = cursor?.split('|') ?? [];
 
-    const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
-
-    if (cursorDiff > retentionLimit) {
-      return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
+    if (retentionLimit !== undefined) {
+      const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
+      if (cursorDiff > retentionLimit) {
+        return new PagedResponseImpl(
+          [],
+          {},
+          { pageInfo: { isLastPage: true } },
+        );
+      }
     }
 
     const query = Noco.ncAudit
@@ -136,10 +141,15 @@ export default class Audit extends AuditCE {
 
     const [id, created_at] = cursor?.split('|') ?? [];
 
-    const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
-
-    if (cursorDiff > retentionLimit) {
-      return new PagedResponseImpl([], {}, { pageInfo: { isLastPage: true } });
+    if (retentionLimit !== undefined) {
+      const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
+      if (cursorDiff > retentionLimit) {
+        return new PagedResponseImpl(
+          [],
+          {},
+          { pageInfo: { isLastPage: true } },
+        );
+      }
     }
 
     const query = Noco.ncAudit
@@ -276,7 +286,7 @@ export default class Audit extends AuditCE {
 
     const [id, created_at] = cursor?.split('|') ?? [];
 
-    if (retentionLimit) {
+    if (retentionLimit !== undefined) {
       const cursorDiff = dayjs(created_at).diff(dayjs(), 'days');
       if (cursorDiff > retentionLimit) {
         return new PagedResponseImpl(

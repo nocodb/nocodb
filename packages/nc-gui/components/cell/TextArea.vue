@@ -43,6 +43,14 @@ const isUnderFormula = inject(IsUnderFormulaInj, ref(false))
 
 const cellEventHook = inject(CellEventHookInj, null)
 
+// SmartText modal saves via its own backend endpoint, bypassing the cell's
+// v-model auto-save. The expanded form fetches its own copy of the row
+// (different object reference from the grid's cached row), so a local
+// mutation here doesn't reach the canvas. Trigger the expanded form's
+// reloadHook — it propagates to the parent grid's row reload + canvas
+// redraw, mirroring the rich-text auto-save chain.
+const reloadRowHook = inject(ReloadRowDataHookInj, undefined)
+
 const active = inject(ActiveCellInj, null)
 
 const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPanel: false }))
@@ -237,12 +245,16 @@ const onExpand = () => {
 }
 
 const onSmartTextSaved = (markdown: string | null) => {
-  // Mutate the underlying row in place — same pattern as the SmartText panel
-  // (useSmartText:savedRowData[savedColTitle] = newMarkdown). Avoids tripping
-  // the expanded form's dirty-tracking with a value the backend already saved.
+  // Mirror the new markdown into the expanded form's local row copy so the
+  // form preview updates immediately (without waiting for the reload below).
   if (currentRow.value?.row && column?.value?.title) {
     currentRow.value.row[column.value.title] = markdown
   }
+  // Propagate to the parent grid — the expanded form's reloadHook reloads
+  // the row from the server, which refreshes the canvas's cached row and
+  // forces a redraw. Required because the expanded form's row is a fresh
+  // server-fetched object, not the same reference as the canvas cache.
+  reloadRowHook?.trigger(null)
 }
 
 const onMouseMove = (e: MouseEvent) => {

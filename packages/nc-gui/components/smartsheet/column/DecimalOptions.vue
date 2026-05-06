@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ColumnHelper, SeparatorType, UITypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, readonlyMetaAllowedTypes, resolveColumnSeparator } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -34,22 +34,8 @@ const disableConfiguration = computed(
   () => Boolean(isMetaReadOnly.value) && !readonlyMetaAllowedTypes.includes(formState.value.uidt),
 )
 
-const separatorOptions = [
-  { value: SeparatorType.Locale, label: t('labels.separatorLocal'), preview: '1,000,000.00' },
-  { value: SeparatorType.NonePeriod, label: t('labels.separatorNonePeriod'), preview: '1000000.00' },
-  { value: SeparatorType.NoneComma, label: t('labels.separatorNoneComma'), preview: '1000000,00' },
-  { value: SeparatorType.CommaPeriod, label: t('labels.separatorCommaPeriod'), preview: '1,000,000.00' },
-  { value: SeparatorType.PeriodComma, label: t('labels.separatorPeriodComma'), preview: '1.000.000,00' },
-  { value: SeparatorType.SpacePeriod, label: t('labels.separatorSpacePeriod'), preview: '1 000 000.00' },
-  { value: SeparatorType.SpaceComma, label: t('labels.separatorSpaceComma'), preview: '1 000 000,00' },
-]
-
 // Backward compat: resolve isLocaleString to separator if separator is not yet set
-if (!vModel.value.meta.separator) {
-  vModel.value.meta.separator = vModel.value.meta.isLocaleString
-    ? SeparatorType.CommaPeriod
-    : SeparatorType.NonePeriod
-}
+vModel.value.meta.separator = resolveColumnSeparator(vModel.value.meta)
 </script>
 
 <template>
@@ -78,27 +64,9 @@ if (!vModel.value.meta.separator) {
     </a-select>
   </a-form-item>
 
-  <a-form-item :label="$t('labels.separator')">
-    <a-select
-      v-model:value="vModel.meta.separator"
-      :disabled="disableConfiguration"
-      option-label-prop="label"
-      dropdown-class-name="nc-dropdown-decimal-separator-format"
-    >
-      <template #suffixIcon>
-        <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-      </template>
-      <a-select-option
-        v-for="option of separatorOptions"
-        :key="option.value"
-        :value="option.value"
-        :label="option.label ? `${option.label} (${option.preview})` : option.preview"
-      >
-        <div class="flex w-full justify-between items-center">
-          <span>{{ option.label }}</span>
-          <span class="text-nc-content-gray-muted">{{ option.preview }}</span>
-        </div>
-      </a-select-option>
-    </a-select>
-  </a-form-item>
+  <SmartsheetColumnSeparatorSelect
+    v-model:value="vModel.meta.separator"
+    :disabled="disableConfiguration"
+    dropdown-class-name="nc-dropdown-decimal-separator-format"
+  />
 </template>

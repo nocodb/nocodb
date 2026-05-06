@@ -6,11 +6,11 @@ import {
   FormulaDataTypes,
   PlanFeatureTypes,
   PlanTitles,
-  SeparatorType,
   UITypes,
   getAvailableRollupForColumn,
   integerPreservingRollupFunctions,
   integerRollupFunctions,
+  resolveColumnSeparator,
   rollupAllFunctions,
 } from 'nocodb-sdk'
 
@@ -255,23 +255,8 @@ vModel.value.meta = {
 
 const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 
-const separatorOptions = [
-  { value: SeparatorType.Locale, label: t('labels.separatorLocal'), preview: '1,000,000.00' },
-  { value: SeparatorType.NonePeriod, label: t('labels.separatorNonePeriod'), preview: '1000000.00' },
-  { value: SeparatorType.NoneComma, label: t('labels.separatorNoneComma'), preview: '1000000,00' },
-  { value: SeparatorType.CommaPeriod, label: t('labels.separatorCommaPeriod'), preview: '1,000,000.00' },
-  { value: SeparatorType.PeriodComma, label: t('labels.separatorPeriodComma'), preview: '1.000.000,00' },
-  { value: SeparatorType.SpacePeriod, label: t('labels.separatorSpacePeriod'), preview: '1 000 000.00' },
-  { value: SeparatorType.SpaceComma, label: t('labels.separatorSpaceComma'), preview: '1 000 000,00' },
-]
-
-
 // Backward compat: resolve isLocaleString to separator if separator is not yet set
-if (!vModel.value.meta.separator) {
-  vModel.value.meta.separator = vModel.value.meta.isLocaleString
-    ? SeparatorType.CommaPeriod
-    : SeparatorType.NonePeriod
-}
+vModel.value.meta.separator = resolveColumnSeparator(vModel.value.meta)
 
 const enableFormattingOptions = computed(() => {
   const relatedCol = filteredColumns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
@@ -462,28 +447,11 @@ const handleScrollIntoView = () => {
         </a-select-option>
       </a-select>
     </a-form-item>
-    <a-form-item v-if="enableFormattingOptions" :label="$t('labels.separator')">
-      <a-select
-        v-model:value="vModel.meta.separator"
-        option-label-prop="label"
-        dropdown-class-name="nc-dropdown-rollup-separator-format"
-      >
-        <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-        </template>
-        <a-select-option
-          v-for="option of separatorOptions"
-          :key="option.value"
-          :value="option.value"
-          :label="option.label ? `${option.label} (${option.preview})` : option.preview"
-        >
-          <div class="flex w-full justify-between items-center">
-            <span>{{ option.label }}</span>
-            <span class="text-nc-content-gray-muted">{{ option.preview }}</span>
-          </div>
-        </a-select-option>
-      </a-select>
-    </a-form-item>
+    <SmartsheetColumnSeparatorSelect
+      v-if="enableFormattingOptions"
+      v-model:value="vModel.meta.separator"
+      dropdown-class-name="nc-dropdown-rollup-separator-format"
+    />
 
     <div v-if="isEeUI && showEEFeatures" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">

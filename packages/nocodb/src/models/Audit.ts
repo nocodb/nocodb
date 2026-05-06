@@ -1,5 +1,4 @@
 import { type AuditV1OperationTypes } from 'nocodb-sdk';
-import dayjs from 'dayjs';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -150,14 +149,6 @@ export default class Audit {
       .where('fk_model_id', fk_model_id)
       .where('row_id', row_id)
       .orderBy('id', 'desc');
-
-    if (!Noco.isEE()) {
-      query.where(
-        'created_at',
-        '>=',
-        dayjs().subtract(30, 'days').toISOString(),
-      );
-    }
 
     if (id) {
       query.where('id', '<', id);

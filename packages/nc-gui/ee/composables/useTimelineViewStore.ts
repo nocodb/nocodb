@@ -43,14 +43,14 @@ interface ScaleConfig {
 
 const SCALE_CONFIG: Record<TimelineZoomLevel, ScaleConfig> = {
   day: { colWidth: 160, bufferDays: 30, navUnit: 'day', navAmount: 1, majorTiers: [], minorLabel: 'weekday-full', gridlineUnit: 'day' },
-  week: { colWidth: 72, bufferDays: 30, navUnit: 'week', navAmount: 1, majorTiers: [], minorLabel: 'weekday-short', gridlineUnit: 'day' },
-  '2week': { colWidth: 56, bufferDays: 30, navUnit: 'week', navAmount: 2, majorTiers: ['month'], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
-  month: { colWidth: 36, bufferDays: 30, navUnit: 'month', navAmount: 1, majorTiers: [], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
-  quarter: { colWidth: 12, bufferDays: 30, navUnit: 'month', navAmount: 3, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
-  '6month': { colWidth: 6, bufferDays: 30, navUnit: 'month', navAmount: 6, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
-  year: { colWidth: 4, bufferDays: 30, navUnit: 'year', navAmount: 1, majorTiers: ['month'], minorLabel: 'fortnight', gridlineUnit: 'fortnight' },
-  '2year': { colWidth: 2, bufferDays: 30, navUnit: 'year', navAmount: 2, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'month' },
-  '5year': { colWidth: 1, bufferDays: 30, navUnit: 'year', navAmount: 5, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'quarter' },
+  week: { colWidth: 72, bufferDays: 60, navUnit: 'week', navAmount: 1, majorTiers: [], minorLabel: 'weekday-short', gridlineUnit: 'day' },
+  '2week': { colWidth: 56, bufferDays: 90, navUnit: 'week', navAmount: 2, majorTiers: ['month'], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
+  month: { colWidth: 36, bufferDays: 120, navUnit: 'month', navAmount: 1, majorTiers: [], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
+  quarter: { colWidth: 12, bufferDays: 365, navUnit: 'month', navAmount: 3, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
+  '6month': { colWidth: 6, bufferDays: 540, navUnit: 'month', navAmount: 6, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
+  year: { colWidth: 4, bufferDays: 730, navUnit: 'year', navAmount: 1, majorTiers: ['month'], minorLabel: 'fortnight', gridlineUnit: 'fortnight' },
+  '2year': { colWidth: 2, bufferDays: 1095, navUnit: 'year', navAmount: 2, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'month' },
+  '5year': { colWidth: 1, bufferDays: 1825, navUnit: 'year', navAmount: 5, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'quarter' },
 }
 
 

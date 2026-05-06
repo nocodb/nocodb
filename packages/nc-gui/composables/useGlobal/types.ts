@@ -48,6 +48,7 @@ export interface AppInfo {
   feedEnabled: boolean
   sentryDSN: string
   isOnPrem: boolean
+  licenseServerUrl?: string
   isPostgres: boolean
   isAirgapped: boolean
   onPremPlan: Record<string, any> | null

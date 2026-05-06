@@ -59,8 +59,10 @@ export const TIMELINE_GROUP_HEADER_HEIGHT = 32
 /**
  * Maximum number of records returned per windowed fetch. The timeline
  * fetches only records whose date range overlaps the visible buffer, so
- * each request scopes to the user's current viewport (plus buffer). 400 is
- * sized to comfortably cover a typical buffer at any zoom level — chunks
- * that saturate would need viewport-virtualised bars to render anyway.
+ * each request scopes to the user's current viewport (plus buffer). 400
+ * is sized to keep payloads small and first-paint fast — chunks that
+ * saturate would need viewport-virtualised bars (Phase 2) to render
+ * usefully anyway, and progressive paging is a follow-up if 400 turns
+ * out to pinch on real data.
  */
 export const TIMELINE_RECORD_LIMIT = 400

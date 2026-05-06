@@ -43,14 +43,14 @@ interface ScaleConfig {
 
 const SCALE_CONFIG: Record<TimelineZoomLevel, ScaleConfig> = {
   day: { colWidth: 160, bufferDays: 30, navUnit: 'day', navAmount: 1, majorTiers: [], minorLabel: 'weekday-full', gridlineUnit: 'day' },
-  week: { colWidth: 72, bufferDays: 60, navUnit: 'week', navAmount: 1, majorTiers: [], minorLabel: 'weekday-short', gridlineUnit: 'day' },
-  '2week': { colWidth: 56, bufferDays: 90, navUnit: 'week', navAmount: 2, majorTiers: ['month'], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
-  month: { colWidth: 36, bufferDays: 120, navUnit: 'month', navAmount: 1, majorTiers: [], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
-  quarter: { colWidth: 12, bufferDays: 365, navUnit: 'month', navAmount: 3, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
-  '6month': { colWidth: 6, bufferDays: 540, navUnit: 'month', navAmount: 6, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
-  year: { colWidth: 4, bufferDays: 730, navUnit: 'year', navAmount: 1, majorTiers: ['month'], minorLabel: 'fortnight', gridlineUnit: 'fortnight' },
-  '2year': { colWidth: 2, bufferDays: 1095, navUnit: 'year', navAmount: 2, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'month' },
-  '5year': { colWidth: 1, bufferDays: 1825, navUnit: 'year', navAmount: 5, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'quarter' },
+  week: { colWidth: 72, bufferDays: 30, navUnit: 'week', navAmount: 1, majorTiers: [], minorLabel: 'weekday-short', gridlineUnit: 'day' },
+  '2week': { colWidth: 56, bufferDays: 30, navUnit: 'week', navAmount: 2, majorTiers: ['month'], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
+  month: { colWidth: 36, bufferDays: 30, navUnit: 'month', navAmount: 1, majorTiers: [], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
+  quarter: { colWidth: 12, bufferDays: 30, navUnit: 'month', navAmount: 3, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
+  '6month': { colWidth: 6, bufferDays: 30, navUnit: 'month', navAmount: 6, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
+  year: { colWidth: 4, bufferDays: 30, navUnit: 'year', navAmount: 1, majorTiers: ['month'], minorLabel: 'fortnight', gridlineUnit: 'fortnight' },
+  '2year': { colWidth: 2, bufferDays: 30, navUnit: 'year', navAmount: 2, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'month' },
+  '5year': { colWidth: 1, bufferDays: 30, navUnit: 'year', navAmount: 5, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'quarter' },
 }
 
 
@@ -59,10 +59,16 @@ const quarterOf = (d: dayjs.Dayjs): number => Math.floor(d.month() / 3) + 1
 // Extend the buffer once the user scrolls within this many pixels of an edge.
 const EXTEND_THRESHOLD_PX = 240
 
-// Cap total buffer span at this multiple of one extension chunk. Long
-// scroll sessions trim the opposite edge so visibleDates and the four
-// derived sparse arrays don't grow without bound.
-const MAX_BUFFER_MULTIPLIER = 6
+// Buffer span = bufferDays * MAX_BUFFER_MULTIPLIER. The initial span is
+// 2 × bufferDays (±bufferDays around the centre), and we want the buffer
+// to *slide* on every edge-extension rather than grow then slide — so
+// the fetch window's start advances together with its end as the user
+// scrolls. Setting this to 2 makes maxSpan equal to the initial span,
+// which trips the opposite-side trim on every extension. Anything
+// higher and the window grows asymmetrically: bufferEnd marches forward
+// while bufferStart stays pinned, and the windowed fetch keeps picking
+// up the same earliest-by-sort-order records over and over.
+const MAX_BUFFER_MULTIPLIER = 2
 
 // Module-level cache to persist timeline navigation state across view switches.
 // Keyed by view ID so each timeline view remembers its own position. Bounded
@@ -458,12 +464,44 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       return anchored.format('YYYY-MM-DD HH:mm:ssZ')
     }
 
-    // Sequence number — fast scrolling can fire several refetches in flight
-    // at once. Increment on every dispatch and only commit the response whose
-    // seq matches when it returns; older inflight responses drop on the floor.
+    // Sequence number — defensive belt-and-suspenders for the serialized
+    // dispatch below: if for any reason two requests do end up in flight
+    // (HMR, re-entrant calls), only the response whose seq matches the
+    // newest dispatch commits.
     let _fetchSeq = 0
 
-    const fetchTimelineRecords = async ({ showLoading }: { showLoading: boolean }) => {
+    // Serialize fetches — at most one request in flight at a time. While a
+    // fetch is running, additional calls are coalesced into a single
+    // pending slot (the most recent args win); when the current fetch
+    // settles, the pending slot fires next. Prevents fast scroll / zoom
+    // spam from issuing parallel network calls.
+    let _isFetching = false
+    let _pending: { showLoading: boolean } | null = null
+
+    const fetchTimelineRecords = async (args: { showLoading: boolean }): Promise<void> => {
+      if (_isFetching) {
+        // Replace any earlier queued request — only the latest matters.
+        // If any caller wanted the loading spinner shown, preserve that.
+        _pending = {
+          showLoading: (_pending?.showLoading ?? false) || args.showLoading,
+        }
+        return
+      }
+      _isFetching = true
+      try {
+        await _fetchTimelineRecordsImpl(args)
+      } finally {
+        _isFetching = false
+        if (_pending) {
+          const next = _pending
+          _pending = null
+          // Fire-and-forget — the new call goes through the same gate.
+          fetchTimelineRecords(next)
+        }
+      }
+    }
+
+    const _fetchTimelineRecordsImpl = async ({ showLoading }: { showLoading: boolean }) => {
       if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !timelineRange.value?.length)
         return
 

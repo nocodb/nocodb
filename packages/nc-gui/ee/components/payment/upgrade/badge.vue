@@ -45,10 +45,20 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { disabled, removeClick } = toRefs(props)
 
+const { t } = useI18n()
+
 const planUpgraderClick = inject(PlanUpgraderClickHookInj, createEventHook())
 
-const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled, isOnPrem, isEEFeatureBlocked, activePlan, activePlanTitle } =
-  useEeConfig()
+const {
+  handleUpgradePlan,
+  getFeature,
+  getPlanTitle,
+  isPaymentEnabled,
+  isOnPrem,
+  isEEFeatureBlocked,
+  activePlan,
+  activePlanTitle,
+} = useEeConfig()
 
 const isFeatureEnabled = computed(() => {
   if (ncIsFunction(props.featureEnabledCallback)) {
@@ -107,10 +117,11 @@ const effectivePlanTitle = computed(() => {
   return PlanFeatureTypesToPlanTitles[props.feature as PlanFeatureTypes] || PlanTitles.PLUS
 })
 
-const lockTooltipKey = computed(() => {
-  const title = effectivePlanTitle.value
-  const isEnterpriseTier = title === OnPremPlanTitles.SELF_HOSTED_ENTERPRISE || title === PlanTitles.ENTERPRISE
-  return isEnterpriseTier ? 'upgrade.enterpriseFeatureTitle' : 'upgrade.businessFeatureTitle'
+// Tooltip text resolves through `getPlanTitle`, which handles every cloud and on-prem
+// tier (Free, Plus, Business, Enterprise, Self-hosted Business → "Business",
+// Self-hosted Enterprise → "Enterprise") via the `objects.paymentPlan` i18n map.
+const lockTooltipText = computed(() => {
+  return t('upgrade.planFeatureTitle', { plan: getPlanTitle(effectivePlanTitle.value) })
 })
 
 const activeBadgeColors = computed(() => {
@@ -157,8 +168,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <NcTooltip v-if="!isFeatureEnabled && showAsLock && (isPaymentEnabled || isOnPrem)" @click="showUpgradeModal">
-    <template #title>{{ $t(lockTooltipKey) }}</template>
+  <NcTooltip v-if="!isFeatureEnabled && showAsLock && isOnPrem" @click="showUpgradeModal">
+    <template #title>{{ lockTooltipText }}</template>
     <GeneralIcon icon="ncUpgradeSparkle" class="h-3.5 w-3.5 cursor-pointer" :style="{ color: activeBadgeColors.text }" />
   </NcTooltip>
   <NcBadge

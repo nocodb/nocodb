@@ -999,7 +999,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       timezone: context.timezone,
       is_api_token: req.user?.is_api_token,
       permissions: [],
-      ...(params.publicDataUuid || params.sharedViewUuid || params.sharedBaseUuid
+      ...(params.publicDataUuid ||
+      params.sharedViewUuid ||
+      params.sharedBaseUuid
         ? { is_public: true }
         : {}),
     };

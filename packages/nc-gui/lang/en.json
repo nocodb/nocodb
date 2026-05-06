@@ -256,6 +256,7 @@
     "upgradeToUseMapViewSubtitle": "Upgrade to the {plan} plan to visualize your geo data on an interactive map.",
     "upgradeToUseDateDependency": "Upgrade to use Date Dependencies",
     "upgradeToUseDateDependencySubtitle": "Upgrade to use date dependencies to automatically sync date fields and propagate schedule changes across linked rows.",
+    "planFeatureTitle": "{plan} Feature",
     "enterpriseFeatureTitle": "Enterprise Feature",
     "enterpriseFeatureSubtitle": "{feature} is available with an Enterprise license. Enter your license key to unlock this feature.",
     "enterpriseFeatureEnterLicense": "Enter your license key {detail}",

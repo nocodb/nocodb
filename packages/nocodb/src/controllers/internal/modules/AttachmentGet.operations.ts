@@ -11,9 +11,7 @@ import { AttachmentsService } from '~/services/attachments.service';
 export class AttachmentGetOperations
   implements InternalApiModule<InternalGETResponseType>
 {
-  constructor(
-    protected readonly attachmentsService: AttachmentsService,
-  ) {}
+  constructor(protected readonly attachmentsService: AttachmentsService) {}
 
   operations = ['attachmentDownload' as const];
   httpMethod = 'GET' as const;

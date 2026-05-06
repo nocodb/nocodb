@@ -31,6 +31,9 @@ const {
 const { t } = useI18n()
 const view = inject(ActiveViewInj, ref())
 const meta = inject(MetaInj, ref())
+const isPublic = inject(IsPublicInj, ref(false))
+
+const { base, isSharedBase } = storeToRefs(useBase())
 
 // Provide cell context so the embedded doc editor's attachment proxy resolves
 // image / file URLs via the cell-keyed endpoint instead of the doc-keyed one.
@@ -61,9 +64,15 @@ const updateSidebarRightEdge = () => {
   sidebarRightEdge.value = rect.right
 }
 
-const fullscreenLeft = computed(() =>
-  sidebarRightEdge.value > 0 ? `${sidebarRightEdge.value}px` : 'var(--mini-sidebar-width)',
-)
+// Shared view (`isPublic`) and shared base both render without the mini
+// sidebar, so when the project sidebar is hidden the panel must hug the
+// viewport edge instead of leaving a gap the width of the (absent) rail.
+const hasMiniSidebar = computed(() => !isPublic.value && !isSharedBase.value)
+
+const fullscreenLeft = computed(() => {
+  if (sidebarRightEdge.value > 0) return `${sidebarRightEdge.value}px`
+  return hasMiniSidebar.value ? 'var(--mini-sidebar-width)' : '0'
+})
 
 const panelRef = ref<HTMLElement>()
 
@@ -227,7 +236,6 @@ const onEditorContentUpdate = (content: Record<string, any>) => {
 // ---- Action menu: copy URL + download as ----------------------------------
 const docEditorRef = ref<{ editor: Ref<any> } | null>(null)
 
-const { base } = storeToRefs(useBase())
 const { appInfo } = useGlobal()
 
 const tiptapEditor = computed(() => docEditorRef.value?.editor as any)

@@ -98,11 +98,7 @@ export const useEeConfig = createSharedComposable(() => {
     return dayjs().isSameOrBefore(dayjs(LOYALTY_GRACE_PERIOD_END_DATE))
   })
 
-  const isWsAuditEnabled = computed(() => {
-    if (isEEFeatureBlocked.value) return false
-
-    return (isPaymentEnabled.value || isOnPrem.value) && getFeature(PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE)
-  })
+  const isWsAuditEnabled = computed(() => getFeature(PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE))
 
   const isRecordLimitReached = computed(() => {
     return (
@@ -180,19 +176,19 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockDocs = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DOCS)
+    return !getFeature(PlanFeatureTypes.FEATURE_DOCS)
   })
 
   const blockDocsInlineComments = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS)
+    return !getFeature(PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS)
   })
 
   const blockDocsResolveComments = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_COMMENT_RESOLVE)
+    return !getFeature(PlanFeatureTypes.FEATURE_COMMENT_RESOLVE)
   })
 
   const blockDocsExportPdf = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF)
+    return !getFeature(PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF)
   })
 
   const blockAddNewScript = computed(() => {
@@ -218,43 +214,43 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockCurrentUserFilter = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER)
+    return !getFeature(PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER)
   })
 
   const blockRowColoring = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_ROW_COLOUR)
+    return !getFeature(PlanFeatureTypes.FEATURE_ROW_COLOUR)
   })
 
   const blockToggleFilter = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TOGGLE_FILTER)
+    return !getFeature(PlanFeatureTypes.FEATURE_TOGGLE_FILTER)
   })
 
   const blockPinnedFilter = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_PINNED_FILTER)
+    return !getFeature(PlanFeatureTypes.FEATURE_PINNED_FILTER)
   })
 
   const blockCellColoring = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_CELL_COLOUR)
+    return !getFeature(PlanFeatureTypes.FEATURE_CELL_COLOUR)
   })
 
   const blockCalendarRange = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_CALENDAR_RANGE)
+    return !getFeature(PlanFeatureTypes.FEATURE_CALENDAR_RANGE)
   })
 
   const blockTimelineView = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
+    return !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
   })
 
   const blockTableAndFieldPermissions = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
+    return !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
   })
 
   const blockDocumentPermissions = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS)
+    return !getFeature(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS)
   })
 
   const blockPrivateBases = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES)
+    return !getFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES)
   })
 
   const showUserMayChargeAlert = computed(() => {
@@ -280,42 +276,42 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockAiPromptField = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD)
+    return !getFeature(PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD)
   })
 
   const blockAiButtonField = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD)
+    return !getFeature(PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD)
   })
 
   const blockAiChat = computed(() => {
     // On-prem: hide AI chat entirely when no AI integrations are configured
     if (isOnPrem.value && !aiIntegrationAvailable.value) return true
 
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_AI_CHAT)
+    return !getFeature(PlanFeatureTypes.FEATURE_AI_CHAT)
   })
 
   const blockAiIntegrations = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_AI_INTEGRATIONS)
+    return !getFeature(PlanFeatureTypes.FEATURE_AI_INTEGRATIONS)
   })
 
   const blockDocAi = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DOC_AI)
+    return !getFeature(PlanFeatureTypes.FEATURE_DOC_AI)
   })
 
   const blockButtonVisibility = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY)
+    return !getFeature(PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY)
   })
 
   const blockColourField = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_COLOUR_FIELD)
+    return !getFeature(PlanFeatureTypes.FEATURE_COLOUR_FIELD)
   })
 
   const blockTeamHierarchy = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TEAM_HIERARCHY)
+    return !getFeature(PlanFeatureTypes.FEATURE_TEAM_HIERARCHY)
   })
 
   const blockTeamsManagement = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
+    return !getFeature(PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT)
   })
 
   const blockAddNewTeamToWs = computed(() => {
@@ -328,7 +324,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockCardFieldHeaderVisibility = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY)
+    return !getFeature(PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY)
   })
 
   const blockAddNewSandbox = computed(() => {
@@ -336,59 +332,59 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockSync = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_SYNC)
+    return !getFeature(PlanFeatureTypes.FEATURE_SYNC)
   })
 
   const blockRls = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_RLS)
+    return !getFeature(PlanFeatureTypes.FEATURE_RLS)
   })
 
   const blockUnique = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_UNIQUE)
+    return !getFeature(PlanFeatureTypes.FEATURE_UNIQUE)
   })
 
   const blockUuidField = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_UUID_FIELD)
+    return !getFeature(PlanFeatureTypes.FEATURE_UUID_FIELD)
   })
 
   const blockAutoNumberField = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD)
+    return !getFeature(PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD)
   })
 
   const blockRecordTemplates = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES)
+    return !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES)
   })
 
   const blockFormScheduling = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FORM_SCHEDULING)
+    return !getFeature(PlanFeatureTypes.FEATURE_FORM_SCHEDULING)
   })
 
   const blockViewSections = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_VIEW_SECTIONS)
+    return !getFeature(PlanFeatureTypes.FEATURE_VIEW_SECTIONS)
   })
 
   const blockBaseVariables = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_BASE_VARIABLES)
+    return !getFeature(PlanFeatureTypes.FEATURE_BASE_VARIABLES)
   })
 
   const blockListView = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_LIST_VIEW)
+    return !getFeature(PlanFeatureTypes.FEATURE_LIST_VIEW)
   })
 
   const blockMapView = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
+    return !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
   })
 
   const blockDateDependency = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY)
+    return !getFeature(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY)
   })
 
   const blockMfa = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_MFA)
+    return !getFeature(PlanFeatureTypes.FEATURE_MFA)
   })
 
   const blockForce2fa = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FORCE_2FA)
+    return !getFeature(PlanFeatureTypes.FEATURE_FORCE_2FA)
   })
 
   /** EE-only feature blocks — gated by license on self-hosted, plan-gated for licensed on-prem */
@@ -400,19 +396,19 @@ export const useEeConfig = createSharedComposable(() => {
   })
   const blockSnapshots = computed(() => isOnPrem.value && getLimit(PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE) === 0)
   const blockCustomUrls = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_CUSTOM_URL)
+    return !getFeature(PlanFeatureTypes.FEATURE_CUSTOM_URL)
   })
   const blockTrashSettings = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TRASH_SETTINGS)
+    return !getFeature(PlanFeatureTypes.FEATURE_TRASH_SETTINGS)
   })
   const blockFormGridLayout = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT)
+    return !getFeature(PlanFeatureTypes.FEATURE_FORM_GRID_LAYOUT)
   })
   const blockTableVisibility = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_TABLE_VISIBILITY)
+    return !getFeature(PlanFeatureTypes.FEATURE_TABLE_VISIBILITY)
   })
   const blockFieldVisibility = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_FIELD_VISIBILITY)
+    return !getFeature(PlanFeatureTypes.FEATURE_FIELD_VISIBILITY)
   })
   const blockAiIntegrationsLimit = computed(() => {
     // True when the plan caps AI integrations to a finite number. Callers
@@ -424,7 +420,7 @@ export const useEeConfig = createSharedComposable(() => {
   const blockScripts = computed(() => isEEFeatureBlocked.value)
   const blockWorkflows = computed(() => isEEFeatureBlocked.value)
   const blockExtensions = computed(() => {
-    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS)
+    return !getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS)
   })
   const blockWorkspaceCreate = computed(() => {
     // On-prem with workspace limit from plan meta
@@ -760,8 +756,7 @@ export const useEeConfig = createSharedComposable(() => {
     // modal copy matches the badge tier (Business vs Enterprise).
     const minPlan =
       (limitOrFeature &&
-        (OnPremFeatureToMinPlan[limitOrFeature as PlanFeatureTypes] ||
-          OnPremLimitToMinPlan[limitOrFeature as PlanLimitTypes])) ||
+        (OnPremFeatureToMinPlan[limitOrFeature as PlanFeatureTypes] || OnPremLimitToMinPlan[limitOrFeature as PlanLimitTypes])) ||
       OnPremPlanTitles.SELF_HOSTED_BUSINESS
     const isBusinessTier = minPlan === OnPremPlanTitles.SELF_HOSTED_BUSINESS
 
@@ -2067,8 +2062,7 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeForEEFeature = (featureTitle: string, limitOrFeature?: PlanLimitTypes | PlanFeatureTypes) => {
     const minPlan =
       (limitOrFeature &&
-        (OnPremFeatureToMinPlan[limitOrFeature as PlanFeatureTypes] ||
-          OnPremLimitToMinPlan[limitOrFeature as PlanLimitTypes])) ||
+        (OnPremFeatureToMinPlan[limitOrFeature as PlanFeatureTypes] || OnPremLimitToMinPlan[limitOrFeature as PlanLimitTypes])) ||
       OnPremPlanTitles.SELF_HOSTED_BUSINESS
     const isBusinessTier = minPlan === OnPremPlanTitles.SELF_HOSTED_BUSINESS
 

@@ -95,17 +95,6 @@ LxzlJNQaHAcjzs1bzcLqwETXh/GjgLvK+j9gZgjsLt9Z05W5UnVWUtTIslZo2Kv+
 movc8CBf+p2KX/usUEiBf2jtBHWmBuGFUp4kaFopnSsFq0KhGja5uo9Oi3ppdDOD
 aQIDAQAB
 -----END PUBLIC KEY-----`,
-    // TEMP - nocopod self-serve test (remove before merge — paired private key
-    // is held by the nocopod test instance only).
-    `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzFj9OJrQpvxp/Vupnulz
-OGoGPPdMZghnWOdib2hragf1XEuRQzf0HO7xTPYa2F7A2Jtuv1jAIfMBzHqTcTa4
-uEfRq4Sl+uKPAOJNprtUSUow78FLhkdmgeqK4qsrBGemNTEJkC1YqR7TpEjWHo5c
-0/J8phey4kw9kUiYwOh+9WIYj1jyda72iZjoL4Ypbc5qAHj04HTTEJ977jg0rAai
-yaq7uSoJNPQOyLpVXseR2K+tvuraF6H/ZP8WOqmwp2TMntimj8ar8XAVcKwyG4J2
-zV6MFq/5dJy5GvNlS+ZGXY+UnFoLFWjJZZlNzaPPGfrcSRWnVXdez3HlrTL2vdgK
-iwIDAQAB
------END PUBLIC KEY-----`,
   ];
 }
 

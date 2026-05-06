@@ -12,7 +12,7 @@ import { isPlayWrightNode } from '~/helpers/utils';
 const DEFAULT_LICENSE_SERVER_URL = 'https://app.nocodb.com';
 
 // Hostname allowlist — exact match or subdomain of these.
-const LICENSE_SERVER_HOST_ALLOWLIST = ['nocodb.com', 'nocopod.com'];
+const LICENSE_SERVER_HOST_ALLOWLIST = ['nocodb.com'];
 
 function isHostAllowed(hostname: string): boolean {
   return LICENSE_SERVER_HOST_ALLOWLIST.some(

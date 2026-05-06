@@ -224,7 +224,7 @@ export function useViewRowColorOption(params: {
         },
         {
           ...conditionToAdd,
-          filter,
+          filter: stripFilterApiBody(filter),
         },
       )
       conditionToAdd.id = response.id
@@ -400,7 +400,10 @@ export function useViewRowColorOption(params: {
       conditionToAdd.nestedConditions.push(filter)
     }
     await pushPendingAction(async () => {
-      const toInsert = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
+      const toInsert = stripFilterApiBody({
+        ...filter,
+        fk_parent_id: parentFilter?.id ?? filter.fk_parent_id,
+      })
       const result = await $api.internal.postOperation(
         meta.value!.fk_workspace_id!,
         meta.value!.base_id!,
@@ -448,8 +451,11 @@ export function useViewRowColorOption(params: {
       conditionToAdd.nestedConditions.push(filter)
     }
     await pushPendingAction(async () => {
-      const toInsert = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
-      delete toInsert.children
+      const toInsert = stripFilterApiBody({
+        ...filter,
+        fk_parent_id: parentFilter?.id ?? filter.fk_parent_id,
+        children: undefined,
+      })
       const result = await $api.internal.postOperation(
         meta.value!.fk_workspace_id!,
         meta.value!.base_id!,
@@ -497,21 +503,19 @@ export function useViewRowColorOption(params: {
         // Skip siblings already at the target value — pure diff, no state.
         if (sibling.logical_op === params.value) continue
         sibling.logical_op = params.value
-        const updateObj = { ...sibling }
-        delete updateObj.children
+        const updateObj = stripFilterApiBody({ ...sibling, children: undefined })
 
-        if (updateObj.id) {
+        if (sibling.id) {
           await $api.internal.postOperation(
             view.value!.fk_workspace_id!,
             view.value!.base_id!,
-            { operation: 'filterUpdate', filterId: updateObj.id },
+            { operation: 'filterUpdate', filterId: sibling.id },
             updateObj,
           )
         }
       }
     }
-    const updateObj = { ...filter }
-    delete updateObj.children
+    const updateObj = stripFilterApiBody({ ...filter, children: undefined })
 
     if (filter.id) {
       // Skip only when nothing actually changed — pure diff.
@@ -793,11 +797,11 @@ export function useViewRowColorOption(params: {
       if (copiedCondition.nestedConditions && copiedCondition.nestedConditions.length > 0) {
         copiedCondition.nestedConditions = await Promise.all(
           copiedCondition.nestedConditions.map(async (filter: any) => {
-            const filterToCreate: any = {
+            const filterToCreate: any = stripFilterApiBody({
               ...filter,
               fk_row_color_condition_id: copiedCondition.id,
-            }
-            delete filterToCreate.id
+              id: undefined,
+            })
 
             // Create filter - Filter.insert supports children directly
             const createdFilter = await $api.rowColorConditions.rowColorConditionsFilterCreate(

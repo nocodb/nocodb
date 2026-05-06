@@ -216,7 +216,7 @@ const saveFilter = useDebounceFn(async (filter: FilterType) => {
       apiWorkspaceId.value,
       apiBaseId.value,
       { operation: 'filterUpdate', filterId: filter.id },
-      { ...filter },
+      stripFilterApiBody({ ...filter }),
     )
     reloadDataHook.trigger({ shouldShowLoading: false, offset: 0 })
     reloadAggregate?.trigger({ path: [] })

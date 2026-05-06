@@ -555,10 +555,10 @@ export function useViewFilters(
               operation: 'filterUpdate',
               filterId: filter.id as string,
             },
-            {
+            stripFilterApiBody({
               ...filter,
               fk_parent_id: parentId.value,
-            },
+            }),
           )
 
           // EE only: Sync updated filter properties to the smartsheet store's allFilters
@@ -587,11 +587,11 @@ export function useViewFilters(
                 operation: 'hookFilterCreate',
                 hookId,
               },
-              {
+              stripFilterApiBody({
                 ...filter,
                 children: undefined,
                 fk_parent_id: parentId.value,
-              } as FilterType,
+              }) as FilterType,
             )) as ColumnFilterType
           } else if (rlsPolicyId) {
             filters.value[+i] = (await $api.internal.postOperation(
@@ -600,12 +600,12 @@ export function useViewFilters(
               {
                 operation: 'rlsPolicyFilterCreate',
               },
-              {
+              stripFilterApiBody({
                 ...filter,
                 children: undefined,
                 fk_parent_id: parentId.value,
                 fk_rls_policy_id: rlsPolicyId,
-              } as FilterType,
+              }) as FilterType,
             )) as ColumnFilterType
           } else if (linkId || linkColId?.value) {
             filters.value[+i] = (await $api.internal.postOperation(
@@ -615,11 +615,11 @@ export function useViewFilters(
                 operation: 'linkFilterCreate',
                 columnId: linkId || linkColId!.value,
               },
-              {
+              stripFilterApiBody({
                 ...filter,
                 children: undefined,
                 fk_parent_id: parentId.value,
-              } as FilterType,
+              }) as FilterType,
             )) as ColumnFilterType
           } else if (buttonId || buttonColId?.value) {
             filters.value[+i] = (await $api.internal.postOperation(
@@ -629,11 +629,11 @@ export function useViewFilters(
                 operation: 'buttonFilterCreate',
                 buttonColId: buttonId || buttonColId!.value,
               },
-              {
+              stripFilterApiBody({
                 ...filter,
                 children: undefined,
                 fk_parent_id: parentId.value,
-              } as FilterType,
+              }) as FilterType,
             )) as ColumnFilterType
           } else if (widgetId) {
             filters.value[+i] = (await $api.internal.postOperation(
@@ -643,11 +643,11 @@ export function useViewFilters(
                 operation: 'widgetFilterCreate',
                 widgetId,
               },
-              {
+              stripFilterApiBody({
                 ...filter,
                 children: undefined,
                 fk_parent_id: parentId.value,
-              } as FilterType,
+              }) as FilterType,
             )) as ColumnFilterType
           } else {
             filters.value[+i] = (await $api.internal.postOperation(
@@ -657,10 +657,10 @@ export function useViewFilters(
                 operation: 'filterCreate',
                 viewId: view?.value?.id as string,
               },
-              {
+              stripFilterApiBody({
                 ...filter,
                 fk_parent_id: parentId.value,
-              } as FilterType,
+              }) as FilterType,
             )) as ColumnFilterType
           }
 
@@ -718,10 +718,10 @@ export function useViewFilters(
             operation: 'filterUpdate',
             filterId: filters.value[i].id!,
           },
-          {
+          stripFilterApiBody({
             ...filter,
             fk_parent_id: parentId.value,
-          },
+          }),
         )
         $e('a:filter:update', {
           logical: filter.logical_op,
@@ -761,10 +761,10 @@ export function useViewFilters(
               operation: 'linkFilterCreate',
               columnId: linkColId.value,
             },
-            {
+            stripFilterApiBody({
               ...filter,
               fk_parent_id: parentId.value,
-            },
+            }),
           )
           // extract id from saved filter and update the filter object
           // avoiding whole object update to prevent overwriting of current filter object changes
@@ -782,10 +782,10 @@ export function useViewFilters(
               operation: 'buttonFilterCreate',
               buttonColId: buttonColId.value,
             },
-            {
+            stripFilterApiBody({
               ...filter,
               fk_parent_id: parentId.value,
-            },
+            }),
           )
           filters.value[i] = {
             ...filters.value[i],
@@ -801,10 +801,10 @@ export function useViewFilters(
               operation: 'widgetFilterCreate',
               widgetId: widgetId.value,
             },
-            {
+            stripFilterApiBody({
               ...filter,
               fk_parent_id: parentId.value,
-            },
+            }),
           )
           // extract id from saved filter and update the filter object
           // avoiding whole object update to prevent overwriting of current filter object changes
@@ -822,10 +822,10 @@ export function useViewFilters(
               operation: 'filterCreate',
               viewId: view.value!.id!,
             },
-            {
+            stripFilterApiBody({
               ...filter,
               fk_parent_id: parentId.value,
-            },
+            }),
           )
           // extract id from saved filter and update the filter object
           // avoiding whole object update to prevent overwriting of current filter object changes

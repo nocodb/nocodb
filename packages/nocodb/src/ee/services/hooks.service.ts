@@ -1,10 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { AppEvents, EventType, MetaEventType } from 'nocodb-sdk';
 import { HooksService as HooksServiceCE } from 'src/services/hooks.service';
-import NocoSocket from '~/socket/NocoSocket';
 import type { OnModuleInit } from '@nestjs/common';
 import type { HookReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import NocoSocket from '~/socket/NocoSocket';
 import { OperationName } from '~/command-registry/op-names';
 import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';

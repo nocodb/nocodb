@@ -2,12 +2,12 @@ import type { NcContext } from '~/interface/config';
 import type { ResolvedCtx } from './types';
 
 /**
- * Anything with `.get(ctx, id) → { title?, ... }`. We don't import models
+ * Anything with `.get(context, id) → { title?, ... }`. We don't import models
  * here — caller passes the model class so this file stays a thin utility.
  */
 export interface ResolvableModel {
   get(
-    ctx: NcContext,
+    context: NcContext,
     idOrParams: any,
     ...rest: any[]
   ): Promise<{ title?: string; [k: string]: any } | undefined>;
@@ -20,8 +20,8 @@ export interface ResolvableModel {
  */
 export const lookupParent =
   (idKey: string, M: ResolvableModel) =>
-  async (ctx: NcContext, param: any): Promise<ResolvedCtx> => {
-    const e = await M.get(ctx, param?.[idKey]);
+  async (context: NcContext, params: any): Promise<ResolvedCtx> => {
+    const e = await M.get(context, params?.[idKey]);
     return { parentEntityTitle: e?.title };
   };
 
@@ -32,8 +32,8 @@ export const lookupParent =
  */
 export const lookupEntity =
   (idKey: string, M: ResolvableModel) =>
-  async (ctx: NcContext, param: any): Promise<ResolvedCtx> => {
-    const e = await M.get(ctx, param?.[idKey]);
+  async (context: NcContext, params: any): Promise<ResolvedCtx> => {
+    const e = await M.get(context, params?.[idKey]);
     return { entityTitle: e?.title };
   };
 
@@ -44,8 +44,8 @@ export const lookupEntity =
  */
 export const captureOldTitle =
   (idKey: string, M: ResolvableModel) =>
-  async (ctx: NcContext, param: any): Promise<ResolvedCtx> => {
-    const e = await M.get(ctx, param?.[idKey]);
+  async (context: NcContext, params: any): Promise<ResolvedCtx> => {
+    const e = await M.get(context, params?.[idKey]);
     return { extra: { oldTitle: e?.title } };
   };
 
@@ -62,11 +62,11 @@ export const lookupEntityWithParent =
     Parent: ResolvableModel,
     opts?: { captureOldTitle?: boolean },
   ) =>
-  async (ctx: NcContext, param: any): Promise<ResolvedCtx> => {
-    const child = await Child.get(ctx, param?.[idKey]);
+  async (context: NcContext, params: any): Promise<ResolvedCtx> => {
+    const child = await Child.get(context, params?.[idKey]);
     if (!child) return {};
     const parent = child[parentFkField]
-      ? await Parent.get(ctx, child[parentFkField])
+      ? await Parent.get(context, child[parentFkField])
       : undefined;
     return {
       entityTitle: child.title,

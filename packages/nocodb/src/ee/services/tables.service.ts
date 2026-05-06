@@ -10,7 +10,10 @@ import { OperationName } from '~/command-registry/op-names';
 import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
-import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  captureForTrace,
+  TraceCommand,
+} from '~/decorators/trace-command.decorator';
 import { NcError } from '~/helpers/catchError';
 import { assertNotSandboxProduction } from '~/helpers/sandboxGuards';
 import { Base, Model } from '~/models';
@@ -48,10 +51,7 @@ export class TablesService extends TableServiceCE {
     param: {
       baseId: string;
       sourceId?: string;
-      table: TableReqType & {
-        _sandboxColumnIds?: Record<string, string>;
-        _sandboxDefaultViewId?: string;
-      };
+      table: TableReqType;
       user: User | UserType;
       req: NcRequest;
       synced?: boolean;
@@ -65,20 +65,7 @@ export class TablesService extends TableServiceCE {
       'Creating tables is not allowed on a base with an active sandbox. Create tables in the sandbox.',
     );
 
-    // During replay: inject sandbox column IDs into the column definitions so
-    // auto-created columns (Title etc.) get the same IDs on production as in sandbox.
-    const { _sandboxColumnIds, _sandboxDefaultViewId, ...tableBody } =
-      param.table ?? {};
-    const tableParam: any = { ...tableBody };
-    if (_sandboxColumnIds && tableParam.columns?.length) {
-      tableParam.columns = tableParam.columns.map((col: any) => ({
-        ...col,
-        id: _sandboxColumnIds[col.title] ?? _sandboxColumnIds[col.cn] ?? col.id,
-      }));
-    }
-    if (_sandboxDefaultViewId) {
-      tableParam._sandboxDefaultViewId = _sandboxDefaultViewId;
-    }
+    const tableParam: any = { ...(param.table ?? {}) };
 
     const base = await Base.getWithInfo(context, param.baseId);
     let source = base.sources[0];
@@ -138,11 +125,26 @@ export class TablesService extends TableServiceCE {
       }
     }
 
-    return super.tableCreate(context, {
+    const created = await super.tableCreate(context, {
       ...param,
       table: tableParam,
       sourceId: source?.id || param.sourceId,
     });
+
+    if (created && Array.isArray(created.columns)) {
+      captureForTrace(
+        'sandboxColumns',
+        created.columns.map((c) => ({
+          id: c.id,
+          cn: c.column_name,
+          title: c.title,
+        })),
+      );
+    }
+    const defaultViewId = created?.views?.[0]?.id;
+    if (defaultViewId) captureForTrace('sandboxDefaultViewId', defaultViewId);
+
+    return created;
   }
 
   async getTableWithAccessibleViews(

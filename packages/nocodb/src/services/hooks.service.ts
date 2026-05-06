@@ -17,6 +17,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import {
@@ -30,6 +31,7 @@ import { DatasService } from '~/services/datas.service';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
+import { isReplay } from '~/helpers/replayScope';
 
 const SUPPORTED_HOOK_VERSION = ['v3'];
 
@@ -133,8 +135,8 @@ export class HooksService {
       // Snapshot the inserted tree so `HookCreateContract.extraCommandMeta`
       // can surface it as `meta.extra.filters` for downstream changelog
       // ops. Skipped during replay — `recordCommand` early-exits when
-      // `req.__isReplay` is set, so this would just be wasted I/O.
-      if (!(param.req as { __isReplay?: boolean })?.__isReplay) {
+      // `isReplay()` is true, so this would just be wasted I/O.
+      if (!isReplay()) {
         const roots = await Filter.rootFilterListByHook(context, {
           hookId: hook.id,
         });
@@ -150,8 +152,9 @@ export class HooksService {
             ...(childNodes.length ? { children: childNodes } : {}),
           };
         };
-        (param as any)._capturedFilters = await Promise.all(
-          roots.map((r) => walk(r as Filter)),
+        captureForTrace(
+          'filters',
+          await Promise.all(roots.map((r) => walk(r as Filter))),
         );
       }
     }

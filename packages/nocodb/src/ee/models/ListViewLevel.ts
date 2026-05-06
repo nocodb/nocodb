@@ -17,6 +17,7 @@ import {
 } from '~/utils/modelUtils';
 import Column from '~/models/Column';
 import ListViewColumn from '~/models/ListViewColumn';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class ListViewLevel
   extends ListViewLevelCE
@@ -154,7 +155,7 @@ export default class ListViewLevel
     // Honor a pre-set id during replay (sandbox merge / undo dispatch). The
     // restore primitive feeds the original id back so subsequent inverse
     // params keep referencing the same row.
-    if (context?.additionalContext?.is_replay && level.id) {
+    if (isReplay() && level.id) {
       (insertObj as { id?: string }).id = level.id;
     }
 

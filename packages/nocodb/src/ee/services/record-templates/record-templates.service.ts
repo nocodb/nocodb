@@ -14,6 +14,7 @@ import Model from '~/models/Model';
 import Column from '~/models/Column';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import NocoSocket from '~/socket/NocoSocket';
+import { isReplay } from '~/helpers/replayScope';
 @Injectable()
 export class RecordTemplatesService {
   constructor(
@@ -57,7 +58,7 @@ export class RecordTemplatesService {
     context: NcContext;
     baseId: string;
     modelId: string;
-    body: CreateRecordTemplateDto;
+    body: CreateRecordTemplateDto & { id?: string };
     userId: string;
     req: NcRequest;
   }) {
@@ -78,9 +79,7 @@ export class RecordTemplatesService {
     );
 
     const template = await RecordTemplate.insert(param.context, {
-      ...(param.context?.additionalContext?.is_replay && (param.body as any).id
-        ? { id: (param.body as any).id }
-        : {}),
+      ...(isReplay() && param.body.id ? { id: param.body.id } : {}),
       base_id: param.baseId,
       fk_workspace_id: param.context.workspace_id,
       fk_model_id: param.modelId,

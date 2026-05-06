@@ -11,6 +11,7 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class ViewSection
   extends ViewSectionCE
@@ -154,7 +155,7 @@ export default class ViewSection
     ]);
 
     // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
-    if (context?.additionalContext?.is_replay && section.id) {
+    if (isReplay() && section.id) {
       insertObj.id = section.id;
     }
 

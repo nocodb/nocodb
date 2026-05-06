@@ -37,8 +37,12 @@ import { Model, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
-import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  captureForTrace,
+  TraceCommand,
+} from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
+import { getReplay, isReplay } from '~/helpers/replayScope';
 
 @Injectable()
 export class ViewRowColorService extends ViewRowColorServiceCE {
@@ -150,20 +154,17 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
   }
 
-  // Recursively inserts a row-color filter and its descendants. Each node
-  // honors a pre-set `id` and `order` under `is_replay` so undo of
-  // `rowColorConditionDelete` can rebuild the original tree shape verbatim.
-  // We don't go through `Filter.insert` because that path requires one of
-  // {fk_view_id, fk_hook_id, fk_parent_column_id, fk_level_id, fk_button_col_id}
-  // which row-color filters don't have.
   private async insertRowColorFilterSubtree(
     context: NcContext,
     rowColorConditionId: string,
     filter: Partial<FilterType> & { children?: Partial<FilterType>[] },
     ncMeta: MetaService,
     fkParentId: string | null = null,
+    /** Forward-only: collects inserted ids in DFS pre-order for the
+     *  `rowColorFilterIds` trace capture. */
+    idsOut?: string[],
   ) {
-    const isReplay = context?.additionalContext?.is_replay === true;
+    const isInReplay = isReplay();
     const insertObj = extractProps(filter as any, [
       'fk_column_id',
       'comparison_op',
@@ -175,14 +176,14 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       'source_id',
       'meta',
       'enabled',
-      ...(isReplay ? (['order'] as const) : []),
+      ...(isInReplay ? (['order'] as const) : []),
     ]) as Record<string, unknown>;
     insertObj.fk_row_color_condition_id = rowColorConditionId;
     insertObj.fk_parent_id = fkParentId ?? filter.fk_parent_id ?? null;
-    if (isReplay && (filter as { id?: string }).id) {
+    if (isInReplay && (filter as { id?: string }).id) {
       insertObj.id = (filter as { id?: string }).id;
     }
-    if (!isReplay) {
+    if (!isInReplay) {
       insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
         fk_row_color_condition_id: rowColorConditionId,
         fk_parent_id: insertObj.fk_parent_id,
@@ -194,6 +195,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       MetaTable.FILTER_EXP,
       insertObj,
     );
+    idsOut?.push(inserted.id as string);
     if (filter.children?.length) {
       for (const child of filter.children) {
         await this.insertRowColorFilterSubtree(
@@ -202,6 +204,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           child as Partial<FilterType>,
           ncMeta,
           inserted.id as string,
+          idsOut,
         );
       }
     }
@@ -293,13 +296,40 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       const rowColoringConditionId = rowColoringCondition.id;
 
       const filterRoots = param.filters ?? (param.filter ? [param.filter] : []);
+      // On replay, hydrate `filter.id` from the captured ids in DFS pre-order
+      // so the recreated tree keeps its original ids; the existing
+      // `isReplay() && filter.id` branch in `insertRowColorFilterSubtree`
+      // then carries each id into the insert.
+      if (isReplay()) {
+        const replayIds = getReplay('rowColorFilterIds') as
+          | ReadonlyArray<string>
+          | undefined;
+        if (replayIds && replayIds.length > 0) {
+          const cursor: string[] = [...replayIds];
+          const inject = (
+            node: Partial<FilterType> & {
+              children?: Partial<FilterType>[];
+            },
+          ) => {
+            if (!node.id && cursor.length) node.id = cursor.shift();
+            if (node.children) for (const c of node.children) inject(c);
+          };
+          for (const root of filterRoots) inject(root);
+        }
+      }
+      const filterIdsOut: string[] = [];
       for (const root of filterRoots) {
         await this.insertRowColorFilterSubtree(
           context,
           rowColoringConditionId,
           root,
           ncMetaTrans,
+          null,
+          isReplay() ? undefined : filterIdsOut,
         );
+      }
+      if (!isReplay() && filterIdsOut.length > 0) {
+        captureForTrace('rowColorFilterIds', filterIdsOut);
       }
 
       if (!view.row_coloring_mode) {

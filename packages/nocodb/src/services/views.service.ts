@@ -14,8 +14,9 @@ import type {
   ViewType,
   ViewUpdateReqType,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { MetaService } from '~/meta/meta.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { assertPersonalViewAllowed } from '~/helpers/checkPersonalViewFeature';

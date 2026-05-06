@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { OperationRegistry } from '~/command-registry/registry';
+import { runInReplay } from '~/helpers/replayScope';
 import { OperationLog } from '~/models';
 
 export type UndoRedoResult =
@@ -57,10 +58,6 @@ export class UndoRedoService {
     return this.dispatch(context, param.req, entry, 'redo');
   }
 
-  /**
-   * Surface for the GUI Cmd-Z indicator: which sides are populated for the
-   * current (user, base, tab)?
-   */
   async status(
     context: NcContext,
     param: { req: NcRequest },
@@ -84,13 +81,8 @@ export class UndoRedoService {
     return { canUndo: activeCount > 0, canRedo: undoneCount > 0 };
   }
 
-  /**
-   * Resolve `(userId, baseId, tabId)` from the request context. Returns
-   * `null` when `baseId` or `tabId` is missing — the caller treats that as
-   * "nothing to undo" so non-GUI callers (API tokens, internal jobs) silently
-   * no-op. Missing `userId` is a hard failure since every authenticated call
-   * must have a user.
-   */
+  // Returns `null` when baseId/tabId missing (non-GUI callers silently
+  // no-op). Missing userId is a hard failure.
   private resolveLookupKey(
     context: NcContext,
     req: NcRequest,
@@ -110,13 +102,8 @@ export class UndoRedoService {
     return { userId, baseId, tabId };
   }
 
-  /**
-   * Resolve the op (forward for redo, inverse for undo) via the
-   * OperationRegistry, dispatch it, then flip the row's status.
-   *
-   * Errors mark the row 'errored' and surface to the caller — the entry is
-   * preserved for inspection.
-   */
+  // Errors mark the row 'errored' and surface to the caller; the entry is
+  // preserved for inspection.
   private async dispatch(
     context: NcContext,
     req: NcRequest,
@@ -139,66 +126,40 @@ export class UndoRedoService {
     const resolved = OperationRegistry.resolve(opName, opVersion);
     if (!resolved) return { status: 'no_handler', opName };
 
-    // Inject the original entity id into params via `contract.idField` so
-    // re-creates land on the same row id — same trick as
-    // `SandboxCommandReplayService.replayCommand`. Combined with the
-    // `is_replay` context flag below, this makes Sort.insert (and other
-    // models that honor `is_replay`) preserve the pre-set id, keeping
-    // inverse_params valid across undo→redo cycles.
+    // Inject entity_id into the create body so model.insert preserves it
+    // across undo→redo cycles (same mechanism as sandbox replay).
     const replayParams: Record<string, any> = {
       ...((params as Record<string, any> | null) ?? {}),
     };
+    const idField = resolved.contract.sandbox?.id_field;
     if (
-      resolved.contract.idField &&
+      idField &&
       entry.entity_id &&
-      replayParams[resolved.contract.idField] &&
-      typeof replayParams[resolved.contract.idField] === 'object'
+      replayParams[idField] &&
+      typeof replayParams[idField] === 'object'
     ) {
-      replayParams[resolved.contract.idField] = {
-        ...replayParams[resolved.contract.idField],
+      replayParams[idField] = {
+        ...replayParams[idField],
         id: entry.entity_id,
       };
     }
 
-    // Mark context as replay — Sort.insert / Hook.insert / etc. honor a
-    // pre-set id only when this flag is set. Also bypasses sandbox guards.
-    const replayContext: NcContext = {
-      ...context,
-      additionalContext: {
-        ...context.additionalContext,
-        is_replay: true,
-      },
-    };
-
     let metaUpdate: Record<string, unknown> | undefined;
     try {
-      // `__isReplay` on req tells `recordCommand` to skip writing a new
-      // operation log entry — we manage the stack here.
-      const replayReq = { ...req, __isReplay: true } as NcRequest;
-
-      const handlerResult = await resolved.handler(
-        replayContext,
-        replayParams as any,
-        {
+      const handlerResult = await runInReplay(() =>
+        resolved.handler(context, replayParams as any, {
           entryId: entry.id ?? '',
           entityId: entry.entity_id,
-          originalReq: replayReq,
+          originalReq: req,
           createdBy: (context.user?.id ??
             (req as any)?.user?.id ??
             '') as string,
-          // Side-channel meta written at record time via `extraCommandMeta`.
-          // Handlers read this for replay-only signals like the column-data
-          // backup ref (so the inverse can restore cell data after the type
-          // change).
           ...(entry.meta ? { extra: entry.meta } : {}),
-        },
+        }),
       );
 
-      // Some handlers (currently only `columnUpdate`) need to mutate the
-      // row's `meta` after a successful replay because the side-effect
-      // resource it pointed at was consumed. Detected via a duck-typed
-      // `{ metaUpdate }` shape on the return value — keeps the protocol
-      // narrow without forcing every handler to wrap its result.
+      // `columnUpdate` returns `{ metaUpdate }` when its backup ref was
+      // consumed and a new sibling was created for the opposite direction.
       const ret = handlerResult as
         | { metaUpdate?: Record<string, unknown> }
         | undefined;
@@ -220,10 +181,7 @@ export class UndoRedoService {
     }
 
     if (entry.id) {
-      // Redo flips back to 'active' so a subsequent Cmd-Z can target it
-      // again. We lose the 'redone' audit distinction, but the alternative
-      // requires a query that ORs ('active', 'redone'), and the simple
-      // model is good enough for the MVP. Revisit if we need audit fidelity.
+      // Redo flips back to 'active' so subsequent Cmd-Z can target it again.
       const statusExtra: {
         error?: string;
         undone_at?: Date | string | null;

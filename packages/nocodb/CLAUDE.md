@@ -293,97 +293,169 @@ export class FeatureService extends FeatureServiceCE {
 
 Register EE services in `src/ee/modules/noco.module.ts`.
 
-## Command Registry (EE — Sandbox Replay)
+## Command Registry
 
-The command-registry subsystem captures every state-mutating operation performed inside a sandbox and replays it at merge time against the production base. It lives entirely in `src/ee/command-registry/`.
+The command-registry is one subsystem driving **two** state-mutation flows from a single contract per operation:
+
+- **Per-tab undo/redo** — `nc_operation_logs` rows, scoped to `(user, tab)`; dispatched by `UndoRedoService`.
+- **Sandbox merge replay** — `nc_sandbox_changelog` rows; dispatched by `SandboxCommandReplayService` when a sandbox merges back into its production base.
+
+Lives entirely in `src/ee/command-registry/`. Both flows resolve the same contract from `OperationRegistry`, run the same handler, and share the same replay scope (`runInReplay` → `isReplay()` true → `setReplay`/`getReplay` slots active).
 
 ### Architecture
 
 ```
-@TraceCommand(contract)        recordCommand()          nc_sandbox_changelog
-  ↓ decorator on service  →    writes JSON params   →   Postgres table
-                                                                ↓
-SandboxCommandReplayService ← OperationRegistry.resolve(name, version)
-  reads changelog rows,         returns { contract, handler }
-  feeds them to handlers    →   handler(replayCtx, params, meta)
+                     ┌─ user mutation ──────────────────────────┐
+                     │  @TraceCommand on service method         │
+                     │     ↓ recordCommand()                    │
+                     │  forward_params + inverse_params + meta  │
+                     └────────────────┬─────────────────────────┘
+                                      │
+                  ┌───────────────────┴────────────────────┐
+                  ▼                                        ▼
+        nc_operation_logs                      nc_sandbox_changelog
+        (per-tab undo/redo)                    (sandbox → prod merge)
+                  │                                        │
+                  ▼                                        ▼
+         UndoRedoService                  SandboxCommandReplayService
+                  └───────────────┬────────────────────────┘
+                                  ▼
+                     runInReplay → OperationRegistry.resolve(name, version)
+                                  ▼
+                     handler(ctx, params, meta)  ← same contract, same handler
 ```
+
+The decorator writes both destinations from one call site. Replay (in either direction) sets `isReplay() = true` so model insert paths can honor pre-set ids and read `getReplay(...)` slots.
 
 ### Core types
 
 | Type | File | Purpose |
 |------|------|---------|
-| `OperationContract<S>` | `src/ee/command-registry/types.ts` | Versioned typed contract — name, version, entity, zod schema, id/title helpers |
-| `CommandHandler<C>` | `src/ee/command-registry/types.ts` | `(ctx, params, meta) => Promise<unknown>` |
-| `HandlerMeta` | `src/ee/command-registry/types.ts` | `{ entryId, entityId?, originalReq, createdBy, extra? }` |
-| `OperationRegistry` | `src/ee/command-registry/registry.ts` | Singleton — `register`, `resolve`, `freeze`, `describe` |
+| `OperationContract<S, E, R>` | `src/command-registry/types.ts` | Versioned typed contract. `S` = zod schema, `E` = `meta.extra` shape, `R` = service result. Sections: `entry`, `undo`, `sandbox`. |
+| `CommandHandler<C>` | `src/command-registry/types.ts` | `(ctx, params, meta) => Promise<unknown>` |
+| `HandlerMeta` | `src/command-registry/types.ts` | `{ entryId, entityId?, originalReq, createdBy, extra? }` — `extra` is the persisted CaptureBag subset. |
+| `CaptureBag` / `ReplayBag` | `src/command-registry/types.ts`, `src/{ee/,}helpers/replayScope.ts` | Typed slot dictionaries for side-effect ids — see "Side-effect ID preservation". |
+| `OperationRegistry` | `src/ee/command-registry/registry.ts` | Singleton — `register`, `resolve`, `freeze`, `describe`. |
 
-### Import path rule (critical)
+### File layout
 
-Operations files (`*.operations.ts`) **must** import `_types` via the `src/` prefix, never `~/`:
-
-```typescript
-// ✅ correct — avoids circular self-import under EE tsconfig
-import type { OperationContract } from 'src/command-registry/types';
-
-// ❌ wrong — ~/  resolves to src/ee/* first, creating a circular self-import
-import type { OperationContract } from '~/command-registry/types';
+```
+src/ee/command-registry/
+├── operations/{feature}.ts              # contracts + register{Feature}Handlers
+├── operations/_schemas/{feature}.ts     # zod schemas (body + create/update/delete + capture)
+├── bootstrap.ts                         # OperationRegistryBootstrap — registers + freezes
+└── registry.ts, record.ts, replay-context.ts
+src/command-registry/
+├── types.ts                             # contract, CaptureBag, ParamsOf, etc.
+└── op-names.ts                          # OperationName enum
 ```
 
-Service files importing contracts use `~/` normally:
-```typescript
-import { MyContract } from '~/command-registry/operations/my-feature.operations';
-```
+Operation files use `~/command-registry/types` imports. Schemas live in their own files under `_schemas/` so contracts stay focused on entry/undo/sandbox wiring.
 
 ### Adding a new operation — end-to-end checklist
 
-**1. Declare the contract** — `src/ee/command-registry/operations/{feature}.operations.ts`
+**1. Declare the zod schemas** — `src/ee/command-registry/operations/_schemas/{feature}.ts`
+
+Schemas live in their own files under `_schemas/`, separate from contracts. Strict by default; the body schema is reused by both the create and the inverse-as-forward path.
 
 ```typescript
 import { z } from 'zod';
-import type { OperationContract } from 'src/command-registry/types';
-import { MetaTable } from '~/utils/globals';
-// Use src/ import for _types but ~/ is fine for MetaTable/action-descriptions
 
-export const MyFeatureCreateContract: OperationContract<typeof createSchema> = {
-  name: 'myFeatureCreate',
-  version: 1,
+const myFeatureBodySchema = z
+  .object({
+    /** Replay-injected — preserved across sandbox merge / undo→redo. */
+    id: z.string().optional(),
+    title: z.string(),
+  })
+  .strict();
+
+export const myFeatureCreateSchema = z
+  .object({
+    baseId: z.string(),
+    body: myFeatureBodySchema,
+  })
+  .strict();
+```
+
+**2. Declare the contract** — `src/ee/command-registry/operations/{feature}.ts`
+
+`OperationContract<S, E, R>` carries three generics: `S` zod schema, `E` `meta.extra` shape, `R` service return type. Defaults to `<S, Record<string, any>, any>`. Set `E` and `R` explicitly when `entry.before` returns typed extras or when `undo.inverse` reads `result`.
+
+The contract has three orthogonal sections — `entry` (what's recorded), `undo` (only for undoable ops), `sandbox` (only for ops that flow through sandbox replay).
+
+```typescript
+import type { OperationContract } from '~/command-registry/types';
+import type { MyFeature } from '~/models';
+import { OperationName } from '~/command-registry/op-names';
+import { MetaTable } from '~/utils/globals';
+import { myFeatureActions } from '~/decorators/trace-command-descriptions';
+import { myFeatureCreateSchema } from '~/command-registry/operations/_schemas/my-feature';
+
+export const MyFeatureCreateContract: OperationContract<
+  typeof myFeatureCreateSchema,
+  Record<string, any>,
+  MyFeature | undefined
+> = {
+  name: OperationName.myFeatureCreate,
   entity: MetaTable.MY_FEATURE,
-  schema: z.object({ baseId: z.string(), body: z.object({ title: z.string() }) }),
-  idField: 'body',        // key in params whose value is the created entity
-  entityId: 'id',         // field on the entity holding its ID
-  entityTitle: 'title',   // field on the entity holding its display title
-  description: myFeatureActions.add,   // DescFn from trace-command-descriptions.ts
+  schema: myFeatureCreateSchema,
+  entry: {
+    entity_id: 'id',                      // path on the result, OR fn(params, result)
+    entity_title: 'title',                // same
+    parent_id: 'baseId',                  // path on params, OR fn
+    description: myFeatureActions.add,    // DescFn from trace-command-descriptions.ts
+    before: async (context, params) => {  // pre-state snapshot for undo / description / skip_if
+      // return { entityTitle, parentEntityTitle, extra }
+    },
+  },
+  sandbox: {
+    id_field: 'body',                     // params[id_field].id is injected on replay
+    // capture: ['mySideEffectKey'],      // see "Side-effect ID preservation"
+    // dependencies: (params, result) => [{ entity, id }],
+  },
+  undo: {
+    inverse: (_context, _params, result) => {
+      if (!result?.id) return null;
+      return {
+        name: OperationName.myFeatureDelete,
+        params: { myFeatureId: result.id },
+      };
+    },
+  },
 };
 ```
 
-**2. Write the handler** — `src/ee/command-registry/handlers/{feature}.handlers.ts`
+**3. Register the handler** — same file, exported as `register{Feature}Handlers`
+
+Default is `registerForward`. Switch to `OperationRegistry.register` only when you need to thread `meta` (replay-side captured ids).
 
 ```typescript
-import { OperationRegistry } from 'src/ee/command-registry/registry';
-import { makeReplayReq } from 'src/ee/command-registry/replay-context';
-import { MyFeatureCreateContract } from 'src/ee/command-registry/operations/my-feature.operations';
-import type { MyFeatureService } from 'src/ee/services/my-feature.service';
+import { OperationRegistry } from '~/command-registry/registry';
+import { registerForward } from '~/command-registry/replay-context';
+import type { MyFeatureService } from '~/services/my-feature.service';
 
 export function registerMyFeatureHandlers(svc: MyFeatureService): void {
-  OperationRegistry.register(MyFeatureCreateContract, async (ctx, params, meta) => {
-    const req = makeReplayReq(meta.originalReq, meta.createdBy);
-    return svc.create(ctx, { ...params, req } as any);
-  });
+  registerForward(MyFeatureCreateContract, (context, params) =>
+    svc.create(context, params),
+  );
 }
 ```
 
-**3. Wire `@TraceCommand` on the service method**
+**4. Decorate the service method**
+
+`@TraceCommand` takes an `OperationName` enum value, NOT the contract object. CE has a no-op stub at `src/decorators/trace-command.decorator.ts`; EE has the real impl. Decorate the CE method (or EE override that adds real logic) — never write an EE override stub purely to attach the decorator.
 
 ```typescript
-import { MyFeatureCreateContract } from '~/command-registry/operations/my-feature.operations';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
-@TraceCommand(MyFeatureCreateContract)
+@TraceCommand(OperationName.myFeatureCreate)
 async create(context: NcContext, param: { baseId: string; body: ...; req: NcRequest }) {
   // ...
 }
 ```
 
-**4. Register in `OperationRegistryBootstrap`** — `src/ee/command-registry/bootstrap.ts`
+**5. Register in `OperationRegistryBootstrap`** — `src/ee/command-registry/bootstrap.ts`
 
 - Inject the new service in the constructor.
 - Call `registerMyFeatureHandlers(this.myFeatureSvc)` in `onApplicationBootstrap()`.
@@ -392,13 +464,21 @@ That's it — no other wiring needed.
 
 ### Replay pipeline
 
-At sandbox merge, `SandboxCommandReplayService.replayAll(sandboxBase, prodBase)`:
+Both flows converge on the same registry call inside `runInReplay`:
 
+**Sandbox merge** — `SandboxCommandReplayService.replayAll(sandboxBase, prodBase)`:
 1. Loads all `nc_sandbox_changelog` entries ordered by `created_at`.
-2. For each entry: `OperationRegistry.resolve(entry.name, entry.version)` → `{ contract, handler }`.
-3. Builds a replay `NcContext` pointing at the production base via `buildReplayContext()`.
-4. Calls `handler(replayCtx, entry.params, handlerMeta)`.
-5. Entity IDs are remapped via `contract.idField`/`entityId` so foreign-key references stay consistent.
+2. Builds a replay `NcContext` pointing at the production base via `buildReplayContext()`.
+3. For each entry: `OperationRegistry.resolve(entry.name, entry.version)` → `{ contract, handler }`.
+4. Calls `runInReplay(() => handler(replayCtx, entry.params, { entryId, entityId, originalReq, createdBy, extra: entry.extra }))`.
+
+**Per-tab undo/redo** — `UndoRedoService.undo(...)` / `.redo(...)`:
+1. Loads the latest active (undo) or undone (redo) `nc_operation_logs` row for `(user, tab)`.
+2. Resolves the same way: `OperationRegistry.resolve(opName, opVersion)`.
+3. Calls `runInReplay(() => handler(ctx, params, { ..., extra: entry.meta }))` with the inverse-direction params + op when undoing, forward-direction when redoing.
+4. Marks the row `undone` (undo) or `active` (redo).
+
+In both flows: the dispatcher pre-injects `entry.entity_id` into `params[contract.sandbox.id_field].id` so model insert paths preserve the original id (`metaInsert2` honors a pre-set `id` under `isReplay()`). Side-effect ids ride along via `meta.extra` → `setReplay`.
 
 ### `OperationRegistry.freeze()`
 
@@ -418,13 +498,7 @@ export const myFeatureActions = {
 
 ### Decorate CE methods — don't write EE-only override stubs
 
-Put `@TraceCommand(OperationName.x)` directly on the CE service method. The decorator argument is `OperationName` (CE-aware enum); CE has a no-op stub at `src/decorators/trace-command.decorator.ts`, EE has the real impl.
-
-```typescript
-// ✅ correct — CE method, decorator works in both builds
-@TraceCommand(OperationName.gridViewCreate)
-async gridViewCreate(ctx, p) { /* … */ }
-```
+Put `@TraceCommand(OperationName.x)` directly on the CE service method (CE has a no-op stub, EE has the real impl). Reach for an EE override only when EE adds real logic on top (sandbox guards, payment checks, license gating).
 
 ```typescript
 // ❌ wrong — EE override that exists only to add the decorator
@@ -434,8 +508,6 @@ export class GridsService extends GridsServiceCE {
   async gridViewCreate(ctx, p) { return super.gridViewCreate(ctx, p); }
 }
 ```
-
-Reach for an EE override only when EE adds real logic on top (sandbox guards, payment checks, license gating). Adding `@TraceCommand` alone is not enough reason.
 
 ### Sandbox guards
 
@@ -447,26 +519,28 @@ Use one of three guards from `~/helpers/sandboxGuards` (CE stubs are no-ops; EE 
 | `assertNotSandbox(ctx, msg?)` | operations only valid on production (e.g. personal views) |
 | `assertNotLockedViewOnSandboxProduction(ctx, viewId, msg?)` | view-update paths where locked views must be edited via the sandbox |
 
-All three short-circuit when `context.additionalContext.is_replay === true`. Don't gate by `isEE` — the CE stub already no-ops.
+All three short-circuit when `isReplay()` returns true. Don't gate by `isEE` — the CE stub already no-ops.
 
-### `is_replay` — honor pre-set IDs at insert time
+### `isReplay()` — honor pre-set IDs at insert time
 
-The replay layer sets `context.additionalContext.is_replay = true` and pre-injects the sandbox-side ID into params via `contract.idField`. Insert paths must propagate that ID:
+`runInReplay` opens an ALS scope used by both undo/redo dispatch and sandbox merge. Inside it, `isReplay()` returns true. The dispatcher pre-injects the original entity id into `params[contract.sandbox.id_field].id`. Insert paths must propagate that id:
 
 ```typescript
-// In a model insert (e.g. src/models/Hook.ts, src/ee/models/Script.ts):
-if (context?.additionalContext?.is_replay && entity.id) {
+import { isReplay } from '~/helpers/replayScope';
+
+// In a model / service insert (e.g. src/models/Hook.ts, src/ee/models/Script.ts):
+if (isReplay() && entity.id) {
   insertObj.id = entity.id;
 }
 const row = await ncMeta.metaInsert2(/* … */, insertObj);
 ```
 
-`metaInsert2` honors a pre-set `id`. Without this hook, the production-side row gets a fresh nanoid and downstream FK references break.
+`metaInsert2` honors a pre-set `id`. Without this hook, the destination row gets a fresh nanoid and downstream FK references break across both undo/redo cycles and sandbox merges.
 
-When adding a new sandbox-replayable entity:
-1. Set `idField` on the contract so the registry knows where to inject the id.
-2. Add the `is_replay && entity.id` guard in the model/service insert path.
-3. Extend `tests/unit/rest/tests/internal/ee/sandbox-id-preservation.test.ts` (`IdSnapshot` + `collectIds`) to assert the ID survives the merge.
+When adding a new replayable entity:
+1. Set `sandbox.id_field` on the contract so the registry knows which params field to inject `entity.id` into.
+2. Add the `isReplay() && entity.id` guard in the model / service insert path.
+3. Extend `tests/unit/rest/tests/internal/ee/sandbox-id-preservation.test.ts` (`IdSnapshot` + `collectIds`) to assert the id survives the merge.
 
 ### `registerForward` vs custom handler
 
@@ -474,9 +548,9 @@ Default is `registerForward(Contract, (ctx, p) => svc.foo(ctx, p))`. Switch to `
 
 | Need | Use |
 |------|-----|
+| Recording side captured side-effect ids the replay needs (e.g. `rowColorFilterIds`, `viewSectionViewIds`) | `setReplay(key, meta.extra?.[key])` — service/model reads via `getReplay(key)`. See "Side-effect ID preservation" above. |
 | Entity ID isn't in `params` (only carried as `meta.entityId`, e.g. `duplicateWidget`) | Pass through as a service-level `_replayXxxId` param. See `dashboards.handlers.ts:33`. |
-| Recording side captured side-effect data (`meta.extra`) the replay needs (e.g. `_sandboxColumnIds` / `_sandboxDefaultViewId` for `tableCreate`) | Inject onto params or `additionalContext`. See `tables.handlers.ts`. |
-| Deeply nested model code needs replay context but doesn't see params | Put it on `additionalContext` (e.g. `sandboxColumnIds`) and read it from there. |
+| Deeply nested model code needs replay context but doesn't see params | Read via `getReplay` rather than threading through every call. |
 
 ### `skipIf` — conditionally suppress recording
 
@@ -494,9 +568,26 @@ if (param.req?.__commandTraced) return originalMethod.apply(this, args);
 
 Never set re-entrancy flags on `req` or `param`. The ALS scope handles it.
 
-### LTAR replay — capture side-effect IDs
+### Side-effect ID preservation (CaptureBag / ReplayBag)
 
-LTAR creates aren't a single insert — they trigger a fan of side-effect rows (junction model, FK columns, back-link columns, reverse LTAR) that must keep stable IDs across the merge. The recording side captures them onto `param._ltarCapture` (filtered from the changelog params via `NON_SERIALIZABLE_KEYS`, surfaced via `extraCommandMeta` → `meta.extra.ltar`). The replay handler in `columns.handlers.ts` threads `assocColumnIds` onto `additionalContext.sandboxColumnIds` (read by `Column.bulkInsert`) and the rest onto `param._ltarReplayIds` (read at each `Column.insert` / `Model.insert` site inside `createLTARColumn`). When you add a new fan-out create path (e.g. a new entity with hidden side-effect rows), follow this pattern — don't rely on `idField` alone.
+`sandbox.id_field` only covers the operation's primary entity. When a forward op also creates **hidden side-effect rows** (an inner filter tree, junction tables, default views, back-link columns), those ids must also survive across sandbox merge AND undo→redo. Without it the replay creates fresh ids and any later op targeting an original id silently no-ops.
+
+The pattern is two paired typed bags:
+
+- **`CaptureBag`** (`src/command-registry/types.ts`) — slots written by the forward path via `captureForTrace(key, value)`. The decorator persists them to `nc_operation_logs.meta` (and `nc_sandbox_changelog.extra`) for any contract that opts in via `sandbox.capture: [key]`.
+- **`ReplayBag`** (`src/{ee/,}helpers/replayScope.ts`) — slots written by the replay handler via `setReplay(key, value)`, read by service / model code via `getReplay(key)`. Active only inside `runInReplay` (the dispatcher's outer scope).
+
+End-to-end wiring for a new side-effect:
+
+1. **Declare the slot type** on `CaptureBag` and `ReplayBag` (often the same shape — array of ids, or a map). Name them after the operation's domain (`rowColorFilterIds`, `viewSectionViewIds`).
+2. **Forward path**: collect the ids the service produces, then `captureForTrace('myKey', ids)` once. Skip when `isReplay()` — replay is reading captured ids, not generating new ones.
+3. **Contract**: add `sandbox.capture: ['myKey']` plus `capture_schema` (zod, strict) to validate before persistence. Schema lives in `_schemas/<feature>.ts`.
+4. **Handler**: switch from `registerForward` to `OperationRegistry.register` so it can read `meta.extra`. Body is just `if (captured?.length) setReplay('myKey', captured)` then forward to the service. Same shape across the codebase — see `view-sections.ts:188-202` and `row-color.ts` for the rowColor variant.
+5. **Service / model**: at the insert site, read `getReplay('myKey')` and use it. For tree-shaped data (e.g. nested filter children), assign ids in DFS pre-order at the entry of the service method so existing `isReplay() && entity.id` insert branches flow naturally.
+
+Reference implementations: `viewSectionRestoreViewIds` (re-link child views on undo of a section delete), `rowColorFilterIds` (preserve inner filter ids across rowColorConditionAdd undo→redo), `sandboxColumnIds` / `sandboxDefaultViewId` (tableCreate side-effects).
+
+LTAR is the **older variant** of the same idea — it still uses `param._ltarCapture` / `param._ltarReplayIds` carriers (filtered from the changelog params via `NON_SERIALIZABLE_KEYS`, surfaced via `extraCommandMeta` → `meta.extra.ltar`) plus `additionalContext.sandboxColumnIds` for `Column.bulkInsert`. Don't copy that shape for new code — use the typed bags above.
 
 ## Testing
 

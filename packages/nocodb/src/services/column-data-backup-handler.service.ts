@@ -169,7 +169,7 @@ export class ColumnDataBackupHandler
     context: NcContext,
     param: { backupRef: ColumnBackupRef },
   ): Promise<void> {
-   const model = await Model.get(context, param.backupRef.fkModelId).catch(
+    const model = await Model.get(context, param.backupRef.fkModelId).catch(
       () => null,
     );
     if (!model) return;

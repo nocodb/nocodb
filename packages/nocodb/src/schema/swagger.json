@@ -24702,7 +24702,6 @@
             "description": "Group By"
           },
           "group_by_order": {
-            "type": "number",
             "description": "Group By Order",
             "example": 1
           },

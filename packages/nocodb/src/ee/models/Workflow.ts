@@ -23,6 +23,7 @@ import DependencyTracker, {
 } from '~/models/DependencyTracker';
 import { processConcurrently } from '~/utils';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+import { isReplay } from '~/helpers/replayScope';
 
 const logger = new Logger('Workflow');
 
@@ -176,7 +177,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
     ]);
 
     // Replay-only: preserve sandbox entity ID for idempotent merge
-    if (context?.additionalContext?.is_replay && workflow.id) {
+    if (isReplay() && workflow.id) {
       insertObj.id = workflow.id;
     }
 

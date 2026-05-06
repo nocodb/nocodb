@@ -23,6 +23,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class Hook implements HookType {
   id?: string;
@@ -239,7 +240,7 @@ export default class Hook implements HookType {
     }
 
     // Replay-only: preserve sandbox entity ID for idempotent merge
-    if (context?.additionalContext?.is_replay && hook.id) {
+    if (isReplay() && hook.id) {
       insertObj.id = hook.id;
     }
 
@@ -332,7 +333,7 @@ export default class Hook implements HookType {
     }
 
     // Replay-only: preserve sandbox entity ID for idempotent merge
-    if (context?.additionalContext?.is_replay && hook.id) {
+    if (isReplay() && hook.id) {
       insertObj.id = hook.id;
     }
 

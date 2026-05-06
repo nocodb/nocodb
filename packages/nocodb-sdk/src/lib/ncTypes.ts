@@ -45,24 +45,6 @@ export interface NcContext {
  */
 export interface NcAdditionalContext {
   /**
-   * Set by the sandbox merge replay AND by the per-tab undo/redo dispatcher.
-   * Models that auto-generate IDs honor a pre-set `id` only when this flag
-   * is true — preserves the original id across replay/undo cycles so
-   * downstream FKs and inverse params stay valid.
-   */
-  is_replay?: boolean;
-  /**
-   * During sandbox replay of `tableCreate`: maps sandbox-side column IDs
-   * to the production-side IDs assigned earlier in the same merge, so
-   * `Column.bulkInsert` can preserve cross-references.
-   */
-  sandboxColumnIds?: Record<string, string>;
-  /**
-   * During sandbox replay of `tableCreate`: id of the default view created
-   * sandbox-side, so the production-side default view gets the same id.
-   */
-  sandboxDefaultViewId?: string;
-  /**
    * Set inside the date-dependency propagation loop to break recursion —
    * downstream BaseModel ops skip propagating again when this is true.
    */

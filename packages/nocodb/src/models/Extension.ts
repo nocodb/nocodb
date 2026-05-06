@@ -10,6 +10,7 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class Extension {
   id?: string;
@@ -125,7 +126,7 @@ export default class Extension {
     ]);
 
     // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
-    if (context?.additionalContext?.is_replay && extension.id) {
+    if (isReplay() && extension.id) {
       insertObj.id = extension.id;
     }
 

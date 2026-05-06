@@ -9,6 +9,8 @@ import type {
   TraceCommandDep,
 } from './types';
 import { OperationLog, Sandbox, SandboxChangelog } from '~/models';
+import { getTraceCapture } from '~/decorators/trace-command.decorator';
+import { isReplay } from '~/helpers/replayScope';
 
 const logger = new Logger('CommandRegistry');
 
@@ -19,16 +21,6 @@ const NON_SERIALIZABLE_KEYS = new Set([
   'reuse',
   'viewWebhookManager',
   'columnWebhookManager',
-  // Transient capture slot for side-effect IDs (e.g. LTAR junction model id).
-  // Populated during recording, read by `extraCommandMeta`, never replayed.
-  '_ltarCapture',
-  // captures the filter tree (with ids) the
-  // service generated, so sandbox replay onto a fresh production base can
-  // re-insert each filter with its original id.
-  '_capturedFilters',
-  // V3 tableCreate stash: every column id (system + junction included) the
-  // create produced. Read by `tableV3Create.extraCommandMeta`; never replayed.
-  '_capturedColumns',
 ]);
 
 export function dotGet(obj: any, path: string): any {
@@ -37,31 +29,34 @@ export function dotGet(obj: any, path: string): any {
 }
 
 export function resolveField(
-  field: string | ((p: any, r: any) => string | undefined) | undefined,
-  param: any,
+  field:
+    | string
+    | ((params: any, result: any) => string | undefined)
+    | undefined,
+  params: any,
   result: any,
 ): string | undefined {
   if (field == null) return undefined;
-  if (typeof field === 'function') return field(param, result);
-  return dotGet(result, field) ?? dotGet(param, field);
+  if (typeof field === 'function') return field(params, result);
+  return dotGet(result, field) ?? dotGet(params, field);
 }
 
-export function extractReplayableParams(param: any): Record<string, any> {
-  if (!param || typeof param !== 'object') return {};
+export function extractReplayableParams(params: any): Record<string, any> {
+  if (!params || typeof params !== 'object') return {};
   const out: Record<string, any> = {};
-  for (const [k, v] of Object.entries(param)) {
+  for (const [k, v] of Object.entries(params)) {
     if (!NON_SERIALIZABLE_KEYS.has(k)) out[k] = v;
   }
   return out;
 }
 
 export function safeExtractDeps(
-  fn: (p: any, r: any) => TraceCommandDep[],
-  param: any,
+  fn: (params: any, result: any) => TraceCommandDep[],
+  params: any,
   result: any,
 ): TraceCommandDep[] {
   try {
-    const d = fn(param, result) || [];
+    const d = fn(params, result) || [];
     return d.filter((x) => x && x.id && x.entity);
   } catch (e: any) {
     logger.warn(`deps extraction failed: ${e.message}`);
@@ -71,11 +66,11 @@ export function safeExtractDeps(
 
 function resolveDescription(
   description: string | DescFn | undefined,
-  ctx: DescCtx,
+  context: DescCtx,
   fallback: string,
 ): string {
   if (!description) return fallback;
-  if (typeof description === 'function') return description(ctx);
+  if (typeof description === 'function') return description(context);
   return description;
 }
 
@@ -89,18 +84,17 @@ interface EntityInfo {
 
 function resolveEntityInfo(
   contract: OperationContract,
-  param: any,
+  params: any,
   result: any,
   resolvedCtx: ResolvedCtx | undefined,
 ): EntityInfo {
-  const entityId = resolveField(contract.entityId ?? 'id', param, result);
+  const entry = contract.entry;
+  const entityId = resolveField(entry?.entity_id ?? 'id', params, result);
   const entityTitle =
-    resolveField(contract.entityTitle, param, result) ??
+    resolveField(entry?.entity_title, params, result) ??
     resolvedCtx?.entityTitle;
-  const parentEntityId = resolveField(contract.parentId, param, result);
-  const parentEntityTitle =
-    resolveField(contract.parentTitle, param, result) ??
-    resolvedCtx?.parentEntityTitle;
+  const parentEntityId = resolveField(entry?.parent_id, params, result);
+  const parentEntityTitle = resolvedCtx?.parentEntityTitle;
 
   const descCtx: DescCtx = {
     entityTitle,
@@ -114,68 +108,59 @@ function resolveEntityInfo(
     entityTitle,
     parentEntityId,
     parentEntityTitle,
-    description: resolveDescription(
-      contract.description,
-      descCtx,
-      contract.name,
-    ),
+    description: resolveDescription(entry?.description, descCtx, contract.name),
   };
 }
 
 /**
- * Validate params + extras, resolve metadata, write changelog rows.
+ * Two independent destinations:
+ *  - `nc_sandbox_changelog` — sandbox → production replay (when called on a
+ *    sandbox base).
+ *  - `nc_operation_logs`    — per-tab undo/redo (when contract has
+ *    `undo.inverse` AND the request carries a tab id).
  *
- * Two destinations:
- *  - `nc_sandbox_changelog` — when called against a sandbox base. Drives the
- *    sandbox→production replay pipeline.
- *  - `nc_operation_logs` — when the contract has `buildInverse` AND the
- *    request carries a tab id (`x-nc-tab-id`). Drives per-tab undo/redo.
- *
- * The two are independent: a non-sandbox call with an undoable contract
- * writes only the operation log; a sandbox call with no `buildInverse`
- * writes only the sandbox changelog. Replay calls (`__isReplay`) skip the
- * operation log to avoid recording the inverse-as-forward and ending up
- * with a stack that fights itself.
- *
- * Throws on schema-validation failure (strict mode).
+ * Replay (`isReplay()` true) skips the operation log to avoid the
+ * inverse-as-forward stack-fight. Throws on schema validation failure.
  */
 export async function recordCommand(
   context: NcContext,
   contract: OperationContract,
-  param: any,
+  params: any,
   result: any,
   resolvedCtx: ResolvedCtx | undefined,
 ): Promise<void> {
   if (!context?.base_id) return;
 
-  const userId = param?.req?.user?.id || param?.user?.id;
+  const userId = params?.req?.user?.id || params?.user?.id;
   if (!userId) return;
 
-  // Decide upfront whether either destination will write — schema.parse and
-  // resolveEntityInfo can be expensive (deep zod), so skip both when nothing
-  // is recorded. This matters for API-token / job traffic on a production
-  // base with no `x-nc-tab-id`: previously we paid the full validation cost
-  // for every traced op only to drop the row.
+  // Skip the deep zod parse + entity-info resolve when neither destination
+  // will write — matters for API-token / job traffic without `x-nc-tab-id`.
   const isUndoableCandidate =
-    !!contract.buildInverse && !param?.req?.__isReplay && !!param?.req?.ncTabId;
+    !!contract.undo?.inverse && !isReplay() && !!params?.req?.ncTabId;
 
   const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
   if (!sandbox && !isUndoableCandidate) return;
 
-  const replayableParams = extractReplayableParams(param);
+  const replayableParams = extractReplayableParams(params);
 
-  // STRICT — throws on validation failure
   const validatedParams = contract.schema.parse(replayableParams);
 
-  const extraRaw = contract.extraCommandMeta
-    ? contract.extraCommandMeta(param, result)
-    : undefined;
+  let extraRaw: Record<string, unknown> | undefined;
+  const captureKeys = contract.sandbox?.capture;
+  if (captureKeys?.length) {
+    const captured: Record<string, unknown> = {};
+    for (const key of captureKeys) {
+      const value = getTraceCapture(key);
+      if (value !== undefined) captured[key] = value;
+    }
+    if (Object.keys(captured).length > 0) extraRaw = captured;
+  }
+  const captureSchema = contract.sandbox?.capture_schema;
   const extra =
-    contract.extraSchema && extraRaw
-      ? contract.extraSchema.parse(extraRaw)
-      : extraRaw;
+    captureSchema && extraRaw ? captureSchema.parse(extraRaw) : extraRaw;
 
-  const info = resolveEntityInfo(contract, param, result, resolvedCtx);
+  const info = resolveEntityInfo(contract, params, result, resolvedCtx);
 
   await Promise.all([
     sandbox
@@ -183,7 +168,7 @@ export async function recordCommand(
           context,
           contract,
           sandbox,
-          param,
+          params,
           result,
           info,
           validatedParams,
@@ -195,7 +180,7 @@ export async function recordCommand(
       ? maybeRecordUndoEntry(
           context,
           contract,
-          param,
+          params,
           result,
           resolvedCtx,
           info,
@@ -211,20 +196,21 @@ async function insertSandboxChangelog(
   context: NcContext,
   contract: OperationContract,
   sandbox: Sandbox,
-  param: any,
+  params: any,
   result: any,
   info: EntityInfo,
   validatedParams: unknown,
   extra: Record<string, unknown> | undefined,
   userId: string,
 ): Promise<void> {
-  const deps = contract.deps
-    ? safeExtractDeps(contract.deps, param, result)
+  const dependenciesFn = contract.sandbox?.dependencies;
+  const deps = dependenciesFn
+    ? safeExtractDeps(dependenciesFn, params, result)
     : [];
 
   const command: ChangelogCommandPayload = {
     name: contract.name,
-    version: contract.version,
+    version: contract.version ?? 1,
     params: validatedParams,
     ...(extra ? { extra } : {}),
   };
@@ -250,7 +236,7 @@ async function insertSandboxChangelog(
 async function maybeRecordUndoEntry(
   context: NcContext,
   contract: OperationContract,
-  param: any,
+  params: any,
   result: any,
   resolvedCtx: ResolvedCtx | undefined,
   info: EntityInfo,
@@ -258,22 +244,21 @@ async function maybeRecordUndoEntry(
   extra: Record<string, unknown> | undefined,
   userId: string,
 ): Promise<void> {
-  if (!contract.buildInverse) return;
+  const inverseFn = contract.undo?.inverse;
+  if (!inverseFn) return;
 
-  // Don't record undo entries during sandbox replay — replay would otherwise
-  // build inverses for operations that were already recorded by the original
-  // user mutation, doubling the stack and breaking redo.
-  if (param?.req?.__isReplay) return;
+  // Replay would double-record (original user mutation already wrote the row).
+  if (isReplay()) return;
 
-  const tabId = param?.req?.ncTabId;
+  const tabId = params?.req?.ncTabId;
   if (!tabId) return;
 
-  let inverse: Awaited<ReturnType<NonNullable<typeof contract.buildInverse>>>;
+  let inverse: Awaited<ReturnType<typeof inverseFn>>;
   try {
-    inverse = await contract.buildInverse(context, param, result, resolvedCtx);
+    inverse = await inverseFn(context, params, result, resolvedCtx);
   } catch (e: any) {
     logger.warn(
-      `buildInverse ${contract.name}@${contract.version}: ${e?.message}`,
+      `undo.inverse ${contract.name}@${contract.version ?? 1}: ${e?.message}`,
     );
     return;
   }
@@ -288,7 +273,7 @@ async function maybeRecordUndoEntry(
     fk_user_id: userId,
     tab_id: tabId,
     forward_op: contract.name,
-    forward_op_version: contract.version,
+    forward_op_version: contract.version ?? 1,
     forward_params: validatedParams,
     inverse_op: inverse.name,
     inverse_op_version: inverse.version ?? 1,

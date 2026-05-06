@@ -2,6 +2,7 @@ import { ViewLockType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { Sandbox, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { isReplay } from '~/helpers/replayScope';
 
 /**
  * Throws if the current context's base is a sandbox base.
@@ -21,13 +22,13 @@ export async function assertNotSandbox(
  * Throws if the current context's base is a sandbox production base (i.e. has
  * an active sandbox derived from it). Use before schema-mutation operations
  * that should only run in the sandbox.
- * Skipped automatically during sandbox merge replay (context.additionalContext.is_replay).
+ * Skipped automatically during sandbox merge / undo-redo replay (`isReplay()`).
  */
 export async function assertNotSandboxProduction(
   context: NcContext,
   message = 'This operation is not allowed while a sandbox is active. Make the change in the sandbox instead.',
 ): Promise<void> {
-  if (context.additionalContext?.is_replay) return;
+  if (isReplay()) return;
   const sandboxes = await Sandbox.listByProductionBaseId(context.base_id);
   if (sandboxes.length > 0) {
     NcError.get(context).sandboxProductionBlocked(message);
@@ -45,7 +46,7 @@ export async function assertNotLockedViewOnSandboxProduction(
   viewId: string,
   message = 'Locked views cannot be modified on a base with an active sandbox. Make changes in the sandbox.',
 ): Promise<void> {
-  if (context.additionalContext?.is_replay) return;
+  if (isReplay()) return;
   if (!viewId) return;
   const view = await View.get(context, viewId);
   if (view?.lock_type !== ViewLockType.Locked) return;

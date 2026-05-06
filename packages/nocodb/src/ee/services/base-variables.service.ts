@@ -14,6 +14,7 @@ import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { checkForFeature } from '~/helpers/paymentHelpers';
+import { isReplay } from '~/helpers/replayScope';
 const SECRET_MASK = '***';
 
 @Injectable()
@@ -105,7 +106,11 @@ export class BaseVariablesService {
   @TraceCommand(OperationName.baseVariableCreate)
   async create(
     context: NcContext,
-    param: { baseId: string; variable: BaseVariableReqType; req: NcRequest },
+    param: {
+      baseId: string;
+      variable: BaseVariableReqType & { id?: string };
+      req: NcRequest;
+    },
   ): Promise<BaseVariableType> {
     const { baseId, variable: body, req } = param;
 
@@ -127,9 +132,7 @@ export class BaseVariablesService {
     }
 
     const variable = await BaseVariable.insert(context, {
-      ...(context?.additionalContext?.is_replay && (body as any).id
-        ? { id: (body as any).id }
-        : {}),
+      ...(isReplay() && body.id ? { id: body.id } : {}),
       base_id: baseId,
       key: body.key,
       value: body.value,

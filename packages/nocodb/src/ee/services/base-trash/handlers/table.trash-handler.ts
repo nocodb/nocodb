@@ -5,7 +5,6 @@ import {
   MetaEventType,
   PlanLimitTypes,
 } from 'nocodb-sdk';
-import type { UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';

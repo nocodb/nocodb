@@ -13,6 +13,7 @@ import {
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { getCredentialEncryptSecret } from '~/utils/encryptDecrypt';
+import { isReplay } from '~/helpers/replayScope';
 
 const KEY_REGEX = /^[A-Z][A-Z0-9_]*$/;
 const MAX_VALUE_LENGTH = 65536; // 64KB
@@ -200,7 +201,7 @@ export default class BaseVariable implements BaseVariableType {
     ]);
 
     // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
-    if (context?.additionalContext?.is_replay && data.id) {
+    if (isReplay() && data.id) {
       insertObj.id = data.id;
     }
 

@@ -7,7 +7,7 @@ import {
 } from 'nocodb-sdk';
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import NocoSocket from '~/ee/socket/NocoSocket';
 import Filter from '~/models/Filter';
@@ -19,6 +19,7 @@ import { checkForFeature, checkLimit } from '~/helpers/paymentHelpers';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
+import { isReplay } from '~/helpers/replayScope';
 @Injectable()
 export class RlsService {
   protected logger: Logger = new Logger(RlsService.name);
@@ -139,9 +140,7 @@ export class RlsService {
 
     // Create the policy
     const policy = await RlsPolicy.insert(context, {
-      ...(context?.additionalContext?.is_replay && body.id
-        ? { id: body.id }
-        : {}),
+      ...(isReplay() && body.id ? { id: body.id } : {}),
       base_id: context.base_id,
       fk_model_id: body.fk_model_id,
       title: body.title || (body.is_default ? 'Default Policy' : 'New Policy'),

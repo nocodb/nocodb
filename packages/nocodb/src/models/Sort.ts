@@ -12,6 +12,7 @@ import {
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import View from '~/models/View';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class Sort {
   id: string;
@@ -75,8 +76,7 @@ export default class Sort {
       'source_id',
     ]);
 
-    const replayKeepOrder =
-      context?.additionalContext?.is_replay && sortObj.order != null;
+    const replayKeepOrder = isReplay() && sortObj.order != null;
     if (replayKeepOrder) {
       insertObj.order = sortObj.order;
     } else {
@@ -114,7 +114,7 @@ export default class Sort {
         .increment('order', 1);
     }
 
-    if (context?.additionalContext?.is_replay && sortObj.id) {
+    if (isReplay() && sortObj.id) {
       insertObj.id = sortObj.id;
     }
 

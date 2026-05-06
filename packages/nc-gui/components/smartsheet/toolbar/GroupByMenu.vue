@@ -153,8 +153,8 @@ const saveGroupBy = async () => {
         if (col && col.group_by) {
           await updateGridViewColumn(gby.fk_column_id, {
             group_by: false,
-            group_by_order: undefined,
-            group_by_sort: undefined,
+            group_by_order: 1,
+            group_by_sort: 'asc',
           })
         }
       }

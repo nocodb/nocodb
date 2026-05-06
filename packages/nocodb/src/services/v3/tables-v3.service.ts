@@ -10,7 +10,8 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { Model, User } from '~/models';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { Base } from '~/models';
 import { ColumnsService } from '~/services/columns.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
@@ -23,7 +24,10 @@ import { TablesService } from '~/services/tables.service';
 import { tableReadBuilder, tableViewBuilder } from '~/utils/builders/table';
 import { validatePayload } from '~/helpers';
 import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
-import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  captureForTrace,
+  TraceCommand,
+} from '~/decorators/trace-command.decorator';
 import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
@@ -214,8 +218,16 @@ export class TablesV3Service {
         context,
         { tableId: tableCreateOutput.id, user: param.user },
       );
-      (param as { _capturedColumns?: unknown })._capturedColumns =
-        finalModel.columns;
+      captureForTrace(
+        'sandboxColumns',
+        finalModel.columns.map((c) => ({
+          id: c.id,
+          title: c.title ?? c.column_name,
+          cn: c.column_name,
+        })),
+      );
+      const defaultViewId = finalModel.views?.[0]?.id;
+      if (defaultViewId) captureForTrace('sandboxDefaultViewId', defaultViewId);
 
       return this.getTableWithAccessibleViews(context, {
         tableId: tableCreateOutput.id,

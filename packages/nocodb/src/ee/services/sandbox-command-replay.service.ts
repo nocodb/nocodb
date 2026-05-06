@@ -7,16 +7,12 @@ import type {
 } from '~/command-registry/types';
 import { OperationRegistry } from '~/command-registry/registry';
 import { makeReplayReq } from '~/command-registry/replay-context';
+import { runInReplay } from '~/helpers/replayScope';
 
 @Injectable()
 export class SandboxCommandReplayService {
   private readonly logger = new Logger(SandboxCommandReplayService.name);
 
-  /**
-   * Replay a single changelog entry against the target production context.
-   * Resolves the registered handler via OperationRegistry, builds a synthetic
-   * NcRequest to suppress re-recording and audit, then invokes the handler.
-   */
   async replayCommand(
     targetContext: NcContext,
     entry: SandboxChangelog,
@@ -57,16 +53,16 @@ export class SandboxCommandReplayService {
       replayParams.baseId = targetContext.base_id;
     }
 
-    // For create operations: inject the sandbox entity ID so the production
-    // entity gets the same ID (metaInsert2 preserves pre-set IDs).
+    // Inject sandbox entity_id into the create body so production preserves it.
+    const idField = contract.sandbox?.id_field;
     if (
-      contract.idField &&
+      idField &&
       entry.entity_id &&
-      replayParams[contract.idField] &&
-      typeof replayParams[contract.idField] === 'object'
+      replayParams[idField] &&
+      typeof replayParams[idField] === 'object'
     ) {
-      replayParams[contract.idField] = {
-        ...replayParams[contract.idField],
+      replayParams[idField] = {
+        ...replayParams[idField],
         id: entry.entity_id,
       };
     }
@@ -79,18 +75,9 @@ export class SandboxCommandReplayService {
       extra: command.extra as Record<string, unknown> | undefined,
     };
 
-    // Mark context as replay so assertNotSandboxProduction guards are bypassed.
-    const replayContext: NcContext = {
-      ...targetContext,
-      additionalContext: {
-        ...targetContext.additionalContext,
-        is_replay: true,
-      },
-    };
-
     this.logger.log(
       `Replaying ${command.name}@${command.version} (entry: ${entry.id})`,
     );
-    return handler(replayContext, replayParams, handlerMeta);
+    return runInReplay(() => handler(targetContext, replayParams, handlerMeta));
   }
 }

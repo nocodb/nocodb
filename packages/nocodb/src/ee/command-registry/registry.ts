@@ -13,9 +13,9 @@ export interface RegistrySnapshot {
   name: string;
   version: number;
   entity: string;
-  idField?: string;
+  id_field?: string;
   schemaHash: string;
-  extraSchemaHash?: string;
+  capture_schema_hash?: string;
 }
 
 class _OperationRegistry {
@@ -26,12 +26,13 @@ class _OperationRegistry {
     contract: C,
     handler: CommandHandler<C>,
   ): void {
+    const v = versionOf(contract);
     if (this.frozen) {
       throw new Error(
-        `OperationRegistry frozen; cannot register ${contract.name}@${contract.version}`,
+        `OperationRegistry frozen; cannot register ${contract.name}@${v}`,
       );
     }
-    const k = key(contract.name, contract.version);
+    const k = key(contract.name, v);
     if (this.entries.has(k)) {
       throw new Error(`Duplicate handler registered for ${k}`);
     }
@@ -42,11 +43,11 @@ class _OperationRegistry {
     this.frozen = true;
   }
 
-  resolve(name: string, version: number): RegistryEntry | undefined {
+  resolve(name: string, version: number = 1): RegistryEntry | undefined {
     return this.entries.get(key(name, version));
   }
 
-  contract(name: string, version: number): OperationContract | undefined {
+  contract(name: string, version: number = 1): OperationContract | undefined {
     return this.resolve(name, version)?.contract;
   }
 
@@ -54,16 +55,20 @@ class _OperationRegistry {
     return [...this.entries.values()]
       .map((e) => ({
         name: e.contract.name,
-        version: e.contract.version,
+        version: versionOf(e.contract),
         entity: String(e.contract.entity),
-        idField: e.contract.idField,
+        id_field: e.contract.sandbox?.id_field,
         schemaHash: hashSchema(e.contract.schema),
-        extraSchemaHash: e.contract.extraSchema
-          ? hashSchema(e.contract.extraSchema)
+        capture_schema_hash: e.contract.sandbox?.capture_schema
+          ? hashSchema(e.contract.sandbox.capture_schema)
           : undefined,
       }))
       .sort((a, b) => a.name.localeCompare(b.name) || a.version - b.version);
   }
+}
+
+function versionOf(contract: OperationContract<any>): number {
+  return contract.version ?? 1;
 }
 
 function key(name: string, version: number) {

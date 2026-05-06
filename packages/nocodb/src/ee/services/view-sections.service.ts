@@ -18,6 +18,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope, MetaTable } from '~/utils/globals';
+import { getReplay, isReplay } from '~/helpers/replayScope';
 @Injectable()
 export class ViewSectionsService {
   constructor(protected readonly appHooksService: AppHooksService) {}
@@ -29,7 +30,7 @@ export class ViewSectionsService {
   async create(
     context: NcContext,
     tableId: string,
-    body: ViewSectionCreateReqType,
+    body: ViewSectionCreateReqType & { id?: string },
     req: NcRequest,
   ): Promise<ViewSectionType> {
     await checkForFeature(context, PlanFeatureTypes.FEATURE_VIEW_SECTIONS);
@@ -58,9 +59,7 @@ export class ViewSectionsService {
     }
 
     const section = await ViewSection.insert(context, {
-      ...(context?.additionalContext?.is_replay && (body as any).id
-        ? { id: (body as any).id }
-        : {}),
+      ...(isReplay() && body.id ? { id: body.id } : {}),
       fk_model_id: tableId,
       title,
       order: body.order,
@@ -70,24 +69,14 @@ export class ViewSectionsService {
       updated_by: req.user?.id,
     });
 
-    // Replay-only: re-link views that were in this section before its
-    // deletion. The forward `delete` clears `fk_view_section_id` on every
-    // child view; on undo, the inverse `viewSectionCreate` re-builds the
-    // section AND points the same views back at it.
-    const restoreViewIds = (body as any)?._restoreViewIds as
-      | string[]
-      | undefined;
-    if (
-      context?.additionalContext?.is_replay &&
-      restoreViewIds?.length &&
-      section?.id
-    ) {
+    const restoreViewIds = getReplay('viewSectionRestoreViewIds');
+    if (isReplay() && restoreViewIds?.length && section?.id) {
       await Noco.ncMeta.bulkMetaUpdate(
         context.workspace_id,
         context.base_id,
         MetaTable.VIEWS,
         { fk_view_section_id: section.id },
-        restoreViewIds,
+        [...restoreViewIds],
       );
       for (const viewId of restoreViewIds) {
         await NocoCache.update(context, `${CacheScope.VIEW}:${viewId}`, {

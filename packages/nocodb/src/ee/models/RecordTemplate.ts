@@ -9,6 +9,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class RecordTemplate {
   id?: string;
@@ -45,7 +46,7 @@ export default class RecordTemplate {
     ]);
 
     // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
-    if (context?.additionalContext?.is_replay && template.id) {
+    if (isReplay() && template.id) {
       insertObj.id = template.id;
     }
 

@@ -5,6 +5,7 @@ import { NcError } from '~/helpers/ncError';
 import { MetaTable } from '~/cli';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
+import { isReplay } from '~/helpers/replayScope';
 
 export interface IRowColorCondition {
   id: string;
@@ -49,7 +50,7 @@ export default class RowColorCondition implements IRowColorCondition {
       'fk_target_column_id',
     ]) as Partial<IRowColorCondition>;
 
-    if (context?.additionalContext?.is_replay && condition.id) {
+    if (isReplay() && condition.id) {
       (insertObj as Partial<IRowColorCondition> & { id?: string }).id =
         condition.id;
     }

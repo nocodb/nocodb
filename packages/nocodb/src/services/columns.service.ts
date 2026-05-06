@@ -84,7 +84,11 @@ import {
   validateRequiredField,
   validateRollupPayload,
 } from '~/helpers';
-import { TraceCommand } from '~/decorators/trace-command.decorator';
+import {
+  captureForTrace,
+  TraceCommand,
+} from '~/decorators/trace-command.decorator';
+import { getReplay, setReplay } from '~/helpers/replayScope';
 import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
@@ -139,6 +143,7 @@ export type {
   LtarSideEffectIds,
   ReusableParams,
 } from '~/services/columns.service.type';
+import { isReplay } from '~/helpers/replayScope';
 
 const deepClone = rfdc();
 
@@ -754,8 +759,6 @@ export class ColumnsService implements IColumnsService {
       apiVersion?: NcApiVersion;
       forceUpdateSystem?: boolean;
       columnWebhookManager?: ColumnWebhookManager;
-      _replayBackup?: ColumnBackupRef;
-      _columnBackup?: ColumnBackupRef;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Model | Column<any>> {
@@ -763,16 +766,22 @@ export class ColumnsService implements IColumnsService {
     const column = await Column.get(context, { colId: param.columnId });
     const oldColumn = deepClone(column);
 
+    let createdBackup: ColumnBackupRef | undefined;
     if (this.shouldBackupBeforeTypeChange(column, param.column)) {
       try {
-        param._columnBackup = await this.columnDataBackupHandler.backup(
-          context,
-          {
-            sourceColumn: column,
-            backupUid: ColumnDataBackupHandler.newBackupUid(),
-            forUndo: !!param._replayBackup,
-          },
-        );
+        createdBackup = await this.columnDataBackupHandler.backup(context, {
+          sourceColumn: column,
+          backupUid: ColumnDataBackupHandler.newBackupUid(),
+          forUndo: !!getReplay('replayBackup'),
+        });
+        // Two ALS deposits, two readers:
+        //  - `captureForTrace('backup', …)` → `recordCommand` packs this onto
+        //    the changelog row's `meta.backup` for the original forward op.
+        //  - `setReplay('columnBackupOut', …)` → the handler reads this
+        //    post-call to thread the ref into `metaUpdate` (so subsequent
+        //    redo cycles point at the new backup column, not the dropped one).
+        captureForTrace('backup', createdBackup);
+        setReplay('columnBackupOut', createdBackup);
       } catch (e) {
         this.logger.warn(
           `Column data backup failed for ${column.id} (${column.uidt} → ${
@@ -794,10 +803,10 @@ export class ColumnsService implements IColumnsService {
         ncMeta,
       );
     } catch (err) {
-      if (param._columnBackup) {
+      if (createdBackup) {
         try {
           await this.columnDataBackupHandler.drop(context, {
-            backupRef: param._columnBackup,
+            backupRef: createdBackup,
           });
         } catch (dropErr) {
           this.logger.warn(
@@ -806,7 +815,6 @@ export class ColumnsService implements IColumnsService {
             }`,
           );
         }
-        param._columnBackup = undefined;
       }
       throw err;
     }
@@ -3169,10 +3177,11 @@ export class ColumnsService implements IColumnsService {
       columnWebhookManager.emit();
     }
 
-    if (param._replayBackup) {
+    const replayBackup = getReplay('replayBackup');
+    if (replayBackup) {
       await this.columnDataBackupHandler.restore(context, {
         destinationColumn: updatedColumn,
-        backupRef: param._replayBackup,
+        backupRef: replayBackup,
       });
     }
 
@@ -3287,12 +3296,6 @@ export class ColumnsService implements IColumnsService {
       apiVersion?: T;
       columnWebhookManager?: ColumnWebhookManager;
       operationSource?: OperationSource;
-      // Sandbox-replay LTAR side-effect IDs — set by the columnAdd handler
-      // on replay, threaded down into `createLTARColumn`.
-      _ltarReplayIds?: LtarSideEffectIds;
-      // Capture slot populated by `createLTARColumn` during recording;
-      // surfaced via `extraCommandMeta` on `ColumnAddContract`.
-      _ltarCapture?: LtarSideEffectIds;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<T extends NcApiVersion.V3 ? Column : Model> {
@@ -3524,14 +3527,11 @@ export class ColumnsService implements IColumnsService {
 
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord: {
-        // Sandbox-replay capture slot — populated by `createLTARColumn` with
-        // side-effect IDs (assoc model, FK cols, back-link cols, reverse LTAR)
-        // and read by `extraCommandMeta` on `ColumnAddContract` to thread
-        // them into the changelog. Filtered from replay params via
-        // `NON_SERIALIZABLE_KEYS`. Object reference is shared so inner
-        // mutations are visible to the calling decorator.
+        // `createLTARColumn` mutates this bag with the side-effect IDs
+        // (assoc model, FK cols, back-link, reverse LTAR). After the call
+        // we deposit the bag into the trace ALS so `ColumnAddContract`
+        // (`sandbox.capture: ['ltar']`) packs it onto the changelog row.
         const ltarCapture: LtarSideEffectIds = {};
-        param._ltarCapture = ltarCapture;
         savedColumn = await this.createLTARColumn(context, {
           tableId: param.tableId,
           column: param.column,
@@ -3539,12 +3539,12 @@ export class ColumnsService implements IColumnsService {
           req: param.req,
           reuse: param.reuse,
           columnWebhookManager,
-          _ltarReplayIds: param._ltarReplayIds,
           _ltarCapture: ltarCapture,
           source,
           base,
           colExtra,
         });
+        captureForTrace('ltar', ltarCapture);
 
         this.appHooksService.emit(AppEvents.RELATION_CREATE, {
           column: {
@@ -4322,12 +4322,15 @@ export class ColumnsService implements IColumnsService {
       columnFilterKind &&
       (param.column as any).filters?.length &&
       newColumn &&
-      !(param.req as { __isReplay?: boolean })?.__isReplay
+      !isReplay()
     ) {
-      (param as any)._capturedFilters = await this.snapshotColumnFilterTree(
-        context,
-        newColumn.id,
-        columnFilterKind,
+      captureForTrace(
+        'filters',
+        await this.snapshotColumnFilterTree(
+          context,
+          newColumn.id,
+          columnFilterKind,
+        ),
       );
     }
 
@@ -5684,18 +5687,18 @@ export class ColumnsService implements IColumnsService {
       user: UserType;
       req: NcRequest;
       columnWebhookManager?: ColumnWebhookManager;
-      // Sandbox-replay only — set by the columnAdd handler when replaying a
-      // recorded LTAR create. Each insert site below honors the matching id
-      // so dependent ops (Lookup/Rollup/linkFilter) keep stable references.
-      _ltarReplayIds?: LtarSideEffectIds;
-      // Sandbox-replay only — capture slot populated during recording so
-      // `extraCommandMeta` on `ColumnAddContract` can thread the side-effect
-      // IDs into the changelog. Object ref shared with `columnAdd`'s param.
+      // Sandbox-replay capture slot, mutated by this method with the
+      // side-effect IDs (assoc model, FK cols, back-link, reverse LTAR).
+      // Caller passes a fresh object and reads back after the call to
+      // deposit into the trace ALS.
       _ltarCapture?: LtarSideEffectIds;
     },
   ) {
     let savedColumn: Column;
-    const replayIds = param._ltarReplayIds;
+    // Sandbox-replay only — pre-recorded side-effect IDs threaded via the
+    // ALS bag by the columnAdd handler. Read once up front so the inner
+    // insert sites can match each row to its recorded id.
+    const replayIds = getReplay('ltarReplayIds');
     const capture = param._ltarCapture;
 
     if ((param.column as any).is_custom_link) {

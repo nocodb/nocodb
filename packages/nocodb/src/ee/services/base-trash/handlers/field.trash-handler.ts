@@ -8,7 +8,6 @@ import {
   UITypes,
   WebhookActions,
 } from 'nocodb-sdk';
-import type { UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
 import type { MetaService } from '~/meta/meta.service';

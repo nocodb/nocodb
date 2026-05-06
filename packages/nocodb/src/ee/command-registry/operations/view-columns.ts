@@ -1,0 +1,368 @@
+import type { z } from 'zod';
+import type { NcContext } from '~/interface/config';
+import type { OperationContract } from '~/command-registry/types';
+import type { FormColumnsService } from '~/services/form-columns.service';
+import type { GridColumnsService } from '~/services/grid-columns.service';
+import type { ViewColumnsService } from '~/services/view-columns.service';
+import type { ViewsService } from '~/services/views.service';
+import type { viewColumnBodySchema } from '~/command-registry/operations/_schemas/view-column';
+import { OperationName } from '~/command-registry/op-names';
+import { registerForward } from '~/command-registry/replay-context';
+import { MetaTable } from '~/utils/globals';
+import { Column, FormViewColumn, GridViewColumn, Model, View } from '~/models';
+import { pickFieldsIfPresent } from '~/utils/tsUtils';
+import { viewColumnActions } from '~/decorators/trace-command-descriptions';
+import {
+  formColumnUpdateSchema,
+  gridColumnUpdateSchema,
+  showHideAllSchema,
+  viewColumnsBulkSetVisibilitySchema,
+  viewColumnUpdateSchema,
+} from '~/command-registry/operations/_schemas/view-column';
+
+interface ViewColumnUpdateExtra {
+  fieldTitle?: string;
+  tableTitle?: string;
+  prevColumn?: z.infer<typeof viewColumnBodySchema>;
+}
+
+// Covers single show/hide, drag-reorder (`order`), and per-cell formatting
+// (calendar/timeline bold/italic/underline) — they all flow through this op.
+export const ViewColumnUpdateContract: OperationContract<
+  typeof viewColumnUpdateSchema,
+  ViewColumnUpdateExtra,
+  unknown
+> = {
+  name: OperationName.viewColumnUpdate,
+  entity: MetaTable.GRID_VIEW_COLUMNS,
+  schema: viewColumnUpdateSchema,
+  entry: {
+    entity_id: (params) => params.columnId,
+    parent_id: 'viewId',
+    description: viewColumnActions.update,
+    before: async (context, params) => {
+      const view = await View.get(context, params.viewId);
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      const field = params.columnId
+        ? await Column.get(context, { colId: params.columnId })
+        : undefined;
+      const viewCol = await View.getColumn(
+        context,
+        params.viewId,
+        params.columnId,
+      );
+      // SDK `BoolType = number | boolean | null` is broader than the schema's
+      // `boolean | 0 | 1 | null`. DB only ever stores the narrower set, so the
+      // narrowing cast is sound — keeps the wire-format strict.
+      type NarrowBool = boolean | 0 | 1 | null;
+      return {
+        parentEntityTitle: view?.title,
+        extra: {
+          fieldTitle: field?.title,
+          tableTitle: table?.title,
+          prevColumn: viewCol
+            ? {
+                show: viewCol.show as NarrowBool,
+                order: viewCol.order,
+                ...('underline' in viewCol
+                  ? { underline: viewCol.underline as NarrowBool }
+                  : {}),
+                ...('bold' in viewCol
+                  ? { bold: viewCol.bold as NarrowBool }
+                  : {}),
+                ...('italic' in viewCol
+                  ? { italic: viewCol.italic as NarrowBool }
+                  : {}),
+              }
+            : undefined,
+        },
+      };
+    },
+  },
+  sandbox: {
+    dependencies: (params) =>
+      params.columnId
+        ? [{ entity: MetaTable.COLUMNS, id: params.columnId }]
+        : [],
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prevColumn;
+      if (!prev) return null;
+      return {
+        name: OperationName.viewColumnUpdate,
+        params: {
+          viewId: params.viewId,
+          columnId: params.columnId,
+          column: prev,
+        },
+      };
+    },
+  },
+};
+
+interface ShowHideAllExtra {
+  prevVisibility?: Record<string, boolean>;
+}
+
+async function captureVisibilitySnapshot(
+  context: NcContext,
+  viewId: string,
+): Promise<Record<string, boolean>> {
+  const cols = (await View.getColumns(context, viewId)) ?? [];
+  return cols.reduce<Record<string, boolean>>((acc, c: any) => {
+    if (c?.id != null) acc[c.id] = !!c.show;
+    return acc;
+  }, {});
+}
+
+export const ShowAllColumnsContract: OperationContract<
+  typeof showHideAllSchema,
+  ShowHideAllExtra,
+  boolean
+> = {
+  name: OperationName.showAllColumns,
+  entity: MetaTable.VIEWS,
+  schema: showHideAllSchema,
+  entry: {
+    entity_id: (params) => params.viewId,
+    description: () => 'Show all fields',
+    before: async (context, params) => ({
+      extra: {
+        prevVisibility: await captureVisibilitySnapshot(context, params.viewId),
+      },
+    }),
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prevVisibility;
+      if (!prev) return null;
+      return {
+        name: OperationName.viewColumnsBulkSetVisibility,
+        params: { viewId: params.viewId, columnVisibility: prev },
+      };
+    },
+  },
+};
+
+export const HideAllColumnsContract: OperationContract<
+  typeof showHideAllSchema,
+  ShowHideAllExtra,
+  boolean
+> = {
+  name: OperationName.hideAllColumns,
+  entity: MetaTable.VIEWS,
+  schema: showHideAllSchema,
+  entry: {
+    entity_id: (params) => params.viewId,
+    description: () => 'Hide all fields',
+    before: async (context, params) => ({
+      extra: {
+        prevVisibility: await captureVisibilitySnapshot(context, params.viewId),
+      },
+    }),
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prevVisibility;
+      if (!prev) return null;
+      return {
+        name: OperationName.viewColumnsBulkSetVisibility,
+        params: { viewId: params.viewId, columnVisibility: prev },
+      };
+    },
+  },
+};
+
+export const ViewColumnsBulkSetVisibilityContract: OperationContract<
+  typeof viewColumnsBulkSetVisibilitySchema,
+  Record<string, any>,
+  boolean
+> = {
+  name: OperationName.viewColumnsBulkSetVisibility,
+  entity: MetaTable.VIEWS,
+  schema: viewColumnsBulkSetVisibilitySchema,
+  entry: {
+    entity_id: (params) => params.viewId,
+    description: () => 'Restore field visibility',
+  },
+};
+
+type GridColumnBody = z.infer<typeof gridColumnUpdateSchema>['grid'];
+
+interface GridColumnUpdateExtra {
+  fieldTitle?: string;
+  tableTitle?: string;
+  prevGrid?: Partial<GridColumnBody>;
+}
+
+export const GridColumnUpdateContract: OperationContract<
+  typeof gridColumnUpdateSchema,
+  GridColumnUpdateExtra,
+  unknown
+> = {
+  name: OperationName.gridColumnUpdate,
+  entity: MetaTable.GRID_VIEW_COLUMNS,
+  schema: gridColumnUpdateSchema,
+  entry: {
+    entity_id: (params) => params.gridViewColumnId,
+    description: viewColumnActions.update,
+    before: async (context, params) => {
+      const gridCol = await GridViewColumn.get(
+        context,
+        params.gridViewColumnId,
+      );
+      if (!gridCol) return {};
+      const view = gridCol.fk_view_id
+        ? await View.get(context, gridCol.fk_view_id)
+        : undefined;
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      const field = gridCol.fk_column_id
+        ? await Column.get(context, { colId: gridCol.fk_column_id })
+        : undefined;
+
+      const prevGrid = pickFieldsIfPresent(
+        gridCol,
+        [
+          'show',
+          'order',
+          'width',
+          'group_by',
+          'group_by_order',
+          'group_by_sort',
+          'aggregation',
+        ] as const,
+        params.grid ?? {},
+      ) as Partial<GridColumnBody>;
+
+      return {
+        parentEntityTitle: view?.title,
+        extra: {
+          fieldTitle: field?.title,
+          tableTitle: table?.title,
+          prevGrid,
+        },
+      };
+    },
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prevGrid;
+      if (!prev || Object.keys(prev).length === 0) return null;
+      return {
+        name: OperationName.gridColumnUpdate,
+        params: { gridViewColumnId: params.gridViewColumnId, grid: prev },
+      };
+    },
+  },
+};
+
+type FormColumnBody = z.infer<typeof formColumnUpdateSchema>['formViewColumn'];
+
+interface FormColumnUpdateExtra {
+  fieldTitle?: string;
+  tableTitle?: string;
+  prevFormColumn?: Partial<FormColumnBody>;
+}
+
+export const FormColumnUpdateContract: OperationContract<
+  typeof formColumnUpdateSchema,
+  FormColumnUpdateExtra,
+  unknown
+> = {
+  name: OperationName.formColumnUpdate,
+  entity: MetaTable.FORM_VIEW_COLUMNS,
+  schema: formColumnUpdateSchema,
+  entry: {
+    entity_id: (params) => params.formViewColumnId,
+    description: viewColumnActions.update,
+    before: async (context, params) => {
+      const formCol = await FormViewColumn.get(
+        context,
+        params.formViewColumnId,
+      );
+      if (!formCol) return {};
+      const view = formCol.fk_view_id
+        ? await View.get(context, formCol.fk_view_id)
+        : undefined;
+      const table = view?.fk_model_id
+        ? await Model.get(context, view.fk_model_id)
+        : undefined;
+      const field = formCol.fk_column_id
+        ? await Column.get(context, { colId: formCol.fk_column_id })
+        : undefined;
+
+      const prevFormColumn = pickFieldsIfPresent(
+        formCol,
+        [
+          'label',
+          'help',
+          'description',
+          'required',
+          'enable_scanner',
+          'show',
+          'order',
+          'meta',
+        ] as const,
+        params.formViewColumn ?? {},
+      ) as Partial<FormColumnBody>;
+
+      return {
+        parentEntityTitle: view?.title,
+        extra: {
+          fieldTitle: field?.title,
+          tableTitle: table?.title,
+          prevFormColumn,
+        },
+      };
+    },
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prevFormColumn;
+      if (!prev || Object.keys(prev).length === 0) return null;
+      return {
+        name: OperationName.formColumnUpdate,
+        params: {
+          formViewColumnId: params.formViewColumnId,
+          formViewColumn: prev,
+        },
+      };
+    },
+  },
+};
+
+export function registerViewColumnHandlers(svc: ViewColumnsService): void {
+  registerForward(ViewColumnUpdateContract, (context, params) =>
+    svc.columnUpdate(context, params),
+  );
+}
+
+export function registerGridColumnHandlers(svc: GridColumnsService): void {
+  registerForward(GridColumnUpdateContract, (context, params) =>
+    svc.gridColumnUpdate(context, params),
+  );
+}
+
+export function registerFormColumnHandlers(svc: FormColumnsService): void {
+  registerForward(FormColumnUpdateContract, (context, params) =>
+    svc.columnUpdate(context, params),
+  );
+}
+
+export function registerShowHideAllHandlers(svc: ViewsService): void {
+  registerForward(ShowAllColumnsContract, (context, params) =>
+    svc.showAllColumns(context, params),
+  );
+  registerForward(HideAllColumnsContract, (context, params) =>
+    svc.hideAllColumns(context, params),
+  );
+
+  registerForward(ViewColumnsBulkSetVisibilityContract, (context, params) =>
+    svc.viewColumnsBulkSetVisibility(context, params),
+  );
+}

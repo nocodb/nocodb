@@ -12,6 +12,7 @@ import {
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/ncError';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class RlsPolicy {
   id: string;
@@ -241,7 +242,7 @@ export default class RlsPolicy {
     ]);
 
     // Replay-only: preserve sandbox entity ID for idempotent merge
-    if (context?.additionalContext?.is_replay && policy.id) {
+    if (isReplay() && policy.id) {
       insertObj.id = policy.id;
     }
 

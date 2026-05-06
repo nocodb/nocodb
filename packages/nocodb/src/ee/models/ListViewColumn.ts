@@ -6,6 +6,7 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class ListViewColumn extends ListViewColumnCE {
   id: string;
@@ -126,7 +127,7 @@ export default class ListViewColumn extends ListViewColumnCE {
     ]);
 
     // Replay: honor pre-set id (order is already in extractProps).
-    if (context?.additionalContext?.is_replay && column.id) {
+    if (isReplay() && column.id) {
       (insertObj as { id?: string }).id = column.id;
     }
 

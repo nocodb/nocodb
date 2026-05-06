@@ -1,121 +1,121 @@
 import type { z, ZodTypeAny } from 'zod';
 import type { MetaTable } from '~/utils/globals';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { ColumnBackupRef } from '~/services/column-data-backup-handler';
+import type { LtarSideEffectIds } from '~/services/columns.service.type';
 import type { OperationName } from './op-names';
 
 /**
- * Versioned, typed declaration of a single state-mutating operation. Each
- * contract is the single source of truth for:
+ * Versioned, typed declaration of one state-mutating operation. Three
+ * orthogonal concerns:
  *
- *  - Identity         — `name` + `version` (registry lookup key, also used
- *                        as the `event` column in `nc_sandbox_changelog`).
- *  - Param shape      — `schema` validates and shapes the persisted params at
- *                        record time (strict — throws on mismatch). `extraSchema`
- *                        validates handler-side metadata threaded via `extra`.
- *  - Entity reference — `entityId` / `entityTitle` / `parentId` / `parentTitle`
- *                        extract identifying fields from `param` or the service
- *                        result for changelog rows. Fall back to `idField`
- *                        (a key in `param` whose value is the created entity).
- *  - Replay context   — `resolveCtx` runs before the original method to capture
- *                        pre-state (e.g. old title for rename detection).
- *                        `skipIf` runs after, suppressing record when the call
- *                        was a no-op.
- *  - Cross-refs       — `deps` returns related entity IDs so replay can stitch
- *                        foreign-key references across the merge boundary.
- *                        `extraCommandMeta` packs additional payload (e.g.
- *                        sandbox column IDs) onto the changelog row.
- *  - Description      — human-readable summary for audit UIs (string or DescFn
- *                        receiving entity/parent titles).
+ *  - `entry` (always relevant) — what gets recorded on the changelog row.
+ *  - `undo`  (opt-in)          — only set if the op is undoable.
+ *  - `sandbox` (opt-in)        — only set if the op flows through sandbox replay.
  *
- * Add new contracts under `src/ee/command-registry/operations/` and register
- * a handler in the matching `handlers/` file — see `CLAUDE.md` for the full
- * end-to-end checklist.
+ * `name@version` is the registry lookup key and the `event` column in
+ * `nc_sandbox_changelog`. Bump `version` when the schema or replay semantics
+ * change in a way old changelog rows can't replay against the new contract;
+ * v1 and v2 coexist until v1 rows drain.
  */
 export interface OperationContract<
   S extends ZodTypeAny = ZodTypeAny,
-  /**
-   * Shape of `ResolvedCtx['extra']` for this contract. Lets `resolveCtx` /
-   * `buildInverse` / `skipIf` see typed pre-state instead of casting through
-   * `as any`. Defaults to `Record<string, any>` so existing contracts that
-   * stash `{ fieldTitle, tableTitle }` keep compiling.
-   */
   E = Record<string, any>,
+  R = any,
 > {
   readonly name: OperationName;
-  readonly version: number;
+  readonly version?: number;
   readonly entity: MetaTable;
-
   readonly schema: S;
-  readonly extraSchema?: ZodTypeAny;
 
-  readonly idField?: string;
+  readonly entry?: OperationEntry<S, E, R>;
+  readonly undo?: OperationUndo<S, E, R>;
+  readonly sandbox?: OperationSandbox<S, R>;
+}
 
-  readonly entityId?: string | EntityRefFn<S>;
-  readonly entityTitle?: string | EntityRefFn<S>;
-  readonly parentId?: string | EntityRefFn<S>;
-  readonly parentTitle?: string | EntityRefFn<S>;
+export interface OperationEntry<
+  S extends ZodTypeAny = ZodTypeAny,
+  E = Record<string, any>,
+  R = any,
+> {
+  readonly entity_id?: string | EntityRefFn<S, R>;
+  readonly entity_title?: string | EntityRefFn<S, R>;
+  readonly parent_id?: string | EntityRefFn<S, R>;
   readonly description?: string | DescFn;
-
-  readonly resolveCtx?: (
-    ctx: NcContext,
-    p: z.infer<S>,
+  /** Pre-call hook: snapshot pre-state for undo / description / skip_if. */
+  readonly before?: (
+    context: NcContext,
+    params: z.infer<S>,
   ) => Promise<ResolvedCtx<E>>;
-  readonly skipIf?: (
-    ctx: NcContext,
-    p: z.infer<S>,
-    r: any,
+  /** Suppress recording when the call was a no-op (e.g. delete-of-missing-row). */
+  readonly skip_if?: (
+    context: NcContext,
+    params: z.infer<S>,
+    result: R,
     resolved?: ResolvedCtx<E>,
   ) => Promise<boolean> | boolean;
-  readonly deps?: (p: z.infer<S>, r: any) => TraceCommandDep[];
-  readonly extraCommandMeta?: (
-    p: z.infer<S>,
-    r: any,
-  ) => Record<string, any> | undefined;
+}
 
-  /**
-   * If defined, the operation is undoable. `recordCommand` writes a row to
-   * `nc_operation_logs` after the forward op succeeds, capturing the inverse
-   * op name + params returned here. Undo dispatches the inverse via
-   * `OperationRegistry.resolve(name, version)`.
-   *
-   * Return `null` to skip recording (e.g. operation was a no-op).
-   *
-   * Runs after the forward op completes — has access to the result so it can
-   * read auto-assigned IDs or pre-state captured via `resolveCtx`.
-   */
-  readonly buildInverse?: (
-    ctx: NcContext,
-    p: z.infer<S>,
-    r: any,
+export interface OperationUndo<
+  S extends ZodTypeAny = ZodTypeAny,
+  E = Record<string, any>,
+  R = any,
+> {
+  /** Returns the inverse op for undo; `null` skips recording. */
+  readonly inverse: (
+    context: NcContext,
+    params: z.infer<S>,
+    result: R,
     resolved?: ResolvedCtx<E>,
   ) => Promise<InverseOp | null> | InverseOp | null;
 }
 
-/**
- * The inverse of a forward op — what undo dispatches via the OperationRegistry.
- * `name` must match a registered contract's `name`. `params` is `unknown` at
- * the type level (the forward and inverse contracts are decoupled); the
- * dispatcher narrows via the resolved contract's schema at runtime.
- */
+export interface OperationSandbox<S extends ZodTypeAny = ZodTypeAny, R = any> {
+  /**
+   * Property name in `params` whose value is the create-body object. The
+   * dispatcher injects `entry.entity_id` into `params[id_field].id` at
+   * replay so production rows preserve sandbox IDs (`metaInsert2` honors
+   * pre-set `id`).
+   */
+  readonly id_field?: string;
+  /** Trace-ALS keys to persist as `meta.extra` (deposited via `captureForTrace`). */
+  readonly capture?: ReadonlyArray<CaptureKey>;
+  /** Validates the `meta.extra` payload before persistence. Strict. */
+  readonly capture_schema?: ZodTypeAny;
+  /**
+   * Related entity IDs the forward op references but doesn't own (e.g. a
+   * formula column → other columns). Persisted on `meta.deps`, used by
+   * sandbox cherry-pick to auto-include referenced entities.
+   */
+  readonly dependencies?: (params: z.infer<S>, result: R) => TraceCommandDep[];
+}
+
 export interface InverseOp {
   name: OperationName;
   version?: number;
   params: unknown;
 }
 
-export type EntityRefFn<S extends ZodTypeAny> = (
-  p: z.infer<S>,
-  r: any,
+export type EntityRefFn<S extends ZodTypeAny, R = any> = (
+  params: z.infer<S>,
+  result: R,
 ) => string | undefined;
 
-export type ParamsOf<C> = C extends OperationContract<infer S>
+// Match all 3 generics so contracts that supply non-default E/R still match
+// (E and R appear in both covariant and contravariant positions in callbacks,
+// making them invariant — single-arg `infer S` falls through to `never`).
+export type ParamsOf<C> = C extends OperationContract<
+  infer S,
+  infer _E,
+  infer _R
+>
   ? z.infer<S>
   : never;
 
 export type CommandHandler<
   C extends OperationContract<any> = OperationContract<any>,
 > = (
-  ctx: NcContext,
+  context: NcContext,
   params: ParamsOf<C>,
   meta: HandlerMeta,
 ) => Promise<unknown>;
@@ -125,7 +125,7 @@ export interface HandlerMeta {
   entityId?: string;
   originalReq: NcRequest;
   createdBy: string;
-  extra?: Record<string, unknown>;
+  extra?: Partial<CaptureBag>;
 }
 
 export interface ChangelogCommandPayload {
@@ -140,6 +140,37 @@ export interface TraceCommandDep {
   id: string;
 }
 
+/**
+ * Typed shape of every value depositable into the trace-ALS capture bag.
+ * Add a key here, then deposit via `captureForTrace(key, value)` and opt
+ * into persistence on the contract via `sandbox.capture: [key]`.
+ */
+export interface CaptureBag {
+  /** LTAR side-effect IDs (junction model, FK cols, back-link, reverse LTAR). */
+  ltar: LtarSideEffectIds;
+  /** Filter tree bundled at column/hook create time. */
+  filters: ReadonlyArray<Record<string, unknown>>;
+  /** Cell-data backup ref captured at destructive column type-changes. */
+  backup: ColumnBackupRef;
+  /** Every column created during a table-create (system + user + LTAR junction). */
+  sandboxColumns: ReadonlyArray<{
+    id?: string;
+    cn?: string;
+    title?: string;
+  }>;
+  /** Default-view id captured at table-create. */
+  sandboxDefaultViewId: string;
+  /** View ids that lived in a section at delete time — needed to re-link
+   *  child views when the section is recreated on undo. */
+  viewSectionViewIds: ReadonlyArray<string>;
+  /** Filter ids created as side-effects of `rowColorConditionAdd` (the
+   *  inner filter tree).
+   */
+  rowColorFilterIds: ReadonlyArray<string>;
+}
+
+export type CaptureKey = keyof CaptureBag;
+
 export interface ResolvedCtx<E = Record<string, any>> {
   entityTitle?: string;
   parentEntityTitle?: string;
@@ -152,4 +183,4 @@ export interface DescCtx {
   operation: string;
   extra?: Record<string, any>;
 }
-export type DescFn = (ctx: DescCtx) => string;
+export type DescFn = (context: DescCtx) => string;

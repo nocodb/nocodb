@@ -15,6 +15,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { defaultScript } from '~/utils/scriptDefault';
+import { isReplay } from '~/helpers/replayScope';
 const logger = new Logger('Script');
 
 export default class Script extends ScriptCE implements ScriptType {
@@ -251,7 +252,7 @@ export default class Script extends ScriptCE implements ScriptType {
     ]);
 
     // Replay-only: preserve sandbox entity ID for idempotent merge
-    if (context?.additionalContext?.is_replay && script.id) {
+    if (isReplay() && script.id) {
       insertObj.id = script.id;
     }
 

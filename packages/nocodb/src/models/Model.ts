@@ -29,6 +29,7 @@ import Column from '~/models/Column';
 import { extractProps } from '~/helpers/extractProps';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { NcError } from '~/helpers/catchError';
+import { getReplay } from '~/helpers/replayScope';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -216,9 +217,6 @@ export default class Model implements TableType {
       type?: ModelTypes;
       source_id?: string;
       user_id: string;
-      // Sandbox-replay only: preserve the master view ID when recreating the
-      // auto-created default view, so sorts/filters referencing it still resolve.
-      _sandboxDefaultViewId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -289,13 +287,12 @@ export default class Model implements TableType {
       ncMeta,
     );
 
+    const sandboxDefaultViewId = getReplay('sandboxDefaultViewId');
     await View.insertMetaOnly(
       context,
       {
         view: {
-          ...(model._sandboxDefaultViewId
-            ? { id: model._sandboxDefaultViewId }
-            : {}),
+          ...(sandboxDefaultViewId ? { id: sandboxDefaultViewId } : {}),
           fk_model_id: id,
           title: model.title || model.table_name,
           type: ViewTypes.GRID,

@@ -13,6 +13,7 @@ import {
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { Filter } from '~/models';
+import { isReplay } from '~/helpers/replayScope';
 export default class Widget extends WidgetCE implements IWidget {
   id?: string;
   title: string;
@@ -166,7 +167,7 @@ export default class Widget extends WidgetCE implements IWidget {
     ]);
 
     // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
-    if (context?.additionalContext?.is_replay && widget.id) {
+    if (isReplay() && widget.id) {
       insertObj.id = widget.id;
     }
 

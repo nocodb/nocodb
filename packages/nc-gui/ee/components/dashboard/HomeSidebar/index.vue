@@ -241,7 +241,12 @@ const hasNoResults = computed(() => {
                         :label="$t('labels.workspaceId', { workspaceId: ws.id })"
                       />
                       <NcDivider />
-                      <BookmarksMenuAction target-type="workspace" :target-id="ws.id!" />
+                      <BookmarksMenuAction
+                        target-type="workspace"
+                        :target-id="ws.id!"
+                        :meta="{ workspace_id: ws.id }"
+                        :workspace="ws"
+                      />
                     </NcMenu>
                   </template>
                 </NcDropdown>

@@ -106,8 +106,13 @@ export class BookmarkService {
     if (!userId) NcError.unauthorized('User not found');
 
     const meta = (param.body.meta as Record<string, any>) ?? {};
+    // For workspace-type bookmarks the workspace id lives in `target_id`;
+    // for everything else, the caller passes it via `meta.workspace_id`.
     const context = {
-      workspace_id: meta.workspace_id,
+      workspace_id:
+        param.body.target_type === 'workspace'
+          ? param.body.target_id
+          : meta.workspace_id,
       base_id: meta.base_id,
     } as NcContext;
 

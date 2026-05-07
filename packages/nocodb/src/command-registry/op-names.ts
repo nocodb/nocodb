@@ -98,6 +98,7 @@ export const OperationName = {
   scriptCreate: 'scriptCreate',
   scriptUpdate: 'scriptUpdate',
   scriptDelete: 'scriptDelete',
+  scriptDuplicate: 'scriptDuplicate',
 
   // Workflows
   workflowCreate: 'workflowCreate',

@@ -55,6 +55,12 @@ export const scriptDeleteSchema = z
   })
   .strict();
 
+export const scriptDuplicateSchema = z
+  .object({
+    scriptId: z.string(),
+  })
+  .strict();
+
 // ── Workflow ─────────────────────────────────────────────────────
 
 export const workflowBodySchema = z

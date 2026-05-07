@@ -211,12 +211,13 @@ export class UiPostOperations
           req,
         });
       case 'columnsBulk':
-        return await this.columnsService.columnBulk(
-          context,
-          req.query.tableId,
-          payload,
+        return await this.columnsService.columnsBulk(context, {
+          tableId: req.query.tableId,
+          hash: payload?.hash,
+          ops: payload?.ops,
+          visibility: payload?.visibility,
           req,
-        );
+        });
       case 'convertLinkToV2':
         return await this.columnsService.convertLinkToV2(context, {
           columnId: req.query.columnId,

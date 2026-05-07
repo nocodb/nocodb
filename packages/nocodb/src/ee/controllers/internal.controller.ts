@@ -479,11 +479,10 @@ export class InternalController extends InternalControllerCE {
         });
 
       case 'duplicateScript':
-        return await this.scriptsService.duplicateScript(
-          context,
-          payload.id,
+        return await this.scriptsService.duplicateScript(context, {
+          scriptId: payload.id,
           req,
-        );
+        });
 
       case 'setPermission':
         return await this.permissionsService.setPermission(context, {

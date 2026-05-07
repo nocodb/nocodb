@@ -7,14 +7,18 @@ import {
   makeReplayReq,
   registerForward,
 } from '~/command-registry/replay-context';
-import { isReplay } from '~/helpers/replayScope';
+import { isReplay, setReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
 import { Script } from '~/models';
 import { pickFields } from '~/utils/tsUtils';
-import { scriptActions } from '~/decorators/trace-command-descriptions';
+import {
+  bScript,
+  scriptActions,
+} from '~/decorators/trace-command-descriptions';
 import {
   scriptCreateSchema,
   scriptDeleteSchema,
+  scriptDuplicateSchema,
   scriptUpdateSchema,
 } from '~/command-registry/operations/_schemas/automation';
 
@@ -121,6 +125,36 @@ export const ScriptDeleteContract: OperationContract<
   },
 };
 
+export const ScriptDuplicateContract: OperationContract<
+  typeof scriptDuplicateSchema
+> = {
+  name: OperationName.scriptDuplicate,
+  entity: MetaTable.AUTOMATIONS,
+  schema: scriptDuplicateSchema,
+  entry: {
+    entity_id: (_params, result) =>
+      (result as { id?: string } | undefined)?.id,
+    entity_title: (_params, result) =>
+      (result as { title?: string } | undefined)?.title,
+    description: ({ entityTitle }) =>
+      `Duplicate ${bScript(entityTitle)} script`,
+    before: async (context, params) => {
+      const script = await Script.get(context, params.scriptId);
+      return { entityTitle: script?.title };
+    },
+  },
+  undo: {
+    inverse: (_context, _params, result) => {
+      const newId = (result as { id?: string } | undefined)?.id;
+      if (!newId) return null;
+      return {
+        name: OperationName.scriptDelete,
+        params: { scriptId: newId },
+      };
+    },
+  },
+};
+
 export function registerScriptHandlers(svc: ScriptsService): void {
   OperationRegistry.register(
     ScriptCreateContract,
@@ -148,5 +182,19 @@ export function registerScriptHandlers(svc: ScriptsService): void {
   );
   registerForward(ScriptDeleteContract, (context, params) =>
     svc.deleteScript(context, params),
+  );
+
+  OperationRegistry.register(
+    ScriptDuplicateContract,
+    async (context, params, meta) => {
+      const req = makeReplayReq(meta.originalReq, meta.createdBy);
+      if (isReplay() && meta.entityId) {
+        setReplay('replayDuplicateId', meta.entityId);
+      }
+      return svc.duplicateScript(context, {
+        scriptId: params.scriptId,
+        req,
+      });
+    },
   );
 }

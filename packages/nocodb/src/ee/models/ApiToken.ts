@@ -15,7 +15,6 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
-import appConfig from '~/app.config';
 
 export default class ApiToken extends ApiTokenCE {
   token_hash?: string;
@@ -273,21 +272,14 @@ export default class ApiToken extends ApiTokenCE {
     }
   }
 
-  private static getDataApiRateLimit(): number {
-    return appConfig?.throttler?.data?.max_apis ?? 5;
-  }
-
   /**
    * Buffer token ID for a batched last_used_at update (flushed every 5s).
    * Uses shared cache (Redis) so all cluster instances contribute to the same buffer.
-   *
-   * Only buffers when the data API rate limit is disabled (0) or high (>10/s),
-   * otherwise updates the DB directly since the request volume is low enough.
+   * Falls back to direct DB update when cache is disabled.
    */
   static updateLastUsed(tokenId: string, ncMeta = Noco.ncMeta) {
-    const rateLimit = this.getDataApiRateLimit();
 
-    if (!NocoCache.isCacheDisabled && (rateLimit === 0 || rateLimit >= 10)) {
+    if (!NocoCache.isCacheDisabled) {
       NocoCache.setHashField('root', this.LAST_USED_CACHE_KEY, tokenId, new Date().toISOString())
         .then(() =>
           NocoCache.expireHash('root', this.LAST_USED_CACHE_KEY, this.HASH_TTL_SEC),

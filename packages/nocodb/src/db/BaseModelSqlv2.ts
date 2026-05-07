@@ -2930,7 +2930,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      await this.afterDelete(data, null, cookie);
+      await this.afterDelete(data, trx, cookie);
       return response;
     } catch (e) {
       if (!_trx) await trx?.rollback();

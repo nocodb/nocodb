@@ -253,15 +253,19 @@ export default class DataReflection extends DataReflectionCE {
     const username = `nc_${sanitizedWorkspaceTitle}_readonly_${genSuffix()}`;
     const password = genPassword();
 
-    const knex = await (
-      await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id)
-    )?.transaction();
-
+    // Resolve the workspace knex + database name BEFORE opening a transaction.
+    // If either lookup throws (Redis hiccup, missing dbServer, null deref), an
+    // already-opened trx would have no try/catch covering it and would leak
+    // its pg connection as `idle in transaction` until the server reaped it.
+    const workspaceKnex = await NcConnectionMgrv2.getWorkspaceDataKnex(
+      fk_workspace_id,
+    );
     const dataConfig = await NcConnectionMgrv2.getWorkspaceDataConfig(
       fk_workspace_id,
     );
-
     const database = dataConfig.connection.database;
+
+    const knex = await workspaceKnex?.transaction();
 
     try {
       await createDatabaseUser(knex, username, password, database);
@@ -296,15 +300,17 @@ export default class DataReflection extends DataReflectionCE {
     const reflection = await DataReflection.get({ fk_workspace_id }, ncMeta);
     if (!reflection) return;
 
-    const knex = await (
-      await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id)
-    )?.transaction();
-
+    // Resolve the workspace knex + database name BEFORE opening a transaction —
+    // see DataReflection.create for rationale.
+    const workspaceKnex = await NcConnectionMgrv2.getWorkspaceDataKnex(
+      fk_workspace_id,
+    );
     const dataConfig = await NcConnectionMgrv2.getWorkspaceDataConfig(
       fk_workspace_id,
     );
-
     const database = dataConfig.connection.database;
+
+    const knex = await workspaceKnex?.transaction();
 
     try {
       const bases = await Base.listByWorkspace(fk_workspace_id, {}, ncMeta);

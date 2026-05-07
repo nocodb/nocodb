@@ -2525,7 +2525,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async delByPk(id, _trx?, cookie?) {
-    let trx: Knex.Transaction = _trx;
+    let trx: Knex.Transaction | null = _trx;
     try {
       const source = await this.getSource();
       // retrieve data for handling params in hook
@@ -2901,7 +2901,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const response = await trx(this.tnPath).del().where(where);
 
-      if (!_trx) await trx.commit();
+      if (!_trx) {
+        await trx.commit();
+        // Transaction is finalized; clear the reference so a post-commit
+        // failure below can't trigger rollback() on an already-closed trx
+        // (which throws "Transaction is already complete" and masks the
+        // original error in the catch block).
+        trx = null;
+      }
 
       await this.clearFileReferences({
         oldData: [data],
@@ -2923,10 +2930,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      await this.afterDelete(data, trx, cookie);
+      await this.afterDelete(data, null, cookie);
       return response;
     } catch (e) {
-      if (!_trx) await trx.rollback();
+      if (!_trx) await trx?.rollback();
       await this.errorDelete(e, id, trx, cookie);
       throw e;
     }

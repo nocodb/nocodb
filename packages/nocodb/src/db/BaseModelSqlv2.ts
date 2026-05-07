@@ -9644,8 +9644,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (!deletedColumn) return null;
 
       const source = await this.getSource();
-      if (!source.isMeta()) return null;
-
+      if (!source.isMeta() || !this.model.isTrashEnabled) return null;
       const columnName = deletedColumn.column_name;
       return function () {
         this.whereNull(columnName).orWhere(columnName, false);

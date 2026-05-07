@@ -9635,10 +9635,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const source = await this.getSource();
     if (!source.isMeta()) return null;
 
-    const columnName = deletedColumn.column_name;
-    return function () {
-      this.whereNull(columnName).orWhere(columnName, false);
-    };
+      const source = await this.getSource();
+      if (!source.isMeta() || !this.model.isTrashEnabled) return null;
+      const columnName = deletedColumn.column_name;
+      return function () {
+        this.whereNull(columnName).orWhere(columnName, false);
+      };
+    })();
+
+    return this._softDeleteFilter;
   }
 }
 

@@ -1151,6 +1151,34 @@ export class TablesService {
       );
     }
 
+    try {
+      // create __nc_deleted index column
+      const metaDeletedColumn = tableCreatePayLoad.columns.find(
+        (c) => c.uidt === UITypes.Deleted,
+      );
+
+      if (metaDeletedColumn) {
+        const dbDriver = await NcConnectionMgrv2.get(source);
+
+        const baseModel = await Model.getBaseModelSQL(context, {
+          model: result,
+          source,
+          dbDriver,
+        });
+
+        await sqlClient.raw(`CREATE INDEX ?? ON ?? (??)`, [
+          `${tableCreatePayLoad.table_name}_deleted_idx`,
+          baseModel.getTnPath(tableCreatePayLoad.table_name),
+          metaDeletedColumn.column_name,
+        ]);
+      }
+    } catch (e) {
+      this.logger.error(
+        `Something went wrong while creating index for __nc_deleted`,
+        e,
+      );
+    }
+
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {
       table: {
         ...param.table,

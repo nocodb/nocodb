@@ -23,7 +23,7 @@ import { processConcurrently } from '~/utils/dataUtils';
 import {
   computeCleanupDueAt,
   resolveTrashRetentionDays,
-} from '~/ee/helpers/trashHelpers';
+} from '~/helpers/trashHelpers';
 import Noco from '~/Noco';
 
 @Injectable()

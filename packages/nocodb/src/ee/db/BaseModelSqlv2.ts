@@ -83,7 +83,7 @@ import { buildRecordResourceId } from '~/services/base-trash/record-trash.helper
 import {
   computeCleanupDueAt,
   resolveTrashRetentionDays,
-} from '~/ee/helpers/trashHelpers';
+} from '~/helpers/trashHelpers';
 import { canUseOptimisedQuery, removeBlankPropsAndMask } from '~/utils';
 import {
   UPDATE_WORKSPACE_COUNTER,

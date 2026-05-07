@@ -23,6 +23,40 @@ export default class ApiToken extends ApiTokenCE {
   // Loaded from nc_api_token_scopes
   scopes?: ApiTokenScope[];
 
+  // Buffer for batching last_used_at updates (flushed every 5s)
+  private static pendingLastUsedIds = new Set<string>();
+  private static flushTimer: ReturnType<typeof setInterval> | null = null;
+
+  private static ensureFlushTimer() {
+    if (this.flushTimer) return;
+    this.flushTimer = setInterval(() => {
+      this.flushLastUsed().catch(() => {});
+    }, 5_000);
+    // Allow the process to exit without waiting for this timer
+    if (this.flushTimer && typeof this.flushTimer === 'object' && 'unref' in this.flushTimer) {
+      this.flushTimer.unref();
+    }
+  }
+
+  private static async flushLastUsed(ncMeta = Noco.ncMeta) {
+    if (this.pendingLastUsedIds.size === 0) return;
+
+    const ids = [...this.pendingLastUsedIds];
+    this.pendingLastUsedIds.clear();
+
+    try {
+      await ncMeta
+        .knexConnection(MetaTable.API_TOKENS)
+        .whereIn('id', ids)
+        .update({
+          last_used_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+    } catch {
+      // Best-effort — don't block if this fails
+    }
+  }
+
   async getExtraForUserPayload(
     ncMeta = Noco.ncMeta,
   ): Promise<void | Record<string, any>> {
@@ -215,20 +249,11 @@ export default class ApiToken extends ApiTokenCE {
   }
 
   /**
-   * Update the last_used_at timestamp (fire-and-forget).
+   * Buffer token ID for a batched last_used_at update (flushed every 5s).
    */
-  static async updateLastUsed(tokenId: string, ncMeta = Noco.ncMeta) {
-    try {
-      await ncMeta.metaUpdate(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.API_TOKENS,
-        { last_used_at: new Date().toISOString() },
-        tokenId,
-      );
-    } catch {
-      // Best-effort — don't block request if this fails
-    }
+  static updateLastUsed(tokenId: string) {
+    this.pendingLastUsedIds.add(tokenId);
+    this.ensureFlushTimer();
   }
 
   /**

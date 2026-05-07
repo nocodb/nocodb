@@ -139,8 +139,8 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
           },
         });
 
-        // Fire-and-forget: update last_used_at
-        ApiToken.updateLastUsed(apiToken.id).catch(() => {});
+        // Buffer last_used_at update (flushed every 5s)
+        ApiToken.updateLastUsed(apiToken.id);
       }
       return callback(null, sanitiseUserObj(user));
     } catch (error) {

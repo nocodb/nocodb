@@ -1,5 +1,28 @@
+import { pickFields } from 'nocodb-sdk'
 import type { FilterReqType, FilterType, HookReqType, HookType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+
+const HOOK_API_FIELDS = [
+  'title',
+  'description',
+  'env',
+  'event',
+  'fk_model_id',
+  'type',
+  'async',
+  'active',
+  'condition',
+  'trigger_field',
+  'trigger_fields',
+  'retries',
+  'retry_interval',
+  'timeout',
+  'version',
+  'url',
+  'headers',
+  'payload',
+  'id',
+] as const
 
 export const useWebhooksStore = defineStore('webhooksStore', () => {
   const hooks = ref<HookType[]>([])
@@ -98,7 +121,8 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
           tableId: hook.fk_model_id!,
         },
         {
-          ...hook,
+          ...pickFields(hook, HOOK_API_FIELDS as unknown as readonly (keyof typeof hook)[]),
+          id: undefined,
           trigger_field: !!hook.trigger_field,
           title: generateUniqueTitle(`${hook.title} copy`, hooks.value, 'title', '_', true),
           active: hook.event === 'manual',
@@ -151,7 +175,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
             hookId: hook.id,
           },
           {
-            ...hook,
+            ...pickFields(hook, HOOK_API_FIELDS as unknown as readonly (keyof typeof hook)[]),
             notification: {
               ...hook.notification,
               payload: hook.notification.payload,
@@ -168,7 +192,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
             tableId: activeTable.value!.id!,
           },
           {
-            ...hook,
+            ...pickFields(hook, HOOK_API_FIELDS as unknown as readonly (keyof typeof hook)[]),
             notification: {
               ...hook.notification,
               payload: hook.notification.payload,

@@ -129,12 +129,16 @@ export class ViewTrashHandler extends BaseTrashHandler<View> {
       }
     }
 
+    const view = await View.get(ctx, trashEntry.resource_id, false, ncMeta);
+
+    await view.getView(ctx);
+
     NocoSocket.broadcastEvent(ctx, {
       event: EventType.META_EVENT,
       payload: {
         id: trashEntry.resource_id,
         action: 'view_restore',
-        payload: await View.get(ctx, trashEntry.resource_id, false, ncMeta),
+        payload: view,
       } as Record<string, unknown>,
     } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
 

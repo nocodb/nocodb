@@ -40,8 +40,9 @@ export const hookBodySchema = z
     url: z.string().nullable().optional(),
     /** Webhook headers (text JSON). */
     headers: z.string().nullable().optional(),
-    /** Webhook payload template (text). */
-    payload: z.string().nullable().optional(),
+    /** `nc_hooks.payload` is a boolean column (defaultTo(true)) controlling
+     *  whether the row payload is included in the webhook delivery. */
+    payload: boolType.nullable().optional(),
 
     // Replay-time injection (idField: 'hook'):
     id: z.string().optional(),

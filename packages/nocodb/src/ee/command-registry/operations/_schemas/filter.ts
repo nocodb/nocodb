@@ -99,7 +99,8 @@ export const filterBodySchema = z
     fk_column_id: z.string().nullable().optional(),
     fk_widget_id: z.string().nullable().optional(),
     fk_parent_id: z.string().nullable().optional(),
-    is_group: boolType.optional(),
+    /** DB column is nullable; legacy rows have NULL = leaf semantics. */
+    is_group: boolType.nullable().optional(),
     value: filterValueSchema.optional(),
     enabled: boolType.optional(),
     fk_level_id: z.string().nullable().optional(),

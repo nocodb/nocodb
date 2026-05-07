@@ -12,7 +12,7 @@ import {
 } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
-import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol, pickFields } from 'nocodb-sdk'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 import { jsonThemeDark, jsonThemeLight } from '~/components/monaco/json'
 
@@ -700,6 +700,28 @@ async function saveHooks() {
     bundledFilters = []
   }
 
+  const HOOK_API_FIELDS = [
+    'title',
+    'description',
+    'env',
+    'event',
+    'fk_model_id',
+    'type',
+    'async',
+    'active',
+    'condition',
+    'trigger_field',
+    'trigger_fields',
+    'retries',
+    'retry_interval',
+    'timeout',
+    'version',
+    'url',
+    'headers',
+    'payload',
+    'id',
+  ] as const
+
   try {
     let res
     if (hookRef.id) {
@@ -711,7 +733,7 @@ async function saveHooks() {
           hookId: hookRef.id,
         },
         {
-          ...hookRef,
+          ...pickFields(hookRef, HOOK_API_FIELDS as unknown as readonly (keyof typeof hookRef)[]),
           title: hookRef.title?.trim(),
           operation: operations,
           notification: {
@@ -730,7 +752,7 @@ async function saveHooks() {
           tableId: meta.value!.id!,
         },
         {
-          ...hookRef,
+          ...pickFields(hookRef, HOOK_API_FIELDS as unknown as readonly (keyof typeof hookRef)[]),
           title: hookRef.title?.trim(),
           operation: operations,
           notification: {

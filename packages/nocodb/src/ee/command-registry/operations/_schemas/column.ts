@@ -89,6 +89,9 @@ export const columnUpdateSchema = z
 export const columnDeleteSchema = z
   .object({
     columnId: z.string(),
+    skipTrash: z.boolean().optional(),
+    forceDeleteSystem: z.boolean().optional(),
+    skipLinkPlaceholder: z.boolean().optional(),
   })
   .strict();
 

@@ -362,14 +362,18 @@ export const useRealtime = createSharedComposable(() => {
       if (!fkModelId || activeTableId.value !== fkModelId) return
       // Avoid duplicates if the originator already pushed locally.
       if (!hooks.value.some((h) => h.id === event.payload.id)) {
-        hooks.value = [event.payload, ...hooks.value]
+        const payload = event.payload
+        payload.notification = parseProp(payload.notification)
+        hooks.value = [payload, ...hooks.value]
       }
     } else if (event.action === 'hook_update') {
       const fkModelId = event.payload?.fk_model_id
       if (!fkModelId || activeTableId.value !== fkModelId) return
       const existing = hooks.value.find((h) => h.id === event.payload.id)
       if (existing) {
-        Object.assign(existing, event.payload)
+        const payload = event.payload
+        payload.notification = parseProp(payload.notification)
+        Object.assign(existing, payload)
       }
       // Forward to internal bus so an open webhook editor can react —
       // either to refetch filters (replace-all) or to surface a "modified

@@ -509,7 +509,6 @@ const getFormulaColDataType = (col: ColumnType) => {
 const isSearchableColumn = (column: ColumnType) => {
   return (
     (column?.pk || !isSystemColumn(column)) &&
-    column?.uidt !== UITypes.ForeignKey &&
     ![
       UITypes.Links,
       UITypes.Rollup,

@@ -1,0 +1,6 @@
+.git
+dist
+**/node_modules
+**/.turbo
+**/coverage
+docs/superpowers

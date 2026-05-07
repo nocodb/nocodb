@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import { extractRolesObj } from 'nocodb-sdk';
@@ -29,18 +29,18 @@ export class OAuthTokenStrategy extends PassportStrategy(
       const oAuthToken = await OAuthToken.getByAccessToken(token);
 
       if (!oAuthToken) {
-        return callback({ msg: 'Invalid OAuth token' });
+        throw new UnauthorizedException('Invalid OAuth token');
       }
 
       if (oAuthToken.is_revoked) {
-        return callback({ msg: 'Invalid OAuth token' });
+        throw new UnauthorizedException('Invalid OAuth token');
       }
 
       if (
         oAuthToken.access_token_expires_at &&
         new Date(oAuthToken.access_token_expires_at) < new Date()
       ) {
-        return callback({ msg: 'OAuth token expired' });
+        throw new UnauthorizedException('OAuth token expired');
       }
 
       // Get user associated with the OAuth token
@@ -56,7 +56,7 @@ export class OAuthTokenStrategy extends PassportStrategy(
       );
 
       if (!dbUser) {
-        return callback({ msg: 'User not found for OAuth token' });
+        throw new UnauthorizedException('User not found');
       }
 
       // Enforce route restriction: OAuth tokens can only access allowed routes
@@ -64,9 +64,7 @@ export class OAuthTokenStrategy extends PassportStrategy(
       const oauthAllowedPaths = ['/mcp', '/api/v3/', '/auth/user/me'];
 
       if (!oauthAllowedPaths.some((p) => req.path?.startsWith(p))) {
-        return callback({
-          msg: 'OAuth token does not permit access to this endpoint',
-        });
+        throw new UnauthorizedException('Endpoint not permitted');
       }
 
       // Validate resource limitations if granted_resources exist
@@ -79,9 +77,7 @@ export class OAuthTokenStrategy extends PassportStrategy(
             req.context?.workspace_id &&
             req.context.workspace_id !== grantedResources.workspace_id
           ) {
-            return callback({
-              msg: 'OAuth token access limited to specific workspace',
-            });
+            throw new UnauthorizedException('Workspace access denied');
           }
         }
 
@@ -91,9 +87,7 @@ export class OAuthTokenStrategy extends PassportStrategy(
             req.context?.base_id &&
             req.context.base_id !== grantedResources.base_id
           ) {
-            return callback({
-              msg: 'OAuth token access limited to specific base',
-            });
+            throw new UnauthorizedException('Base access denied');
           }
         }
       }
@@ -123,6 +117,9 @@ export class OAuthTokenStrategy extends PassportStrategy(
 
       return callback(null, sanitiseUserObj(user));
     } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
       return callback({ msg: 'OAuth token validation failed' });
     }
   }

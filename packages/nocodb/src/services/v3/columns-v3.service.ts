@@ -211,9 +211,11 @@ export class ColumnsV3Service {
       if (column.meta) {
         column.meta.choices = undefined;
       }
-      column.dtxp = column.colOptions?.options
-        ?.map((o: any) => `${o.value}`)
-        .join('');
+      if (column.colOptions?.options?.length) {
+        column.dtxp = column.colOptions.options
+          .map((o: any) => `'${(o.title || o.value || '').replace(/'/g, "''")}'`)
+          .join(',');
+      }
     }
 
     const res = await this.columnsService.columnAdd(

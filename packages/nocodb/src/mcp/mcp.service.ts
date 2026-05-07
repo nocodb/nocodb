@@ -13,6 +13,7 @@ import type {
 import { resolveAttachmentFilePath } from '~/helpers/attachmentHelpers';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
+import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { DataTableService } from '~/services/data-table.service';
 import { hasMinimumRole } from '~/utils/roleHelper';
@@ -27,13 +28,14 @@ export class McpService {
   constructor(
     protected readonly baseV3Service: BasesV3Service,
     protected readonly tablesV3Service: TablesV3Service,
+    protected readonly columnsV3Service: ColumnsV3Service,
     protected readonly datasV3Service: DataV3Service,
     protected readonly dataTableService: DataTableService,
     protected readonly auditService: AuditsService,
   ) {}
 
   async handleRequest(
-    tokenId: string,
+    tokenId: string | null,
     context: NcContext,
     req: NcRequest,
     res: Response,
@@ -719,6 +721,201 @@ export class McpService {
             return {
               content: [
                 { type: 'text', text: JSON.stringify(result, null, 2) },
+              ],
+            };
+          } catch (error) {
+            return {
+              content: [{ type: 'text', text: `Error: ${error.message}` }],
+              isError: true,
+            };
+          }
+        },
+      );
+
+      // Create Table tool
+      server.registerTool(
+        'createTable',
+        {
+          title: 'Create Table',
+          description:
+            'Create a new table in the base. Returns the created table with its ID.',
+          inputSchema: {
+            title: z.string().describe('Table name'),
+            description: z.string().optional().describe('Table description'),
+          },
+        },
+        async ({ title, description }) => {
+          try {
+            const result = await this.tablesV3Service.tableCreate(context, {
+              baseId: context.base_id,
+              table: { title, ...(description && { description }) } as any,
+              user: user as any,
+              req,
+            });
+
+            return {
+              content: [
+                { type: 'text', text: JSON.stringify(result, null, 2) },
+              ],
+            };
+          } catch (error) {
+            return {
+              content: [{ type: 'text', text: `Error: ${error.message}` }],
+              isError: true,
+            };
+          }
+        },
+      );
+
+      // Create Field tool
+      server.registerTool(
+        'createField',
+        {
+          title: 'Create Field',
+          description:
+            'Add a new field/column to a table. Supported types: SingleLineText, LongText, Number, Decimal, Checkbox, Date, DateTime, SingleSelect, MultiSelect, URL, Email, PhoneNumber, Currency, Percent, Duration, JSON. For SingleSelect/MultiSelect, pass choices as an array of strings.',
+          inputSchema: {
+            tableId: z.string().describe('Table ID'),
+            title: z.string().describe('Field name'),
+            type: z.string().describe('Field type (e.g. SingleLineText, Number, SingleSelect)'),
+            choices: z
+              .array(z.string())
+              .optional()
+              .describe('Options for SingleSelect/MultiSelect fields (e.g. ["draft", "active", "closed"])'),
+            options: z
+              .record(z.string(), z.any())
+              .optional()
+              .describe('Additional field-type-specific options'),
+          },
+        },
+        async ({ tableId, title, type, choices, options }) => {
+          try {
+            const column: any = { title, type, ...options };
+
+            if (choices?.length) {
+              column.options = {
+                ...column.options,
+                choices: choices.map((c) => ({ title: c })),
+              };
+            }
+
+            const result = await this.columnsV3Service.columnAdd(context, {
+              tableId,
+              column,
+              req,
+              user: user as any,
+            });
+
+            return {
+              content: [
+                { type: 'text', text: JSON.stringify(result, null, 2) },
+              ],
+            };
+          } catch (error) {
+            return {
+              content: [{ type: 'text', text: `Error: ${error.message}` }],
+              isError: true,
+            };
+          }
+        },
+      );
+
+      // Update Field tool
+      server.registerTool(
+        'updateField',
+        {
+          title: 'Update Field',
+          description: 'Update field properties (title, options). Cannot change field type.',
+          inputSchema: {
+            fieldId: z.string().describe('Field/Column ID'),
+            title: z.string().optional().describe('New field name'),
+            options: z
+              .record(z.string(), z.any())
+              .optional()
+              .describe('Field-type-specific options to update'),
+          },
+        },
+        async ({ fieldId, title, options }) => {
+          try {
+            const result = await this.columnsV3Service.columnUpdate(context, {
+              columnId: fieldId,
+              column: { ...(title && { title }), ...options } as any,
+              req,
+              user: user as any,
+            });
+
+            return {
+              content: [
+                { type: 'text', text: JSON.stringify(result, null, 2) },
+              ],
+            };
+          } catch (error) {
+            return {
+              content: [{ type: 'text', text: `Error: ${error.message}` }],
+              isError: true,
+            };
+          }
+        },
+      );
+
+      // Delete Table tool
+      server.registerTool(
+        'deleteTable',
+        {
+          title: 'Delete Table',
+          description: 'Permanently delete a table and all its data.',
+          annotations: {
+            destructiveHint: true,
+          },
+          inputSchema: {
+            tableId: z.string().describe('Table ID to delete'),
+          },
+        },
+        async ({ tableId }) => {
+          try {
+            await this.tablesV3Service.tableDelete(context, {
+              tableId,
+              user: user as any,
+              req,
+            });
+
+            return {
+              content: [
+                { type: 'text', text: JSON.stringify({ deleted: true }, null, 2) },
+              ],
+            };
+          } catch (error) {
+            return {
+              content: [{ type: 'text', text: `Error: ${error.message}` }],
+              isError: true,
+            };
+          }
+        },
+      );
+
+      // Delete Field tool
+      server.registerTool(
+        'deleteField',
+        {
+          title: 'Delete Field',
+          description: 'Permanently delete a field/column from a table.',
+          annotations: {
+            destructiveHint: true,
+          },
+          inputSchema: {
+            fieldId: z.string().describe('Field/Column ID to delete'),
+          },
+        },
+        async ({ fieldId }) => {
+          try {
+            await this.columnsV3Service.columnDelete(context, {
+              columnId: fieldId,
+              user: user as any,
+            });
+
+            return {
+              content: [
+                { type: 'text', text: JSON.stringify({ deleted: true }, null, 2) },
               ],
             };
           } catch (error) {

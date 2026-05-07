@@ -1286,8 +1286,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         : {}),
     };
 
-    // Load and cache permissions in context to avoid multiple fetches
-    if (req.ncBaseId && !isInternalWorkspaceScope) {
+    // Load and cache permissions in context to avoid multiple fetches.
+    if (req.ncBaseId && !isInternalWorkspaceScope && !req.permissions) {
       req.permissions = await Permission.list(req.context, req.ncBaseId);
       req.context.permissions = req.permissions;
     }
@@ -1441,9 +1441,13 @@ export class AclMiddleware implements NestInterceptor {
       !req.user?.workspace_roles?.[WorkspaceUserRoles.OWNER] &&
       !isServiceUser(req.user) &&
       !req.user?.is_api_token &&
-      (await getFeature(PlanFeatureTypes.FEATURE_FORCE_2FA, req.ncWorkspaceId))
+      (await getFeature(
+        PlanFeatureTypes.FEATURE_FORCE_2FA,
+        req.ncWorkspace ?? req.ncWorkspaceId,
+      ))
     ) {
-      const workspace = await Workspace.get(req.ncWorkspaceId);
+      const workspace =
+        req.ncWorkspace ?? (await Workspace.get(req.ncWorkspaceId));
       const meta =
         typeof workspace?.meta === 'string'
           ? JSON.parse(workspace.meta)
@@ -1656,12 +1660,13 @@ export class AclMiddleware implements NestInterceptor {
       !['baseUpdate', 'baseDelete'].includes(permissionName) &&
       ['POST', 'DELETE', 'PUT', 'PATCH'].includes(req.method)
     ) {
-      req.ncBase = await Base.get(req.context, req.ncBaseId);
+      req.ncBase = req.ncBase ?? (await Base.get(req.context, req.ncBaseId));
 
       if (req.ncBase.default_role) {
         await checkForFeature(
           {
             workspace_id: req.ncWorkspaceId,
+            workspace: req.ncWorkspace,
           },
           PlanFeatureTypes.FEATURE_PRIVATE_BASES,
         );

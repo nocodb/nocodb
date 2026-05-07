@@ -1356,6 +1356,14 @@ export class DataTableService {
       NcError.get(context).badRequest('Invalid bulkFilterList');
     }
 
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
     const results = await processConcurrently(
       bulkFilterList,
       async (dF: any) => {
@@ -1363,6 +1371,7 @@ export class DataTableService {
           query: { ...dF },
           model,
           view,
+          baseModel,
           includeRowColorColumns: dF.include_row_color === 'true',
           includeButtonFilterColumns:
             dF.include_button_filter_columns === 'true',

@@ -281,11 +281,12 @@ async function checkForFeature(
   context: {
     workspace_id: string;
     api_version?: NcApiVersion;
+    workspace?: Workspace | Org;
   },
   type: PlanFeatureTypes,
   ncMeta = Noco.ncMeta,
 ) {
-  if (!(await getFeature(type, context.workspace_id, ncMeta))) {
+  if (!(await getFeature(type, context.workspace ?? context.workspace_id, ncMeta))) {
     NcError.get(context).featureNotSupported({
       feature: type,
       isOnPrem: isOnPrem,

@@ -236,6 +236,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    */
   protected _queryQueue: PQueue;
   protected _columns = {};
+  protected _softDeleteFilter:
+    | Promise<Knex.QueryCallback | null>
+    | undefined;
   protected source: Source;
   public model: Model;
   public context: NcContext;
@@ -9635,17 +9638,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    * or null if the table has no __nc_deleted column or is not a meta (NocoDB-managed) source.
    */
   public async getSoftDeleteFilter(): Promise<Knex.QueryCallback | null> {
-    const columns = await this.model.getColumns(this.context);
-    const deletedColumn = columns.find((c) => isDeletedCol(c));
-    if (!deletedColumn) return null;
+    if (this._softDeleteFilter !== undefined) return this._softDeleteFilter;
 
-    const source = await this.getSource();
-    if (!source.isMeta()) return null;
+    this._softDeleteFilter = (async () => {
+      const columns = await this.model.getColumns(this.context);
+      const deletedColumn = columns.find((c) => isDeletedCol(c));
+      if (!deletedColumn) return null;
 
-    const columnName = deletedColumn.column_name;
-    return function () {
-      this.whereNull(columnName).orWhere(columnName, false);
-    };
+      const source = await this.getSource();
+      if (!source.isMeta()) return null;
+
+      const columnName = deletedColumn.column_name;
+      return function () {
+        this.whereNull(columnName).orWhere(columnName, false);
+      };
+    })();
+
+    return this._softDeleteFilter;
   }
 }
 

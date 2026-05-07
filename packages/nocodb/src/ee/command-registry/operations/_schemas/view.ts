@@ -221,10 +221,31 @@ export const mapUpdateSchema = z
 // Both use the shared base; per-type fields are added by the inner
 // service paths and not part of the API surface that contracts validate.
 
+const listLevelInputSchema = z
+  .object({
+    /** Replay-injected for round-trip across undo/redo and sandbox merge. */
+    id: z.string().optional(),
+
+    level: z.number().int(),
+    fk_model_id: z.string(),
+    fk_link_column_id: z.string().nullable().optional(),
+    enable_nested_records: boolType.nullable().optional(),
+    fk_self_link_column_id: z.string().nullable().optional(),
+    wrap_headers: boolType.nullable().optional(),
+    meta: z
+      .union([z.record(z.unknown()), z.string()])
+      .nullable()
+      .optional(),
+  })
+  .strict();
+
 export const listBodySchema = z
   .object(viewBaseFields)
   .extend({
-    levels: z.array(z.record(z.unknown())).optional(),
+    show_empty_parents: boolType.nullable().optional(),
+    row_height: z.number().int().nullable().optional(),
+    fk_prefix_column_id: z.string().nullable().optional(),
+    levels: z.array(listLevelInputSchema).optional(),
   })
   .strict();
 
@@ -342,6 +363,12 @@ const listLevelSnapshotSchema = z
       .optional(),
     /** Per-level columns (LIST_VIEW_COLUMNS rows) bundled with the level. */
     columns: z.array(z.record(z.unknown())),
+    /** Per-level sorts (SORT rows where fk_level_id = level.id). */
+    sorts: z.array(z.record(z.unknown())).optional(),
+    /** Per-level filter tree (FILTER_EXP rows where fk_level_id = level.id;
+     *  flat list including all descendants — re-inserted in topological
+     *  order on restore so fk_parent_id references resolve). */
+    filters: z.array(z.record(z.unknown())).optional(),
   })
   .strict();
 

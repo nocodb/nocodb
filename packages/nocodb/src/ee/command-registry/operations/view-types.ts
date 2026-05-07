@@ -411,11 +411,7 @@ export const KanbanViewUpdateContract: OperationContract<
           prevKanban: kanbanRow
             ? (pickFieldsIfPresent(
                 kanbanRow,
-                [
-                  'fk_grp_col_id',
-                  'fk_cover_image_col_id',
-                  'meta',
-                ] as const,
+                ['fk_grp_col_id', 'fk_cover_image_col_id', 'meta'] as const,
                 params.kanban ?? {},
               ) as {
                 fk_grp_col_id?: string;
@@ -563,6 +559,8 @@ interface ListLevelSnapshot {
   wrap_headers?: unknown;
   meta?: unknown;
   columns: Array<Record<string, unknown>>;
+  sorts: Array<Record<string, unknown>>;
+  filters: Array<Record<string, unknown>>;
 }
 
 interface ListParentSnapshot {
@@ -667,14 +665,51 @@ async function snapshotListLevels(
 ): Promise<ListLevelSnapshot[]> {
   const ncMeta = Noco.ncMeta;
   const levels = await ListViewLevel.list(context, viewId);
+
+  const allViewFilters = (await ncMeta.metaList2(
+    context.workspace_id,
+    context.base_id,
+    MetaTable.FILTER_EXP,
+    { condition: { fk_view_id: viewId } },
+  )) as Array<Record<string, unknown> & { id: string; fk_parent_id?: string }>;
+  const childrenByParent = new Map<string, typeof allViewFilters>();
+  for (const f of allViewFilters) {
+    if (!f.fk_parent_id) continue;
+    if (!childrenByParent.has(f.fk_parent_id)) {
+      childrenByParent.set(f.fk_parent_id, []);
+    }
+    childrenByParent.get(f.fk_parent_id)!.push(f);
+  }
+
   const snapshots: ListLevelSnapshot[] = [];
   for (const lvl of levels) {
-    const columns = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.LIST_VIEW_COLUMNS,
-      { condition: { fk_level_id: lvl.id } },
+    const [columns, sorts] = await Promise.all([
+      ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.LIST_VIEW_COLUMNS,
+        { condition: { fk_level_id: lvl.id } },
+      ),
+      ncMeta.metaList2(context.workspace_id, context.base_id, MetaTable.SORT, {
+        condition: { fk_level_id: lvl.id },
+      }),
+    ]);
+
+    const roots = allViewFilters.filter(
+      (f) => (f as { fk_level_id?: string }).fk_level_id === lvl.id,
     );
+    const filters: typeof allViewFilters = [];
+    const queue = [...roots];
+    const seen = new Set<string>();
+    while (queue.length) {
+      const f = queue.shift()!;
+      if (!f.id || seen.has(f.id)) continue;
+      seen.add(f.id);
+      filters.push(f);
+      const kids = childrenByParent.get(f.id) ?? [];
+      queue.push(...kids);
+    }
+
     snapshots.push({
       id: lvl.id,
       level: lvl.level as number,
@@ -685,6 +720,8 @@ async function snapshotListLevels(
       wrap_headers: lvl.wrap_headers,
       meta: lvl.meta,
       columns: columns as Array<Record<string, unknown>>,
+      sorts: sorts as Array<Record<string, unknown>>,
+      filters: filters as Array<Record<string, unknown>>,
     });
   }
   return snapshots;

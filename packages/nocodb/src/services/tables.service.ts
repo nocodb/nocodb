@@ -59,6 +59,8 @@ import { sanitizeColumnName, validatePayload } from '~/helpers';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
+import { OperationName } from '~/command-registry/op-names';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
 
 @Injectable()
 export class TablesService {
@@ -269,6 +271,7 @@ export class TablesService {
     return true;
   }
 
+  @TraceCommand(OperationName.tableReorder)
   async reorderTable(
     context: NcContext,
     param: { tableId: string; order: any; req: NcRequest },

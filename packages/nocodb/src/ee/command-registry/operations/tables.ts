@@ -13,6 +13,7 @@ import { tableActions } from '~/decorators/trace-command-descriptions';
 import {
   tableCreateSchema,
   tableDeleteSchema,
+  tableReorderSchema,
   tableUpdateSchema,
 } from '~/command-registry/operations/_schemas/table';
 
@@ -94,6 +95,48 @@ export const TableUpdateContract: OperationContract<
       return {
         name: OperationName.tableUpdate,
         params: { tableId: params.tableId, table: inverseBody },
+      };
+    },
+  },
+};
+
+interface TableReorderExtra {
+  prevOrder?: number;
+  oldTitle?: string;
+}
+
+export const TableReorderContract: OperationContract<
+  typeof tableReorderSchema,
+  TableReorderExtra,
+  unknown
+> = {
+  name: OperationName.tableReorder,
+  entity: MetaTable.MODELS,
+  schema: tableReorderSchema,
+  entry: {
+    entity_id: (params) => params.tableId,
+    description: tableActions.edit,
+    before: async (context, params) => {
+      const table = await Model.get(context, params.tableId);
+      if (!table) return {};
+      return {
+        entityTitle: table.title,
+        extra: {
+          oldTitle: table.title,
+          prevOrder: typeof table.order === 'number' ? table.order : undefined,
+        },
+      };
+    },
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prevOrder;
+      if (typeof prev !== 'number') return null;
+      // Skip a no-op reorder (forward set the same order).
+      if (prev === params.order) return null;
+      return {
+        name: OperationName.tableReorder,
+        params: { tableId: params.tableId, order: prev },
       };
     },
   },
@@ -182,6 +225,18 @@ export function registerTableHandlers(
         ...params,
         req,
       } as unknown as Parameters<typeof svc.tableUpdate>[1]);
+    },
+  );
+
+  OperationRegistry.register(
+    TableReorderContract,
+    async (context, params, meta) => {
+      const req = makeReplayReq(meta.originalReq, meta.createdBy);
+      return svc.reorderTable(context, {
+        tableId: params.tableId,
+        order: params.order,
+        req,
+      });
     },
   );
 

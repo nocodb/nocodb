@@ -96,6 +96,13 @@ export const tableDeleteSchema = z
   })
   .strict();
 
+export const tableReorderSchema = z
+  .object({
+    tableId: z.string(),
+    order: z.number(),
+  })
+  .strict();
+
 // ── V3 ───────────────────────────────────────────────────────────
 
 /**

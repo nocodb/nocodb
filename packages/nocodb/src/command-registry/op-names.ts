@@ -14,6 +14,7 @@ export const OperationName = {
   tableCreate: 'tableCreate',
   tableUpdate: 'tableUpdate',
   tableDelete: 'tableDelete',
+  tableReorder: 'tableReorder',
   tableV3Create: 'tableV3Create',
 
   // Columns

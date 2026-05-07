@@ -80,28 +80,39 @@ export default class BookmarkGroup
       [userId],
     );
 
-    if (!isNoneList && cachedList.length) {
-      return cachedList.map((item) => this.castType(new BookmarkGroup(item)));
-    }
+    let list = cachedList;
 
-    const list = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.BOOKMARK_GROUPS,
-      {
-        condition: { fk_user_id: userId },
-        orderBy: { order: 'asc' },
-      },
-    );
+    if (isNoneList || !cachedList.length) {
+      list = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.BOOKMARK_GROUPS,
+        {
+          condition: { fk_user_id: userId },
+          orderBy: { order: 'asc' },
+        },
+      );
 
-    for (const item of list) {
-      await NocoCache.set(
+      for (const item of list) {
+        await NocoCache.set(
+          'root',
+          `${CacheScope.BOOKMARK_GROUP}:${item.id}`,
+          item,
+        );
+      }
+      await NocoCache.setList(
         'root',
-        `${CacheScope.BOOKMARK_GROUP}:${item.id}`,
-        item,
+        CacheScope.BOOKMARK_GROUP,
+        [userId],
+        list,
       );
     }
-    await NocoCache.setList('root', CacheScope.BOOKMARK_GROUP, [userId], list);
+
+    list.sort(
+      (a, b) =>
+        (a.order != null ? a.order : Infinity) -
+        (b.order != null ? b.order : Infinity),
+    );
 
     return list.map((item) => this.castType(new BookmarkGroup(item)));
   }

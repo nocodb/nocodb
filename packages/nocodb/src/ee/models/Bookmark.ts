@@ -97,24 +97,30 @@ export default class Bookmark extends BookmarkCE implements BookmarkType {
       [userId],
     );
 
-    if (!isNoneList && cachedList.length) {
-      return cachedList.map((item) => this.castType(new Bookmark(item)));
+    let list = cachedList;
+
+    if (isNoneList || !cachedList.length) {
+      list = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.BOOKMARKS,
+        {
+          condition: { fk_user_id: userId },
+          orderBy: { order: 'asc' },
+        },
+      );
+
+      for (const item of list) {
+        await NocoCache.set('root', `${CacheScope.BOOKMARK}:${item.id}`, item);
+      }
+      await NocoCache.setList('root', CacheScope.BOOKMARK, [userId], list);
     }
 
-    const list = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.BOOKMARKS,
-      {
-        condition: { fk_user_id: userId },
-        orderBy: { order: 'asc' },
-      },
+    list.sort(
+      (a, b) =>
+        (a.order != null ? a.order : Infinity) -
+        (b.order != null ? b.order : Infinity),
     );
-
-    for (const item of list) {
-      await NocoCache.set('root', `${CacheScope.BOOKMARK}:${item.id}`, item);
-    }
-    await NocoCache.setList('root', CacheScope.BOOKMARK, [userId], list);
 
     return list.map((item) => this.castType(new Bookmark(item)));
   }
@@ -223,6 +229,12 @@ export default class Bookmark extends BookmarkCE implements BookmarkType {
         condition: { fk_group_id: groupId },
         orderBy: { order: 'asc' },
       },
+    );
+
+    list.sort(
+      (a, b) =>
+        (a.order != null ? a.order : Infinity) -
+        (b.order != null ? b.order : Infinity),
     );
 
     return list.map((item) => this.castType(new Bookmark(item)));

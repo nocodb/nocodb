@@ -315,6 +315,13 @@ export function genPgAggregateQuery({
         aggregationSql = knex.raw(`stddev_pop((??))`, [column_query]);
         break;
       case NumericalAggregations.Range:
+        if (column.uidt === UITypes.Rating) {
+          aggregationSql = knex.raw(
+            `MAX((??)) - MIN((??)) FILTER (WHERE (??) != ??)`,
+            [column_query, column_query, column_query, condnValue],
+          );
+          break;
+        }
         aggregationSql = knex.raw(`MAX((??)) - MIN((??))`, [
           column_query,
           column_query,

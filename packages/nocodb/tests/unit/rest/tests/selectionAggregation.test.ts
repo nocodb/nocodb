@@ -436,7 +436,21 @@ function selectionAggregationTests() {
     }
   });
 
-  describe('known SQL divergences (documented, not bugs in JS)', () => {
+  // The divergences pinned below are SQLite-specific:
+  //  - median uses an ORDER BY/OFFSET formula whose result depends on NULL
+  //    sort position, so it shifts by one when nulls are present.
+  //  - std_dev uses `SUM((x-avg)²)/COUNT(*)` against an inner subquery that
+  //    references the full table path, so the WHERE filter doesn't reach it.
+  // PG (`percentile_cont` / `stddev_pop`) and MySQL (`STDDEV`) don't have
+  // these quirks, so the assertions below would fail on those backends.
+  const sqliteOnlyDescribe =
+    !process.env.DB_CLIENT ||
+    process.env.DB_CLIENT === 'sqlite' ||
+    process.env.DB_CLIENT === 'sqlite3'
+      ? describe
+      : describe.skip;
+
+  sqliteOnlyDescribe('known SQL divergences (documented, not bugs in JS)', () => {
     // These are points where SQL aggregation produces values that differ from
     // mathematically-correct results computed by the JS reducer. They are
     // intentional — the JS reducer prefers correctness over SQL-bug parity.

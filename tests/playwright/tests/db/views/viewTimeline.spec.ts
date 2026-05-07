@@ -133,10 +133,15 @@ test.describe('Timeline View', () => {
 
     const before = await timeline.getActiveDateLabel();
 
-    // Match the windowed-fetch URL — every timeline data fetch lands on
-    // /api/v1/db/data/...&filterArrJson=...
+    // Match the dedicated timeline endpoint URL — every fetch lands on
+    // /api/v1/db/timeline-data/... with from_date/to_date query params.
+    // The server builds the overlap predicate and applies a 400-record
+    // limitOverride that bypasses the deployment's NC_DB_QUERY_LIMIT_MAX.
     const requestPromise = page.waitForRequest(
-      req => req.url().includes('/api/v1/db/data/') && req.url().includes('filterArrJson='),
+      req =>
+        req.url().includes('/api/v1/db/timeline-data/') &&
+        req.url().includes('from_date=') &&
+        req.url().includes('to_date='),
       { timeout: 5000 }
     );
 
@@ -147,13 +152,13 @@ test.describe('Timeline View', () => {
     // Active-date label must shift after a navigation click.
     expect(after).not.toEqual(before);
 
-    // The filter URL should encode an exactDate overlap predicate, not a
-    // generic empty filterArrJson. We don't assert specific dates here —
-    // they depend on the test wall clock — only the predicate shape.
+    // We don't assert specific dates — they depend on the test wall
+    // clock — only that both the from_date and to_date params are
+    // present and look like ISO dates (YYYY-MM-DD prefix).
     if (req) {
       const url = decodeURIComponent(req.url());
-      expect(url).toContain('exactDate');
-      expect(url).toContain('comparison_op');
+      expect(url).toMatch(/from_date=\d{4}-\d{2}-\d{2}/);
+      expect(url).toMatch(/to_date=\d{4}-\d{2}-\d{2}/);
     }
   });
 });

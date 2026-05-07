@@ -125,7 +125,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     const { isMysql, getBaseType } = baseStore
     const { base } = storeToRefs(baseStore)
 
-    const { sharedView, fetchSharedViewData } = useSharedView()
+    const { sharedView } = useSharedView()
 
     const { sorts, nestedFilters, eventBus, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 
@@ -417,44 +417,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       return count
     })
 
-    // Build the bar-overlap filter for the current buffer window. Records are
-    // included when their from/to span overlaps [bufferStart, bufferEnd].
-    //
-    // NOTE: ideally we'd also OR in null-end / null-start clauses so that
-    // single-day events whose other column is blank still render — but the
-    // backend filter parser currently mis-handles `comparison_op: 'blank'`
-    // inside an OR group (verified: OR(strict-overlap, anything-with-blank)
-    // returns 0 rows even when the strict-overlap clause alone returns tens
-    // of thousands). Until that's fixed, records with a null from/to column
-    // won't appear in the windowed fetch. Tracked separately.
-    const buildWindowFilter = (
-      fromCol: ColumnType,
-      toCol: ColumnType | null | undefined,
-      fromStr: string,
-      toStr: string,
-    ): FilterType => {
-      if (toCol?.id) {
-        // Strict overlap: from <= bufferEnd AND to >= bufferStart
-        return {
-          is_group: true,
-          logical_op: 'and',
-          children: [
-            { fk_column_id: fromCol.id, comparison_op: 'lte', comparison_sub_op: 'exactDate', value: toStr },
-            { fk_column_id: toCol.id, comparison_op: 'gte', comparison_sub_op: 'exactDate', value: fromStr },
-          ],
-        } as FilterType
-      }
-      // From-only range: bar is single-day at `from`.
-      return {
-        is_group: true,
-        logical_op: 'and',
-        children: [
-          { fk_column_id: fromCol.id, comparison_op: 'gte', comparison_sub_op: 'exactDate', value: fromStr },
-          { fk_column_id: fromCol.id, comparison_op: 'lte', comparison_sub_op: 'exactDate', value: toStr },
-        ],
-      } as FilterType
-    }
-
     // Format buffer endpoints to match the column type. Date columns store
     // `YYYY-MM-DD`; DateTime needs a TZ-aware boundary so a record with a
     // mid-day timestamp on the boundary day still falls inside the window.
@@ -512,40 +474,43 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
       const fromStr = formatBufferDate(bufferStart.value, fromCol, false)
       const toStr = formatBufferDate(bufferEnd.value, toCol ?? fromCol, true)
-      const windowFilter = buildWindowFilter(fromCol, toCol, fromStr, toStr)
 
-      // When the view's filterSync is server-managed, saved filters are
-      // already applied — only attach the window predicate. Otherwise merge
-      // the user's nested filters in here too so they apply on top of the
-      // window scope.
-      const filtersArr: FilterType[] = isUIAllowed('filterSync')
-        ? [windowFilter]
-        : [...nestedFilters.value, windowFilter]
+      // The server builds the bar-overlap predicate from from_date/to_date
+      // and merges it with any user-supplied filterArrJson. We only pass
+      // the user's nested filters when filterSync is off (otherwise the
+      // saved view filters are already applied server-side).
+      const userFilters: FilterType[] = isUIAllowed('filterSync') ? [] : [...nestedFilters.value]
 
       const seq = ++_fetchSeq
       if (showLoading) isTimelineDataLoading.value = true
 
       try {
-        const res = !isPublic.value
-          ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id as string, {
-              where: where?.value ?? '',
-              limit: TIMELINE_RECORD_LIMIT,
-              include_row_color: true,
-              getHiddenColumns: true,
-              filterArrJson: stringifyFilterOrSortArr(filtersArr),
-            })
-          : await fetchSharedViewData(
-              {
-                sortsArr: sorts.value,
-                filtersArr,
-                where: where?.value ?? '',
-                limit: TIMELINE_RECORD_LIMIT,
-              },
-              // Preserve our limit. Without this opt, fetchSharedViewData
-              // overrides limit with paginationData.pageSize (default 25),
-              // which would cap the timeline at 25 records on shared views.
-              { isInfiniteScroll: true },
-            )
+        const queryParams: Record<string, string> = {
+          from_date: fromStr,
+          to_date: toStr,
+          where: where?.value ?? '',
+          include_row_color: 'true',
+        }
+        if (userFilters.length) {
+          queryParams.filterArrJson = stringifyFilterOrSortArr(userFilters)
+        }
+
+        // Hit the dedicated timeline endpoint. Server enforces
+        // TIMELINE_RECORD_LIMIT via `limitOverride`, bypassing the
+        // deployment-level NC_DB_QUERY_LIMIT_MAX clamp that would
+        // otherwise cap us at e.g. 100 on cloud builds.
+        const url = !isPublic.value
+          ? `/api/v1/db/timeline-data/noco/${base.value.id}/${meta.value!.id}/views/${viewMeta.value!.id}`
+          : `/api/v2/public/timeline-view/${sharedView.value?.uuid}`
+
+        const res = await $api.instance
+          .get(url, {
+            params: queryParams,
+            ...(isPublic.value
+              ? { headers: { 'xc-password': sharedView.value?.password } }
+              : {}),
+          })
+          .then((r: any) => r.data)
 
         if (seq !== _fetchSeq) return
 

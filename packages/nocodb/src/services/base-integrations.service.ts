@@ -390,6 +390,14 @@ export class BaseIntegrationsService {
       NcError.get(context).integrationNotFound(param.integrationId);
     }
 
+    // Validate before opening a transaction — otherwise falling through to
+    // the bad-request throw below would leak an open trx.
+    if (!param.allBases && !param.baseIds?.length) {
+      NcError.get(context).badRequest(
+        'Either all_bases or base_ids must be provided.',
+      );
+    }
+
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
 
     try {
@@ -410,36 +418,30 @@ export class BaseIntegrationsService {
         return { all_bases: true };
       }
 
-      if (param.baseIds?.length) {
-        // Set restricted + replace links
-        await Integration.updateIntegration(
-          context,
-          param.integrationId,
-          { is_restricted: true },
-          ncMeta,
-        );
-        await IntegrationLink.replaceLinksForIntegration(
-          context,
-          {
-            integrationId: param.integrationId,
-            baseIds: param.baseIds,
-            workspaceId: integration.fk_workspace_id,
-            userId: param.userId,
-          },
-          ncMeta,
-        );
-        await ncMeta.commit();
-        return { all_bases: false, base_ids: param.baseIds };
-      }
+      // Set restricted + replace links
+      await Integration.updateIntegration(
+        context,
+        param.integrationId,
+        { is_restricted: true },
+        ncMeta,
+      );
+      await IntegrationLink.replaceLinksForIntegration(
+        context,
+        {
+          integrationId: param.integrationId,
+          baseIds: param.baseIds,
+          workspaceId: integration.fk_workspace_id,
+          userId: param.userId,
+        },
+        ncMeta,
+      );
+      await ncMeta.commit();
+      return { all_bases: false, base_ids: param.baseIds };
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       this.logger.error(e.message, e.stack);
       NcError.get(context).internalServerError('Failed to update linked bases');
     }
-
-    NcError.get(context).badRequest(
-      'Either all_bases or base_ids must be provided.',
-    );
   }
 }

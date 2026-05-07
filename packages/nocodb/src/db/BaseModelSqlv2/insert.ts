@@ -385,6 +385,9 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       }
 
       await trx.commit();
+      // Transaction is finalized; clear the reference so a post-commit
+      // failure below can't trigger rollback() on an already-closed trx.
+      trx = null;
 
       if (!raw && !skip_hooks) {
         // we will wrap returning primary key values with primary key column name

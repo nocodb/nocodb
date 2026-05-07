@@ -244,19 +244,22 @@ export class FormColumnsService {
       }
     }
 
-    // Wrap all writes in a transaction so a partial failure can't leave the
-    // form view with mismatched row_ids / orders.
-    const ncMeta = await Noco.ncMeta.startTransaction();
-
+    // Build the webhook manager before opening the transaction — its async
+    // builder chain can throw on transient DB errors, which would otherwise
+    // leak an open trx between startTransaction and the try block.
     const viewWebhookManager =
       param.viewWebhookManager ??
       (
         await (
-          await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+          await new ViewWebhookManagerBuilder(context).withModelId(
             view.fk_model_id,
           )
         ).withViewId(view.id)
       ).forUpdate();
+
+    // Wrap all writes in a transaction so a partial failure can't leave the
+    // form view with mismatched row_ids / orders.
+    const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
       // Cache Column lookups so the audit payload per form-column update

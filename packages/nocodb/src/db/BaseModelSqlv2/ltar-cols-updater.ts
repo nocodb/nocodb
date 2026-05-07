@@ -25,15 +25,17 @@ export const LTARColsUpdater = (param: {
 
     const trx = await baseModel.dbDriver.transaction();
 
-    // Create a BaseModelSqlv2 instance that uses the transaction for operations
-    // while preserving the original dbDriver reference for non-transactional operations
-    const trxBaseModel = await Model.getBaseModelSQL(baseModel.context, {
-      model: baseModel.model,
-      transaction: trx,
-      dbDriver: baseModel.dbDriver,
-    });
-
     try {
+      // Create a BaseModelSqlv2 instance that uses the transaction for operations
+      // while preserving the original dbDriver reference for non-transactional
+      // operations. Must be inside the try block so a failure here can't leak
+      // the open trx.
+      const trxBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        model: baseModel.model,
+        transaction: trx,
+        dbDriver: baseModel.dbDriver,
+      });
+
       for (const col of baseModel.model.columns) {
         // skip if not LTAR or Links
         if (!isLinksOrLTAR(col)) continue;

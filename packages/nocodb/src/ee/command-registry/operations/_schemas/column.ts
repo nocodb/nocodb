@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UITypes } from 'nocodb-sdk';
+import { NcApiVersion, UITypes } from 'nocodb-sdk';
 
 const boolType = z.union([z.boolean(), z.literal(0), z.literal(1), z.null()]);
 const stringOrNullOrBool = z.union([
@@ -75,6 +75,7 @@ export const columnAddSchema = z
   .object({
     tableId: z.string(),
     column: columnBodySchema,
+    apiVersion: z.nativeEnum(NcApiVersion).optional(),
   })
   .strict();
 
@@ -83,6 +84,7 @@ export const columnUpdateSchema = z
     columnId: z.string(),
     column: columnBodySchema,
     tableId: z.string().optional(),
+    apiVersion: z.nativeEnum(NcApiVersion).optional(),
   })
   .strict();
 

@@ -1,25 +1,55 @@
 import { PlanLimitTypes } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import { getLimit } from '~/helpers/paymentHelpers';
+import { parseTrashRetentionEnv } from 'src/helpers/trashHelpers';
+
+export { computeCleanupDueAt, parseTrashRetentionEnv } from 'src/helpers/trashHelpers';
+
+// -1 = infinite (cleanup_due_at NULL); 0 = disabled; >0 = retention days.
+
+function parsePlan(limit: number | undefined | null): number | null {
+  if (limit === Infinity) return -1;
+  if (limit === 0) return 0;
+  if (typeof limit === 'number' && limit > 0) return limit;
+  return null;
+}
 
 export async function resolveTrashRetentionDays(
-  context: NcContext,
-  model?: { trash_retention_days?: number | null },
+  context: Pick<NcContext, 'workspace_id'>,
+  opts: {
+    source: 'record' | 'base';
+    model?: { trash_retention_days?: number | null };
+  },
 ): Promise<number> {
-  if (model?.trash_retention_days != null && model.trash_retention_days > 0) {
-    return model.trash_retention_days;
+  if (
+    opts.source === 'record' &&
+    opts.model?.trash_retention_days != null &&
+    opts.model.trash_retention_days > 0
+  ) {
+    return opts.model.trash_retention_days;
   }
-  try {
-    const { limit } = await getLimit(
-      PlanLimitTypes.LIMIT_TRASH_RETENTION,
-      context.workspace_id,
-    );
-    if (limit === 0) return 0;
-    if (limit !== Infinity && limit > 0) return limit;
-  } catch {
-    // fallback below
+
+  const env =
+    opts.source === 'record'
+      ? process.env.NC_RECORD_TRASH_RETENTION_DAYS
+      : process.env.NC_BASE_TRASH_RETENTION_DAYS;
+  const fromEnv = parseTrashRetentionEnv(env);
+  if (fromEnv !== null) return fromEnv;
+
+  if (context.workspace_id) {
+    try {
+      const { limit } = await getLimit(
+        PlanLimitTypes.LIMIT_TRASH_RETENTION,
+        context.workspace_id,
+      );
+      const fromPlan = parsePlan(limit);
+      if (fromPlan !== null) return fromPlan;
+    } catch {
+      // Workspace lookup failed — fall through.
+    }
   }
-  return parseInt(process.env.NC_TRASH_RETENTION_DAYS || '30', 10);
+
+  return 30;
 }
 
 /**

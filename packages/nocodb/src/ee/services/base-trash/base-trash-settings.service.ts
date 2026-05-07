@@ -45,7 +45,9 @@ export class BaseTrashSettingsService {
       },
     );
 
-    const defaultRetentionDays = await resolveTrashRetentionDays(context);
+    const defaultRetentionDays = await resolveTrashRetentionDays(context, {
+      source: 'record',
+    });
 
     const sources = await Source.list(context, { baseId: param.baseId });
     const metaSourceId = sources.find((s) => s.isMeta())?.id;

@@ -11,17 +11,16 @@ export default class Model extends ModelCE implements TableType {
     return !this.trash_disabled;
   }
 
-  /**
-   * Combines per-table `trash_disabled` with the workspace's plan-level
-   * retention. Plan retention `0` disables trash for the whole workspace
-   * (on-prem Free), so soft-delete falls back to hard-delete.
-   */
-  override async isTrashEnabledForWorkspace(
+  async isTrashEnabledForWorkspace(
     context: NcContext,
   ): Promise<boolean> {
     if (!this.isTrashEnabled) return false;
-    const retentionDays = await resolveTrashRetentionDays(context);
-    return retentionDays > 0;
+    return (
+      (await resolveTrashRetentionDays(context, {
+        source: 'record',
+        model: this,
+      })) !== 0
+    );
   }
 
   public static castType(data: Model): Model {

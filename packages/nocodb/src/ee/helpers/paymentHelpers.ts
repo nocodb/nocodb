@@ -286,7 +286,9 @@ async function checkForFeature(
   type: PlanFeatureTypes,
   ncMeta = Noco.ncMeta,
 ) {
-  if (!(await getFeature(type, context.workspace ?? context.workspace_id, ncMeta))) {
+  if (
+    !(await getFeature(type, context.workspace ?? context.workspace_id, ncMeta))
+  ) {
     NcError.get(context).featureNotSupported({
       feature: type,
       isOnPrem: isOnPrem,

@@ -11,9 +11,7 @@ export default class Model extends ModelCE implements TableType {
     return !this.trash_disabled;
   }
 
-  async isTrashEnabledForWorkspace(
-    context: NcContext,
-  ): Promise<boolean> {
+  async isTrashEnabledForWorkspace(context: NcContext): Promise<boolean> {
     if (!this.isTrashEnabled) return false;
     return (
       (await resolveTrashRetentionDays(context, {

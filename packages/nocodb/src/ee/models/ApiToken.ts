@@ -288,17 +288,13 @@ export default class ApiToken extends ApiTokenCE {
       this.ensureFlushTimer();
     } else {
       // on low rate limit we fallback to meta update
-      try {
-        await ncMeta.metaUpdate(
-          RootScopes.ROOT,
-          RootScopes.ROOT,
-          MetaTable.API_TOKENS,
-          { last_used_at: new Date().toISOString() },
-          tokenId,
-        );
-      } catch {
-        // Best-effort — don't block request if this fails
-      }
+      ncMeta.metaUpdate(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.API_TOKENS,
+        { last_used_at: new Date().toISOString() },
+        tokenId,
+      ).catch(() => {});
     }
   }
 

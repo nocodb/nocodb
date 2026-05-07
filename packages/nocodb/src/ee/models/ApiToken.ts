@@ -287,7 +287,7 @@ export default class ApiToken extends ApiTokenCE {
   static updateLastUsed(tokenId: string, ncMeta = Noco.ncMeta) {
     const rateLimit = this.getDataApiRateLimit();
 
-    if (!NocoCache.isCacheDisabled && (rateLimit === 0 || rateLimit > 10)) {
+    if (!NocoCache.isCacheDisabled && (rateLimit === 0 || rateLimit >= 10)) {
       NocoCache.setHashField('root', this.LAST_USED_CACHE_KEY, tokenId, new Date().toISOString())
         .then(() =>
           NocoCache.expireHash('root', this.LAST_USED_CACHE_KEY, this.HASH_TTL_SEC),

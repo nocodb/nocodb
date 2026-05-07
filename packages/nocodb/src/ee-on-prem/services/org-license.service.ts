@@ -7,8 +7,13 @@ import { validatePayload } from '~/helpers';
 import { Store } from '~/models';
 import Noco from '~/Noco';
 import NocoLicense from '~/NocoLicense';
+import { PubSubRedis } from '~/redis/pubsub-redis';
 import { MetaTable, RootScopes } from '~/utils/globals';
-import { LICENSE_CONFIG, LICENSE_ENV_VARS } from '~/utils/license/constants';
+import {
+  LICENSE_CONFIG,
+  LICENSE_ENV_VARS,
+  LICENSE_RELOAD_CHANNEL,
+} from '~/utils/license/constants';
 
 @Injectable()
 export class OrgLicenseService extends OrgLicenseServiceEE {
@@ -29,6 +34,7 @@ export class OrgLicenseService extends OrgLicenseServiceEE {
       );
       NocoLicense.reset();
       await Noco.syncEEState();
+      await PubSubRedis.publish(LICENSE_RELOAD_CHANNEL, { kind: 'reload' });
       return true;
     }
 
@@ -75,6 +81,7 @@ export class OrgLicenseService extends OrgLicenseServiceEE {
     // Activation succeeded — save first, then attempt best-effort refresh
     await Store.saveOrUpdate({ value: param.key, key: NC_LICENSE_KEY });
     await Noco.syncEEState();
+    await PubSubRedis.publish(LICENSE_RELOAD_CHANNEL, { kind: 'reload' });
 
     // For airgapped nc_ag_ keys: attempt online refresh to pull the
     // latest expires_at from the server (covers the case where the
@@ -105,6 +112,7 @@ export class OrgLicenseService extends OrgLicenseServiceEE {
 
       // Sync Noco.ee flag without the heavy reset/init cycle of loadEEState()
       await Noco.syncEEState();
+      await PubSubRedis.publish(LICENSE_RELOAD_CHANNEL, { kind: 'reload' });
 
       this.onPremLogger.log('License refreshed successfully via API');
       return { success: true, status: NocoLicense.licenseStatus };

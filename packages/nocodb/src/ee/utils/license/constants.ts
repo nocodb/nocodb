@@ -32,6 +32,14 @@ export const LICENSE_CONFIG = {
 } as const;
 
 /**
+ * Redis pub/sub channel for cross-process license-state synchronization.
+ * Published by the API process after `licenseSet` / `licenseRefresh`;
+ * subscribed by every on-prem process (API + workers) so each one reloads
+ * its in-memory NocoLicense state from the DB without needing a restart.
+ */
+export const LICENSE_RELOAD_CHANNEL = 'nc:license:reload';
+
+/**
  * Environment variable names for license configuration
  */
 export const LICENSE_ENV_VARS = {

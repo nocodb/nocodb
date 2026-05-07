@@ -8,7 +8,11 @@ import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import { verifyDefaultOrg } from '~/helpers/verifyDefaultOrg';
 import NocoLicense from '~/NocoLicense';
 import { Store } from '~/models';
-import { LICENSE_ENV_VARS } from '~/utils/license/constants';
+import { PubSubRedis } from '~/redis/pubsub-redis';
+import {
+  LICENSE_ENV_VARS,
+  LICENSE_RELOAD_CHANNEL,
+} from '~/utils/license/constants';
 import { isLicenseClientEnabled } from '~/utils/license/env-validator';
 
 const logger = new Logger('Noco');
@@ -71,6 +75,31 @@ export default class Noco extends NocoEE {
     // Always ensure default workspace exists — on-prem needs it regardless of license state
     await verifyDefaultWorkspace();
     await verifyDefaultOrg();
+
+    // Cross-process license-state sync. The API process persists license
+    // changes via OrgLicenseService.licenseSet / licenseRefresh, then publishes
+    // to LICENSE_RELOAD_CHANNEL. Every on-prem process (API + workers)
+    // subscribes here so each one reloads its in-memory NocoLicense state from
+    // the DB — keeps Noco.isEE() consistent across processes without
+    // requiring a worker restart.
+    if (PubSubRedis.available) {
+      try {
+        await PubSubRedis.subscribe(LICENSE_RELOAD_CHANNEL, async () => {
+          try {
+            await this.loadEEState();
+            logger.log('License state reloaded via cross-process notification');
+          } catch (e) {
+            logger.warn(
+              `License reload via pub/sub failed: ${e.message} — staying on prior state`,
+            );
+          }
+        });
+      } catch (e) {
+        logger.warn(
+          `License reload subscription failed: ${e.message} — cross-process sync unavailable`,
+        );
+      }
+    }
 
     return res;
   }

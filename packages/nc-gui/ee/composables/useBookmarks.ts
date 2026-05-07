@@ -174,7 +174,7 @@ export const useBookmarks = createSharedComposable(() => {
       // Reload to pick up any auto-created Ungrouped group
       await loadBookmarks()
 
-      message.success(t('msg.bookmarkAdded'))
+      message.toast(t('msg.bookmarkAdded'))
       $e('a:bookmark:create', { target_type: data.target_type })
 
       return bm

@@ -236,9 +236,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
    */
   protected _queryQueue: PQueue;
   protected _columns = {};
-  protected _softDeleteFilter:
-    | Promise<Knex.QueryCallback | null>
-    | undefined;
+  protected _softDeleteFilter: Promise<Knex.QueryCallback | null> | undefined;
   protected source: Source;
   public model: Model;
   public context: NcContext;

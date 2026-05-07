@@ -37,7 +37,11 @@ export default class ApiToken extends ApiTokenCE {
       this.flushLastUsed().catch(() => {});
     }, this.FLUSH_INTERVAL_MS);
     // Allow the process to exit gracefully even if this timer is still active
-    if (this.flushTimer && typeof this.flushTimer === 'object' && 'unref' in this.flushTimer) {
+    if (
+      this.flushTimer &&
+      typeof this.flushTimer === 'object' &&
+      'unref' in this.flushTimer
+    ) {
       this.flushTimer.unref();
     }
   }
@@ -65,11 +69,9 @@ export default class ApiToken extends ApiTokenCE {
       // Update each token with its actual usage timestamp
       await NcConcurrent(
         entries.map(([id, timestamp]) => async () => {
-          await knex(MetaTable.API_TOKENS)
-            .where('id', id)
-            .update({
-              last_used_at: timestamp,
-            });
+          await knex(MetaTable.API_TOKENS).where('id', id).update({
+            last_used_at: timestamp,
+          });
         }),
       );
     } catch {
@@ -278,23 +280,33 @@ export default class ApiToken extends ApiTokenCE {
    * Falls back to direct DB update when cache is disabled.
    */
   static updateLastUsed(tokenId: string, ncMeta = Noco.ncMeta) {
-
     if (!NocoCache.isCacheDisabled) {
-      NocoCache.setHashField('root', this.LAST_USED_CACHE_KEY, tokenId, new Date().toISOString())
+      NocoCache.setHashField(
+        'root',
+        this.LAST_USED_CACHE_KEY,
+        tokenId,
+        new Date().toISOString(),
+      )
         .then(() =>
-          NocoCache.expireHash('root', this.LAST_USED_CACHE_KEY, this.HASH_TTL_SEC),
+          NocoCache.expireHash(
+            'root',
+            this.LAST_USED_CACHE_KEY,
+            this.HASH_TTL_SEC,
+          ),
         )
         .catch(() => {});
       this.ensureFlushTimer();
     } else {
       // on low rate limit we fallback to meta update
-      ncMeta.metaUpdate(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.API_TOKENS,
-        { last_used_at: new Date().toISOString() },
-        tokenId,
-      ).catch(() => {});
+      ncMeta
+        .metaUpdate(
+          RootScopes.ROOT,
+          RootScopes.ROOT,
+          MetaTable.API_TOKENS,
+          { last_used_at: new Date().toISOString() },
+          tokenId,
+        )
+        .catch(() => {});
     }
   }
 

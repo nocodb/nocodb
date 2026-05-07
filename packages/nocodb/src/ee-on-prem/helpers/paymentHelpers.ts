@@ -86,6 +86,7 @@ export async function checkForFeature(
   context: {
     workspace_id: string;
     api_version?: NcApiVersion;
+    workspace?: any;
   },
   type: PlanFeatureTypes,
   _ncMeta?: any,

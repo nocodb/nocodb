@@ -3,7 +3,10 @@ import type { NcContext } from 'nocodb-sdk';
 import { getLimit } from '~/helpers/paymentHelpers';
 import { parseTrashRetentionEnv } from 'src/helpers/trashHelpers';
 
-export { computeCleanupDueAt, parseTrashRetentionEnv } from 'src/helpers/trashHelpers';
+export {
+  computeCleanupDueAt,
+  parseTrashRetentionEnv,
+} from 'src/helpers/trashHelpers';
 
 // -1 = infinite (cleanup_due_at NULL); 0 = disabled; >0 = retention days.
 

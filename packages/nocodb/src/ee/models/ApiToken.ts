@@ -5,6 +5,7 @@ import ApiTokenCE from 'src/models/ApiToken';
 import ApiTokenScope from './ApiTokenScope';
 import type { ApiTokenPermissionsJson, ApiTokenScopeEntry } from 'nocodb-sdk';
 import SSOClient from '~/models/SSOClient';
+import { NcConcurrent } from '~/utils/NcConcurrent';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -23,35 +24,54 @@ export default class ApiToken extends ApiTokenCE {
   // Loaded from nc_api_token_scopes
   scopes?: ApiTokenScope[];
 
-  // Buffer for batching last_used_at updates (flushed every 5s)
-  private static pendingLastUsedIds = new Set<string>();
+  private static readonly LAST_USED_CACHE_KEY = 'api_token_last_used';
+  private static readonly FLUSH_LOCK_KEY = 'api_token_last_used_flush_lock';
+  private static readonly FLUSH_INTERVAL_MS = 5_000;
+  private static readonly LOCK_TTL_SEC = 10;
+  private static readonly HASH_TTL_SEC = 30;
   private static flushTimer: ReturnType<typeof setInterval> | null = null;
 
   private static ensureFlushTimer() {
     if (this.flushTimer) return;
     this.flushTimer = setInterval(() => {
       this.flushLastUsed().catch(() => {});
-    }, 5_000);
-    // Allow the process to exit without waiting for this timer
+    }, this.FLUSH_INTERVAL_MS);
     if (this.flushTimer && typeof this.flushTimer === 'object' && 'unref' in this.flushTimer) {
       this.flushTimer.unref();
     }
   }
 
   private static async flushLastUsed(ncMeta = Noco.ncMeta) {
-    if (this.pendingLastUsedIds.size === 0) return;
-
-    const ids = [...this.pendingLastUsedIds];
-    this.pendingLastUsedIds.clear();
+    // Acquire a short-lived lock so only one instance flushes
+    const acquired = await NocoCache.setIfNotExist(
+      'root',
+      this.FLUSH_LOCK_KEY,
+      '1',
+      this.LOCK_TTL_SEC,
+    );
+    if (!acquired) return;
 
     try {
-      await ncMeta
-        .knexConnection(MetaTable.API_TOKENS)
-        .whereIn('id', ids)
-        .update({
-          last_used_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        });
+      const hash = await NocoCache.getHash('root', this.LAST_USED_CACHE_KEY);
+      const entries = Object.entries(hash);
+      if (entries.length === 0) return;
+
+      // Clear the hash before writing so new arrivals aren't lost
+      await NocoCache.del('root', this.LAST_USED_CACHE_KEY);
+
+      const knex = ncMeta.knexConnection;
+
+      // Update each token with its actual usage timestamp
+      await NcConcurrent(
+        entries.map(([id, timestamp]) => async () => {
+          await knex(MetaTable.API_TOKENS)
+            .where('id', id)
+            .update({
+              last_used_at: timestamp,
+              updated_at: timestamp,
+            });
+        }),
+      );
     } catch {
       // Best-effort — don't block if this fails
     }
@@ -250,9 +270,14 @@ export default class ApiToken extends ApiTokenCE {
 
   /**
    * Buffer token ID for a batched last_used_at update (flushed every 5s).
+   * Uses shared cache (Redis) so all cluster instances contribute to the same buffer.
    */
   static updateLastUsed(tokenId: string) {
-    this.pendingLastUsedIds.add(tokenId);
+    NocoCache.setHashField('root', this.LAST_USED_CACHE_KEY, tokenId, new Date().toISOString())
+      .then(() =>
+        NocoCache.expireHash('root', this.LAST_USED_CACHE_KEY, this.HASH_TTL_SEC),
+      )
+      .catch(() => {});
     this.ensureFlushTimer();
   }
 

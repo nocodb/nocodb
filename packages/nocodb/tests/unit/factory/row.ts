@@ -7,7 +7,7 @@ import {
 import request from 'supertest';
 import { expect } from 'chai';
 import { NcApiVersion } from 'nocodb-sdk';
-import Model from '../../../src/models/Model';
+import { Model } from '~/models';
 import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
 import type { ColumnType } from 'nocodb-sdk';
 import type Column from '../../../src/models/Column';

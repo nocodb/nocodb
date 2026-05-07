@@ -819,18 +819,17 @@ export const deleteColumnSystemPropsFromRequest = (
   delete col.au;
   delete col.validate;
   switch (opts?.operationSource) {
-    case OperationSource.AT_IMPORT:
-      {
-        const isNcRecordColumn =
-          col.system && ['ncRecordId', 'ncRecordHash'].includes(col.title);
-        if (!isNcRecordColumn) {
-          delete col.system;
-        }
-        break;
-      }
-      deafult: {
+    case OperationSource.AT_IMPORT: {
+      const isNcRecordColumn =
+        col.system && ['ncRecordId', 'ncRecordHash'].includes(col.title);
+      if (!isNcRecordColumn) {
         delete col.system;
       }
+      break;
+    }
+    default: {
+      delete col.system;
+    }
   }
 };
 

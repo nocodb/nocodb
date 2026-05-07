@@ -221,11 +221,21 @@ export const useWorkflowStore = defineStore('workflow', () => {
             baseId,
             {
               operation: 'workflowUpdate',
-            },
-            {
-              ...updates,
               workflowId,
             },
+            (() => {
+              const body: Record<string, unknown> = {}
+              if ('title' in updates) body.title = updates.title
+              if ('description' in updates) body.description = updates.description
+              if ('meta' in updates) body.meta = updates.meta
+              if ('order' in updates) body.order = updates.order
+              if ('type' in updates) body.type = updates.type
+              if ('enabled' in updates) body.enabled = updates.enabled
+              if ('nodes' in updates) body.nodes = updates.nodes
+              if ('edges' in updates) body.edges = updates.edges
+              if ('draft' in updates) body.draft = updates.draft
+              return body
+            })(),
           )
 
       if (options?.bumpDirty) {

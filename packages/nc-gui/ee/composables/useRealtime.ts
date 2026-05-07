@@ -53,7 +53,7 @@ export const useRealtime = createSharedComposable(() => {
   const { workflows, activeWorkflowId } = storeToRefs(workflowStore)
 
   const viewSectionsStore = useViewSectionsStore()
-  const { sectionsByTable } = storeToRefs(viewSectionsStore)
+  const { applySectionCreated, applySectionUpdated, applySectionDeleted } = viewSectionsStore
 
   const { templates: recordTemplates } = useRecordTemplate()
 
@@ -519,16 +519,11 @@ export const useRealtime = createSharedComposable(() => {
     } else if (event.action === 'view_section_create') {
       const { payload } = event
       if (!payload?.base_id || !payload?.fk_model_id || !payload?.id) return
-      const key = `${payload.base_id}:${payload.fk_model_id}`
-      const existing = sectionsByTable.value.get(key) ?? []
-      // Guard against duplicate events (e.g. originating tab + broadcast)
-      if (!existing.some((s) => s.id === payload.id)) {
-        const updated = [...existing, payload].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-        sectionsByTable.value.set(key, updated)
-      }
+      applySectionCreated(payload)
 
       const restoreViewIds = (payload as { restoreViewIds?: string[] }).restoreViewIds
       if (restoreViewIds?.length) {
+        const key = `${payload.base_id}:${payload.fk_model_id}`
         const tableViews = viewsByTable.value.get(key)
         if (tableViews) {
           for (const v of tableViews) {
@@ -539,30 +534,15 @@ export const useRealtime = createSharedComposable(() => {
     } else if (event.action === 'view_section_update') {
       const { payload } = event
       if (!payload?.base_id || !payload?.fk_model_id || !payload?.id) return
-      const key = `${payload.base_id}:${payload.fk_model_id}`
-      const sections = sectionsByTable.value.get(key)
-      if (sections) {
-        const idx = sections.findIndex((s) => s.id === payload.id)
-        if (idx !== -1) {
-          sections[idx] = { ...sections[idx], ...payload }
-          sections.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-          sectionsByTable.value.set(key, [...sections])
-        }
-      }
+      applySectionUpdated(payload)
     } else if (event.action === 'view_section_delete') {
       const { payload } = event
       if (!payload?.base_id || !payload?.fk_model_id || !payload?.id) return
-      const key = `${payload.base_id}:${payload.fk_model_id}`
-      const sections = sectionsByTable.value.get(key)
-      if (sections) {
-        sectionsByTable.value.set(
-          key,
-          sections.filter((s) => s.id !== payload.id),
-        )
-      }
+      applySectionDeleted(payload.base_id, payload.id)
 
       const orphanedViewIds = (payload as { orphanedViewIds?: string[] }).orphanedViewIds
       if (orphanedViewIds?.length) {
+        const key = `${payload.base_id}:${payload.fk_model_id}`
         const tableViews = viewsByTable.value.get(key)
         if (tableViews) {
           for (const v of tableViews) {

@@ -228,7 +228,7 @@ const initSectionsSortable = (el: Element) => {
         currentSection.order = ((itemBefore?.order ?? 0) + (itemAfter?.order ?? 0)) / 2
       }
 
-      await viewSectionsStore.reorderSection(currentSection.id, currentSection.order)
+      await viewSectionsStore.reorderSection(currentSection.base_id!, currentSection.id, currentSection.order)
       $e('a:view-section:reorder')
     },
     animation: 150,
@@ -246,9 +246,9 @@ watchEffect(() => {
 
 /** Rename a section */
 async function onRenameSection(section: ViewSectionType, newTitle: string) {
-  if (!section.id) return
+  if (!section.id || !section.base_id) return
   try {
-    await viewSectionsStore.updateSection(section.id, { title: newTitle })
+    await viewSectionsStore.updateSection(section.base_id, section.id, { title: newTitle })
     $e('a:view-section:rename')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -257,10 +257,10 @@ async function onRenameSection(section: ViewSectionType, newTitle: string) {
 
 /** Change section folder icon color */
 async function onChangeSectionColor(section: ViewSectionType, color: string) {
-  if (!section.id) return
+  if (!section.id || !section.base_id) return
   try {
     const currentMeta = parseProp(section.meta)
-    await viewSectionsStore.updateSection(section.id, {
+    await viewSectionsStore.updateSection(section.base_id, section.id, {
       meta: { ...currentMeta, iconColor: color },
     })
   } catch (e: any) {
@@ -281,9 +281,9 @@ function openDeleteSectionDialog(section: ViewSectionType) {
 
 /** Confirm section deletion */
 async function onDeleteSection() {
-  if (!sectionToDelete.value?.id) return
+  if (!sectionToDelete.value?.id || !sectionToDelete.value?.base_id) return
   try {
-    await viewSectionsStore.deleteSection(sectionToDelete.value.id)
+    await viewSectionsStore.deleteSection(sectionToDelete.value.base_id, sectionToDelete.value.id)
     $e('a:view-section:delete')
     await loadViews({
       force: true,
@@ -311,8 +311,7 @@ watch(
   () => table.value.id,
   async (newTableId) => {
     if (newTableId) {
-      const key = `${table.value.base_id}:${newTableId}`
-      const hasCachedSections = viewSectionsStore.sectionsByTable.has(key)
+      const hasCachedSections = viewSectionsStore.hasSectionsForTable(table.value.base_id!, newTableId)
       const hasViewsWithSections = views.value.some((v) => v.fk_view_section_id)
 
       // Only show skeleton on first load when views indicate sections exist

@@ -52,7 +52,7 @@ export class WorkflowPostOperations
         });
       case 'workflowUpdate':
         return await this.workflowsService.updateWorkflow(context, {
-          workflowId: payload.workflowId,
+          workflowId: req.query.workflowId as string,
           body: payload,
           req,
         });

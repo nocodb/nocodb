@@ -36,6 +36,7 @@ export default class ApiToken extends ApiTokenCE {
     this.flushTimer = setInterval(() => {
       this.flushLastUsed().catch(() => {});
     }, this.FLUSH_INTERVAL_MS);
+    // Allow the process to exit gracefully even if this timer is still active
     if (this.flushTimer && typeof this.flushTimer === 'object' && 'unref' in this.flushTimer) {
       this.flushTimer.unref();
     }
@@ -73,6 +74,10 @@ export default class ApiToken extends ApiTokenCE {
       );
     } catch {
       // Best-effort — don't block if this fails
+    } finally {
+      // Release lock immediately so the next 5s tick can flush.
+      // The TTL remains as a safety fallback if the process crashes.
+      await NocoCache.del('root', this.FLUSH_LOCK_KEY).catch(() => {});
     }
   }
 

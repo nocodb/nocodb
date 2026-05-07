@@ -2,6 +2,7 @@ import { MetaService as MetaServiceCE } from 'src/meta/meta.service';
 import { Injectable, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
 import { v7 as uuidv7 } from 'uuid';
+import type { knex } from 'knex';
 import XcMigrationSourcev3 from '~/meta/migrations/XcMigrationSourcev3';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
@@ -19,8 +20,9 @@ export class MetaService extends MetaServiceCE {
     config: NcConfig,
     @Optional() trx = null,
     @Optional() nested = 0,
+    @Optional() sharedKnex: knex.Knex | null = null,
   ) {
-    super(config, trx, nested);
+    super(config, trx, nested, sharedKnex);
   }
 
   public async init(): Promise<boolean> {

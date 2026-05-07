@@ -802,8 +802,8 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
 
     const trxNcMeta = ncMeta ? ncMeta : await Noco.ncMeta.startTransaction();
 
+    let insertedV2View: View;
     try {
-      let insertedV2View: View;
       switch (requestBody.type) {
         case ViewTypes.GRID: {
           let groups: any[];
@@ -1000,21 +1000,26 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       if (!ncMeta) {
         await trxNcMeta.commit();
       }
-      const result = await this.getView(context, {
-        viewId: insertedV2View.id,
-        req,
-      });
-      viewWebhookManager.withNewView(result);
-      viewWebhookManager.emit();
-      return result;
     } catch (ex) {
-      await trxNcMeta.rollback();
+      // Only roll back if we own the transaction — otherwise let the caller
+      // decide what to do with their externally-passed trx.
+      if (!ncMeta) await trxNcMeta.rollback();
       if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
       this.logger.error('Failed to create view', ex);
       NcError.get(param.req.context).internalServerError(
         'Failed to create view',
       );
     }
+
+    // Post-commit: must not be inside the try/catch above — a throw here
+    // would trigger rollback() on an already-committed transaction.
+    const result = await this.getView(context, {
+      viewId: insertedV2View.id,
+      req,
+    });
+    viewWebhookManager.withNewView(result);
+    viewWebhookManager.emit();
+    return result;
   }
 
   extractFieldIdsFromRequest(param: {
@@ -1516,9 +1521,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       }
 
       await trxNcMeta.commit();
-      const result = await this.getView(context, { viewId, req });
-      viewWebhookManager.withNewView(result).emit();
-      return result;
     } catch (ex) {
       await trxNcMeta.rollback();
       if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
@@ -1527,6 +1529,12 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
         'Failed to update view',
       );
     }
+
+    // Post-commit: must not be inside the try/catch above — a throw here
+    // would trigger rollback() on an already-committed transaction.
+    const result = await this.getView(context, { viewId, req });
+    viewWebhookManager.withNewView(result).emit();
+    return result;
   }
 
   async delete(context: NcContext, param: { req: NcRequest; viewId: string }) {

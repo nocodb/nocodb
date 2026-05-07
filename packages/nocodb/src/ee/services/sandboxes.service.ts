@@ -179,9 +179,10 @@ export class SandboxesService {
     });
 
     const ncMeta = await Noco.ncMeta.startTransaction();
+    let sandbox: Sandbox;
     try {
       // Create sandbox record with optional description in meta
-      const sandbox = await Sandbox.insert(
+      sandbox = await Sandbox.insert(
         context,
         {
           production_base_id: baseId,
@@ -230,46 +231,6 @@ export class SandboxesService {
       }
 
       await ncMeta.commit();
-
-      // Strip field-level permissions from the request so that the
-      // duplication job can copy ALL data regardless of the initiating
-      // user's field restrictions (sandbox creation is a system operation).
-      const { permissions: _permissions, ...jobReq } = req as any;
-
-      const job = await this.jobsService.add(JobTypes.DuplicateBase, {
-        context,
-        user,
-        baseId: base.id,
-        sourceId: baseSources[0]?.id,
-        dupProjectId: sandboxBase.id,
-        dupWorkspaceId: context.workspace_id,
-        options: {
-          excludeData: options.excludeData ?? false,
-          excludeViews: false,
-          excludeHooks: false,
-          excludeScripts: false,
-          excludeDashboards: false,
-          excludeWorkflows: false,
-          excludePersonalViews: true,
-          excludePermissions: true,
-          excludeRls: true,
-          excludeDocuments: true,
-        },
-        req: jobReq,
-      });
-
-      this.appHooksService.emit(AppEvents.SANDBOX_CREATE, {
-        context,
-        sandboxId: sandbox.id,
-        baseId: sandboxBase.id,
-        req: param.req,
-      });
-
-      return {
-        id: sandbox.id,
-        sandbox_base_id: sandboxBase.id,
-        job_id: `${job.id}`,
-      };
     } catch (e) {
       await ncMeta.rollback();
       await Base.delete(
@@ -279,6 +240,48 @@ export class SandboxesService {
       this.logger.error(e);
       throw e;
     }
+
+    // Post-commit: must not be inside the try/catch above — a throw here
+    // would trigger rollback() on an already-committed transaction.
+    // Strip field-level permissions from the request so that the
+    // duplication job can copy ALL data regardless of the initiating
+    // user's field restrictions (sandbox creation is a system operation).
+    const { permissions: _permissions, ...jobReq } = req as any;
+
+    const job = await this.jobsService.add(JobTypes.DuplicateBase, {
+      context,
+      user,
+      baseId: base.id,
+      sourceId: baseSources[0]?.id,
+      dupProjectId: sandboxBase.id,
+      dupWorkspaceId: context.workspace_id,
+      options: {
+        excludeData: options.excludeData ?? false,
+        excludeViews: false,
+        excludeHooks: false,
+        excludeScripts: false,
+        excludeDashboards: false,
+        excludeWorkflows: false,
+        excludePersonalViews: true,
+        excludePermissions: true,
+        excludeRls: true,
+        excludeDocuments: true,
+      },
+      req: jobReq,
+    });
+
+    this.appHooksService.emit(AppEvents.SANDBOX_CREATE, {
+      context,
+      sandboxId: sandbox.id,
+      baseId: sandboxBase.id,
+      req: param.req,
+    });
+
+    return {
+      id: sandbox.id,
+      sandbox_base_id: sandboxBase.id,
+      job_id: `${job.id}`,
+    };
   }
 
   async sandboxDiscard(

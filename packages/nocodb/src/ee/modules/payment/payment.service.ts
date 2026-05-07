@@ -284,7 +284,9 @@ export class PaymentService {
       },
     });
 
-    await this.migrateDb(workspaceOrOrg.id, transaction);
+    // Use ncMeta, not the now-committed `transaction` — passing a closed
+    // trx would break any DB write inside migrateDb.
+    await this.migrateDb(workspaceOrOrg.id, ncMeta);
     await this.reseatSubscriptionImmediate(workspaceOrOrg.id, ncMeta);
     this.clearBaseListCacheForEntity(workspaceOrOrg);
 

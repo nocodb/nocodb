@@ -3910,6 +3910,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       await trx.commit();
+      // Transaction is finalized; clear the reference so a post-commit
+      // failure below can't trigger rollback() on an already-closed trx.
+      trx = null;
 
       const updatedRecords = await this.chunkList({
         pks: updatedPks,
@@ -4356,8 +4359,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
 
         await transaction.commit();
+        transaction = null;
       } catch (ex) {
+        // Roll back and propagate — silently swallowing here would let the
+        // post-update hooks (afterBulkUpdate, etc.) report success on data
+        // that was never written.
         await transaction.rollback();
+        // Mark finalized so the outer catch can't try to roll back the
+        // already-closed trx if a post-commit op throws.
+        transaction = null;
+        throw ex;
       }
 
       if (apiVersion === NcApiVersion.V3) {
@@ -5032,6 +5043,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       await transaction.commit();
+      // Transaction is finalized; clear the reference so a post-commit
+      // failure below can't trigger rollback() on an already-closed trx.
+      transaction = null;
 
       const deletedIds = res.map((d) =>
         this.model.primaryKeys.length === 1

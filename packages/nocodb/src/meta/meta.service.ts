@@ -41,12 +41,25 @@ export class MetaService {
     config: NcConfig,
     @Optional() trx = null,
     @Optional() nested = 0,
+    @Optional() sharedKnex: knex.Knex | null = null,
   ) {
     this._config = config;
-    this._knex = XKnex({
-      ...this._config.meta.db,
-      useNullAsDefault: true,
-    });
+    // CRITICAL: when running as a transaction wrapper (`startTransaction`
+    // constructs a new MetaService bound to an existing trx), we must NOT
+    // call XKnex() again — that would build a fresh pg pool whose min
+    // connections are held forever (the wrapper never uses _knex; trx is
+    // already bound to the originating pool). Each leaked pool holds
+    // `pool.min` pg connections until `pool.destroy()`, and nobody has a
+    // reference to destroy it. Reuse the originating knex when one is
+    // passed in; only build a new pool for the root MetaService.
+    if (sharedKnex) {
+      this._knex = sharedKnex;
+    } else {
+      this._knex = XKnex({
+        ...this._config.meta.db,
+        useNullAsDefault: true,
+      });
+    }
     this.trx = trx;
     this.nested = nested;
   }
@@ -957,12 +970,15 @@ export class MetaService {
     // returned from startTransaction keep their overridden methods.
     // Hard-coding `new MetaService(...)` here would always return a CE
     // instance even when called on an EE/EE-Cloud subclass.
+    // Pass the existing _knex through so the wrapper does not spin up a
+    // brand-new pg pool that would leak `pool.min` connections per trx.
     const Ctor = this.constructor as typeof MetaService;
     return new Ctor(
       this.config,
       trx,
       // we need to keep track of the nested transaction level
       this.connection.isTransaction ? this.nested + 1 : 0,
+      this._knex,
     );
   }
 

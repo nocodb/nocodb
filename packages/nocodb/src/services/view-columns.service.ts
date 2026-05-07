@@ -255,27 +255,30 @@ export class ViewColumnsService {
 
     const view = await View.get(context, viewId);
 
-    const updateOrInsertOptions: Promise<any>[] = [];
-
-    let result: any;
-    const ncMeta = await Noco.ncMeta.startTransaction();
-
     if (!view) {
       NcError.get(context).viewNotFound('View not found');
     }
 
+    // Build the webhook manager before opening the transaction — its async
+    // builder chain can throw on transient DB errors, which would otherwise
+    // leak an open trx between startTransaction and the try block.
     let viewWebhookManager: ViewWebhookManager;
     if (!param.viewWebhookManager) {
       viewWebhookManager =
         param.viewWebhookManager ??
         (
           await (
-            await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+            await new ViewWebhookManagerBuilder(context).withModelId(
               view.fk_model_id,
             )
           ).withViewId(view.id)
         ).forUpdate();
     }
+
+    const updateOrInsertOptions: Promise<any>[] = [];
+
+    let result: any;
+    const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
       const table = View.extractViewColumnsTableName(view);

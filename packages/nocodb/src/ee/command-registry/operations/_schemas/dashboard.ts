@@ -8,6 +8,7 @@ export const dashboardBodySchema = z
     description: z.string().nullable().optional(),
     meta: z.union([z.record(z.unknown()), z.string(), z.null()]).optional(),
     order: z.number().int().nonnegative().optional(),
+    created_by: z.string().nullable().optional(),
     owned_by: z.string().nullable().optional(),
     uuid: z.string().nullable().optional(),
     password: z.string().nullable().optional(),

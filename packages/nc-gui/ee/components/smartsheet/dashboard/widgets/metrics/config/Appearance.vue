@@ -33,6 +33,14 @@ const colors = computed(() => {
   }
   return []
 })
+
+watch(
+  () => selectedWidget.value?.config?.appearance,
+  () => {
+    appearanceType.value = selectedWidget.value?.config?.appearance?.type || 'default'
+    appearanceTheme.value = selectedWidget.value?.config?.appearance?.theme || 'gray'
+  },
+)
 </script>
 
 <template>

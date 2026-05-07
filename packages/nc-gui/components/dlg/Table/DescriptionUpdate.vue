@@ -82,7 +82,6 @@ const updateDescription = async () => {
         tableId: tableMeta.id as string,
       },
       {
-        base_id: tableMeta.base_id,
         description: formState.description,
       },
     )

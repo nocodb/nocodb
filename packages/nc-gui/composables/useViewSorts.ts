@@ -60,6 +60,13 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
     try {
       if (canSyncSort.value) {
+        const sortBody = {
+          fk_column_id: sort.fk_column_id,
+          direction: sort.direction,
+          ...((sort as { fk_level_id?: string | null }).fk_level_id !== undefined
+            ? { fk_level_id: (sort as { fk_level_id?: string | null }).fk_level_id }
+            : {}),
+        }
         if (sort.id) {
           await $api.internal.postOperation(
             meta.value!.fk_workspace_id!,
@@ -68,7 +75,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
               operation: 'sortUpdate',
               sortId: sort.id,
             },
-            sort,
+            sortBody,
           )
           $e('sort-updated')
         } else {
@@ -79,7 +86,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
               operation: 'sortCreate',
               viewId: view.value?.id as string,
             },
-            sort,
+            sortBody,
           )) as unknown as SortType
         }
       }

@@ -44,16 +44,26 @@ export {
 }
 
 /**
- * Strip FE-only transient fields (`tmp_id`, `status`) from a filter body
- * before sending it to the BE. Recurses through `children` so nested
- * filter groups are cleaned the same way. Keep this in sync with the
- * `filterBodySchema` strict shape on the backend — anything the FE adds
- * for optimistic UI / draft tracking belongs here.
+ * Strip FE-only transient fields (`tmp_id`, `status`) and DB system
+ * fields (`source_id`, `base_id`, `fk_workspace_id`, `created_at`,
+ * `updated_at`) from a filter body before sending it to the BE.
  */
 export const stripFilterApiBody = <T extends Record<string, any>>(filter: T): T => {
-  const { tmp_id: _tmp, status: _status, children, ...rest } = filter
+  const {
+    tmp_id: _tmp,
+    status: _status,
+    source_id: _sourceId,
+    base_id: _baseId,
+    fk_workspace_id: _fkWs,
+    created_at: _createdAt,
+    updated_at: _updatedAt,
+    children,
+    is_group,
+    ...rest
+  } = filter
   return {
     ...rest,
+    ...(is_group != null ? { is_group } : {}),
     ...(Array.isArray(children) ? { children: children.map((c) => stripFilterApiBody(c)) } : {}),
   } as T
 }

@@ -156,12 +156,9 @@ export const useWidgetStore = defineStore('widget', () => {
             openedProject.value.id,
             {
               operation: 'widgetUpdate',
-            },
-            {
-              ...updates,
-              id: widgetId,
               widgetId,
             },
+            updates,
           )) as WidgetType<T>)
 
       const dashboardWidgets = widgets.value.get(dashboardId) || []

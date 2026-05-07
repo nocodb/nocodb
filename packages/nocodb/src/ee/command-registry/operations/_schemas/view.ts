@@ -29,6 +29,8 @@ const viewBaseFields = {
   owned_by: z.string().nullable().optional(),
   /** Replay-time injection (idField). */
   id: z.string().optional(),
+  /** Create-time only — View.insert seeds the new view from this source. */
+  copy_from_id: z.string().nullable().optional(),
 };
 
 export const viewBaseBodySchema = z.object(viewBaseFields).strict();
@@ -241,12 +243,24 @@ export const listUpdateSchema = z
   })
   .strict();
 
+const timelineRangeSchema = z
+  .object({
+    id: z.string().optional(),
+    fk_view_id: z.string().optional(),
+    fk_from_column_id: z.string().nullable().optional(),
+    fk_to_column_id: z.string().nullable().optional(),
+    label: z.string().nullable().optional(),
+  })
+  .strict();
+
 export const timelineBodySchema = z
   .object({
     ...viewBaseFields,
     fk_from_column_id: z.string().nullable().optional(),
     fk_to_column_id: z.string().nullable().optional(),
     fk_cover_image_col_id: z.string().nullable().optional(),
+    /** SDK TimelineReqType — array form on create/update. */
+    timeline_range: z.array(timelineRangeSchema).optional(),
   })
   .strict();
 

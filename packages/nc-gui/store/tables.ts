@@ -172,7 +172,6 @@ export const useTablesStore = defineStore('tablesStore', () => {
           tableId: table.id as string,
         },
         {
-          base_id: table.base_id,
           table_name: table.table_name,
           title: table.title,
         },

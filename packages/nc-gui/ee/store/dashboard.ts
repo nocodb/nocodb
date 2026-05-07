@@ -196,12 +196,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
             baseId,
             {
               operation: 'dashboardUpdate',
-            },
-            {
-              ...updates,
-              id: dashboardId,
               dashboardId,
             },
+            updates,
           )
 
       const baseDashboards = dashboards.value.get(baseId) || []

@@ -30682,10 +30682,6 @@
       "ExtensionReq": {
         "type": "object",
         "properties": {
-          "base_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique Base ID"
-          },
           "title": {
             "type": "string",
             "description": "Extension Title"

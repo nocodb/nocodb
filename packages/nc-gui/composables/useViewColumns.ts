@@ -373,6 +373,13 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       if (canEditViewFields.value) {
         if (field.id && view?.value?.id) {
+          const body: Record<string, unknown> = {}
+          if ('show' in field) body.show = field.show
+          if ('order' in field) body.order = field.order
+          if ('underline' in field) body.underline = field.underline
+          if ('bold' in field) body.bold = field.bold
+          if ('italic' in field) body.italic = field.italic
+
           await $api.internal.postOperation(
             meta.value!.fk_workspace_id!,
             meta.value!.base_id!,
@@ -381,7 +388,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               viewId: view.value.id,
               columnId: field.id,
             },
-            field,
+            body,
           )
 
           if (updateDefaultViewColMeta) {

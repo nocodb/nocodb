@@ -164,7 +164,6 @@ async function handleTableRename(
         tableId: table.id as string,
       },
       {
-        base_id: table.base_id,
         table_name: title,
         title,
       },

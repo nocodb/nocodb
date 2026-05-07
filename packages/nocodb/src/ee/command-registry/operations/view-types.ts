@@ -149,17 +149,24 @@ export const GridViewUpdateContract: OperationContract<
     before: async (context, params) => {
       const base = await resolveUpdateCtx(context, params.viewId);
       const gridRow = await GridView.get(context, params.viewId);
+      const snap = gridRow
+        ? (pickFieldsIfPresent(
+            gridRow,
+            ['row_height', 'meta'] as const,
+            params.grid ?? {},
+          ) as { row_height?: number | null; meta?: unknown })
+        : undefined;
+      // Legacy rows can have row_height = null; the AJV validator on
+      // gridViewUpdate requires a number. Service defaults null → 0, so
+      // mirror that on the snapshot to keep undo replayable.
+      if (snap && snap.row_height == null && 'row_height' in snap) {
+        snap.row_height = 0;
+      }
       return {
         ...base,
         extra: {
           ...(base.extra ?? {}),
-          prevGrid: gridRow
-            ? (pickFieldsIfPresent(
-                gridRow,
-                ['row_height', 'meta'] as const,
-                params.grid ?? {},
-              ) as { row_height?: number; meta?: unknown })
-            : undefined,
+          prevGrid: snap as { row_height?: number; meta?: unknown } | undefined,
         },
       };
     },

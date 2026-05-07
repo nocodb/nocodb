@@ -21,7 +21,7 @@ export const columnBodySchema = z
     uidt: z.enum(UIDT_VALUES).optional(),
 
     // Type metadata
-    dt: z.string().optional(),
+    dt: z.string().nullable().optional(),
     dtx: z.string().nullable().optional(),
     dtxp: z.union([z.string(), z.number(), z.null()]).optional(),
     dtxs: stringOrNumber.optional(),

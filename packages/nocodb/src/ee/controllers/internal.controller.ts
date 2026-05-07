@@ -510,7 +510,7 @@ export class InternalController extends InternalControllerCE {
         });
       case 'dashboardUpdate':
         return await this.dashboardsService.dashboardUpdate(context, {
-          dashboardId: payload.dashboardId,
+          dashboardId: req.query.dashboardId as string,
           dashboard: payload,
           req,
         });
@@ -532,7 +532,7 @@ export class InternalController extends InternalControllerCE {
         });
       case 'widgetUpdate':
         return await this.dashboardsService.widgetUpdate(context, {
-          widgetId: payload.widgetId,
+          widgetId: req.query.widgetId as string,
           widget: payload,
           req,
         });

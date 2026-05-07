@@ -116,7 +116,6 @@ export default class Extension {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(extension, [
-      'base_id',
       'fk_user_id',
       'extension_id',
       'title',
@@ -132,7 +131,7 @@ export default class Extension {
 
     if (insertObj.order === null || insertObj.order === undefined) {
       insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.EXTENSIONS, {
-        base_id: insertObj.base_id,
+        base_id: context.base_id,
       });
     }
 
@@ -154,7 +153,7 @@ export default class Extension {
       await NocoCache.appendToList(
         context,
         CacheScope.EXTENSION,
-        [extension.base_id],
+        [context.base_id],
         `${CacheScope.EXTENSION}:${id}`,
       );
       return res;

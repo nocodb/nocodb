@@ -10,15 +10,20 @@ const boolType = z.union([z.boolean(), z.literal(0), z.literal(1)]);
  * contract just needs to accept the shape so it round-trips through
  * recording. Loose object with title required.
  */
+const numericMetaField = z
+  .union([z.string(), z.number()])
+  .nullable()
+  .optional();
+
 const columnRequestSchema = z
   .object({
     title: z.string().optional(),
     column_name: z.string().optional(),
     uidt: z.string().optional(),
     dt: z.string().nullable().optional(),
-    np: z.string().nullable().optional(),
-    ns: z.string().nullable().optional(),
-    clen: z.string().nullable().optional(),
+    np: numericMetaField,
+    ns: numericMetaField,
+    clen: numericMetaField,
     cop: z.string().nullable().optional(),
     pk: boolType.optional(),
     pv: boolType.optional(),
@@ -29,8 +34,8 @@ const columnRequestSchema = z
     cdf: z.string().nullable().optional(),
     cc: z.string().nullable().optional(),
     csn: z.string().nullable().optional(),
-    dtxp: z.string().nullable().optional(),
-    dtxs: z.string().nullable().optional(),
+    dtxp: numericMetaField,
+    dtxs: numericMetaField,
     meta: z.record(z.unknown()).nullable().optional(),
     description: z.string().nullable().optional(),
     order: z.number().optional(),
@@ -57,6 +62,8 @@ export const tableBodySchema = z
     enabled: boolType.optional(),
     mm: boolType.optional(),
     synced: boolType.optional(),
+    /** Snowflake-only: create as HYBRID TABLE. */
+    is_hybrid: boolType.optional(),
   })
   .strict();
 

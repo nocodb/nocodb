@@ -131,6 +131,8 @@ const TOP_LEVEL_LIFT_BY_UIDT: Record<string, readonly string[]> = {
     'label',
     'color_meta',
   ],
+  [UITypes.LinkToAnotherRecord]: ['fk_display_value_column_id'],
+  [UITypes.Links]: ['fk_display_value_column_id'],
 };
 
 // Cell data is restored separately via `ColumnDataBackupHandler` (the

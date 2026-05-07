@@ -306,7 +306,7 @@ export class FiltersService {
         event: EventType.META_EVENT,
         payload: {
           action: 'filter_update',
-          payload: filter,
+          payload: { ...filter, ...param.filter },
         },
       },
       context.socket_id,

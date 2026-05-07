@@ -68,7 +68,6 @@ export default class ApiToken extends ApiTokenCE {
             .where('id', id)
             .update({
               last_used_at: timestamp,
-              updated_at: timestamp,
             });
         }),
       );

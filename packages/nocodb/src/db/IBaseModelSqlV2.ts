@@ -129,16 +129,14 @@ export interface IBaseModelSqlV2 {
 
   beforeInsert(
     data: any,
-    _trx: any,
     req,
     params?: {
       allowSystemColumn?: boolean;
     },
   ): Promise<void>;
-  beforeUpdate(data: any, _trx: any, req): Promise<void>;
+  beforeUpdate(data: any, req): Promise<void>;
   beforeBulkInsert(
     data: any,
-    _trx: any,
     req,
     params?: {
       allowSystemColumn?: boolean;
@@ -187,28 +185,24 @@ export interface IBaseModelSqlV2 {
   afterInsert({
     data,
     insertData,
-    trx,
     req,
   }: {
     data: any;
     insertData: any;
-    trx: any;
     req: NcRequest;
   }): Promise<void>;
 
   afterUpdate(
     prevData: any,
     newData: any,
-    _trx: any,
     req,
     updateObj?: Record<string, any>,
   ): Promise<void>;
 
-  afterBulkInsert(data: any[], _trx: any, req): Promise<void>;
+  afterBulkInsert(data: any[], req): Promise<void>;
 
   afterBulkDelete(
     data: any,
-    _trx: any,
     req: any,
     isBulkAllOperation?: boolean,
     bulkEventType?: AuditV1OperationTypes,

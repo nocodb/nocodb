@@ -48,7 +48,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       await baseModel.validate(insertObj, columns);
 
       if ('beforeInsert' in baseModel) {
-        await baseModel.beforeInsert(insertObj, trx, request);
+        await baseModel.beforeInsert(insertObj, request);
       }
 
       await baseModel.prepareNocoData(insertObj, true, request);
@@ -148,7 +148,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       await baseModel.afterInsert({
         data: response,
         insertData: data,
-        trx,
         req: request,
       });
 
@@ -286,7 +285,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       }
 
       if ('beforeBulkInsert' in baseModel) {
-        await baseModel.beforeBulkInsert(insertDatas, trx, cookie, {
+        await baseModel.beforeBulkInsert(insertDatas, cookie, {
           allowSystemColumn,
         });
       }
@@ -411,7 +410,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           await baseModel.afterInsert({
             data: insertData,
             insertData: datas?.[0],
-            trx: baseModel.dbDriver,
             req: cookie,
           });
         } else {
@@ -432,11 +430,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             {},
             parsedQuery,
           );
-          await baseModel.afterBulkInsert(
-            insertResponses,
-            baseModel.dbDriver,
-            cookie,
-          );
+          await baseModel.afterBulkInsert(insertResponses, cookie);
         }
       }
 

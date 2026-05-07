@@ -118,8 +118,12 @@ export const filterBodySchema = z
     /** Injected by the dispatcher under replay (`idField: 'filter'`). */
     id: z.string().optional(),
     order: z.number().optional(),
-    /** Filter.meta is a `text` column; arbitrary JSON object. */
-    meta: z.record(z.unknown()).nullable().optional(),
+    /** Filter.meta is a `text` column; FE may pass either the parsed
+     *  object or the raw stringified JSON depending on the path. */
+    meta: z
+      .union([z.record(z.unknown()), z.string()])
+      .nullable()
+      .optional(),
     /** Recursive descendants for filter-group restoration. */
     children: z.array(filterChildSchema).optional(),
   })

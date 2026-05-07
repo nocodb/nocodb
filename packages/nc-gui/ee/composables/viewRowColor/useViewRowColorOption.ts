@@ -651,9 +651,17 @@ export function useViewRowColorOption(params: {
       }
 
       await pushPendingAction(async () => {
-        const filterToCreate = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
+        const filterToCreate = stripFilterApiBody({
+          ...filter,
+          fk_parent_id: parentFilter?.id ?? filter.fk_parent_id,
+        })
         // Don't delete children - Filter.insert supports children directly
-        const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, filterToCreate)
+        const result = await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          { operation: 'rowColorConditionsFilterCreate', rowColorConditionId: conditionToAdd.id },
+          filterToCreate,
+        )
         filter.id = result.id
       })
 
@@ -705,8 +713,16 @@ export function useViewRowColorOption(params: {
       }
 
       await pushPendingAction(async () => {
-        const toInsert = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
-        const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, toInsert)
+        const toInsert = stripFilterApiBody({
+          ...filter,
+          fk_parent_id: parentFilter?.id ?? filter.fk_parent_id,
+        })
+        const result = await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          { operation: 'rowColorConditionsFilterCreate', rowColorConditionId: conditionToAdd.id },
+          toInsert,
+        )
         filter.id = result.id
       })
 
@@ -804,8 +820,10 @@ export function useViewRowColorOption(params: {
             })
 
             // Create filter - Filter.insert supports children directly
-            const createdFilter = await $api.rowColorConditions.rowColorConditionsFilterCreate(
-              copiedCondition.id!,
+            const createdFilter = await $api.internal.postOperation(
+              params.view.value.fk_workspace_id!,
+              params.view.value.base_id!,
+              { operation: 'rowColorConditionsFilterCreate', rowColorConditionId: copiedCondition.id! },
               filterToCreate,
             )
 

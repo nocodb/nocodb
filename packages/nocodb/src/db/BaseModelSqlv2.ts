@@ -2536,7 +2536,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         getHiddenColumn: true,
         source,
       });
-      await this.beforeDelete(id, trx, cookie);
+      await this.beforeDelete(id, cookie);
 
       // Detect soft-delete column for meta sources
       const deletedColumn = this.model.columns.find((c) => isDeletedCol(c));
@@ -2577,7 +2577,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         await this.afterDelete(
           data,
-          null,
           cookie,
           AuditV1OperationTypes.DATA_SOFT_DELETE,
         );
@@ -2930,7 +2929,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      await this.afterDelete(data, trx, cookie);
+      await this.afterDelete(data, cookie);
       return response;
     } catch (e) {
       if (!_trx) await trx?.rollback();
@@ -3042,7 +3041,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await this.validate(data, columns);
 
-      await this.beforeUpdate(data, trx, cookie);
+      await this.beforeUpdate(data, cookie);
 
       const btForeignKeyColumn = columns.find(
         (c) =>
@@ -3109,7 +3108,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           prevData,
         });
       } else {
-        await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
+        await this.afterUpdate(prevData, newData, cookie, updateObj);
       }
       return newData;
     } catch (e) {
@@ -3259,7 +3258,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await this.validate(insertObj, columns);
 
-      await this.beforeInsert(insertObj, this.dbDriver, request);
+      await this.beforeInsert(insertObj, request);
 
       await this.prepareNocoData(insertObj, true, request, null, {
         ncOrder: null,
@@ -3526,7 +3525,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await this.afterInsert({
         data: response,
-        trx: this.dbDriver,
         req: request,
         insertData: data,
       });
@@ -3943,7 +3941,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (insertedDatas.length === 1) {
         await this.afterInsert({
           data: insertedDataList[0],
-          trx: this.dbDriver,
           req: cookie,
           insertData: datas[0],
         });
@@ -3952,7 +3949,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           count: insertedDataList.length,
         });
       } else if (insertedDatas.length > 1) {
-        await this.afterBulkInsert(insertedDataList, this.dbDriver, cookie);
+        await this.afterBulkInsert(insertedDataList, cookie);
 
         await this.statsUpdate({
           count: insertedDataList.length,
@@ -3963,7 +3960,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.afterUpdate(
           existingRecords[0],
           updatedDataList[0],
-          null,
           cookie,
           datas[0],
         );
@@ -3971,7 +3967,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.afterBulkUpdate(
           existingRecords,
           updatedDataList,
-          this.dbDriver,
           cookie,
         );
       }
@@ -4432,12 +4427,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           await this.afterUpdate(
             prevData[0],
             newData[0],
-            null,
             cookie,
             datas[0],
           );
         } else {
-          await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
+          await this.afterBulkUpdate(prevData, newData, cookie);
         }
       }
       profiler.end();
@@ -4582,7 +4576,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if (!args.skipValidationAndHooks && !skip_hooks)
-        await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
+        await this.afterBulkUpdate(null, count, cookie, true);
 
       return count;
     } catch (e) {
@@ -4673,7 +4667,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       }
 
-      await this.beforeBulkDelete(deleted, this.dbDriver, cookie);
+      await this.beforeBulkDelete(deleted, cookie);
 
       const source = await this.getSource();
 
@@ -5094,7 +5088,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (isSingleRecordDeletion) {
         await this.afterDelete(
           deleted[0],
-          null,
           cookie,
           isSoftDelete
             ? AuditV1OperationTypes.DATA_SOFT_DELETE
@@ -5103,7 +5096,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       } else {
         await this.afterBulkDelete(
           deleted,
-          this.dbDriver,
           cookie,
           false,
           isSoftDelete
@@ -5169,7 +5161,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeInsert(
     data: Record<string, any>,
-    _trx: any,
     req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
@@ -5189,7 +5180,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeBulkInsert(
     data: Record<string, any>[],
-    _trx: any,
     req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
@@ -5210,12 +5200,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async afterInsert({
     data,
     insertData,
-    trx: _trx,
     req,
   }: {
     data: Record<string, any>;
     insertData: Record<string, any>;
-    trx: any;
     req: NcRequest;
   }): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
@@ -5258,7 +5246,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async afterBulkInsert(
     data: Record<string, any>[],
-    _trx: any,
     req: NcRequest,
   ): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
@@ -5335,7 +5322,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async afterDelete(
     data: Record<string, any>,
-    _trx: any,
     req: NcRequest,
     eventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
@@ -5365,7 +5351,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async afterBulkDelete(
     data: Record<string, any>[],
-    _trx: any,
     req: NcRequest,
     isBulkAllOperation = false,
     bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
@@ -5508,7 +5493,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async afterBulkUpdate(
     prevData: Record<string, any>[] | null,
     newData: Record<string, any>[] | number,
-    _trx: any,
     req: NcRequest,
     isBulkAllOperation = false,
   ): Promise<void> {
@@ -5621,7 +5605,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeUpdate(
     data: Record<string, any>,
-    _trx: any,
     req: NcRequest,
   ): Promise<void> {
     const ignoreWebhook = req.query?.ignoreWebhook;
@@ -5640,7 +5623,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async afterUpdate(
     prevData: Record<string, any>,
     newData: Record<string, any>,
-    _trx: any,
     req: NcRequest,
     updateObj?: Record<string, any>,
   ): Promise<void> {
@@ -5722,7 +5704,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeDelete(
     data: Record<string, any>,
-    _trx: any,
     req: NcRequest,
   ): Promise<void> {
     if (this.model.synced) {
@@ -5737,7 +5718,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeBulkDelete(
     _data: Record<string, any>[],
-    _trx: any,
     _req: NcRequest,
   ): Promise<void> {
     if (this.model.synced) {

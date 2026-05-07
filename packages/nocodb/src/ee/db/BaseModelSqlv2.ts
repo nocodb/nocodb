@@ -481,7 +481,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.validate(insertObj, columns);
 
       if ('beforeInsert' in this) {
-        await this.beforeInsert(insertObj, trx, cookie);
+        await this.beforeInsert(insertObj, cookie);
       }
 
       await this.prepareNocoData(insertObj, true, cookie);
@@ -620,7 +620,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.afterInsert({
         data: response,
-        trx,
         req: cookie,
         insertData: data,
       });
@@ -698,7 +697,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.validate(data, columns);
 
-      await this.beforeUpdate(data, trx, cookie);
+      await this.beforeUpdate(data, cookie);
 
       const btForeignKeyColumn = columns.find(
         (c) =>
@@ -808,7 +807,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           prevData,
         });
       } else {
-        await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
+        await this.afterUpdate(prevData, newData, cookie, updateObj);
       }
       return newData;
     } catch (e: any) {
@@ -1433,7 +1432,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async beforeInsert(
     data: Record<string, any>,
-    _trx: any,
     req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
@@ -1488,7 +1486,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async beforeBulkInsert(
     data: Record<string, any>[],
-    _trx: any,
     req: NcRequest,
     params?: {
       allowSystemColumn?: boolean;
@@ -1544,12 +1541,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async afterInsert({
     data,
     insertData,
-    trx: _trx,
     req,
   }: {
     data: Record<string, any>;
     insertData: Record<string, any>;
-    trx: any;
     req: NcRequest;
   }): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
@@ -1612,7 +1607,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async afterBulkInsert(
     data: Record<string, any>[],
-    _trx: any,
     req: NcRequest,
   ): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
@@ -1710,7 +1704,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async afterDelete(
     data: Record<string, any>,
-    _trx: any,
     req: NcRequest,
     eventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
@@ -1755,7 +1748,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async afterBulkDelete(
     data: Record<string, any>[],
-    _trx: any,
     req: NcRequest,
     isBulkAllOperation = false,
     bulkEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_BULK_DELETE,
@@ -1871,7 +1863,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         NcError.get(this.context).recordNotFound(id);
       }
 
-      await this.beforeDelete(id, null, cookie);
+      await this.beforeDelete(id, cookie);
 
       // Detect soft-delete column for meta sources
       const deletedColumn = this.model.columns.find((c) => isDeletedCol(c));
@@ -1923,7 +1915,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
         await this.afterDelete(
           data,
-          null,
           cookie,
           AuditV1OperationTypes.DATA_SOFT_DELETE,
         );
@@ -2302,7 +2293,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
-      await this.afterDelete(data, null, cookie);
+      await this.afterDelete(data, cookie);
 
       await this.statsUpdate({
         count: -1,
@@ -2623,7 +2614,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if ('beforeBulkInsert' in this) {
-        await this.beforeBulkInsert(insertDatas, null, cookie, {
+        await this.beforeBulkInsert(insertDatas, cookie, {
           allowSystemColumn,
         });
       }
@@ -2860,7 +2851,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           );
           await this.afterInsert({
             data: insertData,
-            trx: this.dbDriver,
             req: cookie,
             insertData: datas?.[0],
           });
@@ -2892,7 +2882,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
           }
 
-          await this.afterBulkInsert(insertResponses, this.dbDriver, cookie);
+          await this.afterBulkInsert(insertResponses, cookie);
           profiler.log('afterBulkInsert done');
         }
       }
@@ -3484,12 +3474,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
           await this.afterInsert({
             data: insertData,
-            trx: this.dbDriver,
             req: cookie,
             insertData: datas[0],
           });
         } else {
-          await this.afterBulkInsert(insertResponses, this.dbDriver, cookie);
+          await this.afterBulkInsert(insertResponses, cookie);
         }
 
         // Updated Records
@@ -3522,7 +3511,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             await this.afterUpdate(
               existingRecords[0],
               updateResponses[0],
-              null,
               cookie,
               toUpdate[0],
             );
@@ -3530,7 +3518,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             await this.afterBulkUpdate(
               toUpdate,
               updateResponses,
-              this.dbDriver,
               cookie,
             );
           }
@@ -3818,12 +3805,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           await this.afterUpdate(
             prevData[0],
             newData[0],
-            null,
             cookie,
             datas[0],
           );
         } else {
-          await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
+          await this.afterBulkUpdate(prevData, newData, cookie);
         }
       }
       profiler.end();
@@ -4068,7 +4054,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         res.push(data);
       }
 
-      await this.beforeBulkDelete(deleted, this.dbDriver, cookie);
+      await this.beforeBulkDelete(deleted, cookie);
 
       const base = await this.getSource();
 
@@ -4292,11 +4278,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (isSingleRecordDeletion) {
-        await this.afterDelete(deleted[0], null, cookie);
+        await this.afterDelete(deleted[0], cookie);
       } else {
         await this.afterBulkDelete(
           deleted,
-          this.dbDriver,
           cookie,
           false,
           isSoftDelete
@@ -4338,7 +4323,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async afterUpdate(
     prevData: Record<string, any>,
     newData: Record<string, any>,
-    _trx: any,
     req: NcRequest,
     updateObj?: Record<string, any>,
   ): Promise<void> {
@@ -4444,7 +4428,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async afterBulkUpdate(
     prevData: Record<string, any>[] | null,
     newData: Record<string, any>[] | number,
-    _trx: any,
     req: NcRequest,
     isBulkAllOperation = false,
   ): Promise<void> {
@@ -4566,7 +4549,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
   public async beforeDelete(
     data: Record<string, any>,
-    _trx: any,
     req: NcRequest,
   ): Promise<void> {
     await this.checkPermission({
@@ -4577,12 +4559,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       req,
     });
 
-    return super.beforeDelete(data, _trx, req);
+    return super.beforeDelete(data, req);
   }
 
   public async beforeBulkDelete(
     _data: Record<string, any>[],
-    _trx: any,
     req: NcRequest,
   ): Promise<void> {
     await this.checkPermission({
@@ -4593,7 +4574,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       req,
     });
 
-    return super.beforeBulkDelete(_data, _trx, req);
+    return super.beforeBulkDelete(_data, req);
   }
 
   public async bulkUpdateAudit({

@@ -636,7 +636,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         baseModel: this,
         insertData: data,
       });
-      await this.errorInsert(e, data, trx, cookie);
+      await this.errorInsert(e, data, cookie);
       throw e;
     }
   }
@@ -817,7 +817,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         baseModel: this,
         insertData: data,
       });
-      await this.errorUpdate(e, data, trx, cookie);
+      await this.errorUpdate(e, data, cookie);
       throw e;
     }
   }
@@ -2301,7 +2301,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       return responses.pop()?.rowCount;
     } catch (e) {
-      await this.errorDelete(e, id, null, cookie);
+      await this.errorDelete(e, id, cookie);
       throw e;
     }
   }

@@ -278,8 +278,8 @@ export interface IBaseModelSqlV2 {
     aliasToColumnBuilder?: any,
   ): Promise<any>;
 
-  errorInsert(_e, _data, _trx, _cookie): void | Promise<void>;
-  errorUpdate(_e, _data, _trx, _cookie): void | Promise<void>;
+  errorInsert(_e, _data, _cookie): void | Promise<void>;
+  errorUpdate(_e, _data, _cookie): void | Promise<void>;
 
   prepareNestedLinkQb(param: {
     nestedCols: Column[];

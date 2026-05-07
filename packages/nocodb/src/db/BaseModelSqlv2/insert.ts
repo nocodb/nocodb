@@ -164,7 +164,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         baseModel: baseModel,
         insertData: insertObj || data,
       });
-      await baseModel.errorInsert(e, data, trx, request);
+      await baseModel.errorInsert(e, data, request);
       throw e;
     }
   };

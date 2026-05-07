@@ -2933,7 +2933,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return response;
     } catch (e) {
       if (!_trx) await trx?.rollback();
-      await this.errorDelete(e, id, trx, cookie);
+      await this.errorDelete(e, id, cookie);
       throw e;
     }
   }
@@ -3112,7 +3112,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
       return newData;
     } catch (e) {
-      await this.errorUpdate(e, data, trx, cookie);
+      await this.errorUpdate(e, data, cookie);
       throw e;
     }
   }
@@ -5749,14 +5749,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async errorInsert(
     _e: Error,
     _data: Record<string, any>,
-    _trx: any,
     _cookie: NcRequest,
   ) {}
 
   public async errorUpdate(
     _e: Error,
     _data: Record<string, any>,
-    _trx: any,
     _cookie: NcRequest,
   ) {}
 
@@ -5768,7 +5766,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected async errorDelete(
     _e: Error,
     _id: Record<string, any>,
-    _trx: any,
     _cookie: NcRequest,
   ) {}
 

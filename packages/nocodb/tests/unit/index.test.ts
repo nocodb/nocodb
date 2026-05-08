@@ -40,19 +40,15 @@ dotenv.config({
   path: __dirname + '/.env',
 });
 
-// Opt-in suite-level leak assertion (LEAK_TRACK=strict). When enabled, an
-// end-of-suite hook diffs the open-trx set against a baseline taken at
-// suite start; any non-terminated trx fails the run.
+// Suite-level leak assertion (default-on). An end-of-suite hook diffs the
+// open-trx set against a baseline taken at suite start; any non-terminated
+// trx fails the run.
 //
-// Why opt-in rather than default-on:
-//   - Async background work (audit, webhook, fire-and-forget batchInsert)
-//     routinely spans test boundaries; per-test assertions get noisy.
-//   - End-of-suite avoids attribution noise but the SQLite/PG full suite
-//     can run >10 min, so adding strict mode by default would lengthen CI.
-//   - The targeted scenarios in `trxLeakDetection/` already directly assert
-//     each postmortem leak pattern can't recur, and `typeAlignment/` blocks
-//     reintroduction of the `_trx` parameter on data-event hooks. Strict
-//     suite mode is the wide-net belt-and-braces.
+// We use end-of-suite rather than per-test because async background work
+// (audit, webhook, fire-and-forget batchInsert paths) routinely spans test
+// boundaries: a trx is opened during a test but commits a few microtasks
+// after the test's afterEach runs. Per-test assertions false-flag those.
+// End-of-suite gives every trx the full suite duration to drain.
 //
 // Pool tracking is intentionally NOT asserted here. Most pools are managed
 // by `NcConnectionMgrv2`'s LRU cache and only destroyed on eviction — the
@@ -60,10 +56,13 @@ dotenv.config({
 // session. Pool-leak coverage lives in `trxLeakDetection/` (orphan-pool-
 // on-error scenario).
 //
-// Opt-out the tracker entirely: LEAK_TRACK=0.
+// Modes:
+//   LEAK_TRACK=0       — tracker disabled entirely
+//   LEAK_TRACK=warn    — tracker installed, suite-level check skipped
+//   (default / any other) — tracker installed, suite-level check enforced
 let suiteLeakBaseline: ReturnType<typeof snapshot> | null = null;
 const SUITE_DRAIN_MAX_TICKS = 200;
-const STRICT_LEAK_MODE = process.env.LEAK_TRACK === 'strict';
+const STRICT_LEAK_MODE = process.env.LEAK_TRACK !== 'warn';
 
 before(function () {
   if (!isInstalled() || !STRICT_LEAK_MODE) return;

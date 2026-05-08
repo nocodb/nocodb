@@ -645,6 +645,102 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return this.resolveLtarDisplayCol(pairedCol.id, model);
   }
 
+  // Batch resolver for LTAR display value overrides used by audit-write paths.
+  // Per unique columnId, resolves the override Column for both the ref side
+  // (renders refModel rows) and the source side (renders model rows). Handles
+  // the auto-paired case (override lives on the user-configured side) without
+  // doing redundant `Column.get`/`getColOptions` for the same columnId.
+  //
+  // `hasAny` is the fast-out gate: when false, callers should skip threading
+  // `displayColumn` through `fetchDisplayValueMap`/`displayValueMapKey` — the
+  // values resolve to the table's primary value (the pre-override behavior).
+  // This keeps the no-override case (the >99% path) free of override plumbing.
+  private async resolveLtarOverrideColsForBatch(
+    auditObjs: Array<{
+      columnId?: string;
+      model: Model;
+      refModel?: Model;
+    }>,
+  ): Promise<{
+    refByColId: Map<string, Column | undefined>;
+    sourceByColId: Map<string, Column | undefined>;
+    hasAny: boolean;
+  }> {
+    const refByColId = new Map<string, Column | undefined>();
+    const sourceByColId = new Map<string, Column | undefined>();
+    let hasAny = false;
+
+    const seen = new Set<string>();
+    for (const obj of auditObjs) {
+      if (!obj.columnId || !obj.refModel || seen.has(obj.columnId)) continue;
+      seen.add(obj.columnId);
+
+      const col = await Column.get(this.context, { colId: obj.columnId });
+      if (!col) continue;
+      const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
+        this.context,
+      );
+      const ownDisplayColId = colOpts?.fk_display_value_column_id;
+
+      const refCols = await obj.refModel.getCachedColumns({
+        ...this.context,
+        base_id: obj.refModel.base_id,
+      });
+      const sourceCols = await obj.model.getCachedColumns({
+        ...this.context,
+        base_id: obj.model.base_id,
+      });
+
+      let refDisplayCol: Column | undefined;
+      let sourceDisplayCol: Column | undefined;
+
+      if (ownDisplayColId) {
+        // Own override targets either side: refModel for the user-configured
+        // direction, or model for the auto-paired direction.
+        refDisplayCol = refCols.find((c) => c.id === ownDisplayColId);
+        if (!refDisplayCol) {
+          sourceDisplayCol = sourceCols.find((c) => c.id === ownDisplayColId);
+        }
+      }
+
+      // Walk paired LTAR only when at least one side is still unresolved.
+      if (!refDisplayCol || !sourceDisplayCol) {
+        const pairedCol = await extractCorrespondingLinkColumn(this.context, {
+          ltarColumn: col,
+          referencedTableColumns: refCols,
+        });
+        if (pairedCol) {
+          const pairedOpts =
+            await pairedCol.getColOptions<LinkToAnotherRecordColumn>(
+              this.context,
+            );
+          const pairedDisplayColId = pairedOpts?.fk_display_value_column_id;
+          if (pairedDisplayColId) {
+            if (!refDisplayCol) {
+              refDisplayCol = refCols.find((c) => c.id === pairedDisplayColId);
+            }
+            if (!sourceDisplayCol) {
+              sourceDisplayCol = sourceCols.find(
+                (c) => c.id === pairedDisplayColId,
+              );
+            }
+          }
+        }
+      }
+
+      if (refDisplayCol) {
+        refByColId.set(obj.columnId, refDisplayCol);
+        hasAny = true;
+      }
+      if (sourceDisplayCol) {
+        sourceByColId.set(obj.columnId, sourceDisplayCol);
+        hasAny = true;
+      }
+    }
+
+    return { refByColId, sourceByColId, hasAny };
+  }
+
   public async exist(id?: any): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
     await this.model.getColumns(this.context);
@@ -3408,21 +3504,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             refRowId: entry.refRowIdIsInsertedRow ? rowId : entry.refRowId,
           }));
 
-          // Batch-fetch all display values into a KV map. Thread the LTAR's
-          // custom display column (fk_display_value_column_id) for the ref
-          // side so audit entries render the overridden value, matching UI.
-          // Pre-resolve display column per unique (columnId, refModelId) so
-          // we don't pay N+1 inside the loop.
-          const refDisplayColCache = new Map<string, Column | undefined>();
-          for (const entry of resolvedEntries) {
-            if (!entry.columnId) continue;
-            const cacheKey = `${entry.columnId}:${entry.refModel.id}`;
-            if (refDisplayColCache.has(cacheKey)) continue;
-            refDisplayColCache.set(
-              cacheKey,
-              await this.resolveLtarDisplayCol(entry.columnId, entry.refModel),
-            );
-          }
+          // Pre-resolve LTAR display value overrides per unique columnId.
+          // When no LTAR in the batch carries `fk_display_value_column_id`
+          // we skip threading `displayColumn` entirely — values fall back to
+          // the table's primary value (pre-override behavior).
+          const { refByColId, hasAny } =
+            await this.resolveLtarOverrideColsForBatch(resolvedEntries);
+
+          const refDisplayColFor = (entry: (typeof resolvedEntries)[number]) =>
+            hasAny && entry.columnId
+              ? refByColId.get(entry.columnId)
+              : undefined;
+
           const dvProps: {
             model: Model;
             id: any;
@@ -3433,9 +3526,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             dvProps.push({
               model: entry.refModel,
               id: entry.refRowId,
-              displayColumn: refDisplayColCache.get(
-                `${entry.columnId}:${entry.refModel.id}`,
-              ),
+              displayColumn: refDisplayColFor(entry),
             });
           }
           const dvMap = await this.fetchDisplayValueMap(dvProps);
@@ -3449,9 +3540,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               displayValueMapKey({
                 model: entry.refModel,
                 id: entry.refRowId,
-                displayColumn: refDisplayColCache.get(
-                  `${entry.columnId}:${entry.refModel.id}`,
-                ),
+                displayColumn: refDisplayColFor(entry),
               }),
             );
 
@@ -6098,36 +6187,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       if (!auditObjs.length || !(await this.isDataAuditEnabled())) return;
 
-      // Batch-fetch missing display values into a KV map. Thread the LTAR's
-      // custom display column (fk_display_value_column_id) for the ref side
-      // so audit entries render the overridden value, matching the UI.
-      // Pre-resolve display column per unique (columnId, modelId) so we
-      // don't pay N+1 inside the loop. Two caches: ref side reads this LTAR's
-      // fk_display_value_column_id, source side reads the paired (reverse)
-      // LTAR's override.
-      const refDisplayColCache = new Map<string, Column | undefined>();
-      const sourceDisplayColCache = new Map<string, Column | undefined>();
-      for (const obj of auditObjs) {
-        if (!obj.columnId || !obj.refModel) continue;
-        const refKey = `${obj.columnId}:${obj.refModel.id}`;
-        if (!refDisplayColCache.has(refKey)) {
-          refDisplayColCache.set(
-            refKey,
-            await this.resolveLtarDisplayCol(obj.columnId, obj.refModel),
-          );
-        }
-        const srcKey = `${obj.columnId}:${obj.model.id}`;
-        if (!sourceDisplayColCache.has(srcKey)) {
-          sourceDisplayColCache.set(
-            srcKey,
-            await this.resolveReverseLtarDisplayCol(
-              obj.columnId,
-              obj.model,
-              obj.refModel,
-            ),
-          );
-        }
-      }
+      // Pre-resolve LTAR display value overrides per unique columnId. When
+      // no LTAR in the batch carries `fk_display_value_column_id` (the >99%
+      // case), `hasAny` is false and we skip threading `displayColumn`
+      // through `fetchDisplayValueMap`/`displayValueMapKey` entirely — the
+      // values fall back to the table's primary value (pre-override behavior).
+      const { refByColId, sourceByColId, hasAny } =
+        await this.resolveLtarOverrideColsForBatch(auditObjs);
+
+      const refDisplayColFor = (obj: (typeof auditObjs)[number]) =>
+        hasAny && obj.columnId ? refByColId.get(obj.columnId) : undefined;
+      const sourceDisplayColFor = (obj: (typeof auditObjs)[number]) =>
+        hasAny && obj.columnId ? sourceByColId.get(obj.columnId) : undefined;
+
       const missingDvProps: {
         model: Model;
         id: any;
@@ -6138,17 +6210,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           missingDvProps.push({
             model: obj.model,
             id: obj.rowId,
-            displayColumn: sourceDisplayColCache.get(
-              `${obj.columnId}:${obj.model.id}`,
-            ),
+            displayColumn: sourceDisplayColFor(obj),
           });
         if (obj.refDisplayValue === undefined && obj.refModel) {
           missingDvProps.push({
             model: obj.refModel,
             id: obj.refRowId,
-            displayColumn: refDisplayColCache.get(
-              `${obj.columnId}:${obj.refModel.id}`,
-            ),
+            displayColumn: refDisplayColFor(obj),
           });
         }
       }
@@ -6161,9 +6229,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             displayValueMapKey({
               model: obj.model,
               id: obj.rowId,
-              displayColumn: sourceDisplayColCache.get(
-                `${obj.columnId}:${obj.model.id}`,
-              ),
+              displayColumn: sourceDisplayColFor(obj),
             }),
           );
         const refDisplayValue =
@@ -6172,9 +6238,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             displayValueMapKey({
               model: obj.refModel,
               id: obj.refRowId,
-              displayColumn: refDisplayColCache.get(
-                `${obj.columnId}:${obj.refModel.id}`,
-              ),
+              displayColumn: refDisplayColFor(obj),
             }),
           );
 

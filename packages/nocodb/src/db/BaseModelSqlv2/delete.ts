@@ -687,7 +687,6 @@ export class BaseModelDelete {
       if (!skip_hooks) {
         await this.baseModel.afterBulkDelete(
           chunkResponse,
-          this.baseModel.dbDriver,
           cookie,
           true,
           bulkAuditEvent,
@@ -909,7 +908,6 @@ export class BaseModelDelete {
 
     await this.baseModel.afterBulkDelete(
       oldRecords,
-      this.baseModel.dbDriver,
       cookie,
       isBulkAllOperation,
       AuditV1OperationTypes.DATA_BULK_PERMANENT_DELETE,

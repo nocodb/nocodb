@@ -267,7 +267,6 @@ class PGClient extends KnexClient {
       });
       try {
         await tempSqlClient.raw('SELECT 1+1 as data');
-        await tempSqlClient.destroy();
       } catch (e) {
         if (!/^database "[\w\d_]+" does not exist$/.test(e.message)) {
           log.ppe(e);
@@ -275,6 +274,8 @@ class PGClient extends KnexClient {
           // send back original error message
           result.message = e1.message;
         }
+      } finally {
+        await tempSqlClient.destroy();
       }
     } finally {
       log.api(`${_func}:result:`, result);
@@ -535,12 +536,13 @@ class PGClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
+    let tempSqlClient;
     try {
       const connectionParamsWithoutDb = deepClone(this.connectionConfig);
       connectionParamsWithoutDb.connection.password =
         this.connectionConfig.connection.password;
       connectionParamsWithoutDb.connection.database = 'postgres';
-      const tempSqlClient = knex({
+      tempSqlClient = knex({
         ...connectionParamsWithoutDb,
         pool: { min: 0, max: 1 },
       });
@@ -556,10 +558,13 @@ class PGClient extends KnexClient {
 
       log.debug('dropping database:', args);
       await tempSqlClient.raw(`DROP DATABASE ??;`, [args.database]);
-      await tempSqlClient.destroy();
     } catch (e) {
       log.ppe(e, _func);
       // throw e;
+    } finally {
+      if (tempSqlClient) {
+        await tempSqlClient.destroy();
+      }
     }
 
     log.api(`${_func}: result`, result);

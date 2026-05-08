@@ -395,12 +395,13 @@ class DatabricksClient extends KnexClient {
     const result = new Result();
     log.api(`${_func}:args:`, args);
 
+    let tempSqlClient;
     try {
       const connectionParamsWithoutDb = deepClone(this.connectionConfig);
       connectionParamsWithoutDb.connection.password =
         this.connectionConfig.connection.password;
       connectionParamsWithoutDb.connection.database = 'postgres';
-      const tempSqlClient = knex({
+      tempSqlClient = knex({
         ...connectionParamsWithoutDb,
         pool: { min: 0, max: 1 },
       });
@@ -416,10 +417,13 @@ class DatabricksClient extends KnexClient {
 
       log.debug('dropping database:', args);
       await tempSqlClient.raw(`DROP DATABASE ??;`, [args.database]);
-      await tempSqlClient.destroy();
     } catch (e) {
       log.ppe(e, _func);
       // throw e;
+    } finally {
+      if (tempSqlClient) {
+        await tempSqlClient.destroy();
+      }
     }
 
     log.api(`${_func}: result`, result);

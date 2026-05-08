@@ -3473,6 +3473,11 @@
         "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",
         "moveDeletedField": "You cannot move field that is deleted. Either save or discard changes first"
       },
+      "fieldDeletedRemotely": "A field was deleted by another user. The editor has been refreshed.",
+      "fieldsDeletedRemotely": "{count} fields were deleted by another user. The editor has been refreshed.",
+      "activeFieldDeletedRemotely": "The field you were editing was deleted by another user. Your unsaved changes were discarded.",
+      "activeFieldUpdatedRemotelyDiscarded": "The field you were editing was updated by another user. The editor has been refreshed with the latest values; your unsaved changes were discarded.",
+      "activeFieldUpdatedRemotelyKeepAlive": "The field you were editing was updated by another user. Your unsaved changes are preserved — saving will overwrite their changes.",
       "reachedUploadLimit": "Reached upload limit",
       "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time",

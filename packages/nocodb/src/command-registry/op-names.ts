@@ -22,6 +22,7 @@ export const OperationName = {
   columnUpdate: 'columnUpdate',
   columnDelete: 'columnDelete',
   columnSetAsPrimary: 'columnSetAsPrimary',
+  columnsBulk: 'columnsBulk',
 
   // Views (generic)
   viewUpdate: 'viewUpdate',
@@ -148,6 +149,7 @@ export const OperationName = {
   trashRestore: 'trashRestore',
   listViewLevelsRestore: 'listViewLevelsRestore',
   viewColumnsBulkSetVisibility: 'viewColumnsBulkSetVisibility',
+  macroUndo: 'macroUndo',
 } as const;
 
 export type OperationName = (typeof OperationName)[keyof typeof OperationName];

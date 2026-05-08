@@ -20,6 +20,37 @@ export const useUndoRedo = createSharedComposable(() => {
 
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
+  const isUndoRedoInFlight = ref(false)
+
+  let queue: Promise<void> = Promise.resolve()
+  let pending = 0
+  let clearFlagTimer: ReturnType<typeof setTimeout> | null = null
+
+  const enqueue = (work: () => Promise<void>): Promise<void> => {
+    pending += 1
+    isUndoRedoInFlight.value = true
+    if (clearFlagTimer) {
+      clearTimeout(clearFlagTimer)
+      clearFlagTimer = null
+    }
+    const next = queue.then(work)
+    // Catch errors here so a rejected work fn doesn't poison the chain
+    // for subsequent enqueues. Rejection still propagates to the
+    // returned promise so callers can observe failure.
+    queue = next
+      .catch(() => undefined)
+      .finally(() => {
+        pending -= 1
+        if (pending === 0) {
+          clearFlagTimer = setTimeout(() => {
+            if (pending === 0) isUndoRedoInFlight.value = false
+            clearFlagTimer = null
+          }, 1000)
+        }
+      })
+    return next
+  }
+
   const activeBaseId = (): string | null => {
     const baseId = (route.value.params as Record<string, any>).baseId as string | undefined
     return baseId || null
@@ -40,24 +71,25 @@ export const useUndoRedo = createSharedComposable(() => {
     }
   }
 
-  const undo = async () => {
-    const status = await callServer('undo')
-    if (status === 'ok') {
-      message.toast(t('labels.actionUndone'))
-    } else if (status === 'empty') {
-      message.toast(t('labels.noMoreActionsToUndo'))
-    }
-    // 'no_scope' / 'no_handler' / 'errored' — silent or already toasted by catch.
-  }
+  const undo = (): Promise<void> =>
+    enqueue(async () => {
+      const status = await callServer('undo')
+      if (status === 'ok') {
+        message.toast(t('labels.actionUndone'))
+      } else if (status === 'empty') {
+        message.toast(t('labels.noMoreActionsToUndo'))
+      }
+    })
 
-  const redo = async () => {
-    const status = await callServer('redo')
-    if (status === 'ok') {
-      message.toast(t('labels.actionRedone'))
-    } else if (status === 'empty') {
-      message.toast(t('labels.noMoreActionsToRedo'))
-    }
-  }
+  const redo = (): Promise<void> =>
+    enqueue(async () => {
+      const status = await callServer('redo')
+      if (status === 'ok') {
+        message.toast(t('labels.actionRedone'))
+      } else if (status === 'empty') {
+        message.toast(t('labels.noMoreActionsToRedo'))
+      }
+    })
 
   useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
@@ -79,5 +111,6 @@ export const useUndoRedo = createSharedComposable(() => {
   return {
     undo,
     redo,
+    isUndoRedoInFlight,
   }
 })

@@ -734,6 +734,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       saveOrUpdate,
       applyVisibilityLocally,
       buildVisibilityEntry,
+      isDefaultView,
       sortedAndFilteredFields,
       showSystemFields,
       metaColumnById,

@@ -84,6 +84,8 @@ const { getMeta } = useMetas()
 
 const { meta, view, eventBus } = useSmartsheetStoreOrThrow()
 
+const { isUndoRedoInFlight } = useUndoRedo()
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
@@ -113,6 +115,7 @@ const {
   loadViewColumns,
   isViewColumnsLoading,
   showSystemFields,
+  isDefaultView,
 } = useViewColumnsOrThrow()
 
 const loading = ref(false)
@@ -1095,6 +1098,7 @@ const saveChanges = async () => {
 
     return !hasUnsavedChanges.value
   } catch (e) {
+    console.error(e)
     message.error(t('msg.error.somethingWentWrong'))
   } finally {
     loading.value = false
@@ -1238,6 +1242,114 @@ onMounted(async () => {
   }
 
   metaToLocal()
+})
+
+const onRealtimeFieldReload = async (event?: SmartsheetStoreEvents) => {
+  if (event !== SmartsheetStoreEvents.FIELD_RELOAD) return
+  if (!meta.value?.id || !meta.value.base_id || !meta.value.fk_workspace_id) return
+  const isSelfEvent = loading.value || isUndoRedoInFlight.value
+
+  // Snapshot pre-reload state for diffing. localMetaColumns hasn't
+  // been refreshed yet (metaToLocal runs below), so it reflects what
+  // the editor was showing to the user just before the remote change.
+  const oldById = new Map<string, ColumnType>()
+  for (const c of localMetaColumns.value ?? []) {
+    if (c.id) oldById.set(c.id, c)
+  }
+
+  try {
+    await loadViewColumns()
+    columnsHash.value = (
+      await $api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
+        operation: 'columnsHash',
+        tableId: meta.value.id!,
+      })
+    ).hash
+    metaToLocal()
+    onInit()
+  } catch {
+    // Reload failures shouldn't break the editor — user can manually retry.
+    return
+  }
+
+  if (isSelfEvent) return
+
+  const newById = new Map<string, ColumnType>()
+  for (const c of meta.value?.columns ?? []) {
+    if (c.id) newById.set(c.id, c)
+  }
+
+  const deletedIds: string[] = []
+  const updatedIds: string[] = []
+  for (const [id, old] of oldById) {
+    const fresh = newById.get(id)
+    if (!fresh) {
+      deletedIds.push(id)
+      continue
+    }
+    if ((old as ColumnType & { updated_at?: string }).updated_at !== (fresh as ColumnType & { updated_at?: string }).updated_at) {
+      updatedIds.push(id)
+    }
+  }
+
+  // ── Surface deletions ──────────────────────────────────────────
+  if (deletedIds.length) {
+    const deletedSet = new Set(deletedIds)
+    const editingId = activeField.value?.id
+
+    ops.value = ops.value.filter((op) => !op.column.id || !deletedSet.has(op.column.id as string))
+    visibilityOps.value = visibilityOps.value.filter((op) => {
+      const fkColId = (op.column as Field).fk_column_id
+      return !fkColId || !deletedSet.has(fkColId)
+    })
+
+    if (editingId && deletedSet.has(editingId)) {
+      // The field the user is currently editing is gone. Close the
+      // editor cleanly so they don't see ghost form state.
+      changeField()
+      message.warning(t('msg.warning.activeFieldDeletedRemotely'))
+    } else {
+      message.warning(
+        deletedIds.length === 1
+          ? t('msg.warning.fieldDeletedRemotely')
+          : t('msg.warning.fieldsDeletedRemotely', { count: deletedIds.length }),
+      )
+    }
+  }
+
+  // ── Surface updates affecting the active field ────────────────
+  if (updatedIds.length) {
+    const editingId = activeField.value?.id
+    if (editingId && updatedIds.includes(editingId)) {
+      // The field the user has open in the editor was changed. The
+      // toast wording differs by editor type because metaToLocal()
+      // refreshes them differently:
+      //
+      //  - Non-keep-alive (SLT, Number, Date, Checkbox, ...):
+      //    metaToLocal calls `changeField(field)` which re-mounts the
+      //    editor. The user's in-flight form changes ARE discarded.
+      //
+      //  - Keep-alive (LTAR, Lookup, Rollup, Button): the editor stays
+      //    mounted so its filter state survives field switches; this
+      //    means metaToLocal only updates the activeField ref without
+      //    touching the editor's vModel. The user's draft is intact —
+      //    but saving will overwrite the remote change. Tell them so
+      //    they can decide.
+      const isKeepAlive = isKeepAliveType(activeField.value)
+      message.warning(
+        isKeepAlive ? t('msg.warning.activeFieldUpdatedRemotelyKeepAlive') : t('msg.warning.activeFieldUpdatedRemotelyDiscarded'),
+      )
+    }
+    // Bulk silent refresh for non-editing changes — no toast spam.
+  }
+}
+
+onMounted(() => {
+  eventBus.on(onRealtimeFieldReload)
+})
+
+onBeforeUnmount(() => {
+  eventBus.off(onRealtimeFieldReload)
 })
 
 watch(

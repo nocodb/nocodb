@@ -494,7 +494,6 @@ class PGClient extends PGClientCE {
       });
       try {
         await tempSqlClient.raw('SELECT 1+1 as data');
-        await tempSqlClient.destroy();
       } catch (e) {
         if (!/^database "[\w\d_]+" does not exist$/.test(e.message)) {
           log.ppe(e);
@@ -503,6 +502,8 @@ class PGClient extends PGClientCE {
           result.message = e1.message;
           result.sql_code = e1.code;
         }
+      } finally {
+        await tempSqlClient.destroy();
       }
     } finally {
       log.api(`${_func}:result:`, result);

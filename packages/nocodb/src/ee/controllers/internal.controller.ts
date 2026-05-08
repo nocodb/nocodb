@@ -151,6 +151,11 @@ const LICENSE_REQUIRED_OPS = new Set([
   'rlsPolicySetSubjects',
   'rlsPolicyFilterList',
   'rlsPolicyFilterCreate',
+  // SmartText (EE-only) — defense in depth: column creation requires
+  // isEE && PG, but if a base lands on an unlicensed instance (license
+  // expiry, restore from backup) reads/writes must still be blocked.
+  'smartTextGetContent',
+  'smartTextUpdateContent',
 ]);
 
 @Controller()

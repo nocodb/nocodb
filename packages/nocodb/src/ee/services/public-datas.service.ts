@@ -245,6 +245,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
       tableId: view.fk_model_id,
       rowId,
       columnId,
+      readOnly: true,
     });
   }
 }

@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { isSmartText, SMART_TEXT_MAX_BYTES, UITypes } from 'nocodb-sdk';
 import { SmartTextService as SmartTextServiceCE } from 'src/services/smart-text.service';
@@ -5,6 +6,7 @@ import type { ProseMirrorDoc } from 'nocodb-sdk';
 import type { SmartTextGetResult } from 'src/services/smart-text.service';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type Column from '~/models/Column';
+import type { MetaService } from '~/meta/meta.service';
 import { NcError } from '~/helpers/catchError';
 import {
   markdownToProseMirror,
@@ -16,6 +18,7 @@ import Source from '~/models/Source';
 import FileReference from '~/models/FileReference';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import Noco from '~/Noco';
 
 const META_COL_NAME = 'nc_row_meta';
 
@@ -25,7 +28,16 @@ export class SmartTextService extends SmartTextServiceCE {
 
   async getContent(
     context: NcContext,
-    param: { tableId: string; rowId: string; columnId: string },
+    param: {
+      tableId: string;
+      rowId: string;
+      columnId: string;
+      // Read-only callers (public shared view) must not trigger writes. When
+      // true, skip the stale-PM cleanup and lazy backfill branches — the
+      // response still reflects the correct state, but FileReference rows
+      // and nc_row_meta are left untouched.
+      readOnly?: boolean;
+    },
   ): Promise<SmartTextGetResult> {
     const { model, column, source } = await this._loadAndValidate(
       context,
@@ -66,9 +78,17 @@ export class SmartTextService extends SmartTextServiceCE {
       .select(
         column.column_name,
         dbDriver.raw(`??->?->>'pm' as nc_smart_pm`, [META_COL_NAME, column.id]),
+        dbDriver.raw(`??->?->>'mdHash' as nc_smart_md_hash`, [
+          META_COL_NAME,
+          column.id,
+        ]),
       )
       .first()) as
-      | { [key: string]: any; nc_smart_pm?: string | object }
+      | {
+          [key: string]: any;
+          nc_smart_pm?: string | object;
+          nc_smart_md_hash?: string | null;
+        }
       | undefined;
     if (!row) {
       NcError.get(context).recordNotFound(param.rowId);
@@ -124,35 +144,47 @@ export class SmartTextService extends SmartTextServiceCE {
     // SmartText cell without going through the panel, leaving the cached pm
     // in nc_row_meta out of sync. If the markdown is empty, discard any stale
     // pm and clean up FileReferences so the panel reflects the cleared state.
+    // Read-only callers (public shared view) skip the cleanup and just drop
+    // the stale pm in the response.
     if (isMarkdownEmpty && pm) {
-      try {
-        const emptyPm: ProseMirrorDoc = {
-          type: 'doc',
-          content: [{ type: 'paragraph' }],
-        } as ProseMirrorDoc;
-        await this._reconcileFileReferences(
-          context,
-          model.id,
-          column.id,
-          param.rowId,
-          emptyPm,
-          /* req */ null,
-        );
-        await this._writeRowMetaPm(
-          dbDriver,
-          tnPath,
-          pkColumn.column_name,
-          param.rowId,
-          column,
-          emptyPm,
-          /* userId */ null,
-        );
+      if (param.readOnly) {
         pm = null;
-      } catch (e) {
-        this.logger.warn(
-          `Stale PM cleanup failed for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,
-          (e as Error)?.stack,
-        );
+      } else {
+        const cleanupTrx = await Noco.ncMeta.startTransaction();
+        try {
+          const emptyPm: ProseMirrorDoc = {
+            type: 'doc',
+            content: [{ type: 'paragraph' }],
+          } as ProseMirrorDoc;
+          await this._reconcileFileReferences(
+            context,
+            model.id,
+            column.id,
+            param.rowId,
+            emptyPm,
+            /* req */ null,
+            cleanupTrx,
+          );
+          await this._writeRowMetaPm(
+            cleanupTrx.knexConnection,
+            tnPath,
+            pkColumn.column_name,
+            param.rowId,
+            column,
+            emptyPm,
+            /* userId */ null,
+            /* markdown */ undefined,
+            this._hashMarkdown(''),
+          );
+          await cleanupTrx.commit();
+          pm = null;
+        } catch (e) {
+          await cleanupTrx.rollback();
+          this.logger.warn(
+            `Stale PM cleanup failed for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,
+            (e as Error)?.stack,
+          );
+        }
       }
     }
 
@@ -160,19 +192,28 @@ export class SmartTextService extends SmartTextServiceCE {
     // or data API update), the cached PM in nc_row_meta still reflects the
     // previous content. Markdown is authoritative — discard the stale PM so
     // the lazy backfill below regenerates it from the current markdown.
-    // Compare the PM's serialized markdown against the cell's markdown; a
-    // mismatch means they diverged.
+    //
+    // Fast path: if the stored mdHash matches the current cell's markdown
+    // hash, the PM is in sync — skip the prosemirrorToMarkdown round-trip.
+    // Slow path (no hash, or older rows written before mdHash was tracked):
+    // fall back to serializing the PM and comparing markdown strings.
     if (!isMarkdownEmpty && pm) {
-      try {
-        const pmMarkdown = prosemirrorToMarkdown(pm).trim();
-        if (pmMarkdown !== (markdown as string).trim()) {
+      const storedMdHash = pmRow?.nc_smart_md_hash;
+      const currentMdHash = this._hashMarkdown(markdown as string);
+      if (storedMdHash) {
+        if (storedMdHash !== currentMdHash) pm = null;
+      } else {
+        try {
+          const pmMarkdown = prosemirrorToMarkdown(pm).trim();
+          if (pmMarkdown !== (markdown as string).trim()) {
+            pm = null;
+          }
+        } catch (e) {
+          this.logger.warn(
+            `PM↔markdown sync check failed for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,
+          );
           pm = null;
         }
-      } catch (e) {
-        this.logger.warn(
-          `PM↔markdown sync check failed for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,
-        );
-        pm = null;
       }
     }
 
@@ -180,27 +221,41 @@ export class SmartTextService extends SmartTextServiceCE {
     // persist. Run FileReference reconciliation too — markdown pasted from
     // another cell still references storage paths that need a fresh
     // (model, column, row)-keyed FileReference for the cell-keyed proxy to
-    // serve them.
+    // serve them. Read-only callers (public shared view) convert in-memory
+    // but skip persistence so an unauthenticated viewer cannot mutate the
+    // base.
     if (!pm && !isMarkdownEmpty) {
       try {
         pm = markdownToProseMirror(markdown) as ProseMirrorDoc;
-        await this._reconcileFileReferences(
-          context,
-          model.id,
-          column.id,
-          param.rowId,
-          pm,
-          /* req */ null,
-        );
-        await this._writeRowMetaPm(
-          dbDriver,
-          tnPath,
-          pkColumn.column_name,
-          param.rowId,
-          column,
-          pm,
-          /* userId */ null,
-        );
+        if (!param.readOnly) {
+          const backfillTrx = await Noco.ncMeta.startTransaction();
+          try {
+            await this._reconcileFileReferences(
+              context,
+              model.id,
+              column.id,
+              param.rowId,
+              pm,
+              /* req */ null,
+              backfillTrx,
+            );
+            await this._writeRowMetaPm(
+              backfillTrx.knexConnection,
+              tnPath,
+              pkColumn.column_name,
+              param.rowId,
+              column,
+              pm,
+              /* userId */ null,
+              /* markdown */ undefined,
+              this._hashMarkdown(markdown as string),
+            );
+            await backfillTrx.commit();
+          } catch (e) {
+            await backfillTrx.rollback();
+            throw e;
+          }
+        }
       } catch (e) {
         this.logger.warn(
           `Lazy MD→PM backfill failed for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,
@@ -246,19 +301,6 @@ export class SmartTextService extends SmartTextServiceCE {
       );
     }
 
-    // Reconcile FileReferences BEFORE deriving markdown so injected IDs
-    // are reflected in both the PM JSON and (transitively) the markdown.
-    await this._reconcileFileReferences(
-      context,
-      model.id,
-      column.id,
-      param.rowId,
-      param.pmContent,
-      param.req,
-    );
-
-    const markdown = prosemirrorToMarkdown(param.pmContent);
-
     const dbDriver = await NcConnectionMgrv2.get(source);
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
@@ -273,16 +315,42 @@ export class SmartTextService extends SmartTextServiceCE {
       );
     }
 
-    await this._writeRowMetaPm(
-      dbDriver,
-      tnPath,
-      pkColumn.column_name,
-      param.rowId,
-      column,
-      param.pmContent,
-      param.req.user?.id ?? null,
-      markdown,
-    );
+    // Internal sources share the meta DB connection — wrap reconcile + cell
+    // update in one trx so a partial failure can't leave FileReferences
+    // pointing at a row whose PM doesn't reference them (or vice versa).
+    const trx = await Noco.ncMeta.startTransaction();
+    let markdown: string;
+    try {
+      // Reconcile FileReferences BEFORE deriving markdown so injected IDs
+      // are reflected in both the PM JSON and (transitively) the markdown.
+      await this._reconcileFileReferences(
+        context,
+        model.id,
+        column.id,
+        param.rowId,
+        param.pmContent,
+        param.req,
+        trx,
+      );
+
+      markdown = prosemirrorToMarkdown(param.pmContent);
+
+      await this._writeRowMetaPm(
+        trx.knexConnection,
+        tnPath,
+        pkColumn.column_name,
+        param.rowId,
+        column,
+        param.pmContent,
+        param.req.user?.id ?? null,
+        markdown,
+        this._hashMarkdown(markdown),
+      );
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback();
+      throw e;
+    }
 
     // TODO: emit DATA_UPDATE app event for audit. Data-plane cell updates use
     // Noco.eventEmitter directly (see BaseModelSqlv2 RECORDS_SOFT_DELETE) rather
@@ -337,7 +405,12 @@ export class SmartTextService extends SmartTextServiceCE {
 
   /**
    * Atomic write: cell column ← markdown (when provided) and
-   * nc_row_meta JSONB merge ← { [colId]: { pm, modifiedTime, modifiedBy } }.
+   * nc_row_meta JSONB merge ←
+   *   { [colId]: { pm, mdHash, modifiedTime, modifiedBy } }.
+   *
+   * `mdHash` is the SHA-1 of the trimmed markdown that the PM was generated
+   * from. The read path uses it as a fast-path guard against stale PM:
+   * compare hashes instead of round-tripping through prosemirrorToMarkdown.
    */
   protected async _writeRowMetaPm(
     dbDriver: any,
@@ -348,6 +421,7 @@ export class SmartTextService extends SmartTextServiceCE {
     pmContent: ProseMirrorDoc,
     userId: string | null,
     markdown?: string,
+    mdHash?: string,
   ) {
     const updateObj: Record<string, any> = {};
 
@@ -360,6 +434,7 @@ export class SmartTextService extends SmartTextServiceCE {
       colIds: [column.id],
       props: {
         pm: pmContent,
+        mdHash: mdHash ?? null,
         modifiedTime: new Date().toISOString(),
         modifiedBy: userId,
       },
@@ -370,12 +445,29 @@ export class SmartTextService extends SmartTextServiceCE {
   }
 
   /**
+   * SHA-1 hex of the trimmed markdown. SHA-1 is sufficient for cache-validity
+   * comparison (no security guarantee needed) and is fast/built-in.
+   */
+  protected _hashMarkdown(markdown: string): string {
+    return createHash('sha1').update(markdown.trim(), 'utf8').digest('hex');
+  }
+
+  /**
    * Walk PM JSON for image / fileAttachment nodes. Create FileReferences for
    * new files (path but no id) and inject the new IDs back into the content.
    * Soft-delete previously-tracked refs that no longer appear.
    *
    * Mirrors DocumentsService.reconcileFileReferences but keys off
    * (model_id, column_id, row_id) instead of doc_id.
+   *
+   * NOTE: this method MUTATES `content.attrs.id` in-place on file/image
+   * nodes — newly-inserted IDs and ownership re-forks (paste-from-other-cell)
+   * are written directly back onto the input PM doc so callers can persist
+   * the corrected JSON without rewalking it.
+   *
+   * Pass `ncMeta` (typically a transaction returned from
+   * `Noco.ncMeta.startTransaction()`) when the caller needs the FileReference
+   * writes to share atomicity with the row-meta update.
    */
   protected async _reconcileFileReferences(
     context: NcContext,
@@ -384,6 +476,7 @@ export class SmartTextService extends SmartTextServiceCE {
     rowId: string,
     content: ProseMirrorDoc,
     req: NcRequest | null,
+    ncMeta: MetaService = Noco.ncMeta,
   ) {
     const fileNodes: { node: any; id?: string; path?: string }[] = [];
     const walk = (node: any) => {
@@ -411,9 +504,19 @@ export class SmartTextService extends SmartTextServiceCE {
     // paste or programmatic write), pasted PM nodes may carry an `id` from the
     // source cell. Treat those as new attachments and fork a fresh
     // FileReference for the destination cell so the cell-keyed proxy resolves.
-    for (const fileNode of fileNodes) {
-      if (fileNode.id) {
-        const existing = await FileReference.get(context, fileNode.id);
+    // Batched: one whereIn query instead of N sequential FileReference.get
+    // calls (a 20-image doc was previously ~20 round trips here).
+    const preExistingIds = fileNodes.map((n) => n.id).filter(Boolean);
+    if (preExistingIds.length) {
+      const existingRefs = await FileReference.listByIds(
+        context,
+        preExistingIds,
+        ncMeta,
+      );
+      const refById = new Map(existingRefs.map((r) => [r.id, r]));
+      for (const fileNode of fileNodes) {
+        if (!fileNode.id) continue;
+        const existing = refById.get(fileNode.id);
         if (
           !existing ||
           existing.deleted ||
@@ -427,19 +530,28 @@ export class SmartTextService extends SmartTextServiceCE {
       }
     }
 
-    for (const fileNode of fileNodes) {
-      if (!fileNode.id && fileNode.path) {
-        const newId = await FileReference.insert(context, {
+    // Bulk-insert new FileReferences — N inserts collapsed into one query.
+    const toInsert = fileNodes.filter((n) => !n.id && n.path);
+    if (toInsert.length) {
+      const inserted = await FileReference.bulkInsert(
+        context,
+        toInsert.map((fn) => ({
           storage: storageAdapter.name,
-          file_url: fileNode.path,
-          file_size: fileNode.node.attrs?.fileSize || 0,
+          file_url: fn.path,
+          file_size: fn.node.attrs?.fileSize || 0,
           fk_user_id: fkUserId,
           fk_model_id: modelId,
           fk_column_id: columnId,
           fk_row_id: rowId,
-        } as any);
-        fileNode.node.attrs.id = newId;
-        fileNode.id = newId;
+        })),
+        ncMeta,
+      );
+      for (let i = 0; i < toInsert.length; i++) {
+        const newId = inserted[i]?.id;
+        if (newId) {
+          toInsert[i].node.attrs.id = newId;
+          toInsert[i].id = newId;
+        }
       }
     }
 
@@ -449,11 +561,12 @@ export class SmartTextService extends SmartTextServiceCE {
       modelId,
       columnId,
       rowId,
+      ncMeta,
     );
 
     const removedIds = existingIds.filter((id) => !newIds.has(id));
     if (removedIds.length) {
-      await FileReference.delete(context, removedIds);
+      await FileReference.delete(context, removedIds, ncMeta);
     }
   }
 }

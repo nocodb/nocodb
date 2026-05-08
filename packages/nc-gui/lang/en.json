@@ -2055,7 +2055,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "Enable rich text",
-    "enableSmartText": "Enable Smart Text",
+    "enableSmartText": "Enable smart text",
     "unsavedChanges": "Unsaved changes",
     "smartText": {
       "disableReason": {

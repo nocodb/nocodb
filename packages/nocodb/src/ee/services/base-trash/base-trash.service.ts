@@ -16,6 +16,7 @@ import type {
 import { TRASH_HANDLER_TOKEN } from '~/services/base-trash/types';
 import BaseTrash from '~/models/BaseTrash';
 import { NcBaseError, NcError } from '~/helpers/catchError';
+import { runUntraced } from '~/decorators/trace-command.decorator';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { JobTypes } from '~/interface/Jobs';
@@ -355,110 +356,121 @@ export class BaseTrashService implements OnModuleInit {
       ncMeta?: MetaService;
     },
   ) {
-    if (context.schema_locked) {
-      NcError.get(context).schemaLocked();
-    }
+    // Trash GC fans out to traced services (`columnsService.columnDelete` for
+    // field/table cleanup, etc.). Those calls are system-driven, not
+    // user-initiated, undoable mutations — recording them as standalone ops
+    // would pollute the per-tab undo log and the sandbox changelog. Open an
+    // outer trace scope so nested @TraceCommand calls take the silent
+    // re-entrant skip branch. Covers all callers: the controller's single-
+    // entry permanent delete, `emptyTrash`, and the retention cron.
+    return runUntraced(async () => {
+      if (context.schema_locked) {
+        NcError.get(context).schemaLocked();
+      }
 
-    const trashEntry = await BaseTrash.get(
-      context,
-      param.trashId,
-      param.ncMeta,
-    );
-    if (!trashEntry) {
-      NcError.get(context).trashNotFound(param.trashId);
-    }
+      const trashEntry = await BaseTrash.get(
+        context,
+        param.trashId,
+        param.ncMeta,
+      );
+      if (!trashEntry) {
+        NcError.get(context).trashNotFound(param.trashId);
+      }
 
-    const handler = this.getHandler(trashEntry.resource_type);
+      const handler = this.getHandler(trashEntry.resource_type);
 
-    const ncMeta = param.ncMeta
-      ? param.ncMeta
-      : await (Noco.ncMeta as MetaService).startTransaction();
-    try {
-      // Clean up child trash entries (e.g. dashboard → widget, table → view/field).
-      if (handler.childTypes?.length) {
-        const CHILD_CLEANUP_BATCH = 100;
-        for (const childType of handler.childTypes) {
-          // eslint-disable-next-line no-constant-condition
-          while (true) {
-            const childTrash = await BaseTrash.listChildrenByParent(
-              context,
-              {
-                resourceType: childType,
-                parentId: trashEntry.resource_id,
-                limit: CHILD_CLEANUP_BATCH,
-              },
-              ncMeta,
-            );
-            if (!childTrash.length) break;
-            let removed = 0;
-            for (const child of childTrash) {
-              const childHandler = this.getHandler(child.resource_type);
-              const childLifecycle = await childHandler.permanentDelete(
+      const ncMeta = param.ncMeta
+        ? param.ncMeta
+        : await (Noco.ncMeta as MetaService).startTransaction();
+      try {
+        // Clean up child trash entries (e.g. dashboard → widget, table → view/field).
+        if (handler.childTypes?.length) {
+          const CHILD_CLEANUP_BATCH = 100;
+          for (const childType of handler.childTypes) {
+            // eslint-disable-next-line no-constant-condition
+            while (true) {
+              const childTrash = await BaseTrash.listChildrenByParent(
                 context,
-                child,
-                { user: param.user, req: param.req },
+                {
+                  resourceType: childType,
+                  parentId: trashEntry.resource_id,
+                  limit: CHILD_CLEANUP_BATCH,
+                },
                 ncMeta,
               );
-              // Mirror the parent guard at line 397 — handlers (e.g. record
-              // handler under RLS-bounded users) may ask the entry to survive
-              // when only a subset of underlying state was swept. Wiping the
-              // trash row while the soft-deleted rows persist would orphan
-              // them.
-              const childKeepEntry =
-                ncHasProperties<TrashLifecycleResult>(
-                  childLifecycle,
-                  'keepEntry',
-                ) && !!childLifecycle.keepEntry;
-              if (!childKeepEntry) {
-                await BaseTrash.delete(context, child.id, ncMeta);
-                removed++;
+              if (!childTrash.length) break;
+              let removed = 0;
+              for (const child of childTrash) {
+                const childHandler = this.getHandler(child.resource_type);
+                const childLifecycle = await childHandler.permanentDelete(
+                  context,
+                  child,
+                  { user: param.user, req: param.req },
+                  ncMeta,
+                );
+                // Mirror the parent guard at line 397 — handlers (e.g. record
+                // handler under RLS-bounded users) may ask the entry to survive
+                // when only a subset of underlying state was swept. Wiping the
+                // trash row while the soft-deleted rows persist would orphan
+                // them.
+                const childKeepEntry =
+                  ncHasProperties<TrashLifecycleResult>(
+                    childLifecycle,
+                    'keepEntry',
+                  ) && !!childLifecycle.keepEntry;
+                if (!childKeepEntry) {
+                  await BaseTrash.delete(context, child.id, ncMeta);
+                  removed++;
+                }
               }
+              // If any child opted to survive, stop paging — re-fetching would
+              // return the same kept rows and loop forever.
+              if (removed < childTrash.length) break;
+              if (childTrash.length < CHILD_CLEANUP_BATCH) break;
             }
-            // If any child opted to survive, stop paging — re-fetching would
-            // return the same kept rows and loop forever.
-            if (removed < childTrash.length) break;
-            if (childTrash.length < CHILD_CLEANUP_BATCH) break;
           }
         }
+
+        const lifecycle = await handler.permanentDelete(
+          context,
+          trashEntry,
+          { user: param.user, req: param.req },
+          ncMeta,
+        );
+        // See `restore` — handlers may keep the entry alive when their
+        // permanent-delete only swept a subset of the underlying state.
+        const keepEntry =
+          ncHasProperties<TrashLifecycleResult>(lifecycle, 'keepEntry') &&
+          !!lifecycle.keepEntry;
+        if (!keepEntry) {
+          await BaseTrash.delete(context, trashEntry.id, ncMeta);
+        }
+        if (!param.ncMeta) await ncMeta.commit();
+      } catch (e) {
+        if (!param.ncMeta) await ncMeta.rollback();
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        this.logger.error(e.message, e.stack);
+        NcError.get(context).internalServerError(
+          'Failed to permanently delete',
+        );
       }
 
-      const lifecycle = await handler.permanentDelete(
-        context,
-        trashEntry,
-        { user: param.user, req: param.req },
-        ncMeta,
+      handler.invalidateCaches(
+        context.workspace_id,
+        trashEntry.base_id ?? context.base_id,
       );
-      // See `restore` — handlers may keep the entry alive when their
-      // permanent-delete only swept a subset of the underlying state.
-      const keepEntry =
-        ncHasProperties<TrashLifecycleResult>(lifecycle, 'keepEntry') &&
-        !!lifecycle.keepEntry;
-      if (!keepEntry) {
-        await BaseTrash.delete(context, trashEntry.id, ncMeta);
-      }
-      if (!param.ncMeta) await ncMeta.commit();
-    } catch (e) {
-      if (!param.ncMeta) await ncMeta.rollback();
-      if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      this.logger.error(e.message, e.stack);
-      NcError.get(context).internalServerError('Failed to permanently delete');
-    }
 
-    handler.invalidateCaches(
-      context.workspace_id,
-      trashEntry.base_id ?? context.base_id,
-    );
+      this.appHooksService.emit(AppEvents.RESOURCE_PERMANENT_DELETE, {
+        resourceType: trashEntry.resource_type,
+        resourceId: trashEntry.resource_id,
+        name: trashEntry.name,
+        user: param.user,
+        context,
+        req: param.req,
+      });
 
-    this.appHooksService.emit(AppEvents.RESOURCE_PERMANENT_DELETE, {
-      resourceType: trashEntry.resource_type,
-      resourceId: trashEntry.resource_id,
-      name: trashEntry.name,
-      user: param.user,
-      context,
-      req: param.req,
+      return true;
     });
-
-    return true;
   }
 
   async emptyTrash(

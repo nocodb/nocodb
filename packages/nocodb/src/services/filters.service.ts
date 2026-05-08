@@ -4,7 +4,7 @@ import { AppEvents, comparisonOpList, EventType } from 'nocodb-sdk';
 import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
-import type { MetaService } from '~/meta/meta.service';
+import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';

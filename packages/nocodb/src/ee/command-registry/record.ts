@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import type {
+  CaptureKey,
   ChangelogCommandPayload,
   DescCtx,
   DescFn,
@@ -147,8 +148,16 @@ export async function recordCommand(
   const validatedParams = contract.schema.parse(replayableParams);
 
   let extraRaw: Record<string, unknown> | undefined;
-  const captureKeys = contract.sandbox?.capture;
-  if (captureKeys?.length) {
+  // Macros auto-include `macroTranscript` so contract authors don't
+  // have to remember to add it to `sandbox.capture`. The decorator
+  // depositted the transcript via captureForTrace just before this call.
+  const explicitCaptureKeys = contract.sandbox?.capture ?? [];
+  const captureKeys: ReadonlyArray<CaptureKey> = contract.macro
+    ? Array.from(
+        new Set<CaptureKey>([...explicitCaptureKeys, 'macroTranscript']),
+      )
+    : explicitCaptureKeys;
+  if (captureKeys.length) {
     const captured: Record<string, unknown> = {};
     for (const key of captureKeys) {
       const value = getTraceCapture(key);

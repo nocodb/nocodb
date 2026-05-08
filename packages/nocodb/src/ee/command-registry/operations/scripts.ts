@@ -132,8 +132,7 @@ export const ScriptDuplicateContract: OperationContract<
   entity: MetaTable.AUTOMATIONS,
   schema: scriptDuplicateSchema,
   entry: {
-    entity_id: (_params, result) =>
-      (result as { id?: string } | undefined)?.id,
+    entity_id: (_params, result) => (result as { id?: string } | undefined)?.id,
     entity_title: (_params, result) =>
       (result as { title?: string } | undefined)?.title,
     description: ({ entityTitle }) =>

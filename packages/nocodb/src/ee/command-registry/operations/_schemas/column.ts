@@ -146,3 +146,50 @@ export const columnUpdateExtraSchema = z
   })
   .strict()
   .optional();
+
+const bulkOpKindEnum = z.enum(['add', 'update', 'delete']);
+
+const bulkOpSchema = z
+  .object({
+    op: bulkOpKindEnum,
+    column: columnBodySchema,
+  })
+  .strict();
+
+const visibilityOpSchema = z
+  .object({
+    viewId: z.string(),
+    /** View-column row id (e.g. nc_grid_view_columns.id), NOT the
+     *  underlying nc_columns.id — matches the existing single-call
+     *  shape that `useViewColumns.saveOrUpdate` uses today. */
+    columnId: z.string(),
+    column: z
+      .object({
+        show: z
+          .union([z.boolean(), z.literal(0), z.literal(1), z.null()])
+          .optional(),
+        order: z.number().nullable().optional(),
+        underline: z
+          .union([z.boolean(), z.literal(0), z.literal(1), z.null()])
+          .optional(),
+        bold: z
+          .union([z.boolean(), z.literal(0), z.literal(1), z.null()])
+          .optional(),
+        italic: z
+          .union([z.boolean(), z.literal(0), z.literal(1), z.null()])
+          .optional(),
+      })
+      .strict(),
+  })
+  .strict();
+
+export const columnsBulkSchema = z
+  .object({
+    tableId: z.string(),
+    /** Optimistic-concurrency hash from MODELS.columnsHash; service rejects
+     *  if it doesn't match the current value. */
+    hash: z.string(),
+    ops: z.array(bulkOpSchema),
+    visibility: z.array(visibilityOpSchema).optional(),
+  })
+  .strict();

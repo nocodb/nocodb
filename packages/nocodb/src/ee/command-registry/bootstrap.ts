@@ -3,6 +3,7 @@ import type { OnApplicationBootstrap } from '@nestjs/common';
 import { registerBaseVariableHandlers } from '~/command-registry/operations/base-variables';
 import { registerTableHandlers } from '~/command-registry/operations/tables';
 import { registerTablesV3Handlers } from '~/command-registry/operations/tables-v3';
+import { registerMacroHandlers } from '~/command-registry/operations/macro';
 import { registerViewHandlers } from '~/command-registry/operations/views';
 import { registerColumnHandlers } from '~/command-registry/operations/columns';
 import { registerViewTypeHandlers } from '~/command-registry/operations/view-types';
@@ -138,6 +139,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     registerPermissionHandlers(this.permissionsSvc);
     registerRlsHandlers(this.rlsSvc, this.filtersSvc);
     registerTablesV3Handlers(this.tablesV3Svc, this.baseTrashSvc);
+    registerMacroHandlers();
 
     OperationRegistry.freeze();
     this.logger.log(

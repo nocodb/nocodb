@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { OperationRegistry } from '~/command-registry/registry';
-import { runInReplay } from '~/helpers/replayScope';
+import { dispatchOperation } from '~/command-registry/replay-context';
 import { OperationLog } from '~/models';
 
 export type UndoRedoResult =
@@ -126,36 +126,22 @@ export class UndoRedoService {
     const resolved = OperationRegistry.resolve(opName, opVersion);
     if (!resolved) return { status: 'no_handler', opName };
 
-    // Inject entity_id into the create body so model.insert preserves it
-    // across undo→redo cycles (same mechanism as sandbox replay).
-    const replayParams: Record<string, any> = {
-      ...((params as Record<string, any> | null) ?? {}),
-    };
-    const idField = resolved.contract.sandbox?.id_field;
-    if (
-      idField &&
-      entry.entity_id &&
-      replayParams[idField] &&
-      typeof replayParams[idField] === 'object'
-    ) {
-      replayParams[idField] = {
-        ...replayParams[idField],
-        id: entry.entity_id,
-      };
-    }
-
     let metaUpdate: Record<string, unknown> | undefined;
     try {
-      const handlerResult = await runInReplay(() =>
-        resolved.handler(context, replayParams as any, {
-          entryId: entry.id ?? '',
+      const handlerResult = await dispatchOperation(
+        context,
+        resolved.contract,
+        resolved.handler,
+        {
+          params,
           entityId: entry.entity_id,
-          originalReq: req,
+          extra: entry.meta as Record<string, unknown> | undefined,
+          entryId: entry.id ?? '',
           createdBy: (context.user?.id ??
             (req as any)?.user?.id ??
             '') as string,
-          ...(entry.meta ? { extra: entry.meta } : {}),
-        }),
+          originalReq: req,
+        },
       );
 
       // `columnUpdate` returns `{ metaUpdate }` when its backup ref was

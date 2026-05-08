@@ -10,6 +10,7 @@ import { OperationRegistry } from '~/command-registry/registry';
 import {
   makeReplayReq,
   registerForward,
+  registerMacro,
 } from '~/command-registry/replay-context';
 import { getReplay, isReplay, setReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
@@ -21,6 +22,7 @@ import {
   columnAddExtraSchema,
   columnAddSchema,
   columnDeleteSchema,
+  columnsBulkSchema,
   columnSetAsPrimarySchema,
   columnUpdateExtraSchema,
   columnUpdateSchema,
@@ -365,6 +367,43 @@ export const ColumnSetAsPrimaryContract: OperationContract<
   },
 };
 
+// ── Bulk column operations ────────────────────────────────────────
+export const ColumnsBulkContract: OperationContract<
+  typeof columnsBulkSchema,
+  Record<string, any>,
+  unknown
+> = {
+  name: OperationName.columnsBulk,
+  entity: MetaTable.MODELS,
+  schema: columnsBulkSchema,
+  macro: true,
+  entry: {
+    entity_id: (params) => params.tableId,
+    description: ({ entityTitle, parentEntityTitle }) =>
+      `Update fields${entityTitle ? ` of ${entityTitle}` : ''}${
+        parentEntityTitle ? ` in ${parentEntityTitle}` : ''
+      }`,
+    before: async (context, params) => {
+      const table = await Model.get(context, params.tableId);
+      return { entityTitle: table?.title };
+    },
+  },
+  undo: {
+    inverse: (_context, _params, _result, resolved) => {
+      const transcript = (
+        resolved?.extra as
+          | { macroTranscript?: ReadonlyArray<unknown> }
+          | undefined
+      )?.macroTranscript;
+      if (!transcript || !transcript.length) return null;
+      return {
+        name: OperationName.macroUndo,
+        params: { transcript },
+      };
+    },
+  },
+};
+
 export function registerColumnHandlers(
   svc: ColumnsService,
   baseTrashSvc: BaseTrashService,
@@ -444,5 +483,14 @@ export function registerColumnHandlers(
   );
   registerForward(ColumnSetAsPrimaryContract, (context, params) =>
     svc.columnSetAsPrimary(context, params),
+  );
+registerMacro(ColumnsBulkContract, (context, params, req) =>
+    svc.columnsBulk(context, {
+      tableId: params.tableId,
+      hash: params.hash,
+      ops: params.ops,
+      visibility: params.visibility,
+      req,
+    } as unknown as Parameters<typeof svc.columnsBulk>[1]),
   );
 }

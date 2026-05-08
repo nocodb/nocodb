@@ -31,6 +31,12 @@ export interface OperationContract<
   readonly entry?: OperationEntry<S, E, R>;
   readonly undo?: OperationUndo<S, E, R>;
   readonly sandbox?: OperationSandbox<S, R>;
+
+  /**
+   * Marks the op as a "macro" — a user-facing action that fans out to
+   * multiple traced child operations.
+   */
+  readonly macro?: boolean;
 }
 
 export interface OperationEntry<
@@ -141,6 +147,39 @@ export interface TraceCommandDep {
 }
 
 /**
+ * One recorded child operation inside a macro op's transcript. The
+ * macro op's @TraceCommand decorator (in `macro: true` mode) auto-
+ * appends one of these for every nested @TraceCommand call. On replay
+ * the macro's registered handler iterates the transcript and re-invokes
+ * each child via the OperationRegistry — same dispatch loop as
+ * `SandboxCommandReplayService`.
+ */
+export interface MacroTranscriptEntry {
+  /** Child op's contract name (an OperationName value). */
+  op: string;
+  /** Child contract version — guards against schema drift. */
+  version: number;
+  /** Forward params for the child, post-NON_SERIALIZABLE_KEYS filtering.
+   *  Validated lazily against the resolved contract.schema on replay. */
+  params: unknown;
+  /** Captured side-effect ids (LTAR fan-out, filter ids, backup ref,
+   *  etc.) — the same shape the child contract opts into via
+   *  `sandbox.capture`. Restored to setReplay slots on replay so the
+   *  child's existing replay logic reuses the original ids. */
+  extra?: Partial<CaptureBag>;
+  /** Snapshot from the child's `entry.before` return value. This is
+   *  the contract's E-generic (e.g. ColumnUpdate snapshots `prev` here
+   *  for its inverse builder). Persisted opaque on this side; typed
+   *  back at the inverse-builder call site. Required for any child
+   *  whose `undo.inverse` reads `resolved.extra.*`. */
+  resolvedExtra?: unknown;
+  /** Primary entity id created/affected by this child. Used by the
+   *  child handler's trash-restore short-circuit on replay (e.g.
+   *  ColumnAddContract checks `meta.entityId` against the trash). */
+  entityId?: string;
+}
+
+/**
  * Typed shape of every value depositable into the trace-ALS capture bag.
  * Add a key here, then deposit via `captureForTrace(key, value)` and opt
  * into persistence on the contract via `sandbox.capture: [key]`.
@@ -167,6 +206,12 @@ export interface CaptureBag {
    *  inner filter tree).
    */
   rowColorFilterIds: ReadonlyArray<string>;
+  /** Recorded child operations of a macro op — populated by the
+   *  decorator's auto-instrument branch when the parent contract has
+   *  `macro: true`. The macro's registered handler iterates this on
+   *  replay (undo/redo or sandbox merge) instead of re-running the
+   *  service body. */
+  macroTranscript: ReadonlyArray<MacroTranscriptEntry>;
 }
 
 export type CaptureKey = keyof CaptureBag;

@@ -271,6 +271,12 @@ export const getFontForToken = (
 ): string => {
   const { baseFontSize, fontFamily } = props
 
+  // Callers may pass a full font shorthand (e.g. '500 13px Inter') instead of
+  // just a family name. Strip any leading weight + size so the recombined
+  // string below stays a valid CSS font shorthand — otherwise canvas silently
+  // rejects the assignment and bold/italic never apply.
+  const familyOnly = fontFamily.replace(/^(?:\d+\s+)?\d+(?:\.\d+)?(?:px|pt|em|rem)\s+/, '')
+
   const fontParts: string[] = []
   const fontSize = baseFontSize
 
@@ -283,7 +289,7 @@ export const getFontForToken = (
   }
 
   fontParts.push(`${fontSize}px`)
-  fontParts.push(fontFamily)
+  fontParts.push(familyOnly)
   return fontParts.join(' ')
 }
 

@@ -29,8 +29,20 @@ export interface OperationContract<
   readonly schema: S;
 
   readonly entry?: OperationEntry<S, E, R>;
-  readonly undo?: OperationUndo<S, E, R>;
-  readonly sandbox?: OperationSandbox<S, R>;
+  /** Object = record undo; `false` = explicit opt-out. */
+  readonly undo?: OperationUndo<S, E, R> | false;
+  /** Object = record sandbox changelog; `false` = explicit opt-out. */
+  readonly sandbox?: OperationSandbox<S, R> | false;
+
+  /**
+   * Trace-ALS keys to persist as `meta.extra` on the operation-log /
+   * sandbox-changelog row. Used by both destinations — independent of
+   * `sandbox: false`. Values are deposited via `captureForTrace(key, value)`
+   * during the forward run.
+   */
+  readonly capture?: ReadonlyArray<CaptureKey>;
+  /** Validates the `meta.extra` payload before persistence. Strict. */
+  readonly capture_schema?: ZodTypeAny;
 
   /**
    * Marks the op as a "macro" — a user-facing action that fans out to
@@ -84,10 +96,6 @@ export interface OperationSandbox<S extends ZodTypeAny = ZodTypeAny, R = any> {
    * pre-set `id`).
    */
   readonly id_field?: string;
-  /** Trace-ALS keys to persist as `meta.extra` (deposited via `captureForTrace`). */
-  readonly capture?: ReadonlyArray<CaptureKey>;
-  /** Validates the `meta.extra` payload before persistence. Strict. */
-  readonly capture_schema?: ZodTypeAny;
   /**
    * Related entity IDs the forward op references but doesn't own (e.g. a
    * formula column → other columns). Persisted on `meta.deps`, used by
@@ -102,9 +110,24 @@ export interface InverseOp {
   params: unknown;
 }
 
-export type EntityRefFn<S extends ZodTypeAny, R = any> = (
+/** Resolves `contract.undo` to its config object, treating `false` as opt-out. */
+export function getUndoConfig<C extends OperationContract<any, any, any>>(
+  contract: C,
+): OperationUndo | undefined {
+  return contract.undo === false ? undefined : contract.undo;
+}
+
+/** Resolves `contract.sandbox` to its config object, treating `false` as opt-out. */
+export function getSandboxConfig<C extends OperationContract<any, any, any>>(
+  contract: C,
+): OperationSandbox | undefined {
+  return contract.sandbox === false ? undefined : contract.sandbox;
+}
+
+export type EntityRefFn<S extends ZodTypeAny, R = any, E = Record<string, any>> = (
   params: z.infer<S>,
   result: R,
+  resolved?: ResolvedCtx<E>,
 ) => string | undefined;
 
 // Match all 3 generics so contracts that supply non-default E/R still match
@@ -212,7 +235,64 @@ export interface CaptureBag {
    *  replay (undo/redo or sandbox merge) instead of re-running the
    *  service body. */
   macroTranscript: ReadonlyArray<MacroTranscriptEntry>;
+  /** Pre-mutation row snapshots for record-CRUD inverses. Populated
+   *  by `BaseModelSqlv2.updateByPk/bulkUpdate/delByPk/bulkDelete` at
+   *  the existing audit-read site (no dual read). Inverse builders for
+   *  `recordUpdate` / `recordDelete` / their bulk variants read these
+   *  to construct the reverse op. Order matches the input row order. */
+  recordPrev: ReadonlyArray<Record<string, unknown>>;
+  /** Side-effect rows mutated by an insert/update with nested LTAR
+   *  data. Captured BEFORE each mutating op inside
+   *  `prepareNestedLinkQb` so undo can restore the prior state.
+   *
+   *  Two variants:
+   *   - `column`: a row's FK column was overwritten (V1 OO BT-side
+   *     null-out; V1 OO HM-side reassign; V1 HM child re-parenting).
+   *   - `junction`: a junction row was deleted to enforce single-link
+   *     cardinality (V2 OO, V2 OM, V2 MO with OO sub-case).
+   */
+  displacedRecords: ReadonlyArray<DisplacedRecord>;
+  /** Persisted alongside `recordInsert` so replay (redo) doesn't
+   *  depend on re-resolving the model from baseName/tableName at undo
+   *  time — those lookups fail for renamed bases / tables and aren't
+   *  always present in v3-style param shapes. Written by `entry.before`
+   *  on the forward path and read by the replay handler. */
+  recordInsertContext: {
+    modelId: string;
+    primaryKeyTitle: string;
+    primaryKeyColumnName: string;
+  };
 }
+
+export type DisplacedRecord =
+  | {
+      kind: 'column';
+      /** Model whose row was mutated (resolved via `Model.get` at restore). */
+      modelId: string;
+      /** Composite-pk value (joined with `___` for multi-key tables). */
+      pk: string;
+      /** DB-level column_name (not title) — restored via raw UPDATE. */
+      column: string;
+      /** Value before the mutation (used by undo to restore prev state). */
+      prev: unknown;
+      /** What the forward op set this column to (used by redo to re-apply
+       *  the displaced state). `'null'` = OO BT-side null-out;
+       *  `'newRowPk'` = HM/OO-HM-side reassignment to inserted row's pk
+       *  (resolved at redo time from `meta.entityId`). Optional only for
+       *  backward compat with log entries written before this field
+       *  existed — those rows skip re-displacement on redo. */
+      forward?: 'null' | 'newRowPk';
+    }
+  | {
+      kind: 'junction';
+      /** Junction (mm) model id. */
+      mmModelId: string;
+      colId?: string;
+      parentMMCol: string;
+      childMMCol: string;
+      parentValue: string | number;
+      childValue: string | number;
+    };
 
 export type CaptureKey = keyof CaptureBag;
 

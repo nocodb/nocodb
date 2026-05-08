@@ -148,10 +148,10 @@ async function autoInstrumentMacroChild(
   });
 
   // Harvest only the keys the child contract opted into via
-  // `sandbox.capture`. Same allowlist that `recordCommand` uses for
+  // top-level `capture`. Same allowlist that `recordCommand` uses for
   // single-entity ops — ensures the transcript carries exactly what the
   // child's existing replay logic reads via setReplay slots.
-  const allowlist = childContract.sandbox?.capture ?? [];
+  const allowlist = childContract.capture ?? [];
   const extra: Record<string, unknown> = {};
   for (const key of allowlist) {
     const value = childCapture.get(key);
@@ -162,6 +162,7 @@ async function autoInstrumentMacroChild(
     childContract.entry?.entity_id ?? 'id',
     param,
     result,
+    resolvedCtx,
   );
 
   const filteredParams = extractReplayableParams(param);

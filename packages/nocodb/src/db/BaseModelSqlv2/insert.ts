@@ -8,9 +8,12 @@ import {
 import { AttachmentUrlUploadPreparator } from './attachment-url-upload-preparator';
 import type { Column } from 'src/models';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
+import type { DisplacedRecord } from '~/command-registry/types';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import getAst from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
+import { captureForTrace } from '~/decorators/trace-command.decorator';
+import { isReplay } from '~/helpers/replayScope';
 
 export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
   const single = async (
@@ -203,6 +206,10 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         ((rowId: any) => Promise<string>)[]
       > = {};
       let preInsertOps: (() => Promise<string>)[] = [];
+      // Accumulator for displacement capture across the row loop. Each
+      // call to `prepareNestedLinkQb` returns its own batch; we append
+      // them together so the trace decorator sees the union.
+      const displacedRecords: DisplacedRecord[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
       let columns: Column[];
@@ -241,6 +248,9 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
             postInsertOpsMap[index] = operations.postInsertOps;
             preInsertOps = operations.preInsertOps;
+            if (operations.displacedRecords?.length) {
+              displacedRecords.push(...operations.displacedRecords);
+            }
           }
           if (attachmentCols.length > 0) {
             const attachmentOperations =
@@ -311,6 +321,15 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         preInsertOps.map((f) => f()),
         trx,
       );
+
+      // Deposit displacement capture for the trace decorator. The
+      // capture-ops in preInsertOps populated `displacedRecords`
+      // during Promise.all (parallel SELECTs), then runOps walked the
+      // mutating query strings serially — so reads precede writes.
+      // Skipped under replay (replay reads from meta.extra).
+      if (displacedRecords.length > 0 && !isReplay()) {
+        captureForTrace('displacedRecords', displacedRecords);
+      }
 
       let responses;
 

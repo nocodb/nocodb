@@ -30,9 +30,9 @@ export const TableCreateContract: OperationContract<
     entity_title: 'title',
     description: tableActions.add,
   },
+  capture: ['sandboxColumns', 'sandboxDefaultViewId'],
   sandbox: {
     id_field: 'table',
-    capture: ['sandboxColumns', 'sandboxDefaultViewId'],
   },
   undo: {
     inverse: (_context, _params, result) => {

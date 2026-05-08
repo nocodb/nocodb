@@ -8,7 +8,8 @@ import type {
   OperationContract,
   ResolvedCtx,
   TraceCommandDep,
-} from './types';
+} from '~/command-registry/types';
+import { getSandboxConfig, getUndoConfig } from '~/command-registry/types';
 import { OperationLog, Sandbox, SandboxChangelog } from '~/models';
 import { getTraceCapture } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
@@ -17,6 +18,7 @@ const logger = new Logger('CommandRegistry');
 
 const NON_SERIALIZABLE_KEYS = new Set([
   'req',
+  'cookie',
   'ncMeta',
   'user',
   'reuse',
@@ -32,13 +34,14 @@ export function dotGet(obj: any, path: string): any {
 export function resolveField(
   field:
     | string
-    | ((params: any, result: any) => string | undefined)
+    | ((params: any, result: any, resolved?: ResolvedCtx) => string | undefined)
     | undefined,
   params: any,
   result: any,
+  resolved?: ResolvedCtx,
 ): string | undefined {
   if (field == null) return undefined;
-  if (typeof field === 'function') return field(params, result);
+  if (typeof field === 'function') return field(params, result, resolved);
   return dotGet(result, field) ?? dotGet(params, field);
 }
 
@@ -90,11 +93,21 @@ function resolveEntityInfo(
   resolvedCtx: ResolvedCtx | undefined,
 ): EntityInfo {
   const entry = contract.entry;
-  const entityId = resolveField(entry?.entity_id ?? 'id', params, result);
+  const entityId = resolveField(
+    entry?.entity_id ?? 'id',
+    params,
+    result,
+    resolvedCtx,
+  );
   const entityTitle =
-    resolveField(entry?.entity_title, params, result) ??
+    resolveField(entry?.entity_title, params, result, resolvedCtx) ??
     resolvedCtx?.entityTitle;
-  const parentEntityId = resolveField(entry?.parent_id, params, result);
+  const parentEntityId = resolveField(
+    entry?.parent_id,
+    params,
+    result,
+    resolvedCtx,
+  );
   const parentEntityTitle = resolvedCtx?.parentEntityTitle;
 
   const descCtx: DescCtx = {
@@ -132,15 +145,23 @@ export async function recordCommand(
 ): Promise<void> {
   if (!context?.base_id) return;
 
-  const userId = params?.req?.user?.id || params?.user?.id;
+  const requestObj = params?.req ?? params?.cookie;
+  const userId = requestObj?.user?.id || params?.user?.id;
   if (!userId) return;
+
+  // Per-section opt-out: `undo: false` / `sandbox: false` on the contract
+  // mean "explicitly do not record this destination."
+  const undoConfig = getUndoConfig(contract);
 
   // Skip the deep zod parse + entity-info resolve when neither destination
   // will write — matters for API-token / job traffic without `x-nc-tab-id`.
   const isUndoableCandidate =
-    !!contract.undo?.inverse && !isReplay() && !!params?.req?.ncTabId;
+    !!undoConfig?.inverse && !isReplay() && !!requestObj?.ncTabId;
 
-  const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
+  const sandbox =
+    contract.sandbox === false
+      ? null
+      : await Sandbox.getBySandboxBaseId(context.base_id);
   if (!sandbox && !isUndoableCandidate) return;
 
   const replayableParams = extractReplayableParams(params);
@@ -151,7 +172,7 @@ export async function recordCommand(
   // Macros auto-include `macroTranscript` so contract authors don't
   // have to remember to add it to `sandbox.capture`. The decorator
   // depositted the transcript via captureForTrace just before this call.
-  const explicitCaptureKeys = contract.sandbox?.capture ?? [];
+  const explicitCaptureKeys = contract.capture ?? [];
   const captureKeys: ReadonlyArray<CaptureKey> = contract.macro
     ? Array.from(
         new Set<CaptureKey>([...explicitCaptureKeys, 'macroTranscript']),
@@ -165,7 +186,7 @@ export async function recordCommand(
     }
     if (Object.keys(captured).length > 0) extraRaw = captured;
   }
-  const captureSchema = contract.sandbox?.capture_schema;
+  const captureSchema = contract.capture_schema;
   const extra =
     captureSchema && extraRaw ? captureSchema.parse(extraRaw) : extraRaw;
 
@@ -212,7 +233,7 @@ async function insertSandboxChangelog(
   extra: Record<string, unknown> | undefined,
   userId: string,
 ): Promise<void> {
-  const dependenciesFn = contract.sandbox?.dependencies;
+  const dependenciesFn = getSandboxConfig(contract)?.dependencies;
   const deps = dependenciesFn
     ? safeExtractDeps(dependenciesFn, params, result)
     : [];
@@ -253,13 +274,13 @@ async function maybeRecordUndoEntry(
   extra: Record<string, unknown> | undefined,
   userId: string,
 ): Promise<void> {
-  const inverseFn = contract.undo?.inverse;
+  const inverseFn = getUndoConfig(contract)?.inverse;
   if (!inverseFn) return;
 
   // Replay would double-record (original user mutation already wrote the row).
   if (isReplay()) return;
 
-  const tabId = params?.req?.ncTabId;
+  const tabId = (params?.req ?? params?.cookie)?.ncTabId;
   if (!tabId) return;
 
   let inverse: Awaited<ReturnType<typeof inverseFn>>;

@@ -27,9 +27,9 @@ export const TableV3CreateContract: OperationContract<
     parent_id: (params) => params.baseId,
     description: tableActions.add,
   },
+  capture: ['sandboxColumns', 'sandboxDefaultViewId'],
   sandbox: {
     id_field: 'table',
-    capture: ['sandboxColumns', 'sandboxDefaultViewId'],
   },
   undo: {
     inverse: (_context, _params, result) => {

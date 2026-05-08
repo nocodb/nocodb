@@ -122,10 +122,10 @@ export const RowColorConditionAddContract: OperationContract<
       return { parentEntityTitle: view?.title };
     },
   },
+  capture: ['rowColorFilterIds'],
+  capture_schema: rowColorAddCaptureSchema,
   sandbox: {
     id_field: 'condition',
-    capture: ['rowColorFilterIds'],
-    capture_schema: rowColorAddCaptureSchema,
     dependencies: (params, result) =>
       colDeps(
         params.condition?.fk_target_column_id,

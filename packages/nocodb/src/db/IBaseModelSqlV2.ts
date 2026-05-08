@@ -23,6 +23,7 @@ import type {
   NestedLinkLastModifiedEntry,
 } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import type { ExecAndParseOptions } from 'src/db/BaseModelSqlv2';
+import type { DisplacedRecord } from '~/command-registry/types';
 
 export interface IBaseModelSqlV2 {
   context: NcContext;
@@ -289,6 +290,7 @@ export interface IBaseModelSqlV2 {
     preInsertOps: (() => Promise<string>)[];
     postInsertAuditEntries: NestedLinkAuditEntry[];
     postInsertLastModifiedEntries: NestedLinkLastModifiedEntry[];
+    displacedRecords: DisplacedRecord[];
   }>;
 
   handleValidateBulkInsert(

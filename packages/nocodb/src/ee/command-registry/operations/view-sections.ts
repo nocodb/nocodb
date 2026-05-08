@@ -160,10 +160,8 @@ export const ViewSectionDeleteContract: OperationContract<
       };
     },
   },
-  sandbox: {
-    capture: ['viewSectionViewIds'],
-    capture_schema: viewSectionDeleteCaptureSchema,
-  },
+  capture: ['viewSectionViewIds'],
+  capture_schema: viewSectionDeleteCaptureSchema,
   undo: {
     inverse: (_context, _params, _result, resolved) => {
       const prev = resolved?.extra?.prev;

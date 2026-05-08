@@ -16,6 +16,8 @@ import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
 import { Column, Filter, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -134,6 +136,7 @@ export class DataTableService {
     return data;
   }
 
+  @TraceCommand(OperationName.recordInsert)
   async dataInsert(
     context: NcContext,
     param: {
@@ -149,6 +152,7 @@ export class DataTableService {
         skipHooks?: boolean;
       };
       user?: any;
+      req?: NcRequest;
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);

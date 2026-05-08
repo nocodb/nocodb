@@ -92,10 +92,10 @@ export const ColumnAddContract: OperationContract<
       return { parentEntityTitle: table?.title };
     },
   },
+  capture: ['ltar', 'filters'],
+  capture_schema: columnAddExtraSchema,
   sandbox: {
     id_field: 'column',
-    capture: ['ltar', 'filters'],
-    capture_schema: columnAddExtraSchema,
     dependencies: (_params, result) => deriveColumnDeps(result),
   },
   undo: {
@@ -249,9 +249,9 @@ export const ColumnUpdateContract: OperationContract<
       };
     },
   },
+  capture: ['backup'],
+  capture_schema: columnUpdateExtraSchema,
   sandbox: {
-    capture: ['backup'],
-    capture_schema: columnUpdateExtraSchema,
     dependencies: (_params, result) => deriveColumnDeps(result),
   },
   undo: {

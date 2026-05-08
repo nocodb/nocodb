@@ -80,7 +80,8 @@ export const HookCreateContract: OperationContract<
       return { parentEntityTitle: table?.title };
     },
   },
-  sandbox: { id_field: 'hook', capture: ['filters'] },
+  capture: ['filters'],
+  sandbox: { id_field: 'hook' },
   undo: {
     inverse: (_context, _params, result) => {
       if (!result?.id) return null;

@@ -150,6 +150,10 @@ export const OperationName = {
   listViewLevelsRestore: 'listViewLevelsRestore',
   viewColumnsBulkSetVisibility: 'viewColumnsBulkSetVisibility',
   macroUndo: 'macroUndo',
+
+  // Records (data ops) — `sandbox: false` contracts; per-tab undo/redo only
+  recordInsert: 'recordInsert',
+  recordInsertUndo: 'recordInsertUndo',
 } as const;
 
 export type OperationName = (typeof OperationName)[keyof typeof OperationName];

@@ -29,6 +29,7 @@ import { registerTrashHandlers } from '~/command-registry/operations/trash';
 import { registerRowColorHandlers } from '~/command-registry/operations/row-color';
 import { registerPermissionHandlers } from '~/command-registry/operations/permissions';
 import { registerRlsHandlers } from '~/command-registry/operations/rls';
+import { registerRecordHandlers } from '~/command-registry/operations/records';
 import { OperationRegistry } from '~/command-registry/registry';
 import { BaseVariablesService } from '~/ee/services/base-variables.service';
 import { TablesService } from '~/services/tables.service';
@@ -62,6 +63,7 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
 import { PermissionsService } from '~/ee/services/permissions.service';
 import { RlsService } from '~/services/rls.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
+import { DataTableService } from '~/services/data-table.service';
 
 @Injectable()
 export class OperationRegistryBootstrap implements OnApplicationBootstrap {
@@ -100,6 +102,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly permissionsSvc: PermissionsService,
     private readonly rlsSvc: RlsService,
     private readonly tablesV3Svc: TablesV3Service,
+    private readonly dataTableSvc: DataTableService,
   ) {}
 
   onApplicationBootstrap(): void {
@@ -139,6 +142,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     registerPermissionHandlers(this.permissionsSvc);
     registerRlsHandlers(this.rlsSvc, this.filtersSvc);
     registerTablesV3Handlers(this.tablesV3Svc, this.baseTrashSvc);
+    registerRecordHandlers(this.dataTableSvc, this.baseTrashSvc);
     registerMacroHandlers();
 
     OperationRegistry.freeze();

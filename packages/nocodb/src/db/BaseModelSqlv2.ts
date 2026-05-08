@@ -158,6 +158,8 @@ import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { isTransientError } from '~/helpers/db-error/utils';
+import { captureForTrace } from '~/decorators/trace-command.decorator';
+import { isReplay } from '~/helpers/replayScope';
 
 const debugCount = debug('nc:db:query:basemodel:count');
 
@@ -3262,6 +3264,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         postInsertAuditEntries,
         // eslint-disable-next-line prefer-const
         postInsertLastModifiedEntries,
+        // eslint-disable-next-line prefer-const
+        displacedRecords,
       } = await this.prepareNestedLinkQb({
         nestedCols,
         data,
@@ -3297,6 +3301,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       });
 
       await this.runOps(preInsertOps.map((f) => f()));
+
+      // Deposit displacement capture for the trace decorator.
+      // `displacedRecords` was populated by capture-ops in
+      // preInsertOps (parallel SELECTs ran during Promise.all,
+      // before runOps walked the UPDATE/DELETE strings serially).
+      // Skipped under replay — replay reads from meta.extra, doesn't
+      // re-capture.
+      if (displacedRecords.length > 0 && !isReplay()) {
+        captureForTrace('displacedRecords', displacedRecords);
+      }
 
       let response;
       const query = this.dbDriver(this.tnPath).insert(insertObj);

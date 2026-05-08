@@ -14,6 +14,8 @@ import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class DatasService {
@@ -137,6 +139,7 @@ export class DatasService {
     return { count };
   }
 
+  @TraceCommand(OperationName.recordInsert)
   async dataInsert(
     context: NcContext,
     param: PathParams & {

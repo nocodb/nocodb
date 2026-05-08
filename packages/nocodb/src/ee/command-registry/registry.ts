@@ -2,7 +2,11 @@ import * as crypto from 'crypto';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import type { ZodTypeAny } from 'zod';
 
-import type { CommandHandler, OperationContract } from './types';
+import type {
+  CommandHandler,
+  OperationContract,
+} from '~/command-registry/types';
+import { getSandboxConfig } from '~/command-registry/types';
 
 interface RegistryEntry {
   contract: OperationContract;
@@ -57,10 +61,10 @@ class _OperationRegistry {
         name: e.contract.name,
         version: versionOf(e.contract),
         entity: String(e.contract.entity),
-        id_field: e.contract.sandbox?.id_field,
+        id_field: getSandboxConfig(e.contract)?.id_field,
         schemaHash: hashSchema(e.contract.schema),
-        capture_schema_hash: e.contract.sandbox?.capture_schema
-          ? hashSchema(e.contract.sandbox.capture_schema)
+        capture_schema_hash: e.contract.capture_schema
+          ? hashSchema(e.contract.capture_schema)
           : undefined,
       }))
       .sort((a, b) => a.name.localeCompare(b.name) || a.version - b.version);

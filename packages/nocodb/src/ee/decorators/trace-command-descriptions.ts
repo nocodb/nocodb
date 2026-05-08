@@ -106,6 +106,17 @@ export const recordTemplateActions = buildActions(
   'record template',
 );
 
+export const recordActions = {
+  insert: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Insert record in ${bTable(parentEntityTitle)}`
+      : `Insert record`) as DescFn,
+  insertUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo record insert in ${bTable(parentEntityTitle)}`
+      : `Undo record insert`) as DescFn,
+};
+
 /**
  * Nested-under-view action (filters, sorts, row-color conditions).
  * The entity has:

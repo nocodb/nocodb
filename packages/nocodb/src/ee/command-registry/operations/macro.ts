@@ -3,6 +3,7 @@ import type {
   MacroTranscriptEntry,
   OperationContract,
 } from '~/command-registry/types';
+import { getUndoConfig } from '~/command-registry/types';
 import { OperationName } from '~/command-registry/op-names';
 import { OperationRegistry } from '~/command-registry/registry';
 import {
@@ -72,7 +73,7 @@ export function registerMacroHandlers(): void {
           );
           continue;
         }
-        const inverseFn = resolved.contract.undo?.inverse;
+        const inverseFn = getUndoConfig(resolved.contract)?.inverse;
         if (!inverseFn) {
           logger.warn(
             `macroUndo: child '${entry.op}' has no undo.inverse, skipping`,

@@ -6,6 +6,7 @@ import type {
   MacroTranscriptEntry,
   OperationContract,
 } from '~/command-registry/types';
+import { getSandboxConfig } from '~/command-registry/types';
 import { OperationRegistry } from '~/command-registry/registry';
 import { isReplay, runInReplay } from '~/helpers/replayScope';
 
@@ -74,7 +75,7 @@ export async function dispatchOperation(
     replayParams.baseId = context.base_id;
   }
 
-  const idField = contract.sandbox?.id_field;
+  const idField = getSandboxConfig(contract)?.id_field;
   if (
     idField &&
     call.entityId &&

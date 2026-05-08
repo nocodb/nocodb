@@ -4,6 +4,8 @@ import {
   durationOptions,
   ModelTypes,
   ratingIconList,
+  resolveColumnSeparator,
+  SeparatorType,
   UITypes,
   viewTypeAlias,
 } from 'nocodb-sdk';
@@ -35,16 +37,22 @@ function transformFieldMeta(field: any, colOptions: any): Record<string, any> {
     case UITypes.Email:
       options.validation = metaObj.validate || false;
       break;
-    case UITypes.Number:
-      options.locale_string = metaObj.isLocaleString || false;
-      options.separator = metaObj.separator || null;
+    case UITypes.Number: {
+      const separator = resolveColumnSeparator(metaObj);
+      options.separator = separator;
+      // locale_string is derived from separator for backward compat with
+      // existing scripts — true whenever a thousand separator is configured.
+      options.locale_string = separator !== SeparatorType.NonePeriod && separator !== SeparatorType.NoneComma;
       break;
+    }
     case UITypes.Decimal:
-    case UITypes.Rollup:
+    case UITypes.Rollup: {
       options.precision = metaObj.precision || 1;
-      options.locale_string = metaObj.isLocaleString || false;
-      options.separator = metaObj.separator || null;
+      const separator = resolveColumnSeparator(metaObj);
+      options.separator = separator;
+      options.locale_string = separator !== SeparatorType.NonePeriod && separator !== SeparatorType.NoneComma;
       break;
+    }
     case UITypes.Currency:
       options.locale = metaObj.currency_locale || 'en-US';
       options.code = metaObj.currency_code || 'USD';

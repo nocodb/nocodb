@@ -18,7 +18,9 @@ vModel.value.meta = {
 const { isSystem } = useColumnCreateStoreOrThrow()
 
 // Backward compat: resolve isLocaleString to separator if separator is not yet set
-vModel.value.meta.separator = resolveColumnSeparator(vModel.value.meta)
+if (!vModel.value.meta.separator) {
+  vModel.value.meta.separator = resolveColumnSeparator(vModel.value.meta)
+}
 </script>
 
 <template>

@@ -2408,7 +2408,7 @@
     "displayAsProgress": "Display as progress",
     "relationType": "Relation type",
     "separator": "Thousands and decimal separators",
-    "separatorLocal": "Local",
+    "separatorLocale": "Locale",
     "separatorNonePeriod": "None and period",
     "separatorNoneComma": "None and comma",
     "separatorCommaPeriod": "Comma and period",

@@ -17,7 +17,6 @@ const clone = rfdc();
 export class RollupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     precision: precisionFormats[0],
-    isLocaleString: false,
     separator: SeparatorType.NonePeriod,
   };
 

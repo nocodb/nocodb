@@ -25,7 +25,7 @@ const separatorOptions = computed(() => {
   const altDecimalSuffix = props.integer ? '' : ',00'
 
   const all = [
-    { value: SeparatorType.Locale, label: t('labels.separatorLocal'), preview: `1,000,000${decimalSuffix}` },
+    { value: SeparatorType.Locale, label: t('labels.separatorLocale'), preview: `1,000,000${decimalSuffix}` },
     { value: SeparatorType.NonePeriod, label: t('labels.separatorNonePeriod'), preview: `1000000${decimalSuffix}` },
     { value: SeparatorType.NoneComma, label: t('labels.separatorNoneComma'), preview: `1000000${altDecimalSuffix}` },
     { value: SeparatorType.CommaPeriod, label: t('labels.separatorCommaPeriod'), preview: `1,000,000${decimalSuffix}` },

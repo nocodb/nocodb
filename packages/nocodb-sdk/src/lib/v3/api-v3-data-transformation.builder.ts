@@ -379,7 +379,7 @@ export const columnBuilder = builderGenerator<ColumnType, FieldV3Type>({
     metaProps: ['meta'],
     mappings: {
       is12hrFormat: '12hr_format',
-      isLocaleString: 'locale_string',
+      separator: 'separator',
       richMode: 'rich_text',
       [LongTextAiMetaProp]: 'generate_text_using_ai',
       isDisplayTimezone: 'display_timezone',
@@ -611,7 +611,10 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
     metaProps: ['options', 'meta'],
     mappings: {
       '12hr_format': 'is12hrFormat',
+      // legacy V3 field — preserved so older clients sending locale_string
+      // still resolve via resolveColumnSeparator on read
       locale_string: 'isLocaleString',
+      separator: 'separator',
       rich_text: 'richMode',
       display_timezone: 'isDisplayTimezone',
 

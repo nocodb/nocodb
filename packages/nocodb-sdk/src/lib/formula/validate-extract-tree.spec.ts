@@ -4,6 +4,7 @@ import { FormulaError } from './error';
 import UITypes from '../UITypes';
 import { SqlUiFactory } from '~/lib/sqlUi';
 import { UnifiedMetaType } from '~/lib/types';
+import { SeparatorType } from '~/lib/columnHelper/utils/common';
 
 // Mock dependencies
 const mockColumns: UnifiedMetaType.IColumn[] = [
@@ -392,7 +393,7 @@ const caseIdentifierRollup = {
       order: 9,
       meta: {
         precision: 0,
-        isLocaleString: false,
+        separator: SeparatorType.NonePeriod,
         defaultViewColOrder: 9,
         defaultViewColVisibility: true,
       },

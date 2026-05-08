@@ -10,7 +10,6 @@ import { ncIsNaN } from '~/lib/is';
 
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
-    isLocaleString: false,
     separator: SeparatorType.NonePeriod,
   };
 

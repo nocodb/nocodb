@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type TableType, UITypes, getAvailableRollupForColumn, rollupAllFunctions } from 'nocodb-sdk'
+import { type ColumnType, type TableType, SeparatorType, UITypes, getAvailableRollupForColumn, rollupAllFunctions } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
@@ -101,7 +101,7 @@ const getRollupColPayload = (selectedColumn: ColumnType) => {
     rollupColumnTitle: selectedColumn?.title || selectedColumn?.column_name,
     meta: {
       precision: 0,
-      isLocaleString: false,
+      separator: SeparatorType.NonePeriod,
     },
 
     ...(aggFunctionsList.length

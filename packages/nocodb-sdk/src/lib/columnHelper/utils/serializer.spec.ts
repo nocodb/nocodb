@@ -84,10 +84,11 @@ describe('serializeDecimalValue', () => {
       expect(serializeDecimalValue('1,2,3,4', undefined, params)).toBe(1.2);
     });
 
-    it('accepts period-based value pasted into comma-decimal field', () => {
-      // 123.46 → no thousand sep to remove → first "," not found → no truncation
-      // no "," to replace with "." → stays 123.46 → regex keeps digits/dot/minus → 123.46
-      // The "." passes through because it is not the column's decimal separator
+    it('treats period as noise when separator is NoneComma', () => {
+      // For NoneComma, "," is the decimal separator and "." is not part of the
+      // allowed char set — the strip regex removes it as noise. So "123.46"
+      // becomes "12346". This matches the keystroke handler in DecimalInput.vue,
+      // which also strips dots first when the column's decimal separator is ",".
       expect(serializeDecimalValue('123.46', undefined, params)).toBe(12346);
     });
   });

@@ -10,7 +10,6 @@ import { ncIsNaN } from '~/lib/is';
 export class DecimalHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     precision: precisionFormats[1],
-    isLocaleString: false,
     separator: SeparatorType.NonePeriod,
   };
 

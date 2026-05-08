@@ -256,7 +256,9 @@ vModel.value.meta = {
 const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
 
 // Backward compat: resolve isLocaleString to separator if separator is not yet set
-vModel.value.meta.separator = resolveColumnSeparator(vModel.value.meta)
+if (!vModel.value.meta.separator) {
+  vModel.value.meta.separator = resolveColumnSeparator(vModel.value.meta)
+}
 
 const enableFormattingOptions = computed(() => {
   const relatedCol = filteredColumns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)

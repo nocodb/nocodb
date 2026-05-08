@@ -27,7 +27,6 @@ describe('DecimalHelper', () => {
     it('has sensible defaults', () => {
       expect(helper.columnDefaultMeta).toEqual({
         precision: 1,
-        isLocaleString: false,
         separator: SeparatorType.NonePeriod,
       });
     });
@@ -105,6 +104,8 @@ describe('DecimalHelper', () => {
     it('handles European format (period thousand, comma decimal)', () => {
       const params = makeParams({}, { separator: SeparatorType.PeriodComma });
       expect(helper.serializeValue('1.234.567,89', params)).toBe(1234567.89);
+      // "1.23" — "." is the thousand separator under PeriodComma, so it is
+      // stripped, giving 123. Users who want a fractional value must use ",".
       expect(helper.serializeValue('1.23', params)).toBe(123);
     });
 

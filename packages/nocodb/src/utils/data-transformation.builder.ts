@@ -291,7 +291,6 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
     metaProps: ['meta'],
     mappings: {
       is12hrFormat: '12hr_format',
-      isLocaleString: 'locale_string',
       separator: 'separator',
       showAsProgress: 'show_as_progress',
       // duration: 'duration_format',
@@ -426,6 +425,8 @@ export const columnV3ToV2Builder = builderGenerator({
     metaProps: ['options'],
     mappings: {
       '12hr_format': 'is12hrFormat',
+      // legacy V3 field — preserved so older clients sending locale_string
+      // still resolve via resolveColumnSeparator on read
       locale_string: 'isLocaleString',
       separator: 'separator',
       show_as_progress: 'showAsProgress',

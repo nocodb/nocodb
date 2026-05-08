@@ -27,6 +27,7 @@ import {
   isMMOrMMLike,
   isOrderCol,
   isSelfLinkCol,
+  isSupportedDisplayValueColumn,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
@@ -582,6 +583,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     refModel: Model,
   ): Promise<Column | undefined> {
     if (!columnId) return undefined;
+    // EE-only feature — CE never sets fk_display_value_column_id (write-time
+    // gated in columns.service.ts), so skip all I/O on CE.
+    if (!Noco.isEE()) return undefined;
     const col = await Column.get(this.context, { colId: columnId });
     if (!col) return undefined;
     if (!refModel.columns?.length) await refModel.getColumns(this.context);
@@ -634,6 +638,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     refModel: Model,
   ): Promise<Column | undefined> {
     if (!columnId) return undefined;
+    // EE-only feature — CE never sets fk_display_value_column_id (write-time
+    // gated in columns.service.ts), so skip all I/O on CE.
+    if (!Noco.isEE()) return undefined;
     const col = await Column.get(this.context, { colId: columnId });
     if (!col) return undefined;
     if (!refModel.columns?.length) await refModel.getColumns(this.context);
@@ -643,6 +650,81 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
     if (!pairedCol) return undefined;
     return this.resolveLtarDisplayCol(pairedCol.id, model);
+  }
+
+  // Request-scoped cache for `getLtarDisplayColumnOverride`. Key is
+  // `${ltarColumn.id}:${model.id}`, value is the resolved Column (or null
+  // when no override applies — distinct from "not yet resolved", so we can
+  // tell cache misses apart from "no override" hits).
+  private _ltarDisplayColCache?: Map<string, Column | null>;
+
+  // Resolves the LTAR's `fk_display_value_column_id` override (own or paired,
+  // depending on which side `model` is) to a Column on `model`. The result
+  // is cached per (ltarColumn.id, model.id) on this BaseModelSqlv2 instance,
+  // so multiple RelationManagers in the same request share lookups instead
+  // of each paying for `extractCorrespondingLinkColumn` + `getColOptions`
+  // from cold.
+  //
+  // Returns undefined when no override applies → callers fall back to the
+  // table's primary value.
+  public async getLtarDisplayColumnOverride(
+    ltarColumn: Column,
+    model: Model,
+  ): Promise<Column | undefined> {
+    // EE-only feature — CE never sets fk_display_value_column_id (write-time
+    // gated in columns.service.ts), so skip all I/O on CE.
+    if (!Noco.isEE()) return undefined;
+
+    if (!this._ltarDisplayColCache) {
+      this._ltarDisplayColCache = new Map();
+    }
+    const key = `${ltarColumn.id}:${model.id}`;
+    const cached = this._ltarDisplayColCache.get(key);
+    if (cached !== undefined) return cached ?? undefined;
+
+    const colCtx = { ...this.context, base_id: ltarColumn.base_id };
+    const colOpts = await ltarColumn.getColOptions<LinkToAnotherRecordColumn>(
+      colCtx,
+    );
+
+    let result: Column | undefined;
+
+    if (model.id === colOpts?.fk_related_model_id) {
+      // Forward direction: own LTAR's override targets `model`.
+      const id = colOpts?.fk_display_value_column_id;
+      if (id) {
+        const cols = await model.getCachedColumns({
+          ...this.context,
+          base_id: model.base_id,
+        });
+        const found = cols.find((c) => c.id === id);
+        if (found && isSupportedDisplayValueColumn(found)) result = found;
+      }
+    } else {
+      // Reverse direction: paired LTAR's override targets `model`.
+      const pairedCol = await extractCorrespondingLinkColumn(colCtx, {
+        ltarColumn,
+      });
+      if (pairedCol) {
+        const pairedOpts =
+          await pairedCol.getColOptions<LinkToAnotherRecordColumn>({
+            ...this.context,
+            base_id: pairedCol.base_id,
+          });
+        const id = pairedOpts?.fk_display_value_column_id;
+        if (id) {
+          const cols = await model.getCachedColumns({
+            ...this.context,
+            base_id: model.base_id,
+          });
+          const found = cols.find((c) => c.id === id);
+          if (found && isSupportedDisplayValueColumn(found)) result = found;
+        }
+      }
+    }
+
+    this._ltarDisplayColCache.set(key, result ?? null);
+    return result;
   }
 
   // Batch resolver for LTAR display value overrides used by audit-write paths.
@@ -670,6 +752,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const sourceByColId = new Map<string, Column | undefined>();
     let hasAny = false;
 
+    // EE-only feature — CE never sets fk_display_value_column_id (write-time
+    // gated in columns.service.ts), so skip all I/O on CE.
+    if (!Noco.isEE()) return { refByColId, sourceByColId, hasAny };
+
     const seen = new Set<string>();
     for (const obj of auditObjs) {
       if (!obj.columnId || !obj.refModel || seen.has(obj.columnId)) continue;
@@ -694,12 +780,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       let refDisplayCol: Column | undefined;
       let sourceDisplayCol: Column | undefined;
 
+      const pickSupported = (
+        cols: Column[],
+        id: string | undefined,
+      ): Column | undefined => {
+        if (!id) return undefined;
+        const c = cols.find((x) => x.id === id);
+        return c && isSupportedDisplayValueColumn(c) ? c : undefined;
+      };
+
       if (ownDisplayColId) {
         // Own override targets either side: refModel for the user-configured
         // direction, or model for the auto-paired direction.
-        refDisplayCol = refCols.find((c) => c.id === ownDisplayColId);
+        refDisplayCol = pickSupported(refCols, ownDisplayColId);
         if (!refDisplayCol) {
-          sourceDisplayCol = sourceCols.find((c) => c.id === ownDisplayColId);
+          sourceDisplayCol = pickSupported(sourceCols, ownDisplayColId);
         }
       }
 
@@ -717,12 +812,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const pairedDisplayColId = pairedOpts?.fk_display_value_column_id;
           if (pairedDisplayColId) {
             if (!refDisplayCol) {
-              refDisplayCol = refCols.find((c) => c.id === pairedDisplayColId);
+              refDisplayCol = pickSupported(refCols, pairedDisplayColId);
             }
             if (!sourceDisplayCol) {
-              sourceDisplayCol = sourceCols.find(
-                (c) => c.id === pairedDisplayColId,
-              );
+              sourceDisplayCol = pickSupported(sourceCols, pairedDisplayColId);
             }
           }
         }

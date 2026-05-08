@@ -333,7 +333,7 @@ export interface IBaseModelSqlV2 {
   ): Promise<void>;
 
   sanitizeQuery(query: string | string[]): any;
-  getNestedColumn(column: Column): Promise<Column | any>;
+  getNestedColumn(column: Column, context?: NcContext): Promise<Column | any>;
 
   checkPermission(params: {
     entity: PermissionEntity;

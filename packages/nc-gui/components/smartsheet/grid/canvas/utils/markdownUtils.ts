@@ -24,7 +24,10 @@ export interface Marker {
 
 const markers: Marker[] = [
   { open: '**', close: '**', style: 'bold' },
+  // '*' must come after '**' so '**bold**' resolves to bold, not italic-italic.
+  { open: '*', close: '*', style: 'italic' },
   { open: '_', close: '_', style: 'italic' },
+  { open: '~~', close: '~~', style: 'strikethrough' },
   { open: '<u>', close: '</u>', style: 'underline' },
   { open: '<s>', close: '</s>', style: 'strikethrough' },
   {

@@ -354,7 +354,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
-    const saveOrUpdate = async (field: any, index: number, disableDataReload = false, updateDefaultViewColMeta = false) => {
+    const applyVisibilityLocally = (field: any, index: number, updateDefaultViewColMeta = false) => {
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
@@ -370,6 +370,29 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
         localChanges.value[field.fk_column_id] = field
       }
+
+      if (updateDefaultViewColMeta && canEditViewFields.value && field.id) {
+        updateDefaultViewColumnMeta(field.fk_column_id, {
+          defaultViewColOrder: field.order,
+          defaultViewColVisibility: field.show,
+        })
+      }
+    }
+
+    const buildVisibilityEntry = (field: any) => {
+      if (!field.id || !view.value?.id) return null
+      if (isLocalMode.value || !canEditViewFields.value) return null
+      const column: Record<string, unknown> = {}
+      if ('show' in field) column.show = field.show
+      if ('order' in field) column.order = field.order
+      if ('underline' in field) column.underline = field.underline
+      if ('bold' in field) column.bold = field.bold
+      if ('italic' in field) column.italic = field.italic
+      return { viewId: view.value.id, columnId: field.id, column }
+    }
+
+    const saveOrUpdate = async (field: any, index: number, disableDataReload = false, updateDefaultViewColMeta = false) => {
+      applyVisibilityLocally(field, index, updateDefaultViewColMeta)
 
       if (canEditViewFields.value) {
         if (field.id && view?.value?.id) {
@@ -390,13 +413,6 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
             },
             body,
           )
-
-          if (updateDefaultViewColMeta) {
-            updateDefaultViewColumnMeta(field.fk_column_id, {
-              defaultViewColOrder: field.order,
-              defaultViewColVisibility: field.show,
-            })
-          }
         } else if (view.value?.id) {
           const insertedField = (await $api.internal.postOperation(
             meta.value!.fk_workspace_id!,
@@ -427,6 +443,9 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       },
       set(v: boolean) {
         if (view?.value?.id) {
+          const currentValue = (view.value.show_system_fields as boolean) || false
+          if (currentValue === v) return
+
           if (!isLocalMode.value) {
             $api.internal
               .postOperation(
@@ -713,6 +732,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       showAll,
       hideAll,
       saveOrUpdate,
+      applyVisibilityLocally,
+      buildVisibilityEntry,
       sortedAndFilteredFields,
       showSystemFields,
       metaColumnById,

@@ -481,7 +481,6 @@ async function seedAllEntities(
     {
       title: 'IDP_Ext',
       extension_id: 'test-extension',
-      base_id: baseId,
       kv_store: {},
     },
   );

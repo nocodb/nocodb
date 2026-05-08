@@ -312,7 +312,6 @@ export function sandboxMergeRoundtripTests() {
         {
           title: 'RT_Ext',
           extension_id: 'test-extension',
-          base_id: sandboxBaseId,
           kv_store: {},
         },
       );

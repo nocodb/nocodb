@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
+import type { ButtonType, ColumnType, FilterType, SelectOptionsType, TableType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   ColumnHelper,
@@ -12,7 +13,6 @@ import {
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, FilterType, SelectOptionsType, TableType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import type { NavigationGuardNext, RouteLocationNormalizedLoadedGeneric } from 'vue-router'
@@ -108,7 +108,8 @@ const fieldsListWrapperDomRef = ref<HTMLElement>()
 
 const {
   fields: viewFields,
-  toggleFieldVisibility,
+  applyVisibilityLocally,
+  buildVisibilityEntry,
   loadViewColumns,
   isViewColumnsLoading,
   showSystemFields,
@@ -282,14 +283,9 @@ const KEEP_ALIVE_TYPES = [UITypes.Links, UITypes.LinkToAnotherRecord, UITypes.Ro
 
 const isKeepAliveType = (field?: TableExplorerColumn) => !!(field?.uidt && KEEP_ALIVE_TYPES.includes(field.uidt as UITypes))
 
-// Provider instance refs for keep-alive field editors (plain object — not reactive)
-const aliveProviderRefs: Record<string, any> = {}
-
-// Keys (id or temp_id) of keep-alive fields that have been activated in this session
+// Keys (id or temp_id) of keep-alive fields that have been activated in
+// this session
 const aliveFieldKeys = ref<string[]>([])
-
-// Ref for the single regular (non-keep-alive) field editor
-const regularProviderRef = ref()
 
 const addFieldMoveHook = ref<number>()
 
@@ -999,11 +995,15 @@ const saveChanges = async () => {
       }
     }
 
+    const visibilityPayload: Array<{ viewId: string; columnId: string; column: Record<string, unknown> }> = []
     for (const op of visibilityOps.value) {
-      await toggleFieldVisibility(op.visible, {
-        ...op.column,
-        show: op.visible,
-      })
+      const field = { ...op.column, show: op.visible }
+      const fieldIndex = viewFields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id) ?? -1
+      if (fieldIndex >= 0) {
+        applyVisibilityLocally(field, fieldIndex, isDefaultView.value)
+      }
+      const entry = buildVisibilityEntry(field)
+      if (entry) visibilityPayload.push(entry)
     }
 
     ops.value = ops.value.map(({ error: _err, ...rest }) => {
@@ -1017,29 +1017,9 @@ const saveChanges = async () => {
       {
         hash: columnsHash.value,
         ops: ops.value,
+        ...(visibilityPayload.length ? { visibility: visibilityPayload } : {}),
       },
     )
-
-    // Persist filter conditions for all keep-alive field editors (they stay mounted
-    // across field switches so their filterRef.applyChanges handles everything correctly).
-    for (const key of aliveFieldKeys.value) {
-      const provider = aliveProviderRefs[key]
-      if (!provider?.triggerPostSaveOrUpdateCbk) continue
-      try {
-        await provider.triggerPostSaveOrUpdateCbk({ colId: key })
-      } catch {
-        // Filter save failure shouldn't block the rest of the save flow
-      }
-    }
-
-    // Persist filter conditions for the active field if it is not a keep-alive type
-    if (activeField.value?.id && !isKeepAliveType(activeField.value) && regularProviderRef.value?.triggerPostSaveOrUpdateCbk) {
-      try {
-        await regularProviderRef.value.triggerPostSaveOrUpdateCbk({ colId: activeField.value.id })
-      } catch {
-        // Filter save failure shouldn't block the rest of the save flow
-      }
-    }
 
     await loadViewColumns()
 
@@ -1057,6 +1037,28 @@ const saveChanges = async () => {
         return false
       })
       moveOps.value = []
+
+      const failedVisibility = (res as any).failedVisibility as
+        | Array<{ viewId: string; columnId: string; error: string }>
+        | undefined
+      if (failedVisibility?.length) {
+        // Re-queue every failed entry — match by view-column row id so
+        // the next Save retries them.
+        visibilityOps.value = visibilityOps.value.filter((op) => {
+          const vcId = (op.column as Field).id
+          return failedVisibility.some((f) => f.columnId === vcId)
+        })
+        // Surface the first error message verbatim; aggregate count
+        // when multiple toggles failed.
+        const first = failedVisibility[0]
+        message.error(
+          failedVisibility.length === 1
+            ? first.error
+            : `${failedVisibility.length} field visibility updates failed: ${first.error}`,
+        )
+      } else {
+        visibilityOps.value = []
+      }
     }
 
     for (const op of ops.value) {
@@ -1086,7 +1088,8 @@ const saveChanges = async () => {
     ).hash
 
     showSystemFields.value = showOrHideSystemFields.value
-    visibilityOps.value = []
+    // visibilityOps reset above — only successful ones cleared, failed
+    // entries stay queued for the user to retry on the next Save.
 
     eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
 
@@ -2280,7 +2283,6 @@ onBeforeRouteUpdate((_to, from, next) => {
               <template v-for="key in aliveFieldKeys" :key="key">
                 <SmartsheetColumnEditOrAddProvider
                   v-show="(activeField?.id || activeField?.temp_id) === key"
-                  :ref="(el: any) => { if (el) aliveProviderRefs[key] = el; else delete aliveProviderRefs[key] }"
                   class="p-4 w-[25rem] flex-none"
                   :column="fields.find((f) => (f.id || f.temp_id) === key) || activeField"
                   :preload="fieldState(fields.find((f) => (f.id || f.temp_id) === key) || activeField)"
@@ -2297,7 +2299,6 @@ onBeforeRouteUpdate((_to, from, next) => {
               <!-- Regular editor for non-keep-alive field types -->
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField && !isKeepAliveType(activeField)"
-                ref="regularProviderRef"
                 class="p-4 w-[25rem] flex-none"
                 :column="activeField"
                 :preload="fieldState(activeField)"

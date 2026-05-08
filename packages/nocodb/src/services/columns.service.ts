@@ -121,6 +121,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
 import { ColumnDataBackupHandler } from '~/services/column-data-backup-handler.service';
 import { ViewRowColorService } from '~/services/view-row-color.service';
+import { ViewColumnsService } from '~/services/view-columns.service';
 import { FiltersService } from '~/services/filters.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
@@ -441,6 +442,7 @@ export class ColumnsService implements IColumnsService {
     protected readonly duplicateDetectionService: DuplicateDetectionService,
     protected readonly linkPlaceholderService: LinkPlaceholderService,
     protected readonly columnDataBackupHandler: ColumnDataBackupHandler,
+    protected readonly viewColumnsService: ViewColumnsService,
   ) {}
 
   /**
@@ -6142,16 +6144,15 @@ export class ColumnsService implements IColumnsService {
         _tn: aTnAlias,
         columns: associateTableCols,
       });
-
+      if (replayIds?.assocDefaultViewId) {
+        setReplay('sandboxDefaultViewId', replayIds.assocDefaultViewId);
+      }
       const assocModel = await Model.insert(
         context,
         param.base.id,
         param.source.id,
         {
           ...(replayIds?.assocModelId ? { id: replayIds.assocModelId } : {}),
-          ...(replayIds?.assocDefaultViewId
-            ? { _sandboxDefaultViewId: replayIds.assocDefaultViewId }
-            : {}),
           table_name: aTn,
           title: aTnAlias,
           // todo: sanitize
@@ -6562,43 +6563,51 @@ export class ColumnsService implements IColumnsService {
     };
   }
 
-  async columnBulk(
+  @TraceCommand(OperationName.columnsBulk)
+  async columnsBulk(
     context: NcContext,
-    tableId: string,
-    params: {
+    param: {
+      tableId: string;
       hash: string;
       ops: {
         op: 'add' | 'update' | 'delete';
         column: Partial<Column>;
       }[];
+      visibility?: Array<{
+        viewId: string;
+        columnId: string;
+        column: {
+          show?: boolean | 0 | 1 | null;
+          order?: number | null;
+          underline?: boolean | 0 | 1 | null;
+          bold?: boolean | 0 | 1 | null;
+          italic?: boolean | 0 | 1 | null;
+        };
+      }>;
+      req: NcRequest;
       columnWebhookManager?: ColumnWebhookManager;
     },
-    req: NcRequest,
   ) {
-    // TODO validatePayload
-
     const table = await Model.getWithInfo(context, {
-      id: tableId,
+      id: param.tableId,
     });
 
     if (!table) {
-      NcError.get(context).tableNotFound(tableId);
+      NcError.get(context).tableNotFound(param.tableId);
     }
 
-    if (table.columnsHash !== params.hash) {
+    if (table.columnsHash !== param.hash) {
       NcError.get(context).outOfSync(
         'Columns are updated by someone else! Your changes are rejected. Please refresh the page and try again.',
       );
     }
 
     const source = await Source.get(context, table.source_id);
-
     if (!source) {
       NcError.get(context).sourceNotFound(table.source_id);
     }
 
     const base = await source.getProject(context);
-
     if (!base) {
       NcError.get(context).baseNotFound(source.base_id);
     }
@@ -6629,16 +6638,13 @@ export class ColumnsService implements IColumnsService {
       baseModel,
     };
 
-    const ops = params.ops;
-
-    for (const op of ops) {
+    for (const op of param.ops) {
       if (op.op === 'update') {
         if (!op.column || !op.column?.id) {
           NcError.get(context).badRequest(
             'Bad request, update operation requires column id',
           );
         }
-
         validateDateFormatMeta(context, op.column?.meta);
       } else if (op.op === 'delete') {
         if (!op.column || !op.column?.id) {
@@ -6655,67 +6661,73 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    const failedOps = [];
-    // Perform operations in a loop, capturing any errors for individual operations
-    for (const op of ops) {
+    // Per-add-op new column ids are captured automatically by the
+    // macro decorator's auto-instrument (each `columnAdd` child becomes
+    // a transcript entry whose `entityId` is resolved via
+    // ColumnAddContract.entry.entity_id) — no manual title→id re-query.
+    const failedOps: Array<{
+      op: 'add' | 'update' | 'delete';
+      column: Partial<Column>;
+      error: string;
+    }> = [];
+    for (const op of param.ops) {
       const column = op.column;
-
-      if (op.op === 'add') {
-        try {
+      try {
+        if (op.op === 'add') {
           await this.columnAdd(context, {
-            tableId,
+            tableId: param.tableId,
             column: column as ColumnReqType,
-            req,
-            user: req.user,
+            req: param.req,
+            user: param.req.user,
             reuse,
           });
-        } catch (e) {
-          const dbError = DBErrorExtractor.get().extractDbError(e, {
-            clientType: source.type as unknown as ClientType, // Pass the client type from source
-          });
-
-          failedOps.push({
-            ...op,
-            error: dbError?.message || e.message, // Use extracted message, fallback to original
-          });
-        }
-      } else if (op.op === 'update') {
-        try {
+        } else if (op.op === 'update') {
           await this.columnUpdate(context, {
-            columnId: op.column.id,
+            columnId: column.id as string,
             column: column as ColumnReqType,
-            req,
-            user: req.user,
+            req: param.req,
+            user: param.req.user,
             reuse,
           });
-        } catch (e) {
-          const dbError = DBErrorExtractor.get().extractDbError(e, {
-            clientType: source.type as unknown as ClientType, // Pass the client type from source
-          });
-
-          failedOps.push({
-            ...op,
-            error: dbError?.message || e.message, // Use extracted message, fallback to original
-          });
+        } else if (op.op === 'delete') {
+          await this.handleColumnBulkDelete(context, op, param.req);
         }
-      } else if (op.op === 'delete') {
-        try {
-          await this.handleColumnBulkDelete(context, op, req);
-        } catch (e) {
-          const dbError = DBErrorExtractor.get().extractDbError(e, {
-            clientType: source.type as unknown as ClientType, // Pass the client type from source
-          });
+      } catch (e: any) {
+        const dbError = DBErrorExtractor.get().extractDbError(e, {
+          clientType: source.type as unknown as ClientType,
+        });
+        failedOps.push({
+          ...op,
+          error: dbError?.message || e.message,
+        });
+      }
+    }
 
-          failedOps.push({
-            ...op,
-            error: dbError?.message || e.message, // Use extracted message, fallback to original
-          });
-        }
+    const failedVisibility: Array<{
+      viewId: string;
+      columnId: string;
+      error: string;
+    }> = [];
+    for (const v of param.visibility ?? []) {
+      try {
+        await this.viewColumnsService.columnUpdate(context, {
+          viewId: v.viewId,
+          columnId: v.columnId,
+          column: v.column as any,
+          req: param.req,
+        });
+      } catch (e: any) {
+        failedVisibility.push({
+          viewId: v.viewId,
+          columnId: v.columnId,
+          error: e?.message ?? 'visibility update failed',
+        });
       }
     }
 
     return {
       failedOps,
+      failedVisibility,
     };
   }
 

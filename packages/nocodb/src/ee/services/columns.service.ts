@@ -63,6 +63,7 @@ import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { ViewRowColorService } from '~/services/view-row-color.service';
+import { ViewColumnsService } from '~/services/view-columns.service';
 import { FiltersService } from '~/services/filters.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
@@ -87,6 +88,7 @@ export class ColumnsService extends ColumnsServiceCE {
     @Inject(forwardRef(() => BaseTrashService))
     protected readonly baseTrashService: BaseTrashService,
     protected readonly columnDataBackupHandler: ColumnDataBackupHandler,
+    protected readonly viewColumnsService: ViewColumnsService,
   ) {
     super(
       metaService,
@@ -98,6 +100,7 @@ export class ColumnsService extends ColumnsServiceCE {
       duplicateDetectionService,
       linkPlaceholderService,
       columnDataBackupHandler,
+      viewColumnsService,
     );
   }
 

@@ -73,6 +73,8 @@ const defaultFormState = (client = ClientType.MYSQL) => {
 
 const formState = ref<ProjectCreateForm>(defaultFormState())
 
+const simpleCredentialClients = [ClientType.SQLITE, ClientType.D1, ClientType.SNOWFLAKE, ClientType.DATABRICKS]
+
 const easterEgg = ref(false)
 
 const easterEggCount = ref(0)
@@ -85,7 +87,8 @@ const onEasterEgg = () => {
 }
 
 const selectedIntegration = computed(() => {
-  return formState.value.fk_integration_id && integrations.value.find((i) => i.id === formState.value.fk_integration_id)
+  if (!formState.value.fk_integration_id) return undefined
+  return integrations.value.find((i) => i.id === formState.value.fk_integration_id)
 })
 
 const selectedIntegrationDb = computed(() => {
@@ -112,6 +115,7 @@ const validators = computed(() => {
 
   switch (formState.value.dataSource.client) {
     case ClientType.SQLITE:
+    case ClientType.D1:
       clientValidations = {}
       break
     case ClientType.SNOWFLAKE:
@@ -162,7 +166,9 @@ function getConnectionConfig() {
     ...extraParameters,
   }
 
-  connection.ssl = validateAndExtractSSLProp(connection, formState.value.sslUse, formState.value.dataSource.client)
+  if (!simpleCredentialClients.includes(formState.value.dataSource.client)) {
+    connection.ssl = validateAndExtractSSLProp(connection, formState.value.sslUse, formState.value.dataSource.client)
+  }
 
   return connection
 }
@@ -275,7 +281,10 @@ const testConnection = async () => {
     } else {
       const connection = getConnectionConfig()
 
-      connection.database = getTestDatabaseName(formState.value.dataSource)!
+      const testDatabaseName = getTestDatabaseName(formState.value.dataSource)
+      if (testDatabaseName) {
+        connection.database = testDatabaseName
+      }
 
       let searchPath = formState.value.dataSource.searchPath
 
@@ -365,12 +374,16 @@ const allowDataWrite = computed({
 })
 const changeIntegration = (triggerTestConnection = false) => {
   if (formState.value.fk_integration_id && selectedIntegration.value) {
+    const isD1Integration = selectedIntegration.value.sub_type === ClientType.D1
+
     formState.value.dataSource = {
-      client: selectedIntegration.value.sub_type,
-      connection: {
-        database: selectedIntegrationDb.value,
-      },
-      searchPath: selectedIntegration.value.config?.searchPath,
+      client: selectedIntegration.value.sub_type as ClientType,
+      connection: isD1Integration
+        ? {}
+        : {
+            database: selectedIntegrationDb.value,
+          },
+      searchPath: isD1Integration ? undefined : selectedIntegration.value.config?.searchPath,
     }
   } else {
     onClientChange()
@@ -433,7 +446,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
 }
 
 const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [IntegrationCategoryType.DATABASE].includes(c.value)
-const filterIntegration = (i: IntegrationItemType) => i.sub_type !== SyncDataType.NOCODB && i.isAvailable
+const filterIntegration = (i: IntegrationItemType) => i.sub_type !== SyncDataType.NOCODB && !!i.isAvailable
 
 const isIntgrationDisabled = (integration: IntegrationType = {}) => {
   switch (integration.sub_type) {
@@ -611,6 +624,15 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                   <div class="nc-form-section-body">
                     <!-- SQLite File -->
                     <template v-if="formState.dataSource.client === ClientType.SQLITE"> </template>
+                    <template v-else-if="formState.dataSource.client === ClientType.D1">
+                      <div class="flex items-center gap-2 text-xs text-warning">
+                        <GeneralIcon icon="alertTriangle" class="flex-none" />
+                        <span
+                          >Cloudflare D1 multi-step writes are best-effort because D1 does not support interactive
+                          transactions.</span
+                        >
+                      </div>
+                    </template>
                     <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
                       <a-row :gutter="24">
                         <a-col :span="12">
@@ -699,9 +721,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                   </div>
                 </div>
 
-                <template
-                  v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
-                >
+                <template v-if="!simpleCredentialClients.includes(formState.dataSource.client)">
                   <a-collapse v-model:active-key="advancedOptionsExpansionPanel" ghost class="nc-source-advanced-options !mt-4">
                     <template #expandIcon="{ isActive }">
                       <NcButton

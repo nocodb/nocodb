@@ -282,6 +282,7 @@ import NcSave from '~icons/nc-icons/save'
 
 import NcMySql from '~icons/logos/mysql-icon'
 import NcPostgreSql from '~icons/nc-icons/postgresql'
+import SimpleIconsCloudflare from '~icons/simple-icons/cloudflare'
 import NcSqlServer from '~icons/nc-icons/sql-server'
 import NcDataBricks from '~icons/nc-icons/data-bricks'
 import NcMssqlServer from '~icons/nc-icons/mssql-server'
@@ -1361,6 +1362,7 @@ export const iconMap = {
   'ncSave': NcSave,
   'mysql': NcMySql,
   'postgreSql': NcPostgreSql,
+  'cloudflare': SimpleIconsCloudflare,
   'sqlServer': NcSqlServer,
   'dataBricks': NcDataBricks,
   'mssqlServer': NcMssqlServer,

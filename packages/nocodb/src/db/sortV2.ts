@@ -9,6 +9,7 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
+import { isSqliteLikeClient } from '~/helpers/clientTypes';
 
 export default async function sortV2(
   baseModelSqlv2: IBaseModelSqlV2,
@@ -204,7 +205,7 @@ export default async function sortV2(
             col = knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
               column.column_name,
             ]);
-          } else if (knex.clientType() === 'sqlite3') {
+          } else if (isSqliteLikeClient(knex.clientType())) {
             col = knex.raw(`json_extract(??, '$.value')`, [column.column_name]);
           }
 

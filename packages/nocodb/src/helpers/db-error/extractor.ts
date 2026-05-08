@@ -27,6 +27,12 @@ export class DBErrorExtractor {
       }),
     ],
     [
+      ClientType.D1,
+      new SqliteDBErrorExtractor({
+        dbErrorLogger: this.logger,
+      }),
+    ],
+    [
       ClientType.MYSQL,
       new MysqlDBErrorExtractor({
         dbErrorLogger: this.logger,
@@ -65,7 +71,12 @@ export class DBErrorExtractor {
     if (clientType) {
       extractResult = this.extractors.get(clientType)?.extract(error);
     } else {
-      [ClientType.PG, ClientType.MYSQL, ClientType.SQLITE].forEach((ct) => {
+      [
+        ClientType.PG,
+        ClientType.MYSQL,
+        ClientType.SQLITE,
+        ClientType.D1,
+      ].forEach((ct) => {
         if (!extractResult) {
           extractResult = this.extractors.get(ct)?.extract(error);
         }

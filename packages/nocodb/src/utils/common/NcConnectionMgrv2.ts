@@ -5,6 +5,7 @@ import {
   defaultConnectionOptions,
 } from '~/utils/nc-config';
 import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
+import D1KnexClient from '~/db/sql-client/lib/d1/D1KnexClient';
 import { XKnex } from '~/db/CustomKnex';
 import Noco from '~/Noco';
 import { RedisVersionTracker } from '~/utils/RedisVersionTracker';
@@ -88,35 +89,40 @@ export default class NcConnectionMgrv2 {
 
     const connectionConfig = await source.getConnectionConfig();
 
+    const isD1 = connectionConfig.client === 'd1';
+
     const knex = XKnex({
       ...defaultConnectionOptions,
       ...connectionConfig,
-      connection: {
-        ...defaultConnectionConfig,
-        ...connectionConfig.connection,
-        typeCast(field, next) {
-          const res = next();
+      client: isD1 ? D1KnexClient : connectionConfig.client,
+      connection: isD1
+        ? connectionConfig.connection
+        : {
+            ...defaultConnectionConfig,
+            ...connectionConfig.connection,
+            typeCast(field, next) {
+              const res = next();
 
-          // mysql - convert all other buffer values to hex string
-          // if `bit` datatype then convert it to integer number
-          if (res && res instanceof Buffer) {
-            const hex = [...res]
-              .map((v) => ('00' + v.toString(16)).slice(-2))
-              .join('');
-            if (field.type == 'BIT') {
-              return parseInt(hex, 16);
-            }
-            return hex;
-          }
+              // mysql - convert all other buffer values to hex string
+              // if `bit` datatype then convert it to integer number
+              if (res && res instanceof Buffer) {
+                const hex = [...res]
+                  .map((v) => ('00' + v.toString(16)).slice(-2))
+                  .join('');
+                if (field.type == 'BIT') {
+                  return parseInt(hex, 16);
+                }
+                return hex;
+              }
 
-          // mysql `decimal` datatype returns value as string, convert it to float number
-          if (field.type == 'NEWDECIMAL') {
-            return res && parseFloat(res);
-          }
+              // mysql `decimal` datatype returns value as string, convert it to float number
+              if (field.type == 'NEWDECIMAL') {
+                return res && parseFloat(res);
+              }
 
-          return res;
-        },
-      },
+              return res;
+            },
+          },
     } as any);
 
     this.connectionRefs.set(source.id, knex);

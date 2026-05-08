@@ -6,18 +6,37 @@ export enum NcProjectType {
   DB = 'database',
 }
 
-interface ProjectCreateForm {
+export enum CertTypes {
+  ca = 'ca',
+  cert = 'cert',
+  key = 'key',
+}
+
+type ConnectionSsl = Record<CertTypes, string> | 'no-verify' | 'true'
+
+interface CommonConnectionProps {
+  database?: string
+  ssl?: ConnectionSsl
+  connection?: {
+    filename?: string
+  }
+}
+
+export type ProjectConnection = CommonConnectionProps &
+  (DefaultConnection | SQLiteConnection | D1Connection | SnowflakeConnection | DatabricksConnection)
+
+export interface ProjectCreateForm {
   title: string
   dataSource: {
     client: ClientType
-    connection: DefaultConnection | SQLiteConnection | SnowflakeConnection | DatabricksConnection
+    connection: ProjectConnection
     searchPath?: string[]
   }
   inflection: {
     inflectionColumn?: string
     inflectionTable?: string
   }
-  sslUse?: SSLUsage
+  sslUse: SSLUsage
   extraParameters: { key: string; value: string }[]
   is_private?: BoolType
   is_schema_readonly?: BoolType
@@ -25,16 +44,16 @@ interface ProjectCreateForm {
   fk_integration_id?: string
 }
 
-interface DefaultConnection {
+export interface DefaultConnection {
   host: string
   database: string
   user: string
   password: string
   port: number | string
-  ssl?: Record<CertTypes, string> | 'no-verify' | 'true'
+  ssl?: ConnectionSsl
 }
 
-interface SQLiteConnection {
+export interface SQLiteConnection {
   client: ClientType.SQLITE
   database: string
   connection: {
@@ -43,7 +62,13 @@ interface SQLiteConnection {
   useNullAsDefault?: boolean
 }
 
-interface SnowflakeConnection {
+export interface D1Connection {
+  accountId: string
+  databaseId: string
+  apiToken: string
+}
+
+export interface SnowflakeConnection {
   account: string
   username: string
   password: string
@@ -52,7 +77,7 @@ interface SnowflakeConnection {
   schema: string
 }
 
-interface DatabricksConnection {
+export interface DatabricksConnection {
   token: string
   host: string
   path: string
@@ -78,6 +103,10 @@ export const clientTypes = [
     value: ClientType.SQLITE,
   },
   {
+    text: 'Cloudflare D1',
+    value: ClientType.D1,
+  },
+  {
     text: 'Snowflake',
     value: ClientType.SNOWFLAKE,
   },
@@ -95,7 +124,7 @@ export const clientTypesMap = clientTypes.reduce((acc, curr) => {
 const homeDir = ''
 
 type ConnectionClientType =
-  | Exclude<ClientType, ClientType.SQLITE | ClientType.SNOWFLAKE | ClientType.DATABRICKS>
+  | Exclude<ClientType, ClientType.SQLITE | ClientType.D1 | ClientType.SNOWFLAKE | ClientType.DATABRICKS>
   | 'tidb'
   | 'yugabyte'
   | 'citusdb'
@@ -103,6 +132,8 @@ type ConnectionClientType =
   | 'greenplum'
 
 const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection } & { [ClientType.SQLITE]: SQLiteConnection } & {
+  [ClientType.D1]: D1Connection
+} & {
   [ClientType.SNOWFLAKE]: SnowflakeConnection
 } & { [ClientType.DATABRICKS]: DatabricksConnection } = {
   [ClientType.PG]: {
@@ -133,6 +164,11 @@ const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection }
       filename: homeDir,
     },
     useNullAsDefault: true,
+  },
+  [ClientType.D1]: {
+    accountId: '',
+    databaseId: '',
+    apiToken: '',
   },
   [ClientType.SNOWFLAKE]: {
     account: 'LOCATOR.REGION',
@@ -194,12 +230,6 @@ export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateFor
   }
 }
 
-enum CertTypes {
-  ca = 'ca',
-  cert = 'cert',
-  key = 'key',
-}
-
 const errorHandlers = [
   {
     messages: ['unable to get local issuer certificate', 'self signed certificate in certificate chain'],
@@ -249,13 +279,4 @@ function generateConfigFix(e: any) {
   }
 }
 
-export {
-  generateConfigFix,
-  SSLUsage,
-  CertTypes,
-  ProjectCreateForm,
-  DefaultConnection,
-  SQLiteConnection,
-  SnowflakeConnection,
-  DatabricksConnection,
-}
+export { generateConfigFix, SSLUsage }

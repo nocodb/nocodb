@@ -2,6 +2,7 @@ import type { AIRecordType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type KnexClient from '~/db/sql-client/lib/KnexClient';
 import type { Column, Model, Source, User } from '~/models';
+import { isSqliteLikeClient } from '~/helpers/clientTypes';
 
 export const convertAIRecordTypeToValue = async (args: {
   source: Source;
@@ -40,7 +41,7 @@ export const convertAIRecordTypeToValue = async (args: {
         column.column_name,
       ],
     );
-  } else if (source.type === 'sqlite3') {
+  } else if (isSqliteLikeClient(source.type)) {
     await sqlClient.raw(
       `UPDATE ??
         SET ?? = json_extract(??, '$.value')
@@ -103,7 +104,7 @@ export const convertValueToAIRecordType = async (args: {
         column.column_name,
       ],
     );
-  } else if (source.type === 'sqlite3') {
+  } else if (isSqliteLikeClient(source.type)) {
     await sqlClient.raw(
       `UPDATE ??
         SET ?? = json_object('value', ??, 'lastModifiedBy', ?, 'lastModifiedTime', ?, 'isStale', ?)

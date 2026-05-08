@@ -14,6 +14,7 @@ import NocoCache from '~/cache/NocoCache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { SourcesService } from '~/services/sources.service';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
+import { withD1WarningMarker } from '~/helpers/clientTypes';
 
 @Injectable()
 export class IntegrationsService {
@@ -58,6 +59,9 @@ export class IntegrationsService {
 
     const integrationBody = param.integration;
     integrationBody.title = integrationBody.title?.trim();
+    if (integrationBody.config) {
+      integrationBody.config = withD1WarningMarker(integrationBody.config);
+    }
     const integration = await Integration.updateIntegration(
       context,
       param.integrationId,
@@ -291,6 +295,9 @@ export class IntegrationsService {
       integrationBody.config = await integrationBody.getConnectionConfig();
     } else {
       integrationBody = param.integration;
+    }
+    if (integrationBody.config) {
+      integrationBody.config = withD1WarningMarker(integrationBody.config);
     }
     param.logger?.('Creating the integration');
     integrationBody.title = integrationBody.title?.trim();

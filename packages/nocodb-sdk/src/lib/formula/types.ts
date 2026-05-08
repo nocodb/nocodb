@@ -116,6 +116,7 @@ export type ClientTypeOrSqlUI =
   | 'mysql'
   | 'pg'
   | 'sqlite3'
+  | 'd1'
   | 'mysql2'
   | 'mariadb'
   | 'sqlite'

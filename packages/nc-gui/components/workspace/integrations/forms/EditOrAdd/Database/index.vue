@@ -7,6 +7,7 @@ import { defineAsyncComponent } from 'vue'
 import {
   type CertTypes,
   ClientType,
+  type D1Connection,
   type DatabricksConnection,
   type DefaultConnection,
   type ProjectCreateForm,
@@ -102,6 +103,8 @@ const isLoading = ref<boolean>(false)
 
 const maskedPassword = ref<boolean>(false)
 
+const simpleCredentialClients = [ClientType.SQLITE, ClientType.D1, ClientType.SNOWFLAKE, ClientType.DATABRICKS]
+
 const maskedPasswordHelp = computed(() => {
   return maskedPassword.value ? 'Re-enter your password to test or update connection' : undefined
 })
@@ -141,6 +144,13 @@ const validators = computed(() => {
     case ClientType.SQLITE:
       clientValidations = {
         'dataSource.connection.connection.filename': [fieldRequiredValidator()],
+      }
+      break
+    case ClientType.D1:
+      clientValidations = {
+        'dataSource.connection.accountId': [fieldRequiredValidator()],
+        'dataSource.connection.databaseId': [fieldRequiredValidator()],
+        'dataSource.connection.apiToken': [fieldRequiredValidator()],
       }
       break
     case ClientType.SNOWFLAKE:
@@ -186,7 +196,7 @@ const onClientChange = () => {
 }
 
 const onSSLModeChange = ((mode: SSLUsage) => {
-  if (formState.value.dataSource.client !== ClientType.SQLITE) {
+  if (!simpleCredentialClients.includes(formState.value.dataSource.client)) {
     const connection = formState.value.dataSource.connection as DefaultConnection
     switch (mode) {
       case SSLUsage.No:
@@ -207,7 +217,7 @@ const onSSLModeChange = ((mode: SSLUsage) => {
 }) as SelectHandler
 
 const updateSSLUse = (updateActiveIntegrationFormState = false) => {
-  if (formState.value.dataSource.client !== ClientType.SQLITE) {
+  if (!simpleCredentialClients.includes(formState.value.dataSource.client)) {
     const connection = formState.value.dataSource.connection as DefaultConnection
     if (connection.ssl) {
       if (typeof connection.ssl === 'string') {
@@ -247,7 +257,7 @@ const onFileSelect = (key: CertTypes, el?: HTMLInputElement) => {
   readFile(el, (content) => {
     if ('ssl' in formState.value.dataSource.connection && typeof formState.value.dataSource.connection.ssl === 'object')
       formState.value.dataSource.connection.ssl[key] = content ?? ''
-    el.value = null
+    el.value = ''
   })
 }
 
@@ -265,7 +275,10 @@ function getConnectionConfig() {
     ...extraParameters,
   }
 
-  connection.ssl = validateAndExtractSSLProp(connection, formState.value.sslUse, formState.value.dataSource.client)
+  if (!simpleCredentialClients.includes(formState.value.dataSource.client)) {
+    connection.ssl = validateAndExtractSSLProp(connection, formState.value.sslUse, formState.value.dataSource.client)
+  }
+
   return connection
 }
 
@@ -307,7 +320,7 @@ const createOrUpdateIntegration = async () => {
     } else {
       await updateIntegration(
         {
-          id: activeIntegration.value.id,
+          id: activeIntegration.value!.id,
           title: formState.value.title,
           type: IntegrationsType.Database,
           sub_type: formState.value.dataSource.client,
@@ -361,7 +374,10 @@ const testConnection = async (retry = 0, initialConfig = null, initialError = nu
     } else {
       const connection = getConnectionConfig()
 
-      connection.database = getTestDatabaseName(formState.value.dataSource)!
+      const testDatabaseName = getTestDatabaseName(formState.value.dataSource)
+      if (testDatabaseName) {
+        connection.database = testDatabaseName
+      }
 
       const testConnectionConfig = {
         ...formState.value.dataSource,
@@ -504,7 +520,11 @@ const activeIntegrationIcon = computed(() => {
 
 const onFocusPassword = () => {
   if (maskedPassword.value) {
-    formState.value.dataSource.connection.password = ''
+    if ('password' in formState.value.dataSource.connection) {
+      formState.value.dataSource.connection.password = ''
+    } else if ('apiToken' in formState.value.dataSource.connection) {
+      formState.value.dataSource.connection.apiToken = ''
+    }
     maskedPassword.value = false
   }
 }
@@ -534,7 +554,7 @@ onMounted(async () => {
   } else {
     if (!activeIntegration.value) return
 
-    const definedParameters = ['host', 'port', 'user', 'password', 'database']
+    const definedParameters = ['host', 'port', 'user', 'password', 'database', 'accountId', 'databaseId', 'apiToken']
 
     const tempParameters = Object.entries(activeIntegration.value.config.connection)
       .filter(([key]) => !definedParameters.includes(key))
@@ -548,9 +568,18 @@ onMounted(async () => {
       is_private: activeIntegration.value?.is_private,
     }
 
-    if (formState.value.dataSource?.connection?.password === null) {
+    const connection = formState.value.dataSource?.connection
+    const passwordConnection = connection as DefaultConnection
+    const d1Connection = connection as D1Connection
+
+    if (passwordConnection?.password === null) {
       maskedPassword.value = true
-      formState.value.dataSource.connection.password = '*'.repeat(8)
+      passwordConnection.password = '*'.repeat(8)
+    }
+
+    if (d1Connection?.apiToken === null) {
+      maskedPassword.value = true
+      d1Connection.apiToken = '*'.repeat(8)
     }
 
     activeIntegrationformState.value = JSON.parse(JSON.stringify(formState.value))
@@ -675,7 +704,7 @@ watch(
 
                   <!-- Use Connection URL -->
                   <NcDropdown
-                    v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
+                    v-if="!simpleCredentialClients.includes(formState.dataSource.client)"
                     v-model:visible="importURLDlg"
                     placement="bottomRight"
                   >
@@ -757,6 +786,47 @@ watch(
                         </a-form-item>
                       </a-col>
                     </a-row>
+                  </template>
+                  <template v-else-if="formState.dataSource.client === ClientType.D1">
+                    <a-row :gutter="24">
+                      <a-col :span="12">
+                        <a-form-item label="Account ID" v-bind="validateInfos['dataSource.connection.accountId']">
+                          <a-input
+                            v-model:value="(formState.dataSource.connection as D1Connection).accountId"
+                            class="nc-extdb-account-id"
+                          />
+                        </a-form-item>
+                      </a-col>
+                      <a-col :span="12">
+                        <a-form-item label="Database ID" v-bind="validateInfos['dataSource.connection.databaseId']">
+                          <a-input
+                            v-model:value="(formState.dataSource.connection as D1Connection).databaseId"
+                            class="nc-extdb-database-id"
+                          />
+                        </a-form-item>
+                      </a-col>
+                    </a-row>
+                    <a-row :gutter="24">
+                      <a-col :span="12">
+                        <a-form-item label="API token" v-bind="validateInfos['dataSource.connection.apiToken']">
+                          <template #help>
+                            <div class="text-xs text-warning mt-1">{{ maskedPasswordHelp }}</div>
+                          </template>
+                          <a-input-password
+                            v-model:value="(formState.dataSource.connection as D1Connection).apiToken"
+                            class="nc-extdb-api-token"
+                            @focus="onFocusPassword"
+                          />
+                        </a-form-item>
+                      </a-col>
+                    </a-row>
+                    <div class="flex items-center gap-2 text-xs text-warning">
+                      <GeneralIcon icon="alertTriangle" class="flex-none" />
+                      <span
+                        >Cloudflare D1 multi-step writes are best-effort because D1 does not support interactive
+                        transactions.</span
+                      >
+                    </div>
                   </template>
                   <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
                     <a-row :gutter="24">
@@ -954,12 +1024,7 @@ watch(
                       </a-col>
                     </a-row>
 
-                    <a-row
-                      v-if="
-                        ![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)
-                      "
-                      :gutter="24"
-                    >
+                    <a-row v-if="!simpleCredentialClients.includes(formState.dataSource.client)" :gutter="24">
                       <a-col :span="24">
                         <!-- Extra connection parameters -->
                         <a-form-item
@@ -999,9 +1064,7 @@ watch(
                 </div>
               </div>
 
-              <template
-                v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
-              >
+              <template v-if="!simpleCredentialClients.includes(formState.dataSource.client)">
                 <NcDivider />
 
                 <a-collapse v-model:active-key="useSslExpansionPanel" ghost class="!mt-4">
@@ -1170,9 +1233,7 @@ watch(
                 </a-form-item>
               </div> -->
 
-              <template
-                v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
-              >
+              <template v-if="!simpleCredentialClients.includes(formState.dataSource.client)">
                 <a-collapse v-model:active-key="advancedOptionsExpansionPanel" ghost class="nc-connection-advanced-options !mt-4">
                   <template #expandIcon="{ isActive }">
                     <NcButton

@@ -389,6 +389,13 @@ export default class SqlMgr {
 
     if (connectionConfig.client === 'sqlite3') {
       schemaKey = connectionConfig.connection.connection.filename;
+    } else if (connectionConfig.client === 'd1') {
+      schemaKey = [
+        connectionConfig.connection.accountId ||
+          connectionConfig.connection.account_id,
+        connectionConfig.connection.databaseId ||
+          connectionConfig.connection.database_id,
+      ].join('_');
     } else {
       schemaKey =
         connectionConfig.connection.host +
@@ -551,6 +558,7 @@ export default class SqlMgr {
         return 5432;
         break;
       case 'sqlite3':
+      case 'd1':
         return 0;
         break;
       default:

@@ -16,6 +16,7 @@ import { genPgAggregateQuery } from '~/db/aggregations/pg';
 import { genMysql2AggregatedQuery } from '~/db/aggregations/mysql2';
 import { genSqlite3AggregateQuery } from '~/db/aggregations/sqlite3';
 import { getColumnNameQuery } from '~/db/getColumnNameQuery';
+import { getKnexClientType, isSqliteLikeClient } from '~/helpers/clientTypes';
 
 export const validateAggregationColType = (
   context: NcContext,
@@ -158,7 +159,9 @@ export default async function applyAggregation({
 
   const parsedFormulaType = column.colOptions?.parsed_tree?.dataType;
 
-  if (knex.client.config.client === 'pg') {
+  const clientType = getKnexClientType(knex);
+
+  if (clientType === 'pg') {
     return genPgAggregateQuery({
       column,
       baseModelSqlv2,
@@ -168,7 +171,7 @@ export default async function applyAggregation({
       aggType,
       alias: alias,
     });
-  } else if (['mysql', 'mysql2'].includes(knex.client.config.client)) {
+  } else if (['mysql', 'mysql2'].includes(clientType)) {
     return genMysql2AggregatedQuery({
       column,
       baseModelSqlv2,
@@ -178,7 +181,7 @@ export default async function applyAggregation({
       aggType,
       alias: alias,
     });
-  } else if (knex.client.config.client === 'sqlite3') {
+  } else if (isSqliteLikeClient(clientType)) {
     return genSqlite3AggregateQuery({
       column,
       baseModelSqlv2,
@@ -190,7 +193,7 @@ export default async function applyAggregation({
     });
   } else {
     NcError.get(context).notImplemented(
-      `Aggregation is not implemented for ${knex.client.config.client} yet.`,
+      `Aggregation is not implemented for ${clientType} yet.`,
     );
   }
 }

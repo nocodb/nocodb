@@ -10703,6 +10703,7 @@
                       "pg",
                       "snowflake",
                       "sqlite3",
+                      "d1",
                       "databricks"
                     ],
                     "example": "mysql2",
@@ -10721,6 +10722,15 @@
                         "type": "string"
                       },
                       "password": {
+                        "type": "string"
+                      },
+                      "accountId": {
+                        "type": "string"
+                      },
+                      "databaseId": {
+                        "type": "string"
+                      },
+                      "apiToken": {
                         "type": "string"
                       },
                       "database": {
@@ -13142,6 +13152,7 @@
               "pg",
               "snowflake",
               "sqlite3",
+              "d1",
               "databricks"
             ],
             "example": "mysql2",
@@ -13315,6 +13326,7 @@
               "pg",
               "snowflake",
               "sqlite3",
+              "d1",
               "databricks"
             ],
             "type": "string"

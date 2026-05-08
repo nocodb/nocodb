@@ -12,7 +12,10 @@ class ModelXcMetaFactory {
       connectionConfig.client === 'mysql'
     ) {
       return new ModelXcMetaMysql(args);
-    } else if (connectionConfig.client === 'sqlite3') {
+    } else if (
+      connectionConfig.client === 'sqlite3' ||
+      connectionConfig.client === 'd1'
+    ) {
       return new ModelXcMetaSqlite(args);
     } else if (connectionConfig.client === 'pg') {
       return new ModelXcMetaPg(args);

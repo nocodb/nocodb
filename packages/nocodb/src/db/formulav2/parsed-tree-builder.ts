@@ -22,6 +22,7 @@ import type {
   TAliasToColumn,
 } from './formula-query-builder.types';
 import type CustomKnex from '../CustomKnex';
+import { isSqliteLikeClient } from '~/helpers/clientTypes';
 
 const assignFnName = (pt: FnParsedTreeNode) => {
   if (pt.fnName) return;
@@ -89,7 +90,7 @@ export const callExpressionBuilder = async ({
       }
       break;
     case 'CONCAT':
-      if (knex.clientType() === 'sqlite3') {
+      if (isSqliteLikeClient(knex.clientType())) {
         if (pt.arguments.length > 1) {
           return fn(
             {
@@ -277,7 +278,7 @@ export const callExpressionBuilder = async ({
       pt.arguments.map(async (arg) => {
         let query = (await fn(arg)).builder.toQuery();
         if (calleeName === 'CONCAT') {
-          if (knex.clientType() !== 'sqlite3') {
+          if (!isSqliteLikeClient(knex.clientType())) {
             query = await convertDateFormatForConcat(
               context,
               arg,
@@ -514,7 +515,7 @@ export const binaryExpressionBuilder = async ({
 
   if (
     (pt.left as FnParsedTreeNode).fnName === 'CONCAT' &&
-    knex.clientType() === 'sqlite3'
+    isSqliteLikeClient(knex.clientType())
   ) {
     // handle date format
     left = await convertDateFormatForConcat(
@@ -548,7 +549,7 @@ export const binaryExpressionBuilder = async ({
           : (pt.right as any).value === ''
         : 0
     })`;
-  } else if (knex.clientType() === 'sqlite3' || knex.clientType() === 'pg') {
+  } else if (isSqliteLikeClient(knex.clientType()) || knex.clientType() === 'pg') {
     if (pt.operator === '=') {
       if (pt.left.type === 'Literal' && pt.left.value === '') {
         sql = `${right} IS NULL OR CAST(${right} AS TEXT) = ''`;

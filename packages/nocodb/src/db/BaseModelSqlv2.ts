@@ -98,6 +98,7 @@ import { RelationManager } from '~/db/relation-manager';
 import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
 import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
+import { isSqliteLikeClient } from '~/helpers/clientTypes';
 import {
   _wherePk,
   applyPaginate,
@@ -1300,7 +1301,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         let jsonBuildObject;
 
-        switch (this.dbDriver.client.config.client) {
+        switch (this.dbDriver.clientType()) {
           case 'pg': {
             jsonBuildObject = this.dbDriver.raw(
               `JSON_BUILD_OBJECT(${Object.keys(aggregateExpressions)
@@ -1320,7 +1321,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           }
 
-          case 'sqlite3': {
+          case 'sqlite3':
+          case 'd1': {
             jsonBuildObject = this.dbDriver.raw(`json_object(
                 ${Object.keys(aggregateExpressions)
                   .map((key) => `'${key}', ${aggregateExpressions[key]}`)
@@ -1335,7 +1337,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
         tQb.select(jsonBuildObject);
 
-        if (this.dbDriver.client.config.client === 'mysql2') {
+        if (this.dbDriver.clientType() === 'mysql2') {
           selectors.push(
             this.dbDriver.raw('JSON_UNQUOTE(??) as ??', [
               jsonBuildObject,
@@ -3030,7 +3032,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   get isSqlite() {
-    return this.clientType === 'sqlite3';
+    return isSqliteLikeClient(this.clientType);
   }
 
   get isPg() {
@@ -8038,7 +8040,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
-    const client = this.dbDriver.client.config.client;
+    const client = isSqliteLikeClient(this.dbDriver.clientType())
+      ? 'sqlite3'
+      : this.dbDriver.clientType();
     if (!sql[client]) {
       NcError.get(this.context).notImplemented(
         'Recalculate order not implemented for this database',

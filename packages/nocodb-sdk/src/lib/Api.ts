@@ -4202,7 +4202,14 @@ export interface SourceType {
    * DB Type
    * @example mysql2
    */
-  type?: 'mysql' | 'mysql2' | 'pg' | 'snowflake' | 'sqlite3' | 'databricks';
+  type?:
+    | 'mysql'
+    | 'mysql2'
+    | 'pg'
+    | 'snowflake'
+    | 'sqlite3'
+    | 'd1'
+    | 'databricks';
 }
 
 /**
@@ -4284,7 +4291,14 @@ export interface BaseReqType {
   /** Is the data source data readonly */
   is_data_readonly?: BoolType;
   /** DB Type */
-  type?: 'mysql' | 'mysql2' | 'pg' | 'snowflake' | 'sqlite3' | 'databricks';
+  type?:
+    | 'mysql'
+    | 'mysql2'
+    | 'pg'
+    | 'snowflake'
+    | 'sqlite3'
+    | 'd1'
+    | 'databricks';
   fk_integration_id?: string;
 }
 
@@ -15427,12 +15441,16 @@ export class Api<
           | 'pg'
           | 'snowflake'
           | 'sqlite3'
+          | 'd1'
           | 'databricks';
         connection?: {
           host?: string;
           port?: string;
           user?: string;
           password?: string;
+          accountId?: string;
+          databaseId?: string;
+          apiToken?: string;
           /** Model for StringOrNull */
           database?: StringOrNullType;
         };
@@ -15470,7 +15488,7 @@ export class Api<
    * DB Type
    * @example mysql2
    *\
-  client?: "mysql" | "mysql2" | "pg" | "snowflake" | "sqlite3" | "databricks",
+  client?: "mysql" | "mysql2" | "pg" | "snowflake" | "sqlite3" | "d1" | "databricks",
   \** Connection Config *\
   connection?: {
   \** DB User *\
@@ -15515,6 +15533,7 @@ export class Api<
             | 'pg'
             | 'snowflake'
             | 'sqlite3'
+            | 'd1'
             | 'databricks';
           /** Connection Config */
           connection?: {
@@ -15522,6 +15541,12 @@ export class Api<
             user?: string;
             /** DB Password */
             password?: string;
+            /** Cloudflare account ID */
+            accountId?: string;
+            /** Cloudflare D1 database ID */
+            databaseId?: string;
+            /** Cloudflare API token */
+            apiToken?: string;
             /** DB Name */
             database?: string;
             /** DB Host */

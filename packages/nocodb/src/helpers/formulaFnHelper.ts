@@ -55,7 +55,7 @@ export async function convertDateFormatForConcat(
         meta.date_format,
         clientType,
       )}')`;
-    } else if (clientType === 'sqlite3') {
+    } else if (clientType === 'sqlite3' || clientType === 'd1') {
       query = `strftime('${convertDateFormat(
         meta.date_format,
         clientType,

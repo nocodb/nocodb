@@ -23,6 +23,7 @@ import type { ClientType, LiteralNode } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
+import { isSqliteLikeClient } from '~/helpers/clientTypes';
 import type RollupColumn from '~/models/RollupColumn';
 import type {
   FnParsedTreeNode,
@@ -79,6 +80,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         | 'mysql'
         | 'pg'
         | 'sqlite3'
+        | 'd1'
         | 'mysql2'
         | 'mariadb'
         | 'sqlite'
@@ -260,7 +262,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                   value: `${user.email}`,
                 })),
               })})`;
-            } else if (knex.clientType() === 'sqlite3') {
+            } else if (isSqliteLikeClient(knex.clientType())) {
               finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
                 knex,
                 needleColumn: columnName,
@@ -303,7 +305,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
                 ]),
               };
             };
-          } else if (knex.clientType() === 'sqlite3') {
+          } else if (isSqliteLikeClient(knex.clientType())) {
             aliasToColumn[col.id] = async (): Promise<any> => {
               return {
                 builder: knex.raw(`json_extract(??, '$.value')`, [

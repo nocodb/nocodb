@@ -28,7 +28,10 @@ export class SqlUiFactory {
       return new MysqlUi();
     }
 
-    if (connectionConfig.client === 'sqlite3') {
+    if (
+      connectionConfig.client === 'sqlite3' ||
+      connectionConfig.client === 'd1'
+    ) {
       return new SqliteUi();
     }
     if (connectionConfig.client === 'pg') {

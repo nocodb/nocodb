@@ -536,6 +536,7 @@ export enum CacheDelDirection {
 export const DB_TYPES = <const>[
   'mysql2',
   'sqlite3',
+  'd1',
   'mysql',
   'snowflake',
   'pg',

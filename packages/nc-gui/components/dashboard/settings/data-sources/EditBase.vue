@@ -80,8 +80,11 @@ const defaultFormState = (client = ClientType.MYSQL) => {
 
 const formState = ref<ProjectCreateForm>(defaultFormState())
 
+const simpleCredentialClients = [ClientType.SQLITE, ClientType.D1, ClientType.SNOWFLAKE, ClientType.DATABRICKS]
+
 const selectedIntegration = computed(() => {
-  return formState.value.fk_integration_id && integrations.value.find((i) => i.id === formState.value.fk_integration_id)
+  if (!formState.value.fk_integration_id) return undefined
+  return integrations.value.find((i) => i.id === formState.value.fk_integration_id)
 })
 const selectedIntegrationDb = computed(() => {
   return selectedIntegration.value?.config?.connection?.database
@@ -104,7 +107,7 @@ const validators = computed(() => {
     'title': [sourceAliasValidator()],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],
-    ...(formState.value.dataSource.client === ClientType.SQLITE
+    ...([ClientType.SQLITE, ClientType.D1].includes(formState.value.dataSource.client)
       ? {}
       : formState.value.dataSource.client === ClientType.SNOWFLAKE
       ? {
@@ -127,7 +130,7 @@ const validators = computed(() => {
 const { validate, validateInfos } = useForm(formState, validators)
 
 const updateSSLUse = () => {
-  if (formState.value.dataSource.client !== ClientType.SQLITE) {
+  if (!simpleCredentialClients.includes(formState.value.dataSource.client)) {
     const connection = formState.value.dataSource.connection as DefaultConnection
     if (connection.ssl) {
       if (typeof connection.ssl === 'string') {
@@ -151,7 +154,9 @@ function getConnectionConfig() {
     ...extraParameters,
   }
 
-  connection.ssl = validateAndExtractSSLProp(connection, formState.value.sslUse, formState.value.dataSource.client)
+  if (!simpleCredentialClients.includes(formState.value.dataSource.client)) {
+    connection.ssl = validateAndExtractSSLProp(connection, formState.value.sslUse, formState.value.dataSource.client)
+  }
 
   return connection
 }
@@ -232,7 +237,10 @@ const testConnection = async () => {
     } else {
       const connection = getConnectionConfig()
 
-      connection.database = getTestDatabaseName(formState.value.dataSource)!
+      const testDatabaseName = getTestDatabaseName(formState.value.dataSource)
+      if (testDatabaseName) {
+        connection.database = testDatabaseName
+      }
 
       let searchPath = formState.value.dataSource.searchPath
 
@@ -289,7 +297,7 @@ onMounted(async () => {
   }
 
   if (base.value?.id) {
-    const definedParameters = ['host', 'port', 'user', 'password', 'database']
+    const definedParameters = ['host', 'port', 'user', 'password', 'database', 'accountId', 'databaseId', 'apiToken']
 
     const activeBase = (await api.source.read(base.value?.id, props.sourceId)) as SourceType
 
@@ -452,6 +460,14 @@ function handleAutoScroll(scroll: boolean, className: string) {
               <div class="nc-form-section-body">
                 <!-- SQLite File -->
                 <template v-if="formState.dataSource.client === ClientType.SQLITE"> </template>
+                <template v-else-if="formState.dataSource.client === ClientType.D1">
+                  <div class="flex items-center gap-2 text-xs text-warning">
+                    <GeneralIcon icon="alertTriangle" class="flex-none" />
+                    <span
+                      >Cloudflare D1 multi-step writes are best-effort because D1 does not support interactive transactions.</span
+                    >
+                  </div>
+                </template>
                 <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
                   <a-row :gutter="24">
                     <a-col :span="12">
@@ -539,9 +555,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
                 />
               </div>
             </div>
-            <template
-              v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
-            >
+            <template v-if="!simpleCredentialClients.includes(formState.dataSource.client)">
               <a-collapse v-model:active-key="advancedOptionsExpansionPanel" ghost class="nc-source-advanced-options !mt-4">
                 <template #expandIcon="{ isActive }">
                   <NcButton

@@ -7,6 +7,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
 import { NcError } from '~/helpers/catchError';
 import { isMuxEnabled } from '~/utils/envs';
+import { getClientType, getKnexClientType } from '~/helpers/clientTypes';
 
 // refer : https://github.com/brianc/node-pg-types/blob/master/lib/builtins.js
 const pgTypes = {
@@ -588,7 +589,7 @@ knex.QueryBuilder.extend(
  * Append concat to knex query builder
  */
 knex.QueryBuilder.extend('concat', function (cn: any) {
-  switch (this?.client?.config?.client) {
+  switch (getKnexClientType(this)) {
     case 'pg':
       this.select(
         this.client.raw(`STRING_AGG(??::character varying , ',')`, [cn]),
@@ -599,6 +600,7 @@ knex.QueryBuilder.extend('concat', function (cn: any) {
       this.select(this.client.raw(`GROUP_CONCAT(?? SEPARATOR ',')`, [cn]));
       break;
     case 'sqlite3':
+    case 'd1':
       this.select(this.client.raw(`GROUP_CONCAT(?? , ',')`, [cn]));
       break;
   }
@@ -1083,10 +1085,8 @@ function CustomKnex(
       enumerable: true,
       value: () => {
         return typeof arg === 'string'
-          ? arg.match(/^(\w+):/) ?? [1]
-          : typeof arg.client === 'string'
-          ? arg.client
-          : arg.client?.prototype?.dialect || arg.client?.prototype?.driverName;
+          ? arg.match(/^(\w+):/)?.[1]
+          : getClientType(arg.client);
       },
     },
     searchPath: {
@@ -1127,11 +1127,8 @@ function CustomKnex(
             enumerable: true,
             value: () => {
               return typeof arg === 'string'
-                ? arg.match(/^(\w+):/) ?? [1]
-                : typeof arg.client === 'string'
-                ? arg.client
-                : arg.client?.prototype?.dialect ||
-                  arg.client?.prototype?.driverName;
+                ? arg.match(/^(\w+):/)?.[1]
+                : getClientType(arg.client);
             },
           },
           searchPath: {

@@ -111,7 +111,7 @@ export const useBase = defineStore('baseStore', () => {
   }
 
   function isSqlite(sourceId?: string) {
-    return getBaseType(sourceId) === ClientType.SQLITE
+    return [ClientType.SQLITE, ClientType.D1].includes(getBaseType(sourceId))
   }
 
   function isPg(sourceId?: string) {

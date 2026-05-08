@@ -33,6 +33,7 @@ import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 import Filter from '~/models/Filter';
 import { getAliasGenerator } from '~/utils';
 import { validateAndStringifyJson } from '~/utils/tsUtils';
+import { getKnexClientType, isSqliteLikeClient } from '~/helpers/clientTypes';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
 
 dayjs.extend(utc);
@@ -380,7 +381,7 @@ const parseConditionV2 = async (
                 value: user.display_name || user.email,
               })),
             })})`;
-          } else if (knex.clientType() === 'sqlite3') {
+          } else if (isSqliteLikeClient(knex.clientType())) {
             finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
               knex,
               needleColumn: column.column_name,
@@ -489,7 +490,7 @@ const parseConditionV2 = async (
               field = knex.raw(`JSON_UNQUOTE(JSON_EXTRACT(??, '$.value'))`, [
                 column.column_name,
               ]);
-            } else if (knex.clientType() === 'sqlite3') {
+            } else if (isSqliteLikeClient(knex.clientType())) {
               field = knex.raw(`json_extract(??, '$.value')`, [
                 column.column_name,
               ]);
@@ -720,7 +721,7 @@ const parseConditionV2 = async (
                     } else {
                       // ignore seconds part in datetime and filter when using it for group by
                       if (filter.groupby) {
-                        if (knex.clientType() === 'sqlite3')
+                        if (isSqliteLikeClient(knex.clientType()))
                           qb = qb.where(
                             knex.raw(
                               `Datetime(strftime ('%Y-%m-%d %H:%M:00',:column:) ||
@@ -768,7 +769,7 @@ const parseConditionV2 = async (
                     });
                   } else if (
                     knex.clientType().startsWith('mysql') ||
-                    knex.clientType() === 'sqlite3'
+                    isSqliteLikeClient(knex.clientType())
                   ) {
                     qb = qb.where((nestedQb) => {
                       nestedQb.whereNot(field, '{}').whereNot(field, '[]');
@@ -952,7 +953,7 @@ const parseConditionV2 = async (
                     if (knex.clientType() === 'pg') {
                       sql =
                         "((',' || ??::text || ',') ilike ? OR (',' || ??::text || ',') ilike ?)";
-                    } else if (knex.clientType() === 'sqlite3') {
+                    } else if (isSqliteLikeClient(knex.clientType())) {
                       sql =
                         "((',' || ?? || ',') like ? OR (',' || ?? || ',') like ?)";
                     } else {
@@ -1011,7 +1012,7 @@ const parseConditionV2 = async (
                     } else {
                       qb.where(field, gt_op, knex.raw('?::timestamptz', [val]));
                     }
-                  } else if (qb.client.config.client === 'sqlite3') {
+                  } else if (isSqliteLikeClient(getKnexClientType(qb))) {
                     qb.where(
                       field,
                       gt_op,
@@ -1070,7 +1071,7 @@ const parseConditionV2 = async (
                     } else {
                       qb.where(field, ge_op, knex.raw('?::timestamptz', [val]));
                     }
-                  } else if (qb.client.config.client === 'sqlite3') {
+                  } else if (isSqliteLikeClient(getKnexClientType(qb))) {
                     qb.where(
                       field,
                       ge_op,
@@ -1128,7 +1129,7 @@ const parseConditionV2 = async (
                     } else {
                       qb.where(field, lt_op, knex.raw('?::timestamptz', [val]));
                     }
-                  } else if (qb.client.config.client === 'sqlite3') {
+                  } else if (isSqliteLikeClient(getKnexClientType(qb))) {
                     qb.where(
                       field,
                       lt_op,
@@ -1188,7 +1189,7 @@ const parseConditionV2 = async (
                     } else {
                       qb.where(field, le_op, knex.raw('?::timestamptz', [val]));
                     }
-                  } else if (qb.client.config.client === 'sqlite3') {
+                  } else if (isSqliteLikeClient(getKnexClientType(qb))) {
                     qb.where(
                       field,
                       le_op,
@@ -1286,7 +1287,7 @@ const parseConditionV2 = async (
                     .orWhere(knex.raw("??::jsonb = '[]'::jsonb", [field]));
                 } else if (
                   knex.clientType().startsWith('mysql') ||
-                  knex.clientType() === 'sqlite3'
+                  isSqliteLikeClient(knex.clientType())
                 ) {
                   qb = qb
                     .whereNull(field)
@@ -1333,7 +1334,7 @@ const parseConditionV2 = async (
                     .whereNot(knex.raw("??::jsonb = '[]'::jsonb", [field]));
                 } else if (
                   knex.clientType().startsWith('mysql') ||
-                  knex.clientType() === 'sqlite3'
+                  isSqliteLikeClient(knex.clientType())
                 ) {
                   qb = qb
                     .whereNotNull(field)

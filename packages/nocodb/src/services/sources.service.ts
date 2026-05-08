@@ -15,6 +15,7 @@ import { Base, Integration, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
+import { withD1WarningMarker } from '~/helpers/clientTypes';
 
 @Injectable()
 export class SourcesService {
@@ -50,6 +51,9 @@ export class SourcesService {
     }
 
     const baseBody = param.source;
+    if (baseBody.config) {
+      baseBody.config = withD1WarningMarker(baseBody.config);
+    }
     const source = await Source.update(context, param.sourceId, {
       ...baseBody,
       type: baseBody.config?.client,
@@ -168,6 +172,9 @@ export class SourcesService {
 
     // type | base | baseId
     const baseBody = param.source;
+    if (baseBody.config) {
+      baseBody.config = withD1WarningMarker(baseBody.config);
+    }
     baseBody.alias = baseBody.alias?.trim();
     const base = await Base.getWithInfo(context, param.baseId);
 

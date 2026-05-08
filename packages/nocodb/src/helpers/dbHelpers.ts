@@ -44,6 +44,7 @@ import {
 } from '~/models';
 import { excludeAttachmentProps } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { D1_CLIENT, getKnexClientType } from '~/helpers/clientTypes';
 
 export type QueryWithCte = {
   builder: string | Knex.QueryBuilder;
@@ -950,13 +951,14 @@ export function getArrayAggExpression(
   columnName: string,
   alias: string,
 ): Knex.Raw {
-  const client = knexConnection.client.config.client;
+  const client = getKnexClientType(knexConnection);
 
   // Note: columnName and alias are controlled by our code, so it's safe to use directly
   const exprMap: Record<string, string> = {
     pg: `ARRAY_AGG(DISTINCT ${columnName}) FILTER (WHERE ${columnName} IS NOT NULL) AS ${alias}`,
     mysql2: `CAST(CONCAT('[', GROUP_CONCAT(DISTINCT CONCAT('"', ${columnName}, '"')), ']') AS JSON) AS ${alias}`,
     sqlite3: `json_group_array(DISTINCT ${columnName}) AS ${alias}`,
+    [D1_CLIENT]: `json_group_array(DISTINCT ${columnName}) AS ${alias}`,
   };
 
   // fallback to mysql2 query

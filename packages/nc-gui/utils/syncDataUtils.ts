@@ -143,6 +143,19 @@ export const allIntegrations: IntegrationItemType[] = [
     isAvailable: true,
     isOssOnly: true,
   },
+  {
+    title: 'objects.syncData.d1',
+    sub_type: ClientType.D1,
+    icon: iconMap.cloudflare,
+    type: IntegrationCategoryType.DATABASE,
+    isAvailable: true,
+    isOssOnly: true,
+    iconStyle: {
+      width: '32px',
+      height: '32px',
+      color: '#f38020',
+    },
+  },
   // Temp removed
   // {
   //   title: 'objects.syncData.snowflake',

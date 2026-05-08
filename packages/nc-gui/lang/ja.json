@@ -566,7 +566,8 @@
       "ollama": "オーラマ",
       "groq": "グロック",
       "freshdesk": "FreshDesk",
-      "nocodb": "NocoDB"
+      "nocodb": "NocoDB",
+      "d1": "Cloudflare D1"
     },
     "integrationCategories": {
       "allIntegrations": "すべての統合",

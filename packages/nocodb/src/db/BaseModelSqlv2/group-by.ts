@@ -32,6 +32,7 @@ import { BaseUser, Column, Filter, GridViewColumn, Sort } from '~/models';
 import { getAliasGenerator } from '~/utils';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
+import { isSqliteLikeClient } from '~/helpers/clientTypes';
 
 // PR review fix #2: Shared helper for UUID group-by to avoid 4x code duplication.
 // Casts UUID to text on PostgreSQL (avoids type mismatch), passes through on other DBs.
@@ -229,7 +230,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               "DATE_SUB(CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00'), INTERVAL SECOND(??) SECOND)",
               [columnName, columnName],
             );
-          } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
+          } else if (isSqliteLikeClient(baseModel.dbDriver.clientType())) {
             columnQuery = baseModel.dbDriver.raw(
               `strftime('%Y-%m-%d %H:%M:00', ??)`,
               [columnName],
@@ -450,7 +451,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               value: user.display_name || user.email,
             })),
           })})`;
-        } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
+        } else if (isSqliteLikeClient(baseModel.dbDriver.clientType())) {
           finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
             knex: baseModel.dbDriver,
             needleColumn: groupedColQb as any,
@@ -658,7 +659,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                     [columnName, columnName, getAs(column)],
                   ),
                 );
-              } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
+              } else if (isSqliteLikeClient(baseModel.dbDriver.clientType())) {
                 selectors.push(
                   baseModel.dbDriver.raw(
                     `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
@@ -984,7 +985,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                         [columnName, columnName, getAs(column)],
                       ),
                     );
-                  } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
+                  } else if (
+                    isSqliteLikeClient(baseModel.dbDriver.clientType())
+                  ) {
                     colSelectors.push(
                       baseModel.dbDriver.raw(
                         `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
@@ -1113,7 +1116,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           .from(tQb.as('groupby'));
 
         let subQuery;
-        switch (baseModel.dbDriver.client.config.client) {
+        switch (baseModel.dbDriver.clientType()) {
           case 'pg':
             subQuery = baseModel.dbDriver
               .select(
@@ -1136,6 +1139,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             );
             break;
           case 'sqlite3':
+          case 'd1':
             subQuery = baseModel.dbDriver
               .select(
                 baseModel.dbDriver.raw(`json_object('count', "count") as ??`, [
@@ -1352,7 +1356,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                         [columnName, columnName, getAs(column)],
                       ),
                     );
-                  } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
+                  } else if (
+                    isSqliteLikeClient(baseModel.dbDriver.clientType())
+                  ) {
                     colSelectors.push(
                       baseModel.dbDriver.raw(
                         `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
@@ -1555,7 +1561,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         }
 
         let subQuery;
-        switch (baseModel.dbDriver.client.config.client) {
+        switch (baseModel.dbDriver.clientType()) {
           case 'pg':
             subQuery = baseModel.dbDriver
               .select(
@@ -1582,6 +1588,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             );
             break;
           case 'sqlite3':
+          case 'd1':
             subQuery = baseModel.dbDriver
               .select(
                 baseModel.dbDriver.raw(
@@ -1783,7 +1790,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
         let jsonBuildObject;
 
-        switch (baseModel.dbDriver.client.config.client) {
+        switch (baseModel.dbDriver.clientType()) {
           case 'pg': {
             jsonBuildObject = baseModel.dbDriver.raw(
               `JSON_BUILD_OBJECT(${Object.keys(aggregateExpressions)
@@ -1803,7 +1810,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             break;
           }
 
-          case 'sqlite3': {
+          case 'sqlite3':
+          case 'd1': {
             jsonBuildObject = baseModel.dbDriver.raw(`json_object(
                     ${Object.keys(aggregateExpressions)
                       .map((key) => `'${key}', ${aggregateExpressions[key]}`)
@@ -1818,7 +1826,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
         tQb.select(jsonBuildObject);
 
-        if (baseModel.dbDriver.client.config.client === 'mysql2') {
+        if (baseModel.dbDriver.clientType() === 'mysql2') {
           selectors.push(
             baseModel.dbDriver.raw('JSON_UNQUOTE(??) as ??', [
               jsonBuildObject,

@@ -16,6 +16,9 @@ export class DBQueryClient {
       case ClientType.SQLITE: {
         return new SqliteDBQueryClient();
       }
+      case ClientType.D1: {
+        return new SqliteDBQueryClient();
+      }
     }
   }
 }

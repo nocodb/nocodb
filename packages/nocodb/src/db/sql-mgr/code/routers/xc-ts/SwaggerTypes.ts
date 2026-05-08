@@ -32,6 +32,7 @@ class SwaggerTypes {
         SwaggerTypes.setSwaggerTypeForPg(openApiVersion, column, field);
         break;
       case 'sqlite3':
+      case 'd1':
         SwaggerTypes.setSwaggerTypeForSqlite(openApiVersion, column, field);
         break;
     }

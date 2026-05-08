@@ -78,6 +78,7 @@ export enum DriverClient {
   MYSQL_LEGACY = 'mysql',
   PG = 'pg',
   SQLITE = 'sqlite3',
+  D1 = 'd1',
   SNOWFLAKE = 'snowflake',
   DATABRICKS = 'databricks',
 }

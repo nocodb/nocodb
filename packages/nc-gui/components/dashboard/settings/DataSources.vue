@@ -253,6 +253,10 @@ watch(
         clientType.value = ClientType.SQLITE
         vState.value = DataSourcesSubTab.New
         break
+      case ClientType.D1:
+        clientType.value = ClientType.D1
+        vState.value = DataSourcesSubTab.New
+        break
       case ClientType.SNOWFLAKE:
         clientType.value = ClientType.SNOWFLAKE
         vState.value = DataSourcesSubTab.New

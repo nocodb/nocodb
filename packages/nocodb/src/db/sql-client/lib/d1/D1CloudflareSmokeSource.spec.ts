@@ -95,6 +95,33 @@ describeSmoke('Cloudflare D1 smoke', () => {
     await expect(db(tableName).where({ id: taskId }).delete()).resolves.toBe(1);
   });
 
+  it('executes precompiled multi-statement work through D1 batch', async () => {
+    const batchTitle = `batched-${Date.now()}`;
+
+    await expect(
+      (db.client as D1KnexClient).batch([
+        {
+          sql: `INSERT INTO ${tableName} (title, done) VALUES (?, ?)`,
+          params: [batchTitle, 0],
+          method: 'insert',
+        },
+        {
+          sql: `UPDATE ${tableName} SET done = ? WHERE title = ?`,
+          params: [1, batchTitle],
+          method: 'update',
+        },
+        {
+          sql: `SELECT title, done FROM ${tableName} WHERE title = ?`,
+          params: [batchTitle],
+        },
+      ]),
+    ).resolves.toEqual([
+      expect.arrayContaining([expect.any(Number)]),
+      1,
+      [{ title: batchTitle, done: 1 }],
+    ]);
+  });
+
   it('reuses SQLite-compatible introspection against real D1', async () => {
     const tables = await db.raw(
       `SELECT name as tn FROM sqlite_master where type = 'table'`,

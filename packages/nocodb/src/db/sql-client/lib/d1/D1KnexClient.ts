@@ -22,6 +22,24 @@ type D1QueryResponse = {
   }>;
 };
 
+type D1BatchQuery = {
+  sql: string;
+  params?: any[];
+  method?: string;
+  returning?: boolean;
+  pluck?: string;
+  output?: (rows: any[]) => any;
+};
+
+type D1RequestBody =
+  | {
+      sql: string;
+      params: any[];
+    }
+  | {
+      batch: Array<{ sql: string; params: any[] }>;
+    };
+
 let transactionWarningShown = false;
 
 export class D1KnexClient extends Sqlite3Client {
@@ -72,11 +90,39 @@ export class D1KnexClient extends Sqlite3Client {
     const bindings = obj.bindings || [];
     this.validateQueryLimits(sql, bindings);
 
-    const body = await this.queryD1(sql, bindings);
+    const body = await this.queryD1({ sql, params: bindings });
     return {
       response: this.processD1Body(body, obj),
       context: obj.context,
     };
+  }
+
+  async batch(queries: D1BatchQuery[]) {
+    if (!queries.length) return [];
+
+    const batch = queries.map((query) => {
+      const sql = query.sql?.trim();
+      if (!sql) throw new Error('The batch query contains an empty statement');
+
+      const params = query.params || [];
+      this.validateQueryLimits(sql, params);
+
+      return { sql, params };
+    });
+
+    const body = await this.queryD1({ batch });
+
+    return queries.map((query, index) =>
+      this.processD1Body(
+        body,
+        {
+          ...query,
+          method: query.method || 'raw',
+          bindings: query.params || [],
+        },
+        index,
+      ),
+    );
   }
 
   processResponse(res, obj) {
@@ -102,7 +148,7 @@ export class D1KnexClient extends Sqlite3Client {
     }
   }
 
-  private async queryD1(sql: string, params: any[]) {
+  private async queryD1(requestBody: D1RequestBody) {
     const connection = this.config.connection as D1Connection;
     const accountId = connection.accountId || connection.account_id;
     const databaseId = connection.databaseId || connection.database_id;
@@ -125,7 +171,7 @@ export class D1KnexClient extends Sqlite3Client {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${apiToken}`,
         },
-        body: JSON.stringify({ sql, params }),
+        body: JSON.stringify(requestBody),
       },
     );
 
@@ -154,8 +200,8 @@ export class D1KnexClient extends Sqlite3Client {
     return body;
   }
 
-  private processD1Body(body: D1QueryResponse, obj) {
-    const result = body.result?.[0];
+  private processD1Body(body: D1QueryResponse, obj, resultIndex = 0) {
+    const result = body.result?.[resultIndex];
     if (!result) return this.emptyResponseFor(obj);
     if (result.success === false || result.error || result.errors?.length) {
       throw new Error(
@@ -165,7 +211,7 @@ export class D1KnexClient extends Sqlite3Client {
               result.errors ||
               (result.error ? [{ message: result.error }] : undefined),
           },
-          'Cloudflare D1 statement failed',
+          `Cloudflare D1 statement ${resultIndex + 1} failed`,
         ),
       );
     }

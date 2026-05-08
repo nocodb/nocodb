@@ -198,9 +198,78 @@ describe('D1KnexClient', () => {
     );
 
     await expect(statementErrorDb.raw('SELECT * FROM missing')).rejects.toThrow(
-      'Cloudflare D1 statement failed: no such table: missing',
+      'Cloudflare D1 statement 1 failed: no such table: missing',
     );
     await statementErrorDb.destroy();
+  });
+
+  it('sends precompiled multi-statement work as an atomic D1 batch', async () => {
+    const fetch = jest.fn().mockResolvedValue(
+      createResponse({
+        success: true,
+        result: [
+          { success: true, results: [], meta: { changes: 1 } },
+          { success: true, results: [{ total: 1 }], meta: {} },
+        ],
+      }),
+    );
+    const db = createD1Knex(fetch);
+
+    await expect(
+      (db.client as D1KnexClient).batch([
+        {
+          sql: 'INSERT INTO tasks (title) VALUES (?)',
+          params: ['ship d1'],
+          method: 'insert',
+        },
+        { sql: 'SELECT COUNT(*) as total FROM tasks' },
+      ]),
+    ).resolves.toEqual([[1], [{ total: 1 }]]);
+    expect(fetch).toHaveBeenCalledWith(
+      'https://api.cloudflare.com/client/v4/accounts/account-id/d1/database/database-id/query',
+      expect.objectContaining({
+        body: JSON.stringify({
+          batch: [
+            {
+              sql: 'INSERT INTO tasks (title) VALUES (?)',
+              params: ['ship d1'],
+            },
+            { sql: 'SELECT COUNT(*) as total FROM tasks', params: [] },
+          ],
+        }),
+      }),
+    );
+
+    await db.destroy();
+  });
+
+  it('reports the failing statement from a D1 batch rollback', async () => {
+    const db = createD1Knex(
+      jest.fn().mockResolvedValue(
+        createResponse({
+          success: true,
+          result: [
+            { success: true, results: [], meta: { changes: 1 } },
+            {
+              success: false,
+              errors: [{ message: 'UNIQUE constraint failed: tasks.title' }],
+              meta: {},
+            },
+          ],
+        }),
+      ),
+    );
+
+    await expect(
+      (db.client as D1KnexClient).batch([
+        { sql: 'INSERT INTO tasks (title) VALUES (?)', params: ['ship d1'] },
+        { sql: 'INSERT INTO tasks (title) VALUES (?)', params: ['ship d1'] },
+      ]),
+    ).rejects.toThrow(
+      'Cloudflare D1 statement 2 failed: UNIQUE constraint failed: tasks.title',
+    );
+
+    await db.destroy();
   });
 
   it('no-ops interactive transaction statements with one process warning', async () => {

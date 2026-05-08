@@ -589,7 +589,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const ownColOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
       this.context,
     );
-    const ownDisplayColId = (ownColOpts as any)?.fk_display_value_column_id;
+    const ownDisplayColId = ownColOpts?.fk_display_value_column_id;
     if (ownDisplayColId) {
       const found = refModel.columns?.find((c) => c.id === ownDisplayColId);
       if (found) return found;
@@ -598,27 +598,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // Fallback: paired LTAR direction may carry the override. The paired
     // column lives on the table this LTAR links to, which is `refModel` if
     // the caller passed it that way, or otherwise resolved via colOpts.
-    const linkedModelId =
-      (ownColOpts as any)?.fk_related_model_id ?? refModel.id;
-    const pairedColumns =
-      linkedModelId === refModel.id
-        ? refModel.columns
-        : await (async () => {
-            const m = await Model.get(this.context, linkedModelId);
-            if (!m) return undefined;
-            if (!m.columns?.length) await m.getColumns(this.context);
-            return m.columns;
-          })();
+    const { refContext } = ownColOpts.getRelContext(this.context);
+    const linkedModelId = ownColOpts?.fk_related_model_id ?? refModel.id;
+
+    let pairedColumns: Column[] | undefined;
+    if (linkedModelId === refModel.id) {
+      pairedColumns = refModel.columns;
+    } else {
+      const m = await Model.get(refContext, linkedModelId);
+      if (m && !m.columns?.length) await m.getColumns(refContext);
+      pairedColumns = m?.columns;
+    }
     if (!pairedColumns?.length) return undefined;
-    const pairedCol = await extractCorrespondingLinkColumn(this.context, {
+
+    const pairedCol = await extractCorrespondingLinkColumn(refContext, {
       ltarColumn: col,
       referencedTableColumns: pairedColumns,
     });
     if (!pairedCol) return undefined;
     const pairedColOpts =
-      await pairedCol.getColOptions<LinkToAnotherRecordColumn>(this.context);
-    const pairedDisplayColId = (pairedColOpts as any)
-      ?.fk_display_value_column_id;
+      await pairedCol.getColOptions<LinkToAnotherRecordColumn>(refContext);
+    const pairedDisplayColId = pairedColOpts?.fk_display_value_column_id;
     if (!pairedDisplayColId) return undefined;
     return refModel.columns?.find((c) => c.id === pairedDisplayColId);
   }

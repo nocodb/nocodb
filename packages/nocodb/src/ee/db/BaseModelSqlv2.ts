@@ -132,6 +132,7 @@ const MAX_RECURSION_DEPTH = 2;
 const READ_CHUNK_SIZE = 100;
 
 import { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
+import { captureForTrace } from '~/decorators/trace-command.decorator';
 export { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 
 /**
@@ -5095,7 +5096,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       model: this.model,
     });
     const cleanupDueAt = computeCleanupDueAt(deletedAtIso, retentionDays);
-    await BaseTrash.insert(this.context, {
+    const trashEntry = await BaseTrash.insert(this.context, {
       resource_type: 'record',
       resource_id: buildRecordResourceId(this.model.id, fkUserId, deletedAtIso),
       name: this.model.title,
@@ -5106,6 +5107,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       deleted_at: deletedAtIso,
       cleanup_due_at: cleanupDueAt,
     });
+    if (trashEntry?.id) {
+      captureForTrace('softDeleteTrashId', trashEntry.id);
+    }
   }
 
   // Given a source-side LTAR columnId, return the related table's column that

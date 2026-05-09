@@ -244,6 +244,9 @@ export class NestedLinkPreparator {
                   nestedData,
                   childModel.primaryKey.title,
                 );
+                let pendingEntry:
+                  | Extract<DisplacedRecord, { kind: 'column' }>
+                  | undefined;
                 preInsertOps.push(async () => {
                   const child = await baseModel
                     .dbDriver(baseModel.getTnPath(childModel.table_name))
@@ -257,7 +260,7 @@ export class NestedLinkPreparator {
                     )
                     .first();
                   if (child) {
-                    displacedRecords.push({
+                    pendingEntry = {
                       kind: 'column',
                       modelId: childModel.id,
                       pk: dataWrapper(child).extractPksValue(
@@ -267,9 +270,10 @@ export class NestedLinkPreparator {
                       column: childCol.column_name,
                       prev: child[childCol.column_name],
                       // OO HM-side forward action: child's FK reassigned
-                      // to the inserted row's pk (resolved at redo time).
+                      // to the inserted row's pk (filled by postInsertOp).
                       forward: 'newRowPk',
-                    });
+                    };
+                    displacedRecords.push(pendingEntry);
                   }
                   return '';
                 });
@@ -282,6 +286,10 @@ export class NestedLinkPreparator {
                       .select(parentCol.column_name)
                       .where(parentModel.primaryKey.column_name, rowId)
                       .first();
+                  }
+
+                  if (pendingEntry && rowId != null) {
+                    pendingEntry.forwardPk = String(rowId);
                   }
 
                   const linkRecId = extractIdPropIfObjectOrReturn(
@@ -350,6 +358,10 @@ export class NestedLinkPreparator {
                   extractIdPropIfObjectOrReturn(r, childModel.primaryKey.title),
                 )
                 .filter((v) => v != null);
+              const pendingEntries: Extract<
+                DisplacedRecord,
+                { kind: 'column' }
+              >[] = [];
               if (childPksForCapture.length) {
                 preInsertOps.push(async () => {
                   const rows = await baseModel
@@ -363,7 +375,10 @@ export class NestedLinkPreparator {
                       childPksForCapture,
                     );
                   for (const row of rows) {
-                    displacedRecords.push({
+                    const entry: Extract<
+                      DisplacedRecord,
+                      { kind: 'column' }
+                    > = {
                       kind: 'column',
                       modelId: childModel.id,
                       pk: dataWrapper(row).extractPksValue(
@@ -373,9 +388,11 @@ export class NestedLinkPreparator {
                       column: childCol.column_name,
                       prev: row[childCol.column_name],
                       // HM forward action: each child's FK gets re-parented
-                      // to the inserted row's pk.
+                      // to the inserted row's pk (filled by postInsertOp).
                       forward: 'newRowPk',
-                    });
+                    };
+                    displacedRecords.push(entry);
+                    pendingEntries.push(entry);
                   }
                   return '';
                 });
@@ -389,6 +406,11 @@ export class NestedLinkPreparator {
                     .select(parentCol.column_name)
                     .where(parentModel.primaryKey.column_name, rowId)
                     .first();
+                }
+                if (rowId != null) {
+                  for (const e of pendingEntries) {
+                    e.forwardPk = String(rowId);
+                  }
                 }
                 return baseModel
                   .dbDriver(baseModel.getTnPath(childModel.table_name))

@@ -115,6 +115,42 @@ export const recordActions = {
     parentEntityTitle
       ? `Undo record insert in ${bTable(parentEntityTitle)}`
       : `Undo record insert`) as DescFn,
+  bulkInsert: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk insert records in ${bTable(parentEntityTitle)}`
+      : `Bulk insert records`) as DescFn,
+  bulkInsertUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo bulk insert in ${bTable(parentEntityTitle)}`
+      : `Undo bulk insert`) as DescFn,
+  delete: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Delete record from ${bTable(parentEntityTitle)}`
+      : `Delete record`) as DescFn,
+  deleteUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo record delete in ${bTable(parentEntityTitle)}`
+      : `Undo record delete`) as DescFn,
+  update: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Update record in ${bTable(parentEntityTitle)}`
+      : `Update record`) as DescFn,
+  bulkUpdate: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk update records in ${bTable(parentEntityTitle)}`
+      : `Bulk update records`) as DescFn,
+  bulkDelete: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk delete records from ${bTable(parentEntityTitle)}`
+      : `Bulk delete records`) as DescFn,
+  bulkDeleteUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo bulk delete in ${bTable(parentEntityTitle)}`
+      : `Undo bulk delete`) as DescFn,
+  bulkUpsert: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk upsert records in ${bTable(parentEntityTitle)}`
+      : `Bulk upsert records`) as DescFn,
 };
 
 /**

@@ -262,6 +262,12 @@ export interface CaptureBag {
     primaryKeyTitle: string;
     primaryKeyColumnName: string;
   };
+  /** ID of the BaseTrash row inserted by `afterSoftDeleteCompleted`.
+   *  Captured at the point of insertion (no extra lookup) so undo /
+   *  redo can call `baseTrashSvc.restore(trashId)` directly. Bulk
+   *  soft-deletes write ONE entry covering all rows in the batch, so a
+   *  single id captures the whole bulk delete. */
+  softDeleteTrashId: string;
 }
 
 export type DisplacedRecord =
@@ -277,11 +283,19 @@ export type DisplacedRecord =
       prev: unknown;
       /** What the forward op set this column to (used by redo to re-apply
        *  the displaced state). `'null'` = OO BT-side null-out;
-       *  `'newRowPk'` = HM/OO-HM-side reassignment to inserted row's pk
-       *  (resolved at redo time from `meta.entityId`). Optional only for
-       *  backward compat with log entries written before this field
-       *  existed — those rows skip re-displacement on redo. */
+       *  `'newRowPk'` = HM/OO-HM-side reassignment to inserted row's pk.
+       *  Optional only for backward compat with log entries written
+       *  before this field existed — those rows skip re-displacement on
+       *  redo. */
       forward?: 'null' | 'newRowPk';
+      /** When `forward: 'newRowPk'`, the actual pk of the inserted row
+       *  whose pk was set on this displaced row's FK. Required for
+       *  bulk-insert redo where the recorded `meta.entityId` doesn't
+       *  pin a single row. Stamped by the `postInsertOps` callback in
+       *  `prepareNestedLinkQb` (after the insert assigns the pk).
+       *  Optional for backward compat — single-row redo falls back to
+       *  `meta.entityId` when this isn't set. */
+      forwardPk?: string;
     }
   | {
       kind: 'junction';

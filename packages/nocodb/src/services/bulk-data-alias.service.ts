@@ -9,6 +9,8 @@ import {
 } from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model, Source } from '~/models';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 type BulkOperation =
   | 'bulkInsert'
@@ -44,6 +46,7 @@ export class BulkDataAliasService {
   }
 
   // todo: Integrate with filterArrJson bulkDataUpdateAll
+  @TraceCommand(OperationName.recordBulkInsert)
   async bulkDataInsert(
     context: NcContext,
     param: PathParams & {

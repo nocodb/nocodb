@@ -154,6 +154,8 @@ export const OperationName = {
   // Records (data ops) — `sandbox: false` contracts; per-tab undo/redo only
   recordInsert: 'recordInsert',
   recordInsertUndo: 'recordInsertUndo',
+  recordBulkInsert: 'recordBulkInsert',
+  recordBulkInsertUndo: 'recordBulkInsertUndo',
 } as const;
 
 export type OperationName = (typeof OperationName)[keyof typeof OperationName];

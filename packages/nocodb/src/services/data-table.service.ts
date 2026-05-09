@@ -136,7 +136,11 @@ export class DataTableService {
     return data;
   }
 
-  @TraceCommand(OperationName.recordInsert)
+  @TraceCommand((_ctx, p) =>
+    Array.isArray(p?.body)
+      ? OperationName.recordBulkInsert
+      : OperationName.recordInsert,
+  )
   async dataInsert(
     context: NcContext,
     param: {

@@ -216,8 +216,23 @@ async function autoInstrumentMacroChild(
  *  - Non-macro outer: plain re-entrant skip (today's behavior). The
  *    method just runs; no recording.
  */
+/**
+ * Dynamic op-name resolver — supplies the op name based on the call's
+ * (ctx, param) at invocation time. Returns `undefined`/`null` to skip
+ * tracing entirely (the method runs unrecorded).
+ *
+ * Used by services whose single method handles both single-row and
+ * bulk shapes (e.g. `dataTableSvc.dataInsert` accepts both an object
+ * and an array as `body`); the resolver picks
+ * `recordInsert` vs `recordBulkInsert` based on `Array.isArray(body)`.
+ */
+export type OperationNameResolver = (
+  ctx: any,
+  param: any,
+) => OperationName | undefined | null;
+
 export function TraceCommand(
-  name: OperationName,
+  name: OperationName | OperationNameResolver,
   version: number = 1,
   opts?: TraceCommandOpts,
 ) {
@@ -229,7 +244,13 @@ export function TraceCommand(
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
-      const contract = OperationRegistry.contract(name, version);
+      const ctx = args[0];
+      const param = args[1];
+      const resolvedName: OperationName | undefined | null =
+        typeof name === 'function' ? name(ctx, param) : name;
+      if (!resolvedName) return originalMethod.apply(this, args);
+
+      const contract = OperationRegistry.contract(resolvedName, version);
       // Early module init before OperationRegistryBootstrap finishes.
       if (!contract) return originalMethod.apply(this, args);
 
@@ -247,8 +268,6 @@ export function TraceCommand(
         return originalMethod.apply(this, args);
       }
 
-      const ctx = args[0];
-      const param = args[1];
       const isMacro = contract.macro === true || opts?.macro === true;
 
       return traceScope.run(
@@ -265,7 +284,7 @@ export function TraceCommand(
               resolvedCtx = await beforeFn(ctx, param);
             } catch (e: any) {
               logger.warn(
-                `Trace entry.before ${name}@${version}: ${e.message}`,
+                `Trace entry.before ${resolvedName}@${version}: ${e.message}`,
               );
             }
           }
@@ -280,7 +299,7 @@ export function TraceCommand(
               }
             } catch (e: any) {
               logger.warn(
-                `Trace entry.skip_if ${name}@${version}: ${e.message}`,
+                `Trace entry.skip_if ${resolvedName}@${version}: ${e.message}`,
               );
             }
           }
@@ -321,7 +340,7 @@ export function TraceCommand(
             await recordCommand(ctx, contract, param, result, resolvedCtx);
           } catch (e: any) {
             logger.error(
-              `recordCommand ${name}@${version} failed: ${e?.message}`,
+              `recordCommand ${resolvedName}@${version} failed: ${e?.message}`,
               e?.stack,
             );
           }

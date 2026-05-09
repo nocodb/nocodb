@@ -13,6 +13,7 @@ const displacedColumnSchema = z
     column: z.string(),
     prev: z.unknown(),
     forward: z.enum(['null', 'newRowPk']).optional(),
+    forwardPk: z.string().optional(),
   })
   .strict();
 
@@ -62,6 +63,41 @@ export const recordInsertUndoSchema = z
   .object({
     modelId: z.string(),
     pk: z.string(),
+    displacedRecords: z.array(displacedRecordSchema),
+  })
+  .strict();
+
+/** Forward params for `recordBulkInsert` — same loose v1/v2 shape as
+ *  `recordInsert`, but `body` is always an array.
+ */
+export const recordBulkInsertSchema = z
+  .object({
+    modelId: z.string().optional(),
+    baseId: z.string().optional(),
+    viewId: z.string().optional(),
+    baseName: z.string().optional(),
+    tableName: z.string().optional(),
+    viewName: z.string().optional(),
+    body: z.array(z.unknown()),
+    cookie: z.unknown().optional(),
+    undo: z.boolean().optional(),
+    apiVersion: z.string().optional(),
+    internalFlags: z.unknown().optional(),
+    query: z.unknown().optional(),
+  })
+  .passthrough();
+
+/** Capture-schema for `recordBulkInsert`. Same shape as the single-row
+ *  variant — context + displaced rows captured during nested LTAR
+ *  preparation. */
+export const recordBulkInsertCaptureSchema = recordInsertCaptureSchema;
+
+/** Body shape passed to `recordBulkInsertUndo` — bulk-deletes the
+ *  inserted rows by pk and restores any displaced rows. */
+export const recordBulkInsertUndoSchema = z
+  .object({
+    modelId: z.string(),
+    pks: z.array(z.union([z.string(), z.number()])),
     displacedRecords: z.array(displacedRecordSchema),
   })
   .strict();

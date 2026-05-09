@@ -1,6 +1,6 @@
 import knex from 'knex';
 import Result from '../../../util/Result';
-import D1KnexClient from './D1KnexClient';
+import D1KnexClient, { type D1BatchQuery } from './D1KnexClient';
 import SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
 
 class D1Client extends SqliteClient {
@@ -20,6 +20,10 @@ class D1Client extends SqliteClient {
 
     this.knex = d1Knex;
     this.sqlClient = d1Knex;
+  }
+
+  async batch(queries: D1BatchQuery[]) {
+    return (this.knex.client as D1KnexClient).batch(queries);
   }
 
   async testConnection(_args: any = {}) {

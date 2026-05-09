@@ -464,7 +464,8 @@ function handleAutoScroll(scroll: boolean, className: string) {
                   <div class="flex items-center gap-2 text-xs text-warning">
                     <GeneralIcon icon="alertTriangle" class="flex-none" />
                     <span
-                      >Cloudflare D1 multi-step writes are best-effort because D1 does not support interactive transactions.</span
+                      >Cloudflare D1 uses atomic batches where writes can be precompiled; interactive transaction blocks remain
+                      best-effort.</span
                     >
                   </div>
                 </template>

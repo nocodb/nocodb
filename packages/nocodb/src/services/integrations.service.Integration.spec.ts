@@ -122,6 +122,7 @@ describe('IntegrationsService', () => {
           client: ClientType.D1,
           warnings: {
             d1: {
+              atomicBatches: true,
               bestEffortWrites: true,
               message: D1_BEST_EFFORT_WRITE_WARNING,
             },

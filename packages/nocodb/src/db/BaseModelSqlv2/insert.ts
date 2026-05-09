@@ -296,8 +296,18 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       // to avoid `too many SQL variables` error
       // refer : https://www.sqlite.org/limits.html
       const chunkSize = baseModel.isSqlite ? 10 : _chunkSize;
+      const hasPostInsertOps = Object.values(postInsertOpsMap).some(
+        (ops) => ops?.length,
+      );
+      const useD1AtomicInsertBatch =
+        baseModel.clientType === 'd1' &&
+        insertOneByOneAsFallback &&
+        !preInsertOps.length &&
+        !hasPostInsertOps;
 
-      trx = await baseModel.dbDriver.transaction();
+      if (!useD1AtomicInsertBatch) {
+        trx = await baseModel.dbDriver.transaction();
+      }
 
       if (!foreign_key_checks) {
         if (baseModel.isPg) {
@@ -315,7 +325,41 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       let responses;
 
       // insert one by one as fallback to get ids for sqlite and mysql
-      if (
+      if (useD1AtomicInsertBatch) {
+        const batchResponses = await (baseModel.dbDriver as any).client.batch(
+          insertDatas.map((insertData) => {
+            const query = baseModel
+              .dbDriver(baseModel.tnPath)
+              .insert(insertData)
+              .toSQL();
+
+            return {
+              sql: query.sql,
+              params: query.bindings,
+              method: 'insert',
+            };
+          }),
+        );
+
+        responses = batchResponses.map((response, index) => {
+          const insertData = insertDatas[index];
+          let id = Array.isArray(response) ? response[0] : response;
+
+          if (agPkCol) {
+            id = insertData[agPkCol.column_name];
+          }
+
+          return (
+            baseModel.extractCompositePK({
+              rowId: id,
+              ai: aiPkCol,
+              ag: agPkCol,
+              insertObj: insertData,
+              force: true,
+            }) || insertData
+          );
+        });
+      } else if (
         insertOneByOneAsFallback &&
         (baseModel.isSqlite || baseModel.isMySQL)
       ) {
@@ -383,7 +427,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         }
       }
 
-      await trx.commit();
+      await trx?.commit();
 
       if (!raw && !skip_hooks) {
         // we will wrap returning primary key values with primary key column name

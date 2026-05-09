@@ -22,7 +22,7 @@ type D1QueryResponse = {
   }>;
 };
 
-type D1BatchQuery = {
+export type D1BatchQuery = {
   sql: string;
   params?: any[];
   method?: string;
@@ -81,7 +81,7 @@ export class D1KnexClient extends Sqlite3Client {
       if (!transactionWarningShown) {
         transactionWarningShown = true;
         console.warn(
-          'Cloudflare D1 does not support interactive transactions over the HTTP API. Multi-step writes are best-effort.',
+          'Cloudflare D1 does not support interactive transactions over the HTTP API. Use D1 batch for precompiled atomic multi-statement writes; interactive transaction blocks are best-effort.',
         );
       }
       return { response: this.emptyResponseFor(obj), context: obj.context };

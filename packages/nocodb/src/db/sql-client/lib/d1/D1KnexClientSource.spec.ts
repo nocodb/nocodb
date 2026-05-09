@@ -283,7 +283,7 @@ describe('D1KnexClient', () => {
     expect(fetch).not.toHaveBeenCalled();
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith(
-      'Cloudflare D1 does not support interactive transactions over the HTTP API. Multi-step writes are best-effort.',
+      'Cloudflare D1 does not support interactive transactions over the HTTP API. Use D1 batch for precompiled atomic multi-statement writes; interactive transaction blocks are best-effort.',
     );
 
     await db.destroy();

@@ -159,6 +159,18 @@ export const recordActions = {
     parentEntityTitle
       ? `Bulk upsert records in ${bTable(parentEntityTitle)}`
       : `Bulk upsert records`) as DescFn,
+  linkAdd: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Add link in ${bTable(parentEntityTitle)}`
+      : `Add link`) as DescFn,
+  linkRemove: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Remove link in ${bTable(parentEntityTitle)}`
+      : `Remove link`) as DescFn,
+  move: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Reorder record in ${bTable(parentEntityTitle)}`
+      : `Reorder record`) as DescFn,
 };
 
 /**

@@ -846,10 +846,18 @@ export function useInfiniteData(args: {
     }
 
     if (!isFailed) {
-      $api.dbDataTableRow
-        .move(meta.value!.id!, recordPk, {
-          before: targetIndex === null ? null : targetRecordPk,
-        })
+      $api.internal
+        .postOperation(
+          (meta.value as any).fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'dataMove',
+            tableId: meta.value!.id!,
+            rowId: recordPk,
+            before: targetIndex === null ? null : targetRecordPk,
+          } as any,
+          undefined,
+        )
         .then(() => {
           callbacks?.syncVisibleData?.()
         })

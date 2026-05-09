@@ -131,6 +131,7 @@ export class UiPostOperations
     'dataInsert' as const,
     'dataUpdate' as const,
     'dataDelete' as const,
+    'dataMove' as const,
     'bulkDataDeleteAll' as const,
     'commentRow' as const,
     'commentUpdate' as const,
@@ -633,6 +634,14 @@ export class UiPostOperations
           cookie: req,
           viewId: req.query.viewId as string,
           body: payload,
+          user: req.user,
+        });
+      case 'dataMove':
+        return await this.dataTableService.dataMove(context, {
+          modelId: req.query.tableId as string,
+          rowId: req.query.rowId as string,
+          beforeRowId: req.query.before as string | undefined,
+          cookie: req,
           user: req.user,
         });
       case 'bulkDataDeleteAll':

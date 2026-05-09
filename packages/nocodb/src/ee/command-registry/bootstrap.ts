@@ -64,6 +64,7 @@ import { PermissionsService } from '~/ee/services/permissions.service';
 import { RlsService } from '~/services/rls.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { DataTableService } from '~/services/data-table.service';
+import { DataAliasNestedService } from '~/services/data-alias-nested.service';
 
 @Injectable()
 export class OperationRegistryBootstrap implements OnApplicationBootstrap {
@@ -103,6 +104,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly rlsSvc: RlsService,
     private readonly tablesV3Svc: TablesV3Service,
     private readonly dataTableSvc: DataTableService,
+    private readonly dataAliasNestedSvc: DataAliasNestedService,
   ) {}
 
   onApplicationBootstrap(): void {
@@ -142,7 +144,11 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     registerPermissionHandlers(this.permissionsSvc);
     registerRlsHandlers(this.rlsSvc, this.filtersSvc);
     registerTablesV3Handlers(this.tablesV3Svc, this.baseTrashSvc);
-    registerRecordHandlers(this.dataTableSvc, this.baseTrashSvc);
+    registerRecordHandlers(
+      this.dataTableSvc,
+      this.baseTrashSvc,
+      this.dataAliasNestedSvc,
+    );
     registerMacroHandlers();
 
     OperationRegistry.freeze();

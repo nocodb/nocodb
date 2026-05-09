@@ -294,3 +294,74 @@ export const recordBulkUpdateUndoSchema = z
     baseId: z.string().optional(),
   })
   .strict();
+
+/** Forward params for `recordLinkAdd` / `recordLinkRemove` — explicit
+ *  link mutations. The two contracts are each other's inverse: undoing
+ *  an add is a remove, undoing a remove is an add — same triple in both
+ *  directions.
+ *
+ *  Accepts BOTH dispatch shapes:
+ *   - v2 (`nestedLink`/`nestedUnlink`): `{modelId, columnId, rowId,
+ *     refRowIds}` → routes through `addLinks`/`removeLinks`.
+ *   - v1 (`relationDataAdd`/`relationDataRemove`): `{baseName,
+ *     tableName, columnName, rowId, refRowId}` → routes through
+ *     `addChild`/`removeChild`. v1 endpoints carry one ref at a time.
+ *
+ *  Handler dispatches on which params shape is present so the inverse
+ *  goes through the same service the user invoked (audit/realtime
+ *  semantics stay consistent with the forward op). */
+export const recordLinkSchema = z
+  .object({
+    // v2 path
+    modelId: z.string().optional(),
+    baseId: z.string().optional(),
+    viewId: z.string().optional(),
+    columnId: z.string().optional(),
+    refRowIds: z.unknown().optional(),
+    // v1 path
+    baseName: z.string().optional(),
+    tableName: z.string().optional(),
+    viewName: z.string().optional(),
+    columnName: z.string().optional(),
+    refRowId: z.union([z.string(), z.number()]).optional(),
+    // Shared
+    rowId: z.union([z.string(), z.number()]),
+    cookie: z.unknown().optional(),
+    query: z.unknown().optional(),
+    user: z.unknown().optional(),
+  })
+  .passthrough();
+
+/** Forward params for `recordMove` — drag-to-reorder. `beforeRowId`
+ *  identifies the row the moved row should land immediately before
+ *  (null/undefined = move to end). `recordMove` is self-inverse: undo
+ *  re-runs `moveRecord` with the captured pre-move neighbor. */
+export const recordMoveSchema = z
+  .object({
+    modelId: z.string().optional(),
+    baseId: z.string().optional(),
+    viewId: z.string().optional(),
+    rowId: z.union([z.string(), z.number()]),
+    beforeRowId: z.union([z.string(), z.number()]).nullable().optional(),
+    cookie: z.unknown().optional(),
+    user: z.unknown().optional(),
+  })
+  .passthrough();
+
+/** `meta.extra` for recordMove — captures the pk of the row that was
+ *  immediately AFTER the moved row in the pre-move ordering. That pk
+ *  becomes `beforeRowId` for the inverse `moveRecord` call (which
+ *  re-positions the row back to its original slot). `null` when the
+ *  row was at the end (undo moves it back to the end). */
+export const recordMoveCaptureSchema = z
+  .object({
+    recordModelContext: recordModelContextSchema.optional(),
+    movePrev: z
+      .object({
+        pk: z.union([z.string(), z.number()]),
+        beforeRowId: z.union([z.string(), z.number()]).nullable(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();

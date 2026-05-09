@@ -10,6 +10,8 @@ import {
 } from '~/helpers/dataHelpers';
 import { Model, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class DataAliasNestedService {
@@ -305,6 +307,7 @@ export class DataAliasNestedService {
     } as any);
   }
 
+  @TraceCommand(OperationName.recordLinkRemove)
   async relationDataRemove(
     context: NcContext,
     param: PathParams & {
@@ -339,6 +342,7 @@ export class DataAliasNestedService {
   }
 
   // todo: Give proper error message when reference row is already related and handle duplicate ref row id in hm
+  @TraceCommand(OperationName.recordLinkAdd)
   async relationDataAdd(
     context: NcContext,
     param: PathParams & {

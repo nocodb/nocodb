@@ -164,6 +164,11 @@ export const OperationName = {
   recordUpdateUndo: 'recordUpdateUndo',
   recordBulkUpdate: 'recordBulkUpdate',
   recordBulkUpdateUndo: 'recordBulkUpdateUndo',
+
+  // Explicit link mutations (each is the other's inverse) + row reorder
+  recordLinkAdd: 'recordLinkAdd',
+  recordLinkRemove: 'recordLinkRemove',
+  recordMove: 'recordMove',
 } as const;
 
 export type OperationName = (typeof OperationName)[keyof typeof OperationName];

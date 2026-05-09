@@ -188,6 +188,7 @@ export class DataTableService {
     return Array.isArray(param.body) ? result : result[0];
   }
 
+  @TraceCommand(OperationName.recordMove)
   async dataMove(
     context: NcContext,
     param: {
@@ -607,6 +608,7 @@ export class DataTableService {
     return column;
   }
 
+  @TraceCommand(OperationName.recordLinkAdd)
   async nestedLink(
     context: NcContext,
     param: {
@@ -651,6 +653,7 @@ export class DataTableService {
     return true;
   }
 
+  @TraceCommand(OperationName.recordLinkRemove)
   async nestedUnlink(
     context: NcContext,
     param: {

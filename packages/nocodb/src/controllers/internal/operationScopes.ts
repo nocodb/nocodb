@@ -130,6 +130,7 @@ export const OPERATION_SCOPES = {
   dataUpdate: 'base',
   dataDelete: 'base',
   dataDeleteAll: 'base',
+  dataMove: 'base',
   bulkDataDeleteAll: 'base',
 
   // AT Import

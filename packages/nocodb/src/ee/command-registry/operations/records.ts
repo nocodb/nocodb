@@ -13,6 +13,7 @@ import type {
   OperationContract,
 } from '~/command-registry/types';
 import type { DataTableService } from '~/services/data-table.service';
+import type { DataAliasNestedService } from '~/services/data-alias-nested.service';
 import type { BaseTrashService } from '~/ee/services/base-trash/base-trash.service';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import { OperationName } from '~/command-registry/op-names';
@@ -39,6 +40,9 @@ import {
   recordDeleteUndoSchema,
   recordInsertCaptureSchema,
   recordInsertUndoSchema,
+  recordLinkSchema,
+  recordMoveCaptureSchema,
+  recordMoveSchema,
   recordUpdateCaptureSchema,
   recordUpdateSchema,
   recordUpdateUndoSchema,
@@ -713,6 +717,174 @@ export const RecordBulkUpdateUndoContract: OperationContract<
   },
 };
 
+interface RecordLinkExtra {
+  modelId: string;
+  parentEntityTitle: string;
+}
+
+/** Pick only the serializable link-shape fields from params for the
+ *  inverse op. Spreading `...params` would carry `cookie: req` (Express
+ *  request, circular refs) into `inverse_params` and break JSON
+ *  serialization. */
+function pickLinkParams(params: any): Record<string, any> {
+  const out: Record<string, any> = {};
+  for (const k of [
+    'modelId',
+    'baseId',
+    'viewId',
+    'columnId',
+    'refRowIds',
+    'baseName',
+    'tableName',
+    'viewName',
+    'columnName',
+    'refRowId',
+    'rowId',
+  ]) {
+    if (params[k] !== undefined) out[k] = params[k];
+  }
+  return out;
+}
+
+export const RecordLinkAddContract: OperationContract<
+  typeof recordLinkSchema,
+  RecordLinkExtra,
+  unknown
+> = {
+  name: OperationName.recordLinkAdd,
+  entity: MetaTable.MODELS,
+  schema: recordLinkSchema,
+  sandbox: false,
+  entry: {
+    description: recordActions.linkAdd,
+    before: async (context, params) => {
+      const modelId = await resolveModelIdFromParams(context, params);
+      if (!modelId) return {};
+      const model = await Model.get(context, modelId);
+      if (!model) return {};
+      return {
+        parentEntityTitle: model.title,
+        extra: { modelId, parentEntityTitle: model.title ?? '' },
+      };
+    },
+    entity_id: (params) => String(params.rowId),
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const modelId = resolved?.extra?.modelId ?? params.modelId;
+      if (!modelId && !params.tableName) return null;
+      // Forward all v1 + v2 link fields so the inverse takes the same
+      // service path the forward op did (audit/realtime symmetry).
+      // `pickLinkParams` strips `cookie`/`req` (circular refs would
+      // break JSON serialization of inverse_params on the log row).
+      const picked = pickLinkParams(params);
+      if (modelId && !picked.modelId) picked.modelId = modelId;
+      return {
+        name: OperationName.recordLinkRemove,
+        params: picked,
+      };
+    },
+  },
+};
+
+export const RecordLinkRemoveContract: OperationContract<
+  typeof recordLinkSchema,
+  RecordLinkExtra,
+  unknown
+> = {
+  name: OperationName.recordLinkRemove,
+  entity: MetaTable.MODELS,
+  schema: recordLinkSchema,
+  sandbox: false,
+  entry: {
+    description: recordActions.linkRemove,
+    before: async (context, params) => {
+      const modelId = await resolveModelIdFromParams(context, params);
+      if (!modelId) return {};
+      const model = await Model.get(context, modelId);
+      if (!model) return {};
+      return {
+        parentEntityTitle: model.title,
+        extra: { modelId, parentEntityTitle: model.title ?? '' },
+      };
+    },
+    entity_id: (params) => String(params.rowId),
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const modelId = resolved?.extra?.modelId ?? params.modelId;
+      if (!modelId && !params.tableName) return null;
+      const picked = pickLinkParams(params);
+      if (modelId && !picked.modelId) picked.modelId = modelId;
+      return {
+        name: OperationName.recordLinkAdd,
+        params: picked,
+      };
+    },
+  },
+};
+
+interface RecordMoveExtra {
+  modelId: string;
+  parentEntityTitle: string;
+}
+
+/** `recordMove` is self-inverse: the inverse op is another recordMove
+ *  with the captured pre-move neighbor as the new `beforeRowId`. The
+ *  capture itself happens inside `BaseModelSqlv2.moveRecord` — putting
+ *  it there (rather than in `entry.before`) ensures redo's
+ *  `runInChildTraceScope` also harvests fresh `movePrev`, since
+ *  `entry.before` only fires for the outermost `@TraceCommand` call. */
+export const RecordMoveContract: OperationContract<
+  typeof recordMoveSchema,
+  RecordMoveExtra,
+  unknown
+> = {
+  name: OperationName.recordMove,
+  entity: MetaTable.MODELS,
+  schema: recordMoveSchema,
+  sandbox: false,
+  capture: ['recordModelContext', 'movePrev'],
+  capture_schema: recordMoveCaptureSchema,
+  entry: {
+    description: recordActions.move,
+    before: async (context, params) => {
+      const modelId =
+        params.modelId ?? (await resolveModelIdFromParams(context, params));
+      if (!modelId) return {};
+      const model = await Model.get(context, modelId);
+      if (!model) return {};
+      await model.getColumns(context);
+      const ctx = {
+        modelId,
+        primaryKeyTitles: (model.primaryKeys ?? []).map((c) => c.title),
+      };
+      captureForTrace('recordModelContext', ctx);
+      return {
+        parentEntityTitle: model.title,
+        extra: { modelId, parentEntityTitle: model.title ?? '' },
+      };
+    },
+    entity_id: (params) => String(params.rowId),
+  },
+  undo: {
+    inverse: (_context, _params, _result, resolved) => {
+      const modelId = resolved?.extra?.modelId;
+      if (!modelId) return null;
+      const prev = getTraceCapture('movePrev');
+      if (!prev) return null;
+      return {
+        name: OperationName.recordMove,
+        params: {
+          modelId,
+          rowId: prev.pk,
+          beforeRowId: prev.beforeRowId,
+        },
+      };
+    },
+  },
+};
+
 /**
  * Strip body fields the server controls. Auto-generated time/by columns
  * are unconditionally rejected by `handleValidateBulkInsert`, virtual
@@ -828,6 +1000,7 @@ async function resolveJunctionLinkSides(
 export function registerRecordHandlers(
   dataTableSvc: DataTableService,
   baseTrashSvc: BaseTrashService,
+  dataAliasNestedSvc: DataAliasNestedService,
 ): void {
   // `recordInsert` redo. With trashId → restore from trash (preserves pk).
   // Without → fresh insert.
@@ -1902,6 +2075,90 @@ export function registerRecordHandlers(
       for (const lc of linkChangesForUndo) {
         await invertLinkChange(context, lc, meta.originalReq);
       }
+    },
+  );
+  // Both link contracts dispatch to v1 (`relationData*` → `addChild` /
+  // `removeChild`) when v1 params are present, else v2 (`nestedLink` /
+  // `nestedUnlink` → `addLinks` / `removeLinks`). Routing on shape
+  // keeps the inverse on the same audit/realtime path the forward op
+  // used.
+  const isV1LinkParams = (p: any): boolean =>
+    !!(p.tableName && p.columnName && p.refRowId !== undefined);
+
+  OperationRegistry.register(
+    RecordLinkAddContract,
+    async (context, params, meta) => {
+      if (isV1LinkParams(params)) {
+        return await dataAliasNestedSvc.relationDataAdd(context, {
+          baseName: params.baseName as string,
+          tableName: params.tableName as string,
+          viewName: params.viewName as string,
+          columnName: params.columnName as string,
+          rowId: String(params.rowId),
+          refRowId: String(params.refRowId),
+          cookie: meta.originalReq,
+        } as any);
+      }
+      return await dataTableSvc.nestedLink(context, {
+        modelId: params.modelId as string,
+        viewId: params.viewId as string,
+        columnId: params.columnId as string,
+        rowId: String(params.rowId),
+        refRowIds: params.refRowIds as any,
+        cookie: meta.originalReq,
+        query: params.query,
+        user: meta.originalReq?.user ?? { id: meta.createdBy },
+      } as any);
+    },
+  );
+
+  OperationRegistry.register(
+    RecordLinkRemoveContract,
+    async (context, params, meta) => {
+      if (isV1LinkParams(params)) {
+        return await dataAliasNestedSvc.relationDataRemove(context, {
+          baseName: params.baseName as string,
+          tableName: params.tableName as string,
+          viewName: params.viewName as string,
+          columnName: params.columnName as string,
+          rowId: String(params.rowId),
+          refRowId: String(params.refRowId),
+          cookie: meta.originalReq,
+        } as any);
+      }
+      return await dataTableSvc.nestedUnlink(context, {
+        modelId: params.modelId as string,
+        viewId: params.viewId as string,
+        columnId: params.columnId as string,
+        rowId: String(params.rowId),
+        refRowIds: params.refRowIds as any,
+        cookie: meta.originalReq,
+        query: params.query,
+        user: meta.originalReq?.user ?? { id: meta.createdBy },
+      } as any);
+    },
+  );
+
+  // recordMove — re-dispatches dataMove inside a child trace scope so
+  // the next undo/redo cycle picks up the freshly-rotated `movePrev`
+  // (the row's new neighbor in the post-redo world).
+  OperationRegistry.register(
+    RecordMoveContract,
+    async (context, params, meta) => {
+      const { bag } = await runInChildTraceScope(async () => {
+        await dataTableSvc.dataMove(context, {
+          modelId: params.modelId as string,
+          rowId: String(params.rowId),
+          beforeRowId:
+            params.beforeRowId == null ? undefined : String(params.beforeRowId),
+          cookie: meta.originalReq,
+          user: meta.originalReq?.user ?? { id: meta.createdBy },
+        } as any);
+      });
+      const freshMovePrev = bag.get('movePrev')
+      return freshMovePrev
+        ? { metaUpdate: { movePrev: freshMovePrev } }
+        : undefined;
     },
   );
 }

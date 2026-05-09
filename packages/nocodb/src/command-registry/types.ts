@@ -281,6 +281,11 @@ export interface CaptureBag {
    *  covered uniformly). Undo iterates and inverts: 'add' → removeLinks,
    *  'remove' → addLinks. */
   linkChanges: ReadonlyArray<LinkChange>;
+  /** Pre-move neighbor for `recordMove`. `beforeRowId` = pk of the row
+   *  that was immediately after the moved row in the pre-move ordering
+   *  (or `null` if it was at the end). The inverse `moveRecord` call
+   *  uses this as its own `beforeRowId` to put the row back in place. */
+  movePrev: { pk: string | number; beforeRowId: string | number | null };
 }
 
 /** One add-or-remove operation against a single LTAR column on a single

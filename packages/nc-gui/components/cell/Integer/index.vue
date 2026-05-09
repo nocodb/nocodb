@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import { SeparatorType, formatNumberWithSeparator, getSeparatorChars, resolveColumnSeparator } from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type
@@ -33,14 +34,26 @@ const column = inject(ColumnInj, null)!
 
 const _vModel = useVModel(props, 'modelValue', emits)
 
+const { getCurrentCopiedCellClipboardData } = useNcClipboardData()
+
 const displayValue = computed(() => {
   if (_vModel.value === null) return null
 
   if (isNaN(Number(_vModel.value))) return null
 
-  if (parseProp(column.value.meta).isLocaleString) return Number(_vModel.value).toLocaleString()
+  const separator = resolveColumnSeparator(parseProp(column.value.meta))
 
-  return Number(_vModel.value)
+  if (separator === SeparatorType.Locale) {
+    return Number(_vModel.value).toLocaleString()
+  }
+
+  const { thousandSeparator } = getSeparatorChars(separator)
+
+  if (!thousandSeparator) {
+    return Number(_vModel.value)
+  }
+
+  return formatNumberWithSeparator(Number(_vModel.value), thousandSeparator, '.')
 })
 
 const vModel = computed({
@@ -91,6 +104,22 @@ function onKeyDown(e: any) {
     e.target.type = 'number'
   }
 }
+
+const onPaste = (e: ClipboardEvent) => {
+  const value = e.clipboardData?.getData('text/plain')
+  if (!value) return
+
+  const storedData = getCurrentCopiedCellClipboardData(value)
+  if (storedData) {
+    const clipboardItem = storedData.dbCellValueArr?.[0]?.[0]
+    if (clipboardItem !== undefined && clipboardItem !== null && !isNaN(Number(clipboardItem))) {
+      e.preventDefault()
+      e.stopPropagation()
+      vModel.value = parseInt(String(clipboardItem), 10)
+    }
+  }
+  // Fall through to browser native paste for external clipboard
+}
 </script>
 
 <template>
@@ -103,6 +132,7 @@ function onKeyDown(e: any) {
     :type="inputType"
     style="letter-spacing: 0.06rem"
     @blur="editEnabled = false"
+    @paste="onPaste"
     @keydown="onKeyDown"
     @keydown.down.stop
     @keydown.left.stop

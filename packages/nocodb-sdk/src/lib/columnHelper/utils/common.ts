@@ -1,5 +1,15 @@
 export const precisionFormats = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const;
 
+export enum SeparatorType {
+  Locale = 'locale',
+  NonePeriod = 'none_period',
+  NoneComma = 'none_comma',
+  CommaPeriod = 'comma_period',
+  PeriodComma = 'period_comma',
+  SpacePeriod = 'space_period',
+  SpaceComma = 'space_comma',
+}
+
 export const supportedBarcodeFormats = [
   { value: 'CODE128', label: 'CODE128' },
   { value: 'upc', label: 'UPC' },

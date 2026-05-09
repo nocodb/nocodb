@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { SeparatorType } from 'nocodb-sdk'
+
 const props = withDefaults(defineProps<Props>(), {
   content: undefined,
   schema: undefined,
@@ -182,7 +184,7 @@ async function saveToBase() {
 
         // Number / Decimal
         if ((col.type === 'Number' || col.type === 'Decimal') && opts.locale_string) {
-          meta.isLocaleString = true
+          meta.separator = SeparatorType.CommaPeriod
         }
 
         // Date / DateTime

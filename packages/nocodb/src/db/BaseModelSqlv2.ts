@@ -3964,11 +3964,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           datas[0],
         );
       } else {
-        await this.afterBulkUpdate(
-          existingRecords,
-          updatedDataList,
-          cookie,
-        );
+        await this.afterBulkUpdate(existingRecords, updatedDataList, cookie);
       }
 
       return [...updatedDataList, ...insertedDataList];
@@ -4424,12 +4420,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       if (!raw && !skip_hooks) {
         if (isSingleRecordUpdation) {
-          await this.afterUpdate(
-            prevData[0],
-            newData[0],
-            cookie,
-            datas[0],
-          );
+          await this.afterUpdate(prevData[0], newData[0], cookie, datas[0]);
         } else {
           await this.afterBulkUpdate(prevData, newData, cookie);
         }

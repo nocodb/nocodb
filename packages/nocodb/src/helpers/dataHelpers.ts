@@ -1,7 +1,9 @@
 import {
   convertMS2Duration,
   LongTextAiMetaProp,
+  parseDecimalValue,
   parseHelper,
+  parseIntValue,
   parseProp,
   roundUpToPrecision,
   UITypes,
@@ -61,10 +63,12 @@ export async function serializeCellValue(
     value,
     column,
     siteUrl,
+    locale,
   }: {
     column?: Column;
     value: any;
     siteUrl: string;
+    locale?: string;
   },
 ) {
   if (!column) {
@@ -135,6 +139,7 @@ export async function serializeCellValue(
                 value: v,
                 column: lookupColumn,
                 siteUrl,
+                locale,
               }),
             ),
           )
@@ -180,7 +185,20 @@ export async function serializeCellValue(
       {
         if (isNaN(Number(value))) return null;
 
-        return Number(value).toFixed(column.meta?.precision ?? 1);
+        return parseDecimalValue(value, column, {
+          skipThousandSeparator: true,
+          locale,
+        });
+      }
+      break;
+    case UITypes.Number:
+      {
+        if (isNaN(Number(value))) return null;
+
+        return parseIntValue(value, column, {
+          skipThousandSeparator: true,
+          locale,
+        });
       }
       break;
     case UITypes.Duration: {

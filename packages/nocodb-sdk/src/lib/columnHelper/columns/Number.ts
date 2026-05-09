@@ -1,5 +1,5 @@
 import { SilentTypeConversionError } from '~/lib/error';
-import { parseIntValue, serializeIntValue } from '..';
+import { parseIntValue, serializeIntValue, SeparatorType } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
@@ -10,7 +10,7 @@ import { ncIsNaN } from '~/lib/is';
 
 export class NumberHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
-    isLocaleString: false,
+    separator: SeparatorType.NonePeriod,
   };
 
   serializeValue(

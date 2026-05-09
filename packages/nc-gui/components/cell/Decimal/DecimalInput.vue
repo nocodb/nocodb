@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { composeNewDecimalValue, ncIsNaN } from 'nocodb-sdk'
+import { composeNewDecimalValue, formatNumberWithSeparator, ncIsNaN } from 'nocodb-sdk'
 import type { StyleValue } from 'vue'
 
 interface Props {
@@ -9,6 +9,8 @@ interface Props {
   disabled?: boolean
   precision?: number
   isFocusOnMounted?: boolean
+  decimalSeparator?: string
+  thousandSeparator?: string | null
 }
 
 interface Emits {
@@ -24,18 +26,41 @@ const { isMobileMode } = useGlobal()
 
 const inputRef = templateRef('input-ref')
 
+const { getCurrentCopiedCellClipboardData } = useNcClipboardData()
+
 const pasteText = (target: HTMLInputElement, value: string) => {
   if (!value || value === '') {
     return { changed: false }
   }
+  const decSep = props.decimalSeparator || '.'
   const selectionEnd = target.selectionEnd
   const lastValue = target.value
-  const newValue = composeNewDecimalValue({
+
+  // composeNewDecimalValue only understands '.' as decimal separator,
+  // so normalize to '.' before composing and convert back after
+  const normalizedLast = decSep !== '.' ? lastValue.replace(new RegExp(`\\${decSep}`, 'g'), '.') : lastValue
+  let normalizedNew: string
+  if (decSep !== '.') {
+    // Strip dots first — they are not the decimal separator for this column
+    normalizedNew = value.replace(/\./g, '')
+    // Then convert column's decimal separator to dot
+    normalizedNew = normalizedNew.replace(new RegExp(`\\${decSep}`, 'g'), '.')
+  } else {
+    normalizedNew = value
+  }
+
+  let newValue = composeNewDecimalValue({
     selectionStart: target.selectionStart,
     selectionEnd: target.selectionEnd,
-    lastValue,
-    newValue: value,
+    lastValue: normalizedLast,
+    newValue: normalizedNew,
   })
+
+  // Convert back to the column's decimal separator
+  if (decSep !== '.') {
+    newValue = newValue.replace('.', decSep)
+  }
+
   if (target.value !== newValue) {
     target.value = newValue
   }
@@ -47,21 +72,28 @@ const pasteText = (target: HTMLInputElement, value: string) => {
 
 const getFormattedModelValue = (format = true) => {
   if (vModel.value || vModel.value === 0) {
+    const decSep = props.decimalSeparator || '.'
+    let numValue: number | undefined
+
     if (typeof vModel.value === 'number') {
-      if (props.precision && format) {
-        return vModel.value.toFixed(props.precision) ?? ''
-      } else {
-        return vModel.value.toString()
-      }
+      numValue = vModel.value
     } else if (typeof vModel.value === 'string') {
-      const numberValue = Number(vModel.value)
-      if (!ncIsNaN(numberValue)) {
-        if (props.precision && format) {
-          return numberValue.toFixed(props.precision) ?? ''
-        } else {
-          return numberValue.toString()
-        }
+      const parsed = Number(vModel.value)
+      if (!ncIsNaN(parsed)) {
+        numValue = parsed
       }
+    }
+
+    if (numValue !== undefined) {
+      // Idle/non-focused: apply thousand grouping and precision so the input
+      // matches the readonly display (e.g. "1,234,567.89" / "1 234 567,89").
+      // Focused/editing: bare number with only the decimal separator so the
+      // user can type/paste cleanly.
+      if (format) {
+        return formatNumberWithSeparator(numValue, props.thousandSeparator ?? null, decSep, props.precision)
+      }
+      const result = numValue.toString()
+      return decSep !== '.' ? result.replace('.', decSep) : result
     }
   }
 
@@ -77,7 +109,15 @@ const saveValue = (targetValue: string) => {
     vModel.value = null
     return
   }
-  const value = Number(targetValue)
+  const decSep = props.decimalSeparator || '.'
+  // Strip everything that isn't a digit, minus, or the column's decimal separator.
+  // This lets users type/paste thousand-separator chars (`,` `.` ` ` NBSP) freely;
+  // they're treated as visual noise and removed before parsing.
+  let cleaned = targetValue.replace(new RegExp(`[^0-9\\-\\${decSep}]`, 'g'), '')
+  if (decSep !== '.') {
+    cleaned = cleaned.replace(new RegExp(`\\${decSep}`, 'g'), '.')
+  }
+  const value = Number(cleaned)
   if (ncIsNaN(value)) {
     vModel.value = null
     return
@@ -140,14 +180,34 @@ const onInputKeyDown = (e: KeyboardEvent) => {
   } else if (e.key === 'ArrowUp') {
     target.setSelectionRange(0, 0)
     return
-  } else if (e.key.match('[^-0-9\.]')) {
-    // prevent everything non ctrl / alt and non . and non number
+  }
+
+  const decSep = props.decimalSeparator || '.'
+
+  // Allow only one decimal separator
+  if (e.key === decSep && target.value.includes(decSep)) {
     e.preventDefault()
     e.stopPropagation()
     return
   }
 
-  pasteText(target, e.key)
+  // Minus must be unique and at the beginning of the input
+  if (e.key === '-') {
+    if (target.value.includes('-') || (target.selectionStart ?? 0) !== 0) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    return
+  }
+
+  // Allow digits, the column's decimal separator, and "noise" thousand-separator
+  // candidates (comma, period, space, NBSP). Noise chars are kept visually and
+  // stripped at save-time — same behavior as Airtable.
+  if (/^[0-9]$/.test(e.key) || e.key === decSep || /^[,. \u00A0]$/.test(e.key)) {
+    return
+  }
+
+  // Block everything else
   e.preventDefault()
   e.stopPropagation()
 }
@@ -164,6 +224,34 @@ const onInputPaste = (e: ClipboardEvent) => {
   if (value === null || value === '' || typeof value === 'undefined') {
     return
   }
+
+  // Check ncClipboardData for a stored numeric dbCellValue
+  const storedData = getCurrentCopiedCellClipboardData(value)
+  if (storedData) {
+    const clipboardItem = storedData.dbCellValueArr?.[0]?.[0]
+    if (clipboardItem !== undefined && clipboardItem !== null && !isNaN(Number(clipboardItem))) {
+      e.preventDefault()
+      e.stopPropagation()
+      const numValue = Number(clipboardItem)
+      const decSep = props.decimalSeparator || '.'
+      // Format the number with the target's decimal separator for display
+      let displayValue: string
+      if (props.precision) {
+        displayValue = numValue.toFixed(props.precision)
+      } else {
+        displayValue = numValue.toString()
+      }
+      if (decSep !== '.') {
+        displayValue = displayValue.replace('.', decSep)
+      }
+      target.value = displayValue
+      target.setSelectionRange(target.value.length, target.value.length)
+      saveValue(target.value)
+      return
+    }
+  }
+
+  // Fall through to existing text-based paste
   e.preventDefault()
   e.stopPropagation()
   pasteText(target, value)
@@ -204,8 +292,9 @@ const removeEvents = (input: HTMLInputElement) => {
 const onBeforeInput = (e: InputEvent) => {
   if (!e.data || !isMobileMode.value) return // may be null for deletions etc.
 
-  // allow only digits, minus, dot
-  if (!/^[0-9.\-]$/.test(e.data)) {
+  // allow digits, minus, the decimal separator, and noise thousand-separator chars
+  const decSep = props.decimalSeparator || '.'
+  if (!new RegExp(`^[0-9\\-\\${decSep},. \\u00A0]$`).test(e.data)) {
     e.preventDefault()
   }
 }

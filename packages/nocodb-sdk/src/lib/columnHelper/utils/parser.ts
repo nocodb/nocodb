@@ -14,7 +14,12 @@ import {
 } from '~/lib/is';
 import { SerializerOrParserFnProps } from '../column.interface';
 import { constructTimeFormat } from '~/lib/dateTimeHelper';
-import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
+import { checkboxTypeMap, SeparatorType } from '~/lib/columnHelper/utils/common';
+import {
+  resolveColumnSeparator,
+  getSeparatorChars,
+  formatNumberWithSeparator,
+} from './separator';
 
 export const parseDefault = (value: any) => {
   try {
@@ -30,7 +35,8 @@ export const parseDefault = (value: any) => {
 
 export const parseIntValue = (
   value: string | null | number,
-  col?: ColumnType
+  col?: ColumnType,
+  options?: { skipThousandSeparator?: boolean; locale?: string }
 ) => {
   if (ncIsNaN(value)) {
     return null;
@@ -39,34 +45,68 @@ export const parseIntValue = (
   value = parseInt(value.toString(), 10);
 
   const columnMeta = parseProp(col?.meta);
+  const separator = resolveColumnSeparator(columnMeta);
 
-  if (columnMeta.isLocaleString) {
-    return Number(value).toLocaleString();
+  if (options?.skipThousandSeparator) {
+    return Number(value);
   }
 
-  return Number(value);
+  if (separator === SeparatorType.Locale) {
+    return Number(value).toLocaleString(options?.locale || undefined);
+  }
+
+  const { thousandSeparator } = getSeparatorChars(separator);
+
+  if (!thousandSeparator) {
+    return Number(value);
+  }
+
+  return formatNumberWithSeparator(Number(value), thousandSeparator, '.');
 };
 
 export const parseDecimalValue = (
   value: string | null | number,
-  col: ColumnType
+  col: ColumnType,
+  options?: { skipThousandSeparator?: boolean; locale?: string }
 ) => {
   if (ncIsNaN(value)) {
     return null;
   }
 
   const columnMeta = parseProp(col.meta);
+  const separator = resolveColumnSeparator(columnMeta);
+  const precision = columnMeta.precision ?? 1;
 
-  if (columnMeta.isLocaleString) {
+  if (options?.skipThousandSeparator) {
+    const { decimalSeparator } = getSeparatorChars(separator, options?.locale || undefined);
+    const rounded = Number(roundUpToPrecision(Number(value), precision));
+
+    return formatNumberWithSeparator(
+      rounded,
+      '',
+      decimalSeparator,
+      precision
+    );
+  }
+
+  if (separator === SeparatorType.Locale) {
     return Number(
-      roundUpToPrecision(Number(value), columnMeta.precision ?? 1)
-    ).toLocaleString(undefined, {
-      minimumFractionDigits: columnMeta.precision ?? 1,
-      maximumFractionDigits: columnMeta.precision ?? 1,
+      roundUpToPrecision(Number(value), precision)
+    ).toLocaleString(options?.locale || undefined, {
+      minimumFractionDigits: precision,
+      maximumFractionDigits: precision,
     });
   }
 
-  return roundUpToPrecision(Number(value), columnMeta.precision ?? 1);
+  const { thousandSeparator, decimalSeparator } = getSeparatorChars(separator);
+  const rounded = Number(roundUpToPrecision(Number(value), precision));
+
+  return formatNumberWithSeparator(
+    rounded,
+    thousandSeparator,
+    decimalSeparator,
+    precision
+  );
 };
 
 export const parsePercentValue = (value: string | null, col: ColumnType) => {

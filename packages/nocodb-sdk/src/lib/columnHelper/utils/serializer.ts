@@ -16,6 +16,7 @@ import { SerializerOrParserFnProps } from '../column.interface';
 import { SelectTypeConversionError } from '~/lib/error';
 import { checkboxTypeMap } from '~/lib/columnHelper/utils/common';
 import { getGroupDecimalSymbolFromLocale } from '~/lib/currencyHelpers';
+import { resolveColumnSeparator, getSeparatorChars } from './separator';
 
 /**
  * Remove outer quotes & unescape
@@ -37,9 +38,12 @@ export const serializeDecimalValue = (
   callback?: (val: any) => any,
   params?: SerializerOrParserFnProps['params']
 ) => {
-  // If we have clipboard data, use it
+  // If we have clipboard data with a raw numeric value, use it directly
+  // regardless of separator differences — the dbCellValue is the canonical
+  // number and doesn't need re-interpretation.
   if (
-    params?.clipboardItem?.dbCellValue &&
+    params?.clipboardItem?.dbCellValue !== undefined &&
+    params?.clipboardItem?.dbCellValue !== null &&
     ncIsNumber(params.clipboardItem.dbCellValue)
   ) {
     return params.clipboardItem.dbCellValue;
@@ -57,11 +61,59 @@ export const serializeDecimalValue = (
       return ncIsNaN(value) ? null : Number(value);
     }
 
-    const cleanedValue = ncIsFunction(callback)
-      ? callback(value)
-      : value
-          .replace(/[\s\u00A0]/g, '') // remove spaces/non-breaking spaces
-          .replace(/(?!^-)[^\d.-]/g, ''); // keep only digits, dot, one leading minus
+    let cleanedValue: string;
+    if (ncIsFunction(callback)) {
+      cleanedValue = callback(value);
+    } else if (params?.col) {
+      const separator = resolveColumnSeparator(parseProp(params.col.meta));
+      const { thousandSeparator, decimalSeparator } =
+        getSeparatorChars(separator);
+
+      cleanedValue = value;
+      // Remove thousand separators
+      if (thousandSeparator) {
+        cleanedValue = cleanedValue.replace(
+          new RegExp('\\' + thousandSeparator, 'g'),
+          ''
+        );
+      }
+      // Truncate at the second occurrence of the decimal separator
+      const firstIdx = cleanedValue.indexOf(decimalSeparator);
+      if (firstIdx !== -1) {
+        const secondIdx = cleanedValue.indexOf(
+          decimalSeparator,
+          firstIdx + 1
+        );
+        if (secondIdx !== -1) {
+          cleanedValue = cleanedValue.substring(0, secondIdx);
+        }
+      }
+      // Remove anything that's not digit, decimal separator, or leading minus
+      cleanedValue = cleanedValue
+        .replace(
+          new RegExp(`(?!^-)[^\\d\\${decimalSeparator}-]`, 'g'),
+          ''
+        )
+        .trim();
+      // Replace decimal separator with dot
+      if (decimalSeparator !== '.') {
+        cleanedValue = cleanedValue.replace(
+          new RegExp('\\' + decimalSeparator),
+          '.'
+        );
+      }
+      // Remove duplicate dots — keep only the first one
+      const dotIdx = cleanedValue.indexOf('.');
+      if (dotIdx !== -1) {
+        cleanedValue =
+          cleanedValue.substring(0, dotIdx + 1) +
+          cleanedValue.substring(dotIdx + 1).replace(/\./g, '');
+      }
+    } else {
+      cleanedValue = value
+        .replace(/[\s\u00A0]/g, '')
+        .replace(/(?!^-)[^\d.-]/g, '');
+    }
 
     if (!cleanedValue) return null;
 
@@ -138,7 +190,8 @@ export const serializeCurrencyValue = (
 ) => {
   // If we have clipboard data, use it
   if (
-    params?.clipboardItem?.dbCellValue &&
+    params?.clipboardItem?.dbCellValue !== undefined &&
+    params?.clipboardItem?.dbCellValue !== null &&
     ncIsNumber(params.clipboardItem.dbCellValue)
   ) {
     return params.clipboardItem.dbCellValue;

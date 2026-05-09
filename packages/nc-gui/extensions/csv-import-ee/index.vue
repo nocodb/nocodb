@@ -10,6 +10,9 @@ import {
   csvColumnSeparatorOptions,
   isSystemColumn,
   isVirtualCol,
+  serializeCheckboxValue,
+  serializeDecimalValue,
+  serializeIntValue,
 } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 import dayjs from 'dayjs'
@@ -618,12 +621,35 @@ const prepareDataToImport = () => {
 
   const uniqueMergeFieldValues: Record<string, boolean> = {}
 
-  // map data
+  // map data — mirrors backend coerceValue (data-import.processor.ts) so the
+  // quick-import path produces the same DB rows as the file-upload job.
   data = data
     .map((row: string[]) => {
       return importPayload.value.srcDestMapping.reduce((acc, importMeta) => {
         if (importMeta.enabled && importMeta.destCn) {
-          acc[importMeta.destCn] = row[parseInt(importMeta.mapIndex)]
+          const col = columnByTitle.value[importMeta.destCn]
+          const rawValue = row[parseInt(importMeta.mapIndex)]
+          const value = rawValue === '' || rawValue === undefined || rawValue === null ? null : rawValue
+
+          switch (col?.uidt) {
+            case UITypes.Checkbox:
+              acc[importMeta.destCn] = serializeCheckboxValue(value)
+              break
+            case UITypes.SingleSelect:
+            case UITypes.MultiSelect:
+              acc[importMeta.destCn] = (value ?? '').toString().trim() || null
+              break
+            case UITypes.Decimal:
+            case UITypes.Percent:
+              acc[importMeta.destCn] = serializeDecimalValue(value, undefined, { col })
+              break
+            case UITypes.Number:
+            case UITypes.Rating:
+              acc[importMeta.destCn] = serializeIntValue(value, { col })
+              break
+            default:
+              acc[importMeta.destCn] = value
+          }
         }
         return acc
       }, {} as Record<string, any>)

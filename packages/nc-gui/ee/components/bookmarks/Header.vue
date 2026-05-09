@@ -30,8 +30,8 @@ function onBlur() {
         v-if="isSearchVisible"
         ref="searchInput"
         v-model:value="search"
-        :placeholder="$t('general.search')"
-        class="!rounded-lg !w-44 nc-bookmark-search"
+        :placeholder="$t('placeholder.searchBookmarks')"
+        class="!rounded-lg !w-48 nc-bookmark-search"
         allow-clear
         data-testid="nc-bookmark-flyout-search"
         @blur="onBlur"

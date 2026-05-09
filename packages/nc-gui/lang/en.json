@@ -3113,6 +3113,7 @@
     "somethingElse": "Something else",
     "docEditor": "Start writing or type / for commands...",
     "docEditorLine": "Type / for commands...",
+    "searchBookmarks": "Search bookmarks",
     "searchDocs": "Search documents",
     "searchMember": "Search member",
     "searchConnectionsOrIntegrations": "Search connections or integrations...",

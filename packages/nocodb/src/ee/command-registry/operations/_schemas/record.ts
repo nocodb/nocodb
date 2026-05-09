@@ -34,6 +34,17 @@ export const displacedRecordSchema = z.discriminatedUnion('kind', [
   displacedJunctionSchema,
 ]);
 
+/** V3-update LTAR diff entry — captured at `bulkUpdate` entry, replayed
+ *  on undo via `addLinks`/`removeLinks` (inverted). */
+export const linkChangeSchema = z
+  .object({
+    op: z.enum(['add', 'remove']),
+    colId: z.string(),
+    rowId: z.string(),
+    childIds: z.array(z.union([z.string(), z.number()])),
+  })
+  .strict();
+
 const recordModelContextSchema = z
   .object({
     modelId: z.string(),
@@ -172,5 +183,114 @@ export const recordBulkDeleteUndoSchema = z
         .strict(),
     ),
     displacedRecords: z.array(displacedRecordSchema).optional(),
+  })
+  .strict();
+
+/** Forward params for `recordUpdate` — same loose v1/v2 shape as
+ *  insert/delete; `body` is a single object (or single-element array;
+ *  the dispatch resolver routes len > 1 to `recordBulkUpdate`). */
+export const recordUpdateSchema = z
+  .object({
+    modelId: z.string().optional(),
+    baseId: z.string().optional(),
+    viewId: z.string().optional(),
+    baseName: z.string().optional(),
+    tableName: z.string().optional(),
+    viewName: z.string().optional(),
+    body: z.unknown(),
+    cookie: z.unknown().optional(),
+    undo: z.boolean().optional(),
+    apiVersion: z.string().optional(),
+    internalFlags: z.unknown().optional(),
+    query: z.unknown().optional(),
+  })
+  .passthrough();
+
+/** Forward params for `recordBulkUpdate` — `body` is always an array. */
+export const recordBulkUpdateSchema = z
+  .object({
+    modelId: z.string().optional(),
+    baseId: z.string().optional(),
+    viewId: z.string().optional(),
+    baseName: z.string().optional(),
+    tableName: z.string().optional(),
+    viewName: z.string().optional(),
+    body: z.array(z.unknown()),
+    cookie: z.unknown().optional(),
+    undo: z.boolean().optional(),
+    apiVersion: z.string().optional(),
+    internalFlags: z.unknown().optional(),
+    query: z.unknown().optional(),
+  })
+  .passthrough();
+
+/** `meta.extra` for record(Bulk)Update — model context + per-row prev
+ *  snapshot (changed-fields only) + LTAR-displaced rows + V3 link diff.
+ *  No trash slot: updates never go through soft-delete. */
+export const recordUpdateCaptureSchema = z
+  .object({
+    recordModelContext: recordModelContextSchema.optional(),
+    /** Pre-update snapshots, narrowed to ONLY the keys touched by the
+     *  update body — full-row snapshots would bloat the log entry on
+     *  wide tables when only one column changed. Each entry MUST carry
+     *  all pk columns so the row can still be located on undo even
+     *  when no non-pk field was touched. */
+    recordPrev: z.array(z.record(z.unknown())).optional(),
+    displacedRecords: z.array(displacedRecordSchema).optional(),
+    /** V3 update LTAR diff — junction inserts/deletes the V3 path
+     *  performs via `updateLTARCols`. Empty / absent for V1 / V2
+     *  scalar-only updates. */
+    linkChanges: z.array(linkChangeSchema).optional(),
+  })
+  .strict();
+
+export const recordBulkUpdateCaptureSchema = recordUpdateCaptureSchema;
+
+/** Body for `recordUpdateUndo` — restore one row by writing `prev`
+ *  back. `body` is the original update payload; the redo path reuses
+ *  it (after stripServerControlledFields) so a second redo replays
+ *  the original mutation. `linkChanges` carries the V3 LTAR diff
+ *  produced by `updateLTARCols` — undo inverts each entry. */
+export const recordUpdateUndoSchema = z
+  .object({
+    modelId: z.string(),
+    pk: z.union([z.string(), z.number()]),
+    /** Changed-fields-only snapshot from before the forward update.
+     *  Always includes pk columns. */
+    prev: z.record(z.unknown()),
+    /** Original update body (post-NON_SERIALIZABLE_KEYS strip). */
+    body: z.record(z.unknown()),
+    displacedRecords: z.array(displacedRecordSchema).optional(),
+    linkChanges: z.array(linkChangeSchema).optional(),
+    /** Forward-context propagated so the undo path matches V3 typecasting
+     *  (mapAliasToColumn DateTime branch is V1-only). */
+    apiVersion: z.string().optional(),
+    viewId: z.string().optional(),
+    baseId: z.string().optional(),
+  })
+  .strict();
+
+/** Body for `recordBulkUpdateUndo` — per-row `(pk, prev, body)` so
+ *  bulk-update can be reversed row-by-row even when individual rows
+ *  touched different columns. `linkChanges` is bulk-flat (per-(col,
+ *  row, target) triples already carry their `rowId`). */
+export const recordBulkUpdateUndoSchema = z
+  .object({
+    modelId: z.string(),
+    rows: z.array(
+      z
+        .object({
+          pk: z.union([z.string(), z.number()]),
+          prev: z.record(z.unknown()),
+          body: z.record(z.unknown()),
+        })
+        .strict(),
+    ),
+    displacedRecords: z.array(displacedRecordSchema).optional(),
+    linkChanges: z.array(linkChangeSchema).optional(),
+    /** Forward-context propagated — see recordUpdateUndoSchema. */
+    apiVersion: z.string().optional(),
+    viewId: z.string().optional(),
+    baseId: z.string().optional(),
   })
   .strict();

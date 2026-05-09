@@ -218,6 +218,11 @@ export class DataTableService {
     return true;
   }
 
+  @TraceCommand((_ctx, p) =>
+    Array.isArray(p?.body) && (p.body as any[]).length > 1
+      ? OperationName.recordBulkUpdate
+      : OperationName.recordUpdate,
+  )
   async dataUpdate(
     context: NcContext,
     param: {

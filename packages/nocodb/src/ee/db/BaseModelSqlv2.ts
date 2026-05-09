@@ -137,7 +137,8 @@ import {
   captureForTrace,
   isTraceActive,
 } from '~/decorators/trace-command.decorator';
-import type { DisplacedRecord } from '~/command-registry/types';
+import type { DisplacedRecord, LinkChange } from '~/command-registry/types';
+import { pickChangedFieldsForUpdatePrev } from '~/utils/dataUtils';
 export { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 
 /**
@@ -748,6 +749,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       if (!prevData) {
         NcError.get(this.context).recordNotFound(id);
+      }
+
+      if (isTraceActive()) {
+        captureForTrace('recordPrev', [
+          pickChangedFieldsForUpdatePrev(
+            prevData,
+            data ?? {},
+            columns,
+            this.model.primaryKeys,
+          ),
+        ]);
+        const fkDisplaced = await this.collectFkUpdateDisplacement(
+          prevData,
+          data ?? {},
+        );
+        if (fkDisplaced.length) {
+          captureForTrace('displacedRecords', fkDisplaced);
+        }
       }
 
       await this.prepareNocoData(updateObj, false, cookie, prevData);
@@ -3697,6 +3716,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         oldRecords.map((r) => [this.extractPksValues(r, true), r]),
       );
 
+      const captureUpdatePrev = isTraceActive();
+      const capturedUpdatePrev: Record<string, any>[] = [];
+      const capturedFkDisplaced: DisplacedRecord[] = [];
+
       for (let i = 0; i < pkAndData.length; i += READ_CHUNK_SIZE) {
         const chunk = pkAndData.slice(i, i + READ_CHUNK_SIZE);
 
@@ -3707,6 +3730,22 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             if (throwExceptionIfNotExist)
               NcError.get(this.context).recordNotFound(pk);
             continue;
+          }
+
+          if (captureUpdatePrev) {
+            capturedUpdatePrev.push(
+              pickChangedFieldsForUpdatePrev(
+                oldRecord,
+                data ?? {},
+                columns,
+                this.model.primaryKeys,
+              ),
+            );
+            const fkDisplaced = await this.collectFkUpdateDisplacement(
+              oldRecord,
+              data ?? {},
+            );
+            if (fkDisplaced.length) capturedFkDisplaced.push(...fkDisplaced);
           }
 
           await this.prepareNocoData(data, false, cookie, oldRecord);
@@ -3750,6 +3789,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
       profiler.log('prepareNocoData done');
+
+      if (capturedUpdatePrev.length) {
+        captureForTrace('recordPrev', capturedUpdatePrev);
+      }
+      if (capturedFkDisplaced.length) {
+        captureForTrace('displacedRecords', capturedFkDisplaced);
+      }
 
       const rlsConditions = await this.getRlsConditions();
       const rlsFilterGroup = rlsConditions.length
@@ -3808,6 +3854,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       profiler.log('execute done');
 
       if (apiVersion === NcApiVersion.V3) {
+        if (isTraceActive()) {
+          const linkChanges = await this.collectV3LinkChanges(datas);
+          if (linkChanges.length) {
+            captureForTrace('linkChanges', linkChanges);
+          }
+        }
+
         profiler.log('updateLTARCols start');
         // remove LTAR/Links if part of the update request
         await this.updateLTARCols({
@@ -5358,6 +5411,181 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
     }
     return snapshot;
+  }
+
+  /**
+   * Snapshot OO sibling-row displacement caused by an update that
+   * re-points a OO FK column at a parent already linked elsewhere.
+   * Captured BEFORE the SQL UPDATE runs.
+   *
+   * Self-row FK restoration is handled by the `recordPrev` capture
+   * (changed-fields snapshot keyed by title). Adding the same row's FK
+   * here would cause undo to fire two writes against the same column
+   * (one via `dataUpdate(prev)`, one via the displacedRecords loop).
+   *
+   * Entries omit `forward` — the current update path doesn't actually
+   * null/reassign the sibling rows, so `recordUpdate` redo shouldn't
+   * re-apply them. They are inert at redo time and only power audit +
+   * future link-repair.
+   */
+  private async collectFkUpdateDisplacement(
+    oldRecord: Record<string, any>,
+    body: Record<string, any>,
+  ): Promise<DisplacedRecord[]> {
+    const displaced: DisplacedRecord[] = [];
+    if (!oldRecord || !body) return displaced;
+    const columns = this.model.columns;
+    const currentPk = this.extractPksValues(oldRecord, true);
+    if (currentPk == null || currentPk === 'N/A') return displaced;
+
+    const byKey = new Map<string, Column>();
+    for (const c of columns) {
+      if (c.title) byKey.set(c.title, c);
+      if (c.column_name) byKey.set(c.column_name, c);
+      if (c.id) byKey.set(c.id, c);
+    }
+
+    for (const k of Object.keys(body)) {
+      const col = byKey.get(k);
+      if (!col || col.uidt !== UITypes.ForeignKey) continue;
+
+      const newFk = body[k];
+      // `oldRecord` is title-keyed (selectObject aliases column_name →
+      // title). FK columns default to title === column_name at creation
+      // but can diverge if the user renames the alias, so resolve via
+      // dataWrapper which checks both.
+      const oldFk = dataWrapper(oldRecord).getByColumnNameTitleOrId(col);
+      if (newFk === oldFk) continue;
+
+      const ltar = columns.find(
+        (c) =>
+          isLinksOrLTAR(c) &&
+          (c.colOptions as LinkToAnotherRecordColumn | undefined)
+            ?.fk_child_column_id === col.id,
+      );
+      if (!ltar) continue;
+      const ltarOpts = await ltar.getColOptions<LinkToAnotherRecordColumn>(
+        this.context,
+      );
+      const isOo = ltarOpts.type === RelationTypes.ONE_TO_ONE;
+      // BT updates: self-row FK is covered by `recordPrev`; nothing to
+      // displace beyond that.
+      if (!isOo) continue;
+
+      // OO: snapshot any sibling row already at `newFk` (potential
+      // uniqueness conflict). Skip when newFk is null (clearing a link).
+      if (newFk != null) {
+        const conflicts = (await this.execAndParse(
+          this.dbDriver(this.tnPath)
+            .select(
+              ...this.model.primaryKeys.map((c) => c.column_name),
+              col.column_name,
+            )
+            .where(col.column_name, newFk),
+          null,
+          { raw: true },
+        )) as Array<Record<string, any>>;
+        for (const r of conflicts) {
+          const conflictPk = dataWrapper(r).extractPksValue(this.model, true);
+          if (conflictPk == null || conflictPk === 'N/A') continue;
+          if (String(conflictPk) === String(currentPk)) continue;
+          displaced.push({
+            kind: 'column',
+            modelId: this.model.id,
+            pk: String(conflictPk),
+            column: col.column_name,
+            prev: r[col.column_name],
+          });
+        }
+      }
+    }
+    return displaced;
+  }
+
+  /**
+   * V3 update LTAR diff capture. Mirrors the diff `LTARColsUpdater` (CE
+   * / Mux / EE) computes internally — run once here at the bulkUpdate
+   * dispatch entry so the three downstream paths are covered uniformly.
+   *
+   * For each row in `datas` and each LTAR column whose key is present in
+   * the body, reads the existing links via `mmList` / `hmList` / `btRead`
+   * and diffs against the body's desired link set. Emits `add`/`remove`
+   * `LinkChange` entries that the undo handler inverts.
+   *
+   * The duplicate read (this + `LTARColsUpdater`'s own list) is the cost
+   * of supporting all three updater variants from one capture site
+   * without per-variant intrusion. Gated behind `isTraceActive()` so it
+   * only fires when an outer @TraceCommand will consume the captures.
+   */
+  private async collectV3LinkChanges(datas: any[]): Promise<LinkChange[]> {
+    const out: LinkChange[] = [];
+    if (!datas?.length) return out;
+
+    for (const col of this.model.columns) {
+      if (!isLinksOrLTAR(col)) continue;
+
+      for (const d of datas) {
+        if (!(col.title in d)) continue;
+        const rowId = this.extractPksValues(d, true);
+        if (rowId == null || rowId === 'N/A') continue;
+
+        // Read current link state on the same axis the updater will use.
+        let existingLinks: Record<string, any>[] | Record<string, any> = [];
+        if (isMMOrMMLike(col)) {
+          existingLinks = await this.mmList({ colId: col.id, parentId: rowId });
+        } else if (
+          (col.colOptions as LinkToAnotherRecordColumn | undefined)?.type ===
+          RelationTypes.HAS_MANY
+        ) {
+          existingLinks = await this.hmList({ colId: col.id, id: rowId });
+        } else {
+          existingLinks = await this.btRead({ colId: col.id, id: rowId });
+        }
+        existingLinks = existingLinks ?? [];
+        if (!Array.isArray(existingLinks)) {
+          existingLinks = existingLinks ? [existingLinks] : [];
+        }
+        const existingPks = (existingLinks as Record<string, any>[])
+          .map((r) => this.extractPksValues(r, true))
+          .filter((v) => v != null && v !== 'N/A')
+          .map((v) => String(v));
+
+        const bodyVal = d[col.title];
+        const desiredRecords = Array.isArray(bodyVal)
+          ? bodyVal
+          : bodyVal != null
+          ? [bodyVal]
+          : [];
+        const desiredPks = desiredRecords
+          .map((rec: any) => this.extractPksValues(rec, true))
+          .filter((v: any) => v != null && v !== 'N/A')
+          .map((v: any) => String(v));
+
+        const existingSet = new Set(existingPks);
+        const desiredSet = new Set(desiredPks);
+
+        const toAdd = desiredPks.filter((p) => !existingSet.has(p));
+        const toRemove = existingPks.filter((p) => !desiredSet.has(p));
+
+        if (toRemove.length) {
+          out.push({
+            op: 'remove',
+            colId: col.id,
+            rowId: String(rowId),
+            childIds: toRemove,
+          });
+        }
+        if (toAdd.length) {
+          out.push({
+            op: 'add',
+            colId: col.id,
+            rowId: String(rowId),
+            childIds: toAdd,
+          });
+        }
+      }
+    }
+    return out;
   }
 
   /**

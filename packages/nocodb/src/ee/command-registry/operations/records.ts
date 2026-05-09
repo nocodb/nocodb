@@ -9,6 +9,7 @@ import {
 } from 'nocodb-sdk';
 import type {
   DisplacedRecord,
+  LinkChange,
   OperationContract,
 } from '~/command-registry/types';
 import type { DataTableService } from '~/services/data-table.service';
@@ -30,11 +31,17 @@ import {
   recordBulkInsertCaptureSchema,
   recordBulkInsertSchema,
   recordBulkInsertUndoSchema,
+  recordBulkUpdateCaptureSchema,
+  recordBulkUpdateSchema,
+  recordBulkUpdateUndoSchema,
   recordDeleteCaptureSchema,
   recordDeleteSchema,
   recordDeleteUndoSchema,
   recordInsertCaptureSchema,
   recordInsertUndoSchema,
+  recordUpdateCaptureSchema,
+  recordUpdateSchema,
+  recordUpdateUndoSchema,
 } from '~/command-registry/operations/_schemas/record';
 import { recordActions } from '~/decorators/trace-command-descriptions';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -453,6 +460,259 @@ export const RecordBulkDeleteUndoContract: OperationContract<
   },
 };
 
+interface RecordUpdateExtra {
+  modelId: string;
+  primaryKeyTitles: string[];
+  parentEntityTitle: string;
+}
+
+/** Pull pk for a single-row update from forward params. v1 path uses
+ *  `rowId`; v2/v3 carries the pk fields inside `body` (or `body[0]`
+ *  if the bulk dispatcher routed a 1-element array here). */
+function extractUpdatePk(params: any, model: any): string | undefined {
+  if (params.rowId != null) return String(params.rowId);
+  let body = params.body;
+  if (Array.isArray(body)) body = body[0];
+  if (!body || typeof body !== 'object') return undefined;
+  const v = dataWrapper(body).extractPksValue(model, true);
+  return v == null || v === 'N/A' ? undefined : String(v);
+}
+
+/** Strip pk titles from the update body for use as the inverse-side
+ *  `body` slot. The pk lives in `pk` already; the inverse-restore
+ *  payload is purely the changed non-pk fields. */
+function stripPkTitles(
+  body: Record<string, any>,
+  primaryKeyTitles: ReadonlyArray<string>,
+): Record<string, any> {
+  if (!primaryKeyTitles.length) return body;
+  const out: Record<string, any> = {};
+  const pkSet = new Set(primaryKeyTitles);
+  for (const [k, v] of Object.entries(body)) {
+    if (pkSet.has(k)) continue;
+    out[k] = v;
+  }
+  return out;
+}
+
+export const RecordUpdateContract: OperationContract<
+  typeof recordUpdateSchema,
+  RecordUpdateExtra,
+  unknown
+> = {
+  name: OperationName.recordUpdate,
+  entity: MetaTable.MODELS,
+  schema: recordUpdateSchema,
+  sandbox: false,
+  capture: [
+    'recordModelContext',
+    'recordPrev',
+    'displacedRecords',
+    'linkChanges',
+  ],
+  capture_schema: recordUpdateCaptureSchema,
+  entry: {
+    description: recordActions.update,
+    before: async (context, params) => {
+      const modelId =
+        params.modelId ?? (await resolveModelIdFromParams(context, params));
+      if (!modelId) return {};
+      const model = await Model.get(context, modelId);
+      if (!model) return {};
+      await model.getColumns(context);
+      const ctx = {
+        modelId,
+        primaryKeyTitles: model.primaryKeys.map((c) => c.title),
+      };
+      captureForTrace('recordModelContext', ctx);
+      return {
+        parentEntityTitle: model.title,
+        extra: { ...ctx, parentEntityTitle: model.title ?? '' },
+      };
+    },
+    entity_id: (params, _result, resolved) => {
+      if (params.rowId != null) return String(params.rowId);
+      let body = params.body as any;
+      if (Array.isArray(body)) body = body[0];
+      if (!body || typeof body !== 'object') return undefined;
+      return pkFromRow(body, resolved?.extra);
+    },
+    skip_if: (_ctx, params) =>
+      Array.isArray(params.body) && (params.body as any[]).length > 1,
+  },
+  undo: {
+    inverse: async (context, params, _result, resolved) => {
+      const modelId = resolved?.extra?.modelId;
+      if (!modelId) return null;
+      const model = await Model.get(context, modelId);
+      if (!model) return null;
+      await model.getColumns(context);
+      const pk = extractUpdatePk(params, model);
+      if (!pk) return null;
+
+      // Locate the matching prev snapshot. Bulk dispatch may funnel a
+      // 1-element body[] here; pick by pk to be safe.
+      const prevList = getTraceCapture('recordPrev') ?? [];
+      const prev =
+        prevList.find(
+          (r) => String(dataWrapper(r).extractPksValue(model, true)) === pk,
+        ) ?? prevList[0];
+      if (!prev) return null;
+
+      // Original body for redo, with pk titles stripped (pk lives in
+      // its own slot). Single-row: body or body[0]; bulk-dispatched
+      // single: body[0].
+      let bodyRaw = params.body as any;
+      if (Array.isArray(bodyRaw)) bodyRaw = bodyRaw[0];
+      if (!bodyRaw || typeof bodyRaw !== 'object') return null;
+      const body = stripPkTitles(
+        bodyRaw as Record<string, any>,
+        resolved?.extra?.primaryKeyTitles ?? [],
+      );
+
+      const displaced = getTraceCapture('displacedRecords') ?? [];
+      const linkChanges = getTraceCapture('linkChanges') ?? [];
+      return {
+        name: OperationName.recordUpdateUndo,
+        params: {
+          modelId,
+          pk,
+          prev,
+          body,
+          ...(displaced.length ? { displacedRecords: [...displaced] } : {}),
+          ...(linkChanges.length ? { linkChanges: [...linkChanges] } : {}),
+          ...(params.apiVersion
+            ? { apiVersion: params.apiVersion as string }
+            : {}),
+          ...(params.viewId ? { viewId: params.viewId as string } : {}),
+          ...(params.baseId ? { baseId: params.baseId as string } : {}),
+        },
+      };
+    },
+  },
+};
+
+export const RecordUpdateUndoContract: OperationContract<
+  typeof recordUpdateUndoSchema
+> = {
+  name: OperationName.recordUpdateUndo,
+  entity: MetaTable.MODELS,
+  schema: recordUpdateUndoSchema,
+  sandbox: false,
+  undo: false,
+  entry: {
+    entity_id: (params) => String(params.pk),
+    description: recordActions.updateUndo,
+  },
+};
+
+export const RecordBulkUpdateContract: OperationContract<
+  typeof recordBulkUpdateSchema,
+  RecordUpdateExtra,
+  unknown
+> = {
+  name: OperationName.recordBulkUpdate,
+  entity: MetaTable.MODELS,
+  schema: recordBulkUpdateSchema,
+  sandbox: false,
+  capture: [
+    'recordModelContext',
+    'recordPrev',
+    'displacedRecords',
+    'linkChanges',
+  ],
+  capture_schema: recordBulkUpdateCaptureSchema,
+  entry: {
+    description: recordActions.bulkUpdate,
+    before: async (context, params) => {
+      const modelId =
+        params.modelId ?? (await resolveModelIdFromParams(context, params));
+      if (!modelId) return {};
+      const model = await Model.get(context, modelId);
+      if (!model) return {};
+      await model.getColumns(context);
+      const ctx = {
+        modelId,
+        primaryKeyTitles: model.primaryKeys.map((c) => c.title),
+      };
+      captureForTrace('recordModelContext', ctx);
+      return {
+        parentEntityTitle: model.title,
+        extra: { ...ctx, parentEntityTitle: model.title ?? '' },
+      };
+    },
+  },
+  undo: {
+    inverse: async (context, params, _result, resolved) => {
+      const modelId = resolved?.extra?.modelId;
+      if (!modelId) return null;
+      const model = await Model.get(context, modelId);
+      if (!model) return null;
+      await model.getColumns(context);
+      const prevList = getTraceCapture('recordPrev') ?? [];
+      if (!prevList.length) return null;
+
+      // Pair each input row with its matching prev snapshot by pk.
+      // Drop rows where either side is missing (e.g. row was missing
+      // when bulkUpdate ran with throwExceptionIfNotExist=false).
+      const prevByPk = new Map<string, Record<string, any>>();
+      for (const r of prevList) {
+        const v = dataWrapper(r).extractPksValue(model, true);
+        if (v != null && v !== 'N/A') prevByPk.set(String(v), r);
+      }
+      const pkTitles = resolved?.extra?.primaryKeyTitles ?? [];
+      const rows: Array<{
+        pk: string | number;
+        prev: Record<string, any>;
+        body: Record<string, any>;
+      }> = [];
+      for (const rawBody of params.body as any[]) {
+        if (!rawBody || typeof rawBody !== 'object') continue;
+        const v = dataWrapper(rawBody).extractPksValue(model, true);
+        if (v == null || v === 'N/A') continue;
+        const pk = String(v);
+        const prev = prevByPk.get(pk);
+        if (!prev) continue;
+        rows.push({
+          pk,
+          prev,
+          body: stripPkTitles(rawBody as Record<string, any>, pkTitles),
+        });
+      }
+      if (!rows.length) return null;
+      const displaced = getTraceCapture('displacedRecords') ?? [];
+      const linkChanges = getTraceCapture('linkChanges') ?? [];
+      return {
+        name: OperationName.recordBulkUpdateUndo,
+        params: {
+          modelId,
+          rows,
+          ...(displaced.length ? { displacedRecords: [...displaced] } : {}),
+          ...(linkChanges.length ? { linkChanges: [...linkChanges] } : {}),
+          ...(params.apiVersion
+            ? { apiVersion: params.apiVersion as string }
+            : {}),
+          ...(params.viewId ? { viewId: params.viewId as string } : {}),
+          ...(params.baseId ? { baseId: params.baseId as string } : {}),
+        },
+      };
+    },
+  },
+};
+
+export const RecordBulkUpdateUndoContract: OperationContract<
+  typeof recordBulkUpdateUndoSchema
+> = {
+  name: OperationName.recordBulkUpdateUndo,
+  entity: MetaTable.MODELS,
+  schema: recordBulkUpdateUndoSchema,
+  sandbox: false,
+  undo: false,
+  entry: {
+    description: recordActions.bulkUpdateUndo,
+  },
+};
+
 /**
  * Strip body fields the server controls. Auto-generated time/by columns
  * are unconditionally rejected by `handleValidateBulkInsert`, virtual
@@ -495,6 +755,39 @@ function stripServerControlledFields(
  *   ownPk = junction.childValue, otherPk = junction.parentValue
  * For OM: inserting row is the **parent** side.
  */
+/** Invert a captured V3 LTAR diff entry: 'add' → removeLinks,
+ *  'remove' → addLinks. Resolves the owner-side baseModel via the
+ *  LTAR column's owning model (NOT necessarily the operation's
+ *  primary modelId — the column may live on a related table when
+ *  the body update touched a foreign-table LTAR field). */
+async function invertLinkChange(
+  context: any,
+  lc: LinkChange,
+  originalReq: any,
+): Promise<void> {
+  const col = await ColumnModel.get(context, { colId: lc.colId });
+  if (!col) return;
+  const ownerModel = await col.getModel(context);
+  const ownerContext = { ...context, base_id: ownerModel.base_id };
+  const ownerSource = await Source.get(ownerContext, ownerModel.source_id);
+  const ownerBaseModel = await Model.getBaseModelSQL(ownerContext, {
+    id: ownerModel.id,
+    dbDriver: await NcConnectionMgrv2.get(ownerSource),
+    source: ownerSource,
+  });
+  const args = {
+    colId: lc.colId,
+    rowId: lc.rowId,
+    childIds: [...lc.childIds],
+    cookie: originalReq,
+  };
+  if (lc.op === 'add') {
+    await ownerBaseModel.removeLinks(args);
+  } else {
+    await ownerBaseModel.addLinks(args);
+  }
+}
+
 async function resolveJunctionLinkSides(
   context: any,
   dr: Extract<DisplacedRecord, { kind: 'junction' }>,
@@ -674,7 +967,9 @@ export function registerRecordHandlers(
       const trashId = bag.get('softDeleteTrashId') as string | undefined;
 
       // Each displaced row may live in a different base/source.
-      for (const dr of params.displacedRecords) {
+      const displacedForUndo =
+        params.displacedRecords as ReadonlyArray<DisplacedRecord>;
+      for (const dr of displacedForUndo) {
         if (dr.kind === 'column') {
           const drModel = await Model.get(context, dr.modelId);
           if (!drModel) continue;
@@ -851,7 +1146,9 @@ export function registerRecordHandlers(
       });
       const trashId = bag.get('softDeleteTrashId') as string | undefined;
 
-      for (const dr of params.displacedRecords) {
+      const displacedForUndo =
+        params.displacedRecords as ReadonlyArray<DisplacedRecord>;
+      for (const dr of displacedForUndo) {
         if (dr.kind === 'column') {
           const drModel = await Model.get(context, dr.modelId);
           if (!drModel) continue;
@@ -1042,7 +1339,9 @@ export function registerRecordHandlers(
       // Restore displaced links — prefer rotated extra over frozen params.
       const extraDisplaced = meta.extra?.displacedRecords;
       const displacedForUndo: ReadonlyArray<DisplacedRecord> =
-        extraDisplaced ?? params.displacedRecords ?? [];
+        (extraDisplaced ??
+          params.displacedRecords ??
+          []) as ReadonlyArray<DisplacedRecord>;
       for (const dr of displacedForUndo) {
         if (dr.kind === 'column') {
           const drModel = await Model.get(context, dr.modelId);
@@ -1182,15 +1481,20 @@ export function registerRecordHandlers(
         pk: string | number;
         prev: Record<string, any>;
       }> = (() => {
-        if (!extraPrevList?.length) return params.rows;
+        if (!extraPrevList?.length) {
+          return params.rows as ReadonlyArray<{
+            pk: string | number;
+            prev: Record<string, any>;
+          }>;
+        }
         const byPk = new Map<string, Record<string, any>>();
         for (const r of extraPrevList) {
           const v = dataWrapper(r).extractPksValue(model, true);
           if (v != null && v !== 'N/A') byPk.set(String(v), r);
         }
         return params.rows.map((r) => ({
-          pk: r.pk,
-          prev: byPk.get(String(r.pk)) ?? r.prev,
+          pk: r.pk as string | number,
+          prev: (byPk.get(String(r.pk)) ?? r.prev) as Record<string, any>,
         }));
       })();
 
@@ -1227,7 +1531,9 @@ export function registerRecordHandlers(
       // Restore displaced links — prefer rotated extra over frozen params.
       const extraDisplaced = meta.extra?.displacedRecords;
       const displacedForUndo: ReadonlyArray<DisplacedRecord> =
-        extraDisplaced ?? params.displacedRecords ?? [];
+        (extraDisplaced ??
+          params.displacedRecords ??
+          []) as ReadonlyArray<DisplacedRecord>;
       for (const dr of displacedForUndo) {
         if (dr.kind === 'column') {
           const drModel = await Model.get(context, dr.modelId);
@@ -1264,6 +1570,337 @@ export function registerRecordHandlers(
             cookie: meta.originalReq,
           });
         }
+      }
+    },
+  );
+
+  // `recordUpdate` redo. Re-runs `dataUpdate` in a child trace scope
+  // to harvest fresh `recordPrev` / `displacedRecords` against the
+  // post-redo world, so the next undo replays against current state.
+  // Body keeps the original update payload (with pk fields injected
+  // from `meta.entityId` if the persisted body is missing them — can
+  // happen for v1 `rowId` shapes).
+  OperationRegistry.register(
+    RecordUpdateContract,
+    async (context, params, meta) => {
+      const persistedCtx = meta.extra?.recordModelContext;
+      const modelId =
+        persistedCtx?.modelId ??
+        params.modelId ??
+        (await resolveModelIdFromParams(context, params));
+      if (!modelId) {
+        throw new Error(`recordUpdate replay: could not resolve modelId`);
+      }
+      const model = await Model.get(context, modelId);
+      if (!model) {
+        throw new Error(`recordUpdate replay: model ${modelId} not found`);
+      }
+      await model.getColumns(context);
+
+      // Resolve the body for the replay. v2/v3 body carries pks already;
+      // v1 path stored `rowId` separately so reassemble pks from
+      // meta.entityId.
+      let body = params.body as Record<string, any> | unknown[] | undefined;
+      if (Array.isArray(body)) body = body[0] as Record<string, any>;
+      if (!body || typeof body !== 'object') {
+        throw new Error(`recordUpdate replay: missing body`);
+      }
+      body = stripServerControlledFields(
+        body as Record<string, any>,
+        model.columns,
+      );
+      if (meta.entityId && persistedCtx?.primaryKeyTitles?.length) {
+        const row = buildRowFromCompositePk(meta.entityId, model);
+        for (const [k, v] of Object.entries(row)) {
+          if ((body as Record<string, any>)[k] == null) {
+            (body as Record<string, any>)[k] = v;
+          }
+        }
+      }
+
+      const { bag } = await runInChildTraceScope(async () => {
+        await dataTableSvc.dataUpdate(context, {
+          modelId,
+          body,
+          viewId: params.viewId as string | undefined,
+          baseId: params.baseId as string | undefined,
+          cookie: meta.originalReq,
+          apiVersion: params.apiVersion as any,
+          user: meta.originalReq?.user ?? { id: meta.createdBy },
+          internalFlags: { allowSystemColumn: true },
+        } as any);
+      });
+      const freshPrev = bag.get('recordPrev') as
+        | ReadonlyArray<Record<string, unknown>>
+        | undefined;
+      const freshDisplaced = bag.get('displacedRecords') as
+        | ReadonlyArray<DisplacedRecord>
+        | undefined;
+      const freshLinkChanges = bag.get('linkChanges') as
+        | ReadonlyArray<LinkChange>
+        | undefined;
+      const metaUpdate: Record<string, unknown> = {};
+      if (freshPrev) metaUpdate.recordPrev = [...freshPrev];
+      if (freshDisplaced) metaUpdate.displacedRecords = [...freshDisplaced];
+      if (freshLinkChanges) metaUpdate.linkChanges = [...freshLinkChanges];
+      return Object.keys(metaUpdate).length ? { metaUpdate } : undefined;
+    },
+  );
+
+  // `recordUpdateUndo` — restore the row by writing `prev` (changed
+  // fields only, including pk titles) back via `dataUpdate`, then
+  // restore any displaced links. Prefers `meta.extra.recordPrev` /
+  // `displacedRecords` over the frozen `params` so a second undo
+  // replays against the post-redo world (redo rotates these via
+  // `metaUpdate`).
+  OperationRegistry.register(
+    RecordUpdateUndoContract,
+    async (context, params, meta) => {
+      const model = await Model.get(context, params.modelId);
+      if (!model) return;
+      await model.getColumns(context);
+
+      const extraPrevList = meta.extra?.recordPrev;
+      const prevForUndo: Record<string, any> = (() => {
+        if (!extraPrevList?.length) return params.prev as Record<string, any>;
+        const targetPk = String(params.pk);
+        const match = extraPrevList.find(
+          (r) =>
+            String(dataWrapper(r).extractPksValue(model, true)) === targetPk,
+        );
+        return (match ?? extraPrevList[0]) as Record<string, any>;
+      })();
+
+      // `prev` already carries pk titles + non-pk changed fields; pass
+      // it straight through. `dataUpdate` resolves the row by pk and
+      // writes the rest. Strip server-controlled fields defensively in
+      // case the snapshot included them (e.g. composite pk that overlaps
+      // with a created_at title).
+      // Forward apiVersion/viewId/baseId so V3 typecasting (DateTime TZ
+      // branch in mapAliasToColumn is V1-only) and view-aware behavior
+      // match the original update.
+      const stripped = stripServerControlledFields(prevForUndo, model.columns);
+      await dataTableSvc.dataUpdate(context, {
+        modelId: params.modelId,
+        body: stripped,
+        cookie: meta.originalReq,
+        user: meta.originalReq?.user ?? { id: meta.createdBy },
+        internalFlags: { allowSystemColumn: true },
+        ...(params.apiVersion ? { apiVersion: params.apiVersion as any } : {}),
+        ...(params.viewId ? { viewId: params.viewId } : {}),
+        ...(params.baseId ? { baseId: params.baseId } : {}),
+      } as any);
+
+      const extraDisplaced = meta.extra?.displacedRecords;
+      const displacedForUndo: ReadonlyArray<DisplacedRecord> =
+        (extraDisplaced ??
+          params.displacedRecords ??
+          []) as ReadonlyArray<DisplacedRecord>;
+      for (const dr of displacedForUndo) {
+        if (dr.kind === 'column') {
+          const drModel = await Model.get(context, dr.modelId);
+          if (!drModel) continue;
+          const drContext = { ...context, base_id: drModel.base_id };
+          await drModel.getColumns(drContext);
+          if (!drModel.primaryKey) continue;
+          const drSource = await Source.get(drContext, drModel.source_id);
+          const drBaseModel = await Model.getBaseModelSQL(drContext, {
+            id: drModel.id,
+            dbDriver: await NcConnectionMgrv2.get(drSource),
+            source: drSource,
+          });
+          try {
+            await drBaseModel.updateByPk(
+              dr.pk,
+              { [dr.column]: dr.prev },
+              null,
+              meta.originalReq,
+            );
+          } catch {
+            const drWherePk = await drBaseModel._wherePk(dr.pk);
+            await drBaseModel
+              .dbDriver(drBaseModel.getTnPath(drModel.table_name))
+              .update({ [dr.column]: dr.prev })
+              .where(drWherePk);
+          }
+        } else if (dr.kind === 'junction') {
+          const link = await resolveJunctionLinkSides(context, dr);
+          await link.ownerBaseModel.addLinks({
+            colId: link.colId,
+            rowId: link.rowId,
+            childIds: link.childIds,
+            cookie: meta.originalReq,
+          });
+        }
+      }
+
+      // V3 LTAR diff: invert each entry against the row's current
+      // baseModel so links land on the same table the forward op
+      // touched. Owner side resolves via `colId` lookup so we don't
+      // assume the LTAR column belongs to `params.modelId`.
+      const extraLinkChanges = meta.extra?.linkChanges;
+      const linkChangesForUndo: ReadonlyArray<LinkChange> = (extraLinkChanges ??
+        params.linkChanges ??
+        []) as ReadonlyArray<LinkChange>;
+      for (const lc of linkChangesForUndo) {
+        await invertLinkChange(context, lc, meta.originalReq);
+      }
+    },
+  );
+
+  // `recordBulkUpdate` redo — re-runs `dataUpdate(body[])` in a child
+  // trace scope to harvest fresh per-row prev + displacedRecords for
+  // the next undo cycle. Same metaUpdate rotation as recordUpdate.
+  OperationRegistry.register(
+    RecordBulkUpdateContract,
+    async (context, params, meta) => {
+      const persistedCtx = meta.extra?.recordModelContext;
+      const modelId =
+        persistedCtx?.modelId ??
+        params.modelId ??
+        (await resolveModelIdFromParams(context, params));
+      if (!modelId) {
+        throw new Error(`recordBulkUpdate replay: could not resolve modelId`);
+      }
+      const model = await Model.get(context, modelId);
+      if (!model) {
+        throw new Error(`recordBulkUpdate replay: model ${modelId} not found`);
+      }
+      await model.getColumns(context);
+
+      const rows = (params.body as any[]).map((r) =>
+        stripServerControlledFields(r as Record<string, any>, model.columns),
+      );
+
+      const { bag } = await runInChildTraceScope(async () => {
+        await dataTableSvc.dataUpdate(context, {
+          modelId,
+          body: rows,
+          viewId: params.viewId as string | undefined,
+          baseId: params.baseId as string | undefined,
+          cookie: meta.originalReq,
+          apiVersion: params.apiVersion as any,
+          user: meta.originalReq?.user ?? { id: meta.createdBy },
+          internalFlags: { allowSystemColumn: true },
+        } as any);
+      });
+      const freshPrev = bag.get('recordPrev') as
+        | ReadonlyArray<Record<string, unknown>>
+        | undefined;
+      const freshDisplaced = bag.get('displacedRecords') as
+        | ReadonlyArray<DisplacedRecord>
+        | undefined;
+      const freshLinkChanges = bag.get('linkChanges') as
+        | ReadonlyArray<LinkChange>
+        | undefined;
+      const metaUpdate: Record<string, unknown> = {};
+      if (freshPrev) metaUpdate.recordPrev = [...freshPrev];
+      if (freshDisplaced) metaUpdate.displacedRecords = [...freshDisplaced];
+      if (freshLinkChanges) metaUpdate.linkChanges = [...freshLinkChanges];
+      return Object.keys(metaUpdate).length ? { metaUpdate } : undefined;
+    },
+  );
+
+  // `recordBulkUpdateUndo` — restore each row by writing its `prev`
+  // back. Mirrors recordBulkDeleteUndo's rotation pattern: prefer
+  // rotated `meta.extra.recordPrev` over frozen `params.rows[].prev`
+  // so a second undo lands on current-world snapshots.
+  OperationRegistry.register(
+    RecordBulkUpdateUndoContract,
+    async (context, params, meta) => {
+      const model = await Model.get(context, params.modelId);
+      if (!model) return;
+      await model.getColumns(context);
+
+      const extraPrevList = meta.extra?.recordPrev;
+      const rowsForUndo: ReadonlyArray<{
+        pk: string | number;
+        prev: Record<string, any>;
+      }> = (() => {
+        if (!extraPrevList?.length) {
+          return params.rows.map((r) => ({ pk: r.pk, prev: r.prev }));
+        }
+        const byPk = new Map<string, Record<string, any>>();
+        for (const r of extraPrevList) {
+          const v = dataWrapper(r).extractPksValue(model, true);
+          if (v != null && v !== 'N/A') byPk.set(String(v), r);
+        }
+        return params.rows.map((r) => ({
+          pk: r.pk,
+          prev: byPk.get(String(r.pk)) ?? r.prev,
+        }));
+      })();
+
+      const updateBatch: Record<string, any>[] = [];
+      for (const row of rowsForUndo) {
+        const stripped = stripServerControlledFields(row.prev, model.columns);
+        updateBatch.push(stripped);
+      }
+      if (updateBatch.length) {
+        // Forward apiVersion/viewId/baseId — see recordUpdateUndo.
+        await dataTableSvc.dataUpdate(context, {
+          modelId: params.modelId,
+          body: updateBatch,
+          cookie: meta.originalReq,
+          user: meta.originalReq?.user ?? { id: meta.createdBy },
+          internalFlags: { allowSystemColumn: true },
+          ...(params.apiVersion
+            ? { apiVersion: params.apiVersion as any }
+            : {}),
+          ...(params.viewId ? { viewId: params.viewId } : {}),
+          ...(params.baseId ? { baseId: params.baseId } : {}),
+        } as any);
+      }
+
+      const extraDisplaced = meta.extra?.displacedRecords;
+      const displacedForUndo: ReadonlyArray<DisplacedRecord> =
+        (extraDisplaced ??
+          params.displacedRecords ??
+          []) as ReadonlyArray<DisplacedRecord>;
+      for (const dr of displacedForUndo) {
+        if (dr.kind === 'column') {
+          const drModel = await Model.get(context, dr.modelId);
+          if (!drModel) continue;
+          const drContext = { ...context, base_id: drModel.base_id };
+          await drModel.getColumns(drContext);
+          if (!drModel.primaryKey) continue;
+          const drSource = await Source.get(drContext, drModel.source_id);
+          const drBaseModel = await Model.getBaseModelSQL(drContext, {
+            id: drModel.id,
+            dbDriver: await NcConnectionMgrv2.get(drSource),
+            source: drSource,
+          });
+          try {
+            await drBaseModel.updateByPk(
+              dr.pk,
+              { [dr.column]: dr.prev },
+              null,
+              meta.originalReq,
+            );
+          } catch {
+            const drWherePk = await drBaseModel._wherePk(dr.pk);
+            await drBaseModel
+              .dbDriver(drBaseModel.getTnPath(drModel.table_name))
+              .update({ [dr.column]: dr.prev })
+              .where(drWherePk);
+          }
+        } else if (dr.kind === 'junction') {
+          const link = await resolveJunctionLinkSides(context, dr);
+          await link.ownerBaseModel.addLinks({
+            colId: link.colId,
+            rowId: link.rowId,
+            childIds: link.childIds,
+            cookie: meta.originalReq,
+          });
+        }
+      }
+
+      const extraLinkChanges = meta.extra?.linkChanges;
+      const linkChangesForUndo: ReadonlyArray<LinkChange> = (extraLinkChanges ??
+        params.linkChanges ??
+        []) as ReadonlyArray<LinkChange>;
+      for (const lc of linkChangesForUndo) {
+        await invertLinkChange(context, lc, meta.originalReq);
       }
     },
   );

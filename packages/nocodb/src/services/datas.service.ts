@@ -173,6 +173,7 @@ export class DatasService {
     );
   }
 
+  @TraceCommand(OperationName.recordUpdate)
   async dataUpdate(
     context: NcContext,
     param: PathParams & {

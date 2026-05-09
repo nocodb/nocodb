@@ -274,6 +274,27 @@ export interface CaptureBag {
    *  soft-deletes write ONE entry covering all rows in the batch, so a
    *  single id captures the whole bulk delete. */
   softDeleteTrashId: string;
+  /** V3-update LTAR diff: per-(col, row, target) link mutations produced
+   *  by `updateLTARCols`. Captured by `bulkUpdate` before dispatching to
+   *  the LTAR updater (CE, Mux, or EE LinksRequestHandler — the diff is
+   *  computed once at the entry point so all three downstream paths are
+   *  covered uniformly). Undo iterates and inverts: 'add' → removeLinks,
+   *  'remove' → addLinks. */
+  linkChanges: ReadonlyArray<LinkChange>;
+}
+
+/** One add-or-remove operation against a single LTAR column on a single
+ *  row. `childIds` carries the targets being added or removed in this
+ *  diff slice (the LTAR diff computed against the row's existing links).
+ */
+export interface LinkChange {
+  op: 'add' | 'remove';
+  /** The LTAR column id (NOT the FK column id). */
+  colId: string;
+  /** Owner row pk (composite-pk join via `___` for multi-key tables). */
+  rowId: string;
+  /** Linked-side row pks added or removed. */
+  childIds: ReadonlyArray<string | number>;
 }
 
 export type DisplacedRecord =

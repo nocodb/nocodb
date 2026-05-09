@@ -80,6 +80,7 @@ export class BulkDataAliasService {
   }
 
   // todo: Integrate with filterArrJson bulkDataUpdateAll
+  @TraceCommand(OperationName.recordBulkUpdate)
   async bulkDataUpdate(
     context: NcContext,
     param: PathParams & {

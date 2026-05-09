@@ -135,10 +135,18 @@ export const recordActions = {
     parentEntityTitle
       ? `Update record in ${bTable(parentEntityTitle)}`
       : `Update record`) as DescFn,
+  updateUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo record update in ${bTable(parentEntityTitle)}`
+      : `Undo record update`) as DescFn,
   bulkUpdate: (({ parentEntityTitle }) =>
     parentEntityTitle
       ? `Bulk update records in ${bTable(parentEntityTitle)}`
       : `Bulk update records`) as DescFn,
+  bulkUpdateUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo bulk update in ${bTable(parentEntityTitle)}`
+      : `Undo bulk update`) as DescFn,
   bulkDelete: (({ parentEntityTitle }) =>
     parentEntityTitle
       ? `Bulk delete records from ${bTable(parentEntityTitle)}`

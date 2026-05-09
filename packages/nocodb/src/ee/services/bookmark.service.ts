@@ -22,6 +22,29 @@ import Script from '~/ee/models/Script';
 import Dashboard from '~/ee/models/Dashboard';
 import { parseMetaProp } from '~/utils/modelUtils';
 
+function isUniqueViolation(e: any): boolean {
+  if (!e) return false;
+  const code =
+    e.code ??
+    e.original?.code ??
+    e.nativeError?.code ??
+    e.errno ??
+    e.original?.errno ??
+    e.nativeError?.errno;
+  if (
+    code === '23505' || // postgres
+    code === 23505 ||
+    code === 'ER_DUP_ENTRY' || // mysql
+    code === 1062 ||
+    code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+    code === 'SQLITE_CONSTRAINT'
+  ) {
+    return true;
+  }
+  const msg = String(e.message ?? '');
+  return /UNIQUE constraint failed|duplicate key value/i.test(msg);
+}
+
 @Injectable()
 export class BookmarkService {
   protected logger = new Logger(BookmarkService.name);
@@ -127,6 +150,20 @@ export class BookmarkService {
       targetId: param.body.target_id,
     });
 
+    // Friendly error path for the common case (e.g. clicking bookmark twice).
+    // The DB has a UNIQUE(fk_user_id, target_type, target_id) constraint;
+    // checking the cached list first avoids surfacing a raw 500 to the user.
+    const existingBookmarks = await Bookmark.list(userId);
+    if (
+      existingBookmarks.some(
+        (b) =>
+          b.target_type === param.body.target_type &&
+          b.target_id === param.body.target_id,
+      )
+    ) {
+      NcError.badRequest('This item is already bookmarked');
+    }
+
     let groupId = param.body.fk_group_id;
 
     if (!groupId) {
@@ -149,18 +186,28 @@ export class BookmarkService {
       param.body.target_id,
     );
 
-    const bookmark = await Bookmark.insert({
-      fk_user_id: userId,
-      fk_group_id: groupId,
-      title: resolved.title,
-      target_type: param.body.target_type,
-      target_id: param.body.target_id,
-      icon: resolved.icon,
-      icon_color: resolved.icon_color,
-      icon_type: resolved.icon_type,
-      order: maxOrder + 1,
-      meta: param.body.meta,
-    });
+    let bookmark: Bookmark;
+    try {
+      bookmark = await Bookmark.insert({
+        fk_user_id: userId,
+        fk_group_id: groupId,
+        title: resolved.title,
+        target_type: param.body.target_type,
+        target_id: param.body.target_id,
+        icon: resolved.icon,
+        icon_color: resolved.icon_color,
+        icon_type: resolved.icon_type,
+        order: maxOrder + 1,
+        meta: param.body.meta,
+      });
+    } catch (e) {
+      // Race-safe net: a concurrent request may have inserted between the
+      // pre-check above and this insert. Surface the same friendly message.
+      if (isUniqueViolation(e)) {
+        NcError.badRequest('This item is already bookmarked');
+      }
+      throw e;
+    }
 
     // Register dependency for future cleanup
     const depSourceType = this.mapTargetTypeToDependency(

@@ -151,6 +151,7 @@ export class SmartTextService extends SmartTextServiceCE {
         pm = null;
       } else {
         const cleanupTrx = await Noco.ncMeta.startTransaction();
+        let reconciled = false;
         try {
           const emptyPm: ProseMirrorDoc = {
             type: 'doc',
@@ -165,8 +166,13 @@ export class SmartTextService extends SmartTextServiceCE {
             /* req */ null,
             cleanupTrx,
           );
+          await cleanupTrx.commit();
+          reconciled = true;
+          // Cell + nc_row_meta live on the data DB. With mux (EE default)
+          // dbDriver !== Noco.ncMeta.knex — we must write via dbDriver, not
+          // the meta trx. On CE the two coincide, so behavior is unchanged.
           await this._writeRowMetaPm(
-            cleanupTrx.knexConnection,
+            dbDriver,
             tnPath,
             pkColumn.column_name,
             param.rowId,
@@ -176,10 +182,9 @@ export class SmartTextService extends SmartTextServiceCE {
             /* markdown */ undefined,
             this._hashMarkdown(''),
           );
-          await cleanupTrx.commit();
           pm = null;
         } catch (e) {
-          await cleanupTrx.rollback();
+          if (!reconciled) await cleanupTrx.rollback();
           this.logger.warn(
             `Stale PM cleanup failed for ${param.tableId}/${param.rowId}/${param.columnId}: ${e.message}`,
             (e as Error)?.stack,
@@ -239,22 +244,24 @@ export class SmartTextService extends SmartTextServiceCE {
               /* req */ null,
               backfillTrx,
             );
-            await this._writeRowMetaPm(
-              backfillTrx.knexConnection,
-              tnPath,
-              pkColumn.column_name,
-              param.rowId,
-              column,
-              pm,
-              /* userId */ null,
-              /* markdown */ undefined,
-              this._hashMarkdown(markdown as string),
-            );
             await backfillTrx.commit();
           } catch (e) {
             await backfillTrx.rollback();
             throw e;
           }
+          // Cell + nc_row_meta live on the data DB — write via dbDriver, not
+          // the meta trx connection. See same note in the cleanup branch.
+          await this._writeRowMetaPm(
+            dbDriver,
+            tnPath,
+            pkColumn.column_name,
+            param.rowId,
+            column,
+            pm,
+            /* userId */ null,
+            /* markdown */ undefined,
+            this._hashMarkdown(markdown as string),
+          );
         }
       } catch (e) {
         this.logger.warn(
@@ -315,9 +322,15 @@ export class SmartTextService extends SmartTextServiceCE {
       );
     }
 
-    // Internal sources share the meta DB connection — wrap reconcile + cell
-    // update in one trx so a partial failure can't leave FileReferences
-    // pointing at a row whose PM doesn't reference them (or vice versa).
+    // Reconcile FileReferences inside a meta-DB trx, then write the cell on
+    // the data DB. With mux enabled (EE default) dbDriver !== Noco.ncMeta.knex
+    // so a single trx can't span both — wrapping the cell write in `trx` makes
+    // the UPDATE go to the wrong database and silently no-op (or 42P01 on
+    // strict drivers). The two writes are not atomic, but reconcile commits
+    // first: a failed cell write leaves FileReference rows that point at
+    // files no longer referenced by the PM. The next reconcile from this
+    // cell soft-deletes those orphans via the walked-IDs vs existing-IDs diff
+    // in _reconcileFileReferences.
     const trx = await Noco.ncMeta.startTransaction();
     let markdown: string;
     try {
@@ -332,25 +345,24 @@ export class SmartTextService extends SmartTextServiceCE {
         param.req,
         trx,
       );
-
       markdown = prosemirrorToMarkdown(param.pmContent);
-
-      await this._writeRowMetaPm(
-        trx.knexConnection,
-        tnPath,
-        pkColumn.column_name,
-        param.rowId,
-        column,
-        param.pmContent,
-        param.req.user?.id ?? null,
-        markdown,
-        this._hashMarkdown(markdown),
-      );
       await trx.commit();
     } catch (e) {
       await trx.rollback();
       throw e;
     }
+
+    await this._writeRowMetaPm(
+      dbDriver,
+      tnPath,
+      pkColumn.column_name,
+      param.rowId,
+      column,
+      param.pmContent,
+      param.req.user?.id ?? null,
+      markdown,
+      this._hashMarkdown(markdown),
+    );
 
     // TODO: emit DATA_UPDATE app event for audit. Data-plane cell updates use
     // Noco.eventEmitter directly (see BaseModelSqlv2 RECORDS_SOFT_DELETE) rather

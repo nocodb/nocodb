@@ -19,9 +19,23 @@ const basesStore = useBases()
 
 const { activeProjectId } = storeToRefs(basesStore)
 
+const route = useRoute()
+
 const isDropdownOpen = ref(false)
 
 // --- Current page bookmark ---
+
+// Route-derived IDs for in-base entities (docs/workflows/scripts/dashboards).
+// Reading directly from route params mirrors how the EE stores derive these
+// and avoids stale Pinia state when navigating between sibling routes.
+const inBaseEntity = computed<{ targetType: string; targetId: string } | null>(() => {
+  const params = route.params as Record<string, string | undefined>
+  if (params.dashboardId) return { targetType: 'dashboard', targetId: params.dashboardId }
+  if (params.docId) return { targetType: 'document', targetId: params.docId }
+  if (params.workflowId) return { targetType: 'workflow', targetId: params.workflowId }
+  if (params.scriptId) return { targetType: 'script', targetId: params.scriptId }
+  return null
+})
 
 const currentPageBookmarkInfo = computed<{ targetType: string; targetId: string; meta: Record<string, any> } | null>(() => {
   const workspaceId = activeWorkspace.value?.id
@@ -31,7 +45,7 @@ const currentPageBookmarkInfo = computed<{ targetType: string; targetId: string;
   const tableId = activeTableId.value
   const viewId = activeView.value?.id
 
-  // Most specific first: view → table → base → workspace
+  // Most specific first: view → table → in-base entity → base
   if (viewId && tableId && baseId) {
     return {
       targetType: 'view',
@@ -44,6 +58,14 @@ const currentPageBookmarkInfo = computed<{ targetType: string; targetId: string;
     return {
       targetType: 'table',
       targetId: tableId,
+      meta: { workspace_id: workspaceId, base_id: baseId },
+    }
+  }
+
+  if (baseId && inBaseEntity.value) {
+    return {
+      targetType: inBaseEntity.value.targetType,
+      targetId: inBaseEntity.value.targetId,
       meta: { workspace_id: workspaceId, base_id: baseId },
     }
   }

@@ -86,8 +86,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const isRenameModalOpen = ref(false)
 
-    const { appInfo } = useGlobal()
-
     const defaultAttachmentMeta = {
       ...(appInfo.value.ee && {
         // Maximum Number of Attachments per cell

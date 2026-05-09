@@ -17,6 +17,16 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const baseURL = $api.instance.defaults.baseURL
 
+    const { appInfo } = useGlobal()
+
+    const joinAttachmentUrl = (path: string) => {
+      // Prefer the configured site URL (NC_PUBLIC_URL) over the API client baseURL,
+      // which falls back to '/' in production and would produce a protocol-relative
+      // URL like '//dltemp/...' that browsers resolve to 'https://dltemp/...'.
+      const base = appInfo.value.ncSiteUrl || baseURL || ''
+      return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`
+    }
+
     const { row } = useSmartsheetRowStoreOrThrow()
 
     const { fetchSharedViewAttachment } = useSharedView()
@@ -422,7 +432,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         let response: Response
         if (res.path) {
-          response = await fetch(`${baseURL}/${res.path}`)
+          response = await fetch(joinAttachmentUrl(res.path))
         } else if (res.url) {
           response = await fetch(`${res.url}`)
         } else {
@@ -508,7 +518,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         }
 
         if (res?.path) {
-          window.open(`${baseURL}/${res.path}`, '_self')
+          window.open(joinAttachmentUrl(res.path), '_self')
         } else if (res?.url) {
           window.open(res.url, '_self')
         } else {

@@ -9,6 +9,14 @@ const useAttachment = () => {
   // `useAttachment` is used inside normal function of canvas table so we have to use `getI18n().global` instead of `useI18n`
   const { t } = getI18n().global
 
+  const joinSiteUrl = (path: string) => {
+    // Strip trailing slashes from site URL and leading slashes from path so a
+    // site URL of '/' (production fallback) does not produce '//dltemp/...',
+    // which browsers resolve as a protocol-relative URL ('https://dltemp/...').
+    const base = (appInfo.value.ncSiteUrl || '').replace(/\/+$/, '')
+    return `${base}/${path.replace(/^\/+/, '')}`
+  }
+
   const getPossibleAttachmentSrc = (item: Record<string, any>, thumbnail?: 'card_cover' | 'tiny' | 'small') => {
     const res: string[] = []
 
@@ -17,9 +25,9 @@ const useAttachment = () => {
     }
     if (item?.data) res.push(item.data)
     if (item?.file) res.push(window.URL.createObjectURL(item.file))
-    if (item?.signedPath) res.push(`${appInfo.value.ncSiteUrl}/${encodeURI(item.signedPath)}`)
+    if (item?.signedPath) res.push(joinSiteUrl(encodeURI(item.signedPath)))
     if (item?.signedUrl) res.push(item.signedUrl)
-    if (item?.path) res.push(`${appInfo.value.ncSiteUrl}/${encodeURI(item.path)}`)
+    if (item?.path) res.push(joinSiteUrl(encodeURI(item.path)))
     if (item?.url) res.push(item.url)
     return res
   }

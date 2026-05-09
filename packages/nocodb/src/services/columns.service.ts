@@ -140,6 +140,15 @@ const deepClone = rfdc();
 
 const META_ONLY_COLUMN_PROPS = new Set(['description', 'meta']);
 
+const SIMPLE_COLUMN_PROPS = new Set(['title', 'description']);
+
+const TITLE_IMMUTABLE_SYSTEM_TYPES = new Set([
+  UITypes.ID,
+  UITypes.Order,
+  UITypes.Meta,
+  UITypes.Deleted,
+]);
+
 const ALLOWED_DATE_FORMATS = new Set([...dateFormats, ...dateMonthFormats]);
 
 // MySQL stores SingleSelect/MultiSelect as ENUM/SET, which compares members
@@ -542,6 +551,114 @@ export class ColumnsService implements IColumnsService {
     });
   }
 
+  private async simpleColumnUpdate(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      columnId: string;
+      column: ColumnReqType;
+      apiVersion?: NcApiVersion;
+    },
+    {
+      table,
+      column,
+      oldColumn,
+      isSyncedColumn,
+    }: {
+      table: Model;
+      column: Column;
+      oldColumn: Column;
+      isSyncedColumn: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<Model | Column<any>> {
+    const updateObj: Partial<Column> = {};
+
+    if ('title' in param.column) {
+      // Block immutable system columns
+      if (
+        (column.system && TITLE_IMMUTABLE_SYSTEM_TYPES.has(column.uidt)) ||
+        column.pk
+      ) {
+        NcError.get(context).systemFieldNonModifiable();
+      }
+
+      if (isSyncedColumn) {
+        NcError.get(context).invalidRequestBody(
+          `The column '${
+            column.title || column.column_name
+          }' is a synced column and cannot be updated.`,
+        );
+      }
+
+      const trimmedTitle = param.column.title?.trim();
+
+      if (trimmedTitle && trimmedTitle.length > 255) {
+        NcError.get(context).invalidRequestBody(
+          `Column title ${trimmedTitle} exceeds 255 characters`,
+        );
+      }
+
+      if (
+        trimmedTitle &&
+        !(await Column.checkAliasAvailable(
+          context,
+          {
+            title: trimmedTitle,
+            fk_model_id: column.fk_model_id,
+            exclude_id: param.columnId,
+          },
+          ncMeta,
+        ))
+      ) {
+        NcError.get(context).duplicateAlias({
+          type: 'column',
+          alias: trimmedTitle,
+          base: context.base_id,
+          additionalTrace: {
+            table: column.fk_model_id,
+          },
+        });
+      }
+
+      updateObj.title = trimmedTitle;
+    }
+
+    if ('description' in param.column) {
+      updateObj.description = param.column.description;
+    }
+
+    await Column.update2(
+      context,
+      { colId: param.columnId, column: updateObj, isSimpleUpdate: true },
+      ncMeta,
+    );
+
+    await table.getColumns(context, ncMeta);
+
+    const updatedColumn = await Column.get(
+      context,
+      { colId: param.columnId },
+      ncMeta,
+    );
+
+    this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+      table,
+      oldColumn,
+      column: updatedColumn,
+      columnId: column.id,
+      req: param.req,
+      context,
+      columns: table.columns,
+    });
+
+    if (param.apiVersion === NcApiVersion.V3) {
+      return updatedColumn;
+    }
+
+    return table;
+  }
+
   async columnUpdate(
     context: NcContext,
     param: {
@@ -621,8 +738,25 @@ export class ColumnsService implements IColumnsService {
         ).addColumnById(column.id)
       ).forUpdate();
 
-    // TODO: Refactor the columnUpdate function to handle metaOnly changes and
-    // DB related changes, right now both are mixed up, making this fragile
+    // Simple update path: only title and/or description — skip heavy logic
+    const isSimpleUpdate =
+      !allowUpdateSystemField &&
+      Object.keys(param.column).every((k) => SIMPLE_COLUMN_PROPS.has(k));
+
+    if (isSimpleUpdate) {
+      return this.simpleColumnUpdate(
+        context,
+        param,
+        {
+          table,
+          column,
+          oldColumn,
+          isSyncedColumn,
+        },
+        ncMeta,
+      );
+    }
+
     if (param.column.description !== column.description) {
       await Column.update(context, param.columnId, {
         description: param.column.description,

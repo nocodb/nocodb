@@ -10,11 +10,11 @@ const useAttachment = () => {
   const { t } = getI18n().global
 
   const joinSiteUrl = (path: string) => {
-    // Strip trailing slashes from site URL and leading slashes from path so a
-    // site URL of '/' (production fallback) does not produce '//dltemp/...',
-    // which browsers resolve as a protocol-relative URL ('https://dltemp/...').
-    const base = (appInfo.value.ncSiteUrl || '').replace(/\/+$/, '')
-    return `${base}/${path.replace(/^\/+/, '')}`
+    // Fall back to the page origin when ncSiteUrl is not an absolute URL —
+    // otherwise `new URL` would reject a base of '/' (production default).
+    const siteUrl = appInfo.value.ncSiteUrl
+    const base = siteUrl && /^https?:\/\//i.test(siteUrl) ? siteUrl : window.location.origin
+    return new URL(path.replace(/^\/+/, ''), base.replace(/\/+$/, '') + '/').toString()
   }
 
   const getPossibleAttachmentSrc = (item: Record<string, any>, thumbnail?: 'card_cover' | 'tiny' | 'small') => {

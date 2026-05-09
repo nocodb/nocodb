@@ -15,16 +15,14 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
-    const baseURL = $api.instance.defaults.baseURL
-
     const { appInfo } = useGlobal()
 
     const joinAttachmentUrl = (path: string) => {
-      // Prefer the configured site URL (NC_PUBLIC_URL) over the API client baseURL,
-      // which falls back to '/' in production and would produce a protocol-relative
-      // URL like '//dltemp/...' that browsers resolve to 'https://dltemp/...'.
-      const base = appInfo.value.ncSiteUrl || baseURL || ''
-      return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`
+      // Fall back to the page origin when ncSiteUrl is not an absolute URL —
+      // otherwise `new URL` would reject a base of '/' (production default).
+      const siteUrl = appInfo.value.ncSiteUrl
+      const base = siteUrl && /^https?:\/\//i.test(siteUrl) ? siteUrl : window.location.origin
+      return new URL(path.replace(/^\/+/, ''), base.replace(/\/+$/, '') + '/').toString()
     }
 
     const { row } = useSmartsheetRowStoreOrThrow()

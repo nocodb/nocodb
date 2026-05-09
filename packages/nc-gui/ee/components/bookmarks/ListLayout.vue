@@ -115,22 +115,13 @@ const lastColIdx = computed(() => Math.max(0, colCount.value - 1))
 <style lang="scss" scoped>
 .nc-bookmark-list-layout {
   @apply grid gap-0;
-  /* minmax(0, 1fr) — true equal columns regardless of content size */
+  /* minmax(0, 1fr) — true equal column regardless of content size */
   &.cols-1 {
     grid-template-columns: minmax(0, 1fr);
-  }
-  &.cols-2 {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  }
-  &.cols-3 {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
   }
 }
 .nc-bookmark-list-col {
   @apply flex flex-col min-w-0;
-  & + & {
-    @apply border-l-1 border-dashed border-nc-border-gray-medium;
-  }
 }
 .nc-bookmark-list-group-drop-line {
   @apply h-0.5 mx-3 my-1 rounded-full bg-nc-content-brand;

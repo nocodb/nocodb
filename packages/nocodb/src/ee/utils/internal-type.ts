@@ -4,6 +4,7 @@ import type {
   NcContext,
   NcRequest,
   NodeExecutionResult,
+  ProseMirrorDoc,
 } from 'nocodb-sdk';
 import type { TestConnectionResponse } from '@noco-local-integrations/core';
 import type { JobTypes } from 'src/interface/Jobs';
@@ -120,6 +121,7 @@ export type InternalGETResponseType = Promise<
       totalUsers: number;
       editorCount: number;
     }
+  | { pm: ProseMirrorDoc | null; markdown: string | null }
 >;
 
 export type InternalPOSTResponseType = Promise<
@@ -214,6 +216,7 @@ export type InternalPOSTResponseType = Promise<
   | { message: string }
   | { deleted: number; failed: { id: string; error: string }[] }
   | { job_id: string }
+  | { pm: ProseMirrorDoc | null; markdown: string | null }
 >;
 
 export interface InternalApiModule<

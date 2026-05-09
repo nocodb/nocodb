@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, GridType } from 'nocodb-sdk'
+import { isSmartText } from 'nocodb-sdk'
 import InfiniteTable from './InfiniteTable.vue'
 import Table from './Table.vue'
 import CanvasTable from './canvas/index.vue'
@@ -39,6 +40,10 @@ provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
 const tableRef = ref<typeof InfiniteTable>()
 
 useProvideViewAggregate(view, meta, xWhere, reloadVisibleDataHook)
+
+const smartTextStore = useProvideSmartText()
+
+const { rowNavigator: smartTextRowNavigator } = smartTextStore
 
 const {
   loadData,
@@ -82,6 +87,73 @@ const {
   toggleExpandAll,
   groupDataCache,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
+
+// SmartText panel row navigation contract.
+smartTextRowNavigator.value = {
+  getRow: (index: number) => {
+    const row = cachedRows.value.get(index)
+    if (!row) return null
+    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (!rowId) return null
+    return { rowId, rowData: row.row }
+  },
+  totalRows: () => totalRows.value,
+}
+
+// Deep-link sync: when ?rowId + ?colId both point at a SmartText column, open
+// the panel. The colId is treated as a generic cell-deep-link param — only
+// SmartText reacts to it for now; other column types fall through to the
+// expanded record dialog (which gates on rowId alone).
+const _findRowInCache = (rowId: string) => {
+  for (const [idx, row] of cachedRows.value.entries()) {
+    const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (id === rowId) return { idx, rowData: row.row }
+  }
+  return null
+}
+
+watch(
+  [() => route.value.query, () => cachedRows.value.size, () => meta.value?.columns?.length],
+  ([q]) => {
+    const rowId = q.rowId as string | undefined
+    const colId = q.colId as string | undefined
+
+    if (!rowId || !colId) {
+      if (smartTextStore.isOpen.value) smartTextStore.closeEditor()
+      return
+    }
+
+    const col = meta.value?.columns?.find((c) => c.id === colId) as ColumnType | undefined
+    if (!col || !isSmartText(col)) {
+      // Not a SmartText cell — leave to other surfaces (e.g. expanded record).
+      if (smartTextStore.isOpen.value) smartTextStore.closeEditor()
+      return
+    }
+
+    if (
+      smartTextStore.isOpen.value &&
+      smartTextStore.activeRowId.value === rowId &&
+      smartTextStore.activeColumnId.value === colId
+    ) {
+      // Already showing this cell — sync fullscreen if it diverged, and
+      // backfill row context if the row has since arrived in cache (deep-link
+      // open often happens before the grid finishes loading).
+      const wantFs = q.cellMode === 'fullscreen'
+      if (smartTextStore.isFullscreen.value !== wantFs) smartTextStore.setFullscreen(wantFs)
+
+      if (smartTextStore.activeRowIndex.value == null) {
+        const found = _findRowInCache(rowId)
+        if (found) smartTextStore.setRowContext(found.idx, found.rowData)
+      }
+      return
+    }
+
+    const found = _findRowInCache(rowId)
+    smartTextStore.openEditor(rowId, colId, found?.rowData, found?.idx)
+    if (q.cellMode === 'fullscreen') smartTextStore.setFullscreen(true)
+  },
+  { immediate: true },
+)
 
 const rowHeight = computed(() => {
   const gridView = view.value?.view as GridType
@@ -127,6 +199,10 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
       query: {
         ...routeQuery.value,
         rowId,
+        // Clear cell deep-link params — explicit expand always wins over the
+        // SmartText panel claim.
+        colId: undefined,
+        cellMode: undefined,
         path: ncIsEmptyArray(path) ? undefined : path.join('-'),
         // Remove expand from query to avoid triggering the expanded form on closing the dialog
         expand: undefined,
@@ -156,7 +232,15 @@ defineExpose({
 
 const expandedFormOnRowIdDlg = computed({
   get() {
-    return !!routeQuery.value.rowId
+    if (!routeQuery.value.rowId) return false
+    // When ?colId points at a SmartText column the SmartText panel claims
+    // the URL — expanded record dialog stays closed.
+    const colId = routeQuery.value.colId
+    if (colId) {
+      const col = meta.value?.columns?.find((c) => c.id === colId) as ColumnType | undefined
+      if (col && isSmartText(col)) return false
+    }
+    return true
   },
   set(val) {
     if (!val)
@@ -372,168 +456,172 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
 
 <template>
   <div
-    class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
+    class="relative flex flex-row h-full min-h-0 w-full overflow-hidden nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
     :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-bg-gray-extralight)'};`"
   >
-    <Table
-      v-if="!isGroupBy && !isInfiniteScrollingEnabled"
-      ref="tableRef"
-      v-model:selected-all-records="pSelectedAllRecords"
-      :data="pData"
-      :pagination-data="pPaginationData"
-      :load-data="pLoadData"
-      :change-page="(p: number) => validateExternalSourceRecordVisibility(p, ()=> pChangePage(p))"
-      :call-add-empty-row="pAddEmptyRow"
-      :delete-row="pDeleteRow"
-      :update-or-save-row="pUpdateOrSaveRow"
-      :delete-selected-rows="pDeleteSelectedRows"
-      :delete-range-of-rows="pDeleteRangeOfRows"
-      :bulk-update-rows="pBulkUpdateRows"
-      :expand-form="expandForm"
-      :remove-row-if-new="pRemoveRowIfNew"
-      :row-height-enum="rowHeight"
-      @toggle-optimised-query="toggleOptimisedQuery"
-      @bulk-update-dlg="bulkUpdateDlg = true"
-    />
-
-    <CanvasTable
-      v-else-if="
-        isInfiniteScrollingEnabled && ((isCanvasTableEnabled && !isGroupBy) || (isCanvasGroupByTableEnabled && isGroupBy))
-      "
-      ref="tableRef"
-      v-model:selected-all-records="selectedAllRecords"
-      v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
-      :load-data="loadData"
-      :call-add-empty-row="_addEmptyRow"
-      :delete-row="deleteRow"
-      :update-or-save-row="updateOrSaveRow"
-      :delete-selected-rows="deleteSelectedRows"
-      :delete-range-of-rows="deleteRangeOfRows"
-      :apply-sorting="applySorting"
-      :bulk-update-rows="bulkUpdateRows"
-      :bulk-upsert-rows="bulkUpsertRows"
-      :update-record-order="updateRecordOrder"
-      :bulk-delete-all="bulkDeleteAll"
-      :clear-cache="clearCache"
-      :clear-invalid-rows="clearInvalidRows"
-      :data="cachedRows"
-      :total-rows="totalRows"
-      :actual-total-rows="actualTotalRows"
-      :sync-count="syncCount"
-      :get-rows="getRows"
-      :chunk-states="chunkStates"
-      :expand-form="expandForm"
-      :remove-row-if-new="removeRowIfNew"
-      :row-height-enum="rowHeight"
-      :selected-rows="selectedRows"
-      :row-sort-required-rows="isRowSortRequiredRows"
-      :total-groups="totalGroups"
-      :get-data-cache="getDataCache"
-      :cached-groups="cachedGroups"
-      :group-by-columns="groupByColumns"
-      :group-data-cache="groupDataCache"
-      :clear-group-cache="clearGroupCache"
-      :toggle-expand="toggleExpand"
-      :group-sync-count="groupSyncCount"
-      :fetch-missing-group-chunks="fetchMissingGroupChunks"
-      :is-bulk-operation-in-progress="isBulkOperationInProgress"
-      :toggle-expand-all="toggleExpandAll"
-      @toggle-optimised-query="toggleOptimisedQuery"
-      @bulk-update-dlg="bulkUpdateTrigger"
-    />
-
-    <InfiniteTable
-      v-else-if="!isGroupBy"
-      ref="tableRef"
-      v-model:selected-all-records="selectedAllRecords"
-      v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
-      :load-data="loadData"
-      :call-add-empty-row="_addEmptyRow"
-      :delete-row="deleteRow"
-      :update-or-save-row="updateOrSaveRow"
-      :delete-selected-rows="deleteSelectedRows"
-      :delete-range-of-rows="deleteRangeOfRows"
-      :apply-sorting="applySorting"
-      :bulk-update-rows="bulkUpdateRows"
-      :bulk-upsert-rows="bulkUpsertRows"
-      :get-rows="getRows"
-      :update-record-order="updateRecordOrder"
-      :bulk-delete-all="bulkDeleteAll"
-      :clear-cache="clearCache"
-      :clear-invalid-rows="clearInvalidRows"
-      :data="cachedRows"
-      :total-rows="totalRows"
-      :actual-total-rows="actualTotalRows"
-      :sync-count="syncCount"
-      :chunk-states="chunkStates"
-      :expand-form="expandForm"
-      :remove-row-if-new="removeRowIfNew"
-      :row-height-enum="rowHeight"
-      :selected-rows="selectedRows"
-      :row-sort-required-rows="isRowSortRequiredRows"
-      :is-bulk-operation-in-progress="isBulkOperationInProgress"
-      @toggle-optimised-query="toggleOptimisedQuery"
-      @bulk-update-dlg="bulkUpdateDlg = true"
-    />
-
-    <GroupBy
-      v-else
-      :group="rootGroup"
-      :load-groups="loadGroups"
-      :load-group-data="loadGroupData"
-      :call-add-empty-row="pAddEmptyRow"
-      :expand-form="expandForm"
-      :load-group-page="loadGroupPage"
-      :group-wrapper-change-page="groupWrapperChangePage"
-      :row-height="rowHeight"
-      :load-group-aggregation="loadGroupAggregation"
-      :max-depth="groupBy.length"
-      :redistribute-rows="redistributeRows"
-      :view-width="viewWidth"
-    />
-
-    <Suspense>
-      <LazySmartsheetExpandedForm
-        v-if="expandedFormRow && expandedFormDlg"
-        v-model="expandedFormDlg"
-        :load-row="!isPublic"
-        :row="expandedFormRow"
-        :state="expandedFormRowState"
-        :meta="meta"
-        :view="view"
-        @update:model-value="addRowExpandOnClose(expandedFormRow)"
+    <div class="flex flex-col flex-1 min-w-0 h-full">
+      <Table
+        v-if="!isGroupBy && !isInfiniteScrollingEnabled"
+        ref="tableRef"
+        v-model:selected-all-records="pSelectedAllRecords"
+        :data="pData"
+        :pagination-data="pPaginationData"
+        :load-data="pLoadData"
+        :change-page="(p: number) => validateExternalSourceRecordVisibility(p, ()=> pChangePage(p))"
+        :call-add-empty-row="pAddEmptyRow"
+        :delete-row="pDeleteRow"
+        :update-or-save-row="pUpdateOrSaveRow"
+        :delete-selected-rows="pDeleteSelectedRows"
+        :delete-range-of-rows="pDeleteRangeOfRows"
+        :bulk-update-rows="pBulkUpdateRows"
+        :expand-form="expandForm"
+        :remove-row-if-new="pRemoveRowIfNew"
+        :row-height-enum="rowHeight"
+        @toggle-optimised-query="toggleOptimisedQuery"
+        @bulk-update-dlg="bulkUpdateDlg = true"
       />
-    </Suspense>
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id"
-      ref="expandedFormRef"
-      v-model="expandedFormOnRowIdDlg"
-      :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
-      :meta="meta"
-      :load-row="!isPublic"
-      :state="expandedFormRowState"
-      :row-id="routeQuery.rowId"
-      :view="view"
-      show-next-prev-icons
-      :first-row="isInfiniteScrollingEnabled ? isFirstRow : pisFirstRow"
-      :last-row="isInfiniteScrollingEnabled ? isLastRow : pisLastRow"
-      :expand-form="expandForm"
-      @next="isInfiniteScrollingEnabled ? goToNextRow() : pGoToNextRow()"
-      @prev="isInfiniteScrollingEnabled ? goToPreviousRow() : pGoToPreviousRow()"
-      @update-row-comment-count="updateRowCommentCount"
-    />
-    <Suspense>
-      <LazyDlgBulkUpdate
-        v-if="bulkUpdateDlg"
-        v-model="bulkUpdateDlg"
-        :meta="meta"
-        :view="view"
-        :path="groupPath"
+
+      <CanvasTable
+        v-else-if="
+          isInfiniteScrollingEnabled && ((isCanvasTableEnabled && !isGroupBy) || (isCanvasGroupByTableEnabled && isGroupBy))
+        "
+        ref="tableRef"
+        v-model:selected-all-records="selectedAllRecords"
+        v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
+        :load-data="loadData"
+        :call-add-empty-row="_addEmptyRow"
+        :delete-row="deleteRow"
+        :update-or-save-row="updateOrSaveRow"
+        :delete-selected-rows="deleteSelectedRows"
+        :delete-range-of-rows="deleteRangeOfRows"
+        :apply-sorting="applySorting"
         :bulk-update-rows="bulkUpdateRows"
-        :rows="selectedRows"
+        :bulk-upsert-rows="bulkUpsertRows"
+        :update-record-order="updateRecordOrder"
+        :bulk-delete-all="bulkDeleteAll"
+        :clear-cache="clearCache"
+        :clear-invalid-rows="clearInvalidRows"
+        :data="cachedRows"
+        :total-rows="totalRows"
+        :actual-total-rows="actualTotalRows"
+        :sync-count="syncCount"
+        :get-rows="getRows"
+        :chunk-states="chunkStates"
+        :expand-form="expandForm"
+        :remove-row-if-new="removeRowIfNew"
+        :row-height-enum="rowHeight"
+        :selected-rows="selectedRows"
+        :row-sort-required-rows="isRowSortRequiredRows"
+        :total-groups="totalGroups"
+        :get-data-cache="getDataCache"
+        :cached-groups="cachedGroups"
+        :group-by-columns="groupByColumns"
+        :group-data-cache="groupDataCache"
+        :clear-group-cache="clearGroupCache"
+        :toggle-expand="toggleExpand"
+        :group-sync-count="groupSyncCount"
+        :fetch-missing-group-chunks="fetchMissingGroupChunks"
+        :is-bulk-operation-in-progress="isBulkOperationInProgress"
+        :toggle-expand-all="toggleExpandAll"
+        @toggle-optimised-query="toggleOptimisedQuery"
+        @bulk-update-dlg="bulkUpdateTrigger"
       />
-    </Suspense>
+
+      <InfiniteTable
+        v-else-if="!isGroupBy"
+        ref="tableRef"
+        v-model:selected-all-records="selectedAllRecords"
+        v-model:selected-all-records-skip-pks="selectedAllRecordsSkipPks"
+        :load-data="loadData"
+        :call-add-empty-row="_addEmptyRow"
+        :delete-row="deleteRow"
+        :update-or-save-row="updateOrSaveRow"
+        :delete-selected-rows="deleteSelectedRows"
+        :delete-range-of-rows="deleteRangeOfRows"
+        :apply-sorting="applySorting"
+        :bulk-update-rows="bulkUpdateRows"
+        :bulk-upsert-rows="bulkUpsertRows"
+        :get-rows="getRows"
+        :update-record-order="updateRecordOrder"
+        :bulk-delete-all="bulkDeleteAll"
+        :clear-cache="clearCache"
+        :clear-invalid-rows="clearInvalidRows"
+        :data="cachedRows"
+        :total-rows="totalRows"
+        :actual-total-rows="actualTotalRows"
+        :sync-count="syncCount"
+        :chunk-states="chunkStates"
+        :expand-form="expandForm"
+        :remove-row-if-new="removeRowIfNew"
+        :row-height-enum="rowHeight"
+        :selected-rows="selectedRows"
+        :row-sort-required-rows="isRowSortRequiredRows"
+        :is-bulk-operation-in-progress="isBulkOperationInProgress"
+        @toggle-optimised-query="toggleOptimisedQuery"
+        @bulk-update-dlg="bulkUpdateDlg = true"
+      />
+
+      <GroupBy
+        v-else
+        :group="rootGroup"
+        :load-groups="loadGroups"
+        :load-group-data="loadGroupData"
+        :call-add-empty-row="pAddEmptyRow"
+        :expand-form="expandForm"
+        :load-group-page="loadGroupPage"
+        :group-wrapper-change-page="groupWrapperChangePage"
+        :row-height="rowHeight"
+        :load-group-aggregation="loadGroupAggregation"
+        :max-depth="groupBy.length"
+        :redistribute-rows="redistributeRows"
+        :view-width="viewWidth"
+      />
+
+      <Suspense>
+        <LazySmartsheetExpandedForm
+          v-if="expandedFormRow && expandedFormDlg"
+          v-model="expandedFormDlg"
+          :load-row="!isPublic"
+          :row="expandedFormRow"
+          :state="expandedFormRowState"
+          :meta="meta"
+          :view="view"
+          @update:model-value="addRowExpandOnClose(expandedFormRow)"
+        />
+      </Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormOnRowIdDlg && meta?.id"
+        ref="expandedFormRef"
+        v-model="expandedFormOnRowIdDlg"
+        :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
+        :meta="meta"
+        :load-row="!isPublic"
+        :state="expandedFormRowState"
+        :row-id="routeQuery.rowId"
+        :view="view"
+        show-next-prev-icons
+        :first-row="isInfiniteScrollingEnabled ? isFirstRow : pisFirstRow"
+        :last-row="isInfiniteScrollingEnabled ? isLastRow : pisLastRow"
+        :expand-form="expandForm"
+        @next="isInfiniteScrollingEnabled ? goToNextRow() : pGoToNextRow()"
+        @prev="isInfiniteScrollingEnabled ? goToPreviousRow() : pGoToPreviousRow()"
+        @update-row-comment-count="updateRowCommentCount"
+      />
+      <Suspense>
+        <LazyDlgBulkUpdate
+          v-if="bulkUpdateDlg"
+          v-model="bulkUpdateDlg"
+          :meta="meta"
+          :view="view"
+          :path="groupPath"
+          :bulk-update-rows="bulkUpdateRows"
+          :rows="selectedRows"
+        />
+      </Suspense>
+    </div>
+
+    <SmartsheetGridSmartTextPanel />
   </div>
 </template>
 

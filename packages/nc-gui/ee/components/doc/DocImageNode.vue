@@ -330,7 +330,8 @@ const showToolbar = computed(() => props.selected && !isResizing.value && isEdit
         :placeholder="t('placeholder.writeCaption')"
         contenteditable="false"
         @blur="onCaptionBlur"
-        @keydown="onCaptionKeydown"
+        @keydown.stop="onCaptionKeydown"
+        @paste.stop
       />
       <div v-else-if="hasCaption" class="nc-doc-image-caption">
         {{ node.attrs.caption }}

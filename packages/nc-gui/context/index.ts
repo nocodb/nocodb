@@ -171,3 +171,12 @@ export const IsWsBaseListModalInj: InjectionKey<Ref<boolean>> = Symbol('is-ws-ba
 export const IsSettingsSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-settings-sidebar-injection')
 
 export const DocIdInj: InjectionKey<Ref<string>> = Symbol('doc-id-injection')
+
+/**
+ * Cell-keyed attachment context for SmartText fields. When present, image and
+ * file attachment nodes resolve their URLs via the cell-keyed proxy endpoint
+ * (table+column+row triple) instead of the doc-keyed one.
+ */
+export const SmartTextCellAttachmentInj: InjectionKey<Ref<{ tableId: string; columnId: string; rowId: string } | null>> = Symbol(
+  'smart-text-cell-attachment-injection',
+)

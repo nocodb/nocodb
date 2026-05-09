@@ -97,6 +97,9 @@ export function useGridCellHandler(params: {
   const { open: openDetachedExpandedForm } = useExpandedFormDetached()
   const { open: openDetachedLongText } = useDetachedLongText()
 
+  const smartTextStore = useSmartText()
+  const openSmartText = smartTextStore?.openEditor
+
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     params.meta?.value?.base_id ? basesUser.value.get(params.meta?.value.base_id) || [] : [],
   )
@@ -483,6 +486,7 @@ export function useGridCellHandler(params: {
         isPublic: isPublic.value,
         openDetachedExpandedForm,
         openDetachedLongText,
+        openSmartText,
         path: ctx.path ?? [],
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         baseRoles: baseRoles.value,
@@ -520,6 +524,7 @@ export function useGridCellHandler(params: {
         markdownLoader: params.markdownLoader,
         makeCellEditable,
         openDetachedLongText,
+        openSmartText,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         path: ctx.path ?? [],
         t,

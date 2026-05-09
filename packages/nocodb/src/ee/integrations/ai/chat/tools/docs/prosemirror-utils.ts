@@ -32,6 +32,63 @@ import { marked } from 'marked';
 // ── PM → Markdown ──────────────────────────────────────────────────────────
 
 /**
+ * Percent-encode the chars that break CommonMark image / link URLs:
+ * whitespace and unbalanced parens. Other chars (incl. non-ASCII) are left
+ * intact — markdown handles those fine, and Cyrillic / CJK filenames stay
+ * readable in the round-tripped markdown.
+ */
+function encodeMarkdownUrl(url: string): string {
+  if (!url) return '';
+  return url.replace(/ /g, '%20').replace(/\(/g, '%28').replace(/\)/g, '%29');
+}
+
+/**
+ * Inverse of encodeMarkdownUrl — used when reading marked-emitted href values
+ * back into PM nodes so the `path` matches the actual storage key (file lookup
+ * fails for encoded paths). Falls back to the raw string on malformed input.
+ */
+function decodeMarkdownUrl(url: string): string {
+  if (!url) return '';
+  try {
+    return decodeURI(url);
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Pre-process raw markdown so URLs containing whitespace inside image / link
+ * destinations parse as image / link tokens instead of being dropped to plain
+ * text. Marked follows CommonMark — `![alt](url with space)` is not a valid
+ * image, but pasted content from external sources (or earlier NocoDB versions)
+ * may still contain unescaped spaces. Encode them so marked recognises the
+ * pattern; the inline parser later decodes them back into the PM path.
+ *
+ * Skips fenced code blocks so literal markdown examples inside ``` blocks are
+ * not rewritten.
+ */
+function preprocessMarkdownUrls(md: string): string {
+  const lines = md.split('\n');
+  let inFence = false;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*```/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    if (inFence) continue;
+    lines[i] = line.replace(
+      /(!?\[[^\]\n]*\])\(([^)\n]+)\)/g,
+      (match, prefix, url) => {
+        if (!/\s/.test(url)) return match;
+        return `${prefix}(${encodeMarkdownUrl(url.trim())})`;
+      },
+    );
+  }
+  return lines.join('\n');
+}
+
+/**
  * Convert a ProseMirror JSON document to a Markdown string.
  */
 export function prosemirrorToMarkdown(doc: Record<string, any>): string {
@@ -93,8 +150,11 @@ function renderNode(node: Record<string, any>, indent: string): string {
 
     case 'image': {
       const alt = node.attrs?.alt || '';
-      const src = node.attrs?.src || '';
-      return `![${alt}](${src})\n\n`;
+      // Prefer `path` (persistent storage key) over `src` — `src` may be a
+      // session-only blob URL after upload. Falling back to `src` keeps
+      // external image links working.
+      const url = node.attrs?.path || node.attrs?.src || '';
+      return `![${alt}](${encodeMarkdownUrl(url)})\n\n`;
     }
 
     // NocoDocs-specific nodes — fenced directive syntax
@@ -131,8 +191,8 @@ function renderNode(node: Record<string, any>, indent: string): string {
 
     case 'fileAttachment': {
       const fileName = node.attrs?.fileName || 'file';
-      const src = node.attrs?.src || '';
-      return `[${fileName}](${src})\n\n`;
+      const url = node.attrs?.path || node.attrs?.src || '';
+      return `[${fileName}](${encodeMarkdownUrl(url)})\n\n`;
     }
 
     case 'hardBreak':
@@ -513,8 +573,15 @@ export function markdownToProseMirror(markdown: string): Record<string, any> {
   // 1. Extract fenced directives into placeholders
   const { cleaned, directives } = extractDirectives(markdown);
 
-  // 2. Tokenize the cleaned markdown (directives replaced with HTML comments)
-  const tokens = marked.lexer(cleaned);
+  // 1a. Encode whitespace in image / link URLs so they survive tokenization
+  const normalized = preprocessMarkdownUrls(cleaned);
+
+  // 2. Tokenize the cleaned markdown (directives replaced with HTML comments).
+  // mangle:false — marked v4 entity-encodes `@` in autolinked emails by default
+  // (spam-obfuscation). The PM editor renders the encoded chars verbatim, so
+  // emails appear as `&#x6e;...` strings in the UI. headerIds is unused here
+  // but disabled for forward-compatibility (removed in marked v8+).
+  const tokens = marked.lexer(normalized, { mangle: false, headerIds: false });
   const content = tokensToNodes(tokens);
 
   // 3. Resolve directive placeholders into PM nodes
@@ -722,15 +789,21 @@ function tokenToNode(
       return { type: 'table', content: rows };
     }
 
-    case 'image':
+    case 'image': {
+      const href = decodeMarkdownUrl((token as any).href || '');
       return {
         type: 'image',
         attrs: {
-          src: (token as any).href || '',
+          // Set `path` so the FileReference reconciler picks it up — markdown
+          // has only one URL field, but PM image nodes track storage path
+          // separately from the rendered src.
+          src: href,
+          path: href,
           alt: (token as any).text || '',
           title: (token as any).title || null,
         },
       };
+    }
 
     case 'space':
       return null;
@@ -864,16 +937,19 @@ function inlineTokensToNodes(tokens: marked.Token[]): Record<string, any>[] {
         break;
       }
 
-      case 'image':
+      case 'image': {
+        const href = decodeMarkdownUrl((token as any).href || '');
         nodes.push({
           type: 'image',
           attrs: {
-            src: (token as any).href || '',
+            src: href,
+            path: href,
             alt: (token as any).text || '',
             title: (token as any).title || null,
           },
         });
         break;
+      }
 
       case 'br':
         nodes.push({ type: 'hardBreak' });

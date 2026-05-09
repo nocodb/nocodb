@@ -40,9 +40,36 @@ import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 import { UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
 import { suggestion } from '~/helpers/tiptap'
 
-const props = defineProps<{
-  docId: string
+const props = withDefaults(
+  defineProps<{
+    /**
+     * Doc page id. Required in `mode = 'doc'`. Ignored in `mode = 'cell'`,
+     * where the editor is driven by `initialContent` instead of loading
+     * from the docs store.
+     */
+    docId?: string
+    embedded?: boolean
+    /**
+     * `'doc'` (default): full page editor — loads + auto-saves a document
+     * via the documents store; renders title, cover, comments, breadcrumb.
+     * `'cell'`: SmartText cell editor — no doc load/save, no title/cover;
+     * content is provided via `initialContent` and changes emit
+     * `update:content`. The parent owns persistence.
+     */
+    mode?: 'doc' | 'cell'
+    /** Initial PM JSON for cell mode. Re-applied when the prop reference changes. */
+    initialContent?: Record<string, any> | null
+    /** Force editor non-editable regardless of role / doc permissions (e.g. locked / shared views). */
+    readOnly?: boolean
+  }>(),
+  { docId: '', embedded: false, mode: 'doc', initialContent: null, readOnly: false },
+)
+
+const emit = defineEmits<{
+  (e: 'update:content', content: Record<string, any>): void
 }>()
+
+const isCellMode = computed(() => props.mode === 'cell')
 
 const docId = toRef(props, 'docId')
 
@@ -101,7 +128,7 @@ const isDocEditAllowed = computed(() => {
 })
 
 /** Whether the current user can edit document content (base role + doc-level permission). */
-const isEditable = computed(() => isUIAllowed('documentUpdate') && isDocEditAllowed.value)
+const isEditable = computed(() => !props.readOnly && isUIAllowed('documentUpdate') && isDocEditAllowed.value)
 
 // Resolve created_by user ID to display name
 const idUserMap = computed<Record<string, any>>(() => {
@@ -135,6 +162,11 @@ const isTitleVisible = ref(true)
 
 const editor = shallowRef<Editor | undefined>()
 
+// In cell mode the editor is driven by `initialContent` + an `update:content`
+// emit — no document load/save. We provide a shape-compatible stub so the
+// rest of this component (title/cover/comments/version chrome, all template
+// references to doc/title/isSaving/etc.) keeps working without per-callsite
+// branches. In doc mode the real composable runs.
 const {
   doc,
   title,
@@ -148,7 +180,27 @@ const {
   reloadDocument,
   flushOnUnmount,
   activeDocument,
-} = useDocumentAutoSave({ editor, activeProjectId, isEditable })
+} = isCellMode.value
+  ? (() => {
+      const cellDoc = ref<any>({ id: 'cell', title: '', meta: {} })
+      const noop = () => {}
+      const noopAsync = async () => {}
+      return {
+        doc: cellDoc,
+        title: ref(''),
+        lastSavedTitle: ref(''),
+        isSaving: ref(false),
+        isLoaded: ref(true),
+        isStale: computed(() => false),
+        staleUpdatedBy: computed(() => null),
+        debouncedSave: noop as () => void,
+        loadAndSetDoc: noopAsync as (_id: string) => Promise<void>,
+        reloadDocument: noopAsync as () => Promise<any>,
+        flushOnUnmount: noop as () => void,
+        activeDocument: ref<any>(null),
+      }
+    })()
+  : useDocumentAutoSave({ editor, activeProjectId, isEditable })
 
 const docMeta = computed(() => parseProp(doc.value?.meta))
 
@@ -205,7 +257,9 @@ const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({
   },
 })
 
-const { scrollToHeading } = useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
+const { scrollToHeading } = props.embedded
+  ? { scrollToHeading: (_id: string) => false }
+  : useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
 
 const { copy } = useCopy()
 
@@ -1101,7 +1155,7 @@ const _tiptapEditor = useEditor({
     DocActiveBlockExtension,
     DocBlockDirExtension,
     DocHeadingCollapseExtension,
-    DocHeadingAnchorExtension,
+    ...(props.embedded ? [] : [DocHeadingAnchorExtension]),
     DocDragHandleExtension,
     DocSearchExtension,
     DocAiExtension,
@@ -1438,10 +1492,16 @@ const _tiptapEditor = useEditor({
       return true
     },
   },
-  onUpdate: () => {
+  onUpdate: ({ editor: e }) => {
     // Dismiss paste-link menu on any editor content change (typing, etc.)
     if (pasteLinkMenu.value.visible) dismissPasteLinkMenu()
-    debouncedSave()
+    if (isCellMode.value) {
+      // Cell mode: parent owns persistence; emit JSON on every edit.
+      // No debounce here — SmartTextPanel batches via session-end triggers.
+      emit('update:content', e.getJSON() as Record<string, any>)
+    } else {
+      debouncedSave()
+    }
     countTasks()
   },
   onSelectionUpdate: () => {
@@ -1507,6 +1567,9 @@ function countTasks() {
 watch(editor, (ed) => {
   if (ed?.storage?.image) {
     ed.storage.image.openUpload = async () => {
+      // Save cursor position before the file dialog steals focus
+      const savedPos = ed.state.selection.from
+
       const files = await openFilePicker({ multiple: true })
       if (!files.length) return
 
@@ -1521,7 +1584,9 @@ watch(editor, (ed) => {
         attrs: { src: blobUrl, alt: file.name },
       }))
 
-      ed.chain().focus().insertContent(nodes).run()
+      // Restore cursor and focus after file dialog — the native dialog can
+      // leave ProseMirror's DOM selection in an inconsistent state
+      ed.chain().focus().setTextSelection(savedPos).insertContent(nodes).run()
 
       for (const { file, blobUrl } of blobEntries) {
         uploadAndInsert(ed, file, blobUrl)
@@ -1531,6 +1596,9 @@ watch(editor, (ed) => {
   }
   if (ed?.storage?.fileAttachment) {
     ed.storage.fileAttachment.openUpload = async () => {
+      // Save cursor position before the file dialog steals focus
+      const savedPos = ed.state.selection.from
+
       const files = await openFileAttachmentPicker({ multiple: true })
       if (!files.length) return
 
@@ -1545,7 +1613,8 @@ watch(editor, (ed) => {
         attrs: { src: blobUrl, fileName: file.name, fileSize: file.size, fileType: file.type },
       }))
 
-      ed.chain().focus().insertContent(nodes).run()
+      // Restore cursor and focus after file dialog
+      ed.chain().focus().setTextSelection(savedPos).insertContent(nodes).run()
 
       // Upload each file and swap blob → permanent path
       for (const { file, blobUrl } of blobEntries) {
@@ -1600,34 +1669,58 @@ const resolvedDir = computed<'ltr' | 'rtl'>(() => {
 // Watch both docId AND activeProjectId — on a full page reload, activeProjectId
 // may not be available yet when docId resolves from route params. Without this,
 // loadDoc silently returns null (guard: !activeProjectId) and the editor stays empty.
-watch(
-  [docId, activeProjectId],
-  async ([newId, newBaseId]) => {
-    if (newId && newBaseId) {
-      await loadAndSetDoc(newId)
+// Skipped in cell mode — content comes from `initialContent` (see watcher below).
+if (!isCellMode.value) {
+  watch(
+    [docId, activeProjectId],
+    async ([newId, newBaseId]) => {
+      if (newId && newBaseId) {
+        await loadAndSetDoc(newId)
 
-      const loadedFont = docMeta.value.font
-      activeFont.value = loadedFont === 'serif' || loadedFont === 'mono' ? loadedFont : 'default'
+        const loadedFont = docMeta.value.font
+        activeFont.value = loadedFont === 'serif' || loadedFont === 'mono' ? loadedFont : 'default'
 
-      const loadedDir = docMeta.value.dir
-      activeDir.value = loadedDir === 'ltr' || loadedDir === 'rtl' || loadedDir === 'auto' ? loadedDir : null
+        const loadedDir = docMeta.value.dir
+        activeDir.value = loadedDir === 'ltr' || loadedDir === 'rtl' || loadedDir === 'auto' ? loadedDir : null
 
-      nextTick(() => countTasks())
+        nextTick(() => countTasks())
 
-      // Auto-focus the title input on new (untitled) pages so the user
-      // can immediately start typing a name (only for users who can edit).
-      // On mobile, skip focus when the sidebar is open — the editor isn't visible
-      // and focusing would trigger the virtual keyboard.
-      const skipFocus = isMobileMode.value && isLeftSidebarOpen.value
-      if (!title.value && isEditable.value && !skipFocus) {
-        nextTick(() => {
-          ;(titleInput.value as HTMLInputElement)?.focus()
-        })
+        // Auto-focus the title input on new (untitled) pages so the user
+        // can immediately start typing a name (only for users who can edit).
+        // On mobile, skip focus when the sidebar is open — the editor isn't visible
+        // and focusing would trigger the virtual keyboard.
+        const skipFocus = isMobileMode.value && isLeftSidebarOpen.value
+        if (!title.value && isEditable.value && !skipFocus) {
+          nextTick(() => {
+            ;(titleInput.value as HTMLInputElement)?.focus()
+          })
+        }
       }
-    }
-  },
-  { immediate: true },
-)
+    },
+    { immediate: true },
+  )
+}
+
+// Cell mode: push fresh PM content into the editor whenever the parent
+// supplies a new value (initial open, switch field, navigate row).
+// Watch `editor` too — useEditor populates the ref in onMounted, so an
+// immediate-mode watcher on `props.initialContent` alone fires before the
+// editor instance exists and silently no-ops. By also tracking `editor`,
+// the watcher re-fires once Tiptap has the editor ready and applies the
+// loaded PM JSON. Skip the setContent when already in sync to avoid loops.
+if (isCellMode.value) {
+  watch(
+    [() => props.initialContent, editor],
+    ([val, ed]) => {
+      if (!ed) return
+      const next = val ?? { type: 'doc', content: [{ type: 'paragraph' }] }
+      const current = ed.getJSON()
+      if (JSON.stringify(current) === JSON.stringify(next)) return
+      ed.commands.setContent(next as any, false)
+    },
+    { immediate: true, flush: 'post' },
+  )
+}
 
 // Sync external title changes (e.g. sidebar rename) into the editor's local title ref.
 // Skip when the editor itself initiated the change (isSaving) or when loading a new doc.
@@ -2067,6 +2160,10 @@ onBeforeUnmount(() => {
   flushOnUnmount()
   editor.value?.destroy()
 })
+
+// Expose the Tiptap editor instance so parents (e.g. SmartTextPanel) can run
+// the same export pipeline (markdown / html / pdf) used in the docs surface.
+defineExpose({ editor })
 </script>
 
 <template>
@@ -2091,23 +2188,27 @@ onBeforeUnmount(() => {
     Keep the editor mounted across page switches to avoid detaching
     ProseMirror's view from the DOM. Content is swapped via setContent.
   -->
-  <div v-else class="nc-doc-editor flex flex-row h-full w-full overflow-hidden">
+  <div
+    v-else
+    class="nc-doc-editor flex flex-row h-full w-full overflow-hidden"
+    :class="{ 'nc-doc-embedded': embedded, 'nc-doc-editor-cell': isCellMode }"
+  >
     <!-- Editor area — relative wrapper for floating menu + scroll content -->
     <div class="relative flex-1 min-w-0 h-full overflow-hidden">
       <!-- Sticky header background — slides in when title scrolls out of view -->
-      <Transition name="nc-doc-sticky-slide">
+      <Transition v-if="!embedded" name="nc-doc-sticky-slide">
         <div v-if="!isTitleVisible && isLoaded" class="nc-doc-sticky-header" />
       </Transition>
 
       <!-- Breadcrumb — always visible, same pattern as page menu -->
-      <div class="nc-doc-page-menu-left">
+      <div v-if="!embedded" class="nc-doc-page-menu-left">
         <GeneralOpenLeftSidebarBtn />
 
         <DocBreadcrumb v-if="isLoaded" :doc-id="docId" :current-title="title" />
       </div>
 
       <!-- Page actions — always visible at top-right -->
-      <div class="nc-doc-page-menu">
+      <div v-if="!embedded" class="nc-doc-page-menu">
         <DocPresence />
         <NcTooltip :title="$t('general.comments')" placement="bottom" class="flex">
           <NcButton
@@ -2254,8 +2355,8 @@ onBeforeUnmount(() => {
       >
         <div
           v-if="isStale"
-          class="nc-doc-stale-banner w-full mx-auto px-6 sm:px-10 lg:px-16 pt-[var(--topbar-height)]"
-          :class="{ 'max-w-[900px]': !isFullWidth }"
+          class="nc-doc-stale-banner w-full mx-auto px-6 sm:px-10 lg:px-16"
+          :class="[embedded ? 'pt-2' : 'pt-[var(--topbar-height)]', { 'max-w-[900px]': !isFullWidth }]"
         >
           <NcAlert type="info" :closable="false" align="center" class="!bg-nc-bg-brand">
             <template #message>
@@ -2271,8 +2372,8 @@ onBeforeUnmount(() => {
           </NcAlert>
         </div>
 
-        <!-- Cover image banner -->
-        <div v-if="coverImageSrc" class="nc-doc-cover group relative w-full" data-testid="nc-doc-cover">
+        <!-- Cover image banner — doc mode only; cells have no cover. -->
+        <div v-if="!isCellMode && coverImageSrc" class="nc-doc-cover group relative w-full" data-testid="nc-doc-cover">
           <img :src="coverImageSrc" class="nc-doc-cover-image" />
           <div v-if="isEditable" class="nc-doc-cover-controls">
             <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-change" @click="onAddOrChangeCover">
@@ -2285,12 +2386,12 @@ onBeforeUnmount(() => {
         </div>
 
         <div
-          class="nc-doc-editor-inner w-full mx-auto px-6 sm:px-10 lg:px-16"
-          :class="{ 'max-w-[900px]': !isFullWidth }"
+          class="nc-doc-editor-inner w-full mx-auto"
+          :class="[isCellMode ? 'px-10' : 'px-6 sm:px-10 lg:px-16', { 'max-w-[900px]': !isFullWidth }]"
           :dir="resolvedDir"
         >
-          <!-- Title -->
-          <div class="nc-doc-editor-header pt-12 pb-4">
+          <!-- Title — hidden in cell mode (the panel header already shows the column name) -->
+          <div v-if="!isCellMode" class="nc-doc-editor-header pb-4" :class="embedded ? 'pt-4' : 'pt-12'">
             <NcTooltip v-if="!coverImageSrc && isUIAllowed('documentUpdate')" :disabled="isEditable">
               <template #title>{{ $t('msg.info.editingRestrictedForThisPage') }}</template>
               <div
@@ -2357,7 +2458,12 @@ onBeforeUnmount(() => {
                 </svg>
                 {{ $t('labels.taskProgress', { completed: taskCompleted, total: taskTotal }) }}
               </span>
-              <span v-e="['c:doc:comments:subtitle-toggle']" class="nc-doc-subtitle-comments" @click="toggleCommentsPanel()">
+              <span
+                v-if="!embedded"
+                v-e="['c:doc:comments:subtitle-toggle']"
+                class="nc-doc-subtitle-comments"
+                @click="toggleCommentsPanel()"
+              >
                 <GeneralIcon icon="ncMessageCircle" class="!w-3.5 !h-3.5" />
                 <template v-if="commentCount">
                   {{ commentCount }} {{ commentCount === 1 ? $t('general.comment') : $t('general.comments') }}
@@ -2372,7 +2478,7 @@ onBeforeUnmount(() => {
           <!-- Editor — always mounted so ProseMirror view stays attached -->
           <div
             class="nc-doc-editor-body relative"
-            :class="hasSubDocuments ? 'pb-8' : 'pb-48'"
+            :class="[hasSubDocuments ? 'pb-8' : 'pb-48', { 'pt-6': isCellMode }]"
             :style="docColorVars"
             data-testid="docs-page-content"
             @click="onEditorBodyClick"
@@ -2428,10 +2534,9 @@ onBeforeUnmount(() => {
                       <GeneralIcon icon="link2" />
                     </NcButton>
                   </NcTooltip>
-                  <NcTooltip placement="top">
+                  <NcTooltip v-if="isEditable && !embedded" placement="top">
                     <template #title>{{ $t('tooltip.addComment') }}</template>
                     <NcButton
-                      v-if="isEditable"
                       size="small"
                       type="text"
                       data-testid="nc-doc-comment-add-btn"
@@ -2619,7 +2724,14 @@ onBeforeUnmount(() => {
                 </div>
 
                 <!-- Link edit popover -->
-                <div v-if="isLinkEditOpen" :style="linkHoverStyle" class="nc-link-edit-popover" @mouseenter="keepLinkHoverAlive">
+                <div
+                  v-if="isLinkEditOpen"
+                  :style="linkHoverStyle"
+                  class="nc-link-edit-popover"
+                  @mouseenter="keepLinkHoverAlive"
+                  @keydown.stop
+                  @paste.stop
+                >
                   <div class="nc-link-edit-field">
                     <label class="nc-link-edit-label">{{ $t('labels.pageOrUrl') }}</label>
                     <input
@@ -2819,9 +2931,9 @@ onBeforeUnmount(() => {
     </div>
     <!-- /relative wrapper -->
 
-    <!-- Comments sidebar — drawer on mobile, inline panel on desktop -->
+    <!-- Comments sidebar — drawer on mobile, inline panel on desktop. Cell mode skips entirely. -->
     <NcDrawer
-      v-if="isMobileMode"
+      v-if="!isCellMode && isMobileMode"
       v-model:visible="isCommentsPanelOpen"
       height="85svh"
       :show-drag-handle="true"
@@ -2840,7 +2952,7 @@ onBeforeUnmount(() => {
       />
     </NcDrawer>
     <DocCommentsSidebar
-      v-else-if="isCommentsPanelOpen"
+      v-else-if="!isCellMode && isCommentsPanelOpen"
       :doc-id="docId"
       :base-id="base?.id"
       :editor="editor"
@@ -2858,6 +2970,23 @@ onBeforeUnmount(() => {
   // The h-full chain breaks at a-layout-content — this bypasses it.
   height: 100vh;
   height: 100dvh;
+}
+
+// Cell mode (SmartText panel): zero out the first child's top margin so a
+// leading heading doesn't stack ~33px on top of the body's pt-6 padding.
+// Doc mode keeps the heading rhythm because the title block sits above.
+.nc-doc-editor-cell {
+  .nc-doc-editor-content.ProseMirror > *:first-child {
+    margin-top: 0 !important;
+  }
+}
+
+// Hide the block drag handle inside a non-fullscreen SmartText panel.
+// The narrow panel doesn't have room for handle + heading label + chevron in
+// the left gutter. In fullscreen mode there's plenty of horizontal space, so
+// the handle stays available for users reorganizing longer cells.
+.nc-smart-text-panel:not(.nc-smart-text-fullscreen) .nc-doc-drag-handle {
+  display: none !important;
 }
 
 // Doc editor bubble menu — override embed-mode's transparent/no-shadow defaults
@@ -4322,6 +4451,10 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   overflow: hidden;
   margin-top: var(--topbar-height);
+
+  .nc-doc-embedded & {
+    margin-top: 0;
+  }
 }
 
 .nc-doc-cover-image {

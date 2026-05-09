@@ -19,6 +19,7 @@ export default class FileReference {
   source_id: string;
   fk_model_id: string;
   fk_column_id: string;
+  fk_row_id: string;
   fk_doc_id: string;
   fk_session_id: string;
   is_external: boolean;
@@ -45,6 +46,7 @@ export default class FileReference {
       'source_id',
       'fk_model_id',
       'fk_column_id',
+      'fk_row_id',
       'fk_doc_id',
       'fk_session_id',
       'is_external',
@@ -65,6 +67,55 @@ export default class FileReference {
     return id;
   }
 
+  /**
+   * Bulk-insert FileReferences in a single query. Returns the inserted rows
+   * with their generated IDs, in input order. Used by SmartText reconcile to
+   * avoid N sequential inserts when a cell contains many attachments.
+   */
+  public static async bulkInsert(
+    context: NcContext,
+    fileRefObjs: Partial<FileReference>[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ id: string }[]> {
+    if (!fileRefObjs?.length) return [];
+
+    const insertObjs = fileRefObjs.map((f) =>
+      extractProps(f, [
+        'id',
+        'storage',
+        'file_url',
+        'file_size',
+        'fk_user_id',
+        'source_id',
+        'fk_model_id',
+        'fk_column_id',
+        'fk_row_id',
+        'fk_doc_id',
+        'fk_session_id',
+        'is_external',
+        'deleted',
+      ]),
+    );
+
+    const inserted = await ncMeta.bulkMetaInsert(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILE_REFERENCES,
+      insertObjs,
+    );
+
+    if (context.workspace_id) {
+      const totalSize = insertObjs
+        .filter((o) => !o.deleted)
+        .reduce((sum, o) => sum + (o.file_size ?? 0), 0);
+      if (totalSize > 0) {
+        await this.updateWorkspaceCache(context, totalSize);
+      }
+    }
+
+    return inserted.map((r: any) => ({ id: r.id }));
+  }
+
   // used when url downloaded
   public static async updateById(
     context: NcContext,
@@ -80,6 +131,7 @@ export default class FileReference {
       'source_id',
       'fk_model_id',
       'fk_column_id',
+      'fk_row_id',
       'fk_doc_id',
       'fk_session_id',
       'is_external',
@@ -343,6 +395,24 @@ export default class FileReference {
     return fileReferenceData && new FileReference(fileReferenceData);
   }
 
+  /**
+   * Fetch multiple FileReferences in a single query. Used by SmartText
+   * reconcile to validate pre-existing IDs without N round-trips.
+   */
+  public static async listByIds(
+    context: NcContext,
+    ids: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<FileReference[]> {
+    if (!ids?.length) return [];
+    const rows = await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({ base_id: context.base_id })
+      .whereIn('id', ids)
+      .select('*');
+    return rows.map((r: any) => new FileReference(r));
+  }
+
   public static async updateWorkspaceCache(
     context: NcContext,
     size: number,
@@ -384,6 +454,133 @@ export default class FileReference {
       .select('id');
 
     return rows.map((r: any) => r.id);
+  }
+
+  /**
+   * List non-deleted FileReference IDs for a SmartText cell (model + column + row).
+   * Uses nc_fr_row_idx (base_id, fk_column_id, fk_row_id).
+   */
+  public static async listIdsForCell(
+    context: NcContext,
+    modelId: string,
+    columnId: string,
+    rowId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string[]> {
+    const rows = await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_model_id: modelId,
+        fk_column_id: columnId,
+        fk_row_id: rowId,
+        deleted: false,
+      })
+      .select('id');
+
+    return rows.map((r: any) => r.id);
+  }
+
+  /**
+   * Bulk-delete FileReferences for SmartText cells when their parent rows are
+   * deleted. Hard-deletes (matches the row-delete attachment cleanup contract
+   * in BaseModelSqlv2/delete.ts which uses FileReference.delete, not soft).
+   * Uses nc_fr_row_idx (base_id, fk_column_id, fk_row_id).
+   */
+  public static async bulkDeleteForCells(
+    context: NcContext,
+    modelId: string,
+    columnIds: string[],
+    rowIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!columnIds.length || !rowIds.length) return;
+
+    let totalSize = 0;
+    try {
+      const sizeResult = await ncMeta
+        .knexConnection(MetaTable.FILE_REFERENCES)
+        .where({
+          base_id: context.base_id,
+          fk_model_id: modelId,
+          deleted: false,
+        })
+        .whereIn('fk_column_id', columnIds)
+        .whereIn('fk_row_id', rowIds)
+        .sum('file_size as totalSize')
+        .first();
+      totalSize = sizeResult?.totalSize ? +sizeResult.totalSize : 0;
+    } catch (error) {
+      totalSize = -1;
+      logger.error(
+        `Error while summing file reference size: ${error?.message}`,
+        error?.stack,
+      );
+    }
+
+    await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_model_id: modelId,
+        deleted: false,
+      })
+      .whereIn('fk_column_id', columnIds)
+      .whereIn('fk_row_id', rowIds)
+      .update({ deleted: true });
+
+    await this.updateWorkspaceCache(context, totalSize, true);
+  }
+
+  /**
+   * Bulk soft-delete FileReferences for SmartText cells when their parent rows
+   * are soft-deleted (sent to trash). Mirrors `softDelete` semantics —
+   * `soft_deleted` flag set, `deleted` left intact, physical files preserved.
+   */
+  public static async bulkSoftDeleteForCells(
+    context: NcContext,
+    modelId: string,
+    columnIds: string[],
+    rowIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!columnIds.length || !rowIds.length) return;
+
+    let totalSize = 0;
+    try {
+      const sizeResult = await ncMeta
+        .knexConnection(MetaTable.FILE_REFERENCES)
+        .where({
+          base_id: context.base_id,
+          fk_model_id: modelId,
+          soft_deleted: false,
+          deleted: false,
+        })
+        .whereIn('fk_column_id', columnIds)
+        .whereIn('fk_row_id', rowIds)
+        .sum('file_size as totalSize')
+        .first();
+      totalSize = sizeResult?.totalSize ? +sizeResult.totalSize : 0;
+    } catch (error) {
+      totalSize = -1;
+      logger.error(
+        `Error while summing file reference size: ${error?.message}`,
+        error?.stack,
+      );
+    }
+
+    await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_model_id: modelId,
+        deleted: false,
+      })
+      .whereIn('fk_column_id', columnIds)
+      .whereIn('fk_row_id', rowIds)
+      .update({ soft_deleted: true });
+
+    await this.updateWorkspaceCache(context, totalSize, true);
   }
 
   /**

@@ -176,6 +176,8 @@ defineExpose({ onKeyDown })
         class="nc-slash-input"
         data-testid="nc-docs-command-list-link-input"
         :placeholder="pendingItem?.inputPlaceholder || $t('placeholder.enterUrl')"
+        @keydown.stop
+        @paste.stop
         @keydown.enter.prevent="submitInput"
         @keydown.escape.prevent="cancelInput"
       />

@@ -67,6 +67,7 @@ export const UITypesName = {
   [UITypes.SingleLineText]: 'Single line text',
   [UITypes.LongText]: 'Long text',
   RichText: 'Rich text',
+  SmartText: 'Smart Text',
   [UITypes.Attachment]: 'Attachment',
   [UITypes.Checkbox]: 'Checkbox',
   [UITypes.MultiSelect]: 'Multi select',
@@ -145,6 +146,7 @@ export const UITypesSearchTerms = {
     'formatted text',
     'styled text',
     'html text',
+    'Smart text'
   ],
   [UITypes.Attachment]: ['Attachment', 'file', 'document', 'image', 'upload'],
   [UITypes.Checkbox]: ['Checkbox', 'yes/no', 'true/false', 'completed', 'done'],
@@ -264,6 +266,10 @@ export const columnTypeName = (column?: ColumnType) => {
     case UITypes.LongText: {
       if (parseProp(column.meta)?.richMode) {
         return UITypesName.RichText;
+      }
+
+      if (parseProp(column.meta)?.smartMode) {
+        return UITypesName.SmartText;
       }
 
       if (parseProp(column.meta)[LongTextAiMetaProp]) {
@@ -707,13 +713,12 @@ export const isSupportedDisplayValueColumn = (column: Partial<ColumnType>) => {
       return true;
     }
     case UITypes.LongText: {
-      if (
-        parseProp(column.meta)?.richMode ||
-        parseProp(column.meta)[LongTextAiMetaProp]
-      ) {
-        return false;
-      }
-      return true;
+      // Long Text and its variants (RichText, SmartText, AI) render poorly in
+      // the single-line surfaces that consume the display value (LTAR chips,
+      // breadcrumbs, audit lines, search). Block as a new selection. Existing
+      // PV columns of this type are honoured by the backend service and not
+      // forced off — this only gates *new* selections.
+      return false;
     }
 
     default: {

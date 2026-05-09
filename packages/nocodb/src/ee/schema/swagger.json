@@ -550,6 +550,82 @@
         ]
       }
     },
+    "/api/v2/public/shared-view/{sharedViewUuid}/smart-text/rows/{rowId}/columns/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "example": "1"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Row primary key"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "SmartText column id"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Public SmartText cell read",
+        "description": "Read PM JSON + markdown for a SmartText cell visible in a shared view. Read-only — public viewers cannot mutate SmartText content.",
+        "operationId": "public-data-smart-text-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "pm": {
+                      "type": "object",
+                      "nullable": true,
+                      "description": "ProseMirror document JSON. Null when the cell is empty."
+                    },
+                    "markdown": {
+                      "type": "string",
+                      "nullable": true,
+                      "description": "Markdown derived from the PM JSON. Null when the cell is empty."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Public"
+        ]
+      }
+    },
     "/api/v1/workspaces/{workspaceId}/users/{userId}": {
       "get": {
         "summary": "Workspace user read",

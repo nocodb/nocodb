@@ -19,6 +19,8 @@ import {
   isVirtualCol,
   LinksVersion,
   LongTextAiMetaProp,
+  LongTextRichModeMetaProp,
+  LongTextSmartModeMetaProp,
   MetaEventType,
   NcApiVersion,
   NcBaseError,
@@ -41,7 +43,7 @@ import {
 import { getProjectRole } from 'nocodb-sdk';
 import { dateFormats, dateMonthFormats } from 'nocodb-sdk';
 import rfdc from 'rfdc';
-import type { ClientType } from 'nocodb-sdk';
+import { ClientType } from 'nocodb-sdk';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -71,10 +73,10 @@ import {
   createHmAndBtColumn,
   createOOColumn,
   deleteColumnSystemPropsFromRequest,
-  type OperationSource,
   generateFkName,
   getMMColumnNames,
   getRevType,
+  type OperationSource,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -356,6 +358,58 @@ const generateColumnDeleteHandler = (
   };
 };
 
+/**
+ * Validate that LongText meta flags richMode / smartMode / ai are mutually
+ * exclusive — at most one may be true on a single column.
+ *
+ * Also enforces that smartMode is only enabled on internal PostgreSQL sources:
+ * the runtime read/write paths use `nc_row_meta` JSONB (added only when
+ * `isEE && clientType === PG` in tableHelpers) and PG-specific JSONB
+ * operators in prepareMetaUpdateQuery. Allowing smartMode on SQLite/MySQL
+ * meta DBs creates a column the user can never use (no nc_row_meta) and on
+ * EE with non-PG meta DB triggers a runtime crash.
+ */
+function validateLongTextMetaExclusivity(
+  context: NcContext,
+  uidt: UITypes | string | undefined,
+  meta: Record<string, any> | null | undefined,
+  source: Source | null | undefined,
+) {
+  if (uidt !== UITypes.LongText || !meta) return;
+
+  const richMode = !!meta[LongTextRichModeMetaProp];
+  const smartMode = !!meta[LongTextSmartModeMetaProp];
+  const aiMode = !!meta[LongTextAiMetaProp];
+
+  if ([richMode, smartMode, aiMode].filter(Boolean).length > 1) {
+    NcError.get(context).invalidRequestBody(
+      'richMode, smartMode, and AI generation are mutually exclusive on LongText',
+    );
+  }
+
+  // Skip the source-eligibility check when no source is provided.
+  // `Source.isMeta()` (without args) returns is_meta || is_local — the broad
+  // "internal source" semantics used by other column validators in this file.
+  // Internal sources have `type` set to the actual DB driver (`db?.client`
+  // for is_meta, explicit 'pg' / 'sqlite3' for is_local), so type !== 'pg'
+  // catches non-PG meta DBs and is_local SQLite minimal-DBs alike.
+  if (smartMode && source) {
+    if (!source.isMeta()) {
+      NcError.get(context).invalidRequestBody(
+        'SmartText is only supported on internal sources',
+      );
+    }
+    // Compare by string — `Source.type` is typed as DriverClient (backend
+    // enum) while ClientType is the SDK-side enum; both share the 'pg' value
+    // but TS sees them as disjoint. The string compare is the cross-enum-safe form.
+    if ((source.type as string) !== ClientType.PG) {
+      NcError.get(context).invalidRequestBody(
+        'SmartText is only supported on PostgreSQL meta databases',
+      );
+    }
+  }
+}
+
 @Injectable()
 export class ColumnsService implements IColumnsService {
   protected logger = new Logger(ColumnsService.name);
@@ -610,6 +664,17 @@ export class ColumnsService implements IColumnsService {
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id),
     );
+
+    // Merge incoming meta with existing column meta to validate the post-update state.
+    if (column.uidt === UITypes.LongText) {
+      const incomingMeta = parseProp((param.column as any)?.meta);
+      const existingMeta = parseProp(column.meta);
+      const mergedMeta =
+        incomingMeta !== undefined && incomingMeta !== null
+          ? { ...existingMeta, ...incomingMeta }
+          : existingMeta;
+      validateLongTextMetaExclusivity(context, column.uidt, mergedMeta, source);
+    }
 
     const columnWebhookManager =
       param.columnWebhookManager ??
@@ -2900,6 +2965,16 @@ export class ColumnsService implements IColumnsService {
     if (!oldColumn) {
       NcError.get(context).fieldNotFound(param.columnId);
     }
+
+    // LongText (and its richMode / smartMode / ai variants) is rejected as a
+    // display value — multi-line / markdown content renders poorly in
+    // single-line surfaces (LTAR chips, breadcrumbs, audit lines, search).
+    // Existing PV columns keep working; only new selections are blocked.
+    if (oldColumn.uidt === UITypes.LongText && !oldColumn.pv) {
+      NcError.get(context).invalidRequestBody(
+        'Long Text fields cannot be set as the display value.',
+      );
+    }
     const result = await Model.updatePrimaryColumn(
       context,
       oldColumn.fk_model_id,
@@ -3025,6 +3100,14 @@ export class ColumnsService implements IColumnsService {
     ) {
       NcError.get(context).sourceMetaReadOnly(source.alias);
     }
+
+    validateLongTextMetaExclusivity(
+      context,
+      param.column.uidt,
+      (param.column as any).meta,
+      source,
+    );
+
     if (
       (param.column as any).system ||
       [UITypes.Order, UITypes.ID, UITypes.Deleted, UITypes.Meta].includes(
@@ -4202,8 +4285,6 @@ export class ColumnsService implements IColumnsService {
       case UITypes.QrCode:
       case UITypes.Barcode:
       case UITypes.Button:
-        // PR review fix #3: UUID removed from this group — it has a physical DB column
-        // and must go through the default path (sqlOpPlus + tableUpdate) to drop it.
         await Column.delete2(
           context,
           {
@@ -4213,7 +4294,6 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
         break;
-
       case UITypes.Formula:
         await Column.delete(context, param.columnId, ncMeta);
         break;

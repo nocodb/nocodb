@@ -4,6 +4,7 @@ import {
   isDeletedCol,
   isLinksOrLTAR,
   isMMOrMMLike,
+  isSmartText,
   LinksVersion,
   UITypes,
 } from 'nocodb-sdk';
@@ -30,6 +31,7 @@ import {
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
 import {
   buildRecordResourceId,
@@ -244,6 +246,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
     const attachmentColumns = model.columns.filter(
       (c) => c.uidt === UITypes.Attachment,
     );
+    const smartTextColumns = model.columns.filter((c) => isSmartText(c));
 
     // ── Pre-flight pass: collect all conflicts ──────────────────────────
     const allConflicts: RestoreConflict[] = [];
@@ -331,6 +334,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
           restorePayload,
           resolutions,
           attachmentColumns,
+          smartTextColumns,
           req: param.req,
           tableId: parsed.tableId,
         });
@@ -430,6 +434,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
     const attachmentColumns = model.columns.filter(
       (c) => c.uidt === UITypes.Attachment,
     );
+    const smartTextColumns = model.columns.filter((c) => isSmartText(c));
 
     // Capture the distinct (lmb, lmt) tuples for the rows we're about to
     // restore. These identify the trash entries that *could* become empty —
@@ -565,6 +570,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
           restorePayload,
           resolutions,
           attachmentColumns,
+          smartTextColumns,
           req: param.req,
           tableId: param.tableId,
         });
@@ -1128,6 +1134,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
     restorePayload: Record<string, any>;
     resolutions: Map<string, RowResolution>;
     attachmentColumns: Column[];
+    smartTextColumns: Column[];
     req: NcRequest;
     tableId: string;
   }): Promise<void> {
@@ -1141,6 +1148,7 @@ export class RecordTrashHandler extends BaseTrashHandler<{
       restorePayload,
       resolutions,
       attachmentColumns,
+      smartTextColumns,
       req,
       tableId,
     } = opts;
@@ -1249,6 +1257,40 @@ export class RecordTrashHandler extends BaseTrashHandler<{
       }
       if (fileRefIds.length) {
         await FileReference.softRestore(context, fileRefIds);
+      }
+    }
+
+    // SmartText cells: restore the soft-deleted FileReferences scoped by
+    // (model, columns, row IDs). Mirrors the soft-delete pass in
+    // BaseModelSqlv2/delete.ts (bulkSoftDeleteForCells) so attachments rejoin
+    // the workspace storage count and remain reachable via the cell-keyed proxy.
+    if (smartTextColumns.length) {
+      const smartTextColumnIds = smartTextColumns
+        .map((c) => c.id)
+        .filter(Boolean) as string[];
+      const restoredRowIds = preRestoreRows
+        .map(
+          (row) => getCompositePkValue(primaryKeys, row) as string | undefined,
+        )
+        .filter((v): v is string => v != null && v !== '')
+        .map(String);
+      if (smartTextColumnIds.length && restoredRowIds.length) {
+        const ncMeta = Noco.ncMeta;
+        const softDeletedRows = await ncMeta
+          .knexConnection(MetaTable.FILE_REFERENCES)
+          .where({
+            base_id: context.base_id,
+            fk_model_id: model.id,
+            soft_deleted: true,
+            deleted: false,
+          })
+          .whereIn('fk_column_id', smartTextColumnIds)
+          .whereIn('fk_row_id', restoredRowIds)
+          .select('id');
+        const restoredIds = softDeletedRows.map((r: any) => r.id);
+        if (restoredIds.length) {
+          await FileReference.softRestore(context, restoredIds);
+        }
       }
     }
 

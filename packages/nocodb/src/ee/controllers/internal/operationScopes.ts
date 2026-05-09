@@ -140,6 +140,10 @@ export const OPERATION_SCOPES = {
   documentDelete: 'base',
   documentReorder: 'base',
 
+  // SmartText (EE-only)
+  smartTextGetContent: 'base',
+  smartTextUpdateContent: 'base',
+
   // Document Comments (EE-only)
   documentCommentList: 'base',
   documentCommentCount: 'base',

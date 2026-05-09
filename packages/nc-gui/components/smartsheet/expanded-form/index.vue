@@ -330,9 +330,11 @@ const onDuplicateRow = () => {
   duplicatingRowInProgress.value = true
   isUnsavedFormExist.value = true
   isUnsavedDuplicatedRecordExist.value = true
+
   const oldRow = { ..._row.value.row }
   delete oldRow.ncRecordId
   delete oldRow.ncRecordHash
+
   const newRow = Object.assign(
     {},
     {

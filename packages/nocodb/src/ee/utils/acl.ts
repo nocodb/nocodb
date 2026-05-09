@@ -455,6 +455,11 @@ const permissionScopes = {
     'dropPermission',
     'bulkDropPermissions',
 
+    // SmartText
+    'smartTextGetContent',
+    'smartTextUpdateContent',
+    'smartTextGetAttachment',
+
     // Document Comments
     'documentCommentList',
     'documentCommentCount',
@@ -874,6 +879,10 @@ const rolePermissions:
       documentListAll: true,
       documentGet: true,
 
+      // SmartText — read-only for viewers
+      smartTextGetContent: true,
+      smartTextGetAttachment: true,
+
       // Document Comments — read-only for viewers
       documentCommentList: true,
       documentCommentCount: true,
@@ -984,6 +993,9 @@ const rolePermissions:
       // so that document lifecycle is controlled by project admins.
       documentUpdate: true,
       documentReorder: true,
+
+      // SmartText — editors can update cell content
+      smartTextUpdateContent: true,
 
       // Extensions
       extensionUpdate: true,
@@ -1630,6 +1642,10 @@ const permissionDescriptions: Record<string, string> = {
   documentUpdate: 'update a document',
   documentDelete: 'delete a document',
   documentReorder: 'reorder documents',
+
+  smartTextGetContent: 'read SmartText cell content',
+  smartTextUpdateContent: 'update SmartText cell content',
+  smartTextGetAttachment: 'read SmartText cell attachment',
 
   documentCommentList: 'view document comments',
   documentCommentCount: 'view document comment count',

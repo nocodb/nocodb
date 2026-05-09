@@ -15,6 +15,7 @@ export function useDocumentImageUpload() {
 
   const base = inject(ProjectInj, ref())
   const docId = inject(DocIdInj, ref(''))
+  const smartTextCell = inject(SmartTextCellAttachmentInj, ref(null))
 
   const uploadCount = ref(0)
   const isUploading = computed(() => uploadCount.value > 0)
@@ -41,11 +42,27 @@ export function useDocumentImageUpload() {
     })
   }
 
-  /** Build the proxy URL for a doc attachment by FileReference ID. Used as <img src> — auth via cookie. */
+  /**
+   * Build the proxy URL for an attachment by FileReference ID. Used as <img src>
+   * — auth via cookie.
+   *
+   * Branches on context: when SmartTextCellAttachmentInj is provided (cell-mode
+   * editor inside the SmartText panel), the URL is keyed by table+column+row;
+   * otherwise it's keyed by docId.
+   */
   function buildProxyUrl(fileRefId: string): string {
     const baseId = base?.value?.id
+    if (!baseId || !fileRefId) return ''
+
+    const cell = smartTextCell?.value
+    if (cell?.tableId && cell?.columnId && cell?.rowId) {
+      return `${appInfo.value.ncSiteUrl}/api/v2/data/bases/${baseId}/tables/${cell.tableId}/columns/${
+        cell.columnId
+      }/rows/${encodeURIComponent(cell.rowId)}/attachment/${encodeURIComponent(fileRefId)}`
+    }
+
     const docIdVal = docId?.value
-    if (!baseId || !docIdVal || !fileRefId) return ''
+    if (!docIdVal) return ''
     return `${appInfo.value.ncSiteUrl}/api/v2/data/bases/${baseId}/docs/${docIdVal}/attachment/${encodeURIComponent(fileRefId)}`
   }
 

@@ -1,9 +1,11 @@
 import path from 'path';
 import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { License } from '~/ee/decorators/license.decorator';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { AttachmentsService } from '~/services/attachments.service';
@@ -41,6 +43,38 @@ export class AttachmentProxyController {
     const fileRef = await FileReference.get(context, fileRefId);
 
     if (!fileRef || fileRef.deleted || fileRef.fk_doc_id !== docId) {
+      return res.status(404).send('Attachment not found');
+    }
+
+    return this.serveAttachment(fileRef.file_url, res);
+  }
+
+  /**
+   * Serve a SmartText cell attachment. The (tableId, columnId, rowId) triple
+   * scopes the lookup to one cell — the FileReference must match all three.
+   */
+  @Get(
+    '/api/v2/data/bases/:baseId/tables/:tableId/columns/:columnId/rows/:rowId/attachment/:fileId',
+  )
+  @License(PlanFeatureTypes.FEATURE_EE_CORE)
+  @Acl('smartTextGetAttachment')
+  async serveSmartTextAttachment(
+    @TenantContext() context: NcContext,
+    @Param('tableId') tableId: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+    @Param('fileId') fileRefId: string,
+    @Res() res: Response,
+  ) {
+    const fileRef = await FileReference.get(context, fileRefId);
+
+    if (
+      !fileRef ||
+      fileRef.deleted ||
+      fileRef.fk_model_id !== tableId ||
+      fileRef.fk_column_id !== columnId ||
+      fileRef.fk_row_id !== rowId
+    ) {
       return res.status(404).send('Attachment not found');
     }
 

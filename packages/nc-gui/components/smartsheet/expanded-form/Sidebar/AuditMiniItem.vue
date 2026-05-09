@@ -146,6 +146,31 @@ const isAiGeneratedText = (key: string) => {
     (!ncIsObject(newData.value[key]) || !newData.value[key]?.lastModifiedBy)
   )
 }
+
+/* long-text collapse — applies to plain LongText, RichText, and SmartText
+ * (all share uidt='LongText'). Long values dominate the revision sidebar; show
+ * a clamped preview with a toggle so other entries stay scannable. */
+const LONG_TEXT_LINE_LIMIT = 5
+const LONG_TEXT_CHAR_LIMIT = 300
+
+const longTextExpanded = ref<Record<string, boolean>>({})
+
+function getLongTextRaw(key: string): string {
+  const isAi = meta.value?.[key]?.options?.ai
+  const oldVal = (isAi ? oldData.value[key]?.value : oldData.value[key]) || ''
+  const newVal = (isAi ? newData.value[key]?.value : newData.value[key]) || ''
+  return `${oldVal}\n${newVal}`
+}
+
+function isLongTextCollapsible(key: string): boolean {
+  if (meta.value?.[key]?.type !== 'LongText') return false
+  const combined = getLongTextRaw(key)
+  return combined.length > LONG_TEXT_CHAR_LIMIT || combined.split('\n').length > LONG_TEXT_LINE_LIMIT
+}
+
+function toggleLongText(key: string) {
+  longTextExpanded.value = { ...longTextExpanded.value, [key]: !longTextExpanded.value[key] }
+}
 </script>
 
 <template>
@@ -280,45 +305,60 @@ const isAiGeneratedText = (key: string) => {
       </template>
       <template v-else-if="meta[columnKey]?.type === 'LongText'">
         <div class="w-full">
-          <template
-            v-for="(block, i) of diffTextBlocks(
-              meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
-                ? oldData[columnKey]?.value || ''
-                : oldData[columnKey] || '',
-              meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
-                ? newData[columnKey]?.value || ''
-                : newData[columnKey] || '',
-            )"
-            :key="i"
+          <div
+            class="relative"
+            :class="{
+              'nc-audit-long-text-collapsed': isLongTextCollapsible(columnKey) && !longTextExpanded[columnKey],
+            }"
           >
-            <span
-              v-if="block.op === 'removed'"
-              class="max-w-full text-nc-content-red-dark px-1 bg-nc-bg-red-light rounded-md line-through decoration-clone !leading-[18px]"
-              :class="{
-                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
-              }"
+            <template
+              v-for="(block, i) of diffTextBlocks(
+                meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                  ? oldData[columnKey]?.value || ''
+                  : oldData[columnKey] || '',
+                meta[columnKey]?.type === 'LongText' && meta[columnKey]?.options?.ai
+                  ? newData[columnKey]?.value || ''
+                  : newData[columnKey] || '',
+              )"
+              :key="i"
             >
-              {{ block.text }}
-            </span>
-            <span
-              v-else-if="block.op === 'added'"
-              class="max-w-full text-nc-content-green-dark px-1 bg-nc-bg-green-light rounded-md decoration-clone !leading-[18px]"
-              :class="{
-                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
-              }"
-            >
-              {{ block.text }}
-            </span>
-            <span
-              v-else
-              class="max-w-full !leading-[18px]"
-              :class="{
-                'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
-              }"
-            >
-              {{ block.text }}
-            </span>
-          </template>
+              <span
+                v-if="block.op === 'removed'"
+                class="max-w-full text-nc-content-red-dark px-1 bg-nc-bg-red-light rounded-md line-through decoration-clone !leading-[18px]"
+                :class="{
+                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+                }"
+              >
+                {{ block.text }}
+              </span>
+              <span
+                v-else-if="block.op === 'added'"
+                class="max-w-full text-nc-content-green-dark px-1 bg-nc-bg-green-light rounded-md decoration-clone !leading-[18px]"
+                :class="{
+                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+                }"
+              >
+                {{ block.text }}
+              </span>
+              <span
+                v-else
+                class="max-w-full !leading-[18px]"
+                :class="{
+                  'whitespace-pre-wrap': meta[columnKey]?.type === 'LongText',
+                }"
+              >
+                {{ block.text }}
+              </span>
+            </template>
+          </div>
+          <button
+            v-if="isLongTextCollapsible(columnKey)"
+            type="button"
+            class="nc-audit-long-text-toggle mt-1 text-xs font-weight-500 text-nc-content-gray-subtle2 hover:text-nc-content-gray-emphasis"
+            @click="toggleLongText(columnKey)"
+          >
+            {{ longTextExpanded[columnKey] ? $t('general.showLess') : $t('general.showMore') }}
+          </button>
         </div>
       </template>
       <template v-else-if="meta[columnKey]?.type === 'JSON'">
@@ -393,6 +433,23 @@ const isAiGeneratedText = (key: string) => {
 </template>
 
 <style lang="scss" scoped>
+// LongText / RichText / SmartText — clamp long values with a fade-out so the
+// revision sidebar stays scannable; expand via the inline toggle.
+.nc-audit-long-text-collapsed {
+  max-height: 6.5rem;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+}
+
+.nc-audit-long-text-toggle {
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
 .nc-audit-mini-item-cell :deep(.nc-cell-checkbox > div:first-child) {
   @apply pl-0;
 }

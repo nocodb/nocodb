@@ -19,6 +19,9 @@ export const isTextArea = (column: ColumnType) =>
 export const isRichText = (column: ColumnType) =>
   column.uidt === UITypes.LongText && !!parseProp(column?.meta).richMode;
 
+export const isSmartText = (column: ColumnType) =>
+  column.uidt === UITypes.LongText && !!parseProp(column?.meta).smartMode;
+
 export const isInt = (_column: ColumnType, abstractType: any) =>
   abstractType === 'integer';
 

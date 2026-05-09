@@ -308,6 +308,8 @@ export enum COLORING_TYPE {
 }
 
 export const LongTextAiMetaProp = 'ai';
+export const LongTextRichModeMetaProp = 'richMode';
+export const LongTextSmartModeMetaProp = 'smartMode';
 
 export const NO_SCOPE = 'nc';
 

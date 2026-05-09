@@ -126,7 +126,8 @@ watch(
         class="nc-math-input"
         placeholder="E=mc^2"
         spellcheck="false"
-        @keydown="onKeyDown"
+        @keydown.stop="onKeyDown"
+        @paste.stop
         @blur="saveEdit"
       />
       <span class="nc-math-dollar">$</span>

@@ -129,6 +129,8 @@ const copyCode = async () => {
 const isHovered = ref(false)
 
 const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || props.selected)
+
+const isEditable = computed(() => props.editor?.isEditable !== false)
 </script>
 
 <template>
@@ -136,15 +138,27 @@ const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || pr
     <!-- Toolbar: language selector + copy button -->
     <div v-show="showToolbar" class="nc-code-block-toolbar" contenteditable="false">
       <!-- Language selector -->
-      <NcDropdown v-model:visible="isDropdownOpen" placement="bottomRight" overlay-class-name="nc-code-block-lang-dropdown">
-        <button class="nc-code-block-lang-trigger" data-testid="nc-code-block-lang-selector">
+      <NcDropdown
+        v-model:visible="isDropdownOpen"
+        :disabled="!isEditable"
+        placement="bottomRight"
+        overlay-class-name="nc-code-block-lang-dropdown"
+      >
+        <button
+          class="nc-code-block-lang-trigger"
+          :class="{ 'nc-code-block-lang-trigger-readonly': !isEditable }"
+          :disabled="!isEditable"
+          data-testid="nc-code-block-lang-selector"
+        >
           <span class="nc-code-block-lang-label">{{ currentLanguageLabel }}</span>
-          <GeneralIcon icon="arrowDown" class="nc-code-block-lang-chevron" />
+          <GeneralIcon v-if="isEditable" icon="arrowDown" class="nc-code-block-lang-chevron" />
         </button>
 
         <template #overlay>
           <div
             class="nc-code-block-lang-list"
+            @keydown.stop
+            @paste.stop
             @keydown.arrow-down.prevent="onArrowDown"
             @keydown.arrow-up.prevent="onArrowUp"
             @keydown.enter.prevent="onEnter"
@@ -269,6 +283,15 @@ const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || pr
   }
 }
 
+.nc-code-block-lang-trigger-readonly {
+  cursor: default;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+  }
+}
+
 .nc-code-block-lang-chevron {
   width: 12px;
   height: 12px;
@@ -325,6 +348,7 @@ const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || pr
 .nc-code-block-lang-dropdown {
   width: auto !important;
   min-width: 0 !important;
+  z-index: 1052;
 }
 
 .nc-code-block-lang-list {

@@ -6819,6 +6819,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const queries = (await Promise.all(ops)).filter((query) =>
       ncIsStringHasValue(query),
     );
+
+    if (this.clientType === 'd1' && trx === this.dbDriver) {
+      await (this.dbDriver as any).client.batch(
+        queries.map((query) => ({
+          sql: query,
+        })),
+      );
+      return;
+    }
+
     for (const query of queries) {
       await trx.raw(query);
     }

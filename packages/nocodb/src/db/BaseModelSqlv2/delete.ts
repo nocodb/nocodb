@@ -43,6 +43,55 @@ export class BaseModelDelete {
     return false;
   }
 
+  private get isD1() {
+    return this.baseModel.clientType === 'd1';
+  }
+
+  private async executeExecQueries({
+    execQueries,
+    ids,
+    rows,
+    qb,
+  }: {
+    execQueries: ExecQueryType[];
+    ids: any[];
+    rows: any[];
+    qb: any;
+  }) {
+    if (this.isD1) {
+      const queries = execQueries.flatMap((execQuery) =>
+        execQuery({
+          trx: this.baseModel.dbDriver as any,
+          qb: qb.clone(),
+          ids,
+          rows,
+        }),
+      );
+      await (this.baseModel.dbDriver as any).client.batch(
+        queries.map((query) => {
+          const compiledQuery = query.toSQL();
+          return {
+            sql: compiledQuery.sql,
+            params: compiledQuery.bindings,
+            method: compiledQuery.method,
+          };
+        }),
+      );
+      return;
+    }
+
+    const trx = await this.baseModel.dbDriver.transaction();
+    try {
+      for (const execQuery of execQueries) {
+        await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
+      }
+      await trx.commit();
+    } catch (ex) {
+      await trx.rollback();
+      throw ex;
+    }
+  }
+
   async prepareBulkDeleteAll({
     args = {},
     cookie,
@@ -519,15 +568,10 @@ export class BaseModelDelete {
         ignoreViewFilterAndSort: true,
       },
     );
-    const trx = await this.baseModel.dbDriver.transaction();
     try {
-      for (const execQuery of execQueries) {
-        await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
-      }
-      await trx.commit();
+      await this.executeExecQueries({ execQueries, ids, rows, qb });
       response.push(...oldRecords);
     } catch (ex) {
-      await trx.rollback();
       // silent error, may be improved to log into response
       this.logger.error(ex.message);
     }
@@ -891,14 +935,9 @@ export class BaseModelDelete {
 
     const rows = oldRecords;
 
-    const trx = await this.baseModel.dbDriver.transaction();
     try {
-      for (const execQuery of execQueries) {
-        await Promise.all(execQuery({ trx, qb: qb.clone(), ids, rows }));
-      }
-      await trx.commit();
+      await this.executeExecQueries({ execQueries, ids, rows, qb });
     } catch (ex) {
-      await trx.rollback();
       this.logger.error(ex.message);
       throw ex;
     }

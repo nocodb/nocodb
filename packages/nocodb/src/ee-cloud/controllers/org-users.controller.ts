@@ -54,6 +54,7 @@ export class OrgUsersController {
   @UseGuards(GlobalGuard, MetaApiLimiterGuard)
   @Acl('orgUserListForInvite', {
     scope: 'cloud-org',
+    blockApiTokenAccess: true,
   })
   async getInvitableOrgUsers(
     @Req() req: NcRequest,

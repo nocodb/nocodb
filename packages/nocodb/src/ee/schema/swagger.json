@@ -1395,15 +1395,6 @@
             "in": "query",
             "required": false,
             "description": "Exclude users who are already members of the given base."
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "name": "query",
-            "in": "query",
-            "required": false,
-            "description": "Filter by email or display name (case-insensitive substring match)."
           }
         ],
         "responses": {

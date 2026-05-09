@@ -65,7 +65,6 @@ export class OrgUsersController extends OrgUsersControllerCE {
     @Param('orgId') orgId: string,
     @Query('excludeWorkspaceId') excludeWorkspaceId?: string,
     @Query('excludeBaseId') excludeBaseId?: string,
-    @Query('query') query?: string,
   ) {
     if (!Noco.isEE() || !Noco.ncDefaultOrgId) {
       return [];
@@ -75,7 +74,6 @@ export class OrgUsersController extends OrgUsersControllerCE {
       req,
       excludeWorkspaceId,
       excludeBaseId,
-      query,
     });
   }
 

@@ -97,6 +97,7 @@ export class OrgUsersService {
     const orgUsers = await OrgUser.list(param.orgId);
 
     const excludedUserIds = await this.getExcludedUserIds({
+      orgId: param.orgId,
       excludeWorkspaceId: param.excludeWorkspaceId,
       excludeBaseId: param.excludeBaseId,
     });
@@ -113,8 +114,14 @@ export class OrgUsersService {
   /**
    * Returns a set of user IDs that are already members of the given workspace
    * or base — used to filter the invite picker list.
+   *
+   * Each excluded id is verified to belong to `orgId`. An OWNER of org A
+   * could otherwise pass an id from org B and use the resulting filter to
+   * probe membership across orgs; if the workspace/base lives in a different
+   * org we silently ignore the param.
    */
   protected async getExcludedUserIds(param: {
+    orgId: string;
     excludeWorkspaceId?: string;
     excludeBaseId?: string;
   }): Promise<Set<string>> {
@@ -125,22 +132,43 @@ export class OrgUsersService {
     const ncMeta = Noco.ncMeta;
 
     if (param.excludeWorkspaceId) {
-      const rows = await ncMeta
-        .knexConnection(MetaTable.WORKSPACE_USER)
-        .select('fk_user_id')
-        .where('fk_workspace_id', param.excludeWorkspaceId)
-        .where(function () {
-          this.where('deleted', false).orWhereNull('deleted');
-        });
-      for (const r of rows) ids.add(r.fk_user_id);
+      const ws = await ncMeta
+        .knexConnection(MetaTable.WORKSPACE)
+        .select('fk_org_id')
+        .where('id', param.excludeWorkspaceId)
+        .first();
+
+      if (ws?.fk_org_id === param.orgId) {
+        const rows = await ncMeta
+          .knexConnection(MetaTable.WORKSPACE_USER)
+          .select('fk_user_id')
+          .where('fk_workspace_id', param.excludeWorkspaceId)
+          .where(function () {
+            this.where('deleted', false).orWhereNull('deleted');
+          });
+        for (const r of rows) ids.add(r.fk_user_id);
+      }
     }
 
     if (param.excludeBaseId) {
-      const rows = await ncMeta
-        .knexConnection(MetaTable.PROJECT_USERS)
-        .select('fk_user_id')
-        .where('base_id', param.excludeBaseId);
-      for (const r of rows) ids.add(r.fk_user_id);
+      const base = await ncMeta
+        .knexConnection(MetaTable.PROJECT)
+        .select(`${MetaTable.PROJECT}.id`, `${MetaTable.WORKSPACE}.fk_org_id`)
+        .leftJoin(
+          MetaTable.WORKSPACE,
+          `${MetaTable.WORKSPACE}.id`,
+          `${MetaTable.PROJECT}.fk_workspace_id`,
+        )
+        .where(`${MetaTable.PROJECT}.id`, param.excludeBaseId)
+        .first();
+
+      if (base?.fk_org_id === param.orgId) {
+        const rows = await ncMeta
+          .knexConnection(MetaTable.PROJECT_USERS)
+          .select('fk_user_id')
+          .where('base_id', param.excludeBaseId);
+        for (const r of rows) ids.add(r.fk_user_id);
+      }
     }
 
     return ids;

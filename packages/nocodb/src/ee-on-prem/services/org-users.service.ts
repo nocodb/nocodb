@@ -151,13 +151,9 @@ export class OrgUsersService extends OrgUsersServiceCE {
    * Response shape mirrors the cloud `GET /api/v2/orgs/:orgId/users/invitable`
    * list so `api.orgUser.listInvitable(orgId)` can be called identically
    * across editions. When `excludeWorkspaceId` / `excludeBaseId` is set,
-   * users already in that workspace/base are removed.
-   *
-   * Each excluded id is verified to belong to the same org as `orgId` —
-   * an admin could otherwise pass an id from a different org and use the
-   * resulting filter to probe cross-org membership. (On-prem is single-org
-   * so the check is trivially satisfied, but applying it consistently keeps
-   * cloud + on-prem code paths symmetric.)
+   * users already in that workspace/base are removed — and since the
+   * candidate list is scoped to `nc_org_users` for `orgId`, a cross-org
+   * id just produces an exclude set with no overlap (no-op filter).
    */
   async getOrgUsers(param: {
     orgId: string;
@@ -203,47 +199,26 @@ export class OrgUsersService extends OrgUsersServiceCE {
       });
 
     if (param.excludeWorkspaceId) {
-      const ws = await ncMeta
-        .knexConnection(MetaTable.WORKSPACE)
-        .select('fk_org_id')
-        .where('id', param.excludeWorkspaceId)
-        .first();
-
-      if (ws?.fk_org_id === orgId) {
-        qb = qb.whereNotIn(
-          `${MetaTable.USERS}.id`,
-          ncMeta
-            .knexConnection(MetaTable.WORKSPACE_USER)
-            .select('fk_user_id')
-            .where('fk_workspace_id', param.excludeWorkspaceId)
-            .where(function () {
-              this.where('deleted', false).orWhereNull('deleted');
-            }),
-        );
-      }
+      qb = qb.whereNotIn(
+        `${MetaTable.USERS}.id`,
+        ncMeta
+          .knexConnection(MetaTable.WORKSPACE_USER)
+          .select('fk_user_id')
+          .where('fk_workspace_id', param.excludeWorkspaceId)
+          .where(function () {
+            this.where('deleted', false).orWhereNull('deleted');
+          }),
+      );
     }
 
     if (param.excludeBaseId) {
-      const base = await ncMeta
-        .knexConnection(MetaTable.PROJECT)
-        .select(`${MetaTable.WORKSPACE}.fk_org_id`)
-        .leftJoin(
-          MetaTable.WORKSPACE,
-          `${MetaTable.WORKSPACE}.id`,
-          `${MetaTable.PROJECT}.fk_workspace_id`,
-        )
-        .where(`${MetaTable.PROJECT}.id`, param.excludeBaseId)
-        .first();
-
-      if (base?.fk_org_id === orgId) {
-        qb = qb.whereNotIn(
-          `${MetaTable.USERS}.id`,
-          ncMeta
-            .knexConnection(MetaTable.PROJECT_USERS)
-            .select('fk_user_id')
-            .where('base_id', param.excludeBaseId),
-        );
-      }
+      qb = qb.whereNotIn(
+        `${MetaTable.USERS}.id`,
+        ncMeta
+          .knexConnection(MetaTable.PROJECT_USERS)
+          .select('fk_user_id')
+          .where('base_id', param.excludeBaseId),
+      );
     }
 
     const rows = await qb.orderBy(`${MetaTable.USERS}.created_at`, 'desc');

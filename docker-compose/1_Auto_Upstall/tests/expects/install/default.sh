@@ -1,27 +1,28 @@
 #!/usr/bin/expect -f
 
 # Configure timeout for each expect command
-set timeout 10
+set timeout 30
 
-# Start your main script
+# Mocks for nproc/clear etc.
 set env(PATH) "$env(WORKING_DIR)/mocks:$env(PATH)"
 
+# Spawn the script (no flags — fully interactive)
 spawn bash ../../noco.sh
 
-# Respond to script prompts
-expect "Enter the IP address or domain name for the NocoDB instance (default: localhost):"
+# Domain prompt — accept default (localhost / detected IP)
+expect "Domain or IP*"
 send "\r"
 
-expect "Do you want to enable Minio for file storage*"
-send "\r"
+# Postgres choice — pick 1 (Bundled)
+expect ">*"
+send "1\r"
 
-expect "Enter the MinIO domain name*"
-send "\r"
+# Redis choice — pick 1 (Bundled)
+expect ">*"
+send "1\r"
 
-expect "Show Advanced Options*"
+# Summary confirmation — accept default Y
+expect "Proceed?*"
 send "\r"
-
-expect "Do you want to start the management menu*"
-send "N\r"
 
 expect eof

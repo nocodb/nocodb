@@ -1,28 +1,11 @@
-#!/usr/bin/expect -f
-# shellcheck shell=bash
-
-# Configure timeout for each expect command
-set timeout 10
-
-# Start your main script
-set env(PATH) "$env(WORKING_DIR)/mocks:$env(PATH)"
-
-spawn bash ../../noco.sh
-
-# Respond to script prompts
-expect "Enter the IP address or domain name for the NocoDB instance (default: localhost):"
-send "192.168.1.10\r"
-
-expect "Do you want to enable Minio for file storage*"
-send "Y\r"
-
-expect "Enter the MinIO domain name*"
-send "\r"
-
-expect "Show Advanced Options*"
-send "\r"
-
-expect "Do you want to start the management menu*"
-send "N\r"
-
-expect eof
+#!/usr/bin/env bash
+#
+# Drives noco.sh with an IP-as-domain (production-ip mode, no SSL, port 80).
+#
+set -e
+IP="${1:-1.2.3.4}"
+export PATH="$WORKING_DIR/mocks:$PATH"
+bash ../../noco.sh \
+  --domain="$IP" \
+  --pg=bundled \
+  --redis=bundled

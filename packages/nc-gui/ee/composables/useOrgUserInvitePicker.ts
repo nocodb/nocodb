@@ -1,7 +1,5 @@
 import { CloudOrgUserRoles, NC_DEFAULT_ORG_ID, OrgUserRoles, extractRolesObj } from 'nocodb-sdk'
-import type { OrgUserPickerItem } from '~/composables/useOrgUserInvitePicker'
-
-export type { OrgUserPickerItem }
+import type { OrgUserListItemType } from 'nocodb-sdk'
 
 /**
  * EE implementation — fetches org users from the backend so the invite dialog
@@ -25,7 +23,7 @@ export function useOrgUserInvitePicker(opts: {
   const workspaceStore = useWorkspace()
   const { activeWorkspace, workspacesList } = storeToRefs(workspaceStore)
 
-  const orgUsers = ref<OrgUserPickerItem[]>([])
+  const orgUsers = ref<OrgUserListItemType[]>([])
 
   const orgIdForPicker = computed(() => {
     if (opts.workspaceId) {
@@ -61,7 +59,7 @@ export function useOrgUserInvitePicker(opts: {
       if (opts.type === 'base' && opts.baseId) query.excludeBaseId = opts.baseId
 
       const res = await $api.orgUser.listInvitable(orgId, query)
-      orgUsers.value = Array.isArray(res) ? (res as OrgUserPickerItem[]) : []
+      orgUsers.value = Array.isArray(res) ? res : []
     } catch {
       // Progressive enhancement — fall back to plain email input on failure.
       orgUsers.value = []

@@ -2,6 +2,7 @@
 import {
   NON_SEAT_ROLES,
   NcErrorType,
+  type OrgUserListItemType,
   type PlanLimitExceededDetailsType,
   ProjectRoles,
   type RoleLabels,
@@ -460,12 +461,6 @@ const isOrgSelectMenuOpen = ref(false)
 
 // Org-user invite picker: shows org members not already in the workspace/base
 // as the user types, so they can be added without typing the email out.
-interface OrgUserPickerItem {
-  id: string
-  email: string
-  display_name?: string
-  meta?: string | Record<string, any>
-}
 
 const pickerSelectedIndex = ref(0)
 
@@ -474,7 +469,7 @@ const pickerSelectedIndex = ref(0)
 // immediately, which is jarring.
 const hasUserInteracted = ref(false)
 
-const filteredOrgUsers = computed<OrgUserPickerItem[]>(() => {
+const filteredOrgUsers = computed<OrgUserListItemType[]>(() => {
   const q = inviteData.email.trim().toLowerCase()
   const selected = new Set<string>(emailBadges.value.map((e) => e.toLowerCase()))
   if (singleEmailValue.value) selected.add(singleEmailValue.value.toLowerCase())
@@ -498,7 +493,7 @@ const isOrgUserPickerVisible = computed(
     filteredOrgUsers.value.length > 0,
 )
 
-const selectOrgUser = (user: OrgUserPickerItem) => {
+const selectOrgUser = (user: OrgUserListItemType) => {
   if (!user?.email) return
 
   if (!emailBadges.value.includes(user.email)) {

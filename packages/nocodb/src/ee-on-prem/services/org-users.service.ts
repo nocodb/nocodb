@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import { OrgUsersService as OrgUsersServiceCE } from 'src/services/org-users.service';
 import type { NcRequest } from '~/interface/config';
+import type { OrgUserListItemType } from 'nocodb-sdk';
 import { MetaTable, NC_DEFAULT_ORG_ID } from '~/utils/globals';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
@@ -160,7 +161,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
     req: NcRequest;
     excludeWorkspaceId?: string;
     excludeBaseId?: string;
-  }) {
+  }): Promise<OrgUserListItemType[]> {
     const orgId = param.orgId || Noco.ncDefaultOrgId;
 
     if (!orgId) {
@@ -221,10 +222,10 @@ export class OrgUsersService extends OrgUsersServiceCE {
       );
     }
 
-    const rows = await qb.orderBy(`${MetaTable.USERS}.created_at`, 'desc');
-
-    // Match cloud's response shape — workspaces array is empty on on-prem
-    const list = rows.map((r) => ({ ...r, workspaces: [] }));
+    const list = (await qb.orderBy(
+      `${MetaTable.USERS}.created_at`,
+      'desc',
+    )) as OrgUserListItemType[];
 
     await PresignedUrl.signMetaIconImage(list);
 

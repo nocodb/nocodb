@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import type { OrgUserReqType } from 'nocodb-sdk';
+import type { OrgUserListItemType, OrgUserReqType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { OrgUser, PresignedUrl, User } from '~/models';
 import Noco from '~/Noco';
@@ -93,8 +93,8 @@ export class OrgUsersService {
     user: User;
     excludeWorkspaceId?: string;
     excludeBaseId?: string;
-  }) {
-    const orgUsers = await OrgUser.list(param.orgId);
+  }): Promise<OrgUserListItemType[]> {
+    const orgUsers = (await OrgUser.list(param.orgId)) as OrgUserListItemType[];
 
     const excludedUserIds = await this.getExcludedUserIds({
       excludeWorkspaceId: param.excludeWorkspaceId,

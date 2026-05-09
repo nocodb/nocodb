@@ -1,9 +1,4 @@
-export interface OrgUserPickerItem {
-  id: string
-  email: string
-  display_name?: string
-  meta?: string | Record<string, any>
-}
+import type { OrgUserListItemType } from 'nocodb-sdk'
 
 /**
  * CE stub — org users are an EE concept. Returns an empty list so the invite
@@ -17,7 +12,7 @@ export function useOrgUserInvitePicker(_opts: {
   return {
     fetchOrgUsers: async () => {},
     resetOrgUsers: () => {},
-    orgUsers: ref<OrgUserPickerItem[]>([]),
+    orgUsers: ref<OrgUserListItemType[]>([]),
     isOrgAdmin: computed(() => false),
   }
 }

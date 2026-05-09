@@ -10,11 +10,10 @@ const useAttachment = () => {
   const { t } = getI18n().global
 
   const joinSiteUrl = (path: string) => {
-    // Fall back to the page origin when ncSiteUrl is not an absolute URL —
-    // otherwise `new URL` would reject a base of '/' (production default).
-    const siteUrl = appInfo.value.ncSiteUrl
-    const base = siteUrl && /^https?:\/\//i.test(siteUrl) ? siteUrl : window.location.origin
-    return new URL(path.replace(/^\/+/, ''), base.replace(/\/+$/, '') + '/').toString()
+    // Resolve ncSiteUrl against the page origin first so a relative value
+    // like '/' (production default) becomes an absolute base URL.
+    const base = new URL(appInfo.value.ncSiteUrl || '/', window.location.origin)
+    return new URL(path, base).toString()
   }
 
   const getPossibleAttachmentSrc = (item: Record<string, any>, thumbnail?: 'card_cover' | 'tiny' | 'small') => {

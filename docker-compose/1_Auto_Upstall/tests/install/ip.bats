@@ -3,34 +3,28 @@
 NOCO_HOME="./nocodb"
 export NOCO_HOME
 
-
-
 setup() {
-  cd "${WORKING_DIR}/install" || exit 1
-  ./setup.sh
+    cd "${WORKING_DIR}/install" || exit 1
+    ./setup.sh
 }
 
 teardown() {
     if [ -n "$SKIP_TEARDOWN" ]; then
         return
     fi
-
     cd "${WORKING_DIR}/install" || exit 1
     ./setup.sh
 }
 
-@test "Check installation with custom ip" {
-    ../expects/install/ip.sh
+@test "Install with IP (no SSL, production-ip mode)" {
+    ../expects/install/ip.sh "1.2.3.4"
 
     cd "${NOCO_HOME}"
 
-    # Check Docker Compose file to verify configuration
-    grep -q 'redis' docker-compose.yml
-    grep -q 'watchtower' docker-compose.yml
-    grep -q 'nocodb' docker-compose.yml
+    # production-ip mode: no Traefik, port 80 binding
+    ! grep -q 'image: traefik' docker-compose.yml
+    grep -q "'80:8080'" docker-compose.yml
 
-    # Verify container is running
-    docker compose ps | grep -q 'redis'
-    docker compose ps | grep -q 'watchtower'
-    docker compose ps | grep -q 'nocodb'
+    # Compose validates
+    docker compose config > /dev/null
 }

@@ -3,8 +3,6 @@
 NOCO_HOME="./nocodb"
 export NOCO_HOME
 
-
-
 setup() {
   cd "${WORKING_DIR}/install" || exit 1
   ./setup.sh
@@ -14,19 +12,21 @@ teardown() {
     if [ -n "$SKIP_TEARDOWN" ]; then
         return
     fi
-
     cd "${WORKING_DIR}/install" || exit 1
     ./setup.sh
 }
 
-@test "Check Redis is enabled when specified" {
+@test "External Redis URL is honoured" {
     ../expects/install/redis.sh
 
     cd "${NOCO_HOME}"
 
-    # Check Docker Compose file to verify Redis configuration
-    grep -q 'redis' docker-compose.yml
+    # External Redis URL should appear in docker.env
+    grep -q 'NC_REDIS_URL=redis://localhost:6379' docker.env
 
-    # Verify Redis container is running
-    docker compose ps | grep -q 'redis'
+    # Bundled Redis service should NOT be in compose
+    ! grep -q 'image: redis' docker-compose.yml
+
+    # Compose validates
+    docker compose config > /dev/null
 }

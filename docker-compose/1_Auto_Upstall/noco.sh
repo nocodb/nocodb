@@ -405,6 +405,11 @@ EOF
       - 'traefik.http.routers.nocodb.entrypoints=websecure'
       - 'traefik.http.routers.nocodb.tls.certresolver=letsencrypt'
 EOF
+  elif [ "$MODE" = "production-ip" ]; then
+    cat >> "$f" <<EOF
+    ports:
+      - '80:8080'
+EOF
   else
     cat >> "$f" <<EOF
     ports:
@@ -566,6 +571,24 @@ HELP
   done
 }
 
+# ── Validation ────────────────────────────────────────────────────────────────
+validate_non_interactive() {
+  [ "$NON_INTERACTIVE" -eq 1 ] || return 0
+
+  [ -n "$PG_MODE" ] || fail "--pg=bundled or --pg=external is required in non-interactive mode"
+  if [ "$PG_MODE" = "external" ]; then
+    [ -n "$PG_HOST" ]     || fail "--pg-host is required when --pg=external"
+    [ -n "$PG_USER" ]     || fail "--pg-user is required when --pg=external"
+    [ -n "$PG_PASSWORD" ] || fail "--pg-password is required when --pg=external"
+    [ -n "$PG_SSL" ]      || PG_SSL="managed"
+  fi
+
+  [ -n "$REDIS_MODE" ] || fail "--redis=bundled or --redis=external is required in non-interactive mode"
+  if [ "$REDIS_MODE" = "external" ]; then
+    [ -n "$REDIS_URL" ] || fail "--redis-url is required when --redis=external"
+  fi
+}
+
 # ── Display ───────────────────────────────────────────────────────────────────
 display_completion() {
   echo
@@ -590,6 +613,7 @@ display_completion() {
 # ── Main ──────────────────────────────────────────────────────────────────────
 main() {
   parse_flags "$@"
+  validate_non_interactive
   check_os
   check_prereqs
   check_existing

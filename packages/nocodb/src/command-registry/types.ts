@@ -124,7 +124,11 @@ export function getSandboxConfig<C extends OperationContract<any, any, any>>(
   return contract.sandbox === false ? undefined : contract.sandbox;
 }
 
-export type EntityRefFn<S extends ZodTypeAny, R = any, E = Record<string, any>> = (
+export type EntityRefFn<
+  S extends ZodTypeAny,
+  R = any,
+  E = Record<string, any>,
+> = (
   params: z.infer<S>,
   result: R,
   resolved?: ResolvedCtx<E>,
@@ -252,15 +256,17 @@ export interface CaptureBag {
    *     cardinality (V2 OO, V2 OM, V2 MO with OO sub-case).
    */
   displacedRecords: ReadonlyArray<DisplacedRecord>;
-  /** Persisted alongside `recordInsert` so replay (redo) doesn't
-   *  depend on re-resolving the model from baseName/tableName at undo
-   *  time — those lookups fail for renamed bases / tables and aren't
-   *  always present in v3-style param shapes. Written by `entry.before`
-   *  on the forward path and read by the replay handler. */
-  recordInsertContext: {
+  /** Persisted alongside record-CRUD ops (insert / delete / update) so
+   *  replay (redo) doesn't depend on re-resolving the model from
+   *  baseName/tableName at undo time — those lookups fail for renamed
+   *  bases / tables and aren't always present in v3-style param shapes.
+   *  Written by `entry.before` on the forward path and read by the
+   *  replay handler. */
+  recordModelContext: {
     modelId: string;
-    primaryKeyTitle: string;
-    primaryKeyColumnName: string;
+    /** All pk titles in canonical order; consumers join values with
+     *  `___` for composite-pk display. */
+    primaryKeyTitles: string[];
   };
   /** ID of the BaseTrash row inserted by `afterSoftDeleteCompleted`.
    *  Captured at the point of insertion (no extra lookup) so undo /
@@ -284,24 +290,19 @@ export type DisplacedRecord =
       /** What the forward op set this column to (used by redo to re-apply
        *  the displaced state). `'null'` = OO BT-side null-out;
        *  `'newRowPk'` = HM/OO-HM-side reassignment to inserted row's pk.
-       *  Optional only for backward compat with log entries written
-       *  before this field existed — those rows skip re-displacement on
-       *  redo. */
+       *  Soft-delete-snapshot entries (no actual mutation) omit this
+       *  so the redo path skips them. */
       forward?: 'null' | 'newRowPk';
-      /** When `forward: 'newRowPk'`, the actual pk of the inserted row
-       *  whose pk was set on this displaced row's FK. Required for
-       *  bulk-insert redo where the recorded `meta.entityId` doesn't
-       *  pin a single row. Stamped by the `postInsertOps` callback in
-       *  `prepareNestedLinkQb` (after the insert assigns the pk).
-       *  Optional for backward compat — single-row redo falls back to
-       *  `meta.entityId` when this isn't set. */
+      /** When `forward: 'newRowPk'`, the pk of the inserted row whose pk
+       *  was set on this displaced row's FK. Stamped by `postInsertOps`
+       *  in `prepareNestedLinkQb` after the insert assigns the pk. */
       forwardPk?: string;
     }
   | {
       kind: 'junction';
       /** Junction (mm) model id. */
       mmModelId: string;
-      colId?: string;
+      colId: string;
       parentMMCol: string;
       childMMCol: string;
       parentValue: string | number;

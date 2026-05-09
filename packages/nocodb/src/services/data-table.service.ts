@@ -11,7 +11,7 @@ import { validatePayload } from 'src/helpers';
 import { NcApiVersion } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
 import { Column, Filter, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
@@ -269,6 +269,11 @@ export class DataTableService {
     return result;
   }
 
+  @TraceCommand((_ctx, p) =>
+    Array.isArray(p?.body) && (p.body as any[]).length > 1
+      ? OperationName.recordBulkDelete
+      : OperationName.recordDelete,
+  )
   async dataDelete(
     context: NcContext,
     param: {

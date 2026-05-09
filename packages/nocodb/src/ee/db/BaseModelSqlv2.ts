@@ -101,6 +101,7 @@ import { extractMentions } from '~/utils/richTextHelper';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import {
   _wherePk,
+  dataWrapper,
   extractSortsObject,
   formatDataForAudit,
   getAs,
@@ -132,7 +133,11 @@ const MAX_RECURSION_DEPTH = 2;
 const READ_CHUNK_SIZE = 100;
 
 import { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
-import { captureForTrace } from '~/decorators/trace-command.decorator';
+import {
+  captureForTrace,
+  isTraceActive,
+} from '~/decorators/trace-command.decorator';
+import type { DisplacedRecord } from '~/command-registry/types';
 export { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 
 /**
@@ -1872,6 +1877,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         NcError.get(this.context).recordNotFound(id);
       }
 
+      if (isTraceActive()) {
+        captureForTrace('recordPrev', [data]);
+      }
+
       await this.beforeDelete(id, cookie);
 
       // Detect soft-delete column for meta sources
@@ -1920,6 +1929,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           await this.execAndParse(updateQb, null, { raw: true });
         }
 
+        if (isTraceActive()) {
+          const softDisplaced = await this.collectLinkedRecordsSnapshot([id]);
+          if (softDisplaced.length) {
+            captureForTrace('displacedRecords', softDisplaced);
+          }
+        }
+
         await this.afterSoftDeleteCompleted({ cookie, operationNow });
 
         await this.afterDelete(
@@ -1950,6 +1966,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         ids: string[];
         colId: string;
       }[] = [];
+
+      const displacedLinks: DisplacedRecord[] = [];
 
       for (const column of this.model.columns) {
         if (!isLinksOrLTAR(column)) continue;
@@ -2014,7 +2032,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               // Collect linked parent IDs via junction BEFORE deletion
               const mmLinkedRows = await this.execAndParse(
                 this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
-                  .select(mmParentCol.column_name)
+                  .select(mmParentCol.column_name, mmChildCol.column_name)
                   .where(mmChildCol.column_name, id),
                 null,
                 { raw: true },
@@ -2028,6 +2046,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   model: parentTable,
                   ids: mmLinkedIds,
                   colId: inverseLinkCol?.id,
+                });
+              }
+
+              for (const r of mmLinkedRows as Array<Record<string, any>>) {
+                displacedLinks.push({
+                  kind: 'junction',
+                  mmModelId: mmTable.id,
+                  colId: column.id,
+                  parentMMCol: mmParentCol.column_name,
+                  childMMCol: mmChildCol.column_name,
+                  parentValue: r[mmParentCol.column_name],
+                  childValue: r[mmChildCol.column_name],
                 });
               }
 
@@ -2081,6 +2111,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   model: relatedTable,
                   ids: hmLinkedIds,
                   colId: inverseLinkCol?.id,
+                });
+              }
+
+              for (const childPk of hmLinkedIds) {
+                displacedLinks.push({
+                  kind: 'column',
+                  modelId: relatedTable.id,
+                  pk: String(childPk),
+                  column: childColumn.column_name,
+                  prev: id,
+                  forward: 'null',
                 });
               }
 
@@ -2183,6 +2224,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 });
               }
 
+              for (const childPk of ooLinkedIds) {
+                displacedLinks.push({
+                  kind: 'column',
+                  modelId: ooRelatedTable.id,
+                  pk: String(childPk),
+                  column: ooChildColumn.column_name,
+                  prev: id,
+                  forward: 'null',
+                });
+              }
+
               execQueries.push((trx) =>
                 trx(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
                   .update({ [ooChildColumn.column_name]: null })
@@ -2238,6 +2290,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             break;
         }
       }
+
+      if (displacedLinks.length) {
+        captureForTrace('displacedRecords', displacedLinks);
+      }
+
       const where = await this._wherePk(id);
 
       for (const q of execQueries) {
@@ -4065,6 +4122,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         res.push(data);
       }
 
+      if (deleted.length && isTraceActive()) {
+        captureForTrace('recordPrev', deleted);
+      }
+
       await this.beforeBulkDelete(deleted, cookie);
 
       const base = await this.getSource();
@@ -4115,6 +4176,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
           queries.push(qb.toQuery());
         }
+
+        if (isTraceActive()) {
+          const softDisplaced = await this.collectLinkedRecordsSnapshot(
+            idsVals,
+          );
+          if (softDisplaced.length) {
+            captureForTrace('displacedRecords', softDisplaced);
+          }
+        }
       } else {
         const execQueries: ((
           trx: CustomKnex,
@@ -4122,6 +4192,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         ) => Knex.QueryBuilder)[] = [];
 
         const source = await this.getSource();
+        const displacedLinks: DisplacedRecord[] = [];
+        const captureDisplacement = isTraceActive();
 
         for (const column of this.model.columns) {
           if (!isLinksOrLTAR(column)) continue;
@@ -4150,18 +4222,47 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   mmContext,
                   colOptions.fk_mm_model_id,
                 );
-                const mmParentColumn = await Column.get(mmContext, {
+                // Variable names mirror delByPk: `mmChildCol` is the
+                // junction-side column holding the deleted row's pk;
+                // `mmParentCol` holds the linked-other-side pk.
+                const mmChildCol = await Column.get(mmContext, {
                   colId: colOptions.fk_mm_child_column_id,
                 });
+
+                const mmParentCol = await Column.get(mmContext, {
+                  colId: colOptions.fk_mm_parent_column_id,
+                });
+
                 const mmBaseModel = await Model.getBaseModelSQL(
                   mmContext,
                   { model: mmTable, dbDriver: this.dbDriver },
                 );
 
+                if (captureDisplacement) {
+                  const mmRows = await this.execAndParse(
+                    this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
+                      .select(mmChildCol.column_name, mmParentCol.column_name)
+                      .whereIn(mmChildCol.column_name, idsVals),
+                    null,
+                    { raw: true },
+                  );
+                  for (const r of mmRows as Array<Record<string, any>>) {
+                    displacedLinks.push({
+                      kind: 'junction',
+                      mmModelId: mmTable.id,
+                      colId: column.id,
+                      parentMMCol: mmParentCol.column_name,
+                      childMMCol: mmChildCol.column_name,
+                      parentValue: r[mmParentCol.column_name],
+                      childValue: r[mmChildCol.column_name],
+                    });
+                  }
+                }
+
                 execQueries.push((trx, ids) =>
                   trx(mmBaseModel.getTnPath(mmTable.table_name))
                     .del()
-                    .whereIn(mmParentColumn.column_name, ids),
+                    .whereIn(mmChildCol.column_name, ids),
                 );
               }
               break;
@@ -4175,6 +4276,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 if (relatedTable.mm) {
                   break;
                 }
+                await relatedTable.getColumns(refContext);
 
                 const childColumn = await Column.get(childContext, {
                   colId: colOptions.fk_child_column_id,
@@ -4183,6 +4285,31 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   model: relatedTable,
                   dbDriver: this.dbDriver,
                 });
+
+                if (captureDisplacement) {
+                  const hmRows = await this.execAndParse(
+                    this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
+                      .select(
+                        relatedTable.primaryKey.column_name,
+                        childColumn.column_name,
+                      )
+                      .whereIn(childColumn.column_name, idsVals),
+                    null,
+                    { raw: true },
+                  );
+                  for (const r of hmRows as Array<Record<string, any>>) {
+                    displacedLinks.push({
+                      kind: 'column',
+                      modelId: relatedTable.id,
+                      pk: String(r[relatedTable.primaryKey.column_name]),
+                      column: childColumn.column_name,
+                      // `prev` here is the FK value before nulling; it
+                      // already pointed at one of the deleted parents.
+                      prev: r[childColumn.column_name],
+                      forward: 'null',
+                    });
+                  }
+                }
 
                 execQueries.push((trx, ids) =>
                   trx(refBaseModel.getTnPath(relatedTable.table_name))
@@ -4202,6 +4329,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   refContext,
                 );
                 if (ooRelatedTable.mm) break;
+                await ooRelatedTable.getColumns(refContext);
 
                 const ooChildColumn = await Column.get(childContext, {
                   colId: colOptions.fk_child_column_id,
@@ -4210,6 +4338,29 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   model: ooRelatedTable,
                   dbDriver: this.dbDriver,
                 });
+
+                if (captureDisplacement) {
+                  const ooRows = await this.execAndParse(
+                    this.dbDriver(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
+                      .select(
+                        ooRelatedTable.primaryKey.column_name,
+                        ooChildColumn.column_name,
+                      )
+                      .whereIn(ooChildColumn.column_name, idsVals),
+                    null,
+                    { raw: true },
+                  );
+                  for (const r of ooRows as Array<Record<string, any>>) {
+                    displacedLinks.push({
+                      kind: 'column',
+                      modelId: ooRelatedTable.id,
+                      pk: String(r[ooRelatedTable.primaryKey.column_name]),
+                      column: ooChildColumn.column_name,
+                      prev: r[ooChildColumn.column_name],
+                      forward: 'null',
+                    });
+                  }
+                }
 
                 execQueries.push((trx, ids) =>
                   trx(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
@@ -4224,6 +4375,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               }
               break;
           }
+        }
+
+        if (displacedLinks.length) {
+          captureForTrace('displacedRecords', displacedLinks);
         }
 
         // Phase 1: Collect linked IDs BEFORE transaction (data still intact)
@@ -5075,6 +5230,134 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       ];
     }
     return [];
+  }
+
+  /**
+   * SELECT-only walk over LTAR columns to capture which children/junctions
+   * reference the rows being deleted. Used by the soft-delete branches of
+   * `delByPk` / `bulkDelete` so `meta.extra.displacedRecords` carries a
+   * link snapshot even when no FK / junction actually changes — symmetric
+   * with the hard-delete cascade and forward-compatible with future
+   * undo paths that need to verify or repair link state on restore.
+   *
+   * Soft-delete entries omit `forward` (no actual displacement happened);
+   * the redo trash path already skips entries without `forward`, so these
+   * are inert there. They power audit, no-trash undo fallback, and any
+   * future link-repair tooling.
+   */
+  private async collectLinkedRecordsSnapshot(
+    idsVals: any[],
+  ): Promise<DisplacedRecord[]> {
+    const snapshot: DisplacedRecord[] = [];
+    if (!idsVals.length) return snapshot;
+    for (const column of this.model.columns) {
+      if (!isLinksOrLTAR(column)) continue;
+      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+        this.context,
+      );
+      const { mmContext, refContext, childContext } =
+        await colOptions.getParentChildContext(this.context);
+      const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+      switch (relationType) {
+        case 'mm': {
+          const mmTable = await Model.get(mmContext, colOptions.fk_mm_model_id);
+          if (!mmTable) break;
+          const mmChildCol = await Column.get(mmContext, {
+            colId: colOptions.fk_mm_child_column_id,
+          });
+          const mmParentCol = await Column.get(mmContext, {
+            colId: colOptions.fk_mm_parent_column_id,
+          });
+          const rows = await this.execAndParse(
+            this.dbDriver(this.getTnPath(mmTable.table_name))
+              .select(mmParentCol.column_name, mmChildCol.column_name)
+              .whereIn(mmChildCol.column_name, idsVals),
+            null,
+            { raw: true },
+          );
+          for (const r of rows as Array<Record<string, any>>) {
+            snapshot.push({
+              kind: 'junction',
+              mmModelId: mmTable.id,
+              colId: column.id,
+              parentMMCol: mmParentCol.column_name,
+              childMMCol: mmChildCol.column_name,
+              parentValue: r[mmParentCol.column_name],
+              childValue: r[mmChildCol.column_name],
+            });
+          }
+          break;
+        }
+        case 'hm': {
+          const relatedTable = await colOptions.getRelatedTable(refContext);
+          if (relatedTable.mm) break;
+          await relatedTable.getColumns(refContext);
+          const childColumn = await Column.get(childContext, {
+            colId: colOptions.fk_child_column_id,
+          });
+          const rows = await this.execAndParse(
+            this.dbDriver(this.getTnPath(relatedTable.table_name))
+              .select(
+                ...relatedTable.primaryKeys.map((c) => c.column_name),
+                childColumn.column_name,
+              )
+              .whereIn(childColumn.column_name, idsVals),
+            null,
+            { raw: true },
+          );
+          for (const r of rows as Array<Record<string, any>>) {
+            snapshot.push({
+              kind: 'column',
+              modelId: relatedTable.id,
+              pk: dataWrapper(r).extractPksValue(relatedTable, true) as string,
+              column: childColumn.column_name,
+              prev: r[childColumn.column_name],
+            });
+          }
+          break;
+        }
+        case 'oo': {
+          // BT-side: deleted row holds FK; nothing on the other table to capture.
+          if (column.meta?.bt) break;
+          const ooRelatedTable = await colOptions.getRelatedTable(refContext);
+          if (ooRelatedTable.mm) break;
+          await ooRelatedTable.getColumns(refContext);
+          const ooChildColumn = await Column.get(childContext, {
+            colId: colOptions.fk_child_column_id,
+          });
+          const rows = await this.execAndParse(
+            this.dbDriver(this.getTnPath(ooRelatedTable.table_name))
+              .select(
+                ...ooRelatedTable.primaryKeys.map((c) => c.column_name),
+                ooChildColumn.column_name,
+              )
+              .whereIn(ooChildColumn.column_name, idsVals),
+            null,
+            { raw: true },
+          );
+          for (const r of rows as Array<Record<string, any>>) {
+            snapshot.push({
+              kind: 'column',
+              modelId: ooRelatedTable.id,
+              pk: dataWrapper(r).extractPksValue(
+                ooRelatedTable,
+                true,
+              ) as string,
+              column: ooChildColumn.column_name,
+              prev: r[ooChildColumn.column_name],
+            });
+          }
+          break;
+        }
+        case 'bt': {
+          // V1 BT: deleted row holds the FK; the parent row stays untouched
+          // (just loses a back-link in display). Nothing to snapshot.
+          // (V2 BT-style routes to 'mm' via isMMOrMMLike.)
+          break;
+        }
+      }
+    }
+    return snapshot;
   }
 
   /**

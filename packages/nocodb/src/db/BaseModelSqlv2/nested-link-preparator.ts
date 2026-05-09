@@ -375,22 +375,20 @@ export class NestedLinkPreparator {
                       childPksForCapture,
                     );
                   for (const row of rows) {
-                    const entry: Extract<
-                      DisplacedRecord,
-                      { kind: 'column' }
-                    > = {
-                      kind: 'column',
-                      modelId: childModel.id,
-                      pk: dataWrapper(row).extractPksValue(
-                        childModel,
-                        true,
-                      ) as string,
-                      column: childCol.column_name,
-                      prev: row[childCol.column_name],
-                      // HM forward action: each child's FK gets re-parented
-                      // to the inserted row's pk (filled by postInsertOp).
-                      forward: 'newRowPk',
-                    };
+                    const entry: Extract<DisplacedRecord, { kind: 'column' }> =
+                      {
+                        kind: 'column',
+                        modelId: childModel.id,
+                        pk: dataWrapper(row).extractPksValue(
+                          childModel,
+                          true,
+                        ) as string,
+                        column: childCol.column_name,
+                        prev: row[childCol.column_name],
+                        // HM forward action: each child's FK gets re-parented
+                        // to the inserted row's pk (filled by postInsertOp).
+                        forward: 'newRowPk',
+                      };
                     displacedRecords.push(entry);
                     pendingEntries.push(entry);
                   }

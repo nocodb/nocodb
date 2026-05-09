@@ -3,9 +3,9 @@ import { isLinksOrLTAR, isLinkV2, NcSDKErrorV2, ViewTypes } from 'nocodb-sdk';
 import { NcApiVersion } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
-import type { NcContext } from '~/interface/config';
 import type { Filter } from '~/models';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import { NcContext } from '~/interface/config';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import getAst from '~/helpers/getAst';
@@ -202,6 +202,7 @@ export class DatasService {
     );
   }
 
+  @TraceCommand(OperationName.recordDelete)
   async dataDelete(
     context: NcContext,
     param: PathParams & { rowId: string; cookie: any },

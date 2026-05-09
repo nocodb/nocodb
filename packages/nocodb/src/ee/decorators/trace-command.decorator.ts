@@ -42,6 +42,14 @@ export function getTraceCapture<K extends CaptureKey>(
   return traceScope.getStore()?.capture.get(key) as CaptureBag[K] | undefined;
 }
 
+/** True when an outer `@TraceCommand` (or `runInChildTraceScope`) is
+ *  active. Use to gate expensive snapshot work — e.g. extra SELECTs
+ *  to populate `displacedRecords` in delete cascade — so they only
+ *  run when something will actually consume the capture. */
+export function isTraceActive(): boolean {
+  return traceScope.getStore()?.active === true;
+}
+
 /**
  * Run `fn` inside a fresh child trace scope. Bulk operations use this to
  * isolate per-child captures that would otherwise collide in the outer

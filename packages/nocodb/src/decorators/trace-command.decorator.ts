@@ -35,3 +35,8 @@ export function captureForTrace(_key: string, _value: unknown): void {
 export function getTraceCapture<T = unknown>(_key: string): T | undefined {
   return undefined;
 }
+
+/** True when a trace scope is active. CE has no scope → always false. */
+export function isTraceActive(): boolean {
+  return false;
+}

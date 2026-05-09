@@ -156,6 +156,10 @@ export const OperationName = {
   recordInsertUndo: 'recordInsertUndo',
   recordBulkInsert: 'recordBulkInsert',
   recordBulkInsertUndo: 'recordBulkInsertUndo',
+  recordDelete: 'recordDelete',
+  recordDeleteUndo: 'recordDeleteUndo',
+  recordBulkDelete: 'recordBulkDelete',
+  recordBulkDeleteUndo: 'recordBulkDeleteUndo',
 } as const;
 
 export type OperationName = (typeof OperationName)[keyof typeof OperationName];

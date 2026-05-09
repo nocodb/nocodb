@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import {
   getViewAndModelByAliasOrId,
   validateV1V2DataPayloadLimit,
@@ -131,6 +131,7 @@ export class BulkDataAliasService {
     });
   }
 
+  @TraceCommand(OperationName.recordBulkDelete)
   async bulkDataDelete(
     context: NcContext,
     param: PathParams & {

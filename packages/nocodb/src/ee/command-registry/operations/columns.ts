@@ -484,7 +484,7 @@ export function registerColumnHandlers(
   registerForward(ColumnSetAsPrimaryContract, (context, params) =>
     svc.columnSetAsPrimary(context, params),
   );
-registerMacro(ColumnsBulkContract, (context, params, req) =>
+  registerMacro(ColumnsBulkContract, (context, params, req) =>
     svc.columnsBulk(context, {
       tableId: params.tableId,
       hash: params.hash,

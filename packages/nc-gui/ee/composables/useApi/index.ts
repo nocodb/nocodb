@@ -9,11 +9,9 @@ export function createApiInstance<SecurityDataType = any>({
   baseURL: _baseUrl = BASE_FALLBACK_URL,
   internal = false,
 }: CreateApiOptions = {}): Api<SecurityDataType> | InternalApi<SecurityDataType> {
-  const { appInfo } = useGlobal()
   const config = useRuntimeConfig()
 
-  // `appInfo.value.baseUrl` refers to on-prem license siteUrl
-  const baseURL = appInfo.value.baseUrl || config.public.ncBackendUrl || _baseUrl
+  const baseURL = config.public.ncBackendUrl || _baseUrl
 
   if (internal) {
     return addAxiosInterceptors(

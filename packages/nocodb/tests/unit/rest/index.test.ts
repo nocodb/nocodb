@@ -31,6 +31,7 @@ let ssoTest = () => {};
 let scimTest = () => {};
 let scimComplianceTest = () => {};
 let cloudOrgTest = () => {};
+let orgUserInvitePickerTest = () => {};
 let bulkAggregationTest = () => {};
 let columnTest = () => {};
 let integrationTest = require('./tests/integration.test').default;
@@ -47,6 +48,7 @@ if (process.env.EE === 'true') {
   scimTest = require('./tests/ee/scim.test').default;
   scimComplianceTest = require('./tests/ee/scim-compliance.test').default;
   cloudOrgTest = require('./tests/ee/cloud-org.test').default;
+  orgUserInvitePickerTest = require('./tests/ee/org-user-invite-picker.test').default;
   bulkAggregationTest = require('./tests/ee/bulkAggregation.test').default;
   columnTest = require('./tests/ee/column.test').default;
   integrationTest = require('./tests/ee/integration.test').default;
@@ -82,6 +84,7 @@ function restTests() {
     groupByTest();
     scimComplianceTest();
     cloudOrgTest();
+    orgUserInvitePickerTest();
     typeCastsTest();
     readOnlyTest();
     aggregationTest();

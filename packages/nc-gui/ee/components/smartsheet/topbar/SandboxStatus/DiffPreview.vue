@@ -195,8 +195,6 @@ const configGroups = computed<ConfigSubGroup[]>(() => {
   return [...groups.values()].sort((a, b) => b.total - a.total)
 })
 
-const configTotalChanges = computed(() => configGroups.value.reduce((sum, g) => sum.total, 0))
-
 const totalChanges = computed(
   () => rootGroups.value.reduce((sum, g) => sum + g.total, 0) + configGroups.value.reduce((sum, g) => sum + g.total, 0),
 )

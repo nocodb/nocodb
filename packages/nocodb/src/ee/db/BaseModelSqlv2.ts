@@ -3515,11 +3515,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               toUpdate[0],
             );
           } else {
-            await this.afterBulkUpdate(
-              toUpdate,
-              updateResponses,
-              cookie,
-            );
+            await this.afterBulkUpdate(toUpdate, updateResponses, cookie);
           }
         }
       }
@@ -3802,12 +3798,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if (!raw && !skip_hooks) {
         profiler.log('after update start');
         if (isSingleRecordUpdation) {
-          await this.afterUpdate(
-            prevData[0],
-            newData[0],
-            cookie,
-            datas[0],
-          );
+          await this.afterUpdate(prevData[0], newData[0], cookie, datas[0]);
         } else {
           await this.afterBulkUpdate(prevData, newData, cookie);
         }

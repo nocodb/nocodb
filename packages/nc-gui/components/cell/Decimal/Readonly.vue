@@ -1,5 +1,11 @@
 <script lang="ts" setup>
-import { roundUpToPrecision, resolveColumnSeparator, getSeparatorChars, formatNumberWithSeparator, SeparatorType } from 'nocodb-sdk'
+import {
+  SeparatorType,
+  formatNumberWithSeparator,
+  getSeparatorChars,
+  resolveColumnSeparator,
+  roundUpToPrecision,
+} from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type

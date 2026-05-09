@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { resolveColumnSeparator, getSeparatorChars, formatNumberWithSeparator, SeparatorType } from 'nocodb-sdk'
+import { SeparatorType, formatNumberWithSeparator, getSeparatorChars, resolveColumnSeparator } from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type
@@ -116,7 +116,6 @@ const onPaste = (e: ClipboardEvent) => {
       e.preventDefault()
       e.stopPropagation()
       vModel.value = parseInt(String(clipboardItem), 10)
-      return
     }
   }
   // Fall through to browser native paste for external clipboard

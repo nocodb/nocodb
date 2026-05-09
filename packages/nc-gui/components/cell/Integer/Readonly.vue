@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { resolveColumnSeparator, getSeparatorChars, formatNumberWithSeparator, SeparatorType } from 'nocodb-sdk'
+import { SeparatorType, formatNumberWithSeparator, getSeparatorChars, resolveColumnSeparator } from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type

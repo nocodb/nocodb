@@ -1,4 +1,10 @@
-import { roundUpToPrecision, resolveColumnSeparator, getSeparatorChars, formatNumberWithSeparator, SeparatorType } from 'nocodb-sdk'
+import {
+  SeparatorType,
+  formatNumberWithSeparator,
+  getSeparatorChars,
+  resolveColumnSeparator,
+  roundUpToPrecision,
+} from 'nocodb-sdk'
 import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
 
 export const DecimalCellRenderer: CellRenderer = {

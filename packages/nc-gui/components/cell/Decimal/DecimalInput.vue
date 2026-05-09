@@ -38,7 +38,7 @@ const pasteText = (target: HTMLInputElement, value: string) => {
 
   // composeNewDecimalValue only understands '.' as decimal separator,
   // so normalize to '.' before composing and convert back after
-  const normalizedLast = decSep !== '.' ? lastValue.replace(new RegExp('\\' + decSep, 'g'), '.') : lastValue
+  const normalizedLast = decSep !== '.' ? lastValue.replace(new RegExp(`\\${decSep}`, 'g'), '.') : lastValue
   let normalizedNew: string
   if (decSep !== '.') {
     // Strip dots first — they are not the decimal separator for this column
@@ -115,7 +115,7 @@ const saveValue = (targetValue: string) => {
   // they're treated as visual noise and removed before parsing.
   let cleaned = targetValue.replace(new RegExp(`[^0-9\\-\\${decSep}]`, 'g'), '')
   if (decSep !== '.') {
-    cleaned = cleaned.replace(new RegExp('\\' + decSep, 'g'), '.')
+    cleaned = cleaned.replace(new RegExp(`\\${decSep}`, 'g'), '.')
   }
   const value = Number(cleaned)
   if (ncIsNaN(value)) {
@@ -203,7 +203,7 @@ const onInputKeyDown = (e: KeyboardEvent) => {
   // Allow digits, the column's decimal separator, and "noise" thousand-separator
   // candidates (comma, period, space, NBSP). Noise chars are kept visually and
   // stripped at save-time — same behavior as Airtable.
-  if (/^[0-9]$/.test(e.key) || e.key === decSep || /^[,.  ]$/.test(e.key)) {
+  if (/^[0-9]$/.test(e.key) || e.key === decSep || /^[,. \u00A0]$/.test(e.key)) {
     return
   }
 
@@ -294,7 +294,7 @@ const onBeforeInput = (e: InputEvent) => {
 
   // allow digits, minus, the decimal separator, and noise thousand-separator chars
   const decSep = props.decimalSeparator || '.'
-  if (!(new RegExp(`^[0-9\\-\\${decSep},. \\u00A0]$`).test(e.data))) {
+  if (!new RegExp(`^[0-9\\-\\${decSep},. \\u00A0]$`).test(e.data)) {
     e.preventDefault()
   }
 }

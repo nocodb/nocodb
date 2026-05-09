@@ -93,7 +93,6 @@ const onPaste = (e: ClipboardEvent) => {
       e.preventDefault()
       e.stopPropagation()
       vModel.value = parseInt(String(clipboardItem), 10)
-      return
     }
   }
   // Fall through to browser native paste for external clipboard

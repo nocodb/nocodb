@@ -42,7 +42,9 @@ function transformFieldMeta(field: any, colOptions: any): Record<string, any> {
       options.separator = separator;
       // locale_string is derived from separator for backward compat with
       // existing scripts — true whenever a thousand separator is configured.
-      options.locale_string = separator !== SeparatorType.NonePeriod && separator !== SeparatorType.NoneComma;
+      options.locale_string =
+        separator !== SeparatorType.NonePeriod &&
+        separator !== SeparatorType.NoneComma;
       break;
     }
     case UITypes.Decimal:
@@ -50,7 +52,9 @@ function transformFieldMeta(field: any, colOptions: any): Record<string, any> {
       options.precision = metaObj.precision || 1;
       const separator = resolveColumnSeparator(metaObj);
       options.separator = separator;
-      options.locale_string = separator !== SeparatorType.NonePeriod && separator !== SeparatorType.NoneComma;
+      options.locale_string =
+        separator !== SeparatorType.NonePeriod &&
+        separator !== SeparatorType.NoneComma;
       break;
     }
     case UITypes.Currency:

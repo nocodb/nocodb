@@ -58,7 +58,8 @@ export class DataExportController {
       user: req.user,
       exportAs,
       ncSiteUrl: req.ncSiteUrl,
-      locale: (req.headers?.['accept-language'] || '').split(',')[0] || undefined,
+      locale:
+        (req.headers?.['accept-language'] || '').split(',')[0] || undefined,
     });
 
     const table = await Model.get(context, view.fk_model_id);

@@ -35,6 +35,9 @@ import {
   recordBulkUpdateCaptureSchema,
   recordBulkUpdateSchema,
   recordBulkUpdateUndoSchema,
+  recordBulkUpsertCaptureSchema,
+  recordBulkUpsertSchema,
+  recordBulkUpsertUndoSchema,
   recordDeleteCaptureSchema,
   recordDeleteSchema,
   recordDeleteUndoSchema,
@@ -747,6 +750,92 @@ export const RecordBulkUpdateUndoContract: OperationContract<
   undo: false,
   entry: {
     description: recordActions.bulkUpdateUndo,
+  },
+};
+
+interface RecordBulkUpsertExtra {
+  modelId: string;
+  primaryKeyTitles: string[];
+  parentEntityTitle: string;
+}
+
+export const RecordBulkUpsertContract: OperationContract<
+  typeof recordBulkUpsertSchema,
+  RecordBulkUpsertExtra,
+  unknown
+> = {
+  name: OperationName.recordBulkUpsert,
+  entity: MetaTable.MODELS,
+  schema: recordBulkUpsertSchema,
+  sandbox: false,
+  capture: ['recordModelContext', 'upsertChanges', 'softDeleteTrashId'],
+  capture_schema: recordBulkUpsertCaptureSchema,
+  entry: {
+    description: recordActions.bulkUpsert,
+    before: async (context, params) => {
+      const modelId =
+        params.modelId ?? (await resolveModelIdFromParams(context, params));
+      if (!modelId) return {};
+      const model = await Model.get(context, modelId);
+      if (!model) return {};
+      await model.getColumns(context);
+      const ctx = {
+        modelId,
+        primaryKeyTitles: model.primaryKeys.map((c) => c.title),
+      };
+      captureForTrace('recordModelContext', ctx);
+      return {
+        parentEntityTitle: model.title,
+        extra: { ...ctx, parentEntityTitle: model.title ?? '' },
+      };
+    },
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const modelId = resolved?.extra?.modelId;
+      if (!modelId) return null;
+      const changes = getTraceCapture('upsertChanges') ?? [];
+      if (!changes.length) return null;
+      const updates: Array<{
+        pk: string | number;
+        prev: Record<string, unknown>;
+      }> = [];
+      const insertPks: Array<string | number> = [];
+      for (const c of changes) {
+        if (c.kind === 'update') {
+          updates.push({ pk: c.pk, prev: c.prev });
+        } else {
+          insertPks.push(c.pk);
+        }
+      }
+      if (!updates.length && !insertPks.length) return null;
+      return {
+        name: OperationName.recordBulkUpsertUndo,
+        params: {
+          modelId,
+          updates,
+          insertPks,
+          ...(params.apiVersion
+            ? { apiVersion: params.apiVersion as string }
+            : {}),
+          ...(params.viewId ? { viewId: params.viewId as string } : {}),
+          ...(params.baseId ? { baseId: params.baseId as string } : {}),
+        },
+      };
+    },
+  },
+};
+
+export const RecordBulkUpsertUndoContract: OperationContract<
+  typeof recordBulkUpsertUndoSchema
+> = {
+  name: OperationName.recordBulkUpsertUndo,
+  entity: MetaTable.MODELS,
+  schema: recordBulkUpsertUndoSchema,
+  sandbox: false,
+  undo: false,
+  entry: {
+    description: recordActions.bulkUpsertUndo,
   },
 };
 
@@ -2333,6 +2422,153 @@ export function registerRecordHandlers(
       const freshMovePrev = bag.get('movePrev')
       return freshMovePrev
         ? { metaUpdate: { movePrev: freshMovePrev } }
+        : undefined;
+    },
+  );
+
+  OperationRegistry.register(
+    RecordBulkUpsertContract,
+    async (context, params, meta) => {
+      const persistedCtx = meta.extra?.recordModelContext;
+      const modelId =
+        persistedCtx?.modelId ??
+        params.modelId ??
+        (await resolveModelIdFromParams(context, params));
+      if (!modelId) {
+        throw new Error(`recordBulkUpsert replay: could not resolve modelId`);
+      }
+      const model = await Model.get(context, modelId);
+      if (!model) {
+        throw new Error(`recordBulkUpsert replay: model ${modelId} not found`);
+      }
+      await model.getColumns(context);
+      const source = await Source.get(context, model.source_id);
+      const baseModel = await Model.getBaseModelSQL(context, {
+        id: model.id,
+        dbDriver: await NcConnectionMgrv2.get(source),
+        source,
+      });
+
+      const trashId = meta.extra?.softDeleteTrashId;
+      if (trashId) {
+        await baseTrashSvc.restore(context, {
+          trashId,
+          user: meta.originalReq?.user ?? { id: meta.createdBy },
+          req: meta.originalReq,
+          force: true,
+        });
+
+        const captured = meta.extra?.upsertChanges ?? [];
+        const updatePkSet = new Set(
+          captured
+            .filter((c) => c.kind === 'update')
+            .map((c) => String(c.pk)),
+        );
+        const updateBodies = ((params.body ?? []) as Record<string, any>[])
+          .filter((r) => {
+            const pk = dataWrapper(r).extractPksValue(model, true);
+            return (
+              pk != null && pk !== 'N/A' && updatePkSet.has(String(pk))
+            );
+          })
+          .map((r) => stripServerControlledFields(r, model.columns));
+
+        if (updateBodies.length) {
+          await dataTableSvc.dataUpdate(context, {
+            modelId,
+            body: updateBodies,
+            viewId: params.viewId as string | undefined,
+            baseId: params.baseId as string | undefined,
+            cookie: meta.originalReq,
+            apiVersion: params.apiVersion as any,
+            user: meta.originalReq?.user ?? { id: meta.createdBy },
+            internalFlags: { allowSystemColumn: true },
+          } as any);
+        }
+
+        return { metaUpdate: { softDeleteTrashId: null } };
+      }
+
+      const rows = (params.body as Record<string, any>[]).map((r) =>
+        stripServerControlledFields(r, model.columns),
+      );
+      const { bag } = await runInChildTraceScope(async () => {
+        await baseModel.bulkUpsert(rows, {
+          cookie: meta.originalReq,
+          undo: true,
+        });
+      });
+      const freshChanges = bag.get('upsertChanges') as
+        | ReadonlyArray<
+            | { kind: 'update'; pk: string | number; prev: Record<string, unknown> }
+            | { kind: 'insert'; pk: string | number }
+          >
+        | undefined;
+      return freshChanges
+        ? { metaUpdate: { upsertChanges: [...freshChanges] } }
+        : undefined;
+    },
+  );
+
+  OperationRegistry.register(
+    RecordBulkUpsertUndoContract,
+    async (context, params, meta) => {
+      const model = await Model.get(context, params.modelId);
+      if (!model) return;
+      await model.getColumns(context);
+      if (!model.primaryKey) return;
+
+      const source = await Source.get(context, model.source_id);
+      const baseModel = await Model.getBaseModelSQL(context, {
+        id: model.id,
+        dbDriver: await NcConnectionMgrv2.get(source),
+        source,
+      });
+
+      let trashId: string | undefined;
+      if (params.insertPks.length) {
+        const deleteRows = params.insertPks.map((pk) =>
+          buildRowFromCompositePk(String(pk), model),
+        );
+        const { bag } = await runInChildTraceScope(async () => {
+          try {
+            await baseModel.bulkDelete(deleteRows, {
+              cookie: meta.originalReq,
+            });
+          } catch {
+            for (const pk of params.insertPks) {
+              try {
+                await baseModel.delByPk(String(pk), null, meta.originalReq);
+              } catch {}
+            }
+          }
+        });
+        trashId = bag.get('softDeleteTrashId') as string | undefined;
+      }
+
+      if (params.updates.length) {
+        const updateBatch = params.updates.map((u) =>
+          stripServerControlledFields(
+            u.prev as Record<string, any>,
+            model.columns,
+          ),
+        );
+        await dataTableSvc.dataUpdate(context, {
+          modelId: params.modelId,
+          body: updateBatch,
+          cookie: meta.originalReq,
+          user: meta.originalReq?.user ?? { id: meta.createdBy },
+          internalFlags: { allowSystemColumn: true },
+          ...(params.apiVersion
+            ? { apiVersion: params.apiVersion as any }
+            : {}),
+          ...(params.viewId ? { viewId: params.viewId } : {}),
+          ...(params.baseId ? { baseId: params.baseId } : {}),
+        } as any);
+      }
+
+      return trashId
+        ? { metaUpdate: { softDeleteTrashId: trashId } }
         : undefined;
     },
   );

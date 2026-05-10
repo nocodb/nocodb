@@ -170,6 +170,7 @@ export class BulkDataAliasService {
     });
   }
 
+  @TraceCommand(OperationName.recordBulkUpsert)
   async bulkDataUpsert(
     context: NcContext,
     param: PathParams & {

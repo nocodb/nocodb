@@ -159,6 +159,10 @@ export const recordActions = {
     parentEntityTitle
       ? `Bulk upsert records in ${bTable(parentEntityTitle)}`
       : `Bulk upsert records`) as DescFn,
+  bulkUpsertUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo bulk upsert in ${bTable(parentEntityTitle)}`
+      : `Undo bulk upsert`) as DescFn,
   linkAdd: (({ parentEntityTitle }) =>
     parentEntityTitle
       ? `Add link in ${bTable(parentEntityTitle)}`

@@ -424,3 +424,66 @@ export const recordLinkByDisplaySchema = z
     user: z.unknown().optional(),
   })
   .passthrough();
+
+/** Forward params for `recordBulkUpsert`. Per-row update/insert outcome
+ *  is recorded in `upsertChanges` for the inverse. */
+export const recordBulkUpsertSchema = z
+  .object({
+    modelId: z.string().optional(),
+    baseId: z.string().optional(),
+    viewId: z.string().optional(),
+    baseName: z.string().optional(),
+    tableName: z.string().optional(),
+    viewName: z.string().optional(),
+    body: z.array(z.unknown()),
+    cookie: z.unknown().optional(),
+    undo: z.boolean().optional(),
+    apiVersion: z.string().optional(),
+  })
+  .passthrough();
+
+/** Updates carry the pre-update snapshot for undo's restore step;
+ *  inserts only need the pk for undo's trash step. */
+const upsertChangeSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('update'),
+      pk: z.union([z.string(), z.number()]),
+      prev: z.record(z.unknown()),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('insert'),
+      pk: z.union([z.string(), z.number()]),
+    })
+    .strict(),
+]);
+
+/** `meta.extra` for `recordBulkUpsert`. `softDeleteTrashId` is rotated
+ *  in by the inverse handler — used by redo's trash-restore path. */
+export const recordBulkUpsertCaptureSchema = z
+  .object({
+    recordModelContext: recordModelContextSchema.optional(),
+    upsertChanges: z.array(upsertChangeSchema).optional(),
+    softDeleteTrashId: z.string().nullable().optional(),
+  })
+  .strict();
+
+export const recordBulkUpsertUndoSchema = z
+  .object({
+    modelId: z.string(),
+    updates: z.array(
+      z
+        .object({
+          pk: z.union([z.string(), z.number()]),
+          prev: z.record(z.unknown()),
+        })
+        .strict(),
+    ),
+    insertPks: z.array(z.union([z.string(), z.number()])),
+    apiVersion: z.string().optional(),
+    viewId: z.string().optional(),
+    baseId: z.string().optional(),
+  })
+  .strict();

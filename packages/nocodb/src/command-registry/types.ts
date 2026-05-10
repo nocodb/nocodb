@@ -286,6 +286,18 @@ export interface CaptureBag {
    *  (or `null` if it was at the end). The inverse `moveRecord` call
    *  uses this as its own `beforeRowId` to put the row back in place. */
   movePrev: { pk: string | number; beforeRowId: string | number | null };
+  /** Per-row outcome of `bulkUpsert`. Updates carry `prev` so undo can
+   *  restore. Inserts ride redo on a trashId rotated into
+   *  `softDeleteTrashId` by the inverse handler — pk preservation
+   *  matters because re-running upsert would assign new auto-pks. */
+  upsertChanges: ReadonlyArray<
+    | {
+        kind: 'update';
+        pk: string | number;
+        prev: Record<string, unknown>;
+      }
+    | { kind: 'insert'; pk: string | number }
+  >;
 }
 
 /** One add-or-remove operation against a single LTAR column on a single

@@ -174,6 +174,10 @@ export const OperationName = {
   recordLinkSwap: 'recordLinkSwap',
   recordLinkSwapBulk: 'recordLinkSwapBulk',
   recordLinkByDisplay: 'recordLinkByDisplay',
+
+  // Bulk upsert — per-row update/insert outcome captured in `upsertChanges`.
+  recordBulkUpsert: 'recordBulkUpsert',
+  recordBulkUpsertUndo: 'recordBulkUpsertUndo',
 } as const;
 
 export type OperationName = (typeof OperationName)[keyof typeof OperationName];

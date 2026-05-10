@@ -15,7 +15,14 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
-    const baseURL = $api.instance.defaults.baseURL
+    const { appInfo } = useGlobal()
+
+    const joinAttachmentUrl = (path: string) => {
+      // Resolve ncSiteUrl against the page origin first so a relative value
+      // like '/' (production default) becomes an absolute base URL.
+      const base = new URL(appInfo.value.ncSiteUrl || '/', window.location.origin)
+      return new URL(path, base).toString()
+    }
 
     const { row } = useSmartsheetRowStoreOrThrow()
 
@@ -78,8 +85,6 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     })
 
     const isRenameModalOpen = ref(false)
-
-    const { appInfo } = useGlobal()
 
     const defaultAttachmentMeta = {
       ...(appInfo.value.ee && {
@@ -422,7 +427,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         let response: Response
         if (res.path) {
-          response = await fetch(`${baseURL}/${res.path}`)
+          response = await fetch(joinAttachmentUrl(res.path))
         } else if (res.url) {
           response = await fetch(`${res.url}`)
         } else {
@@ -508,7 +513,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         }
 
         if (res?.path) {
-          window.open(`${baseURL}/${res.path}`, '_self')
+          window.open(joinAttachmentUrl(res.path), '_self')
         } else if (res?.url) {
           window.open(res.url, '_self')
         } else {

@@ -628,8 +628,8 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                       <div class="flex items-center gap-2 text-xs text-warning">
                         <GeneralIcon icon="alertTriangle" class="flex-none" />
                         <span
-                          >Cloudflare D1 uses atomic batches where writes can be precompiled; interactive transaction blocks
-                          remain best-effort.</span
+                          >Cloudflare D1 supports read/write access and atomic batches for precompiled writes. Interactive
+                          transaction blocks and DDL rollback remain best-effort.</span
                         >
                       </div>
                     </template>

@@ -22,6 +22,29 @@ import {
 } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
 
+const isD1BaseModel = (baseModel: IBaseModelSqlV2) =>
+  baseModel.clientType === 'd1';
+
+const toD1BatchQuery = (query: any) => {
+  const compiledQuery = query.toSQL();
+  return {
+    sql: compiledQuery.sql,
+    params: compiledQuery.bindings,
+    method: compiledQuery.method,
+  };
+};
+
+const executeD1WriteBatch = async (
+  baseModel: IBaseModelSqlV2,
+  queries: any[],
+) => {
+  if (!queries.length) return;
+
+  await (baseModel.dbDriver as any).client.batch(
+    queries.map((query) => toD1BatchQuery(query)),
+  );
+};
+
 /**
  * Extract the corresponding link column in the referencing table using a given LTAR column and the referenced table
  * @param context - The NcContext
@@ -346,6 +369,30 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           const vTn = assocBaseModel.getTnPath(vTable);
 
           let insertData: Record<string, any>[];
+          const d1WriteQueries: any[] = [];
+          const d1AfterWriteCallbacks: Array<() => Promise<void> | void> = [];
+
+          const execOrQueueD1Write = async (query: any) => {
+            if (isD1BaseModel(baseModel)) {
+              d1WriteQueries.push(query);
+              return;
+            }
+
+            await assocBaseModel.execAndParse(query, null, {
+              raw: true,
+            });
+          };
+
+          const attachOrQueueAfterD1Write = (
+            callback: () => Promise<void> | void,
+          ) => {
+            if (isD1BaseModel(baseModel)) {
+              d1AfterWriteCallbacks.push(callback);
+              return;
+            }
+
+            baseModel.dbDriver.attachToTransaction(callback);
+          };
 
           // validate Ids
           {
@@ -494,9 +541,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                   );
                 }
 
-                await assocBaseModel.execAndParse(deleteQb.delete(), null, {
-                  raw: true,
-                });
+                await execOrQueueD1Write(deleteQb.delete());
 
                 for (const r of existing) {
                   unlinkAuditParentObj.push({
@@ -570,9 +615,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                     );
                   }
 
-                  await assocBaseModel.execAndParse(deleteQb.delete(), null, {
-                    raw: true,
-                  });
+                  await execOrQueueD1Write(deleteQb.delete());
 
                   for (const r of existing) {
                     unlinkAuditParentObj.push({
@@ -594,7 +637,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
             // Emit unlink audit for cascaded removals
             if (unlinkAuditParentObj.length) {
-              baseModel.dbDriver.attachToTransaction(async () => {
+              attachOrQueueAfterD1Write(async () => {
                 const clone = baseModel.getNonTransactionalClone();
                 await clone.afterAddOrRemoveChild(
                   {
@@ -628,14 +671,19 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             }
           }
 
-          // todo: use bulk insert
-          await baseModel.execAndParse(
-            baseModel.dbDriver(vTn).insert(insertData),
-            null,
-            {
+          const insertQb = baseModel.dbDriver(vTn).insert(insertData);
+
+          if (isD1BaseModel(baseModel)) {
+            await executeD1WriteBatch(baseModel, [...d1WriteQueries, insertQb]);
+            for (const callback of d1AfterWriteCallbacks) {
+              await callback();
+            }
+          } else {
+            // todo: use bulk insert
+            await baseModel.execAndParse(insertQb, null, {
               raw: true,
-            },
-          );
+            });
+          }
 
           await parentBaseModel.updateLastModified({
             model: parentTable,

@@ -381,14 +381,17 @@ export function genPgAggregateQuery({
           column_query,
         ]);
         break;
-      // The Date, DateTime, CreatedTime, LastModifiedTime columns are casted to DATE.
+      // Calendar-month diff (matches SQLite / MySQL / JS reducer). AGE() would
+      // return elapsed-time-in-whole-months instead, which is off by one when
+      // the day-of-month of the max is earlier than the day-of-month of the min
+      // (e.g. 2024-01-15 → 2025-01-01 is 11 months 17 days under AGE, but 12
+      // calendar months apart).
       case DateAggregations.MonthRange:
         aggregationSql = knex.raw(
-          `DATE_PART('year', AGE(MAX((??)::date), MIN((??)::date))) * 12 + 
-         DATE_PART('month', AGE(MAX((??)::date), MIN((??)::date))) `,
+          `(EXTRACT(YEAR FROM MAX((??)::date)) * 12 + EXTRACT(MONTH FROM MAX((??)::date)))
+         - (EXTRACT(YEAR FROM MIN((??)::date)) * 12 + EXTRACT(MONTH FROM MIN((??)::date)))`,
           [column_query, column_query, column_query, column_query],
         );
-
         break;
       default:
         break;

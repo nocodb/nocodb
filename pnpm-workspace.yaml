@@ -21,3 +21,6 @@ minimumReleaseAge: 10080
 # Prevent transitive dependencies from pulling code via git+ssh, https tarballs,
 # or other non-registry protocols. Only direct dependencies may use exotic sources.
 blockExoticSubdeps: true
+minimumReleaseAgeExclude:
+  # Renovate security update: qs@<6.14.1@6.14.2
+  - qs@<6.14.1@6.14.2

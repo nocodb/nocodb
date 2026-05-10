@@ -153,9 +153,10 @@ const AGG_CASES: AggCase[] = [
     field: 'Number',
     uidt: UITypes.Number,
     // median + std_dev are excluded from broad parity — see "Known SQL
-    // divergences" describe at the end of the file. Both have SQL inner-
-    // subquery quirks that disagree with proper math when nulls are present
-    // (median) or when a selection filter is applied (std_dev).
+    // divergences" describe at the end of the file. SQLite median has an
+    // ORDER BY/OFFSET formula whose result depends on NULL sort position,
+    // and SQLite std_dev's inner subqueries reference the full table path,
+    // so a row-level WHERE filter doesn't reach the AVG/COUNT inputs.
     aggregations: [
       'sum',
       'min',
@@ -439,8 +440,10 @@ function selectionAggregationTests() {
   // The divergences pinned below are SQLite-specific:
   //  - median uses an ORDER BY/OFFSET formula whose result depends on NULL
   //    sort position, so it shifts by one when nulls are present.
-  //  - std_dev uses `SUM((x-avg)²)/COUNT(*)` against an inner subquery that
-  //    references the full table path, so the WHERE filter doesn't reach it.
+  //  - std_dev's avg/squared-error subqueries reference the full table path,
+  //    so a row-level WHERE filter doesn't reach the AVG inputs. The divisor
+  //    itself is now non-null count (matches PG `stddev_pop` / MySQL
+  //    `STDDEV` / SDK reducer); only the row-level filter doesn't propagate.
   // PG (`percentile_cont` / `stddev_pop`) and MySQL (`STDDEV`) don't have
   // these quirks, so the assertions below would fail on those backends.
   const sqliteOnlyDescribe =

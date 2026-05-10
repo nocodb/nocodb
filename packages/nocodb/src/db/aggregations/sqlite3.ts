@@ -285,22 +285,30 @@ export function genSqlite3AggregateQuery({
       case NumericalAggregations.Sum:
         aggregationSql = knex.raw(`SUM((??))`, [column_query]);
         break;
-      case NumericalAggregations.StandardDeviation:
+      case NumericalAggregations.StandardDeviation: {
+        const isRating = column.uidt === UITypes.Rating;
+        const filterClause = isRating
+          ? `WHERE (??) IS NOT NULL AND (??) != 0`
+          : `WHERE (??) IS NOT NULL`;
+        const filterBindings = isRating
+          ? [column_query, column_query]
+          : [column_query];
         aggregationSql = knex.raw(
           `(
-    SELECT 
-      CASE 
-        WHEN COUNT(*) > 0 THEN 
+    SELECT
+      CASE
+        WHEN COUNT(*) > 0 THEN
           SQRT(SUM(((??) - avg_value) * ((??) - avg_value)) / COUNT(*))
-        ELSE 
-          NULL 
+        ELSE
+          NULL
       END AS ??
     FROM (
-      SELECT 
-        (??), 
-        (SELECT AVG((??)) FROM ??) AS avg_value
-      FROM 
+      SELECT
+        (??),
+        (SELECT AVG((??)) FROM ?? ${filterClause}) AS avg_value
+      FROM
         ??
+      ${filterClause}
     )
   )`,
           [
@@ -310,11 +318,14 @@ export function genSqlite3AggregateQuery({
             column_query,
             column_query,
             baseModelSqlv2.tnPath,
+            ...filterBindings,
             baseModelSqlv2.tnPath,
+            ...filterBindings,
           ],
         );
 
         break;
+      }
       case NumericalAggregations.Range:
         if (column.uidt === UITypes.Rating) {
           aggregationSql = knex.raw(

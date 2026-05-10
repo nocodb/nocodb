@@ -630,9 +630,10 @@ export function useCanvasTable({
     return { active: true, values, scopedTitles }
   })
 
-  // Per-group selection-scoped aggregations. Keyed by JSON.stringify(group.path).
-  // Each entry holds pre-formatted display values for that group's columns
-  // and the scopedTitles set (column titles in selection scope; others blank).
+  // Per-group selection-scoped aggregations. Keyed by group path joined on
+  // '-' (matches the serialization in useInfiniteGroups). Each entry holds
+  // pre-formatted display values for that group's columns and the
+  // scopedTitles set (column titles in selection scope; others blank).
   // Cell-range selection: only the active group gets an entry. Row-checkbox
   // selection: every group with checked rows gets its own entry.
   const groupSelectionAggregations = computed<
@@ -704,7 +705,7 @@ export function useCanvasTable({
           if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
           colsForScope.push(colObj.columnObj)
         }
-        result.set(JSON.stringify(path), computePerGroup(rangeRows, colsForScope))
+        result.set(path.join('-'), computePerGroup(rangeRows, colsForScope))
       }
     }
 
@@ -723,7 +724,7 @@ export function useCanvasTable({
         const checked = getDataCache(path as number[]).selectedRows?.value ?? []
         if (!checked.length) continue
         // Only override if not already set by cell-range branch above
-        const key = JSON.stringify(path)
+        const key = (path as number[]).join('-')
         if (result.has(key)) continue
         result.set(key, computePerGroup(checked, fields.value as ColumnType[]))
       }

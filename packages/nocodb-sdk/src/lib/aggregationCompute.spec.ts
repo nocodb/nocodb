@@ -558,8 +558,8 @@ describe('aggregationCompute', () => {
     });
 
     describe('StandardDeviation', () => {
-      it('matches SQL semantics: SUM(sq)/COUNT(*) where COUNT includes nulls', () => {
-        // values = [1, 2, 3], avg = 2, sumSq = 1+0+1 = 2, total = 3, sqrt(2/3)
+      it('population stddev over non-null values', () => {
+        // values = [1, 2, 3], avg = 2, sumSq = 2, n = 3 → sqrt(2/3)
         expect(
           computeAggregation({
             aggregation: NumericalAggregations.StandardDeviation,
@@ -569,15 +569,36 @@ describe('aggregationCompute', () => {
         ).toBeCloseTo(Math.sqrt(2 / 3));
       });
 
-      it('null rows divide the variance more aggressively (matches SQL COUNT(*))', () => {
-        // values = [1, 2, 3, null], avg over non-null = 2, sumSq = 2, COUNT(*) = 4 → sqrt(2/4)
+      it('null rows are excluded from the divisor (matches PG stddev_pop / MySQL STDDEV)', () => {
+        // values = [1, 2, 3, null], avg = 2, sumSq = 2, n = 3 → sqrt(2/3)
         expect(
           computeAggregation({
             aggregation: NumericalAggregations.StandardDeviation,
             values: [1, 2, 3, null],
             column: numberCol,
           }) as number
-        ).toBeCloseTo(Math.sqrt(2 / 4));
+        ).toBeCloseTo(Math.sqrt(2 / 3));
+      });
+
+      it('Rating: skips 0s like Avg/Min (matches PG `stddev_pop FILTER WHERE != 0`)', () => {
+        // values = [0, 0, 1, 5], pool = [1, 5], avg = 3, sumSq = 4+4 = 8, n = 2 → sqrt(8/2) = 2
+        expect(
+          computeAggregation({
+            aggregation: NumericalAggregations.StandardDeviation,
+            values: [0, 0, 1, 5],
+            column: ratingCol,
+          }) as number
+        ).toBeCloseTo(2);
+      });
+
+      it('Rating: all-zero pool returns 0', () => {
+        expect(
+          computeAggregation({
+            aggregation: NumericalAggregations.StandardDeviation,
+            values: [0, 0, 0],
+            column: ratingCol,
+          })
+        ).toBe(0);
       });
 
       it('returns 0 for empty', () => {
@@ -585,6 +606,16 @@ describe('aggregationCompute', () => {
           computeAggregation({
             aggregation: NumericalAggregations.StandardDeviation,
             values: [],
+            column: numberCol,
+          })
+        ).toBe(0);
+      });
+
+      it('returns 0 when all values are null', () => {
+        expect(
+          computeAggregation({
+            aggregation: NumericalAggregations.StandardDeviation,
+            values: [null, null, null],
             column: numberCol,
           })
         ).toBe(0);

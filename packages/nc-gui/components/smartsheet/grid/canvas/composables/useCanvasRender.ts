@@ -3229,8 +3229,14 @@ export function useCanvasRender({
             // in groupSelectionAggregations, override the displayed value for
             // in-scope columns and skip render entirely for out-of-scope ones.
             // Groups without an entry render normally (full SQL aggregation).
-            const groupSelKey = JSON.stringify(group?.path ?? [])
-            const groupSelOverride = groupSelectionAggregations.value.get(groupSelKey)
+            // Use generateGroupPath (lineage from nestedIn) rather than
+            // group.path directly — group.path is only assigned to leaf groups
+            // (useInfiniteGroups.ts:275), so non-leaf renders would otherwise
+            // collapse onto the same empty-path key.
+            const groupSelKey = group ? generateGroupPath(group).join('-') : ''
+            const groupSelOverride = groupSelKey
+              ? groupSelectionAggregations.value.get(groupSelKey)
+              : undefined
             const groupSelOutOfScope = !!groupSelOverride && !groupSelOverride.scopedTitles.has(column.title)
             const groupSelDisplayValue = groupSelOverride?.values[column.title]
             const aggDisplay = groupSelDisplayValue !== undefined ? groupSelDisplayValue : group?.aggregations[column.title]

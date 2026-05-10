@@ -171,6 +171,18 @@ export const recordActions = {
     parentEntityTitle
       ? `Reorder record in ${bTable(parentEntityTitle)}`
       : `Reorder record`) as DescFn,
+  linkSwap: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Update links in ${bTable(parentEntityTitle)}`
+      : `Update links`) as DescFn,
+  linkSwapBulk: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk update links in ${bTable(parentEntityTitle)}`
+      : `Bulk update links`) as DescFn,
+  linkByDisplay: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk link by display value in ${bTable(parentEntityTitle)}`
+      : `Bulk link by display value`) as DescFn,
 };
 
 /**

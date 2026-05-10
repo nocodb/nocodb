@@ -40,7 +40,10 @@ import {
   recordDeleteUndoSchema,
   recordInsertCaptureSchema,
   recordInsertUndoSchema,
+  recordLinkByDisplaySchema,
   recordLinkSchema,
+  recordLinkSwapBulkSchema,
+  recordLinkSwapSchema,
   recordMoveCaptureSchema,
   recordMoveSchema,
   recordUpdateCaptureSchema,
@@ -499,6 +502,26 @@ function stripPkTitles(
   return out;
 }
 
+/** Detect a no-op update by inspecting the captured `recordPrev`. The
+ *  changed-fields-only snapshots always include pk titles (so the row
+ *  can be located on undo) — when there are NO non-pk keys in any
+ *  snapshot, the update touched no real fields. Common case: FE sends
+ *  `{Id: N}`-only bodies after an LTAR cell paste (the link mutation
+ *  is recorded separately as `recordLinkByDisplay`/`recordLinkSwap`,
+ *  and the bulk-update call is left over with empty body). Skipping
+ *  here avoids phantom undo entries that would do nothing. */
+function isNoOpRecordPrev(
+  primaryKeyTitles: ReadonlyArray<string> | undefined,
+): boolean {
+  const recordPrev = getTraceCapture('recordPrev') ?? [];
+  if (!recordPrev.length) return true;
+  const pkSet = new Set(primaryKeyTitles ?? []);
+  return recordPrev.every((p) => {
+    if (!p || typeof p !== 'object') return true;
+    return Object.keys(p).every((k) => pkSet.has(k));
+  });
+}
+
 export const RecordUpdateContract: OperationContract<
   typeof recordUpdateSchema,
   RecordUpdateExtra,
@@ -541,8 +564,16 @@ export const RecordUpdateContract: OperationContract<
       if (!body || typeof body !== 'object') return undefined;
       return pkFromRow(body, resolved?.extra);
     },
-    skip_if: (_ctx, params) =>
-      Array.isArray(params.body) && (params.body as any[]).length > 1,
+    skip_if: (_ctx, params, _result, resolved) => {
+      // Bulk dispatch — recordBulkUpdate handles arrays > 1.
+      if (Array.isArray(params.body) && (params.body as any[]).length > 1) {
+        return true;
+      }
+      // No-op update (FE sometimes sends `{Id: N}`-only bodies after an
+      // LTAR cell paste — only PK, no real change). Skip recording so
+      // undo doesn't have a phantom no-op entry.
+      return isNoOpRecordPrev(resolved?.extra?.primaryKeyTitles);
+    },
   },
   undo: {
     inverse: async (context, params, _result, resolved) => {
@@ -645,6 +676,8 @@ export const RecordBulkUpdateContract: OperationContract<
         extra: { ...ctx, parentEntityTitle: model.title ?? '' },
       };
     },
+    skip_if: (_ctx, _params, _result, resolved) =>
+      isNoOpRecordPrev(resolved?.extra?.primaryKeyTitles),
   },
   undo: {
     inverse: async (context, params, _result, resolved) => {
@@ -996,6 +1029,148 @@ async function resolveJunctionLinkSides(
     ownerBaseModel,
   };
 }
+
+interface RecordLinkSwapExtra {
+  modelId: string;
+  parentEntityTitle: string;
+}
+
+/** Strip non-serializable keys (cookie/req) from link-swap params before
+ *  storing as inverse_params. Same purpose as `pickLinkParams` for the
+ *  v1/v2 link contracts. */
+function pickLinkSwapParams(params: any): Record<string, any> {
+  const out: Record<string, any> = {};
+  for (const k of [
+    'modelId',
+    'baseId',
+    'viewId',
+    'columnId',
+    'rowId',
+    'link',
+    'unlink',
+    'entries',
+  ]) {
+    if (params[k] !== undefined) out[k] = params[k];
+  }
+  return out;
+}
+
+async function linkSwapBefore(context: any, params: any) {
+  const modelId =
+    params.modelId ?? (await resolveModelIdFromParams(context, params));
+  if (!modelId) return {};
+  const model = await Model.get(context, modelId);
+  if (!model) return {};
+  return {
+    parentEntityTitle: model.title,
+    extra: { modelId, parentEntityTitle: model.title ?? '' },
+  };
+}
+
+/** Single-row link-diff op. Self-inverse: the inverse is the same op
+ *  with `link` and `unlink` swapped. The handler applies the diff via
+ *  `addLinks` / `removeLinks`. */
+export const RecordLinkSwapContract: OperationContract<
+  typeof recordLinkSwapSchema,
+  RecordLinkSwapExtra,
+  unknown
+> = {
+  name: OperationName.recordLinkSwap,
+  entity: MetaTable.MODELS,
+  schema: recordLinkSwapSchema,
+  sandbox: false,
+  entry: {
+    description: recordActions.linkSwap,
+    before: linkSwapBefore,
+    entity_id: (params) => String(params.rowId),
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const modelId = resolved?.extra?.modelId ?? params.modelId;
+      if (!modelId) return null;
+      const picked = pickLinkSwapParams(params);
+      return {
+        name: OperationName.recordLinkSwap,
+        params: {
+          ...picked,
+          link: picked.unlink ?? [],
+          unlink: picked.link ?? [],
+          modelId,
+        },
+      };
+    },
+  },
+};
+
+/** Bulk variant — multiple link-diffs in one user-facing op. Self-inverse
+ *  via per-entry link↔unlink swap. */
+export const RecordLinkSwapBulkContract: OperationContract<
+  typeof recordLinkSwapBulkSchema,
+  RecordLinkSwapExtra,
+  unknown
+> = {
+  name: OperationName.recordLinkSwapBulk,
+  entity: MetaTable.MODELS,
+  schema: recordLinkSwapBulkSchema,
+  sandbox: false,
+  entry: {
+    description: recordActions.linkSwapBulk,
+    before: linkSwapBefore,
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const modelId = resolved?.extra?.modelId ?? params.modelId;
+      if (!modelId) return null;
+      const picked = pickLinkSwapParams(params);
+      const swappedEntries = (params.entries ?? []).map((e) => ({
+        columnId: e.columnId,
+        rowId: e.rowId,
+        link: e.unlink ?? [],
+        unlink: e.link ?? [],
+      }));
+      return {
+        name: OperationName.recordLinkSwapBulk,
+        params: { ...picked, entries: swappedEntries, modelId },
+      };
+    },
+  },
+};
+
+/** Bulk link-by-display-value — same per-entry shape as bulk swap, but
+ *  the forward path resolved display strings to pks before recording.
+ *  Replay uses the resolved pks (so data drift between forward and redo
+ *  doesn't change which rows get linked). Self-inverse. */
+export const RecordLinkByDisplayContract: OperationContract<
+  typeof recordLinkByDisplaySchema,
+  RecordLinkSwapExtra,
+  unknown
+> = {
+  name: OperationName.recordLinkByDisplay,
+  entity: MetaTable.MODELS,
+  schema: recordLinkByDisplaySchema,
+  sandbox: false,
+  entry: {
+    description: recordActions.linkByDisplay,
+    before: linkSwapBefore,
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const modelId = resolved?.extra?.modelId ?? params.modelId;
+      if (!modelId) return null;
+      const picked = pickLinkSwapParams(params);
+      const swappedEntries = (params.entries ?? []).map((e) => ({
+        columnId: e.columnId,
+        rowId: e.rowId,
+        link: e.unlink ?? [],
+        unlink: e.link ?? [],
+      }));
+      return {
+        name: OperationName.recordLinkByDisplay,
+        params: { ...picked, entries: swappedEntries, modelId },
+      };
+    },
+  },
+};
 
 export function registerRecordHandlers(
   dataTableSvc: DataTableService,
@@ -2159,6 +2334,58 @@ export function registerRecordHandlers(
       return freshMovePrev
         ? { metaUpdate: { movePrev: freshMovePrev } }
         : undefined;
+    },
+  );
+
+  OperationRegistry.register(
+    RecordLinkSwapContract,
+    async (context, params, meta) => {
+      return await dataTableSvc._traceApplyLinkSwap(context, {
+        modelId: params.modelId,
+        baseId: params.baseId,
+        viewId: params.viewId,
+        columnId: params.columnId,
+        rowId: params.rowId,
+        link: [...params.link],
+        unlink: [...params.unlink],
+        cookie: meta.originalReq,
+      });
+    },
+  );
+
+  OperationRegistry.register(
+    RecordLinkSwapBulkContract,
+    async (context, params, meta) => {
+      return await dataTableSvc._traceApplyLinkSwapBulk(context, {
+        modelId: params.modelId,
+        baseId: params.baseId,
+        viewId: params.viewId,
+        entries: params.entries.map((e) => ({
+          columnId: e.columnId,
+          rowId: e.rowId,
+          link: [...e.link],
+          unlink: [...e.unlink],
+        })),
+        cookie: meta.originalReq,
+      });
+    },
+  );
+
+  OperationRegistry.register(
+    RecordLinkByDisplayContract,
+    async (context, params, meta) => {
+      return await dataTableSvc._traceApplyLinkByDisplay(context, {
+        modelId: params.modelId,
+        baseId: params.baseId,
+        viewId: params.viewId,
+        entries: params.entries.map((e) => ({
+          columnId: e.columnId,
+          rowId: e.rowId,
+          link: [...e.link],
+          unlink: [...e.unlink],
+        })),
+        cookie: meta.originalReq,
+      });
     },
   );
 }

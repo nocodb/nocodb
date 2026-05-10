@@ -365,3 +365,62 @@ export const recordMoveCaptureSchema = z
       .optional(),
   })
   .strict();
+
+/** Single link-swap entry: applies a precomputed diff against one
+ *  (rowId, columnId) — `unlink` pks are removed, `link` pks added.
+ *  Used as both forward-params and inverse-params shape (link↔unlink
+ *  swap is the mechanical inverse). */
+const linkSwapEntrySchema = z
+  .object({
+    columnId: z.string(),
+    rowId: z.union([z.string(), z.number()]),
+    link: z.array(z.union([z.string(), z.number()])),
+    unlink: z.array(z.union([z.string(), z.number()])),
+  })
+  .strict();
+
+/** Forward params for `recordLinkSwap` — covers a single (rowId,
+ *  columnId) link diff. Self-inverse via link↔unlink swap. */
+export const recordLinkSwapSchema = z
+  .object({
+    modelId: z.string(),
+    baseId: z.string().optional(),
+    viewId: z.string().optional(),
+    columnId: z.string(),
+    rowId: z.union([z.string(), z.number()]),
+    link: z.array(z.union([z.string(), z.number()])),
+    unlink: z.array(z.union([z.string(), z.number()])),
+    cookie: z.unknown().optional(),
+    user: z.unknown().optional(),
+  })
+  .passthrough();
+
+/** Forward params for `recordLinkSwapBulk` — multiple link-diffs in one
+ *  user-facing op (powers `nestedListBulkCopyPasteOrDeleteAll`).
+ *  Self-inverse via per-entry link↔unlink swap. */
+export const recordLinkSwapBulkSchema = z
+  .object({
+    modelId: z.string(),
+    baseId: z.string().optional(),
+    viewId: z.string().optional(),
+    entries: z.array(linkSwapEntrySchema),
+    cookie: z.unknown().optional(),
+    user: z.unknown().optional(),
+  })
+  .passthrough();
+
+/** Forward params for `recordLinkByDisplay` — bulk link-by-display-value
+ *  op (powers `nestedBulkLinkByDisplayValue`). The forward path resolves
+ *  display strings to pks, then this op records the RESOLVED pks (NOT
+ *  the original strings — strings can match different rows on replay if
+ *  data drifts). Self-inverse via per-entry link↔unlink swap. */
+export const recordLinkByDisplaySchema = z
+  .object({
+    modelId: z.string(),
+    baseId: z.string().optional(),
+    viewId: z.string().optional(),
+    entries: z.array(linkSwapEntrySchema),
+    cookie: z.unknown().optional(),
+    user: z.unknown().optional(),
+  })
+  .passthrough();

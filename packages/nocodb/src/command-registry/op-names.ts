@@ -169,6 +169,11 @@ export const OperationName = {
   recordLinkAdd: 'recordLinkAdd',
   recordLinkRemove: 'recordLinkRemove',
   recordMove: 'recordMove',
+
+  // Compound link diff/swap ops (Phase D — single op, link↔unlink swap inverse)
+  recordLinkSwap: 'recordLinkSwap',
+  recordLinkSwapBulk: 'recordLinkSwapBulk',
+  recordLinkByDisplay: 'recordLinkByDisplay',
 } as const;
 
 export type OperationName = (typeof OperationName)[keyof typeof OperationName];

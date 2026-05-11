@@ -74,6 +74,7 @@
     "c:bookmark:group:rename": "Click rename in bookmark group context menu",
     "c:bookmark:group:delete": "Click delete in bookmark group context menu",
     "c:bookmark:move": "Click Move-to entry in bookmark item context menu",
+    "c:bookmark:open-new-tab": "Click Open in new tab in bookmark item context menu",
     "c:bookmark:remove": "Click Remove in bookmark item context menu"
   },
   "calendar": {

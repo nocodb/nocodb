@@ -14,7 +14,7 @@ const props = defineProps<Props>()
 
 const { bookmark, groups } = toRefs(props)
 
-const { removeBookmark, moveBookmarkToGroup } = useBookmarks()
+const { removeBookmark, moveBookmarkToGroup, navigateToBookmark } = useBookmarks()
 
 const isOpen = ref(false)
 
@@ -34,6 +34,12 @@ function onRemove() {
 async function onMoveTo(groupId: string) {
   await moveBookmarkToGroup(bookmark.value.id!, groupId)
   isOpen.value = false
+}
+
+function onOpenInNewTab() {
+  isOpen.value = false
+  // navigateToBookmark already fires a:bookmark:open with in_new_tab: true.
+  navigateToBookmark(bookmark.value, { inNewTab: true })
 }
 </script>
 
@@ -77,6 +83,13 @@ async function onMoveTo(groupId: string) {
           </NcSubMenu>
           <NcDivider />
         </template>
+        <NcMenuItem data-testid="nc-bookmark-open-new-tab" @click="onOpenInNewTab">
+          <div v-e="['c:bookmark:open-new-tab']" class="flex gap-2 items-center">
+            <GeneralIcon icon="openInNew" class="w-4 h-4" />
+            {{ $t('labels.openInNewTab') }}
+          </div>
+        </NcMenuItem>
+        <NcDivider />
         <NcMenuItem data-testid="nc-bookmark-remove" class="!text-nc-content-red-dark" @click="onRemove">
           <div v-e="['c:bookmark:remove']" class="flex gap-2 items-center">
             <GeneralIcon icon="delete" class="w-4 h-4" />

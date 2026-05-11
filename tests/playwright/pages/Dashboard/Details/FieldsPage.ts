@@ -283,11 +283,10 @@ export class FieldsPage extends BasePage {
 
     await this.waitForResponse({
       uiAction: async () => await this.saveChangesButton.click(),
-      requestUrlPathToMatch: 'columnsHash',
-      httpMethodsToMatch: ['GET'],
-      responseJsonMatcher: json => json['hash'],
+      requestUrlPathToMatch: 'operation=columnsBulk',
+      httpMethodsToMatch: ['POST'],
     });
-    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForTimeout(1500);
   }
 
   getField({ title }: { title: string }) {

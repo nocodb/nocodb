@@ -40,6 +40,10 @@ const currentLanguageLabel = computed(() => getLanguageLabel(currentLanguage.val
 // --- Dropdown ---
 const isDropdownOpen = ref(false)
 
+// Mermaid view-mode picker dropdown — declared up here so `showToolbar`
+// (defined further down, before the mermaid section) can reference it.
+const isViewModeDropdownOpen = ref(false)
+
 const setLanguage = (lang: CodeBlockLanguage) => {
   props.updateAttributes({ language: lang.id || null })
   isDropdownOpen.value = false
@@ -130,7 +134,7 @@ const copyCode = async () => {
 // --- Hover ---
 const isHovered = ref(false)
 
-const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || props.selected)
+const showToolbar = computed(() => isDropdownOpen.value || isViewModeDropdownOpen.value || isHovered.value || props.selected)
 
 const isEditable = computed(() => props.editor?.isEditable !== false)
 
@@ -139,7 +143,13 @@ const isMermaid = computed(() => currentLanguage.value === MERMAID_ID)
 
 const mermaidCode = computed(() => props.node.textContent)
 
-type MermaidViewMode = 'code' | 'diagram'
+type MermaidViewMode = 'code' | 'split' | 'diagram'
+
+const MERMAID_VIEW_MODES: { mode: MermaidViewMode; icon: string; labelKey: string }[] = [
+  { mode: 'code', icon: 'ncCode', labelKey: 'labels.showCode' },
+  { mode: 'split', icon: 'ncColumns', labelKey: 'labels.splitView' },
+  { mode: 'diagram', icon: 'ncEye', labelKey: 'labels.showDiagram' },
+]
 
 // Persisted choice stored on the PM node attribute (round-trips via the JSON
 // doc-content column). `null` until the author toggles for the first time.
@@ -160,19 +170,35 @@ const mermaidViewMode = computed<MermaidViewMode>(
   () => localViewMode.value ?? persistedViewMode.value ?? (isEditable.value ? 'code' : 'diagram'),
 )
 
-const showCodePane = computed(() => !isMermaid.value || mermaidViewMode.value === 'code')
+const showCodePane = computed(() => !isMermaid.value || mermaidViewMode.value === 'code' || mermaidViewMode.value === 'split')
 
-const showDiagramPane = computed(() => isMermaid.value && mermaidViewMode.value === 'diagram')
+const showDiagramPane = computed(
+  () => isMermaid.value && (mermaidViewMode.value === 'diagram' || mermaidViewMode.value === 'split'),
+)
 
-const toggleMermaidView = () => {
-  const next: MermaidViewMode = mermaidViewMode.value === 'code' ? 'diagram' : 'code'
+// Toolbar floats top-right. In `diagram` mode it sits over the (light-bg)
+// diagram pane and needs the dark-on-light variant. In `code` and `split`
+// the top of the block is the dark code pane, so the default (white-on-
+// translucent) styling already works.
+const isToolbarOnDiagram = computed(() => mermaidViewMode.value === 'diagram')
+
+const setMermaidViewMode = (mode: MermaidViewMode) => {
   if (isEditable.value) {
     // Persist as a node attribute — survives reload via PM JSON storage.
-    props.updateAttributes({ viewMode: next })
+    props.updateAttributes({ viewMode: mode })
     localViewMode.value = null
   } else {
-    localViewMode.value = next
+    localViewMode.value = mode
   }
+}
+
+const currentMermaidViewOption = computed(
+  () => MERMAID_VIEW_MODES.find((o) => o.mode === mermaidViewMode.value) ?? MERMAID_VIEW_MODES[0],
+)
+
+const onViewModeSelect = (mode: MermaidViewMode) => {
+  setMermaidViewMode(mode)
+  isViewModeDropdownOpen.value = false
 }
 
 // Diagram-only toolbar actions are delegated to DocMermaidView (which owns
@@ -192,7 +218,7 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
     <div
       v-show="showToolbar"
       class="nc-code-block-toolbar"
-      :class="{ 'nc-code-block-toolbar-on-diagram': showDiagramPane }"
+      :class="{ 'nc-code-block-toolbar-on-diagram': isToolbarOnDiagram }"
       contenteditable="false"
     >
       <!-- Language selector -->
@@ -291,16 +317,35 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
         </template>
       </NcDropdown>
 
-      <!-- Mermaid view toggle (code <-> diagram) -->
-      <NcTooltip
+      <!-- Mermaid view-mode picker — Notion-style: single trigger with current
+           mode icon, opens a 3-option popover (code / split / diagram). -->
+      <NcDropdown
         v-if="isMermaid"
-        :title="mermaidViewMode === 'code' ? $t('labels.showDiagram') : $t('labels.showCode')"
-        placement="top"
+        v-model:visible="isViewModeDropdownOpen"
+        placement="bottom"
+        overlay-class-name="nc-mermaid-view-dropdown"
       >
-        <button class="nc-code-block-copy-btn" data-testid="nc-mermaid-view-toggle" @click="toggleMermaidView">
-          <GeneralIcon :icon="mermaidViewMode === 'code' ? 'ncEye' : 'ncCode'" />
-        </button>
-      </NcTooltip>
+        <NcTooltip :title="$t(currentMermaidViewOption.labelKey)" placement="top">
+          <button class="nc-code-block-copy-btn" data-testid="nc-mermaid-view-trigger">
+            <GeneralIcon :icon="currentMermaidViewOption.icon" />
+          </button>
+        </NcTooltip>
+
+        <template #overlay>
+          <div class="nc-mermaid-view-options">
+            <NcTooltip v-for="option in MERMAID_VIEW_MODES" :key="option.mode" :title="$t(option.labelKey)" placement="bottom">
+              <button
+                class="nc-mermaid-view-option"
+                :class="{ 'nc-active': mermaidViewMode === option.mode }"
+                :data-testid="`nc-mermaid-view-${option.mode}`"
+                @click="onViewModeSelect(option.mode)"
+              >
+                <GeneralIcon :icon="option.icon" />
+              </button>
+            </NcTooltip>
+          </div>
+        </template>
+      </NcDropdown>
 
       <!-- Mermaid diagram actions (visible only while the diagram pane is showing) -->
       <template v-if="isMermaid && showDiagramPane">
@@ -522,5 +567,47 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
   height: 1px;
   margin: 4px 8px;
   background: var(--nc-border-gray-medium);
+}
+
+// --- Mermaid view-mode dropdown (3 icons: code / split / diagram) ---
+// Teleported to <body> by ant-design, so styled here (unscoped).
+
+.nc-mermaid-view-dropdown {
+  z-index: 1052;
+}
+
+.nc-mermaid-view-options {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background: var(--nc-bg-default);
+  border: 1px solid var(--nc-border-gray-medium);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.nc-mermaid-view-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--nc-content-gray-subtle);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+
+  &:hover:not(.nc-active) {
+    background: var(--nc-bg-gray-light);
+    color: var(--nc-content-gray);
+  }
+
+  &.nc-active {
+    background: var(--nc-bg-gray-light);
+    color: var(--nc-content-gray);
+  }
 }
 </style>

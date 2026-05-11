@@ -1433,6 +1433,7 @@
     "copyCode": "Copy code",
     "showCode": "Show code",
     "showDiagram": "Show diagram",
+    "splitView": "Split view",
     "expandDiagram": "Expand diagram",
     "emptyMermaidDiagram": "Enter Mermaid syntax to render a diagram",
     "dateDependency": {

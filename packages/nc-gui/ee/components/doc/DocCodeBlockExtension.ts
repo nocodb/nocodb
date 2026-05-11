@@ -40,6 +40,22 @@ const noAutoLowlight = {
 }
 
 export const DocCodeBlockExtension = CodeBlockLowlight.extend({
+  // Extend the lowlight attribute set with `viewMode` — used by mermaid blocks
+  // to remember whether the author left them showing code or diagram. Stored on
+  // the PM node, so it round-trips via the JSON content column (nc_doc_content)
+  // but is *deliberately* NOT emitted by the markdown serialiser (see
+  // helpers/tiptap-markdown/extensions/nodes/code-block.ts) — view mode is a
+  // presentation choice, not document content, so .md exports stay portable.
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      viewMode: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.getAttribute('data-view-mode'),
+        renderHTML: (attrs: Record<string, any>) => (attrs.viewMode ? { 'data-view-mode': attrs.viewMode } : {}),
+      },
+    }
+  },
   addNodeView() {
     return VueNodeViewRenderer(DocCodeBlockNode)
   },

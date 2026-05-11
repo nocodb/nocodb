@@ -141,20 +141,38 @@ const mermaidCode = computed(() => props.node.textContent)
 
 type MermaidViewMode = 'code' | 'diagram'
 
-// Editors start in code view (so they can write); readers start in diagram view.
-const mermaidViewMode = ref<MermaidViewMode>(isEditable.value ? 'code' : 'diagram')
+// Persisted choice stored on the PM node attribute (round-trips via the JSON
+// doc-content column). `null` until the author toggles for the first time.
+const persistedViewMode = computed<MermaidViewMode | null>(() => props.node.attrs.viewMode ?? null)
 
-// Re-default when the editor's editability flips (e.g. read-only share view).
-watch(isEditable, (editable) => {
-  mermaidViewMode.value = editable ? 'code' : 'diagram'
+// Session-local override for read-only viewers, who can't write back to the
+// node. Cleared whenever the persisted attribute changes so the author's
+// choice always wins once it lands.
+const localViewMode = ref<MermaidViewMode | null>(null)
+
+watch(persistedViewMode, () => {
+  localViewMode.value = null
 })
+
+// Effective mode: local override > persisted attr > dynamic default
+// (editable → code so the user can type; read-only → diagram for the reader).
+const mermaidViewMode = computed<MermaidViewMode>(
+  () => localViewMode.value ?? persistedViewMode.value ?? (isEditable.value ? 'code' : 'diagram'),
+)
 
 const showCodePane = computed(() => !isMermaid.value || mermaidViewMode.value === 'code')
 
 const showDiagramPane = computed(() => isMermaid.value && mermaidViewMode.value === 'diagram')
 
 const toggleMermaidView = () => {
-  mermaidViewMode.value = mermaidViewMode.value === 'code' ? 'diagram' : 'code'
+  const next: MermaidViewMode = mermaidViewMode.value === 'code' ? 'diagram' : 'code'
+  if (isEditable.value) {
+    // Persist as a node attribute — survives reload via PM JSON storage.
+    props.updateAttributes({ viewMode: next })
+    localViewMode.value = null
+  } else {
+    localViewMode.value = next
+  }
 }
 </script>
 

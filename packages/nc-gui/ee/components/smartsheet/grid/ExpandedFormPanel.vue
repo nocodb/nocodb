@@ -725,11 +725,6 @@ const showActivity = computed(() => {
 .nc-panel-mode-tab {
   @apply flex flex-row items-center h-full justify-center px-2 border-1 border-t-0 border-b-0 border-nc-border-gray-medium text-nc-content-gray-subtle2 cursor-pointer transition-all duration-300 select-none;
 
-  &:first-child,
-  &:last-child {
-    @apply border-0;
-  }
-
   &.active {
     @apply bg-nc-bg-brand-inverted text-nc-content-brand-disabled;
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
@@ -738,6 +733,14 @@ const showActivity = computed(() => {
   &:not(.active) {
     @apply hover:text-nc-content-gray-extreme;
   }
+}
+
+/* Edge tabs need no side border. :first-child / :last-child on the tab itself
+   doesn't work — each tab is wrapped in an NcTooltip, so every tab is the
+   first-and-only child of its own wrapper. Target via the pill parent. */
+.nc-panel-mode-selector > :first-child .nc-panel-mode-tab,
+.nc-panel-mode-selector > :last-child .nc-panel-mode-tab {
+  @apply border-0;
 }
 
 .nc-panel-mode-tab-icon {
@@ -848,9 +851,6 @@ const showActivity = computed(() => {
     }
   }
 
-  .nc-expanded-cell .flex-none {
-    @apply !mb-0;
-  }
 }
 
 /* Match grid canvas font (500 13px Inter) — needs high specificity to
@@ -882,8 +882,12 @@ const showActivity = computed(() => {
   height: 0.875rem !important;
 }
 
+/* Match nc-panel-mode-selector pill height (28px) so the header tabs look
+   identical between fullscreen (ViewModeSelector) and side-panel (activity
+   selector) modes. ViewModeSelector defaults to h-7, but keep the rule for
+   defensiveness against upstream changes. */
 .nc-expanded-form-panel .tab-wrapper {
-  @apply !h-6;
+  @apply !h-7;
 }
 
 /* Disable grey hover on audit items in panel */

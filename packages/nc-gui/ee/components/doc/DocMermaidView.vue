@@ -2,39 +2,20 @@
 /**
  * Renders a Mermaid source string as an SVG diagram.
  *
- * - Mermaid is lazy-loaded on first use (~1MB chunk) and cached at module scope
- *   so multiple diagrams on the same page share one instance.
- * - Theme is fixed to `neutral` in this iteration; theme sync arrives later.
- * - `securityLevel: 'strict'` makes mermaid sanitise SVG output, so the
- *   v-html block below is safe for trusted-input docs.
- * - Renders are debounced and stamped with a monotonic id so stale async
- *   results from rapid typing can't overwrite the latest output.
+ * The shared lazy-loader and render queue live in `./mermaidRenderer.ts`.
+ * They must be module-scoped (not declared inside this `<script setup>`)
+ * — see that file's comment for why. This component is purely the
+ * per-instance UI layer: track loading/error state and write the result
+ * into a reactive `svg` ref to render via `v-html`.
+ *
+ * Renders are debounced and stamped with a monotonic id so stale async
+ * results from rapid typing can't overwrite the latest output.
  */
-type MermaidApi = typeof import('mermaid').default
+import { renderMermaidDiagram } from './mermaidRenderer'
 
 const props = defineProps<{
   code: string
 }>()
-
-let mermaidPromise: Promise<MermaidApi> | null = null
-
-const loadMermaid = (): Promise<MermaidApi> => {
-  if (!mermaidPromise) {
-    mermaidPromise = import('mermaid').then((mod) => {
-      mod.default.initialize({
-        startOnLoad: false,
-        theme: 'neutral',
-        securityLevel: 'strict',
-        fontFamily: 'inherit',
-      })
-      return mod.default
-    })
-  }
-  return mermaidPromise
-}
-
-// Module-scoped counter — guarantees unique element ids across all instances.
-let nextRenderId = 0
 
 const svg = ref('')
 
@@ -60,9 +41,7 @@ const render = async () => {
   isLoading.value = true
 
   try {
-    const mermaid = await loadMermaid()
-    const elemId = `nc-mermaid-${++nextRenderId}`
-    const { svg: rendered } = await mermaid.render(elemId, code)
+    const rendered = await renderMermaidDiagram(code)
     if (myId !== activeRenderId) return
     svg.value = rendered
     errorMsg.value = ''

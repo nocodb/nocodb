@@ -316,6 +316,10 @@ export function genPgAggregateQuery({
         break;
       case NumericalAggregations.Range:
         if (column.uidt === UITypes.Rating) {
+          // FILTER binds to the immediately preceding aggregate, so this is
+          // MAX(all) - (MIN(...) FILTER (WHERE ... != 0)). Intentional: Rating
+          // treats 0 as "empty" for Min/Range but counts it for Max — matches
+          // the JS reducer in nocodb-sdk/aggregationCompute.ts.
           aggregationSql = knex.raw(
             `MAX((??)) - MIN((??)) FILTER (WHERE (??) != ??)`,
             [column_query, column_query, column_query, condnValue],

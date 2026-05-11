@@ -697,6 +697,28 @@ describe('aggregationCompute', () => {
       ).toBe('2026-04-28');
     });
 
+    it('EarliestDate / LatestDate: Date objects and numeric timestamps (not just ISO strings)', () => {
+      // String compare would put '1700000000000' (number) before '2024-01-15'
+      // alphabetically — chronological compare keeps the actual earliest.
+      const dateObj = new Date('2023-06-01');
+      const ts = new Date('2026-09-01').getTime();
+      const iso = '2024-01-15';
+      expect(
+        computeAggregation({
+          aggregation: DateAggregations.EarliestDate,
+          values: [iso, dateObj, ts],
+          column: dateCol,
+        })
+      ).toBe(dateObj);
+      expect(
+        computeAggregation({
+          aggregation: DateAggregations.LatestDate,
+          values: [iso, dateObj, ts],
+          column: dateCol,
+        })
+      ).toBe(ts);
+    });
+
     it('EarliestDate on empty returns null (no COALESCE — matches SQL exception)', () => {
       expect(
         computeAggregation({

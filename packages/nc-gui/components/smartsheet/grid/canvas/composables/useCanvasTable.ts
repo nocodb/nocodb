@@ -515,6 +515,32 @@ export function useCanvasTable({
     return cols as unknown as CanvasGridColumn[]
   })
 
+  // Walks the (possibly nested) group tree and returns the full path lineage
+  // for every group node — same serialization as generateGroupPath, but
+  // collected breadth-first so callers can look up each group's per-path cache.
+  const collectGroupPaths = (groups: Map<number, any> | undefined, parent: any[] = [], out: any[][] = []): any[][] => {
+    if (!groups) return out
+    for (const [, group] of groups) {
+      const cur = [...parent, ...(group?.path ?? [])]
+      if (cur.length) out.push(cur)
+      if (group?.groups?.size > 0) collectGroupPaths(group.groups, cur, out)
+    }
+    return out
+  }
+
+  // Bail-out cap for selection-mode aggregation. Beyond this many cells the
+  // JS reducers get expensive and the computed re-fires per mousemove during
+  // drag-select. The SQL footer is more accurate for huge selections anyway.
+  const MAX_SELECTION_CELLS_FOR_AGG = 50_000
+
+  // Debounced view of `selection` for aggregation computeds only. The raw
+  // `selection` ref updates on every mousemove during drag-select; the visual
+  // rect needs that immediacy, but recomputing aggregation values per move is
+  // wasteful. 60ms is short enough that the footer feels live on drag-end but
+  // long enough to coalesce intermediate ticks. Renderers and selection
+  // visuals should keep reading `selection` directly.
+  const selectionForAgg = refDebounced(selection, 60)
+
   // Selection-scoped aggregation. When the user has a multi-cell rectangular
   // range or any row-checkbox selection, footer aggregators recompute over the
   // selected cells (per-field), via SDK's computeAggregation. Fields outside
@@ -535,24 +561,21 @@ export function useCanvasTable({
       return { active: false, values: {}, scopedTitles: new Set<string>() }
     }
 
-    const range = selection.value
+    const range = selectionForAgg.value
     const hasRange = !range.isEmpty() && range.cellCount > 1
+
+    // Above this size we'd rather let the SQL footer stand than recompute over
+    // tens of thousands of cells on every mousemove during a drag-select.
+    if (hasRange && range.cellCount > MAX_SELECTION_CELLS_FOR_AGG) {
+      return { active: false, values: {}, scopedTitles: new Set<string>() }
+    }
+
     const topLevelCheckboxRows = selectedRows.value || []
 
     // In group-by mode each group has its own cachedRows + selectedRows under
     // getDataCache(path). Reading the top-level cache for a grouped selection
     // pulls rows from the wrong index space (which is why the footer summed
     // unrelated values pre-fix). Walk all groups to find any checkbox state.
-    const collectGroupPaths = (groups: Map<number, any> | undefined, parent: any[] = [], out: any[][] = []): any[][] => {
-      if (!groups) return out
-      for (const [, group] of groups) {
-        const cur = [...parent, ...(group?.path ?? [])]
-        if (cur.length) out.push(cur)
-        if (group?.groups?.size > 0) collectGroupPaths(group.groups, cur, out)
-      }
-      return out
-    }
-
     const groupCheckboxRows: Row[] = []
     if (isGroupBy.value && cachedGroups?.value) {
       for (const path of collectGroupPaths(cachedGroups.value)) {
@@ -646,8 +669,11 @@ export function useCanvasTable({
     // SQL group totals are correct for the all-rows case.
     if (vSelectedAllRecords.value) return result
 
-    const range = selection.value
+    const range = selectionForAgg.value
     const hasRange = !range.isEmpty() && range.cellCount > 1
+
+    // Same bail-out as selectionAggregations — see MAX_SELECTION_CELLS_FOR_AGG.
+    if (hasRange && range.cellCount > MAX_SELECTION_CELLS_FOR_AGG) return result
 
     const formatFor = (col: ColumnType, rawValue: any): string | undefined => {
       const aggType = gridViewCols.value[col.id!]?.aggregation
@@ -711,15 +737,6 @@ export function useCanvasTable({
 
     // Row-checkbox: each group with checked rows scopes ALL fields
     if (cachedGroups?.value) {
-      const collectGroupPaths = (groups: Map<number, any> | undefined, parent: any[] = [], out: any[][] = []): any[][] => {
-        if (!groups) return out
-        for (const [, group] of groups) {
-          const cur = [...parent, ...(group?.path ?? [])]
-          if (cur.length) out.push(cur)
-          if (group?.groups?.size > 0) collectGroupPaths(group.groups, cur, out)
-        }
-        return out
-      }
       for (const path of collectGroupPaths(cachedGroups.value)) {
         const checked = getDataCache(path as number[]).selectedRows?.value ?? []
         if (!checked.length) continue

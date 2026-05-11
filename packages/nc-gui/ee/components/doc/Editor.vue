@@ -2972,6 +2972,26 @@ defineExpose({ editor })
   height: 100dvh;
 }
 
+// Dark-mode overrides for the code-block CSS variables defined further
+// down in `.nc-doc-editor`. NocoDB sets `theme='dark'` on `<html>` via
+// `useTheme()`, so this selector flips automatically on theme change.
+[theme='dark'] .nc-doc-editor {
+  --nc-code-block-bg: #1f2937;
+  --nc-code-block-text: #f9fafb;
+  --nc-code-block-keyword: #ff7b72;
+  --nc-code-block-title: #d2a8ff;
+  --nc-code-block-attr: #79c0ff;
+  --nc-code-block-string: #a5d6ff;
+  --nc-code-block-built-in: #ffa657;
+  --nc-code-block-comment: #8b949e;
+  --nc-code-block-name: #7ee787;
+  --nc-code-block-section: #1f6feb;
+  --nc-code-block-toolbar-bg: rgba(255, 255, 255, 0.1);
+  --nc-code-block-toolbar-bg-hover: rgba(255, 255, 255, 0.15);
+  --nc-code-block-toolbar-fg: rgba(255, 255, 255, 0.6);
+  --nc-code-block-toolbar-fg-hover: rgba(255, 255, 255, 0.9);
+}
+
 // Cell mode (SmartText panel): zero out the first child's top margin so a
 // leading heading doesn't stack ~33px on top of the body's pt-6 padding.
 // Doc mode keeps the heading rhythm because the title block sits above.
@@ -3915,8 +3935,28 @@ defineExpose({ editor })
     font-size: 0.875em;
   }
 
-  // Code blocks — background/padding/border-radius handled by DocCodeBlockNode.vue.
-  // Inline hljs token colours defined here (GitHub Dark–inspired theme).
+  // Code blocks — container colours + hljs tokens are theme-aware.
+  // Variables live on `.nc-doc-editor` so they cascade into the scoped
+  // `.nc-code-block-content` styles in `DocCodeBlockNode.vue`. Dark
+  // overrides hang off the `[theme='dark']` attribute that NocoDB's
+  // `useTheme()` puts on `<html>`. Light palette = GitHub Light, dark
+  // palette = GitHub Dark — both familiar to developers and well-tuned
+  // for contrast.
+  --nc-code-block-bg: #f6f8fa;
+  --nc-code-block-text: #24292f;
+  --nc-code-block-keyword: #d73a49;
+  --nc-code-block-title: #6f42c1;
+  --nc-code-block-attr: #005cc5;
+  --nc-code-block-string: #032f62;
+  --nc-code-block-built-in: #e36209;
+  --nc-code-block-comment: #6a737d;
+  --nc-code-block-name: #22863a;
+  --nc-code-block-section: #005cc5;
+  --nc-code-block-toolbar-bg: rgba(0, 0, 0, 0.05);
+  --nc-code-block-toolbar-bg-hover: rgba(0, 0, 0, 0.1);
+  --nc-code-block-toolbar-fg: rgba(0, 0, 0, 0.55);
+  --nc-code-block-toolbar-fg-hover: rgba(0, 0, 0, 0.85);
+
   pre {
     code {
       background: none;
@@ -3926,7 +3966,6 @@ defineExpose({ editor })
     }
   }
 
-  // Syntax highlighting tokens (GitHub Dark)
   .hljs-doctag,
   .hljs-keyword,
   .hljs-meta .hljs-keyword,
@@ -3934,14 +3973,14 @@ defineExpose({ editor })
   .hljs-template-variable,
   .hljs-type,
   .hljs-variable.language_ {
-    color: #ff7b72;
+    color: var(--nc-code-block-keyword);
   }
 
   .hljs-title,
   .hljs-title.class_,
   .hljs-title.class_.inherited__,
   .hljs-title.function_ {
-    color: #d2a8ff;
+    color: var(--nc-code-block-title);
   }
 
   .hljs-attr,
@@ -3954,39 +3993,39 @@ defineExpose({ editor })
   .hljs-selector-attr,
   .hljs-selector-class,
   .hljs-selector-id {
-    color: #79c0ff;
+    color: var(--nc-code-block-attr);
   }
 
   .hljs-regexp,
   .hljs-string,
   .hljs-meta .hljs-string {
-    color: #a5d6ff;
+    color: var(--nc-code-block-string);
   }
 
   .hljs-built_in,
   .hljs-symbol {
-    color: #ffa657;
+    color: var(--nc-code-block-built-in);
   }
 
   .hljs-comment,
   .hljs-code,
   .hljs-formula {
-    color: #8b949e;
+    color: var(--nc-code-block-comment);
   }
 
   .hljs-name,
   .hljs-quote,
   .hljs-selector-tag,
   .hljs-selector-pseudo {
-    color: #7ee787;
+    color: var(--nc-code-block-name);
   }
 
   .hljs-subst {
-    color: #c9d1d9;
+    color: var(--nc-code-block-text);
   }
 
   .hljs-section {
-    color: #1f6feb;
+    color: var(--nc-code-block-section);
   }
 
   // Horizontal rule — centered line with vertical breathing room.

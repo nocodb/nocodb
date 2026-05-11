@@ -176,12 +176,6 @@ const showDiagramPane = computed(
   () => isMermaid.value && (mermaidViewMode.value === 'diagram' || mermaidViewMode.value === 'split'),
 )
 
-// Toolbar floats top-right. In `diagram` mode it sits over the (light-bg)
-// diagram pane and needs the dark-on-light variant. In `code` and `split`
-// the top of the block is the dark code pane, so the default (white-on-
-// translucent) styling already works.
-const isToolbarOnDiagram = computed(() => mermaidViewMode.value === 'diagram')
-
 const setMermaidViewMode = (mode: MermaidViewMode) => {
   if (isEditable.value) {
     // Persist as a node attribute — survives reload via PM JSON storage.
@@ -215,12 +209,7 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
 <template>
   <NodeViewWrapper class="nc-code-block-wrapper" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
     <!-- Toolbar: language selector + copy button -->
-    <div
-      v-show="showToolbar"
-      class="nc-code-block-toolbar"
-      :class="{ 'nc-code-block-toolbar-on-diagram': isToolbarOnDiagram }"
-      contenteditable="false"
-    >
+    <div v-show="showToolbar" class="nc-code-block-toolbar" contenteditable="false">
       <!-- Language selector -->
       <NcDropdown
         v-model:visible="isDropdownOpen"
@@ -414,16 +403,16 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
   padding: 0 8px;
   border: none;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
+  background: var(--nc-code-block-toolbar-bg);
+  color: var(--nc-code-block-toolbar-fg);
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   white-space: nowrap;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.9);
+    background: var(--nc-code-block-toolbar-bg-hover);
+    color: var(--nc-code-block-toolbar-fg-hover);
   }
 }
 
@@ -431,8 +420,8 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
   cursor: default;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
+    background: var(--nc-code-block-toolbar-bg);
+    color: var(--nc-code-block-toolbar-fg);
   }
 }
 
@@ -450,14 +439,14 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
   height: 28px;
   border: none;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
+  background: var(--nc-code-block-toolbar-bg);
+  color: var(--nc-code-block-toolbar-fg);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
   &:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.9);
+    background: var(--nc-code-block-toolbar-bg-hover);
+    color: var(--nc-code-block-toolbar-fg-hover);
   }
 
   &:disabled {
@@ -466,34 +455,9 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
   }
 }
 
-// Toolbar floats over the mermaid diagram pane — the diagram pane uses
-// `var(--nc-bg-default)` (white in light, near-black in dark), so the
-// default white-on-translucent chips become invisible there. Use
-// semantic gray-bg tokens which invert between light/dark and stay
-// legible in both.
-.nc-code-block-toolbar-on-diagram {
-  .nc-code-block-lang-trigger,
-  .nc-code-block-copy-btn {
-    background: var(--nc-bg-gray-light);
-    color: var(--nc-content-gray-subtle);
-
-    &:hover {
-      background: var(--nc-bg-gray-medium);
-      color: var(--nc-content-gray);
-    }
-  }
-
-  .nc-code-block-lang-trigger-readonly {
-    &:hover {
-      background: var(--nc-bg-gray-light);
-      color: var(--nc-content-gray-subtle);
-    }
-  }
-}
-
 .nc-code-block-content {
-  background-color: #1f2937;
-  color: #f9fafb;
+  background-color: var(--nc-code-block-bg);
+  color: var(--nc-code-block-text);
   border-radius: 0.5em;
   padding: 0.75em 1em;
   padding-top: 2.5em;

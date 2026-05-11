@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { DependencyTableType, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { DependencyTableType, RelationTypes, isLinkV2, isLinksOrLTAR } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -95,8 +95,11 @@ const onDelete = async () => {
       const relatedBaseId = (column.value.colOptions as LinkToAnotherRecordType).fk_related_base_id || meta?.value?.base_id
       await getMeta(relatedBaseId as string, (column.value.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
 
-      // reload tables if deleted column is mm and include m2m is true
-      if (includeM2M.value && (column.value.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {
+      // reload tables if deleted column owns a junction table and include m2m is enabled.
+      // LTAR v1 only creates a junction for MANY_TO_MANY; LTAR v2 always creates one (MM, OM, MO, OO).
+      const colType = (column.value.colOptions as LinkToAnotherRecordType).type
+      const hasJunctionTable = isLinkV2(column.value) || colType === RelationTypes.MANY_TO_MANY
+      if (includeM2M.value && hasJunctionTable) {
         loadTables()
       }
     }

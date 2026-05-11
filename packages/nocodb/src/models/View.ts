@@ -1303,58 +1303,67 @@ export default class View implements ViewType {
 
     // keep primary_value_column always visible and first in grid view
     if (view.type === ViewTypes.GRID) {
-      let primary_value_column_meta = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COLUMNS,
-        {
-          fk_model_id: view.fk_model_id,
-          pv: true,
-        },
-        undefined,
-        notDeletedXcCondition,
+      // Junction (m2m) tables don't have a display value column — skip pv logic
+      const model = await Model.getByIdOrName(
+        context,
+        { id: view.fk_model_id },
+        ncMeta,
       );
-      if (!primary_value_column_meta) {
-        const metaColumns = await ncMeta.metaList2(
+
+      if (!model?.mm) {
+        let primary_value_column_meta = await ncMeta.metaGet2(
           context.workspace_id,
           context.base_id,
           MetaTable.COLUMNS,
           {
-            xcCondition: (qb) => {
-              qb.where('fk_model_id', view.fk_model_id);
-              qb.andWhere((subQb) => {
-                subQb.where('system', false).orWhereNull('system');
-              });
-            },
-            orderBy: { order: 'asc' },
+            fk_model_id: view.fk_model_id,
+            pv: true,
           },
-        );
-        primary_value_column_meta = metaColumns.find((col) =>
-          isSupportedDisplayValueColumn(col),
+          undefined,
+          notDeletedXcCondition,
         );
         if (!primary_value_column_meta) {
-          NcError.get(context).internalServerError(
-            `No display field setup for table`,
+          const metaColumns = await ncMeta.metaList2(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COLUMNS,
+            {
+              xcCondition: (qb) => {
+                qb.where('fk_model_id', view.fk_model_id);
+                qb.andWhere((subQb) => {
+                  subQb.where('system', false).orWhereNull('system');
+                });
+              },
+              orderBy: { order: 'asc' },
+            },
           );
+          primary_value_column_meta = metaColumns.find((col) =>
+            isSupportedDisplayValueColumn(col),
+          );
+          if (!primary_value_column_meta) {
+            NcError.get(context).internalServerError(
+              `No display field setup for table`,
+            );
+          }
+          await Column.update(context, primary_value_column_meta.id, {
+            pv: true,
+          });
         }
-        await Column.update(context, primary_value_column_meta.id, {
-          pv: true,
-        });
-      }
 
-      const primary_value_column = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.GRID_VIEW_COLUMNS,
-        {
-          fk_view_id: view.id,
-          fk_column_id: primary_value_column_meta.id,
-        },
-      );
+        const primary_value_column = await ncMeta.metaGet2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.GRID_VIEW_COLUMNS,
+          {
+            fk_view_id: view.id,
+            fk_column_id: primary_value_column_meta.id,
+          },
+        );
 
-      if (primary_value_column && primary_value_column.id === colId) {
-        updateObj.order = 1;
-        updateObj.show = true;
+        if (primary_value_column && primary_value_column.id === colId) {
+          updateObj.order = 1;
+          updateObj.show = true;
+        }
       }
     }
     if (view.type === ViewTypes.CALENDAR || view.type === ViewTypes.TIMELINE) {

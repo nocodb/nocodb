@@ -697,6 +697,9 @@ export function useCopyPaste({
                 [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
               )
 
+              // Refresh view data so lookup/rollup columns reflect the new links
+              reloadViewDataHook?.trigger({ shouldShowLoading: false })
+
               return await syncCellData?.(activeCell.value, groupPath)
             } catch (e: any) {
               message.error(await extractSdkResponseErrorMsg(e))
@@ -814,9 +817,8 @@ export function useCopyPaste({
 
               // For OO and OM columns, pasting is a "move" — the backend enforces that each
               // child/record can only belong to one parent. Refresh view to reflect changes across all rows.
-              if (isOoOrOm(columnObj)) {
-                reloadViewDataHook?.trigger({ shouldShowLoading: false })
-              }
+              // For MM and other LTAR types, refresh the view so dependent lookup/rollup columns update.
+              reloadViewDataHook?.trigger({ shouldShowLoading: false })
 
               addUndo({
                 redo: {

@@ -38,6 +38,8 @@ const { meta, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const isRlsEnabled = computed(() => parseProp(meta.value?.meta)?.is_rls_enabled === true)
 
+const isMmTable = computed(() => !!meta.value?.mm)
+
 const { updateAggregate, getAggregations, visibleFieldsComputed, displayFieldComputed } = useViewAggregateOrThrow()
 
 const scrollLeft = toRef(props, 'scrollLeft')
@@ -143,15 +145,20 @@ const getCountWithLabel = (defaultCount: number) => {
   >
     <div class="sticky flex items-center bg-nc-bg-gray-extralight left-0">
       <NcDropdown
-        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(displayFieldComputed.column?.uidt!) || isLocked || !isViewOperationsAllowed"
+        :disabled="
+          [UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(displayFieldComputed.column?.uidt!) ||
+          isLocked ||
+          !isViewOperationsAllowed ||
+          isMmTable
+        "
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
           v-if="displayFieldComputed.field && displayFieldComputed.column?.id"
           class="flex items-center overflow-x-hidden text-nc-content-gray-muted justify-end transition-all transition-linear px-3 py-2"
           :class="{
-            'cursor-pointer': !isLocked && isViewOperationsAllowed,
-            'hover:bg-nc-bg-gray-light': isViewOperationsAllowed,
+            'cursor-pointer': !isLocked && isViewOperationsAllowed && !isMmTable,
+            'hover:bg-nc-bg-gray-light': isViewOperationsAllowed && !isMmTable,
           }"
           :style="{
             'min-width': displayFieldComputed?.width,
@@ -161,7 +168,7 @@ const getCountWithLabel = (defaultCount: number) => {
           }"
         >
           <div class="flex relative justify-between gap-2 w-full">
-            <template v-if="!disablePagination">
+            <template v-if="!disablePagination && !isMmTable">
               <div v-if="isViewDataLoading" class="nc-pagination-skeleton flex justify-center item-center min-h-10 min-w-16 w-16">
                 <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
               </div>
@@ -185,7 +192,7 @@ const getCountWithLabel = (defaultCount: number) => {
               </NcTooltip>
             </template>
 
-            <template v-else-if="+totalRows >= 0 || (selectedCellCount && selectedCellCount > 1)">
+            <template v-else-if="!isMmTable && (+totalRows >= 0 || (selectedCellCount && selectedCellCount > 1))">
               <NcTooltip class="flex sticky items-center h-full">
                 <template #title>
                   {{ getCountWithLabel(totalRows ?? 0).count }} {{ getCountWithLabel(totalRows ?? 0).label }}
@@ -209,7 +216,10 @@ const getCountWithLabel = (defaultCount: number) => {
             </template>
 
             <template
-              v-if="![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(displayFieldComputed.column?.uidt!)"
+              v-if="
+                !isMmTable &&
+                ![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(displayFieldComputed.column?.uidt!)
+              "
             >
               <div
                 v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
@@ -308,14 +318,19 @@ const getCountWithLabel = (defaultCount: number) => {
       ></div>
       <NcDropdown
         v-if="field && column?.id"
-        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(column?.uidt!) || isLocked || !isViewOperationsAllowed"
+        :disabled="
+          [UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!) ||
+          isLocked ||
+          !isViewOperationsAllowed ||
+          isMmTable
+        "
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
           class="flex items-center overflow-hidden justify-end group text-nc-content-gray-muted transition-all transition-linear px-3 py-2"
           :class="{
-            'cursor-pointer': !isLocked && isViewOperationsAllowed,
-            'hover:bg-nc-bg-gray-light': isViewOperationsAllowed,
+            'cursor-pointer': !isLocked && isViewOperationsAllowed && !isMmTable,
+            'hover:bg-nc-bg-gray-light': isViewOperationsAllowed && !isMmTable,
           }"
           :style="{
             'min-width': width,
@@ -323,7 +338,9 @@ const getCountWithLabel = (defaultCount: number) => {
             'width': width,
           }"
         >
-          <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)">
+          <template
+            v-if="!isMmTable && ![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)"
+          >
             <div
               v-if="field?.aggregation === 'none' || field?.aggregation === null"
               :class="{

@@ -373,7 +373,11 @@ const disableAssignAsPersonalView = computed(() => {
 
 const isUploadAllowed = computed(() => {
   return (
-    isUIAllowed('csvTableImport') && !isPublicView.value && !isDataReadOnly.value && table.value?.type !== 'view' // isSqlView
+    isUIAllowed('csvTableImport') &&
+    !isPublicView.value &&
+    !isDataReadOnly.value &&
+    table.value?.type !== 'view' && // isSqlView
+    !table.value?.mm
   )
 })
 

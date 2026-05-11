@@ -228,6 +228,10 @@ const uiFilters = (t: UiTypesType) => {
   if (t.name === column?.value?.uidt) {
     return true
   }
+  // M2M junction tables have no source rows for system audit fields — values would always be null
+  const isMmTable = !!meta.value?.mm
+  if (isMmTable && isSystemField(t)) return false
+
   const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
   const isVirtualEditAllowed = !isEdit.value || !t.virtual || t.name === formState.value.uidt
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)

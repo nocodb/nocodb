@@ -666,6 +666,10 @@ interface CanvasGridColumn {
   aggregation: string
   agg_fn: string
   agg_prefix: string
+  /** True when a cell selection is active and this field is either out-of-scope
+   *  (blank) or in-scope but has no aggregator configured. Renderer should
+   *  skip both the value and the "Summary" hover affordance. */
+  aggregationSuppressed?: boolean
   relatedColObj?: ColumnType
   relatedTableMeta?: TableType
   isInvalidColumn?: {

@@ -73,6 +73,7 @@ export * from '~/lib/mergeSwaggerSchema';
 export * from '~/lib/dateTimeHelper';
 export * from '~/lib/form';
 export * from '~/lib/aggregationHelper';
+export * from '~/lib/aggregationCompute';
 export * from '~/lib/connectionConfigUtils';
 export * from '~/lib/currencyHelpers';
 export * from '~/lib/filterHelpers';

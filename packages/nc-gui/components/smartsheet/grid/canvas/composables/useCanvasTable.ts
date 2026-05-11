@@ -1,7 +1,9 @@
 import {
+  CommonAggregations,
   PermissionEntity,
   PermissionKey,
   UITypes,
+  computeAggregation,
   isAIPromptCol,
   isLinksOrLTAR,
   isOrderCol,
@@ -513,14 +515,281 @@ export function useCanvasTable({
     return cols as unknown as CanvasGridColumn[]
   })
 
+  // Walks the (possibly nested) group tree and returns the full path lineage
+  // for every group node — same serialization as generateGroupPath, but
+  // collected breadth-first so callers can look up each group's per-path cache.
+  const collectGroupPaths = (groups: Map<number, any> | undefined, parent: any[] = [], out: any[][] = []): any[][] => {
+    if (!groups) return out
+    for (const [, group] of groups) {
+      const cur = [...parent, ...(group?.path ?? [])]
+      if (cur.length) out.push(cur)
+      if (group?.groups?.size > 0) collectGroupPaths(group.groups, cur, out)
+    }
+    return out
+  }
+
+  // Bail-out cap for selection-mode aggregation. Beyond this many cells the
+  // JS reducers get expensive and the computed re-fires per mousemove during
+  // drag-select. The SQL footer is more accurate for huge selections anyway.
+  const MAX_SELECTION_CELLS_FOR_AGG = 50_000
+
+  // Debounced view of `selection` for aggregation computeds only. The raw
+  // `selection` ref updates on every mousemove during drag-select; the visual
+  // rect needs that immediacy, but recomputing aggregation values per move is
+  // wasteful. 60ms is short enough that the footer feels live on drag-end but
+  // long enough to coalesce intermediate ticks. Renderers and selection
+  // visuals should keep reading `selection` directly.
+  const selectionForAgg = refDebounced(selection, 60)
+
+  // Selection-scoped aggregation. When the user has a multi-cell rectangular
+  // range or any row-checkbox selection, footer aggregators recompute over the
+  // selected cells (per-field), via SDK's computeAggregation. Fields outside
+  // the selection scope blank out so the footer reflects only what's selected.
+  // Single-cell active is NOT a selection (cellCount === 1 → leaves footer alone).
+  const selectionAggregations = computed<{
+    active: boolean
+    values: Record<string, any>
+    scopedTitles: Set<string>
+  }>(() => {
+    // "Select all records" via the header checkbox sets vSelectedAllRecords
+    // true, but the actual selectedRows array only reflects rows currently
+    // loaded into the virtualized cache. Computing client-side over that
+    // partial set yields a sum that drifts as the user scrolls. The SQL
+    // footer already shows the correct total for the all-rows case, so
+    // deactivating selection-mode here lets it pass through unchanged.
+    if (vSelectedAllRecords.value) {
+      return { active: false, values: {}, scopedTitles: new Set<string>() }
+    }
+
+    const range = selectionForAgg.value
+    const hasRange = !range.isEmpty() && range.cellCount > 1
+
+    // Above this size we'd rather let the SQL footer stand than recompute over
+    // tens of thousands of cells on every mousemove during a drag-select.
+    if (hasRange && range.cellCount > MAX_SELECTION_CELLS_FOR_AGG) {
+      return { active: false, values: {}, scopedTitles: new Set<string>() }
+    }
+
+    const topLevelCheckboxRows = selectedRows.value || []
+
+    // In group-by mode each group has its own cachedRows + selectedRows under
+    // getDataCache(path). Reading the top-level cache for a grouped selection
+    // pulls rows from the wrong index space (which is why the footer summed
+    // unrelated values pre-fix). Walk all groups to find any checkbox state.
+    const groupCheckboxRows: Row[] = []
+    if (isGroupBy.value && cachedGroups?.value) {
+      for (const path of collectGroupPaths(cachedGroups.value)) {
+        const groupChecked = getDataCache(path as number[]).selectedRows?.value ?? []
+        if (groupChecked.length) groupCheckboxRows.push(...groupChecked)
+      }
+    }
+
+    const hasCheckbox = topLevelCheckboxRows.length > 0 || groupCheckboxRows.length > 0
+    if (!hasCheckbox && !hasRange) {
+      return { active: false, values: {}, scopedTitles: new Set<string>() }
+    }
+
+    const values: Record<string, any> = {}
+    const scopedTitles = new Set<string>()
+
+    const computeFor = (col: ColumnType, rows: Row[]) => {
+      if (!col?.id || !col?.title) return
+      scopedTitles.add(col.title)
+      const aggType = gridViewCols.value[col.id]?.aggregation
+      if (!aggType || aggType === CommonAggregations.None) return
+      const cellValues = rows.map((r) => r?.row?.[col.title!])
+      try {
+        values[col.title] = computeAggregation({
+          aggregation: aggType,
+          values: cellValues,
+          column: col,
+          parsedFormulaType: (col.colOptions as any)?.parsed_tree?.dataType,
+        })
+      } catch {
+        // swallow — leaving the field unscored is safer than crashing render
+      }
+    }
+
+    if (hasCheckbox) {
+      const checkboxRows = topLevelCheckboxRows.length ? topLevelCheckboxRows : groupCheckboxRows
+      for (const f of fields.value) computeFor(f, checkboxRows)
+    } else if (isGroupBy.value && activeCell.value?.path) {
+      // Grouped cell-range: read from the active cell's group cache.
+      const dataCache = getDataCache(activeCell.value.path as number[])
+      const rangeRows: Row[] = []
+      for (let r = range.start.row; r <= range.end.row; r++) {
+        const row = dataCache.cachedRows.value.get(r)
+        if (row) rangeRows.push(row)
+      }
+      // Bail if the range overlaps unloaded rows — better to keep the SQL
+      // footer than display a misleading partial-set sum.
+      if (rangeRows.length === 0) {
+        return { active: false, values: {}, scopedTitles: new Set<string>() }
+      }
+      const baseCols = _columnsBase.value
+      for (let c = range.start.col; c <= range.end.col; c++) {
+        const colObj = baseCols[c]
+        if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
+        computeFor(colObj.columnObj, rangeRows)
+      }
+    } else {
+      // Non-grouped cell-range.
+      const rangeRows: Row[] = []
+      for (let r = range.start.row; r <= range.end.row; r++) {
+        const row = cachedRows.value.get(r)
+        if (row) rangeRows.push(row)
+      }
+      if (rangeRows.length === 0) {
+        return { active: false, values: {}, scopedTitles: new Set<string>() }
+      }
+      const baseCols = _columnsBase.value
+      for (let c = range.start.col; c <= range.end.col; c++) {
+        const colObj = baseCols[c]
+        if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
+        computeFor(colObj.columnObj, rangeRows)
+      }
+    }
+
+    return { active: true, values, scopedTitles }
+  })
+
+  // Per-group selection-scoped aggregations. Keyed by group path joined on
+  // '-' (matches the serialization in useInfiniteGroups). Each entry holds
+  // pre-formatted display values for that group's columns and the
+  // scopedTitles set (column titles in selection scope; others blank).
+  // Cell-range selection: only the active group gets an entry. Row-checkbox
+  // selection: every group with checked rows gets its own entry.
+  const groupSelectionAggregations = computed<
+    Map<string, { values: Record<string, string | undefined>; scopedTitles: Set<string> }>
+  >(() => {
+    const result = new Map<string, { values: Record<string, string | undefined>; scopedTitles: Set<string> }>()
+    if (!isGroupBy.value) return result
+    // Same loading-state caveat as selectionAggregations: select-all gives a
+    // partial selectedRows that grows with scroll. Skip per-group overrides;
+    // SQL group totals are correct for the all-rows case.
+    if (vSelectedAllRecords.value) return result
+
+    const range = selectionForAgg.value
+    const hasRange = !range.isEmpty() && range.cellCount > 1
+
+    // Same bail-out as selectionAggregations — see MAX_SELECTION_CELLS_FOR_AGG.
+    if (hasRange && range.cellCount > MAX_SELECTION_CELLS_FOR_AGG) return result
+
+    const formatFor = (col: ColumnType, rawValue: any): string | undefined => {
+      const aggType = gridViewCols.value[col.id!]?.aggregation
+      if (!aggType || aggType === CommonAggregations.None || rawValue === undefined) return undefined
+      return getFormattedAggrationValue(aggType, rawValue, col, [], {
+        col,
+        meta: meta.value as TableType,
+        metas: metas.value,
+        isMysql,
+        isPg,
+      })
+    }
+
+    const computePerGroup = (
+      rows: Row[],
+      colsForScope: ColumnType[],
+    ): { values: Record<string, string | undefined>; scopedTitles: Set<string> } => {
+      const values: Record<string, string | undefined> = {}
+      const scopedTitles = new Set<string>()
+      for (const f of colsForScope) {
+        if (!f?.id || !f?.title) continue
+        scopedTitles.add(f.title)
+        const aggType = gridViewCols.value[f.id]?.aggregation
+        if (!aggType || aggType === CommonAggregations.None) continue
+        const cellValues = rows.map((r) => r?.row?.[f.title!])
+        try {
+          const raw = computeAggregation({
+            aggregation: aggType,
+            values: cellValues,
+            column: f,
+            parsedFormulaType: (f.colOptions as any)?.parsed_tree?.dataType,
+          })
+          values[f.title] = formatFor(f, raw)
+        } catch {
+          // swallow — fall back to undefined; renderer treats as blank
+        }
+      }
+      return { values, scopedTitles }
+    }
+
+    // Cell-range: scope is the column slice [start.col, end.col] in the active group
+    if (hasRange && activeCell.value?.path?.length) {
+      const path = activeCell.value.path as number[]
+      const dataCache = getDataCache(path)
+      const rangeRows: Row[] = []
+      for (let r = range.start.row; r <= range.end.row; r++) {
+        const row = dataCache.cachedRows.value.get(r)
+        if (row) rangeRows.push(row)
+      }
+      if (rangeRows.length > 0) {
+        const baseCols = _columnsBase.value
+        const colsForScope: ColumnType[] = []
+        for (let c = range.start.col; c <= range.end.col; c++) {
+          const colObj = baseCols[c]
+          if (!colObj || colObj.id === 'row_number' || !colObj.columnObj) continue
+          colsForScope.push(colObj.columnObj)
+        }
+        result.set(path.join('-'), computePerGroup(rangeRows, colsForScope))
+      }
+    }
+
+    // Row-checkbox: each group with checked rows scopes ALL fields
+    if (cachedGroups?.value) {
+      for (const path of collectGroupPaths(cachedGroups.value)) {
+        const checked = getDataCache(path as number[]).selectedRows?.value ?? []
+        if (!checked.length) continue
+        // Only override if not already set by cell-range branch above
+        const key = (path as number[]).join('-')
+        if (result.has(key)) continue
+        result.set(key, computePerGroup(checked, fields.value as ColumnType[]))
+      }
+    }
+
+    return result
+  })
+
   // Lightweight wrapper: during resize, patches only the resizing column's width
   // without recomputing _columnsBase (which does heavy meta/aggregation/permission work).
+  // Also layers the selection-scoped aggregation override on top.
   const columns = computed<CanvasGridColumn[]>(() => {
     const base = _columnsBase.value
     const override = resizeWidthOverride.value
-    if (!override) return base
+    const widthApplied = override
+      ? base.map((col) => (col.id === override.columnId ? { ...col, width: override.width } : col))
+      : base
 
-    return base.map((col) => (col.id === override.columnId ? { ...col, width: override.width } : col))
+    const sel = selectionAggregations.value
+    if (!sel.active) return widthApplied
+
+    return widthApplied.map((col) => {
+      if (col.id === 'row_number') return col
+
+      if (sel.scopedTitles.has(col.title)) {
+        // In-selection field: replace footer value with JS-computed selection aggregation.
+        // If the column has no aggregation configured (`agg_fn` empty/None), nothing to override —
+        // existing "Summary" affordance stays as-is, but suppress hover via the sentinel anyway
+        // so the user isn't tempted to configure aggregation while a selection is active.
+        const rawValue = sel.values[col.title]
+        if (rawValue === undefined || !col.agg_fn || col.agg_fn === CommonAggregations.None) {
+          return { ...col, aggregationSuppressed: true } as CanvasGridColumn
+        }
+        const formatted = getFormattedAggrationValue(col.agg_fn, rawValue, col.columnObj, [], {
+          col: col.columnObj,
+          meta: meta.value as TableType,
+          metas: metas.value,
+          isMysql,
+          isPg,
+        })
+        return { ...col, aggregation: formatted ?? '' }
+      }
+
+      // Out-of-selection field at the global level: just set the suppression
+      // flag. Don't blank agg_fn / agg_prefix / aggregation — per-group
+      // rendering is a separate decision and reads them independently.
+      return { ...col, aggregationSuppressed: true } as CanvasGridColumn
+    })
   })
 
   const columnWidths = computed(() =>
@@ -945,6 +1214,7 @@ export function useCanvasTable({
     rowColouringBorderWidth,
     isRecordSelected,
     isViewOperationsAllowed,
+    groupSelectionAggregations,
   })
 
   const { handleDragStart } = useRowReorder({

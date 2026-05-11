@@ -110,6 +110,7 @@ export function useCanvasRender({
   rowColouringBorderWidth,
   isRecordSelected,
   isViewOperationsAllowed,
+  groupSelectionAggregations,
 }: {
   width: Ref<number>
   height: Ref<number>
@@ -195,6 +196,7 @@ export function useCanvasRender({
   rowColouringBorderWidth: ComputedRef<number>
   isRecordSelected: (row: Row) => boolean
   isViewOperationsAllowed: ComputedRef<boolean>
+  groupSelectionAggregations: ComputedRef<Map<string, { values: Record<string, string | undefined>; scopedTitles: Set<string> }>>
 }) {
   const canvasRef = ref<HTMLCanvasElement>()
   const colResizeHoveredColIds = ref(new Set())
@@ -2179,6 +2181,17 @@ export function useCanvasRender({
           mousePosition,
         ) && isViewOperationsAllowed.value
       ctx.fillStyle = isHovered ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.gray['50'])
+      if (column.aggregationSuppressed) {
+        // Selection-mode footer: column is either out-of-selection or has no
+        // aggregator configured. Render the divider but skip value + hover.
+        ctx.beginPath()
+        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
+        ctx.moveTo(xOffset - _scrollLeft, _height - AGGREGATION_HEIGHT)
+        ctx.lineTo(xOffset - _scrollLeft, _height)
+        ctx.stroke()
+        xOffset += width
+        return
+      }
       if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
         ctx.save()
         ctx.beginPath()
@@ -2293,7 +2306,10 @@ export function useCanvasRender({
         ctx.textBaseline = 'middle'
         let availWidth = mergedWidth - 16
 
-        if (firstFixedCol.agg_fn && ![AllAggregations.None].includes(firstFixedCol.agg_fn as any)) {
+        if (firstFixedCol.aggregationSuppressed) {
+          // Selection-mode: skip the right-aligned aggregation but still draw
+          // the "X cells selected" / "X records" label below.
+        } else if (firstFixedCol.agg_fn && ![AllAggregations.None].includes(firstFixedCol.agg_fn as any)) {
           ctx.save()
           ctx.beginPath()
           ctx.rect(xOffset, _height - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
@@ -3209,7 +3225,26 @@ export function useCanvasRender({
             // Final `width`: Remaining space after accounting for fixed column overlap and last column adjustment
             const widthClamped = Math.max(width - overlap - adjustment, 0)
 
-            if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
+            // Phase 5: per-group selection scoping. If this group has an entry
+            // in groupSelectionAggregations, override the displayed value for
+            // in-scope columns and skip render entirely for out-of-scope ones.
+            // Groups without an entry render normally (full SQL aggregation).
+            // Use generateGroupPath (lineage from nestedIn) rather than
+            // group.path directly — group.path is only assigned to leaf groups
+            // (useInfiniteGroups.ts:275), so non-leaf renders would otherwise
+            // collapse onto the same empty-path key.
+            const groupSelKey = group ? generateGroupPath(group).join('-') : ''
+            const groupSelOverride = groupSelKey
+              ? groupSelectionAggregations.value.get(groupSelKey)
+              : undefined
+            const groupSelOutOfScope = !!groupSelOverride && !groupSelOverride.scopedTitles.has(column.title)
+            const groupSelDisplayValue = groupSelOverride?.values[column.title]
+            const aggDisplay = groupSelDisplayValue !== undefined ? groupSelDisplayValue : group?.aggregations[column.title]
+
+            if (groupSelOutOfScope) {
+              // Skip value + hover. Still render the column divider (drawn after
+              // the if/else block) to keep the visual grid consistent.
+            } else if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
               ctx.save()
 
               const aggRectY = groupHeaderY + 1
@@ -3236,7 +3271,7 @@ export function useCanvasRender({
               ctx.textAlign = 'right'
 
               ctx.font = '600 12px Inter'
-              const aggWidth = ctx.measureText(group?.aggregations[column.title] ?? ' - ').width
+              const aggWidth = ctx.measureText(aggDisplay ?? ' - ').width
               if (column.agg_prefix) {
                 ctx.font = '400 12px Inter'
                 ctx.fillStyle = getColor(themeV4Colors.gray['500'])
@@ -3250,7 +3285,7 @@ export function useCanvasRender({
               ctx.fillStyle = getColor(themeV4Colors.gray['700'])
               ctx.font = '600 12px Inter'
               ctx.fillText(
-                group?.aggregations[column.title] ?? ' - ',
+                aggDisplay ?? ' - ',
                 aggXOffset + width - 8 - scrollLeft.value,
                 groupHeaderY +
                   (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,

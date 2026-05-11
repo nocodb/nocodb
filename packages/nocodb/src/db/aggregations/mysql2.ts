@@ -287,7 +287,10 @@ export function genMysql2AggregatedQuery({
         break;
       case NumericalAggregations.StandardDeviation:
         if (column.uidt === UITypes.Rating) {
-          aggregationSql = knex.raw(`STDDEV((??))`, [column_query]);
+          aggregationSql = knex.raw(
+            `STDDEV(CASE WHEN (??) != ${condnValue} THEN (??) ELSE NULL END)`,
+            [column_query, column_query],
+          );
           break;
         }
         aggregationSql = knex.raw(`STDDEV((??))`, [column_query]);

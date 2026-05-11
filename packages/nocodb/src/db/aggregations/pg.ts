@@ -315,6 +315,17 @@ export function genPgAggregateQuery({
         aggregationSql = knex.raw(`stddev_pop((??))`, [column_query]);
         break;
       case NumericalAggregations.Range:
+        if (column.uidt === UITypes.Rating) {
+          // FILTER binds to the immediately preceding aggregate, so this is
+          // MAX(all) - (MIN(...) FILTER (WHERE ... != 0)). Intentional: Rating
+          // treats 0 as "empty" for Min/Range but counts it for Max — matches
+          // the JS reducer in nocodb-sdk/aggregationCompute.ts.
+          aggregationSql = knex.raw(
+            `MAX((??)) - MIN((??)) FILTER (WHERE (??) != ??)`,
+            [column_query, column_query, column_query, condnValue],
+          );
+          break;
+        }
         aggregationSql = knex.raw(`MAX((??)) - MIN((??))`, [
           column_query,
           column_query,
@@ -374,14 +385,17 @@ export function genPgAggregateQuery({
           column_query,
         ]);
         break;
-      // The Date, DateTime, CreatedTime, LastModifiedTime columns are casted to DATE.
+      // Calendar-month diff (matches SQLite / MySQL / JS reducer). AGE() would
+      // return elapsed-time-in-whole-months instead, which is off by one when
+      // the day-of-month of the max is earlier than the day-of-month of the min
+      // (e.g. 2024-01-15 → 2025-01-01 is 11 months 17 days under AGE, but 12
+      // calendar months apart).
       case DateAggregations.MonthRange:
         aggregationSql = knex.raw(
-          `DATE_PART('year', AGE(MAX((??)::date), MIN((??)::date))) * 12 + 
-         DATE_PART('month', AGE(MAX((??)::date), MIN((??)::date))) `,
+          `(EXTRACT(YEAR FROM MAX((??)::date)) * 12 + EXTRACT(MONTH FROM MAX((??)::date)))
+         - (EXTRACT(YEAR FROM MIN((??)::date)) * 12 + EXTRACT(MONTH FROM MIN((??)::date)))`,
           [column_query, column_query, column_query, column_query],
         );
-
         break;
       default:
         break;

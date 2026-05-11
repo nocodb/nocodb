@@ -224,7 +224,7 @@ function handleDrop() {
 .nc-bookmark-list-group {
   @apply px-3 pt-3 pb-1 last-of-type:pb-3;
   & + & {
-    @apply mt-1 border-t-1 border-dashed border-nc-border-gray-medium;
+    @apply mt-1;
   }
   &.is-drop-target {
     background: color-mix(in srgb, var(--nc-content-brand) 6%, transparent);
@@ -235,7 +235,7 @@ function handleDrop() {
 }
 
 .nc-bookmark-list-h {
-  @apply flex items-center gap-2.5 mb-1.5 px-1 cursor-pointer select-none min-w-0;
+  @apply flex items-center gap-2.5 mb-1.5 px-1 min-h-7 cursor-pointer select-none min-w-0;
 }
 .nc-bookmark-list-check {
   @apply flex-none;

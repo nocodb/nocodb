@@ -176,14 +176,14 @@ function handleDragStart(e: DragEvent) {
 
 <style lang="scss" scoped>
 .nc-bookmark-item {
-  @apply flex items-center gap-2.5 px-2.5 py-1.5 rounded-md cursor-pointer relative min-w-0;
+  @apply flex items-center gap-2.5 px-2.5 py-0.5 min-h-7 rounded-md cursor-pointer relative min-w-0;
   @apply hover:bg-nc-bg-gray-light;
 
   &.is-dragging {
     @apply opacity-40;
   }
   &.is-compact {
-    @apply gap-2 py-1 px-2;
+    @apply gap-2 py-0.5 px-2;
   }
   &.is-selected {
     background: color-mix(in srgb, var(--nc-content-brand) 8%, transparent);
@@ -195,7 +195,7 @@ function handleDragStart(e: DragEvent) {
 }
 
 .nc-bookmark-item-ic {
-  @apply flex-none w-5 h-5 flex items-center justify-center;
+  @apply flex-none w-4 h-4 flex items-center justify-center;
 }
 
 .nc-bookmark-item-title-wrap {

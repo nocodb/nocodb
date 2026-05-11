@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ViewTypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import type { FilterType } from 'nocodb-sdk';
@@ -34,8 +34,6 @@ const TIMELINE_MAX_WINDOW_DAYS = 4000;
 
 @Injectable()
 export class TimelineDatasService {
-  protected logger = new Logger(TimelineDatasService.name);
-
   constructor(protected datasService: DatasService) {}
 
   async getTimelineDataList(

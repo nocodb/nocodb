@@ -103,10 +103,11 @@ test.describe('Timeline View', () => {
     await expect(timeline.get()).toBeVisible();
 
     // The default range auto-picks the first date column for `from`.
-    // Bars should render for at least the records whose StartDate falls
-    // in the default buffer window centred on today.
+    // `navigateToClosestRecord` re-anchors the buffer on the closest
+    // record to today on initial load, so the seed window must produce
+    // visible bars (otherwise the closest-record path is broken).
     const barCount = await timeline.getBarCount();
-    expect(barCount).toBeGreaterThanOrEqual(0);
+    expect(barCount).toBeGreaterThan(0);
   });
 
   test('default Fields-menu visibility is minimal — display + range only', async () => {
@@ -146,7 +147,8 @@ test.describe('Timeline View', () => {
     );
 
     await timeline.clickNext();
-    const req = await requestPromise.catch(() => null);
+    // Strict — if the navigation stops issuing the windowed fetch this throws.
+    const req = await requestPromise;
     const after = await timeline.getActiveDateLabel();
 
     // Active-date label must shift after a navigation click.
@@ -155,10 +157,8 @@ test.describe('Timeline View', () => {
     // We don't assert specific dates — they depend on the test wall
     // clock — only that both the from_date and to_date params are
     // present and look like ISO dates (YYYY-MM-DD prefix).
-    if (req) {
-      const url = decodeURIComponent(req.url());
-      expect(url).toMatch(/from_date=\d{4}-\d{2}-\d{2}/);
-      expect(url).toMatch(/to_date=\d{4}-\d{2}-\d{2}/);
-    }
+    const url = decodeURIComponent(req.url());
+    expect(url).toMatch(/from_date=\d{4}-\d{2}-\d{2}/);
+    expect(url).toMatch(/to_date=\d{4}-\d{2}-\d{2}/);
   });
 });

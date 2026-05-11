@@ -1,8 +1,13 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import type { Row as RowType } from '#imports'
 import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
-import { TIMELINE_GROUP_HEADER_HEIGHT, TIMELINE_GROUP_SIDEBAR_WIDTH, TIMELINE_RECORD_LIMIT, TIMELINE_ZOOM_LEVELS } from '../../../utils/timelineUtils'
+import {
+  TIMELINE_GROUP_HEADER_HEIGHT,
+  TIMELINE_GROUP_SIDEBAR_WIDTH,
+  TIMELINE_RECORD_LIMIT,
+  TIMELINE_ZOOM_LEVELS,
+} from '../../../utils/timelineUtils'
+import type { Row as RowType } from '#imports'
 
 const meta = inject(MetaInj, ref())
 
@@ -46,7 +51,6 @@ const {
   setZoomLevel,
   currentDate,
   totalRecordCount,
-  recordsWithoutDates,
   navigateToClosestRecord,
   updateFormat,
   colWidth,
@@ -59,7 +63,6 @@ const {
   weekendOffsets,
   minorLabels,
 } = useTimelineViewStoreOrThrow()
-
 
 const zoomOptions = TIMELINE_ZOOM_LEVELS
 
@@ -222,9 +225,13 @@ const { width: groupHeaderWidth } = useElementSize(groupHeaderRef)
 // Surface viewport width to the store from the grouped header — scroll math
 // (centring on a date, edge-extension thresholds) needs the visible width.
 // In flat mode Grid.vue does the same from its own container.
-watch(groupHeaderWidth, (w) => {
-  if (w > 0) setViewportWidth(w)
-}, { immediate: true })
+watch(
+  groupHeaderWidth,
+  (w) => {
+    if (w > 0) setViewportWidth(w)
+  },
+  { immediate: true },
+)
 
 // Mirror store scrollLeft into the grouped header so it follows when a per-group
 // body scrolls. `flush: sync` keeps the header lockstep with the body during
@@ -282,26 +289,26 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
   $e('c:timeline:date-picker', { zoomLevel: zoomLevel.value })
 }
 
-// #3: Record count badge text
+// #3: Record count badge text. The windowed-fetch path filters by date
+// overlap server-side, so null-date rows never reach formattedData —
+// the "X without dates" variant of this label is no longer reachable
+// from here. If a separate count endpoint surfaces those rows in the
+// future, re-introduce the variant.
 const recordCountLabel = computed(() => {
   const total = totalRecordCount.value
-  const noDate = recordsWithoutDates.value
-  if (noDate > 0) {
-    return t('msg.timelineRecordsCountWithMissing', { total, noDate })
-  }
   return total > 0 ? t('msg.timelineRecordsCount', { total }) : ''
 })
 
 // Date-picker button width per zoom level. Wider scales need less space
 // (just a year/quarter label); finer scales need a full date.
 const dateButtonWidthClass: Record<TimelineZoomLevel, string> = {
-  day: 'w-48',
-  week: 'w-38',
+  'day': 'w-48',
+  'week': 'w-38',
   '2week': 'w-38',
-  month: 'w-29',
-  quarter: 'w-29',
+  'month': 'w-29',
+  'quarter': 'w-29',
   '6month': 'w-29',
-  year: 'w-29',
+  'year': 'w-29',
   '2year': 'w-29',
   '5year': 'w-29',
 }
@@ -328,7 +335,8 @@ const dateButtonWidthClass: Record<TimelineZoomLevel, string> = {
         <!-- #7: Date Header with picker dropdown -->
         <NcDropdown v-model:visible="datePickerVisible" :trigger="['click']">
           <NcButton
-            :class="[dateButtonWidthClass[zoomLevel], 'nc-timeline-prev-next-btn !h-7']"
+            class="nc-timeline-prev-next-btn !h-7"
+            :class="[dateButtonWidthClass[zoomLevel]]"
             full-width
             size="small"
             type="secondary"
@@ -427,14 +435,10 @@ const dateButtonWidthClass: Record<TimelineZoomLevel, string> = {
         <NcTooltip
           v-if="recordCountLabel && !isGroupBy"
           class="ml-1 text-[11px] text-nc-content-gray-muted font-medium px-1.5 py-0.5 rounded-md bg-nc-bg-gray-medium truncate"
-          :class="{ 'text-nc-content-orange-medium bg-nc-bg-orange-light': recordsWithoutDates > 0 }"
           data-testid="nc-timeline-record-count"
         >
           <template #title>
-            <span v-if="recordsWithoutDates > 0">
-              {{ $t('msg.timelineRecordsMissingDates', { count: recordsWithoutDates }, recordsWithoutDates) }}
-            </span>
-            <span v-else>{{ $t('msg.timelineTotalRecordsLoaded', { max: TIMELINE_RECORD_LIMIT }) }}</span>
+            <span>{{ $t('msg.timelineTotalRecordsLoaded', { max: TIMELINE_RECORD_LIMIT }) }}</span>
           </template>
 
           {{ recordCountLabel }}

@@ -2,8 +2,8 @@
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
-import type { Row as RowType } from '#imports'
 import { TIMELINE_GROUP_HEADER_HEIGHT, type TimelineZoomLevel } from '../../../utils/timelineUtils'
+import type { Row as RowType } from '#imports'
 
 // Pre-computed per-bar geometry + style. Built once per swimlanes recompute
 // (record / buffer / colWidth / rowMeta changes) so per-frame scroll
@@ -136,9 +136,13 @@ const { width: containerWidth } = useElementSize(gridContainerRef)
 
 // Push viewport width into the store so it can compute scroll targets and
 // derive currentDate from viewport center.
-watch(containerWidth, (w) => {
-  if (w > 0) setViewportWidth(w)
-}, { immediate: true })
+watch(
+  containerWidth,
+  (w) => {
+    if (w > 0) setViewportWidth(w)
+  },
+  { immediate: true },
+)
 
 // --- Resize state ---
 const resizeInProgress = ref(false)
@@ -894,8 +898,7 @@ const onGridMouseLeave = () => {
             <div
               v-for="span in tier"
               :key="span.key"
-              class="absolute top-0 h-full flex items-center text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-2"
-              :class="tierIdx === 0 ? 'justify-start' : 'justify-start'"
+              class="absolute top-0 h-full flex items-center justify-start text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-2"
               :style="{ left: `${span.leftPx}px`, width: `${span.widthPx}px` }"
             >
               {{ span.label }}

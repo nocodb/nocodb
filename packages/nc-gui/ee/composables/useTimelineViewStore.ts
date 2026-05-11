@@ -3,11 +3,11 @@ import type { ColumnType, DataPayload, FilterType, TableType, TimelineType, View
 import { EventType, UITypes } from 'nocodb-sdk'
 import { type ComputedRef, type Ref, computed, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
+import type { TimelineZoomLevel } from '../utils/timelineUtils'
+import { isFortnightMonday, isGridlineBoundary } from '../utils/timelineUtils'
 import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
 import { validateRowFilters } from '~/utils/dataUtils'
-import type { TimelineZoomLevel } from '../utils/timelineUtils'
-import { TIMELINE_RECORD_LIMIT, isFortnightMonday, isGridlineBoundary } from '../utils/timelineUtils'
 
 // Per-scale config drives column width, buffer size, prev/next step, and
 // header rendering. `colWidth` is the fixed pixel width of one day-column.
@@ -42,17 +42,88 @@ interface ScaleConfig {
 }
 
 const SCALE_CONFIG: Record<TimelineZoomLevel, ScaleConfig> = {
-  day: { colWidth: 160, bufferDays: 30, navUnit: 'day', navAmount: 1, majorTiers: [], minorLabel: 'weekday-full', gridlineUnit: 'day' },
-  week: { colWidth: 72, bufferDays: 60, navUnit: 'week', navAmount: 1, majorTiers: [], minorLabel: 'weekday-short', gridlineUnit: 'day' },
-  '2week': { colWidth: 56, bufferDays: 90, navUnit: 'week', navAmount: 2, majorTiers: ['month'], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
-  month: { colWidth: 36, bufferDays: 120, navUnit: 'month', navAmount: 1, majorTiers: [], minorLabel: 'weekday-letter', gridlineUnit: 'day' },
-  quarter: { colWidth: 12, bufferDays: 365, navUnit: 'month', navAmount: 3, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
-  '6month': { colWidth: 6, bufferDays: 540, navUnit: 'month', navAmount: 6, majorTiers: ['quarter', 'month'], minorLabel: 'mondays', gridlineUnit: 'week' },
-  year: { colWidth: 4, bufferDays: 730, navUnit: 'year', navAmount: 1, majorTiers: ['month'], minorLabel: 'fortnight', gridlineUnit: 'fortnight' },
-  '2year': { colWidth: 2, bufferDays: 1095, navUnit: 'year', navAmount: 2, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'month' },
-  '5year': { colWidth: 1, bufferDays: 1825, navUnit: 'year', navAmount: 5, majorTiers: ['year', 'quarter'], minorLabel: 'quarter-month', gridlineUnit: 'quarter' },
+  'day': {
+    colWidth: 160,
+    bufferDays: 30,
+    navUnit: 'day',
+    navAmount: 1,
+    majorTiers: [],
+    minorLabel: 'weekday-full',
+    gridlineUnit: 'day',
+  },
+  'week': {
+    colWidth: 72,
+    bufferDays: 60,
+    navUnit: 'week',
+    navAmount: 1,
+    majorTiers: [],
+    minorLabel: 'weekday-short',
+    gridlineUnit: 'day',
+  },
+  '2week': {
+    colWidth: 56,
+    bufferDays: 90,
+    navUnit: 'week',
+    navAmount: 2,
+    majorTiers: ['month'],
+    minorLabel: 'weekday-letter',
+    gridlineUnit: 'day',
+  },
+  'month': {
+    colWidth: 36,
+    bufferDays: 120,
+    navUnit: 'month',
+    navAmount: 1,
+    majorTiers: [],
+    minorLabel: 'weekday-letter',
+    gridlineUnit: 'day',
+  },
+  'quarter': {
+    colWidth: 12,
+    bufferDays: 365,
+    navUnit: 'month',
+    navAmount: 3,
+    majorTiers: ['quarter', 'month'],
+    minorLabel: 'mondays',
+    gridlineUnit: 'week',
+  },
+  '6month': {
+    colWidth: 6,
+    bufferDays: 540,
+    navUnit: 'month',
+    navAmount: 6,
+    majorTiers: ['quarter', 'month'],
+    minorLabel: 'mondays',
+    gridlineUnit: 'week',
+  },
+  'year': {
+    colWidth: 4,
+    bufferDays: 730,
+    navUnit: 'year',
+    navAmount: 1,
+    majorTiers: ['month'],
+    minorLabel: 'fortnight',
+    gridlineUnit: 'fortnight',
+  },
+  '2year': {
+    colWidth: 2,
+    bufferDays: 1095,
+    navUnit: 'year',
+    navAmount: 2,
+    majorTiers: ['year', 'quarter'],
+    minorLabel: 'quarter-month',
+    gridlineUnit: 'month',
+  },
+  '5year': {
+    colWidth: 1,
+    bufferDays: 1825,
+    navUnit: 'year',
+    navAmount: 5,
+    majorTiers: ['year', 'quarter'],
+    minorLabel: 'quarter-month',
+    gridlineUnit: 'quarter',
+  },
 }
-
 
 const quarterOf = (d: dayjs.Dayjs): number => Math.floor(d.month() / 3) + 1
 
@@ -90,10 +161,7 @@ const lruViewCacheGet = (viewId: string) => {
   return entry
 }
 
-const lruViewCacheSet = (
-  viewId: string,
-  entry: { currentDate: string; zoomLevel: TimelineZoomLevel },
-) => {
+const lruViewCacheSet = (viewId: string, entry: { currentDate: string; zoomLevel: TimelineZoomLevel }) => {
   if (_viewStateCache.has(viewId)) _viewStateCache.delete(viewId)
   _viewStateCache.set(viewId, entry)
   while (_viewStateCache.size > MAX_CACHED_VIEWS) {
@@ -127,7 +195,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const { sharedView } = useSharedView()
 
-    const { sorts, nestedFilters, eventBus, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
+    const { nestedFilters, eventBus, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
 
     const { metas } = useMetas()
 
@@ -401,21 +469,13 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           return `${startYear} - ${startYear + 4}`
         }
       }
+      // Exhaustively handled above for every `TimelineZoomLevel`. The
+      // explicit return satisfies vue/return-in-computed-property and
+      // keeps the type as `string` rather than `string | undefined`.
+      return ''
     })
 
     const totalRecordCount = computed(() => formattedData.value.length)
-
-    const recordsWithoutDates = computed(() => {
-      if (!timelineRange.value?.length) return 0
-      const colTitle = timelineRange.value[0].fk_from_col?.title
-      if (!colTitle) return 0
-      let count = 0
-      for (const row of formattedData.value) {
-        const fromVal = row.row?.[colTitle]
-        if (!fromVal || !dayjs(fromVal).isValid()) count++
-      }
-      return count
-    })
 
     // Format buffer endpoints to match the column type. Date columns store
     // `YYYY-MM-DD`; DateTime needs a TZ-aware boundary so a record with a
@@ -506,9 +566,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         const res = await $api.instance
           .get(url, {
             params: queryParams,
-            ...(isPublic.value
-              ? { headers: { 'xc-password': sharedView.value?.password } }
-              : {}),
+            ...(isPublic.value ? { headers: { 'xc-password': sharedView.value?.password } } : {}),
           })
           .then((r: any) => r.data)
 
@@ -523,7 +581,10 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           oldRow: { ...row },
         }))
       } catch (e) {
-        console.error('Error loading timeline data:', e)
+        if (seq === _fetchSeq) {
+          // @ts-expect-error - extractSdkResponseErrorMsg defensively handles unknown shapes
+          message.error(await extractSdkResponseErrorMsg(e))
+        }
       } finally {
         if (seq === _fetchSeq && showLoading) {
           isTimelineDataLoading.value = false
@@ -538,10 +599,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     // that triggers multiple `extendBuffer*` calls collapses into one fetch.
     // Doesn't toggle isTimelineDataLoading — the existing bars stay visible
     // until the new window arrives, then patch in place.
-    const _silentRefetch = useDebounceFn(
-      () => fetchTimelineRecords({ showLoading: false }),
-      250,
-    )
+    const _silentRefetch = useDebounceFn(() => fetchTimelineRecords({ showLoading: false }), 250)
 
     watch([bufferStart, bufferEnd], () => {
       _silentRefetch()
@@ -678,10 +736,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       // Edge-driven extension
       if (newScrollLeft < EXTEND_THRESHOLD_PX) {
         extendBufferLeft()
-      } else if (
-        viewportWidth.value > 0 &&
-        newScrollLeft + viewportWidth.value > totalGridWidth.value - EXTEND_THRESHOLD_PX
-      ) {
+      } else if (viewportWidth.value > 0 && newScrollLeft + viewportWidth.value > totalGridWidth.value - EXTEND_THRESHOLD_PX) {
         extendBufferRight()
       }
     }
@@ -731,8 +786,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
       // After reAnchor: center is exactly `newBufferDays` whole days from
       // the new bufferStart. Add `subdayFrac` to keep the fractional position.
-      const computeTarget = () =>
-        (newBufferDays + subdayFrac) * colWidth.value - viewportWidth.value / 2
+      const computeTarget = () => (newBufferDays + subdayFrac) * colWidth.value - viewportWidth.value / 2
 
       if (viewportWidth.value > 0) {
         scrollLeft.value = Math.max(0, computeTarget())
@@ -753,12 +807,9 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     // stays correct even if the user switches views before the next flush.
     // The Map write itself can lag without losing state — we capture values
     // at change time, not at flush time.
-    const _persistViewState = useDebounceFn(
-      (viewId: string, isoDate: string, zoom: TimelineZoomLevel) => {
-        lruViewCacheSet(viewId, { currentDate: isoDate, zoomLevel: zoom })
-      },
-      250,
-    )
+    const _persistViewState = useDebounceFn((viewId: string, isoDate: string, zoom: TimelineZoomLevel) => {
+      lruViewCacheSet(viewId, { currentDate: isoDate, zoomLevel: zoom })
+    }, 250)
 
     watch([currentDate, zoomLevel], () => {
       const viewId = viewMeta.value?.id
@@ -888,7 +939,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         }
 
         return updatedRowData
-      } catch (e: any) {
+      } catch (e) {
+        // @ts-expect-error - extractSdkResponseErrorMsg defensively handles unknown shapes
         message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
@@ -970,7 +1022,10 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
             },
           })
         } catch (e) {
-          console.error('Failed to add timeline row on socket event', e)
+          // Realtime payload from external source — surface shape mismatches
+          // to dev tools without crashing the listener. Next windowed fetch
+          // will reconcile state.
+          console.warn('[timeline] realtime add handler failed', e)
         }
       } else if (action === 'update') {
         try {
@@ -998,7 +1053,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           Object.assign(existingRow.rowMeta, getEvaluatedRowMetaRowColorInfo(existingRow.row))
           existingRow.rowMeta.changed = false
         } catch (e) {
-          console.error('Failed to update timeline row on socket event', e)
+          // Defensive — same rationale as the 'add' branch above.
+          console.warn('[timeline] realtime update handler failed', e)
         }
       } else if (action === 'delete') {
         try {
@@ -1007,7 +1063,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
             formattedData.value.splice(existingIndex, 1)
           }
         } catch (e) {
-          console.error('Failed to delete timeline row on socket event', e)
+          // Defensive — same rationale as the 'add' branch above.
+          console.warn('[timeline] realtime delete handler failed', e)
         }
       }
     }
@@ -1053,7 +1110,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       dateRangeLabel,
       isPublic,
       totalRecordCount,
-      recordsWithoutDates,
 
       // Scroll/buffer state
       bufferStart,

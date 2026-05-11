@@ -53,25 +53,25 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
 
   /**
    * Mirror panel state into the URL so the cell is shareable / restorable.
-   * Uses generic ?rowId / ?colId so the convention is reusable for other
-   * field-level surfaces — for now only SmartText cells claim the params
-   * (the grid watcher checks the column type before opening the panel).
+   * Uses dedicated ?cellRow / ?cellCol params so SmartText state is independent
+   * of the row-level ?rowId param (used by the expanded-record panel/modal) —
+   * opening / closing a cell never affects whether the row panel is showing.
    * Uses router.replace (not push) — opening / navigating cells should not
    * stack history entries.
    */
   const _syncUrl = () => {
     const next = { ...route.value.query } as Record<string, any>
     if (isOpen.value && activeRowId.value && activeColumnId.value) {
-      next.rowId = activeRowId.value
-      next.colId = activeColumnId.value
+      next.cellRow = activeRowId.value
+      next.cellCol = activeColumnId.value
       if (mode.value === 'fullscreen') {
         next.cellMode = 'fullscreen'
       } else {
         delete next.cellMode
       }
     } else {
-      delete next.rowId
-      delete next.colId
+      delete next.cellRow
+      delete next.cellCol
       delete next.cellMode
     }
 

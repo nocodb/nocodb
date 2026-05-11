@@ -2,7 +2,7 @@
 import { Pane, Splitpanes } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { UITypes, isLinksOrLTAR, isSmartText } from 'nocodb-sdk'
 import { UseDetachedLongTextProvider } from '../smartsheet/grid/canvas/composables/useDetachedLongText'
 import DetachedExpandedText from '../smartsheet/grid/canvas/components/DetachedExpandedText.vue'
 
@@ -51,6 +51,18 @@ const expandedFormPanelStore = useProvideExpandedFormPanel()
 const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore.isOpen.value)
 
 const isExpandedFormPanelFullscreen = computed(() => expandedFormPanelStore.isOpen.value && expandedFormPanelStore.isFullscreen.value)
+
+// SmartText panel claims the right-side slot when ?cellCol points at a SmartText
+// column. Hide the expanded-record panel while that's true so we never show two
+// panels at once. The `useExpandedFormPanel` provider state is kept (rowId in
+// URL is untouched), so closing the SmartText panel re-renders the expanded
+// record at the same row.
+const isSmartTextActive = computed(() => {
+  const cellCol = route.query.cellCol as string | undefined
+  if (!cellCol) return false
+  const col = meta.value?.columns?.find((c) => c.id === cellCol) as ColumnType | undefined
+  return !!col && isSmartText(col)
+})
 
 watch(
   () => isGrid.value,
@@ -360,7 +372,18 @@ watch(isViewsLoading, async () => {
                 </Transition>
               </div>
             </div>
-            <SmartsheetGridExpandedFormPanel v-if="isExpandedFormPanelOpen && isGrid" />
+            <!-- Wrap with display:contents so the EFP itself remains the flex
+                 child of <Pane>. Toggling visibility on the wrapper (instead
+                 of the component) preserves the EFP's internal state across
+                 SmartText cell hops — otherwise users lose unsaved edits when
+                 they briefly open a SmartText cell from the grid. -->
+            <div
+              v-if="isExpandedFormPanelOpen && isGrid"
+              v-show="!isSmartTextActive"
+              style="display: contents"
+            >
+              <SmartsheetGridExpandedFormPanel />
+            </div>
           </Pane>
           <LazyExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
           <LazyActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />

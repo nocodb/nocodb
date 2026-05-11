@@ -110,10 +110,9 @@ smartTextRowNavigator.value = {
   totalRows: () => totalRows.value,
 }
 
-// Deep-link sync: when ?rowId + ?colId both point at a SmartText column, open
-// the panel. The colId is treated as a generic cell-deep-link param — only
-// SmartText reacts to it for now; other column types fall through to the
-// expanded record dialog (which gates on rowId alone).
+// Deep-link sync: when ?cellRow + ?cellCol both point at a SmartText column,
+// open the panel. SmartText owns dedicated cell-level params so it never
+// collides with the row-level ?rowId used by the expanded-record panel/modal.
 const _findRowInCache = (rowId: string) => {
   for (const [idx, row] of cachedRows.value.entries()) {
     const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
@@ -125,15 +124,15 @@ const _findRowInCache = (rowId: string) => {
 watch(
   [() => route.value.query, () => cachedRows.value.size, () => meta.value?.columns?.length],
   ([q]) => {
-    const rowId = q.rowId as string | undefined
-    const colId = q.colId as string | undefined
+    const cellRow = q.cellRow as string | undefined
+    const cellCol = q.cellCol as string | undefined
 
-    if (!rowId || !colId) {
+    if (!cellRow || !cellCol) {
       if (smartTextStore.isOpen.value) smartTextStore.closeEditor()
       return
     }
 
-    const col = meta.value?.columns?.find((c) => c.id === colId) as ColumnType | undefined
+    const col = meta.value?.columns?.find((c) => c.id === cellCol) as ColumnType | undefined
     if (!col || !isSmartText(col)) {
       // Not a SmartText cell — leave to other surfaces (e.g. expanded record).
       if (smartTextStore.isOpen.value) smartTextStore.closeEditor()
@@ -142,8 +141,8 @@ watch(
 
     if (
       smartTextStore.isOpen.value &&
-      smartTextStore.activeRowId.value === rowId &&
-      smartTextStore.activeColumnId.value === colId
+      smartTextStore.activeRowId.value === cellRow &&
+      smartTextStore.activeColumnId.value === cellCol
     ) {
       // Already showing this cell — sync fullscreen if it diverged, and
       // backfill row context if the row has since arrived in cache (deep-link
@@ -152,14 +151,14 @@ watch(
       if (smartTextStore.isFullscreen.value !== wantFs) smartTextStore.setFullscreen(wantFs)
 
       if (smartTextStore.activeRowIndex.value == null) {
-        const found = _findRowInCache(rowId)
+        const found = _findRowInCache(cellRow)
         if (found) smartTextStore.setRowContext(found.idx, found.rowData)
       }
       return
     }
 
-    const found = _findRowInCache(rowId)
-    smartTextStore.openEditor(rowId, colId, found?.rowData, found?.idx)
+    const found = _findRowInCache(cellRow)
+    smartTextStore.openEditor(cellRow, cellCol, found?.rowData, found?.idx)
     if (q.cellMode === 'fullscreen') smartTextStore.setFullscreen(true)
   },
   { immediate: true },
@@ -206,7 +205,8 @@ function updateRowIdRoute(rowId: string, path: Array<number> = []) {
       rowId,
       // Clear cell deep-link params — explicit expand always wins over the
       // SmartText panel claim.
-      colId: undefined,
+      cellRow: undefined,
+      cellCol: undefined,
       cellMode: undefined,
       path: ncIsEmptyArray(path) ? undefined : path.join('-'),
       expand: undefined,
@@ -255,11 +255,11 @@ const expandedFormOnRowIdDlg = computed({
     if (isExpandedFormPanelOpen.value) return false
     // EE desktop in panel mode uses the side panel — modal stays closed (a separate watcher syncs the panel from the route).
     if (isEeUI && !isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel') return false
-    // When ?colId points at a SmartText column the SmartText panel claims
-    // the URL — expanded record dialog stays closed.
-    const colId = routeQuery.value.colId
-    if (colId) {
-      const col = meta.value?.columns?.find((c) => c.id === colId) as ColumnType | undefined
+    // When ?cellCol points at a SmartText column the SmartText panel claims
+    // the screen — expanded record dialog stays closed.
+    const cellCol = routeQuery.value.cellCol
+    if (cellCol) {
+      const col = meta.value?.columns?.find((c) => c.id === cellCol) as ColumnType | undefined
       if (col && isSmartText(col)) return false
     }
     return true
@@ -599,7 +599,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
 
 <template>
   <div
-    class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
+    class="relative flex flex-row h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
     :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-bg-gray-extralight)'};`"
   >

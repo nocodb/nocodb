@@ -21,6 +21,7 @@ const props = defineProps<{
 
 const GUTTER = 16 // px — space for handles outside the table
 const HANDLE_GAP = 1
+const MIN_COL_WIDTH = 60 // px — minimum column width
 
 const editor = toRef(props, 'editor')
 
@@ -116,10 +117,100 @@ const rowCommands = { insertBefore: 'addRowBefore', insertAfter: 'addRowAfter', 
 
 const onColumnAction = (colIndex: number, action: keyof typeof columnCommands) => {
   menuOpen.value = null
+
+  if (action === 'delete') {
+    focusCell(0, colIndex)
+    nextTick(() => {
+      editor.value.chain().focus().deleteColumn().run()
+    })
+    return
+  }
+
+  // With table-layout:fixed + width:100%, if existing cells have explicit
+  // colwidths summing to the table width, the inserted column collapses to
+  // min-width. Capture widths before insertion so we can redistribute after.
+  const widthsBefore = captureColumnWidths()
+
   focusCell(0, colIndex)
   nextTick(() => {
     editor.value.chain().focus()[columnCommands[action]]().run()
+
+    if (widthsBefore.some((w) => w > 0)) {
+      nextTick(() => {
+        const insertIndex = action === 'insertBefore' ? colIndex : colIndex + 1
+        redistributeColumnWidths(widthsBefore, insertIndex)
+      })
+    }
   })
+}
+
+const captureColumnWidths = (): number[] => {
+  const table = tableEl.value
+  if (!table || !editor.value) return []
+
+  const tablePos = editor.value.view.posAtDOM(table, 0)
+  const $table = editor.value.state.doc.resolve(tablePos)
+  for (let d = $table.depth; d > 0; d--) {
+    if ($table.node(d).type.name === 'table') {
+      const firstRow = $table.node(d).firstChild
+      if (!firstRow) return []
+      const widths: number[] = []
+      firstRow.forEach((cell) => {
+        widths.push(cell.attrs?.colwidth?.[0] || 0)
+      })
+      return widths
+    }
+  }
+  return []
+}
+
+const redistributeColumnWidths = (oldWidths: number[], insertIndex: number) => {
+  const table = tableEl.value
+  if (!table || !editor.value) return
+
+  const newColCount = oldWidths.length + 1
+  const oldTotal = oldWidths.reduce((s, w) => s + w, 0)
+  if (oldTotal === 0) return
+
+  const newColWidth = Math.max(MIN_COL_WIDTH, Math.round(oldTotal / newColCount))
+  const shrunkTotal = Math.max(MIN_COL_WIDTH * oldWidths.length, oldTotal - newColWidth)
+  const scale = shrunkTotal / oldTotal
+
+  const finalWidths: number[] = []
+  for (let i = 0; i < newColCount; i++) {
+    if (i === insertIndex) {
+      finalWidths.push(newColWidth)
+    } else {
+      const oldIdx = i < insertIndex ? i : i - 1
+      finalWidths.push(Math.max(MIN_COL_WIDTH, Math.round(oldWidths[oldIdx] * scale)))
+    }
+  }
+
+  const { state, dispatch } = editor.value.view
+  const tr = state.tr
+
+  const rows = table.querySelectorAll('tr')
+  rows.forEach((row) => {
+    const cells = row.querySelectorAll('td, th')
+    for (let ci = 0; ci < cells.length && ci < finalWidths.length; ci++) {
+      const cell = cells[ci]
+      const pos = editor.value!.view.posAtDOM(cell, 0)
+      const resolved = tr.doc.resolve(pos)
+      for (let d = resolved.depth; d > 0; d--) {
+        const node = resolved.node(d)
+        if (node.type.name === 'tableCell' || node.type.name === 'tableHeader') {
+          tr.setNodeMarkup(resolved.before(d), undefined, {
+            ...node.attrs,
+            colwidth: [finalWidths[ci]],
+          })
+          break
+        }
+      }
+    }
+  })
+
+  dispatch(tr)
+  nextTick(() => recalcPositions())
 }
 
 // --- Row operations ---
@@ -371,7 +462,6 @@ const onRowVerticalAlign = (rowIndex: number, align: 'top' | 'middle' | 'bottom'
 }
 
 // --- Column resize (drag between columns) ---
-const MIN_COL_WIDTH = 60 // px
 const resizeDrag = ref<{ colIndex: number; startX: number; startWidths: number[] } | null>(null)
 
 const onResizeMouseDown = (colIndex: number, e: MouseEvent) => {

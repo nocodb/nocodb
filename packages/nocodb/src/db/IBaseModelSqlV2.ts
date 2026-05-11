@@ -101,6 +101,10 @@ export interface IBaseModelSqlV2 {
   fetchDisplayValueMap(
     props: { model: Model; id: any; displayColumn?: Column }[],
   ): Promise<Map<string, any>>;
+  getLtarDisplayColumnOverride(
+    ltarColumn: Column,
+    model: Model,
+  ): Promise<Column | undefined>;
   extractPksValues(data: any, asString?: boolean): any;
   readByPk(
     id?: any,

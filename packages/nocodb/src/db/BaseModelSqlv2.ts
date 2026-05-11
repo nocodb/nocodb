@@ -27,7 +27,6 @@ import {
   isMMOrMMLike,
   isOrderCol,
   isSelfLinkCol,
-  isSupportedDisplayValueColumn,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
@@ -570,175 +569,39 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return dvMap;
   }
 
-  // Given a source-side LTAR columnId, return the related table's column that
-  // was set as the override display value (`fk_display_value_column_id`). Used
-  // by audit paths to render linked-record display values consistently with
-  // what the UI shows in LTAR dropdowns / chips.
-  //
-  // The override is set per-direction. If the caller passes the auto-paired
-  // side (which has no override of its own) we fall back to the paired LTAR's
-  // override so audits resolve correctly regardless of which side initiates.
+  // EE-only feature (per-LTAR display value override). CE never sets
+  // `fk_display_value_column_id` — write-time gated in `columns.service.ts` —
+  // so all overrides resolve to undefined here. See `src/ee/db/BaseModelSqlv2.ts`
+  // for the full implementation.
   protected async resolveLtarDisplayCol(
-    columnId: string | undefined,
-    refModel: Model,
+    _columnId: string | undefined,
+    _refModel: Model,
   ): Promise<Column | undefined> {
-    if (!columnId) return undefined;
-    // EE-only feature — CE never sets fk_display_value_column_id (write-time
-    // gated in columns.service.ts), so skip all I/O on CE.
-    if (!Noco.isEE()) return undefined;
-    const col = await Column.get(this.context, { colId: columnId });
-    if (!col) return undefined;
-    if (!refModel.columns?.length) await refModel.getColumns(this.context);
-
-    const ownColOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
-      this.context,
-    );
-    const ownDisplayColId = ownColOpts?.fk_display_value_column_id;
-    if (ownDisplayColId) {
-      const found = refModel.columns?.find((c) => c.id === ownDisplayColId);
-      if (found) return found;
-    }
-
-    // Fallback: paired LTAR direction may carry the override. The paired
-    // column lives on the table this LTAR links to, which is `refModel` if
-    // the caller passed it that way, or otherwise resolved via colOpts.
-    const { refContext } = ownColOpts.getRelContext(this.context);
-    const linkedModelId = ownColOpts?.fk_related_model_id ?? refModel.id;
-
-    let pairedColumns: Column[] | undefined;
-    if (linkedModelId === refModel.id) {
-      pairedColumns = refModel.columns;
-    } else {
-      const m = await Model.get(refContext, linkedModelId);
-      if (m && !m.columns?.length) await m.getColumns(refContext);
-      pairedColumns = m?.columns;
-    }
-    if (!pairedColumns?.length) return undefined;
-
-    const pairedCol = await extractCorrespondingLinkColumn(refContext, {
-      ltarColumn: col,
-      referencedTableColumns: pairedColumns,
-    });
-    if (!pairedCol) return undefined;
-    const pairedColOpts =
-      await pairedCol.getColOptions<LinkToAnotherRecordColumn>(refContext);
-    const pairedDisplayColId = pairedColOpts?.fk_display_value_column_id;
-    if (!pairedDisplayColId) return undefined;
-    return refModel.columns?.find((c) => c.id === pairedDisplayColId);
+    return undefined;
   }
 
-  // Source-side override: resolves the paired (reverse) LTAR's
-  // `fk_display_value_column_id` against `model`. The paired column lives on
-  // `refModel` and points back to `model`; its override is what determines how
-  // the source row renders in audits/UI viewed from refModel's perspective.
-  // Falls back to undefined when no paired column or no override is set.
+  // EE-only — see `src/ee/db/BaseModelSqlv2.ts`.
   protected async resolveReverseLtarDisplayCol(
-    columnId: string | undefined,
-    model: Model,
-    refModel: Model,
+    _columnId: string | undefined,
+    _model: Model,
+    _refModel: Model,
   ): Promise<Column | undefined> {
-    if (!columnId) return undefined;
-    // EE-only feature — CE never sets fk_display_value_column_id (write-time
-    // gated in columns.service.ts), so skip all I/O on CE.
-    if (!Noco.isEE()) return undefined;
-    const col = await Column.get(this.context, { colId: columnId });
-    if (!col) return undefined;
-    if (!refModel.columns?.length) await refModel.getColumns(this.context);
-    const pairedCol = await extractCorrespondingLinkColumn(this.context, {
-      ltarColumn: col,
-      referencedTableColumns: refModel.columns,
-    });
-    if (!pairedCol) return undefined;
-    return this.resolveLtarDisplayCol(pairedCol.id, model);
+    return undefined;
   }
 
-  // Request-scoped cache for `getLtarDisplayColumnOverride`. Key is
-  // `${ltarColumn.id}:${model.id}`, value is the resolved Column (or null
-  // when no override applies — distinct from "not yet resolved", so we can
-  // tell cache misses apart from "no override" hits).
-  private _ltarDisplayColCache?: Map<string, Column | null>;
-
-  // Resolves the LTAR's `fk_display_value_column_id` override (own or paired,
-  // depending on which side `model` is) to a Column on `model`. The result
-  // is cached per (ltarColumn.id, model.id) on this BaseModelSqlv2 instance,
-  // so multiple RelationManagers in the same request share lookups instead
-  // of each paying for `extractCorrespondingLinkColumn` + `getColOptions`
-  // from cold.
-  //
-  // Returns undefined when no override applies → callers fall back to the
-  // table's primary value.
+  // EE-only — see `src/ee/db/BaseModelSqlv2.ts`.
   public async getLtarDisplayColumnOverride(
-    ltarColumn: Column,
-    model: Model,
+    _ltarColumn: Column,
+    _model: Model,
   ): Promise<Column | undefined> {
-    // EE-only feature — CE never sets fk_display_value_column_id (write-time
-    // gated in columns.service.ts), so skip all I/O on CE.
-    if (!Noco.isEE()) return undefined;
-
-    if (!this._ltarDisplayColCache) {
-      this._ltarDisplayColCache = new Map();
-    }
-    const key = `${ltarColumn.id}:${model.id}`;
-    const cached = this._ltarDisplayColCache.get(key);
-    if (cached !== undefined) return cached ?? undefined;
-
-    const colCtx = { ...this.context, base_id: ltarColumn.base_id };
-    const colOpts = await ltarColumn.getColOptions<LinkToAnotherRecordColumn>(
-      colCtx,
-    );
-
-    let result: Column | undefined;
-
-    if (model.id === colOpts?.fk_related_model_id) {
-      // Forward direction: own LTAR's override targets `model`.
-      const id = colOpts?.fk_display_value_column_id;
-      if (id) {
-        const cols = await model.getCachedColumns({
-          ...this.context,
-          base_id: model.base_id,
-        });
-        const found = cols.find((c) => c.id === id);
-        if (found && isSupportedDisplayValueColumn(found)) result = found;
-      }
-    } else {
-      // Reverse direction: paired LTAR's override targets `model`.
-      const pairedCol = await extractCorrespondingLinkColumn(colCtx, {
-        ltarColumn,
-      });
-      if (pairedCol) {
-        const pairedOpts =
-          await pairedCol.getColOptions<LinkToAnotherRecordColumn>({
-            ...this.context,
-            base_id: pairedCol.base_id,
-          });
-        const id = pairedOpts?.fk_display_value_column_id;
-        if (id) {
-          const cols = await model.getCachedColumns({
-            ...this.context,
-            base_id: model.base_id,
-          });
-          const found = cols.find((c) => c.id === id);
-          if (found && isSupportedDisplayValueColumn(found)) result = found;
-        }
-      }
-    }
-
-    this._ltarDisplayColCache.set(key, result ?? null);
-    return result;
+    return undefined;
   }
 
-  // Batch resolver for LTAR display value overrides used by audit-write paths.
-  // Per unique columnId, resolves the override Column for both the ref side
-  // (renders refModel rows) and the source side (renders model rows). Handles
-  // the auto-paired case (override lives on the user-configured side) without
-  // doing redundant `Column.get`/`getColOptions` for the same columnId.
-  //
-  // `hasAny` is the fast-out gate: when false, callers should skip threading
-  // `displayColumn` through `fetchDisplayValueMap`/`displayValueMapKey` — the
-  // values resolve to the table's primary value (the pre-override behavior).
-  // This keeps the no-override case (the >99% path) free of override plumbing.
-  private async resolveLtarOverrideColsForBatch(
-    auditObjs: Array<{
+  // EE-only — see `src/ee/db/BaseModelSqlv2.ts`. `hasAny: false` is the
+  // fast-out gate that lets callers skip threading `displayColumn` through
+  // `fetchDisplayValueMap`/`displayValueMapKey` on CE.
+  protected async resolveLtarOverrideColsForBatch(
+    _auditObjs: Array<{
       columnId?: string;
       model: Model;
       refModel?: Model;
@@ -748,90 +611,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     sourceByColId: Map<string, Column | undefined>;
     hasAny: boolean;
   }> {
-    const refByColId = new Map<string, Column | undefined>();
-    const sourceByColId = new Map<string, Column | undefined>();
-    let hasAny = false;
-
-    // EE-only feature — CE never sets fk_display_value_column_id (write-time
-    // gated in columns.service.ts), so skip all I/O on CE.
-    if (!Noco.isEE()) return { refByColId, sourceByColId, hasAny };
-
-    const seen = new Set<string>();
-    for (const obj of auditObjs) {
-      if (!obj.columnId || !obj.refModel || seen.has(obj.columnId)) continue;
-      seen.add(obj.columnId);
-
-      const col = await Column.get(this.context, { colId: obj.columnId });
-      if (!col) continue;
-      const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(
-        this.context,
-      );
-      const ownDisplayColId = colOpts?.fk_display_value_column_id;
-
-      const refCols = await obj.refModel.getCachedColumns({
-        ...this.context,
-        base_id: obj.refModel.base_id,
-      });
-      const sourceCols = await obj.model.getCachedColumns({
-        ...this.context,
-        base_id: obj.model.base_id,
-      });
-
-      let refDisplayCol: Column | undefined;
-      let sourceDisplayCol: Column | undefined;
-
-      const pickSupported = (
-        cols: Column[],
-        id: string | undefined,
-      ): Column | undefined => {
-        if (!id) return undefined;
-        const c = cols.find((x) => x.id === id);
-        return c && isSupportedDisplayValueColumn(c) ? c : undefined;
-      };
-
-      if (ownDisplayColId) {
-        // Own override targets either side: refModel for the user-configured
-        // direction, or model for the auto-paired direction.
-        refDisplayCol = pickSupported(refCols, ownDisplayColId);
-        if (!refDisplayCol) {
-          sourceDisplayCol = pickSupported(sourceCols, ownDisplayColId);
-        }
-      }
-
-      // Walk paired LTAR only when at least one side is still unresolved.
-      if (!refDisplayCol || !sourceDisplayCol) {
-        const pairedCol = await extractCorrespondingLinkColumn(this.context, {
-          ltarColumn: col,
-          referencedTableColumns: refCols,
-        });
-        if (pairedCol) {
-          const pairedOpts =
-            await pairedCol.getColOptions<LinkToAnotherRecordColumn>(
-              this.context,
-            );
-          const pairedDisplayColId = pairedOpts?.fk_display_value_column_id;
-          if (pairedDisplayColId) {
-            if (!refDisplayCol) {
-              refDisplayCol = pickSupported(refCols, pairedDisplayColId);
-            }
-            if (!sourceDisplayCol) {
-              sourceDisplayCol = pickSupported(sourceCols, pairedDisplayColId);
-            }
-          }
-        }
-      }
-
-      if (refDisplayCol) {
-        refByColId.set(obj.columnId, refDisplayCol);
-        hasAny = true;
-      }
-      if (sourceDisplayCol) {
-        sourceByColId.set(obj.columnId, sourceDisplayCol);
-        hasAny = true;
-      }
-    }
-
-    return { refByColId, sourceByColId, hasAny };
+    return {
+      refByColId: new Map(),
+      sourceByColId: new Map(),
+      hasAny: false,
+    };
   }
 
   public async exist(id?: any): Promise<any> {

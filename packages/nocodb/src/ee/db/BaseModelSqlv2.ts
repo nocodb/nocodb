@@ -2449,9 +2449,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const insertDatas = raw ? datas : [];
       const postInsertOpsMap: Record<
         number,
-        ((rowId: any) => Promise<string>)[]
+        ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
       > = {};
-      let preInsertOps: (() => Promise<string>)[] = [];
+      let preInsertOps: ((
+        trx?: Knex | Knex.Transaction,
+      ) => Promise<string>)[] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
 
@@ -2854,7 +2856,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             });
 
             await this.runOps(
-              (postInsertOpsMap[i] ?? []).map((f) => f(rowId)),
+              (postInsertOpsMap[i] ?? []).map((f) => f(rowId, trx)),
               trx,
             );
           }

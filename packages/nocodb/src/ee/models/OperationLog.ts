@@ -1,5 +1,6 @@
 import type {
   NcContext,
+  OperationLogScopeType,
   OperationLogStatus,
   OperationLogType,
 } from 'nocodb-sdk';
@@ -11,6 +12,29 @@ import { MetaTable } from '~/utils/globals';
 
 const DEFAULT_RETENTION_DAYS = 7;
 const RETRY_BACKOFF_MS = 60 * 60 * 1000; // 1h per cleanup-retry failure
+
+export interface OperationLogLookupKey {
+  fk_user_id: string;
+  tab_id: string;
+  scope_type?: OperationLogScopeType;
+  scope_id?: string;
+}
+
+function buildLookupCondition(
+  context: NcContext,
+  key: OperationLogLookupKey,
+  status: OperationLogStatus,
+): Record<string, unknown> {
+  const cond: Record<string, unknown> = {
+    fk_user_id: key.fk_user_id,
+    base_id: context.base_id,
+    tab_id: key.tab_id,
+    status,
+  };
+  if (key.scope_type) cond.scope_type = key.scope_type;
+  if (key.scope_id) cond.scope_id = key.scope_id;
+  return cond;
+}
 
 /**
  * Default retention: 7 days. Rows older than this have their backup columns
@@ -42,6 +66,10 @@ export default class OperationLog implements OperationLogType {
   entity_id?: string;
   entity_title?: string;
   description?: string;
+  /** Partition this row belongs to in the undo stack. Resolved at
+   *  forward record time by the contract. */
+  scope_type?: OperationLogScopeType;
+  scope_id?: string;
   status?: OperationLogStatus;
   error?: string;
   undone_at?: string | null;
@@ -70,6 +98,8 @@ export default class OperationLog implements OperationLogType {
       'entity_id',
       'entity_title',
       'description',
+      'scope_type',
+      'scope_id',
       'forward_params',
       'inverse_params',
       'meta',
@@ -105,7 +135,7 @@ export default class OperationLog implements OperationLogType {
 
   public static async getLatestActive(
     context: NcContext,
-    key: { fk_user_id: string; tab_id: string },
+    key: OperationLogLookupKey,
     ncMeta: MetaService = Noco.ncMeta,
   ): Promise<OperationLog | null> {
     // Active stack: most-recently-performed op = highest insertion seq.
@@ -114,7 +144,7 @@ export default class OperationLog implements OperationLogType {
 
   public static async getLatestUndone(
     context: NcContext,
-    key: { fk_user_id: string; tab_id: string },
+    key: OperationLogLookupKey,
     ncMeta: MetaService = Noco.ncMeta,
   ): Promise<OperationLog | null> {
     // Undone stack: most-recently-undone op = greatest `undone_at`. Ordering
@@ -127,7 +157,7 @@ export default class OperationLog implements OperationLogType {
 
   public static async countByStatus(
     context: NcContext,
-    key: { fk_user_id: string; tab_id: string },
+    key: OperationLogLookupKey,
     status: OperationLogStatus,
     ncMeta: MetaService = Noco.ncMeta,
   ): Promise<number> {
@@ -136,12 +166,7 @@ export default class OperationLog implements OperationLogType {
       context.base_id,
       MetaTable.OPERATION_LOGS,
       {
-        condition: {
-          fk_user_id: key.fk_user_id,
-          base_id: context.base_id,
-          tab_id: key.tab_id,
-          status,
-        },
+        condition: buildLookupCondition(context, key, status),
       },
     );
   }
@@ -195,7 +220,7 @@ export default class OperationLog implements OperationLogType {
 
   public static async discardUndoneForTab(
     context: NcContext,
-    key: { fk_user_id: string; tab_id: string },
+    key: OperationLogLookupKey,
     ncMeta: MetaService = Noco.ncMeta,
   ): Promise<void> {
     await ncMeta.metaUpdate(
@@ -203,17 +228,13 @@ export default class OperationLog implements OperationLogType {
       context.base_id,
       MetaTable.OPERATION_LOGS,
       { status: 'discarded' as OperationLogStatus },
-      {
-        fk_user_id: key.fk_user_id,
-        tab_id: key.tab_id,
-        status: 'undone' as OperationLogStatus,
-      },
+      buildLookupCondition(context, key, 'undone' as OperationLogStatus),
     );
   }
 
   private static async getLatestByStatus(
     context: NcContext,
-    key: { fk_user_id: string; tab_id: string },
+    key: OperationLogLookupKey,
     status: OperationLogStatus,
     orderField: 'seq' | 'undone_at',
     ncMeta: MetaService,
@@ -223,12 +244,7 @@ export default class OperationLog implements OperationLogType {
       context.base_id,
       MetaTable.OPERATION_LOGS,
       {
-        condition: {
-          fk_user_id: key.fk_user_id,
-          base_id: context.base_id,
-          tab_id: key.tab_id,
-          status,
-        },
+        condition: buildLookupCondition(context, key, status),
         orderBy: { [orderField]: 'desc' },
         limit: 1,
       },

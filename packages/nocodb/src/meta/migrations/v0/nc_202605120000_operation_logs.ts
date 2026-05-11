@@ -30,6 +30,17 @@ const up = async (knex: Knex) => {
     table.string('entity_title', 255);
     table.text('description');
 
+    // Undo stack partition. Cmd-Z on a table page only pops rows with
+    // (scope_type='table', scope_id=that_table_id) — `(user, tab)` alone
+    // would conflate ops across every table/view/dashboard the user has
+    // touched in the tab.
+    //
+    // scope_type ∈ {'base','table','view','dashboard','workflow','script'}.
+    // Resolved at forward record time by `contract.scope(...)`; inverse
+    // ops (macroUndo, trashRestore) inherit the existing row's scope.
+    table.string('scope_type', 32);
+    table.string('scope_id', 36);
+
     // 'active'  → freshly recorded forward, undoable.
     // 'undone'  → undo was applied; redoable via popping latest undone.
     // 'redone'  → re-applied via redo; identical semantics to 'active' for
@@ -46,10 +57,11 @@ const up = async (knex: Knex) => {
   });
 
   await knex.schema.alterTable(MetaTable.OPERATION_LOGS, (table) => {
-    // Primary lookup: latest active/undone entry for a (user, base, tab).
+    // Primary lookup: latest active/undone entry for a
+    // (user, tab, scope). `seq DESC` is the order we pop from.
     table.index(
-      ['fk_user_id', 'base_id', 'tab_id', 'status', 'seq'],
-      'nc_op_logs_user_base_tab_status_seq_idx',
+      ['fk_user_id', 'tab_id', 'scope_type', 'scope_id', 'status', 'seq'],
+      'nc_op_logs_user_tab_scope_status_seq_idx',
     );
     // Cleanup queries (per-workspace pruning, TTL sweeps).
     table.index(['fk_workspace_id', 'base_id'], 'nc_op_logs_ws_base_idx');

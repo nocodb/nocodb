@@ -1,4 +1,5 @@
 import { isLinkV2, type NcRequest, RelationTypes } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { DisplacedRecord } from '~/command-registry/types';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import {
@@ -48,8 +49,13 @@ export class NestedLinkPreparator {
       req: NcRequest;
     },
   ) {
-    const postInsertOps: ((rowId: any) => Promise<string>)[] = [];
-    const preInsertOps: (() => Promise<string>)[] = [];
+    const postInsertOps: ((
+      rowId: any,
+      trx?: Knex | Knex.Transaction,
+    ) => Promise<string>)[] = [];
+    const preInsertOps: ((
+      trx?: Knex | Knex.Transaction,
+    ) => Promise<string>)[] = [];
     const postInsertAuditEntries: NestedLinkAuditEntry[] = [];
     const postInsertLastModifiedEntries: NestedLinkLastModifiedEntry[] = [];
     // Side-effect rows about to be mutated. Capture-ops below SELECT
@@ -177,11 +183,13 @@ export class NestedLinkPreparator {
                 // we null it. The partner row is identified by
                 // childCol.column_name === refRowId (i.e. whoever
                 // currently links to refRowId).
-                preInsertOps.push(async () => {
+                preInsertOps.push(async (trx) => {
+                  const driver = trx ?? baseModel.dbDriver;
                   // SELECT all pk columns + the FK to be nulled. Composite pks need
                   // every pk col so `extractPksValue` can build the joined-string form.
-                  const partner = await baseModel
-                    .dbDriver(baseModel.getTnPath(childModel.table_name))
+                  const partner = await driver(
+                    baseModel.getTnPath(childModel.table_name),
+                  )
                     .select(
                       ...childModel.primaryKeys.map((c) => c.column_name),
                       childCol.column_name,
@@ -206,9 +214,11 @@ export class NestedLinkPreparator {
                 });
 
                 // todo: unlink the ref record
-                preInsertOps.push(async () => {
-                  const res = baseModel
-                    .dbDriver(baseModel.getTnPath(childModel.table_name))
+                preInsertOps.push(async (trx) => {
+                  const driver = trx ?? baseModel.dbDriver;
+                  const res = driver(
+                    baseModel.getTnPath(childModel.table_name),
+                  )
                     .update({
                       [childCol.column_name]: null,
                     })
@@ -247,9 +257,11 @@ export class NestedLinkPreparator {
                 let pendingEntry:
                   | Extract<DisplacedRecord, { kind: 'column' }>
                   | undefined;
-                preInsertOps.push(async () => {
-                  const child = await baseModel
-                    .dbDriver(baseModel.getTnPath(childModel.table_name))
+                preInsertOps.push(async (trx) => {
+                  const driver = trx ?? baseModel.dbDriver;
+                  const child = await driver(
+                    baseModel.getTnPath(childModel.table_name),
+                  )
                     .select(
                       ...childModel.primaryKeys.map((c) => c.column_name),
                       childCol.column_name,
@@ -278,11 +290,13 @@ export class NestedLinkPreparator {
                   return '';
                 });
 
-                postInsertOps.push(async (rowId) => {
+                postInsertOps.push(async (rowId, trx) => {
+                  const driver = trx ?? baseModel.dbDriver;
                   let refId = rowId;
                   if (parentModel.primaryKey.id !== parentCol.id) {
-                    refId = baseModel
-                      .dbDriver(baseModel.getTnPath(parentModel.table_name))
+                    refId = await driver(
+                      baseModel.getTnPath(parentModel.table_name),
+                    )
                       .select(parentCol.column_name)
                       .where(parentModel.primaryKey.column_name, rowId)
                       .first();
@@ -297,8 +311,7 @@ export class NestedLinkPreparator {
                     childModel.primaryKey.title,
                   );
 
-                  return baseModel
-                    .dbDriver(baseModel.getTnPath(childModel.table_name))
+                  return driver(baseModel.getTnPath(childModel.table_name))
                     .update({
                       [childCol.column_name]: refId,
                     })
@@ -363,9 +376,11 @@ export class NestedLinkPreparator {
                 { kind: 'column' }
               >[] = [];
               if (childPksForCapture.length) {
-                preInsertOps.push(async () => {
-                  const rows = await baseModel
-                    .dbDriver(baseModel.getTnPath(childModel.table_name))
+                preInsertOps.push(async (trx) => {
+                  const driver = trx ?? baseModel.dbDriver;
+                  const rows = await driver(
+                    baseModel.getTnPath(childModel.table_name),
+                  )
                     .select(
                       ...childModel.primaryKeys.map((c) => c.column_name),
                       childCol.column_name,
@@ -396,11 +411,13 @@ export class NestedLinkPreparator {
                 });
               }
 
-              postInsertOps.push(async (rowId) => {
+              postInsertOps.push(async (rowId, trx) => {
+                const driver = trx ?? baseModel.dbDriver;
                 let refId = rowId;
                 if (parentModel.primaryKey.id !== parentCol.id) {
-                  refId = baseModel
-                    .dbDriver(baseModel.getTnPath(parentModel.table_name))
+                  refId = await driver(
+                    baseModel.getTnPath(parentModel.table_name),
+                  )
                     .select(parentCol.column_name)
                     .where(parentModel.primaryKey.column_name, rowId)
                     .first();
@@ -410,8 +427,7 @@ export class NestedLinkPreparator {
                     e.forwardPk = String(rowId);
                   }
                 }
-                return baseModel
-                  .dbDriver(baseModel.getTnPath(childModel.table_name))
+                return driver(baseModel.getTnPath(childModel.table_name))
                   .update({
                     [childCol.column_name]: refId,
                   })
@@ -468,7 +484,8 @@ export class NestedLinkPreparator {
             // the OM cardinality enforcement (each child can belong to
             // only ONE parent, so the existing junction rows for these
             // targets are wiped before the new ones are inserted).
-            preInsertOps.push(async () => {
+            preInsertOps.push(async (trx) => {
+              const driver = trx ?? baseModel.dbDriver;
               const parentModel = await colOptions
                 .getParentColumn(baseModel.context)
                 .then((c) => c.getModel(baseModel.context));
@@ -489,8 +506,9 @@ export class NestedLinkPreparator {
                 )
                 .filter(Boolean);
               if (!targetIds.length) return '';
-              const rows = await baseModel
-                .dbDriver(baseModel.getTnPath(mmModel.table_name))
+              const rows = await driver(
+                baseModel.getTnPath(mmModel.table_name),
+              )
                 .select(parentMMCol.column_name, childMMCol.column_name)
                 .whereIn(parentMMCol.column_name, targetIds);
               for (const row of rows) {
@@ -509,7 +527,8 @@ export class NestedLinkPreparator {
 
             // OM cardinality: each linked record can only link to ONE parent
             // Batch-delete existing junction rows for all children being linked
-            postInsertOps.push(async (_rowId) => {
+            postInsertOps.push(async (_rowId, trx) => {
+              const driver = trx ?? baseModel.dbDriver;
               const parentModel = await colOptions
                 .getParentColumn(baseModel.context)
                 .then((c) => c.getModel(baseModel.context));
@@ -527,15 +546,15 @@ export class NestedLinkPreparator {
                 )
                 .filter(Boolean);
               if (!targetIds.length) return '';
-              return baseModel
-                .dbDriver(baseModel.getTnPath(mmModel.table_name))
+              return driver(baseModel.getTnPath(mmModel.table_name))
                 .whereIn(parentMMCol.column_name, targetIds)
                 .del()
                 .toQuery();
             });
 
             // Insert all junction rows
-            postInsertOps.push(async (rowId) => {
+            postInsertOps.push(async (rowId, trx) => {
+              const driver = trx ?? baseModel.dbDriver;
               const parentModel = await colOptions
                 .getParentColumn(baseModel.context)
                 .then((c) => c.getModel(baseModel.context));
@@ -555,8 +574,7 @@ export class NestedLinkPreparator {
                 ),
                 [childMMCol.column_name]: rowId,
               }));
-              return baseModel
-                .dbDriver(baseModel.getTnPath(mmModel.table_name))
+              return driver(baseModel.getTnPath(mmModel.table_name))
                 .insert(rows)
                 .toQuery();
             });
@@ -607,7 +625,8 @@ export class NestedLinkPreparator {
 
               // Capture: junction row(s) about to be deleted to enforce
               // OO cardinality on the target side.
-              preInsertOps.push(async () => {
+              preInsertOps.push(async (trx) => {
+                const driver = trx ?? baseModel.dbDriver;
                 const parentMMCol = await colOptions.getMMParentColumn(
                   baseModel.context,
                 );
@@ -624,8 +643,9 @@ export class NestedLinkPreparator {
                   parentModel.primaryKey.title,
                 );
                 if (targetId == null) return '';
-                const rows = await baseModel
-                  .dbDriver(baseModel.getTnPath(mmModel.table_name))
+                const rows = await driver(
+                  baseModel.getTnPath(mmModel.table_name),
+                )
                   .select(parentMMCol.column_name, childMMCol.column_name)
                   .where(parentMMCol.column_name, targetId);
                 for (const row of rows) {
@@ -642,7 +662,8 @@ export class NestedLinkPreparator {
                 return '';
               });
 
-              postInsertOps.push(async (_rowId) => {
+              postInsertOps.push(async (_rowId, trx) => {
+                const driver = trx ?? baseModel.dbDriver;
                 const parentMMCol = await colOptions.getMMParentColumn(
                   baseModel.context,
                 );
@@ -655,8 +676,7 @@ export class NestedLinkPreparator {
                   _nestedData,
                   parentModel.primaryKey.title,
                 );
-                return baseModel
-                  .dbDriver(baseModel.getTnPath(mmModel.table_name))
+                return driver(baseModel.getTnPath(mmModel.table_name))
                   .where(parentMMCol.column_name, targetId)
                   .del()
                   .toQuery();
@@ -665,20 +685,21 @@ export class NestedLinkPreparator {
 
             // MO cardinality: this child can only link to ONE parent
             // Remove existing junction rows for this child (no-op for new rows)
-            postInsertOps.push(async (rowId) => {
+            postInsertOps.push(async (rowId, trx) => {
+              const driver = trx ?? baseModel.dbDriver;
               const childMMCol = await colOptions.getMMChildColumn(
                 baseModel.context,
               );
               const mmModel = await colOptions.getMMModel(baseModel.context);
-              return baseModel
-                .dbDriver(baseModel.getTnPath(mmModel.table_name))
+              return driver(baseModel.getTnPath(mmModel.table_name))
                 .where(childMMCol.column_name, rowId)
                 .del()
                 .toQuery();
             });
 
             // Insert the new junction row
-            postInsertOps.push(async (rowId) => {
+            postInsertOps.push(async (rowId, trx) => {
+              const driver = trx ?? baseModel.dbDriver;
               const parentModel = await colOptions
                 .getParentColumn(baseModel.context)
                 .then((c) => c.getModel(baseModel.context));
@@ -691,8 +712,7 @@ export class NestedLinkPreparator {
               );
               const mmModel = await colOptions.getMMModel(baseModel.context);
 
-              return baseModel
-                .dbDriver(baseModel.getTnPath(mmModel.table_name))
+              return driver(baseModel.getTnPath(mmModel.table_name))
                 .insert({
                   [parentMMCol.column_name]: extractIdPropIfObjectOrReturn(
                     nestedData,
@@ -734,7 +754,8 @@ export class NestedLinkPreparator {
           }
           case RelationTypes.MANY_TO_MANY: {
             if (!Array.isArray(nestedData)) continue;
-            postInsertOps.push(async (rowId) => {
+            postInsertOps.push(async (rowId, trx) => {
+              const driver = trx ?? baseModel.dbDriver;
               const parentModel = await colOptions
                 .getParentColumn(baseModel.context)
                 .then((c) => c.getModel(baseModel.context));
@@ -754,8 +775,7 @@ export class NestedLinkPreparator {
                 ),
                 [childMMCol.column_name]: rowId,
               }));
-              return baseModel
-                .dbDriver(baseModel.getTnPath(mmModel.table_name))
+              return driver(baseModel.getTnPath(mmModel.table_name))
                 .insert(rows)
                 .toQuery();
             });

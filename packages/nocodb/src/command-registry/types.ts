@@ -49,6 +49,19 @@ export interface OperationContract<
    * multiple traced child operations.
    */
   readonly macro?: boolean;
+
+  /**
+   * Resolves the per-tab undo/redo stack this op belongs to. Persisted on
+   * `nc_operation_logs.scope_type` / `scope_id`. `UndoRedoService` filters
+   * by `(user, tab, scope_type, scope_id)` so Cmd-Z while viewing table A
+   * only pops ops scoped to table A. Resolved at forward record time —
+   * inverse ops consume the existing row's scope. Optional during the
+   * roll-out; required after iter 14.
+   *
+   * See `src/command-registry/scope.ts` for builders and the dynamic-scope
+   * helper used by rename-class `*Update` ops.
+   */
+  readonly scope?: ScopeResolver<S, E, R>;
 }
 
 export interface OperationEntry<
@@ -362,3 +375,40 @@ export interface DescCtx {
   extra?: Record<string, any>;
 }
 export type DescFn = (context: DescCtx) => string;
+
+/**
+ * The five undo-stack partitions, plus `workflow`/`script` for content
+ * edits inside their respective editors (added so rename-class updates can
+ * land on the base stack while content edits stay inside the editor).
+ *
+ * Scope is set at forward record time on `nc_operation_logs`. Inverse ops
+ * (macroUndo, trashRestore) inherit the row's scope — no re-resolution.
+ */
+export type ScopeType =
+  | 'base'
+  | 'table'
+  | 'view'
+  | 'dashboard'
+  | 'workflow'
+  | 'script';
+
+export interface ScopeRef {
+  type: ScopeType;
+  id: string;
+}
+
+/**
+ * Computes the scope for a forward op. Called by `recordCommand` after
+ * `entry.before` and the service body have run, so `resolved.extra` and
+ * `result` are both populated.
+ */
+export type ScopeResolver<
+  S extends ZodTypeAny = ZodTypeAny,
+  E = Record<string, any>,
+  R = any,
+> = (
+  params: z.infer<S>,
+  result: R,
+  resolved: ResolvedCtx<E> | undefined,
+  context: NcContext,
+) => ScopeRef;

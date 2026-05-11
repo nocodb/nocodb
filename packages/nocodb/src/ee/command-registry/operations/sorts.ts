@@ -2,6 +2,7 @@ import type { OperationContract } from '~/command-registry/types';
 import type { SortsService } from '~/services/sorts.service';
 import { OperationName } from '~/command-registry/op-names';
 import { registerForward } from '~/command-registry/replay-context';
+import { scopeView } from '~/command-registry/scope';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model, Sort, View } from '~/models';
 import { sortActions } from '~/decorators/trace-command-descriptions';
@@ -21,6 +22,7 @@ export const SortCreateContract: OperationContract<
   name: OperationName.sortCreate,
   entity: MetaTable.SORT,
   schema: sortCreateSchema,
+  scope: (params) => scopeView(params.viewId),
   entry: {
     entity_id: 'id',
     parent_id: 'viewId',

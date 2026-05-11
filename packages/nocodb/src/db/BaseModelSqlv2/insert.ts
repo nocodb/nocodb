@@ -1,4 +1,5 @@
 import { dataWrapper, populatePk } from 'src/helpers/dbHelpers';
+import type { Knex } from 'knex';
 import {
   isAttachment,
   isLinksOrLTAR,
@@ -203,9 +204,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       const insertDatas = raw ? datas : [];
       const postInsertOpsMap: Record<
         number,
-        ((rowId: any) => Promise<string>)[]
+        ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
       > = {};
-      let preInsertOps: (() => Promise<string>)[] = [];
+      let preInsertOps: ((
+        trx?: Knex | Knex.Transaction,
+      ) => Promise<string>)[] = [];
       // Accumulator for displacement capture across the row loop. Each
       // call to `prepareNestedLinkQb` returns its own batch; we append
       // them together so the trace decorator sees the union.
@@ -318,7 +321,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       }
 
       await baseModel.runOps(
-        preInsertOps.map((f) => f()),
+        preInsertOps.map((f) => f(trx)),
         trx,
       );
 
@@ -396,7 +399,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           });
 
           await baseModel.runOps(
-            (postInsertOpsMap[i] ?? []).map((f) => f(rowId)),
+            (postInsertOpsMap[i] ?? []).map((f) => f(rowId, trx)),
             trx,
           );
         }

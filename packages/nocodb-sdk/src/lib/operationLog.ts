@@ -43,6 +43,15 @@ export interface OperationLogType {
   entity_title?: string;
   description?: string;
 
+  /**
+   * Undo-stack partition. Cmd-Z while viewing a specific table/view/dashboard
+   * only pops rows whose `(scope_type, scope_id)` matches. Resolved at
+   * forward record time by the contract; inverse ops (macroUndo, trashRestore)
+   * inherit the row's scope.
+   */
+  scope_type?: OperationLogScopeType;
+  scope_id?: string;
+
   status?: OperationLogStatus;
   /** Populated when status is 'errored'. */
   error?: string;
@@ -60,3 +69,11 @@ export type OperationLogStatus =
   | 'redone'
   | 'errored'
   | 'discarded';
+
+export type OperationLogScopeType =
+  | 'base'
+  | 'table'
+  | 'view'
+  | 'dashboard'
+  | 'workflow'
+  | 'script';

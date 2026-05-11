@@ -7,6 +7,7 @@ import type {
   DescFn,
   OperationContract,
   ResolvedCtx,
+  ScopeType,
   TraceCommandDep,
 } from '~/command-registry/types';
 import { getSandboxConfig, getUndoConfig } from '~/command-registry/types';
@@ -294,9 +295,17 @@ async function maybeRecordUndoEntry(
   }
   if (!inverse) return;
 
+  const scopeRef = contract.scope
+    ? safeResolveScope(contract, validatedParams, result, resolvedCtx, context)
+    : { type: 'base' as const, id: context.base_id ?? '' };
+
+  // Discard the redo stack for this scope only — a redo from a different
+  // table/view is unaffected by a fresh forward op on this one.
   await OperationLog.discardUndoneForTab(context, {
     fk_user_id: userId,
     tab_id: tabId,
+    scope_type: scopeRef.type,
+    scope_id: scopeRef.id,
   });
 
   await OperationLog.insert(context, {
@@ -312,6 +321,25 @@ async function maybeRecordUndoEntry(
     entity_id: info.entityId,
     entity_title: info.entityTitle?.substring(0, 255),
     description: info.description?.substring(0, 500),
+    scope_type: scopeRef.type,
+    scope_id: scopeRef.id,
     ...(extra ? { meta: extra } : {}),
   });
+}
+
+function safeResolveScope(
+  contract: OperationContract,
+  params: unknown,
+  result: unknown,
+  resolvedCtx: ResolvedCtx | undefined,
+  context: NcContext,
+): { type: ScopeType; id: string } {
+  try {
+    return contract.scope!(params as any, result, resolvedCtx, context);
+  } catch (e: any) {
+    logger.warn(
+      `scope resolve ${contract.name}@${contract.version ?? 1}: ${e?.message}`,
+    );
+    return { type: 'base', id: context.base_id ?? '' };
+  }
 }

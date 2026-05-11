@@ -286,8 +286,11 @@ export interface IBaseModelSqlV2 {
     insertObj: Record<string, any>;
     req: NcRequest;
   }): Promise<{
-    postInsertOps: ((rowId: any) => Promise<string>)[];
-    preInsertOps: (() => Promise<string>)[];
+    postInsertOps: ((
+      rowId: any,
+      trx?: Knex | Knex.Transaction,
+    ) => Promise<string>)[];
+    preInsertOps: ((trx?: Knex | Knex.Transaction) => Promise<string>)[];
     postInsertAuditEntries: NestedLinkAuditEntry[];
     postInsertLastModifiedEntries: NestedLinkLastModifiedEntry[];
     displacedRecords: DisplacedRecord[];

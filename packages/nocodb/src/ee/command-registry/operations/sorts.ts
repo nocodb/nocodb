@@ -60,6 +60,9 @@ export const SortCreateContract: OperationContract<
 };
 
 interface SortUpdateExtra {
+  /** Owning view — captured by `before` since the service result may be
+   *  null/undefined for no-op updates. */
+  fkViewId?: string;
   fieldTitle?: string;
   tableTitle?: string;
   prevSort?: {
@@ -93,6 +96,7 @@ export const SortUpdateContract: OperationContract<
       return {
         parentEntityTitle: view?.title,
         extra: {
+          fkViewId: sort.fk_view_id,
           fieldTitle: field?.title,
           tableTitle: table?.title,
           prevSort: {
@@ -118,7 +122,7 @@ export const SortUpdateContract: OperationContract<
         params: { sortId: params.sortId, sort: prev },
       };
     },
-    scope: (_p, result) => scopeView(result?.fk_view_id),
+    scope: (_p, _r, resolved) => scopeView(resolved?.extra?.fkViewId),
   },
 };
 

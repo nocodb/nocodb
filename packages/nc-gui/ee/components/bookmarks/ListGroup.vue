@@ -140,7 +140,7 @@ function handleDrop() {
 <template>
   <div
     class="nc-bookmark-list-group"
-    :class="{ 'is-drop-target': isDropTarget, 'is-dragging': isDraggingGroup }"
+    :class="{ 'is-drop-target': isDropTarget, 'is-dragging': isDraggingGroup, 'is-collapsed': isCollapsed }"
     :data-group-id="group.id"
     @dragover="handleDragOver"
     @dragenter="handleDragEnter"
@@ -222,10 +222,7 @@ function handleDrop() {
 
 <style lang="scss" scoped>
 .nc-bookmark-list-group {
-  @apply px-3 pt-3 pb-1 last-of-type:pb-3;
-  & + & {
-    @apply mt-1;
-  }
+  @apply px-3 first-of-type:pt-3 pb-0 last-of-type:pb-2;
   &.is-drop-target {
     background: color-mix(in srgb, var(--nc-content-brand) 6%, transparent);
   }
@@ -235,13 +232,16 @@ function handleDrop() {
 }
 
 .nc-bookmark-list-h {
-  @apply flex items-center gap-2.5 mb-1.5 px-1 min-h-7 cursor-pointer select-none min-w-0;
+  @apply flex items-center gap-2.5 px-1 min-h-8 cursor-pointer select-none min-w-0;
+}
+.nc-bookmark-list-group:not(.is-collapsed) .nc-bookmark-list-h {
+  @apply mb-1;
 }
 .nc-bookmark-list-check {
   @apply flex-none;
 }
 .nc-bookmark-list-folder-icon {
-  @apply flex-none w-3.5 h-3.5 text-nc-content-gray-muted;
+  @apply flex-none w-4 h-4 text-nc-content-gray-muted;
 }
 .nc-bookmark-list-group:hover .nc-bookmark-list-folder-icon {
   @apply text-nc-content-gray-subtle;

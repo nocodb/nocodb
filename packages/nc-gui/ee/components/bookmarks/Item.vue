@@ -176,7 +176,7 @@ function handleDragStart(e: DragEvent) {
 
 <style lang="scss" scoped>
 .nc-bookmark-item {
-  @apply flex items-center gap-2.5 px-2.5 py-0.5 min-h-7 rounded-md cursor-pointer relative min-w-0;
+  @apply flex items-center gap-2.5 px-2.5 py-0.5 min-h-8 rounded-md cursor-pointer relative min-w-0;
   @apply hover:bg-nc-bg-gray-light;
 
   &.is-dragging {

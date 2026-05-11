@@ -177,6 +177,7 @@ function onExpandAll() {
             {{ $t('labels.newFolder') }}
           </div>
         </NcMenuItem>
+        <NcDivider v-if="hasGroups" />
         <NcMenuItem v-if="hasGroups" :disabled="!canCollapseAll" data-testid="nc-bookmark-collapse-all" @click="onCollapseAll">
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="minimizeAll" class="w-4 h-4 text-nc-content-gray-muted" />

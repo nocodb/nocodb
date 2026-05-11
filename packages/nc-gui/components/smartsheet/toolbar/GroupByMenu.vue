@@ -125,6 +125,15 @@ const open = ref(false)
 
 useMenuCloseOnEsc(open)
 
+// Set while saveGroupBy is in flight. Gates the realtime-sync watcher
+// below so it doesn't rebase `_groupBy.value` from `syncedGroupByEntries`
+// while we're mid-update — `updateGridViewColumn` mutates
+// `gridViewCols.value` (the computed's source) between the "turn new
+// column on" and "turn old column off" steps, and an unguarded resync
+// would re-insert the old column back into `_groupBy.value` so the
+// turn-off pass thinks it's still desired.
+const isSavingGroupBy = ref(false)
+
 const saveGroupBy = async () => {
   if (!view.value?.id) {
     message.error('View not found!!!')
@@ -132,6 +141,7 @@ const saveGroupBy = async () => {
   }
 
   if (canSyncGroupBy.value) {
+    isSavingGroupBy.value = true
     // Synced mode: persist to server via updateGridViewColumn
     try {
       for (const gby of _groupBy.value) {
@@ -164,6 +174,8 @@ const saveGroupBy = async () => {
       eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
     } catch (e) {
       message.error('There was an error while updating view!')
+    } finally {
+      isSavingGroupBy.value = false
     }
   } else {
     // Local mode: update localGroupBy ref
@@ -224,6 +236,7 @@ watch(open, () => {
 // For realtime sync when dropdown is open
 watch(syncedGroupByEntries, (next) => {
   if (!open.value) return
+  if (isSavingGroupBy.value) return
   _groupBy.value = [...next]
 })
 

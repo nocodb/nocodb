@@ -161,7 +161,12 @@ const toggleMermaidView = () => {
 <template>
   <NodeViewWrapper class="nc-code-block-wrapper" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
     <!-- Toolbar: language selector + copy button -->
-    <div v-show="showToolbar" class="nc-code-block-toolbar" contenteditable="false">
+    <div
+      v-show="showToolbar"
+      class="nc-code-block-toolbar"
+      :class="{ 'nc-code-block-toolbar-on-light': showDiagramPane }"
+      contenteditable="false"
+    >
       <!-- Language selector -->
       <NcDropdown
         v-model:visible="isDropdownOpen"
@@ -355,6 +360,29 @@ const toggleMermaidView = () => {
   &:hover {
     background: rgba(255, 255, 255, 0.15);
     color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+// When the toolbar floats over the (light-bg) mermaid diagram pane,
+// flip its chips from white-on-translucent to dark-on-translucent so
+// they remain visible.
+.nc-code-block-toolbar-on-light {
+  .nc-code-block-lang-trigger,
+  .nc-code-block-copy-btn {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--nc-content-gray-subtle);
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.08);
+      color: var(--nc-content-gray);
+    }
+  }
+
+  .nc-code-block-lang-trigger-readonly {
+    &:hover {
+      background: rgba(0, 0, 0, 0.04);
+      color: var(--nc-content-gray-subtle);
+    }
   }
 }
 

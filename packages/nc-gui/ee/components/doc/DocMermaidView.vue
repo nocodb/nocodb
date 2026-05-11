@@ -104,7 +104,9 @@ watch(() => props.code, debouncedRender, { immediate: true })
   align-items: center;
   justify-content: center;
   min-height: 80px;
-  padding: 16px;
+  // Toolbar sits at top: 8px + height ~28px — leave clearance so it never
+  // overlaps the rendered diagram regardless of mermaid's intrinsic size.
+  padding: 48px 16px 16px;
   background: var(--nc-bg-default);
   border: 1px solid var(--nc-border-gray-medium);
   border-radius: 0.5em;

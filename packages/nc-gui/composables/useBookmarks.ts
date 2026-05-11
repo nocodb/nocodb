@@ -31,7 +31,8 @@ export const useBookmarks = createSharedComposable(() => {
   function resolveBookmarkRoute(_bookmark: any): any {
     return null
   }
-  async function navigateToBookmark(_bookmark: any) {}
+  async function navigateToBookmark(_bookmark: any, _options?: { inNewTab?: boolean }) {}
+  function onNavigated(_cb: () => void) {}
   async function moveBookmarkToGroup(_bookmarkId: string, _targetGroupId: string, _targetIndex?: number) {}
   async function reorderBookmark(_bookmarkId: string, _groupId: string, _targetIndex: number) {}
   async function reorderGroup(_groupId: string, _targetIndex: number) {}
@@ -39,6 +40,9 @@ export const useBookmarks = createSharedComposable(() => {
   function isGroupCollapsed(_groupId: string): boolean {
     return false
   }
+  const areAllGroupsCollapsed = computed(() => false)
+  function expandAllGroups() {}
+  function collapseAllGroups() {}
 
   return {
     bookmarks,
@@ -63,11 +67,15 @@ export const useBookmarks = createSharedComposable(() => {
     getBookmark,
     resolveBookmarkRoute,
     navigateToBookmark,
+    onNavigated,
     moveBookmarkToGroup,
     reorderBookmark,
     collapsedGroupIds,
     toggleGroupCollapsed,
     isGroupCollapsed,
+    areAllGroupsCollapsed,
+    expandAllGroups,
+    collapseAllGroups,
     reorderGroup,
   }
 })

@@ -63,6 +63,8 @@ onClickOutside(
       '.nc-bookmark-group-menu',
       '.nc-bookmark-settings-menu',
       '.nc-modal-wrapper',
+      '.nc-bookmark-bulk-more-dropdown-move-to',
+      '.nc-bookmark-bulk-more-dropdown',
     ],
   },
 )

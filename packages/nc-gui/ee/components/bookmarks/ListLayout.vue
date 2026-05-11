@@ -9,8 +9,6 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits<{ navigate: [bookmark: BookmarkType] }>()
-
 const { groups, columnGroups, bookmarksByGroup } = toRefs(props)
 
 const { draggingGroupId, groupDropIndex, updateGroupDropIndex, onDropGroup, onDragEnd } = useBookmarkDnd()
@@ -97,12 +95,7 @@ const lastColIdx = computed(() => Math.max(0, colCount.value - 1))
     <div v-for="(col, colIdx) in columnGroups" :key="colIdx" class="nc-bookmark-list-col">
       <template v-for="group in col" :key="group.id">
         <div v-if="dropTargetGroupId === group.id && group.id !== draggingGroupId" class="nc-bookmark-list-group-drop-line" />
-        <BookmarksListGroup
-          :group="group"
-          :bookmarks="bookmarksByGroup[group.id!] ?? []"
-          :all-groups="groups"
-          @navigate="(bm) => emit('navigate', bm)"
-        />
+        <BookmarksListGroup :group="group" :bookmarks="bookmarksByGroup[group.id!] ?? []" :all-groups="groups" />
       </template>
       <div
         v-if="draggingGroupId && groupDropIndex === groups.length && colIdx === lastColIdx"

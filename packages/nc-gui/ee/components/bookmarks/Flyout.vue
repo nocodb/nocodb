@@ -3,7 +3,14 @@ import type { BookmarkGroupType, BookmarkType } from 'nocodb-sdk'
 
 const emit = defineEmits<{ close: [] }>()
 
-const { bookmarksByGroup, orderedGroups, isLoading, navigateToBookmark, loadBookmarks, isCreatingFolder } = useBookmarks()
+const { bookmarksByGroup, orderedGroups, isLoading, loadBookmarks, isCreatingFolder, onNavigated } = useBookmarks()
+
+const { isEditing, exit: exitEdit } = useBookmarkEdit()
+
+// Close the flyout whenever a same-tab navigation succeeds (whether triggered
+// from an Item click, the edit-mode "Open" action, etc.). new-tab opens skip
+// this hook so the flyout stays put.
+onNavigated(() => emit('close'))
 
 const { isMobileMode } = useGlobal()
 
@@ -40,13 +47,14 @@ const filteredGroups = computed(() => {
   return orderedGroups.value.filter((g) => (filteredBookmarksByGroup.value[g.id!]?.length ?? 0) > 0)
 })
 
-function onNavigate(bm: BookmarkType) {
-  navigateToBookmark(bm)
-  emit('close')
-}
-
 onMounted(() => {
   loadBookmarks()
+})
+
+// Reset edit mode when the flyout unmounts (closed via outside click,
+// route change, etc.). Keeps selection from leaking back into the next open.
+onBeforeUnmount(() => {
+  if (isEditing.value) exitEdit('flyout-close')
 })
 
 // Always render as a single column — ListLayout still expects a 2D
@@ -89,9 +97,10 @@ const flyoutWidth = computed<string>(() =>
         :groups="filteredGroups"
         :column-groups="columnGroups"
         :bookmarks-by-group="filteredBookmarksByGroup"
-        @navigate="onNavigate"
       />
     </div>
+
+    <BookmarksActionBar />
   </div>
 </template>
 

@@ -15,13 +15,30 @@ const props = withDefaults(defineProps<Props>(), {
   compact: false,
 })
 
-const emit = defineEmits<{ click: [] }>()
-
 const { bookmark, groups, showCrumbOnHover, compact } = toRefs(props)
 
 const ctxMenuRef = ref<any>()
 
 const { onDragStart, onDragEnd, draggingBookmarkId } = useBookmarkDnd()
+
+const { isEditing, isBookmarkSelected, toggleBookmark } = useBookmarkEdit()
+
+const { navigateToBookmark } = useBookmarks()
+
+const isSelected = computed(() => isBookmarkSelected(bookmark.value.id!))
+
+function onRowClick(e: MouseEvent) {
+  if (isEditing.value) {
+    toggleBookmark(bookmark.value.id!)
+    return
+  }
+
+  // Same-tab nav and Cmd/Ctrl-click both route through navigateToBookmark.
+  // It owns flyout-close signaling via onNavigated, so the parent component
+  // doesn't have to chain a separate event for that.
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  navigateToBookmark(bookmark.value, { inNewTab: cmdOrCtrl })
+}
 
 const meta = computed(() => bookmark.value.meta ?? {})
 
@@ -87,14 +104,26 @@ function handleDragStart(e: DragEvent) {
     :class="{
       'is-dragging': isDragging,
       'is-compact': compact,
+      'is-editing': isEditing,
+      'is-selected': isEditing && isSelected,
     }"
     data-testid="nc-bookmark-item"
     draggable="true"
-    @click="emit('click')"
+    @click="onRowClick"
     @dragstart="handleDragStart"
     @dragend="onDragEnd"
     @contextmenu.prevent="ctxMenuRef?.open()"
   >
+    <!-- Selection checkbox (edit mode) -->
+    <NcCheckbox
+      v-if="isEditing"
+      :checked="isSelected"
+      class="nc-bookmark-item-check"
+      data-testid="nc-bookmark-item-checkbox"
+      @click.stop
+      @change="toggleBookmark(bookmark.id!)"
+    />
+
     <!-- Icon -->
     <div class="nc-bookmark-item-ic">
       <GeneralWorkspaceIcon
@@ -156,6 +185,13 @@ function handleDragStart(e: DragEvent) {
   &.is-compact {
     @apply gap-2 py-1 px-2;
   }
+  &.is-selected {
+    background: color-mix(in srgb, var(--nc-content-brand) 8%, transparent);
+  }
+}
+
+.nc-bookmark-item-check {
+  @apply flex-none ml-0.5;
 }
 
 .nc-bookmark-item-ic {

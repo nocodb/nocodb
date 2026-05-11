@@ -1,7 +1,17 @@
 <script setup lang="ts">
 import type { BookmarkReqType } from 'nocodb-sdk'
 
-const { addBookmark, isBookmarked, getBookmark, removeBookmark, isCreatingFolder } = useBookmarks()
+const {
+  addBookmark,
+  isBookmarked,
+  getBookmark,
+  removeBookmark,
+  isCreatingFolder,
+  orderedGroups,
+  collapsedGroupIds,
+  expandAllGroups,
+  collapseAllGroups,
+} = useBookmarks()
 
 const workspaceStore = useWorkspace()
 
@@ -111,12 +121,33 @@ function onNewFolder() {
   isDropdownOpen.value = false
   isCreatingFolder.value = true
 }
+
+const hasGroups = computed(() => orderedGroups.value.length > 0)
+
+// Disabled flags: nothing to collapse when every group is already collapsed,
+// nothing to expand when none are collapsed.
+const canCollapseAll = computed(() => {
+  if (!orderedGroups.value.length) return false
+  return orderedGroups.value.some((g) => !collapsedGroupIds.value.has(g.id!))
+})
+
+const canExpandAll = computed(() => collapsedGroupIds.value.size > 0)
+
+function onCollapseAll() {
+  isDropdownOpen.value = false
+  collapseAllGroups()
+}
+
+function onExpandAll() {
+  isDropdownOpen.value = false
+  expandAllGroups()
+}
 </script>
 
 <template>
   <NcDropdown v-model:visible="isDropdownOpen" placement="bottomRight" overlay-class-name="nc-bookmark-add-dropdown">
     <NcButton type="text" size="small" class="!rounded-md" data-testid="nc-bookmark-add-btn" @click.stop>
-      <GeneralIcon icon="plus" class="text-nc-content-gray-muted" />
+      <GeneralIcon icon="ncMoreVertical" class="text-nc-content-gray-muted" />
     </NcButton>
 
     <template #overlay>
@@ -140,6 +171,18 @@ function onNewFolder() {
           <div class="flex gap-2 items-center">
             <GeneralIcon icon="ncFolderPlus" class="w-4 h-4" />
             {{ $t('labels.newFolder') }}
+          </div>
+        </NcMenuItem>
+        <NcMenuItem v-if="hasGroups" :disabled="!canCollapseAll" data-testid="nc-bookmark-collapse-all" @click="onCollapseAll">
+          <div class="flex gap-2 items-center">
+            <GeneralIcon icon="minimizeAll" class="w-4 h-4 text-nc-content-gray-muted" />
+            {{ $t('labels.collapseAll') }}
+          </div>
+        </NcMenuItem>
+        <NcMenuItem v-if="hasGroups" :disabled="!canExpandAll" data-testid="nc-bookmark-expand-all" @click="onExpandAll">
+          <div class="flex gap-2 items-center">
+            <GeneralIcon icon="maximizeAll" class="w-4 h-4 text-nc-content-gray-muted" />
+            {{ $t('labels.expandAll') }}
           </div>
         </NcMenuItem>
       </NcMenu>

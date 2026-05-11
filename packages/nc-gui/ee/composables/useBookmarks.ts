@@ -349,18 +349,35 @@ export const useBookmarks = createSharedComposable(() => {
     }
   }
 
-  async function navigateToBookmark(bookmark: BookmarkType) {
-    const route = resolveBookmarkRoute(bookmark)
-    if (route) {
-      try {
-        await router.push(route)
+  // Fired after a successful same-tab navigation. The flyout host listens
+  // to this to close itself; keeping it here means consumers don't have to
+  // remember to close the flyout themselves after calling navigateToBookmark.
+  const navigatedHook = createEventHook<void>()
 
-        // Fire-and-forget: refresh title/icon from the target entity
-        refreshBookmark(bookmark)
-      } catch {
-        message.error(t('msg.info.targetNotFound'))
-      }
-    } else {
+  async function navigateToBookmark(bookmark: BookmarkType, options: { inNewTab?: boolean } = {}) {
+    const route = resolveBookmarkRoute(bookmark)
+    if (!route) {
+      message.error(t('msg.info.targetNotFound'))
+      return
+    }
+
+    if (options.inNewTab) {
+      // Open in new tab via Nuxt's blank-target navigation helper. Matches
+      // TreeView Node's Cmd/Ctrl-click behavior. New-tab doesn't fire the
+      // navigated hook — we want to keep the flyout open for the user.
+      const href = router.resolve(route).href
+      navigateTo(href, { open: navigateToBlankTargetOpenOption })
+      refreshBookmark(bookmark)
+      return
+    }
+
+    try {
+      await router.push(route)
+
+      // Fire-and-forget: refresh title/icon from the target entity
+      refreshBookmark(bookmark)
+      navigatedHook.trigger()
+    } catch {
       message.error(t('msg.info.targetNotFound'))
     }
   }
@@ -392,6 +409,25 @@ export const useBookmarks = createSharedComposable(() => {
 
   function isGroupCollapsed(groupId: string): boolean {
     return collapsedGroupIds.value.has(groupId)
+  }
+
+  // True only when there's at least one group AND every group is collapsed.
+  // The header menu uses this to switch between "Expand all" and "Collapse all".
+  const areAllGroupsCollapsed = computed<boolean>(() => {
+    const list = orderedGroups.value
+    if (!list.length) return false
+    return list.every((g) => collapsedGroupIds.value.has(g.id!))
+  })
+
+  function expandAllGroups() {
+    if (!collapsedGroupIds.value.size) return
+    collapsedGroupIds.value = new Set()
+  }
+
+  function collapseAllGroups() {
+    const next = new Set<string>()
+    for (const g of orderedGroups.value) next.add(g.id!)
+    collapsedGroupIds.value = next
   }
 
   /**
@@ -531,11 +567,15 @@ export const useBookmarks = createSharedComposable(() => {
     getBookmark,
     resolveBookmarkRoute,
     navigateToBookmark,
+    onNavigated: navigatedHook.on,
     moveBookmarkToGroup,
     reorderBookmark,
     collapsedGroupIds,
     toggleGroupCollapsed,
     isGroupCollapsed,
+    areAllGroupsCollapsed,
+    expandAllGroups,
+    collapseAllGroups,
     reorderGroup,
   }
 })

@@ -8,15 +8,22 @@ const search = defineModel<string>('search', { default: '' })
 const showSearch = ref(false)
 const searchInput = ref<any>()
 
+const { isEditing, enter, exit } = useBookmarkEdit()
+
 const isSearchVisible = computed(() => !!search.value || showSearch.value)
 
-function open() {
+function openSearch() {
   showSearch.value = true
   nextTick(() => searchInput.value?.focus?.())
 }
 
 function onBlur() {
   if (!search.value) showSearch.value = false
+}
+
+function toggleEdit() {
+  if (isEditing.value) exit('close-button')
+  else enter()
 }
 </script>
 
@@ -41,8 +48,19 @@ function onBlur() {
           <GeneralIcon icon="search" class="text-nc-content-gray-muted mr-1" />
         </template>
       </a-input>
-      <NcButton v-else type="text" size="small" class="!rounded-md" @click="open">
+      <NcButton v-else type="text" size="small" class="!rounded-md" @click="openSearch">
         <GeneralIcon icon="search" class="text-nc-content-gray-muted" />
+      </NcButton>
+
+      <NcButton
+        type="text"
+        size="small"
+        class="!rounded-md"
+        :class="isEditing ? 'nc-bookmark-edit-active' : ''"
+        data-testid="nc-bookmark-edit-toggle"
+        @click="toggleEdit"
+      >
+        <GeneralIcon icon="ncEdit" :class="isEditing ? 'text-nc-content-brand' : 'text-nc-content-gray-muted'" />
       </NcButton>
     </template>
 

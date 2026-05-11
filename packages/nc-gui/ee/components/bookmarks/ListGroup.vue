@@ -9,11 +9,11 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits<{ navigate: [bookmark: BookmarkType] }>()
-
 const { group, bookmarks: groupBookmarks, allGroups } = toRefs(props)
 
 const { updateGroup, isGroupCollapsed, toggleGroupCollapsed } = useBookmarks()
+
+const { isEditing, groupSelectionState, toggleGroup } = useBookmarkEdit()
 
 const {
   hoverGroupId,
@@ -46,6 +46,24 @@ const localDropIndex = computed(() => (isDropTarget.value ? dropIndex.value : nu
 
 const iconColor = computed(() => (group.value.meta as Record<string, any> | undefined)?.iconColor || '')
 
+// Edit-mode selection state. The folder checkbox is a bulk-select shortcut
+// for the group's bookmarks — including Ungrouped. We still skip Ungrouped
+// in `fullySelectedGroupIds` upstream, so a fully-ticked Ungrouped only
+// deletes its items, never the folder itself (Ungrouped auto-recreates).
+const checkboxState = computed(() => groupSelectionState(group.value.id!))
+const showFolderCheckbox = computed(() => isEditing.value)
+
+function onHeaderClick() {
+  if (isRenaming.value) return
+  // In edit mode, clicking the row toggles the group selection. The folder
+  // icon stops propagation so collapse/expand still works.
+  if (isEditing.value) {
+    toggleGroup(group.value.id!)
+    return
+  }
+  toggleGroupCollapsed(group.value.id!)
+}
+
 function startRename() {
   renameValue.value = group.value.name ?? ''
   isRenaming.value = true
@@ -69,11 +87,6 @@ async function saveRename() {
 function cancelRename() {
   isRenaming.value = false
   renameValue.value = ''
-}
-
-function onToggleCollapse() {
-  if (isRenaming.value) return
-  toggleGroupCollapsed(group.value.id!)
 }
 
 function handleGroupDragStart(e: DragEvent) {
@@ -142,13 +155,24 @@ function handleDrop() {
       data-testid="nc-bookmark-group-header"
       @dragstart="handleGroupDragStart"
       @dragend="onDragEnd"
-      @click="onToggleCollapse"
+      @click="onHeaderClick"
       @contextmenu.prevent="ctxMenuRef?.open()"
     >
+      <NcCheckbox
+        v-if="showFolderCheckbox"
+        :checked="checkboxState === 'checked'"
+        :indeterminate="checkboxState === 'indeterminate'"
+        class="nc-bookmark-list-check"
+        data-testid="nc-bookmark-group-checkbox"
+        @click.stop
+        @change="toggleGroup(group.id!)"
+      />
+
       <GeneralIcon
         :icon="isCollapsed ? 'ncFolderClosed' : 'ncFolderOpen'"
         class="nc-bookmark-list-folder-icon"
         :style="iconColor ? { color: iconColor } : undefined"
+        @click.stop="toggleGroupCollapsed(group.id!)"
       />
 
       <a-input
@@ -184,7 +208,7 @@ function handleDrop() {
       <div ref="listRef" class="nc-bookmark-list-items">
         <template v-for="(bm, idx) in groupBookmarks" :key="bm.id">
           <div v-if="localDropIndex === idx && bm.id !== draggingBookmarkId" class="nc-bookmark-list-drop-line" />
-          <BookmarksItem :bookmark="bm" :groups="allGroups" :show-crumb-on-hover="true" @click="emit('navigate', bm)" />
+          <BookmarksItem :bookmark="bm" :groups="allGroups" :show-crumb-on-hover="true" />
         </template>
         <div v-if="localDropIndex === groupBookmarks.length && groupBookmarks.length > 0" class="nc-bookmark-list-drop-line" />
       </div>
@@ -212,6 +236,9 @@ function handleDrop() {
 
 .nc-bookmark-list-h {
   @apply flex items-center gap-2.5 mb-1.5 px-1 cursor-pointer select-none min-w-0;
+}
+.nc-bookmark-list-check {
+  @apply flex-none;
 }
 .nc-bookmark-list-folder-icon {
   @apply flex-none w-3.5 h-3.5 text-nc-content-gray-muted;

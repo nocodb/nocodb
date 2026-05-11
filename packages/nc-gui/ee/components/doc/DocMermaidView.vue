@@ -62,6 +62,37 @@ const debouncedRender = useDebounceFn(render, 200)
 
 // Re-render on code OR theme change (flipping dark mode swaps the palette).
 watch([() => props.code, themeKey], debouncedRender, { immediate: true })
+
+// --- Actions exposed to the parent toolbar ---
+
+const isExpanded = ref(false)
+
+const expandDiagram = () => {
+  if (!svg.value) return
+  isExpanded.value = true
+}
+
+const downloadDiagram = () => {
+  if (!svg.value) return
+  // SVG output already carries inline styles + viewBox from mermaid, so a
+  // direct blob is portable — opens in any viewer or imports cleanly to
+  // design tools. PNG export would need canvas rasterisation, deferred.
+  const blob = new Blob([svg.value], { type: 'image/svg+xml;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = 'mermaid-diagram.svg'
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+defineExpose({
+  expandDiagram,
+  downloadDiagram,
+  hasSvg: computed(() => !!svg.value),
+})
 </script>
 
 <template>
@@ -79,6 +110,14 @@ watch([() => props.code, themeKey], debouncedRender, { immediate: true })
     <!-- eslint-disable vue/no-v-html -->
     <div v-else class="nc-mermaid-svg" v-html="svg" />
     <!-- eslint-enable vue/no-v-html -->
+
+    <NcModal v-model:visible="isExpanded" size="xl" :show-separator="false" :destroy-on-close="false">
+      <div class="nc-mermaid-expanded-body">
+        <!-- eslint-disable vue/no-v-html -->
+        <div class="nc-mermaid-expanded-svg" v-html="svg" />
+        <!-- eslint-enable vue/no-v-html -->
+      </div>
+    </NcModal>
   </div>
 </template>
 
@@ -136,5 +175,31 @@ watch([() => props.code, themeKey], debouncedRender, { immediate: true })
 
 .nc-mermaid-loading {
   color: var(--nc-content-gray-subtle);
+}
+
+.nc-mermaid-expanded-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 24px;
+  overflow: auto;
+}
+
+.nc-mermaid-expanded-svg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+
+  :deep(svg) {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+  }
 }
 </style>

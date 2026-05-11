@@ -174,6 +174,16 @@ const toggleMermaidView = () => {
     localViewMode.value = next
   }
 }
+
+// Diagram-only toolbar actions are delegated to DocMermaidView (which owns
+// the rendered SVG + expand modal). The parent only fires the methods.
+const mermaidViewRef = ref<{
+  expandDiagram: () => void
+  downloadDiagram: () => void
+  hasSvg: boolean
+} | null>(null)
+
+const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? false)
 </script>
 
 <template>
@@ -292,6 +302,31 @@ const toggleMermaidView = () => {
         </button>
       </NcTooltip>
 
+      <!-- Mermaid diagram actions (visible only while the diagram pane is showing) -->
+      <template v-if="isMermaid && showDiagramPane">
+        <NcTooltip :title="$t('labels.expandDiagram')" placement="top">
+          <button
+            class="nc-code-block-copy-btn"
+            :disabled="!mermaidActionsEnabled"
+            data-testid="nc-mermaid-expand"
+            @click="mermaidViewRef?.expandDiagram()"
+          >
+            <GeneralIcon icon="ncMaximize" />
+          </button>
+        </NcTooltip>
+
+        <NcTooltip :title="$t('labels.downloadImage')" placement="top">
+          <button
+            class="nc-code-block-copy-btn"
+            :disabled="!mermaidActionsEnabled"
+            data-testid="nc-mermaid-download"
+            @click="mermaidViewRef?.downloadDiagram()"
+          >
+            <GeneralIcon icon="ncDownload" />
+          </button>
+        </NcTooltip>
+      </template>
+
       <!-- Copy button -->
       <NcTooltip :title="isCopied ? $t('general.copied') : $t('labels.copyCode')" placement="top">
         <button class="nc-code-block-copy-btn" data-testid="nc-code-block-copy-btn" @click="copyCode">
@@ -306,7 +341,7 @@ const toggleMermaidView = () => {
     <NodeViewContent v-show="showCodePane" as="pre" class="nc-code-block-content" />
 
     <!-- Mermaid diagram pane -->
-    <DocMermaidView v-if="isMermaid" v-show="showDiagramPane" :code="mermaidCode" />
+    <DocMermaidView v-if="isMermaid" v-show="showDiagramPane" ref="mermaidViewRef" :code="mermaidCode" />
   </NodeViewWrapper>
 </template>
 
@@ -375,9 +410,14 @@ const toggleMermaidView = () => {
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.15);
     color: rgba(255, 255, 255, 0.9);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
   }
 }
 

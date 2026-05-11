@@ -48,6 +48,7 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
             request?.ncBaseId,
             request?.ncOrgId,
             request?.path,
+            request?.query?.operation,
           ].filter((item) => item !== undefined),
         })
         .catch((err) => {
@@ -65,6 +66,7 @@ export class GlobalExceptionFilter extends GlobalExceptionFilterCE {
         ip: (request as any).clientIp,
         id: (request as any).user?.id,
         path: (request as any).path,
+        operation: (request as any).query?.operation,
         clientId: (request as any).headers?.['nc-client-id'],
       },
       exception.stack,

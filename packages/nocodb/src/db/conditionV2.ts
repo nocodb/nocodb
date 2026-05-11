@@ -69,6 +69,22 @@ export default async function conditionV2(
   filterOperationResult.rootApply?.(qb);
 }
 
+// Cast a formula's compiled SQL expression to text so empty-string comparisons
+// (`<> ''` / `= ''`) survive when the underlying type isn't text — JSON_EXTRACT
+// returns jsonb on PG and JSON on MySQL, which would otherwise produce a type-
+// mismatch error. SQLite is already typeless-text for these expressions, but
+// the explicit cast is a no-op there. See nocodb/nocodb#12695.
+function formulaToTextCast(knex: any, expr: any) {
+  const client = knex.clientType();
+  if (client === 'pg') {
+    return knex.raw('(?)::text', [expr]);
+  }
+  if (client.startsWith('mysql')) {
+    return knex.raw('CAST((?) AS CHAR)', [expr]);
+  }
+  return knex.raw('CAST((?) AS TEXT)', [expr]);
+}
+
 function getLogicalOpMethod(filter: Filter) {
   switch (filter.logical_op?.toLowerCase()) {
     case 'or':
@@ -1301,7 +1317,15 @@ const parseConditionV2 = async (
                   (column?.colOptions as any).parsed_tree?.dataType ===
                   FormulaDataTypes.STRING
                 ) {
-                  qb = qb.orWhere(customWhereClause || field, '');
+                  // The formula's compiled SQL may return non-text types — e.g.
+                  // JSON_EXTRACT yields jsonb on PG and JSON on MySQL. A direct
+                  // `<> ''` then errors with a type mismatch. Cast to text so
+                  // the empty-string check is type-safe regardless of the
+                  // underlying SQL type. Cf. nocodb/nocodb#12695.
+                  qb = qb.orWhere(
+                    formulaToTextCast(knex, customWhereClause || field),
+                    '',
+                  );
                 }
               } else {
                 qb = qb.whereNull(customWhereClause || field);
@@ -1348,7 +1372,11 @@ const parseConditionV2 = async (
                   (column?.colOptions as any).parsed_tree?.dataType ===
                   FormulaDataTypes.STRING
                 ) {
-                  qb = qb.whereNot(customWhereClause || field, '');
+                  // See `blank` branch above for the rationale.
+                  qb = qb.whereNot(
+                    formulaToTextCast(knex, customWhereClause || field),
+                    '',
+                  );
                 }
               } else {
                 qb = qb.whereNotNull(customWhereClause || field);

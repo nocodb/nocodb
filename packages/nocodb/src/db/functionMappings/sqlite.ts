@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { convertToTargetFormat, getDateFormat } from 'nocodb-sdk';
+import { convertToTargetFormat, getDateFormat, JSEPNode } from 'nocodb-sdk';
 import commonFns, {
   safeDateAddUnitSQL,
   validateDateAddUnit,
@@ -300,7 +300,27 @@ const sqlite3 = {
   },
   async JSON_EXTRACT(args: MapFnArgs) {
     const source = (await args.fn(args.pt.arguments[0])).builder;
-    const needle = (await args.fn(args.pt.arguments[1])).builder;
+
+    // When the path is a string literal, prebuild the full jsonpath and bind
+    // as a single parameter — avoids leaving `'$' ||` adjacent in the SQL,
+    // which gets corrupted by JS String.prototype.replace special patterns
+    // (the `$'` and `` $` `` pairs) when knex inlines this raw inside named-
+    // binding wrappers like VALUE(). See nocodb/nocodb#12695.
+    const pathArg = args.pt.arguments[1];
+    if (
+      pathArg?.type === JSEPNode.LITERAL &&
+      typeof pathArg.value === 'string'
+    ) {
+      const path = `$${pathArg.value}`;
+      return {
+        builder: args.knex.raw(
+          `CASE WHEN json_valid(?) = 1 AND ? NOT LIKE '%[-%' THEN json_extract(?, ?) ELSE NULL END`,
+          [source, path, source, path],
+        ),
+      };
+    }
+
+    const needle = (await args.fn(pathArg)).builder;
     return {
       builder: args.knex.raw(
         `CASE WHEN json_valid(?) = 1 AND ('$' || ?) NOT LIKE '%[-%' THEN json_extract(?, '$' || ?) ELSE NULL END`,

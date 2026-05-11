@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { JSEPNode } from 'nocodb-sdk';
 import commonFns, {
   ALLOWED_DATEADD_UNITS,
   validateDateAddUnit,
@@ -223,7 +224,27 @@ END)`,
   },
   JSON_EXTRACT: async ({ fn, knex, pt }: MapFnArgs) => {
     const source = (await fn(pt.arguments[0])).builder;
-    const needle = (await fn(pt.arguments[1])).builder;
+
+    // When the path is a string literal we prebuild the full jsonpath and
+    // bind it once — the naive `CONCAT('$', ?)` rendering leaves `'$',`
+    // adjacent in the resulting SQL, and the `$'` pair is interpreted by
+    // JS's String.prototype.replace as "rest of string after match" when
+    // knex inlines this raw under named-binding wrappers like VALUE().
+    // See nocodb/nocodb#12695.
+    const pathArg = pt.arguments[1];
+    if (
+      pathArg?.type === JSEPNode.LITERAL &&
+      typeof pathArg.value === 'string'
+    ) {
+      return {
+        builder: knex.raw(
+          `CASE WHEN JSON_VALID(?) = 1 THEN JSON_EXTRACT(?, ?) ELSE NULL END`,
+          [source, source, `$${pathArg.value}`],
+        ),
+      };
+    }
+
+    const needle = (await fn(pathArg)).builder;
     return {
       builder: knex.raw(
         `CASE WHEN JSON_VALID(?) = 1 THEN JSON_EXTRACT(?, CONCAT('$', ?)) ELSE NULL END`,

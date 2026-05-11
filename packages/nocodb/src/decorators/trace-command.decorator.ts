@@ -40,3 +40,24 @@ export function getTraceCapture<T = unknown>(_key: string): T | undefined {
 export function isTraceActive(): boolean {
   return false;
 }
+
+/**
+ * CE stub. EE wraps `fn` in a trace scope so nested `@TraceCommand`
+ * decorators take the silent re-entrant skip branch — used by
+ * system-driven fan-out paths (snapshot, duplicate-base, import) that
+ * call into traced services but are not themselves user-initiated.
+ */
+export async function runUntraced<T>(fn: () => Promise<T>): Promise<T> {
+  return fn();
+}
+
+// CE no-op stub for `@Untraced`. EE overrides with the real impl.
+export function Untraced() {
+  return function (
+    _target: unknown,
+    _propertyKey: string,
+    descriptor: PropertyDescriptor,
+  ) {
+    return descriptor;
+  };
+}

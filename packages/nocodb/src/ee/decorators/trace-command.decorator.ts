@@ -106,6 +106,28 @@ export async function runUntraced<T>(fn: () => Promise<T>): Promise<T> {
   return result;
 }
 
+/**
+ * Method decorator equivalent of `runUntraced`. Wraps the decorated
+ * method's body in an outer trace scope so any nested `@TraceCommand`
+ * calls take the silent re-entrant skip branch. Use on system-driven
+ * fan-out entry points (duplicate / snapshot / import processors) that
+ * call traced services but are not themselves user-initiated, undoable
+ * operations.
+ */
+export function Untraced() {
+  return function (
+    _target: unknown,
+    _propertyKey: string,
+    descriptor: PropertyDescriptor,
+  ) {
+    const originalMethod = descriptor.value;
+    descriptor.value = async function (...args: any[]) {
+      return runUntraced(() => originalMethod.apply(this, args));
+    };
+    return descriptor;
+  };
+}
+
 export interface TraceCommandOpts {
   /**
    * Marks the op as a macro — a user-facing action that fans out to

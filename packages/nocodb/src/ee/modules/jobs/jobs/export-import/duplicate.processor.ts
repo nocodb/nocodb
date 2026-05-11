@@ -23,6 +23,7 @@ import { TelemetryService } from '~/services/telemetry.service';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
+import { Untraced } from '~/decorators/trace-command.decorator';
 import { FiltersService } from '~/services/filters.service';
 import {
   applyMeta,
@@ -164,6 +165,7 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
     }
   }
 
+  @Untraced()
   async duplicateDashboard(job: Job<DuplicateDashboardJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateDashboard})`);
 
@@ -280,6 +282,7 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
   }
 
   @EEOnly()
+  @Untraced()
   async duplicateBaseJob({
     sourceBase,
     targetBase,

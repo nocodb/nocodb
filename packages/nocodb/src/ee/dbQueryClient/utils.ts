@@ -1,5 +1,6 @@
 import type { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { splitCompositePkString } from '~/helpers/dbHelpers';
 
 /**
  * Normalizes an ID value for use in database queries.
@@ -41,9 +42,7 @@ export function normalizeIdForQuery(
   }
 
   // For composite keys passed as string: split by separator and unescape underscores
-  const idValues = id
-    .split('___')
-    .map((idPart) => idPart.replaceAll('\\_', '_'));
+  const idValues = splitCompositePkString(id);
 
   // Validate composite primary key values if they're auto-increment
   if (!skipPkValidation) {

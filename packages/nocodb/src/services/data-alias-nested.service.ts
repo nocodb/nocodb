@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { isLinksOrLTAR, isLinkV2 } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import {

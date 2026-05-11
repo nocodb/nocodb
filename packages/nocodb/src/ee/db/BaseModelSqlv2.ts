@@ -111,6 +111,7 @@ import {
   haveFormulaColumn,
   populatePk,
   shouldCascadeLinkCleanup,
+  splitCompositePkString,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { getProjectRole } from '~/utils/roleHelper';
@@ -1362,9 +1363,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } else {
       seedIds = changedRowIds
         .map((compositeId) => {
-          const parts = compositeId
-            .split('___')
-            .map((v) => v.replaceAll('\\_', '_'));
+          const parts = splitCompositePkString(compositeId);
           // Guard: if the composite ID has fewer parts than expected, skip it
           if (parentPkIndex >= parts.length) return undefined;
           return parts[parentPkIndex];

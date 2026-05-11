@@ -363,6 +363,14 @@ watch(
           query: {
             ...routeQuery.value,
             rowId: newRowId,
+            // Mirror updateRowIdRoute: opening / switching the expanded record
+            // always wins over the SmartText cell claim. Without this, the
+            // watcher races updateRowIdRoute and can land last, re-introducing
+            // the SmartText params we just cleared and leaving the EFP hidden
+            // behind the SmartText panel.
+            cellRow: undefined,
+            cellCol: undefined,
+            cellMode: undefined,
           },
         })
         .finally(clearSyncingRoute)

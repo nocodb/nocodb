@@ -74,10 +74,8 @@ test.describe('Timeline View', () => {
       headers: { 'xc-auth': context.token },
     });
 
-    const projectListResponse = await api.base.list();
-    const project = projectListResponse.list.find((b: any) => b.id === context.base.id);
-
-    const table = await api.source.tableCreate(project!.id, project!.sources[0].id, {
+    const base = await api.base.read(context.base.id);
+    const table = await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
       table_name: 'TimelineSeed',
       title: 'TimelineSeed',
       columns,

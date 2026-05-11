@@ -9,9 +9,11 @@
  * - Toolbar visible on hover
  */
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3'
+import DocMermaidView from './DocMermaidView.vue'
 import {
   ALL_LANGUAGES,
   type CodeBlockLanguage,
+  MERMAID_ID,
   PLAIN_TEXT,
   POPULAR_LANGUAGES,
   getLanguageLabel,
@@ -131,6 +133,29 @@ const isHovered = ref(false)
 const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || props.selected)
 
 const isEditable = computed(() => props.editor?.isEditable !== false)
+
+// --- Mermaid ---
+const isMermaid = computed(() => currentLanguage.value === MERMAID_ID)
+
+const mermaidCode = computed(() => props.node.textContent)
+
+type MermaidViewMode = 'code' | 'diagram'
+
+// Editors start in code view (so they can write); readers start in diagram view.
+const mermaidViewMode = ref<MermaidViewMode>(isEditable.value ? 'code' : 'diagram')
+
+// Re-default when the editor's editability flips (e.g. read-only share view).
+watch(isEditable, (editable) => {
+  mermaidViewMode.value = editable ? 'code' : 'diagram'
+})
+
+const showCodePane = computed(() => !isMermaid.value || mermaidViewMode.value === 'code')
+
+const showDiagramPane = computed(() => isMermaid.value && mermaidViewMode.value === 'diagram')
+
+const toggleMermaidView = () => {
+  mermaidViewMode.value = mermaidViewMode.value === 'code' ? 'diagram' : 'code'
+}
 </script>
 
 <template>
@@ -233,6 +258,17 @@ const isEditable = computed(() => props.editor?.isEditable !== false)
         </template>
       </NcDropdown>
 
+      <!-- Mermaid view toggle (code <-> diagram) -->
+      <NcTooltip
+        v-if="isMermaid"
+        :title="mermaidViewMode === 'code' ? $t('labels.showDiagram') : $t('labels.showCode')"
+        placement="top"
+      >
+        <button class="nc-code-block-copy-btn" data-testid="nc-mermaid-view-toggle" @click="toggleMermaidView">
+          <GeneralIcon :icon="mermaidViewMode === 'code' ? 'ncEye' : 'ncCode'" />
+        </button>
+      </NcTooltip>
+
       <!-- Copy button -->
       <NcTooltip :title="isCopied ? $t('general.copied') : $t('labels.copyCode')" placement="top">
         <button class="nc-code-block-copy-btn" data-testid="nc-code-block-copy-btn" @click="copyCode">
@@ -241,8 +277,13 @@ const isEditable = computed(() => props.editor?.isEditable !== false)
       </NcTooltip>
     </div>
 
-    <!-- Code content — as="pre" is required by ProseMirror's code block node spec -->
-    <NodeViewContent as="pre" class="nc-code-block-content" />
+    <!-- Code content — as="pre" is required by ProseMirror's code block node spec.
+         Kept mounted (v-show, not v-if) so ProseMirror keeps its content reference
+         even when the diagram pane is showing. -->
+    <NodeViewContent v-show="showCodePane" as="pre" class="nc-code-block-content" />
+
+    <!-- Mermaid diagram pane -->
+    <DocMermaidView v-if="isMermaid" v-show="showDiagramPane" :code="mermaidCode" />
   </NodeViewWrapper>
 </template>
 

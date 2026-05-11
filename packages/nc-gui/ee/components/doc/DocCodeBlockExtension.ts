@@ -24,9 +24,17 @@ const lowlight = createLowlight(common)
 // (i.e. "Plain text"), which auto-detects a language and applies
 // unwanted syntax colouring. By returning an empty children array
 // we ensure plain-text code blocks stay uncoloured.
+//
+// `highlight` is also guarded so non-lowlight languages (e.g. `mermaid`,
+// which renders as a diagram, not highlighted source) don't throw.
+const empty = { children: [], data: { language: '', relevance: 0 } }
+
 const noAutoLowlight = {
-  highlight: lowlight.highlight.bind(lowlight),
-  highlightAuto: () => ({ children: [], data: { language: '', relevance: 0 } }),
+  highlight: (language: string, value: string) => {
+    if (!lowlight.registered?.(language)) return empty
+    return lowlight.highlight(language, value)
+  },
+  highlightAuto: () => empty,
   listLanguages: lowlight.listLanguages.bind(lowlight),
   registered: lowlight.registered?.bind(lowlight),
 }

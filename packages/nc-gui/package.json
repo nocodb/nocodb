@@ -137,6 +137,7 @@
     "markdown-it-regexp": "^0.4.0",
     "markdown-it-task-lists": "^2.1.1",
     "marked": "^4.3.0",
+    "mermaid": "^11.4.1",
     "mime-lite": "^1.0.3",
     "monaco-editor": "^0.52.2",
     "monaco-sql-languages": "^0.11.0",

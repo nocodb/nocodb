@@ -12,6 +12,14 @@ export interface CodeBlockLanguage {
   aliases?: string[] // Extra search terms
 }
 
+/**
+ * `mermaid` is not a language in lowlight's bundle — selecting it switches
+ * the code block to a diagram renderer (see `DocMermaidView.vue`). Source
+ * is still serialised as a `` ```mermaid `` fenced block for markdown
+ * round-trip.
+ */
+export const MERMAID_ID = 'mermaid'
+
 /** Popular languages pinned at the top of the dropdown. */
 export const POPULAR_LANGUAGES: CodeBlockLanguage[] = [
   { id: 'javascript', label: 'JavaScript', aliases: ['js', 'node'] },
@@ -22,6 +30,7 @@ export const POPULAR_LANGUAGES: CodeBlockLanguage[] = [
   { id: 'xml', label: 'HTML / XML', aliases: ['html', 'htm', 'xhtml', 'svg'] },
   { id: 'css', label: 'CSS' },
   { id: 'sql', label: 'SQL', aliases: ['mysql', 'postgres'] },
+  { id: MERMAID_ID, label: 'Mermaid', aliases: ['diagram', 'flowchart', 'sequence'] },
 ]
 
 const POPULAR_IDS = new Set(POPULAR_LANGUAGES.map((l) => l.id))

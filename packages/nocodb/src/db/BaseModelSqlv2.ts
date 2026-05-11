@@ -9389,8 +9389,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const columns = await this.model.getColumns(this.context);
     const deletedSet = new Set(deletedIds.map((id) => String(id)));
-    const filterSelfOverlap = <T>(ids: T[]): T[] =>
-      ids.filter((id) => !deletedSet.has(String(id)));
+    const filterSelfOverlap = <T>(ids: T[], otherModelId: string): T[] =>
+      otherModelId === this.model.id
+        ? ids.filter((id) => !deletedSet.has(String(id)))
+        : ids;
 
     for (const column of columns) {
       if (!isLinksOrLTAR(column)) continue;
@@ -9445,6 +9447,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             Array.from(
               new Set(fkRows.map((r) => r[childColumn.column_name])),
             ) as string[],
+            parentTable.id,
           );
 
           if (parentIds.length) {
@@ -9498,6 +9501,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           );
           const linkedIds = filterSelfOverlap(
             linkedRows.map((r) => r[childTable.primaryKey.column_name]),
+            childTable.id,
           );
 
           if (linkedIds.length) {
@@ -9549,6 +9553,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           );
           const linkedIds = filterSelfOverlap(
             linkedRows.map((r) => r[vParentCol.column_name]),
+            parentTable.id,
           );
 
           if (linkedIds.length) {

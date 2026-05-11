@@ -63,12 +63,20 @@ const updateSidebarRightEdge = () => {
   sidebarRightEdge.value = rect.right
 }
 
+// View-fullscreen mode (set via the topbar's enter-fullscreen toggle) hides
+// both the project sidebar and the mini sidebar, so the panel needs to hug
+// left:0 in that case.
+const { isFullScreen: isViewFullScreen } = storeToRefs(useSidebarStore())
+
 // Shared view (`isPublic`) and shared base both render without the mini
 // sidebar, so when the project sidebar is hidden the panel must hug the
 // viewport edge instead of leaving a gap the width of the (absent) rail.
-const hasMiniSidebar = computed(() => !isPublic.value && !isSharedBase.value)
+const hasMiniSidebar = computed(() => !isPublic.value && !isSharedBase.value && !isViewFullScreen.value)
 
 const fullscreenLeft = computed(() => {
+  // View-fullscreen hides both sidebars — short-circuit before sidebarRightEdge
+  // can return a stale measurement from before the toggle.
+  if (isViewFullScreen.value) return '0'
   if (sidebarRightEdge.value > 0) return `${sidebarRightEdge.value}px`
   return hasMiniSidebar.value ? 'var(--mini-sidebar-width)' : '0'
 })

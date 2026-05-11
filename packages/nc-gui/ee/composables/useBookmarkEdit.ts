@@ -7,6 +7,8 @@ export const useBookmarkEdit = createSharedComposable(() => {
 
   const router = useRouter()
 
+  const { showWarningModal } = useNcConfirmModal()
+
   const { bookmarks, bookmarksByGroup, moveBookmarkToGroup, resolveBookmarkRoute, navigateToBookmark, loadBookmarks } =
     useBookmarks()
 
@@ -80,7 +82,7 @@ export const useBookmarkEdit = createSharedComposable(() => {
     selectedBookmarkIds.value = next
   }
 
-  async function bulkDelete() {
+  function bulkDelete() {
     if (!hasSelection.value) return
 
     // Folder checkboxes are only a way to bulk-select their items — bulk
@@ -88,21 +90,32 @@ export const useBookmarkEdit = createSharedComposable(() => {
     // existing folder context menu). So we just drop every selected bookmark.
     const allSelected = [...selectedBookmarkIds.value]
 
-    try {
-      await Promise.all(allSelected.map((id) => $api.bookmark.delete(id)))
+    const content =
+      allSelected.length === 1 ? t('msg.confirmBulkDeleteBookmark') : t('msg.confirmBulkDeleteBookmarks', { count: allSelected.length })
 
-      $e('a:bookmark:bulk-delete', { count: allSelected.length })
+    showWarningModal({
+      title: t('general.delete'),
+      content,
+      okText: t('general.delete'),
+      showCancelBtn: true,
+      okCallback: async () => {
+        try {
+          await Promise.all(allSelected.map((id) => $api.bookmark.delete(id)))
 
-      const msg = allSelected.length === 1 ? t('msg.bookmarkRemoved') : t('msg.bookmarksDeleted', { count: allSelected.length })
-      message.toast(msg)
+          $e('a:bookmark:bulk-delete', { count: allSelected.length })
 
-      clear()
-      await loadBookmarks()
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-      // Reload to recover from any partial state
-      await loadBookmarks()
-    }
+          const msg = allSelected.length === 1 ? t('msg.bookmarkRemoved') : t('msg.bookmarksDeleted', { count: allSelected.length })
+          message.toast(msg)
+
+          clear()
+          await loadBookmarks()
+        } catch (e: any) {
+          message.error(await extractSdkResponseErrorMsg(e))
+          // Reload to recover from any partial state
+          await loadBookmarks()
+        }
+      },
+    })
   }
 
   async function bulkMoveToGroup(targetGroupId: string) {

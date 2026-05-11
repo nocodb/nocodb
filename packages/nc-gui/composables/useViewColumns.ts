@@ -226,14 +226,11 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     ) => {
       if (!meta.value?.columns) return
 
-      meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
-        if (!allFields && c.id !== columnId) return c
-
-        if (allFields && c.pv) return c
-
+      for (const c of meta.value.columns) {
+        if (!allFields && c.id !== columnId) continue
+        if (allFields && c.pv) continue
         c.meta = { ...parseProp(c.meta || {}), ...colMeta }
-        return c
-      })
+      }
 
       if (!allFields && columnId && meta.value?.columnsById?.[columnId]) {
         meta.value.columnsById[columnId].meta = {
@@ -245,7 +242,6 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       if (allFields) {
         meta.value.columnsById = meta.value.columns.reduce((acc, c) => {
           acc[c.id!] = c
-
           return acc
         }, {} as Record<string, ColumnType>)
       }

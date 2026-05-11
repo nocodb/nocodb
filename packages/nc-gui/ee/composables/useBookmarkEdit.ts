@@ -91,7 +91,9 @@ export const useBookmarkEdit = createSharedComposable(() => {
     const allSelected = [...selectedBookmarkIds.value]
 
     const content =
-      allSelected.length === 1 ? t('msg.confirmBulkDeleteBookmark') : t('msg.confirmBulkDeleteBookmarks', { count: allSelected.length })
+      allSelected.length === 1
+        ? t('msg.confirmBulkDeleteBookmark')
+        : t('msg.confirmBulkDeleteBookmarks', { count: allSelected.length })
 
     showWarningModal({
       title: t('general.delete'),
@@ -104,7 +106,8 @@ export const useBookmarkEdit = createSharedComposable(() => {
 
           $e('a:bookmark:bulk-delete', { count: allSelected.length })
 
-          const msg = allSelected.length === 1 ? t('msg.bookmarkRemoved') : t('msg.bookmarksDeleted', { count: allSelected.length })
+          const msg =
+            allSelected.length === 1 ? t('msg.bookmarkRemoved') : t('msg.bookmarksDeleted', { count: allSelected.length })
           message.toast(msg)
 
           clear()

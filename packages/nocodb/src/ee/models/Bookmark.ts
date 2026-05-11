@@ -1,5 +1,5 @@
-import type { BookmarkType } from 'nocodb-sdk';
 import { default as BookmarkCE } from 'src/models/Bookmark';
+import type { BookmarkType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,

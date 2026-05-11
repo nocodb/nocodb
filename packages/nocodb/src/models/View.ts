@@ -1139,6 +1139,14 @@ export default class View implements ViewType {
     let columns: Array<GridViewColumn | any> = [];
     const view = await this.get(context, viewId, false, ncMeta);
 
+    // Guard: a stale fk_view_id reference (e.g. a column's column_order.view_id
+    // pointing at a deleted view, or a list-view-level referencing a deleted
+    // view) returns null here. Without this guard, `view.type` blows up with
+    // "Cannot read properties of null (reading 'type')" and the whole caller
+    // chain (Column.list → Model.getColumns → ColumnsService.columnAdd/Update)
+    // dies. Treat the view as having no columns and let the caller proceed.
+    if (!view) return columns;
+
     // todo:  just get - order & show props
     switch (view.type) {
       case ViewTypes.GRID:

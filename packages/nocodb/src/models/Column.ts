@@ -1233,6 +1233,55 @@ export default class Column<T = any> implements ColumnType {
     ncMeta = Noco.ncMeta,
     skipFormulaInvalidate = false,
   ) {
+    return this.update2(
+      context,
+      { colId, column, skipFormulaInvalidate },
+      ncMeta,
+    );
+  }
+
+  static async update2(
+    context: NcContext,
+    param: {
+      colId: string;
+      column: Partial<Column> & Partial<Pick<ColumnReqType, 'column_order'>>;
+      skipFormulaInvalidate?: boolean;
+      isSimpleUpdate?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const { colId, column, skipFormulaInvalidate = false } = param;
+
+    // Simple update path: only title/description — persist and clear cache
+    if (param.isSimpleUpdate) {
+      const updateObj = extractProps(column, ['title', 'description']);
+
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COLUMNS,
+        updateObj,
+        colId,
+      );
+
+      await NocoCache.update(
+        context,
+        `${CacheScope.COLUMN}:${colId}`,
+        updateObj,
+      );
+
+      // clear single query cache for the column's model
+      const oldCol = await Column.get(context, { colId }, ncMeta);
+      await View.clearSingleQueryCache(
+        context,
+        oldCol.fk_model_id,
+        null,
+        ncMeta,
+      );
+
+      return this.get(context, { colId }, ncMeta);
+    }
+
     const oldCol = await Column.get(context, { colId }, ncMeta);
     const requiredColAvail =
       !requiredColumnsToRecreate[oldCol.uidt] ||

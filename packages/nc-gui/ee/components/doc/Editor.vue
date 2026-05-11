@@ -2018,19 +2018,19 @@ const onDownloadMarkdown = () => {
   downloadMarkdown()
 }
 
-const onDownloadHTML = () => {
+const onDownloadHTML = async () => {
   isPageMenuOpen.value = false
-  downloadHTML()
+  await downloadHTML()
 }
 
-const onDownloadPDF = () => {
+const onDownloadPDF = async () => {
   isPageMenuOpen.value = false
 
   if (showUpgradeToUseDocsExportPdf()) {
     return
   }
 
-  downloadPDF()
+  await downloadPDF()
 }
 
 // Dismiss paste-link menu and link edit popover on click outside

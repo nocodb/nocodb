@@ -549,11 +549,11 @@ export function pickFreshestPrev(
   meta: ReplayHandlerMeta & {
     extra?: { recordPrev?: ReadonlyArray<Record<string, unknown>> };
   },
-  params: { pk: string | number; prev: Record<string, unknown> },
+  params: { pk?: string | number; prev?: Record<string, unknown> },
   model: Model,
 ): Record<string, any> {
   const extraPrevList = meta.extra?.recordPrev;
-  if (!extraPrevList?.length) return params.prev as Record<string, any>;
+  if (!extraPrevList?.length) return (params.prev ?? {}) as Record<string, any>;
   const targetPk = String(params.pk);
   const match = extraPrevList.find((r) => extractRowPk(r, model) === targetPk);
   return (match ?? extraPrevList[0]) as Record<string, any>;
@@ -567,21 +567,25 @@ export function pickFreshestRows(
     extra?: { recordPrev?: ReadonlyArray<Record<string, unknown>> };
   },
   params: {
-    rows: ReadonlyArray<{ pk: string | number; prev: Record<string, unknown> }>;
+    rows?: ReadonlyArray<{
+      pk?: string | number;
+      prev?: Record<string, unknown>;
+    }>;
   },
   model: Model,
 ): ReadonlyArray<{ pk: string | number; prev: Record<string, any> }> {
+  const rows = params.rows ?? [];
   const extraPrevList = meta.extra?.recordPrev;
   if (!extraPrevList?.length) {
-    return params.rows.map((r) => ({
-      pk: r.pk,
-      prev: r.prev as Record<string, any>,
+    return rows.map((r) => ({
+      pk: r.pk as string | number,
+      prev: (r.prev ?? {}) as Record<string, any>,
     }));
   }
   const byPk = indexRowsByPk(extraPrevList, model);
-  return params.rows.map((r) => ({
-    pk: r.pk,
-    prev: (byPk.get(String(r.pk)) ?? r.prev) as Record<string, any>,
+  return rows.map((r) => ({
+    pk: r.pk as string | number,
+    prev: (byPk.get(String(r.pk)) ?? r.prev ?? {}) as Record<string, any>,
   }));
 }
 

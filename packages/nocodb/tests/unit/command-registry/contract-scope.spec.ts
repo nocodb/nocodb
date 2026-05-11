@@ -20,8 +20,11 @@ function expectScope<S extends OperationContract<any>>(
   resolvedCtx: any = undefined,
   context: NcContext = { base_id: 'p_test' } as NcContext,
 ) {
-  expect(contract.scope, `${contract.name} missing scope`).to.be.a('function');
-  const got = contract.scope!(params, result, resolvedCtx, context);
+  expect(
+    contract.undo?.scope,
+    `${contract.name} missing undo.scope`,
+  ).to.be.a('function');
+  const got = contract.undo!.scope!(params, result, resolvedCtx, context);
   expect(got).to.deep.equal(expected);
 }
 

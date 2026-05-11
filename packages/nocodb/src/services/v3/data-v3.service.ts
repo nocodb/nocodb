@@ -1168,9 +1168,7 @@ export class DataV3Service {
         ) {
           NcError.get(context).invalidRequestBody(
             `Property 'fields' on index ${index} must be a JSON object; got ${
-              row.fields === undefined
-                ? 'undefined'
-                : row.fields === null
+              row.fields === null
                 ? 'null'
                 : Array.isArray(row.fields)
                 ? 'array'

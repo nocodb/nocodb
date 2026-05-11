@@ -437,8 +437,12 @@ function onDocumentKeydown(e: KeyboardEvent) {
       return
     }
     const nextIdx = e.shiftKey
-      ? (lastIdx > 0 ? lastIdx - 1 : focusables.length - 1)
-      : (lastIdx < focusables.length - 1 ? lastIdx + 1 : 0)
+      ? lastIdx > 0
+        ? lastIdx - 1
+        : focusables.length - 1
+      : lastIdx < focusables.length - 1
+      ? lastIdx + 1
+      : 0
     focusables[nextIdx]!.focus()
     return
   }
@@ -460,8 +464,12 @@ function onDocumentKeydown(e: KeyboardEvent) {
 
   e.preventDefault()
   const nextIdx = e.shiftKey
-    ? (currentIdx > 0 ? currentIdx - 1 : focusables.length - 1)
-    : (currentIdx < focusables.length - 1 ? currentIdx + 1 : 0)
+    ? currentIdx > 0
+      ? currentIdx - 1
+      : focusables.length - 1
+    : currentIdx < focusables.length - 1
+    ? currentIdx + 1
+    : 0
   focusables[nextIdx]!.focus()
 }
 
@@ -504,7 +512,15 @@ const showActivity = computed(() => {
 </script>
 
 <template>
-  <Transition name="nc-slide-right" @after-enter="() => { panelRef?.focus(); markExpandedFormPanelFocus() }">
+  <Transition
+    name="nc-slide-right"
+    @after-enter="
+      () => {
+        panelRef?.focus()
+        markExpandedFormPanelFocus()
+      }
+    "
+  >
     <div
       v-if="isOpen && !isMobileMode"
       ref="panelRef"
@@ -547,10 +563,10 @@ const showActivity = computed(() => {
             v-e="['c:row-expand-panel:save']"
             :disabled="isSaveDisabled"
             :loading="isSaving"
-            class="!w-7 !h-7"
+            class="!px-1"
             data-testid="nc-expanded-form-save"
             type="primary"
-            size="xsmall"
+            size="xs"
             @click="save"
           >
             <GeneralIcon icon="save" class="w-4 h-4" />
@@ -563,7 +579,7 @@ const showActivity = computed(() => {
               size="xs"
               type="text"
               :disabled="!hasPrev"
-              class="!border-0"
+              class="!border-0 !px-1"
               data-testid="nc-expanded-form-prev"
               @click="guardedNavigate('prev')"
             >
@@ -575,7 +591,7 @@ const showActivity = computed(() => {
               size="xs"
               type="text"
               :disabled="!hasNext"
-              class="!border-0"
+              class="!border-0 !px-1"
               data-testid="nc-expanded-form-next"
               @click="guardedNavigate('next')"
             >
@@ -588,7 +604,7 @@ const showActivity = computed(() => {
           v-if="isFullscreen"
           v-model="activeViewMode"
           :view="view"
-          class="mr-2 nc-expanded-form-mode-switch"
+          class="nc-expanded-form-mode-switch"
         />
 
         <div
@@ -629,7 +645,7 @@ const showActivity = computed(() => {
           </NcTooltip>
         </div>
 
-        <div class="flex items-center">
+        <div class="flex items-center gap-1">
           <SmartsheetExpandedFormMoreOptionsMenu :is-loading="isLoading" :view="view" compact @after-delete="closePanel" />
           <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
             <NcButton
@@ -637,6 +653,7 @@ const showActivity = computed(() => {
               size="xs"
               :type="isFullscreen ? 'primary' : 'text'"
               data-testid="nc-expanded-form-panel-fullscreen"
+              class="!px-1"
               @click="setFullscreen(!isFullscreen)"
             >
               <GeneralIcon :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'" class="w-3.5 h-3.5" />
@@ -648,6 +665,7 @@ const showActivity = computed(() => {
               size="xs"
               type="text"
               data-testid="nc-expanded-form-close"
+              class="!px-1"
               @click="onClose"
             >
               <GeneralIcon icon="close" class="w-4 h-4" />
@@ -850,7 +868,6 @@ const showActivity = computed(() => {
       }
     }
   }
-
 }
 
 /* Match grid canvas font (500 13px Inter) — needs high specificity to

@@ -55,6 +55,27 @@
     "a:base:ai:generate": "AI generate base structure",
     "c:base:ai:create": "Click AI base creation"
   },
+  "bookmarks": {
+    "a:bookmark:create": "Add a bookmark (workspace/base/table/view/doc/workflow/script/dashboard)",
+    "a:bookmark:delete": "Delete a bookmark",
+    "a:bookmark:move": "Move a bookmark to a different group",
+    "a:bookmark:open": "Open a bookmark (same-tab or new-tab via Cmd/Ctrl-click)",
+    "a:bookmark:group:create": "Create a bookmark group/folder",
+    "a:bookmark:group:rename": "Rename a bookmark group/folder",
+    "a:bookmark:group:delete": "Delete a bookmark group/folder",
+    "a:bookmark:group:color": "Change a bookmark group/folder color",
+    "a:bookmark:groups:expand-all": "Expand all groups from the header dropdown",
+    "a:bookmark:groups:collapse-all": "Collapse all groups from the header dropdown",
+    "a:bookmark:edit:enter": "Enter bookmark flyout edit mode (multi-select)",
+    "a:bookmark:edit:exit": "Exit edit mode (via close button, flyout close, or after Open navigates)",
+    "a:bookmark:bulk-delete": "Bulk-delete selected bookmarks from edit mode",
+    "a:bookmark:bulk-move": "Bulk-move selected bookmarks to another folder from edit mode",
+    "a:bookmark:open-in-new-tab": "Open selected bookmark(s) in new tab from edit mode",
+    "c:bookmark:group:rename": "Click rename in bookmark group context menu",
+    "c:bookmark:group:delete": "Click delete in bookmark group context menu",
+    "c:bookmark:move": "Click Move-to entry in bookmark item context menu",
+    "c:bookmark:remove": "Click Remove in bookmark item context menu"
+  },
   "calendar": {
     "a:calendar:sidebar-filter": "Filter calendar via sidebar",
     "c:calendar:calendar-sidemenu-new-record-btn": "Click new record from calendar sidebar",

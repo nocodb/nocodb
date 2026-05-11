@@ -13,6 +13,8 @@ const {
   collapseAllGroups,
 } = useBookmarks()
 
+const { $e } = useNuxtApp()
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
@@ -136,11 +138,13 @@ const canExpandAll = computed(() => collapsedGroupIds.value.size > 0)
 function onCollapseAll() {
   isDropdownOpen.value = false
   collapseAllGroups()
+  $e('a:bookmark:groups:collapse-all')
 }
 
 function onExpandAll() {
   isDropdownOpen.value = false
   expandAllGroups()
+  $e('a:bookmark:groups:expand-all')
 }
 </script>
 

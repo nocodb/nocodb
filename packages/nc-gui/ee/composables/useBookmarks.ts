@@ -368,6 +368,7 @@ export const useBookmarks = createSharedComposable(() => {
       const href = router.resolve(route).href
       navigateTo(href, { open: navigateToBlankTargetOpenOption })
       refreshBookmark(bookmark)
+      $e('a:bookmark:open', { target_type: bookmark.target_type, in_new_tab: true })
       return
     }
 
@@ -376,6 +377,7 @@ export const useBookmarks = createSharedComposable(() => {
 
       // Fire-and-forget: refresh title/icon from the target entity
       refreshBookmark(bookmark)
+      $e('a:bookmark:open', { target_type: bookmark.target_type, in_new_tab: false })
       navigatedHook.trigger()
     } catch {
       message.error(t('msg.info.targetNotFound'))

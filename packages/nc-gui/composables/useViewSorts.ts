@@ -145,7 +145,6 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
           {
             fk_column_id: column!.id,
             direction,
-            push_to_top: true,
           },
         )
       }

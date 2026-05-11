@@ -100,3 +100,23 @@ export const validateViewConfigOverrideEvent = (
 
   return params.copiedOptions.includes(optionToValidate)
 }
+
+/**
+ * Pick only the fields that `formColumnUpdate` strict zod schema accepts.
+ * Callers typically have the full form-column row (incl. column metadata
+ * spread in via fieldById join) — the schema rejects everything outside
+ * the allowed list.
+ */
+export const pickFormColumnUpdateBody = (col: Record<string, any>) => {
+  const body: Record<string, unknown> = {}
+  if ('label' in col) body.label = col.label
+  if ('help' in col) body.help = col.help
+  if ('description' in col) body.description = col.description
+  if ('required' in col) body.required = col.required
+  if ('enable_scanner' in col) body.enable_scanner = col.enable_scanner
+  if ('show' in col) body.show = col.show
+  if ('order' in col) body.order = col.order
+  if ('row_id' in col) body.row_id = col.row_id
+  if ('meta' in col) body.meta = col.meta
+  return body
+}

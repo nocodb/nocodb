@@ -44,14 +44,15 @@ export {
 }
 
 /**
- * Strip FE-only transient fields (`tmp_id`, `status`) and DB system
- * fields (`source_id`, `base_id`, `fk_workspace_id`, `created_at`,
+ * Strip FE-only transient fields (`tmp_id`, `status`, `dynamic`) and DB
+ * system fields (`source_id`, `base_id`, `fk_workspace_id`, `created_at`,
  * `updated_at`) from a filter body before sending it to the BE.
  */
 export const stripFilterApiBody = <T extends Record<string, any>>(filter: T): T => {
   const {
     tmp_id: _tmp,
     status: _status,
+    dynamic: _dynamic,
     source_id: _sourceId,
     base_id: _baseId,
     fk_workspace_id: _fkWs,

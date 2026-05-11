@@ -483,7 +483,7 @@ async function onMove(event: any, isVisibleFormFields = false) {
     view.value!.fk_workspace_id!,
     view.value!.base_id!,
     { operation: 'formColumnUpdate', formColumnId: element.id },
-    element,
+    pickFormColumnUpdateBody(element as Record<string, any>),
   )
 
   fields.value[fieldIndex] = element as any
@@ -781,7 +781,7 @@ async function showOrHideColumn(column: Record<string, any>, show: boolean, isFo
       view.value!.fk_workspace_id!,
       view.value!.base_id!,
       { operation: 'formColumnUpdate', formColumnId: column.id },
-      column,
+      pickFormColumnUpdateBody(column as Record<string, any>),
     )
 
     fields.value[fieldIndex] = column as any

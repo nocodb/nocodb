@@ -73,6 +73,8 @@ const formColumnBodySchema = z
     enable_scanner: nullableBoolType.optional(),
     show: nullableBoolType.optional(),
     order: z.number().nullable().optional(),
+    /** Grid-layout row grouping — `varchar(32)` column on nc_form_view_columns. */
+    row_id: z.string().nullable().optional(),
     /** `meta` is a JSON-text column on form-view-columns. */
     meta: z
       .union([z.record(z.unknown()), z.string()])

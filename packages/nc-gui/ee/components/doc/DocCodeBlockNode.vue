@@ -460,7 +460,11 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
   color: var(--nc-code-block-text);
   border-radius: 0.5em;
   padding: 0.75em 1em;
-  padding-top: 2.5em;
+  // Top padding clears the floating toolbar (8px offset + 28px height = 36px).
+  // `em` here resolves against the code block's own 0.875em font (~14px), so
+  // we use a fixed px value to avoid the unit-confusion that made 2.5em (35px)
+  // sit flush with the toolbar.
+  padding-top: 48px;
   overflow-x: auto;
   font-size: 0.875em;
   line-height: 1.6;

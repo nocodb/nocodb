@@ -108,13 +108,13 @@ defineExpose({
       <GeneralLoader />
     </div>
     <!-- eslint-disable vue/no-v-html -->
-    <div v-else class="nc-mermaid-svg" v-html="svg" />
+    <div v-else class="nc-mermaid-svg" role="button" :title="$t('labels.expandDiagram')" @click="expandDiagram" v-html="svg" />
     <!-- eslint-enable vue/no-v-html -->
 
     <NcModal v-model:visible="isExpanded" size="xl" :show-separator="false" :destroy-on-close="false">
       <div class="nc-mermaid-expanded-body">
         <!-- eslint-disable vue/no-v-html -->
-        <div class="nc-mermaid-expanded-svg" v-html="svg" />
+        <div class="nc-mermaid-expanded-svg" @click="isExpanded = false" v-html="svg" />
         <!-- eslint-enable vue/no-v-html -->
       </div>
     </NcModal>
@@ -140,10 +140,15 @@ defineExpose({
   width: 100%;
   overflow-x: auto;
   text-align: center;
+  // Whole-diagram click target — hover hints at "click to expand".
+  // Mermaid SVGs have no interactive elements when securityLevel: 'strict',
+  // so swallowing clicks here is safe.
+  cursor: zoom-in;
 
   :deep(svg) {
     max-width: 100%;
     height: auto;
+    cursor: zoom-in;
   }
 }
 
@@ -194,12 +199,14 @@ defineExpose({
   justify-content: center;
   width: 100%;
   height: 100%;
+  cursor: zoom-out;
 
   :deep(svg) {
     max-width: 100%;
     max-height: 100%;
     width: auto;
     height: auto;
+    cursor: zoom-out;
   }
 }
 </style>

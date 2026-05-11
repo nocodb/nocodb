@@ -39,6 +39,9 @@ import Noco from '~/Noco';
 
 const logger = new Logger('getAst');
 
+// Cap on recursive nested-LTAR expansion. See `_depth` param doc on getAst.
+const GET_AST_MAX_DEPTH = 8;
+
 type Ast = {
   [key: string]: 1 | true | null | Ast;
 };
@@ -66,6 +69,7 @@ const getAst = async (
     includeButtonFilterColumns = false,
     skipSubstitutingColumnIds = false,
     fk_display_value_column_id,
+    _depth = 0,
   }: {
     query?: RequestQuery;
     extractOnlyPrimaries?: boolean;
@@ -84,12 +88,25 @@ const getAst = async (
     includeButtonFilterColumns?: boolean;
     skipSubstitutingColumnIds?: boolean;
     fk_display_value_column_id?: string | null;
+    // Internal: recursion depth for nested LTAR expansion. Bounded to
+    // GET_AST_MAX_DEPTH (8) to prevent client-controlled `?nested[a][nested]
+    // [b][nested]…` payloads or cyclic LTAR/Lookup metadata from blowing
+    // the stack. Eight levels covers every realistic UI/agent need.
+    _depth?: number;
   },
 ): Promise<{
   ast: Ast;
   dependencyFields: DependantFields;
   parsedQuery: DependantFields;
 }> => {
+  if (_depth > GET_AST_MAX_DEPTH) {
+    logger.warn(
+      `getAst recursion depth exceeded (${_depth} > ${GET_AST_MAX_DEPTH}) for model ${model.id}; ` +
+        `truncating nested expansion. This usually means a deeply nested ?nested[…] ` +
+        `query, or a cyclic LTAR/Lookup chain in column metadata.`,
+    );
+    return { ast: {}, dependencyFields, parsedQuery: dependencyFields };
+  }
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
@@ -298,6 +315,7 @@ const getAst = async (
               fieldsSet: new Set(),
             }),
           throwErrorIfInvalidParams,
+          _depth: _depth + 1,
         });
 
         value = childAst;
@@ -344,6 +362,7 @@ const getAst = async (
               fieldsSet: new Set(),
             }),
           throwErrorIfInvalidParams,
+          _depth: _depth + 1,
         })
       ).ast;
     }
@@ -529,10 +548,31 @@ const extractDependencies = async (
     nested: {},
     fieldsSet: new Set(),
   },
+  _visited: Set<string> = new Set(),
 ) => {
+  // Cycle guard: a Lookup chain that loops back on itself (A→B→A) would
+  // recurse forever and either blow the JS stack or, worse, build a SELECT
+  // QueryBuilder that contains itself — which is what trips the Knex
+  // `columnize → wrap → toSQL → unwrapRaw → wrap` infinite loop seen in
+  // production. Skip a column we've already walked.
+  if (!column?.id) return;
+  if (_visited.has(column.id)) {
+    logger.warn(
+      `extractDependencies cycle: column ${column.id} (${column.title}) ` +
+        `already visited in this dependency walk. Breaking to avoid recursion.`,
+    );
+    return;
+  }
+  _visited.add(column.id);
+
   switch (column?.uidt) {
     case UITypes.Lookup:
-      await extractLookupDependencies(context, column, dependencyFields);
+      await extractLookupDependencies(
+        context,
+        column,
+        dependencyFields,
+        _visited,
+      );
       break;
     case UITypes.LinkToAnotherRecord:
       await extractRelationDependencies(context, column, dependencyFields);
@@ -550,6 +590,7 @@ const extractLookupDependencies = async (
     nested: {},
     fieldsSet: new Set(),
   },
+  _visited: Set<string> = new Set(),
 ) => {
   const lookupColumnOpts = await lookUpColumn.getColOptions(context);
   if (lookupColumnOpts?.error) return;
@@ -568,6 +609,7 @@ const extractLookupDependencies = async (
       nested: {},
       fieldsSet: new Set(),
     }),
+    _visited,
   );
 };
 

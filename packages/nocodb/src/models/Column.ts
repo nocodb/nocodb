@@ -1417,25 +1417,20 @@ export default class Column<T = any> implements ColumnType {
 
         case UITypes.MultiSelect:
         case UITypes.SingleSelect: {
-          // Only delete and recreate options when the update payload
-          // actually contains option-related data. A metadata-only
-          // update (e.g. description change) must not wipe options.
-          if (column.colOptions || column.dtxp !== undefined) {
-            await ncMeta.metaDelete(
-              context.workspace_id,
-              context.base_id,
-              MetaTable.COL_SELECT_OPTIONS,
-              {
-                fk_column_id: colId,
-              },
-            );
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_SELECT_OPTIONS,
+            {
+              fk_column_id: colId,
+            },
+          );
 
-            await NocoCache.deepDel(
-              context,
-              `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
-              CacheDelDirection.PARENT_TO_CHILD,
-            );
-          }
+          await NocoCache.deepDel(
+            context,
+            `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
+            CacheDelDirection.PARENT_TO_CHILD,
+          );
           break;
         }
 

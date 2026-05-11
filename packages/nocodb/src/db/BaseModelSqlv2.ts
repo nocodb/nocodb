@@ -569,10 +569,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return dvMap;
   }
 
-  // EE-only feature (per-LTAR display value override). CE never sets
-  // `fk_display_value_column_id` — write-time gated in `columns.service.ts` —
-  // so all overrides resolve to undefined here. See `src/ee/db/BaseModelSqlv2.ts`
-  // for the full implementation.
+  // Hook for resolving a per-LTAR display value override Column for the ref
+  // side. No override is applied here; subclasses may override.
   protected async resolveLtarDisplayCol(
     _columnId: string | undefined,
     _refModel: Model,
@@ -580,7 +578,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return undefined;
   }
 
-  // EE-only — see `src/ee/db/BaseModelSqlv2.ts`.
+  // Hook for resolving the paired (reverse) LTAR's display value override
+  // Column against the source `model`. No override is applied here.
   protected async resolveReverseLtarDisplayCol(
     _columnId: string | undefined,
     _model: Model,
@@ -589,7 +588,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return undefined;
   }
 
-  // EE-only — see `src/ee/db/BaseModelSqlv2.ts`.
+  // Hook for resolving the LTAR's display value override Column against
+  // `model` (own direction or paired). No override is applied here.
   public async getLtarDisplayColumnOverride(
     _ltarColumn: Column,
     _model: Model,
@@ -597,9 +597,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return undefined;
   }
 
-  // EE-only — see `src/ee/db/BaseModelSqlv2.ts`. `hasAny: false` is the
-  // fast-out gate that lets callers skip threading `displayColumn` through
-  // `fetchDisplayValueMap`/`displayValueMapKey` on CE.
+  // Batch hook for resolving LTAR display value overrides per unique columnId.
+  // `hasAny: false` is the fast-out gate that lets callers skip threading
+  // `displayColumn` through `fetchDisplayValueMap`/`displayValueMapKey`.
   protected async resolveLtarOverrideColsForBatch(
     _auditObjs: Array<{
       columnId?: string;

@@ -2,6 +2,7 @@ import type { OperationContract } from '~/command-registry/types';
 import type { DateDependencyService } from '~/services/date-dependency.service';
 import { OperationName } from '~/command-registry/op-names';
 import { registerForward } from '~/command-registry/replay-context';
+import { scopeBase } from '~/command-registry/scope';
 import { MetaTable } from '~/utils/globals';
 import { DateDependency, Model } from '~/models';
 import { pickFields } from '~/utils/tsUtils';
@@ -76,6 +77,7 @@ export const DateDependencyUpdateContract: OperationContract<
         params: { modelId: params.modelId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -117,6 +119,7 @@ export const DateDependencyDeleteContract: OperationContract<
         params: { modelId: params.modelId, body: prev },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 

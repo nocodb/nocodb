@@ -6,6 +6,7 @@ import type { RlsService } from '~/services/rls.service';
 import type { RlsPolicySubjectType } from 'nocodb-sdk';
 import { OperationName } from '~/command-registry/op-names';
 import { registerForward } from '~/command-registry/replay-context';
+import { scopeBase } from '~/command-registry/scope';
 import { MetaTable } from '~/utils/globals';
 import { Filter, Model } from '~/models';
 import RlsPolicy from '~/ee/models/RlsPolicy';
@@ -92,6 +93,7 @@ export const RlsPolicyCreateContract: OperationContract<
         params: { policyId: result.id },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -140,6 +142,7 @@ export const RlsPolicyUpdateContract: OperationContract<
         params: { body: { id: params.body.id, ...prev } },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -205,6 +208,7 @@ export const RlsPolicyDeleteContract: OperationContract<
         },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -247,6 +251,7 @@ export const RlsPolicySetSubjectsContract: OperationContract<
         params: { policyId: params.policyId, subjects: prev },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -276,6 +281,7 @@ export const RlsPolicyFilterCreateContract: OperationContract<
         params: { filterId: result.id },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 

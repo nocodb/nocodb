@@ -13,8 +13,10 @@ import type {
   CaptureKey,
   DisplacedRecord,
   LinkChange,
+  ScopeRef,
 } from '~/command-registry/types';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
+import { scopeTable } from '~/command-registry/scope';
 import { Base, Column as ColumnModel, Model, Source } from '~/models';
 import { dataWrapper, splitCompositePkString } from '~/helpers/dbHelpers';
 import {
@@ -471,6 +473,17 @@ export async function resolveReplayModel(
   await model.getColumns(context);
   return { modelId, model, persistedCtx };
 }
+
+export const scopeRecordOp = (
+  params: unknown,
+  _result: unknown,
+  resolved: { extra?: { modelId?: string } } | undefined,
+): ScopeRef => {
+  const p = params as RecordParams | undefined;
+  return scopeTable(
+    ((p?.modelId as string | undefined) ?? resolved?.extra?.modelId)!,
+  );
+};
 
 export async function linkSwapBefore(context: NcContext, params: RecordParams) {
   const modelId =

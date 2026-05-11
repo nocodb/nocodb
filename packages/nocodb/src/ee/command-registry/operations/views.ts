@@ -2,6 +2,7 @@ import type { OperationContract } from '~/command-registry/types';
 import type { ViewsService } from '~/services/views.service';
 import { OperationName } from '~/command-registry/op-names';
 import { registerForward } from '~/command-registry/replay-context';
+import { dynamicScope, scopeBase, scopeView } from '~/command-registry/scope';
 import { MetaTable } from '~/utils/globals';
 import { Model, View } from '~/models';
 import { pickFields } from '~/utils/tsUtils';
@@ -102,6 +103,17 @@ export const ViewUpdateContract: OperationContract<
         params: { viewId: params.viewId, view: prev },
       };
     },
+    // Option-A dynamic scope. Sidebar-triggered renames (title only),
+    // lock/unlock, and section moves land on the base stack so the user
+    // can Cmd-Z from the sidebar. Any other body field (meta, expanded_
+    // record_mode, etc.) is an in-view config change → view stack.
+    scope: (params, _r, _resolved, context) =>
+      dynamicScope(
+        'viewUpdate',
+        params.view as Record<string, unknown>,
+        scopeBase(context),
+        scopeView(params.viewId),
+      ),
   },
 };
 
@@ -135,6 +147,7 @@ export const ViewDeleteContract: OperationContract<
         params: { resourceType: 'view', resourceId: params.viewId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 

@@ -9,6 +9,7 @@ import {
   resolveModelForEntry,
   resolveReplayModel,
   restoreDisplaced,
+  scopeRecordOp,
   stripServerControlledFields,
 } from './_shared';
 import type { RecordDeleteExtra } from './_shared';
@@ -94,6 +95,7 @@ export const RecordBulkDeleteContract: OperationContract<
         },
       };
     },
+    scope: scopeRecordOp,
   },
 };
 

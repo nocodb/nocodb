@@ -22,7 +22,6 @@ export const SortCreateContract: OperationContract<
   name: OperationName.sortCreate,
   entity: MetaTable.SORT,
   schema: sortCreateSchema,
-  scope: (params) => scopeView(params.viewId),
   entry: {
     entity_id: 'id',
     parent_id: 'viewId',
@@ -56,6 +55,7 @@ export const SortCreateContract: OperationContract<
         params: { sortId: result.id },
       };
     },
+    scope: (params) => scopeView(params.viewId),
   },
 };
 
@@ -118,6 +118,7 @@ export const SortUpdateContract: OperationContract<
         params: { sortId: params.sortId, sort: prev },
       };
     },
+    scope: (_p, result) => scopeView(result?.fk_view_id),
   },
 };
 
@@ -183,6 +184,8 @@ export const SortDeleteContract: OperationContract<
         },
       };
     },
+    scope: (_p, _r, resolved) =>
+      scopeView(resolved?.extra?.deletedSort?.fk_view_id),
   },
 };
 

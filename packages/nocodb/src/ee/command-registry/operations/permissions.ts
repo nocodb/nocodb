@@ -13,6 +13,7 @@ import {
   makeReplayReq,
   registerForward,
 } from '~/command-registry/replay-context';
+import { scopeBase } from '~/command-registry/scope';
 import { MetaTable } from '~/utils/globals';
 import { Column, Model, Permission } from '~/models';
 import Document from '~/ee/models/Document';
@@ -137,6 +138,7 @@ export const PermissionSetContract: OperationContract<
         },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -212,6 +214,7 @@ export const PermissionBulkDropContract: OperationContract<
         params: { permissions: prev },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -280,6 +283,7 @@ export const PermissionDropContract: OperationContract<
         },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 

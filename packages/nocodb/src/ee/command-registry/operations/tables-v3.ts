@@ -7,6 +7,7 @@ import BaseTrash from '~/models/BaseTrash';
 import { OperationName } from '~/command-registry/op-names';
 import { OperationRegistry } from '~/command-registry/registry';
 import { makeReplayReq } from '~/command-registry/replay-context';
+import { scopeBase } from '~/command-registry/scope';
 import { isReplay, setReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
 import { tableActions } from '~/decorators/trace-command-descriptions';
@@ -39,6 +40,7 @@ export const TableV3CreateContract: OperationContract<
         params: { tableId: result.id },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 

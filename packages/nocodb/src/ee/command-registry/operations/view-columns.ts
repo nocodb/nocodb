@@ -8,6 +8,7 @@ import type { ViewsService } from '~/services/views.service';
 import type { viewColumnBodySchema } from '~/command-registry/operations/_schemas/view-column';
 import { OperationName } from '~/command-registry/op-names';
 import { registerForward } from '~/command-registry/replay-context';
+import { scopeView } from '~/command-registry/scope';
 import { MetaTable } from '~/utils/globals';
 import { Column, FormViewColumn, GridViewColumn, Model, View } from '~/models';
 import { pickFieldsIfPresent } from '~/utils/tsUtils';
@@ -100,6 +101,7 @@ export const ViewColumnUpdateContract: OperationContract<
         },
       };
     },
+    scope: (params) => scopeView(params.viewId),
   },
 };
 
@@ -144,6 +146,7 @@ export const ShowAllColumnsContract: OperationContract<
         params: { viewId: params.viewId, columnVisibility: prev },
       };
     },
+    scope: (params) => scopeView(params.viewId),
   },
 };
 
@@ -173,6 +176,7 @@ export const HideAllColumnsContract: OperationContract<
         params: { viewId: params.viewId, columnVisibility: prev },
       };
     },
+    scope: (params) => scopeView(params.viewId),
   },
 };
 
@@ -193,6 +197,8 @@ export const ViewColumnsBulkSetVisibilityContract: OperationContract<
 type GridColumnBody = z.infer<typeof gridColumnUpdateSchema>['grid'];
 
 interface GridColumnUpdateExtra {
+  /** Owning view — captured by `before` so `scope` reads it without a refetch. */
+  fkViewId?: string;
   fieldTitle?: string;
   tableTitle?: string;
   prevGrid?: Partial<GridColumnBody>;
@@ -242,6 +248,7 @@ export const GridColumnUpdateContract: OperationContract<
       return {
         parentEntityTitle: view?.title,
         extra: {
+          fkViewId: gridCol.fk_view_id,
           fieldTitle: field?.title,
           tableTitle: table?.title,
           prevGrid,
@@ -258,12 +265,14 @@ export const GridColumnUpdateContract: OperationContract<
         params: { gridViewColumnId: params.gridViewColumnId, grid: prev },
       };
     },
+    scope: (_p, _r, resolved) => scopeView(resolved?.extra?.fkViewId),
   },
 };
 
 type FormColumnBody = z.infer<typeof formColumnUpdateSchema>['formViewColumn'];
 
 interface FormColumnUpdateExtra {
+  fkViewId?: string;
   fieldTitle?: string;
   tableTitle?: string;
   prevFormColumn?: Partial<FormColumnBody>;
@@ -314,6 +323,7 @@ export const FormColumnUpdateContract: OperationContract<
       return {
         parentEntityTitle: view?.title,
         extra: {
+          fkViewId: formCol.fk_view_id,
           fieldTitle: field?.title,
           tableTitle: table?.title,
           prevFormColumn,
@@ -333,6 +343,7 @@ export const FormColumnUpdateContract: OperationContract<
         },
       };
     },
+    scope: (_p, _r, resolved) => scopeView(resolved?.extra?.fkViewId),
   },
 };
 

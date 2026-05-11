@@ -34,8 +34,6 @@ const logger = new Logger('MacroUndo');
  */
 export const MacroUndoContract: OperationContract<typeof macroUndoSchema> = {
   name: OperationName.macroUndo,
-  // Macro undo isn't tied to any one entity — pick MODELS as a generic
-  // home; the entity_id field on the log row stays empty.
   entity: MetaTable.MODELS,
   schema: macroUndoSchema,
   entry: {

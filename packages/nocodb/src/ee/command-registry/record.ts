@@ -7,7 +7,6 @@ import type {
   DescFn,
   OperationContract,
   ResolvedCtx,
-  ScopeType,
   TraceCommandDep,
 } from '~/command-registry/types';
 import { getSandboxConfig, getUndoConfig } from '~/command-registry/types';
@@ -275,8 +274,8 @@ async function maybeRecordUndoEntry(
   extra: Record<string, unknown> | undefined,
   userId: string,
 ): Promise<void> {
-  const inverseFn = getUndoConfig(contract)?.inverse;
-  if (!inverseFn) return;
+  const undoConfig = getUndoConfig(contract);
+  if (!undoConfig?.inverse) return;
 
   // Replay would double-record (original user mutation already wrote the row).
   if (isReplay()) return;
@@ -284,9 +283,9 @@ async function maybeRecordUndoEntry(
   const tabId = (params?.req ?? params?.cookie)?.ncTabId;
   if (!tabId) return;
 
-  let inverse: Awaited<ReturnType<typeof inverseFn>>;
+  let inverse: Awaited<ReturnType<typeof undoConfig.inverse>>;
   try {
-    inverse = await inverseFn(context, params, result, resolvedCtx);
+    inverse = await undoConfig.inverse(context, params, result, resolvedCtx);
   } catch (e: any) {
     logger.warn(
       `undo.inverse ${contract.name}@${contract.version ?? 1}: ${e?.message}`,
@@ -295,17 +294,19 @@ async function maybeRecordUndoEntry(
   }
   if (!inverse) return;
 
-  const scopeRef = contract.scope
-    ? safeResolveScope(contract, validatedParams, result, resolvedCtx, context)
-    : { type: 'base' as const, id: context.base_id ?? '' };
+  const scopeRef = undoConfig.scope(
+    validatedParams,
+    result,
+    resolvedCtx,
+    context,
+  );
 
   // Discard the redo stack for this scope only — a redo from a different
   // table/view is unaffected by a fresh forward op on this one.
   await OperationLog.discardUndoneForTab(context, {
     fk_user_id: userId,
     tab_id: tabId,
-    scope_type: scopeRef.type,
-    scope_id: scopeRef.id,
+    scopes: [scopeRef],
   });
 
   await OperationLog.insert(context, {
@@ -325,21 +326,4 @@ async function maybeRecordUndoEntry(
     scope_id: scopeRef.id,
     ...(extra ? { meta: extra } : {}),
   });
-}
-
-function safeResolveScope(
-  contract: OperationContract,
-  params: unknown,
-  result: unknown,
-  resolvedCtx: ResolvedCtx | undefined,
-  context: NcContext,
-): { type: ScopeType; id: string } {
-  try {
-    return contract.scope!(params as any, result, resolvedCtx, context);
-  } catch (e: any) {
-    logger.warn(
-      `scope resolve ${contract.name}@${contract.version ?? 1}: ${e?.message}`,
-    );
-    return { type: 'base', id: context.base_id ?? '' };
-  }
 }

@@ -8,6 +8,11 @@ import {
   makeReplayReq,
   registerForward,
 } from '~/command-registry/replay-context';
+import {
+  dynamicScope,
+  scopeBase,
+  scopeWorkflow,
+} from '~/command-registry/scope';
 import { isReplay, setReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
 import { Workflow } from '~/models';
@@ -45,6 +50,7 @@ export const WorkflowCreateContract: OperationContract<
         params: { workflowId: newId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -101,6 +107,15 @@ export const WorkflowUpdateContract: OperationContract<
         params: { workflowId: params.workflowId, body: prev },
       };
     },
+    // Title-only → base (sidebar rename); content edits (nodes/edges) →
+    // workflow stack.
+    scope: (params, _r, _resolved, context) =>
+      dynamicScope(
+        'workflowUpdate',
+        params.body as Record<string, unknown>,
+        scopeBase(context),
+        scopeWorkflow(params.workflowId),
+      ),
   },
 };
 
@@ -126,6 +141,7 @@ export const WorkflowDeleteContract: OperationContract<
         params: { resourceType: 'workflow', resourceId: params.workflowId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -155,6 +171,7 @@ export const WorkflowDuplicateContract: OperationContract<
         params: { workflowId: newId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 

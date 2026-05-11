@@ -7,6 +7,7 @@ import {
   makeReplayReq,
   registerForward,
 } from '~/command-registry/replay-context';
+import { dynamicScope, scopeBase, scopeScript } from '~/command-registry/scope';
 import { isReplay, setReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
 import { Script } from '~/models';
@@ -43,6 +44,7 @@ export const ScriptCreateContract: OperationContract<
         params: { scriptId: newId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -97,6 +99,14 @@ export const ScriptUpdateContract: OperationContract<
         params: { scriptId: params.scriptId, body: prev },
       };
     },
+    // Title-only → base stack (sidebar rename); content edits → script stack.
+    scope: (params, _r, _resolved, context) =>
+      dynamicScope(
+        'scriptUpdate',
+        params.body as Record<string, unknown>,
+        scopeBase(context),
+        scopeScript(params.scriptId),
+      ),
   },
 };
 
@@ -122,6 +132,7 @@ export const ScriptDeleteContract: OperationContract<
         params: { resourceType: 'script', resourceId: params.scriptId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -151,6 +162,7 @@ export const ScriptDuplicateContract: OperationContract<
         params: { scriptId: newId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 

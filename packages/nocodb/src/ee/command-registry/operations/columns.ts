@@ -12,6 +12,7 @@ import {
   registerForward,
   registerMacro,
 } from '~/command-registry/replay-context';
+import { scopeTable } from '~/command-registry/scope';
 import { getReplay, isReplay, setReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
 import { Column, Filter, Model } from '~/models';
@@ -109,6 +110,7 @@ export const ColumnAddContract: OperationContract<
         params: { columnId: newId },
       };
     },
+    scope: (params) => scopeTable(params.tableId),
   },
 };
 
@@ -170,6 +172,7 @@ interface FilterTreeNode extends Record<string, unknown> {
 }
 
 interface ColumnUpdateExtra {
+  fkModelId?: string;
   oldTitle?: string;
   oldUidt?: string;
   prev?: ColumnSnapshot;
@@ -241,6 +244,7 @@ export const ColumnUpdateContract: OperationContract<
       return {
         parentEntityTitle: table?.title,
         extra: {
+          fkModelId: tableId,
           oldTitle: col?.title,
           oldUidt: col?.uidt,
           ...(col ? { prev: snapshotColumnFields(col) } : {}),
@@ -287,12 +291,22 @@ export const ColumnUpdateContract: OperationContract<
         },
       };
     },
+    scope: (params, _r, resolved) =>
+      scopeTable(
+        (params.tableId as string | undefined) ?? resolved?.extra?.fkModelId,
+      ),
   },
 };
 
+interface ColumnDeleteExtra {
+  /** Owning table — captured before the column row is deleted so `scope`
+   *  can route undo to the table stack. */
+  fkModelId?: string;
+}
+
 export const ColumnDeleteContract: OperationContract<
   typeof columnDeleteSchema,
-  Record<string, any>,
+  ColumnDeleteExtra,
   unknown
 > = {
   name: OperationName.columnDelete,
@@ -310,6 +324,7 @@ export const ColumnDeleteContract: OperationContract<
       return {
         entityTitle: col.title,
         parentEntityTitle: table?.title,
+        extra: { fkModelId: col.fk_model_id },
       };
     },
   },
@@ -318,11 +333,14 @@ export const ColumnDeleteContract: OperationContract<
       name: OperationName.trashRestore,
       params: { resourceType: 'field', resourceId: params.columnId },
     }),
+    scope: (_p, _r, resolved) => scopeTable(resolved?.extra?.fkModelId),
   },
 };
 
 interface ColumnSetAsPrimaryExtra {
   prevPrimaryColumnId?: string;
+  /** Owning table — captured by `before` so `scope` doesn't refetch. */
+  fkModelId?: string;
 }
 
 export const ColumnSetAsPrimaryContract: OperationContract<
@@ -351,7 +369,7 @@ export const ColumnSetAsPrimaryContract: OperationContract<
       return {
         entityTitle: col.title,
         parentEntityTitle: table?.title,
-        extra: { prevPrimaryColumnId },
+        extra: { prevPrimaryColumnId, fkModelId: col.fk_model_id },
       };
     },
   },
@@ -364,6 +382,7 @@ export const ColumnSetAsPrimaryContract: OperationContract<
         params: { columnId: prev },
       };
     },
+    scope: (_p, _r, resolved) => scopeTable(resolved?.extra?.fkModelId),
   },
 };
 
@@ -401,6 +420,7 @@ export const ColumnsBulkContract: OperationContract<
         params: { transcript },
       };
     },
+    scope: (params) => scopeTable(params.tableId),
   },
 };
 

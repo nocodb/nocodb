@@ -5,6 +5,12 @@ import type { TraceCommandDep } from '~/command-registry/types';
 import type { FiltersService } from '~/services/filters.service';
 import { OperationName } from '~/command-registry/op-names';
 import { registerForward } from '~/command-registry/replay-context';
+import {
+  scopeBase,
+  scopeDashboard,
+  scopeTable,
+  scopeView,
+} from '~/command-registry/scope';
 import { MetaTable } from '~/utils/globals';
 import { Column, Filter, Model, View } from '~/models';
 import RowColorCondition from '~/models/RowColorCondition';
@@ -70,6 +76,7 @@ export const FilterCreateContract: OperationContract<
         params: { filterId: result.id },
       };
     },
+    scope: (params) => scopeView(params.viewId),
   },
 };
 
@@ -154,6 +161,8 @@ export const FilterUpdateContract: OperationContract<
         params: { filterId: params.filterId, filter: prev },
       };
     },
+    scope: (_p, result, _r, context) =>
+      result?.fk_view_id ? scopeView(result.fk_view_id) : scopeBase(context),
   },
 };
 
@@ -272,6 +281,12 @@ export const FilterDeleteContract: OperationContract<
       }
       return null;
     },
+    scope: (_p, _r, resolved, context) => {
+      const viewId = (
+        resolved?.extra?.deletedTree as { fk_view_id?: string } | undefined
+      )?.fk_view_id;
+      return viewId ? scopeView(viewId) : scopeBase(context);
+    },
   },
 };
 
@@ -305,7 +320,7 @@ export const LinkFilterCreateContract: OperationContract<
         : undefined;
       return {
         parentEntityTitle: linkCol?.title,
-        extra: { fieldTitle: field?.title },
+        extra: { fieldTitle: field?.title, fkModelId: linkCol?.fk_model_id },
       };
     },
   },
@@ -328,6 +343,7 @@ export const LinkFilterCreateContract: OperationContract<
         params: { filterId: result.id },
       };
     },
+    scope: (_p, _r, resolved) => scopeTable(resolved?.extra?.fkModelId),
   },
 };
 
@@ -361,7 +377,7 @@ export const ButtonFilterCreateContract: OperationContract<
         : undefined;
       return {
         parentEntityTitle: buttonCol?.title,
-        extra: { fieldTitle: field?.title },
+        extra: { fieldTitle: field?.title, fkModelId: buttonCol?.fk_model_id },
       };
     },
   },
@@ -385,12 +401,20 @@ export const ButtonFilterCreateContract: OperationContract<
         params: { filterId: result.id },
       };
     },
+    scope: (_p, _r, resolved) => scopeTable(resolved?.extra?.fkModelId),
   },
 };
 
+interface WidgetFilterCreateExtra {
+  fieldTitle?: string;
+  /** Owning dashboard — captured so `scope` can route the row onto the
+   *  dashboard's undo stack without a re-fetch. */
+  fkDashboardId?: string;
+}
+
 export const WidgetFilterCreateContract: OperationContract<
   typeof widgetFilterCreateSchema,
-  Record<string, any>,
+  WidgetFilterCreateExtra,
   Filter | undefined
 > = {
   name: OperationName.widgetFilterCreate,
@@ -417,7 +441,10 @@ export const WidgetFilterCreateContract: OperationContract<
         : undefined;
       return {
         parentEntityTitle: widget?.title,
-        extra: { fieldTitle: field?.title },
+        extra: {
+          fieldTitle: field?.title,
+          fkDashboardId: widget?.fk_dashboard_id,
+        },
       };
     },
   },
@@ -436,6 +463,7 @@ export const WidgetFilterCreateContract: OperationContract<
         params: { filterId: result.id },
       };
     },
+    scope: (_p, _r, resolved) => scopeDashboard(resolved?.extra?.fkDashboardId),
   },
 };
 
@@ -468,7 +496,11 @@ export const RowColorConditionsCreateContract: OperationContract<
         : undefined;
       return {
         parentEntityTitle: view?.title,
-        extra: { fieldTitle: field?.title, tableTitle: table?.title },
+        extra: {
+          fieldTitle: field?.title,
+          tableTitle: table?.title,
+          fkViewId: condition?.fk_view_id,
+        },
       };
     },
   },
@@ -487,11 +519,15 @@ export const RowColorConditionsCreateContract: OperationContract<
         params: { filterId: result.id },
       };
     },
+    scope: (_p, _r, resolved) => scopeView(resolved?.extra?.fkViewId),
   },
 };
 
 interface FilterBulkLogicalOpUpdateExtra {
   prev?: Record<string, string>;
+  /** First filter's view id — used by `scope`. The bulk-op UI only flips
+   *  logical_op across siblings in one view, so one viewId covers the batch. */
+  fkViewId?: string;
 }
 
 export const FilterBulkLogicalOpUpdateContract: OperationContract<
@@ -506,11 +542,14 @@ export const FilterBulkLogicalOpUpdateContract: OperationContract<
     description: filterActions.edit,
     before: async (context, params) => {
       const prev: Record<string, string> = {};
+      let fkViewId: string | undefined;
       for (const { filterId } of params?.filters ?? []) {
         const f = await Filter.get(context, filterId);
         if (f?.logical_op) prev[filterId] = f.logical_op;
+        // The bulk UI only ever flips siblings in one view — first hit wins.
+        if (!fkViewId && f?.fk_view_id) fkViewId = f.fk_view_id;
       }
-      return { extra: { prev } };
+      return { extra: { prev, fkViewId } };
     },
   },
   undo: {
@@ -529,6 +568,10 @@ export const FilterBulkLogicalOpUpdateContract: OperationContract<
         params: { filters: reversed },
       };
     },
+    scope: (_p, _r, resolved, context) =>
+      resolved?.extra?.fkViewId
+        ? scopeView(resolved.extra.fkViewId)
+        : scopeBase(context),
   },
 };
 

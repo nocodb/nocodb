@@ -12,6 +12,7 @@ import type {
 import { OperationName } from '~/command-registry/op-names';
 import { OperationRegistry } from '~/command-registry/registry';
 import { registerForward } from '~/command-registry/replay-context';
+import { scopeView } from '~/command-registry/scope';
 import { setReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
 import { Filter, View } from '~/models';
@@ -143,6 +144,7 @@ export const RowColorConditionAddContract: OperationContract<
         },
       };
     },
+    scope: (params) => scopeView(params.fk_view_id),
   },
 };
 
@@ -171,6 +173,7 @@ type ConditionUpdatePrev = Pick<
 >;
 
 interface ConditionUpdateExtra {
+  fkViewId?: string;
   prev?: ConditionUpdatePrev;
 }
 
@@ -197,6 +200,7 @@ export const RowColorConditionUpdateContract: OperationContract<
       return {
         parentEntityTitle: view?.title,
         extra: {
+          fkViewId: cond.fk_view_id,
           prev: pickFields(cond, CONDITION_PREV_FIELDS),
         },
       };
@@ -217,6 +221,8 @@ export const RowColorConditionUpdateContract: OperationContract<
         },
       };
     },
+    scope: (params, _r, resolved) =>
+      scopeView(params.fk_view_id ?? resolved?.extra?.fkViewId),
   },
 };
 
@@ -277,6 +283,13 @@ export const RowColorConditionDeleteContract: OperationContract<
         },
       };
     },
+    // Snapshot in resolved.extra carries `fk_view_id`; the params variant
+    // is a backup for schemas that include it directly.
+    scope: (params, _r, resolved) =>
+      scopeView(
+        resolved?.extra?.condition?.fk_view_id ??
+          (params as { fk_view_id?: string }).fk_view_id,
+      ),
   },
 };
 
@@ -314,6 +327,7 @@ export const RowColorSelectSetContract: OperationContract<
         params: { fk_view_id: params.fk_view_id, snapshot },
       };
     },
+    scope: (params) => scopeView(params.fk_view_id),
   },
 };
 
@@ -347,6 +361,7 @@ export const RowColoringRemoveContract: OperationContract<
         params: { fk_view_id: params.fk_view_id, snapshot },
       };
     },
+    scope: (params) => scopeView(params.fk_view_id),
   },
 };
 

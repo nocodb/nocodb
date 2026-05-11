@@ -13,27 +13,43 @@ import { MetaTable } from '~/utils/globals';
 const DEFAULT_RETENTION_DAYS = 7;
 const RETRY_BACKOFF_MS = 60 * 60 * 1000; // 1h per cleanup-retry failure
 
+export interface OperationLogScopeRef {
+  type: OperationLogScopeType;
+  id: string;
+}
+
+/**
+ * Hierarchical visibility: the leaf scope sees itself + every parent up
+ * to BASE, leaf-first. Inside view V on table T: `[VIEW(V), TABLE(T),
+ * BASE]`. Query is `(scope_type, scope_id) IN (these)` + order by
+ * seq DESC, so the most-recent op across the visible chain wins.
+ */
 export interface OperationLogLookupKey {
   fk_user_id: string;
   tab_id: string;
-  scope_type?: OperationLogScopeType;
-  scope_id?: string;
+  scopes: ReadonlyArray<OperationLogScopeRef>;
 }
 
-function buildLookupCondition(
+function applyBaseConditions(
+  qb: any,
   context: NcContext,
   key: OperationLogLookupKey,
   status: OperationLogStatus,
-): Record<string, unknown> {
-  const cond: Record<string, unknown> = {
-    fk_user_id: key.fk_user_id,
+): void {
+  qb.where({
     base_id: context.base_id,
+    fk_user_id: key.fk_user_id,
     tab_id: key.tab_id,
     status,
-  };
-  if (key.scope_type) cond.scope_type = key.scope_type;
-  if (key.scope_id) cond.scope_id = key.scope_id;
-  return cond;
+  });
+  if (context.workspace_id) qb.where('fk_workspace_id', context.workspace_id);
+  qb.where(function () {
+    for (const s of key.scopes) {
+      this.orWhere(function () {
+        this.where('scope_type', s.type).andWhere('scope_id', s.id);
+      });
+    }
+  });
 }
 
 /**
@@ -161,14 +177,13 @@ export default class OperationLog implements OperationLogType {
     status: OperationLogStatus,
     ncMeta: MetaService = Noco.ncMeta,
   ): Promise<number> {
-    return ncMeta.metaCount(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.OPERATION_LOGS,
-      {
-        condition: buildLookupCondition(context, key, status),
-      },
-    );
+    if (!key.scopes.length) return 0;
+    const qb = ncMeta.knex(MetaTable.OPERATION_LOGS);
+    applyBaseConditions(qb, context, key, status);
+    const row = (await qb.count({ count: '*' }).first()) as
+      | { count: string | number }
+      | undefined;
+    return Number(row?.count ?? 0);
   }
 
   public static async markStatus(
@@ -223,13 +238,10 @@ export default class OperationLog implements OperationLogType {
     key: OperationLogLookupKey,
     ncMeta: MetaService = Noco.ncMeta,
   ): Promise<void> {
-    await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.OPERATION_LOGS,
-      { status: 'discarded' as OperationLogStatus },
-      buildLookupCondition(context, key, 'undone' as OperationLogStatus),
-    );
+    if (!key.scopes.length) return;
+    const qb = ncMeta.knex(MetaTable.OPERATION_LOGS);
+    applyBaseConditions(qb, context, key, 'undone' as OperationLogStatus);
+    await qb.update({ status: 'discarded' as OperationLogStatus });
   }
 
   private static async getLatestByStatus(
@@ -239,17 +251,11 @@ export default class OperationLog implements OperationLogType {
     orderField: 'seq' | 'undone_at',
     ncMeta: MetaService,
   ): Promise<OperationLog | null> {
-    const rows = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.OPERATION_LOGS,
-      {
-        condition: buildLookupCondition(context, key, status),
-        orderBy: { [orderField]: 'desc' },
-        limit: 1,
-      },
-    );
-    return rows[0] ? this.castType(rows[0]) : null;
+    if (!key.scopes.length) return null;
+    const qb = ncMeta.knex(MetaTable.OPERATION_LOGS);
+    applyBaseConditions(qb, context, key, status);
+    const row = await qb.orderBy(orderField, 'desc').first();
+    return row ? this.castType(row) : null;
   }
 
   public static castType(row: any): OperationLog {

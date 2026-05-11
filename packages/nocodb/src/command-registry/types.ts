@@ -49,19 +49,6 @@ export interface OperationContract<
    * multiple traced child operations.
    */
   readonly macro?: boolean;
-
-  /**
-   * Resolves the per-tab undo/redo stack this op belongs to. Persisted on
-   * `nc_operation_logs.scope_type` / `scope_id`. `UndoRedoService` filters
-   * by `(user, tab, scope_type, scope_id)` so Cmd-Z while viewing table A
-   * only pops ops scoped to table A. Resolved at forward record time —
-   * inverse ops consume the existing row's scope. Optional during the
-   * roll-out; required after iter 14.
-   *
-   * See `src/command-registry/scope.ts` for builders and the dynamic-scope
-   * helper used by rename-class `*Update` ops.
-   */
-  readonly scope?: ScopeResolver<S, E, R>;
 }
 
 export interface OperationEntry<
@@ -99,6 +86,21 @@ export interface OperationUndo<
     result: R,
     resolved?: ResolvedCtx<E>,
   ) => Promise<InverseOp | null> | InverseOp | null;
+  /**
+   * Resolves the per-tab undo/redo stack this op belongs to. Persisted on
+   * `nc_operation_logs.scope_type` / `scope_id`. `UndoRedoService` filters
+   * by `(user, tab, scope_type, scope_id)` so Cmd-Z while viewing table A
+   * only pops ops scoped to table A. Resolved at forward record time —
+   * inverse ops consume the existing row's scope.
+   *
+   * Lives inside `undo` because scope only affects the operation-log path;
+   * sandbox merge is partition-agnostic. Required iff the op is undoable
+   * (i.e. `undo` is set to an object rather than `false`).
+   *
+   * See `src/command-registry/scope.ts` for builders and the dynamic-scope
+   * helper used by rename-class `*Update` ops.
+   */
+  readonly scope: ScopeResolver<S, E, R>;
 }
 
 export interface OperationSandbox<S extends ZodTypeAny = ZodTypeAny, R = any> {

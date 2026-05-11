@@ -6,6 +6,7 @@ import {
   resolveModelForEntry,
   resolveReplayModel,
   restoreDisplaced,
+  scopeRecordOp,
   stripServerControlledFields,
 } from './_shared';
 import type { RecordInsertExtra } from './_shared';
@@ -71,6 +72,7 @@ export const RecordBulkInsertContract: OperationContract<
         },
       };
     },
+    scope: scopeRecordOp,
   },
 };
 

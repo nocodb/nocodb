@@ -18,17 +18,34 @@ export const scopeBase = (context: NcContext): ScopeRef => {
   return { type: 'base', id: context.base_id };
 };
 
-export const scopeTable = (id: string): ScopeRef => ({ type: 'table', id });
-export const scopeView = (id: string): ScopeRef => ({ type: 'view', id });
-export const scopeDashboard = (id: string): ScopeRef => ({
+const requireScopeId = (
+  id: string | undefined | null,
+  type: string,
+): string => {
+  if (!id) throw new Error(`scope${type}: id is required`);
+  return id;
+};
+
+export const scopeTable = (id: string | undefined | null): ScopeRef => ({
+  type: 'table',
+  id: requireScopeId(id, 'Table'),
+});
+export const scopeView = (id: string | undefined | null): ScopeRef => ({
+  type: 'view',
+  id: requireScopeId(id, 'View'),
+});
+export const scopeDashboard = (id: string | undefined | null): ScopeRef => ({
   type: 'dashboard',
-  id,
+  id: requireScopeId(id, 'Dashboard'),
 });
-export const scopeWorkflow = (id: string): ScopeRef => ({
+export const scopeWorkflow = (id: string | undefined | null): ScopeRef => ({
   type: 'workflow',
-  id,
+  id: requireScopeId(id, 'Workflow'),
 });
-export const scopeScript = (id: string): ScopeRef => ({ type: 'script', id });
+export const scopeScript = (id: string | undefined | null): ScopeRef => ({
+  type: 'script',
+  id: requireScopeId(id, 'Script'),
+});
 
 /**
  * Body fields treated as sidebar-class for each rename-capable `*Update`
@@ -37,10 +54,15 @@ export const scopeScript = (id: string): ScopeRef => ({ type: 'script', id });
  * direction for future schema growth.
  */
 export const SIDEBAR_FIELDS = {
-  viewUpdate: new Set<string>(['title', 'lock_type', 'fk_view_section_id']),
-  dashboardUpdate: new Set<string>(['title']),
-  workflowUpdate: new Set<string>(['title']),
-  scriptUpdate: new Set<string>(['title']),
+  viewUpdate: new Set<string>([
+    'title',
+    'lock_type',
+    'fk_view_section_id',
+    'order',
+  ]),
+  dashboardUpdate: new Set<string>(['title', 'order']),
+  workflowUpdate: new Set<string>(['title', 'order']),
+  scriptUpdate: new Set<string>(['title', 'order']),
 } as const;
 
 export type DynamicScopeOp = keyof typeof SIDEBAR_FIELDS;

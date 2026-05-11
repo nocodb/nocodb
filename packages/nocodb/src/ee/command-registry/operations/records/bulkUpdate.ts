@@ -9,6 +9,7 @@ import {
   resolveModelForEntry,
   resolveReplayModel,
   restoreDisplaced,
+  scopeRecordOp,
   stripPkTitles,
   stripServerControlledFields,
 } from './_shared';
@@ -118,6 +119,7 @@ export const RecordBulkUpdateContract: OperationContract<
         },
       };
     },
+    scope: scopeRecordOp,
   },
 };
 

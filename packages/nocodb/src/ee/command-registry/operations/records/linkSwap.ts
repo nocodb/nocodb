@@ -1,4 +1,4 @@
-import { linkSwapBefore, pickLinkSwapParams } from './_shared';
+import { linkSwapBefore, pickLinkSwapParams, scopeRecordOp } from './_shared';
 import type { RecordLinkSwapExtra } from './_shared';
 import type { OperationContract } from '~/command-registry/types';
 import type { DataTableService } from '~/services/data-table.service';
@@ -44,6 +44,7 @@ export const RecordLinkSwapContract: OperationContract<
         },
       };
     },
+    scope: scopeRecordOp,
   },
 };
 
@@ -78,6 +79,7 @@ export const RecordLinkSwapBulkContract: OperationContract<
         params: { ...picked, entries: swappedEntries, modelId },
       };
     },
+    scope: scopeRecordOp,
   },
 };
 
@@ -114,6 +116,7 @@ export const RecordLinkByDisplayContract: OperationContract<
         params: { ...picked, entries: swappedEntries, modelId },
       };
     },
+    scope: scopeRecordOp,
   },
 };
 

@@ -7,6 +7,7 @@ import {
   makeReplayReq,
   registerForward,
 } from '~/command-registry/replay-context';
+import { scopeBase } from '~/command-registry/scope';
 import { isReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
 import { Extension } from '~/models';
@@ -41,6 +42,7 @@ export const ExtensionCreateContract: OperationContract<
         params: { extensionId: newId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -93,6 +95,7 @@ export const ExtensionUpdateContract: OperationContract<
         params: { extensionId: params.extensionId, extension: prev },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -120,6 +123,7 @@ export const ExtensionDeleteContract: OperationContract<
         params: { resourceType: 'extension', resourceId: params.extensionId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 

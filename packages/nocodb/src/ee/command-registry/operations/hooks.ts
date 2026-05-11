@@ -9,6 +9,7 @@ import {
   makeReplayReq,
   registerForward,
 } from '~/command-registry/replay-context';
+import { scopeTable } from '~/command-registry/scope';
 import { isReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
 import { Filter, Hook, Model } from '~/models';
@@ -90,6 +91,7 @@ export const HookCreateContract: OperationContract<
         params: { hookId: result.id },
       };
     },
+    scope: (params) => scopeTable(params.tableId),
   },
 };
 
@@ -157,12 +159,19 @@ export const HookUpdateContract: OperationContract<
         },
       };
     },
+    scope: (_p, result) => scopeTable(result?.fk_model_id),
   },
 };
 
+interface HookDeleteExtra {
+  /** Captured before row deletion so `scope` can route the row to the
+   *  table stack without re-fetching. */
+  fkModelId?: string;
+}
+
 export const HookDeleteContract: OperationContract<
   typeof hookDeleteSchema,
-  Record<string, any>,
+  HookDeleteExtra,
   boolean
 > = {
   name: OperationName.hookDelete,
@@ -179,6 +188,7 @@ export const HookDeleteContract: OperationContract<
       return {
         entityTitle: hook?.title,
         parentEntityTitle: table?.title,
+        extra: { fkModelId: hook?.fk_model_id },
       };
     },
   },
@@ -190,6 +200,7 @@ export const HookDeleteContract: OperationContract<
         params: { resourceType: 'hook', resourceId: params.hookId },
       };
     },
+    scope: (_p, _r, resolved) => scopeTable(resolved?.extra?.fkModelId),
   },
 };
 

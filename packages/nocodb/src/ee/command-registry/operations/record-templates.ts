@@ -2,6 +2,7 @@ import type { OperationContract } from '~/command-registry/types';
 import type { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
 import { OperationName } from '~/command-registry/op-names';
 import { registerForward } from '~/command-registry/replay-context';
+import { scopeBase } from '~/command-registry/scope';
 import { MetaTable } from '~/utils/globals';
 import RecordTemplate from '~/models/RecordTemplate';
 import { pickFields } from '~/utils/tsUtils';
@@ -51,6 +52,7 @@ export const RecordTemplateCreateContract: OperationContract<
         params: { templateId: result.id, userId: params.userId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -93,6 +95,7 @@ export const RecordTemplateUpdateContract: OperationContract<
         },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -158,6 +161,7 @@ export const RecordTemplateDeleteContract: OperationContract<
         },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 

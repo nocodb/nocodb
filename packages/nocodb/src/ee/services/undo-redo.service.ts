@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { NcContext, NcRequest } from 'nocodb-sdk';
+import type { NcContext, NcRequest, OperationLogScopeType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { OperationRegistry } from '~/command-registry/registry';
 import { dispatchOperation } from '~/command-registry/replay-context';
@@ -16,10 +16,16 @@ export interface UndoRedoStatus {
   canRedo: boolean;
 }
 
+export interface UndoRedoScope {
+  type: OperationLogScopeType;
+  id: string;
+}
+
 interface UndoLookupKey {
   userId: string;
   baseId: string;
   tabId: string;
+  scopes: ReadonlyArray<UndoRedoScope>;
 }
 
 @Injectable()
@@ -28,14 +34,15 @@ export class UndoRedoService {
 
   async undo(
     context: NcContext,
-    param: { req: NcRequest },
+    param: { req: NcRequest; scopes?: ReadonlyArray<UndoRedoScope> },
   ): Promise<UndoRedoResult> {
-    const key = this.resolveLookupKey(context, param.req);
+    const key = this.resolveLookupKey(context, param.req, param.scopes);
     if (!key) return { status: 'empty' };
 
     const entry = await OperationLog.getLatestActive(context, {
       fk_user_id: key.userId,
       tab_id: key.tabId,
+      scopes: key.scopes,
     });
     if (!entry) return { status: 'empty' };
 
@@ -44,14 +51,15 @@ export class UndoRedoService {
 
   async redo(
     context: NcContext,
-    param: { req: NcRequest },
+    param: { req: NcRequest; scopes?: ReadonlyArray<UndoRedoScope> },
   ): Promise<UndoRedoResult> {
-    const key = this.resolveLookupKey(context, param.req);
+    const key = this.resolveLookupKey(context, param.req, param.scopes);
     if (!key) return { status: 'empty' };
 
     const entry = await OperationLog.getLatestUndone(context, {
       fk_user_id: key.userId,
       tab_id: key.tabId,
+      scopes: key.scopes,
     });
     if (!entry) return { status: 'empty' };
 
@@ -60,20 +68,20 @@ export class UndoRedoService {
 
   async status(
     context: NcContext,
-    param: { req: NcRequest },
+    param: { req: NcRequest; scopes?: ReadonlyArray<UndoRedoScope> },
   ): Promise<UndoRedoStatus> {
-    const key = this.resolveLookupKey(context, param.req);
+    const key = this.resolveLookupKey(context, param.req, param.scopes);
     if (!key) return { canUndo: false, canRedo: false };
 
     const [activeCount, undoneCount] = await Promise.all([
       OperationLog.countByStatus(
         context,
-        { fk_user_id: key.userId, tab_id: key.tabId },
+        { fk_user_id: key.userId, tab_id: key.tabId, scopes: key.scopes },
         'active',
       ),
       OperationLog.countByStatus(
         context,
-        { fk_user_id: key.userId, tab_id: key.tabId },
+        { fk_user_id: key.userId, tab_id: key.tabId, scopes: key.scopes },
         'undone',
       ),
     ]);
@@ -81,11 +89,10 @@ export class UndoRedoService {
     return { canUndo: activeCount > 0, canRedo: undoneCount > 0 };
   }
 
-  // Returns `null` when baseId/tabId missing (non-GUI callers silently
-  // no-op). Missing userId is a hard failure.
   private resolveLookupKey(
     context: NcContext,
     req: NcRequest,
+    scopes: ReadonlyArray<UndoRedoScope> | undefined,
   ): UndoLookupKey | null {
     const userId = context.user?.id ?? (req as any)?.user?.id;
     if (!userId) {
@@ -96,10 +103,16 @@ export class UndoRedoService {
 
     const baseId = context.base_id;
     const tabId = context.tab_id ?? (req as any)?.ncTabId;
-
     if (!baseId || !tabId) return null;
 
-    return { userId, baseId, tabId };
+    // Frontend ships the leaf-first chain on every call. Older clients
+    // that haven't been updated yet quietly no-op rather than 4xx-ing.
+    if (!scopes?.length) return null;
+    for (const s of scopes) {
+      if (!s?.type || !s?.id) return null;
+    }
+
+    return { userId, baseId, tabId, scopes };
   }
 
   // Errors mark the row 'errored' and surface to the caller; the entry is

@@ -16,6 +16,7 @@ import {
   makeReplayReq,
   registerForward,
 } from '~/command-registry/replay-context';
+import { scopeBase, scopeView } from '~/command-registry/scope';
 import { isReplay } from '~/helpers/replayScope';
 import { overrideConflictingViewByTitle } from '~/command-registry/operations/shared/view-replay-conflict';
 import { MetaTable } from '~/utils/globals';
@@ -126,7 +127,10 @@ export const GridViewCreateContract: OperationContract<
     before: (context, params) => resolveCreateCtx(context, params.tableId),
   },
   sandbox: { id_field: 'grid' },
-  undo: { inverse: buildViewCreateInverse },
+  undo: {
+    inverse: buildViewCreateInverse,
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
 };
 
 interface GridUpdateExtra {
@@ -180,6 +184,7 @@ export const GridViewUpdateContract: OperationContract<
         params: { viewId: params.viewId, grid: prev },
       };
     },
+    scope: (params) => scopeView(params.viewId),
   },
 };
 
@@ -199,7 +204,10 @@ export const FormViewCreateContract: OperationContract<
     before: (context, params) => resolveCreateCtx(context, params.tableId),
   },
   sandbox: { id_field: 'body' },
-  undo: { inverse: buildViewCreateInverse },
+  undo: {
+    inverse: buildViewCreateInverse,
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
 };
 
 interface FormUpdateExtra {
@@ -276,6 +284,7 @@ export const FormViewUpdateContract: OperationContract<
         params: { formViewId: params.formViewId, form: prev },
       };
     },
+    scope: (params) => scopeView(params.formViewId),
   },
 };
 
@@ -302,7 +311,10 @@ export const GalleryViewCreateContract: OperationContract<
         result?.fk_cover_image_col_id,
       ),
   },
-  undo: { inverse: buildViewCreateInverse },
+  undo: {
+    inverse: buildViewCreateInverse,
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
 };
 
 interface GalleryUpdateExtra {
@@ -349,6 +361,7 @@ export const GalleryViewUpdateContract: OperationContract<
         params: { galleryViewId: params.galleryViewId, gallery: prev },
       };
     },
+    scope: (params) => scopeView(params.galleryViewId),
   },
 };
 
@@ -377,7 +390,10 @@ export const KanbanViewCreateContract: OperationContract<
         result?.fk_cover_image_col_id,
       ),
   },
-  undo: { inverse: buildViewCreateInverse },
+  undo: {
+    inverse: buildViewCreateInverse,
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
 };
 
 interface KanbanUpdateExtra {
@@ -432,6 +448,7 @@ export const KanbanViewUpdateContract: OperationContract<
         params: { kanbanViewId: params.kanbanViewId, kanban: prev },
       };
     },
+    scope: (params) => scopeView(params.kanbanViewId),
   },
 };
 
@@ -462,7 +479,10 @@ export const CalendarViewCreateContract: OperationContract<
         result?.fk_cover_image_col_id,
       ),
   },
-  undo: { inverse: buildViewCreateInverse },
+  undo: {
+    inverse: buildViewCreateInverse,
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
 };
 
 interface CalendarUpdateExtra {
@@ -527,6 +547,7 @@ export const CalendarViewUpdateContract: OperationContract<
         params: { calendarViewId: params.calendarViewId, calendar: prev },
       };
     },
+    scope: (params) => scopeView(params.calendarViewId),
   },
 };
 
@@ -546,7 +567,10 @@ export const ListViewCreateContract: OperationContract<
     before: (context, params) => resolveCreateCtx(context, params.tableId),
   },
   sandbox: { id_field: 'list' },
-  undo: { inverse: buildViewCreateInverse },
+  undo: {
+    inverse: buildViewCreateInverse,
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
 };
 
 interface ListLevelSnapshot {
@@ -656,6 +680,7 @@ export const ListViewUpdateContract: OperationContract<
         params: { listViewId: params.listViewId, list: prev },
       };
     },
+    scope: (params) => scopeView(params.listViewId),
   },
 };
 
@@ -765,7 +790,10 @@ export const TimelineViewCreateContract: OperationContract<
         params.timeline?.fk_cover_image_col_id,
       ),
   },
-  undo: { inverse: buildViewCreateInverse },
+  undo: {
+    inverse: buildViewCreateInverse,
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
 };
 
 interface TimelineUpdateExtra {
@@ -815,6 +843,7 @@ export const TimelineViewUpdateContract: OperationContract<
         params: { timelineViewId: params.timelineViewId, timeline: prev },
       };
     },
+    scope: (params) => scopeView(params.timelineViewId),
   },
 };
 
@@ -838,7 +867,10 @@ export const MapViewCreateContract: OperationContract<
     dependencies: (params, result) =>
       colDeps(params.map?.fk_geo_data_col_id, result?.fk_geo_data_col_id),
   },
-  undo: { inverse: buildViewCreateInverse },
+  undo: {
+    inverse: buildViewCreateInverse,
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
 };
 
 interface MapUpdateExtra {
@@ -881,6 +913,7 @@ export const MapViewUpdateContract: OperationContract<
         params: { mapViewId: params.mapViewId, map: prev },
       };
     },
+    scope: (params) => scopeView(params.mapViewId),
   },
 };
 

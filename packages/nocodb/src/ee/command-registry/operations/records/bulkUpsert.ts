@@ -4,6 +4,7 @@ import {
   getBaseModelForModel,
   resolveModelForEntry,
   resolveReplayModel,
+  scopeRecordOp,
   stripServerControlledFields,
 } from './_shared';
 import type { RecordBulkUpsertExtra } from './_shared';
@@ -85,6 +86,7 @@ export const RecordBulkUpsertContract: OperationContract<
         },
       };
     },
+    scope: scopeRecordOp,
   },
 };
 

@@ -1,4 +1,4 @@
-import { resolveModelForEntry } from './_shared';
+import { resolveModelForEntry, scopeRecordOp } from './_shared';
 import type { RecordMoveExtra } from './_shared';
 import type { OperationContract } from '~/command-registry/types';
 import type { DataTableService } from '~/services/data-table.service';
@@ -62,6 +62,7 @@ export const RecordMoveContract: OperationContract<
         },
       };
     },
+    scope: scopeRecordOp,
   },
 };
 

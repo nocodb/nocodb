@@ -5,7 +5,8 @@ import type {
   InternalApiModule,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
-import { UndoRedoService } from '~/ee/services/undo-redo.service';
+import type { UndoRedoScope } from '~/services/undo-redo.service';
+import { UndoRedoService } from '~/services/undo-redo.service';
 
 @Injectable()
 export class UndoRedoPostOperations
@@ -21,22 +22,24 @@ export class UndoRedoPostOperations
     {
       operation,
       req,
+      scopes,
     }: {
       workspaceId: string;
       baseId: string;
       operation: keyof typeof OPERATION_SCOPES;
       req: NcRequest;
+      scopes?: ReadonlyArray<UndoRedoScope>;
     },
   ): InternalPOSTResponseType {
     switch (operation) {
       case 'undo':
-        return this.undoRedoService.undo(context, { req });
+        return this.undoRedoService.undo(context, { req, scopes });
 
       case 'redo':
-        return this.undoRedoService.redo(context, { req });
+        return this.undoRedoService.redo(context, { req, scopes });
 
       case 'undoStatus':
-        return this.undoRedoService.status(context, { req });
+        return this.undoRedoService.status(context, { req, scopes });
     }
   }
 }

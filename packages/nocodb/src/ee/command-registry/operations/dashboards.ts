@@ -8,6 +8,11 @@ import {
   makeReplayReq,
   registerForward,
 } from '~/command-registry/replay-context';
+import {
+  dynamicScope,
+  scopeBase,
+  scopeDashboard,
+} from '~/command-registry/scope';
 import { isReplay, setReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
 import { Dashboard, Widget } from '~/models';
@@ -49,6 +54,7 @@ export const DashboardCreateContract: OperationContract<
         params: { dashboardId: newId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -104,6 +110,15 @@ export const DashboardUpdateContract: OperationContract<
         params: { dashboardId: params.dashboardId, dashboard: prev },
       };
     },
+    // Dynamic: title-only edits (sidebar rename) → base stack; any other
+    // body field (layout, settings) → dashboard stack.
+    scope: (params, _r, _resolved, context) =>
+      dynamicScope(
+        'dashboardUpdate',
+        params.dashboard as Record<string, unknown>,
+        scopeBase(context),
+        scopeDashboard(params.dashboardId),
+      ),
   },
 };
 
@@ -129,6 +144,7 @@ export const DashboardDeleteContract: OperationContract<
         params: { resourceType: 'dashboard', resourceId: params.dashboardId },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -164,6 +180,12 @@ export const WidgetCreateContract: OperationContract<
         params: { widgetId: newId },
       };
     },
+    scope: (params, result) =>
+      scopeDashboard(
+        params?.dashboardId ??
+          params?.widget?.fk_dashboard_id ??
+          (result as { fk_dashboard_id?: string } | undefined)?.fk_dashboard_id,
+      ),
   },
 };
 
@@ -190,6 +212,7 @@ export const DuplicateWidgetContract: OperationContract<
       return {
         entityTitle: widget.title,
         parentEntityTitle: dashboard?.title,
+        extra: { fkDashboardId: widget.fk_dashboard_id },
       };
     },
   },
@@ -202,6 +225,12 @@ export const DuplicateWidgetContract: OperationContract<
         params: { widgetId: newId },
       };
     },
+    scope: (_p, result, resolved) =>
+      scopeDashboard(
+        (result as { fk_dashboard_id?: string } | undefined)?.fk_dashboard_id ??
+          (resolved?.extra as { fkDashboardId?: string } | undefined)
+            ?.fkDashboardId,
+      ),
   },
 };
 
@@ -224,6 +253,7 @@ type WidgetPrev = Pick<Widget, (typeof WIDGET_PREV_FIELDS)[number]>;
 interface WidgetUpdateExtra {
   oldTitle?: string;
   prev?: WidgetPrev;
+  fkDashboardId?: string;
 }
 
 export const WidgetUpdateContract: OperationContract<
@@ -251,6 +281,7 @@ export const WidgetUpdateContract: OperationContract<
         extra: {
           oldTitle: widget.title,
           prev: pickFields(widget, WIDGET_PREV_FIELDS),
+          fkDashboardId: widget.fk_dashboard_id,
         },
       };
     },
@@ -264,11 +295,21 @@ export const WidgetUpdateContract: OperationContract<
         params: { widgetId: params.widgetId, widget: prev },
       };
     },
+    scope: (_p, result, resolved) =>
+      scopeDashboard(
+        (result as { fk_dashboard_id?: string } | undefined)?.fk_dashboard_id ??
+          resolved?.extra?.fkDashboardId,
+      ),
   },
 };
 
+interface WidgetDeleteExtra {
+  fkDashboardId?: string;
+}
+
 export const WidgetDeleteContract: OperationContract<
-  typeof widgetDeleteSchema
+  typeof widgetDeleteSchema,
+  WidgetDeleteExtra
 > = {
   name: OperationName.widgetDelete,
   entity: MetaTable.WIDGETS,
@@ -283,6 +324,7 @@ export const WidgetDeleteContract: OperationContract<
       return {
         entityTitle: widget.title,
         parentEntityTitle: dashboard?.title,
+        extra: { fkDashboardId: widget.fk_dashboard_id },
       };
     },
   },
@@ -294,6 +336,7 @@ export const WidgetDeleteContract: OperationContract<
         params: { resourceType: 'widget', resourceId: params.widgetId },
       };
     },
+    scope: (_p, _r, resolved) => scopeDashboard(resolved?.extra?.fkDashboardId),
   },
 };
 

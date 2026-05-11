@@ -9,6 +9,7 @@ import {
   makeReplayReq,
   registerForward,
 } from '~/command-registry/replay-context';
+import { scopeBase } from '~/command-registry/scope';
 import { isReplay, setReplay } from '~/helpers/replayScope';
 import { MetaTable } from '~/utils/globals';
 import { ViewSection } from '~/models';
@@ -43,6 +44,7 @@ export const ViewSectionCreateContract: OperationContract<
         params: { viewSectionId: result.id },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -97,6 +99,7 @@ export const ViewSectionUpdateContract: OperationContract<
         params: { viewSectionId: params.viewSectionId, section: prev },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 
@@ -179,6 +182,7 @@ export const ViewSectionDeleteContract: OperationContract<
         },
       };
     },
+    scope: (_p, _r, _c, context) => scopeBase(context),
   },
 };
 

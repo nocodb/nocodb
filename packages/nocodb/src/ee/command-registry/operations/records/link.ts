@@ -1,4 +1,8 @@
-import { pickLinkParams, resolveModelIdFromParams } from './_shared';
+import {
+  pickLinkParams,
+  resolveModelIdFromParams,
+  scopeRecordOp,
+} from './_shared';
 import type { RecordLinkExtra } from './_shared';
 import type { OperationContract } from '~/command-registry/types';
 import type { DataTableService } from '~/services/data-table.service';
@@ -44,6 +48,7 @@ export const RecordLinkAddContract: OperationContract<
         params: picked,
       };
     },
+    scope: scopeRecordOp,
   },
 };
 
@@ -81,6 +86,7 @@ export const RecordLinkRemoveContract: OperationContract<
         params: picked,
       };
     },
+    scope: scopeRecordOp,
   },
 };
 

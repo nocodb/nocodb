@@ -1931,6 +1931,77 @@ export function useInfiniteData(args: {
     const { id, action, payload, before } = data
 
     if (action === 'add') {
+      if (isGroupBy.value && groupBy.value.length) {
+        try {
+          let matchedCache: ReturnType<typeof getDataCache> | null = null
+          let matchedPath: Array<number> = []
+
+          for (const [pathKey, cache] of groupDataCache.value.entries()) {
+            const path = pathKey.split('-').map(Number)
+            if (path.some((n) => Number.isNaN(n))) continue
+            const group = callbacks?.findGroupByPath?.(path)
+            if (!group?.nestedIn?.length) continue
+
+            const isMatch = group.nestedIn.every((n) => {
+              if (!n.title || !(n.title in (payload ?? {}))) return false
+              return `${payload[n.title] ?? ''}` === `${n.key ?? ''}`
+            })
+
+            if (isMatch) {
+              matchedCache = cache
+              matchedPath = path
+              break
+            }
+          }
+
+          if (!matchedCache) {
+            eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+            return
+          }
+
+          const isValidationFailed = !validateRowFilters(
+            [...allFilters.value, ...computedWhereFilter.value],
+            payload,
+            meta.value?.columns as ColumnType[],
+            getBaseType(viewMeta.value?.view?.source_id),
+            metas.value,
+            meta.value?.base_id,
+            {
+              currentUser: user.value,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            },
+          )
+
+          if (isValidationFailed) {
+            // Row exists server-side but is filtered out locally — still
+            // bump the group count so the header reflects truth.
+            matchedCache.totalRows.value++
+            matchedCache.actualTotalRows.value = Math.max(matchedCache.actualTotalRows.value || 0, matchedCache.totalRows.value)
+            callbacks?.syncVisibleData?.()
+            return
+          }
+
+          const insertIdx = matchedCache.totalRows.value
+          const newRow: Row = {
+            row: payload,
+            oldRow: {},
+            rowMeta: { new: false, rowIndex: insertIdx, path: matchedPath, ...getEvaluatedRowMetaRowColorInfo(payload) },
+          }
+          matchedCache.cachedRows.value.set(insertIdx, newRow)
+          matchedCache.totalRows.value++
+          matchedCache.actualTotalRows.value = Math.max(matchedCache.actualTotalRows.value || 0, matchedCache.totalRows.value)
+
+          if (sorts.value.length) {
+            applySorting(newRow, matchedPath)
+          }
+
+          callbacks?.syncVisibleData?.()
+        } catch (e) {
+          console.error('Failed to add cached row on socket event (grouped)', e)
+          eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+        }
+        return
+      }
       // Add the new row to the local cache (cachedRows)
       try {
         const dataCache = getDataCache()

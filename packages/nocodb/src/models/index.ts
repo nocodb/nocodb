@@ -77,3 +77,5 @@ export { default as Workflow } from './Workflow';
 export { default as ChatSession } from './ChatSession';
 export { default as ChatMessage } from './ChatMessage';
 export { default as DateDependency } from './DateDependency';
+export { default as Bookmark } from './Bookmark';
+export { default as BookmarkGroup } from './BookmarkGroup';

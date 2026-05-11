@@ -50,6 +50,8 @@ export enum MetaTable {
   PROJECT_USERS = 'nc_base_users_v2',
   MODEL_ROLE_VISIBILITY = 'nc_disabled_models_for_role_v2',
   API_TOKENS = 'nc_api_tokens',
+  BOOKMARK_GROUPS = 'nc_bookmark_groups',
+  BOOKMARKS = 'nc_bookmarks',
   SYNC_SOURCE = 'nc_sync_source_v2',
   SYNC_LOGS = 'nc_sync_logs_v2',
   MAP_VIEW = 'nc_map_view_v2',
@@ -236,6 +238,8 @@ export const orderedMetaTables = [
   MetaTable.ORGS_OLD,
 
   // User-related
+  MetaTable.BOOKMARKS,
+  MetaTable.BOOKMARK_GROUPS,
   MetaTable.API_TOKEN_SCOPES,
   MetaTable.API_TOKENS,
   MetaTable.PROJECT_USERS,
@@ -427,6 +431,8 @@ export enum CacheScope {
   BASE_USER = 'baseUser',
   MODEL_ROLE_VISIBILITY = 'modelRoleVisibility',
   API_TOKEN = 'apiToken',
+  BOOKMARK_GROUP = 'bookmarkGroup',
+  BOOKMARK = 'bookmark',
   INSTANCE_META = 'instanceMeta',
   WORKSPACE = 'workspace',
   WORKSPACE_USER = 'workspaceUser',
@@ -543,6 +549,8 @@ export const RootScopeTables = {
     MetaTable.GCP_MARKETPLACE_ACCOUNTS,
     MetaTable.GCP_MARKETPLACE_ENTITLEMENTS,
     MetaTable.SCIM_CONFIG,
+    MetaTable.BOOKMARK_GROUPS,
+    MetaTable.BOOKMARKS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

@@ -246,6 +246,14 @@ const onMenuClick = (e: Event) => {
                 {{ $t('title.relations') }}
               </NcMenuItem>
 
+              <!-- Bookmark -->
+              <BookmarksMenuAction
+                target-type="base"
+                :target-id="base.id!"
+                :meta="{ workspace_id: base.fk_workspace_id }"
+                @close="isMenuOpen = false"
+              />
+
               <!-- Settings -->
               <NcMenuItem v-if="isOptionVisible.baseMiscSettings" data-testid="nc-base-node-settings" @click="handleOpenSettings">
                 <GeneralIcon icon="settings" />

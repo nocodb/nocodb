@@ -56,6 +56,12 @@
         "Org Tokens",
         "Org Users"
       ]
+    },
+    {
+      "name": "Bookmark APIs",
+      "tags": [
+        "Bookmark"
+      ]
     }
   ],
   "servers": [
@@ -3976,10 +3982,244 @@
           "required": true
         }
       ]
+    },
+    "/api/v1/bookmarks": {
+      "get": {
+        "summary": "List bookmarks",
+        "operationId": "bookmark-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookmark"]
+      },
+      "post": {
+        "summary": "Create bookmark",
+        "operationId": "bookmark-create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookmarkReqType"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookmark"]
+      },
+      "parameters": []
+    },
+    "/api/v1/bookmarks/check": {
+      "get": {
+        "summary": "Check bookmark",
+        "operationId": "bookmark-check",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookmark"]
+      },
+      "parameters": []
+    },
+    "/api/v1/bookmarks/{bookmarkId}": {
+      "patch": {
+        "summary": "Update bookmark",
+        "operationId": "bookmark-update",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookmarkReqType"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookmark"]
+      },
+      "delete": {
+        "summary": "Delete bookmark",
+        "operationId": "bookmark-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": ["Bookmark"]
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "bookmarkId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/bookmark-groups": {
+      "get": {
+        "summary": "List bookmark groups",
+        "operationId": "bookmark-group-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookmark"]
+      },
+      "post": {
+        "summary": "Create bookmark group",
+        "operationId": "bookmark-group-create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookmark"]
+      },
+      "parameters": []
+    },
+    "/api/v1/bookmark-groups/{groupId}": {
+      "patch": {
+        "summary": "Update bookmark group",
+        "operationId": "bookmark-group-update",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Bookmark"]
+      },
+      "delete": {
+        "summary": "Delete bookmark group",
+        "operationId": "bookmark-group-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": ["Bookmark"]
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "groupId",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "components": {
     "schemas": {
+      "BookmarkReqType": {
+        "description": "Model for Bookmark Request",
+        "type": "object",
+        "properties": {
+          "fk_group_id": {
+            "type": "string"
+          },
+          "target_type": {
+            "type": "string",
+            "enum": ["workspace", "base", "table", "view", "document", "workflow", "script", "dashboard"]
+          },
+          "target_id": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "meta": {
+            "type": "object"
+          }
+        },
+        "required": ["target_type", "target_id"]
+      },
       "PasswordSetReq": {
         "description": "Model for Password Set Request",
         "examples": [

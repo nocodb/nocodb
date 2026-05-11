@@ -45,7 +45,29 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, showEEFeatures } = useEeConfig()
+const { blockAiChat, showEEFeatures, isEEFeatureBlocked, showUpgradeToUseBookmarks } = useEeConfig()
+
+const isBookmarksFlyoutOpen = ref(false)
+
+const bookmarksContainerRef = ref<HTMLElement | null>(null)
+
+onClickOutside(
+  bookmarksContainerRef,
+  () => {
+    isBookmarksFlyoutOpen.value = false
+  },
+  {
+    ignore: [
+      '.nc-bookmark-add-dropdown',
+      '.nc-bookmark-context-menu',
+      '.nc-bookmark-group-menu',
+      '.nc-bookmark-settings-menu',
+      '.nc-modal-wrapper',
+      '.nc-bookmark-bulk-more-dropdown-move-to',
+      '.nc-bookmark-bulk-more-dropdown',
+    ],
+  },
+)
 
 const handleChatToggle = () => {
   toggleChatPanel()
@@ -269,6 +291,14 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     handleChatToggle()
   }
 })
+
+const handleOpenBookmarkPanel = () => {
+  if (isEEFeatureBlocked.value) {
+    showUpgradeToUseBookmarks()
+  } else {
+    isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
+  }
+}
 </script>
 
 <template>
@@ -364,6 +394,22 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       :style="getMagnifyStyle('create')"
     >
       <DashboardMiniSidebarCreateNewActionMenu />
+    </div>
+
+    <!-- Bookmarks -->
+    <div v-if="isEeUI" ref="bookmarksContainerRef" class="relative">
+      <div :ref="(el: any) => setItemRef('bookmarks', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('bookmarks')">
+        <DashboardMiniSidebarV2DockItem
+          icon="ncBookmark"
+          :label="$t('labels.bookmarks')"
+          :active="isBookmarksFlyoutOpen"
+          data-testid="nc-dock-bookmarks"
+          :scale="getScale('bookmarks')"
+          @click="handleOpenBookmarkPanel"
+        />
+      </div>
+
+      <LazyBookmarksFlyout v-if="isBookmarksFlyoutOpen" @close="isBookmarksFlyoutOpen = false" />
     </div>
 
     <!-- Activity / Notifications -->

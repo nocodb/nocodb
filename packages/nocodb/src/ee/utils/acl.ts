@@ -164,6 +164,18 @@ const permissionScopes = {
 
     'getUserProfile',
 
+    // Bookmarks
+    'bookmarkList',
+    'bookmarkCheck',
+    'bookmarkGroupList',
+    'bookmarkCreate',
+    'bookmarkUpdate',
+    'bookmarkRefresh',
+    'bookmarkDelete',
+    'bookmarkGroupCreate',
+    'bookmarkGroupUpdate',
+    'bookmarkGroupDelete',
+
     // Managed App (public operations)
     'managedAppStoreList',
     'managedAppGet',
@@ -672,6 +684,18 @@ const rolePermissions:
       managedAppStoreList: true,
       managedAppGet: true,
       managedAppVersionsList: true,
+
+      // Bookmarks
+      bookmarkList: true,
+      bookmarkCheck: true,
+      bookmarkGroupList: true,
+      bookmarkCreate: true,
+      bookmarkUpdate: true,
+      bookmarkRefresh: true,
+      bookmarkDelete: true,
+      bookmarkGroupCreate: true,
+      bookmarkGroupUpdate: true,
+      bookmarkGroupDelete: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {
@@ -1742,6 +1766,17 @@ const permissionDescriptions: Record<string, string> = {
   baseTrashSettingsUpdate: 'update per-table trash settings for the base',
 
   migrateBase: 'migrate a base to another instance',
+
+  bookmarkList: 'view list of bookmarks',
+  bookmarkCheck: 'check bookmark status of items',
+  bookmarkGroupList: 'view list of bookmark groups',
+  bookmarkCreate: 'create a new bookmark',
+  bookmarkUpdate: 'update a bookmark',
+  bookmarkRefresh: 'refresh bookmark metadata from target entity',
+  bookmarkDelete: 'delete a bookmark',
+  bookmarkGroupCreate: 'create a new bookmark group',
+  bookmarkGroupUpdate: 'update a bookmark group',
+  bookmarkGroupDelete: 'delete a bookmark group',
 };
 
 // Human-readable descriptions for roles

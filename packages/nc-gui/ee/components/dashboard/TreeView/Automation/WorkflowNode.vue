@@ -510,6 +510,13 @@ const deleteWorkflow = () => {
                     {{ $t('general.duplicate') }} {{ 'Workflow'.toLowerCase() }}
                   </NcMenuItem>
                   <NcDivider />
+                  <BookmarksMenuAction
+                    target-type="workflow"
+                    :target-id="vModel.id!"
+                    :meta="{ workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id }"
+                    @close="isDropdownOpen = false"
+                  />
+                  <NcDivider />
                   <NcMenuItem
                     v-e="['c:table:delete']"
                     :data-testid="`sidebar-workflow-delete-${workflow.title}`"

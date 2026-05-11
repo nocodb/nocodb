@@ -13,6 +13,7 @@ import {
   PlanLimitTypes,
   PlanTitles,
   getUpgradeMessage,
+  resolvePlanMeta as sdkResolvePlanMeta,
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/ModalConfirm.vue'
@@ -43,6 +44,8 @@ export const useEeConfig = createSharedComposable(() => {
   const workspaceStore = useWorkspace()
 
   const { activeWorkspace, activeWorkspaceId, workspaces } = storeToRefs(workspaceStore)
+
+  const { baseListAllWsMap } = useWsBaseListAll()
 
   const { isSideBannerExpanded } = eeConfigState()
 
@@ -419,6 +422,9 @@ export const useEeConfig = createSharedComposable(() => {
   })
   const blockScripts = computed(() => isEEFeatureBlocked.value)
   const blockWorkflows = computed(() => isEEFeatureBlocked.value)
+  const blockBookmarks = computed(() => {
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_BOOKMARKS)
+  })
   const blockExtensions = computed(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS)
   })
@@ -541,6 +547,23 @@ export const useEeConfig = createSharedComposable(() => {
     if (!meta) return true
 
     return ncIsString(meta[type]) ? JSON.parse(meta[type]) : meta[type]
+  }
+
+  /**
+   * Feature check by plan title — used for non-active workspaces where
+   * `payment.plan.meta` isn't loaded but the plan title is known
+   * (e.g. from `baseListAllWsMap`). Computes meta from the title via
+   * the SDK so the call site doesn't need the full workspace object.
+   *
+   * On-prem ignores the title (plan is instance-wide); CE returns true.
+   */
+  function getFeatureForPlanTitle(type: PlanFeatureTypes, planTitle?: string | null) {
+    if (!isPaymentEnabled.value && !isOnPrem.value) return true
+    if (isOnPrem.value) return getFeature(type)
+
+    const meta = sdkResolvePlanMeta(planTitle ?? PlanTitles.FREE)
+    const val = meta?.[type]
+    return ncIsString(val) ? JSON.parse(val) : !!val
   }
 
   const getHigherPlan = (plan: string | PlanTitles | undefined = activePlanTitle.value) => {
@@ -953,7 +976,13 @@ export const useEeConfig = createSharedComposable(() => {
                */
               if (isWsOwner.value && !requestUpgrade) {
                 e.preventDefault()
-                navigateToPricing({ autoScroll: 'compare', newTab: true, ctaPlan: newPlanTitle, triggerEvent: false })
+                navigateToPricing({
+                  autoScroll: 'compare',
+                  newTab: true,
+                  ctaPlan: newPlanTitle,
+                  triggerEvent: false,
+                  workspaceId,
+                })
               }
 
               $e('c:payment:upgrade:modal:learn-more', {
@@ -1007,7 +1036,7 @@ export const useEeConfig = createSharedComposable(() => {
               slots.value = {}
             }
           } else {
-            navigateToPricing({ limitOrFeature, ctaPlan: newPlanTitle })
+            navigateToPricing({ limitOrFeature, ctaPlan: newPlanTitle, workspaceId })
             closeDialog()
             callback?.('ok')
           }
@@ -2155,6 +2184,35 @@ export const useEeConfig = createSharedComposable(() => {
     return showUpgradeForEEFeature(t('upgrade.features.workflows'))
   }
 
+  /**
+   * Bookmark feature is gated per-target-workspace (matches backend
+   * `checkForFeature(meta.workspace_id ?? target_id, ...)`). Pass
+   * `workspaceId` when bookmarking targets in a workspace different from
+   * the active one (e.g. workspace bookmarks in the home sidebar) — the
+   * gate then evaluates that workspace's plan rather than the active one.
+   */
+  const showUpgradeToUseBookmarks = ({ workspaceId }: { workspaceId?: string } = {}) => {
+    // No explicit workspace — fall back to active-workspace block check.
+    if (!workspaceId) {
+      if (!blockBookmarks.value) return
+    } else {
+      const targetWs = workspaces.value.get(workspaceId)
+      const planTitle =
+        (targetWs as any)?.payment?.plan?.title || baseListAllWsMap.value.get(workspaceId)?.plan_title || PlanTitles.FREE
+      if (getFeatureForPlanTitle(PlanFeatureTypes.FEATURE_BOOKMARKS, planTitle)) return
+    }
+
+    handleUpgradePlan({
+      workspaceId,
+      title: t('upgrade.upgradeToUseBookmarks'),
+      content: t('upgrade.upgradeToUseBookmarksSubtitle', {
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      limitOrFeature: PlanFeatureTypes.FEATURE_BOOKMARKS,
+    })
+    return true
+  }
+
   const showUpgradeToUseExtensions = () => {
     if (!blockExtensions.value) return
     return showUpgradeForEEFeature(t('upgrade.features.extensions'))
@@ -2185,6 +2243,7 @@ export const useEeConfig = createSharedComposable(() => {
     getStatLimit,
     updateStatLimit,
     getFeature,
+    getFeatureForPlanTitle,
     isPaidPlan,
     activePlan,
     activePlanTitle,
@@ -2329,6 +2388,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockCustomUrls,
     blockScripts,
     blockWorkflows,
+    blockBookmarks,
     blockExtensions,
     showUpgradeToUseExtensions,
     blockWorkspaceCreate,
@@ -2339,6 +2399,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCustomUrls,
     showUpgradeToUseScripts,
     showUpgradeToUseWorkflows,
+    showUpgradeToUseBookmarks,
     showUpgradeToCreateWorkspace,
     showUpgradeToManageWorkspaceMembers,
     showUpgradeForEEFeature,

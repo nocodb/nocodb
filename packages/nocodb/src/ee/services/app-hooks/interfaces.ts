@@ -585,4 +585,15 @@ export interface ManagedAppUpdateDeploymentEvent extends NcBaseEvent {
   error?: string;
 }
 
+// Bookmark Events
+export interface BookmarkCreateEvent extends NcBaseEvent {
+  bookmarkId: string;
+  targetType: string;
+}
+
+export interface BookmarkDeleteEvent extends NcBaseEvent {
+  bookmarkId: string;
+  targetType: string;
+}
+
 export * from 'src/services/app-hooks/interfaces';

@@ -140,6 +140,8 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.DATE_DEPENDENCY]: 'dd',
       [MetaTable.API_TOKEN_SCOPES]: 'ats',
       [MetaTable.TRASH]: 'tr',
+      [MetaTable.BOOKMARK_GROUPS]: 'bmg',
+      [MetaTable.BOOKMARKS]: 'bmk',
     };
 
     const prefix = prefixMap[target] || 'nc';

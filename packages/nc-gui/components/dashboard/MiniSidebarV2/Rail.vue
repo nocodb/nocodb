@@ -45,7 +45,29 @@ const {
   toggleChatPanel,
 } = useChatPanel()
 
-const { blockAiChat, showEEFeatures } = useEeConfig()
+const { blockAiChat, showEEFeatures, isEEFeatureBlocked, showUpgradeToUseBookmarks } = useEeConfig()
+
+const isBookmarksFlyoutOpen = ref(false)
+
+const bookmarksContainerRef = ref<HTMLElement | null>(null)
+
+onClickOutside(
+  bookmarksContainerRef,
+  () => {
+    isBookmarksFlyoutOpen.value = false
+  },
+  {
+    ignore: [
+      '.nc-bookmark-add-dropdown',
+      '.nc-bookmark-context-menu',
+      '.nc-bookmark-group-menu',
+      '.nc-bookmark-settings-menu',
+      '.nc-modal-wrapper',
+      '.nc-bookmark-bulk-more-dropdown-move-to',
+      '.nc-bookmark-bulk-more-dropdown',
+    ],
+  },
+)
 
 const { isRtl } = useRtl()
 
@@ -192,6 +214,14 @@ const mainItems = computed<NavItem[]>(() => [
       ]
     : []),
 ])
+
+const handleOpenBookmarkPanel = () => {
+  if (isEEFeatureBlocked.value) {
+    showUpgradeToUseBookmarks()
+  } else {
+    isBookmarksFlyoutOpen.value = !isBookmarksFlyoutOpen.value
+  }
+}
 </script>
 
 <template>
@@ -280,6 +310,21 @@ const mainItems = computed<NavItem[]>(() => [
     <NcDivider class="!w-8 !min-w-8 !max-w-8 !my-0 !border-nc-border-gray-medium" />
 
     <DashboardMiniSidebarCreateNewActionMenu v-if="!isMobileMode" />
+
+    <!-- Bookmarks -->
+    <div v-if="isEeUI" ref="bookmarksContainerRef" class="relative">
+      <DashboardMiniSidebarV2RailItem
+        icon="ncBookmark"
+        :tooltip="$t('tooltip.bookmarks')"
+        :label="$t('labels.bookmarks')"
+        :active="isBookmarksFlyoutOpen"
+        is-dropdown
+        data-testid="nc-rail-bookmarks"
+        @click="handleOpenBookmarkPanel"
+      />
+
+      <LazyBookmarksFlyout v-if="isBookmarksFlyoutOpen" @close="isBookmarksFlyoutOpen = false" />
+    </div>
 
     <!-- Activity / Notifications -->
     <NcDropdown

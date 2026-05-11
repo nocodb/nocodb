@@ -55,7 +55,7 @@ const chevronIcon = computed(() => (isRtl.value ? 'ncChevronLeft' : 'ncChevronRi
 
 <style lang="scss">
 .ant-dropdown-menu-submenu.nc-sub-menu {
-  @apply flex mx-1.5 rounded-md overflow-hidden !hover:bg-nc-bg-gray-light;
+  @apply flex-none flex mx-1.5 rounded-md overflow-hidden !hover:bg-nc-bg-gray-light;
 
   &:not(.ant-dropdown-menu-submenu-disabled) {
     .nc-submenu-title {

@@ -89,6 +89,10 @@ import type {
 import type { AppEvents } from 'nocodb-sdk';
 
 import type {
+  BookmarkCreateEvent,
+  BookmarkDeleteEvent,
+} from '~/services/app-hooks/interfaces';
+import type {
   ApiCreatedEvent,
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
@@ -663,6 +667,16 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: ManagedAppUpdateDeploymentEvent) => void,
   ): () => void;
 
+  // Bookmark Events
+  on(
+    event: AppEvents.BOOKMARK_CREATE,
+    listener: (data: BookmarkCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.BOOKMARK_DELETE,
+    listener: (data: BookmarkDeleteEvent) => void,
+  ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }
@@ -1180,6 +1194,10 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.MANAGED_APP_UPDATE_FAIL,
     data: ManagedAppUpdateDeploymentEvent,
   ): void;
+
+  // Bookmark Events
+  emit(event: AppEvents.BOOKMARK_CREATE, data: BookmarkCreateEvent): void;
+  emit(event: AppEvents.BOOKMARK_DELETE, data: BookmarkDeleteEvent): void;
 
   emit(event, data): void {
     return super.emit(event, data);

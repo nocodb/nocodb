@@ -82,6 +82,18 @@ const permissionScopes = {
 
     'getUserProfile',
 
+    // Bookmarks
+    'bookmarkList',
+    'bookmarkCheck',
+    'bookmarkGroupList',
+    'bookmarkCreate',
+    'bookmarkUpdate',
+    'bookmarkRefresh',
+    'bookmarkDelete',
+    'bookmarkGroupCreate',
+    'bookmarkGroupUpdate',
+    'bookmarkGroupDelete',
+
     // Connection + upload (matches EE org scope)
     'testConnection',
     'upload',
@@ -332,6 +344,18 @@ const rolePermissions:
 
       mcpRootList: true,
       getUserProfile: true,
+
+      // Bookmarks
+      bookmarkList: true,
+      bookmarkCheck: true,
+      bookmarkGroupList: true,
+      bookmarkCreate: true,
+      bookmarkUpdate: true,
+      bookmarkRefresh: true,
+      bookmarkDelete: true,
+      bookmarkGroupCreate: true,
+      bookmarkGroupUpdate: true,
+      bookmarkGroupDelete: true,
     },
   },
   [OrgUserRoles.CREATOR]: {
@@ -976,6 +1000,17 @@ const permissionDescriptions: Record<string, string> = {
 
   dataImportPreview: 'preview file for import',
   dataImportFile: 'import file into a table',
+
+  bookmarkList: 'view list of bookmarks',
+  bookmarkCheck: 'check bookmark status of items',
+  bookmarkGroupList: 'view list of bookmark groups',
+  bookmarkCreate: 'create a new bookmark',
+  bookmarkUpdate: 'update a bookmark',
+  bookmarkRefresh: 'refresh bookmark metadata from target entity',
+  bookmarkDelete: 'delete a bookmark',
+  bookmarkGroupCreate: 'create a new bookmark group',
+  bookmarkGroupUpdate: 'update a bookmark group',
+  bookmarkGroupDelete: 'delete a bookmark group',
 };
 
 // Human-readable descriptions for roles

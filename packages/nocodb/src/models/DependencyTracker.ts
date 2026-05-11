@@ -45,6 +45,7 @@ export type DependencyFieldsMap = {
   [DependencyTableType.Model]: GeneralDependencyFields;
   [DependencyTableType.View]: GeneralDependencyFields;
   [DependencyTableType.DateDependency]: GeneralDependencyFields;
+  [DependencyTableType.Bookmark]: GeneralDependencyFields;
 };
 
 /**
@@ -122,6 +123,15 @@ export default class DependencyTracker implements DependencyTrackerType {
   public static async trackDependencies(
     context: NcContext,
     dependentType: DependencyTableType.DateDependency,
+    dependentId: string,
+    dependencies: Dependencies,
+    ncMeta?: any,
+    ignoreClear?: boolean,
+  ): Promise<void>;
+
+  public static async trackDependencies(
+    context: NcContext,
+    dependentType: DependencyTableType.Bookmark,
     dependentId: string,
     dependencies: Dependencies,
     ncMeta?: any,

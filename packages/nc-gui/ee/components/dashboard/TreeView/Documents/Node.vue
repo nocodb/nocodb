@@ -552,6 +552,12 @@ function onStopEdit() {
                   </template>
                 </PaymentUpgradeBadgeProvider>
               </template>
+              <BookmarksMenuAction
+                target-type="document"
+                :target-id="doc.id!"
+                :meta="{ workspace_id: activeWorkspaceId, base_id: base?.id || doc.base_id }"
+                @close="isDropdownOpen = false"
+              />
               <template v-if="isUIAllowed('documentDelete')">
                 <NcDivider />
                 <NcMenuItem v-e="['c:document:delete']" :data-testid="`sidebar-doc-delete-${doc.title}`" danger @click="onDelete">

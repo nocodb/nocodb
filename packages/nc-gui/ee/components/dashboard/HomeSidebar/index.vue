@@ -240,6 +240,13 @@ const hasNoResults = computed(() => {
                         :tooltip="$t('labels.clickToCopy')"
                         :label="$t('labels.workspaceId', { workspaceId: ws.id })"
                       />
+                      <NcDivider />
+                      <BookmarksMenuAction
+                        target-type="workspace"
+                        :target-id="ws.id!"
+                        :meta="{ workspace_id: ws.id }"
+                        :workspace="ws"
+                      />
                     </NcMenu>
                   </template>
                 </NcDropdown>

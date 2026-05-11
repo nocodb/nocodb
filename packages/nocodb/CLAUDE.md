@@ -179,6 +179,19 @@ Register in `XcMigrationSourcev0.ts`: add import, add to `getMigrations()`, add 
 
 Do NOT add idempotency guards (`hasTable`/`hasColumn`) — Knex tracks migration state, so they are unnecessary.
 
+### Rebasing onto a newer base
+
+When rebasing a feature branch onto an updated `develop`, **rename your migration file** if `develop` now contains migrations with a later timestamp than yours. The `nc_YYYYMMDDHHmm_*` prefix encodes ordering — a stale timestamp means the filename lies about run order, which is confusing and error-prone (developers grep by date, knex run-list and filename order should match).
+
+Steps when you see a newer migration timestamp on `develop` post-rebase:
+
+1. Pick a fresh timestamp later than the latest `develop` migration (use today's date)
+2. `git mv src/meta/migrations/v0/nc_<old>_<title>.ts src/meta/migrations/v0/nc_<new>_<title>.ts`
+3. Update all 4 references in `XcMigrationSourcev0.ts`: import binding name, import path, `getMigrations()` array entry, `getMigration()` switch case
+4. Move all 4 references to come AFTER the newest existing entry — keep the file in chronological order
+
+Migration order in `getMigrations()` is determined by the array, not the filename — but mismatched filenames are still a footgun. Fix it during the rebase, not after merge.
+
 ### Satellite Database Migrations
 
 Tables whose size is driven by user input (unbounded growth + large payloads) are **satellite candidates** — they can be offloaded to a separate DB via env var (`NC_AUDIT_DB`, `NC_DOCS_DB`). Current satellites: `nc_audit`, `nc_doc_content`. Normal meta tables (columns, views, filters) are bounded and do NOT qualify.

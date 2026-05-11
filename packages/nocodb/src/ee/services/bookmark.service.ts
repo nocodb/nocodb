@@ -1,0 +1,701 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { AppEvents, DependencyTableType, PlanFeatureTypes } from 'nocodb-sdk';
+import type {
+  BookmarkGroupReqType,
+  BookmarkReqType,
+  NcContext,
+  NcRequest,
+} from 'nocodb-sdk';
+import { Bookmark, BookmarkGroup, DependencyTracker } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
+import { checkForFeature } from '~/helpers/paymentHelpers';
+import Base from '~/models/Base';
+import BaseUser from '~/models/BaseUser';
+import Model from '~/models/Model';
+import View from '~/models/View';
+import Workspace from '~/ee/models/Workspace';
+import WorkspaceUser from '~/ee/models/WorkspaceUser';
+import Document from '~/ee/models/Document';
+import Workflow from '~/ee/models/Workflow';
+import Script from '~/ee/models/Script';
+import Dashboard from '~/ee/models/Dashboard';
+import { parseMetaProp } from '~/utils/modelUtils';
+
+function isUniqueViolation(e: any): boolean {
+  if (!e) return false;
+  const code =
+    e.code ??
+    e.original?.code ??
+    e.nativeError?.code ??
+    e.errno ??
+    e.original?.errno ??
+    e.nativeError?.errno;
+  if (
+    code === '23505' || // postgres
+    code === 23505 ||
+    code === 'ER_DUP_ENTRY' || // mysql
+    code === 1062 ||
+    code === 'SQLITE_CONSTRAINT_UNIQUE' ||
+    code === 'SQLITE_CONSTRAINT'
+  ) {
+    return true;
+  }
+  const msg = String(e.message ?? '');
+  return /UNIQUE constraint failed|duplicate key value/i.test(msg);
+}
+
+@Injectable()
+export class BookmarkService {
+  protected logger = new Logger(BookmarkService.name);
+
+  constructor(protected readonly appHooksService: AppHooksService) {}
+
+  // --- Bookmarks ---
+
+  async bookmarkList(param: { req: NcRequest }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const [bookmarks, groups] = await Promise.all([
+      Bookmark.list(userId),
+      BookmarkGroup.list(userId),
+    ]);
+
+    return { bookmarks, groups };
+  }
+
+  async bookmarkCheck(param: { req: NcRequest }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const bookmarks = await Bookmark.list(userId);
+
+    const result: Record<string, any> = {};
+
+    for (const bm of bookmarks) {
+      const meta = (bm.meta as Record<string, any>) ?? {};
+
+      switch (bm.target_type) {
+        case 'workspace': {
+          if (!result[bm.target_id]) result[bm.target_id] = {};
+          result[bm.target_id]._exists = true;
+          break;
+        }
+        case 'base': {
+          const wsId = meta.workspace_id;
+          if (wsId) {
+            if (!result[wsId]) result[wsId] = {};
+            if (!result[wsId][bm.target_id]) result[wsId][bm.target_id] = {};
+            result[wsId][bm.target_id]._exists = true;
+          }
+          break;
+        }
+        case 'table':
+        case 'document':
+        case 'workflow':
+        case 'script':
+        case 'dashboard': {
+          const wsId = meta.workspace_id;
+          const baseId = meta.base_id;
+          if (wsId && baseId) {
+            if (!result[wsId]) result[wsId] = {};
+            if (!result[wsId][baseId]) result[wsId][baseId] = {};
+            result[wsId][baseId][bm.target_id] = { _exists: true };
+          }
+          break;
+        }
+        case 'view': {
+          const wsId = meta.workspace_id;
+          const baseId = meta.base_id;
+          const tableId = meta.table_id;
+          if (wsId && baseId && tableId) {
+            if (!result[wsId]) result[wsId] = {};
+            if (!result[wsId][baseId]) result[wsId][baseId] = {};
+            if (!result[wsId][baseId][tableId])
+              result[wsId][baseId][tableId] = {};
+            result[wsId][baseId][tableId][bm.target_id] = { _exists: true };
+          }
+          break;
+        }
+      }
+    }
+
+    return result;
+  }
+
+  async bookmarkCreate(param: { body: BookmarkReqType; req: NcRequest }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const meta = (param.body.meta as Record<string, any>) ?? {};
+    // For workspace-type bookmarks the workspace id lives in `target_id`;
+    // for everything else, the caller passes it via `meta.workspace_id`.
+    const context = {
+      workspace_id:
+        param.body.target_type === 'workspace'
+          ? param.body.target_id
+          : meta.workspace_id,
+      base_id: meta.base_id,
+    } as NcContext;
+
+    // Plan gate: only adding a new bookmark is restricted by FEATURE_BOOKMARKS.
+    // Existing bookmarks remain manageable (list/update/move/delete/group ops)
+    // even after a downgrade, since bookmarks are user-scoped.
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_BOOKMARKS);
+
+    await this.validateTargetAccess(context, {
+      userId,
+      targetType: param.body.target_type,
+      targetId: param.body.target_id,
+    });
+
+    // Friendly error path for the common case (e.g. clicking bookmark twice).
+    // The DB has a UNIQUE(fk_user_id, target_type, target_id) constraint;
+    // checking the cached list first avoids surfacing a raw 500 to the user.
+    const existingBookmarks = await Bookmark.list(userId);
+    if (
+      existingBookmarks.some(
+        (b) =>
+          b.target_type === param.body.target_type &&
+          b.target_id === param.body.target_id,
+      )
+    ) {
+      NcError.badRequest('This item is already bookmarked');
+    }
+
+    let groupId = param.body.fk_group_id;
+
+    if (!groupId) {
+      const ungrouped = await BookmarkGroup.getOrCreateUngrouped(userId);
+      groupId = ungrouped.id;
+    } else {
+      const group = await BookmarkGroup.get(groupId);
+      if (!group || group.fk_user_id !== userId) {
+        NcError.badRequest('Invalid group');
+      }
+    }
+
+    // Race condition on order is fine — bookmarks are per-user and reorderable
+    const maxOrder = await Bookmark.maxOrder(groupId);
+
+    // Resolve title/icon/icon_color from the target entity when not provided
+    const resolved = await this.resolveTargetDetails(
+      context,
+      param.body.target_type,
+      param.body.target_id,
+    );
+
+    let bookmark: Bookmark;
+    try {
+      bookmark = await Bookmark.insert({
+        fk_user_id: userId,
+        fk_group_id: groupId,
+        title: resolved.title,
+        target_type: param.body.target_type,
+        target_id: param.body.target_id,
+        icon: resolved.icon,
+        icon_color: resolved.icon_color,
+        icon_type: resolved.icon_type,
+        order: maxOrder + 1,
+        meta: param.body.meta,
+      });
+    } catch (e) {
+      // Race-safe net: a concurrent request may have inserted between the
+      // pre-check above and this insert. Surface the same friendly message.
+      if (isUniqueViolation(e)) {
+        NcError.badRequest('This item is already bookmarked');
+      }
+      throw e;
+    }
+
+    // Register dependency for future cleanup
+    const depSourceType = this.mapTargetTypeToDependency(
+      param.body.target_type,
+    );
+    if (depSourceType) {
+      try {
+        await DependencyTracker.trackDependencies(
+          context,
+          DependencyTableType.Bookmark,
+          bookmark.id!,
+          this.buildDependencyPayload(depSourceType, param.body.target_id),
+          undefined,
+          true, // ignoreClear — no prior deps to clear on create
+        );
+      } catch (e) {
+        this.logger.error('Failed to track bookmark dependency', e.stack);
+      }
+    }
+
+    this.appHooksService.emit(AppEvents.BOOKMARK_CREATE, {
+      context,
+      req: param.req,
+      bookmarkId: bookmark.id,
+      targetType: param.body.target_type,
+    });
+
+    return bookmark;
+  }
+
+  async bookmarkUpdate(param: {
+    bookmarkId: string;
+    body: Partial<BookmarkReqType>;
+    req: NcRequest;
+  }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const bookmark = await Bookmark.get(param.bookmarkId);
+    if (!bookmark || bookmark.fk_user_id !== userId) {
+      NcError.genericNotFound('Bookmark', param.bookmarkId);
+    }
+
+    if (param.body.fk_group_id) {
+      const group = await BookmarkGroup.get(param.body.fk_group_id);
+      if (!group || group.fk_user_id !== userId) {
+        NcError.badRequest('Invalid group');
+      }
+    }
+
+    return Bookmark.update(param.bookmarkId, {
+      title: param.body.title,
+      fk_group_id: param.body.fk_group_id,
+      icon: param.body.icon,
+      icon_color: param.body.icon_color,
+      order: param.body.order,
+      meta: param.body.meta,
+    });
+  }
+
+  async bookmarkDelete(param: { bookmarkId: string; req: NcRequest }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const bookmark = await Bookmark.get(param.bookmarkId);
+    if (!bookmark || bookmark.fk_user_id !== userId) {
+      NcError.genericNotFound('Bookmark', param.bookmarkId);
+    }
+
+    const meta = (bookmark.meta as Record<string, any>) ?? {};
+    const context = {
+      workspace_id: meta.workspace_id,
+      base_id: meta.base_id,
+    } as NcContext;
+
+    await Bookmark.delete(param.bookmarkId);
+
+    // Only clear dependencies for target_types that were tracked at create
+    // time (table / view / workflow). Workspace / base / document / script /
+    // dashboard bookmarks have no DependencyTracker row, and the bookmark's
+    // own meta may not even carry a base_id (e.g. workspace bookmarks),
+    // which would make metaDelete throw "Base ID is required".
+    if (
+      this.mapTargetTypeToDependency(bookmark.target_type) &&
+      context.base_id
+    ) {
+      try {
+        await DependencyTracker.clearDependencies(
+          context,
+          DependencyTableType.Bookmark,
+          param.bookmarkId,
+        );
+      } catch (e) {
+        this.logger.error('Failed to clear bookmark dependency', e.stack);
+      }
+    }
+
+    this.appHooksService.emit(AppEvents.BOOKMARK_DELETE, {
+      context,
+      req: param.req,
+      bookmarkId: param.bookmarkId,
+      targetType: bookmark.target_type,
+    });
+
+    return true;
+  }
+
+  // --- Groups ---
+
+  async bookmarkGroupList(param: { req: NcRequest }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    return BookmarkGroup.list(userId);
+  }
+
+  async bookmarkGroupCreate(param: {
+    body: BookmarkGroupReqType;
+    req: NcRequest;
+  }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    return BookmarkGroup.insert({
+      fk_user_id: userId,
+      name: param.body.name,
+      order: param.body.order,
+      meta: param.body.meta,
+    });
+  }
+
+  async bookmarkGroupUpdate(param: {
+    groupId: string;
+    body: Partial<BookmarkGroupReqType>;
+    req: NcRequest;
+  }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const group = await BookmarkGroup.get(param.groupId);
+    if (!group || group.fk_user_id !== userId) {
+      NcError.genericNotFound('BookmarkGroup', param.groupId);
+    }
+
+    return BookmarkGroup.update(param.groupId, {
+      name: param.body.name,
+      order: param.body.order,
+      meta: param.body.meta,
+    });
+  }
+
+  async bookmarkGroupDelete(param: { groupId: string; req: NcRequest }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const group = await BookmarkGroup.get(param.groupId);
+    if (!group || group.fk_user_id !== userId) {
+      NcError.genericNotFound('BookmarkGroup', param.groupId);
+    }
+
+    if (group.name === 'Ungrouped') {
+      NcError.badRequest('Cannot delete the Ungrouped group');
+    }
+
+    // Move bookmarks to Ungrouped
+    const ungrouped = await BookmarkGroup.getOrCreateUngrouped(userId);
+    await Bookmark.moveToGroup(param.groupId, ungrouped.id!, userId);
+
+    await BookmarkGroup.delete(param.groupId);
+
+    return true;
+  }
+
+  async bookmarkRefresh(param: { bookmarkId: string; req: NcRequest }) {
+    const userId = param.req.user?.id;
+    if (!userId) NcError.unauthorized('User not found');
+
+    const bookmark = await Bookmark.get(param.bookmarkId);
+    if (!bookmark || bookmark.fk_user_id !== userId) {
+      NcError.genericNotFound('Bookmark', param.bookmarkId);
+    }
+
+    const meta = (bookmark.meta as Record<string, any>) ?? {};
+    const context = {
+      workspace_id: meta.workspace_id,
+      base_id: meta.base_id,
+    } as NcContext;
+
+    const resolved = await this.resolveTargetDetails(
+      context,
+      bookmark.target_type,
+      bookmark.target_id,
+    );
+
+    // Only update if something actually changed
+    const updates: Partial<{
+      title: string | null;
+      icon: string | null;
+      icon_color: string | null;
+      icon_type: string | null;
+    }> = {};
+
+    if (resolved.title != null && resolved.title !== bookmark.title) {
+      updates.title = resolved.title;
+    }
+    if (resolved.icon !== undefined && resolved.icon !== bookmark.icon) {
+      updates.icon = resolved.icon;
+    }
+    if (
+      resolved.icon_color !== undefined &&
+      resolved.icon_color !== bookmark.icon_color
+    ) {
+      updates.icon_color = resolved.icon_color;
+    }
+    if (
+      resolved.icon_type !== undefined &&
+      resolved.icon_type !== bookmark.icon_type
+    ) {
+      updates.icon_type = resolved.icon_type;
+    }
+
+    if (Object.keys(updates).length) {
+      return Bookmark.update(param.bookmarkId, updates);
+    }
+
+    return bookmark;
+  }
+
+  // --- Access validation ---
+  private async validateTargetAccess(
+    context: NcContext,
+    param: { userId: string; targetType: string; targetId: string },
+  ) {
+    const { userId, targetType, targetId } = param;
+
+    switch (targetType) {
+      case 'workspace': {
+        const wsUser = await WorkspaceUser.get(targetId, userId);
+        if (!wsUser) {
+          NcError.get(context).badRequest(
+            'You do not have access to this workspace',
+          );
+        }
+        break;
+      }
+      case 'base': {
+        const baseUser = await BaseUser.get(context, targetId, userId);
+        if (!baseUser?.roles && !(baseUser as any)?.workspace_roles) {
+          NcError.get(context).badRequest(
+            'You do not have access to this base',
+          );
+        }
+        break;
+      }
+      case 'table': {
+        const model = await Model.get(context, targetId);
+        if (!model) {
+          NcError.get(context).badRequest('Target not found');
+        }
+        const baseUser = await BaseUser.get(
+          { ...context, base_id: model.base_id } as NcContext,
+          model.base_id!,
+          userId,
+        );
+        if (!baseUser?.roles && !(baseUser as any)?.workspace_roles) {
+          NcError.get(context).badRequest(
+            'You do not have access to this item',
+          );
+        }
+        break;
+      }
+      case 'document':
+      case 'workflow':
+      case 'script':
+      case 'dashboard': {
+        // Verify the target exists. Each type has its own model class.
+        // Model.get won't work for documents (xcCondition restricts to
+        // table|view) and workflows/scripts live in nc_automations entirely.
+        let target: { base_id?: string } | null = null;
+        if (targetType === 'document') {
+          target = await Document.get(context, targetId);
+        } else if (targetType === 'workflow') {
+          target = await Workflow.get(context, targetId);
+        } else if (targetType === 'script') {
+          target = await Script.get(context, targetId);
+        } else if (targetType === 'dashboard') {
+          target = await Dashboard.get(context, targetId);
+        }
+
+        if (!target) {
+          NcError.get(context).badRequest('Target not found');
+        }
+
+        const baseId = target!.base_id || context.base_id;
+        if (!baseId) {
+          NcError.get(context).badRequest('Missing base_id for target');
+        }
+
+        const baseUser = await BaseUser.get(
+          { ...context, base_id: baseId } as NcContext,
+          baseId!,
+          userId,
+        );
+        if (!baseUser?.roles && !(baseUser as any)?.workspace_roles) {
+          NcError.get(context).badRequest(
+            'You do not have access to this item',
+          );
+        }
+        break;
+      }
+      case 'view': {
+        const view = await View.get(context, targetId);
+        if (!view) {
+          NcError.get(context).badRequest('Target not found');
+        }
+
+        const table = await Model.get(context, view.fk_model_id!);
+        if (!table) {
+          NcError.get(context).badRequest('Target not found');
+        }
+
+        const baseUser = await BaseUser.get(
+          { ...context, base_id: table.base_id } as NcContext,
+          table.base_id!,
+          userId,
+        );
+        if (!baseUser?.roles && !(baseUser as any)?.workspace_roles) {
+          NcError.get(context).badRequest(
+            'You do not have access to this view',
+          );
+        }
+        break;
+      }
+      default:
+        NcError.get(context).badRequest(
+          `Unsupported bookmark target_type: ${targetType}`,
+        );
+    }
+  }
+
+  // --- Helpers ---
+
+  private async resolveTargetDetails(
+    context: NcContext,
+    targetType: string,
+    targetId: string,
+  ): Promise<{
+    title?: string | null;
+    icon?: string | null;
+    icon_color?: string | null;
+    icon_type?: string | null;
+  }> {
+    try {
+      switch (targetType) {
+        case 'workspace': {
+          const ws = await Workspace.get(targetId);
+          if (ws) {
+            const m = parseMetaProp(ws);
+            return {
+              title: ws.title ?? null,
+              icon: m?.icon ?? null,
+              icon_color: m?.color ?? null,
+              icon_type: m?.iconType ?? null,
+            };
+          }
+          break;
+        }
+        case 'base': {
+          const base = await Base.get(context, targetId);
+          if (base) {
+            const m = parseMetaProp(base);
+            return {
+              title: base.title ?? null,
+              icon: null,
+              icon_color: m?.iconColor ?? null,
+            };
+          }
+          break;
+        }
+        case 'table': {
+          const table = await Model.get(context, targetId);
+          if (table) {
+            const m = parseMetaProp(table);
+            return {
+              title: table.title ?? null,
+              icon: m?.icon ?? null,
+              icon_color: null,
+            };
+          }
+          break;
+        }
+        case 'view': {
+          const view = await View.get(context, targetId);
+          if (view) {
+            const m = parseMetaProp(view);
+            return {
+              title: view.title ?? null,
+              icon: m?.icon ?? null,
+              icon_color: null,
+            };
+          }
+          break;
+        }
+        case 'document': {
+          const doc = await Document.get(context, targetId);
+          if (doc) {
+            const m = parseMetaProp(doc);
+            return {
+              title: doc.title ?? null,
+              icon: m?.icon ?? null,
+              icon_color: null,
+            };
+          }
+          break;
+        }
+        case 'workflow': {
+          const workflow = await Workflow.get(context, targetId);
+          if (workflow) {
+            const m = parseMetaProp(workflow);
+            return {
+              title: workflow.title ?? null,
+              icon: m?.icon ?? null,
+              icon_color: null,
+            };
+          }
+          break;
+        }
+        case 'script': {
+          const script = await Script.get(context, targetId);
+          if (script) {
+            const m = parseMetaProp(script);
+            return {
+              title: script.title ?? null,
+              icon: m?.icon ?? null,
+              icon_color: null,
+            };
+          }
+          break;
+        }
+        case 'dashboard': {
+          const dashboard = await Dashboard.get(context, targetId);
+          if (dashboard) {
+            const m = parseMetaProp(dashboard);
+            return {
+              title: dashboard.title ?? null,
+              icon: m?.icon ?? null,
+              icon_color: null,
+            };
+          }
+          break;
+        }
+      }
+    } catch (e) {
+      this.logger.warn(
+        `Failed to resolve target details for ${targetType}:${targetId}: ${e.message}`,
+      );
+    }
+    return { title: null, icon: null, icon_color: null };
+  }
+
+  private mapTargetTypeToDependency(
+    targetType: string,
+  ): DependencyTableType | null {
+    switch (targetType) {
+      case 'table':
+        return DependencyTableType.Model;
+      case 'view':
+        return DependencyTableType.View;
+      case 'workflow':
+        return DependencyTableType.Workflow;
+      default:
+        return null;
+    }
+  }
+
+  private buildDependencyPayload(
+    sourceType: DependencyTableType,
+    sourceId: string,
+  ) {
+    switch (sourceType) {
+      case DependencyTableType.Model:
+        return { models: [{ id: sourceId }] };
+      case DependencyTableType.View:
+        return { views: [{ id: sourceId }] };
+      case DependencyTableType.Workflow:
+        return { workflows: [{ id: sourceId }] };
+      default:
+        return {};
+    }
+  }
+}

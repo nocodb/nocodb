@@ -415,6 +415,7 @@ export enum DependencyTableType {
   Widget = 'widget',
   Workflow = 'workflow',
   DateDependency = 'date_dependency',
+  Bookmark = 'bookmark',
 }
 
 export enum BaseVersion {

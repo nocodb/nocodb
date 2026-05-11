@@ -26,6 +26,8 @@ const { isUIAllowed } = useRoles()
 
 const scriptStore = useScriptStore()
 
+const { showScriptPlanLimitExceededModal } = useEeConfig()
+
 const basesStore = useBases()
 
 const { activeProjectId } = storeToRefs(basesStore)
@@ -35,8 +37,6 @@ const { duplicateScript: _duplicateScript, updateScript } = scriptStore
 const { activeScriptId, activeBaseScripts } = storeToRefs(scriptStore)
 
 const { meta: metaKey, control } = useMagicKeys()
-
-const { showScriptPlanLimitExceededModal } = useEeConfig()
 
 const { openScriptDescriptionDialog: _openScriptDescriptionDialog } = inject(TreeViewInj)!
 
@@ -516,6 +516,13 @@ const deleteScript = () => {
                     <GeneralIcon v-else class="text-nc-content-gray-subtle" icon="duplicate" />
                     {{ $t('general.duplicate') }} {{ $t('objects.script').toLowerCase() }}
                   </NcMenuItem>
+                  <NcDivider />
+                  <BookmarksMenuAction
+                    target-type="script"
+                    :target-id="vModel.id!"
+                    :meta="{ workspace_id: vModel.fk_workspace_id, base_id: vModel.base_id }"
+                    @close="isDropdownOpen = false"
+                  />
                   <NcDivider />
                   <NcMenuItem
                     v-e="['c:table:delete']"

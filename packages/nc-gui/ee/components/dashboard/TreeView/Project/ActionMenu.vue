@@ -238,6 +238,15 @@ const isOptionVisible = computed(() => {
 
     <DashboardTreeViewBaseOptions v-if="isOptionVisible.baseOptions" v-model:base="base" :source="base.sources[0]" />
 
+    <NcDivider />
+
+    <BookmarksMenuAction
+      target-type="base"
+      :target-id="base.id!"
+      :meta="{ workspace_id: base.fk_workspace_id }"
+      @close="emits('clickMenu')"
+    />
+
     <NcDivider v-if="isOptionVisible.baseMiscSettings || isOptionVisible.baseDelete" />
 
     <NcMenuItem

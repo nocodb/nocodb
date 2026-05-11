@@ -375,7 +375,13 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
   }
 
   const closeEditor = async () => {
-    if (isDirty.value) await flushSave()
+    // Fire-and-forget the save: flushSave captures tableId / rowId / columnId /
+    // rowData synchronously at the top of its body, so the in-flight write
+    // survives the state reset below. Awaiting would block the panel from
+    // unmounting until the API roundtrip finishes — which lets a fullscreen
+    // SmartText panel sit on top of the EFP for hundreds of ms when the user
+    // opens EFP via Space while the SmartText editor still has dirty content.
+    if (isDirty.value) void flushSave()
 
     isOpen.value = false
     activeRowId.value = null

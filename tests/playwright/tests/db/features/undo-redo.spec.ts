@@ -7,8 +7,6 @@ import { GridPage } from '../../../pages/Dashboard/Grid';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
 import { enableQuickRun, isSqlite } from '../../../setup/db';
 
-const validateResponse = false;
-
 /**
  This change provides undo/redo on multiple actions over UI.
 
@@ -28,19 +26,13 @@ const validateResponse = false;
 async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage }) {
   const isMac = await dashboard.grid.isMacOs();
 
-  if (validateResponse) {
-    await dashboard.grid.waitForResponse({
-      uiAction: async () => await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco`,
-      responseJsonMatcher: json => json.pageInfo,
-    });
-  } else {
-    await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z');
-
-    // allow time for undo to complete rendering
-    await page.waitForTimeout(500);
-  }
+  await dashboard.grid.waitForResponse({
+    uiAction: async () => await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
+    httpMethodsToMatch: ['POST'],
+    requestUrlPathToMatch: 'operation=undo',
+  });
+  // small buffer for the realtime update + FE re-render
+  await page.waitForTimeout(500);
 }
 
 test.describe('Undo Redo', () => {
@@ -599,16 +591,11 @@ test.describe('Undo Redo - LTAR', () => {
     const isMac = await grid.isMacOs();
     await dashboard.grid.waitForResponse({
       uiAction: async () => await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
-      httpMethodsToMatch: ['DELETE', 'POST'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco`,
-      responseJsonMatcher: json => json.pageInfo,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: 'operation=undo',
     });
-    // adding a delay to make tests more consistent
-    await new Promise<void>(resolve =>
-      setTimeout(() => {
-        resolve();
-      }, 50)
-    );
+    // small buffer for the realtime update to land + grid to re-render
+    await page.waitForTimeout(300);
     await verifyRecords(values);
   }
 

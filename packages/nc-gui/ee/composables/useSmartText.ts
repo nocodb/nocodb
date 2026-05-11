@@ -1,6 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { isSmartText } from 'nocodb-sdk'
-import { useStorage } from '@vueuse/core'
 
 type SmartTextPanelMode = 'floating' | 'fullscreen'
 
@@ -38,7 +37,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
   const pmContent = ref<Record<string, any> | null>(null)
   const markdown = ref<string | null>(null)
   const mode = ref<SmartTextPanelMode>('floating')
-  const panelWidth = useStorage('nc-smart-text-panel-width', 480)
+  const panelWidth = useSidePanelWidth()
   const isLoading = ref(false)
   const isSaving = ref(false)
   const isDirty = ref(false)

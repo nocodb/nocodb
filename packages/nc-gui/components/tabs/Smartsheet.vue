@@ -64,6 +64,18 @@ const isSmartTextActive = computed(() => {
   return !!col && isSmartText(col)
 })
 
+// When the SmartText panel closes (true → false), the expanded-record panel
+// becomes the topmost visible panel again. Clicking SmartText's close button
+// counts as a click outside `.nc-expanded-form-panel`, so the click-intent
+// flag would otherwise leave the user stuck — Escape and Tab would not act
+// on EFP until they click into it. Reset intent here so the next keystroke
+// targets EFP.
+watch(isSmartTextActive, (active, prev) => {
+  if (prev && !active && isExpandedFormPanelOpen.value) {
+    markExpandedFormPanelFocus()
+  }
+})
+
 watch(
   () => isGrid.value,
   (gridActive) => {

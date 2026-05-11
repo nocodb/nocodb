@@ -46,7 +46,16 @@ const resizeStartWidth = ref(0)
 const MIN_WIDTH = 320
 
 const getMaxWidth = () => {
-  const containerWidth = panelRef.value?.parentElement?.clientWidth ?? 0
+  // The panel sits inside a `display: contents` wrapper in Smartsheet.vue
+  // (kept so toggling SmartText visibility doesn't remount the panel). Such
+  // a wrapper has clientWidth 0, which would clamp the panel to MIN_WIDTH
+  // on the first drag. Walk past contents-display ancestors to the real
+  // flex container.
+  let el = panelRef.value?.parentElement as HTMLElement | null
+  while (el && getComputedStyle(el).display === 'contents') {
+    el = el.parentElement
+  }
+  const containerWidth = el?.clientWidth ?? 0
   return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.6))
 }
 
@@ -375,6 +384,12 @@ function onDocumentKeydown(e: KeyboardEvent) {
     if (isFullscreen.value) {
       setFullscreen(false)
       activeViewMode.value = ExpandedFormMode.FIELD
+      // Refocus panel root and reaffirm panel intent so the NEXT Escape
+      // closes the panel — without this, fullscreen exit can leave focus on
+      // a transient wrapper element with intent flag unclear, and the user
+      // has to click into the panel before the second Escape works.
+      panelRef.value?.focus()
+      markExpandedFormPanelFocus()
     } else {
       onClose()
     }

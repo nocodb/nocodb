@@ -20,6 +20,13 @@ const {
 
 const { closeEditor, flushSave, switchField, setFullscreen, setPmContent, navigatePrev, navigateNext } = smartTextStore
 
+// When the expanded-record panel is also open it's hidden via v-show while
+// SmartText is active. On close we want SmartText to vanish instantly so the
+// EFP can fill the slot without an overlap window — the slide-out animation
+// would keep SmartText slot-occupying for ~200ms, briefly squeezing the grid.
+const expandedFormPanelStore = useExpandedFormPanel()
+const isExpandedFormPanelOpen = computed(() => !!expandedFormPanelStore?.isOpen?.value)
+
 const { t } = useI18n()
 const view = inject(ActiveViewInj, ref())
 const meta = inject(MetaInj, ref())
@@ -76,7 +83,7 @@ const MIN_WIDTH = 320
 
 const getMaxWidth = () => {
   const containerWidth = panelRef.value?.parentElement?.clientWidth ?? 0
-  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.75))
+  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.6))
 }
 
 const onResizeMove = (e: MouseEvent) => {
@@ -281,7 +288,7 @@ const onDownloadPDF = () => downloadPDF()
 </script>
 
 <template>
-  <Transition name="nc-slide-right" @after-enter="panelRef?.focus()">
+  <Transition :css="!isExpandedFormPanelOpen" name="nc-slide-right" @after-enter="panelRef?.focus()">
     <div
       v-if="isOpen"
       ref="panelRef"

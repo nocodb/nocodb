@@ -1,4 +1,3 @@
-import { useStorage } from '@vueuse/core'
 import type { ColumnType } from 'nocodb-sdk'
 
 const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(() => {
@@ -18,7 +17,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
   const activityExpanded = ref(false)
   const activeActivityTab = ref<'comments' | 'audits'>('comments')
 
-  const panelWidth = useStorage('nc-expanded-form-panel-width', 420)
+  const panelWidth = useSidePanelWidth()
 
   // Navigation callback set by the grid
   const rowNavigator = ref<{

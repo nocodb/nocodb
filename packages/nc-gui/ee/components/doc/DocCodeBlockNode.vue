@@ -182,7 +182,7 @@ const toggleMermaidView = () => {
     <div
       v-show="showToolbar"
       class="nc-code-block-toolbar"
-      :class="{ 'nc-code-block-toolbar-on-light': showDiagramPane }"
+      :class="{ 'nc-code-block-toolbar-on-diagram': showDiagramPane }"
       contenteditable="false"
     >
       <!-- Language selector -->
@@ -381,24 +381,26 @@ const toggleMermaidView = () => {
   }
 }
 
-// When the toolbar floats over the (light-bg) mermaid diagram pane,
-// flip its chips from white-on-translucent to dark-on-translucent so
-// they remain visible.
-.nc-code-block-toolbar-on-light {
+// Toolbar floats over the mermaid diagram pane — the diagram pane uses
+// `var(--nc-bg-default)` (white in light, near-black in dark), so the
+// default white-on-translucent chips become invisible there. Use
+// semantic gray-bg tokens which invert between light/dark and stay
+// legible in both.
+.nc-code-block-toolbar-on-diagram {
   .nc-code-block-lang-trigger,
   .nc-code-block-copy-btn {
-    background: rgba(0, 0, 0, 0.04);
+    background: var(--nc-bg-gray-light);
     color: var(--nc-content-gray-subtle);
 
     &:hover {
-      background: rgba(0, 0, 0, 0.08);
+      background: var(--nc-bg-gray-medium);
       color: var(--nc-content-gray);
     }
   }
 
   .nc-code-block-lang-trigger-readonly {
     &:hover {
-      background: rgba(0, 0, 0, 0.04);
+      background: var(--nc-bg-gray-light);
       color: var(--nc-content-gray-subtle);
     }
   }

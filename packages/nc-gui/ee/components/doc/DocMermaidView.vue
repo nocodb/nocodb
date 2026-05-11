@@ -11,11 +11,15 @@
  * Renders are debounced and stamped with a monotonic id so stale async
  * results from rapid typing can't overwrite the latest output.
  */
-import { renderMermaidDiagram } from './mermaidRenderer'
+import { type MermaidTheme, renderMermaidDiagram } from './mermaidRenderer'
 
 const props = defineProps<{
   code: string
 }>()
+
+const { isDark } = useTheme()
+
+const themeKey = computed<MermaidTheme>(() => (isDark.value ? 'dark' : 'light'))
 
 const svg = ref('')
 
@@ -41,7 +45,7 @@ const render = async () => {
   isLoading.value = true
 
   try {
-    const rendered = await renderMermaidDiagram(code)
+    const rendered = await renderMermaidDiagram(code, themeKey.value)
     if (myId !== activeRenderId) return
     svg.value = rendered
     errorMsg.value = ''
@@ -56,7 +60,8 @@ const render = async () => {
 
 const debouncedRender = useDebounceFn(render, 200)
 
-watch(() => props.code, debouncedRender, { immediate: true })
+// Re-render on code OR theme change (flipping dark mode swaps the palette).
+watch([() => props.code, themeKey], debouncedRender, { immediate: true })
 </script>
 
 <template>

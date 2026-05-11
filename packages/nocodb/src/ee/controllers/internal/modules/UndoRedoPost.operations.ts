@@ -22,15 +22,16 @@ export class UndoRedoPostOperations
     {
       operation,
       req,
-      scopes,
+      payload,
     }: {
       workspaceId: string;
       baseId: string;
       operation: keyof typeof OPERATION_SCOPES;
       req: NcRequest;
-      scopes?: ReadonlyArray<UndoRedoScope>;
+      payload: { scopes?: ReadonlyArray<UndoRedoScope> };
     },
   ): InternalPOSTResponseType {
+    const scopes = payload?.scopes;
     switch (operation) {
       case 'undo':
         return this.undoRedoService.undo(context, { req, scopes });

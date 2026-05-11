@@ -77,6 +77,9 @@ const onResizeEnd = () => {
 onBeforeUnmount(() => {
   window.removeEventListener('mousemove', onResizeMove)
   window.removeEventListener('mouseup', onResizeEnd)
+  document.removeEventListener('keydown', onDocumentKeydownCapture, true)
+  document.removeEventListener('keydown', onDocumentKeydown)
+  document.removeEventListener('focusin', trackPanelFocus, true)
   document.body.style.cursor = ''
 })
 
@@ -255,15 +258,6 @@ const saveAndContinue = async () => {
 }
 
 const onKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    if (isFullscreen.value) {
-      setFullscreen(false)
-      activeViewMode.value = ExpandedFormMode.FIELD
-    } else {
-      onClose()
-    }
-  }
-
   if (!e.altKey) return
 
   if (e.key === 'ArrowUp') {
@@ -277,6 +271,201 @@ const onKeydown = (e: KeyboardEvent) => {
     if (!isSaveDisabled.value) save()
   }
 }
+
+// Document-level keydown handler — handles Escape (close panel) and Cmd/Ctrl+S
+// (save) regardless of which descendant has focus. The per-element `@keydown`
+// only fires when the EFP root has focus; ant-design inputs swallow Escape
+// (blurs the input but stops propagation) and the browser's save-page dialog
+// would steal Cmd+S without preventDefault — so a document-level listener is
+// required to make these work from any field.
+//
+// Open dropdowns/pickers get a chance to close Escape first via bubble-phase
+// ordering: by the time this handler fires, the picker has already closed and
+// is no longer in the DOM, so the next Escape closes the panel.
+function isPickerOrDropdownOpen() {
+  // ant-design dropdowns / pickers / modals stay in the DOM after their first
+  // open (Vue toggles them via display:none rather than unmount), so a class
+  // selector alone catches stale "closed" instances. Read computed style to
+  // determine if any are actually visible right now.
+  const candidates = document.querySelectorAll(
+    '.ant-picker-dropdown, .ant-select-dropdown, .ant-dropdown, .ant-modal-mask, .ant-popover',
+  )
+  for (const el of candidates) {
+    const cs = window.getComputedStyle(el as Element)
+    if (cs.display !== 'none' && cs.visibility !== 'hidden') return true
+  }
+  return false
+}
+
+// Visible, non-disabled focusables inside the panel — used by the Tab-trap fix
+// to recover from the two known broken transitions (rate UL traps forward Tab;
+// MultiSelect blur sends focus to BODY).
+function getPanelFocusables(): HTMLElement[] {
+  const panel = document.querySelector('.nc-expanded-form-panel') as HTMLElement | null
+  if (!panel) return []
+  const candidates = panel.querySelectorAll<HTMLElement>(
+    'input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled]), [contenteditable="true"]',
+  )
+  return Array.from(candidates).filter((el) => {
+    if (el.offsetParent === null) return false
+    const rect = el.getBoundingClientRect()
+    if (rect.width === 0 || rect.height === 0) return false
+    return true
+  })
+}
+
+// Last focusable that held focus inside the panel — needed because some widgets
+// (ant-select, ant-rate) blur to document.body on Tab, losing the position
+// info the trap needs to advance correctly. We restore it from this snapshot.
+const lastFocusedInPanel = ref<HTMLElement | null>(null)
+function trackPanelFocus(e: FocusEvent) {
+  const panel = panelRef.value
+  const target = e.target as HTMLElement | null
+  if (!panel || !target) return
+  if (target === panel) return
+  if (!panel.contains(target)) return
+  lastFocusedInPanel.value = target
+}
+
+// Capture-phase shortcuts — these need to run BEFORE focused widgets get a
+// chance to stopPropagation(). Number inputs and ant-design widgets eat Alt
+// modifier events on bubble phase.
+function onDocumentKeydownCapture(e: KeyboardEvent) {
+  // Cmd+S / Ctrl+S — save the panel. Always preventDefault so the browser's
+  // save-page dialog never appears while the panel is open.
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (cmdOrCtrl && e.code === 'KeyS') {
+    e.preventDefault()
+    if (!isSaveDisabled.value) save()
+    return
+  }
+
+  // Cmd+Enter / Ctrl+Enter — also save, regardless of focused field.
+  if (cmdOrCtrl && e.key === 'Enter') {
+    e.preventDefault()
+    if (!isSaveDisabled.value) save()
+    return
+  }
+
+  // Alt+ArrowUp / Alt+ArrowDown — navigate to prev/next row from any focused
+  // field. Caught in capture phase because number inputs and select widgets
+  // call stopPropagation on Alt-arrows during bubble.
+  //
+  // Only intervene when the user's interaction intent is on the panel — if
+  // they clicked a grid cell, Alt+Arrow may be a grid shortcut (e.g. Alt+R for
+  // add row) or just stray, but it's not EFP navigation.
+  if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+    if (!isExpandedFormPanelOpen()) return
+    e.preventDefault()
+    guardedNavigate(e.key === 'ArrowUp' ? 'prev' : 'next')
+    return
+  }
+}
+
+// Bubble-phase handler — runs AFTER widgets have had a chance to handle the
+// event. Used for Escape (so open pickers/modals close first) and Tab-trap
+// recovery (so widgets do their own Tab handling before we intervene).
+function onDocumentKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    if (isPickerOrDropdownOpen()) return
+    // Only close the panel via Escape when the user's intent is on the panel.
+    // If they were interacting with the grid (clicked a cell), Escape belongs
+    // to grid — exits cell edit / clears selection.
+    if (!isExpandedFormPanelOpen()) return
+    if (isFullscreen.value) {
+      setFullscreen(false)
+      activeViewMode.value = ExpandedFormMode.FIELD
+    } else {
+      onClose()
+    }
+    return
+  }
+
+  // Tab-trap recovery — three distinct broken-transition cases:
+  // 1. Focus already on BODY (e.g. ant-select blur after MultiSelect already
+  //    fired) — pull focus back into the panel.
+  // 2. Focus on the rate UL (ant-rate consumes Tab without releasing) —
+  //    advance past it.
+  // 3. Forward Tab from the LAST focusable / backward Tab from the FIRST —
+  //    natural browser behavior would escape to BODY (or to elements outside
+  //    the panel) since there's no next/previous tab-stop in document order.
+  //    Preempt this and wrap within the panel.
+  //
+  // Only intervene when the user's interaction intent is on the panel. If they
+  // most recently clicked a grid cell (intent = grid), Tab belongs to grid
+  // navigation and we must not hijack it.
+  if (e.key !== 'Tab') return
+  if (!isExpandedFormPanelOpen()) return
+  const panel = panelRef.value
+  if (!panel) return
+  const active = document.activeElement as HTMLElement | null
+
+  const onBody = active === document.body
+  const onRateTrap = !!active && active.tagName === 'UL' && active.classList.contains('ant-rate')
+  const inPanel = !!active && panel.contains(active)
+
+  if (!onBody && !onRateTrap && !inPanel) return
+
+  const focusables = getPanelFocusables()
+  if (focusables.length === 0) return
+
+  if (onBody) {
+    e.preventDefault()
+    // Resume from the last focused element inside the panel, if we have one —
+    // forward Tab → next, Shift+Tab → previous. Falls back to first/last when
+    // we have no anchor (e.g. focus came from outside the page).
+    const last = lastFocusedInPanel.value
+    const lastIdx = last ? focusables.indexOf(last) : -1
+    if (lastIdx === -1) {
+      const fallback = e.shiftKey ? focusables[focusables.length - 1]! : focusables[0]!
+      fallback.focus()
+      return
+    }
+    const nextIdx = e.shiftKey
+      ? (lastIdx > 0 ? lastIdx - 1 : focusables.length - 1)
+      : (lastIdx < focusables.length - 1 ? lastIdx + 1 : 0)
+    focusables[nextIdx]!.focus()
+    return
+  }
+
+  // Find current focusable's index. For rate UL, it IS in the focusables list.
+  // For other in-panel elements, also find their index — needed to detect
+  // whether the next browser-tab-stop would escape the panel.
+  const currentIdx = focusables.indexOf(active!)
+  if (currentIdx === -1) return
+
+  const isLast = currentIdx === focusables.length - 1
+  const isFirst = currentIdx === 0
+
+  // Natural browser Tab from in-panel element only escapes when we're at the
+  // boundary (last for forward, first for backward). Otherwise let the browser
+  // handle it — except for the rate trap which always needs intervention.
+  const wouldEscape = (!e.shiftKey && isLast) || (e.shiftKey && isFirst)
+  if (!onRateTrap && !wouldEscape) return
+
+  e.preventDefault()
+  const nextIdx = e.shiftKey
+    ? (currentIdx > 0 ? currentIdx - 1 : focusables.length - 1)
+    : (currentIdx < focusables.length - 1 ? currentIdx + 1 : 0)
+  focusables[nextIdx]!.focus()
+}
+
+watch(
+  isOpen,
+  (open) => {
+    if (open) {
+      document.addEventListener('keydown', onDocumentKeydownCapture, true)
+      document.addEventListener('keydown', onDocumentKeydown)
+      document.addEventListener('focusin', trackPanelFocus, true)
+    } else {
+      document.removeEventListener('keydown', onDocumentKeydownCapture, true)
+      document.removeEventListener('keydown', onDocumentKeydown)
+      document.removeEventListener('focusin', trackPanelFocus, true)
+      lastFocusedInPanel.value = null
+    }
+  },
+  { immediate: true },
+)
 
 const panelStyle = computed(() => {
   if (isFullscreen.value) return {}
@@ -300,7 +489,7 @@ const showActivity = computed(() => {
 </script>
 
 <template>
-  <Transition name="nc-slide-right" @after-enter="panelRef?.focus()">
+  <Transition name="nc-slide-right" @after-enter="() => { panelRef?.focus(); markExpandedFormPanelFocus() }">
     <div
       v-if="isOpen && !isMobileMode"
       ref="panelRef"

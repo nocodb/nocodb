@@ -213,7 +213,7 @@ function handleDrop() {
         <div v-if="localDropIndex === groupBookmarks.length && groupBookmarks.length > 0" class="nc-bookmark-list-drop-line" />
       </div>
 
-      <div v-if="!groupBookmarks.length" class="nc-bookmark-list-empty">
+      <div v-if="!groupBookmarks.length" class="nc-bookmark-list-empty" :class="{ 'is-editing': isEditing }">
         {{ $t('labels.noData') }}
       </div>
     </template>
@@ -286,5 +286,9 @@ function handleDrop() {
 }
 .nc-bookmark-list-empty {
   @apply px-2.5 py-1 text-bodySm text-nc-content-gray-muted;
+}
+/* Shift to align under item content (past the checkbox column) when edit mode is on. */
+.nc-bookmark-list-empty.is-editing {
+  @apply pl-10;
 }
 </style>

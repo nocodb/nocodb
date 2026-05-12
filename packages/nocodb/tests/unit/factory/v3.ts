@@ -42,6 +42,16 @@ export function v3Patch(
   return req.send(body);
 }
 
+export function v3Put(
+  ctx: Ctx,
+  path: string,
+  body: Record<string, any> = {},
+) {
+  const req = request(ctx.app).put(path).set('xc-token', ctx.xc_token);
+  if (ctx.tabId) req.set('x-nc-tab-id', ctx.tabId);
+  return req.send(body);
+}
+
 export function v3Delete(ctx: Ctx, path: string) {
   const req = request(ctx.app).delete(path).set('xc-token', ctx.xc_token);
   if (ctx.tabId) req.set('x-nc-tab-id', ctx.tabId);

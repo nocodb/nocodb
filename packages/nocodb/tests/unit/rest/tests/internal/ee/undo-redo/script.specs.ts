@@ -116,8 +116,37 @@ export const scriptDeleteSpec: RoundTripSpec<ScriptFx> = {
   },
 };
 
+export const scriptDuplicateSpec: RoundTripSpec<ScriptFx> = {
+  forward_op: 'scriptDuplicate',
+  setup: setupScript,
+  forward: (ctx, env, fx) =>
+    internalPost(
+      ctx,
+      env,
+      { operation: 'duplicateScript' },
+      { id: fx.scriptId },
+    ),
+  entityId: (r) => r.body.id,
+  scope: baseScope,
+  assertExists: async (_ctx, env, _fx, id) => {
+    const s = await Script.get(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      id,
+    ).catch(() => null);
+    expect(s?.id, '[scriptDuplicate] duplicate exists').to.equal(id);
+  },
+  assertGone: async (_ctx, env, _fx, id) => {
+    const s = await Script.get(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      id,
+    ).catch(() => null);
+    expect(!!s, '[scriptDuplicate] duplicate gone after undo').to.equal(false);
+  },
+};
+
 export const scriptSpecs: RoundTripSpec<any>[] = [
   scriptCreateSpec,
   scriptUpdateSpec,
   scriptDeleteSpec,
+  scriptDuplicateSpec,
 ];

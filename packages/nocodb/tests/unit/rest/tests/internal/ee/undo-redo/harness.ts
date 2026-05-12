@@ -18,6 +18,11 @@ export interface ScopeRef {
 export interface RoundTripSpec<F = Record<string, any>> {
   /** OperationName recorded on the log row. */
   forward_op: string;
+  /** Optional override for the `it()` title — distinguishes specs that
+   *  share `forward_op` but exercise different invariants (e.g. the same
+   *  service method with vs. without a levels-body, where the undo path
+   *  diverges into a different inverse op). */
+  label?: string;
   setup: (ctx: Context, env: TestEnv) => Promise<F>;
   /** HTTP call that records the log row (must carry TAB_ID). */
   forward: (ctx: Context, env: TestEnv, fixtures: F) => Promise<request.Response>;

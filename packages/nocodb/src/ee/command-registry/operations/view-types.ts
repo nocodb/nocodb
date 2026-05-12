@@ -893,13 +893,18 @@ export const MapViewUpdateContract: OperationContract<
     before: async (context, params) => {
       const base = await resolveUpdateCtx(context, params.mapViewId);
       const mapRow = await MapView.get(context, params.mapViewId);
+      const prevMap = mapRow
+        ? (pickFieldsIfPresent(
+            mapRow,
+            ['fk_geo_data_col_id', 'meta'] as const,
+            params.map ?? {},
+          ) as { fk_geo_data_col_id?: string; meta?: unknown })
+        : undefined;
       return {
         ...base,
         extra: {
           ...(base.extra ?? {}),
-          prevMap: mapRow
-            ? pickFields(mapRow, ['fk_geo_data_col_id', 'meta'] as const)
-            : undefined,
+          prevMap,
         },
       };
     },
@@ -907,7 +912,7 @@ export const MapViewUpdateContract: OperationContract<
   undo: {
     inverse: (_context, params, _result, resolved) => {
       const prev = resolved?.extra?.prevMap;
-      if (!prev) return null;
+      if (!prev || Object.keys(prev).length === 0) return null;
       return {
         name: OperationName.mapViewUpdate,
         params: { mapViewId: params.mapViewId, map: prev },

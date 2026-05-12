@@ -110,8 +110,70 @@ function flattenFilterIds(list: any[]): string[] {
   return ids;
 }
 
+interface BulkFilterFx extends TableViewFx {
+  filterIds: string[];
+}
+
+async function setupTwoFilters(
+  ctx: Context,
+  env: TestEnv,
+): Promise<BulkFilterFx> {
+  const fx = await setupTableView(ctx, env);
+  const ids: string[] = [];
+  for (const value of ['a', 'b']) {
+    const r = await internalPost(
+      ctx,
+      env,
+      { operation: 'filterCreate', viewId: fx.viewId },
+      {
+        fk_column_id: fx.colId,
+        comparison_op: 'eq',
+        value,
+        logical_op: 'and',
+      },
+    );
+    ids.push(r.body.id);
+  }
+  return { ...fx, filterIds: ids };
+}
+
+export const filterBulkLogicalOpUpdateSpec: RoundTripSpec<BulkFilterFx> = {
+  forward_op: 'filterBulkLogicalOpUpdate',
+  setup: setupTwoFilters,
+  forward: (ctx, env, fx) =>
+    internalPost(
+      ctx,
+      env,
+      { operation: 'filterBulkLogicalOpUpdate' },
+      {
+        filters: fx.filterIds.map((filterId) => ({
+          filterId,
+          logical_op: 'or',
+        })),
+      },
+    ),
+  entityId: (_r, fx) => fx.filterIds[0],
+  expectNullEntityId: true,
+  scope: viewScope,
+  assertExists: async (ctx, env, fx) => {
+    const filters = await readFilters(ctx, env, fx.viewId);
+    for (const id of fx.filterIds) {
+      const row = filters.find((f: any) => f.id === id);
+      expect(row?.logical_op, `filter ${id}`).to.equal('or');
+    }
+  },
+  assertGone: async (ctx, env, fx) => {
+    const filters = await readFilters(ctx, env, fx.viewId);
+    for (const id of fx.filterIds) {
+      const row = filters.find((f: any) => f.id === id);
+      expect(row?.logical_op, `filter ${id}`).to.equal('and');
+    }
+  },
+};
+
 export const filterSpecs: RoundTripSpec<any>[] = [
   filterCreateSpec,
   filterUpdateSpec,
   filterDeleteSpec,
+  filterBulkLogicalOpUpdateSpec,
 ];

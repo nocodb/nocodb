@@ -108,8 +108,42 @@ export const workflowDeleteSpec: RoundTripSpec<WfFx> = {
   },
 };
 
+// ── workflowDuplicate ────────────────────────────────────────────
+//
+// `workflowDuplicate` reads `payload.workflowId` for the source workflow
+// and returns the new workflow.
+
+export const workflowDuplicateSpec: RoundTripSpec<WfFx> = {
+  forward_op: 'workflowDuplicate',
+  setup: setupWorkflow,
+  forward: (ctx, env, fx) =>
+    internalPost(
+      ctx,
+      env,
+      { operation: 'workflowDuplicate' },
+      { workflowId: fx.workflowId },
+    ),
+  entityId: (r) => r.body.id,
+  scope: baseScope,
+  assertExists: async (_ctx, env, _fx, id) => {
+    const w = await Workflow.get(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      id,
+    ).catch(() => null);
+    expect(w?.id, '[workflowDuplicate] duplicate exists').to.equal(id);
+  },
+  assertGone: async (_ctx, env, _fx, id) => {
+    const w = await Workflow.get(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      id,
+    ).catch(() => null);
+    expect(!!w, '[workflowDuplicate] duplicate gone after undo').to.equal(false);
+  },
+};
+
 export const workflowSpecs: RoundTripSpec<any>[] = [
   workflowCreateSpec,
   workflowUpdateSpec,
   workflowDeleteSpec,
+  workflowDuplicateSpec,
 ];

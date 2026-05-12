@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import type { Context, RoundTripSpec, ScopeRef, TestEnv } from './harness';
 import { internalPost } from '~test/factory/internal';
-import { Widget } from '~/models';
+import { createTable } from '~test/factory/v3';
+import { Filter, Widget } from '~/models';
 
 interface DashFx {
   dashboardId: string;
@@ -145,8 +146,106 @@ export const widgetDeleteSpec: RoundTripSpec<WidgetFx> = {
   },
 };
 
+export const widgetDuplicateSpec: RoundTripSpec<WidgetFx> = {
+  forward_op: 'duplicateWidget',
+  setup: setupExistingWidget,
+  forward: (ctx, env, fx) =>
+    internalPost(
+      ctx,
+      env,
+      { operation: 'widgetDuplicate' },
+      { widgetId: fx.widgetId },
+    ),
+  entityId: (r) => r.body?.id ?? r.body?.widget?.id,
+  scope: dashboardScope,
+  assertExists: async (_ctx, env, _fx, id) => {
+    const w = await Widget.get(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      id,
+    ).catch(() => null);
+    expect(w?.id, '[widgetDuplicate] duplicated widget exists').to.equal(id);
+  },
+  assertGone: async (_ctx, env, _fx, id) => {
+    const w = await Widget.get(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      id,
+    ).catch(() => null);
+    expect(!!w, '[widgetDuplicate] duplicate gone after undo').to.equal(false);
+  },
+};
+
+interface WidgetFilterFx extends DashFx {
+  widgetId: string;
+  titleColId: string;
+}
+
+async function setupWidgetWithModel(
+  ctx: Context,
+  env: TestEnv,
+): Promise<WidgetFilterFx> {
+  const t = await createTable(ctx, env, `wfTbl_${Date.now()}`);
+  const d = await setupDashboard(ctx, env);
+  const w = await internalPost(
+    ctx,
+    env,
+    { operation: 'widgetCreate' },
+    {
+      title: 'W',
+      type: 'text',
+      position: { x: 0, y: 0, w: 4, h: 4 },
+      meta: {},
+      fk_dashboard_id: d.dashboardId,
+      fk_model_id: t.id,
+    },
+  );
+  expect(w.status, `widgetCreate: ${JSON.stringify(w.body)}`).to.eq(200);
+  return {
+    dashboardId: d.dashboardId,
+    widgetId: w.body.id,
+    titleColId: t.titleColId,
+  };
+}
+
+export const widgetFilterCreateSpec: RoundTripSpec<WidgetFilterFx> = {
+  forward_op: 'widgetFilterCreate',
+  setup: setupWidgetWithModel,
+  forward: (ctx, env, fx) =>
+    internalPost(
+      ctx,
+      env,
+      { operation: 'widgetFilterCreate', widgetId: fx.widgetId },
+      {
+        fk_column_id: fx.titleColId,
+        comparison_op: 'eq',
+        value: 'foo',
+        logical_op: 'and',
+      },
+    ),
+  entityId: (r) => r.body.id,
+  scope: (env, fx) => [
+    { type: 'dashboard', id: fx.dashboardId },
+    { type: 'base', id: env.baseId },
+  ],
+  assertExists: async (_ctx, env, _fx, id) => {
+    const f = await Filter.get(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      id,
+    ).catch(() => null);
+    expect(f?.id, '[widgetFilterCreate] id preserved across redo').to.equal(id);
+  },
+  assertGone: async (_ctx, env, _fx, id) => {
+    const f = await Filter.get(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      id,
+    ).catch(() => null);
+    expect(!!f).to.equal(false);
+  },
+};
+
 export const widgetSpecs: RoundTripSpec<any>[] = [
   widgetCreateSpec,
   widgetUpdateSpec,
   widgetDeleteSpec,
+  widgetDuplicateSpec,
+  widgetFilterCreateSpec,
 ];

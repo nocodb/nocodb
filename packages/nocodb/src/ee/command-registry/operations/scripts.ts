@@ -200,6 +200,17 @@ export function registerScriptHandlers(svc: ScriptsService): void {
     async (context, params, meta) => {
       const req = makeReplayReq(meta.originalReq, meta.createdBy);
       if (isReplay() && meta.entityId) {
+        const trashEntry = await BaseTrash.getByResourceId(
+          context,
+          'script',
+          meta.entityId,
+        );
+        if (trashEntry?.id) {
+          return svc.restoreScript(context, {
+            scriptId: meta.entityId,
+            req,
+          });
+        }
         setReplay('replayDuplicateId', meta.entityId);
       }
       return svc.duplicateScript(context, {

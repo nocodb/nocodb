@@ -117,7 +117,189 @@ export const rowColorConditionAddSpec: RoundTripSpec<TableViewFx> = {
   },
 };
 
+interface ExistingConditionFx extends TableViewFx {
+  conditionId: string;
+}
+
+async function setupExistingCondition(
+  ctx: Context,
+  env: TestEnv,
+): Promise<ExistingConditionFx> {
+  const t = await createTable(ctx, env, `rcc_${Date.now()}`);
+  const viewId = await createGridView(ctx, env, t.id);
+  const r = await internalPost(
+    ctx,
+    env,
+    { operation: 'viewRowColorConditionAdd', viewId },
+    {
+      color: '#FF0000',
+      is_set_as_background: true,
+      nc_order: 1,
+      type: 'row',
+      fk_target_column_id: t.titleColId,
+    },
+  );
+  expect(r.status, `seed condition: ${JSON.stringify(r.body)}`).to.eq(200);
+  return {
+    tableId: t.id,
+    titleColId: t.titleColId,
+    fields: t.fields,
+    viewId,
+    colId: t.titleColId,
+    conditionId: r.body.id,
+  };
+}
+
+export const rowColorConditionUpdateSpec: RoundTripSpec<ExistingConditionFx> = {
+  forward_op: 'rowColorConditionUpdate',
+  setup: setupExistingCondition,
+  forward: (ctx, env, fx) =>
+    internalPost(
+      ctx,
+      env,
+      {
+        operation: 'viewRowColorConditionUpdate',
+        viewId: fx.viewId,
+        rowColorConditionId: fx.conditionId,
+      },
+      {
+        color: '#00FF00',
+        is_set_as_background: false,
+        nc_order: 1,
+        type: 'row',
+        fk_target_column_id: fx.titleColId,
+      },
+    ),
+  entityId: (_r, fx) => fx.conditionId,
+  scope: viewScope,
+  assertExists: async (_ctx, env, fx) => {
+    const c = await RowColorCondition.getById(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      fx.conditionId,
+    );
+    expect(c?.color).to.equal('#00FF00');
+  },
+  assertGone: async (_ctx, env, fx) => {
+    const c = await RowColorCondition.getById(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      fx.conditionId,
+    );
+    expect(c?.color).to.equal('#FF0000');
+  },
+};
+
+export const rowColorConditionDeleteSpec: RoundTripSpec<ExistingConditionFx> = {
+  forward_op: 'rowColorConditionDelete',
+  forwardIsDelete: true,
+  setup: setupExistingCondition,
+  forward: (ctx, env, fx) =>
+    internalPost(
+      ctx,
+      env,
+      {
+        operation: 'viewRowColorConditionDelete',
+        viewId: fx.viewId,
+        rowColorConditionId: fx.conditionId,
+      },
+      {},
+    ),
+  entityId: (_r, fx) => fx.conditionId,
+  scope: viewScope,
+  assertExists: async (_ctx, env, fx) => {
+    const c = await RowColorCondition.getById(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      fx.conditionId,
+    ).catch(() => null);
+    expect(!!c).to.equal(true);
+  },
+  assertGone: async (_ctx, env, fx) => {
+    const c = await RowColorCondition.getById(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      fx.conditionId,
+    ).catch(() => null);
+    expect(!!c).to.equal(false);
+  },
+};
+
+export const rowColoringRemoveSpec: RoundTripSpec<ExistingConditionFx> = {
+  forward_op: 'rowColoringRemove',
+  forwardIsDelete: true,
+  setup: setupExistingCondition,
+  forward: (ctx, env, fx) =>
+    internalPost(
+      ctx,
+      env,
+      { operation: 'viewRowColorInfoDelete', viewId: fx.viewId },
+      {},
+    ),
+  entityId: (_r, fx) => fx.viewId,
+  scope: viewScope,
+  skipDoubleCycle: true,
+  assertExists: async (_ctx, env, fx) => {
+    // After undo: row-coloring state is restored — the condition row exists again.
+    const c = await RowColorCondition.getById(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      fx.conditionId,
+    ).catch(() => null);
+    expect(!!c).to.equal(true);
+  },
+  assertGone: async (_ctx, env, fx) => {
+    // After forward: row-coloring removed — condition row gone.
+    const c = await RowColorCondition.getById(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      fx.conditionId,
+    ).catch(() => null);
+    expect(!!c).to.equal(false);
+  },
+};
+
+export const rowColorConditionsCreateSpec: RoundTripSpec<ExistingConditionFx> = {
+  forward_op: 'rowColorConditionsCreate',
+  setup: setupExistingCondition,
+  forward: (ctx, env, fx) =>
+    internalPost(
+      ctx,
+      env,
+      {
+        operation: 'rowColorConditionsFilterCreate',
+        rowColorConditionId: fx.conditionId,
+      },
+      {
+        fk_column_id: fx.titleColId,
+        comparison_op: 'eq',
+        value: 'foo',
+        logical_op: 'and',
+      },
+    ),
+  entityId: (r) => r.body.id ?? r.body?.filter?.id,
+  scope: viewScope,
+  // The forward's response shape varies by service; doubleCycle exercises
+  // it once which is enough to validate the contract.
+  skipDoubleCycle: true,
+  assertExists: async (_ctx, env, fx, id) => {
+    const c = await RowColorCondition.getById(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      fx.conditionId,
+    ).catch(() => null);
+    expect(!!c, 'parent condition still present').to.equal(true);
+    // The filter was created — id should be a string.
+    expect(id, 'filter id from forward').to.be.a('string');
+  },
+  assertGone: async (_ctx, env, fx) => {
+    const c = await RowColorCondition.getById(
+      { workspace_id: env.workspaceId, base_id: env.baseId },
+      fx.conditionId,
+    ).catch(() => null);
+    // Parent condition unchanged either way.
+    expect(!!c, 'parent condition still present').to.equal(true);
+  },
+};
+
 export const rowColorSpecs: RoundTripSpec<any>[] = [
   rowColorSelectSetSpec,
   rowColorConditionAddSpec,
+  rowColorConditionUpdateSpec,
+  rowColorConditionDeleteSpec,
+  rowColoringRemoveSpec,
+  rowColorConditionsCreateSpec,
 ];

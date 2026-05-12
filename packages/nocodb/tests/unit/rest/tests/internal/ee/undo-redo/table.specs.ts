@@ -143,8 +143,32 @@ export const tableReorderSpec: RoundTripSpec<ReorderFx> = {
   },
 };
 
+export const tableV1CreateSpec: RoundTripSpec<NoFx> = {
+  forward_op: 'tableCreate',
+  setup: noSetup,
+  forward: (ctx, env) =>
+    v3Post(
+      ctx,
+      `/api/v2/meta/bases/${env.baseId}/tables`,
+      {
+        title: `TblV1_${Date.now()}`,
+        table_name: `tblv1_${Date.now()}`,
+        columns: [{ title: 'Title', uidt: 'SingleLineText' }],
+      },
+    ),
+  entityId: (r) => r.body.id,
+  scope: baseScope,
+  assertExists: async (ctx, env, _fx, id) => {
+    expect(await tableExists(ctx, env, id)).to.equal(true);
+  },
+  assertGone: async (ctx, env, _fx, id) => {
+    expect(await tableExists(ctx, env, id)).to.equal(false);
+  },
+};
+
 export const tableSpecs: RoundTripSpec<any>[] = [
   tableV3CreateSpec,
+  tableV1CreateSpec,
   tableUpdateSpec,
   tableDeleteSpec,
   tableReorderSpec,

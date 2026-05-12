@@ -7,11 +7,13 @@ import { createV3Base } from '~test/factory/base';
 import { overridePlan } from '~test/utils/plan.utils';
 import { columnSpecs } from './column.specs';
 import { dashboardSpecs } from './dashboard.specs';
+import { dateDependencySpecs } from './date-dependency.specs';
 import { extensionSpecs } from './extension.specs';
 import { filterSpecs } from './filter.specs';
 import { hookSpecs } from './hook.specs';
 import { permissionSpecs } from './permission.specs';
 import { recordSpecs } from './record.specs';
+import { recordLinkSpecs } from './record-link.specs';
 import { recordTemplateSpecs } from './record-template.specs';
 import { rlsSpecs } from './rls.specs';
 import { rowColorSpecs } from './row-color.specs';
@@ -52,6 +54,7 @@ export function undoRedoFullCoverageTests() {
           [PlanFeatureTypes.FEATURE_CELL_COLOUR]: true,
           [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: true,
           [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: true,
+          [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: true,
         },
         limits: {
           [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: -1,
@@ -85,6 +88,8 @@ export function undoRedoFullCoverageTests() {
     runGroup('rls', rlsSpecs, () => context, () => env);
     runGroup('row-color', rowColorSpecs, () => context, () => env);
     runGroup('record', recordSpecs, () => context, () => env);
+    runGroup('record-link', recordLinkSpecs, () => context, () => env);
+    runGroup('date-dependency', dateDependencySpecs, () => context, () => env);
   });
 }
 
@@ -96,7 +101,8 @@ function runGroup(
 ): void {
   describe(label, () => {
     for (const spec of specs) {
-      it(`round-trip: ${spec.forward_op}`, async function () {
+      const title = spec.label ?? spec.forward_op;
+      it(`round-trip: ${title}`, async function () {
         this.timeout(60000);
         await runSpec(getCtx(), getEnv(), spec);
       });

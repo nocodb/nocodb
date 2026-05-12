@@ -317,6 +317,11 @@ const onClose = (force = false) => {
 const onDuplicateStart = () => {
   isUnsavedFormExist.value = true
   isUnsavedDuplicatedRecordExist.value = true
+  // If the user was sitting on Attachments / Discussion when they hit Duplicate,
+  // the duplicated row is invisible (those tabs don't expose the form) and only
+  // the Save button is reachable. Force them back to Fields so they can edit
+  // before saving.
+  activeViewMode.value = ExpandedFormMode.FIELD
 }
 
 const save = async () => {

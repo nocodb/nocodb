@@ -223,7 +223,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
   if (isEeUI && !isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && rowId) {
-    expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId)
+    expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId, path)
     updateRowIdRoute(rowId, path)
     return
   }
@@ -322,8 +322,19 @@ watch(
     // Look up rowIndex so prev/next + canvas active-row indicator work right
     // away on page reload / direct link. Returns -1 if the row isn't loaded
     // yet (infinite-scroll cache miss); openPanel treats that as "no index".
-    const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId) ?? -1
-    expandedFormPanelStore.openPanel({ row: {}, oldRow: {}, rowMeta: {} } as Row, idx >= 0 ? idx : undefined, undefined, rowId)
+    // Path comes from the URL (?path=0-1-2) so deep-links into group-by views
+    // restore both the row AND its group scope — without it prev/next would
+    // walk across all groups instead of the user's group.
+    const pathParam = routeQuery.value.path as string | undefined
+    const path = pathParam ? pathParam.split('-').map(Number).filter((n) => !Number.isNaN(n)) : []
+    const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
+    expandedFormPanelStore.openPanel(
+      { row: {}, oldRow: {}, rowMeta: {} } as Row,
+      idx >= 0 ? idx : undefined,
+      undefined,
+      rowId,
+      path,
+    )
   },
   { immediate: true },
 )
@@ -358,6 +369,7 @@ watch(
   (newRowId) => {
     if (newRowId && isExpandedFormPanelOpen.value && routeQuery.value.rowId !== newRowId) {
       setSyncingRoute()
+      const activePath = expandedFormPanelStore?.activePath.value ?? []
       router
         .push({
           query: {
@@ -371,6 +383,11 @@ watch(
             cellRow: undefined,
             cellCol: undefined,
             cellMode: undefined,
+            // Same race applies to `path`: updateRowIdRoute writes it, but if
+            // the watcher's spread of routeQuery happens before that push has
+            // landed, path goes missing. Pull it from the store, which is the
+            // source of truth for the panel's group scope.
+            path: ncIsEmptyArray(activePath) ? undefined : activePath.join('-'),
           },
         })
         .finally(clearSyncingRoute)
@@ -435,20 +452,27 @@ const updateViewWidth = () => {
 const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
 
 expandedFormPanelRowNavigator.value = {
-  getRow: (index: number) => {
-    const row = isInfiniteScrollingEnabled.value ? cachedRows.value.get(index) : pData.value[index]
+  getRow: (index: number, path: number[] = []) => {
+    // Route flat lookups through getDataCache([]) too — it returns the same
+    // root cache, so the canvas (infinite-scroll) path and the group-by path
+    // share one implementation. Non-canvas paginated views are out of scope.
+    const cache = isInfiniteScrollingEnabled.value ? getDataCache(path) : null
+    const row = cache ? cache.cachedRows.value.get(index) : pData.value[index]
     if (!row) return null
     const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
     if (!rowId) return null
     return { rowId, row }
   },
-  totalRows: () => (isInfiniteScrollingEnabled.value ? totalRows.value ?? 0 : pData.value.length),
-  findIndexByRowId: (rowId: string) => {
+  totalRows: (path: number[] = []) => {
+    if (isInfiniteScrollingEnabled.value) return getDataCache(path).totalRows.value ?? 0
+    return pData.value.length
+  },
+  findIndexByRowId: (rowId: string, path: number[] = []) => {
     const cols = meta.value?.columns as ColumnType[] | undefined
     if (!cols) return -1
     if (isInfiniteScrollingEnabled.value) {
-      // cachedRows is a Map<index, Row> — only loaded rows are searchable
-      for (const [idx, row] of cachedRows.value) {
+      const groupCachedRows = getDataCache(path).cachedRows.value
+      for (const [idx, row] of groupCachedRows) {
         if (extractPkFromRow(row.row, cols) === rowId) return idx
       }
       return -1

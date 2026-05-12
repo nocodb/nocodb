@@ -218,6 +218,16 @@ const save = async (): Promise<boolean> => {
   }
 }
 
+// After duplicating a row, surface the fields view so the user can immediately
+// edit the new record. Without this the panel can stay parked on Comments /
+// Audits (side-panel) or Discussion / Attachments (fullscreen), where only the
+// Save button is visible — the user has to manually find the Fields tab before
+// they can change anything.
+const onAfterDuplicate = () => {
+  activityExpanded.value = false
+  activeViewMode.value = ExpandedFormMode.FIELD
+}
+
 const showDiscardModal = ref(false)
 
 const onClose = () => {
@@ -646,7 +656,13 @@ const showActivity = computed(() => {
         </div>
 
         <div class="flex items-center gap-1">
-          <SmartsheetExpandedFormMoreOptionsMenu :is-loading="isLoading" :view="view" compact @after-delete="closePanel" />
+          <SmartsheetExpandedFormMoreOptionsMenu
+            :is-loading="isLoading"
+            :view="view"
+            compact
+            @after-delete="closePanel"
+            @duplicate-applied="onAfterDuplicate"
+          />
           <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
             <NcButton
               v-e="[`c:row-expand-panel:${isFullscreen ? 'exit' : 'enter'}-fullscreen`]"

@@ -7,6 +7,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
   const isOpen = ref(false)
   const activeRowId = ref<string | null>(null)
   const activeRowIndex = ref<number | null>(null)
+  const activePath = ref<number[]>([])
   const activeRow = ref<Row | null>(null)
   const activeRowState = ref<Record<string, any> | null>(null)
   const isFullscreen = ref(false)
@@ -21,7 +22,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
 
   const rowNavigator = ref(null)
 
-  const openPanel = (_row: Row, _rowIndex?: number, _state?: Record<string, any>, _rowId?: string) => {}
+  const openPanel = (_row: Row, _rowIndex?: number, _state?: Record<string, any>, _rowId?: string, _path?: number[]) => {}
   const closePanel = () => {}
   const setFullscreen = (_val: boolean) => {}
   const navigatePrev = () => {}
@@ -33,6 +34,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     isOpen,
     activeRowId,
     activeRowIndex,
+    activePath,
     activeRow,
     activeRowState,
     isFullscreen,

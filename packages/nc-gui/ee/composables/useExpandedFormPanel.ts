@@ -8,6 +8,12 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
   const isOpen = ref(false)
   const activeRowId = ref<string | null>(null)
   const activeRowIndex = ref<number | null>(null)
+  // Group path for the currently active row. Empty array = flat (non-group-by)
+  // view. For nested groups the path is `[outerIndex, innerIndex, ...]`. The
+  // rowNavigator uses this to scope getRow / totalRows / findIndexByRowId to
+  // the same group the panel was opened from — without it, prev/next would
+  // walk across groups and hasNext would be wrong at group boundaries.
+  const activePath = ref<number[]>([])
   const activeRow = ref<Row | null>(null)
   const activeRowState = ref<Record<string, any> | null>(null)
   const isLoading = ref(false)
@@ -19,22 +25,23 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
 
   const panelWidth = useSidePanelWidth()
 
-  // Navigation callback set by the grid
+  // Navigation callback set by the grid. All methods take an optional `path`
+  // (default = []) so the same contract handles both flat and group-by views.
   const rowNavigator = ref<{
-    getRow: (index: number) => { rowId: string; row: Row } | null
-    totalRows: () => number
+    getRow: (index: number, path?: number[]) => { rowId: string; row: Row } | null
+    totalRows: (path?: number[]) => number
     // Resolves a rowId to its visible index (or -1 if not in the loaded set, e.g.
     // evicted from the infinite-scroll cache). Used to keep prev/next + canvas
     // active-row indicator in sync when the panel opens without an explicit index
     // (deep-link, page reload, surface switch from modal).
-    findIndexByRowId?: (rowId: string) => number
+    findIndexByRowId?: (rowId: string, path?: number[]) => number
   } | null>(null)
 
   const hasPrev = computed(() => activeRowIndex.value != null && activeRowIndex.value > 0)
 
   const hasNext = computed(() => {
     if (activeRowIndex.value == null || !rowNavigator.value) return false
-    return activeRowIndex.value < rowNavigator.value.totalRows() - 1
+    return activeRowIndex.value < rowNavigator.value.totalRows(activePath.value) - 1
   })
 
   const injectPkIntoRow = (rowData: Record<string, any>, pkId: string) => {
@@ -57,7 +64,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     }
   }
 
-  const openPanel = (row: Row, rowIndex?: number, state?: Record<string, any>, rowId?: string) => {
+  const openPanel = (row: Row, rowIndex?: number, state?: Record<string, any>, rowId?: string, path: number[] = []) => {
     if (isMobileMode.value) return
 
     const resolvedRowId = rowId || extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) || null
@@ -71,6 +78,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     isUserNavigating.value = true
     activeRow.value = { row: clonedRow, oldRow: { ...clonedRow }, rowMeta: { ...row.rowMeta } }
     if (rowIndex != null) activeRowIndex.value = rowIndex
+    activePath.value = path
     activeRowState.value = state || null
     isOpen.value = true
     activeRowId.value = resolvedRowId
@@ -81,6 +89,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     activeRow.value = null
     activeRowId.value = null
     activeRowIndex.value = null
+    activePath.value = []
     activeRowState.value = null
     isLoading.value = false
     activityExpanded.value = false
@@ -94,7 +103,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     const nav = rowNavigator.value
     if (!nav) return
 
-    const rowInfo = nav.getRow(rowIndex)
+    const rowInfo = nav.getRow(rowIndex, activePath.value)
     if (!rowInfo) return
 
     const clonedNavRow = { ...rowInfo.row.row }
@@ -114,7 +123,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
 
   const navigateNext = () => {
     if (activeRowIndex.value == null || !rowNavigator.value) return
-    const total = rowNavigator.value.totalRows()
+    const total = rowNavigator.value.totalRows(activePath.value)
     if (activeRowIndex.value >= total - 1) return
     navigateToRow(activeRowIndex.value + 1)
   }
@@ -136,6 +145,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     isOpen,
     activeRowId,
     activeRowIndex,
+    activePath,
     activeRow,
     activeRowState,
     isFullscreen,

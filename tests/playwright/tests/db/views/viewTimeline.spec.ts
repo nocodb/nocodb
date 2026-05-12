@@ -121,12 +121,14 @@ test.describe('Timeline View', () => {
     // `.nc-timeline-toolbar`, not `.nc-table-toolbar`).
     await timeline.clickFields();
 
-    // Title is the primary value (pv). StartDate / EndDate are the range
-    // columns. Owner / Notes are non-pv non-range — they should default
-    // to hidden.
+    // Title is the primary value (pv). The view-create sidebar
+    // auto-picks the first date column as `fk_from_column_id` only;
+    // `fk_to_column_id` stays null until the user opens Timeline
+    // Settings, so EndDate is not part of the range on a fresh view.
+    // Everything that isn't pv or the from-col defaults to hidden.
     await timeline.toolbar.fields.verify({ title: 'Title', checked: true });
     await timeline.toolbar.fields.verify({ title: 'StartDate', checked: true });
-    await timeline.toolbar.fields.verify({ title: 'EndDate', checked: true });
+    await timeline.toolbar.fields.verify({ title: 'EndDate', checked: false });
     await timeline.toolbar.fields.verify({ title: 'Owner', checked: false });
     await timeline.toolbar.fields.verify({ title: 'Notes', checked: false });
   });

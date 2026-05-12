@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import dayjs from 'dayjs';
-import { Queue } from 'bull';
+import type { Queue } from 'bull';
 import Noco from '~/Noco';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { MetaTable } from '~/utils/globals';
@@ -14,9 +14,18 @@ const RECOVERY_BATCH = 50;
 export class MailOutboxRecoveryProcessor {
   private logger = new Logger(MailOutboxRecoveryProcessor.name);
 
-  constructor(@InjectQueue(JOBS_QUEUE) private readonly jobsQueue: Queue) {}
+  constructor(
+    // Optional — without Redis there's no Bull queue. The cron that schedules
+    // this processor is also Redis-gated, so `job()` would never naturally
+    // fire in that environment; the guard below handles direct invocation.
+    @Optional()
+    @InjectQueue(JOBS_QUEUE)
+    private readonly jobsQueue: Queue | null = null,
+  ) {}
 
   async job() {
+    if (!this.jobsQueue) return;
+
     const ncMeta = Noco.ncMeta;
 
     const stuckBefore = dayjs()

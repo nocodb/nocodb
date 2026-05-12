@@ -11,7 +11,6 @@ import { NudgeInviteTeamCheck } from '~/modules/jobs/mail-scanner/checks/nudge-i
 import { NudgeNoBaseCheck } from '~/modules/jobs/mail-scanner/checks/nudge-no-base.check';
 import { NudgeSeatLimitCheck } from '~/modules/jobs/mail-scanner/checks/nudge-seat-limit.check';
 import { NudgeWorkflowInactiveCheck } from '~/modules/jobs/mail-scanner/checks/nudge-workflow-inactive.check';
-
 export const jobsModuleCloudMetadata = {
   imports: [...(jobsModuleEeMetadata?.imports ?? [])],
   controllers: [...(jobsModuleEeMetadata?.controllers ?? [])],

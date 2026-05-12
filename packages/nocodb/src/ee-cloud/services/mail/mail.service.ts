@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { MailService as MailServiceEE } from 'src/ee/services/mail/mail.service';
 import { render } from '@react-email/render';
-import { Queue } from 'bull';
+import type { Queue } from 'bull';
 import type { ComponentProps } from 'react';
 import type {
   GracePeriodEndingPayload,
@@ -45,12 +45,26 @@ const DEFERRED_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
 
 @Injectable()
 export class MailService extends MailServiceEE {
-  constructor(@InjectQueue(JOBS_QUEUE) protected readonly jobsQueue: Queue) {
+  constructor(
+    // Optional — playwright / no-Redis builds don't register a Bull queue.
+    // We still want the cloud MailService to load so non-deferred events
+    // (Welcome, CE-fallback events) keep working; deferred events become
+    // no-ops in that environment (see `sendMail` guard).
+    @Optional()
+    @InjectQueue(JOBS_QUEUE)
+    protected readonly jobsQueue: Queue | null = null,
+  ) {
     super();
   }
 
   async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {
     if (DEFERRED_MAIL_EVENTS.has(params.mailEvent)) {
+      if (!this.jobsQueue) {
+        this.logger.warn(
+          `Deferred mail "${params.mailEvent}" dropped — no Bull queue available`,
+        );
+        return false;
+      }
       try {
         await this.enqueueDeferred(params, ncMeta);
         return true;

@@ -69,6 +69,7 @@ const updateHideEmptyStack = async (v: boolean) => {
   const payload = {
     ...parseProp(kanbanMetaData.value?.meta),
     hide_empty_stack: v,
+    ...(v ? { auto_collapse_empty_stack: false } : {}),
   }
   await updateKanbanMeta({
     meta: payload,
@@ -76,19 +77,37 @@ const updateHideEmptyStack = async (v: boolean) => {
   ;(activeView.value?.view as KanbanType).meta = payload
 }
 
-const isLoading = ref<'hideEmptyStack' | null>(null)
+const updateAutoCollapseEmptyStack = async (v: boolean) => {
+  const payload = {
+    ...parseProp(kanbanMetaData.value?.meta),
+    auto_collapse_empty_stack: v,
+    ...(v ? { hide_empty_stack: false } : {}),
+  }
+  await updateKanbanMeta({
+    meta: payload,
+  })
+  ;(activeView.value?.view as KanbanType).meta = payload
+}
+
+const isLoading = ref<'hideEmptyStack' | 'autoCollapseEmptyStack' | null>(null)
+
+const readMetaFlag = (key: 'hide_empty_stack' | 'auto_collapse_empty_stack') => !!parseProp(kanbanMetaData.value?.meta)[key]
 
 const hideEmptyStack = computed({
-  get: () => {
-    return parseProp(kanbanMetaData.value?.meta).hide_empty_stack || false
-  },
+  get: () => readMetaFlag('hide_empty_stack'),
   set: async (val: boolean) => {
     isLoading.value = 'hideEmptyStack'
 
+    const prevHide = readMetaFlag('hide_empty_stack')
+    const prevAutoCollapse = readMetaFlag('auto_collapse_empty_stack')
+
     addUndo({
       undo: {
-        fn: updateHideEmptyStack,
-        args: [hideEmptyStack.value],
+        fn: async () => {
+          await updateHideEmptyStack(prevHide)
+          if (prevAutoCollapse) await updateAutoCollapseEmptyStack(true)
+        },
+        args: [],
       },
       redo: {
         fn: updateHideEmptyStack,
@@ -98,6 +117,35 @@ const hideEmptyStack = computed({
     })
 
     await updateHideEmptyStack(val)
+
+    isLoading.value = null
+  },
+})
+
+const autoCollapseEmptyStack = computed({
+  get: () => readMetaFlag('auto_collapse_empty_stack'),
+  set: async (val: boolean) => {
+    isLoading.value = 'autoCollapseEmptyStack'
+
+    const prevHide = readMetaFlag('hide_empty_stack')
+    const prevAutoCollapse = readMetaFlag('auto_collapse_empty_stack')
+
+    addUndo({
+      undo: {
+        fn: async () => {
+          await updateAutoCollapseEmptyStack(prevAutoCollapse)
+          if (prevHide) await updateHideEmptyStack(true)
+        },
+        args: [],
+      },
+      redo: {
+        fn: updateAutoCollapseEmptyStack,
+        args: [val],
+      },
+      scope: defineViewScope({ view: activeView.value }),
+    })
+
+    await updateAutoCollapseEmptyStack(val)
 
     isLoading.value = null
   },
@@ -203,20 +251,37 @@ const handleChange = () => {
             </div>
           </div>
         </div>
-        <div class="flex items-center gap-1">
-          <NcSwitch
-            v-model:checked="hideEmptyStack"
-            size="small"
-            class="nc-switch"
-            :loading="isLoading === 'hideEmptyStack'"
-            :disabled="isLocked"
-          >
-            <div class="text-sm text-nc-content-gray">
-              {{ $t('general.hide') }}
-              {{ $t('general.empty').toLowerCase() }}
-              {{ $t('general.stack').toLowerCase() }}
-            </div>
-          </NcSwitch>
+        <div class="flex flex-col gap-3">
+          <div class="flex items-center gap-1">
+            <NcSwitch
+              v-model:checked="hideEmptyStack"
+              v-e="['c:kanban:toggle-hide-empty-stack', { enabled: hideEmptyStack }]"
+              size="small"
+              class="nc-switch nc-kanban-hide-empty-stack-toggle"
+              :loading="isLoading === 'hideEmptyStack'"
+              :disabled="isLocked"
+            >
+              <div class="text-sm text-nc-content-gray">
+                {{ $t('general.hide') }}
+                {{ $t('general.empty').toLowerCase() }}
+                {{ $t('general.stack').toLowerCase() }}
+              </div>
+            </NcSwitch>
+          </div>
+          <div class="flex items-center gap-1">
+            <NcSwitch
+              v-model:checked="autoCollapseEmptyStack"
+              v-e="['c:kanban:toggle-auto-collapse-empty-stack', { enabled: autoCollapseEmptyStack }]"
+              size="small"
+              class="nc-switch nc-kanban-auto-collapse-empty-stack-toggle"
+              :loading="isLoading === 'autoCollapseEmptyStack'"
+              :disabled="isLocked"
+            >
+              <div class="text-sm text-nc-content-gray">
+                {{ $t('activity.kanban.autoCollapseEmptyStack') }}
+              </div>
+            </NcSwitch>
+          </div>
         </div>
         <GeneralLockedViewFooter v-if="isLocked" class="-mb-4 -mx-4" @on-open="open = false" />
       </div>

@@ -1231,6 +1231,68 @@ const getRowId = (row: RowType) => {
 
 const hideEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.value?.meta).hide_empty_stack || false)
 
+const autoCollapseEmptyStack = computed<boolean>(() => parseProp(kanbanMetaData.value?.meta).auto_collapse_empty_stack || false)
+
+// Session-only override: user-expanded auto-collapsed empty stacks for this view mount
+const userExpandedEmptyStacks = ref<Set<string>>(new Set())
+
+// Tracks a card being dragged anywhere on the kanban — used to enable hover-to-expand on collapsed stacks
+const isCardDragInProgress = ref(false)
+
+// Stacks temporarily expanded because a dragged card is hovering over them
+const tempExpandedStacks = ref<Set<string>>(new Set())
+
+const isStackEmpty = (stack: { title: string | null }) => {
+  return !formattedData.value.get(stack.title)?.length
+}
+
+const isStackCollapsed = (stack: { id: string; title: string | null; collapsed?: boolean }) => {
+  if (!stack || stack.id === addNewStackId) return false
+  if (tempExpandedStacks.value.has(stack.id)) return false
+  if (stack.collapsed) return true
+  if (autoCollapseEmptyStack.value && isStackEmpty(stack) && !userExpandedEmptyStacks.value.has(stack.id)) {
+    return true
+  }
+  return false
+}
+
+const handleCollapsedStackClick = (stack: { id: string; title: string | null; collapsed?: boolean }, stackIdx: number) => {
+  const isAutoCollapsedEmpty = !stack.collapsed && autoCollapseEmptyStack.value && isStackEmpty(stack)
+  if (isAutoCollapsedEmpty) {
+    userExpandedEmptyStacks.value.add(stack.id)
+    return
+  }
+  return handleCollapseStack(stackIdx)
+}
+
+const handleCardDragStart = (e: any) => {
+  isCardDragInProgress.value = true
+  e.target.classList.add('grabbing')
+}
+
+const handleCardDragEnd = (e: any) => {
+  isCardDragInProgress.value = false
+  tempExpandedStacks.value.clear()
+  e.target.classList.remove('grabbing')
+}
+
+const handleCollapsedStackDragEnter = (stack: { id: string; collapsed?: boolean }) => {
+  if (!isCardDragInProgress.value) return
+  tempExpandedStacks.value.add(stack.id)
+}
+
+const onMoveAndPersistExpand = async (event: any, stackTitle: string | null, stackIdx: number) => {
+  // Drop has happened — sortable.js's `@end` fires after a delay (DOM cleanup + animation),
+  // so clear the drag flag here to prevent post-drop mouseenters from flicker-expanding
+  // other collapsed stacks the user moves over.
+  isCardDragInProgress.value = false
+  await onMove(event, stackTitle)
+  // After a successful drop into a previously-collapsed stack, persist it as expanded
+  if (event?.added && groupingFieldColOptions.value[stackIdx]?.collapsed) {
+    await updateStackProperty(stackIdx, { collapsed: false })
+  }
+}
+
 const addNewStackObj = {
   id: addNewStackId,
 }
@@ -1329,7 +1391,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 v-if="isStackVisible(stackIdx)"
                 class="nc-kanban-stack"
                 :class="{
-                  'w-[44px]': stack.collapsed,
+                  'w-[44px]': isStackCollapsed(stack),
                   'hidden':
                     (hideEmptyStack && !formattedData.get(stack.title)?.length) ||
                     (isRequiredGroupingFieldColumn && stack.id === uncategorizedStackId),
@@ -1338,7 +1400,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
               >
                 <!-- Non Collapsed Stacks -->
                 <a-card
-                  v-if="!stack.collapsed"
+                  v-if="!isStackCollapsed(stack)"
                   :key="`${stack.id}-${stackIdx}`"
                   class="flex flex-col w-68.5 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-nc-border-gray-medium"
                   :class="{
@@ -1605,9 +1667,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           :filter="draggableCardFilter"
                           :force-fallback="false"
                           :fallback-tolerance="0"
-                          @start="(e) => e.target.classList.add('grabbing')"
-                          @end="(e) => e.target.classList.remove('grabbing')"
-                          @change="onMove($event, stack.title)"
+                          @start="handleCardDragStart"
+                          @end="handleCardDragEnd"
+                          @change="onMoveAndPersistExpand($event, stack.title, stackIdx)"
                         >
                           <template #item="{ element: record, index }">
                             <div class="nc-kanban-item py-1 first:pt-2 last:pb-2">
@@ -1952,8 +2014,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                     borderRadius: '0.75rem !important',
                     paddingBottom: '0rem !important',
                   }"
+                  @mouseenter="handleCollapsedStackDragEnter(stack)"
+                  @dragenter="handleCollapsedStackDragEnter(stack)"
                 >
-                  <div class="h-full flex items-center justify-between" @click="handleCollapseStack(stackIdx)">
+                  <div class="h-full flex items-center justify-between" @click="handleCollapsedStackClick(stack, stackIdx)">
                     <div
                       v-if="!formattedData.get(stack.title) || !countByStack"
                       class="!w-full !h-full flex items-center justify-center"
@@ -2041,11 +2105,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 v-else
                 class="nc-kanban-stack"
                 :style="{
-                  width: stack.collapsed ? '44px' : `${STACK_WIDTH}px`,
+                  width: isStackCollapsed(stack) ? '44px' : `${STACK_WIDTH}px`,
                   flexShrink: 0,
                   height: '100%',
-                  minWidth: stack.collapsed ? '44px' : `${STACK_WIDTH}px`,
-                  maxWidth: stack.collapsed ? '44px' : `${STACK_WIDTH}px`,
+                  minWidth: isStackCollapsed(stack) ? '44px' : `${STACK_WIDTH}px`,
+                  maxWidth: isStackCollapsed(stack) ? '44px' : `${STACK_WIDTH}px`,
                 }"
               />
             </template>

@@ -2895,7 +2895,8 @@
       "deleteStack": "Delete stack",
       "stackedBy": "Stacked by",
       "chooseGroupingField": "Choose a Grouping Field",
-      "addOrEditStack": "Add / Edit Stack"
+      "addOrEditStack": "Add / Edit Stack",
+      "autoCollapseEmptyStack": "Auto collapse empty stack"
     },
     "map": {
       "googleMaps": "Google Maps",

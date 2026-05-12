@@ -39,8 +39,7 @@ import { SandboxMergeProcessor } from '~/modules/jobs/jobs/sandbox-merge.process
 import { ManagedAppUpdateProcessor } from '~/modules/jobs/jobs/managed-app-update/managed-app-update.processor';
 import { MailDispatchProcessor } from '~/modules/jobs/mail-dispatch/mail-dispatch.processor';
 import { MailOutboxRecoveryProcessor } from '~/modules/jobs/mail-outbox-recovery/mail-outbox-recovery.processor';
-import { MailLimitScannerProcessor } from '~/modules/jobs/mail-limit-scanner/mail-limit-scanner.processor';
-import { MailRenewalScannerProcessor } from '~/modules/jobs/mail-renewal-scanner/mail-renewal-scanner.processor';
+import { MailScannerProcessor } from '~/modules/jobs/mail-scanner/mail-scanner.processor';
 import { JobTypes } from '~/interface/Jobs';
 
 @Injectable()
@@ -86,8 +85,7 @@ export class JobsMap extends JobsMapEE {
     // Cloud
     protected readonly mailDispatchProcessor: MailDispatchProcessor,
     protected readonly mailOutboxRecoveryProcessor: MailOutboxRecoveryProcessor,
-    protected readonly mailLimitScannerProcessor: MailLimitScannerProcessor,
-    protected readonly mailRenewalScannerProcessor: MailRenewalScannerProcessor,
+    protected readonly mailScannerProcessor: MailScannerProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -139,11 +137,8 @@ export class JobsMap extends JobsMapEE {
       [JobTypes.MailOutboxRecovery]: {
         this: this.mailOutboxRecoveryProcessor,
       },
-      [JobTypes.MailLimitScanner]: {
-        this: this.mailLimitScannerProcessor,
-      },
-      [JobTypes.MailRenewalScanner]: {
-        this: this.mailRenewalScannerProcessor,
+      [JobTypes.MailScanner]: {
+        this: this.mailScannerProcessor,
       },
     };
   }

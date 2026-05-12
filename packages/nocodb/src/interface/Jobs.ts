@@ -81,8 +81,7 @@ export enum JobTypes {
   ManagedAppUpdate = 'managed-app-update',
   MailDispatch = 'mail-dispatch',
   MailOutboxRecovery = 'mail-outbox-recovery',
-  MailLimitScanner = 'mail-limit-scanner',
-  MailRenewalScanner = 'mail-renewal-scanner',
+  MailScanner = 'mail-scanner',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -109,8 +108,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.ChatApproval,
   JobTypes.MailDispatch,
   JobTypes.MailOutboxRecovery,
-  JobTypes.MailLimitScanner,
-  JobTypes.MailRenewalScanner,
+  JobTypes.MailScanner,
 ];
 
 export enum JobStatus {

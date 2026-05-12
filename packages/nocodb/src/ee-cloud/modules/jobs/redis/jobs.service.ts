@@ -6,9 +6,7 @@ import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { TelemetryService } from '~/services/telemetry.service';
 
 const MAIL_OUTBOX_RECOVERY_CRON = '*/5 * * * *';
-const MAIL_LIMIT_SCANNER_CRON =
-  process.env.NC_MAIL_SCANNER_TEST === 'true' ? '* * * * *' : '0 9 * * *';
-const MAIL_RENEWAL_SCANNER_CRON =
+const MAIL_SCANNER_CRON =
   process.env.NC_MAIL_SCANNER_TEST === 'true' ? '* * * * *' : '0 9 * * *';
 
 @Injectable()
@@ -34,18 +32,10 @@ export class JobsService extends JobsServiceEE {
     );
 
     await this.jobsQueue.add(
-      { jobName: JobTypes.MailLimitScanner },
+      { jobName: JobTypes.MailScanner },
       {
-        jobId: JobTypes.MailLimitScanner,
-        repeat: { cron: MAIL_LIMIT_SCANNER_CRON },
-      },
-    );
-
-    await this.jobsQueue.add(
-      { jobName: JobTypes.MailRenewalScanner },
-      {
-        jobId: JobTypes.MailRenewalScanner,
-        repeat: { cron: MAIL_RENEWAL_SCANNER_CRON },
+        jobId: JobTypes.MailScanner,
+        repeat: { cron: MAIL_SCANNER_CRON },
       },
     );
   }

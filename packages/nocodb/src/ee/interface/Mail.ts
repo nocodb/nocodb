@@ -152,14 +152,6 @@ interface TrialEndedPayload extends BillingPayloadBase {
   periodEnd?: string;
 }
 
-interface RenewalReminderPayload extends BillingPayloadBase {
-  subscriptionId: string;
-  planTitle: string;
-  periodEnd: string;
-  amountDue?: number;
-  currency?: string;
-}
-
 interface GracePeriodEndingPayload {
   req?: NcRequest;
   user: UserType;
@@ -350,10 +342,6 @@ type MailParams =
   | {
       mailEvent: MailEvent.TRIAL_ENDED;
       payload: TrialEndedPayload;
-    }
-  | {
-      mailEvent: MailEvent.RENEWAL_REMINDER;
-      payload: RenewalReminderPayload;
     };
 
 export {
@@ -371,5 +359,4 @@ export {
   SubscriptionCanceledPayload,
   PlanChangedPayload,
   TrialEndedPayload,
-  RenewalReminderPayload,
 };

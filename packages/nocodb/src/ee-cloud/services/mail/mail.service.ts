@@ -10,7 +10,6 @@ import type {
   MailParams,
   PaymentFailedPayload,
   PlanChangedPayload,
-  RenewalReminderPayload,
   SubscriptionCanceledPayload,
   SubscriptionCreatedPayload,
   TrialEndedPayload,
@@ -34,7 +33,6 @@ const DEFERRED_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
   MailEvent.SUBSCRIPTION_CANCELED,
   MailEvent.PLAN_CHANGED,
   MailEvent.TRIAL_ENDED,
-  MailEvent.RENEWAL_REMINDER,
 ]);
 
 @Injectable()
@@ -57,7 +55,47 @@ export class MailService extends MailServiceEE {
       }
     }
 
+    // Cloud-specific WELCOME template — replaces the plain CE version with
+    // doc-linked onboarding. Synchronous (not deferred): fired once at signup.
+    if (params.mailEvent === MailEvent.WELCOME) {
+      return this.sendCloudWelcome(params, ncMeta);
+    }
+
     return super.sendMail(params, ncMeta);
+  }
+
+  protected async sendCloudWelcome(
+    params: MailParams,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    const mailerAdapter = await this.getAdapter(ncMeta);
+    if (!mailerAdapter) {
+      this.logger.error('Email Plugin not configured / active');
+      return false;
+    }
+    if (!(await this.ensurePublicUrl(ncMeta))) return false;
+
+    const { user, req } = (params as any).payload;
+
+    try {
+      await this.dispatchAndLog(mailerAdapter, ncMeta, {
+        event: params.mailEvent,
+        fk_user_id: user.id,
+        to: user.email,
+        subject: 'Welcome to NocoDB',
+        html: await this.renderCloudMail('Welcome', {
+          email: user.email,
+          link: this.buildUrl(req, {}),
+        }),
+      });
+      return true;
+    } catch (e) {
+      this.logger.error(
+        'Failed to send cloud Welcome mail',
+        (e as Error).stack,
+      );
+      return false;
+    }
   }
 
   /**
@@ -287,18 +325,6 @@ export class MailService extends MailServiceEE {
           payload: p,
         };
       }
-      case MailEvent.RENEWAL_REMINDER: {
-        const p = params.payload as RenewalReminderPayload;
-        return {
-          event: params.mailEvent,
-          fk_user_id: p.user?.id ?? null,
-          to: p.user?.email ?? null,
-          dedupe_key: `renewal:${p.subscriptionId}:${this.dayBucket(
-            p.periodEnd,
-          )}`,
-          payload: p,
-        };
-      }
       default:
         return {
           event: params.mailEvent,
@@ -430,22 +456,6 @@ export class MailService extends MailServiceEE {
             planTitle: p.planTitle,
             convertedToActive: p.convertedToActive,
             periodEnd: p.periodEnd ? this.formatDate(p.periodEnd) : undefined,
-            billingPortalUrl: p.billingPortalUrl,
-          }),
-        };
-      }
-      case MailEvent.RENEWAL_REMINDER: {
-        const p = payload as RenewalReminderPayload;
-        return {
-          subject: `Your subscription renews soon — "${p.workspace.title}"`,
-          html: await this.renderCloudMail('RenewalReminder', {
-            workspaceTitle: p.workspace.title,
-            planTitle: p.planTitle,
-            renewalDate: this.formatDate(p.periodEnd),
-            amountDue:
-              p.amountDue !== undefined && p.currency
-                ? this.formatMoney(p.amountDue, p.currency)
-                : undefined,
             billingPortalUrl: p.billingPortalUrl,
           }),
         };

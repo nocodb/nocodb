@@ -5,7 +5,7 @@ import SubscriptionCreated from '~/mail/templates/transactional/subscription-cre
 import SubscriptionCanceled from '~/mail/templates/transactional/subscription-canceled';
 import PlanChanged from '~/mail/templates/transactional/plan-changed';
 import TrialEnded from '~/mail/templates/transactional/trial-ended';
-import RenewalReminder from '~/mail/templates/transactional/renewal-reminder';
+import Welcome from '~/mail/templates/transactional/welcome';
 
 export {
   LimitReached,
@@ -15,5 +15,5 @@ export {
   SubscriptionCanceled,
   PlanChanged,
   TrialEnded,
-  RenewalReminder,
+  Welcome,
 };

@@ -6,6 +6,7 @@ import {
   PlanLimitTypes,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
+import type { MailScannerCheck } from '~/modules/jobs/mail-scanner/checks/check.interface';
 import Noco from '~/Noco';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
@@ -25,47 +26,44 @@ interface GraceWorkspaceRow {
   automation_grace_period_start_at: string | null;
 }
 
+/**
+ * Emits `LIMIT_REACHED` (day 0 of grace) and `GRACE_PERIOD_ENDING` (7 / 3 /
+ * 1 days remaining) for workspaces in their record/storage, API call, or
+ * automation run grace period.
+ *
+ * Dedupe is enforced upstream via `nc_mail_sends.(event, dedupe_key)`.
+ */
 @Injectable()
-export class MailLimitScannerProcessor {
-  private logger = new Logger(MailLimitScannerProcessor.name);
+export class MailLimitCheck implements MailScannerCheck {
+  readonly name = 'limit';
+  private logger = new Logger(MailLimitCheck.name);
 
   constructor(private readonly mailService: MailService) {}
 
-  async job() {
-    this.logger.debug('MailLimitScanner job started');
-
+  async run(): Promise<void> {
     const ncMeta = Noco.ncMeta;
     const now = dayjs.utc();
 
-    let workspaces: GraceWorkspaceRow[] = [];
-    try {
-      workspaces = await ncMeta
-        .knexConnection(MetaTable.WORKSPACE)
-        .select(
-          'id',
-          'title',
-          'grace_period_start_at',
-          'api_grace_period_start_at',
-          'automation_grace_period_start_at',
-        )
-        .where(function () {
-          this.whereNotNull('grace_period_start_at')
-            .orWhereNotNull('api_grace_period_start_at')
-            .orWhereNotNull('automation_grace_period_start_at');
-        })
-        .andWhere(function () {
-          this.whereNull('deleted').orWhere('deleted', false);
-        });
-    } catch (e) {
-      this.logger.error(
-        'MailLimitScanner: workspace query failed',
-        (e as Error).stack,
-      );
-      return;
-    }
+    const workspaces: GraceWorkspaceRow[] = await ncMeta
+      .knexConnection(MetaTable.WORKSPACE)
+      .select(
+        'id',
+        'title',
+        'grace_period_start_at',
+        'api_grace_period_start_at',
+        'automation_grace_period_start_at',
+      )
+      .where(function () {
+        this.whereNotNull('grace_period_start_at')
+          .orWhereNotNull('api_grace_period_start_at')
+          .orWhereNotNull('automation_grace_period_start_at');
+      })
+      .andWhere(function () {
+        this.whereNull('deleted').orWhere('deleted', false);
+      });
 
     if (!workspaces.length) {
-      this.logger.debug('MailLimitScanner: no workspaces in grace');
+      this.logger.debug('limit check: no workspaces in grace');
       return;
     }
 
@@ -101,7 +99,7 @@ export class MailLimitScannerProcessor {
           await this.notifyForLimit(ws, startAt, limitType, now);
         } catch (e) {
           this.logger.error(
-            `MailLimitScanner: failed for workspace ${ws.id} (${limitType})`,
+            `limit check: failed for workspace ${ws.id} (${limitType})`,
             (e as Error).stack,
           );
         }
@@ -118,9 +116,7 @@ export class MailLimitScannerProcessor {
     const start = dayjs.utc(startAtIso);
     const end = start.add(GRACE_PERIOD_DURATION, 'day');
 
-    if (!end.isAfter(now)) {
-      return;
-    }
+    if (!end.isAfter(now)) return;
 
     const daysSinceStart = now.startOf('day').diff(start.startOf('day'), 'day');
     const daysRemaining = end.startOf('day').diff(now.startOf('day'), 'day');
@@ -132,7 +128,7 @@ export class MailLimitScannerProcessor {
 
     if (!owners.length) {
       this.logger.warn(
-        `MailLimitScanner: workspace ${ws.id} has no owner; skipping`,
+        `limit check: workspace ${ws.id} has no owner; skipping`,
       );
       return;
     }

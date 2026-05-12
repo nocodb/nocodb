@@ -34,6 +34,18 @@ export class TimelinePage extends BasePage {
     await this.rootPage.waitForTimeout(500);
   }
 
+  // The timeline has its own toolbar (`.nc-timeline-toolbar`), so the
+  // shared ToolbarPage helpers that anchor on `.nc-table-toolbar` don't
+  // resolve here. Scope the fields-menu button click to the timeline
+  // wrapper and wait for the dropdown overlay to mount.
+  async clickFields() {
+    const fieldsMenu = this.rootPage.locator('[data-testid="nc-fields-menu"]');
+    const wasOpen = await fieldsMenu.isVisible();
+    await this.get().locator('button.nc-fields-menu-btn').click();
+    if (wasOpen) await fieldsMenu.waitFor({ state: 'hidden' });
+    else await fieldsMenu.waitFor({ state: 'visible' });
+  }
+
   async clickNext() {
     await this.get().getByTestId('nc-timeline-next-btn').click();
     await this.rootPage.waitForTimeout(500);

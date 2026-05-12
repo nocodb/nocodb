@@ -116,8 +116,10 @@ test.describe('Timeline View', () => {
 
     // The fields menu only mounts when the dropdown is open — verify()
     // locates checkboxes inside [data-testid="nc-fields-menu"], which
-    // lives in the dropdown's #overlay slot.
-    await timeline.toolbar.clickFields();
+    // lives in the dropdown's #overlay slot. Use the timeline-scoped
+    // helper rather than the shared toolbar one (timeline's toolbar is
+    // `.nc-timeline-toolbar`, not `.nc-table-toolbar`).
+    await timeline.clickFields();
 
     // Title is the primary value (pv). StartDate / EndDate are the range
     // columns. Owner / Notes are non-pv non-range — they should default

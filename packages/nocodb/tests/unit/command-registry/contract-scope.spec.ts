@@ -1,7 +1,7 @@
 import { expect } from 'chai';
-import type { NcContext } from '../../../src/interface/config';
-import type { OperationContract, ScopeRef } from '../../../src/command-registry/types';
-import { SortCreateContract } from '../../../src/ee/command-registry/operations/sorts';
+import type { NcContext } from '~/interface/config';
+import type { OperationContract, ScopeRef } from '~/command-registry/types';
+import { SortCreateContract } from '~/command-registry/operations/sorts';
 
 /**
  * Per-contract scope assertion. Each iter migrates a batch of contracts;

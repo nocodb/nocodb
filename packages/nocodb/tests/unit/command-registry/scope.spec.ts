@@ -8,8 +8,8 @@ import {
   scopeView,
   scopeWorkflow,
   SIDEBAR_FIELDS,
-} from '../../../src/command-registry/scope';
-import type { NcContext } from '../../../src/interface/config';
+} from '~/command-registry/scope';
+import type { NcContext } from '~/interface/config';
 
 describe('scope helpers', () => {
   describe('builders', () => {

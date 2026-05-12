@@ -227,7 +227,9 @@ export class NcErrorBase {
       | {
           field: string;
           onSection?: string;
-        },
+        }
+      | null
+      | undefined,
     args?: NcErrorArgs
   ): never {
     let message = '';

@@ -1,5 +1,6 @@
 import type { NcContext } from '~/interface/config';
 import type { ScopeRef } from './types';
+import { View } from '~/models';
 
 /**
  * Tiny builders so contracts read declaratively:
@@ -46,6 +47,29 @@ export const scopeScript = (id: string | undefined | null): ScopeRef => ({
   type: 'script',
   id: requireScopeId(id, 'Script'),
 });
+
+/**
+ * Used by `recordCommand` to discard undone rows a future redo could
+ * resurrect: a new forward op on the leaf scope leaves ancestor-scope
+ * undone rows stale, but undo lookup walks the chain leaf-first so they
+ * remain reachable. View lookup failures degrade to base-only.
+ */
+export async function getScopeAncestors(
+  context: NcContext,
+  scope: ScopeRef,
+): Promise<ScopeRef[]> {
+  const ancestors: ScopeRef[] = [];
+  if (scope.type === 'view') {
+    const view = await View.get(context, scope.id, true).catch(() => null);
+    if (view?.fk_model_id) {
+      ancestors.push({ type: 'table', id: view.fk_model_id });
+    }
+  }
+  if (scope.type !== 'base' && context.base_id) {
+    ancestors.push({ type: 'base', id: context.base_id });
+  }
+  return ancestors;
+}
 
 /**
  * Body fields treated as sidebar-class for each rename-capable `*Update`

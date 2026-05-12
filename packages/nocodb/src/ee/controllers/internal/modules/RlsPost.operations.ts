@@ -43,7 +43,11 @@ export class RlsPostOperations
     switch (operation) {
       case 'rlsPolicyCreate':
         return (await this.rlsService.createPolicy(context, {
-          body: payload,
+          body: {
+            ...payload,
+            fk_model_id:
+              payload?.fk_model_id ?? (req.query.tableId as string | undefined),
+          },
           req,
         })) as any;
 

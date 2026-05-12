@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { NcApiVersion } from 'nocodb-sdk';
 
 /**
  * One side-effect row mutated by an insert/update with nested LTAR
@@ -95,7 +96,7 @@ export const recordBulkInsertSchema = z
     body: z.array(z.unknown()),
     cookie: z.unknown().optional(),
     undo: z.boolean().optional(),
-    apiVersion: z.string().optional(),
+    apiVersion: z.nativeEnum(NcApiVersion).optional(),
     internalFlags: z.unknown().optional(),
     query: z.unknown().optional(),
   })
@@ -200,7 +201,7 @@ export const recordUpdateSchema = z
     body: z.unknown(),
     cookie: z.unknown().optional(),
     undo: z.boolean().optional(),
-    apiVersion: z.string().optional(),
+    apiVersion: z.nativeEnum(NcApiVersion).optional(),
     internalFlags: z.unknown().optional(),
     query: z.unknown().optional(),
   })
@@ -218,7 +219,7 @@ export const recordBulkUpdateSchema = z
     body: z.array(z.unknown()),
     cookie: z.unknown().optional(),
     undo: z.boolean().optional(),
-    apiVersion: z.string().optional(),
+    apiVersion: z.nativeEnum(NcApiVersion).optional(),
     internalFlags: z.unknown().optional(),
     query: z.unknown().optional(),
   })
@@ -264,7 +265,7 @@ export const recordUpdateUndoSchema = z
     linkChanges: z.array(linkChangeSchema).optional(),
     /** Forward-context propagated so the undo path matches V3 typecasting
      *  (mapAliasToColumn DateTime branch is V1-only). */
-    apiVersion: z.string().optional(),
+    apiVersion: z.nativeEnum(NcApiVersion).optional(),
     viewId: z.string().optional(),
     baseId: z.string().optional(),
   })
@@ -289,7 +290,7 @@ export const recordBulkUpdateUndoSchema = z
     displacedRecords: z.array(displacedRecordSchema).optional(),
     linkChanges: z.array(linkChangeSchema).optional(),
     /** Forward-context propagated — see recordUpdateUndoSchema. */
-    apiVersion: z.string().optional(),
+    apiVersion: z.nativeEnum(NcApiVersion).optional(),
     viewId: z.string().optional(),
     baseId: z.string().optional(),
   })
@@ -438,7 +439,7 @@ export const recordBulkUpsertSchema = z
     body: z.array(z.unknown()),
     cookie: z.unknown().optional(),
     undo: z.boolean().optional(),
-    apiVersion: z.string().optional(),
+    apiVersion: z.nativeEnum(NcApiVersion).optional(),
   })
   .passthrough();
 
@@ -482,7 +483,7 @@ export const recordBulkUpsertUndoSchema = z
         .strict(),
     ),
     insertPks: z.array(z.union([z.string(), z.number()])),
-    apiVersion: z.string().optional(),
+    apiVersion: z.nativeEnum(NcApiVersion).optional(),
     viewId: z.string().optional(),
     baseId: z.string().optional(),
   })

@@ -265,9 +265,14 @@ export class DashboardsService {
     const { req } = param;
     const insertObj = param.widget;
 
-    if (insertObj.fk_dashboard_id) {
-      await this.assertDashboardLive(context, insertObj.fk_dashboard_id);
+    if (!insertObj.fk_dashboard_id && param.dashboardId) {
+      insertObj.fk_dashboard_id = param.dashboardId;
     }
+    if (!insertObj.fk_dashboard_id) {
+      NcError.get(context).requiredFieldMissing('fk_dashboard_id');
+    }
+
+    await this.assertDashboardLive(context, insertObj.fk_dashboard_id);
 
     const widget = await Widget.insert(context, insertObj);
 

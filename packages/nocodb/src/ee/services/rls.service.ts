@@ -110,6 +110,10 @@ export class RlsService {
     // Check if RLS feature is available on the workspace plan
     await checkForFeature(context, PlanFeatureTypes.FEATURE_RLS);
 
+    if (!body.fk_model_id) {
+      NcError.get(context).requiredFieldMissing('fk_model_id');
+    }
+
     // Check per-table RLS policy limit
     if (!body.is_default) {
       const scopedCount = await RlsPolicy.countScopedPolicies(

@@ -10,6 +10,7 @@ import type {
   TraceCommandDep,
 } from '~/command-registry/types';
 import { getSandboxConfig, getUndoConfig } from '~/command-registry/types';
+import { getScopeAncestors } from '~/command-registry/scope';
 import { OperationLog, Sandbox, SandboxChangelog } from '~/models';
 import { getTraceCapture } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
@@ -301,12 +302,14 @@ async function maybeRecordUndoEntry(
     context,
   );
 
-  // Discard the redo stack for this scope only — a redo from a different
-  // table/view is unaffected by a fresh forward op on this one.
+  // Discard across the scope chain — undo lookup walks leaf → ancestors,
+  // so ancestor-scope undone rows would otherwise survive a new leaf-scope
+  // op and get resurrected by a later redo. Siblings stay untouched.
+  const ancestorScopes = await getScopeAncestors(context, scopeRef);
   await OperationLog.discardUndoneForTab(context, {
     fk_user_id: userId,
     tab_id: tabId,
-    scopes: [scopeRef],
+    scopes: [scopeRef, ...ancestorScopes],
   });
 
   await OperationLog.insert(context, {

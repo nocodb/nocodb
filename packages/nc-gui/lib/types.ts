@@ -467,6 +467,9 @@ interface CellRendererOptions {
   tag?: {
     renderAsTag?: boolean
     tagPaddingX?: number
+    // Independent left/right padding overrides. Falls back to tagPaddingX when unset.
+    tagPaddingLeft?: number
+    tagPaddingRight?: number
     tagPaddingY?: number
     tagHeight?: number
     tagRadius?: number

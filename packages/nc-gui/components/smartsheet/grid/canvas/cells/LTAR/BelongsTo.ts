@@ -43,7 +43,8 @@ export const BelongsToCellRenderer: CellRenderer = {
     let returnData
 
     if (isValidValue(value)) {
-      const cellWidth = width - (!readonly && selected ? 34 : 0)
+      // Reserve space for action buttons (+/expand) when selected; reduced from 34 to 24px.
+      const cellWidth = width - (!readonly && selected ? 24 : 0)
 
       const cellValue =
         value && !Array.isArray(value) && typeof value === 'object'
@@ -71,6 +72,9 @@ export const BelongsToCellRenderer: CellRenderer = {
           renderAsTag: true,
           tagBgColor: getColor(themeV4Colors.brand['50'], 'var(--nc-bg-gray-light)'),
           tagHeight: 24,
+          // Independent left/right padding for balanced capsule appearance.
+          tagPaddingX: 6,
+          tagPaddingRight: 12,
         },
         meta: relatedTableMeta,
         x: x + 4,

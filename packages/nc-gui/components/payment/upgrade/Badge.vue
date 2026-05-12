@@ -28,6 +28,8 @@ interface Props {
   size?: 'xs' | 'sm' | 'md' | 'lg'
   /** When true, renders a lock icon instead of hidden — lets CE signal Enterprise-only features */
   showAsLock?: boolean
+  /** When true, always renders a lock icon (any deployment) when the feature is blocked */
+  iconOnly?: boolean
 }
 
 withDefaults(defineProps<Props>(), {

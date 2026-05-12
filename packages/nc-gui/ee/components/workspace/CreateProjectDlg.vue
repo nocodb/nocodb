@@ -365,6 +365,7 @@ const onBaseCreateModeSelected = (value: NcBaseCreateMode | null) => {
                           :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES"
                           :plan-title="privateBaseMinPlanReq"
                           remove-click
+                          icon-only
                         />
                         <GeneralIcon v-else-if="isSelected" icon="check" class="text-primary h-4 w-4" />
                       </div>

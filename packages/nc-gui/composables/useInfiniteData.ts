@@ -116,7 +116,7 @@ export function useInfiniteData(args: {
 
   const { getBaseType } = baseStore
 
-  const { getMeta, metas, getMetaByKey } = useMetas()
+  const { getMeta, metas, getMetaByKey, getPartialMeta } = useMetas()
 
   const { user } = useGlobal()
 
@@ -194,6 +194,36 @@ export function useInfiniteData(args: {
 
     return Object.keys(result).length ? result : undefined
   }
+
+  // Preload related table metas for LTAR columns used in active filters.
+  // Without this, client-side validateRowFilters cannot resolve related table
+  // columns (e.g. primary value) and incorrectly fails the filter check.
+  watch(
+    () => allFilters.value,
+    async (filters) => {
+      if (!filters?.length || !meta.value?.columns) return
+
+      const filterColIds = new Set(filters.map((f) => f.fk_column_id).filter(Boolean))
+
+      const ltarCols = meta.value.columns.filter(
+        (c) => filterColIds.has(c.id!) && c.uidt === UITypes.LinkToAnotherRecord,
+      )
+
+      for (const col of ltarCols) {
+        const colOptions = col.colOptions as LinkToAnotherRecordType
+        const relatedModelId = colOptions?.fk_related_model_id
+        if (!relatedModelId || !meta.value.base_id) continue
+
+        const existing = getMetaByKey(meta.value.base_id, relatedModelId)
+        if (!existing) {
+          // Use getPartialMeta which works even when user lacks full access
+          // to the related table (uses dbLinks.tableRead endpoint)
+          await getPartialMeta(meta.value.base_id, col.id!, relatedModelId)
+        }
+      }
+    },
+    { immediate: true },
+  )
 
   const selectedAllRecords = ref(false)
 

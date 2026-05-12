@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import { OrgUsersService as OrgUsersServiceCE } from 'src/services/org-users.service';
 import type { NcRequest } from '~/interface/config';
+import type { OrgUserListItemType } from 'nocodb-sdk';
 import { MetaTable, NC_DEFAULT_ORG_ID } from '~/utils/globals';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
@@ -144,6 +145,91 @@ export class OrgUsersService extends OrgUsersServiceCE {
         isLastPage: offset + limit >= Number((countResult as any)?.count || 0),
       },
     };
+  }
+
+  /**
+   * List org users for the invite picker.
+   * Response shape mirrors the cloud `GET /api/v2/orgs/:orgId/users/invitable`
+   * list so `api.orgUser.listInvitable(orgId)` can be called identically
+   * across editions. When `excludeWorkspaceId` / `excludeBaseId` is set,
+   * users already in that workspace/base are removed — and since the
+   * candidate list is scoped to `nc_org_users` for `orgId`, a cross-org
+   * id just produces an exclude set with no overlap (no-op filter).
+   */
+  async getOrgUsers(param: {
+    orgId: string;
+    req: NcRequest;
+    excludeWorkspaceId?: string;
+    excludeBaseId?: string;
+  }): Promise<OrgUserListItemType[]> {
+    const orgId = param.orgId || Noco.ncDefaultOrgId;
+
+    if (!orgId) {
+      return [];
+    }
+
+    const ncMeta = Noco.ncMeta;
+
+    let qb = ncMeta
+      .knexConnection(MetaTable.ORG_USERS)
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.created_at as created_at`,
+        `${MetaTable.USERS}.meta`,
+        `${MetaTable.ORG_USERS}.roles as cloud_org_roles`,
+        `${MetaTable.ORG_USERS}.scim_managed`,
+      )
+      .innerJoin(
+        MetaTable.USERS,
+        `${MetaTable.ORG_USERS}.fk_user_id`,
+        `${MetaTable.USERS}.id`,
+      )
+      .where(`${MetaTable.ORG_USERS}.fk_org_id`, orgId)
+      .where(function () {
+        this.where(`${MetaTable.ORG_USERS}.deleted`, false).orWhereNull(
+          `${MetaTable.ORG_USERS}.deleted`,
+        );
+      })
+      .where(function () {
+        this.where(`${MetaTable.USERS}.is_deleted`, false).orWhereNull(
+          `${MetaTable.USERS}.is_deleted`,
+        );
+      });
+
+    if (param.excludeWorkspaceId) {
+      qb = qb.whereNotIn(
+        `${MetaTable.USERS}.id`,
+        ncMeta
+          .knexConnection(MetaTable.WORKSPACE_USER)
+          .select('fk_user_id')
+          .where('fk_workspace_id', param.excludeWorkspaceId)
+          .where(function () {
+            this.where('deleted', false).orWhereNull('deleted');
+          }),
+      );
+    }
+
+    if (param.excludeBaseId) {
+      qb = qb.whereNotIn(
+        `${MetaTable.USERS}.id`,
+        ncMeta
+          .knexConnection(MetaTable.PROJECT_USERS)
+          .select('fk_user_id')
+          .where('base_id', param.excludeBaseId),
+      );
+    }
+
+    const list = (await qb.orderBy(
+      `${MetaTable.USERS}.created_at`,
+      'desc',
+    )) as OrgUserListItemType[];
+
+    await PresignedUrl.signMetaIconImage(list);
+
+    return list;
   }
 
   /**

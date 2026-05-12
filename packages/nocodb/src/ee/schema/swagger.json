@@ -1451,6 +1451,51 @@
         }
       }
     },
+    "/api/v2/orgs/{orgId}/users/invitable": {
+      "get": {
+        "summary": "Get Invitable Org Users",
+        "description": "Admin-only listing used by the workspace/base invite picker. Only org admins (cloud-org-level-owner) and on-prem super admins can call it; lower roles get a 403.",
+        "tags": [
+          "Org User"
+        ],
+        "operationId": "org-user-list-invitable",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "excludeWorkspaceId",
+            "in": "query",
+            "required": false,
+            "description": "Exclude users who are already members of the given workspace."
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "excludeBaseId",
+            "in": "query",
+            "required": false,
+            "description": "Exclude users who are already members of the given base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrgUserListItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v2/orgs/{orgId}/workspaces": {
       "get": {
         "summary": "Get Org Workspaces",
@@ -6549,6 +6594,59 @@
             }
           }
         }
+      },
+      "OrgUserListItem": {
+        "description": "Row returned by org-user listing endpoints (admin panel + invite picker). Fields beyond id/email/cloud_org_roles are best-effort — `workspaces` only populated by the cloud admin-panel listing.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "User ID"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email"
+          },
+          "display_name": {
+            "type": "string",
+            "nullable": true,
+            "description": "User display name"
+          },
+          "main_roles": {
+            "type": "string",
+            "description": "Global roles on the user (comma-separated)"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Timestamp the user joined the org"
+          },
+          "meta": {
+            "description": "User metadata blob"
+          },
+          "cloud_org_roles": {
+            "type": "string",
+            "description": "User's role within this org"
+          },
+          "scim_managed": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "Whether the user is provisioned via SCIM"
+          },
+          "workspaces": {
+            "type": "array",
+            "description": "Workspaces in the org the user belongs to. Optional — only populated by the cloud admin-panel listing; empty/omitted on the invite picker.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "roles": { "type": "string" },
+                "created_at": { "type": "string" }
+              }
+            }
+          }
+        },
+        "required": ["id", "email", "cloud_org_roles"]
       },
       "IntegrationList": {
         "description": "Model for Integration List",

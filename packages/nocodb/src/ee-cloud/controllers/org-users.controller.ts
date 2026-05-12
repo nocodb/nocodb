@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -28,11 +29,45 @@ export class OrgUsersController {
   @Acl('orgUserList', {
     scope: 'cloud-org',
   })
-  async getOrgUsers(@Req() req: NcRequest, @Param('orgId') orgId: string) {
+  async getOrgUsers(
+    @Req() req: NcRequest,
+    @Param('orgId') orgId: string,
+    @Query('excludeWorkspaceId') excludeWorkspaceId?: string,
+    @Query('excludeBaseId') excludeBaseId?: string,
+  ) {
     return this.orgUsersService.getOrgUsers({
       orgId,
       req,
       user: req.user,
+      excludeWorkspaceId,
+      excludeBaseId,
+    });
+  }
+
+  /**
+   * Invite-picker endpoint — admin-only. Workspace owners who are *not* org
+   * admins shouldn't expose other org members' identities to themselves, so
+   * this surface is gated separately from the admin-panel listing above.
+   */
+  @Get('/api/v2/orgs/:orgId/users/invitable')
+  @HttpCode(200)
+  @UseGuards(GlobalGuard, MetaApiLimiterGuard)
+  @Acl('orgUserListForInvite', {
+    scope: 'cloud-org',
+    blockApiTokenAccess: true,
+  })
+  async getInvitableOrgUsers(
+    @Req() req: NcRequest,
+    @Param('orgId') orgId: string,
+    @Query('excludeWorkspaceId') excludeWorkspaceId?: string,
+    @Query('excludeBaseId') excludeBaseId?: string,
+  ) {
+    return this.orgUsersService.getOrgUsers({
+      orgId,
+      req,
+      user: req.user,
+      excludeWorkspaceId,
+      excludeBaseId,
     });
   }
 

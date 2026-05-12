@@ -222,7 +222,14 @@ function updateRowIdRoute(rowId: string, path: Array<number> = []) {
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
 
-  if (isEeUI && !isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && rowId) {
+  if (
+    isEeUI &&
+    !isMobileMode.value &&
+    !isPublic.value &&
+    expandedFormMode.value === 'panel' &&
+    rowId &&
+    isCanvasRendering.value
+  ) {
     expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId, path)
     updateRowIdRoute(rowId, path)
     return
@@ -525,6 +532,20 @@ const {
   redistributeRows,
   loadDisallowedLookups,
 } = useViewGroupByOrThrow()
+
+// Mirrors the v-if guarding <CanvasTable /> below. The EFP side panel relies on
+// canvas-only contracts (getDataCache(path), active-cell path comparison, etc.)
+// so we restrict the panel to canvas. Non-canvas branches (paginated Table /
+// DOM-based InfiniteTable) fall back to the modal expanded form.
+//
+// Defined below the isGroupBy destructuring to avoid TDZ on cold reload — the
+// existing deep-link watcher (`immediate: true`) fires before this line in
+// setup, so we intentionally don't reference this computed there.
+const isCanvasRendering = computed(
+  () =>
+    isInfiniteScrollingEnabled.value &&
+    ((isCanvasTableEnabled.value && !isGroupBy.value) || (isCanvasGroupByTableEnabled.value && isGroupBy.value)),
+)
 
 const baseColor = computed(() => {
   switch (groupBy.value.length) {

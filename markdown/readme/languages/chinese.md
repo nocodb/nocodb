@@ -36,6 +36,7 @@ NocoDB 是构建在线数据库最快且最简单的方式。
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263770-38e3e79d-11d4-472e-ac27-ae0f17cf65c4.png">](markdown/readme/languages/japanese.md)
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263822-28fce9de-915a-44dc-962d-7a61d340e91d.png">](markdown/readme/languages/korean.md)
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263888-151d4ad1-7084-4943-97c9-56f28cd40b80.png">](markdown/readme/languages/russian.md)
+[<img height="38" alt="Bengali translation" src="">](markdown/readme/languages/bengali.md)
 
 </div>
 
@@ -106,7 +107,7 @@ bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 
 > 本地运行时通过此地址访问 nocodb: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
-更多安装方法，请参考 [我们的文档](https://docs.nocodb.com/category/installation)
+更多安装方法，请参考[我们的文档](https://nocodb.com/docs/self-hosting)
 
 # 截图
 
@@ -155,7 +156,7 @@ bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 
 # 贡献
 
-请参考 [贡献指南](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
+请参考[贡献指南](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
 # 我们为什么要构建此软件？
 
@@ -163,12 +164,12 @@ bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 
 # 我们的使命
 
-我们的使命是为世界上每一个互联网企业提供最强大的开源数据库无代码界面。这不仅可以使人们能够使用强大的计算工具，而且也会带来数十亿的具有激进修补和构建能力的人。
+我们的使命是为世界上每一个互联网企业提供最强大的数据库无代码界面。通过在公平和可持续的模式下广泛提供此能力，我们的目标是让强大的计算工具实现民主化访问，使超过十亿的人能够在互联网上发展激进的修补和构建能力。
 
 # 许可证
 
 <p>
-本项目采用 <a href="./LICENSE">AGPLv3</a> 许可证。
+本项目采用 <a href="./LICENSE.md">可持续使用许可证 (Sustainable Use License)</a>。
 </p>
 
 # 贡献者

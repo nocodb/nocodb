@@ -144,7 +144,7 @@ watch([() => activityExpanded.value, () => activeActivityTab.value], async ([exp
   if (!isOpen.value || !expanded || !primaryKey.value) return
 
   if (tab === 'comments') {
-    await loadComments(primaryKey.value)
+    await loadComments(primaryKey.value, false)
   } else if (tab === 'audits') {
     await loadAudits(primaryKey.value, false)
   }

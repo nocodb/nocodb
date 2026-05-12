@@ -109,6 +109,27 @@ export class BaseTrashCleanUpProcessor {
           if (e?.error === NcErrorType.ERR_TRASH_NOT_FOUND) {
             continue;
           }
+          // `recordNotTrashed` means the underlying soft-deleted rows are gone
+          // — restored by the user, or already hard-deleted by another path
+          // (manual trash UI action, base/table delete cascade). The trash
+          // entry itself is stale and will never be re-cleanable; drop it so
+          // we don't burn cleanup_due_at backoff and priority_error telemetry
+          // on it forever. The same prod entries (e.g. trk5t7x75iurtuy5) hit
+          // 15 retries on identical errors before this guard existed.
+          if (e?.error === NcErrorType.ERR_RECORD_NOT_TRASHED) {
+            try {
+              await BaseTrash.delete(context, entry.id);
+              this.logger.log(
+                `Trash entry ${entry.id} resolved as stale (records no longer trashed); removed.`,
+              );
+            } catch (delErr) {
+              this.logger.error(
+                `Failed to drop stale trash entry ${entry.id}: ${delErr.message}`,
+                delErr.stack,
+              );
+            }
+            continue;
+          }
 
           this.logger.error(
             `Failed to clean trash entry ${entry.id}: ${e.message}`,

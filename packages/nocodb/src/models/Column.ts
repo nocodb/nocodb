@@ -1523,15 +1523,20 @@ export default class Column<T = any> implements ColumnType {
       const viewColumn = (
         await View.getColumns(context, column.column_order.view_id, ncMeta)
       ).find((col) => col.fk_column_id === column.id);
-      await View.updateColumn(
-        context,
-        column.column_order.view_id,
-        viewColumn.id,
-        {
-          order: column.column_order.order,
-        },
-        ncMeta,
-      );
+      // viewColumn can be undefined when column_order.view_id references a
+      // deleted view, or when this column has no row in that view's columns
+      // table. Skip the order update silently — there's nothing to update.
+      if (viewColumn) {
+        await View.updateColumn(
+          context,
+          column.column_order.view_id,
+          viewColumn.id,
+          {
+            order: column.column_order.order,
+          },
+          ncMeta,
+        );
+      }
     }
 
     // Validate internal_meta if present

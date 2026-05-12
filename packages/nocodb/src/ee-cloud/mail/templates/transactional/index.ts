@@ -9,6 +9,7 @@ import Welcome from '~/mail/templates/transactional/welcome';
 import NudgeNoBase from '~/mail/templates/transactional/nudge-no-base';
 import NudgeWorkflowInactive from '~/mail/templates/transactional/nudge-workflow-inactive';
 import NudgeInviteTeam from '~/mail/templates/transactional/nudge-invite-team';
+import NudgeSeatLimit from '~/mail/templates/transactional/nudge-seat-limit';
 
 export {
   LimitReached,
@@ -22,4 +23,5 @@ export {
   NudgeNoBase,
   NudgeWorkflowInactive,
   NudgeInviteTeam,
+  NudgeSeatLimit,
 };

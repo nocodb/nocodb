@@ -31,6 +31,7 @@ const NUDGE_EVENTS: ReadonlyArray<MailEvent> = [
   MailEvent.NUDGE_NO_BASE,
   MailEvent.NUDGE_WORKFLOW_INACTIVE,
   MailEvent.NUDGE_INVITE_TEAM,
+  MailEvent.NUDGE_SEAT_LIMIT,
 ];
 
 /**

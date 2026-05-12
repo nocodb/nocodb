@@ -194,6 +194,13 @@ interface NudgeInviteTeamPayload extends NudgePayloadBase {
   inviteUrl: string;
 }
 
+interface NudgeSeatLimitPayload extends NudgePayloadBase {
+  currentEditors: number;
+  editorLimit: number;
+  inviteUrl: string;
+  upgradeUrl: string;
+}
+
 interface HookErrorDigestPayload {
   req?: NcRequest;
   user: UserType;
@@ -380,6 +387,10 @@ type MailParams =
   | {
       mailEvent: MailEvent.NUDGE_INVITE_TEAM;
       payload: NudgeInviteTeamPayload;
+    }
+  | {
+      mailEvent: MailEvent.NUDGE_SEAT_LIMIT;
+      payload: NudgeSeatLimitPayload;
     };
 
 export {
@@ -400,4 +411,5 @@ export {
   NudgeNoBasePayload,
   NudgeWorkflowInactivePayload,
   NudgeInviteTeamPayload,
+  NudgeSeatLimitPayload,
 };

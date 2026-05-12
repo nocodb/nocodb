@@ -9,6 +9,7 @@ import { MailScannerProcessor } from '~/modules/jobs/mail-scanner/mail-scanner.p
 import { MailLimitCheck } from '~/modules/jobs/mail-scanner/checks/limit.check';
 import { NudgeInviteTeamCheck } from '~/modules/jobs/mail-scanner/checks/nudge-invite-team.check';
 import { NudgeNoBaseCheck } from '~/modules/jobs/mail-scanner/checks/nudge-no-base.check';
+import { NudgeSeatLimitCheck } from '~/modules/jobs/mail-scanner/checks/nudge-seat-limit.check';
 import { NudgeWorkflowInactiveCheck } from '~/modules/jobs/mail-scanner/checks/nudge-workflow-inactive.check';
 
 export const jobsModuleCloudMetadata = {
@@ -22,6 +23,7 @@ export const jobsModuleCloudMetadata = {
     NudgeNoBaseCheck,
     NudgeWorkflowInactiveCheck,
     NudgeInviteTeamCheck,
+    NudgeSeatLimitCheck,
     MailScannerProcessor,
   ],
   exports: [...(jobsModuleEeMetadata?.exports ?? [])],

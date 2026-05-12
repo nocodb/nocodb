@@ -3,6 +3,7 @@ import type { MailScannerCheck } from '~/modules/jobs/mail-scanner/checks/check.
 import { MailLimitCheck } from '~/modules/jobs/mail-scanner/checks/limit.check';
 import { NudgeInviteTeamCheck } from '~/modules/jobs/mail-scanner/checks/nudge-invite-team.check';
 import { NudgeNoBaseCheck } from '~/modules/jobs/mail-scanner/checks/nudge-no-base.check';
+import { NudgeSeatLimitCheck } from '~/modules/jobs/mail-scanner/checks/nudge-seat-limit.check';
 import { NudgeWorkflowInactiveCheck } from '~/modules/jobs/mail-scanner/checks/nudge-workflow-inactive.check';
 
 /**
@@ -21,6 +22,7 @@ export class MailScannerProcessor {
     private readonly nudgeNoBaseCheck: NudgeNoBaseCheck,
     private readonly nudgeWorkflowInactiveCheck: NudgeWorkflowInactiveCheck,
     private readonly nudgeInviteTeamCheck: NudgeInviteTeamCheck,
+    private readonly nudgeSeatLimitCheck: NudgeSeatLimitCheck,
   ) {}
 
   async job() {
@@ -44,6 +46,7 @@ export class MailScannerProcessor {
       this.nudgeNoBaseCheck,
       this.nudgeWorkflowInactiveCheck,
       this.nudgeInviteTeamCheck,
+      this.nudgeSeatLimitCheck,
     ];
   }
 }

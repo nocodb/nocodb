@@ -10,6 +10,7 @@ import type {
   MailParams,
   NudgeInviteTeamPayload,
   NudgeNoBasePayload,
+  NudgeSeatLimitPayload,
   NudgeWorkflowInactivePayload,
   PaymentFailedPayload,
   PlanChangedPayload,
@@ -39,6 +40,7 @@ const DEFERRED_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
   MailEvent.NUDGE_NO_BASE,
   MailEvent.NUDGE_WORKFLOW_INACTIVE,
   MailEvent.NUDGE_INVITE_TEAM,
+  MailEvent.NUDGE_SEAT_LIMIT,
 ]);
 
 @Injectable()
@@ -333,7 +335,8 @@ export class MailService extends MailServiceEE {
       }
       case MailEvent.NUDGE_NO_BASE:
       case MailEvent.NUDGE_WORKFLOW_INACTIVE:
-      case MailEvent.NUDGE_INVITE_TEAM: {
+      case MailEvent.NUDGE_INVITE_TEAM:
+      case MailEvent.NUDGE_SEAT_LIMIT: {
         // Once-ever per user per event. Cross-nudge throttle (max 1 per 7d)
         // is enforced upstream at the check layer before this code runs.
         const p = params.payload as NudgeNoBasePayload;
@@ -508,6 +511,19 @@ export class MailService extends MailServiceEE {
           html: await this.renderCloudMail('NudgeInviteTeam', {
             workspaceTitle: p.workspace.title,
             inviteUrl: p.inviteUrl,
+          }),
+        };
+      }
+      case MailEvent.NUDGE_SEAT_LIMIT: {
+        const p = payload as NudgeSeatLimitPayload;
+        return {
+          subject: `You've used all ${p.editorLimit} editor seats on "${p.workspace.title}"`,
+          html: await this.renderCloudMail('NudgeSeatLimit', {
+            workspaceTitle: p.workspace.title,
+            currentEditors: p.currentEditors,
+            editorLimit: p.editorLimit,
+            inviteUrl: p.inviteUrl,
+            upgradeUrl: p.upgradeUrl,
           }),
         };
       }

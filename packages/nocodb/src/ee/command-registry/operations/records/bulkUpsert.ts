@@ -78,9 +78,7 @@ export const RecordBulkUpsertContract: OperationContract<
           modelId,
           updates,
           insertPks,
-          ...(params.apiVersion
-            ? { apiVersion: params.apiVersion as string }
-            : {}),
+          ...(params.apiVersion ? { apiVersion: params.apiVersion } : {}),
           ...(params.viewId ? { viewId: params.viewId as string } : {}),
           ...(params.baseId ? { baseId: params.baseId as string } : {}),
         },

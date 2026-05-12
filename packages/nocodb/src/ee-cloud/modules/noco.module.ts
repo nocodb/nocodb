@@ -5,6 +5,7 @@ import { Module } from '@nestjs/common';
 import { OnPremiseController } from '~/controllers/on-premise.controller';
 import { OnPremLicenseController } from '~/controllers/on-prem-license.controller';
 import { GcpMarketplaceController } from '~/controllers/gcp-marketplace.controller';
+import { SesSnsController } from '~/controllers/ses-sns.controller';
 import { isLicenseServerEnabled } from '~/utils/license';
 import { OnPremLicenseService } from '~/services/on-prem-license.service';
 import { GcpMarketplaceService } from '~/services/gcp-marketplace.service';
@@ -50,6 +51,9 @@ export const nocoModuleCloudMetadata = {
 
     // Self-serve on-prem license management
     OnPremLicenseController,
+
+    // SES bounce/complaint webhook (delivery status sync to nc_mail_sends)
+    SesSnsController,
 
     ...nocoModuleEeMetadata.controllers,
   ],

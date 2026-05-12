@@ -4,8 +4,17 @@ import { MailService as MailServiceEE } from 'src/ee/services/mail/mail.service'
 import { render } from '@react-email/render';
 import { Queue } from 'bull';
 import type { ComponentProps } from 'react';
-import type { LimitReachedPayload, MailParams } from '~/interface/Mail';
-import type { GracePeriodEndingPayload } from '~/ee/interface/Mail';
+import type {
+  GracePeriodEndingPayload,
+  LimitReachedPayload,
+  MailParams,
+  PaymentFailedPayload,
+  PlanChangedPayload,
+  RenewalReminderPayload,
+  SubscriptionCanceledPayload,
+  SubscriptionCreatedPayload,
+  TrialEndedPayload,
+} from '~/interface/Mail';
 import * as CloudMailTemplates from '~/mail/templates/transactional';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { MailEvent } from '~/interface/Mail';
@@ -20,6 +29,12 @@ type CloudTemplateProps<K extends keyof typeof CloudMailTemplates> =
 const DEFERRED_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
   MailEvent.LIMIT_REACHED,
   MailEvent.GRACE_PERIOD_ENDING,
+  MailEvent.PAYMENT_FAILED,
+  MailEvent.SUBSCRIPTION_CREATED,
+  MailEvent.SUBSCRIPTION_CANCELED,
+  MailEvent.PLAN_CHANGED,
+  MailEvent.TRIAL_ENDED,
+  MailEvent.RENEWAL_REMINDER,
 ]);
 
 @Injectable()
@@ -222,6 +237,68 @@ export class MailService extends MailServiceEE {
           payload: p,
         };
       }
+      case MailEvent.PAYMENT_FAILED: {
+        const p = params.payload as PaymentFailedPayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          dedupe_key: `invoice:${p.invoiceId}:attempt:${p.attemptCount}`,
+          payload: p,
+        };
+      }
+      case MailEvent.SUBSCRIPTION_CREATED: {
+        const p = params.payload as SubscriptionCreatedPayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          dedupe_key: `sub-create:${p.subscriptionId}`,
+          payload: p,
+        };
+      }
+      case MailEvent.SUBSCRIPTION_CANCELED: {
+        const p = params.payload as SubscriptionCanceledPayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          dedupe_key: `sub-cancel:${p.subscriptionId}`,
+          payload: p,
+        };
+      }
+      case MailEvent.PLAN_CHANGED: {
+        const p = params.payload as PlanChangedPayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          dedupe_key: `plan-change:${p.subscriptionId}:${p.newPriceId}`,
+          payload: p,
+        };
+      }
+      case MailEvent.TRIAL_ENDED: {
+        const p = params.payload as TrialEndedPayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          dedupe_key: `trial-end:${p.subscriptionId}`,
+          payload: p,
+        };
+      }
+      case MailEvent.RENEWAL_REMINDER: {
+        const p = params.payload as RenewalReminderPayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          dedupe_key: `renewal:${p.subscriptionId}:${this.dayBucket(
+            p.periodEnd,
+          )}`,
+          payload: p,
+        };
+      }
       default:
         return {
           event: params.mailEvent,
@@ -279,8 +356,114 @@ export class MailService extends MailServiceEE {
           }),
         };
       }
+      case MailEvent.PAYMENT_FAILED: {
+        const p = payload as PaymentFailedPayload;
+        return {
+          subject: `Action required: payment failed for "${p.workspace.title}"`,
+          html: await this.renderCloudMail('PaymentFailed', {
+            workspaceTitle: p.workspace.title,
+            amountDue: this.formatMoney(p.amountDue, p.currency),
+            attemptCount: p.attemptCount,
+            nextAttemptAt: p.nextAttemptAt
+              ? this.formatDate(p.nextAttemptAt)
+              : undefined,
+            failureMessage: p.failureMessage,
+            billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
+      case MailEvent.SUBSCRIPTION_CREATED: {
+        const p = payload as SubscriptionCreatedPayload;
+        return {
+          subject: p.isTrial
+            ? `Trial active for "${p.workspace.title}"`
+            : `Welcome to ${p.planTitle} — ${p.workspace.title}`,
+          html: await this.renderCloudMail('SubscriptionCreated', {
+            workspaceTitle: p.workspace.title,
+            planTitle: p.planTitle,
+            seatCount: p.seatCount,
+            periodEnd: p.periodEnd ? this.formatDate(p.periodEnd) : undefined,
+            isTrial: p.isTrial,
+            billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
+      case MailEvent.SUBSCRIPTION_CANCELED: {
+        const p = payload as SubscriptionCanceledPayload;
+        return {
+          subject: `Subscription canceled for "${p.workspace.title}"`,
+          html: await this.renderCloudMail('SubscriptionCanceled', {
+            workspaceTitle: p.workspace.title,
+            planTitle: p.planTitle,
+            endsAt: p.cancelAt
+              ? this.formatDate(p.cancelAt)
+              : p.periodEnd
+              ? this.formatDate(p.periodEnd)
+              : undefined,
+            billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
+      case MailEvent.PLAN_CHANGED: {
+        const p = payload as PlanChangedPayload;
+        return {
+          subject: `Plan changed for "${p.workspace.title}"`,
+          html: await this.renderCloudMail('PlanChanged', {
+            workspaceTitle: p.workspace.title,
+            oldPlanTitle: p.oldPlanTitle,
+            newPlanTitle: p.newPlanTitle,
+            effectiveAt: p.effectiveAt
+              ? this.formatDate(p.effectiveAt)
+              : undefined,
+            billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
+      case MailEvent.TRIAL_ENDED: {
+        const p = payload as TrialEndedPayload;
+        return {
+          subject: p.convertedToActive
+            ? `Your trial converted — "${p.workspace.title}"`
+            : `Your trial has ended — "${p.workspace.title}"`,
+          html: await this.renderCloudMail('TrialEnded', {
+            workspaceTitle: p.workspace.title,
+            planTitle: p.planTitle,
+            convertedToActive: p.convertedToActive,
+            periodEnd: p.periodEnd ? this.formatDate(p.periodEnd) : undefined,
+            billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
+      case MailEvent.RENEWAL_REMINDER: {
+        const p = payload as RenewalReminderPayload;
+        return {
+          subject: `Your subscription renews soon — "${p.workspace.title}"`,
+          html: await this.renderCloudMail('RenewalReminder', {
+            workspaceTitle: p.workspace.title,
+            planTitle: p.planTitle,
+            renewalDate: this.formatDate(p.periodEnd),
+            amountDue:
+              p.amountDue !== undefined && p.currency
+                ? this.formatMoney(p.amountDue, p.currency)
+                : undefined,
+            billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
       default:
         return null;
+    }
+  }
+
+  protected formatMoney(amountMinor: number, currency: string): string {
+    try {
+      const major = (amountMinor ?? 0) / 100;
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: (currency ?? 'usd').toUpperCase(),
+      }).format(major);
+    } catch {
+      return `${amountMinor} ${currency}`;
     }
   }
 
@@ -341,6 +524,84 @@ export class MailService extends MailServiceEE {
       to_email: row.to_email,
       payload_json: row.payload_json,
     };
+  }
+
+  /**
+   * Update `nc_mail_sends.delivery_status` from an SES bounce / complaint /
+   * delivery notification (typically delivered via SNS → HTTP endpoint).
+   *
+   * Accepts the parsed SNS `Notification` body (Message JSON already parsed).
+   * Updates rows by `ses_message_id` — multiple messageIds on a single
+   * notification are supported (SES batches recipients).
+   *
+   * Returns the number of rows updated; never throws.
+   */
+  async handleSesNotification(
+    notification: {
+      notificationType?: string;
+      bounce?: {
+        bounceType?: string;
+        bouncedRecipients?: Array<{ emailAddress?: string }>;
+      };
+      complaint?: { complainedRecipients?: Array<{ emailAddress?: string }> };
+      delivery?: { recipients?: string[] };
+      mail?: { messageId?: string };
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    if (!notification) return 0;
+
+    const messageId = notification.mail?.messageId;
+    if (!messageId) {
+      this.logger.warn(
+        'handleSesNotification: missing mail.messageId; ignoring',
+      );
+      return 0;
+    }
+
+    let deliveryStatus: 'delivered' | 'bounced' | 'complained' | null = null;
+    switch (notification.notificationType) {
+      case 'Bounce':
+        deliveryStatus =
+          notification.bounce?.bounceType === 'Permanent' ? 'bounced' : null; // soft bounces don't change status
+        break;
+      case 'Complaint':
+        deliveryStatus = 'complained';
+        break;
+      case 'Delivery':
+        deliveryStatus = 'delivered';
+        break;
+      default:
+        this.logger.log(
+          `handleSesNotification: unhandled notificationType=${notification.notificationType}`,
+        );
+        return 0;
+    }
+
+    if (!deliveryStatus) return 0;
+
+    try {
+      const updated = await ncMeta
+        .knexConnection(MetaTable.MAIL_SENDS)
+        .where({ ses_message_id: messageId })
+        .update({
+          delivery_status: deliveryStatus,
+          updated_at: ncMeta.now(),
+        });
+
+      if (!updated) {
+        this.logger.log(
+          `handleSesNotification: no nc_mail_sends row for ses_message_id=${messageId}`,
+        );
+      }
+      return updated ?? 0;
+    } catch (e) {
+      this.logger.error(
+        'handleSesNotification: update failed',
+        (e as Error).stack,
+      );
+      return 0;
+    }
   }
 
   protected async finalizeMailSend(

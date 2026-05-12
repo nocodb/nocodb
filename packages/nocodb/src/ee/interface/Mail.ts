@@ -103,6 +103,63 @@ interface LimitReachedPayload {
   upgradeUrl: string;
 }
 
+interface BillingPayloadBase {
+  req?: NcRequest;
+  user: UserType;
+  workspace: {
+    id: string;
+    title: string;
+  };
+  billingPortalUrl: string;
+}
+
+interface PaymentFailedPayload extends BillingPayloadBase {
+  invoiceId: string;
+  attemptCount: number;
+  amountDue: number;
+  currency: string;
+  nextAttemptAt?: string;
+  failureMessage?: string;
+}
+
+interface SubscriptionCreatedPayload extends BillingPayloadBase {
+  subscriptionId: string;
+  planTitle: string;
+  seatCount: number;
+  periodEnd?: string;
+  isTrial: boolean;
+}
+
+interface SubscriptionCanceledPayload extends BillingPayloadBase {
+  subscriptionId: string;
+  planTitle: string;
+  cancelAt?: string;
+  periodEnd?: string;
+}
+
+interface PlanChangedPayload extends BillingPayloadBase {
+  subscriptionId: string;
+  oldPlanTitle: string;
+  newPlanTitle: string;
+  newPriceId: string;
+  effectiveAt?: string;
+}
+
+interface TrialEndedPayload extends BillingPayloadBase {
+  subscriptionId: string;
+  planTitle: string;
+  convertedToActive: boolean;
+  periodEnd?: string;
+}
+
+interface RenewalReminderPayload extends BillingPayloadBase {
+  subscriptionId: string;
+  planTitle: string;
+  periodEnd: string;
+  amountDue?: number;
+  currency?: string;
+}
+
 interface GracePeriodEndingPayload {
   req?: NcRequest;
   user: UserType;
@@ -273,6 +330,30 @@ type MailParams =
   | {
       mailEvent: MailEvent.GRACE_PERIOD_ENDING;
       payload: GracePeriodEndingPayload;
+    }
+  | {
+      mailEvent: MailEvent.PAYMENT_FAILED;
+      payload: PaymentFailedPayload;
+    }
+  | {
+      mailEvent: MailEvent.SUBSCRIPTION_CREATED;
+      payload: SubscriptionCreatedPayload;
+    }
+  | {
+      mailEvent: MailEvent.SUBSCRIPTION_CANCELED;
+      payload: SubscriptionCanceledPayload;
+    }
+  | {
+      mailEvent: MailEvent.PLAN_CHANGED;
+      payload: PlanChangedPayload;
+    }
+  | {
+      mailEvent: MailEvent.TRIAL_ENDED;
+      payload: TrialEndedPayload;
+    }
+  | {
+      mailEvent: MailEvent.RENEWAL_REMINDER;
+      payload: RenewalReminderPayload;
     };
 
 export {
@@ -285,4 +366,10 @@ export {
   HookErrorDigestPayload,
   LimitReachedPayload,
   GracePeriodEndingPayload,
+  PaymentFailedPayload,
+  SubscriptionCreatedPayload,
+  SubscriptionCanceledPayload,
+  PlanChangedPayload,
+  TrialEndedPayload,
+  RenewalReminderPayload,
 };

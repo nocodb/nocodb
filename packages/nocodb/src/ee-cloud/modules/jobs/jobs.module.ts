@@ -6,6 +6,7 @@ import {
 import { MailDispatchProcessor } from '~/modules/jobs/mail-dispatch/mail-dispatch.processor';
 import { MailOutboxRecoveryProcessor } from '~/modules/jobs/mail-outbox-recovery/mail-outbox-recovery.processor';
 import { MailLimitScannerProcessor } from '~/modules/jobs/mail-limit-scanner/mail-limit-scanner.processor';
+import { MailRenewalScannerProcessor } from '~/modules/jobs/mail-renewal-scanner/mail-renewal-scanner.processor';
 
 export const jobsModuleCloudMetadata = {
   imports: [...(jobsModuleEeMetadata?.imports ?? [])],
@@ -15,6 +16,7 @@ export const jobsModuleCloudMetadata = {
     MailDispatchProcessor,
     MailOutboxRecoveryProcessor,
     MailLimitScannerProcessor,
+    MailRenewalScannerProcessor,
   ],
   exports: [...(jobsModuleEeMetadata?.exports ?? [])],
 };

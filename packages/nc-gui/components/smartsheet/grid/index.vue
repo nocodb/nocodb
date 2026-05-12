@@ -573,6 +573,26 @@ watch(
   },
 )
 
+// Close the side panel whenever the group-by configuration changes (add /
+// remove / reorder / swap a grouped column). The panel's `activePath` is
+// indexed against the live group structure; once the structure changes the
+// stored path either points at the wrong group or no group at all, and
+// prev/next would walk the wrong scope. Easier to close the panel than to
+// reconcile the new structure.
+//
+// Each groupBy entry is `{ column: ColumnType, sort, order }` — key off the
+// column id so the watcher fires on add/remove/swap regardless of sort
+// direction changes within the same column set.
+watch(
+  () => groupBy.value.map((g) => g.column?.id ?? '').join('|'),
+  (newKey, oldKey) => {
+    if (newKey === oldKey) return
+    if (expandedFormPanelStore?.isOpen.value) {
+      expandedFormPanelStore.closePanel()
+    }
+  },
+)
+
 const baseColor = computed(() => {
   switch (groupBy.value.length) {
     case 1:

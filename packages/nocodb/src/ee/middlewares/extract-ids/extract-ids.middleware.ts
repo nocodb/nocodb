@@ -581,6 +581,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
     }
 
+    // Single-workspace deployments (on-prem): fall back to the default workspace
+    // when the request carries no workspace context. Without this, endpoints
+    // like GET /api/v2/meta/bases — which are gated by a workspace-scoped ACL
+    // but don't carry :workspaceId in the URL — return 403 because the API
+    // token loads no workspace roles. Cloud has no default workspace concept.
+    if (!isCloud && !req.ncWorkspaceId && Noco.ncDefaultWorkspaceId) {
+      req.ncWorkspaceId = Noco.ncDefaultWorkspaceId;
+    }
+
     // On-prem unlicensed: block access to non-default workspaces
     if (
       isOnPrem &&

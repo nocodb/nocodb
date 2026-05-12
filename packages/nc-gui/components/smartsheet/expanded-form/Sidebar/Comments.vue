@@ -257,10 +257,14 @@ function loadCommentEditedTooltip() {
     const tooltip = Object.values(el.attributes).find((attr) => attr.name === 'data-tooltip')
     if (!tooltip) return
 
+    const content = document.createElement('span')
+    content.className = 'tooltip nc-rich-link-tooltip-popup'
+    content.textContent = tooltip.value
+
     const instance = tippy(el, {
-      content: `<span class="tooltip nc-rich-link-tooltip-popup">${tooltip.value}</span>`,
+      content,
       placement: 'top',
-      allowHTML: true,
+      allowHTML: false,
       arrow: true,
       animation: 'fade',
       duration: 0,

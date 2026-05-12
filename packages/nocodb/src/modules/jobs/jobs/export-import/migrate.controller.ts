@@ -52,7 +52,16 @@ export class MigrateController {
       NcError.get(context).noSourcesFound();
     }
 
-    const url = new URL(body.migrationUrl);
+    let url: URL;
+    try {
+      url = new URL(body.migrationUrl);
+    } catch {
+      NcError.get(context).badRequest('Invalid migration url');
+    }
+
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      NcError.get(context).badRequest('Invalid migration url protocol');
+    }
 
     const instanceUrl = url.origin;
 

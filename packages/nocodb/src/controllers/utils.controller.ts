@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { promisify } from 'util';
 import {
   Body,
@@ -17,6 +18,7 @@ import {
   IntegrationsType,
   OrgUserRoles,
 } from 'nocodb-sdk';
+import { validateDbConnectionHost } from '~/helpers/validateDbConnectionHost';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -83,12 +85,23 @@ export class UtilsController {
         NcError.integrationNotFound(body.fk_integration_id);
       }
 
+      // Integration must belong to the caller's current workspace.
+      const callerWorkspaceId = (req as any).ncWorkspaceId;
+      if (
+        integration.fk_workspace_id &&
+        callerWorkspaceId &&
+        integration.fk_workspace_id !== callerWorkspaceId
+      ) {
+        NcError.forbidden('Integration belongs to a different workspace');
+      }
+
       if (integration.is_private && integration.created_by !== req.user.id) {
         NcError.forbidden('You do not have access to this integration');
       }
 
       if (!req.user.roles[OrgUserRoles.CREATOR]) {
-        // check if user have owner/creator role in any of the base in the workspace
+        // Caller must hold owner/creator on a base inside the integration's
+        // workspace, not just any workspace they belong to.
         const baseWithPermission = await Noco.ncMeta
           .knex(MetaTable.PROJECT_USERS)
           .innerJoin(
@@ -97,6 +110,10 @@ export class UtilsController {
             `${MetaTable.PROJECT_USERS}.base_id`,
           )
           .where(`${MetaTable.PROJECT_USERS}.fk_user_id`, req.user.id)
+          .where(
+            `${MetaTable.PROJECT}.fk_workspace_id`,
+            integration.fk_workspace_id,
+          )
           .where((qb) => {
             qb.where(
               `${MetaTable.PROJECT_USERS}.roles`,
@@ -117,12 +134,40 @@ export class UtilsController {
       }
     }
 
+    if (config.connection?.host) {
+      await validateDbConnectionHost(config.connection.host);
+    }
+
     if (config.connection?.ssl) {
       config.connection.ssl = validateAndExtractSSLProp(
         config.connection,
         config.sslUse,
         config.client,
       );
+      // Restrict SSL file-path fields to the directory configured in
+      // NC_SSL_CERT_DIR; the underlying driver would otherwise read any
+      // host file. Errors are normalised to a single message.
+      const ssl = config.connection.ssl;
+      if (ssl && typeof ssl === 'object') {
+        const sslDir = process.env.NC_SSL_CERT_DIR
+          ? path.resolve(process.env.NC_SSL_CERT_DIR)
+          : null;
+        for (const key of ['caFilePath', 'keyFilePath', 'certFilePath']) {
+          const val = (ssl as any)[key];
+          if (val == null) continue;
+          if (typeof val !== 'string' || val.includes('\0')) {
+            NcError.badRequest('Invalid SSL configuration');
+          }
+          if (!sslDir) {
+            NcError.badRequest('Invalid SSL configuration');
+          }
+          const resolved = path.resolve(val);
+          if (resolved !== sslDir && !resolved.startsWith(sslDir + path.sep)) {
+            NcError.badRequest('Invalid SSL configuration');
+          }
+          (ssl as any)[key] = resolved;
+        }
+      }
     }
 
     return await this.utilsService.testConnection({ body: config });

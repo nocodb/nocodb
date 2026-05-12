@@ -25,6 +25,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractPropsAndSanitize } from '~/helpers/extractProps';
+import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
 import syncMigration from '~/helpers/syncMigration';
 import { Base, BaseUser, Integration, IntegrationLink } from '~/models';
 import Noco from '~/Noco';
@@ -328,6 +329,7 @@ export class BasesService {
 
       for (const source of baseBody.sources || []) {
         if (!source.fk_integration_id) {
+          validateAndNormalizeSqliteConfig(source.config, source.type);
           const integration = await Integration.createIntegration(
             {
               title: source.alias || baseBody.title,

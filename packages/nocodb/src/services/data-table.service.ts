@@ -1423,6 +1423,23 @@ export class DataTableService {
       NcError.get(context).badRequest('Invalid bulkFilterList');
     }
 
+    // Each column_name token must resolve to a real column on this model.
+    const allColumns = await model.getColumns(context);
+    const allowedColumnTokens = new Set<string>();
+    for (const c of allColumns) {
+      if (c.column_name) allowedColumnTokens.add(c.column_name);
+      if (c.title) allowedColumnTokens.add(c.title);
+    }
+    for (const dF of bulkFilterList as Array<{ column_name?: string }>) {
+      if (!dF?.column_name) continue;
+      for (const name of dF.column_name.split(',')) {
+        const trimmed = name.trim();
+        if (!allowedColumnTokens.has(trimmed)) {
+          NcError.get(context).fieldNotFound(trimmed);
+        }
+      }
+    }
+
     const [data, count] = await Promise.all([
       baseModel.bulkGroupBy(listArgs, bulkFilterList, view),
       baseModel.bulkGroupByCount(listArgs, bulkFilterList, view),

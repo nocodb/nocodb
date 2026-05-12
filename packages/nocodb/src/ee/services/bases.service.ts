@@ -49,6 +49,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { getToolDir } from '~/utils/nc-config';
 import NocoSocket from '~/socket/NocoSocket';
+import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -198,6 +199,10 @@ export class BasesService extends BasesServiceCE {
         }
         const dbId = nanoidv2();
         const baseTitle = DOMPurify.sanitize(baseBody.title);
+        // Restrict path component to safe characters so a title cannot
+        // escape the nc_minimal_dbs/ directory via traversal sequences.
+        const filenameSlug =
+          baseTitle.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || 'db';
         baseBody.prefix = '';
         baseBody.sources = [
           {
@@ -210,7 +215,7 @@ export class BasesService extends BasesServiceCE {
                 client: 'sqlite3',
                 database: baseTitle,
                 connection: {
-                  filename: `${toolDir}/nc_minimal_dbs/${baseTitle}_${dbId}.db`,
+                  filename: `${toolDir}/nc_minimal_dbs/${filenameSlug}_${dbId}.db`,
                 },
               },
             },
@@ -236,6 +241,7 @@ export class BasesService extends BasesServiceCE {
       }
 
       for (const source of baseBody.sources || []) {
+        validateAndNormalizeSqliteConfig(source.config, source.type);
         if (!source.fk_integration_id) {
           const integration = await Integration.createIntegration({
             title: source.alias || baseBody.title,

@@ -169,16 +169,23 @@ export class OauthTokenService {
       );
     }
 
-    // Check if code is already used
+    // Fast-path reject before CAS.
     if (authCode.is_used) {
       throw new Error(
         'invalid_grant: Authorization code has already been used',
       );
     }
 
-    // Check if code is expired
     if (new Date(authCode.expires_at) < new Date()) {
       throw new Error('invalid_grant: Authorization code has expired');
+    }
+
+    // Atomic single-use claim — refuse if a concurrent caller already won.
+    const claimed = await OAuthAuthorizationCode.claimByCode(code);
+    if (!claimed) {
+      throw new Error(
+        'invalid_grant: Authorization code has already been used',
+      );
     }
 
     // Validate redirect URI
@@ -247,7 +254,8 @@ export class OauthTokenService {
 
     await OAuthToken.insert(insertObj);
 
-    // Mark authorization code as used
+    // markAsUsed is now a safety net — claimByCode above already won the
+    // single-use race.
     await OAuthAuthorizationCode.markAsUsed(code);
 
     return {

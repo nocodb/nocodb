@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import DOMPurify from 'isomorphic-dompurify';
 import { AppEvents, EventType } from 'nocodb-sdk';
 import { Base, Model } from '../models';
 import type {
@@ -14,6 +15,60 @@ import Comment from '~/models/Comment';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import NocoSocket from '~/socket/NocoSocket';
+
+/**
+ * Allowlist of tags / attributes permitted in row comments. Anything outside
+ * this set is stripped before the comment reaches the database.
+ */
+const COMMENT_SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [
+    'p',
+    'span',
+    'a',
+    'b',
+    'i',
+    'u',
+    'strong',
+    'em',
+    'br',
+    'ul',
+    'ol',
+    'li',
+    'code',
+    'pre',
+    'blockquote',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+  ],
+  ALLOWED_ATTR: ['href', 'class', 'target', 'rel'],
+  FORBID_TAGS: [
+    'form',
+    'input',
+    'button',
+    'select',
+    'textarea',
+    'script',
+    'style',
+    'iframe',
+    'object',
+    'embed',
+    'link',
+    'meta',
+    'svg',
+    'math',
+    'base',
+  ],
+  ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
+};
+
+function sanitizeCommentBody(input: unknown): string {
+  if (input == null) return '';
+  return DOMPurify.sanitize(String(input), COMMENT_SANITIZE_CONFIG);
+}
 
 @Injectable()
 export class CommentsService {
@@ -32,8 +87,11 @@ export class CommentsService {
   ) {
     validatePayload('swagger.json#/components/schemas/CommentReq', param.body);
 
+    const sanitizedComment = sanitizeCommentBody(param.body.comment);
+
     const res = await Comment.insert(context, {
       ...param.body,
+      comment: sanitizedComment,
       created_by: param.user?.id,
       created_by_email: param.user?.email,
     });
@@ -172,8 +230,10 @@ export class CommentsService {
       NcError.get(context).unauthorized('Unauthorized access');
     }
 
+    const sanitizedComment = sanitizeCommentBody(param.body.comment);
+
     const res = await Comment.update(context, param.commentId, {
-      comment: param.body.comment,
+      comment: sanitizedComment,
     });
 
     const model = await Model.getByIdOrName(context, {

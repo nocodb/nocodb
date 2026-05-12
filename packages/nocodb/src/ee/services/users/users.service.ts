@@ -917,6 +917,15 @@ export class UsersService extends UsersServiceCE {
           Permanent: true,
         }),
       );
+
+      // Invalidate all sessions: rotate token_version (JWTs), drop refresh
+      // tokens, and revoke OAuth tokens.
+      await User.update(user.id, {
+        email: user.email,
+        token_version: randomTokenString(),
+      });
+      await UserRefreshToken.deleteAllUserToken(user.id);
+      await this.revokeAllOAuthTokensByUser(user.id);
     } catch (error) {
       if (error instanceof NcError || error instanceof NcBaseError) {
         throw error;

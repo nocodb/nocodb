@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { URL } from 'url';
 import { promisify } from 'util';
 import parseDbUrl from 'parse-database-url';
@@ -303,22 +304,45 @@ export async function metaUrlToDbConfig(urlString): Promise<DbConfig> {
     dbConfig?.connection?.ssl &&
     typeof dbConfig?.connection?.ssl === 'object'
   ) {
+    // Restrict SSL *FilePath fields to NC_SSL_CERT_DIR, or accept only the
+    // inline PEM contents (`ca`, `key`, `cert`). Errors are normalised to
+    // a single message.
+    const readSslFile = async (filePath: string): Promise<string> => {
+      const sslDir = process.env.NC_SSL_CERT_DIR
+        ? path.resolve(process.env.NC_SSL_CERT_DIR)
+        : null;
+      const resolved = path.resolve(String(filePath));
+      if (!sslDir) {
+        throw new Error(
+          'NC_SSL_CERT_DIR is not configured; supply ca/key/cert as PEM strings instead of file paths.',
+        );
+      }
+      if (resolved !== sslDir && !resolved.startsWith(sslDir + path.sep)) {
+        throw new Error('SSL file path is outside the configured directory.');
+      }
+      try {
+        return (await promisify(fs.readFile)(resolved)).toString();
+      } catch {
+        throw new Error('Invalid SSL configuration.');
+      }
+    };
+
     if (dbConfig.connection.ssl.caFilePath && !dbConfig.connection.ssl.ca) {
-      dbConfig.connection.ssl.ca = (
-        await promisify(fs.readFile)(dbConfig.connection.ssl.caFilePath)
-      ).toString();
+      dbConfig.connection.ssl.ca = await readSslFile(
+        dbConfig.connection.ssl.caFilePath,
+      );
       delete dbConfig.connection.ssl.caFilePath;
     }
     if (dbConfig.connection.ssl.keyFilePath && !dbConfig.connection.ssl.key) {
-      dbConfig.connection.ssl.key = (
-        await promisify(fs.readFile)(dbConfig.connection.ssl.keyFilePath)
-      ).toString();
+      dbConfig.connection.ssl.key = await readSslFile(
+        dbConfig.connection.ssl.keyFilePath,
+      );
       delete dbConfig.connection.ssl.keyFilePath;
     }
     if (dbConfig.connection.ssl.certFilePath && !dbConfig.connection.ssl.cert) {
-      dbConfig.connection.ssl.cert = (
-        await promisify(fs.readFile)(dbConfig.connection.ssl.certFilePath)
-      ).toString();
+      dbConfig.connection.ssl.cert = await readSslFile(
+        dbConfig.connection.ssl.certFilePath,
+      );
       delete dbConfig.connection.ssl.certFilePath;
     }
   }

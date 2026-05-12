@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import DOMPurify from 'isomorphic-dompurify';
 import { AppEvents, EventType, REACTION_EMOJIS } from 'nocodb-sdk';
 import { DocumentCommentsService as DocumentCommentsServiceCE } from 'src/services/document-comments.service';
 import type {
@@ -11,6 +12,60 @@ import { NcError } from '~/helpers/catchError';
 import Comment from '~/models/Comment';
 import CommentReaction from '~/models/CommentReaction';
 import NocoSocket from '~/socket/NocoSocket';
+
+/**
+ * Allowlist of tags / attributes permitted in document comments. Anything
+ * outside this set is stripped before the comment reaches the database.
+ */
+const COMMENT_SANITIZE_CONFIG = {
+  ALLOWED_TAGS: [
+    'p',
+    'span',
+    'a',
+    'b',
+    'i',
+    'u',
+    'strong',
+    'em',
+    'br',
+    'ul',
+    'ol',
+    'li',
+    'code',
+    'pre',
+    'blockquote',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+  ],
+  ALLOWED_ATTR: ['href', 'class', 'target', 'rel'],
+  FORBID_TAGS: [
+    'form',
+    'input',
+    'button',
+    'select',
+    'textarea',
+    'script',
+    'style',
+    'iframe',
+    'object',
+    'embed',
+    'link',
+    'meta',
+    'svg',
+    'math',
+    'base',
+  ],
+  ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
+};
+
+function sanitizeCommentBody(input: unknown): string {
+  if (input == null) return '';
+  return DOMPurify.sanitize(String(input), COMMENT_SANITIZE_CONFIG);
+}
 
 @Injectable()
 export class DocumentCommentsService extends DocumentCommentsServiceCE {
@@ -29,8 +84,11 @@ export class DocumentCommentsService extends DocumentCommentsServiceCE {
       NcError.badRequest('comment is required');
     }
 
+    const sanitizedComment = sanitizeCommentBody(param.body.comment);
+
     const res = await Comment.insertDocComment(context, {
       ...param.body,
+      comment: sanitizedComment,
       base_id: context.base_id,
       created_by: param.user?.id,
       created_by_email: param.user?.email,
@@ -88,7 +146,7 @@ export class DocumentCommentsService extends DocumentCommentsServiceCE {
     }
 
     const res = await Comment.update(context, param.commentId, {
-      comment: param.body.comment,
+      comment: sanitizeCommentBody(param.body.comment),
     });
 
     this.appHooksService.emit(AppEvents.DOCUMENT_COMMENT_UPDATE, {

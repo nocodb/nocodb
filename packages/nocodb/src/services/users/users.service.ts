@@ -29,7 +29,7 @@ import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { PresignedUrl, User, UserRefreshToken } from '~/models';
+import { OAuthToken, PresignedUrl, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
@@ -310,6 +310,7 @@ export class UsersService {
         );
       }
 
+      await UserRefreshToken.deleteAllUserToken(user.id);
       await this.revokeAllOAuthTokensByUser(user.id);
 
       this.appHooksService.emit(AppEvents.USER_PASSWORD_FORGOT, {
@@ -711,5 +712,7 @@ export class UsersService {
     setTokenCookie(res, refreshToken, req);
   }
 
-  protected async revokeAllOAuthTokensByUser(_userId: string) {}
+  protected async revokeAllOAuthTokensByUser(userId: string) {
+    await OAuthToken.revokeAllByUser(userId);
+  }
 }

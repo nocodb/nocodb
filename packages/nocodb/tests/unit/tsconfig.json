@@ -57,7 +57,16 @@
     "typeRoots": [
       "../../src/types",
       "../../node_modules/@types"
-    ]
+    ],
+    "baseUrl": "../../",
+    "paths": {
+      "src/*": ["./src/*"],
+      "~/*": ["./src/*"],
+      "@/*": ["./src/*"],
+      "~test/*": ["./tests/unit/*"],
+      "@noco-local-integrations/*": ["../noco-integrations/packages/*"],
+      "@noco-local-integrations/core": ["../noco-integrations/core"]
+    }
   },
   "include": [
     "./tests/**/**/**.ts",

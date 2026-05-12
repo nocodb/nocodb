@@ -22,6 +22,8 @@ export const internalTests = runOnSet(2, function () {
         require('./ee/sandbox-master-guard.test').sandboxMasterGuardTests();
         require('./ee/sandbox-base-variables.test').sandboxBaseVariablesTests();
         require('./ee/sandbox-id-preservation.test').sandboxIdPreservationTests();
+        require('./ee/undo-redo-roundtrip.test').undoRedoRoundtripTests();
+        require('./ee/undo-redo/index.test').undoRedoFullCoverageTests();
       } catch (e) {
         // EE test files not available in CE
       }

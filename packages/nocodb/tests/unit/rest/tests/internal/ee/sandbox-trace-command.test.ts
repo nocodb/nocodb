@@ -2,6 +2,7 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../../../init';
+import { createV3Base } from '~test/factory/base';
 import { Base, Sandbox, SandboxChangelog } from '~/models';
 
 type Context = Awaited<ReturnType<typeof init>>;
@@ -55,19 +56,6 @@ async function v3Delete(context: Context, path: string) {
 // duplicate-base job) and wire up master + sandbox bases manually. The
 // TraceCommand decorator only checks for a Sandbox row pointing at the
 // current base_id, so a manually-inserted row is enough for Suite 1.
-
-async function createV3Base(context: Context, title: string) {
-  const res = await request(context.app)
-    .post('/api/v1/db/meta/projects/')
-    .set('xc-auth', context.token)
-    .send({
-      title,
-      version: 3,
-      ...(process.env.EE ? { fk_workspace_id: context.fk_workspace_id } : {}),
-    });
-  expect(res.status, `createV3Base ${title}: ${JSON.stringify(res.body)}`).to.eq(200);
-  return res.body;
-}
 
 async function setupSandbox(context: Context, workspaceId: string) {
   const ts = Date.now();

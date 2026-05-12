@@ -261,7 +261,16 @@ const expandedFormOnRowIdDlg = computed({
     // When the side panel is open, don't trigger the modal
     if (isExpandedFormPanelOpen.value) return false
     // EE desktop in panel mode uses the side panel — modal stays closed (a separate watcher syncs the panel from the route).
-    if (isEeUI && !isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel') return false
+    // Falls back to the modal when the grid isn't canvas-rendered, since the panel
+    // depends on canvas-only contracts (getDataCache(path), highlight bar, etc.).
+    if (
+      isEeUI &&
+      !isMobileMode.value &&
+      !isPublic.value &&
+      expandedFormMode.value === 'panel' &&
+      isCanvasRendering.value
+    )
+      return false
     // When ?cellCol points at a SmartText column the SmartText panel claims
     // the screen — expanded record dialog stays closed.
     const cellCol = routeQuery.value.cellCol
@@ -326,22 +335,31 @@ watch(
       return
     if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
 
-    // Look up rowIndex so prev/next + canvas active-row indicator work right
-    // away on page reload / direct link. Returns -1 if the row isn't loaded
-    // yet (infinite-scroll cache miss); openPanel treats that as "no index".
-    // Path comes from the URL (?path=0-1-2) so deep-links into group-by views
-    // restore both the row AND its group scope — without it prev/next would
-    // walk across all groups instead of the user's group.
-    const pathParam = routeQuery.value.path as string | undefined
-    const path = pathParam ? pathParam.split('-').map(Number).filter((n) => !Number.isNaN(n)) : []
-    const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
-    expandedFormPanelStore.openPanel(
-      { row: {}, oldRow: {}, rowMeta: {} } as Row,
-      idx >= 0 ? idx : undefined,
-      undefined,
-      rowId,
-      path,
-    )
+    // Defer the canvas gate + open to nextTick so we don't hit TDZ on
+    // isCanvasRendering (defined further down in this file — the immediate-
+    // fired watcher would otherwise touch the const before its initializer
+    // ran). By nextTick all setup has completed.
+    nextTick(() => {
+      if (!isCanvasRendering.value) return
+      if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
+
+      // Look up rowIndex so prev/next + canvas active-row indicator work right
+      // away on page reload / direct link. Returns -1 if the row isn't loaded
+      // yet (infinite-scroll cache miss); openPanel treats that as "no index".
+      // Path comes from the URL (?path=0-1-2) so deep-links into group-by views
+      // restore both the row AND its group scope — without it prev/next would
+      // walk across all groups instead of the user's group.
+      const pathParam = routeQuery.value.path as string | undefined
+      const path = pathParam ? pathParam.split('-').map(Number).filter((n) => !Number.isNaN(n)) : []
+      const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
+      expandedFormPanelStore!.openPanel(
+        { row: {}, oldRow: {}, rowMeta: {} } as Row,
+        idx >= 0 ? idx : undefined,
+        undefined,
+        rowId,
+        path,
+      )
+    })
   },
   { immediate: true },
 )

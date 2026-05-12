@@ -593,6 +593,45 @@ watch(
   },
 )
 
+// Re-align the panel's activeRowIndex when the visible dataset changes
+// (filter / search / sort all funnel through a cache refresh that updates
+// `cachedRows.size`). Two outcomes:
+//
+//   - row still in the cached set → update activeRowIndex so prev/next and
+//     the canvas highlight bar stay aligned.
+//   - row not in the cached set → close the panel (most likely filtered or
+//     searched out of view; staying open would leave the panel disconnected
+//     from the grid with no prev/next to fall back on).
+//
+// Debounced because a reload does a clear-then-refill on cachedRows: the
+// intermediate `size === 0` would otherwise fire a false-positive close
+// before the refill arrives. The same debounce also coalesces infinite-
+// scroll chunk loads into one no-op resolve.
+let resolveActiveRowIndexTimer: ReturnType<typeof setTimeout> | null = null
+
+const resolveActiveRowIndex = () => {
+  if (resolveActiveRowIndexTimer) clearTimeout(resolveActiveRowIndexTimer)
+  resolveActiveRowIndexTimer = setTimeout(() => {
+    resolveActiveRowIndexTimer = null
+    if (!expandedFormPanelStore?.isOpen.value) return
+    const rowId = expandedFormPanelStore.activeRowId.value
+    if (!rowId) return
+    const path = expandedFormPanelStore.activePath.value
+    const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
+    if (idx === -1) {
+      expandedFormPanelStore.closePanel()
+    } else if (idx !== expandedFormPanelStore.activeRowIndex.value) {
+      expandedFormPanelStore.activeRowIndex.value = idx
+    }
+  }, 600)
+}
+
+watch(() => cachedRows.value.size, resolveActiveRowIndex)
+
+onBeforeUnmount(() => {
+  if (resolveActiveRowIndexTimer) clearTimeout(resolveActiveRowIndexTimer)
+})
+
 const baseColor = computed(() => {
   switch (groupBy.value.length) {
     case 1:

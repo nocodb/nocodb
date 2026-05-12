@@ -1,6 +1,7 @@
 import { nocoModuleEeMetadata } from 'src/ee/modules/noco.module';
 import { PaymentService as PaymentServiceEE } from 'src/ee/modules/payment/payment.service';
-import { Module } from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
+import type { MiddlewareConsumer, NestModule } from '@nestjs/common';
 
 import { OnPremiseController } from '~/controllers/on-premise.controller';
 import { OnPremLicenseController } from '~/controllers/on-prem-license.controller';
@@ -12,6 +13,7 @@ import { GcpMarketplaceService } from '~/services/gcp-marketplace.service';
 import { GcpProcurementClient } from '~/services/gcp-procurement.client';
 import { GcpPubsubListenerService } from '~/services/gcp-pubsub-listener.service';
 import { PaymentService } from '~/modules/payment/payment.service';
+import { LastActiveMiddleware } from '~/ee-cloud/middlewares/last-active.middleware';
 
 // Conditionally include OnPremiseController based on NC_LICENSE_SERVER_PRIVATE_KEY
 const licenseServerControllers = isLicenseServerEnabled()
@@ -41,6 +43,7 @@ export const nocoModuleCloudMetadata = {
     OnPremLicenseService,
     ...gcpMarketplaceProviders,
     ...cloudProviders,
+    LastActiveMiddleware,
   ],
   controllers: [
     // Conditionally include OnPremiseController if NC_LICENSE_SERVER_PRIVATE_KEY is set
@@ -61,4 +64,11 @@ export const nocoModuleCloudMetadata = {
 };
 
 @Module(nocoModuleCloudMetadata)
-export class NocoModule {}
+export class NocoModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // Track last_active_at for nudge-targeting. Debounced 5 min internally.
+    consumer
+      .apply(LastActiveMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

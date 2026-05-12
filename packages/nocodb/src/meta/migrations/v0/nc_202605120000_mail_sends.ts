@@ -34,9 +34,26 @@ const up = async (knex: Knex) => {
       [MetaTable.MAIL_SENDS],
     );
   }
+
+  // Activation tracking. Nullable so invited-but-never-signed-in users stay
+  // NULL — activation-nudge scans filter them out. Populated by the cloud
+  // `LastActiveMiddleware` (5-min debounce, in-memory). Indexed because the
+  // nudge scanner filters on the column at every run.
+  await knex.schema.alterTable(MetaTable.USERS, (t) => {
+    t.dateTime('last_active_at').nullable();
+  });
+  await knex.schema.alterTable(MetaTable.USERS, (t) => {
+    t.index(['last_active_at'], 'nc_users_v2_last_active_at_idx');
+  });
 };
 
 const down = async (knex: Knex) => {
+  await knex.schema.alterTable(MetaTable.USERS, (t) => {
+    t.dropIndex(['last_active_at'], 'nc_users_v2_last_active_at_idx');
+  });
+  await knex.schema.alterTable(MetaTable.USERS, (t) => {
+    t.dropColumn('last_active_at');
+  });
   await knex.schema.dropTableIfExists(MetaTable.MAIL_SENDS);
 };
 

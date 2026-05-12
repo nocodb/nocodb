@@ -497,14 +497,10 @@ export class MailService extends MailServiceEE {
       case MailEvent.TRIAL_ENDED: {
         const p = payload as TrialEndedPayload;
         return {
-          subject: p.convertedToActive
-            ? `Your trial converted — "${p.workspace.title}"`
-            : `Your trial has ended — "${p.workspace.title}"`,
+          subject: `Your trial has ended — "${p.workspace.title}"`,
           html: await this.renderCloudMail('TrialEnded', {
             workspaceTitle: p.workspace.title,
             planTitle: p.planTitle,
-            convertedToActive: p.convertedToActive,
-            periodEnd: p.periodEnd ? this.formatDate(p.periodEnd) : undefined,
             billingPortalUrl: p.billingPortalUrl,
           }),
         };

@@ -3172,8 +3172,14 @@ export class PaymentService {
           const planChanged =
             !!newPlanId && !!prevPlanId && newPlanId !== prevPlanId;
 
-          const trialJustEnded =
-            subRec.status === 'trialing' && stripeSub.status !== 'trialing';
+          // Only notify when the trial ended WITHOUT converting to a paid
+          // plan. Successful conversion is already covered by Stripe's
+          // invoice/receipt email + our earlier SUBSCRIPTION_CREATED with
+          // isTrial=true; re-mailing on conversion would be noise.
+          const trialEndedUnconverted =
+            subRec.status === 'trialing' &&
+            stripeSub.status !== 'trialing' &&
+            stripeSub.status !== 'active';
 
           if (event.type === 'customer.subscription.deleted') {
             await this.safeSendBillingMail(
@@ -3237,7 +3243,7 @@ export class PaymentService {
             });
           }
 
-          if (trialJustEnded) {
+          if (trialEndedUnconverted) {
             await this.safeSendBillingMail(MailEvent.TRIAL_ENDED, async () => {
               const recipient = await this.resolveBillingMailRecipient(
                 workspaceOrOrg,
@@ -3250,14 +3256,6 @@ export class PaymentService {
                 planTitle:
                   stripeSub.metadata.plan_title ??
                   (await this.resolvePlanTitle(subRec.fk_plan_id, 'Plan')),
-                convertedToActive: stripeSub.status === 'active',
-                periodEnd: (() => {
-                  const itemEnd = (stripeSub.items.data[0] as any)
-                    ?.current_period_end;
-                  return itemEnd
-                    ? dayjs.unix(itemEnd).utc().toISOString()
-                    : undefined;
-                })(),
                 billingPortalUrl: recipient.billingPortalUrl,
               };
             });

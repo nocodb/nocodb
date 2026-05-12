@@ -148,8 +148,6 @@ interface PlanChangedPayload extends BillingPayloadBase {
 interface TrialEndedPayload extends BillingPayloadBase {
   subscriptionId: string;
   planTitle: string;
-  convertedToActive: boolean;
-  periodEnd?: string;
 }
 
 interface TrialEndingPayload extends BillingPayloadBase {

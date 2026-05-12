@@ -8,9 +8,7 @@ export type ExpandedFormMode = 'panel' | 'modal'
 export const useExpandedFormMode = createSharedComposable(() => {
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const mode = computed<ExpandedFormMode>(() =>
-    isFeatureEnabled(FEATURE_FLAG.EXPANDED_RECORD_PANEL) ? 'panel' : 'modal',
-  )
+  const mode = computed<ExpandedFormMode>(() => (isFeatureEnabled(FEATURE_FLAG.EXPANDED_RECORD_PANEL) ? 'panel' : 'modal'))
 
   return { mode }
 })

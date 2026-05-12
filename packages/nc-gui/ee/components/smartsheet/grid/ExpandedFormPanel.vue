@@ -59,16 +59,6 @@ const getMaxWidth = () => {
   return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.6))
 }
 
-const onResizeStart = (e: MouseEvent) => {
-  isResizing.value = true
-  resizeStartX.value = e.clientX
-  resizeStartWidth.value = panelWidth.value
-  document.body.style.cursor = 'col-resize'
-
-  window.addEventListener('mousemove', onResizeMove)
-  window.addEventListener('mouseup', onResizeEnd)
-}
-
 const onResizeMove = (e: MouseEvent) => {
   if (!isResizing.value) return
   const delta = resizeStartX.value - e.clientX
@@ -81,6 +71,16 @@ const onResizeEnd = () => {
   window.removeEventListener('mousemove', onResizeMove)
   window.removeEventListener('mouseup', onResizeEnd)
   $e('c:row-expand-panel:resize', { width: panelWidth.value })
+}
+
+const onResizeStart = (e: MouseEvent) => {
+  isResizing.value = true
+  resizeStartX.value = e.clientX
+  resizeStartWidth.value = panelWidth.value
+  document.body.style.cursor = 'col-resize'
+
+  window.addEventListener('mousemove', onResizeMove)
+  window.addEventListener('mouseup', onResizeEnd)
 }
 
 onBeforeUnmount(() => {
@@ -230,6 +230,8 @@ const onAfterDuplicate = () => {
 
 const showDiscardModal = ref(false)
 
+const pendingNavDirection = ref<'prev' | 'next' | null>(null)
+
 const onClose = () => {
   $e('c:row-expand-panel:close')
   if (changedColumns.value.size > 0) {
@@ -239,8 +241,6 @@ const onClose = () => {
     closePanel()
   }
 }
-
-const pendingNavDirection = ref<'prev' | 'next' | null>(null)
 
 const guardedNavigate = (direction: 'prev' | 'next') => {
   $e(`c:row-expand-panel:nav:${direction}`)

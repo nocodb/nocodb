@@ -115,35 +115,6 @@ const focusCell = (rowIndex: number, colIndex: number) => {
 const columnCommands = { insertBefore: 'addColumnBefore', insertAfter: 'addColumnAfter', delete: 'deleteColumn' } as const
 const rowCommands = { insertBefore: 'addRowBefore', insertAfter: 'addRowAfter', delete: 'deleteRow' } as const
 
-const onColumnAction = (colIndex: number, action: keyof typeof columnCommands) => {
-  menuOpen.value = null
-
-  if (action === 'delete') {
-    focusCell(0, colIndex)
-    nextTick(() => {
-      editor.value.chain().focus().deleteColumn().run()
-    })
-    return
-  }
-
-  // With table-layout:fixed + width:100%, if existing cells have explicit
-  // colwidths summing to the table width, the inserted column collapses to
-  // min-width. Capture widths before insertion so we can redistribute after.
-  const widthsBefore = captureColumnWidths()
-
-  focusCell(0, colIndex)
-  nextTick(() => {
-    editor.value.chain().focus()[columnCommands[action]]().run()
-
-    if (widthsBefore.some((w) => w > 0)) {
-      nextTick(() => {
-        const insertIndex = action === 'insertBefore' ? colIndex : colIndex + 1
-        redistributeColumnWidths(widthsBefore, insertIndex)
-      })
-    }
-  })
-}
-
 const captureColumnWidths = (): number[] => {
   const table = tableEl.value
   if (!table || !editor.value) return []
@@ -211,6 +182,35 @@ const redistributeColumnWidths = (oldWidths: number[], insertIndex: number) => {
 
   dispatch(tr)
   nextTick(() => recalcPositions())
+}
+
+const onColumnAction = (colIndex: number, action: keyof typeof columnCommands) => {
+  menuOpen.value = null
+
+  if (action === 'delete') {
+    focusCell(0, colIndex)
+    nextTick(() => {
+      editor.value.chain().focus().deleteColumn().run()
+    })
+    return
+  }
+
+  // With table-layout:fixed + width:100%, if existing cells have explicit
+  // colwidths summing to the table width, the inserted column collapses to
+  // min-width. Capture widths before insertion so we can redistribute after.
+  const widthsBefore = captureColumnWidths()
+
+  focusCell(0, colIndex)
+  nextTick(() => {
+    editor.value.chain().focus()[columnCommands[action]]().run()
+
+    if (widthsBefore.some((w) => w > 0)) {
+      nextTick(() => {
+        const insertIndex = action === 'insertBefore' ? colIndex : colIndex + 1
+        redistributeColumnWidths(widthsBefore, insertIndex)
+      })
+    }
+  })
 }
 
 // --- Row operations ---

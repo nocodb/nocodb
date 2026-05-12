@@ -855,8 +855,16 @@ export class RelationManager {
             );
             const [parentRelatedPkValue, childRelatedPkValue] =
               await baseModel.readOnlyPrimariesByPkFromModel([
-                { model: childTable, id: childId, displayColumn: childDisplayColumn },
-                { model: parentTable, id: oldRowId, displayColumn: parentDisplayColumn },
+                {
+                  model: childTable,
+                  id: childId,
+                  displayColumn: childDisplayColumn,
+                },
+                {
+                  model: parentTable,
+                  id: oldRowId,
+                  displayColumn: parentDisplayColumn,
+                },
               ]);
 
             this.auditUpdateObj.push({
@@ -944,8 +952,16 @@ export class RelationManager {
             );
             const [parentRelatedPkValue, childRelatedPkValue] =
               await baseModel.readOnlyPrimariesByPkFromModel([
-                { model: parentTable, id: oldParentRowId, displayColumn: parentDisplayColumn },
-                { model: childTable, id: childId, displayColumn: childDisplayColumn },
+                {
+                  model: parentTable,
+                  id: oldParentRowId,
+                  displayColumn: parentDisplayColumn,
+                },
+                {
+                  model: childTable,
+                  id: childId,
+                  displayColumn: childDisplayColumn,
+                },
               ]);
 
             this.auditUpdateObj.push({
@@ -1045,8 +1061,16 @@ export class RelationManager {
                 ]);
               const [parentRelatedPkValue, childRelatedPkValue] =
                 await baseModel.readOnlyPrimariesByPkFromModel([
-                  { model: childTable, id: oldChildRowId, displayColumn: childDisplayColumn },
-                  { model: parentTable, id: parentId, displayColumn: parentDisplayColumn },
+                  {
+                    model: childTable,
+                    id: oldChildRowId,
+                    displayColumn: childDisplayColumn,
+                  },
+                  {
+                    model: parentTable,
+                    id: parentId,
+                    displayColumn: parentDisplayColumn,
+                  },
                 ]);
 
               this.auditUpdateObj.push({
@@ -1094,8 +1118,16 @@ export class RelationManager {
             );
             const [parentRelatedPkValue, childRelatedPkValue] =
               await baseModel.readOnlyPrimariesByPkFromModel([
-                { model: childTable, id: childId, displayColumn: childDisplayColumn },
-                { model: parentTable, id: oldRowId, displayColumn: parentDisplayColumn },
+                {
+                  model: childTable,
+                  id: childId,
+                  displayColumn: childDisplayColumn,
+                },
+                {
+                  model: parentTable,
+                  id: oldRowId,
+                  displayColumn: parentDisplayColumn,
+                },
               ]);
 
             this.auditUpdateObj.push({

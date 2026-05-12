@@ -198,6 +198,57 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const skipRowRemovalOnCancel = ref(false)
 
+const {
+  selectedAllRecords: pSelectedAllRecords,
+  formattedData: pData,
+  paginationData: pPaginationData,
+  loadData: pLoadData,
+  changePage: pChangePage,
+  aggCommentCount: pAggCommentCount,
+  addEmptyRow: pAddEmptyRow,
+  deleteRow: pDeleteRow,
+  updateOrSaveRow: pUpdateOrSaveRow,
+  deleteSelectedRows: pDeleteSelectedRows,
+  deleteRangeOfRows: pDeleteRangeOfRows,
+  bulkUpdateRows: pBulkUpdateRows,
+  removeRowIfNew: pRemoveRowIfNew,
+  isFirstRow: pisFirstRow,
+  islastRow: pisLastRow,
+  getExpandedRowIndex: pGetExpandedRowIndex,
+  navigateToSiblingRow: pNavigateToSiblingRow,
+} = useViewData(meta, view, xWhere)
+
+const {
+  isGroupBy,
+  rootGroup,
+  loadGroupData,
+  loadGroups,
+  loadGroupPage,
+  groupWrapperChangePage,
+  loadGroupAggregation,
+  groupBy,
+  redistributeRows,
+  loadDisallowedLookups,
+} = useViewGroupByOrThrow()
+
+const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
+
+const isCanvasTableEnabled = computed(() => !ncIsPlaywright())
+
+const isCanvasGroupByTableEnabled = computed(
+  () => !ncIsPlaywright() && !blockExternalSourceRecordVisibility(isExternalSource.value),
+)
+
+// Mirrors the v-if guarding <CanvasTable /> below. The EFP side panel relies on
+// canvas-only contracts (getDataCache(path), active-cell path comparison, etc.)
+// so we restrict the panel to canvas. Non-canvas branches (paginated Table /
+// DOM-based InfiniteTable) fall back to the modal expanded form.
+const isCanvasRendering = computed(
+  () =>
+    isInfiniteScrollingEnabled.value &&
+    ((isCanvasTableEnabled.value && !isGroupBy.value) || (isCanvasGroupByTableEnabled.value && isGroupBy.value)),
+)
+
 function updateRowIdRoute(rowId: string, path: Array<number> = []) {
   const routeParams = {
     query: {
@@ -329,10 +380,9 @@ watch(
       return
     if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
 
-    // Defer the canvas gate + open to nextTick so we don't hit TDZ on
-    // isCanvasRendering (defined further down in this file — the immediate-
-    // fired watcher would otherwise touch the const before its initializer
-    // ran). By nextTick all setup has completed.
+    // Defer the canvas gate + open to nextTick so child grids (canvas, group-by)
+    // have a chance to mount and register before we read isCanvasRendering and
+    // attempt to open the panel.
     nextTick(() => {
       if (!isCanvasRendering.value) return
       if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
@@ -473,8 +523,6 @@ const updateViewWidth = () => {
   viewWidth.value = windowSize.value - leftSidebarWidth.value
 }
 
-const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
-
 expandedFormPanelRowNavigator.value = {
   getRow: (index: number, path: number[] = []) => {
     // Route flat lookups through getDataCache([]) too — it returns the same
@@ -505,64 +553,11 @@ expandedFormPanelRowNavigator.value = {
   },
 }
 
-const isCanvasTableEnabled = computed(() => !ncIsPlaywright())
-
-const isCanvasGroupByTableEnabled = computed(
-  () => !ncIsPlaywright() && !blockExternalSourceRecordVisibility(isExternalSource.value),
-)
-
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
 onMounted(() => {
   updateViewWidth()
 })
-
-const {
-  selectedAllRecords: pSelectedAllRecords,
-  formattedData: pData,
-  paginationData: pPaginationData,
-  loadData: pLoadData,
-  changePage: pChangePage,
-  aggCommentCount: pAggCommentCount,
-  addEmptyRow: pAddEmptyRow,
-  deleteRow: pDeleteRow,
-  updateOrSaveRow: pUpdateOrSaveRow,
-  deleteSelectedRows: pDeleteSelectedRows,
-  deleteRangeOfRows: pDeleteRangeOfRows,
-  bulkUpdateRows: pBulkUpdateRows,
-  removeRowIfNew: pRemoveRowIfNew,
-  isFirstRow: pisFirstRow,
-  islastRow: pisLastRow,
-  getExpandedRowIndex: pGetExpandedRowIndex,
-  navigateToSiblingRow: pNavigateToSiblingRow,
-} = useViewData(meta, view, xWhere)
-
-const {
-  isGroupBy,
-  rootGroup,
-  loadGroupData,
-  loadGroups,
-  loadGroupPage,
-  groupWrapperChangePage,
-  loadGroupAggregation,
-  groupBy,
-  redistributeRows,
-  loadDisallowedLookups,
-} = useViewGroupByOrThrow()
-
-// Mirrors the v-if guarding <CanvasTable /> below. The EFP side panel relies on
-// canvas-only contracts (getDataCache(path), active-cell path comparison, etc.)
-// so we restrict the panel to canvas. Non-canvas branches (paginated Table /
-// DOM-based InfiniteTable) fall back to the modal expanded form.
-//
-// Defined below the isGroupBy destructuring to avoid TDZ on cold reload — the
-// existing deep-link watcher (`immediate: true`) fires before this line in
-// setup, so we intentionally don't reference this computed there.
-const isCanvasRendering = computed(
-  () =>
-    isInfiniteScrollingEnabled.value &&
-    ((isCanvasTableEnabled.value && !isGroupBy.value) || (isCanvasGroupByTableEnabled.value && isGroupBy.value)),
-)
 
 // Close the side panel when the experimental flag is toggled off mid-session.
 // Without this the panel that was already mounted stays put even though

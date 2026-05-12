@@ -52,22 +52,7 @@ const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const expandedFormStore = useExpandedFormStoreOrThrow()
 
-const {
-  isNew,
-  isSaving,
-  primaryKey,
-  displayValue,
-  baseRoles,
-  meta,
-  row: _row,
-  state: rowState,
-  loadRow: _loadRow,
-  save: _save,
-  formatSaveError,
-  changedColumns,
-  clearColumns,
-  deleteRowById,
-} = expandedFormStore
+const { isNew, primaryKey, displayValue, baseRoles, meta, row: _row, loadRow: _loadRow, deleteRowById } = expandedFormStore
 
 const isRecordLinkCopied = ref(false)
 
@@ -108,11 +93,7 @@ const visibleMoreOptions = computed(() => {
     // Only meaningful when there's a standalone copy-URL button — in compact mode
     // the dropdown is the ONLY surface for copy-URL, so it must always render.
     allHiddenExceptCopyRecordUrl:
-      !props.compact &&
-      !result.reloadRecord &&
-      !result.sendRecord &&
-      !result.duplicateRecord &&
-      !result.deleteRecord,
+      !props.compact && !result.reloadRecord && !result.sendRecord && !result.duplicateRecord && !result.deleteRecord,
   }
 })
 
@@ -340,5 +321,4 @@ const onConfirmDeleteRowClick = async () => {
     :view="view"
     :row-id="primaryKey"
   />
-
 </template>

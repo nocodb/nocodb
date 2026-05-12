@@ -9,9 +9,10 @@ import { FormPage } from '../../Form';
 import { MapPage } from '../../Map';
 import { TopbarSharePage } from './Share';
 import { CalendarPage } from '../../Calendar';
+import { TimelinePage } from '../../Timeline';
 
 export class TopbarPage extends BasePage {
-  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage;
+  readonly parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage | TimelinePage;
   readonly share: TopbarSharePage;
 
   readonly btn_share: Locator;
@@ -20,7 +21,7 @@ export class TopbarPage extends BasePage {
   readonly btn_cmdK: Locator;
   readonly btn_extension: Locator;
 
-  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage) {
+  constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage | TimelinePage) {
     super(parent.rootPage);
     this.parent = parent;
     this.share = new TopbarSharePage(this);

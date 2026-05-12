@@ -2,7 +2,33 @@
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
+import { TIMELINE_GROUP_HEADER_HEIGHT, type TimelineZoomLevel } from '../../../utils/timelineUtils'
 import type { Row as RowType } from '#imports'
+
+// Pre-computed per-bar geometry + style. Built once per swimlanes recompute
+// (record / buffer / colWidth / rowMeta changes) so per-frame scroll
+// handlers and the template only do numeric / property reads.
+interface BarMeta {
+  record: RowType
+  // Stable per-record key for v-for. Comes from the row's primary key when
+  // available — falls back to the records-array index so unsaved rows still
+  // diff correctly. Stable across swimlanes recomputes (visibleRecords
+  // changes, buffer trims) so Vue patches in place rather than remounting,
+  // preserving NcTooltip hover state.
+  key: string | number
+  colorIndex: number
+  startDate: dayjs.Dayjs
+  endDate: dayjs.Dayjs
+  startVisible: boolean
+  endVisible: boolean
+  leftPx: number
+  widthPx: number
+  // Row-coloring outputs (extractRowBackgroundColorStyle), pre-resolved so
+  // the template doesn't call it 4× per bar.
+  bgStyle: Record<string, string>
+  borderStyle: Record<string, string>
+  hasBgColor: boolean
+}
 
 const props = defineProps<{
   records: RowType[]
@@ -13,7 +39,7 @@ const props = defineProps<{
     id: string
     is_readonly: boolean
   }>
-  zoomLevel: 'day' | 'week' | 'month'
+  zoomLevel: TimelineZoomLevel
   hideHeader?: boolean
 }>()
 
@@ -29,10 +55,29 @@ const { isAllowed } = usePermissions()
 
 const { $e } = useNuxtApp()
 
-const { updateRowProperty, updateFormat } = useTimelineViewStoreOrThrow()
+const {
+  updateRowProperty,
+  updateFormat,
+  colWidth,
+  totalGridWidth,
+  scrollLeft: storeScrollLeft,
+  viewportWidth: storeViewportWidth,
+  onScrollUpdate,
+  setViewportWidth,
+  onScrollAdjustment,
+  majorHeaderTiers,
+  gridlineOffsets,
+  weekendOffsets,
+  minorLabels,
+} = useTimelineViewStoreOrThrow()
 
 // Visible fields from the Fields menu (injected by parent Smartsheet/shared-view)
 const fields = inject(FieldsInj, ref())
+
+// Table meta — needed for primary-key extraction so each bar has a stable
+// v-for key across swimlanes recomputes (instead of using its index in
+// visibleRecords, which shifts when records are added/removed/reordered).
+const meta = inject(MetaInj, ref())
 
 // View column configs (for bold/italic/underline styles)
 const { fields: viewFields } = useViewColumnsOrThrow()
@@ -48,11 +93,6 @@ const fieldStyles = computed(() => {
     return acc
   }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
-
-// Extract row color styles (from Colour toolbar config)
-const getRowColorStyle = (record: RowType) => {
-  return extractRowBackgroundColorStyle(record)
-}
 
 // #18: Reactive today — re-evaluates on visibility change so it stays current past midnight
 const today = ref(dayjs())
@@ -73,35 +113,36 @@ const handleVisibilityChange = () => {
 
 onMounted(() => {
   document.addEventListener('visibilitychange', handleVisibilityChange)
+
+  // Sync DOM scrollLeft to the store's scrollLeft on mount. New Grid
+  // instances (e.g., after a data reload that swapped in the loader, or after
+  // switching back to the timeline view) start with scrollLeft=0; without
+  // this, the first native scroll event from any source would call
+  // onScrollUpdate(0) and stomp currentDate to "the date at viewport-centre
+  // when scrolled to 0", which is not what the store says we're looking at.
+  nextTick(() => {
+    const target = storeScrollLeft.value
+    if (target <= 0) return
+    if (bodyScrollRef.value) bodyScrollRef.value.scrollLeft = target
+    if (headerScrollRef.value) headerScrollRef.value.scrollLeft = target
+  })
 })
 
 const ROW_HEIGHT = 36
-const HEADER_HEIGHT = 32
 
-// Measure the grid container to compute dynamic column widths
+// Measure the grid container — drives viewport width for scroll math
 const gridContainerRef = ref<HTMLElement | null>(null)
 const { width: containerWidth } = useElementSize(gridContainerRef)
 
-// #4: Column width — for month view, always fit all days in the container;
-// for day/week views, enforce a minimum so columns aren't excessively wide
-const MIN_COL_WIDTH_DAY_WEEK = 48
-const colWidth = computed(() => {
-  if (!containerWidth.value || !props.visibleDates.length) return 120
-  const naturalWidth = containerWidth.value / props.visibleDates.length
-  // Month view: always fit all days without horizontal scroll
-  if (props.zoomLevel === 'month') return naturalWidth
-  return Math.max(naturalWidth, MIN_COL_WIDTH_DAY_WEEK)
-})
-
-// Total grid width — may exceed container for horizontal scroll
-const totalGridWidth = computed(() => {
-  return props.visibleDates.length * colWidth.value
-})
-
-// Whether horizontal scrolling is needed
-const needsHorizontalScroll = computed(() => {
-  return totalGridWidth.value > containerWidth.value
-})
+// Push viewport width into the store so it can compute scroll targets and
+// derive currentDate from viewport center.
+watch(
+  containerWidth,
+  (w) => {
+    if (w > 0) setViewportWidth(w)
+  },
+  { immediate: true },
+)
 
 // --- Resize state ---
 const resizeInProgress = ref(false)
@@ -475,14 +516,21 @@ const visibleRecords = computed(() => {
     })
 })
 
-// Swimlane packing: group non-overlapping records into lanes so bars sit side by side
-// Each lane is an array of { record, colorIndex } where colorIndex is the record's
-// position in the global visibleRecords list (for stable coloring).
-const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>>(() => {
+// Swimlane packing: group non-overlapping records into lanes so bars sit side
+// by side. Each entry carries pre-computed bar geometry (parsed dates,
+// visibility flags, leftPx/widthPx) so the per-scroll-tick render path
+// (`getLabelStyle`, bar `:style`, `:class`) only does numeric arithmetic.
+// `colorIndex` is the record's position in `visibleRecords` (stable coloring).
+const swimlanes = computed<BarMeta[][]>(() => {
   const range = props.timelineRange[0]
   if (!range) return []
 
-  const lanes: Array<{ records: Array<{ record: RowType; colorIndex: number }>; lastEnd: dayjs.Dayjs }> = []
+  const firstVisibleDate = props.visibleDates[0]
+  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
+  if (!firstVisibleDate || !lastVisibleDate) return []
+
+  const cw = colWidth.value
+  const lanes: Array<{ records: BarMeta[]; lastEnd: dayjs.Dayjs }> = []
 
   visibleRecords.value.forEach((record, idx) => {
     const startDate = parseDate(record, range.fk_from_col)
@@ -490,160 +538,110 @@ const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>
     if (!startDate) return
 
     const effectiveEnd = endDate || startDate
+    if (endDate && effectiveEnd.isBefore(startDate, 'day')) return
 
-    // Find the first lane where this record fits (no overlap)
+    const startVisible = !startDate.isBefore(firstVisibleDate, 'day')
+    const endVisible = !effectiveEnd.isAfter(lastVisibleDate, 'day')
+    const clampedStart = startVisible ? startDate : firstVisibleDate
+    const clampedEnd = endVisible ? effectiveEnd : lastVisibleDate
+    const startOffset = clampedStart.diff(firstVisibleDate, 'day')
+    const duration = clampedEnd.diff(clampedStart, 'day') + 1
+
+    const colorStyle = extractRowBackgroundColorStyle(record)
+    const leftBorder = colorStyle.rowLeftBorderColor as { backgroundColor?: string }
+    const pk = extractPkFromRow(record.row, (meta.value?.columns ?? []) as ColumnType[])
+    const barMeta: BarMeta = {
+      record,
+      key: pk ?? `__idx_${idx}`,
+      colorIndex: idx,
+      startDate,
+      endDate: effectiveEnd,
+      startVisible,
+      endVisible,
+      leftPx: startOffset * cw,
+      // Allow bars to shrink to a 1px hairline at coarse zooms.
+      widthPx: Math.max(duration * cw - 4, 1),
+      bgStyle: colorStyle.rowBgColor as Record<string, string>,
+      borderStyle: leftBorder?.backgroundColor
+        ? (leftBorder as Record<string, string>)
+        : { backgroundColor: 'var(--color-gray-900, #101015)' },
+      hasBgColor: !!(colorStyle.rowBgColor as { backgroundColor?: string })?.backgroundColor,
+    }
+
     let placed = false
     for (const lane of lanes) {
       if (startDate.isAfter(lane.lastEnd, 'day')) {
-        lane.records.push({ record, colorIndex: idx })
+        lane.records.push(barMeta)
         lane.lastEnd = effectiveEnd
         placed = true
         break
       }
     }
 
-    // No existing lane fits — create a new one
     if (!placed) {
-      lanes.push({
-        records: [{ record, colorIndex: idx }],
-        lastEnd: effectiveEnd,
-      })
+      lanes.push({ records: [barMeta], lastEnd: effectiveEnd })
     }
   })
 
   return lanes.map((lane) => lane.records)
 })
 
-// Get bar position and width for a record
-const getBarStyle = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return null
+// Pure arithmetic — no dayjs allocations, no string parsing. Reactive on
+// `storeScrollLeft` / `storeViewportWidth`; everything else comes from the
+// pre-computed `BarMeta`. The 28px reserves for the per-bar nav arrows
+// only apply when the matching bar edge is actually in the viewport — once
+// the user has scrolled past a bar edge, the arrow is off-screen too and
+// the label can hug the visible portion with the smaller padding.
+const getLabelStyle = (bar: BarMeta) => {
+  const vpLeft = storeScrollLeft.value
+  const vpRight = vpLeft + storeViewportWidth.value
+  const barRightPx = bar.leftPx + bar.widthPx
 
-  const startDate = parseDate(row, range.fk_from_col)
-  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
+  const leftArrowInView = !bar.startVisible && bar.leftPx >= vpLeft
+  const rightArrowInView = !bar.endVisible && barRightPx <= vpRight
+  const startPad = leftArrowInView ? 28 : 10
+  const endPad = rightArrowInView ? 28 : 8
 
-  if (!startDate) return null
-
-  const effectiveEnd = endDate || startDate
-
-  // Skip records where end date is before start date
-  if (endDate && effectiveEnd.isBefore(startDate, 'day')) {
-    return null
-  }
-
-  const firstVisibleDate = props.visibleDates[0]
-  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
-
-  if (!firstVisibleDate || !lastVisibleDate) return null
-
-  // Check if bar is within visible range at all
-  if (effectiveEnd.isBefore(firstVisibleDate, 'day') || startDate.isAfter(lastVisibleDate, 'day')) {
-    return null
-  }
-
-  // Calculate start position
-  const clampedStart = startDate.isBefore(firstVisibleDate, 'day') ? firstVisibleDate : startDate
-  const clampedEnd = effectiveEnd.isAfter(lastVisibleDate, 'day') ? lastVisibleDate : effectiveEnd
-
-  const startOffset = clampedStart.diff(firstVisibleDate, 'day')
-  const duration = clampedEnd.diff(clampedStart, 'day') + 1
+  const scrolledPast = Math.max(0, vpLeft - bar.leftPx)
+  const minLabelWidth = 8
+  const maxLeftInBar = Math.max(startPad, bar.widthPx - endPad - minLabelWidth)
+  const leftInBar = Math.min(scrolledPast + startPad, maxLeftInBar)
 
   return {
-    left: `${startOffset * colWidth.value}px`,
-    width: `${Math.max(duration * colWidth.value - 4, 20)}px`,
+    left: `${leftInBar}px`,
+    right: `${endPad}px`,
   }
 }
 
 // #11: Build tooltip text for a record bar — improved format with em-dash and year
-const getBarTooltip = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return ''
-
-  const startDate = parseDate(row, range.fk_from_col)
-  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
-
-  if (!startDate) return ''
-
-  const effectiveEnd = endDate || startDate
-  const days = effectiveEnd.diff(startDate, 'day') + 1
+const getBarTooltip = (bar: BarMeta) => {
+  const days = bar.endDate.diff(bar.startDate, 'day') + 1
 
   if (days <= 1) {
-    return startDate.format('MMM D, YYYY')
+    return bar.startDate.format('MMM D, YYYY')
   }
 
   // Show year on both sides if they differ, otherwise only on end
-  const sameYear = startDate.year() === effectiveEnd.year()
+  const sameYear = bar.startDate.year() === bar.endDate.year()
   const startFmt = sameYear ? 'MMM D' : 'MMM D, YYYY'
-  return `${startDate.format(startFmt)} — ${effectiveEnd.format('MMM D, YYYY')}  ·  ${days} days`
+  return `${bar.startDate.format(startFmt)} — ${bar.endDate.format('MMM D, YYYY')}  ·  ${days} days`
 }
 
-// Determine if a date is today
-const isToday = (date: dayjs.Dayjs) => {
-  return date.isSame(today.value, 'day')
-}
-
-// Determine if a date is a weekend
-const isWeekend = (date: dayjs.Dayjs) => {
-  return date.day() === 0 || date.day() === 6
-}
-
-// Check if record's start date is visible (not clamped to before the viewport)
-const isStartVisible = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return false
-  const startDate = parseDate(row, range.fk_from_col)
-  if (!startDate) return false
-  const firstVisibleDate = props.visibleDates[0]
-  if (!firstVisibleDate) return false
-  return !startDate.isBefore(firstVisibleDate, 'day')
-}
-
-// Check if record's end date is visible (not clamped to after the viewport)
-const isEndVisible = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return false
-  const startDate = parseDate(row, range.fk_from_col)
-  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
-  const effectiveEnd = endDate || startDate
-  if (!effectiveEnd) return false
-  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
-  if (!lastVisibleDate) return false
-  return !effectiveEnd.isAfter(lastVisibleDate, 'day')
-}
-
-// Today indicator position
-const todayPosition = computed(() => {
+// Today indicator position (center of today's column, for the body's
+// vertical line). `todayDayIdx` exposes the column index so overlays can
+// position themselves at the cell's left edge with `colWidth` width.
+const todayDayIdx = computed(() => {
   const firstDate = props.visibleDates[0]
-  if (!firstDate) return null
+  if (!firstDate) return -1
   const offset = today.value.diff(firstDate, 'day')
-  if (offset < 0 || offset >= props.visibleDates.length) return null
-  return offset * colWidth.value + colWidth.value / 2
+  if (offset < 0 || offset >= props.visibleDates.length) return -1
+  return offset
 })
 
-// Per-bar navigation: get the start/end date for a clipped record
-const getRecordStartDate = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return null
-  return parseDate(row, range.fk_from_col)
-}
-
-const getRecordEndDate = (row: RowType) => {
-  const range = props.timelineRange[0]
-  if (!range) return null
-  const startDate = parseDate(row, range.fk_from_col)
-  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
-  return endDate || startDate
-}
-
-const navigateToRecordStart = (row: RowType) => {
-  const startDate = getRecordStartDate(row)
-  if (startDate) emit('navigateTo', startDate)
-}
-
-const navigateToRecordEnd = (row: RowType) => {
-  const endDate = getRecordEndDate(row)
-  if (endDate) emit('navigateTo', endDate)
-}
+const todayPosition = computed(() => {
+  if (todayDayIdx.value < 0) return null
+  return todayDayIdx.value * colWidth.value + colWidth.value / 2
+})
 
 // Grid-level navigation: for fully off-screen records (no bars visible at all)
 const hasFullyOffScreenBefore = computed(() => {
@@ -795,16 +793,52 @@ const onBarKeydown = (event: KeyboardEvent, record: RowType, laneIdx: number, ba
   targetEl?.focus()
 }
 
-// Sync horizontal scroll between header and body
+// Horizontal scroll: the body is the user-scrolled element; the header
+// follows via a watcher on the store's scrollLeft. In grouped mode multiple
+// Grid instances exist — they all sync to the same store value.
 const headerScrollRef = ref<HTMLElement | null>(null)
 const bodyScrollRef = ref<HTMLElement | null>(null)
 
 const onBodyScroll = (event: Event) => {
   const target = event.target as HTMLElement
-  if (headerScrollRef.value) {
-    headerScrollRef.value.scrollLeft = target.scrollLeft
-  }
+  // Idempotent guard: when the store updates scrollLeft and we mirror it back
+  // onto this element, the resulting native scroll event would otherwise
+  // re-enter the store. Bail when the value already matches.
+  if (target.scrollLeft === storeScrollLeft.value) return
+  onScrollUpdate(target.scrollLeft)
 }
+
+// Mirror store scrollLeft → DOM. Both header and body track it. `flush: sync`
+// keeps the header in lockstep with the body during user scrolling — without
+// it, the watch fires post-render and the header visibly lags.
+watch(
+  () => storeScrollLeft.value,
+  (newLeft) => {
+    if (headerScrollRef.value && headerScrollRef.value.scrollLeft !== newLeft) {
+      headerScrollRef.value.scrollLeft = newLeft
+    }
+    if (bodyScrollRef.value && bodyScrollRef.value.scrollLeft !== newLeft) {
+      bodyScrollRef.value.scrollLeft = newLeft
+    }
+  },
+  { flush: 'sync' },
+)
+
+// Imperative scroll adjustments from the store (goToDate / today / prev /
+// next / buffer extension). Applied after the DOM has rendered the new
+// buffer width — both header and body move atomically to avoid a frame of
+// visible drift.
+onScrollAdjustment(({ type, value }) => {
+  nextTick(() => {
+    const apply = (el: HTMLElement | null) => {
+      if (!el) return
+      if (type === 'delta') el.scrollLeft += value
+      else el.scrollLeft = value
+    }
+    apply(bodyScrollRef.value)
+    apply(headerScrollRef.value)
+  })
+})
 
 const onGridMouseMove = (event: MouseEvent) => {
   if (resizeInProgress.value || dragInProgress.value) return
@@ -852,47 +886,88 @@ const onGridMouseLeave = () => {
     <!-- Date column headers (hidden when parent provides a shared header) -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
       <div ref="headerScrollRef" class="overflow-x-hidden" @mousemove="onHeaderMouseMove" @mouseleave="onGridMouseLeave">
-        <div
-          class="flex bg-nc-bg-default border-b border-nc-border-gray-medium"
-          :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%' }"
-        >
+        <div :style="{ width: `${totalGridWidth}px` }">
+          <!-- Stacked major rows (year / quarter / month etc.) — each tier is
+               a row of absolutely-positioned spans over the day grid. -->
           <div
-            v-for="(date, dateIdx) in visibleDates"
-            :key="date.format('YYYY-MM-DD')"
-            class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center transition-colors duration-100"
-            :class="{
-              'bg-nc-bg-brand': isToday(date),
-              'nc-timeline-header-hover': hoverColIndex === dateIdx && !isToday(date),
-              'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date) && hoverColIndex !== dateIdx,
-            }"
-            :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
+            v-for="(tier, tierIdx) in majorHeaderTiers"
+            :key="`tier-${tierIdx}`"
+            class="relative bg-nc-bg-default border-b border-nc-border-gray-light"
+            :style="{ height: '20px' }"
           >
-            <span
-              class="text-[10px] font-normal leading-tight"
-              :class="{
-                'text-nc-content-brand': isToday(date),
-                'text-nc-content-gray-subtle': hoverColIndex === dateIdx && !isToday(date),
-                'text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
-              }"
+            <div
+              v-for="span in tier"
+              :key="span.key"
+              class="absolute top-0 h-full flex items-center justify-start text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-2"
+              :style="{ left: `${span.leftPx}px`, width: `${span.widthPx}px` }"
             >
-              {{
-                zoomLevel === 'month'
-                  ? date.format('dd').charAt(0)
-                  : zoomLevel === 'week'
-                  ? date.format('ddd')
-                  : date.format('dddd')
-              }}
-            </span>
-            <span
-              class="text-[11px] leading-tight"
-              :class="{
-                'text-nc-content-brand': isToday(date),
-                'font-semibold text-nc-content-gray-emphasis': hoverColIndex === dateIdx && !isToday(date),
-                'font-normal text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
-              }"
+              {{ span.label }}
+            </div>
+          </div>
+
+          <!-- Minor row. Per-day cells were replaced with absolute overlays
+               so coarse zooms don't iterate 1.5k–3.7k cells per render: a
+               single bg div + sparse weekend / gridline / label arrays. -->
+          <div
+            class="relative bg-nc-bg-default border-b border-nc-border-gray-medium"
+            :style="{ height: `${TIMELINE_GROUP_HEADER_HEIGHT}px`, width: `${totalGridWidth}px` }"
+          >
+            <!-- Weekend stripes (only at fine zooms) -->
+            <div
+              v-for="off in weekendOffsets"
+              :key="`hwk-${off.key}`"
+              class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight pointer-events-none"
+              :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
+            />
+            <!-- Today column highlight -->
+            <div
+              v-if="todayDayIdx >= 0"
+              class="absolute top-0 bottom-0 bg-nc-bg-brand pointer-events-none"
+              :style="{ left: `${todayDayIdx * colWidth}px`, width: `${colWidth}px` }"
+            />
+            <!-- Hover column highlight -->
+            <div
+              v-if="hoverColIndex !== null && hoverColIndex !== todayDayIdx"
+              class="absolute top-0 bottom-0 nc-timeline-header-hover pointer-events-none"
+              :style="{ left: `${hoverColIndex * colWidth}px`, width: `${colWidth}px` }"
+            />
+            <!-- Gridline boundaries -->
+            <div
+              v-for="off in gridlineOffsets"
+              :key="`hgl-${off.key}`"
+              class="absolute top-0 bottom-0 border-r border-nc-border-gray-light pointer-events-none"
+              :style="{ left: `${off.leftPx}px` }"
+            />
+            <!-- Sparse labels (mondays / weekday-short / per-day at fine zooms) -->
+            <div
+              v-for="lbl in minorLabels"
+              :key="`hl-${lbl.key}`"
+              class="absolute top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
+              :style="{ left: `${lbl.leftPx}px`, width: `${colWidth}px` }"
             >
-              {{ date.format('D') }}
-            </span>
+              <span
+                v-if="lbl.weekday"
+                class="text-[10px] font-normal leading-tight"
+                :class="{
+                  'text-nc-content-brand': lbl.idx === todayDayIdx,
+                  'text-nc-content-gray-subtle': lbl.idx === hoverColIndex && lbl.idx !== todayDayIdx,
+                  'text-nc-content-gray-muted': lbl.idx !== hoverColIndex && lbl.idx !== todayDayIdx,
+                }"
+              >
+                {{ lbl.weekday }}
+              </span>
+              <span
+                v-if="lbl.dayNum"
+                class="text-[11px] leading-tight whitespace-nowrap"
+                :class="{
+                  'text-nc-content-brand': lbl.idx === todayDayIdx,
+                  'font-semibold text-nc-content-gray-emphasis': lbl.idx === hoverColIndex && lbl.idx !== todayDayIdx,
+                  'font-normal text-nc-content-gray-muted': lbl.idx !== hoverColIndex && lbl.idx !== todayDayIdx,
+                }"
+              >
+                {{ lbl.dayNum }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -900,34 +975,33 @@ const onGridMouseLeave = () => {
     <!-- When header is hidden, still need a ref element to measure container width -->
     <div v-else ref="gridContainerRef" class="w-full h-0" />
 
-    <!-- Scrollable grid body (#4: both axes scroll) -->
+    <!-- Scrollable grid body. Flat mode: scroll both axes. Grouped mode (hideHeader):
+         scroll only horizontally; vertical scroll lives on the GroupBy wrapper.
+         The horizontal scrollbar is hidden in grouped mode so users see only the
+         shared scrollbar on the top date header. -->
     <div
       ref="bodyScrollRef"
-      :class="hideHeader ? 'overflow-hidden' : 'flex-1 min-h-0 overflow-auto'"
+      :class="hideHeader ? 'overflow-x-auto overflow-y-hidden nc-timeline-no-scrollbar' : 'flex-1 min-h-0 overflow-auto'"
       @scroll="onBodyScroll"
       @mousemove="onGridMouseMove"
       @mouseleave="onGridMouseLeave"
     >
-      <div class="relative" :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%', minHeight: '100%' }">
+      <div class="relative" :style="{ width: `${totalGridWidth}px`, minHeight: '100%' }">
         <!-- Background layer: grid lines, weekend shading, today line — fills full height -->
         <div class="absolute inset-0 pointer-events-none">
-          <!-- Weekend backgrounds -->
+          <!-- Weekend stripes (only at fine zooms — see weekendOffsets in store) -->
           <div
-            v-for="(date, dateIdx) in visibleDates"
-            :key="`bg-${date.format('YYYY-MM-DD')}`"
-            class="absolute top-0 bottom-0"
-            :class="{ 'bg-nc-bg-gray-extralight': isWeekend(date) }"
-            :style="{
-              left: `${dateIdx * colWidth}px`,
-              width: `${colWidth}px`,
-            }"
+            v-for="off in weekendOffsets"
+            :key="`bg-${off.key}`"
+            class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight"
+            :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
           />
-          <!-- Grid lines (vertical) -->
+          <!-- Grid lines at the current scale's gridline cadence -->
           <div
-            v-for="(date, dateIdx) in visibleDates"
-            :key="`line-${date.format('YYYY-MM-DD')}`"
+            v-for="off in gridlineOffsets"
+            :key="`line-${off.key}`"
             class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
-            :style="{ left: `${(dateIdx + 1) * colWidth}px` }"
+            :style="{ left: `${off.leftPx}px` }"
           />
           <!-- Today indicator line -->
           <div
@@ -958,75 +1032,62 @@ const onGridMouseLeave = () => {
 
             <!-- Bars in this lane -->
             <NcTooltip
-              v-for="({ record, colorIndex }, barIdx) in lane"
-              :key="colorIndex"
+              v-for="(bar, barIdx) in lane"
+              :key="bar.key"
               :disabled="isInteracting"
               placement="top"
               class="absolute top-1"
-              :style="getBarStyle(record)"
+              :style="{ left: `${bar.leftPx}px`, width: `${bar.widthPx}px` }"
             >
               <template #title>
-                <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
+                <span class="text-xs font-semibold">{{ getBarTooltip(bar) }}</span>
               </template>
               <div
                 class="nc-timeline-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group w-full relative overflow-hidden"
                 :class="{
-                  'cursor-grabbing': dragInProgress && dragRecord === record && canDrag,
+                  'cursor-grabbing': dragInProgress && dragRecord === bar.record && canDrag,
                   'cursor-grab': !isInteracting && canDrag,
                   'cursor-pointer hover:shadow-md': !isInteracting && !canDrag,
-                  'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
-                  'z-100 shadow-lg': isInteracting && interactionRecord === record,
-                  'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray':
-                    !getRowColorStyle(record).rowBgColor?.backgroundColor,
-                  'rounded-l-md': isStartVisible(record),
-                  'rounded-r-md': isEndVisible(record),
+                  'pointer-events-none opacity-30': isInteracting && interactionRecord !== bar.record,
+                  'z-100 shadow-lg': isInteracting && interactionRecord === bar.record,
+                  'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray': !bar.hasBgColor,
+                  'rounded-l-md': bar.startVisible,
+                  'rounded-r-md': bar.endVisible,
                 }"
                 :style="{
                   height: `${ROW_HEIGHT - 8}px`,
-                  ...getRowColorStyle(record).rowBgColor,
+                  ...bar.bgStyle,
                 }"
                 :data-lane="laneIdx"
                 :data-bar="barIdx"
                 data-testid="nc-timeline-bar"
-                :data-unique-id="record.rowMeta?.id"
+                :data-unique-id="bar.record.rowMeta?.id"
                 role="button"
                 tabindex="0"
-                @click="!isInteracting && !justFinishedResize && emit('expandRecord', record)"
-                @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
-                @mousedown.stop="onDragStart($event, record)"
+                @click="!isInteracting && !justFinishedResize && emit('expandRecord', bar.record)"
+                @keydown="onBarKeydown($event, bar.record, laneIdx, barIdx)"
+                @mousedown.stop="onDragStart($event, bar.record)"
               >
                 <!-- #17: Left border color accent — only when the record's start is in the visible range -->
                 <div
-                  v-if="isStartVisible(record)"
+                  v-if="bar.startVisible"
                   class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md pointer-events-none"
-                  :style="
-                    getRowColorStyle(record).rowLeftBorderColor?.backgroundColor
-                      ? getRowColorStyle(record).rowLeftBorderColor
-                      : { backgroundColor: 'var(--color-gray-900, #101015)' }
-                  "
+                  :style="bar.borderStyle"
                 />
                 <!-- Left resize handle (start date) — offset past the accent -->
                 <div
                   v-if="canResizeLeft"
                   class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-                  @mousedown.stop="onResizeStart('left', $event, record)"
+                  @mousedown.stop="onResizeStart('left', $event, bar.record)"
                 >
                   <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
-                <span
-                  class="truncate inline-flex items-center"
-                  :class="{
-                    'pl-7': !isStartVisible(record),
-                    'pl-2.5': isStartVisible(record),
-                    'pr-7': !isEndVisible(record),
-                    'pr-2': isEndVisible(record),
-                  }"
-                >
+                <span class="absolute top-0 bottom-0 truncate inline-flex items-center" :style="getLabelStyle(bar)">
                   <template v-for="field in fields" :key="field.id">
                     <LazySmartsheetPlainCell
-                      v-if="!isRowEmpty(record, field!)"
-                      v-model="record.row[field!.title!]"
+                      v-if="!isRowEmpty(bar.record, field!)"
+                      v-model="bar.record.row[field!.title!]"
                       class="text-xs"
                       :bold="fieldStyles[field.id]?.bold"
                       :column="field"
@@ -1038,9 +1099,9 @@ const onGridMouseLeave = () => {
 
                 <!-- Per-bar left nav arrow — when start is clipped -->
                 <div
-                  v-if="!isStartVisible(record)"
+                  v-if="!bar.startVisible"
                   class="nc-timeline-nav-arrow absolute left-0 top-0 h-full z-20 flex items-center"
-                  @click.stop="navigateToRecordStart(record)"
+                  @click.stop="emit('navigateTo', bar.startDate)"
                   @mousedown.stop
                 >
                   <div
@@ -1054,16 +1115,16 @@ const onGridMouseLeave = () => {
                 <div
                   v-if="canResizeRight && timelineRange[0]?.fk_to_col"
                   class="nc-timeline-resize-handle nc-timeline-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-                  @mousedown.stop="onResizeStart('right', $event, record)"
+                  @mousedown.stop="onResizeStart('right', $event, bar.record)"
                 >
                   <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
                 <!-- Per-bar right nav arrow — when end is clipped -->
                 <div
-                  v-if="!isEndVisible(record)"
+                  v-if="!bar.endVisible"
                   class="nc-timeline-nav-arrow absolute right-0 top-0 h-full z-20 flex items-center"
-                  @click.stop="navigateToRecordEnd(record)"
+                  @click.stop="emit('navigateTo', bar.endDate)"
                   @mousedown.stop
                 >
                   <div
@@ -1202,5 +1263,14 @@ const onGridMouseLeave = () => {
   background-color: var(--nc-bg-brand);
   opacity: 0.15;
   z-index: 10;
+}
+
+/* Hide native scrollbar — used on per-group bodies in grouped mode where the
+   shared scrollbar lives on the top date header. */
+.nc-timeline-no-scrollbar {
+  scrollbar-width: none;
+}
+.nc-timeline-no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 </style>

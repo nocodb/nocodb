@@ -106,6 +106,11 @@ export class ViewSidebarPage extends BasePage {
     await this.rootPage.waitForTimeout(1500);
   }
 
+  async createTimelineView({ title }: { title: string }) {
+    await this.createView({ title, type: ViewTypes.TIMELINE });
+    await this.rootPage.waitForTimeout(1500);
+  }
+
   // Todo: Make selection better
   async verifyView({ title, index }: { title: string; index: number }) {
     // flicker while page loading

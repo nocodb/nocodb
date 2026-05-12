@@ -1,57 +1,68 @@
 import dayjs from 'dayjs'
 
-/**
- * Get an array of visible dates based on the center date and zoom level
- */
-export function getVisibleDates(centerDate: dayjs.Dayjs, zoom: 'week' | 'month'): dayjs.Dayjs[] {
-  const dates: dayjs.Dayjs[] = []
+export const TIMELINE_ZOOM_LEVELS = [
+  'day',
+  'week',
+  '2week',
+  'month',
+  'quarter',
+  '6month',
+  'year',
+  '2year',
+  '5year',
+] as const
 
-  if (zoom === 'month') {
-    const startOfMonth = centerDate.startOf('month')
-    const daysInMonth = centerDate.daysInMonth()
-    for (let i = 0; i < daysInMonth; i++) {
-      dates.push(startOfMonth.add(i, 'day'))
-    }
-  } else {
-    const startOfWeek = centerDate.startOf('week')
-    for (let i = 0; i < 7; i++) {
-      dates.push(startOfWeek.add(i, 'day'))
-    }
+export type TimelineZoomLevel = (typeof TIMELINE_ZOOM_LEVELS)[number]
+
+export type GridlineUnit = 'day' | 'week' | 'fortnight' | 'month' | 'quarter'
+
+// Reference Sunday for "every other Sunday" alignment in fortnight cadence —
+// any known Sunday works as long as it's stable across runs.
+const FORTNIGHT_REF_SUNDAY = dayjs('2000-01-02')
+
+/**
+ * True when the date is the Monday that starts a fortnight cycle —
+ * i.e. the day after a fortnight Sunday boundary. Used by the year scale's
+ * minor row to label every other Monday with its day-of-month.
+ */
+export function isFortnightMonday(date: dayjs.Dayjs): boolean {
+  if (date.day() !== 1) return false
+  // Monday is exactly 1 day after the prior Sunday; align to the same
+  // 14-day cycle as the gridline cadence.
+  return Math.abs(date.subtract(1, 'day').diff(FORTNIGHT_REF_SUNDAY, 'day')) % 14 === 0
+}
+
+/**
+ * True when the date's right edge falls on a gridline boundary for the
+ * given cadence — i.e. the cell ending here marks the start of the next
+ * day / week / fortnight / month / quarter.
+ */
+export function isGridlineBoundary(date: dayjs.Dayjs, unit: GridlineUnit): boolean {
+  switch (unit) {
+    case 'day':
+      return true
+    case 'week':
+      return date.day() === 0 // Sunday — right edge is start of next Monday
+    case 'fortnight':
+      return date.day() === 0 && Math.abs(date.diff(FORTNIGHT_REF_SUNDAY, 'day')) % 14 === 0
+    case 'month':
+      return date.date() === date.daysInMonth()
+    case 'quarter':
+      return date.date() === date.daysInMonth() && date.month() % 3 === 2
   }
-
-  return dates
-}
-
-/**
- * Calculate bar left offset in pixels
- */
-export function getBarPosition(startDate: dayjs.Dayjs, firstVisibleDate: dayjs.Dayjs, colWidth: number): number {
-  const offset = startDate.diff(firstVisibleDate, 'day')
-  return Math.max(offset * colWidth, 0)
-}
-
-/**
- * Calculate bar width in pixels
- */
-export function getBarWidth(startDate: dayjs.Dayjs, endDate: dayjs.Dayjs, colWidth: number): number {
-  const duration = endDate.diff(startDate, 'day') + 1
-  return Math.max(duration * colWidth - 4, 20) // minimum 20px
-}
-
-/**
- * Check if a date is today
- */
-export function isToday(date: dayjs.Dayjs): boolean {
-  return date.isSame(dayjs(), 'day')
-}
-
-/**
- * Check if a date is a weekend (Saturday or Sunday)
- */
-export function isWeekend(date: dayjs.Dayjs): boolean {
-  return date.day() === 0 || date.day() === 6
 }
 
 /** Shared layout constants for timeline views */
 export const TIMELINE_GROUP_SIDEBAR_WIDTH = 200
 export const TIMELINE_GROUP_HEADER_HEIGHT = 32
+
+/**
+ * Maximum number of records returned per windowed fetch. The timeline
+ * fetches only records whose date range overlaps the visible buffer, so
+ * each request scopes to the user's current viewport (plus buffer). 400
+ * is sized to keep payloads small and first-paint fast — chunks that
+ * saturate would need viewport-virtualised bars (Phase 2) to render
+ * usefully anyway, and progressive paging is a follow-up if 400 turns
+ * out to pinch on real data.
+ */
+export const TIMELINE_RECORD_LIMIT = 400

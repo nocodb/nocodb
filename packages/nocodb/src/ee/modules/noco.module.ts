@@ -158,6 +158,8 @@ import { BaseVariablesService } from '~/ee/services/base-variables.service';
 /* Timelines */
 import { TimelinesService } from '~/services/timelines.service';
 import { TimelineColumnsService } from '~/services/timeline-columns.service';
+import { TimelineDatasService } from '~/ee/services/timeline-datas.service';
+import { TimelinesDatasController } from '~/ee/controllers/timelines-datas.controller';
 
 /* Lists */
 import { ListColumnsService } from '~/ee/services/list-columns.service';
@@ -295,6 +297,7 @@ export const nocoModuleEeMetadata = {
     /* Timelines */
     TimelinesService,
     TimelineColumnsService,
+    TimelineDatasService,
 
     /* Lists */
     ListColumnsService,
@@ -378,6 +381,9 @@ export const nocoModuleEeMetadata = {
 
     Datav3Controller,
 
+    /* Timeline data (windowed fetch with limitOverride) */
+    TimelinesDatasController,
+
     /* Workflows */
     WorkflowWebhookController,
 
@@ -417,6 +423,7 @@ export const nocoModuleEeMetadata = {
     DashboardsService,
     TimelinesService,
     TimelineColumnsService,
+    TimelineDatasService,
     ListColumnsService,
     PermissionsService,
     RlsService,

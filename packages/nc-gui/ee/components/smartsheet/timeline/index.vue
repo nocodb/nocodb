@@ -1,5 +1,12 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
+import type { TimelineZoomLevel } from '../../../utils/timelineUtils'
+import {
+  TIMELINE_GROUP_HEADER_HEIGHT,
+  TIMELINE_GROUP_SIDEBAR_WIDTH,
+  TIMELINE_RECORD_LIMIT,
+  TIMELINE_ZOOM_LEVELS,
+} from '../../../utils/timelineUtils'
 import type { Row as RowType } from '#imports'
 
 const meta = inject(MetaInj, ref())
@@ -44,10 +51,28 @@ const {
   setZoomLevel,
   currentDate,
   totalRecordCount,
-  recordsWithoutDates,
   navigateToClosestRecord,
   updateFormat,
+  colWidth,
+  totalGridWidth,
+  scrollLeft: storeScrollLeft,
+  setViewportWidth,
+  onScrollUpdate,
+  majorHeaderTiers,
+  gridlineOffsets,
+  weekendOffsets,
+  minorLabels,
 } = useTimelineViewStoreOrThrow()
+
+const zoomOptions = TIMELINE_ZOOM_LEVELS
+
+const zoomLabel = (option: TimelineZoomLevel) => {
+  if (option === '2week') return t('objects.twoWeek')
+  if (option === '6month') return t('objects.sixMonth')
+  if (option === '2year') return t('objects.twoYear')
+  if (option === '5year') return t('objects.fiveYear')
+  return t(`objects.${option}`)
+}
 
 // Group-by support (provided by parent Smartsheet.vue via useProvideViewGroupBy)
 const { isGroupBy, rootGroup, groupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage } =
@@ -120,8 +145,6 @@ const onFloatingNewRecord = () => {
   const range = timelineRange.value?.[0]
   if (!range?.fk_from_col?.title) return
 
-  $e('c:timeline:new-record-btn', { zoomLevel: zoomLevel.value })
-
   const midIdx = Math.floor(visibleDates.value.length / 2)
   const medianDate = visibleDates.value[midIdx] ?? visibleDates.value[0]
   if (!medianDate) return
@@ -153,7 +176,7 @@ const reloadData = async () => {
 
 onMounted(async () => {
   await reloadData()
-  navigateToClosestRecord()
+  await navigateToClosestRecord()
 })
 
 const reloadViewDataListener = async () => {
@@ -166,10 +189,14 @@ onBeforeUnmount(() => {
   reloadViewDataHook?.off(reloadViewDataListener)
 })
 
-// Watch for date/zoom/range changes and reload data
-// timelineRange is critical: it may be empty on mount (view data loads async)
-// and gets populated later when activeView.view.timeline_range arrives
-watch([currentDate, zoomLevel, timelineRange], () => {
+// Reload only on timelineRange change. The data fetch is scale-independent
+// (capped at TIMELINE_RECORD_LIMIT, no date filter), so reloading on zoomLevel
+// is wasteful — and worse, the loading flip unmounts the Grid via v-else-if,
+// which loses the DOM scrollLeft we just projected for the new scale and
+// leaves the new Grid scrolled to 0. timelineRange is critical: it may be
+// empty on mount (view data loads async) and gets populated later when
+// activeView.view.timeline_range arrives.
+watch(timelineRange, () => {
   reloadData()
 })
 
@@ -195,10 +222,37 @@ const GROUP_HEADER_HEIGHT = TIMELINE_GROUP_HEADER_HEIGHT
 const groupHeaderRef = ref<HTMLElement | null>(null)
 const { width: groupHeaderWidth } = useElementSize(groupHeaderRef)
 
-const groupColWidth = computed(() => {
-  if (!groupHeaderWidth.value || !visibleDates.value.length) return 120
-  return groupHeaderWidth.value / visibleDates.value.length
-})
+// Surface viewport width to the store from the grouped header — scroll math
+// (centring on a date, edge-extension thresholds) needs the visible width.
+// In flat mode Grid.vue does the same from its own container.
+watch(
+  groupHeaderWidth,
+  (w) => {
+    if (w > 0) setViewportWidth(w)
+  },
+  { immediate: true },
+)
+
+// Mirror store scrollLeft into the grouped header so it follows when a per-group
+// body scrolls. `flush: sync` keeps the header lockstep with the body during
+// user scrolling.
+watch(
+  () => storeScrollLeft.value,
+  (newLeft) => {
+    if (groupHeaderRef.value && groupHeaderRef.value.scrollLeft !== newLeft) {
+      groupHeaderRef.value.scrollLeft = newLeft
+    }
+  },
+  { flush: 'sync' },
+)
+
+// User scrolls the date header — push position into the store so all the
+// per-group bodies follow.
+const onGroupHeaderScroll = (event: Event) => {
+  const target = event.target as HTMLElement
+  if (target.scrollLeft === storeScrollLeft.value) return
+  onScrollUpdate(target.scrollLeft)
+}
 
 // Label for the "Grouped by" sidebar header
 const groupByFieldLabel = computed(() => {
@@ -209,8 +263,16 @@ const groupByFieldLabel = computed(() => {
 
 // #18: Reactive today
 const today = ref(dayjs())
-const isToday = (date: dayjs.Dayjs) => date.isSame(today.value, 'day')
-const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
+
+// Today's column index (relative to bufferStart) — drives the today
+// highlight overlay in the grouped header without a per-day cell.
+const todayDayIdx = computed(() => {
+  const firstDate = visibleDates.value[0]
+  if (!firstDate) return -1
+  const offset = today.value.diff(firstDate, 'day')
+  if (offset < 0 || offset >= visibleDates.value.length) return -1
+  return offset
+})
 
 // #7: Date picker dropdown
 const datePickerVisible = ref(false)
@@ -227,15 +289,29 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
   $e('c:timeline:date-picker', { zoomLevel: zoomLevel.value })
 }
 
-// #3: Record count badge text
+// #3: Record count badge text. The windowed-fetch path filters by date
+// overlap server-side, so null-date rows never reach formattedData —
+// the "X without dates" variant of this label is no longer reachable
+// from here. If a separate count endpoint surfaces those rows in the
+// future, re-introduce the variant.
 const recordCountLabel = computed(() => {
   const total = totalRecordCount.value
-  const noDate = recordsWithoutDates.value
-  if (noDate > 0) {
-    return t('msg.timelineRecordsCountWithMissing', { total, noDate })
-  }
   return total > 0 ? t('msg.timelineRecordsCount', { total }) : ''
 })
+
+// Date-picker button width per zoom level. Wider scales need less space
+// (just a year/quarter label); finer scales need a full date.
+const dateButtonWidthClass: Record<TimelineZoomLevel, string> = {
+  'day': 'w-48',
+  'week': 'w-38',
+  '2week': 'w-38',
+  'month': 'w-29',
+  'quarter': 'w-29',
+  '6month': 'w-29',
+  'year': 'w-29',
+  '2year': 'w-29',
+  '5year': 'w-29',
+}
 </script>
 
 <template>
@@ -259,12 +335,8 @@ const recordCountLabel = computed(() => {
         <!-- #7: Date Header with picker dropdown -->
         <NcDropdown v-model:visible="datePickerVisible" :trigger="['click']">
           <NcButton
-            :class="{
-              'w-29': zoomLevel === 'month',
-              'w-38': zoomLevel === 'week',
-              'w-48': zoomLevel === 'day',
-            }"
             class="nc-timeline-prev-next-btn !h-7"
+            :class="[dateButtonWidthClass[zoomLevel]]"
             full-width
             size="small"
             type="secondary"
@@ -272,9 +344,9 @@ const recordCountLabel = computed(() => {
             <div class="flex w-full px-1 items-center justify-between">
               <span
                 :class="{
-                  'max-w-38 truncate': zoomLevel === 'week',
+                  'max-w-38 truncate': zoomLevel === 'week' || zoomLevel === '2week',
                 }"
-                class="font-medium text-[13px] text-center text-nc-content-gray"
+                class="font-medium text-[13px] leading-normal text-center text-nc-content-gray"
                 data-testid="nc-timeline-active-date"
               >
                 {{ dateRangeLabel }}
@@ -285,13 +357,13 @@ const recordCountLabel = computed(() => {
           <template #overlay>
             <div v-if="datePickerVisible" class="w-[287px] pb-2" @click.stop>
               <NcDateWeekSelector
-                v-if="zoomLevel === 'week'"
+                v-if="zoomLevel === 'week' || zoomLevel === '2week'"
                 v-model:page-date="pageDate"
                 :selected-date="currentDate"
                 is-week-picker
                 header="v2"
                 size="medium"
-                @update:selected-date="onDatePickerSelect"
+                @update:selected-week="(w: { start: dayjs.Dayjs; end: dayjs.Dayjs }) => onDatePickerSelect(w.start)"
               />
               <NcDateWeekSelector
                 v-else-if="zoomLevel === 'day'"
@@ -363,14 +435,10 @@ const recordCountLabel = computed(() => {
         <NcTooltip
           v-if="recordCountLabel && !isGroupBy"
           class="ml-1 text-[11px] text-nc-content-gray-muted font-medium px-1.5 py-0.5 rounded-md bg-nc-bg-gray-medium truncate"
-          :class="{ 'text-nc-content-orange-medium bg-nc-bg-orange-light': recordsWithoutDates > 0 }"
           data-testid="nc-timeline-record-count"
         >
           <template #title>
-            <span v-if="recordsWithoutDates > 0">
-              {{ $t('msg.timelineRecordsMissingDates', { count: recordsWithoutDates }, recordsWithoutDates) }}
-            </span>
-            <span v-else>{{ $t('msg.timelineTotalRecordsLoaded', { max: 400 }) }}</span>
+            <span>{{ $t('msg.timelineTotalRecordsLoaded', { max: TIMELINE_RECORD_LIMIT }) }}</span>
           </template>
 
           {{ recordCountLabel }}
@@ -378,12 +446,13 @@ const recordCountLabel = computed(() => {
 
         <div class="flex-1" />
 
-        <!-- #20: Zoom Mode Selector (day, week, month) -->
+        <!-- Zoom Mode Selector (day, week, month, quarter, year, 5-year) -->
         <a-select
           v-e="['c:timeline:change-zoom-level']"
           :value="zoomLevel"
-          class="nc-select-shadow nc-timeline-mode-select !w-21 !rounded-lg"
-          dropdown-class-name="!rounded-lg !min-w-25"
+          class="nc-select-shadow nc-timeline-mode-select !w-24 !rounded-lg"
+          dropdown-class-name="nc-timeline-zoom-dropdown !rounded-lg !min-w-28"
+          :list-height="320"
           size="small"
           data-testid="nc-timeline-view-mode"
           @change="setZoomLevel"
@@ -392,12 +461,12 @@ const recordCountLabel = computed(() => {
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
-          <a-select-option v-for="option in ['day', 'week', 'month']" :key="option" :value="option">
-            <div class="w-full flex gap-2 items-center justify-between" :title="$t(`objects.${option}`)">
+          <a-select-option v-for="option in zoomOptions" :key="option" :value="option">
+            <div class="w-full flex gap-2 items-center justify-between" :title="zoomLabel(option)">
               <div class="flex items-center gap-1">
-                <NcTooltip class="flex-1 capitalize mt-0.5 truncate" show-on-truncate-only>
-                  <template #title>{{ $t(`objects.${option}`) }}</template>
-                  <template #default>{{ $t(`objects.${option}`) }}</template>
+                <NcTooltip class="flex-1 capitalize truncate" show-on-truncate-only>
+                  <template #title>{{ zoomLabel(option) }}</template>
+                  <template #default>{{ zoomLabel(option) }}</template>
                 </NcTooltip>
               </div>
               <GeneralIcon
@@ -450,43 +519,71 @@ const recordCountLabel = computed(() => {
               <span class="text-[11px] text-nc-content-gray-muted font-normal truncate">{{ groupByFieldLabel }}</span>
             </div>
 
-            <!-- #10: Date columns header — using date string keys -->
-            <div ref="groupHeaderRef" class="flex-1 overflow-hidden">
-              <div class="flex bg-nc-bg-default w-full">
+            <!-- Date columns header — the shared horizontal scrollbar for grouped mode lives here.
+                 Per-group bodies have hidden scrollbars and follow this one via the store. -->
+            <div ref="groupHeaderRef" class="flex-1 overflow-x-auto overflow-y-hidden" @scroll="onGroupHeaderScroll">
+              <div :style="{ width: `${totalGridWidth}px` }">
+                <!-- Stacked major rows -->
                 <div
-                  v-for="date in visibleDates"
-                  :key="date.format('YYYY-MM-DD')"
-                  class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
-                  :class="{
-                    'bg-nc-bg-brand': isToday(date),
-                    'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date),
-                  }"
-                  :style="{ width: `${groupColWidth}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
+                  v-for="(tier, tierIdx) in majorHeaderTiers"
+                  :key="`tier-${tierIdx}`"
+                  class="relative bg-nc-bg-default border-b border-nc-border-gray-light"
+                  :style="{ height: '20px' }"
                 >
-                  <span
-                    class="text-[10px] font-normal leading-tight"
-                    :class="{
-                      'text-nc-content-brand': isToday(date),
-                      'text-nc-content-gray-muted': !isToday(date),
-                    }"
+                  <div
+                    v-for="span in tier"
+                    :key="span.key"
+                    class="absolute top-0 h-full flex items-center justify-start text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-2"
+                    :style="{ left: `${span.leftPx}px`, width: `${span.widthPx}px` }"
                   >
-                    {{
-                      zoomLevel === 'month'
-                        ? date.format('dd').charAt(0)
-                        : zoomLevel === 'week'
-                        ? date.format('ddd')
-                        : date.format('dddd')
-                    }}
-                  </span>
-                  <span
-                    class="text-[11px] font-normal leading-tight"
-                    :class="{
-                      'text-nc-content-brand': isToday(date),
-                      'text-nc-content-gray-muted': !isToday(date),
-                    }"
+                    {{ span.label }}
+                  </div>
+                </div>
+
+                <!-- Minor row — bg div + sparse overlays so coarse zooms
+                     don't iterate 1.5k–3.7k cells per scroll. -->
+                <div
+                  class="relative bg-nc-bg-default"
+                  :style="{ height: `${GROUP_HEADER_HEIGHT}px`, width: `${totalGridWidth}px` }"
+                >
+                  <div
+                    v-for="off in weekendOffsets"
+                    :key="`gwk-${off.key}`"
+                    class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight pointer-events-none"
+                    :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
+                  />
+                  <div
+                    v-if="todayDayIdx >= 0"
+                    class="absolute top-0 bottom-0 bg-nc-bg-brand pointer-events-none"
+                    :style="{ left: `${todayDayIdx * colWidth}px`, width: `${colWidth}px` }"
+                  />
+                  <div
+                    v-for="off in gridlineOffsets"
+                    :key="`ggl-${off.key}`"
+                    class="absolute top-0 bottom-0 border-r border-nc-border-gray-light pointer-events-none"
+                    :style="{ left: `${off.leftPx}px` }"
+                  />
+                  <div
+                    v-for="lbl in minorLabels"
+                    :key="`gl-${lbl.key}`"
+                    class="absolute top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
+                    :style="{ left: `${lbl.leftPx}px`, width: `${colWidth}px` }"
                   >
-                    {{ date.format('D') }}
-                  </span>
+                    <span
+                      v-if="lbl.weekday"
+                      class="text-[10px] font-normal leading-tight"
+                      :class="lbl.idx === todayDayIdx ? 'text-nc-content-brand' : 'text-nc-content-gray-muted'"
+                    >
+                      {{ lbl.weekday }}
+                    </span>
+                    <span
+                      v-if="lbl.dayNum"
+                      class="text-[11px] font-normal leading-tight whitespace-nowrap"
+                      :class="lbl.idx === todayDayIdx ? 'text-nc-content-brand' : 'text-nc-content-gray-muted'"
+                    >
+                      {{ lbl.dayNum }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -593,6 +690,16 @@ const recordCountLabel = computed(() => {
   }
   :deep(.ant-select-selection-item) {
     @apply !text-[13px] !flex !items-center;
+  }
+}
+</style>
+
+<style lang="scss">
+// Teleported dropdown — needs unscoped styles. Match the action menu's
+// density: 13px font, 30px row height, no extra vertical padding.
+.nc-timeline-zoom-dropdown {
+  .ant-select-item {
+    @apply !min-h-[30px] !py-1 !px-3 !text-[13px] !leading-tight;
   }
 }
 </style>

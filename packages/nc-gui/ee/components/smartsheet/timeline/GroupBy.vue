@@ -5,6 +5,7 @@ import GroupBy from './GroupBy.vue'
 import type { Row as RowType } from '#imports'
 import { shouldRenderCell } from '~/utils/groupbyUtils'
 import type { Group } from '~/lib/types'
+import { TIMELINE_GROUP_SIDEBAR_WIDTH, type TimelineZoomLevel } from '../../../utils/timelineUtils'
 
 const props = defineProps<{
   group: Group
@@ -15,7 +16,7 @@ const props = defineProps<{
     id: string
     is_readonly: boolean
   }>
-  zoomLevel: 'day' | 'week' | 'month'
+  zoomLevel: TimelineZoomLevel
   loadGroups: (
     params?: any,
     group?: Group,
@@ -169,17 +170,15 @@ const reloadViewDataHandler = async () => {
 
 onMounted(async () => {
   reloadViewDataHook?.on(reloadViewDataHandler)
+
+  // Root auto-load: if root has no children, load groups
+  if (vGroup.value.root === true && !vGroup.value?.children?.length) {
+    await _loadGroups({}, vGroup.value)
+  }
 })
 
 onBeforeUnmount(async () => {
   reloadViewDataHook?.off(reloadViewDataHandler)
-})
-
-// Root auto-load: if root has no children, load groups
-onMounted(async () => {
-  if (vGroup.value.root === true && !vGroup.value?.children?.length) {
-    await _loadGroups({}, vGroup.value)
-  }
 })
 </script>
 

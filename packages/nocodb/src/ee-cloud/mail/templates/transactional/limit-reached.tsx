@@ -47,7 +47,10 @@ export const LimitReached = ({
           <Text className="text-gray-600 text-center text-sm !mt-0">
             Your workspace has reached the{' '}
             <span className="font-bold text-gray-800">{limitLabel}</span> limit
-            on its current plan ({currentUsage} of {limitValue}).
+            on its current plan
+            {currentUsage > 0 && limitValue > 0
+              ? ` (${currentUsage} of ${limitValue}).`
+              : '.'}
           </Text>
           <Text className="text-gray-600 text-center text-sm !mt-0">
             A 14-day grace period is now active. New writes that exceed the

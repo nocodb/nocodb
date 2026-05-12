@@ -122,6 +122,29 @@ export class PaymentService {
     };
   }
 
+  /**
+   * Resolve a human-readable plan title from a plan id. Falls back to the
+   * provided `fallback` (never the raw id, which is a UUID and useless in
+   * an email body).
+   */
+  protected async resolvePlanTitle(
+    planId: string | undefined | null,
+    fallback: string,
+  ): Promise<string> {
+    if (!planId) return fallback;
+    try {
+      const plan = await Plan.get(planId);
+      return plan?.title ?? fallback;
+    } catch (e) {
+      this.logger.warn(
+        `resolvePlanTitle: lookup failed for ${planId}: ${
+          (e as Error).message
+        }`,
+      );
+      return fallback;
+    }
+  }
+
   protected async safeSendBillingMail(
     mailEvent: MailEvent,
     paramsBuilder: () => any | Promise<any>,
@@ -3030,7 +3053,10 @@ export class PaymentService {
                 subscriptionId: subRec.id,
                 planTitle:
                   stripeSub.metadata.plan_title ??
-                  (stripeSub.metadata.fk_plan_id || 'Paid'),
+                  (await this.resolvePlanTitle(
+                    stripeSub.metadata.fk_plan_id,
+                    'Paid',
+                  )),
                 seatCount,
                 periodEnd: (() => {
                   const itemEnd = (stripeSub.items.data[0] as any)
@@ -3163,8 +3189,7 @@ export class PaymentService {
                   subscriptionId: subRec.id,
                   planTitle:
                     stripeSub.metadata.plan_title ??
-                    subRec.fk_plan_id ??
-                    'Paid',
+                    (await this.resolvePlanTitle(subRec.fk_plan_id, 'Paid')),
                   cancelAt: stripeSub.cancel_at
                     ? dayjs.unix(stripeSub.cancel_at).utc().toISOString()
                     : undefined,
@@ -3192,9 +3217,13 @@ export class PaymentService {
                 user: recipient.owner,
                 workspace: recipient.workspace,
                 subscriptionId: subRec.id,
-                oldPlanTitle: prevPlanId ?? 'Previous plan',
+                oldPlanTitle: await this.resolvePlanTitle(
+                  prevPlanId,
+                  'Previous plan',
+                ),
                 newPlanTitle:
-                  stripeSub.metadata.plan_title ?? newPlanId ?? 'New plan',
+                  stripeSub.metadata.plan_title ??
+                  (await this.resolvePlanTitle(newPlanId, 'New plan')),
                 newPriceId,
                 effectiveAt: (() => {
                   const itemStart = (stripeSub.items.data[0] as any)
@@ -3219,7 +3248,8 @@ export class PaymentService {
                 workspace: recipient.workspace,
                 subscriptionId: subRec.id,
                 planTitle:
-                  stripeSub.metadata.plan_title ?? subRec.fk_plan_id ?? 'Plan',
+                  stripeSub.metadata.plan_title ??
+                  (await this.resolvePlanTitle(subRec.fk_plan_id, 'Plan')),
                 convertedToActive: stripeSub.status === 'active',
                 periodEnd: (() => {
                   const itemEnd = (stripeSub.items.data[0] as any)

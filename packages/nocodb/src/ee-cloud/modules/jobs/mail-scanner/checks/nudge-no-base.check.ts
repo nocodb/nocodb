@@ -105,7 +105,6 @@ export class NudgeNoBaseCheck implements MailScannerCheck {
               display_name: c.display_name,
             } as any,
             workspace: { id: c.workspace_id, title: c.workspace_title },
-            signupAt: now.toISOString(),
             createBaseUrl,
           },
         });

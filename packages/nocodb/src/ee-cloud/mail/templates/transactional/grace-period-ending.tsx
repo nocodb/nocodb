@@ -55,11 +55,13 @@ export const GracePeriodEnding = ({
             <span className="font-bold text-gray-800">{gracePeriodEndsAt}</span>
             .
           </Text>
-          <Text className="text-gray-600 text-center text-sm !mt-0">
-            Current usage of{' '}
-            <span className="font-bold text-gray-800">{limitLabel}</span>:{' '}
-            {currentUsage} (limit: {limitValue}).
-          </Text>
+          {currentUsage > 0 && limitValue > 0 ? (
+            <Text className="text-gray-600 text-center text-sm !mt-0">
+              Current usage of{' '}
+              <span className="font-bold text-gray-800">{limitLabel}</span>:{' '}
+              {currentUsage} (limit: {limitValue}).
+            </Text>
+          ) : null}
           <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
             Upgrade now to keep collaborating without interruption.
           </Text>

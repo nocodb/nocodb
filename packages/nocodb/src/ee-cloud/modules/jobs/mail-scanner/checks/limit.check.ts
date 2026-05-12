@@ -11,7 +11,7 @@ import Noco from '~/Noco';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { MetaTable } from '~/utils/globals';
-import { WorkspaceUser } from '~/models';
+import { Workspace, WorkspaceUser } from '~/models';
 import { ncSiteUrl } from '~/utils/envs';
 
 dayjs.extend(utc);
@@ -133,6 +133,15 @@ export class MailLimitCheck implements MailScannerCheck {
       return;
     }
 
+    // Load full workspace once per (workspace, limitType) call to pull the
+    // actual usage stats and plan limit value — the raw scan query above
+    // doesn't eager-load these.
+    const workspace = await Workspace.get(ws.id, undefined, Noco.ncMeta);
+    const { currentUsage, limitValue } = this.resolveLimitNumbers(
+      workspace,
+      limitType,
+    );
+
     const baseUrl = ncSiteUrl ?? Noco.config?.ncSiteUrl ?? '';
     const upgradeUrl = baseUrl
       ? `${baseUrl}/${ws.id}/settings?tab=billing`
@@ -152,8 +161,8 @@ export class MailLimitCheck implements MailScannerCheck {
             } as any,
             workspace: { id: ws.id, title: ws.title },
             limitType,
-            currentUsage: 0,
-            limitValue: 0,
+            currentUsage,
+            limitValue,
             gracePeriodStartAt: start.toISOString(),
             gracePeriodEndsAt: end.toISOString(),
             upgradeUrl,
@@ -173,8 +182,8 @@ export class MailLimitCheck implements MailScannerCheck {
             } as any,
             workspace: { id: ws.id, title: ws.title },
             limitType,
-            currentUsage: 0,
-            limitValue: 0,
+            currentUsage,
+            limitValue,
             gracePeriodStartAt: start.toISOString(),
             gracePeriodEndsAt: end.toISOString(),
             daysRemaining,
@@ -183,5 +192,30 @@ export class MailLimitCheck implements MailScannerCheck {
         } as any);
       }
     }
+  }
+
+  /**
+   * Match `paymentHelpers.checkLimit()`: row counts live under `row_count`,
+   * other limits use the enum value as the stat key.
+   */
+  protected resolveLimitNumbers(
+    workspace: Workspace | null,
+    limitType: PlanLimitTypes,
+  ): { currentUsage: number; limitValue: number } {
+    if (!workspace) return { currentUsage: 0, limitValue: 0 };
+
+    const statName =
+      limitType === PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE
+        ? 'row_count'
+        : limitType;
+    const currentUsage = Number(workspace.stats?.[statName] ?? 0) || 0;
+
+    const rawLimit = workspace.payment?.plan?.meta?.[limitType];
+    // `-1` is sentinel for unlimited — render as 0 so the template hides the
+    // "(N of M)" detail rather than showing the sentinel literally.
+    const limitValue =
+      typeof rawLimit === 'number' && rawLimit > 0 ? rawLimit : 0;
+
+    return { currentUsage, limitValue };
   }
 }

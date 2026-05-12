@@ -178,7 +178,6 @@ interface NudgePayloadBase {
 }
 
 interface NudgeNoBasePayload extends NudgePayloadBase {
-  signupAt: string;
   createBaseUrl: string;
 }
 

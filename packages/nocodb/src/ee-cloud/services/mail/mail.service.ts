@@ -8,6 +8,9 @@ import type {
   GracePeriodEndingPayload,
   LimitReachedPayload,
   MailParams,
+  NudgeInviteTeamPayload,
+  NudgeNoBasePayload,
+  NudgeWorkflowInactivePayload,
   PaymentFailedPayload,
   PlanChangedPayload,
   SubscriptionCanceledPayload,
@@ -33,6 +36,9 @@ const DEFERRED_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
   MailEvent.SUBSCRIPTION_CANCELED,
   MailEvent.PLAN_CHANGED,
   MailEvent.TRIAL_ENDED,
+  MailEvent.NUDGE_NO_BASE,
+  MailEvent.NUDGE_WORKFLOW_INACTIVE,
+  MailEvent.NUDGE_INVITE_TEAM,
 ]);
 
 @Injectable()
@@ -325,6 +331,20 @@ export class MailService extends MailServiceEE {
           payload: p,
         };
       }
+      case MailEvent.NUDGE_NO_BASE:
+      case MailEvent.NUDGE_WORKFLOW_INACTIVE:
+      case MailEvent.NUDGE_INVITE_TEAM: {
+        // Once-ever per user per event. Cross-nudge throttle (max 1 per 7d)
+        // is enforced upstream at the check layer before this code runs.
+        const p = params.payload as NudgeNoBasePayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          dedupe_key: p.user?.id ? `user:${p.user.id}` : null,
+          payload: p,
+        };
+      }
       default:
         return {
           event: params.mailEvent,
@@ -457,6 +477,37 @@ export class MailService extends MailServiceEE {
             convertedToActive: p.convertedToActive,
             periodEnd: p.periodEnd ? this.formatDate(p.periodEnd) : undefined,
             billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
+      case MailEvent.NUDGE_NO_BASE: {
+        const p = payload as NudgeNoBasePayload;
+        return {
+          subject: `Create your first base in ${p.workspace.title}`,
+          html: await this.renderCloudMail('NudgeNoBase', {
+            workspaceTitle: p.workspace.title,
+            createBaseUrl: p.createBaseUrl,
+          }),
+        };
+      }
+      case MailEvent.NUDGE_WORKFLOW_INACTIVE: {
+        const p = payload as NudgeWorkflowInactivePayload;
+        return {
+          subject: `Your workflow "${p.workflow.title}" isn't running yet`,
+          html: await this.renderCloudMail('NudgeWorkflowInactive', {
+            workspaceTitle: p.workspace.title,
+            workflowTitle: p.workflow.title,
+            workflowUrl: p.workflowUrl,
+          }),
+        };
+      }
+      case MailEvent.NUDGE_INVITE_TEAM: {
+        const p = payload as NudgeInviteTeamPayload;
+        return {
+          subject: `Invite your team to ${p.workspace.title}`,
+          html: await this.renderCloudMail('NudgeInviteTeam', {
+            workspaceTitle: p.workspace.title,
+            inviteUrl: p.inviteUrl,
           }),
         };
       }

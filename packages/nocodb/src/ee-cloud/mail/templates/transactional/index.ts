@@ -6,6 +6,9 @@ import SubscriptionCanceled from '~/mail/templates/transactional/subscription-ca
 import PlanChanged from '~/mail/templates/transactional/plan-changed';
 import TrialEnded from '~/mail/templates/transactional/trial-ended';
 import Welcome from '~/mail/templates/transactional/welcome';
+import NudgeNoBase from '~/mail/templates/transactional/nudge-no-base';
+import NudgeWorkflowInactive from '~/mail/templates/transactional/nudge-workflow-inactive';
+import NudgeInviteTeam from '~/mail/templates/transactional/nudge-invite-team';
 
 export {
   LimitReached,
@@ -16,4 +19,7 @@ export {
   PlanChanged,
   TrialEnded,
   Welcome,
+  NudgeNoBase,
+  NudgeWorkflowInactive,
+  NudgeInviteTeam,
 };

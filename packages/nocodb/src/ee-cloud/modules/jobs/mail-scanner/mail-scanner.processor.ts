@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { MailScannerCheck } from '~/modules/jobs/mail-scanner/checks/check.interface';
 import { MailLimitCheck } from '~/modules/jobs/mail-scanner/checks/limit.check';
+import { NudgeInviteTeamCheck } from '~/modules/jobs/mail-scanner/checks/nudge-invite-team.check';
+import { NudgeNoBaseCheck } from '~/modules/jobs/mail-scanner/checks/nudge-no-base.check';
+import { NudgeWorkflowInactiveCheck } from '~/modules/jobs/mail-scanner/checks/nudge-workflow-inactive.check';
 
 /**
  * Unified scanner cron. Owns the schedule; the actual logic lives in
@@ -13,7 +16,12 @@ import { MailLimitCheck } from '~/modules/jobs/mail-scanner/checks/limit.check';
 export class MailScannerProcessor {
   private logger = new Logger(MailScannerProcessor.name);
 
-  constructor(private readonly limitCheck: MailLimitCheck) {}
+  constructor(
+    private readonly limitCheck: MailLimitCheck,
+    private readonly nudgeNoBaseCheck: NudgeNoBaseCheck,
+    private readonly nudgeWorkflowInactiveCheck: NudgeWorkflowInactiveCheck,
+    private readonly nudgeInviteTeamCheck: NudgeInviteTeamCheck,
+  ) {}
 
   async job() {
     this.logger.debug('MailScanner job started');
@@ -31,6 +39,11 @@ export class MailScannerProcessor {
   }
 
   private getChecks(): MailScannerCheck[] {
-    return [this.limitCheck];
+    return [
+      this.limitCheck,
+      this.nudgeNoBaseCheck,
+      this.nudgeWorkflowInactiveCheck,
+      this.nudgeInviteTeamCheck,
+    ];
   }
 }

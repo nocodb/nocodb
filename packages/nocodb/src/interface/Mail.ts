@@ -46,6 +46,12 @@ enum MailEvent {
   SUBSCRIPTION_CANCELED = 'SUBSCRIPTION_CANCELED',
   PLAN_CHANGED = 'PLAN_CHANGED',
   TRIAL_ENDED = 'TRIAL_ENDED',
+  // Activation nudges (cloud, scanner-driven). Fired at most once per user
+  // per event ever, with cross-event mute (max 1 nudge/user/7d) at the check
+  // layer. Targeting requires `last_active_at` to be populated.
+  NUDGE_NO_BASE = 'NUDGE_NO_BASE',
+  NUDGE_WORKFLOW_INACTIVE = 'NUDGE_WORKFLOW_INACTIVE',
+  NUDGE_INVITE_TEAM = 'NUDGE_INVITE_TEAM',
 }
 
 interface CommentPayload {

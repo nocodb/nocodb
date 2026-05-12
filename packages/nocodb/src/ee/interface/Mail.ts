@@ -168,6 +168,32 @@ interface GracePeriodEndingPayload {
   upgradeUrl: string;
 }
 
+interface NudgePayloadBase {
+  req?: NcRequest;
+  user: UserType;
+  workspace: {
+    id: string;
+    title: string;
+  };
+}
+
+interface NudgeNoBasePayload extends NudgePayloadBase {
+  signupAt: string;
+  createBaseUrl: string;
+}
+
+interface NudgeWorkflowInactivePayload extends NudgePayloadBase {
+  workflow: {
+    id: string;
+    title: string;
+  };
+  workflowUrl: string;
+}
+
+interface NudgeInviteTeamPayload extends NudgePayloadBase {
+  inviteUrl: string;
+}
+
 interface HookErrorDigestPayload {
   req?: NcRequest;
   user: UserType;
@@ -342,6 +368,18 @@ type MailParams =
   | {
       mailEvent: MailEvent.TRIAL_ENDED;
       payload: TrialEndedPayload;
+    }
+  | {
+      mailEvent: MailEvent.NUDGE_NO_BASE;
+      payload: NudgeNoBasePayload;
+    }
+  | {
+      mailEvent: MailEvent.NUDGE_WORKFLOW_INACTIVE;
+      payload: NudgeWorkflowInactivePayload;
+    }
+  | {
+      mailEvent: MailEvent.NUDGE_INVITE_TEAM;
+      payload: NudgeInviteTeamPayload;
     };
 
 export {
@@ -359,4 +397,7 @@ export {
   SubscriptionCanceledPayload,
   PlanChangedPayload,
   TrialEndedPayload,
+  NudgeNoBasePayload,
+  NudgeWorkflowInactivePayload,
+  NudgeInviteTeamPayload,
 };

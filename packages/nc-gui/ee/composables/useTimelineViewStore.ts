@@ -605,7 +605,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       _silentRefetch()
     })
 
-    const navigateToClosestRecord = () => {
+    const navigateToClosestRecord = async () => {
       const viewId = viewMeta.value?.id
       if (!viewId) return
 
@@ -620,7 +620,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       }
 
       const range = timelineRange.value?.[0]
-      if (!range?.fk_from_col?.title) {
+      const fromCol = range?.fk_from_col
+      if (!fromCol?.id || !fromCol?.title) {
         requestScrollToDate(dayjs())
         return
       }
@@ -630,7 +631,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       let closestDiff = Infinity
 
       for (const row of formattedData.value) {
-        const dateVal = row.row?.[range.fk_from_col.title!]
+        const dateVal = row.row?.[fromCol.title!]
         if (!dateVal) continue
         const d = dayjs(dateVal)
         if (!d.isValid()) continue
@@ -639,6 +640,28 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         if (diff < closestDiff) {
           closestDiff = diff
           closestDate = d
+        }
+      }
+
+      // The initial windowed fetch is bounded to ±bufferDays around today.
+      // If no records fall in that window formattedData is empty and the
+      // scan above yields nothing — anchor would silently snap back to
+      // today and the user lands on a blank timeline. Probe the first
+      // record via the normal list API (limit 1, sorted asc on from-col)
+      // so the buffer re-anchors on real data.
+      if (!closestDate && !isPublic.value && base?.value?.id && meta.value?.id) {
+        try {
+          const res = await $api.dbViewRow.list('noco', base.value.id, meta.value.id, viewId, {
+            limit: 1,
+            sortArrJson: stringifyFilterOrSortArr([{ fk_column_id: fromCol.id, direction: 'asc' }]),
+          } as any)
+          const dateVal = (res as any)?.list?.[0]?.[fromCol.title!]
+          if (dateVal) {
+            const d = dayjs(dateVal)
+            if (d.isValid()) closestDate = d
+          }
+        } catch {
+          // Probe is best-effort — fall through to today on any error.
         }
       }
 

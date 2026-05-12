@@ -114,6 +114,11 @@ test.describe('Timeline View', () => {
     await dashboard.viewSidebar.openView({ title: 'TLDefaults' });
     await timeline.waitLoading();
 
+    // The fields menu only mounts when the dropdown is open — verify()
+    // locates checkboxes inside [data-testid="nc-fields-menu"], which
+    // lives in the dropdown's #overlay slot.
+    await timeline.toolbar.clickFields();
+
     // Title is the primary value (pv). StartDate / EndDate are the range
     // columns. Owner / Notes are non-pv non-range — they should default
     // to hidden.
@@ -132,24 +137,34 @@ test.describe('Timeline View', () => {
 
     const before = await timeline.getActiveDateLabel();
 
-    // Match the dedicated timeline endpoint URL — every fetch lands on
-    // /api/v1/db/timeline-data/... with from_date/to_date query params.
-    // The server builds the overlap predicate and applies a 400-record
-    // limitOverride that bypasses the deployment's NC_DB_QUERY_LIMIT_MAX.
+    // Match the dedicated timeline endpoint URL — every windowed fetch
+    // lands on /api/v1/db/timeline-data/... with from_date/to_date
+    // query params. The server builds the overlap predicate and applies
+    // a record limitOverride that bypasses NC_DB_QUERY_LIMIT_MAX.
     const requestPromise = page.waitForRequest(
       req =>
         req.url().includes('/api/v1/db/timeline-data/') &&
         req.url().includes('from_date=') &&
         req.url().includes('to_date='),
-      { timeout: 5000 }
+      { timeout: 15000 }
     );
 
-    await timeline.clickNext();
-    // Strict — if the navigation stops issuing the windowed fetch this throws.
+    // A single click of next may stay within the buffer (bufferDays is
+    // several nav-steps wide so the cursor moves freely without
+    // refetching) — the windowed fetch only fires when the cursor
+    // crosses the buffer edge. Click enough times to guarantee a slide
+    // at any zoom: month-zoom = 120d buffer ÷ 30d nav-step → 5 clicks
+    // exceed the edge with margin.
+    for (let i = 0; i < 6; i++) {
+      await timeline.clickNext();
+    }
+
+    // Strict — if the navigation never slides past the buffer edge or
+    // the windowed endpoint URL drifts, this throws.
     const req = await requestPromise;
     const after = await timeline.getActiveDateLabel();
 
-    // Active-date label must shift after a navigation click.
+    // Active-date label must shift after navigation.
     expect(after).not.toEqual(before);
 
     // We don't assert specific dates — they depend on the test wall

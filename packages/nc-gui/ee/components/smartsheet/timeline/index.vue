@@ -176,7 +176,7 @@ const reloadData = async () => {
 
 onMounted(async () => {
   await reloadData()
-  navigateToClosestRecord()
+  await navigateToClosestRecord()
 })
 
 const reloadViewDataListener = async () => {

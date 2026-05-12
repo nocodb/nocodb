@@ -34,8 +34,10 @@ interface Props {
   featureEnabledCallback?: () => boolean
   onClickCallback?: () => void
   size?: 'xs' | 'sm' | 'md' | 'lg'
-  /** When true, renders a lock icon instead of the text badge when isEEFeatureBlocked */
+  /** When true, renders a lock icon instead of the text badge on on-prem deployments */
   showAsLock?: boolean
+  /** When true, always renders a lock icon (any deployment) when the feature is blocked */
+  iconOnly?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -168,7 +170,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <NcTooltip v-if="!isFeatureEnabled && showAsLock && isOnPrem" @click="showUpgradeModal">
+  <NcTooltip v-if="!isFeatureEnabled && (iconOnly || (showAsLock && isOnPrem))" @click="showUpgradeModal">
     <template #title>{{ lockTooltipText }}</template>
     <GeneralIcon icon="ncUpgradeSparkle" class="h-3.5 w-3.5 cursor-pointer" :style="{ color: activeBadgeColors.text }" />
   </NcTooltip>

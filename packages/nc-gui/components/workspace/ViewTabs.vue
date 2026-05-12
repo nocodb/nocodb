@@ -112,7 +112,7 @@ const activeTab = computed({
             :feature="item.upgradeBadge.feature"
             :feature-enabled-callback="() => !item.upgradeBadge!.blocked"
             remove-click
-            show-as-lock
+            icon-only
           />
         </div>
       </template>

@@ -216,9 +216,14 @@ export function useInfiniteData(args: {
 
         const existing = getMetaByKey(meta.value.base_id, relatedModelId)
         if (!existing) {
-          // Use getPartialMeta which works even when user lacks full access
-          // to the related table (uses dbLinks.tableRead endpoint)
-          await getPartialMeta(meta.value.base_id, col.id!, relatedModelId)
+          // Try full meta first (user may have access); fall back to partial
+          // meta only when full meta isn't cached — same as useLTARStore.loadRelatedTableMeta
+          try {
+            await getMeta(meta.value.base_id, relatedModelId, false, false, true)
+          } catch {}
+          if (!getMetaByKey(meta.value.base_id, relatedModelId)) {
+            await getPartialMeta(meta.value.base_id, col.id!, relatedModelId)
+          }
         }
       }
     },

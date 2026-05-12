@@ -70,7 +70,9 @@ export const TrialEnded = ({
             </Text>
           )}
           <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
-            You can resubscribe any time from the billing portal.
+            {convertedToActive
+              ? 'You can manage your subscription any time from the billing portal.'
+              : 'You can resubscribe any time from the billing portal.'}
           </Text>
           <Button
             className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"

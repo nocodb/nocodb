@@ -348,16 +348,24 @@ export class ExpandedFormPage extends BasePage {
     // Comments-input role gating. Panel mode: comments tab was opened above,
     // so `.nc-comment-input` is rendered inside the panel root. Modal mode:
     // comments drawer is always inline with `.nc-comments-drawer` wrapper.
+    //
+    // In modal mode the drawer mounts via Ant Design Tabs (default tab is
+    // `comments`), but on slower CI runners the comments pane can take a beat
+    // longer than the default 14s polling window — wait for the drawer
+    // wrapper to be visible first, then assert the input count separately.
     if (panelMode) {
       if (role === 'viewer') {
         await expect(this.get().locator('.nc-comment-input')).toHaveCount(0);
       } else {
         await expect(this.get().locator('.nc-comment-input')).toHaveCount(1);
       }
-    } else if (role === 'viewer') {
-      await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(0);
     } else {
-      await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(1);
+      await this.get().locator('.nc-comments-drawer').waitFor({ state: 'visible', timeout: 30000 });
+      if (role === 'viewer') {
+        await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(0);
+      } else {
+        await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(1, { timeout: 30000 });
+      }
     }
 
     // press escape to close the expanded form

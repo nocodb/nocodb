@@ -19,6 +19,9 @@ process.env.NODE_ENV = 'test';
 process.env.TEST = 'true';
 // process.env.NC_DISABLE_CACHE = 'true';
 process.env.NC_DISABLE_TELE = 'true';
+// Test fixtures use SQLite filenames under tests/unit/; opt out of the
+// sqlite-source sandbox check so factory.createSakilaProject succeeds.
+process.env.NC_ALLOW_EXTERNAL_SQLITE_PATHS = 'true';
 
 // Load environment variables from .env file
 dotenv.config({

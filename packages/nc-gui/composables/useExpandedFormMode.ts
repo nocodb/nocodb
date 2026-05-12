@@ -1,18 +1,16 @@
-import { useStorage } from '@vueuse/core'
-
 export type ExpandedFormMode = 'panel' | 'modal'
 
-const STORAGE_KEY = 'nc-expanded-form-mode'
-
-// Browser-level preference (localStorage, not tied to user). CE is always
-// 'modal' since the panel doesn't exist there. Mobile / public views ignore
-// this preference and force the modal regardless.
+// Mode is derived purely from the `expanded_record_panel` experimental feature
+// flag — no in-product toggle. Users who want the old modal back can disable
+// the flag from experimental features. CE never sees this composable resolve
+// to 'panel' because the flag's `isEE: true` short-circuits there. Mobile and
+// public views ignore the result and force the modal regardless.
 export const useExpandedFormMode = createSharedComposable(() => {
-  const mode = useStorage<ExpandedFormMode>(STORAGE_KEY, 'panel')
+  const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const toggle = () => {
-    mode.value = mode.value === 'panel' ? 'modal' : 'panel'
-  }
+  const mode = computed<ExpandedFormMode>(() =>
+    isFeatureEnabled(FEATURE_FLAG.EXPANDED_RECORD_PANEL) ? 'panel' : 'modal',
+  )
 
-  return { mode, toggle }
+  return { mode }
 })

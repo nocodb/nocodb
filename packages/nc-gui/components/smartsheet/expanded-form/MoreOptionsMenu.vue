@@ -40,8 +40,6 @@ const { t } = useI18n()
 
 const route = useRoute()
 
-const router = useRouter()
-
 const isPublic = inject(IsPublicInj, ref(false))
 
 const injectedView = inject(ActiveViewInj, ref())
@@ -71,111 +69,6 @@ const {
   deleteRowById,
 } = expandedFormStore
 
-const { mode: expandedFormMode, toggle: toggleExpandedFormMode } = useExpandedFormMode()
-
-// Panel store is provided by tabs/Smartsheet — only present when the user is on
-// a grid view inside a Smartsheet tab. In other contexts (kanban modal,
-// dashboard widgets) the toggle hides itself.
-const expandedFormPanelStore = useExpandedFormPanel()
-
-// Switching between panel and modal only makes sense on EE desktop where both
-// surfaces exist AND a panel store is in scope (i.e., grid view on Smartsheet).
-const showModeToggle = computed(
-  () => isEeUI && !isMobileMode.value && !props.templateMode && !props.blueprintMode && !!expandedFormPanelStore,
-)
-
-// State for "switch with unsaved changes" prompt. We capture the row + fromMode
-// at click time because the active surface's store will be torn down before the
-// new surface mounts; we can't read these refs again afterwards.
-const showSwitchDiscardModal = ref(false)
-let pendingSwitch: { fromMode: 'panel' | 'modal'; rowId: string; capturedRow: Row } | null = null
-
-const performSwitch = async ({
-  fromMode,
-  rowId,
-  capturedRow,
-}: {
-  fromMode: 'panel' | 'modal'
-  rowId: string
-  capturedRow: Row
-}) => {
-  toggleExpandedFormMode()
-
-  message.toast(fromMode === 'panel' ? t('msg.toast.expandedFormModeExpandedForm') : t('msg.toast.expandedFormModeSidePanel'))
-
-  if (!expandedFormPanelStore) return
-
-  // Both directions: closing the current surface clears rowId from the route
-  // (panel close watch in grid/index.vue, modal v-model setter). Re-push it
-  // after the close so the new surface stays addressable / reload-safe.
-  if (fromMode === 'panel') {
-    // panel → modal: route-based modal opens automatically once rowId is
-    // present and expandedFormOnRowIdDlg sees mode === 'modal'.
-    expandedFormPanelStore.closePanel()
-    await nextTick()
-    router.push({ query: { ...router.currentRoute.value.query, rowId } })
-  } else {
-    // modal → panel: open the panel imperatively with the row data we already
-    // have. Resolve rowIndex via the grid's row navigator so prev/next + canvas
-    // active-row indicator work immediately. Falls back to undefined if the row
-    // isn't loaded (infinite-scroll cache miss).
-    emits('requestClose')
-    const idx = expandedFormPanelStore.rowNavigator.value?.findIndexByRowId?.(rowId) ?? -1
-    expandedFormPanelStore.openPanel(capturedRow, idx >= 0 ? idx : undefined, undefined, rowId)
-    await nextTick()
-    router.push({ query: { ...router.currentRoute.value.query, rowId } })
-  }
-}
-
-const onToggleMode = () => {
-  const rowId = primaryKey.value
-  const capturedRow = _row.value
-  const fromMode = expandedFormMode.value
-
-  if (!rowId || !expandedFormPanelStore) return
-
-  // Without this guard, a fresh API fetch on the new surface would silently
-  // clobber any pending edits the user has made on the current surface.
-  if (changedColumns.value.size > 0) {
-    pendingSwitch = { fromMode, rowId, capturedRow }
-    showSwitchDiscardModal.value = true
-    return
-  }
-
-  performSwitch({ fromMode, rowId, capturedRow })
-}
-
-const onDiscardAndSwitch = () => {
-  if (!pendingSwitch) return
-  clearColumns()
-  showSwitchDiscardModal.value = false
-  const target = pendingSwitch
-  pendingSwitch = null
-  performSwitch(target)
-}
-
-const onSaveAndSwitch = async () => {
-  if (!pendingSwitch) return
-  isSaving.value = true
-  try {
-    if (isNew.value) {
-      await _save(rowState.value)
-    } else {
-      await _save()
-      await _loadRow()
-    }
-    await reloadViewDataTrigger?.trigger()
-    showSwitchDiscardModal.value = false
-    const target = pendingSwitch
-    pendingSwitch = null
-    await performSwitch(target)
-  } catch (e: any) {
-    message.error(await formatSaveError(e))
-  } finally {
-    isSaving.value = false
-  }
-}
-
 const isRecordLinkCopied = ref(false)
 
 const showSendRecordModal = ref(false)
@@ -191,7 +84,6 @@ const visibleMoreOptions = computed(() => {
       copyRecordUrl: false,
       sendRecord: false,
       duplicateRecord: false,
-      modeToggle: false,
       deleteRecord: false,
       showDeleteDivider: false,
       showMoreOptionsMenu: false,
@@ -204,7 +96,6 @@ const visibleMoreOptions = computed(() => {
     copyRecordUrl: !isNew.value && !!primaryKey.value,
     sendRecord: appInfo.value.ee && !isNew.value && !!primaryKey.value && !isPublic.value,
     duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
-    modeToggle: showModeToggle.value,
     deleteRecord: !isNew.value && isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }
 
@@ -221,7 +112,6 @@ const visibleMoreOptions = computed(() => {
       !result.reloadRecord &&
       !result.sendRecord &&
       !result.duplicateRecord &&
-      !result.modeToggle &&
       !result.deleteRecord,
   }
 })
@@ -385,17 +275,6 @@ const onConfirmDeleteRowClick = async () => {
             </NcMenuItem>
           </template>
         </PermissionsTooltip>
-        <NcMenuItem v-if="visibleMoreOptions.modeToggle" data-testid="nc-expanded-form-toggle-mode" @click="onToggleMode">
-          <div
-            v-e="[`c:row-expand:toggle-mode:${expandedFormMode === 'panel' ? 'modal' : 'panel'}`]"
-            class="flex gap-2 items-center"
-          >
-            <GeneralIcon :icon="expandedFormMode === 'panel' ? 'expand' : 'sidebar'" class="cursor-pointer w-4 h-4" />
-            <span class="-ml-0.25">
-              {{ expandedFormMode === 'panel' ? $t('labels.switchToExpandedForm') : $t('labels.switchToSidePanel') }}
-            </span>
-          </div>
-        </NcMenuItem>
         <NcDivider v-if="visibleMoreOptions.showDeleteDivider" />
         <NcTooltip v-if="visibleMoreOptions.deleteRecord && meta?.synced" placement="left">
           <template #title>
@@ -462,10 +341,4 @@ const onConfirmDeleteRowClick = async () => {
     :row-id="primaryKey"
   />
 
-  <SmartsheetExpandedFormDiscardChangesModal
-    v-model="showSwitchDiscardModal"
-    :loading="isSaving"
-    @discard="onDiscardAndSwitch"
-    @save-and-continue="onSaveAndSwitch"
-  />
 </template>

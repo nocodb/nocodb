@@ -178,6 +178,15 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'expanded_record_panel',
+    title: 'Expanded record side panel',
+    description: 'Open expanded records in a resizable side panel beside the grid instead of a centered modal.',
+    enabled: true,
+    version: 2,
+    isEngineering: false,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

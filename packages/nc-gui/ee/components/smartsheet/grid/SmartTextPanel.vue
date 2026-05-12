@@ -316,7 +316,9 @@ const onDownloadPDF = () => downloadPDF()
       />
 
       <!-- Header -->
-      <div class="flex items-center h-[var(--toolbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0">
+      <div
+        class="flex items-center h-[var(--toolbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
+      >
         <div
           v-if="isFullscreen"
           class="flex items-center gap-2 text-bodyDefaultSm font-medium text-nc-content-gray-subtle2 leading-normal min-w-0"

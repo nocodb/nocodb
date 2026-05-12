@@ -377,7 +377,6 @@ function onDocumentKeydownCapture(e: KeyboardEvent) {
     if (!isExpandedFormPanelOpen()) return
     e.preventDefault()
     guardedNavigate(e.key === 'ArrowUp' ? 'prev' : 'next')
-    return
   }
 }
 

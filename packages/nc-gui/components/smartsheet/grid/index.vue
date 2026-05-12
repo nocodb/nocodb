@@ -263,13 +263,7 @@ const expandedFormOnRowIdDlg = computed({
     // EE desktop in panel mode uses the side panel — modal stays closed (a separate watcher syncs the panel from the route).
     // Falls back to the modal when the grid isn't canvas-rendered, since the panel
     // depends on canvas-only contracts (getDataCache(path), highlight bar, etc.).
-    if (
-      isEeUI &&
-      !isMobileMode.value &&
-      !isPublic.value &&
-      expandedFormMode.value === 'panel' &&
-      isCanvasRendering.value
-    )
+    if (isEeUI && !isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && isCanvasRendering.value)
       return false
     // When ?cellCol points at a SmartText column the SmartText panel claims
     // the screen — expanded record dialog stays closed.
@@ -350,7 +344,12 @@ watch(
       // restore both the row AND its group scope — without it prev/next would
       // walk across all groups instead of the user's group.
       const pathParam = routeQuery.value.path as string | undefined
-      const path = pathParam ? pathParam.split('-').map(Number).filter((n) => !Number.isNaN(n)) : []
+      const path = pathParam
+        ? pathParam
+            .split('-')
+            .map(Number)
+            .filter((n) => !Number.isNaN(n))
+        : []
       const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
       expandedFormPanelStore!.openPanel(
         { row: {}, oldRow: {}, rowMeta: {} } as Row,
@@ -563,6 +562,20 @@ const isCanvasRendering = computed(
   () =>
     isInfiniteScrollingEnabled.value &&
     ((isCanvasTableEnabled.value && !isGroupBy.value) || (isCanvasGroupByTableEnabled.value && isGroupBy.value)),
+)
+
+// Close the side panel when the experimental flag is toggled off mid-session.
+// Without this the panel that was already mounted stays put even though
+// expandedFormMode has flipped to 'modal'. We just close it — the existing
+// panel-close watcher clears rowId from the URL, so the user lands back on the
+// grid. Re-opening a record after the toggle uses the modal path normally.
+watch(
+  () => expandedFormMode.value,
+  (newMode, oldMode) => {
+    if (oldMode === 'panel' && newMode === 'modal' && expandedFormPanelStore?.isOpen.value) {
+      expandedFormPanelStore.closePanel()
+    }
+  },
 )
 
 const baseColor = computed(() => {

@@ -3260,9 +3260,7 @@ export function useCanvasRender({
             // (useInfiniteGroups.ts:275), so non-leaf renders would otherwise
             // collapse onto the same empty-path key.
             const groupSelKey = group ? generateGroupPath(group).join('-') : ''
-            const groupSelOverride = groupSelKey
-              ? groupSelectionAggregations.value.get(groupSelKey)
-              : undefined
+            const groupSelOverride = groupSelKey ? groupSelectionAggregations.value.get(groupSelKey) : undefined
             const groupSelOutOfScope = !!groupSelOverride && !groupSelOverride.scopedTitles.has(column.title)
             const groupSelDisplayValue = groupSelOverride?.values[column.title]
             const aggDisplay = groupSelDisplayValue !== undefined ? groupSelDisplayValue : group?.aggregations[column.title]

@@ -50,7 +50,9 @@ const expandedFormPanelStore = useProvideExpandedFormPanel()
 
 const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore.isOpen.value)
 
-const isExpandedFormPanelFullscreen = computed(() => expandedFormPanelStore.isOpen.value && expandedFormPanelStore.isFullscreen.value)
+const isExpandedFormPanelFullscreen = computed(
+  () => expandedFormPanelStore.isOpen.value && expandedFormPanelStore.isFullscreen.value,
+)
 
 // SmartText panel claims the right-side slot when ?cellCol points at a SmartText
 // column. Hide the expanded-record panel while that's true so we never show two
@@ -389,11 +391,7 @@ watch(isViewsLoading, async () => {
                  of the component) preserves the EFP's internal state across
                  SmartText cell hops — otherwise users lose unsaved edits when
                  they briefly open a SmartText cell from the grid. -->
-            <div
-              v-if="isExpandedFormPanelOpen && isGrid"
-              v-show="!isSmartTextActive"
-              style="display: contents"
-            >
+            <div v-if="isExpandedFormPanelOpen && isGrid" v-show="!isSmartTextActive" style="display: contents">
               <SmartsheetGridExpandedFormPanel />
             </div>
           </Pane>

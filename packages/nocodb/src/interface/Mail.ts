@@ -46,6 +46,7 @@ enum MailEvent {
   SUBSCRIPTION_CANCELED = 'SUBSCRIPTION_CANCELED',
   PLAN_CHANGED = 'PLAN_CHANGED',
   TRIAL_ENDED = 'TRIAL_ENDED',
+  TRIAL_ENDING = 'TRIAL_ENDING',
   // Activation nudges (cloud, scanner-driven). Fired at most once per user
   // per event ever, with cross-event mute (max 1 nudge/user/7d) at the check
   // layer. Targeting requires `last_active_at` to be populated.

@@ -5,6 +5,7 @@ import SubscriptionCreated from '~/mail/templates/transactional/subscription-cre
 import SubscriptionCanceled from '~/mail/templates/transactional/subscription-canceled';
 import PlanChanged from '~/mail/templates/transactional/plan-changed';
 import TrialEnded from '~/mail/templates/transactional/trial-ended';
+import TrialEnding from '~/mail/templates/transactional/trial-ending';
 import Welcome from '~/mail/templates/transactional/welcome';
 import NudgeNoBase from '~/mail/templates/transactional/nudge-no-base';
 import NudgeWorkflowInactive from '~/mail/templates/transactional/nudge-workflow-inactive';
@@ -19,6 +20,7 @@ export {
   SubscriptionCanceled,
   PlanChanged,
   TrialEnded,
+  TrialEnding,
   Welcome,
   NudgeNoBase,
   NudgeWorkflowInactive,

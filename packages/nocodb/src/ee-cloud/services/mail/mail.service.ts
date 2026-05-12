@@ -17,6 +17,7 @@ import type {
   SubscriptionCanceledPayload,
   SubscriptionCreatedPayload,
   TrialEndedPayload,
+  TrialEndingPayload,
 } from '~/interface/Mail';
 import * as CloudMailTemplates from '~/mail/templates/transactional';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
@@ -37,6 +38,7 @@ const DEFERRED_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
   MailEvent.SUBSCRIPTION_CANCELED,
   MailEvent.PLAN_CHANGED,
   MailEvent.TRIAL_ENDED,
+  MailEvent.TRIAL_ENDING,
   MailEvent.NUDGE_NO_BASE,
   MailEvent.NUDGE_WORKFLOW_INACTIVE,
   MailEvent.NUDGE_INVITE_TEAM,
@@ -347,6 +349,16 @@ export class MailService extends MailServiceEE {
           payload: p,
         };
       }
+      case MailEvent.TRIAL_ENDING: {
+        const p = params.payload as TrialEndingPayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          dedupe_key: `trial-ending:${p.subscriptionId}:days:${p.daysRemaining}`,
+          payload: p,
+        };
+      }
       case MailEvent.NUDGE_NO_BASE:
       case MailEvent.NUDGE_WORKFLOW_INACTIVE:
       case MailEvent.NUDGE_INVITE_TEAM:
@@ -493,6 +505,21 @@ export class MailService extends MailServiceEE {
             planTitle: p.planTitle,
             convertedToActive: p.convertedToActive,
             periodEnd: p.periodEnd ? this.formatDate(p.periodEnd) : undefined,
+            billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
+      case MailEvent.TRIAL_ENDING: {
+        const p = payload as TrialEndingPayload;
+        return {
+          subject: `Your ${p.planTitle} trial ends in ${p.daysRemaining} day${
+            p.daysRemaining === 1 ? '' : 's'
+          } — "${p.workspace.title}"`,
+          html: await this.renderCloudMail('TrialEnding', {
+            workspaceTitle: p.workspace.title,
+            planTitle: p.planTitle,
+            daysRemaining: p.daysRemaining,
+            trialEndsAt: this.formatDate(p.trialEndsAt),
             billingPortalUrl: p.billingPortalUrl,
           }),
         };

@@ -152,6 +152,13 @@ interface TrialEndedPayload extends BillingPayloadBase {
   periodEnd?: string;
 }
 
+interface TrialEndingPayload extends BillingPayloadBase {
+  subscriptionId: string;
+  planTitle: string;
+  daysRemaining: number;
+  trialEndsAt: string;
+}
+
 interface GracePeriodEndingPayload {
   req?: NcRequest;
   user: UserType;
@@ -376,6 +383,10 @@ type MailParams =
       payload: TrialEndedPayload;
     }
   | {
+      mailEvent: MailEvent.TRIAL_ENDING;
+      payload: TrialEndingPayload;
+    }
+  | {
       mailEvent: MailEvent.NUDGE_NO_BASE;
       payload: NudgeNoBasePayload;
     }
@@ -407,6 +418,7 @@ export {
   SubscriptionCanceledPayload,
   PlanChangedPayload,
   TrialEndedPayload,
+  TrialEndingPayload,
   NudgeNoBasePayload,
   NudgeWorkflowInactivePayload,
   NudgeInviteTeamPayload,

@@ -5,6 +5,7 @@ import { NudgeInviteTeamCheck } from '~/modules/jobs/mail-scanner/checks/nudge-i
 import { NudgeNoBaseCheck } from '~/modules/jobs/mail-scanner/checks/nudge-no-base.check';
 import { NudgeSeatLimitCheck } from '~/modules/jobs/mail-scanner/checks/nudge-seat-limit.check';
 import { NudgeWorkflowInactiveCheck } from '~/modules/jobs/mail-scanner/checks/nudge-workflow-inactive.check';
+import { TrialEndingCheck } from '~/modules/jobs/mail-scanner/checks/trial-ending.check';
 
 /**
  * Unified scanner cron. Owns the schedule; the actual logic lives in
@@ -23,6 +24,7 @@ export class MailScannerProcessor {
     private readonly nudgeWorkflowInactiveCheck: NudgeWorkflowInactiveCheck,
     private readonly nudgeInviteTeamCheck: NudgeInviteTeamCheck,
     private readonly nudgeSeatLimitCheck: NudgeSeatLimitCheck,
+    private readonly trialEndingCheck: TrialEndingCheck,
   ) {}
 
   async job() {
@@ -47,6 +49,7 @@ export class MailScannerProcessor {
       this.nudgeWorkflowInactiveCheck,
       this.nudgeInviteTeamCheck,
       this.nudgeSeatLimitCheck,
+      this.trialEndingCheck,
     ];
   }
 }

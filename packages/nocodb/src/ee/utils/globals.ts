@@ -52,6 +52,7 @@ export enum MetaTable {
   API_TOKENS = 'nc_api_tokens',
   BOOKMARK_GROUPS = 'nc_bookmark_groups',
   BOOKMARKS = 'nc_bookmarks',
+  MAIL_SENDS = 'nc_mail_sends',
   SYNC_SOURCE = 'nc_sync_source_v2',
   SYNC_LOGS = 'nc_sync_logs_v2',
   MAP_VIEW = 'nc_map_view_v2',
@@ -238,6 +239,7 @@ export const orderedMetaTables = [
   MetaTable.ORGS_OLD,
 
   // User-related
+  MetaTable.MAIL_SENDS,
   MetaTable.BOOKMARKS,
   MetaTable.BOOKMARK_GROUPS,
   MetaTable.API_TOKEN_SCOPES,
@@ -551,6 +553,7 @@ export const RootScopeTables = {
     MetaTable.SCIM_CONFIG,
     MetaTable.BOOKMARK_GROUPS,
     MetaTable.BOOKMARKS,
+    MetaTable.MAIL_SENDS,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

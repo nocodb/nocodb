@@ -1,8 +1,13 @@
-import { MailEvent, RawMailParams } from 'src/interface/Mail';
+import {
+  MailEvent,
+  RawMailParams,
+  SKIP_STORING_MAIL_EVENTS,
+} from 'src/interface/Mail';
 import type { MailParams as CEMailParams } from 'src/interface/Mail';
 import type {
   ColumnType,
   NcRequest,
+  PlanLimitTypes,
   TableType,
   UserType,
   WorkspaceType,
@@ -81,6 +86,37 @@ interface WorkflowDraftReminderPayload {
     title: string;
   };
   draftAgeDays: number;
+}
+
+interface LimitReachedPayload {
+  req?: NcRequest;
+  user: UserType;
+  workspace: {
+    id: string;
+    title: string;
+  };
+  limitType: PlanLimitTypes;
+  currentUsage: number;
+  limitValue: number;
+  gracePeriodStartAt: string;
+  gracePeriodEndsAt: string;
+  upgradeUrl: string;
+}
+
+interface GracePeriodEndingPayload {
+  req?: NcRequest;
+  user: UserType;
+  workspace: {
+    id: string;
+    title: string;
+  };
+  limitType: PlanLimitTypes;
+  currentUsage: number;
+  limitValue: number;
+  gracePeriodStartAt: string;
+  gracePeriodEndsAt: string;
+  daysRemaining: number;
+  upgradeUrl: string;
 }
 
 interface HookErrorDigestPayload {
@@ -229,13 +265,24 @@ type MailParams =
   | {
       mailEvent: MailEvent.HOOK_ERROR_DIGEST;
       payload: HookErrorDigestPayload;
+    }
+  | {
+      mailEvent: MailEvent.LIMIT_REACHED;
+      payload: LimitReachedPayload;
+    }
+  | {
+      mailEvent: MailEvent.GRACE_PERIOD_ENDING;
+      payload: GracePeriodEndingPayload;
     };
 
 export {
   MailEvent,
   MailParams,
   RawMailParams,
+  SKIP_STORING_MAIL_EVENTS,
   WorkflowErrorDigestPayload,
   WorkflowDraftReminderPayload,
   HookErrorDigestPayload,
+  LimitReachedPayload,
+  GracePeriodEndingPayload,
 };

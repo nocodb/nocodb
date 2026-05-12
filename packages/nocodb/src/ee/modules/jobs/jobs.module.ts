@@ -38,8 +38,7 @@ import { SandboxCommandReplayService } from '~/services/sandbox-command-replay.s
 import { ManagedAppUpdateProcessor } from '~/modules/jobs/jobs/managed-app-update/managed-app-update.processor';
 import { CACHE_PREFIX } from '~/utils/globals';
 
-@Module({
-  ...JobsModuleMetadata,
+export const jobsModuleEeMetadata = {
   imports: [
     ...JobsModuleMetadata.imports,
     ...(getRedisURL(NC_REDIS_TYPE.JOB)
@@ -101,5 +100,7 @@ import { CACHE_PREFIX } from '~/utils/globals';
     ManagedAppUpdateProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
-})
+};
+
+@Module(jobsModuleEeMetadata)
 export class JobsModule extends JobsModuleCE {}

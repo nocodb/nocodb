@@ -79,6 +79,9 @@ export enum JobTypes {
   DataImport = 'data-import',
   SandboxMerge = 'sandbox-merge',
   ManagedAppUpdate = 'managed-app-update',
+  MailDispatch = 'mail-dispatch',
+  MailOutboxRecovery = 'mail-outbox-recovery',
+  MailLimitScanner = 'mail-limit-scanner',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -103,6 +106,9 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.WorkflowDraftReminder,
   JobTypes.ChatMessage,
   JobTypes.ChatApproval,
+  JobTypes.MailDispatch,
+  JobTypes.MailOutboxRecovery,
+  JobTypes.MailLimitScanner,
 ];
 
 export enum JobStatus {
@@ -365,6 +371,10 @@ export interface ChatApprovalJobData extends JobData {
   sessionId: string;
   messageId: string;
   decisions: Record<string, 'approved' | 'denied'>;
+}
+
+export interface MailDispatchJobData extends JobData {
+  mailSendId: string;
 }
 
 export interface DataImportJobData extends JobData {

@@ -39,6 +39,8 @@ enum MailEvent {
   WORKFLOW_DRAFT_REMINDER = 'WORKFLOW_DRAFT_REMINDER',
   HOOK_ERROR_DIGEST = 'HOOK_ERROR_DIGEST',
   SEND_RECORD = 'SEND_RECORD',
+  LIMIT_REACHED = 'LIMIT_REACHED',
+  GRACE_PERIOD_ENDING = 'GRACE_PERIOD_ENDING',
 }
 
 interface CommentPayload {
@@ -175,10 +177,30 @@ interface RawMailParams {
   bcc?: string | string[];
 }
 
+/**
+ * MailEvents excluded from the `nc_mail_sends` audit table.
+ *
+ * These are user-content sends where recipients + payload come from user data
+ * (form responders, record-share targets). Logging them would create PII
+ * exposure on data we don't otherwise hold.
+ *
+ * Denylist (not allowlist) so new platform-generated MailEvents default to
+ * audited — safer audit posture.
+ *
+ * `sendMailRaw()` is also excluded from logging unconditionally — it's a
+ * low-level passthrough used by workflow node email actions and the internal
+ * raw-send controller.
+ */
+const SKIP_STORING_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
+  MailEvent.FORM_SUBMISSION,
+  MailEvent.SEND_RECORD,
+]);
+
 export {
   MailEvent,
   MailParams,
   FormSubmissionPayload,
   SendRecordPayload,
   RawMailParams,
+  SKIP_STORING_MAIL_EVENTS,
 };

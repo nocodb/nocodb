@@ -171,6 +171,7 @@ export class MetaService {
       [MetaTable.TRASH]: 'tr',
       [MetaTable.BOOKMARK_GROUPS]: 'bmg',
       [MetaTable.BOOKMARKS]: 'bmk',
+      [MetaTable.MAIL_SENDS]: 'ms',
     };
 
     const prefix = prefixMap[target] || 'nc';

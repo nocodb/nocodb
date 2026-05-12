@@ -5,6 +5,7 @@ import { stringHelperTest } from './stringHelpers.test';
 import { planResolutionTests } from './planResolution.test';
 import { attachmentHelpersTest } from './attachmentHelpers.test';
 import { apiTokenPermissionTest } from './apiTokenPermission.test';
+import { mailAuditTests } from './mailAudit.test';
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
 let verifyDefaultOrgTests = () => {};
@@ -42,6 +43,7 @@ function _helperTests() {
   patResourceFilterTest();
   verifyDefaultOrgTests();
   dynamicFieldFilterTests();
+  mailAuditTests();
 }
 export const helperTests = runOnSet(1, function () {
   describe('helpersTest', _helperTests);

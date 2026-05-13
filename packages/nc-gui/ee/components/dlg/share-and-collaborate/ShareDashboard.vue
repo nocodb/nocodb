@@ -223,7 +223,7 @@ const copyCustomUrl = async (custUrl = '') => {
                   class="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium"
                   data-testid="nc-share-dashboard-password-locked"
                 >
-                  <GeneralIcon icon="lock" class="text-nc-content-gray-subtle !w-3.5 !h-3.5" />
+                  <GeneralIcon icon="ncLock" class="text-nc-content-gray-subtle !w-3.5 !h-3.5" />
                   <span class="text-nc-content-gray-subtle text-bodySm tracking-widest">••••••••</span>
                 </div>
                 <NcButton

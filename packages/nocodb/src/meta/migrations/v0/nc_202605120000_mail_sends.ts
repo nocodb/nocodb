@@ -9,7 +9,6 @@ const up = async (knex: Knex) => {
     table.string('to_email', 320).notNullable();
     table.text('subject');
     table.string('status', 16).notNullable();
-    table.string('delivery_status', 16).nullable();
     table.string('dedupe_key', 255).nullable();
     table.text('payload_json').nullable();
     table.string('ses_message_id', 128).nullable();

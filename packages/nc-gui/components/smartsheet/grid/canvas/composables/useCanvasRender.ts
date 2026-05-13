@@ -2136,6 +2136,8 @@ export function useCanvasRender({
     const _width = width.value
     if (_height <= 0 || _width <= 0) return
 
+    const isMmTable = !!meta.value?.mm
+
     const { start: startColIndex, end: endColIndex } = colSlice.value
 
     // Top border
@@ -2216,7 +2218,7 @@ export function useCanvasRender({
         }
 
         ctx.restore()
-      } else if (isHovered) {
+      } else if (isHovered && !isMmTable) {
         if (!isLocked.value) {
           ctx.save()
           ctx.beginPath()
@@ -2334,7 +2336,7 @@ export function useCanvasRender({
           const w = ctx.measureText(aggregationValue ?? '').width
           availWidth -= w
           ctx.restore()
-        } else if (isHovered && isViewOperationsAllowed.value) {
+        } else if (isHovered && isViewOperationsAllowed.value && !isMmTable) {
           if (!isLocked.value) {
             ctx.save()
             ctx.beginPath()
@@ -2507,7 +2509,7 @@ export function useCanvasRender({
             ctx.fillText(aggregationValue, xOffset + width - 8, _height - AGGREGATION_HEIGHT / 2)
 
             ctx.restore()
-          } else if (isHovered) {
+          } else if (isHovered && !isMmTable) {
             ctx.save()
             ctx.beginPath()
             ctx.rect(xOffset, _height - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
@@ -2989,6 +2991,7 @@ export function useCanvasRender({
     const rowNumberCol = fixedCols.value.find((col) => col.id === 'row_number')
     const firstFixedCol = fixedCols.value.find((col) => col.id !== 'row_number')
     const xOffset = (level + 1) * 13
+    const isMmTable = !!meta.value?.mm
 
     const mergedWidth = parseCellWidth(rowNumberCol?.width) + parseCellWidth(firstFixedCol?.width) - xOffset
     const adjustedWidth = Math.max(
@@ -3187,7 +3190,7 @@ export function useCanvasRender({
               mousePosition,
             )
 
-            if (isHovered) {
+            if (isHovered && !isMmTable) {
               setCursor('pointer')
             }
 
@@ -3257,7 +3260,7 @@ export function useCanvasRender({
               )
 
               ctx.restore()
-            } else if (isHovered) {
+            } else if (isHovered && !isMmTable) {
               if (!isLocked.value) {
                 ctx.save()
 

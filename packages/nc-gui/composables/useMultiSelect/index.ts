@@ -1146,9 +1146,13 @@ export function useMultiSelect(
           rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
         }
 
+        // M2M junction tables don't support inserting rows/columns via paste —
+        // records are owned by the link cell, not the junction directly.
+        const isMmTable = !!meta.value?.mm
+
         let options = {
           continue: false,
-          expand: (rowsToAdd > 0 || newColsNeeded > 0) && !isArrayStructure,
+          expand: (rowsToAdd > 0 || newColsNeeded > 0) && !isArrayStructure && !isMmTable,
         }
         if (options.expand && !isArrayStructure) {
           options = await expandRows?.({

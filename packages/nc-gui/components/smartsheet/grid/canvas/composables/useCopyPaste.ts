@@ -334,10 +334,14 @@ export function useCopyPaste({
         const availableRowsToUpdate = Math.max(0, tempTotalRows - totalRowsBeforeActiveCell)
         const rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
 
+        // M2M junction tables don't support inserting rows/columns via paste —
+        // records are owned by the link cell, not the junction directly.
+        const isMmTable = !!meta.value?.mm
+
         // Check if expansion is needed
         let options = {
           continue: false,
-          expand: rowsToAdd > 0 || newColsNeeded > 0,
+          expand: (rowsToAdd > 0 || newColsNeeded > 0) && !isMmTable,
         }
 
         if (options.expand) {

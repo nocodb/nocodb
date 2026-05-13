@@ -422,9 +422,11 @@ const enabledOptions = computed(() => {
       table.value?.type === 'table' &&
       isUIAllowed('dateDependencyManage', { roles: baseRole?.value, source: source.value }) &&
       showEEFeatures.value,
-    tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }) && !table.value?.mm,
+    tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })
+
+const isMmTable = computed(() => !!table.value?.mm)
 </script>
 
 <template>
@@ -721,18 +723,20 @@ const enabledOptions = computed(() => {
                 </template>
                 <template v-if="enabledOptions.tableDelete">
                   <NcDivider />
-                  <NcMenuItem
-                    :data-testid="`sidebar-table-delete-${table.title}`"
-                    class="nc-table-delete"
-                    danger
-                    :disabled="!!table.synced"
-                    @click="deleteTable"
-                  >
-                    <div v-e="['c:table:delete']" class="flex gap-2 items-center">
-                      <GeneralIcon icon="delete" />
-                      {{ $t('general.delete') }} {{ $t('objects.table').toLowerCase() }}
-                    </div>
-                  </NcMenuItem>
+                  <NcTooltip :disabled="!isMmTable" :title="$t('tooltip.deleteNotSupportedOnJunctionTable')" placement="right">
+                    <NcMenuItem
+                      :data-testid="`sidebar-table-delete-${table.title}`"
+                      class="nc-table-delete"
+                      danger
+                      :disabled="!!table.synced || isMmTable"
+                      @click="deleteTable"
+                    >
+                      <div v-e="['c:table:delete']" class="flex gap-2 items-center">
+                        <GeneralIcon icon="delete" />
+                        {{ $t('general.delete') }} {{ $t('objects.table').toLowerCase() }}
+                      </div>
+                    </NcMenuItem>
+                  </NcTooltip>
                 </template>
               </NcMenu>
             </template>

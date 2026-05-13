@@ -1552,7 +1552,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       return
     }
 
-    if (isLocked.value || !isViewOperationsAllowed.value) return
+    if (isLocked.value || !isViewOperationsAllowed.value || currentMeta.value?.mm) return
 
     // If the click is not normal single click, return
     const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
@@ -1646,6 +1646,10 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         }
         // Skip opening aggregation menu for errored columns.
         if (clickedColumn.columnObj?.colOptions?.error) {
+          return
+        }
+        // M2M junction tables don't support aggregations
+        if (currentMeta.value?.mm) {
           return
         }
         openAggregationField.value = clickedColumn
@@ -2150,7 +2154,7 @@ const handleMouseMove = (e: MouseEvent) => {
     } else if (mousePosition.y > height.value - 36) {
       if (!isViewOperationsAllowed.value) return
 
-      cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
+      cursor = !currentMeta.value?.mm && mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
       setCursor(cursor)
       triggerRefreshCanvas()
       return

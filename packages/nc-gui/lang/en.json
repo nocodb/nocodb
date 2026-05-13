@@ -1102,6 +1102,7 @@
     "renameWorkspace": "Rename Workspace",
     "renamingWorkspace": "Renaming Workspace",
     "renamingBase": "Renaming Base",
+    "upgradingWorkspace": "Upgrading Workspace",
     "sso": "Single Sign-On (SSO)",
     "license": "License",
     "licenseKey": "License Key",
@@ -3219,6 +3220,8 @@
     "searchRecordTemplates": "Search record templates"
   },
   "msg": {
+    "workspaceUpgradeInProgress": "Upgrading workspace…",
+    "workspaceUpgradeComplete": "Workspace upgraded successfully.",
     "bookmarkAdded": "Bookmark added",
     "bookmarkRemoved": "Bookmark removed",
     "bookmarksDeleted": "{count} bookmarks deleted",

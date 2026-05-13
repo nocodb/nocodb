@@ -4,6 +4,8 @@ import type { NcContext } from '~/interface/config';
 import type { OperationContract } from '~/command-registry/types';
 import type { ColumnsService } from '~/services/columns.service';
 import type { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import { ColumnDataBackupHandler } from '~/services/column-data-backup-handler.service';
+import Noco from '~/Noco';
 import BaseTrash from '~/models/BaseTrash';
 import { OperationName } from '~/command-registry/op-names';
 import { OperationRegistry } from '~/command-registry/registry';
@@ -255,6 +257,13 @@ export const ColumnUpdateContract: OperationContract<
   },
   capture: ['backup'],
   capture_schema: columnUpdateExtraSchema,
+  on_record_failure: async (context, capture) => {
+    if (!capture.backup) return;
+    const handler: ColumnDataBackupHandler = Noco.nestApp.get(
+      ColumnDataBackupHandler,
+    );
+    await handler.drop(context, { backupRef: capture.backup });
+  },
   sandbox: {
     dependencies: (_params, result) => deriveColumnDeps(result),
   },

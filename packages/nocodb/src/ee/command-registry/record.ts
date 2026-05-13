@@ -136,6 +136,13 @@ function resolveEntityInfo(
  *
  * Replay (`isReplay()` true) skips the operation log to avoid the
  * inverse-as-forward stack-fight. Throws on schema validation failure.
+ *
+ * Returns `{ persisted }`. `persisted=false` means neither destination
+ * accepted the row (replay path, missing context, or — most importantly
+ * for side-effect rollback — no sandbox AND no tab id, so there is
+ * nowhere to record). The decorator uses this to fire a contract's
+ * registered `FailureCleanupFn` so backups/junctions captured pre-call
+ * don't leak.
  */
 export async function recordCommand(
   context: NcContext,
@@ -143,12 +150,12 @@ export async function recordCommand(
   params: any,
   result: any,
   resolvedCtx: ResolvedCtx | undefined,
-): Promise<void> {
-  if (!context?.base_id) return;
+): Promise<{ persisted: boolean }> {
+  if (!context?.base_id) return { persisted: false };
 
   const requestObj = params?.req ?? params?.cookie;
   const userId = requestObj?.user?.id || params?.user?.id;
-  if (!userId) return;
+  if (!userId) return { persisted: false };
 
   // Per-section opt-out: `undo: false` / `sandbox: false` on the contract
   // mean "explicitly do not record this destination."
@@ -163,7 +170,7 @@ export async function recordCommand(
     contract.sandbox === false
       ? null
       : await Sandbox.getBySandboxBaseId(context.base_id);
-  if (!sandbox && !isUndoableCandidate) return;
+  if (!sandbox && !isUndoableCandidate) return { persisted: false };
 
   const replayableParams = extractReplayableParams(params);
 
@@ -193,7 +200,7 @@ export async function recordCommand(
 
   const info = resolveEntityInfo(contract, params, result, resolvedCtx);
 
-  await Promise.all([
+  const [, undoPersisted] = await Promise.all([
     sandbox
       ? insertSandboxChangelog(
           context,
@@ -205,8 +212,8 @@ export async function recordCommand(
           validatedParams,
           extra,
           userId,
-        )
-      : null,
+        ).then(() => true)
+      : Promise.resolve(false),
     isUndoableCandidate
       ? maybeRecordUndoEntry(
           context,
@@ -219,8 +226,10 @@ export async function recordCommand(
           extra,
           userId,
         )
-      : null,
+      : Promise.resolve(false),
   ]);
+
+  return { persisted: !!sandbox || undoPersisted };
 }
 
 async function insertSandboxChangelog(
@@ -274,15 +283,15 @@ async function maybeRecordUndoEntry(
   validatedParams: unknown,
   extra: Record<string, unknown> | undefined,
   userId: string,
-): Promise<void> {
+): Promise<boolean> {
   const undoConfig = getUndoConfig(contract);
-  if (!undoConfig?.inverse) return;
+  if (!undoConfig?.inverse) return false;
 
   // Replay would double-record (original user mutation already wrote the row).
-  if (isReplay()) return;
+  if (isReplay()) return false;
 
   const tabId = (params?.req ?? params?.cookie)?.ncTabId;
-  if (!tabId) return;
+  if (!tabId) return false;
 
   let inverse: Awaited<ReturnType<typeof undoConfig.inverse>>;
   try {
@@ -291,9 +300,9 @@ async function maybeRecordUndoEntry(
     logger.warn(
       `undo.inverse ${contract.name}@${contract.version ?? 1}: ${e?.message}`,
     );
-    return;
+    return false;
   }
-  if (!inverse) return;
+  if (!inverse) return false;
 
   const scopeRef = undoConfig.scope(
     validatedParams,
@@ -329,4 +338,5 @@ async function maybeRecordUndoEntry(
     scope_id: scopeRef.id,
     ...(extra ? { meta: extra } : {}),
   });
+  return true;
 }

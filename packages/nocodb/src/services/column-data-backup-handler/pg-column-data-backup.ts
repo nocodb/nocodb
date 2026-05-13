@@ -5,6 +5,7 @@ import type {
 } from '~/services/column-data-backup-handler';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Column } from '~/models';
+import { buildBackupColumnTypeExpr } from '~/services/column-data-backup-handler';
 
 /**
  * PostgreSQL implementation of the column-data backup primitives.
@@ -35,9 +36,7 @@ export class PgColumnDataBackup implements ColumnDataBackupDriver {
     const knex = baseModelSqlV2.dbDriver;
     const tnPath = baseModelSqlV2.getTnPath(baseModelSqlV2.model.table_name);
 
-    // PG accepts the source column's data type verbatim — copy is then a
-    // direct value-by-value assignment with no implicit cast.
-    const dt = sourceColumn.dt || 'text';
+    const dt = buildBackupColumnTypeExpr(sourceColumn, 'text');
 
     await baseModelSqlV2.execAndParse(
       knex

@@ -1,6 +1,42 @@
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Column } from '~/models';
 
+export function buildBackupColumnTypeExpr(
+  sourceColumn: Column<any>,
+  fallback: string,
+): string {
+  const dt = sourceColumn.dt || fallback;
+
+  if (!/^[\w -]+(?:\(\d+(?:\s?,\s?\d+)?\))?$/.test(dt)) {
+    throw new Error(`Invalid data type: ${dt}`);
+  }
+
+  // `dt` from introspection may already embed its parens (`varchar(255)`).
+  if (/\(.*\)/.test(dt)) return dt;
+
+  const dtxp = sourceColumn.dtxp;
+  if (dtxp === undefined || dtxp === null || dtxp === '' || dtxp === ' ') {
+    return dt;
+  }
+
+  if (
+    /^(text|tinytext|mediumtext|longtext|blob|json|jsonb|uuid|bool|boolean)$/i.test(
+      dt,
+    )
+  ) {
+    return dt;
+  }
+
+  // dtxp can be numeric (`255`, `10,2`) or an enum/set value list
+  // (`'a','b'`) — reject statement terminators / comment markers.
+  const dtxpStr = String(dtxp);
+  if (/[;\\]|--|\/\*|\*\//.test(dtxpStr)) {
+    throw new Error(`Invalid data type precision: ${dtxpStr}`);
+  }
+
+  return `${dt}(${dtxpStr})`;
+}
+
 /**
  * Identifies a backup column belonging to a single source column. Persisted
  * verbatim onto the operation log row's `meta` JSONB so:

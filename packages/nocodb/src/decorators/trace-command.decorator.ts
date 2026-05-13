@@ -36,6 +36,14 @@ export function getTraceCapture<T = unknown>(_key: string): T | undefined {
   return undefined;
 }
 
+/**
+ * Snapshot of the active trace scope's capture bag. No-op in CE — there
+ * is no scope, so always returns an empty object.
+ */
+export function getTraceCaptureSnapshot(): Record<string, unknown> {
+  return {};
+}
+
 /** True when a trace scope is active. CE has no scope → always false. */
 export function isTraceActive(): boolean {
   return false;

@@ -5,6 +5,7 @@ import type {
 } from '~/services/column-data-backup-handler';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Column } from '~/models';
+import { buildBackupColumnTypeExpr } from '~/services/column-data-backup-handler';
 
 /**
  * SQLite implementation.
@@ -23,7 +24,7 @@ export class SqliteColumnDataBackup implements ColumnDataBackupDriver {
   }): Promise<ColumnBackupRef> {
     const knex = baseModelSqlV2.dbDriver;
     const tnPath = baseModelSqlV2.getTnPath(baseModelSqlV2.model.table_name);
-    const dt = sourceColumn.dt || 'TEXT';
+    const dt = buildBackupColumnTypeExpr(sourceColumn, 'TEXT');
 
     await baseModelSqlV2.execAndParse(
       knex

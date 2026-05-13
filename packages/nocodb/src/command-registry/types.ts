@@ -44,6 +44,8 @@ export interface OperationContract<
   /** Validates the `meta.extra` payload before persistence. Strict. */
   readonly capture_schema?: ZodTypeAny;
 
+  readonly on_record_failure?: FailureCleanupFn;
+
   /**
    * Marks the op as a "macro" — a user-facing action that fans out to
    * multiple traced child operations.
@@ -167,6 +169,22 @@ export type CommandHandler<
   params: ParamsOf<C>,
   meta: HandlerMeta,
 ) => Promise<unknown>;
+
+/**
+ * Optional rollback hook for side-effects the forward op created BEFORE
+ * `recordCommand` ran. Invoked by the decorator when the changelog row
+ * couldn't be persisted (recordCommand threw OR returned `persisted=false`
+ * because there was no sandbox AND no tab to record into). Receives the
+ * trace-scope's capture snapshot so the contract can read its own
+ * `captureForTrace` deposits and drop whatever it owns.
+ *
+ * Attached to the contract via `on_record_failure`. Failures inside the
+ * cleanup itself are logged and swallowed.
+ */
+export type FailureCleanupFn = (
+  context: NcContext,
+  capture: Partial<CaptureBag>,
+) => Promise<void>;
 
 export interface HandlerMeta {
   entryId: string;

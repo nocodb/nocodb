@@ -42,6 +42,17 @@ export function getTraceCapture<K extends CaptureKey>(
   return traceScope.getStore()?.capture.get(key) as CaptureBag[K] | undefined;
 }
 
+/** Empty object outside any trace scope. */
+export function getTraceCaptureSnapshot(): Partial<CaptureBag> {
+  const store = traceScope.getStore();
+  if (!store) return {};
+  const out: Partial<CaptureBag> = {};
+  for (const [k, v] of store.capture) {
+    (out as Record<string, unknown>)[k as string] = v;
+  }
+  return out;
+}
+
 /** True when an outer `@TraceCommand` (or `runInChildTraceScope`) is
  *  active. Use to gate expensive snapshot work — e.g. extra SELECTs
  *  to populate `displacedRecords` in delete cascade — so they only
@@ -365,14 +376,43 @@ export function TraceCommand(
             };
           }
 
-          // Recording failures must not propagate — user-facing op already succeeded.
+          // Recording failures must not propagate — the user-facing op
+          // already succeeded. If recording didn't persist, anything the
+          // forward path captured (e.g. a column-backup column) would
+          // orphan, so invoke `on_record_failure` with the trace-scope
+          // snapshot before it tears down.
+          let persisted = false;
           try {
-            await recordCommand(ctx, contract, param, result, resolvedCtx);
+            const outcome = await recordCommand(
+              ctx,
+              contract,
+              param,
+              result,
+              resolvedCtx,
+            );
+            persisted = outcome?.persisted === true;
           } catch (e: any) {
             logger.error(
               `recordCommand ${resolvedName}@${version} failed: ${e?.message}`,
               e?.stack,
             );
+          }
+
+          if (!persisted) {
+            const cleanup = contract.on_record_failure;
+            if (cleanup) {
+              const snapshot = getTraceCaptureSnapshot();
+              if (Object.keys(snapshot).length > 0) {
+                try {
+                  await cleanup(ctx, snapshot);
+                } catch (cleanupErr: any) {
+                  logger.error(
+                    `on_record_failure ${resolvedName}@${version}: ${cleanupErr?.message}`,
+                    cleanupErr?.stack,
+                  );
+                }
+              }
+            }
           }
 
           return result;

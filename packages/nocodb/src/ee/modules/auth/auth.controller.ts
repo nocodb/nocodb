@@ -107,17 +107,20 @@ export class AuthController extends AuthControllerCE {
     @Res() res: Response,
     @Body() body: { token: string; code: string },
   ) {
-    const result = await this.mfaService.verifySignin(
+    const { user } = await this.mfaService.verifySignin(
       body.token,
       body.code,
       req,
     );
-    // Populate req.user so setRefreshToken can read the user id
-    // (no AuthGuard on this public endpoint — req.user is not set by Passport)
-    req.user = { id: result.userId } as any;
+    // Populate req.user so setRefreshToken + login can pick up the user
+    // (no AuthGuard on this public endpoint — req.user is not set by Passport).
+    req.user = user as any;
     await this.setRefreshToken({ req, res });
-    setAuthCookie(res, result.token);
-    res.json(result);
+    // Generate the JWT after setRefreshToken so it carries the rotated
+    // token_version that single-session enforcement just wrote.
+    const loginResult = await this.usersService.login(req.user, req);
+    setAuthCookie(res, loginResult.token);
+    res.json({ token: loginResult.token, userId: user.id });
   }
 
   @License(PlanFeatureTypes.FEATURE_MFA)

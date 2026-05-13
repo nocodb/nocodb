@@ -46,26 +46,46 @@ export class LastActiveInterceptor implements NestInterceptor {
   private lastSeen = new Map<string, number>();
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const req = context.switchToHttp().getRequest();
-    const user = req?.user;
-    // Only stamp on human UI/SDK activity — exclude programmatic auth
-    // (API tokens, OAuth machine-to-machine) and public-shared-view hits.
-    // `last_active_at` drives onboarding-nudge targeting, which is human-
-    // facing; integration traffic isn't a signal the user is engaging with
-    // the product.
-    if (
-      !user?.id ||
-      user.is_api_token ||
-      user.is_oauth_token ||
-      user.isPublicBase
-    ) {
-      return next.handle();
+    // Fail-open. This runs on every authenticated controller path, so any
+    // throw here would 500 the entire request. Stamping is best-effort
+    // instrumentation; never let it block or fail the request. The defense
+    // is layered: defensive type checks inside `maybeStamp`, an inner
+    // try/catch around the knex query build, a `.catch()` on the resulting
+    // promise, and this outer try/catch as a last-ditch backstop.
+    try {
+      this.maybeStamp(context);
+    } catch (e) {
+      this.safeWarn(
+        `last_active interceptor failed: ${(e as Error)?.message}`,
+      );
     }
+    return next.handle();
+  }
+
+  private maybeStamp(context: ExecutionContext): void {
+    const req = context?.switchToHttp?.()?.getRequest?.();
+    if (!req || typeof req !== 'object') return;
+
+    const user = (req as any).user;
+    if (!user || typeof user !== 'object') return;
+
+    // Skip programmatic auth and public-shared-view hits. `last_active_at`
+    // drives onboarding-nudge targeting which is human-facing; integration
+    // traffic isn't a signal the user is engaging with the product.
+    if (
+      user.is_api_token === true ||
+      user.is_oauth_token === true ||
+      user.isPublicBase === true
+    ) {
+      return;
+    }
+
     const userId = user.id;
+    if (typeof userId !== 'string' || userId.length === 0) return;
 
     const now = Date.now();
     const lastWrite = this.lastSeen.get(userId) ?? 0;
-    if (now - lastWrite < DEBOUNCE_MS) return next.handle();
+    if (now - lastWrite < DEBOUNCE_MS) return;
 
     // Past the debounce gate — bump LRU position and queue the DB write.
     // delete + set moves the key to insertion-order tail (MRU).
@@ -77,16 +97,40 @@ export class LastActiveInterceptor implements NestInterceptor {
       if (lru !== undefined) this.lastSeen.delete(lru);
     }
 
-    Noco.ncMeta
-      .knexConnection(MetaTable.USERS)
-      .where({ id: userId })
-      .update({ last_active_at: new Date(now) })
-      .catch((e) =>
-        this.logger.warn(
-          `last_active update failed user=${userId}: ${e.message}`,
+    const ncMeta = Noco?.ncMeta;
+    if (!ncMeta || typeof ncMeta.knexConnection !== 'function') return;
+
+    let promise: Promise<unknown> | undefined;
+    try {
+      promise = ncMeta
+        .knexConnection(MetaTable.USERS)
+        .where({ id: userId })
+        .update({ last_active_at: new Date(now) });
+    } catch (e) {
+      this.safeWarn(
+        `last_active query build failed user=${userId}: ${
+          (e as Error)?.message
+        }`,
+      );
+      return;
+    }
+
+    if (promise && typeof (promise as any).catch === 'function') {
+      promise.catch((e) =>
+        this.safeWarn(
+          `last_active update failed user=${userId}: ${(e as Error)?.message}`,
         ),
       );
+    }
+  }
 
-    return next.handle();
+  // Logger calls are not expected to throw, but if they ever did we don't
+  // want an unhandled exception bubbling out of `.catch()` handlers.
+  private safeWarn(msg: string): void {
+    try {
+      this.logger.warn(msg);
+    } catch {
+      // intentionally swallowed
+    }
   }
 }

@@ -206,14 +206,6 @@ export default class Org implements OrganizationType {
       updateObj.image = this.serializeAttachmentJSON(updateObj.image);
     }
 
-    // if fk_db_instance_id is changing, reset db server cache for all org workspaces
-    if (updateObj.fk_db_instance_id) {
-      const workspaces = await Workspace.listByOrgId({ orgId }, ncMeta);
-      for (const ws of workspaces) {
-        await resetWorkspaceDbServer(ws.id);
-      }
-    }
-
     const res = await ncMeta.metaUpdate(
       RootScopes.ORG,
       RootScopes.ORG,
@@ -227,6 +219,17 @@ export default class Org implements OrganizationType {
       `${CacheScope.ORG}:${orgId}`,
       prepareForResponse(updateObj),
     );
+
+    // Bump must come AFTER metaUpdate + NocoCache.update — other pods invalidate
+    // on the bump and immediately re-read the org row; reading before the write
+    // lands re-caches the stale fk_db_instance_id and the local version then
+    // matches Redis, so they stay stuck on the old DB server until the next bump.
+    if (updateObj.fk_db_instance_id) {
+      const workspaces = await Workspace.listByOrgId({ orgId }, ncMeta);
+      for (const ws of workspaces) {
+        await resetWorkspaceDbServer(ws.id);
+      }
+    }
 
     return res;
   }

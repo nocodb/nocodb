@@ -290,13 +290,9 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
       updateObject.created_at = ncMeta.now();
     }
 
-    // reset db server cache only if the instance id prop is being changed
-    if (
+    const dbInstanceChanged =
       'fk_db_instance_id' in updateObject &&
-      updateObject.fk_db_instance_id !== workspace.fk_db_instance_id
-    ) {
-      await resetWorkspaceDbServer(workspace.id);
-    }
+      updateObject.fk_db_instance_id !== workspace.fk_db_instance_id;
 
     await ncMeta.metaUpdate(
       RootScopes.WORKSPACE,
@@ -320,6 +316,15 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
       `${CacheScope.WORKSPACE}:${id}`,
       prepareForResponse(updateObject),
     );
+
+    // Bump must come AFTER metaUpdate + NocoCache.update — other pods invalidate
+    // on the bump and immediately re-read the workspace row; reading before the
+    // write lands re-caches the stale fk_db_instance_id and the local version
+    // then matches Redis, so they stay stuck on the old DB server until the next
+    // bump.
+    if (dbInstanceChanged) {
+      await resetWorkspaceDbServer(workspace.id);
+    }
 
     return this.get(id, false, ncMeta);
   }

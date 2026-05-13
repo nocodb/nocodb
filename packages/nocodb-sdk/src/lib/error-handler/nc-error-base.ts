@@ -233,9 +233,11 @@ export class NcErrorBase {
     let message = '';
     if (typeof param === 'string') {
       message = `'${param}'`;
-    } else {
+    } else if (param && typeof param === 'object') {
       const onSection = param.onSection ? ` on ${param.onSection}` : '';
-      message = `'${param.field}'${onSection}`;
+      message = `'${param.field ?? 'unknown'}'${onSection}`;
+    } else {
+      message = `'unknown'`;
     }
     throw this.errorCodex.generateError(NcErrorType.ERR_FIELD_NOT_FOUND, {
       params: message,

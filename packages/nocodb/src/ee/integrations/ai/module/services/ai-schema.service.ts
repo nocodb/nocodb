@@ -366,34 +366,42 @@ export class AiSchemaService {
     const generatedTables = [];
 
     for (const table of tables) {
-      generatedTables.push(
-        await this.tablesService.tableCreate(context, {
-          baseId: base.id,
-          sourceId,
-          table: {
-            title: table.title,
-            table_name: table.title,
-            description: table.description || null,
-            columns: table.columns.map((column, i) => ({
-              title: column.title,
-              column_name: column.title,
-              uidt: column.type as UITypes,
-              ...(column.options && column.options.length > 0
-                ? {
-                    colOptions: {
-                      options: column.options.map((option) => ({
-                        title: option,
-                      })),
-                    },
-                  }
-                : {}),
-              ...(i === 1 ? { pv: true } : {}),
-            })),
-          },
-          user: req.user,
-          req,
-        }),
-      );
+      // AI flows must be resilient: a single malformed table should not
+      // abort the entire base. Skip it with a warning and continue.
+      try {
+        generatedTables.push(
+          await this.tablesService.tableCreate(context, {
+            baseId: base.id,
+            sourceId,
+            table: {
+              title: table.title,
+              table_name: table.title,
+              description: table.description || null,
+              columns: table.columns.map((column, i) => ({
+                title: column.title,
+                column_name: column.title,
+                uidt: column.type as UITypes,
+                ...(column.options && column.options.length > 0
+                  ? {
+                      colOptions: {
+                        options: column.options.map((option) => ({
+                          title: option,
+                        })),
+                      },
+                    }
+                  : {}),
+                ...(i === 1 ? { pv: true } : {}),
+              })),
+            },
+            user: req.user,
+            req,
+          }),
+        );
+      } catch (e) {
+        this.logger.warn(
+          `[createSchema] Skipping table "${table?.title}": ${e?.message}`,
+        );
+      }
     }
 
     const generatedLinksFromTo = [];
@@ -408,15 +416,23 @@ export class AiSchemaService {
         continue;
       }
 
-      const tables = await Model.list(context, {
-        base_id: base.id,
-        source_id: sourceId,
-      });
+      try {
+        const tables = await Model.list(context, {
+          base_id: base.id,
+          source_id: sourceId,
+        });
 
-      const fromTable = tables.find((table) => table.title === relation.from);
-      const toTable = tables.find((table) => table.title === relation.to);
+        const fromTable = tables.find((table) => table.title === relation.from);
+        const toTable = tables.find((table) => table.title === relation.to);
 
-      if (fromTable && toTable) {
+        if (!fromTable || !toTable) {
+          this.logger.warn(
+            `[createSchema] Skipping relation ${relation.from} → ${relation.to} — table not found`,
+          );
+          generatedLinksFromTo.push(relation);
+          continue;
+        }
+
         await this.columnsService.columnAdd(context, {
           tableId: fromTable.id,
           column: {
@@ -430,6 +446,10 @@ export class AiSchemaService {
           user: req.user,
           req,
         });
+      } catch (e) {
+        this.logger.warn(
+          `[createSchema] Skipping relation ${relation.from} → ${relation.to}: ${e?.message}`,
+        );
       }
 
       generatedLinksFromTo.push(relation);
@@ -754,189 +774,258 @@ export class AiSchemaService {
 
     const createdViews: View[] = [];
 
-    for (const view of views) {
-      const tables = await this.tablesService.getAccessibleTables(context, {
+    const accessibleTables = await this.tablesService.getAccessibleTables(
+      context,
+      {
         baseId: base.id,
         sourceId: source.id,
         includeM2M: false,
         roles: extractRolesObj(req.user.base_roles),
         user: params.req?.user,
-      });
+      },
+    );
 
-      const table = tables.find((t) => t.title === view.table);
+    for (const view of views) {
+      // AI flows must be resilient: a malformed view config should never
+      // abort the entire base creation. Skip the view with a warning instead.
+      try {
+        const table = accessibleTables.find((t) => t.title === view.table);
 
-      if (!table) {
-        NcError.get(context).tableNotFound(view.table);
-      }
+        if (!table) {
+          this.logger.warn(
+            `[createViews] Skipping view "${view.title}" — table "${view.table}" not found`,
+          );
+          continue;
+        }
 
-      await table.getColumns(context);
+        await table.getColumns(context);
 
-      const getColumnId = (columnTitle: string) => {
-        const column = table.columns.find((col) => col.title === columnTitle);
-        return column?.id;
-      };
+        const getColumnId = (columnTitle: string | undefined | null) => {
+          if (!columnTitle) return undefined;
+          const column = table.columns.find((col) => col.title === columnTitle);
+          return column?.id;
+        };
 
-      const viewData = {
-        title: view.title,
-        type: stringToViewTypeMap[view.type],
-        description: view.description,
-      };
+        const viewData = {
+          title: view.title,
+          type: stringToViewTypeMap[view.type],
+          description: view.description,
+        };
 
-      switch (view.type?.toLowerCase()) {
-        case viewTypeToStringMap[ViewTypes.GRID]:
-          {
-            const grid = await this.gridsService.gridViewCreate(context, {
-              tableId: table.id,
-              grid: viewData,
-              req,
-            });
+        switch (view.type?.toLowerCase()) {
+          case viewTypeToStringMap[ViewTypes.GRID]:
+            {
+              const grid = await this.gridsService.gridViewCreate(context, {
+                tableId: table.id,
+                grid: viewData,
+                req,
+              });
 
-            createdViews.push(grid);
+              createdViews.push(grid);
 
-            await grid.getColumns(context);
+              await grid.getColumns(context);
 
-            view.gridGroupBy = Array.isArray(view.gridGroupBy)
-              ? view.gridGroupBy
-              : view.gridGroupBy
-              ? [view.gridGroupBy]
-              : [];
+              const gridGroupBy = Array.isArray(view.gridGroupBy)
+                ? view.gridGroupBy
+                : view.gridGroupBy
+                ? [view.gridGroupBy]
+                : [];
 
-            for (const groupBy of view.gridGroupBy) {
-              const columnId = getColumnId(groupBy);
+              for (const groupBy of gridGroupBy) {
+                try {
+                  const columnId = getColumnId(groupBy);
 
-              if (!columnId) {
-                NcError.get(context).fieldNotFound(columnId);
+                  if (!columnId) {
+                    this.logger.warn(
+                      `[createViews] Dropping groupBy on view "${view.title}" — column "${groupBy}" not found`,
+                    );
+                    continue;
+                  }
+
+                  const viewColumn = grid.columns.find(
+                    (col) => col.fk_column_id === columnId,
+                  );
+
+                  if (!viewColumn) {
+                    this.logger.warn(
+                      `[createViews] Dropping groupBy on view "${view.title}" — view column for "${groupBy}" not found`,
+                    );
+                    continue;
+                  }
+
+                  await this.gridColumnsService.gridColumnUpdate(context, {
+                    gridViewColumnId: viewColumn.id,
+                    grid: {
+                      group_by: true,
+                      group_by_order: gridGroupBy.indexOf(groupBy) + 1,
+                    },
+                    req,
+                  });
+                } catch (e) {
+                  this.logger.warn(
+                    `[createViews] Dropping groupBy "${groupBy}" on view "${view.title}": ${e?.message}`,
+                  );
+                }
               }
 
-              const viewColumn = grid.columns.find(
-                (col) => col.fk_column_id === columnId,
+              for (const sort of view.sorts || []) {
+                try {
+                  const columnId = getColumnId(sort.column);
+
+                  if (!columnId) {
+                    this.logger.warn(
+                      `[createViews] Dropping sort on view "${view.title}" — column "${sort.column}" not found`,
+                    );
+                    continue;
+                  }
+
+                  await this.sortsService.sortCreate(context, {
+                    viewId: grid.id,
+                    sort: {
+                      fk_column_id: columnId,
+                      direction: sort.order,
+                    },
+                    req,
+                  });
+                } catch (e) {
+                  this.logger.warn(
+                    `[createViews] Dropping sort on view "${view.title}": ${e?.message}`,
+                  );
+                }
+              }
+
+              for (const filter of view.filters || []) {
+                try {
+                  const columnId = getColumnId(filter.column);
+
+                  if (!columnId) {
+                    this.logger.warn(
+                      `[createViews] Dropping filter on view "${view.title}" — column "${filter.column}" not found`,
+                    );
+                    continue;
+                  }
+
+                  await this.filtersService.filterCreate(context, {
+                    viewId: grid.id,
+                    filter: {
+                      comparison_op: filter.comparison_op as any,
+                      logical_op: filter.logical_op as any,
+                      value: filter.value,
+                      fk_column_id: columnId,
+                    },
+                    user: req.user,
+                    req,
+                  });
+                } catch (e) {
+                  this.logger.warn(
+                    `[createViews] Dropping filter on view "${view.title}": ${e?.message}`,
+                  );
+                }
+              }
+            }
+            break;
+          case viewTypeToStringMap[ViewTypes.KANBAN]:
+            {
+              const groupColId = getColumnId(view.kanbanGroupBy);
+
+              if (view.kanbanGroupBy && !groupColId) {
+                this.logger.warn(
+                  `[createViews] Kanban view "${view.title}" — groupBy column "${view.kanbanGroupBy}" not found, creating without group column`,
+                );
+              }
+
+              const kanban = await this.kanbansService.kanbanViewCreate(
+                context,
+                {
+                  tableId: table.id,
+                  kanban: {
+                    ...viewData,
+                    fk_grp_col_id: groupColId,
+                  },
+                  user: req.user,
+                  req,
+                },
               );
 
-              if (!viewColumn) {
-                NcError.get(context).viewColumnNotFound(columnId);
-              }
-
-              await this.gridColumnsService.gridColumnUpdate(context, {
-                gridViewColumnId: viewColumn.id,
-                grid: {
-                  group_by: true,
-                  group_by_order: view.gridGroupBy.indexOf(groupBy) + 1,
-                },
-                req,
-              });
+              createdViews.push(kanban);
             }
 
-            for (const sort of view.sorts || []) {
-              const columnId = getColumnId(sort.column);
+            break;
 
-              if (!columnId) {
-                NcError.get(context).fieldNotFound(columnId);
-              }
+          case viewTypeToStringMap[ViewTypes.CALENDAR]: {
+            const rawRanges = view.calendar_range
+              ? Array.isArray(view.calendar_range)
+                ? view.calendar_range
+                : [view.calendar_range]
+              : [];
 
-              await this.sortsService.sortCreate(context, {
-                viewId: grid.id,
-                sort: {
-                  fk_column_id: columnId,
-                  direction: sort.order,
-                },
-                req,
-              });
-            }
+            const resolvedRanges = rawRanges
+              .map((range) => ({
+                from_column: range.from_column,
+                fk_from_column_id: getColumnId(range.from_column),
+              }))
+              .filter((range) => {
+                if (!range.fk_from_column_id) {
+                  this.logger.warn(
+                    `[createViews] Dropping calendar range on view "${view.title}" — column "${range.from_column}" not found`,
+                  );
+                  return false;
+                }
+                return true;
+              })
+              .map((range) => ({ fk_from_column_id: range.fk_from_column_id }));
 
-            for (const filter of view.filters || []) {
-              const columnId = getColumnId(filter.column);
-
-              if (!columnId) {
-                NcError.get(context).fieldNotFound(columnId);
-              }
-
-              await this.filtersService.filterCreate(context, {
-                viewId: grid.id,
-                filter: {
-                  comparison_op: filter.comparison_op as any,
-                  logical_op: filter.logical_op as any,
-                  value: filter.value,
-                  fk_column_id: columnId,
+            const calendar = await this.calendarsService.calendarViewCreate(
+              context,
+              {
+                tableId: table.id,
+                calendar: {
+                  ...viewData,
+                  calendar_range: resolvedRanges.length ? resolvedRanges : null,
                 },
                 user: req.user,
                 req,
-              });
-            }
-          }
-          break;
-        case viewTypeToStringMap[ViewTypes.KANBAN]:
-          {
-            const kanban = await this.kanbansService.kanbanViewCreate(context, {
-              tableId: table.id,
-              kanban: {
-                ...viewData,
-                fk_grp_col_id: getColumnId(view.kanbanGroupBy),
               },
+            );
+
+            createdViews.push(calendar);
+
+            break;
+          }
+          case viewTypeToStringMap[ViewTypes.FORM]: {
+            const form = await this.formsService.formViewCreate(context, {
+              tableId: table.id,
+              body: viewData,
               user: req.user,
               req,
             });
 
-            createdViews.push(kanban);
+            createdViews.push(form);
+
+            break;
           }
-
-          break;
-
-        case viewTypeToStringMap[ViewTypes.CALENDAR]: {
-          const calendarRange = view.calendar_range
-            ? Array.isArray(view.calendar_range)
-              ? view.calendar_range
-              : [view.calendar_range]
-            : null;
-          const calendar = await this.calendarsService.calendarViewCreate(
-            context,
-            {
-              tableId: table.id,
-              calendar: {
-                ...viewData,
-                calendar_range: calendarRange
-                  ? calendarRange.map((range) => ({
-                      fk_from_column_id: getColumnId(range.from_column),
-                    }))
-                  : null,
+          case viewTypeToStringMap[ViewTypes.GALLERY]: {
+            const gallery = await this.galleriesService.galleryViewCreate(
+              context,
+              {
+                tableId: table.id,
+                gallery: viewData,
+                user: req.user,
+                req,
               },
-              user: req.user,
-              req,
-            },
-          );
+            );
 
-          createdViews.push(calendar);
+            createdViews.push(gallery);
 
-          break;
+            break;
+          }
+          default:
+            break;
         }
-        case viewTypeToStringMap[ViewTypes.FORM]: {
-          const form = await this.formsService.formViewCreate(context, {
-            tableId: table.id,
-            body: viewData,
-            user: req.user,
-            req,
-          });
-
-          createdViews.push(form);
-
-          break;
-        }
-        case viewTypeToStringMap[ViewTypes.GALLERY]: {
-          const gallery = await this.galleriesService.galleryViewCreate(
-            context,
-            {
-              tableId: table.id,
-              gallery: viewData,
-              user: req.user,
-              req,
-            },
-          );
-
-          createdViews.push(gallery);
-
-          break;
-        }
-        default:
-          break;
+      } catch (e) {
+        this.logger.warn(
+          `[createViews] Skipping view "${view?.title}" (table "${view?.table}", type "${view?.type}"): ${e?.message}`,
+        );
       }
     }
 

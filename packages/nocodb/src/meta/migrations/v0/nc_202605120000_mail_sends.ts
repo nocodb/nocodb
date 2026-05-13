@@ -38,7 +38,7 @@ const up = async (knex: Knex) => {
 
   // Activation tracking. Nullable so invited-but-never-signed-in users stay
   // NULL — activation-nudge scans filter them out. Populated by the cloud
-  // `LastActiveMiddleware` (5-min debounce, in-memory). Indexed because the
+  // `LastActiveInterceptor` (30-min debounce, in-memory). Indexed because the
   // nudge scanner filters on the column at every run.
   await knex.schema.alterTable(MetaTable.USERS, (t) => {
     t.dateTime('last_active_at').nullable();

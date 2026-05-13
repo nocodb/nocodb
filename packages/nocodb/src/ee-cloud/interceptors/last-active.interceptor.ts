@@ -1,10 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { NestMiddleware } from '@nestjs/common';
-import type { NextFunction, Request, Response } from 'express';
+import type {
+  CallHandler,
+  ExecutionContext,
+  NestInterceptor,
+} from '@nestjs/common';
+import type { Observable } from 'rxjs';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
-const DEBOUNCE_MS = 5 * 60_000;
+// 30-min granularity is plenty for the 30-day nudge window. Coarser
+// debounce reduces redundant writes across the multi-instance cloud fleet
+// (each pod has its own LRU, so worst-case writes scale with pod count).
+const DEBOUNCE_MS = 30 * 60_000;
 
 // Bound the in-memory LRU. ~40B per entry → 10k ≈ 400KB. Sized comfortably
 // above any realistic per-pod active-user count; the cap is a safety net
@@ -15,6 +22,11 @@ const MAX_TRACKED = 10_000;
  * Stamps `nc_users_v2.last_active_at` once per user per `DEBOUNCE_MS` window.
  * Only runs for authenticated requests — invited users who never sign in keep
  * `last_active_at = NULL`, and the nudge scanner uses that to skip them.
+ *
+ * Runs as an interceptor (not a middleware) because NestJS middlewares
+ * execute before guards — at that point `req.user` is still undefined.
+ * Interceptors run after guards, so auth has populated `req.user` by the
+ * time `intercept()` fires.
  *
  * The DB update is fire-and-forget: hot-path requests don't block on it.
  *
@@ -29,17 +41,31 @@ const MAX_TRACKED = 10_000;
  * head when over cap.
  */
 @Injectable()
-export class LastActiveMiddleware implements NestMiddleware {
-  private logger = new Logger(LastActiveMiddleware.name);
+export class LastActiveInterceptor implements NestInterceptor {
+  private logger = new Logger(LastActiveInterceptor.name);
   private lastSeen = new Map<string, number>();
 
-  use(req: Request, _res: Response, next: NextFunction): void {
-    const userId = (req as any).user?.id;
-    if (!userId) return next();
+  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+    const req = context.switchToHttp().getRequest();
+    const user = req?.user;
+    // Only stamp on human UI/SDK activity — exclude programmatic auth
+    // (API tokens, OAuth machine-to-machine) and public-shared-view hits.
+    // `last_active_at` drives onboarding-nudge targeting, which is human-
+    // facing; integration traffic isn't a signal the user is engaging with
+    // the product.
+    if (
+      !user?.id ||
+      user.is_api_token ||
+      user.is_oauth_token ||
+      user.isPublicBase
+    ) {
+      return next.handle();
+    }
+    const userId = user.id;
 
     const now = Date.now();
     const lastWrite = this.lastSeen.get(userId) ?? 0;
-    if (now - lastWrite < DEBOUNCE_MS) return next();
+    if (now - lastWrite < DEBOUNCE_MS) return next.handle();
 
     // Past the debounce gate — bump LRU position and queue the DB write.
     // delete + set moves the key to insertion-order tail (MRU).
@@ -61,6 +87,6 @@ export class LastActiveMiddleware implements NestMiddleware {
         ),
       );
 
-    next();
+    return next.handle();
   }
 }

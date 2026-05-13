@@ -22,7 +22,11 @@ export class BasesController extends BasesControllerCE {
     super(basesService);
   }
 
-  @Acl('baseList', {
+  // EE uses 'workspaceBaseList' (workspace-scoped permission) — 'baseList' is
+  // reserved for base scope in EE (sources.controller uses it for listing a
+  // base's sources). The workspace-scoped V3 list controller follows the same
+  // pattern (`isEE ? 'workspaceBaseList' : 'baseList'`).
+  @Acl('workspaceBaseList', {
     scope: 'workspace',
   })
   @Get(['/api/v1/db/meta/projects/', '/api/v2/meta/bases/'])

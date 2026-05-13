@@ -586,8 +586,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     // like GET /api/v2/meta/bases — which are gated by a workspace-scoped ACL
     // but don't carry :workspaceId in the URL — return 403 because the API
     // token loads no workspace roles. Cloud has no default workspace concept.
+    // Mirror req.context.workspace_id so downstream consumers (services,
+    // TenantContext) see the same workspace the auth strategy resolves roles
+    // against — matches the 'nc' fallback above and the CE middleware.
     if (!isCloud && !req.ncWorkspaceId && Noco.ncDefaultWorkspaceId) {
       req.ncWorkspaceId = Noco.ncDefaultWorkspaceId;
+      if (req.context) {
+        req.context.workspace_id = Noco.ncDefaultWorkspaceId;
+      }
     }
 
     // On-prem unlicensed: block access to non-default workspaces

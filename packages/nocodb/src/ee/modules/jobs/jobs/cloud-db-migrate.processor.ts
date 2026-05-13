@@ -292,11 +292,21 @@ export class CloudDbMigrateProcessor {
 
       let lastLog = '';
 
+      // Tolerate transient status-check failures (migrator restart, brief
+      // network blip, etc.) before declaring the migration dead. Cumulative
+      // worst-case wait at the cap: ~2.8 minutes of consecutive failures
+      // before giving up.
+      const STATUS_CHECK_MAX_ATTEMPTS = 10;
+      const STATUS_CHECK_BACKOFF_MS = [1000, 2000, 5000, 10000, 30000];
+      let consecutiveFailures = 0;
+
       const getStatus = async (resolve, reject) => {
         try {
           const response = await axios.get(
             `${NC_MIGRATOR_URL}/api/v1/migrate/${jobId}/status`,
+            { timeout: 30000 },
           );
+          consecutiveFailures = 0;
           const { status, message, progress } = response.data;
 
           const log = `${message} : ${progress}%`;
@@ -373,24 +383,71 @@ export class CloudDbMigrateProcessor {
             setTimeout(() => getStatus(resolve, reject), 1000);
           }
         } catch (statusError) {
-          // Send upgrade_failed notification for status check errors
-          await this.telemetryService.sendSystemEvent({
-            event_type: 'payment_alert',
-            payment_type: 'migration_failed',
-            message: `Database migration status check failed for workspace ${workspaceOrOrg.title}: ${statusError.message}`,
-            workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
-            extra: {
-              job_id: job.id,
-              migrator_job_id: jobId,
-              error_message: statusError.message?.slice(0, 255),
-              error_type: 'status_check_failed',
-            },
-          });
+          consecutiveFailures++;
+
+          // Retry transient failures with backoff before giving up. Only the
+          // FINAL attempt past the cap tears the migration down.
+          if (consecutiveFailures < STATUS_CHECK_MAX_ATTEMPTS) {
+            const backoff =
+              STATUS_CHECK_BACKOFF_MS[
+                Math.min(
+                  consecutiveFailures - 1,
+                  STATUS_CHECK_BACKOFF_MS.length - 1,
+                )
+              ];
+            logBasic(
+              `Status check failed (attempt ${consecutiveFailures}/${STATUS_CHECK_MAX_ATTEMPTS}): ${
+                statusError.message
+              }. Retrying in ${backoff / 1000}s...`,
+            );
+            setTimeout(() => getStatus(resolve, reject), backoff);
+            return;
+          }
+
+          // Exhausted retries — clear db_job_id so the workspace doesn't get
+          // pinned on "Upgrading" forever. Each cleanup step is isolated so a
+          // secondary failure can't prevent the final reject().
+          try {
+            for (const workspace of workspaces) {
+              await Workspace.update(workspace.id, {
+                db_job_id: null,
+              });
+            }
+          } catch (cleanupError) {
+            this.debugLog(
+              `Failed to clear db_job_id after status check error: ${cleanupError.message}`,
+            );
+          }
+
+          try {
+            await this.telemetryService.sendSystemEvent({
+              event_type: 'payment_alert',
+              payment_type: 'migration_failed',
+              message: `Database migration status check failed for workspace ${workspaceOrOrg.title} after ${STATUS_CHECK_MAX_ATTEMPTS} attempts: ${statusError.message}`,
+              workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
+              extra: {
+                job_id: job.id,
+                migrator_job_id: jobId,
+                error_message: statusError.message?.slice(0, 255),
+                error_type: 'status_check_failed',
+                attempts: STATUS_CHECK_MAX_ATTEMPTS,
+              },
+            });
+          } catch (telemetryError) {
+            this.debugLog(
+              `Failed to send migration_failed telemetry: ${telemetryError.message}`,
+            );
+          }
+
           reject(statusError);
         }
       };
 
-      return new Promise(getStatus);
+      // `await` so any unhandled rejection inside getStatus falls through to
+      // the outer catch below (which is the last line of defense for clearing
+      // db_job_id). Without it, `return new Promise(...)` exits the function
+      // before the catch can run.
+      return await new Promise(getStatus);
     } catch (error) {
       for (const workspace of workspaces) {
         await Workspace.update(workspace.id, {

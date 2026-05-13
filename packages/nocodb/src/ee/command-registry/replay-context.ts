@@ -63,6 +63,8 @@ export async function dispatchOperation(
   handler: CommandHandler,
   call: ReplayCall,
 ): Promise<unknown> {
+  contract.schema.parse(call.params ?? {});
+
   const req = makeReplayReq(call.originalReq, call.createdBy);
 
   const replayParams: Record<string, any> = {
@@ -100,9 +102,8 @@ export async function dispatchOperation(
 }
 
 /**
- * Re-invoke a recorded macro child entry. Re-validates against the
- * resolved contract's current schema (record-time params may have
- * drifted from a since-tightened schema) before dispatching.
+ * Re-invoke a recorded macro child entry. Schema re-validation happens
+ * inside `dispatchOperation`.
  *
  * Handlers that rotate state across replay cycles (e.g. `columnUpdate`'s
  * backup pointer) return `{ result, metaUpdate }`; macro callers
@@ -121,7 +122,6 @@ export async function dispatchTranscriptEntry(
     );
   }
   const { contract, handler } = resolved;
-  contract.schema.parse(entry.params);
 
   return dispatchOperation(context, contract, handler, {
     params: entry.params,

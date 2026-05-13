@@ -179,8 +179,9 @@ export function registerMacro<C extends OperationContract<any>>(
     if (isReplay() && transcript && transcript.length) {
       // Children that rotate state across cycles (e.g. columnUpdate's
       // backup pointer) return a metaUpdate that needs merging back
-      // into the persisted transcript. Per-child failures are warned
-      // and skipped — partial replay beats none.
+      // into the persisted transcript. Per-child failures abort the
+      // macro replay — a half-applied macro is worse than a clean
+      // surfaced failure the caller can roll back.
       const updatedTranscript: MacroTranscriptEntry[] = [];
       let lastResult: unknown;
       let anyMetaUpdate = false;

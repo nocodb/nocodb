@@ -1,10 +1,3 @@
-<!--
-  TEMPORARY CLONE — duplicated from Timeline on 2026-04-24.
-  Rename pass: timeline → gantt. To be consolidated into components/smartsheet/shared/
-  once Gantt is feature-frozen.
-  Bug-fix discipline: until then, any fix applied here MUST be double-applied to the
-  Timeline counterpart (and vice versa). See plan.md Phase 4 "Consolidation pass".
--->
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import type dayjs from 'dayjs'

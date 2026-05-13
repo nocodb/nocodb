@@ -1,10 +1,3 @@
-<!--
-  TEMPORARY CLONE — duplicated from Timeline on 2026-04-24.
-  Rename pass: timeline → gantt. To be consolidated into components/smartsheet/shared/
-  once Gantt is feature-frozen.
-  Bug-fix discipline: until then, any fix applied here MUST be double-applied to the
-  Timeline counterpart (and vice versa). See plan.md Phase 4 "Consolidation pass".
--->
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
@@ -38,8 +31,23 @@ const { isAllowed } = usePermissions()
 
 const { $e } = useNuxtApp()
 
-const { updateRowProperty, updateFormat, dependencyLinks, unlinkDependency, linkDependency } =
-  useGanttViewStoreOrThrow()
+const {
+  updateRowProperty,
+  updateFormat,
+  dependencyLinks,
+  unlinkDependency,
+  linkDependency,
+  colWidth,
+  totalGridWidth,
+  gridlineOffsets,
+  weekendOffsets,
+  minorLabels,
+  majorHeaderTiers,
+  scrollLeft: storeScrollLeft,
+  setViewportWidth,
+  onScrollUpdate,
+  onScrollAdjustment,
+} = useGanttViewStoreOrThrow()
 
 const { t } = useI18n()
 
@@ -98,30 +106,17 @@ const primaryField = computed(() => {
   return cols.find((c) => c.pv) ?? cols.find((c) => !!c.title)
 })
 
-// Measure the grid container to compute dynamic column widths
+// Measure the grid container — width is pushed into the store so the date-axis
+// composable can compute scroll targets / edge-extension thresholds.
 const gridContainerRef = ref<HTMLElement | null>(null)
 const { width: containerWidth } = useElementSize(gridContainerRef)
-
-// #4: Column width — for month view, always fit all days in the container;
-// for day/week views, enforce a minimum so columns aren't excessively wide
-const MIN_COL_WIDTH_DAY_WEEK = 48
-const colWidth = computed(() => {
-  if (!containerWidth.value || !props.visibleDates.length) return 120
-  const naturalWidth = containerWidth.value / props.visibleDates.length
-  // Month view: always fit all days without horizontal scroll
-  if (props.zoomLevel === 'month') return naturalWidth
-  return Math.max(naturalWidth, MIN_COL_WIDTH_DAY_WEEK)
-})
-
-// Total grid width — may exceed container for horizontal scroll
-const totalGridWidth = computed(() => {
-  return props.visibleDates.length * colWidth.value
-})
-
-// Whether horizontal scrolling is needed
-const needsHorizontalScroll = computed(() => {
-  return totalGridWidth.value > containerWidth.value
-})
+watch(
+  containerWidth,
+  (w) => {
+    if (w > 0) setViewportWidth(w)
+  },
+  { immediate: true },
+)
 
 // --- Resize state ---
 const resizeInProgress = ref(false)
@@ -1109,13 +1104,21 @@ const isEndVisible = (row: RowType) => {
   return !effectiveEnd.isAfter(lastVisibleDate, 'day')
 }
 
-// Today indicator position
-const todayPosition = computed(() => {
+// Today column index (relative to bufferStart) — drives the today highlight
+// overlay in the header without iterating the buffer.
+const todayDayIdx = computed(() => {
   const firstDate = props.visibleDates[0]
-  if (!firstDate) return null
+  if (!firstDate) return -1
   const offset = today.value.diff(firstDate, 'day')
-  if (offset < 0 || offset >= props.visibleDates.length) return null
-  return offset * colWidth.value + colWidth.value / 2
+  if (offset < 0 || offset >= props.visibleDates.length) return -1
+  return offset
+})
+
+// Today indicator position (centre of today's column, for the body's
+// vertical 1px line).
+const todayPosition = computed(() => {
+  if (todayDayIdx.value < 0) return null
+  return todayDayIdx.value * colWidth.value + colWidth.value / 2
 })
 
 // Per-bar navigation: get the start/end date for a clipped record
@@ -1308,13 +1311,51 @@ const sidebarScrollRef = ref<HTMLElement | null>(null)
 
 const onBodyScroll = (event: Event) => {
   const target = event.target as HTMLElement
-  if (headerScrollRef.value) {
-    headerScrollRef.value.scrollLeft = target.scrollLeft
-  }
+  // Idempotent guard: when the store updates scrollLeft and we mirror it back
+  // onto this element, the resulting native scroll event would otherwise
+  // re-enter the store. Bail when the value already matches.
+  if (target.scrollLeft === storeScrollLeft.value) return
+
   if (sidebarScrollRef.value && sidebarScrollRef.value.scrollTop !== target.scrollTop) {
     sidebarScrollRef.value.scrollTop = target.scrollTop
   }
+  // Feed the store: derives currentDate from viewport centre and grows the
+  // buffer when scrolling near an edge.
+  onScrollUpdate(target.scrollLeft)
 }
+
+// Mirror store scrollLeft → DOM. Both header and body track it. `flush: 'sync'`
+// keeps the header in lockstep with the body during user scrolling — without
+// it, the watch fires post-render and the header visibly lags. In grouped mode
+// every per-group Grid instance runs this watch, which is how all the per-group
+// bodies stay in lockstep with each other (and with the shared date header).
+watch(
+  () => storeScrollLeft.value,
+  (newLeft) => {
+    if (headerScrollRef.value && headerScrollRef.value.scrollLeft !== newLeft) {
+      headerScrollRef.value.scrollLeft = newLeft
+    }
+    if (bodyScrollRef.value && bodyScrollRef.value.scrollLeft !== newLeft) {
+      bodyScrollRef.value.scrollLeft = newLeft
+    }
+  },
+  { flush: 'sync' },
+)
+
+// Imperative scroll adjustments from the store (goToDate / today / prev /
+// next / buffer extension). Applied after the DOM has rendered the new buffer
+// width — both header and body move atomically to avoid a frame of visible drift.
+onScrollAdjustment(({ type, value }) => {
+  nextTick(() => {
+    const apply = (el: HTMLElement | null) => {
+      if (!el) return
+      if (type === 'delta') el.scrollLeft += value
+      else el.scrollLeft = value
+    }
+    apply(bodyScrollRef.value)
+    apply(headerScrollRef.value)
+  })
+})
 
 const onSidebarScroll = (event: Event) => {
   const target = event.target as HTMLElement
@@ -1401,50 +1442,93 @@ const onGridMouseLeave = () => {
 
     <!-- Main pane: date header + scrollable grid body -->
     <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
-    <!-- Date column headers (hidden when parent provides a shared header) -->
+    <!-- Date column headers (hidden when parent provides a shared header).
+         Per-day v-for replaced with tiered (year/quarter/month) major rows +
+         a sparse minor row of weekend / today / hover / gridline / label
+         overlays so coarse zooms don't paint thousands of cells. -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
       <div ref="headerScrollRef" class="overflow-x-hidden" @mousemove="onHeaderMouseMove" @mouseleave="onGridMouseLeave">
-        <div
-          class="flex bg-nc-bg-default border-b border-nc-border-gray-medium"
-          :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%' }"
-        >
+        <div :style="{ width: `${totalGridWidth}px` }">
+          <!-- Stacked major rows (year / quarter / month etc.) — each tier is a row
+               of absolutely-positioned spans over the day grid. Empty at week/month
+               zoom; populated at quarter / 6-month / year / 2-year / 5-year. -->
           <div
-            v-for="(date, dateIdx) in visibleDates"
-            :key="date.format('YYYY-MM-DD')"
-            class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center transition-colors duration-100"
-            :class="{
-              'bg-nc-bg-brand': isToday(date),
-              'nc-gantt-header-hover': hoverColIndex === dateIdx && !isToday(date),
-              'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date) && hoverColIndex !== dateIdx,
-            }"
-            :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
+            v-for="(tier, tierIdx) in majorHeaderTiers"
+            :key="`tier-${tierIdx}`"
+            class="relative bg-nc-bg-default border-b border-nc-border-gray-light"
+            :style="{ height: '20px' }"
           >
-            <span
-              class="text-[10px] font-normal leading-tight"
-              :class="{
-                'text-nc-content-brand': isToday(date),
-                'text-nc-content-gray-subtle': hoverColIndex === dateIdx && !isToday(date),
-                'text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
-              }"
+            <div
+              v-for="span in tier"
+              :key="span.key"
+              class="absolute top-0 h-full flex items-center justify-start text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-2"
+              :style="{ left: `${span.leftPx}px`, width: `${span.widthPx}px` }"
             >
-              {{
-                zoomLevel === 'month'
-                  ? date.format('dd').charAt(0)
-                  : zoomLevel === 'week'
-                  ? date.format('ddd')
-                  : date.format('dddd')
-              }}
-            </span>
-            <span
-              class="text-[11px] leading-tight"
-              :class="{
-                'text-nc-content-brand': isToday(date),
-                'font-semibold text-nc-content-gray-emphasis': hoverColIndex === dateIdx && !isToday(date),
-                'font-normal text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
-              }"
+              {{ span.label }}
+            </div>
+          </div>
+
+          <!-- Minor row — sparse overlays only. -->
+          <div
+            class="relative bg-nc-bg-default border-b border-nc-border-gray-medium"
+            :style="{ height: `${HEADER_HEIGHT}px`, width: `${totalGridWidth}px` }"
+          >
+            <!-- Weekend stripes (only emitted when colWidth ≥ 30) -->
+            <div
+              v-for="off in weekendOffsets"
+              :key="`hwk-${off.key}`"
+              class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight pointer-events-none"
+              :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
+            />
+            <!-- Today column highlight -->
+            <div
+              v-if="todayDayIdx >= 0"
+              class="absolute top-0 bottom-0 bg-nc-bg-brand pointer-events-none"
+              :style="{ left: `${todayDayIdx * colWidth}px`, width: `${colWidth}px` }"
+            />
+            <!-- Hover column highlight -->
+            <div
+              v-if="hoverColIndex !== null && hoverColIndex !== todayDayIdx"
+              class="absolute top-0 bottom-0 nc-gantt-header-hover pointer-events-none"
+              :style="{ left: `${hoverColIndex * colWidth}px`, width: `${colWidth}px` }"
+            />
+            <!-- Vertical gridlines at the current scale's cadence -->
+            <div
+              v-for="off in gridlineOffsets"
+              :key="`hgl-${off.key}`"
+              class="absolute top-0 bottom-0 border-r border-nc-border-gray-light pointer-events-none"
+              :style="{ left: `${off.leftPx}px` }"
+            />
+            <!-- Sparse labels (weekday / day-number / mondays / fortnight / quarter-month) -->
+            <div
+              v-for="lbl in minorLabels"
+              :key="`hl-${lbl.key}`"
+              class="absolute top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
+              :style="{ left: `${lbl.leftPx}px`, width: `${colWidth}px` }"
             >
-              {{ date.format('D') }}
-            </span>
+              <span
+                v-if="lbl.weekday"
+                class="text-[10px] font-normal leading-tight"
+                :class="{
+                  'text-nc-content-brand': lbl.idx === todayDayIdx,
+                  'text-nc-content-gray-subtle': lbl.idx === hoverColIndex && lbl.idx !== todayDayIdx,
+                  'text-nc-content-gray-muted': lbl.idx !== hoverColIndex && lbl.idx !== todayDayIdx,
+                }"
+              >
+                {{ lbl.weekday }}
+              </span>
+              <span
+                v-if="lbl.dayNum"
+                class="text-[11px] leading-tight whitespace-nowrap"
+                :class="{
+                  'text-nc-content-brand': lbl.idx === todayDayIdx,
+                  'font-semibold text-nc-content-gray-emphasis': lbl.idx === hoverColIndex && lbl.idx !== todayDayIdx,
+                  'font-normal text-nc-content-gray-muted': lbl.idx !== hoverColIndex && lbl.idx !== todayDayIdx,
+                }"
+              >
+                {{ lbl.dayNum }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -1452,34 +1536,29 @@ const onGridMouseLeave = () => {
     <!-- When header is hidden, still need a ref element to measure container width -->
     <div v-else ref="gridContainerRef" class="w-full h-0" />
 
-    <!-- Scrollable grid body (#4: both axes scroll) -->
+    <!-- Scrollable grid body (#4: both axes scroll).
+         In grouped mode (`hideHeader`) the body still owns its own horizontal scroll
+         but with `nc-gantt-no-scrollbar` so the user only sees ONE scrollbar at the
+         shared date header up top. The store mirrors scrollLeft into every body so
+         all per-group bars stay in lockstep. -->
     <div
       ref="bodyScrollRef"
-      :class="hideHeader ? 'overflow-hidden' : 'flex-1 min-h-0 overflow-auto'"
+      :class="hideHeader ? 'overflow-x-auto overflow-y-hidden nc-gantt-no-scrollbar' : 'flex-1 min-h-0 overflow-auto'"
       @scroll="onBodyScroll"
       @mousemove="onGridMouseMove"
       @mouseleave="onGridMouseLeave"
     >
-      <div class="relative" :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%', minHeight: '100%' }">
-        <!-- Background layer: grid lines, weekend shading, today line — fills full height -->
+      <div class="relative" :style="{ width: `${totalGridWidth}px`, minHeight: '100%' }">
+        <!-- Background layer: grid lines, weekend shading, today line — fills full height.
+             Per-day v-fors replaced with sparse overlays so coarse zooms (year/5-year)
+             don't paint 1.5k–3.7k empty cells per scroll frame. -->
         <div class="absolute inset-0 pointer-events-none" style="z-index: 0">
-          <!-- Weekend backgrounds -->
+          <!-- Weekend stripes (only emitted at fine zooms where weekend cells are wide enough to read) -->
           <div
-            v-for="(date, dateIdx) in visibleDates"
-            :key="`bg-${date.format('YYYY-MM-DD')}`"
-            class="absolute top-0 bottom-0"
-            :class="{ 'bg-nc-bg-gray-extralight': isWeekend(date) }"
-            :style="{
-              left: `${dateIdx * colWidth}px`,
-              width: `${colWidth}px`,
-            }"
-          />
-          <!-- Grid lines (vertical) -->
-          <div
-            v-for="(date, dateIdx) in visibleDates"
-            :key="`line-${date.format('YYYY-MM-DD')}`"
-            class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
-            :style="{ left: `${(dateIdx + 1) * colWidth}px` }"
+            v-for="off in weekendOffsets"
+            :key="`bg-${off.key}`"
+            class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight"
+            :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
           />
           <!-- Today indicator line -->
           <div
@@ -1493,6 +1572,13 @@ const onGridMouseLeave = () => {
             v-if="hoverColIndex !== null && !dragCreateActive"
             class="absolute top-0 bottom-0 nc-gantt-content-hover pointer-events-none"
             :style="{ left: `${hoverColIndex * colWidth}px`, width: `${colWidth}px` }"
+          />
+          <!-- Vertical gridlines at the current scale's cadence (day / week / fortnight / month / quarter) -->
+          <div
+            v-for="off in gridlineOffsets"
+            :key="`line-${off.key}`"
+            class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
+            :style="{ left: `${off.leftPx}px` }"
           />
         </div>
 
@@ -1996,5 +2082,14 @@ const onGridMouseLeave = () => {
   background-color: var(--nc-bg-brand);
   opacity: 0.15;
   z-index: 10;
+}
+
+/* Hide native scrollbar — used on per-group bodies in grouped mode where the
+   shared scrollbar lives on the top date header. */
+.nc-gantt-no-scrollbar {
+  scrollbar-width: none;
+}
+.nc-gantt-no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 </style>

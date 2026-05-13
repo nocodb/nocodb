@@ -1,24 +1,27 @@
-// TEMPORARY CLONE — duplicated from Timeline/useTimelineViewStore on 2026-04-24.
-// Rename pass: timeline → gantt. To be consolidated into components/smartsheet/shared/
-// and composables/useDateAxisState.ts once Gantt is feature-frozen.
-// Bug-fix discipline: until then, any fix applied here MUST be double-applied to the
-// Timeline counterpart (and vice versa). See plan.md Phase 4 "Consolidation pass".
-
 import dayjs from 'dayjs'
 import type { ColumnType, TableType, GanttType, ViewType } from 'nocodb-sdk'
 import { EventType, UITypes } from 'nocodb-sdk'
 import { type ComputedRef, type Ref, computed, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useDateAxisState } from './useDateAxisState'
+import type { TimelineZoomLevel } from '../utils/timelineUtils'
 import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
 
-// Module-level cache to persist timeline navigation state across view switches.
-// Keyed by view ID so each Gantt view remembers its own position.
-const _viewStateCache = new Map<string, { currentDate: string; zoomLevel: 'day' | 'week' | 'month' }>()
-
-// Track which views have already had their initial navigation performed,
-// so we don't re-navigate on every data reload.
-const _initializedViews = new Set<string>()
+// Gantt uses Timeline's scale model minus the day-level zoom. A single-day
+// viewport is too narrow once dependency arrows + milestones are rendered —
+// callers want at least a week of horizon. The remaining 8 scales mirror
+// Timeline so future scale-config tweaks land in one place.
+const GANTT_ZOOM_LEVELS: readonly TimelineZoomLevel[] = [
+  'week',
+  '2week',
+  'month',
+  'quarter',
+  '6month',
+  'year',
+  '2year',
+  '5year',
+]
 
 const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
   (
@@ -47,46 +50,44 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
 
     const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
-    // Gantt state
-    // #20: Support day zoom level alongside week and month
-    const zoomLevel = ref<'day' | 'week' | 'month'>('month')
+    // ---- Date-axis state (shared with Timeline) ----
 
-    const currentDate = ref<dayjs.Dayjs>(dayjs())
-
-    const selectedDate = ref<dayjs.Dayjs>(dayjs())
-
-    // Track the last Gantt view ID we cached state for, so we can
-    // detect when the active view switches back to a timeline and restore.
-    let _lastCachedViewId: string | undefined
-
-    // Persist navigation state whenever currentDate or zoomLevel changes
-    watch([currentDate, zoomLevel], () => {
-      const viewId = viewMeta.value?.id
-      if (viewId) {
-        _viewStateCache.set(viewId, {
-          currentDate: currentDate.value.toISOString(),
-          zoomLevel: zoomLevel.value,
-        })
-        _lastCachedViewId = viewId
-      }
+    const axis = useDateAxisState({
+      viewId: computed(() => viewMeta.value?.id),
+      zoomLevels: GANTT_ZOOM_LEVELS,
+      initialZoom: 'month',
     })
 
-    // When the active view changes (e.g., user switches back to timeline from grid),
-    // restore the cached navigation state for that view.
-    watch(
-      () => viewMeta.value?.id,
-      (newViewId) => {
-        if (!newViewId || newViewId === _lastCachedViewId) return
-        const cached = _viewStateCache.get(newViewId)
-        if (cached) {
-          currentDate.value = dayjs(cached.currentDate)
-          selectedDate.value = currentDate.value
-          zoomLevel.value = cached.zoomLevel
-          _lastCachedViewId = newViewId
-        }
-      },
-      { immediate: true },
-    )
+    const {
+      zoomLevel,
+      currentDate,
+      selectedDate,
+      bufferStart,
+      bufferEnd,
+      scrollLeft,
+      viewportWidth,
+      colWidth,
+      visibleDates,
+      totalGridWidth,
+      gridlineOffsets,
+      weekendOffsets,
+      minorLabels,
+      majorHeaderTiers,
+      dateRangeLabel,
+      allowedZoomLevels,
+      reAnchorBuffer,
+      requestScrollToDate,
+      onScrollUpdate,
+      setViewportWidth,
+      onScrollAdjustment,
+      goToDate,
+      goToToday,
+      navigateNext,
+      navigatePrev,
+      setZoomLevel,
+      isViewInitialized,
+      markViewInitialized,
+    } = axis
 
     const formattedData = ref<Row[]>([])
 
@@ -158,43 +159,6 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
           is_readonly: ![UITypes.Date, UITypes.DateTime].includes(fromCol.uidt as UITypes),
         },
       ]
-    })
-
-    // Compute visible dates based on zoom level
-    const visibleDates = computed<dayjs.Dayjs[]>(() => {
-      const dates: dayjs.Dayjs[] = []
-      if (zoomLevel.value === 'month') {
-        const startOfMonth = currentDate.value.startOf('month')
-        const daysInMonth = currentDate.value.daysInMonth()
-        for (let i = 0; i < daysInMonth; i++) {
-          dates.push(startOfMonth.add(i, 'day'))
-        }
-      } else if (zoomLevel.value === 'day') {
-        dates.push(currentDate.value.startOf('day'))
-      } else {
-        // week view
-        const startOfWeek = currentDate.value.startOf('week')
-        for (let i = 0; i < 7; i++) {
-          dates.push(startOfWeek.add(i, 'day'))
-        }
-      }
-
-      return dates
-    })
-
-    const dateRangeLabel = computed(() => {
-      if (zoomLevel.value === 'month') {
-        return currentDate.value.format('MMMM YYYY')
-      } else if (zoomLevel.value === 'day') {
-        return currentDate.value.format('ddd, MMM D, YYYY')
-      } else {
-        const start = currentDate.value.startOf('week')
-        const end = currentDate.value.endOf('week')
-        if (start.month() === end.month()) {
-          return `${start.format('D')} - ${end.format('D MMM YYYY')}`
-        }
-        return `${start.format('D MMM')} - ${end.format('D MMM YYYY')}`
-      }
     })
 
     // #3 + #15: Record statistics for the info badge
@@ -415,16 +379,22 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       if (!viewId) return
 
       // Skip if already initialized or if cached state exists (user previously navigated)
-      if (_initializedViews.has(viewId) || _viewStateCache.has(viewId)) return
-      _initializedViews.add(viewId)
+      if (isViewInitialized(viewId)) return
+      markViewInitialized(viewId)
 
       // Check the initial_view setting (default: 'closest_record')
       const initialView = viewMetaProperties.value?.initial_view ?? 'closest_record'
-      if (initialView === 'today') return
+      if (initialView === 'today') {
+        goToDate(dayjs())
+        return
+      }
 
       // Find the record with a start date closest to today
       const range = ganttRange.value?.[0]
-      if (!range?.fk_from_col?.title) return
+      if (!range?.fk_from_col?.title) {
+        goToDate(dayjs())
+        return
+      }
 
       const now = dayjs()
       let closestDate: dayjs.Dayjs | null = null
@@ -443,46 +413,8 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
         }
       }
 
-      if (closestDate && !closestDate.isSame(now, 'month')) {
-        currentDate.value = closestDate
-        selectedDate.value = closestDate
-      }
-    }
-
-    // Navigation
-    const navigateNext = () => {
-      if (zoomLevel.value === 'month') {
-        currentDate.value = currentDate.value.add(1, 'month')
-      } else if (zoomLevel.value === 'day') {
-        currentDate.value = currentDate.value.add(1, 'day')
-      } else {
-        currentDate.value = currentDate.value.add(1, 'week')
-      }
-    }
-
-    const navigatePrev = () => {
-      if (zoomLevel.value === 'month') {
-        currentDate.value = currentDate.value.subtract(1, 'month')
-      } else if (zoomLevel.value === 'day') {
-        currentDate.value = currentDate.value.subtract(1, 'day')
-      } else {
-        currentDate.value = currentDate.value.subtract(1, 'week')
-      }
-    }
-
-    const goToToday = () => {
-      currentDate.value = dayjs()
-      selectedDate.value = dayjs()
-    }
-
-    // #14: Navigate to a specific date (for date picker)
-    const goToDate = (date: dayjs.Dayjs) => {
-      currentDate.value = date
-      selectedDate.value = date
-    }
-
-    const setZoomLevel = (level: 'day' | 'week' | 'month') => {
-      zoomLevel.value = level
+      const target = closestDate && !closestDate.isSame(now, 'month') ? closestDate : now
+      goToDate(target)
     }
 
     // Date format for updates (matching calendar store pattern)
@@ -650,36 +582,55 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
     })
 
     return {
-      // State
+      // Axis state (from shared composable)
       zoomLevel,
       currentDate,
       selectedDate,
+      bufferStart,
+      bufferEnd,
+      scrollLeft,
+      viewportWidth,
+      colWidth,
+      visibleDates,
+      totalGridWidth,
+      gridlineOffsets,
+      weekendOffsets,
+      minorLabels,
+      majorHeaderTiers,
+      dateRangeLabel,
+      allowedZoomLevels,
+
+      // Gantt-specific state
       formattedData,
       isGanttDataLoading,
       searchQuery,
       ganttMetaData,
       viewMetaProperties,
       ganttRange,
-      visibleDates,
-      dateRangeLabel,
       isPublic,
       totalRecordCount,
       recordsWithoutDates,
       dependencyLinks,
-
       updateFormat,
 
-      // Methods
+      // Axis methods
+      reAnchorBuffer,
+      requestScrollToDate,
+      onScrollUpdate,
+      setViewportWidth,
+      onScrollAdjustment,
+      goToDate,
+      goToToday,
+      navigateNext,
+      navigatePrev,
+      setZoomLevel,
+
+      // Gantt-specific methods
       loadGanttData,
       loadDependencyLinks,
       unlinkDependency,
       linkDependency,
       navigateToClosestRecord,
-      navigateNext,
-      navigatePrev,
-      goToToday,
-      goToDate,
-      setZoomLevel,
       updateRowProperty,
     }
   },

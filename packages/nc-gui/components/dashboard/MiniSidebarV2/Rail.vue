@@ -278,7 +278,7 @@ const handleOpenBookmarkPanel = () => {
     <DashboardMiniSidebarV2RailItem
       v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       v-e="['c:chat:toggle']"
-      :label="$t('general.chat')"
+      :label="$t('labels.chat')"
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
       :active="isChatPanelExpanded"

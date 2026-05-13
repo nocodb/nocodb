@@ -355,7 +355,7 @@ const handleOpenBookmarkPanel = () => {
       v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       :ref="(el: any) => setItemRef('chat', el)"
       v-e="['c:chat:toggle']"
-      :label="$t('general.chat')"
+      :label="$t('labels.chat')"
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
       :active="isChatPanelExpanded"

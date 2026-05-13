@@ -39,6 +39,17 @@ const MAX_TRACKED = 10_000;
  * on an existing key would not move it, causing eviction to target the
  * longest-running (most active) users first. Eviction drops one from the
  * head when over cap.
+ *
+ * Per-pod dedupe vs Redis: industry standard for multi-pod last-seen
+ * tracking is `SET NX EX` on a shared Redis key (GitLab, Mastodon,
+ * Discourse, Linear). We deliberately picked an in-memory LRU because at
+ * our scale the redundant writes from N pods (≤ N×) are trivial — a few
+ * hundred indexed UPDATEs per second worst-case — and a per-pod Map
+ * keeps the hot path at ~50ns vs ~50–500µs for a Redis round-trip. If
+ * write volume becomes a concern (e.g. >10x DAU growth or many more
+ * pods), switch to `SET NX EX nc:last_active:{userId} 1 EX 1800`: it
+ * eliminates the cross-pod redundancy and removes the need for the LRU
+ * entirely (TTL handles eviction).
  */
 @Injectable()
 export class LastActiveInterceptor implements NestInterceptor {

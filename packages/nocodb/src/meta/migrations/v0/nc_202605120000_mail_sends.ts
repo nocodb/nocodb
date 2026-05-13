@@ -24,8 +24,10 @@ const up = async (knex: Knex) => {
   });
 
   // Partial unique index on (event, dedupe_key) for idempotency on deferred
-  // sends. PG-only — MySQL doesn't support partial indexes. App-level dedupe
-  // is enforced via ON CONFLICT DO NOTHING (PG) or SELECT-then-INSERT (MySQL).
+  // sends. PG-only — MySQL doesn't support partial indexes. The deferred
+  // dispatch path (`enqueueDeferred`) is itself cloud-only and cloud runs on
+  // PG; CE/on-prem only writes audit rows synchronously and never relies on
+  // this index, so the absence on MySQL is intentional rather than a gap.
   const client = (knex.client.config.client as string) ?? '';
   if (client === 'pg') {
     await knex.raw(

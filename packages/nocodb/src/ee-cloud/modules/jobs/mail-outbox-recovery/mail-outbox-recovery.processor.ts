@@ -6,7 +6,13 @@ import Noco from '~/Noco';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { MetaTable } from '~/utils/globals';
 
-const STUCK_AFTER_MINUTES = 5;
+// 15min idle is well past any realistic SMTP roundtrip (typically <30s, up
+// to a couple minutes for slow providers). Lower thresholds (5min) create a
+// race where a still-in-flight worker A can have its row re-enqueued and
+// claimed by worker B, leading to a duplicate SES send. At 15min worker A
+// is presumed dead; the trade-off is up to 15min of recovery latency on a
+// genuine worker crash, which is acceptable for non-realtime mail.
+const STUCK_AFTER_MINUTES = 15;
 const MAX_RETRY_ATTEMPTS = 5;
 const RECOVERY_BATCH = 50;
 

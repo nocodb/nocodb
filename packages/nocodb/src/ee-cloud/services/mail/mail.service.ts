@@ -728,6 +728,11 @@ export class MailService extends MailServiceEE {
     }
   }
 
+  /**
+   * Atomically transitions `pending`/`failed` → `sending` and increments
+   * `attempts` ("dispatch attempts" — counts every claim including the first
+   * try, so a successful first-time send shows `attempts=1`, not 0).
+   */
   protected async claimMailSend(
     mailSendId: string,
     ncMeta = Noco.ncMeta,
@@ -768,6 +773,14 @@ export class MailService extends MailServiceEE {
     };
   }
 
+  /**
+   * Idempotent finalize. Only updates rows still in `sending` — if outbox
+   * recovery has flipped the row back to `pending` and another worker has
+   * already re-claimed it (status now `sending` under a fresh attempts count),
+   * this becomes a no-op so we don't overwrite the new owner's state. The
+   * 15-min recovery idle threshold makes this race statistically rare; the
+   * predicate keeps DB state correct if it ever fires.
+   */
   protected async finalizeMailSend(
     mailSendId: string,
     ncMeta: any,
@@ -782,6 +795,7 @@ export class MailService extends MailServiceEE {
       await ncMeta
         .knexConnection(MetaTable.MAIL_SENDS)
         .where({ id: mailSendId })
+        .andWhere('status', 'sending')
         .update({
           status: args.status,
           subject: args.subject ?? null,

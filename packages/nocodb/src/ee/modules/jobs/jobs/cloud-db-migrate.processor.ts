@@ -386,7 +386,9 @@ export class CloudDbMigrateProcessor {
           consecutiveFailures++;
 
           // Retry transient failures with backoff before giving up. Only the
-          // FINAL attempt past the cap tears the migration down.
+          // FINAL attempt past the cap tears the migration down. Retry noise
+          // stays in server logs only — we don't surface attempt counters or
+          // raw transport errors to the customer-facing modal.
           if (consecutiveFailures < STATUS_CHECK_MAX_ATTEMPTS) {
             const backoff =
               STATUS_CHECK_BACKOFF_MS[
@@ -395,7 +397,7 @@ export class CloudDbMigrateProcessor {
                   STATUS_CHECK_BACKOFF_MS.length - 1,
                 )
               ];
-            logBasic(
+            this.debugLog(
               `Status check failed (attempt ${consecutiveFailures}/${STATUS_CHECK_MAX_ATTEMPTS}): ${
                 statusError.message
               }. Retrying in ${backoff / 1000}s...`,
@@ -443,11 +445,14 @@ export class CloudDbMigrateProcessor {
         }
       };
 
-      // `await` so any unhandled rejection inside getStatus falls through to
-      // the outer catch below (which is the last line of defense for clearing
-      // db_job_id). Without it, `return new Promise(...)` exits the function
-      // before the catch can run.
-      return await new Promise(getStatus);
+      // NOTE: do NOT `await` this. getStatus's catch handler is comprehensive
+      // (it always either reschedules a retry or calls reject), and the inner
+      // failure paths already do their own cleanup + send their specific
+      // telemetry. Awaiting here would route every reject through the outer
+      // catch and send a duplicate `migration_failed` telemetry event — bad
+      // signal for paid-tier support alerting. The outer catch's job is
+      // setup-phase errors only (Workspace.get, axios.post, etc.).
+      return new Promise(getStatus);
     } catch (error) {
       for (const workspace of workspaces) {
         await Workspace.update(workspace.id, {

@@ -1103,7 +1103,6 @@
     "renamingWorkspace": "Renaming Workspace",
     "renamingBase": "Renaming Base",
     "upgradingWorkspace": "Upgrading Workspace",
-    "workspaceUpgradeFailed": "Workspace upgrade failed",
     "sso": "Single Sign-On (SSO)",
     "license": "License",
     "licenseKey": "License Key",
@@ -3222,8 +3221,7 @@
   },
   "msg": {
     "workspaceUpgradeInProgress": "Upgrading workspace…",
-    "workspaceUpgradeFailedHelp": "Your workspace is still usable. Please contact support if you notice anything unusual.",
-    "workspaceUpgradeStalled": "This is taking longer than expected. You can safely close this dialog — if anything looks unusual, please contact support.",
+    "workspaceUpgradeComplete": "Workspace upgraded successfully.",
     "bookmarkAdded": "Bookmark added",
     "bookmarkRemoved": "Bookmark removed",
     "bookmarksDeleted": "{count} bookmarks deleted",

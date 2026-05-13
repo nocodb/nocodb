@@ -1704,17 +1704,24 @@ export default class View implements ViewType {
   }
 
   /**
-   * Mask the stored password value (bcrypt hash) before returning a view to
-   * an owner-facing API consumer. The hash never leaves the backend; the
-   * frontend sees the sentinel and renders a masked state.
+   * Mask the stored password value before returning a view to an
+   * owner-facing API consumer.
    *
-   * Returns a shallow copy when masking is needed so we don't mutate cached
-   * View instances.
+   * - Bcrypt hash → replaced with the sentinel; the hash never leaves the
+   *   backend and the frontend renders a masked locked state.
+   * - Legacy plaintext (pre-PR-8174 rows that have never been re-saved) →
+   *   left as-is so the owner can still read their original password.
+   *   Migrates to bcrypt the next time the owner changes it.
+   * - Empty/null → unchanged.
+   *
+   * Returns a shallow copy when masking is needed so we don't mutate
+   * cached View instances.
    */
   static maskPasswordForResponse<T extends { password?: string | null }>(
     view: T,
   ): T {
     if (!view || !view.password) return view;
+    if (!View.isHashedPassword(view.password)) return view;
     return { ...view, password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL };
   }
 

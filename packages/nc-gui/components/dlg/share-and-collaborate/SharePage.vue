@@ -119,6 +119,18 @@ const hasStoredPassword = computed(() => {
   return typeof value === 'string' && value.length > 0
 })
 
+/**
+ * `true` when the stored value is a legacy plaintext password (set before
+ * the GHSA-mpp2 bcrypt migration and never re-saved). The backend passes
+ * these through unmasked so the owner can still read the original value.
+ * Once the owner changes it, the password gets bcrypt-hashed and the UI
+ * migrates to the masked locked state.
+ */
+const isLegacyPlaintextPassword = computed(() => {
+  const value = activeView.value?.password
+  return typeof value === 'string' && value.length > 0 && value !== NC_VIEW_PASSWORD_PROTECTED_SENTINEL
+})
+
 // Local buffer for first-time password entry (after toggling the switch on).
 // Once the password is saved, the field switches to a "locked" state and
 // further edits go through the dedicated change-password modal.
@@ -570,8 +582,30 @@ const copyCustomUrl = async (custUrl = '') => {
           </div>
           <Transition mode="out-in" name="layout">
             <div v-if="passwordProtected" class="flex flex-col gap-2 mt-2">
-              <!-- Stored password: show masked locked state + dedicated change action -->
-              <div v-if="hasStoredPassword" class="flex items-center gap-2">
+              <!-- Legacy plaintext password (pre-bcrypt migration) — show as-is so the owner can still read it -->
+              <div v-if="isLegacyPlaintextPassword" class="flex items-center gap-2">
+                <a-input-password
+                  :value="activeView?.password"
+                  class="!rounded-lg !py-1 !bg-nc-bg-default flex-1"
+                  data-testid="nc-share-view-password-legacy"
+                  size="small"
+                  readonly
+                  autocomplete="off"
+                  name="nc-share-view-password-legacy"
+                />
+                <NcButton
+                  v-e="['c:share:view:password:change-open']"
+                  :disabled="isReadOnly"
+                  data-testid="nc-share-view-password-change-btn"
+                  size="small"
+                  type="secondary"
+                  @click="openChangePasswordModal"
+                >
+                  {{ $t('labels.changePassword') }}
+                </NcButton>
+              </div>
+              <!-- Stored password (bcrypt-hashed): show masked locked state + dedicated change action -->
+              <div v-else-if="hasStoredPassword" class="flex items-center gap-2">
                 <div
                   class="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium"
                   data-testid="nc-share-view-password-locked"

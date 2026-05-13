@@ -280,18 +280,22 @@ export default class Dashboard extends DashboardCE implements DashboardType {
   }
 
   /**
-   * Mask the stored password value (bcrypt hash) before returning a dashboard
-   * to an owner-facing API consumer. The hash never leaves the backend; the
-   * frontend sees the sentinel and renders a masked state. Mirrors
-   * `View.maskPasswordForResponse`.
+   * Mask the stored password value before returning a dashboard to an
+   * owner-facing API consumer. Mirrors `View.maskPasswordForResponse`.
    *
-   * Returns a shallow copy when masking is needed so we don't mutate cached
-   * Dashboard instances.
+   * - Bcrypt hash → replaced with the sentinel.
+   * - Legacy plaintext (pre-PR-8174 rows that have never been re-saved) →
+   *   left as-is so the owner can still read their original password.
+   * - Empty/null → unchanged.
+   *
+   * Returns a shallow copy when masking is needed so we don't mutate
+   * cached Dashboard instances.
    */
   static maskPasswordForResponse<T extends { password?: string | null }>(
     dashboard: T,
   ): T {
     if (!dashboard || !dashboard.password) return dashboard;
+    if (!Dashboard.isHashedPassword(dashboard.password)) return dashboard;
     return { ...dashboard, password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL };
   }
 

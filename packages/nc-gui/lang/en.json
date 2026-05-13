@@ -4066,7 +4066,13 @@
     "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
     "tryAgain": "Try Again",
     "internalUrlsNotAllowed": "Internal URLs are not allowed",
-    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
+    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls",
+    "webhook": {
+      "externallyDeletedTitle": "This webhook was deleted by another user",
+      "externallyDeletedDescription": "You can no longer save changes here. Close this dialog to dismiss.",
+      "externallyModifiedTitle": "This webhook was modified by another user",
+      "externallyModifiedDescription": "Saving now will overwrite their changes."
+    }
   },
   "trash": {
     "title": "Deleted Records",

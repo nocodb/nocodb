@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { ClientType } from 'nocodb-sdk';
 import type {
   ColumnBackupRef,
@@ -19,6 +20,7 @@ import { buildBackupColumnTypeExpr } from '~/services/column-data-backup-handler
  */
 export class MysqlColumnDataBackup implements ColumnDataBackupDriver {
   dbDriverName = ClientType.MYSQL;
+  private readonly logger = new Logger(MysqlColumnDataBackup.name);
 
   async backupColumnData({
     baseModelSqlV2,
@@ -54,7 +56,6 @@ export class MysqlColumnDataBackup implements ColumnDataBackupDriver {
     );
 
     return {
-      tableName: baseModelSqlV2.model.table_name,
       backupColumnName: identifier,
       sourceColumnId: sourceColumn.id,
       fkModelId: sourceColumn.fk_model_id,
@@ -98,6 +99,11 @@ export class MysqlColumnDataBackup implements ColumnDataBackupDriver {
         code === 1054 ||
         /unknown column/i.test(msg);
       if (!isMissing) throw err;
+      this.logger.warn(
+        `Backup column missing on restore — data unrecoverable. ` +
+          `table=${baseModelSqlV2.model.table_name} backupCol=${backupRef.backupColumnName} ` +
+          `destCol=${destinationColumn.column_name} sourceColId=${backupRef.sourceColumnId}`,
+      );
     }
 
     // DROP is best-effort: idempotent via the same swallow as `dropBackup`.

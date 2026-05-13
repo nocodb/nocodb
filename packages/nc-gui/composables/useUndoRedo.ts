@@ -1,5 +1,6 @@
 export const useUndoRedo = createSharedComposable(() => {
   const isUndoRedoInFlight = ref(false)
+  const inFlightDirection = ref<'undo' | 'redo' | null>(null)
 
   const undo = () => {}
   const redo = () => {}
@@ -8,5 +9,6 @@ export const useUndoRedo = createSharedComposable(() => {
     undo,
     redo,
     isUndoRedoInFlight,
+    inFlightDirection,
   }
 })

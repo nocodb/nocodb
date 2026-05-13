@@ -41,10 +41,8 @@ const up = async (knex: Knex) => {
     table.string('scope_type', 32);
     table.string('scope_id', 36);
 
-    // 'active'  → freshly recorded forward, undoable.
+    // 'active'  → freshly recorded forward (or redone), undoable.
     // 'undone'  → undo was applied; redoable via popping latest undone.
-    // 'redone'  → re-applied via redo; identical semantics to 'active' for
-    //             the next undo, kept distinct so we can audit the round-trip.
     // 'errored' → undo or redo failed; entry is preserved for inspection but
     //             not eligible for further undo/redo.
     table.string('status', 20).defaultTo('active');

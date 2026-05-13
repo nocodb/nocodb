@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { ClientType } from 'nocodb-sdk';
 import type {
   ColumnBackupRef,
@@ -23,6 +24,7 @@ import { buildBackupColumnTypeExpr } from '~/services/column-data-backup-handler
  */
 export class PgColumnDataBackup implements ColumnDataBackupDriver {
   dbDriverName = ClientType.PG;
+  private readonly logger = new Logger(PgColumnDataBackup.name);
 
   async backupColumnData({
     baseModelSqlV2,
@@ -62,7 +64,6 @@ export class PgColumnDataBackup implements ColumnDataBackupDriver {
     );
 
     return {
-      tableName: baseModelSqlV2.model.table_name,
       backupColumnName: identifier,
       sourceColumnId: sourceColumn.id,
       fkModelId: sourceColumn.fk_model_id,
@@ -101,6 +102,11 @@ export class PgColumnDataBackup implements ColumnDataBackupDriver {
       // already holds. Any other error must surface so the orphan-cleanup
       // wrapper can drop the new backup and the row gets marked errored.
       if (e?.code !== '42703') throw e;
+      this.logger.warn(
+        `Backup column missing on restore — data unrecoverable. ` +
+          `table=${baseModelSqlV2.model.table_name} backupCol=${backupRef.backupColumnName} ` +
+          `destCol=${destinationColumn.column_name} sourceColId=${backupRef.sourceColumnId}`,
+      );
     }
 
     await baseModelSqlV2.execAndParse(

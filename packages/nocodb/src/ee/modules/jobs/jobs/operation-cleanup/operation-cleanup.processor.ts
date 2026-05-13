@@ -14,6 +14,10 @@ const BATCH_SIZE = 100;
 const MAX_PER_RUN = 2000;
 const LOCK_KEY = 'lock:operation-cleanup';
 const LOCK_TTL_SECONDS = 9 * 60;
+// Pushes the row past the current tick so a crashed cleanup retries in ~1h
+// and a concurrent undo/redo bump (which moves cleanup_due_at days into the
+// future) wins the race cleanly.
+const CLAIM_HORIZON_MS = 60 * 60 * 1000;
 
 interface OpLogRow {
   id: string;
@@ -77,7 +81,7 @@ export class OperationCleanupProcessor {
       if (!batch.length) break;
 
       for (const row of batch) {
-        const cleaned = await this.cleanupRow(row);
+        const cleaned = await this.cleanupRow(row, now);
         if (cleaned) totalCleaned++;
       }
 
@@ -108,14 +112,17 @@ export class OperationCleanupProcessor {
 
   /**
    * Cleanup a single row:
-   *   1. If `meta.backup` references a ColumnBackupRef, drop the backup
+   *   1. Atomically claim the row by conditionally pushing
+   *      `cleanup_due_at` forward — if an in-flight undo/redo bumped it
+   *      between batch SELECT and now, the claim fails and we skip.
+   *   2. If `meta.backup` references a ColumnBackupRef, drop the backup
    *      column via the handler.
-   *   2. Delete the log row.
+   *   3. Delete the log row.
    * Failures bump `cleanup_due_at` forward by ~1h.
    *
    * @returns true if the row was deleted (counted toward per-run budget)
    */
-  private async cleanupRow(row: OpLogRow): Promise<boolean> {
+  private async cleanupRow(row: OpLogRow, tickNow: string): Promise<boolean> {
     const meta = this.parseMeta(row.meta);
 
     const systemUser = NOCO_SERVICE_USERS[ServiceUserType.TRASH_CLEANUP_USER];
@@ -126,6 +133,14 @@ export class OperationCleanupProcessor {
       api_version: NcApiVersion.V2,
       socket_id: null,
     };
+
+    const claimDeadline = new Date(Date.now() + CLAIM_HORIZON_MS).toISOString();
+    const claimed = await Noco.ncMeta
+      .knex(MetaTable.OPERATION_LOGS)
+      .where('id', row.id)
+      .where('cleanup_due_at', '<=', tickNow)
+      .update({ cleanup_due_at: claimDeadline });
+    if (!claimed) return false;
 
     try {
       if (meta.backup) {

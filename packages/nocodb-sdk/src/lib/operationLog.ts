@@ -3,7 +3,7 @@
  *
  * One row per recorded forward op. The row carries the inverse op name +
  * params needed to revert it. The status machine drives the stack:
- *   active → undone (on undo) → redone (on redo) → undone …
+ *   active → undone (on undo) → active (on redo) → undone …
  *     └──→ errored (terminal — preserved for inspection, not eligible for
  *                   further undo/redo)
  */
@@ -66,7 +66,6 @@ export interface OperationLogType {
 export type OperationLogStatus =
   | 'active'
   | 'undone'
-  | 'redone'
   | 'errored'
   | 'discarded';
 

@@ -206,13 +206,16 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         number,
         ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
       > = {};
-      let preInsertOps: ((
+      const preInsertOps: ((
         trx?: Knex | Knex.Transaction,
       ) => Promise<string>)[] = [];
-      // Accumulator for displacement capture across the row loop. Each
-      // call to `prepareNestedLinkQb` returns its own batch; we append
-      // them together so the trace decorator sees the union.
+      // Accumulator for displacement capture across the row loop. The
+      // capture-closures in `preInsertOps` push into their own
+      // `operations.displacedRecords` reference when `runOps` fires; we
+      // keep those references here and drain them post-runOps so the
+      // trace decorator sees the union across every row.
       const displacedRecords: DisplacedRecord[] = [];
+      const displacedRecordRefs: DisplacedRecord[][] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
       let columns: Column[];
@@ -250,10 +253,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             });
 
             postInsertOpsMap[index] = operations.postInsertOps;
-            preInsertOps = operations.preInsertOps;
-            if (operations.displacedRecords?.length) {
-              displacedRecords.push(...operations.displacedRecords);
-            }
+            preInsertOps.push(...operations.preInsertOps);
+            // Keep the array reference — closures inside preInsertOps
+            // push into it when `runOps` fires below. Reading `.length`
+            // here would be 0 (closures haven't run yet).
+            displacedRecordRefs.push(operations.displacedRecords);
           }
           if (attachmentCols.length > 0) {
             const attachmentOperations =
@@ -269,10 +273,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
               ...(postInsertOpsMap[index] ?? []),
               ...(attachmentOperations.postInsertOps ?? []),
             ];
-            preInsertOps = [].concat(
-              ...(preInsertOps ?? []),
-              ...(attachmentOperations.preInsertOps ?? []),
-            );
+            preInsertOps.push(...(attachmentOperations.preInsertOps ?? []));
           }
 
           insertDatas.push(insertObj);
@@ -325,10 +326,18 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         trx,
       );
 
+      // Drain each row's `operations.displacedRecords` reference now that
+      // the capture-closures in preInsertOps have populated them. Spreading
+      // these any earlier (e.g. inside the row loop) would see empty arrays
+      // because the closures hadn't fired yet.
+      for (const ref of displacedRecordRefs) {
+        if (ref?.length) displacedRecords.push(...ref);
+      }
+
       // Deposit displacement capture for the trace decorator. The
-      // capture-ops in preInsertOps populated `displacedRecords`
-      // during Promise.all (parallel SELECTs), then runOps walked the
-      // mutating query strings serially — so reads precede writes.
+      // capture-ops in preInsertOps populated each row's array during
+      // Promise.all (parallel SELECTs), then runOps walked the mutating
+      // query strings serially — so reads precede writes.
       // Skipped under replay (replay reads from meta.extra).
       if (displacedRecords.length > 0 && !isReplay()) {
         captureForTrace('displacedRecords', displacedRecords);

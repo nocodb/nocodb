@@ -10,7 +10,7 @@ import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
-const DEFAULT_RETENTION_DAYS = 7;
+const DEFAULT_RETENTION_DAYS = 2;
 const RETRY_BACKOFF_MS = 60 * 60 * 1000; // 1h per cleanup-retry failure
 
 export interface OperationLogScopeRef {
@@ -53,8 +53,10 @@ function applyBaseConditions(
 }
 
 /**
- * Default retention: 7 days. Rows older than this have their backup columns
- * dropped and the row is deleted. Override via `NC_OP_LOG_RETENTION_DAYS`.
+ * Default retention: 2 days from last undo/redo activity in the scope
+ * (sliding window — see `bumpRetentionForScope`). Rows older than this
+ * have their backup columns dropped and the row is deleted. Override
+ * via `NC_OP_LOG_RETENTION_DAYS`.
  */
 function getRetentionMs(): number {
   const raw = process.env.NC_OP_LOG_RETENTION_DAYS;
@@ -231,6 +233,31 @@ export default class OperationLog implements OperationLogType {
       { cleanup_due_at: next },
       id,
     );
+  }
+
+  public static async bumpRetentionForScope(
+    context: NcContext,
+    key: OperationLogLookupKey,
+    ncMeta: MetaService = Noco.ncMeta,
+  ): Promise<void> {
+    if (!key.scopes.length) return;
+    const nextDue = new Date(Date.now() + getRetentionMs()).toISOString();
+    const qb = ncMeta.knex(MetaTable.OPERATION_LOGS);
+    qb.where({
+      base_id: context.base_id,
+      fk_user_id: key.fk_user_id,
+      tab_id: key.tab_id,
+    });
+    if (context.workspace_id) qb.where('fk_workspace_id', context.workspace_id);
+    qb.whereNot('status', 'discarded');
+    qb.where(function () {
+      for (const s of key.scopes) {
+        this.orWhere(function () {
+          this.where('scope_type', s.type).andWhere('scope_id', s.id);
+        });
+      }
+    });
+    await qb.update({ cleanup_due_at: nextDue });
   }
 
   public static async discardUndoneForTab(

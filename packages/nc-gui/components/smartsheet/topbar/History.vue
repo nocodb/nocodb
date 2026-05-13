@@ -9,7 +9,7 @@ const { open: openBaseTrash } = useBaseTrash()
 
 const { isUIAllowed } = useRoles()
 
-const { undo, redo } = useUndoRedo()
+const { undo, redo, isUndoRedoInFlight, inFlightDirection } = useUndoRedo()
 
 const visible = ref(false)
 
@@ -69,17 +69,31 @@ function onTrashClick() {
           </span>
         </NcMenuItemLabel>
 
-        <NcMenuItem v-if="canSeeUndoRedo" data-testid="nc-topbar-history-menu-undo" inner-class="w-full" @click="undo">
+        <NcMenuItem
+          v-if="canSeeUndoRedo"
+          data-testid="nc-topbar-history-menu-undo"
+          inner-class="w-full"
+          :disabled="isUndoRedoInFlight"
+          @click="undo"
+        >
           <div v-e="['c:topbar:history-menu:undo']" class="flex gap-2 items-center w-full">
-            <GeneralIcon icon="ncUndo" class="h-4 w-4 text-nc-content-gray-subtle2" />
+            <GeneralLoader v-if="inFlightDirection === 'undo'" class="h-4 w-4" />
+            <GeneralIcon v-else icon="ncUndo" class="h-4 w-4 text-nc-content-gray-subtle2" />
             <div class="flex-1">{{ $t('labels.undo') }}</div>
             <span class="nc-shortcut-hint">{{ cmdKey }} Z</span>
           </div>
         </NcMenuItem>
 
-        <NcMenuItem v-if="canSeeUndoRedo" data-testid="nc-topbar-history-menu-redo" inner-class="w-full" @click="redo">
+        <NcMenuItem
+          v-if="canSeeUndoRedo"
+          data-testid="nc-topbar-history-menu-redo"
+          inner-class="w-full"
+          :disabled="isUndoRedoInFlight"
+          @click="redo"
+        >
           <div v-e="['c:topbar:history-menu:redo']" class="flex gap-2 items-center w-full">
-            <GeneralIcon icon="ncRedo" class="h-4 w-4 text-nc-content-gray-subtle2" />
+            <GeneralLoader v-if="inFlightDirection === 'redo'" class="h-4 w-4" />
+            <GeneralIcon v-else icon="ncRedo" class="h-4 w-4 text-nc-content-gray-subtle2" />
             <div class="flex-1">{{ $t('labels.redo') }}</div>
             <span class="nc-shortcut-hint">{{ cmdKey }} {{ shiftKey }} Z</span>
           </div>

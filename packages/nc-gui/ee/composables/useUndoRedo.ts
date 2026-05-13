@@ -30,20 +30,47 @@ export const useUndoRedo = createSharedComposable(() => {
 
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
+  const { user, signedIn } = useGlobal()
+
+  const { isUIAllowed } = useRoles()
+
+  const activeBaseId = (): string | null => {
+    const baseId = (route.value.params as Record<string, any>).baseId as string | undefined
+    return baseId || null
+  }
+
+  const canDispatchUndoRedo = computed(() => {
+    if (!signedIn.value) return false
+    if (!user.value?.id) return false
+    if (isSharedViewRoute(route.value)) return false
+    if (!isUIAllowed('undo')) return false
+    return activeBaseId();
+
+  })
+
   const isUndoRedoInFlight = ref(false)
+
+  const inFlightDirection = ref<'undo' | 'redo' | null>(null)
 
   let queue: Promise<void> = Promise.resolve()
   let pending = 0
   let clearFlagTimer: ReturnType<typeof setTimeout> | null = null
 
-  const enqueue = (work: () => Promise<void>): Promise<void> => {
+  const enqueue = (
+    direction: 'undo' | 'redo',
+    work: () => Promise<void>,
+  ): Promise<void> => {
     pending += 1
     isUndoRedoInFlight.value = true
     if (clearFlagTimer) {
       clearTimeout(clearFlagTimer)
       clearFlagTimer = null
     }
-    const next = queue.then(work)
+    const wrapped = async () => {
+      inFlightDirection.value = direction
+      await work()
+    }
+    const next = queue.then(wrapped)
     // Catch errors here so a rejected work fn doesn't poison the chain
     // for subsequent enqueues. Rejection still propagates to the
     // returned promise so callers can observe failure.
@@ -53,17 +80,15 @@ export const useUndoRedo = createSharedComposable(() => {
         pending -= 1
         if (pending === 0) {
           clearFlagTimer = setTimeout(() => {
-            if (pending === 0) isUndoRedoInFlight.value = false
+            if (pending === 0) {
+              isUndoRedoInFlight.value = false
+              inFlightDirection.value = null
+            }
             clearFlagTimer = null
           }, 1000)
         }
       })
     return next
-  }
-
-  const activeBaseId = (): string | null => {
-    const baseId = (route.value.params as Record<string, any>).baseId as string | undefined
-    return baseId || null
   }
 
   const readParam = (key: string): string | undefined => {
@@ -122,7 +147,7 @@ export const useUndoRedo = createSharedComposable(() => {
   }
 
   const undo = (): Promise<void> =>
-    enqueue(async () => {
+    enqueue('undo', async () => {
       const status = await callServer('undo')
       if (status === 'ok') {
         message.toast(t('labels.actionUndone'))
@@ -132,7 +157,7 @@ export const useUndoRedo = createSharedComposable(() => {
     })
 
   const redo = (): Promise<void> =>
-    enqueue(async () => {
+    enqueue('redo', async () => {
       const status = await callServer('redo')
       if (status === 'ok') {
         message.toast(t('labels.actionRedone'))
@@ -144,17 +169,43 @@ export const useUndoRedo = createSharedComposable(() => {
   useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
-    if ((e && (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) || isExpandedFormOpenExist()) {
+    // Yield when focus is inside a surface that owns its own undo or
+    // dirty-state machine:
+    //  - native <input>/<textarea>
+    //  - contenteditable regions (TipTap/ProseMirror, comment editor,
+    //    formula editor, SmartText, generic rich text)
+    //  - Monaco (script editor)
+    //  - the active expanded-form drawer (focus outside the drawer —
+    //    topbar, sidebar — should still trigger global undo even while
+    //    a form is mounted)
+    const target = e.target
+    const inGated =
+      target instanceof HTMLInputElement ||
+      target instanceof HTMLTextAreaElement ||
+      (target instanceof Element &&
+        !!target.closest(
+          '[contenteditable="true"], .ProseMirror, .nc-rich-text, .monaco-editor, .nc-drawer-expanded-form.active',
+        ))
+
+    if (inGated) {
       return
     }
 
     if (cmdOrCtrl && !e.altKey && e.keyCode === 90) {
+      if (!canDispatchUndoRedo.value) return
       e.preventDefault()
       if (!e.shiftKey) {
         undo()
       } else {
         redo()
       }
+    } else if (cmdOrCtrl && !e.altKey && !e.shiftKey && e.keyCode === 89 && !isMac()) {
+      // Windows / Linux convention: Ctrl+Y = redo. Not bound on macOS
+      // because Cmd+Y collides with browser/system shortcuts (History,
+      // Quick Look).
+      if (!canDispatchUndoRedo.value) return
+      e.preventDefault()
+      redo()
     }
   })
 
@@ -162,5 +213,6 @@ export const useUndoRedo = createSharedComposable(() => {
     undo,
     redo,
     isUndoRedoInFlight,
+    inFlightDirection,
   }
 })

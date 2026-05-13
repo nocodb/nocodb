@@ -47,13 +47,12 @@ export function buildBackupColumnTypeExpr(
  * table.
  */
 export interface ColumnBackupRef {
-  /** Physical table name (DB-level, not nocodb model name). */
-  tableName: string;
   /** Name of the backup column on the same physical table. */
   backupColumnName: string;
   /** Source column id at backup time — for cleanup processor cross-checks. */
   sourceColumnId: string;
-  /** Model id — cleanup processor needs this to resolve the table when the column is gone. */
+  /** Model id — restore/drop resolve the live `table_name` from this via
+   *  `Model.get`, which transparently handles renames since backup time. */
   fkModelId: string;
 }
 

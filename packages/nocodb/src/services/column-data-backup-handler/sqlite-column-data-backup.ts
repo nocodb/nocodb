@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { ClientType } from 'nocodb-sdk';
 import type {
   ColumnBackupRef,
@@ -12,6 +13,7 @@ import { buildBackupColumnTypeExpr } from '~/services/column-data-backup-handler
  */
 export class SqliteColumnDataBackup implements ColumnDataBackupDriver {
   dbDriverName = ClientType.SQLITE;
+  private readonly logger = new Logger(SqliteColumnDataBackup.name);
 
   async backupColumnData({
     baseModelSqlV2,
@@ -47,7 +49,6 @@ export class SqliteColumnDataBackup implements ColumnDataBackupDriver {
     );
 
     return {
-      tableName: baseModelSqlV2.model.table_name,
       backupColumnName: identifier,
       sourceColumnId: sourceColumn.id,
       fkModelId: sourceColumn.fk_model_id,
@@ -85,6 +86,11 @@ export class SqliteColumnDataBackup implements ColumnDataBackupDriver {
       // surfaces so the orphan-cleanup wrapper can drop the new backup.
       const msg = String(err?.message || '');
       if (!/no such (column|table)/i.test(msg)) throw err;
+      this.logger.warn(
+        `Backup column missing on restore — data unrecoverable. ` +
+          `table=${baseModelSqlV2.model.table_name} backupCol=${backupRef.backupColumnName} ` +
+          `destCol=${destinationColumn.column_name} sourceColId=${backupRef.sourceColumnId}`,
+      );
     }
 
     try {

@@ -133,6 +133,7 @@ interface SortDeleteExtra {
     fk_view_id?: string;
     fk_column_id?: string;
     direction?: SortDirection;
+    order?: number;
   };
 }
 
@@ -168,6 +169,7 @@ export const SortDeleteContract: OperationContract<
             fk_view_id: sort.fk_view_id,
             fk_column_id: sort.fk_column_id,
             direction: sort.direction,
+            order: sort.order,
           },
         },
       };
@@ -184,6 +186,7 @@ export const SortDeleteContract: OperationContract<
           sort: {
             fk_column_id: deleted.fk_column_id,
             direction: deleted.direction,
+            ...(deleted.order != null ? { order: deleted.order } : {}),
           },
         },
       };

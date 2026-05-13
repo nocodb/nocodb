@@ -1261,19 +1261,19 @@ const webhookV2AndV3Diff = computed(() => {
               v-if="externallyDeleted"
               type="error"
               :show-icon="true"
-              message="This webhook was deleted by another user"
-              description="You can no longer save changes here. Close this dialog to dismiss."
+              :message="$t('msg.webhook.externallyDeletedTitle')"
+              :description="$t('msg.webhook.externallyDeletedDescription')"
             />
             <NcAlert
               v-else-if="externallyModified"
               type="warning"
               :show-icon="true"
-              message="This webhook was modified by another user"
-              description="Saving now will overwrite their changes."
+              :message="$t('msg.webhook.externallyModifiedTitle')"
+              :description="$t('msg.webhook.externallyModifiedDescription')"
             >
               <template #action>
                 <NcButton size="small" type="secondary" @click="reloadFromRemote">
-                  Reload
+                  {{ $t('general.reload') }}
                 </NcButton>
               </template>
             </NcAlert>

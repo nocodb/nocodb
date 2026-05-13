@@ -453,11 +453,16 @@ export class ColumnsService implements IColumnsService {
    *     data;
    *   - the backup driver supports the source dialect (resolution happens
    *     inside the handler — we only gate on uidt here)
+   *   - the column lives on an internal source (`source.isMeta()`).
+   *     External sources are off-limits: writable ones would have NocoDB
+   *     silently add a sibling column to the customer's DB; readonly ones
+   *     would fail the ALTER and disable undo invisibly.
    */
-  private shouldBackupBeforeTypeChange(
+  private async shouldBackupBeforeTypeChange(
+    context: NcContext,
     oldColumn: Column<any> | null | undefined,
     requestColumn: any,
-  ): boolean {
+  ): Promise<boolean> {
     if (!oldColumn || !requestColumn) return false;
     const oldUidt = oldColumn.uidt as UITypes | undefined;
     const newUidt = requestColumn.uidt as UITypes | undefined;
@@ -469,6 +474,11 @@ export class ColumnsService implements IColumnsService {
     if (isLinksOrLTAR({ uidt: oldUidt }) || isLinksOrLTAR({ uidt: newUidt })) {
       return false;
     }
+    if (!oldColumn.source_id) return false;
+    const source = await Source.get(context, oldColumn.source_id).catch(
+      () => null,
+    );
+    if (!source?.isMeta()) return false;
     return true;
   }
 
@@ -769,7 +779,9 @@ export class ColumnsService implements IColumnsService {
     const oldColumn = deepClone(column);
 
     let createdBackup: ColumnBackupRef | undefined;
-    if (this.shouldBackupBeforeTypeChange(column, param.column)) {
+    if (
+      await this.shouldBackupBeforeTypeChange(context, column, param.column)
+    ) {
       try {
         createdBackup = await this.columnDataBackupHandler.backup(context, {
           sourceColumn: column,

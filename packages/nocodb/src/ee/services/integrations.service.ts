@@ -61,6 +61,12 @@ export class IntegrationsService extends IntegrationsServiceCE {
       NcError.integrationNotFound(param.integrationId);
     }
     const integrationBody = param.integration;
+
+    validateAndNormalizeSqliteConfig(
+      integrationBody?.config,
+      integrationBody?.sub_type ?? oldIntegration?.sub_type,
+    );
+
     const integration = await Integration.updateIntegration(
       context,
       param.integrationId,

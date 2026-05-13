@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import DOMPurify from 'isomorphic-dompurify';
 import { AppEvents, EventType } from 'nocodb-sdk';
 import { Base, Model } from '../models';
 import type {
@@ -10,65 +9,12 @@ import type {
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
+import { sanitizeCommentBody } from '~/helpers/sanitizeCommentBody';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Comment from '~/models/Comment';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import NocoSocket from '~/socket/NocoSocket';
-
-/**
- * Allowlist of tags / attributes permitted in row comments. Anything outside
- * this set is stripped before the comment reaches the database.
- */
-const COMMENT_SANITIZE_CONFIG = {
-  ALLOWED_TAGS: [
-    'p',
-    'span',
-    'a',
-    'b',
-    'i',
-    'u',
-    'strong',
-    'em',
-    'br',
-    'ul',
-    'ol',
-    'li',
-    'code',
-    'pre',
-    'blockquote',
-    'h1',
-    'h2',
-    'h3',
-    'h4',
-    'h5',
-    'h6',
-  ],
-  ALLOWED_ATTR: ['href', 'class', 'target', 'rel'],
-  FORBID_TAGS: [
-    'form',
-    'input',
-    'button',
-    'select',
-    'textarea',
-    'script',
-    'style',
-    'iframe',
-    'object',
-    'embed',
-    'link',
-    'meta',
-    'svg',
-    'math',
-    'base',
-  ],
-  ALLOWED_URI_REGEXP: /^(?:https?|mailto):/i,
-};
-
-function sanitizeCommentBody(input: unknown): string {
-  if (input == null) return '';
-  return DOMPurify.sanitize(String(input), COMMENT_SANITIZE_CONFIG);
-}
 
 @Injectable()
 export class CommentsService {

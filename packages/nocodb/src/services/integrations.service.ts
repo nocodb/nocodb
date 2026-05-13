@@ -59,6 +59,12 @@ export class IntegrationsService {
 
     const integrationBody = param.integration;
     integrationBody.title = integrationBody.title?.trim();
+
+    validateAndNormalizeSqliteConfig(
+      integrationBody?.config,
+      integrationBody?.sub_type ?? oldIntegration?.sub_type,
+    );
+
     const integration = await Integration.updateIntegration(
       context,
       param.integrationId,

@@ -21,6 +21,7 @@ export default class Sort {
   fk_column_id?: string;
   fk_level_id?: string;
   direction?: 'asc' | 'desc' | 'count-desc' | 'count-asc';
+  order?: number;
   fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;

@@ -2,7 +2,7 @@ import 'mocha';
 import { expect } from 'chai';
 import init from '~test/init';
 import { createV3Base } from '~test/factory/base';
-import { internalPost, untracedCtx } from '~test/factory/internal';
+import { internalPost, readSorts, untracedCtx } from '~test/factory/internal';
 import { createTable } from '~test/factory/v3';
 import { OperationLog } from '~/models';
 
@@ -270,6 +270,86 @@ export function undoRedoRoundtripTests() {
       // active → undone; total count unchanged.
       expect(afterActive).to.equal(beforeActive - 1);
       expect(afterUndone).to.equal(beforeUndone + 1);
+    });
+
+    it('sortDelete undo restores the sort at its original order slot', async () => {
+      // Need three sortable columns — the default `createTable` only gives
+      // one (`Title`). Setup creates two more fields under untracedCtx so
+      // the test's undo stack stays clean.
+      const setupCtx = untracedCtx(context);
+      const colsRes = await internalPost(
+        setupCtx,
+        env,
+        { operation: 'fieldAdd', tableId },
+        { title: 'F2', uidt: 'SingleLineText' },
+      );
+      expect(colsRes.status, `fieldAdd F2: ${JSON.stringify(colsRes.body)}`).to.eq(200);
+      const col2Id = (colsRes.body.columns ?? []).find(
+        (c: any) => c.title === 'F2',
+      )?.id;
+      const colsRes2 = await internalPost(
+        setupCtx,
+        env,
+        { operation: 'fieldAdd', tableId },
+        { title: 'F3', uidt: 'SingleLineText' },
+      );
+      expect(colsRes2.status, `fieldAdd F3: ${JSON.stringify(colsRes2.body)}`).to.eq(200);
+      const col3Id = (colsRes2.body.columns ?? []).find(
+        (c: any) => c.title === 'F3',
+      )?.id;
+      expect(col2Id, 'col2Id resolved').to.be.a('string');
+      expect(col3Id, 'col3Id resolved').to.be.a('string');
+
+      // Three sorts, untraced so we own the test's log stack ourselves.
+      for (const colId of [titleColId, col2Id, col3Id]) {
+        const r = await internalPost(
+          setupCtx,
+          env,
+          { operation: 'sortCreate', viewId: gridViewId },
+          { fk_column_id: colId, direction: 'asc' },
+        );
+        expect(r.status, `sortCreate ${colId}: ${JSON.stringify(r.body)}`).to.eq(200);
+      }
+
+      const initial = await readSorts(setupCtx, env, gridViewId);
+      const middle = initial.find((s) => s.fk_column_id === col2Id);
+      expect(middle, 'middle sort resolved').to.be.an('object');
+      const middleOrder = middle.order as number;
+      expect(middleOrder, 'middle sort has order').to.be.a('number');
+
+      // Delete the middle sort under the test's tab so it lands on the
+      // undo stack we'll pop from.
+      const del = await internalPost(
+        context,
+        env,
+        { operation: 'sortDelete', sortId: middle.id },
+        {},
+      );
+      expect(del.status, `sortDelete: ${JSON.stringify(del.body)}`).to.eq(200);
+
+      // Undo
+      const undoRes = await internalPost(
+        context,
+        env,
+        { operation: 'undo' },
+        {
+          scopes: [
+            { type: 'view' as const, id: gridViewId },
+            { type: 'table' as const, id: tableId },
+            { type: 'base' as const, id: env.baseId },
+          ],
+        },
+      );
+      expect(undoRes.body.status, `undo: ${JSON.stringify(undoRes.body)}`).to.equal('ok');
+
+      // The restored sort should be back at its original `order` slot —
+      // NOT appended at the bottom (which would be max(order)+1).
+      const after = await readSorts(setupCtx, env, gridViewId);
+      const restored = after.find((s) => s.fk_column_id === col2Id);
+      expect(restored, 'sort restored').to.be.an('object');
+      expect(restored.order, 'order preserved across delete+undo').to.equal(
+        middleOrder,
+      );
     });
   });
 }

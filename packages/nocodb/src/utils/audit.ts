@@ -200,10 +200,10 @@ export async function generateAuditV1Payload<T = any>(
   }
 
   const triggeredVia = context?.triggered_via;
-  const detailsWithOrigin = triggeredVia
-    ? ({ ...(details as Record<string, any>), triggered_via: triggeredVia } as T &
-        { table_title?: string })
-    : details;
+  const detailsWithOrigin =
+    triggeredVia && details
+      ? { ...details, triggered_via: triggeredVia }
+      : details;
 
   return {
     user: req?.user?.email,

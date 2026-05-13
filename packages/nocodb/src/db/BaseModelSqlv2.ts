@@ -3327,12 +3327,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         undo: param?.undo,
       });
 
-      await this.runOps(preInsertOps.map((f) => f()));
+      // Cap in-flight preInsertOps so many nested LTAR capture SELECTs
+      // don't saturate the knex pool. Mutating closures only build
+      // .toQuery() strings (no connection), so the cap mainly limits
+      // the capture-SELECT side. Resolved strings are handed back to
+      // runOps to keep its serial UPDATE/DELETE walk.
+      const preInsertResolved = await processConcurrently(
+        preInsertOps,
+        (f) => f(),
+        5,
+      );
+      await this.runOps(preInsertResolved.map((s) => Promise.resolve(s)));
 
       // Deposit displacement capture for the trace decorator.
       // `displacedRecords` was populated by capture-ops in
-      // preInsertOps (parallel SELECTs ran during Promise.all,
-      // before runOps walked the UPDATE/DELETE strings serially).
+      // preInsertOps (SELECTs ran under the concurrency cap above,
+      // before runOps walked the resulting UPDATE/DELETE strings serially).
       // Skipped under replay — replay reads from meta.extra, doesn't
       // re-capture.
       if (displacedRecords.length > 0 && !isReplay()) {

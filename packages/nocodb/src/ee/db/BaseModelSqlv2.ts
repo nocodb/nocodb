@@ -66,6 +66,7 @@ import {
   generateAuditV1Payload,
   nocoExecute,
   populateUpdatePayloadDiff,
+  processConcurrently,
   remapWithAlias,
 } from '~/utils';
 import { Audit, Column, Filter, Model, ModelStat, Permission } from '~/models';
@@ -2731,7 +2732,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
       profiler.log('beforeBulkInsert done');
 
-      await this.runOps(preInsertOps.map((f) => f()));
+      // Cap in-flight preInsertOps so many nested LTAR capture SELECTs
+      // don't saturate the knex pool. Mutating closures here only build
+      // .toQuery() strings (no connection use), so the cap mainly limits
+      // the capture-SELECT side. Resolved strings flow through runOps
+      // to preserve its sanitize + external-DB path.
+      const preInsertResolved = await processConcurrently(
+        preInsertOps,
+        (f) => f(),
+        5,
+      );
+      await this.runOps(preInsertResolved.map((s) => Promise.resolve(s)));
       profiler.log('preInsertOps done');
 
       // await this.beforeInsertb(insertDatas, null);

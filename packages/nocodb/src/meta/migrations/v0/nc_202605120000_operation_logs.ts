@@ -61,8 +61,6 @@ const up = async (knex: Knex) => {
       ['fk_user_id', 'tab_id', 'scope_type', 'scope_id', 'status', 'seq'],
       'nc_op_logs_user_tab_scope_status_seq_idx',
     );
-    // Cleanup queries (per-workspace pruning, TTL sweeps).
-    table.index(['fk_workspace_id', 'base_id'], 'nc_op_logs_ws_base_idx');
     table.index(['cleanup_due_at'], 'nc_op_logs_cleanup_due_at_idx');
   });
 };

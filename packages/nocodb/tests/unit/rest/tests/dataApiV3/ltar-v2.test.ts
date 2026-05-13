@@ -525,6 +525,36 @@ describe('dataApiV3', () => {
           fields: { City: 'City 6' },
         });
       });
+
+      // Regression: issue #13253 — `updateRecords` (and any v3 dataUpdate)
+      // with LTAR fields fails with `this.knex.applyCte is not a function`.
+      it('OM: update LTAR field via dataUpdate body', async function () {
+        const rsp = await ncAxiosPatch({
+          url: `${urlPrefix}/${tblCountry.id}/records`,
+          body: [{ id: 2, fields: { Cities: [{ id: 6 }, { id: 7 }] } }],
+        });
+
+        expect(rsp.body.records).to.have.length(1);
+        const rec = rsp.body.records[0];
+        expect(rec.fields['Cities']).to.be.an('array');
+        expect(rec.fields['Cities']).to.have.length(2);
+        expect(rec.fields['Cities'].sort(idc)).to.deep.equal([
+          { id: 6, id_fields: { Id: 6 }, fields: { City: 'City 6' } },
+          { id: 7, id_fields: { Id: 7 }, fields: { City: 'City 7' } },
+        ]);
+      });
+
+      it('MM: update LTAR field via dataUpdate body', async function () {
+        const rsp = await ncAxiosPatch({
+          url: `${urlPrefix}/${tblActor.id}/records`,
+          body: [{ id: 2, fields: { Films: [{ id: 6 }, { id: 7 }] } }],
+        });
+
+        expect(rsp.body.records).to.have.length(1);
+        const rec = rsp.body.records[0];
+        expect(rec.fields['Films']).to.be.an('array');
+        expect(rec.fields['Films']).to.have.length(2);
+      });
     });
 
     // ─── Link add/remove ──────────────────────────────────────

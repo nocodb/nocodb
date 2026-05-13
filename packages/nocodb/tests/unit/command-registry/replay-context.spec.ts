@@ -463,7 +463,7 @@ describe('replay-context', () => {
       expect(childCalls[1]).to.match(/"second"/);
     });
 
-    it('tolerates per-child failures and continues the transcript walk', async () => {
+    it('aborts the transcript walk on the first child failure', async () => {
       const macroContract = makeContract({ macro: true });
       registerMacro(macroContract, async () => undefined);
 
@@ -478,24 +478,31 @@ describe('replay-context', () => {
 
       const entry = OperationRegistry.resolve(macroContract.name, 1);
       const { runInReplay } = require('../../../src/ee/helpers/replayScope');
-      await runInReplay(() =>
-        entry!.handler(
-          baseCtx,
-          {},
-          {
-            entryId: 'e',
-            createdBy: 'u',
-            originalReq: {} as any,
-            extra: {
-              macroTranscript: [
-                { op: childContract.name, version: 1, params: {} },
-                { op: childContract.name, version: 1, params: {} },
-              ],
-            } as any,
-          },
-        ),
-      );
-      expect(calls).to.equal(2);
+      let caught: Error | undefined;
+      try {
+        await runInReplay(() =>
+          entry!.handler(
+            baseCtx,
+            {},
+            {
+              entryId: 'e',
+              createdBy: 'u',
+              originalReq: {} as any,
+              extra: {
+                macroTranscript: [
+                  { op: childContract.name, version: 1, params: {} },
+                  { op: childContract.name, version: 1, params: {} },
+                ],
+              } as any,
+            },
+          ),
+        );
+      } catch (e: any) {
+        caught = e;
+      }
+      expect(caught).to.exist;
+      expect(caught!.message).to.match(/first fails/);
+      expect(calls).to.equal(1);
     });
 
     it('propagates metaUpdate from a child via merged macroTranscript', async () => {

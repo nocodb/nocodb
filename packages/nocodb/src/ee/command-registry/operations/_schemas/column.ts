@@ -133,7 +133,6 @@ export const columnAddExtraSchema = z
 
 const columnBackupRefSchema = z
   .object({
-    tableName: z.string(),
     backupColumnName: z.string(),
     sourceColumnId: z.string(),
     fkModelId: z.string(),

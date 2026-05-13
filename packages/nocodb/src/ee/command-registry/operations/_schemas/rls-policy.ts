@@ -4,6 +4,8 @@ import { filterBodySchema } from './filter';
 const RLS_DEFAULT_BEHAVIORS = ['show_all', 'deny_all', 'condition'] as const;
 const RLS_SUBJECT_TYPES = ['user', 'team', 'role'] as const;
 
+const boolType = z.union([z.boolean(), z.literal(0), z.literal(1)]);
+
 const rlsSubjectSchema = z
   .object({
     type: z.enum(RLS_SUBJECT_TYPES),
@@ -19,8 +21,8 @@ export const rlsPolicyCreateSchema = z
         id: z.string().optional(),
         fk_model_id: z.string(),
         title: z.string().optional(),
-        enabled: z.boolean().optional(),
-        is_default: z.boolean().optional(),
+        enabled: boolType.optional(),
+        is_default: boolType.optional(),
         default_behavior: z.enum(RLS_DEFAULT_BEHAVIORS).optional(),
         order: z.number().optional(),
         meta: z.union([z.record(z.unknown()), z.string(), z.null()]).optional(),
@@ -38,8 +40,8 @@ export const rlsPolicyUpdateSchema = z
       .object({
         id: z.string(),
         title: z.string().optional(),
-        enabled: z.boolean().optional(),
-        is_default: z.boolean().optional(),
+        enabled: boolType.optional(),
+        is_default: boolType.optional(),
         default_behavior: z.enum(RLS_DEFAULT_BEHAVIORS).optional(),
         order: z.number().optional(),
         meta: z.union([z.record(z.unknown()), z.string(), z.null()]).optional(),

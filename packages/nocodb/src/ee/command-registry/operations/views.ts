@@ -77,6 +77,11 @@ export const ViewUpdateContract: OperationContract<
           // it on inverse instead of skipping.
           fk_view_section_id: view.fk_view_section_id ?? null,
         };
+        if (prevView.title == null) delete prevView.title;
+        if (prevView.show_system_fields == null)
+          prevView.show_system_fields = false;
+        if (prevView.order == null) delete prevView.order;
+        if (prevView.lock_type == null) delete prevView.lock_type;
         // Strict-string columns — null would round-trip as a permission-
         // denying value, so omit the entry instead of writing null.
         for (const k of VIEW_PREV_FIELDS_SKIP_NULL) {

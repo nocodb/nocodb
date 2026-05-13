@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import init from '~test/init';
 import { createV3Base } from '~test/factory/base';
 import { internalPost, readSorts, untracedCtx } from '~test/factory/internal';
-import { createTable } from '~test/factory/v3';
+import { createTable, v3Post } from '~test/factory/v3';
 import { OperationLog } from '~/models';
 
 type Context = Awaited<ReturnType<typeof init>> & { tabId?: string };
@@ -277,26 +277,20 @@ export function undoRedoRoundtripTests() {
       // one (`Title`). Setup creates two more fields under untracedCtx so
       // the test's undo stack stays clean.
       const setupCtx = untracedCtx(context);
-      const colsRes = await internalPost(
+      const add2 = await v3Post(
         setupCtx,
-        env,
-        { operation: 'fieldAdd', tableId },
-        { title: 'F2', uidt: 'SingleLineText' },
+        `/api/v3/meta/bases/${env.baseId}/tables/${tableId}/fields`,
+        { title: 'F2', type: 'SingleLineText' },
       );
-      expect(colsRes.status, `fieldAdd F2: ${JSON.stringify(colsRes.body)}`).to.eq(200);
-      const col2Id = (colsRes.body.columns ?? []).find(
-        (c: any) => c.title === 'F2',
-      )?.id;
-      const colsRes2 = await internalPost(
+      expect(add2.status, `fieldAdd F2: ${JSON.stringify(add2.body)}`).to.eq(200);
+      const col2Id: string = add2.body.id;
+      const add3 = await v3Post(
         setupCtx,
-        env,
-        { operation: 'fieldAdd', tableId },
-        { title: 'F3', uidt: 'SingleLineText' },
+        `/api/v3/meta/bases/${env.baseId}/tables/${tableId}/fields`,
+        { title: 'F3', type: 'SingleLineText' },
       );
-      expect(colsRes2.status, `fieldAdd F3: ${JSON.stringify(colsRes2.body)}`).to.eq(200);
-      const col3Id = (colsRes2.body.columns ?? []).find(
-        (c: any) => c.title === 'F3',
-      )?.id;
+      expect(add3.status, `fieldAdd F3: ${JSON.stringify(add3.body)}`).to.eq(200);
+      const col3Id: string = add3.body.id;
       expect(col2Id, 'col2Id resolved').to.be.a('string');
       expect(col3Id, 'col3Id resolved').to.be.a('string');
 

@@ -2,6 +2,8 @@ import { createHash } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { isSmartText, SMART_TEXT_MAX_BYTES, UITypes } from 'nocodb-sdk';
 import { SmartTextService as SmartTextServiceCE } from 'src/services/smart-text.service';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import type { ProseMirrorDoc } from 'nocodb-sdk';
 import type { SmartTextGetResult } from 'src/services/smart-text.service';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -274,6 +276,7 @@ export class SmartTextService extends SmartTextServiceCE {
     return { pm, markdown };
   }
 
+  @TraceCommand(OperationName.smartTextUpdateContent)
   async updateContent(
     context: NcContext,
     param: {

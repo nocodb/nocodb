@@ -178,6 +178,9 @@ export const OperationName = {
   // Bulk upsert — per-row update/insert outcome captured in `upsertChanges`.
   recordBulkUpsert: 'recordBulkUpsert',
   recordBulkUpsertUndo: 'recordBulkUpsertUndo',
+
+  // SmartText cell content — PM/Markdown payload written via the internal API
+  smartTextUpdateContent: 'smartTextUpdateContent',
 } as const;
 
 export type OperationName = (typeof OperationName)[keyof typeof OperationName];

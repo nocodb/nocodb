@@ -189,6 +189,25 @@ export const recordActions = {
       : `Bulk link by display value`) as DescFn,
 };
 
+export const smartTextActions = {
+  update: (({ parentEntityTitle, entityTitle }) =>
+    entityTitle
+      ? parentEntityTitle
+        ? `Update ${bField(entityTitle)} in ${bTable(parentEntityTitle)}`
+        : `Update ${bField(entityTitle)}`
+      : parentEntityTitle
+        ? `Update rich text cell in ${bTable(parentEntityTitle)}`
+        : `Update rich text cell`) as DescFn,
+  updateUndo: (({ parentEntityTitle, entityTitle }) =>
+    entityTitle
+      ? parentEntityTitle
+        ? `Undo ${bField(entityTitle)} update in ${bTable(parentEntityTitle)}`
+        : `Undo ${bField(entityTitle)} update`
+      : parentEntityTitle
+        ? `Undo rich text cell update in ${bTable(parentEntityTitle)}`
+        : `Undo rich text cell update`) as DescFn,
+};
+
 /**
  * Nested-under-view action (filters, sorts, row-color conditions).
  * The entity has:

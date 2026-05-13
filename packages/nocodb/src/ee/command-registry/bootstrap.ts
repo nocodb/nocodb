@@ -30,6 +30,7 @@ import { registerRowColorHandlers } from '~/command-registry/operations/row-colo
 import { registerPermissionHandlers } from '~/command-registry/operations/permissions';
 import { registerRlsHandlers } from '~/command-registry/operations/rls';
 import { registerRecordHandlers } from '~/command-registry/operations/records';
+import { registerSmartTextHandlers } from '~/command-registry/operations/smart-text';
 import { OperationRegistry } from '~/command-registry/registry';
 import { BaseVariablesService } from '~/ee/services/base-variables.service';
 import { TablesService } from '~/services/tables.service';
@@ -65,6 +66,7 @@ import { RlsService } from '~/services/rls.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { DataTableService } from '~/services/data-table.service';
 import { DataAliasNestedService } from '~/services/data-alias-nested.service';
+import { SmartTextService } from '~/services/smart-text.service';
 
 @Injectable()
 export class OperationRegistryBootstrap implements OnApplicationBootstrap {
@@ -105,6 +107,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly tablesV3Svc: TablesV3Service,
     private readonly dataTableSvc: DataTableService,
     private readonly dataAliasNestedSvc: DataAliasNestedService,
+    private readonly smartTextSvc: SmartTextService,
   ) {}
 
   onApplicationBootstrap(): void {
@@ -149,6 +152,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
       this.baseTrashSvc,
       this.dataAliasNestedSvc,
     );
+    registerSmartTextHandlers(this.smartTextSvc);
     registerMacroHandlers();
 
     OperationRegistry.freeze();

@@ -194,20 +194,32 @@ describe('replay-context', () => {
       expect(received.body).to.deep.equal({ title: 'x' });
     });
 
-    it('skips id injection if params[id_field] is not an object', async () => {
-      const contract = makeContract({ sandbox: { id_field: 'body' } } as any);
-      let received: Record<string, any> = {};
-      const handler: CommandHandler = async (_ctx, params) => {
-        received = params as Record<string, any>;
+    it('rejects malformed params via schema.parse before dispatch (H1 guarantee)', async () => {
+     const contract = makeContract({ sandbox: { id_field: 'body' } } as any);
+      let handlerCalled = false;
+      const handler: CommandHandler = async () => {
+        handlerCalled = true;
       };
-      await dispatchOperation(baseCtx, contract, handler, {
-        params: { body: 'plain-string' },
-        entityId: 'e1',
-        entryId: 'x',
-        createdBy: 'u',
-        originalReq: {} as any,
-      });
-      expect(received.body).to.equal('plain-string');
+      let caught: any;
+      try {
+        await dispatchOperation(baseCtx, contract, handler, {
+          params: { body: 'plain-string' },
+          entityId: 'e1',
+          entryId: 'x',
+          createdBy: 'u',
+          originalReq: {} as any,
+        });
+      } catch (e) {
+        caught = e;
+      }
+      expect(caught, 'expected a ZodError').to.exist;
+      expect(caught.name).to.equal('ZodError');
+      expect(handlerCalled, 'handler must not run when schema fails').to.equal(
+        false,
+      );
+      // Replay scope must have unwound even though the parse threw inside
+      // dispatchOperation (parse runs before runInReplay opens the scope).
+      expect(isReplay()).to.equal(false);
     });
 
     it('spreads user + req onto replayParams from makeReplayReq', async () => {

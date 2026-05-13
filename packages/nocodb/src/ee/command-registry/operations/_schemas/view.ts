@@ -14,14 +14,17 @@ const viewBaseFields = {
    *  CALENDAR=6, LIST=7, TIMELINE=8. Server sets this; clients shouldn't
    *  mutate, but updates that re-snapshot a row will round-trip it. */
   type: z.number().int().nonnegative().optional(),
-  lock_type: z.enum(LOCK_TYPES).optional(),
+  lock_type: z.enum(LOCK_TYPES).nullable().optional(),
   show: boolType.optional(),
   show_system_fields: boolType.optional(),
   is_default: boolType.optional(),
   order: z.number().optional(),
   uuid: z.string().nullable().optional(),
   password: z.string().nullable().optional(),
-  meta: z.record(z.unknown()).nullable().optional(),
+  meta: z
+    .union([z.record(z.unknown()), z.string()])
+    .nullable()
+    .optional(),
   attachment_mode_column_id: z.string().nullable().optional(),
   expanded_record_mode: z.string().nullable().optional(),
   fk_custom_url_id: z.string().nullable().optional(),
@@ -306,7 +309,7 @@ const viewUpdateBodySchema = z
     description: z.string().nullable().optional(),
     uuid: z.string().nullable().optional(),
     password: z.string().nullable().optional(),
-    lock_type: z.enum(LOCK_TYPES).optional(),
+    lock_type: z.enum(LOCK_TYPES).nullable().optional(),
     meta: z
       .union([z.record(z.unknown()), z.string()])
       .nullable()

@@ -819,17 +819,22 @@ export const TimelineViewUpdateContract: OperationContract<
         context,
         params.timelineViewId,
       );
+      let prevTimeline:
+        | { title?: string; timeline_range?: unknown; meta?: unknown }
+        | undefined;
+      if (timelineRow) {
+        prevTimeline = pickFields(timelineRow, [
+          'title',
+          'timeline_range',
+          'meta',
+        ] as const);
+        if (prevTimeline.title == null) delete prevTimeline.title;
+      }
       return {
         ...base,
         extra: {
           ...(base.extra ?? {}),
-          prevTimeline: timelineRow
-            ? pickFields(timelineRow, [
-                'title',
-                'timeline_range',
-                'meta',
-              ] as const)
-            : undefined,
+          prevTimeline,
         },
       };
     },
@@ -837,7 +842,7 @@ export const TimelineViewUpdateContract: OperationContract<
   undo: {
     inverse: (_context, params, _result, resolved) => {
       const prev = resolved?.extra?.prevTimeline;
-      if (!prev) return null;
+      if (!prev || Object.keys(prev).length === 0) return null;
       return {
         name: OperationName.timelineViewUpdate,
         params: { timelineViewId: params.timelineViewId, timeline: prev },

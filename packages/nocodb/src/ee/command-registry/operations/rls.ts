@@ -45,7 +45,23 @@ function snapshotPolicyFields(
   policy: RlsPolicy | null | undefined,
 ): PolicyPrev | undefined {
   if (!policy) return undefined;
-  return pickFields(policy, POLICY_PREV_FIELDS);
+  const snap = pickFields(policy, POLICY_PREV_FIELDS) as Record<string, any>;
+  if (snap.title == null) delete snap.title;
+  if (snap.enabled == null) snap.enabled = false;
+  if (snap.is_default == null) snap.is_default = false;
+  if (snap.default_behavior == null) delete snap.default_behavior;
+  if (snap.order == null) snap.order = 0;
+  return snap as PolicyPrev;
+}
+
+function snapshotPolicyDeleteFields(policy: RlsPolicy): PolicyDeleteSnapshot {
+  const snap = pickFields(policy, POLICY_DELETE_FIELDS) as Record<string, any>;
+  if (snap.title == null) delete snap.title;
+  if (snap.enabled == null) snap.enabled = false;
+  if (snap.is_default == null) snap.is_default = false;
+  if (snap.default_behavior == null) delete snap.default_behavior;
+  if (snap.order == null) snap.order = 0;
+  return snap as PolicyDeleteSnapshot;
 }
 
 async function snapshotPolicyFilterTree(
@@ -179,7 +195,7 @@ export const RlsPolicyDeleteContract: OperationContract<
         entityTitle: policy.title,
         parentEntityTitle: table?.title,
         extra: {
-          policy: pickFields(policy, POLICY_DELETE_FIELDS),
+          policy: snapshotPolicyDeleteFields(policy),
           filters,
           // `RlsPolicy.get` populates `subjects` via the same join as
           // `setSubjects` reads — snapshot whatever is currently attached.

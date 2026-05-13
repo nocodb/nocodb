@@ -1,14 +1,21 @@
 import { createHash } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
-import { isSmartText, SMART_TEXT_MAX_BYTES, UITypes } from 'nocodb-sdk';
+import {
+  EventType,
+  isSmartText,
+  SMART_TEXT_MAX_BYTES,
+  UITypes,
+} from 'nocodb-sdk';
 import { SmartTextService as SmartTextServiceCE } from 'src/services/smart-text.service';
-import { TraceCommand } from '~/decorators/trace-command.decorator';
-import { OperationName } from '~/command-registry/op-names';
 import type { ProseMirrorDoc } from 'nocodb-sdk';
 import type { SmartTextGetResult } from 'src/services/smart-text.service';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type Column from '~/models/Column';
 import type { MetaService } from '~/meta/meta.service';
+import { NcContext } from '~/interface/config';
+import NocoSocket from '~/socket/NocoSocket';
+import { OperationName } from '~/command-registry/op-names';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
 import { NcError } from '~/helpers/catchError';
 import {
   markdownToProseMirror,
@@ -355,6 +362,8 @@ export class SmartTextService extends SmartTextServiceCE {
       throw e;
     }
 
+    const mdHash = this._hashMarkdown(markdown);
+
     await this._writeRowMetaPm(
       dbDriver,
       tnPath,
@@ -364,7 +373,38 @@ export class SmartTextService extends SmartTextServiceCE {
       param.pmContent,
       param.req.user?.id ?? null,
       markdown,
-      this._hashMarkdown(markdown),
+      mdHash,
+    );
+
+    NocoSocket.broadcastDataEvent(
+      context,
+      {
+        payload: {
+          id: param.rowId,
+          action: 'update',
+          payload: { [column.title]: markdown },
+        },
+        tableId: param.tableId,
+      },
+      context.socket_id,
+    );
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.SMART_TEXT_EVENT,
+        payload: {
+          tableId: param.tableId,
+          columnId: param.columnId,
+          rowId: param.rowId,
+          action: 'update',
+          pm: param.pmContent,
+          md: markdown,
+          mdHash,
+        },
+        scopes: [param.tableId, param.columnId, param.rowId],
+      },
+      context.socket_id,
     );
 
     // TODO: emit DATA_UPDATE app event for audit. Data-plane cell updates use

@@ -111,6 +111,7 @@ export default class NocoSocket {
           EventType.WIDGET_EVENT,
           EventType.SCRIPT_EVENT,
           EventType.PRESENCE_EVENT,
+          EventType.SMART_TEXT_EVENT,
         ].includes(eventType as EventType) &&
         userWithRole.base_roles?.[ProjectRoles.NO_ACCESS]
       ) {

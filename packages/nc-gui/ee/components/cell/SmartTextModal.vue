@@ -66,6 +66,12 @@ const isDirty = ref(false)
 
 const loadedKey = ref<string | null>(null)
 
+const pendingRemote = ref<{ pm: Record<string, any> | null; md: string | null; mdHash: string | null } | null>(null)
+
+const tableIdRef = toRef(props, 'tableId')
+const rowIdRef = toRef(props, 'rowId')
+const columnIdRef = toRef(props, 'columnId')
+
 const cellKey = (tableId: string, rowId: string, columnId: string) => `${tableId}|${rowId}|${columnId}`
 
 const hasIds = computed(() => {
@@ -164,6 +170,29 @@ const onContentUpdate = (content: Record<string, any>) => {
   isDirty.value = true
 }
 
+useSmartTextRealtime({
+  tableId: tableIdRef,
+  rowId: rowIdRef,
+  columnId: columnIdRef,
+  isActive: isVisible,
+  isDirty: () => isDirty.value,
+  onApply: ({ pm }) => {
+    pmContent.value = pm
+    pendingRemote.value = null
+    isDirty.value = false
+  },
+  onConflict: (payload) => {
+    pendingRemote.value = payload
+  },
+})
+
+const applyPendingRemote = () => {
+  if (!pendingRemote.value) return
+  pmContent.value = pendingRemote.value.pm
+  pendingRemote.value = null
+  isDirty.value = false
+}
+
 const close = async () => {
   if (isDirty.value) await flushSave()
   isVisible.value = false
@@ -197,6 +226,7 @@ watch(isVisible, (open) => {
     pmContent.value = null
     loadedKey.value = null
     isDirty.value = false
+    pendingRemote.value = null
   }
 })
 
@@ -274,6 +304,25 @@ const editorInitialContent = computed(() => pmContent.value ?? null)
           </NcButton>
         </NcTooltip>
       </div>
+      <NcAlert
+        v-if="pendingRemote"
+        type="info"
+        align="center"
+        :message="$t('labels.smartText.remoteUpdateAvailable')"
+        :bordered="false"
+        data-testid="nc-smart-text-modal-remote-banner"
+      >
+        <template #action>
+          <NcButton
+            size="xs"
+            type="secondary"
+            data-testid="nc-smart-text-modal-remote-refresh"
+            @click="applyPendingRemote"
+          >
+            {{ $t('general.refresh') }}
+          </NcButton>
+        </template>
+      </NcAlert>
 
       <!-- Body — full noco-docs editor in cell mode -->
       <div class="flex-1 min-h-0 overflow-hidden">

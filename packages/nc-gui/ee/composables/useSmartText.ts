@@ -41,6 +41,9 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
   const isLoading = ref(false)
   const isSaving = ref(false)
   const isDirty = ref(false)
+  const pendingRemote = ref<{ pm: Record<string, any> | null; md: string | null; mdHash: string | null } | null>(null)
+
+  const activeTableId = computed(() => meta.value?.id ?? null)
 
   // Navigation callback set by the grid — returns { rowId, rowData } or null
   const rowNavigator = ref<{
@@ -294,6 +297,39 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     isDirty.value = true
   }
 
+  useSmartTextRealtime({
+    tableId: activeTableId,
+    rowId: activeRowId,
+    columnId: activeColumnId,
+    isActive: isOpen,
+    isDirty: () => isDirty.value,
+    onApply: ({ pm, md }) => {
+      pmContent.value = pm
+      markdown.value = md
+      pendingRemote.value = null
+      isDirty.value = false
+      const colTitle = activeColumn.value?.title ?? null
+      if (activeRowData.value && colTitle) {
+        activeRowData.value[colTitle] = md
+      }
+    },
+    onConflict: (payload) => {
+      pendingRemote.value = payload
+    },
+  })
+
+  const applyPendingRemote = () => {
+    if (!pendingRemote.value) return
+    pmContent.value = pendingRemote.value.pm
+    markdown.value = pendingRemote.value.md
+    const colTitle = activeColumn.value?.title ?? null
+    if (activeRowData.value && colTitle) {
+      activeRowData.value[colTitle] = pendingRemote.value.md
+    }
+    pendingRemote.value = null
+    isDirty.value = false
+  }
+
   const openEditor = async (rowId: string, columnId: string, rowData?: Record<string, any>, rowIndex?: number) => {
     if (isPublic.value) {
       if (!sharedViewUuid.value) return
@@ -387,6 +423,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     loadedKey.value = null
     isLoading.value = false
     isDirty.value = false
+    pendingRemote.value = null
     _syncUrl()
   }
 
@@ -415,6 +452,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     hasPrev,
     hasNext,
     rowNavigator,
+    pendingRemote,
     openEditor,
     closeEditor,
     flushSave,
@@ -424,6 +462,7 @@ const [useProvideSmartText, useSmartText] = useInjectionState(() => {
     navigatePrev,
     navigateNext,
     setRowContext,
+    applyPendingRemote,
   }
 }, 'smart-text-store')
 

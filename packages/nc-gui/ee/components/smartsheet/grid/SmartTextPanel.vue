@@ -16,9 +16,19 @@ const {
   activeDisplayValue,
   hasPrev,
   hasNext,
+  pendingRemote,
 } = smartTextStore
 
-const { closeEditor, flushSave, switchField, setFullscreen, setPmContent, navigatePrev, navigateNext } = smartTextStore
+const {
+  closeEditor,
+  flushSave,
+  switchField,
+  setFullscreen,
+  setPmContent,
+  navigatePrev,
+  navigateNext,
+  applyPendingRemote,
+} = smartTextStore
 
 // When the expanded-record panel is also open it's hidden via v-show while
 // SmartText is active. On close we want SmartText to vanish instantly so the
@@ -465,6 +475,26 @@ const onDownloadPDF = () => downloadPDF()
           </NcButton>
         </NcTooltip>
       </div>
+
+      <NcAlert
+        v-if="pendingRemote"
+        type="info"
+        align="center"
+        :message="$t('labels.smartText.remoteUpdateAvailable')"
+        :bordered="false"
+        data-testid="nc-smart-text-panel-remote-banner"
+      >
+        <template #action>
+          <NcButton
+            size="xs"
+            type="secondary"
+            data-testid="nc-smart-text-panel-remote-refresh"
+            @click="applyPendingRemote"
+          >
+            {{ $t('general.refresh') }}
+          </NcButton>
+        </template>
+      </NcAlert>
 
       <!-- Body — full noco-docs editor in cell mode -->
       <div class="flex-1 min-h-0 overflow-hidden">

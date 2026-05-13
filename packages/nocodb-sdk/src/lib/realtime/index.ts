@@ -26,6 +26,7 @@ export enum EventType {
   CHAT_EVENT = 'event-chat',
   DOCUMENT_EVENT = 'event-document',
   DOCUMENT_COMMENT_EVENT = 'event-document-comment',
+  SMART_TEXT_EVENT = 'event-smart-text',
 }
 
 export interface BaseSocketPayload {
@@ -68,6 +69,16 @@ export interface DocumentCommentPayload extends BaseSocketPayload {
   id: string; // docId
   action: 'add' | 'update' | 'delete' | 'resolve';
   payload: Record<string, any>;
+}
+
+export interface SmartTextPayload extends BaseSocketPayload {
+  tableId: string;
+  columnId: string;
+  rowId: string;
+  action: 'update';
+  pm: Record<string, any> | null;
+  md: string | null;
+  mdHash: string | null;
 }
 
 export interface MetaPayload<T = any> extends BaseSocketPayload {
@@ -263,7 +274,8 @@ export type SocketEventPayload =
   | DocumentCommentPayload
   | NotificationPayload
   | PresencePayload
-  | ChatEventPayload;
+  | ChatEventPayload
+  | SmartTextPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
@@ -277,6 +289,7 @@ export type SocketEventPayloadMap = {
   [EventType.DOCUMENT_COMMENT_EVENT]: DocumentCommentPayload;
   [EventType.PRESENCE_EVENT]: PresencePayload;
   [EventType.CHAT_EVENT]: ChatEventPayload;
+  [EventType.SMART_TEXT_EVENT]: SmartTextPayload;
   [key: string]: BaseSocketPayload;
 };
 

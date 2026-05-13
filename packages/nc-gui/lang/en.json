@@ -2102,7 +2102,8 @@
       },
       "richTextDisabledWhenSmart": "Rich text formatting is not supported when Smart Text is enabled",
       "richTextDisabledWhenAi": "Rich text formatting is not supported when generate text using AI is enabled",
-      "description": "Smart Text uses a rich block-based editor with formatting, images, tables, and more. Content is stored in-row, so it's searchable and filterable."
+      "description": "Smart Text uses a rich block-based editor with formatting, images, tables, and more. Content is stored in-row, so it's searchable and filterable.",
+      "remoteUpdateAvailable": "Someone else updated this cell"
     },
     "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Copied Record URL",

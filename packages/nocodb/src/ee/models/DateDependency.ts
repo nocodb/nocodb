@@ -18,6 +18,11 @@ export default class DateDependency implements DateDependencyType {
   base_id?: string;
   fk_model_id?: string;
 
+  // When NULL, this is the table-level "default" rule (used by grid edits).
+  // When set, this rule is owned by a specific Gantt view — that view drags
+  // cascade through this rule's config, independent of the table-level rule.
+  fk_gantt_view_id?: string | null;
+
   fk_start_date_field_id?: string | null;
   fk_end_date_field_id?: string | null;
   fk_duration_field_id?: string | null;
@@ -71,11 +76,15 @@ export default class DateDependency implements DateDependencyType {
     return rule && new DateDependency(rule);
   }
 
-  public static async getByModelId(
+  /**
+   * Loads every rule on a table — both the default (`fk_gantt_view_id IS NULL`)
+   * and any Gantt-view-owned rules. Cascade trigger sites iterate this list.
+   */
+  public static async listByModelId(
     context: NcContext,
     fk_model_id: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<DateDependency | null> {
+  ): Promise<DateDependency[]> {
     const cachedList = await NocoCache.getList(
       context,
       CacheScope.DATE_DEPENDENCY,
@@ -99,8 +108,43 @@ export default class DateDependency implements DateDependencyType {
       );
     }
 
-    if (!list?.length) return null;
-    return new DateDependency(list[0]);
+    return (list ?? []).map((r) => new DateDependency(r));
+  }
+
+  /**
+   * Returns the table-level "default" rule (where fk_gantt_view_id IS NULL).
+   * Kept for backwards compat with call sites that assumed one rule per table —
+   * the table-level Date Dependencies dialog, public-metas, getAst, etc.
+   */
+  public static async getByModelId(
+    context: NcContext,
+    fk_model_id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<DateDependency | null> {
+    const list = await DateDependency.listByModelId(context, fk_model_id, ncMeta);
+    return list.find((r) => !r.fk_gantt_view_id) ?? null;
+  }
+
+  /**
+   * Returns the rule owned by a specific Gantt view, or null if the view has
+   * no dependency configured yet. Used by Gantt drag-cascade.
+   */
+  public static async getByGanttViewId(
+    context: NcContext,
+    fk_gantt_view_id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<DateDependency | null> {
+    // No dedicated cache scope for view→rule; piggyback on the model list and
+    // filter. View-owned rules are listed alongside the default by listByModelId,
+    // but we don't know the model here. Direct query is acceptable — Gantt
+    // view config is read once on view mount / store init.
+    const row = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DATE_DEPENDENCY,
+      { fk_gantt_view_id },
+    );
+    return row ? new DateDependency(row) : null;
   }
 
   public static async insert(
@@ -110,6 +154,7 @@ export default class DateDependency implements DateDependencyType {
   ): Promise<DateDependency> {
     const insertObj = extractProps(data, [
       'fk_model_id',
+      'fk_gantt_view_id',
       'fk_start_date_field_id',
       'fk_end_date_field_id',
       'fk_duration_field_id',
@@ -195,6 +240,10 @@ export default class DateDependency implements DateDependencyType {
     );
   }
 
+  /**
+   * Deletes the table-level default rule (fk_gantt_view_id IS NULL). Used by
+   * the table-level Date Dependencies dialog. Does NOT touch view-owned rules.
+   */
   public static async deleteByModelId(
     context: NcContext,
     fk_model_id: string,
@@ -203,6 +252,23 @@ export default class DateDependency implements DateDependencyType {
     const existing = await DateDependency.getByModelId(
       context,
       fk_model_id,
+      ncMeta,
+    );
+    if (!existing?.id) return;
+    await DateDependency.delete(context, existing.id, ncMeta);
+  }
+
+  /**
+   * Deletes a Gantt-view-owned rule. Called from the Gantt view delete cascade.
+   */
+  public static async deleteByGanttViewId(
+    context: NcContext,
+    fk_gantt_view_id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const existing = await DateDependency.getByGanttViewId(
+      context,
+      fk_gantt_view_id,
       ncMeta,
     );
     if (!existing?.id) return;

@@ -2086,8 +2086,29 @@ export default class View implements ViewType {
       );
     }
 
-    // Gantt has no per-view range to clean up — it reads from table-level
-    // DateDependency which is unrelated to the view lifecycle.
+    // For Gantt View, delete the per-view DateDependency rule (if any) — each
+    // Gantt view owns its own rule via nc_date_dependency.fk_gantt_view_id.
+    // The table-level default rule (fk_gantt_view_id IS NULL) is untouched.
+    if (view.type === ViewTypes.GANTT) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.DATE_DEPENDENCY,
+        {
+          fk_gantt_view_id: viewId,
+        },
+      );
+      // Invalidate the model-level DATE_DEPENDENCY list cache so the next
+      // listByModelId picks up the deletion.
+      if (view.fk_model_id) {
+        await NocoCache.deepDel(
+          context,
+          `${CacheScope.DATE_DEPENDENCY}:list:${view.fk_model_id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+    }
+
     await NocoCache.deepDel(
       context,
       `${columnTableScope}:${viewId}`,

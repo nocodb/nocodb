@@ -47,12 +47,28 @@ const up = async (knex: Knex) => {
     table.index(['id'], 'nc_gantt_view_columns_v2_oldpk_idx');
   });
 
-  // Date dependency config (start/end/predecessor/duration/weekends) lives on
-  // the table meta (`nc_date_dependency`). Gantt consumes it directly; no
-  // per-view range table is needed.
+  // Date-dependency rules are stored per (table, gantt view) — many rules per
+  // table allowed, each Gantt view owns its own rule. A rule with
+  // fk_gantt_view_id IS NULL is the "default" / table-level rule used by grid
+  // edits (and by the original single-rule API). Existing call sites that
+  // looked up DateDependency.getByModelId continue to receive that default.
+  await knex.schema.alterTable(MetaTable.DATE_DEPENDENCY, (table) => {
+    table.string('fk_gantt_view_id', 20).nullable();
+    table.index(
+      ['fk_model_id', 'fk_gantt_view_id'],
+      'nc_date_dep_model_view_idx',
+    );
+  });
 };
 
 const down = async (knex: Knex) => {
+  await knex.schema.alterTable(MetaTable.DATE_DEPENDENCY, (table) => {
+    table.dropIndex(
+      ['fk_model_id', 'fk_gantt_view_id'],
+      'nc_date_dep_model_view_idx',
+    );
+    table.dropColumn('fk_gantt_view_id');
+  });
   await knex.schema.dropTableIfExists(MetaTable.GANTT_VIEW_COLUMNS);
   await knex.schema.dropTableIfExists(MetaTable.GANTT_VIEW);
 };

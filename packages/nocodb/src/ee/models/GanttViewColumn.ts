@@ -95,7 +95,7 @@ export default class GanttViewColumn extends GanttViewColumnCE {
     );
 
     if (!insertObj.source_id) {
-      const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+      const viewRef = await View.get(context, insertObj.fk_view_id, false, ncMeta);
       insertObj.source_id = viewRef.source_id;
     }
 
@@ -107,7 +107,7 @@ export default class GanttViewColumn extends GanttViewColumnCE {
     );
 
     {
-      const view = await View.get(context, column.fk_view_id, ncMeta);
+      const view = await View.get(context, column.fk_view_id, false, ncMeta);
       await View.clearSingleQueryCache(
         context,
         view.fk_model_id,
@@ -207,7 +207,7 @@ export default class GanttViewColumn extends GanttViewColumnCE {
 
     {
       const viewCol = await this.get(context, columnId, ncMeta);
-      const view = await View.get(context, viewCol.fk_view_id, ncMeta);
+      const view = await View.get(context, viewCol.fk_view_id, false, ncMeta);
       await View.clearSingleQueryCache(context, view.fk_model_id, [view]);
     }
 

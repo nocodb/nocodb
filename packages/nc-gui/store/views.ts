@@ -544,8 +544,12 @@ export const useViewsStore = defineStore('viewsStore', () => {
           )
           break
         case ViewTypes.GANTT:
-          // Gantt has no per-view range — start/end/predecessor are read
-          // from the table-level DateDependency rule on the frontend.
+          // Gantt sends a `dependency` field alongside the standard view-create
+          // payload: a per-view DateDependency rule that the backend persists
+          // atomically with the view (fk_gantt_view_id = new view's id).
+          // The view-create form (dlg/View/Create.vue) populates `dependency`
+          // from the table-level rule if any, else from auto-detected date
+          // columns + first self-link. Each Gantt thus owns its own schedule.
           data = await $api.internal.postOperation(
             activeWorkspaceId.value!,
             openedProject.value!.id!,

@@ -201,13 +201,19 @@ export class UiPostOperations
           gantt: payload,
           req,
         });
-      case 'ganttViewCreate':
+      case 'ganttViewCreate': {
+        // Separate the optional per-view DateDependency payload from the
+        // ViewCreateReq fields so the swagger validation in the service only
+        // sees what it expects.
+        const { dependency, ...gantt } = (payload as any) ?? {};
         return await this.ganttsService.ganttViewCreate(context, {
-          gantt: payload,
+          gantt,
+          dependency,
           tableId: req.query.tableId,
           user: req.user,
           req,
         });
+      }
       case 'ganttViewUpdate':
         return await this.ganttsService.ganttViewUpdate(context, {
           ganttViewId: req.query.viewId,

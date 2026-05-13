@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, PlanFeatureTypes, ViewTypes } from 'nocodb-sdk';
 import type {
+  DateDependencyReqType,
   GanttUpdateReqType,
   UserType,
   ViewCreateReqType,
@@ -12,6 +13,7 @@ import {
   ViewWebhookManagerBuilder,
 } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { DateDependencyService } from '~/services/date-dependency.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
@@ -24,13 +26,23 @@ import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class GanttsService {
-  constructor(private readonly appHooksService: AppHooksService) {}
+  constructor(
+    private readonly appHooksService: AppHooksService,
+    private readonly dateDependencyService: DateDependencyService,
+  ) {}
 
   async ganttViewCreate(
     context: NcContext,
     param: {
       tableId: string;
       gantt: ViewCreateReqType;
+      // Optional per-view DateDependency rule. When provided, the view is
+      // created together with a date-dependency rule scoped to it (fk_gantt_view_id),
+      // letting multiple Gantt views on the same table have independent
+      // schedules. When omitted, the view falls back to the table-level
+      // default rule (fk_gantt_view_id IS NULL) — same as the previous
+      // tightly-coupled design.
+      dependency?: DateDependencyReqType;
       user: UserType;
       req: NcRequest;
       ownedBy?: string;
@@ -51,7 +63,7 @@ export class GanttsService {
 
     await assertPersonalViewAllowed(context, param.gantt.lock_type);
 
-    const model = await Model.get(context, param.tableId, ncMeta);
+    const model = await Model.get(context, param.tableId, false, ncMeta);
 
     param.gantt.title = param.gantt.title?.trim();
     const existingView = await View.getByTitleOrId(
@@ -100,7 +112,7 @@ export class GanttsService {
       ncMeta,
     );
 
-    const view = await View.get(context, id, ncMeta);
+    const view = await View.get(context, id, false, ncMeta);
 
     await NocoCache.appendToList(
       context,
@@ -108,6 +120,18 @@ export class GanttsService {
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,
     );
+
+    // Create the per-view DateDependency rule (Airtable-style: each Gantt
+    // owns its own start / end / dep field selection + cascade behavior).
+    // Falls back to the table-level default rule when `dependency` is omitted.
+    if (param.dependency) {
+      await this.dateDependencyService.update(context, {
+        modelId: param.tableId,
+        ganttViewId: view.id,
+        body: param.dependency,
+        req: param.req,
+      });
+    }
 
     let owner = param.req.user;
 
@@ -156,7 +180,7 @@ export class GanttsService {
     },
     ncMeta?: MetaService,
   ) {
-    const view = await View.get(context, param.ganttViewId, ncMeta);
+    const view = await View.get(context, param.ganttViewId, false, ncMeta);
 
     if (!view) {
       NcError.viewNotFound(param.ganttViewId);

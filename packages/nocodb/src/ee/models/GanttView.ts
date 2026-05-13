@@ -1,11 +1,12 @@
 import GanttViewCE from 'src/models/GanttView';
-import type { BoolType, MetaType } from 'nocodb-sdk';
+import type { BoolType, DateDependencyType, MetaType } from 'nocodb-sdk';
 import type { GanttType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
+import DateDependency from '~/ee/models/DateDependency';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 
 export default class GanttView extends GanttViewCE implements GanttType {
@@ -19,6 +20,12 @@ export default class GanttView extends GanttViewCE implements GanttType {
   public?: BoolType;
   password?: string;
   show_all_fields?: BoolType;
+
+  // View-owned DateDependency rule (Airtable-style per-Gantt config). Loaded
+  // eagerly by GanttView.get so the frontend store doesn't need a separate
+  // round-trip. When null, the view falls back to the table-level default
+  // rule (DateDependency.getByModelId).
+  date_dependency?: DateDependencyType | null;
 
   constructor(data: GanttView) {
     super(data);
@@ -53,7 +60,18 @@ export default class GanttView extends GanttViewCE implements GanttType {
       );
     }
 
-    return view && new GanttView(view);
+    if (!view) return null;
+
+    const result = new GanttView(view);
+    // Eager-load the view-owned dependency rule so consumers can read both
+    // off `viewMeta.view`. Cheap — DateDependency.getByGanttViewId is a single
+    // indexed lookup, no recursion.
+    result.date_dependency = await DateDependency.getByGanttViewId(
+      context,
+      viewId,
+      ncMeta,
+    );
+    return result;
   }
 
   static async insert(

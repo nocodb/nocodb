@@ -115,9 +115,13 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       return metaObj ?? {}
     })
 
-    // Gantt consumes the table-level DateDependency rule — no per-view range.
-    // The shape below is kept the same as before so Grid.vue / index.vue
-    // continue to consume `ganttRange[0].fk_from_col` etc. without changes.
+    // Gantt range resolution (Airtable-style per-view config with table-level fallback):
+    //   1. View-owned DateDependency rule (eagerly loaded into ganttMetaData.date_dependency)
+    //   2. Table-level default rule (meta.date_dependency, fk_gantt_view_id IS NULL)
+    // The view-owned rule takes precedence, so multiple Gantt views on the
+    // same table can have independent schedules. The shape below is kept the
+    // same as before so Grid.vue / index.vue continue to consume
+    // `ganttRange[0].fk_from_col` etc. without changes.
     const ganttRange = computed<
       Array<{
         fk_from_col: ColumnType
@@ -128,7 +132,9 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
         is_readonly: boolean
       }>
     >(() => {
-      const dep = (meta.value as any)?.date_dependency
+      const dep =
+        (ganttMetaData.value as any)?.date_dependency ??
+        (meta.value as any)?.date_dependency
       if (!dep || dep.is_active === false) return []
 
       const cols = meta.value?.columns ?? []

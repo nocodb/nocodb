@@ -26,8 +26,11 @@ export class DateDependencyService {
 
   async get(
     context: NcContext,
-    param: { modelId: string },
+    param: { modelId: string; ganttViewId?: string },
   ): Promise<DateDependency | null> {
+    if (param.ganttViewId) {
+      return DateDependency.getByGanttViewId(context, param.ganttViewId);
+    }
     return DateDependency.getByModelId(context, param.modelId);
   }
 
@@ -36,6 +39,9 @@ export class DateDependencyService {
     context: NcContext,
     param: {
       modelId: string;
+      // When set, scopes the rule to a specific Gantt view (per-view rule).
+      // When omitted, operates on the table's default rule (fk_gantt_view_id IS NULL).
+      ganttViewId?: string;
       body: DateDependencyReqType;
       req: NcRequest;
     },
@@ -54,7 +60,9 @@ export class DateDependencyService {
 
     await this.validateConfig(context, param.modelId, param.body);
 
-    const existing = await DateDependency.getByModelId(context, param.modelId);
+    const existing = param.ganttViewId
+      ? await DateDependency.getByGanttViewId(context, param.ganttViewId)
+      : await DateDependency.getByModelId(context, param.modelId);
 
     let result: DateDependency;
     const isNew = !existing;
@@ -64,6 +72,7 @@ export class DateDependencyService {
     } else {
       result = await DateDependency.insert(context, {
         fk_model_id: param.modelId,
+        fk_gantt_view_id: param.ganttViewId ?? null,
         ...param.body,
       });
     }
@@ -100,7 +109,7 @@ export class DateDependencyService {
   @TraceCommand(OperationName.dateDependencyDelete)
   async delete(
     context: NcContext,
-    param: { modelId: string; req: NcRequest },
+    param: { modelId: string; ganttViewId?: string; req: NcRequest },
   ): Promise<void> {
     await assertNotSandboxProduction(context);
 
@@ -108,7 +117,9 @@ export class DateDependencyService {
 
     const model = param.modelId && (await Model.get(context, param.modelId));
 
-    const existing = await DateDependency.getByModelId(context, param.modelId);
+    const existing = param.ganttViewId
+      ? await DateDependency.getByGanttViewId(context, param.ganttViewId)
+      : await DateDependency.getByModelId(context, param.modelId);
     if (existing?.id) {
       await DependencyTracker.clearDependencies(
         context,
@@ -116,7 +127,11 @@ export class DateDependencyService {
         existing.id,
       );
     }
-    await DateDependency.deleteByModelId(context, param.modelId);
+    if (param.ganttViewId) {
+      await DateDependency.deleteByGanttViewId(context, param.ganttViewId);
+    } else {
+      await DateDependency.deleteByModelId(context, param.modelId);
+    }
 
     if (model) {
       NocoSocket.broadcastEvent(

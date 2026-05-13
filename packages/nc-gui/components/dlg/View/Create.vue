@@ -18,7 +18,7 @@ import {
   stringToViewTypeMap,
   viewTypeToStringMap,
 } from 'nocodb-sdk'
-import { PlanTitles, UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
+import { PlanTitles, UITypes, ViewLockType, ViewTypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { AiWizardTabsType } from '#imports'
 
 const props = withDefaults(defineProps<Props>(), {
@@ -77,6 +77,20 @@ interface Form {
     fk_from_column_id: string
     fk_to_column_id: string | null
   }>
+
+  // for gantt view only — view-owned DateDependency rule, sent atomically
+  // with the view-create payload so each Gantt has independent schedule config
+  dependency?: {
+    fk_start_date_field_id?: string | null
+    fk_end_date_field_id?: string | null
+    fk_dependency_linkrow_field_id?: string | null
+    dependency_linkrow_role?: 'predecessors' | 'successors'
+    dependency_connection_type?: 'end-to-start' | 'end-to-end' | 'start-to-end' | 'start-to-start'
+    dependency_buffer_type?: 'flexible' | 'fixed' | 'none'
+    dependency_buffer_days?: number
+    include_weekends?: boolean
+    is_active?: boolean
+  }
 
   fk_cover_image_col_id: string | null | undefined
 
@@ -620,7 +634,56 @@ onMounted(async () => {
         }
       }
 
-      // Gantt: no per-view date config — reads from table-level DateDependencies.
+      if (props.type === ViewTypes.GANTT) {
+        // Auto-pick the per-view DateDependency config (Airtable-style: each
+        // Gantt owns its own rule, decoupled from the table-level rule).
+        // Priority:
+        //   1. If the table has an existing DateDependency rule, use those fields.
+        //   2. Else pick the first two date columns (start, end) + first self-link Links field.
+        //   3. Else pick just the first date column (milestone-only Gantt).
+        const tableDep = (meta.value as any)?.date_dependency
+        const cols = meta.value!.columns ?? []
+        const dateCols = cols.filter(
+          (c: ColumnType) => c.uidt === UITypes.Date || c.uidt === UITypes.DateTime,
+        )
+        const selfLink = cols.find((c: ColumnType) => {
+          if (!isLinksOrLTAR(c)) return false
+          const opts = (c.colOptions as any) ?? {}
+          return (
+            ['hm', 'om', 'oo'].includes(opts.type) &&
+            opts.fk_related_model_id === meta.value!.id
+          )
+        })
+
+        if (tableDep?.fk_start_date_field_id) {
+          form.dependency = {
+            fk_start_date_field_id: tableDep.fk_start_date_field_id,
+            fk_end_date_field_id: tableDep.fk_end_date_field_id ?? null,
+            fk_dependency_linkrow_field_id: tableDep.fk_dependency_linkrow_field_id ?? null,
+            dependency_linkrow_role: tableDep.dependency_linkrow_role ?? 'predecessors',
+            dependency_connection_type: tableDep.dependency_connection_type ?? 'end-to-start',
+            dependency_buffer_type: tableDep.dependency_buffer_type ?? 'flexible',
+            dependency_buffer_days: tableDep.dependency_buffer_days ?? 0,
+            include_weekends: tableDep.include_weekends ?? true,
+            is_active: true,
+          }
+        } else if (dateCols.length >= 1) {
+          form.dependency = {
+            fk_start_date_field_id: dateCols[0].id,
+            fk_end_date_field_id: dateCols[1]?.id ?? null,
+            fk_dependency_linkrow_field_id: selfLink?.id ?? null,
+            dependency_linkrow_role: 'predecessors',
+            dependency_connection_type: 'end-to-start',
+            dependency_buffer_type: selfLink ? 'flexible' : 'none',
+            dependency_buffer_days: 0,
+            include_weekends: true,
+            is_active: true,
+          }
+        } else {
+          // No date columns — can't render Gantt. Same disabling pattern as Timeline.
+          isNecessaryColumnsPresent.value = false
+        }
+      }
     } catch (e) {
       console.error(e)
     } finally {

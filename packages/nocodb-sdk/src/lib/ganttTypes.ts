@@ -1,4 +1,10 @@
-import type { BoolType, IdType, MetaType, StringOrNullType } from './Api';
+import type {
+  BoolType,
+  DateDependencyType,
+  IdType,
+  MetaType,
+  StringOrNullType,
+} from './Api';
 
 export enum GanttZoomLevel {
   DAY = 'day',
@@ -11,7 +17,8 @@ export enum GanttZoomLevel {
 /**
  * Extensible config stored in GanttType.meta JSON.
  * The start/end/predecessor field mapping and scheduling semantics live on
- * the table-level DateDependency rule, not on the Gantt view.
+ * a per-Gantt-view DateDependency rule (or fall back to the table-level
+ * default rule when not configured).
  */
 export interface GanttMetaType {
   use_milestones?: boolean;
@@ -29,6 +36,10 @@ export interface GanttType {
   columns?: GanttColumnType[];
   meta?: MetaType;
   title?: string;
+  // The view-owned DateDependency rule (eagerly loaded by GanttView.get).
+  // null when the Gantt view doesn't have its own rule yet — the frontend
+  // store then falls back to the table-level default rule (table.date_dependency).
+  date_dependency?: DateDependencyType | null;
 }
 
 /**

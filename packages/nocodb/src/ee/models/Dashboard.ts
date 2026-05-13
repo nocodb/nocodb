@@ -2,6 +2,7 @@ import DashboardCE from 'src/models/Dashboard';
 import { ModelTypes, PlanLimitTypes } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import type { DashboardType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Widget from '~/models/Widget';
@@ -273,8 +274,14 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       return bcrypt.compare(inputPassword, dashboard.password);
     }
 
-    // Plaintext fallback for pre-migration passwords
-    return dashboard.password === inputPassword;
+    // Timing-safe plaintext fallback for pre-migration dashboard passwords.
+    const a = Buffer.from(inputPassword, 'utf-8');
+    const b = Buffer.from(dashboard.password, 'utf-8');
+    if (a.length !== b.length) {
+      crypto.timingSafeEqual(a, Buffer.alloc(a.length));
+      return false;
+    }
+    return crypto.timingSafeEqual(a, b);
   }
 
   static async softDelete(

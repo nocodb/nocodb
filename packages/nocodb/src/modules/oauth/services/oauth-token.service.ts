@@ -180,14 +180,6 @@ export class OauthTokenService {
       throw new Error('invalid_grant: Authorization code has expired');
     }
 
-    // Atomic single-use claim — refuse if a concurrent caller already won.
-    const claimed = await OAuthAuthorizationCode.claimByCode(code);
-    if (!claimed) {
-      throw new Error(
-        'invalid_grant: Authorization code has already been used',
-      );
-    }
-
     // Validate redirect URI
     if (authCode.redirect_uri !== redirectUri) {
       throw new Error('invalid_grant: Invalid redirect_uri');
@@ -252,9 +244,18 @@ export class OauthTokenService {
       resource: authCode.resource,
     };
 
+    // Atomic single-use claim deferred until all preconditions pass so a
+    // failing redirect_uri / PKCE / client auth check does not consume the code.
+    const claimed = await OAuthAuthorizationCode.claimByCode(code);
+    if (!claimed) {
+      throw new Error(
+        'invalid_grant: Authorization code has already been used',
+      );
+    }
+
     await OAuthToken.insert(insertObj);
 
-    // markAsUsed is now a safety net — claimByCode above already won the
+    // markAsUsed is a safety net — claimByCode above already won the
     // single-use race.
     await OAuthAuthorizationCode.markAsUsed(code);
 

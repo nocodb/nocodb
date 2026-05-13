@@ -14,6 +14,7 @@ import { BaseReqType, getTestDatabaseName, IntegrationsType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
+import { validateDbConnectionHost } from '~/helpers/validateDbConnectionHost';
 import { JobTypes } from '~/interface/Jobs';
 import { Base, Integration, Workspace } from '~/models';
 import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
@@ -107,15 +108,24 @@ export class SourceCreateController {
       if (config?.client && !config?.client.includes('sqlite')) {
         const host = config?.connection?.host;
         const port = config?.connection?.port;
+        if (host) {
+          // Resolve and range-check the host; the driver opens a raw TCP
+          // socket, so the HTTP-only useAgent below does not protect it.
+          await validateDbConnectionHost(host);
+        }
         if (host && port) {
-          const url = `${host.includes('://') ? '' : 'http://'}${host}:${port}`;
+          const isIPv6 = host.includes(':') && !host.includes('://');
+          const formattedHost = isIPv6 ? `[${host}]` : host;
+          const url = `${
+            host.includes('://') ? '' : 'http://'
+          }${formattedHost}:${port}`;
           await axios(url, {
             httpAgent: useAgent(url),
             httpsAgent: useAgent(url),
             timeout: 100,
           }).catch((err) => {
             if (err.message.includes('DNS lookup')) {
-              NcError.badRequest('Forbidden!!!');
+              NcError.badRequest('Forbidden host name or IP address');
             }
           });
         }

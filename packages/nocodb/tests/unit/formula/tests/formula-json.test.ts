@@ -1,7 +1,8 @@
 import { expect } from 'chai';
 import 'mocha';
 import { UITypes } from 'nocodb-sdk';
-import { Source } from '../../../../src/models';
+import { Filter, Source } from '../../../../src/models';
+import TestDbMngr from '../../TestDbMngr';
 import { createColumn } from '../../factory/column';
 import { createBulkRows, listRow } from '../../factory/row';
 import { initInitialModel } from '../initModel';
@@ -755,8 +756,9 @@ function formulaJsonTests() {
       );
     });
 
-    // TODO: PostgreSQL returns actual JSON objects instead of JSON strings
-    // jsonb_path_query_first returns jsonb type, not text
+    // PostgreSQL returns actual JSON objects/arrays (auto-unwrapped by the pg
+    // driver), not stringified JSON. Skipping until JSON_EXTRACT semantics
+    // are aligned across DBs without breaking response compatibility.
     it.skip('should extract entire nested object', async () => {
       // Setup: JSON: {"user": {"name": "Alice", "age": 25}}
       await createColumn(_context, _tables.table1, {
@@ -795,8 +797,8 @@ function formulaJsonTests() {
       }
     });
 
-    // TODO: PostgreSQL returns actual arrays instead of JSON strings
-    // jsonb_path_query_first returns jsonb type, not text
+    // Same as the nested-object case above: PG returns the raw JSON array via
+    // the auto-unwrapping pg driver, not a stringified version.
     it.skip('should extract entire array', async () => {
       // Setup: JSON: {"items": ["a", "b", "c"]}
       await createColumn(_context, _tables.table1, {
@@ -1267,8 +1269,8 @@ function formulaJsonTests() {
       );
     });
 
-    // TODO: Empty object extraction doesn't return "{}" or NULL as expected
-    // PostgreSQL returns actual empty object, not stringified version
+    // PG returns an actual empty object via the auto-unwrapping pg driver,
+    // not a stringified "{}". Tracked separately from the filter fix.
     it.skip('should extract empty object', async () => {
       // Setup: JSON: {"empty": {}}
       await createColumn(_context, _tables.table1, {
@@ -1299,6 +1301,150 @@ function formulaJsonTests() {
         (val: any) => val === '{}' || val === null,
         'Should return "{}" or NULL',
       );
+    });
+  });
+
+  // ============================================================
+  // Filter & downstream-formula interop — regression for #12695
+  // ============================================================
+  describe('Filter & downstream-formula interop', () => {
+    it('should support `notblank` filter on JSON_EXTRACT formula', async () => {
+      await createColumn(_context, _tables.table1, {
+        title: 'JsonCol',
+        uidt: UITypes.SingleLineText,
+      });
+
+      await createBulkRows(_context, {
+        base: _base,
+        table: _tables.table1,
+        values: [
+          { JsonCol: '{"mykey": "myvalue 1"}' },
+          { JsonCol: '{"other": "no mykey here"}' },
+          { JsonCol: '{}' },
+        ],
+      });
+
+      const formula = await createColumn(_context, _tables.table1, {
+        title: 'ExtractMyKey',
+        uidt: UITypes.Formula,
+        formula: 'JSON_EXTRACT({JsonCol}, ".mykey")',
+        formula_raw: 'JSON_EXTRACT({JsonCol}, ".mykey")',
+      });
+
+      const filteredRows = await listRow({
+        base: _base,
+        table: _tables.table1,
+        options: {
+          filterArr: [
+            new Filter({
+              logical_op: 'and',
+              fk_column_id: formula.id,
+              comparison_op: 'notblank',
+            }),
+          ],
+        },
+      });
+
+      // Only the row with `mykey` should remain — and the query must not
+      // error out with "Invalid data type or value for column 'unknown'"
+      // which was the original symptom when the formula returned jsonb.
+      expect(filteredRows).to.have.length(1);
+      expect(filteredRows[0].JsonCol).to.eq('{"mykey": "myvalue 1"}');
+      expect(filteredRows[0].ExtractMyKey).to.eq('myvalue 1');
+    });
+
+    it('should support `blank` filter on JSON_EXTRACT formula', async () => {
+      await createColumn(_context, _tables.table1, {
+        title: 'JsonCol',
+        uidt: UITypes.SingleLineText,
+      });
+
+      await createBulkRows(_context, {
+        base: _base,
+        table: _tables.table1,
+        values: [
+          { JsonCol: '{"mykey": "myvalue 1"}' },
+          { JsonCol: '{"other": "no mykey"}' },
+        ],
+      });
+
+      const formula = await createColumn(_context, _tables.table1, {
+        title: 'ExtractMyKey',
+        uidt: UITypes.Formula,
+        formula: 'JSON_EXTRACT({JsonCol}, ".mykey")',
+        formula_raw: 'JSON_EXTRACT({JsonCol}, ".mykey")',
+      });
+
+      // Note: initInitialModel pre-populates table1 with 40 rows that don't
+      // have JsonCol — those rows have a NULL ExtractMyKey and also match
+      // `blank`. Use a large limit so our two inserted rows are guaranteed
+      // visible regardless of default pagination. The test asserts:
+      // - row with `mykey` is excluded
+      // - row without `mykey` is included
+      // and that the query runs without erroring.
+      const filteredRows = await listRow({
+        base: _base,
+        table: _tables.table1,
+        options: {
+          limit: 200,
+          filterArr: [
+            new Filter({
+              logical_op: 'and',
+              fk_column_id: formula.id,
+              comparison_op: 'blank',
+            }),
+          ],
+        },
+      });
+
+      const myJsonRows = filteredRows.filter((r: any) => r.JsonCol);
+      expect(myJsonRows).to.have.length(1);
+      expect(myJsonRows[0].JsonCol).to.eq('{"other": "no mykey"}');
+    });
+
+    it('should be usable inside VALUE() to coerce numeric strings', async function () {
+      // VALUE() is only implemented for PG and MySQL function mappings.
+      if (TestDbMngr.isSqlite()) {
+        this.skip();
+      }
+
+      await createColumn(_context, _tables.table1, {
+        title: 'JsonCol',
+        uidt: UITypes.SingleLineText,
+      });
+
+      await createBulkRows(_context, {
+        base: _base,
+        table: _tables.table1,
+        values: [
+          { JsonCol: '{"price": "42"}' },
+          { JsonCol: '{"price": "99.5"}' },
+        ],
+      });
+
+      await createColumn(_context, _tables.table1, {
+        title: 'PriceText',
+        uidt: UITypes.Formula,
+        formula: 'JSON_EXTRACT({JsonCol}, ".price")',
+        formula_raw: 'JSON_EXTRACT({JsonCol}, ".price")',
+      });
+
+      // Chaining a formula on top of JSON_EXTRACT — used to fail with a
+      // SQL syntax error because the inner expression returned jsonb/json
+      // rather than text.
+      await createColumn(_context, _tables.table1, {
+        title: 'PriceNum',
+        uidt: UITypes.Formula,
+        formula: 'VALUE({PriceText})',
+        formula_raw: 'VALUE({PriceText})',
+      });
+
+      const rows = await listRow({ base: _base, table: _tables.table1 });
+      const testRows = rows.filter((r: any) => r.JsonCol);
+
+      expect(testRows).to.have.length(2);
+      expect(Number(testRows[0].PriceNum)).to.eq(42);
+      expect(Number(testRows[1].PriceNum)).to.eq(99.5);
     });
   });
 }

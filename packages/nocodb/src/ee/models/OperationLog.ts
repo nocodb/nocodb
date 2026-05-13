@@ -58,14 +58,13 @@ function applyBaseConditions(
  * have their backup columns dropped and the row is deleted. Override
  * via `NC_OP_LOG_RETENTION_DAYS`.
  */
-function getRetentionMs(): number {
+const RETENTION_MS: number = (() => {
   const raw = process.env.NC_OP_LOG_RETENTION_DAYS;
   const days = raw ? Number(raw) : DEFAULT_RETENTION_DAYS;
-  if (!Number.isFinite(days) || days <= 0) {
-    return DEFAULT_RETENTION_DAYS * 24 * 60 * 60 * 1000;
-  }
-  return days * 24 * 60 * 60 * 1000;
-}
+  const effectiveDays =
+    Number.isFinite(days) && days > 0 ? days : DEFAULT_RETENTION_DAYS;
+  return effectiveDays * 24 * 60 * 60 * 1000;
+})();
 
 export default class OperationLog implements OperationLogType {
   id?: string;
@@ -132,7 +131,7 @@ export default class OperationLog implements OperationLogType {
       status: 'active',
       cleanup_due_at:
         input.cleanup_due_at ??
-        new Date(Date.now() + getRetentionMs()).toISOString(),
+        new Date(Date.now() + RETENTION_MS).toISOString(),
     };
 
     insertData = prepareForDb(insertData, [
@@ -241,7 +240,7 @@ export default class OperationLog implements OperationLogType {
     ncMeta: MetaService = Noco.ncMeta,
   ): Promise<void> {
     if (!key.scopes.length) return;
-    const nextDue = new Date(Date.now() + getRetentionMs()).toISOString();
+    const nextDue = new Date(Date.now() + RETENTION_MS).toISOString();
     const qb = ncMeta.knex(MetaTable.OPERATION_LOGS);
     qb.where({
       base_id: context.base_id,

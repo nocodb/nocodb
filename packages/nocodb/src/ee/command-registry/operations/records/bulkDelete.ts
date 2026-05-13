@@ -189,6 +189,11 @@ export function registerBulkDeleteHandlers(
         const stripped = stripServerControlledFields(row.prev, model.columns);
         const body: Record<string, any> = {};
         for (const [k, v] of Object.entries(stripped)) {
+          // LTAR virtual columns have no row-side storage; junction (MM) and
+          // child-side FK (HM/OO) links are re-created by `restoreDisplaced`
+          // below using the `displacedRecords` capture. V1 BT lives on a real
+          // FK column (uidt: ForeignKey) which is NOT in `ltarKeys`, so it
+          // survives this filter and is restored as part of the insert.
           if (ltarKeys.has(k)) continue;
           body[k] = v;
         }

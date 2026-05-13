@@ -115,7 +115,7 @@ export class UndoRedoService {
     entry: OperationLog,
     direction: 'undo' | 'redo',
   ): Promise<UndoRedoResult> {
-    delete context.socket_id;
+    const replayContext: NcContext = { ...context, socket_id: null };
 
     const opName = direction === 'undo' ? entry.inverse_op : entry.forward_op;
     const opVersion =
@@ -134,7 +134,7 @@ export class UndoRedoService {
     let metaUpdate: Record<string, unknown> | undefined;
     try {
       const handlerResult = await dispatchOperation(
-        context,
+        replayContext,
         resolved.contract,
         resolved.handler,
         {
@@ -142,7 +142,7 @@ export class UndoRedoService {
           entityId: entry.entity_id,
           extra: entry.meta as Record<string, unknown> | undefined,
           entryId: entry.id ?? '',
-          createdBy: (context.user?.id ??
+          createdBy: (replayContext.user?.id ??
             (req as any)?.user?.id ??
             '') as string,
           originalReq: req,
@@ -165,7 +165,7 @@ export class UndoRedoService {
         e?.stack,
       );
       if (entry.id) {
-        await OperationLog.markStatus(context, entry.id, 'errored', {
+        await OperationLog.markStatus(replayContext, entry.id, 'errored', {
           error: message,
         });
       }
@@ -188,7 +188,7 @@ export class UndoRedoService {
         statusExtra.meta = { ...(entry.meta ?? {}), ...metaUpdate };
       }
       await OperationLog.markStatus(
-        context,
+        replayContext,
         entry.id,
         direction === 'undo' ? 'undone' : 'active',
         statusExtra,

@@ -18,6 +18,8 @@ export function makeReplayReq(
   return {
     ...originalReq,
     user: originalReq?.user ?? { id: createdBy },
+    context: originalReq?.context ? { ...originalReq.context } : undefined,
+    headers: originalReq?.headers ? { ...originalReq.headers } : undefined,
   } as NcRequest;
 }
 

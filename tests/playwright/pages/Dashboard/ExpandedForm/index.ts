@@ -363,6 +363,42 @@ export class ExpandedFormPage extends BasePage {
       }
     } else {
       await this.get().locator('.nc-comments-drawer').waitFor({ state: 'visible', timeout: 30000 });
+
+      // CI shard 3 snapshots from failing runs show `tabpanel "Comments"` with
+      // no children — the modal sidebar's Comments tab is selected but its slot
+      // never mounts. Dismiss the still-open more-actions dropdown by clicking
+      // on a neutral spot inside the modal (the dialog body), then re-click the
+      // Comments tab to force a fresh mount before asserting.
+      //
+      // We click via the dialog title / modal background instead of pressing
+      // Escape because Escape also closes the modal itself.
+      await this.get()
+        .locator('[data-testid="nc-expanded-form-header"], .nc-expanded-form-header')
+        .first()
+        .click({ force: true })
+        .catch(() => {});
+
+      await this.rootPage.waitForTimeout(200);
+
+      await this.get()
+        .locator('.nc-comments-drawer [role="tab"]', { hasText: 'Comments' })
+        .first()
+        .click({ force: true })
+        .catch(() => {});
+
+      // Wait for the tab content to actually render something visible —
+      // either the empty-state placeholder text or the input itself.
+      await this.get()
+        .locator(
+          '.nc-comments-drawer .nc-comment-input, .nc-comments-drawer .nc-comment-item, .nc-comments-drawer [class*="font-medium"]'
+        )
+        .first()
+        .waitFor({ state: 'visible', timeout: 30000 })
+        .catch(() => {});
+
+      // Final settle window for `hasEditPermission` to flip.
+      await this.rootPage.waitForTimeout(1000);
+
       if (role === 'viewer') {
         await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(0);
       } else {

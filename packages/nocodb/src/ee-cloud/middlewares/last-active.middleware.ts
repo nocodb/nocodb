@@ -6,17 +6,27 @@ import { MetaTable } from '~/utils/globals';
 
 const DEBOUNCE_MS = 5 * 60_000;
 
-// Cap the in-memory seen-set to bound memory usage. When we hit the cap we
-// evict the oldest 10% by insertion order (Map preserves insertion order).
+// Bound the in-memory LRU. ~40B per entry → 10k ≈ 400KB. Sized comfortably
+// above any realistic per-pod active-user count; the cap is a safety net
+// against runaway traffic, not a steady-state constraint.
 const MAX_TRACKED = 10_000;
-const EVICT_KEEP_RATIO = 0.9;
 
 /**
  * Stamps `nc_users_v2.last_active_at` once per user per `DEBOUNCE_MS` window.
  * Only runs for authenticated requests — invited users who never sign in keep
  * `last_active_at = NULL`, and the nudge scanner uses that to skip them.
  *
- * The update is fire-and-forget: hot-path requests don't block on the write.
+ * The DB update is fire-and-forget: hot-path requests don't block on it.
+ *
+ * Hot-path discipline: ~99% of requests fall inside the debounce window and
+ * return after a single `Map.get` + compare (~50ns). LRU bookkeeping only
+ * happens on the ~1/300 request that actually triggers a DB write.
+ *
+ * LRU semantics: keyed by last DB-write time, MRU at the tail. On every
+ * write we `delete` + `set` so the entry moves to the tail — plain `set`
+ * on an existing key would not move it, causing eviction to target the
+ * longest-running (most active) users first. Eviction drops one from the
+ * head when over cap.
  */
 @Injectable()
 export class LastActiveMiddleware implements NestMiddleware {
@@ -28,19 +38,18 @@ export class LastActiveMiddleware implements NestMiddleware {
     if (!userId) return next();
 
     const now = Date.now();
-    const prev = this.lastSeen.get(userId) ?? 0;
-    if (now - prev < DEBOUNCE_MS) return next();
+    const lastWrite = this.lastSeen.get(userId) ?? 0;
+    if (now - lastWrite < DEBOUNCE_MS) return next();
 
-    if (this.lastSeen.size >= MAX_TRACKED) {
-      const toDelete =
-        this.lastSeen.size - Math.floor(MAX_TRACKED * EVICT_KEEP_RATIO);
-      let i = 0;
-      for (const k of this.lastSeen.keys()) {
-        if (i++ >= toDelete) break;
-        this.lastSeen.delete(k);
-      }
-    }
+    // Past the debounce gate — bump LRU position and queue the DB write.
+    // delete + set moves the key to insertion-order tail (MRU).
+    this.lastSeen.delete(userId);
     this.lastSeen.set(userId, now);
+
+    if (this.lastSeen.size > MAX_TRACKED) {
+      const lru = this.lastSeen.keys().next().value;
+      if (lru !== undefined) this.lastSeen.delete(lru);
+    }
 
     Noco.ncMeta
       .knexConnection(MetaTable.USERS)

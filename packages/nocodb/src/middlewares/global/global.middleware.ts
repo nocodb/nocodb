@@ -1,8 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ncIsString } from 'nocodb-sdk';
 import type { NestMiddleware } from '@nestjs/common';
 import type { AppConfig } from '~/interface/config';
 import Noco from '~/Noco';
+
+const TAB_ID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 @Injectable()
 export class GlobalMiddleware implements NestMiddleware {
@@ -13,9 +17,9 @@ export class GlobalMiddleware implements NestMiddleware {
       Noco.config?.ncSiteUrl || req.protocol + '://' + req.get('host');
     req.ncFullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 
-    const tabId = req.headers?.['x-nc-tab-id'];
-    if (typeof tabId === 'string' && tabId) {
-      req.ncTabId = tabId;
+    const rawTabId = req.headers?.['x-nc-tab-id'];
+    if (ncIsString(rawTabId) && TAB_ID_RE.test(rawTabId)) {
+      req.ncTabId = rawTabId;
     }
 
     const dashboardPath = this.config.get('dashboardPath', {

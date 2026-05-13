@@ -619,7 +619,6 @@ const permissionScopes = {
     // Undo / redo (per-(user, base, tab))
     'undo',
     'redo',
-    'undoStatus',
   ],
 } as const;
 
@@ -1116,7 +1115,6 @@ const rolePermissions:
       // mutations, and editors are the lowest role allowed to mutate.
       undo: true,
       redo: true,
-      undoStatus: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -1495,7 +1493,6 @@ const permissionDescriptions: Record<string, string> = {
   // undo / redo
   undo: 'undo the latest action in this base + tab',
   redo: 'redo the latest undone action in this base + tab',
-  undoStatus: 'check whether undo / redo are available',
 
   // Teams permissions
   teamList: 'view list of teams in the workspace',

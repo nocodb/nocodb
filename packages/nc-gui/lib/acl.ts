@@ -179,7 +179,6 @@ const rolePermissions = {
       // Inherited by CREATOR + OWNER via the role-scope cascade below.
       undo: true,
       redo: true,
-      undoStatus: true,
 
       // Documents — editors can update and reorder, but NOT create/delete
       documentUpdate: true,

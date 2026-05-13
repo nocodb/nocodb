@@ -14,7 +14,7 @@ export class UndoRedoPostOperations
 {
   constructor(private readonly undoRedoService: UndoRedoService) {}
 
-  operations = ['undo' as const, 'redo' as const, 'undoStatus' as const];
+  operations = ['undo' as const, 'redo' as const];
   httpMethod = 'POST' as const;
 
   async handle(
@@ -38,9 +38,6 @@ export class UndoRedoPostOperations
 
       case 'redo':
         return this.undoRedoService.redo(context, { req, scopes });
-
-      case 'undoStatus':
-        return this.undoRedoService.status(context, { req, scopes });
     }
   }
 }

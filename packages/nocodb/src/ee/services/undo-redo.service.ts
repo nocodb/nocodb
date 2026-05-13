@@ -4,17 +4,21 @@ import { NcError } from '~/helpers/catchError';
 import { OperationRegistry } from '~/command-registry/registry';
 import { dispatchOperation } from '~/command-registry/replay-context';
 import { OperationLog } from '~/models';
+import { isDevOrTestEnvironment } from '~/utils';
 
 export type UndoRedoResult =
   | { status: 'ok'; entryId: string }
   | { status: 'empty' }
   | { status: 'no_handler'; opName: string }
-  | { status: 'errored'; error: string };
-
-export interface UndoRedoStatus {
-  canUndo: boolean;
-  canRedo: boolean;
-}
+  | {
+      status: 'errored';
+      code: 'dispatch_failed';
+      entryId: string;
+      /** Raw handler/driver message — populated only in dev/test for easier
+       *  local debugging. Omitted in prod/staging to avoid leaking schema
+       *  names, parameter values, or row fragments. */
+      error?: string;
+    };
 
 export interface UndoRedoScope {
   type: OperationLogScopeType;
@@ -75,29 +79,6 @@ export class UndoRedoService {
     await OperationLog.bumpRetentionForScope(context, lookupKey);
 
     return this.dispatch(context, param.req, entry, 'redo');
-  }
-
-  async status(
-    context: NcContext,
-    param: { req: NcRequest; scopes?: ReadonlyArray<UndoRedoScope> },
-  ): Promise<UndoRedoStatus> {
-    const key = this.resolveLookupKey(context, param.req, param.scopes);
-    if (!key) return { canUndo: false, canRedo: false };
-
-    const [activeCount, undoneCount] = await Promise.all([
-      OperationLog.countByStatus(
-        context,
-        { fk_user_id: key.userId, tab_id: key.tabId, scopes: key.scopes },
-        'active',
-      ),
-      OperationLog.countByStatus(
-        context,
-        { fk_user_id: key.userId, tab_id: key.tabId, scopes: key.scopes },
-        'undone',
-      ),
-    ]);
-
-    return { canUndo: activeCount > 0, canRedo: undoneCount > 0 };
   }
 
   private resolveLookupKey(
@@ -188,7 +169,12 @@ export class UndoRedoService {
           error: message,
         });
       }
-      return { status: 'errored', error: message };
+      return {
+        status: 'errored',
+        code: 'dispatch_failed',
+        entryId: entry.id ?? '',
+        ...(isDevOrTestEnvironment ? { error: message } : {}),
+      };
     }
 
     if (entry.id) {

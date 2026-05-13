@@ -198,5 +198,4 @@ export const OPERATION_SCOPES = {
   // Undo / redo (per-(user, base, tab) — tab id read from x-nc-tab-id header)
   undo: 'base',
   redo: 'base',
-  undoStatus: 'base',
 } as const;

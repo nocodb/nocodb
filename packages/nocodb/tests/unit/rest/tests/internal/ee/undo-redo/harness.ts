@@ -7,7 +7,7 @@ import { OperationLog } from '~/models';
 
 export type Context = Awaited<ReturnType<typeof init>> & { tabId?: string };
 
-export const TAB_ID = 'tab_round_trip_test';
+export const TAB_ID = '11111111-1111-4111-8111-111111111111';
 
 export interface ScopeRef {
   type: 'base' | 'table' | 'view' | 'dashboard' | 'workflow' | 'script';
@@ -85,20 +85,6 @@ async function redo(
     { operation: 'redo' },
     { scopes },
   );
-}
-
-export async function undoStatus(
-  ctx: Context,
-  env: TestEnv,
-  scopes: ScopeRef[],
-): Promise<{ canUndo: boolean; canRedo: boolean }> {
-  const r = await internalApi.internalPost(
-    ctx,
-    env,
-    { operation: 'undoStatus' },
-    { scopes },
-  );
-  return r.body;
 }
 
 /**

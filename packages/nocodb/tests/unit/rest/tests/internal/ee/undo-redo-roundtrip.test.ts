@@ -16,14 +16,13 @@ type Context = Awaited<ReturnType<typeof init>> & { tabId?: string };
  * covers behaviors that aren't on a single-op happy path:
  *
  *   - Tab-id gating: no `x-nc-tab-id` header ⇒ no log row recorded.
- *   - `undoStatus` reports canUndo/canRedo across a full cycle.
  *   - Scope isolation: an op on table A doesn't surface on table B's stack.
  *   - Replay reentry guard: undo dispatch must not write a second log row.
  *
  * Uses `sortCreate` throughout as the smallest meaningful contract.
  */
 
-const TAB_ID = 'tab_roundtrip_test';
+const TAB_ID = '22222222-2222-4222-8222-222222222222';
 
 export function undoRedoRoundtripTests() {
   describe('Undo/Redo - per-tab round-trip', () => {
@@ -99,60 +98,6 @@ export function undoRedoRoundtripTests() {
       expect(res.body.status).to.equal('empty');
     });
 
-    it('undoStatus reports canUndo / canRedo correctly across the cycle', async () => {
-      const scopes = [
-        { type: 'view' as const, id: gridViewId },
-        { type: 'table' as const, id: tableId },
-        { type: 'base' as const, id: env.baseId },
-      ];
-      const status = async () => {
-        const r = await internalPost(
-          context,
-          env,
-          { operation: 'undoStatus' },
-          { scopes },
-        );
-        return r.body as { canUndo: boolean; canRedo: boolean };
-      };
-
-      // Initially: nothing to undo or redo
-      const s0 = await status();
-      expect(s0).to.deep.equal({ canUndo: false, canRedo: false });
-
-      // After forward
-      await internalPost(
-        context,
-        env,
-        { operation: 'sortCreate', viewId: gridViewId },
-        { fk_column_id: titleColId, direction: 'asc' },
-      );
-      const s1 = await status();
-      expect(s1.canUndo).to.equal(true);
-      expect(s1.canRedo).to.equal(false);
-
-      // After undo
-      await internalPost(
-        context,
-        env,
-        { operation: 'undo' },
-        { scopes },
-      );
-      const s2 = await status();
-      expect(s2.canUndo).to.equal(false);
-      expect(s2.canRedo).to.equal(true);
-
-      // After redo
-      await internalPost(
-        context,
-        env,
-        { operation: 'redo' },
-        { scopes },
-      );
-      const s3 = await status();
-      expect(s3.canUndo).to.equal(true);
-      expect(s3.canRedo).to.equal(false);
-    });
-
     it('scope-aware: an op on table A does not appear on table B undo stack', async () => {
       const setupCtx = untracedCtx(context);
       // Create a second table — setup, not under test, so untraced.
@@ -184,51 +129,48 @@ export function undoRedoRoundtripTests() {
         { fk_column_id: titleBId, direction: 'asc' },
       );
 
-      // Status filtered to table B — only sees one op
-      const scopesB = [
-        { type: 'view' as const, id: gridB },
-        { type: 'table' as const, id: tB.id },
-        { type: 'base' as const, id: env.baseId },
-      ];
-      const statusB = await internalPost(
-        context,
-        env,
-        { operation: 'undoStatus' },
-        { scopes: scopesB },
-      );
-      expect(statusB.body.canUndo).to.equal(true);
+      const baseCtx = { workspace_id: env.workspaceId, base_id: env.baseId };
+      const lookupB = {
+        fk_user_id: context.user.id,
+        tab_id: TAB_ID,
+        scopes: [
+          { type: 'view' as const, id: gridB },
+          { type: 'table' as const, id: tB.id },
+          { type: 'base' as const, id: env.baseId },
+        ],
+      };
+      const lookupA = {
+        fk_user_id: context.user.id,
+        tab_id: TAB_ID,
+        scopes: [
+          { type: 'view' as const, id: gridViewId },
+          { type: 'table' as const, id: tableId },
+          { type: 'base' as const, id: env.baseId },
+        ],
+      };
+
+      // Table B has one active op
+      expect(
+        await OperationLog.countByStatus(baseCtx, lookupB, 'active'),
+      ).to.equal(1);
 
       // Undo on table B
       const undoB = await internalPost(
         context,
         env,
         { operation: 'undo' },
-        { scopes: scopesB },
+        { scopes: lookupB.scopes },
       );
       expect(undoB.body.status).to.equal('ok');
 
-      // Table B has no sort; table A's sort still alive — proves the
-      // undo only popped from table B's scope.
-      const r1 = await internalPost(
-        context,
-        env,
-        { operation: 'undoStatus' },
-        { scopes: scopesB },
-      );
-      expect(r1.body.canUndo).to.equal(false);
-
-      const scopesA = [
-        { type: 'view' as const, id: gridViewId },
-        { type: 'table' as const, id: tableId },
-        { type: 'base' as const, id: env.baseId },
-      ];
-      const r2 = await internalPost(
-        context,
-        env,
-        { operation: 'undoStatus' },
-        { scopes: scopesA },
-      );
-      expect(r2.body.canUndo).to.equal(true);
+      // Table B's active stack drained; table A's stack still has one —
+      // proves the undo only popped from table B's scope.
+      expect(
+        await OperationLog.countByStatus(baseCtx, lookupB, 'active'),
+      ).to.equal(0);
+      expect(
+        await OperationLog.countByStatus(baseCtx, lookupA, 'active'),
+      ).to.equal(1);
     });
 
     it('isReplay path: undo dispatch does NOT record a second log row', async () => {

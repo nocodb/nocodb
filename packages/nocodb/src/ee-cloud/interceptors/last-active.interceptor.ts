@@ -55,9 +55,7 @@ export class LastActiveInterceptor implements NestInterceptor {
     try {
       this.maybeStamp(context);
     } catch (e) {
-      this.safeWarn(
-        `last_active interceptor failed: ${(e as Error)?.message}`,
-      );
+      this.safeWarn(`last_active interceptor failed: ${(e as Error)?.message}`);
     }
     return next.handle();
   }

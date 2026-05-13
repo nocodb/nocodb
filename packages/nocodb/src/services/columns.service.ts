@@ -446,43 +446,6 @@ export class ColumnsService implements IColumnsService {
   ) {}
 
   /**
-   * Decide whether to snapshot cell data before a type change. Returns true
-   * only when:
-   *   - the request actually changes `uidt`
-   *   - both old and new types are scalars (virtual types have no backing
-   *     data;
-   *   - the backup driver supports the source dialect (resolution happens
-   *     inside the handler — we only gate on uidt here)
-   *   - the column lives on an internal source (`source.isMeta()`).
-   *     External sources are off-limits: writable ones would have NocoDB
-   *     silently add a sibling column to the customer's DB; readonly ones
-   *     would fail the ALTER and disable undo invisibly.
-   */
-  private async shouldBackupBeforeTypeChange(
-    context: NcContext,
-    oldColumn: Column<any> | null | undefined,
-    requestColumn: any,
-  ): Promise<boolean> {
-    if (!oldColumn || !requestColumn) return false;
-    const oldUidt = oldColumn.uidt as UITypes | undefined;
-    const newUidt = requestColumn.uidt as UITypes | undefined;
-    if (!oldUidt || !newUidt || oldUidt === newUidt) return false;
-    if (isVirtualCol({ uidt: oldUidt }) || isVirtualCol({ uidt: newUidt })) {
-      return false;
-    }
-    // Service rejects LTAR↔scalar — guard anyway.
-    if (isLinksOrLTAR({ uidt: oldUidt }) || isLinksOrLTAR({ uidt: newUidt })) {
-      return false;
-    }
-    if (!oldColumn.source_id) return false;
-    const source = await Source.get(context, oldColumn.source_id).catch(
-      () => null,
-    );
-    if (!source?.isMeta()) return false;
-    return true;
-  }
-
-  /**
    * Stores unique constraint name in internal_meta field when enabling unique constraint.
    * This ensures we can drop the constraint even if table/column name changes later.
    * internal_meta is an internal field (not exposed via API)
@@ -832,6 +795,14 @@ export class ColumnsService implements IColumnsService {
       }
       throw err;
     }
+  }
+
+  protected async shouldBackupBeforeTypeChange(
+    _context: NcContext,
+    _oldColumn: Column<any> | null | undefined,
+    _requestColumn: any,
+  ): Promise<boolean> {
+    return false;
   }
 
   protected async _runColumnUpdate(

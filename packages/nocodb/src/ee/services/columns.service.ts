@@ -29,7 +29,6 @@ import type {
   ReusableParams,
 } from '~/services/columns.service.type';
 import type { NcRequest } from '~/interface/config';
-import type { Source } from '~/models';
 import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
@@ -40,6 +39,7 @@ import {
   Filter,
   LinkToAnotherRecordColumn,
   Model,
+  Source,
   View,
 } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -267,6 +267,43 @@ export class ColumnsService extends ColumnsServiceCE {
     }
 
     return super.columnUpdate(context, param, ncMeta);
+  }
+
+  /**
+   * Decide whether to snapshot cell data before a type change. Returns true
+   * only when:
+   *   - the request actually changes `uidt`
+   *   - both old and new types are scalars (virtual types have no backing
+   *     data;
+   *   - the backup driver supports the source dialect (resolution happens
+   *     inside the handler — we only gate on uidt here)
+   *   - the column lives on an internal source (`source.isMeta()`).
+   *     External sources are off-limits: writable ones would have NocoDB
+   *     silently add a sibling column to the customer's DB; readonly ones
+   *     would fail the ALTER and disable undo invisibly.
+   */
+  protected async shouldBackupBeforeTypeChange(
+    context: NcContext,
+    oldColumn: Column<any> | null | undefined,
+    requestColumn: any,
+  ): Promise<boolean> {
+    if (!oldColumn || !requestColumn) return false;
+    const oldUidt = oldColumn.uidt as UITypes | undefined;
+    const newUidt = requestColumn.uidt as UITypes | undefined;
+    if (!oldUidt || !newUidt || oldUidt === newUidt) return false;
+    if (isVirtualCol({ uidt: oldUidt }) || isVirtualCol({ uidt: newUidt })) {
+      return false;
+    }
+    // Service rejects LTAR↔scalar — guard anyway.
+    if (isLinksOrLTAR({ uidt: oldUidt }) || isLinksOrLTAR({ uidt: newUidt })) {
+      return false;
+    }
+    if (!oldColumn.source_id) return false;
+    const source = await Source.get(context, oldColumn.source_id).catch(
+      () => null,
+    );
+    if (!source?.isMeta()) return false;
+    return true;
   }
 
   @EEOnly()

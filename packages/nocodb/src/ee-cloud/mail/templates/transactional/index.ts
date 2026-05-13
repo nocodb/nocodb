@@ -11,6 +11,10 @@ import NudgeNoBase from '~/mail/templates/transactional/nudge-no-base';
 import NudgeWorkflowInactive from '~/mail/templates/transactional/nudge-workflow-inactive';
 import NudgeInviteTeam from '~/mail/templates/transactional/nudge-invite-team';
 import NudgeSeatLimit from '~/mail/templates/transactional/nudge-seat-limit';
+import OnPremLicenseIssued from '~/mail/templates/transactional/on-prem-license-issued';
+import OnPremPaymentFailed from '~/mail/templates/transactional/on-prem-payment-failed';
+import OnPremPlanChanged from '~/mail/templates/transactional/on-prem-plan-changed';
+import OnPremSubscriptionCanceled from '~/mail/templates/transactional/on-prem-subscription-canceled';
 
 export {
   LimitReached,
@@ -26,4 +30,8 @@ export {
   NudgeWorkflowInactive,
   NudgeInviteTeam,
   NudgeSeatLimit,
+  OnPremLicenseIssued,
+  OnPremPaymentFailed,
+  OnPremPlanChanged,
+  OnPremSubscriptionCanceled,
 };

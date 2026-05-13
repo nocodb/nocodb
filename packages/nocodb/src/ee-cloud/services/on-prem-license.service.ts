@@ -3,12 +3,16 @@ import Stripe from 'stripe';
 import { customAlphabet } from 'nanoid';
 import { OnPremPlanTitles, ReturnToBillingPage } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import type { MailParams } from '~/interface/Mail';
 import { Plan, Subscription, User } from '~/models';
 import Installation from '~/models/Installation';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import { InstallationStatus, LicenseType } from '~/utils/license';
 import { TelemetryService } from '~/services/telemetry.service';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
+import { ncSiteUrl } from '~/utils/envs';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
   apiVersion: '2025-05-28.basil',
@@ -63,7 +67,30 @@ const generateLicenseKeySuffix = customAlphabet(
 export class OnPremLicenseService {
   protected logger = new Logger(OnPremLicenseService.name);
 
-  constructor(protected readonly telemetryService: TelemetryService) {}
+  constructor(
+    protected readonly telemetryService: TelemetryService,
+    protected readonly mailService: MailService,
+  ) {}
+
+  /**
+   * Best-effort enqueue of an on-prem billing mail. Mirrors PaymentService's
+   * `safeSendBillingMail` — never throws so webhook handlers stay idempotent.
+   */
+  protected async safeSendOnPremMail(params: MailParams): Promise<void> {
+    try {
+      await this.mailService.sendMail(params);
+    } catch (e) {
+      this.logger.error(
+        `Failed to enqueue ${params.mailEvent} mail`,
+        (e as Error).stack,
+      );
+    }
+  }
+
+  protected onPremBillingPortalUrl(): string {
+    const base = ncSiteUrl ?? Noco.config?.ncSiteUrl ?? '';
+    return base ? `${base}/account/self-hosted` : '';
+  }
 
   /**
    * Emit a system event for an on-prem flow with first-class identity fields.
@@ -396,6 +423,37 @@ export class OnPremLicenseService {
       extra: { period },
     });
 
+    if (user?.email) {
+      const currentPeriodEnd = (
+        stripeSub as Stripe.Subscription & {
+          current_period_end?: number;
+        }
+      ).current_period_end;
+      await this.safeSendOnPremMail({
+        mailEvent: MailEvent.ON_PREM_LICENSE_ISSUED,
+        payload: {
+          user: user as any,
+          installation: {
+            id: installation.id,
+            license_type: licenseType,
+            licensed_to: installation.licensed_to,
+          },
+          subscriptionId: subRec.id,
+          licenseKey,
+          planTitle,
+          seatCount: stripeQuantity,
+          period: period as 'month' | 'year',
+          periodEnd: currentPeriodEnd
+            ? new Date(currentPeriodEnd * 1000).toISOString()
+            : undefined,
+          activationDocsUrl:
+            'https://nocodb.com/docs/self-hosting/license-activation',
+          setupDocsUrl: 'https://nocodb.com/docs/self-hosting',
+          billingPortalUrl: this.onPremBillingPortalUrl(),
+        },
+      });
+    }
+
     this.logger.log(
       `On-prem license created: ${installation.id} (${planTitle}) for user ${userId}`,
     );
@@ -472,6 +530,28 @@ export class OnPremLicenseService {
               new_plan_id: newPlanId,
             },
           });
+
+          const planUser = subRec.fk_user_id
+            ? await User.get(subRec.fk_user_id, ncMeta).catch(() => null)
+            : null;
+          if (planUser?.email) {
+            await this.safeSendOnPremMail({
+              mailEvent: MailEvent.ON_PREM_PLAN_CHANGED,
+              payload: {
+                user: planUser as any,
+                installation: {
+                  id: inst.id,
+                  license_type: newLicenseType,
+                  licensed_to: inst.licensed_to,
+                },
+                subscriptionId: subRec.id,
+                oldPlanTitle: previousPlan?.title || 'previous plan',
+                newPlanTitle: newPlan.title,
+                effectiveAt: new Date().toISOString(),
+                billingPortalUrl: this.onPremBillingPortalUrl(),
+              },
+            });
+          }
         }
       }
     }
@@ -559,6 +639,38 @@ export class OnPremLicenseService {
         subscription: { id: subRec.id, stripe_subscription_id: stripeSub.id },
         extra: { stripe_status: stripeSub.status },
       });
+
+      const cancelUser = subRec.fk_user_id
+        ? await User.get(subRec.fk_user_id, ncMeta).catch(() => null)
+        : null;
+      if (cancelUser?.email) {
+        const stripeSubExt = stripeSub as Stripe.Subscription & {
+          current_period_end?: number;
+        };
+        const endsAtUnix =
+          stripeSub.cancel_at ?? stripeSubExt.current_period_end;
+        const planFromConfig = subRec.fk_plan_id
+          ? await Plan.get(subRec.fk_plan_id, ncMeta).catch(() => null)
+          : null;
+        await this.safeSendOnPremMail({
+          mailEvent: MailEvent.ON_PREM_SUBSCRIPTION_CANCELED,
+          payload: {
+            user: cancelUser as any,
+            installation: {
+              id: installation.id,
+              license_type: installation.license_type,
+              licensed_to: installation.licensed_to,
+            },
+            subscriptionId: subRec.id,
+            planTitle: planFromConfig?.title ?? 'your subscription',
+            stripeStatus: stripeSub.status as 'canceled' | 'unpaid',
+            endsAt: endsAtUnix
+              ? new Date(endsAtUnix * 1000).toISOString()
+              : undefined,
+            billingPortalUrl: this.onPremBillingPortalUrl(),
+          },
+        });
+      }
     }
     // Reactivate if subscription returns to active (e.g. after payment retry)
     else if (
@@ -1351,6 +1463,37 @@ export class OnPremLicenseService {
         invoice_id: invoice.id,
         failure_reason:
           invoice.last_finalization_error?.message || 'Payment failed',
+      },
+    });
+
+    if (!installation || !invoice.id) return;
+
+    const failedUser = subRec.fk_user_id
+      ? await User.get(subRec.fk_user_id, ncMeta).catch(() => null)
+      : null;
+    if (!failedUser?.email) return;
+
+    await this.safeSendOnPremMail({
+      mailEvent: MailEvent.ON_PREM_PAYMENT_FAILED,
+      payload: {
+        user: failedUser as any,
+        installation: {
+          id: installation.id,
+          license_type: installation.license_type,
+          licensed_to: installation.licensed_to,
+        },
+        subscriptionId: subRec.id,
+        invoiceId: invoice.id,
+        invoiceNumber: invoice.number ?? undefined,
+        hostedInvoiceUrl: invoice.hosted_invoice_url ?? undefined,
+        attemptCount: invoice.attempt_count ?? 1,
+        amountDue: invoice.amount_due ?? 0,
+        currency: invoice.currency ?? 'usd',
+        nextAttemptAt: invoice.next_payment_attempt
+          ? new Date(invoice.next_payment_attempt * 1000).toISOString()
+          : undefined,
+        failureMessage: invoice.last_finalization_error?.message ?? undefined,
+        billingPortalUrl: this.onPremBillingPortalUrl(),
       },
     });
   }

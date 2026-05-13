@@ -205,6 +205,54 @@ interface NudgeSeatLimitPayload extends NudgePayloadBase {
   upgradeUrl: string;
 }
 
+interface OnPremBillingPayloadBase {
+  req?: NcRequest;
+  user: UserType;
+  installation: {
+    id: string;
+    license_type: string;
+    licensed_to: string;
+  };
+  billingPortalUrl: string;
+}
+
+interface OnPremLicenseIssuedPayload extends OnPremBillingPayloadBase {
+  subscriptionId: string;
+  licenseKey: string;
+  planTitle: string;
+  seatCount: number;
+  period: 'month' | 'year';
+  periodEnd?: string;
+  activationDocsUrl: string;
+  setupDocsUrl: string;
+}
+
+interface OnPremPaymentFailedPayload extends OnPremBillingPayloadBase {
+  subscriptionId: string;
+  invoiceId: string;
+  invoiceNumber?: string;
+  hostedInvoiceUrl?: string;
+  attemptCount: number;
+  amountDue: number;
+  currency: string;
+  nextAttemptAt?: string;
+  failureMessage?: string;
+}
+
+interface OnPremPlanChangedPayload extends OnPremBillingPayloadBase {
+  subscriptionId: string;
+  oldPlanTitle: string;
+  newPlanTitle: string;
+  effectiveAt?: string;
+}
+
+interface OnPremSubscriptionCanceledPayload extends OnPremBillingPayloadBase {
+  subscriptionId: string;
+  planTitle: string;
+  stripeStatus: 'canceled' | 'unpaid';
+  endsAt?: string;
+}
+
 interface HookErrorDigestPayload {
   req?: NcRequest;
   user: UserType;
@@ -399,6 +447,22 @@ type MailParams =
   | {
       mailEvent: MailEvent.NUDGE_SEAT_LIMIT;
       payload: NudgeSeatLimitPayload;
+    }
+  | {
+      mailEvent: MailEvent.ON_PREM_LICENSE_ISSUED;
+      payload: OnPremLicenseIssuedPayload;
+    }
+  | {
+      mailEvent: MailEvent.ON_PREM_PAYMENT_FAILED;
+      payload: OnPremPaymentFailedPayload;
+    }
+  | {
+      mailEvent: MailEvent.ON_PREM_PLAN_CHANGED;
+      payload: OnPremPlanChangedPayload;
+    }
+  | {
+      mailEvent: MailEvent.ON_PREM_SUBSCRIPTION_CANCELED;
+      payload: OnPremSubscriptionCanceledPayload;
     };
 
 export {
@@ -421,4 +485,8 @@ export {
   NudgeWorkflowInactivePayload,
   NudgeInviteTeamPayload,
   NudgeSeatLimitPayload,
+  OnPremLicenseIssuedPayload,
+  OnPremPaymentFailedPayload,
+  OnPremPlanChangedPayload,
+  OnPremSubscriptionCanceledPayload,
 };

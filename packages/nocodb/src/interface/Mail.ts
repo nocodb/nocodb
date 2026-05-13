@@ -54,6 +54,13 @@ enum MailEvent {
   NUDGE_WORKFLOW_INACTIVE = 'NUDGE_WORKFLOW_INACTIVE',
   NUDGE_INVITE_TEAM = 'NUDGE_INVITE_TEAM',
   NUDGE_SEAT_LIMIT = 'NUDGE_SEAT_LIMIT',
+  // On-prem self-serve billing (cloud-issued license, subscription in
+  // `nc_subscriptions` with no workspace/org). Fired from OnPremLicenseService
+  // webhook handlers, routed through the same deferred outbox as cloud billing.
+  ON_PREM_LICENSE_ISSUED = 'ON_PREM_LICENSE_ISSUED',
+  ON_PREM_PAYMENT_FAILED = 'ON_PREM_PAYMENT_FAILED',
+  ON_PREM_PLAN_CHANGED = 'ON_PREM_PLAN_CHANGED',
+  ON_PREM_SUBSCRIPTION_CANCELED = 'ON_PREM_SUBSCRIPTION_CANCELED',
 }
 
 interface CommentPayload {

@@ -12,6 +12,10 @@ import type {
   NudgeNoBasePayload,
   NudgeSeatLimitPayload,
   NudgeWorkflowInactivePayload,
+  OnPremLicenseIssuedPayload,
+  OnPremPaymentFailedPayload,
+  OnPremPlanChangedPayload,
+  OnPremSubscriptionCanceledPayload,
   PaymentFailedPayload,
   PlanChangedPayload,
   SubscriptionCanceledPayload,
@@ -43,6 +47,10 @@ const DEFERRED_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
   MailEvent.NUDGE_WORKFLOW_INACTIVE,
   MailEvent.NUDGE_INVITE_TEAM,
   MailEvent.NUDGE_SEAT_LIMIT,
+  MailEvent.ON_PREM_LICENSE_ISSUED,
+  MailEvent.ON_PREM_PAYMENT_FAILED,
+  MailEvent.ON_PREM_PLAN_CHANGED,
+  MailEvent.ON_PREM_SUBSCRIPTION_CANCELED,
 ]);
 
 @Injectable()
@@ -374,6 +382,48 @@ export class MailService extends MailServiceEE {
           payload: p,
         };
       }
+      case MailEvent.ON_PREM_LICENSE_ISSUED: {
+        const p = params.payload as OnPremLicenseIssuedPayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          dedupe_key: `license-issued:${p.subscriptionId}`,
+          payload: p,
+        };
+      }
+      case MailEvent.ON_PREM_PAYMENT_FAILED: {
+        const p = params.payload as OnPremPaymentFailedPayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          dedupe_key: `on-prem-invoice:${p.invoiceId}:attempt:${p.attemptCount}`,
+          payload: p,
+        };
+      }
+      case MailEvent.ON_PREM_PLAN_CHANGED: {
+        const p = params.payload as OnPremPlanChangedPayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          dedupe_key: `on-prem-plan-change:${p.subscriptionId}:${p.newPlanTitle}`,
+          payload: p,
+        };
+      }
+      case MailEvent.ON_PREM_SUBSCRIPTION_CANCELED: {
+        const p = params.payload as OnPremSubscriptionCanceledPayload;
+        return {
+          event: params.mailEvent,
+          fk_user_id: p.user?.id ?? null,
+          to: p.user?.email ?? null,
+          // stripeStatus suffix lets a canceled→reactivated→canceled cycle
+          // re-send as two events instead of collapsing to one.
+          dedupe_key: `on-prem-sub-cancel:${p.subscriptionId}:${p.stripeStatus}`,
+          payload: p,
+        };
+      }
       default:
         return {
           event: params.mailEvent,
@@ -564,9 +614,87 @@ export class MailService extends MailServiceEE {
           }),
         };
       }
+      case MailEvent.ON_PREM_LICENSE_ISSUED: {
+        const p = payload as OnPremLicenseIssuedPayload;
+        return {
+          subject: `Your NocoDB ${p.planTitle} license is ready`,
+          html: await this.renderCloudMail('OnPremLicenseIssued', {
+            licensedTo: p.installation.licensed_to,
+            licenseKey: p.licenseKey,
+            planTitle: p.planTitle,
+            seatCount: p.seatCount,
+            period: p.period,
+            periodEnd: p.periodEnd ? this.formatDate(p.periodEnd) : undefined,
+            activationDocsUrl: p.activationDocsUrl,
+            setupDocsUrl: p.setupDocsUrl,
+            billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
+      case MailEvent.ON_PREM_PAYMENT_FAILED: {
+        const p = payload as OnPremPaymentFailedPayload;
+        return {
+          subject: 'NocoDB on-premise license — payment verification needed',
+          html: await this.renderCloudMail('OnPremPaymentFailed', {
+            licensedTo: p.installation.licensed_to,
+            planTitle: this.humanizeLicenseType(p.installation.license_type),
+            invoiceLabel: p.invoiceNumber ?? p.invoiceId,
+            amountDue: this.formatMoney(p.amountDue, p.currency),
+            attemptCount: p.attemptCount,
+            nextAttemptAt: p.nextAttemptAt
+              ? this.formatDate(p.nextAttemptAt)
+              : undefined,
+            failureMessage: p.failureMessage,
+            hostedInvoiceUrl: p.hostedInvoiceUrl,
+            billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
+      case MailEvent.ON_PREM_PLAN_CHANGED: {
+        const p = payload as OnPremPlanChangedPayload;
+        return {
+          subject: `Your NocoDB on-premise plan changed to ${p.newPlanTitle}`,
+          html: await this.renderCloudMail('OnPremPlanChanged', {
+            licensedTo: p.installation.licensed_to,
+            oldPlanTitle: p.oldPlanTitle,
+            newPlanTitle: p.newPlanTitle,
+            effectiveAt: p.effectiveAt
+              ? this.formatDate(p.effectiveAt)
+              : undefined,
+            billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
+      case MailEvent.ON_PREM_SUBSCRIPTION_CANCELED: {
+        const p = payload as OnPremSubscriptionCanceledPayload;
+        const subject =
+          p.stripeStatus === 'unpaid'
+            ? 'Your NocoDB license has been suspended'
+            : 'Your NocoDB on-premise subscription was canceled';
+        return {
+          subject,
+          html: await this.renderCloudMail('OnPremSubscriptionCanceled', {
+            licensedTo: p.installation.licensed_to,
+            planTitle: p.planTitle,
+            stripeStatus: p.stripeStatus,
+            endsAt: p.endsAt ? this.formatDate(p.endsAt) : undefined,
+            billingPortalUrl: p.billingPortalUrl,
+          }),
+        };
+      }
       default:
         return null;
     }
+  }
+
+  protected humanizeLicenseType(licenseType: string): string {
+    const s = String(licenseType ?? '').trim();
+    if (!s) return '';
+    return s
+      .replace(/^self_hosted_/, 'Self-hosted ')
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+      .replace('Self-Hosted', 'Self-hosted');
   }
 
   protected formatMoney(amountMinor: number, currency: string): string {

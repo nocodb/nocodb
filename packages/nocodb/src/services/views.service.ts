@@ -65,6 +65,9 @@ async function xcVisibilityMetaGet(
 
     const views = await model.getViews(context);
     for (const view of views) {
+      // Mask the bcrypt password hash — the owner UI never needs the stored
+      // value; it sees a sentinel and renders a masked state.
+      const safeView = View.maskPasswordForResponse(view);
       obj[view.id] = {
         ptn: model.table_name,
         _ptn: model.title,
@@ -72,7 +75,7 @@ async function xcVisibilityMetaGet(
         tn: view.title,
         _tn: view.title,
         table_meta: model.meta,
-        ...view,
+        ...safeView,
         disabled: { ...defaultDisabled },
       };
     }
@@ -409,13 +412,16 @@ export class ViewsService {
 
     await result.getView(context, ncMeta);
 
+    // Strip the stored bcrypt password hash from every outbound payload.
+    const safeResult = View.maskPasswordForResponse(result);
+
     NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: result,
+          payload: safeResult,
         },
       },
       context.socket_id,
@@ -425,7 +431,7 @@ export class ViewsService {
       (await viewWebhookManager.withNewViewId(oldView.id)).emit();
     }
 
-    return result;
+    return safeResult;
   }
 
   async viewDelete(
@@ -632,7 +638,7 @@ export class ViewsService {
       context,
     });
 
-    return result;
+    return View.maskPasswordForResponse(result);
   }
 
   async shareViewDelete(

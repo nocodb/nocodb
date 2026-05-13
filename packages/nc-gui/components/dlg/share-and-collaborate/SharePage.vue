@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
+import { NC_VIEW_PASSWORD_PROTECTED_SENTINEL, ViewTypes } from 'nocodb-sdk'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
@@ -109,19 +109,22 @@ const passwordProtected = computed(() => {
   return !!activeView.value?.password || passwordProtectedLocal.value
 })
 
-const password = computed({
-  get: () => (passwordProtected.value ? activeView.value?.password ?? '' : ''),
-  set: async (value) => {
-    if (!activeView.value) return
-
-    activeView.value = {
-      ...(activeView.value as any),
-      password: passwordProtected.value ? value : null,
-    }
-
-    updateSharedView()
-  },
+/**
+ * `true` when the backend has confirmed a password is stored for this view.
+ * The actual hash never reaches the frontend — we receive the sentinel
+ * `NC_VIEW_PASSWORD_PROTECTED_SENTINEL` instead and render a masked state.
+ */
+const hasStoredPassword = computed(() => {
+  const value = activeView.value?.password
+  return typeof value === 'string' && value.length > 0
 })
+
+// Local buffer for first-time password entry (after toggling the switch on).
+// Once the password is saved, the field switches to a "locked" state and
+// further edits go through the dedicated change-password modal.
+const newPasswordDraft = ref('')
+
+const isChangePasswordModalOpen = ref(false)
 
 const viewTheme = computed({
   get: () => !!activeView.value?.meta.withTheme,
@@ -137,22 +140,60 @@ const viewTheme = computed({
 })
 
 const togglePasswordProtected = async () => {
-  passwordProtectedLocal.value = !passwordProtected.value
   if (!activeView.value) return
+  if (isUpdating.value.password) return
+
+  const wasProtected = passwordProtected.value
+
+  isUpdating.value.password = true
+  try {
+    if (wasProtected) {
+      // Turning OFF — clear stored password.
+      passwordProtectedLocal.value = false
+      newPasswordDraft.value = ''
+      activeView.value = { ...(activeView.value as any), password: null }
+      await updateSharedView({ password: null })
+    } else {
+      // Turning ON — open the toggle locally; backend stays unchanged until
+      // the user actually enters a password. Don't send a password update
+      // until then (sentinel handling ensures we never re-save the mask).
+      passwordProtectedLocal.value = true
+    }
+  } finally {
+    isUpdating.value.password = false
+  }
+}
+
+const saveNewPassword = async (newValue: string) => {
+  if (!activeView.value) return
+  const trimmed = (newValue ?? '').trim()
+  if (!trimmed) return
   if (isUpdating.value.password) return
 
   isUpdating.value.password = true
   try {
-    if (passwordProtected.value) {
-      activeView.value = { ...(activeView.value as any), password: null }
-    } else {
-      activeView.value = { ...(activeView.value as any), password: '' }
+    await updateSharedView({ password: trimmed })
+    // Backend echoes the sentinel back on the next read; reflect that locally
+    // so the UI immediately switches to the masked/locked state.
+    activeView.value = {
+      ...(activeView.value as any),
+      password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
     }
-
-    await updateSharedView()
+    newPasswordDraft.value = ''
+    passwordProtectedLocal.value = false
   } finally {
     isUpdating.value.password = false
   }
+}
+
+const openChangePasswordModal = () => {
+  if (isReadOnly.value) return
+  isChangePasswordModalOpen.value = true
+}
+
+const onPasswordChanged = async (newValue: string) => {
+  await saveNewPassword(newValue)
+  isChangePasswordModalOpen.value = false
 }
 
 const withLanguage = computed({
@@ -416,10 +457,28 @@ async function saveTheme() {
   $e(`a:view:share:${viewTheme.value ? 'enable' : 'disable'}-theme`)
 }
 
-async function updateSharedView(custUrl = undefined) {
+async function updateSharedView(arg?: string | null | { password?: string | null; custUrl?: string | null }) {
   try {
     if (!activeView.value?.meta) return
     const meta = activeView.value.meta
+
+    // Backwards-compatible signature: legacy callers (CustomUrl child) pass
+    // the custom URL as a positional `string | null` argument; new callers
+    // pass an options object so they can also signal a password change.
+    let custUrl: string | null | undefined
+    let passwordPayload: string | null
+    const isOptionsObject = arg !== null && typeof arg === 'object'
+    if (isOptionsObject) {
+      custUrl = arg.custUrl
+      passwordPayload = arg.password === undefined ? NC_VIEW_PASSWORD_PROTECTED_SENTINEL : arg.password
+    } else {
+      // string | null | undefined
+      custUrl = arg
+      // No explicit password change — send the sentinel so the backend
+      // knows to leave the stored value untouched. This is what prevents
+      // re-hashing the existing bcrypt hash on every unrelated toggle.
+      passwordPayload = NC_VIEW_PASSWORD_PROTECTED_SENTINEL
+    }
 
     // Get meta using base_id from activeView
     const metaInfo = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id)
@@ -432,7 +491,7 @@ async function updateSharedView(custUrl = undefined) {
       },
       {
         meta,
-        password: activeView.value.password,
+        password: passwordPayload,
         ...(custUrl !== undefined ? { custom_url_path: custUrl ?? null } : {}),
       },
     )
@@ -510,19 +569,67 @@ const copyCustomUrl = async (custUrl = '') => {
             />
           </div>
           <Transition mode="out-in" name="layout">
-            <div v-if="passwordProtected" class="flex gap-2 mt-2 w-2/3">
-              <a-input-password
-                v-model:value="password"
-                :placeholder="$t('placeholder.password.enter')"
-                class="!rounded-lg !py-1 !bg-nc-bg-default"
-                data-testid="nc-modal-share-view__password"
-                size="small"
-                type="password"
-                :readonly="isReadOnly"
-              />
+            <div v-if="passwordProtected" class="flex flex-col gap-2 mt-2">
+              <!-- Stored password: show masked locked state + dedicated change action -->
+              <div v-if="hasStoredPassword" class="flex items-center gap-2">
+                <div
+                  class="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium"
+                  data-testid="nc-share-view-password-locked"
+                >
+                  <GeneralIcon icon="lock" class="text-nc-content-gray-subtle !w-3.5 !h-3.5" />
+                  <span class="text-nc-content-gray-subtle text-bodySm tracking-widest">••••••••</span>
+                </div>
+                <NcButton
+                  v-e="['c:share:view:password:change-open']"
+                  :disabled="isReadOnly"
+                  data-testid="nc-share-view-password-change-btn"
+                  size="small"
+                  type="secondary"
+                  @click="openChangePasswordModal"
+                >
+                  {{ $t('labels.changePassword') }}
+                </NcButton>
+              </div>
+              <!-- First-time entry: inline input + explicit Save button -->
+              <div v-else class="flex flex-col gap-1.5">
+                <div class="flex items-center gap-2">
+                  <a-input-password
+                    v-model:value="newPasswordDraft"
+                    :placeholder="$t('placeholder.password.enter')"
+                    class="!rounded-lg !py-1 !bg-nc-bg-default flex-1"
+                    data-testid="nc-modal-share-view__password"
+                    size="small"
+                    type="password"
+                    autocomplete="new-password"
+                    name="nc-share-view-password-new"
+                    :readonly="isReadOnly"
+                    @press-enter="saveNewPassword(newPasswordDraft)"
+                  />
+                  <NcButton
+                    v-e="['c:share:view:password:save-new']"
+                    :disabled="!newPasswordDraft.trim() || isReadOnly"
+                    :loading="isUpdating.password"
+                    data-testid="nc-share-view-password-save-btn"
+                    size="small"
+                    type="primary"
+                    @click="saveNewPassword(newPasswordDraft)"
+                  >
+                    {{ $t('general.save') }}
+                  </NcButton>
+                </div>
+                <span class="text-bodySm text-nc-content-gray-subtle leading-snug">
+                  {{ $t('msg.info.viewPasswordNotVisibleAfterSave') }}
+                </span>
+              </div>
             </div>
           </Transition>
         </div>
+
+        <DlgShareAndCollaborateChangeViewPassword
+          v-if="isChangePasswordModalOpen && activeView"
+          v-model:visible="isChangePasswordModalOpen"
+          @save="onPasswordChanged"
+        />
         <div
           v-if="
             activeView &&

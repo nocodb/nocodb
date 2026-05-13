@@ -259,7 +259,17 @@ export const useRealtime = createSharedComposable(() => {
           includeViewType: ViewTypes.GRID,
         })
 
-        Object.assign(view, event.payload)
+        // Defense-in-depth: strip raw bcrypt hashes from broadcast payloads
+        // so they never overwrite the locally masked sentinel. Null/empty
+        // (password cleared) and `NC_DEFAULT` (still set) both pass through.
+        const cleanPayload = { ...event.payload } as any
+        if (
+          typeof cleanPayload.password === 'string' &&
+          (cleanPayload.password.startsWith('$2a$') || cleanPayload.password.startsWith('$2b$'))
+        ) {
+          delete cleanPayload.password
+        }
+        Object.assign(view, cleanPayload)
         tableViews?.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
 
         // Check if there's a new first collaborative grid view after update
@@ -593,7 +603,18 @@ export const useRealtime = createSharedComposable(() => {
         break
       }
       case 'update': {
-        const updatedDashboards = existingDashboards.map((d) => (d.id === id ? { ...d, ...dashboard } : d))
+        // Defense-in-depth: strip raw bcrypt hashes from broadcast payloads
+        // so they never overwrite the locally masked sentinel. Null/empty
+        // (password cleared) and `NC_DEFAULT` (still set) both pass through.
+        const cleanDashboard = { ...dashboard } as any
+        if (
+          typeof cleanDashboard.password === 'string' &&
+          (cleanDashboard.password.startsWith('$2a$') || cleanDashboard.password.startsWith('$2b$'))
+        ) {
+          delete cleanDashboard.password
+        }
+
+        const updatedDashboards = existingDashboards.map((d) => (d.id === id ? { ...d, ...cleanDashboard } : d))
 
         updatedDashboards.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
 

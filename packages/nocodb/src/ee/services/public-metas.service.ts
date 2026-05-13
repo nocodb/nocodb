@@ -173,6 +173,10 @@ export class PublicMetasService extends PublicMetasServiceCE {
 
     await dashboard.getWidgets(context);
 
+    // Never leak the stored bcrypt hash to the public viewer. Mirrors what
+    // the CE public-metas service does for shared views (`view.password = undefined`).
+    dashboard.password = undefined;
+
     return dashboard;
   }
 

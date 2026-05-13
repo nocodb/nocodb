@@ -1353,6 +1353,9 @@
     "manyToOne": "Many to One"
   },
   "labels": {
+    "changePassword": "Change Password",
+    "changeViewPassword": "Change View Password",
+    "changeDashboardPassword": "Change Dashboard Password",
     "bookmarks": "Bookmarks",
     "bookmarkGroup": "Bookmark Group",
     "addToBookmarks": "Add to Bookmarks",
@@ -3471,6 +3474,7 @@
       "variableKeyFormat": "Key must be uppercase letters, numbers and underscores (e.g. WEBHOOK_URL)"
     },
     "info": {
+      "viewPasswordNotVisibleAfterSave": "For security, this password won't be shown again after saving. Make sure to store it somewhere safe.",
       "trashEmpty": "Trash is empty",
       "variableKeyImmutable": "Key cannot be changed after creation",
       "variableSetupHint": "Set values for the variables required by this base. Required fields must be configured for full functionality.",

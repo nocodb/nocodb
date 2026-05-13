@@ -1,5 +1,9 @@
 import DashboardCE from 'src/models/Dashboard';
-import { ModelTypes, PlanLimitTypes } from 'nocodb-sdk';
+import {
+  ModelTypes,
+  NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+  PlanLimitTypes,
+} from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -229,8 +233,17 @@ export default class Dashboard extends DashboardCE implements DashboardType {
 
     updateObj = prepareForDb(updateObj, ['meta']);
 
-    // Hash password if being set
-    if (updateObj.password) {
+    // Password handling (mirrors View.update):
+    //  - Sentinel → "no change", strip from update so the stored hash is preserved.
+    //  - Already-hashed value (stale client echoing back the hash) → strip,
+    //    so we never re-hash an existing hash and invalidate the password.
+    //  - Plaintext → hash with bcrypt before storage.
+    if (
+      updateObj.password === NC_VIEW_PASSWORD_PROTECTED_SENTINEL ||
+      Dashboard.isHashedPassword(updateObj.password)
+    ) {
+      delete updateObj.password;
+    } else if (updateObj.password) {
       updateObj.password = await bcrypt.hash(updateObj.password, 10);
     }
 
@@ -257,6 +270,29 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     });
 
     return this.get(context, dashboardId, false, ncMeta);
+  }
+
+  static isHashedPassword(password?: string | null): boolean {
+    return (
+      typeof password === 'string' &&
+      (password.startsWith('$2a$') || password.startsWith('$2b$'))
+    );
+  }
+
+  /**
+   * Mask the stored password value (bcrypt hash) before returning a dashboard
+   * to an owner-facing API consumer. The hash never leaves the backend; the
+   * frontend sees the sentinel and renders a masked state. Mirrors
+   * `View.maskPasswordForResponse`.
+   *
+   * Returns a shallow copy when masking is needed so we don't mutate cached
+   * Dashboard instances.
+   */
+  static maskPasswordForResponse<T extends { password?: string | null }>(
+    dashboard: T,
+  ): T {
+    if (!dashboard || !dashboard.password) return dashboard;
+    return { ...dashboard, password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL };
   }
 
   static async verifyPassword(

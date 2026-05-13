@@ -6,9 +6,13 @@ const props = defineProps<{
   visible: boolean
   tableId: string
   title?: string
+  // When set, the dialog operates on a Gantt-view-owned DateDependency rule
+  // (fk_gantt_view_id = ganttViewId) instead of the table-level default.
+  // Used by the Gantt view's "Configure" / setup wizard flow.
+  ganttViewId?: string
 }>()
 
-const emits = defineEmits(['update:visible'])
+const emits = defineEmits(['update:visible', 'saved'])
 
 const visible = useVModel(props, 'visible', emits)
 
@@ -58,7 +62,16 @@ const tableMeta = computed(() => {
   return (baseTables.value.get(activeProjectId.value) ?? []).find((t) => t.id === props.tableId)
 })
 
-const rule = computed<DateDependencyType | null>(() => tableMeta.value?.date_dependency ?? null)
+// Per-Gantt-view rule (fetched on dialog open when ganttViewId is set).
+// When this mode is active, the dialog reads + writes the view-owned rule
+// instead of the table-level default. Existing call sites that open the
+// dialog without ganttViewId keep editing the table-level rule unchanged.
+const viewRule = ref<DateDependencyType | null>(null)
+
+const rule = computed<DateDependencyType | null>(() => {
+  if (props.ganttViewId) return viewRule.value
+  return tableMeta.value?.date_dependency ?? null
+})
 
 const tableColumns = computed<ColumnType[]>(() => tableMeta.value?.columns ?? [])
 
@@ -168,6 +181,14 @@ async function save() {
   isSaving.value = true
   saveError.value = ''
   try {
+    // Scope the operation to either the table-level default rule or a Gantt
+    // view's own rule. The backend uses fk_gantt_view_id to disambiguate.
+    const opQuery: Record<string, string | undefined> = {
+      operation: 'updateDateDependency',
+      fk_model_id: props.tableId,
+    }
+    if (props.ganttViewId) opQuery.fk_gantt_view_id = props.ganttViewId
+
     const body = {
       ...pickFields(form, Object.keys(defaultForm) as (keyof DateDependencyReqType)[]),
       dependency_buffer_days: Number(form.dependency_buffer_days) || 0,
@@ -175,10 +196,17 @@ async function save() {
     const result = await $api.internal.postOperation(
       activeWorkspaceId.value,
       activeProjectId.value,
-      { operation: 'updateDateDependency', fk_model_id: props.tableId },
+      opQuery,
       body,
     )
-    if (tableMeta.value) {
+
+    if (props.ganttViewId) {
+      // Gantt-view-owned rule: update local cache + let the caller refresh
+      // its view-meta so the Gantt store's ganttRange recomputes.
+      viewRule.value = { ...(rule.value ?? {}), ...form, ...result } as DateDependencyType
+      emits('saved', viewRule.value)
+    } else if (tableMeta.value) {
+      // Table-level default rule (existing path).
       tableMeta.value.date_dependency = { ...rule.value, ...form, ...result }
     }
     savedForm.value = { ...form }
@@ -200,6 +228,29 @@ function syncFormFromRule() {
 watch(visible, async (val) => {
   if (val) {
     await loadTableMeta(props.tableId)
+
+    // Per-Gantt-view mode: fetch the view-owned rule directly. The table
+    // meta only carries the default rule; per-view rules are loaded with
+    // GanttView.get on the backend but the table-meta path doesn't expose
+    // them, so we fetch via internal op here.
+    if (props.ganttViewId && activeWorkspaceId.value && activeProjectId.value) {
+      try {
+        viewRule.value = (await $api.internal.getOperation(
+          activeWorkspaceId.value,
+          activeProjectId.value,
+          {
+            operation: 'getDateDependency',
+            fk_model_id: props.tableId,
+            fk_gantt_view_id: props.ganttViewId,
+          } as any,
+        )) as DateDependencyType | null
+      } catch {
+        viewRule.value = null
+      }
+    } else {
+      viewRule.value = null
+    }
+
     syncFormFromRule()
     saveError.value = ''
   }
@@ -216,7 +267,7 @@ watch(rule, () => {
   <NcModal v-model:visible="visible" size="sm" height="auto" wrap-class-name="nc-modal-date-dependency">
     <template #header>
       <span class="text-heading3">
-        {{ $t('labels.dateDependency.title') }}
+        {{ ganttViewId ? $t('labels.dateDependency.titleGantt') : $t('labels.dateDependency.title') }}
       </span>
     </template>
 

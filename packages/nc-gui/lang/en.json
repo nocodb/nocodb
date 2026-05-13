@@ -1500,6 +1500,7 @@
     "emptyMermaidDiagram": "Enter Mermaid syntax to render a diagram",
     "dateDependency": {
       "title": "Date Dependencies",
+      "titleGantt": "Configure Gantt Schedule",
       "description": "Define which records are dependent on others. When you reschedule a record, dependent records are automatically rescheduled.",
       "learnMore": "Learn more",
       "durationFieldHint": "Use a Duration or Number field to store the number of days.",

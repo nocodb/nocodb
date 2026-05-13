@@ -563,6 +563,13 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
 
       if (data) {
+        // Mark Gantt views for first-time setup — the Configure dialog will
+        // auto-open when the new view mounts, so users can review/edit the
+        // auto-picked dependency fields before they're locked in.
+        if (form.type === ViewTypes.GANTT && data.id) {
+          useGanttSetupDialog().enqueue(data.id)
+        }
+
         // Get the base_id for the table
         const table = tablesStore.baseTables.get(activeProjectId.value!)?.find((t) => t.id === tableId)
         if (!table?.base_id) {

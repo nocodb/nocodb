@@ -113,8 +113,35 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-// Open the table-level Date Dependencies dialog from the empty-state CTA.
+// Per-view Date Dependencies dialog — opened from the empty-state CTA, the
+// toolbar "Configure" button, or auto-opened after a fresh Gantt view create.
 const showDateDependencyDlg = ref(false)
+
+// Save handler: the dialog scopes operations to view.id when ganttViewId is
+// set. After save, patch the view meta so the Gantt store's ganttRange
+// computed picks up the new rule on its next pass.
+const onDependencySaved = (rule: any) => {
+  if (view.value?.view) {
+    ;(view.value.view as any).date_dependency = rule
+  }
+}
+
+// First-visit auto-open: if this Gantt view was just created in this session,
+// open the configure dialog so users can review/edit the auto-picked fields.
+const setupDialog = useGanttSetupDialog()
+watch(
+  () => view.value?.id,
+  (id) => {
+    if (id && setupDialog.consume(id)) {
+      // Defer one tick so the view's date_dependency is loaded before the
+      // dialog reads it.
+      nextTick(() => {
+        showDateDependencyDlg.value = true
+      })
+    }
+  },
+  { immediate: true },
+)
 
 const expandRecord = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
@@ -478,6 +505,22 @@ const recordCountLabel = computed(() => {
           </a-select-option>
         </a-select>
 
+        <!-- Configure Gantt schedule — opens the per-view DateDependency dialog
+             so users can change which fields drive bars / arrows for THIS view. -->
+        <NcButton
+          v-if="!isPublic && meta?.id && view?.id"
+          v-e="['c:gantt:configure']"
+          size="small"
+          type="secondary"
+          class="!h-7"
+          data-testid="nc-gantt-configure"
+          @click="showDateDependencyDlg = true"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+          </template>
+        </NcButton>
+
         <!-- Fields -->
         <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
 
@@ -595,10 +638,12 @@ const recordCountLabel = computed(() => {
       </template>
 
       <DlgTableDateDependency
-        v-if="meta?.id"
+        v-if="meta?.id && view?.id"
         v-model:visible="showDateDependencyDlg"
         :table-id="meta.id"
         :title="meta.title"
+        :gantt-view-id="view.id"
+        @saved="onDependencySaved"
       />
 
       <!-- Floating new record button -->

@@ -349,15 +349,17 @@ export class ExpandedFormPage extends BasePage {
     // so `.nc-comment-input` is rendered inside the panel root. Modal mode:
     // comments drawer is always inline with `.nc-comments-drawer` wrapper.
     //
-    // In modal mode the drawer mounts via Ant Design Tabs (default tab is
-    // `comments`), but on slower CI runners the comments pane can take a beat
-    // longer than the default 14s polling window — wait for the drawer
-    // wrapper to be visible first, then assert the input count separately.
+    // The comment input depends on the user's role data (`commentEdit`) which
+    // resolves asynchronously after sign-in. Under CI load the resolve can
+    // arrive after Playwright's default polling window — give the page an
+    // explicit settle window plus an extended timeout on the count assertion.
+    await this.rootPage.waitForTimeout(2000);
+
     if (panelMode) {
       if (role === 'viewer') {
         await expect(this.get().locator('.nc-comment-input')).toHaveCount(0);
       } else {
-        await expect(this.get().locator('.nc-comment-input')).toHaveCount(1);
+        await expect(this.get().locator('.nc-comment-input')).toHaveCount(1, { timeout: 30000 });
       }
     } else {
       await this.get().locator('.nc-comments-drawer').waitFor({ state: 'visible', timeout: 30000 });

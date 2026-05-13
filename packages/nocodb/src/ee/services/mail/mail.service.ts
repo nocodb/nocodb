@@ -56,7 +56,9 @@ export class MailService extends MailServiceCE {
               if (!mentionedUser) continue;
               if (mentionedUser.id === user.id) continue;
 
-              await mailerAdapter.mailSend({
+              await this.dispatchAndLog(mailerAdapter, ncMeta, {
+                event: params.mailEvent,
+                fk_user_id: mentionedUser.id,
                 to: mentionedUser.email,
                 subject: 'You have been mentioned',
                 html: await this.renderMail('Mention', {
@@ -103,7 +105,9 @@ export class MailService extends MailServiceCE {
             if (!mentionedUser) continue;
             if (mentionedUser.id === user.id) continue;
 
-            await mailerAdapter.mailSend({
+            await this.dispatchAndLog(mailerAdapter, ncMeta, {
+              event: params.mailEvent,
+              fk_user_id: mentionedUser.id,
               to: mentionedUser.email,
               subject: 'You have been mentioned',
               html: await this.renderMail('MentionRow', {
@@ -132,7 +136,9 @@ export class MailService extends MailServiceCE {
 
           const invitee = req.user;
 
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'You’ve been invited to a Workspace',
             html: await this.renderMail('WorkspaceInvite', {
@@ -157,7 +163,9 @@ export class MailService extends MailServiceCE {
 
           const invitee = req.user;
 
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'Your Workspace role has been updated',
             html: await this.renderMail('WorkspaceRoleUpdate', {
@@ -182,7 +190,9 @@ export class MailService extends MailServiceCE {
             payload: { workspace, user, requester, req, limitOrFeature },
           } = params;
 
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'Workspace Upgrade Request',
             html: await this.renderMail('WorkspaceRequestUpgrade', {
@@ -206,7 +216,9 @@ export class MailService extends MailServiceCE {
           const { req, owner, team, workspace, workspaceRole } =
             params.payload as any;
           const inviter = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: owner.id,
             to: owner.email,
             subject: 'Your Team was added to a Workspace',
             html: await this.renderMail('TeamAssignedToWorkspace', {
@@ -226,7 +238,9 @@ export class MailService extends MailServiceCE {
         case MailEvent.TEAM_ASSIGNED_TO_BASE: {
           const { req, owner, team, base, baseRole } = params.payload as any;
           const inviter = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: owner.id,
             to: owner.email,
             subject: 'Your Team was added to a Base',
             html: await this.renderMail('TeamAssignedToBase', {
@@ -250,7 +264,9 @@ export class MailService extends MailServiceCE {
           const { req, user, team, workspace, teamRole } =
             params.payload as any;
           const inviter = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'You’ve been added to a Team',
             html: await this.renderMail('TeamMemberInvite', {
@@ -271,7 +287,9 @@ export class MailService extends MailServiceCE {
           const { req, user, team, workspace, oldTeamRole, teamRole } =
             params.payload as any;
           const updater = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'Your Team role has been updated',
             html: await this.renderMail('TeamMemberRoleUpdate', {
@@ -293,7 +311,9 @@ export class MailService extends MailServiceCE {
           const { req, user, team, workspace, teamRole } =
             params.payload as any;
           const remover = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: "You've been removed from a Team",
             html: await this.renderMail('TeamMemberRemoved', {
@@ -314,7 +334,9 @@ export class MailService extends MailServiceCE {
           const { req, owner, team, workspace, workspaceRole } =
             params.payload as any;
           const remover = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: owner.id,
             to: owner.email,
             subject: 'Your Team was removed from a Workspace',
             html: await this.renderMail('WorkspaceTeamRemoved', {
@@ -341,7 +363,9 @@ export class MailService extends MailServiceCE {
             workspaceRole,
           } = params.payload as any;
           const updater = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: owner.id,
             to: owner.email,
             subject: "Your Team's workspace role has been updated",
             html: await this.renderMail('WorkspaceTeamRoleUpdate', {
@@ -362,7 +386,9 @@ export class MailService extends MailServiceCE {
         case MailEvent.BASE_TEAM_REMOVED: {
           const { req, owner, team, base, baseRole } = params.payload as any;
           const remover = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: owner.id,
             to: owner.email,
             subject: 'Your Team was removed from a Base',
             html: await this.renderMail('BaseTeamRemoved', {
@@ -386,7 +412,9 @@ export class MailService extends MailServiceCE {
           const { req, owner, team, base, oldBaseRole, baseRole } =
             params.payload as any;
           const updater = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: owner.id,
             to: owner.email,
             subject: "Your Team's base role has been updated",
             html: await this.renderMail('BaseTeamRoleUpdate', {
@@ -428,7 +456,9 @@ export class MailService extends MailServiceCE {
             executionId: lastFailureId,
           });
 
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: `Something went wrong with an automation: ${workflow.title}`,
             html: await this.renderMail('WorkflowErrorDigest', {
@@ -452,7 +482,9 @@ export class MailService extends MailServiceCE {
             automationId: workflow.id,
           });
 
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: `Reminder: "${workflow.title}" has unpublished changes`,
             html: await this.renderMail('WorkflowDraftReminder', {
@@ -485,7 +517,9 @@ export class MailService extends MailServiceCE {
             hookTab: 'log',
           });
 
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: `Something went wrong with a webhook: ${hook.title}`,
             html: await this.renderMail('HookErrorDigest', {
@@ -524,7 +558,9 @@ export class MailService extends MailServiceCE {
           const emailSubject =
             subject || `${senderName} shared a record from "${model.title}"`;
 
-          await mailerAdapter.mailSend({
+          // SKIP_STORING_MAIL_EVENTS — recipients + payload are user-supplied
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: params.mailEvent,
             to: emails.join(','),
             subject: emailSubject,
             html: await this.renderMail('SendRecord', {

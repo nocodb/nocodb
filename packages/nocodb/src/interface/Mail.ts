@@ -39,6 +39,28 @@ enum MailEvent {
   WORKFLOW_DRAFT_REMINDER = 'WORKFLOW_DRAFT_REMINDER',
   HOOK_ERROR_DIGEST = 'HOOK_ERROR_DIGEST',
   SEND_RECORD = 'SEND_RECORD',
+  LIMIT_REACHED = 'LIMIT_REACHED',
+  GRACE_PERIOD_ENDING = 'GRACE_PERIOD_ENDING',
+  PAYMENT_FAILED = 'PAYMENT_FAILED',
+  SUBSCRIPTION_CREATED = 'SUBSCRIPTION_CREATED',
+  SUBSCRIPTION_CANCELED = 'SUBSCRIPTION_CANCELED',
+  PLAN_CHANGED = 'PLAN_CHANGED',
+  TRIAL_ENDED = 'TRIAL_ENDED',
+  TRIAL_ENDING = 'TRIAL_ENDING',
+  // Activation nudges (cloud, scanner-driven). Fired at most once per user
+  // per event ever, with cross-event mute (max 1 nudge/user/7d) at the check
+  // layer. Targeting requires `last_active_at` to be populated.
+  NUDGE_NO_BASE = 'NUDGE_NO_BASE',
+  NUDGE_WORKFLOW_INACTIVE = 'NUDGE_WORKFLOW_INACTIVE',
+  NUDGE_INVITE_TEAM = 'NUDGE_INVITE_TEAM',
+  NUDGE_SEAT_LIMIT = 'NUDGE_SEAT_LIMIT',
+  // On-prem self-serve billing (cloud-issued license, subscription in
+  // `nc_subscriptions` with no workspace/org). Fired from OnPremLicenseService
+  // webhook handlers, routed through the same deferred outbox as cloud billing.
+  ON_PREM_LICENSE_ISSUED = 'ON_PREM_LICENSE_ISSUED',
+  ON_PREM_PAYMENT_FAILED = 'ON_PREM_PAYMENT_FAILED',
+  ON_PREM_PLAN_CHANGED = 'ON_PREM_PLAN_CHANGED',
+  ON_PREM_SUBSCRIPTION_CANCELED = 'ON_PREM_SUBSCRIPTION_CANCELED',
 }
 
 interface CommentPayload {
@@ -175,10 +197,30 @@ interface RawMailParams {
   bcc?: string | string[];
 }
 
+/**
+ * MailEvents excluded from the `nc_mail_sends` audit table.
+ *
+ * These are user-content sends where recipients + payload come from user data
+ * (form responders, record-share targets). Logging them would create PII
+ * exposure on data we don't otherwise hold.
+ *
+ * Denylist (not allowlist) so new platform-generated MailEvents default to
+ * audited — safer audit posture.
+ *
+ * `sendMailRaw()` is also excluded from logging unconditionally — it's a
+ * low-level passthrough used by workflow node email actions and the internal
+ * raw-send controller.
+ */
+const SKIP_STORING_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
+  MailEvent.FORM_SUBMISSION,
+  MailEvent.SEND_RECORD,
+]);
+
 export {
   MailEvent,
   MailParams,
   FormSubmissionPayload,
   SendRecordPayload,
   RawMailParams,
+  SKIP_STORING_MAIL_EVENTS,
 };

@@ -5,10 +5,10 @@ import type { NcRequest } from 'nocodb-sdk';
 import type { MailParams, RawMailParams } from '~/interface/Mail';
 import type { ComponentProps } from 'react';
 import * as MailTemplates from '~/services/mail/templates';
-import { MailEvent } from '~/interface/Mail';
+import { MailEvent, SKIP_STORING_MAIL_EVENTS } from '~/interface/Mail';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import NocoCache from '~/cache/NocoCache';
-import { CacheGetType, MetaTable } from '~/utils/globals';
+import { CacheGetType, MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import config from '~/app.config';
 import { extractDisplayNameFromEmail } from '~/utils';
@@ -100,6 +100,68 @@ export class MailService {
     const Component = MailTemplates[template];
     // TODO: Fix Type here
     return await render(Component(props as TemplateProps<any>));
+  }
+
+  /**
+   * Send via adapter and write an audit row to `nc_mail_sends`.
+   *
+   * Re-throws send errors so outer try/catch preserves the existing
+   * boolean-return contract of `sendMail()`. Audit-row INSERT failures are
+   * logged but never re-thrown — the email is what matters; missing audit is
+   * an operational concern, not a user-visible one.
+   *
+   * Events in `SKIP_STORING_MAIL_EVENTS` send but don't log (user-content
+   * paths — form responders, send-record).
+   */
+  protected async dispatchAndLog(
+    adapter: any,
+    ncMeta: any,
+    args: {
+      event: MailEvent;
+      fk_user_id?: string | null;
+      to: string;
+      subject: string;
+      html: string;
+    },
+  ): Promise<void> {
+    let sendError: Error | undefined;
+    try {
+      await adapter.mailSend({
+        to: args.to,
+        subject: args.subject,
+        html: args.html,
+      });
+    } catch (e) {
+      sendError = e as Error;
+    }
+
+    if (!SKIP_STORING_MAIL_EVENTS.has(args.event)) {
+      try {
+        await ncMeta.metaInsert2(
+          RootScopes.ROOT,
+          RootScopes.ROOT,
+          MetaTable.MAIL_SENDS,
+          {
+            event: args.event,
+            fk_user_id: args.fk_user_id ?? null,
+            to_email: args.to,
+            subject: args.subject,
+            status: sendError ? 'failed' : 'sent',
+            error: sendError
+              ? String(sendError?.message ?? sendError).slice(0, 8000)
+              : null,
+            sent_at: sendError ? null : new Date(),
+          },
+        );
+      } catch (logError) {
+        this.logger.error(
+          'Failed to write nc_mail_sends audit row',
+          (logError as Error).stack,
+        );
+      }
+    }
+
+    if (sendError) throw sendError;
   }
 
   buildUrl(
@@ -239,7 +301,9 @@ export class MailService {
           const { base, user, req, token } = payload;
 
           const invitee = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'You’ve been invited to a Base',
             html: await this.renderMail('BaseInvite', {
@@ -262,7 +326,9 @@ export class MailService {
           const { req, user, base, oldRole, newRole } = payload;
           const invitee = req.user;
 
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'Your Base role has been updated',
             html: await this.renderMail('BaseRoleUpdate', {
@@ -285,7 +351,9 @@ export class MailService {
         case MailEvent.RESET_PASSWORD: {
           const { user, req } = payload;
 
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'Reset your password',
             html: await this.renderMail('PasswordReset', {
@@ -300,7 +368,9 @@ export class MailService {
 
         case MailEvent.VERIFY_EMAIL: {
           const { user, req } = payload;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'Verify your email',
             html: await this.renderMail('VerifyEmail', {
@@ -314,7 +384,9 @@ export class MailService {
         }
         case MailEvent.WELCOME: {
           const { req, user } = payload;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'Welcome to NocoDB!',
             html: await this.renderMail('Welcome', {
@@ -327,7 +399,9 @@ export class MailService {
         case MailEvent.ORGANIZATION_INVITE: {
           const { req, user, token } = payload;
           const invitee = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'You have been invited to join NocoDB',
             html: await this.renderMail('OrganizationInvite', {
@@ -346,7 +420,9 @@ export class MailService {
         case MailEvent.ORGANIZATION_ROLE_UPDATE: {
           const { req, user, oldRole, newRole } = payload;
           const invitee = req.user;
-          await mailerAdapter.mailSend({
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
+            fk_user_id: user.id,
             to: user.email,
             subject: 'Role updated in NocoDB',
             html: await this.renderMail('OrganizationRoleUpdate', {
@@ -365,7 +441,9 @@ export class MailService {
         case MailEvent.FORM_SUBMISSION: {
           const { formView, data, model, emails, base } = payload;
 
-          await mailerAdapter.mailSend({
+          // SKIP_STORING_MAIL_EVENTS — recipients + payload are end-user data
+          await this.dispatchAndLog(mailerAdapter, ncMeta, {
+            event: mailEvent,
             to: emails.join(','),
             subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
             html: await this.renderMail('FormSubmission', {

@@ -43,6 +43,9 @@ import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import NocoSocket from '~/socket/NocoSocket';
+import { MailService } from '~/services/mail/mail.service';
+import { MailEvent } from '~/interface/Mail';
+import { ncSiteUrl } from '~/utils/envs';
 
 const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
   apiVersion: '2025-05-28.basil',
@@ -60,7 +63,103 @@ export class PaymentService {
     protected readonly appHooksService: AppHooksService,
     protected readonly nocoJobsService: NocoJobsService,
     protected readonly telemetryService: TelemetryService,
+    protected readonly mailService: MailService,
   ) {}
+
+  /**
+   * Resolve workspace + primary owner for a billing email. Returns null when
+   * the entity isn't a workspace (orgs handled separately) or no owner found.
+   */
+  protected async resolveBillingMailRecipient(workspaceOrOrg: {
+    entity: 'workspace' | 'org';
+    id?: string;
+    title?: string;
+  }): Promise<{
+    workspace: { id: string; title: string };
+    owner: { id: string; email: string; display_name?: string };
+    billingPortalUrl: string;
+  } | null> {
+    if (workspaceOrOrg.entity !== 'workspace') return null;
+    if (!workspaceOrOrg.id) return null;
+
+    let owners: any[] = [];
+    try {
+      owners = await WorkspaceUser.userList(
+        {
+          fk_workspace_id: workspaceOrOrg.id,
+          roles: WorkspaceUserRoles.OWNER,
+        },
+        Noco.ncMeta,
+      );
+    } catch (e) {
+      this.logger.warn(
+        `Failed to load workspace owners for ${workspaceOrOrg.id}: ${
+          (e as Error).message
+        }`,
+      );
+      return null;
+    }
+
+    const owner = owners.find((o) => o?.email);
+    if (!owner) return null;
+
+    const baseUrl = ncSiteUrl ?? Noco.config?.ncSiteUrl ?? '';
+    const billingPortalUrl = baseUrl
+      ? `${baseUrl}/${workspaceOrOrg.id}/settings?tab=billing`
+      : '';
+
+    return {
+      workspace: {
+        id: workspaceOrOrg.id,
+        title: workspaceOrOrg.title ?? '',
+      },
+      owner: {
+        id: owner.id,
+        email: owner.email,
+        display_name: owner.display_name,
+      },
+      billingPortalUrl,
+    };
+  }
+
+  /**
+   * Resolve a human-readable plan title from a plan id. Falls back to the
+   * provided `fallback` (never the raw id, which is a UUID and useless in
+   * an email body).
+   */
+  protected async resolvePlanTitle(
+    planId: string | undefined | null,
+    fallback: string,
+  ): Promise<string> {
+    if (!planId) return fallback;
+    try {
+      const plan = await Plan.get(planId);
+      return plan?.title ?? fallback;
+    } catch (e) {
+      this.logger.warn(
+        `resolvePlanTitle: lookup failed for ${planId}: ${
+          (e as Error).message
+        }`,
+      );
+      return fallback;
+    }
+  }
+
+  protected async safeSendBillingMail(
+    mailEvent: MailEvent,
+    paramsBuilder: () => any | Promise<any>,
+  ): Promise<void> {
+    try {
+      const payload = await paramsBuilder();
+      if (!payload) return;
+      await this.mailService.sendMail({ mailEvent, payload } as any);
+    } catch (e) {
+      this.logger.error(
+        `Failed to enqueue ${mailEvent} mail`,
+        (e as Error).stack,
+      );
+    }
+  }
 
   private async fetchStripeProductDetails(stripeProductId: string) {
     const product = await stripe.products.retrieve(stripeProductId);
@@ -2806,6 +2905,35 @@ export class PaymentService {
           }
 
           this.logger.log(`Payment failed for ${wid}. No plan applied.`);
+
+          if (workspaceOrOrg) {
+            await this.safeSendBillingMail(
+              MailEvent.PAYMENT_FAILED,
+              async () => {
+                const recipient = await this.resolveBillingMailRecipient(
+                  workspaceOrOrg,
+                );
+                if (!recipient) return null;
+                return {
+                  user: recipient.owner,
+                  workspace: recipient.workspace,
+                  invoiceId: invoiceObj.id,
+                  attemptCount: invoiceObj.attempt_count ?? 1,
+                  amountDue: invoiceObj.amount_due ?? 0,
+                  currency: invoiceObj.currency ?? 'usd',
+                  nextAttemptAt: invoiceObj.next_payment_attempt
+                    ? dayjs
+                        .unix(invoiceObj.next_payment_attempt)
+                        .utc()
+                        .toISOString()
+                    : undefined,
+                  failureMessage:
+                    invoiceObj.last_finalization_error?.message ?? undefined,
+                  billingPortalUrl: recipient.billingPortalUrl,
+                };
+              },
+            );
+          }
           break;
         }
 
@@ -2911,6 +3039,37 @@ export class PaymentService {
           }
 
           this.clearBaseListCacheForEntity(workspaceOrOrg);
+
+          await this.safeSendBillingMail(
+            MailEvent.SUBSCRIPTION_CREATED,
+            async () => {
+              const recipient = await this.resolveBillingMailRecipient(
+                workspaceOrOrg,
+              );
+              if (!recipient) return null;
+              return {
+                user: recipient.owner,
+                workspace: recipient.workspace,
+                subscriptionId: subRec.id,
+                planTitle:
+                  stripeSub.metadata.plan_title ??
+                  (await this.resolvePlanTitle(
+                    stripeSub.metadata.fk_plan_id,
+                    'Paid',
+                  )),
+                seatCount,
+                periodEnd: (() => {
+                  const itemEnd = (stripeSub.items.data[0] as any)
+                    ?.current_period_end;
+                  return itemEnd
+                    ? dayjs.unix(itemEnd).utc().toISOString()
+                    : undefined;
+                })(),
+                isTrial: stripeSub.status === 'trialing',
+                billingPortalUrl: recipient.billingPortalUrl,
+              };
+            },
+          );
           break;
         }
 
@@ -3006,6 +3165,102 @@ export class PaymentService {
           this.logger.log(
             `Subscription ${event.type} processed for ${workspaceOrOrgId}.`,
           );
+
+          const newPriceId = price.id;
+          const prevPlanId = subRec.fk_plan_id;
+          const newPlanId = stripeSub.metadata.fk_plan_id;
+          const planChanged =
+            !!newPlanId && !!prevPlanId && newPlanId !== prevPlanId;
+
+          // Only notify when the trial ended WITHOUT converting to a paid
+          // plan. Successful conversion is already covered by Stripe's
+          // invoice/receipt email + our earlier SUBSCRIPTION_CREATED with
+          // isTrial=true; re-mailing on conversion would be noise.
+          const trialEndedUnconverted =
+            subRec.status === 'trialing' &&
+            stripeSub.status !== 'trialing' &&
+            stripeSub.status !== 'active';
+
+          if (event.type === 'customer.subscription.deleted') {
+            await this.safeSendBillingMail(
+              MailEvent.SUBSCRIPTION_CANCELED,
+              async () => {
+                const recipient = await this.resolveBillingMailRecipient(
+                  workspaceOrOrg,
+                );
+                if (!recipient) return null;
+                return {
+                  user: recipient.owner,
+                  workspace: recipient.workspace,
+                  subscriptionId: subRec.id,
+                  planTitle:
+                    stripeSub.metadata.plan_title ??
+                    (await this.resolvePlanTitle(subRec.fk_plan_id, 'Paid')),
+                  cancelAt: stripeSub.cancel_at
+                    ? dayjs.unix(stripeSub.cancel_at).utc().toISOString()
+                    : undefined,
+                  periodEnd: (() => {
+                    const itemEnd = (stripeSub.items.data[0] as any)
+                      ?.current_period_end;
+                    return itemEnd
+                      ? dayjs.unix(itemEnd).utc().toISOString()
+                      : undefined;
+                  })(),
+                  billingPortalUrl: recipient.billingPortalUrl,
+                };
+              },
+            );
+          } else if (
+            event.type === 'customer.subscription.updated' &&
+            planChanged
+          ) {
+            await this.safeSendBillingMail(MailEvent.PLAN_CHANGED, async () => {
+              const recipient = await this.resolveBillingMailRecipient(
+                workspaceOrOrg,
+              );
+              if (!recipient) return null;
+              return {
+                user: recipient.owner,
+                workspace: recipient.workspace,
+                subscriptionId: subRec.id,
+                oldPlanTitle: await this.resolvePlanTitle(
+                  prevPlanId,
+                  'Previous plan',
+                ),
+                newPlanTitle:
+                  stripeSub.metadata.plan_title ??
+                  (await this.resolvePlanTitle(newPlanId, 'New plan')),
+                newPriceId,
+                effectiveAt: (() => {
+                  const itemStart = (stripeSub.items.data[0] as any)
+                    ?.current_period_start;
+                  return itemStart
+                    ? dayjs.unix(itemStart).utc().toISOString()
+                    : undefined;
+                })(),
+                billingPortalUrl: recipient.billingPortalUrl,
+              };
+            });
+          }
+
+          if (trialEndedUnconverted) {
+            await this.safeSendBillingMail(MailEvent.TRIAL_ENDED, async () => {
+              const recipient = await this.resolveBillingMailRecipient(
+                workspaceOrOrg,
+              );
+              if (!recipient) return null;
+              return {
+                user: recipient.owner,
+                workspace: recipient.workspace,
+                subscriptionId: subRec.id,
+                planTitle:
+                  stripeSub.metadata.plan_title ??
+                  (await this.resolvePlanTitle(subRec.fk_plan_id, 'Plan')),
+                billingPortalUrl: recipient.billingPortalUrl,
+              };
+            });
+          }
+
           break;
         }
 

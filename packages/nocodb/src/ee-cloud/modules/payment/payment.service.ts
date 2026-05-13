@@ -5,6 +5,7 @@ import { OnPremLicenseService } from '~/services/on-prem-license.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { TelemetryService } from '~/services/telemetry.service';
+import { MailService } from '~/services/mail/mail.service';
 
 @Injectable()
 export class PaymentService extends PaymentServiceEE {
@@ -14,9 +15,10 @@ export class PaymentService extends PaymentServiceEE {
     appHooksService: AppHooksService,
     nocoJobsService: NocoJobsService,
     telemetryService: TelemetryService,
+    mailService: MailService,
     private readonly onPremLicenseService: OnPremLicenseService,
   ) {
-    super(appHooksService, nocoJobsService, telemetryService);
+    super(appHooksService, nocoJobsService, telemetryService, mailService);
   }
 
   protected async handleOnPremSubscriptionCreated(

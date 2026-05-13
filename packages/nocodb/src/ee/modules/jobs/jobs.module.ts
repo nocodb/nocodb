@@ -38,8 +38,22 @@ import { SandboxCommandReplayService } from '~/services/sandbox-command-replay.s
 import { ManagedAppUpdateProcessor } from '~/modules/jobs/jobs/managed-app-update/managed-app-update.processor';
 import { CACHE_PREFIX } from '~/utils/globals';
 
-@Module({
-  ...JobsModuleMetadata,
+// Extract the BullModule.registerQueue dynamic module so it can be both
+// imported and re-exported. Without re-exporting, downstream modules
+// (NocoModule, PaymentModule) can't inject `@InjectQueue(JOBS_QUEUE)` on
+// providers they own — they get a "Nest can't resolve dependencies" error
+// at startup with `BullQueue_jobs` missing in their context.
+const bullJobsQueue = getRedisURL(NC_REDIS_TYPE.JOB)
+  ? BullModule.registerQueue({
+      name: JOBS_QUEUE,
+      defaultJobOptions: {
+        removeOnComplete: true,
+        attempts: 1,
+      },
+    })
+  : null;
+
+export const jobsModuleEeMetadata = {
   imports: [
     ...JobsModuleMetadata.imports,
     ...(getRedisURL(NC_REDIS_TYPE.JOB)
@@ -51,13 +65,7 @@ import { CACHE_PREFIX } from '~/utils/globals';
               : {}),
             prefix: CACHE_PREFIX === 'nc' ? undefined : `${CACHE_PREFIX}`,
           }),
-          BullModule.registerQueue({
-            name: JOBS_QUEUE,
-            defaultJobOptions: {
-              removeOnComplete: true,
-              attempts: 1,
-            },
-          }),
+          bullJobsQueue!,
         ]
       : []),
     forwardRef(() => NocoSyncModule),
@@ -100,6 +108,12 @@ import { CACHE_PREFIX } from '~/utils/globals';
     SandboxCommandReplayService,
     ManagedAppUpdateProcessor,
   ],
-  exports: [...JobsModuleMetadata.exports, RemoteImportService],
-})
+  exports: [
+    ...JobsModuleMetadata.exports,
+    RemoteImportService,
+    ...(bullJobsQueue ? [bullJobsQueue] : []),
+  ],
+};
+
+@Module(jobsModuleEeMetadata)
 export class JobsModule extends JobsModuleCE {}

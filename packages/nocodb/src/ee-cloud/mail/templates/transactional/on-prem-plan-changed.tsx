@@ -1,0 +1,85 @@
+import {
+  Body,
+  Button,
+  Head,
+  Heading,
+  Html,
+  Preview,
+  Section,
+  Text,
+} from '@react-email/components';
+import * as React from 'react';
+import {
+  ContentWrapper,
+  Footer,
+  RootWrapper,
+} from '~/services/mail/templates/components';
+
+interface OnPremPlanChangedTemplateProps {
+  licensedTo: string;
+  oldPlanTitle: string;
+  newPlanTitle: string;
+  effectiveAt?: string;
+  billingPortalUrl: string;
+}
+
+export const OnPremPlanChanged = ({
+  licensedTo,
+  oldPlanTitle,
+  newPlanTitle,
+  effectiveAt,
+  billingPortalUrl,
+}: OnPremPlanChangedTemplateProps) => (
+  <Html>
+    <RootWrapper>
+      <Head />
+      <Preview>Your NocoDB on-premise plan was updated</Preview>
+      <Body className="bg-white">
+        <ContentWrapper>
+          <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
+            Plan updated
+          </Heading>
+          <Section className="py-6 mx-auto font-bold text-center text-gray-900 text-base">
+            {newPlanTitle}
+          </Section>
+          <Text className="text-gray-600 text-center text-sm !mt-0">
+            Licensed to{' '}
+            <span className="font-bold text-gray-800">{licensedTo}</span>
+          </Text>
+          <Text className="text-gray-600 text-center text-sm !mt-0">
+            Your plan changed from{' '}
+            <span className="font-bold text-gray-800">{oldPlanTitle}</span> to{' '}
+            <span className="font-bold text-gray-800">{newPlanTitle}</span>.
+          </Text>
+          {effectiveAt ? (
+            <Text className="text-gray-600 text-center text-sm !mt-0">
+              Effective{' '}
+              <span className="font-bold text-gray-800">{effectiveAt}</span>.
+            </Text>
+          ) : null}
+          <Text className="text-gray-600 text-center text-sm !mt-0 !mb-6">
+            Your installation has been updated automatically — no action needed.
+            Any proration will appear on your next invoice.
+          </Text>
+          <Button
+            className="text-center w-full text-base font-bold bg-brand-500 text-white rounded-lg h-10"
+            href={billingPortalUrl}
+          >
+            <Text className="!my-[8px]">Manage billing</Text>
+          </Button>
+        </ContentWrapper>
+        <Footer />
+      </Body>
+    </RootWrapper>
+  </Html>
+);
+
+OnPremPlanChanged.PreviewProps = {
+  licensedTo: 'mert@nocodb.com',
+  oldPlanTitle: 'Self-hosted Business',
+  newPlanTitle: 'Self-hosted Enterprise',
+  effectiveAt: 'May 12, 2026',
+  billingPortalUrl: 'https://app.nocodb.com/account/self-hosted',
+};
+
+export default OnPremPlanChanged;

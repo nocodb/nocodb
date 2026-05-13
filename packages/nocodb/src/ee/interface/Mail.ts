@@ -1,8 +1,13 @@
-import { MailEvent, RawMailParams } from 'src/interface/Mail';
+import {
+  MailEvent,
+  RawMailParams,
+  SKIP_STORING_MAIL_EVENTS,
+} from 'src/interface/Mail';
 import type { MailParams as CEMailParams } from 'src/interface/Mail';
 import type {
   ColumnType,
   NcRequest,
+  PlanLimitTypes,
   TableType,
   UserType,
   WorkspaceType,
@@ -81,6 +86,171 @@ interface WorkflowDraftReminderPayload {
     title: string;
   };
   draftAgeDays: number;
+}
+
+interface LimitReachedPayload {
+  req?: NcRequest;
+  user: UserType;
+  workspace: {
+    id: string;
+    title: string;
+  };
+  limitType: PlanLimitTypes;
+  currentUsage: number;
+  limitValue: number;
+  gracePeriodStartAt: string;
+  gracePeriodEndsAt: string;
+  upgradeUrl: string;
+}
+
+interface BillingPayloadBase {
+  req?: NcRequest;
+  user: UserType;
+  workspace: {
+    id: string;
+    title: string;
+  };
+  billingPortalUrl: string;
+}
+
+interface PaymentFailedPayload extends BillingPayloadBase {
+  invoiceId: string;
+  attemptCount: number;
+  amountDue: number;
+  currency: string;
+  nextAttemptAt?: string;
+  failureMessage?: string;
+}
+
+interface SubscriptionCreatedPayload extends BillingPayloadBase {
+  subscriptionId: string;
+  planTitle: string;
+  seatCount: number;
+  periodEnd?: string;
+  isTrial: boolean;
+}
+
+interface SubscriptionCanceledPayload extends BillingPayloadBase {
+  subscriptionId: string;
+  planTitle: string;
+  cancelAt?: string;
+  periodEnd?: string;
+}
+
+interface PlanChangedPayload extends BillingPayloadBase {
+  subscriptionId: string;
+  oldPlanTitle: string;
+  newPlanTitle: string;
+  newPriceId: string;
+  effectiveAt?: string;
+}
+
+interface TrialEndedPayload extends BillingPayloadBase {
+  subscriptionId: string;
+  planTitle: string;
+}
+
+interface TrialEndingPayload extends BillingPayloadBase {
+  subscriptionId: string;
+  planTitle: string;
+  daysRemaining: number;
+  trialEndsAt: string;
+}
+
+interface GracePeriodEndingPayload {
+  req?: NcRequest;
+  user: UserType;
+  workspace: {
+    id: string;
+    title: string;
+  };
+  limitType: PlanLimitTypes;
+  currentUsage: number;
+  limitValue: number;
+  gracePeriodStartAt: string;
+  gracePeriodEndsAt: string;
+  daysRemaining: number;
+  upgradeUrl: string;
+}
+
+interface NudgePayloadBase {
+  req?: NcRequest;
+  user: UserType;
+  workspace: {
+    id: string;
+    title: string;
+  };
+}
+
+interface NudgeNoBasePayload extends NudgePayloadBase {
+  createBaseUrl: string;
+}
+
+interface NudgeWorkflowInactivePayload extends NudgePayloadBase {
+  workflow: {
+    id: string;
+    title: string;
+  };
+  workflowUrl: string;
+}
+
+interface NudgeInviteTeamPayload extends NudgePayloadBase {
+  inviteUrl: string;
+}
+
+interface NudgeSeatLimitPayload extends NudgePayloadBase {
+  currentEditors: number;
+  editorLimit: number;
+  inviteUrl: string;
+  upgradeUrl: string;
+}
+
+interface OnPremBillingPayloadBase {
+  req?: NcRequest;
+  user: UserType;
+  installation: {
+    id: string;
+    license_type: string;
+    licensed_to: string;
+  };
+  billingPortalUrl: string;
+}
+
+interface OnPremLicenseIssuedPayload extends OnPremBillingPayloadBase {
+  subscriptionId: string;
+  licenseKey: string;
+  planTitle: string;
+  seatCount: number;
+  period: 'month' | 'year';
+  periodEnd?: string;
+  activationDocsUrl: string;
+  setupDocsUrl: string;
+}
+
+interface OnPremPaymentFailedPayload extends OnPremBillingPayloadBase {
+  subscriptionId: string;
+  invoiceId: string;
+  invoiceNumber?: string;
+  hostedInvoiceUrl?: string;
+  attemptCount: number;
+  amountDue: number;
+  currency: string;
+  nextAttemptAt?: string;
+  failureMessage?: string;
+}
+
+interface OnPremPlanChangedPayload extends OnPremBillingPayloadBase {
+  subscriptionId: string;
+  oldPlanTitle: string;
+  newPlanTitle: string;
+  effectiveAt?: string;
+}
+
+interface OnPremSubscriptionCanceledPayload extends OnPremBillingPayloadBase {
+  subscriptionId: string;
+  planTitle: string;
+  stripeStatus: 'canceled' | 'unpaid';
+  endsAt?: string;
 }
 
 interface HookErrorDigestPayload {
@@ -229,13 +399,94 @@ type MailParams =
   | {
       mailEvent: MailEvent.HOOK_ERROR_DIGEST;
       payload: HookErrorDigestPayload;
+    }
+  | {
+      mailEvent: MailEvent.LIMIT_REACHED;
+      payload: LimitReachedPayload;
+    }
+  | {
+      mailEvent: MailEvent.GRACE_PERIOD_ENDING;
+      payload: GracePeriodEndingPayload;
+    }
+  | {
+      mailEvent: MailEvent.PAYMENT_FAILED;
+      payload: PaymentFailedPayload;
+    }
+  | {
+      mailEvent: MailEvent.SUBSCRIPTION_CREATED;
+      payload: SubscriptionCreatedPayload;
+    }
+  | {
+      mailEvent: MailEvent.SUBSCRIPTION_CANCELED;
+      payload: SubscriptionCanceledPayload;
+    }
+  | {
+      mailEvent: MailEvent.PLAN_CHANGED;
+      payload: PlanChangedPayload;
+    }
+  | {
+      mailEvent: MailEvent.TRIAL_ENDED;
+      payload: TrialEndedPayload;
+    }
+  | {
+      mailEvent: MailEvent.TRIAL_ENDING;
+      payload: TrialEndingPayload;
+    }
+  | {
+      mailEvent: MailEvent.NUDGE_NO_BASE;
+      payload: NudgeNoBasePayload;
+    }
+  | {
+      mailEvent: MailEvent.NUDGE_WORKFLOW_INACTIVE;
+      payload: NudgeWorkflowInactivePayload;
+    }
+  | {
+      mailEvent: MailEvent.NUDGE_INVITE_TEAM;
+      payload: NudgeInviteTeamPayload;
+    }
+  | {
+      mailEvent: MailEvent.NUDGE_SEAT_LIMIT;
+      payload: NudgeSeatLimitPayload;
+    }
+  | {
+      mailEvent: MailEvent.ON_PREM_LICENSE_ISSUED;
+      payload: OnPremLicenseIssuedPayload;
+    }
+  | {
+      mailEvent: MailEvent.ON_PREM_PAYMENT_FAILED;
+      payload: OnPremPaymentFailedPayload;
+    }
+  | {
+      mailEvent: MailEvent.ON_PREM_PLAN_CHANGED;
+      payload: OnPremPlanChangedPayload;
+    }
+  | {
+      mailEvent: MailEvent.ON_PREM_SUBSCRIPTION_CANCELED;
+      payload: OnPremSubscriptionCanceledPayload;
     };
 
 export {
   MailEvent,
   MailParams,
   RawMailParams,
+  SKIP_STORING_MAIL_EVENTS,
   WorkflowErrorDigestPayload,
   WorkflowDraftReminderPayload,
   HookErrorDigestPayload,
+  LimitReachedPayload,
+  GracePeriodEndingPayload,
+  PaymentFailedPayload,
+  SubscriptionCreatedPayload,
+  SubscriptionCanceledPayload,
+  PlanChangedPayload,
+  TrialEndedPayload,
+  TrialEndingPayload,
+  NudgeNoBasePayload,
+  NudgeWorkflowInactivePayload,
+  NudgeInviteTeamPayload,
+  NudgeSeatLimitPayload,
+  OnPremLicenseIssuedPayload,
+  OnPremPaymentFailedPayload,
+  OnPremPlanChangedPayload,
+  OnPremSubscriptionCanceledPayload,
 };

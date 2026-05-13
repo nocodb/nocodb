@@ -1,5 +1,6 @@
 import {
   buildRowFromCompositePk,
+  bulkDeleteWithPerRowFallback,
   getBaseModelForModel,
   pkFromRow,
   reapplyDisplacedForward,
@@ -151,18 +152,16 @@ export function registerBulkInsertHandlers(
       const deleteRows = params.pks.map((pk) =>
         buildRowFromCompositePk(String(pk), model),
       );
+      let failedPks: string[] = [];
       const { bag } = await runInChildTraceScope(async () => {
-        try {
-          await baseModel.bulkDelete(deleteRows, {
-            cookie: meta.originalReq,
-          });
-        } catch {
-          for (const pk of params.pks) {
-            try {
-              await baseModel.delByPk(pk, null, meta.originalReq);
-            } catch {}
-          }
-        }
+        const result = await bulkDeleteWithPerRowFallback({
+          baseModel,
+          rows: deleteRows,
+          pks: params.pks,
+          cookie: meta.originalReq,
+          opName: 'recordBulkInsertUndo',
+        });
+        failedPks = result.failedPks;
       });
       const trashId = bag.get('softDeleteTrashId') as string | undefined;
 
@@ -172,9 +171,11 @@ export function registerBulkInsertHandlers(
         meta.originalReq,
       );
 
-      return trashId
-        ? { metaUpdate: { softDeleteTrashId: trashId } }
-        : undefined;
+      const metaUpdate = {
+        ...(trashId ? { softDeleteTrashId: trashId } : {}),
+        ...(failedPks.length ? { failedDeletePks: failedPks } : {}),
+      };
+      return Object.keys(metaUpdate).length ? { metaUpdate } : undefined;
     },
   );
 }

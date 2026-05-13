@@ -59,6 +59,7 @@ export function registerMacroHandlers(): void {
       const updatedTranscript: MacroTranscriptEntry[] = transcript.slice();
       let anyMetaUpdate = false;
 
+      // Failure policy — fail loudly so `OperationLog.status` stays honest.
       for (let i = transcript.length - 1; i >= 0; i--) {
         const entry = transcript[i];
         const resolved = OperationRegistry.resolve(
@@ -66,10 +67,9 @@ export function registerMacroHandlers(): void {
           entry.version,
         );
         if (!resolved) {
-          logger.warn(
-            `macroUndo: child contract '${entry.op}@${entry.version}' not found, skipping`,
+          throw new Error(
+            `macroUndo: child contract '${entry.op}@${entry.version}' is not registered — cannot complete undo`,
           );
-          continue;
         }
         const inverseFn = getUndoConfig(resolved.contract)?.inverse;
         if (!inverseFn) {
@@ -93,19 +93,20 @@ export function registerMacroHandlers(): void {
             { extra: entry.resolvedExtra as Record<string, any> | undefined },
           );
         } catch (e: any) {
-          logger.warn(
+          throw new Error(
             `macroUndo: inverse builder for '${entry.op}' threw: ${e?.message}`,
+            { cause: e },
           );
-          continue;
         }
         if (!inverseOp) continue;
 
+        let childResult: unknown;
         try {
           // Pass the entry's CURRENT extra (CaptureBag captures —
           // ltar / backup / filters / etc.) through to the inverse
           // dispatch. The child handler reads them via setReplay so
           // the inverse uses the right ids / backup refs.
-          const childResult = await dispatchTranscriptEntry(
+          childResult = await dispatchTranscriptEntry(
             context,
             {
               op: inverseOp.name,
@@ -116,32 +117,33 @@ export function registerMacroHandlers(): void {
             },
             req,
           );
-          // Some child handlers (columnUpdate on type-change) return
-          // `{ result, metaUpdate: { backup: newBackup } }` to rotate
-          // state for the next cycle. Merge into this entry's extra so
-          // the persisted transcript carries it forward.
-          const update =
-            childResult &&
-            typeof childResult === 'object' &&
-            'metaUpdate' in childResult
-              ? (childResult as { metaUpdate?: Record<string, unknown> })
-                  .metaUpdate
-              : undefined;
-          if (update) {
-            updatedTranscript[i] = {
-              ...entry,
-              extra: {
-                ...(entry.extra ?? {}),
-                ...update,
-              } as MacroTranscriptEntry['extra'],
-            };
-            anyMetaUpdate = true;
-          }
         } catch (e: any) {
-          logger.warn(
+          throw new Error(
             `macroUndo: dispatch of '${inverseOp.name}' for '${entry.op}' failed: ${e?.message}`,
+            { cause: e },
           );
-          // Continue — best-effort partial undo.
+        }
+
+        // Some child handlers (columnUpdate on type-change) return
+        // `{ result, metaUpdate: { backup: newBackup } }` to rotate
+        // state for the next cycle. Merge into this entry's extra so
+        // the persisted transcript carries it forward.
+        const update =
+          childResult &&
+          typeof childResult === 'object' &&
+          'metaUpdate' in childResult
+            ? (childResult as { metaUpdate?: Record<string, unknown> })
+                .metaUpdate
+            : undefined;
+        if (update) {
+          updatedTranscript[i] = {
+            ...entry,
+            extra: {
+              ...(entry.extra ?? {}),
+              ...update,
+            } as MacroTranscriptEntry['extra'],
+          };
+          anyMetaUpdate = true;
         }
       }
 

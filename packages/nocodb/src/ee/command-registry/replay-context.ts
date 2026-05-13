@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { NcContextTriggeredVia } from 'nocodb-sdk';
 import type {
@@ -10,8 +9,6 @@ import type {
 import { getSandboxConfig } from '~/command-registry/types';
 import { OperationRegistry } from '~/command-registry/registry';
 import { isReplay, runInReplay } from '~/helpers/replayScope';
-
-const logger = new Logger('ReplayContext');
 
 // `createdBy` is the fallback when originalReq has no user.
 export function makeReplayReq(
@@ -186,30 +183,27 @@ export function registerMacro<C extends OperationContract<any>>(
       let lastResult: unknown;
       let anyMetaUpdate = false;
       for (const entry of transcript) {
+        let childResult: unknown;
         try {
-          const childResult = await dispatchTranscriptEntry(
-            context,
-            entry,
-            req,
-          );
-          lastResult = childResult;
-          const update = extractMetaUpdate(childResult);
-          if (update) {
-            updatedTranscript.push({
-              ...entry,
-              extra: {
-                ...(entry.extra ?? {}),
-                ...update,
-              } as MacroTranscriptEntry['extra'],
-            });
-            anyMetaUpdate = true;
-          } else {
-            updatedTranscript.push(entry);
-          }
+          childResult = await dispatchTranscriptEntry(context, entry, req);
         } catch (e: any) {
-          logger.warn(
+          throw new Error(
             `Macro replay '${contract.name}' child '${entry.op}@${entry.version}' failed: ${e?.message}`,
+            { cause: e },
           );
+        }
+        lastResult = childResult;
+        const update = extractMetaUpdate(childResult);
+        if (update) {
+          updatedTranscript.push({
+            ...entry,
+            extra: {
+              ...(entry.extra ?? {}),
+              ...update,
+            } as MacroTranscriptEntry['extra'],
+          });
+          anyMetaUpdate = true;
+        } else {
           updatedTranscript.push(entry);
         }
       }

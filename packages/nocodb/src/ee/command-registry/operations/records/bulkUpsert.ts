@@ -1,5 +1,6 @@
 import {
   buildRowFromCompositePk,
+  bulkDeleteWithPerRowFallback,
   extractRowPk,
   getBaseModelForModel,
   resolveModelForEntry,
@@ -193,22 +194,20 @@ export function registerBulkUpsertHandlers(
       const baseModel = await getBaseModelForModel(context, model);
 
       let trashId: string | undefined;
+      let failedDeletePks: string[] = [];
       if (params.insertPks.length) {
         const deleteRows = params.insertPks.map((pk) =>
           buildRowFromCompositePk(String(pk), model),
         );
         const { bag } = await runInChildTraceScope(async () => {
-          try {
-            await baseModel.bulkDelete(deleteRows, {
-              cookie: meta.originalReq,
-            });
-          } catch {
-            for (const pk of params.insertPks) {
-              try {
-                await baseModel.delByPk(String(pk), null, meta.originalReq);
-              } catch {}
-            }
-          }
+          const result = await bulkDeleteWithPerRowFallback({
+            baseModel,
+            rows: deleteRows,
+            pks: params.insertPks,
+            cookie: meta.originalReq,
+            opName: 'recordBulkUpsertUndo',
+          });
+          failedDeletePks = result.failedPks;
         });
         trashId = bag.get('softDeleteTrashId') as string | undefined;
       }
@@ -234,9 +233,11 @@ export function registerBulkUpsertHandlers(
         } as any);
       }
 
-      return trashId
-        ? { metaUpdate: { softDeleteTrashId: trashId } }
-        : undefined;
+      const metaUpdate = {
+        ...(trashId ? { softDeleteTrashId: trashId } : {}),
+        ...(failedDeletePks.length ? { failedDeletePks: failedDeletePks } : {}),
+      };
+      return Object.keys(metaUpdate).length ? { metaUpdate } : undefined;
     },
   );
 }

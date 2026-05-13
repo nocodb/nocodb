@@ -1,5 +1,6 @@
 import {
   buildRedoMetaUpdate,
+  bulkDeleteWithPerRowFallback,
   extractRowPk,
   getBaseModelForModel,
   logger,
@@ -129,26 +130,26 @@ export function registerBulkDeleteHandlers(
         'recordBulkDelete',
       );
       const baseModel = await getBaseModelForModel(context, model);
+      const rows = params.body as Record<string, unknown>[];
+      const pks = rows
+        .map((row) => extractRowPk(row, model))
+        .filter((pk): pk is string => pk != null);
+      let failedPks: string[] = [];
       const { bag } = await runInChildTraceScope(async () => {
-        try {
-          await baseModel.bulkDelete(params.body as any[], {
-            cookie: meta.originalReq,
-          });
-        } catch {
-          // Per-row fallback — rows already gone are swallowed.
-          for (const row of params.body as any[]) {
-            try {
-              const pk = extractRowPk(row, model);
-              if (!pk) continue;
-              await baseModel.delByPk(pk, null, meta.originalReq);
-            } catch {}
-          }
-        }
+        const result = await bulkDeleteWithPerRowFallback({
+          baseModel,
+          rows,
+          pks,
+          cookie: meta.originalReq,
+          opName: 'recordBulkDelete',
+        });
+        failedPks = result.failedPks;
       });
       const metaUpdate = {
         softDeleteTrashId:
           (bag.get('softDeleteTrashId') as string | undefined) ?? null,
         ...(buildRedoMetaUpdate(bag, ['recordPrev', 'displacedRecords']) ?? {}),
+        ...(failedPks.length ? { failedDeletePks: failedPks } : {}),
       };
       return { metaUpdate };
     },

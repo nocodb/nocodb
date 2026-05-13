@@ -8,6 +8,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type {
   CaptureBag,
   CaptureKey,
@@ -674,4 +675,41 @@ export async function restoreDisplaced(
       });
     }
   }
+}
+
+/**
+ * Bulk-delete with per-row fallback. Wraps the
+ *   try { bulkDelete } catch { for-pk-in-pks { try { delByPk } catch {} } }
+ * shape used by `recordBulkDelete` (forward), `recordBulkInsertUndo`, and
+ * `recordBulkUpsertUndo`.
+ */
+export async function bulkDeleteWithPerRowFallback(opts: {
+  baseModel: BaseModelSqlv2;
+  rows: ReadonlyArray<Record<string, unknown>>;
+  pks: ReadonlyArray<string | number>;
+  cookie: NcRequest;
+  opName: string;
+}): Promise<{ failedPks: string[] }> {
+  const failedPks: string[] = [];
+  try {
+    await opts.baseModel.bulkDelete(opts.rows as Record<string, unknown>[], {
+      cookie: opts.cookie,
+    });
+    return { failedPks };
+  } catch (bulkErr: unknown) {
+    const msg = bulkErr instanceof Error ? bulkErr.message : String(bulkErr);
+    logger.warn(
+      `${opts.opName} bulkDelete failed; falling back to per-row delete: ${msg}`,
+    );
+  }
+  for (const pk of opts.pks) {
+    try {
+      await opts.baseModel.delByPk(String(pk), null, opts.cookie);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      failedPks.push(String(pk));
+      logger.warn(`${opts.opName} per-row delete failed for pk=${pk}: ${msg}`);
+    }
+  }
+  return { failedPks };
 }

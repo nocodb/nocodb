@@ -119,6 +119,7 @@ export class MapsService {
 
     await view.getView(context);
 
-    return view;
+    // Strip the stored bcrypt password hash from the outbound response.
+    return View.maskPasswordForResponse(view);
   }
 }

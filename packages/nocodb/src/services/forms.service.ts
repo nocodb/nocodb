@@ -220,13 +220,16 @@ export class FormsService {
 
     await view.getViewWithInfo(context);
 
+    // Strip the stored bcrypt password hash from every outbound payload.
+    const safeView = View.maskPasswordForResponse(view);
+
     NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.META_EVENT,
         payload: {
           action: 'view_update',
-          payload: view,
+          payload: safeView,
         },
       },
       context.socket_id,
@@ -235,6 +238,6 @@ export class FormsService {
     if (!param.viewWebhookManager) {
       (await viewWebhookManager.withNewViewId(view.id)).emit();
     }
-    return view;
+    return safeView;
   }
 }

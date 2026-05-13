@@ -394,16 +394,19 @@ export class ViewsService {
     // owned_by/created_by with the final values resolved by this service
     // (may differ from param.view when claiming/reverting personal views).
     // ViewType declares owned_by as `IdType | undefined`, coerce nulls.
-    const viewForEvent = {
+    // Mask password so AppHooks listeners (audit logs, webhooks, sandbox
+    // changelog) never see the stored bcrypt hash.
+    const viewForEvent = View.maskPasswordForResponse({
       ...oldView,
       ...param.view,
       owned_by: ownedBy ?? undefined,
       created_by: createdBy ?? undefined,
-    } as ViewType;
+    }) as ViewType;
+    const oldViewForEvent = View.maskPasswordForResponse(oldView);
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view: viewForEvent,
-      oldView,
+      oldView: oldViewForEvent,
       user: param.user,
       req: param.req,
       context,

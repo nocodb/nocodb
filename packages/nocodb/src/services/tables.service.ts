@@ -522,8 +522,11 @@ export class TablesService {
       result = await table.delete(context, ncMeta);
     } catch (e) {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      this.logger.error('Error deleting table', e);
-      NcError.get(context).tableError('Bad Request');
+      this.logger.error(
+        `Error deleting table ${table.id}: ${e.message}`,
+        e.stack,
+      );
+      NcError.get(context).tableError(e.message || 'Bad Request');
     }
 
     if (result) {

@@ -1426,7 +1426,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         );
       };
 
-      process().catch(logger.error);
+      process().catch((err) => logger.error(err.message, err.stack));
     });
   }
 }

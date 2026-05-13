@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcContextTriggeredVia } from 'nocodb-sdk';
 import type {
   CommandHandler,
   HandlerMeta,
@@ -62,6 +63,7 @@ export async function dispatchOperation(
   contract: OperationContract,
   handler: CommandHandler,
   call: ReplayCall,
+  triggeredVia?: NcContextTriggeredVia,
 ): Promise<unknown> {
   contract.schema.parse(call.params ?? {});
 
@@ -98,7 +100,12 @@ export async function dispatchOperation(
     extra: call.extra,
   };
 
-  return runInReplay(() => handler(context, replayParams, handlerMeta));
+  const resolvedTriggeredVia = triggeredVia ?? context.triggered_via;
+  const replayContext: NcContext = resolvedTriggeredVia
+    ? { ...context, triggered_via: resolvedTriggeredVia }
+    : context;
+
+  return runInReplay(() => handler(replayContext, replayParams, handlerMeta));
 }
 
 /**

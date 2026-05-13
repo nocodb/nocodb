@@ -166,6 +166,7 @@ export class UndoRedoService {
             '') as string,
           originalReq: req,
         },
+        direction,
       );
 
       // `columnUpdate` returns `{ metaUpdate }` when its backup ref was

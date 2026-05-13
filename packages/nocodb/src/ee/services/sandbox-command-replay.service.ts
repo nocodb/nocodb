@@ -41,13 +41,19 @@ export class SandboxCommandReplayService {
     this.logger.log(
       `Replaying ${command.name}@${command.version} (entry: ${entry.id})`,
     );
-    return dispatchOperation(targetContext, contract, handler, {
-      params: command.params ?? {},
-      entityId: entry.entity_id,
-      extra: command.extra as Record<string, unknown> | undefined,
-      entryId: entry.id,
-      createdBy: entry.created_by,
-      originalReq,
-    });
+    return dispatchOperation(
+      targetContext,
+      contract,
+      handler,
+      {
+        params: command.params ?? {},
+        entityId: entry.entity_id,
+        extra: command.extra as Record<string, unknown> | undefined,
+        entryId: entry.id,
+        createdBy: entry.created_by,
+        originalReq,
+      },
+      'sandbox-merge',
+    );
   }
 }

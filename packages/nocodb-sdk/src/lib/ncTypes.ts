@@ -2,6 +2,8 @@ import type { Request } from 'express';
 import type { TableType, UserType } from '~/lib/Api';
 import { NcApiVersion } from './enums';
 
+export type NcContextTriggeredVia = 'undo' | 'redo' | 'sandbox-merge';
+
 export interface NcContext {
   org_id?: string;
   workspace_id: string;
@@ -31,6 +33,10 @@ export interface NcContext {
   permissions?: any;
   is_api_token?: boolean;
   is_public?: boolean;
+  /**
+   * Set by replay dispatchers when running an undo / redo / sandbox-merge.
+   */
+  triggered_via?: NcContextTriggeredVia;
 }
 
 /**

@@ -17,6 +17,8 @@ const { navigateToProject, isMobileMode } = useGlobal()
 
 const { $e: _$e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
@@ -190,7 +192,7 @@ const mainItems = computed<NavItem[]>(() => [
   {
     key: 'data',
     icon: 'ncTable',
-    label: 'Data',
+    label: t('general.data'),
     disabled: !hasAvailableBases.value,
     onClick: () => {
       onTabClick('data')
@@ -201,7 +203,7 @@ const mainItems = computed<NavItem[]>(() => [
         {
           key: 'workflows',
           icon: 'ncAutomation',
-          label: 'Workflows',
+          label: t('general.workflows'),
           disabled:
             !hasAvailableBases.value ||
             !isUIAllowed('scriptList', {
@@ -276,7 +278,7 @@ const handleOpenBookmarkPanel = () => {
     <DashboardMiniSidebarV2RailItem
       v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       v-e="['c:chat:toggle']"
-      label="Chat"
+      :label="$t('general.chat')"
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
       :active="isChatPanelExpanded"
@@ -292,7 +294,7 @@ const handleOpenBookmarkPanel = () => {
     <!-- Settings -->
     <DashboardMiniSidebarV2RailItem
       icon="ncSettings"
-      label="Settings"
+      :label="$t('labels.settings')"
       panel-key="settings"
       :active="activeSidebarTab === 'settings' && !isChatFullScreen"
       :disable-tooltip="true"
@@ -303,7 +305,7 @@ const handleOpenBookmarkPanel = () => {
     <div class="nc-rail-bottom-group">
       <!-- Help -->
       <DashboardMiniSidebarHelp>
-        <DashboardMiniSidebarV2RailItem icon="ncHelp" label="Help" panel-key="help" is-dropdown />
+        <DashboardMiniSidebarV2RailItem icon="ncHelp" :label="$t('general.help')" panel-key="help" is-dropdown />
       </DashboardMiniSidebarHelp>
     </div>
 
@@ -335,8 +337,8 @@ const handleOpenBookmarkPanel = () => {
       :trigger="['click']"
     >
       <DashboardMiniSidebarV2RailItem
-        label="Activity"
-        tooltip="Activity"
+        :label="$t('labels.activity')"
+        :tooltip="$t('labels.activity')"
         panel-key="notification"
         data-testid="nc-sidebar-notification-btn"
         :active="isNotificationOpen"

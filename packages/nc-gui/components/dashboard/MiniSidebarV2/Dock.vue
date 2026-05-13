@@ -17,6 +17,8 @@ const { navigateToProject, isMobileMode } = useGlobal()
 
 const { $e: _$e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId, activeWorkspace } = storeToRefs(workspaceStore)
@@ -144,7 +146,7 @@ const mainItems = computed<NavItem[]>(() => [
   {
     key: 'data',
     icon: 'ncTable',
-    label: 'Data',
+    label: t('general.data'),
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
@@ -153,7 +155,7 @@ const mainItems = computed<NavItem[]>(() => [
         {
           key: 'workflows',
           icon: 'ncAutomation',
-          label: 'Workflows',
+          label: t('general.workflows'),
           disabled:
             !hasAvailableBases.value ||
             !isUIAllowed('scriptList', {
@@ -353,7 +355,7 @@ const handleOpenBookmarkPanel = () => {
       v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && hasChatBaseContext && !isMobileMode"
       :ref="(el: any) => setItemRef('chat', el)"
       v-e="['c:chat:toggle']"
-      label="Chat"
+      :label="$t('general.chat')"
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
       :active="isChatPanelExpanded"
@@ -368,7 +370,7 @@ const handleOpenBookmarkPanel = () => {
     <DashboardMiniSidebarV2DockItem
       :ref="(el: any) => setItemRef('settings', el)"
       icon="ncSettings"
-      label="Settings"
+      :label="$t('labels.settings')"
       panel-key="settings"
       :active="activeSidebarTab === 'settings' && !isChatFullScreen"
       :scale="getScale('settings')"
@@ -380,7 +382,7 @@ const handleOpenBookmarkPanel = () => {
       <!-- Help -->
       <div :ref="(el: any) => setItemRef('help', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('help')">
         <DashboardMiniSidebarHelp>
-          <DashboardMiniSidebarV2DockItem icon="ncHelp" label="Help" panel-key="help" :scale="1" />
+          <DashboardMiniSidebarV2DockItem icon="ncHelp" :label="$t('general.help')" panel-key="help" :scale="1" />
         </DashboardMiniSidebarHelp>
       </div>
     </div>
@@ -427,7 +429,7 @@ const handleOpenBookmarkPanel = () => {
         :style="getMagnifyStyle('notification')"
       >
         <DashboardMiniSidebarV2DockItem
-          :label="isNotificationOpen ? undefined : 'Activity'"
+          :label="isNotificationOpen ? undefined : $t('labels.activity')"
           panel-key="notification"
           data-testid="nc-sidebar-notification-btn"
           :active="isNotificationOpen"

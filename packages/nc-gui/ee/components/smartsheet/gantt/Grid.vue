@@ -1442,95 +1442,20 @@ const onGridMouseLeave = () => {
 
     <!-- Main pane: date header + scrollable grid body -->
     <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
-    <!-- Date column headers (hidden when parent provides a shared header).
-         Per-day v-for replaced with tiered (year/quarter/month) major rows +
-         a sparse minor row of weekend / today / hover / gridline / label
-         overlays so coarse zooms don't paint thousands of cells. -->
+    <!-- Date column headers (hidden when parent provides a shared header). -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
       <div ref="headerScrollRef" class="overflow-x-hidden" @mousemove="onHeaderMouseMove" @mouseleave="onGridMouseLeave">
-        <div :style="{ width: `${totalGridWidth}px` }">
-          <!-- Stacked major rows (year / quarter / month etc.) — each tier is a row
-               of absolutely-positioned spans over the day grid. Empty at week/month
-               zoom; populated at quarter / 6-month / year / 2-year / 5-year. -->
-          <div
-            v-for="(tier, tierIdx) in majorHeaderTiers"
-            :key="`tier-${tierIdx}`"
-            class="relative bg-nc-bg-default border-b border-nc-border-gray-light"
-            :style="{ height: '20px' }"
-          >
-            <div
-              v-for="span in tier"
-              :key="span.key"
-              class="absolute top-0 h-full flex items-center justify-start text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-2"
-              :style="{ left: `${span.leftPx}px`, width: `${span.widthPx}px` }"
-            >
-              {{ span.label }}
-            </div>
-          </div>
-
-          <!-- Minor row — sparse overlays only. -->
-          <div
-            class="relative bg-nc-bg-default border-b border-nc-border-gray-medium"
-            :style="{ height: `${HEADER_HEIGHT}px`, width: `${totalGridWidth}px` }"
-          >
-            <!-- Weekend stripes (only emitted when colWidth ≥ 30) -->
-            <div
-              v-for="off in weekendOffsets"
-              :key="`hwk-${off.key}`"
-              class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight pointer-events-none"
-              :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
-            />
-            <!-- Today column highlight -->
-            <div
-              v-if="todayDayIdx >= 0"
-              class="absolute top-0 bottom-0 bg-nc-bg-brand pointer-events-none"
-              :style="{ left: `${todayDayIdx * colWidth}px`, width: `${colWidth}px` }"
-            />
-            <!-- Hover column highlight -->
-            <div
-              v-if="hoverColIndex !== null && hoverColIndex !== todayDayIdx"
-              class="absolute top-0 bottom-0 nc-gantt-header-hover pointer-events-none"
-              :style="{ left: `${hoverColIndex * colWidth}px`, width: `${colWidth}px` }"
-            />
-            <!-- Vertical gridlines at the current scale's cadence -->
-            <div
-              v-for="off in gridlineOffsets"
-              :key="`hgl-${off.key}`"
-              class="absolute top-0 bottom-0 border-r border-nc-border-gray-light pointer-events-none"
-              :style="{ left: `${off.leftPx}px` }"
-            />
-            <!-- Sparse labels (weekday / day-number / mondays / fortnight / quarter-month) -->
-            <div
-              v-for="lbl in minorLabels"
-              :key="`hl-${lbl.key}`"
-              class="absolute top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
-              :style="{ left: `${lbl.leftPx}px`, width: `${colWidth}px` }"
-            >
-              <span
-                v-if="lbl.weekday"
-                class="text-[10px] font-normal leading-tight"
-                :class="{
-                  'text-nc-content-brand': lbl.idx === todayDayIdx,
-                  'text-nc-content-gray-subtle': lbl.idx === hoverColIndex && lbl.idx !== todayDayIdx,
-                  'text-nc-content-gray-muted': lbl.idx !== hoverColIndex && lbl.idx !== todayDayIdx,
-                }"
-              >
-                {{ lbl.weekday }}
-              </span>
-              <span
-                v-if="lbl.dayNum"
-                class="text-[11px] leading-tight whitespace-nowrap"
-                :class="{
-                  'text-nc-content-brand': lbl.idx === todayDayIdx,
-                  'font-semibold text-nc-content-gray-emphasis': lbl.idx === hoverColIndex && lbl.idx !== todayDayIdx,
-                  'font-normal text-nc-content-gray-muted': lbl.idx !== hoverColIndex && lbl.idx !== todayDayIdx,
-                }"
-              >
-                {{ lbl.dayNum }}
-              </span>
-            </div>
-          </div>
-        </div>
+        <SmartsheetSharedDateAxisHeader
+          :major-header-tiers="majorHeaderTiers"
+          :minor-labels="minorLabels"
+          :weekend-offsets="weekendOffsets"
+          :gridline-offsets="gridlineOffsets"
+          :col-width="colWidth"
+          :total-grid-width="totalGridWidth"
+          :today-day-idx="todayDayIdx"
+          :minor-height="HEADER_HEIGHT"
+          :hover-col-index="hoverColIndex"
+        />
       </div>
     </div>
     <!-- When header is hidden, still need a ref element to measure container width -->

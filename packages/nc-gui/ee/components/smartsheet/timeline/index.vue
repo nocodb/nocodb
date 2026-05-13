@@ -522,80 +522,23 @@ const dateButtonWidthClass: Record<TimelineZoomLevel, string> = {
             <!-- Date columns header — the shared horizontal scrollbar for grouped mode lives here.
                  Per-group bodies have hidden scrollbars and follow this one via the store. -->
             <div ref="groupHeaderRef" class="flex-1 overflow-x-auto overflow-y-hidden" @scroll="onGroupHeaderScroll">
-              <div :style="{ width: `${totalGridWidth}px` }">
-                <!-- Stacked major rows -->
-                <div
-                  v-for="(tier, tierIdx) in majorHeaderTiers"
-                  :key="`tier-${tierIdx}`"
-                  class="relative bg-nc-bg-default border-b border-nc-border-gray-light"
-                  :style="{ height: '20px' }"
-                >
-                  <div
-                    v-for="span in tier"
-                    :key="span.key"
-                    class="absolute top-0 h-full flex items-center justify-start text-[11px] font-medium text-nc-content-gray-emphasis border-r border-nc-border-gray-light overflow-hidden whitespace-nowrap px-2"
-                    :style="{ left: `${span.leftPx}px`, width: `${span.widthPx}px` }"
-                  >
-                    {{ span.label }}
-                  </div>
-                </div>
-
-                <!-- Minor row — bg div + sparse overlays so coarse zooms
-                     don't iterate 1.5k–3.7k cells per scroll. -->
-                <div
-                  class="relative bg-nc-bg-default"
-                  :style="{ height: `${GROUP_HEADER_HEIGHT}px`, width: `${totalGridWidth}px` }"
-                >
-                  <div
-                    v-for="off in weekendOffsets"
-                    :key="`gwk-${off.key}`"
-                    class="absolute top-0 bottom-0 bg-nc-bg-gray-extralight pointer-events-none"
-                    :style="{ left: `${off.leftPx}px`, width: `${colWidth}px` }"
-                  />
-                  <div
-                    v-if="todayDayIdx >= 0"
-                    class="absolute top-0 bottom-0 bg-nc-bg-brand pointer-events-none"
-                    :style="{ left: `${todayDayIdx * colWidth}px`, width: `${colWidth}px` }"
-                  />
-                  <div
-                    v-for="off in gridlineOffsets"
-                    :key="`ggl-${off.key}`"
-                    class="absolute top-0 bottom-0 border-r border-nc-border-gray-light pointer-events-none"
-                    :style="{ left: `${off.leftPx}px` }"
-                  />
-                  <div
-                    v-for="lbl in minorLabels"
-                    :key="`gl-${lbl.key}`"
-                    class="absolute top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
-                    :style="{ left: `${lbl.leftPx}px`, width: `${colWidth}px` }"
-                  >
-                    <span
-                      v-if="lbl.weekday"
-                      class="text-[10px] font-normal leading-tight"
-                      :class="lbl.idx === todayDayIdx ? 'text-nc-content-brand' : 'text-nc-content-gray-muted'"
-                    >
-                      {{ lbl.weekday }}
-                    </span>
-                    <span
-                      v-if="lbl.dayNum"
-                      class="text-[11px] font-normal leading-tight whitespace-nowrap"
-                      :class="lbl.idx === todayDayIdx ? 'text-nc-content-brand' : 'text-nc-content-gray-muted'"
-                    >
-                      {{ lbl.dayNum }}
-                    </span>
-                  </div>
-                </div>
-              </div>
+              <SmartsheetSharedDateAxisHeader
+                :major-header-tiers="majorHeaderTiers"
+                :minor-labels="minorLabels"
+                :weekend-offsets="weekendOffsets"
+                :gridline-offsets="gridlineOffsets"
+                :col-width="colWidth"
+                :total-grid-width="totalGridWidth"
+                :today-day-idx="todayDayIdx"
+                :minor-height="GROUP_HEADER_HEIGHT"
+              />
             </div>
           </div>
 
-          <!-- Scrollable groups area -->
-          <SmartsheetTimelineGroupBy
+          <!-- Scrollable groups area — shared with Gantt; leaf grid supplied via slot. -->
+          <SmartsheetSharedDateAxisGroupBy
             class="flex-1 min-h-0"
             :group="rootGroup"
-            :visible-dates="visibleDates"
-            :timeline-range="timelineRange"
-            :zoom-level="zoomLevel"
             :load-groups="loadGroups"
             :load-group-data="loadGroupData"
             :load-group-page="loadGroupPage"
@@ -603,7 +546,19 @@ const dateButtonWidthClass: Record<TimelineZoomLevel, string> = {
             :max-depth="groupBy.length"
             @expand-record="expandRecord"
             @navigate-to="goToDate"
-          />
+          >
+            <template #default="{ rows }">
+              <SmartsheetTimelineGrid
+                :records="rows"
+                :visible-dates="visibleDates"
+                :timeline-range="timelineRange"
+                :zoom-level="zoomLevel"
+                :hide-header="true"
+                @expand-record="expandRecord"
+                @navigate-to="goToDate"
+              />
+            </template>
+          </SmartsheetSharedDateAxisGroupBy>
         </div>
 
         <!-- Flat layout (no group-by) -->

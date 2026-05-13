@@ -132,6 +132,7 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const ORDER_STEP_INCREMENT = 1;
 const MAX_RECURSION_DEPTH = 2;
 const READ_CHUNK_SIZE = 100;
+const WHERE_IN_CHUNK_SIZE = 5000;
 
 import { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 import {
@@ -5366,6 +5367,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   ): Promise<DisplacedRecord[]> {
     const snapshot: DisplacedRecord[] = [];
     if (!idsVals.length) return snapshot;
+    const idChunks = chunkArray(idsVals, WHERE_IN_CHUNK_SIZE);
     for (const column of this.model.columns) {
       if (!isLinksOrLTAR(column)) continue;
       const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
@@ -5384,23 +5386,25 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const mmParentCol = await Column.get(mmContext, {
             colId: colOptions.fk_mm_parent_column_id,
           });
-          const rows = await this.execAndParse(
-            this.dbDriver(this.getTnPath(mmTable.table_name))
-              .select(mmParentCol.column_name, mmChildCol.column_name)
-              .whereIn(mmChildCol.column_name, idsVals),
-            null,
-            { raw: true },
-          );
-          for (const r of rows as Array<Record<string, any>>) {
-            snapshot.push({
-              kind: 'junction',
-              mmModelId: mmTable.id,
-              colId: column.id,
-              parentMMCol: mmParentCol.column_name,
-              childMMCol: mmChildCol.column_name,
-              parentValue: r[mmParentCol.column_name],
-              childValue: r[mmChildCol.column_name],
-            });
+          for (const chunk of idChunks) {
+            const rows = await this.execAndParse(
+              this.dbDriver(this.getTnPath(mmTable.table_name))
+                .select(mmParentCol.column_name, mmChildCol.column_name)
+                .whereIn(mmChildCol.column_name, chunk),
+              null,
+              { raw: true },
+            );
+            for (const r of rows as Array<Record<string, any>>) {
+              snapshot.push({
+                kind: 'junction',
+                mmModelId: mmTable.id,
+                colId: column.id,
+                parentMMCol: mmParentCol.column_name,
+                childMMCol: mmChildCol.column_name,
+                parentValue: r[mmParentCol.column_name],
+                childValue: r[mmChildCol.column_name],
+              });
+            }
           }
           break;
         }
@@ -5411,24 +5415,29 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const childColumn = await Column.get(childContext, {
             colId: colOptions.fk_child_column_id,
           });
-          const rows = await this.execAndParse(
-            this.dbDriver(this.getTnPath(relatedTable.table_name))
-              .select(
-                ...relatedTable.primaryKeys.map((c) => c.column_name),
-                childColumn.column_name,
-              )
-              .whereIn(childColumn.column_name, idsVals),
-            null,
-            { raw: true },
-          );
-          for (const r of rows as Array<Record<string, any>>) {
-            snapshot.push({
-              kind: 'column',
-              modelId: relatedTable.id,
-              pk: dataWrapper(r).extractPksValue(relatedTable, true) as string,
-              column: childColumn.column_name,
-              prev: r[childColumn.column_name],
-            });
+          for (const chunk of idChunks) {
+            const rows = await this.execAndParse(
+              this.dbDriver(this.getTnPath(relatedTable.table_name))
+                .select(
+                  ...relatedTable.primaryKeys.map((c) => c.column_name),
+                  childColumn.column_name,
+                )
+                .whereIn(childColumn.column_name, chunk),
+              null,
+              { raw: true },
+            );
+            for (const r of rows as Array<Record<string, any>>) {
+              snapshot.push({
+                kind: 'column',
+                modelId: relatedTable.id,
+                pk: dataWrapper(r).extractPksValue(
+                  relatedTable,
+                  true,
+                ) as string,
+                column: childColumn.column_name,
+                prev: r[childColumn.column_name],
+              });
+            }
           }
           break;
         }
@@ -5441,27 +5450,29 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const ooChildColumn = await Column.get(childContext, {
             colId: colOptions.fk_child_column_id,
           });
-          const rows = await this.execAndParse(
-            this.dbDriver(this.getTnPath(ooRelatedTable.table_name))
-              .select(
-                ...ooRelatedTable.primaryKeys.map((c) => c.column_name),
-                ooChildColumn.column_name,
-              )
-              .whereIn(ooChildColumn.column_name, idsVals),
-            null,
-            { raw: true },
-          );
-          for (const r of rows as Array<Record<string, any>>) {
-            snapshot.push({
-              kind: 'column',
-              modelId: ooRelatedTable.id,
-              pk: dataWrapper(r).extractPksValue(
-                ooRelatedTable,
-                true,
-              ) as string,
-              column: ooChildColumn.column_name,
-              prev: r[ooChildColumn.column_name],
-            });
+          for (const chunk of idChunks) {
+            const rows = await this.execAndParse(
+              this.dbDriver(this.getTnPath(ooRelatedTable.table_name))
+                .select(
+                  ...ooRelatedTable.primaryKeys.map((c) => c.column_name),
+                  ooChildColumn.column_name,
+                )
+                .whereIn(ooChildColumn.column_name, chunk),
+              null,
+              { raw: true },
+            );
+            for (const r of rows as Array<Record<string, any>>) {
+              snapshot.push({
+                kind: 'column',
+                modelId: ooRelatedTable.id,
+                pk: dataWrapper(r).extractPksValue(
+                  ooRelatedTable,
+                  true,
+                ) as string,
+                column: ooChildColumn.column_name,
+                prev: r[ooChildColumn.column_name],
+              });
+            }
           }
           break;
         }
@@ -5587,33 +5598,80 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     for (const col of this.model.columns) {
       if (!isLinksOrLTAR(col)) continue;
 
+      const touched: Array<{ rowId: string; body: any }> = [];
       for (const d of datas) {
         if (!(col.title in d)) continue;
         const rowId = this.extractPksValues(d, true);
         if (rowId == null || rowId === 'N/A') continue;
+        touched.push({ rowId: String(rowId), body: d });
+      }
+      if (!touched.length) continue;
 
-        // Read current link state on the same axis the updater will use.
-        let existingLinks: Record<string, any>[] | Record<string, any> = [];
-        if (isMMOrMMLike(col)) {
-          existingLinks = await this.mmList({ colId: col.id, parentId: rowId });
-        } else if (
-          (col.colOptions as LinkToAnotherRecordColumn | undefined)?.type ===
-          RelationTypes.HAS_MANY
-        ) {
-          existingLinks = await this.hmList({ colId: col.id, id: rowId });
-        } else {
-          existingLinks = await this.btRead({ colId: col.id, id: rowId });
-        }
-        existingLinks = existingLinks ?? [];
-        if (!Array.isArray(existingLinks)) {
-          existingLinks = existingLinks ? [existingLinks] : [];
-        }
-        const existingPks = (existingLinks as Record<string, any>[])
-          .map((r) => this.extractPksValues(r, true))
-          .filter((v) => v != null && v !== 'N/A')
-          .map((v) => String(v));
+      const existingByRow = new Map<string, string[]>();
 
-        const bodyVal = d[col.title];
+      if (isMMOrMMLike(col)) {
+        const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
+          this.context,
+        );
+        const { mmContext } = await colOptions.getParentChildContext(
+          this.context,
+        );
+        const mmTable = await Model.get(mmContext, colOptions.fk_mm_model_id);
+        if (mmTable) {
+          const mmChildCol = await Column.get(mmContext, {
+            colId: colOptions.fk_mm_child_column_id,
+          });
+          const mmParentCol = await Column.get(mmContext, {
+            colId: colOptions.fk_mm_parent_column_id,
+          });
+          const rowIdList = touched.map((t) => t.rowId);
+          for (const chunk of chunkArray(rowIdList, WHERE_IN_CHUNK_SIZE)) {
+            const rows = await this.execAndParse(
+              this.dbDriver(this.getTnPath(mmTable.table_name))
+                .select(mmParentCol.column_name, mmChildCol.column_name)
+                .whereIn(mmChildCol.column_name, chunk),
+              null,
+              { raw: true },
+            );
+            for (const r of rows as Array<Record<string, any>>) {
+              const rowKey = String(r[mmChildCol.column_name]);
+              const parentVal = r[mmParentCol.column_name];
+              if (parentVal == null) continue;
+              const bucket = existingByRow.get(rowKey);
+              if (bucket) bucket.push(String(parentVal));
+              else existingByRow.set(rowKey, [String(parentVal)]);
+            }
+          }
+        }
+      } else {
+        // Legacy V1 LTAR (HM / BT / OO with direct FKs) — no junction to
+        // batch against; keep per-row reads until hmList / btRead accept
+        // an id list.
+        for (const { rowId } of touched) {
+          let existingLinks: Record<string, any>[] | Record<string, any> = [];
+          if (
+            (col.colOptions as LinkToAnotherRecordColumn | undefined)?.type ===
+            RelationTypes.HAS_MANY
+          ) {
+            existingLinks = await this.hmList({ colId: col.id, id: rowId });
+          } else {
+            existingLinks = await this.btRead({ colId: col.id, id: rowId });
+          }
+          existingLinks = existingLinks ?? [];
+          if (!Array.isArray(existingLinks)) {
+            existingLinks = existingLinks ? [existingLinks] : [];
+          }
+          const pks = (existingLinks as Record<string, any>[])
+            .map((r) => this.extractPksValues(r, true))
+            .filter((v) => v != null && v !== 'N/A')
+            .map((v) => String(v));
+          existingByRow.set(rowId, pks);
+        }
+      }
+
+      for (const { rowId, body } of touched) {
+        const existingPks = existingByRow.get(rowId) ?? [];
+        const bodyVal = body[col.title];
         const desiredRecords = Array.isArray(bodyVal)
           ? bodyVal
           : bodyVal != null
@@ -5634,7 +5692,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           out.push({
             op: 'remove',
             colId: col.id,
-            rowId: String(rowId),
+            rowId,
             childIds: toRemove,
           });
         }
@@ -5642,7 +5700,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           out.push({
             op: 'add',
             colId: col.id,
-            rowId: String(rowId),
+            rowId,
             childIds: toAdd,
           });
         }

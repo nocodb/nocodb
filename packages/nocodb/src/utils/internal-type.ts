@@ -121,11 +121,6 @@ export type InternalPOSTResponseType = Promise<
   | { deleted: number; failed: { id: string; error: string }[] }
   | { id: string; name?: string }
   | { pm: ProseMirrorDoc | null; markdown: string | null }
-  | { status: 'ok'; entryId: string }
-  | { status: 'empty' }
-  | { status: 'no_handler'; opName: string }
-  | { status: 'errored'; error: string }
-  | { canUndo: boolean; canRedo: boolean }
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

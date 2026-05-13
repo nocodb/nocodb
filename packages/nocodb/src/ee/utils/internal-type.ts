@@ -33,6 +33,7 @@ import type {
   TeamV3ResponseType,
 } from '~/services/v3/teams-v3.types';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
+import type { UndoRedoResult } from '~/services/undo-redo.service';
 import type { BaseMetaDiff } from '~/helpers/baseMetaHelpers';
 import type RlsPolicy from '~/models/RlsPolicy';
 
@@ -220,11 +221,7 @@ export type InternalPOSTResponseType = Promise<
   | { deleted: number; failed: { id: string; error: string }[] }
   | { job_id: string }
   | { pm: ProseMirrorDoc | null; markdown: string | null }
-  | { status: 'ok'; entryId: string }
-  | { status: 'empty' }
-  | { status: 'no_handler'; opName: string }
-  | { status: 'errored'; error: string }
-  | { canUndo: boolean; canRedo: boolean }
+  | UndoRedoResult
 >;
 
 export interface InternalApiModule<

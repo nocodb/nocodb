@@ -6,6 +6,7 @@ import { NcLogger } from '~/utils/logger/NcLogger';
 import { AuditService } from '~/meta/audit.service';
 import { ChatMessagesService } from '~/meta/chat-messages.service';
 import { DocsContentService } from '~/meta/docs-content.service';
+import { OperationLogsService } from '~/meta/operation-logs.service';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
 
@@ -90,6 +91,28 @@ export default class Noco extends NocoCE {
     }
   }
 
+  public static async prepareOperationLogsService() {
+    if (process.env.NC_OP_LOG_DB) {
+      const opLogsConfig = await NcConfig.create({
+        meta: {
+          metaUrl: process.env.NC_OP_LOG_DB,
+        },
+      });
+      this._ncOperationLogs = new OperationLogsService(opLogsConfig);
+
+      const migrateOperationLogs =
+        !(await this.ncOperationLogs.knexConnection.schema.hasTable(
+          MetaTable.OPERATION_LOGS,
+        ));
+
+      await this.ncOperationLogs.init();
+
+      if (migrateOperationLogs) {
+        await this.migrateOperationLogsFromMeta();
+      }
+    }
+  }
+
   private static async migrateChatMessagesFromMeta() {
     const batchSize = 500;
     let offset = 0;
@@ -169,6 +192,53 @@ export default class Noco extends NocoCE {
       if (batch.length < batchSize) {
         logger.log(
           `Migration of doc content completed. Migrated ${processedCount} records.`,
+        );
+        hasMoreRecords = false;
+      }
+    }
+  }
+
+  private static async migrateOperationLogsFromMeta() {
+    // OPERATION_LOGS originally lives in the meta DB (v0 migration creates
+    // it there). When NC_OP_LOG_DB is configured for the first time, copy
+    // existing rows across so undo/redo history survives the switchover.
+    const hasOpLogsTable = await this.ncMeta.knexConnection.schema.hasTable(
+      MetaTable.OPERATION_LOGS,
+    );
+    if (!hasOpLogsTable) return;
+
+    const batchSize = 500;
+    let offset = 0;
+    let processedCount = 0;
+    let hasMoreRecords = true;
+
+    while (hasMoreRecords) {
+      const batch = await this.ncMeta
+        .knexConnection(MetaTable.OPERATION_LOGS)
+        .select('*')
+        .orderBy('id', 'asc')
+        .limit(batchSize)
+        .offset(offset);
+
+      if (batch.length === 0) {
+        hasMoreRecords = false;
+        break;
+      }
+
+      await this.ncOperationLogs
+        .knexConnection(MetaTable.OPERATION_LOGS)
+        .insert(batch);
+
+      processedCount += batch.length;
+      offset += batchSize;
+
+      if (processedCount % 10000 === 0) {
+        logger.log(`Migrated ${processedCount} operation log records...`);
+      }
+
+      if (batch.length < batchSize) {
+        logger.log(
+          `Migration of operation logs completed. Migrated ${processedCount} records.`,
         );
         hasMoreRecords = false;
       }

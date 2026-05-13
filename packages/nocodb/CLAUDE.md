@@ -194,7 +194,7 @@ Migration order in `getMigrations()` is determined by the array, not the filenam
 
 ### Satellite Database Migrations
 
-Tables whose size is driven by user input (unbounded growth + large payloads) are **satellite candidates** — they can be offloaded to a separate DB via env var (`NC_AUDIT_DB`, `NC_DOCS_DB`). Current satellites: `nc_audit`, `nc_doc_content`. Normal meta tables (columns, views, filters) are bounded and do NOT qualify.
+Tables whose size is driven by user input (unbounded growth + large payloads) are **satellite candidates** — they can be offloaded to a separate DB via env var (`NC_AUDIT_DB`, `NC_DOCS_DB`, `NC_CHAT_DB`, `NC_OP_LOG_DB`). Current satellites: `nc_audit`, `nc_doc_content`, `nc_chat_messages`, `nc_operation_logs`. Normal meta tables (columns, views, filters) are bounded and do NOT qualify.
 
 Rules:
 - **No `NocoCache`** — satellite data is too large/volatile to cache. Read/write directly via Knex.

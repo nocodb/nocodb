@@ -71,7 +71,7 @@ export class OperationCleanupProcessor {
     let totalCleaned = 0;
 
     while (totalCleaned < MAX_PER_RUN) {
-      const batch: OpLogRow[] = await Noco.ncMeta
+      const batch: OpLogRow[] = await Noco.ncOperationLogs
         .knex(MetaTable.OPERATION_LOGS)
         .where('cleanup_due_at', '<=', now)
         .orderBy('cleanup_due_at', 'asc')
@@ -135,7 +135,7 @@ export class OperationCleanupProcessor {
     };
 
     const claimDeadline = new Date(Date.now() + CLAIM_HORIZON_MS).toISOString();
-    const claimed = await Noco.ncMeta
+    const claimed = await Noco.ncOperationLogs
       .knex(MetaTable.OPERATION_LOGS)
       .where('id', row.id)
       .where('cleanup_due_at', '<=', tickNow)
@@ -149,7 +149,7 @@ export class OperationCleanupProcessor {
         });
       }
 
-      await Noco.ncMeta
+      await Noco.ncOperationLogs
         .knex(MetaTable.OPERATION_LOGS)
         .where('id', row.id)
         .delete();

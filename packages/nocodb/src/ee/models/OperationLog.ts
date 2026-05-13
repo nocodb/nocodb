@@ -102,7 +102,7 @@ export default class OperationLog implements OperationLogType {
   public static async insert(
     context: NcContext,
     input,
-    ncMeta: MetaService = Noco.ncMeta,
+    ncMeta: MetaService = Noco.ncOperationLogs,
   ): Promise<OperationLog> {
     let insertData = extractProps(input, [
       'fk_user_id',
@@ -153,7 +153,7 @@ export default class OperationLog implements OperationLogType {
   public static async getLatestActive(
     context: NcContext,
     key: OperationLogLookupKey,
-    ncMeta: MetaService = Noco.ncMeta,
+    ncMeta: MetaService = Noco.ncOperationLogs,
   ): Promise<OperationLog | null> {
     // Active stack: most-recently-performed op = highest insertion seq.
     return this.getLatestByStatus(context, key, 'active', 'seq', ncMeta);
@@ -162,7 +162,7 @@ export default class OperationLog implements OperationLogType {
   public static async getLatestUndone(
     context: NcContext,
     key: OperationLogLookupKey,
-    ncMeta: MetaService = Noco.ncMeta,
+    ncMeta: MetaService = Noco.ncOperationLogs,
   ): Promise<OperationLog | null> {
     // Undone stack: most-recently-undone op = greatest `undone_at`. Ordering
     // by `seq` here would let redo pick a later op whose dependencies are
@@ -176,7 +176,7 @@ export default class OperationLog implements OperationLogType {
     context: NcContext,
     key: OperationLogLookupKey,
     status: OperationLogStatus,
-    ncMeta: MetaService = Noco.ncMeta,
+    ncMeta: MetaService = Noco.ncOperationLogs,
   ): Promise<number> {
     if (!key.scopes.length) return 0;
     const qb = ncMeta.knex(MetaTable.OPERATION_LOGS);
@@ -196,7 +196,7 @@ export default class OperationLog implements OperationLogType {
       undone_at?: Date | string | null;
       meta?: Record<string, any>;
     } = {},
-    ncMeta: MetaService = Noco.ncMeta,
+    ncMeta: MetaService = Noco.ncOperationLogs,
   ): Promise<void> {
     let updateObj = extractProps({ status, ...extra }, [
       'status',
@@ -222,7 +222,7 @@ export default class OperationLog implements OperationLogType {
   public static async bumpCleanupDueAt(
     context: NcContext,
     id: string,
-    ncMeta: MetaService = Noco.ncMeta,
+    ncMeta: MetaService = Noco.ncOperationLogs,
   ): Promise<void> {
     const next = new Date(Date.now() + RETRY_BACKOFF_MS).toISOString();
     await ncMeta.metaUpdate(
@@ -237,7 +237,7 @@ export default class OperationLog implements OperationLogType {
   public static async bumpRetentionForScope(
     context: NcContext,
     key: OperationLogLookupKey,
-    ncMeta: MetaService = Noco.ncMeta,
+    ncMeta: MetaService = Noco.ncOperationLogs,
   ): Promise<void> {
     if (!key.scopes.length) return;
     const nextDue = new Date(Date.now() + RETENTION_MS).toISOString();
@@ -262,7 +262,7 @@ export default class OperationLog implements OperationLogType {
   public static async discardUndoneForTab(
     context: NcContext,
     key: OperationLogLookupKey,
-    ncMeta: MetaService = Noco.ncMeta,
+    ncMeta: MetaService = Noco.ncOperationLogs,
   ): Promise<void> {
     if (!key.scopes.length) return;
     const qb = ncMeta.knex(MetaTable.OPERATION_LOGS);

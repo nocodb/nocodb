@@ -68,6 +68,8 @@ export const removeBlankPropsAndMask = (
     'base_id',
     'source_id',
     'fk_workspace_id',
+    // sensitive — never include in audit diffs
+    'password',
   ];
 
   if (obj === null || obj === undefined) return obj;
@@ -106,6 +108,11 @@ const systemColumns = [
   'fk_model_id',
 ];
 
+// Properties that must never end up in nc_audit.details. Stripped universally
+// by extractNonSystemProps so any current/future audit emit path is safe even
+// if a service forgets to mask its event payload.
+const sensitiveProps = ['password'];
+
 /**
  * Extracts property values from a previous object using the keys from a new object.
  * @param prev The previous object.
@@ -139,6 +146,7 @@ export function extractNonSystemProps<T>(
         return (
           (includeNulls || val !== null) &&
           !systemColumns.includes(key) &&
+          !sensitiveProps.includes(key) &&
           !additionalExcludeProps?.includes(key)
         );
       })

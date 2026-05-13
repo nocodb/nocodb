@@ -741,14 +741,3 @@ export enum MapProvider {
 
 /** Default org ID for on-prem deployments */
 export const NC_DEFAULT_ORG_ID = 'org_default';
-
-/**
- * Sentinel value the backend returns in `view.password` / `dashboard.password`
- * when a password is set. The bcrypt hash never leaves the backend; the
- * frontend sees this sentinel and renders a masked state instead.
- *
- * The frontend echoes this value back on subsequent updates to signal
- * "password unchanged" — the backend strips it from the update payload
- * so the stored hash is not re-hashed.
- */
-export const NC_VIEW_PASSWORD_PROTECTED_SENTINEL = 'NC_DEFAULT';

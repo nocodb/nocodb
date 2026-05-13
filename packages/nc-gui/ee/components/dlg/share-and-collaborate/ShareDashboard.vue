@@ -103,11 +103,11 @@ const togglePasswordProtected = async () => {
   }
 }
 
-const saveNewPassword = async (newValue: string) => {
-  if (!activeDashboard.value || !activeProjectId.value) return
+const saveNewPassword = async (newValue: string): Promise<boolean> => {
+  if (!activeDashboard.value || !activeProjectId.value) return false
   const trimmed = (newValue ?? '').trim()
-  if (!trimmed) return
-  if (isUpdating.value.password) return
+  if (!trimmed) return false
+  if (isUpdating.value.password) return false
 
   isUpdating.value.password = true
   try {
@@ -121,8 +121,10 @@ const saveNewPassword = async (newValue: string) => {
     }
     newPasswordDraft.value = ''
     passwordProtectedLocal.value = false
+    return true
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+    return false
   } finally {
     isUpdating.value.password = false
   }
@@ -133,8 +135,9 @@ const openChangePasswordModal = () => {
 }
 
 const onPasswordChanged = async (newValue: string) => {
-  await saveNewPassword(newValue)
-  isChangePasswordModalOpen.value = false
+  const ok = await saveNewPassword(newValue)
+  // Keep the modal open on failure so the user can retry without losing input.
+  if (ok) isChangePasswordModalOpen.value = false
 }
 
 const toggleShare = async () => {

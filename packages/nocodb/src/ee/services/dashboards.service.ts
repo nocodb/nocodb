@@ -666,6 +666,12 @@ export class DashboardsService {
           updateData,
         );
 
+        // Strip the bcrypt hash before the dashboard flows through emits or
+        // the return path — no event listener should ever see it.
+        newDashboard = Dashboard.maskPasswordForResponse(
+          newDashboard as Dashboard,
+        );
+
         this.appHooksService.emit(AppEvents.SHARED_DASHBOARD_UPDATE_LINK, {
           context,
           req,
@@ -700,6 +706,12 @@ export class DashboardsService {
 
       newDashboard = await Dashboard.update(context, dashboard.id, updateData);
 
+      // Strip the bcrypt hash before the dashboard flows through emits or
+      // the return path — no event listener should ever see it.
+      newDashboard = Dashboard.maskPasswordForResponse(
+        newDashboard as Dashboard,
+      );
+
       this.appHooksService.emit(AppEvents.SHARED_DASHBOARD_GENERATE_LINK, {
         context,
         req,
@@ -713,8 +725,7 @@ export class DashboardsService {
       });
     }
 
-    // Strip the bcrypt password hash before returning to the owner UI.
-    return Dashboard.maskPasswordForResponse(newDashboard as Dashboard);
+    return newDashboard as Dashboard;
   }
   private getUrl({
     dashboard,

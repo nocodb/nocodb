@@ -1,5 +1,6 @@
 import DashboardCE from 'src/models/Dashboard';
 import {
+  isBcryptHash,
   ModelTypes,
   NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
   PlanLimitTypes,
@@ -240,7 +241,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     //  - Plaintext → hash with bcrypt before storage.
     if (
       updateObj.password === NC_VIEW_PASSWORD_PROTECTED_SENTINEL ||
-      Dashboard.isHashedPassword(updateObj.password)
+      isBcryptHash(updateObj.password)
     ) {
       delete updateObj.password;
     } else if (updateObj.password) {
@@ -272,13 +273,6 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     return this.get(context, dashboardId, false, ncMeta);
   }
 
-  static isHashedPassword(password?: string | null): boolean {
-    return (
-      typeof password === 'string' &&
-      (password.startsWith('$2a$') || password.startsWith('$2b$'))
-    );
-  }
-
   /**
    * Mask the stored password value before returning a dashboard to an
    * owner-facing API consumer. Mirrors `View.maskPasswordForResponse`.
@@ -295,7 +289,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     dashboard: T,
   ): T {
     if (!dashboard || !dashboard.password) return dashboard;
-    if (!Dashboard.isHashedPassword(dashboard.password)) return dashboard;
+    if (!isBcryptHash(dashboard.password)) return dashboard;
     return { ...dashboard, password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL };
   }
 
@@ -307,10 +301,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     if (!inputPassword) return false;
 
     // Support bcrypt hashed passwords
-    if (
-      dashboard.password.startsWith('$2a$') ||
-      dashboard.password.startsWith('$2b$')
-    ) {
+    if (isBcryptHash(dashboard.password)) {
       return bcrypt.compare(inputPassword, dashboard.password);
     }
 

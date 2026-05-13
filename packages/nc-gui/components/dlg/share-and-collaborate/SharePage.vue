@@ -160,11 +160,19 @@ const togglePasswordProtected = async () => {
   isUpdating.value.password = true
   try {
     if (wasProtected) {
-      // Turning OFF — clear stored password.
+      // Turning OFF — clear stored password. Persist first; only flip local
+      // state on confirmed success so a backend failure doesn't leave the UI
+      // claiming the password was removed when the hash is still stored.
+      const prevPassword = (activeView.value as any).password
+      const ok = await updateSharedView({ password: null })
+      if (!ok) {
+        // Restore so the toggle/text reflect the still-stored password.
+        activeView.value = { ...(activeView.value as any), password: prevPassword }
+        return
+      }
       passwordProtectedLocal.value = false
       newPasswordDraft.value = ''
       activeView.value = { ...(activeView.value as any), password: null }
-      await updateSharedView({ password: null })
     } else {
       // Turning ON — open the toggle locally; backend stays unchanged until
       // the user actually enters a password. Don't send a password update
@@ -176,15 +184,16 @@ const togglePasswordProtected = async () => {
   }
 }
 
-const saveNewPassword = async (newValue: string) => {
-  if (!activeView.value) return
+const saveNewPassword = async (newValue: string): Promise<boolean> => {
+  if (!activeView.value) return false
   const trimmed = (newValue ?? '').trim()
-  if (!trimmed) return
-  if (isUpdating.value.password) return
+  if (!trimmed) return false
+  if (isUpdating.value.password) return false
 
   isUpdating.value.password = true
   try {
-    await updateSharedView({ password: trimmed })
+    const ok = await updateSharedView({ password: trimmed })
+    if (!ok) return false
     // Backend echoes the sentinel back on the next read; reflect that locally
     // so the UI immediately switches to the masked/locked state.
     activeView.value = {
@@ -193,6 +202,7 @@ const saveNewPassword = async (newValue: string) => {
     }
     newPasswordDraft.value = ''
     passwordProtectedLocal.value = false
+    return true
   } finally {
     isUpdating.value.password = false
   }
@@ -204,8 +214,9 @@ const openChangePasswordModal = () => {
 }
 
 const onPasswordChanged = async (newValue: string) => {
-  await saveNewPassword(newValue)
-  isChangePasswordModalOpen.value = false
+  const ok = await saveNewPassword(newValue)
+  // Keep the modal open on failure so the user can retry without losing input.
+  if (ok) isChangePasswordModalOpen.value = false
 }
 
 const withLanguage = computed({
@@ -470,28 +481,28 @@ async function saveTheme() {
 }
 
 async function updateSharedView(arg?: string | null | { password?: string | null; custUrl?: string | null }) {
+  if (!activeView.value?.meta) return false
+  const meta = activeView.value.meta
+
+  // Backwards-compatible signature: legacy callers (CustomUrl child) pass
+  // the custom URL as a positional `string | null` argument; new callers
+  // pass an options object so they can also signal a password change.
+  let custUrl: string | null | undefined
+  let passwordPayload: string | null
+  const isOptionsObject = arg !== null && typeof arg === 'object'
+  if (isOptionsObject) {
+    custUrl = arg.custUrl
+    passwordPayload = arg.password === undefined ? NC_VIEW_PASSWORD_PROTECTED_SENTINEL : arg.password
+  } else {
+    // string | null | undefined
+    custUrl = arg
+    // No explicit password change — send the sentinel so the backend
+    // knows to leave the stored value untouched. This is what prevents
+    // re-hashing the existing bcrypt hash on every unrelated toggle.
+    passwordPayload = NC_VIEW_PASSWORD_PROTECTED_SENTINEL
+  }
+
   try {
-    if (!activeView.value?.meta) return
-    const meta = activeView.value.meta
-
-    // Backwards-compatible signature: legacy callers (CustomUrl child) pass
-    // the custom URL as a positional `string | null` argument; new callers
-    // pass an options object so they can also signal a password change.
-    let custUrl: string | null | undefined
-    let passwordPayload: string | null
-    const isOptionsObject = arg !== null && typeof arg === 'object'
-    if (isOptionsObject) {
-      custUrl = arg.custUrl
-      passwordPayload = arg.password === undefined ? NC_VIEW_PASSWORD_PROTECTED_SENTINEL : arg.password
-    } else {
-      // string | null | undefined
-      custUrl = arg
-      // No explicit password change — send the sentinel so the backend
-      // knows to leave the stored value untouched. This is what prevents
-      // re-hashing the existing bcrypt hash on every unrelated toggle.
-      passwordPayload = NC_VIEW_PASSWORD_PROTECTED_SENTINEL
-    }
-
     // Get meta using base_id from activeView
     const metaInfo = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id)
     const res = await $api.internal.postOperation(
@@ -511,11 +522,11 @@ async function updateSharedView(arg?: string | null | { password?: string | null
     if (custUrl !== undefined) {
       activeView.value.fk_custom_url_id = res.fk_custom_url_id
     }
+    return true
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+    return false
   }
-
-  return true
 }
 
 async function savePreFilledMode() {

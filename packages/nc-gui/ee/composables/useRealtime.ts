@@ -1,4 +1,4 @@
-import { EventType, PlanLimitTypes, ViewTypes, getFirstNonPersonalView } from 'nocodb-sdk'
+import { EventType, PlanLimitTypes, ViewTypes, getFirstNonPersonalView, isBcryptHash } from 'nocodb-sdk'
 import type {
   DashboardPayload,
   DocumentCommentPayload,
@@ -261,12 +261,9 @@ export const useRealtime = createSharedComposable(() => {
 
         // Defense-in-depth: strip raw bcrypt hashes from broadcast payloads
         // so they never overwrite the locally masked sentinel. Null/empty
-        // (password cleared) and `NC_DEFAULT` (still set) both pass through.
+        // (password cleared) and the masked sentinel (still set) both pass through.
         const cleanPayload = { ...event.payload } as any
-        if (
-          typeof cleanPayload.password === 'string' &&
-          (cleanPayload.password.startsWith('$2a$') || cleanPayload.password.startsWith('$2b$'))
-        ) {
+        if (isBcryptHash(cleanPayload.password)) {
           delete cleanPayload.password
         }
         Object.assign(view, cleanPayload)
@@ -605,12 +602,9 @@ export const useRealtime = createSharedComposable(() => {
       case 'update': {
         // Defense-in-depth: strip raw bcrypt hashes from broadcast payloads
         // so they never overwrite the locally masked sentinel. Null/empty
-        // (password cleared) and `NC_DEFAULT` (still set) both pass through.
+        // (password cleared) and the masked sentinel (still set) both pass through.
         const cleanDashboard = { ...dashboard } as any
-        if (
-          typeof cleanDashboard.password === 'string' &&
-          (cleanDashboard.password.startsWith('$2a$') || cleanDashboard.password.startsWith('$2b$'))
-        ) {
+        if (isBcryptHash(cleanDashboard.password)) {
           delete cleanDashboard.password
         }
 

@@ -55,8 +55,13 @@ export class BasesService {
       req?: NcRequest;
     },
   ) {
+    // Pass workspaceId even for super admin: EE's Base.list override returns
+    // [] when called without one (cloud safety — see ee/models/Base.ts), so
+    // unlicensed on-prem (which falls back here via @EEOnly) would get an
+    // empty list. In true CE there is only one workspace, so filtering by
+    // it is equivalent to listing all.
     const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
-      ? await Base.list()
+      ? await Base.list(Noco.ncDefaultWorkspaceId)
       : await BaseUser.getProjectsList(param.user.id, {
           ...param.query,
           workspaceId: Noco.ncDefaultWorkspaceId,

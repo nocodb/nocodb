@@ -1,4 +1,5 @@
 import express from 'express';
+import cookieParser from 'cookie-parser';
 import request from 'supertest';
 import nocobuild from '../../../src/nocobuild';
 // import { Noco } from '../../../src/lib';
@@ -15,6 +16,10 @@ let nestApp: INestApplication<any>;
 const serverInit = async () => {
   const serverInstance = express();
   serverInstance.enable('trust proxy');
+  // cookie-parser mirrors production setup (Noco.init() registers it on the
+  // nestApp). nocobuild() doesn't, so add it on the outer express instance
+  // here — required for tests that exercise cookie-based flows (refresh token).
+  serverInstance.use(cookieParser());
   // serverInstance.use(await Noco.init());
   const { nestApp } = await nocobuild(serverInstance);
   serverInstance.use(function (req, res, next) {

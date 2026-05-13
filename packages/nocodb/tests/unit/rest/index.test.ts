@@ -1,6 +1,7 @@
 import 'mocha';
 import { willRunOnSet } from '../utils/runOnSet';
 import authTests from './tests/auth.test';
+import singleSessionLoginTests from './tests/single-session-login.test';
 import orgTests from './tests/org.test';
 import baseTests from './tests/base.test';
 import columnTypeSpecificTests from './tests/columnTypeSpecific.test';
@@ -65,6 +66,7 @@ const testVersion = ['v1', 'v2', 'v3'];
 function restTests() {
   if (willRunOnSet(1)) {
     authTests();
+    singleSessionLoginTests();
     orgTests();
     baseTests();
     tableRowTests();

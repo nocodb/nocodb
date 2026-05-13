@@ -304,6 +304,39 @@ function mfaTests() {
         .send({ token: 'invalid.jwt.token', code: '123456' })
         .expect(400);
     });
+
+    it('second MFA verify invalidates JWT from first MFA verify', async () => {
+      // Confirms that mfaVerify mints the JWT AFTER setRefreshToken rotates
+      // token_version. If the JWT were minted before rotation, the second
+      // verify's token would carry the now-old version and fail validation
+      // immediately — so the second token working is the proof.
+      //
+      // /auth/user/me falls back to a guest user on JWT failure (returns 200
+      // with roles.guest: true), so we assert via response body rather than
+      // status code.
+      const setupData = await enable2FA();
+
+      const isJwtValid = async (token: string) => {
+        const res = await request(context.app)
+          .get('/api/v1/auth/user/me')
+          .set('xc-auth', token)
+          .expect(200);
+        return (
+          res.body?.email === defaultUserArgs.email && !res.body?.roles?.guest
+        );
+      };
+
+      const firstToken = await mfaSigninForToken(setupData.secret);
+      expect(await isJwtValid(firstToken), 'first MFA token valid').to.be.true;
+
+      // Second MFA verify — rotates token_version + clears prior refresh tokens
+      const secondToken = await mfaSigninForToken(setupData.secret);
+
+      expect(await isJwtValid(firstToken), 'first MFA token invalidated').to.be
+        .false;
+      expect(await isJwtValid(secondToken), 'second MFA token valid').to.be
+        .true;
+    });
   });
 
   // --- Disable ---

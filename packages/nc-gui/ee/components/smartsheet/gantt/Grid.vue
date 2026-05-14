@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
+import { useStorage } from '@vueuse/core'
 import type { ColumnType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
@@ -98,6 +99,10 @@ onMounted(() => {
 const ROW_HEIGHT = 36
 const HEADER_HEIGHT = 32
 const SIDEBAR_WIDTH = 240
+
+// Persist sidebar collapsed state across page reloads, keyed globally — once
+// the user collapses the record list they likely want it collapsed everywhere.
+const sidebarCollapsed = useStorage('nc-gantt-sidebar-collapsed', false)
 
 const meta = inject(MetaInj, ref())
 
@@ -1457,16 +1462,26 @@ const onGridMouseLeave = () => {
   >
     <!-- Left record-list sidebar — only in flat (non-grouped) mode -->
     <div
-      v-if="!hideHeader"
+      v-if="!hideHeader && !sidebarCollapsed"
       class="nc-gantt-sidebar flex flex-col flex-shrink-0 border-r border-nc-border-gray-medium bg-nc-bg-default"
       :style="{ width: `${SIDEBAR_WIDTH}px` }"
       data-testid="nc-gantt-sidebar"
     >
       <div
-        class="flex items-center px-3 text-xs font-medium text-nc-content-gray-muted border-b border-nc-border-gray-medium flex-shrink-0"
+        class="flex items-center justify-between gap-2 px-3 text-xs font-medium text-nc-content-gray-muted border-b border-nc-border-gray-medium flex-shrink-0"
         :style="{ height: `${HEADER_HEIGHT + 1}px` }"
       >
-        {{ primaryField?.title || $t('labels.name') }}
+        <span class="truncate">{{ primaryField?.title || $t('labels.name') }}</span>
+        <NcTooltip :title="$t('title.hideSidebar')" placement="bottom">
+          <NcButton
+            size="xxsmall"
+            type="text"
+            data-testid="nc-gantt-sidebar-collapse"
+            @click="sidebarCollapsed = true"
+          >
+            <GeneralIcon icon="arrowLeft" class="!w-3.5 !h-3.5 text-nc-content-gray-muted" />
+          </NcButton>
+        </NcTooltip>
       </div>
       <div
         ref="sidebarScrollRef"
@@ -1489,7 +1504,26 @@ const onGridMouseLeave = () => {
     </div>
 
     <!-- Main pane: date header + scrollable grid body -->
-    <div class="flex flex-col flex-1 min-w-0 overflow-hidden">
+    <div class="flex flex-col flex-1 min-w-0 overflow-hidden relative">
+    <!-- Expand sidebar button — overlay at the top-left of the date header
+         when the record list is collapsed. Sits above the header on z-index
+         so it stays clickable even as the header scrolls. -->
+    <NcTooltip
+      v-if="!hideHeader && sidebarCollapsed"
+      :title="$t('title.showSidebar')"
+      placement="bottom"
+      class="absolute top-1.5 left-1.5 z-30"
+    >
+      <NcButton
+        size="xxsmall"
+        type="secondary"
+        data-testid="nc-gantt-sidebar-expand"
+        class="!bg-nc-bg-default"
+        @click="sidebarCollapsed = false"
+      >
+        <GeneralIcon icon="arrowRight" class="!w-3.5 !h-3.5 text-nc-content-gray-muted" />
+      </NcButton>
+    </NcTooltip>
     <!-- Date column headers (hidden when parent provides a shared header). -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
       <div ref="headerScrollRef" class="overflow-x-hidden" @mousemove="onHeaderMouseMove" @mouseleave="onGridMouseLeave">

@@ -756,13 +756,14 @@ export default class View implements ViewType {
             }
             // Show all Fields in Ranges
           } else if (view.type === ViewTypes.GANTT && !copyFromView) {
-            // Gantt has no cover image, just show range columns and primary value
-            if (rangeColumns && rangeColumns.includes(vCol.id)) {
-              show = true;
-            } else {
-              show = vCol.pv;
-            }
-            // Show all Fields in Ranges
+            // Gantt: show all non-system columns by default. The per-view
+            // DateDependency rule (start / end / predecessor / duration) is
+            // created AFTER View.insertMetaOnly returns, so rangeColumns is
+            // always empty here. The Fields panel lets users hide what they
+            // don't want — better default than hiding everything except the
+            // display value (which leaves bars labelless and the sidebar
+            // empty until the user manually toggles every field).
+            show = true;
           } else if (view.type === ViewTypes.MAP && !copyFromView) {
             const mapView = await MapView.get(context, view_id, ncMeta);
             if (vCol.id === mapView?.fk_geo_data_col_id) {
@@ -2833,10 +2834,14 @@ export default class View implements ViewType {
             show = false;
           }
         } else if (view.type === ViewTypes.GANTT) {
-          if (!calendarRangeColumns) break;
-          if (calendarRangeColumns.includes(column.id)) {
-            show = true;
-          }
+          // Gantt: show all non-system columns by default. The per-view
+          // DateDependency rule is created AFTER View.insertMetaOnly
+          // returns, so we can't filter by range columns here. The Fields
+          // panel lets users hide what they don't want — better default
+          // than the previous `break` which bailed before pushing any
+          // column and left the view with zero visible fields (bars
+          // labelless, sidebar empty).
+          show = !isSystemColumn(column);
         }
 
         insertObjs.push({

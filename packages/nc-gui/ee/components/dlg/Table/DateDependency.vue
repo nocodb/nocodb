@@ -575,7 +575,7 @@ watch(rule, () => {
             type="primary"
             size="small"
             :loading="isSaving"
-            :disabled="!hasChanges || hasValidationErrors"
+            :disabled="(!hasChanges && !ganttViewId) || hasValidationErrors"
             @click="save"
           >
             {{ $t('general.save') }}

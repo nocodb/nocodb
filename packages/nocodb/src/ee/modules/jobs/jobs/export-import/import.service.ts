@@ -10,6 +10,8 @@ import { type User, WorkspaceUser } from '~/models';
 import Document from '~/models/Document';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CalendarsService } from '~/services/calendars.service';
+import { TimelinesService } from '~/ee/services/timelines.service';
+import { GanttsService } from '~/ee/services/gantts.service';
 import { ColumnsService } from '~/services/columns.service';
 import { FiltersService } from '~/services/filters.service';
 import { FormColumnsService } from '~/services/form-columns.service';
@@ -57,6 +59,8 @@ export class ImportService extends ImportServiceCE {
     protected permissionsService: PermissionsService,
     protected workflowService: WorkflowsService,
     protected listsService: ListsService,
+    protected timelinesService: TimelinesService,
+    protected ganttsService: GanttsService,
   ) {
     super(
       tablesService,
@@ -86,6 +90,74 @@ export class ImportService extends ImportServiceCE {
     user: UserType,
     req: NcRequest,
   ): Promise<View> {
+    // Timeline — replays the source's `timeline_range` with remapped
+    // column ids onto the new view.
+    if (vw.type === ViewTypes.TIMELINE) {
+      const range = ((vw.view as any)?.timeline_range ?? []).map(
+        (r: { fk_from_column_id?: string; fk_to_column_id?: string }) => ({
+          fk_from_column_id: r.fk_from_column_id
+            ? idMap.get(r.fk_from_column_id) ?? r.fk_from_column_id
+            : undefined,
+          fk_to_column_id: r.fk_to_column_id
+            ? idMap.get(r.fk_to_column_id) ?? r.fk_to_column_id
+            : undefined,
+        }),
+      );
+      return await this.timelinesService.timelineViewCreate(context, {
+        tableId: md.id,
+        ownedBy: (vw as any).owned_by,
+        timeline: {
+          ...vw,
+          timeline_range: range,
+        } as ViewCreateReqType,
+        user: user as any,
+        req,
+      });
+    }
+
+    // Gantt — replays the source's per-view DateDependency rule (if any)
+    // alongside the view create. ganttViewCreate consumes the optional
+    // `dependency` parameter and inserts the rule with fk_gantt_view_id
+    // pointing at the new view.
+    if (vw.type === ViewTypes.GANTT) {
+      const sourceDep = (vw.view as any)?.date_dependency;
+      const dependency = sourceDep
+        ? {
+            is_active: sourceDep.is_active,
+            fk_start_date_field_id: sourceDep.fk_start_date_field_id
+              ? idMap.get(sourceDep.fk_start_date_field_id) ??
+                sourceDep.fk_start_date_field_id
+              : null,
+            fk_end_date_field_id: sourceDep.fk_end_date_field_id
+              ? idMap.get(sourceDep.fk_end_date_field_id) ??
+                sourceDep.fk_end_date_field_id
+              : null,
+            fk_duration_field_id: sourceDep.fk_duration_field_id
+              ? idMap.get(sourceDep.fk_duration_field_id) ??
+                sourceDep.fk_duration_field_id
+              : null,
+            fk_dependency_linkrow_field_id:
+              sourceDep.fk_dependency_linkrow_field_id
+                ? idMap.get(sourceDep.fk_dependency_linkrow_field_id) ??
+                  sourceDep.fk_dependency_linkrow_field_id
+                : null,
+            dependency_linkrow_role: sourceDep.dependency_linkrow_role,
+            dependency_connection_type: sourceDep.dependency_connection_type,
+            dependency_buffer_type: sourceDep.dependency_buffer_type,
+            dependency_buffer_days: sourceDep.dependency_buffer_days,
+            include_weekends: sourceDep.include_weekends,
+          }
+        : undefined;
+      return await this.ganttsService.ganttViewCreate(context, {
+        tableId: md.id,
+        ownedBy: (vw as any).owned_by,
+        gantt: vw as ViewCreateReqType,
+        dependency,
+        user: user as any,
+        req,
+      });
+    }
+
     if (vw.type !== ViewTypes.LIST) {
       return super.createView(context, idMap, md, vw, views, user, req);
     }

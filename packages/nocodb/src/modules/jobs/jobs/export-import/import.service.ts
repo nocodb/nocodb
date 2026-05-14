@@ -1838,8 +1838,14 @@ export class ImportService {
               (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
             );
             if (!fcl) continue;
+            // Calendar, Timeline and Gantt all expose per-column
+            // bold/italic/underline toggles via the Fields menu. Carry
+            // those across on duplicate so the new view inherits the
+            // source's formatting.
             const calendarColProperties =
-              vw.type === ViewTypes.CALENDAR
+              vw.type === ViewTypes.CALENDAR ||
+              vw.type === ViewTypes.TIMELINE ||
+              vw.type === ViewTypes.GANTT
                 ? {
                     bold: fcl.bold,
                     italic: fcl.italic,

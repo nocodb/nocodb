@@ -533,6 +533,58 @@ export class ExportService {
                   );
                 }
                 break;
+              case 'timeline_range':
+                // Timeline range arrays are loaded onto view.view by
+                // TimelineView.get. Remap column refs to external ids so the
+                // importer's idMap lookup resolves to the target table's
+                // columns (mirrors calendar_range above).
+                if (view.type === ViewTypes.TIMELINE) {
+                  const range = view.view[k] as any[];
+                  view.view[k] = (range ?? []).map(
+                    (r: {
+                      fk_from_column_id?: string;
+                      fk_to_column_id?: string;
+                    }) => ({
+                      fk_from_column_id: idMap.get(r.fk_from_column_id),
+                      fk_to_column_id: r.fk_to_column_id
+                        ? idMap.get(r.fk_to_column_id)
+                        : null,
+                    }),
+                  );
+                }
+                break;
+              case 'date_dependency':
+                // Per-view DateDependency rule eager-loaded onto view.view by
+                // GanttView.get. Remap every field id ref so the importer
+                // can reconstruct the rule against the new table's columns.
+                if (view.type === ViewTypes.GANTT) {
+                  const dep = view.view[k] as any;
+                  if (dep) {
+                    view.view[k] = {
+                      is_active: dep.is_active,
+                      fk_start_date_field_id: dep.fk_start_date_field_id
+                        ? idMap.get(dep.fk_start_date_field_id)
+                        : null,
+                      fk_end_date_field_id: dep.fk_end_date_field_id
+                        ? idMap.get(dep.fk_end_date_field_id)
+                        : null,
+                      fk_duration_field_id: dep.fk_duration_field_id
+                        ? idMap.get(dep.fk_duration_field_id)
+                        : null,
+                      fk_dependency_linkrow_field_id:
+                        dep.fk_dependency_linkrow_field_id
+                          ? idMap.get(dep.fk_dependency_linkrow_field_id)
+                          : null,
+                      dependency_linkrow_role: dep.dependency_linkrow_role,
+                      dependency_connection_type:
+                        dep.dependency_connection_type,
+                      dependency_buffer_type: dep.dependency_buffer_type,
+                      dependency_buffer_days: dep.dependency_buffer_days,
+                      include_weekends: dep.include_weekends,
+                    };
+                  }
+                }
+                break;
 
               case 'created_at':
               case 'updated_at':

@@ -5601,6 +5601,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           displaced.push({
             kind: 'column',
             modelId: this.model.id,
+            baseId: this.model.base_id,
             pk: String(conflictPk),
             column: col.column_name,
             prev: r[col.column_name],

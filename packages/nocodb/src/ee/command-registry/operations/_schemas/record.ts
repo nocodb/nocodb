@@ -10,6 +10,7 @@ const displacedColumnSchema = z
   .object({
     kind: z.literal('column'),
     modelId: z.string(),
+    baseId: z.string(),
     pk: z.string(),
     column: z.string(),
     prev: z.unknown(),
@@ -22,6 +23,7 @@ const displacedJunctionSchema = z
   .object({
     kind: z.literal('junction'),
     mmModelId: z.string(),
+    baseId: z.string(),
     colId: z.string(),
     parentMMCol: z.string(),
     childMMCol: z.string(),
@@ -41,6 +43,7 @@ export const linkChangeSchema = z
   .object({
     op: z.enum(['add', 'remove']),
     colId: z.string(),
+    baseId: z.string(),
     rowId: z.string(),
     childIds: z.array(z.union([z.string(), z.number()])),
   })

@@ -26,8 +26,31 @@ interface OpLogRow {
   meta?: string | Record<string, unknown> | null;
 }
 
+interface MacroTranscriptEntryShape {
+  extra?: { backup?: ColumnBackupRef } & Record<string, unknown>;
+}
+
 interface OpLogMeta {
+  /** Top-level capture from a non-macro op (e.g. `columnUpdate`). */
   backup?: ColumnBackupRef;
+  /** Macro ops persist children in this transcript; each entry's
+   *  `extra` is a `Partial<CaptureBag>` and may carry its own backup
+   *  ref. Macro children don't write their own log row, so their
+   *  backups are only reachable here — without this, they'd leak. */
+  macroTranscript?: ReadonlyArray<MacroTranscriptEntryShape>;
+}
+
+/** Collect every `ColumnBackupRef` reachable from this row's meta —
+ *  top-level + every macro-transcript child. */
+function collectBackupRefs(meta: OpLogMeta): ColumnBackupRef[] {
+  const refs: ColumnBackupRef[] = [];
+  if (meta.backup) refs.push(meta.backup);
+  if (Array.isArray(meta.macroTranscript)) {
+    for (const entry of meta.macroTranscript) {
+      if (entry?.extra?.backup) refs.push(entry.extra.backup);
+    }
+  }
+  return refs;
 }
 
 /**
@@ -143,10 +166,9 @@ export class OperationCleanupProcessor {
     if (!claimed) return false;
 
     try {
-      if (meta.backup) {
-        await this.columnDataBackupHandler.drop(context, {
-          backupRef: meta.backup,
-        });
+      const backupRefs = collectBackupRefs(meta);
+      for (const backupRef of backupRefs) {
+        await this.columnDataBackupHandler.drop(context, { backupRef });
       }
 
       await Noco.ncOperationLogs

@@ -13,7 +13,7 @@ import {
   scopeRecordOp,
   stripServerControlledFields,
 } from './_shared';
-import type { RecordDeleteExtra } from './_shared';
+import type { RecordDeleteExtra, ReplaySkip } from './_shared';
 import type {
   DisplacedRecord,
   OperationContract,
@@ -210,11 +210,15 @@ export function registerBulkDeleteHandlers(
         } as any);
       }
 
-      await restoreDisplaced(
-        context,
-        pickFreshestList<DisplacedRecord>(meta, params, 'displacedRecords'),
-        meta.originalReq,
-      );
+      const skipped: ReplaySkip[] = [
+        ...(await restoreDisplaced(
+          context,
+          pickFreshestList<DisplacedRecord>(meta, params, 'displacedRecords'),
+          meta.originalReq,
+        )),
+      ];
+
+      return skipped.length ? { skipped } : undefined;
     },
   );
 }

@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { type NcContext } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
-import type { OnModuleInit } from '@nestjs/common';
 import type { IColumnDataBackupHandler } from './column-data-backup-handler.types';
 import type {
   ColumnBackupRef,
@@ -9,28 +8,22 @@ import type {
 } from '~/services/column-data-backup-handler';
 import type { Column } from '~/models';
 import { Model } from '~/models';
-import { JobTypes } from '~/interface/Jobs';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/ncError';
-import { NocoJobsService } from '~/services/noco-jobs.service';
 import { MysqlColumnDataBackup } from '~/services/column-data-backup-handler/mysql-column-data-backup';
 import { PgColumnDataBackup } from '~/services/column-data-backup-handler/pg-column-data-backup';
 import { SqliteColumnDataBackup } from '~/services/column-data-backup-handler/sqlite-column-data-backup';
-
-const OPERATION_CLEANUP_CRON = '7 * * * *';
 
 const COLUMN_NAME_MAX_LEN = 28;
 const SHORT_NANO = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 6);
 
 @Injectable()
-export class ColumnDataBackupHandler
-  implements IColumnDataBackupHandler, OnModuleInit
-{
+export class ColumnDataBackupHandler implements IColumnDataBackupHandler {
   private readonly logger = new Logger(ColumnDataBackupHandler.name);
 
   private readonly drivers: Record<string, ColumnDataBackupDriver> = {};
 
-  constructor(private readonly nocoJobsService: NocoJobsService) {
+  constructor() {
     const pg = new PgColumnDataBackup();
     const mysql = new MysqlColumnDataBackup();
     const sqlite = new SqliteColumnDataBackup();
@@ -45,27 +38,6 @@ export class ColumnDataBackupHandler
 
     this.drivers[sqlite.dbDriverName] = sqlite;
     this.drivers['sqlite3'] = sqlite;
-  }
-
-  /**
-   * Schedule the operation-cleanup cron. Mirrors `BaseTrashService.onModuleInit`:
-   * remove any existing schedule (in case the cron expression was changed in
-   * a prior deploy) then re-add. `jobId` keys the schedule so duplicate calls
-   * across worker processes are deduped by Bull.
-   */
-  async onModuleInit() {
-    if (!this.nocoJobsService?.jobsQueue) return;
-    await this.nocoJobsService.jobsQueue.removeRepeatable({
-      jobId: JobTypes.OperationCleanup,
-      cron: OPERATION_CLEANUP_CRON,
-    });
-    await this.nocoJobsService.jobsQueue.add(
-      { jobName: JobTypes.OperationCleanup },
-      {
-        jobId: JobTypes.OperationCleanup,
-        repeat: { cron: OPERATION_CLEANUP_CRON },
-      },
-    );
   }
 
   /**

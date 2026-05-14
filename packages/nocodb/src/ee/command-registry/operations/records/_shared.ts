@@ -32,6 +32,16 @@ function withBaseId(context: NcContext, baseId?: string): NcContext {
 
 export const logger = new Logger('record.operations');
 
+export type ReplaySkipReason =
+  | 'column_missing'
+  | 'model_missing'
+  | 'junction_column_missing';
+
+export interface ReplaySkip {
+  reason: ReplaySkipReason;
+  ref: string;
+}
+
 /**
  * Forward-params shape for `recordInsert`. Loose-typed because v1 and
  * v2 paths share this contract; per-shape validation happens at the
@@ -295,15 +305,25 @@ export function stripServerControlledFields(
  *  'remove' → addLinks. Resolves the owner-side baseModel via the
  *  LTAR column's owning model (NOT necessarily the operation's primary
  *  modelId — the column may live on a related table when the body
- *  update touched a foreign-table LTAR field). */
+ *  update touched a foreign-table LTAR field).
+ *
+ *  Returns a `ReplaySkip` when the LTAR column has been deleted since the
+ *  forward op recorded the change; returns `null` on success. Callers
+ *  should accumulate skips and let the dispatcher surface them as
+ *  `partial` instead of aborting siblings in the loop. */
 export async function invertLinkChange(
   context: NcContext,
   lc: LinkChange,
   originalReq: NcRequest,
-): Promise<void> {
+): Promise<ReplaySkip | null> {
   const colCtx = withBaseId(context, lc.baseId);
   const col = await ColumnModel.get(colCtx, { colId: lc.colId });
-  if (!col) return;
+  if (!col) {
+    logger.warn(
+      `invertLinkChange: column ${lc.colId} not found — skipping (likely deleted since forward op)`,
+    );
+    return { reason: 'column_missing', ref: lc.colId };
+  }
   const ownerModel = await col.getModel(colCtx);
   const ownerContext = { ...context, base_id: ownerModel.base_id };
   const ownerSource = await Source.get(ownerContext, ownerModel.source_id);
@@ -323,23 +343,37 @@ export async function invertLinkChange(
   } else {
     await ownerBaseModel.addLinks(args);
   }
+  return null;
 }
 
-/** Map a captured V2 junction `DisplacedRecord` to the
- *  `(rowId, childIds)` shape `addLinks` / `removeLinks` expects. */
-export async function resolveJunctionLinkSides(
-  context: NcContext,
-  dr: Extract<DisplacedRecord, { kind: 'junction' }>,
-): Promise<{
+export type JunctionLinkSides = {
   colId: string;
   rowId: string;
   childIds: (string | number)[];
   ownerBaseModel: Awaited<ReturnType<typeof Model.getBaseModelSQL>>;
-}> {
+};
+
+/** Map a captured V2 junction `DisplacedRecord` to the
+ *  `(rowId, childIds)` shape `addLinks` / `removeLinks` expects. Returns
+ *  a `ReplaySkip` when the junction column has been deleted since the
+ *  forward op recorded the displacement — callers must check the
+ *  discriminator and either continue the iteration or surface the skip. */
+export async function resolveJunctionLinkSides(
+  context: NcContext,
+  dr: Extract<DisplacedRecord, { kind: 'junction' }>,
+): Promise<
+  { ok: true; sides: JunctionLinkSides } | { ok: false; skip: ReplaySkip }
+> {
   const colCtx = withBaseId(context, dr.baseId);
   const col = await ColumnModel.get(colCtx, { colId: dr.colId });
   if (!col) {
-    throw new Error(`junction restore: column ${dr.colId} not found`);
+    logger.warn(
+      `resolveJunctionLinkSides: column ${dr.colId} not found — skipping junction restore`,
+    );
+    return {
+      ok: false,
+      skip: { reason: 'junction_column_missing', ref: dr.colId },
+    };
   }
   const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(colCtx);
   const ownerModel = await col.getModel(colCtx);
@@ -358,10 +392,13 @@ export async function resolveJunctionLinkSides(
   const otherPk = isOwnSideChild ? dr.parentValue : dr.childValue;
 
   return {
-    colId: dr.colId,
-    rowId: String(ownPk),
-    childIds: [otherPk],
-    ownerBaseModel,
+    ok: true,
+    sides: {
+      colId: dr.colId,
+      rowId: String(ownPk),
+      childIds: [otherPk],
+      ownerBaseModel,
+    },
   };
 }
 
@@ -507,12 +544,17 @@ export async function linkSwapBefore(context: NcContext, params: RecordParams) {
 /** Replays `displacedRecords` forward — re-applies the FK / junction
  *  mutations the original insert performed, so trash-restore's
  *  link-conflict detector sees the same world the forward op did. Used
- *  by `recordInsert`/`recordBulkInsert` redo on the trashId branch. */
+ *  by `recordInsert`/`recordBulkInsert` redo on the trashId branch.
+ *
+ *  Returns the list of per-entry skips (missing model / missing junction
+ *  column). Sibling entries continue to run — partial reapply is better
+ *  than aborting after a few entries already wrote. */
 export async function reapplyDisplacedForward(
   context: NcContext,
   displaced: ReadonlyArray<DisplacedRecord>,
   originalReq: NcRequest,
-): Promise<void> {
+): Promise<ReadonlyArray<ReplaySkip>> {
+  const skips: ReplaySkip[] = [];
   for (const dr of displaced) {
     if (dr.kind === 'column') {
       if (!dr.forward) continue;
@@ -526,7 +568,13 @@ export async function reapplyDisplacedForward(
       }
       const drCtx = withBaseId(context, dr.baseId);
       const drModel = await Model.get(drCtx, dr.modelId);
-      if (!drModel) continue;
+      if (!drModel) {
+        logger.warn(
+          `reapplyDisplacedForward: model ${dr.modelId} not found — skipping displaced row pk=${dr.pk}`,
+        );
+        skips.push({ reason: 'model_missing', ref: dr.modelId });
+        continue;
+      }
       const drContext = { ...context, base_id: drModel.base_id };
       await drModel.getColumns(drContext);
       if (!drModel.primaryKey) continue;
@@ -551,15 +599,20 @@ export async function reapplyDisplacedForward(
           .where(drWherePk);
       }
     } else if (dr.kind === 'junction') {
-      const link = await resolveJunctionLinkSides(context, dr);
-      await link.ownerBaseModel.removeLinks({
-        colId: link.colId,
-        rowId: link.rowId,
-        childIds: link.childIds,
+      const linkRes = await resolveJunctionLinkSides(context, dr);
+      if ('skip' in linkRes) {
+        skips.push(linkRes.skip);
+        continue;
+      }
+      await linkRes.sides.ownerBaseModel.removeLinks({
+        colId: linkRes.sides.colId,
+        rowId: linkRes.sides.rowId,
+        childIds: linkRes.sides.childIds,
         cookie: originalReq,
       });
     }
   }
+  return skips;
 }
 
 /** Pick the freshest single-row prev snapshot for an undo handler.
@@ -639,17 +692,27 @@ export function buildRedoMetaUpdate<K extends CaptureKey>(
 }
 
 /** Restores `displacedRecords` to their pre-mutation state — reverses
- *  what `reapplyDisplacedForward` does. Used by all undo handlers. */
+ *  what `reapplyDisplacedForward` does. Used by all undo handlers.
+ *
+ *  Returns the list of per-entry skips so the handler can surface them
+ *  as a partial-undo signal rather than reporting full success. */
 export async function restoreDisplaced(
   context: NcContext,
   displaced: ReadonlyArray<DisplacedRecord>,
   originalReq: NcRequest,
-): Promise<void> {
+): Promise<ReadonlyArray<ReplaySkip>> {
+  const skips: ReplaySkip[] = [];
   for (const dr of displaced) {
     if (dr.kind === 'column') {
       const drCtx = withBaseId(context, dr.baseId);
       const drModel = await Model.get(drCtx, dr.modelId);
-      if (!drModel) continue;
+      if (!drModel) {
+        logger.warn(
+          `restoreDisplaced: model ${dr.modelId} not found — skipping displaced row pk=${dr.pk}`,
+        );
+        skips.push({ reason: 'model_missing', ref: dr.modelId });
+        continue;
+      }
       const drContext = { ...context, base_id: drModel.base_id };
       await drModel.getColumns(drContext);
       if (!drModel.primaryKey) continue;
@@ -674,15 +737,20 @@ export async function restoreDisplaced(
           .where(drWherePk);
       }
     } else if (dr.kind === 'junction') {
-      const link = await resolveJunctionLinkSides(context, dr);
-      await link.ownerBaseModel.addLinks({
-        colId: link.colId,
-        rowId: link.rowId,
-        childIds: link.childIds,
+      const linkRes = await resolveJunctionLinkSides(context, dr);
+      if ('skip' in linkRes) {
+        skips.push(linkRes.skip);
+        continue;
+      }
+      await linkRes.sides.ownerBaseModel.addLinks({
+        colId: linkRes.sides.colId,
+        rowId: linkRes.sides.rowId,
+        childIds: linkRes.sides.childIds,
         cookie: originalReq,
       });
     }
   }
+  return skips;
 }
 
 /**

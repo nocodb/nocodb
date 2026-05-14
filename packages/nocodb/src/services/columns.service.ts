@@ -6700,10 +6700,16 @@ export class ColumnsService implements IColumnsService {
           req: param.req,
         });
       } catch (e: any) {
+        this.logger.error(
+          `View column visibility update failed (view=${v.viewId} column=${v.columnId}): ${e?.message}`,
+          e?.stack,
+        );
+        const safeError =
+          e instanceof NcBaseError ? e.message : 'Visibility update failed';
         failedVisibility.push({
           viewId: v.viewId,
           columnId: v.columnId,
-          error: e?.message ?? 'visibility update failed',
+          error: safeError,
         });
       }
     }

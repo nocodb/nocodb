@@ -10,7 +10,7 @@ import {
   scopeRecordOp,
   stripServerControlledFields,
 } from './_shared';
-import type { RecordInsertExtra } from './_shared';
+import type { RecordInsertExtra, ReplaySkip } from './_shared';
 import type {
   DisplacedRecord,
   OperationContract,
@@ -101,7 +101,7 @@ export function registerBulkInsertHandlers(
     async (context, params, meta) => {
       const trashId = meta.extra?.softDeleteTrashId;
       if (trashId) {
-        await reapplyDisplacedForward(
+        const skipped = await reapplyDisplacedForward(
           context,
           meta.extra?.displacedRecords ?? [],
           meta.originalReq,
@@ -112,7 +112,10 @@ export function registerBulkInsertHandlers(
           req: meta.originalReq,
           force: true,
         });
-        return { metaUpdate: { softDeleteTrashId: null } };
+        return {
+          metaUpdate: { softDeleteTrashId: null },
+          ...(skipped.length ? { skipped } : {}),
+        };
       }
 
       const { modelId, model } = await resolveReplayModel(
@@ -121,7 +124,10 @@ export function registerBulkInsertHandlers(
         meta,
         'recordBulkInsert',
       );
-      const rows = (params.body as any[]).map((r) =>
+      if (!Array.isArray(params.body)) {
+        throw new Error(`recordBulkInsert replay: body is not an array`);
+      }
+      const rows = params.body.map((r) =>
         stripServerControlledFields(r as Record<string, any>, model.columns),
       );
       return await dataTableSvc.dataInsert(context, {
@@ -165,17 +171,23 @@ export function registerBulkInsertHandlers(
       });
       const trashId = bag.get('softDeleteTrashId') as string | undefined;
 
-      await restoreDisplaced(
-        context,
-        params.displacedRecords as ReadonlyArray<DisplacedRecord>,
-        meta.originalReq,
-      );
+      const skipped: ReplaySkip[] = [
+        ...(await restoreDisplaced(
+          context,
+          params.displacedRecords as ReadonlyArray<DisplacedRecord>,
+          meta.originalReq,
+        )),
+      ];
 
       const metaUpdate = {
         ...(trashId ? { softDeleteTrashId: trashId } : {}),
         ...(failedPks.length ? { failedDeletePks: failedPks } : {}),
       };
-      return Object.keys(metaUpdate).length ? { metaUpdate } : undefined;
+      const hasMeta = Object.keys(metaUpdate).length > 0;
+      if (hasMeta && skipped.length) return { metaUpdate, skipped };
+      if (hasMeta) return { metaUpdate };
+      if (skipped.length) return { skipped };
+      return undefined;
     },
   );
 }

@@ -1051,13 +1051,14 @@ const saveChanges = async () => {
           const vcId = (op.column as Field).id
           return failedVisibility.some((f) => f.columnId === vcId)
         })
-        // Surface the first error message verbatim; aggregate count
-        // when multiple toggles failed.
         const first = failedVisibility[0]
         message.error(
           failedVisibility.length === 1
-            ? first.error
-            : `${failedVisibility.length} field visibility updates failed: ${first.error}`,
+            ? t('msg.error.fieldVisibilityUpdateFailed', { error: first.error })
+            : t('msg.error.fieldVisibilityUpdatesFailed', {
+                count: failedVisibility.length,
+                error: first.error,
+              }),
         )
       } else {
         visibilityOps.value = []
@@ -1244,8 +1245,14 @@ onMounted(async () => {
   metaToLocal()
 })
 
+let isHandlerDisposed = false
+tryOnScopeDispose(() => {
+  isHandlerDisposed = true
+})
+
 const onRealtimeFieldReload = async (event?: SmartsheetStoreEvents) => {
   if (event !== SmartsheetStoreEvents.FIELD_RELOAD) return
+  if (isHandlerDisposed) return
   if (!meta.value?.id || !meta.value.base_id || !meta.value.fk_workspace_id) return
   const isSelfEvent = loading.value || isUndoRedoInFlight.value
 
@@ -1259,12 +1266,14 @@ const onRealtimeFieldReload = async (event?: SmartsheetStoreEvents) => {
 
   try {
     await loadViewColumns()
+    if (isHandlerDisposed) return
     columnsHash.value = (
       await $api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
         operation: 'columnsHash',
         tableId: meta.value.id!,
       })
     ).hash
+    if (isHandlerDisposed) return
     metaToLocal()
     onInit()
   } catch {
@@ -1272,6 +1281,7 @@ const onRealtimeFieldReload = async (event?: SmartsheetStoreEvents) => {
     return
   }
 
+  if (isHandlerDisposed) return
   if (isSelfEvent) return
 
   const newById = new Map<string, ColumnType>()

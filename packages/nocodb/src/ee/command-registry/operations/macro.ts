@@ -12,6 +12,7 @@ import {
 } from '~/command-registry/replay-context';
 import { MetaTable } from '~/utils/globals';
 import { macroUndoSchema } from '~/command-registry/operations/_schemas/macro';
+import { MacroPartialFailureError } from '~/command-registry/operations/macro-partial-failure.error';
 
 const logger = new Logger('MacroUndo');
 
@@ -58,18 +59,29 @@ export function registerMacroHandlers(): void {
 
       const updatedTranscript: MacroTranscriptEntry[] = transcript.slice();
       let anyMetaUpdate = false;
+      const completedIndexes: number[] = [];
+      let failure: { index: number; childOp: string; error: string } | null =
+        null;
 
-      // Failure policy — fail loudly so `OperationLog.status` stays honest.
-      for (let i = transcript.length - 1; i >= 0; i--) {
+      // Reverse-walk children. On the first failure, stop and surface a
+      // MacroPartialFailureError carrying the rotated transcript plus the
+      // list of indexes whose inverses already applied — the dispatcher
+      // persists this into the log row's meta before flipping it to
+      // `errored`, so the next Cmd-Z skips the broken row instead of
+      // re-running children that are already in inverse state.
+      walk: for (let i = transcript.length - 1; i >= 0; i--) {
         const entry = transcript[i];
         const resolved = OperationRegistry.resolve(
           entry.op as any,
           entry.version,
         );
         if (!resolved) {
-          throw new Error(
-            `macroUndo: child contract '${entry.op}@${entry.version}' is not registered — cannot complete undo`,
-          );
+          failure = {
+            index: i,
+            childOp: `${entry.op}@${entry.version}`,
+            error: `child contract is not registered`,
+          };
+          break walk;
         }
         const inverseFn = getUndoConfig(resolved.contract)?.inverse;
         if (!inverseFn) {
@@ -93,10 +105,12 @@ export function registerMacroHandlers(): void {
             { extra: entry.resolvedExtra as Record<string, any> | undefined },
           );
         } catch (e: any) {
-          throw new Error(
-            `macroUndo: inverse builder for '${entry.op}' threw: ${e?.message}`,
-            { cause: e },
-          );
+          failure = {
+            index: i,
+            childOp: entry.op as string,
+            error: `inverse builder threw: ${e?.message ?? String(e)}`,
+          };
+          break walk;
         }
         if (!inverseOp) continue;
 
@@ -118,10 +132,12 @@ export function registerMacroHandlers(): void {
             req,
           );
         } catch (e: any) {
-          throw new Error(
-            `macroUndo: dispatch of '${inverseOp.name}' for '${entry.op}' failed: ${e?.message}`,
-            { cause: e },
-          );
+          failure = {
+            index: i,
+            childOp: inverseOp.name as string,
+            error: e?.message ?? String(e),
+          };
+          break walk;
         }
 
         // Some child handlers (columnUpdate on type-change) return
@@ -145,6 +161,17 @@ export function registerMacroHandlers(): void {
           };
           anyMetaUpdate = true;
         }
+
+        completedIndexes.push(i);
+      }
+
+      if (failure) {
+        throw new MacroPartialFailureError(
+          failure,
+          updatedTranscript,
+          completedIndexes,
+          transcript.length,
+        );
       }
 
       if (anyMetaUpdate) {

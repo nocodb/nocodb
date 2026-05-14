@@ -3,13 +3,25 @@ import type { NcContext, NcRequest, OperationLogScopeType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { OperationRegistry } from '~/command-registry/registry';
 import { dispatchOperation } from '~/command-registry/replay-context';
+import { MacroPartialFailureError } from '~/command-registry/operations/macro-partial-failure.error';
+import { NC_DISABLE_UNDO_REDO } from '~/utils/nc-config/constants';
 import { OperationLog } from '~/models';
 import { isDevOrTestEnvironment } from '~/utils';
+
+export interface UndoRedoSkip {
+  reason: string;
+  ref: string;
+}
 
 export type UndoRedoResult =
   | { status: 'ok'; entryId: string }
   | { status: 'empty' }
   | { status: 'no_handler'; opName: string }
+  | {
+      status: 'partial';
+      entryId: string;
+      skipped: ReadonlyArray<UndoRedoSkip>;
+    }
   | {
       status: 'errored';
       code: 'dispatch_failed';
@@ -17,6 +29,18 @@ export type UndoRedoResult =
       /** Raw handler/driver message — populated only in dev/test for easier
        *  local debugging. Omitted in prod/staging to avoid leaking schema
        *  names, parameter values, or row fragments. */
+      error?: string;
+    }
+  | {
+      status: 'errored';
+      code: 'macro_partial_failure';
+      entryId: string;
+      partial: {
+        completed: number;
+        total: number;
+        failedChildOp: string;
+        failedAtIndex: number;
+      };
       error?: string;
     };
 
@@ -40,6 +64,8 @@ export class UndoRedoService {
     context: NcContext,
     param: { req: NcRequest; scopes?: ReadonlyArray<UndoRedoScope> },
   ): Promise<UndoRedoResult> {
+    if (NC_DISABLE_UNDO_REDO) return { status: 'empty' };
+
     const key = this.resolveLookupKey(context, param.req, param.scopes);
     if (!key) return { status: 'empty' };
 
@@ -64,6 +90,8 @@ export class UndoRedoService {
     context: NcContext,
     param: { req: NcRequest; scopes?: ReadonlyArray<UndoRedoScope> },
   ): Promise<UndoRedoResult> {
+    if (NC_DISABLE_UNDO_REDO) return { status: 'empty' };
+
     const key = this.resolveLookupKey(context, param.req, param.scopes);
     if (!key) return { status: 'empty' };
 
@@ -132,6 +160,7 @@ export class UndoRedoService {
     if (!resolved) return { status: 'no_handler', opName };
 
     let metaUpdate: Record<string, unknown> | undefined;
+    let skipped: ReadonlyArray<UndoRedoSkip> = [];
     try {
       const handlerResult = await dispatchOperation(
         replayContext,
@@ -150,13 +179,15 @@ export class UndoRedoService {
         direction,
       );
 
-      // `columnUpdate` returns `{ metaUpdate }` when its backup ref was
-      // consumed and a new sibling was created for the opposite direction.
       const ret = handlerResult as
-        | { metaUpdate?: Record<string, unknown> }
+        | {
+            metaUpdate?: Record<string, unknown>;
+            skipped?: ReadonlyArray<UndoRedoSkip>;
+          }
         | undefined;
-      if (ret && typeof ret === 'object' && ret.metaUpdate) {
-        metaUpdate = ret.metaUpdate;
+      if (ret && typeof ret === 'object') {
+        if (ret.metaUpdate) metaUpdate = ret.metaUpdate;
+        if (ret.skipped?.length) skipped = ret.skipped;
       }
     } catch (e: any) {
       const message = e?.message ?? String(e);
@@ -164,6 +195,38 @@ export class UndoRedoService {
         `Undo/redo dispatch failed for ${opName}@${opVersion}: ${message}`,
         e?.stack,
       );
+
+      if (e instanceof MacroPartialFailureError) {
+        if (entry.id) {
+          await OperationLog.markStatus(replayContext, entry.id, 'errored', {
+            error: message,
+            meta: {
+              ...((entry.meta as Record<string, any>) ?? {}),
+              macroTranscript: e.partialTranscript,
+              macroPartialFailure: {
+                completedIndexes: e.completedIndexes,
+                failedAtIndex: e.failure.index,
+                failedChildOp: e.failure.childOp,
+                totalChildren: e.totalChildren,
+                error: e.failure.error,
+              },
+            },
+          });
+        }
+        return {
+          status: 'errored',
+          code: 'macro_partial_failure',
+          entryId: entry.id ?? '',
+          partial: {
+            completed: e.completedIndexes.length,
+            total: e.totalChildren,
+            failedChildOp: e.failure.childOp,
+            failedAtIndex: e.failure.index,
+          },
+          ...(isDevOrTestEnvironment ? { error: message } : {}),
+        };
+      }
+
       if (entry.id) {
         await OperationLog.markStatus(replayContext, entry.id, 'errored', {
           error: message,
@@ -195,6 +258,9 @@ export class UndoRedoService {
       );
     }
 
+    if (skipped.length) {
+      return { status: 'partial', entryId: entry.id ?? '', skipped };
+    }
     return { status: 'ok', entryId: entry.id ?? '' };
   }
 }

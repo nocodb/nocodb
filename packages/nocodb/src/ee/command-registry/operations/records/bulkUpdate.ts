@@ -13,7 +13,7 @@ import {
   stripPkTitles,
   stripServerControlledFields,
 } from './_shared';
-import type { RecordUpdateExtra } from './_shared';
+import type { RecordUpdateExtra, ReplaySkip } from './_shared';
 import type {
   DisplacedRecord,
   LinkChange,
@@ -205,10 +205,13 @@ export function registerBulkUpdateHandlers(
         } as any);
       }
 
-      await restoreDisplaced(
-        context,
-        pickFreshestList<DisplacedRecord>(meta, params, 'displacedRecords'),
-        meta.originalReq,
+      const skipped: ReplaySkip[] = [];
+      skipped.push(
+        ...(await restoreDisplaced(
+          context,
+          pickFreshestList<DisplacedRecord>(meta, params, 'displacedRecords'),
+          meta.originalReq,
+        )),
       );
 
       for (const lc of pickFreshestList<LinkChange>(
@@ -216,8 +219,11 @@ export function registerBulkUpdateHandlers(
         params,
         'linkChanges',
       )) {
-        await invertLinkChange(context, lc, meta.originalReq);
+        const s = await invertLinkChange(context, lc, meta.originalReq);
+        if (s) skipped.push(s);
       }
+
+      return skipped.length ? { skipped } : undefined;
     },
   );
 }

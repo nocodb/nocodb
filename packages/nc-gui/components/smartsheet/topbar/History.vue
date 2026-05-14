@@ -9,7 +9,7 @@ const { open: openBaseTrash } = useBaseTrash()
 
 const { isUIAllowed } = useRoles()
 
-const { undo, redo, isUndoRedoInFlight, inFlightDirection } = useUndoRedo()
+const { undo, redo, isUndoRedoInFlight, inFlightDirection, isDisabledByEnv } = useUndoRedo()
 
 const visible = ref(false)
 
@@ -24,6 +24,23 @@ const showHistoryTrigger = computed(() => canSeeBaseTrash.value || canSeeSnapsho
 const cmdKey = renderCmdOrCtrlKey(true)
 
 const shiftKey = isMac() ? '⇧' : 'Shift'
+
+const undoRedoActions = [
+  {
+    direction: 'undo' as const,
+    icon: 'ncUndo',
+    labelKey: 'labels.undo',
+    shortcut: `${cmdKey} Z`,
+    handler: undo,
+  },
+  {
+    direction: 'redo' as const,
+    icon: 'ncRedo',
+    labelKey: 'labels.redo',
+    shortcut: `${cmdKey} ${shiftKey} Z`,
+    handler: redo,
+  },
+]
 
 function openSnapshots() {
   const baseId = resolvedProject.value?.id
@@ -69,35 +86,24 @@ function onTrashClick() {
           </span>
         </NcMenuItemLabel>
 
-        <NcMenuItem
-          v-if="canSeeUndoRedo"
-          data-testid="nc-topbar-history-menu-undo"
-          inner-class="w-full"
-          :disabled="isUndoRedoInFlight"
-          @click="undo"
-        >
-          <div v-e="['c:topbar:history-menu:undo']" class="flex gap-2 items-center w-full">
-            <GeneralLoader v-if="inFlightDirection === 'undo'" class="h-4 w-4" />
-            <GeneralIcon v-else icon="ncUndo" class="h-4 w-4 text-nc-content-gray-subtle2" />
-            <div class="flex-1">{{ $t('labels.undo') }}</div>
-            <span class="nc-shortcut-hint">{{ cmdKey }} Z</span>
-          </div>
-        </NcMenuItem>
-
-        <NcMenuItem
-          v-if="canSeeUndoRedo"
-          data-testid="nc-topbar-history-menu-redo"
-          inner-class="w-full"
-          :disabled="isUndoRedoInFlight"
-          @click="redo"
-        >
-          <div v-e="['c:topbar:history-menu:redo']" class="flex gap-2 items-center w-full">
-            <GeneralLoader v-if="inFlightDirection === 'redo'" class="h-4 w-4" />
-            <GeneralIcon v-else icon="ncRedo" class="h-4 w-4 text-nc-content-gray-subtle2" />
-            <div class="flex-1">{{ $t('labels.redo') }}</div>
-            <span class="nc-shortcut-hint">{{ cmdKey }} {{ shiftKey }} Z</span>
-          </div>
-        </NcMenuItem>
+        <NcTooltip v-if="canSeeUndoRedo" placement="left" :disabled="!isDisabledByEnv">
+          <template #title>{{ $t('labels.undoRedoDisabledByAdmin') }}</template>
+          <NcMenuItem
+            v-for="action in undoRedoActions"
+            :key="action.direction"
+            :data-testid="`nc-topbar-history-menu-${action.direction}`"
+            inner-class="w-full"
+            :disabled="isDisabledByEnv || isUndoRedoInFlight"
+            @click="action.handler"
+          >
+            <div v-e="[`c:topbar:history-menu:${action.direction}`]" class="flex gap-2 items-center w-full">
+              <GeneralLoader v-if="inFlightDirection === action.direction" class="h-4 w-4" />
+              <GeneralIcon v-else :icon="action.icon" class="h-4 w-4 text-nc-content-gray-subtle2" />
+              <div class="flex-1">{{ $t(action.labelKey) }}</div>
+              <span class="nc-shortcut-hint">{{ action.shortcut }}</span>
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
 
         <PaymentUpgradeBadgeProvider v-if="canSeeSnapshots" :feature="PlanFeatureTypes.FEATURE_EE_CORE">
           <template #default="{ click }">

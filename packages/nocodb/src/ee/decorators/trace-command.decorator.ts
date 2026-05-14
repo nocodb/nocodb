@@ -332,10 +332,26 @@ export function TraceCommand(
 
           const result = await originalMethod.apply(this, args);
 
+          const runFailureCleanup = async () => {
+            const cleanup = contract.on_record_failure;
+            if (!cleanup) return;
+            const snapshot = getTraceCaptureSnapshot();
+            if (Object.keys(snapshot).length === 0) return;
+            try {
+              await cleanup(ctx, snapshot);
+            } catch (cleanupErr: any) {
+              logger.error(
+                `on_record_failure ${resolvedName}@${version}: ${cleanupErr?.message}`,
+                cleanupErr?.stack,
+              );
+            }
+          };
+
           const skipFn = contract.entry?.skip_if;
           if (skipFn) {
             try {
               if (await skipFn(ctx, param, result, resolvedCtx)) {
+                await runFailureCleanup();
                 return result;
               }
             } catch (e: any) {
@@ -399,20 +415,7 @@ export function TraceCommand(
           }
 
           if (!persisted) {
-            const cleanup = contract.on_record_failure;
-            if (cleanup) {
-              const snapshot = getTraceCaptureSnapshot();
-              if (Object.keys(snapshot).length > 0) {
-                try {
-                  await cleanup(ctx, snapshot);
-                } catch (cleanupErr: any) {
-                  logger.error(
-                    `on_record_failure ${resolvedName}@${version}: ${cleanupErr?.message}`,
-                    cleanupErr?.stack,
-                  );
-                }
-              }
-            }
+            await runFailureCleanup();
           }
 
           return result;

@@ -23,6 +23,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getInstance from '~/utils/getInstance';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { jdbcToXcConfig } from '~/utils/nc-config/helpers';
+import { NC_DISABLE_UNDO_REDO } from '~/utils/nc-config/constants';
 import { packageVersion } from '~/utils/packageVersion';
 import {
   defaultGroupByLimitConfig,
@@ -471,6 +472,7 @@ export class UtilsService {
           ? process.env.NC_SENTRY_DSN
           : null,
       auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
+      undoRedoEnabled: !NC_DISABLE_UNDO_REDO,
       ncSiteUrl: (param.req as any).ncSiteUrl,
       ee: Noco.isEE(),
       ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,

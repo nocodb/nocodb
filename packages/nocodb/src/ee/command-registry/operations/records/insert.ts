@@ -10,7 +10,7 @@ import {
   scopeRecordOp,
   stripServerControlledFields,
 } from './_shared';
-import type { RecordInsertExtra } from './_shared';
+import type { RecordInsertExtra, ReplaySkip } from './_shared';
 import type {
   DisplacedRecord,
   OperationContract,
@@ -102,7 +102,7 @@ export function registerInsertHandlers(
     async (context, params, meta) => {
       const trashId = meta.extra?.softDeleteTrashId;
       if (trashId) {
-        await reapplyDisplacedForward(
+        const skipped = await reapplyDisplacedForward(
           context,
           meta.extra?.displacedRecords ?? [],
           meta.originalReq,
@@ -113,7 +113,10 @@ export function registerInsertHandlers(
           req: meta.originalReq,
           force: true,
         });
-        return { metaUpdate: { softDeleteTrashId: null } };
+        return {
+          metaUpdate: { softDeleteTrashId: null },
+          ...(skipped.length ? { skipped } : {}),
+        };
       }
 
       const { modelId, model, persistedCtx } = await resolveReplayModel(
@@ -170,15 +173,20 @@ export function registerInsertHandlers(
       });
       const trashId = bag.get('softDeleteTrashId') as string | undefined;
 
-      await restoreDisplaced(
-        context,
-        params.displacedRecords as ReadonlyArray<DisplacedRecord>,
-        meta.originalReq,
-      );
+      const skipped: ReplaySkip[] = [
+        ...(await restoreDisplaced(
+          context,
+          params.displacedRecords as ReadonlyArray<DisplacedRecord>,
+          meta.originalReq,
+        )),
+      ];
 
-      return trashId
-        ? { metaUpdate: { softDeleteTrashId: trashId } }
-        : undefined;
+      const metaUpdate = trashId ? { softDeleteTrashId: trashId } : undefined;
+
+      if (metaUpdate && skipped.length) return { metaUpdate, skipped };
+      if (metaUpdate) return { metaUpdate };
+      if (skipped.length) return { skipped };
+      return undefined;
     },
   );
 }

@@ -14,6 +14,7 @@ import { getScopeAncestors } from '~/command-registry/scope';
 import { OperationLog, Sandbox, SandboxChangelog } from '~/models';
 import { getTraceCapture } from '~/decorators/trace-command.decorator';
 import { isReplay } from '~/helpers/replayScope';
+import { NC_DISABLE_UNDO_REDO } from '~/utils/nc-config/constants';
 
 const logger = new Logger('CommandRegistry');
 
@@ -164,7 +165,10 @@ export async function recordCommand(
   // Skip the deep zod parse + entity-info resolve when neither destination
   // will write — matters for API-token / job traffic without `x-nc-tab-id`.
   const isUndoableCandidate =
-    !!undoConfig?.inverse && !isReplay() && !!requestObj?.ncTabId;
+    !NC_DISABLE_UNDO_REDO &&
+    !!undoConfig?.inverse &&
+    !isReplay() &&
+    !!requestObj?.ncTabId;
 
   const sandbox =
     contract.sandbox === false
@@ -200,7 +204,9 @@ export async function recordCommand(
 
   const info = resolveEntityInfo(contract, params, result, resolvedCtx);
 
-  const [, undoPersisted] = await Promise.all([
+  const opLabel = `${contract.name}@${contract.version ?? 1}`;
+
+  const [sandboxOutcome, undoOutcome] = await Promise.allSettled([
     sandbox
       ? insertSandboxChangelog(
           context,
@@ -212,8 +218,8 @@ export async function recordCommand(
           validatedParams,
           extra,
           userId,
-        ).then(() => true)
-      : Promise.resolve(false),
+        )
+      : Promise.resolve(undefined),
     isUndoableCandidate
       ? maybeRecordUndoEntry(
           context,
@@ -229,7 +235,31 @@ export async function recordCommand(
       : Promise.resolve(false),
   ]);
 
-  return { persisted: !!sandbox || undoPersisted };
+  let sandboxPersisted = false;
+  if (sandbox) {
+    if (sandboxOutcome.status === 'fulfilled') {
+      sandboxPersisted = true;
+    } else {
+      logger.error(
+        `sandbox changelog ${opLabel} failed: ${sandboxOutcome.reason?.message}`,
+        sandboxOutcome.reason?.stack,
+      );
+    }
+  }
+
+  let undoPersisted = false;
+  if (isUndoableCandidate) {
+    if (undoOutcome.status === 'fulfilled') {
+      undoPersisted = undoOutcome.value === true;
+    } else {
+      logger.error(
+        `undo entry ${opLabel} failed: ${undoOutcome.reason?.message}`,
+        undoOutcome.reason?.stack,
+      );
+    }
+  }
+
+  return { persisted: sandboxPersisted || undoPersisted };
 }
 
 async function insertSandboxChangelog(

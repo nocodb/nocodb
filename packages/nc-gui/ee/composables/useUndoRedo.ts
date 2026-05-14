@@ -8,7 +8,7 @@
  * that bubble up to it. Cross-table ops stay invisible (Table A's stack is
  * not in B's chain).
  */
-type ServerStatus = 'ok' | 'empty' | 'no_handler' | 'no_scope' | 'errored'
+type ServerStatus = 'ok' | 'empty' | 'no_handler' | 'no_scope' | 'errored' | 'partial'
 
 type UndoRedoScopeType = 'base' | 'table' | 'view' | 'dashboard' | 'workflow' | 'script'
 
@@ -17,12 +17,28 @@ interface UndoRedoScope {
   id: string
 }
 
+interface MacroPartialFailure {
+  completed: number
+  total: number
+  failedChildOp: string
+  failedAtIndex: number
+}
+
+interface ServerResult {
+  status: ServerStatus
+  /** Present when `status === 'errored'`. `'macro_partial_failure'` means the
+   *  server applied some child inverses before aborting — surface the precise
+   *  toast and let the user know recovery is manual. */
+  code?: 'dispatch_failed' | 'macro_partial_failure'
+  partial?: MacroPartialFailure
+}
+
 export const useUndoRedo = createSharedComposable(() => {
   const router = useRouter()
 
   const route = router.currentRoute
 
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
 
   const { t } = useI18n()
 
@@ -30,9 +46,11 @@ export const useUndoRedo = createSharedComposable(() => {
 
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
-  const { user, signedIn } = useGlobal()
+  const { user, signedIn, appInfo } = useGlobal()
 
   const { isUIAllowed } = useRoles()
+
+  const isDisabledByEnv = computed(() => appInfo.value.undoRedoEnabled === false)
 
   const activeBaseId = (): string | null => {
     const baseId = (route.value.params as Record<string, any>).baseId as string | undefined
@@ -40,12 +58,12 @@ export const useUndoRedo = createSharedComposable(() => {
   }
 
   const canDispatchUndoRedo = computed(() => {
+    if (isDisabledByEnv.value) return false
     if (!signedIn.value) return false
     if (!user.value?.id) return false
     if (isSharedViewRoute(route.value)) return false
     if (!isUIAllowed('undo')) return false
-    return activeBaseId();
-
+    return !!activeBaseId()
   })
 
   const isUndoRedoInFlight = ref(false)
@@ -56,10 +74,10 @@ export const useUndoRedo = createSharedComposable(() => {
   let pending = 0
   let clearFlagTimer: ReturnType<typeof setTimeout> | null = null
 
-  const enqueue = (
-    direction: 'undo' | 'redo',
-    work: () => Promise<void>,
-  ): Promise<void> => {
+  const MAX_PENDING = 5
+
+  const enqueue = (direction: 'undo' | 'redo', work: () => Promise<void>): Promise<void> => {
+    if (pending >= MAX_PENDING) return Promise.resolve()
     pending += 1
     isUndoRedoInFlight.value = true
     if (clearFlagTimer) {
@@ -129,39 +147,54 @@ export const useUndoRedo = createSharedComposable(() => {
     return [base]
   }
 
-  const callServer = async (operation: 'undo' | 'redo'): Promise<ServerStatus> => {
+  const callServer = async (operation: 'undo' | 'redo'): Promise<ServerResult> => {
     const baseId = activeBaseId()
-    if (!baseId || !activeWorkspaceId.value) return 'no_scope'
+    if (!baseId || !activeWorkspaceId.value) return { status: 'no_scope' }
     const scopes = resolveScopes()
-    if (!scopes) return 'no_scope'
+    if (!scopes) return { status: 'no_scope' }
     try {
       const res: any = await $api.internal.postOperation(activeWorkspaceId.value, baseId, { operation }, { scopes })
-      const status = res?.status as ServerStatus
-      return status ?? 'errored'
+      return {
+        status: (res?.status as ServerStatus) ?? 'errored',
+        code: res?.code,
+        partial: res?.partial,
+      }
     } catch (e: any) {
       message.toast(
         `${operation === 'undo' ? t('labels.undo') : t('labels.redo')} failed: ${await extractSdkResponseErrorMsg(e)}`,
       )
-      return 'errored'
+      return { status: 'errored' }
     }
   }
 
   const undo = (): Promise<void> =>
     enqueue('undo', async () => {
-      const status = await callServer('undo')
-      if (status === 'ok') {
+      const result = await callServer('undo')
+      if (result.status === 'ok') {
         message.toast(t('labels.actionUndone'))
-      } else if (status === 'empty') {
+      } else if (result.status === 'partial') {
+        message.toast(t('labels.actionUndonePartial'))
+      } else if (result.status === 'errored' && result.code === 'macro_partial_failure') {
+        message.toast(t('labels.actionPartiallyCompleted'))
+      } else if (result.status === 'errored') {
+        message.toast(t('labels.undoFailed'))
+      } else if (result.status === 'empty') {
         message.toast(t('labels.noMoreActionsToUndo'))
       }
     })
 
   const redo = (): Promise<void> =>
     enqueue('redo', async () => {
-      const status = await callServer('redo')
-      if (status === 'ok') {
+      const result = await callServer('redo')
+      if (result.status === 'ok') {
         message.toast(t('labels.actionRedone'))
-      } else if (status === 'empty') {
+      } else if (result.status === 'partial') {
+        message.toast(t('labels.actionRedonePartial'))
+      } else if (result.status === 'errored' && result.code === 'macro_partial_failure') {
+        message.toast(t('labels.actionPartiallyCompleted'))
+      } else if (result.status === 'errored') {
+        message.toast(t('labels.redoFailed'))
+      } else if (result.status === 'empty') {
         message.toast(t('labels.noMoreActionsToRedo'))
       }
     })
@@ -191,20 +224,23 @@ export const useUndoRedo = createSharedComposable(() => {
       return
     }
 
-    if (cmdOrCtrl && !e.altKey && e.keyCode === 90) {
+    if (cmdOrCtrl && !e.altKey && e.code === 'KeyZ') {
       if (!canDispatchUndoRedo.value) return
       e.preventDefault()
       if (!e.shiftKey) {
+        $e('c:shortcut:undo')
         undo()
       } else {
+        $e('c:shortcut:redo')
         redo()
       }
-    } else if (cmdOrCtrl && !e.altKey && !e.shiftKey && e.keyCode === 89 && !isMac()) {
+    } else if (cmdOrCtrl && !e.altKey && !e.shiftKey && e.code === 'KeyY' && !isMac()) {
       // Windows / Linux convention: Ctrl+Y = redo. Not bound on macOS
       // because Cmd+Y collides with browser/system shortcuts (History,
       // Quick Look).
       if (!canDispatchUndoRedo.value) return
       e.preventDefault()
+      $e('c:shortcut:redo')
       redo()
     }
   })
@@ -214,5 +250,9 @@ export const useUndoRedo = createSharedComposable(() => {
     redo,
     isUndoRedoInFlight,
     inFlightDirection,
+    /** True when the server has `NC_DISABLE_UNDO_REDO=true`. The
+     *  toolbar reads this to render disabled buttons with an
+     *  explanatory tooltip instead of hiding them. */
+    isDisabledByEnv,
   }
 })

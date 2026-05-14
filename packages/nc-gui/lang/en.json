@@ -1377,8 +1377,14 @@
     "snapshots": "Snapshots",
     "undo": "Undo",
     "redo": "Redo",
+    "undoRedoDisabledByAdmin": "Undo / redo has been disabled by your administrator.",
     "actionUndone": "Action undone",
     "actionRedone": "Action redone",
+    "actionUndonePartial": "Some changes couldn't be undone",
+    "actionRedonePartial": "Some changes couldn't be redone",
+    "actionPartiallyCompleted": "Action only partially completed — please refresh to verify",
+    "undoFailed": "Undo failed",
+    "redoFailed": "Redo failed",
     "noMoreActionsToUndo": "No more actions to undo",
     "noMoreActionsToRedo": "No more actions to redo",
     "noRecentViews": "No recent views",
@@ -3773,6 +3779,8 @@
       "workspaceTeamRoleUpdateNotice": "Changing a team’s workspace role will also update its access to bases where it doesn’t have an explicit role."
     },
     "error": {
+      "fieldVisibilityUpdateFailed": "Field visibility update failed: {error}",
+      "fieldVisibilityUpdatesFailed": "{count} field visibility updates failed: {error}",
       "variableKeyRequired": "Variable key is required",
       "variableKeyFormat": "Key must be uppercase letters, numbers and underscores (e.g. WEBHOOK_URL)",
       "latitudeRange": "Latitude must be between -90 and 90",

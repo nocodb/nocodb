@@ -399,9 +399,17 @@ export class PublicDatasService {
       source,
     });
 
+    // For Gantt shared views the dep-link Links column must expand into
+    // nested LTAR rows in BOTH the AST (which drives nocoExecute's
+    // response shape) and listArgs (which drives baseModel.list's SQL).
+    // Setting it on listArgs alone fetches the nested data but then
+    // nocoExecute strips it because the AST still says
+    // `Predecessor: 1` (count form).
+    const isGanttShared = view.type === ViewTypes.GANTT;
+
     const { ast, dependencyFields } = await getAst(context, {
       model,
-      query: {},
+      query: isGanttShared ? { linksAsLtar: 'true' } : {},
       view,
       includeRowColorColumns: query.include_row_color === 'true',
     });
@@ -416,11 +424,8 @@ export class PublicDatasService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
-    // Gantt shared views need the dep-link column (a Links field) to
-    // elaborate as nested LTAR rows so the frontend can derive arrows
-    // from the row payload — there's no public nestedList endpoint to
-    // fall back on. baseModel.list reads linksAsLtar from listArgs.
-    if (view.type === ViewTypes.GANTT) {
+    // baseModel.list also reads linksAsLtar — see getAst note above.
+    if (isGanttShared) {
       listArgs.linksAsLtar = 'true';
     }
 

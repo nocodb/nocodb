@@ -6,6 +6,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import ModelStat from '~/ee/models/ModelStat';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const models = require('../../../../src/models');
@@ -255,9 +256,11 @@ export function modelStatTests() {
 
     describe('Model.softDelete (table trash hook)', () => {
       it('invalidates the workspace sum cache when a table is soft-deleted', async () => {
-        const CEModel = Object.getPrototypeOf(models.Model);
+        // EE Model imports `ModelCE from 'src/models/Model'` — same reference
+        // as `models.Model` (module identity), so stubbing here intercepts
+        // the `super.softDelete` call inside the EE override.
         const ceSoftDeleteStub = sinon
-          .stub(CEModel, 'softDelete')
+          .stub(models.Model, 'softDelete')
           .resolves(undefined);
 
         // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -277,8 +280,7 @@ export function modelStatTests() {
       });
 
       it('also invalidates on restore (soft-delete with deleted=false)', async () => {
-        const CEModel = Object.getPrototypeOf(models.Model);
-        sinon.stub(CEModel, 'softDelete').resolves(undefined);
+        sinon.stub(models.Model, 'softDelete').resolves(undefined);
 
         // eslint-disable-next-line @typescript-eslint/no-var-requires
         const EEModel = require('../../../../src/ee/models/Model').default;
@@ -299,6 +301,10 @@ export function modelStatTests() {
 
       beforeEach(() => {
         getBaseModelSqlStub = sinon.stub(models.Model, 'getBaseModelSQL');
+        // recount resolves `await NcConnectionMgrv2.get(source)` as the
+        // dbDriver arg before getBaseModelSQL runs — short-circuit so it
+        // doesn't recurse into Workspace.get / UsageStat / NocoCache.
+        sinon.stub(NcConnectionMgrv2, 'get').resolves({} as any);
       });
 
       it('counts via baseModel.count() and upserts the coerced value', async () => {

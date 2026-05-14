@@ -593,21 +593,27 @@ const getBarStyle = (row: RowType) => {
   }
 }
 
-// Bar-width threshold below which the title spills to the right of the bar
-// (Airtable / MS Project style). Without this, narrow bars truncate to a few
-// characters or render label-less — hover-tooltip is the only way to read them.
-const LABEL_SPILL_THRESHOLD = 60
-
 // Render the primary-value cell next to the bar instead of inside it when the
-// bar is too narrow. Returns null when the bar is wide enough, off-screen, or
-// a milestone (milestones already render their label to the right of the
-// diamond — see line ~1707).
+// text wouldn't fit. Approx char width for `text-xs` is ~7px; +20px accounts
+// for left/right padding inside the bar. Whenever the estimated label width
+// exceeds the bar width, we spill the label to the right rather than
+// truncating it. Returns null when the bar can hold the label, when off-screen,
+// or for milestones (which render their label to the right of the diamond
+// already — see line ~1707).
+const AVG_CHAR_PX = 7
+const LABEL_INSIDE_PADDING = 20
+
 const getSpillLabelStyle = (row: RowType) => {
   if (isMilestone(row)) return null
   const barStyle = getBarStyle(row)
   if (!barStyle) return null
   const widthPx = parseFloat(barStyle.width)
-  if (!Number.isFinite(widthPx) || widthPx >= LABEL_SPILL_THRESHOLD) return null
+  if (!Number.isFinite(widthPx)) return null
+
+  const text = primaryField.value ? String(row.row?.[primaryField.value.title!] ?? '') : ''
+  const estLabelWidth = text.length * AVG_CHAR_PX + LABEL_INSIDE_PADDING
+  if (widthPx >= estLabelWidth) return null
+
   const leftPx = parseFloat(barStyle.left)
   return {
     left: `${leftPx + widthPx + 6}px`,
@@ -1760,7 +1766,7 @@ const onGridMouseLeave = () => {
                 <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
               </template>
               <div
-                class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group peer w-full relative overflow-hidden"
+                class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group peer w-full relative"
                 :class="{
                   'cursor-grabbing': dragInProgress && dragRecord === record && canDrag,
                   'cursor-grab': !isInteracting && canDrag,
@@ -1810,7 +1816,7 @@ const onGridMouseLeave = () => {
 
                 <span
                   v-if="!getSpillLabelStyle(record)"
-                  class="truncate inline-flex items-center"
+                  class="whitespace-nowrap inline-flex items-center"
                   :class="{
                     'pl-7': !isStartVisible(record),
                     'pl-2.5': isStartVisible(record),

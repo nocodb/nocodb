@@ -12,6 +12,7 @@ import dashboardTestV3 from './dashboard.test';
 import commentsTestV3 from './comments.test';
 import tableVisibilityPermissionsTestV3 from './table-visibility-permissions.test';
 import timelineTestV3 from './timeline.test';
+import ganttTestV3 from './gantt.test';
 import hooksTestV3 from './hooks.test';
 import { isEE } from '../../../utils/helpers';
 // import teamsTestV3 from './teams.test';
@@ -42,6 +43,7 @@ export default runOnSet(3, function () {
   commentsTestV3();
   tableVisibilityPermissionsTestV3();
   timelineTestV3();
+  ganttTestV3();
   if (isEE()) {
     try {
       require('./filters.test').default();

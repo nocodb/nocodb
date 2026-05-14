@@ -1538,14 +1538,17 @@ const sidebarScrollRef = ref<HTMLElement | null>(null)
 
 const onBodyScroll = (event: Event) => {
   const target = event.target as HTMLElement
-  // Idempotent guard: when the store updates scrollLeft and we mirror it back
-  // onto this element, the resulting native scroll event would otherwise
-  // re-enter the store. Bail when the value already matches.
-  if (target.scrollLeft === storeScrollLeft.value) return
 
+  // Vertical sync runs unconditionally so the sidebar follows the body
+  // even on a pure vertical scroll. The horizontal store-update is guarded
+  // separately to avoid re-entering when the store mirrors scrollLeft back
+  // onto this element (otherwise the native scroll event would loop).
   if (sidebarScrollRef.value && sidebarScrollRef.value.scrollTop !== target.scrollTop) {
     sidebarScrollRef.value.scrollTop = target.scrollTop
   }
+
+  if (target.scrollLeft === storeScrollLeft.value) return
+
   // Feed the store: derives currentDate from viewport centre and grows the
   // buffer when scrolling near an edge.
   onScrollUpdate(target.scrollLeft)

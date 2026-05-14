@@ -494,7 +494,7 @@ const formatDisplay = (raw: string | null | undefined) => {
         </div>
         <div v-if="!showPredecessorPicker">
           <button
-            class="flex items-center gap-1.5 px-2 py-1.5 text-sm text-nc-content-gray-muted hover:text-nc-content-brand"
+            class="flex items-center gap-1.5 px-2 py-1.5 text-xs text-nc-content-gray-muted hover:text-nc-content-brand"
             data-testid="nc-gantt-inspector-add-predecessor"
             @click="openPredecessorPicker"
           >
@@ -563,7 +563,7 @@ const formatDisplay = (raw: string | null | undefined) => {
         </div>
         <div v-if="!showSuccessorPicker">
           <button
-            class="flex items-center gap-1.5 px-2 py-1.5 text-sm text-nc-content-gray-muted hover:text-nc-content-brand"
+            class="flex items-center gap-1.5 px-2 py-1.5 text-xs text-nc-content-gray-muted hover:text-nc-content-brand"
             data-testid="nc-gantt-inspector-add-successor"
             @click="openSuccessorPicker"
           >

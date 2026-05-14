@@ -14,7 +14,10 @@ import { JobsMap } from '~/modules/jobs/jobs-map.service';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobStatus } from '~/interface/Jobs';
 
-const NC_WORKER_CONCURRENCY = process.env.NC_WORKER_CONCURRENCY ?? 10;
+const NC_WORKER_CONCURRENCY = Math.max(
+  1,
+  parseInt(process.env.NC_WORKER_CONCURRENCY ?? '10', 10) || 10,
+);
 
 const LOCAL_CONCURRENCY_LIMIT = {
   [JobTypes.AtImport]: 2,
@@ -35,7 +38,7 @@ export class JobsProcessor {
   ) {}
 
   @Process({
-    concurrency: +NC_WORKER_CONCURRENCY,
+    concurrency: NC_WORKER_CONCURRENCY,
   })
   async process(job: Job<JobData>) {
     const { jobName } = job.data;
@@ -62,20 +65,16 @@ export class JobsProcessor {
       }
     }
 
-    const localRunning = LOCAL_JOB_COUNT_MAP.get(jobName)!;
+    const localLimit = LOCAL_CONCURRENCY_LIMIT[jobName];
+    const localRunning = LOCAL_JOB_COUNT_MAP.get(jobName) ?? 0;
 
-    if (localRunning && localRunning >= LOCAL_CONCURRENCY_LIMIT[jobName]) {
-      job.data._jobDelay = 0;
-      job.data._jobAttempt = 1;
-
+    if (localLimit !== undefined && localRunning >= localLimit) {
       await this.requeue(job);
       return;
     }
 
-    if (localRunning) {
+    if (localLimit !== undefined) {
       LOCAL_JOB_COUNT_MAP.set(jobName, localRunning + 1);
-    } else {
-      LOCAL_JOB_COUNT_MAP.set(jobName, 1);
     }
 
     let warningTime = 1;
@@ -96,9 +95,10 @@ export class JobsProcessor {
       this.logger.error(`Error processing job ${jobName}`, e);
       throw e;
     } finally {
-      const localRunning = LOCAL_JOB_COUNT_MAP.get(jobName)!;
-
-      LOCAL_JOB_COUNT_MAP.set(jobName, localRunning - 1);
+      if (localLimit !== undefined) {
+        const current = LOCAL_JOB_COUNT_MAP.get(jobName) ?? 1;
+        LOCAL_JOB_COUNT_MAP.set(jobName, Math.max(0, current - 1));
+      }
       longProcessWarning.stop();
     }
   }

@@ -480,27 +480,15 @@ async function saveTheme() {
   $e(`a:view:share:${viewTheme.value ? 'enable' : 'disable'}-theme`)
 }
 
-async function updateSharedView(arg?: string | null | { password?: string | null; custUrl?: string | null }) {
+async function updateSharedView(arg?: { password?: string | null; custUrl?: string | null }) {
   if (!activeView.value?.meta) return false
   const meta = activeView.value.meta
 
-  // Backwards-compatible signature: legacy callers (CustomUrl child) pass
-  // the custom URL as a positional `string | null` argument; new callers
-  // pass an options object so they can also signal a password change.
-  let custUrl: string | null | undefined
-  let passwordPayload: string | null
-  const isOptionsObject = arg !== null && typeof arg === 'object'
-  if (isOptionsObject) {
-    custUrl = arg.custUrl
-    passwordPayload = arg.password === undefined ? NC_VIEW_PASSWORD_PROTECTED_SENTINEL : arg.password
-  } else {
-    // string | null | undefined
-    custUrl = arg
-    // No explicit password change — send the sentinel so the backend
-    // knows to leave the stored value untouched. This is what prevents
-    // re-hashing the existing bcrypt hash on every unrelated toggle.
-    passwordPayload = NC_VIEW_PASSWORD_PROTECTED_SENTINEL
-  }
+  const custUrl = arg?.custUrl
+  // When `password` is absent we send the sentinel so the backend knows to
+  // leave the stored value untouched — this is what prevents re-hashing
+  // the existing bcrypt hash on every unrelated toggle.
+  const passwordPayload = arg?.password === undefined ? NC_VIEW_PASSWORD_PROTECTED_SENTINEL : arg.password
 
   try {
     // Get meta using base_id from activeView
@@ -573,7 +561,7 @@ const copyCustomUrl = async (custUrl = '') => {
           :copy-custom-url="copyCustomUrl"
           :search-query="preFillFormSearchParams && activeView?.type === ViewTypes.FORM ? `?${preFillFormSearchParams}` : ''"
           :disabled="isReadOnly"
-          @update-custom-url="updateSharedView"
+          @update-custom-url="(custUrl) => updateSharedView({ custUrl })"
         />
         <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md">
           <div class="flex flex-row items-center justify-between">
@@ -673,6 +661,7 @@ const copyCustomUrl = async (custUrl = '') => {
         <DlgShareAndCollaborateChangeViewPassword
           v-if="isChangePasswordModalOpen && activeView"
           v-model:visible="isChangePasswordModalOpen"
+          :loading="isUpdating.password"
           @save="onPasswordChanged"
         />
         <div

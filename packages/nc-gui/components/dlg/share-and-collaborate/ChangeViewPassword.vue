@@ -5,11 +5,17 @@ interface Props {
   title?: string
   /** Telemetry event key fired on save. */
   telemetryKey?: string
+  /**
+   * Loading state for the Save button — driven by the parent, since
+   * the parent owns the actual await/persist cycle.
+   */
+  loading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: '',
   telemetryKey: 'c:share:view:password:change-save',
+  loading: false,
 })
 
 const emits = defineEmits<{
@@ -21,24 +27,15 @@ const visible = useVModel(props, 'visible', emits, { defaultValue: false })
 
 const passwordInput = ref('')
 
-const isSubmitting = ref(false)
-
 const isValid = computed(() => passwordInput.value.trim().length > 0)
 
 const onCancel = () => {
   visible.value = false
 }
 
-const onSave = async () => {
-  if (!isValid.value || isSubmitting.value) return
-  isSubmitting.value = true
-  try {
-    emits('save', passwordInput.value.trim())
-  } finally {
-    // Parent owns the close + reset cycle; reset locally too in case the
-    // parent keeps the modal mounted on rapid re-opens.
-    isSubmitting.value = false
-  }
+const onSave = () => {
+  if (!isValid.value || props.loading) return
+  emits('save', passwordInput.value.trim())
 }
 
 watch(visible, (open) => {
@@ -87,7 +84,7 @@ watch(visible, (open) => {
         <NcButton
           v-e="[props.telemetryKey]"
           :disabled="!isValid"
-          :loading="isSubmitting"
+          :loading="props.loading"
           data-testid="nc-change-view-password-save-btn"
           size="small"
           type="primary"

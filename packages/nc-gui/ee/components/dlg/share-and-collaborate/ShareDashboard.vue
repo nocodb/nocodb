@@ -308,6 +308,7 @@ const copyCustomUrl = async (custUrl = '') => {
           v-if="isChangePasswordModalOpen && activeDashboard"
           v-model:visible="isChangePasswordModalOpen"
           :title="t('labels.changeDashboardPassword')"
+          :loading="isUpdating.password"
           telemetry-key="c:share:dashboard:password:change-save"
           @save="onPasswordChanged"
         />

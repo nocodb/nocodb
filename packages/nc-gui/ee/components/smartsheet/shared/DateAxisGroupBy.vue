@@ -78,6 +78,10 @@ const _loadGroups = async (params?: any, group?: Group, options?: { triggerChild
   isPaginationLoading.value = false
 }
 
+// Ref the scroll area so the overlay slot can use it as a measurement
+// origin for absolute-positioned cross-group overlays.
+const scrollAreaRef = ref<HTMLElement | null>(null)
+
 // Expanded groups tracker — plain object for reliable Vue reactivity
 const expandedGroups = ref<Record<string, boolean>>({})
 // Track keys we've already processed so we don't re-expand manually collapsed groups
@@ -192,7 +196,18 @@ onBeforeUnmount(async () => {
 <template>
   <div class="h-full flex flex-col">
     <!-- Scrollable groups area -->
-    <div class="flex-1 min-h-0 overflow-y-auto">
+    <div ref="scrollAreaRef" class="flex-1 min-h-0 overflow-y-auto relative">
+      <!-- Optional overlay slot — rendered as an absolute child of the
+           scroll area so consumers (e.g. Gantt cross-group arrow layer)
+           can draw across multiple groups inside the same scroll context.
+           Passed expandedGroups + scroll container ref + group tree so
+           callers can compute global y positions. -->
+      <slot
+        name="overlay"
+        :expanded-groups="expandedGroups"
+        :scroll-area-el="scrollAreaRef"
+        :group="vGroup"
+      />
       <!-- CSS Grid layout: left sidebar (group labels) + right date-axis area -->
       <div class="nc-date-axis-group-grid" :style="{ display: 'grid', gridTemplateColumns: `${GROUP_SIDEBAR_WIDTH}px 1fr` }">
         <template v-for="grp of vGroup?.children ?? []" :key="grp.key">

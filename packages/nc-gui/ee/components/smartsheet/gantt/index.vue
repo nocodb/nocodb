@@ -609,6 +609,20 @@ const recordCountLabel = computed(() => {
                 @navigate-to="goToDate"
               />
             </template>
+
+            <!-- Cross-group dependency arrow overlay — sits inside
+                 DateAxisGroupBy's scroll area so it spans all expanded
+                 groups. In-group arrows are off in grouped mode (Grid.vue
+                 suppresses its SVG when hideHeader is true); this overlay
+                 handles every edge whose endpoints are currently visible.
+                 Round 1 ships only single-level grouping with all groups
+                 expanded — collapse-aware routing lands in round 2. -->
+            <template #overlay="{ expandedGroups, scrollAreaEl }">
+              <SmartsheetGanttGroupedCrossArrows
+                :expanded-groups="expandedGroups"
+                :scroll-area-el="scrollAreaEl"
+              />
+            </template>
           </SmartsheetSharedDateAxisGroupBy>
         </div>
 

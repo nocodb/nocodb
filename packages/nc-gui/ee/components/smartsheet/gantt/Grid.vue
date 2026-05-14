@@ -111,6 +111,17 @@ const sidebarStoredWidth = useStorage('nc-gantt-sidebar-width', SIDEBAR_MIN_WIDT
 // behavior (route-push to the full ExpandedForm) is preserved as the
 // inspector's "Open record" escalation — it emits expandRecord which the
 // parent gantt/index.vue still handles.
+// Surface each lane's record id on the row wrapper as a data attribute so
+// the parent cross-group arrow overlay (in grouped mode) can DOM-measure
+// per-record y positions without needing each Grid to register them.
+const laneRecordId = (lane: Array<{ record: RowType }>): string | undefined => {
+  const record = lane?.[0]?.record
+  if (!record) return undefined
+  const pkCols = (meta.value?.columns ?? []) as ColumnType[]
+  const id = extractPkFromRow(record.row, pkCols)
+  return id == null ? undefined : String(id)
+}
+
 const openInspector = (record: RowType) => {
   const reopen = !!inspectorRecord.value
   inspectorRecord.value = record
@@ -1819,7 +1830,7 @@ const onGridMouseLeave = () => {
              and only show where the bars don't cover. Arrows drawn 2px short
              of bar edges so they still read as terminating at the bar. -->
         <svg
-          v-if="arrowPaths.length || linkCreationDrag"
+          v-if="!hideHeader && (arrowPaths.length || linkCreationDrag)"
           class="absolute inset-0 pointer-events-none"
           style="z-index: 0"
           :width="totalGridWidth"
@@ -1930,13 +1941,20 @@ const onGridMouseLeave = () => {
              come later in DOM) naturally paint on top where they overlap.
              Avoid setting z-index here so dep handles can still escape up
              via their own z=4 without being trapped in a stacking context. -->
-        <div ref="gridBodyRef" class="relative w-full" @mousedown="onGridBodyMouseDown" @dblclick="onGridBodyDblClick">
+        <div
+          ref="gridBodyRef"
+          class="relative w-full"
+          data-gantt-group-grid
+          @mousedown="onGridBodyMouseDown"
+          @dblclick="onGridBodyDblClick"
+        >
           <!-- Swimlane rows -->
           <div
             v-for="(lane, laneIdx) in swimlanes"
             :key="laneIdx"
             class="relative border-b border-nc-border-gray-light"
             :style="{ height: `${ROW_HEIGHT}px` }"
+            :data-gantt-record-id="laneRecordId(lane)"
           >
             <!-- Hover background — z=-1 so the row tint paints BEHIND the
                  arrows SVG (z=0). Without this, the hover overlay would

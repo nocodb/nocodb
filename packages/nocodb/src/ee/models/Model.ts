@@ -25,6 +25,20 @@ export default class Model extends ModelCE implements TableType {
     return data && new Model(data);
   }
 
+  static async softDelete(
+    context: NcContext,
+    modelId: string,
+    deleted: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ModelCE.softDelete(context, modelId, deleted, ncMeta);
+
+    // getWorkspaceSum joins on MODELS.deleted — its cached sum is now stale.
+    if (context.workspace_id) {
+      await ModelStat.invalidateWorkspaceSum(context.workspace_id);
+    }
+  }
+
   async delete(
     context: NcContext,
     ncMeta = Noco.ncMeta,

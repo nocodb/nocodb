@@ -13,6 +13,7 @@ let mfaHelperTests = () => {};
 let patResourceFilterTest = () => {};
 let dynamicFieldFilterTests = () => {};
 let onPremPlanResolutionTests = () => {};
+let modelStatTests = () => {};
 if (process.env.EE === 'true') {
   dashboardV3ConfigTransformTest =
     require('./ee/dashboardV3ConfigTransform.test').dashboardV3ConfigTransformTest;
@@ -27,6 +28,7 @@ if (process.env.EE === 'true') {
     require('./ee/dynamicFieldFilter.test').dynamicFieldFilterTests;
   onPremPlanResolutionTests =
     require('./ee/onPremPlanResolution.test').onPremPlanResolutionTests;
+  modelStatTests = require('./ee/modelStat.test').modelStatTests;
 }
 
 function _helperTests() {
@@ -38,12 +40,16 @@ function _helperTests() {
   planResolutionTests();
   onPremPlanResolutionTests();
   mfaHelperTests();
-  describe('PublicDatasService - shared view column sanitization', publicDatasSanitizeTest);
+  describe(
+    'PublicDatasService - shared view column sanitization',
+    publicDatasSanitizeTest,
+  );
   apiTokenPermissionTest();
   patResourceFilterTest();
   verifyDefaultOrgTests();
   dynamicFieldFilterTests();
   mailAuditTests();
+  modelStatTests();
 }
 export const helperTests = runOnSet(1, function () {
   describe('helpersTest', _helperTests);

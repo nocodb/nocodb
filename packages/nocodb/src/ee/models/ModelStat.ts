@@ -4,6 +4,16 @@ import Noco from '~/Noco';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { Model, Source } from '~/models';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+
+// PG returns BIGINT SUM/COUNT as a string; coerce to a clamped non-negative
+// integer so downstream arithmetic (checkLimit's `count + delta`) is numeric.
+function toIntegerCount(value: unknown): number {
+  if (value === null || value === undefined) return 0;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.trunc(n));
+}
 
 export default class ModelStat {
   // primary: [fk_workspace_id, base_id, fk_model_id]
@@ -64,9 +74,16 @@ export default class ModelStat {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObject = extractProps(stat, ['row_count']);
+    if ('row_count' in insertObject) {
+      insertObject.row_count = toIntegerCount(insertObject.row_count);
+    }
 
     const model = await Model.get(context, modelId, false, ncMeta);
+    if (!model) return null;
+
     const source = await Source.get(context, model.source_id, false, ncMeta);
+    if (!source) return null;
+
     const is_external = !source.isMeta();
 
     const now = ncMeta.now();
@@ -86,19 +103,43 @@ export default class ModelStat {
       .onConflict(['fk_workspace_id', 'base_id', 'fk_model_id'])
       .merge({
         ...insertObject,
+        is_external,
         updated_at: now,
       });
 
-    await NocoCache.del(
-      { workspace_id: workspaceId, base_id: null },
-      `${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`,
-    );
-    await NocoCache.del(
-      { workspace_id: workspaceId, base_id: null },
-      `${CacheScope.MODEL_STAT}:${workspaceId}:sum`,
-    );
+    await this.invalidate(workspaceId, modelId);
 
     return this.get(context, workspaceId, modelId, ncMeta);
+  }
+
+  // Fresh count + upsert in one shot — keeps type-coercion + invalidation
+  // in one place so callers don't redo it.
+  public static async recount(
+    context: NcContext,
+    model: Model,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number | null> {
+    if (!model) return null;
+    if (model.mm) return null;
+
+    const source = await Source.get(context, model.source_id, false, ncMeta);
+    if (!source) return null;
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+    const row_count = toIntegerCount(await baseModel.count());
+
+    await this.upsert(
+      context,
+      model.fk_workspace_id,
+      model.id,
+      { row_count },
+      ncMeta,
+    );
+
+    return row_count;
   }
 
   public static async delete(
@@ -118,14 +159,7 @@ export default class ModelStat {
         },
       );
 
-      await NocoCache.del(
-        { workspace_id: workspaceId, base_id: null },
-        `${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`,
-      );
-      await NocoCache.del(
-        { workspace_id: workspaceId, base_id: null },
-        `${CacheScope.MODEL_STAT}:${workspaceId}:sum`,
-      );
+      await this.invalidate(workspaceId, modelId);
 
       return true;
     } catch (error) {
@@ -164,10 +198,7 @@ export default class ModelStat {
       })
       .delete();
 
-    await NocoCache.del(
-      { workspace_id: workspaceId, base_id: null },
-      `${CacheScope.MODEL_STAT}:${workspaceId}:sum`,
-    );
+    await this.invalidateWorkspaceSum(workspaceId);
 
     return true;
   }
@@ -175,7 +206,7 @@ export default class ModelStat {
   public static async getWorkspaceSum(
     workspaceId: string,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<{ row_count: number | null }> {
     let statData = await NocoCache.get(
       { workspace_id: workspaceId, base_id: null },
       `${CacheScope.MODEL_STAT}:${workspaceId}:sum`,
@@ -183,28 +214,52 @@ export default class ModelStat {
     );
 
     if (!statData) {
-      const row_count = await ncMeta
+      // Join MODELS so soft-deleted tables (base trash) drop out of the sum.
+      const result = await ncMeta
         .knexConnection(MetaTable.MODEL_STAT)
-        .sum('row_count', { as: 'sum' })
-        .where({
-          fk_workspace_id: workspaceId,
-          is_external: false,
+        .sum(`${MetaTable.MODEL_STAT}.row_count as sum`)
+        .leftJoin(
+          MetaTable.MODELS,
+          `${MetaTable.MODELS}.id`,
+          `${MetaTable.MODEL_STAT}.fk_model_id`,
+        )
+        .where(`${MetaTable.MODEL_STAT}.fk_workspace_id`, workspaceId)
+        .where(`${MetaTable.MODEL_STAT}.is_external`, false)
+        .where(function () {
+          this.where(`${MetaTable.MODELS}.deleted`, false).orWhereNull(
+            `${MetaTable.MODELS}.deleted`,
+          );
         })
         .first();
 
       statData = {
-        row_count: row_count.sum,
+        row_count: result?.sum != null ? toIntegerCount(result.sum) : null,
       };
 
-      if (statData) {
-        await NocoCache.set(
-          { workspace_id: workspaceId, base_id: null },
-          `${CacheScope.MODEL_STAT}:${workspaceId}:sum`,
-          statData,
-        );
-      }
+      await NocoCache.set(
+        { workspace_id: workspaceId, base_id: null },
+        `${CacheScope.MODEL_STAT}:${workspaceId}:sum`,
+        statData,
+      );
     }
 
     return statData;
+  }
+
+  // Also called from Model.softDelete (table trash / restore) — the join
+  // predicate flips even though no MODEL_STAT row was touched.
+  public static async invalidateWorkspaceSum(workspaceId: string) {
+    await NocoCache.del(
+      { workspace_id: workspaceId, base_id: null },
+      `${CacheScope.MODEL_STAT}:${workspaceId}:sum`,
+    );
+  }
+
+  private static async invalidate(workspaceId: string, modelId: string) {
+    await NocoCache.del(
+      { workspace_id: workspaceId, base_id: null },
+      `${CacheScope.MODEL_STAT}:${workspaceId}:${modelId}`,
+    );
+    await this.invalidateWorkspaceSum(workspaceId);
   }
 }

@@ -153,7 +153,8 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
         context,
         modelId: formulaColumn.fk_model_id,
       }));
-    const rowCount = await baseModel.count();
+    // PG count() returns BIGINT-as-string — coerce so `=== 0` works.
+    const rowCount = Number(await baseModel.count()) || 0;
     if (rowCount === 0) {
       return;
     }

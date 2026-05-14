@@ -3,7 +3,7 @@ import 'mocha';
 import request from 'supertest';
 import * as jwt from 'jsonwebtoken';
 import init from '../../init';
-import { defaultUserArgs } from '../../factory/user';
+import { createUser, defaultUserArgs } from '../../factory/user';
 import Noco from '~/Noco';
 
 // Single-session enforcement
@@ -214,6 +214,110 @@ function singleSessionLoginTests() {
       .post('/api/v1/auth/token/refresh')
       .set('Cookie', `refresh_token=${localSession.refreshToken}`)
       .expect(400);
+  });
+
+  it('Different users do not affect each other (per-user isolation)', async () => {
+    // The primary user (context.user) signs in.
+    const sessionA = await signIn();
+    expect(await isJwtValid(sessionA.token), 'user A session valid').to.be.true;
+
+    // A different user signs up + signs in. This must not touch user A.
+    const otherEmail = `other-user@example.com`;
+    const otherPwd = defaultUserArgs.password;
+    await createUser({ app: context.app }, { email: otherEmail, password: otherPwd });
+
+    const otherSigninRes = await request(context.app)
+      .post('/api/v1/auth/user/signin')
+      .send({ email: otherEmail, password: otherPwd })
+      .expect(200);
+    expect(otherSigninRes.body.token).to.be.a('string');
+
+    // User A's session is still valid — single-session is per-user, not global.
+    expect(await isJwtValid(sessionA.token), 'user A session preserved').to.be
+      .true;
+
+    // The other user's session is also valid.
+    const otherMe = await request(context.app)
+      .get('/api/v1/auth/user/me')
+      .set('xc-auth', otherSigninRes.body.token)
+      .expect(200);
+    expect(otherMe.body.email).to.equal(otherEmail);
+  });
+
+  it('Refresh-token call after another login is rejected', async () => {
+    // User has a session with valid refresh token.
+    const sessionA = await signIn();
+
+    // User refreshes once — same session continues, refresh token rotates.
+    const refresh1 = await request(context.app)
+      .post('/api/v1/auth/token/refresh')
+      .set('Cookie', `refresh_token=${sessionA.refreshToken}`)
+      .expect(200);
+
+    // Extract new refresh token from the response cookie.
+    const setCookie = refresh1.headers['set-cookie'] as unknown as
+      | string[]
+      | string
+      | undefined;
+    const cookies = Array.isArray(setCookie)
+      ? setCookie
+      : setCookie
+      ? [setCookie]
+      : [];
+    const rotated = cookies
+      .find((c) => c.startsWith('refresh_token='))!
+      .split(';')[0]
+      .replace('refresh_token=', '');
+
+    // The rotated refresh token works for another refresh.
+    await request(context.app)
+      .post('/api/v1/auth/token/refresh')
+      .set('Cookie', `refresh_token=${rotated}`)
+      .expect(200);
+
+    // Now another login happens — this should clear ALL refresh tokens for
+    // this user, including the rotated one in active use.
+    await signIn();
+
+    // The rotated refresh token is no longer accepted.
+    await request(context.app)
+      .post('/api/v1/auth/token/refresh')
+      .set('Cookie', `refresh_token=${rotated}`)
+      .expect(400);
+  });
+
+  ssoIt('Cross-mechanism: local → SSO → local chain invalidates each step', async () => {
+    const config = Noco.getConfig();
+    const mintShortToken = () =>
+      jwt.sign(
+        {
+          id: context.user.id,
+          email: context.user.email,
+          sso_client_type: 'saml',
+          sso_client_id: 'mock-client-id',
+        },
+        config.auth.jwt.secret,
+        { expiresIn: '1m' },
+      );
+
+    // Step 1: local signin
+    const localA = await signIn();
+    expect(await isJwtValid(localA.token), 'local A valid').to.be.true;
+
+    // Step 2: SSO short-token exchange — invalidates local A
+    const ssoRes = await request(context.app)
+      .post('/auth/long-lived-token')
+      .set('xc-short-token', mintShortToken())
+      .expect(201);
+    expect(await isJwtValid(localA.token), 'local A invalidated by SSO').to.be
+      .false;
+    expect(await isJwtValid(ssoRes.body.token), 'SSO session valid').to.be.true;
+
+    // Step 3: another local signin — invalidates SSO
+    const localB = await signIn();
+    expect(await isJwtValid(ssoRes.body.token), 'SSO invalidated by local B').to
+      .be.false;
+    expect(await isJwtValid(localB.token), 'local B valid').to.be.true;
   });
 
   ssoIt('Second SSO exchange invalidates prior SSO session', async () => {

@@ -250,7 +250,9 @@ export const useEeConfig = createSharedComposable(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
   })
 
-  const blockGanttView = computed(() => false)
+  const blockGanttView = computed(() => {
+    return !getFeature(PlanFeatureTypes.FEATURE_GANTT_VIEW)
+  })
 
   const blockTableAndFieldPermissions = computed(() => {
     return !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
@@ -1441,8 +1443,10 @@ export const useEeConfig = createSharedComposable(() => {
     }
 
     handleUpgradePlan({
-      title: 'Upgrade to use Gantt view',
-      content: `Upgrade to ${PlanTitles.BUSINESS} to use Gantt view.`,
+      title: t('upgrade.upgradeToUseGanttView'),
+      content: t('upgrade.upgradeToUseGanttViewSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
       callback,
       requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_GANTT_VIEW,

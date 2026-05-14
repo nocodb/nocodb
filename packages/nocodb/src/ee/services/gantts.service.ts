@@ -50,7 +50,7 @@ export class GanttsService {
     },
     ncMeta?: MetaService,
   ) {
-    // await checkForFeature(context, PlanFeatureTypes.FEATURE_GANTT_VIEW);
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_GANTT_VIEW);
 
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',

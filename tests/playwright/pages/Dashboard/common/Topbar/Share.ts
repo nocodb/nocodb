@@ -41,6 +41,12 @@ export class TopbarSharePage extends BasePage {
   async clickShareViewWithPassword({ password }: { password: string }) {
     await this.get().locator(`[data-testid="share-password-toggle"]`).click();
     await this.get().locator('[data-testid="nc-modal-share-view__password"]').fill(password);
+    // Persist explicitly — the new UX requires a deliberate Save click; the
+    // input no longer blur-autosaves to the backend.
+    await this.get().locator('[data-testid="nc-share-view-password-save-btn"]').click();
+    // Wait until the UI switches to the locked/masked state, which signals
+    // the backend round-trip completed.
+    await this.get().locator('[data-testid="nc-share-view-password-locked"]').waitFor({ state: 'visible' });
   }
 
   async clickShareViewWithCSVDownload() {

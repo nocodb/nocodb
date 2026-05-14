@@ -1,4 +1,4 @@
-import { EventType, PlanLimitTypes, ViewTypes, getFirstNonPersonalView } from 'nocodb-sdk'
+import { EventType, PlanLimitTypes, ViewTypes, getFirstNonPersonalView, isBcryptHash } from 'nocodb-sdk'
 import type {
   DashboardPayload,
   DocumentCommentPayload,
@@ -259,7 +259,14 @@ export const useRealtime = createSharedComposable(() => {
           includeViewType: ViewTypes.GRID,
         })
 
-        Object.assign(view, event.payload)
+        // Defense-in-depth: strip raw bcrypt hashes from broadcast payloads
+        // so they never overwrite the locally masked sentinel. Null/empty
+        // (password cleared) and the masked sentinel (still set) both pass through.
+        const cleanPayload = { ...event.payload } as any
+        if (isBcryptHash(cleanPayload.password)) {
+          delete cleanPayload.password
+        }
+        Object.assign(view, cleanPayload)
         tableViews?.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
 
         // Check if there's a new first collaborative grid view after update
@@ -593,7 +600,15 @@ export const useRealtime = createSharedComposable(() => {
         break
       }
       case 'update': {
-        const updatedDashboards = existingDashboards.map((d) => (d.id === id ? { ...d, ...dashboard } : d))
+        // Defense-in-depth: strip raw bcrypt hashes from broadcast payloads
+        // so they never overwrite the locally masked sentinel. Null/empty
+        // (password cleared) and the masked sentinel (still set) both pass through.
+        const cleanDashboard = { ...dashboard } as any
+        if (isBcryptHash(cleanDashboard.password)) {
+          delete cleanDashboard.password
+        }
+
+        const updatedDashboards = existingDashboards.map((d) => (d.id === id ? { ...d, ...cleanDashboard } : d))
 
         updatedDashboards.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
 

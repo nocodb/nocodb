@@ -25,7 +25,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
-import type { LinkToAnotherRecordColumn, User, View } from '~/models';
+import type { LinkToAnotherRecordColumn, User } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { OperationSource } from '~/helpers/columnHelpers';
 import { ColumnsService } from '~/services/columns.service';
@@ -38,7 +38,14 @@ import {
   repopulateCreateTableSystemColumns,
 } from '~/helpers/tableHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
-import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
+import {
+  Base,
+  Column,
+  Model,
+  ModelRoleVisibility,
+  Permission,
+  View,
+} from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -611,6 +618,12 @@ export class TablesService {
 
     if (isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
       await table.getViews(context);
+      // Mask the bcrypt password hash before returning to the caller.
+      if (table.views?.length) {
+        table.views = table.views.map((v) =>
+          View.maskPasswordForResponse(v),
+        ) as View[];
+      }
     } else {
       // todo: optimise
       const viewList = <View[]>(
@@ -660,6 +673,9 @@ export class TablesService {
 
       const views = await model.getViews(context);
       for (const view of views) {
+        // Mask the bcrypt password hash — the owner UI never needs the
+        // stored value; it sees a sentinel and renders a masked state.
+        const safeView = View.maskPasswordForResponse(view);
         obj[view.id] = {
           ptn: model.table_name,
           _ptn: model.title,
@@ -667,7 +683,7 @@ export class TablesService {
           tn: view.title,
           _tn: view.title,
           table_meta: model.meta,
-          ...view,
+          ...safeView,
           disabled: { ...defaultDisabled },
         };
       }

@@ -4,7 +4,9 @@ import {
   EventType,
   ExpandedFormMode,
   getFirstNonPersonalView,
+  isBcryptHash,
   isSystemColumn,
+  NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
   NcBaseError,
   parseProp,
   UITypes,
@@ -1665,6 +1667,16 @@ export default class View implements ViewType {
     { password }: { password: string },
     ncMeta = Noco.ncMeta,
   ) {
+    // Sentinel: client signals "password unchanged" — skip update entirely.
+    // Pre-hashed input: refuse to re-hash (defends against stale clients that
+    // echo the stored hash back to us).
+    if (
+      password === NC_VIEW_PASSWORD_PROTECTED_SENTINEL ||
+      isBcryptHash(password)
+    ) {
+      return;
+    }
+
     const hashedPassword = password
       ? await bcrypt.hash(password, 10)
       : password;
@@ -1685,6 +1697,31 @@ export default class View implements ViewType {
     });
   }
 
+  /**
+   * Mask the stored password value before returning a view to an
+   * owner-facing API consumer.
+   *
+   * - Bcrypt hash → replaced with the sentinel; the hash never leaves the
+   *   backend and the frontend renders a masked locked state.
+   * - Legacy plaintext (pre-PR-8174 rows that have never been re-saved) →
+   *   left as-is so the owner can still read their original password.
+   *   Migrates to bcrypt the next time the owner changes it.
+   * - Empty/null → unchanged.
+   *
+   * Returns a copy when masking is needed so we don't mutate cached View
+   * instances. Preserves the prototype so the returned value is still a
+   * `View` (methods stay callable on it).
+   */
+  static maskPasswordForResponse<T extends { password?: string | null }>(
+    view: T,
+  ): T {
+    if (!view || !view.password) return view;
+    if (!isBcryptHash(view.password)) return view;
+    return Object.assign(Object.create(Object.getPrototypeOf(view)), view, {
+      password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+    });
+  }
+
   static async verifyPassword(
     view: { password?: string },
     inputPassword: string,
@@ -1693,7 +1730,7 @@ export default class View implements ViewType {
     if (!inputPassword) return false;
 
     // Support bcrypt hashed passwords (new) and plaintext (legacy)
-    if (view.password.startsWith('$2a$') || view.password.startsWith('$2b$')) {
+    if (isBcryptHash(view.password)) {
       return bcrypt.compare(inputPassword, view.password);
     }
 
@@ -1770,8 +1807,17 @@ export default class View implements ViewType {
       ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);
 
-    // Hash shared view password before storage
-    if (updateObj.password) {
+    // Password handling:
+    //  - Sentinel → "no change", strip from update so the stored hash is preserved.
+    //  - Already-hashed value (stale client echoing back the hash) → strip,
+    //    so we never re-hash an existing hash and invalidate the password.
+    //  - Plaintext → hash with bcrypt before storage.
+    if (
+      updateObj.password === NC_VIEW_PASSWORD_PROTECTED_SENTINEL ||
+      isBcryptHash(updateObj.password)
+    ) {
+      delete updateObj.password;
+    } else if (updateObj.password) {
       updateObj.password = await bcrypt.hash(updateObj.password, 10);
     }
 

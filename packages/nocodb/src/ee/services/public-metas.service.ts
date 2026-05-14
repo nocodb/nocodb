@@ -173,7 +173,16 @@ export class PublicMetasService extends PublicMetasServiceCE {
 
     await dashboard.getWidgets(context);
 
-    return dashboard;
+    // Never leak the stored bcrypt hash to the public viewer. Return a
+    // shallow copy with password stripped — don't mutate the loaded
+    // instance, so the strip stays safe even if `Dashboard.getByUUID`
+    // ever gains caching. Mirrors what the CE public-metas service does
+    // for shared views (`view.password = undefined`).
+    return Object.assign(
+      Object.create(Object.getPrototypeOf(dashboard)),
+      dashboard,
+      { password: undefined },
+    );
   }
 
   public checkViewBaseType(view: View | Dashboard, base: Base) {

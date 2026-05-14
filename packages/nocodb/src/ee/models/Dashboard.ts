@@ -1,5 +1,10 @@
 import DashboardCE from 'src/models/Dashboard';
-import { ModelTypes, PlanLimitTypes } from 'nocodb-sdk';
+import {
+  isBcryptHash,
+  ModelTypes,
+  NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+  PlanLimitTypes,
+} from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
@@ -229,8 +234,17 @@ export default class Dashboard extends DashboardCE implements DashboardType {
 
     updateObj = prepareForDb(updateObj, ['meta']);
 
-    // Hash password if being set
-    if (updateObj.password) {
+    // Password handling (mirrors View.update):
+    //  - Sentinel → "no change", strip from update so the stored hash is preserved.
+    //  - Already-hashed value (stale client echoing back the hash) → strip,
+    //    so we never re-hash an existing hash and invalidate the password.
+    //  - Plaintext → hash with bcrypt before storage.
+    if (
+      updateObj.password === NC_VIEW_PASSWORD_PROTECTED_SENTINEL ||
+      isBcryptHash(updateObj.password)
+    ) {
+      delete updateObj.password;
+    } else if (updateObj.password) {
       updateObj.password = await bcrypt.hash(updateObj.password, 10);
     }
 
@@ -259,6 +273,29 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     return this.get(context, dashboardId, false, ncMeta);
   }
 
+  /**
+   * Mask the stored password value before returning a dashboard to an
+   * owner-facing API consumer. Mirrors `View.maskPasswordForResponse`.
+   *
+   * - Bcrypt hash → replaced with the sentinel.
+   * - Legacy plaintext (pre-PR-8174 rows that have never been re-saved) →
+   *   left as-is so the owner can still read their original password.
+   * - Empty/null → unchanged.
+   *
+   * Returns a copy when masking is needed so we don't mutate cached
+   * Dashboard instances. Preserves the prototype so the returned value is
+   * still a `Dashboard` (methods stay callable on it).
+   */
+  static maskPasswordForResponse<T extends { password?: string | null }>(
+    dashboard: T,
+  ): T {
+    if (!dashboard || !dashboard.password) return dashboard;
+    if (!isBcryptHash(dashboard.password)) return dashboard;
+    return Object.assign(Object.create(Object.getPrototypeOf(dashboard)), dashboard, {
+      password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+    });
+  }
+
   static async verifyPassword(
     dashboard: { password?: string },
     inputPassword: string,
@@ -267,10 +304,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     if (!inputPassword) return false;
 
     // Support bcrypt hashed passwords
-    if (
-      dashboard.password.startsWith('$2a$') ||
-      dashboard.password.startsWith('$2b$')
-    ) {
+    if (isBcryptHash(dashboard.password)) {
       return bcrypt.compare(inputPassword, dashboard.password);
     }
 

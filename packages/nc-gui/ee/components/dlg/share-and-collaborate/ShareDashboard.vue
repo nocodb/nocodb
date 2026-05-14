@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { NC_VIEW_PASSWORD_PROTECTED_SENTINEL } from 'nocodb-sdk'
+
 const { appInfo } = useGlobal()
 
 const { dashboardUrl } = useDashboard()
@@ -13,6 +15,7 @@ const { isPrivateBase } = storeToRefs(useBase())
 
 const { activeProjectId } = storeToRefs(useBases())
 const { copy } = useCopy()
+const { t } = useI18n()
 
 const isUpdating = ref({
   public: false,
@@ -39,27 +42,32 @@ const passwordProtected = computed(() => {
   return !!activeDashboard.value?.password || passwordProtectedLocal.value
 })
 
-const password = ref(activeDashboard.value?.password || '')
-
-const passwordDebounced = refDebounced(password, 500)
-
-watch(passwordDebounced, async (newPassword) => {
-  if (!activeDashboard.value || !activeProjectId.value) return
-  if (!passwordProtected.value) return
-  if (newPassword === activeDashboard.value?.password) return
-  if (isUpdating.value.password) return
-
-  isUpdating.value.password = true
-  try {
-    await dashboardShare(activeProjectId.value, activeDashboard.value.id, {
-      password: newPassword || null,
-    })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isUpdating.value.password = false
-  }
+/**
+ * `true` when the backend has confirmed a password is stored for this
+ * dashboard. The actual hash never reaches the frontend — we receive the
+ * sentinel `NC_VIEW_PASSWORD_PROTECTED_SENTINEL` and render a masked state.
+ */
+const hasStoredPassword = computed(() => {
+  const value = activeDashboard.value?.password
+  return typeof value === 'string' && value.length > 0
 })
+
+/**
+ * `true` when the stored value is a legacy plaintext password (set before
+ * the GHSA-mpp2 bcrypt migration and never re-saved). The backend passes
+ * these through unmasked so the owner can still read the original value.
+ */
+const isLegacyPlaintextPassword = computed(() => {
+  const value = activeDashboard.value?.password
+  return typeof value === 'string' && value.length > 0 && value !== NC_VIEW_PASSWORD_PROTECTED_SENTINEL
+})
+
+// Local buffer for first-time password entry (after toggling the switch on).
+// Once the password is saved, the field switches to a "locked" state and
+// further edits go through the dedicated change-password modal.
+const newPasswordDraft = ref('')
+
+const isChangePasswordModalOpen = ref(false)
 
 function sharedDashboardUrl() {
   if (!activeDashboard.value?.uuid) return null
@@ -70,23 +78,70 @@ const togglePasswordProtected = async () => {
   if (!activeDashboard.value || !activeProjectId.value) return
   if (isUpdating.value.password) return
 
+  const wasProtected = passwordProtected.value
+
   isUpdating.value.password = true
   try {
-    const newPassword = passwordProtected.value ? null : ''
-    passwordProtectedLocal.value = !passwordProtected.value
-
-    await dashboardShare(activeProjectId.value, activeDashboard.value.id, {
-      password: newPassword,
-    })
-
-    password.value = newPassword || ''
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-    // Revert local state on error
-    passwordProtectedLocal.value = !passwordProtectedLocal.value
+    if (wasProtected) {
+      // Turning OFF — persist first; only flip local state on confirmed
+      // success so a backend failure doesn't leave the UI claiming the
+      // password was removed when the hash is still stored.
+      try {
+        await dashboardShare(activeProjectId.value, activeDashboard.value.id, {
+          password: null,
+        })
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+        return
+      }
+      passwordProtectedLocal.value = false
+      newPasswordDraft.value = ''
+      if (activeDashboard.value) activeDashboard.value.password = null
+    } else {
+      // Turning ON — open the toggle locally; backend stays unchanged until
+      // the user actually enters a password.
+      passwordProtectedLocal.value = true
+    }
   } finally {
     isUpdating.value.password = false
   }
+}
+
+const saveNewPassword = async (newValue: string): Promise<boolean> => {
+  if (!activeDashboard.value || !activeProjectId.value) return false
+  const trimmed = (newValue ?? '').trim()
+  if (!trimmed) return false
+  if (isUpdating.value.password) return false
+
+  isUpdating.value.password = true
+  try {
+    await dashboardShare(activeProjectId.value, activeDashboard.value.id, {
+      password: trimmed,
+    })
+    // Backend echoes the sentinel back on the next read; reflect that locally
+    // so the UI immediately switches to the masked/locked state.
+    if (activeDashboard.value) {
+      activeDashboard.value.password = NC_VIEW_PASSWORD_PROTECTED_SENTINEL
+    }
+    newPasswordDraft.value = ''
+    passwordProtectedLocal.value = false
+    return true
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+    return false
+  } finally {
+    isUpdating.value.password = false
+  }
+}
+
+const openChangePasswordModal = () => {
+  isChangePasswordModalOpen.value = true
+}
+
+const onPasswordChanged = async (newValue: string) => {
+  const ok = await saveNewPassword(newValue)
+  // Keep the modal open on failure so the user can retry without losing input.
+  if (ok) isChangePasswordModalOpen.value = false
 }
 
 const toggleShare = async () => {
@@ -178,18 +233,89 @@ const copyCustomUrl = async (custUrl = '') => {
             />
           </div>
           <Transition mode="out-in" name="layout">
-            <div v-if="passwordProtected" class="flex gap-2 mt-2 w-2/3">
-              <a-input-password
-                v-model:value="password"
-                :placeholder="$t('placeholder.password.enter')"
-                class="!rounded-lg !py-1 !bg-nc-bg-default"
-                data-testid="nc-modal-share-dashboard__password"
-                size="small"
-                type="password"
-              />
+            <div v-if="passwordProtected" class="flex flex-col gap-2 mt-2">
+              <!-- Legacy plaintext password (pre-bcrypt migration) — show as-is so the owner can still read it -->
+              <div v-if="isLegacyPlaintextPassword" class="flex items-center gap-2">
+                <a-input-password
+                  :value="activeDashboard?.password"
+                  class="!rounded-lg !py-1 !bg-nc-bg-default flex-1"
+                  data-testid="nc-share-dashboard-password-legacy"
+                  size="small"
+                  readonly
+                  autocomplete="off"
+                  name="nc-share-dashboard-password-legacy"
+                />
+                <NcButton
+                  v-e="['c:share:dashboard:password:change-open']"
+                  data-testid="nc-share-dashboard-password-change-btn"
+                  size="small"
+                  type="secondary"
+                  @click="openChangePasswordModal"
+                >
+                  {{ $t('labels.changePassword') }}
+                </NcButton>
+              </div>
+              <!-- Stored password (bcrypt-hashed): show masked locked state + dedicated change action -->
+              <div v-else-if="hasStoredPassword" class="flex items-center gap-2">
+                <div
+                  class="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-nc-bg-default border-1 border-nc-border-gray-medium"
+                  data-testid="nc-share-dashboard-password-locked"
+                >
+                  <GeneralIcon icon="ncLock" class="text-nc-content-gray-subtle !w-3.5 !h-3.5" />
+                  <span class="text-nc-content-gray-subtle text-bodySm tracking-widest">••••••••</span>
+                </div>
+                <NcButton
+                  v-e="['c:share:dashboard:password:change-open']"
+                  data-testid="nc-share-dashboard-password-change-btn"
+                  size="small"
+                  type="secondary"
+                  @click="openChangePasswordModal"
+                >
+                  {{ $t('labels.changePassword') }}
+                </NcButton>
+              </div>
+              <!-- First-time entry: inline input + explicit Save button -->
+              <div v-else class="flex flex-col gap-1.5">
+                <div class="flex items-center gap-2">
+                  <a-input-password
+                    v-model:value="newPasswordDraft"
+                    :placeholder="$t('placeholder.password.enter')"
+                    class="!rounded-lg !py-1 !bg-nc-bg-default flex-1"
+                    data-testid="nc-modal-share-dashboard__password"
+                    size="small"
+                    type="password"
+                    autocomplete="new-password"
+                    name="nc-share-dashboard-password-new"
+                    @press-enter="saveNewPassword(newPasswordDraft)"
+                  />
+                  <NcButton
+                    v-e="['c:share:dashboard:password:save-new']"
+                    :disabled="!newPasswordDraft.trim()"
+                    :loading="isUpdating.password"
+                    data-testid="nc-share-dashboard-password-save-btn"
+                    size="small"
+                    type="primary"
+                    @click="saveNewPassword(newPasswordDraft)"
+                  >
+                    {{ $t('general.save') }}
+                  </NcButton>
+                </div>
+                <span class="text-bodySm text-nc-content-gray-subtle leading-snug">
+                  {{ $t('msg.info.viewPasswordNotVisibleAfterSave') }}
+                </span>
+              </div>
             </div>
           </Transition>
         </div>
+
+        <DlgShareAndCollaborateChangeViewPassword
+          v-if="isChangePasswordModalOpen && activeDashboard"
+          v-model:visible="isChangePasswordModalOpen"
+          :title="t('labels.changeDashboardPassword')"
+          :loading="isUpdating.password"
+          telemetry-key="c:share:dashboard:password:change-save"
+          @save="onPasswordChanged"
+        />
       </template>
     </div>
   </div>

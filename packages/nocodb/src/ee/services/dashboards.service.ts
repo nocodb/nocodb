@@ -31,7 +31,10 @@ export class DashboardsService {
   ) {}
 
   async dashboardList(context: NcContext, baseId: string) {
-    return await Dashboard.list(context, baseId);
+    const dashboards = await Dashboard.list(context, baseId);
+    // Mask bcrypt password hashes — the owner UI only needs to know whether
+    // a password is set, not its stored value.
+    return dashboards.map((d) => Dashboard.maskPasswordForResponse(d));
   }
 
   async dashboardGet(context: NcContext, dashboardId: string) {
@@ -43,7 +46,7 @@ export class DashboardsService {
 
     await dashboard.getWidgets(context);
 
-    return dashboard;
+    return Dashboard.maskPasswordForResponse(dashboard);
   }
 
   @TraceCommand(OperationName.dashboardCreate)
@@ -86,6 +89,10 @@ export class DashboardsService {
       user: req.user,
     });
 
+    const safeDashboard = Dashboard.maskPasswordForResponse(
+      dashboard as Dashboard,
+    );
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -93,13 +100,13 @@ export class DashboardsService {
         payload: {
           id: dashboard.id,
           action: 'create',
-          payload: dashboard as DashboardType,
+          payload: safeDashboard as DashboardType,
         },
       },
       context.socket_id,
     );
 
-    return dashboard;
+    return safeDashboard;
   }
 
   @TraceCommand(OperationName.dashboardUpdate)
@@ -140,6 +147,11 @@ export class DashboardsService {
       req,
     });
 
+    // Strip the stored bcrypt password hash from every outbound payload.
+    const safeDashboard = Dashboard.maskPasswordForResponse(
+      updatedDashboard as Dashboard,
+    );
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -147,13 +159,13 @@ export class DashboardsService {
         payload: {
           id: dashboardId,
           action: 'update',
-          payload: updatedDashboard as DashboardType,
+          payload: safeDashboard as DashboardType,
         },
       },
       context.socket_id,
     );
 
-    return updatedDashboard;
+    return safeDashboard;
   }
 
   @TraceCommand(OperationName.dashboardDelete)
@@ -199,7 +211,9 @@ export class DashboardsService {
         payload: {
           id: dashboardId,
           action: 'delete',
-          payload: dashboard as DashboardType,
+          payload: Dashboard.maskPasswordForResponse(
+            dashboard as Dashboard,
+          ) as DashboardType,
         },
       },
       context.socket_id,
@@ -652,6 +666,12 @@ export class DashboardsService {
           updateData,
         );
 
+        // Strip the bcrypt hash before the dashboard flows through emits or
+        // the return path — no event listener should ever see it.
+        newDashboard = Dashboard.maskPasswordForResponse(
+          newDashboard as Dashboard,
+        );
+
         this.appHooksService.emit(AppEvents.SHARED_DASHBOARD_UPDATE_LINK, {
           context,
           req,
@@ -686,6 +706,12 @@ export class DashboardsService {
 
       newDashboard = await Dashboard.update(context, dashboard.id, updateData);
 
+      // Strip the bcrypt hash before the dashboard flows through emits or
+      // the return path — no event listener should ever see it.
+      newDashboard = Dashboard.maskPasswordForResponse(
+        newDashboard as Dashboard,
+      );
+
       this.appHooksService.emit(AppEvents.SHARED_DASHBOARD_GENERATE_LINK, {
         context,
         req,
@@ -699,7 +725,7 @@ export class DashboardsService {
       });
     }
 
-    return newDashboard;
+    return newDashboard as Dashboard;
   }
   private getUrl({
     dashboard,

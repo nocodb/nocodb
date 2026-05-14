@@ -74,9 +74,6 @@ export class PublicMetasService {
       is_local: source.is_local,
     };
 
-    // todo: return only required props
-    view.password = undefined;
-
     // Required for Calendar / Timeline views — the date columns that drive
     // the bar / event positions are usually hidden in the field menu, so the
     // visibility filter below would drop them from view.model.columns and
@@ -178,7 +175,13 @@ export class PublicMetasService {
       }));
     }
 
-    return view;
+    // Never leak the stored password to the public viewer. Return a shallow
+    // copy with password stripped — don't mutate the loaded instance, so the
+    // strip stays safe even if `View.getByUUID` ever gains caching. Mirrors
+    // the EE dashboardMetaGet pattern.
+    return Object.assign(Object.create(Object.getPrototypeOf(view)), view, {
+      password: undefined,
+    });
   }
 
   protected async extractRelatedMetas(

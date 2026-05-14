@@ -47,6 +47,12 @@ export function fromEntries<T = any>(
   }, {} as { [key: string]: T });
 }
 
+// Properties that must never end up in nc_audit.details, regardless of which
+// emit path produced them. Stripped both by removeBlankPropsAndMask (top-level
+// payloads) and extractNonSystemProps (diffs), so any current or future audit
+// path is safe even if a service forgets to mask its event payload.
+const sensitiveProps = ['password'];
+
 /**
  * Removes blank properties from an object and optionally includes null values.
  * Masks excluded properties and predefined system properties.
@@ -68,6 +74,7 @@ export const removeBlankPropsAndMask = (
     'base_id',
     'source_id',
     'fk_workspace_id',
+    ...sensitiveProps,
   ];
 
   if (obj === null || obj === undefined) return obj;
@@ -139,6 +146,7 @@ export function extractNonSystemProps<T>(
         return (
           (includeNulls || val !== null) &&
           !systemColumns.includes(key) &&
+          !sensitiveProps.includes(key) &&
           !additionalExcludeProps?.includes(key)
         );
       })

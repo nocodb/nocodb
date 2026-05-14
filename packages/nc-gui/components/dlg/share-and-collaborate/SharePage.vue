@@ -485,10 +485,6 @@ async function updateSharedView(arg?: { password?: string | null; custUrl?: stri
   const meta = activeView.value.meta
 
   const custUrl = arg?.custUrl
-  // When `password` is absent we send the sentinel so the backend knows to
-  // leave the stored value untouched — this is what prevents re-hashing
-  // the existing bcrypt hash on every unrelated toggle.
-  const passwordPayload = arg?.password === undefined ? NC_VIEW_PASSWORD_PROTECTED_SENTINEL : arg.password
 
   try {
     // Get meta using base_id from activeView
@@ -502,7 +498,7 @@ async function updateSharedView(arg?: { password?: string | null; custUrl?: stri
       },
       {
         meta,
-        password: passwordPayload,
+        ...(arg?.password !== undefined ? { password: arg.password } : {}),
         ...(custUrl !== undefined ? { custom_url_path: custUrl ?? null } : {}),
       },
     )

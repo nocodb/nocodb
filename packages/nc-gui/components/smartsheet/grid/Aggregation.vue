@@ -23,6 +23,8 @@ const { isMysql, isPg } = baseStore
 
 const { meta, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
+const isMmTable = computed(() => !!meta.value?.mm)
+
 const getAddnlMargin = (depth: number) => {
   if (props.maxDepth === 3) {
     switch (depth) {
@@ -59,16 +61,21 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
     ></div>
     <NcDropdown
       v-if="field && column?.id"
-      :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!) || isLocked || !isViewOperationsAllowed"
+      :disabled="
+        [UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!) ||
+        isLocked ||
+        !isViewOperationsAllowed ||
+        isMmTable
+      "
       overlay-class-name="max-h-64 relative scroll-container nc-scrollbar-thin overflow-auto"
       @click.stop
     >
       <div
         class="flex items-center overflow-x-hidden justify-end group-aggregation text-nc-content-gray-muted transition-all transition-linear px-3 py-2"
         :class="{
-          'cursor-pointer': !isLocked && isViewOperationsAllowed,
-          'hover:bg-nc-bg-gray-light': isViewOperationsAllowed,
-          'cursor-auto': !isViewOperationsAllowed,
+          'cursor-pointer': !isLocked && isViewOperationsAllowed && !isMmTable,
+          'hover:bg-nc-bg-gray-light': isViewOperationsAllowed && !isMmTable,
+          'cursor-auto': !isViewOperationsAllowed || isMmTable,
         }"
         :style="{
           'min-width': width,
@@ -76,7 +83,9 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
           'width': width,
         }"
       >
-        <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)">
+        <template
+          v-if="!isMmTable && ![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)"
+        >
           <div
             v-if="field?.aggregation === 'none' || field?.aggregation === null"
             class="text-nc-content-gray-muted opacity-0 transition"

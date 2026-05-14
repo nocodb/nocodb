@@ -679,7 +679,7 @@ function makeEditable(row: Row, col: ColumnType) {
 }
 
 const isAddingEmptyRowAllowed = computed(
-  () => hasEditPermission.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced,
+  () => hasEditPermission.value && !isSqlView.value && !isPublicView.value && !meta.value?.synced && !meta.value?.mm,
 )
 
 const visibleColLength = computed(() => fields.value?.length)

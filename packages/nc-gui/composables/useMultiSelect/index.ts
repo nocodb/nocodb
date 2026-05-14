@@ -116,6 +116,11 @@ export function useMultiSelect(
     extractCellClipboardData,
     waitingCellClipboardDataIds,
   } = useNcClipboardData()
+
+  // Trigger a view-data reload after operations that change links — lookup/rollup
+  // values depend on linked records and don't update via cell sync alone.
+  const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
   const aiMode = ref(false)
 
   const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
@@ -1141,9 +1146,13 @@ export function useMultiSelect(
           rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
         }
 
+        // M2M junction tables don't support inserting rows/columns via paste —
+        // records are owned by the link cell, not the junction directly.
+        const isMmTable = !!meta.value?.mm
+
         let options = {
           continue: false,
-          expand: (rowsToAdd > 0 || newColsNeeded > 0) && !isArrayStructure,
+          expand: (rowsToAdd > 0 || newColsNeeded > 0) && !isArrayStructure && !isMmTable,
         }
         if (options.expand && !isArrayStructure) {
           options = await expandRows?.({
@@ -1375,6 +1384,9 @@ export function useMultiSelect(
                 [{ columnId: columnObj.id as string, rowId: pasteRowPk, displayValues }],
               )
 
+              // Refresh view data so lookup/rollup columns reflect the new links
+              reloadViewDataHook?.trigger({ shouldShowLoading: false })
+
               return await syncCellData?.(activeCell)
             } catch (e: any) {
               message.error(await extractSdkResponseErrorMsg(e))
@@ -1482,6 +1494,9 @@ export function useMultiSelect(
                 rowObj.row[columnObj.title!] = oldCellValue
                 return
               }
+
+              // Refresh view data so lookup/rollup columns reflect the changed links
+              reloadViewDataHook?.trigger({ shouldShowLoading: false })
 
               if (isArrayStructure) {
                 addUndo({

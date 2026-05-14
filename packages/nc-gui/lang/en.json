@@ -2979,6 +2979,8 @@
     "notHaveAccess": "You don’t have access to this {context}",
     "manualTriggerDisabled": "Only workflows with manual trigger can be triggered manually.",
     "optionNotAvailableInSyncTable": "This option is not available for synced fields",
+    "uploadNotSupportedOnJunctionTable": "Uploading records is not supported on junction tables. Add records via the linked tables instead.",
+    "deleteNotSupportedOnJunctionTable": "Junction tables are managed by their linked fields and cannot be deleted directly.",
     "cannotCreateRecordInSyncTable": "You cannot create records in synced table",
     "fieldIsExternallySynced": "This field is externally synced",
     "cantAssignLastNonPersonalView": "Cannot assign last collaborative grid view as personal view",

@@ -321,7 +321,7 @@ export function useCanvasTable({
 
   const isRowDraggingEnabled = computed(() => isOrderColumnExists.value && !isRowReorderDisabled.value && !isMobileMode.value)
 
-  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced)
+  const isAddingEmptyRowAllowed = computed(() => isDataEditAllowed.value && !meta.value?.synced && !meta.value?.mm)
 
   const isAddingEmptyRowPermitted = computed(() =>
     meta.value?.id ? isAllowed(PermissionEntity.TABLE, meta.value.id, PermissionKey.TABLE_RECORD_ADD) : true,

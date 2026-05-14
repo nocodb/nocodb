@@ -12,11 +12,13 @@ const column = useVModel(props, 'column', emits)
 const { updateAggregate, getAggregations } = useViewAggregateOrThrow()
 
 const { gridViewCols } = useViewColumnsOrThrow()
+const { meta } = useSmartsheetStoreOrThrow()
 const isLocked = inject(IsLockedInj, ref(false))
 
+const isMmTable = computed(() => !!meta.value?.mm)
 const gridCol = computed(() => gridViewCols.value[column.value.id])
 const hasColError = computed(() => !!column.value?.columnObj?.colOptions?.error)
-const aggregations = computed(() => (hasColError.value ? [] : getAggregations(column.value.columnObj)))
+const aggregations = computed(() => (hasColError.value || isMmTable.value ? [] : getAggregations(column.value.columnObj)))
 
 const onClick = (agg) => {
   updateAggregate(column.value.id, agg)

@@ -1553,13 +1553,17 @@ const onGridMouseLeave = () => {
           </span>
         </div>
       </div>
-      <!-- Resize handle — sits on the right edge of the sidebar. Wider than
-           visible so the cursor target is forgiving; visible 1px strip
-           lights up on hover / drag to signal the affordance. -->
+      <!-- Resize handle — pinned to the inside of the sidebar's right edge.
+           Kept entirely inside the sidebar box so the cursor change registers
+           on hover; an outside-extending handle would be painted over by the
+           sibling main pane (siblings in source order paint over absolute
+           children of the previous sibling unless an explicit stacking
+           context is created). 6px hit width with the visible feedback strip
+           sitting on the sidebar's right border. -->
       <div
-        class="nc-gantt-sidebar-resize absolute top-0 bottom-0 cursor-col-resize select-none z-20"
+        class="nc-gantt-sidebar-resize absolute top-0 bottom-0 select-none z-20"
         :class="{ 'nc-gantt-sidebar-resize--active': isResizingSidebar }"
-        style="right: -3px; width: 6px"
+        style="right: 0; width: 6px"
         data-testid="nc-gantt-sidebar-resize"
         @mousedown="onSidebarResizeStart"
       />
@@ -2066,16 +2070,18 @@ const onGridMouseLeave = () => {
 </template>
 
 <style lang="scss" scoped>
-/* Sidebar resize handle — wider hit area than the visible strip so the
-   pointer target is forgiving; a 1px column lights up on hover/drag with
-   the brand color to confirm the affordance. */
+/* Sidebar resize handle — 6px hit area pinned inside the sidebar's right
+   edge. The visible 1px strip lights up on hover/drag and sits flush
+   against the sidebar's right border so the affordance reads as
+   "drag this divider". */
 .nc-gantt-sidebar-resize {
+  cursor: col-resize !important;
   &::after {
     content: '';
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 50%;
+    right: 0;
     width: 1px;
     background-color: transparent;
     transition: background-color 0.15s ease;

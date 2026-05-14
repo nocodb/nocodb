@@ -4,8 +4,7 @@ import { Job } from 'bull';
 import { Timer } from 'nocodb-sdk';
 import type { JobData } from '~/interface/Jobs';
 import {
-  JOB_CAP_REQUEUE_DELAY_MS,
-  JOB_CAP_REQUEUE_LIMIT,
+  JOB_REQUEUE_DELAY_MS,
   JOB_REQUEUE_LIMIT,
   JOBS_QUEUE,
   JobTypes,
@@ -71,7 +70,7 @@ export class JobsProcessor {
     const localRunning = LOCAL_JOB_COUNT_MAP.get(jobName) ?? 0;
 
     if (localLimit !== undefined && localRunning >= localLimit) {
-      await this.requeue(job, 'cap');
+      await this.requeue(job);
       return;
     }
 
@@ -110,45 +109,27 @@ export class JobsProcessor {
     }
   }
 
-  async requeue(job: Job<JobData>, reason: 'error' | 'cap' = 'error') {
+  async requeue(job: Job<JobData>) {
     // Remove the job from the queue otherwise ids will clash
     await job.releaseLock();
     await job.remove();
 
     await this.jobsEventService.onCompleted(job, JobStatus.REQUEUED);
 
-    if (reason === 'cap') {
-      const capAttempt = job.data?._jobCapAttempt ?? 1;
+    const attempt = job.data?._jobAttempt ?? 1;
 
-      if (capAttempt > JOB_CAP_REQUEUE_LIMIT) {
-        this.logger.error(
-          `Job ${job.data.jobName} dropped after ${JOB_CAP_REQUEUE_LIMIT} cap retries`,
-        );
-        return;
-      }
-
-      job.data._jobCapAttempt = capAttempt + 1;
-
-      return this.jobsService.add(job.data.jobName, job.data, {
-        jobId: job.id.toString(),
-        delay: JOB_CAP_REQUEUE_DELAY_MS,
-      });
-    }
-
-    const _jobDelay = job.data?._jobDelay ?? 0;
-    const _jobAttempt = job.data?._jobAttempt ?? 1;
-
-    if (_jobAttempt > JOB_REQUEUE_LIMIT) {
-      this.logger.error(`Job ${job.data.jobName} failed after 10 attempts`);
+    if (attempt > JOB_REQUEUE_LIMIT) {
+      this.logger.error(
+        `Job ${job.data.jobName} dropped after ${JOB_REQUEUE_LIMIT} requeues`,
+      );
       return;
     }
 
-    job.data._jobDelay = _jobDelay + 5000;
-    job.data._jobAttempt = _jobAttempt + 1;
+    job.data._jobAttempt = attempt + 1;
 
     return this.jobsService.add(job.data.jobName, job.data, {
       jobId: job.id.toString(),
-      delay: job.data._jobDelay,
+      delay: JOB_REQUEUE_DELAY_MS,
     });
   }
 }

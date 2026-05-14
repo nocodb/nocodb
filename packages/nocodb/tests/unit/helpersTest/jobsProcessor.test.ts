@@ -1,8 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
 import {
-  JOB_CAP_REQUEUE_DELAY_MS,
-  JOB_CAP_REQUEUE_LIMIT,
+  JOB_REQUEUE_DELAY_MS,
   JOB_REQUEUE_LIMIT,
   JobStatus,
   JobTypes,
@@ -72,9 +71,9 @@ function jobsProcessorTests() {
       LOCAL_JOB_COUNT_MAP = mod.LOCAL_JOB_COUNT_MAP;
     });
 
-    describe('cap requeue budget', () => {
+    describe('requeue budget', () => {
       it('60s × 60 attempts ≈ 60 min total budget', () => {
-        expect(JOB_CAP_REQUEUE_LIMIT * JOB_CAP_REQUEUE_DELAY_MS).to.equal(
+        expect(JOB_REQUEUE_LIMIT * JOB_REQUEUE_DELAY_MS).to.equal(
           60 * 60 * 1000,
         );
       });
@@ -107,77 +106,44 @@ function jobsProcessorTests() {
         );
       });
 
-      it('cap reason: schedules with fixed 60s delay', async () => {
+      it('schedules with fixed 60s delay', async () => {
         const job = makeJob(JobTypes.AtImport);
-        await processor.requeue(job, 'cap');
+        await processor.requeue(job);
         expect(addCalls).to.have.length(1);
-        expect(addCalls[0].opts.delay).to.equal(JOB_CAP_REQUEUE_DELAY_MS);
+        expect(addCalls[0].opts.delay).to.equal(JOB_REQUEUE_DELAY_MS);
       });
 
-      it('cap reason: increments _jobCapAttempt, leaves _jobAttempt/_jobDelay alone', async () => {
-        const job = makeJob(JobTypes.AtImport, {
-          _jobAttempt: 5,
-          _jobDelay: 25000,
-        });
-        await processor.requeue(job, 'cap');
-        expect(job.data._jobCapAttempt).to.equal(2);
-        expect(job.data._jobAttempt).to.equal(5);
-        expect(job.data._jobDelay).to.equal(25000);
-      });
-
-      it('cap reason: allows JOB_CAP_REQUEUE_LIMIT attempts before dropping', async () => {
+      it('increments _jobAttempt', async () => {
         const job = makeJob(JobTypes.AtImport);
-        for (let i = 0; i < JOB_CAP_REQUEUE_LIMIT; i++) {
-          await processor.requeue(job, 'cap');
-        }
-        expect(addCalls).to.have.length(JOB_CAP_REQUEUE_LIMIT);
-        expect(job.data._jobCapAttempt).to.equal(JOB_CAP_REQUEUE_LIMIT + 1);
-
-        // The (limit+1)th call must drop the job without re-adding.
-        await processor.requeue(job, 'cap');
-        expect(addCalls).to.have.length(JOB_CAP_REQUEUE_LIMIT);
+        await processor.requeue(job);
+        expect(job.data._jobAttempt).to.equal(2);
+        await processor.requeue(job);
+        expect(job.data._jobAttempt).to.equal(3);
       });
 
-      it('error reason: schedules with progressive 5s backoff', async () => {
-        const job = makeJob(JobTypes.MetaSync);
-        await processor.requeue(job, 'error');
-        expect(addCalls).to.have.length(1);
-        expect(addCalls[0].opts.delay).to.equal(5000);
-        expect(addCalls[0].data._jobAttempt).to.equal(2);
-        expect(addCalls[0].data._jobDelay).to.equal(5000);
-
-        await processor.requeue(job, 'error');
-        expect(addCalls[1].opts.delay).to.equal(10000);
-        expect(addCalls[1].data._jobAttempt).to.equal(3);
-      });
-
-      it('error reason: drops job after JOB_REQUEUE_LIMIT attempts', async () => {
-        const job = makeJob(JobTypes.MetaSync);
-        for (let i = 0; i < JOB_REQUEUE_LIMIT; i++) {
-          await processor.requeue(job, 'error');
-        }
-        expect(addCalls).to.have.length(JOB_REQUEUE_LIMIT);
-
-        await processor.requeue(job, 'error');
-        expect(addCalls).to.have.length(JOB_REQUEUE_LIMIT);
-      });
-
-      it('error reason: does not touch _jobCapAttempt', async () => {
-        const job = makeJob(JobTypes.MetaSync, { _jobCapAttempt: 20 });
-        await processor.requeue(job, 'error');
-        expect(job.data._jobCapAttempt).to.equal(20);
-      });
-
-      it('default reason is "error" (backwards-compatible)', async () => {
+      it('delay stays flat across attempts', async () => {
         const job = makeJob(JobTypes.MetaSync);
         await processor.requeue(job);
-        expect(addCalls[0].opts.delay).to.equal(5000);
-        expect(addCalls[0].data._jobAttempt).to.equal(2);
+        await processor.requeue(job);
+        expect(addCalls[0].opts.delay).to.equal(JOB_REQUEUE_DELAY_MS);
+        expect(addCalls[1].opts.delay).to.equal(JOB_REQUEUE_DELAY_MS);
+      });
+
+      it('drops job after JOB_REQUEUE_LIMIT attempts', async () => {
+        const job = makeJob(JobTypes.MetaSync);
+        for (let i = 0; i < JOB_REQUEUE_LIMIT; i++) {
+          await processor.requeue(job);
+        }
+        expect(addCalls).to.have.length(JOB_REQUEUE_LIMIT);
+
+        // The (limit+1)th call must drop the job without re-adding.
+        await processor.requeue(job);
+        expect(addCalls).to.have.length(JOB_REQUEUE_LIMIT);
       });
 
       it('emits REQUEUED event before re-adding', async () => {
         const job = makeJob(JobTypes.AtImport);
-        await processor.requeue(job, 'cap');
+        await processor.requeue(job);
         expect(onCompletedCalls).to.have.length(1);
         expect(onCompletedCalls[0].status).to.equal(JobStatus.REQUEUED);
       });
@@ -255,7 +221,7 @@ function jobsProcessorTests() {
           1,
         );
         expect(addCalls).to.have.length(1);
-        expect(addCalls[0].opts.delay).to.equal(JOB_CAP_REQUEUE_DELAY_MS);
+        expect(addCalls[0].opts.delay).to.equal(JOB_REQUEUE_DELAY_MS);
       });
 
       it('multi-cycle: map stays at 0 between successive runs', async () => {

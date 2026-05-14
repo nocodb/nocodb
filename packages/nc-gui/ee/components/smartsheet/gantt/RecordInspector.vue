@@ -17,6 +17,12 @@ const emit = defineEmits<{
 
 const meta = inject(MetaInj, ref())
 
+// Public / shared-view + shared-base routes the inspector in read-only
+// mode — no write APIs are reachable, so hide every affordance that
+// would lead to a failed call. Falls back to false when injected outside
+// a smartsheet context (e.g. tests).
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
@@ -379,6 +385,7 @@ const formatDisplay = (raw: string | null | undefined) => {
           v-model="nameValue"
           type="text"
           class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight focus:outline-none focus:border-nc-border-brand"
+          :readonly="isPublic"
           data-testid="nc-gantt-inspector-name"
           @change="saveName"
         />
@@ -394,7 +401,7 @@ const formatDisplay = (raw: string | null | undefined) => {
           </div>
           <NcDropdown
             v-model:visible="startOpen"
-            :trigger="['click']"
+            :trigger="isPublic ? [] : ['click']"
             :auto-close="false"
             overlay-class-name="nc-picker-date !min-w-[260px]"
           >
@@ -428,7 +435,7 @@ const formatDisplay = (raw: string | null | undefined) => {
           </div>
           <NcDropdown
             v-model:visible="endOpen"
-            :trigger="['click']"
+            :trigger="isPublic ? [] : ['click']"
             :auto-close="false"
             overlay-class-name="nc-picker-date !min-w-[260px]"
           >
@@ -492,6 +499,7 @@ const formatDisplay = (raw: string | null | undefined) => {
           >
             <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
             <button
+              v-if="!isPublic"
               class="nc-gantt-inspector-unlink flex-shrink-0 text-nc-content-gray-muted hover:text-nc-content-gray"
               :data-testid="`nc-gantt-inspector-unlink-pred-${id}`"
               @click="onUnlinkPredecessor(id)"
@@ -500,7 +508,7 @@ const formatDisplay = (raw: string | null | undefined) => {
             </button>
           </div>
         </div>
-        <div v-if="!showPredecessorPicker">
+        <div v-if="!showPredecessorPicker && !isPublic">
           <button
             class="flex items-center gap-1.5 px-2 py-1.5 text-xs text-nc-content-gray-muted hover:text-nc-content-brand"
             data-testid="nc-gantt-inspector-add-predecessor"
@@ -561,6 +569,7 @@ const formatDisplay = (raw: string | null | undefined) => {
           >
             <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
             <button
+              v-if="!isPublic"
               class="nc-gantt-inspector-unlink flex-shrink-0 text-nc-content-gray-muted hover:text-nc-content-gray"
               :data-testid="`nc-gantt-inspector-unlink-succ-${id}`"
               @click="onUnlinkSuccessor(id)"
@@ -569,7 +578,7 @@ const formatDisplay = (raw: string | null | undefined) => {
             </button>
           </div>
         </div>
-        <div v-if="!showSuccessorPicker">
+        <div v-if="!showSuccessorPicker && !isPublic">
           <button
             class="flex items-center gap-1.5 px-2 py-1.5 text-xs text-nc-content-gray-muted hover:text-nc-content-brand"
             data-testid="nc-gantt-inspector-add-successor"

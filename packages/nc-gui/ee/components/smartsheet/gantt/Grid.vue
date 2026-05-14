@@ -98,13 +98,64 @@ onMounted(() => {
 
 const ROW_HEIGHT = 36
 const HEADER_HEIGHT = 32
-const SIDEBAR_WIDTH = 240
+const SIDEBAR_MIN_WIDTH = 240
 
-// Persist sidebar collapsed state across page reloads, keyed globally — once
-// the user collapses the record list they likely want it collapsed everywhere.
+// Persist sidebar collapsed state and width across page reloads, keyed
+// globally — once the user picks a layout for the record list they likely
+// want it the same way everywhere.
 const sidebarCollapsed = useStorage('nc-gantt-sidebar-collapsed', false)
+const sidebarStoredWidth = useStorage('nc-gantt-sidebar-width', SIDEBAR_MIN_WIDTH)
 
 const meta = inject(MetaInj, ref())
+
+// Measure the outer Gantt wrapper so the sidebar resize can cap at 50% of
+// the visible Gantt area (the parent already excludes the project tree from
+// the width it hands us). When the storage value exceeds the cap (smaller
+// window now than when last sized), clamp without overwriting the stored
+// preference — restore it when the window grows again.
+const outerWrapperRef = ref<HTMLElement | null>(null)
+const { width: outerWrapperWidth } = useElementSize(outerWrapperRef)
+const sidebarMaxWidth = computed(() => Math.max(SIDEBAR_MIN_WIDTH, Math.floor((outerWrapperWidth.value || 0) * 0.5)))
+const sidebarWidth = computed(() =>
+  Math.min(Math.max(sidebarStoredWidth.value || SIDEBAR_MIN_WIDTH, SIDEBAR_MIN_WIDTH), sidebarMaxWidth.value),
+)
+
+// Drag-resize the sidebar's right edge. Document-level listeners let the
+// pointer leave the handle without stalling the drag; body cursor + an
+// is-resizing flag freeze the col-resize cursor while dragging.
+const isResizingSidebar = ref(false)
+let resizeDragStartX = 0
+let resizeDragStartWidth = 0
+
+const onSidebarResizeMove = (event: MouseEvent) => {
+  if (!isResizingSidebar.value) return
+  const delta = event.clientX - resizeDragStartX
+  const target = resizeDragStartWidth + delta
+  sidebarStoredWidth.value = Math.min(Math.max(target, SIDEBAR_MIN_WIDTH), sidebarMaxWidth.value)
+}
+
+const onSidebarResizeEnd = () => {
+  if (!isResizingSidebar.value) return
+  isResizingSidebar.value = false
+  document.body.style.cursor = ''
+  document.removeEventListener('mousemove', onSidebarResizeMove)
+  document.removeEventListener('mouseup', onSidebarResizeEnd)
+}
+
+const onSidebarResizeStart = (event: MouseEvent) => {
+  isResizingSidebar.value = true
+  resizeDragStartX = event.clientX
+  resizeDragStartWidth = sidebarWidth.value
+  document.body.style.cursor = 'col-resize'
+  document.addEventListener('mousemove', onSidebarResizeMove)
+  document.addEventListener('mouseup', onSidebarResizeEnd)
+  event.preventDefault()
+}
+
+onBeforeUnmount(() => {
+  // Guard against being unmounted mid-drag (e.g. view switch while resizing).
+  if (isResizingSidebar.value) onSidebarResizeEnd()
+})
 
 const primaryField = computed(() => {
   const cols = meta.value?.columns ?? []
@@ -1453,6 +1504,7 @@ const onGridMouseLeave = () => {
 
 <template>
   <div
+    ref="outerWrapperRef"
     class="relative flex overflow-hidden"
     :class="{ 'h-full flex-row': !hideHeader, 'flex-col': hideHeader }"
     :style="{
@@ -1463,8 +1515,8 @@ const onGridMouseLeave = () => {
     <!-- Left record-list sidebar — only in flat (non-grouped) mode -->
     <div
       v-if="!hideHeader && !sidebarCollapsed"
-      class="nc-gantt-sidebar flex flex-col flex-shrink-0 border-r border-nc-border-gray-medium bg-nc-bg-default"
-      :style="{ width: `${SIDEBAR_WIDTH}px` }"
+      class="nc-gantt-sidebar relative flex flex-col flex-shrink-0 border-r border-nc-border-gray-medium bg-nc-bg-default"
+      :style="{ width: `${sidebarWidth}px` }"
       data-testid="nc-gantt-sidebar"
     >
       <div
@@ -1501,6 +1553,16 @@ const onGridMouseLeave = () => {
           </span>
         </div>
       </div>
+      <!-- Resize handle — sits on the right edge of the sidebar. Wider than
+           visible so the cursor target is forgiving; visible 1px strip
+           lights up on hover / drag to signal the affordance. -->
+      <div
+        class="nc-gantt-sidebar-resize absolute top-0 bottom-0 cursor-col-resize select-none z-20"
+        :class="{ 'nc-gantt-sidebar-resize--active': isResizingSidebar }"
+        style="right: -3px; width: 6px"
+        data-testid="nc-gantt-sidebar-resize"
+        @mousedown="onSidebarResizeStart"
+      />
     </div>
 
     <!-- Main pane: date header + scrollable grid body -->
@@ -2004,6 +2066,26 @@ const onGridMouseLeave = () => {
 </template>
 
 <style lang="scss" scoped>
+/* Sidebar resize handle — wider hit area than the visible strip so the
+   pointer target is forgiving; a 1px column lights up on hover/drag with
+   the brand color to confirm the affordance. */
+.nc-gantt-sidebar-resize {
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 1px;
+    background-color: transparent;
+    transition: background-color 0.15s ease;
+  }
+  &:hover::after,
+  &.nc-gantt-sidebar-resize--active::after {
+    background-color: var(--nc-content-brand);
+  }
+}
+
 /* Resize handle — cursor + hit area */
 .nc-gantt-resize-handle {
   cursor: ew-resize !important;

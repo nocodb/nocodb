@@ -220,10 +220,9 @@ export class OnPremLicenseService {
       NcError.badRequest('Invalid plan for on-premise license');
     }
 
-    // Per-plan seat floor. Scale is sold with a minimum commitment of 2 seats;
+    // Per-plan seat floor. Scale is sold with a minimum commitment of 3 seats;
     // other plans have no minimum (effective floor = 1).
-    const minSeats =
-      plan.title === OnPremPlanTitles.SELF_HOSTED_SCALE ? 2 : 1;
+    const minSeats = plan.title === OnPremPlanTitles.SELF_HOSTED_SCALE ? 3 : 1;
     const seats = Math.max(minSeats, Math.floor(payload.quantity || 1));
 
     const price = plan.prices.find((p) => p.id === price_id);
@@ -272,9 +271,9 @@ export class OnPremLicenseService {
           fk_plan_id: plan_id,
           plan_title: plan.title,
           period: price.recurring.interval,
-          // Floor used by reseat. Per-plan: 2 for Scale (annual commitment),
-          // 1 for Business and any other plan so reductions in instance editor
-          // count get prorated down to the floor.
+          // Floor used by reseat. Per-plan: 3 for Scale (commitment), 1 for
+          // Business and any other plan so reductions in instance editor count
+          // get prorated down to the floor.
           min_seats: String(minSeats),
           ...(instance_url ? { instance_url } : {}),
           ...(instance_id ? { instance_id } : {}),

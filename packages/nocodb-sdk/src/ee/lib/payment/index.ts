@@ -358,6 +358,7 @@ export function resolvePlanMeta(
 export enum OnPremPlanPriceLookupKeys {
   BUSINESS_MONTHLY = 'on_prem_business_monthly',
   BUSINESS_YEARLY = 'on_prem_business_yearly',
+  SCALE_MONTHLY = 'on_prem_scale_monthly',
   SCALE_YEARLY = 'on_prem_scale_yearly',
 }
 
@@ -500,7 +501,6 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
       [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: false,
       [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: false,
-      [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
       [PlanFeatureTypes.FEATURE_TABLE_VISIBILITY]: false,

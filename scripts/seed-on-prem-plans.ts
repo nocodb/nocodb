@@ -91,7 +91,7 @@ const ON_PREM_PLANS: PlanDef[] = [
       description_1: "Unlimited records",
       description_2: "Unlimited commenters & viewers",
       description_3: "SSO, 2FA, Admin Panel",
-      description_4: "Permissions, Sync, Scripts",
+      description_4: "Permissions, Sync, Teams, Scripts",
       description_5: "Snapshots, Webhooks, Workflows",
     },
     prices: [
@@ -109,15 +109,20 @@ const ON_PREM_PLANS: PlanDef[] = [
   },
   {
     name: "Self-hosted Scale", // OnPremPlanTitles.SELF_HOSTED_SCALE
-    description: "Self-hosted NocoDB for scaling teams (self-serve, annual)",
+    description: "Self-hosted NocoDB for scaling teams (self-serve)",
     metadata: {
       description_1: "Everything in Business",
       description_2: "Unlimited workspaces",
-      description_3: "Audit logs, Teams, Team hierarchy, RLS",
+      description_3: "Audit logs, Team hierarchy, RLS",
       description_4: "Multi-provider AI",
-      description_5: "Min 2 seats · billed annually",
+      description_5: "Min 3 seats",
     },
     prices: [
+      {
+        lookup_key: "on_prem_scale_monthly", // OnPremPlanPriceLookupKeys.SCALE_MONTHLY
+        interval: "month",
+        tiers: [{ up_to: "inf", unit_amount: 5400 }], // $54/seat/month
+      },
       {
         lookup_key: "on_prem_scale_yearly", // OnPremPlanPriceLookupKeys.SCALE_YEARLY
         interval: "year",

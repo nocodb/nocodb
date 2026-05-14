@@ -21,7 +21,7 @@ const isLoadingPlans = ref(false)
 
 const seatCount = computed(() => Math.max(1, props.initialSeats || 0))
 
-const scaleSeatCount = computed(() => Math.max(2, seatCount.value))
+const scaleSeatCount = computed(() => Math.max(3, seatCount.value))
 
 const isFromInstance = computed(() => (props.initialSeats ?? 0) > 1)
 
@@ -73,8 +73,7 @@ const selectBusiness = () => {
 
 const selectScale = () => {
   if (!scalePlan.value) return
-  // Scale is annual only — ignore the global paymentMode toggle.
-  const price = getPlanPrice(scalePlan.value, 'year')
+  const price = getPlanPrice(scalePlan.value, paymentMode.value)
   if (!price) {
     message.error(t('msg.error.priceNotFound'))
     return
@@ -190,7 +189,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Scale — self-serve, annual only, min 2 seats -->
+        <!-- Scale — self-serve, min 3 seats -->
         <div
           v-if="scalePlan"
           class="nc-plan-card"
@@ -211,15 +210,17 @@ onMounted(async () => {
             {{ $t('objects.paymentPlan.Self-hosted Scale') }}
           </div>
 
-          <!-- Price (always annual) -->
+          <!-- Price -->
           <div class="mt-4">
             <div class="flex items-baseline gap-1">
-              <span class="text-2xl font-bold text-nc-content-gray-emphasis">${{ getPlanPriceAmount(scalePlan, 'year') }}</span>
+              <span class="text-2xl font-bold text-nc-content-gray-emphasis">${{ getPlanPriceAmount(scalePlan) }}</span>
               <span class="text-sm text-nc-content-gray-muted"> / {{ $t('labels.userPerMonth') }}</span>
             </div>
 
             <div class="text-xs text-nc-content-gray-muted mt-0.5">
-              {{ $t('labels.billedAnnuallyMinSeats', { count: 2 }) }}
+              {{
+                paymentMode === 'year' ? $t('labels.billedAnnuallyMinSeats', { count: 3 }) : $t('labels.minNSeats', { count: 3 })
+              }}
             </div>
           </div>
 
@@ -229,18 +230,14 @@ onMounted(async () => {
               {{ $t('labels.fromNSeats', { count: scaleSeatCount }) }}
             </span>
             <span class="text-sm font-bold text-nc-content-gray-emphasis">
-              ${{ getPlanPriceAmount(scalePlan, 'year') * scaleSeatCount }}
+              ${{ getPlanPriceAmount(scalePlan) * scaleSeatCount }}
               <span class="text-xs font-normal text-nc-content-gray-muted">{{ $t('labels.perMonth') }}</span>
             </span>
           </div>
 
           <!-- Features -->
           <div class="flex flex-col gap-2.5 mt-4">
-            <div
-              v-for="(desc, idx) in scaleDescriptions"
-              :key="idx"
-              class="flex items-start gap-2 text-sm text-nc-content-gray"
-            >
+            <div v-for="(desc, idx) in scaleDescriptions" :key="idx" class="flex items-start gap-2 text-sm text-nc-content-gray">
               <GeneralIcon icon="circleCheckSolid" class="flex-none w-4 h-4 mt-0.5 text-nc-content-green-dark" />
               {{ desc }}
             </div>

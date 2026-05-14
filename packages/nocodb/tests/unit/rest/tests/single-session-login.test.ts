@@ -5,6 +5,8 @@ import * as jwt from 'jsonwebtoken';
 import init from '../../init';
 import { createUser, defaultUserArgs } from '../../factory/user';
 import Noco from '~/Noco';
+import { UsersService } from '~/services/users/users.service';
+import { User } from '~/models';
 
 // Single-session enforcement
 //
@@ -132,6 +134,13 @@ function singleSessionLoginTests() {
 
     expect(refreshRes.body.token).to.be.a('string');
     expect(refreshRes.body.token).to.not.equal(session.token);
+
+    // Explicit invariant: the refreshed JWT carries the SAME token_version
+    // as the original session — only login rotates it.
+    const decodeTv = (t: string) =>
+      JSON.parse(Buffer.from(t.split('.')[1], 'base64').toString())
+        .token_version;
+    expect(decodeTv(refreshRes.body.token)).to.equal(decodeTv(session.token));
 
     // Both the freshly issued JWT and the original JWT are still valid.
     expect(await isJwtValid(refreshRes.body.token)).to.be.true;
@@ -284,6 +293,65 @@ function singleSessionLoginTests() {
       .post('/api/v1/auth/token/refresh')
       .set('Cookie', `refresh_token=${rotated}`)
       .expect(400);
+  });
+
+  it('setRefreshToken primitive: any auth strategy that populates req.user gets single-session enforcement', async () => {
+    // Google/Cognito/OIDC/SAML/MFA controllers all do the same two lines:
+    //   await this.setRefreshToken({ req, res })
+    //   const result = await this.usersService.login(req.user, req)
+    // The difference is only how req.user gets populated (by the strategy).
+    // Calling setRefreshToken directly with a hand-built `req.user` proves the
+    // single-session contract holds for any such strategy — Google's
+    // passport-google-oauth20, Cognito's AWS verifier, OpenID Connect, etc.
+    const usersService = context.nestApp.get(UsersService);
+
+    // First, get a real session via local signin (this is "session A").
+    const sessionA = await signIn();
+    expect(await isJwtValid(sessionA.token), 'session A valid initially').to.be
+      .true;
+
+    // Now simulate a successful third-party login: build a mock req with
+    // req.user set as a Passport strategy would set it after IdP validation.
+    const userRow = await User.getByEmail(defaultUserArgs.email);
+    const mockReq: any = {
+      user: {
+        id: userRow.id,
+        email: userRow.email,
+        token_version: userRow.token_version,
+        extra: { provider: 'google' }, // mimics what Google strategy attaches
+      },
+      ncSiteUrl: 'http://localhost:8080',
+    };
+    const mockRes: any = {
+      cookie: () => mockRes,
+      clearCookie: () => mockRes,
+    };
+
+    await usersService.setRefreshToken({ req: mockReq, res: mockRes });
+
+    // Session A is now invalidated — token_version rotated by setRefreshToken.
+    expect(
+      await isJwtValid(sessionA.token),
+      'session A invalidated by simulated third-party login',
+    ).to.be.false;
+
+    // Build the JWT the way usersService.login would (using mutated req.user
+    // with the rotated token_version) and verify it works.
+    const config = Noco.getConfig();
+    const newJwt = jwt.sign(
+      {
+        email: mockReq.user.email,
+        id: mockReq.user.id,
+        roles: userRow.roles,
+        token_version: mockReq.user.token_version,
+      },
+      config.auth.jwt.secret,
+      { expiresIn: '10h' },
+    );
+    expect(
+      await isJwtValid(newJwt),
+      'JWT minted after setRefreshToken (Google/Cognito/OIDC pattern) is valid',
+    ).to.be.true;
   });
 
   ssoIt('Cross-mechanism: local → SSO → local chain invalidates each step', async () => {

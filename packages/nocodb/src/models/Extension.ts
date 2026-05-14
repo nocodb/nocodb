@@ -10,6 +10,7 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class Extension {
   id?: string;
@@ -115,8 +116,6 @@ export default class Extension {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(extension, [
-      'id',
-      'base_id',
       'fk_user_id',
       'extension_id',
       'title',
@@ -125,9 +124,14 @@ export default class Extension {
       'order',
     ]);
 
+    // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
+    if (isReplay() && extension.id) {
+      insertObj.id = extension.id;
+    }
+
     if (insertObj.order === null || insertObj.order === undefined) {
       insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.EXTENSIONS, {
-        base_id: insertObj.base_id,
+        base_id: context.base_id,
       });
     }
 
@@ -149,7 +153,7 @@ export default class Extension {
       await NocoCache.appendToList(
         context,
         CacheScope.EXTENSION,
-        [extension.base_id],
+        [context.base_id],
         `${CacheScope.EXTENSION}:${id}`,
       );
       return res;

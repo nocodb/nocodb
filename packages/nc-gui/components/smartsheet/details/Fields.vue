@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
+import type { ButtonType, ColumnType, FilterType, SelectOptionsType, TableType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   ColumnHelper,
@@ -12,7 +13,6 @@ import {
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, FilterType, SelectOptionsType, TableType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import type { NavigationGuardNext, RouteLocationNormalizedLoadedGeneric } from 'vue-router'
@@ -84,6 +84,8 @@ const { getMeta } = useMetas()
 
 const { meta, view, eventBus } = useSmartsheetStoreOrThrow()
 
+const { isUndoRedoInFlight } = useUndoRedo()
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
@@ -108,10 +110,12 @@ const fieldsListWrapperDomRef = ref<HTMLElement>()
 
 const {
   fields: viewFields,
-  toggleFieldVisibility,
+  applyVisibilityLocally,
+  buildVisibilityEntry,
   loadViewColumns,
   isViewColumnsLoading,
   showSystemFields,
+  isDefaultView,
 } = useViewColumnsOrThrow()
 
 const loading = ref(false)
@@ -282,14 +286,9 @@ const KEEP_ALIVE_TYPES = [UITypes.Links, UITypes.LinkToAnotherRecord, UITypes.Ro
 
 const isKeepAliveType = (field?: TableExplorerColumn) => !!(field?.uidt && KEEP_ALIVE_TYPES.includes(field.uidt as UITypes))
 
-// Provider instance refs for keep-alive field editors (plain object — not reactive)
-const aliveProviderRefs: Record<string, any> = {}
-
-// Keys (id or temp_id) of keep-alive fields that have been activated in this session
+// Keys (id or temp_id) of keep-alive fields that have been activated in
+// this session
 const aliveFieldKeys = ref<string[]>([])
-
-// Ref for the single regular (non-keep-alive) field editor
-const regularProviderRef = ref()
 
 const addFieldMoveHook = ref<number>()
 
@@ -999,11 +998,15 @@ const saveChanges = async () => {
       }
     }
 
+    const visibilityPayload: Array<{ viewId: string; columnId: string; column: Record<string, unknown> }> = []
     for (const op of visibilityOps.value) {
-      await toggleFieldVisibility(op.visible, {
-        ...op.column,
-        show: op.visible,
-      })
+      const field = { ...op.column, show: op.visible }
+      const fieldIndex = viewFields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id) ?? -1
+      if (fieldIndex >= 0) {
+        applyVisibilityLocally(field, fieldIndex, isDefaultView.value)
+      }
+      const entry = buildVisibilityEntry(field)
+      if (entry) visibilityPayload.push(entry)
     }
 
     ops.value = ops.value.map(({ error: _err, ...rest }) => {
@@ -1017,29 +1020,9 @@ const saveChanges = async () => {
       {
         hash: columnsHash.value,
         ops: ops.value,
+        ...(visibilityPayload.length ? { visibility: visibilityPayload } : {}),
       },
     )
-
-    // Persist filter conditions for all keep-alive field editors (they stay mounted
-    // across field switches so their filterRef.applyChanges handles everything correctly).
-    for (const key of aliveFieldKeys.value) {
-      const provider = aliveProviderRefs[key]
-      if (!provider?.triggerPostSaveOrUpdateCbk) continue
-      try {
-        await provider.triggerPostSaveOrUpdateCbk({ colId: key })
-      } catch {
-        // Filter save failure shouldn't block the rest of the save flow
-      }
-    }
-
-    // Persist filter conditions for the active field if it is not a keep-alive type
-    if (activeField.value?.id && !isKeepAliveType(activeField.value) && regularProviderRef.value?.triggerPostSaveOrUpdateCbk) {
-      try {
-        await regularProviderRef.value.triggerPostSaveOrUpdateCbk({ colId: activeField.value.id })
-      } catch {
-        // Filter save failure shouldn't block the rest of the save flow
-      }
-    }
 
     await loadViewColumns()
 
@@ -1057,6 +1040,29 @@ const saveChanges = async () => {
         return false
       })
       moveOps.value = []
+
+      const failedVisibility = (res as any).failedVisibility as
+        | Array<{ viewId: string; columnId: string; error: string }>
+        | undefined
+      if (failedVisibility?.length) {
+        // Re-queue every failed entry — match by view-column row id so
+        // the next Save retries them.
+        visibilityOps.value = visibilityOps.value.filter((op) => {
+          const vcId = (op.column as Field).id
+          return failedVisibility.some((f) => f.columnId === vcId)
+        })
+        const first = failedVisibility[0]
+        message.error(
+          failedVisibility.length === 1
+            ? t('msg.error.fieldVisibilityUpdateFailed', { error: first.error })
+            : t('msg.error.fieldVisibilityUpdatesFailed', {
+                count: failedVisibility.length,
+                error: first.error,
+              }),
+        )
+      } else {
+        visibilityOps.value = []
+      }
     }
 
     for (const op of ops.value) {
@@ -1086,12 +1092,14 @@ const saveChanges = async () => {
     ).hash
 
     showSystemFields.value = showOrHideSystemFields.value
-    visibilityOps.value = []
+    // visibilityOps reset above — only successful ones cleared, failed
+    // entries stay queued for the user to retry on the next Save.
 
     eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
 
     return !hasUnsavedChanges.value
   } catch (e) {
+    console.error(e)
     message.error(t('msg.error.somethingWentWrong'))
   } finally {
     loading.value = false
@@ -1235,6 +1243,123 @@ onMounted(async () => {
   }
 
   metaToLocal()
+})
+
+let isHandlerDisposed = false
+tryOnScopeDispose(() => {
+  isHandlerDisposed = true
+})
+
+const onRealtimeFieldReload = async (event?: SmartsheetStoreEvents) => {
+  if (event !== SmartsheetStoreEvents.FIELD_RELOAD) return
+  if (isHandlerDisposed) return
+  if (!meta.value?.id || !meta.value.base_id || !meta.value.fk_workspace_id) return
+  const isSelfEvent = loading.value || isUndoRedoInFlight.value
+
+  // Snapshot pre-reload state for diffing. localMetaColumns hasn't
+  // been refreshed yet (metaToLocal runs below), so it reflects what
+  // the editor was showing to the user just before the remote change.
+  const oldById = new Map<string, ColumnType>()
+  for (const c of localMetaColumns.value ?? []) {
+    if (c.id) oldById.set(c.id, c)
+  }
+
+  try {
+    await loadViewColumns()
+    if (isHandlerDisposed) return
+    columnsHash.value = (
+      await $api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
+        operation: 'columnsHash',
+        tableId: meta.value.id!,
+      })
+    ).hash
+    if (isHandlerDisposed) return
+    metaToLocal()
+    onInit()
+  } catch {
+    // Reload failures shouldn't break the editor — user can manually retry.
+    return
+  }
+
+  if (isHandlerDisposed) return
+  if (isSelfEvent) return
+
+  const newById = new Map<string, ColumnType>()
+  for (const c of meta.value?.columns ?? []) {
+    if (c.id) newById.set(c.id, c)
+  }
+
+  const deletedIds: string[] = []
+  const updatedIds: string[] = []
+  for (const [id, old] of oldById) {
+    const fresh = newById.get(id)
+    if (!fresh) {
+      deletedIds.push(id)
+      continue
+    }
+    if ((old as ColumnType & { updated_at?: string }).updated_at !== (fresh as ColumnType & { updated_at?: string }).updated_at) {
+      updatedIds.push(id)
+    }
+  }
+
+  // ── Surface deletions ──────────────────────────────────────────
+  if (deletedIds.length) {
+    const deletedSet = new Set(deletedIds)
+    const editingId = activeField.value?.id
+
+    ops.value = ops.value.filter((op) => !op.column.id || !deletedSet.has(op.column.id as string))
+    visibilityOps.value = visibilityOps.value.filter((op) => {
+      const fkColId = (op.column as Field).fk_column_id
+      return !fkColId || !deletedSet.has(fkColId)
+    })
+
+    if (editingId && deletedSet.has(editingId)) {
+      // The field the user is currently editing is gone. Close the
+      // editor cleanly so they don't see ghost form state.
+      changeField()
+      message.warning(t('msg.warning.activeFieldDeletedRemotely'))
+    } else {
+      message.warning(
+        deletedIds.length === 1
+          ? t('msg.warning.fieldDeletedRemotely')
+          : t('msg.warning.fieldsDeletedRemotely', { count: deletedIds.length }),
+      )
+    }
+  }
+
+  // ── Surface updates affecting the active field ────────────────
+  if (updatedIds.length) {
+    const editingId = activeField.value?.id
+    if (editingId && updatedIds.includes(editingId)) {
+      // The field the user has open in the editor was changed. The
+      // toast wording differs by editor type because metaToLocal()
+      // refreshes them differently:
+      //
+      //  - Non-keep-alive (SLT, Number, Date, Checkbox, ...):
+      //    metaToLocal calls `changeField(field)` which re-mounts the
+      //    editor. The user's in-flight form changes ARE discarded.
+      //
+      //  - Keep-alive (LTAR, Lookup, Rollup, Button): the editor stays
+      //    mounted so its filter state survives field switches; this
+      //    means metaToLocal only updates the activeField ref without
+      //    touching the editor's vModel. The user's draft is intact —
+      //    but saving will overwrite the remote change. Tell them so
+      //    they can decide.
+      const isKeepAlive = isKeepAliveType(activeField.value)
+      message.warning(
+        isKeepAlive ? t('msg.warning.activeFieldUpdatedRemotelyKeepAlive') : t('msg.warning.activeFieldUpdatedRemotelyDiscarded'),
+      )
+    }
+    // Bulk silent refresh for non-editing changes — no toast spam.
+  }
+}
+
+onMounted(() => {
+  eventBus.on(onRealtimeFieldReload)
+})
+
+onBeforeUnmount(() => {
+  eventBus.off(onRealtimeFieldReload)
 })
 
 watch(
@@ -2280,7 +2405,6 @@ onBeforeRouteUpdate((_to, from, next) => {
               <template v-for="key in aliveFieldKeys" :key="key">
                 <SmartsheetColumnEditOrAddProvider
                   v-show="(activeField?.id || activeField?.temp_id) === key"
-                  :ref="(el: any) => { if (el) aliveProviderRefs[key] = el; else delete aliveProviderRefs[key] }"
                   class="p-4 w-[25rem] flex-none"
                   :column="fields.find((f) => (f.id || f.temp_id) === key) || activeField"
                   :preload="fieldState(fields.find((f) => (f.id || f.temp_id) === key) || activeField)"
@@ -2297,7 +2421,6 @@ onBeforeRouteUpdate((_to, from, next) => {
               <!-- Regular editor for non-keep-alive field types -->
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField && !isKeepAliveType(activeField)"
-                ref="regularProviderRef"
                 class="p-4 w-[25rem] flex-none"
                 :column="activeField"
                 :preload="fieldState(activeField)"

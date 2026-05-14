@@ -479,32 +479,28 @@ export class InternalController extends InternalControllerCE {
         });
 
       case 'duplicateScript':
-        return await this.scriptsService.duplicateScript(
-          context,
-          payload.id,
+        return await this.scriptsService.duplicateScript(context, {
+          scriptId: payload.id,
           req,
-        );
+        });
 
       case 'setPermission':
-        return await this.permissionsService.setPermission(
-          context,
-          payload,
+        return await this.permissionsService.setPermission(context, {
+          ...payload,
           req,
-        );
+        });
 
       case 'dropPermission':
-        return await this.permissionsService.dropPermission(
-          context,
-          payload,
+        return await this.permissionsService.dropPermission(context, {
+          ...payload,
           req,
-        );
+        });
 
       case 'bulkDropPermissions':
-        return await this.permissionsService.bulkDropPermissions(
-          context,
-          payload?.permissionIds || [],
+        return await this.permissionsService.bulkDropPermissions(context, {
+          permissionIds: payload?.permissionIds || [],
           req,
-        );
+        });
 
       case 'dashboardCreate':
         return await this.dashboardsService.dashboardCreate(context, {
@@ -513,7 +509,7 @@ export class InternalController extends InternalControllerCE {
         });
       case 'dashboardUpdate':
         return await this.dashboardsService.dashboardUpdate(context, {
-          dashboardId: payload.dashboardId,
+          dashboardId: req.query.dashboardId as string,
           dashboard: payload,
           req,
         });
@@ -535,7 +531,7 @@ export class InternalController extends InternalControllerCE {
         });
       case 'widgetUpdate':
         return await this.dashboardsService.widgetUpdate(context, {
-          widgetId: payload.widgetId,
+          widgetId: req.query.widgetId as string,
           widget: payload,
           req,
         });

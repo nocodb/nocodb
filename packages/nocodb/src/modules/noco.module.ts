@@ -143,6 +143,7 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
 import { DataAliasNestedService } from '~/services/data-alias-nested.service';
 import { DataTableService } from '~/services/data-table.service';
 import { DatasService } from '~/services/datas.service';
+import { ColumnDataBackupHandler } from '~/services/column-data-backup-handler.service';
 import { FormulaColumnTypeChanger } from '~/services/formula-column-type-changer.service';
 import { IntegrationsService } from '~/services/integrations.service';
 import { BaseIntegrationsService } from '~/services/base-integrations.service';
@@ -366,6 +367,7 @@ export const nocoModuleMetadata = {
       provide: 'FormulaColumnTypeChanger',
       useClass: FormulaColumnTypeChanger,
     },
+    ColumnDataBackupHandler,
 
     /* emit handlers */
     AttachmentUrlUploadHandler,

@@ -27,7 +27,6 @@ const {
   isEdit,
   disableSubmitBtn,
   updateFieldName,
-  setPostSaveOrUpdateCbk,
 } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
@@ -157,15 +156,16 @@ onMounted(() => {
     vModel.value.fk_lookup_column_id = vModel.value.colOptions?.fk_lookup_column_id
     vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
   }
-
-  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
-    await filterRef.value?.applyChanges(colId || column?.id, false)
-  })
 })
 
-onUnmounted(() => {
-  setPostSaveOrUpdateCbk(null)
-})
+watch(
+  () => filterRef.value?.filters,
+  (next) => {
+    if (!vModel.value) return
+    vModel.value.filters = next ? [...next] : []
+  },
+  { deep: true },
+)
 
 const getNextColumnId = () => {
   const usedLookupColumnIds = (meta.value?.columns || [])

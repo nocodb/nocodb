@@ -7,7 +7,6 @@ export const useTablesStore = defineStore('tablesStore', () => {
   const { includeM2M, ncNavigateTo } = useGlobal()
   const { api } = useApi()
   const { $e, $api } = useNuxtApp()
-  const { addUndo, defineProjectScope } = useUndoRedo()
   const { refreshCommandPalette } = useCommandPalette()
 
   const router = useRouter()
@@ -161,7 +160,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     })
   }
 
-  const updateTable = async (table: TableType, undo?: boolean) => {
+  const updateTable = async (table: TableType) => {
     if (!table) return
 
     try {
@@ -173,33 +172,12 @@ export const useTablesStore = defineStore('tablesStore', () => {
           tableId: table.id as string,
         },
         {
-          base_id: table.base_id,
           table_name: table.table_name,
           title: table.title,
         },
       )
 
       await loadProjectTables(table.base_id!, true)
-
-      if (!undo) {
-        addUndo({
-          redo: {
-            fn: (t: string) => {
-              table.title = t
-              updateTable(table, true)
-            },
-            args: [table.title],
-          },
-          undo: {
-            fn: (t: string) => {
-              table.title = t
-              updateTable(table, true)
-            },
-            args: [table.title],
-          },
-          scope: defineProjectScope({ model: table }),
-        })
-      }
 
       // update metas
       const newMeta = await $api.internal.getOperation(table.fk_workspace_id!, table.base_id!, {

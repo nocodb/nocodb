@@ -25,8 +25,6 @@ const scriptList = computed(() => scripts.value.get(script.value.base_id) || [])
 
 const { $e } = useNuxtApp()
 
-const { addUndo, defineProjectScope } = useUndoRedo()
-
 const inputEl = ref<ComponentPublicInstance>()
 
 const loading = ref(false)
@@ -74,7 +72,7 @@ watchEffect(
   { flush: 'post' },
 )
 
-const renameScript = async (undo = false, disableTitleDiffCheck?: boolean | undefined) => {
+const renameScript = async (disableTitleDiffCheck?: boolean | undefined) => {
   if (!script) return
 
   if (formState.title) {
@@ -90,26 +88,6 @@ const renameScript = async (undo = false, disableTitleDiffCheck?: boolean | unde
     })
 
     dialogShow.value = false
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (t: string) => {
-            formState.title = t
-            renameScript(true, true)
-          },
-          args: [formState.title],
-        },
-        undo: {
-          fn: (t: string) => {
-            formState.title = t
-            renameScript(true, true)
-          },
-          args: [script.value.title],
-        },
-        scope: defineProjectScope({ base_id: script.value.base_id }),
-      })
-    }
 
     $e('a:script:rename')
 

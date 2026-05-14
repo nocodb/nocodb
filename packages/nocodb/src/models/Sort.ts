@@ -12,6 +12,7 @@ import {
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import View from '~/models/View';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class Sort {
   id: string;
@@ -20,6 +21,7 @@ export default class Sort {
   fk_column_id?: string;
   fk_level_id?: string;
   direction?: 'asc' | 'desc' | 'count-desc' | 'count-asc';
+  order?: number;
   fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
@@ -75,18 +77,23 @@ export default class Sort {
       'source_id',
     ]);
 
-    // todo: implement a generic function
-    insertObj.order = sortObj.push_to_top
-      ? 1
-      : (+(
-          await ncMeta
-            .knex(MetaTable.SORT)
-            .max('order', { as: 'order' })
-            .where({
-              fk_view_id: sortObj.fk_view_id,
-            })
-            .first()
-        )?.order || 0) + 1;
+    const replayKeepOrder = isReplay() && sortObj.order != null;
+    if (replayKeepOrder) {
+      insertObj.order = sortObj.order;
+    } else {
+      // todo: implement a generic function
+      insertObj.order = sortObj.push_to_top
+        ? 1
+        : (+(
+            await ncMeta
+              .knex(MetaTable.SORT)
+              .max('order', { as: 'order' })
+              .where({
+                fk_view_id: sortObj.fk_view_id,
+              })
+              .first()
+          )?.order || 0) + 1;
+    }
 
     const model = await Column.get(
       context,
@@ -106,6 +113,10 @@ export default class Sort {
           fk_view_id: sortObj.fk_view_id,
         })
         .increment('order', 1);
+    }
+
+    if (isReplay() && sortObj.id) {
+      insertObj.id = sortObj.id;
     }
 
     const row = await ncMeta.metaInsert2(

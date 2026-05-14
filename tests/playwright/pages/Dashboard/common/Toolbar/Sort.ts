@@ -172,7 +172,11 @@ export class ToolbarSortPage extends BasePage {
     // open sort menu
     await this.toolbar.clickSort();
 
-    await this.get().locator('.nc-sort-item-remove-btn').last().click();
+    await this.waitForResponse({
+      uiAction: async () => await this.get().locator('.nc-sort-item-remove-btn').last().click(),
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: 'operation=sortDelete',
+    });
 
     // close sort menu
     await this.toolbar.clickSort();

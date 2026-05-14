@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, EventType } from 'nocodb-sdk';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   ViewSectionCreateReqType,
@@ -14,6 +14,11 @@ import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
+import NocoSocket from '~/socket/NocoSocket';
+import Noco from '~/Noco';
+import NocoCache from '~/cache/NocoCache';
+import { CacheScope, MetaTable } from '~/utils/globals';
+import { getReplay, isReplay } from '~/helpers/replayScope';
 @Injectable()
 export class ViewSectionsService {
   constructor(protected readonly appHooksService: AppHooksService) {}
@@ -25,7 +30,7 @@ export class ViewSectionsService {
   async create(
     context: NcContext,
     tableId: string,
-    body: ViewSectionCreateReqType,
+    body: ViewSectionCreateReqType & { id?: string },
     req: NcRequest,
   ): Promise<ViewSectionType> {
     await checkForFeature(context, PlanFeatureTypes.FEATURE_VIEW_SECTIONS);
@@ -54,9 +59,7 @@ export class ViewSectionsService {
     }
 
     const section = await ViewSection.insert(context, {
-      ...(context?.additionalContext?.is_replay && (body as any).id
-        ? { id: (body as any).id }
-        : {}),
+      ...(isReplay() && body.id ? { id: body.id } : {}),
       fk_model_id: tableId,
       title,
       order: body.order,
@@ -66,12 +69,44 @@ export class ViewSectionsService {
       updated_by: req.user?.id,
     });
 
+    const restoreViewIds = getReplay('viewSectionRestoreViewIds');
+    if (isReplay() && restoreViewIds?.length && section?.id) {
+      await Noco.ncMeta.bulkMetaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.VIEWS,
+        { fk_view_section_id: section.id },
+        [...restoreViewIds],
+      );
+      for (const viewId of restoreViewIds) {
+        await NocoCache.update(context, `${CacheScope.VIEW}:${viewId}`, {
+          fk_view_section_id: section.id,
+        });
+      }
+    }
+
     this.appHooksService.emit(AppEvents.VIEW_SECTION_CREATE, {
       req,
       context,
       viewSection: section,
       user: req.user,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_section_create',
+          payload: {
+            ...section,
+            base_id: context.base_id,
+            ...(restoreViewIds?.length ? { restoreViewIds } : {}),
+          },
+        },
+      },
+      context.socket_id,
+    );
 
     return section;
   }
@@ -143,6 +178,21 @@ export class ViewSectionsService {
       user: req.user,
     });
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_section_update',
+          payload: {
+            ...section,
+            base_id: context.base_id,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
     return section;
   }
 
@@ -163,6 +213,15 @@ export class ViewSectionsService {
       NcError.viewSectionNotFound(sectionId);
     }
 
+    const orphanedViewIds = (
+      await Noco.ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.VIEWS,
+        { condition: { fk_view_section_id: sectionId } },
+      )
+    ).map((v: { id: string }) => v.id);
+
     // Delete the section (views inside will be moved to top-level by the model)
     await ViewSection.delete(context, sectionId);
 
@@ -172,6 +231,23 @@ export class ViewSectionsService {
       viewSection: existingSection,
       user: req.user,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_section_delete',
+          payload: {
+            id: sectionId,
+            base_id: context.base_id,
+            fk_model_id: existingSection.fk_model_id,
+            ...(orphanedViewIds.length ? { orphanedViewIds } : {}),
+          },
+        },
+      },
+      context.socket_id,
+    );
 
     return true;
   }

@@ -14,7 +14,6 @@ export const useRowDragging = ({
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
-    undo?: boolean,
     isFailed?: boolean,
     path?: Array<number>,
   ) => Promise<void>

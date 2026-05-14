@@ -22,8 +22,6 @@ const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(active
 
 const { kanbanMetaData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
-const { addUndo, defineViewScope } = useUndoRedo()
-
 const open = ref(false)
 
 useMenuCloseOnEsc(open)
@@ -48,18 +46,6 @@ const groupingFieldColumnId = computed({
   get: () => kanbanMetaData.value.fk_grp_col_id,
   set: async (val) => {
     if (val) {
-      addUndo({
-        undo: {
-          fn: await updateGroupingField,
-          args: [kanbanMetaData.value.fk_grp_col_id],
-        },
-        redo: {
-          fn: await updateGroupingField,
-          args: [val],
-        },
-        scope: defineViewScope({ view: activeView.value }),
-      })
-
       await updateGroupingField(val)
     }
   },
@@ -98,24 +84,6 @@ const hideEmptyStack = computed({
   set: async (val: boolean) => {
     isLoading.value = 'hideEmptyStack'
 
-    const prevHide = readMetaFlag('hide_empty_stack')
-    const prevAutoCollapse = readMetaFlag('auto_collapse_empty_stack')
-
-    addUndo({
-      undo: {
-        fn: async () => {
-          await updateHideEmptyStack(prevHide)
-          if (prevAutoCollapse) await updateAutoCollapseEmptyStack(true)
-        },
-        args: [],
-      },
-      redo: {
-        fn: updateHideEmptyStack,
-        args: [val],
-      },
-      scope: defineViewScope({ view: activeView.value }),
-    })
-
     await updateHideEmptyStack(val)
 
     isLoading.value = null
@@ -126,24 +94,6 @@ const autoCollapseEmptyStack = computed({
   get: () => readMetaFlag('auto_collapse_empty_stack'),
   set: async (val: boolean) => {
     isLoading.value = 'autoCollapseEmptyStack'
-
-    const prevHide = readMetaFlag('hide_empty_stack')
-    const prevAutoCollapse = readMetaFlag('auto_collapse_empty_stack')
-
-    addUndo({
-      undo: {
-        fn: async () => {
-          await updateAutoCollapseEmptyStack(prevAutoCollapse)
-          if (prevHide) await updateHideEmptyStack(true)
-        },
-        args: [],
-      },
-      redo: {
-        fn: updateAutoCollapseEmptyStack,
-        args: [val],
-      },
-      scope: defineViewScope({ view: activeView.value }),
-    })
 
     await updateAutoCollapseEmptyStack(val)
 

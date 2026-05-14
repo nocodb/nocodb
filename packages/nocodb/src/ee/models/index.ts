@@ -48,6 +48,7 @@ export { default as TimelineView } from './TimelineView';
 export { default as TimelineRange } from './TimelineRange';
 export { default as TimelineViewColumn } from './TimelineViewColumn';
 export { default as DateDependency } from './DateDependency';
+export { default as RecordTemplate } from './RecordTemplate';
 
 // Teams-related models
 export { default as Team } from './Team';
@@ -65,3 +66,6 @@ export { default as WorkflowSubscriber } from './WorkflowSubscriber';
 // Bookmark-related models (EE only)
 export { default as Bookmark } from './Bookmark';
 export { default as BookmarkGroup } from './BookmarkGroup';
+
+// Undo/redo
+export { default as OperationLog } from './OperationLog';

@@ -66,6 +66,7 @@ import {
   generateAuditV1Payload,
   nocoExecute,
   populateUpdatePayloadDiff,
+  processConcurrently,
   remapWithAlias,
 } from '~/utils';
 import { Audit, Column, Filter, Model, ModelStat, Permission } from '~/models';
@@ -101,6 +102,7 @@ import { extractMentions } from '~/utils/richTextHelper';
 import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import {
   _wherePk,
+  dataWrapper,
   extractSortsObject,
   formatDataForAudit,
   getAs,
@@ -110,6 +112,7 @@ import {
   haveFormulaColumn,
   populatePk,
   shouldCascadeLinkCleanup,
+  splitCompositePkString,
   validateFuncOnColumn,
 } from '~/helpers/dbHelpers';
 import { getProjectRole } from '~/utils/roleHelper';
@@ -130,8 +133,15 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const ORDER_STEP_INCREMENT = 1;
 const MAX_RECURSION_DEPTH = 2;
 const READ_CHUNK_SIZE = 100;
+const WHERE_IN_CHUNK_SIZE = 5000;
 
 import { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
+import {
+  captureForTrace,
+  isTraceActive,
+} from '~/decorators/trace-command.decorator';
+import type { DisplacedRecord, LinkChange } from '~/command-registry/types';
+import { pickChangedFieldsForUpdatePrev } from '~/utils/dataUtils';
 export { replaceDynamicFieldWithValue } from '~/helpers/dynamicFieldHelper';
 
 /**
@@ -684,7 +694,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       : super.readRecord(param);
   }
 
-  async updateByPk(id, data, trx?, cookie?, disableOptimization = false) {
+  async updateByPk(
+    id,
+    data,
+    trx?,
+    cookie?,
+    disableOptimization = false,
+    { typecast = false }: { typecast?: boolean } = {},
+  ) {
     try {
       const columns = await this.model.getColumns(this.context);
 
@@ -696,7 +713,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         columns,
       );
 
-      await this.validate(data, columns);
+      await this.validate(data, columns, { typecast });
 
       await this.beforeUpdate(data, cookie);
 
@@ -735,6 +752,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       if (!prevData) {
         NcError.get(this.context).recordNotFound(id);
+      }
+
+      if (isTraceActive()) {
+        captureForTrace('recordPrev', [
+          pickChangedFieldsForUpdatePrev(
+            prevData,
+            data ?? {},
+            columns,
+            this.model.primaryKeys,
+          ),
+        ]);
+        const fkDisplaced = await this.collectFkUpdateDisplacement(
+          prevData,
+          data ?? {},
+        );
+        if (fkDisplaced.length) {
+          captureForTrace('displacedRecords', fkDisplaced);
+        }
       }
 
       await this.prepareNocoData(updateObj, false, cookie, prevData);
@@ -1045,6 +1080,30 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       NcError.get(this.context).recordNotFound(rowId);
     }
 
+    const orderCol = columns.find((c) => c.uidt === UITypes.Order);
+
+    if (isTraceActive() && orderCol && this.model.primaryKeys?.length) {
+      const currentOrder = (row as any)?.[orderCol.title];
+      if (currentOrder != null) {
+        const nextQuery = this.dbDriver(this.tnPath)
+          .select(...this.model.primaryKeys.map((c) => c.column_name))
+          .where(orderCol.column_name, '>', currentOrder)
+          .orderBy(orderCol.column_name, 'asc')
+          .limit(1)
+          .toQuery();
+        const next = (await this.execAndParse(nextQuery, null, {
+          raw: true,
+          first: true,
+        })) as Record<string, any> | undefined;
+        captureForTrace('movePrev', {
+          pk: rowId,
+          beforeRowId: next
+            ? (this.extractPksValues(next, true) as string)
+            : null,
+        });
+      }
+    }
+
     const newRecordOrder = (
       await this.getUniqueOrdersBeforeItem(beforeRowId, 1)
     )[0];
@@ -1306,9 +1365,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } else {
       seedIds = changedRowIds
         .map((compositeId) => {
-          const parts = compositeId
-            .split('___')
-            .map((v) => v.replaceAll('\\_', '_'));
+          const parts = splitCompositePkString(compositeId);
           // Guard: if the composite ID has fewer parts than expected, skip it
           if (parentPkIndex >= parts.length) return undefined;
           return parts[parentPkIndex];
@@ -1864,6 +1921,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         NcError.get(this.context).recordNotFound(id);
       }
 
+      if (isTraceActive()) {
+        captureForTrace('recordPrev', [data]);
+      }
+
       await this.beforeDelete(id, cookie);
 
       // Detect soft-delete column for meta sources
@@ -1912,6 +1973,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           await this.execAndParse(updateQb, null, { raw: true });
         }
 
+        if (isTraceActive()) {
+          const softDisplaced = await this.collectLinkedRecordsSnapshot([id]);
+          if (softDisplaced.length) {
+            captureForTrace('displacedRecords', softDisplaced);
+          }
+        }
+
         await this.afterSoftDeleteCompleted({ cookie, operationNow });
 
         await this.afterDelete(
@@ -1942,6 +2010,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         ids: string[];
         colId: string;
       }[] = [];
+
+      const displacedLinks: DisplacedRecord[] = [];
 
       for (const column of this.model.columns) {
         if (!isLinksOrLTAR(column)) continue;
@@ -2006,7 +2076,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               // Collect linked parent IDs via junction BEFORE deletion
               const mmLinkedRows = await this.execAndParse(
                 this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
-                  .select(mmParentCol.column_name)
+                  .select(mmParentCol.column_name, mmChildCol.column_name)
                   .where(mmChildCol.column_name, id),
                 null,
                 { raw: true },
@@ -2020,6 +2090,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   model: parentTable,
                   ids: mmLinkedIds,
                   colId: inverseLinkCol?.id,
+                });
+              }
+
+              for (const r of mmLinkedRows as Array<Record<string, any>>) {
+                displacedLinks.push({
+                  kind: 'junction',
+                  mmModelId: mmTable.id,
+                  baseId: mmTable.base_id,
+                  colId: column.id,
+                  parentMMCol: mmParentCol.column_name,
+                  childMMCol: mmChildCol.column_name,
+                  parentValue: r[mmParentCol.column_name],
+                  childValue: r[mmChildCol.column_name],
                 });
               }
 
@@ -2073,6 +2156,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   model: relatedTable,
                   ids: hmLinkedIds,
                   colId: inverseLinkCol?.id,
+                });
+              }
+
+              for (const childPk of hmLinkedIds) {
+                displacedLinks.push({
+                  kind: 'column',
+                  modelId: relatedTable.id,
+                  baseId: relatedTable.base_id,
+                  pk: String(childPk),
+                  column: childColumn.column_name,
+                  prev: id,
+                  forward: 'null',
                 });
               }
 
@@ -2175,6 +2270,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 });
               }
 
+              for (const childPk of ooLinkedIds) {
+                displacedLinks.push({
+                  kind: 'column',
+                  modelId: ooRelatedTable.id,
+                  baseId: ooRelatedTable.base_id,
+                  pk: String(childPk),
+                  column: ooChildColumn.column_name,
+                  prev: id,
+                  forward: 'null',
+                });
+              }
+
               execQueries.push((trx) =>
                 trx(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
                   .update({ [ooChildColumn.column_name]: null })
@@ -2230,6 +2337,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             break;
         }
       }
+
+      if (displacedLinks.length) {
+        captureForTrace('displacedRecords', displacedLinks);
+      }
+
       const where = await this._wherePk(id);
 
       for (const q of execQueries) {
@@ -2342,9 +2454,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const insertDatas = raw ? datas : [];
       const postInsertOpsMap: Record<
         number,
-        ((rowId: any) => Promise<string>)[]
+        ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
       > = {};
-      let preInsertOps: (() => Promise<string>)[] = [];
+      let preInsertOps: ((trx?: Knex | Knex.Transaction) => Promise<string>)[] =
+        [];
       let aiPkCol: Column;
       let agPkCol: Column;
 
@@ -2621,7 +2734,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
       profiler.log('beforeBulkInsert done');
 
-      await this.runOps(preInsertOps.map((f) => f()));
+      // Cap in-flight preInsertOps so many nested LTAR capture SELECTs
+      // don't saturate the knex pool. Mutating closures here only build
+      // .toQuery() strings (no connection use), so the cap mainly limits
+      // the capture-SELECT side. Resolved strings flow through runOps
+      // to preserve its sanitize + external-DB path.
+      const preInsertResolved = await processConcurrently(
+        preInsertOps,
+        (f) => f(),
+        5,
+      );
+      await this.runOps(preInsertResolved.map((s) => Promise.resolve(s)));
       profiler.log('preInsertOps done');
 
       // await this.beforeInsertb(insertDatas, null);
@@ -2747,7 +2870,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             });
 
             await this.runOps(
-              (postInsertOpsMap[i] ?? []).map((f) => f(rowId)),
+              (postInsertOpsMap[i] ?? []).map((f) => f(rowId, trx)),
               trx,
             );
           }
@@ -3064,6 +3187,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       undo = false,
       mergeColumns,
       throwOnDuplicate = false,
+      typecast = false,
     }: {
       _chunkSize?: number;
       cookie?: any;
@@ -3073,6 +3197,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       undo?: boolean;
       mergeColumns?: Column[];
       throwOnDuplicate?: boolean;
+      typecast?: boolean;
     } = {},
   ) {
     const insertQueries: string[] = [];
@@ -3083,12 +3208,21 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       let order = await this.getHighestOrderInTable();
 
-      // validate and prepare data
+      // When `typecast` is true, validate sequentially — missing select
+      // options are added inline via `Column.update`, and concurrent
+      // validates would race on the option-title unique constraint.
+      // Without typecast there's no Column.update, so concurrent is safe.
+      if (!raw && typecast) {
+        for (const d of datas) {
+          await this.validate(d, columns, { typecast });
+        }
+      }
+
       const preparedDatas = raw
         ? datas
         : await Promise.all(
             datas.map(async (d) => {
-              await this.validate(d, columns);
+              if (!typecast) await this.validate(d, columns);
               return this.model.mapAliasToColumn(
                 this.context,
                 d,
@@ -3525,6 +3659,44 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         count: insertResponses.length,
       });
 
+      if (
+        isTraceActive() &&
+        !mergeColumns?.length &&
+        (toUpdate.length || insertResponses.length)
+      ) {
+        const upsertChanges: Array<
+          | {
+              kind: 'update';
+              pk: string | number;
+              prev: Record<string, unknown>;
+            }
+          | { kind: 'insert'; pk: string | number }
+        > = [];
+
+        if (toUpdate.length && existingRecords.length) {
+          const prevByPk = new Map<string, Record<string, unknown>>();
+          for (const r of existingRecords) {
+            prevByPk.set(String(this.extractPksValues(r, true)), r);
+          }
+          for (const u of toUpdate) {
+            const pk = this.extractPksValues(u, true);
+            const prev = prevByPk.get(String(pk));
+            if (prev) upsertChanges.push({ kind: 'update', pk, prev });
+          }
+        }
+
+        for (const inserted of insertResponses) {
+          upsertChanges.push({
+            kind: 'insert',
+            pk: this.extractPksValues(inserted, true),
+          });
+        }
+
+        if (upsertChanges.length) {
+          captureForTrace('upsertChanges', upsertChanges);
+        }
+      }
+
       return [...updateResponses, ...insertResponses];
     } catch (e: any) {
       // Handle unique constraint violations (throws if it's a unique constraint error)
@@ -3621,6 +3793,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         oldRecords.map((r) => [this.extractPksValues(r, true), r]),
       );
 
+      const captureUpdatePrev = isTraceActive();
+      const capturedUpdatePrev: Record<string, any>[] = [];
+      const capturedFkDisplaced: DisplacedRecord[] = [];
+
       for (let i = 0; i < pkAndData.length; i += READ_CHUNK_SIZE) {
         const chunk = pkAndData.slice(i, i + READ_CHUNK_SIZE);
 
@@ -3631,6 +3807,22 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             if (throwExceptionIfNotExist)
               NcError.get(this.context).recordNotFound(pk);
             continue;
+          }
+
+          if (captureUpdatePrev) {
+            capturedUpdatePrev.push(
+              pickChangedFieldsForUpdatePrev(
+                oldRecord,
+                data ?? {},
+                columns,
+                this.model.primaryKeys,
+              ),
+            );
+            const fkDisplaced = await this.collectFkUpdateDisplacement(
+              oldRecord,
+              data ?? {},
+            );
+            if (fkDisplaced.length) capturedFkDisplaced.push(...fkDisplaced);
           }
 
           await this.prepareNocoData(data, false, cookie, oldRecord);
@@ -3674,6 +3866,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
       profiler.log('prepareNocoData done');
+
+      if (capturedUpdatePrev.length) {
+        captureForTrace('recordPrev', capturedUpdatePrev);
+      }
+      if (capturedFkDisplaced.length) {
+        captureForTrace('displacedRecords', capturedFkDisplaced);
+      }
 
       const rlsConditions = await this.getRlsConditions();
       const rlsFilterGroup = rlsConditions.length
@@ -3732,6 +3931,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       profiler.log('execute done');
 
       if (apiVersion === NcApiVersion.V3) {
+        if (isTraceActive()) {
+          const linkChanges = await this.collectV3LinkChanges(datas);
+          if (linkChanges.length) {
+            captureForTrace('linkChanges', linkChanges);
+          }
+        }
+
         profiler.log('updateLTARCols start');
         // remove LTAR/Links if part of the update request
         await this.updateLTARCols({
@@ -4046,6 +4252,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         res.push(data);
       }
 
+      if (deleted.length && isTraceActive()) {
+        captureForTrace('recordPrev', deleted);
+      }
+
       await this.beforeBulkDelete(deleted, cookie);
 
       const base = await this.getSource();
@@ -4096,6 +4306,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
           queries.push(qb.toQuery());
         }
+
+        if (isTraceActive()) {
+          const softDisplaced = await this.collectLinkedRecordsSnapshot(
+            idsVals,
+          );
+          if (softDisplaced.length) {
+            captureForTrace('displacedRecords', softDisplaced);
+          }
+        }
       } else {
         const execQueries: ((
           trx: CustomKnex,
@@ -4103,6 +4322,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         ) => Knex.QueryBuilder)[] = [];
 
         const source = await this.getSource();
+        const displacedLinks: DisplacedRecord[] = [];
+        const captureDisplacement = isTraceActive();
 
         for (const column of this.model.columns) {
           if (!isLinksOrLTAR(column)) continue;
@@ -4131,18 +4352,48 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   mmContext,
                   colOptions.fk_mm_model_id,
                 );
-                const mmParentColumn = await Column.get(mmContext, {
+                // Variable names mirror delByPk: `mmChildCol` is the
+                // junction-side column holding the deleted row's pk;
+                // `mmParentCol` holds the linked-other-side pk.
+                const mmChildCol = await Column.get(mmContext, {
                   colId: colOptions.fk_mm_child_column_id,
                 });
-                const mmBaseModel = await Model.getBaseModelSQL(
-                  mmContext,
-                  { model: mmTable, dbDriver: this.dbDriver },
-                );
+
+                const mmParentCol = await Column.get(mmContext, {
+                  colId: colOptions.fk_mm_parent_column_id,
+                });
+
+                const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+                  model: mmTable,
+                  dbDriver: this.dbDriver,
+                });
+
+                if (captureDisplacement) {
+                  const mmRows = await this.execAndParse(
+                    this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
+                      .select(mmChildCol.column_name, mmParentCol.column_name)
+                      .whereIn(mmChildCol.column_name, idsVals),
+                    null,
+                    { raw: true },
+                  );
+                  for (const r of mmRows as Array<Record<string, any>>) {
+                    displacedLinks.push({
+                      kind: 'junction',
+                      mmModelId: mmTable.id,
+                      baseId: mmTable.base_id,
+                      colId: column.id,
+                      parentMMCol: mmParentCol.column_name,
+                      childMMCol: mmChildCol.column_name,
+                      parentValue: r[mmParentCol.column_name],
+                      childValue: r[mmChildCol.column_name],
+                    });
+                  }
+                }
 
                 execQueries.push((trx, ids) =>
                   trx(mmBaseModel.getTnPath(mmTable.table_name))
                     .del()
-                    .whereIn(mmParentColumn.column_name, ids),
+                    .whereIn(mmChildCol.column_name, ids),
                 );
               }
               break;
@@ -4156,6 +4407,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 if (relatedTable.mm) {
                   break;
                 }
+                await relatedTable.getColumns(refContext);
 
                 const childColumn = await Column.get(childContext, {
                   colId: colOptions.fk_child_column_id,
@@ -4164,6 +4416,34 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   model: relatedTable,
                   dbDriver: this.dbDriver,
                 });
+
+                if (captureDisplacement) {
+                  const hmRows = await this.execAndParse(
+                    this.dbDriver(
+                      refBaseModel.getTnPath(relatedTable.table_name),
+                    )
+                      .select(
+                        relatedTable.primaryKey.column_name,
+                        childColumn.column_name,
+                      )
+                      .whereIn(childColumn.column_name, idsVals),
+                    null,
+                    { raw: true },
+                  );
+                  for (const r of hmRows as Array<Record<string, any>>) {
+                    displacedLinks.push({
+                      kind: 'column',
+                      modelId: relatedTable.id,
+                      baseId: relatedTable.base_id,
+                      pk: String(r[relatedTable.primaryKey.column_name]),
+                      column: childColumn.column_name,
+                      // `prev` here is the FK value before nulling; it
+                      // already pointed at one of the deleted parents.
+                      prev: r[childColumn.column_name],
+                      forward: 'null',
+                    });
+                  }
+                }
 
                 execQueries.push((trx, ids) =>
                   trx(refBaseModel.getTnPath(relatedTable.table_name))
@@ -4183,6 +4463,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   refContext,
                 );
                 if (ooRelatedTable.mm) break;
+                await ooRelatedTable.getColumns(refContext);
 
                 const ooChildColumn = await Column.get(childContext, {
                   colId: colOptions.fk_child_column_id,
@@ -4191,6 +4472,32 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   model: ooRelatedTable,
                   dbDriver: this.dbDriver,
                 });
+
+                if (captureDisplacement) {
+                  const ooRows = await this.execAndParse(
+                    this.dbDriver(
+                      ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
+                    )
+                      .select(
+                        ooRelatedTable.primaryKey.column_name,
+                        ooChildColumn.column_name,
+                      )
+                      .whereIn(ooChildColumn.column_name, idsVals),
+                    null,
+                    { raw: true },
+                  );
+                  for (const r of ooRows as Array<Record<string, any>>) {
+                    displacedLinks.push({
+                      kind: 'column',
+                      modelId: ooRelatedTable.id,
+                      baseId: ooRelatedTable.base_id,
+                      pk: String(r[ooRelatedTable.primaryKey.column_name]),
+                      column: ooChildColumn.column_name,
+                      prev: r[ooChildColumn.column_name],
+                      forward: 'null',
+                    });
+                  }
+                }
 
                 execQueries.push((trx, ids) =>
                   trx(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
@@ -4205,6 +4512,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               }
               break;
           }
+        }
+
+        if (displacedLinks.length) {
+          captureForTrace('displacedRecords', displacedLinks);
         }
 
         // Phase 1: Collect linked IDs BEFORE transaction (data still intact)
@@ -5059,6 +5370,395 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   /**
+   * SELECT-only walk over LTAR columns to capture which children/junctions
+   * reference the rows being deleted. Used by the soft-delete branches of
+   * `delByPk` / `bulkDelete` so `meta.extra.displacedRecords` carries a
+   * link snapshot even when no FK / junction actually changes — symmetric
+   * with the hard-delete cascade and forward-compatible with future
+   * undo paths that need to verify or repair link state on restore.
+   *
+   * Soft-delete entries omit `forward` (no actual displacement happened);
+   * the redo trash path already skips entries without `forward`, so these
+   * are inert there. They power audit, no-trash undo fallback, and any
+   * future link-repair tooling.
+   */
+  private async collectLinkedRecordsSnapshot(
+    idsVals: any[],
+  ): Promise<DisplacedRecord[]> {
+    const snapshot: DisplacedRecord[] = [];
+    if (!idsVals.length) return snapshot;
+    const idChunks = chunkArray(idsVals, WHERE_IN_CHUNK_SIZE);
+    for (const column of this.model.columns) {
+      if (!isLinksOrLTAR(column)) continue;
+      const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+        this.context,
+      );
+      const { mmContext, refContext, childContext } =
+        await colOptions.getParentChildContext(this.context);
+      const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+      switch (relationType) {
+        case 'mm': {
+          const mmTable = await Model.get(mmContext, colOptions.fk_mm_model_id);
+          if (!mmTable) break;
+          const mmChildCol = await Column.get(mmContext, {
+            colId: colOptions.fk_mm_child_column_id,
+          });
+          const mmParentCol = await Column.get(mmContext, {
+            colId: colOptions.fk_mm_parent_column_id,
+          });
+          const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+            model: mmTable,
+            dbDriver: this.dbDriver,
+          });
+          for (const chunk of idChunks) {
+            const rows = await this.execAndParse(
+              this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
+                .select(mmParentCol.column_name, mmChildCol.column_name)
+                .whereIn(mmChildCol.column_name, chunk),
+              null,
+              { raw: true },
+            );
+            for (const r of rows as Array<Record<string, any>>) {
+              snapshot.push({
+                kind: 'junction',
+                mmModelId: mmTable.id,
+                baseId: mmTable.base_id,
+                colId: column.id,
+                parentMMCol: mmParentCol.column_name,
+                childMMCol: mmChildCol.column_name,
+                parentValue: r[mmParentCol.column_name],
+                childValue: r[mmChildCol.column_name],
+              });
+            }
+          }
+          break;
+        }
+        case 'hm': {
+          const relatedTable = await colOptions.getRelatedTable(refContext);
+          if (relatedTable.mm) break;
+          await relatedTable.getColumns(refContext);
+          const childColumn = await Column.get(childContext, {
+            colId: colOptions.fk_child_column_id,
+          });
+          const refBaseModel = await Model.getBaseModelSQL(refContext, {
+            model: relatedTable,
+            dbDriver: this.dbDriver,
+          });
+          for (const chunk of idChunks) {
+            const rows = await this.execAndParse(
+              this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
+                .select(
+                  ...relatedTable.primaryKeys.map((c) => c.column_name),
+                  childColumn.column_name,
+                )
+                .whereIn(childColumn.column_name, chunk),
+              null,
+              { raw: true },
+            );
+            for (const r of rows as Array<Record<string, any>>) {
+              snapshot.push({
+                kind: 'column',
+                modelId: relatedTable.id,
+                baseId: relatedTable.base_id,
+                pk: dataWrapper(r).extractPksValue(
+                  relatedTable,
+                  true,
+                ) as string,
+                column: childColumn.column_name,
+                prev: r[childColumn.column_name],
+              });
+            }
+          }
+          break;
+        }
+        case 'oo': {
+          // BT-side: deleted row holds FK; nothing on the other table to capture.
+          if (column.meta?.bt) break;
+          const ooRelatedTable = await colOptions.getRelatedTable(refContext);
+          if (ooRelatedTable.mm) break;
+          await ooRelatedTable.getColumns(refContext);
+          const ooChildColumn = await Column.get(childContext, {
+            colId: colOptions.fk_child_column_id,
+          });
+          const ooRefBaseModel = await Model.getBaseModelSQL(refContext, {
+            model: ooRelatedTable,
+            dbDriver: this.dbDriver,
+          });
+          for (const chunk of idChunks) {
+            const rows = await this.execAndParse(
+              this.dbDriver(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
+                .select(
+                  ...ooRelatedTable.primaryKeys.map((c) => c.column_name),
+                  ooChildColumn.column_name,
+                )
+                .whereIn(ooChildColumn.column_name, chunk),
+              null,
+              { raw: true },
+            );
+            for (const r of rows as Array<Record<string, any>>) {
+              snapshot.push({
+                kind: 'column',
+                modelId: ooRelatedTable.id,
+                baseId: ooRelatedTable.base_id,
+                pk: dataWrapper(r).extractPksValue(
+                  ooRelatedTable,
+                  true,
+                ) as string,
+                column: ooChildColumn.column_name,
+                prev: r[ooChildColumn.column_name],
+              });
+            }
+          }
+          break;
+        }
+        case 'bt': {
+          // V1 BT: deleted row holds the FK; the parent row stays untouched
+          // (just loses a back-link in display). Nothing to snapshot.
+          // (V2 BT-style routes to 'mm' via isMMOrMMLike.)
+          break;
+        }
+      }
+    }
+    return snapshot;
+  }
+
+  /**
+   * Snapshot OO sibling-row displacement caused by an update that
+   * re-points a OO FK column at a parent already linked elsewhere.
+   * Captured BEFORE the SQL UPDATE runs.
+   *
+   * Self-row FK restoration is handled by the `recordPrev` capture
+   * (changed-fields snapshot keyed by title). Adding the same row's FK
+   * here would cause undo to fire two writes against the same column
+   * (one via `dataUpdate(prev)`, one via the displacedRecords loop).
+   *
+   * Entries omit `forward` — the current update path doesn't actually
+   * null/reassign the sibling rows, so `recordUpdate` redo shouldn't
+   * re-apply them. They are inert at redo time and only power audit +
+   * future link-repair.
+   */
+  private async collectFkUpdateDisplacement(
+    oldRecord: Record<string, any>,
+    body: Record<string, any>,
+  ): Promise<DisplacedRecord[]> {
+    const displaced: DisplacedRecord[] = [];
+    if (!oldRecord || !body) return displaced;
+    const columns = this.model.columns;
+    const currentPk = this.extractPksValues(oldRecord, true);
+    if (currentPk == null || currentPk === 'N/A') return displaced;
+
+    const byKey = new Map<string, Column>();
+    for (const c of columns) {
+      if (c.title) byKey.set(c.title, c);
+      if (c.column_name) byKey.set(c.column_name, c);
+      if (c.id) byKey.set(c.id, c);
+    }
+
+    for (const k of Object.keys(body)) {
+      const col = byKey.get(k);
+      if (!col || col.uidt !== UITypes.ForeignKey) continue;
+
+      const newFk = body[k];
+      // `oldRecord` is title-keyed (selectObject aliases column_name →
+      // title). FK columns default to title === column_name at creation
+      // but can diverge if the user renames the alias, so resolve via
+      // dataWrapper which checks both.
+      const oldFk = dataWrapper(oldRecord).getByColumnNameTitleOrId(col);
+      if (newFk === oldFk) continue;
+
+      const ltar = columns.find(
+        (c) =>
+          isLinksOrLTAR(c) &&
+          (c.colOptions as LinkToAnotherRecordColumn | undefined)
+            ?.fk_child_column_id === col.id,
+      );
+      if (!ltar) continue;
+      const ltarOpts = await ltar.getColOptions<LinkToAnotherRecordColumn>(
+        this.context,
+      );
+      const isOo = ltarOpts.type === RelationTypes.ONE_TO_ONE;
+      // BT updates: self-row FK is covered by `recordPrev`; nothing to
+      // displace beyond that.
+      if (!isOo) continue;
+
+      // OO: snapshot any sibling row already at `newFk` (potential
+      // uniqueness conflict). Skip when newFk is null (clearing a link).
+      if (newFk != null) {
+        const conflicts = (await this.execAndParse(
+          this.dbDriver(this.tnPath)
+            .select(
+              ...this.model.primaryKeys.map((c) => c.column_name),
+              col.column_name,
+            )
+            .where(col.column_name, newFk),
+          null,
+          { raw: true },
+        )) as Array<Record<string, any>>;
+        for (const r of conflicts) {
+          const conflictPk = dataWrapper(r).extractPksValue(this.model, true);
+          if (conflictPk == null || conflictPk === 'N/A') continue;
+          if (String(conflictPk) === String(currentPk)) continue;
+          displaced.push({
+            kind: 'column',
+            modelId: this.model.id,
+            baseId: this.model.base_id,
+            pk: String(conflictPk),
+            column: col.column_name,
+            prev: r[col.column_name],
+          });
+        }
+      }
+    }
+    return displaced;
+  }
+
+  /**
+   * V3 update LTAR diff capture. Mirrors the diff `LTARColsUpdater` (CE
+   * / Mux / EE) computes internally — run once here at the bulkUpdate
+   * dispatch entry so the three downstream paths are covered uniformly.
+   *
+   * For each row in `datas` and each LTAR column whose key is present in
+   * the body, reads the existing links via `mmList` / `hmList` / `btRead`
+   * and diffs against the body's desired link set. Emits `add`/`remove`
+   * `LinkChange` entries that the undo handler inverts.
+   *
+   * The duplicate read (this + `LTARColsUpdater`'s own list) is the cost
+   * of supporting all three updater variants from one capture site
+   * without per-variant intrusion. Gated behind `isTraceActive()` so it
+   * only fires when an outer @TraceCommand will consume the captures.
+   */
+  private async collectV3LinkChanges(datas: any[]): Promise<LinkChange[]> {
+    const out: LinkChange[] = [];
+    if (!datas?.length) return out;
+
+    for (const col of this.model.columns) {
+      if (!isLinksOrLTAR(col)) continue;
+
+      const touched: Array<{ rowId: string; body: any }> = [];
+      for (const d of datas) {
+        if (!(col.title in d)) continue;
+        const rowId = this.extractPksValues(d, true);
+        if (rowId == null || rowId === 'N/A') continue;
+        touched.push({ rowId: String(rowId), body: d });
+      }
+      if (!touched.length) continue;
+
+      const existingByRow = new Map<string, string[]>();
+
+      if (isMMOrMMLike(col)) {
+        const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
+          this.context,
+        );
+        const { mmContext } = await colOptions.getParentChildContext(
+          this.context,
+        );
+        const mmTable = await Model.get(mmContext, colOptions.fk_mm_model_id);
+        if (mmTable) {
+          const mmChildCol = await Column.get(mmContext, {
+            colId: colOptions.fk_mm_child_column_id,
+          });
+          const mmParentCol = await Column.get(mmContext, {
+            colId: colOptions.fk_mm_parent_column_id,
+          });
+          const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+            model: mmTable,
+            dbDriver: this.dbDriver,
+          });
+          const rowIdList = touched.map((t) => t.rowId);
+          for (const chunk of chunkArray(rowIdList, WHERE_IN_CHUNK_SIZE)) {
+            const rows = await this.execAndParse(
+              this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
+                .select(mmParentCol.column_name, mmChildCol.column_name)
+                .whereIn(mmChildCol.column_name, chunk),
+              null,
+              { raw: true },
+            );
+            for (const r of rows as Array<Record<string, any>>) {
+              const rowKey = String(r[mmChildCol.column_name]);
+              const parentVal = r[mmParentCol.column_name];
+              if (parentVal == null) continue;
+              const bucket = existingByRow.get(rowKey);
+              if (bucket) bucket.push(String(parentVal));
+              else existingByRow.set(rowKey, [String(parentVal)]);
+            }
+          }
+        }
+      } else {
+        // Legacy V1 LTAR (HM / BT / OO with direct FKs) — no junction to
+        // batch against; keep per-row reads until hmList / btRead accept
+        // an id list.
+        const colType = (
+          col.colOptions as LinkToAnotherRecordColumn | undefined
+        )?.type;
+        // OO has a column on each side. `meta.bt: true` marks the FK-holding
+        // (child) side — that side reads via btRead like a true BT. The other
+        // (parent) side doesn't hold the FK; its existing link lives on the
+        // related row, so it must be read via hmList semantics.
+        const isHmLike =
+          colType === RelationTypes.HAS_MANY ||
+          (colType === RelationTypes.ONE_TO_ONE && !col.meta?.bt);
+        for (const { rowId } of touched) {
+          let existingLinks: Record<string, any>[] | Record<string, any> = [];
+          if (isHmLike) {
+            existingLinks = await this.hmList({ colId: col.id, id: rowId });
+          } else {
+            existingLinks = await this.btRead({ colId: col.id, id: rowId });
+          }
+          existingLinks = existingLinks ?? [];
+          if (!Array.isArray(existingLinks)) {
+            existingLinks = existingLinks ? [existingLinks] : [];
+          }
+          const pks = (existingLinks as Record<string, any>[])
+            .map((r) => this.extractPksValues(r, true))
+            .filter((v) => v != null && v !== 'N/A')
+            .map((v) => String(v));
+          existingByRow.set(rowId, pks);
+        }
+      }
+
+      for (const { rowId, body } of touched) {
+        const existingPks = existingByRow.get(rowId) ?? [];
+        const bodyVal = body[col.title];
+        const desiredRecords = Array.isArray(bodyVal)
+          ? bodyVal
+          : bodyVal != null
+          ? [bodyVal]
+          : [];
+        const desiredPks = desiredRecords
+          .map((rec: any) => this.extractPksValues(rec, true))
+          .filter((v: any) => v != null && v !== 'N/A')
+          .map((v: any) => String(v));
+
+        const existingSet = new Set(existingPks);
+        const desiredSet = new Set(desiredPks);
+
+        const toAdd = desiredPks.filter((p) => !existingSet.has(p));
+        const toRemove = existingPks.filter((p) => !desiredSet.has(p));
+
+        if (toRemove.length) {
+          out.push({
+            op: 'remove',
+            colId: col.id,
+            baseId: col.base_id,
+            rowId,
+            childIds: toRemove,
+          });
+        }
+        if (toAdd.length) {
+          out.push({
+            op: 'add',
+            colId: col.id,
+            baseId: col.base_id,
+            rowId,
+            childIds: toAdd,
+          });
+        }
+      }
+    }
+    return out;
+  }
+
+  /**
    * Insert the unified `nc_trash` row inline so the trash entry lands in the
    * same request as the soft-delete write — no fire-and-forget event listener
    * gap. Idempotent on (base_id, resource_type, resource_id): concurrent
@@ -5077,7 +5777,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       model: this.model,
     });
     const cleanupDueAt = computeCleanupDueAt(deletedAtIso, retentionDays);
-    await BaseTrash.insert(this.context, {
+    const trashEntry = await BaseTrash.insert(this.context, {
       resource_type: 'record',
       resource_id: buildRecordResourceId(this.model.id, fkUserId, deletedAtIso),
       name: this.model.title,
@@ -5088,6 +5788,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       deleted_at: deletedAtIso,
       cleanup_due_at: cleanupDueAt,
     });
+    if (trashEntry?.id) {
+      captureForTrace('softDeleteTrashId', trashEntry.id);
+    }
   }
 
   // Given a source-side LTAR columnId, return the related table's column that

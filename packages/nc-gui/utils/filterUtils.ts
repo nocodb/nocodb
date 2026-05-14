@@ -43,6 +43,32 @@ export {
   deleteFilterWithSub,
 }
 
+/**
+ * Strip FE-only transient fields (`tmp_id`, `status`, `dynamic`) and DB
+ * system fields (`source_id`, `base_id`, `fk_workspace_id`, `created_at`,
+ * `updated_at`) from a filter body before sending it to the BE.
+ */
+export const stripFilterApiBody = <T extends Record<string, any>>(filter: T): T => {
+  const {
+    tmp_id: _tmp,
+    status: _status,
+    dynamic: _dynamic,
+    source_id: _sourceId,
+    base_id: _baseId,
+    fk_workspace_id: _fkWs,
+    created_at: _createdAt,
+    updated_at: _updatedAt,
+    children,
+    is_group,
+    ...rest
+  } = filter
+  return {
+    ...rest,
+    ...(is_group != null ? { is_group } : {}),
+    ...(Array.isArray(children) ? { children: children.map((c) => stripFilterApiBody(c)) } : {}),
+  } as T
+}
+
 export const isComparisonSubOpAllowed = (
   filter: ColumnFilterType,
   compOp: {
@@ -262,4 +288,39 @@ export const adjustFilterWhenColumnChange = ({
 export function getTimezoneFromColumn(col: ColumnType, defaultValue = Intl.DateTimeFormat().resolvedOptions().timeZone) {
   const columnMeta = parseProp(col.meta)
   return columnMeta.timezone || defaultValue
+}
+
+// Fields the backend actually persists on a filter row. UI-only fields like
+// `tmp_id`, `children`, and `id` are deliberately excluded so callers can
+// diff/snapshot the persistable subset without reacting to UI noise.
+export const FILTER_PERSISTABLE_FIELDS = [
+  'fk_column_id',
+  'comparison_op',
+  'comparison_sub_op',
+  'value',
+  'fk_parent_id',
+  'is_group',
+  'logical_op',
+  'fk_value_col_id',
+  'meta',
+  'order',
+  'enabled',
+] as const
+
+// Returns true if any persistable field differs between two filter rows.
+// Used to skip redundant `filterUpdate` API calls when nothing the backend
+// would store has changed.
+export function filtersDiffer(a: Record<string, any> | null | undefined, b: Record<string, any> | null | undefined): boolean {
+  if (!a || !b) return true
+  for (const k of FILTER_PERSISTABLE_FIELDS) {
+    if (a[k] !== b[k]) return true
+  }
+  return false
+}
+
+// Extract the persistable subset of a filter for diff/snapshot comparisons.
+export function snapshotFilter(f: Record<string, any>): Record<string, any> {
+  const snap: Record<string, any> = {}
+  for (const k of FILTER_PERSISTABLE_FIELDS) snap[k] = f[k]
+  return snap
 }

@@ -377,13 +377,9 @@ const save = async () => {
     }
 
     if (isNew.value) {
-      await _save(rowState.value, undefined, {
-        kanbanClbk,
-      })
+      await _save(rowState.value, { kanbanClbk })
     } else {
-      await _save(undefined, undefined, {
-        kanbanClbk,
-      })
+      await _save(undefined, { kanbanClbk })
       await _loadRow()
     }
 

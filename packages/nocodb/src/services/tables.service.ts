@@ -26,8 +26,9 @@ import type {
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User } from '~/models';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { OperationSource } from '~/helpers/columnHelpers';
+import { NcContext } from '~/interface/config';
 import { ColumnsService } from '~/services/columns.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
@@ -59,6 +60,8 @@ import { sanitizeColumnName, validatePayload } from '~/helpers';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
+import { OperationName } from '~/command-registry/op-names';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
 
 @Injectable()
 export class TablesService {
@@ -269,6 +272,7 @@ export class TablesService {
     return true;
   }
 
+  @TraceCommand(OperationName.tableReorder)
   async reorderTable(
     context: NcContext,
     param: { tableId: string; order: any; req: NcRequest },
@@ -310,12 +314,11 @@ export class TablesService {
     context: NcContext,
     param: {
       tableId: string;
-      user: User;
       forceDeleteRelations?: boolean;
       forceDeleteSyncs?: boolean;
       skipLinkPlaceholder?: boolean;
       skipTrash?: boolean;
-      req?: any;
+      req: NcRequest;
     },
     ncMetaParam?: MetaService,
   ) {
@@ -324,6 +327,8 @@ export class TablesService {
     }
 
     const ncMeta = ncMetaParam ?? Noco.ncMeta;
+    // Source of truth for the actor — every caller passes `req`.
+    const user = param.req?.user as User;
 
     let result;
     let placeholderRefTables: Map<string, Model>;
@@ -501,7 +506,6 @@ export class TablesService {
           {
             req: param.req,
             columnId: c.id,
-            user: param.user,
             forceDeleteSystem: true,
             skipLinkPlaceholder: true,
             columnWebhookManager,
@@ -539,7 +543,7 @@ export class TablesService {
     if (result) {
       this.appHooksService.emit(AppEvents.TABLE_DELETE, {
         table,
-        user: param.user,
+        user,
         req: param.req,
         context,
       });

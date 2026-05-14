@@ -15,8 +15,10 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { ButtonColumn, Script, Workspace } from '~/models';
+import BaseTrash from '~/models/BaseTrash';
 import { checkLimit } from '~/helpers/paymentHelpers';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { getReplay } from '~/helpers/replayScope';
 @Injectable()
 export class ScriptsService {
   constructor(
@@ -204,7 +206,12 @@ export class ScriptsService {
     return true;
   }
 
-  async duplicateScript(context: NcContext, scriptId: string, req: NcRequest) {
+  @TraceCommand(OperationName.scriptDuplicate)
+  async duplicateScript(
+    context: NcContext,
+    param: { scriptId: string; req: NcRequest },
+  ) {
+    const { scriptId, req } = param;
     const script = await Script.get(context, scriptId);
 
     if (!script) {
@@ -228,7 +235,9 @@ export class ScriptsService {
       counter++;
     }
 
+    const replayId = getReplay('replayDuplicateId');
     const newScript = await Script.insert(context, script.base_id, {
+      ...(replayId ? { id: replayId } : {}),
       title: newTitle,
       script: script.script,
       meta: script.meta,
@@ -258,5 +267,30 @@ export class ScriptsService {
     });
 
     return newScript;
+  }
+
+  async restoreScript(
+    context: NcContext,
+    param: { scriptId: string; req: NcRequest },
+    ncMeta?: MetaService,
+  ) {
+    const trashEntry = await BaseTrash.getByResourceId(
+      context,
+      'script',
+      param.scriptId,
+      ncMeta,
+    );
+    if (!trashEntry?.id) {
+      return false;
+    }
+
+    await this.baseTrashService.restore(context, {
+      trashId: trashEntry.id,
+      user: param.req?.user ?? { id: '' },
+      req: param.req,
+      ncMeta,
+    });
+
+    return true;
   }
 }

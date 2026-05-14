@@ -2,9 +2,10 @@ import RowColorCondition from 'src/models/RowColorCondition';
 import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, comparisonOpList, EventType } from 'nocodb-sdk';
 import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
-import type { MetaService } from '~/meta/meta.service';
+import { MetaService } from '~/meta/meta.service';
+import { NcContext } from '~/interface/config';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
@@ -13,6 +14,8 @@ import NocoSocket from '~/socket/NocoSocket';
 import { Column, Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class FiltersService {
@@ -54,6 +57,7 @@ export class FiltersService {
     return Filter.rootFilterListByHook(context, { hookId: param.hookId });
   }
 
+  @TraceCommand(OperationName.buttonFilterCreate)
   async buttonFilterCreate(
     context: NcContext,
     param: {
@@ -302,7 +306,7 @@ export class FiltersService {
         event: EventType.META_EVENT,
         payload: {
           action: 'filter_update',
-          payload: filter,
+          payload: { ...filter, ...param.filter },
         },
       },
       context.socket_id,
@@ -314,6 +318,110 @@ export class FiltersService {
       ).emit();
     }
     return res;
+  }
+
+  @TraceCommand(OperationName.filterBulkLogicalOpUpdate)
+  async filterBulkLogicalOpUpdate(
+    context: NcContext,
+    param: {
+      filters: Array<{
+        filterId: string;
+        logical_op: 'and' | 'or' | 'not';
+      }>;
+      req: NcRequest;
+    },
+    ncMeta?: MetaService,
+  ) {
+    if (!param.filters?.length) return [];
+
+    const loaded: Array<{ before: Filter; logical_op: 'and' | 'or' | 'not' }> =
+      [];
+    for (const { filterId, logical_op } of param.filters) {
+      const before = await Filter.get(context, filterId, ncMeta);
+      if (!before) NcError.get(context).badRequest('Filter not found');
+      loaded.push({ before, logical_op });
+    }
+
+    const firstViewId = loaded[0].before.fk_view_id;
+    if (!firstViewId) {
+      NcError.get(context).badRequest(
+        'Bulk logical_op update only supports view-scoped filters',
+      );
+    }
+    const firstParentId = loaded[0].before.fk_parent_id ?? null;
+    for (const { before } of loaded) {
+      if (before.fk_view_id !== firstViewId) {
+        NcError.get(context).badRequest(
+          'All filters must belong to the same view',
+        );
+      }
+      if ((before.fk_parent_id ?? null) !== firstParentId) {
+        NcError.get(context).badRequest(
+          'All filters must share the same parent (be siblings)',
+        );
+      }
+    }
+
+    // One shared webhook manager — single firing covers the whole bulk
+    // action. Audit (`AppEvents.FILTER_UPDATE`) and realtime
+    // `filter_update` still fire per row so listeners and other tabs see
+    // each change individually.
+    const view = await View.get(context, firstViewId, false, ncMeta);
+    const sharedViewWebhookManager: ViewWebhookManager = (
+      await (
+        await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
+          view.fk_model_id,
+        )
+      ).withViewId(firstViewId)
+    ).forUpdate();
+
+    const updated: Filter[] = [];
+    for (const { before, logical_op } of loaded) {
+      if (before.logical_op === logical_op) continue;
+
+      const res = await Filter.update(
+        context,
+        before.id,
+        { logical_op } as Filter,
+        ncMeta,
+      );
+      const after = await Filter.get(context, before.id, ncMeta);
+
+      const parentData = await before.extractRelatedParentMetas(
+        context,
+        ncMeta,
+      );
+
+      this.appHooksService.emit(AppEvents.FILTER_UPDATE, {
+        filter: { ...before, logical_op },
+        oldFilter: before,
+        req: param.req,
+        ...parentData,
+        context,
+      });
+
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'filter_update',
+            payload: after,
+          },
+        },
+        context.socket_id,
+      );
+
+      updated.push(res);
+    }
+
+    (
+      await sharedViewWebhookManager.withNewViewId(
+        sharedViewWebhookManager.getViewId(),
+      )
+    ).emit();
+
+    return updated;
   }
 
   async filterChildrenList(context: NcContext, param: { filterId: string }) {

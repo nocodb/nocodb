@@ -18,7 +18,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
     where?: ComputedRef<string | undefined>,
     reloadVisibleDataHook?: EventHook<void>,
   ) => {
-    const { $api: api } = useNuxtApp()
+    const { $api: api, $eventBus } = useNuxtApp()
 
     const fields = inject(FieldsInj, ref([]))
 
@@ -189,8 +189,16 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     reloadAggregate?.on(reloadAggregateListener)
 
+    const aggregationReloadListener = (event: SmartsheetStoreEvents) => {
+      if (event === SmartsheetStoreEvents.AGGREGATION_RELOAD) {
+        loadViewAggregate()
+      }
+    }
+    $eventBus.smartsheetStoreEventBus.on(aggregationReloadListener)
+
     onBeforeUnmount(() => {
       reloadAggregate?.off(reloadAggregateListener)
+      $eventBus.smartsheetStoreEventBus.off(aggregationReloadListener)
     })
 
     return {

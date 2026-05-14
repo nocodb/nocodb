@@ -123,8 +123,6 @@ const { t } = useI18n()
 
 const { appInfo, isMobileMode } = useGlobal()
 
-const { clone } = useUndoRedo()
-
 const logicalOps = [
   { value: 'and', text: t('general.and') },
   { value: 'or', text: t('general.or') },
@@ -144,7 +142,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 
 const { blockToggleFilter, showUpgradeToUseToggleFilter, blockPinnedFilter, showUpgradeToUsePinnedFilter, showEEFeatures } =
   useEeConfig()
@@ -191,7 +189,7 @@ const { showSystemFields } =
   widget.value || workflow.value || rlsPolicyId?.value ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
 
 const fieldsToFilter = computed(() =>
-  clone(columns.value)
+  deepClone(columns.value)
     .filter((c) => {
       if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
 
@@ -610,7 +608,7 @@ const addFilterGroup = async (filter?: Partial<FilterType>) => {
 }
 
 const copyFilter = (filter: Filter, isGroup = false) => {
-  const filterToCopy = clone(filter)
+  const filterToCopy = deepClone(filter)
 
   // EE only: Strip pinned state from copied filter (pinned filters are EE feature)
   if (isEeUI && filterToCopy.meta) {
@@ -733,14 +731,35 @@ const isLogicalOpChangeAllowed = computed(() => {
 
 // when logical operation is updated, update all the siblings with the same logical operation only if it's in locked state
 const onLogicalOpUpdate = async (filter: Filter, index: number) => {
-  if (index === 1 && visibleFilters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)) {
-    await Promise.all(
-      visibleFilters.value.slice(2).map(async (siblingFilter, i) => {
-        siblingFilter.logical_op = filter.logical_op
-        await saveOrUpdate(siblingFilter, i + 2, false, false, true)
-      }),
-    )
+  const isCascade =
+    index === 1 &&
+    visibleFilters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)
+
+  if (isCascade) {
+    const newOp = filter.logical_op as 'and' | 'or' | 'not'
+    const targets = [filter, ...visibleFilters.value.slice(2)] as Filter[]
+
+    // Mirror the new op into the in-memory filters array so the UI shows
+    // the cascade immediately without waiting for the realtime echo.
+    for (const t of targets) t.logical_op = newOp
+
+    // Single atomic API call → one changelog entry. Filter rows already
+    // at `newOp` are server-side no-ops and don't enter the inverse map.
+    const filtersBody = targets
+      .filter((t) => t.id)
+      .map((t) => ({ filterId: t.id as string, logical_op: newOp }))
+
+    if (filtersBody.length) {
+      await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        { operation: 'filterBulkLogicalOpUpdate' },
+        { filters: filtersBody },
+      )
+    }
+    return
   }
+
   await saveOrUpdate(filter, index)
 }
 

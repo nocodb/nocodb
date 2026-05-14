@@ -1,7 +1,6 @@
 import type { IWorkflowExecution, WorkflowGeneralNode, WorkflowType } from 'nocodb-sdk'
 import { GENERAL_DEFAULT_NODES, GeneralNodeID, INIT_WORKFLOW_NODES, TriggerActivationType } from 'nocodb-sdk'
 import type { Edge, Node } from '@vue-flow/core'
-import rfdc from 'rfdc'
 import {
   cleanupPortsOnTypeChange,
   ensurePortsConnected,
@@ -10,8 +9,6 @@ import {
   getNodeOutputPorts,
 } from '~/utils/workflowGraphUtils'
 import { filterNodesByPermission, generateTriggerId, getSourceNodesAndEdges } from '~/utils/workflowUtils'
-
-const clone = rfdc()
 
 const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedRef<WorkflowType>) => {
   const { isUIAllowed } = useRoles()
@@ -81,7 +78,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   const getNodeMetaById = (id?: string): UIWorkflowNodeDefinition | null => {
     const node = nodeTypes.value.find((node) => node.id === id)
-    return node ? (clone(node) as UIWorkflowNodeDefinition) : null
+    return node ? (deepClone(node) as UIWorkflowNodeDefinition) : null
   }
 
   const updateWorkflowData = async (

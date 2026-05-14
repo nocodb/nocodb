@@ -27,7 +27,6 @@ export function useRowReorder({
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
-    undo?: boolean,
     isFailed?: boolean,
     path?: Array<number> | null,
   ) => Promise<void>
@@ -120,7 +119,6 @@ export function useRowReorder({
       await updateRecordOrder(
         draggedRowIndex.value,
         targetRowIndex.value === totalRows.value ? null : targetRowIndex.value,
-        undefined,
         undefined,
         draggedRowGroupPath.value,
       )

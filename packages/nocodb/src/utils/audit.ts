@@ -199,6 +199,12 @@ export async function generateAuditV1Payload<T = any>(
     )?.title;
   }
 
+  const triggeredVia = context?.triggered_via;
+  const detailsWithOrigin =
+    triggeredVia && details
+      ? { ...details, triggered_via: triggeredVia }
+      : details;
+
   return {
     user: req?.user?.email,
     ip: req?.ip,
@@ -212,7 +218,7 @@ export async function generateAuditV1Payload<T = any>(
     fk_model_id: params.fk_model_id ?? context?.fk_model_id,
     row_id: context?.row_id ?? params.row_id,
     op_type: opType,
-    details,
+    details: detailsWithOrigin,
     version: 1,
     fk_parent_id: id === req?.ncParentAuditId ? null : req?.ncParentAuditId,
     id,

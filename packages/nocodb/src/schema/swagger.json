@@ -11859,6 +11859,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       },
@@ -12115,6 +12123,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       },
@@ -12476,6 +12492,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       }
@@ -12687,6 +12711,14 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "typecast",
+            "description": "When 'true', backend auto-casts incoming values (e.g. creates missing select options) instead of rejecting them."
           }
         ]
       },
@@ -24670,7 +24702,6 @@
             "description": "Group By"
           },
           "group_by_order": {
-            "type": "number",
             "description": "Group By Order",
             "example": 1
           },
@@ -24991,6 +25022,13 @@
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "filters": {
+            "type": "array",
+            "description": "Optional list of filter rows to attach to this hook in the same call. Useful for atomic save (one op = hook + filters) so undo restores both as one unit.",
+            "items": {
+              "$ref": "#/components/schemas/FilterReq"
             }
           }
         },
@@ -30644,10 +30682,6 @@
       "ExtensionReq": {
         "type": "object",
         "properties": {
-          "base_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique Base ID"
-          },
           "title": {
             "type": "string",
             "description": "Extension Title"

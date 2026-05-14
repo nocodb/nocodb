@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PlanLimitTypes } from 'nocodb-sdk';
+import { EventType, PlanLimitTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { MetaService } from '~/meta/meta.service';
 import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
 import { BaseTrashHandler } from '~/services/base-trash/types';
 import { Hook, Model } from '~/models';
+import NocoSocket from '~/socket/NocoSocket';
 import { NcError } from '~/helpers/catchError';
 import { checkLimit } from '~/helpers/paymentHelpers';
 
@@ -68,6 +69,13 @@ export class HookTrashHandler extends BaseTrashHandler<Hook> {
     ncMeta?: MetaService,
   ): Promise<void> {
     await Hook.softDelete(ctx, trashEntry.resource_id, false, ncMeta);
+    NocoSocket.broadcastEvent(ctx, {
+      event: EventType.META_EVENT,
+      payload: {
+        action: 'hook_create',
+        payload: await Hook.get(ctx, trashEntry.resource_id, false, ncMeta),
+      },
+    });
   }
 
   async permanentDelete(

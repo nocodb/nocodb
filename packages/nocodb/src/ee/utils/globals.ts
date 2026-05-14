@@ -124,6 +124,7 @@ export enum MetaTable {
   AUTOMATION_SUBSCRIBERS = 'nc_automation_subscribers',
   SANDBOXES = 'nc_sandboxes_v2',
   SANDBOX_CHANGELOG = 'nc_sandbox_changelog',
+  OPERATION_LOGS = 'nc_operation_logs',
   SCIM_CONFIG = 'nc_scim_config',
   RECORD_TEMPLATES = 'nc_record_templates',
   RLS_POLICIES = 'nc_rls_policies',

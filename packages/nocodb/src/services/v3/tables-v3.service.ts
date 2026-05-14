@@ -10,7 +10,8 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { Model, User } from '~/models';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { Base } from '~/models';
 import { ColumnsService } from '~/services/columns.service';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
@@ -23,6 +24,11 @@ import { TablesService } from '~/services/tables.service';
 import { tableReadBuilder, tableViewBuilder } from '~/utils/builders/table';
 import { validatePayload } from '~/helpers';
 import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
+import {
+  captureForTrace,
+  TraceCommand,
+} from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class TablesV3Service {
@@ -77,9 +83,8 @@ export class TablesV3Service {
     context: NcContext,
     param: {
       tableId: string;
-      user: User;
       forceDeleteRelations?: boolean;
-      req?: any;
+      req: NcRequest;
     },
   ) {
     await this.tablesService.tableDelete(context, param);
@@ -147,6 +152,7 @@ export class TablesV3Service {
     ) as unknown as TableV3Type[];
   }
 
+  @TraceCommand(OperationName.tableV3Create)
   async tableCreate(
     context: NcContext,
     param: {
@@ -184,14 +190,10 @@ export class TablesV3Service {
         }
       }
 
-      const tableCreateReq: any = param.table;
-
-      // remap the columns if provided
-      if (columns.length) {
-        tableCreateReq.columns = columnV3ToV2Builder().build(columns);
-      } else {
-        tableCreateReq.columns = [];
-      }
+      const tableCreateReq = {
+        ...param.table,
+        columns: columns?.length ? columnV3ToV2Builder().build(columns) : [],
+      } as TableReqType;
 
       tableCreateOutput = await this.tablesService.tableCreate(context, {
         baseId: param.baseId,
@@ -212,6 +214,21 @@ export class TablesV3Service {
         });
       }
 
+      const finalModel = await this.tablesService.getTableWithAccessibleViews(
+        context,
+        { tableId: tableCreateOutput.id, user: param.user },
+      );
+      captureForTrace(
+        'sandboxColumns',
+        finalModel.columns.map((c) => ({
+          id: c.id,
+          title: c.title ?? c.column_name,
+          cn: c.column_name,
+        })),
+      );
+      const defaultViewId = finalModel.views?.[0]?.id;
+      if (defaultViewId) captureForTrace('sandboxDefaultViewId', defaultViewId);
+
       return this.getTableWithAccessibleViews(context, {
         tableId: tableCreateOutput.id,
         user: param.user,
@@ -223,7 +240,6 @@ export class TablesV3Service {
         this.tablesService
           .tableDelete(context, {
             tableId: tableCreateOutput.id,
-            user: param.user as User,
             forceDeleteRelations: true,
             req: param.req,
           })

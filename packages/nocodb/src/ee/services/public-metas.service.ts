@@ -131,10 +131,10 @@ export class PublicMetasService extends PublicMetasServiceCE {
 
     this.checkViewBaseType(view, base);
 
-    const viewRowColorInfo = await this.viewRowColorService.getByViewId({
+    const viewRowColorInfo = await this.viewRowColorService.getByViewId(
       context,
-      fk_view_id: view.id,
-    });
+      { fk_view_id: view.id },
+    );
 
     Object.assign(view, {
       workspace,

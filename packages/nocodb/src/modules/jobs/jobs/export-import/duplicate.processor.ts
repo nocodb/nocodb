@@ -11,7 +11,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { Injectable, NotImplementedException } from '@nestjs/common';
-import type { Job } from 'bull';
+import { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   DuplicateBaseJobData,
@@ -37,6 +37,7 @@ import { TablesService } from '~/services/tables.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { DuplicateModelUtils } from '~/utils/duplicate-model.utils';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+import { Untraced } from '~/decorators/trace-command.decorator';
 
 @Injectable()
 export class DuplicateProcessor {
@@ -73,6 +74,7 @@ export class DuplicateProcessor {
     throw new NotImplementedException();
   }
 
+  @Untraced()
   async duplicateBaseJob({
     sourceBase,
     targetBase,
@@ -400,6 +402,7 @@ export class DuplicateProcessor {
     return { id: dupProject.id };
   }
 
+  @Untraced()
   async duplicateModel(job: Job<DuplicateModelJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateModel})`);
 
@@ -571,7 +574,6 @@ export class DuplicateProcessor {
         for (const modelId of createdModels) {
           await this.tablesService.tableDelete(context, {
             tableId: modelId,
-            user: req.user,
             forceDeleteRelations: true,
             req,
           });
@@ -596,6 +598,7 @@ export class DuplicateProcessor {
     }
   }
 
+  @Untraced()
   async duplicateColumn(job: Job<DuplicateColumnJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateColumn})`);
     const hrTime = initTime();

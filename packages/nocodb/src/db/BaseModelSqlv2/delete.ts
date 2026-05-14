@@ -986,9 +986,7 @@ export class BaseModelDelete {
               return acc;
             }, {} as Record<string, any>),
           )
-        : oldRecords.map(
-            (r) => r[this.baseModel.model.primaryKey.column_name],
-          );
+        : oldRecords.map((r) => r[this.baseModel.model.primaryKey.column_name]);
 
     const rows = oldRecords;
 

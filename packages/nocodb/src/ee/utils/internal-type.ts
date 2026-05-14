@@ -5,6 +5,7 @@ import type {
   NcRequest,
   NodeExecutionResult,
   ProseMirrorDoc,
+  RowColoringInfo,
 } from 'nocodb-sdk';
 import type { TestConnectionResponse } from '@noco-local-integrations/core';
 import type { JobTypes } from 'src/interface/Jobs';
@@ -32,6 +33,7 @@ import type {
   TeamV3ResponseType,
 } from '~/services/v3/teams-v3.types';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
+import type { UndoRedoResult } from '~/services/undo-redo.service';
 import type { BaseMetaDiff } from '~/helpers/baseMetaHelpers';
 import type RlsPolicy from '~/models/RlsPolicy';
 
@@ -49,6 +51,8 @@ import type {
 
 export type InternalGETResponseType = Promise<
   | void
+  | RowColoringInfo
+  | null
   | DataReflection
   | Document
   | Document[]
@@ -217,6 +221,7 @@ export type InternalPOSTResponseType = Promise<
   | { deleted: number; failed: { id: string; error: string }[] }
   | { job_id: string }
   | { pm: ProseMirrorDoc | null; markdown: string | null }
+  | UndoRedoResult
 >;
 
 export interface InternalApiModule<

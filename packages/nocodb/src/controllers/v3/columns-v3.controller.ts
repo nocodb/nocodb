@@ -73,7 +73,6 @@ export class ColumnsV3Controller {
     return await this.columnsV3Service.columnDelete(context, {
       columnId,
       req,
-      user: req.user,
     });
   }
 

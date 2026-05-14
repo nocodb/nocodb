@@ -13,6 +13,7 @@ import {
 } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { getCredentialEncryptSecret } from '~/utils/encryptDecrypt';
+import { isReplay } from '~/helpers/replayScope';
 
 const KEY_REGEX = /^[A-Z][A-Z0-9_]*$/;
 const MAX_VALUE_LENGTH = 65536; // 64KB
@@ -187,7 +188,6 @@ export default class BaseVariable implements BaseVariableType {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(data, [
-      'id',
       'base_id',
       'key',
       'value',
@@ -199,6 +199,11 @@ export default class BaseVariable implements BaseVariableType {
       'is_overridden',
       'is_inherited',
     ]);
+
+    // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
+    if (isReplay() && data.id) {
+      insertObj.id = data.id;
+    }
 
     // Validate key format
     if (!insertObj.key || !KEY_REGEX.test(insertObj.key)) {

@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { DuplicateProcessor as DuplicateProcessorCE } from 'src/modules/jobs/jobs/export-import/duplicate.processor';
 import { AppEvents, generateUniqueCopyName, ViewLockType } from 'nocodb-sdk';
 import { BaseVersion } from 'nocodb-sdk';
-import type { Job } from 'bull';
+import { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
 import type { DuplicateDashboardJobData } from '~/interface/Jobs';
@@ -23,6 +23,7 @@ import { TelemetryService } from '~/services/telemetry.service';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { DashboardsService } from '~/services/dashboards.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
+import { Untraced } from '~/decorators/trace-command.decorator';
 import { FiltersService } from '~/services/filters.service';
 import {
   applyMeta,
@@ -164,6 +165,7 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
     }
   }
 
+  @Untraced()
   async duplicateDashboard(job: Job<DuplicateDashboardJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateDashboard})`);
 
@@ -280,6 +282,7 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
   }
 
   @EEOnly()
+  @Untraced()
   async duplicateBaseJob({
     sourceBase,
     targetBase,

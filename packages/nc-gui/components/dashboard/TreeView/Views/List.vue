@@ -67,8 +67,6 @@ const views = computed(() => {
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { addUndo, defineModelScope } = useUndoRedo()
-
 const { navigateToView, loadViews, isUserViewOwner, updateView } = useViewsStore()
 
 /** Selected view(s) for menu */
@@ -287,7 +285,7 @@ async function changeView(view: ViewType) {
 }
 
 /** Rename a view */
-async function onRename(view: ViewType, originalTitle?: string, undo = false) {
+async function onRename(view: ViewType) {
   try {
     await $api.internal.postOperation(
       view.fk_workspace_id!,
@@ -312,27 +310,6 @@ async function onRename(view: ViewType, originalTitle?: string, undo = false) {
 
     refreshCommandPalette()
 
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (v: ViewType, title: string) => {
-            const tempTitle = v.title
-            v.title = title
-            onRename(v, tempTitle, true)
-          },
-          args: [view, view.title],
-        },
-        undo: {
-          fn: (v: ViewType, title: string) => {
-            const tempTitle = v.title
-            v.title = title
-            onRename(v, tempTitle, true)
-          },
-          args: [view, originalTitle],
-        },
-        scope: defineModelScope({ view: activeView.value }),
-      })
-    }
     // update view name in recent views
     allRecentViews.value = allRecentViews.value.map((rv) => {
       if (rv.viewId === view.id && rv.tableID === view.fk_model_id) {

@@ -42,6 +42,20 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
       },
     );
 
+    await this.jobsQueue.removeRepeatable({
+      jobId: JobTypes.OperationCleanup,
+      cron: '7 * * * *',
+    });
+    await this.jobsQueue.add(
+      {
+        jobName: JobTypes.OperationCleanup,
+      },
+      {
+        jobId: JobTypes.OperationCleanup,
+        repeat: { cron: '7 * * * *' },
+      },
+    );
+
     // for development and test env, we run the job every minute
     // for production, we run the job every hour
     if (

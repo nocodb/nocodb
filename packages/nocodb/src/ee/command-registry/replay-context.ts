@@ -1,37 +1,224 @@
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { OperationContract } from '~/command-registry/types';
+import type { NcContextTriggeredVia } from 'nocodb-sdk';
+import type {
+  CommandHandler,
+  HandlerMeta,
+  MacroTranscriptEntry,
+  OperationContract,
+} from '~/command-registry/types';
+import { getSandboxConfig } from '~/command-registry/types';
 import { OperationRegistry } from '~/command-registry/registry';
+import { isReplay, runInReplay } from '~/helpers/replayScope';
 
-/**
- * Build a synthetic request object for replay-time service calls. The original
- * request from the sandbox-side mutation is reused (so audit/webhook context
- * stays meaningful) — replay-time tracing is naturally a no-op because
- * `recordCommand` early-exits when the target base isn't a sandbox.
- */
+// `createdBy` is the fallback when originalReq has no user.
 export function makeReplayReq(
   originalReq: NcRequest,
   createdBy: string,
 ): NcRequest {
-  const req = {
+  return {
     ...originalReq,
     user: originalReq?.user ?? { id: createdBy },
-    __isReplay: true,
+    context: originalReq?.context ? { ...originalReq.context } : undefined,
+    headers: originalReq?.headers ? { ...originalReq.headers } : undefined,
   } as NcRequest;
-  return req;
+}
+
+export function registerForward<C extends OperationContract<any>>(
+  contract: C,
+  forward: (context: NcContext, params: any) => Promise<unknown>,
+): void {
+  OperationRegistry.register(contract, async (context, params, meta) => {
+    const req = makeReplayReq(meta.originalReq, meta.createdBy);
+    return forward(context, { ...params, req });
+  });
 }
 
 /**
- * Boilerplate-free registration for the common handler shape: build a replay
- * `req`, spread it onto `params`, forward to a service method. Handlers that
- * need to thread extra metadata (e.g. `tables.handlers.ts` injecting sandbox
- * column IDs) should call `OperationRegistry.register` directly.
+ * Normalised input to the shared replay dispatcher. Each call site
+ * (sandbox merge, per-tab undo/redo, macro child) projects its own row
+ * shape onto this struct.
  */
-export function registerForward<C extends OperationContract<any>>(
+export interface ReplayCall {
+  params: any;
+  entityId?: string;
+  extra?: Record<string, unknown>;
+  entryId: string;
+  createdBy: string;
+  originalReq: NcRequest;
+}
+
+/**
+ * Single source of truth for replay-time param transformation +
+ * handler invocation. Call sites: `SandboxCommandReplayService`,
+ * `UndoRedoService.dispatch`, `dispatchTranscriptEntry`.
+ *
+ * `baseId` rewrite is a no-op for undo/redo (same base); load-bearing
+ * for sandbox merge (sandbox → prod). The id_field injection lets
+ * model insert paths preserve the recorded id via `isReplay() &&
+ * entity.id`.
+ */
+export async function dispatchOperation(
+  context: NcContext,
+  contract: OperationContract,
+  handler: CommandHandler,
+  call: ReplayCall,
+  triggeredVia?: NcContextTriggeredVia,
+): Promise<unknown> {
+  contract.schema.parse(call.params ?? {});
+
+  const req = makeReplayReq(call.originalReq, call.createdBy);
+
+  const replayParams: Record<string, any> = {
+    ...((call.params as Record<string, any> | null) ?? {}),
+    user: req.user,
+    req,
+  };
+
+  if (replayParams.baseId) {
+    replayParams.baseId = context.base_id;
+  }
+
+  const idField = getSandboxConfig(contract)?.id_field;
+  if (
+    idField &&
+    call.entityId &&
+    replayParams[idField] &&
+    typeof replayParams[idField] === 'object'
+  ) {
+    replayParams[idField] = {
+      ...replayParams[idField],
+      id: call.entityId,
+    };
+  }
+
+  const handlerMeta: HandlerMeta = {
+    entryId: call.entryId,
+    entityId: call.entityId,
+    originalReq: call.originalReq,
+    createdBy: call.createdBy,
+    extra: call.extra,
+  };
+
+  const resolvedTriggeredVia = triggeredVia ?? context.triggered_via;
+  const replayContext: NcContext = resolvedTriggeredVia
+    ? { ...context, triggered_via: resolvedTriggeredVia }
+    : context;
+
+  return runInReplay(() => handler(replayContext, replayParams, handlerMeta));
+}
+
+/**
+ * Re-invoke a recorded macro child entry. Schema re-validation happens
+ * inside `dispatchOperation`.
+ *
+ * Handlers that rotate state across replay cycles (e.g. `columnUpdate`'s
+ * backup pointer) return `{ result, metaUpdate }`; macro callers
+ * propagate `metaUpdate` back into the entry's `extra` so the next
+ * cycle reads the latest values.
+ */
+export async function dispatchTranscriptEntry(
+  context: NcContext,
+  entry: MacroTranscriptEntry,
+  req: NcRequest,
+): Promise<unknown> {
+  const resolved = OperationRegistry.resolve(entry.op as any, entry.version);
+  if (!resolved) {
+    throw new Error(
+      `Macro transcript entry references unknown op '${entry.op}@${entry.version}'`,
+    );
+  }
+  const { contract, handler } = resolved;
+
+  return dispatchOperation(context, contract, handler, {
+    params: entry.params,
+    entityId: entry.entityId,
+    extra: entry.extra as Record<string, unknown> | undefined,
+    entryId: 'macro-child',
+    createdBy: req.user?.id ?? '',
+    originalReq: req,
+  });
+}
+
+function extractMetaUpdate(
+  handlerResult: unknown,
+): Record<string, unknown> | undefined {
+  if (
+    handlerResult &&
+    typeof handlerResult === 'object' &&
+    'metaUpdate' in handlerResult
+  ) {
+    const update = (handlerResult as { metaUpdate?: unknown }).metaUpdate;
+    if (update && typeof update === 'object') {
+      return update as Record<string, unknown>;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Register a macro op's handler. On forward, runs `forwardCall`; the
+ * decorator's macro mode auto-records each nested child call into
+ * `meta.extra.macroTranscript`. On replay (`isReplay()` with transcript
+ * in `meta.extra`), walks the transcript and re-dispatches each entry
+ * — the transcript IS the program; the service body is never re-run.
+ */
+export function registerMacro<C extends OperationContract<any>>(
   contract: C,
-  forward: (ctx: NcContext, p: any) => Promise<unknown>,
+  forwardCall: (
+    context: NcContext,
+    params: any,
+    req: NcRequest,
+  ) => Promise<unknown>,
 ): void {
-  OperationRegistry.register(contract, async (ctx, params, meta) => {
+  OperationRegistry.register(contract, async (context, params, meta) => {
     const req = makeReplayReq(meta.originalReq, meta.createdBy);
-    return forward(ctx, { ...params, req });
+    const transcript = (
+      meta.extra as { macroTranscript?: MacroTranscriptEntry[] } | undefined
+    )?.macroTranscript;
+
+    if (isReplay() && transcript && transcript.length) {
+      // Children that rotate state across cycles (e.g. columnUpdate's
+      // backup pointer) return a metaUpdate that needs merging back
+      // into the persisted transcript. Per-child failures abort the
+      // macro replay — a half-applied macro is worse than a clean
+      // surfaced failure the caller can roll back.
+      const updatedTranscript: MacroTranscriptEntry[] = [];
+      let lastResult: unknown;
+      let anyMetaUpdate = false;
+      for (const entry of transcript) {
+        let childResult: unknown;
+        try {
+          childResult = await dispatchTranscriptEntry(context, entry, req);
+        } catch (e: any) {
+          throw new Error(
+            `Macro replay '${contract.name}' child '${entry.op}@${entry.version}' failed: ${e?.message}`,
+            { cause: e },
+          );
+        }
+        lastResult = childResult;
+        const update = extractMetaUpdate(childResult);
+        if (update) {
+          updatedTranscript.push({
+            ...entry,
+            extra: {
+              ...(entry.extra ?? {}),
+              ...update,
+            } as MacroTranscriptEntry['extra'],
+          });
+          anyMetaUpdate = true;
+        } else {
+          updatedTranscript.push(entry);
+        }
+      }
+      if (anyMetaUpdate) {
+        return {
+          result: lastResult,
+          metaUpdate: { macroTranscript: updatedTranscript },
+        };
+      }
+      return lastResult;
+    }
+
+    return forwardCall(context, params, req);
   });
 }

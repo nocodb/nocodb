@@ -1,9 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { AppEvents, MetaEventType } from 'nocodb-sdk';
+import { AppEvents, EventType, MetaEventType } from 'nocodb-sdk';
 import { HooksService as HooksServiceCE } from 'src/services/hooks.service';
 import type { OnModuleInit } from '@nestjs/common';
 import type { HookReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import NocoSocket from '~/socket/NocoSocket';
 import { OperationName } from '~/command-registry/op-names';
 import { MetaService } from '~/meta/meta.service';
 import { NcContext } from '~/interface/config';
@@ -13,6 +14,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Hook, Model } from '~/models';
+import BaseTrash from '~/models/BaseTrash';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
@@ -224,6 +226,45 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
       context,
       tableId: hook.fk_model_id,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'hook_delete',
+          payload: { id: hook.id, fk_model_id: hook.fk_model_id },
+        },
+      },
+      context.socket_id,
+    );
+
+    return true;
+  }
+
+  @EEOnly()
+  async hookRestore(
+    context: NcContext,
+    param: { hookId: string; req: NcRequest },
+    ncMeta?: MetaService,
+  ) {
+    const trashEntry = await BaseTrash.getByResourceId(
+      context,
+      'hook',
+      param.hookId,
+      ncMeta,
+    );
+    if (!trashEntry?.id) {
+      return false;
+    }
+
+    await this.baseTrashService.restore(context, {
+      trashId: trashEntry.id,
+      user: param.req?.user ?? { id: '' },
+      req: param.req,
+      ncMeta,
+    });
+
     return true;
   }
 }

@@ -420,6 +420,13 @@ export const useViewsStore = defineStore('viewsStore', () => {
     try {
       let data: ViewType | null = null
 
+      const commonFields = {
+        title: form.title,
+        type: form.type,
+        description: form.description,
+        copy_from_id: form.copy_from_id,
+      }
+
       switch (form.type) {
         case ViewTypes.GRID:
           data = await $api.internal.postOperation(
@@ -429,7 +436,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'gridViewCreate',
               tableId,
             },
-            form,
+            commonFields,
           )
           break
         case ViewTypes.GALLERY:
@@ -440,7 +447,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'galleryViewCreate',
               tableId,
             },
-            form,
+            {
+              ...commonFields,
+              fk_cover_image_col_id: form.fk_cover_image_col_id,
+            },
           )
           break
         case ViewTypes.FORM:
@@ -452,7 +462,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
               tableId,
             },
             {
-              ...form,
+              ...commonFields,
               ...getDefaultViewMetas(ViewTypes.FORM),
             },
           )
@@ -465,7 +475,11 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'kanbanViewCreate',
               tableId,
             },
-            form,
+            {
+              ...commonFields,
+              fk_grp_col_id: form.fk_grp_col_id,
+              fk_cover_image_col_id: form.fk_cover_image_col_id,
+            },
           )
           break
         case ViewTypes.MAP:
@@ -476,7 +490,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'mapViewCreate',
               tableId,
             },
-            form,
+            {
+              ...commonFields,
+              fk_geo_data_col_id: form.fk_geo_data_col_id,
+            },
           )
           break
         case ViewTypes.CALENDAR:
@@ -488,7 +505,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
               tableId,
             },
             {
-              ...form,
+              ...commonFields,
+              fk_cover_image_col_id: form.fk_cover_image_col_id,
               calendar_range: form.calendar_range.map((range) => ({
                 fk_from_column_id: range.fk_from_column_id,
                 fk_to_column_id: range.fk_to_column_id,
@@ -504,7 +522,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'listViewCreate',
               tableId,
             },
-            form,
+            commonFields,
           )
           break
         case ViewTypes.TIMELINE:
@@ -516,7 +534,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
               tableId,
             },
             {
-              ...form,
+              ...commonFields,
+              fk_cover_image_col_id: form.fk_cover_image_col_id,
               timeline_range: form.timeline_range.map((range) => ({
                 fk_from_column_id: range.fk_from_column_id,
                 fk_to_column_id: range.fk_to_column_id,

@@ -28,6 +28,8 @@ export const bExtension = token('extension');
 export const bViewSection = token('viewSection');
 export const bRecordTemplate = token('recordTemplate');
 export const bDateDependency = token('dateDependency');
+export const bDocument = token('document');
+export const bRlsPolicy = token('rlsPolicy');
 
 import type { DescCtx, DescFn } from 'src/command-registry/types';
 export type { DescCtx, DescFn };
@@ -104,6 +106,108 @@ export const recordTemplateActions = buildActions(
   'record template',
 );
 
+export const recordActions = {
+  insert: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Insert record in ${bTable(parentEntityTitle)}`
+      : `Insert record`) as DescFn,
+  insertUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo record insert in ${bTable(parentEntityTitle)}`
+      : `Undo record insert`) as DescFn,
+  bulkInsert: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk insert records in ${bTable(parentEntityTitle)}`
+      : `Bulk insert records`) as DescFn,
+  bulkInsertUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo bulk insert in ${bTable(parentEntityTitle)}`
+      : `Undo bulk insert`) as DescFn,
+  delete: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Delete record from ${bTable(parentEntityTitle)}`
+      : `Delete record`) as DescFn,
+  deleteUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo record delete in ${bTable(parentEntityTitle)}`
+      : `Undo record delete`) as DescFn,
+  update: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Update record in ${bTable(parentEntityTitle)}`
+      : `Update record`) as DescFn,
+  updateUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo record update in ${bTable(parentEntityTitle)}`
+      : `Undo record update`) as DescFn,
+  bulkUpdate: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk update records in ${bTable(parentEntityTitle)}`
+      : `Bulk update records`) as DescFn,
+  bulkUpdateUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo bulk update in ${bTable(parentEntityTitle)}`
+      : `Undo bulk update`) as DescFn,
+  bulkDelete: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk delete records from ${bTable(parentEntityTitle)}`
+      : `Bulk delete records`) as DescFn,
+  bulkDeleteUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo bulk delete in ${bTable(parentEntityTitle)}`
+      : `Undo bulk delete`) as DescFn,
+  bulkUpsert: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk upsert records in ${bTable(parentEntityTitle)}`
+      : `Bulk upsert records`) as DescFn,
+  bulkUpsertUndo: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Undo bulk upsert in ${bTable(parentEntityTitle)}`
+      : `Undo bulk upsert`) as DescFn,
+  linkAdd: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Add link in ${bTable(parentEntityTitle)}`
+      : `Add link`) as DescFn,
+  linkRemove: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Remove link in ${bTable(parentEntityTitle)}`
+      : `Remove link`) as DescFn,
+  move: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Reorder record in ${bTable(parentEntityTitle)}`
+      : `Reorder record`) as DescFn,
+  linkSwap: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Update links in ${bTable(parentEntityTitle)}`
+      : `Update links`) as DescFn,
+  linkSwapBulk: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk update links in ${bTable(parentEntityTitle)}`
+      : `Bulk update links`) as DescFn,
+  linkByDisplay: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Bulk link by display value in ${bTable(parentEntityTitle)}`
+      : `Bulk link by display value`) as DescFn,
+};
+
+export const smartTextActions = {
+  update: (({ parentEntityTitle, entityTitle }) =>
+    entityTitle
+      ? parentEntityTitle
+        ? `Update ${bField(entityTitle)} in ${bTable(parentEntityTitle)}`
+        : `Update ${bField(entityTitle)}`
+      : parentEntityTitle
+      ? `Update rich text cell in ${bTable(parentEntityTitle)}`
+      : `Update rich text cell`) as DescFn,
+  updateUndo: (({ parentEntityTitle, entityTitle }) =>
+    entityTitle
+      ? parentEntityTitle
+        ? `Undo ${bField(entityTitle)} update in ${bTable(parentEntityTitle)}`
+        : `Undo ${bField(entityTitle)} update`
+      : parentEntityTitle
+      ? `Undo rich text cell update in ${bTable(parentEntityTitle)}`
+      : `Undo rich text cell update`) as DescFn,
+};
+
 /**
  * Nested-under-view action (filters, sorts, row-color conditions).
  * The entity has:
@@ -155,6 +259,21 @@ export const rowColorConditionActions = {
   delete: nestedUnderView('Delete', 'row color filter', 'on'),
 };
 
+export const rowColoringActions = {
+  selectSet: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Set row coloring on ${bView(parentEntityTitle)}`
+      : `Set row coloring`) as DescFn,
+  remove: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Remove row coloring from ${bView(parentEntityTitle)}`
+      : `Remove row coloring`) as DescFn,
+  restore: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Restore row coloring on ${bView(parentEntityTitle)}`
+      : `Restore row coloring`) as DescFn,
+};
+
 export const dateDependencyActions = {
   edit: (({ parentEntityTitle }) =>
     parentEntityTitle
@@ -173,4 +292,71 @@ export const viewColumnActions = {
     if (extra?.tableTitle) parts.push(`in ${bTable(extra.tableTitle)}`);
     return parts.join(' ');
   }) as DescFn,
+};
+
+// Pick the right entity sentinel for permission descriptions based on the
+// `entity` discriminator stashed in `extra` by the contract's resolveCtx.
+// Falls back to plain bold for unknown / missing entity.
+const bPermissionEntity = (
+  entity: string | undefined,
+  title: string | undefined,
+): string => {
+  if (entity === 'table') return bTable(title);
+  if (entity === 'field') return bField(title);
+  if (entity === 'document') return bDocument(title);
+  return b(title);
+};
+
+export const permissionActions = {
+  set: (({ entityTitle, extra }) =>
+    entityTitle
+      ? `Set permission on ${bPermissionEntity(extra?.entity, entityTitle)}`
+      : `Set permission`) as DescFn,
+  drop: (({ entityTitle, extra }) =>
+    entityTitle
+      ? `Reset permission on ${bPermissionEntity(extra?.entity, entityTitle)}`
+      : `Reset permission`) as DescFn,
+  bulkDrop: (() => `Reset permissions`) as DescFn,
+  bulkRestore: (() => `Restore permissions`) as DescFn,
+};
+
+export const rlsPolicyActions = {
+  add: (({ entityTitle, parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Add ${bRlsPolicy(entityTitle)} RLS policy to ${bTable(
+          parentEntityTitle,
+        )}`
+      : `Add ${bRlsPolicy(entityTitle)} RLS policy`) as DescFn,
+  edit: (({ entityTitle, parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Edit ${bRlsPolicy(entityTitle)} RLS policy in ${bTable(
+          parentEntityTitle,
+        )}`
+      : `Edit ${bRlsPolicy(entityTitle)} RLS policy`) as DescFn,
+  rename: (({ entityTitle, parentEntityTitle, extra }) => {
+    const oldTitle = extra?.oldTitle as string | undefined;
+    const renamed =
+      oldTitle && oldTitle !== entityTitle
+        ? `Rename ${bRlsPolicy(oldTitle)} RLS policy to ${bRlsPolicy(
+            entityTitle,
+          )}`
+        : `Rename RLS policy to ${bRlsPolicy(entityTitle)}`;
+    return parentEntityTitle
+      ? `${renamed} in ${bTable(parentEntityTitle)}`
+      : renamed;
+  }) as DescFn,
+  delete: (({ entityTitle, parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Delete ${bRlsPolicy(entityTitle)} RLS policy from ${bTable(
+          parentEntityTitle,
+        )}`
+      : `Delete ${bRlsPolicy(entityTitle)} RLS policy`) as DescFn,
+  setSubjects: (({ entityTitle, parentEntityTitle }) => {
+    const base = `Update subjects on ${bRlsPolicy(entityTitle)} RLS policy`;
+    return parentEntityTitle ? `${base} in ${bTable(parentEntityTitle)}` : base;
+  }) as DescFn,
+  filterAdd: (({ parentEntityTitle }) =>
+    parentEntityTitle
+      ? `Add filter on ${bRlsPolicy(parentEntityTitle)} RLS policy`
+      : `Add filter on RLS policy`) as DescFn,
 };

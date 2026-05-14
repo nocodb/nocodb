@@ -6,11 +6,15 @@ import {
   type NcRequest,
 } from 'nocodb-sdk';
 import { AttachmentUrlUploadPreparator } from './attachment-url-upload-preparator';
+import type { Knex } from 'knex';
 import type { Column } from 'src/models';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
+import type { DisplacedRecord } from '~/command-registry/types';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import getAst from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
+import { captureForTrace } from '~/decorators/trace-command.decorator';
+import { isReplay } from '~/helpers/replayScope';
 
 export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
   const single = async (
@@ -200,9 +204,18 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       const insertDatas = raw ? datas : [];
       const postInsertOpsMap: Record<
         number,
-        ((rowId: any) => Promise<string>)[]
+        ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
       > = {};
-      let preInsertOps: (() => Promise<string>)[] = [];
+      const preInsertOps: ((
+        trx?: Knex | Knex.Transaction,
+      ) => Promise<string>)[] = [];
+      // Accumulator for displacement capture across the row loop. The
+      // capture-closures in `preInsertOps` push into their own
+      // `operations.displacedRecords` reference when `runOps` fires; we
+      // keep those references here and drain them post-runOps so the
+      // trace decorator sees the union across every row.
+      const displacedRecords: DisplacedRecord[] = [];
+      const displacedRecordRefs: DisplacedRecord[][] = [];
       let aiPkCol: Column;
       let agPkCol: Column;
       let columns: Column[];
@@ -240,7 +253,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             });
 
             postInsertOpsMap[index] = operations.postInsertOps;
-            preInsertOps = operations.preInsertOps;
+            preInsertOps.push(...operations.preInsertOps);
+            // Keep the array reference — closures inside preInsertOps
+            // push into it when `runOps` fires below. Reading `.length`
+            // here would be 0 (closures haven't run yet).
+            displacedRecordRefs.push(operations.displacedRecords);
           }
           if (attachmentCols.length > 0) {
             const attachmentOperations =
@@ -256,10 +273,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
               ...(postInsertOpsMap[index] ?? []),
               ...(attachmentOperations.postInsertOps ?? []),
             ];
-            preInsertOps = [].concat(
-              ...(preInsertOps ?? []),
-              ...(attachmentOperations.preInsertOps ?? []),
-            );
+            preInsertOps.push(...(attachmentOperations.preInsertOps ?? []));
           }
 
           insertDatas.push(insertObj);
@@ -308,9 +322,26 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       }
 
       await baseModel.runOps(
-        preInsertOps.map((f) => f()),
+        preInsertOps.map((f) => f(trx)),
         trx,
       );
+
+      // Drain each row's `operations.displacedRecords` reference now that
+      // the capture-closures in preInsertOps have populated them. Spreading
+      // these any earlier (e.g. inside the row loop) would see empty arrays
+      // because the closures hadn't fired yet.
+      for (const ref of displacedRecordRefs) {
+        if (ref?.length) displacedRecords.push(...ref);
+      }
+
+      // Deposit displacement capture for the trace decorator. The
+      // capture-ops in preInsertOps populated each row's array during
+      // Promise.all (parallel SELECTs), then runOps walked the mutating
+      // query strings serially — so reads precede writes.
+      // Skipped under replay (replay reads from meta.extra).
+      if (displacedRecords.length > 0 && !isReplay()) {
+        captureForTrace('displacedRecords', displacedRecords);
+      }
 
       let responses;
 
@@ -377,7 +408,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           });
 
           await baseModel.runOps(
-            (postInsertOpsMap[i] ?? []).map((f) => f(rowId)),
+            (postInsertOpsMap[i] ?? []).map((f) => f(rowId, trx)),
             trx,
           );
         }

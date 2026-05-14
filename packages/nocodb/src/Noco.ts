@@ -18,6 +18,7 @@ import type { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import type { AuditService } from '~/meta/audit.service';
 import type { ChatMessagesService } from '~/meta/chat-messages.service';
 import type { DocsContentService } from '~/meta/docs-content.service';
+import type { OperationLogsService } from '~/meta/operation-logs.service';
 import type { AppSettings } from '~/interface/AppSettings';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
@@ -57,6 +58,7 @@ export default class Noco {
   public static _ncAudit: any;
   public static _ncChatMessages: any;
   public static _ncDocsContent: any;
+  public static _ncOperationLogs: any;
   public static appHooksService: AppHooksService;
   public readonly metaMgr: any;
   public readonly metaMgrv2: any;
@@ -122,6 +124,10 @@ export default class Noco {
     return this._ncDocsContent ?? this._ncMeta;
   }
 
+  public static get ncOperationLogs(): OperationLogsService {
+    return this._ncOperationLogs ?? this._ncMeta;
+  }
+
   public get ncMeta(): any {
     return Noco._ncMeta;
   }
@@ -132,6 +138,10 @@ export default class Noco {
 
   public get ncChatMessages(): ChatMessagesService {
     return Noco._ncChatMessages;
+  }
+
+  public get ncOperationLogs(): OperationLogsService {
+    return Noco._ncOperationLogs;
   }
 
   public static getConfig(): any {
@@ -317,6 +327,8 @@ export default class Noco {
   public static async prepareChatMessagesService() {}
 
   public static async prepareDocsContentService() {}
+
+  public static async prepareOperationLogsService() {}
 
   public static async getAppSettings(refresh = false): Promise<AppSettings> {
     // Force refresh or first load

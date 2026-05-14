@@ -14,8 +14,6 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { addUndo, defineModelScope } = useUndoRedo()
-
 const { isMobileMode, user, ncNavigateTo } = useGlobal()
 
 const { isSharedBase } = useBase()
@@ -180,35 +178,13 @@ const onChangeIcon = () => {
   })
 }
 
-async function onRenameWorkflow(workflow: WorkflowType, originalTitle?: string, undo = false) {
+async function onRenameWorkflow(workflow: WorkflowType) {
   if (!workflow?.id || !workflow?.base_id) return
   try {
     await updateWorkflow(workflow.base_id, workflow.id, {
       title: workflow.title,
       order: workflow.order,
     })
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (s: WorkflowType, title: string) => {
-            const tempTitle = s.title
-            s.title = title
-            onRenameWorkflow(s, tempTitle, true)
-          },
-          args: [workflow, workflow.title],
-        },
-        undo: {
-          fn: (s: WorkflowType, title: string) => {
-            const tempTitle = s.title
-            s.title = title
-            onRenameWorkflow(s, tempTitle, true)
-          },
-          args: [workflow, originalTitle],
-        },
-        scope: defineModelScope({ base_id: workflow.base_id }),
-      })
-    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

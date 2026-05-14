@@ -6,7 +6,7 @@ import type {
   MetaDependencyEventRequest,
   MetaEventHandler,
 } from '~/services/meta-dependency/types';
-import { ButtonColumn, Hook, View } from '~/models';
+import { ButtonColumn, Hook, Model, View } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import Noco from '~/Noco';
@@ -80,7 +80,13 @@ export class HookDeleteButtonRefDependencyHandler implements MetaEventHandler {
     }
 
     // Realtime: notify clients showing the table that button columns changed.
-    this.broadcastColumnUpdate(context, oldHook.fk_model_id).catch((e) =>
+    // Fire-and-forget — runs after handle() returns and the trx commits, so
+    // we use Noco.ncMeta (not the trx-scoped ncMeta).
+    this.broadcastColumnUpdate(
+      context,
+      oldHook.fk_model_id,
+      buttonCols.map((b: any) => b.fk_column_id),
+    ).catch((e) =>
       this.logger.error(
         `Failed to broadcast column_update for hook delete: ${e?.message}`,
         e?.stack,
@@ -91,22 +97,27 @@ export class HookDeleteButtonRefDependencyHandler implements MetaEventHandler {
   private async broadcastColumnUpdate(
     context: NcContext,
     fkModelId: string | undefined,
+    columnIds: string[],
   ): Promise<void> {
-    if (!fkModelId) return;
-    NocoSocket.broadcastEvent(
+    if (!fkModelId || !columnIds.length) return;
+
+    const model = await Model.getWithInfo(
       context,
-      {
+      { id: fkModelId },
+      Noco.ncMeta,
+    );
+    if (!model?.columns) return;
+
+    const columnIdSet = new Set(columnIds);
+    for (const column of model.columns) {
+      if (!columnIdSet.has(column.id!)) continue;
+      NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
         payload: {
           action: 'column_update',
-          payload: {
-            table: { id: fkModelId },
-            column: {},
-            skipDataReload: true,
-          },
+          payload: { table: model, column, skipDataReload: true },
         },
-      } as Parameters<typeof NocoSocket.broadcastEvent>[1],
-      context.socket_id,
-    );
+      } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
+    }
   }
 }

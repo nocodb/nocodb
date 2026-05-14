@@ -932,15 +932,28 @@ export const getFilterCount = (filters: FilterType[]) => {
 };
 export const deleteFilterWithSub = async (
   $api: Api<unknown>,
+  workspaceId: string,
+  baseId: string,
   filter: FilterType
 ) => {
   let result: string[] = [];
   if (filter.is_group && filter.children?.length > 0) {
     for (const child of filter.children) {
-      result = [...result, ...(await deleteFilterWithSub($api, child))];
+      result = [
+        ...result,
+        ...(await deleteFilterWithSub($api, workspaceId, baseId, child)),
+      ];
     }
   }
-  await $api.dbTableFilter.delete(filter.id);
+  await $api.internal.postOperation(
+    workspaceId,
+    baseId,
+    {
+      operation: 'filterDelete',
+      filterId: filter.id as string,
+    },
+    {}
+  );
   result.push(filter.id);
   return result;
 };

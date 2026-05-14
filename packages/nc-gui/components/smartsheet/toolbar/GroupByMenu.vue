@@ -40,8 +40,6 @@ const { $e } = useNuxtApp()
 
 const { isUserViewOwner, updateViewMeta } = useViewsStore()
 
-const { addUndo, defineViewScope } = useUndoRedo()
-
 const isRestrictedEditor = computed(() => !isPublic.value && (isLocked.value || !canSyncGroupBy.value))
 
 const isPersonalViewNonOwner = computed(() => view.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(view.value))
@@ -127,6 +125,15 @@ const open = ref(false)
 
 useMenuCloseOnEsc(open)
 
+// Set while saveGroupBy is in flight. Gates the realtime-sync watcher
+// below so it doesn't rebase `_groupBy.value` from `syncedGroupByEntries`
+// while we're mid-update — `updateGridViewColumn` mutates
+// `gridViewCols.value` (the computed's source) between the "turn new
+// column on" and "turn old column off" steps, and an unguarded resync
+// would re-insert the old column back into `_groupBy.value` so the
+// turn-off pass thinks it's still desired.
+const isSavingGroupBy = ref(false)
+
 const saveGroupBy = async () => {
   if (!view.value?.id) {
     message.error('View not found!!!')
@@ -134,6 +141,7 @@ const saveGroupBy = async () => {
   }
 
   if (canSyncGroupBy.value) {
+    isSavingGroupBy.value = true
     // Synced mode: persist to server via updateGridViewColumn
     try {
       for (const gby of _groupBy.value) {
@@ -155,8 +163,8 @@ const saveGroupBy = async () => {
         if (col && col.group_by) {
           await updateGridViewColumn(gby.fk_column_id, {
             group_by: false,
-            group_by_order: undefined,
-            group_by_sort: undefined,
+            group_by_order: 1,
+            group_by_sort: 'asc',
           })
         }
       }
@@ -166,6 +174,8 @@ const saveGroupBy = async () => {
       eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
     } catch (e) {
       message.error('There was an error while updating view!')
+    } finally {
+      isSavingGroupBy.value = false
     }
   } else {
     // Local mode: update localGroupBy ref
@@ -221,6 +231,13 @@ watch(open, () => {
   } else {
     showCreateGroupBy.value = false
   }
+})
+
+// For realtime sync when dropdown is open
+watch(syncedGroupByEntries, (next) => {
+  if (!open.value) return
+  if (isSavingGroupBy.value) return
+  _groupBy.value = [...next]
 })
 
 const smartSheetListener = async (event: SmartsheetStoreEvents, payload: any = {}) => {
@@ -290,18 +307,6 @@ const hideEmptyGroupsToggle = computed({
   get: () => hideEmptyGroups.value,
   set: async (val: boolean) => {
     isHideEmptyGroupsLoading.value = true
-
-    addUndo({
-      undo: {
-        fn: updateHideEmptyGroups,
-        args: [hideEmptyGroups.value],
-      },
-      redo: {
-        fn: updateHideEmptyGroups,
-        args: [val],
-      },
-      scope: defineViewScope({ view: view.value }),
-    })
 
     await updateHideEmptyGroups(val)
 

@@ -444,6 +444,8 @@ import NcShare2Icon from '~icons/nc-icons-v2/share-2.svg'
 import NcPlusIcon from '~icons/nc-icons-v2/plus.svg'
 import NcCheckIcon from '~icons/nc-icons-v2/check.svg'
 import NcRotateCcwIcon from '~icons/nc-icons-v2/rotate-ccw.svg'
+import NcUndoIcon from '~icons/nc-icons-v2/undo.svg'
+import NcRedoIcon from '~icons/nc-icons-v2/redo.svg'
 import NcHardDriveIcon from '~icons/nc-icons-v2/hard-drive.svg'
 import NcBluetoothIcon from '~icons/nc-icons-v2/bluetooth.svg'
 import NcPieChartIcon from '~icons/nc-icons-v2/pie-chart.svg'
@@ -1527,6 +1529,8 @@ export const iconMap = {
   'ncPlus': NcPlusIcon,
   'ncCheck': NcCheckIcon,
   'ncRotateCcw': NcRotateCcwIcon,
+  'ncUndo': NcUndoIcon,
+  'ncRedo': NcRedoIcon,
   'ncHardDrive': NcHardDriveIcon,
   'ncBluetooth': NcBluetoothIcon,
   'ncPieChart': NcPieChartIcon,

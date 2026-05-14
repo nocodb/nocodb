@@ -2,6 +2,7 @@ import { JobsMap as JobsMapCE } from 'src/modules/jobs/jobs-map.service';
 import { Injectable } from '@nestjs/common';
 import { AttachmentUrlUploadProcessor } from 'src/modules/jobs/jobs/attachment-url-upload/attachment-url-upload.processor';
 import { BaseTrashCleanUpProcessor } from '~/modules/jobs/jobs/base-trash-clean-up/base-trash-clean-up.processor';
+import { OperationCleanupProcessor } from '~/modules/jobs/jobs/operation-cleanup/operation-cleanup.processor';
 import { DataImportProcessor } from '~/modules/jobs/jobs/data-import/data-import.processor';
 import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
 import { AtImportProcessor } from '~/modules/jobs/jobs/at-import/at-import.processor';
@@ -66,6 +67,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly cloudDbMigrateProcessor: CloudDbMigrateProcessor,
     protected readonly attachmentUrlUploadProcessor: AttachmentUrlUploadProcessor,
     protected readonly baseTrashCleanUpProcessor: BaseTrashCleanUpProcessor,
+    protected readonly operationCleanupProcessor: OperationCleanupProcessor,
     protected readonly actionExecutionProcessor: ActionExecutionProcessor,
     protected readonly reseatSubscriptionProcessor: ReseatSubscriptionProcessor,
     protected readonly workflowProcessor: WorkflowProcessor,
@@ -201,6 +203,9 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.BaseTrashCleanUp]: {
         this: this.baseTrashCleanUpProcessor,
+      },
+      [JobTypes.OperationCleanup]: {
+        this: this.operationCleanupProcessor,
       },
       [JobTypes.SandboxMerge]: {
         this: this.sandboxMergeProcessor,

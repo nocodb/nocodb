@@ -2,8 +2,6 @@
 import { type ColumnType, type LinkToAnotherRecordType, type SortType, UITypesName } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isColumnInError, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
-import rfdc from 'rfdc'
-
 const props = defineProps<{
   // As we need to focus search box when the parent is opened
   isParentOpen: boolean
@@ -13,8 +11,6 @@ const props = defineProps<{
 const emits = defineEmits(['created'])
 
 const { isParentOpen } = toRefs(props)
-
-const clone = rfdc()
 
 const { t } = useI18n()
 
@@ -45,7 +41,7 @@ const levelTableColumns = computed(() => {
 
 const options = computed<ColumnType[]>(() =>
   (
-    clone(levelTableColumns.value)
+    deepClone(levelTableColumns.value)
       ?.filter((c: ColumnType) => {
         if (c.uidt === UITypes.Links) {
           return true

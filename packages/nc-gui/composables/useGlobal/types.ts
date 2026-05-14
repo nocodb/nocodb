@@ -27,6 +27,7 @@ export interface AppInfo {
   teleEnabled: boolean
   errorReportingEnabled: boolean
   auditEnabled: boolean
+  undoRedoEnabled: boolean
   type: string
   version: string
   ee?: boolean

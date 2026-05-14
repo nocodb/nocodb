@@ -386,10 +386,12 @@ export class ColumnDeleteTransitiveDependentsDependencyHandler
     affectedModelCtxMap: Map<string, NcContext>,
   ): Promise<void> {
     for (const [modelId, modelCtx] of affectedModelCtxMap) {
-      const model = await Model.get(modelCtx, modelId, false, Noco.ncMeta);
+      const model = await Model.getWithInfo(
+        modelCtx,
+        { id: modelId },
+        Noco.ncMeta,
+      );
       if (!model) continue;
-
-      await model.getColumns(modelCtx, Noco.ncMeta);
 
       NocoSocket.broadcastEvent(modelCtx, {
         event: EventType.META_EVENT,

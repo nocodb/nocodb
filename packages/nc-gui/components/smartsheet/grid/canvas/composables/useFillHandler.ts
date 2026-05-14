@@ -35,7 +35,6 @@ export function useFillHandler({
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType; onError?: (e: any) => void },
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   meta: Ref<TableType>
@@ -247,7 +246,6 @@ export function useFillHandler({
       rowsToPaste,
       cpCols.map((k) => k.title!),
       { onError },
-      undefined,
       groupPath,
     )
   }
@@ -585,7 +583,6 @@ export function useFillHandler({
                   rowsToPaste.concat(rowsToFill),
                   propsToPaste.concat(propsToFill),
                   { onError },
-                  undefined,
                   groupPath,
                 ).then(() => {
                   // Reset active cell, fill range, and fill mode after successful update
@@ -604,7 +601,7 @@ export function useFillHandler({
           }
 
           // If not in AI fill mode, perform a regular bulk update
-          bulkUpdateRows?.(rowsToPaste, propsToPaste, { onError }, undefined, groupPath)
+          bulkUpdateRows?.(rowsToPaste, propsToPaste, { onError }, groupPath)
 
           // Reset active cell, fill range, and fill mode after successful update
           activeCell.value.column = tempActiveCell.col

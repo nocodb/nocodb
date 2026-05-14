@@ -3,9 +3,9 @@ import { isLinksOrLTAR, isLinkV2, NcSDKErrorV2, ViewTypes } from 'nocodb-sdk';
 import { NcApiVersion } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
-import type { NcContext } from '~/interface/config';
 import type { Filter } from '~/models';
 import type LinkToAnotherRecordColumn from '../models/LinkToAnotherRecordColumn';
+import { NcContext } from '~/interface/config';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import getAst from '~/helpers/getAst';
@@ -14,6 +14,8 @@ import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class DatasService {
@@ -137,6 +139,7 @@ export class DatasService {
     return { count };
   }
 
+  @TraceCommand(OperationName.recordInsert)
   async dataInsert(
     context: NcContext,
     param: PathParams & {
@@ -170,6 +173,7 @@ export class DatasService {
     );
   }
 
+  @TraceCommand(OperationName.recordUpdate)
   async dataUpdate(
     context: NcContext,
     param: PathParams & {
@@ -195,9 +199,11 @@ export class DatasService {
       null,
       param.cookie,
       param.disableOptimization,
+      { typecast: (param.cookie?.query?.typecast ?? '') === 'true' },
     );
   }
 
+  @TraceCommand(OperationName.recordDelete)
   async dataDelete(
     context: NcContext,
     param: PathParams & { rowId: string; cookie: any },

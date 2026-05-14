@@ -91,6 +91,7 @@ export class UiPostOperations
     'filterCreate' as const,
     'filterUpdate' as const,
     'filterDelete' as const,
+    'filterBulkLogicalOpUpdate' as const,
     'sortCreate' as const,
     'sortUpdate' as const,
     'sortDelete' as const,
@@ -130,6 +131,7 @@ export class UiPostOperations
     'dataInsert' as const,
     'dataUpdate' as const,
     'dataDelete' as const,
+    'dataMove' as const,
     'bulkDataDeleteAll' as const,
     'commentRow' as const,
     'commentUpdate' as const,
@@ -176,7 +178,6 @@ export class UiPostOperations
       case 'tableDelete':
         return await this.tablesService.tableDelete(context, {
           tableId: req.query.tableId,
-          user: req.user,
           req,
           forceDeleteRelations: payload?.forceDeleteRelations,
         });
@@ -203,7 +204,6 @@ export class UiPostOperations
       case 'columnDelete':
         return await this.columnsService.columnDelete(context, {
           columnId: req.query.columnId,
-          user: req.user,
           req,
         });
       case 'columnSetAsPrimary':
@@ -212,12 +212,13 @@ export class UiPostOperations
           req,
         });
       case 'columnsBulk':
-        return await this.columnsService.columnBulk(
-          context,
-          req.query.tableId,
-          payload,
+        return await this.columnsService.columnsBulk(context, {
+          tableId: req.query.tableId,
+          hash: payload?.hash,
+          ops: payload?.ops,
+          visibility: payload?.visibility,
           req,
-        );
+        });
       case 'convertLinkToV2':
         return await this.columnsService.convertLinkToV2(context, {
           columnId: req.query.columnId,
@@ -227,13 +228,11 @@ export class UiPostOperations
         return await this.viewsService.viewUpdate(context, {
           viewId: req.query.viewId,
           view: payload,
-          user: req.user,
           req,
         });
       case 'viewDelete':
         return await this.viewsService.viewDelete(context, {
           viewId: req.query.viewId,
-          user: req.user,
           req,
         });
       case 'shareView':
@@ -260,12 +259,14 @@ export class UiPostOperations
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
           levelId: req.query.levelId,
+          req,
         });
       case 'hideAllColumns':
         return await this.viewsService.hideAllColumns(context, {
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
           levelId: req.query.levelId,
+          req,
         });
       case 'viewColumnUpdate':
         return await this.viewColumnsService.columnUpdate(context, {
@@ -287,44 +288,54 @@ export class UiPostOperations
           req,
         });
       case 'viewRowColorConditionAdd':
-        return await this.viewRowColorService.addRowColoringCondition({
-          context,
+        return await this.viewRowColorService.addRowColoringCondition(context, {
           fk_view_id: req.query.viewId,
-          color: payload.color,
-          is_set_as_background: payload.is_set_as_background,
-          nc_order: payload.nc_order,
-          type: payload.type,
-          fk_target_column_id: payload.fk_target_column_id,
+          condition: {
+            color: payload.color,
+            is_set_as_background: payload.is_set_as_background,
+            nc_order: payload.nc_order,
+            type: payload.type,
+            fk_target_column_id: payload.fk_target_column_id,
+          },
           filter: payload.filter,
+          req,
         });
       case 'viewRowColorConditionUpdate':
-        return await this.viewRowColorService.updateRowColoringCondition({
+        return await this.viewRowColorService.updateRowColoringCondition(
           context,
-          fk_view_id: req.query.viewId,
-          fk_row_coloring_conditions_id: req.query.rowColorConditionId,
-          color: payload.color,
-          is_set_as_background: payload.is_set_as_background,
-          nc_order: payload.nc_order,
-          type: payload.type,
-          fk_target_column_id: payload.fk_target_column_id,
-        });
+          {
+            fk_view_id: req.query.viewId,
+            fk_row_coloring_conditions_id: req.query.rowColorConditionId,
+            condition: {
+              color: payload.color,
+              is_set_as_background: payload.is_set_as_background,
+              nc_order: payload.nc_order,
+              type: payload.type,
+              fk_target_column_id: payload.fk_target_column_id,
+            },
+            req,
+          },
+        );
       case 'viewRowColorConditionDelete':
-        return await this.viewRowColorService.deleteRowColoringCondition({
+        return await this.viewRowColorService.deleteRowColoringCondition(
           context,
-          fk_view_id: req.query.viewId,
-          fk_row_coloring_conditions_id: req.query.rowColorConditionId,
-        });
+          {
+            fk_view_id: req.query.viewId,
+            fk_row_coloring_conditions_id: req.query.rowColorConditionId,
+            req,
+          },
+        );
       case 'viewRowColorSelectAdd':
-        return await this.viewRowColorService.setRowColoringSelect({
-          context,
+        return await this.viewRowColorService.setRowColoringSelect(context, {
           fk_view_id: req.query.viewId,
           fk_column_id: payload.fk_column_id,
           is_set_as_background: payload.is_set_as_background,
+          req,
         });
       case 'viewRowColorInfoDelete':
-        return await this.viewRowColorService.removeRowColorInfo({
-          context,
+        return await this.viewRowColorService.removeRowColorInfo(context, {
           fk_view_id: req.query.viewId,
+          req,
         });
       case 'filterCreate':
         return await this.filtersService.filterCreate(context, {
@@ -343,6 +354,11 @@ export class UiPostOperations
       case 'filterDelete':
         return await this.filtersService.filterDelete(context, {
           filterId: req.query.filterId,
+          req,
+        });
+      case 'filterBulkLogicalOpUpdate':
+        return await this.filtersService.filterBulkLogicalOpUpdate(context, {
+          filters: payload?.filters,
           req,
         });
       case 'sortCreate':
@@ -618,6 +634,14 @@ export class UiPostOperations
           cookie: req,
           viewId: req.query.viewId as string,
           body: payload,
+          user: req.user,
+        });
+      case 'dataMove':
+        return await this.dataTableService.dataMove(context, {
+          modelId: req.query.tableId as string,
+          rowId: req.query.rowId as string,
+          beforeRowId: req.query.before as string | undefined,
+          cookie: req,
           user: req.user,
         });
       case 'bulkDataDeleteAll':

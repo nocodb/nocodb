@@ -108,4 +108,30 @@ const listBase = (workspaceId?: string) => {
   return Base.list(workspaceId);
 };
 
-export { createProject, createSharedBase, createSakilaProject, listBase };
+const createV3Base = async (
+  context: any,
+  title: string,
+): Promise<{ id: string; fk_workspace_id?: string }> => {
+  const res = await request(context.app)
+    .post('/api/v1/db/meta/projects/')
+    .set('xc-auth', context.token)
+    .send({
+      title,
+      version: 3,
+      ...(process.env.EE ? { fk_workspace_id: context.fk_workspace_id } : {}),
+    });
+  if (res.status !== 200) {
+    throw new Error(
+      `createV3Base ${title}: ${JSON.stringify(res.body).slice(0, 400)}`,
+    );
+  }
+  return res.body;
+};
+
+export {
+  createProject,
+  createSharedBase,
+  createSakilaProject,
+  createV3Base,
+  listBase,
+};

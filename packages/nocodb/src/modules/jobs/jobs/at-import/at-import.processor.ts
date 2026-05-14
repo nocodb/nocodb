@@ -818,7 +818,6 @@ export class AtImportProcessor {
         await this.viewsService.viewUpdate(context, {
           viewId: view.list[0].id,
           view: { title: aTbl_grid.name },
-          user: syncDB.user,
           req,
         });
         recordPerfStats(_perfStart, 'dbView.update');
@@ -2591,8 +2590,8 @@ export class AtImportProcessor {
         for (const table of tables) {
           await this.tablesService.tableDelete(context, {
             tableId: table.id,
-            user: syncDB.user,
             forceDeleteRelations: true,
+            req,
           });
         }
       }
@@ -2805,8 +2804,8 @@ export class AtImportProcessor {
       for (const table of ncSchema.tables) {
         await this.tablesService.tableDelete(context, {
           tableId: table.id,
-          user: syncDB.user,
           forceDeleteRelations: true,
+          req,
         });
       }
       if (e.message) {

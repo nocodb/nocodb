@@ -497,7 +497,6 @@ export class SyncModuleService implements OnModuleInit {
               tableId: table.id,
               forceDeleteSyncs: true,
               skipTrash: true,
-              user: req.user,
               req,
             },
           );
@@ -839,7 +838,6 @@ export class SyncModuleService implements OnModuleInit {
                 tableId: model.id,
                 forceDeleteSyncs: true,
                 skipTrash: true,
-                user: req.user,
                 req,
               });
             }
@@ -929,7 +927,6 @@ export class SyncModuleService implements OnModuleInit {
                     {
                       columnId: existingColumn.id,
                       forceDeleteSystem: true,
-                      user: req.user,
                       req,
                     },
                   );
@@ -1140,7 +1137,6 @@ export class SyncModuleService implements OnModuleInit {
                 forceDeleteSyncs: true,
                 forceDeleteRelations: true,
                 skipTrash: true,
-                user: req.user,
                 req,
               },
             );

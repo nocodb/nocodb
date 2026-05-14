@@ -155,6 +155,13 @@ export function _wherePk(
   return where;
 }
 
+/** Split a composite-pk joined string (`"val1___val2"`) into the
+ *  per-column values, un-escaping `\_` → `_` to match the inverse of
+ *  `getCompositePkValue`. */
+export function splitCompositePkString(id: string): string[] {
+  return id.split('___').map((part) => part.replaceAll('\\_', '_'));
+}
+
 export function getCompositePkValue(
   primaryKeys: Column[],
   row,

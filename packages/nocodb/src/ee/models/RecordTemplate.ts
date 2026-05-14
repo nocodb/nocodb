@@ -9,6 +9,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class RecordTemplate {
   id?: string;
@@ -34,7 +35,6 @@ export default class RecordTemplate {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(template, [
-      'id',
       'base_id',
       'fk_workspace_id',
       'fk_model_id',
@@ -44,6 +44,11 @@ export default class RecordTemplate {
       'enabled',
       'created_by',
     ]);
+
+    // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
+    if (isReplay() && template.id) {
+      insertObj.id = template.id;
+    }
 
     if (!insertObj.id) {
       insertObj.id = await ncMeta.genNanoid(MetaTable.RECORD_TEMPLATES);

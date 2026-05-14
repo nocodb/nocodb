@@ -11,6 +11,7 @@ import type SqlClient from '~/db/sql-client/lib/SqlClient';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import type { MetaService } from '~/meta/meta.service';
 import type { Base, Column, Model, Source } from '~/models';
+import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 
 export interface ReusableParams {
   table?: Model;
@@ -88,11 +89,13 @@ export interface IColumnsService {
   columnDelete(
     context: NcContext,
     param: {
-      req?: any;
+      req: NcRequest;
       columnId: string;
-      user: UserType;
       forceDeleteSystem?: boolean;
+      skipLinkPlaceholder?: boolean;
+      skipTrash?: boolean;
       reuse?: ReusableParams;
+      columnWebhookManager?: ColumnWebhookManager;
     },
     ncMeta?: MetaService,
   ): Promise<Model>;

@@ -1,27 +1,31 @@
 import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import type {
+  CaptureKey,
   ChangelogCommandPayload,
   DescCtx,
   DescFn,
   OperationContract,
   ResolvedCtx,
   TraceCommandDep,
-} from './types';
-import { Sandbox, SandboxChangelog } from '~/models';
+} from '~/command-registry/types';
+import { getSandboxConfig, getUndoConfig } from '~/command-registry/types';
+import { getScopeAncestors } from '~/command-registry/scope';
+import { OperationLog, Sandbox, SandboxChangelog } from '~/models';
+import { getTraceCapture } from '~/decorators/trace-command.decorator';
+import { isReplay } from '~/helpers/replayScope';
+import { NC_DISABLE_UNDO_REDO } from '~/utils/nc-config/constants';
 
 const logger = new Logger('CommandRegistry');
 
 const NON_SERIALIZABLE_KEYS = new Set([
   'req',
+  'cookie',
   'ncMeta',
   'user',
   'reuse',
   'viewWebhookManager',
   'columnWebhookManager',
-  // Transient capture slot for side-effect IDs (e.g. LTAR junction model id).
-  // Populated during recording, read by `extraCommandMeta`, never replayed.
-  '_ltarCapture',
 ]);
 
 export function dotGet(obj: any, path: string): any {
@@ -30,31 +34,35 @@ export function dotGet(obj: any, path: string): any {
 }
 
 export function resolveField(
-  field: string | ((p: any, r: any) => string | undefined) | undefined,
-  param: any,
+  field:
+    | string
+    | ((params: any, result: any, resolved?: ResolvedCtx) => string | undefined)
+    | undefined,
+  params: any,
   result: any,
+  resolved?: ResolvedCtx,
 ): string | undefined {
   if (field == null) return undefined;
-  if (typeof field === 'function') return field(param, result);
-  return dotGet(result, field) ?? dotGet(param, field);
+  if (typeof field === 'function') return field(params, result, resolved);
+  return dotGet(result, field) ?? dotGet(params, field);
 }
 
-export function extractReplayableParams(param: any): Record<string, any> {
-  if (!param || typeof param !== 'object') return {};
+export function extractReplayableParams(params: any): Record<string, any> {
+  if (!params || typeof params !== 'object') return {};
   const out: Record<string, any> = {};
-  for (const [k, v] of Object.entries(param)) {
+  for (const [k, v] of Object.entries(params)) {
     if (!NON_SERIALIZABLE_KEYS.has(k)) out[k] = v;
   }
   return out;
 }
 
 export function safeExtractDeps(
-  fn: (p: any, r: any) => TraceCommandDep[],
-  param: any,
+  fn: (params: any, result: any) => TraceCommandDep[],
+  params: any,
   result: any,
 ): TraceCommandDep[] {
   try {
-    const d = fn(param, result) || [];
+    const d = fn(params, result) || [];
     return d.filter((x) => x && x.id && x.entity);
   } catch (e: any) {
     logger.warn(`deps extraction failed: ${e.message}`);
@@ -64,11 +72,11 @@ export function safeExtractDeps(
 
 function resolveDescription(
   description: string | DescFn | undefined,
-  ctx: DescCtx,
+  context: DescCtx,
   fallback: string,
 ): string {
   if (!description) return fallback;
-  if (typeof description === 'function') return description(ctx);
+  if (typeof description === 'function') return description(context);
   return description;
 }
 
@@ -82,18 +90,27 @@ interface EntityInfo {
 
 function resolveEntityInfo(
   contract: OperationContract,
-  param: any,
+  params: any,
   result: any,
   resolvedCtx: ResolvedCtx | undefined,
 ): EntityInfo {
-  const entityId = resolveField(contract.entityId ?? 'id', param, result);
+  const entry = contract.entry;
+  const entityId = resolveField(
+    entry?.entity_id ?? 'id',
+    params,
+    result,
+    resolvedCtx,
+  );
   const entityTitle =
-    resolveField(contract.entityTitle, param, result) ??
+    resolveField(entry?.entity_title, params, result, resolvedCtx) ??
     resolvedCtx?.entityTitle;
-  const parentEntityId = resolveField(contract.parentId, param, result);
-  const parentEntityTitle =
-    resolveField(contract.parentTitle, param, result) ??
-    resolvedCtx?.parentEntityTitle;
+  const parentEntityId = resolveField(
+    entry?.parent_id,
+    params,
+    result,
+    resolvedCtx,
+  );
+  const parentEntityTitle = resolvedCtx?.parentEntityTitle;
 
   const descCtx: DescCtx = {
     entityTitle,
@@ -107,54 +124,163 @@ function resolveEntityInfo(
     entityTitle,
     parentEntityId,
     parentEntityTitle,
-    description: resolveDescription(
-      contract.description,
-      descCtx,
-      contract.name,
-    ),
+    description: resolveDescription(entry?.description, descCtx, contract.name),
   };
 }
 
 /**
- * Validate params + extras, resolve metadata, insert changelog row.
- * Throws on schema-validation failure (strict mode).
+ * Two independent destinations:
+ *  - `nc_sandbox_changelog` — sandbox → production replay (when called on a
+ *    sandbox base).
+ *  - `nc_operation_logs`    — per-tab undo/redo (when contract has
+ *    `undo.inverse` AND the request carries a tab id).
+ *
+ * Replay (`isReplay()` true) skips the operation log to avoid the
+ * inverse-as-forward stack-fight. Throws on schema validation failure.
+ *
+ * Returns `{ persisted }`. `persisted=false` means neither destination
+ * accepted the row (replay path, missing context, or — most importantly
+ * for side-effect rollback — no sandbox AND no tab id, so there is
+ * nowhere to record). The decorator uses this to fire a contract's
+ * registered `FailureCleanupFn` so backups/junctions captured pre-call
+ * don't leak.
  */
 export async function recordCommand(
   context: NcContext,
   contract: OperationContract,
-  param: any,
+  params: any,
   result: any,
   resolvedCtx: ResolvedCtx | undefined,
-): Promise<void> {
-  if (!context?.base_id) return;
+): Promise<{ persisted: boolean }> {
+  if (!context?.base_id) return { persisted: false };
 
-  const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
-  if (!sandbox) return;
+  const requestObj = params?.req ?? params?.cookie;
+  const userId = requestObj?.user?.id || params?.user?.id;
+  if (!userId) return { persisted: false };
 
-  const userId = param?.req?.user?.id || param?.user?.id;
-  if (!userId) return;
+  // Per-section opt-out: `undo: false` / `sandbox: false` on the contract
+  // mean "explicitly do not record this destination."
+  const undoConfig = getUndoConfig(contract);
 
-  const replayableParams = extractReplayableParams(param);
+  // Skip the deep zod parse + entity-info resolve when neither destination
+  // will write — matters for API-token / job traffic without `x-nc-tab-id`.
+  const isUndoableCandidate =
+    !NC_DISABLE_UNDO_REDO &&
+    !!undoConfig?.inverse &&
+    !isReplay() &&
+    !!requestObj?.ncTabId;
 
-  // STRICT — throws on validation failure
+  const sandbox =
+    contract.sandbox === false
+      ? null
+      : await Sandbox.getBySandboxBaseId(context.base_id);
+  if (!sandbox && !isUndoableCandidate) return { persisted: false };
+
+  const replayableParams = extractReplayableParams(params);
+
   const validatedParams = contract.schema.parse(replayableParams);
 
-  const extraRaw = contract.extraCommandMeta
-    ? contract.extraCommandMeta(param, result)
-    : undefined;
+  let extraRaw: Record<string, unknown> | undefined;
+  // Macros auto-include `macroTranscript` so contract authors don't
+  // have to remember to add it to `sandbox.capture`. The decorator
+  // depositted the transcript via captureForTrace just before this call.
+  const explicitCaptureKeys = contract.capture ?? [];
+  const captureKeys: ReadonlyArray<CaptureKey> = contract.macro
+    ? Array.from(
+        new Set<CaptureKey>([...explicitCaptureKeys, 'macroTranscript']),
+      )
+    : explicitCaptureKeys;
+  if (captureKeys.length) {
+    const captured: Record<string, unknown> = {};
+    for (const key of captureKeys) {
+      const value = getTraceCapture(key);
+      if (value !== undefined) captured[key] = value;
+    }
+    if (Object.keys(captured).length > 0) extraRaw = captured;
+  }
+  const captureSchema = contract.capture_schema;
   const extra =
-    contract.extraSchema && extraRaw
-      ? contract.extraSchema.parse(extraRaw)
-      : extraRaw;
+    captureSchema && extraRaw ? captureSchema.parse(extraRaw) : extraRaw;
 
-  const info = resolveEntityInfo(contract, param, result, resolvedCtx);
-  const deps = contract.deps
-    ? safeExtractDeps(contract.deps, param, result)
+  const info = resolveEntityInfo(contract, params, result, resolvedCtx);
+
+  const opLabel = `${contract.name}@${contract.version ?? 1}`;
+
+  const [sandboxOutcome, undoOutcome] = await Promise.allSettled([
+    sandbox
+      ? insertSandboxChangelog(
+          context,
+          contract,
+          sandbox,
+          params,
+          result,
+          info,
+          validatedParams,
+          extra,
+          userId,
+        )
+      : Promise.resolve(undefined),
+    isUndoableCandidate
+      ? maybeRecordUndoEntry(
+          context,
+          contract,
+          params,
+          result,
+          resolvedCtx,
+          info,
+          validatedParams,
+          extra,
+          userId,
+        )
+      : Promise.resolve(false),
+  ]);
+
+  let sandboxPersisted = false;
+  if (sandbox) {
+    if (sandboxOutcome.status === 'fulfilled') {
+      sandboxPersisted = true;
+    } else {
+      logger.error(
+        `sandbox changelog ${opLabel} failed: ${sandboxOutcome.reason?.message}`,
+        sandboxOutcome.reason?.stack,
+      );
+    }
+  }
+
+  let undoPersisted = false;
+  if (isUndoableCandidate) {
+    if (undoOutcome.status === 'fulfilled') {
+      undoPersisted = undoOutcome.value === true;
+    } else {
+      logger.error(
+        `undo entry ${opLabel} failed: ${undoOutcome.reason?.message}`,
+        undoOutcome.reason?.stack,
+      );
+    }
+  }
+
+  return { persisted: sandboxPersisted || undoPersisted };
+}
+
+async function insertSandboxChangelog(
+  context: NcContext,
+  contract: OperationContract,
+  sandbox: Sandbox,
+  params: any,
+  result: any,
+  info: EntityInfo,
+  validatedParams: unknown,
+  extra: Record<string, unknown> | undefined,
+  userId: string,
+): Promise<void> {
+  const dependenciesFn = getSandboxConfig(contract)?.dependencies;
+  const deps = dependenciesFn
+    ? safeExtractDeps(dependenciesFn, params, result)
     : [];
 
   const command: ChangelogCommandPayload = {
     name: contract.name,
-    version: contract.version,
+    version: contract.version ?? 1,
     params: validatedParams,
     ...(extra ? { extra } : {}),
   };
@@ -175,4 +301,72 @@ export async function recordCommand(
       ...(deps.length ? { deps } : {}),
     }),
   });
+}
+
+async function maybeRecordUndoEntry(
+  context: NcContext,
+  contract: OperationContract,
+  params: any,
+  result: any,
+  resolvedCtx: ResolvedCtx | undefined,
+  info: EntityInfo,
+  validatedParams: unknown,
+  extra: Record<string, unknown> | undefined,
+  userId: string,
+): Promise<boolean> {
+  const undoConfig = getUndoConfig(contract);
+  if (!undoConfig?.inverse) return false;
+
+  // Replay would double-record (original user mutation already wrote the row).
+  if (isReplay()) return false;
+
+  const tabId = (params?.req ?? params?.cookie)?.ncTabId;
+  if (!tabId) return false;
+
+  let inverse: Awaited<ReturnType<typeof undoConfig.inverse>>;
+  try {
+    inverse = await undoConfig.inverse(context, params, result, resolvedCtx);
+  } catch (e: any) {
+    logger.warn(
+      `undo.inverse ${contract.name}@${contract.version ?? 1}: ${e?.message}`,
+    );
+    return false;
+  }
+  if (!inverse) return false;
+
+  const scopeRef = undoConfig.scope(
+    validatedParams,
+    result,
+    resolvedCtx,
+    context,
+  );
+
+  // Discard across the scope chain — undo lookup walks leaf → ancestors,
+  // so ancestor-scope undone rows would otherwise survive a new leaf-scope
+  // op and get resurrected by a later redo. Siblings stay untouched.
+  const ancestorScopes = await getScopeAncestors(context, scopeRef);
+  await OperationLog.discardUndoneForTab(context, {
+    fk_user_id: userId,
+    tab_id: tabId,
+    scopes: [scopeRef, ...ancestorScopes],
+  });
+
+  await OperationLog.insert(context, {
+    fk_user_id: userId,
+    tab_id: tabId,
+    forward_op: contract.name,
+    forward_op_version: contract.version ?? 1,
+    forward_params: validatedParams,
+    inverse_op: inverse.name,
+    inverse_op_version: inverse.version ?? 1,
+    inverse_params: inverse.params,
+    entity_type: contract.entity,
+    entity_id: info.entityId,
+    entity_title: info.entityTitle?.substring(0, 255),
+    description: info.description?.substring(0, 500),
+    scope_type: scopeRef.type,
+    scope_id: scopeRef.id,
+    ...(extra ? { meta: extra } : {}),
+  });
+  return true;
 }

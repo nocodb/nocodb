@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { pickFields } from 'nocodb-sdk'
 import type { ColumnType, DateDependencyReqType, DateDependencyType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { PlanFeatureTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 
@@ -168,11 +169,15 @@ async function save() {
   isSaving.value = true
   saveError.value = ''
   try {
+    const body = {
+      ...pickFields(form, Object.keys(defaultForm) as (keyof DateDependencyReqType)[]),
+      dependency_buffer_days: Number(form.dependency_buffer_days) || 0,
+    }
     const result = await $api.internal.postOperation(
       activeWorkspaceId.value,
       activeProjectId.value,
       { operation: 'updateDateDependency', fk_model_id: props.tableId },
-      { ...form, dependency_buffer_days: Number(form.dependency_buffer_days) || 0 },
+      body,
     )
     if (tableMeta.value) {
       tableMeta.value.date_dependency = { ...rule.value, ...form, ...result }
@@ -186,16 +191,25 @@ async function save() {
   }
 }
 
+function syncFormFromRule() {
+  const initial = rule.value ? { ...defaultForm, ...rule.value } : { ...defaultForm }
+  initial.dependency_buffer_days = Number(initial.dependency_buffer_days) || 0
+  Object.assign(form, initial)
+  savedForm.value = { ...initial }
+}
+
 watch(visible, async (val) => {
   if (val) {
     await loadTableMeta(props.tableId)
-    const initial = rule.value ? { ...defaultForm, ...rule.value } : { ...defaultForm }
-    initial.dependency_buffer_days = Number(initial.dependency_buffer_days) || 0
-
-    Object.assign(form, initial)
-    savedForm.value = { ...initial }
+    syncFormFromRule()
     saveError.value = ''
   }
+})
+
+watch(rule, () => {
+  if (!visible.value) return
+  if (hasChanges.value) return
+  syncFormFromRule()
 })
 </script>
 

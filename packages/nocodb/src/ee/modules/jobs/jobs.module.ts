@@ -33,6 +33,8 @@ import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.pr
 import { NocoAiModule } from '~/integrations/ai/module/ai.module';
 import { JobsController } from '~/modules/jobs/jobs.controller';
 import { BaseTrashCleanUpProcessor } from '~/modules/jobs/jobs/base-trash-clean-up/base-trash-clean-up.processor';
+import { OperationCleanupProcessor } from '~/modules/jobs/jobs/operation-cleanup/operation-cleanup.processor';
+import { ColumnDataBackupHandler } from '~/services/column-data-backup-handler.service';
 import { SandboxMergeProcessor } from '~/modules/jobs/jobs/sandbox-merge.processor';
 import { SandboxCommandReplayService } from '~/services/sandbox-command-replay.service';
 import { ManagedAppUpdateProcessor } from '~/modules/jobs/jobs/managed-app-update/managed-app-update.processor';
@@ -104,6 +106,8 @@ export const jobsModuleEeMetadata = {
     WorkflowDraftReminderProcessor,
     HookErrorNotificationProcessor,
     BaseTrashCleanUpProcessor,
+    OperationCleanupProcessor,
+    ColumnDataBackupHandler,
     SandboxMergeProcessor,
     SandboxCommandReplayService,
     ManagedAppUpdateProcessor,

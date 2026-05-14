@@ -41,8 +41,6 @@ const { allRecentViews } = storeToRefs(useViewsStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { addUndo, defineProjectScope } = useUndoRedo()
-
 const baseCreateDlg = ref(false)
 
 const starredProjectList = computed(() => basesList.value.filter((base) => base.starred && !base.is_sandbox))
@@ -106,7 +104,6 @@ async function handleTableRename(
   title: string,
   originalTitle: string,
   updateTitle: (title: string) => void,
-  undo = false,
   disableTitleDiffCheck?: boolean,
 ) {
   if (!table || !table.source_id) return
@@ -128,31 +125,12 @@ async function handleTableRename(
         tableId: table.id as string,
       },
       {
-        base_id: table.base_id,
         table_name: title,
         title,
       },
     )
 
     await loadProjectTables(table.base_id!, true)
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (table: TableType, t: string, ot: string, updateTitle: (title: string) => void) => {
-            handleTableRename(table, t, ot, updateTitle, true, true)
-          },
-          args: [table, title, originalTitle, updateTitle],
-        },
-        undo: {
-          fn: (table: TableType, t: string, ot: string, updateTitle: (title: string) => void) => {
-            handleTableRename(table, t, ot, updateTitle, true, true)
-          },
-          args: [table, originalTitle, title, updateTitle],
-        },
-        scope: defineProjectScope({ model: table }),
-      })
-    }
 
     await loadTables()
 

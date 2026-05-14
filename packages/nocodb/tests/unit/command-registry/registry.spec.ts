@@ -1,20 +1,24 @@
 import { expect } from 'chai';
 import { z } from 'zod';
-import { OperationRegistry } from '../../../src/ee/command-registry/registry';
+import { OperationRegistry } from '~/command-registry/registry';
 import type {
   OperationContract,
   CommandHandler,
-} from '../../../src/ee/command-registry/types';
-import { MetaTable } from '../../../src/utils/globals';
+} from '~/command-registry/types';
+import { MetaTable } from '~/utils/globals';
 
 describe('OperationRegistry', () => {
   // Tests use a fresh module import to avoid cross-test contamination.
   // ts-mocha re-imports per file, but the singleton persists. Each test
   // resets via the (private) clear() helper added below for tests only.
-  beforeEach(() => {
+  const reset = () => {
     (OperationRegistry as any).entries.clear();
     (OperationRegistry as any).frozen = false;
-  });
+  };
+  beforeEach(reset);
+  // See decorator.spec.ts — clean up so Nest bootstrap in later tests
+  // doesn't trip the duplicate-handler guard.
+  after(reset);
 
   const FooV1 = {
     name: 'foo',

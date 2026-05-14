@@ -50,17 +50,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { isMobileMode } = useGlobal()
 
-    const activeView = inject(ActiveViewInj, ref())
     const isForm = inject(IsFormInj, ref(false))
 
-    const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-
     const path = inject(GroupPathInj, ref([]))
-
-    // In canvas _reloadData will not work as we unmount editable component so on undo/redo we have to manually trigger view reload
-    const reloadViewDataTrigger = isEeUI ? createEventHook() : inject(ReloadViewDataHookInj, createEventHook())
-
-    const { addUndo, clone, defineViewScope } = useUndoRedo()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
@@ -780,7 +772,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const unlink = async (
       row: Record<string, any>,
       { metaValue = meta.value }: { metaValue?: TableType } = {},
-      undo = false,
       index: number, // Index is For Loading and Linked State of Row
     ) => {
       // For new rows, remove from local state
@@ -826,20 +817,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           encodeURIComponent(getRelatedTableRowId(row) as string),
         )
 
-        if (!undo) {
-          addUndo({
-            redo: {
-              fn: (row: Record<string, any>) => unlink(row, {}, true, index),
-              args: [clone(row)],
-            },
-            undo: {
-              // eslint-disable-next-line @typescript-eslint/no-use-before-define
-              fn: (row: Record<string, any>) => link(row, {}, true, index),
-              args: [clone(row)],
-            },
-            scope: defineViewScope({ view: activeView.value }),
-          })
-        }
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
         excludedLinkedState.value.set(index, false)
@@ -858,17 +835,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       _reloadData?.({ shouldShowLoading: false, path: path.value })
 
-      if (undo && isCanvasInjected) {
-        reloadViewDataTrigger.trigger({ shouldShowLoading: false })
-      }
-
       $e('a:links:unlink')
     }
 
     const link = async (
       row: Record<string, any>,
       { metaValue = meta.value }: { metaValue?: TableType } = {},
-      undo = false,
       index: number, // Index is For Loading and Linked State of Row
     ) => {
       // For new rows, store the link in local state — it will be persisted on save via nested insert
@@ -908,35 +880,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         )
         // await loadChildrenList()
 
-        if (!undo) {
-          let oldValue = null
-
-          // If it is bt/oo/V2 MO relation then we have to restore old value on undo
-          if (isBt(column.value) || isOo(column.value) || isBtLikeV2Junction(column.value)) {
-            oldValue = currentRow.value.row?.[column.value?.title]
-          }
-
-          addUndo({
-            redo: {
-              fn: (row: Record<string, any>) => {
-                link(row, {}, true, index)
-              },
-              args: [clone(row)],
-            },
-            undo: {
-              fn: (row: Record<string, any>, oldValue: Record<string, any> | null) => {
-                // Restore old value if present
-                if (oldValue) {
-                  link(oldValue, {}, true, index)
-                } else {
-                  unlink(row, {}, true, index)
-                }
-              },
-              args: [clone(row), clone(oldValue)],
-            },
-            scope: defineViewScope({ view: activeView.value }),
-          })
-        }
         isChildrenExcludedListLinked.value[index] = true
         isChildrenListLinked.value[index] = true
         excludedLinkedState.value.set(index, true)
@@ -961,10 +904,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
 
       _reloadData?.({ shouldShowLoading: false, path: path.value })
-
-      if (undo && isCanvasInjected) {
-        reloadViewDataTrigger.trigger({ shouldShowLoading: false })
-      }
 
       $e('a:links:link')
     }

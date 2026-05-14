@@ -8,11 +8,10 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
 
   const { activeTableId, activeTable } = storeToRefs(useTablesStore())
 
-  // Helper function to create composite key: baseId:tableId
-  const getSectionsKey = (baseId: string, tableId: string) => `${baseId}:${tableId}`
+  const sectionsByKey = ref<Map<string, ViewSectionType>>(new Map())
 
-  // State
-  const sectionsByTable = ref<Map<string, ViewSectionType[]>>(new Map())
+  /** Compose the storage key for a section. */
+  const composeKey = (baseId: string, sectionId: string) => `${baseId}:${sectionId}`
 
   /** Section ID that should be expanded on next render (set after move-to-section) */
   const pendingExpandSectionId = ref<string | null>(null)
@@ -25,20 +24,30 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     pendingExpandSectionId.value = null
   }
 
-  // Reverse index: sectionId -> table key for O(1) lookups
-  const sectionTableIndex = ref<Map<string, string>>(new Map())
-
-  /**
-   * Get sections for a specific table
-   */
+  /** Get sections for a specific table, sorted by `order`. */
   const getSections = (baseId: string, tableId: string): ViewSectionType[] => {
     if (!baseId || !tableId) {
       console.warn('[getSections] baseId and tableId are required')
       return []
     }
+    const out: ViewSectionType[] = []
+    for (const s of sectionsByKey.value.values()) {
+      if (s.base_id === baseId && s.fk_model_id === tableId) out.push(s)
+    }
+    return out.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  }
 
-    const key = getSectionsKey(baseId, tableId)
-    return sectionsByTable.value.get(key) ?? []
+  /** Has at least one section been loaded for this table? */
+  const hasSectionsForTable = (baseId: string, tableId: string) => {
+    for (const s of sectionsByKey.value.values()) {
+      if (s.base_id === baseId && s.fk_model_id === tableId) return true
+    }
+    return false
+  }
+
+  /** Lookup a single section by composite (baseId, sectionId). */
+  const getSection = (baseId: string, sectionId: string): ViewSectionType | undefined => {
+    return sectionsByKey.value.get(composeKey(baseId, sectionId))
   }
 
   const loadSections = async ({ tableId, baseId, force }: { tableId?: string; baseId?: string; force?: boolean } = {}) => {
@@ -50,10 +59,8 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
       return
     }
 
-    const key = getSectionsKey(effectiveBaseId, effectiveTableId)
-
-    if (!force && sectionsByTable.value.get(key)) {
-      return sectionsByTable.value.get(key)
+    if (!force && hasSectionsForTable(effectiveBaseId, effectiveTableId)) {
+      return getSections(effectiveBaseId, effectiveTableId)
     }
 
     try {
@@ -62,14 +69,17 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
       })
 
       if (response.data?.list) {
-        const sortedSections = (response.data.list as ViewSectionType[]).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-        sectionsByTable.value.set(key, sortedSections)
-
-        for (const s of sortedSections) {
-          if (s.id) sectionTableIndex.value.set(s.id, key)
+        const list = response.data.list as ViewSectionType[]
+        // Drop any prior entries for this table to keep the map authoritative.
+        for (const [key, s] of sectionsByKey.value) {
+          if (s.base_id === effectiveBaseId && s.fk_model_id === effectiveTableId) {
+            sectionsByKey.value.delete(key)
+          }
         }
-
-        return sortedSections
+        for (const s of list) {
+          if (s.id && s.base_id) sectionsByKey.value.set(composeKey(s.base_id, s.id), s)
+        }
+        return getSections(effectiveBaseId, effectiveTableId)
       }
 
       return []
@@ -95,14 +105,8 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
 
       const section = response.data as ViewSectionType
 
-      if (section && section.id) {
-        const key = getSectionsKey(baseId, tableId)
-        const currentSections = sectionsByTable.value.get(key) || []
-        const updatedSections = [...currentSections, section].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-        sectionsByTable.value.set(key, updatedSections)
-
-        sectionTableIndex.value.set(section.id, key)
-
+      if (section?.id && section.base_id) {
+        sectionsByKey.value.set(composeKey(section.base_id, section.id), section)
         return section
       }
 
@@ -114,16 +118,12 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     }
   }
 
-  const updateSection = async (sectionId: string, data: { title?: string; order?: number; meta?: Record<string, any> }) => {
-    if (!sectionId) return null
-
-    const tableKey = sectionTableIndex.value.get(sectionId)
-    if (!tableKey) {
-      console.error('[updateSection] Section not found in index:', sectionId)
-      return null
-    }
-
-    const [baseId] = tableKey.split(':')
+  const updateSection = async (
+    baseId: string,
+    sectionId: string,
+    data: { title?: string; order?: number; meta?: Record<string, any> },
+  ) => {
+    if (!baseId || !sectionId) return null
 
     try {
       const response = await $api.instance.post(
@@ -133,16 +133,8 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
 
       const updatedSection = response.data as ViewSectionType
 
-      if (updatedSection && updatedSection.id) {
-        const sections = sectionsByTable.value.get(tableKey)
-        if (sections) {
-          const index = sections.findIndex((s) => s.id === sectionId)
-          if (index !== -1) {
-            sections[index] = updatedSection
-            sectionsByTable.value.set(tableKey, [...sections])
-          }
-        }
-
+      if (updatedSection?.id && updatedSection.base_id) {
+        sectionsByKey.value.set(composeKey(updatedSection.base_id, updatedSection.id), updatedSection)
         return updatedSection
       }
 
@@ -154,30 +146,15 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     }
   }
 
-  const deleteSection = async (sectionId: string) => {
-    if (!sectionId) return false
-
-    const tableKey = sectionTableIndex.value.get(sectionId)
-    if (!tableKey) {
-      console.error('[deleteSection] Section not found in index:', sectionId)
-      return false
-    }
-
-    const [baseId] = tableKey.split(':')
+  const deleteSection = async (baseId: string, sectionId: string) => {
+    if (!baseId || !sectionId) return false
 
     try {
       await $api.instance.post(
         `/api/v2/internal/${activeWorkspaceId.value}/${baseId}?operation=viewSectionDelete&sectionId=${sectionId}`,
       )
 
-      const sections = sectionsByTable.value.get(tableKey)
-      if (sections) {
-        sectionsByTable.value.set(
-          tableKey,
-          sections.filter((s) => s.id !== sectionId),
-        )
-      }
-      sectionTableIndex.value.delete(sectionId)
+      sectionsByKey.value.delete(composeKey(baseId, sectionId))
 
       return true
     } catch (e: any) {
@@ -187,45 +164,8 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     }
   }
 
-  const reorderSection = async (sectionId: string, newOrder: number) => {
-    if (!sectionId) return null
-
-    const tableKey = sectionTableIndex.value.get(sectionId)
-    if (!tableKey) {
-      console.error('[reorderSection] Section not found in index:', sectionId)
-      return null
-    }
-
-    const [baseId] = tableKey.split(':')
-
-    try {
-      const response = await $api.instance.post(
-        `/api/v2/internal/${activeWorkspaceId.value}/${baseId}?operation=viewSectionUpdate&sectionId=${sectionId}`,
-        { order: newOrder },
-      )
-
-      const updatedSection = response.data as ViewSectionType
-
-      if (updatedSection && updatedSection.id) {
-        const sections = sectionsByTable.value.get(tableKey)
-        if (sections) {
-          const index = sections.findIndex((s) => s.id === sectionId)
-          if (index !== -1) {
-            sections[index] = updatedSection
-            sections.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-            sectionsByTable.value.set(tableKey, [...sections])
-          }
-        }
-
-        return updatedSection
-      }
-
-      return null
-    } catch (e: any) {
-      console.error('[reorderSection]', e)
-      message.error(await extractSdkResponseErrorMsgv2(e as any))
-      return null
-    }
+  const reorderSection = async (baseId: string, sectionId: string, newOrder: number) => {
+    return updateSection(baseId, sectionId, { order: newOrder })
   }
 
   /** Generate a unique default section title like "View section", "View section 2", etc. */
@@ -266,13 +206,38 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     return section
   }
 
+  /**
+   * Realtime apply hooks — called from `useRealtime` when the backend
+   * broadcasts section events. Keeping these as named methods (rather
+   * than direct map mutations) means the single source of truth stays
+   * consistent across every write path.
+   */
+  const applySectionCreated = (section: ViewSectionType) => {
+    if (!section?.id || !section.base_id) return
+    sectionsByKey.value.set(composeKey(section.base_id, section.id), section)
+  }
+
+  const applySectionUpdated = (section: ViewSectionType) => {
+    if (!section?.id || !section.base_id) return
+    const key = composeKey(section.base_id, section.id)
+    const existing = sectionsByKey.value.get(key)
+    sectionsByKey.value.set(key, existing ? { ...existing, ...section } : section)
+  }
+
+  const applySectionDeleted = (baseId: string, sectionId: string) => {
+    if (!baseId || !sectionId) return
+    sectionsByKey.value.delete(composeKey(baseId, sectionId))
+  }
+
   return {
     // State
-    sectionsByTable,
+    sectionsByKey,
     pendingExpandSectionId,
 
     // Getters
     getSections,
+    getSection,
+    hasSectionsForTable,
 
     // Actions
     loadSections,
@@ -284,6 +249,11 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     getNextSectionTitle,
     requestSectionExpand,
     clearPendingExpand,
+
+    // Realtime apply hooks
+    applySectionCreated,
+    applySectionUpdated,
+    applySectionDeleted,
   }
 })
 

@@ -17,7 +17,6 @@ const toggleWorkflow = async () => {
   }
   const newState = !activeWorkflow.value.enabled
   await updateWorkflow(activeWorkflow.value.base_id, activeWorkflow.value?.id, {
-    ...activeWorkflow.value,
     enabled: newState,
   })
 

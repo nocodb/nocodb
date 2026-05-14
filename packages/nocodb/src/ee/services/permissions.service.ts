@@ -13,7 +13,7 @@ import {
   ProjectRoles,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
 import { Team } from '~/models';
 import Workspace from '~/ee/models/Workspace';
@@ -25,6 +25,20 @@ import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
+
+type PermissionWriteFields = Pick<
+  Permission,
+  | 'entity'
+  | 'entity_id'
+  | 'permission'
+  | 'granted_type'
+  | 'granted_role'
+  | 'enforce_for_automation'
+  | 'enforce_for_form'
+  | 'subjects'
+>;
 @Injectable()
 export class PermissionsService {
   protected logger: Logger = new Logger(PermissionsService.name);
@@ -70,22 +84,14 @@ export class PermissionsService {
     }
   }
 
+  @TraceCommand(OperationName.permissionSet)
   async setPermission(
     context: NcContext,
-    permissionObj: Pick<
-      Permission,
-      | 'entity'
-      | 'entity_id'
-      | 'permission'
-      | 'granted_type'
-      | 'granted_role'
-      | 'enforce_for_automation'
-      | 'enforce_for_form'
-      | 'subjects'
-    >,
-    req: NcRequest,
+    param: PermissionWriteFields & { req: NcRequest },
   ) {
     await assertNotSandbox(context);
+
+    const { req, ...permissionObj } = param;
 
     const {
       entity,
@@ -384,13 +390,14 @@ export class PermissionsService {
     return permission;
   }
 
+  @TraceCommand(OperationName.permissionDrop)
   async dropPermission(
     context: NcContext,
-    permissionObj: Partial<Permission>,
-    req: NcRequest,
+    param: Partial<Permission> & { req: NcRequest },
   ) {
     await assertNotSandbox(context);
 
+    const { req, ...permissionObj } = param;
     const { entity, entity_id, permission: permission_key } = permissionObj;
 
     this.assertRoleForPermissionKey(context, permission_key, req);
@@ -483,12 +490,14 @@ export class PermissionsService {
     });
   }
 
+  @TraceCommand(OperationName.permissionBulkDrop)
   async bulkDropPermissions(
     context: NcContext,
-    permissionIds: string[],
-    req: NcRequest,
+    param: { permissionIds: string[]; req: NcRequest },
   ) {
     await assertNotSandbox(context);
+
+    const { permissionIds, req } = param;
 
     if (!permissionIds.length) return;
 

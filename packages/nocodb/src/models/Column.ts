@@ -45,6 +45,7 @@ import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import { NcCache } from '~/decorators/nc-cache.decorator';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
+import { getReplay, isReplay } from '~/helpers/replayScope';
 
 const selectColors = enumColors.light;
 
@@ -2102,14 +2103,14 @@ export default class Column<T = any> implements ColumnType {
     const columns = [];
 
     // add fk_model_id
-    const isReplay = !!context?.additionalContext?.is_replay;
-    const sandboxColumnIds: Record<string, string> | undefined = isReplay
-      ? context.additionalContext?.sandboxColumnIds
+    const inReplay = isReplay();
+    const sandboxColumnIds = inReplay
+      ? getReplay('sandboxColumnIds')
       : undefined;
     for (const column of param.columns) {
       // pre-populate column meta to use while inserting colOptions
       const id =
-        (isReplay && column.id) ||
+        (inReplay && column.id) ||
         sandboxColumnIds?.[column.column_name] ||
         sandboxColumnIds?.[column.title] ||
         (await ncMeta.genNanoid(MetaTable.COLUMNS));

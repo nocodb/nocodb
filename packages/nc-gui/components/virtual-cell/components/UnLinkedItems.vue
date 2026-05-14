@@ -147,7 +147,7 @@ const linkRow = async (row: Record<string, any>, id: number) => {
 
     $e('a:links:link')
   } else {
-    await link(row, {}, false, id)
+    await link(row, {}, id)
   }
 }
 
@@ -158,7 +158,7 @@ const unlinkRow = async (row: Record<string, any>, id: number) => {
     saveRow!()
     $e('a:links:unlink')
   } else {
-    await unlink(row, {}, false, id)
+    await unlink(row, {}, id)
   }
 }
 

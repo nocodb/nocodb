@@ -639,8 +639,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
 
       formattedView.sorts = sorts?.length ? sorts : undefined;
 
-      const rowColor = await this.viewRowColorService.getByViewId({
-        context,
+      const rowColor = await this.viewRowColorService.getByViewId(context, {
         fk_view_id: view.id,
         ncMeta,
       });
@@ -1307,7 +1306,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       await this.viewsService.viewUpdate(context, {
         viewId,
         view: requestBody,
-        user: context.user,
         req,
         viewWebhookManager,
       });
@@ -1541,7 +1539,6 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
     const { req, viewId } = param;
     await this.viewsService.viewDelete(context, {
       viewId,
-      user: context.user,
       req,
     });
   }

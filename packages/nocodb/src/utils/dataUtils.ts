@@ -1,4 +1,5 @@
-import { ncIsUndefined } from 'nocodb-sdk';
+import { isLinksOrLTAR, ncIsUndefined } from 'nocodb-sdk';
+import type { ColumnType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import { MAX_CONCURRENT_TRANSFORMS } from '~/constants';
 
@@ -212,6 +213,45 @@ export async function reuseOrSave(
   const res = await get();
   params[tp] = res;
   return res;
+}
+
+/**
+ * For `recordUpdate` capture: narrow a full-row snapshot down to ONLY
+ * the keys touched by the update body, plus all pk titles (so the row
+ * can still be located on undo even when no non-pk field changed).
+ *
+ * Body keys may arrive as titles, column_names, or column ids — match
+ * any of the three. LTAR keys are skipped entirely; their pre-state
+ * lives in `displacedRecords` (junction rows + FK overwrites), not in
+ * `prev`. Including a stale link list under the column title would
+ * confuse the undo path's `dataUpdate` re-write.
+ */
+export function pickChangedFieldsForUpdatePrev(
+  prev: Record<string, any>,
+  body: Record<string, any>,
+  columns: ReadonlyArray<ColumnType>,
+  primaryKeys: ReadonlyArray<{ title?: string }>,
+): Record<string, any> {
+  const out: Record<string, any> = {};
+  for (const pk of primaryKeys) {
+    if (pk.title && prev[pk.title] !== undefined) {
+      out[pk.title] = prev[pk.title];
+    }
+  }
+  const byKey = new Map<string, ColumnType>();
+  for (const c of columns) {
+    if (c.title) byKey.set(c.title, c);
+    if (c.column_name) byKey.set(c.column_name, c);
+    if (c.id) byKey.set(c.id, c);
+  }
+  for (const k of Object.keys(body)) {
+    const col = byKey.get(k);
+    if (!col || !col.title) continue;
+    if (isLinksOrLTAR(col)) continue;
+    if (col.title in out) continue;
+    if (prev[col.title] !== undefined) out[col.title] = prev[col.title];
+  }
+  return out;
 }
 
 // Helper function to process arrays with concurrency control

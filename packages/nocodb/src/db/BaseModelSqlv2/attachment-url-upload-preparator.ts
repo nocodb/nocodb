@@ -1,4 +1,5 @@
 import { NcApiVersion, type NcRequest } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { type AttachmentUrlUploadJobData, JobTypes } from '~/interface/Jobs';
 import { EMIT_EVENT } from '~/constants';
@@ -25,8 +26,12 @@ export class AttachmentUrlUploadPreparator {
       req?: NcRequest;
     },
   ) {
-    const postInsertOps: ((rowId: any) => Promise<string>)[] = [];
-    const preInsertOps: (() => Promise<string>)[] = [];
+    const postInsertOps: ((
+      rowId: any,
+      trx?: Knex | Knex.Transaction,
+    ) => Promise<string>)[] = [];
+    const preInsertOps: ((trx?: Knex | Knex.Transaction) => Promise<string>)[] =
+      [];
     const postInsertAuditOps: ((rowId: any) => Promise<void>)[] = [];
     // return early if not v3
     if (baseModel.context.api_version !== NcApiVersion.V3) {

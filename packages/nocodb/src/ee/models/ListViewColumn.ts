@@ -6,6 +6,7 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class ListViewColumn extends ListViewColumnCE {
   id: string;
@@ -124,6 +125,11 @@ export default class ListViewColumn extends ListViewColumnCE {
       'order',
       'width',
     ]);
+
+    // Replay: honor pre-set id (order is already in extractProps).
+    if (isReplay() && column.id) {
+      (insertObj as { id?: string }).id = column.id;
+    }
 
     if (!(insertObj.base_id && insertObj.source_id)) {
       const viewRef = await ncMeta.metaGet2(

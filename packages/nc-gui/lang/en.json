@@ -1375,6 +1375,18 @@
     "history": "History",
     "trash": "Trash",
     "snapshots": "Snapshots",
+    "undo": "Undo",
+    "redo": "Redo",
+    "undoRedoDisabledByAdmin": "Undo / redo has been disabled by your administrator.",
+    "actionUndone": "Action undone",
+    "actionRedone": "Action redone",
+    "actionUndonePartial": "Some changes couldn't be undone",
+    "actionRedonePartial": "Some changes couldn't be redone",
+    "actionPartiallyCompleted": "Action only partially completed — please refresh to verify",
+    "undoFailed": "Undo failed",
+    "redoFailed": "Redo failed",
+    "noMoreActionsToUndo": "No more actions to undo",
+    "noMoreActionsToRedo": "No more actions to redo",
     "noRecentViews": "No recent views",
     "expandLinkFields": "Expand link fields",
     "expandLinkFieldsDesc": "Return linked record data instead of count",
@@ -2096,7 +2108,8 @@
       },
       "richTextDisabledWhenSmart": "Rich text formatting is not supported when Smart Text is enabled",
       "richTextDisabledWhenAi": "Rich text formatting is not supported when generate text using AI is enabled",
-      "description": "Smart Text uses a rich block-based editor with formatting, images, tables, and more. Content is stored in-row, so it's searchable and filterable."
+      "description": "Smart Text uses a rich block-based editor with formatting, images, tables, and more. Content is stored in-row, so it's searchable and filterable.",
+      "remoteUpdateAvailable": "Someone else updated this cell"
     },
     "idColon": "FIELD ID: {id}",
     "copiedRecordURL": "Copied Record URL",
@@ -3467,6 +3480,11 @@
         "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",
         "moveDeletedField": "You cannot move field that is deleted. Either save or discard changes first"
       },
+      "fieldDeletedRemotely": "A field was deleted by another user. The editor has been refreshed.",
+      "fieldsDeletedRemotely": "{count} fields were deleted by another user. The editor has been refreshed.",
+      "activeFieldDeletedRemotely": "The field you were editing was deleted by another user. Your unsaved changes were discarded.",
+      "activeFieldUpdatedRemotelyDiscarded": "The field you were editing was updated by another user. The editor has been refreshed with the latest values; your unsaved changes were discarded.",
+      "activeFieldUpdatedRemotelyKeepAlive": "The field you were editing was updated by another user. Your unsaved changes are preserved — saving will overwrite their changes.",
       "reachedUploadLimit": "Reached upload limit",
       "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time",
@@ -3761,6 +3779,8 @@
       "workspaceTeamRoleUpdateNotice": "Changing a team’s workspace role will also update its access to bases where it doesn’t have an explicit role."
     },
     "error": {
+      "fieldVisibilityUpdateFailed": "Field visibility update failed: {error}",
+      "fieldVisibilityUpdatesFailed": "{count} field visibility updates failed: {error}",
       "variableKeyRequired": "Variable key is required",
       "variableKeyFormat": "Key must be uppercase letters, numbers and underscores (e.g. WEBHOOK_URL)",
       "latitudeRange": "Latitude must be between -90 and 90",
@@ -4055,7 +4075,13 @@
     "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",
     "tryAgain": "Try Again",
     "internalUrlsNotAllowed": "Internal URLs are not allowed",
-    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls"
+    "cyclicCallsWarning": "This URL points to the same NocoDB instance which may cause cyclic calls",
+    "webhook": {
+      "externallyDeletedTitle": "This webhook was deleted by another user",
+      "externallyDeletedDescription": "You can no longer save changes here. Close this dialog to dismiss.",
+      "externallyModifiedTitle": "This webhook was modified by another user",
+      "externallyModifiedDescription": "Saving now will overwrite their changes."
+    }
   },
   "trash": {
     "title": "Deleted Records",

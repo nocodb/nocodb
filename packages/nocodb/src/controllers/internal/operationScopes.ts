@@ -77,6 +77,7 @@ export const OPERATION_SCOPES = {
   filterCreate: 'base',
   filterUpdate: 'base',
   filterDelete: 'base',
+  filterBulkLogicalOpUpdate: 'base',
   sortCreate: 'base',
   sortUpdate: 'base',
   sortDelete: 'base',
@@ -129,6 +130,7 @@ export const OPERATION_SCOPES = {
   dataUpdate: 'base',
   dataDelete: 'base',
   dataDeleteAll: 'base',
+  dataMove: 'base',
   bulkDataDeleteAll: 'base',
 
   // AT Import

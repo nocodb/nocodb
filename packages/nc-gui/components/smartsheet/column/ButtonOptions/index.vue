@@ -38,7 +38,7 @@ const { isAiBetaFeaturesEnabled } = useNocoAi()
 
 const { getPlanTitle, showEEFeatures } = useEeConfig()
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName, setPostSaveOrUpdateCbk } =
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
   useColumnCreateStoreOrThrow()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
@@ -377,15 +377,6 @@ if (isEdit.value) {
   }
 }
 
-onMounted(() => {
-  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
-    await filterRef.value?.applyChanges(colId || column?.id, false)
-  })
-})
-
-onUnmounted(() => {
-  setPostSaveOrUpdateCbk(null)
-})
 </script>
 
 <template>

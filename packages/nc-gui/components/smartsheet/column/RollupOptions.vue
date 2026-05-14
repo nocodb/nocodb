@@ -30,7 +30,6 @@ const {
   isEdit,
   disableSubmitBtn,
   updateFieldName,
-  setPostSaveOrUpdateCbk,
 } = useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
@@ -137,15 +136,16 @@ onMounted(() => {
     vModel.value.fk_rollup_column_id = vModel.value.colOptions?.fk_rollup_column_id
     vModel.value.rollup_function = vModel.value.colOptions?.rollup_function
   }
-
-  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
-    await filterRef.value?.applyChanges(colId || column?.id, false)
-  })
 })
 
-onUnmounted(() => {
-  setPostSaveOrUpdateCbk(null)
-})
+watch(
+  () => filterRef.value?.filters,
+  (next) => {
+    if (!vModel.value) return
+    vModel.value.filters = next ? [...next] : []
+  },
+  { deep: true },
+)
 
 const getNextColumnId = () => {
   const usedLookupColumnIds = (meta.value?.columns || [])

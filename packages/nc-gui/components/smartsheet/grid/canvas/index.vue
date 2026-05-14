@@ -61,7 +61,7 @@ const props = defineProps<{
     rowOverwrite?: Record<string, any>,
     path?: Array<number>,
   ) => Row | undefined
-  deleteRow?: (rowIndex: number, undo?: boolean, path?: Array<number>) => Promise<void>
+  deleteRow?: (rowIndex: number, path?: Array<number>) => Promise<void>
   updateOrSaveRow: (
     row: Row,
     property?: string,
@@ -76,7 +76,6 @@ const props = defineProps<{
   updateRecordOrder: (
     originalIndex: number,
     targetIndex: number | null,
-    undo?: boolean,
     isFailed?: boolean,
     path?: Array<number>,
   ) => Promise<void>
@@ -84,7 +83,6 @@ const props = defineProps<{
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   bulkDeleteAll: (path?: Array<number>) => Promise<void>
@@ -94,7 +92,6 @@ const props = defineProps<{
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     newColumns?: Partial<ColumnType>[],
-    undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path: Array<number>) => void

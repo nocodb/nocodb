@@ -23,7 +23,7 @@ const { column, preload, tableExplorerColumns, fromTableExplorer, isColumnValid,
 
 const { isSaving } = useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplorer, isColumnValid)
 
-const { isWebhookCreateModalOpen, isAiButtonConfigModalOpen, isConvertLinkV2ModalOpen, triggerPostSaveOrUpdateCbk } =
+const { isWebhookCreateModalOpen, isAiButtonConfigModalOpen, isConvertLinkV2ModalOpen } =
   useColumnCreateStoreOrThrow()
 
 /**
@@ -41,7 +41,6 @@ const shouldKeepModalOpen = (): boolean => {
 
 defineExpose({
   shouldKeepModalOpen,
-  triggerPostSaveOrUpdateCbk,
 })
 </script>
 

@@ -162,8 +162,8 @@ let dragTimeout: ReturnType<typeof setTimeout> | null = null
 const isDragReady = ref(false) // becomes true after 200ms hold
 
 // Debounced row update (500ms, matching calendar)
-const useDebouncedRowUpdate = useDebounceFn((row: RowType, updateProperty: string[], undo: boolean) => {
-  updateRowProperty(row, updateProperty, undo)
+const useDebouncedRowUpdate = useDebounceFn((row: RowType, updateProperty: string[]) => {
+  updateRowProperty(row, updateProperty)
 }, 500)
 
 // Parse date from row for a given column
@@ -238,7 +238,7 @@ const onResize = (event: MouseEvent) => {
   }
 
   // Debounced API update
-  useDebouncedRowUpdate(resizeRecord.value, updateProperty, false)
+  useDebouncedRowUpdate(resizeRecord.value, updateProperty)
 }
 
 const onResizeEnd = () => {
@@ -356,7 +356,7 @@ const onDrag = (event: MouseEvent) => {
   // Update the reference day index so delta is always relative
   dragStartDayIndex.value = currentDayIdx
 
-  useDebouncedRowUpdate(dragRecord.value, updateProperty, false)
+  useDebouncedRowUpdate(dragRecord.value, updateProperty)
 }
 
 const onDragEnd = () => {

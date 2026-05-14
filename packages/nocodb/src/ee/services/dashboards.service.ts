@@ -17,6 +17,7 @@ import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { CustomUrl, Dashboard, DependencyTracker, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { getReplay } from '~/helpers/replayScope';
 import { getWidgetData, getWidgetHandler } from '~/db/widgets';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
@@ -264,9 +265,14 @@ export class DashboardsService {
     const { req } = param;
     const insertObj = param.widget;
 
-    if (insertObj.fk_dashboard_id) {
-      await this.assertDashboardLive(context, insertObj.fk_dashboard_id);
+    if (!insertObj.fk_dashboard_id && param.dashboardId) {
+      insertObj.fk_dashboard_id = param.dashboardId;
     }
+    if (!insertObj.fk_dashboard_id) {
+      NcError.get(context).requiredFieldMissing('fk_dashboard_id');
+    }
+
+    await this.assertDashboardLive(context, insertObj.fk_dashboard_id);
 
     const widget = await Widget.insert(context, insertObj);
 
@@ -330,9 +336,6 @@ export class DashboardsService {
     param: {
       widgetId: string;
       req: NcRequest;
-      // Internal: sandbox replay threads the changelog entity_id here so the
-      // duplicated widget on production keeps the same ID as on sandbox.
-      _replayWidgetId?: string;
     },
   ) {
     const { widgetId, req } = param;
@@ -350,8 +353,9 @@ export class DashboardsService {
       accessor: (item) => item.title,
     });
 
+    const replayId = getReplay('replayDuplicateId');
     const newWidget = await Widget.insert(context, {
-      ...(param._replayWidgetId ? { id: param._replayWidgetId } : {}),
+      ...(replayId ? { id: replayId } : {}),
       title: newTitle,
       config: widget.config,
       fk_dashboard_id: widget.fk_dashboard_id,

@@ -22,6 +22,7 @@ import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import { isReplay } from '~/helpers/replayScope';
 
 export default class Filter implements FilterType {
   id: string;
@@ -134,9 +135,12 @@ export default class Filter implements FilterType {
       'fk_rls_policy_id',
       'fk_button_col_id',
     ].find((k) => filter[k]);
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
-      [referencedModelColName]: filter[referencedModelColName],
-    });
+    const replayKeepOrder = isReplay() && filter.order != null;
+    if (!replayKeepOrder) {
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
+        [referencedModelColName]: filter[referencedModelColName],
+      });
+    }
 
     if (!filter.source_id) {
       let model: { base_id?: string; source_id?: string };

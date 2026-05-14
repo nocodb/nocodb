@@ -2,6 +2,7 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../../../init';
+import { createV3Base } from '~test/factory/base';
 import { Base, Sandbox } from '~/models';
 import { QueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 
@@ -47,19 +48,6 @@ async function v3Delete(context: Context, path: string) {
   return request(context.app)
     .delete(path)
     .set('xc-token', context.xc_token);
-}
-
-async function createV3Base(context: Context, title: string) {
-  const res = await request(context.app)
-    .post('/api/v1/db/meta/projects/')
-    .set('xc-auth', context.token)
-    .send({
-      title,
-      version: 3,
-      ...(process.env.EE ? { fk_workspace_id: context.fk_workspace_id } : {}),
-    });
-  expect(res.status).to.eq(200);
-  return res.body;
 }
 
 async function manualSandboxSetup(

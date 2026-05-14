@@ -2,6 +2,7 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../../../init';
+import { createV3Base } from '~test/factory/base';
 import {
   Base,
   BaseVariable,
@@ -61,21 +62,6 @@ async function v3Patch(
 }
 
 // ── Sandbox lifecycle ────────────────────────────────────────────
-
-async function createV3Base(context: Context, title: string) {
-  const res = await request(context.app)
-    .post('/api/v1/db/meta/projects/')
-    .set('xc-auth', context.token)
-    .send({
-      title,
-      version: 3,
-      ...(process.env.EE ? { fk_workspace_id: context.fk_workspace_id } : {}),
-    });
-  expect(res.status, `createV3Base ${title}: ${JSON.stringify(res.body)}`).to.eq(
-    200,
-  );
-  return res.body;
-}
 
 async function setupSandbox(context: Context, workspaceId: string) {
   const ts = Date.now();
@@ -312,7 +298,6 @@ export function sandboxMergeRoundtripTests() {
         {
           title: 'RT_Ext',
           extension_id: 'test-extension',
-          base_id: sandboxBaseId,
           kv_store: {},
         },
       );

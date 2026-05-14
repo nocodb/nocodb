@@ -422,7 +422,16 @@ export function useViewData(
     if (!viewMeta?.value?.id || !view || !isUIAllowed('viewFieldEdit')) return
 
     try {
-      await updateViewMeta(viewMeta.value.id, ViewTypes.FORM, view)
+      const {
+        source_id: _sourceId,
+        base_id: _baseId,
+        fk_view_id: _fkViewId,
+        fk_workspace_id: _fkWs,
+        created_at: _createdAt,
+        updated_at: _updatedAt,
+        ...body
+      } = view as Record<string, any>
+      await updateViewMeta(viewMeta.value.id, ViewTypes.FORM, body)
     } catch (e: any) {
       return message.error(`${t('msg.error.formViewUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }

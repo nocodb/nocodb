@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, PlanFeatureTypes } from 'nocodb-sdk';
+import { AppEvents, EventType, PlanFeatureTypes } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { CreateRecordTemplateDto } from './dto/create-record-template.dto';
 import type { UpdateRecordTemplateDto } from './dto/update-record-template.dto';
@@ -13,6 +13,8 @@ import RecordTemplate from '~/models/RecordTemplate';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
 import { TraceCommand } from '~/decorators/trace-command.decorator';
+import NocoSocket from '~/socket/NocoSocket';
+import { isReplay } from '~/helpers/replayScope';
 @Injectable()
 export class RecordTemplatesService {
   constructor(
@@ -56,7 +58,7 @@ export class RecordTemplatesService {
     context: NcContext;
     baseId: string;
     modelId: string;
-    body: CreateRecordTemplateDto;
+    body: CreateRecordTemplateDto & { id?: string };
     userId: string;
     req: NcRequest;
   }) {
@@ -77,9 +79,7 @@ export class RecordTemplatesService {
     );
 
     const template = await RecordTemplate.insert(param.context, {
-      ...(param.context?.additionalContext?.is_replay && (param.body as any).id
-        ? { id: (param.body as any).id }
-        : {}),
+      ...(isReplay() && param.body.id ? { id: param.body.id } : {}),
       base_id: param.baseId,
       fk_workspace_id: param.context.workspace_id,
       fk_model_id: param.modelId,
@@ -94,6 +94,21 @@ export class RecordTemplatesService {
       template,
       req: param.req,
     });
+
+    NocoSocket.broadcastEvent(
+      param.context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'record_template_create',
+          payload: {
+            ...template,
+            base_id: param.context.base_id,
+          },
+        },
+      },
+      param.context.socket_id,
+    );
 
     return template;
   }
@@ -151,6 +166,21 @@ export class RecordTemplatesService {
       req: param.req,
     });
 
+    NocoSocket.broadcastEvent(
+      param.context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'record_template_update',
+          payload: {
+            ...template,
+            base_id: param.context.base_id,
+          },
+        },
+      },
+      param.context.socket_id,
+    );
+
     return template;
   }
 
@@ -177,6 +207,22 @@ export class RecordTemplatesService {
       template,
       req: param.req,
     });
+
+    NocoSocket.broadcastEvent(
+      param.context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'record_template_delete',
+          payload: {
+            id: param.templateId,
+            base_id: param.context.base_id,
+            fk_model_id: template.fk_model_id,
+          },
+        },
+      },
+      param.context.socket_id,
+    );
 
     return { success: true };
   }

@@ -36,7 +36,6 @@ export class ViewsService extends ViewsServiceCE {
     param: {
       viewId: string;
       view: ViewUpdateReqType;
-      user: UserType;
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
@@ -56,13 +55,16 @@ export class ViewsService extends ViewsServiceCE {
     context: NcContext,
     param: {
       viewId: string;
-      user: UserType & { base_roles?: Record<string, boolean> | string };
       skipTrash?: boolean;
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
+    // `req.user` is the source of truth — set by auth middleware for HTTP
+    // and by `makeReplayReq` for sandbox replay / undo dispatch.
+    const user = param.req?.user;
+
     const view = await View.get(context, param.viewId, false, ncMeta);
     if (!view) {
       NcError.get(context).genericNotFound('view', param.viewId);
@@ -82,7 +84,7 @@ export class ViewsService extends ViewsServiceCE {
     await this.baseTrashService.trashResource(context, {
       resourceId: param.viewId,
       resourceType: 'view',
-      user: param.user,
+      user,
       req: param.req,
       ncMeta,
     });
@@ -106,7 +108,7 @@ export class ViewsService extends ViewsServiceCE {
 
     this.appHooksServiceEE.emit(deleteEvent, {
       view,
-      user: param.user,
+      user,
       owner,
       req: param.req,
       context,

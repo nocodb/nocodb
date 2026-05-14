@@ -1,4 +1,3 @@
-import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
@@ -12,8 +11,6 @@ import {
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
-
-const clone = rfdc()
 
 const useForm = Form.useForm
 
@@ -84,10 +81,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
     )
 
-    let postSaveOrUpdateCbk:
-      | ((params: { update?: boolean; colId: string; column?: ColumnType | undefined }) => Promise<void>)
-      | null
-
     const idType = null
 
     const additionalValidations = ref<ValidationsObj>({})
@@ -105,14 +98,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const setAvoidShowingToastMsgForValidations = (validations: { [key: string]: boolean }) => {
       avoidShowingToastMsgForValidations.value = { ...avoidShowingToastMsgForValidations.value, ...validations }
     }
-
-    const setPostSaveOrUpdateCbk = (cbk: typeof postSaveOrUpdateCbk) => {
-      postSaveOrUpdateCbk = cbk
-    }
-
-    const triggerPostSaveOrUpdateCbk = async (params: { colId: string; column?: ColumnType }) => {
-      await postSaveOrUpdateCbk?.(params)
-    }
     const defaultType = isMetaReadOnly.value ? UITypes.Formula : UITypes.SingleLineText
 
     const defaultFormState = {
@@ -125,7 +110,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const formState = ref<Record<string, any>>({
       ...defaultFormState,
       uidt: fromTableExplorer?.value ? defaultType : null,
-      ...clone(column.value || {}),
+      ...deepClone(column.value || {}),
     })
 
     const isAiMode = computed(() => {
@@ -417,9 +402,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             formState.value.validate = ''
           }
 
-          // ignore filters from payload since it's not required
-          const { filters: _, ...restData } = formState.value
-          let updateData = restData
+          let updateData: typeof formState.value = formState.value
 
           // For system datetime fields, only send meta and description
           // to avoid triggering the system field non-modifiable check
@@ -472,8 +455,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             return
           }
 
-          await postSaveOrUpdateCbk?.({ update: true, colId: column.value?.id })
-
           if (meta.value?.id && column.value.uidt === UITypes.Attachment && column.value.uidt !== formState.value.uidt) {
             viewsStore.updateViewCoverImageColumnId({
               metaId: meta.value.id as string,
@@ -521,8 +502,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           savedColumn = tableMeta.columns?.find(
             (c) => c.title === formState.value.title || c.column_name === formState.value.column_name,
           )
-
-          await postSaveOrUpdateCbk?.({ update: false, colId: savedColumn?.id as string, column: savedColumn })
 
           /** if LTAR column then force reload related table meta */
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
@@ -602,8 +581,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isSystem,
       isXcdbBase,
       disableSubmitBtn,
-      setPostSaveOrUpdateCbk,
-      triggerPostSaveOrUpdateCbk,
       updateFieldName,
       fromTableExplorer,
       isAiMode,

@@ -9,13 +9,38 @@ const { open: openBaseTrash } = useBaseTrash()
 
 const { isUIAllowed } = useRoles()
 
+const { undo, redo, isUndoRedoInFlight, inFlightDirection, isDisabledByEnv } = useUndoRedo()
+
 const visible = ref(false)
 
 const canSeeBaseTrash = computed(() => isUIAllowed('baseTrashList'))
 
 const canSeeSnapshots = computed(() => isUIAllowed('manageSnapshot'))
 
-const showHistoryTrigger = computed(() => canSeeBaseTrash.value || canSeeSnapshots.value)
+const canSeeUndoRedo = computed(() => isUIAllowed('undo'))
+
+const showHistoryTrigger = computed(() => canSeeBaseTrash.value || canSeeSnapshots.value || canSeeUndoRedo.value)
+
+const cmdKey = renderCmdOrCtrlKey(true)
+
+const shiftKey = isMac() ? '⇧' : 'Shift'
+
+const undoRedoActions = [
+  {
+    direction: 'undo' as const,
+    icon: 'ncUndo',
+    labelKey: 'labels.undo',
+    shortcut: `${cmdKey} Z`,
+    handler: undo,
+  },
+  {
+    direction: 'redo' as const,
+    icon: 'ncRedo',
+    labelKey: 'labels.redo',
+    shortcut: `${cmdKey} ${shiftKey} Z`,
+    handler: redo,
+  },
+]
 
 function openSnapshots() {
   const baseId = resolvedProject.value?.id
@@ -61,6 +86,25 @@ function onTrashClick() {
           </span>
         </NcMenuItemLabel>
 
+        <NcTooltip v-if="canSeeUndoRedo" placement="left" :disabled="!isDisabledByEnv">
+          <template #title>{{ $t('labels.undoRedoDisabledByAdmin') }}</template>
+          <NcMenuItem
+            v-for="action in undoRedoActions"
+            :key="action.direction"
+            :data-testid="`nc-topbar-history-menu-${action.direction}`"
+            inner-class="w-full"
+            :disabled="isDisabledByEnv || isUndoRedoInFlight"
+            @click="action.handler"
+          >
+            <div v-e="[`c:topbar:history-menu:${action.direction}`]" class="flex gap-2 items-center w-full">
+              <GeneralLoader v-if="inFlightDirection === action.direction" class="h-4 w-4" />
+              <GeneralIcon v-else :icon="action.icon" class="h-4 w-4 text-nc-content-gray-subtle2" />
+              <div class="flex-1">{{ $t(action.labelKey) }}</div>
+              <span class="nc-shortcut-hint">{{ action.shortcut }}</span>
+            </div>
+          </NcMenuItem>
+        </NcTooltip>
+
         <PaymentUpgradeBadgeProvider v-if="canSeeSnapshots" :feature="PlanFeatureTypes.FEATURE_EE_CORE">
           <template #default="{ click }">
             <NcMenuItem
@@ -96,3 +140,9 @@ function onTrashClick() {
     </template>
   </NcDropdown>
 </template>
+
+<style scoped lang="scss">
+.nc-shortcut-hint {
+  @apply text-nc-content-gray-muted text-bodySm tracking-wide;
+}
+</style>

@@ -14,6 +14,17 @@ import {
   stringifyMetaProp,
 } from '~/utils/modelUtils';
 
+/**
+ * Sentinel value cached against `sandbox_base_id` lookups when the base
+ * isn't a sandbox. Lets `getBySandboxBaseId` short-circuit on production
+ * bases instead of re-querying the DB on every traced op.
+ *
+ * Must be a serializable value the cache layer round-trips faithfully —
+ * a primitive sentinel string is safer than `null`/`undefined` since the
+ * "no entry" cache miss is also represented as falsy.
+ */
+const SANDBOX_NEGATIVE_MARKER = '__nc_no_sandbox__';
+
 export default class Sandbox {
   id: string;
   fk_workspace_id: string;
@@ -65,11 +76,17 @@ export default class Sandbox {
     sandboxBaseId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Sandbox> {
+    const cacheKey = `${CacheScope.SANDBOX}:sandbox_base_id:${sandboxBaseId}`;
     let sandbox = await NocoCache.get(
       'root',
-      `${CacheScope.SANDBOX}:sandbox_base_id:${sandboxBaseId}`,
+      cacheKey,
       CacheGetType.TYPE_OBJECT,
     );
+
+    // Negative-cache hit: this base has been confirmed as not-a-sandbox.
+    // Avoids re-querying on every traced op (e.g. `recordCommand` calls this
+    // for every @TraceCommand invocation, including non-sandbox bases).
+    if (sandbox === SANDBOX_NEGATIVE_MARKER) return null;
 
     if (!sandbox) {
       const sandboxes = await ncMeta.metaList2(
@@ -83,15 +100,17 @@ export default class Sandbox {
         },
       );
 
-      if (!sandboxes || sandboxes.length === 0) return null;
+      if (!sandboxes || sandboxes.length === 0) {
+        // Cache the negative so subsequent traced ops on a production base
+        // hit the cache instead of the DB. Cleared by the same invalidation
+        // that would clear a positive entry (sandbox create / merge / delete).
+        await NocoCache.set('root', cacheKey, SANDBOX_NEGATIVE_MARKER);
+        return null;
+      }
 
       sandbox = prepareForResponse(sandboxes[0]);
 
-      await NocoCache.set(
-        'root',
-        `${CacheScope.SANDBOX}:sandbox_base_id:${sandboxBaseId}`,
-        sandbox,
-      );
+      await NocoCache.set('root', cacheKey, sandbox);
 
       // Also populate primary cache
       await NocoCache.set(
@@ -148,6 +167,15 @@ export default class Sandbox {
       MetaTable.SANDBOXES,
       prepareForDb(insertObj),
     );
+
+    // Bust the negative cache: a traced op may have populated
+    // `SANDBOX_NEGATIVE_MARKER` against this base before the sandbox existed.
+    if (insertObj.sandbox_base_id) {
+      await NocoCache.del(
+        'root',
+        `${CacheScope.SANDBOX}:sandbox_base_id:${insertObj.sandbox_base_id}`,
+      );
+    }
 
     return this.get(id, ncMeta);
   }

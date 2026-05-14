@@ -242,12 +242,6 @@ type NcProject = BaseType & {
   managed_app_schema_locked?: boolean
 }
 
-interface UndoRedoAction {
-  undo: { fn: Function; args: any[] }
-  redo: { fn: Function; args: any[] }
-  scope?: { key: string; param: string | string[] }[]
-}
-
 interface ImportWorkerPayload {
   importType: ImportType
   importSource: ImportSource
@@ -1113,7 +1107,6 @@ export type {
   streamImportFileList,
   Nullable,
   NcProject,
-  UndoRedoAction,
   ImportWorkerPayload,
   Group,
   GroupNestedIn,

@@ -83,8 +83,7 @@ export class ColumnUpdateRowColorDependencyHandler implements MetaEventHandler {
     }
 
     const { applyRowColorInvolvement } =
-      await this.viewRowColorService.checkIfColumnInvolved({
-        context,
+      await this.viewRowColorService.checkIfColumnInvolved(context, {
         existingColumn: oldCol,
         newColumn: newCol,
         action: 'update',
@@ -108,14 +107,13 @@ export class ColumnUpdateRowColorDependencyHandler implements MetaEventHandler {
       const view = await View.get(context, viewId, false, Noco.ncMeta);
       if (!view) continue;
       await view.getView(context, Noco.ncMeta);
-      NocoSocket.broadcastEvent(
-        context,
-        {
-          event: EventType.META_EVENT,
-          payload: { action: 'view_update', payload: view },
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'view_update',
+          payload: { ...view, from_row_color: true },
         },
-        context.socket_id,
-      );
+      });
     }
   }
 }

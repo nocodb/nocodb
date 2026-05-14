@@ -1,15 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  EventType,
   MetaEventType,
   NcBaseError,
   WebhookEvents,
 } from 'nocodb-sdk';
 import View from '../models/View';
-import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
+import type {
+  FilterReqType,
+  HookReqType,
+  HookTestReqType,
+  HookType,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
+import NocoSocket from '~/socket/NocoSocket';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { captureForTrace } from '~/decorators/trace-command.decorator';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import {
@@ -18,11 +26,12 @@ import {
   populateSamplePayloadView,
 } from '~/helpers/populateSamplePayload';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
-import { ButtonColumn, Hook, HookLog, Model } from '~/models';
+import { ButtonColumn, Filter, Hook, HookLog, Model } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
+import { isReplay } from '~/helpers/replayScope';
 
 const SUPPORTED_HOOK_VERSION = ['v3'];
 
@@ -112,12 +121,62 @@ export class HooksService {
           fk_model_id: param.tableId,
         } as any);
 
+    const bundledFilters = (param.hook as any)?.filters as
+      | FilterReqType[]
+      | undefined;
+    if (bundledFilters?.length) {
+      for (const filter of bundledFilters) {
+        await Filter.insert(context, {
+          ...filter,
+          fk_hook_id: hook.id,
+        });
+      }
+
+      // Snapshot the inserted tree so `HookCreateContract.extraCommandMeta`
+      // can surface it as `meta.extra.filters` for downstream changelog
+      // ops. Skipped during replay — `recordCommand` early-exits when
+      // `isReplay()` is true, so this would just be wasted I/O.
+      if (!isReplay()) {
+        const roots = await Filter.rootFilterListByHook(context, {
+          hookId: hook.id,
+        });
+        const walk = async (f: Filter): Promise<Record<string, unknown>> => {
+          const children = f.is_group
+            ? (await f.getChildren(context)) ?? []
+            : [];
+          const childNodes = await Promise.all(
+            children.map((c) => walk(c as Filter)),
+          );
+          return {
+            ...(f as unknown as Record<string, unknown>),
+            ...(childNodes.length ? { children: childNodes } : {}),
+          };
+        };
+        captureForTrace(
+          'filters',
+          await Promise.all(roots.map((r) => walk(r as Filter))),
+        );
+      }
+    }
+
     this.appHooksService.emit(AppEvents.WEBHOOK_CREATE, {
       hook,
       req: param.req,
       context,
       tableId: hook.fk_model_id,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'hook_create',
+          payload: hook,
+        },
+      },
+      context.socket_id,
+    );
 
     return hook;
   }
@@ -156,6 +215,19 @@ export class HooksService {
       context,
       tableId: hook.fk_model_id,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'hook_delete',
+          payload: { id: hook.id, fk_model_id: hook.fk_model_id },
+        },
+      },
+      context.socket_id,
+    );
+
     return true;
   }
 
@@ -209,6 +281,27 @@ export class HooksService {
 
     const res = await Hook.update(context, param.hookId, param.hook);
 
+    const bundledFilters = (param.hook as any)?.filters as
+      | FilterReqType[]
+      | undefined;
+    if (bundledFilters !== undefined) {
+      const existing = await Filter.rootFilterListByHook(context, {
+        hookId: param.hookId,
+      });
+      for (const f of existing) {
+        await Filter.delete(context, f.id);
+      }
+      // Insert new tree. `Filter.insert` recurses through `children` and
+      // propagates `fk_hook_id`. Pre-set ids are honored only under
+      // `is_replay` (so undo→redo round-trips).
+      for (const filter of bundledFilters) {
+        await Filter.insert(context, {
+          ...filter,
+          fk_hook_id: param.hookId,
+        });
+      }
+    }
+
     this.appHooksService.emit(AppEvents.WEBHOOK_UPDATE, {
       hook: {
         ...hook,
@@ -220,7 +313,32 @@ export class HooksService {
       context,
     });
 
+    const updatedHook = await Hook.get(context, param.hookId);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'hook_update',
+          payload: {
+            ...updatedHook,
+            had_filters_replaced: bundledFilters !== undefined,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
     return res;
+  }
+
+  async hookRestore(
+    _context: NcContext,
+    _param: { hookId: string; req: NcRequest },
+    _ncMeta?: MetaService,
+  ) {
+    return false;
   }
 
   async hookTrigger(

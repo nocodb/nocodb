@@ -19,6 +19,7 @@ import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import { OperationName } from '~/command-registry/op-names';
+import { getReplay } from '~/helpers/replayScope';
 import { NcContext } from '~/interface/config';
 import { extractWorkflowDependencies } from '~/services/workflows/extractDependency';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
@@ -396,11 +397,15 @@ export class WorkflowsService implements OnModuleInit {
     return true;
   }
 
+  @TraceCommand(OperationName.workflowDuplicate)
   async duplicateWorkflow(
     context: NcContext,
-    workflowId: string,
-    req: NcRequest,
+    param: {
+      workflowId: string;
+      req: NcRequest;
+    },
   ) {
+    const { workflowId, req } = param;
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {
@@ -413,7 +418,9 @@ export class WorkflowsService implements OnModuleInit {
       accessor: (item) => item.title,
     });
 
+    const replayId = getReplay('replayDuplicateId');
     const newWorkflow = await Workflow.insert(context, {
+      ...(replayId ? { id: replayId } : {}),
       title: newTitle,
       meta: workflow.meta,
       nodes: workflow.nodes,

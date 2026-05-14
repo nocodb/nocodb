@@ -1,6 +1,3 @@
-import rfdc from 'rfdc'
-
-const deepClone = rfdc()
 const FEATURES = [
   {
     id: 'managed_apps',

@@ -97,7 +97,6 @@ export const TreeViewInj: InjectionKey<{
     title: string,
     orignalTitle: string,
     updateTitle: (title: string) => void,
-    undo?: boolean,
     disableTitleDiffCheck?: boolean,
   ) => void
   openViewDescriptionDialog: (view: ViewType) => void

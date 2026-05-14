@@ -11,7 +11,6 @@ import {
 } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import rfdc from 'rfdc'
 import type { Group } from '../lib/types'
 import { findKeyColor, valueToTitle } from '../utils/groupbyUtils'
 
@@ -25,8 +24,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     isPublic = false,
   ) => {
     const groupByLimit = 3
-
-    const clone = rfdc()
 
     const { t } = useI18n()
 
@@ -110,7 +107,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const unsupportedLookups = ref<string[]>([])
 
     const fieldsToGroupBy = computed(() => {
-      return clone(meta?.value?.columns || []).map((field) => {
+      return deepClone(meta?.value?.columns || []).map((field) => {
         if (
           isColumnInError(field) ||
           (field.uidt === UITypes.Lookup && field.id && unsupportedLookups.value.includes(field.id)) ||

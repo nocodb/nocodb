@@ -346,6 +346,7 @@ const permissionScopes = {
     'dataUpdate',
     'dataDelete',
     'dataInsert',
+    'dataMove',
     'dataUpsert',
     'bulkDataUpsert',
     'viewColumnUpdate',
@@ -355,6 +356,7 @@ const permissionScopes = {
     'filterCreate',
     'filterUpdate',
     'filterDelete',
+    'filterBulkLogicalOpUpdate',
     'filterGet',
     'filterChildrenList',
     'buttonFilterList',
@@ -613,6 +615,10 @@ const permissionScopes = {
     'baseTrashRestoreRows',
     'baseTrashPermanentDelete',
     'baseTrashEmpty',
+
+    // Undo / redo (per-(user, base, tab))
+    'undo',
+    'redo',
   ],
 } as const;
 
@@ -966,6 +972,7 @@ const rolePermissions:
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
+      dataMove: true,
       dataUpsert: true,
       bulkDataUpsert: true,
       nestedDataListCopyPasteOrDeleteAll: true,
@@ -1033,6 +1040,7 @@ const rolePermissions:
       filterCreate: true,
       filterUpdate: true,
       filterDelete: true,
+      filterBulkLogicalOpUpdate: true,
       viewColumnUpdate: true,
       hideAllColumns: true,
       showAllColumns: true,
@@ -1102,6 +1110,11 @@ const rolePermissions:
       baseTrashList: true,
       baseTrashRestore: true,
       baseTrashRestoreRows: true,
+
+      // Undo / redo — editor is the min role since undo/redo only reverts
+      // mutations, and editors are the lowest role allowed to mutate.
+      undo: true,
+      redo: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -1142,6 +1155,7 @@ export const sourceRestrictions = {
     dataUpdate: true,
     dataDelete: true,
     dataInsert: true,
+    dataMove: true,
     dataUpsert: true,
     bulkDataInsert: true,
     bulkDataUpdate: true,
@@ -1367,7 +1381,8 @@ const permissionDescriptions: Record<string, string> = {
   orgGet: 'view organization details',
   orgWorkspaceList: 'view list of workspaces in the organization',
   orgUserList: 'view list of users in the organization',
-  orgUserListForInvite: 'view list of org users for the invite picker (admin-only)',
+  orgUserListForInvite:
+    'view list of org users for the invite picker (admin-only)',
   orgBaseList: 'view list of bases in the organization',
   orgSsoClientList: 'view list of SSO clients in the organization',
 
@@ -1475,6 +1490,10 @@ const permissionDescriptions: Record<string, string> = {
   baseTrashRestoreRows: 'restore specific records from base trash by row id',
   baseTrashPermanentDelete: 'permanently delete an item from base trash',
   baseTrashEmpty: 'empty all trash for a base',
+
+  // undo / redo
+  undo: 'undo the latest action in this base + tab',
+  redo: 'redo the latest undone action in this base + tab',
 
   // Teams permissions
   teamList: 'view list of teams in the workspace',
@@ -1613,6 +1632,7 @@ const permissionDescriptions: Record<string, string> = {
   dataUpdate: 'update data',
   dataDelete: 'delete data',
   dataInsert: 'insert new data',
+  dataMove: 'reorder a row',
   dataUpsert: 'upsert data (insert or update)',
   viewColumnUpdate: 'update view columns',
   sortCreate: 'create a new sort',
@@ -1621,6 +1641,7 @@ const permissionDescriptions: Record<string, string> = {
   filterCreate: 'create a new filter',
   filterUpdate: 'update an existing filter',
   filterDelete: 'delete a filter',
+  filterBulkLogicalOpUpdate: 'update logical operator across sibling filters',
   filterGet: 'view filter details',
   filterChildrenList: 'view child filters',
   buttonFilterList: 'list button visibility filters',

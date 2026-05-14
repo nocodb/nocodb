@@ -61,8 +61,6 @@ const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
-const { addUndo, defineModelScope, defineViewScope, clone } = useUndoRedo()
-
 const showDeleteColumnModal = ref(false)
 
 const showConvertLinkV2Modal = ref(false)
@@ -80,8 +78,6 @@ const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 const setAsDisplayValue = async () => {
   isLoading.value = 'setDisplay'
   try {
-    const currentDisplayValue = meta?.value?.columns?.find((f) => f.pv)
-
     isOpen.value = false
 
     await $api.internal.postOperation(
@@ -98,46 +94,6 @@ const setAsDisplayValue = async () => {
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     $e('a:column:set-primary')
-
-    addUndo({
-      redo: {
-        fn: async (id: string) => {
-          await $api.internal.postOperation(
-            meta!.value!.fk_workspace_id!,
-            meta!.value!.base_id!,
-            {
-              operation: 'columnSetAsPrimary',
-              columnId: id,
-            },
-            {},
-          )
-
-          await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
-
-          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-        },
-        args: [column?.value?.id as string],
-      },
-      undo: {
-        fn: async (id: string) => {
-          await $api.internal.postOperation(
-            meta!.value!.fk_workspace_id!,
-            meta!.value!.base_id!,
-            {
-              operation: 'columnSetAsPrimary',
-              columnId: id,
-            },
-            {},
-          )
-
-          await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
-
-          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-        },
-        args: [currentDisplayValue?.id],
-      },
-      scope: defineModelScope({ model: meta.value }),
-    })
 
     // reload data since there might be some changes in the data if there is LTAR
     // or a formula field which refers to a LTAR field
@@ -352,7 +308,7 @@ const hideOrShowField = async () => {
 
   const viewId = view.value?.id
 
-  const currentViewColumn = gridViewCols.value[column.value.id!] ? clone(gridViewCols.value[column.value.id!]) : null
+  const currentViewColumn = gridViewCols.value[column.value.id!] ? deepClone(gridViewCols.value[column.value.id!]) : null
 
   if (currentViewColumn && currentViewColumn.show && fieldsMap.value[column.value.id!]) {
     hidingViewColumnsMap.value[column.value.id!] = true
@@ -398,63 +354,6 @@ const hideOrShowField = async () => {
     if (!currentColumn.show) {
       reloadDataHook?.trigger()
     }
-
-    addUndo({
-      redo: {
-        fn: async function redo(id: string, fk_column_id: string, show: boolean) {
-          await $api.internal.postOperation(
-            meta.value!.fk_workspace_id!,
-            meta.value!.base_id!,
-            {
-              operation: 'viewColumnUpdate',
-              viewId,
-              columnId: id,
-            },
-            { show: !show },
-          )
-
-          if (isExpandedForm.value) {
-            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
-          } else {
-            updateDefaultViewColVisibility(fk_column_id, !show)
-          }
-
-          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-          if (!show) {
-            reloadDataHook?.trigger()
-          }
-        },
-        args: [currentColumn!.id, currentColumn!.fk_column_id, currentColumn.show],
-      },
-      undo: {
-        fn: async function undo(id: string, fk_column_id: string, show: boolean) {
-          await $api.internal.postOperation(
-            meta.value!.fk_workspace_id!,
-            meta.value!.base_id!,
-            {
-              operation: 'viewColumnUpdate',
-              viewId,
-              columnId: id,
-            },
-            { show },
-          )
-
-          if (isExpandedForm.value) {
-            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
-          } else {
-            updateDefaultViewColVisibility(fk_column_id, show)
-          }
-
-          eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
-          reloadDataHook?.trigger()
-          if (show) {
-            reloadDataHook?.trigger()
-          }
-        },
-        args: [currentColumn!.id, currentColumn!.fk_column_id, currentColumn.show],
-      },
-      scope: defineViewScope({ view: view.value }),
-    })
   } catch (e: any) {
     console.log('error', e)
     if (hidingViewColumnsMap.value[column.value.id!]) {

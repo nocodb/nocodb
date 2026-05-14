@@ -172,6 +172,7 @@ export class MetaService {
       [MetaTable.BOOKMARK_GROUPS]: 'bmg',
       [MetaTable.BOOKMARKS]: 'bmk',
       [MetaTable.MAIL_SENDS]: 'ms',
+      [MetaTable.OPERATION_LOGS]: 'opl',
     };
 
     const prefix = prefixMap[target] || 'nc';

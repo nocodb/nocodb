@@ -27,8 +27,6 @@ export function useViewRowColorOption(params: {
 
   const { eventBus } = useSmartsheetStoreOrThrow()
 
-  const { clone } = useUndoRedo()
-
   const { t } = useI18n()
 
   const meta = inject(MetaInj, ref())
@@ -72,7 +70,7 @@ export function useViewRowColorOption(params: {
       rootMeta: meta.value,
       getMeta: async (id) => getMetaByKey(meta.value?.base_id, id),
     })
-    return clone(cols).map((c) => {
+    return deepClone(cols).map((c) => {
       if (isColumnInError(c)) {
         c.ncItemDisabled = true
         c.ncItemTooltip = t('tooltip.filteringNotSupportedForFieldsWithErrors')
@@ -226,7 +224,7 @@ export function useViewRowColorOption(params: {
         },
         {
           ...conditionToAdd,
-          filter,
+          filter: stripFilterApiBody(filter),
         },
       )
       conditionToAdd.id = response.id
@@ -402,7 +400,10 @@ export function useViewRowColorOption(params: {
       conditionToAdd.nestedConditions.push(filter)
     }
     await pushPendingAction(async () => {
-      const toInsert = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
+      const toInsert = stripFilterApiBody({
+        ...filter,
+        fk_parent_id: parentFilter?.id ?? filter.fk_parent_id,
+      })
       const result = await $api.internal.postOperation(
         meta.value!.fk_workspace_id!,
         meta.value!.base_id!,
@@ -450,8 +451,11 @@ export function useViewRowColorOption(params: {
       conditionToAdd.nestedConditions.push(filter)
     }
     await pushPendingAction(async () => {
-      const toInsert = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
-      delete toInsert.children
+      const toInsert = stripFilterApiBody({
+        ...filter,
+        fk_parent_id: parentFilter?.id ?? filter.fk_parent_id,
+        children: undefined,
+      })
       const result = await $api.internal.postOperation(
         meta.value!.fk_workspace_id!,
         meta.value!.base_id!,
@@ -469,6 +473,7 @@ export function useViewRowColorOption(params: {
   }
 
   const onRowColorConditionFilterUpdate = async (colorIndex: number, params: FilterRowChangeEvent) => {
+    const preFlushSnapshot = params.filter ? snapshotFilter(params.filter as any) : null
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToUpdate = conditions[colorIndex]!
@@ -495,24 +500,29 @@ export function useViewRowColorOption(params: {
         ? conditionToUpdate.conditions.find((f) => f.id === filter.fk_parent_id)?.children
         : conditionToUpdate.conditions.filter((f) => !f.fk_parent_id)
       for (const sibling of siblings ?? []) {
+        // Skip siblings already at the target value — pure diff, no state.
+        if (sibling.logical_op === params.value) continue
         sibling.logical_op = params.value
-        const updateObj = { ...sibling }
-        delete updateObj.children
+        const updateObj = stripFilterApiBody({ ...sibling, children: undefined })
 
-        if (updateObj.id) {
+        if (sibling.id) {
           await $api.internal.postOperation(
             view.value!.fk_workspace_id!,
             view.value!.base_id!,
-            { operation: 'filterUpdate', filterId: updateObj.id },
+            { operation: 'filterUpdate', filterId: sibling.id },
             updateObj,
           )
         }
       }
     }
-    const updateObj = { ...filter }
-    delete updateObj.children
+    const updateObj = stripFilterApiBody({ ...filter, children: undefined })
 
     if (filter.id) {
+      // Skip only when nothing actually changed — pure diff.
+      if (preFlushSnapshot && !filtersDiffer(preFlushSnapshot, filter)) {
+        eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+        return
+      }
       await $api.internal.postOperation(
         view.value!.fk_workspace_id!,
         view.value!.base_id!,
@@ -538,7 +548,12 @@ export function useViewRowColorOption(params: {
     }
 
     try {
-      const deletedFilterIds = await deleteFilterWithSub($api, filterToDelete)
+      const deletedFilterIds = await deleteFilterWithSub(
+        $api,
+        view.value!.fk_workspace_id!,
+        view.value!.base_id!,
+        filterToDelete,
+      )
 
       conditionToDelete.conditions = conditionToDelete.conditions.filter((f) => f.id !== filterToDelete.id)
       if (params.fk_parent_id) {
@@ -636,9 +651,17 @@ export function useViewRowColorOption(params: {
       }
 
       await pushPendingAction(async () => {
-        const filterToCreate = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
+        const filterToCreate = stripFilterApiBody({
+          ...filter,
+          fk_parent_id: parentFilter?.id ?? filter.fk_parent_id,
+        })
         // Don't delete children - Filter.insert supports children directly
-        const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, filterToCreate)
+        const result = await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          { operation: 'rowColorConditionsFilterCreate', rowColorConditionId: conditionToAdd.id },
+          filterToCreate,
+        )
         filter.id = result.id
       })
 
@@ -690,8 +713,16 @@ export function useViewRowColorOption(params: {
       }
 
       await pushPendingAction(async () => {
-        const toInsert = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
-        const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, toInsert)
+        const toInsert = stripFilterApiBody({
+          ...filter,
+          fk_parent_id: parentFilter?.id ?? filter.fk_parent_id,
+        })
+        const result = await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          { operation: 'rowColorConditionsFilterCreate', rowColorConditionId: conditionToAdd.id },
+          toInsert,
+        )
         filter.id = result.id
       })
 
@@ -712,7 +743,7 @@ export function useViewRowColorOption(params: {
     await popPendingAction()
 
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
-    const conditionToCopy = conditions[index] ? clone(conditions[index]!) : null
+    const conditionToCopy = conditions[index] ? deepClone(conditions[index]!) : null
 
     if (!conditionToCopy) {
       isLoadingFilter.value = false
@@ -782,15 +813,17 @@ export function useViewRowColorOption(params: {
       if (copiedCondition.nestedConditions && copiedCondition.nestedConditions.length > 0) {
         copiedCondition.nestedConditions = await Promise.all(
           copiedCondition.nestedConditions.map(async (filter: any) => {
-            const filterToCreate: any = {
+            const filterToCreate: any = stripFilterApiBody({
               ...filter,
               fk_row_color_condition_id: copiedCondition.id,
-            }
-            delete filterToCreate.id
+              id: undefined,
+            })
 
             // Create filter - Filter.insert supports children directly
-            const createdFilter = await $api.rowColorConditions.rowColorConditionsFilterCreate(
-              copiedCondition.id!,
+            const createdFilter = await $api.internal.postOperation(
+              params.view.value.fk_workspace_id!,
+              params.view.value.base_id!,
+              { operation: 'rowColorConditionsFilterCreate', rowColorConditionId: copiedCondition.id! },
               filterToCreate,
             )
 

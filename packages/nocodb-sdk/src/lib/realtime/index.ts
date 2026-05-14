@@ -26,6 +26,7 @@ export enum EventType {
   CHAT_EVENT = 'event-chat',
   DOCUMENT_EVENT = 'event-document',
   DOCUMENT_COMMENT_EVENT = 'event-document-comment',
+  SMART_TEXT_EVENT = 'event-smart-text',
 }
 
 export interface BaseSocketPayload {
@@ -70,6 +71,16 @@ export interface DocumentCommentPayload extends BaseSocketPayload {
   payload: Record<string, any>;
 }
 
+export interface SmartTextPayload extends BaseSocketPayload {
+  tableId: string;
+  columnId: string;
+  rowId: string;
+  action: 'update';
+  pm: Record<string, any> | null;
+  md: string | null;
+  mdHash: string | null;
+}
+
 export interface MetaPayload<T = any> extends BaseSocketPayload {
   action:
     | 'source_create'
@@ -91,6 +102,9 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'filter_create'
     | 'filter_update'
     | 'filter_delete'
+    | 'hook_create'
+    | 'hook_update'
+    | 'hook_delete'
     | 'sort_create'
     | 'sort_update'
     | 'sort_delete'
@@ -104,7 +118,13 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'rls_policy_update'
     | 'document_permission_update'
     | 'date_dependency_update'
-    | 'date_dependency_delete';
+    | 'date_dependency_delete'
+    | 'view_section_create'
+    | 'view_section_update'
+    | 'view_section_delete'
+    | 'record_template_create'
+    | 'record_template_update'
+    | 'record_template_delete';
   payload: T;
   baseId?: string;
 }
@@ -254,7 +274,8 @@ export type SocketEventPayload =
   | DocumentCommentPayload
   | NotificationPayload
   | PresencePayload
-  | ChatEventPayload;
+  | ChatEventPayload
+  | SmartTextPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
@@ -268,6 +289,7 @@ export type SocketEventPayloadMap = {
   [EventType.DOCUMENT_COMMENT_EVENT]: DocumentCommentPayload;
   [EventType.PRESENCE_EVENT]: PresencePayload;
   [EventType.CHAT_EVENT]: ChatEventPayload;
+  [EventType.SMART_TEXT_EVENT]: SmartTextPayload;
   [key: string]: BaseSocketPayload;
 };
 

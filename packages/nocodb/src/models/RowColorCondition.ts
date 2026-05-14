@@ -1,9 +1,11 @@
 import { Logger } from '@nestjs/common';
 import { NcBaseError } from 'nocodb-sdk';
-import type { NcContext } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
 import { MetaTable } from '~/cli';
+import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
+import { isReplay } from '~/helpers/replayScope';
 
 export interface IRowColorCondition {
   id: string;
@@ -30,6 +32,37 @@ export default class RowColorCondition implements IRowColorCondition {
 
   constructor(data: RowColorCondition) {
     Object.assign(this, data);
+  }
+
+  static async insert(
+    context: NcContext,
+    condition: Partial<IRowColorCondition>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const insertObj = extractProps(condition, [
+      'fk_view_id',
+      'fk_workspace_id',
+      'base_id',
+      'color',
+      'nc_order',
+      'is_set_as_background',
+      'type',
+      'fk_target_column_id',
+    ]) as Partial<IRowColorCondition>;
+
+    if (isReplay() && condition.id) {
+      (insertObj as Partial<IRowColorCondition> & { id?: string }).id =
+        condition.id;
+    }
+
+    const row = await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.ROW_COLOR_CONDITIONS,
+      insertObj,
+    );
+
+    return new RowColorCondition(row);
   }
 
   static async getById(context: NcContext, id: string, ncMeta = Noco.ncMeta) {

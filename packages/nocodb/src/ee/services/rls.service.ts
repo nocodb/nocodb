@@ -7,7 +7,7 @@ import {
 } from 'nocodb-sdk';
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import NocoSocket from '~/ee/socket/NocoSocket';
 import Filter from '~/models/Filter';
@@ -17,6 +17,9 @@ import { Model, View } from '~/models';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { checkForFeature, checkLimit } from '~/helpers/paymentHelpers';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
+import { isReplay } from '~/helpers/replayScope';
 @Injectable()
 export class RlsService {
   protected logger: Logger = new Logger(RlsService.name);
@@ -83,6 +86,7 @@ export class RlsService {
     return { ...policy, filters };
   }
 
+  @TraceCommand(OperationName.rlsPolicyCreate)
   async createPolicy(
     context: NcContext,
     param: {
@@ -95,16 +99,20 @@ export class RlsService {
         subjects?: RlsPolicySubjectType[];
         filters?: any[];
       };
-      userId: string;
       req: NcRequest;
     },
   ) {
-    const { body, userId, req } = param;
+    const { body, req } = param;
+    const userId = req.user?.id;
 
     await assertNotSandbox(context);
 
     // Check if RLS feature is available on the workspace plan
     await checkForFeature(context, PlanFeatureTypes.FEATURE_RLS);
+
+    if (!body.fk_model_id) {
+      NcError.get(context).requiredFieldMissing('fk_model_id');
+    }
 
     // Check per-table RLS policy limit
     if (!body.is_default) {
@@ -136,9 +144,7 @@ export class RlsService {
 
     // Create the policy
     const policy = await RlsPolicy.insert(context, {
-      ...(context?.additionalContext?.is_replay && body.id
-        ? { id: body.id }
-        : {}),
+      ...(isReplay() && body.id ? { id: body.id } : {}),
       base_id: context.base_id,
       fk_model_id: body.fk_model_id,
       title: body.title || (body.is_default ? 'Default Policy' : 'New Policy'),
@@ -172,13 +178,20 @@ export class RlsService {
 
     await this.syncRlsEnabledMeta(context, body.fk_model_id);
 
+    const fullPolicy = await this.getPolicy(context, { policyId: policy.id });
+
     NocoSocket.broadcastEvent(
       context,
       {
         event: EventType.META_EVENT,
         payload: {
           action: 'rls_policy_update',
-          payload: { tableId: body.fk_model_id, base_id: context.base_id },
+          payload: {
+            tableId: body.fk_model_id,
+            base_id: context.base_id,
+            op: 'create',
+            policy: fullPolicy,
+          },
         },
       },
       context.socket_id,
@@ -198,9 +211,10 @@ export class RlsService {
       this.logger.error('Failed to resubscribe sockets after policy create', e);
     });
 
-    return this.getPolicy(context, { policyId: policy.id });
+    return fullPolicy;
   }
 
+  @TraceCommand(OperationName.rlsPolicyUpdate)
   async updatePolicy(
     context: NcContext,
     param: {
@@ -211,11 +225,11 @@ export class RlsService {
         default_behavior?: RlsDefaultBehavior;
         order?: number;
       };
-      userId: string;
       req: NcRequest;
     },
   ) {
-    const { body, userId, req } = param;
+    const { body, req } = param;
+    const userId = req.user?.id;
 
     await assertNotSandbox(context);
 
@@ -238,6 +252,8 @@ export class RlsService {
 
     await this.syncRlsEnabledMeta(context, policy.fk_model_id);
 
+    const updatedPolicy = await this.getPolicy(context, { policyId: body.id });
+
     NocoSocket.broadcastEvent(
       context,
       {
@@ -247,6 +263,8 @@ export class RlsService {
           payload: {
             tableId: policy.fk_model_id,
             base_id: context.base_id,
+            op: 'update',
+            policy: updatedPolicy,
           },
         },
       },
@@ -266,18 +284,19 @@ export class RlsService {
       this.logger.error('Failed to resubscribe sockets after policy update', e);
     });
 
-    return this.getPolicy(context, { policyId: body.id });
+    return updatedPolicy;
   }
 
+  @TraceCommand(OperationName.rlsPolicyDelete)
   async deletePolicy(
     context: NcContext,
     param: {
       policyId: string;
-      userId: string;
       req: NcRequest;
     },
   ) {
-    const { policyId, userId, req } = param;
+    const { policyId, req } = param;
+    const userId = req.user?.id;
 
     await assertNotSandbox(context);
 
@@ -308,6 +327,8 @@ export class RlsService {
           payload: {
             tableId: policy.fk_model_id,
             base_id: context.base_id,
+            op: 'delete',
+            policyId,
           },
         },
       },
@@ -330,16 +351,17 @@ export class RlsService {
     return { success: true };
   }
 
+  @TraceCommand(OperationName.rlsPolicySetSubjects)
   async setSubjects(
     context: NcContext,
     param: {
       policyId: string;
       subjects: RlsPolicySubjectType[];
-      userId: string;
       req: NcRequest;
     },
   ) {
-    const { policyId, subjects, userId, req } = param;
+    const { policyId, subjects, req } = param;
+    const userId = req.user?.id;
 
     await assertNotSandbox(context);
 
@@ -359,6 +381,25 @@ export class RlsService {
     await RlsPolicy.clearModelCache(context, policy.fk_model_id);
     await View.clearSingleQueryCache(context, policy.fk_model_id);
 
+    const updatedPolicy = await this.getPolicy(context, { policyId });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'rls_policy_update',
+          payload: {
+            tableId: policy.fk_model_id,
+            base_id: context.base_id,
+            op: 'update',
+            policy: updatedPolicy,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
     this.appHooksService.emit(AppEvents.RLS_POLICY_UPDATE, {
       context,
       userId,
@@ -375,6 +416,6 @@ export class RlsService {
       );
     });
 
-    return this.getPolicy(context, { policyId });
+    return updatedPolicy;
   }
 }

@@ -49,9 +49,9 @@ export class ViewRowColorV3Service {
         ).withViewId(view.id)
       ).forUpdate();
 
-    await this.viewRowColorService.removeRowColorInfo({
-      context,
+    await this.viewRowColorService.removeRowColorInfo(context, {
       fk_view_id: viewId,
+      req: params.req,
       ncMeta,
       viewWebhookManager,
     });
@@ -69,11 +69,11 @@ export class ViewRowColorV3Service {
       if (!body.field_id) {
         NcError.get(context).requiredFieldMissing('field_id');
       }
-      await this.viewRowColorService.setRowColoringSelect({
-        context,
+      await this.viewRowColorService.setRowColoringSelect(context, {
         fk_column_id: body.field_id,
         is_set_as_background: body.apply_as_row_background,
         fk_view_id: viewId,
+        req: params.req,
         viewWebhookManager,
         ncMeta,
       });
@@ -111,12 +111,14 @@ export class ViewRowColorV3Service {
           NcError.get(context).requiredFieldMissing('color');
         }
         const rowColorCondition =
-          await this.viewRowColorService.addRowColoringCondition({
-            context,
-            color: condition.color,
-            is_set_as_background: condition.apply_as_row_background ?? false,
-            nc_order: i++,
+          await this.viewRowColorService.addRowColoringCondition(context, {
             fk_view_id: params.viewId,
+            condition: {
+              color: condition.color,
+              is_set_as_background: condition.apply_as_row_background ?? false,
+              nc_order: i++,
+            },
+            req: params.req,
             viewWebhookManager: params.viewWebhookManager,
             ncMeta,
           });

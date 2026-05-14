@@ -24,6 +24,7 @@ import { notDeletedXcCondition } from '~/utils/trashUtils';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { CustomUrl, Source } from '~/models';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+import { isReplay } from '~/helpers/replayScope';
 
 const logger = new Logger('Dashboard');
 
@@ -149,7 +150,6 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     ncMeta = Noco.ncMeta,
   ) {
     let insertObj = extractProps(dashboard, [
-      'id',
       'title',
       'description',
       'base_id',
@@ -158,6 +158,11 @@ export default class Dashboard extends DashboardCE implements DashboardType {
       'created_by',
       'owned_by',
     ]);
+
+    // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
+    if (isReplay() && dashboard.id) {
+      insertObj.id = dashboard.id;
+    }
 
     // Preserve order if provided; otherwise calculate next order
     if (insertObj.order === undefined || insertObj.order === null) {

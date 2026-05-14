@@ -29,7 +29,6 @@ import type {
   ReusableParams,
 } from '~/services/columns.service.type';
 import type { NcRequest } from '~/interface/config';
-import type { Source } from '~/models';
 import { OperationName } from '~/command-registry/op-names';
 import { NcContext } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
@@ -40,6 +39,7 @@ import {
   Filter,
   LinkToAnotherRecordColumn,
   Model,
+  Source,
   View,
 } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -63,11 +63,13 @@ import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { ViewRowColorService } from '~/services/view-row-color.service';
+import { ViewColumnsService } from '~/services/view-columns.service';
 import { FiltersService } from '~/services/filters.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import { LinkPlaceholderService } from '~/services/link-placeholder.service';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
+import { ColumnDataBackupHandler } from '~/services/column-data-backup-handler.service';
 import ListViewLevel from '~/models/ListViewLevel';
 import ListViewColumn from '~/models/ListViewColumn';
 
@@ -85,16 +87,20 @@ export class ColumnsService extends ColumnsServiceCE {
     protected readonly linkPlaceholderService: LinkPlaceholderService,
     @Inject(forwardRef(() => BaseTrashService))
     protected readonly baseTrashService: BaseTrashService,
+    protected readonly columnDataBackupHandler: ColumnDataBackupHandler,
+    protected readonly viewColumnsService: ViewColumnsService,
   ) {
     super(
       metaService,
       appHooksService,
       formulaColumnTypeChanger,
-      formulaColumnTypeChanger,
+      viewRowColorService,
       filtersService,
       metaDependencyEventHandler,
       duplicateDetectionService,
       linkPlaceholderService,
+      columnDataBackupHandler,
+      viewColumnsService,
     );
   }
 
@@ -263,14 +269,50 @@ export class ColumnsService extends ColumnsServiceCE {
     return super.columnUpdate(context, param, ncMeta);
   }
 
+  /**
+   * Decide whether to snapshot cell data before a type change. Returns true
+   * only when:
+   *   - the request actually changes `uidt`
+   *   - both old and new types are scalars (virtual types have no backing
+   *     data;
+   *   - the backup driver supports the source dialect (resolution happens
+   *     inside the handler — we only gate on uidt here)
+   *   - the column lives on an internal source (`source.isMeta()`).
+   *     External sources are off-limits: writable ones would have NocoDB
+   *     silently add a sibling column to the customer's DB; readonly ones
+   *     would fail the ALTER and disable undo invisibly.
+   */
+  protected async shouldBackupBeforeTypeChange(
+    context: NcContext,
+    oldColumn: Column<any> | null | undefined,
+    requestColumn: any,
+  ): Promise<boolean> {
+    if (!oldColumn || !requestColumn) return false;
+    const oldUidt = oldColumn.uidt as UITypes | undefined;
+    const newUidt = requestColumn.uidt as UITypes | undefined;
+    if (!oldUidt || !newUidt || oldUidt === newUidt) return false;
+    if (isVirtualCol({ uidt: oldUidt }) || isVirtualCol({ uidt: newUidt })) {
+      return false;
+    }
+    // Service rejects LTAR↔scalar — guard anyway.
+    if (isLinksOrLTAR({ uidt: oldUidt }) || isLinksOrLTAR({ uidt: newUidt })) {
+      return false;
+    }
+    if (!oldColumn.source_id) return false;
+    const source = await Source.get(context, oldColumn.source_id).catch(
+      () => null,
+    );
+    if (!source?.isMeta()) return false;
+    return true;
+  }
+
   @EEOnly()
   @TraceCommand(OperationName.columnDelete)
   async columnDelete(
     context: NcContext,
     param: {
-      req?: any;
+      req: NcRequest;
       columnId: string;
-      user: UserType;
       forceDeleteSystem?: boolean;
       skipLinkPlaceholder?: boolean;
       skipTrash?: boolean;
@@ -325,7 +367,7 @@ export class ColumnsService extends ColumnsServiceCE {
     await this.baseTrashService.trashResource(context, {
       resourceId: param.columnId,
       resourceType: 'field',
-      user: param.user,
+      user: param.req?.user,
       req: param.req,
       ncMeta,
     });
@@ -342,21 +384,36 @@ export class ColumnsService extends ColumnsServiceCE {
     return table;
   }
 
-  // if column is links or ltar, insert filters if passed
+  protected getColumnFilterFkField(
+    columnBody: ColumnReqType,
+  ): 'fk_link_col_id' | 'fk_button_col_id' | null {
+    const uidt = (columnBody as any).uidt;
+    if (uidt === UITypes.Button) return 'fk_button_col_id';
+    if (
+      isLinksOrLTAR(columnBody) ||
+      uidt === UITypes.Lookup ||
+      uidt === UITypes.Rollup
+    ) {
+      return 'fk_link_col_id';
+    }
+    return null;
+  }
+
   protected async postColumnAdd(
     context: NcContext,
     columnBody: ColumnReqType,
     tableMeta: Model,
   ) {
-    if (isLinksOrLTAR(columnBody) && (columnBody as any).filters) {
+    const fkField = this.getColumnFilterFkField(columnBody);
+    if (fkField && (columnBody as any).filters) {
       const insertedColumn = tableMeta.columns.find(
-        (c) => c.title === columnBody.title && isLinksOrLTAR(c),
+        (c) => c.title === columnBody.title,
       );
       for (const filter of (columnBody as any).filters) {
         await Filter.insert(context, {
           ...filter,
           fk_parent_id: null,
-          fk_link_col_id: insertedColumn.id,
+          [fkField]: insertedColumn.id,
           fk_view_id: undefined,
         });
       }
@@ -367,11 +424,37 @@ export class ColumnsService extends ColumnsServiceCE {
     context: NcContext,
     columnBody: ColumnReqType,
   ) {
-    // if column is links or ltar then iterate and update/delete/insert accordingly
-    if (isLinksOrLTAR(columnBody) && (columnBody as any).filters) {
+    // Apply status-tagged filter changes for any filter-bearing column type.
+    const fkField = this.getColumnFilterFkField(columnBody);
+    if (fkField && (columnBody as any).filters) {
       const colId = (columnBody as any).id;
 
       if (!colId) {
+        return;
+      }
+
+      // Undo path: `ColumnUpdateContract.buildInverse` tags the snapshot with
+      // `_replaceFilters` so we wipe the current set and re-insert the prev
+      // tree. `Filter.insert` under `is_replay` honors pre-set IDs, so the
+      // restored rows match the pre-update state byte-for-byte.
+      if ((columnBody as any)._replaceFilters) {
+        const existing =
+          fkField === 'fk_button_col_id'
+            ? await Filter.rootFilterListByButtonColumn(context, {
+                buttonColId: colId,
+              })
+            : await Filter.rootFilterListByLink(context, { columnId: colId });
+        for (const f of existing) {
+          await Filter.delete(context, f.id);
+        }
+        for (const filter of (columnBody as any).filters) {
+          await Filter.insert(context, {
+            ...filter,
+            fk_parent_id: null,
+            [fkField]: colId,
+            fk_view_id: undefined,
+          });
+        }
         return;
       }
 
@@ -383,13 +466,13 @@ export class ColumnsService extends ColumnsServiceCE {
 
             const existingFilter = await Filter.get(context, filter.id);
 
-            if (existingFilter.fk_link_col_id !== colId) {
+            if (existingFilter[fkField] !== colId) {
               NcError.get(context).invalidRequestBody('Filter not found');
             }
             if (filter.status === 'update') {
               await Filter.update(context, filter.id, {
                 ...filter,
-                fk_link_col_id: colId,
+                [fkField]: colId,
                 fk_view_id: undefined,
               });
 
@@ -403,13 +486,13 @@ export class ColumnsService extends ColumnsServiceCE {
             await Filter.insert(context, {
               ...filter,
               fk_parent_id: parentId,
-              fk_link_col_id: colId,
+              [fkField]: colId,
               fk_view_id: undefined,
             });
           } else if (filter.id && filter.children) {
             const existingFilter = await Filter.get(context, filter.id);
 
-            if (existingFilter.fk_link_col_id !== colId) {
+            if (existingFilter[fkField] !== colId) {
               NcError.get(context).invalidRequestBody('Filter not found');
             }
 

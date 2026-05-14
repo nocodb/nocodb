@@ -53,7 +53,6 @@ const { basesList } = storeToRefs(useBases())
 const {
   setAdditionalValidations,
   setAvoidShowingToastMsgForValidations,
-  setPostSaveOrUpdateCbk,
   validateInfos,
   onDataTypeChange,
   sqlUi,
@@ -384,15 +383,14 @@ provide(
   }),
 )
 
-onMounted(() => {
-  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
-    await filterRef.value?.applyChanges(colId || column?.id, false)
-  })
-})
-
-onUnmounted(() => {
-  setPostSaveOrUpdateCbk(null)
-})
+watch(
+  () => filterRef.value?.filters,
+  (next) => {
+    if (!vModel.value) return
+    vModel.value.filters = next ? [...next] : []
+  },
+  { deep: true },
+)
 
 const referenceTableChildId = computed({
   get: () => (isEdit.value ? vModel.value?.colOptions?.fk_related_model_id : vModel.value?.childId) ?? null,

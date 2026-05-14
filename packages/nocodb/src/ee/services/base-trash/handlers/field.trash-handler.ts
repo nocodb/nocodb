@@ -8,7 +8,6 @@ import {
   UITypes,
   WebhookActions,
 } from 'nocodb-sdk';
-import type { UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
 import type { MetaService } from '~/meta/meta.service';
@@ -77,7 +76,6 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
         ctx,
         {
           columnId: id,
-          user: param.user as UserType,
           req: param.req,
           skipTrash: true,
         },
@@ -491,7 +489,6 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
       ctx,
       {
         columnId: trashEntry.resource_id,
-        user: param.user as UserType,
         req: param.req,
         forceDeleteSystem: true,
         skipLinkPlaceholder: true,
@@ -556,7 +553,6 @@ export class FieldTrashHandler extends BaseTrashHandler<Column> {
             ctx,
             {
               columnId: item.placeholder_id,
-              user: param.user as UserType,
               req: param.req,
               forceDeleteSystem: true,
               skipTrash: true,

@@ -2,6 +2,7 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 import init from '../../../../init';
+import { createV3Base } from '~test/factory/base';
 import { Base, Model, Sandbox, SandboxChangelog } from '~/models';
 import { QueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 
@@ -32,19 +33,6 @@ async function v3Post(
     .post(path)
     .set('xc-token', context.xc_token)
     .send(body);
-}
-
-async function createV3Base(context: Context, title: string) {
-  const res = await request(context.app)
-    .post('/api/v1/db/meta/projects/')
-    .set('xc-auth', context.token)
-    .send({
-      title,
-      version: 3,
-      ...(process.env.EE ? { fk_workspace_id: context.fk_workspace_id } : {}),
-    });
-  expect(res.status).to.eq(200);
-  return res.body;
 }
 
 async function realSandboxCreate(
@@ -287,8 +275,8 @@ export function sandboxMergeSelectiveTests() {
       const pendingNames = pending.map(getCommandName);
       expect(
         pendingNames,
-        'unrelated tableCreate still pending after selective merge',
-      ).to.include('tableCreate');
+        'unrelated tableV3Create still pending after selective merge',
+      ).to.include('tableV3Create');
     });
 
     it('4.3: filter-only selection auto-includes parent view AND table transitively', async () => {
@@ -385,7 +373,7 @@ export function sandboxMergeSelectiveTests() {
 
       const tEntry = await findEntryByCommand(
         sandboxBaseId,
-        'tableCreate',
+        'tableV3Create',
         (e) => e.entity_id === tableId,
       );
 

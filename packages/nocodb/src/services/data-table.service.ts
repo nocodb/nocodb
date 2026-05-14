@@ -11,11 +11,13 @@ import { validatePayload } from 'src/helpers';
 import { NcApiVersion } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
 import { Column, Filter, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -134,6 +136,11 @@ export class DataTableService {
     return data;
   }
 
+  @TraceCommand((_ctx, p) =>
+    Array.isArray(p?.body)
+      ? OperationName.recordBulkInsert
+      : OperationName.recordInsert,
+  )
   async dataInsert(
     context: NcContext,
     param: {
@@ -149,6 +156,7 @@ export class DataTableService {
         skipHooks?: boolean;
       };
       user?: any;
+      req?: NcRequest;
     },
   ) {
     validateV1V2DataPayloadLimit(context, param);
@@ -180,6 +188,7 @@ export class DataTableService {
     return Array.isArray(param.body) ? result : result[0];
   }
 
+  @TraceCommand(OperationName.recordMove)
   async dataMove(
     context: NcContext,
     param: {
@@ -210,6 +219,11 @@ export class DataTableService {
     return true;
   }
 
+  @TraceCommand((_ctx, p) =>
+    Array.isArray(p?.body) && (p.body as any[]).length > 1
+      ? OperationName.recordBulkUpdate
+      : OperationName.recordUpdate,
+  )
   async dataUpdate(
     context: NcContext,
     param: {
@@ -261,6 +275,11 @@ export class DataTableService {
     return result;
   }
 
+  @TraceCommand((_ctx, p) =>
+    Array.isArray(p?.body) && (p.body as any[]).length > 1
+      ? OperationName.recordBulkDelete
+      : OperationName.recordDelete,
+  )
   async dataDelete(
     context: NcContext,
     param: {
@@ -589,6 +608,7 @@ export class DataTableService {
     return column;
   }
 
+  @TraceCommand(OperationName.recordLinkAdd)
   async nestedLink(
     context: NcContext,
     param: {
@@ -633,6 +653,7 @@ export class DataTableService {
     return true;
   }
 
+  @TraceCommand(OperationName.recordLinkRemove)
   async nestedUnlink(
     context: NcContext,
     param: {
@@ -691,6 +712,51 @@ export class DataTableService {
       user?: any;
     },
   ) {
+    const { swapEntry, feResponse } =
+      await this.computeListCopyPasteOrDeleteAllDiff(context, param);
+
+    if (swapEntry) {
+      await this._traceApplyLinkSwap(context, {
+        modelId: param.modelId,
+        viewId: param.viewId,
+        columnId: swapEntry.columnId,
+        rowId: swapEntry.rowId,
+        link: swapEntry.link,
+        unlink: swapEntry.unlink,
+        cookie: param.cookie,
+      });
+    }
+    return feResponse;
+  }
+
+  /** Resolves the link/unlink diff for a single LTAR copy/paste/deleteAll
+   *  request without applying it. Used directly by the bulk path so a
+   *  multi-column paste records as a single `recordLinkSwapBulk` op
+   *  instead of one `recordLinkSwap` per column. */
+  private async computeListCopyPasteOrDeleteAllDiff(
+    context: NcContext,
+    param: {
+      viewId: string;
+      modelId: string;
+      columnId: string;
+      query: any;
+      data: {
+        operation: 'copy' | 'paste' | 'deleteAll';
+        rowId: string;
+        columnId: string;
+        fk_related_model_id: string;
+      }[];
+      user?: any;
+    },
+  ): Promise<{
+    swapEntry: {
+      columnId: string;
+      rowId: string;
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+    } | null;
+    feResponse: { link: any[]; unlink: any[] } | undefined;
+  }> {
     validatePayload(
       'swagger.json#/components/schemas/nestedListCopyPasteOrDeleteAllReq',
       param.data,
@@ -723,9 +789,7 @@ export class DataTableService {
     }
 
     const { model, view } = await this.getModelAndView(context, param);
-
     const source = await Source.get(context, model.source_id);
-
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -764,7 +828,9 @@ export class DataTableService {
     const relatedModel = await colOptions.getRelatedTable(refContext);
     await relatedModel.getColumns(refContext);
 
-    if (!colOptions.fk_mm_model_id) return;
+    if (!colOptions.fk_mm_model_id) {
+      return { swapEntry: null, feResponse: undefined };
+    }
 
     const { dependencyFields } = await getAst(refContext, {
       model: relatedModel,
@@ -775,17 +841,15 @@ export class DataTableService {
     });
 
     const listArgs: any = dependencyFields;
-
     try {
       listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
     } catch (e) {}
-
     try {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
     if (operationMap.deleteAll) {
-      let deleteCellNestedList = await baseModel.mmList(
+      const deleteCellNestedList = await baseModel.mmList(
         {
           colId: column.id,
           parentId: operationMap.deleteAll.rowId,
@@ -794,30 +858,45 @@ export class DataTableService {
         true,
       );
 
-      if (deleteCellNestedList && Array.isArray(deleteCellNestedList)) {
-        await baseModel.removeLinks({
-          colId: column.id,
-          childIds: deleteCellNestedList.map((nestedList) =>
-            dataWrapper(nestedList).extractPksValue(relatedModel),
-          ),
-          rowId: operationMap.deleteAll.rowId,
-          cookie: param.cookie,
-        });
-
-        // extract only pk row data
-        deleteCellNestedList = deleteCellNestedList.map((nestedList) => {
-          return relatedModel.primaryKeys.reduce((acc, col) => {
-            acc[col.title || col.column_name] =
-              nestedList[col.title || col.column_name];
-            return acc;
-          }, {});
-        });
-      } else {
-        deleteCellNestedList = [];
+      if (
+        !Array.isArray(deleteCellNestedList) ||
+        !deleteCellNestedList.length
+      ) {
+        return { swapEntry: null, feResponse: { link: [], unlink: [] } };
       }
 
-      return { link: [], unlink: deleteCellNestedList };
-    } else if (operationMap.copy && operationMap.paste) {
+      const childPks = deleteCellNestedList
+        .map(
+          (nestedList) =>
+            dataWrapper(nestedList).extractPksValue(relatedModel) as
+              | string
+              | number
+              | null,
+        )
+        .filter((v): v is string | number => v != null);
+
+      const unlinkRowsForReturn = deleteCellNestedList.map((nestedList) =>
+        relatedModel.primaryKeys.reduce((acc, col) => {
+          acc[col.title || col.column_name] =
+            nestedList[col.title || col.column_name];
+          return acc;
+        }, {} as Record<string, any>),
+      );
+
+      return {
+        swapEntry: childPks.length
+          ? {
+              columnId: column.id,
+              rowId: operationMap.deleteAll.rowId,
+              link: [],
+              unlink: childPks,
+            }
+          : null,
+        feResponse: { link: [], unlink: unlinkRowsForReturn },
+      };
+    }
+
+    if (operationMap.copy && operationMap.paste) {
       const [copiedCellNestedList, pasteCellNestedList] = await Promise.all([
         baseModel.mmList(
           {
@@ -837,37 +916,149 @@ export class DataTableService {
         ),
       ]);
 
-      const filteredRowsToLink = this.filterAndMapRows(
+      const link = this.filterAndMapRows(
         copiedCellNestedList,
         pasteCellNestedList,
         relatedModel,
-      );
-
-      const filteredRowsToUnlink = this.filterAndMapRows(
+      ) as Array<string | number>;
+      const unlink = this.filterAndMapRows(
         pasteCellNestedList,
         copiedCellNestedList,
         relatedModel,
-      );
+      ) as Array<string | number>;
 
-      if (filteredRowsToUnlink.length) {
-        await baseModel.removeLinks({
-          colId: column.id,
-          childIds: filteredRowsToUnlink,
-          rowId: operationMap.paste.rowId,
-          cookie: param.cookie,
-        });
-      }
-      if (filteredRowsToLink.length) {
-        await baseModel.addLinks({
-          colId: column.id,
-          childIds: filteredRowsToLink,
-          rowId: operationMap.paste.rowId,
-          cookie: param.cookie,
-        });
-      }
-
-      return { link: filteredRowsToLink, unlink: filteredRowsToUnlink };
+      return {
+        swapEntry:
+          link.length || unlink.length
+            ? {
+                columnId: column.id,
+                rowId: operationMap.paste.rowId,
+                link,
+                unlink,
+              }
+            : null,
+        feResponse: { link, unlink },
+      };
     }
+
+    return { swapEntry: null, feResponse: { link: [], unlink: [] } };
+  }
+
+  /** Decorated internal substrate for `recordLinkSwap`. Receives a
+   *  resolved `(rowId, columnId)` link diff (link[] = pks to add,
+   *  unlink[] = pks to remove) and applies it via `removeLinks` then
+   *  `addLinks`. Self-inverse — undo dispatches the same op with the
+   *  link/unlink lists swapped. Higher-level user-facing methods
+   *  (`nestedListCopyPasteOrDeleteAll` etc.) compute the diff first
+   *  then funnel through here so the recorded op carries the resolved
+   *  pks (replay can't drift). */
+  @TraceCommand(OperationName.recordLinkSwap)
+  async _traceApplyLinkSwap(
+    context: NcContext,
+    param: {
+      modelId: string;
+      baseId?: string;
+      viewId?: string;
+      columnId: string;
+      rowId: string | number;
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+      cookie: any;
+    },
+  ): Promise<{ link: Array<string | number>; unlink: Array<string | number> }> {
+    if (!param.link.length && !param.unlink.length) {
+      return { link: [], unlink: [] };
+    }
+    const { model, view } = await this.getModelAndView(context, param);
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+    if (param.unlink.length) {
+      await baseModel.removeLinks({
+        colId: param.columnId,
+        childIds: param.unlink,
+        rowId: String(param.rowId),
+        cookie: param.cookie,
+      });
+    }
+    if (param.link.length) {
+      await baseModel.addLinks({
+        colId: param.columnId,
+        childIds: param.link,
+        rowId: String(param.rowId),
+        cookie: param.cookie,
+      });
+    }
+    return { link: param.link, unlink: param.unlink };
+  }
+
+  /** Decorated bulk variant for `recordLinkSwapBulk` — applies multiple
+   *  per-(rowId, columnId) diffs in a single recorded op. */
+  @TraceCommand(OperationName.recordLinkSwapBulk)
+  async _traceApplyLinkSwapBulk(
+    context: NcContext,
+    param: {
+      modelId: string;
+      baseId?: string;
+      viewId?: string;
+      entries: Array<{
+        columnId: string;
+        rowId: string | number;
+        link: Array<string | number>;
+        unlink: Array<string | number>;
+      }>;
+      cookie: any;
+    },
+  ): Promise<
+    Array<{ link: Array<string | number>; unlink: Array<string | number> }>
+  > {
+    const out: Array<{
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+    }> = [];
+    // Inner per-entry calls auto-skip recording via ALS re-entrancy —
+    // only this outer bulk op records.
+    for (const entry of param.entries) {
+      const r = await this._traceApplyLinkSwap(context, {
+        modelId: param.modelId,
+        baseId: param.baseId,
+        viewId: param.viewId,
+        columnId: entry.columnId,
+        rowId: entry.rowId,
+        link: entry.link,
+        unlink: entry.unlink,
+        cookie: param.cookie,
+      });
+      out.push(r);
+    }
+    return out;
+  }
+
+  /** Decorated bulk-link-by-display-value substrate. Same shape as
+   *  `_traceApplyLinkSwapBulk` (entries[] of resolved pk diffs) — kept
+   *  as a separate op so audit/UI can distinguish the two flows. */
+  @TraceCommand(OperationName.recordLinkByDisplay)
+  async _traceApplyLinkByDisplay(
+    context: NcContext,
+    param: {
+      modelId: string;
+      baseId?: string;
+      viewId?: string;
+      entries: Array<{
+        columnId: string;
+        rowId: string | number;
+        link: Array<string | number>;
+        unlink: Array<string | number>;
+      }>;
+      cookie: any;
+    },
+  ): Promise<
+    Array<{ link: Array<string | number>; unlink: Array<string | number> }>
+  > {
+    return await this._traceApplyLinkSwapBulk(context, param);
   }
 
   async nestedListBulkCopyPasteOrDeleteAll(
@@ -894,6 +1085,12 @@ export class DataTableService {
     }
 
     const results: { link: any[]; unlink: any[] }[] = [];
+    const swapEntries: Array<{
+      columnId: string;
+      rowId: string | number;
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+    }> = [];
 
     for (const entry of param.data) {
       if (!entry.columnId || !Array.isArray(entry.data)) {
@@ -902,13 +1099,24 @@ export class DataTableService {
         );
       }
 
-      const result = await this.nestedListCopyPasteOrDeleteAll(context, {
-        ...param,
-        columnId: entry.columnId,
-        data: entry.data,
-      });
+      const { swapEntry, feResponse } =
+        await this.computeListCopyPasteOrDeleteAllDiff(context, {
+          ...param,
+          columnId: entry.columnId,
+          data: entry.data,
+        });
 
-      results.push(result ?? { link: [], unlink: [] });
+      if (swapEntry) swapEntries.push(swapEntry);
+      results.push(feResponse ?? { link: [], unlink: [] });
+    }
+
+    if (swapEntries.length) {
+      await this._traceApplyLinkSwapBulk(context, {
+        modelId: param.modelId,
+        viewId: param.viewId,
+        entries: swapEntries,
+        cookie: param.cookie,
+      });
     }
 
     return results;
@@ -949,6 +1157,17 @@ export class DataTableService {
       param.data.length,
     );
 
+    // Accumulate per-entry resolved diffs across all column groups, then
+    // funnel through `_traceApplyLinkByDisplay` ONCE so the whole bulk
+    // op records as a single `recordLinkByDisplay` log entry. Inverse
+    // is mechanical link↔unlink swap per entry.
+    const linkSwapEntries: Array<{
+      columnId: string;
+      rowId: string | number;
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+    }> = [];
+
     for (const [columnId, entries] of groups) {
       const groupCtx = await this.resolveColumnGroupContext(
         context,
@@ -979,16 +1198,25 @@ export class DataTableService {
         listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
       } catch (e) {}
 
-      await this.diffAndApplyLinks(
+      await this.collectLinkDiffsForGroup(
         context,
         baseModel,
         groupCtx,
         entries,
         valueToPk,
         listArgs,
-        param.cookie,
         results,
+        linkSwapEntries,
       );
+    }
+
+    if (linkSwapEntries.length) {
+      await this._traceApplyLinkByDisplay(context, {
+        modelId: param.modelId,
+        viewId: param.viewId,
+        entries: linkSwapEntries,
+        cookie: param.cookie,
+      });
     }
 
     return results;
@@ -1204,13 +1432,14 @@ export class DataTableService {
     return valueToPk;
   }
 
-  /**
-   * For each entry in a column group: verifies the parent row exists,
-   * translates display values to PKs via the pre-built map, fetches existing
-   * links, computes the diff (toLink / toUnlink), and applies add/remove
-   * operations. Writes results back into the shared results array by index.
-   */
-  private async diffAndApplyLinks(
+  /** For each entry in the column group: verifies the parent row exists,
+   *  resolves display values to PKs via the pre-built map, computes the
+   *  link/unlink diff against existing links, and writes the result into
+   *  `results[index]`. Diffs are pushed onto `linkSwapEntries` so the
+   *  caller can dispatch the whole bulk op as a single
+   *  `recordLinkByDisplay` log entry — this function does NOT call
+   *  `addLinks`/`removeLinks`. */
+  private async collectLinkDiffsForGroup(
     context: NcContext,
     baseModel: Awaited<ReturnType<typeof Model.getBaseModelSQL>>,
     groupCtx: NonNullable<
@@ -1222,8 +1451,13 @@ export class DataTableService {
     }[],
     valueToPk: Map<string, string | number>,
     listArgs: any,
-    cookie: any,
     results: { link: any[]; unlink: any[] }[],
+    linkSwapEntries: Array<{
+      columnId: string;
+      rowId: string | number;
+      link: Array<string | number>;
+      unlink: Array<string | number>;
+    }>,
   ) {
     const { column, relatedModel, isSingleLink } = groupCtx;
 
@@ -1270,25 +1504,16 @@ export class DataTableService {
       const toLink = pksToLink.filter((pk) => !existingPkSet.has(String(pk)));
       const toUnlink = existingPks.filter((pk) => !newPkSet.has(String(pk)));
 
-      if (toUnlink.length) {
-        await baseModel.removeLinks({
-          colId: column.id,
-          childIds: toUnlink,
-          rowId: entry.rowId,
-          cookie,
-        });
-      }
-
-      if (toLink.length) {
-        await baseModel.addLinks({
-          colId: column.id,
-          childIds: toLink,
-          rowId: entry.rowId,
-          cookie,
-        });
-      }
-
       results[index] = { link: toLink, unlink: toUnlink };
+
+      if (toLink.length || toUnlink.length) {
+        linkSwapEntries.push({
+          columnId: column.id,
+          rowId: entry.rowId,
+          link: toLink,
+          unlink: toUnlink,
+        });
+      }
     }
   }
 

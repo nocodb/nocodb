@@ -13,6 +13,7 @@ import {
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { Filter } from '~/models';
+import { isReplay } from '~/helpers/replayScope';
 export default class Widget extends WidgetCE implements IWidget {
   id?: string;
   title: string;
@@ -153,7 +154,6 @@ export default class Widget extends WidgetCE implements IWidget {
     ncMeta = Noco.ncMeta,
   ): Promise<Widget> {
     let insertObj = extractProps(widget, [
-      'id',
       'title',
       'description',
       'fk_dashboard_id',
@@ -165,6 +165,11 @@ export default class Widget extends WidgetCE implements IWidget {
       'fk_view_id',
       'error',
     ]);
+
+    // Replay-only: preserve sandbox / undo-redo entity ID for idempotent merge.
+    if (isReplay() && widget.id) {
+      insertObj.id = widget.id;
+    }
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.WIDGETS, {
       fk_dashboard_id: widget.fk_dashboard_id,

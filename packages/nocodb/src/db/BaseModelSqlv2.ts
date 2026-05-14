@@ -158,6 +158,11 @@ import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { isTransientError } from '~/helpers/db-error/utils';
+import {
+  captureForTrace,
+  isTraceActive,
+} from '~/decorators/trace-command.decorator';
+import { isReplay } from '~/helpers/replayScope';
 
 const debugCount = debug('nc:db:query:basemodel:count');
 
@@ -2996,10 +3001,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         cnt = +(
           await this.execAndParse(
             this.dbDriver(mmTn)
-              .where(
-                `${mmTn}.${mmChildColumn.column_name}`,
-                rowId,
-              )
+              .where(`${mmTn}.${mmChildColumn.column_name}`, rowId)
               .count(mmChildColumn.column_name, { as: 'cnt' }),
             null,
             { first: true },
@@ -3038,6 +3040,30 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       NcError.get(this.context).recordNotFound(rowId);
     }
 
+    const orderCol = columns.find((c) => c.uidt === UITypes.Order);
+
+    if (isTraceActive() && orderCol && this.model.primaryKeys?.length) {
+      const currentOrder = (row as any)?.[orderCol.title];
+      if (currentOrder != null) {
+        const nextQuery = this.dbDriver(this.tnPath)
+          .select(...this.model.primaryKeys.map((c) => c.column_name))
+          .where(orderCol.column_name, '>', currentOrder)
+          .orderBy(orderCol.column_name, 'asc')
+          .limit(1)
+          .toQuery();
+        const next = (await this.execAndParse(nextQuery, null, {
+          raw: true,
+          first: true,
+        })) as Record<string, any> | undefined;
+        captureForTrace('movePrev', {
+          pk: rowId,
+          beforeRowId: next
+            ? (this.extractPksValues(next, true) as string)
+            : null,
+        });
+      }
+    }
+
     const newRecordOrder = (
       await this.getUniqueOrdersBeforeItem(beforeRowId, 1)
     )[0];
@@ -3050,7 +3076,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       .where(await this._wherePk(rowId));
   }
 
-  async updateByPk(id, data, trx?, cookie?, _disableOptimization = false) {
+  async updateByPk(
+    id,
+    data,
+    trx?,
+    cookie?,
+    _disableOptimization = false,
+    { typecast = false }: { typecast?: boolean } = {},
+  ) {
     try {
       const columns = await this.model.getColumns(this.context);
 
@@ -3062,7 +3095,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         columns,
       );
 
-      await this.validate(data, columns);
+      await this.validate(data, columns, { typecast });
 
       await this.beforeUpdate(data, cookie);
 
@@ -3255,6 +3288,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         postInsertAuditEntries,
         // eslint-disable-next-line prefer-const
         postInsertLastModifiedEntries,
+        // eslint-disable-next-line prefer-const
+        displacedRecords,
       } = await this.prepareNestedLinkQb({
         nestedCols,
         data,
@@ -3289,7 +3324,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         undo: param?.undo,
       });
 
-      await this.runOps(preInsertOps.map((f) => f()));
+      // Cap in-flight preInsertOps so many nested LTAR capture SELECTs
+      // don't saturate the knex pool. Mutating closures only build
+      // .toQuery() strings (no connection), so the cap mainly limits
+      // the capture-SELECT side. Resolved strings are handed back to
+      // runOps to keep its serial UPDATE/DELETE walk.
+      const preInsertResolved = await processConcurrently(
+        preInsertOps,
+        (f) => f(),
+        5,
+      );
+      await this.runOps(preInsertResolved.map((s) => Promise.resolve(s)));
+
+      // Deposit displacement capture for the trace decorator.
+      // `displacedRecords` was populated by capture-ops in
+      // preInsertOps (SELECTs ran under the concurrency cap above,
+      // before runOps walked the resulting UPDATE/DELETE strings serially).
+      // Skipped under replay — replay reads from meta.extra, doesn't
+      // re-capture.
+      if (displacedRecords.length > 0 && !isReplay()) {
+        captureForTrace('displacedRecords', displacedRecords);
+      }
 
       let response;
       const query = this.dbDriver(this.tnPath).insert(insertObj);
@@ -3671,6 +3726,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo = false,
       mergeColumns,
       throwOnDuplicate = false,
+      typecast = false,
     }: {
       chunkSize?: number;
       cookie?: any;
@@ -3679,6 +3735,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo?: boolean;
       mergeColumns?: Column[];
       throwOnDuplicate?: boolean;
+      typecast?: boolean;
     } = {},
   ) {
     let trx;
@@ -3693,12 +3750,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
       const agPkCol = this.model.primaryKeys.find((pk) => pk.meta?.ag);
 
-      // validate and prepare data
+      // When `typecast` is true, validate sequentially — missing select
+      // options are added inline via `Column.update`, and concurrent
+      // validates would race on the option-title unique constraint.
+      // Without typecast there's no Column.update, so concurrent is safe.
+      if (!raw && typecast) {
+        for (const d of datas) {
+          await this.validate(d, columns, { typecast });
+        }
+      }
+
       const preparedDatas = raw
         ? datas
         : await Promise.all(
             datas.map(async (d) => {
-              await this.validate(d, columns);
+              if (!typecast) await this.validate(d, columns);
               return this.model.mapAliasToColumn(
                 this.context,
                 d,
@@ -3953,6 +4019,48 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               pks: updatedDatas.map((d) => this.extractPksValues(d)),
             })
           : [];
+
+      // Per-row outcomes for `recordBulkUpsert` undo. mergeColumns
+      // mode is V3-only and not user-undoable. NOT gated on isReplay
+      // — redo's `runInChildTraceScope` relies on this firing inside
+      // the replay scope to rotate fresh `meta.extra.upsertChanges`.
+      if (
+        isTraceActive() &&
+        !mergeColumns?.length &&
+        (toUpdate.length || insertedDataList.length)
+      ) {
+        const upsertChanges: Array<
+          | {
+              kind: 'update';
+              pk: string | number;
+              prev: Record<string, unknown>;
+            }
+          | { kind: 'insert'; pk: string | number }
+        > = [];
+
+        if (toUpdate.length && existingRecords.length) {
+          const prevByPk = new Map<string, Record<string, unknown>>();
+          for (const r of existingRecords) {
+            prevByPk.set(String(this.extractPksValues(r, true)), r);
+          }
+          for (const u of toUpdate) {
+            const pk = this.extractPksValues(u, true);
+            const prev = prevByPk.get(String(pk));
+            if (prev) upsertChanges.push({ kind: 'update', pk, prev });
+          }
+        }
+
+        for (const inserted of insertedDataList) {
+          upsertChanges.push({
+            kind: 'insert',
+            pk: this.extractPksValues(inserted, true),
+          });
+        }
+
+        if (upsertChanges.length) {
+          captureForTrace('upsertChanges', upsertChanges);
+        }
+      }
 
       if (insertedDatas.length === 1) {
         await this.afterInsert({
@@ -4770,10 +4878,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   await colOptions.getParentColumn(parentContext)
                 ).getModel(parentContext);
                 await parentTable.getColumns(parentContext);
-                const mmBaseModel = await Model.getBaseModelSQL(
-                  mmContext,
-                  { model: mmTable, dbDriver: this.dbDriver },
-                );
+                const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+                  model: mmTable,
+                  dbDriver: this.dbDriver,
+                });
                 const parentBaseModel = await Model.getBaseModelSQL(
                   parentContext,
                   { model: parentTable, dbDriver: this.dbDriver },
@@ -4846,7 +4954,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // Collect child IDs before FK nulling
                 bulkLinkedCollectors.push(async (ids) => {
                   const rows = await this.execAndParse(
-                    this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
+                    this.dbDriver(
+                      refBaseModel.getTnPath(relatedTable.table_name),
+                    )
                       .select(relatedTable.primaryKey.column_name)
                       .whereIn(childColumn.column_name, ids),
                     null,
@@ -4948,7 +5058,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                 bulkLinkedCollectors.push(async (ids) => {
                   const rows = await this.execAndParse(
-                    this.dbDriver(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
+                    this.dbDriver(
+                      ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
+                    )
                       .select(ooRelatedTable.primaryKey.column_name)
                       .whereIn(ooChildColumn.column_name, ids),
                     null,
@@ -9287,6 +9399,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (!deletedIds.length) return;
 
     const columns = await this.model.getColumns(this.context);
+    const deletedSet = new Set(deletedIds.map((id) => String(id)));
+    const filterSelfOverlap = <T>(ids: T[], otherModelId: string): T[] =>
+      otherModelId === this.model.id
+        ? ids.filter((id) => !deletedSet.has(String(id)))
+        : ids;
 
     for (const column of columns) {
       if (!isLinksOrLTAR(column)) continue;
@@ -9337,9 +9454,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             null,
             { raw: true },
           );
-          const parentIds = [
-            ...new Set(fkRows.map((r) => r[childColumn.column_name])),
-          ] as string[];
+          const parentIds = filterSelfOverlap(
+            Array.from(
+              new Set(fkRows.map((r) => r[childColumn.column_name])),
+            ) as string[],
+            parentTable.id,
+          );
 
           if (parentIds.length) {
             await parentBaseModel.updateLastModified({
@@ -9390,8 +9510,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             null,
             { raw: true },
           );
-          const linkedIds = linkedRows.map(
-            (r) => r[childTable.primaryKey.column_name],
+          const linkedIds = filterSelfOverlap(
+            linkedRows.map((r) => r[childTable.primaryKey.column_name]),
+            childTable.id,
           );
 
           if (linkedIds.length) {
@@ -9441,7 +9562,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             null,
             { raw: true },
           );
-          const linkedIds = linkedRows.map((r) => r[vParentCol.column_name]);
+          const linkedIds = filterSelfOverlap(
+            linkedRows.map((r) => r[vParentCol.column_name]),
+            parentTable.id,
+          );
 
           if (linkedIds.length) {
             await parentBaseModel.updateLastModified({

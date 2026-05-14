@@ -16,7 +16,9 @@ const tableId = computed(() => props.tableId)
 
 const { t } = useI18n()
 
-const { updatePolicy, setSubjects, isSaving } = useRlsPolicies(base as Ref<BaseType>, tableId)
+const rlsStore = useRlsStore()
+const { isSaving } = storeToRefs(rlsStore)
+const { updatePolicy, setSubjects } = rlsStore
 
 const { getMeta } = useMetas()
 

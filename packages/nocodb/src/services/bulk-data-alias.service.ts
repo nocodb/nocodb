@@ -2,13 +2,15 @@ import { Injectable } from '@nestjs/common';
 import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import {
   getViewAndModelByAliasOrId,
   validateV1V2DataPayloadLimit,
 } from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model, Source } from '~/models';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 type BulkOperation =
   | 'bulkInsert'
@@ -44,6 +46,7 @@ export class BulkDataAliasService {
   }
 
   // todo: Integrate with filterArrJson bulkDataUpdateAll
+  @TraceCommand(OperationName.recordBulkInsert)
   async bulkDataInsert(
     context: NcContext,
     param: PathParams & {
@@ -77,6 +80,7 @@ export class BulkDataAliasService {
   }
 
   // todo: Integrate with filterArrJson bulkDataUpdateAll
+  @TraceCommand(OperationName.recordBulkUpdate)
   async bulkDataUpdate(
     context: NcContext,
     param: PathParams & {
@@ -99,6 +103,7 @@ export class BulkDataAliasService {
           raw: param.raw,
           allowSystemColumn: param.allowSystemColumn,
           apiVersion: param.apiVersion,
+          typecast: (param.cookie?.query?.typecast ?? '') === 'true',
         },
       ],
     });
@@ -127,6 +132,7 @@ export class BulkDataAliasService {
     });
   }
 
+  @TraceCommand(OperationName.recordBulkDelete)
   async bulkDataDelete(
     context: NcContext,
     param: PathParams & {
@@ -164,6 +170,7 @@ export class BulkDataAliasService {
     });
   }
 
+  @TraceCommand(OperationName.recordBulkUpsert)
   async bulkDataUpsert(
     context: NcContext,
     param: PathParams & {
@@ -177,7 +184,14 @@ export class BulkDataAliasService {
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpsert',
-      options: [param.body, { cookie: param.cookie, undo: param.undo }],
+      options: [
+        param.body,
+        {
+          cookie: param.cookie,
+          undo: param.undo,
+          typecast: (param.cookie?.query?.typecast ?? '') === 'true',
+        },
+      ],
     });
   }
 }

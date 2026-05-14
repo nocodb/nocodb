@@ -6,24 +6,16 @@ import { createDemoTable } from '../../../setup/demoTable';
 import { TopbarPage } from '../../../pages/Dashboard/common/Topbar';
 import { enableQuickRun } from '../../../setup/db';
 
-const validateResponse = false;
-
 async function undo({ page, dashboard }: { page: Page; dashboard: DashboardPage }) {
   const isMac = await dashboard.grid.isMacOs();
 
-  if (validateResponse) {
-    await dashboard.grid.waitForResponse({
-      uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
-      httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `/api/v1/db/data/noco/`,
-      responseJsonMatcher: json => json.pageInfo,
-    });
-  } else {
-    await page.keyboard.press(isMac ? 'Meta+z' : 'Control+z');
-
-    // allow time for undo to complete rendering
-    await page.waitForTimeout(500);
-  }
+  await dashboard.grid.waitForResponse({
+    uiAction: () => page.keyboard.press(isMac ? 'Meta+z' : 'Control+z'),
+    httpMethodsToMatch: ['POST'],
+    requestUrlPathToMatch: 'operation=undo',
+  });
+  // small buffer for the realtime update + FE re-render
+  await page.waitForTimeout(500);
 }
 
 test.describe('GroupBy CRUD Operations', () => {

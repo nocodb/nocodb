@@ -61,12 +61,15 @@ export class WidgetTrashHandler extends BaseTrashHandler<Widget> {
 
     await Widget.softDelete(ctx, trashEntry.resource_id, false, ncMeta);
 
+    const widget = await Widget.get(ctx, trashEntry.resource_id, false, ncMeta);
+
     NocoSocket.broadcastEvent(ctx, {
       event: EventType.WIDGET_EVENT,
       payload: {
         id: trashEntry.resource_id,
+        dashboardId: widget?.fk_dashboard_id ?? trashEntry.parent_id,
         action: 'restore',
-        payload: await Widget.get(ctx, trashEntry.resource_id, false, ncMeta),
+        payload: widget,
       } as Record<string, unknown>,
     } as Parameters<typeof NocoSocket.broadcastEvent>[1]);
   }

@@ -200,7 +200,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
             viewMeta.value!.fk_workspace_id!,
             viewMeta.value!.base_id!,
             { operation: 'formColumnUpdate', formColumnId: col.id },
-            col,
+            pickFormColumnUpdateBody(col),
           )
         } catch (e: any) {
           message.error(await extractSdkResponseErrorMsg(e))

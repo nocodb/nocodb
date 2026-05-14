@@ -163,6 +163,7 @@ import { TimelinesDatasController } from '~/ee/controllers/timelines-datas.contr
 
 /* Lists */
 import { ListColumnsService } from '~/ee/services/list-columns.service';
+import { UndoRedoService } from '~/ee/services/undo-redo.service';
 
 import { ActionsService } from '~/services/actions.service';
 
@@ -301,6 +302,9 @@ export const nocoModuleEeMetadata = {
 
     /* Lists */
     ListColumnsService,
+
+    /* Undo / redo */
+    UndoRedoService,
 
     ActionsService,
 

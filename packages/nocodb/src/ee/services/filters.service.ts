@@ -216,12 +216,12 @@ export class FiltersService extends FiltersServiceCE {
     return filter;
   }
 
+  @TraceCommand(OperationName.rlsPolicyFilterCreate)
   async rlsPolicyFilterCreate(
     context: NcContext,
     param: {
       filter: FilterReqType;
       rlsPolicyId: string;
-      user: UserType;
       req: NcRequest;
     },
   ) {

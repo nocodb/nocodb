@@ -4,6 +4,7 @@ import type {
   DocumentCommentPayload,
   DocumentPayload,
   MetaPayload,
+  RlsPolicyType,
   ScriptPayload,
   WidgetPayload,
   WorkflowPayload,
@@ -51,8 +52,19 @@ export const useRealtime = createSharedComposable(() => {
   const workflowStore = useWorkflowStore()
   const { workflows, activeWorkflowId } = storeToRefs(workflowStore)
 
+  const viewSectionsStore = useViewSectionsStore()
+  const { applySectionCreated, applySectionUpdated, applySectionDeleted } = viewSectionsStore
+
+  const { templates: recordTemplates } = useRecordTemplate()
+
   const documentStore = useDocumentsStore()
   const { documents, activeDocumentId, loadedParentIds } = storeToRefs(documentStore)
+
+  const webhooksStore = useWebhooksStore()
+  const { hooks } = storeToRefs(webhooksStore)
+
+  const rlsStore = useRlsStore()
+  const { policies: rlsPolicies } = storeToRefs(rlsStore)
 
   const { baseExtensions, Extension, loadExtensionsForBase } = useExtensions()
 
@@ -342,10 +354,66 @@ export const useRealtime = createSharedComposable(() => {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
     } else if (event.action === 'view_column_update' || event.action === 'view_column_refresh') {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
+      const changed = event.payload?.changes ?? event.payload ?? {}
+      if (
+        'group_by' in changed ||
+        'group_by_sort' in changed ||
+        'group_by_order' in changed
+      ) {
+        $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
+      }
+    } else if (event.action === 'hook_create') {
+      // Only mutate if the affected table matches the user's currently-loaded
+      // hook list (the store loads on a per-table basis). For other tables
+      // the next visit will fetch fresh.
+      const fkModelId = event.payload?.fk_model_id
+      if (!fkModelId || activeTableId.value !== fkModelId) return
+      // Avoid duplicates if the originator already pushed locally.
+      if (!hooks.value.some((h) => h.id === event.payload.id)) {
+        const payload = event.payload
+        payload.notification = parseProp(payload.notification)
+        hooks.value = [payload, ...hooks.value]
+      }
+    } else if (event.action === 'hook_update') {
+      const fkModelId = event.payload?.fk_model_id
+      if (!fkModelId || activeTableId.value !== fkModelId) return
+      const existing = hooks.value.find((h) => h.id === event.payload.id)
+      if (existing) {
+        const payload = event.payload
+        payload.notification = parseProp(payload.notification)
+        Object.assign(existing, payload)
+      }
+      // Forward to internal bus so an open webhook editor can react —
+      // either to refetch filters (replace-all) or to surface a "modified
+      // by another user" banner.
+      $eventBus.realtimeViewMetaEventBus.emit('hook_update', event.payload)
+      if (event.payload?.had_filters_replaced) {
+        $eventBus.realtimeViewMetaEventBus.emit('hook_filters_replaced', {
+          hookId: event.payload.id,
+        })
+      }
+    } else if (event.action === 'hook_delete') {
+      const fkModelId = event.payload?.fk_model_id
+      if (!fkModelId || activeTableId.value !== fkModelId) return
+      const idx = hooks.value.findIndex((h) => h.id === event.payload.id)
+      if (idx !== -1) hooks.value.splice(idx, 1)
+      $eventBus.realtimeViewMetaEventBus.emit('hook_delete', event.payload)
     } else if (event.action === 'row_color_update') {
       $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE, { rowColorInfo: event.payload || {} })
     } else if (event.action === 'rls_policy_update') {
-      const { tableId, base_id: eventBaseId } = event.payload
+      const {
+        tableId,
+        base_id: eventBaseId,
+        op,
+        policy,
+        policyId,
+      } = event.payload as {
+        tableId?: string
+        base_id?: string
+        op?: 'create' | 'update' | 'delete'
+        policy?: RlsPolicyType
+        policyId?: string
+      }
       if (!eventBaseId || eventBaseId !== activeBaseId.value || !tableId) return
 
       // Refresh table meta to pick up updated is_rls_enabled flag
@@ -362,6 +430,21 @@ export const useRealtime = createSharedComposable(() => {
           }
         }
       })
+
+      // Patch the cached policy list for this table — same find/splice/push
+      // shape the hook handler uses, just keyed by tableId in the Map.
+      const list = rlsPolicies.value.get(tableId)
+      if (list) {
+        if (op === 'delete' && policyId) {
+          const idx = list.findIndex((p) => p.id === policyId)
+          if (idx !== -1) list.splice(idx, 1)
+        } else if ((op === 'create' || op === 'update') && policy) {
+          const idx = list.findIndex((p) => p.id === policy.id)
+          if (idx === -1) list.push(policy)
+          else list[idx] = policy
+        }
+        rlsPolicies.value.set(tableId, list)
+      }
 
       // If the affected table is currently open, reload its data (RLS may change visible rows)
       if (tableId === activeTableId.value) {
@@ -445,11 +528,73 @@ export const useRealtime = createSharedComposable(() => {
       }
 
       refreshCommandPalette()
+    } else if (event.action === 'view_section_create') {
+      const { payload } = event
+      if (!payload?.base_id || !payload?.fk_model_id || !payload?.id) return
+      applySectionCreated(payload)
+
+      const restoreViewIds = (payload as { restoreViewIds?: string[] }).restoreViewIds
+      if (restoreViewIds?.length) {
+        const key = `${payload.base_id}:${payload.fk_model_id}`
+        const tableViews = viewsByTable.value.get(key)
+        if (tableViews) {
+          for (const v of tableViews) {
+            if (restoreViewIds.includes(v.id!)) v.fk_view_section_id = payload.id
+          }
+        }
+      }
+    } else if (event.action === 'view_section_update') {
+      const { payload } = event
+      if (!payload?.base_id || !payload?.fk_model_id || !payload?.id) return
+      applySectionUpdated(payload)
+    } else if (event.action === 'view_section_delete') {
+      const { payload } = event
+      if (!payload?.base_id || !payload?.fk_model_id || !payload?.id) return
+      applySectionDeleted(payload.base_id, payload.id)
+
+      const orphanedViewIds = (payload as { orphanedViewIds?: string[] }).orphanedViewIds
+      if (orphanedViewIds?.length) {
+        const key = `${payload.base_id}:${payload.fk_model_id}`
+        const tableViews = viewsByTable.value.get(key)
+        if (tableViews) {
+          for (const v of tableViews) {
+            if (orphanedViewIds.includes(v.id!)) v.fk_view_section_id = null as any
+          }
+        }
+      }
+    } else if (event.action === 'record_template_create') {
+      const { payload } = event
+      if (!payload?.id) return
+      if (payload.base_id && payload.base_id !== activeBaseId.value) return
+      if (!recordTemplates.value.some((t) => t.id === payload.id)) {
+        recordTemplates.value.push(payload)
+      }
+    } else if (event.action === 'record_template_update') {
+      const { payload } = event
+      if (!payload?.id) return
+      if (payload.base_id && payload.base_id !== activeBaseId.value) return
+      const idx = recordTemplates.value.findIndex((t) => t.id === payload.id)
+      if (idx !== -1) {
+        recordTemplates.value[idx] = { ...recordTemplates.value[idx], ...payload }
+      }
+    } else if (event.action === 'record_template_delete') {
+      const { payload } = event
+      if (!payload?.id) return
+      if (payload.base_id && payload.base_id !== activeBaseId.value) return
+      const idx = recordTemplates.value.findIndex((t) => t.id === payload.id)
+      if (idx !== -1) {
+        recordTemplates.value.splice(idx, 1)
+      }
     } else if (event.action === 'extension_restore') {
       updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
-      const eventBaseId = event.payload.base_id
-      if (eventBaseId && baseExtensions.value[eventBaseId]) {
-        delete baseExtensions.value[eventBaseId]
+      const { payload } = event
+      if (payload?.base_id && activeBaseId.value === payload.base_id && baseExtensions.value[activeBaseId.value]) {
+        const arr = baseExtensions.value[activeBaseId.value].extensions
+        // Guard against duplicate events: only push if not already present.
+        if (!arr.some((ext) => ext.id === payload.id)) {
+          arr.push(new Extension(payload))
+          arr.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+        }
       }
     }
   }
@@ -660,7 +805,9 @@ export const useRealtime = createSharedComposable(() => {
   }
 
   const handleRealtimeWidgetEvent = (payload: WidgetPayload) => {
-    const { id, dashboardId, action, payload: widget } = payload
+    const { id, action, payload: widget } = payload
+    const dashboardId = payload.dashboardId ?? widget?.fk_dashboard_id
+    if (!dashboardId) return
     const existingWidgets = widgets.value.get(dashboardId) || []
 
     switch (action) {

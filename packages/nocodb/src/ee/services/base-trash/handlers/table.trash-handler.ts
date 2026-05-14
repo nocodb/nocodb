@@ -5,7 +5,6 @@ import {
   MetaEventType,
   PlanLimitTypes,
 } from 'nocodb-sdk';
-import type { UserType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type BaseTrash from '~/models/BaseTrash';
 import type { TrashCallParam, TrashResult } from '~/services/base-trash/types';
@@ -108,7 +107,6 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
         ctx,
         {
           tableId: id,
-          user: param.user as UserType,
           req: param.req,
           skipTrash: true,
         },
@@ -356,7 +354,6 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
       ctx,
       {
         tableId: trashEntry.resource_id,
-        user: param.user as UserType,
         req: param.req,
         forceDeleteRelations: true,
         skipLinkPlaceholder: true,
@@ -487,7 +484,6 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
             ctx,
             {
               columnId: item.placeholder_id,
-              user: param.user as UserType,
               req: param.req,
               forceDeleteSystem: true,
               skipTrash: true,
@@ -591,7 +587,6 @@ export class TableTrashHandler extends BaseTrashHandler<Model> {
               ctx,
               {
                 columnId: item.placeholder_id,
-                user: param.user as UserType,
                 req: param.req,
                 forceDeleteSystem: true,
                 skipTrash: true,

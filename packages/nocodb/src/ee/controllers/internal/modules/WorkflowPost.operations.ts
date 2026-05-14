@@ -52,7 +52,7 @@ export class WorkflowPostOperations
         });
       case 'workflowUpdate':
         return await this.workflowsService.updateWorkflow(context, {
-          workflowId: payload.workflowId,
+          workflowId: req.query.workflowId as string,
           body: payload,
           req,
         });
@@ -63,11 +63,10 @@ export class WorkflowPostOperations
         });
 
       case 'workflowDuplicate':
-        return await this.workflowsService.duplicateWorkflow(
-          context,
-          payload.workflowId,
+        return await this.workflowsService.duplicateWorkflow(context, {
+          workflowId: payload.workflowId,
           req,
-        );
+        });
       case 'workflowExecute':
         return await this.workflowsService.execute(
           context,

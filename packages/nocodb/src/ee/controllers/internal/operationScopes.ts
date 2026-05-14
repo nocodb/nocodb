@@ -194,4 +194,8 @@ export const OPERATION_SCOPES = {
   baseTrashEmpty: 'base',
   baseTrashSettingsList: 'base',
   baseTrashSettingsUpdate: 'base',
+
+  // Undo / redo (per-(user, base, tab) — tab id read from x-nc-tab-id header)
+  undo: 'base',
+  redo: 'base',
 } as const;

@@ -414,7 +414,7 @@ export class ViewsService {
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view: viewForEvent,
       oldView: oldViewForEvent,
-      user: param.user,
+      user: param.req.user,
       req: param.req,
       context,
       owner,

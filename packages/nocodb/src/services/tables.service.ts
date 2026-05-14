@@ -25,7 +25,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
-import type { LinkToAnotherRecordColumn, User, View } from '~/models';
+import type { LinkToAnotherRecordColumn, User } from '~/models';
 import type { NcRequest } from '~/interface/config';
 import type { OperationSource } from '~/helpers/columnHelpers';
 import { NcContext } from '~/interface/config';

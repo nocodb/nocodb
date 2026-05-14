@@ -521,7 +521,9 @@ const recordCountLabel = computed(() => {
           v-e="['c:gantt:configure']"
           size="small"
           type="secondary"
-          class="!h-7"
+          icon-only
+          :centered="true"
+          class="!h-7 !w-7 !min-w-7"
           data-testid="nc-gantt-configure"
           @click="showDateDependencyDlg = true"
         >

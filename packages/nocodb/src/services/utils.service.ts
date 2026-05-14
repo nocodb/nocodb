@@ -195,16 +195,21 @@ export class UtilsService {
     const {
       apiMeta: { url },
     } = param.body;
-    // Extension must be at the end of the path (or before the query
-    // string). `useAgent` in _axiosRequestMake handles SSRF at the socket.
-    const isExcelImport = /\.(xls|xlsx|xlsm|ods|ots)(\?|$)/i;
-    const isCSVImport = /\.(csv)(\?|$)/i;
-    if (!isCSVImport.test(url) && !isExcelImport.test(url)) {
+    // Test the extension against the URL's pathname only, so callers can't
+    // smuggle a non-spreadsheet target by appending `?.csv` to the query
+    // string. `useAgent` in _axiosRequestMake handles SSRF at the socket.
+    let pathname: string;
+    try {
+      pathname = new URL(url).pathname;
+    } catch {
       return {};
     }
-    if (isCSVImport.test(url) || isExcelImport.test(url)) {
-      param.body.apiMeta.responseType = 'arraybuffer';
+    const isExcelImport = /\.(xls|xlsx|xlsm|ods|ots)$/i;
+    const isCSVImport = /\.(csv)$/i;
+    if (!isCSVImport.test(pathname) && !isExcelImport.test(pathname)) {
+      return {};
     }
+    param.body.apiMeta.responseType = 'arraybuffer';
     return await this._axiosRequestMake({
       body: param.body,
     });

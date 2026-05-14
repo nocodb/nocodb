@@ -112,12 +112,17 @@ const sidebarStoredWidth = useStorage('nc-gantt-sidebar-width', SIDEBAR_MIN_WIDT
 // inspector's "Open record" escalation — it emits expandRecord which the
 // parent gantt/index.vue still handles.
 const openInspector = (record: RowType) => {
+  const reopen = !!inspectorRecord.value
   inspectorRecord.value = record
+  $e(reopen ? 'c:gantt:inspector-swap' : 'c:gantt:inspector-open')
 }
 const closeInspector = () => {
+  if (!inspectorRecord.value) return
   inspectorRecord.value = null
+  $e('c:gantt:inspector-close')
 }
 const openFullFromInspector = (record: RowType) => {
+  $e('c:gantt:inspector-expand')
   emit('expandRecord', record)
 }
 
@@ -155,6 +160,9 @@ const onSidebarResizeEnd = () => {
   document.body.style.cursor = ''
   document.removeEventListener('mousemove', onSidebarResizeMove)
   document.removeEventListener('mouseup', onSidebarResizeEnd)
+  // Telemetry fires on drag end (not on every mousemove) — single event with
+  // the final width so we don't flood with per-pixel deltas.
+  $e('c:gantt:sidebar-resize', { width: sidebarWidth.value })
 }
 
 const onSidebarResizeStart = (event: MouseEvent) => {
@@ -1672,6 +1680,7 @@ const onGridMouseLeave = () => {
         <span class="truncate">{{ primaryField?.title || $t('labels.name') }}</span>
         <NcTooltip :title="$t('title.hideSidebar')" placement="bottom">
           <NcButton
+            v-e="['c:gantt:sidebar-toggle', { collapsed: true }]"
             size="xxsmall"
             type="text"
             data-testid="nc-gantt-sidebar-collapse"
@@ -1727,6 +1736,7 @@ const onGridMouseLeave = () => {
       class="absolute top-1.5 left-1.5 z-30"
     >
       <NcButton
+        v-e="['c:gantt:sidebar-toggle', { collapsed: false }]"
         size="xxsmall"
         type="secondary"
         data-testid="nc-gantt-sidebar-expand"

@@ -19,6 +19,8 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
+const { $e } = useNuxtApp()
+
 const {
   ganttRange,
   formattedData,
@@ -110,6 +112,7 @@ const saveName = async () => {
   props.record.row[primaryField.value.title] = nameValue.value
   try {
     await updateRowProperty(props.record, [primaryField.value.title])
+    $e('a:gantt:inspector-update', { field: 'name' })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     props.record.row[primaryField.value.title] = current
@@ -117,7 +120,7 @@ const saveName = async () => {
   }
 }
 
-const saveDate = async (col: ColumnType | undefined | null, raw: string) => {
+const saveDate = async (col: ColumnType | undefined | null, raw: string, kind: 'start' | 'end') => {
   if (!col?.title) return
   const current = props.record.row?.[col.title] ?? ''
   const next = raw || null
@@ -125,14 +128,15 @@ const saveDate = async (col: ColumnType | undefined | null, raw: string) => {
   props.record.row[col.title] = next
   try {
     await updateRowProperty(props.record, [col.title])
+    $e('a:gantt:inspector-update', { field: kind })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     props.record.row[col.title] = current
   }
 }
 
-const saveStart = () => saveDate(fromCol.value, startValue.value)
-const saveEnd = () => saveDate(toCol.value, endValue.value)
+const saveStart = () => saveDate(fromCol.value, startValue.value, 'start')
+const saveEnd = () => saveDate(toCol.value, endValue.value, 'end')
 
 // --- Dependencies ---
 
@@ -175,6 +179,7 @@ const onUnlinkSuccessor = async (linkedId: string) => {
   if (!currentRowId.value) return
   try {
     await unlinkDependency(currentRowId.value, linkedId)
+    $e('a:gantt:inspector-unlink', { direction: 'successor' })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -184,6 +189,7 @@ const onUnlinkPredecessor = async (predId: string) => {
   // Reverse direction: remove the predecessor's link to the current row.
   try {
     await unlinkDependency(predId, currentRowId.value)
+    $e('a:gantt:inspector-unlink', { direction: 'predecessor' })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -241,6 +247,7 @@ const onLinkSuccessor = async (row: RowType) => {
     await linkDependency(currentRowId.value, id)
     showSuccessorPicker.value = false
     successorQuery.value = ''
+    $e('a:gantt:inspector-link', { direction: 'successor' })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -254,6 +261,7 @@ const onLinkPredecessor = async (row: RowType) => {
     await linkDependency(id, currentRowId.value)
     showPredecessorPicker.value = false
     predecessorQuery.value = ''
+    $e('a:gantt:inspector-link', { direction: 'predecessor' })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

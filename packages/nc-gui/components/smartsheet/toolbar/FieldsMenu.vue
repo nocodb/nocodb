@@ -883,7 +883,11 @@ const onAddColumnDropdownVisibilityChange = () => {
                         </div>
 
                         <div
-                          v-if="activeView.type === ViewTypes.CALENDAR || activeView.type === ViewTypes.TIMELINE"
+                          v-if="
+                            activeView.type === ViewTypes.CALENDAR ||
+                            activeView.type === ViewTypes.TIMELINE ||
+                            activeView.type === ViewTypes.GANTT
+                          "
                           class="flex mr-2"
                         >
                           <NcButton

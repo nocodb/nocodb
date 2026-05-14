@@ -1,0 +1,275 @@
+import 'mocha';
+import { expect } from 'chai';
+import {
+  JOB_CAP_REQUEUE_DELAY_MS,
+  JOB_CAP_REQUEUE_LIMIT,
+  JOB_REQUEUE_LIMIT,
+  JobStatus,
+  JobTypes,
+  parseWorkerConcurrency,
+} from '~/interface/Jobs';
+
+// The JobsProcessor class transitively pulls in the full NocoDB job dependency
+// graph (JobsMap → every job processor → noco.module). Loading it standalone
+// trips a circular init. Inside the main test suite the graph is already
+// resolved by the time these tests execute, so we lazy-import it in before().
+let JobsProcessor: any;
+let LOCAL_JOB_COUNT_MAP: Map<string, number>;
+
+function makeJob(jobName: string, extra: Record<string, any> = {}): any {
+  return {
+    id: `test-${Math.random().toString(36).slice(2)}`,
+    data: { jobName, ...extra },
+    async releaseLock() {},
+    async remove() {},
+  };
+}
+
+function jobsProcessorTests() {
+  describe('parseWorkerConcurrency', () => {
+    it('defaults to 10 when env is undefined', () => {
+      expect(parseWorkerConcurrency(undefined)).to.equal(10);
+    });
+
+    it('defaults to 10 when env is empty string', () => {
+      expect(parseWorkerConcurrency('')).to.equal(10);
+    });
+
+    it('defaults to 10 when env is non-numeric', () => {
+      expect(parseWorkerConcurrency('foo')).to.equal(10);
+    });
+
+    it('floors 0 to 1 (not silently upgrades to default)', () => {
+      // Regression guard: previous `|| 10` short-circuit upgraded 0 → 10.
+      expect(parseWorkerConcurrency('0')).to.equal(1);
+    });
+
+    it('floors negative to 1', () => {
+      expect(parseWorkerConcurrency('-5')).to.equal(1);
+    });
+
+    it('truncates float to integer', () => {
+      expect(parseWorkerConcurrency('5.7')).to.equal(5);
+    });
+
+    it('accepts trailing garbage', () => {
+      expect(parseWorkerConcurrency('5foo')).to.equal(5);
+    });
+
+    it('passes through valid positive integers', () => {
+      expect(parseWorkerConcurrency('5')).to.equal(5);
+      expect(parseWorkerConcurrency('20')).to.equal(20);
+      expect(parseWorkerConcurrency('1')).to.equal(1);
+    });
+  });
+
+  describe('JobsProcessor', () => {
+    before(() => {
+      // Relative path: the `~/` TS alias is not resolved by runtime require().
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const mod = require('../../../src/modules/jobs/jobs.processor');
+      JobsProcessor = mod.JobsProcessor;
+      LOCAL_JOB_COUNT_MAP = mod.LOCAL_JOB_COUNT_MAP;
+    });
+
+    describe('cap requeue budget', () => {
+      it('60s × 60 attempts ≈ 60 min total budget', () => {
+        expect(JOB_CAP_REQUEUE_LIMIT * JOB_CAP_REQUEUE_DELAY_MS).to.equal(
+          60 * 60 * 1000,
+        );
+      });
+    });
+
+    describe('requeue()', () => {
+      let addCalls: Array<{ name: string; data: any; opts: any }>;
+      let onCompletedCalls: Array<{ jobId: string; status: JobStatus }>;
+      let processor: any;
+
+      beforeEach(() => {
+        addCalls = [];
+        onCompletedCalls = [];
+        const mockJobsService: any = {
+          async add(name: string, data: any, opts: any) {
+            addCalls.push({ name, data: { ...data }, opts });
+            return { id: opts?.jobId };
+          },
+        };
+        const mockJobsEventService: any = {
+          onCompleted(job: any, status: JobStatus) {
+            onCompletedCalls.push({ jobId: job.id, status });
+          },
+        };
+        const mockJobsMap: any = { jobs: {} };
+        processor = new JobsProcessor(
+          mockJobsService,
+          mockJobsEventService,
+          mockJobsMap,
+        );
+      });
+
+      it('cap reason: schedules with fixed 60s delay', async () => {
+        const job = makeJob(JobTypes.AtImport);
+        await processor.requeue(job, 'cap');
+        expect(addCalls).to.have.length(1);
+        expect(addCalls[0].opts.delay).to.equal(JOB_CAP_REQUEUE_DELAY_MS);
+      });
+
+      it('cap reason: increments _jobCapAttempt, leaves _jobAttempt/_jobDelay alone', async () => {
+        const job = makeJob(JobTypes.AtImport, {
+          _jobAttempt: 5,
+          _jobDelay: 25000,
+        });
+        await processor.requeue(job, 'cap');
+        expect(job.data._jobCapAttempt).to.equal(2);
+        expect(job.data._jobAttempt).to.equal(5);
+        expect(job.data._jobDelay).to.equal(25000);
+      });
+
+      it('cap reason: allows JOB_CAP_REQUEUE_LIMIT attempts before dropping', async () => {
+        const job = makeJob(JobTypes.AtImport);
+        for (let i = 0; i < JOB_CAP_REQUEUE_LIMIT; i++) {
+          await processor.requeue(job, 'cap');
+        }
+        expect(addCalls).to.have.length(JOB_CAP_REQUEUE_LIMIT);
+        expect(job.data._jobCapAttempt).to.equal(JOB_CAP_REQUEUE_LIMIT + 1);
+
+        // The (limit+1)th call must drop the job without re-adding.
+        await processor.requeue(job, 'cap');
+        expect(addCalls).to.have.length(JOB_CAP_REQUEUE_LIMIT);
+      });
+
+      it('error reason: schedules with progressive 5s backoff', async () => {
+        const job = makeJob(JobTypes.MetaSync);
+        await processor.requeue(job, 'error');
+        expect(addCalls).to.have.length(1);
+        expect(addCalls[0].opts.delay).to.equal(5000);
+        expect(addCalls[0].data._jobAttempt).to.equal(2);
+        expect(addCalls[0].data._jobDelay).to.equal(5000);
+
+        await processor.requeue(job, 'error');
+        expect(addCalls[1].opts.delay).to.equal(10000);
+        expect(addCalls[1].data._jobAttempt).to.equal(3);
+      });
+
+      it('error reason: drops job after JOB_REQUEUE_LIMIT attempts', async () => {
+        const job = makeJob(JobTypes.MetaSync);
+        for (let i = 0; i < JOB_REQUEUE_LIMIT; i++) {
+          await processor.requeue(job, 'error');
+        }
+        expect(addCalls).to.have.length(JOB_REQUEUE_LIMIT);
+
+        await processor.requeue(job, 'error');
+        expect(addCalls).to.have.length(JOB_REQUEUE_LIMIT);
+      });
+
+      it('error reason: does not touch _jobCapAttempt', async () => {
+        const job = makeJob(JobTypes.MetaSync, { _jobCapAttempt: 20 });
+        await processor.requeue(job, 'error');
+        expect(job.data._jobCapAttempt).to.equal(20);
+      });
+
+      it('default reason is "error" (backwards-compatible)', async () => {
+        const job = makeJob(JobTypes.MetaSync);
+        await processor.requeue(job);
+        expect(addCalls[0].opts.delay).to.equal(5000);
+        expect(addCalls[0].data._jobAttempt).to.equal(2);
+      });
+
+      it('emits REQUEUED event before re-adding', async () => {
+        const job = makeJob(JobTypes.AtImport);
+        await processor.requeue(job, 'cap');
+        expect(onCompletedCalls).to.have.length(1);
+        expect(onCompletedCalls[0].status).to.equal(JobStatus.REQUEUED);
+      });
+    });
+
+    describe('process() local concurrency bookkeeping', () => {
+      let addCalls: Array<{ name: string; opts: any }>;
+      let processor: any;
+      let thumbnailFn: { job: (job: any) => Promise<any> };
+      let metaSyncFn: { job: (job: any) => Promise<any> };
+
+      beforeEach(() => {
+        addCalls = [];
+        LOCAL_JOB_COUNT_MAP.clear();
+        thumbnailFn = { job: async () => 'done' };
+        metaSyncFn = { job: async () => 'done' };
+        const mockJobsService: any = {
+          async add(name: string, _data: any, opts: any) {
+            addCalls.push({ name, opts });
+            return { id: opts?.jobId };
+          },
+        };
+        const mockJobsEventService: any = { onCompleted() {} };
+        const mockJobsMap: any = {
+          jobs: {
+            [JobTypes.ThumbnailGenerator]: { this: thumbnailFn },
+            [JobTypes.MetaSync]: { this: metaSyncFn },
+          },
+        };
+        processor = new JobsProcessor(
+          mockJobsService,
+          mockJobsEventService,
+          mockJobsMap,
+        );
+      });
+
+      it('configured-limit job: map = 1 while running, 0 after success', async () => {
+        let observedDuringRun: number | undefined;
+        thumbnailFn.job = async () => {
+          observedDuringRun = LOCAL_JOB_COUNT_MAP.get(
+            JobTypes.ThumbnailGenerator,
+          );
+          return 'ok';
+        };
+        await processor.process(makeJob(JobTypes.ThumbnailGenerator));
+        expect(observedDuringRun).to.equal(1);
+        expect(LOCAL_JOB_COUNT_MAP.get(JobTypes.ThumbnailGenerator)).to.equal(
+          0,
+        );
+      });
+
+      it('configured-limit job: decrements on throw', async () => {
+        thumbnailFn.job = async () => {
+          throw new Error('boom');
+        };
+        try {
+          await processor.process(makeJob(JobTypes.ThumbnailGenerator));
+        } catch {
+          // expected
+        }
+        expect(LOCAL_JOB_COUNT_MAP.get(JobTypes.ThumbnailGenerator)).to.equal(
+          0,
+        );
+      });
+
+      it('unconfigured-limit job: never writes to map', async () => {
+        await processor.process(makeJob(JobTypes.MetaSync));
+        expect(LOCAL_JOB_COUNT_MAP.has(JobTypes.MetaSync)).to.equal(false);
+      });
+
+      it('cap hit: requeues with 60s delay, does not change map', async () => {
+        LOCAL_JOB_COUNT_MAP.set(JobTypes.ThumbnailGenerator, 1);
+        await processor.process(makeJob(JobTypes.ThumbnailGenerator));
+        expect(LOCAL_JOB_COUNT_MAP.get(JobTypes.ThumbnailGenerator)).to.equal(
+          1,
+        );
+        expect(addCalls).to.have.length(1);
+        expect(addCalls[0].opts.delay).to.equal(JOB_CAP_REQUEUE_DELAY_MS);
+      });
+
+      it('multi-cycle: map stays at 0 between successive runs', async () => {
+        for (let i = 0; i < 5; i++) {
+          await processor.process(makeJob(JobTypes.ThumbnailGenerator));
+          expect(LOCAL_JOB_COUNT_MAP.get(JobTypes.ThumbnailGenerator)).to.equal(
+            0,
+          );
+        }
+      });
+    });
+  });
+}
+
+export function jobsProcessorTest() {
+  describe('JobsProcessor', jobsProcessorTests);
+}

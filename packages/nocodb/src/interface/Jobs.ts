@@ -137,6 +137,17 @@ export const JOB_REQUEUED = 'job.requeued';
 
 export const JOB_REQUEUE_LIMIT = 10;
 
+// Local-cap requeues (job blocked by per-worker concurrency cap) get their
+// own budget so long-running jobs aren't dropped while waiting their turn.
+// 60 attempts × 60s delay ≈ 60 min total before the job is dropped.
+export const JOB_CAP_REQUEUE_LIMIT = 60;
+export const JOB_CAP_REQUEUE_DELAY_MS = 60_000;
+
+export function parseWorkerConcurrency(value: string | undefined): number {
+  const parsed = parseInt(value ?? '10', 10);
+  return Math.max(1, Number.isFinite(parsed) ? parsed : 10);
+}
+
 export const InstanceTypes = {
   PRIMARY: `${process.env.NC_ENV ?? 'default'}-primary`,
   WORKER: `${process.env.NC_ENV ?? 'default'}-worker`,
@@ -156,6 +167,7 @@ export interface JobData {
   jobName: string;
   _jobDelay?: number;
   _jobAttempt?: number;
+  _jobCapAttempt?: number;
   _jobVersion?: number;
   // context
   context: NcContext;

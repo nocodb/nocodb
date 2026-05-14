@@ -4,19 +4,21 @@ import { Job } from 'bull';
 import { Timer } from 'nocodb-sdk';
 import type { JobData } from '~/interface/Jobs';
 import {
+  JOB_CAP_REQUEUE_DELAY_MS,
+  JOB_CAP_REQUEUE_LIMIT,
   JOB_REQUEUE_LIMIT,
   JOBS_QUEUE,
   JobTypes,
   JobVersions,
+  parseWorkerConcurrency,
 } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobsMap } from '~/modules/jobs/jobs-map.service';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobStatus } from '~/interface/Jobs';
 
-const NC_WORKER_CONCURRENCY = Math.max(
-  1,
-  parseInt(process.env.NC_WORKER_CONCURRENCY ?? '10', 10) || 10,
+const NC_WORKER_CONCURRENCY = parseWorkerConcurrency(
+  process.env.NC_WORKER_CONCURRENCY,
 );
 
 const LOCAL_CONCURRENCY_LIMIT = {
@@ -25,7 +27,7 @@ const LOCAL_CONCURRENCY_LIMIT = {
   [JobTypes.AttachmentUrlUpload]: 1,
 };
 
-const LOCAL_JOB_COUNT_MAP = new Map<string, number>();
+export const LOCAL_JOB_COUNT_MAP = new Map<string, number>();
 
 @Processor(JOBS_QUEUE)
 export class JobsProcessor {
@@ -69,46 +71,69 @@ export class JobsProcessor {
     const localRunning = LOCAL_JOB_COUNT_MAP.get(jobName) ?? 0;
 
     if (localLimit !== undefined && localRunning >= localLimit) {
-      await this.requeue(job);
+      await this.requeue(job, 'cap');
       return;
     }
 
-    if (localLimit !== undefined) {
-      LOCAL_JOB_COUNT_MAP.set(jobName, localRunning + 1);
-    }
-
     let warningTime = 1;
-    const longProcessWarning = Timer.start(async (timer) => {
-      this.logger.log(
-        `Job '${job.id}' is taking ${
-          warningTime++ * 10
-        } minutes and stil processing`,
-      );
-      if (warningTime <= 2) {
-        timer.start();
-      }
-    }, 10 * 60 * 1000);
+    let incremented = false;
+    let longProcessWarning: Timer | undefined;
+
     try {
+      longProcessWarning = Timer.start(async (timer) => {
+        this.logger.log(
+          `Job '${job.id}' is taking ${
+            warningTime++ * 10
+          } minutes and stil processing`,
+        );
+        if (warningTime <= 2) {
+          timer.start();
+        }
+      }, 10 * 60 * 1000);
+
+      if (localLimit !== undefined) {
+        LOCAL_JOB_COUNT_MAP.set(jobName, localRunning + 1);
+        incremented = true;
+      }
+
       const result = await processor[fn](job);
       return result;
     } catch (e) {
       this.logger.error(`Error processing job ${jobName}`, e);
       throw e;
     } finally {
-      if (localLimit !== undefined) {
+      if (incremented) {
         const current = LOCAL_JOB_COUNT_MAP.get(jobName) ?? 1;
         LOCAL_JOB_COUNT_MAP.set(jobName, Math.max(0, current - 1));
       }
-      longProcessWarning.stop();
+      longProcessWarning?.stop();
     }
   }
 
-  async requeue(job: Job<JobData>) {
+  async requeue(job: Job<JobData>, reason: 'error' | 'cap' = 'error') {
     // Remove the job from the queue otherwise ids will clash
     await job.releaseLock();
     await job.remove();
 
     await this.jobsEventService.onCompleted(job, JobStatus.REQUEUED);
+
+    if (reason === 'cap') {
+      const capAttempt = job.data?._jobCapAttempt ?? 1;
+
+      if (capAttempt > JOB_CAP_REQUEUE_LIMIT) {
+        this.logger.error(
+          `Job ${job.data.jobName} dropped after ${JOB_CAP_REQUEUE_LIMIT} cap retries`,
+        );
+        return;
+      }
+
+      job.data._jobCapAttempt = capAttempt + 1;
+
+      return this.jobsService.add(job.data.jobName, job.data, {
+        jobId: job.id.toString(),
+        delay: JOB_CAP_REQUEUE_DELAY_MS,
+      });
+    }
 
     const _jobDelay = job.data?._jobDelay ?? 0;
     const _jobAttempt = job.data?._jobAttempt ?? 1;

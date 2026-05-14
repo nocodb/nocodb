@@ -535,8 +535,10 @@ const recordCountLabel = computed(() => {
         <!-- Fields -->
         <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
 
-        <!-- #8: Sort -->
-        <LazySmartsheetToolbarSortListMenu v-if="!isPublic" />
+        <!-- Sort intentionally omitted: Gantt re-sorts rows by start date
+             internally (Grid.vue's stableRowOrder) so a user sort would be
+             silently overridden. Calendar takes the same stance for the
+             same reason — dates drive vertical position. -->
 
         <!-- Group By -->
         <SmartsheetToolbarGroupByMenu v-if="!isPublic" hide-reorder />

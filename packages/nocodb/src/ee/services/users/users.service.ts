@@ -249,20 +249,9 @@ export class UsersService extends UsersServiceCE {
         user: user,
         req: req,
       });
-
-      await this.mailService.sendMail({
-        mailEvent: MailEvent.WELCOME,
-        payload: {
-          user,
-          req: req,
-        },
-      });
     }
 
-    this.appHooksService.emit(AppEvents.WELCOME, {
-      user,
-      req: req,
-    });
+    // WELCOME dispatch lives in `login()`; fired once on first activation.
 
     await PresignedUrl.signMetaIconImage(user);
 
@@ -354,19 +343,6 @@ export class UsersService extends UsersServiceCE {
           user: user,
           req: param.req,
         });
-
-        await this.mailService.sendMail({
-          mailEvent: MailEvent.WELCOME,
-          payload: {
-            user,
-            req: param.req,
-          },
-        });
-
-        this.appHooksService.emit(AppEvents.WELCOME, {
-          user,
-          req: param.req,
-        });
       } else {
         NcError.badRequest('User already exist');
       }
@@ -436,7 +412,49 @@ export class UsersService extends UsersServiceCE {
       }
     }
 
+    void this.maybeFireFirstAccessWelcome(user, req);
+
     return await super.login(user, req);
+  }
+
+  /**
+   * Enqueues the WELCOME mail on the user's first activation. Gated on
+   * `is_new_user = true` (strict — excludes both `false` and NULL) so the
+   * pre-existing user cohort is never welcomed retroactively. Race-proof
+   * dedupe is handled by the outbox `dedupe_key = 'user:{id}'` and its
+   * partial unique index. Failures are swallowed — runs unawaited.
+   */
+  protected async maybeFireFirstAccessWelcome(
+    user: UserType & { provider?: string; extra?: Record<string, any> },
+    req: NcRequest,
+  ): Promise<void> {
+    if (!user?.id) return;
+
+    try {
+      const dbUser = await Noco.ncMeta
+        .knexConnection(MetaTable.USERS)
+        .where({ id: user.id })
+        .select('is_new_user')
+        .first();
+      if (!dbUser || dbUser.is_new_user !== true) return;
+
+      await this.mailService.sendMail({
+        mailEvent: MailEvent.WELCOME,
+        payload: {
+          user,
+          req,
+        },
+      });
+
+      this.appHooksService.emit(AppEvents.WELCOME, {
+        user,
+        req,
+      });
+    } catch (e) {
+      this.logger.warn(
+        `first-access welcome failed user=${user.id}: ${(e as Error)?.message}`,
+      );
+    }
   }
 
   async userDryDelete(param: { id: string; req: NcRequest }) {

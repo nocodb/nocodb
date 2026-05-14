@@ -793,14 +793,33 @@ function buildArrowPath(
   const succCenterY = succIdx * ROW_HEIGHT + ROW_HEIGHT / 2
   const tipX = succLeftX - ARROW_HEAD_OFFSET
 
-  // Milestone predecessor: exit horizontally from the diamond's right tip at
-  // row centre rather than dropping from a bar bottom. The bar logic below
-  // assumes there's a bottom edge to drop from; diamonds don't have one.
+  // Milestone predecessor: exit from the bottom tip of the diamond and
+  // mirror the bar's bottom-drop pattern so the chain reads as "drop down,
+  // route across" everywhere. Falls back to the original mid-X routing
+  // when the successor is at the same y or above (bottom-drop would loop
+  // back on itself in those cases).
   if (predIsMilestone) {
     const predCenterY = predIdx * ROW_HEIGHT + ROW_HEIGHT / 2
+    const predCenterX = predRightX - MILESTONE_SIZE / 2
+    const predBottomY = predCenterY + MILESTONE_SIZE / 2
+
     if (Math.abs(predCenterY - succCenterY) < 0.5) {
       return `M ${predRightX} ${predCenterY} L ${tipX} ${succCenterY}`
     }
+
+    if (succCenterY > predCenterY) {
+      const exitX = predCenterX
+      const maxExit = tipX - CORNER_RADIUS - MIN_HORIZONTAL
+      if (maxExit >= exitX - 12) {
+        return (
+          `M ${exitX} ${predBottomY}` +
+          ` L ${exitX} ${succCenterY - CORNER_RADIUS}` +
+          ` A ${CORNER_RADIUS} ${CORNER_RADIUS} 0 0 0 ${exitX + CORNER_RADIUS} ${succCenterY}` +
+          ` L ${tipX} ${succCenterY}`
+        )
+      }
+    }
+
     const R = CORNER_RADIUS
     const goingDown = succCenterY > predCenterY
     const minMid = predRightX + R + MIN_HORIZONTAL
@@ -1908,14 +1927,16 @@ const onGridMouseLeave = () => {
                 </div>
               </div>
             </NcTooltip>
-            <!-- Dependency handle for milestones — anchored at the diamond's right tip -->
+            <!-- Dependency handle for milestones — anchored at the diamond's
+                 bottom tip so drag-to-create lines up with where existing
+                 connectors actually exit (the bottom point, not the right). -->
             <div
               v-if="isMilestone(record) && getMilestoneStyle(record) && ganttRange[0]?.fk_dependency_col && !isInteracting && canEditDeps"
               class="nc-gantt-dep-handle nc-gantt-dep-handle--milestone absolute w-2.5 h-2.5 rounded-full bg-nc-bg-default opacity-0 peer-hover:opacity-100 hover:!opacity-100"
               :class="{ '!opacity-100': linkCreationDrag?.fromRecord === record }"
               :style="{
-                left: `calc(${getMilestoneStyle(record)!.left} + ${MILESTONE_SIZE}px)`,
-                top: `${ROW_HEIGHT / 2}px`,
+                left: `calc(${getMilestoneStyle(record)!.left} + ${MILESTONE_SIZE / 2}px - 5px)`,
+                top: `${ROW_HEIGHT / 2 + MILESTONE_SIZE / 2 - 5}px`,
                 zIndex: 4,
                 border: '1.25px solid var(--nc-border-gray-extra-dark, #9aa2af)',
               }"

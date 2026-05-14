@@ -177,6 +177,17 @@ const getAst = async (
         ]
           .filter(Boolean)
           .map(String);
+
+        // Force the dep-link column (a Links field) to elaborate as nested
+        // LTAR rows in the response, not the default count. Private views
+        // ignore this and use nestedList; public/shared views have no such
+        // endpoint, so the row payload is the only place arrows can be
+        // derived from. The flag is global but the only Gantt-relevant
+        // Links column is the dep-link one, so the surface is small.
+        if (dep.fk_dependency_linkrow_field_id) {
+          query = query || {};
+          (query as any).linksAsLtar = 'true';
+        }
       }
     } catch {
       // CE build — Gantt view is unreachable anyway

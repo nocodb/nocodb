@@ -563,10 +563,13 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
 
       if (data) {
-        // Mark Gantt views for first-time setup — the Configure dialog will
-        // auto-open when the new view mounts, so users can review/edit the
-        // auto-picked dependency fields before they're locked in.
-        if (form.type === ViewTypes.GANTT && data.id) {
+        // Mark fresh Gantt views for first-time setup — the Configure dialog
+        // will auto-open when the new view mounts, so users can review/edit
+        // the auto-picked dependency fields before they're locked in.
+        // Duplicates skip the wizard: the source's rule is cloned by the
+        // backend (View.ts GANTT case), so the duplicate lands already
+        // configured.
+        if (form.type === ViewTypes.GANTT && data.id && !form.copy_from_id) {
           useGanttSetupDialog().enqueue(data.id)
         }
 

@@ -41,6 +41,7 @@ import GridViewColumn from '~/models/GridViewColumn';
 import CalendarViewColumn from '~/models/CalendarViewColumn';
 import TimelineViewColumn from '~/models/TimelineViewColumn';
 import GanttViewColumn from '~/models/GanttViewColumn';
+import DateDependency from '~/models/DateDependency';
 import CalendarRange from '~/models/CalendarRange';
 import TimelineRange from '~/models/TimelineRange';
 import Sort from '~/models/Sort';
@@ -549,8 +550,13 @@ export default class View implements ViewType {
           break;
         }
         case ViewTypes.GANTT: {
-          // Gantt reads start/end/predecessor from the table-level
-          // DateDependency rule, so there is no per-view range to persist.
+          // Gantt resolves start/end/predecessor from a DateDependency
+          // rule — either view-owned (fk_gantt_view_id = view.id) or the
+          // table-level default (fk_gantt_view_id IS NULL). The per-view
+          // rule is the editor's primary surface, so a duplicate should
+          // re-create the rule pointing at the new view id — otherwise
+          // the user is forced to reconfigure the schedule from scratch
+          // on every duplicate.
           await GanttView.insert(
             context,
             {
@@ -560,6 +566,35 @@ export default class View implements ViewType {
             },
             ncMeta,
           );
+
+          if (copyFromView?.id && copyFromView.type === ViewTypes.GANTT) {
+            const sourceRule = await DateDependency.getByGanttViewId(
+              context,
+              copyFromView.id,
+              ncMeta,
+            );
+            if (sourceRule) {
+              await DateDependency.insert(
+                context,
+                {
+                  fk_model_id: sourceRule.fk_model_id,
+                  fk_gantt_view_id: view_id,
+                  fk_start_date_field_id: sourceRule.fk_start_date_field_id,
+                  fk_end_date_field_id: sourceRule.fk_end_date_field_id,
+                  fk_duration_field_id: sourceRule.fk_duration_field_id,
+                  fk_dependency_linkrow_field_id:
+                    sourceRule.fk_dependency_linkrow_field_id,
+                  dependency_linkrow_role: sourceRule.dependency_linkrow_role,
+                  dependency_connection_type: sourceRule.dependency_connection_type,
+                  dependency_buffer_type: sourceRule.dependency_buffer_type,
+                  dependency_buffer_days: sourceRule.dependency_buffer_days,
+                  include_weekends: sourceRule.include_weekends,
+                  is_active: sourceRule.is_active,
+                },
+                ncMeta,
+              );
+            }
+          }
           break;
         }
       }
@@ -3203,8 +3238,11 @@ export default class View implements ViewType {
         break;
       }
       case ViewTypes.GANTT: {
-        // Gantt has no per-view range — start/end/predecessor come from
-        // the table-level DateDependency rule.
+        // Gantt resolves start/end/predecessor from a DateDependency rule
+        // — either view-owned (fk_gantt_view_id = view.id) or the
+        // table-level default (fk_gantt_view_id IS NULL). Duplicate path
+        // must clone the source's per-view rule under the new view id
+        // so the duplicate lands fully configured.
         await GanttView.insert(
           context,
           {
@@ -3214,6 +3252,36 @@ export default class View implements ViewType {
           },
           ncMeta,
         );
+
+        if (copyFromView?.id && copyFromView.type === ViewTypes.GANTT) {
+          const sourceRule = await DateDependency.getByGanttViewId(
+            context,
+            copyFromView.id,
+            ncMeta,
+          );
+          if (sourceRule) {
+            await DateDependency.insert(
+              context,
+              {
+                fk_model_id: sourceRule.fk_model_id,
+                fk_gantt_view_id: view_id,
+                fk_start_date_field_id: sourceRule.fk_start_date_field_id,
+                fk_end_date_field_id: sourceRule.fk_end_date_field_id,
+                fk_duration_field_id: sourceRule.fk_duration_field_id,
+                fk_dependency_linkrow_field_id:
+                  sourceRule.fk_dependency_linkrow_field_id,
+                dependency_linkrow_role: sourceRule.dependency_linkrow_role,
+                dependency_connection_type:
+                  sourceRule.dependency_connection_type,
+                dependency_buffer_type: sourceRule.dependency_buffer_type,
+                dependency_buffer_days: sourceRule.dependency_buffer_days,
+                include_weekends: sourceRule.include_weekends,
+                is_active: sourceRule.is_active,
+              },
+              ncMeta,
+            );
+          }
+        }
 
         break;
       }

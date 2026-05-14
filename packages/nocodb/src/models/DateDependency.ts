@@ -11,6 +11,10 @@ export default class DateDependency {
     return null;
   }
 
+  public static async getByGanttViewId(..._args: any[]): Promise<any> {
+    return null;
+  }
+
   public static async insert(..._args: any[]): Promise<any> {
     return null;
   }

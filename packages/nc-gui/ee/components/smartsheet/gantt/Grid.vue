@@ -93,6 +93,11 @@ const handleVisibilityChange = () => {
   }
 }
 
+// Tick once a minute too — a user with the tab continuously open across
+// midnight would otherwise see yesterday's "today" line + isToday() lying
+// until they switch tabs or refresh. useIntervalFn auto-cleans on unmount.
+useIntervalFn(refreshToday, 60_000)
+
 onMounted(() => {
   document.addEventListener('visibilitychange', handleVisibilityChange)
 })

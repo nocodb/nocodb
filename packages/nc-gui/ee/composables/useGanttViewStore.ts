@@ -215,8 +215,8 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
           },
           oldRow: { ...row },
         }))
-      } catch (e) {
-        console.error('Error loading timeline data:', e)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
       } finally {
         isGanttDataLoading.value = false
       }
@@ -536,22 +536,28 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       const idx = findRowIndex(payload)
 
       if (data.action === 'delete') {
-        if (idx >= 0) formattedData.value.splice(idx, 1)
+        if (idx >= 0) {
+          // Close the inspector if it was holding the now-deleted row;
+          // its `props.record` ref would otherwise point at an orphan and
+          // any subsequent edit would silently write to a vanished row.
+          if (inspectorRecord.value && inspectorRecord.value === formattedData.value[idx]) {
+            inspectorRecord.value = null
+          }
+          formattedData.value.splice(idx, 1)
+        }
         return
       }
 
       const existing = idx >= 0 ? formattedData.value[idx] : undefined
       if (existing) {
+        // Mutate the Row object in place rather than replacing the array
+        // slot. Components holding a reference to the row (notably the
+        // RecordInspector and any per-bar drag handlers) would otherwise
+        // hold a stale snapshot and saves would go to an orphan.
         const merged = { ...existing.row, ...payload }
-        formattedData.value[idx] = {
-          ...existing,
-          row: merged,
-          oldRow: { ...merged },
-          rowMeta: {
-            ...existing.rowMeta,
-            ...getEvaluatedRowMetaRowColorInfo(merged),
-          },
-        }
+        Object.assign(existing.row, merged)
+        existing.oldRow = { ...merged }
+        Object.assign(existing.rowMeta, getEvaluatedRowMetaRowColorInfo(merged))
         return
       }
 

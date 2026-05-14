@@ -44,6 +44,9 @@ export default class GanttView extends GanttViewCE implements GanttType {
         `${CacheScope.GANTT_VIEW}:${viewId}`,
         CacheGetType.TYPE_OBJECT,
       ));
+    // Only set the cache when metaGet2 actually returned a row — otherwise we
+    // pollute the cache with a falsy entry that defeats subsequent lookups
+    // (the `if (!view)` short-circuit treats null-cached as a miss too).
     if (!view) {
       view = await ncMeta.metaGet2(
         context.workspace_id,
@@ -53,19 +56,24 @@ export default class GanttView extends GanttViewCE implements GanttType {
           fk_view_id: viewId,
         },
       );
-      await NocoCache.set(
-        context,
-        `${CacheScope.GANTT_VIEW}:${viewId}`,
-        view,
-      );
+      if (view) {
+        await NocoCache.set(
+          context,
+          `${CacheScope.GANTT_VIEW}:${viewId}`,
+          view,
+        );
+      }
     }
 
     if (!view) return null;
 
     const result = new GanttView(view);
     // Eager-load the view-owned dependency rule so consumers can read both
-    // off `viewMeta.view`. Cheap — DateDependency.getByGanttViewId is a single
-    // indexed lookup, no recursion.
+    // off `viewMeta.view`. Stored on the result object — not the cached
+    // GanttView row — because the rule lives in nc_date_dependency and is
+    // invalidated independently (DateDependency.update / clearColumnRef).
+    // Round-trip cost is one indexed lookup (fk_gantt_view_id), with its
+    // own NocoCache layer inside DateDependency.getByGanttViewId.
     result.date_dependency = await DateDependency.getByGanttViewId(
       context,
       viewId,

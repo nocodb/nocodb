@@ -2100,11 +2100,15 @@ export default class View implements ViewType {
         },
       );
       // Invalidate the model-level DATE_DEPENDENCY list cache so the next
-      // listByModelId picks up the deletion.
+      // listByModelId picks up the deletion. CacheMgr composes list keys
+      // as `${scope}:${subListKeys.join(':')}:list` — i.e. the trailing
+      // `:list` suffix, NOT a `:list:` infix. Getting the order wrong
+      // leaves a stale list-cache entry that still includes the
+      // deleted rule's id.
       if (view.fk_model_id) {
         await NocoCache.deepDel(
           context,
-          `${CacheScope.DATE_DEPENDENCY}:list:${view.fk_model_id}`,
+          `${CacheScope.DATE_DEPENDENCY}:${view.fk_model_id}:list`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
       }

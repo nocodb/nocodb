@@ -50,6 +50,14 @@ export class DateDependencyService {
 
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
 
+    // Per-view rules belong to a Gantt view, so the Gantt feature flag must
+    // also be satisfied. The two flags are aligned in current plans but are
+    // separate enums — keep them independently enforced so a future plan
+    // mix doesn't accidentally let users mutate Gantt-owned rules.
+    if (param.ganttViewId) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_GANTT_VIEW);
+    }
+
     validatePayload(
       'swagger.json#/components/schemas/DateDependencyReq',
       param.body,
@@ -114,6 +122,12 @@ export class DateDependencyService {
     await assertNotSandboxProduction(context);
 
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DATE_DEPENDENCY);
+
+    // Per-view rule deletes must also satisfy the Gantt feature flag —
+    // see the matching gate in update() above for rationale.
+    if (param.ganttViewId) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_GANTT_VIEW);
+    }
 
     const model = param.modelId && (await Model.get(context, param.modelId));
 

@@ -63,12 +63,16 @@ export class PublicMetasService extends PublicMetasServiceCE {
       );
     }
 
-    // Gantt reads its range from the table-level DateDependency (not from a
-    // per-view config). Attach it to view.model so the shared-view frontend
-    // can render arrows and bars. Without this, Gantt falls back to the empty
-    // state ("Date Dependencies are not configured for this table").
+    // Gantt resolves its date range via the per-view rule first
+    // (fk_gantt_view_id = view.id) and falls back to the table-level
+    // default (fk_gantt_view_id IS NULL). The shared/public route MUST
+    // match the editor's resolution — getAst.ts and useGanttViewStore
+    // both view-first — otherwise a shared link configured with custom
+    // start/end columns would silently render the default columns.
     if (view.type === ViewTypes.GANTT && view.model) {
-      const dep = await DateDependency.getByModelId(context, view.model.id);
+      const dep =
+        (await DateDependency.getByGanttViewId(context, view.id)) ??
+        (await DateDependency.getByModelId(context, view.model.id));
       view.model.date_dependency = dep;
 
       const columnsById = (view.model as any).columnsById ?? {};

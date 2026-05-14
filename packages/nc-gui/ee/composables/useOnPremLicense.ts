@@ -180,6 +180,11 @@ export const useOnPremLicense = createSharedComposable(() => {
       monthly: OnPremPlanPriceLookupKeys.BUSINESS_MONTHLY,
       yearly: OnPremPlanPriceLookupKeys.BUSINESS_YEARLY,
     },
+    [OnPremPlanTitles.SELF_HOSTED_SCALE]: {
+      // Scale is annual only — empty monthly key resolves to null in getPlanPrice()
+      monthly: '',
+      yearly: OnPremPlanPriceLookupKeys.SCALE_YEARLY,
+    },
   }
 
   const getPlanPrice = (plan: OnPremPlan, mode: 'year' | 'month'): OnPremPlanPrice | null => {

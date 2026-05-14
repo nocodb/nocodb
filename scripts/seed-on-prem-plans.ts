@@ -78,35 +78,16 @@ interface PlanDef {
   prices: PriceDef[];
 }
 
+// Note: only `description_*` keys in product metadata are stored on the plan
+// (`fetchStripeProductDetails` in payment.service.ts strips everything else).
+// Feature/limit gating is resolved at runtime from OnPremPlanDefinitions (SDK).
+// `min_seats` is set on the subscription at checkout time (per-plan), not
+// stored on the product. So we only carry description_* here.
 const ON_PREM_PLANS: PlanDef[] = [
   {
     name: "Self-hosted Business", // OnPremPlanTitles.SELF_HOSTED_BUSINESS
     description: "Self-hosted NocoDB for growing teams (self-serve)",
     metadata: {
-      // Limits (from OnPremPlanDefinitions)
-      limit_workspace: "1",
-      limit_ai_integrations: "1",
-      limit_snapshot: "5",
-      limit_audit_retention: "0",
-      limit_trash_retention: "21",
-      limit_automation_retention: "21",
-      limit_workflow_retention: "21",
-      limit_sandbox_per_base: "1",
-      // Features disabled (Enterprise only)
-      feature_audit_workspace: "false",
-      feature_private_bases: "false",
-      feature_rls: "false",
-      feature_scim: "false",
-      feature_force_2fa: "false",
-      feature_workspace_custom_logo: "false",
-      feature_hide_branding: "false",
-      feature_team_management: "false",
-      feature_team_hierarchy: "false",
-      feature_ai_chat: "false",
-      feature_table_visibility: "false",
-      feature_field_visibility: "false",
-      feature_trash_settings: "false",
-      // Descriptions (shown on the plan card)
       description_1: "Unlimited records",
       description_2: "Unlimited commenters & viewers",
       description_3: "SSO, 2FA, Admin Panel",
@@ -123,6 +104,24 @@ const ON_PREM_PLANS: PlanDef[] = [
         lookup_key: "on_prem_business_yearly", // OnPremPlanPriceLookupKeys.BUSINESS_YEARLY
         interval: "year",
         tiers: [{ up_to: "inf", unit_amount: 28800 }], // $24/seat/month × 12 = $288/seat/year
+      },
+    ],
+  },
+  {
+    name: "Self-hosted Scale", // OnPremPlanTitles.SELF_HOSTED_SCALE
+    description: "Self-hosted NocoDB for scaling teams (self-serve, annual)",
+    metadata: {
+      description_1: "Everything in Business",
+      description_2: "Unlimited workspaces",
+      description_3: "Audit logs, Teams, Team hierarchy, RLS",
+      description_4: "Multi-provider AI",
+      description_5: "Min 2 seats · billed annually",
+    },
+    prices: [
+      {
+        lookup_key: "on_prem_scale_yearly", // OnPremPlanPriceLookupKeys.SCALE_YEARLY
+        interval: "year",
+        tiers: [{ up_to: "inf", unit_amount: 54000 }], // $45/seat/month × 12 = $540/seat/year
       },
     ],
   },

@@ -154,10 +154,26 @@ export class UndoRedoService {
       (direction === 'undo' ? entry.inverse_params : entry.forward_params) ??
       {};
 
-    if (!opName) return { status: 'no_handler', opName: opName ?? 'unknown' };
+    if (!opName) {
+      if (entry.id) {
+        await OperationLog.markStatus(replayContext, entry.id, 'errored', {
+          error: `Missing ${
+            direction === 'undo' ? 'inverse_op' : 'forward_op'
+          } on operation log entry`,
+        });
+      }
+      return { status: 'no_handler', opName: opName ?? 'unknown' };
+    }
 
     const resolved = OperationRegistry.resolve(opName, opVersion);
-    if (!resolved) return { status: 'no_handler', opName };
+    if (!resolved) {
+      if (entry.id) {
+        await OperationLog.markStatus(replayContext, entry.id, 'errored', {
+          error: `No handler registered for ${opName}@${opVersion}`,
+        });
+      }
+      return { status: 'no_handler', opName };
+    }
 
     let metaUpdate: Record<string, unknown> | undefined;
     let skipped: ReadonlyArray<UndoRedoSkip> = [];

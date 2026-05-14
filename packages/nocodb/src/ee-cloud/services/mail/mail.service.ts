@@ -34,15 +34,7 @@ type CloudTemplateComponent<K extends keyof typeof CloudMailTemplates> =
 type CloudTemplateProps<K extends keyof typeof CloudMailTemplates> =
   ComponentProps<CloudTemplateComponent<K>>;
 
-// `req` is dropped at enqueue time — captures `ncSiteUrl` only since the
-// full request object isn't JSON-serializable for the outbox.
-type DeferredWelcomePayload = {
-  user: { id: string; email: string };
-  ncSiteUrl?: string;
-};
-
 const DEFERRED_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
-  MailEvent.WELCOME,
   MailEvent.LIMIT_REACHED,
   MailEvent.GRACE_PERIOD_ENDING,
   MailEvent.PAYMENT_FAILED,
@@ -65,9 +57,9 @@ const DEFERRED_MAIL_EVENTS: ReadonlySet<MailEvent> = new Set([
 export class MailService extends MailServiceEE {
   constructor(
     // Optional — playwright / no-Redis builds don't register a Bull queue.
-    // We still want the cloud MailService to load so CE-fallback events
-    // keep working; deferred events become no-ops in that environment
-    // (see `sendMail` guard).
+    // We still want the cloud MailService to load so non-deferred events
+    // (Welcome, CE-fallback events) keep working; deferred events become
+    // no-ops in that environment (see `sendMail` guard).
     @Optional()
     @InjectQueue(JOBS_QUEUE)
     protected readonly jobsQueue: Queue | null = null,
@@ -95,7 +87,47 @@ export class MailService extends MailServiceEE {
       }
     }
 
+    // Cloud-specific WELCOME template — replaces the plain CE version with
+    // doc-linked onboarding. Synchronous (not deferred): fired once at signup.
+    if (params.mailEvent === MailEvent.WELCOME) {
+      return this.sendCloudWelcome(params, ncMeta);
+    }
+
     return super.sendMail(params, ncMeta);
+  }
+
+  protected async sendCloudWelcome(
+    params: MailParams,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    const mailerAdapter = await this.getAdapter(ncMeta);
+    if (!mailerAdapter) {
+      this.logger.error('Email Plugin not configured / active');
+      return false;
+    }
+    if (!(await this.ensurePublicUrl(ncMeta))) return false;
+
+    const { user, req } = (params as any).payload;
+
+    try {
+      await this.dispatchAndLog(mailerAdapter, ncMeta, {
+        event: params.mailEvent,
+        fk_user_id: user.id,
+        to: user.email,
+        subject: 'Welcome to NocoDB',
+        html: await this.renderCloudMail('Welcome', {
+          email: user.email,
+          link: this.buildUrl(req, {}),
+        }),
+      });
+      return true;
+    } catch (e) {
+      this.logger.error(
+        'Failed to send cloud Welcome mail',
+        (e as Error).stack,
+      );
+      return false;
+    }
   }
 
   /**
@@ -251,23 +283,6 @@ export class MailService extends MailServiceEE {
     payload: any;
   } {
     switch (params.mailEvent) {
-      case MailEvent.WELCOME: {
-        const p = (params as any).payload as {
-          user: { id: string; email: string };
-          req: { ncSiteUrl?: string };
-        };
-        const out: DeferredWelcomePayload = {
-          user: { id: p.user.id, email: p.user.email },
-          ncSiteUrl: p.req?.ncSiteUrl,
-        };
-        return {
-          event: params.mailEvent,
-          fk_user_id: p.user.id,
-          to: p.user.email,
-          dedupe_key: `user:${p.user.id}`,
-          payload: out,
-        };
-      }
       case MailEvent.LIMIT_REACHED: {
         const p = params.payload as LimitReachedPayload;
         return {
@@ -437,17 +452,6 @@ export class MailService extends MailServiceEE {
     payload: any,
   ): Promise<{ subject: string; html: string } | null> {
     switch (event) {
-      case MailEvent.WELCOME: {
-        const p = payload as DeferredWelcomePayload;
-        const link = p.ncSiteUrl ?? Noco.config?.ncSiteUrl ?? '';
-        return {
-          subject: 'Welcome to NocoDB',
-          html: await this.renderCloudMail('Welcome', {
-            email: p.user.email,
-            link,
-          }),
-        };
-      }
       case MailEvent.LIMIT_REACHED: {
         const p = payload as LimitReachedPayload;
         return {

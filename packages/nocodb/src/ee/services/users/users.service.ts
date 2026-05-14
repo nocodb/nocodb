@@ -418,11 +418,12 @@ export class UsersService extends UsersServiceCE {
   }
 
   /**
-   * Enqueues the WELCOME mail on the user's first activation. Gated on
+   * Sends the WELCOME mail on the user's first activation. Gated on
    * `is_new_user = true` (strict — excludes both `false` and NULL) so the
-   * pre-existing user cohort is never welcomed retroactively. Race-proof
-   * dedupe is handled by the outbox `dedupe_key = 'user:{id}'` and its
-   * partial unique index. Failures are swallowed — runs unawaited.
+   * pre-existing user cohort is never welcomed retroactively. Steady-state
+   * dedupe is a prior-row check on `nc_mail_sends`; the millisecond race
+   * window for concurrent first-time logins is acceptable (worst case: one
+   * extra welcome email). Failures are swallowed — runs unawaited.
    */
   protected async maybeFireFirstAccessWelcome(
     user: UserType & { provider?: string; extra?: Record<string, any> },
@@ -437,6 +438,13 @@ export class UsersService extends UsersServiceCE {
         .select('is_new_user')
         .first();
       if (!dbUser || dbUser.is_new_user !== true) return;
+
+      const prior = await Noco.ncMeta
+        .knexConnection(MetaTable.MAIL_SENDS)
+        .where({ event: MailEvent.WELCOME, fk_user_id: user.id })
+        .whereIn('status', ['sent', 'sending'])
+        .first();
+      if (prior) return;
 
       await this.mailService.sendMail({
         mailEvent: MailEvent.WELCOME,

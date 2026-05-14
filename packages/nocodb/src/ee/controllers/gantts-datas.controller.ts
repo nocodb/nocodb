@@ -48,4 +48,34 @@ export class GanttsDatasController {
       to_date: toDate,
     });
   }
+
+  // Returns the full dependency-edge graph for the view in a single
+  // round-trip. Frontend uses this to draw arrows in both authenticated
+  // and shared-view modes — replaces the prior N+1 nestedList loop and
+  // the broken row-payload elaboration on the public path.
+  @Get([
+    '/api/v1/db/gantt-data/:orgs/:baseName/:tableName/views/:viewName/deps',
+  ])
+  @Acl('dataList')
+  async deps(
+    @TenantContext() context: NcContext,
+    @Param('viewName') viewId: string,
+  ) {
+    return await this.ganttDatasService.getGanttDeps(context, { viewId });
+  }
+
+  @Get([
+    '/api/v1/db/public/gantt-view/:sharedViewUuid/deps',
+    '/api/v2/public/gantt-view/:sharedViewUuid/deps',
+  ])
+  async getPublicGanttDeps(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+  ) {
+    return await this.ganttDatasService.getPublicGanttDeps(context, {
+      password: req.headers?.['xc-password'] as string,
+      sharedViewUuid,
+    });
+  }
 }

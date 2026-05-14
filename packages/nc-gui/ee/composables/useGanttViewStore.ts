@@ -314,89 +314,53 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       _silentRefetch()
     })
 
-    // Dependency graph — Map<rowId, linkedRowIds[]>.
-    // Populated from the Links field configured in DateDependency; fetched via
-    // N+1 nestedList calls (bulk endpoint doesn't exist yet). Acceptable for
-    // Gantt's 400-row cap; optimise later if needed.
+    // Dependency graph — Map<parentRowId, childRowIds[]>.
+    // Fetched in a single batch call from the dedicated /deps endpoint;
+    // covers the full table (within view filters + RLS) so arrows render
+    // for any pair of rows currently in formattedData. Patched
+    // optimistically by patchDependencyLinks on link/unlink.
     const dependencyLinks = ref<Map<string, string[]>>(new Map())
 
     const loadDependencyLinks = async () => {
       const range = ganttRange.value?.[0]
       const depCol = range?.fk_dependency_col as ColumnType | undefined
-      if (!depCol || !formattedData.value.length) {
+      if (!depCol) {
         dependencyLinks.value = new Map()
         return
       }
 
-      const pkCols = (meta.value?.columns ?? []) as ColumnType[]
-
-      // Shared view: no public nestedList endpoint. Derive the dep graph from
-      // the row data itself — LTAR fields ship as an array of linked records
-      // in the row payload (backend getAst includes depCol for Gantt views).
+      let url: string
       if (isPublic.value) {
+        const uuid = sharedView.value?.uuid
+        if (!uuid) return
+        url = `/api/v2/public/gantt-view/${uuid}/deps`
+      } else {
+        const baseId = base.value?.id
+        const tableId = meta.value?.id
+        const viewId = viewMeta.value?.id
+        if (!baseId || !tableId || !viewId) return
+        url = `/api/v1/db/gantt-data/noco/${baseId}/${tableId}/views/${viewId}/deps`
+      }
+
+      try {
+        const res = await $api.instance
+          .get(url, {
+            ...(isPublic.value ? { headers: { 'xc-password': sharedView.value?.password } } : {}),
+          })
+          .then((r: any) => r.data)
+
+        // Backend returns `{ edges: [[childPk, parentPk], ...] }`. Group
+        // by parent so the renderer can look up children directly.
         const graph = new Map<string, string[]>()
-        for (const row of formattedData.value) {
-          const rowId = extractPkFromRow(row.row, pkCols)
-          if (rowId == null) continue
-          const linked = row.row[depCol.title!]
-          if (!Array.isArray(linked)) continue
-          const ids = linked
-            .map((r: any) => extractPkFromRow(r, pkCols))
-            .filter((id: any) => id != null)
-            .map((id: any) => String(id))
-          if (ids.length) graph.set(String(rowId), ids)
+        for (const [childId, parentId] of (res?.edges ?? []) as Array<[string, string]>) {
+          const arr = graph.get(parentId) ?? []
+          arr.push(childId)
+          graph.set(parentId, arr)
         }
         dependencyLinks.value = graph
-        return
-      }
-
-      const tableId = meta.value?.id
-      if (!tableId || !base.value?.id) {
+      } catch {
         dependencyLinks.value = new Map()
-        return
       }
-      const colType = (depCol.colOptions as any)?.type as
-        | 'mm' | 'hm' | 'om' | 'bt' | 'oo' | 'ln' | undefined
-      if (!colType) {
-        dependencyLinks.value = new Map()
-        return
-      }
-      // Every relation subtype (mm/ln/om/oo) routes to mmList on the backend
-      // except 'hm' which has its own handler; cast to any to sidestep the
-      // narrower SDK enum that predates 'om'.
-      const relType = colType as any
-      const baseId = base.value.id
-
-      const entries = await Promise.all(
-        formattedData.value.map(async (row) => {
-          const rowId = extractPkFromRow(row.row, pkCols)
-          if (rowId == null) return null
-          try {
-            const res: any = await $api.dbTableRow.nestedList(
-              NOCO,
-              baseId,
-              tableId,
-              encodeURIComponent(String(rowId)),
-              relType,
-              depCol.id!,
-              { limit: 1000 } as any,
-            )
-            const ids = (res?.list ?? [])
-              .map((r: any) => extractPkFromRow(r, pkCols))
-              .filter((id: any) => id != null)
-              .map((id: any) => String(id))
-            return ids.length ? ([String(rowId), ids] as const) : null
-          } catch {
-            return null
-          }
-        }),
-      )
-
-      const graph = new Map<string, string[]>()
-      for (const e of entries) {
-        if (e) graph.set(e[0], e[1])
-      }
-      dependencyLinks.value = graph
     }
 
     // Mutate the in-memory dep graph without a round-trip; used for optimistic

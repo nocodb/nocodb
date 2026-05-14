@@ -3,9 +3,11 @@ import { ViewTypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import type { FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import { DateDependency, Model, View } from '~/models';
+import type { LinkToAnotherRecordColumn } from '~/models';
+import { Column, DateDependency, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { DatasService } from '~/services/datas.service';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 /**
  * Gantt counterpart of timeline-datas.service. The previous Gantt fetch was
@@ -189,4 +191,165 @@ export class GanttDatasService {
 
     return [root];
   }
+
+  /**
+   * Return the full dependency-edge graph for a Gantt view.
+   *
+   * The dep field is validated to be a self-referencing HM/OM/OO LTAR
+   * (date-dependency.service.ts). For those shapes the FK column lives on
+   * the same table — each row's FK points to its parent. So the entire
+   * graph is one SELECT: `(pk, fk_child)` for every row with a non-null
+   * FK, with view filters and RLS applied via baseModel.
+   *
+   * This replaces two broken paths in `useGanttViewStore.loadDependencyLinks`:
+   *
+   *  - Authenticated: N+1 nestedList calls (one per formattedData row).
+   *  - Public: row-payload elaboration that needed `linksAsLtar=true` AND
+   *    api_version=V3 — the public endpoint runs at V1/V2 so the Links
+   *    column came back as a count, not an array.
+   *
+   * Edges shape: `[childPk, parentPk]` — same direction the frontend's
+   * `dependencyLinks` Map<parentId, childIds[]> expects after grouping.
+   *
+   * v1 limitations: assumes single-column PK (errors otherwise). Bounded
+   * at GANTT_DEPS_LIMIT rows to avoid runaway queries on huge tables.
+   */
+  async getGanttDeps(
+    context: NcContext,
+    param: {
+      viewId: string;
+    },
+  ) {
+    const { viewId } = param;
+
+    const view = await View.get(context, viewId);
+    if (!view) NcError.get(context).viewNotFound(viewId);
+
+    if (view.type !== ViewTypes.GANTT) {
+      NcError.get(context).badRequest('View is not a gantt view');
+    }
+
+    const rule =
+      (await DateDependency.getByGanttViewId(context, view.id)) ??
+      (await DateDependency.getByModelId(context, view.fk_model_id));
+
+    // No dep field configured (e.g. start-date-only Gantt) → empty graph.
+    if (
+      !rule ||
+      rule.is_active === false ||
+      !rule.fk_dependency_linkrow_field_id
+    ) {
+      return { edges: [] as Array<[string, string]> };
+    }
+
+    const depCol = await Column.get(context, {
+      colId: rule.fk_dependency_linkrow_field_id,
+    });
+    if (!depCol) {
+      return { edges: [] as Array<[string, string]> };
+    }
+
+    const colOpts = await depCol.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+
+    // Validation in date-dependency.service.ts already rejects non-self-ref
+    // / wrong relation types — re-check defensively in case a rule predates
+    // that validation or a field's relation shape changed underneath.
+    if (
+      !colOpts ||
+      colOpts.fk_related_model_id !== view.fk_model_id ||
+      !['hm', 'om', 'oo'].includes(colOpts.type as string)
+    ) {
+      return { edges: [] as Array<[string, string]> };
+    }
+
+    const fkChildCol = await Column.get(context, {
+      colId: colOpts.fk_child_column_id as string,
+    });
+    if (!fkChildCol) {
+      return { edges: [] as Array<[string, string]> };
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view.fk_model_id,
+    });
+    await model.getColumns(context);
+    const pkCols = model.primaryKeys ?? model.columns.filter((c) => c.pk);
+
+    if (pkCols.length === 0) {
+      return { edges: [] as Array<[string, string]> };
+    }
+    if (pkCols.length > 1) {
+      // Composite PK not supported in v1 — emit empty graph rather than
+      // half-correct edges. Most Gantt tables use a single auto-PK.
+      return { edges: [] as Array<[string, string]> };
+    }
+    const pkCol = pkCols[0];
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    // fieldsSet override forces these two columns through the visibility
+    // gate (FK column is typically `system: true` and hidden in the view).
+    const fieldsSet = new Set<string>([pkCol.id, fkChildCol.id]);
+
+    const rows = (await baseModel.list(
+      {
+        fieldsSet,
+        // Bypass NC_DB_QUERY_LIMIT_MAX. Hard cap matches realistic Gantt
+        // upper bound — 100k tasks is well beyond any sane project board.
+        limitOverride: GANTT_DEPS_LIMIT,
+      },
+      {
+        ignoreViewFilterAndSort: false,
+      },
+    )) as Array<Record<string, any>>;
+
+    const pkKey = pkCol.title as string;
+    const fkKey = fkChildCol.title as string;
+    const edges: Array<[string, string]> = [];
+
+    for (const row of rows) {
+      const childId = row?.[pkKey];
+      const parentId = row?.[fkKey];
+      if (childId == null || parentId == null) continue;
+      edges.push([String(childId), String(parentId)]);
+    }
+
+    return { edges };
+  }
+
+  async getPublicGanttDeps(
+    context: NcContext,
+    param: {
+      password: string;
+      sharedViewUuid: string;
+    },
+  ) {
+    const { sharedViewUuid, password } = param;
+    const view = await View.getByUUID(context, sharedViewUuid);
+
+    if (!view) NcError.get(context).viewNotFound(sharedViewUuid);
+    if (view.type !== ViewTypes.GANTT) {
+      NcError.get(context).notFound('View is not a gantt view');
+    }
+
+    if (!(await View.verifyPassword(view, password))) {
+      return NcError.get(context).invalidSharedViewPassword();
+    }
+
+    return this.getGanttDeps(context, { viewId: view.id });
+  }
 }
+
+// Hard upper bound on edges returned. Each edge is a (string, string) pair —
+// at 100k edges we're well under a megabyte on the wire. Tables larger than
+// this should switch to a different visualization anyway.
+const GANTT_DEPS_LIMIT = 100_000;

@@ -26,6 +26,7 @@ const scaleSeatCount = computed(() => Math.max(3, seatCount.value))
 const isFromInstance = computed(() => (props.initialSeats ?? 0) > 1)
 
 const businessPlan = computed(() => plans.value.find((p) => p.title === OnPremPlanTitles.SELF_HOSTED_BUSINESS) ?? null)
+
 const scalePlan = computed(() => plans.value.find((p) => p.title === OnPremPlanTitles.SELF_HOSTED_SCALE) ?? null)
 
 const businessMeta = OnPremPlanMeta[OnPremPlanTitles.SELF_HOSTED_BUSINESS]
@@ -49,13 +50,12 @@ const scaleDescriptions = computed(
       t('labels.scaleDescMultipleWorkspaces'),
       t('labels.scaleDescAuditTeamsRls'),
       t('labels.scaleDescMultiProviderAi'),
-      t('labels.scaleDescMinSeatsAnnual'),
     ],
 )
 
 const enterpriseDescriptions = computed(() => [
-  t('labels.enterpriseDescEverythingInBusiness'),
-  t('labels.enterpriseDescScimRls'),
+  t('labels.enterpriseDescEverythingInScale'),
+  t('labels.enterpriseDescScim'),
   t('labels.enterpriseDescAirgapped'),
   t('labels.enterpriseDescUnlimitedWorkspaces'),
   t('labels.enterpriseDescPrioritySupport'),
@@ -178,7 +178,7 @@ onMounted(async () => {
           <!-- CTA -->
           <div class="mt-auto pt-5">
             <NcButton
-              type="primary"
+              type="secondary"
               size="medium"
               class="!w-full"
               data-testid="nc-self-hosted-plan-business-buy"

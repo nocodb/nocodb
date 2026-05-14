@@ -115,7 +115,6 @@ const ON_PREM_PLANS: PlanDef[] = [
       description_2: "Unlimited workspaces",
       description_3: "Audit logs, Team hierarchy, RLS",
       description_4: "Multi-provider AI",
-      description_5: "Min 3 seats",
     },
     prices: [
       {

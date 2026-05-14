@@ -2048,15 +2048,16 @@ const onGridMouseLeave = () => {
                 @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
                 @mousedown.stop="onDragStart($event, record)"
               >
-                <!-- #17: Left border color accent — only when the record's start is in the visible range -->
+                <!-- Left border color accent — opt-in via row-coloring rules
+                     only. Earlier this used to fall back to gray-900 by
+                     default, but a near-black stripe on every bar dominated
+                     the chart and obscured the bar's own outline. Now it's
+                     pure signal: shows when the row has a configured color,
+                     stays hidden otherwise. -->
                 <div
-                  v-if="isStartVisible(record)"
+                  v-if="isStartVisible(record) && getRowColorStyle(record).rowLeftBorderColor?.backgroundColor"
                   class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md pointer-events-none"
-                  :style="
-                    getRowColorStyle(record).rowLeftBorderColor?.backgroundColor
-                      ? getRowColorStyle(record).rowLeftBorderColor
-                      : { backgroundColor: 'var(--color-gray-900, #101015)' }
-                  "
+                  :style="getRowColorStyle(record).rowLeftBorderColor"
                 />
                 <!-- Left resize handle (start date) — offset past the accent -->
                 <div

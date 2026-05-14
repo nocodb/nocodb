@@ -13,6 +13,7 @@ import Noco from '~/Noco';
 import { SmartTextService as SmartTextServiceCls } from '~/services/smart-text.service';
 
 interface SmartTextUpdateContentExtra {
+  fieldTitle?: string;
   prevPm?: ProseMirrorDoc | null;
 }
 

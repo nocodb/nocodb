@@ -233,7 +233,7 @@ describe('@TraceCommand decorator', () => {
   });
 
   describe('entry.before and entry.skip_if failure tolerance', () => {
-    it('entry.before throwing does not crash the call', async () => {
+    it('entry.before throwing propagates and prevents the call', async () => {
       const contract = makeContract(OperationName.sortCreate, {
         before: async () => {
           throw new Error('snapshot failed');
@@ -241,15 +241,23 @@ describe('@TraceCommand decorator', () => {
       });
       OperationRegistry.register(contract, async () => undefined);
 
+      let bodyRan = false;
       class Svc {
         @TraceCommand(OperationName.sortCreate)
         async create(_ctx: any) {
+          bodyRan = true;
           return { id: 'ok' };
         }
       }
 
-      const r = await new Svc().create({});
-      expect(r).to.deep.equal({ id: 'ok' });
+      let caught: Error | undefined;
+      try {
+        await new Svc().create({});
+      } catch (e: any) {
+        caught = e;
+      }
+      expect(caught?.message).to.equal('snapshot failed');
+      expect(bodyRan).to.equal(false);
     });
 
     it('entry.skip_if returning true does not crash the call', async () => {

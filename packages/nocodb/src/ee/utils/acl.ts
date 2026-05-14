@@ -1381,7 +1381,8 @@ const permissionDescriptions: Record<string, string> = {
   orgGet: 'view organization details',
   orgWorkspaceList: 'view list of workspaces in the organization',
   orgUserList: 'view list of users in the organization',
-  orgUserListForInvite: 'view list of org users for the invite picker (admin-only)',
+  orgUserListForInvite:
+    'view list of org users for the invite picker (admin-only)',
   orgBaseList: 'view list of bases in the organization',
   orgSsoClientList: 'view list of SSO clients in the organization',
 

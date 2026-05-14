@@ -3001,10 +3001,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         cnt = +(
           await this.execAndParse(
             this.dbDriver(mmTn)
-              .where(
-                `${mmTn}.${mmChildColumn.column_name}`,
-                rowId,
-              )
+              .where(`${mmTn}.${mmChildColumn.column_name}`, rowId)
               .count(mmChildColumn.column_name, { as: 'cnt' }),
             null,
             { first: true },
@@ -4881,10 +4878,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   await colOptions.getParentColumn(parentContext)
                 ).getModel(parentContext);
                 await parentTable.getColumns(parentContext);
-                const mmBaseModel = await Model.getBaseModelSQL(
-                  mmContext,
-                  { model: mmTable, dbDriver: this.dbDriver },
-                );
+                const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+                  model: mmTable,
+                  dbDriver: this.dbDriver,
+                });
                 const parentBaseModel = await Model.getBaseModelSQL(
                   parentContext,
                   { model: parentTable, dbDriver: this.dbDriver },
@@ -4957,7 +4954,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // Collect child IDs before FK nulling
                 bulkLinkedCollectors.push(async (ids) => {
                   const rows = await this.execAndParse(
-                    this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
+                    this.dbDriver(
+                      refBaseModel.getTnPath(relatedTable.table_name),
+                    )
                       .select(relatedTable.primaryKey.column_name)
                       .whereIn(childColumn.column_name, ids),
                     null,
@@ -5059,7 +5058,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                 bulkLinkedCollectors.push(async (ids) => {
                   const rows = await this.execAndParse(
-                    this.dbDriver(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
+                    this.dbDriver(
+                      ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
+                    )
                       .select(ooRelatedTable.primaryKey.column_name)
                       .whereIn(ooChildColumn.column_name, ids),
                     null,

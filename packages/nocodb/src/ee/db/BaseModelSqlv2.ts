@@ -2097,6 +2097,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 displacedLinks.push({
                   kind: 'junction',
                   mmModelId: mmTable.id,
+                  baseId: mmTable.base_id,
                   colId: column.id,
                   parentMMCol: mmParentCol.column_name,
                   childMMCol: mmChildCol.column_name,
@@ -2162,6 +2163,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 displacedLinks.push({
                   kind: 'column',
                   modelId: relatedTable.id,
+                  baseId: relatedTable.base_id,
                   pk: String(childPk),
                   column: childColumn.column_name,
                   prev: id,
@@ -2272,6 +2274,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 displacedLinks.push({
                   kind: 'column',
                   modelId: ooRelatedTable.id,
+                  baseId: ooRelatedTable.base_id,
                   pk: String(childPk),
                   column: ooChildColumn.column_name,
                   prev: id,
@@ -2453,9 +2456,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         number,
         ((rowId: any, trx?: Knex | Knex.Transaction) => Promise<string>)[]
       > = {};
-      let preInsertOps: ((
-        trx?: Knex | Knex.Transaction,
-      ) => Promise<string>)[] = [];
+      let preInsertOps: ((trx?: Knex | Knex.Transaction) => Promise<string>)[] =
+        [];
       let aiPkCol: Column;
       let agPkCol: Column;
 
@@ -4361,10 +4363,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                   colId: colOptions.fk_mm_parent_column_id,
                 });
 
-                const mmBaseModel = await Model.getBaseModelSQL(
-                  mmContext,
-                  { model: mmTable, dbDriver: this.dbDriver },
-                );
+                const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+                  model: mmTable,
+                  dbDriver: this.dbDriver,
+                });
 
                 if (captureDisplacement) {
                   const mmRows = await this.execAndParse(
@@ -4378,6 +4380,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                     displacedLinks.push({
                       kind: 'junction',
                       mmModelId: mmTable.id,
+                      baseId: mmTable.base_id,
                       colId: column.id,
                       parentMMCol: mmParentCol.column_name,
                       childMMCol: mmChildCol.column_name,
@@ -4416,7 +4419,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
                 if (captureDisplacement) {
                   const hmRows = await this.execAndParse(
-                    this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
+                    this.dbDriver(
+                      refBaseModel.getTnPath(relatedTable.table_name),
+                    )
                       .select(
                         relatedTable.primaryKey.column_name,
                         childColumn.column_name,
@@ -4429,6 +4434,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                     displacedLinks.push({
                       kind: 'column',
                       modelId: relatedTable.id,
+                      baseId: relatedTable.base_id,
                       pk: String(r[relatedTable.primaryKey.column_name]),
                       column: childColumn.column_name,
                       // `prev` here is the FK value before nulling; it
@@ -4469,7 +4475,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
                 if (captureDisplacement) {
                   const ooRows = await this.execAndParse(
-                    this.dbDriver(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
+                    this.dbDriver(
+                      ooRefBaseModel.getTnPath(ooRelatedTable.table_name),
+                    )
                       .select(
                         ooRelatedTable.primaryKey.column_name,
                         ooChildColumn.column_name,
@@ -4482,6 +4490,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                     displacedLinks.push({
                       kind: 'column',
                       modelId: ooRelatedTable.id,
+                      baseId: ooRelatedTable.base_id,
                       pk: String(r[ooRelatedTable.primaryKey.column_name]),
                       column: ooChildColumn.column_name,
                       prev: r[ooChildColumn.column_name],
@@ -5397,9 +5406,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const mmParentCol = await Column.get(mmContext, {
             colId: colOptions.fk_mm_parent_column_id,
           });
+          const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+            model: mmTable,
+            dbDriver: this.dbDriver,
+          });
           for (const chunk of idChunks) {
             const rows = await this.execAndParse(
-              this.dbDriver(this.getTnPath(mmTable.table_name))
+              this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
                 .select(mmParentCol.column_name, mmChildCol.column_name)
                 .whereIn(mmChildCol.column_name, chunk),
               null,
@@ -5409,6 +5422,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               snapshot.push({
                 kind: 'junction',
                 mmModelId: mmTable.id,
+                baseId: mmTable.base_id,
                 colId: column.id,
                 parentMMCol: mmParentCol.column_name,
                 childMMCol: mmChildCol.column_name,
@@ -5426,9 +5440,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const childColumn = await Column.get(childContext, {
             colId: colOptions.fk_child_column_id,
           });
+          const refBaseModel = await Model.getBaseModelSQL(refContext, {
+            model: relatedTable,
+            dbDriver: this.dbDriver,
+          });
           for (const chunk of idChunks) {
             const rows = await this.execAndParse(
-              this.dbDriver(this.getTnPath(relatedTable.table_name))
+              this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
                 .select(
                   ...relatedTable.primaryKeys.map((c) => c.column_name),
                   childColumn.column_name,
@@ -5441,6 +5459,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               snapshot.push({
                 kind: 'column',
                 modelId: relatedTable.id,
+                baseId: relatedTable.base_id,
                 pk: dataWrapper(r).extractPksValue(
                   relatedTable,
                   true,
@@ -5461,9 +5480,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const ooChildColumn = await Column.get(childContext, {
             colId: colOptions.fk_child_column_id,
           });
+          const ooRefBaseModel = await Model.getBaseModelSQL(refContext, {
+            model: ooRelatedTable,
+            dbDriver: this.dbDriver,
+          });
           for (const chunk of idChunks) {
             const rows = await this.execAndParse(
-              this.dbDriver(this.getTnPath(ooRelatedTable.table_name))
+              this.dbDriver(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
                 .select(
                   ...ooRelatedTable.primaryKeys.map((c) => c.column_name),
                   ooChildColumn.column_name,
@@ -5476,6 +5499,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               snapshot.push({
                 kind: 'column',
                 modelId: ooRelatedTable.id,
+                baseId: ooRelatedTable.base_id,
                 pk: dataWrapper(r).extractPksValue(
                   ooRelatedTable,
                   true,
@@ -5635,10 +5659,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           const mmParentCol = await Column.get(mmContext, {
             colId: colOptions.fk_mm_parent_column_id,
           });
+          const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+            model: mmTable,
+            dbDriver: this.dbDriver,
+          });
           const rowIdList = touched.map((t) => t.rowId);
           for (const chunk of chunkArray(rowIdList, WHERE_IN_CHUNK_SIZE)) {
             const rows = await this.execAndParse(
-              this.dbDriver(this.getTnPath(mmTable.table_name))
+              this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
                 .select(mmParentCol.column_name, mmChildCol.column_name)
                 .whereIn(mmChildCol.column_name, chunk),
               null,
@@ -5703,6 +5731,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           out.push({
             op: 'remove',
             colId: col.id,
+            baseId: col.base_id,
             rowId,
             childIds: toRemove,
           });
@@ -5711,6 +5740,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           out.push({
             op: 'add',
             colId: col.id,
+            baseId: col.base_id,
             rowId,
             childIds: toAdd,
           });

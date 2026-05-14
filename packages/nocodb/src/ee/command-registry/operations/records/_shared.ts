@@ -26,6 +26,10 @@ import {
 } from '~/decorators/trace-command.decorator';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
+function withBaseId(context: NcContext, baseId?: string): NcContext {
+  return baseId ? { ...context, base_id: baseId } : context;
+}
+
 export const logger = new Logger('record.operations');
 
 /**
@@ -297,9 +301,10 @@ export async function invertLinkChange(
   lc: LinkChange,
   originalReq: NcRequest,
 ): Promise<void> {
-  const col = await ColumnModel.get(context, { colId: lc.colId });
+  const colCtx = withBaseId(context, lc.baseId);
+  const col = await ColumnModel.get(colCtx, { colId: lc.colId });
   if (!col) return;
-  const ownerModel = await col.getModel(context);
+  const ownerModel = await col.getModel(colCtx);
   const ownerContext = { ...context, base_id: ownerModel.base_id };
   const ownerSource = await Source.get(ownerContext, ownerModel.source_id);
   const ownerBaseModel = await Model.getBaseModelSQL(ownerContext, {
@@ -331,12 +336,13 @@ export async function resolveJunctionLinkSides(
   childIds: (string | number)[];
   ownerBaseModel: Awaited<ReturnType<typeof Model.getBaseModelSQL>>;
 }> {
-  const col = await ColumnModel.get(context, { colId: dr.colId });
+  const colCtx = withBaseId(context, dr.baseId);
+  const col = await ColumnModel.get(colCtx, { colId: dr.colId });
   if (!col) {
     throw new Error(`junction restore: column ${dr.colId} not found`);
   }
-  const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(context);
-  const ownerModel = await col.getModel(context);
+  const colOpts = await col.getColOptions<LinkToAnotherRecordColumn>(colCtx);
+  const ownerModel = await col.getModel(colCtx);
   const ownerContext = { ...context, base_id: ownerModel.base_id };
   const ownerSource = await Source.get(ownerContext, ownerModel.source_id);
   const ownerBaseModel = await Model.getBaseModelSQL(ownerContext, {
@@ -518,7 +524,8 @@ export async function reapplyDisplacedForward(
       } else {
         continue;
       }
-      const drModel = await Model.get(context, dr.modelId);
+      const drCtx = withBaseId(context, dr.baseId);
+      const drModel = await Model.get(drCtx, dr.modelId);
       if (!drModel) continue;
       const drContext = { ...context, base_id: drModel.base_id };
       await drModel.getColumns(drContext);
@@ -640,7 +647,8 @@ export async function restoreDisplaced(
 ): Promise<void> {
   for (const dr of displaced) {
     if (dr.kind === 'column') {
-      const drModel = await Model.get(context, dr.modelId);
+      const drCtx = withBaseId(context, dr.baseId);
+      const drModel = await Model.get(drCtx, dr.modelId);
       if (!drModel) continue;
       const drContext = { ...context, base_id: drModel.base_id };
       await drModel.getColumns(drContext);

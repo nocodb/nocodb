@@ -248,7 +248,11 @@ export const GridColumnUpdateContract: OperationContract<
       // Service-side AJV validator on `group_by_order` requires a number;
       // legacy rows have null. Service treats null as 0 at runtime, so
       // mirror that on the snapshot to keep undo replayable.
-      if (prevGrid && prevGrid.group_by_order == null && 'group_by_order' in prevGrid) {
+      if (
+        prevGrid &&
+        prevGrid.group_by_order == null &&
+        'group_by_order' in prevGrid
+      ) {
         prevGrid.group_by_order = 0;
       }
 

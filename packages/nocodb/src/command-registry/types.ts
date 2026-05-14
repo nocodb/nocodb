@@ -341,6 +341,7 @@ export interface LinkChange {
   op: 'add' | 'remove';
   /** The LTAR column id (NOT the FK column id). */
   colId: string;
+  baseId: string;
   /** Owner row pk (composite-pk join via `___` for multi-key tables). */
   rowId: string;
   /** Linked-side row pks added or removed. */
@@ -352,6 +353,7 @@ export type DisplacedRecord =
       kind: 'column';
       /** Model whose row was mutated (resolved via `Model.get` at restore). */
       modelId: string;
+      baseId: string;
       /** Composite-pk value (joined with `___` for multi-key tables). */
       pk: string;
       /** DB-level column_name (not title) — restored via raw UPDATE. */
@@ -373,6 +375,7 @@ export type DisplacedRecord =
       kind: 'junction';
       /** Junction (mm) model id. */
       mmModelId: string;
+      baseId: string;
       colId: string;
       parentMMCol: string;
       childMMCol: string;

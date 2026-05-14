@@ -1,5 +1,4 @@
 import { dataWrapper, populatePk } from 'src/helpers/dbHelpers';
-import type { Knex } from 'knex';
 import {
   isAttachment,
   isLinksOrLTAR,
@@ -7,6 +6,7 @@ import {
   type NcRequest,
 } from 'nocodb-sdk';
 import { AttachmentUrlUploadPreparator } from './attachment-url-upload-preparator';
+import type { Knex } from 'knex';
 import type { Column } from 'src/models';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import type { DisplacedRecord } from '~/command-registry/types';

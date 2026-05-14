@@ -11,7 +11,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { Injectable, NotImplementedException } from '@nestjs/common';
-import type { Job } from 'bull';
+import { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   DuplicateBaseJobData,

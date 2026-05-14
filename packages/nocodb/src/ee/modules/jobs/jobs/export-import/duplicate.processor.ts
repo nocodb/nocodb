@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { DuplicateProcessor as DuplicateProcessorCE } from 'src/modules/jobs/jobs/export-import/duplicate.processor';
 import { AppEvents, generateUniqueCopyName, ViewLockType } from 'nocodb-sdk';
 import { BaseVersion } from 'nocodb-sdk';
-import type { Job } from 'bull';
+import { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
 import type { DuplicateDashboardJobData } from '~/interface/Jobs';

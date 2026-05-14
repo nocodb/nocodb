@@ -196,16 +196,16 @@ export const smartTextActions = {
         ? `Update ${bField(entityTitle)} in ${bTable(parentEntityTitle)}`
         : `Update ${bField(entityTitle)}`
       : parentEntityTitle
-        ? `Update rich text cell in ${bTable(parentEntityTitle)}`
-        : `Update rich text cell`) as DescFn,
+      ? `Update rich text cell in ${bTable(parentEntityTitle)}`
+      : `Update rich text cell`) as DescFn,
   updateUndo: (({ parentEntityTitle, entityTitle }) =>
     entityTitle
       ? parentEntityTitle
         ? `Undo ${bField(entityTitle)} update in ${bTable(parentEntityTitle)}`
         : `Undo ${bField(entityTitle)} update`
       : parentEntityTitle
-        ? `Undo rich text cell update in ${bTable(parentEntityTitle)}`
-        : `Undo rich text cell update`) as DescFn,
+      ? `Undo rich text cell update in ${bTable(parentEntityTitle)}`
+      : `Undo rich text cell update`) as DescFn,
 };
 
 /**

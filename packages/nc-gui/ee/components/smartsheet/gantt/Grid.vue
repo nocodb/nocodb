@@ -178,9 +178,13 @@ const primaryField = computed(() => {
 })
 
 // Measure the grid container — width is pushed into the store so the date-axis
-// composable can compute scroll targets / edge-extension thresholds.
+// composable can compute scroll targets / edge-extension thresholds. The
+// height is mirrored into the sidebar header so the first row's border-top
+// lines up with the first chart lane regardless of how many major tiers the
+// current zoom adds (year/quarter/month above the minor day-labels).
 const gridContainerRef = ref<HTMLElement | null>(null)
-const { width: containerWidth } = useElementSize(gridContainerRef)
+const { width: containerWidth, height: containerHeight } = useElementSize(gridContainerRef)
+const sidebarHeaderHeight = computed(() => containerHeight.value || HEADER_HEIGHT + 1)
 watch(
   containerWidth,
   (w) => {
@@ -1574,7 +1578,7 @@ const onGridMouseLeave = () => {
     >
       <div
         class="flex items-center justify-between gap-2 px-3 text-xs font-medium text-nc-content-gray-muted border-b border-nc-border-gray-medium flex-shrink-0"
-        :style="{ height: `${HEADER_HEIGHT + 1}px` }"
+        :style="{ height: `${sidebarHeaderHeight}px` }"
       >
         <span class="truncate">{{ primaryField?.title || $t('labels.name') }}</span>
         <NcTooltip :title="$t('title.hideSidebar')" placement="bottom">

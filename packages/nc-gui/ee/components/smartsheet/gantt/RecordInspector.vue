@@ -68,6 +68,14 @@ watch(
   { immediate: true },
 )
 
+// Milestone records have only an end date and no start date — same rule as
+// Grid.vue's isMilestone. The inspector badge changes accordingly so users
+// know whether they're inspecting a date-range task or a single-point marker.
+const isMilestoneRecord = computed(() => {
+  if (!toCol.value?.title) return false
+  return !startValue.value && !!endValue.value
+})
+
 // Days between start and end (inclusive). Mirrors the Airtable Gantt
 // "DAYS" pill — empty when either date is missing.
 const durationDays = computed(() => {
@@ -349,7 +357,7 @@ const formatDisplay = (raw: string | null | undefined) => {
       <!-- Record badge + date range subheader -->
       <div class="flex items-center gap-2 text-xs">
         <span class="px-1.5 py-0.5 rounded bg-nc-bg-gray-light text-nc-content-gray-muted uppercase tracking-wide">
-          {{ $t('objects.record') }}
+          {{ isMilestoneRecord ? $t('objects.milestone') : $t('objects.record') }}
         </span>
         <span class="text-nc-content-gray-subtle truncate">{{ dateRangeLabel }}</span>
       </div>

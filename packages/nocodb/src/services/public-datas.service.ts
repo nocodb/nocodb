@@ -1140,6 +1140,16 @@ export class PublicDatasService {
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
 
+    // Block access to relation columns hidden from the shared view so the
+    // /mm/ endpoint can't be used to read links the view owner stripped.
+    const viewColumns = await View.getColumns(context, view.id);
+    const isVisible = viewColumns.some(
+      (vc) => vc.fk_column_id === column.id && vc.show,
+    );
+    if (!isVisible) {
+      NcError.badRequest('Column not accessible in this shared view');
+    }
+
     const source = await Source.get(context, view.source_id);
 
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -1222,6 +1232,16 @@ export class PublicDatasService {
 
     if (column.fk_model_id !== view.fk_model_id)
       NcError.badRequest("Column doesn't belongs to the model");
+
+    // Block access to relation columns hidden from the shared view so the
+    // /hm/ endpoint can't be used to read links the view owner stripped.
+    const viewColumns = await View.getColumns(context, view.id);
+    const isVisible = viewColumns.some(
+      (vc) => vc.fk_column_id === column.id && vc.show,
+    );
+    if (!isVisible) {
+      NcError.badRequest('Column not accessible in this shared view');
+    }
 
     const source = await Source.get(context, view.source_id);
 

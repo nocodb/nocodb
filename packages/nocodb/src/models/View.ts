@@ -2834,14 +2834,13 @@ export default class View implements ViewType {
             show = false;
           }
         } else if (view.type === ViewTypes.GANTT) {
-          // Gantt: show all non-system columns by default. The per-view
-          // DateDependency rule is created AFTER View.insertMetaOnly
-          // returns, so we can't filter by range columns here. The Fields
-          // panel lets users hide what they don't want — better default
-          // than the previous `break` which bailed before pushing any
-          // column and left the view with zero visible fields (bars
-          // labelless, sidebar empty).
-          show = !isSystemColumn(column);
+          // Gantt: default-show only the display value (pv) so the bar
+          // gets a label and the sidebar shows row identity. Other fields
+          // stay hidden — users opt them in via the Fields panel. The
+          // date range columns don't need to be `show=true` here since
+          // bars read dates straight from row data via ganttRange, not
+          // via per-view-column visibility.
+          show = !!column.pv;
         }
 
         insertObjs.push({

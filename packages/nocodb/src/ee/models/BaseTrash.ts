@@ -375,6 +375,7 @@ export default class BaseTrash implements BaseTrashType {
   }
 
   public static async deleteByBaseId(context: NcContext, ncMeta = Noco.ncMeta) {
+    if (!context.workspace_id || !context.base_id) return 0;
     return ncMeta
       .knexConnection(MetaTable.TRASH)
       .where('fk_workspace_id', context.workspace_id)

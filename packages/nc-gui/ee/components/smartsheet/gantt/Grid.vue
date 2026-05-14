@@ -593,6 +593,28 @@ const getBarStyle = (row: RowType) => {
   }
 }
 
+// Bar-width threshold below which the title spills to the right of the bar
+// (Airtable / MS Project style). Without this, narrow bars truncate to a few
+// characters or render label-less — hover-tooltip is the only way to read them.
+const LABEL_SPILL_THRESHOLD = 60
+
+// Render the primary-value cell next to the bar instead of inside it when the
+// bar is too narrow. Returns null when the bar is wide enough, off-screen, or
+// a milestone (milestones already render their label to the right of the
+// diamond — see line ~1707).
+const getSpillLabelStyle = (row: RowType) => {
+  if (isMilestone(row)) return null
+  const barStyle = getBarStyle(row)
+  if (!barStyle) return null
+  const widthPx = parseFloat(barStyle.width)
+  if (!Number.isFinite(widthPx) || widthPx >= LABEL_SPILL_THRESHOLD) return null
+  const leftPx = parseFloat(barStyle.left)
+  return {
+    left: `${leftPx + widthPx + 6}px`,
+    height: `${ROW_HEIGHT - 8}px`,
+  }
+}
+
 // Milestones: a record with only an end date (no start date) renders as a
 // diamond centered on the end-date column. It still lists in the sidebar and
 // can be a dependency source or target. MILESTONE_SIZE is the diagonal
@@ -1787,6 +1809,7 @@ const onGridMouseLeave = () => {
                 </div>
 
                 <span
+                  v-if="!getSpillLabelStyle(record)"
                   class="truncate inline-flex items-center"
                   :class="{
                     'pl-7': !isStartVisible(record),
@@ -1868,6 +1891,27 @@ const onGridMouseLeave = () => {
                 @click.stop
               />
             </NcTooltip>
+            <!-- Spill-over label — appears to the right of narrow bars (< LABEL_SPILL_THRESHOLD)
+                 so the title is still readable. Pointer-events disabled so the
+                 label doesn't intercept clicks meant for the bar or for
+                 click-empty-area-to-create. -->
+            <div
+              v-if="!isMilestone(record) && getSpillLabelStyle(record)"
+              class="absolute top-1 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none"
+              :style="getSpillLabelStyle(record)!"
+            >
+              <template v-for="field in fields" :key="field.id">
+                <LazySmartsheetPlainCell
+                  v-if="!isRowEmpty(record, field!)"
+                  v-model="record.row[field!.title!]"
+                  class="text-xs"
+                  :bold="fieldStyles[field.id]?.bold"
+                  :column="field"
+                  :italic="fieldStyles[field.id]?.italic"
+                  :underline="fieldStyles[field.id]?.underline"
+                />
+              </template>
+            </div>
             </template>
           </div>
 

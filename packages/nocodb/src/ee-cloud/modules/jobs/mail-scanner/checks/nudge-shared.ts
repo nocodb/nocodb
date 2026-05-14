@@ -24,6 +24,9 @@ export const NUDGE_MAX_AGE_WORKFLOW_DAYS = 7;
 export const NUDGE_MIN_AGE_INVITE_DAYS = 7;
 export const NUDGE_MAX_AGE_INVITE_DAYS = 14;
 
+export const NUDGE_MIN_AGE_SEAT_LIMIT_DAYS = 7;
+export const NUDGE_MAX_AGE_SEAT_LIMIT_DAYS = 30;
+
 export const NUDGE_ACTIVE_WINDOW_DAYS = 30;
 export const CROSS_NUDGE_MUTE_DAYS = 7;
 

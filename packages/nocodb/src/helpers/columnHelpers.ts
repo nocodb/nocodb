@@ -695,7 +695,14 @@ export const travelLookupColumn = async ({
   const lookupColOptions = await column.getColOptions<LookupColumn>(context);
   if (lookupColOptions?.error) return null;
 
-  const targetColumn = await Column.get(context, {
+  const relationColumn = await lookupColOptions.getRelationColumn(context);
+  if (!relationColumn) return null;
+
+  const relationColOptions =
+    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+  const { refContext } = relationColOptions.getRelContext(context);
+
+  const targetColumn = await Column.get(refContext, {
     colId: lookupColOptions.fk_lookup_column_id,
   });
 
@@ -703,7 +710,7 @@ export const travelLookupColumn = async ({
 
   if (targetColumn.uidt === UITypes.Lookup) {
     return travelLookupColumn({
-      context,
+      context: refContext,
       column: targetColumn,
     });
   } else {

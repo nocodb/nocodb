@@ -1967,7 +1967,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               if (!shouldCascadeHere) break;
 
               const mmTable = await Model.get(
-                this.context,
+                mmContext,
                 colOptions.fk_mm_model_id,
               );
 

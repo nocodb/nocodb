@@ -476,7 +476,7 @@ export const relationDataFetcher = (param: {
 
         await parentTable.getColumns(baseModel.context);
 
-        const childBaseModel = await Model.getBaseModelSQL(baseModel.context, {
+        const childBaseModel = await Model.getBaseModelSQL(refContext, {
           dbDriver: baseModel.dbDriver,
           model: childTable,
         });

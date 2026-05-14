@@ -2070,11 +2070,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 relCol.uidt === UITypes.Links && !linksAsLtar
                   ? `_nc_lk_${relCol.title}`
                   : relCol.title;
+              const { refContext: lookupRefContext } = (
+                await relCol.getColOptions<LinkToAnotherRecordColumn>(
+                  this.context,
+                )
+              ).getRelContext(this.context);
               proto.__columnAliases[column.title] = {
                 path: [
                   relColTitle,
                   (
-                    await Column.get(this.context, {
+                    await Column.get(lookupRefContext, {
                       colId: colOptions.fk_lookup_column_id,
                     })
                   )?.title,
@@ -2626,7 +2631,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (!shouldCascadeHere) break;
 
               const mmTable = await Model.get(
-                this.context,
+                mmContext,
                 colOptions.fk_mm_model_id,
               );
 

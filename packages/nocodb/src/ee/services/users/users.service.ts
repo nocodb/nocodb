@@ -167,6 +167,16 @@ export class UsersService extends UsersServiceCE {
     }
   }
 
+  // EE adds an operator-controlled opt-out for multi-session deployments
+  // (shared service accounts, multi-device admin workflows). The CE test
+  // bypass (PLAYWRIGHT_TEST) is inherited via super.
+  protected shouldEnforceSingleSession(req?: any): boolean {
+    if (process.env.NC_DISABLE_SINGLE_SESSION_ENFORCEMENT === 'true') {
+      return false;
+    }
+    return super.shouldEnforceSingleSession(req);
+  }
+
   @EEOnly()
   async registerNewUserIfAllowed(
     {

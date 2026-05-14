@@ -684,6 +684,13 @@ export class UsersService {
     return base;
   }
 
+  // Test-only bypass: parallel Playwright workers share user@nocodb.com
+  // and would otherwise invalidate each other's sessions. EE overrides to
+  // add an operator-controlled opt-out as well.
+  protected shouldEnforceSingleSession(_req?: any): boolean {
+    return process.env.PLAYWRIGHT_TEST !== 'true';
+  }
+
   async setRefreshToken({ res, req }) {
     const userId = req.user?.id;
 
@@ -701,11 +708,9 @@ export class UsersService {
     // API tokens are unaffected — the JWT strategy short-circuits before the
     // token_version check when `is_api_token` is set on the payload.
     //
-    // Bypassed under PLAYWRIGHT_TEST: parallel Playwright workers legitimately
-    // share `user@nocodb.com` and would otherwise invalidate each other's
-    // sessions. Unit tests in tests/unit/rest/tests/single-session-login.test.ts
-    // still exercise the real enforcement path.
-    if (process.env.PLAYWRIGHT_TEST !== 'true') {
+    // The bypass conditions live in `shouldEnforceSingleSession`, which EE
+    // overrides to support deployment-specific opt-outs.
+    if (this.shouldEnforceSingleSession(req)) {
       const newTokenVersion = randomTokenString();
 
       await User.update(user.id, {

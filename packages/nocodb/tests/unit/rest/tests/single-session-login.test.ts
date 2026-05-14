@@ -354,6 +354,42 @@ function singleSessionLoginTests() {
     ).to.be.true;
   });
 
+  ssoIt('EE bypass: NC_DISABLE_SINGLE_SESSION_ENFORCEMENT disables enforcement', async () => {
+    // EE override (`shouldEnforceSingleSession`) reads
+    // NC_DISABLE_SINGLE_SESSION_ENFORCEMENT for operators that need to opt
+    // out of single-session (e.g. shared automation accounts).
+    const originalEnv = process.env.NC_DISABLE_SINGLE_SESSION_ENFORCEMENT;
+    process.env.NC_DISABLE_SINGLE_SESSION_ENFORCEMENT = 'true';
+    try {
+      const sessionA = await signIn();
+      expect(await isJwtValid(sessionA.token), 'session A valid').to.be.true;
+
+      // Second login MUST NOT invalidate session A while the bypass is on.
+      const sessionB = await signIn();
+      expect(
+        await isJwtValid(sessionA.token),
+        'session A preserved under bypass',
+      ).to.be.true;
+      expect(await isJwtValid(sessionB.token), 'session B valid').to.be.true;
+    } finally {
+      if (originalEnv === undefined) {
+        delete process.env.NC_DISABLE_SINGLE_SESSION_ENFORCEMENT;
+      } else {
+        process.env.NC_DISABLE_SINGLE_SESSION_ENFORCEMENT = originalEnv;
+      }
+    }
+
+    // After the env var is unset, a fresh login invalidates the prior ones
+    // again (confirms the bypass is dynamic, not sticky).
+    const sessionC = await signIn();
+    const sessionD = await signIn();
+    expect(
+      await isJwtValid(sessionC.token),
+      'enforcement restored — session C invalidated',
+    ).to.be.false;
+    expect(await isJwtValid(sessionD.token), 'session D valid').to.be.true;
+  });
+
   ssoIt('Cross-mechanism: local → SSO → local chain invalidates each step', async () => {
     const config = Noco.getConfig();
     const mintShortToken = () =>

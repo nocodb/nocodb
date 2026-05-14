@@ -14,6 +14,7 @@ import {
   CalendarViewColumn,
   FormViewColumn,
   GalleryViewColumn,
+  GanttViewColumn,
   GridView,
   GridViewColumn,
   KanbanViewColumn,
@@ -341,6 +342,9 @@ export class ViewSettingsOverrideService {
       case ViewTypes.TIMELINE: {
         return TimelineViewColumn.list(context, view.id, ncMeta);
       }
+      case ViewTypes.GANTT: {
+        return GanttViewColumn.list(context, view.id, ncMeta);
+      }
     }
   }
 
@@ -393,6 +397,14 @@ export class ViewSettingsOverrideService {
       }
       case ViewTypes.TIMELINE: {
         return await TimelineViewColumn.update(
+          context,
+          column.id,
+          column,
+          ncMeta,
+        );
+      }
+      case ViewTypes.GANTT: {
+        return await GanttViewColumn.update(
           context,
           column.id,
           column,

@@ -1197,24 +1197,25 @@ const _tiptapEditor = useEditor({
       const { selection } = state
       const { $from, empty } = selection
 
-      // Escape inside a table: move cursor to first paragraph after the table.
-      // If no paragraph exists after the table, insert one.
+      // Escape inside a table or columns block: move cursor to first paragraph after the block.
+      // If no paragraph exists after the block, insert one. The innermost matching ancestor wins,
+      // so a table nested inside a column escapes the table first.
       if (event.key === 'Escape') {
         for (let d = $from.depth; d > 0; d--) {
           const node = $from.node(d)
-          if (node.type.name === 'table') {
-            const tableEndPos = $from.after(d)
-            const $afterTable = state.doc.resolve(tableEndPos)
+          if (node.type.name === 'table' || node.type.name === 'columns') {
+            const blockEndPos = $from.after(d)
+            const $afterBlock = state.doc.resolve(blockEndPos)
 
-            // Check if a block exists right after the table
-            if ($afterTable.nodeAfter) {
+            // Check if a block exists right after this block
+            if ($afterBlock.nodeAfter) {
               // Move cursor to start of the next block
-              view.dispatch(state.tr.setSelection(state.selection.constructor.near(state.doc.resolve(tableEndPos + 1))))
+              view.dispatch(state.tr.setSelection(state.selection.constructor.near(state.doc.resolve(blockEndPos + 1))))
             } else {
-              // No block after table — insert an empty paragraph and focus it
+              // No block after — insert an empty paragraph and focus it
               const paragraph = state.schema.nodes.paragraph.create()
-              const tr = state.tr.insert(tableEndPos, paragraph)
-              tr.setSelection(state.selection.constructor.near(tr.doc.resolve(tableEndPos + 1)))
+              const tr = state.tr.insert(blockEndPos, paragraph)
+              tr.setSelection(state.selection.constructor.near(tr.doc.resolve(blockEndPos + 1)))
               view.dispatch(tr)
             }
             return true
@@ -3495,6 +3496,27 @@ defineExpose({ editor })
 
     &:not(.active) .bar {
       color: var(--nc-content-gray-muted);
+    }
+
+    &.nc-toolbar-delete {
+      position: relative;
+      color: var(--nc-content-gray-muted);
+      margin-left: 11px;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: -7px;
+        top: 4px;
+        bottom: 4px;
+        width: 1px;
+        background: var(--nc-border-gray-medium);
+      }
+
+      &:hover {
+        background: var(--nc-bg-coloured-red);
+        color: var(--nc-content-red-dark);
+      }
     }
   }
 }

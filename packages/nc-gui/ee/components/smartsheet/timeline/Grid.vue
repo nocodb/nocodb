@@ -438,9 +438,15 @@ const dragCreateStyle = computed(() => {
   return { left: `${left}px`, width: `${width}px`, top: `${top}px`, height: `${height}px` }
 })
 
+// Set true as soon as the pointer crosses a day boundary during a drag-create
+// gesture. A plain click (mousedown→mouseup without crossing days) shouldn't
+// open the new-record modal — only an actual drag or a dblclick should.
+const dragCreateMoved = ref(false)
+
 const onDragCreateMove = (event: MouseEvent) => {
   if (!dragCreateActive.value || !gridBodyRef.value) return
   const dayIdx = getDayIndexFromEvent(event)
+  if (dayIdx !== dragCreateStartIdx.value) dragCreateMoved.value = true
   dragCreateEndIdx.value = dayIdx
   // Lane stays locked to where the user initially clicked
 }
@@ -451,12 +457,14 @@ const onDragCreateEnd = () => {
 
   if (!dragCreateActive.value) return
 
-  const range = dragCreateRange.value
-  if (range) {
-    const startDate = props.visibleDates[range.minIdx]
-    const endDate = props.visibleDates[range.maxIdx]
-    if (startDate && endDate) {
-      emit('newRecord', startDate, endDate)
+  if (dragCreateMoved.value) {
+    const range = dragCreateRange.value
+    if (range) {
+      const startDate = props.visibleDates[range.minIdx]
+      const endDate = props.visibleDates[range.maxIdx]
+      if (startDate && endDate) {
+        emit('newRecord', startDate, endDate)
+      }
     }
   }
 
@@ -464,10 +472,16 @@ const onDragCreateEnd = () => {
   dragCreateStartIdx.value = null
   dragCreateEndIdx.value = null
   dragCreateLaneIdx.value = null
+  dragCreateMoved.value = false
 }
 
-// Whether any interaction (resize or drag) is happening
-const isInteracting = computed(() => resizeInProgress.value || dragInProgress.value || dragCreateActive.value)
+// Whether any interaction (resize or drag) is happening. Drag-create counts
+// only AFTER the pointer has crossed a day boundary — otherwise a plain click
+// would briefly flip this flag and dim every bar (opacity-30) for the
+// duration of the click, producing a visible flash.
+const isInteracting = computed(
+  () => resizeInProgress.value || dragInProgress.value || (dragCreateActive.value && dragCreateMoved.value),
+)
 const interactionRecord = computed(() => resizeRecord.value || dragRecord.value)
 
 // Clean up listeners and timers on unmount
@@ -762,6 +776,25 @@ const onGridBodyMouseDown = (event: MouseEvent) => {
   document.addEventListener('mouseup', onDragCreateEnd)
 }
 
+// Double-click on empty grid area = create a single-day record at the
+// pointer's day. Skips when clicking on a bar/handle (same exclusions as
+// onGridBodyMouseDown).
+const onGridBodyDblClick = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
+  const target = event.target as HTMLElement
+  if (
+    target.closest('.nc-timeline-bar') ||
+    target.closest('.nc-timeline-resize-handle') ||
+    target.closest('.nc-timeline-nav-arrow') ||
+    target.closest('.nc-timeline-nav-btn')
+  )
+    return
+  const dayIdx = getDayIndexFromEvent(event)
+  const date = props.visibleDates[dayIdx]
+  if (!date) return
+  emit('newRecord', date, date)
+}
+
 // #21: Keyboard navigation between bars
 const onBarKeydown = (event: KeyboardEvent, record: RowType, laneIdx: number, barIdx: number) => {
   if (event.key === 'Enter') {
@@ -946,7 +979,13 @@ const onGridMouseLeave = () => {
         </div>
 
         <!-- Content layer: bars and empty state — sits above backgrounds -->
-        <div ref="gridBodyRef" class="relative w-full" style="z-index: 1" @mousedown="onGridBodyMouseDown">
+        <div
+          ref="gridBodyRef"
+          class="relative w-full"
+          style="z-index: 1"
+          @mousedown="onGridBodyMouseDown"
+          @dblclick="onGridBodyDblClick"
+        >
           <!-- Swimlane rows -->
           <div
             v-for="(lane, laneIdx) in swimlanes"
@@ -1078,7 +1117,7 @@ const onGridMouseLeave = () => {
 
           <!-- Drag-to-create dotted rectangle -->
           <div
-            v-if="dragCreateActive && dragCreateStyle"
+            v-if="dragCreateActive && dragCreateMoved && dragCreateStyle"
             class="absolute nc-timeline-drag-create-rect pointer-events-none"
             :style="dragCreateStyle"
           />

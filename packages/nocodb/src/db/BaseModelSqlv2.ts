@@ -2955,17 +2955,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const colOptions = (await column.getColOptions(
         this.context,
       )) as LinkToAnotherRecordColumn;
-      const childColumn = await colOptions.getChildColumn(this.context);
-      const parentColumn = await colOptions.getParentColumn(this.context);
-      const childModel = await childColumn.getModel(this.context);
-      await childModel.getColumns(this.context);
-      const parentModel = await parentColumn.getModel(this.context);
-      await parentModel.getColumns(this.context);
+
+      const { childContext, parentContext, mmContext } =
+        await colOptions.getParentChildContext(this.context);
+
+      const childColumn = await colOptions.getChildColumn(childContext);
+      const parentColumn = await colOptions.getParentColumn(parentContext);
+      const childModel = await childColumn.getModel(childContext);
+      await childModel.getColumns(childContext);
+      const parentModel = await parentColumn.getModel(parentContext);
+      await parentModel.getColumns(parentContext);
       let cnt = 0;
       if (colOptions.type === RelationTypes.HAS_MANY) {
+        const childBaseModel = await Model.getBaseModelSQL(childContext, {
+          model: childModel,
+          dbDriver: this.dbDriver,
+        });
         cnt = +(
           await this.execAndParse(
-            this.dbDriver(this.getTnPath(childModel.table_name))
+            this.dbDriver(childBaseModel.getTnPath(childModel.table_name))
               .count(childColumn.column_name, { as: 'cnt' })
               .where(childColumn.column_name, rowId),
             null,
@@ -2973,15 +2981,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           )
         ).cnt;
       } else if (colOptions.type === RelationTypes.MANY_TO_MANY) {
-        const mmModel = await colOptions.getMMModel(this.context);
-        const mmChildColumn = await colOptions.getMMChildColumn(this.context);
+        const mmModel = await colOptions.getMMModel(mmContext);
+        const mmChildColumn = await colOptions.getMMChildColumn(mmContext);
+        const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+          model: mmModel,
+          dbDriver: this.dbDriver,
+        });
+        const mmTn = mmBaseModel.getTnPath(mmModel.table_name);
         cnt = +(
           await this.execAndParse(
-            this.dbDriver(this.getTnPath(mmModel.table_name))
+            this.dbDriver(mmTn)
               .where(
-                `${this.getTnPath(mmModel.table_name)}.${
-                  mmChildColumn.column_name
-                }`,
+                `${mmTn}.${mmChildColumn.column_name}`,
                 rowId,
               )
               .count(mmChildColumn.column_name, { as: 'cnt' }),
@@ -4754,6 +4765,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   await colOptions.getParentColumn(parentContext)
                 ).getModel(parentContext);
                 await parentTable.getColumns(parentContext);
+                const mmBaseModel = await Model.getBaseModelSQL(
+                  mmContext,
+                  { model: mmTable, dbDriver: this.dbDriver },
+                );
                 const parentBaseModel = await Model.getBaseModelSQL(
                   parentContext,
                   { model: parentTable, dbDriver: this.dbDriver },
@@ -4770,7 +4785,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // Collect linked parent IDs before junction deletion
                 bulkLinkedCollectors.push(async (ids) => {
                   const rows = await this.execAndParse(
-                    this.dbDriver(this.getTnPath(mmTable.table_name))
+                    this.dbDriver(mmBaseModel.getTnPath(mmTable.table_name))
                       .select(mmParentCol.column_name)
                       .whereIn(mmChildCol.column_name, ids),
                     null,
@@ -4788,7 +4803,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 });
 
                 execQueries.push((trx, ids) =>
-                  trx(this.getTnPath(mmTable.table_name))
+                  trx(mmBaseModel.getTnPath(mmTable.table_name))
                     .del()
                     .whereIn(mmChildCol.column_name, ids),
                 );
@@ -4826,7 +4841,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // Collect child IDs before FK nulling
                 bulkLinkedCollectors.push(async (ids) => {
                   const rows = await this.execAndParse(
-                    this.dbDriver(this.getTnPath(relatedTable.table_name))
+                    this.dbDriver(refBaseModel.getTnPath(relatedTable.table_name))
                       .select(relatedTable.primaryKey.column_name)
                       .whereIn(childColumn.column_name, ids),
                     null,
@@ -4846,7 +4861,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 });
 
                 execQueries.push((trx, ids) =>
-                  trx(this.getTnPath(relatedTable.table_name))
+                  trx(refBaseModel.getTnPath(relatedTable.table_name))
                     .update({ [childColumn.column_name]: null })
                     .whereIn(childColumn.column_name, ids),
                 );
@@ -4928,7 +4943,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                 bulkLinkedCollectors.push(async (ids) => {
                   const rows = await this.execAndParse(
-                    this.dbDriver(this.getTnPath(ooRelatedTable.table_name))
+                    this.dbDriver(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
                       .select(ooRelatedTable.primaryKey.column_name)
                       .whereIn(ooChildColumn.column_name, ids),
                     null,
@@ -4948,7 +4963,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 });
 
                 execQueries.push((trx, ids) =>
-                  trx(this.getTnPath(ooRelatedTable.table_name))
+                  trx(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
                     .update({ [ooChildColumn.column_name]: null })
                     .whereIn(ooChildColumn.column_name, ids),
                 );
@@ -8084,28 +8099,31 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         NcError.get(this.context).recordNotFound(id);
       }
 
-      const parentCol = await (
-        (await relColumn.getColOptions(
-          this.context,
-        )) as LinkToAnotherRecordColumn
-      ).getParentColumn(this.context);
-      const parentTable = await parentCol.getModel(this.context);
-      const chilCol = await (
-        (await relColumn.getColOptions(
-          this.context,
-        )) as LinkToAnotherRecordColumn
-      ).getChildColumn(this.context);
-      const childTable = await chilCol.getModel(this.context);
+      const colOptions = (await relColumn.getColOptions(
+        this.context,
+      )) as LinkToAnotherRecordColumn;
 
-      const parentModel = await Model.getBaseModelSQL(this.context, {
+      const { childContext, parentContext } =
+        await colOptions.getParentChildContext(this.context);
+
+      const parentCol = await colOptions.getParentColumn(parentContext);
+      const parentTable = await parentCol.getModel(parentContext);
+      const chilCol = await colOptions.getChildColumn(childContext);
+      const childTable = await chilCol.getModel(childContext);
+
+      const parentModel = await Model.getBaseModelSQL(parentContext, {
         model: parentTable,
         dbDriver: this.dbDriver,
         queryQueue: this._queryQueue,
       });
-      await childTable.getColumns(this.context);
+      const childBaseModel = await Model.getBaseModelSQL(childContext, {
+        model: childTable,
+        dbDriver: this.dbDriver,
+      });
+      await childTable.getColumns(childContext);
 
-      const childTn = this.getTnPath(childTable);
-      const parentTn = this.getTnPath(parentTable);
+      const childTn = childBaseModel.getTnPath(childTable);
+      const parentTn = parentModel.getTnPath(parentTable);
 
       const qb = this.dbDriver(parentTn);
       await this.applySortAndFilter({ table: parentTable, where, qb, sort });
@@ -8127,7 +8145,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       const parent = await this.execAndParse(
         qb,
-        await parentTable.getColumns(this.context),
+        await parentTable.getColumns(parentContext),
         {
           first: true,
         },

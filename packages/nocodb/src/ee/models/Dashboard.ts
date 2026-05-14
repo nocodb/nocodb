@@ -282,15 +282,18 @@ export default class Dashboard extends DashboardCE implements DashboardType {
    *   left as-is so the owner can still read their original password.
    * - Empty/null → unchanged.
    *
-   * Returns a shallow copy when masking is needed so we don't mutate
-   * cached Dashboard instances.
+   * Returns a copy when masking is needed so we don't mutate cached
+   * Dashboard instances. Preserves the prototype so the returned value is
+   * still a `Dashboard` (methods stay callable on it).
    */
   static maskPasswordForResponse<T extends { password?: string | null }>(
     dashboard: T,
   ): T {
     if (!dashboard || !dashboard.password) return dashboard;
     if (!isBcryptHash(dashboard.password)) return dashboard;
-    return { ...dashboard, password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL };
+    return Object.assign(Object.create(Object.getPrototypeOf(dashboard)), dashboard, {
+      password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+    });
   }
 
   static async verifyPassword(

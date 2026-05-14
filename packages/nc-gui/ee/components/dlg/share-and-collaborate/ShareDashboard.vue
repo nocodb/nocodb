@@ -83,21 +83,25 @@ const togglePasswordProtected = async () => {
   isUpdating.value.password = true
   try {
     if (wasProtected) {
-      // Turning OFF — clear stored password.
+      // Turning OFF — persist first; only flip local state on confirmed
+      // success so a backend failure doesn't leave the UI claiming the
+      // password was removed when the hash is still stored.
+      try {
+        await dashboardShare(activeProjectId.value, activeDashboard.value.id, {
+          password: null,
+        })
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+        return
+      }
       passwordProtectedLocal.value = false
       newPasswordDraft.value = ''
-      await dashboardShare(activeProjectId.value, activeDashboard.value.id, {
-        password: null,
-      })
+      if (activeDashboard.value) activeDashboard.value.password = null
     } else {
       // Turning ON — open the toggle locally; backend stays unchanged until
       // the user actually enters a password.
       passwordProtectedLocal.value = true
     }
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-    // Revert local state on error
-    passwordProtectedLocal.value = wasProtected
   } finally {
     isUpdating.value.password = false
   }

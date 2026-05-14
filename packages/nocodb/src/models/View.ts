@@ -1708,15 +1708,18 @@ export default class View implements ViewType {
    *   Migrates to bcrypt the next time the owner changes it.
    * - Empty/null → unchanged.
    *
-   * Returns a shallow copy when masking is needed so we don't mutate
-   * cached View instances.
+   * Returns a copy when masking is needed so we don't mutate cached View
+   * instances. Preserves the prototype so the returned value is still a
+   * `View` (methods stay callable on it).
    */
   static maskPasswordForResponse<T extends { password?: string | null }>(
     view: T,
   ): T {
     if (!view || !view.password) return view;
     if (!isBcryptHash(view.password)) return view;
-    return { ...view, password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL };
+    return Object.assign(Object.create(Object.getPrototypeOf(view)), view, {
+      password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+    });
   }
 
   static async verifyPassword(

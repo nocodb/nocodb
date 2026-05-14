@@ -98,11 +98,15 @@ function jobsProcessorTests() {
     describe('requeue()', () => {
       let addCalls: Array<{ name: string; data: any; opts: any }>;
       let onCompletedCalls: Array<{ jobId: string; status: JobStatus }>;
+      let onFailedCalls: Array<{ jobId: string; error: any }>;
+      let telemetryCalls: Array<Record<string, any>>;
       let processor: any;
 
       beforeEach(() => {
         addCalls = [];
         onCompletedCalls = [];
+        onFailedCalls = [];
+        telemetryCalls = [];
         const mockJobsService: any = {
           async add(name: string, data: any, opts: any) {
             addCalls.push({ name, data: { ...data }, opts });
@@ -113,12 +117,21 @@ function jobsProcessorTests() {
           onCompleted(job: any, status: JobStatus) {
             onCompletedCalls.push({ jobId: job.id, status });
           },
+          onFailed(job: any, error: any) {
+            onFailedCalls.push({ jobId: job.id, error });
+          },
         };
         const mockJobsMap: any = { jobs: {} };
+        const mockTelemetryService: any = {
+          async sendSystemEvent(payload: Record<string, any>) {
+            telemetryCalls.push(payload);
+          },
+        };
         processor = new JobsProcessor(
           mockJobsService,
           mockJobsEventService,
           mockJobsMap,
+          mockTelemetryService,
         );
       });
 
@@ -159,10 +172,23 @@ function jobsProcessorTests() {
           await processor.requeue(job);
         }
         expect(addCalls).to.have.length(JOB_REQUEUE_LIMIT);
+        expect(onCompletedCalls).to.have.length(JOB_REQUEUE_LIMIT);
+        expect(onFailedCalls).to.have.length(0);
 
-        // The (limit+1)th call must drop the job without re-adding.
+        // The (limit+1)th call must drop the job: no re-add, no extra
+        // REQUEUED event, and onFailed + worker_alert telemetry emitted.
         await processor.requeue(job);
         expect(addCalls).to.have.length(JOB_REQUEUE_LIMIT);
+        expect(onCompletedCalls).to.have.length(JOB_REQUEUE_LIMIT);
+        expect(onFailedCalls).to.have.length(1);
+        expect(onFailedCalls[0].error.data).to.deep.equal({
+          dropped: true,
+          attempts: JOB_REQUEUE_LIMIT,
+        });
+        expect(telemetryCalls).to.have.length(1);
+        expect(telemetryCalls[0].event_type).to.equal('worker_alert');
+        expect(telemetryCalls[0].alert_type).to.equal('error');
+        expect(telemetryCalls[0].job_name).to.equal(JobTypes.MetaSync);
       });
 
       it('emits REQUEUED event before re-adding', async () => {
@@ -190,17 +216,22 @@ function jobsProcessorTests() {
             return { id: opts?.jobId };
           },
         };
-        const mockJobsEventService: any = { onCompleted() {} };
+        const mockJobsEventService: any = {
+          onCompleted() {},
+          onFailed() {},
+        };
         const mockJobsMap: any = {
           jobs: {
             [JobTypes.ThumbnailGenerator]: { this: thumbnailFn },
             [JobTypes.MetaSync]: { this: metaSyncFn },
           },
         };
+        const mockTelemetryService: any = { async sendSystemEvent() {} };
         processor = new JobsProcessor(
           mockJobsService,
           mockJobsEventService,
           mockJobsMap,
+          mockTelemetryService,
         );
       });
 

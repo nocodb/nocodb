@@ -15,6 +15,7 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobsMap } from '~/modules/jobs/jobs-map.service';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobStatus } from '~/interface/Jobs';
+import { TelemetryService } from '~/services/telemetry.service';
 
 const NC_WORKER_CONCURRENCY = parseWorkerConcurrency(
   process.env.NC_WORKER_CONCURRENCY,
@@ -36,6 +37,7 @@ export class JobsProcessor {
     @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly jobsEventService: JobsEventService,
     protected readonly jobsMap: JobsMap,
+    protected readonly telemetryService: TelemetryService,
   ) {}
 
   @Process({
@@ -114,16 +116,36 @@ export class JobsProcessor {
     await job.releaseLock();
     await job.remove();
 
-    await this.jobsEventService.onCompleted(job, JobStatus.REQUEUED);
-
     const attempt = job.data?._jobAttempt ?? 1;
 
     if (attempt > JOB_REQUEUE_LIMIT) {
-      this.logger.error(
-        `Job ${job.data.jobName} dropped after ${JOB_REQUEUE_LIMIT} requeues`,
-      );
+      const message = `Job ${job.data.jobName} dropped after ${JOB_REQUEUE_LIMIT} requeues`;
+      const error = Object.assign(new Error(message), {
+        data: { dropped: true, attempts: attempt - 1 },
+      });
+      this.logger.error(message);
+
+      // Surface as FAILED so listeners + nc_jobs row reach a terminal state
+      // (otherwise the row sits in WAITING and clients hang on REQUEUED).
+      this.jobsEventService.onFailed(job, error as Error & { data: any });
+
+      this.telemetryService
+        .sendSystemEvent({
+          event_type: 'worker_alert',
+          alert_type: 'error',
+          message: 'Job dropped after requeue budget exhausted',
+          job_name: job.data.jobName,
+          job_id: job.id?.toString?.(),
+          attempts: attempt - 1,
+        })
+        .catch((err) => {
+          this.logger.error(err.message, err.stack);
+        });
+
       return;
     }
+
+    await this.jobsEventService.onCompleted(job, JobStatus.REQUEUED);
 
     job.data._jobAttempt = attempt + 1;
 

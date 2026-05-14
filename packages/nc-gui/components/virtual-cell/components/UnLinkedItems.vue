@@ -205,6 +205,14 @@ const newRowState = computed(() => {
         colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
         colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
       )
+    } else if (
+      (colOpt.type === RelationTypes.ONE_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_ONE) ||
+      (colOpt.type === RelationTypes.MANY_TO_ONE && colOpt1?.type === RelationTypes.ONE_TO_MANY)
+    ) {
+      return (
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
+        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id
+      )
     } else {
       return (
         colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
@@ -215,7 +223,7 @@ const newRowState = computed(() => {
   const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
   if (!relatedTableColOpt) return {}
 
-  if (relatedTableColOpt.type === RelationTypes.BELONGS_TO || relatedTableColOpt.type === RelationTypes.ONE_TO_ONE) {
+  if (relatedTableColOpt.type === RelationTypes.BELONGS_TO || relatedTableColOpt.type === RelationTypes.ONE_TO_ONE || relatedTableColOpt.type === RelationTypes.MANY_TO_ONE) {
     return {
       [colInRelatedTable.title as string]: row?.value?.row,
     }

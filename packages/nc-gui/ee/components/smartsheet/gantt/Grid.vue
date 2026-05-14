@@ -1818,10 +1818,10 @@ const onGridMouseLeave = () => {
               "
               :stroke-width="
                 selectedArrowId === arrow.id
-                  ? 2
+                  ? 1.25
                   : highlightedRowIds.has(arrow.rowId) && highlightedRowIds.has(arrow.linkedId)
                   ? 1
-                  : 1.25
+                  : 1
               "
               stroke-linejoin="round"
               class="pointer-events-none"

@@ -119,8 +119,7 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
     this.jobsQueue
       .getActiveCount()
       .then((activeCount) => {
-        // currently we only allow 10 concurrent jobs (per worker)
-        if (activeCount >= 9) {
+        if (activeCount >= 30) {
           this.jobsQueue
             .getJobCounts()
             .then((stats) => {

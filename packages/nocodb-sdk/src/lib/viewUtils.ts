@@ -127,13 +127,16 @@ export const copyViewConfigOptionMap: Record<
     label: 'Sort',
     value: ViewSettingOverrideOptions.SORT,
     i18nLabel: `objects.copyViewConfig.${ViewSettingOverrideOptions.SORT}`,
+    // Gantt deliberately omits Sort from its toolbar — rows are always
+    // ordered chronologically by start date (Grid.vue's stableRowOrder),
+    // so a user sort would be silently overridden. Drop GANTT here too
+    // so the Copy-configuration dialog doesn't offer a no-op option.
     supportedViewTypes: [
       ViewTypes.GRID,
       ViewTypes.GALLERY,
       ViewTypes.KANBAN,
       ViewTypes.CALENDAR,
       ViewTypes.TIMELINE,
-      ViewTypes.GANTT,
     ],
     icon: 'sort',
   },

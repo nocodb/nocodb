@@ -75,13 +75,10 @@ export class UndoRedoService {
       scopes: key.scopes,
     };
 
+    await OperationLog.bumpRetentionForScope(context, lookupKey);
+
     const entry = await OperationLog.getLatestActive(context, lookupKey);
     if (!entry) return { status: 'empty' };
-
-    // Sliding-window retention: bumps cleanup_due_at for the whole visible
-    // stack so the cleanup tick can't race the dispatch and so an actively-
-    // walked undo chain stays alive.
-    await OperationLog.bumpRetentionForScope(context, lookupKey);
 
     return this.dispatch(context, param.req, entry, 'undo');
   }
@@ -101,10 +98,10 @@ export class UndoRedoService {
       scopes: key.scopes,
     };
 
+    await OperationLog.bumpRetentionForScope(context, lookupKey);
+
     const entry = await OperationLog.getLatestUndone(context, lookupKey);
     if (!entry) return { status: 'empty' };
-
-    await OperationLog.bumpRetentionForScope(context, lookupKey);
 
     return this.dispatch(context, param.req, entry, 'redo');
   }

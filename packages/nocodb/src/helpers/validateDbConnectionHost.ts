@@ -26,6 +26,10 @@ export async function validateDbConnectionHost(host: unknown): Promise<void> {
     NcError.badRequest('Connection to internal hosts is not allowed');
   }
 
+  // TOCTOU note: the driver re-resolves at connect-time; a controlled DNS
+  // record with short TTL could flip between this lookup and the driver's
+  // connect(). Mitigating fully requires passing the resolved IP to the
+  // driver, which is per-driver wiring out of scope here.
   let resolvedIps: string[] = [];
   if (isIP(trimmed)) {
     resolvedIps = [trimmed];

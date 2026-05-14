@@ -472,7 +472,7 @@ const formatDisplay = (raw: string | null | undefined) => {
           <div
             v-for="id in predecessorIds"
             :key="`pred-${id}`"
-            class="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-nc-border-gray-dark bg-nc-bg-default text-sm"
+            class="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight text-sm"
           >
             <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
             <button
@@ -541,7 +541,7 @@ const formatDisplay = (raw: string | null | undefined) => {
           <div
             v-for="id in successorIds"
             :key="`succ-${id}`"
-            class="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-nc-border-gray-dark bg-nc-bg-default text-sm"
+            class="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight text-sm"
           >
             <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
             <button

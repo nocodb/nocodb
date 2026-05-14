@@ -416,6 +416,14 @@ export class PublicDatasService {
       listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
     } catch (e) {}
 
+    // Gantt shared views need the dep-link column (a Links field) to
+    // elaborate as nested LTAR rows so the frontend can derive arrows
+    // from the row payload — there's no public nestedList endpoint to
+    // fall back on. baseModel.list reads linksAsLtar from listArgs.
+    if (view.type === ViewTypes.GANTT) {
+      listArgs.linksAsLtar = 'true';
+    }
+
     this.sanitizeListArgsForPublicView(context, listArgs, visibleInfo);
 
     let data = [];

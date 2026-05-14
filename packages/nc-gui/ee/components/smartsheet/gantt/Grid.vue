@@ -810,7 +810,12 @@ function buildArrowPath(
     if (succCenterY > predCenterY) {
       const exitX = predCenterX
       const maxExit = tipX - CORNER_RADIUS - MIN_HORIZONTAL
-      if (maxExit >= exitX - 12) {
+      // Only take the straight bottom-drop when there's forward room past
+      // the corner. Without this guard, a milestone whose center X is at
+      // or to the right of the successor's left edge would draw a
+      // backward trailing segment (corner overshoots tipX, then `L tipX`
+      // runs right→left), visually reversing the arrow.
+      if (maxExit >= exitX) {
         return (
           `M ${exitX} ${predBottomY}` +
           ` L ${exitX} ${succCenterY - CORNER_RADIUS}` +

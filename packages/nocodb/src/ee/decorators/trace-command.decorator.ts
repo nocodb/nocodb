@@ -213,7 +213,9 @@ async function autoInstrumentMacroChild(
   } catch (e: any) {
     // Validation failure shouldn't fail the user-facing op (it already
     // succeeded). Log + persist the raw filtered params so the entry is
-    // still recoverable / inspectable.
+    // still inspectable — replay will re-throw on the same strict parse,
+    // so this transcript entry is effectively dead for dispatch but
+    // available for debugging.
     logger.warn(
       `auto-instrument schema.parse ${childContract.name}: ${e?.message}`,
     );

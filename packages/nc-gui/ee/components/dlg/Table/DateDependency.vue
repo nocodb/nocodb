@@ -252,6 +252,13 @@ watch(visible, async (val) => {
     }
 
     syncFormFromRule()
+    // Per-Gantt-view rules must always be active — the dialog's enable
+    // toggle is hidden in that mode, so guarantee the saved value is true
+    // even if an older rule was persisted with is_active=false.
+    if (props.ganttViewId) {
+      form.is_active = true
+      savedForm.value = { ...savedForm.value, is_active: true }
+    }
     saveError.value = ''
   }
 })
@@ -273,39 +280,43 @@ watch(rule, () => {
 
     <div class="flex flex-col" style="min-height: 200px; max-height: 70vh">
       <div class="flex-1 overflow-y-auto px-1 pb-2">
-        <!-- Description -->
-        <p class="text-bodySm text-nc-content-gray-subtle mb-4">
-          {{ $t('labels.dateDependency.description') }}
-          <a
-            href="https://nocodb.com/docs/product-docs/tables/date-dependency"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-nc-content-brand hover:underline"
-          >
-            {{ $t('labels.dateDependency.learnMore') }}
-          </a>
-        </p>
+        <!-- Description + Enable toggle — only when configuring the
+             table-level default rule. In the per-Gantt-view flow the rule
+             must be active (otherwise the Gantt has nothing to render),
+             so we skip the description blurb and the on/off switch. -->
+        <template v-if="!ganttViewId">
+          <p class="text-bodySm text-nc-content-gray-subtle mb-4">
+            {{ $t('labels.dateDependency.description') }}
+            <a
+              href="https://nocodb.com/docs/product-docs/tables/date-dependency"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-nc-content-brand hover:underline"
+            >
+              {{ $t('labels.dateDependency.learnMore') }}
+            </a>
+          </p>
 
-        <!-- Enable toggle -->
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY">
-          <template #default="{ click }">
-            <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-nc-bg-gray-light mb-5">
-              <span class="text-bodySm font-semibold text-nc-content-gray-subtle">
-                {{ $t('labels.dateDependency.isActive') }}
-              </span>
-              <div class="flex items-center gap-2">
-                <NcSwitch
-                  v-model:checked="form.is_active"
-                  v-e="['c:date-dependency:toggle']"
-                  @click="click(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY, () => {})"
-                />
-                <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY" />
+          <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY">
+            <template #default="{ click }">
+              <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-nc-bg-gray-light mb-5">
+                <span class="text-bodySm font-semibold text-nc-content-gray-subtle">
+                  {{ $t('labels.dateDependency.isActive') }}
+                </span>
+                <div class="flex items-center gap-2">
+                  <NcSwitch
+                    v-model:checked="form.is_active"
+                    v-e="['c:date-dependency:toggle']"
+                    @click="click(PlanFeatureTypes.FEATURE_DATE_DEPENDENCY, () => {})"
+                  />
+                  <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DATE_DEPENDENCY" />
+                </div>
               </div>
-            </div>
-          </template>
-        </PaymentUpgradeBadgeProvider>
+            </template>
+          </PaymentUpgradeBadgeProvider>
+        </template>
 
-        <template v-if="form.is_active">
+        <template v-if="form.is_active || ganttViewId">
           <!-- Field Mapping -->
           <div class="grid grid-cols-2 gap-x-6 gap-y-4 mb-4">
             <!-- Start date -->

@@ -370,7 +370,7 @@ const formatDisplay = (raw: string | null | undefined) => {
         <input
           v-model="nameValue"
           type="text"
-          class="nc-gantt-inspector-input w-full px-2 py-1.5 text-sm rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight focus:outline-none focus:border-nc-border-brand"
+          class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight focus:outline-none focus:border-nc-border-brand"
           data-testid="nc-gantt-inspector-name"
           @change="saveName"
         />
@@ -480,7 +480,7 @@ const formatDisplay = (raw: string | null | undefined) => {
           <div
             v-for="id in predecessorIds"
             :key="`pred-${id}`"
-            class="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight text-sm"
+            class="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight text-xs"
           >
             <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
             <button
@@ -514,7 +514,7 @@ const formatDisplay = (raw: string | null | undefined) => {
             <div
               v-for="cand in predecessorCandidates"
               :key="`pred-cand-${extractPkFromRow(cand.row, pkCols)}`"
-              class="px-2 py-1.5 text-sm cursor-pointer hover:bg-nc-bg-gray-extralight truncate"
+              class="px-2 py-1.5 text-xs cursor-pointer hover:bg-nc-bg-gray-extralight truncate"
               @click="onLinkPredecessor(cand)"
             >
               {{ primaryField ? cand.row[primaryField.title!] ?? '' : '' }}
@@ -549,7 +549,7 @@ const formatDisplay = (raw: string | null | undefined) => {
           <div
             v-for="id in successorIds"
             :key="`succ-${id}`"
-            class="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight text-sm"
+            class="flex items-center justify-between gap-2 px-2 py-1.5 rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight text-xs"
           >
             <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
             <button
@@ -583,7 +583,7 @@ const formatDisplay = (raw: string | null | undefined) => {
             <div
               v-for="cand in successorCandidates"
               :key="`succ-cand-${extractPkFromRow(cand.row, pkCols)}`"
-              class="px-2 py-1.5 text-sm cursor-pointer hover:bg-nc-bg-gray-extralight truncate"
+              class="px-2 py-1.5 text-xs cursor-pointer hover:bg-nc-bg-gray-extralight truncate"
               @click="onLinkSuccessor(cand)"
             >
               {{ primaryField ? cand.row[primaryField.title!] ?? '' : '' }}

@@ -1,10 +1,12 @@
 import 'mocha';
 import { expect } from 'chai';
 import {
-  JOB_REQUEUE_DELAY_MS,
+  JOB_REQUEUE_BASE_DELAY_MS,
   JOB_REQUEUE_LIMIT,
+  JOB_REQUEUE_MAX_DELAY_MS,
   JobStatus,
   JobTypes,
+  jobRequeueDelay,
   parseWorkerConcurrency,
 } from '~/interface/Jobs';
 
@@ -71,11 +73,25 @@ function jobsProcessorTests() {
       LOCAL_JOB_COUNT_MAP = mod.LOCAL_JOB_COUNT_MAP;
     });
 
-    describe('requeue budget', () => {
-      it('60s × 60 attempts ≈ 60 min total budget', () => {
-        expect(JOB_REQUEUE_LIMIT * JOB_REQUEUE_DELAY_MS).to.equal(
-          60 * 60 * 1000,
+    describe('jobRequeueDelay', () => {
+      it('grows exponentially from the base delay', () => {
+        expect(jobRequeueDelay(1)).to.equal(JOB_REQUEUE_BASE_DELAY_MS); // 5s
+        expect(jobRequeueDelay(2)).to.equal(JOB_REQUEUE_BASE_DELAY_MS * 2); // 10s
+        expect(jobRequeueDelay(3)).to.equal(JOB_REQUEUE_BASE_DELAY_MS * 4); // 20s
+        expect(jobRequeueDelay(4)).to.equal(JOB_REQUEUE_BASE_DELAY_MS * 8); // 40s
+      });
+
+      it('caps at JOB_REQUEUE_MAX_DELAY_MS', () => {
+        expect(jobRequeueDelay(5)).to.equal(JOB_REQUEUE_MAX_DELAY_MS);
+        expect(jobRequeueDelay(20)).to.equal(JOB_REQUEUE_MAX_DELAY_MS);
+        expect(jobRequeueDelay(JOB_REQUEUE_LIMIT)).to.equal(
+          JOB_REQUEUE_MAX_DELAY_MS,
         );
+      });
+
+      it('floors attempt < 1 to base delay (no negative exponent)', () => {
+        expect(jobRequeueDelay(0)).to.equal(JOB_REQUEUE_BASE_DELAY_MS);
+        expect(jobRequeueDelay(-5)).to.equal(JOB_REQUEUE_BASE_DELAY_MS);
       });
     });
 
@@ -106,11 +122,11 @@ function jobsProcessorTests() {
         );
       });
 
-      it('schedules with fixed 60s delay', async () => {
+      it('first attempt schedules with base delay', async () => {
         const job = makeJob(JobTypes.AtImport);
         await processor.requeue(job);
         expect(addCalls).to.have.length(1);
-        expect(addCalls[0].opts.delay).to.equal(JOB_REQUEUE_DELAY_MS);
+        expect(addCalls[0].opts.delay).to.equal(JOB_REQUEUE_BASE_DELAY_MS);
       });
 
       it('increments _jobAttempt', async () => {
@@ -121,12 +137,20 @@ function jobsProcessorTests() {
         expect(job.data._jobAttempt).to.equal(3);
       });
 
-      it('delay stays flat across attempts', async () => {
+      it('delay doubles each attempt until capped at max', async () => {
         const job = makeJob(JobTypes.MetaSync);
-        await processor.requeue(job);
-        await processor.requeue(job);
-        expect(addCalls[0].opts.delay).to.equal(JOB_REQUEUE_DELAY_MS);
-        expect(addCalls[1].opts.delay).to.equal(JOB_REQUEUE_DELAY_MS);
+        const expected = [
+          JOB_REQUEUE_BASE_DELAY_MS, // 5s
+          JOB_REQUEUE_BASE_DELAY_MS * 2, // 10s
+          JOB_REQUEUE_BASE_DELAY_MS * 4, // 20s
+          JOB_REQUEUE_BASE_DELAY_MS * 8, // 40s
+          JOB_REQUEUE_MAX_DELAY_MS, // 60s (cap)
+          JOB_REQUEUE_MAX_DELAY_MS, // 60s
+        ];
+        for (let i = 0; i < expected.length; i++) {
+          await processor.requeue(job);
+          expect(addCalls[i].opts.delay).to.equal(expected[i]);
+        }
       });
 
       it('drops job after JOB_REQUEUE_LIMIT attempts', async () => {
@@ -214,14 +238,14 @@ function jobsProcessorTests() {
         expect(LOCAL_JOB_COUNT_MAP.has(JobTypes.MetaSync)).to.equal(false);
       });
 
-      it('cap hit: requeues with 60s delay, does not change map', async () => {
+      it('cap hit: requeues with base delay, does not change map', async () => {
         LOCAL_JOB_COUNT_MAP.set(JobTypes.ThumbnailGenerator, 1);
         await processor.process(makeJob(JobTypes.ThumbnailGenerator));
         expect(LOCAL_JOB_COUNT_MAP.get(JobTypes.ThumbnailGenerator)).to.equal(
           1,
         );
         expect(addCalls).to.have.length(1);
-        expect(addCalls[0].opts.delay).to.equal(JOB_REQUEUE_DELAY_MS);
+        expect(addCalls[0].opts.delay).to.equal(JOB_REQUEUE_BASE_DELAY_MS);
       });
 
       it('multi-cycle: map stays at 0 between successive runs', async () => {

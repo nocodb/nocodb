@@ -4,11 +4,11 @@ import { Job } from 'bull';
 import { Timer } from 'nocodb-sdk';
 import type { JobData } from '~/interface/Jobs';
 import {
-  JOB_REQUEUE_DELAY_MS,
   JOB_REQUEUE_LIMIT,
   JOBS_QUEUE,
   JobTypes,
   JobVersions,
+  jobRequeueDelay,
   parseWorkerConcurrency,
 } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -129,7 +129,7 @@ export class JobsProcessor {
 
     return this.jobsService.add(job.data.jobName, job.data, {
       jobId: job.id.toString(),
-      delay: JOB_REQUEUE_DELAY_MS,
+      delay: jobRequeueDelay(attempt),
     });
   }
 }

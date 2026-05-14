@@ -63,7 +63,7 @@ export const extractCorrespondingLinkColumn = async (
   } else {
     // Extract referenced table columns from ref table ID if not provided
     const refTableId = colOptions.fk_related_model_id;
-    const refTable = await Model.get(context, refTableId);
+    const refTable = await Model.get(refContext, refTableId);
     columnsInReferencedTable =
       refTable.columns || (await refTable.getColumns(refContext));
   }

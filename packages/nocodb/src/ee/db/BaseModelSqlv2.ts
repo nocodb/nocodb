@@ -1967,7 +1967,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               if (!shouldCascadeHere) break;
 
               const mmTable = await Model.get(
-                this.context,
+                mmContext,
                 colOptions.fk_mm_model_id,
               );
 
@@ -4134,9 +4134,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 const mmParentColumn = await Column.get(mmContext, {
                   colId: colOptions.fk_mm_child_column_id,
                 });
+                const mmBaseModel = await Model.getBaseModelSQL(
+                  mmContext,
+                  { model: mmTable, dbDriver: this.dbDriver },
+                );
 
                 execQueries.push((trx, ids) =>
-                  trx(this.getTnPath(mmTable.table_name))
+                  trx(mmBaseModel.getTnPath(mmTable.table_name))
                     .del()
                     .whereIn(mmParentColumn.column_name, ids),
                 );
@@ -4156,9 +4160,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 const childColumn = await Column.get(childContext, {
                   colId: colOptions.fk_child_column_id,
                 });
+                const refBaseModel = await Model.getBaseModelSQL(refContext, {
+                  model: relatedTable,
+                  dbDriver: this.dbDriver,
+                });
 
                 execQueries.push((trx, ids) =>
-                  trx(this.getTnPath(relatedTable.table_name))
+                  trx(refBaseModel.getTnPath(relatedTable.table_name))
                     .update({
                       [childColumn.column_name]: null,
                     })
@@ -4179,9 +4187,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 const ooChildColumn = await Column.get(childContext, {
                   colId: colOptions.fk_child_column_id,
                 });
+                const ooRefBaseModel = await Model.getBaseModelSQL(refContext, {
+                  model: ooRelatedTable,
+                  dbDriver: this.dbDriver,
+                });
 
                 execQueries.push((trx, ids) =>
-                  trx(this.getTnPath(ooRelatedTable.table_name))
+                  trx(ooRefBaseModel.getTnPath(ooRelatedTable.table_name))
                     .update({ [ooChildColumn.column_name]: null })
                     .whereIn(ooChildColumn.column_name, ids),
                 );

@@ -818,6 +818,27 @@ function buildArrowPath(
           ` L ${tipX} ${succCenterY}`
         )
       }
+      // Bottom-drop didn't fit (overlap / very tight horizontal). Use the
+      // same Airtable-style hook as bars do — keep the chain readable
+      // instead of falling back to a wide mid-X loop.
+      const R = CORNER_RADIUS
+      // Bigger hook so the bottom horizontal stays visible before the
+      // arrowhead consumes its tail (marker ~6px + extra breathing room).
+      const hookOffset = Math.max(18, colWidth.value / 3)
+      const hookX = succLeftX - hookOffset
+      const dropY = Math.min(succCenterY - 2 * R - 1, predBottomY + R + 3)
+      if (dropY > predBottomY + R - 0.5 && hookX < exitX - R) {
+        return (
+          `M ${exitX} ${predBottomY}` +
+          ` L ${exitX} ${dropY - R}` +
+          ` A ${R} ${R} 0 0 1 ${exitX - R} ${dropY}` +
+          ` L ${hookX + R} ${dropY}` +
+          ` A ${R} ${R} 0 0 0 ${hookX} ${dropY + R}` +
+          ` L ${hookX} ${succCenterY - R}` +
+          ` A ${R} ${R} 0 0 0 ${hookX + R} ${succCenterY}` +
+          ` L ${tipX} ${succCenterY}`
+        )
+      }
     }
 
     const R = CORNER_RADIUS
@@ -857,7 +878,38 @@ function buildArrowPath(
 
   const exitX = predRightX - EXIT_INSET
 
-  // Backward / overlapping dep: route out-and-around past the successor's row.
+  // Constrained / overlapping case: instead of looping a full row below
+  // the successor (the old "U-turn" routing), draw a tight Airtable-style
+  // hook — drop a little below pred, curve left to just past the
+  // successor's left edge, curve back down + right into the successor.
+  // The hook lives inside the gap between predBottomY and succCenterY so
+  // it doesn't intrude on adjacent rows.
+  if (succCenterY > predBottomY) {
+    const R = CORNER_RADIUS
+    // Bigger hook so the bottom horizontal stays visible before the
+    // arrowhead consumes its tail (marker ~6px + extra breathing room).
+    const hookOffset = Math.max(18, colWidth.value / 3)
+    const hookX = succLeftX - hookOffset
+    // Need at least 2R of vertical room between dropY and succCenterY for
+    // the second + third corners to fit. Bias dropY low so the hook stays
+    // close to the successor rather than the predecessor.
+    const dropY = Math.min(succCenterY - 2 * R - 1, predBottomY + R + 3)
+    if (dropY > predBottomY + R - 0.5 && hookX < exitX - R) {
+      return (
+        `M ${exitX} ${predBottomY}` +
+        ` L ${exitX} ${dropY - R}` +
+        ` A ${R} ${R} 0 0 1 ${exitX - R} ${dropY}` +
+        ` L ${hookX + R} ${dropY}` +
+        ` A ${R} ${R} 0 0 0 ${hookX} ${dropY + R}` +
+        ` L ${hookX} ${succCenterY - R}` +
+        ` A ${R} ${R} 0 0 0 ${hookX + R} ${succCenterY}` +
+        ` L ${tipX} ${succCenterY}`
+      )
+    }
+  }
+
+  // Last-resort fallback for upward / extreme-overlap cases — keep the
+  // original wide U-turn since the hook can't physically fit.
   const midY =
     predIdx < succIdx ? succCenterY + ROW_HEIGHT : succCenterY - ROW_HEIGHT
   const farLeftX = Math.min(succLeftX - 12, exitX - 12)

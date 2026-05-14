@@ -3,13 +3,9 @@ import { NcError } from '~/helpers/catchError';
 import { getToolDir } from '~/utils/nc-config';
 
 /**
- * Validate an externally-supplied SQLite filename.
- *
- * Default: only paths under `${toolDir}/external_sqlite` (or the directory
- * named by `NC_SQLITE_SANDBOX_DIR`) are accepted. The NocoDB metadata DB
- * (noco.db / nc_data.db) and the `nc_minimal_dbs/` tenant store are always
- * rejected. Set `NC_ALLOW_EXTERNAL_SQLITE_PATHS=true` to disable the
- * sandbox requirement.
+ * Reject SQLite filenames that point at NocoDB's own state (`noco.db`,
+ * `nc_data.db`, `nc_minimal_dbs/`). SQLite is not a supported production
+ * database on cloud; self-host operators are trusted for everything else.
  */
 export function validateSqliteFilename(rawFilename: unknown): string {
   if (typeof rawFilename !== 'string' || rawFilename.length === 0) {
@@ -18,45 +14,22 @@ export function validateSqliteFilename(rawFilename: unknown): string {
   if ((rawFilename as string).includes('\0')) {
     NcError.badRequest('Invalid SQLite filename');
   }
-  const filename = rawFilename as string;
-
-  const resolved = path.resolve(filename);
+  const resolved = path.resolve(rawFilename as string);
   const toolDir = path.resolve(getToolDir());
 
-  // Always reject NocoDB internal databases regardless of sandbox mode
-  const forbidden = [
-    path.resolve(toolDir, 'noco.db'),
-    path.resolve(toolDir, 'nc_data.db'),
-  ];
-  if (forbidden.includes(resolved)) {
+  if (
+    resolved === path.resolve(toolDir, 'noco.db') ||
+    resolved === path.resolve(toolDir, 'nc_data.db')
+  ) {
     NcError.badRequest('Access to NocoDB internal database is not allowed');
   }
   const minimalDbs = path.resolve(toolDir, 'nc_minimal_dbs');
   if (resolved === minimalDbs || resolved.startsWith(minimalDbs + path.sep)) {
     NcError.badRequest('Access to NocoDB tenant databases is not allowed');
   }
-
-  if (process.env.NC_ALLOW_EXTERNAL_SQLITE_PATHS === 'true') {
-    return resolved;
-  }
-
-  // Sandbox: must be under toolDir/external_sqlite or a configured allow dir
-  const allowDir = process.env.NC_SQLITE_SANDBOX_DIR
-    ? path.resolve(process.env.NC_SQLITE_SANDBOX_DIR)
-    : path.resolve(toolDir, 'external_sqlite');
-  if (resolved !== allowDir && !resolved.startsWith(allowDir + path.sep)) {
-    NcError.badRequest(
-      `SQLite filename must be inside the sandbox directory (${allowDir})`,
-    );
-  }
   return resolved;
 }
 
-/**
- * Extracts a sqlite filename from a config object regardless of nesting
- * (NocoDB accepts both `config.connection.filename` and
- * `config.connection.connection.filename` forms).
- */
 export function extractSqliteFilename(config: unknown): string | undefined {
   if (!config || typeof config !== 'object') return undefined;
   const c: any = config;
@@ -65,11 +38,6 @@ export function extractSqliteFilename(config: unknown): string | undefined {
   );
 }
 
-/**
- * Walks a config object and applies validateSqliteFilename to any
- * sqlite filename it finds. Mutates the resolved path back in place so
- * downstream consumers see the canonical (resolved) filename.
- */
 export function validateAndNormalizeSqliteConfig(
   config: unknown,
   subType?: string,

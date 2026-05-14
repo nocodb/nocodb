@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 import { promisify } from 'util';
 import {
   Body,
@@ -144,30 +143,6 @@ export class UtilsController {
         config.sslUse,
         config.client,
       );
-      // Restrict SSL file-path fields to the directory configured in
-      // NC_SSL_CERT_DIR; the underlying driver would otherwise read any
-      // host file. Errors are normalised to a single message.
-      const ssl = config.connection.ssl;
-      if (ssl && typeof ssl === 'object') {
-        const sslDir = process.env.NC_SSL_CERT_DIR
-          ? path.resolve(process.env.NC_SSL_CERT_DIR)
-          : null;
-        for (const key of ['caFilePath', 'keyFilePath', 'certFilePath']) {
-          const val = (ssl as any)[key];
-          if (val == null) continue;
-          if (typeof val !== 'string' || val.includes('\0')) {
-            NcError.badRequest('Invalid SSL configuration');
-          }
-          if (!sslDir) {
-            NcError.badRequest('Invalid SSL configuration');
-          }
-          const resolved = path.resolve(val);
-          if (resolved !== sslDir && !resolved.startsWith(sslDir + path.sep)) {
-            NcError.badRequest('Invalid SSL configuration');
-          }
-          (ssl as any)[key] = resolved;
-        }
-      }
     }
 
     return await this.utilsService.testConnection({ body: config });

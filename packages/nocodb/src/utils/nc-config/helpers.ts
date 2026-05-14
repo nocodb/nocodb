@@ -304,24 +304,13 @@ export async function metaUrlToDbConfig(urlString): Promise<DbConfig> {
     dbConfig?.connection?.ssl &&
     typeof dbConfig?.connection?.ssl === 'object'
   ) {
-    // Restrict SSL *FilePath fields to NC_SSL_CERT_DIR, or accept only the
-    // inline PEM contents (`ca`, `key`, `cert`). Errors are normalised to
-    // a single message.
+    // Bootstrap config comes from operator-controlled env/config files; file
+    // paths are trusted here. Errors are normalised to a single message.
     const readSslFile = async (filePath: string): Promise<string> => {
-      const sslDir = process.env.NC_SSL_CERT_DIR
-        ? path.resolve(process.env.NC_SSL_CERT_DIR)
-        : null;
-      const resolved = path.resolve(String(filePath));
-      if (!sslDir) {
-        throw new Error(
-          'NC_SSL_CERT_DIR is not configured; supply ca/key/cert as PEM strings instead of file paths.',
-        );
-      }
-      if (resolved !== sslDir && !resolved.startsWith(sslDir + path.sep)) {
-        throw new Error('SSL file path is outside the configured directory.');
-      }
       try {
-        return (await promisify(fs.readFile)(resolved)).toString();
+        return (
+          await promisify(fs.readFile)(path.resolve(String(filePath)))
+        ).toString();
       } catch {
         throw new Error('Invalid SSL configuration.');
       }

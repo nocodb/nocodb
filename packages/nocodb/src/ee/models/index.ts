@@ -49,6 +49,7 @@ export { default as TimelineRange } from './TimelineRange';
 export { default as TimelineViewColumn } from './TimelineViewColumn';
 export { default as DateDependency } from './DateDependency';
 export { default as RecordTemplate } from './RecordTemplate';
+export { default as BaseTrash } from './BaseTrash';
 
 // Teams-related models
 export { default as Team } from './Team';

@@ -1,8 +1,10 @@
 import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
+import * as jwt from 'jsonwebtoken';
 import init from '../../init';
 import { defaultUserArgs } from '../../factory/user';
+import Noco from '~/Noco';
 
 // Single-session enforcement
 //
@@ -158,6 +160,94 @@ function singleSessionLoginTests() {
       .post('/api/v1/auth/token/refresh')
       .set('Cookie', `refresh_token=${sessionC.refreshToken}`)
       .expect(200);
+  });
+
+  // SSO short-token exchange flow — EE only. Mocks the IdP redirect step by
+  // minting the short-lived token directly (same shape and JWT secret as
+  // `generateShortLivedToken` in ee/middlewares/sso-paasport). The exchange
+  // endpoint (`/auth/long-lived-token`) is what actually establishes the
+  // session, so single-session enforcement should kick in there.
+  const ssoIt = process.env.EE === 'true' ? it : it.skip;
+
+  ssoIt('SSO short-token exchange invalidates prior session', async () => {
+    // Establish a prior local-password session for the same user.
+    const localSession = await signIn();
+    expect(await isJwtValid(localSession.token), 'local session valid').to.be
+      .true;
+
+    // Mint a short-lived SSO token directly (mirrors what the SSO passport
+    // middleware does after the IdP authenticates the user).
+    const config = Noco.getConfig();
+    const shortToken = jwt.sign(
+      {
+        id: context.user.id,
+        email: context.user.email,
+        sso_client_type: 'saml',
+        sso_client_id: 'mock-client-id',
+      },
+      config.auth.jwt.secret,
+      { expiresIn: '1m' },
+    );
+
+    // Exchange the short token for a full session via /auth/long-lived-token.
+    const exchangeRes = await request(context.app)
+      .post('/auth/long-lived-token')
+      .set('xc-short-token', shortToken)
+      .expect(201);
+
+    expect(exchangeRes.body.token, 'exchange returns a JWT').to.be.a('string');
+
+    // The prior local session is invalidated by the SSO exchange.
+    expect(
+      await isJwtValid(localSession.token),
+      'prior local session invalidated by SSO login',
+    ).to.be.false;
+
+    // The new SSO session is valid.
+    expect(
+      await isJwtValid(exchangeRes.body.token),
+      'new SSO session valid',
+    ).to.be.true;
+
+    // Local session's refresh token is also gone.
+    await request(context.app)
+      .post('/api/v1/auth/token/refresh')
+      .set('Cookie', `refresh_token=${localSession.refreshToken}`)
+      .expect(400);
+  });
+
+  ssoIt('Second SSO exchange invalidates prior SSO session', async () => {
+    const config = Noco.getConfig();
+    const mintShortToken = () =>
+      jwt.sign(
+        {
+          id: context.user.id,
+          email: context.user.email,
+          sso_client_type: 'saml',
+          sso_client_id: 'mock-client-id',
+        },
+        config.auth.jwt.secret,
+        { expiresIn: '1m' },
+      );
+
+    // First SSO exchange
+    const firstRes = await request(context.app)
+      .post('/auth/long-lived-token')
+      .set('xc-short-token', mintShortToken())
+      .expect(201);
+    expect(await isJwtValid(firstRes.body.token), 'first SSO session valid').to
+      .be.true;
+
+    // Second SSO exchange — should invalidate the first
+    const secondRes = await request(context.app)
+      .post('/auth/long-lived-token')
+      .set('xc-short-token', mintShortToken())
+      .expect(201);
+
+    expect(await isJwtValid(firstRes.body.token), 'first SSO invalidated').to.be
+      .false;
+    expect(await isJwtValid(secondRes.body.token), 'second SSO valid').to.be
+      .true;
   });
 }
 

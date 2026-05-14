@@ -23,6 +23,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
+import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
 
 @Injectable()
 export class IntegrationsService extends IntegrationsServiceCE {
@@ -60,6 +61,12 @@ export class IntegrationsService extends IntegrationsServiceCE {
       NcError.integrationNotFound(param.integrationId);
     }
     const integrationBody = param.integration;
+
+    validateAndNormalizeSqliteConfig(
+      integrationBody?.config,
+      integrationBody?.sub_type ?? oldIntegration?.sub_type,
+    );
+
     const integration = await Integration.updateIntegration(
       context,
       param.integrationId,
@@ -318,6 +325,11 @@ export class IntegrationsService extends IntegrationsServiceCE {
         integrations.map((p) => p.title),
       );
     }
+
+    validateAndNormalizeSqliteConfig(
+      integrationBody?.config,
+      integrationBody?.sub_type,
+    );
 
     const integration = await Integration.createIntegration(
       {

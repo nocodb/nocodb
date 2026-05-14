@@ -195,17 +195,14 @@ export class UtilsService {
     const {
       apiMeta: { url },
     } = param.body;
-    const isExcelImport = /.*\.(xls|xlsx|xlsm|ods|ots)/;
-    const isCSVImport = /.*\.(csv)/;
-    const ipBlockList =
-      /(10)(\.([2]([0-5][0-5]|[01234][6-9])|[1][0-9][0-9]|[1-9][0-9]|[0-9])){3}|(172)\.(1[6-9]|2[0-9]|3[0-1])(\.(2[0-4][0-9]|25[0-5]|[1][0-9][0-9]|[1-9][0-9]|[0-9])){2}|(192)\.(168)(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){2}|(0.0.0.0)|localhost?/g;
-    if (
-      ipBlockList.test(url) ||
-      (!isCSVImport.test(url) && !isExcelImport.test(url))
-    ) {
+    // Extension must be at the end of the path (or before the query
+    // string). `useAgent` in _axiosRequestMake handles SSRF at the socket.
+    const isExcelImport = /\.(xls|xlsx|xlsm|ods|ots)(\?|$)/i;
+    const isCSVImport = /\.(csv)(\?|$)/i;
+    if (!isCSVImport.test(url) && !isExcelImport.test(url)) {
       return {};
     }
-    if (isCSVImport || isExcelImport) {
+    if (isCSVImport.test(url) || isExcelImport.test(url)) {
       param.body.apiMeta.responseType = 'arraybuffer';
     }
     return await this._axiosRequestMake({

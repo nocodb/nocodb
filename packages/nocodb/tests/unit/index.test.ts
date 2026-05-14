@@ -34,6 +34,9 @@ process.env.NODE_ENV = 'test';
 process.env.TEST = 'true';
 // process.env.NC_DISABLE_CACHE = 'true';
 process.env.NC_DISABLE_TELE = 'true';
+// Test fixtures use SQLite filenames under tests/unit/; trust the local
+// environment so factory.createSakilaProject and friends succeed.
+process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS = 'true';
 
 // Load environment variables from .env file
 dotenv.config({

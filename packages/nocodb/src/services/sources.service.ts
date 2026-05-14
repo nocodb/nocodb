@@ -13,6 +13,7 @@ import { populateRollupColumnAndHideLTAR } from '~/helpers/populateMeta';
 import { syncBaseMigration } from '~/helpers/syncMigration';
 import { Base, Integration, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -50,6 +51,12 @@ export class SourcesService {
     }
 
     const baseBody = param.source;
+
+    validateAndNormalizeSqliteConfig(
+      baseBody?.config,
+      baseBody?.type ?? oldSource?.type,
+    );
+
     const source = await Source.update(context, param.sourceId, {
       ...baseBody,
       type: baseBody.config?.client,

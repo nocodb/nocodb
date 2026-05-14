@@ -14,6 +14,7 @@ import NocoCache from '~/cache/NocoCache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { SourcesService } from '~/services/sources.service';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
+import { validateAndNormalizeSqliteConfig } from '~/helpers/validateSqliteFilename';
 
 @Injectable()
 export class IntegrationsService {
@@ -58,6 +59,12 @@ export class IntegrationsService {
 
     const integrationBody = param.integration;
     integrationBody.title = integrationBody.title?.trim();
+
+    validateAndNormalizeSqliteConfig(
+      integrationBody?.config,
+      integrationBody?.sub_type ?? oldIntegration?.sub_type,
+    );
+
     const integration = await Integration.updateIntegration(
       context,
       param.integrationId,
@@ -294,6 +301,10 @@ export class IntegrationsService {
     }
     param.logger?.('Creating the integration');
     integrationBody.title = integrationBody.title?.trim();
+    validateAndNormalizeSqliteConfig(
+      integrationBody.config,
+      integrationBody.sub_type,
+    );
     // for SQLite check for existing integration which refers to the same file
     if (integrationBody.sub_type === 'sqlite3') {
       // get all integrations of type sqlite3

@@ -27,6 +27,7 @@ server.set('view engine', 'ejs');
 
 process.env[`DEBUG`] = 'xc*';
 process.env[`NC_ALLOW_LOCAL_HOOKS`] = 'true';
+process.env[`NC_ALLOW_LOCAL_EXTERNAL_DBS`] = 'true';
 
 (async () => {
   if (process.env.NC_WORKER_CONTAINER === 'true') {

@@ -11,6 +11,7 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { Logger } from '@nestjs/common';
 import { isSupportedDisplayValueColumn } from 'nocodb-sdk';
 import type {
@@ -1696,8 +1697,14 @@ export default class View implements ViewType {
       return bcrypt.compare(inputPassword, view.password);
     }
 
-    // Plaintext fallback for pre-migration passwords
-    return view.password === inputPassword;
+    // Timing-safe plaintext fallback for pre-migration view passwords.
+    const a = Buffer.from(inputPassword, 'utf-8');
+    const b = Buffer.from(view.password, 'utf-8');
+    if (a.length !== b.length) {
+      crypto.timingSafeEqual(a, Buffer.alloc(a.length));
+      return false;
+    }
+    return crypto.timingSafeEqual(a, b);
   }
 
   static async sharedViewDelete(

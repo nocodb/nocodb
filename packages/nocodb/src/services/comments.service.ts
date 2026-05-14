@@ -9,6 +9,7 @@ import type {
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
+import { sanitizeCommentBody } from '~/helpers/sanitizeCommentBody';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Comment from '~/models/Comment';
 import { MailService } from '~/services/mail/mail.service';
@@ -32,8 +33,11 @@ export class CommentsService {
   ) {
     validatePayload('swagger.json#/components/schemas/CommentReq', param.body);
 
+    const sanitizedComment = sanitizeCommentBody(param.body.comment);
+
     const res = await Comment.insert(context, {
       ...param.body,
+      comment: sanitizedComment,
       created_by: param.user?.id,
       created_by_email: param.user?.email,
     });
@@ -172,8 +176,10 @@ export class CommentsService {
       NcError.get(context).unauthorized('Unauthorized access');
     }
 
+    const sanitizedComment = sanitizeCommentBody(param.body.comment);
+
     const res = await Comment.update(context, param.commentId, {
-      comment: param.body.comment,
+      comment: sanitizedComment,
     });
 
     const model = await Model.getByIdOrName(context, {

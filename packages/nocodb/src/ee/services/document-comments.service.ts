@@ -8,6 +8,7 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
+import { sanitizeCommentBody } from '~/helpers/sanitizeCommentBody';
 import Comment from '~/models/Comment';
 import CommentReaction from '~/models/CommentReaction';
 import NocoSocket from '~/socket/NocoSocket';
@@ -29,8 +30,11 @@ export class DocumentCommentsService extends DocumentCommentsServiceCE {
       NcError.badRequest('comment is required');
     }
 
+    const sanitizedComment = sanitizeCommentBody(param.body.comment);
+
     const res = await Comment.insertDocComment(context, {
       ...param.body,
+      comment: sanitizedComment,
       base_id: context.base_id,
       created_by: param.user?.id,
       created_by_email: param.user?.email,
@@ -88,7 +92,7 @@ export class DocumentCommentsService extends DocumentCommentsServiceCE {
     }
 
     const res = await Comment.update(context, param.commentId, {
-      comment: param.body.comment,
+      comment: sanitizeCommentBody(param.body.comment),
     });
 
     this.appHooksService.emit(AppEvents.DOCUMENT_COMMENT_UPDATE, {

@@ -1560,8 +1560,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             subQuery = baseModel.dbDriver
               .select(
                 baseModel.dbDriver.raw(
-                  `json_agg(json_build_object('count', "count", '${rest.column_name}', "${colIds}")) as ??`,
-                  [getAlias()],
+                  `json_agg(json_build_object(?, "count", ?, ??)) as ??`,
+                  ['count', rest.column_name, colIds, getAlias()],
                 ),
               )
               .from(tQb.as(getAlias()));
@@ -1573,7 +1573,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             subQuery = baseModel.dbDriver
               .select(
                 baseModel.dbDriver.raw(
-                  `JSON_ARRAYAGG(JSON_OBJECT('count', \`count\`, '${rest.column_name}', \`${colIds}\`))`,
+                  `JSON_ARRAYAGG(JSON_OBJECT(?, \`count\`, ?, ??))`,
+                  ['count', rest.column_name, colIds],
                 ),
               )
               .from(baseModel.dbDriver.raw(`(??) as ??`, [tQb, getAlias()]));
@@ -1585,8 +1586,8 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             subQuery = baseModel.dbDriver
               .select(
                 baseModel.dbDriver.raw(
-                  `json_group_array(json_object('count', "count", '${rest.column_name}', "${colIds}")) as ??`,
-                  [f.alias],
+                  `json_group_array(json_object(?, "count", ?, ??)) as ??`,
+                  ['count', rest.column_name, colIds, f.alias],
                 ),
               )
               .from(tQb.as(getAlias()));

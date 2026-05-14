@@ -27,7 +27,12 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { ATTACHMENT_ROOTS, localFileExists } from '~/helpers/attachmentHelpers';
+import contentDisposition from 'content-disposition';
+import {
+  ATTACHMENT_ROOTS,
+  isPreviewAllowed,
+  localFileExists,
+} from '~/helpers/attachmentHelpers';
 import { NC_DATA_IMPORT_FILE_SIZE } from '~/constants';
 
 @Controller()
@@ -100,15 +105,18 @@ export class AttachmentsSecureController {
 
       const fpath = queryHelper[0];
 
+      // Key names must match what PresignedUrl.getSignedUrl serialises.
       let queryResponseContentType = null;
       let queryResponseContentDisposition = null;
+      let queryResponseContentEncoding = null;
 
       if (queryHelper.length > 1) {
         const query = new URLSearchParams(queryHelper[1]);
-        queryResponseContentType = query.get('response-content-type');
+        queryResponseContentType = query.get('ResponseContentType');
         queryResponseContentDisposition = query.get(
-          'response-content-disposition',
+          'ResponseContentDisposition',
         );
+        queryResponseContentEncoding = query.get('ResponseContentEncoding');
       }
 
       const targetParam = param.split('/')[2];
@@ -123,12 +131,39 @@ export class AttachmentsSecureController {
         return res.status(404).send('File not found');
       }
 
+      // For non-previewable types force a download regardless of the
+      // cached response headers.
+      const previewable = isPreviewAllowed({
+        mimetype: file.type,
+        path: file.path,
+      });
+
+      if (!previewable) {
+        res.setHeader(
+          'Content-Disposition',
+          contentDisposition(path.basename(file.path), { type: 'attachment' }),
+        );
+        res.setHeader('Content-Type', 'application/octet-stream');
+        return res.sendFile(file.path);
+      }
+
       if (queryResponseContentType) {
         res.setHeader('Content-Type', queryResponseContentType);
+
+        if (queryResponseContentEncoding) {
+          res.setHeader(
+            'Content-Type',
+            `${queryResponseContentType}; charset=${queryResponseContentEncoding}`,
+          );
+        }
       }
 
       if (queryResponseContentDisposition) {
         res.setHeader('Content-Disposition', queryResponseContentDisposition);
+      }
+
+      if (queryResponseContentEncoding) {
+        res.setHeader('Content-Encoding', queryResponseContentEncoding);
       }
 
       res.sendFile(file.path);

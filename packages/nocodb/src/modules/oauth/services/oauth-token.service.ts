@@ -169,14 +169,13 @@ export class OauthTokenService {
       );
     }
 
-    // Check if code is already used
+    // Fast-path reject before CAS.
     if (authCode.is_used) {
       throw new Error(
         'invalid_grant: Authorization code has already been used',
       );
     }
 
-    // Check if code is expired
     if (new Date(authCode.expires_at) < new Date()) {
       throw new Error('invalid_grant: Authorization code has expired');
     }
@@ -245,9 +244,19 @@ export class OauthTokenService {
       resource: authCode.resource,
     };
 
+    // Atomic single-use claim deferred until all preconditions pass so a
+    // failing redirect_uri / PKCE / client auth check does not consume the code.
+    const claimed = await OAuthAuthorizationCode.claimByCode(code);
+    if (!claimed) {
+      throw new Error(
+        'invalid_grant: Authorization code has already been used',
+      );
+    }
+
     await OAuthToken.insert(insertObj);
 
-    // Mark authorization code as used
+    // markAsUsed is a safety net — claimByCode above already won the
+    // single-use race.
     await OAuthAuthorizationCode.markAsUsed(code);
 
     return {

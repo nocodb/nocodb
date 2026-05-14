@@ -11,6 +11,8 @@ import type {
   DataUpdateRequest,
 } from '~/services/v3/data-v3.types';
 import { resolveAttachmentFilePath } from '~/helpers/attachmentHelpers';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
@@ -412,6 +414,27 @@ export class McpService {
                   return {
                     title: file.title || 'Unknown file',
                     error: 'No path or URL available for this attachment',
+                  };
+                }
+
+                // Only allow paths recorded as an attachment in the
+                // caller's current base.
+                const fileUrlCandidates = [
+                  file.path,
+                  file.url,
+                  file.path ? file.path.replace(/^download[/\\]/i, '') : null,
+                ].filter(Boolean) as string[];
+
+                const fileRef = await Noco.ncMeta
+                  .knex(MetaTable.FILE_REFERENCES)
+                  .where({ base_id: context.base_id, deleted: false })
+                  .whereIn('file_url', fileUrlCandidates)
+                  .first();
+
+                if (!fileRef) {
+                  return {
+                    title: file.title || 'Unknown file',
+                    error: 'Attachment is not accessible from this MCP context',
                   };
                 }
 

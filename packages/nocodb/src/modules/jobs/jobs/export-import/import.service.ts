@@ -27,6 +27,7 @@ import { getCustomLinkParam } from '~/helpers/linkHelpers';
 import { validateImportSchema } from '~/utils/modelUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
+import { sanitizeCommentBody } from '~/helpers/sanitizeCommentBody';
 import { NcError } from '~/helpers/catchError';
 import {
   findWithIdentifier,
@@ -446,6 +447,7 @@ export class ImportService {
           targetContext,
           withoutId({
             ...commentD,
+            comment: sanitizeCommentBody(commentD.comment),
             fk_model_id: table.id,
             parent_comment_id: idMap.get(commentD.parent_comment_id),
           }),

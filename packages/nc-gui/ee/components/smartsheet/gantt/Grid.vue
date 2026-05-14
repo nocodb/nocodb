@@ -918,26 +918,36 @@ const arrowPaths = computed<ArrowPath[]>(() => {
 const selectedArrowId = ref<string | null>(null)
 const canEditDeps = computed(() => !props.ganttRange[0]?.is_readonly && isUIAllowed('dataEdit'))
 
-// Hover-highlight: when a milestone is hovered, trace the transitive closure
-// of connected records (both upstream + downstream) so the user can see the
-// entire dependency chain that touches this milestone.
-const highlightedRecordId = ref<string | null>(null)
+// Hover-highlight: when a bar/milestone is hovered, trace the transitive
+// closure of connected records (both upstream + downstream) so the user can
+// see the entire dependency chain that touches this record. When the
+// inspector is open, that record's chain stays highlighted even after the
+// pointer leaves — hover swaps the chain to whatever's under the cursor,
+// mouseleave falls back to the inspected record.
+const hoveredRecordId = ref<string | null>(null)
 
 const setHighlightFromRecord = (record: RowType) => {
   const pkCols = (meta.value?.columns ?? []) as ColumnType[]
   const id = extractPkFromRow(record.row, pkCols)
-  highlightedRecordId.value = id != null ? String(id) : null
+  hoveredRecordId.value = id != null ? String(id) : null
 }
 
 const clearHighlight = () => {
-  highlightedRecordId.value = null
+  hoveredRecordId.value = null
 }
 
-// Set of row IDs reachable from the hovered record through dependency links
+const inspectorRecordId = computed<string | null>(() => {
+  if (!inspectorRecord.value) return null
+  const pkCols = (meta.value?.columns ?? []) as ColumnType[]
+  const id = extractPkFromRow(inspectorRecord.value.row, pkCols)
+  return id != null ? String(id) : null
+})
+
+// Set of row IDs reachable from the active record through dependency links
 // in either direction. dependencyLinks stores A → successors[A]; we build a
-// reverse index once and BFS both ways.
+// reverse index once and BFS both ways. Hover wins, with inspector fallback.
 const highlightedRowIds = computed<Set<string>>(() => {
-  const id = highlightedRecordId.value
+  const id = hoveredRecordId.value ?? inspectorRecordId.value
   if (!id) return new Set()
   const links = dependencyLinks?.value
   if (!links?.size) return new Set([id])
@@ -1791,7 +1801,7 @@ const onGridMouseLeave = () => {
                 selectedArrowId === arrow.id
                   ? 2
                   : highlightedRowIds.has(arrow.rowId) && highlightedRowIds.has(arrow.linkedId)
-                  ? 1.75
+                  ? 1
                   : 1.25
               "
               stroke-linejoin="round"

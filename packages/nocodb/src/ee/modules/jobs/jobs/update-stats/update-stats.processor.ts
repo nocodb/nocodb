@@ -2,7 +2,6 @@ import debug from 'debug';
 import { PlanLimitTypes } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import { Base, Model, ModelStat, Source, Workspace } from '~/models';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, RootScopes } from '~/utils/globals';
 import { checkLimit } from '~/helpers/paymentHelpers';
@@ -19,8 +18,6 @@ export class UpdateStatsProcessor {
       updated_at,
     } = job.data;
 
-    let row_count = _row_count;
-
     if (!fk_workspace_id) {
       this.debugLog(`No workspace id provided`);
       return false;
@@ -28,7 +25,7 @@ export class UpdateStatsProcessor {
 
     const model = await Model.get(context, fk_model_id);
 
-    if (!model || model.mm == true) {
+    if (!model || model.mm == true || model.deleted) {
       return true;
     }
 
@@ -37,16 +34,6 @@ export class UpdateStatsProcessor {
     // Skip counting for snapshot bases
     if (!base || base.is_snapshot) {
       return true;
-    }
-
-    if (row_count === undefined) {
-      const source = await Source.get(context, model.source_id);
-
-      const baseModel = await Model.getBaseModelSQL(context, {
-        id: model.id,
-        dbDriver: await NcConnectionMgrv2.get(source),
-      });
-      row_count = await baseModel.count();
     }
 
     const stat = await ModelStat.get(context, fk_workspace_id, fk_model_id);
@@ -62,9 +49,20 @@ export class UpdateStatsProcessor {
       }
     }
 
-    await ModelStat.upsert(context, fk_workspace_id, fk_model_id, {
-      row_count,
-    });
+    let row_count: number;
+    if (_row_count !== undefined && _row_count !== null) {
+      const updated = await ModelStat.upsert(
+        context,
+        fk_workspace_id,
+        fk_model_id,
+        { row_count: _row_count },
+      );
+      row_count = updated?.row_count ?? 0;
+    } else {
+      const recounted = await ModelStat.recount(context, model);
+      if (recounted === null) return true;
+      row_count = recounted;
+    }
 
     this.debugLog(
       `Updated stats for model ${fk_model_id} with row count ${row_count}`,
@@ -146,6 +144,11 @@ export class UpdateStatsProcessor {
       const bases = await Base.listByWorkspace(workspace.id);
 
       for (const base of bases) {
+        // Only sources[0] — the NocoDB meta source. Extra sources are external
+        // DBs and don't count toward stats/limits.
+        const baseSource = base.sources?.[0];
+        if (!baseSource) continue;
+
         const models = await Model.list(
           {
             workspace_id: base.fk_workspace_id,
@@ -153,7 +156,7 @@ export class UpdateStatsProcessor {
           },
           {
             base_id: base.id,
-            source_id: base.sources[0].id,
+            source_id: baseSource.id,
           },
         );
 

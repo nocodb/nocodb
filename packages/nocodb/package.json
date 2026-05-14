@@ -30,6 +30,7 @@
     "registerIntegrations": "node build-utils/registerIntegrations.js",
     "syncDependencies": "node build-utils/syncDependencies.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format:staged": "git diff --cached --name-only --diff-filter=ACMR --relative -- '*.ts' | xargs -I {} prettier --write {}",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "start": "pnpm run watch:run",
     "start:prod": "node docker/main",

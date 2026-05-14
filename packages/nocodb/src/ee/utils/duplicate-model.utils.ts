@@ -68,7 +68,8 @@ export class DuplicateModelUtils extends DuplicateModelUtilsCE {
       modelId,
       context: sourceContext,
     });
-    const count = await baseModel.count();
+    // PG count() returns BIGINT as string — coerce before `=== 0` / arithmetic.
+    const count = Number(await baseModel.count()) || 0;
     if (count === 0) {
       return true;
     }

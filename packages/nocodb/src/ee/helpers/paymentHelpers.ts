@@ -110,13 +110,15 @@ async function checkLimit(args: {
     const statName =
       type === PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE ? 'row_count' : type;
 
-    const count = args.count ?? workspace.stats?.[statName] ?? 0;
+    // Coerce — PG BIGINT count/sum returns string, would flip `+` into concat.
+    const count = Number(args.count ?? workspace.stats?.[statName] ?? 0) || 0;
+    const numDelta = Number(delta) || 0;
 
     if (limit === -1) {
       return;
     }
 
-    if (count + (delta || 0) > limit) {
+    if (count + numDelta > limit) {
       if (type in GraceLimits && plan?.free) {
         let gracePeriodStartAt = workspace.grace_period_start_at;
 
@@ -135,7 +137,7 @@ async function checkLimit(args: {
             .toDate();
 
           if (dayjs().isBefore(gracePeriodEndAt)) {
-            if (count + (delta || 0) > GraceLimits[type]) {
+            if (count + numDelta > GraceLimits[type]) {
               NcError.planLimitExceeded(
                 message?.({
                   limit: GraceLimits[type],

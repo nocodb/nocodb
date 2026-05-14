@@ -31,6 +31,9 @@ interface ServerResult {
    *  toast and let the user know recovery is manual. */
   code?: 'dispatch_failed' | 'macro_partial_failure'
   partial?: MacroPartialFailure
+  /** Server-extracted error message when the call threw; rendered by the
+   *  caller as the single failure toast (avoids double-toasting). */
+  message?: string
 }
 
 export const useUndoRedo = createSharedComposable(() => {
@@ -160,10 +163,10 @@ export const useUndoRedo = createSharedComposable(() => {
         partial: res?.partial,
       }
     } catch (e: any) {
-      message.toast(
-        `${operation === 'undo' ? t('labels.undo') : t('labels.redo')} failed: ${await extractSdkResponseErrorMsg(e)}`,
-      )
-      return { status: 'errored' }
+      return {
+        status: 'errored',
+        message: `${operation === 'undo' ? t('labels.undo') : t('labels.redo')} failed: ${await extractSdkResponseErrorMsg(e)}`,
+      }
     }
   }
 
@@ -177,7 +180,7 @@ export const useUndoRedo = createSharedComposable(() => {
       } else if (result.status === 'errored' && result.code === 'macro_partial_failure') {
         message.toast(t('labels.actionPartiallyCompleted'))
       } else if (result.status === 'errored') {
-        message.toast(t('labels.undoFailed'))
+        message.toast(result.message ?? t('labels.undoFailed'))
       } else if (result.status === 'empty') {
         message.toast(t('labels.noMoreActionsToUndo'))
       }
@@ -193,7 +196,7 @@ export const useUndoRedo = createSharedComposable(() => {
       } else if (result.status === 'errored' && result.code === 'macro_partial_failure') {
         message.toast(t('labels.actionPartiallyCompleted'))
       } else if (result.status === 'errored') {
-        message.toast(t('labels.redoFailed'))
+        message.toast(result.message ?? t('labels.redoFailed'))
       } else if (result.status === 'empty') {
         message.toast(t('labels.noMoreActionsToRedo'))
       }

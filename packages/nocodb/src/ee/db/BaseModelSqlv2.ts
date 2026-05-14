@@ -5687,12 +5687,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         // Legacy V1 LTAR (HM / BT / OO with direct FKs) — no junction to
         // batch against; keep per-row reads until hmList / btRead accept
         // an id list.
+        const colType = (
+          col.colOptions as LinkToAnotherRecordColumn | undefined
+        )?.type;
+        // OO has a column on each side. `meta.bt: true` marks the FK-holding
+        // (child) side — that side reads via btRead like a true BT. The other
+        // (parent) side doesn't hold the FK; its existing link lives on the
+        // related row, so it must be read via hmList semantics.
+        const isHmLike =
+          colType === RelationTypes.HAS_MANY ||
+          (colType === RelationTypes.ONE_TO_ONE && !col.meta?.bt);
         for (const { rowId } of touched) {
           let existingLinks: Record<string, any>[] | Record<string, any> = [];
-          if (
-            (col.colOptions as LinkToAnotherRecordColumn | undefined)?.type ===
-            RelationTypes.HAS_MANY
-          ) {
+          if (isHmLike) {
             existingLinks = await this.hmList({ colId: col.id, id: rowId });
           } else {
             existingLinks = await this.btRead({ colId: col.id, id: rowId });

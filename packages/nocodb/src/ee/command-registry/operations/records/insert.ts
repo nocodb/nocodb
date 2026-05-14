@@ -1,4 +1,5 @@
 import {
+  buildRedoMetaUpdate,
   buildRowFromCompositePk,
   getBaseModelForModel,
   pkFromRow,
@@ -143,17 +144,21 @@ export function registerInsertHandlers(
         }
       }
 
-      return await dataTableSvc.dataInsert(context, {
-        modelId,
-        body,
-        viewId: params.viewId as string | undefined,
-        baseId: params.baseId as string | undefined,
-        cookie: meta.originalReq,
-        apiVersion: params.apiVersion as any,
-        user: meta.originalReq?.user ?? { id: meta.createdBy },
-        undo: true,
-        internalFlags: { allowSystemColumn: true },
-      } as any);
+      const { bag } = await runInChildTraceScope(async () => {
+        await dataTableSvc.dataInsert(context, {
+          modelId,
+          body,
+          viewId: params.viewId as string | undefined,
+          baseId: params.baseId as string | undefined,
+          cookie: meta.originalReq,
+          apiVersion: params.apiVersion as any,
+          user: meta.originalReq?.user ?? { id: meta.createdBy },
+          undo: true,
+          internalFlags: { allowSystemColumn: true },
+        } as any);
+      });
+      const metaUpdate = buildRedoMetaUpdate(bag, ['displacedRecords']);
+      return metaUpdate ? { metaUpdate } : undefined;
     },
   );
 

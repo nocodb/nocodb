@@ -110,31 +110,39 @@ function createColumnsToolbarPlugin(): Plugin<ColumnsToolbarState> {
         toolbarEl.appendChild(btn)
       }
 
-      // Event delegation — handle clicks on any button.
-      // Uses mousedown (not click) so preventDefault() stops the browser
-      // from moving focus out of ProseMirror into the toolbar.
-      const onToolbarMouseDown = (e: MouseEvent) => {
-        const target = (e.target as HTMLElement).closest('button[data-ratio]') as HTMLElement | null
-        if (!target) return
+      const deleteBtn = document.createElement('button')
+      deleteBtn.dataset.action = 'delete'
+      deleteBtn.className = 'nc-toolbar-delete'
+      deleteBtn.title = 'Delete'
+      deleteBtn.innerHTML =
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+        'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>' +
+        '<path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+      toolbarEl.appendChild(deleteBtn)
 
-        e.preventDefault()
-        e.stopPropagation()
+      // Activate the button — dispatch ratio change or delete the columns node
+      const activateButton = (target: HTMLElement) => {
+        const result = findColumnsAncestor(editorView.state)
+        if (!result) return
+
+        const { state, dispatch } = editorView
+        const node = state.doc.nodeAt(result.pos)
+        if (!node) return
+
+        if (target.dataset.action === 'delete') {
+          const tr = state.tr.delete(result.pos, result.pos + node.nodeSize)
+          dispatch(tr)
+          return
+        }
 
         const raw = target.dataset.ratio
         if (!raw) return
         const ratio = Number(raw)
         if (!Number.isFinite(ratio)) return
 
-        // Find the columns node before dispatching (state is stable here)
-        const result = findColumnsAncestor(editorView.state)
-        if (!result) return
-
         // Direct setNodeMarkup — we don't have access to the tiptap command
         // chain from a PM plugin, and the logic is identical.
-        const { state, dispatch } = editorView
-        const node = state.doc.nodeAt(result.pos)
-        if (!node) return
-
         const tr = state.tr.setNodeMarkup(result.pos, undefined, {
           ...node.attrs,
           ratio,
@@ -142,7 +150,26 @@ function createColumnsToolbarPlugin(): Plugin<ColumnsToolbarState> {
         dispatch(tr)
       }
 
+      // Mousedown (not click) so preventDefault stops focus moving out of ProseMirror.
+      const onToolbarMouseDown = (e: MouseEvent) => {
+        const target = (e.target as HTMLElement).closest('button') as HTMLElement | null
+        if (!target) return
+        e.preventDefault()
+        e.stopPropagation()
+        activateButton(target)
+      }
+
+      // Click only fires for keyboard activation (Enter/Space) — `detail === 0`.
+      // Mouse clicks (detail >= 1) are already handled by mousedown above.
+      const onToolbarClick = (e: MouseEvent) => {
+        if (e.detail !== 0) return
+        const target = (e.target as HTMLElement).closest('button') as HTMLElement | null
+        if (!target) return
+        activateButton(target)
+      }
+
       toolbarEl.addEventListener('mousedown', onToolbarMouseDown)
+      toolbarEl.addEventListener('click', onToolbarClick)
 
       // --- Positioning & visibility ---
 
@@ -201,6 +228,7 @@ function createColumnsToolbarPlugin(): Plugin<ColumnsToolbarState> {
         },
         destroy() {
           toolbarEl?.removeEventListener('mousedown', onToolbarMouseDown)
+          toolbarEl?.removeEventListener('click', onToolbarClick)
           toolbarEl?.remove()
           toolbarEl = null
           editorBody = null

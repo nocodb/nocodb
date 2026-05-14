@@ -202,6 +202,17 @@ export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> =
   };
 
 /**
+ * Navigation/discovery operations that any fine-grained token can access
+ * regardless of its permission categories. The service layer filters results
+ * by PAT scope via getPatResourceFilter — only scoped resources are returned.
+ */
+export const API_TOKEN_ALWAYS_ALLOWED_OPS = new Set([
+  'workspaceList',
+  'baseList',
+  'workspaceBaseList',
+]);
+
+/**
  * Check if a token's permission level is sufficient for the required level.
  * 'write' >= 'read' >= 'none'
  */

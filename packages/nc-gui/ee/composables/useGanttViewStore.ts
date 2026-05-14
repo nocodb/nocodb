@@ -98,6 +98,11 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       field: '',
     })
 
+    // The record currently shown in the right-rail inspector. null = panel
+    // closed. Lifted to the store so a single inspector applies across all
+    // per-group Grid instances in grouped mode.
+    const inspectorRecord = ref<Row | null>(null)
+
     // Gantt meta data
     const ganttMetaData = computed<GanttType>(() => {
       return isPublic.value ? (sharedView.value?.view as GanttType) : (viewMeta.value?.view as GanttType)
@@ -618,6 +623,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       recordsWithoutDates,
       dependencyLinks,
       updateFormat,
+      inspectorRecord,
 
       // Axis methods
       reAnchorBuffer,

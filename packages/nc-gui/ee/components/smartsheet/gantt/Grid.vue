@@ -48,6 +48,7 @@ const {
   setViewportWidth,
   onScrollUpdate,
   onScrollAdjustment,
+  inspectorRecord,
 } = useGanttViewStoreOrThrow()
 
 const { t } = useI18n()
@@ -105,6 +106,20 @@ const SIDEBAR_MIN_WIDTH = 240
 // want it the same way everywhere.
 const sidebarCollapsed = useStorage('nc-gantt-sidebar-collapsed', false)
 const sidebarStoredWidth = useStorage('nc-gantt-sidebar-width', SIDEBAR_MIN_WIDTH)
+
+// Bar / milestone / sidebar-row click → right-rail inspector. The previous
+// behavior (route-push to the full ExpandedForm) is preserved as the
+// inspector's "Open record" escalation — it emits expandRecord which the
+// parent gantt/index.vue still handles.
+const openInspector = (record: RowType) => {
+  inspectorRecord.value = record
+}
+const closeInspector = () => {
+  inspectorRecord.value = null
+}
+const openFullFromInspector = (record: RowType) => {
+  emit('expandRecord', record)
+}
 
 const meta = inject(MetaInj, ref())
 
@@ -1393,7 +1408,7 @@ const onGridBodyMouseDown = (event: MouseEvent) => {
 const onBarKeydown = (event: KeyboardEvent, record: RowType, laneIdx: number, barIdx: number) => {
   if (event.key === 'Enter') {
     if (!isInteracting.value && !justFinishedResize.value) {
-      emit('expandRecord', record)
+      openInspector(record)
     }
     return
   }
@@ -1584,7 +1599,7 @@ const onGridMouseLeave = () => {
           class="flex items-center px-3 border-b border-nc-border-gray-light text-xs text-nc-content-gray truncate cursor-pointer hover:bg-nc-bg-gray-extralight"
           :style="{ height: `${ROW_HEIGHT}px` }"
           :title="primaryField ? lane[0].record.row[primaryField.title!] ?? '' : ''"
-          @click="emit('expandRecord', lane[0].record)"
+          @click="openInspector(lane[0].record)"
         >
           <span class="truncate">
             {{ primaryField ? lane[0].record.row[primaryField.title!] ?? '' : '' }}
@@ -1852,7 +1867,7 @@ const onGridMouseLeave = () => {
                 :data-unique-id="record.rowMeta?.id"
                 role="button"
                 tabindex="0"
-                @click="!isInteracting && !justFinishedResize && emit('expandRecord', record)"
+                @click="!isInteracting && !justFinishedResize && openInspector(record)"
                 @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
                 @mousedown.stop="onDragStart($event, record)"
                 @mouseenter="setHighlightFromRecord(record)"
@@ -1929,7 +1944,7 @@ const onGridMouseLeave = () => {
                 :data-unique-id="record.rowMeta?.id"
                 role="button"
                 tabindex="0"
-                @click="!isInteracting && !justFinishedResize && emit('expandRecord', record)"
+                @click="!isInteracting && !justFinishedResize && openInspector(record)"
                 @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
                 @mousedown.stop="onDragStart($event, record)"
               >
@@ -2083,6 +2098,19 @@ const onGridMouseLeave = () => {
       </div>
     </div>
     </div>
+
+    <!-- Right-rail record inspector — opens on bar click, slides in as a
+         third flex sibling to the right of the main pane. Stays open across
+         bar clicks (swaps contents). Esc / X / route change closes it.
+         Skipped in grouped mode (hideHeader) — one inspector across all
+         per-group Grids would need parent coordination; v1 ships flat-mode
+         only. -->
+    <SmartsheetGanttRecordInspector
+      v-if="!hideHeader && inspectorRecord"
+      :record="inspectorRecord"
+      @close="closeInspector"
+      @open-full="openFullFromInspector"
+    />
 
     <!-- Grid-level nav arrows — only for fully off-screen records (no bars visible) -->
     <div v-if="hasRecordsBefore" class="absolute left-1 inset-y-0 z-10 flex items-center pointer-events-none">

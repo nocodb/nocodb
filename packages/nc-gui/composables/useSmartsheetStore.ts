@@ -72,12 +72,16 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     /**
      * View operations (toolbar, aggregation footer, column reorder, column resize, etc.)
+     *
+     * Shared base = viewer-role equivalent: view configuration UI may be
+     * visible but is not editable (e.g. Fields menu renders with a
+     * "You don't have permission to edit this view" footer). Shared view
+     * keeps the bypass because most shared-view toolbars are hidden
+     * anyway via `v-if="!isPublic"` and the remaining controls operate
+     * on local UI state, not the persisted view config.
      */
     const isViewOperationsAllowed = computed(() => {
-      // Allow view operations in shared base and view
-      if (isPublic.value || isSharedBase.value) return true
-
-      // Allow view operations only for editor and above roles
+      if (isPublic.value) return true
       return isUIAllowed('viewOperations')
     })
 

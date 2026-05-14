@@ -9,6 +9,8 @@ const view = inject(ActiveViewInj, ref())
 
 const { isMobileMode } = useGlobal()
 
+const { isUIAllowed } = useRoles()
+
 const { $e } = useNuxtApp()
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -487,9 +489,11 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
         </a-select>
 
         <!-- Configure Gantt schedule — opens the per-view DateDependency dialog
-             so users can change which fields drive bars / arrows for THIS view. -->
+             so users can change which fields drive bars / arrows for THIS view.
+             Hidden for viewers / shared base since they can't persist edits;
+             matches the visibility of other view-CRUD controls. -->
         <NcButton
-          v-if="!isPublic && meta?.id && view?.id"
+          v-if="!isPublic && meta?.id && view?.id && isUIAllowed('viewCreateOrEdit')"
           v-e="['c:gantt:configure']"
           size="small"
           type="secondary"

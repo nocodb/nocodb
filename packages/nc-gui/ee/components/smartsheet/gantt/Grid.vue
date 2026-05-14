@@ -1967,13 +1967,18 @@ const onGridMouseLeave = () => {
                 @mouseleave="clearHighlight()"
               >
                 <div
-                  class="nc-gantt-milestone-shape absolute bg-nc-bg-default"
+                  class="nc-gantt-milestone-shape absolute"
                   :style="{
                     top: '50%',
                     left: '50%',
                     width: `${MILESTONE_INNER}px`,
                     height: `${MILESTONE_INNER}px`,
                     transform: 'translate(-50%, -50%) rotate(45deg)',
+                    // Subtle gray fill so the diamond reads as a 'checkpoint'
+                    // shape against the grid bg without competing with task
+                    // bars. Row coloring (if configured) takes precedence.
+                    backgroundColor:
+                      getRowColorStyle(record).rowBgColor?.backgroundColor || 'var(--nc-bg-gray-light)',
                     border: `1px solid ${isRecordHighlighted(record) ? 'var(--color-green-600)' : 'var(--nc-border-gray-dark)'}`,
                     borderRadius: '3px',
                   }"

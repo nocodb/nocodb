@@ -10,7 +10,7 @@ import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
-import BaseTrash from '~/models/BaseTrash';
+import { Base, BaseTrash } from '~/models';
 import { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
 import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
@@ -91,6 +91,22 @@ export class BaseTrashCleanUpProcessor {
           api_version: NcApiVersion.V2,
           socket_id: null,
         };
+
+        const base = entry.base_id && (await Base.get(context, entry.base_id));
+        if (!base) {
+          try {
+            await BaseTrash.delete(context, entry.id);
+            this.logger.log(
+              `Trash entry ${entry.id} orphaned (parent base ${entry.base_id} deleted); removed.`,
+            );
+          } catch (delErr) {
+            this.logger.error(
+              `Failed to drop orphaned trash entry ${entry.id}: ${delErr.message}`,
+              delErr.stack,
+            );
+          }
+          continue;
+        }
 
         try {
           await this.baseTrashService.permanentDelete(context, {

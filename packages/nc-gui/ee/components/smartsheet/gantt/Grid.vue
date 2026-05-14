@@ -1928,8 +1928,10 @@ const onGridMouseLeave = () => {
             class="relative border-b border-nc-border-gray-light"
             :style="{ height: `${ROW_HEIGHT}px` }"
           >
-            <!-- Hover background -->
-            <div class="absolute inset-0 nc-gantt-row-hover transition-colors" />
+            <!-- Hover background — z=-1 so the row tint paints BEHIND the
+                 arrows SVG (z=0). Without this, the hover overlay would
+                 mask connector lines that cross the hovered row. -->
+            <div class="absolute inset-0 nc-gantt-row-hover transition-colors" style="z-index: -1" />
 
             <!-- Bars in this lane (skip records without valid dates — sidebar still shows them) -->
             <template v-for="({ record, colorIndex }, barIdx) in lane" :key="colorIndex">

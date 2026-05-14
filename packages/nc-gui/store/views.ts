@@ -683,13 +683,19 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     const viewSpecificProps = getViewSpecificProps(view)
 
+    // Carry the full source meta across — previously only rowColoringInfo
+    // was extracted, which silently dropped the view icon (meta.icon),
+    // initial-view setting, expanded-record mode, and any other
+    // view-meta knobs the user had configured. Parse once and forward
+    // the whole object; the backend uses it as-is.
+    const sourceMeta = parseProp(view.meta) ?? {}
     const duplicateForm: CreateViewForm = {
       title: uniqueTitle,
       type: view.type,
       description: view.description || '',
       copy_from_id: view.id!,
       row_coloring_mode: view.row_coloring_mode!,
-      meta: parseProp(view.meta)?.rowColoringInfo ? { rowColoringInfo: parseProp(view.meta).rowColoringInfo } : undefined,
+      meta: Object.keys(sourceMeta).length ? sourceMeta : undefined,
       ...viewSpecificProps,
     }
 

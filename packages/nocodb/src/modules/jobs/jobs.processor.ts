@@ -5,10 +5,10 @@ import { Timer } from 'nocodb-sdk';
 import type { JobData } from '~/interface/Jobs';
 import {
   JOB_REQUEUE_LIMIT,
+  jobRequeueDelay,
   JOBS_QUEUE,
   JobTypes,
   JobVersions,
-  jobRequeueDelay,
   parseWorkerConcurrency,
 } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';

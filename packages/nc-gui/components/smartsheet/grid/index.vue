@@ -20,9 +20,19 @@ const { xWhere, eventBus, isExternalSource } = useSmartsheetStoreOrThrow()
 
 const { t } = useI18n()
 
+const { isMobileMode } = useGlobal()
+
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { blockExternalSourceRecordVisibility, showUpgradeToSeeMoreRecordsModal } = useEeConfig()
+
+const expandedFormPanelStore = useExpandedFormPanel()
+
+const { mode: expandedFormMode } = useExpandedFormMode()
+
+const isExpandedFormPanelOpen = computed(() => expandedFormPanelStore?.isOpen.value ?? false)
+
+const expandedFormPanelRowNavigator = expandedFormPanelStore?.rowNavigator ?? ref(null)
 
 const bulkUpdateDlg = ref(false)
 
@@ -100,10 +110,9 @@ smartTextRowNavigator.value = {
   totalRows: () => totalRows.value,
 }
 
-// Deep-link sync: when ?rowId + ?colId both point at a SmartText column, open
-// the panel. The colId is treated as a generic cell-deep-link param — only
-// SmartText reacts to it for now; other column types fall through to the
-// expanded record dialog (which gates on rowId alone).
+// Deep-link sync: when ?cellRow + ?cellCol both point at a SmartText column,
+// open the panel. SmartText owns dedicated cell-level params so it never
+// collides with the row-level ?rowId used by the expanded-record panel/modal.
 const _findRowInCache = (rowId: string) => {
   for (const [idx, row] of cachedRows.value.entries()) {
     const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
@@ -115,15 +124,15 @@ const _findRowInCache = (rowId: string) => {
 watch(
   [() => route.value.query, () => cachedRows.value.size, () => meta.value?.columns?.length],
   ([q]) => {
-    const rowId = q.rowId as string | undefined
-    const colId = q.colId as string | undefined
+    const cellRow = q.cellRow as string | undefined
+    const cellCol = q.cellCol as string | undefined
 
-    if (!rowId || !colId) {
+    if (!cellRow || !cellCol) {
       if (smartTextStore.isOpen.value) smartTextStore.closeEditor()
       return
     }
 
-    const col = meta.value?.columns?.find((c) => c.id === colId) as ColumnType | undefined
+    const col = meta.value?.columns?.find((c) => c.id === cellCol) as ColumnType | undefined
     if (!col || !isSmartText(col)) {
       // Not a SmartText cell — leave to other surfaces (e.g. expanded record).
       if (smartTextStore.isOpen.value) smartTextStore.closeEditor()
@@ -132,8 +141,8 @@ watch(
 
     if (
       smartTextStore.isOpen.value &&
-      smartTextStore.activeRowId.value === rowId &&
-      smartTextStore.activeColumnId.value === colId
+      smartTextStore.activeRowId.value === cellRow &&
+      smartTextStore.activeColumnId.value === cellCol
     ) {
       // Already showing this cell — sync fullscreen if it diverged, and
       // backfill row context if the row has since arrived in cache (deep-link
@@ -142,14 +151,14 @@ watch(
       if (smartTextStore.isFullscreen.value !== wantFs) smartTextStore.setFullscreen(wantFs)
 
       if (smartTextStore.activeRowIndex.value == null) {
-        const found = _findRowInCache(rowId)
+        const found = _findRowInCache(cellRow)
         if (found) smartTextStore.setRowContext(found.idx, found.rowData)
       }
       return
     }
 
-    const found = _findRowInCache(rowId)
-    smartTextStore.openEditor(rowId, colId, found?.rowData, found?.idx)
+    const found = _findRowInCache(cellRow)
+    smartTextStore.openEditor(cellRow, cellCol, found?.rowData, found?.idx)
     if (q.cellMode === 'fullscreen') smartTextStore.setFullscreen(true)
   },
   { immediate: true },
@@ -189,31 +198,98 @@ provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const skipRowRemovalOnCancel = ref(false)
 
+const {
+  selectedAllRecords: pSelectedAllRecords,
+  formattedData: pData,
+  paginationData: pPaginationData,
+  loadData: pLoadData,
+  changePage: pChangePage,
+  aggCommentCount: pAggCommentCount,
+  addEmptyRow: pAddEmptyRow,
+  deleteRow: pDeleteRow,
+  updateOrSaveRow: pUpdateOrSaveRow,
+  deleteSelectedRows: pDeleteSelectedRows,
+  deleteRangeOfRows: pDeleteRangeOfRows,
+  bulkUpdateRows: pBulkUpdateRows,
+  removeRowIfNew: pRemoveRowIfNew,
+  isFirstRow: pisFirstRow,
+  islastRow: pisLastRow,
+  getExpandedRowIndex: pGetExpandedRowIndex,
+  navigateToSiblingRow: pNavigateToSiblingRow,
+} = useViewData(meta, view, xWhere)
+
+const {
+  isGroupBy,
+  rootGroup,
+  loadGroupData,
+  loadGroups,
+  loadGroupPage,
+  groupWrapperChangePage,
+  loadGroupAggregation,
+  groupBy,
+  redistributeRows,
+  loadDisallowedLookups,
+} = useViewGroupByOrThrow()
+
+const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
+
+const isCanvasTableEnabled = computed(() => !ncIsPlaywright())
+
+const isCanvasGroupByTableEnabled = computed(
+  () => !ncIsPlaywright() && !blockExternalSourceRecordVisibility(isExternalSource.value),
+)
+
+// Mirrors the v-if guarding <CanvasTable /> below. The EFP side panel relies on
+// canvas-only contracts (getDataCache(path), active-cell path comparison, etc.)
+// so we restrict the panel to canvas. Non-canvas branches (paginated Table /
+// DOM-based InfiniteTable) fall back to the modal expanded form.
+const isCanvasRendering = computed(
+  () =>
+    isInfiniteScrollingEnabled.value &&
+    ((isCanvasTableEnabled.value && !isGroupBy.value) || (isCanvasGroupByTableEnabled.value && isGroupBy.value)),
+)
+
+function updateRowIdRoute(rowId: string, path: Array<number> = []) {
+  const routeParams = {
+    query: {
+      ...routeQuery.value,
+      rowId,
+      // Clear cell deep-link params — explicit expand always wins over the
+      // SmartText panel claim.
+      cellRow: undefined,
+      cellCol: undefined,
+      cellMode: undefined,
+      path: ncIsEmptyArray(path) ? undefined : path.join('-'),
+      expand: undefined,
+    },
+  }
+  if (routeQuery.value.expand) {
+    router.replace(routeParams)
+  } else {
+    router.push(routeParams)
+  }
+}
+
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, path: Array<number> = []) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+
+  if (
+    isEeUI &&
+    !isMobileMode.value &&
+    !isPublic.value &&
+    expandedFormMode.value === 'panel' &&
+    rowId &&
+    isCanvasRendering.value
+  ) {
+    expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId, path)
+    updateRowIdRoute(rowId, path)
+    return
+  }
+
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
     expandedFormRow.value = undefined
-
-    const routeParams = {
-      query: {
-        ...routeQuery.value,
-        rowId,
-        // Clear cell deep-link params — explicit expand always wins over the
-        // SmartText panel claim.
-        colId: undefined,
-        cellMode: undefined,
-        path: ncIsEmptyArray(path) ? undefined : path.join('-'),
-        // Remove expand from query to avoid triggering the expanded form on closing the dialog
-        expand: undefined,
-      },
-    }
-    // if expand is true, replace the route to avoid adding a new history entry
-    if (routeQuery.value.expand) {
-      router.replace(routeParams)
-    } else {
-      router.push(routeParams)
-    }
+    updateRowIdRoute(rowId, path)
   } else {
     expandedFormRow.value = row
     expandedFormDlg.value = true
@@ -233,17 +309,24 @@ defineExpose({
 const expandedFormOnRowIdDlg = computed({
   get() {
     if (!routeQuery.value.rowId) return false
-    // When ?colId points at a SmartText column the SmartText panel claims
-    // the URL — expanded record dialog stays closed.
-    const colId = routeQuery.value.colId
-    if (colId) {
-      const col = meta.value?.columns?.find((c) => c.id === colId) as ColumnType | undefined
+    // When the side panel is open, don't trigger the modal
+    if (isExpandedFormPanelOpen.value) return false
+    // EE desktop in panel mode uses the side panel — modal stays closed (a separate watcher syncs the panel from the route).
+    // Falls back to the modal when the grid isn't canvas-rendered, since the panel
+    // depends on canvas-only contracts (getDataCache(path), highlight bar, etc.).
+    if (isEeUI && !isMobileMode.value && !isPublic.value && expandedFormMode.value === 'panel' && isCanvasRendering.value)
+      return false
+    // When ?cellCol points at a SmartText column the SmartText panel claims
+    // the screen — expanded record dialog stays closed.
+    const cellCol = routeQuery.value.cellCol
+    if (cellCol) {
+      const col = meta.value?.columns?.find((c) => c.id === cellCol) as ColumnType | undefined
       if (col && isSmartText(col)) return false
     }
     return true
   },
   set(val) {
-    if (!val)
+    if (!val) {
       router.push({
         query: {
           ...routeQuery.value,
@@ -251,7 +334,143 @@ const expandedFormOnRowIdDlg = computed({
           rowId: undefined,
         },
       })
+    }
   },
+})
+
+const isSyncingPanelRoute = ref(false)
+let syncRouteTimeout: ReturnType<typeof setTimeout> | null = null
+
+const setSyncingRoute = () => {
+  isSyncingPanelRoute.value = true
+  if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
+  syncRouteTimeout = setTimeout(() => {
+    isSyncingPanelRoute.value = false
+  }, 500)
+}
+
+const clearSyncingRoute = () => {
+  if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
+  syncRouteTimeout = null
+  nextTick(() => {
+    isSyncingPanelRoute.value = false
+  })
+}
+
+onBeforeUnmount(() => {
+  if (syncRouteTimeout) clearTimeout(syncRouteTimeout)
+  isSyncingPanelRoute.value = false
+})
+
+// EE desktop: open panel from route rowId (page reload, direct link).
+// Depends on meta columns being loaded so injectPkIntoRow can populate the PK.
+watch(
+  [() => routeQuery.value.rowId, () => meta.value?.columns?.length],
+  ([rowId, columnsLen]) => {
+    if (
+      !rowId ||
+      !columnsLen ||
+      !isEeUI ||
+      isMobileMode.value ||
+      isPublic.value ||
+      expandedFormMode.value !== 'panel' ||
+      !expandedFormPanelStore ||
+      !meta.value?.id
+    )
+      return
+    if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
+
+    // Defer the canvas gate + open to nextTick so child grids (canvas, group-by)
+    // have a chance to mount and register before we read isCanvasRendering and
+    // attempt to open the panel.
+    nextTick(() => {
+      if (!isCanvasRendering.value) return
+      if (isExpandedFormPanelOpen.value || isSyncingPanelRoute.value) return
+
+      // Look up rowIndex so prev/next + canvas active-row indicator work right
+      // away on page reload / direct link. Returns -1 if the row isn't loaded
+      // yet (infinite-scroll cache miss); openPanel treats that as "no index".
+      // Path comes from the URL (?path=0-1-2) so deep-links into group-by views
+      // restore both the row AND its group scope — without it prev/next would
+      // walk across all groups instead of the user's group.
+      const pathParam = routeQuery.value.path as string | undefined
+      const path = pathParam
+        ? pathParam
+            .split('-')
+            .map(Number)
+            .filter((n) => !Number.isNaN(n))
+        : []
+      const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
+      expandedFormPanelStore!.openPanel(
+        { row: {}, oldRow: {}, rowMeta: {} } as Row,
+        idx >= 0 ? idx : undefined,
+        undefined,
+        rowId,
+        path,
+      )
+    })
+  },
+  { immediate: true },
+)
+
+watch(
+  () => routeQuery.value.rowId,
+  (newRowId) => {
+    if (isSyncingPanelRoute.value) return
+    if (!newRowId && isExpandedFormPanelOpen.value) {
+      expandedFormPanelStore?.closePanel()
+    }
+  },
+)
+
+watch(isExpandedFormPanelOpen, (open) => {
+  if (!open && routeQuery.value.rowId) {
+    setSyncingRoute()
+    router
+      .push({
+        query: {
+          ...routeQuery.value,
+          path: undefined,
+          rowId: undefined,
+        },
+      })
+      .finally(clearSyncingRoute)
+  }
+})
+
+watch(
+  () => expandedFormPanelStore?.activeRowId.value,
+  (newRowId) => {
+    if (newRowId && isExpandedFormPanelOpen.value && routeQuery.value.rowId !== newRowId) {
+      setSyncingRoute()
+      const activePath = expandedFormPanelStore?.activePath.value ?? []
+      router
+        .push({
+          query: {
+            ...routeQuery.value,
+            rowId: newRowId,
+            // Mirror updateRowIdRoute: opening / switching the expanded record
+            // always wins over the SmartText cell claim. Without this, the
+            // watcher races updateRowIdRoute and can land last, re-introducing
+            // the SmartText params we just cleared and leaving the EFP hidden
+            // behind the SmartText panel.
+            cellRow: undefined,
+            cellCol: undefined,
+            cellMode: undefined,
+            // Same race applies to `path`: updateRowIdRoute writes it, but if
+            // the watcher's spread of routeQuery happens before that push has
+            // landed, path goes missing. Pull it from the store, which is the
+            // source of truth for the panel's group scope.
+            path: ncIsEmptyArray(activePath) ? undefined : activePath.join('-'),
+          },
+        })
+        .finally(clearSyncingRoute)
+    }
+  },
+)
+
+watch([isExpandedFormPanelOpen, () => expandedFormPanelStore?.activeRowIndex.value], () => {
+  eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
 })
 
 const addRowExpandOnClose = (row: Row) => {
@@ -304,13 +523,35 @@ const updateViewWidth = () => {
   viewWidth.value = windowSize.value - leftSidebarWidth.value
 }
 
-const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
-
-const isCanvasTableEnabled = computed(() => !ncIsPlaywright())
-
-const isCanvasGroupByTableEnabled = computed(
-  () => !ncIsPlaywright() && !blockExternalSourceRecordVisibility(isExternalSource.value),
-)
+expandedFormPanelRowNavigator.value = {
+  getRow: (index: number, path: number[] = []) => {
+    // Route flat lookups through getDataCache([]) too — it returns the same
+    // root cache, so the canvas (infinite-scroll) path and the group-by path
+    // share one implementation. Non-canvas paginated views are out of scope.
+    const cache = isInfiniteScrollingEnabled.value ? getDataCache(path) : null
+    const row = cache ? cache.cachedRows.value.get(index) : pData.value[index]
+    if (!row) return null
+    const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    if (!rowId) return null
+    return { rowId, row }
+  },
+  totalRows: (path: number[] = []) => {
+    if (isInfiniteScrollingEnabled.value) return getDataCache(path).totalRows.value ?? 0
+    return pData.value.length
+  },
+  findIndexByRowId: (rowId: string, path: number[] = []) => {
+    const cols = meta.value?.columns as ColumnType[] | undefined
+    if (!cols) return -1
+    if (isInfiniteScrollingEnabled.value) {
+      const groupCachedRows = getDataCache(path).cachedRows.value
+      for (const [idx, row] of groupCachedRows) {
+        if (extractPkFromRow(row.row, cols) === rowId) return idx
+      }
+      return -1
+    }
+    return pData.value.findIndex((row: Row) => extractPkFromRow(row.row, cols) === rowId)
+  },
+}
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
@@ -318,38 +559,78 @@ onMounted(() => {
   updateViewWidth()
 })
 
-const {
-  selectedAllRecords: pSelectedAllRecords,
-  formattedData: pData,
-  paginationData: pPaginationData,
-  loadData: pLoadData,
-  changePage: pChangePage,
-  aggCommentCount: pAggCommentCount,
-  addEmptyRow: pAddEmptyRow,
-  deleteRow: pDeleteRow,
-  updateOrSaveRow: pUpdateOrSaveRow,
-  deleteSelectedRows: pDeleteSelectedRows,
-  deleteRangeOfRows: pDeleteRangeOfRows,
-  bulkUpdateRows: pBulkUpdateRows,
-  removeRowIfNew: pRemoveRowIfNew,
-  isFirstRow: pisFirstRow,
-  islastRow: pisLastRow,
-  getExpandedRowIndex: pGetExpandedRowIndex,
-  navigateToSiblingRow: pNavigateToSiblingRow,
-} = useViewData(meta, view, xWhere)
+// Close the side panel when the experimental flag is toggled off mid-session.
+// Without this the panel that was already mounted stays put even though
+// expandedFormMode has flipped to 'modal'. We just close it — the existing
+// panel-close watcher clears rowId from the URL, so the user lands back on the
+// grid. Re-opening a record after the toggle uses the modal path normally.
+watch(
+  () => expandedFormMode.value,
+  (newMode, oldMode) => {
+    if (oldMode === 'panel' && newMode === 'modal' && expandedFormPanelStore?.isOpen.value) {
+      expandedFormPanelStore.closePanel()
+    }
+  },
+)
 
-const {
-  isGroupBy,
-  rootGroup,
-  loadGroupData,
-  loadGroups,
-  loadGroupPage,
-  groupWrapperChangePage,
-  loadGroupAggregation,
-  groupBy,
-  redistributeRows,
-  loadDisallowedLookups,
-} = useViewGroupByOrThrow()
+// Close the side panel whenever the group-by configuration changes (add /
+// remove / reorder / swap a grouped column). The panel's `activePath` is
+// indexed against the live group structure; once the structure changes the
+// stored path either points at the wrong group or no group at all, and
+// prev/next would walk the wrong scope. Easier to close the panel than to
+// reconcile the new structure.
+//
+// Each groupBy entry is `{ column: ColumnType, sort, order }` — key off the
+// column id so the watcher fires on add/remove/swap regardless of sort
+// direction changes within the same column set.
+watch(
+  () => groupBy.value.map((g) => g.column?.id ?? '').join('|'),
+  (newKey, oldKey) => {
+    if (newKey === oldKey) return
+    if (expandedFormPanelStore?.isOpen.value) {
+      expandedFormPanelStore.closePanel()
+    }
+  },
+)
+
+// Re-align the panel's activeRowIndex when the visible dataset changes
+// (filter / search / sort all funnel through a cache refresh that updates
+// `cachedRows.size`). Two outcomes:
+//
+//   - row still in the cached set → update activeRowIndex so prev/next and
+//     the canvas highlight bar stay aligned.
+//   - row not in the cached set → close the panel (most likely filtered or
+//     searched out of view; staying open would leave the panel disconnected
+//     from the grid with no prev/next to fall back on).
+//
+// Debounced because a reload does a clear-then-refill on cachedRows: the
+// intermediate `size === 0` would otherwise fire a false-positive close
+// before the refill arrives. The same debounce also coalesces infinite-
+// scroll chunk loads into one no-op resolve.
+let resolveActiveRowIndexTimer: ReturnType<typeof setTimeout> | null = null
+
+const resolveActiveRowIndex = () => {
+  if (resolveActiveRowIndexTimer) clearTimeout(resolveActiveRowIndexTimer)
+  resolveActiveRowIndexTimer = setTimeout(() => {
+    resolveActiveRowIndexTimer = null
+    if (!expandedFormPanelStore?.isOpen.value) return
+    const rowId = expandedFormPanelStore.activeRowId.value
+    if (!rowId) return
+    const path = expandedFormPanelStore.activePath.value
+    const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
+    if (idx === -1) {
+      expandedFormPanelStore.closePanel()
+    } else if (idx !== expandedFormPanelStore.activeRowIndex.value) {
+      expandedFormPanelStore.activeRowIndex.value = idx
+    }
+  }, 600)
+}
+
+watch(() => cachedRows.value.size, resolveActiveRowIndex)
+
+onBeforeUnmount(() => {
+  if (resolveActiveRowIndexTimer) clearTimeout(resolveActiveRowIndexTimer)
+})
 
 const baseColor = computed(() => {
   switch (groupBy.value.length) {
@@ -456,7 +737,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
 
 <template>
   <div
-    class="relative flex flex-row h-full min-h-0 w-full overflow-hidden nc-grid-wrapper"
+    class="relative flex flex-row h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
     :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-bg-gray-extralight)'};`"
   >

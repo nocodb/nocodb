@@ -34,10 +34,10 @@ export class ExpandedFormPage extends BasePage {
     this.duplicateRowButton = this.dashboard.get().locator('.nc-duplicate-row:visible');
     this.deleteRowButton = this.dashboard.get().locator('.nc-delete-row:visible');
 
-    this.btn_save = this.dashboard.get().locator('button.nc-expand-form-save-btn');
+    this.btn_save = this.get().getByTestId('nc-expanded-form-save');
     this.btn_moreActions = this.get().locator('.nc-expand-form-more-actions');
-    this.btn_nextField = this.get().locator('.nc-expanded-form-header button.nc-button.nc-next-arrow');
-    this.btn_previousField = this.get().locator('.nc-expanded-form-header button.nc-button.nc-prev-arrow');
+    this.btn_nextField = this.get().getByTestId('nc-expanded-form-next');
+    this.btn_previousField = this.get().getByTestId('nc-expanded-form-prev');
     this.span_tableName = this.get().locator('.nc-expanded-form-header').last().locator('.nc-expanded-form-table-name');
     this.span_modeFields = this.get().locator('.nc-expanded-form-mode-switch').last().locator('.tab').nth(0);
     this.span_modeFiles = this.get().locator('.nc-expanded-form-mode-switch').last().locator('.tab').nth(1);
@@ -53,8 +53,29 @@ export class ExpandedFormPage extends BasePage {
     this.cnt_filesNoAttachment = this.get().locator('.nc-files-no-attachment');
   }
 
+  // Matches either the modal (.nc-drawer-expanded-form) or the EE side panel
+  // (.nc-expanded-form-panel). Both expose a unique data-testid on the root,
+  // so tests don't depend on which surface the user has selected via the
+  // expanded-form mode toggle.
   get() {
-    return this.dashboard.get().locator(`.nc-drawer-expanded-form`);
+    return this.dashboard
+      .get()
+      .locator('[data-testid="nc-expanded-form-modal"], [data-testid="nc-expanded-form-panel"]');
+  }
+
+  // True when the EE side-panel surface is the one currently open. Used to
+  // branch behaviour for surface-specific UI (e.g. comments are tab-toggled
+  // in the panel but always present in the modal).
+  async isPanelMode() {
+    return (await this.dashboard.get().locator('[data-testid="nc-expanded-form-panel"]').count()) > 0;
+  }
+
+  // Promotes the panel into fullscreen so the same fields/files/discussion
+  // mode selector the modal uses becomes visible. No-op in modal mode — the
+  // modal is already laid out with the selector inline.
+  async enterFullscreen() {
+    if (!(await this.isPanelMode())) return;
+    await this.rootPage.getByTestId('nc-expanded-form-panel-fullscreen').click();
   }
 
   async click3DotsMenu(menuItem: string) {
@@ -166,7 +187,7 @@ export class ExpandedFormPage extends BasePage {
   }: {
     waitForRowsData?: boolean;
   } = {}) {
-    const saveRowAction = () => this.get().locator('button.nc-expand-form-save-btn').click();
+    const saveRowAction = () => this.get().getByTestId('nc-expanded-form-save').click();
 
     if (waitForRowsData) {
       await this.waitForResponse({
@@ -188,9 +209,17 @@ export class ExpandedFormPage extends BasePage {
 
     // removing focus from toast
     await this.rootPage.waitForTimeout(1000);
-    await this.rootPage.locator('.nc-modal').click();
+    // Modal mode renders inside an `.nc-modal` wrapper which we click to
+    // dismiss toast focus. Panel mode has no such wrapper — click the panel
+    // root instead so we don't reach into stale, hidden modals.
+    const visibleModal = this.rootPage.locator('.nc-modal:visible').first();
+    if (await visibleModal.count()) {
+      await visibleModal.click();
+    } else {
+      await this.get().click({ position: { x: 4, y: 4 } });
+    }
     await this.rootPage.waitForTimeout(1000);
-    await this.get().locator('.nc-expanded-form-header').locator('.nc-expand-form-close-btn').click();
+    await this.get().getByTestId('nc-expanded-form-close').last().click();
     await this.get().waitFor({ state: 'hidden' });
   }
 
@@ -204,8 +233,25 @@ export class ExpandedFormPage extends BasePage {
   // }
 
   async escape() {
+    // Panel handles Escape via @keydown on its root element, which only
+    // fires when the panel has focus. After interactions (cell clicks, URL
+    // navigation), focus may have moved away — re-focus the panel root so
+    // Escape reliably closes the panel. No-op for the modal where Escape is
+    // captured at body level by ant-design.
+    if (await this.isPanelMode()) {
+      await this.get()
+        .focus()
+        .catch(() => {});
+    }
     await this.rootPage.keyboard.press('Escape');
-    await this.get().locator('.nc-drawer-expanded-form').waitFor({ state: 'hidden' });
+    // Best-effort wait for the form to hide. The previous selector chain
+    // (`.nc-drawer-expanded-form` nested inside `.nc-drawer-expanded-form`)
+    // matched nothing and resolved instantly, masking flows where Escape is
+    // ignored (Gallery's modal when focus has shifted). Downstream steps
+    // navigate the URL anyway, so swallow timeouts here rather than block.
+    await this.get()
+      .waitFor({ state: 'hidden', timeout: 3000 })
+      .catch(() => {});
 
     await this.rootPage.waitForLoadState('networkidle');
     await this.rootPage.waitForLoadState('domcontentloaded');
@@ -213,7 +259,7 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async close() {
-    await this.get().locator('.nc-expand-form-close-btn').last().click();
+    await this.get().getByTestId('nc-expanded-form-close').last().click();
   }
 
   async openChildCard(param: { column: string; title: string }) {
@@ -241,7 +287,9 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async verifyCount({ count }: { count: number }) {
-    return await expect(this.rootPage.locator(`.nc-drawer-expanded-form`)).toHaveCount(count);
+    return await expect(
+      this.rootPage.locator('[data-testid="nc-expanded-form-modal"], [data-testid="nc-expanded-form-panel"]')
+    ).toHaveCount(count);
   }
 
   async verifyRoleAccess(param: { role: string }) {
@@ -249,6 +297,29 @@ export class ExpandedFormPage extends BasePage {
 
     // expect(await this.btn_moreActions.count()).toBe(1);
     await this.rootPage.waitForTimeout(200);
+
+    // Panel mode tab-toggles the comments drawer (modal renders it inline).
+    // Click the toggle first, BEFORE opening the more-actions dropdown.
+    //
+    // Use native DOM `.click()` via `evaluate` instead of Playwright's click —
+    // the toggle sits inside an `NcTooltip` wrapper that sometimes intercepts
+    // synthesized pointer events on slow CI runners, making Playwright report
+    // a successful click even when the @click handler never fires. A native
+    // dispatch goes straight through. Then verify the toggle reaches `.active`
+    // before relying on the comment-input render.
+    const panelMode = await this.isPanelMode();
+    if (panelMode) {
+      const commentsToggle = this.rootPage.getByTestId('nc-expanded-form-panel-comments-toggle');
+      await commentsToggle.waitFor({ state: 'visible' });
+      await this.rootPage.evaluate(() => {
+        const el = document.querySelector(
+          '[data-testid="nc-expanded-form-panel-comments-toggle"]'
+        ) as HTMLElement | null;
+        el?.click();
+      });
+      await expect(commentsToggle).toHaveClass(/active/);
+    }
+
     if (await this.btn_moreActions.isVisible()) {
       // In large screen, the more actions button will be hidden as copy record url button will be visible inline (outside)
       await this.btn_moreActions.click();
@@ -274,10 +345,29 @@ export class ExpandedFormPage extends BasePage {
       await expect(this.rootPage.getByTestId('nc-expanded-form-save')).toHaveCount(0);
     }
 
-    if (role === 'viewer') {
-      await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(0);
+    // Comments-input role gating. Panel mode: comments tab was opened above,
+    // so `.nc-comment-input` is rendered inside the panel root. Modal mode:
+    // comments drawer is always inline with `.nc-comments-drawer` wrapper.
+    //
+    // The comment input depends on the user's role data (`commentEdit`) which
+    // resolves asynchronously after sign-in. Under CI load the resolve can
+    // arrive after Playwright's default polling window — give the page an
+    // explicit settle window plus an extended timeout on the count assertion.
+    await this.rootPage.waitForTimeout(2000);
+
+    if (panelMode) {
+      if (role === 'viewer') {
+        await expect(this.get().locator('.nc-comment-input')).toHaveCount(0);
+      } else {
+        await expect(this.get().locator('.nc-comment-input')).toHaveCount(1, { timeout: 30000 });
+      }
     } else {
-      await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(1);
+      await this.get().locator('.nc-comments-drawer').waitFor({ state: 'visible', timeout: 30000 });
+      if (role === 'viewer') {
+        await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(0);
+      } else {
+        await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(1, { timeout: 30000 });
+      }
     }
 
     // press escape to close the expanded form

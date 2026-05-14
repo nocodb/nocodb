@@ -207,6 +207,20 @@ export function useCanvasRender({
   const isLocked = inject(IsLockedInj, ref(false))
   const isPublic = inject(IsPublicInj, ref(false))
 
+  const expandedFormPanelStore = useExpandedFormPanel()
+  const expandedPanelRowIndex = computed(() => {
+    if (!expandedFormPanelStore?.isOpen.value) return -1
+    return expandedFormPanelStore.activeRowIndex.value ?? -1
+  })
+  // Group path of the currently-expanded row. Used together with
+  // expandedPanelRowIndex to scope the active-row bar to the correct group;
+  // without it, every group containing a row at the same flat rowIndex would
+  // also light up.
+  const expandedPanelPath = computed<number[] | null>(() => {
+    if (!expandedFormPanelStore?.isOpen.value) return null
+    return expandedFormPanelStore.activePath.value ?? []
+  })
+
   const { isDark, getColor } = useTheme()
 
   const { isRowColouringEnabled } = useViewRowColorRender()
@@ -1019,6 +1033,18 @@ export function useCanvasRender({
     }
 
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
+
+    if (
+      expandedPanelRowIndex.value === row.rowMeta.rowIndex &&
+      expandedPanelPath.value !== null &&
+      // Default both sides to [] — flat rows have row.rowMeta.path === undefined,
+      // and comparePath requires arrays on both sides, so the highlight would
+      // never paint in non-group-by views without this normalisation.
+      comparePath(expandedPanelPath.value, row.rowMeta?.path ?? [])
+    ) {
+      ctx.fillStyle = getColor(themeV4Colors.brand['500'])
+      ctx.fillRect(xOffset, yOffset, 3, rowHeight.value)
+    }
 
     let currentX = xOffset + 4
 
@@ -3237,9 +3263,7 @@ export function useCanvasRender({
             // (useInfiniteGroups.ts:275), so non-leaf renders would otherwise
             // collapse onto the same empty-path key.
             const groupSelKey = group ? generateGroupPath(group).join('-') : ''
-            const groupSelOverride = groupSelKey
-              ? groupSelectionAggregations.value.get(groupSelKey)
-              : undefined
+            const groupSelOverride = groupSelKey ? groupSelectionAggregations.value.get(groupSelKey) : undefined
             const groupSelOutOfScope = !!groupSelOverride && !groupSelOverride.scopedTitles.has(column.title)
             const groupSelDisplayValue = groupSelOverride?.values[column.title]
             const aggDisplay = groupSelDisplayValue !== undefined ? groupSelDisplayValue : group?.aggregations[column.title]

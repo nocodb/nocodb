@@ -50,6 +50,10 @@ test.describe('Expanded form files mode', () => {
     await addFileToRow(2, ['1.json', '2.json']);
 
     await dashboard.grid.openExpandedRow({ index: 0 });
+    // Side panel (EE default) only exposes the fields/files/discussion mode
+    // selector when fullscreen is active; modal renders it inline. No-op in
+    // modal mode.
+    await dashboard.expandedForm.enterFullscreen();
 
     await dashboard.expandedForm.verifyIsInFieldsMode();
     await dashboard.expandedForm.switchToFilesMode();
@@ -81,6 +85,7 @@ test.describe('Expanded form files mode', () => {
     await addFileToRow(2, ['1.json']);
 
     await dashboard.grid.openExpandedRow({ index: 0 });
+    await dashboard.expandedForm.enterFullscreen();
 
     await dashboard.expandedForm.switchToFilesMode();
     await dashboard.expandedForm.verifyIsInFilesMode();
@@ -95,6 +100,11 @@ test.describe('Expanded form files mode', () => {
 
     await dashboard.expandedForm.close();
     await dashboard.grid.openExpandedRow({ index: 1 });
+    // Panel resets fullscreen + mode on close (each panel mount starts fresh
+    // with `activeViewMode = FIELD`), so re-enter fullscreen and re-select
+    // files mode. No-op in modal mode where mode persists via the view.
+    await dashboard.expandedForm.enterFullscreen();
+    await dashboard.expandedForm.switchToFilesMode();
 
     await dashboard.expandedForm.verifyIsInFilesMode();
 

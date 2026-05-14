@@ -722,7 +722,7 @@ useResizeObserver(inputWrapperRef, () => {
 
       <div
         v-if="!isPageDesignerPreviewPanel"
-        class="!absolute !hidden nc-text-area-expand-btn group-hover:block z-3 items-center gap-1"
+        class="!absolute nc-text-area-expand-btn z-3 items-center gap-1"
         :class="{
           'active': active && isCanvasInjected,
           'right-1': isForm,
@@ -735,6 +735,12 @@ useResizeObserver(inputWrapperRef, () => {
             !isRichMode &&
             ((editEnabled && !isVisible) || isForm || (isUnderFormula && isVisible)),
           'top-1': !(isGrid && !isExpandedFormOpen && !isForm) || isUnderFormula,
+          // SmartText cells inside the expanded form keep the expand button
+          // always visible — keyboard-only users have no way to open the
+          // SmartText editor otherwise (the hover-revealed affordance is
+          // unreachable via Tab).
+          '!flex': isExpandedFormOpen && isSmartMode,
+          '!hidden group-hover:block': !(isExpandedFormOpen && isSmartMode),
         }"
       >
         <NcTooltip

@@ -65,12 +65,26 @@ export class ProjectViewPage extends BasePage {
   }
 
   async verifyAccess(role: string) {
+    // Let any in-flight navigation (e.g. auto-redirect to first table for users
+    // without projectOverviewTab permission) settle before clicking around.
+    await this.rootPage.waitForLoadState('networkidle').catch(() => {});
+
     await this.dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('collaborator');
 
-    await this.get().waitFor({ state: 'visible' });
+    // Wait for the settings navigation to settle. We can't rely on
+    // `.nc-base-view-tab` as a readiness signal because it only renders for
+    // roles with `projectOverviewTab` permission (Creator/Owner). Use the
+    // collaborator menu item — visible for all roles after navigating here —
+    // as the role-agnostic readiness check.
+    await this.rootPage.waitForLoadState('networkidle').catch(() => {});
 
-    // provide time for tabs to appear
-    await this.rootPage.waitForTimeout(1000);
+    await this.dashboard.leftSidebar.sidebarNav
+      .getSettingsMenuItemLocator('collaborator')
+      .waitFor({ state: 'visible' });
+
+    // small settle window for siblings (settings/data-source) to render or not
+    // based on role; we read their visibility synchronously immediately after.
+    await this.rootPage.waitForTimeout(500);
 
     if (role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner') {
       expect(

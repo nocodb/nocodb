@@ -5,8 +5,74 @@ import { ncIsArray } from 'nocodb-sdk'
 export const isMac = () => /Mac/i.test(navigator.platform)
 export const isDrawerExist = () => document.querySelector('.ant-drawer-open')
 export const isLinkDropdownExist = () => document.querySelector('.nc-links-dropdown.active')
-export const isDrawerOrModalExist = () => document.querySelector('.ant-modal.active, .ant-drawer-open')
-export const isExpandedFormOpenExist = () => document.querySelector('.nc-drawer-expanded-form.active')
+
+// EE side-panel is inline (sibling of the grid) — both surfaces can be active
+// simultaneously. The panel "blocks" grid-level keyboard handling only when the
+// user is actually interacting with the panel — meaning focus (or the most
+// recent click) is inside it. Once the user clicks a grid cell, they've
+// explicitly switched intent to the grid, so grid Tab/Enter/Arrows/Backspace
+// should resume working even while the panel is still visible.
+//
+// We track click intent in a module-level flag, set in the capture-phase click
+// listener below. Focus-only tracking isn't enough on its own because the
+// canvas grid isn't focusable — clicking a grid cell leaves activeElement on
+// BODY rather than inside the grid wrapper.
+let _lastClickInExpandedFormPanel = false
+if (typeof document !== 'undefined') {
+  document.addEventListener(
+    'click',
+    (e) => {
+      const t = e.target as HTMLElement | null
+      if (!t) return
+      // Ignore clicks on dropdowns/popovers that overlay the page — they
+      // can land outside the panel DOM but were triggered from within it.
+      if (t.closest('.ant-select-dropdown, .ant-picker-dropdown, .ant-popover, .ant-dropdown')) return
+      const inPanel = !!t.closest('.nc-expanded-form-panel')
+      _lastClickInExpandedFormPanel = inPanel
+
+      // If the user clicked OUT of the panel (e.g. on a grid cell), but a
+      // panel descendant still holds keyboard focus from a prior interaction,
+      // explicitly blur it. Without this, subsequent keypresses (Enter,
+      // letter keys) still fire on the focused panel input — ant-select on a
+      // focused input would open its dropdown on Enter even though the user
+      // visually clicked away.
+      if (!inPanel) {
+        const panel = document.querySelector('.nc-expanded-form-panel')
+        const active = document.activeElement as HTMLElement | null
+        if (panel && active && panel.contains(active) && typeof active.blur === 'function') {
+          active.blur()
+        }
+      }
+    },
+    true,
+  )
+}
+
+// Reset to "intent on panel" when the panel mounts — so opening EFP via the
+// grid expand-row icon (which is technically a grid click) doesn't leave grid
+// keyboard active afterwards. Called from ExpandedFormPanel.vue on mount.
+export const markExpandedFormPanelFocus = () => {
+  _lastClickInExpandedFormPanel = true
+}
+
+const isFocusInsideExpandedFormPanel = () => {
+  const panel = document.querySelector('.nc-expanded-form-panel')
+  if (!panel) return false
+  const el = document.activeElement
+  return !!el && panel.contains(el)
+}
+
+// True when the user is currently interacting with the panel — either focus is
+// inside it, or their most recent click landed inside it. Grid keyboard
+// handlers check this and bail.
+export const isExpandedFormPanelOpen = () =>
+  !!document.querySelector('.nc-expanded-form-panel') && (isFocusInsideExpandedFormPanel() || _lastClickInExpandedFormPanel)
+
+export const isDrawerOrModalExist = () =>
+  !!document.querySelector('.ant-modal.active, .ant-drawer-open') || isExpandedFormPanelOpen()
+
+export const isExpandedFormOpenExist = () =>
+  !!document.querySelector('.nc-drawer-expanded-form.active') || isExpandedFormPanelOpen()
 export const isNestedExpandedFormOpenExist = () => document.querySelectorAll('.nc-drawer-expanded-form.active')?.length > 1
 export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')
 export const isNcListSearchInputActive = () => document.activeElement?.closest('.nc-list-search-input')

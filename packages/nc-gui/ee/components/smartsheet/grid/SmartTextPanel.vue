@@ -20,6 +20,13 @@ const {
 
 const { closeEditor, flushSave, switchField, setFullscreen, setPmContent, navigatePrev, navigateNext } = smartTextStore
 
+// When the expanded-record panel is also open it's hidden via v-show while
+// SmartText is active. On close we want SmartText to vanish instantly so the
+// EFP can fill the slot without an overlap window — the slide-out animation
+// would keep SmartText slot-occupying for ~200ms, briefly squeezing the grid.
+const expandedFormPanelStore = useExpandedFormPanel()
+const isExpandedFormPanelOpen = computed(() => !!expandedFormPanelStore?.isOpen?.value)
+
 const { t } = useI18n()
 const view = inject(ActiveViewInj, ref())
 const meta = inject(MetaInj, ref())
@@ -56,12 +63,20 @@ const updateSidebarRightEdge = () => {
   sidebarRightEdge.value = rect.right
 }
 
+// View-fullscreen mode (set via the topbar's enter-fullscreen toggle) hides
+// both the project sidebar and the mini sidebar, so the panel needs to hug
+// left:0 in that case.
+const { isFullScreen: isViewFullScreen } = storeToRefs(useSidebarStore())
+
 // Shared view (`isPublic`) and shared base both render without the mini
 // sidebar, so when the project sidebar is hidden the panel must hug the
 // viewport edge instead of leaving a gap the width of the (absent) rail.
-const hasMiniSidebar = computed(() => !isPublic.value && !isSharedBase.value)
+const hasMiniSidebar = computed(() => !isPublic.value && !isSharedBase.value && !isViewFullScreen.value)
 
 const fullscreenLeft = computed(() => {
+  // View-fullscreen hides both sidebars — short-circuit before sidebarRightEdge
+  // can return a stale measurement from before the toggle.
+  if (isViewFullScreen.value) return '0'
   if (sidebarRightEdge.value > 0) return `${sidebarRightEdge.value}px`
   return hasMiniSidebar.value ? 'var(--mini-sidebar-width)' : '0'
 })
@@ -76,7 +91,7 @@ const MIN_WIDTH = 320
 
 const getMaxWidth = () => {
   const containerWidth = panelRef.value?.parentElement?.clientWidth ?? 0
-  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.75))
+  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.6))
 }
 
 const onResizeMove = (e: MouseEvent) => {
@@ -281,7 +296,7 @@ const onDownloadPDF = () => downloadPDF()
 </script>
 
 <template>
-  <Transition name="nc-slide-right" @after-enter="panelRef?.focus()">
+  <Transition :css="!isExpandedFormPanelOpen" name="nc-slide-right" @after-enter="panelRef?.focus()">
     <div
       v-if="isOpen"
       ref="panelRef"
@@ -301,7 +316,9 @@ const onDownloadPDF = () => downloadPDF()
       />
 
       <!-- Header -->
-      <div class="flex items-center h-[var(--topbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0">
+      <div
+        class="flex items-center h-[var(--toolbar-height)] gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0"
+      >
         <div
           v-if="isFullscreen"
           class="flex items-center gap-2 text-bodyDefaultSm font-medium text-nc-content-gray-subtle2 leading-normal min-w-0"

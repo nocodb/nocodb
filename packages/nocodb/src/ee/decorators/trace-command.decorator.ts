@@ -321,13 +321,7 @@ export function TraceCommand(
           let resolvedCtx: ResolvedCtx | undefined;
           const beforeFn = contract.entry?.before;
           if (beforeFn) {
-            try {
-              resolvedCtx = await beforeFn(ctx, param);
-            } catch (e: any) {
-              logger.warn(
-                `Trace entry.before ${resolvedName}@${version}: ${e.message}`,
-              );
-            }
+            resolvedCtx = await beforeFn(ctx, param);
           }
 
           const result = await originalMethod.apply(this, args);

@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import type { ColumnType, TableType, GanttType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, DataPayload, FilterType, TableType, GanttType, ViewType } from 'nocodb-sdk'
 import { EventType, UITypes } from 'nocodb-sdk'
 import { type ComputedRef, type Ref, computed, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
@@ -7,6 +7,7 @@ import { useDateAxisState } from './useDateAxisState'
 import type { TimelineZoomLevel } from '../utils/timelineUtils'
 import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
+import { validateRowFilters } from '~/utils/dataUtils'
 
 // Gantt uses Timeline's scale model minus the day-level zoom. A single-day
 // viewport is too narrow once dependency arrows + milestones are rendered —
@@ -38,13 +39,17 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
 
     const { $api, $ncSocket } = useNuxtApp()
 
+    const { user } = useGlobal()
+
     const baseStore = useBase()
-    const { isMysql } = baseStore
+    const { isMysql, getBaseType } = baseStore
     const { base } = storeToRefs(baseStore)
 
-    const { sharedView, fetchSharedViewData } = useSharedView()
+    const { sharedView } = useSharedView()
 
-    const { sorts, nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
+    const { nestedFilters, eventBus, allFilters, validFiltersFromUrlParams } = useSmartsheetStoreOrThrow()
+
+    const { metas } = useMetas()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
@@ -172,40 +177,105 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       ]
     })
 
-    // #3 + #15: Record statistics for the info badge
+    // Surfaced for the toolbar — counts rows currently in formattedData (which
+    // under windowed fetch == rows whose bar overlaps the buffer).
     const totalRecordCount = computed(() => formattedData.value.length)
 
-    const recordsWithoutDates = computed(() => {
-      if (!ganttRange.value?.length) return 0
-      const range = ganttRange.value[0]
-      return formattedData.value.filter((row) => {
-        const fromVal = range.fk_from_col?.title ? row.row?.[range.fk_from_col.title] : undefined
-        return !fromVal || !dayjs(fromVal).isValid()
-      }).length
-    })
+    // Format buffer endpoints to match the column type. Date columns store
+    // `YYYY-MM-DD`; DateTime needs a TZ-aware boundary so a record with a
+    // mid-day timestamp on the boundary day still falls inside the window.
+    const formatBufferDate = (d: dayjs.Dayjs, col: ColumnType, end: boolean) => {
+      if (col?.uidt === UITypes.Date) return d.format('YYYY-MM-DD')
+      const anchored = end ? d.endOf('day') : d.startOf('day')
+      return anchored.format('YYYY-MM-DD HH:mm:ssZ')
+    }
 
-    // Data loading
-    const loadGanttData = async () => {
+    // Sequence number — defensive belt-and-suspenders for the serialized
+    // dispatch below: if for any reason two requests do end up in flight
+    // (HMR, re-entrant calls), only the response whose seq matches the
+    // newest dispatch commits.
+    let _fetchSeq = 0
+
+    // Serialize fetches — at most one request in flight at a time. While a
+    // fetch is running, additional calls are coalesced into a single
+    // pending slot (the most recent args win); when the current fetch
+    // settles, the pending slot fires next. Prevents fast scroll / zoom
+    // spam from issuing parallel network calls.
+    let _isFetching = false
+    let _pending: { showLoading: boolean } | null = null
+
+    const fetchGanttRecords = async (args: { showLoading: boolean }): Promise<void> => {
+      if (_isFetching) {
+        // Replace any earlier queued request — only the latest matters.
+        // If any caller wanted the loading spinner shown, preserve that.
+        _pending = {
+          showLoading: (_pending?.showLoading ?? false) || args.showLoading,
+        }
+        return
+      }
+      _isFetching = true
+      try {
+        await _fetchGanttRecordsImpl(args)
+      } finally {
+        _isFetching = false
+        if (_pending) {
+          const next = _pending
+          _pending = null
+          // Fire-and-forget — the new call goes through the same gate.
+          fetchGanttRecords(next)
+        }
+      }
+    }
+
+    const _fetchGanttRecordsImpl = async ({ showLoading }: { showLoading: boolean }) => {
       if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !ganttRange.value?.length)
         return
 
-      isGanttDataLoading.value = true
+      const range = ganttRange.value[0]
+      const fromCol = range.fk_from_col
+      const toCol = range.fk_to_col
+      if (!fromCol?.id) return
+
+      const fromStr = formatBufferDate(bufferStart.value, fromCol, false)
+      const toStr = formatBufferDate(bufferEnd.value, toCol ?? fromCol, true)
+
+      // The server builds the bar-overlap predicate from from_date/to_date
+      // and merges it with any user-supplied filterArrJson. We only pass
+      // the user's nested filters when filterSync is off (otherwise the
+      // saved view filters are already applied server-side).
+      const userFilters: FilterType[] = isUIAllowed('filterSync') ? [] : [...nestedFilters.value]
+
+      const seq = ++_fetchSeq
+      if (showLoading) isGanttDataLoading.value = true
 
       try {
-        const res = !isPublic.value
-          ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id as string, {
-              where: where?.value ?? '',
-              limit: 400,
-              include_row_color: true,
-              getHiddenColumns: true,
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value]) }),
-            })
-          : await fetchSharedViewData({
-              sortsArr: sorts.value,
-              filtersArr: [...nestedFilters.value],
-              where: where?.value ?? '',
-              limit: 400,
-            })
+        const queryParams: Record<string, string> = {
+          from_date: fromStr,
+          to_date: toStr,
+          where: where?.value ?? '',
+          include_row_color: 'true',
+          getHiddenColumns: 'true',
+        }
+        if (userFilters.length) {
+          queryParams.filterArrJson = stringifyFilterOrSortArr(userFilters)
+        }
+
+        // Hit the dedicated gantt endpoint. Server enforces
+        // GANTT_RECORD_LIMIT via `limitOverride`, bypassing the
+        // deployment-level NC_DB_QUERY_LIMIT_MAX clamp that would
+        // otherwise cap us at e.g. 100 on cloud builds.
+        const url = !isPublic.value
+          ? `/api/v1/db/gantt-data/noco/${base.value.id}/${meta.value!.id}/views/${viewMeta.value!.id}`
+          : `/api/v2/public/gantt-view/${sharedView.value?.uuid}`
+
+        const res = await $api.instance
+          .get(url, {
+            params: queryParams,
+            ...(isPublic.value ? { headers: { 'xc-password': sharedView.value?.password } } : {}),
+          })
+          .then((r: any) => r.data)
+
+        if (seq !== _fetchSeq) return
 
         formattedData.value = (res?.list ?? []).map((row: any) => ({
           row,
@@ -215,16 +285,34 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
           },
           oldRow: { ...row },
         }))
-      } catch (e: any) {
-        message.error(await extractSdkResponseErrorMsg(e))
+      } catch (e) {
+        if (seq === _fetchSeq) {
+          // @ts-expect-error - extractSdkResponseErrorMsg defensively handles unknown shapes
+          message.error(await extractSdkResponseErrorMsg(e))
+        }
       } finally {
-        isGanttDataLoading.value = false
+        if (seq === _fetchSeq && showLoading) {
+          isGanttDataLoading.value = false
+        }
       }
 
       // After rows land, resolve the dependency graph (if a dep field is set).
       // Fire-and-forget — arrows appear once links load; row data is already usable.
       loadDependencyLinks()
     }
+
+    const loadGanttData = () => fetchGanttRecords({ showLoading: true })
+
+    // Silent refetch on buffer changes — fires when the user pans, zooms, or
+    // jumps to a date that re-anchors the buffer. Debounced so a fast scroll
+    // that triggers multiple `extendBuffer*` calls collapses into one fetch.
+    // Doesn't toggle isGanttDataLoading — existing bars stay visible until
+    // the new window arrives, then patch in place.
+    const _silentRefetch = useDebounceFn(() => fetchGanttRecords({ showLoading: false }), 250)
+
+    watch([bufferStart, bufferEnd], () => {
+      _silentRefetch()
+    })
 
     // Dependency graph — Map<rowId, linkedRowIds[]>.
     // Populated from the Links field configured in DateDependency; fetched via
@@ -530,12 +618,48 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       )
     }
 
-    const handleDataEvent = (data: { action?: string; payload?: Record<string, any> }) => {
-      const payload = data?.payload
+    const passesViewFilters = (rowPayload: Record<string, any>) => {
+      return validateRowFilters(
+        [...allFilters.value, ...validFiltersFromUrlParams.value],
+        rowPayload,
+        meta.value?.columns as ColumnType[],
+        getBaseType(viewMeta.value?.view?.source_id),
+        metas.value,
+        meta.value?.base_id,
+        {
+          currentUser: user.value,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      )
+    }
+
+    // True when the row's bar overlaps the current buffer window — used to
+    // gate realtime add/update events so out-of-window rows don't bloat
+    // formattedData (the next windowed fetch would re-include them anyway
+    // when the user pans there).
+    const passesWindow = (rowPayload: Record<string, any>) => {
+      const range = ganttRange.value?.[0]
+      const fromCol = range?.fk_from_col
+      if (!fromCol?.title) return true
+
+      const fromVal = rowPayload[fromCol.title]
+      const toVal = range?.fk_to_col?.title ? rowPayload[range.fk_to_col.title] : null
+
+      const fromDate = fromVal ? dayjs(fromVal) : null
+      const toDate = toVal ? dayjs(toVal) : null
+      const start = fromDate?.isValid() ? fromDate : toDate?.isValid() ? toDate : null
+      const end = toDate?.isValid() ? toDate : fromDate?.isValid() ? fromDate : null
+      if (!start || !end) return false
+
+      return !end.isBefore(bufferStart.value, 'day') && !start.isAfter(bufferEnd.value, 'day')
+    }
+
+    const handleDataEvent = (data: DataPayload) => {
+      const { action, payload } = data as { action?: string; payload?: Record<string, any> }
       if (!payload) return
       const idx = findRowIndex(payload)
 
-      if (data.action === 'delete') {
+      if (action === 'delete') {
         if (idx >= 0) {
           // Close the inspector if it was holding the now-deleted row;
           // its `props.record` ref would otherwise point at an orphan and
@@ -548,20 +672,49 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
         return
       }
 
-      const existing = idx >= 0 ? formattedData.value[idx] : undefined
-      if (existing) {
-        // Mutate the Row object in place rather than replacing the array
-        // slot. Components holding a reference to the row (notably the
-        // RecordInspector and any per-bar drag handlers) would otherwise
-        // hold a stale snapshot and saves would go to an orphan.
-        const merged = { ...existing.row, ...payload }
-        Object.assign(existing.row, merged)
-        existing.oldRow = { ...merged }
-        Object.assign(existing.rowMeta, getEvaluatedRowMetaRowColorInfo(merged))
+      if (action === 'update') {
+        const matchesFilters = passesViewFilters(payload)
+        const inWindow = passesWindow(payload)
+
+        if (!matchesFilters || !inWindow) {
+          if (idx >= 0) {
+            if (inspectorRecord.value && inspectorRecord.value === formattedData.value[idx]) {
+              inspectorRecord.value = null
+            }
+            formattedData.value.splice(idx, 1)
+          }
+          return
+        }
+
+        const existing = idx >= 0 ? formattedData.value[idx] : undefined
+        if (existing) {
+          // Mutate the Row object in place rather than replacing the array
+          // slot. Components holding a reference to the row (notably the
+          // RecordInspector and any per-bar drag handlers) would otherwise
+          // hold a stale snapshot and saves would go to an orphan.
+          const merged = { ...existing.row, ...payload }
+          Object.assign(existing.row, merged)
+          existing.oldRow = { ...merged }
+          Object.assign(existing.rowMeta, getEvaluatedRowMetaRowColorInfo(merged))
+          return
+        }
+
+        // Row entered the window — treat as add.
+        formattedData.value.push({
+          row: payload,
+          oldRow: { ...payload },
+          rowMeta: {
+            new: false,
+            ...getEvaluatedRowMetaRowColorInfo(payload),
+          },
+        })
         return
       }
 
-      if (data.action === 'add') {
+      if (action === 'add') {
+        if (!passesViewFilters(payload) || !passesWindow(payload)) return
+        if (idx >= 0) return
+
         formattedData.value.push({
           row: payload,
           oldRow: { ...payload },
@@ -626,7 +779,6 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       ganttRange,
       isPublic,
       totalRecordCount,
-      recordsWithoutDates,
       dependencyLinks,
       updateFormat,
       inspectorRecord,

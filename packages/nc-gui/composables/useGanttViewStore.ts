@@ -28,7 +28,6 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       dateRangeLabel: computed(() => ''),
       isPublic: ref(false),
       totalRecordCount: ref(0),
-      recordsWithoutDates: ref(0),
       updateFormat: computed(() => ''),
       updateRowProperty: async (..._args: any[]) => {},
       loadGanttData: async () => {},

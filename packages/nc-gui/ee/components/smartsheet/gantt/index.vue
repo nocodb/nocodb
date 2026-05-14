@@ -44,8 +44,6 @@ const {
   goToDate,
   setZoomLevel,
   currentDate,
-  totalRecordCount,
-  recordsWithoutDates,
   navigateToClosestRecord,
   updateFormat,
   colWidth,
@@ -341,15 +339,6 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
   $e('c:gantt:date-picker', { zoomLevel: zoomLevel.value })
 }
 
-// #3: Record count badge text
-const recordCountLabel = computed(() => {
-  const total = totalRecordCount.value
-  const noDate = recordsWithoutDates.value
-  if (noDate > 0) {
-    return t('msg.ganttRecordsCountWithMissing', { total, noDate })
-  }
-  return total > 0 ? t('msg.ganttRecordsCount', { total }) : ''
-})
 </script>
 
 <template>
@@ -460,23 +449,6 @@ const recordCountLabel = computed(() => {
             </NcButton>
           </NcTooltip>
         </div>
-
-        <!-- #3 + #15: Record count badge -->
-        <NcTooltip
-          v-if="recordCountLabel && !isGroupBy"
-          class="ml-1 text-[11px] text-nc-content-gray-muted font-medium px-1.5 py-0.5 rounded-md bg-nc-bg-gray-medium truncate"
-          :class="{ 'text-nc-content-orange-medium bg-nc-bg-orange-light': recordsWithoutDates > 0 }"
-          data-testid="nc-gantt-record-count"
-        >
-          <template #title>
-            <span v-if="recordsWithoutDates > 0">
-              {{ $t('msg.ganttRecordsMissingDates', { count: recordsWithoutDates }, recordsWithoutDates) }}
-            </span>
-            <span v-else>{{ $t('msg.ganttTotalRecordsLoaded', { max: 400 }) }}</span>
-          </template>
-
-          {{ recordCountLabel }}
-        </NcTooltip>
 
         <div class="flex-1" />
 

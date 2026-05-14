@@ -1798,15 +1798,17 @@ const onGridMouseLeave = () => {
           />
         </div>
 
-        <!-- Dependency arrows layer — raised above the bar content layer so hit
-             paths can receive clicks (the grid body otherwise absorbs them).
-             SVG itself is pointer-events: none; only the hit paths re-enable
-             pointer-events below. Arrows drawn 2px short of bar edges so they
-             still read as terminating at the bar. -->
+        <!-- Dependency arrows layer — sits in the background (z=0, same as
+             grid gridlines/weekend stripes) so bars paint OVER it where they
+             overlap. Bars sit later in DOM, so with z-index ties they naturally
+             paint on top. SVG is pointer-events: none; the per-arrow
+             transparent hit paths re-enable pointer-events only on themselves
+             and only show where the bars don't cover. Arrows drawn 2px short
+             of bar edges so they still read as terminating at the bar. -->
         <svg
           v-if="arrowPaths.length || linkCreationDrag"
           class="absolute inset-0 pointer-events-none"
-          style="z-index: 3"
+          style="z-index: 0"
           :width="totalGridWidth"
           :height="arrowSvgHeight"
           :viewBox="`0 0 ${totalGridWidth} ${arrowSvgHeight}`"
@@ -1910,10 +1912,11 @@ const onGridMouseLeave = () => {
           />
         </svg>
 
-        <!-- Content layer: bars and empty state. Intentionally no z-index —
-             creating a stacking context here would trap the dep handles
-             underneath the SVG (z-index 3). Handles set their own z-index:4
-             to sit above the arrow SVG while bars stack naturally below it. -->
+        <!-- Content layer: bars and empty state. No explicit z-index — the
+             SVG arrows layer is now at z=0 in the background, so bars (which
+             come later in DOM) naturally paint on top where they overlap.
+             Avoid setting z-index here so dep handles can still escape up
+             via their own z=4 without being trapped in a stacking context. -->
         <div ref="gridBodyRef" class="relative w-full" @mousedown="onGridBodyMouseDown" @dblclick="onGridBodyDblClick">
           <!-- Swimlane rows -->
           <div

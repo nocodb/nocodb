@@ -406,8 +406,8 @@ const formatDisplay = (raw: string | null | undefined) => {
             overlay-class-name="nc-picker-date !min-w-[260px]"
           >
             <div
-              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight cursor-pointer truncate"
-              :class="{ 'border-nc-border-brand': startOpen }"
+              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight truncate"
+              :class="[isPublic ? 'cursor-default' : 'cursor-pointer', { 'border-nc-border-brand': startOpen }]"
               data-testid="nc-gantt-inspector-start"
             >
               <span v-if="startDayjs">{{ formatDisplay(startValue) }}</span>
@@ -440,8 +440,8 @@ const formatDisplay = (raw: string | null | undefined) => {
             overlay-class-name="nc-picker-date !min-w-[260px]"
           >
             <div
-              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight cursor-pointer truncate"
-              :class="{ 'border-nc-border-brand': endOpen }"
+              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight truncate"
+              :class="[isPublic ? 'cursor-default' : 'cursor-pointer', { 'border-nc-border-brand': endOpen }]"
               data-testid="nc-gantt-inspector-end"
             >
               <span v-if="endDayjs">{{ formatDisplay(endValue) }}</span>
@@ -518,7 +518,7 @@ const formatDisplay = (raw: string | null | undefined) => {
             {{ $t('activity.linkRecord') }}
           </button>
         </div>
-        <div v-else class="space-y-1">
+        <div v-else-if="showPredecessorPicker && !isPublic" class="space-y-1">
           <input
             v-model="predecessorQuery"
             type="text"
@@ -588,7 +588,7 @@ const formatDisplay = (raw: string | null | undefined) => {
             {{ $t('activity.linkRecord') }}
           </button>
         </div>
-        <div v-else class="space-y-1">
+        <div v-else-if="showSuccessorPicker && !isPublic" class="space-y-1">
           <input
             v-model="successorQuery"
             type="text"

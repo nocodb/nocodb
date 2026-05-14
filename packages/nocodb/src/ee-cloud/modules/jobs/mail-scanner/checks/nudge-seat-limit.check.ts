@@ -11,6 +11,8 @@ import { ncSiteUrl } from '~/utils/envs';
 import {
   loadRecentNudgeUserIds,
   NUDGE_ACTIVE_WINDOW_DAYS,
+  NUDGE_MAX_AGE_SEAT_LIMIT_DAYS,
+  NUDGE_MIN_AGE_SEAT_LIMIT_DAYS,
 } from '~/modules/jobs/mail-scanner/checks/nudge-shared';
 
 /**
@@ -45,6 +47,12 @@ export class NudgeSeatLimitCheck implements MailScannerCheck {
     const ncMeta = Noco.ncMeta;
     const now = dayjs.utc();
     const activeSince = now.subtract(NUDGE_ACTIVE_WINDOW_DAYS, 'day').toDate();
+    const minCreated = now
+      .subtract(NUDGE_MAX_AGE_SEAT_LIMIT_DAYS, 'day')
+      .toDate();
+    const maxCreated = now
+      .subtract(NUDGE_MIN_AGE_SEAT_LIMIT_DAYS, 'day')
+      .toDate();
 
     const knex = ncMeta.knexConnection;
 
@@ -74,6 +82,7 @@ export class NudgeSeatLimitCheck implements MailScannerCheck {
       .where(function () {
         this.whereNull('w.deleted').orWhere('w.deleted', false);
       })
+      .whereBetween('w.created_at', [minCreated, maxCreated])
       .andWhere('u.last_active_at', '>', activeSince)
       .andWhereNot('u.is_deleted', true)
       .select(

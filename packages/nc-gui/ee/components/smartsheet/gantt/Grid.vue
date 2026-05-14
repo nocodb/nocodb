@@ -1342,6 +1342,26 @@ watch(
   { flush: 'sync' },
 )
 
+// First-mount sync: this Grid may mount after the store's scrollLeft has
+// already drifted from 0 (e.g. when a Gantt view is freshly created and the
+// configure wizard saves a rule — Grid only mounts after ganttRange.length>0,
+// by which time the date-axis has anchored the buffer on today's date and
+// pushed scrollLeft into the store). The watch on storeScrollLeft only fires
+// on subsequent changes, so without an explicit one-shot sync the bodies stay
+// at scrollLeft=0 and bars sit several thousand pixels off-screen.
+watch(
+  [bodyScrollRef, headerScrollRef],
+  ([body, header]) => {
+    if (body && body.scrollLeft !== storeScrollLeft.value) {
+      body.scrollLeft = storeScrollLeft.value
+    }
+    if (header && header.scrollLeft !== storeScrollLeft.value) {
+      header.scrollLeft = storeScrollLeft.value
+    }
+  },
+  { flush: 'post' },
+)
+
 // Imperative scroll adjustments from the store (goToDate / today / prev /
 // next / buffer extension). Applied after the DOM has rendered the new buffer
 // width — both header and body move atomically to avoid a frame of visible drift.

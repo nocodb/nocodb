@@ -118,16 +118,20 @@ const expandedFormRowState = ref<Record<string, any>>()
 const showDateDependencyDlg = ref(false)
 
 // Save handler: the dialog scopes operations to view.id when ganttViewId is
-// set. After save, refetch the views for this table so the active view picks
-// up the new per-view rule via GanttView.get on the backend (which eagerly
-// loads .date_dependency). Then trigger a data reload — the initial
+// set. After save, patch the per-view rule into view.value.view so the
+// store's ganttMetaData / ganttRange computeds pick it up. Replacing the
+// `.view` object (instead of mutating its nested property) makes Vue's
+// reactivity proxy see a real change even if `date_dependency` is a
+// newly-added property. Then trigger a data reload — the initial
 // loadGanttData on a fresh view bails out when ganttRange is empty, so bars
-// wouldn't appear until a manual page refresh otherwise.
-const _viewStore = useViewsStore()
-const onDependencySaved = async (_rule: any) => {
-  if (meta.value?.id) {
-    await _viewStore.loadViews({ tableId: meta.value.id, force: true })
+// wouldn't appear until a manual page refresh otherwise. Do NOT call
+// loadViews here: viewList is a shallow list endpoint and would strip the
+// freshly-saved date_dependency from the active view's .view.
+const onDependencySaved = async (rule: any) => {
+  if (view.value && view.value.view) {
+    view.value.view = { ...(view.value.view as any), date_dependency: rule } as any
   }
+  await nextTick()
   await reloadData()
 }
 

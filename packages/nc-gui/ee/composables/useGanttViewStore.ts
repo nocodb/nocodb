@@ -35,8 +35,6 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
 
     const { t } = useI18n()
 
-    const { addUndo, clone, defineViewScope } = useUndoRedo()
-
     const { $api, $ncSocket } = useNuxtApp()
 
     const { user } = useGlobal()
@@ -485,15 +483,12 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
       return isMysql(meta.value?.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
     })
 
-    // Find a row in formattedData by primary key
     const findRowInState = (rowData: Record<string, any>) => {
       const pk = extractPkFromRow(rowData, meta.value?.columns as ColumnType[])
       return formattedData.value.find((r) => extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) === pk)
     }
 
-    // Update a row property (used for drag-to-resize)
-    // Follows the same pattern as useCalendarViewStore.updateRowProperty
-    async function updateRowProperty(toUpdate: Row, property: string[], undo = false) {
+    async function updateRowProperty(toUpdate: Row, property: string[]) {
       try {
         const id = extractPkFromRow(toUpdate.row, meta?.value?.columns as ColumnType[])
 
@@ -511,45 +506,13 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
           updateObj,
         )
 
-        if (!undo) {
-          addUndo({
-            redo: {
-              fn: async (toUpdate: Row, property: string[]) => {
-                const updatedRow = await updateRowProperty(toUpdate, property, true)
-                const row = findRowInState(toUpdate.row)
-                if (row) {
-                  Object.assign(row.row, updatedRow)
-                  Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
-                }
-                Object.assign(row?.oldRow, updatedRow)
-              },
-              args: [clone(toUpdate), property],
-            },
-            undo: {
-              fn: async (toUpdate: Row, property: string[]) => {
-                const updatedData = await updateRowProperty(
-                  { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
-                  property,
-                  true,
-                )
-                const row = findRowInState(toUpdate.row)
-                if (row) {
-                  Object.assign(row.row, updatedData)
-                  Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
-                }
-                Object.assign(row!.oldRow, updatedData)
-              },
-              args: [clone(toUpdate), property],
-            },
-            scope: defineViewScope({ view: viewMeta.value as ViewType }),
-          })
-          Object.assign(toUpdate.row, updatedRowData)
-          Object.assign(toUpdate.oldRow, updatedRowData)
-          Object.assign(toUpdate.rowMeta, getEvaluatedRowMetaRowColorInfo(toUpdate.row))
-        }
+        Object.assign(toUpdate.row, updatedRowData)
+        Object.assign(toUpdate.oldRow, updatedRowData)
+        Object.assign(toUpdate.rowMeta, getEvaluatedRowMetaRowColorInfo(toUpdate.row))
 
         return updatedRowData
-      } catch (e: any) {
+      } catch (e) {
+        // @ts-expect-error - extractSdkResponseErrorMsg defensively handles unknown shapes
         message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }

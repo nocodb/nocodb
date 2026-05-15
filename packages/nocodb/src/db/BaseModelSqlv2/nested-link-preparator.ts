@@ -101,11 +101,18 @@ export class NestedLinkPreparator {
           dbDriver: baseModel.dbDriver,
         });
 
-        // V2 OO uses junction table (like MO), not FK-based like V1 OO
-        const effectiveType =
-          isLinkV2(col) && colOptions.type === RelationTypes.ONE_TO_ONE
-            ? RelationTypes.MANY_TO_ONE
-            : colOptions.type;
+        // V2 links use junction tables for ALL types — remap to their
+        // junction-based equivalents so the switch below picks the right path.
+        let effectiveType = colOptions.type;
+        if (isLinkV2(col)) {
+          if (colOptions.type === RelationTypes.ONE_TO_ONE) {
+            effectiveType = RelationTypes.MANY_TO_ONE;
+          } else if (colOptions.type === RelationTypes.HAS_MANY) {
+            effectiveType = RelationTypes.ONE_TO_MANY;
+          } else if (colOptions.type === RelationTypes.BELONGS_TO) {
+            effectiveType = RelationTypes.MANY_TO_ONE;
+          }
+        }
 
         switch (effectiveType) {
           case RelationTypes.BELONGS_TO:

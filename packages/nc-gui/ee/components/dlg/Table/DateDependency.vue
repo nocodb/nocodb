@@ -193,12 +193,7 @@ async function save() {
       ...pickFields(form, Object.keys(defaultForm) as (keyof DateDependencyReqType)[]),
       dependency_buffer_days: Number(form.dependency_buffer_days) || 0,
     }
-    const result = await $api.internal.postOperation(
-      activeWorkspaceId.value,
-      activeProjectId.value,
-      opQuery,
-      body,
-    )
+    const result = await $api.internal.postOperation(activeWorkspaceId.value, activeProjectId.value, opQuery, body)
 
     if (props.ganttViewId) {
       // Gantt-view-owned rule: update local cache + let the caller refresh
@@ -235,15 +230,11 @@ watch(visible, async (val) => {
     // them, so we fetch via internal op here.
     if (props.ganttViewId && activeWorkspaceId.value && activeProjectId.value) {
       try {
-        viewRule.value = (await $api.internal.getOperation(
-          activeWorkspaceId.value,
-          activeProjectId.value,
-          {
-            operation: 'getDateDependency',
-            fk_model_id: props.tableId,
-            fk_gantt_view_id: props.ganttViewId,
-          } as any,
-        )) as DateDependencyType | null
+        viewRule.value = (await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
+          operation: 'getDateDependency',
+          fk_model_id: props.tableId,
+          fk_gantt_view_id: props.ganttViewId,
+        } as any)) as DateDependencyType | null
       } catch {
         viewRule.value = null
       }
@@ -335,7 +326,7 @@ watch(rule, () => {
                 <a-select-option v-for="opt in startDateOptions" :key="opt.value" :value="opt.value">
                   <div class="w-full flex gap-2 items-center justify-between">
                     <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                      <SmartsheetHeaderIcon :column="opt.col" />
+                      <SmartsheetHeaderIcon :column="opt.col" class="!ml-0" />
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ opt.label }}</template>
                         {{ opt.label }}
@@ -368,7 +359,7 @@ watch(rule, () => {
                 <a-select-option v-for="opt in endDateOptions" :key="opt.value" :value="opt.value">
                   <div class="w-full flex gap-2 items-center justify-between">
                     <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                      <SmartsheetHeaderIcon :column="opt.col" />
+                      <SmartsheetHeaderIcon :column="opt.col" class="!ml-0" />
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ opt.label }}</template>
                         {{ opt.label }}
@@ -407,7 +398,7 @@ watch(rule, () => {
                 <a-select-option v-for="opt in durationOptions" :key="opt.value" :value="opt.value">
                   <div class="w-full flex gap-2 items-center justify-between">
                     <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                      <SmartsheetHeaderIcon :column="opt.col" />
+                      <SmartsheetHeaderIcon :column="opt.col" class="!ml-0" />
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ opt.label }}</template>
                         {{ opt.label }}
@@ -445,7 +436,7 @@ watch(rule, () => {
                 <a-select-option v-for="opt in linkOptions" :key="opt.value" :value="opt.value">
                   <div class="w-full flex gap-2 items-center justify-between">
                     <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                      <SmartsheetHeaderIcon :column="opt.col" />
+                      <SmartsheetHeaderIcon :column="opt.col" class="!ml-0" />
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ opt.label }}</template>
                         {{ opt.label }}
@@ -470,7 +461,7 @@ watch(rule, () => {
           <div class="flex items-center gap-2 mb-4">
             <NcSwitch v-model:checked="form.include_weekends" size="small" />
             <span class="text-bodySm text-nc-content-gray-subtle">{{ $t('labels.dateDependency.includeWeekends') }}</span>
-            <NcTooltip>
+            <NcTooltip class="flex">
               <template #title>{{ $t('labels.dateDependency.includeWeekendsHint') }}</template>
               <GeneralIcon icon="info" class="text-nc-content-gray-subtle w-3.5 h-3.5 cursor-help" />
             </NcTooltip>
@@ -494,7 +485,7 @@ watch(rule, () => {
                     </div>
                     <NcSelect
                       v-model:value="form.dependency_connection_type"
-                      class="w-full"
+                      class="w-full nc-date-dep-rich-select"
                       :disabled="!cascadeAvailable"
                       :dropdown-match-select-width="false"
                       dropdown-class-name="nc-date-dep-rich-dropdown"
@@ -508,14 +499,16 @@ watch(rule, () => {
                       >
                         <div class="flex flex-col gap-0.5">
                           <div class="flex items-center justify-between gap-2">
-                            <span class="text-bodySm font-semibold text-nc-content-gray">{{ opt.label }}</span>
+                            <span class="nc-rich-select-label text-bodySm font-semibold text-nc-content-gray">{{
+                              opt.label
+                            }}</span>
                             <GeneralIcon
                               v-if="opt.value === form.dependency_connection_type"
                               icon="check"
-                              class="flex-none text-nc-content-brand w-4 h-4"
+                              class="nc-rich-select-check flex-none text-nc-content-brand w-4 h-4"
                             />
                           </div>
-                          <span class="text-bodySm text-nc-content-gray-subtle">{{ opt.description }}</span>
+                          <span class="nc-rich-select-desc text-bodySm text-nc-content-gray-subtle">{{ opt.description }}</span>
                         </div>
                       </a-select-option>
                     </NcSelect>
@@ -528,7 +521,7 @@ watch(rule, () => {
                     </div>
                     <NcSelect
                       v-model:value="form.dependency_buffer_type"
-                      class="w-full"
+                      class="w-full nc-date-dep-rich-select"
                       :disabled="!cascadeAvailable"
                       :dropdown-match-select-width="false"
                       dropdown-class-name="nc-date-dep-rich-dropdown"
@@ -542,14 +535,16 @@ watch(rule, () => {
                       >
                         <div class="flex flex-col gap-0.5">
                           <div class="flex items-center justify-between gap-2">
-                            <span class="text-bodySm font-semibold text-nc-content-gray">{{ opt.label }}</span>
+                            <span class="nc-rich-select-label text-bodySm font-semibold text-nc-content-gray">{{
+                              opt.label
+                            }}</span>
                             <GeneralIcon
                               v-if="opt.value === form.dependency_buffer_type"
                               icon="check"
-                              class="flex-none text-nc-content-brand w-4 h-4"
+                              class="nc-rich-select-check flex-none text-nc-content-brand w-4 h-4"
                             />
                           </div>
-                          <span class="text-bodySm text-nc-content-gray-subtle">{{ opt.description }}</span>
+                          <span class="nc-rich-select-desc text-bodySm text-nc-content-gray-subtle">{{ opt.description }}</span>
                         </div>
                       </a-select-option>
                     </NcSelect>
@@ -609,9 +604,10 @@ watch(rule, () => {
   @apply text-bodySm text-nc-content-gray-subtle mt-1;
 }
 
-// Section header: 11px/semibold/uppercase — ROW PROPAGATION
+// Section header: 13px/semibold — matches field-label size so it reads
+// as a peer section title rather than a tag/caption.
 .nc-date-dep-section-header {
-  @apply text-[11px] font-semibold text-nc-content-gray-subtle uppercase tracking-wide mb-3;
+  @apply text-bodySm font-semibold text-nc-content-gray mb-3;
 }
 
 // Error: 12px/red
@@ -639,6 +635,20 @@ watch(rule, () => {
   .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
     background-color: var(--nc-bg-gray-light) !important;
     font-weight: 400 !important;
+  }
+}
+
+// Rich-item selects render the same slot template in both the dropdown
+// option (multi-line, bold title + description + check) AND the closed
+// input box. NcSelect doesn't forward `option-label-prop` cleanly through
+// $attrs, so for the closed-state we strip the description + check via
+// CSS and drop the bold so the input reads like every other select in
+// the modal (plain regular-weight title).
+.nc-date-dep-rich-select {
+  .ant-select-selection-item {
+    .nc-rich-select-label {
+      @apply !font-medium;
+    }
   }
 }
 </style>

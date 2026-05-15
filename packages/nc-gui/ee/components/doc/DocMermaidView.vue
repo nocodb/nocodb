@@ -61,7 +61,11 @@ const render = async () => {
 const debouncedRender = useDebounceFn(render, 200)
 
 // Re-render on code OR theme change (flipping dark mode swaps the palette).
-watch([() => props.code, themeKey], debouncedRender, { immediate: true })
+// Initial render fires on mount (not via `immediate: true`) so cold loads
+// don't sit on the 200ms debounce window; subsequent edits debounce.
+watch([() => props.code, themeKey], debouncedRender)
+
+onMounted(render)
 
 // --- Actions exposed to the parent toolbar ---
 
@@ -91,7 +95,7 @@ const downloadDiagram = () => {
 defineExpose({
   expandDiagram,
   downloadDiagram,
-  hasSvg: computed(() => !!svg.value),
+  hasSvg: () => !!svg.value,
 })
 </script>
 

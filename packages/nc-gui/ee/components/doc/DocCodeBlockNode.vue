@@ -200,10 +200,10 @@ const onViewModeSelect = (mode: MermaidViewMode) => {
 const mermaidViewRef = ref<{
   expandDiagram: () => void
   downloadDiagram: () => void
-  hasSvg: boolean
+  hasSvg: () => boolean
 } | null>(null)
 
-const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? false)
+const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg() ?? false)
 </script>
 
 <template>
@@ -315,7 +315,11 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
         overlay-class-name="nc-mermaid-view-dropdown"
       >
         <NcTooltip :title="$t(currentMermaidViewOption.labelKey)" placement="top">
-          <button class="nc-code-block-copy-btn" data-testid="nc-mermaid-view-trigger">
+          <button
+            v-e="['c:doc:code-block:mermaid-view-mode']"
+            class="nc-code-block-copy-btn"
+            data-testid="nc-mermaid-view-trigger"
+          >
             <GeneralIcon :icon="currentMermaidViewOption.icon" />
           </button>
         </NcTooltip>
@@ -324,6 +328,7 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
           <div class="nc-mermaid-view-options">
             <NcTooltip v-for="option in MERMAID_VIEW_MODES" :key="option.mode" :title="$t(option.labelKey)" placement="bottom">
               <button
+                v-e="['c:doc:code-block:mermaid-view-mode-select', { mode: option.mode }]"
                 class="nc-mermaid-view-option"
                 :class="{ 'nc-active': mermaidViewMode === option.mode }"
                 :data-testid="`nc-mermaid-view-${option.mode}`"
@@ -340,6 +345,7 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
       <template v-if="isMermaid && showDiagramPane">
         <NcTooltip :title="$t('labels.expandDiagram')" placement="top">
           <button
+            v-e="['c:doc:code-block:mermaid-expand']"
             class="nc-code-block-copy-btn"
             :disabled="!mermaidActionsEnabled"
             data-testid="nc-mermaid-expand"
@@ -351,6 +357,7 @@ const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg ?? fal
 
         <NcTooltip :title="$t('labels.downloadImage')" placement="top">
           <button
+            v-e="['c:doc:code-block:mermaid-download']"
             class="nc-code-block-copy-btn"
             :disabled="!mermaidActionsEnabled"
             data-testid="nc-mermaid-download"

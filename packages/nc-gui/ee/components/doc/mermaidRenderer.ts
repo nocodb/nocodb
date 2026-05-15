@@ -17,7 +17,7 @@
  *   atomically picks up its requested palette.
  */
 
-type MermaidApi = typeof import('mermaid').default
+import type Mermaid from 'mermaid'
 
 export type MermaidTheme = 'light' | 'dark'
 
@@ -108,9 +108,9 @@ const PALETTES: Record<MermaidTheme, Record<string, string>> = {
   },
 }
 
-let mermaidPromise: Promise<MermaidApi> | null = null
+let mermaidPromise: Promise<typeof Mermaid> | null = null
 
-export const loadMermaid = (): Promise<MermaidApi> => {
+export const loadMermaid = (): Promise<typeof Mermaid> => {
   if (!mermaidPromise) {
     mermaidPromise = import('mermaid').then((mod) => mod.default)
   }

@@ -453,6 +453,9 @@ const validators = computed(() => {
           },
         },
       ],
+      ...(['POST', 'PUT', 'PATCH'].includes(hookRef.notification.payload?.method) && {
+        'notification.payload.body': [fieldRequiredValidator()],
+      }),
     }),
     ...(hookRef.notification.type === 'Email' && {
       'notification.payload.to': [fieldRequiredValidator()],

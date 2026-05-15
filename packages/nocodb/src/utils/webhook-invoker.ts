@@ -511,6 +511,12 @@ export class WebhookInvoker {
               vars,
             });
 
+            const isBodyEmpty =
+              !reqPayload.data &&
+              ['POST', 'PUT', 'PATCH'].includes(
+                reqPayload.method?.toUpperCase(),
+              );
+
             const { requestPayload, responsePayload } = await handleHttpWebHook(
               {
                 reqPayload,
@@ -527,6 +533,9 @@ export class WebhookInvoker {
                 response: JSON.stringify(responsePayload),
                 triggered_by: user?.email,
                 conditions: JSON.stringify(filters),
+                ...(isBodyEmpty && {
+                  error_message: `Webhook body is empty for ${reqPayload.method?.toUpperCase()} request — custom payload may be misconfigured.`,
+                }),
               };
             }
           }

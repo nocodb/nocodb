@@ -3,7 +3,10 @@ import type dayjs from 'dayjs';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { MetaService } from 'src/meta/meta.service';
-import type { Column } from '~/models';
+import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
+import type CustomKnex from '~/db/CustomKnex';
+import type { Knex } from '~/db/CustomKnex';
+import type { Column, Filter } from '~/models';
 
 export class DateTimeMySQLHandler extends DateTimeGeneralHandler {
   override async parseUserInput(params: {
@@ -37,5 +40,60 @@ export class DateTimeMySQLHandler extends DateTimeGeneralHandler {
         ])
       : undefined;
     return { value: val };
+  }
+
+  // Normalize the column to UTC before comparing, so the WHERE clause
+  // matches the same CONVERT_TZ normalization used in the group-by SELECT.
+  // Without this, group-by expansion compares UTC filter values against
+  // raw column values stored in @@GLOBAL.time_zone, causing empty groups.
+  protected override comparisonBetween(
+    {
+      sourceField,
+      anchorDate,
+      rangeDate,
+      qb,
+    }: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+      anchorDate: dayjs.Dayjs;
+      rangeDate: dayjs.Dayjs;
+      qb: Knex.QueryBuilder;
+    },
+    { knex }: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    qb.where(
+      knex.raw(
+        "CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') between ? and ?",
+        [
+          sourceField,
+          anchorDate.utc().format(this.dateValueFormat),
+          rangeDate.utc().format(this.dateValueFormat),
+        ],
+      ),
+    );
+  }
+
+  protected override comparisonOp(
+    {
+      sourceField,
+      val,
+      qb,
+      comparisonOp,
+    }: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: dayjs.Dayjs;
+      qb: Knex.QueryBuilder;
+      comparisonOp: '<' | '<=' | '>' | '>=';
+    },
+    { knex }: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    qb.where(
+      knex.raw(
+        `CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') ${comparisonOp} ?`,
+        [sourceField, val.utc().format(this.dateValueFormat)],
+      ),
+    );
   }
 }

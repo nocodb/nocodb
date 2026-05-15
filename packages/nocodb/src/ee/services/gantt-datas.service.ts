@@ -264,13 +264,6 @@ export class GanttDatasService {
       return { edges: [] as Array<[string, string]> };
     }
 
-    const fkChildCol = await Column.get(context, {
-      colId: colOpts.fk_child_column_id as string,
-    });
-    if (!fkChildCol) {
-      return { edges: [] as Array<[string, string]> };
-    }
-
     const model = await Model.getByIdOrName(context, {
       id: view.fk_model_id,
     });
@@ -288,16 +281,83 @@ export class GanttDatasService {
     const pkCol = pkCols[0];
 
     const source = await Source.get(context, model.source_id);
+    const dbDriver = await NcConnectionMgrv2.get(source);
 
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-      source,
+    // `om` (and `mm`) routes through an MM-style junction table even for
+    // self-ref one-to-many. The "Predecessors" virtual field's
+    // fk_child_column_id then points back to the parent PK — selecting it
+    // alongside the row's PK yields `(id, id)` self-loops, which is what
+    // was breaking the inspector + arrows. Detect via fk_mm_model_id.
+    const usesJunction = !!colOpts.fk_mm_model_id;
+
+    if (usesJunction) {
+      const junctionModel = await Model.getByIdOrName(context, {
+        id: colOpts.fk_mm_model_id as string,
+      });
+      if (!junctionModel) {
+        return { edges: [] as Array<[string, string]> };
+      }
+      await junctionModel.getColumns(context);
+
+      const mmParentCol = junctionModel.columns?.find(
+        (c) => c.id === colOpts.fk_mm_parent_column_id,
+      );
+      const mmChildCol = junctionModel.columns?.find(
+        (c) => c.id === colOpts.fk_mm_child_column_id,
+      );
+      if (!mmParentCol || !mmChildCol) {
+        return { edges: [] as Array<[string, string]> };
+      }
+
+      // Read the junction directly. View filters can't apply here — the
+      // junction has no view scope. Sorting/limits irrelevant for graphs.
+      // Each junction row = one edge (mm_parent, mm_child) where parent =
+      // the row that "owns" the LTAR field, child = the linked row.
+      const junctionBaseModel = await Model.getBaseModelSQL(context, {
+        id: junctionModel.id,
+        dbDriver,
+        source,
+      });
+
+      const rows = (await junctionBaseModel.list(
+        {
+          fieldsSet: new Set<string>([mmParentCol.id, mmChildCol.id]),
+          limitOverride: GANTT_DEPS_LIMIT,
+        },
+        { ignoreViewFilterAndSort: true, ignoreRls: true },
+      )) as Array<Record<string, any>>;
+
+      const parentKey = mmParentCol.title as string;
+      const childKey = mmChildCol.title as string;
+      const edges: Array<[string, string]> = [];
+
+      for (const row of rows) {
+        const parentId = row?.[parentKey];
+        const childId = row?.[childKey];
+        if (parentId == null || childId == null) continue;
+        edges.push([String(childId), String(parentId)]);
+      }
+
+      return { edges };
+    }
+
+    // Legacy `hm` (and `oo`) — direct FK on the same table. Select (pk,
+    // fk_child_col) and read each row's parent off its FK.
+    const fkChildCol = await Column.get(context, {
+      colId: colOpts.fk_child_column_id as string,
     });
+    if (!fkChildCol) {
+      return { edges: [] as Array<[string, string]> };
+    }
 
     // fieldsSet override forces these two columns through the visibility
     // gate (FK column is typically `system: true` and hidden in the view).
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view.id,
+      dbDriver,
+      source,
+    });
     const fieldsSet = new Set<string>([pkCol.id, fkChildCol.id]);
 
     const rows = (await baseModel.list(

@@ -30,6 +30,7 @@ export const FreePlan = buildOnPremPlan(OnPremPlanTitles.FREE);
 export const BusinessPlan = buildOnPremPlan(
   OnPremPlanTitles.SELF_HOSTED_BUSINESS,
 );
+export const ScalePlan = buildOnPremPlan(OnPremPlanTitles.SELF_HOSTED_SCALE);
 export const EnterprisePlan = buildOnPremPlan(
   OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
 );

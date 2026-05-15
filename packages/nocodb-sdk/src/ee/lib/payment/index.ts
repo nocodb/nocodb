@@ -358,6 +358,8 @@ export function resolvePlanMeta(
 export enum OnPremPlanPriceLookupKeys {
   BUSINESS_MONTHLY = 'on_prem_business_monthly',
   BUSINESS_YEARLY = 'on_prem_business_yearly',
+  SCALE_MONTHLY = 'on_prem_scale_monthly',
+  SCALE_YEARLY = 'on_prem_scale_yearly',
 }
 
 // ---------------------------------------------------------------------------
@@ -365,7 +367,7 @@ export enum OnPremPlanPriceLookupKeys {
 // ---------------------------------------------------------------------------
 
 export const OnPremPlanMeta = {
-  // Business = pink (first paid tier), Enterprise = teal (second paid tier)
+  // Business = pink (first paid tier), Scale = indigo (mid tier), Enterprise = teal (top tier)
   [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: {
     title: OnPremPlanTitles.SELF_HOSTED_BUSINESS,
     color: 'var(--business-plan-color, #FAF5FF)',
@@ -378,6 +380,19 @@ export const OnPremPlanMeta = {
     badgeTextColor: 'var(--business-plan-badge-text-color, #C44DA0)',
     staticBadgeBgColor: '#FFF0FB',
     staticBadgeTextColor: '#C44DA0',
+  },
+  [OnPremPlanTitles.SELF_HOSTED_SCALE]: {
+    title: OnPremPlanTitles.SELF_HOSTED_SCALE,
+    color: 'var(--scale-plan-color, #EEEFFD)',
+    accent: 'var(--scale-plan-accent, #D4D5F9)',
+    primary: 'var(--scale-plan-primary, #5B5DEF)',
+    bgLight: 'var(--scale-plan-bg-light, #EEEFFD)',
+    bgDark: 'var(--scale-plan-bg-dark, #DCDEFA)',
+    border: 'var(--scale-plan-border, #D4D5F9)',
+    badgeBgColor: 'var(--scale-plan-badge-bg-color, #EEEFFD)',
+    badgeTextColor: 'var(--scale-plan-badge-text-color, #5B5DEF)',
+    staticBadgeBgColor: '#EEEFFD',
+    staticBadgeTextColor: '#5B5DEF',
   },
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
     title: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
@@ -397,12 +412,14 @@ export const OnPremPlanMeta = {
 export const OnPremPlanOrder: Record<string, number> = {
   [OnPremPlanTitles.FREE]: -1,
   [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: 0,
-  [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: 1,
+  [OnPremPlanTitles.SELF_HOSTED_SCALE]: 1,
+  [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: 2,
 };
 
 export const OnPremHigherPlan = {
   [OnPremPlanTitles.FREE]: OnPremPlanTitles.SELF_HOSTED_BUSINESS,
-  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: OnPremPlanTitles.SELF_HOSTED_SCALE,
+  [OnPremPlanTitles.SELF_HOSTED_SCALE]: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
 } as Record<string, OnPremPlanTitles>;
 
 // ---------------------------------------------------------------------------
@@ -484,7 +501,6 @@ export const OnPremPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_FORCE_2FA]: false,
       [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: false,
       [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: false,
-      [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: false,
       [PlanFeatureTypes.FEATURE_TEAM_HIERARCHY]: false,
       [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
       [PlanFeatureTypes.FEATURE_TABLE_VISIBILITY]: false,
@@ -502,8 +518,20 @@ export const OnPremPlanDefinitions: Record<
       [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
     },
   },
+  [OnPremPlanTitles.SELF_HOSTED_SCALE]: {
+    features: {
+      // Enterprise-only
+      [PlanFeatureTypes.FEATURE_SCIM]: false,
+      // Not yet available on any on-prem plan
+      [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
+    },
+    limits: {},
+  },
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
-    features: {},
+    features: {
+      // Not yet available on any on-prem plan
+      [PlanFeatureTypes.FEATURE_AI_CHAT]: false,
+    },
     limits: {},
   },
 };

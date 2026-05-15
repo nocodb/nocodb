@@ -129,6 +129,7 @@ export enum PlanTitles {
 export enum OnPremPlanTitles {
   FREE = 'Free',
   SELF_HOSTED_BUSINESS = 'Self-hosted Business',
+  SELF_HOSTED_SCALE = 'Self-hosted Scale',
   SELF_HOSTED_ENTERPRISE = 'Self-hosted Enterprise',
 }
 

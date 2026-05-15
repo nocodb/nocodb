@@ -839,6 +839,17 @@
   --business-plan-badge-bg-color: var(--color-pink-50, #FFF0FB);
   --business-plan-badge-text-color: var(--color-pink-700, #C44DA0);
 
+  /* Scale Plan  */
+  --scale-plan-color: #1a1d3a;
+  --scale-plan-accent: #3a3f70;
+  --scale-plan-primary: #a5a8f5;
+  --scale-plan-bg-light: #1a1d3a;
+  --scale-plan-bg-dark: #262b58;
+  --scale-plan-border: #3a3f70;
+  --scale-plan-chart-fill-color: #7d80f0;
+  --scale-plan-badge-bg-color: #262b58;
+  --scale-plan-badge-text-color: #a5a8f5;
+
   /* Enterprise Plan  */
   --enterprise-plan-color: #0e2424;
   --enterprise-plan-accent: #1f4a4a;

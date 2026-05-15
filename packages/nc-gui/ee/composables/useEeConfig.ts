@@ -776,17 +776,31 @@ export const useEeConfig = createSharedComposable(() => {
     const upgradeMessage = limitOrFeature ? getUpgradeMessage(limitOrFeature) : ''
 
     // Resolve the lowest paid on-prem plan that unlocks this feature/limit so the
-    // modal copy matches the badge tier (Business vs Enterprise).
+    // modal copy matches the badge tier (Business / Scale / Enterprise).
     const minPlan =
       (limitOrFeature &&
         (OnPremFeatureToMinPlan[limitOrFeature as PlanFeatureTypes] || OnPremLimitToMinPlan[limitOrFeature as PlanLimitTypes])) ||
       OnPremPlanTitles.SELF_HOSTED_BUSINESS
     const isBusinessTier = minPlan === OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    const isScaleTier = minPlan === OnPremPlanTitles.SELF_HOSTED_SCALE
 
-    const modalTitle = ref(title || (isBusinessTier ? t('upgrade.businessFeatureTitle') : t('upgrade.enterpriseFeatureTitle')))
+    const tierTitleKey = isBusinessTier
+      ? 'upgrade.businessFeatureTitle'
+      : isScaleTier
+        ? 'upgrade.scaleFeatureTitle'
+        : 'upgrade.enterpriseFeatureTitle'
+    const modalTitle = ref(title || t(tierTitleKey))
 
-    const subtitleKey = isBusinessTier ? 'upgrade.businessFeatureSubtitle' : 'upgrade.enterpriseFeatureSubtitle'
-    const enterLicenseKey = isBusinessTier ? 'upgrade.businessFeatureEnterLicense' : 'upgrade.enterpriseFeatureEnterLicense'
+    const subtitleKey = isBusinessTier
+      ? 'upgrade.businessFeatureSubtitle'
+      : isScaleTier
+        ? 'upgrade.scaleFeatureSubtitle'
+        : 'upgrade.enterpriseFeatureSubtitle'
+    const enterLicenseKey = isBusinessTier
+      ? 'upgrade.businessFeatureEnterLicense'
+      : isScaleTier
+        ? 'upgrade.scaleFeatureEnterLicense'
+        : 'upgrade.enterpriseFeatureEnterLicense'
 
     const modalContent = ref(
       content ||
@@ -2094,9 +2108,19 @@ export const useEeConfig = createSharedComposable(() => {
         (OnPremFeatureToMinPlan[limitOrFeature as PlanFeatureTypes] || OnPremLimitToMinPlan[limitOrFeature as PlanLimitTypes])) ||
       OnPremPlanTitles.SELF_HOSTED_BUSINESS
     const isBusinessTier = minPlan === OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    const isScaleTier = minPlan === OnPremPlanTitles.SELF_HOSTED_SCALE
+    const isSelfServeTier = isBusinessTier || isScaleTier
 
-    const titleKey = isBusinessTier ? 'upgrade.businessFeatureTitle' : 'upgrade.enterpriseFeatureTitle'
-    const subtitleKey = isBusinessTier ? 'upgrade.businessFeatureSubtitle' : 'upgrade.enterpriseFeatureSubtitle'
+    const titleKey = isBusinessTier
+      ? 'upgrade.businessFeatureTitle'
+      : isScaleTier
+        ? 'upgrade.scaleFeatureTitle'
+        : 'upgrade.enterpriseFeatureTitle'
+    const subtitleKey = isBusinessTier
+      ? 'upgrade.businessFeatureSubtitle'
+      : isScaleTier
+        ? 'upgrade.scaleFeatureSubtitle'
+        : 'upgrade.enterpriseFeatureSubtitle'
 
     if (isEEFeatureBlocked.value) {
       handleOnPremUpgrade({
@@ -2106,8 +2130,8 @@ export const useEeConfig = createSharedComposable(() => {
       })
     } else {
       handleOnPremLicensedUpgrade({
-        title: isBusinessTier
-          ? t('upgrade.upgradeToOnPremPlanTitle', { plan: getPlanTitle(OnPremPlanTitles.SELF_HOSTED_BUSINESS) })
+        title: isSelfServeTier
+          ? t('upgrade.upgradeToOnPremPlanTitle', { plan: getPlanTitle(minPlan) })
           : t('upgrade.upgradeToEnterpriseTitle'),
         content: t(subtitleKey, { feature: featureTitle }),
         limitOrFeature,

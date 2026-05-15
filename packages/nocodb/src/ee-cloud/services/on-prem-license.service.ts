@@ -23,6 +23,7 @@ const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
  */
 const PLAN_TO_LICENSE_TYPE: Record<string, LicenseType> = {
   [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: LicenseType.SELF_HOSTED_BUSINESS,
+  [OnPremPlanTitles.SELF_HOSTED_SCALE]: LicenseType.SELF_HOSTED_SCALE,
   [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: LicenseType.SELF_HOSTED_ENTERPRISE,
 };
 
@@ -186,7 +187,6 @@ export class OnPremLicenseService {
     ncMeta = Noco.ncMeta,
   ) {
     const { plan_id, price_id, instance_url, instance_id } = payload;
-    const seats = Math.max(1, Math.floor(payload.quantity || 1));
     const { user } = req;
 
     if (!plan_id || !price_id) {
@@ -219,6 +219,11 @@ export class OnPremLicenseService {
     if (!licenseType) {
       NcError.badRequest('Invalid plan for on-premise license');
     }
+
+    // Per-plan seat floor. Scale is sold with a minimum commitment of 3 seats;
+    // other plans have no minimum (effective floor = 1).
+    const minSeats = plan.title === OnPremPlanTitles.SELF_HOSTED_SCALE ? 3 : 1;
+    const seats = Math.max(minSeats, Math.floor(payload.quantity || 1));
 
     const price = plan.prices.find((p) => p.id === price_id);
     if (!price) {
@@ -266,10 +271,10 @@ export class OnPremLicenseService {
           fk_plan_id: plan_id,
           plan_title: plan.title,
           period: price.recurring.interval,
-          // Floor used by reseat — stays at 1 so reductions in instance editor
-          // count get prorated down. Initial purchase quantity is captured by
-          // the Stripe line item itself.
-          min_seats: '1',
+          // Floor used by reseat. Per-plan: 3 for Scale (commitment), 1 for
+          // Business and any other plan so reductions in instance editor count
+          // get prorated down to the floor.
+          min_seats: String(minSeats),
           ...(instance_url ? { instance_url } : {}),
           ...(instance_id ? { instance_id } : {}),
         },
@@ -577,41 +582,6 @@ export class OnPremLicenseService {
         `On-prem subscription update: no Installation found for subscription=${subRec.id}`,
       );
       return;
-    }
-
-    // Sync min_seats if Stripe item quantity changed (e.g. via customer portal)
-    const previousMinSeats = installation.min_seats || 1;
-    const stripeQuantity = stripeSub.items.data[0]?.quantity;
-    if (stripeQuantity && stripeQuantity !== previousMinSeats) {
-      await Installation.update(
-        installation.id,
-        { min_seats: stripeQuantity },
-        ncMeta,
-      );
-      await Subscription.update(
-        subRec.id,
-        { seat_count: stripeQuantity },
-        ncMeta,
-      );
-
-      this.logger.log(
-        `On-prem installation ${installation.id} min_seats synced to ${stripeQuantity} from Stripe`,
-      );
-
-      await this.emitOnPremAlert({
-        payment_type: 'on_prem_seat_synced',
-        message: `On-prem installation ${installation.id} seats synced ${previousMinSeats} → ${stripeQuantity}`,
-        installation: {
-          id: installation.id,
-          license_type: installation.license_type,
-        },
-        subscription: { id: subRec.id, stripe_subscription_id: stripeSub.id },
-        extra: {
-          previous_seat_count: previousMinSeats,
-          new_seat_count: stripeQuantity,
-          source: 'stripe_drift',
-        },
-      });
     }
 
     // Suspend installation if subscription is canceled or unpaid (skip if already suspended — idempotent across Stripe webhook retries)

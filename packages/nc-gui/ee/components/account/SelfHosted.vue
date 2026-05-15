@@ -381,9 +381,9 @@ onBeforeUnmount(async () => {
 
               <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs text-nc-content-gray-subtle">
                 <span>{{ $t('labels.createdBy') }} {{ license.licensed_to }}</span>
-                <template v-if="license.min_seats > 1">
+                <template v-if="Math.max(license.seat_count || 0, license.min_seats || 0) > 1">
                   <span>|</span>
-                  <span>{{ license.min_seats }} {{ $t('general.seats') }}</span>
+                  <span>{{ Math.max(license.seat_count || 0, license.min_seats || 0) }} {{ $t('general.seats') }}</span>
                 </template>
                 <template v-if="license.created_at">
                   <span>|</span>

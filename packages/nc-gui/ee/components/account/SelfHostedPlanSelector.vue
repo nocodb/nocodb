@@ -21,11 +21,16 @@ const isLoadingPlans = ref(false)
 
 const seatCount = computed(() => Math.max(1, props.initialSeats || 0))
 
+const scaleSeatCount = computed(() => Math.max(3, seatCount.value))
+
 const isFromInstance = computed(() => (props.initialSeats ?? 0) > 1)
 
 const businessPlan = computed(() => plans.value.find((p) => p.title === OnPremPlanTitles.SELF_HOSTED_BUSINESS) ?? null)
 
+const scalePlan = computed(() => plans.value.find((p) => p.title === OnPremPlanTitles.SELF_HOSTED_SCALE) ?? null)
+
 const businessMeta = OnPremPlanMeta[OnPremPlanTitles.SELF_HOSTED_BUSINESS]
+const scaleMeta = OnPremPlanMeta[OnPremPlanTitles.SELF_HOSTED_SCALE]
 const enterpriseMeta = OnPremPlanMeta[OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]
 
 const businessDescriptions = computed(
@@ -38,9 +43,19 @@ const businessDescriptions = computed(
     ],
 )
 
+const scaleDescriptions = computed(
+  () =>
+    scalePlan.value?.descriptions ?? [
+      t('labels.scaleDescEverythingInBusiness'),
+      t('labels.scaleDescMultipleWorkspaces'),
+      t('labels.scaleDescAuditTeamsRls'),
+      t('labels.scaleDescMultiProviderAi'),
+    ],
+)
+
 const enterpriseDescriptions = computed(() => [
-  t('labels.enterpriseDescEverythingInBusiness'),
-  t('labels.enterpriseDescScimRls'),
+  t('labels.enterpriseDescEverythingInScale'),
+  t('labels.enterpriseDescScim'),
   t('labels.enterpriseDescAirgapped'),
   t('labels.enterpriseDescUnlimitedWorkspaces'),
   t('labels.enterpriseDescPrioritySupport'),
@@ -54,6 +69,16 @@ const selectBusiness = () => {
     return
   }
   emit('select', businessPlan.value.id, price.id, seatCount.value)
+}
+
+const selectScale = () => {
+  if (!scalePlan.value) return
+  const price = getPlanPrice(scalePlan.value, paymentMode.value)
+  if (!price) {
+    message.error(t('msg.error.priceNotFound'))
+    return
+  }
+  emit('select', scalePlan.value.id, price.id, scaleSeatCount.value)
 }
 
 onMounted(async () => {
@@ -92,7 +117,7 @@ onMounted(async () => {
       </div>
 
       <!-- Plan cards -->
-      <div class="grid grid-cols-2 gap-4 mt-6">
+      <div class="grid grid-cols-3 gap-4 mt-6">
         <!-- Business — self-serve -->
         <div
           v-if="businessPlan"
@@ -153,13 +178,81 @@ onMounted(async () => {
           <!-- CTA -->
           <div class="mt-auto pt-5">
             <NcButton
-              type="primary"
+              type="secondary"
               size="medium"
               class="!w-full"
               data-testid="nc-self-hosted-plan-business-buy"
               @click.stop="selectBusiness"
             >
               {{ $t('labels.selectPlanName', { plan: $t('objects.paymentPlan.Self-hosted Business') }) }}
+            </NcButton>
+          </div>
+        </div>
+
+        <!-- Scale — self-serve, min 3 seats -->
+        <div
+          v-if="scalePlan"
+          class="nc-plan-card"
+          :style="{
+            '--plan-border': scaleMeta.border,
+            '--plan-bg': scaleMeta.bgLight,
+            '--plan-bg-dark': scaleMeta.bgDark,
+            '--plan-badge-bg': scaleMeta.badgeBgColor,
+            '--plan-badge-text': scaleMeta.badgeTextColor,
+          }"
+          data-testid="nc-self-hosted-plan-scale"
+        >
+          <!-- Badge -->
+          <div
+            class="inline-flex px-2 py-0.75 rounded-[6px] text-sm font-bold w-fit"
+            :style="{ backgroundColor: 'var(--plan-badge-bg)', color: 'var(--plan-badge-text)' }"
+          >
+            {{ $t('objects.paymentPlan.Self-hosted Scale') }}
+          </div>
+
+          <!-- Price -->
+          <div class="mt-4">
+            <div class="flex items-baseline gap-1">
+              <span class="text-2xl font-bold text-nc-content-gray-emphasis">${{ getPlanPriceAmount(scalePlan) }}</span>
+              <span class="text-sm text-nc-content-gray-muted"> / {{ $t('labels.userPerMonth') }}</span>
+            </div>
+
+            <div class="text-xs text-nc-content-gray-muted mt-0.5">
+              {{
+                paymentMode === 'year' ? $t('labels.billedAnnuallyMinSeats', { count: 3 }) : $t('labels.minNSeats', { count: 3 })
+              }}
+            </div>
+          </div>
+
+          <!-- Total summary -->
+          <div class="nc-plan-total-row">
+            <span class="text-sm text-nc-content-gray-subtle">
+              {{ $t('labels.fromNSeats', { count: scaleSeatCount }) }}
+            </span>
+            <span class="text-sm font-bold text-nc-content-gray-emphasis">
+              ${{ getPlanPriceAmount(scalePlan) * scaleSeatCount }}
+              <span class="text-xs font-normal text-nc-content-gray-muted">{{ $t('labels.perMonth') }}</span>
+            </span>
+          </div>
+
+          <!-- Features -->
+          <div class="flex flex-col gap-2.5 mt-4">
+            <div v-for="(desc, idx) in scaleDescriptions" :key="idx" class="flex items-start gap-2 text-sm text-nc-content-gray">
+              <GeneralIcon icon="circleCheckSolid" class="flex-none w-4 h-4 mt-0.5 text-nc-content-green-dark" />
+              {{ desc }}
+            </div>
+          </div>
+
+          <!-- CTA -->
+          <div class="mt-auto pt-5">
+            <NcButton
+              type="primary"
+              size="medium"
+              class="!w-full"
+              data-testid="nc-self-hosted-plan-scale-buy"
+              @click.stop="selectScale"
+            >
+              {{ $t('labels.selectPlanName', { plan: $t('objects.paymentPlan.Self-hosted Scale') }) }}
             </NcButton>
           </div>
         </div>

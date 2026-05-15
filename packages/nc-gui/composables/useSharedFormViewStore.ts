@@ -124,9 +124,18 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       : true,
   )
 
-  const isValidRedirectUrl = computed(
-    () => typeof sharedFormView.value?.redirect_url === 'string' && !!sharedFormView.value?.redirect_url?.trim(),
-  )
+  const isValidRedirectUrl = computed(() => {
+    const url = sharedFormView.value?.redirect_url
+    if (typeof url !== 'string' || !url.trim()) return false
+    const trimmed = url.trim()
+    // Allow scheme-less (relative) URLs; for schemed URLs, only http(s) is allowed.
+    // Blocks javascript:, data:, vbscript:, file:, etc. which would execute in the
+    // nocodb origin via `window.location.href = redirectUrl` on submit.
+    if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+      return /^https?:\/\//i.test(trimmed)
+    }
+    return true
+  })
 
   const backgroundAndTextColor = computed(() => {
     const result = {

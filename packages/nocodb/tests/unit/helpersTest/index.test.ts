@@ -7,6 +7,7 @@ import { attachmentHelpersTest } from './attachmentHelpers.test';
 import { apiTokenPermissionTest } from './apiTokenPermission.test';
 import { mailAuditTests } from './mailAudit.test';
 import { jobsProcessorTest } from './jobsProcessor.test';
+import { dateTimeFilterHandlerTest } from './dateTimeFilterHandler.test';
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
 let verifyDefaultOrgTests = () => {};
@@ -37,6 +38,7 @@ function _helperTests() {
   NcConcurrentTest();
   attachmentHelpersTest();
   jobsProcessorTest();
+  dateTimeFilterHandlerTest();
   dashboardV3ConfigTransformTest();
   dateDependencyHelperTests();
   planResolutionTests();

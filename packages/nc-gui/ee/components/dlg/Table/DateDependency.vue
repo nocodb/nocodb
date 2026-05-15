@@ -506,16 +506,16 @@ watch(rule, () => {
                         :value="opt.value"
                         :label="opt.label"
                       >
-                        <div class="flex items-center justify-between gap-2 py-1">
-                          <div class="flex flex-col">
+                        <div class="flex flex-col gap-0.5">
+                          <div class="flex items-center justify-between gap-2">
                             <span class="text-bodySm font-semibold text-nc-content-gray">{{ opt.label }}</span>
-                            <span class="text-bodySm text-nc-content-gray-subtle">{{ opt.description }}</span>
+                            <GeneralIcon
+                              v-if="opt.value === form.dependency_connection_type"
+                              icon="check"
+                              class="flex-none text-nc-content-brand w-4 h-4"
+                            />
                           </div>
-                          <GeneralIcon
-                            v-if="opt.value === form.dependency_connection_type"
-                            icon="check"
-                            class="flex-none text-primary w-4 h-4"
-                          />
+                          <span class="text-bodySm text-nc-content-gray-subtle">{{ opt.description }}</span>
                         </div>
                       </a-select-option>
                     </NcSelect>
@@ -540,16 +540,16 @@ watch(rule, () => {
                         :value="opt.value"
                         :label="opt.label"
                       >
-                        <div class="flex items-center justify-between gap-2 py-1">
-                          <div class="flex flex-col">
+                        <div class="flex flex-col gap-0.5">
+                          <div class="flex items-center justify-between gap-2">
                             <span class="text-bodySm font-semibold text-nc-content-gray">{{ opt.label }}</span>
-                            <span class="text-bodySm text-nc-content-gray-subtle">{{ opt.description }}</span>
+                            <GeneralIcon
+                              v-if="opt.value === form.dependency_buffer_type"
+                              icon="check"
+                              class="flex-none text-nc-content-brand w-4 h-4"
+                            />
                           </div>
-                          <GeneralIcon
-                            v-if="opt.value === form.dependency_buffer_type"
-                            icon="check"
-                            class="flex-none text-primary w-4 h-4"
-                          />
+                          <span class="text-bodySm text-nc-content-gray-subtle">{{ opt.description }}</span>
                         </div>
                       </a-select-option>
                     </NcSelect>
@@ -632,6 +632,13 @@ watch(rule, () => {
 
   .ant-select-item-option-content {
     white-space: normal;
+  }
+
+  // Match the Base Type dropdown selected look — subtle gray-light bg
+  // instead of antd's saturated blue.
+  .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+    background-color: var(--nc-bg-gray-light) !important;
+    font-weight: 400 !important;
   }
 }
 </style>

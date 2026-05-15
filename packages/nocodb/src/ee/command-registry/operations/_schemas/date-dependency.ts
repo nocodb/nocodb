@@ -23,11 +23,17 @@ export const dateDependencyUpdateSchema = z
   .object({
     modelId: z.string(),
     body: dateDependencyBodySchema,
+    /** When present, the rule is scoped to a specific Gantt view
+     *  (`nc_date_dependency.fk_gantt_view_id`); otherwise it's the
+     *  table-level default. Optional — old persisted rows (pre-Gantt)
+     *  parse cleanly without it. */
+    ganttViewId: z.string().optional(),
   })
   .strict();
 
 export const dateDependencyDeleteSchema = z
   .object({
     modelId: z.string(),
+    ganttViewId: z.string().optional(),
   })
   .strict();

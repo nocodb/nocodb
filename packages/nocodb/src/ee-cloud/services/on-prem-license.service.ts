@@ -584,41 +584,6 @@ export class OnPremLicenseService {
       return;
     }
 
-    // Sync min_seats if Stripe item quantity changed (e.g. via customer portal)
-    const previousMinSeats = installation.min_seats || 1;
-    const stripeQuantity = stripeSub.items.data[0]?.quantity;
-    if (stripeQuantity && stripeQuantity !== previousMinSeats) {
-      await Installation.update(
-        installation.id,
-        { min_seats: stripeQuantity },
-        ncMeta,
-      );
-      await Subscription.update(
-        subRec.id,
-        { seat_count: stripeQuantity },
-        ncMeta,
-      );
-
-      this.logger.log(
-        `On-prem installation ${installation.id} min_seats synced to ${stripeQuantity} from Stripe`,
-      );
-
-      await this.emitOnPremAlert({
-        payment_type: 'on_prem_seat_synced',
-        message: `On-prem installation ${installation.id} seats synced ${previousMinSeats} → ${stripeQuantity}`,
-        installation: {
-          id: installation.id,
-          license_type: installation.license_type,
-        },
-        subscription: { id: subRec.id, stripe_subscription_id: stripeSub.id },
-        extra: {
-          previous_seat_count: previousMinSeats,
-          new_seat_count: stripeQuantity,
-          source: 'stripe_drift',
-        },
-      });
-    }
-
     // Suspend installation if subscription is canceled or unpaid (skip if already suspended — idempotent across Stripe webhook retries)
     if (
       (stripeSub.status === 'canceled' || stripeSub.status === 'unpaid') &&

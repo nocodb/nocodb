@@ -1,5 +1,6 @@
 import type { Editor } from '@tiptap/vue-3'
 import DOMPurify from 'isomorphic-dompurify'
+import { renderMermaidDiagram } from '../components/doc/mermaidRenderer'
 import { buildColorCssVars } from '~/components/doc/DocColorConstants'
 
 /**
@@ -70,8 +71,16 @@ export function useDocumentExport({
           // Inline code vs code inside pre
           if (el.parentElement?.tagName.toLowerCase() === 'pre') return children
           return `\`${children}\``
-        case 'pre':
-          return `\`\`\`\n${children}\n\`\`\`\n\n`
+        case 'pre': {
+          // Preserve the fence info (`mermaid`, `python`, …) from the
+          // inner `<code class="language-X">` so markdown viewers that
+          // know the language (GitHub, Obsidian, etc.) can syntax-
+          // highlight or render diagrams from the export.
+          const codeEl = el.querySelector(':scope > code')
+          const langMatch = codeEl?.className.match(/language-(\S+)/)
+          const lang = langMatch?.[1] || ''
+          return `\`\`\`${lang}\n${children}\n\`\`\`\n\n`
+        }
         case 'blockquote':
           return `${children
             .split('\n')
@@ -121,6 +130,50 @@ export function useDocumentExport({
   /** Sanitize editor HTML to prevent XSS in exported documents. */
   const sanitizeContent = (html: string) => DOMPurify.sanitize(html)
 
+  /**
+   * Replace each mermaid `<pre>` code block with its rendered SVG.
+   *
+   * `editor.getHTML()` returns mermaid blocks as `<pre><code
+   * class="language-mermaid">…source…</code></pre>` — the Vue NodeView
+   * (DocMermaidView) is a runtime UI overlay, not part of the
+   * serialised HTML, so without this pass the export would just embed
+   * the source code with no diagram.
+   *
+   * We re-render through the same `renderMermaidDiagram()` the editor
+   * uses, so exports include diagrams even for blocks the author left
+   * in code view. Render is forced to the light palette since the
+   * surrounding export styling assumes a print-friendly white surface.
+   * Errors per-block are swallowed and leave the original `<pre>`
+   * intact so a single bad diagram doesn't break the rest of the doc.
+   */
+  const processMermaidBlocks = async (html: string): Promise<string> => {
+    const div = document.createElement('div')
+    div.innerHTML = html
+
+    const codeEls = Array.from(div.querySelectorAll('pre > code.language-mermaid'))
+    if (codeEls.length === 0) return html
+
+    await Promise.all(
+      codeEls.map(async (codeEl) => {
+        const source = codeEl.textContent || ''
+        if (!source.trim()) return
+        try {
+          const svg = await renderMermaidDiagram(source, 'light')
+          const pre = codeEl.closest('pre')
+          if (!pre) return
+          const wrapper = document.createElement('div')
+          wrapper.className = 'nc-mermaid-export'
+          wrapper.innerHTML = svg
+          pre.replaceWith(wrapper)
+        } catch (e) {
+          console.warn('Mermaid export render failed; keeping source block.', e)
+        }
+      }),
+    )
+
+    return div.innerHTML
+  }
+
   /** Fix image sources: DOMPurify strips blob: URLs. Rebuild from data-id using imageUrlBuilder. */
   const fixImageSources = (html: string): string => {
     if (!imageUrlBuilder) return html
@@ -147,10 +200,14 @@ export function useDocumentExport({
       .join('; ')} }`
   }
 
-  const downloadHTML = () => {
+  const downloadHTML = async () => {
     if (!editor.value) return
     const safeTitle = escapeHtml(title.value || 'Untitled')
-    const safeContent = fixImageSources(sanitizeContent(editor.value.getHTML()))
+    // Sanitise first (strips XSS from user content), then render mermaid
+    // (we trust mermaid's strict-mode SVG output). Reversing the order
+    // would let DOMPurify drop our SVG.
+    let safeContent = fixImageSources(sanitizeContent(editor.value.getHTML()))
+    safeContent = await processMermaidBlocks(safeContent)
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -167,6 +224,8 @@ export function useDocumentExport({
   code { background: #f3f4f6; border-radius: 4px; padding: 2px 6px; font-size: 0.9em; }
   pre { background: #1f2937; color: #f9fafb; border-radius: 8px; padding: 16px; overflow-x: auto; }
   pre code { background: none; padding: 0; color: inherit; }
+  .nc-mermaid-export { display: flex; justify-content: center; margin: 1em 0; padding: 16px; background: #f6f8fa; border: 1px solid #e5e7eb; border-radius: 8px; }
+  .nc-mermaid-export svg { max-width: 100%; height: auto; }
   hr { border: none; border-top: 1px solid #e5e7eb; margin: 2em 0; }
   a { color: #2563eb; }
   .nc-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 0.75em 0; }
@@ -183,10 +242,11 @@ ${safeContent}
     downloadFile(html, 'html', 'text/html;charset=utf-8')
   }
 
-  const downloadPDF = () => {
+  const downloadPDF = async () => {
     if (!editor.value) return
     const safeTitle = escapeHtml(title.value || 'Untitled')
-    const safeContent = fixImageSources(sanitizeContent(editor.value.getHTML()))
+    let safeContent = fixImageSources(sanitizeContent(editor.value.getHTML()))
+    safeContent = await processMermaidBlocks(safeContent)
     // Open a print-ready window with styled content, then trigger print-to-PDF
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -223,6 +283,10 @@ ${safeContent}
   code { background: #f3f4f6; border-radius: 4px; padding: 2px 6px; font-size: 0.9em; }
   pre { background: #1f2937 !important; color: #f9fafb !important; border-radius: 8px; padding: 16px; overflow-x: auto; page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   pre code { background: none !important; padding: 0; color: inherit !important; }
+
+  /* Mermaid — rendered inline as SVG by the export pipeline */
+  .nc-mermaid-export { display: flex; justify-content: center; margin: 1em 0; padding: 16px; background: #f6f8fa; border: 1px solid #e5e7eb; border-radius: 8px; page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .nc-mermaid-export svg { max-width: 100%; height: auto; }
 
   /* Highlights & text colors — force background in print */
   mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }

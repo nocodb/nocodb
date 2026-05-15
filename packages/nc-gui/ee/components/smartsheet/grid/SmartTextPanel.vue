@@ -301,8 +301,8 @@ const onCopyUrl = async () => {
 }
 
 const onDownloadMarkdown = () => downloadMarkdown()
-const onDownloadHTML = () => downloadHTML()
-const onDownloadPDF = () => downloadPDF()
+const onDownloadHTML = async () => downloadHTML()
+const onDownloadPDF = async () => downloadPDF()
 </script>
 
 <template>

@@ -1471,6 +1471,11 @@
     "deleteRow": "Delete row",
     "plainText": "Plain text",
     "copyCode": "Copy code",
+    "showCode": "Show code",
+    "showDiagram": "Show diagram",
+    "splitView": "Split view",
+    "expandDiagram": "Expand diagram",
+    "emptyMermaidDiagram": "Enter Mermaid syntax to render a diagram",
     "dateDependency": {
       "title": "Date Dependencies",
       "description": "Define which records are dependent on others. When you reschedule a record, dependent records are automatically rescheduled.",

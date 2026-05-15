@@ -9,9 +9,11 @@
  * - Toolbar visible on hover
  */
 import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3'
+import DocMermaidView from './DocMermaidView.vue'
 import {
   ALL_LANGUAGES,
   type CodeBlockLanguage,
+  MERMAID_ID,
   PLAIN_TEXT,
   POPULAR_LANGUAGES,
   getLanguageLabel,
@@ -37,6 +39,10 @@ const currentLanguageLabel = computed(() => getLanguageLabel(currentLanguage.val
 
 // --- Dropdown ---
 const isDropdownOpen = ref(false)
+
+// Mermaid view-mode picker dropdown — declared up here so `showToolbar`
+// (defined further down, before the mermaid section) can reference it.
+const isViewModeDropdownOpen = ref(false)
 
 const setLanguage = (lang: CodeBlockLanguage) => {
   props.updateAttributes({ language: lang.id || null })
@@ -128,9 +134,76 @@ const copyCode = async () => {
 // --- Hover ---
 const isHovered = ref(false)
 
-const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || props.selected)
+const showToolbar = computed(() => isDropdownOpen.value || isViewModeDropdownOpen.value || isHovered.value || props.selected)
 
 const isEditable = computed(() => props.editor?.isEditable !== false)
+
+// --- Mermaid ---
+const isMermaid = computed(() => currentLanguage.value === MERMAID_ID)
+
+const mermaidCode = computed(() => props.node.textContent)
+
+type MermaidViewMode = 'code' | 'split' | 'diagram'
+
+const MERMAID_VIEW_MODES: { mode: MermaidViewMode; icon: string; labelKey: string }[] = [
+  { mode: 'code', icon: 'ncCode', labelKey: 'labels.showCode' },
+  { mode: 'split', icon: 'ncColumns', labelKey: 'labels.splitView' },
+  { mode: 'diagram', icon: 'ncEye', labelKey: 'labels.showDiagram' },
+]
+
+// Persisted choice stored on the PM node attribute (round-trips via the JSON
+// doc-content column). `null` until the author toggles for the first time.
+const persistedViewMode = computed<MermaidViewMode | null>(() => props.node.attrs.viewMode ?? null)
+
+// Session-local override for read-only viewers, who can't write back to the
+// node. Cleared whenever the persisted attribute changes so the author's
+// choice always wins once it lands.
+const localViewMode = ref<MermaidViewMode | null>(null)
+
+watch(persistedViewMode, () => {
+  localViewMode.value = null
+})
+
+// Effective mode: local override > persisted attr > dynamic default
+// (editable → code so the user can type; read-only → diagram for the reader).
+const mermaidViewMode = computed<MermaidViewMode>(
+  () => localViewMode.value ?? persistedViewMode.value ?? (isEditable.value ? 'code' : 'diagram'),
+)
+
+const showCodePane = computed(() => !isMermaid.value || mermaidViewMode.value === 'code' || mermaidViewMode.value === 'split')
+
+const showDiagramPane = computed(
+  () => isMermaid.value && (mermaidViewMode.value === 'diagram' || mermaidViewMode.value === 'split'),
+)
+
+const setMermaidViewMode = (mode: MermaidViewMode) => {
+  if (isEditable.value) {
+    // Persist as a node attribute — survives reload via PM JSON storage.
+    props.updateAttributes({ viewMode: mode })
+    localViewMode.value = null
+  } else {
+    localViewMode.value = mode
+  }
+}
+
+const currentMermaidViewOption = computed(
+  () => MERMAID_VIEW_MODES.find((o) => o.mode === mermaidViewMode.value) ?? MERMAID_VIEW_MODES[0],
+)
+
+const onViewModeSelect = (mode: MermaidViewMode) => {
+  setMermaidViewMode(mode)
+  isViewModeDropdownOpen.value = false
+}
+
+// Diagram-only toolbar actions are delegated to DocMermaidView (which owns
+// the rendered SVG + expand modal). The parent only fires the methods.
+const mermaidViewRef = ref<{
+  expandDiagram: () => void
+  downloadDiagram: () => void
+  hasSvg: () => boolean
+} | null>(null)
+
+const mermaidActionsEnabled = computed(() => mermaidViewRef.value?.hasSvg() ?? false)
 </script>
 
 <template>
@@ -233,6 +306,68 @@ const isEditable = computed(() => props.editor?.isEditable !== false)
         </template>
       </NcDropdown>
 
+      <!-- Mermaid view-mode picker — Notion-style: single trigger with current
+           mode icon, opens a 3-option popover (code / split / diagram). -->
+      <NcDropdown
+        v-if="isMermaid"
+        v-model:visible="isViewModeDropdownOpen"
+        placement="bottom"
+        overlay-class-name="nc-mermaid-view-dropdown"
+      >
+        <NcTooltip :title="$t(currentMermaidViewOption.labelKey)" placement="top">
+          <button
+            v-e="['c:doc:code-block:mermaid-view-mode']"
+            class="nc-code-block-copy-btn"
+            data-testid="nc-mermaid-view-trigger"
+          >
+            <GeneralIcon :icon="currentMermaidViewOption.icon" />
+          </button>
+        </NcTooltip>
+
+        <template #overlay>
+          <div class="nc-mermaid-view-options">
+            <NcTooltip v-for="option in MERMAID_VIEW_MODES" :key="option.mode" :title="$t(option.labelKey)" placement="bottom">
+              <button
+                v-e="['c:doc:code-block:mermaid-view-mode-select', { mode: option.mode }]"
+                class="nc-mermaid-view-option"
+                :class="{ 'nc-active': mermaidViewMode === option.mode }"
+                :data-testid="`nc-mermaid-view-${option.mode}`"
+                @click="onViewModeSelect(option.mode)"
+              >
+                <GeneralIcon :icon="option.icon" />
+              </button>
+            </NcTooltip>
+          </div>
+        </template>
+      </NcDropdown>
+
+      <!-- Mermaid diagram actions (visible only while the diagram pane is showing) -->
+      <template v-if="isMermaid && showDiagramPane">
+        <NcTooltip :title="$t('labels.expandDiagram')" placement="top">
+          <button
+            v-e="['c:doc:code-block:mermaid-expand']"
+            class="nc-code-block-copy-btn"
+            :disabled="!mermaidActionsEnabled"
+            data-testid="nc-mermaid-expand"
+            @click="mermaidViewRef?.expandDiagram()"
+          >
+            <GeneralIcon icon="ncMaximize" />
+          </button>
+        </NcTooltip>
+
+        <NcTooltip :title="$t('labels.downloadImage')" placement="top">
+          <button
+            v-e="['c:doc:code-block:mermaid-download']"
+            class="nc-code-block-copy-btn"
+            :disabled="!mermaidActionsEnabled"
+            data-testid="nc-mermaid-download"
+            @click="mermaidViewRef?.downloadDiagram()"
+          >
+            <GeneralIcon icon="ncDownload" />
+          </button>
+        </NcTooltip>
+      </template>
+
       <!-- Copy button -->
       <NcTooltip :title="isCopied ? $t('general.copied') : $t('labels.copyCode')" placement="top">
         <button class="nc-code-block-copy-btn" data-testid="nc-code-block-copy-btn" @click="copyCode">
@@ -241,8 +376,13 @@ const isEditable = computed(() => props.editor?.isEditable !== false)
       </NcTooltip>
     </div>
 
-    <!-- Code content — as="pre" is required by ProseMirror's code block node spec -->
-    <NodeViewContent as="pre" class="nc-code-block-content" />
+    <!-- Code content — as="pre" is required by ProseMirror's code block node spec.
+         Kept mounted (v-show, not v-if) so ProseMirror keeps its content reference
+         even when the diagram pane is showing. -->
+    <NodeViewContent v-show="showCodePane" as="pre" class="nc-code-block-content" />
+
+    <!-- Mermaid diagram pane -->
+    <DocMermaidView v-if="isMermaid" v-show="showDiagramPane" ref="mermaidViewRef" :code="mermaidCode" />
   </NodeViewWrapper>
 </template>
 
@@ -270,16 +410,16 @@ const isEditable = computed(() => props.editor?.isEditable !== false)
   padding: 0 8px;
   border: none;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
+  background: var(--nc-code-block-toolbar-bg);
+  color: var(--nc-code-block-toolbar-fg);
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
   white-space: nowrap;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.9);
+    background: var(--nc-code-block-toolbar-bg-hover);
+    color: var(--nc-code-block-toolbar-fg-hover);
   }
 }
 
@@ -287,8 +427,8 @@ const isEditable = computed(() => props.editor?.isEditable !== false)
   cursor: default;
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.6);
+    background: var(--nc-code-block-toolbar-bg);
+    color: var(--nc-code-block-toolbar-fg);
   }
 }
 
@@ -306,23 +446,32 @@ const isEditable = computed(() => props.editor?.isEditable !== false)
   height: 28px;
   border: none;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
+  background: var(--nc-code-block-toolbar-bg);
+  color: var(--nc-code-block-toolbar-fg);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: rgba(255, 255, 255, 0.9);
+  &:hover:not(:disabled) {
+    background: var(--nc-code-block-toolbar-bg-hover);
+    color: var(--nc-code-block-toolbar-fg-hover);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
   }
 }
 
 .nc-code-block-content {
-  background-color: #1f2937;
-  color: #f9fafb;
+  background-color: var(--nc-code-block-bg);
+  color: var(--nc-code-block-text);
   border-radius: 0.5em;
   padding: 0.75em 1em;
-  padding-top: 2.5em;
+  // Top padding clears the floating toolbar (8px offset + 28px height = 36px).
+  // `em` here resolves against the code block's own 0.875em font (~14px), so
+  // we use a fixed px value to avoid the unit-confusion that made 2.5em (35px)
+  // sit flush with the toolbar.
+  padding-top: 48px;
   overflow-x: auto;
   font-size: 0.875em;
   line-height: 1.6;
@@ -393,5 +542,47 @@ const isEditable = computed(() => props.editor?.isEditable !== false)
   height: 1px;
   margin: 4px 8px;
   background: var(--nc-border-gray-medium);
+}
+
+// --- Mermaid view-mode dropdown (3 icons: code / split / diagram) ---
+// Teleported to <body> by ant-design, so styled here (unscoped).
+
+.nc-mermaid-view-dropdown {
+  z-index: 1052;
+}
+
+.nc-mermaid-view-options {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background: var(--nc-bg-default);
+  border: 1px solid var(--nc-border-gray-medium);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.nc-mermaid-view-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--nc-content-gray-subtle);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+
+  &:hover:not(.nc-active) {
+    background: var(--nc-bg-gray-light);
+    color: var(--nc-content-gray);
+  }
+
+  &.nc-active {
+    background: var(--nc-bg-gray-light);
+    color: var(--nc-content-gray);
+  }
 }
 </style>

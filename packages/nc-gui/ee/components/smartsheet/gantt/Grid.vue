@@ -132,6 +132,16 @@ const openInspector = (record: RowType) => {
   inspectorRecord.value = record
   $e(reopen ? 'c:gantt:inspector-swap' : 'c:gantt:inspector-open')
 }
+
+// Sidebar row click — open the inspector and scroll the date axis to the
+// record's start date so the user sees what they just clicked. Unconditional
+// because `isRecordVisible` is buffer-bounded (not viewport-bounded), so a
+// record can be "in buffer" yet visually off-screen; goToDate is idempotent
+// when the date is already centered.
+const onSidebarRowClick = (record: RowType) => {
+  openInspector(record)
+  navigateToRecordStart(record)
+}
 const closeInspector = () => {
   if (!inspectorRecord.value) return
   inspectorRecord.value = null
@@ -1716,7 +1726,7 @@ const onGridMouseLeave = () => {
           :key="laneIdx"
           class="flex items-center px-3 border-b border-nc-border-gray-light text-xs text-nc-content-gray cursor-pointer hover:bg-nc-bg-gray-extralight"
           :style="{ height: `${ROW_HEIGHT}px` }"
-          @click="openInspector(lane[0].record)"
+          @click="onSidebarRowClick(lane[0].record)"
         >
           <NcTooltip show-on-truncate-only class="truncate">
             <template #title>{{ primaryField ? lane[0].record.row[primaryField.title!] ?? '' : '' }}</template>

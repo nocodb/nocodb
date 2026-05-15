@@ -7,6 +7,7 @@ const HOOK_API_FIELDS = [
   'description',
   'env',
   'event',
+  'operation',
   'fk_model_id',
   'type',
   'async',

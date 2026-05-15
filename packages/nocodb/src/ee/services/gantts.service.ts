@@ -23,6 +23,8 @@ import GanttView from '~/models/GanttView';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { TraceCommand } from '~/decorators/trace-command.decorator';
+import { OperationName } from '~/command-registry/op-names';
 
 @Injectable()
 export class GanttsService {
@@ -31,6 +33,7 @@ export class GanttsService {
     private readonly dateDependencyService: DateDependencyService,
   ) {}
 
+  @TraceCommand(OperationName.ganttViewCreate)
   async ganttViewCreate(
     context: NcContext,
     param: {
@@ -170,6 +173,7 @@ export class GanttsService {
     return view;
   }
 
+  @TraceCommand(OperationName.ganttViewUpdate)
   async ganttViewUpdate(
     context: NcContext,
     param: {

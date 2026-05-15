@@ -7,6 +7,7 @@ import type { KanbansService } from '~/services/kanbans.service';
 import type { CalendarsService } from '~/services/calendars.service';
 import type { ListsService } from '~/ee/services/lists.service';
 import type { TimelinesService } from '~/services/timelines.service';
+import type { GanttsService } from '~/services/gantts.service';
 import type { MapsService } from '~/services/maps.service';
 import type { BaseTrashService } from '~/services/base-trash/base-trash.service';
 import BaseTrash from '~/ee/models/BaseTrash';
@@ -25,6 +26,7 @@ import {
   FormView,
   GalleryView,
   GridView,
+  GanttView,
   KanbanView,
   ListView,
   ListViewLevel,
@@ -52,6 +54,8 @@ import {
   listViewLevelsRestoreSchema,
   mapCreateSchema,
   mapUpdateSchema,
+  ganttCreateSchema,
+  ganttUpdateSchema,
   timelineCreateSchema,
   timelineUpdateSchema,
 } from '~/command-registry/operations/_schemas/view';
@@ -852,6 +856,80 @@ export const TimelineViewUpdateContract: OperationContract<
   },
 };
 
+export const GanttViewCreateContract: OperationContract<
+  typeof ganttCreateSchema,
+  Record<string, any>,
+  GanttView | undefined
+> = {
+  name: OperationName.ganttViewCreate,
+  entity: MetaTable.VIEWS,
+  schema: ganttCreateSchema,
+  entry: {
+    entity_id: 'id',
+    entity_title: (params) => params.gantt?.title,
+    parent_id: 'tableId',
+    description: viewActions.add,
+    before: (context, params) => resolveCreateCtx(context, params.tableId),
+  },
+  sandbox: {
+    id_field: 'gantt',
+  },
+  undo: {
+    // View delete cascades through View.ts:delete — removes the
+    // GanttView row, GanttViewColumn rows, and the per-view
+    // DateDependency rule (fk_gantt_view_id) atomically.
+    inverse: buildViewCreateInverse,
+    scope: (_p, _r, _c, context) => scopeBase(context),
+  },
+};
+
+interface GanttUpdateExtra {
+  oldTitle?: string;
+  prevGantt?: { title?: string; meta?: unknown };
+}
+
+export const GanttViewUpdateContract: OperationContract<
+  typeof ganttUpdateSchema,
+  GanttUpdateExtra,
+  GanttView | undefined
+> = {
+  name: OperationName.ganttViewUpdate,
+  entity: MetaTable.VIEWS,
+  schema: ganttUpdateSchema,
+  entry: {
+    entity_id: (params) => params.ganttViewId,
+    entity_title: (params) => params.gantt?.title,
+    description: renameOrEdit,
+    before: async (context, params) => {
+      const base = await resolveUpdateCtx(context, params.ganttViewId);
+      const ganttRow = await GanttView.get(context, params.ganttViewId);
+      let prevGantt: { title?: string; meta?: unknown } | undefined;
+      if (ganttRow) {
+        prevGantt = pickFields(ganttRow, ['title', 'meta'] as const);
+        if (prevGantt.title == null) delete prevGantt.title;
+      }
+      return {
+        ...base,
+        extra: {
+          ...(base.extra ?? {}),
+          prevGantt,
+        },
+      };
+    },
+  },
+  undo: {
+    inverse: (_context, params, _result, resolved) => {
+      const prev = resolved?.extra?.prevGantt;
+      if (!prev || Object.keys(prev).length === 0) return null;
+      return {
+        name: OperationName.ganttViewUpdate,
+        params: { ganttViewId: params.ganttViewId, gantt: prev },
+      };
+    },
+    scope: (params) => scopeView(params.ganttViewId),
+  },
+};
+
 export const MapViewCreateContract: OperationContract<
   typeof mapCreateSchema,
   Record<string, any>,
@@ -982,6 +1060,7 @@ export function registerViewTypeHandlers(
   calendarSvc: CalendarsService,
   listSvc: ListsService,
   timelineSvc: TimelinesService,
+  ganttSvc: GanttsService,
   mapSvc: MapsService,
   baseTrashSvc: BaseTrashService,
 ): void {
@@ -1059,6 +1138,16 @@ export function registerViewTypeHandlers(
   );
   registerForward(TimelineViewUpdateContract, (context, params) =>
     timelineSvc.timelineViewUpdate(context, params),
+  );
+
+  registerViewCreate(
+    GanttViewCreateContract,
+    'gantt',
+    (context, params) => ganttSvc.ganttViewCreate(context, params),
+    baseTrashSvc,
+  );
+  registerForward(GanttViewUpdateContract, (context, params) =>
+    ganttSvc.ganttViewUpdate(context, params),
   );
 
   registerViewCreate(

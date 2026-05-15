@@ -43,6 +43,7 @@ import { KanbansService } from '~/services/kanbans.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { ListsService } from '~/ee/services/lists.service';
 import { TimelinesService } from '~/services/timelines.service';
+import { GanttsService } from '~/services/gantts.service';
 import { MapsService } from '~/services/maps.service';
 import { FiltersService } from '~/services/filters.service';
 import { SortsService } from '~/services/sorts.service';
@@ -84,6 +85,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
     private readonly calendarsSvc: CalendarsService,
     private readonly listsSvc: ListsService,
     private readonly timelinesSvc: TimelinesService,
+    private readonly ganttsSvc: GanttsService,
     private readonly mapsSvc: MapsService,
     private readonly filtersSvc: FiltersService,
     private readonly sortsSvc: SortsService,
@@ -124,6 +126,7 @@ export class OperationRegistryBootstrap implements OnApplicationBootstrap {
       this.calendarsSvc,
       this.listsSvc,
       this.timelinesSvc,
+      this.ganttsSvc,
       this.mapsSvc,
       this.baseTrashSvc,
     );

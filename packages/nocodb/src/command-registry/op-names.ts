@@ -43,6 +43,8 @@ export const OperationName = {
   listViewUpdate: 'listViewUpdate',
   timelineViewCreate: 'timelineViewCreate',
   timelineViewUpdate: 'timelineViewUpdate',
+  ganttViewCreate: 'ganttViewCreate',
+  ganttViewUpdate: 'ganttViewUpdate',
   mapViewCreate: 'mapViewCreate',
   mapViewUpdate: 'mapViewUpdate',
 

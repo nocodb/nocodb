@@ -133,6 +133,14 @@ const openInspector = (record: RowType) => {
   $e(reopen ? 'c:gantt:inspector-swap' : 'c:gantt:inspector-open')
 }
 
+// Identify which bar/milestone is currently shown in the right-rail
+// inspector — we paint it with a brand-coloured border so the focal record
+// stays distinguishable from its predecessors/successors (which already
+// share a green chain-highlight border).
+const isInspectedRecord = (row: RowType) => {
+  return !!inspectorRecord.value && inspectorRecord.value === row
+}
+
 // Sidebar row click — open the inspector and scroll the date axis to the
 // record's start date so the user sees what they just clicked. Unconditional
 // because `isRecordVisible` is buffer-bounded (not viewport-bounded), so a
@@ -2027,7 +2035,13 @@ const onGridMouseLeave = () => {
                     // bars. Row coloring (if configured) takes precedence.
                     backgroundColor:
                       getRowColorStyle(record).rowBgColor?.backgroundColor || 'var(--nc-bg-gray-light)',
-                    border: `1px solid ${isRecordHighlighted(record) ? 'var(--color-green-600)' : 'var(--nc-border-gray-dark)'}`,
+                    border: `1px solid ${
+                      isInspectedRecord(record)
+                        ? 'var(--nc-border-brand)'
+                        : isRecordHighlighted(record)
+                        ? 'var(--color-green-600)'
+                        : 'var(--nc-border-gray-dark)'
+                    }`,
                     borderRadius: '3px',
                   }"
                 />
@@ -2085,7 +2099,9 @@ const onGridMouseLeave = () => {
                 :style="{
                   height: `${ROW_HEIGHT - 8}px`,
                   ...getRowColorStyle(record).rowBgColor,
-                  ...(isRecordHighlighted(record)
+                  ...(isInspectedRecord(record)
+                    ? { borderColor: 'var(--nc-border-brand)', borderWidth: '1px' }
+                    : isRecordHighlighted(record)
                     ? { borderColor: 'var(--color-green-600)', borderWidth: '1px' }
                     : {}),
                 }"

@@ -221,7 +221,7 @@ onMounted(async () => {
         new PlaceholderContentWidget(placeholder, editor)
       }
 
-      const activeDrawerOrModal = isDrawerOrModalExist()
+      const activeDrawerOrModal = document.querySelector('.ant-modal.active, .ant-drawer-open')
 
       if (!activeDrawerOrModal && autoFocus) {
         // auto focus on json cells only

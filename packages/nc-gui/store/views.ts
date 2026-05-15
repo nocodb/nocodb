@@ -557,7 +557,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
               operation: 'ganttViewCreate',
               tableId,
             },
-            form,
+            {
+              ...commonFields,
+              ...(form.dependency ? { dependency: form.dependency } : {}),
+            },
           )
           break
       }

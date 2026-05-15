@@ -21,6 +21,12 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { t } = useI18n()
 
+const { isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+
+const { isSharedBase } = storeToRefs(useBase())
+
+const { showEEFeatures } = useEeConfig()
+
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 // When the left sidebar is open, show toolbar buttons as icon-only with tooltips
@@ -479,26 +485,33 @@ const dateButtonWidthClass: Record<TimelineZoomLevel, string> = {
           </a-select-option>
         </a-select>
 
-        <!-- Fields -->
-        <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
+        <template v-if="isViewOperationsAllowed">
+          <!-- Fields -->
+          <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
 
-        <!-- #8: Sort -->
-        <LazySmartsheetToolbarSortListMenu v-if="!isPublic" />
+          <!-- #8: Sort -->
+          <LazySmartsheetToolbarSortListMenu v-if="!isPublic" />
 
-        <!-- Group By -->
-        <SmartsheetToolbarGroupByMenu v-if="!isPublic" hide-reorder />
+          <!-- Group By -->
+          <SmartsheetToolbarGroupByMenu v-if="!isPublic" hide-reorder />
 
-        <!-- Colour -->
-        <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic" />
+          <!-- Colour -->
+          <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && !isSharedBase && showEEFeatures" />
 
-        <!-- Filter -->
-        <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
+          <!-- Filter -->
+          <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
 
-        <!-- Timeline Settings (#5: using timeline icon instead of calendar) -->
-        <SmartsheetToolbarTimelineRange />
+          <!-- Timeline Settings (#5: using timeline icon instead of calendar) -->
+          <SmartsheetToolbarTimelineRange />
+        </template>
+
+        <!-- Viewers get a dedicated Export entry instead of the full action menu -->
+        <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
 
         <!-- Actions menu (three-dot) -->
-        <SmartsheetToolbarOpenedViewAction />
+        <SmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />
+
+        <NcFullScreenToggleButton v-if="!isMobileMode" />
       </div>
 
       <!-- Timeline content -->

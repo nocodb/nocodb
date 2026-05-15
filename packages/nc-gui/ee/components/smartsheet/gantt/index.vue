@@ -17,6 +17,12 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { t } = useI18n()
 
+const { isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+
+const { isSharedBase } = storeToRefs(useBase())
+
+const { showEEFeatures } = useEeConfig()
+
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 // When the left sidebar is open, show toolbar buttons as icon-only with tooltips
@@ -491,10 +497,9 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
              so users can change which fields drive bars / arrows for THIS view.
              Hidden for viewers / shared base since they can't persist edits;
              matches the visibility of other view-CRUD controls. -->
-        <NcTooltip>
+        <NcTooltip v-if="!isPublic && meta?.id && view?.id && isUIAllowed('viewCreateOrEdit')">
           <template #title>{{ $t('general.configure') }}</template>
           <NcButton
-            v-if="!isPublic && meta?.id && view?.id && isUIAllowed('viewCreateOrEdit')"
             v-e="['c:gantt:configure']"
             size="small"
             type="secondary"
@@ -510,25 +515,32 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
           </NcButton>
         </NcTooltip>
 
-        <!-- Fields -->
-        <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
+        <template v-if="isViewOperationsAllowed">
+          <!-- Fields -->
+          <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
 
-        <!-- Sort intentionally omitted: Gantt re-sorts rows by start date
-             internally (Grid.vue's stableRowOrder) so a user sort would be
-             silently overridden. Calendar takes the same stance for the
-             same reason — dates drive vertical position. -->
+          <!-- Sort intentionally omitted: Gantt re-sorts rows by start date
+               internally (Grid.vue's stableRowOrder) so a user sort would be
+               silently overridden. Calendar takes the same stance for the
+               same reason — dates drive vertical position. -->
 
-        <!-- Group By -->
-        <SmartsheetToolbarGroupByMenu v-if="!isPublic" hide-reorder />
+          <!-- Group By -->
+          <SmartsheetToolbarGroupByMenu v-if="!isPublic" hide-reorder />
 
-        <!-- Colour -->
-        <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic" />
+          <!-- Colour -->
+          <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && !isSharedBase && showEEFeatures" />
 
-        <!-- Filter -->
-        <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
+          <!-- Filter -->
+          <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
+        </template>
+
+        <!-- Viewers get a dedicated Export entry instead of the full action menu -->
+        <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
 
         <!-- Actions menu (three-dot) -->
-        <SmartsheetToolbarOpenedViewAction />
+        <SmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />
+
+        <NcFullScreenToggleButton v-if="!isMobileMode" />
       </div>
 
       <!-- Gantt content -->

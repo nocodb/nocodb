@@ -328,7 +328,7 @@ const formatDisplay = (raw: string | null | undefined) => {
 <template>
   <div
     class="nc-gantt-inspector flex flex-col flex-shrink-0 border-l border-nc-border-gray-medium bg-nc-bg-default"
-    style="width: 320px"
+    style="width: 320px; min-width: 240px; max-width: 40vw"
     data-testid="nc-gantt-inspector"
   >
     <!-- Header — record title + open-full + close -->
@@ -351,18 +351,20 @@ const formatDisplay = (raw: string | null | undefined) => {
             </template>
           </NcButton>
         </NcTooltip>
-        <NcButton
-          type="text"
-          size="xxsmall"
-          icon-only
-          :centered="true"
-          data-testid="nc-gantt-inspector-close"
-          @click="emit('close')"
-        >
-          <template #icon>
-            <GeneralIcon icon="close" class="!w-3.5 !h-3.5 text-nc-content-gray-muted" />
-          </template>
-        </NcButton>
+        <NcTooltip :title="$t('general.close')" placement="bottom">
+          <NcButton
+            type="text"
+            size="xxsmall"
+            icon-only
+            :centered="true"
+            data-testid="nc-gantt-inspector-close"
+            @click="emit('close')"
+          >
+            <template #icon>
+              <GeneralIcon icon="close" class="!w-3.5 !h-3.5 text-nc-content-gray-muted" />
+            </template>
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
 
@@ -406,9 +408,15 @@ const formatDisplay = (raw: string | null | undefined) => {
             overlay-class-name="nc-picker-date !min-w-[260px]"
           >
             <div
-              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight truncate"
-              :class="[isPublic ? 'cursor-default' : 'cursor-pointer', { 'border-nc-border-brand': startOpen }]"
+              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight truncate focus:shadow-selected"
+              :class="[isPublic ? 'cursor-default' : 'cursor-pointer', { '!border-nc-border-brand': startOpen }]"
+              :tabindex="isPublic ? -1 : 0"
+              role="button"
+              :aria-label="fromCol.title"
+              :aria-expanded="startOpen"
               data-testid="nc-gantt-inspector-start"
+              @keydown.enter.prevent="!isPublic && (startOpen = !startOpen)"
+              @keydown.space.prevent="!isPublic && (startOpen = !startOpen)"
             >
               <span v-if="startDayjs">{{ formatDisplay(startValue) }}</span>
               <span v-else class="text-nc-content-gray-muted">–</span>
@@ -440,9 +448,15 @@ const formatDisplay = (raw: string | null | undefined) => {
             overlay-class-name="nc-picker-date !min-w-[260px]"
           >
             <div
-              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight truncate"
-              :class="[isPublic ? 'cursor-default' : 'cursor-pointer', { 'border-nc-border-brand': endOpen }]"
+              class="nc-gantt-inspector-input w-full px-2 py-1.5 text-xs rounded border border-nc-border-gray-medium bg-nc-bg-gray-extralight truncate focus:shadow-selected"
+              :class="[isPublic ? 'cursor-default' : 'cursor-pointer', { '!border-nc-border-brand': endOpen }]"
+              :tabindex="isPublic ? -1 : 0"
+              role="button"
+              :aria-label="toCol.title"
+              :aria-expanded="endOpen"
               data-testid="nc-gantt-inspector-end"
+              @keydown.enter.prevent="!isPublic && (endOpen = !endOpen)"
+              @keydown.space.prevent="!isPublic && (endOpen = !endOpen)"
             >
               <span v-if="endDayjs">{{ formatDisplay(endValue) }}</span>
               <span v-else class="text-nc-content-gray-muted">–</span>
@@ -469,6 +483,8 @@ const formatDisplay = (raw: string | null | undefined) => {
           </div>
           <div
             class="w-full px-2 py-1.5 text-xs rounded border border-nc-border-gray-medium bg-nc-bg-gray-light text-nc-content-gray"
+            role="status"
+            :aria-label="`${$t('objects.days')}: ${durationDays || '–'}`"
           >
             {{ durationDays || '–' }}
           </div>
@@ -500,7 +516,9 @@ const formatDisplay = (raw: string | null | undefined) => {
             <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
             <button
               v-if="!isPublic"
-              class="nc-gantt-inspector-unlink flex-shrink-0 text-nc-content-gray-muted hover:text-nc-content-gray"
+              v-e="['c:gantt:inspector-unlink', { direction: 'predecessor' }]"
+              class="nc-gantt-inspector-unlink flex-shrink-0 p-1 text-nc-content-gray-muted hover:text-nc-content-gray"
+              :aria-label="$t('general.unlink')"
               :data-testid="`nc-gantt-inspector-unlink-pred-${id}`"
               @click="onUnlinkPredecessor(id)"
             >
@@ -510,6 +528,7 @@ const formatDisplay = (raw: string | null | undefined) => {
         </div>
         <div v-if="!showPredecessorPicker && !isPublic">
           <button
+            v-e="['c:gantt:inspector-add-predecessor']"
             class="flex items-center gap-1.5 px-2 py-1.5 text-xs text-nc-content-gray-muted hover:text-nc-content-brand"
             data-testid="nc-gantt-inspector-add-predecessor"
             @click="openPredecessorPicker"
@@ -530,8 +549,11 @@ const formatDisplay = (raw: string | null | undefined) => {
             <div
               v-for="cand in predecessorCandidates"
               :key="`pred-cand-${extractPkFromRow(cand.row, pkCols)}`"
-              class="px-2 py-1.5 text-xs cursor-pointer hover:bg-nc-bg-gray-extralight truncate"
+              class="px-2 py-1.5 text-xs cursor-pointer hover:bg-nc-bg-gray-extralight truncate focus:bg-nc-bg-gray-extralight focus:outline-none"
+              role="option"
+              tabindex="0"
               @click="onLinkPredecessor(cand)"
+              @keydown.enter.prevent="onLinkPredecessor(cand)"
             >
               {{ primaryField ? cand.row[primaryField.title!] ?? '' : '' }}
             </div>
@@ -570,7 +592,9 @@ const formatDisplay = (raw: string | null | undefined) => {
             <NcTooltip show-on-truncate-only class="truncate">{{ titleFor(id) }}</NcTooltip>
             <button
               v-if="!isPublic"
-              class="nc-gantt-inspector-unlink flex-shrink-0 text-nc-content-gray-muted hover:text-nc-content-gray"
+              v-e="['c:gantt:inspector-unlink', { direction: 'successor' }]"
+              class="nc-gantt-inspector-unlink flex-shrink-0 p-1 text-nc-content-gray-muted hover:text-nc-content-gray"
+              :aria-label="$t('general.unlink')"
               :data-testid="`nc-gantt-inspector-unlink-succ-${id}`"
               @click="onUnlinkSuccessor(id)"
             >
@@ -580,6 +604,7 @@ const formatDisplay = (raw: string | null | undefined) => {
         </div>
         <div v-if="!showSuccessorPicker && !isPublic">
           <button
+            v-e="['c:gantt:inspector-add-successor']"
             class="flex items-center gap-1.5 px-2 py-1.5 text-xs text-nc-content-gray-muted hover:text-nc-content-brand"
             data-testid="nc-gantt-inspector-add-successor"
             @click="openSuccessorPicker"
@@ -600,8 +625,11 @@ const formatDisplay = (raw: string | null | undefined) => {
             <div
               v-for="cand in successorCandidates"
               :key="`succ-cand-${extractPkFromRow(cand.row, pkCols)}`"
-              class="px-2 py-1.5 text-xs cursor-pointer hover:bg-nc-bg-gray-extralight truncate"
+              class="px-2 py-1.5 text-xs cursor-pointer hover:bg-nc-bg-gray-extralight truncate focus:bg-nc-bg-gray-extralight focus:outline-none"
+              role="option"
+              tabindex="0"
               @click="onLinkSuccessor(cand)"
+              @keydown.enter.prevent="onLinkSuccessor(cand)"
             >
               {{ primaryField ? cand.row[primaryField.title!] ?? '' : '' }}
             </div>
@@ -621,7 +649,7 @@ const formatDisplay = (raw: string | null | undefined) => {
 <style lang="scss" scoped>
 .nc-gantt-inspector-input {
   &:focus {
-    border-color: var(--nc-content-brand);
+    border-color: var(--nc-border-brand);
   }
 }
 

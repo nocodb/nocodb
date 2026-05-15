@@ -1714,14 +1714,14 @@ const onGridMouseLeave = () => {
         <div
           v-for="(lane, laneIdx) in swimlanes"
           :key="laneIdx"
-          class="flex items-center px-3 border-b border-nc-border-gray-light text-xs text-nc-content-gray truncate cursor-pointer hover:bg-nc-bg-gray-extralight"
+          class="flex items-center px-3 border-b border-nc-border-gray-light text-xs text-nc-content-gray cursor-pointer hover:bg-nc-bg-gray-extralight"
           :style="{ height: `${ROW_HEIGHT}px` }"
-          :title="primaryField ? lane[0].record.row[primaryField.title!] ?? '' : ''"
           @click="openInspector(lane[0].record)"
         >
-          <span class="truncate">
+          <NcTooltip show-on-truncate-only class="truncate">
+            <template #title>{{ primaryField ? lane[0].record.row[primaryField.title!] ?? '' : '' }}</template>
             {{ primaryField ? lane[0].record.row[primaryField.title!] ?? '' : '' }}
-          </span>
+          </NcTooltip>
         </div>
       </div>
       <!-- Resize handle — pinned to the inside of the sidebar's right edge.
@@ -2021,9 +2021,12 @@ const onGridMouseLeave = () => {
                     borderRadius: '3px',
                   }"
                 />
-                <!-- Label to the right of the diamond, vertically centered via flex -->
+                <!-- Label to the right of the diamond, vertically centered via flex.
+                     Max-width caps the label so a long title at a fine zoom can't
+                     bleed across adjacent columns and obscure other bars. -->
                 <div
-                  class="absolute top-0 bottom-0 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none"
+                  class="absolute top-0 bottom-0 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none truncate"
+                  style="max-width: 160px;"
                   :style="{ left: `${MILESTONE_SIZE + 6}px` }"
                 >
                   {{ primaryField ? record.row[primaryField.title!] ?? '' : '' }}
@@ -2057,7 +2060,7 @@ const onGridMouseLeave = () => {
                 <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
               </template>
               <div
-                class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group peer w-full relative"
+                class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow transition-opacity select-none group peer w-full relative"
                 :class="{
                   'cursor-grabbing': dragInProgress && dragRecord === record && canDrag,
                   'cursor-grab': !isInteracting && canDrag,
@@ -2133,7 +2136,12 @@ const onGridMouseLeave = () => {
                 <div
                   v-if="!isStartVisible(record)"
                   class="nc-gantt-nav-arrow absolute left-0 top-0 h-full z-20 flex items-center"
+                  role="button"
+                  tabindex="0"
+                  :aria-label="$t('labels.previous')"
                   @click.stop="navigateToRecordStart(record)"
+                  @keydown.enter.prevent="navigateToRecordStart(record)"
+                  @keydown.space.prevent="navigateToRecordStart(record)"
                   @mousedown.stop
                 >
                   <div
@@ -2156,7 +2164,12 @@ const onGridMouseLeave = () => {
                 <div
                   v-if="!isEndVisible(record)"
                   class="nc-gantt-nav-arrow absolute right-0 top-0 h-full z-20 flex items-center"
+                  role="button"
+                  tabindex="0"
+                  :aria-label="$t('labels.next')"
                   @click.stop="navigateToRecordEnd(record)"
+                  @keydown.enter.prevent="navigateToRecordEnd(record)"
+                  @keydown.space.prevent="navigateToRecordEnd(record)"
                   @mousedown.stop
                 >
                   <div
@@ -2185,6 +2198,8 @@ const onGridMouseLeave = () => {
                   z-index: 4;
                   border: 1.25px solid var(--nc-border-gray-extra-dark, #9aa2af);
                 "
+                role="button"
+                :aria-label="$t('labels.dateDependency.title')"
                 @mousedown="onHandleMouseDown($event, record)"
                 @click.stop
               />
@@ -2255,8 +2270,13 @@ const onGridMouseLeave = () => {
     <div v-if="hasRecordsBefore" class="absolute left-1 inset-y-0 z-10 flex items-center pointer-events-none">
       <div
         class="nc-gantt-nav-btn flex items-center justify-center w-6 h-6 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors pointer-events-auto"
+        role="button"
+        tabindex="0"
+        :aria-label="$t('labels.previous')"
         data-testid="nc-gantt-nav-prev"
         @click.stop="navigateToPrev"
+        @keydown.enter.prevent="navigateToPrev"
+        @keydown.space.prevent="navigateToPrev"
       >
         <GeneralIcon icon="arrowLeft" class="text-nc-content-gray-muted w-3.5 h-3.5" />
       </div>
@@ -2265,8 +2285,13 @@ const onGridMouseLeave = () => {
     <div v-if="hasRecordsAfter" class="absolute right-1 inset-y-0 z-10 flex items-center pointer-events-none">
       <div
         class="nc-gantt-nav-btn flex items-center justify-center w-6 h-6 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors pointer-events-auto"
+        role="button"
+        tabindex="0"
+        :aria-label="$t('labels.next')"
         data-testid="nc-gantt-nav-next"
         @click.stop="navigateToNext"
+        @keydown.enter.prevent="navigateToNext"
+        @keydown.space.prevent="navigateToNext"
       >
         <GeneralIcon icon="arrowRight" class="text-nc-content-gray-muted w-3.5 h-3.5" />
       </div>

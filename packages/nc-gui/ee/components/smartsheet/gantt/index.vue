@@ -340,7 +340,6 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
   datePickerVisible.value = false
   $e('c:gantt:date-picker', { zoomLevel: zoomLevel.value })
 }
-
 </script>
 
 <template>
@@ -492,21 +491,24 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
              so users can change which fields drive bars / arrows for THIS view.
              Hidden for viewers / shared base since they can't persist edits;
              matches the visibility of other view-CRUD controls. -->
-        <NcButton
-          v-if="!isPublic && meta?.id && view?.id && isUIAllowed('viewCreateOrEdit')"
-          v-e="['c:gantt:configure']"
-          size="small"
-          type="secondary"
-          icon-only
-          :centered="true"
-          class="!h-7 !w-7 !min-w-7"
-          data-testid="nc-gantt-configure"
-          @click="showDateDependencyDlg = true"
-        >
-          <template #icon>
-            <GeneralIcon icon="ncSettings" class="h-4 w-4" />
-          </template>
-        </NcButton>
+        <NcTooltip>
+          <template #title>{{ $t('general.configure') }}</template>
+          <NcButton
+            v-if="!isPublic && meta?.id && view?.id && isUIAllowed('viewCreateOrEdit')"
+            v-e="['c:gantt:configure']"
+            size="small"
+            type="secondary"
+            icon-only
+            :centered="true"
+            class="!h-7 !w-7 !min-w-7"
+            data-testid="nc-gantt-configure"
+            @click="showDateDependencyDlg = true"
+          >
+            <template #icon>
+              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+            </template>
+          </NcButton>
+        </NcTooltip>
 
         <!-- Fields -->
         <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
@@ -596,10 +598,7 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
                  Round 1 ships only single-level grouping with all groups
                  expanded — collapse-aware routing lands in round 2. -->
             <template #overlay="{ expandedGroups, scrollAreaEl }">
-              <SmartsheetGanttGroupedCrossArrows
-                :expanded-groups="expandedGroups"
-                :scroll-area-el="scrollAreaEl"
-              />
+              <SmartsheetGanttGroupedCrossArrows :expanded-groups="expandedGroups" :scroll-area-el="scrollAreaEl" />
             </template>
           </SmartsheetSharedDateAxisGroupBy>
         </div>

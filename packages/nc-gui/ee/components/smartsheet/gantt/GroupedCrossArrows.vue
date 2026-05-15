@@ -22,6 +22,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import type { Row as RowType } from '#imports'
+import { TIMELINE_GROUP_SIDEBAR_WIDTH } from '~/utils/timelineUtils'
 
 interface Props {
   // Scroll area element from DateAxisGroupBy — origin for relative positions.
@@ -306,7 +307,7 @@ const svgHeight = computed(() => {
   return el ? el.scrollHeight : 0
 })
 
-const GROUP_SIDEBAR_WIDTH = 200 // matches TIMELINE_GROUP_SIDEBAR_WIDTH
+const GROUP_SIDEBAR_WIDTH = TIMELINE_GROUP_SIDEBAR_WIDTH
 
 // Horizontal position of the SVG content. The svg is fixed inside the
 // scroll-area at left: GROUP_SIDEBAR_WIDTH. We translate the inner <g>

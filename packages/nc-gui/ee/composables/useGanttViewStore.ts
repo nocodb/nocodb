@@ -194,6 +194,13 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
     // newest dispatch commits.
     let _fetchSeq = 0
 
+    // Set true in onBeforeUnmount. Any lingering callback (debounced fetch
+    // that fires within its window post-unmount, fire-and-forget deps load,
+    // etc.) checks this and short-circuits — otherwise a Gantt request goes
+    // out for the old view id after the user has already switched away,
+    // producing a 400 against the non-Gantt view.
+    let _unmounted = false
+
     // Serialize fetches — at most one request in flight at a time. While a
     // fetch is running, additional calls are coalesced into a single
     // pending slot (the most recent args win); when the current fetch
@@ -226,6 +233,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
     }
 
     const _fetchGanttRecordsImpl = async ({ showLoading }: { showLoading: boolean }) => {
+      if (_unmounted) return
       if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !ganttRange.value?.length)
         return
 
@@ -320,6 +328,7 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
     const dependencyLinks = ref<Map<string, string[]>>(new Map())
 
     const loadDependencyLinks = async () => {
+      if (_unmounted) return
       const range = ganttRange.value?.[0]
       const depCol = range?.fk_dependency_col as ColumnType | undefined
       if (!depCol) {
@@ -672,6 +681,14 @@ const [useProvideGanttViewStore, useGanttViewStore] = useInjectionState(
     )
 
     onBeforeUnmount(() => {
+      _unmounted = true
+      // Cancel the in-flight debounced refetch so it doesn't fire its
+      // 250ms callback after the component has been replaced (e.g. view
+      // switch). Without this, the timer would hit fetchGanttRecords with
+      // a stale viewMeta and produce a 400 against the new (non-Gantt) view.
+      if (typeof (_silentRefetch as any).cancel === 'function') {
+        ;(_silentRefetch as any).cancel()
+      }
       eventBus.off(smartsheetEventHandler)
       if (activeDataListener.value) {
         $ncSocket.offMessage(activeDataListener.value)

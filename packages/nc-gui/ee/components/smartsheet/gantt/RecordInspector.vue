@@ -200,45 +200,60 @@ const onUnlinkPredecessor = async (predId: string) => {
 // form (basic guard: don't allow linking to a predecessor as a successor).
 const showSuccessorPicker = ref(false)
 const showPredecessorPicker = ref(false)
-const successorQuery = ref('')
-const predecessorQuery = ref('')
 
 const openSuccessorPicker = () => {
-  successorQuery.value = ''
   showSuccessorPicker.value = true
 }
 const openPredecessorPicker = () => {
-  predecessorQuery.value = ''
   showPredecessorPicker.value = true
 }
 
+// Structural exclusion only — exclude current row + already-linked rows in
+// this direction. NcList handles text search internally on its own input,
+// and virtualises rendering — so we no longer need a local query ref or
+// a slice(20) cap.
 const successorCandidates = computed(() => {
-  const q = successorQuery.value.trim().toLowerCase()
   const already = new Set(successorIds.value)
-  return formattedData.value
-    .filter((row) => {
-      const id = String(extractPkFromRow(row.row, pkCols.value) ?? '')
-      if (!id || id === currentRowId.value || already.has(id)) return false
-      if (!q) return true
-      const title = primaryField.value?.title ? String(row.row?.[primaryField.value.title] ?? '').toLowerCase() : ''
-      return title.includes(q)
-    })
-    .slice(0, 20)
+  return formattedData.value.filter((row) => {
+    const id = String(extractPkFromRow(row.row, pkCols.value) ?? '')
+    return !!id && id !== currentRowId.value && !already.has(id)
+  })
 })
 
 const predecessorCandidates = computed(() => {
-  const q = predecessorQuery.value.trim().toLowerCase()
   const already = new Set(predecessorIds.value)
-  return formattedData.value
-    .filter((row) => {
-      const id = String(extractPkFromRow(row.row, pkCols.value) ?? '')
-      if (!id || id === currentRowId.value || already.has(id)) return false
-      if (!q) return true
-      const title = primaryField.value?.title ? String(row.row?.[primaryField.value.title] ?? '').toLowerCase() : ''
-      return title.includes(q)
-    })
-    .slice(0, 20)
+  return formattedData.value.filter((row) => {
+    const id = String(extractPkFromRow(row.row, pkCols.value) ?? '')
+    return !!id && id !== currentRowId.value && !already.has(id)
+  })
 })
+
+// Adapter for NcList — maps candidate rows to its expected `{ value, label }`
+// shape. `_row` rides along so the @change handler hands the original Row
+// back to onLink*Predecessor/Successor without an extra lookup.
+const successorListItems = computed(() =>
+  successorCandidates.value.map((cand) => ({
+    value: String(extractPkFromRow(cand.row, pkCols.value)),
+    label: primaryField.value?.title ? String(cand.row[primaryField.value.title] ?? '') : '',
+    _row: cand,
+  })),
+)
+
+const predecessorListItems = computed(() =>
+  predecessorCandidates.value.map((cand) => ({
+    value: String(extractPkFromRow(cand.row, pkCols.value)),
+    label: primaryField.value?.title ? String(cand.row[primaryField.value.title] ?? '') : '',
+    _row: cand,
+  })),
+)
+
+const onPickSuccessor = (opt: any) => {
+  if (opt?._row) onLinkSuccessor(opt._row)
+}
+
+const onPickPredecessor = (opt: any) => {
+  if (opt?._row) onLinkPredecessor(opt._row)
+}
 
 const onLinkSuccessor = async (row: RowType) => {
   const id = String(extractPkFromRow(row.row, pkCols.value) ?? '')
@@ -246,7 +261,6 @@ const onLinkSuccessor = async (row: RowType) => {
   try {
     await linkDependency(currentRowId.value, id)
     showSuccessorPicker.value = false
-    successorQuery.value = ''
     $e('a:gantt:inspector-link', { direction: 'successor' })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -260,7 +274,6 @@ const onLinkPredecessor = async (row: RowType) => {
     // Predecessor direction: make the OTHER row link TO this one.
     await linkDependency(id, currentRowId.value)
     showPredecessorPicker.value = false
-    predecessorQuery.value = ''
     $e('a:gantt:inspector-link', { direction: 'predecessor' })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -541,31 +554,19 @@ const formatDisplay = (raw: string | null | undefined) => {
             {{ $t('activity.linkRecord') }}
           </NcButton>
         </div>
-        <div v-else-if="showPredecessorPicker && !isPublic" class="space-y-1">
-          <input
-            v-model="predecessorQuery"
-            type="text"
-            :placeholder="$t('general.search')"
-            class="nc-gantt-inspector-input w-full px-2 py-1.5 text-sm rounded border-1 border-nc-border-brand bg-nc-bg-default focus:outline-none"
-            @keydown.esc="showPredecessorPicker = false"
-          />
-          <div class="max-h-40 overflow-y-auto nc-scrollbar-thin border-1 border-nc-border-gray-light rounded">
-            <div
-              v-for="cand in predecessorCandidates"
-              :key="`pred-cand-${extractPkFromRow(cand.row, pkCols)}`"
-              class="px-2 py-1.5 text-xs cursor-pointer hover:bg-nc-bg-gray-extralight truncate focus:bg-nc-bg-gray-extralight focus:outline-none"
-              role="option"
-              tabindex="0"
-              @click="onLinkPredecessor(cand)"
-              @keydown.enter.prevent="onLinkPredecessor(cand)"
-            >
-              {{ primaryField ? cand.row[primaryField.title!] ?? '' : '' }}
-            </div>
-            <div v-if="!predecessorCandidates.length" class="px-2 py-1.5 text-sm text-nc-content-gray-muted text-center">
-              {{ $t('labels.noResults') }}
-            </div>
-          </div>
-        </div>
+        <NcList
+          v-else-if="showPredecessorPicker && !isPublic"
+          v-model:open="showPredecessorPicker"
+          :list="predecessorListItems"
+          variant="small"
+          show-search-always
+          :search-input-placeholder="$t('general.search')"
+          :empty-description="$t('labels.noResults')"
+          item-class-name="text-xs"
+          class="!w-full border-1 border-nc-border-gray-light rounded"
+          @change="onPickPredecessor"
+          @escape="showPredecessorPicker = false"
+        />
       </div>
 
       <!-- Successors — separated from the predecessor block with the same
@@ -624,31 +625,19 @@ const formatDisplay = (raw: string | null | undefined) => {
             {{ $t('activity.linkRecord') }}
           </NcButton>
         </div>
-        <div v-else-if="showSuccessorPicker && !isPublic" class="space-y-1">
-          <input
-            v-model="successorQuery"
-            type="text"
-            :placeholder="$t('general.search')"
-            class="nc-gantt-inspector-input w-full px-2 py-1.5 text-sm rounded border-1 border-nc-border-brand bg-nc-bg-default focus:outline-none"
-            @keydown.esc="showSuccessorPicker = false"
-          />
-          <div class="max-h-40 overflow-y-auto nc-scrollbar-thin border-1 border-nc-border-gray-light rounded">
-            <div
-              v-for="cand in successorCandidates"
-              :key="`succ-cand-${extractPkFromRow(cand.row, pkCols)}`"
-              class="px-2 py-1.5 text-xs cursor-pointer hover:bg-nc-bg-gray-extralight truncate focus:bg-nc-bg-gray-extralight focus:outline-none"
-              role="option"
-              tabindex="0"
-              @click="onLinkSuccessor(cand)"
-              @keydown.enter.prevent="onLinkSuccessor(cand)"
-            >
-              {{ primaryField ? cand.row[primaryField.title!] ?? '' : '' }}
-            </div>
-            <div v-if="!successorCandidates.length" class="px-2 py-1.5 text-sm text-nc-content-gray-muted text-center">
-              {{ $t('labels.noResults') }}
-            </div>
-          </div>
-        </div>
+        <NcList
+          v-else-if="showSuccessorPicker && !isPublic"
+          v-model:open="showSuccessorPicker"
+          :list="successorListItems"
+          variant="small"
+          show-search-always
+          :search-input-placeholder="$t('general.search')"
+          :empty-description="$t('labels.noResults')"
+          item-class-name="text-xs"
+          class="!w-full border-1 border-nc-border-gray-light rounded"
+          @change="onPickSuccessor"
+          @escape="showSuccessorPicker = false"
+        />
       </div>
     </div>
   </div>

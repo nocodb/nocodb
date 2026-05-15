@@ -380,7 +380,7 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
               >
                 {{ dateRangeLabel }}
               </span>
-              <GeneralIcon icon="arrowDown" class="ml-1 text-nc-content-gray-subtle" />
+              <GeneralIcon icon="arrowDown" class="flex-none ml-1 text-nc-content-gray-subtle" />
             </div>
           </NcButton>
           <template #overlay>

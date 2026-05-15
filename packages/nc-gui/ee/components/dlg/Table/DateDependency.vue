@@ -317,8 +317,13 @@ watch(rule, () => {
         </template>
 
         <template v-if="form.is_active || ganttViewId">
-          <!-- Field Mapping -->
-          <div class="grid grid-cols-2 gap-x-6 gap-y-4 mb-4">
+        <div class="space-y-4">
+          <!-- Field Mapping section -->
+          <div>
+            <div class="nc-date-dep-section-header">
+              {{ $t('labels.dateDependency.fieldMapping') }}
+            </div>
+            <div class="grid grid-cols-2 gap-x-6 gap-y-4">
             <!-- Start date -->
             <div>
               <div class="nc-date-dep-label">
@@ -384,14 +389,14 @@ watch(rule, () => {
                 </a-select-option>
               </a-select>
             </div>
-          </div>
+            </div>
 
-          <!-- Inline validation: same field error -->
-          <div v-if="startEndSameFieldError" class="nc-date-dep-error mb-3 -mt-2">
-            {{ startEndSameFieldError }}
-          </div>
+            <!-- Inline validation: same field error -->
+            <div v-if="startEndSameFieldError" class="nc-date-dep-error mt-2">
+              {{ startEndSameFieldError }}
+            </div>
 
-          <div class="grid grid-cols-2 gap-x-6 gap-y-4 mb-4">
+            <div class="grid grid-cols-2 gap-x-6 gap-y-4 mt-4">
             <!-- Duration -->
             <div>
               <div class="nc-date-dep-label">
@@ -464,10 +469,11 @@ watch(rule, () => {
                 {{ $t('labels.dateDependency.linkRowFieldHint') }}
               </div>
             </div>
+            </div>
           </div>
 
           <!-- Include Weekends -->
-          <div class="flex items-center gap-2 mb-4">
+          <div class="flex items-center gap-2">
             <NcSwitch v-model:checked="form.include_weekends" size="small" />
             <span class="text-bodySm text-nc-content-gray-subtle">{{ $t('labels.dateDependency.includeWeekends') }}</span>
             <NcTooltip>
@@ -478,7 +484,7 @@ watch(rule, () => {
 
           <!-- Row-to-row propagation — only when predecessor link selected -->
           <template v-if="form.fk_dependency_linkrow_field_id">
-            <NcDivider class="mb-3" />
+            <NcDivider class="!my-1" />
 
             <div class="nc-date-dep-section-header">
               {{ $t('labels.dateDependency.propagationSection') }}
@@ -568,6 +574,7 @@ watch(rule, () => {
               </div>
             </NcTooltip>
           </template>
+        </div>
         </template>
       </div>
 

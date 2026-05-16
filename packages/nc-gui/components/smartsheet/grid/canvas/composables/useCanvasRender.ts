@@ -1148,12 +1148,59 @@ export function useCanvasRender({
     const hasSaveError = row.rowMeta?.saveError?.reason === 'missingRequired'
 
     /**
-     * 4b. Render comment-count bubble or expand icon (unchanged).
-     * Force the expand icon to render on failed rows even without hover so
-     * the user always has an affordance to open the expanded form and fix
-     * the missing required field (see 4a below).
+     * 4. Render comment-count bubble, save-error marker, or expand icon.
+     *
+     * Save-error wins over the expand icon: we render the warning glyph in
+     * the same slot the maximize button normally occupies, so the click
+     * region (`action: 'comment'` in `extractHoverMetaColRegions`) already
+     * dispatches to `expandForm` — no separate hit test needed. The
+     * tooltip tells the user that clicking the icon opens the row.
      */
-    if (row.rowMeta?.commentCount) {
+    if (hasSaveError) {
+      const missingFields = row.rowMeta!.saveError!.missingFields ?? []
+      const box = {
+        x: xOffset + width - 4 - 20 - rowColouringBoxTotalWidth,
+        y: yOffset + (rowHeight.value - 20) / 2,
+        height: 20,
+        width: 20,
+      }
+      const isErrorHovered = isBoxHovered(box, mousePosition)
+      renderIconButton(ctx, {
+        buttonX: box.x,
+        buttonY: box.y,
+        buttonSize: 20,
+        icon: 'alertTriangleSolid',
+        iconData: {
+          size: 14,
+          xOffset: 3,
+          yOffset: 3,
+          color: getColor(themeV4Colors.yellow['600']),
+        },
+        borderRadius: 6,
+        spriteLoader,
+        background: !isErrorHovered ? 'transparent' : getColor(themeV4Colors.yellow['50']),
+        borderColor: !isErrorHovered ? 'transparent' : getColor(themeV4Colors.yellow['200']),
+        hoveredBackground: getColor(themeV4Colors.yellow['100']),
+        setCursor,
+      })
+      if (isErrorHovered) {
+        const plural = missingFields.length === 1 ? '' : 's'
+        const visibleTitles = new Set(columns.value.map((c) => c.title))
+        const hiddenMissing = missingFields.filter((f) => !visibleTitles.has(f))
+        tryShowTooltip({
+          mousePosition,
+          text:
+            missingFields.length === 1
+              ? t('msg.error.requiredFieldMissing', { fields: missingFields.join(', ') })
+              : t('msg.error.requiredFieldsMissing', { fields: missingFields.join(', ') }),
+          description: hiddenMissing.length
+            ? t('msg.error.rowNotSavedYetHiddenClickToOpen', { plural })
+            : t('msg.error.rowNotSavedYetClickToOpen', { plural }),
+          rect: box,
+          placement: 'right',
+        })
+      }
+    } else if (row.rowMeta?.commentCount) {
       const reduceFontSize = row.rowMeta.commentCount > 99
       const commentCount = reduceFontSize ? '99+' : row.rowMeta.commentCount.toString()
 
@@ -1223,7 +1270,7 @@ export function useCanvasRender({
           },
         })
       }
-    } else if (isHover || isRowCellSelected || hasSaveError) {
+    } else if (isHover || isRowCellSelected) {
       const box = {
         x: xOffset + width - 4 - 20 - rowColouringBoxTotalWidth,
         y: yOffset + (rowHeight.value - 20) / 2,
@@ -1250,51 +1297,6 @@ export function useCanvasRender({
         hoveredBackground: getColor(themeV4Colors.gray['100']),
         setCursor,
       })
-    }
-
-    /**
-     * 4a. Save-error marker (#13838) — rendered AFTER the comment/expand
-     * branch so we know the right-edge slot is reserved (20px expand box).
-     * Position the marker immediately left of that slot so it sits on the
-     * same vertical line as both the comment bubble and the maximize icon.
-     */
-    if (hasSaveError) {
-      const missingFields = row.rowMeta.saveError!.missingFields ?? []
-      const iconSize = 14
-      // 20px expand-icon box + 8px gap so the warning glyph doesn't touch
-      // the expand icon. The expand icon itself starts at `width - 4 - 20`.
-      const rightSlot = 20 + 8
-      const markerBox = {
-        x: xOffset + width - 4 - rightSlot - iconSize - rowColouringBoxTotalWidth,
-        y: yOffset + (rowHeight.value - iconSize) / 2,
-        height: iconSize,
-        width: iconSize,
-      }
-      spriteLoader.renderIcon(ctx, {
-        icon: 'alertTriangleSolid',
-        size: iconSize,
-        color: getColor(themeV4Colors.yellow['600']),
-        x: markerBox.x,
-        y: markerBox.y,
-      })
-      if (isBoxHovered(markerBox, mousePosition)) {
-        setCursor('help')
-        const plural = missingFields.length === 1 ? '' : 's'
-        const visibleTitles = new Set(columns.value.map((c) => c.title))
-        const hiddenMissing = missingFields.filter((f) => !visibleTitles.has(f))
-        tryShowTooltip({
-          mousePosition,
-          text:
-            missingFields.length === 1
-              ? t('msg.error.requiredFieldMissing', { fields: missingFields.join(', ') })
-              : t('msg.error.requiredFieldsMissing', { fields: missingFields.join(', ') }),
-          description: hiddenMissing.length
-            ? t('msg.error.rowNotSavedYetHidden', { plural })
-            : t('msg.error.rowNotSavedYet', { plural }),
-          rect: markerBox,
-          placement: 'right',
-        })
-      }
     }
 
     if (isRowColouringEnabled) {

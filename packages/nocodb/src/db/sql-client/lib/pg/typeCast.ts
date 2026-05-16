@@ -165,25 +165,34 @@ function getDateFormat(format: string) {
   else return 'dmy';
 }
 
+export interface GenerateCastQueryArgs {
+  uidt: UITypes;
+  dt: string;
+  source: string;
+  limit: number;
+  format: string;
+  durationType?: number;
+}
+
 /*
  * Generate query to cast a column to a specific data type based on the UI data type.
  *
- * @param {UITypes} uidt - UI data type
- * @param {String} dt - DB Data type
- * @param {String} source - Source column name
- * @param {Number} limit - Limit for the data type
- * @param {String} dateFormat - Date format
- * @param {String} timeFormat - Time format
+ * @param args.uidt - UI data type
+ * @param args.dt - DB Data type
+ * @param args.source - Source column name
+ * @param args.limit - Limit for the data type
+ * @param args.format - Date format
+ * @param args.durationType - Duration format id (defaults to 0)
  * @returns {String} - query to cast column to a specific data type
  */
-export function generateCastQuery(
-  uidt: UITypes,
-  dt: string,
-  source: string,
-  limit: number,
-  format: string,
+export function generateCastQuery({
+  uidt,
+  dt,
+  source,
+  limit,
+  format,
   durationType = 0,
-) {
+}: GenerateCastQueryArgs) {
   switch (uidt) {
     case UITypes.SingleLineText:
     case UITypes.MultiSelect:

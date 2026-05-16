@@ -1145,50 +1145,13 @@ export function useCanvasRender({
      * the comment / expand slot so both still render — the user needs that
      * expand button to fix the row in the expanded form.
      */
-    if (row.rowMeta?.saveError?.reason === 'missingRequired') {
-      const missingFields = row.rowMeta.saveError.missingFields ?? []
-      const iconSize = 14
-      // Right slot is reserved for the comment bubble / expand button —
-      // anchor the marker just left of it so both stay visible.
-      const rightSlotWidth = 20 + 4
-      const box = {
-        x: xOffset + width - 4 - rightSlotWidth - iconSize - rowColouringBoxTotalWidth,
-        y: yOffset + (rowHeight.value - iconSize) / 2,
-        height: iconSize,
-        width: iconSize,
-      }
-      const isErrorHovered = isBoxHovered(box, mousePosition)
-      spriteLoader.renderIcon(ctx, {
-        icon: 'alertTriangleSolid',
-        size: iconSize,
-        color: getColor(themeV4Colors.yellow['600']),
-        x: box.x,
-        y: box.y,
-      })
-      if (isErrorHovered) {
-        setCursor('help')
-        const plural = missingFields.length === 1 ? '' : 's'
-        // Cross-reference against the currently rendered view fields so the
-        // hint can tell the user to open the expanded form (vs fill inline).
-        const visibleTitles = new Set(columns.value.map((c) => c.title))
-        const hiddenMissing = missingFields.filter((f) => !visibleTitles.has(f))
-        tryShowTooltip({
-          mousePosition,
-          text:
-            missingFields.length === 1
-              ? t('msg.error.requiredFieldMissing', { fields: missingFields.join(', ') })
-              : t('msg.error.requiredFieldsMissing', { fields: missingFields.join(', ') }),
-          description: hiddenMissing.length
-            ? t('msg.error.rowNotSavedYetHidden', { plural })
-            : t('msg.error.rowNotSavedYet', { plural }),
-          rect: box,
-          placement: 'right',
-        })
-      }
-    }
+    const hasSaveError = row.rowMeta?.saveError?.reason === 'missingRequired'
 
     /**
      * 4b. Render comment-count bubble or expand icon (unchanged).
+     * Force the expand icon to render on failed rows even without hover so
+     * the user always has an affordance to open the expanded form and fix
+     * the missing required field (see 4a below).
      */
     if (row.rowMeta?.commentCount) {
       const reduceFontSize = row.rowMeta.commentCount > 99
@@ -1260,7 +1223,7 @@ export function useCanvasRender({
           },
         })
       }
-    } else if (isHover || isRowCellSelected) {
+    } else if (isHover || isRowCellSelected || hasSaveError) {
       const box = {
         x: xOffset + width - 4 - 20 - rowColouringBoxTotalWidth,
         y: yOffset + (rowHeight.value - 20) / 2,
@@ -1287,6 +1250,49 @@ export function useCanvasRender({
         hoveredBackground: getColor(themeV4Colors.gray['100']),
         setCursor,
       })
+    }
+
+    /**
+     * 4a. Save-error marker (#13838) — rendered AFTER the comment/expand
+     * branch so we know the right-edge slot is reserved (20px expand box).
+     * Position the marker immediately left of that slot so it sits on the
+     * same vertical line as both the comment bubble and the maximize icon.
+     */
+    if (hasSaveError) {
+      const missingFields = row.rowMeta.saveError!.missingFields ?? []
+      const iconSize = 14
+      const rightSlot = 20 + 4
+      const markerBox = {
+        x: xOffset + width - 4 - rightSlot - iconSize - rowColouringBoxTotalWidth,
+        y: yOffset + (rowHeight.value - iconSize) / 2,
+        height: iconSize,
+        width: iconSize,
+      }
+      spriteLoader.renderIcon(ctx, {
+        icon: 'alertTriangleSolid',
+        size: iconSize,
+        color: getColor(themeV4Colors.yellow['600']),
+        x: markerBox.x,
+        y: markerBox.y,
+      })
+      if (isBoxHovered(markerBox, mousePosition)) {
+        setCursor('help')
+        const plural = missingFields.length === 1 ? '' : 's'
+        const visibleTitles = new Set(columns.value.map((c) => c.title))
+        const hiddenMissing = missingFields.filter((f) => !visibleTitles.has(f))
+        tryShowTooltip({
+          mousePosition,
+          text:
+            missingFields.length === 1
+              ? t('msg.error.requiredFieldMissing', { fields: missingFields.join(', ') })
+              : t('msg.error.requiredFieldsMissing', { fields: missingFields.join(', ') }),
+          description: hiddenMissing.length
+            ? t('msg.error.rowNotSavedYetHidden', { plural })
+            : t('msg.error.rowNotSavedYet', { plural }),
+          rect: markerBox,
+          placement: 'right',
+        })
+      }
     }
 
     if (isRowColouringEnabled) {

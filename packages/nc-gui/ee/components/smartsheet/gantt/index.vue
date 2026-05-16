@@ -65,6 +65,7 @@ const {
   minorLabels,
   allowedZoomLevels,
   inspectorRecord,
+  loadDependencyLinks,
 } = useGanttViewStoreOrThrow()
 
 // Multi-word scale labels go through `t()`; the rest fall back to `objects.<key>`.
@@ -227,6 +228,14 @@ const reloadData = async () => {
       isViewDataLoading.value = false
       isPaginationLoading.value = false
     }
+    // loadGroups only loads per-group row data; the dependency graph
+    // (used by GroupedCrossArrows + per-Grid in-group arrows) lives in
+    // its own endpoint. Flat mode loads it as a side effect of
+    // _fetchGanttRecordsImpl — grouped mode has to invoke it explicitly,
+    // otherwise the arrows are invisible until the user reloads (which
+    // briefly passes through the flat path while isGroupBy is still
+    // false from the initial defaults).
+    loadDependencyLinks()
   } else {
     await loadGanttData()
   }

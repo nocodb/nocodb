@@ -506,8 +506,8 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
         ['title', 'column_name', 'description', 'meta'].some((k) => k in diffs) ||
         ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id) ||
         ('fk_display_value_column_id' in diffs &&
-          diffs.fk_display_value_column_id !==
-            (col.colOptions as LinkToAnotherRecordType | undefined)?.fk_display_value_column_id) ||
+          (diffs.fk_display_value_column_id ?? null) !==
+            ((col.colOptions as LinkToAnotherRecordType | undefined)?.fk_display_value_column_id ?? null)) ||
         checkForFilterChange(diffs.filters || [])
       ) {
         ops.value = [

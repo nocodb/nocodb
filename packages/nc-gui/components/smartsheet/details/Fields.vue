@@ -1109,14 +1109,9 @@ const saveChanges = async () => {
   }
 }
 
-const toggleVisibility = async (checked: boolean, field: Field) => {
-  if (!field?.fk_column_id) return
+const { confirmHide } = useHideRequiredFieldConfirm()
 
-  if (field.fk_column_id && fieldStatuses.value[field.fk_column_id]) {
-    message.warning(t('msg.warning.multiField.fieldVisibility'))
-    return
-  }
-
+const stageVisibilityOp = (checked: boolean, field: Field) => {
   const visibilityOpIndex = visibilityOps.value.findIndex((op) => op.column.fk_column_id === field.fk_column_id)
 
   if (visibilityOpIndex !== -1) {
@@ -1132,6 +1127,28 @@ const toggleVisibility = async (checked: boolean, field: Field) => {
     visible: checked,
     column: field,
   })
+}
+
+const toggleVisibility = async (checked: boolean, field: Field) => {
+  if (!field?.fk_column_id) return
+
+  if (field.fk_column_id && fieldStatuses.value[field.fk_column_id]) {
+    message.warning(t('msg.warning.multiField.fieldVisibility'))
+    return
+  }
+
+  // Hiding a required NOT-NULL-no-default column would silently break
+  // inline row create (#13838) — warn the user before staging the op.
+  // Showing a field is always safe; only gate the hide direction.
+  if (!checked) {
+    const column = meta.value?.columnsById?.[field.fk_column_id] as ColumnType | undefined
+    confirmHide(column, () => {
+      stageVisibilityOp(checked, field)
+    })
+    return
+  }
+
+  stageVisibilityOp(checked, field)
 }
 
 const showOrHideAllFields = (isAllFieldsVisible = false) => {

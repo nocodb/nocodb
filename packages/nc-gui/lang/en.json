@@ -3478,6 +3478,10 @@
       },
       "duplicateProject": "Are you sure you want to duplicate the base?",
       "duplicateTable": "Are you sure you want to duplicate the table?",
+      "hideRequiredField": {
+        "title": "Hide required field '{field}'?",
+        "content": "This field is required (NOT NULL with no default). Hiding it means new records added in this view will need to be opened in the expanded form to fill the required value before they can be saved."
+      },
       "multiField": {
         "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",
         "moveEditedField": "You cannot move field that is being edited. Either save or discard changes first",

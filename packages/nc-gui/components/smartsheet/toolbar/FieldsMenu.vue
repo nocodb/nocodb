@@ -488,6 +488,8 @@ const showAddLookupDropdown = (field: Field) => {
   return !!(isAddingColumnAllowed.value && !isLocalMode.value && isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id]))
 }
 
+const { confirmHide } = useHideRequiredFieldConfirm()
+
 function conditionalToggleFieldVisibility(field: Field) {
   if (showAddLookupDropdown(field) || isFieldsMenuReadOnly.value) {
     return
@@ -498,14 +500,36 @@ function conditionalToggleFieldVisibility(field: Field) {
     return
   }
 
-  field.show = !field.show
-  toggleFieldVisibility(field.show, field)
+  // Hiding a required NOT-NULL-no-default column would silently break
+  // inline row create (#13838) — warn the user. Showing a hidden field
+  // is always safe; only gate the hide direction.
+  const turningOff = field.show
+  if (turningOff) {
+    const column = meta.value?.columnsById?.[field.fk_column_id!] as ColumnType | undefined
+    confirmHide(column, () => {
+      field.show = false
+      toggleFieldVisibility(false, field)
+    })
+    return
+  }
+
+  field.show = true
+  toggleFieldVisibility(true, field)
 }
 
 function handleFieldVisibilityClick(field: Field) {
   if (isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id!])) {
-    field.show = !field.show
-    toggleFieldVisibility(field.show, field)
+    const turningOff = field.show
+    if (turningOff) {
+      const column = meta.value?.columnsById?.[field.fk_column_id!] as ColumnType | undefined
+      confirmHide(column, () => {
+        field.show = false
+        toggleFieldVisibility(false, field)
+      })
+      return
+    }
+    field.show = true
+    toggleFieldVisibility(true, field)
   }
 }
 

@@ -3593,8 +3593,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           source,
           ignoreRls: true,
           // Skip public-viewer email redaction during this read — afterInsert
-          // fires the webhook with full emails, then redactPublicForResponse
-          // mutates `response` back to redacted before we return.
+          // fires the webhook with full emails, then we redact `response` in
+          // place below before returning to the API caller.
           skipPublicRedaction: true,
         });
       }
@@ -3613,6 +3613,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         req: request,
         insertData: data,
       });
+
+      // Counterpart to `skipPublicRedaction: true` above — restore the
+      // public-viewer redaction on the response after the webhook has fired.
+      await this.redactPublicForResponse(response);
 
       await this.statsUpdate({
         count: 1,
@@ -5344,7 +5348,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req: NcRequest;
   }): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
-    await this.redactPublicForResponse(data);
     const id = this.extractPksValues(data);
     const filteredAuditData = removeBlankPropsAndMask(insertData || data, [
       'CreatedAt',
@@ -5387,7 +5390,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     req: NcRequest,
   ): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
-    await this.redactPublicForResponse(data);
     let parentAuditId;
 
     // disable external source audit in cloud
@@ -5486,7 +5488,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     await this.handleHooks('after.delete', null, data, req);
-    await this.redactPublicForResponse(data);
   }
 
   public async afterBulkDelete(
@@ -5497,7 +5498,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     rowEventType: AuditV1OperationTypes = AuditV1OperationTypes.DATA_DELETE,
   ): Promise<void> {
     await this.handleHooks('after.bulkDelete', null, data, req);
-    await this.redactPublicForResponse(data);
 
     // bulkAll chunks rows into 100-row batches and calls afterBulkDelete per
     // chunk. The first chunk creates the parent audit; later chunks reuse
@@ -5639,7 +5639,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ): Promise<void> {
     if (!isBulkAllOperation && Array.isArray(newData)) {
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
-      await this.redactPublicForResponse(prevData, newData);
     }
 
     if (!Array.isArray(newData)) return;
@@ -5841,7 +5840,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
       await this.handleHooks('after.update', prevData, newData, req);
     }
-    await this.redactPublicForResponse(prevData, newData);
     await this.handleRichTextMentions(prevData, newData, req);
   }
 

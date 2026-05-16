@@ -37,6 +37,11 @@ const onAddExtension = (ext: any) => {
   vModel.value = false
 }
 
+const onUpgradeToAdd = () => {
+  navigateToPricing({ limitOrFeature: PlanFeatureTypes.FEATURE_EXTENSIONS })
+  vModel.value = false
+}
+
 const activeExtension = computed(() => {
   return availableExtensions.value.find((ext) => ext.id === props.extensionId)
 })
@@ -105,11 +110,7 @@ const detailsBody = computed(() => {
             <template #title>
               {{ $t('upgrade.upgradeToAddMoreExtensions') }}
             </template>
-            <NcButton
-              size="small"
-              class="w-full nc-upgrade-plan-btn"
-              @click="navigateToPricing({ limitOrFeature: PlanFeatureTypes.FEATURE_EXTENSIONS })"
-            >
+            <NcButton size="small" class="w-full nc-upgrade-plan-btn" @click="onUpgradeToAdd">
               <div class="flex items-center justify-center gap-2">
                 <GeneralIcon icon="ncArrowUpCircle" class="h-4 w-4" />
 

@@ -503,7 +503,7 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
       field.column = state
     } else if (isLinksOrLTAR(state) && !skipLinkChecks) {
       if (
-        ['title', 'column_name', 'meta'].some((k) => k in diffs) ||
+        ['title', 'column_name', 'description', 'meta'].some((k) => k in diffs) ||
         ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id) ||
         ('fk_display_value_column_id' in diffs &&
           diffs.fk_display_value_column_id !==

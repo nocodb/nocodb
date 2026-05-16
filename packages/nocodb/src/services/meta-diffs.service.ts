@@ -839,7 +839,14 @@ export class MetaDiffsService {
       return;
     }
 
-    const virtualColumnInsert: Array<() => Promise<void>> = [];
+    // Group queued virtual-column inserts by target model so callbacks
+    // writing to the same model run sequentially. Without this, two
+    // concurrent inserts targeting the same table can each compute the
+    // same unique title against a stale snapshot.
+    const virtualColumnInsertByTarget = new Map<
+      string,
+      Array<() => Promise<void>>
+    >();
 
     logger?.(`Getting meta diff for ${source.alias}`);
 
@@ -1044,7 +1051,19 @@ export class MetaDiffsService {
             break;
           case MetaDiffType.TABLE_RELATION_ADD:
             {
-              virtualColumnInsert.push(async () => {
+              // Group by the model the virtual column will be inserted into:
+              //   BELONGS_TO -> LTAR column on child table (change.tn)
+              //   HAS_MANY   -> Links column on parent table (change.rtn)
+              const targetTable =
+                change.relationType === RelationTypes.BELONGS_TO
+                  ? change.tn
+                  : change.rtn;
+              let group = virtualColumnInsertByTarget.get(targetTable);
+              if (!group) {
+                group = [];
+                virtualColumnInsertByTarget.set(targetTable, group);
+              }
+              group.push(async () => {
                 const parentModel = await Model.getByIdOrName(context, {
                   base_id: source.base_id,
                   source_id: source.id,
@@ -1103,8 +1122,12 @@ export class MetaDiffsService {
                     dr,
                   });
                 } else if (change.relationType === RelationTypes.HAS_MANY) {
+                  // Uniqueness is checked against parentModel.columns — the
+                  // model the column is inserted into. Sibling HAS_MANY
+                  // inserts for the same parent are serialized below so each
+                  // sees the previous insert when computing its title.
                   const title = getUniqueColumnAliasName(
-                    childModel.columns,
+                    parentModel.columns,
                     pluralize(childModel.title || childModel.table_name),
                   );
                   await Column.insert<LinkToAnotherRecordColumn>(context, {
@@ -1134,7 +1157,18 @@ export class MetaDiffsService {
 
     logger?.(`Processing virtual column changes`);
 
-    await NcHelp.executeOperations(virtualColumnInsert, source.type);
+    // Run each per-target group sequentially so siblings inserting into the
+    // same model see each other's columns when computing unique titles.
+    // Different groups still run in parallel (via NcHelp.executeOperations).
+    const targetGroupRunners: Array<() => Promise<void>> = [];
+    for (const fns of virtualColumnInsertByTarget.values()) {
+      targetGroupRunners.push(async () => {
+        for (const fn of fns) {
+          await fn();
+        }
+      });
+    }
+    await NcHelp.executeOperations(targetGroupRunners, source.type);
 
     logger?.(`Virtual column changes applied`);
 

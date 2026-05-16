@@ -426,7 +426,7 @@ export const useEeConfig = createSharedComposable(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_BOOKMARKS)
   })
   const blockExtensions = computed(() => {
-    return !getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS)
+    return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_EXTENSIONS)
   })
   const blockWorkspaceCreate = computed(() => {
     // On-prem with workspace limit from plan meta
@@ -787,20 +787,20 @@ export const useEeConfig = createSharedComposable(() => {
     const tierTitleKey = isBusinessTier
       ? 'upgrade.businessFeatureTitle'
       : isScaleTier
-        ? 'upgrade.scaleFeatureTitle'
-        : 'upgrade.enterpriseFeatureTitle'
+      ? 'upgrade.scaleFeatureTitle'
+      : 'upgrade.enterpriseFeatureTitle'
     const modalTitle = ref(title || t(tierTitleKey))
 
     const subtitleKey = isBusinessTier
       ? 'upgrade.businessFeatureSubtitle'
       : isScaleTier
-        ? 'upgrade.scaleFeatureSubtitle'
-        : 'upgrade.enterpriseFeatureSubtitle'
+      ? 'upgrade.scaleFeatureSubtitle'
+      : 'upgrade.enterpriseFeatureSubtitle'
     const enterLicenseKey = isBusinessTier
       ? 'upgrade.businessFeatureEnterLicense'
       : isScaleTier
-        ? 'upgrade.scaleFeatureEnterLicense'
-        : 'upgrade.enterpriseFeatureEnterLicense'
+      ? 'upgrade.scaleFeatureEnterLicense'
+      : 'upgrade.enterpriseFeatureEnterLicense'
 
     const modalContent = ref(
       content ||
@@ -2114,13 +2114,13 @@ export const useEeConfig = createSharedComposable(() => {
     const titleKey = isBusinessTier
       ? 'upgrade.businessFeatureTitle'
       : isScaleTier
-        ? 'upgrade.scaleFeatureTitle'
-        : 'upgrade.enterpriseFeatureTitle'
+      ? 'upgrade.scaleFeatureTitle'
+      : 'upgrade.enterpriseFeatureTitle'
     const subtitleKey = isBusinessTier
       ? 'upgrade.businessFeatureSubtitle'
       : isScaleTier
-        ? 'upgrade.scaleFeatureSubtitle'
-        : 'upgrade.enterpriseFeatureSubtitle'
+      ? 'upgrade.scaleFeatureSubtitle'
+      : 'upgrade.enterpriseFeatureSubtitle'
 
     if (isEEFeatureBlocked.value) {
       handleOnPremUpgrade({

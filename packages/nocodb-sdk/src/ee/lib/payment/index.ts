@@ -81,7 +81,6 @@ export const CloudPlanDefinitions: Record<
       [PlanFeatureTypes.FEATURE_AT_MENTION]: false,
       [PlanFeatureTypes.FEATURE_COMMENT_RESOLVE]: false,
       [PlanFeatureTypes.FEATURE_CUSTOM_URL]: false,
-      [PlanFeatureTypes.FEATURE_EXTENSIONS]: false,
       [PlanFeatureTypes.FEATURE_FILE_MODE]: false,
       [PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION]: false,
       [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: false,

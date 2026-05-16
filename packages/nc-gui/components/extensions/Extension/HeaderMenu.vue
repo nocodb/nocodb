@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlanFeatureTypes } from 'nocodb-sdk'
+import { PlanLimitTypes, PlanTitles } from 'nocodb-sdk'
 
 interface Props {
   isFullscreen?: boolean
@@ -13,7 +13,23 @@ const { activeError, extension } = useExtensionHelperOrThrow()
 
 const { extensionAccess } = useExtensions()
 
-const { showEEFeatures } = useEeConfig()
+const { showEEFeatures, blockExtensions, blockAddNewExtension, handleUpgradePlan } = useEeConfig()
+
+const { t } = useI18n()
+
+const isDuplicateBlocked = computed(() => blockExtensions.value || blockAddNewExtension.value)
+
+const onDuplicate = () => {
+  if (isDuplicateBlocked.value) {
+    handleUpgradePlan({
+      content: t('upgrade.upgradeToAddMoreExtensions'),
+      limitOrFeature: PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE,
+      newPlanTitle: PlanTitles.PLUS,
+    })
+    return
+  }
+  emits('duplicate')
+}
 </script>
 
 <template>
@@ -42,25 +58,25 @@ const { showEEFeatures } = useEeConfig()
               Rename
             </NcMenuItem>
 
-            <PaymentUpgradeBadgeProvider
+            <NcMenuItem
               v-if="extensionAccess.create && showEEFeatures"
-              :feature="PlanFeatureTypes.FEATURE_EXTENSIONS"
+              data-rec="true"
+              class="group"
+              inner-class="w-full"
+              @click="onDuplicate"
             >
-              <template #default="{ click }">
-                <NcMenuItem
-                  data-rec="true"
-                  class="group"
-                  @click="click(PlanFeatureTypes.FEATURE_EXTENSIONS, () => emits('duplicate'))"
-                >
-                  <GeneralIcon icon="duplicate" />
-                  Duplicate
-                  <LazyPaymentUpgradeBadge
-                    :feature="PlanFeatureTypes.FEATURE_EXTENSIONS"
-                    :content="$t('upgrade.upgradeToAddMoreExtensions')"
-                  />
-                </NcMenuItem>
-              </template>
-            </PaymentUpgradeBadgeProvider>
+              <GeneralIcon icon="duplicate" />
+
+              <div class="flex-1">Duplicate</div>
+
+              <LazyPaymentUpgradeBadge
+                :plan-title="PlanTitles.PLUS"
+                :limit-or-feature="PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE"
+                :feature-enabled-callback="() => !isDuplicateBlocked"
+                :content="$t('upgrade.upgradeToAddMoreExtensions')"
+                remove-click
+              />
+            </NcMenuItem>
 
             <NcMenuItem data-rec="true" @click="emits('showDetails')">
               <GeneralIcon icon="info" />

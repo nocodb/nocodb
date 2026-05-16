@@ -966,6 +966,22 @@ const onAddColumnDropdownVisibilityChange = () => {
                           </NcButton>
                         </div>
 
+                        <NcTooltip
+                          v-if="!field.show && isHideBlockingRequired(meta?.columnsById?.[field.fk_column_id!])"
+                          placement="left"
+                          class="flex items-center mr-1.5"
+                        >
+                          <template #title>
+                            {{ $t('msg.warning.hideRequiredField.hiddenBadge') }}
+                          </template>
+                          <GeneralIcon
+                            icon="alertTriangleSolid"
+                            class="!w-3.5 !h-3.5 text-nc-content-yellow-dark"
+                            data-testid="nc-field-hidden-required-warning"
+                            @click.stop
+                          />
+                        </NcTooltip>
+
                         <span class="flex children:flex-none" @click.stop="conditionalToggleFieldVisibility(field)">
                           <NcSwitch
                             :checked="field.show"

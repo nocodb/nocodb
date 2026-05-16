@@ -2118,6 +2118,26 @@ onBeforeRouteUpdate((_to, from, next) => {
                           {{ fieldState(field)?.title || field.title }}
                         </span>
                       </NcTooltip>
+
+                      <NcTooltip
+                        v-if="
+                          field.id &&
+                          viewFieldsMap[field.id] &&
+                          !(visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show) &&
+                          isHideBlockingRequired(field)
+                        "
+                        placement="left"
+                      >
+                        <template #title>
+                          {{ $t('msg.warning.hideRequiredField.hiddenBadge') }}
+                        </template>
+                        <GeneralIcon
+                          icon="alertTriangleSolid"
+                          class="!w-3.5 !h-3.5 text-nc-content-yellow-dark"
+                          data-testid="nc-field-hidden-required-warning"
+                          @click.stop
+                        />
+                      </NcTooltip>
                     </div>
                     <div class="flex items-center justify-end gap-1">
                       <div class="nc-field-status-wrapper flex items-center">

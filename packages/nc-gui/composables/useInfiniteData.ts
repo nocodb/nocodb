@@ -1344,22 +1344,43 @@ export function useInfiniteData(args: {
         // Frontend pre-check rejected the insert: at least one required
         // (NOT NULL, no default, not auto-generated) column is null. Don't
         // call the API — keep the optimistic row in the cache so the user
-        // can either fill the missing field inline (auto-retry) or open the
-        // expanded form. Surfacing this used to be a silent bail (#13838).
-        const missingFields = [...missingRequiredColumns].filter(
-          (f): f is string => typeof f === 'string',
-        )
+        // can either fill the missing field inline (which re-fires this
+        // path via `updateOrSaveRow`) or open the expanded form. Surfacing
+        // this used to be a silent bail (#13838).
+        //
+        // `updateOrSaveRow` re-runs `insertRow` on every cell commit for a
+        // new row, so we'd toast on every keystroke past the first. Compare
+        // against the previous saveError and skip the toast (but keep the
+        // marker updated) when the missing-field set is unchanged.
+        const missingFields = [...missingRequiredColumns]
+          .filter((f): f is string => typeof f === 'string')
+          .sort()
+        const prev = currentRow.rowMeta.saveError
+        const sameAsBefore =
+          prev?.reason === 'missingRequired' &&
+          prev.missingFields.length === missingFields.length &&
+          prev.missingFields.every((f, i) => f === missingFields[i])
+
         currentRow.rowMeta.saveError = {
           reason: 'missingRequired',
           missingFields,
         }
-        const fieldList = missingFields.join(', ')
-        message.error(
-          missingFields.length === 1
-            ? t('msg.error.requiredFieldMissing', { fields: fieldList })
-            : t('msg.error.requiredFieldsMissing', { fields: fieldList }),
-        )
+
+        if (!sameAsBefore) {
+          const fieldList = missingFields.join(', ')
+          message.error(
+            missingFields.length === 1
+              ? t('msg.error.requiredFieldMissing', { fields: fieldList })
+              : t('msg.error.requiredFieldsMissing', { fields: fieldList }),
+          )
+        }
         return insertObj
+      }
+
+      // Clearing on the path that's about to call the API means a previously
+      // failed row that just had its missing field filled gets a clean retry.
+      if (currentRow.rowMeta.saveError) {
+        currentRow.rowMeta.saveError = undefined
       }
 
       const insertedData = await $api.dbViewRow.create(

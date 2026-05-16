@@ -5857,16 +5857,140 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     newData: Record<string, any> | Record<string, any>[] | null,
     req: NcRequest,
   ): Promise<void> {
+    // Public form submissions arrive with context.is_public=true, which causes
+    // _convertUserFormat (during readByPk after insert) to redact user emails
+    // on User / CreatedBy / LastModifiedBy / Lookup-of-User columns. Webhook
+    // destinations are server-side and the workspace owner configured them, so
+    // re-fill emails on a clone of the payload before emitting. The original
+    // (redacted) `prevData` / `newData` are still returned to the form filler
+    // as the API response — the redaction stays in place for them.
+    let hookPrevData = prevData;
+    let hookNewData = newData;
+    if (this.context?.is_public) {
+      hookPrevData = await this.cloneAndReEnrichRedactedUserEmails(prevData);
+      hookNewData = await this.cloneAndReEnrichRedactedUserEmails(newData);
+    }
+
     Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
       context: { ...this.context, cache: false, cacheMap: undefined },
       hookName,
-      prevData,
-      newData,
+      prevData: hookPrevData,
+      newData: hookNewData,
       user: req?.user,
       viewId: this.viewId,
       modelId: this.model.id,
       tnPath: this.tnPath,
     });
+  }
+
+  // Deep-clone the payload and fill `email: ''` back in on every user-shaped
+  // object whose `id` matches a base user. Only walks values that belong to
+  // columns whose uidt can plausibly carry a user object (User / CreatedBy /
+  // LastModifiedBy / Lookup / Formula / Rollup) — this avoids false positives
+  // in JSON / Text columns whose contents coincidentally share the shape.
+  // The base-user list is fetched lazily — if the payload has no redacted
+  // user objects we don't hit the DB.
+  protected async cloneAndReEnrichRedactedUserEmails<T>(data: T): Promise<T> {
+    if (ncIsNullOrUndefined(data)) return data;
+
+    const userBearingUidts = new Set<UITypes>([
+      UITypes.User,
+      UITypes.CreatedBy,
+      UITypes.LastModifiedBy,
+      UITypes.Lookup,
+      UITypes.Formula,
+      UITypes.Rollup,
+    ]);
+    const candidateColumns = (this.model?.columns ?? []).filter((c) =>
+      userBearingUidts.has(c.uidt as UITypes),
+    );
+    if (!candidateColumns.length) return data;
+
+    // Deep-clone via JSON to avoid mutating the API response. If the payload
+    // contains non-serialisable values (BigInt, circular refs), fall back to
+    // the original — webhook still fires with redacted emails, which is
+    // better than dropping the event entirely.
+    let cloned: T;
+    try {
+      cloned = JSON.parse(JSON.stringify(data)) as T;
+    } catch (e) {
+      logger.warn(
+        `cloneAndReEnrichRedactedUserEmails: clone failed, emitting webhook with redacted emails: ${
+          (e as Error)?.message ?? e
+        }`,
+      );
+      return data;
+    }
+
+    let userMap: Map<string, Partial<User>> | null = null;
+    const loadUserMap = async () => {
+      if (userMap) return;
+      try {
+        const users = await BaseUser.getUsersList(this.context, {
+          base_id: this.model.base_id,
+          include_internal_user: true,
+        });
+        userMap = new Map(users.map((u) => [u.id, u]));
+      } catch {
+        userMap = new Map();
+      }
+    };
+
+    const isRedactedUser = (v: any): boolean =>
+      !!v &&
+      typeof v === 'object' &&
+      !Array.isArray(v) &&
+      typeof v.id === 'string' &&
+      v.email === '' &&
+      'display_name' in v;
+
+    const walk = async (node: any): Promise<void> => {
+      if (node === null || node === undefined) return;
+      if (Array.isArray(node)) {
+        for (const item of node) await walk(item);
+        return;
+      }
+      if (typeof node !== 'object') return;
+
+      if (isRedactedUser(node)) {
+        await loadUserMap();
+        const u = userMap!.get(node.id);
+        if (u?.email) {
+          node.email = u.email;
+          if (!node.display_name && u.display_name) {
+            node.display_name = u.display_name;
+          }
+        }
+        return;
+      }
+
+      for (const k of Object.keys(node)) {
+        await walk(node[k]);
+      }
+    };
+
+    // Entry point: for each row, only descend into values belonging to
+    // user-bearing columns. Rows may be keyed by col.id (raw model rows) or
+    // col.title (alias-mapped API output) depending on where in the pipeline
+    // handleHooks is invoked — check id first, fall back to title.
+    const processRow = async (row: any) => {
+      if (!row || typeof row !== 'object' || Array.isArray(row)) return;
+      for (const col of candidateColumns) {
+        if (col.id && row[col.id] !== undefined) {
+          await walk(row[col.id]);
+        } else if (col.title && row[col.title] !== undefined) {
+          await walk(row[col.title]);
+        }
+      }
+    };
+
+    if (Array.isArray(cloned)) {
+      for (const row of cloned) await processRow(row);
+    } else {
+      await processRow(cloned);
+    }
+
+    return cloned;
   }
 
   public async errorInsert(

@@ -2,24 +2,16 @@ import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
 /**
- * Backfill cleanup for orphan rows in nc_base_users_v2.
- *
- * Before this migration, the org-level user removal flow
- * (`removeUserFromOrgCascade`) did not delete direct base memberships,
- * leaving orphan rows in nc_base_users_v2. These orphans inflated the
- * on-prem seat count reported by `NocoLicense.calculateGlobalSeatCount`.
- *
- * We delete base user rows in three cases:
- *  1. The user no longer exists in nc_users.
- *  2. The user is soft-deleted (`is_deleted = TRUE`).
- *  3. A soft-deleted workspace_user exists for the same (user, workspace)
- *     AND no active workspace_user exists for that pair. This is the
- *     exact shape produced by the org-cascade bug — narrow on purpose so
- *     legacy base-only assignments (rows with no workspace_user at all,
- *     possible in pre-EE-enforcement data) are not collateral damage.
+ * Backfill: delete orphan rows in nc_base_users_v2 that inflated the
+ * on-prem seat count. Targets three cases:
+ *  1. fk_user_id no longer exists in nc_users
+ *  2. user is soft-deleted
+ *  3. workspace_user is soft-deleted with no active sibling row
+ *     (rows with null fk_workspace_id are skipped on purpose, to avoid
+ *     collateral damage to legacy base-only assignments).
  */
 const up = async (knex: Knex) => {
-  // 1. User row no longer exists
+  // Case 1: user row no longer exists
   await knex(MetaTable.PROJECT_USERS)
     .whereNotExists(function () {
       this.select(knex.raw('1'))
@@ -30,7 +22,7 @@ const up = async (knex: Knex) => {
     })
     .delete();
 
-  // 2. User is soft-deleted
+  // Case 2: user is soft-deleted
   await knex(MetaTable.PROJECT_USERS)
     .whereIn(
       'fk_user_id',
@@ -38,9 +30,7 @@ const up = async (knex: Knex) => {
     )
     .delete();
 
-  // 3. Soft-deleted workspace_user exists AND no active one — the precise
-  //    shape produced by the buggy org-cascade flow. Skipping rows with a
-  //    null fk_workspace_id (pre-multi-workspace) is intentional.
+  // Case 3: soft-deleted workspace_user pair with no active sibling
   await knex(MetaTable.PROJECT_USERS)
     .whereNotNull('fk_workspace_id')
     .whereExists(function () {

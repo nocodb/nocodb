@@ -640,13 +640,8 @@ export default class NocoLicense {
     const seatUsersMap = new Map<string, true>();
     const nonSeatUsersMap = new Map<string, true>();
 
-    // Pre-fetch active workspace and base IDs so role-bearing rows tied
-    // to soft-deleted workspaces/bases don't inflate the seat count.
-    // Excludes soft-deleted and snapshot bases. Sandbox bases ARE
-    // counted — a direct assignment to a sandbox is still a paid seat,
-    // and the cascade paths clean those rows on user removal (see
-    // `includeSandbox: true` in `cleanupWorkspaceUser` /
-    // `removeUserFromOrgCascade`).
+    // Sandbox bases are intentionally included — direct sandbox assignments
+    // are seat-consuming and are cleaned up on user removal.
     const activeWorkspaces = await ncMeta
       .knexConnection(MetaTable.WORKSPACE)
       .select('id')
@@ -665,6 +660,16 @@ export default class NocoLicense {
         this.where('is_snapshot', false).orWhereNull('is_snapshot');
       });
     const activeBaseIds = activeBases.map((b) => b.id);
+
+    // Restrict a join to rows whose target id is in `ids`; if `ids` is
+    // empty, force the join to never match (avoids `IN ()` SQL errors).
+    const restrictJoinToIds = (join: any, col: string, ids: string[]) => {
+      if (ids.length > 0) {
+        join.andOnIn(col, ids);
+      } else {
+        join.andOn(ncMeta.knex.raw('1 = 0'));
+      }
+    };
 
     // Subquery for workspace team roles (teams → workspace roles per user)
     const workspaceTeamRolesSubquery = ncMeta.knexConnection
@@ -687,12 +692,7 @@ export default class NocoLicense {
             '=',
             ncMeta.knex.raw('?', [false]),
           );
-        if (activeWorkspaceIds.length > 0) {
-          this.andOnIn('wta.resource_id', activeWorkspaceIds);
-        } else {
-          // No active workspaces — force the join to never match
-          this.andOn(ncMeta.knex.raw('1 = 0'));
-        }
+        restrictJoinToIds(this, 'wta.resource_id', activeWorkspaceIds);
       })
       .where('pa.principal_type', '=', 'user')
       .where('pa.resource_type', '=', 'team')
@@ -725,12 +725,7 @@ export default class NocoLicense {
             '=',
             ncMeta.knex.raw('?', [false]),
           );
-        if (activeBaseIds.length > 0) {
-          this.andOnIn('bta.resource_id', activeBaseIds);
-        } else {
-          // No active bases — force the join to never match
-          this.andOn(ncMeta.knex.raw('1 = 0'));
-        }
+        restrictJoinToIds(this, 'bta.resource_id', activeBaseIds);
       })
       .where('pa.principal_type', '=', 'user')
       .where('pa.resource_type', '=', 'team')
@@ -752,39 +747,24 @@ export default class NocoLicense {
         'btr.base_team_roles as base_team_roles',
       )
       .from(MetaTable.USERS)
-      // Left join with direct workspace users — only count memberships
-      // in active (non-soft-deleted) workspaces
       .leftJoin(`${MetaTable.WORKSPACE_USER} as wu`, function () {
         this.on(`${MetaTable.USERS}.id`, '=', 'wu.fk_user_id').andOn(
           ncMeta.knex.raw('COALESCE(wu.deleted, FALSE)'),
           '=',
           ncMeta.knex.raw('?', [false]),
         );
-        if (activeWorkspaceIds.length > 0) {
-          this.andOnIn('wu.fk_workspace_id', activeWorkspaceIds);
-        } else {
-          this.andOn(ncMeta.knex.raw('1 = 0'));
-        }
+        restrictJoinToIds(this, 'wu.fk_workspace_id', activeWorkspaceIds);
       })
-      // Left join with direct base users — only count memberships
-      // on active (non-soft-deleted) bases
       .leftJoin(`${MetaTable.PROJECT_USERS} as bu`, function () {
         this.on(`${MetaTable.USERS}.id`, '=', 'bu.fk_user_id');
-        if (activeBaseIds.length > 0) {
-          this.andOnIn('bu.base_id', activeBaseIds);
-        } else {
-          this.andOn(ncMeta.knex.raw('1 = 0'));
-        }
+        restrictJoinToIds(this, 'bu.base_id', activeBaseIds);
       })
-      // Left join with workspace team roles subquery
       .leftJoin(
         workspaceTeamRolesSubquery,
         'wtr.user_id',
         `${MetaTable.USERS}.id`,
       )
-      // Left join with base team roles subquery
       .leftJoin(baseTeamRolesSubquery, 'btr.user_id', `${MetaTable.USERS}.id`)
-      // Exclude soft-deleted users
       .where(function () {
         this.where(
           `${MetaTable.USERS}.is_deleted`,

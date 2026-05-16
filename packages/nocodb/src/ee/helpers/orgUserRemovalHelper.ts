@@ -90,9 +90,7 @@ export async function removeUserFromOrgCascade(
 
   const transaction = await ncMeta.startTransaction();
 
-  // Post-commit cache invalidations — collected during the transaction,
-  // executed only after a successful commit. Mirrors the pattern in
-  // `cleanupWorkspaceUser` so a rollback never leaves cache out of sync.
+  // Cache invalidations deferred until after commit so a rollback doesn't desync cache.
   const cacheTransaction: (() => Promise<any>)[] = [];
 
   try {
@@ -121,14 +119,8 @@ export async function removeUserFromOrgCascade(
 
       await WorkspaceUser.softDelete(ws.id, userId, transaction);
 
-      // Hard-delete direct base memberships across every base in the
-      // workspace — active, soft-deleted, snapshot, AND sandbox.
-      // Without this, the orphan nc_base_users_v2 rows keep the user
-      // counted by the on-prem seat calculation
-      // (NocoLicense.calculateGlobalSeatCount), since sandbox direct
-      // assignments are seat-consuming. Mirror the per-base cleanup
-      // that `cleanupWorkspaceUser` performs so permission subjects
-      // and per-base caches are also reaped.
+      // Include sandbox/snapshot/soft-deleted bases — all may hold
+      // seat-consuming direct assignments.
       const wsBases = await Base.listByWorkspace(
         ws.id,
         { includeDeleted: true, includeSnapshot: true, includeSandbox: true },
@@ -199,9 +191,7 @@ export async function removeUserFromOrgCascade(
     throw e;
   }
 
-  // Execute deferred cache invalidations now that the transaction has
-  // committed. Failures here don't roll back DB state — log and continue
-  // so a flaky cache backend can't block the user-removal flow.
+  // Cache invalidations run post-commit; failures are logged, not fatal.
   await Promise.all(
     cacheTransaction.map((fn) =>
       fn().catch((e) =>

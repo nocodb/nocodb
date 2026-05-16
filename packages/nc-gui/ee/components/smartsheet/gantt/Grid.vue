@@ -160,6 +160,30 @@ const openFullFromInspector = (record: RowType) => {
   emit('expandRecord', record)
 }
 
+// Single click on a bar/milestone:
+//  - Not yet inspected → open inspector (right-rail).
+//  - Already inspected (brand-bordered) → escalate to the full expanded
+//    record form. Mirrors Airtable's two-tier reveal: first click previews
+//    in side panel, second click on the same bar opens the deep editor.
+const onBarClick = (record: RowType) => {
+  if (isInteracting.value || justFinishedResize.value) return
+  if (isInspectedRecord(record)) {
+    $e('c:gantt:bar-expand-from-selected')
+    emit('expandRecord', record)
+  } else {
+    openInspector(record)
+  }
+}
+
+// Double-click always escalates to the full form regardless of whether
+// the bar was previously selected — matches the row-double-click pattern
+// in Grid and Calendar views.
+const onBarDblClick = (record: RowType) => {
+  if (isInteracting.value || justFinishedResize.value) return
+  $e('c:gantt:bar-dblclick-expand')
+  emit('expandRecord', record)
+}
+
 const meta = inject(MetaInj, ref())
 
 // Measure the outer Gantt wrapper so the sidebar resize can cap at 50% of
@@ -2016,7 +2040,8 @@ const onGridMouseLeave = () => {
                 :data-unique-id="record.rowMeta?.id"
                 role="button"
                 tabindex="0"
-                @click="!isInteracting && !justFinishedResize && openInspector(record)"
+                @click="onBarClick(record)"
+                @dblclick="onBarDblClick(record)"
                 @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
                 @mousedown.stop="onDragStart($event, record)"
                 @mouseenter="setHighlightFromRecord(record)"
@@ -2111,7 +2136,8 @@ const onGridMouseLeave = () => {
                 :data-unique-id="record.rowMeta?.id"
                 role="button"
                 tabindex="0"
-                @click="!isInteracting && !justFinishedResize && openInspector(record)"
+                @click="onBarClick(record)"
+                @dblclick="onBarDblClick(record)"
                 @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
                 @mousedown.stop="onDragStart($event, record)"
               >

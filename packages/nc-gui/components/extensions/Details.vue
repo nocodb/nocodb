@@ -15,15 +15,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const {
-  availableExtensions,
-  descriptionContent,
-  addExtension,
-  getExtensionAssetsUrl,
-  isMarketVisible,
-
-  extensionAccess,
-} = useExtensions()
+const { availableExtensions, descriptionContent, addExtension, getExtensionAssetsUrl, isMarketVisible, extensionAccess } =
+  useExtensions()
 
 const { blockAddNewExtension, navigateToPricing, isWsOwner } = useEeConfig()
 

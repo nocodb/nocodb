@@ -2540,5 +2540,25 @@
     "tryAgain": "重试",
     "internalUrlsNotAllowed": "不允许内部 URL",
     "cyclicCallsWarning": "此 URL 指向同一个 NocoDB 实例，可能导致循环调用"
+  },
+  "trash": {
+    "title": "已删除记录",
+    "restore": "恢复",
+    "restoreSelected": "恢复选中项",
+    "deleteForever": "永久删除",
+    "emptyTrash": "清空回收站",
+    "autoExpiry": "记录将在 {days} 天后永久删除",
+    "autoExpiryDisabled": "回收站已关闭 — 此表中的删除操作将永久生效",
+    "deletedBy": "删除者",
+    "deletedAt": "删除时间",
+    "noDeletedRecords": "无已删除记录"
+  },
+  "baseTrash": {
+    "title": "回收站",
+    "header": "从 {base} 删除",
+    "description": "恢复在过去 {days} 天内从此基础中删除的项目。要恢复已删除的基础和工作区，请前往工作区回收站。",
+    "autoExpiry": "项目将在 {days} 天后永久删除",
+    "noDeletedItems": "无已删除项目",
+    "deletedItemsWillAppearHere": "已删除的表、视图、字段等内容将显示在此处"
   }
 }

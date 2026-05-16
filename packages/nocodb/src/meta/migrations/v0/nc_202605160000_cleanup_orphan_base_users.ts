@@ -3,10 +3,9 @@ import { MetaTable } from '~/utils/globals';
 
 /**
  * Backfill: delete orphan rows in nc_base_users_v2 that inflated the
- * on-prem seat count. Targets three cases:
+ * on-prem seat count. Targets two cases:
  *  1. fk_user_id no longer exists in nc_users
- *  2. user is soft-deleted
- *  3. workspace_user is soft-deleted with no active sibling row
+ *  2. workspace_user is soft-deleted with no active sibling row
  *     (rows with null fk_workspace_id are skipped on purpose, to avoid
  *     collateral damage to legacy base-only assignments).
  */
@@ -22,15 +21,7 @@ const up = async (knex: Knex) => {
     })
     .delete();
 
-  // Case 2: user is soft-deleted
-  await knex(MetaTable.PROJECT_USERS)
-    .whereIn(
-      'fk_user_id',
-      knex(MetaTable.USERS).select('id').where('is_deleted', true),
-    )
-    .delete();
-
-  // Case 3: soft-deleted workspace_user pair with no active sibling
+  // Case 2: soft-deleted workspace_user pair with no active sibling
   await knex(MetaTable.PROJECT_USERS)
     .whereNotNull('fk_workspace_id')
     .whereExists(function () {

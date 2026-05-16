@@ -5857,16 +5857,90 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     newData: Record<string, any> | Record<string, any>[] | null,
     req: NcRequest,
   ): Promise<void> {
+    // Public form submissions arrive with context.is_public=true, which causes
+    // _convertUserFormat (during readByPk after insert) to redact user emails
+    // on User / CreatedBy / LastModifiedBy / Lookup-of-User columns. Webhook
+    // destinations are server-side and the workspace owner configured them, so
+    // re-fill emails on a clone of the payload before emitting. The original
+    // (redacted) `prevData` / `newData` are still returned to the form filler
+    // as the API response — the redaction stays in place for them.
+    let hookPrevData = prevData;
+    let hookNewData = newData;
+    if (this.context?.is_public) {
+      hookPrevData = await this.cloneAndReEnrichRedactedUserEmails(prevData);
+      hookNewData = await this.cloneAndReEnrichRedactedUserEmails(newData);
+    }
+
     Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
       context: { ...this.context, cache: false, cacheMap: undefined },
       hookName,
-      prevData,
-      newData,
+      prevData: hookPrevData,
+      newData: hookNewData,
       user: req?.user,
       viewId: this.viewId,
       modelId: this.model.id,
       tnPath: this.tnPath,
     });
+  }
+
+  // Deep-clone the payload and fill `email: ''` back in on every user-shaped
+  // object whose `id` matches a base user. Walks recursively so direct User
+  // columns, CreatedBy / LastModifiedBy, and Lookup-of-User values are all
+  // covered. The base-user list is fetched lazily — if the payload has no
+  // redacted user objects we don't hit the DB.
+  protected async cloneAndReEnrichRedactedUserEmails<T>(data: T): Promise<T> {
+    if (data === null || data === undefined) return data;
+    const cloned = JSON.parse(JSON.stringify(data)) as T;
+
+    let userMap: Map<string, Partial<User>> | null = null;
+    const loadUserMap = async () => {
+      if (userMap) return;
+      try {
+        const users = await BaseUser.getUsersList(this.context, {
+          base_id: this.model.base_id,
+          include_internal_user: true,
+        });
+        userMap = new Map(users.map((u) => [u.id, u]));
+      } catch {
+        userMap = new Map();
+      }
+    };
+
+    const isRedactedUser = (v: any): boolean =>
+      !!v &&
+      typeof v === 'object' &&
+      !Array.isArray(v) &&
+      typeof v.id === 'string' &&
+      v.email === '' &&
+      'display_name' in v;
+
+    const walk = async (node: any): Promise<void> => {
+      if (node === null || node === undefined) return;
+      if (Array.isArray(node)) {
+        for (const item of node) await walk(item);
+        return;
+      }
+      if (typeof node !== 'object') return;
+
+      if (isRedactedUser(node)) {
+        await loadUserMap();
+        const u = userMap!.get(node.id);
+        if (u?.email) {
+          node.email = u.email;
+          if (!node.display_name && u.display_name) {
+            node.display_name = u.display_name;
+          }
+        }
+        return;
+      }
+
+      for (const k of Object.keys(node)) {
+        await walk(node[k]);
+      }
+    };
+
+    await walk(cloned);
+    return cloned;
   }
 
   public async errorInsert(

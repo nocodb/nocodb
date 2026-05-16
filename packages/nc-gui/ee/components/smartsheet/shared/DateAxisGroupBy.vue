@@ -264,7 +264,7 @@ onBeforeUnmount(async () => {
                 >
                   <template v-for="(val, ind) of parseKey(grp)" :key="ind">
                     <SmartsheetGridGroupByLabel v-if="val" :column="grp.column" :model-value="val" />
-                    <span v-else class="text-nc-content-gray-muted text-sm">No mapped value</span>
+                    <span v-else class="text-nc-content-gray-muted text-sm">{{ $t('labels.noMappedValue') }}</span>
                   </template>
                 </div>
 
@@ -347,7 +347,7 @@ onBeforeUnmount(async () => {
       v-if="vGroup.root && vGroup.paginationData"
       v-model:pagination-data="vGroup.paginationData"
       align-count-on-right
-      custom-label="groups"
+      :custom-label="$t('objects.groups')"
       align-left
       show-api-timing
       :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"

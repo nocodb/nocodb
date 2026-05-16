@@ -1756,6 +1756,7 @@ const onGridMouseLeave = () => {
         <div
           v-for="(lane, laneIdx) in swimlanes"
           :key="laneIdx"
+          v-e="['c:gantt:sidebar-row-click']"
           class="flex items-center px-3 border-b border-nc-border-gray-light text-xs text-nc-content-gray cursor-pointer hover:bg-nc-bg-gray-extralight"
           :style="{ height: `${ROW_HEIGHT}px` }"
           @click="onSidebarRowClick(lane[0].record)"

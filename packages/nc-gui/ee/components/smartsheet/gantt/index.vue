@@ -553,7 +553,15 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
 
       <!-- Gantt content -->
       <template v-if="ganttRange?.length">
-        <div v-if="isGanttDataLoading" class="flex-1 flex w-full items-center justify-center min-h-0">
+        <!-- Loading: flat mode uses isGanttDataLoading from the Gantt store;
+             grouped mode uses isViewDataLoading from the global views store
+             (set by reloadData while loadGroups is in flight). Both flow into
+             the same loader so the chart doesn't paint an empty accordion
+             during initial group fetch. -->
+        <div
+          v-if="isGanttDataLoading || (isGroupBy && isViewDataLoading)"
+          class="flex-1 flex w-full items-center justify-center min-h-0"
+        >
           <GeneralLoader size="xlarge" />
         </div>
 

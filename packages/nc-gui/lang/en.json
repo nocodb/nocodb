@@ -1474,6 +1474,7 @@
     "replaceWith": "Replace",
     "replaceAll": "Replace all",
     "noResults": "No results",
+    "noMappedValue": "No mapped value",
     "deleteTable": "Delete table",
     "distributeColumnsEvenly": "Distribute columns evenly",
     "insertColumnLeft": "Insert column left",

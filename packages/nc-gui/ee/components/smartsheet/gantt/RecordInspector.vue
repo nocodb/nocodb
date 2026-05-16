@@ -563,7 +563,7 @@ const formatDisplay = (raw: string | null | undefined) => {
           :search-input-placeholder="$t('general.search')"
           :empty-description="$t('labels.noResults')"
           item-class-name="text-xs"
-          class="!w-full border-1 border-nc-border-gray-light rounded"
+          class="nc-gantt-inspector-list !w-full border-1 border-nc-border-gray-light rounded"
           @change="onPickPredecessor"
           @escape="showPredecessorPicker = false"
         />
@@ -634,7 +634,7 @@ const formatDisplay = (raw: string | null | undefined) => {
           :search-input-placeholder="$t('general.search')"
           :empty-description="$t('labels.noResults')"
           item-class-name="text-xs"
-          class="!w-full border-1 border-nc-border-gray-light rounded"
+          class="nc-gantt-inspector-list !w-full border-1 border-nc-border-gray-light rounded"
           @change="onPickSuccessor"
           @escape="showSuccessorPicker = false"
         />
@@ -647,6 +647,20 @@ const formatDisplay = (raw: string | null | undefined) => {
 .nc-gantt-inspector-input {
   &:focus {
     @apply outline-none ring-0 border-nc-border-brand shadow-selected;
+  }
+}
+
+// NcList's built-in search input defaults to antd's ~14px. The inspector
+// uses 12–13px throughout — bring the input down to text-bodyDefaultSm
+// (13px) so the search bar reads as a peer to the items below it.
+// The `nc-list-search-input` class lives on the ant-input-affix-wrapper
+// <span>, not on the <input> itself — target the descendant ant-input.
+.nc-gantt-inspector-list {
+  :deep(.nc-list-search-input .ant-input) {
+    @apply text-bodyDefaultSm;
+  }
+  :deep(.nc-list-search-input .ant-input::placeholder) {
+    @apply text-bodyDefaultSm;
   }
 }
 </style>

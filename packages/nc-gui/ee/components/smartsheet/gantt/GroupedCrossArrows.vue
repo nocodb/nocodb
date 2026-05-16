@@ -35,7 +35,7 @@ const props = defineProps<Props>()
 
 const meta = inject(MetaInj, ref())
 
-const { ganttRange, dependencyLinks, colWidth, scrollLeft } = useGanttViewStoreOrThrow()
+const { ganttRange, dependencyLinks, colWidth, scrollLeft, inspectorRecord } = useGanttViewStoreOrThrow()
 
 const { rootGroup } = useViewGroupByOrThrow()
 
@@ -181,7 +181,47 @@ onBeforeUnmount(() => {
 interface CrossArrow {
   id: string
   d: string
+  // True when both endpoints are part of the inspected record's chain
+  // (transitively reachable through dependencyLinks). Drives the
+  // gray → green stroke + marker switch so the chain highlight visually
+  // continues across group boundaries — same UX flat mode already gets.
+  highlighted: boolean
 }
+
+// Set of row IDs reachable from the inspected record through
+// dependencyLinks in either direction — same BFS Grid.vue runs for
+// per-bar isRecordHighlighted. Skips hover (per-Grid local state we
+// can't reach from the overlay); inspector record is enough for the
+// click-to-highlight UX.
+const highlightedRowIds = computed<Set<string>>(() => {
+  if (!inspectorRecord.value) return new Set()
+  const cols = (meta.value?.columns ?? []) as ColumnType[]
+  const seedId = extractPkFromRow(inspectorRecord.value.row, cols)
+  if (seedId == null) return new Set()
+  const seed = String(seedId)
+  const links = dependencyLinks?.value
+  if (!links?.size) return new Set([seed])
+
+  const reverse = new Map<string, string[]>()
+  links.forEach((successors, predecessor) => {
+    for (const succ of successors) {
+      const arr = reverse.get(succ) ?? []
+      arr.push(predecessor)
+      reverse.set(succ, arr)
+    }
+  })
+
+  const visited = new Set<string>()
+  const queue = [seed]
+  while (queue.length) {
+    const current = queue.shift()!
+    if (visited.has(current)) continue
+    visited.add(current)
+    for (const next of links.get(current) ?? []) if (!visited.has(next)) queue.push(next)
+    for (const prev of reverse.get(current) ?? []) if (!visited.has(prev)) queue.push(prev)
+  }
+  return visited
+})
 
 const ARROW_HEAD_OFFSET = 2
 const CORNER_RADIUS = 3
@@ -289,9 +329,11 @@ const arrowPaths = computed<CrossArrow[]>(() => {
       const succYVal = recordY.value.get(succId)
       if (!predGeom || !succGeom || predYVal === undefined || succYVal === undefined) continue
 
+      const hiSet = highlightedRowIds.value
       result.push({
         id: `${predId}-${succId}`,
         d: buildPath(predGeom.rightX, predYVal, succGeom.leftX, succYVal),
+        highlighted: hiSet.has(predId) && hiSet.has(succId),
       })
     }
   })
@@ -345,6 +387,19 @@ const innerTransform = computed(() => `translate(${-scrollLeft.value}, 0)`)
       >
         <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--nc-border-gray-extra-dark, #9aa2af)" />
       </marker>
+      <!-- Highlighted-chain variant: green head matching per-bar
+           chain-highlight color used in Grid.vue. -->
+      <marker
+        id="nc-gantt-xgroup-arrow-head-highlighted"
+        viewBox="0 0 10 10"
+        refX="9"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        orient="auto-start-reverse"
+      >
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="var(--color-green-600)" />
+      </marker>
     </defs>
     <g :transform="innerTransform">
       <path
@@ -352,10 +407,10 @@ const innerTransform = computed(() => `translate(${-scrollLeft.value}, 0)`)
         :key="arrow.id"
         :d="arrow.d"
         fill="none"
-        stroke="var(--nc-border-gray-extra-dark, #9aa2af)"
+        :stroke="arrow.highlighted ? 'var(--color-green-600)' : 'var(--nc-border-gray-extra-dark, #9aa2af)'"
         stroke-width="1"
         stroke-linejoin="round"
-        marker-end="url(#nc-gantt-xgroup-arrow-head)"
+        :marker-end="arrow.highlighted ? 'url(#nc-gantt-xgroup-arrow-head-highlighted)' : 'url(#nc-gantt-xgroup-arrow-head)'"
       />
     </g>
   </svg>

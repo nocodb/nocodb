@@ -1863,6 +1863,8 @@ export class ImportService {
 
           switch (vw.type) {
             case ViewTypes.GRID:
+            case ViewTypes.TIMELINE:
+            case ViewTypes.GANTT:
               for (const cl of vwColumns) {
                 const fcl = view.columns.find(
                   (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),

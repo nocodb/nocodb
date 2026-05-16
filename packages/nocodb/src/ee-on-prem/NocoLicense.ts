@@ -642,9 +642,11 @@ export default class NocoLicense {
 
     // Pre-fetch active workspace and base IDs so role-bearing rows tied
     // to soft-deleted workspaces/bases don't inflate the seat count.
-    // Matches cloud's `Base.list(workspaceId)` semantics: excludes
-    // soft-deleted and snapshot bases (sandbox bases are still counted
-    // — a direct assignment to a sandbox is still a seat).
+    // Excludes soft-deleted and snapshot bases. Sandbox bases ARE
+    // counted — a direct assignment to a sandbox is still a paid seat,
+    // and the cascade paths clean those rows on user removal (see
+    // `includeSandbox: true` in `cleanupWorkspaceUser` /
+    // `removeUserFromOrgCascade`).
     const activeWorkspaces = await ncMeta
       .knexConnection(MetaTable.WORKSPACE)
       .select('id')
@@ -689,7 +691,7 @@ export default class NocoLicense {
           this.andOnIn('wta.resource_id', activeWorkspaceIds);
         } else {
           // No active workspaces — force the join to never match
-          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
+          this.andOn(ncMeta.knex.raw('1 = 0'));
         }
       })
       .where('pa.principal_type', '=', 'user')
@@ -727,7 +729,7 @@ export default class NocoLicense {
           this.andOnIn('bta.resource_id', activeBaseIds);
         } else {
           // No active bases — force the join to never match
-          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
+          this.andOn(ncMeta.knex.raw('1 = 0'));
         }
       })
       .where('pa.principal_type', '=', 'user')
@@ -761,7 +763,7 @@ export default class NocoLicense {
         if (activeWorkspaceIds.length > 0) {
           this.andOnIn('wu.fk_workspace_id', activeWorkspaceIds);
         } else {
-          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
+          this.andOn(ncMeta.knex.raw('1 = 0'));
         }
       })
       // Left join with direct base users — only count memberships
@@ -771,7 +773,7 @@ export default class NocoLicense {
         if (activeBaseIds.length > 0) {
           this.andOnIn('bu.base_id', activeBaseIds);
         } else {
-          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
+          this.andOn(ncMeta.knex.raw('1 = 0'));
         }
       })
       // Left join with workspace team roles subquery

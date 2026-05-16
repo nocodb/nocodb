@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import Base from '~/models/Base';
@@ -17,6 +18,8 @@ import {
   handleOrphanWorkspace,
 } from '~/ee/utils/orphanBaseHandler';
 import Noco from '~/Noco';
+
+const logger = new Logger('OrgUserRemovalHelper');
 
 /**
  * Batch soft-delete all team assignments for a user and invalidate cache.
@@ -118,15 +121,17 @@ export async function removeUserFromOrgCascade(
 
       await WorkspaceUser.softDelete(ws.id, userId, transaction);
 
-      // Hard-delete direct base memberships across all bases in the
-      // workspace (active + soft-deleted + snapshot). Without this, the
-      // orphan nc_base_users_v2 rows keep the user counted by the on-prem
-      // seat calculation (NocoLicense.calculateGlobalSeatCount). Mirror
-      // the per-base cleanup that `cleanupWorkspaceUser` performs so
-      // permission subjects and per-base caches are also reaped.
+      // Hard-delete direct base memberships across every base in the
+      // workspace — active, soft-deleted, snapshot, AND sandbox.
+      // Without this, the orphan nc_base_users_v2 rows keep the user
+      // counted by the on-prem seat calculation
+      // (NocoLicense.calculateGlobalSeatCount), since sandbox direct
+      // assignments are seat-consuming. Mirror the per-base cleanup
+      // that `cleanupWorkspaceUser` performs so permission subjects
+      // and per-base caches are also reaped.
       const wsBases = await Base.listByWorkspace(
         ws.id,
-        { includeDeleted: true, includeSnapshot: true },
+        { includeDeleted: true, includeSnapshot: true, includeSandbox: true },
         transaction,
       );
       for (const base of wsBases) {
@@ -197,5 +202,14 @@ export async function removeUserFromOrgCascade(
   // Execute deferred cache invalidations now that the transaction has
   // committed. Failures here don't roll back DB state — log and continue
   // so a flaky cache backend can't block the user-removal flow.
-  await Promise.all(cacheTransaction.map((fn) => fn().catch(() => undefined)));
+  await Promise.all(
+    cacheTransaction.map((fn) =>
+      fn().catch((e) =>
+        logger.error(
+          `Post-commit cache invalidation failed for user ${userId} in org ${orgId}: ${e?.message}`,
+          e?.stack,
+        ),
+      ),
+    ),
+  );
 }

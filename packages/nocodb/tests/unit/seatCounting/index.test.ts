@@ -11,7 +11,7 @@ import { createProject } from '../factory/base';
 import { isEE } from '../utils/helpers';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
-import BaseModel from '~/models/Base';
+import Base from '~/models/Base';
 import BaseUser from '~/models/BaseUser';
 import { OrgUser } from '~/models';
 import User from '~/models/User';
@@ -19,7 +19,6 @@ import Workspace from '~/ee/models/Workspace';
 import WorkspaceUser from '~/ee/models/WorkspaceUser';
 import Subscription from '~/ee/models/Subscription';
 import { removeUserFromOrgCascade } from '~/ee/helpers/orgUserRemovalHelper';
-import type Base from '~/models/Base';
 
 /**
  * Seat-counting regression tests.
@@ -370,7 +369,7 @@ function seatCountingTests() {
 
       // Use Base.softDelete so the BASE cache is invalidated — the seat
       // count query pulls the active-base list from Base.list (cached).
-      await BaseModel.softDelete(
+      await Base.softDelete(
         { workspace_id: workspaceId, base_id: base.id },
         base.id,
       );
@@ -500,6 +499,42 @@ function seatCountingTests() {
       // Owner + u2 remain.
       expect(await workspaceSeatCount()).to.equal(2);
       expect(await isSeatUser(u2.id)).to.equal(true);
+    });
+
+    it('hard-deletes nc_base_users_v2 rows on SANDBOX bases too', async () => {
+      // Sandbox direct assignments are seat-consuming — leaving them
+      // behind would keep the user counted after org removal.
+      const orgId = await ensureOrg();
+
+      const sandboxBase = await createProject(context, {
+        title: 'SandboxBase',
+        fk_workspace_id: workspaceId,
+      });
+      await Noco.ncMeta
+        .knexConnection(MetaTable.PROJECT)
+        .where('id', sandboxBase.id)
+        .update({ is_sandbox: true });
+
+      const u = await makeUser();
+      await addWorkspaceUser(u.id, WorkspaceUserRoles.NO_ACCESS);
+      await BaseUser.insert(
+        { workspace_id: workspaceId, base_id: sandboxBase.id },
+        {
+          base_id: sandboxBase.id,
+          fk_user_id: u.id,
+          roles: ProjectRoles.EDITOR,
+          invited_by: ownerId,
+        },
+      );
+      await addOrgUser(orgId, u.id);
+
+      expect(await baseUserRowCount(u.id, sandboxBase.id)).to.equal(1);
+      expect(await isSeatUser(u.id)).to.equal(true);
+
+      await removeUserFromOrgCascade(orgId, u.id);
+
+      expect(await baseUserRowCount(u.id, sandboxBase.id)).to.equal(0);
+      expect(await isSeatUser(u.id)).to.equal(false);
     });
   });
 

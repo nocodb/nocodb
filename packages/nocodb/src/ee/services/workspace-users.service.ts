@@ -463,10 +463,13 @@ export class WorkspaceUsersService {
     const cacheTransaction: (() => Promise<any>)[] = [];
 
     try {
-      // Remove user from all bases in the workspace
+      // Remove user from every base in the workspace — active,
+      // soft-deleted, snapshot, AND sandbox. Sandbox direct assignments
+      // are seat-consuming, so leaving them behind keeps the user
+      // counted by the seat calculation.
       const workspaceBases = await Base.listByWorkspace(
         workspaceId,
-        { includeDeleted: true, includeSnapshot: true },
+        { includeDeleted: true, includeSnapshot: true, includeSandbox: true },
         transaction,
       );
 
@@ -538,9 +541,6 @@ export class WorkspaceUsersService {
       await handleOrphanBases(workspaceId, userId, transaction);
 
       await transaction.commit();
-
-      // Execute cache cleanup after successful commit
-      await Promise.all(cacheTransaction.map((fn) => fn()));
     } catch (e) {
       await transaction.rollback();
 
@@ -548,6 +548,20 @@ export class WorkspaceUsersService {
       this.logger.error('Failed to cleanup workspace user', e);
       throw e;
     }
+
+    // Execute deferred cache invalidations now that the transaction has
+    // committed. Failures here don't roll back DB state — log and continue
+    // so a flaky cache backend can't block the user-removal flow.
+    await Promise.all(
+      cacheTransaction.map((fn) =>
+        fn().catch((e) =>
+          this.logger.error(
+            `Post-commit cache invalidation failed for user ${userId} in workspace ${workspaceId}: ${e?.message}`,
+            e?.stack,
+          ),
+        ),
+      ),
+    );
 
     // Reseat subscription (seat recount)
     await this.paymentService.reseatSubscription(workspaceId, ncMeta);

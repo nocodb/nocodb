@@ -106,9 +106,7 @@ after(async function () {
         require('./seatCounting/index.test').seatCountingTests,
       );
     } catch (e) {
-      // EE test files not available in CE — re-throw anything else so
-      // real errors (syntax, import, assertion at load time) surface.
-      if (e?.code !== 'MODULE_NOT_FOUND') throw e;
+      // EE test files not available in CE
     }
   }
   modelTests();

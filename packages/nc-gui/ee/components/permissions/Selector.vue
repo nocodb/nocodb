@@ -48,6 +48,7 @@ const permissionSelectorConfig = computed<PermissionSelectorConfig>(() => ({
   label: permissionLabel.value,
   description: permissionDescription.value,
   effectiveValue: props.config.effectiveValue,
+  entityIds: props.config.entityIds,
 }))
 
 // Create a dummy currentValue ref since Selector doesn't use display values

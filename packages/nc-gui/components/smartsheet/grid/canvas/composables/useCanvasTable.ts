@@ -60,6 +60,7 @@ export function useCanvasTable({
   vSelectedAllRecords,
   vSelectedAllRecordsSkipPks,
   selectedRows,
+  selectedHeaderColumnIds,
   updateRecordOrder,
   expandRows,
   updateOrSaveRow,
@@ -96,6 +97,7 @@ export function useCanvasTable({
   vSelectedAllRecords: WritableComputedRef<boolean>
   vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
+  selectedHeaderColumnIds: Ref<Set<string>>
   mousePosition: { x: number; y: number }
   expandForm: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, path?: Array<number>) => void
   updateRecordOrder: (
@@ -1176,6 +1178,7 @@ export function useCanvasTable({
     vSelectedAllRecordsSkipPks,
     isRowDraggingEnabled,
     selectedRows,
+    selectedHeaderColumnIds,
     isDragging,
     draggedRowIndex,
     targetRowIndex,

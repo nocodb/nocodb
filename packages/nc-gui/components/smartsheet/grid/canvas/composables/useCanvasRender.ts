@@ -79,6 +79,7 @@ export function useCanvasRender({
   isAddingEmptyRowAllowed,
   isAddingEmptyRowPermitted,
   selectedRows,
+  selectedHeaderColumnIds,
   isDragging,
   draggedRowIndex,
   targetRowIndex,
@@ -149,6 +150,7 @@ export function useCanvasRender({
   vSelectedAllRecords: WritableComputedRef<boolean>
   vSelectedAllRecordsSkipPks: WritableComputedRef<Record<string, string>>
   selectedRows: Ref<Row[]>
+  selectedHeaderColumnIds: Ref<Set<string>>
   isDragging: Ref<boolean>
   draggedRowIndex: Ref<number | null>
   targetRowIndex: Ref<number | null>
@@ -379,6 +381,21 @@ export function useCanvasRender({
             y: 0,
             radius: 0,
             fillStyle: getColor(filteredOrSortedAppearanceConfig[columnState].canvas.headerBgColor),
+          })
+        }
+
+        // Tint headers that are part of the multi-field selection so the user
+        // sees which columns the bulk menu will operate on. Painted on top of
+        // sort/filter tint — selection wins visually because the bulk menu is
+        // the active mode. Semi-transparent brand overlay works in both themes.
+        if (selectedHeaderColumnIds.value.has(colObj.id)) {
+          renderTag(ctx, {
+            height: _headerRowHeight,
+            width,
+            x: xOffset - _scrollLeft,
+            y: 0,
+            radius: 0,
+            fillStyle: getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.18),
           })
         }
       }

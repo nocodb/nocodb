@@ -193,6 +193,12 @@ const openAggregationField = ref<CanvasGridColumn | null>(null)
 const openAddNewRowDropdown = ref<Array<number> | null>(null)
 const openGroupContextMenuDropdown = ref<CanvasGroup | null>(null)
 const openColumnDropdownField = ref<ColumnType | null>(null)
+// Set of column ids selected via shift/cmd-click on column headers — drives the
+// bulk-field menu and the highlighted header background.
+const selectedHeaderColumnIds = ref<Set<string>>(new Set())
+// Anchor for shift+click range selection — the last header that was clicked
+// without shift, used as the start of the range when the user shift-clicks.
+const lastHeaderClickedColumnId = ref<string | null>(null)
 const _isDropdownVisible = ref(false)
 const contextMenuTarget = ref<{ row: number; col: number; path: Array<number> } | null>(null)
 const _isContextMenuOpen = ref(false)
@@ -385,6 +391,7 @@ const {
   vSelectedAllRecords,
   vSelectedAllRecordsSkipPks,
   selectedRows,
+  selectedHeaderColumnIds,
   updateRecordOrder,
   expandRows,
   updateOrSaveRow,
@@ -682,6 +689,81 @@ function resetRowSelection() {
   vSelectedAllRecords.value = false
   vSelectedAllRecordsSkipPks.value = {}
 }
+
+function clearHeaderSelection() {
+  if (selectedHeaderColumnIds.value.size === 0 && lastHeaderClickedColumnId.value === null) return
+  selectedHeaderColumnIds.value = new Set()
+  lastHeaderClickedColumnId.value = null
+  triggerRefreshCanvas()
+}
+
+// Returns the list of currently-selected column IDs in their grid display order
+// (left-to-right). Order matters for bulk operations like "Group by N fields"
+// which apply the group keys in column order.
+function getSelectedHeaderColumnsOrdered(): ColumnType[] {
+  if (selectedHeaderColumnIds.value.size === 0) return []
+  const result: ColumnType[] = []
+  for (const col of columns.value) {
+    const colObj = col.columnObj
+    if (colObj?.id && selectedHeaderColumnIds.value.has(colObj.id)) {
+      result.push(colObj)
+    }
+  }
+  return result
+}
+
+// Select the range of headers between the anchor (lastHeaderClickedColumnId)
+// and `clickedColumnId`. Replaces the current selection. Visible columns only —
+// we walk `columns.value` so the range tracks user-visible order.
+function extendHeaderSelectionTo(clickedColumnId: string) {
+  const anchorId = lastHeaderClickedColumnId.value
+  if (!anchorId || anchorId === clickedColumnId) {
+    selectedHeaderColumnIds.value = new Set([clickedColumnId])
+    return
+  }
+  let anchorIdx = -1
+  let clickedIdx = -1
+  columns.value.forEach((col, idx) => {
+    const id = col.columnObj?.id
+    if (id === anchorId) anchorIdx = idx
+    if (id === clickedColumnId) clickedIdx = idx
+  })
+  if (anchorIdx === -1 || clickedIdx === -1) {
+    selectedHeaderColumnIds.value = new Set([clickedColumnId])
+    return
+  }
+  const [from, to] = anchorIdx <= clickedIdx ? [anchorIdx, clickedIdx] : [clickedIdx, anchorIdx]
+  const next = new Set<string>()
+  for (let i = from; i <= to; i++) {
+    const id = columns.value[i]?.columnObj?.id
+    if (id) next.add(id)
+  }
+  selectedHeaderColumnIds.value = next
+}
+
+function toggleHeaderSelection(columnId: string) {
+  const next = new Set(selectedHeaderColumnIds.value)
+  if (next.has(columnId)) {
+    next.delete(columnId)
+  } else {
+    next.add(columnId)
+  }
+  selectedHeaderColumnIds.value = next
+}
+
+// The bulk menu only takes over when the user clicked the chevron/right-clicked
+// on a header that is part of an active multi-selection (≥ 2). Single-column
+// clicks always go to the existing single-column menu.
+const isMultiHeaderMenuActive = computed(() => {
+  if (selectedHeaderColumnIds.value.size < 2) return false
+  const id = openColumnDropdownField.value?.id
+  return !!id && selectedHeaderColumnIds.value.has(id)
+})
+
+const selectedHeaderColumns = computed<ColumnType[]>(() => {
+  if (!isMultiHeaderMenuActive.value) return []
+  return getSelectedHeaderColumnsOrdered()
+})
 
 watch(vSelectedAllRecords, (val) => {
   const dataCache = getDataCache()
@@ -1450,10 +1532,18 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       const isFieldNotEditable = !isUIAllowed('fieldEdit')
 
       if (clickedColumn) {
+        const clickedColumnId = clickedColumn.columnObj?.id as string | undefined
+
         if (clickType === MouseClickType.RIGHT_CLICK) {
           if (isFieldNotEditable) return
 
-          // IF Right-click on a column, open the column dropdown menu
+          // If right-clicking on a header that isn't part of the current
+          // multi-selection, treat it like a fresh single-column action: drop
+          // the multi-selection so the single-column menu is shown.
+          if (clickedColumnId && !selectedHeaderColumnIds.value.has(clickedColumnId)) {
+            clearHeaderSelection()
+          }
+
           openColumnDropdownField.value = clickedColumn.columnObj
           lastOpenColumnDropdownField.value = clickedColumn.columnObj
           isDropdownVisible.value = true
@@ -1488,6 +1578,12 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
               return
             }
 
+            // If chevron is clicked on a header that's not part of the active
+            // multi-selection, drop the selection so the single-column menu opens.
+            if (clickedColumnId && !selectedHeaderColumnIds.value.has(clickedColumnId)) {
+              clearHeaderSelection()
+            }
+
             overlayStyle.value = {
               top: `${rect.top}px`,
               left: `${rect.left + xOffset}px`,
@@ -1520,18 +1616,52 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             return
           } else if (!isGroupBy.value && x < xOffset + columnWidth - 20 - (clickedColumn.columnObj?.description ? 24 : 0)) {
             const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
-
             const dataCache = getDataCache()
 
-            // Calculate the 0-based index of the last row to select.
-            // This is the minimum of the total number of rows - 1 (for 0-based index) or 99 (limiting to 100 rows).
+            // The 0-based index of the last row to highlight when clicking a
+            // header — bounded at 99 to avoid massive selections.
             const endRowIndex = Math.min(dataCache.totalRows.value - 1, 99)
-            selection.value.startRange({ row: 0, col: colIndex })
-            selection.value.endRange({ row: endRowIndex, col: colIndex })
+
+            // Modifier-aware header selection:
+            //   shift+click → extend range from anchor to clicked
+            //   cmd/ctrl+click → toggle the clicked column in/out
+            //   plain click → single-column behavior (reset multi, anchor)
+            const useShift = e.shiftKey && clickedColumnId && lastHeaderClickedColumnId.value
+            const useToggle = (e.metaKey || e.ctrlKey) && !!clickedColumnId
+
+            if (useShift && clickedColumnId) {
+              extendHeaderSelectionTo(clickedColumnId)
+            } else if (useToggle && clickedColumnId) {
+              toggleHeaderSelection(clickedColumnId)
+              lastHeaderClickedColumnId.value = clickedColumnId
+            } else {
+              clearHeaderSelection()
+              if (clickedColumnId) {
+                lastHeaderClickedColumnId.value = clickedColumnId
+              }
+            }
+
+            // Drive the cell-range selection from the resulting header set when
+            // multi-selecting, otherwise preserve the existing single-column
+            // highlight behavior.
+            const headerIds = selectedHeaderColumnIds.value
+            if (headerIds.size > 1) {
+              const indices: number[] = []
+              columns.value.forEach((col, idx) => {
+                if (col.columnObj?.id && headerIds.has(col.columnObj.id)) indices.push(idx)
+              })
+              const minCol = indices[0]
+              const maxCol = indices[indices.length - 1]
+              selection.value.startRange({ row: 0, col: minCol })
+              selection.value.endRange({ row: endRowIndex, col: maxCol })
+              activeCell.value = { row: 0, column: minCol, path: [] }
+            } else {
+              selection.value.startRange({ row: 0, col: colIndex })
+              selection.value.endRange({ row: endRowIndex, col: colIndex })
+              activeCell.value = { row: 0, column: colIndex, path: [] }
+            }
 
             resetRowSelection()
-
-            activeCell.value = { row: 0, column: colIndex, path: [] }
             onActiveCellChanged()
             triggerRefreshCanvas()
           }
@@ -1540,6 +1670,12 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       triggerRefreshCanvas()
       return
     }
+  }
+
+  // Any non-header click clears the multi-header selection so the bulk menu
+  // only stays armed while the user is interacting with the header row.
+  if (selectedHeaderColumnIds.value.size > 0) {
+    clearHeaderSelection()
   }
 
   // If the user is clicking on the Aggregation in bottom
@@ -2905,6 +3041,7 @@ onKeyStroke('Escape', () => {
   openAddNewRowDropdown.value = null
   openGroupContextMenuDropdown.value = null
   isDropdownVisible.value = false
+  clearHeaderSelection()
 })
 
 const increaseMinHeightBy: Record<string, number> = {
@@ -3320,6 +3457,13 @@ watch(
         ></div>
         <template #overlay>
           <Aggregation v-if="openAggregationField" v-model:column="openAggregationField" class="canvas-aggregation" />
+          <SmartsheetHeaderMultiColumnMenu
+            v-else-if="openColumnDropdownField && isMultiHeaderMenuActive"
+            v-model:is-open="isDropdownVisible"
+            :columns="selectedHeaderColumns"
+            :on-cleared="clearHeaderSelection"
+            class="canvas-header-column-menu"
+          />
           <SmartsheetHeaderColumnMenu
             v-else-if="openColumnDropdownField"
             v-model:is-open="isDropdownVisible"

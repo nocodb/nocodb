@@ -276,12 +276,28 @@ watch(syncedGroupByEntries, (next) => {
 
 const smartSheetListener = async (event: SmartsheetStoreEvents, payload: any = {}) => {
   const column = payload?.column
-
-  if (!column?.id) return
+  const columns = payload?.columns as ColumnType[] | undefined
 
   if (event === SmartsheetStoreEvents.GROUP_BY_ADD) {
+    // Bulk path: a list of columns from the multi-field menu. Push them all
+    // in column order, then save once at the end so we don't race
+    // saveGroupBy invocations.
+    if (columns?.length) {
+      const existing = new Set(_groupBy.value.map((g) => g.fk_column_id))
+      for (const col of columns) {
+        if (!col?.id || existing.has(col.id)) continue
+        _groupBy.value.push({ fk_column_id: col.id, sort: 'asc', order: _groupBy.value.length + 1 })
+        existing.add(col.id)
+      }
+      await saveGroupBy()
+      showCreateGroupBy.value = false
+      return
+    }
+
+    if (!column?.id) return
     addFieldToGroupBy(column)
   } else if (event === SmartsheetStoreEvents.GROUP_BY_REMOVE) {
+    if (!column?.id) return
     if (groupedByColumnIds.value.length === 0) return
 
     _groupBy.value = _groupBy.value.filter((g) => g.fk_column_id !== column.id)

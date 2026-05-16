@@ -103,6 +103,8 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     const { getMeta } = useMetas()
 
+    const { t } = useI18n()
+
     async function insertRow(
       currentRow: Row,
       ltarState: Record<string, any> = {},
@@ -121,7 +123,24 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
           row,
         })
 
-        if (missingRequiredColumns.size) return
+        if (missingRequiredColumns.size) {
+          const missingFields = [...missingRequiredColumns].filter(
+            (f): f is string => typeof f === 'string',
+          )
+          if (currentRow.rowMeta) {
+            currentRow.rowMeta.saveError = {
+              reason: 'missingRequired',
+              missingFields,
+            }
+          }
+          const fieldList = missingFields.join(', ')
+          message.error(
+            missingFields.length === 1
+              ? t('msg.error.requiredFieldMissing', { fields: fieldList })
+              : t('msg.error.requiredFieldsMissing', { fields: fieldList }),
+          )
+          return
+        }
 
         const insertedData = await $api.dbViewRow.create(
           NOCO,

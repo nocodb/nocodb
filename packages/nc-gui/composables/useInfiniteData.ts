@@ -1341,6 +1341,24 @@ export function useInfiniteData(args: {
       })
 
       if (missingRequiredColumns.size) {
+        // Frontend pre-check rejected the insert: at least one required
+        // (NOT NULL, no default, not auto-generated) column is null. Don't
+        // call the API — keep the optimistic row in the cache so the user
+        // can either fill the missing field inline (auto-retry) or open the
+        // expanded form. Surfacing this used to be a silent bail (#13838).
+        const missingFields = [...missingRequiredColumns].filter(
+          (f): f is string => typeof f === 'string',
+        )
+        currentRow.rowMeta.saveError = {
+          reason: 'missingRequired',
+          missingFields,
+        }
+        const fieldList = missingFields.join(', ')
+        message.error(
+          missingFields.length === 1
+            ? t('msg.error.requiredFieldMissing', { fields: fieldList })
+            : t('msg.error.requiredFieldsMissing', { fields: fieldList }),
+        )
         return insertObj
       }
 

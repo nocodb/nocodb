@@ -154,6 +154,21 @@ interface Row {
     maxSpanning?: number
     /** Per-button-column visibility: true = button disabled for this row */
     buttonDisabled?: Record<string, boolean>
+    /**
+     * Optimistic-row save failure marker. Set when a frontend pre-check
+     * (currently: missing required NOT-NULL fields) blocks the insert before
+     * the row reaches the backend. The row stays in the local cache with this
+     * flag so the canvas/grid can render a ⚠️ marker; clearing it (e.g. once
+     * the missing fields are filled) re-enables the auto-retry path.
+     */
+    saveError?: {
+      reason: 'missingRequired'
+      // Column titles that were required-and-null on the failed insert.
+      // UI consumers can cross-reference against FieldsInj to decide whether
+      // any are hidden in the current view (in which case the marker should
+      // prompt the user to open the expanded form).
+      missingFields: string[]
+    }
   } & RowMetaRowColorInfo
 }
 

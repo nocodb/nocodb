@@ -5884,13 +5884,43 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   // Deep-clone the payload and fill `email: ''` back in on every user-shaped
-  // object whose `id` matches a base user. Walks recursively so direct User
-  // columns, CreatedBy / LastModifiedBy, and Lookup-of-User values are all
-  // covered. The base-user list is fetched lazily — if the payload has no
-  // redacted user objects we don't hit the DB.
+  // object whose `id` matches a base user. Only walks values that belong to
+  // columns whose uidt can plausibly carry a user object (User / CreatedBy /
+  // LastModifiedBy / Lookup / Formula / Rollup) — this avoids false positives
+  // in JSON / Text columns whose contents coincidentally share the shape.
+  // The base-user list is fetched lazily — if the payload has no redacted
+  // user objects we don't hit the DB.
   protected async cloneAndReEnrichRedactedUserEmails<T>(data: T): Promise<T> {
     if (ncIsNullOrUndefined(data)) return data;
-    const cloned = JSON.parse(JSON.stringify(data)) as T;
+
+    const userBearingUidts = new Set<UITypes>([
+      UITypes.User,
+      UITypes.CreatedBy,
+      UITypes.LastModifiedBy,
+      UITypes.Lookup,
+      UITypes.Formula,
+      UITypes.Rollup,
+    ]);
+    const candidateColumns = (this.model?.columns ?? []).filter((c) =>
+      userBearingUidts.has(c.uidt as UITypes),
+    );
+    if (!candidateColumns.length) return data;
+
+    // Deep-clone via JSON to avoid mutating the API response. If the payload
+    // contains non-serialisable values (BigInt, circular refs), fall back to
+    // the original — webhook still fires with redacted emails, which is
+    // better than dropping the event entirely.
+    let cloned: T;
+    try {
+      cloned = JSON.parse(JSON.stringify(data)) as T;
+    } catch (e) {
+      logger.warn(
+        `cloneAndReEnrichRedactedUserEmails: clone failed, emitting webhook with redacted emails: ${
+          (e as Error)?.message ?? e
+        }`,
+      );
+      return data;
+    }
 
     let userMap: Map<string, Partial<User>> | null = null;
     const loadUserMap = async () => {
@@ -5939,7 +5969,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
     };
 
-    await walk(cloned);
+    // Entry point: for each row, only descend into values belonging to
+    // user-bearing columns. Rows may be keyed by col.id (raw model rows) or
+    // col.title (alias-mapped API output) depending on where in the pipeline
+    // handleHooks is invoked — check id first, fall back to title.
+    const processRow = async (row: any) => {
+      if (!row || typeof row !== 'object' || Array.isArray(row)) return;
+      for (const col of candidateColumns) {
+        if (col.id && row[col.id] !== undefined) {
+          await walk(row[col.id]);
+        } else if (col.title && row[col.title] !== undefined) {
+          await walk(row[col.title]);
+        }
+      }
+    };
+
+    if (Array.isArray(cloned)) {
+      for (const row of cloned) await processRow(row);
+    } else {
+      await processRow(cloned);
+    }
+
     return cloned;
   }
 

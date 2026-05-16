@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
-import type { ButtonType, ColumnType, FilterType, SelectOptionsType, TableType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FilterType, LinkToAnotherRecordType, SelectOptionsType, TableType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   ColumnHelper,
@@ -505,6 +505,9 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
       if (
         ['title', 'column_name', 'meta'].some((k) => k in diffs) ||
         ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id) ||
+        ('fk_display_value_column_id' in diffs &&
+          diffs.fk_display_value_column_id !==
+            (col.colOptions as LinkToAnotherRecordType | undefined)?.fk_display_value_column_id) ||
         checkForFilterChange(diffs.filters || [])
       ) {
         ops.value = [

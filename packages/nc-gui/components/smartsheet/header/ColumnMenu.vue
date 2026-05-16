@@ -698,11 +698,7 @@ const onDeleteColumn = () => {
                     plan: PlanTitles.PLUS,
                   })
                 "
-                :on-click-callback="
-                  () => {
-                    isOpen = false
-                  }
-                "
+                :on-click-callback="() => (isOpen = false)"
                 size="xs"
               />
             </div>

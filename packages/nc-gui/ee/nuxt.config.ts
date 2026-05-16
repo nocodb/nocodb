@@ -356,6 +356,7 @@ export default defineNuxtConfig({
         'markdown-it-regexp',
         'markdown-it-task-lists',
         'marked',
+        'mermaid',
         'mime-lite',
         'monaco-editor',
         'monaco-editor/esm/vs/basic-languages/javascript/javascript',

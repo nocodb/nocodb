@@ -1261,7 +1261,9 @@ export function useCanvasRender({
     if (hasSaveError) {
       const missingFields = row.rowMeta.saveError!.missingFields ?? []
       const iconSize = 14
-      const rightSlot = 20 + 4
+      // 20px expand-icon box + 8px gap so the warning glyph doesn't touch
+      // the expand icon. The expand icon itself starts at `width - 4 - 20`.
+      const rightSlot = 20 + 8
       const markerBox = {
         x: xOffset + width - 4 - rightSlot - iconSize - rowColouringBoxTotalWidth,
         y: yOffset + (rowHeight.value - iconSize) / 2,

@@ -252,6 +252,17 @@ const isColumnRequiredAndNull = (col: ColumnType, row: Record<string, any>) => {
   return isColumnRequired(col) && (row[col.title!] === undefined || row[col.title!] === null)
 }
 
+// A column that, if hidden in a view, blocks inline row create — the row
+// must be filled via the expanded form. Built on top of `isColumnRequired`
+// but excludes system + virtual columns (PK, links, formulae, AI prompts,
+// audit timestamps) since those are auto-filled by the backend.
+const isHideBlockingRequired = (col?: ColumnType) => {
+  if (!col || !isColumnRequired(col)) return false
+  if (isSystemColumn(col)) return false
+  if (isVirtualCol(col)) return false
+  return true
+}
+
 const getUniqueColumnName = (initName: string, columns: ColumnType[]) => {
   let name = initName
   let i = 1
@@ -598,6 +609,7 @@ export {
   getUniqueColumnName,
   isColumnRequiredAndNull,
   isColumnRequired,
+  isHideBlockingRequired,
   isVirtualColRequired,
   checkboxIconList,
   ratingIconList,

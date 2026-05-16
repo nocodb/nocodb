@@ -1,6 +1,8 @@
 import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import { OrgUser } from '~/models';
+import Base from '~/models/Base';
+import BaseUser from '~/models/BaseUser';
+import { OrgUser, Permission } from '~/models';
 import WorkspaceUser from '~/ee/models/WorkspaceUser';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -85,6 +87,11 @@ export async function removeUserFromOrgCascade(
 
   const transaction = await ncMeta.startTransaction();
 
+  // Post-commit cache invalidations — collected during the transaction,
+  // executed only after a successful commit. Mirrors the pattern in
+  // `cleanupWorkspaceUser` so a rollback never leaves cache out of sync.
+  const cacheTransaction: (() => Promise<any>)[] = [];
+
   try {
     // Soft-delete from org
     await OrgUser.softDelete(orgId, userId, transaction);
@@ -110,6 +117,44 @@ export async function removeUserFromOrgCascade(
       }
 
       await WorkspaceUser.softDelete(ws.id, userId, transaction);
+
+      // Hard-delete direct base memberships across all bases in the
+      // workspace (active + soft-deleted + snapshot). Without this, the
+      // orphan nc_base_users_v2 rows keep the user counted by the on-prem
+      // seat calculation (NocoLicense.calculateGlobalSeatCount). Mirror
+      // the per-base cleanup that `cleanupWorkspaceUser` performs so
+      // permission subjects and per-base caches are also reaped.
+      const wsBases = await Base.listByWorkspace(
+        ws.id,
+        { includeDeleted: true, includeSnapshot: true },
+        transaction,
+      );
+      for (const base of wsBases) {
+        const baseCtx = { workspace_id: ws.id, base_id: base.id };
+
+        await BaseUser.delete(baseCtx, base.id, userId, transaction);
+
+        await Permission.removeSubjectBase(
+          baseCtx,
+          { type: 'user', id: userId },
+          transaction,
+        );
+
+        cacheTransaction.push(() =>
+          NocoCache.del(
+            baseCtx,
+            `${CacheScope.BASE_USER}:${base.id}:${userId}`,
+          ),
+        );
+        cacheTransaction.push(() => Permission.clearBaseCache(baseCtx));
+      }
+
+      cacheTransaction.push(() =>
+        NocoCache.del(
+          { workspace_id: ws.id, base_id: null },
+          `${CacheScope.WORKSPACE_USER}:${ws.id}:${userId}`,
+        ),
+      );
 
       // Reassign orphan bases to the next workspace owner
       await handleOrphanBases(ws.id, userId, transaction);
@@ -148,4 +193,9 @@ export async function removeUserFromOrgCascade(
     await transaction.rollback();
     throw e;
   }
+
+  // Execute deferred cache invalidations now that the transaction has
+  // committed. Failures here don't roll back DB state — log and continue
+  // so a flaky cache backend can't block the user-removal flow.
+  await Promise.all(cacheTransaction.map((fn) => fn().catch(() => undefined)));
 }

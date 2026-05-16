@@ -640,6 +640,30 @@ export default class NocoLicense {
     const seatUsersMap = new Map<string, true>();
     const nonSeatUsersMap = new Map<string, true>();
 
+    // Pre-fetch active workspace and base IDs so role-bearing rows tied
+    // to soft-deleted workspaces/bases don't inflate the seat count.
+    // Matches cloud's `Base.list(workspaceId)` semantics: excludes
+    // soft-deleted and snapshot bases (sandbox bases are still counted
+    // — a direct assignment to a sandbox is still a seat).
+    const activeWorkspaces = await ncMeta
+      .knexConnection(MetaTable.WORKSPACE)
+      .select('id')
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      });
+    const activeWorkspaceIds = activeWorkspaces.map((w) => w.id);
+
+    const activeBases = await ncMeta
+      .knexConnection(MetaTable.PROJECT)
+      .select('id')
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      })
+      .where(function () {
+        this.where('is_snapshot', false).orWhereNull('is_snapshot');
+      });
+    const activeBaseIds = activeBases.map((b) => b.id);
+
     // Subquery for workspace team roles (teams → workspace roles per user)
     const workspaceTeamRolesSubquery = ncMeta.knexConnection
       .select('pa.principal_ref_id as user_id')
@@ -661,6 +685,12 @@ export default class NocoLicense {
             '=',
             ncMeta.knex.raw('?', [false]),
           );
+        if (activeWorkspaceIds.length > 0) {
+          this.andOnIn('wta.resource_id', activeWorkspaceIds);
+        } else {
+          // No active workspaces — force the join to never match
+          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
+        }
       })
       .where('pa.principal_type', '=', 'user')
       .where('pa.resource_type', '=', 'team')
@@ -693,6 +723,12 @@ export default class NocoLicense {
             '=',
             ncMeta.knex.raw('?', [false]),
           );
+        if (activeBaseIds.length > 0) {
+          this.andOnIn('bta.resource_id', activeBaseIds);
+        } else {
+          // No active bases — force the join to never match
+          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
+        }
       })
       .where('pa.principal_type', '=', 'user')
       .where('pa.resource_type', '=', 'team')
@@ -714,17 +750,29 @@ export default class NocoLicense {
         'btr.base_team_roles as base_team_roles',
       )
       .from(MetaTable.USERS)
-      // Left join with direct workspace users (all workspaces)
+      // Left join with direct workspace users — only count memberships
+      // in active (non-soft-deleted) workspaces
       .leftJoin(`${MetaTable.WORKSPACE_USER} as wu`, function () {
         this.on(`${MetaTable.USERS}.id`, '=', 'wu.fk_user_id').andOn(
           ncMeta.knex.raw('COALESCE(wu.deleted, FALSE)'),
           '=',
           ncMeta.knex.raw('?', [false]),
         );
+        if (activeWorkspaceIds.length > 0) {
+          this.andOnIn('wu.fk_workspace_id', activeWorkspaceIds);
+        } else {
+          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
+        }
       })
-      // Left join with direct base users (all bases)
+      // Left join with direct base users — only count memberships
+      // on active (non-soft-deleted) bases
       .leftJoin(`${MetaTable.PROJECT_USERS} as bu`, function () {
         this.on(`${MetaTable.USERS}.id`, '=', 'bu.fk_user_id');
+        if (activeBaseIds.length > 0) {
+          this.andOnIn('bu.base_id', activeBaseIds);
+        } else {
+          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
+        }
       })
       // Left join with workspace team roles subquery
       .leftJoin(
@@ -734,6 +782,13 @@ export default class NocoLicense {
       )
       // Left join with base team roles subquery
       .leftJoin(baseTeamRolesSubquery, 'btr.user_id', `${MetaTable.USERS}.id`)
+      // Exclude soft-deleted users
+      .where(function () {
+        this.where(
+          `${MetaTable.USERS}.is_deleted`,
+          ncMeta.knex.raw('?', [false]),
+        ).orWhereNull(`${MetaTable.USERS}.is_deleted`);
+      })
       // Filter: only users who have at least one role assignment
       .where(function () {
         this.whereNotNull('wu.fk_user_id')

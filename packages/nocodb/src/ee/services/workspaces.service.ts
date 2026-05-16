@@ -447,13 +447,15 @@ export class WorkspacesService implements OnApplicationBootstrap {
       );
 
       if (workspaceUsers.length) {
-        // update workspace user
+        // update workspace user — reset created_at so "Date Joined" reflects
+        // when the user claimed this slot, not when the pool slot was minted.
         await ncMeta.metaUpdate(
           RootScopes.WORKSPACE,
           RootScopes.WORKSPACE,
           MetaTable.WORKSPACE_USER,
           {
             fk_user_id: user.id,
+            created_at: ncMeta.now(),
           },
           {
             fk_workspace_id: workspace.id,

@@ -119,16 +119,34 @@ function generateNumberBoundingQuery(
 }
 
 /*
- * Generate query to cast a value to duration.
+ * Generate query to cast a value to duration (stored as seconds).
+ *
+ * Interprets the source text according to the column's chosen duration format:
+ *   0 (h:mm)        — 2-part `h:m`, single number = minutes
+ *   1-4 (h:mm:ss+)  — 2-part `m:s`, single number = seconds
+ *
+ * 3-part `h:m:s` is always h*3600 + m*60 + s. Day-based formats (5-9) and
+ * fractional seconds fall back to numeric extraction.
  *
  * @param {String} source - Source column name
- * @returns {String} - query to cast value to duration
+ * @param {Number} durationType - Column meta.duration format id
  */
-function generateToDurationQuery(source: string) {
+function generateToDurationQuery(source: string, durationType: number) {
+  const isHMM = durationType === 0;
+  const extractNum = extractNumberQuery(source);
+
+  const twoPart = isHMM
+    ? `3600 * CAST(SPLIT_PART(${source}, ':', 1) AS INT) + 60 * CAST(SPLIT_PART(${source}, ':', 2) AS INT)`
+    : `60 * CAST(SPLIT_PART(${source}, ':', 1) AS INT) + CAST(SPLIT_PART(${source}, ':', 2) AS INT)`;
+
   return `
     CASE
-      WHEN ${source} ~ '^\\d+:\\d{1,2}$' THEN 60 * CAST(SPLIT_PART(${source}, ':', 1) AS INT) + CAST(SPLIT_PART(${source}, ':', 2) AS INT)
-      ELSE ${extractNumberQuery(source)}
+      WHEN ${source} ~ '^\\d+:\\d{1,2}:\\d{1,2}$' THEN
+        3600 * CAST(SPLIT_PART(${source}, ':', 1) AS INT)
+        + 60 * CAST(SPLIT_PART(${source}, ':', 2) AS INT)
+        + CAST(SPLIT_PART(${source}, ':', 3) AS INT)
+      WHEN ${source} ~ '^\\d+:\\d{1,2}$' THEN ${twoPart}
+      ELSE ${isHMM ? `(${extractNum}) * 60` : extractNum}
     END;
   `;
 }
@@ -164,6 +182,7 @@ export function generateCastQuery(
   source: string,
   limit: number,
   format: string,
+  durationType = 0,
 ) {
   switch (uidt) {
     case UITypes.SingleLineText:
@@ -204,7 +223,7 @@ export function generateCastQuery(
     case UITypes.Time:
       return generateDateTimeCastQuery(source, 'empty');
     case UITypes.Duration:
-      return generateToDurationQuery(source);
+      return generateToDurationQuery(source, durationType);
     default:
       return `null::${dt};`;
   }

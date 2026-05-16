@@ -22,7 +22,12 @@ export function useHideRequiredFieldConfirm() {
 
   function confirmHide(column: ColumnType | undefined, onConfirm: () => void | Promise<void>) {
     if (!isHideBlockingRequired(column)) {
-      void onConfirm()
+      const result = onConfirm()
+      if (result instanceof Promise) {
+        result.catch(() => {
+          /* caller surfaces its own errors */
+        })
+      }
       return
     }
 

@@ -2123,7 +2123,10 @@ onBeforeRouteUpdate((_to, from, next) => {
                         v-if="
                           field.id &&
                           viewFieldsMap[field.id] &&
-                          !(visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show) &&
+                          !(
+                            visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ??
+                            viewFieldsMap[field.id].show
+                          ) &&
                           isHideBlockingRequired(field)
                         "
                         placement="left"

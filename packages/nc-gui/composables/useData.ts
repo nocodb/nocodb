@@ -67,9 +67,7 @@ export function useData(args: {
       })
 
       if (missingRequiredColumns.size) {
-        const missingFields = [...missingRequiredColumns].filter(
-          (f): f is string => typeof f === 'string',
-        )
+        const missingFields = [...missingRequiredColumns].filter((f): f is string => typeof f === 'string')
         if (currentRow.rowMeta) {
           currentRow.rowMeta.saveError = {
             reason: 'missingRequired',

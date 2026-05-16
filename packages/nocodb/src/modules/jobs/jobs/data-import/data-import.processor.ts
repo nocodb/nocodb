@@ -5,6 +5,7 @@ import {
   NcErrorType,
   serializeCurrencyValue,
   serializeDecimalValue,
+  serializeDurationValue,
   serializeIntValue,
   UITypes,
 } from 'nocodb-sdk';
@@ -73,6 +74,11 @@ function coerceValue(raw: any, mapping: ColumnMapEntry): any {
     case UITypes.Number:
     case UITypes.Rating:
       return serializeIntValue(value, { col: mapping.col });
+
+    case UITypes.Duration:
+      return value === null
+        ? null
+        : serializeDurationValue(value as string, mapping.col);
 
     default:
       return value;

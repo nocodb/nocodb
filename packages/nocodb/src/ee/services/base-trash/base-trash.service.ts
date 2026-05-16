@@ -190,13 +190,18 @@ export class BaseTrashService implements OnModuleInit {
 
     const handler = this.getHandler(param.resourceType);
 
+    // Resolve retention BEFORE opening the transaction — `getRetentionDays`
+    // reads the workspace plan via `Workspace.get` without threading
+    // `ncMeta`, so calling it inside the trx asks the pool for a second
+    // connection. On sqlite (pool.max = 1) that deadlocks until
+    // acquireConnectionTimeout fires.
+    const retentionDays = await this.getRetentionDays(context.workspace_id);
+
     const ncMeta = param.ncMeta
       ? param.ncMeta
       : await (Noco.ncMeta as MetaService).startTransaction();
 
     try {
-      const retentionDays = await this.getRetentionDays(context.workspace_id);
-
       const result = await handler.trash(
         context,
         param.resourceId,

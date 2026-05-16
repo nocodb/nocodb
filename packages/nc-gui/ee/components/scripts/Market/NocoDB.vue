@@ -49,7 +49,15 @@ const onScriptClick = (scriptId: string) => {
 }
 
 const onAddScript = async (scr: any) => {
-  if (showScriptPlanLimitExceededModal()) {
+  if (
+    showScriptPlanLimitExceededModal({
+      callback: (type) => {
+        if (type === 'ok') {
+          isOpen.value = false
+        }
+      },
+    })
+  ) {
     return
   }
 

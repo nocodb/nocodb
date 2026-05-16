@@ -78,6 +78,7 @@ const icons = {
   file: svg(
     '<path d="M9.33 1.33H4a1.33 1.33 0 0 0-1.33 1.33v10.67A1.33 1.33 0 0 0 4 14.67h8A1.33 1.33 0 0 0 13.33 13.33V5.33z"/><polyline points="9.33 1.33 9.33 5.33 13.33 5.33"/><line x1="8" y1="12" x2="8" y2="8"/><line x1="6" y1="10" x2="10" y2="10"/>',
   ),
+  webBookmark: svg('<path d="M3.33 2h9.34v12L8 11.33 3.33 14V2z"/>'),
   // AI icons
   sparkles: svg(
     '<path d="M8 1l1.5 3.5L13 6l-3.5 1.5L8 11 6.5 7.5 3 6l3.5-1.5L8 1z"/><path d="M3 11l.75 1.75L5.5 13.5l-1.75.75L3 16l-.75-1.75L.5 13.5l1.75-.75L3 11z"/><path d="M12.5 10l.75 1.75 1.75.75-1.75.75-.75 1.75-.75-1.75L10 12.5l1.75-.75.75-1.75z"/>',
@@ -280,6 +281,22 @@ export const slashCommandItems: SlashCommandItem[] = [
     group: 'Blocks',
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).setHorizontalRule().run()
+    },
+  },
+  {
+    title: 'Web bookmark',
+    description: 'Save a link as a visual bookmark',
+    icon: icons.webBookmark,
+    group: 'Blocks',
+    requiresInput: true,
+    inputPlaceholder: 'Paste a URL...',
+    command: (editor, range) => {
+      editor.chain().focus().deleteRange(range).run()
+      const url = editor.storage.webBookmark?._pendingUrl
+      if (url) {
+        editor.storage.webBookmark._pendingUrl = null
+        editor.storage.webBookmark?.insertFromUrl?.(editor, url)
+      }
     },
   },
   {

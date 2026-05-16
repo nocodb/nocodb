@@ -178,6 +178,9 @@ export const OPERATION_SCOPES = {
   dataImportPreview: 'base',
   dataImportFile: 'base',
 
+  // Web Bookmark (doc editor)
+  webBookmarkFetch: 'base',
+
   // LTAR V2 conversion
   convertLinkToV2: 'base',
 

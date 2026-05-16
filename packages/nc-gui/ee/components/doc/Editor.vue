@@ -19,6 +19,7 @@ import { DocCommentMarkExtension } from './DocCommentMarkExtension'
 import { DocImageExtension } from './DocImageExtension'
 import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
 import { DocEmbedExtension } from './DocEmbedExtension'
+import { DocWebBookmarkExtension } from './DocWebBookmarkExtension'
 import { DocCodeBlockExtension } from './DocCodeBlockExtension'
 import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
 import { SlashCommandExtension, embedPlatformIcons } from './SlashCommand'
@@ -81,7 +82,7 @@ const { activeProjectId, basesUser } = storeToRefs(basesStore)
 const documentsStore = useDocumentsStore()
 const { createDocument, deleteDocument, loadDocument, updateDocument } = documentsStore
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
 
 const { showShareModal } = storeToRefs(useShare())
@@ -1212,6 +1213,7 @@ const _tiptapEditor = useEditor({
     DocMathExtension,
     DocFileAttachmentExtension,
     DocEmbedExtension,
+    DocWebBookmarkExtension,
     DocActiveBlockExtension,
     DocBlockDirExtension,
     DocHeadingCollapseExtension,
@@ -1693,6 +1695,89 @@ watch(editor, (ed) => {
       }
 
       editor.chain().focus().insertEmbed({ src: embedUrl, url: url.trim(), platform }).run()
+    }
+  }
+  if (ed?.storage?.webBookmark) {
+    ed.storage.webBookmark.insertFromUrl = async (editor: any, rawUrl: string) => {
+      const url = rawUrl.trim()
+      if (!/^https?:\/\//i.test(url)) {
+        ncMessage.warning('Please enter a valid http:// or https:// URL')
+        return
+      }
+
+      // Insert placeholder card immediately so user gets feedback
+      const insertPos = editor.state.selection.from
+      editor.chain().focus().insertWebBookmark({ url, isLoading: true }).run()
+
+      const base = basesStore.bases.get(activeProjectId.value!)
+      if (!base?.fk_workspace_id || !base?.id) {
+        // Without base context the backend can't ACL-check; fall back to URL-only card
+        editor
+          .chain()
+          .command(({ tr, state }) => {
+            const node = state.doc.nodeAt(insertPos)
+            if (node?.type.name === 'webBookmark') {
+              tr.setNodeMarkup(insertPos, undefined, { ...node.attrs, isLoading: false })
+              return true
+            }
+            return false
+          })
+          .run()
+        return
+      }
+
+      try {
+        const metadata = await $api.internal.postOperation(
+          base.fk_workspace_id,
+          base.id,
+          { operation: 'webBookmarkFetch' },
+          { url },
+        )
+
+        // Locate the placeholder node by url+isLoading and swap in the metadata.
+        // The user may have inserted other content above, so we walk the doc.
+        editor
+          .chain()
+          .command(({ tr, state }) => {
+            let updated = false
+            state.doc.descendants((node: any, pos: number) => {
+              if (updated) return false
+              if (node.type.name === 'webBookmark' && node.attrs.url === url && node.attrs.isLoading) {
+                tr.setNodeMarkup(pos, undefined, {
+                  ...node.attrs,
+                  ...(metadata as any),
+                  url,
+                  isLoading: false,
+                })
+                updated = true
+                return false
+              }
+              return true
+            })
+            return updated
+          })
+          .run()
+        $e('a:doc:web-bookmark:create', { hasImage: !!(metadata as any)?.imageUrl })
+      } catch (e: any) {
+        // On failure, leave a URL-only card so the user still has a clickable link
+        editor
+          .chain()
+          .command(({ tr, state }) => {
+            let updated = false
+            state.doc.descendants((node: any, pos: number) => {
+              if (updated) return false
+              if (node.type.name === 'webBookmark' && node.attrs.url === url && node.attrs.isLoading) {
+                tr.setNodeMarkup(pos, undefined, { ...node.attrs, isLoading: false })
+                updated = true
+                return false
+              }
+              return true
+            })
+            return updated
+          })
+          .run()
+        ncMessage.error(await extractSdkResponseErrorMsg(e))
+      }
     }
   }
 })

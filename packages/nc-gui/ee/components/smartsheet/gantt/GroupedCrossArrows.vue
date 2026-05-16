@@ -367,11 +367,13 @@ const innerTransform = computed(() => `translate(${-scrollLeft.value}, 0)`)
       width: `calc(100% - ${GROUP_SIDEBAR_WIDTH}px)`,
       height: `${svgHeight}px`,
       overflow: 'hidden',
-      // z=0 so the SVG sits in the same paint layer as the grid
-      // background. The grid wrapper (z=auto) comes AFTER the overlay in
-      // DOM order, so bars and lanes paint on top — connectors slip
-      // behind bars at intersections, matching flat-mode behavior.
-      zIndex: 0,
+      // z=1 paints the SVG ABOVE per-Grid background layers (weekend
+      // stripes, gridlines, today line — all at z=0 inside each per-Grid
+      // wrapper). Bars get z=2 via the NcTooltip wrappers in Grid.vue so
+      // they still cover arrows at the 2px termination tip. Final stack
+      // (bottom to top): per-Grid bg (z=0) → cross-arrows (z=1) → bars
+      // (z=2) → interacting bar (z=100).
+      zIndex: 1,
     }"
     xmlns="http://www.w3.org/2000/svg"
   >

@@ -1888,6 +1888,16 @@ const onGridMouseLeave = () => {
             class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
             :style="{ left: `${off.leftPx}px` }"
           />
+          <!-- Horizontal row separators — moved here from the swimlane `border-b`
+               so they paint in the BG stack alongside vertical gridlines,
+               instead of in the content stack ABOVE the arrows SVG. Result:
+               bg-lines → arrows → bars (the desired layering). -->
+          <div
+            v-for="(_, idx) in swimlanes"
+            :key="`row-line-${idx}`"
+            class="absolute left-0 right-0 border-b border-nc-border-gray-light"
+            :style="{ top: `${(idx + 1) * ROW_HEIGHT - 1}px` }"
+          />
         </div>
 
         <!-- Dependency arrows layer — sits in the background (z=0, same as
@@ -2016,11 +2026,12 @@ const onGridMouseLeave = () => {
           @mousedown="onGridBodyMouseDown"
           @dblclick="onGridBodyDblClick"
         >
-          <!-- Swimlane rows -->
+          <!-- Swimlane rows. Horizontal separator is drawn by the bg layer
+               (above) so the row border doesn't paint over the arrows SVG. -->
           <div
             v-for="(lane, laneIdx) in swimlanes"
             :key="laneIdx"
-            class="relative border-b border-nc-border-gray-light"
+            class="relative"
             :style="{ height: `${ROW_HEIGHT}px` }"
             :data-gantt-record-id="laneRecordId(lane)"
           >
@@ -2036,7 +2047,7 @@ const onGridMouseLeave = () => {
               v-if="isMilestone(record) && getMilestoneStyle(record)"
               :disabled="isInteracting"
               placement="top"
-              class="nc-gantt-milestone absolute peer"
+              class="nc-gantt-milestone absolute peer z-2"
               :class="{
                 'cursor-grabbing': dragInProgress && dragRecord === record && canDragMilestone,
                 'cursor-grab': !isInteracting && canDragMilestone,
@@ -2123,7 +2134,7 @@ const onGridMouseLeave = () => {
               v-if="!isMilestone(record) && getBarStyle(record)"
               :disabled="isInteracting"
               placement="top"
-              class="absolute top-1"
+              class="absolute top-1 z-2"
               :style="getBarStyle(record)"
             >
               <template #title>

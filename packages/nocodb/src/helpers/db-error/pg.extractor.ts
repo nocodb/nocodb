@@ -6,6 +6,32 @@ import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
 const REGEX_DATE_TIME_OUT_OF_RANGE =
   /date\/time field value out of range:\s*(.*)$/;
 
+/**
+ * Pull the raw Postgres message out of a Knex-wrapped error.
+ *
+ * Knex wraps PG errors into `Error('<sql query> - <original-message>')`,
+ * but preserves the pg-protocol error at `error.original` (knex-pg) or
+ * `error.nativeError` (some drivers). Prefer those when present so the
+ * user doesn't see a SQL fragment prepended to their RAISE EXCEPTION
+ * text. Falls back to splitting on the ` - ` separator Knex uses.
+ */
+function pgRawMessage(error: any): string | undefined {
+  const inner = error?.original?.message ?? error?.nativeError?.message;
+  if (typeof inner === 'string' && inner.trim()) return inner.trim();
+  const raw = error?.message;
+  if (typeof raw !== 'string') return undefined;
+  // Strip the `<sql query> - ` prefix Knex prepends. The SQL portion
+  // always begins with a recognisable verb; only strip when we see one
+  // to avoid mangling messages that legitimately contain ` - `.
+  const sqlPrefix =
+    /^\s*(insert|update|delete|select|alter|drop|create|with)\s+/i;
+  if (sqlPrefix.test(raw)) {
+    const idx = raw.lastIndexOf(' - ');
+    if (idx >= 0) return raw.slice(idx + 3).trim();
+  }
+  return raw.trim();
+}
+
 export class PgDBErrorExtractor implements IClientDbErrorExtractor {
   constructor(
     private readonly option?: {
@@ -97,16 +123,74 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
       case '42601':
         message = 'There was a syntax error in your SQL query.';
         break;
-      case '23502':
-        message = 'A value is required for this field.';
+      case '23502': {
+        // not_null_violation. Postgres puts the offending column in
+        // `error.column` and a sentence form in `error.message`:
+        //   null value in column "priority" of relation "tasks"
+        //   violates not-null constraint
+        let column: string | undefined = error.column;
+        if (!column && error.message) {
+          const m = error.message.match(/null value in column "([^"]+)"/i);
+          if (m) column = m[1];
+        }
+        message = column
+          ? `Required field '${column}' is missing.`
+          : 'A value is required for this field.';
+        _type = DBError.COLUMN_NOT_NULL;
+        if (column) _extra = { column };
         break;
-      case '23503':
-        message =
-          'Cannot delete this record because other records depend on it. Please remove the dependent records first.';
+      }
+      case '23503': {
+        // foreign_key_violation. Fires on INSERT/UPDATE when the target
+        // row doesn't exist, and on DELETE when this row is referenced.
+        // PG sets `error.constraint`; `error.detail` carries the offending
+        // key/value: `Key (fk_id)=(123) is not present in table "y".`
+        const constraint: string | undefined = error.constraint;
+        const detail: string | undefined = error.detail;
+        if (detail && /is not present in table/i.test(detail)) {
+          message = `Foreign-key violation: ${detail}`;
+        } else if (detail && /is still referenced/i.test(detail)) {
+          message = `Cannot delete this record because other records depend on it. ${detail}`;
+        } else {
+          message =
+            'Foreign-key constraint violation. Please verify the linked record exists.';
+        }
+        if (constraint) _extra = { constraint };
         break;
-      case '23514':
-        message = 'A null value is not allowed for this field.';
+      }
+      case '23514': {
+        // check_violation. PG: `new row for relation "tasks" violates
+        // check constraint "tasks_priority_check"`. `error.constraint`
+        // carries the constraint name; `error.message` (or `error.hint`)
+        // carries any RAISE-style hint the schema author wrote.
+        const constraint: string | undefined = error.constraint;
+        const hint = error.hint;
+        if (hint) {
+          message = `Check constraint violated${
+            constraint ? ` ('${constraint}')` : ''
+          }: ${hint}`;
+        } else if (constraint) {
+          message = `Check constraint '${constraint}' violated.`;
+        } else {
+          message = error.message || 'Check constraint violation.';
+        }
+        if (constraint) _extra = { constraint };
         break;
+      }
+      case 'P0001':
+      case 'P0002':
+      case 'P0003':
+      case 'P0004': {
+        // PL/pgSQL exceptions — these carry the user-authored message
+        // verbatim. P0001 is `RAISE EXCEPTION 'foo'`, P0002 is
+        // NO_DATA_FOUND, P0003 is TOO_MANY_ROWS, P0004 is ASSERT_FAILURE.
+        // Surface message + hint as-is so domain-specific guards (e.g.
+        // "Currency mismatch") reach the user.
+        const raw = pgRawMessage(error);
+        message = [raw, error.hint].filter(Boolean).join(' — ');
+        if (!message) message = 'Database raised an exception.';
+        break;
+      }
       case '22001':
         message = 'The data entered is too long for this field.';
         break;
@@ -257,8 +341,10 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         this.option.dbErrorLogger.error(
           `${error.code} is not handled on database pg`,
         );
-        message = `An error occurred when querying postgresql database.`;
-        httpStatus = 500;
+        // Fall through to the default-extractor (in dispatcher) so the raw
+        // message has a chance to reach the user. Previously this branch
+        // assigned `message` and `httpStatus` then `return`ed without the
+        // result object — silently dropping every unmapped SQLSTATE.
         return;
     }
 

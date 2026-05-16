@@ -3882,6 +3882,8 @@
       "requiredFieldsMissing": "Required fields missing: {fields}",
       "requiredFieldMissingHidden": "Required field '{field}' is hidden — open the row to fill it.",
       "requiredFieldsMissingHidden": "Required fields hidden ({fields}) — open the row to fill them.",
+      "rowNotSavedYet": "This row hasn't been saved yet. Fill the required field{plural} to save it.",
+      "rowNotSavedYetHidden": "This row hasn't been saved yet. Open the row to fill the hidden required field{plural}.",
       "uniqueConstraintViolation": "This value already exists. Unique fields cannot have duplicate values.",
       "setFormDataFailed": "Failed to set form data",
       "formViewUpdateFailed": "Failed to update form view",

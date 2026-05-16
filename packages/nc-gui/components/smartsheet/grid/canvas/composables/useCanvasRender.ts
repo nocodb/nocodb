@@ -1135,9 +1135,56 @@ export function useCanvasRender({
     }
 
     /**
-     * 4. Render comment or expand icon
+     * 4a. Render save-error marker (#13838)
+     *
+     * When `populateInsertObject` rejects the row up-front because a required
+     * NOT-NULL no-default field is null, we keep the optimistic row in the
+     * cache and tag `rowMeta.saveError` so this marker can surface the
+     * problem in-place. Renders unconditionally (not gated on hover) so the
+     * user notices without re-hovering the offending row.
      */
-    if (row.rowMeta?.commentCount) {
+    if (row.rowMeta?.saveError?.reason === 'missingRequired') {
+      const missingFields = row.rowMeta.saveError.missingFields ?? []
+      const bubbleSize = 18
+      const box = {
+        x: xOffset + width - 4 - bubbleSize - rowColouringBoxTotalWidth,
+        y: yOffset + (rowHeight.value - bubbleSize) / 2,
+        height: bubbleSize,
+        width: bubbleSize,
+      }
+      const isErrorHovered = isBoxHovered(box, mousePosition)
+      roundedRect(ctx, box.x, box.y, box.width, box.height, 4, {
+        backgroundColor: getColor(themeV4Colors.yellow['50']),
+        borderColor: getColor(themeV4Colors.yellow['300']),
+      })
+      spriteLoader.renderIcon(ctx, {
+        icon: 'alertTriangleSolid',
+        size: 12,
+        color: getColor(themeV4Colors.yellow['700']),
+        x: box.x + 3,
+        y: box.y + 3,
+      })
+      if (isErrorHovered) {
+        setCursor('help')
+        const plural = missingFields.length === 1 ? '' : 's'
+        // Cross-reference against the currently rendered view fields so the
+        // hint can tell the user to open the expanded form (vs fill inline).
+        const visibleTitles = new Set(columns.value.map((c) => c.title))
+        const hiddenMissing = missingFields.filter((f) => !visibleTitles.has(f))
+        tryShowTooltip({
+          mousePosition,
+          text:
+            missingFields.length === 1
+              ? t('msg.error.requiredFieldMissing', { fields: missingFields.join(', ') })
+              : t('msg.error.requiredFieldsMissing', { fields: missingFields.join(', ') }),
+          description: hiddenMissing.length
+            ? t('msg.error.rowNotSavedYetHidden', { plural })
+            : t('msg.error.rowNotSavedYet', { plural }),
+          rect: box,
+          placement: 'right',
+        })
+      }
+    } else if (row.rowMeta?.commentCount) {
       const reduceFontSize = row.rowMeta.commentCount > 99
       const commentCount = reduceFontSize ? '99+' : row.rowMeta.commentCount.toString()
 

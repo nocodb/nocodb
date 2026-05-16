@@ -282,6 +282,48 @@ export function useCanvasRender({
     return result
   }
 
+  // Paint a translucent brand overlay on the body cells of every selected
+  // column. We do this separately from the cell-selection (`selection.value`)
+  // because cmd-click selections can be disjoint and CellRange can only
+  // represent a contiguous rectangle — a min..max range would bleed under
+  // unselected columns sitting between selected ones. Drawn after rows /
+  // groups so it sits on top of cell backgrounds, but before the header
+  // (which has its own tint and clips the overlay's top edge anyway).
+  function renderSelectedColumnsOverlay(ctx: CanvasRenderingContext2D) {
+    if (!selectedHeaderColumnIds.value.size) return
+
+    const _scrollLeft = scrollLeft.value
+    const _headerRowHeight = headerRowHeight.value
+    const bodyTop = _headerRowHeight
+    const bodyHeight = height.value - _headerRowHeight - AGGREGATION_HEIGHT
+    if (bodyHeight <= 0) return
+
+    const { start: startColIndex, end: endColIndex } = colSlice.value
+
+    let initialOffset = 1
+    for (let i = 0; i < startColIndex; i++) {
+      initialOffset += parseCellWidth(columns.value[i]?.width)
+    }
+    if (initialOffset === 1) initialOffset = 0
+
+    ctx.save()
+    ctx.fillStyle = getColor(themeV4Colors.brand['500'], themeV4Colors.brand['400'], 0.05)
+
+    let xOffset = initialOffset
+    for (let i = startColIndex; i < endColIndex; i++) {
+      const column = columns.value[i]
+      if (!column) continue
+      const width = parseCellWidth(column.width)
+      // fixed columns are drawn anchored to x=0 in their own pass; selection
+      // tinting on the row-meta / pv column would be visually noisy, so skip.
+      if (!column.fixed && column.columnObj?.id && selectedHeaderColumnIds.value.has(column.columnObj.id)) {
+        ctx.fillRect(xOffset - _scrollLeft, bodyTop, width, bodyHeight)
+      }
+      xOffset += width
+    }
+    ctx.restore()
+  }
+
   function renderHeader(
     ctx: CanvasRenderingContext2D,
     activeState?: {
@@ -3874,6 +3916,8 @@ export function useCanvasRender({
           fetchMissingGroupChunks(minIndex, maxIndex)
         }
       }
+
+      renderSelectedColumnsOverlay(ctx)
 
       renderHeader(ctx, activeState)
 

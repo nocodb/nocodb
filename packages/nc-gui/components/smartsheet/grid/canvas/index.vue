@@ -1445,6 +1445,16 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     selectedRowInfo = { index: null, path: [], isSelectionStarted: false }
   }
 
+  // If this mouseup is ending a column resize, useColumnResize handles its
+  // own cleanup on its window-level listener (which fires right after this
+  // one). We must skip the rest of canvas handleMouseUp — otherwise the body
+  // falls into the cell-click branch using the drop coordinates, which (a)
+  // sets activeCell to the cell under the cursor and (b) clears the header
+  // multi-selection. The user just used that selection to drive a
+  // multi-column resize; preserving it (and the active cell from before the
+  // drag) matches what they expect.
+  if (isResizing.value) return
+
   await onMouseUpFillHandlerEnd()
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
@@ -1624,8 +1634,11 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
             // Modifier-aware header selection:
             //   shift+click → extend range from anchor to clicked
-            //   cmd/ctrl+click → toggle the clicked column in/out
-            //   plain click → single-column behavior (reset multi, anchor)
+            //   cmd/ctrl+click → add/remove the clicked column from selection
+            //   plain click → seed a single-column selection (the clicked col
+            //                 becomes a "selection of 1" so the next cmd-click
+            //                 can extend it). Single-col selection doesn't
+            //                 trigger the multi menu (size < 2).
             const useShift = e.shiftKey && clickedColumnId && lastHeaderClickedColumnId.value
             const useToggle = (e.metaKey || e.ctrlKey) && !!clickedColumnId
 
@@ -1634,32 +1647,24 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             } else if (useToggle && clickedColumnId) {
               toggleHeaderSelection(clickedColumnId)
               lastHeaderClickedColumnId.value = clickedColumnId
+            } else if (clickedColumnId) {
+              selectedHeaderColumnIds.value = new Set([clickedColumnId])
+              lastHeaderClickedColumnId.value = clickedColumnId
             } else {
               clearHeaderSelection()
-              if (clickedColumnId) {
-                lastHeaderClickedColumnId.value = clickedColumnId
-              }
             }
 
-            // Drive the cell-range selection from the resulting header set when
-            // multi-selecting, otherwise preserve the existing single-column
-            // highlight behavior.
-            const headerIds = selectedHeaderColumnIds.value
-            if (headerIds.size > 1) {
-              const indices: number[] = []
-              columns.value.forEach((col, idx) => {
-                if (col.columnObj?.id && headerIds.has(col.columnObj.id)) indices.push(idx)
-              })
-              const minCol = indices[0]
-              const maxCol = indices[indices.length - 1]
-              selection.value.startRange({ row: 0, col: minCol })
-              selection.value.endRange({ row: endRowIndex, col: maxCol })
-              activeCell.value = { row: 0, column: minCol, path: [] }
-            } else {
-              selection.value.startRange({ row: 0, col: colIndex })
-              selection.value.endRange({ row: endRowIndex, col: colIndex })
-              activeCell.value = { row: 0, column: colIndex, path: [] }
-            }
+            // Drive the cell-range selection from the just-clicked column.
+            // We don't extend a contiguous cell range across the multi-header
+            // selection because the selection can be non-contiguous (cmd-click)
+            // and CellRange has no concept of multiple disjoint columns — a
+            // min..max range would highlight cells under unselected headers
+            // (e.g. shows Text 3's column highlighted when only Text 2 and
+            // Text 4 are selected). Header tint already communicates the
+            // multi-selection; the cell range stays per-column.
+            selection.value.startRange({ row: 0, col: colIndex })
+            selection.value.endRange({ row: endRowIndex, col: colIndex })
+            activeCell.value = { row: 0, column: colIndex, path: [] }
 
             resetRowSelection()
             onActiveCellChanged()
@@ -1674,7 +1679,12 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
   // Any non-header click clears the multi-header selection so the bulk menu
   // only stays armed while the user is interacting with the header row.
-  if (selectedHeaderColumnIds.value.size > 0) {
+  // Don't clear when this mouseup ends a column resize — resize starts on a
+  // header but releases anywhere; tearing down the selection at that point
+  // would wipe the user's intent right after they used it to drive a
+  // multi-column resize. The canvas mouseup fires before useColumnResize's
+  // window-level cleanup, so `isResizing` is still true here.
+  if (selectedHeaderColumnIds.value.size > 0 && !isResizing.value) {
     clearHeaderSelection()
   }
 

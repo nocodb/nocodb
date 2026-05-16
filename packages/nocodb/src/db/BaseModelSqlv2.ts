@@ -5889,7 +5889,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   // covered. The base-user list is fetched lazily — if the payload has no
   // redacted user objects we don't hit the DB.
   protected async cloneAndReEnrichRedactedUserEmails<T>(data: T): Promise<T> {
-    if (data === null || data === undefined) return data;
+    if (ncIsNullOrUndefined(data)) return data;
     const cloned = JSON.parse(JSON.stringify(data)) as T;
 
     let userMap: Map<string, Partial<User>> | null = null;

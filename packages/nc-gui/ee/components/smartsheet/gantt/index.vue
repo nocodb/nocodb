@@ -64,6 +64,7 @@ const {
   weekendOffsets,
   minorLabels,
   allowedZoomLevels,
+  inspectorRecord,
 } = useGanttViewStoreOrThrow()
 
 // Multi-word scale labels go through `t()`; the rest fall back to `objects.<key>`.
@@ -256,8 +257,14 @@ watch(ganttRange, () => {
   reloadData()
 })
 
-// When group-by is toggled on/off, reload with appropriate strategy
-watch(isGroupBy, () => {
+// When group-by is toggled on/off, reload with appropriate strategy.
+// Also clear the inspector when entering grouped mode: the panel is
+// suppressed (it lives on the per-group Grid which doesn't render in
+// grouped layout), but the store ref would otherwise leak — including
+// a chain-highlight that targets a record the user can no longer click
+// to dismiss.
+watch(isGroupBy, (val) => {
+  if (val) inspectorRecord.value = null
   reloadData()
 })
 

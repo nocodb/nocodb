@@ -141,14 +141,21 @@ const isInspectedRecord = (row: RowType) => {
   return !!inspectorRecord.value && inspectorRecord.value === row
 }
 
-// Sidebar row click — open the inspector and scroll the date axis to the
-// record's start date so the user sees what they just clicked. Unconditional
-// because `isRecordVisible` is buffer-bounded (not viewport-bounded), so a
-// record can be "in buffer" yet visually off-screen; goToDate is idempotent
-// when the date is already centered.
+// Sidebar row click — open the inspector and scroll the date axis to
+// the record's anchor date so the user sees what they just clicked.
+// Fall back to end date for milestones (end-date-only) and any record
+// without a start date — navigateToRecordStart silently no-ops on null,
+// which would leave the user with an inspector open for an off-screen
+// bar and no scroll assistance.
 const onSidebarRowClick = (record: RowType) => {
   openInspector(record)
-  navigateToRecordStart(record)
+  const startDate = getRecordStartDate(record)
+  if (startDate) {
+    emit('navigateTo', startDate)
+    return
+  }
+  const endDate = getRecordEndDate(record)
+  if (endDate) emit('navigateTo', endDate)
 }
 const closeInspector = () => {
   if (!inspectorRecord.value) return
@@ -1179,9 +1186,22 @@ onKeyStroke(['Delete', 'Backspace'], (event) => {
   handleArrowDelete()
 })
 
-onKeyStroke('Escape', () => {
-  if (linkCreationDrag.value) cancelLinkCreation()
-  if (selectedArrowId.value) deselectArrow()
+// Esc should dismiss one thing at a time. Without stopPropagation,
+// pressing Esc with both an arrow selected AND the inspector open
+// fires this handler AND the inspector's own Escape handler in the
+// same keydown — deselecting the arrow AND closing the inspector at
+// once. Stop the event when we actually consume it so the inspector
+// only closes on the second Esc.
+onKeyStroke('Escape', (event) => {
+  if (linkCreationDrag.value) {
+    cancelLinkCreation()
+    event.stopPropagation()
+    return
+  }
+  if (selectedArrowId.value) {
+    deselectArrow()
+    event.stopPropagation()
+  }
 })
 
 // Drag-to-create link from a bar's dependency handle to another bar.

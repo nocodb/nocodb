@@ -131,7 +131,14 @@ const saveDate = async (col: ColumnType | undefined | null, raw: string, kind: '
     $e('a:gantt:inspector-update', { field: kind })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
+    // Roll back both the underlying row AND the inspector's edit-bound
+    // copy. Without the second line, the date input keeps showing the
+    // failed-save value while the bar on the chart correctly reverts —
+    // a confusing state-mismatch. `saveName` already does the symmetric
+    // rollback on its catch path.
     props.record.row[col.title] = current
+    if (kind === 'start') startValue.value = formatForInput(current)
+    else endValue.value = formatForInput(current)
   }
 }
 
@@ -280,8 +287,27 @@ const onLinkPredecessor = async (row: RowType) => {
   }
 }
 
-// Esc closes the panel.
+// Esc dismisses one thing at a time: first an open date picker / link
+// picker if any, then the panel itself. Without the priority chain
+// the user opens a date picker, presses Esc, and the entire inspector
+// closes instead of just the dropdown — losing all their context.
 onKeyDown('Escape', () => {
+  if (startOpen.value) {
+    startOpen.value = false
+    return
+  }
+  if (endOpen.value) {
+    endOpen.value = false
+    return
+  }
+  if (showSuccessorPicker.value) {
+    showSuccessorPicker.value = false
+    return
+  }
+  if (showPredecessorPicker.value) {
+    showPredecessorPicker.value = false
+    return
+  }
   emit('close')
 })
 

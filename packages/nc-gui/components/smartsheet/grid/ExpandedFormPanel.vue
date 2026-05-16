@@ -728,7 +728,7 @@ const useEeFullscreenSelector = computed(() => isFullscreen.value && isEeUI)
           <SmartsheetExpandedFormMoreOptionsMenu
             :is-loading="isLoading"
             :view="view"
-            :row-id="primaryKey"
+            :row-id="activeRowId ?? undefined"
             compact
             @after-delete="closePanel"
             @duplicate-applied="onAfterDuplicate"

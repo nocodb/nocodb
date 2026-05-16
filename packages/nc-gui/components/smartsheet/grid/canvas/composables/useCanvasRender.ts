@@ -1141,28 +1141,29 @@ export function useCanvasRender({
      * NOT-NULL no-default field is null, we keep the optimistic row in the
      * cache and tag `rowMeta.saveError` so this marker can surface the
      * problem in-place. Renders unconditionally (not gated on hover) so the
-     * user notices without re-hovering the offending row.
+     * user notices without re-hovering the offending row. Placed *left* of
+     * the comment / expand slot so both still render — the user needs that
+     * expand button to fix the row in the expanded form.
      */
     if (row.rowMeta?.saveError?.reason === 'missingRequired') {
       const missingFields = row.rowMeta.saveError.missingFields ?? []
-      const bubbleSize = 18
+      const iconSize = 14
+      // Right slot is reserved for the comment bubble / expand button —
+      // anchor the marker just left of it so both stay visible.
+      const rightSlotWidth = 20 + 4
       const box = {
-        x: xOffset + width - 4 - bubbleSize - rowColouringBoxTotalWidth,
-        y: yOffset + (rowHeight.value - bubbleSize) / 2,
-        height: bubbleSize,
-        width: bubbleSize,
+        x: xOffset + width - 4 - rightSlotWidth - iconSize - rowColouringBoxTotalWidth,
+        y: yOffset + (rowHeight.value - iconSize) / 2,
+        height: iconSize,
+        width: iconSize,
       }
       const isErrorHovered = isBoxHovered(box, mousePosition)
-      roundedRect(ctx, box.x, box.y, box.width, box.height, 4, {
-        backgroundColor: getColor(themeV4Colors.yellow['50']),
-        borderColor: getColor(themeV4Colors.yellow['300']),
-      })
       spriteLoader.renderIcon(ctx, {
         icon: 'alertTriangleSolid',
-        size: 12,
-        color: getColor(themeV4Colors.yellow['700']),
-        x: box.x + 3,
-        y: box.y + 3,
+        size: iconSize,
+        color: getColor(themeV4Colors.yellow['600']),
+        x: box.x,
+        y: box.y,
       })
       if (isErrorHovered) {
         setCursor('help')
@@ -1184,7 +1185,12 @@ export function useCanvasRender({
           placement: 'right',
         })
       }
-    } else if (row.rowMeta?.commentCount) {
+    }
+
+    /**
+     * 4b. Render comment-count bubble or expand icon (unchanged).
+     */
+    if (row.rowMeta?.commentCount) {
       const reduceFontSize = row.rowMeta.commentCount > 99
       const commentCount = reduceFontSize ? '99+' : row.rowMeta.commentCount.toString()
 

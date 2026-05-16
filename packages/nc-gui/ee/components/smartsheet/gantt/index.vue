@@ -493,28 +493,6 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
           </a-select-option>
         </a-select>
 
-        <!-- Configure Gantt schedule — opens the per-view DateDependency dialog
-             so users can change which fields drive bars / arrows for THIS view.
-             Hidden for viewers / shared base since they can't persist edits;
-             matches the visibility of other view-CRUD controls. -->
-        <NcTooltip v-if="!isPublic && meta?.id && view?.id && isUIAllowed('viewCreateOrEdit')">
-          <template #title>{{ $t('general.configure') }}</template>
-          <NcButton
-            v-e="['c:gantt:configure']"
-            size="small"
-            type="secondary"
-            icon-only
-            :centered="true"
-            class="!h-7 !w-7 !min-w-7"
-            data-testid="nc-gantt-configure"
-            @click="showDateDependencyDlg = true"
-          >
-            <template #icon>
-              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
-            </template>
-          </NcButton>
-        </NcTooltip>
-
         <template v-if="isViewOperationsAllowed">
           <!-- Fields -->
           <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
@@ -532,6 +510,36 @@ const onDatePickerSelect = (date: dayjs.Dayjs) => {
 
           <!-- Filter -->
           <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
+
+          <!-- Configure Gantt schedule — opens the per-view DateDependency dialog
+               so users can change which fields drive bars / arrows for THIS view.
+               Placed last in the view-operations block (peer to Timeline's
+               TimelineRange / Calendar's Settings) so the order is:
+               Fields → GroupBy → Colour → Filter → Settings → Actions. -->
+          <NcTooltip
+            v-if="!isPublic && meta?.id && view?.id && isUIAllowed('viewCreateOrEdit')"
+            :disabled="!isToolbarIconMode"
+            class="nc-gantt-btn"
+          >
+            <template #title>
+              {{ $t('general.configure') }}
+            </template>
+            <NcButton
+              v-e="['c:gantt:configure']"
+              class="nc-toolbar-btn !border-0 group !h-7"
+              size="small"
+              type="secondary"
+              data-testid="nc-gantt-configure"
+              @click="showDateDependencyDlg = true"
+            >
+              <div class="flex items-center gap-2">
+                <component :is="iconMap.gantt" class="h-4 w-4" />
+                <span v-if="!isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
+                  {{ $t('general.configure') }}
+                </span>
+              </div>
+            </NcButton>
+          </NcTooltip>
         </template>
 
         <!-- Viewers get a dedicated Export entry instead of the full action menu -->

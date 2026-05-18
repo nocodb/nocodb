@@ -19,6 +19,10 @@ import {
   UserMentionList,
 } from '~/helpers/tiptap-markdown/extensions'
 
+// ✅ NEW imports
+import Superscript from '@tiptap/extension-superscript'
+import Subscript from '@tiptap/extension-subscript'
+
 const props = withDefaults(
   defineProps<{
     value?: string | null
@@ -47,36 +51,26 @@ const { fullMode, isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 const { appInfo, user } = useGlobal()
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
-
 const rowHeight = inject(RowHeightInj, ref(1 as const))
-
 const readOnlyCell = inject(ReadonlyInj, ref(false))
-
 const isForm = inject(IsFormInj, ref(false))
-
 const isGrid = inject(IsGridInj, ref(false))
-
 const isSurveyForm = inject(IsSurveyFormInj, ref(false))
-
 const isGallery = inject(IsGalleryInj, ref(false))
-
 const isKanban = inject(IsKanbanInj, ref(false))
-
 const isFocused = ref(false)
-
 const keys = useMagicKeys()
-
 const meta = inject(MetaInj)!
 
 const basesStore = useBases()
-
 const { basesUser } = storeToRefs(basesStore)
 
-const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
+const baseUsers = computed(() =>
+  meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : [],
+)
 
 const localRowHeight = computed(() => {
   if (readOnlyCell.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
-
   return rowHeight.value
 })
 
@@ -85,22 +79,18 @@ const shouldShowLinkOption = computed(() => {
 })
 
 const editorDom = ref<HTMLElement | null>(null)
-
 const richTextLinkOptionRef = ref<HTMLElement | null>(null)
 
 const vModel = computed({
-  get: () => {
-    return NcMarkdownParser.preprocessMarkdown(props.value, true)
-  },
-  set: (v: any) => {
-    emits('update:value', v)
-  },
+  get: () => NcMarkdownParser.preprocessMarkdown(props.value, true),
+  set: (v: any) => emits('update:value', v),
 })
 
-const mentionUsers = computed(() => {
-  return baseUsers.value.filter((user) => user.deleted !== true)
-})
+const mentionUsers = computed(() =>
+  baseUsers.value.filter((user) => user.deleted !== true),
+)
 
+// ✅ Add Superscript + Subscript here
 const getTiptapExtensions = () => {
   const extensions = [
     StarterKit.configure({
@@ -115,15 +105,15 @@ const getTiptapExtensions = () => {
     Underline,
     Link,
     Italic,
+    Superscript,
+    Subscript,
 
     // Nodes
     Image,
     Paragraph,
     HardBreak,
     TaskList,
-    TaskItem.configure({
-      nested: true,
-    }),
+    TaskItem.configure({ nested: true }),
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
@@ -179,10 +169,16 @@ const editor = useEditor({
   },
 })
 
-const setEditorContent = (contentMd: any) => {
+function setEditorContent(contentMd: any) {
   if (!editor.value) return
-
   editor.value.commands.setContent(contentMd, false)
+}
+
+function focusEditor() {
+  if (!editor.value) return
+  nextTick(() => {
+    editor.value?.chain().focus().run()
+  })
 }
 
 const onFocusWrapper = () => {
@@ -191,27 +187,18 @@ const onFocusWrapper = () => {
   }
 }
 
-function focusEditor() {
-  if (!editor.value) return
-
-  nextTick(() => {
-    editor.value?.chain().focus().run()
-  })
-}
-
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
-    setEditorContent(isFormField.value ? (vModel.value || '')?.replace(/(<br\s*\/?>)+$/g, '') : vModel.value)
+    setEditorContent(
+      isFormField.value ? (vModel.value || '')?.replace(/(<br\s*\/?>)+$/g, '') : vModel.value,
+    )
   })
 }
 
 if (isFormField.value) {
   watch([props, editor], () => {
-    if (props.readOnly) {
-      editor.value?.setEditable(false)
-    } else {
-      editor.value?.setEditable(true)
-    }
+    if (props.readOnly) editor.value?.setEditable(false)
+    else editor.value?.setEditable(true)
   })
 }
 
@@ -231,7 +218,7 @@ useEventListener(
     if (
       targetEl?.classList?.contains('tiptap') ||
       !targetEl?.closest(
-        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content',
+        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
       )
     ) {
       isFocused.value = false
@@ -240,6 +227,7 @@ useEventListener(
   },
   true,
 )
+
 useEventListener(
   richTextLinkOptionRef,
   'focusout',
@@ -264,11 +252,10 @@ useEventListener(
   },
   true,
 )
+
 onClickOutside(editorDom, (e) => {
   if (!isFocused.value) return
-
   const targetEl = e?.target as HTMLElement
-
   if (
     !targetEl?.closest(
       '.bubble-menu,.tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
@@ -294,7 +281,7 @@ onClickOutside(editorDom, (e) => {
     @focus="onFocusWrapper"
   >
     <div v-if="renderAsText" class="truncate">
-      <span v-if="editor"> {{ editor?.getText() ?? '' }}</span>
+      <span v-if="editor">{{ editor?.getText() ?? '' }}</span>
     </div>
     <template v-else>
       <div
@@ -336,6 +323,7 @@ onClickOutside(editorDom, (e) => {
         />
       </template>
 
+    <template v-else>
       <EditorContent
         ref="editorDom"
         :editor="editor"
@@ -360,23 +348,6 @@ onClickOutside(editorDom, (e) => {
         @mousedown.stop
         @keydown.esc="handleOnEscRichTextEditor($event, editor)"
       />
-      <div v-if="isFormField && !readOnly" class="nc-form-field-bubble-menu-wrapper overflow-hidden">
-        <div
-          :class="isFocused ? 'max-h-[50px]' : 'max-h-0'"
-          :style="{
-            transition: 'max-height 0.2s ease-in-out',
-          }"
-        >
-          <CellRichTextSelectedBubbleMenu
-            v-if="editor"
-            :editor="editor"
-            embed-mode
-            is-form-field
-            :hidden-options="hiddenBubbleMenuOptions"
-            :hide-mention="hideMention"
-          />
-        </div>
-      </div>
     </template>
   </div>
 </template>

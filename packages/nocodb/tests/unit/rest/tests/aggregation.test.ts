@@ -19,7 +19,7 @@ import type {
   GridViewColumn,
   Model,
   View,
-} from '../../../../src/models';
+} from '~/models';
 
 const data = [
   {

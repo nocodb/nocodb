@@ -11,7 +11,7 @@ import { ncAxios } from './ncAxios';
 import { getColumnId, idc, prepareRecords } from './helpers';
 import type { ITestContext } from './helpers';
 import type { ColumnType } from 'nocodb-sdk';
-import type { Model } from '../../../../../src/models';
+import type { Model } from '~/models';
 import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';

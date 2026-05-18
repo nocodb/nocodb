@@ -6,8 +6,8 @@ import init from '../../init';
 import { createProject } from '../../factory/base';
 import { createTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
-import { type Model } from '../../../../src/models';
-import type { Base } from '../../../../src/models';
+import { type Model } from '~/models';
+import type { Base } from '~/models';
 
 const debugMode = true;
 

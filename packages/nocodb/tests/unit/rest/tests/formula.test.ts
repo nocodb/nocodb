@@ -6,7 +6,7 @@ import { createProject } from '../../factory/base';
 import { createTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
 import { updateColumn } from '../../factory/column';
-import type Model from '../../../../src/models/Model';
+import type Model from '~/models/Model';
 import type Base from '~/models/Base';
 
 let context;

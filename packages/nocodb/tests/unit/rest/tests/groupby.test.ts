@@ -7,7 +7,7 @@ import { listRow } from '../../factory/row';
 import { getTable } from '../../factory/table';
 import { getView, updateView } from '../../factory/view';
 import init from '../../init';
-import type { Base, Column, Model, View } from '../../../../src/models';
+import type { Base, Column, Model, View } from '~/models';
 import 'mocha';
 
 function groupByTests() {

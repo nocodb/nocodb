@@ -108,7 +108,7 @@ import { isPg } from '../../init/db';
 import { defaultUserArgs } from '../../factory/user';
 import type { ColumnType } from 'nocodb-sdk';
 import type Base from '~/models/Base';
-import type Model from '../../../../src/models/Model';
+import type Model from '~/models/Model';
 
 const debugMode = false;
 

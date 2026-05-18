@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { User } from '../../../src/models'
+import { User } from '~/models'
 
 const defaultUserArgs = {
   email: 'test@example.com',

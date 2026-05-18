@@ -11,7 +11,7 @@ import {
 } from './beforeEach';
 import { ncAxios } from './ncAxios';
 import type { ITestContext } from '../../../init';
-import type { Column, Model } from '../../../../../src/models';
+import type { Column, Model } from '~/models';
 import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';

@@ -7,9 +7,9 @@ import { createColumn, customColumns } from '../factory/column';
 import { createBulkRows } from '../factory/row';
 import { createTable } from '../factory/table';
 import init from '../init';
-import type Base from '../../../src/models/Base';
-import type { Model } from '../../../src/models';
-import type { Column } from '../../../src/models';
+import type Base from '~/models/Base';
+import type { Model } from '~/models';
+import type { Column } from '~/models';
 
 export interface ICrossBaseTestContext {
   context: Awaited<ReturnType<typeof init>>;

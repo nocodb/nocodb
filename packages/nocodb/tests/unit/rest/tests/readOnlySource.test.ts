@@ -3,7 +3,7 @@ import request from 'supertest';
 import { beforeEach } from 'mocha';
 import { Exception } from 'handlebars';
 import { expect } from 'chai';
-import { Base } from '../../../../src/models';
+import { Base } from '~/models';
 import { createTable, getTable } from '../../factory/table';
 import init from '../../init';
 import {
@@ -11,7 +11,7 @@ import {
   createSakilaProject,
   createSharedBase,
 } from '../../factory/base';
-import { RootScopes } from '../../../../src/utils/globals';
+import { RootScopes } from '~/utils/globals';
 import { generateDefaultRowAttributes } from '../../factory/row';
 import { defaultColumns } from '../../factory/column';
 

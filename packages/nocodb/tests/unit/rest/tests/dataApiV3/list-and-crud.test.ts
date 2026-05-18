@@ -13,7 +13,7 @@ import { ncAxios } from './ncAxios';
 import { getColumnId, idc, initArraySeq, prepareRecords } from './helpers';
 import type { ITestContext } from './helpers';
 import type { ColumnType } from 'nocodb-sdk';
-import type { Column, Model } from '../../../../../src/models';
+import type { Column, Model } from '~/models';
 import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';

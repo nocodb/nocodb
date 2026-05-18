@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import {
   mapConfigToSnakeCase,
   mapConfigToCamelCase,
-} from '../../../../src/ee/services/v3/dashboards-v3.config-transform';
+} from '~/ee/services/v3/dashboards-v3.config-transform';
 
 function dashboardV3ConfigTransformTests() {
   // ─── Bar Chart ───────────────────────────────────────────────

@@ -1,6 +1,6 @@
-import { Audit, Base } from '../../../src/models';
+import { Audit, Base } from '~/models';
 import TestDbMngr from '../TestDbMngr';
-import { RootScopes } from '../../../src/utils/globals';
+import { RootScopes } from '~/utils/globals';
 
 const dropTablesOfSakila = async () => {
   await TestDbMngr.disableForeignKeyChecks(TestDbMngr.sakilaKnex);

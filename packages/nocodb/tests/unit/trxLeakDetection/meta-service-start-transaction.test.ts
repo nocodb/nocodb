@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import { MetaService } from '../../../src/meta/meta.service';
+import { MetaService } from '~/meta/meta.service';
 import { diff, installLeakTracker, snapshot } from '../utils/leakTracker';
 
 /**

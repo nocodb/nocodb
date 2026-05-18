@@ -6,7 +6,7 @@ import init from '../../../init';
 import { createProject } from '../../../factory/base';
 import { createTable, getAllTables } from '../../../factory/table';
 import { customColumns, defaultColumns } from '../../../factory/column';
-import type { Base, Model } from '../../../../../src/models';
+import type { Base, Model } from '~/models';
 
 export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
   const isV1 = API_VERSION === 'v1';

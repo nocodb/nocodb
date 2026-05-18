@@ -8,7 +8,7 @@ import {
   updateColumn2,
 } from '../../factory/column';
 import { listRow } from '../../factory/row';
-import { Model } from '../../../../src/models';
+import { Model } from '~/models';
 
 function rollupErrorTests() {
   let _setup;

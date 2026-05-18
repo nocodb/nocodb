@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { APIContext } from 'nocodb-sdk';
-import type View from '../../../src/models/View';
+import type View from '~/models/View';
 
 const updateViewColumns = async (
   context,

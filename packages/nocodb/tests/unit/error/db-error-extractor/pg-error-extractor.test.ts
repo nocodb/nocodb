@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { ClientType } from 'nocodb-sdk';
-import { Source } from '../../../../src/models';
+import { Source } from '~/models';
 import { initInitialModel } from '../../formula/initModel';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';

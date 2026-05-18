@@ -8,11 +8,11 @@ import { createProject } from '../../factory/base';
 import { createTable } from '../../factory/table';
 import { createColumn, updateColumn } from '../../factory/column';
 import { listRow } from '../../factory/row';
-import Column from '../../../../src/models/Column';
-import { pgQuoteLiteral } from '../../../../src/helpers/sqlSanitize';
-import NcConnectionMgrv2 from '../../../../src/utils/common/NcConnectionMgrv2';
-import type Base from '../../../../src/models/Base';
-import type Model from '../../../../src/models/Model';
+import Column from '~/models/Column';
+import { pgQuoteLiteral } from '~/helpers/sqlSanitize';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import type Base from '~/models/Base';
+import type Model from '~/models/Model';
 
 const ENUM_SCHEMA_DEFAULT = 'public';
 

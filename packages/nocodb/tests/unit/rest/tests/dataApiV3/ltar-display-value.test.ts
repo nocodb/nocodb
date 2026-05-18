@@ -7,7 +7,7 @@ import { createBulkRows } from '../../../factory/row';
 import { createTable } from '../../../factory/table';
 import type { ITestContext } from '../../../init';
 import type { ColumnType } from 'nocodb-sdk';
-import type { Model } from '../../../../../src/models';
+import type { Model } from '~/models';
 
 /**
  * Full coverage for the per-LTAR `fk_display_value_column_id` override.

@@ -3,11 +3,11 @@ import request from 'supertest';
 import { beforeEach } from 'mocha';
 import { Exception } from 'handlebars';
 import { expect } from 'chai';
-import { Base } from '../../../../src/models';
+import { Base } from '~/models';
 import { createTable } from '../../factory/table';
 import init from '../../init';
 import { createProject, createSharedBase } from '../../factory/base';
-import { RootScopes } from '../../../../src/utils/globals';
+import { RootScopes } from '~/utils/globals';
 
 // Test case list
 // 1. Get base info

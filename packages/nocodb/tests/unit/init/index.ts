@@ -1,11 +1,11 @@
 import express from 'express';
 import request from 'supertest';
-import nocobuild from '../../../src/nocobuild';
-// import { Noco } from '../../../src/lib';
+import nocobuild from '~/nocobuild';
+// import { Noco } from '~/lib';
 import { createUser } from '../factory/user';
 import cleanupMeta from './cleanupMeta';
 import { cleanUpSakila, resetAndSeedSakila } from './cleanupSakila';
-import type { Base } from '../../../src/models';
+import type { Base } from '~/models';
 import type { INestApplication } from '@nestjs/common';
 import Noco from '~/Noco';
 

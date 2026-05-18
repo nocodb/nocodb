@@ -4,7 +4,7 @@ import { createBulkRows } from '../factory/row';
 import { createLtarColumn } from '../factory/column';
 import { ncAxios } from '../utils/ncAxios';
 import type { IInitContext } from './index';
-import type { Base } from '../../../src/models';
+import type { Base } from '~/models';
 
 const countries = [
   'Afghanistan',

@@ -1,11 +1,11 @@
 import fs from 'fs';
 import process from 'process';
 import { knex } from 'knex';
-import SqlMgrv2 from '../../src/db/sql-mgr/v2/SqlMgrv2';
-import { jdbcToXcUrl, xcUrlToDbConfig } from '../../src/utils/nc-config';
-import deepClone from '../../src/helpers/deepClone';
+import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
+import { jdbcToXcUrl, xcUrlToDbConfig } from '~/utils/nc-config';
+import deepClone from '~/helpers/deepClone';
 import type { Knex } from 'knex';
-import type { DbConfig } from '../../src/interface/config';
+import type { DbConfig } from '~/interface/config';
 
 export default class TestDbMngr {
   public static readonly dbName = 'test_meta';

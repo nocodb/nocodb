@@ -1,7 +1,7 @@
 import { ViewTypes } from 'nocodb-sdk';
 import request from 'supertest';
-import View from '../../../src/models/View';
-import type Model from '../../../src/models/Model';
+import View from '~/models/View';
+import type Model from '~/models/Model';
 
 const createView = async (
   context,

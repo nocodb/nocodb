@@ -7,7 +7,7 @@ import { createProject } from '../../factory/base';
 import { createTable } from '../../factory/table';
 import { customColumns } from '../../factory/column';
 import { createView } from '../../factory/view';
-import type { Base, Column, Model, View } from '../../../../src/models';
+import type { Base, Column, Model, View } from '~/models';
 
 // Cross-validates the SDK's client-side aggregation reducers against the
 // backend's SQL aggregation, both at the full-table footer level and over

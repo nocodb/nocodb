@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import PgClient from '../../../src/db/sql-client/lib/pg/PgClient';
+import PgClient from '~/db/sql-client/lib/pg/PgClient';
 import { diff, installLeakTracker, snapshot } from '../utils/leakTracker';
 
 /**

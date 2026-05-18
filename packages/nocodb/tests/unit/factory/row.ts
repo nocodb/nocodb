@@ -8,11 +8,11 @@ import request from 'supertest';
 import { expect } from 'chai';
 import { NcApiVersion } from 'nocodb-sdk';
 import { Model } from '~/models';
-import NcConnectionMgrv2 from '../../../src/utils/common/NcConnectionMgrv2';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import type { ColumnType } from 'nocodb-sdk';
-import type Column from '../../../src/models/Column';
-import type Filter from '../../../src/models/Filter';
-import type { Base, Sort, View } from '../../../src/models';
+import type Column from '~/models/Column';
+import type Filter from '~/models/Filter';
+import type { Base, Sort, View } from '~/models';
 
 const rowValue = (column: ColumnType, index: number) => {
   switch (column.uidt) {

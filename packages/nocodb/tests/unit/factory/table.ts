@@ -1,7 +1,7 @@
 import request from 'supertest';
-import { Model } from '../../../src/models';
+import { Model } from '~/models';
 import { defaultColumns } from './column';
-import type { Base } from '../../../src/models';
+import type { Base } from '~/models';
 
 const defaultTableValue = (context) => ({
   table_name: 'Table1',

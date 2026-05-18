@@ -5,7 +5,7 @@ import {
   generateBackupCodes,
   generateTwoFactorToken,
   normalizeCode,
-} from '../../../src/ee/services/mfa.service';
+} from '~/ee/services/mfa.service';
 import { isEE } from '../utils/helpers';
 
 export function mfaHelperTests() {

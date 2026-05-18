@@ -6,7 +6,7 @@ import { createBulkRows } from '../../factory/row';
 import { createTable } from '../../factory/table';
 import { createView, createViewV3, updateView } from '../../factory/view';
 import init from '../../init';
-import type Base from '../../../../src/models/Base';
+import type Base from '~/models/Base';
 import { isEE } from '../../utils/helpers';
 
 export interface ITestContext {

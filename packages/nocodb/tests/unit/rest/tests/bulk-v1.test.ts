@@ -15,8 +15,8 @@ import {
   beforeEach as dataApiV3BeforeEach,
 } from './dataApiV3/beforeEach';
 import { type INcAxios, ncAxios } from './dataApiV3/ncAxios';
-import type { Column } from '../../../../src/models';
-import type Model from '../../../../src/models/Model';
+import type { Column } from '~/models';
+import type Model from '~/models/Model';
 import type Base from '~/models/Base';
 import type { ITestContext } from './dataApiV3/helpers';
 

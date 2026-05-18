@@ -113,14 +113,6 @@ const getDateSubOpLabel = (filter: FilterType) => {
   return subOps.find((o) => o.value === filter.comparison_sub_op)?.text || filter.comparison_sub_op
 }
 
-/** Sub-op options after applying the search query (matches against sub-op text) */
-const getFilteredDateSubOps = (filter: FilterType) => {
-  const subOps = getDateSubOpList(filter)
-  if (!searchQuery.value) return subOps
-  const q = searchQuery.value.toLowerCase()
-  return subOps.filter((o) => o.text?.toLowerCase().includes(q))
-}
-
 /** Whether the currently selected date sub-op needs no value (e.g. today, yesterday, past week) */
 const isCurrentDateSubOpValueless = (filter: FilterType) => {
   if (!filter.comparison_sub_op) return true
@@ -727,8 +719,8 @@ const unpinFilter = async (filter: FilterType) => {
                 </NcButton>
               </div>
 
-              <!-- Search input for filtering options -->
-              <div class="px-2 py-2">
+              <!-- Search input for filtering options — hidden for date filters (limited sub-op list) -->
+              <div v-if="!isDateType(filter)" class="px-2 py-2">
                 <a-input
                   v-model:value="searchQuery"
                   :placeholder="`${t('general.search')} ${getColumn(filter)?.title?.toLowerCase()}...`"
@@ -842,7 +834,7 @@ const unpinFilter = async (filter: FilterType) => {
               <div v-else-if="isDateType(filter)" class="flex flex-col">
                 <div class="max-h-48 overflow-y-auto nc-scrollbar-thin">
                   <div
-                    v-for="subOp in getFilteredDateSubOps(filter)"
+                    v-for="subOp in getDateSubOpList(filter)"
                     :key="subOp.value"
                     class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
                     :class="{ 'bg-nc-bg-gray-light': filter.comparison_sub_op === subOp.value }"
@@ -856,10 +848,7 @@ const unpinFilter = async (filter: FilterType) => {
                       class="h-4 w-4 text-primary flex-none"
                     />
                   </div>
-                  <div
-                    v-if="!getFilteredDateSubOps(filter).length"
-                    class="px-3 py-3 text-xs text-nc-content-gray-muted text-center"
-                  >
+                  <div v-if="!getDateSubOpList(filter).length" class="px-3 py-3 text-xs text-nc-content-gray-muted text-center">
                     No options found
                   </div>
                 </div>

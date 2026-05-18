@@ -4475,6 +4475,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await transaction.commit();
       } catch (ex) {
         await transaction.rollback();
+        throw ex;
       }
 
       if (apiVersion === NcApiVersion.V3) {
@@ -8543,7 +8544,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           runAfterForLoop.push(() => {
             if (!updatedColIds.length) return;
 
-            data[column.column_name] = prepareMetaUpdateQuery({
+            const metaUpdateQuery = prepareMetaUpdateQuery({
               knex: this.dbDriver,
               colIds: updatedColIds,
               props: {
@@ -8552,6 +8553,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               },
               metaColumn: column,
             });
+            if (metaUpdateQuery !== undefined) {
+              data[column.column_name] = metaUpdateQuery;
+            }
           });
 
         continue;

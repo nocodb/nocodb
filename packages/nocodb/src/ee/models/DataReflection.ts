@@ -274,20 +274,21 @@ export default class DataReflection extends DataReflectionCE {
       );
     }
 
+    // Resolve meta-side data BEFORE opening the workspace-DB trx so we don't
+    // hold the trx open during a meta query.
+    const bases = await Base.listByWorkspace(fk_workspace_id, {}, ncMeta);
+
     // Phase 1 — provision the role + grants in the workspace data DB.
     // Single transaction so any partial failure rolls back cleanly.
     const trx = await workspaceKnex.transaction();
     try {
       await createDatabaseUser(trx, username, password, database);
-
-      const bases = await Base.listByWorkspace(fk_workspace_id, {}, ncMeta);
       for (const base of bases) {
         await grantAccessToSchema(trx, base.id, username);
       }
-
       await trx.commit();
     } catch (e) {
-      await trx.rollback();
+      await trx.rollback().catch(() => {});
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       logger.error(`Failed to create data reflection: ${e.message}`, e.stack);
       NcError._.internalServerError('Failed to create data reflection');
@@ -318,7 +319,7 @@ export default class DataReflection extends DataReflectionCE {
           await dropDatabaseUser(cleanup, username, database);
           await cleanup.commit();
         } catch (cleanupInner) {
-          await cleanup.rollback();
+          await cleanup.rollback().catch(() => {});
           throw cleanupInner;
         }
       } catch (cleanupErr) {
@@ -350,13 +351,14 @@ export default class DataReflection extends DataReflectionCE {
     // unavailable, leave meta in place and let the next destroy retry.
     let dbCleanupOk = !workspaceKnex;
     if (workspaceKnex) {
+      // Resolve bases before opening the trx — meta query stays outside.
+      const bases = await Base.listByWorkspace(
+        fk_workspace_id,
+        { includeDeleted: true, includeSnapshot: true },
+        ncMeta,
+      );
       const trx = await workspaceKnex.transaction();
       try {
-        const bases = await Base.listByWorkspace(
-          fk_workspace_id,
-          { includeDeleted: true, includeSnapshot: true },
-          ncMeta,
-        );
         for (const base of bases) {
           await revokeAccessToSchema(trx, base.id, reflection.username);
         }
@@ -364,7 +366,7 @@ export default class DataReflection extends DataReflectionCE {
         await trx.commit();
         dbCleanupOk = true;
       } catch (e) {
-        await trx.rollback();
+        await trx.rollback().catch(() => {});
         logger.error(
           `Failed to destroy data reflection role for ${fk_workspace_id}: ${e.message}`,
           e.stack,
@@ -390,12 +392,11 @@ export default class DataReflection extends DataReflectionCE {
     );
     if (!workspaceKnex) return;
 
-    const trx = await workspaceKnex.transaction();
+    // Single atomic DO block — no trx needed, the server-side guard is the
+    // unit of atomicity. Best-effort: failures here shouldn't block base creation.
     try {
-      await grantAccessToSchema(trx, base_id, reflection.username);
-      await trx.commit();
+      await grantAccessToSchema(workspaceKnex, base_id, reflection.username);
     } catch (e) {
-      await trx.rollback();
       logger.error(
         `Failed to grant access to schema ${base_id} in ${fk_workspace_id}: ${e.message}`,
         e.stack,
@@ -416,12 +417,11 @@ export default class DataReflection extends DataReflectionCE {
     );
     if (!workspaceKnex) return;
 
-    const trx = await workspaceKnex.transaction();
+    // Single atomic DO block — no trx needed. Best-effort: failures here
+    // shouldn't block base deletion.
     try {
-      await revokeAccessToSchema(trx, base_id, reflection.username);
-      await trx.commit();
+      await revokeAccessToSchema(workspaceKnex, base_id, reflection.username);
     } catch (e) {
-      await trx.rollback();
       logger.error(
         `Failed to revoke access to schema ${base_id} in ${fk_workspace_id}: ${e.message}`,
         e.stack,
@@ -487,7 +487,7 @@ export default class DataReflection extends DataReflectionCE {
 
       await trx.commit();
     } catch (e) {
-      await trx.rollback();
+      await trx.rollback().catch(() => {});
       logger.error(
         `Failed to refresh access for ${fk_workspace_id}: ${e.message}`,
         e.stack,

@@ -22,18 +22,6 @@ const chartConfig = computed(() => {
   return widgetRef.value?.config
 })
 
-const widgetSize = computed(() => {
-  return widgetRef.value?.position?.h === 5 ? 'small' : 'medium'
-})
-
-const chartSize = computed(() => {
-  const sizeMap = {
-    small: { height: widgetRef?.value?.description ? '390px' : '420px' },
-    medium: { height: widgetRef?.value?.description ? '480px' : '520px' },
-  }
-  return sizeMap[widgetSize.value]
-})
-
 const disableLegend = computed(() => widgetRef.value?.config?.data?.yAxis?.fields?.length < 2)
 
 const legendConfig = computed(() => {
@@ -186,21 +174,19 @@ const chartOption = computed<ECOption>(() => {
     },
     series: widgetData.value.series.map((series: any) => ({
       name: series.name,
-      type: 'line',
+      type: 'scatter',
       data: series.data,
-      itemStyle: {
-        borderWidth: 2,
-      },
       symbol: 'circle',
-      symbolSize: 6,
+      symbolSize: 10,
+      itemStyle: {
+        opacity: 0.75,
+      },
       emphasis: {
+        scale: 1.4,
         itemStyle: {
-          borderWidth: 3,
-          shadowBlur: 10,
-          shadowColor: 'rgba(0, 0, 0, 0.3)',
-        },
-        lineStyle: {
-          width: 3,
+          opacity: 1,
+          shadowBlur: 8,
+          shadowColor: 'rgba(0, 0, 0, 0.25)',
         },
       },
       label: {
@@ -274,7 +260,7 @@ watch(
       </div>
     </div>
 
-    <div class="flex-1 p-4 pt-0">
+    <div class="flex-1 min-h-0 p-4 pt-0">
       <div
         v-if="widgetRef.error"
         :class="{
@@ -299,7 +285,7 @@ watch(
           <div class="text-bodyDefaultSm">No data available</div>
         </div>
       </div>
-      <VChart v-else class="chart" :style="{ height: chartSize.height }" :option="chartOption" autoresize />
+      <VChart v-else class="chart h-full w-full" :option="chartOption" autoresize />
     </div>
   </div>
 </template>

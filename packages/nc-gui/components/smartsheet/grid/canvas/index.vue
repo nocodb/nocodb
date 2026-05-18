@@ -2659,11 +2659,9 @@ watch(
 
 // Side panel sync — when the EFP side panel is open, selecting a row in the
 // grid swaps the panel to that row. Watches row + path (not column) so moving
-// across cells in the same row is a no-op. Hands a closure to requestSwitch
-// so the panel can prompt on unsaved edits and replay our exact navigation
-// (expandForm with the captured row + path) after the user resolves the
-// modal. The row reference is captured here, so it survives save()'s cache
-// wipe — an index-based lookup deferred until after save would no-op.
+// across cells in the same row is a no-op. expandForm handles the discard
+// guard internally (via requestSwitch on the panel store), so unsaved edits
+// surface the Save / Discard modal before the panel switches rows.
 // Negative row indices are programmatic resets ("no cell selected") — skip
 // those so clicking outside a column doesn't close the panel.
 const expandedFormPanelStore = useExpandedFormPanel()
@@ -2680,7 +2678,7 @@ watch([() => activeCell.value.row, () => activeCell.value.path], ([newRow, newPa
   const row = getDataCache(path)?.cachedRows.value.get(newRow!)
   if (!row) return
 
-  expandedFormPanelStore.requestSwitch.value?.(() => expandForm(row, undefined, false, path))
+  expandForm(row, undefined, false, path)
 })
 
 function selectCell() {

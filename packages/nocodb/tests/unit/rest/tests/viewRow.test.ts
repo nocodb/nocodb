@@ -23,10 +23,10 @@ import {
   listRow,
 } from '../../factory/row';
 import { listenForJob } from '../../factory/job';
-import Model from '../../../../src/models/Model';
+import Model from '~/models/Model';
 import { getViewColumns, updateViewColumns } from '../../factory/viewColumns';
 import type { ColumnType } from 'nocodb-sdk';
-import type View from '../../../../src/models/View';
+import type View from '~/models/View';
 import type Base from '~/models/Base';
 
 // Test case list

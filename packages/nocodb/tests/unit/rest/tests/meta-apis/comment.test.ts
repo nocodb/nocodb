@@ -3,7 +3,7 @@ import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
 
-import { Base, Model } from '../../../../../src/models';
+import { Base, Model } from '~/models';
 import { createProject } from '../../../factory/base';
 import { createTable } from '../../../factory/table';
 import init from '../../../init';

@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { ClientType, UITypes } from 'nocodb-sdk';
-import { Model, Source } from '../../../../src/models';
+import { Model, Source } from '~/models';
 import {
   createColumn,
   createColumn2,

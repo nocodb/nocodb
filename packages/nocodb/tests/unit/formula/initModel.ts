@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import request from 'supertest';
 
 import { parseProp, UITypes } from 'nocodb-sdk';
-import { Model } from '../../../src/models';
-import Base from '../../../src/models/Base';
+import { Model } from '~/models';
+import Base from '~/models/Base';
 import { createProject } from '../factory/base';
 import {
   createColumn,

@@ -6,9 +6,9 @@ import { createProject } from '../../factory/base';
 import { createTable } from '../../factory/table';
 import { createBulkRows, rowMixedValue } from '../../factory/row';
 import { updateColumn } from '../../factory/column';
-import type Model from '../../../../src/models/Model';
-import type Base from '../../../../src/models/Base';
-import type Column from '../../../../src/models/Column';
+import type Model from '~/models/Model';
+import type Base from '~/models/Base';
+import type Column from '~/models/Column';
 
 const TEST_TYPES = [
   UITypes.LongText,

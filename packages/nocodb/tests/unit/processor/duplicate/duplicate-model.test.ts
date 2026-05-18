@@ -1,6 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import 'mocha';
-import type { DuplicateModelJobData } from '../../../../src/interface/Jobs';
+import type { DuplicateModelJobData } from '~/interface/Jobs';
 import type { ITestContext } from './init-duplicate';
 import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
 import { listRow } from '../../factory/row';

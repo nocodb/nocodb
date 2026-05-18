@@ -1,7 +1,7 @@
 import { UITypes } from 'nocodb-sdk';
 import request from 'supertest';
 
-import { Model } from '../../../src/models';
+import { Model } from '~/models';
 import type { NcContext } from 'nocodb-sdk';
 import type {
   Base,
@@ -10,7 +10,7 @@ import type {
   GalleryViewColumn,
   GridViewColumn,
   View,
-} from '../../../src/models';
+} from '~/models';
 import type init from '../init';
 
 type Context = Awaited<ReturnType<typeof init>>;

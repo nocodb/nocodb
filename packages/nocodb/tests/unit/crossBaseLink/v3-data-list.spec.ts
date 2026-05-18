@@ -10,8 +10,8 @@ import init from '../init';
 import { CacheScope, MetaTable } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
-import type Base from '../../../src/models/Base';
-import type { Model } from '../../../src/models';
+import type Base from '~/models/Base';
+import type { Model } from '~/models';
 
 /**
  * Regression tests for cross-base v3 data list.

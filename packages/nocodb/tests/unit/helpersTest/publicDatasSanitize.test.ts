@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 import 'mocha';
-import { PublicDatasService } from '../../../src/services/public-datas.service';
-import type { NcContext } from '../../../src/interface/config';
-import type { Column } from '../../../src/models';
+import { PublicDatasService } from '~/services/public-datas.service';
+import type { NcContext } from '~/interface/config';
+import type { Column } from '~/models';
 
 /**
  * Expose protected methods for testing by extending the service class.

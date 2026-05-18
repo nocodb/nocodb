@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { convertDateFormat } from '../../../../src/helpers/convertDateFormat';
+import { convertDateFormat } from '~/helpers/convertDateFormat';
 
 function convertDateFormatTests() {
   describe('convertDateFormat', () => {

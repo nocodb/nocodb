@@ -1,6 +1,6 @@
 import { createProject } from '../factory/base';
 import init from '../init';
-import type Base from '../../../src/models/Base';
+import type Base from '~/models/Base';
 
 export interface ITestContext {
   context: Awaited<ReturnType<typeof init>>;

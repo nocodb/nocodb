@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { expect } from 'chai';
-import { type Column, type Model } from '../../../../../src/models';
+import { type Column, type Model } from '~/models';
 import {
   beforeEachTextBased,
   beforeEach as dataApiV3BeforeEach,

@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { UITypes } from 'nocodb-sdk';
-import { Source } from '../../../../src/models';
+import { Source } from '~/models';
 import { createColumn } from '../../factory/column';
 import { createBulkRows, listRow } from '../../factory/row';
 import { initInitialModel } from '../initModel';

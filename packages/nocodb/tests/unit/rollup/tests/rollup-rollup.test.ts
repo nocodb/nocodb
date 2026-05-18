@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import { initInitialModel, initRollupColumns } from '../initModel';
 import { createColumn, createRollupColumn } from '../../factory/column';
 import { listRow } from '../../factory/row';
-import { Model } from '../../../../src/models';
+import { Model } from '~/models';
 
 function rollupRollupTests() {
   let _setup;

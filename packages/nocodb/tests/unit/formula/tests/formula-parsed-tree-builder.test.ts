@@ -4,15 +4,15 @@ import sinon from 'sinon';
 import {
   binaryExpressionBuilder,
   callExpressionBuilder,
-} from '../../../../src/db/formulav2/parsed-tree-builder';
-import mapFunctionName from '../../../../src/db/mapFunctionName';
+} from '~/db/formulav2/parsed-tree-builder';
+import mapFunctionName from '~/db/mapFunctionName';
 import { initInitialModel } from '../initModel';
 import type {
   FnParsedTreeNode,
   TAliasToColumn,
-} from '../../../../src/db/formulav2/formula-query-builder.types';
+} from '~/db/formulav2/formula-query-builder.types';
 import type { NcContext, ParsedFormulaNode, UITypes } from 'nocodb-sdk';
-import type { Model } from '../../../../src/models';
+import type { Model } from '~/models';
 
 const mapFunctionNameStub = sinon.stub();
 function formulaParsedTreeBuilderTests() {

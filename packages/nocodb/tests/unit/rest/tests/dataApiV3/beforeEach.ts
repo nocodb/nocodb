@@ -11,7 +11,7 @@ import { createTable } from '../../../factory/table';
 import init from '../../../init';
 import { addUsers, getUsers, prepareRecords } from './helpers';
 import type { ITestContext } from '../../../init';
-import type { Model } from '../../../../../src/models';
+import type { Model } from '~/models';
 import type { ColumnType } from 'nocodb-sdk';
 
 export const beforeEach = async () => {

@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import 'mocha';
 import request from 'supertest';
-import { Model } from '../../../../../src/models';
+import { Model } from '~/models';
 import { createProject } from '../../../factory/base';
 import { defaultColumns } from '../../../factory/column';
 import { createTable, getAllTables } from '../../../factory/table';
 import init from '../../../init';
 import { runOnSet } from '../../../utils/runOnSet';
-import type { Base } from '../../../../../src/models';
+import type { Base } from '~/models';
 
 export default function (API_VERSION: 'v1' | 'v2' | 'v3') {
   runOnSet(2, function () {

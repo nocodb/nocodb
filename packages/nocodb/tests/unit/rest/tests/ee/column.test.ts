@@ -6,8 +6,8 @@ import init from '../../../init';
 import { createProject } from '../../../factory/base';
 import { createTable } from '../../../factory/table';
 import { createBulkRows, createChildRow, listRow } from '../../../factory/row';
-import type { NcContext } from '../../../../../src/interface/config';
-import type { Base } from '../../../../../src/models';
+import type { NcContext } from '~/interface/config';
+import type { Base } from '~/models';
 
 // Test case list
 // 1. Advanced link creation

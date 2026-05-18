@@ -5,7 +5,7 @@ import { createSakilaProject } from '../../../factory/base';
 import init from '../../../init';
 import { getTable } from '../../../factory/table';
 import { getView } from '../../../factory/view';
-import type { Base, Column, Model, View } from '../../../../../src/models';
+import type { Base, Column, Model, View } from '~/models';
 
 function bulkAggregationTestsEE() {
   let context;

@@ -15,10 +15,10 @@ import {
 } from '../../factory/column';
 import { createTable, getColumnsByAPI, getTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
-import { META_COL_NAME } from '../../../../src/constants';
-import type Model from '../../../../src/models/Model';
+import { META_COL_NAME } from '~/constants';
+import type Model from '~/models/Model';
 import type Base from '~/models/Base';
-import type Column from '../../../../src/models/Column';
+import type Column from '~/models/Column';
 
 // Test case list
 // 1. Qr Code Column

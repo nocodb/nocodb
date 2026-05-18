@@ -11,7 +11,7 @@ import {
   createLtarColumn,
   createLtarColumn2,
 } from '../../../factory/column';
-import type { Column, Model, Base } from '../../../../../src/models';
+import type { Column, Model, Base } from '~/models';
 
 /**
  * Record Trash (soft-delete / restore / permanent-delete) tests.

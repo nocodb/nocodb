@@ -5,7 +5,7 @@ import { initInitialModel } from '../initModel';
 import { createColumn, createRollupColumn } from '../../factory/column';
 import { listRow } from '../../factory/row';
 import { isEE } from '../../utils/helpers';
-import { Model } from '../../../../src/models';
+import { Model } from '~/models';
 
 /**
  * Story: Warehouse Inventory Management System

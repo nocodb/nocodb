@@ -8,7 +8,7 @@ import {
 import {
   NC_DEFAULT_ORG_ID,
   NC_STORE_DEFAULT_ORG_ID_KEY,
-} from '../../../../src/utils/globals';
+} from '~/utils/globals';
 
 export function verifyDefaultOrgTests() {
   describe('verifyDefaultOrg — constants', () => {

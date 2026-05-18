@@ -13,9 +13,9 @@ import { createBulkRows } from '../../../factory/row';
 import { createTable } from '../../../factory/table';
 import { ncAxios } from './ncAxios';
 import { prepareRecords } from './helpers';
-import { Column } from '../../../../../src/models';
+import { Column } from '~/models';
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk';
-import type { Model } from '../../../../../src/models';
+import type { Model } from '~/models';
 import type { INcAxios } from './ncAxios';
 
 interface ITestContext {

@@ -111,7 +111,7 @@ import { createView, updateView } from '../../factory/view';
 import { defaultUserArgs } from '../../factory/user';
 import { runOnSet } from '../../utils/runOnSet';
 import type { ColumnType } from 'nocodb-sdk';
-import type { Base, Model } from '../../../../src/models';
+import type { Base, Model } from '~/models';
 
 export default function (API_VERSION: 'v2' | 'v3') {
   runOnSet(2, () => {

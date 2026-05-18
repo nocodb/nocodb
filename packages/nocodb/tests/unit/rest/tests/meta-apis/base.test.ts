@@ -6,9 +6,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 
 import init from '../../../init';
-import { BaseUser } from '../../../../../src/models';
-import { randomTokenString } from '../../../../../src/helpers/stringHelpers';
-import type { Base, Source, User } from '../../../../../src/models';
+import { BaseUser } from '~/models';
+import { randomTokenString } from '~/helpers/stringHelpers';
+import type { Base, Source, User } from '~/models';
 
 interface CreateBaseArgs {
   title?: string;

@@ -28,10 +28,10 @@ import {
   initRentalTable,
   linkInitTables,
 } from './viewRowInit';
-import type View from '../../../../src/models/View';
-import type Base from '../../../../src/models/Base';
+import type View from '~/models/View';
+import type Base from '~/models/Base';
 import type { ColumnType } from 'nocodb-sdk';
-import type Model from '../../../../src/models/Model';
+import type Model from '~/models/Model';
 let context: any;
 let ctx: {
   workspace_id: string;

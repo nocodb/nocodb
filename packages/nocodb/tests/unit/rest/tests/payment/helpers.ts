@@ -1,4 +1,4 @@
-import type { Base } from '../../../../../src/models';
+import type { Base } from '~/models';
 import type init from '../../../init';
 
 export interface ITestContext {

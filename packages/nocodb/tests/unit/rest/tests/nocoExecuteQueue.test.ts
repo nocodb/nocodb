@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import DataLoader from 'dataloader';
 import PQueue from 'p-queue';
-import { nocoExecute } from '../../../../src/utils/nocoExecute';
+import { nocoExecute } from '~/utils/nocoExecute';
 
 /**
  * Integration-style test for nocoExecute + PQueue(concurrency=1).

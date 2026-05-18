@@ -10,7 +10,7 @@ import { createTable } from '../../../factory/table';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import TestDbMngr from '../../../TestDbMngr';
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk';
-import type { Model } from '../../../../../src/models';
+import type { Model } from '~/models';
 import type { INcAxios } from './ncAxios';
 
 const API_VERSION = 'v3';

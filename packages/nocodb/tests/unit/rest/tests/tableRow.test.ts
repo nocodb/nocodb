@@ -25,8 +25,8 @@ import {
 import { listenForJob } from '../../factory/job';
 import { isMysql, isPg, isSqlite } from '../../init/db';
 import type { ColumnType } from 'nocodb-sdk';
-import type Model from '../../../../src/models/Model';
-import type View from '../../../../src/models/View';
+import type Model from '~/models/Model';
+import type View from '~/models/View';
 import type Base from '~/models/Base';
 
 const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {

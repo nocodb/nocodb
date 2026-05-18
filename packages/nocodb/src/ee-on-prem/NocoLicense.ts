@@ -640,6 +640,37 @@ export default class NocoLicense {
     const seatUsersMap = new Map<string, true>();
     const nonSeatUsersMap = new Map<string, true>();
 
+    // Sandbox bases are intentionally included — direct sandbox assignments
+    // are seat-consuming and are cleaned up on user removal.
+    const activeWorkspaces = await ncMeta
+      .knexConnection(MetaTable.WORKSPACE)
+      .select('id')
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      });
+    const activeWorkspaceIds = activeWorkspaces.map((w) => w.id);
+
+    const activeBases = await ncMeta
+      .knexConnection(MetaTable.PROJECT)
+      .select('id')
+      .where(function () {
+        this.where('deleted', false).orWhereNull('deleted');
+      })
+      .where(function () {
+        this.where('is_snapshot', false).orWhereNull('is_snapshot');
+      });
+    const activeBaseIds = activeBases.map((b) => b.id);
+
+    // Restrict a join to rows whose target id is in `ids`; if `ids` is
+    // empty, force the join to never match (avoids `IN ()` SQL errors).
+    const restrictJoinToIds = (join: any, col: string, ids: string[]) => {
+      if (ids.length > 0) {
+        join.andOnIn(col, ids);
+      } else {
+        join.andOn(ncMeta.knex.raw('1 = 0'));
+      }
+    };
+
     // Subquery for workspace team roles (teams → workspace roles per user)
     const workspaceTeamRolesSubquery = ncMeta.knexConnection
       .select('pa.principal_ref_id as user_id')
@@ -661,6 +692,7 @@ export default class NocoLicense {
             '=',
             ncMeta.knex.raw('?', [false]),
           );
+        restrictJoinToIds(this, 'wta.resource_id', activeWorkspaceIds);
       })
       .where('pa.principal_type', '=', 'user')
       .where('pa.resource_type', '=', 'team')
@@ -693,6 +725,7 @@ export default class NocoLicense {
             '=',
             ncMeta.knex.raw('?', [false]),
           );
+        restrictJoinToIds(this, 'bta.resource_id', activeBaseIds);
       })
       .where('pa.principal_type', '=', 'user')
       .where('pa.resource_type', '=', 'team')
@@ -714,26 +747,30 @@ export default class NocoLicense {
         'btr.base_team_roles as base_team_roles',
       )
       .from(MetaTable.USERS)
-      // Left join with direct workspace users (all workspaces)
       .leftJoin(`${MetaTable.WORKSPACE_USER} as wu`, function () {
         this.on(`${MetaTable.USERS}.id`, '=', 'wu.fk_user_id').andOn(
           ncMeta.knex.raw('COALESCE(wu.deleted, FALSE)'),
           '=',
           ncMeta.knex.raw('?', [false]),
         );
+        restrictJoinToIds(this, 'wu.fk_workspace_id', activeWorkspaceIds);
       })
-      // Left join with direct base users (all bases)
       .leftJoin(`${MetaTable.PROJECT_USERS} as bu`, function () {
         this.on(`${MetaTable.USERS}.id`, '=', 'bu.fk_user_id');
+        restrictJoinToIds(this, 'bu.base_id', activeBaseIds);
       })
-      // Left join with workspace team roles subquery
       .leftJoin(
         workspaceTeamRolesSubquery,
         'wtr.user_id',
         `${MetaTable.USERS}.id`,
       )
-      // Left join with base team roles subquery
       .leftJoin(baseTeamRolesSubquery, 'btr.user_id', `${MetaTable.USERS}.id`)
+      .where(function () {
+        this.where(
+          `${MetaTable.USERS}.is_deleted`,
+          ncMeta.knex.raw('?', [false]),
+        ).orWhereNull(`${MetaTable.USERS}.is_deleted`);
+      })
       // Filter: only users who have at least one role assignment
       .where(function () {
         this.whereNotNull('wu.fk_user_id')

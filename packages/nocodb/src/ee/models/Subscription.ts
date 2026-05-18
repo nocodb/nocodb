@@ -355,7 +355,7 @@ export default class Subscription {
           this.andOnIn('bta.resource_id', activeBaseIds);
         } else {
           // If no active bases, make the join condition always false
-          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
+          this.andOn(ncMeta.knex.raw('1 = 0'));
         }
       })
       .where('pa.principal_type', '=', 'user')
@@ -399,7 +399,7 @@ export default class Subscription {
           this.andOnIn('bu.base_id', activeBaseIds);
         } else {
           // If no active bases, make the join condition always false
-          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
+          this.andOn(ncMeta.knex.raw('1 = 0'));
         }
       })
       // Left join with workspace team roles subquery

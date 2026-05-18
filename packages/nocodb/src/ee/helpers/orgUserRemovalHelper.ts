@@ -1,6 +1,9 @@
+import { Logger } from '@nestjs/common';
 import { EnterpriseOrgUserRoles } from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import { OrgUser } from '~/models';
+import Base from '~/models/Base';
+import BaseUser from '~/models/BaseUser';
+import { OrgUser, Permission } from '~/models';
 import WorkspaceUser from '~/ee/models/WorkspaceUser';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -15,6 +18,8 @@ import {
   handleOrphanWorkspace,
 } from '~/ee/utils/orphanBaseHandler';
 import Noco from '~/Noco';
+
+const logger = new Logger('OrgUserRemovalHelper');
 
 /**
  * Batch soft-delete all team assignments for a user and invalidate cache.
@@ -85,6 +90,9 @@ export async function removeUserFromOrgCascade(
 
   const transaction = await ncMeta.startTransaction();
 
+  // Cache invalidations deferred until after commit so a rollback doesn't desync cache.
+  const cacheTransaction: (() => Promise<any>)[] = [];
+
   try {
     // Soft-delete from org
     await OrgUser.softDelete(orgId, userId, transaction);
@@ -110,6 +118,40 @@ export async function removeUserFromOrgCascade(
       }
 
       await WorkspaceUser.softDelete(ws.id, userId, transaction);
+
+      // Include sandbox/snapshot/soft-deleted bases — all may hold
+      // seat-consuming direct assignments.
+      const wsBases = await Base.listByWorkspace(
+        ws.id,
+        { includeDeleted: true, includeSnapshot: true, includeSandbox: true },
+        transaction,
+      );
+      for (const base of wsBases) {
+        const baseCtx = { workspace_id: ws.id, base_id: base.id };
+
+        await BaseUser.delete(baseCtx, base.id, userId, transaction);
+
+        await Permission.removeSubjectBase(
+          baseCtx,
+          { type: 'user', id: userId },
+          transaction,
+        );
+
+        cacheTransaction.push(() =>
+          NocoCache.del(
+            baseCtx,
+            `${CacheScope.BASE_USER}:${base.id}:${userId}`,
+          ),
+        );
+        cacheTransaction.push(() => Permission.clearBaseCache(baseCtx));
+      }
+
+      cacheTransaction.push(() =>
+        NocoCache.del(
+          { workspace_id: ws.id, base_id: null },
+          `${CacheScope.WORKSPACE_USER}:${ws.id}:${userId}`,
+        ),
+      );
 
       // Reassign orphan bases to the next workspace owner
       await handleOrphanBases(ws.id, userId, transaction);
@@ -148,4 +190,16 @@ export async function removeUserFromOrgCascade(
     await transaction.rollback();
     throw e;
   }
+
+  // Cache invalidations run post-commit; failures are logged, not fatal.
+  await Promise.all(
+    cacheTransaction.map((fn) =>
+      fn().catch((e) =>
+        logger.error(
+          `Post-commit cache invalidation failed for user ${userId} in org ${orgId}: ${e?.message}`,
+          e?.stack,
+        ),
+      ),
+    ),
+  );
 }

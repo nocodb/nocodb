@@ -100,6 +100,14 @@ after(async function () {
       // EE test files not available in CE
     }
     require('./command-registry/index.test').commandRegistryTests();
+    try {
+      describe(
+        'Seat counting',
+        require('./seatCounting/index.test').seatCountingTests,
+      );
+    } catch (e) {
+      // EE test files not available in CE
+    }
   }
   modelTests();
   formulaTests();

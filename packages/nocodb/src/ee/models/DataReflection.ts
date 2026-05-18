@@ -241,13 +241,16 @@ export default class DataReflection extends DataReflectionCE {
     });
   }
 
-  // ... (keeping all the static methods unchanged for brevity)
   public static async create(fk_workspace_id: string, ncMeta = Noco.ncMeta) {
     const workspace = await Workspace.get(fk_workspace_id, false, ncMeta);
 
     if (!workspace) {
       NcError._.workspaceNotFound(fk_workspace_id);
     }
+
+    // Idempotent at the caller level: if a reflection already exists, return it.
+    const existing = await DataReflection.get({ fk_workspace_id }, ncMeta);
+    if (existing) return existing;
 
     const sanitizedWorkspaceTitle = workspace.title.replace(/[^a-z0-9]/gi, '_');
     const username = `nc_${sanitizedWorkspaceTitle}_readonly_${genSuffix()}`;
@@ -265,32 +268,67 @@ export default class DataReflection extends DataReflectionCE {
     );
     const database = dataConfig.connection.database;
 
-    const knex = await workspaceKnex?.transaction();
+    if (!workspaceKnex) {
+      NcError._.internalServerError(
+        'Workspace data DB is not available for data reflection setup',
+      );
+    }
 
+    // Resolve meta-side data BEFORE opening the workspace-DB trx so we don't
+    // hold the trx open during a meta query.
+    const bases = await Base.listByWorkspace(fk_workspace_id, {}, ncMeta);
+
+    // Phase 1 — provision the role + grants in the workspace data DB.
+    // Single transaction so any partial failure rolls back cleanly.
+    const trx = await workspaceKnex.transaction();
     try {
-      await createDatabaseUser(knex, username, password, database);
+      await createDatabaseUser(trx, username, password, database);
+      for (const base of bases) {
+        await grantAccessToSchema(trx, base.id, username);
+      }
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback().catch(() => {});
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      logger.error(`Failed to create data reflection: ${e.message}`, e.stack);
+      NcError._.internalServerError('Failed to create data reflection');
+    }
+
+    // Phase 2 — persist meta. If this fails, compensate by dropping the role
+    // we just created so we don't leave a usable orphan in the data DB.
+    try {
       await DataReflection.insert(
         {
           fk_workspace_id,
           username,
           password,
-          // We use the workspace id as the database name for backlinking to data reflection record (TODO: move to using data reflection id)
+          // Logical (proxy-facing) database name for the connection string.
+          // The proxy rewrites this to the real DB name on startup.
           database: fk_workspace_id,
         },
         ncMeta,
       );
-
-      const bases = await Base.listByWorkspace(fk_workspace_id, {}, ncMeta);
-      for (const base of bases) {
-        await grantAccessToSchema(knex, base.id, username);
-      }
-
-      await knex.commit();
     } catch (e) {
-      await knex.rollback();
-      if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      logger.error('Failed to create data reflection', e);
-      NcError._.internalServerError('Failed to create data reflection');
+      logger.error(
+        `Failed to persist data reflection meta for ${fk_workspace_id}; rolling back DB role: ${e.message}`,
+        e.stack,
+      );
+      try {
+        const cleanup = await workspaceKnex.transaction();
+        try {
+          await dropDatabaseUser(cleanup, username, database);
+          await cleanup.commit();
+        } catch (cleanupInner) {
+          await cleanup.rollback().catch(() => {});
+          throw cleanupInner;
+        }
+      } catch (cleanupErr) {
+        logger.error(
+          `Compensating drop of data reflection role ${username} failed for ${fk_workspace_id}: ${cleanupErr.message}`,
+          cleanupErr.stack,
+        );
+      }
+      throw e;
     }
 
     return DataReflection.get({ fk_workspace_id }, ncMeta);
@@ -300,8 +338,6 @@ export default class DataReflection extends DataReflectionCE {
     const reflection = await DataReflection.get({ fk_workspace_id }, ncMeta);
     if (!reflection) return;
 
-    // Resolve the workspace knex + database name BEFORE opening a transaction —
-    // see DataReflection.create for rationale.
     const workspaceKnex = await NcConnectionMgrv2.getWorkspaceDataKnex(
       fk_workspace_id,
     );
@@ -310,20 +346,26 @@ export default class DataReflection extends DataReflectionCE {
     );
     const database = dataConfig.connection.database;
 
-    const knex = await workspaceKnex?.transaction();
-
-    try {
-      const bases = await Base.listByWorkspace(fk_workspace_id, {}, ncMeta);
-      for (const base of bases) {
-        await revokeAccessToSchema(knex, base.id, reflection.username);
+    // Only delete the meta row after the DB-side cleanup succeeds — otherwise
+    // we'd orphan the role with no way to find it from meta. If the DB is
+    // unavailable, leave meta in place and let the next destroy retry.
+    let dbCleanupOk = !workspaceKnex;
+    if (workspaceKnex) {
+      // `dropDatabaseUser` runs `DROP OWNED BY ... RESTRICT` which revokes
+      // every grant the role holds in this DB — no need to enumerate bases.
+      try {
+        await dropDatabaseUser(workspaceKnex, reflection.username, database);
+        dbCleanupOk = true;
+      } catch (e) {
+        logger.error(
+          `Failed to destroy data reflection role for ${fk_workspace_id}: ${e.message}`,
+          e.stack,
+        );
       }
+    }
 
-      await dropDatabaseUser(knex, reflection.username, database);
+    if (dbCleanupOk) {
       await DataReflection.delete({ fk_workspace_id }, ncMeta);
-      await knex.commit();
-    } catch (e) {
-      await knex.rollback();
-      logger.error(`Failed to destroy reflection for ${fk_workspace_id}`, e);
     }
   }
 
@@ -335,19 +377,20 @@ export default class DataReflection extends DataReflectionCE {
     const reflection = await DataReflection.get({ fk_workspace_id }, ncMeta);
     if (!reflection) return;
 
-    const knex = await (
-      await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id)
-    )?.transaction();
+    const workspaceKnex = await NcConnectionMgrv2.getWorkspaceDataKnex(
+      fk_workspace_id,
+    );
+    if (!workspaceKnex) return;
 
+    // Single atomic DO block — no trx needed, the server-side guard is the
+    // unit of atomicity. Best-effort: failures here shouldn't block base creation.
     try {
-      await grantAccessToSchema(knex, base_id, reflection.username);
-      await knex.commit();
+      await grantAccessToSchema(workspaceKnex, base_id, reflection.username);
     } catch (e) {
-      await knex.rollback();
       logger.error(
-        `Failed to grant access to schema ${base_id} in ${fk_workspace_id}`,
+        `Failed to grant access to schema ${base_id} in ${fk_workspace_id}: ${e.message}`,
+        e.stack,
       );
-      logger.error(e);
     }
   }
 
@@ -359,84 +402,76 @@ export default class DataReflection extends DataReflectionCE {
     const reflection = await DataReflection.get({ fk_workspace_id }, ncMeta);
     if (!reflection) return;
 
-    const knex = await (
-      await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id)
-    )?.transaction();
+    const workspaceKnex = await NcConnectionMgrv2.getWorkspaceDataKnex(
+      fk_workspace_id,
+    );
+    if (!workspaceKnex) return;
 
+    // Single atomic DO block — no trx needed. Best-effort: failures here
+    // shouldn't block base deletion.
     try {
-      await revokeAccessToSchema(knex, base_id, reflection.username);
-      await knex.commit();
+      await revokeAccessToSchema(workspaceKnex, base_id, reflection.username);
     } catch (e) {
-      await knex.rollback();
       logger.error(
-        `Failed to revoke access to schema ${base_id} in ${fk_workspace_id}`,
+        `Failed to revoke access to schema ${base_id} in ${fk_workspace_id}: ${e.message}`,
+        e.stack,
       );
-      logger.error(e);
     }
   }
 
+  // Reconcile the data reflection role with the current set of bases in one
+  // atomic transaction. Drops + recreates the role inside the trx so a partial
+  // failure rolls back to the previous state — never leaves the workspace with
+  // a missing role. All helpers are idempotent and skip missing roles/schemas,
+  // so ghost meta rows don't abort the flow.
   public static async refreshAccess(
     fk_workspace_id: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const basesList = await Base.listByWorkspace(
-      fk_workspace_id,
-      {
-        includeDeleted: true,
-        includeSnapshot: true,
-      },
-      ncMeta,
-    );
-
     const reflection = await DataReflection.get({ fk_workspace_id }, ncMeta);
     if (!reflection) return;
 
-    const knex = await NcConnectionMgrv2.getWorkspaceDataKnex(fk_workspace_id);
+    const workspaceKnex = await NcConnectionMgrv2.getWorkspaceDataKnex(
+      fk_workspace_id,
+    );
+    if (!workspaceKnex) {
+      logger.warn(
+        `No workspace data DB for ${fk_workspace_id}; skipping data reflection refresh`,
+      );
+      return;
+    }
 
     const dataConfig = await NcConnectionMgrv2.getWorkspaceDataConfig(
       fk_workspace_id,
     );
-
     const database = dataConfig.connection.database;
 
-    for (const base of basesList) {
-      try {
-        await revokeAccessToSchema(knex, base.id, reflection.username);
-      } catch (e) {
-        logger.error(
-          `Failed to revoke access to schema ${base.id} in ${fk_workspace_id}`,
-        );
-      }
-    }
+    // Same set the initial `create` flow grants — active, non-snapshot bases.
+    const bases = await Base.listByWorkspace(fk_workspace_id, {}, ncMeta);
 
+    const trx = await workspaceKnex.transaction();
     try {
-      await dropDatabaseUser(knex, reflection.username, database);
-    } catch (e) {
-      logger.error(e);
-      logger.error(
-        `Failed to drop database user ${reflection.username} in ${fk_workspace_id}`,
-      );
-    }
-
-    const trx = await knex.transaction();
-
-    try {
+      // Drop wipes all existing grants via `DROP OWNED BY ... RESTRICT`,
+      // then recreate the role and grant fresh against the current base set.
+      await dropDatabaseUser(trx, reflection.username, database);
       await createDatabaseUser(
         trx,
         reflection.username,
         reflection.password,
         database,
       );
-
-      for (const base of basesList) {
-        if (base.deleted) continue;
+      for (const base of bases) {
         await grantAccessToSchema(trx, base.id, reflection.username);
       }
 
       await trx.commit();
     } catch (e) {
-      await trx.rollback();
-      logger.error(`Failed to refresh access for ${fk_workspace_id}`, e);
+      await trx.rollback().catch(() => {});
+      logger.error(
+        `Failed to refresh access for ${fk_workspace_id}: ${e.message}`,
+        e.stack,
+      );
+      throw e;
     }
   }
 }

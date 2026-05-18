@@ -188,7 +188,11 @@ export function useDocumentExport({
 
   const downloadMarkdown = () => {
     if (!editor.value) return
-    const md = `# ${title.value || 'Untitled'}\n\n${htmlToMarkdown(editor.value.getHTML())}`
+    // Swap blob/stripped image src for the absolute proxy URL before
+    // converting — htmlToMarkdown's `img` case reads `src` directly, so an
+    // unswapped blob URL would land in the .md output.
+    const html = fixImageSources(editor.value.getHTML())
+    const md = `# ${title.value || 'Untitled'}\n\n${htmlToMarkdown(html)}`
     downloadFile(md, 'md', 'text/markdown;charset=utf-8')
   }
 

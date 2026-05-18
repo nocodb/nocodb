@@ -21,6 +21,7 @@ const route = useRoute()
 const router = useRouter()
 
 const { isDark } = useTheme()
+const { appInfo } = useGlobal()
 
 const uuid = computed(() => route.params.uuid as string)
 const activeDocId = computed(() => (route.query.p as string) || meta.value?.root?.id)
@@ -57,6 +58,26 @@ const sidebarVisible = computed(() => !!meta.value?.include_subtree && renderabl
 const updatedAgo = computed(() => {
   const ts = activeContent.value?.updated_at
   return ts ? timeAgo(ts) : ''
+})
+
+const docEditorRef = ref<{ editor: any } | null>(null)
+const docTitle = computed(() => activeContent.value?.title || activeNode.value?.title || '')
+
+// Build the absolute attachment URL for the markdown export. Mirrors the
+// public proxy URL pattern useDocumentImageUpload uses for <img src>.
+const buildAttachmentUrl = (fileRefId: string) => {
+  const base = appInfo.value?.ncSiteUrl?.replace(/\/$/, '') ?? ''
+  if (!uuid.value || !activeDocId.value || !fileRefId) return ''
+  const qs = password.value ? `?xc-password=${encodeURIComponent(password.value)}` : ''
+  return `${base}/api/v2/public/shared-doc/${uuid.value}/doc/${activeDocId.value}/attachment/${encodeURIComponent(fileRefId)}${qs}`
+}
+
+const editorInstance = computed<any>(() => docEditorRef.value?.editor ?? undefined)
+
+const { downloadMarkdown } = useDocumentExport({
+  editor: editorInstance as any,
+  title: docTitle,
+  imageUrlBuilder: buildAttachmentUrl,
 })
 
 // Tell DocImageNode (via useDocumentImageUpload.buildProxyUrl) to route
@@ -168,6 +189,20 @@ watch(
 
       <div class="flex items-center gap-3">
         <DashboardMiniSidebarTheme placement="bottom" render-as-btn />
+
+        <NcButton
+          v-if="activeContent && !requiresPassword"
+          v-e="['c:doc:share:download:markdown']"
+          size="xs"
+          type="secondary"
+          data-testid="nc-shared-doc-download"
+          @click="downloadMarkdown"
+        >
+          <div class="flex items-center gap-1">
+            <GeneralIcon icon="download" class="!w-3.5 !h-3.5" />
+            {{ $t('general.download') }}
+          </div>
+        </NcButton>
       </div>
     </div>
 
@@ -260,6 +295,7 @@ watch(
                px-10 padding internally. -->
           <LazyDocEditor
             :key="activeContent.id"
+            ref="docEditorRef"
             mode="cell"
             embedded
             :initial-content="activeContent.content"

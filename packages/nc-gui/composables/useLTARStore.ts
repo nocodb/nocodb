@@ -159,7 +159,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return !(relatedTableMeta.value as any)?.is_private
     })
 
-    const rowId = computed(() => extractPkFromRow(currentRow.value.row, meta.value.columns))
+    const rowId = computed(() => extractPkFromRow(currentRow.value?.row, meta.value?.columns))
 
     const showExtraFields = computed(() => {
       return !isForm.value || !parseProp(column.value?.meta)?.[hideExtraFieldsMetaKey]
@@ -283,7 +283,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const attachmentCol = computedInject(
       FieldsInj,
       (_fields) => {
-        return (relatedTableMeta.value.columns ?? []).filter((col) => isAttachment(col))[0]
+        return (relatedTableMeta.value?.columns ?? []).filter((col) => isAttachment(col))[0]
       },
       ref([]),
     )
@@ -294,7 +294,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         const colOptions = (column.value?.colOptions as LinkToAnotherRecordType) || {}
         const hasCustomDisplayValue = !!colOptions.fk_display_value_column_id
 
-        const filteredFields = (relatedTableMeta.value.columns ?? []).filter((col) => {
+        const filteredFields = (relatedTableMeta.value?.columns ?? []).filter((col) => {
           // Hide the custom display value column from extra fields since it's already shown as the primary display
           if (hasCustomDisplayValue && col.id === colOptions.fk_display_value_column_id) return false
 
@@ -313,7 +313,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // When a custom display value is set, prepend the original PV as the first extra field
         // so it's guaranteed to be present regardless of the slice limit below.
         if (hasCustomDisplayValue) {
-          const pvCol = (relatedTableMeta.value.columns ?? []).find(
+          const pvCol = (relatedTableMeta.value?.columns ?? []).find(
             (c) => isPrimary(c) && !isSystemColumn(c) && !isLinksOrLTAR(c) && !isAttachment(c) && !isLookup(c),
           )
           if (pvCol) sortedFields.unshift(pvCol)
@@ -767,7 +767,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       })
     }
 
-    const { addLTARRef, removeLTARRef, currentRow: rowStoreCurrentRow } = useSmartsheetRowStoreOrThrow()
+    // Row store is required only for the new-row branch of link/unlink (local-state mutation before save).
+    // Existing-row link/unlink hits the API directly and doesn't need it. Read-only consumers (e.g. Page
+    // Designer) can use this composable without providing a row store.
+    const smartsheetRowStore = useSmartsheetRowStore()
+    const addLTARRef = smartsheetRowStore?.addLTARRef
+    const removeLTARRef = smartsheetRowStore?.removeLTARRef
+    const rowStoreCurrentRow = smartsheetRowStore?.currentRow
 
     const unlink = async (
       row: Record<string, any>,
@@ -776,6 +782,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     ) => {
       // For new rows, remove from local state
       if (isNewRow?.value || !rowId.value) {
+        if (!removeLTARRef || !rowStoreCurrentRow) {
+          console.warn('[useLTARStore]: unlink() called for new row without a row-store provider — ignoring')
+          return
+        }
         removeLTARRef(row, column.value as ColumnType)
         const targetRow = rowStoreCurrentRow.value
         if (isSingleTargetRelation.value) {
@@ -845,6 +855,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     ) => {
       // For new rows, store the link in local state — it will be persisted on save via nested insert
       if (isNewRow?.value || !rowId.value) {
+        if (!addLTARRef || !rowStoreCurrentRow) {
+          console.warn('[useLTARStore]: link() called for new row without a row-store provider — ignoring')
+          return
+        }
         addLTARRef(row, column.value as ColumnType)
         // Update the row store's currentRow (not the LTAR store's snapshot) so components re-render
         const targetRow = rowStoreCurrentRow.value

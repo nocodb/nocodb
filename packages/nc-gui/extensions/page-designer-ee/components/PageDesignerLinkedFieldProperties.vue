@@ -42,7 +42,7 @@ const displayAsOptionsMap = {
 }
 
 const relatedColumns = computed(
-  () => relatedTableMeta.value.columns?.filter((col) => !isSystemColumn(col) && !isLinksOrLTAR(col)) ?? [],
+  () => relatedTableMeta.value?.columns?.filter((col) => !isSystemColumn(col) && !isLinksOrLTAR(col)) ?? [],
 )
 
 onMounted(() => {

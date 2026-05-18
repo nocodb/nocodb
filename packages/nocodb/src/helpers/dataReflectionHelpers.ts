@@ -117,8 +117,13 @@ const dropDatabaseUser = async (knex, username, database) => {
       IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = ${usernameLit}) THEN
         -- Drop all dependent grants in the current DB before DROP USER so
         -- there are no remaining references in this database.
+        -- RESTRICT (the default) is defense-in-depth: our readonly role has
+        -- no CREATE privilege and therefore can't own objects, so this should
+        -- only ever revoke grants. If it ever fails it means the role drifted
+        -- and someone needs to look at it — better than silently dropping
+        -- whatever the role accidentally owns.
         EXECUTE format('REVOKE ALL ON DATABASE %I FROM %I', '${database}', '${username}');
-        EXECUTE format('DROP OWNED BY %I CASCADE', '${username}');
+        EXECUTE format('DROP OWNED BY %I RESTRICT', '${username}');
         EXECUTE format('DROP USER %I', '${username}');
       END IF;
     END $$;

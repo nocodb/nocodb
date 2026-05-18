@@ -351,7 +351,7 @@ export default class DataReflection extends DataReflectionCE {
     // unavailable, leave meta in place and let the next destroy retry.
     let dbCleanupOk = !workspaceKnex;
     if (workspaceKnex) {
-      // `dropDatabaseUser` runs `DROP OWNED BY ... CASCADE` which revokes
+      // `dropDatabaseUser` runs `DROP OWNED BY ... RESTRICT` which revokes
       // every grant the role holds in this DB — no need to enumerate bases.
       try {
         await dropDatabaseUser(workspaceKnex, reflection.username, database);
@@ -451,8 +451,8 @@ export default class DataReflection extends DataReflectionCE {
 
     const trx = await workspaceKnex.transaction();
     try {
-      // Drop wipes all existing grants via `DROP OWNED BY ... CASCADE`, then
-      // recreate the role and grant fresh against the current base set.
+      // Drop wipes all existing grants via `DROP OWNED BY ... RESTRICT`,
+      // then recreate the role and grant fresh against the current base set.
       await dropDatabaseUser(trx, reflection.username, database);
       await createDatabaseUser(
         trx,

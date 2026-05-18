@@ -997,6 +997,7 @@ export default {
             :template-mode="props.templateMode"
             :blueprint-mode="props.blueprintMode"
             :view="props.view"
+            :row-id="rowId"
             @duplicate-start="onDuplicateStart"
             @after-delete="onAfterDelete"
             @request-close="onClose(true)"

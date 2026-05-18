@@ -3296,13 +3296,14 @@ class PGClient extends KnexClient {
             o.uidt,
           );
           const limit = typeof n.dtxp === 'number' ? n.dtxp : null;
-          const castQuery = generateCastQuery(
-            n.uidt,
-            n.dt,
-            castedColumn,
+          const castQuery = generateCastQuery({
+            uidt: n.uidt,
+            dt: n.dt,
+            source: castedColumn,
             limit,
-            n.meta?.date_format || 'YYYY-MM-DD',
-          );
+            format: n.meta?.date_format || 'YYYY-MM-DD',
+            durationType: n.meta?.duration ?? 0,
+          });
 
           query += this.genQuery(castQuery, [], shouldSanitize);
         }

@@ -454,7 +454,18 @@ const validators = computed(() => {
         },
       ],
       ...(['POST', 'PUT', 'PATCH'].includes(hookRef.notification.payload?.method) && {
-        'notification.payload.body': [fieldRequiredValidator()],
+        'notification.payload.body': [
+          {
+            required: true,
+            validator: (_rule: any, value: any) => {
+              if (typeof value === 'string' ? value.trim().length > 0 : !!value) {
+                return Promise.resolve()
+              }
+              const httpMethod = hookRef.notification.payload?.method?.toUpperCase() ?? ''
+              return Promise.reject(new Error(t('msg.error.webhookBodyEmpty', { method: httpMethod })))
+            },
+          },
+        ],
       }),
     }),
     ...(hookRef.notification.type === 'Email' && {
@@ -656,6 +667,25 @@ async function saveHooks() {
     }
   } catch (error: any) {
     console.error('validation error', error)
+
+    const fieldErrors = error?.errorFields as Array<{ name?: string | string[]; errors?: string[] }> | undefined
+
+    if (fieldErrors?.length) {
+      const fieldName = (f: { name?: string | string[] }) =>
+        Array.isArray(f?.name) ? f.name.join('.') : f?.name ?? ''
+
+      const hasBodyError = fieldErrors.some((f) => fieldName(f) === 'notification.payload.body')
+
+      if (hasBodyError && hookRef.notification.type === 'URL') {
+        urlTabKey.value = 'body'
+      }
+
+      const firstMsg = fieldErrors.find((f) => f?.errors?.length)?.errors?.[0]
+
+      if (firstMsg) {
+        message.error(firstMsg)
+      }
+    }
 
     loading.value = false
 

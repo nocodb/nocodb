@@ -20,6 +20,8 @@ definePageMeta({
 const route = useRoute()
 const router = useRouter()
 
+const { isDark } = useTheme()
+
 const uuid = computed(() => route.params.uuid as string)
 const activeDocId = computed(() => (route.query.p as string) || meta.value?.root?.id)
 
@@ -119,12 +121,38 @@ watch(
 
 <template>
   <div class="nc-shared-doc-page w-full h-full flex flex-col bg-nc-bg-default">
-    <!-- Top bar: branding + doc title -->
-    <div class="flex items-center gap-3 px-6 py-3 border-b-1 border-nc-border-gray-light shrink-0">
-      <a href="/" class="flex items-center gap-2 cursor-pointer hover:opacity-80">
-        <img width="28" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
-        <span class="font-semibold text-nc-content-gray-extreme">{{ meta?.base?.title ?? 'NocoDB' }}</span>
-      </a>
+    <!-- Top bar: NOCODB wordmark + doc title + theme toggle. Mirrors the
+         shared-view layout header so docs and views feel consistent. -->
+    <div
+      class="nc-shared-doc-topbar flex items-center justify-between px-3 py-2 border-b-1 border-nc-border-gray-medium shrink-0 h-[46px]"
+    >
+      <div class="flex items-center gap-6 h-7 max-w-[calc(100%_-_120px)]">
+        <a
+          class="transition-all duration-200 cursor-pointer transform hover:scale-105"
+          href="https://github.com/nocodb/nocodb"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png" class="flex-none min-w-[96px]" />
+          <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
+        </a>
+
+        <div class="flex items-center gap-2 text-nc-content-gray-emphasis text-sm truncate">
+          <template v-if="isLoading && !activeContent">
+            <span data-testid="nc-loading">{{ $t('general.loading') }}</span>
+            <component :is="iconMap.reload" class="animate-infinite animate-spin" />
+          </template>
+
+          <div v-else class="text-sm font-semibold truncate flex gap-2 items-center">
+            <GeneralIcon icon="doc" class="!w-4 !h-4 ml-0.5 text-nc-content-gray-subtle" />
+            <span class="truncate">{{ activeContent?.title || activeNode?.title || meta?.root?.title || $t('general.untitled') }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <DashboardMiniSidebarTheme placement="bottom" render-as-btn />
+      </div>
     </div>
 
     <!-- Password gate -->

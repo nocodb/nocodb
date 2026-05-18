@@ -139,6 +139,9 @@ export const OPERATION_SCOPES = {
   documentUpdate: 'base',
   documentDelete: 'base',
   documentReorder: 'base',
+  documentShare: 'base',
+  documentUnshare: 'base',
+  documentShareUpdate: 'base',
 
   // SmartText (EE-only)
   smartTextGetContent: 'base',

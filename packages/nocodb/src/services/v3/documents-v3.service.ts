@@ -12,6 +12,7 @@ import {
   toDocumentV3ListItem,
 } from '~/services/v3/documents-v3.types';
 import { DocumentsService } from '~/services/documents.service';
+import { Document } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 
@@ -158,5 +159,57 @@ export class DocumentsV3Service {
     }
 
     return toDocumentV3(doc);
+  }
+
+  // --- Public share ---
+
+  /**
+   * Enable public share for a doc. Idempotent — returns existing UUID if the
+   * doc is already shared. Default share scope includes descendants (Phase 1
+   * default; the toggle is exposed in updateShareSettings).
+   */
+  async docShare(
+    context: NcContext,
+    param: { docId: string },
+  ): Promise<{ uuid: string; include_subtree: boolean; password: boolean }> {
+    const doc = await Document.share(context, param.docId);
+    // Default include_subtree=true on first share so the public URL is useful
+    // out of the box. Owner can flip it off in the share modal.
+    const currentMeta = (doc.meta as any) ?? {};
+    if (!currentMeta.share || currentMeta.share.include_subtree === undefined) {
+      await Document.updateShareSettings(context, param.docId, {
+        include_subtree: true,
+      });
+    }
+    return {
+      uuid: doc.uuid!,
+      include_subtree: currentMeta?.share?.include_subtree ?? true,
+      password: !!doc.password,
+    };
+  }
+
+  async docUnshare(
+    context: NcContext,
+    param: { docId: string },
+  ): Promise<boolean> {
+    await Document.unshare(context, param.docId);
+    return true;
+  }
+
+  async docShareUpdate(
+    context: NcContext,
+    param: { docId: string },
+    body: { password?: string | null; include_subtree?: boolean },
+  ): Promise<{
+    uuid: string | null;
+    include_subtree: boolean;
+    password: boolean;
+  }> {
+    const doc = await Document.updateShareSettings(context, param.docId, body);
+    return {
+      uuid: doc.uuid ?? null,
+      include_subtree: !!(doc.meta as any)?.share?.include_subtree,
+      password: !!doc.password,
+    };
   }
 }

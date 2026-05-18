@@ -84,6 +84,12 @@ const { createDocument, deleteDocument, loadDocument, updateDocument } = documen
 const { $e } = useNuxtApp()
 const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
 
+const { showShareModal } = storeToRefs(useShare())
+
+const openShareModal = () => {
+  showShareModal.value = true
+}
+
 const { isDark } = useTheme()
 
 const docColorVars = computed(() => buildColorCssVars(isDark.value))
@@ -2231,6 +2237,15 @@ defineExpose({ editor })
                 <GeneralIcon class="text-nc-content-gray-subtle" :icon="isLinkCopied ? 'check' : 'link'" />
                 {{ isLinkCopied ? $t('general.copied') : $t('activity.copyLink') }}
               </NcMenuItem>
+              <NcMenuItem
+                v-if="isCreatorOrAbove"
+                v-e="['c:doc:share:open']"
+                data-testid="nc-doc-page-share"
+                @click="openShareModal"
+              >
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="ncShare" />
+                {{ $t('activity.share') }}
+              </NcMenuItem>
               <NcDivider />
               <div :key="activeFont" class="nc-doc-font-selector" data-testid="nc-doc-font-selector" @click.stop>
                 <button
@@ -2961,6 +2976,11 @@ defineExpose({ editor })
       @close="isCommentsPanelOpen = false"
       @clear-pending-selection="pendingInlineCommentSelection = null"
     />
+
+    <!-- Share modal mount point — keeps the share-and-collaborate dialog
+         available when the doc page is open. The dispatcher renders the doc
+         branch when activeDocument is set. -->
+    <LazyDlgShareAndCollaborateView v-if="!embedded && !isCellMode" />
   </div>
 </template>
 

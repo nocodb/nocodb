@@ -1,0 +1,223 @@
+<script setup lang="ts">
+import type { PublicDocNode } from 'nocodb-sdk'
+
+/**
+ * Public reader for shared docs (/doc/<uuid>).
+ *
+ * Loads the share manifest (root + subtree titles) on mount, then renders
+ * the doc content for the currently-selected node. Subtree navigation is
+ * driven by a `?p=<docId>` query param so deep-links to descendants work.
+ *
+ * Anonymous-friendly: no auth, no headers required unless the share is
+ * password-protected.
+ */
+
+definePageMeta({
+  public: true,
+  requiresAuth: false,
+})
+
+const route = useRoute()
+const router = useRouter()
+
+const uuid = computed(() => route.params.uuid as string)
+const activeDocId = computed(() => (route.query.p as string) || meta.value?.root?.id)
+
+const {
+  meta,
+  activeContent,
+  isLoading,
+  requiresPassword,
+  password,
+  setPassword,
+  loadMeta,
+  loadDoc,
+} = useSharedDoc()
+
+const passwordInput = ref('')
+const passwordError = ref(false)
+
+const renderableTree = computed<PublicDocNode[]>(() => meta.value?.tree ?? [])
+
+// Map for quick title lookup when rendering breadcrumbs / titles.
+const nodesById = computed(() => {
+  const m = new Map<string, PublicDocNode>()
+  for (const n of renderableTree.value) m.set(n.id, n)
+  return m
+})
+
+const activeNode = computed(() =>
+  activeDocId.value ? nodesById.value.get(activeDocId.value) : null,
+)
+
+const sidebarVisible = computed(() => !!meta.value?.include_subtree && renderableTree.value.length > 1)
+
+const submitPassword = async () => {
+  setPassword(passwordInput.value)
+  passwordError.value = false
+  const ok = await loadMeta(uuid.value)
+  if (!ok) passwordError.value = true
+}
+
+const navigateToDoc = (docId: string) => {
+  router.replace({
+    query: { ...route.query, p: docId === meta.value?.root?.id ? undefined : docId },
+  })
+}
+
+// Build a flat sidebar with simple indentation by parent_id depth. Anything
+// fancier (collapsible nodes, drag, etc.) can come later — this is the
+// minimum needed for navigation.
+interface TreeRow {
+  node: PublicDocNode
+  depth: number
+}
+
+const sidebarRows = computed<TreeRow[]>(() => {
+  const rows: TreeRow[] = []
+  const childrenByParent = new Map<string | null, PublicDocNode[]>()
+  for (const n of renderableTree.value) {
+    const key = n.parent_id ?? null
+    const list = childrenByParent.get(key) ?? []
+    list.push(n)
+    childrenByParent.set(key, list)
+  }
+  for (const list of childrenByParent.values()) {
+    list.sort((a, b) => (a.order || 0) - (b.order || 0))
+  }
+
+  const walk = (parent: string | null, depth: number) => {
+    const kids = childrenByParent.get(parent) ?? []
+    for (const k of kids) {
+      rows.push({ node: k, depth })
+      walk(k.id, depth + 1)
+    }
+  }
+
+  walk(null, 0)
+  return rows
+})
+
+watch(
+  uuid,
+  async (id) => {
+    if (!id) return
+    await loadMeta(id)
+  },
+  { immediate: true },
+)
+
+watch(
+  activeDocId,
+  async (id) => {
+    if (!id || requiresPassword.value || !uuid.value) return
+    await loadDoc(uuid.value, id)
+  },
+  { immediate: true },
+)
+</script>
+
+<template>
+  <div class="nc-shared-doc-page w-full h-full flex flex-col bg-nc-bg-default">
+    <!-- Top bar: branding + doc title -->
+    <div class="flex items-center gap-3 px-6 py-3 border-b-1 border-nc-border-gray-light shrink-0">
+      <a href="/" class="flex items-center gap-2 cursor-pointer hover:opacity-80">
+        <img width="28" alt="NocoDB" src="~/assets/img/icons/256x256.png" />
+        <span class="font-semibold text-nc-content-gray-extreme">{{ meta?.base?.title ?? 'NocoDB' }}</span>
+      </a>
+    </div>
+
+    <!-- Password gate -->
+    <div
+      v-if="requiresPassword"
+      class="flex-1 flex items-center justify-center px-4"
+      data-testid="nc-shared-doc-password-gate"
+    >
+      <div class="w-full max-w-sm flex flex-col gap-3 p-6 rounded-lg border-1 border-nc-border-gray-medium">
+        <div class="flex items-center gap-2">
+          <GeneralIcon icon="ncLock" class="text-nc-content-gray-subtle" />
+          <div class="font-medium">{{ $t('msg.info.docShareEnterPassword') }}</div>
+        </div>
+        <a-input-password
+          v-model:value="passwordInput"
+          :placeholder="$t('placeholder.password.enter')"
+          autocomplete="current-password"
+          data-testid="nc-shared-doc-password-input"
+          @press-enter="submitPassword"
+        />
+        <div v-if="passwordError" class="text-bodySm text-nc-content-red-dark">
+          {{ $t('msg.error.invalidPassword') }}
+        </div>
+        <NcButton
+          type="primary"
+          :disabled="!passwordInput"
+          data-testid="nc-shared-doc-password-submit"
+          @click="submitPassword"
+        >
+          {{ $t('general.continue') }}
+        </NcButton>
+      </div>
+    </div>
+
+    <!-- Main split: sidebar + content -->
+    <div v-else class="flex-1 flex min-h-0">
+      <aside
+        v-if="sidebarVisible"
+        class="nc-shared-doc-sidebar shrink-0 w-64 border-r-1 border-nc-border-gray-light overflow-y-auto p-2"
+      >
+        <div
+          v-for="row in sidebarRows"
+          :key="row.node.id"
+          class="nc-shared-doc-tree-row flex items-center gap-1 px-2 py-1 rounded cursor-pointer hover:bg-nc-bg-gray-light"
+          :class="{ 'bg-nc-bg-gray-light font-medium': row.node.id === activeDocId }"
+          :style="{ paddingInlineStart: `${row.depth * 12 + 8}px` }"
+          :data-testid="`nc-shared-doc-tree-${row.node.id}`"
+          @click="navigateToDoc(row.node.id)"
+        >
+          <GeneralIcon icon="doc" class="!w-3.5 !h-3.5 text-nc-content-gray-subtle" />
+          <span class="truncate text-bodySm">{{ row.node.title }}</span>
+        </div>
+      </aside>
+
+      <main class="flex-1 min-w-0 overflow-y-auto">
+        <div class="max-w-3xl mx-auto px-8 py-12">
+          <div v-if="isLoading && !activeContent" class="text-center text-nc-content-gray-subtle">
+            {{ $t('general.loading') }}…
+          </div>
+          <template v-else-if="activeContent">
+            <h1 class="text-heading3 text-nc-content-gray-extreme mb-6">
+              {{ activeContent.title || activeNode?.title || $t('general.untitled') }}
+            </h1>
+            <!-- Read-only PM renderer. Use `mode='cell'` + `embedded` so the
+                 editor takes its content from `initialContent` and skips its
+                 own breadcrumb / page-actions chrome. The public viewer
+                 doesn't have access to the owner-side store. -->
+            <LazyDocEditor
+              :key="activeContent.id"
+              mode="cell"
+              embedded
+              :initial-content="activeContent.content"
+              :read-only="true"
+            />
+          </template>
+        </div>
+      </main>
+    </div>
+
+    <!-- Noindex meta (Phase 1: always set) -->
+    <Head>
+      <Meta name="robots" content="noindex, nofollow" />
+      <Title>{{ activeContent?.title || meta?.root?.title || 'Shared Document' }}</Title>
+    </Head>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.nc-shared-doc-sidebar {
+  background: var(--nc-bg-default);
+}
+
+.nc-shared-doc-tree-row {
+  user-select: none;
+}
+</style>

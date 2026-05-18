@@ -360,7 +360,10 @@ export class DocumentsService extends DocumentsServiceCE {
     const counts = await Comment.docCommentsCount(context, [docId]);
     doc.comment_count = +(counts[0] as any)?.count || 0;
 
-    return doc;
+    // Mask the share password before returning to the owner-facing client.
+    // The bcrypt hash never leaves the backend; the frontend renders the
+    // masked state when it sees the sentinel.
+    return Document.maskPasswordForResponse(doc);
   }
 
   /** Create a new document. Defaults to an empty ProseMirror doc if no content provided. */

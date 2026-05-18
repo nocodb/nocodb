@@ -126,4 +126,45 @@ export class DocumentsV3Controller {
       req,
     );
   }
+
+  // --- Public share ---
+  // ACL note: share toggle is Creator+ (set in acl.ts). Update/unshare share
+  // the same permission — once a Creator has published, anyone with Creator+
+  // can modify the share or revoke it.
+
+  @Post(`${PREFIX_APIV3_DOCS}/:docId/share`)
+  @HttpCode(200)
+  @Acl('documentShare', { scope: 'base' })
+  async docShare(
+    @TenantContext() context: NcContext,
+    @Param('docId') docId: string,
+  ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
+    return await this.documentsV3Service.docShare(context, { docId });
+  }
+
+  @Patch(`${PREFIX_APIV3_DOCS}/:docId/share`)
+  @Acl('documentShare', { scope: 'base' })
+  async docShareUpdate(
+    @TenantContext() context: NcContext,
+    @Param('docId') docId: string,
+    @Body()
+    body: { password?: string | null; include_subtree?: boolean },
+  ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
+    return await this.documentsV3Service.docShareUpdate(
+      context,
+      { docId },
+      body,
+    );
+  }
+
+  @Delete(`${PREFIX_APIV3_DOCS}/:docId/share`)
+  @Acl('documentShare', { scope: 'base' })
+  async docUnshare(
+    @TenantContext() context: NcContext,
+    @Param('docId') docId: string,
+  ): Promise<boolean> {
+    return await this.documentsV3Service.docUnshare(context, { docId });
+  }
 }

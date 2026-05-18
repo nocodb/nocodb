@@ -36,6 +36,7 @@ import type {
   NestInterceptor,
   NestMiddleware,
 } from '@nestjs/common';
+import Document from '~/ee/models/Document';
 import {
   Base,
   Column,
@@ -219,6 +220,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const sharedBaseUuid = params.sharedBaseUuid || query.sharedBaseUuid;
       const sharedDashboardUuid =
         params.sharedDashboardUuid || query.sharedDashboardUuid;
+      const sharedDocUuid = params.sharedDocUuid || query.sharedDocUuid;
       const hookId = params.hookId || query.hookId;
       const rowColorConditionId =
         params.rowColorConditionId || query.rowColorConditionId;
@@ -334,6 +336,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
         if (!dashboard) {
           NcError.dashboardNotFound(sharedDashboardUuid);
+        }
+      } else if (sharedDocUuid) {
+        const doc = await Document.getByUUID(context, sharedDocUuid);
+
+        if (!doc) {
+          NcError.get(context).genericNotFound('Document', sharedDocUuid);
         }
       } else if (hookId) {
         const hook = await Hook.get(context, hookId);
@@ -494,7 +502,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       markPersonalViewIfNeeded(req, view);
 
-      if (publicDataUuid || sharedViewUuid || sharedBaseUuid) {
+      if (publicDataUuid || sharedViewUuid || sharedBaseUuid || sharedDocUuid) {
         req.context.is_public = true;
       }
       /*
@@ -815,6 +823,16 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.dashboardNotFound(req.params.sharedDashboardUuid);
       }
       req.ncBaseId = dashboard?.base_id;
+    } else if (params.sharedDocUuid) {
+      const doc = await Document.getByUUID(context, req.params.sharedDocUuid);
+
+      if (!doc) {
+        NcError.get(context).genericNotFound(
+          'Document',
+          req.params.sharedDocUuid,
+        );
+      }
+      req.ncBaseId = doc?.base_id;
     } else if (params.hookId) {
       const hook = await Hook.get(context, params.hookId);
 
@@ -1299,7 +1317,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       is_api_token: req.user?.is_api_token,
       ...(params.publicDataUuid ||
       params.sharedViewUuid ||
-      params.sharedBaseUuid
+      params.sharedBaseUuid ||
+      params.sharedDocUuid
         ? { is_public: true }
         : {}),
     };

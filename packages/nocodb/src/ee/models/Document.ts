@@ -1,5 +1,12 @@
 import { ModelTypes } from 'nocodb-sdk';
+import {
+  isBcryptHash,
+  NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+} from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 import DocumentCE from 'src/models/Document';
 import type { DocumentType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
@@ -9,10 +16,12 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import { notDeletedXcCondition } from '~/utils/trashUtils';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -735,5 +744,276 @@ export default class Document extends DocumentCE implements DocumentType {
       delete doc.doc_version;
     }
     return prepareForResponse(doc, ['meta', 'content']);
+  }
+
+  // --- Public share ---
+  //
+  // Docs are rows in nc_models_v2, which already carries uuid + password
+  // columns (originally added for view share). Sharing a doc reuses those
+  // columns directly — no migration needed.
+
+  /** Lookup by public-share UUID (no auth context required — global bypass). */
+  public static async getByUUID(
+    context: NcContext,
+    uuid: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Document | null> {
+    const row = await ncMeta.metaGet2(
+      RootScopes.FULL_BYPASS,
+      RootScopes.FULL_BYPASS,
+      MetaTable.MODELS,
+      { uuid, type: ModelTypes.DOCUMENT },
+      undefined,
+      notDeletedXcCondition,
+    );
+
+    if (!row) return null;
+    return new Document(this.parseDocument(row));
+  }
+
+  /**
+   * Enable public share for a doc — assigns a UUID if one isn't already set.
+   * Idempotent: calling on an already-shared doc returns the existing UUID.
+   */
+  public static async share(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Document> {
+    const doc = await this.getMeta(context, docId, ncMeta);
+    if (!doc) NcError.get(context).genericNotFound('Document', docId);
+
+    if (!doc.uuid) {
+      const uuid = uuidv4();
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODELS,
+        { uuid },
+        { id: docId, type: ModelTypes.DOCUMENT },
+      );
+      doc.uuid = uuid;
+      await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
+    }
+
+    return doc;
+  }
+
+  /** Disable public share — clears uuid and password. */
+  public static async unshare(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      { uuid: null, password: null },
+      { id: docId, type: ModelTypes.DOCUMENT },
+    );
+    await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
+  }
+
+  /**
+   * Update share-time settings — password and meta.share.include_subtree.
+   * Password rules mirror View.passwordUpdate (sentinel = no change, never
+   * re-hash a bcrypt hash, plaintext gets hashed).
+   */
+  public static async updateShareSettings(
+    context: NcContext,
+    docId: string,
+    body: { password?: string | null; include_subtree?: boolean },
+    ncMeta = Noco.ncMeta,
+  ): Promise<Document> {
+    const doc = await this.getMeta(context, docId, ncMeta);
+    if (!doc) NcError.get(context).genericNotFound('Document', docId);
+    if (!doc.uuid) {
+      NcError.get(context).badRequest('Document is not shared');
+    }
+
+    const updateObj: Record<string, any> = {};
+
+    if (body.password !== undefined) {
+      if (body.password === null || body.password === '') {
+        updateObj.password = null;
+      } else if (
+        body.password !== NC_VIEW_PASSWORD_PROTECTED_SENTINEL &&
+        !isBcryptHash(body.password)
+      ) {
+        updateObj.password = await bcrypt.hash(body.password, 10);
+      }
+    }
+
+    if (body.include_subtree !== undefined) {
+      const meta = { ...(doc.meta ?? {}) };
+      const shareMeta = { ...((meta as any).share ?? {}) };
+      shareMeta.include_subtree = !!body.include_subtree;
+      (meta as any).share = shareMeta;
+      updateObj.meta = meta;
+    }
+
+    if (Object.keys(updateObj).length > 0) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.MODELS,
+        prepareForDb(updateObj, ['meta']),
+        { id: docId, type: ModelTypes.DOCUMENT },
+      );
+      await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
+    }
+
+    return await this.getMeta(context, docId, ncMeta);
+  }
+
+  /**
+   * Verify a plaintext password against the stored hash.
+   *
+   * Mirrors View.verifyPassword:
+   * - No stored password → always passes.
+   * - Bcrypt hash → bcrypt.compare.
+   * - Legacy plaintext (rows that pre-date the bcrypt migration) → timing-safe
+   *   string compare. Pads with a zeroed buffer on length mismatch so the
+   *   timing cost is the same either way.
+   */
+  public static async verifyPassword(
+    doc: { password?: string | null },
+    inputPassword: string,
+  ): Promise<boolean> {
+    if (!doc.password) return true;
+    if (!inputPassword) return false;
+
+    if (isBcryptHash(doc.password)) {
+      return bcrypt.compare(inputPassword, doc.password);
+    }
+
+    const a = Buffer.from(inputPassword, 'utf-8');
+    const b = Buffer.from(doc.password, 'utf-8');
+    if (a.length !== b.length) {
+      crypto.timingSafeEqual(a, Buffer.alloc(a.length));
+      return false;
+    }
+    return crypto.timingSafeEqual(a, b);
+  }
+
+  /**
+   * Mask the stored password before returning a doc to an owner-facing client.
+   * Bcrypt hashes get replaced with the sentinel; the hash never leaves the
+   * backend. Returns a clone so callers can't mutate the cached instance.
+   */
+  public static maskPasswordForResponse<
+    T extends { password?: string | null },
+  >(doc: T): T {
+    if (!doc || !doc.password) return doc;
+    if (!isBcryptHash(doc.password)) return doc;
+    return Object.assign(Object.create(Object.getPrototypeOf(doc)), doc, {
+      password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+    });
+  }
+
+  /**
+   * Resolve the in-scope subtree for a public share root.
+   *
+   * Visibility rule:
+   *  - The share root itself is always in scope.
+   *  - Descendants are in scope iff `root.meta.share.include_subtree` is true.
+   *
+   * Returns a flat list of lightweight nodes (no content) ordered by parent,
+   * then `order`. Caller is responsible for building the tree client-side.
+   */
+  public static async getPublicSubtree(
+    context: NcContext,
+    root: Document,
+    ncMeta = Noco.ncMeta,
+  ): Promise<
+    Array<{
+      id: string;
+      title: string;
+      parent_id: string | null;
+      order: number;
+      has_children: boolean;
+    }>
+  > {
+    const rootNode = {
+      id: root.id,
+      title: root.title || 'Untitled',
+      parent_id: null as string | null,
+      order: root.order ?? 0,
+      has_children: !!root.has_children,
+    };
+
+    const includeSubtree = !!(root.meta as any)?.share?.include_subtree;
+    if (!includeSubtree) return [rootNode];
+
+    // BFS over parent_id within the same base, soft-deleted excluded.
+    const collected: Record<string, any>[] = [];
+    let frontier: string[] = [root.id];
+
+    while (frontier.length) {
+      const children = await ncMeta.metaList2(
+        root.fk_workspace_id,
+        root.base_id,
+        MetaTable.MODELS,
+        {
+          condition: {
+            base_id: root.base_id,
+            type: ModelTypes.DOCUMENT,
+            deleted: false,
+          },
+          xcCondition: {
+            parent_id: { in: frontier },
+          },
+          orderBy: { order: 'asc' },
+          fields: [
+            'id',
+            'title',
+            'parent_id',
+            'order',
+            'has_children',
+          ],
+        },
+      );
+
+      if (!children.length) break;
+      collected.push(...children);
+      frontier = children
+        .filter((c) => c.has_children)
+        .map((c) => c.id as string);
+    }
+
+    return [
+      rootNode,
+      ...collected.map((c) => ({
+        id: c.id as string,
+        title: (c.title as string) || 'Untitled',
+        // Anchor descendants of the root under "null" so the root stays the
+        // tree root from the consumer's perspective — the parent_id chain
+        // above the root would otherwise leak.
+        parent_id: c.parent_id === root.parent_id ? null : c.parent_id,
+        order: (c.order as number) ?? 0,
+        has_children: !!c.has_children,
+      })),
+    ];
+  }
+
+  /**
+   * Fetch just the content row for a doc. Used by the public reader so we
+   * don't pay the metadata round-trip again on each navigation.
+   */
+  public static async getContentOnly(
+    context: NcContext,
+    docId: string,
+  ): Promise<Record<string, any> | null> {
+    const row = await Noco.ncDocsContent.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOC_CONTENT,
+      { fk_doc_id: docId },
+      ['content'],
+    );
+    if (!row) return null;
+    const parsed = prepareForResponse(row, ['content']);
+    return parsed.content ?? null;
   }
 }

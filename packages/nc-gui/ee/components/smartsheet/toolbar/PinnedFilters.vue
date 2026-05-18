@@ -870,16 +870,16 @@ const unpinFilter = async (filter: FilterType) => {
                   class="border-t border-nc-border-gray-medium"
                   @click.stop
                 >
-                  <a-input-number
-                    v-if="NUMERIC_DATE_SUB_OPS.includes(filter.comparison_sub_op)"
-                    :value="filter.value"
-                    :min="0"
-                    :placeholder="t('placeholder.variableValue')"
-                    class="!w-full !rounded-lg !my-2 !mx-3"
-                    style="width: calc(100% - 24px)"
-                    :disabled="isLocked"
-                    @update:value="(v: any) => updateDateValue(filter, v)"
-                  />
+                  <div v-if="NUMERIC_DATE_SUB_OPS.includes(filter.comparison_sub_op)" class="px-3 py-2">
+                    <a-input-number
+                      :value="filter.value"
+                      :min="0"
+                      :placeholder="t('placeholder.variableValue')"
+                      class="!w-full !rounded-lg"
+                      :disabled="isLocked"
+                      @update:value="(v: any) => updateDateValue(filter, v)"
+                    />
+                  </div>
                   <div v-else-if="filter.comparison_sub_op === 'exactDate'" class="flex justify-center py-1">
                     <NcDatePicker
                       v-model:page-date="datePagePageDate"

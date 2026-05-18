@@ -22,18 +22,6 @@ const chartConfig = computed(() => {
   return widgetRef.value?.config
 })
 
-const widgetSize = computed(() => {
-  return widgetRef.value?.position?.h === 5 ? 'small' : 'medium'
-})
-
-const chartSize = computed(() => {
-  const sizeMap = {
-    small: { height: widgetRef?.value?.description ? '380px' : '420px' },
-    medium: { height: widgetRef?.value?.description ? '460px' : '520px' },
-  }
-  return sizeMap[widgetSize.value]
-})
-
 const disableLegend = computed(() => widgetRef.value?.config?.data?.yAxis?.fields?.length < 2)
 
 const legendConfig = computed(() => {
@@ -149,6 +137,7 @@ const chartOption = computed<ECOption>(() => {
         fontSize: 11,
         color: '#666',
         rotate: widgetData.value.categories.some((cat: string) => cat.length > 15) ? 45 : 0,
+        hideOverlap: true,
       },
       axisLine: {
         lineStyle: {
@@ -209,6 +198,7 @@ const chartOption = computed<ECOption>(() => {
           return value
         },
       },
+      labelLayout: { hideOverlap: true },
     })),
     animation: {
       duration: 750,
@@ -270,7 +260,7 @@ watch(
       </div>
     </div>
 
-    <div class="flex-1 p-4 pt-0">
+    <div class="flex-1 min-h-0 p-4 pt-0">
       <div
         v-if="widgetRef.error"
         :class="{
@@ -295,7 +285,7 @@ watch(
           <div class="text-bodyDefaultSm">No data available</div>
         </div>
       </div>
-      <VChart v-else class="chart" :style="{ height: chartSize.height }" :option="chartOption" autoresize />
+      <VChart v-else class="chart h-full w-full" :option="chartOption" autoresize />
     </div>
   </div>
 </template>

@@ -6,6 +6,12 @@ const SMALL_SLICE_PERCENT = 3
 const MAX_SLICES_BEFORE_BUCKETING = 8
 const LABEL_MIN_SLICE_PERCENT = 4
 const LEGEND_TRUNCATE = 28
+// Below this widget width a side legend has no room — even a 55%-radius
+// chart has a diameter of 110% of the min dimension, which crashes into
+// the legend on the right. Switch legend to bottom under this threshold.
+// 480px is empirically the lowest width that fits a ~140px legend + a
+// readable chart side-by-side without label overlap.
+const NARROW_WIDGET_PX = 480
 
 function luminance(hex: string): number {
   const c = hex.replace('#', '')
@@ -63,11 +69,24 @@ function bucketSmallSlices(data: any[]) {
 export function useDashboardPieChartOption(
   widgetRef: Ref<ChartWidgetType<ChartTypes.PIE | ChartTypes.DONUT>>,
   widgetData: Ref<any>,
-  options: { isDonut?: boolean } = {},
+  options: { isDonut?: boolean; widgetWidth?: Ref<number> } = {},
 ) {
   const isDonut = options.isDonut ?? false
+  const widgetWidth = options.widgetWidth ?? ref(0)
 
   const chartConfig = computed(() => widgetRef.value?.config)
+
+  const isNarrow = computed(() => widgetWidth.value > 0 && widgetWidth.value < NARROW_WIDGET_PX)
+
+  // Resolved legend position: honors the user's config except on narrow
+  // widgets, where a side-anchored legend would crash into the chart.
+  const effectiveLegendPosition = computed(() => {
+    const configured = chartConfig.value?.appearance?.legendPosition ?? 'right'
+    if (isNarrow.value && (configured === 'left' || configured === 'right')) {
+      return 'bottom'
+    }
+    return configured
+  })
 
   const processedData = computed(() => {
     const raw = widgetData.value?.data
@@ -88,10 +107,8 @@ export function useDashboardPieChartOption(
     })
   })
 
-  const legendPosition = computed(() => chartConfig.value?.appearance?.legendPosition ?? 'right')
-
   const legendConfig = computed(() => {
-    const position = legendPosition.value
+    const position = effectiveLegendPosition.value
     const showCountInLegend = chartConfig.value?.appearance?.showCountInLegend ?? true
 
     if (position === 'none') {
@@ -131,7 +148,8 @@ export function useDashboardPieChartOption(
     if (!data || data.length === 0) return {}
 
     const showPercentageOnChart = chartConfig.value?.appearance?.showPercentageOnChart ?? true
-    const position = legendPosition.value
+    const position = effectiveLegendPosition.value
+    const legendOnSide = position === 'left' || position === 'right'
 
     const centerByPosition: Record<string, [string, string]> = {
       top: ['50%', '58%'],
@@ -141,7 +159,15 @@ export function useDashboardPieChartOption(
       none: ['50%', '50%'],
     }
     const center = legendConfig.value.show ? centerByPosition[position] : ['50%', '50%']
-    const radius = isDonut ? ['38%', '70%'] : '70%'
+    // Shrink the chart when the legend takes a side, so the legend has
+    // breathing room and slice labels don't overlap legend text.
+    const radius = isDonut
+      ? legendOnSide
+        ? ['28%', '55%']
+        : ['38%', '70%']
+      : legendOnSide
+        ? '55%'
+        : '70%'
 
     return {
       color: CHART_COLORS,

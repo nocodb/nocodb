@@ -16,6 +16,7 @@ export function useDocumentImageUpload() {
   const base = inject(ProjectInj, ref())
   const docId = inject(DocIdInj, ref(''))
   const smartTextCell = inject(SmartTextCellAttachmentInj, ref(null))
+  const publicShare = inject(PublicDocShareInj, ref(null))
 
   const uploadCount = ref(0)
   const isUploading = computed(() => uploadCount.value > 0)
@@ -51,8 +52,21 @@ export function useDocumentImageUpload() {
    * otherwise it's keyed by docId.
    */
   function buildProxyUrl(fileRefId: string): string {
+    if (!fileRefId) return ''
+
+    // Public-share viewer: no auth context, route through the UUID-gated
+    // public endpoint. Password (if set) rides in the query since <img> can't
+    // send headers.
+    const pub = publicShare?.value
+    if (pub?.sharedDocUuid && pub?.docId) {
+      const qs = pub.password ? `?xc-password=${encodeURIComponent(pub.password)}` : ''
+      return `${appInfo.value.ncSiteUrl}/api/v2/public/shared-doc/${
+        pub.sharedDocUuid
+      }/doc/${pub.docId}/attachment/${encodeURIComponent(fileRefId)}${qs}`
+    }
+
     const baseId = base?.value?.id
-    if (!baseId || !fileRefId) return ''
+    if (!baseId) return ''
 
     const cell = smartTextCell?.value
     if (cell?.tableId && cell?.columnId && cell?.rowId) {

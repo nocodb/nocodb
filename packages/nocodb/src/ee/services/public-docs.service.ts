@@ -5,7 +5,7 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Document from '~/ee/models/Document';
-import { Base } from '~/models';
+import { Base, FileReference } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
 /**
@@ -95,8 +95,55 @@ export class PublicDocsService {
     return {
       id: doc.id,
       title: doc.title || 'Untitled',
+      icon: (doc.meta as any)?.icon ?? null,
       content: doc.content ?? { type: 'doc', content: [{ type: 'paragraph' }] },
       updated_at: doc.updated_at,
     };
+  }
+
+  /**
+   * Resolve an attachment (image / file) referenced by a public-share doc.
+   * Returns the `file_url` (storage path) so the controller can stream the
+   * file. UUID + password gate the access; `fileRefId` must be a
+   * FileReference owned by a doc inside the share's subtree.
+   */
+  async docAttachmentGet(
+    context: NcContext,
+    param: {
+      sharedDocUuid: string;
+      docId: string;
+      fileRefId: string;
+      password: string;
+    },
+  ): Promise<{ fileUrl: string }> {
+    const root = await Document.getByUUID(context, param.sharedDocUuid);
+    if (!root) {
+      NcError.get(context).genericNotFound('Document', param.sharedDocUuid);
+    }
+
+    if (!(await Document.verifyPassword(root, param.password))) {
+      NcError.get(context).invalidSharedViewPassword();
+    }
+
+    const scope = await Document.getPublicSubtree(context, root);
+    if (!scope.some((n) => n.id === param.docId)) {
+      NcError.get(context).genericNotFound('Document', param.docId);
+    }
+
+    // FileReference reads are workspace+base scoped. The middleware doesn't
+    // build a base-scoped context for public docs, so derive it from the
+    // resolved root.
+    const baseScopedCtx = {
+      ...context,
+      workspace_id: root.fk_workspace_id,
+      base_id: root.base_id,
+    };
+
+    const fileRef = await FileReference.get(baseScopedCtx, param.fileRefId);
+    if (!fileRef || fileRef.deleted || fileRef.fk_doc_id !== param.docId) {
+      NcError.get(context).genericNotFound('Attachment', param.fileRefId);
+    }
+
+    return { fileUrl: fileRef.file_url };
   }
 }

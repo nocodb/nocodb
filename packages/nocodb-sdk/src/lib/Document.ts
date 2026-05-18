@@ -54,6 +54,8 @@ export interface PublicDocMetaResponse {
 export interface PublicDocContentResponse {
   id: string;
   title: string;
+  /** Emoji or icon-name string from `doc.meta.icon`. Null when unset. */
+  icon: string | null;
   content: Record<string, any>;
   updated_at: string;
 }

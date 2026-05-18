@@ -54,6 +54,22 @@ const activeNode = computed(() =>
 
 const sidebarVisible = computed(() => !!meta.value?.include_subtree && renderableTree.value.length > 1)
 
+const updatedAgo = computed(() => {
+  const ts = activeContent.value?.updated_at
+  return ts ? timeAgo(ts) : ''
+})
+
+// Tell DocImageNode (via useDocumentImageUpload.buildProxyUrl) to route
+// attachment URLs through the public endpoint instead of the authed one.
+provide(
+  PublicDocShareInj,
+  computed(() =>
+    uuid.value && activeDocId.value
+      ? { sharedDocUuid: uuid.value, docId: activeDocId.value, password: password.value }
+      : null,
+  ),
+)
+
 const submitPassword = async () => {
   setPassword(passwordInput.value)
   passwordError.value = false
@@ -213,11 +229,30 @@ watch(
         </div>
         <template v-else-if="activeContent">
           <!-- Title row mirrors DocEditor's inner container (max-w 900 + px-10)
-               so it aligns horizontally with the prose body below. -->
+               so it aligns with the prose body below, and uses the same icon
+               + title + updated-ago shape DocEditor renders in doc mode. -->
           <div class="max-w-[900px] mx-auto px-10 pt-12 pb-4">
-            <h1 class="text-heading3 text-nc-content-gray-extreme">
-              {{ activeContent.title || activeNode?.title || $t('general.untitled') }}
-            </h1>
+            <div class="nc-doc-title-row flex items-center">
+              <div class="nc-doc-editor-icon-wrapper">
+                <LazyGeneralEmojiPicker
+                  :key="activeContent.icon ?? ''"
+                  :emoji="activeContent.icon ?? undefined"
+                  :readonly="true"
+                  class="nc-doc-editor-icon"
+                  size="large"
+                >
+                  <template #default>
+                    <GeneralIcon class="text-nc-content-gray-muted !w-7 !h-7" icon="ncFileText" />
+                  </template>
+                </LazyGeneralEmojiPicker>
+              </div>
+              <h1 class="nc-doc-title text-3xl font-semibold text-nc-content-gray-extreme m-0">
+                {{ activeContent.title || activeNode?.title || $t('general.untitled') }}
+              </h1>
+            </div>
+            <div v-if="updatedAgo" class="nc-doc-subtitle mt-2 text-sm text-nc-content-gray-muted">
+              {{ $t('general.updated') }} {{ updatedAgo }}
+            </div>
           </div>
           <!-- Read-only PM renderer. `mode='cell' + embedded` makes it take
                content from `initialContent` and skip its breadcrumb / page

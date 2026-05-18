@@ -321,6 +321,17 @@ const updateDateValue = async (filter: FilterType, value: any) => {
 }
 
 /**
+ * Block non-digit keys on the numeric date input. Lets navigation/control
+ * keys (Backspace, Tab, arrows, etc.) and modifier combos (Ctrl/Cmd+C/V/A)
+ * through. Pasted non-digits are stripped by the input's `parser`.
+ */
+const onNumericKeydown = (e: KeyboardEvent) => {
+  if (e.key.length > 1) return
+  if (e.ctrlKey || e.metaKey) return
+  if (e.key < '0' || e.key > '9') e.preventDefault()
+}
+
+/**
  * Toggle the "@me" token in the filter value.
  * For multi-value ops: adds/removes '@me' from the comma-separated list.
  * For single-value ops: sets the value to '@me' and closes the dropdown.
@@ -871,9 +882,12 @@ const unpinFilter = async (filter: FilterType) => {
                     <a-input-number
                       :value="filter.value"
                       :min="0"
+                      :controls="false"
+                      :parser="(v: string) => (v || '').replace(/[^\d]/g, '')"
                       :placeholder="t('placeholder.variableValue')"
                       class="!w-full !rounded-lg"
                       :disabled="isLocked"
+                      @keydown="onNumericKeydown"
                       @update:value="(v: any) => updateDateValue(filter, v)"
                     />
                   </div>

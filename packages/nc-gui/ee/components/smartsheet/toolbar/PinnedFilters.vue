@@ -299,18 +299,18 @@ const saveFilter = useDebounceFn(async (filter: FilterType) => {
 }, 500)
 
 /**
- * Switch the date sub-op. Always clear `value` because each sub-op uses a
- * different value shape (date string vs number vs nothing). For valueless
- * sub-ops, close the dropdown — the change is final. For value-bearing
- * sub-ops, keep the dropdown open so the user can enter the new value.
+ * Switch the date sub-op (from the NcSelect dropdown). Always clear `value`
+ * because each sub-op uses a different value shape (date string vs number
+ * vs nothing). The outer pinned-filter dropdown stays open — user closes
+ * it via X or click-outside.
  */
-const selectDateSubOp = async (filter: FilterType, subOp: any) => {
+const selectDateSubOp = async (filter: FilterType, subOpValue: string) => {
   if (isLocked.value) return
+  if (!subOpValue) return
   $e('a:filter-pinned:select-date-sub-op')
-  filter.comparison_sub_op = subOp.value
+  filter.comparison_sub_op = subOpValue
   filter.value = null
   await saveFilter(filter)
-  if (subOp.ignoreVal) closeDropdown()
 }
 
 /** Update the date filter value (date string for exactDate, number for numeric sub-ops) */
@@ -830,27 +830,35 @@ const unpinFilter = async (filter: FilterType) => {
                 </div>
               </div>
 
-              <!-- Options list for Date types — sub-op picker + inline value editor -->
+              <!-- Sub-op picker (compact NcSelect) + inline value editor for Date types -->
               <div v-else-if="isDateType(filter)" class="flex flex-col">
-                <div class="max-h-48 overflow-y-auto nc-scrollbar-thin">
-                  <div
-                    v-for="subOp in getDateSubOpList(filter)"
-                    :key="subOp.value"
-                    class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
-                    :class="{ 'bg-nc-bg-gray-light': filter.comparison_sub_op === subOp.value }"
-                    @click.stop="selectDateSubOp(filter, subOp)"
+                <div class="px-3 py-2" @click.stop>
+                  <NcSelect
+                    :value="filter.comparison_sub_op"
+                    :dropdown-match-select-width="false"
+                    class="!w-full"
+                    :placeholder="t('labels.operationSub')"
+                    density="compact"
+                    variant="solo"
+                    :disabled="isLocked"
+                    hide-details
+                    dropdown-class-name="nc-pinned-date-sub-op-dropdown"
+                    @change="(val: string) => selectDateSubOp(filter, val)"
                   >
-                    <span class="text-small text-nc-content-gray truncate">{{ subOp.text }}</span>
-                    <div class="flex-1" />
-                    <GeneralIcon
-                      v-if="filter.comparison_sub_op === subOp.value"
-                      icon="check"
-                      class="h-4 w-4 text-primary flex-none"
-                    />
-                  </div>
-                  <div v-if="!getDateSubOpList(filter).length" class="px-3 py-3 text-xs text-nc-content-gray-muted text-center">
-                    No options found
-                  </div>
+                    <a-select-option v-for="subOp in getDateSubOpList(filter)" :key="subOp.value" :value="subOp.value">
+                      <div class="flex items-center justify-between gap-2 max-w-60">
+                        <NcTooltip show-on-truncate-only class="truncate flex-1">
+                          <template #title>{{ subOp.text }}</template>
+                          {{ subOp.text }}
+                        </NcTooltip>
+                        <GeneralIcon
+                          v-if="filter.comparison_sub_op === subOp.value"
+                          icon="check"
+                          class="h-4 w-4 text-primary flex-none"
+                        />
+                      </div>
+                    </a-select-option>
+                  </NcSelect>
                 </div>
 
                 <!-- Inline value editor — only for sub-ops that need a value -->

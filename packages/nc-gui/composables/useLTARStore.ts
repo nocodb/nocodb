@@ -782,7 +782,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     ) => {
       // For new rows, remove from local state
       if (isNewRow?.value || !rowId.value) {
-        if (!removeLTARRef || !rowStoreCurrentRow) return
+        if (!removeLTARRef || !rowStoreCurrentRow) {
+          console.warn('[useLTARStore]: unlink() called for new row without a row-store provider — ignoring')
+          return
+        }
         removeLTARRef(row, column.value as ColumnType)
         const targetRow = rowStoreCurrentRow.value
         if (isSingleTargetRelation.value) {
@@ -852,7 +855,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     ) => {
       // For new rows, store the link in local state — it will be persisted on save via nested insert
       if (isNewRow?.value || !rowId.value) {
-        if (!addLTARRef || !rowStoreCurrentRow) return
+        if (!addLTARRef || !rowStoreCurrentRow) {
+          console.warn('[useLTARStore]: link() called for new row without a row-store provider — ignoring')
+          return
+        }
         addLTARRef(row, column.value as ColumnType)
         // Update the row store's currentRow (not the LTAR store's snapshot) so components re-render
         const targetRow = rowStoreCurrentRow.value

@@ -351,22 +351,12 @@ export default class DataReflection extends DataReflectionCE {
     // unavailable, leave meta in place and let the next destroy retry.
     let dbCleanupOk = !workspaceKnex;
     if (workspaceKnex) {
-      // Resolve bases before opening the trx — meta query stays outside.
-      const bases = await Base.listByWorkspace(
-        fk_workspace_id,
-        { includeDeleted: true, includeSnapshot: true },
-        ncMeta,
-      );
-      const trx = await workspaceKnex.transaction();
+      // `dropDatabaseUser` runs `DROP OWNED BY ... CASCADE` which revokes
+      // every grant the role holds in this DB — no need to enumerate bases.
       try {
-        for (const base of bases) {
-          await revokeAccessToSchema(trx, base.id, reflection.username);
-        }
-        await dropDatabaseUser(trx, reflection.username, database);
-        await trx.commit();
+        await dropDatabaseUser(workspaceKnex, reflection.username, database);
         dbCleanupOk = true;
       } catch (e) {
-        await trx.rollback().catch(() => {});
         logger.error(
           `Failed to destroy data reflection role for ${fk_workspace_id}: ${e.message}`,
           e.stack,
@@ -441,12 +431,6 @@ export default class DataReflection extends DataReflectionCE {
     const reflection = await DataReflection.get({ fk_workspace_id }, ncMeta);
     if (!reflection) return;
 
-    const basesList = await Base.listByWorkspace(
-      fk_workspace_id,
-      { includeDeleted: true, includeSnapshot: true },
-      ncMeta,
-    );
-
     const workspaceKnex = await NcConnectionMgrv2.getWorkspaceDataKnex(
       fk_workspace_id,
     );
@@ -462,26 +446,21 @@ export default class DataReflection extends DataReflectionCE {
     );
     const database = dataConfig.connection.database;
 
+    // Same set the initial `create` flow grants — active, non-snapshot bases.
+    const bases = await Base.listByWorkspace(fk_workspace_id, {}, ncMeta);
+
     const trx = await workspaceKnex.transaction();
     try {
-      // 1. Tear down: revoke + drop. Both idempotent — schemas that don't
-      //    exist (ghost meta rows for deleted bases) are silently skipped.
-      for (const base of basesList) {
-        await revokeAccessToSchema(trx, base.id, reflection.username);
-      }
+      // Drop wipes all existing grants via `DROP OWNED BY ... CASCADE`, then
+      // recreate the role and grant fresh against the current base set.
       await dropDatabaseUser(trx, reflection.username, database);
-
-      // 2. Rebuild: create the role and grant against every live base.
-      //    Grant helper is idempotent — missing schemas are skipped, so a
-      //    snapshot base without a physical schema won't abort the trx.
       await createDatabaseUser(
         trx,
         reflection.username,
         reflection.password,
         database,
       );
-      for (const base of basesList) {
-        if (base.deleted) continue;
+      for (const base of bases) {
         await grantAccessToSchema(trx, base.id, reflection.username);
       }
 

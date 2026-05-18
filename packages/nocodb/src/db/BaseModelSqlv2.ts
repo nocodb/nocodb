@@ -7578,7 +7578,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const redactUser = (u: any) => {
       if (!u || typeof u !== 'object' || Array.isArray(u)) return;
-      u.display_name = extractDisplayNameFromEmail(u.email, u.display_name);
+      if (u.email) {
+        u.display_name = extractDisplayNameFromEmail(u.email, u.display_name);
+      }
       u.email = '';
     };
 

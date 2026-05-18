@@ -371,6 +371,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         data,
         dependencyColumns,
         options?.apiVersion,
+        { skipPublicRedaction: options?.skipPublicRedaction },
       );
     }
     // Update button fields

@@ -1534,7 +1534,7 @@
     "pinToToolbar": "Pin to toolbar",
     "unpinFromToolbar": "Unpin from toolbar",
     "maxPinnedFilters": "Max {count} filters can be pinned",
-    "pinNotSupported": "Pin is supported for Single Select, Multi Select, User, Created By, and Last Modified By fields only",
+    "pinNotSupported": "Pin is supported for Single Select, Multi Select, User, Created By, Last Modified By, Date, Date Time, Created Time, and Last Modified Time fields only",
     "unresolved": "Unresolved",
     "myComments": "My comments",
     "inlineComments": "Inline comments",

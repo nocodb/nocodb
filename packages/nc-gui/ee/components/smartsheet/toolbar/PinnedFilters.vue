@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, UITypes, comparisonOpList } from 'nocodb-sdk'
+import {
+  CURRENT_USER_TOKEN,
+  type ColumnType,
+  type FilterType,
+  UITypes,
+  comparisonOpList,
+  comparisonSubOpList,
+  isDateMonthFormat,
+} from 'nocodb-sdk'
+import dayjs from 'dayjs'
 
 /**
  * PinnedFilters — renders interactive filter pills in the toolbar.
@@ -7,7 +16,8 @@ import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, UITypes, comparis
  * Each pinned filter appears as a compact pill showing the selected value(s).
  * Clicking a pill opens a dropdown panel for searching and selecting values.
  *
- * Supported field types: SingleSelect, MultiSelect, User, CreatedBy, LastModifiedBy.
+ * Supported field types: SingleSelect, MultiSelect, User, CreatedBy, LastModifiedBy,
+ * Date, DateTime, CreatedTime, LastModifiedTime.
  *
  * Key behaviours:
  *  - Negated operators (e.g. "is not", "not any of") show a diagonal line through chips.
@@ -47,6 +57,9 @@ const { getColor, isDark } = useTheme()
 const openFilterId = ref<string | null>(null)
 const searchQuery = ref('')
 
+/** Page date for the inline NcDatePicker — tracks which month is currently displayed */
+const datePagePageDate = ref<dayjs.Dayjs>(dayjs())
+
 const columns = computed(() => meta.value?.columns || [])
 
 /** Filters that have `meta.pinned === true` — these are rendered as toolbar pills */
@@ -71,6 +84,74 @@ const isUserType = (filter: FilterType) => {
   const col = getColumn(filter)
   if (!col) return false
   return [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes)
+}
+
+/** Check if the filter's column is a Date, DateTime, CreatedTime, or LastModifiedTime type */
+const isDateType = (filter: FilterType) => {
+  const col = getColumn(filter)
+  if (!col) return false
+  return [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt as UITypes)
+}
+
+/** Numeric date sub-ops (value = number of days) — used for both display and editor selection */
+const NUMERIC_DATE_SUB_OPS = ['daysAgo', 'daysFromNow', 'pastNumberOfDays', 'nextNumberOfDays']
+
+/** Sub-op options available for the current date filter, filtered by column type compatibility */
+const getDateSubOpList = (filter: FilterType) => {
+  const col = getColumn(filter)
+  if (!col || !filter.comparison_op) return []
+  if (['blank', 'notblank'].includes(filter.comparison_op)) return []
+  return comparisonSubOpList(filter.comparison_op, parseProp(col?.meta)?.date_format).filter((subOp) =>
+    subOp.includedTypes?.includes(col.uidt as UITypes),
+  )
+}
+
+/** Human-readable label for the filter's current date sub-op (e.g. "today", "exact date") */
+const getDateSubOpLabel = (filter: FilterType) => {
+  if (!filter.comparison_sub_op) return ''
+  const subOps = getDateSubOpList(filter)
+  return subOps.find((o) => o.value === filter.comparison_sub_op)?.text || filter.comparison_sub_op
+}
+
+/** Sub-op options after applying the search query (matches against sub-op text) */
+const getFilteredDateSubOps = (filter: FilterType) => {
+  const subOps = getDateSubOpList(filter)
+  if (!searchQuery.value) return subOps
+  const q = searchQuery.value.toLowerCase()
+  return subOps.filter((o) => o.text?.toLowerCase().includes(q))
+}
+
+/** Whether the currently selected date sub-op needs no value (e.g. today, yesterday, past week) */
+const isCurrentDateSubOpValueless = (filter: FilterType) => {
+  if (!filter.comparison_sub_op) return true
+  const subOp = getDateSubOpList(filter).find((o) => o.value === filter.comparison_sub_op)
+  return subOp?.ignoreVal === true
+}
+
+/**
+ * Pill text for a date filter.
+ *  - blank/notblank → op label ("is empty")
+ *  - valueless sub-op → sub-op text ("today")
+ *  - numeric sub-op → "{N} {sub-op}" ("5 number of days ago")
+ *  - exactDate → value formatted with the column's date_format
+ */
+const getDateDisplayValue = (filter: FilterType): string => {
+  if (['blank', 'notblank'].includes(filter.comparison_op || '')) return ''
+  if (isCurrentDateSubOpValueless(filter)) return getDateSubOpLabel(filter)
+  if (filter.value === null || filter.value === undefined || filter.value === '') return getDateSubOpLabel(filter)
+
+  if (NUMERIC_DATE_SUB_OPS.includes(filter.comparison_sub_op || '')) {
+    return `${filter.value} ${getDateSubOpLabel(filter)}`
+  }
+
+  if (filter.comparison_sub_op === 'exactDate') {
+    const col = getColumn(filter)
+    const dateFormat = parseProp(col?.meta)?.date_format || 'YYYY-MM-DD'
+    const dt = dayjs(filter.value as string)
+    return dt.isValid() ? dt.format(dateFormat) : String(filter.value)
+  }
+
+  return String(filter.value)
 }
 
 /** Multi-value operators allow selecting multiple values (comma-separated) */
@@ -226,6 +307,28 @@ const saveFilter = useDebounceFn(async (filter: FilterType) => {
 }, 500)
 
 /**
+ * Switch the date sub-op. Always clear `value` because each sub-op uses a
+ * different value shape (date string vs number vs nothing). For valueless
+ * sub-ops, close the dropdown — the change is final. For value-bearing
+ * sub-ops, keep the dropdown open so the user can enter the new value.
+ */
+const selectDateSubOp = async (filter: FilterType, subOp: any) => {
+  if (isLocked.value) return
+  $e('a:filter-pinned:select-date-sub-op')
+  filter.comparison_sub_op = subOp.value
+  filter.value = null
+  await saveFilter(filter)
+  if (subOp.ignoreVal) closeDropdown()
+}
+
+/** Update the date filter value (date string for exactDate, number for numeric sub-ops) */
+const updateDateValue = async (filter: FilterType, value: any) => {
+  if (isLocked.value) return
+  filter.value = value === '' || value === undefined ? null : value
+  await saveFilter(filter)
+}
+
+/**
  * Toggle the "@me" token in the filter value.
  * For multi-value ops: adds/removes '@me' from the comma-separated list.
  * For single-value ops: sets the value to '@me' and closes the dropdown.
@@ -313,6 +416,13 @@ const toggleDropdown = (filterId: string) => {
     openFilterId.value = null
   } else {
     openFilterId.value = filterId
+    // Seed the date picker page to the filter's stored date (or today) so the
+    // calendar opens on the relevant month when the user picks `exactDate`.
+    const filter = pinnedFilters.value.find((f) => f.id === filterId)
+    if (filter && isDateType(filter)) {
+      const seed = filter.value ? dayjs(filter.value as string) : null
+      datePagePageDate.value = seed && seed.isValid() ? seed : dayjs()
+    }
   }
   searchQuery.value = ''
 }
@@ -533,6 +643,16 @@ const unpinFilter = async (filter: FilterType) => {
                 </span>
               </template>
 
+              <!-- ── Date type: sub-op label, or "{N} {sub-op}", or formatted date ── -->
+              <template v-else-if="isDateType(filter) && !['blank', 'notblank'].includes(filter.comparison_op as string)">
+                <span
+                  class="text-xs font-medium text-nc-content-gray truncate max-w-40"
+                  :class="{ 'line-through decoration-nc-content-gray-subtle2': isNegatedOp(filter) }"
+                >
+                  {{ getDateDisplayValue(filter) || t('general.none') }}
+                </span>
+              </template>
+
               <template v-else-if="['blank', 'notblank'].includes(filter.comparison_op as string)">
                 {{ getComparisonOpLabel(filter) }}
               </template>
@@ -715,6 +835,61 @@ const unpinFilter = async (filter: FilterType) => {
                   class="px-3 py-3 text-xs text-nc-content-gray-muted text-center"
                 >
                   No users found
+                </div>
+              </div>
+
+              <!-- Options list for Date types — sub-op picker + inline value editor -->
+              <div v-else-if="isDateType(filter)" class="flex flex-col">
+                <div class="max-h-48 overflow-y-auto nc-scrollbar-thin">
+                  <div
+                    v-for="subOp in getFilteredDateSubOps(filter)"
+                    :key="subOp.value"
+                    class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
+                    :class="{ 'bg-nc-bg-gray-light': filter.comparison_sub_op === subOp.value }"
+                    @click.stop="selectDateSubOp(filter, subOp)"
+                  >
+                    <span class="text-small text-nc-content-gray truncate">{{ subOp.text }}</span>
+                    <div class="flex-1" />
+                    <GeneralIcon
+                      v-if="filter.comparison_sub_op === subOp.value"
+                      icon="check"
+                      class="h-4 w-4 text-primary flex-none"
+                    />
+                  </div>
+                  <div
+                    v-if="!getFilteredDateSubOps(filter).length"
+                    class="px-3 py-3 text-xs text-nc-content-gray-muted text-center"
+                  >
+                    No options found
+                  </div>
+                </div>
+
+                <!-- Inline value editor — only for sub-ops that need a value -->
+                <div
+                  v-if="filter.comparison_sub_op && !isCurrentDateSubOpValueless(filter)"
+                  class="border-t border-nc-border-gray-medium"
+                  @click.stop
+                >
+                  <a-input-number
+                    v-if="NUMERIC_DATE_SUB_OPS.includes(filter.comparison_sub_op)"
+                    :value="filter.value"
+                    :min="0"
+                    :placeholder="t('placeholder.variableValue')"
+                    class="!w-full !rounded-lg !my-2 !mx-3"
+                    style="width: calc(100% - 24px)"
+                    :disabled="isLocked"
+                    @update:value="(v: any) => updateDateValue(filter, v)"
+                  />
+                  <div v-else-if="filter.comparison_sub_op === 'exactDate'" class="flex justify-center py-1">
+                    <NcDatePicker
+                      v-model:page-date="datePagePageDate"
+                      :selected-date="filter.value ? dayjs(filter.value as string) : null"
+                      :is-open="openFilterId === filter.id"
+                      :type="isDateMonthFormat(parseProp(getColumn(filter)?.meta)?.date_format || '') ? 'month' : 'date'"
+                      size="medium"
+                      @update:selected-date="(d: any) => updateDateValue(filter, d ? dayjs(d).format('YYYY-MM-DD') : null)"
+                    />
+                  </div>
                 </div>
               </div>
 

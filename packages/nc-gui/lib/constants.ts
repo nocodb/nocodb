@@ -73,27 +73,23 @@ export const NC_CLOUD_URL = 'https://app.nocodb.com'
 
 export const clientMousePositionDefaultValue = { clientX: 0, clientY: 0 }
 
+// NocoDB-branded categorical palette for dashboard widgets.
+// Leads with brand blue (#3366ff) and steps ~30° around the wheel so
+// adjacent slices stay distinguishable. Saturation/lightness tuned to
+// feel calm rather than the loud default ECharts rainbow.
 export const CHART_COLORS = [
-  '#2ec7c9',
-  '#b6a2de',
-  '#5ab1ef',
-  '#ffb980',
-  '#d87a80',
-  '#8d98b3',
-  '#e5cf0d',
-  '#97b552',
-  '#95706d',
-  '#dc69aa',
-  '#07a2a4',
-  '#9a7fd1',
-  '#588dd5',
-  '#f5994e',
-  '#c05050',
-  '#59678c',
-  '#c9ab00',
-  '#7eb00a',
-  '#6f5553',
-  '#c14089',
+  '#3366FF', // brand blue
+  '#36BFFF', // sky
+  '#22C7C9', // teal
+  '#22C55E', // green
+  '#FFCD56', // amber
+  '#FFA94D', // warm orange
+  '#FF6B6B', // coral
+  '#FF6B9D', // pink
+  '#B388EB', // soft purple
+  '#7C8FFF', // periwinkle
+  '#94A3B8', // slate
+  '#67E8F9', // light cyan
 ]
 
 /** Virtual section ID for views not assigned to any real section */

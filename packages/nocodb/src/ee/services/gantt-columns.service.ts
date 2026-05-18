@@ -147,12 +147,12 @@ export class GanttColumnsService {
         ).forUpdate();
     }
 
+    const result = await qb;
     await NocoCache.deepDel(
       context,
       `${CacheScope.GANTT_VIEW_COLUMN}:${param.viewId}`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
-    const result = await qb;
     if (viewWebhookManager) {
       (
         await viewWebhookManager.withNewViewId(viewWebhookManager.getViewId())

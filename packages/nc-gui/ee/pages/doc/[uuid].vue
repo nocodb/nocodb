@@ -208,27 +208,29 @@ watch(
       </aside>
 
       <main class="flex-1 min-w-0 overflow-y-auto">
-        <div class="max-w-3xl mx-auto px-8 py-12">
-          <div v-if="isLoading && !activeContent" class="text-center text-nc-content-gray-subtle">
-            {{ $t('general.loading') }}…
-          </div>
-          <template v-else-if="activeContent">
-            <h1 class="text-heading3 text-nc-content-gray-extreme mb-6">
+        <div v-if="isLoading && !activeContent" class="max-w-[900px] mx-auto px-10 pt-12 text-center text-nc-content-gray-subtle">
+          {{ $t('general.loading') }}…
+        </div>
+        <template v-else-if="activeContent">
+          <!-- Title row mirrors DocEditor's inner container (max-w 900 + px-10)
+               so it aligns horizontally with the prose body below. -->
+          <div class="max-w-[900px] mx-auto px-10 pt-12 pb-4">
+            <h1 class="text-heading3 text-nc-content-gray-extreme">
               {{ activeContent.title || activeNode?.title || $t('general.untitled') }}
             </h1>
-            <!-- Read-only PM renderer. Use `mode='cell'` + `embedded` so the
-                 editor takes its content from `initialContent` and skips its
-                 own breadcrumb / page-actions chrome. The public viewer
-                 doesn't have access to the owner-side store. -->
-            <LazyDocEditor
-              :key="activeContent.id"
-              mode="cell"
-              embedded
-              :initial-content="activeContent.content"
-              :read-only="true"
-            />
-          </template>
-        </div>
+          </div>
+          <!-- Read-only PM renderer. `mode='cell' + embedded` makes it take
+               content from `initialContent` and skip its breadcrumb / page
+               actions; the editor still applies its own 900px max-width and
+               px-10 padding internally. -->
+          <LazyDocEditor
+            :key="activeContent.id"
+            mode="cell"
+            embedded
+            :initial-content="activeContent.content"
+            :read-only="true"
+          />
+        </template>
       </main>
     </div>
 

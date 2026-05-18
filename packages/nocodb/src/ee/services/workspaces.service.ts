@@ -462,8 +462,8 @@ export class WorkspacesService implements OnApplicationBootstrap {
             roles: WorkspaceUserRoles.OWNER,
           }, // idOrCondition
           undefined, // xcCondition
-          false, // skipUpdatedAt
-          false, // force
+          undefined, // skipUpdatedAt
+          undefined, // force
           true, // allowCreatedAt
         );
       } else {

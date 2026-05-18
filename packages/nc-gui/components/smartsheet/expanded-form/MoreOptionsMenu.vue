@@ -10,6 +10,11 @@ interface Props {
   // Side-panel header is space-constrained — drop the standalone copy-URL
   // button and surface "Copy URL" inside the dropdown instead.
   compact?: boolean
+  // Parent passes this only when the record is addressable via the current
+  // route (URL has `?rowId=…`). Used as the gate for Copy URL / Send Record —
+  // without it those actions point at a record that can't be reached by URL
+  // (public shared views, add-new flow, linked-record modal-over-modal).
+  rowId?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -17,6 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
   templateMode: false,
   blueprintMode: false,
   compact: false,
+  rowId: undefined,
 })
 
 const emits = defineEmits<{
@@ -77,9 +83,9 @@ const visibleMoreOptions = computed(() => {
   }
 
   const result = {
-    reloadRecord: !isEeUI,
-    copyRecordUrl: !isNew.value && !!primaryKey.value,
-    sendRecord: appInfo.value.ee && !isNew.value && !!primaryKey.value && !isPublic.value,
+    reloadRecord: !isEeUI && !!props.rowId,
+    copyRecordUrl: !isNew.value && !!props.rowId,
+    sendRecord: appInfo.value.ee && !isNew.value && !!props.rowId && !isPublic.value,
     duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
     deleteRecord: !isNew.value && isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }
@@ -102,7 +108,7 @@ const displayField = computed(() => (meta.value?.columns ?? []).find((c: ColumnT
 const copyRecordUrl = async () => {
   const url = `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
     view.value ? `/${view.value.id}` : ''
-  }?rowId=${primaryKey.value}${route.query?.path ? `&path=${route.query?.path}` : ''}`
+  }?rowId=${props.rowId}${route.query?.path ? `&path=${route.query?.path}` : ''}`
 
   await copy(encodeURI(url))
 
@@ -315,10 +321,10 @@ const onConfirmDeleteRowClick = async () => {
   </GeneralDeleteModal>
 
   <DlgSendRecordEmail
-    v-if="visibleMoreOptions.sendRecord && primaryKey"
+    v-if="visibleMoreOptions.sendRecord"
     v-model="showSendRecordModal"
     :meta="meta"
     :view="view"
-    :row-id="primaryKey"
+    :row-id="props.rowId"
   />
 </template>

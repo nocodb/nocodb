@@ -281,8 +281,19 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, 
     rowId &&
     isCanvasRendering.value
   ) {
-    expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId, path)
-    updateRowIdRoute(rowId, path)
+    const doExpand = () => {
+      expandedFormPanelStore.openPanel(row, row.rowMeta?.rowIndex, state, rowId, path)
+      updateRowIdRoute(rowId, path)
+    }
+    // When panel is already open on a different row, route through the
+    // discard guard so unsaved edits trigger the Save / Discard modal before
+    // we swap rows. Covers every expand surface (cell click, comment icon,
+    // Space key, deep-link) since they all funnel through expandForm.
+    if (expandedFormPanelStore?.isOpen.value && expandedFormPanelStore.activeRowId.value !== rowId) {
+      expandedFormPanelStore.requestSwitch.value?.(doExpand)
+    } else {
+      doExpand()
+    }
     return
   }
 

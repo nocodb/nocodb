@@ -22,6 +22,8 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
 
   const rowNavigator = ref(null)
 
+  const requestSwitch = ref<(_perform: () => void) => void>((_perform) => {})
+
   const openPanel = (_row: Row, _rowIndex?: number, _state?: Record<string, any>, _rowId?: string, _path?: number[]) => {}
   const closePanel = () => {}
   const setFullscreen = (_val: boolean) => {}
@@ -46,6 +48,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     hasPrev,
     hasNext,
     rowNavigator,
+    requestSwitch,
     openPanel,
     closePanel,
     setFullscreen,

@@ -128,6 +128,13 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     navigateToRow(activeRowIndex.value + 1)
   }
 
+  // Grid-driven row switch — the caller passes a closure that performs the
+  // actual switch (e.g. expandForm). The panel registers a guarded version
+  // that prompts on unsaved edits and defers the closure until the user
+  // resolves it. Default invokes the closure immediately so the contract works
+  // even before the panel mounts.
+  const requestSwitch = ref<(perform: () => void) => void>((perform) => perform())
+
   const setFullscreen = (val: boolean) => {
     isFullscreen.value = val
   }
@@ -157,6 +164,7 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     hasPrev,
     hasNext,
     rowNavigator,
+    requestSwitch,
     openPanel,
     closePanel,
     setFullscreen,

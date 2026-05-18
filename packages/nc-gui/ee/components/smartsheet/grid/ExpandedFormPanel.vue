@@ -21,6 +21,8 @@ const {
 
 const { closePanel, setFullscreen, navigatePrev, navigateNext, toggleActivity } = panelStore
 
+const { requestSwitch } = panelStore
+
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
@@ -174,7 +176,8 @@ watch(
   async ([newRowId]) => {
     if (!isOpen.value) return
 
-    if (panelStore.isUserNavigating.value) {
+    const wasUserNavigating = panelStore.isUserNavigating.value
+    if (wasUserNavigating) {
       clearColumns()
       panelStore.isUserNavigating.value = false
     }
@@ -187,6 +190,16 @@ watch(
 
     // Use rowId if available, otherwise let _loadRow extract PK from the row data
     await triggerRowLoad(newRowId ?? undefined)
+
+    // Some cells emit update:model-value when their props re-bind to the
+    // freshly-loaded row (value normalization on rebind), which spuriously
+    // populates changedColumns and makes Save look enabled — also triggers
+    // the discard modal on the next nav. Re-clear after the load settles so
+    // a navigated-to row stays clean until the user actually edits.
+    if (wasUserNavigating) {
+      await nextTick()
+      clearColumns()
+    }
 
     if (activityExpanded.value && activeActivityTab.value === 'audits') {
       await loadAudits(primaryKey.value ?? undefined, false)
@@ -230,12 +243,24 @@ const onAfterDuplicate = () => {
 
 const showDiscardModal = ref(false)
 
-const pendingNavDirection = ref<'prev' | 'next' | null>(null)
+// Pending action when the discard modal is showing. `null` = close panel.
+// Each entry is a thunk so callers (canvas-driven row switch, keyboard prev/
+// next) own their own navigation logic — the panel only decides when to fire
+// it. Closures capture the target row/path at request time, which survives
+// save()'s cache wipe.
+const pendingAction = ref<(() => void) | null>(null)
+
+const runPending = () => {
+  const fn = pendingAction.value
+  pendingAction.value = null
+  if (fn) fn()
+  else closePanel()
+}
 
 const onClose = () => {
   $e('c:row-expand-panel:close')
   if (changedColumns.value.size > 0) {
-    pendingNavDirection.value = null
+    pendingAction.value = null
     showDiscardModal.value = true
   } else {
     closePanel()
@@ -245,7 +270,7 @@ const onClose = () => {
 const guardedNavigate = (direction: 'prev' | 'next') => {
   $e(`c:row-expand-panel:nav:${direction}`)
   if (changedColumns.value.size > 0) {
-    pendingNavDirection.value = direction
+    pendingAction.value = direction === 'prev' ? navigatePrev : navigateNext
     showDiscardModal.value = true
     return
   }
@@ -253,15 +278,36 @@ const guardedNavigate = (direction: 'prev' | 'next') => {
   else navigateNext()
 }
 
+const guardedSwitch = (perform: () => void) => {
+  if (changedColumns.value.size > 0) {
+    pendingAction.value = perform
+    showDiscardModal.value = true
+    return
+  }
+  perform()
+}
+
+// Register guarded variant so grid-driven row clicks surface the discard modal
+// instead of silently overwriting unsaved edits. Reset on unmount so a stale
+// closure isn't held by the store.
+requestSwitch.value = guardedSwitch
+
+onBeforeUnmount(() => {
+  requestSwitch.value = (perform) => perform()
+})
+
+// Dismissing the modal (X / Escape / overlay click) without choosing Discard
+// or Save & Continue clears the pending action — otherwise a later prompt
+// would reuse stale state.
+watch(showDiscardModal, (v) => {
+  if (!v) pendingAction.value = null
+})
+
 const discardAndNavigate = () => {
   $e('c:row-expand-panel:discard')
   clearColumns()
   showDiscardModal.value = false
-  const dir = pendingNavDirection.value
-  pendingNavDirection.value = null
-  if (dir === 'prev') navigatePrev()
-  else if (dir === 'next') navigateNext()
-  else closePanel()
+  runPending()
 }
 
 const saveAndContinue = async () => {
@@ -269,11 +315,7 @@ const saveAndContinue = async () => {
   const ok = await save()
   if (!ok) return // save failed — stay on current row so user can fix/retry
   showDiscardModal.value = false
-  const dir = pendingNavDirection.value
-  pendingNavDirection.value = null
-  if (dir === 'prev') navigatePrev()
-  else if (dir === 'next') navigateNext()
-  else closePanel()
+  runPending()
 }
 
 const onKeydown = (e: KeyboardEvent) => {

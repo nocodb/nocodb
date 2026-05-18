@@ -289,7 +289,7 @@ export default class DataReflection extends DataReflectionCE {
     } catch (e) {
       await trx.rollback();
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      logger.error('Failed to create data reflection', e);
+      logger.error(`Failed to create data reflection: ${e.message}`, e.stack);
       NcError._.internalServerError('Failed to create data reflection');
     }
 
@@ -309,8 +309,8 @@ export default class DataReflection extends DataReflectionCE {
       );
     } catch (e) {
       logger.error(
-        `Failed to persist data reflection meta for ${fk_workspace_id}; rolling back DB role`,
-        e,
+        `Failed to persist data reflection meta for ${fk_workspace_id}; rolling back DB role: ${e.message}`,
+        e.stack,
       );
       try {
         const cleanup = await workspaceKnex.transaction();
@@ -323,8 +323,8 @@ export default class DataReflection extends DataReflectionCE {
         }
       } catch (cleanupErr) {
         logger.error(
-          `Compensating drop of data reflection role ${username} failed for ${fk_workspace_id}`,
-          cleanupErr,
+          `Compensating drop of data reflection role ${username} failed for ${fk_workspace_id}: ${cleanupErr.message}`,
+          cleanupErr.stack,
         );
       }
       throw e;
@@ -366,8 +366,8 @@ export default class DataReflection extends DataReflectionCE {
       } catch (e) {
         await trx.rollback();
         logger.error(
-          `Failed to destroy data reflection role for ${fk_workspace_id}`,
-          e,
+          `Failed to destroy data reflection role for ${fk_workspace_id}: ${e.message}`,
+          e.stack,
         );
       }
     }
@@ -397,8 +397,8 @@ export default class DataReflection extends DataReflectionCE {
     } catch (e) {
       await trx.rollback();
       logger.error(
-        `Failed to grant access to schema ${base_id} in ${fk_workspace_id}`,
-        e,
+        `Failed to grant access to schema ${base_id} in ${fk_workspace_id}: ${e.message}`,
+        e.stack,
       );
     }
   }
@@ -423,8 +423,8 @@ export default class DataReflection extends DataReflectionCE {
     } catch (e) {
       await trx.rollback();
       logger.error(
-        `Failed to revoke access to schema ${base_id} in ${fk_workspace_id}`,
-        e,
+        `Failed to revoke access to schema ${base_id} in ${fk_workspace_id}: ${e.message}`,
+        e.stack,
       );
     }
   }
@@ -488,7 +488,10 @@ export default class DataReflection extends DataReflectionCE {
       await trx.commit();
     } catch (e) {
       await trx.rollback();
-      logger.error(`Failed to refresh access for ${fk_workspace_id}`, e);
+      logger.error(
+        `Failed to refresh access for ${fk_workspace_id}: ${e.message}`,
+        e.stack,
+      );
       throw e;
     }
   }

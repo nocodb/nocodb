@@ -176,7 +176,8 @@ watch(
   async ([newRowId]) => {
     if (!isOpen.value) return
 
-    if (panelStore.isUserNavigating.value) {
+    const wasUserNavigating = panelStore.isUserNavigating.value
+    if (wasUserNavigating) {
       clearColumns()
       panelStore.isUserNavigating.value = false
     }
@@ -189,6 +190,16 @@ watch(
 
     // Use rowId if available, otherwise let _loadRow extract PK from the row data
     await triggerRowLoad(newRowId ?? undefined)
+
+    // Some cells emit update:model-value when their props re-bind to the
+    // freshly-loaded row (value normalization on rebind), which spuriously
+    // populates changedColumns and makes Save look enabled — also triggers
+    // the discard modal on the next nav. Re-clear after the load settles so
+    // a navigated-to row stays clean until the user actually edits.
+    if (wasUserNavigating) {
+      await nextTick()
+      clearColumns()
+    }
 
     if (activityExpanded.value && activeActivityTab.value === 'audits') {
       await loadAudits(primaryKey.value ?? undefined, false)

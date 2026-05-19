@@ -139,6 +139,8 @@ export class SidebarPage extends BasePage {
       createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-calendar');
     } else if (type === ViewTypes.TIMELINE) {
       createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-timeline');
+    } else if (type === ViewTypes.GANTT) {
+      createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-gantt');
     }
 
     await this.rootPage.waitForTimeout(750);

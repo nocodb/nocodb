@@ -398,7 +398,7 @@ function missingRequiredColumnsValidation(tn: string, showError = false) {
 }
 
 function atLeastOneEnabledValidation(tn: string, showError = false) {
-  if (srcDestMapping.value[tn].filter((v: Record<string, any>) => v.enabled === true).length === 0) {
+  if ((srcDestMapping.value[tn] || []).filter((v: Record<string, any>) => v.enabled === true).length === 0) {
     const err = t('msg.error.selectAtleastOneColumn')
     if (showError) {
       message.error(err)

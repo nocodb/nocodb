@@ -61,6 +61,7 @@ import NocoCache from '~/cache/NocoCache';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { TelemetryService } from '~/services/telemetry.service';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 async function listUserBases(
   fk_user_id: string,
@@ -267,13 +268,14 @@ export class UsersService extends UsersServiceCE {
     validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
 
     const {
-      email: _email,
+      email: rawEmail,
       avatar,
       display_name,
       user_name,
       token,
       ignore_subscribe,
     } = param.req.body;
+    const _email = sanitizeEmail(rawEmail);
 
     let createdWorkspace;
 

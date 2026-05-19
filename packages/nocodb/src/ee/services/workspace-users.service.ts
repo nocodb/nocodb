@@ -54,6 +54,7 @@ import { UsersService } from '~/services/users/users.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -696,7 +697,7 @@ export class WorkspaceUsersService {
     const emails = (email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim())
+      .map((v) => sanitizeEmail(v))
       .filter(Boolean);
 
     // check for invalid emails

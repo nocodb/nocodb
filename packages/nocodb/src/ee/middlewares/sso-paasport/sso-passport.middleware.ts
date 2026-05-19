@@ -24,6 +24,7 @@ import SSOClient from '~/models/SSOClient';
 
 import { BaseUser, Domain, OrgUser, User, WorkspaceUser } from '~/models';
 import { sanitiseUserObj, verifyTXTRecord } from '~/utils';
+import { sanitizeEmail } from '~/utils/emailUtils';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
@@ -125,7 +126,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
           this.debugger.info(
             `Processing SAML authentication for email: ${profile.nameID}`,
           );
-          const email = profile.nameID;
+          const email = sanitizeEmail(profile.nameID);
 
           await this.validateEmailDomain({ email, req, client });
 
@@ -323,11 +324,12 @@ export class SSOPassportMiddleware implements NestMiddleware {
       clientConfig,
       // todo: replace with async-await syntax
       (_issue: string, profile: any, context, done) => {
-        const email =
+        const email = sanitizeEmail(
           profile.email ||
-          profile?._json?.email ||
-          profile.emails?.[0]?.value ||
-          profile?.id;
+            profile?._json?.email ||
+            profile.emails?.[0]?.value ||
+            profile?.id,
+        );
 
         if (!email) {
           this.debugger.warn(`User account is missing email id`, profile);
@@ -505,7 +507,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
       },
       (req, accessToken, refreshToken, profile, done) => {
         (async () => {
-          const email = profile.emails[0].value;
+          const email = sanitizeEmail(profile.emails[0].value);
           this.debugger.info(
             `Processing Google authentication for email: ${email}`,
           );
@@ -538,7 +540,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
               email_verification_token: null,
               avatar: profile.photos?.[0]?.value,
               display_name: profile.displayName,
-              email: profile.emails[0].value,
+              email,
               user_name: profile.username,
               password: '',
               salt,
@@ -562,7 +564,7 @@ export class SSOPassportMiddleware implements NestMiddleware {
             // Here, you can generate a JWT token using profile information
             const token = this.generateShortLivedToken({
               user,
-              email: profile.emails[0].value,
+              email,
               options,
               client,
             });

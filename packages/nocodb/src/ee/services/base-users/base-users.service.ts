@@ -31,6 +31,7 @@ import { checkSeatLimit } from '~/helpers/paymentHelpers';
 import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class BaseUsersService extends BaseUsersServiceCE {
@@ -114,7 +115,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     const emails = (param.baseUser.email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim())
+      .map((v) => sanitizeEmail(v))
       .filter(Boolean);
 
     // check for invalid emails

@@ -24,7 +24,7 @@ import {
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
-import { normalizeEmail } from '~/utils/emailUtils';
+import { normalizeEmail, sanitizeEmail } from '~/utils/emailUtils';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 
 export default class User implements UserType {
@@ -97,7 +97,7 @@ export default class User implements UserType {
     }
 
     if (insertObj.email) {
-      insertObj.email = insertObj.email.toLowerCase();
+      insertObj.email = sanitizeEmail(insertObj.email).toLowerCase();
       insertObj.canonical_email = normalizeEmail(insertObj.email);
     }
 
@@ -147,7 +147,7 @@ export default class User implements UserType {
     ]);
 
     if (updateObj.email) {
-      updateObj.email = updateObj.email.toLowerCase();
+      updateObj.email = sanitizeEmail(updateObj.email).toLowerCase();
       updateObj.canonical_email = normalizeEmail(updateObj.email);
 
       // check if the target email addr is in use or not
@@ -190,7 +190,7 @@ export default class User implements UserType {
   }
 
   public static async getByEmail(_email: string, ncMeta = Noco.ncMeta) {
-    const email = _email?.toLowerCase();
+    const email = sanitizeEmail(_email)?.toLowerCase();
     let user =
       email &&
       (await NocoCache.get(

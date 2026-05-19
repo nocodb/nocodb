@@ -14,12 +14,13 @@ import Noco from '~/Noco';
 import { BaseUser, User } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { randomTokenString } from '~/services/users/helpers';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };
 
 export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
   if (process.env.NC_ADMIN_EMAIL && process.env.NC_ADMIN_PASSWORD) {
-    if (!isEmail(process.env.NC_ADMIN_EMAIL?.trim())) {
+    if (!isEmail(sanitizeEmail(process.env.NC_ADMIN_EMAIL))) {
       console.log(
         '\n',
         boxen(
@@ -58,7 +59,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
     let ncMeta;
     try {
       ncMeta = await _ncMeta.startTransaction();
-      const email = process.env.NC_ADMIN_EMAIL.toLowerCase().trim();
+      const email = sanitizeEmail(process.env.NC_ADMIN_EMAIL).toLowerCase();
 
       const salt = await promisify(bcrypt.genSalt)(10);
       const password = await promisify(bcrypt.hash)(

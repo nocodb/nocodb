@@ -19,7 +19,7 @@ import {
 } from '~/utils/globals';
 import { Base, BaseUser, OrgUser, WorkspaceUser } from '~/models';
 import { isCloud, sanitiseUserObj } from '~/utils';
-import { normalizeEmail } from '~/utils/emailUtils';
+import { normalizeEmail, sanitizeEmail } from '~/utils/emailUtils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 import {
@@ -76,7 +76,7 @@ export default class User extends UserCE implements UserType {
     }
 
     if (insertObj.email) {
-      insertObj.email = insertObj.email.toLowerCase();
+      insertObj.email = sanitizeEmail(insertObj.email).toLowerCase();
       insertObj.canonical_email = normalizeEmail(insertObj.email);
     }
 
@@ -126,7 +126,7 @@ export default class User extends UserCE implements UserType {
     }
 
     if (updateObj.email) {
-      updateObj.email = updateObj.email.toLowerCase();
+      updateObj.email = sanitizeEmail(updateObj.email).toLowerCase();
       updateObj.canonical_email = normalizeEmail(updateObj.email);
 
       // check if the target email addr is in use or not

@@ -30,6 +30,7 @@ import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import { MailEvent } from '~/interface/Mail';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class BaseUsersService {
@@ -96,7 +97,7 @@ export class BaseUsersService {
     const emails = (param.baseUser.email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim())
+      .map((v) => sanitizeEmail(v))
       .filter(Boolean);
 
     // check for invalid emails

@@ -183,30 +183,26 @@ onBeforeUnmount(() => {
 .nc-doc-history-viewer :deep(.nc-doc-history-viewer-content) {
   // Inserted text highlight. The class is applied as an inline decoration
   // by `docDiffPlugin` to every range that's new in the previewed revision
-  // compared to the comparison basis.
+  // compared to the comparison basis. Background-only — no border / ring.
   .nc-doc-history-diff-insert {
     background-color: rgba(34, 197, 94, 0.18);
     border-radius: 2px;
-    box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.32);
-    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    transition: background-color 0.15s ease;
   }
 
-  // The change currently focused by the step-through nav — more saturated
-  // background + a thicker ring so it pops above the rest.
+  // The change currently focused by the step-through nav — same shape, just
+  // a more saturated green fill so it stands out from the rest.
   .nc-doc-history-diff-insert-current {
-    background-color: rgba(34, 197, 94, 0.4);
-    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.85);
+    background-color: rgba(34, 197, 94, 0.45);
   }
 }
 
 [theme='dark'] .nc-doc-history-viewer :deep(.nc-doc-history-viewer-content) {
   .nc-doc-history-diff-insert {
     background-color: rgba(34, 197, 94, 0.28);
-    box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.5);
   }
   .nc-doc-history-diff-insert-current {
-    background-color: rgba(34, 197, 94, 0.55);
-    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.9);
+    background-color: rgba(34, 197, 94, 0.6);
   }
 }
 </style>

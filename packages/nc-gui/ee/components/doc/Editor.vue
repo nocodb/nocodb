@@ -976,19 +976,15 @@ const toggleCommentsPanel = () => {
   isCommentsPanelOpen.value = !isCommentsPanelOpen.value
 }
 
-// --- History sidebar state ---
-const isHistoryPanelOpen = ref(false)
-const isHistoryPreviewOpen = ref(false)
+// --- History modal state ---
+// Notion-style single modal containing both the version list (right pane)
+// and the diff viewer (left pane). No sidebar — opening the menu item just
+// flips this flag.
+const isHistoryModalOpen = ref(false)
 
-const onToggleHistoryPanel = () => {
-  isHistoryPanelOpen.value = !isHistoryPanelOpen.value
-  // Mutually exclusive with the comments panel for layout sanity.
-  if (isHistoryPanelOpen.value) isCommentsPanelOpen.value = false
+const onOpenHistory = () => {
+  isHistoryModalOpen.value = true
   isPageMenuOpen.value = false
-}
-
-const onHistoryPreviewRevision = (revisionId: string | null) => {
-  isHistoryPreviewOpen.value = !!revisionId
 }
 
 const { showUpgradeToUseDocsInlineComments, showUpgradeToUseDocsExportPdf } = useEeConfig()
@@ -2355,7 +2351,7 @@ defineExpose({ editor })
                 v-if="isUIAllowed('documentRevisionList')"
                 v-e="['c:doc:history:open']"
                 data-testid="nc-doc-page-history"
-                @click="onToggleHistoryPanel"
+                @click="onOpenHistory"
               >
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncHistory" />
                 {{ $t('labels.history') }}
@@ -3051,14 +3047,8 @@ defineExpose({ editor })
          branch when activeDocument is set. -->
     <LazyDlgShareAndCollaborateView v-if="!embedded && !isCellMode" />
 
-    <!-- History sidebar (desktop only — modal on mobile not yet supported in v1) -->
-    <DocHistorySidebar
-      v-if="!isCellMode && isHistoryPanelOpen && !isMobileMode"
-      :doc-id="docId"
-      @close="isHistoryPanelOpen = false"
-      @preview-revision="onHistoryPreviewRevision"
-    />
-    <DocHistoryPreviewModal v-model:visible="isHistoryPreviewOpen" />
+    <!-- History modal: revision list + diff viewer in one surface. -->
+    <DocHistoryModal v-if="!isCellMode" v-model:visible="isHistoryModalOpen" :doc-id="docId" />
   </div>
 </template>
 

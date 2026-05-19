@@ -5,9 +5,9 @@ import BasePage from '../../../Base';
 /**
  * Page object for the doc revision history flow.
  *
- * Surfaces: a list panel docked on the right of the editor, and a preview
- * modal that opens when the user clicks a revision. Restore lives on the
- * modal header and confirms via NcConfirmModal.
+ * Notion-style single modal: a list pane on the right + a diff viewer
+ * pane on the left, with Restore + diff controls in the modal header.
+ * Restore confirms via NcConfirmModal.
  */
 export class DocsHistoryPage extends BasePage {
   readonly openedPage: DocsOpenedPagePage;
@@ -31,16 +31,20 @@ export class DocsHistoryPage extends BasePage {
     return this.rootPage.getByTestId('nc-doc-page-history');
   }
 
-  sidebar() {
-    return this.rootPage.getByTestId('nc-doc-history-sidebar');
+  modal() {
+    return this.rootPage.getByTestId('nc-doc-history-modal');
   }
 
-  /** A row in the history sidebar list — one per revision. */
-  sidebarItem(revisionId: string) {
+  list() {
+    return this.rootPage.getByTestId('nc-doc-history-list');
+  }
+
+  /** A row in the list — one per revision. */
+  listItem(revisionId: string) {
     return this.rootPage.getByTestId(`nc-doc-history-item-${revisionId}`);
   }
 
-  sidebarItems() {
+  listItems() {
     return this.rootPage.locator('[data-testid^="nc-doc-history-item-"]');
   }
 
@@ -48,8 +52,8 @@ export class DocsHistoryPage extends BasePage {
     return this.rootPage.getByTestId('nc-doc-history-restore-btn');
   }
 
-  highlightToggle() {
-    return this.rootPage.getByTestId('nc-doc-history-highlight-toggle');
+  closeButton() {
+    return this.rootPage.getByTestId('nc-doc-history-close-btn');
   }
 
   changeNav() {
@@ -69,11 +73,11 @@ export class DocsHistoryPage extends BasePage {
   async openHistory() {
     await this.pageMenuButton().click();
     await this.historyMenuItem().click();
-    await this.verifySidebarVisible(true);
+    await this.verifyModalVisible(true);
   }
 
   async clickRevisionAt(index: number) {
-    await this.sidebarItems().nth(index).click();
+    await this.listItems().nth(index).click();
   }
 
   async restoreSelectedRevision() {
@@ -92,12 +96,12 @@ export class DocsHistoryPage extends BasePage {
 
   // ── Assertions ────────────────────────────────────────────
 
-  async verifySidebarVisible(visible: boolean) {
-    await this.sidebar().waitFor({ state: visible ? 'visible' : 'hidden' });
+  async verifyModalVisible(visible: boolean) {
+    await this.modal().waitFor({ state: visible ? 'visible' : 'hidden' });
   }
 
   async verifyRevisionCount(count: number) {
-    await expect(this.sidebarItems()).toHaveCount(count);
+    await expect(this.listItems()).toHaveCount(count);
   }
 
   async verifyChangeNavLabel(label: string) {

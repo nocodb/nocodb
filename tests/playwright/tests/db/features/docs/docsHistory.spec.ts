@@ -7,7 +7,7 @@ import { isEE } from '../../../../setup/db';
  * End-to-end smoke for doc revision history. The 2-minute coalesce window
  * on the backend means we can't easily produce multiple revisions inside
  * a fast spec — so this test verifies the happy path with a single edit:
- * one revision shows in the panel, restore creates a second.
+ * one revision shows in the list, restore creates a second.
  */
 test.describe('Docs — Revision history', () => {
   if (!isEE()) test.skip();
@@ -36,20 +36,20 @@ test.describe('Docs — Revision history', () => {
 
     const history = dashboard.docs.openedPage.history;
 
-    // Open the History sidebar from the doc page overflow menu.
+    // Open the History modal from the doc page overflow menu.
     await history.openHistory();
-    await history.verifySidebarVisible(true);
+    await history.verifyModalVisible(true);
 
-    // Wait for the list to settle, then click the first (only) revision.
+    // The modal auto-selects the most recent revision; explicitly click it
+    // anyway to make the assertion deterministic.
     await page.waitForTimeout(500);
     await history.clickRevisionAt(0);
 
     // Restore — confirms via NcConfirmModal.
     await history.restoreSelectedRevision();
 
-    // After restore, a new revision is appended at the top of the list.
-    // The sidebar still shows at least the original entry; in most runs it
-    // shows two entries (original + restored).
+    // After restore, the modal closes and a new revision has been written
+    // to history. Re-opening would show two entries (original + restored).
     await page.waitForTimeout(500);
   });
 });

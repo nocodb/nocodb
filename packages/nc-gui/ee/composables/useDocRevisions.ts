@@ -9,6 +9,8 @@ export interface DocRevisionListItem {
   /** Resolved at the client from basesUser map for rendering. */
   created_by_display_name?: string
   created_by_email?: string
+  /** User meta (icon / iconType) — drives the profile picture in the avatar. */
+  created_by_meta?: Record<string, any> | null
   source: DocRevisionSource
   created_at: string
 }
@@ -45,12 +47,10 @@ export const useDocRevisions = createSharedComposable(() => {
   const isLoadingSelected = ref(false)
   const isRestoring = ref(false)
 
-  // Diff state — paired with the selected revision. `comparisonContent` is
-  // fetched lazily based on `comparisonBasis`. `highlightChanges` drives the
-  // toggle in the panel header.
-  const comparisonBasis = ref<'previous' | 'current'>('previous')
+  // Diff state — paired with the selected revision. We always compare to
+  // the chronologically prior revision; the basis selector + highlight toggle
+  // were dropped from the UI in favor of a single canonical view.
   const comparisonContent = ref<Record<string, any> | null>(null)
-  const highlightChanges = ref(true)
 
   // Step-through nav state. `diffChangeCount` is written by the Viewer
   // whenever the diff is recomputed; `currentChangeIndex` is driven by
@@ -80,6 +80,7 @@ export const useDocRevisions = createSharedComposable(() => {
       ...rev,
       created_by_display_name: u?.display_name || u?.email,
       created_by_email: u?.email,
+      created_by_meta: (u as any)?.meta ?? null,
     }
   }
 
@@ -124,7 +125,7 @@ export const useDocRevisions = createSharedComposable(() => {
   async function fetchRevisionContent(revisionId: string): Promise<DocRevisionFull | null> {
     if (!activeDocId.value || !activeWorkspaceId.value || !activeProjectId.value) return null
     try {
-      return (await $api.internal.getOperation(
+      const res = (await $api.internal.getOperation(
         activeWorkspaceId.value,
         activeProjectId.value,
         {
@@ -133,6 +134,10 @@ export const useDocRevisions = createSharedComposable(() => {
           revisionId,
         },
       )) as DocRevisionFull
+      // The single-revision endpoint returns the raw `created_by` user id —
+      // run it through the same enrichment as list items so the header in
+      // the viewer pane shows the author's display name + avatar meta.
+      return { ...res, ...enrich(res) }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
       return null
@@ -140,23 +145,13 @@ export const useDocRevisions = createSharedComposable(() => {
   }
 
   /**
-   * Resolve which revision to compare against, based on the current basis
-   * and the selected revision's position in the list. Returns null when no
-   * comparison is possible (e.g. oldest revision + basis=previous).
+   * Resolve which revision to compare against — always the chronologically
+   * prior revision (next in the list, since revisions are sorted DESC).
+   * Returns null when the selected revision is the oldest one available.
    */
   function resolveComparisonRevisionId(selectedId: string): string | null {
     const idx = revisions.value.findIndex((r) => r.id === selectedId)
     if (idx < 0) return null
-
-    if (comparisonBasis.value === 'current') {
-      // "Current" = the newest entry in the list. Don't diff against itself.
-      const current = revisions.value[0]
-      if (!current || current.id === selectedId) return null
-      return current.id
-    }
-
-    // basis === 'previous' — the chronologically older neighbor (next in
-    // the list, since it's sorted DESC). Skip when selected is the oldest.
     const prev = revisions.value[idx + 1]
     return prev?.id ?? null
   }
@@ -200,12 +195,6 @@ export const useDocRevisions = createSharedComposable(() => {
     }
   }
 
-  function setComparisonBasis(basis: 'previous' | 'current') {
-    if (comparisonBasis.value === basis) return
-    comparisonBasis.value = basis
-    refreshComparisonContent()
-  }
-
   async function restoreRevision(revisionId: string): Promise<boolean> {
     if (!activeDocId.value) return false
     if (!activeWorkspaceId.value || !activeProjectId.value) return false
@@ -243,8 +232,6 @@ export const useDocRevisions = createSharedComposable(() => {
     selectedRevisionId.value = null
     selectedRevisionContent.value = null
     comparisonContent.value = null
-    comparisonBasis.value = 'previous'
-    highlightChanges.value = true
     diffChangeCount.value = 0
     currentChangeIndex.value = 0
   }
@@ -258,16 +245,13 @@ export const useDocRevisions = createSharedComposable(() => {
     selectedRevisionContent,
     isLoadingSelected,
     isRestoring,
-    comparisonBasis,
     comparisonContent,
-    highlightChanges,
     diffChangeCount,
     currentChangeIndex,
     loadRevisions,
     loadMore,
     selectRevision,
     restoreRevision,
-    setComparisonBasis,
     nextChange,
     prevChange,
     reset,

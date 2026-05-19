@@ -791,14 +791,15 @@ export default class View implements ViewType {
             }
             // Show all Fields in Ranges
           } else if (view.type === ViewTypes.GANTT && !copyFromView) {
-            // Gantt: show all non-system columns by default. The per-view
-            // DateDependency rule (start / end / predecessor / duration) is
-            // created AFTER View.insertMetaOnly returns, so rangeColumns is
-            // always empty here. The Fields panel lets users hide what they
-            // don't want — better default than hiding everything except the
-            // display value (which leaves bars labelless and the sidebar
-            // empty until the user manually toggles every field).
-            show = true;
+            // Gantt: default to only the display value (matches Timeline
+            // and Gantt's own bulkInsertFromMeta path). The bar gets its
+            // label from pv and the sidebar shows row identity; other
+            // fields are opt-in via the Fields panel. The per-view
+            // DateDependency rule is created AFTER this code runs, so
+            // rangeColumns is always empty here — range fields stay
+            // hidden until the user configures the dependency, then
+            // opts them in.
+            show = vCol.pv;
           } else if (view.type === ViewTypes.MAP && !copyFromView) {
             const mapView = await MapView.get(context, view_id, ncMeta);
             if (vCol.id === mapView?.fk_geo_data_col_id) {

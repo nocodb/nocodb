@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ViewTypes } from 'nocodb-sdk';
 import dayjs from 'dayjs';
 import type { FilterType } from 'nocodb-sdk';
@@ -37,6 +37,8 @@ const GANTT_MAX_WINDOW_DAYS = 4000;
 
 @Injectable()
 export class GanttDatasService {
+  protected logger = new Logger(GanttDatasService.name);
+
   constructor(protected datasService: DatasService) {}
 
   async getGanttDataList(
@@ -276,6 +278,9 @@ export class GanttDatasService {
     if (pkCols.length > 1) {
       // Composite PK not supported in v1 — emit empty graph rather than
       // half-correct edges. Most Gantt tables use a single auto-PK.
+      this.logger.warn(
+        `getGanttDeps: composite-PK table not supported; returning empty edge graph for view ${view.id} (model ${model.id}, ${pkCols.length} PK cols).`,
+      );
       return { edges: [] as Array<[string, string]> };
     }
     const pkCol = pkCols[0];

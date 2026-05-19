@@ -18,23 +18,46 @@ import { NcError } from '~/helpers/catchError';
  *   2. Optional password (Document.verifyPassword)
  *   3. Subtree visibility — descendants only reachable if the root has
  *      meta.share.include_subtree = true (Document.getPublicSubtree).
+ *
+ * The (root, subtree) resolution is delegated to Document.getCachedShareScope
+ * so all three endpoints (/meta, /content, /attachment) share a single cached
+ * lookup per UUID. See that method's docblock for the caching contract.
  */
 @Injectable()
 export class PublicDocsService {
+  /**
+   * Resolve and authenticate access to a shared doc by UUID. All three public
+   * endpoints share this prelude — factor it once so the cached scope lookup
+   * happens uniformly, and so endpoint code can focus on its specific
+   * response shape.
+   */
+  private async resolveShareScope(
+    context: NcContext,
+    sharedDocUuid: string,
+    password: string,
+  ) {
+    const scope = await Document.getCachedShareScope(context, sharedDocUuid);
+    if (!scope) {
+      NcError.get(context).genericNotFound('Document', sharedDocUuid);
+    }
+
+    if (!(await Document.verifyPassword(scope.root, password))) {
+      NcError.get(context).invalidSharedViewPassword();
+    }
+
+    return scope;
+  }
+
   async docMetaGet(
     context: NcContext,
     param: { sharedDocUuid: string; password: string },
   ): Promise<PublicDocMetaResponse> {
-    const root = await Document.getByUUID(context, param.sharedDocUuid);
-    if (!root) {
-      NcError.get(context).genericNotFound('Document', param.sharedDocUuid);
-    }
+    const { root, tree, includeSubtree } = await this.resolveShareScope(
+      context,
+      param.sharedDocUuid,
+      param.password,
+    );
 
-    if (!(await Document.verifyPassword(root, param.password))) {
-      NcError.get(context).invalidSharedViewPassword();
-    }
-
-    const tree = await Document.getPublicSubtree(context, root);
     const base = await Base.get(context, root.base_id);
 
     return {
@@ -46,7 +69,7 @@ export class PublicDocsService {
         has_children: !!root.has_children,
       },
       tree,
-      include_subtree: !!(root.meta as any)?.share?.include_subtree,
+      include_subtree: includeSubtree,
       base: { id: base?.id, title: base?.title },
     };
   }
@@ -55,21 +78,16 @@ export class PublicDocsService {
     context: NcContext,
     param: { sharedDocUuid: string; password: string; docId: string },
   ): Promise<PublicDocContentResponse> {
-    const root = await Document.getByUUID(context, param.sharedDocUuid);
-    if (!root) {
-      NcError.get(context).genericNotFound('Document', param.sharedDocUuid);
-    }
-
-    if (!(await Document.verifyPassword(root, param.password))) {
-      NcError.get(context).invalidSharedViewPassword();
-    }
+    const { root, tree } = await this.resolveShareScope(
+      context,
+      param.sharedDocUuid,
+      param.password,
+    );
 
     // The share scope is the root + (optionally) its descendants. Anything
     // outside that scope is not reachable through this UUID — even if the
     // doc has its own share UUID elsewhere.
-    const scope = await Document.getPublicSubtree(context, root);
-    const inScope = scope.some((n) => n.id === param.docId);
-    if (!inScope) {
+    if (!tree.some((n) => n.id === param.docId)) {
       NcError.get(context).genericNotFound('Document', param.docId);
     }
 
@@ -83,10 +101,7 @@ export class PublicDocsService {
       base_id: root.base_id,
     };
 
-    const doc =
-      param.docId === root.id
-        ? await Document.get(baseScopedCtx, root.id)
-        : await Document.get(baseScopedCtx, param.docId);
+    const doc = await Document.get(baseScopedCtx, param.docId);
 
     if (!doc) {
       NcError.get(context).genericNotFound('Document', param.docId);
@@ -116,17 +131,13 @@ export class PublicDocsService {
       password: string;
     },
   ): Promise<{ fileUrl: string }> {
-    const root = await Document.getByUUID(context, param.sharedDocUuid);
-    if (!root) {
-      NcError.get(context).genericNotFound('Document', param.sharedDocUuid);
-    }
+    const { root, tree } = await this.resolveShareScope(
+      context,
+      param.sharedDocUuid,
+      param.password,
+    );
 
-    if (!(await Document.verifyPassword(root, param.password))) {
-      NcError.get(context).invalidSharedViewPassword();
-    }
-
-    const scope = await Document.getPublicSubtree(context, root);
-    if (!scope.some((n) => n.id === param.docId)) {
+    if (!tree.some((n) => n.id === param.docId)) {
       NcError.get(context).genericNotFound('Document', param.docId);
     }
 

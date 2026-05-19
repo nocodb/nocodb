@@ -796,6 +796,13 @@ export default class Document extends DocumentCE implements DocumentType {
       await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
     }
 
+    // Defensive: invalidate any stale share-scope cache for this uuid
+    // (e.g. concurrent request seeded the cache between unshare and re-share).
+    await NocoCache.del(
+      context,
+      `${CacheScope.DOCUMENT}:share:${doc.uuid}`,
+    );
+
     return doc;
   }
 
@@ -805,6 +812,9 @@ export default class Document extends DocumentCE implements DocumentType {
     docId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
+    // Read uuid before clearing so we can invalidate the share-scope cache.
+    const doc = await this.getMeta(context, docId, ncMeta);
+
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
@@ -812,6 +822,12 @@ export default class Document extends DocumentCE implements DocumentType {
       { uuid: null, password: null },
       { id: docId, type: ModelTypes.DOCUMENT },
     );
+    if (doc?.uuid) {
+      await NocoCache.del(
+        context,
+        `${CacheScope.DOCUMENT}:share:${doc.uuid}`,
+      );
+    }
     await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
   }
 
@@ -862,6 +878,14 @@ export default class Document extends DocumentCE implements DocumentType {
         { id: docId, type: ModelTypes.DOCUMENT },
       );
       await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
+      // Invalidate share-scope so subsequent /meta and /content calls see
+      // the updated include_subtree / password without lag.
+      if (doc.uuid) {
+        await NocoCache.del(
+          context,
+          `${CacheScope.DOCUMENT}:share:${doc.uuid}`,
+        );
+      }
     }
 
     return await this.getMeta(context, docId, ncMeta);
@@ -995,6 +1019,81 @@ export default class Document extends DocumentCE implements DocumentType {
         has_children: !!c.has_children,
       })),
     ];
+  }
+
+  /**
+   * Resolve the share root + in-scope subtree for a UUID, cached.
+   *
+   * Every public-share endpoint (/meta, /content, /attachment) needs the
+   * same (root, subtree) pair. Without a cache, a single page load with N
+   * inline images fires N+2 BFS subtree walks against the meta DB — each
+   * walk is O(depth) sequential queries. A viral public link would degrade
+   * the meta DB for the host workspace.
+   *
+   * Cache key:  `${CacheScope.DOCUMENT}:share:${uuid}`
+   * Invalidated on:  share, unshare, updateShareSettings.
+   *
+   * Not invalidated on tree mutations inside the shared subtree
+   * (Document.insert/move/softDelete/update on a descendant). Doing so
+   * properly requires walking up the parent chain to find the nearest
+   * shared ancestor on every mutation — heavy for a Phase-1 read cache.
+   * Accept eventual consistency: a child page added under a shared root
+   * won't appear in the public manifest until the next share-settings
+   * mutation, a server restart, or a future refresh trigger. If product
+   * needs tighter freshness, add an explicit "rebuild share manifest"
+   * call on Document mutations whose parent_id chain reaches a uuid'd
+   * ancestor, or move to a TTL'd cache.
+   *
+   * Note on bcrypt cost: this cache does NOT short-circuit password
+   * verification — verifyPassword still runs per request against the
+   * cached root.password. That's intentional. Caching a positive-verify
+   * result requires per-client session state we don't have yet (Phase 2
+   * cookie/JWT). Bcrypt at cost 10 is ~10ms — acceptable relative to the
+   * BFS we just eliminated.
+   */
+  public static async getCachedShareScope(
+    context: NcContext,
+    uuid: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{
+    root: Document;
+    tree: Array<{
+      id: string;
+      title: string;
+      parent_id: string | null;
+      order: number;
+      has_children: boolean;
+    }>;
+    includeSubtree: boolean;
+  } | null> {
+    const key = `${CacheScope.DOCUMENT}:share:${uuid}`;
+
+    const cached = await NocoCache.get(
+      context,
+      key,
+      CacheGetType.TYPE_OBJECT,
+    );
+    if (cached?.root) {
+      return {
+        root: new Document(cached.root),
+        tree: cached.tree ?? [],
+        includeSubtree: !!cached.includeSubtree,
+      };
+    }
+
+    const root = await this.getByUUID(context, uuid, ncMeta);
+    if (!root) return null;
+
+    const tree = await this.getPublicSubtree(context, root, ncMeta);
+    const includeSubtree = !!(root.meta as any)?.share?.include_subtree;
+
+    await NocoCache.set(context, key, {
+      root,
+      tree,
+      includeSubtree,
+    });
+
+    return { root, tree, includeSubtree };
   }
 
   /**

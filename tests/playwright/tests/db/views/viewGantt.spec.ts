@@ -55,6 +55,11 @@ const seedRecords = [
   },
   { Id: 9, Title: 'Authentication', Owner: 'Ivan', Start: '2024-03-18', End: '2024-03-29' },
   { Id: 10, Title: 'Core CRUD', Owner: 'Jake', Start: '2024-04-01', End: '2024-04-19' },
+  // Milestone row — only End is set. With both start/end columns configured
+  // on the DateDependency rule, isMilestone() returns true for rows where
+  // start is null but end is set; these render as a diamond marker rather
+  // than a bar. Covered by the dedicated milestone test below.
+  { Id: 11, Title: 'Q1 Milestone', Owner: 'Karl', Start: null, End: '2024-03-31' },
 ];
 
 test.describe('Gantt View', () => {
@@ -372,5 +377,179 @@ test.describe('Gantt View', () => {
 
     await gantt.closeInspector();
     await expect(inspector).not.toBeVisible();
+  });
+
+  test('deleting a Gantt view cascades the per-view DateDependency rule', async ({ page }) => {
+    const viewId = await createConfiguredGantt({ title: 'GDeleteCascade' });
+
+    // Pre-condition: rule is configured for this view.
+    const beforeResp = await page.request.get(
+      `/api/v2/internal/${context.workspace.id}/${context.base.id}` +
+        `?operation=getDateDependency&modelId=${tableId}&ganttViewId=${viewId}`,
+      { headers: { 'xc-auth': context.token } }
+    );
+    expect(beforeResp.status()).toBe(200);
+    const before = await beforeResp.json();
+    expect(before?.fk_start_date_field_id).toBe(startColId);
+
+    // Delete the view through the standard sidebar flow.
+    await dashboard.viewSidebar.deleteView({ title: 'GDeleteCascade' });
+
+    // Post-condition: the rule must be gone. Without the View.delete
+    // cascade (`metaDelete` on fk_gantt_view_id) this row would orphan
+    // in nc_date_dependency — any future Gantt view created with a
+    // recycled id would inherit the dead rule.
+    const afterResp = await page.request.get(
+      `/api/v2/internal/${context.workspace.id}/${context.base.id}` +
+        `?operation=getDateDependency&modelId=${tableId}&ganttViewId=${viewId}`,
+      { headers: { 'xc-auth': context.token } }
+    );
+    const after = await afterResp.json();
+    // Endpoint returns null/empty when no rule exists for the given
+    // (model, gantt-view) pair.
+    expect(after === null || Object.keys(after ?? {}).length === 0).toBe(true);
+  });
+
+  test('two Gantt views on the same table carry independent rules', async ({ page }) => {
+    // Gantt A — configured by createConfiguredGantt with the standard
+    // (Start, End, Predecessors, end-to-start, no buffer) shape.
+    const viewIdA = await createConfiguredGantt({ title: 'GIndependentA' });
+
+    // Gantt B — same table, but configured WITHOUT the end column and
+    // WITHOUT the predecessor link. Different shape so a regression
+    // that resolves rules table-level instead of per-view would surface
+    // as one Gantt's rule leaking into the other.
+    await dashboard.treeView.openTable({ title: 'GanttSeed' });
+    await dashboard.viewSidebar.createGanttView({ title: 'GIndependentB' });
+    await dashboard.viewSidebar.openView({ title: 'GIndependentB' });
+    await gantt.waitLoading();
+    const url = dashboard.rootPage.url();
+    const viewIdB = url.split('/').filter(Boolean).pop()!.split('?')[0];
+
+    await page.request.post(
+      `/api/v2/internal/${context.workspace.id}/${context.base.id}` +
+        `?operation=updateDateDependency&modelId=${tableId}&ganttViewId=${viewIdB}`,
+      {
+        headers: { 'xc-auth': context.token, 'Content-Type': 'application/json' },
+        data: {
+          fk_start_date_field_id: startColId,
+          fk_end_date_field_id: null,
+          fk_dependency_linkrow_field_id: null,
+          dependency_linkrow_role: null,
+          dependency_connection_type: 'end-to-start',
+          dependency_buffer_type: 'none',
+          dependency_buffer_days: 0,
+          include_weekends: false,
+          is_active: true,
+        },
+      }
+    );
+
+    const fetchRule = async (viewId: string) => {
+      const r = await page.request.get(
+        `/api/v2/internal/${context.workspace.id}/${context.base.id}` +
+          `?operation=getDateDependency&modelId=${tableId}&ganttViewId=${viewId}`,
+        { headers: { 'xc-auth': context.token } }
+      );
+      return r.json();
+    };
+
+    const ruleA = await fetchRule(viewIdA);
+    const ruleB = await fetchRule(viewIdB);
+
+    // Rule A has end col + predecessor; rule B doesn't. Per-view scoping
+    // means each view returns its own rule shape.
+    expect(ruleA.fk_end_date_field_id).toBe(endColId);
+    expect(ruleA.fk_dependency_linkrow_field_id).toBe(predecessorsColId);
+    expect(ruleB.fk_end_date_field_id).toBeFalsy();
+    expect(ruleB.fk_dependency_linkrow_field_id).toBeFalsy();
+
+    // Both rules are scoped to their own view id — a regression that
+    // makes one a copy of the other would fail this.
+    expect(ruleA.fk_gantt_view_id).toBe(viewIdA);
+    expect(ruleB.fk_gantt_view_id).toBe(viewIdB);
+  });
+
+  test('dependency arrows render as DOM elements between linked rows', async ({ page }) => {
+    const _viewId = await createConfiguredGantt({ title: 'GArrows' });
+
+    // Wire 3→2→1 predecessor chain via the v1 nested-LTAR endpoint.
+    // Same path the FE store hits on link.
+    for (const [child, pred] of [
+      [2, 1],
+      [3, 2],
+    ] as const) {
+      await page.request.post(
+        `/api/v1/db/data/noco/${context.base.id}/${tableId}/${child}/hm/${predecessorsColId}/${pred}`,
+        { headers: { 'xc-auth': context.token } }
+      );
+    }
+
+    // Reload so the windowed-fetch picks up the new links and the deps
+    // graph endpoint is re-queried. Without reload the existing in-memory
+    // dependencyLinks map wouldn't refresh in time.
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
+    await gantt.waitLoading();
+
+    // Bars 1, 2, 3 must all be in the buffer for arrows to render.
+    // navigateToClosestRecord anchors near today; the 2024 seed dates
+    // are well in the past, so the helper jumps the buffer to ~Jan
+    // 2024 on mount and bars + arrows should be visible.
+    const arrowCount = await gantt.getArrowCount();
+    expect(arrowCount).toBeGreaterThanOrEqual(2);
+  });
+
+  test('rows with only an end date render as milestones (diamond), not bars', async () => {
+    await createConfiguredGantt({ title: 'GMilestone' });
+
+    // Seed Id 11 has Start=null, End=2024-03-31 — isMilestone() returns
+    // true and the renderer emits .nc-gantt-milestone instead of a
+    // [data-testid="nc-gantt-bar"]. Other 10 rows still render as bars.
+    const milestoneCount = await gantt.get().locator('.nc-gantt-milestone').count();
+    expect(milestoneCount).toBeGreaterThanOrEqual(1);
+
+    // The milestone row should NOT appear among the bar elements —
+    // bars and milestones are mutually exclusive in the template
+    // (`v-if="isMilestone(record)"` for the diamond, `v-if="!isMilestone(record) && getBarStyle(record)"`
+    // for the bar). A regression where both render for the same row
+    // would inflate the bar count above the 10 non-milestone seeds.
+    const barCount = await gantt.getBarCount();
+    expect(barCount).toBeLessThanOrEqual(10);
+  });
+
+  test('public shared Gantt view is read-only — no drag handles', async ({ browser, page }) => {
+    const viewId = await createConfiguredGantt({ title: 'GReadOnly' });
+
+    const shareResp = await page.request.post(`/api/v1/db/meta/views/${viewId}/share`, {
+      headers: { 'xc-auth': context.token, 'Content-Type': 'application/json' },
+      data: {},
+    });
+    const share = await shareResp.json();
+    expect(share.uuid).toBeTruthy();
+
+    const anonCtx = await browser.newContext({ storageState: undefined });
+    const anonPage = await anonCtx.newPage();
+    await anonPage.goto(`/nc/gantt/${share.uuid}`);
+    await anonPage.getByTestId('nc-gantt-wrapper').waitFor({ state: 'visible', timeout: 10000 });
+
+    // Wait for bars to mount before asserting handles aren't there —
+    // a too-early assertion would pass trivially because nothing is
+    // rendered yet.
+    await anonPage.locator('[data-testid="nc-gantt-bar"]').first().waitFor({ state: 'visible' });
+
+    // Resize handles (.nc-gantt-resize-handle) and the dep-creation
+    // handle (.nc-gantt-dep-handle) are gated behind `canDrag` /
+    // `canEditDeps` — both false in a public/shared (no-auth) view.
+    // If a regression like the recent shared-base bypass for view
+    // operations (commit 15a8d496252) creeps back, these would
+    // resurface in the anon DOM.
+    expect(await anonPage.locator('.nc-gantt-resize-handle').count()).toBe(0);
+    expect(await anonPage.locator('.nc-gantt-dep-handle').count()).toBe(0);
+
+    // The new-record button (toolbar plus / empty-row plus) is also
+    // gated behind dataEdit — must not be present anonymously.
+    expect(await anonPage.locator('[data-testid="nc-gantt-new-record-btn"]').count()).toBe(0);
+
+    await anonCtx.close();
   });
 });

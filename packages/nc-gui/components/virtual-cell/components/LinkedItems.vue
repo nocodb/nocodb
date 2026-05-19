@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { type ColumnType, type LinkToAnotherRecordType, isDateOrDateTimeCol } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, RelationTypes, isBtLikeV2Junction, isLinkV2, isLinksOrLTAR } from 'nocodb-sdk'
 
 interface Prop {
   modelValue?: boolean
@@ -143,30 +143,41 @@ const newRowState = computed(() => {
     const colOpt1 = col?.colOptions as LinkToAnotherRecordType
     if (colOpt1?.fk_related_model_id !== meta.value.id) return false
 
-    if (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) {
+    // V2 relations (OM/MO/OO/MM) all store fk_parent/fk_child inverted between
+    // the paired columns — same shape as V1 MM. V1 HM/BT/OO store them straight.
+    const isJunctionShape =
+      (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) ||
+      (isLinkV2(injectedColumn?.value) && isLinkV2(col))
+
+    if (isJunctionShape) {
       return (
         colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
         colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
         colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
       )
-    } else {
-      return (
-        colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
-      )
     }
+
+    return (
+      colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
+    )
   })
   if (!colInRelatedTable) return {}
   const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
   if (!relatedTableColOpt) return {}
 
-  if (relatedTableColOpt.type === RelationTypes.BELONGS_TO) {
+  // V1 BT and V2 single-record junction relations (MO, OO) all hold a
+  // single record on this side. Everything else (HM, MM, OM) holds many.
+  const isSingleRecord =
+    relatedTableColOpt.type === RelationTypes.BELONGS_TO || isBtLikeV2Junction(colInRelatedTable)
+
+  if (isSingleRecord) {
     return {
       [colInRelatedTable.title as string]: row?.value?.row,
     }
-  } else {
-    return {
-      [colInRelatedTable.title as string]: row?.value && [row.value.row],
-    }
+  }
+
+  return {
+    [colInRelatedTable.title as string]: row?.value && [row.value.row],
   }
 })
 
@@ -611,6 +622,7 @@ const { handleSearchKeydown: handleKeyDown } = useLTARListKeyNav({
                 size="small"
                 class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
                 type="secondary"
+                data-testid="nc-child-list-button-new-record"
                 :disabled="!isAllowed"
                 @click="addNewRecord"
               >

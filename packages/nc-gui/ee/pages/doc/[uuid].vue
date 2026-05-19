@@ -382,9 +382,12 @@ watch(
           <!-- "Sub documents" panel — mirrors components/doc/SubDocumentsList.vue
                for anonymous reads. The in-app version reads from the docs
                store; here we use the share-scope tree we already loaded. -->
+          <!-- pt-2 (vs pt-8 in the in-app component) — DocEditor in
+               cell+embedded mode leaves less trailing whitespace than doc
+               mode, so the in-app spacing reads as too much here. -->
           <div
             v-if="subDocs.length"
-            class="max-w-[900px] mx-auto px-10 nc-shared-doc-sub-documents pt-8 pb-12"
+            class="max-w-[900px] mx-auto px-10 nc-shared-doc-sub-documents pt-2 pb-12"
             data-testid="nc-shared-doc-sub-documents"
           >
             <div class="nc-shared-doc-sub-documents-header">
@@ -485,5 +488,50 @@ watch(
 
 .nc-shared-doc-sub-documents-name {
   @apply flex-1;
+}
+</style>
+
+<!--
+  Non-scoped overrides for DocEditor internals (public reader only).
+
+  DocEditor is built around an internal scroll area: its outermost wrapper
+  is `h-full overflow-hidden` and a child div is `h-full overflow-y-auto`,
+  so the prose body scrolls inside the editor while the topbar / cover
+  stay pinned. That model breaks for the public reader because we render
+  the "Sub documents" panel as a SIBLING of LazyDocEditor inside <main>.
+  When the editor takes 100% of main's height, the panel ends up below
+  main's scroll bottom and is only reachable by scrolling.
+
+  Two overrides:
+
+  1. `.nc-doc-editor-body { padding-bottom: 1rem }` — the body is `pb-48`
+     when the editor's `hasSubDocuments` is false. That flag reads from
+     useDocumentsStore, which the public reader doesn't populate, so the
+     editor always picks the 192px empty-state buffer. Trim it.
+
+  2. `height: auto` / `overflow: visible` on the editor's outer wrapper
+     and inner scroll area so the editor sizes to content. With the
+     editor's internal scroll removed, <main>'s overflow-y-auto handles
+     all scrolling — cover, content, and sub-docs panel scroll as one.
+
+  Non-scoped block: Vue's scoped attribute doesn't propagate to the
+  LazyDocEditor fragment, so a scoped :deep() doesn't reach these nodes.
+  Anchored to `.nc-shared-doc-page` so no other DocEditor mount in the
+  app is affected.
+-->
+<style lang="scss">
+.nc-shared-doc-page {
+  .nc-doc-editor-body {
+    padding-bottom: 1rem !important;
+  }
+
+  // Outer DocEditor + the relative flex-1 wrapper + the inner scroll area.
+  // Defeat the h-full chain so each shrinks to content height.
+  .nc-doc-editor,
+  .nc-doc-editor > .relative,
+  .nc-doc-editor .nc-scrollbar-thin {
+    height: auto !important;
+    overflow: visible !important;
+  }
 }
 </style>

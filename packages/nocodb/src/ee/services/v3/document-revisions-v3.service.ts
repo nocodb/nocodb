@@ -30,8 +30,10 @@ export class DocumentRevisionsV3Service {
     context: NcContext,
     param: { docId: string; limit?: number; before?: string },
   ): Promise<DocumentRevisionV3ListResponseType> {
-    // Validate doc exists + caller has visibility through standard ACL chain.
-    const doc = await this.documentsService.get(context, param.docId);
+    // Validate doc exists. We only need to confirm a non-deleted doc with
+    // this id is reachable in the workspace — `getMeta` does that without
+    // touching the content satellite, saving a full PM-JSON read per list.
+    const doc = await Document.getMeta(context, param.docId);
     if (!doc) {
       NcError.get(context).genericNotFound('Document', param.docId);
     }
@@ -62,8 +64,9 @@ export class DocumentRevisionsV3Service {
     context: NcContext,
     param: { docId: string; revisionId: string },
   ): Promise<DocumentRevisionV3Type> {
-    // Visibility via the parent doc — ensures user can see this revision.
-    const doc = await this.documentsService.get(context, param.docId);
+    // Visibility via the parent doc. `getMeta` instead of `get` so we don't
+    // pull the doc's full PM JSON from the content satellite just to gate.
+    const doc = await Document.getMeta(context, param.docId);
     if (!doc) {
       NcError.get(context).genericNotFound('Document', param.docId);
     }

@@ -190,7 +190,7 @@ watch(
           </template>
 
           <div v-else class="text-sm font-semibold truncate flex gap-2 items-center">
-            <GeneralIcon icon="doc" class="!w-4 !h-4 ml-0.5 text-nc-content-gray-subtle" />
+            <GeneralIcon icon="ncFileText" class="!w-4 !h-4 ml-0.5 text-nc-content-gray-subtle" />
             <span class="truncate">{{ activeContent?.title || activeNode?.title || meta?.root?.title || $t('general.untitled') }}</span>
           </div>
         </div>
@@ -262,7 +262,7 @@ watch(
           :data-testid="`nc-shared-doc-tree-${row.node.id}`"
           @click="navigateToDoc(row.node.id)"
         >
-          <GeneralIcon icon="doc" class="!w-3.5 !h-3.5 text-nc-content-gray-subtle" />
+          <GeneralIcon icon="ncFileText" class="!w-3.5 !h-3.5 text-nc-content-gray-subtle" />
           <span class="truncate text-bodySm">{{ row.node.title }}</span>
         </div>
       </aside>

@@ -126,7 +126,7 @@ watch(showShareModal, (val) => {
 
       <div v-if="activeDocument" class="share-doc">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
-          <GeneralIcon icon="doc" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
+          <GeneralIcon icon="ncFileText" class="w-4 text-nc-content-gray-subtle !text-[16px]" />
           <div>{{ $t('activity.shareDoc') }}</div>
           <div
             class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-nc-bg-gray-light capitalize text-ellipsis overflow-hidden"

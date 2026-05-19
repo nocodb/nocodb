@@ -65,7 +65,7 @@ export const LookupCellRenderer: CellRenderer = {
       const relatedModelId = relatedColOptions.fk_related_model_id
       if (!relatedModelId) return
 
-      if (tableMetaLoader.isLoading(relatedModelId, relatedBaseId)) return
+      if (!tableMetaLoader || tableMetaLoader.isLoading(relatedModelId, relatedBaseId)) return
 
       tableMetaLoader.getTableMeta(relatedModelId, relatedBaseId)
 
@@ -164,7 +164,7 @@ export const LookupCellRenderer: CellRenderer = {
         // Restore canvas context before returning — ctx.save()/ctx.clip() was already called above
         ctx.restore()
 
-        if (tableMetaLoader.isLoading(lkRelatedModelId, lkRelatedBaseId)) return
+        if (!tableMetaLoader || tableMetaLoader.isLoading(lkRelatedModelId, lkRelatedBaseId)) return
 
         tableMetaLoader.getTableMeta(lkRelatedModelId, lkRelatedBaseId)
 

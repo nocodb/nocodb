@@ -19,10 +19,26 @@ const {
   comparisonBasis,
   comparisonContent,
   highlightChanges,
+  diffChangeCount,
+  currentChangeIndex,
   selectRevision,
   restoreRevision,
   setComparisonBasis,
+  nextChange,
+  prevChange,
 } = useDocRevisions()
+
+const hasChanges = computed(() => diffChangeCount.value > 0 && highlightChanges.value)
+
+const canPrev = computed(() => hasChanges.value && currentChangeIndex.value > 0)
+const canNext = computed(
+  () => hasChanges.value && currentChangeIndex.value < diffChangeCount.value - 1,
+)
+
+const changeLabel = computed(() => {
+  if (!hasChanges.value) return ''
+  return `${currentChangeIndex.value + 1} / ${diffChangeCount.value}`
+})
 
 const { isUIAllowed } = useRoles()
 const { showWarningModal } = useNcConfirmModal()
@@ -96,6 +112,32 @@ async function onRestore() {
           </span>
         </div>
         <div class="flex items-center gap-2 flex-none">
+          <!-- Step-through nav — only meaningful when there are highlighted changes -->
+          <div
+            v-if="hasChanges"
+            class="flex items-center gap-1 text-xs text-nc-content-gray-subtle"
+            data-testid="nc-doc-history-change-nav"
+          >
+            <NcButton
+              size="xsmall"
+              type="text"
+              :disabled="!canPrev"
+              data-testid="nc-doc-history-prev-change"
+              @click="prevChange"
+            >
+              <GeneralIcon icon="ncArrowUp" />
+            </NcButton>
+            <span class="tabular-nums">{{ changeLabel }}</span>
+            <NcButton
+              size="xsmall"
+              type="text"
+              :disabled="!canNext"
+              data-testid="nc-doc-history-next-change"
+              @click="nextChange"
+            >
+              <GeneralIcon icon="ncArrowDown" />
+            </NcButton>
+          </div>
           <!-- Highlight changes toggle -->
           <NcTooltip placement="bottom">
             <template #title>Highlight changes</template>

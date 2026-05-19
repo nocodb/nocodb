@@ -52,6 +52,26 @@ export const useDocRevisions = createSharedComposable(() => {
   const comparisonContent = ref<Record<string, any> | null>(null)
   const highlightChanges = ref(true)
 
+  // Step-through nav state. `diffChangeCount` is written by the Viewer
+  // whenever the diff is recomputed; `currentChangeIndex` is driven by
+  // the modal's ↑/↓ buttons. The Viewer watches the index and scrolls
+  // its editor accordingly.
+  const diffChangeCount = ref(0)
+  const currentChangeIndex = ref(0)
+
+  function nextChange() {
+    if (diffChangeCount.value === 0) return
+    currentChangeIndex.value = Math.min(
+      currentChangeIndex.value + 1,
+      diffChangeCount.value - 1,
+    )
+  }
+
+  function prevChange() {
+    if (diffChangeCount.value === 0) return
+    currentChangeIndex.value = Math.max(currentChangeIndex.value - 1, 0)
+  }
+
   function enrich(rev: DocRevisionListItem): DocRevisionListItem {
     if (!rev.created_by || !activeProjectId.value) return rev
     const map = basesUser.value.get(activeProjectId.value)
@@ -159,6 +179,8 @@ export const useDocRevisions = createSharedComposable(() => {
     selectedRevisionId.value = revisionId
     selectedRevisionContent.value = null
     comparisonContent.value = null
+    diffChangeCount.value = 0
+    currentChangeIndex.value = 0
 
     if (!revisionId || !activeDocId.value) return
 
@@ -223,6 +245,8 @@ export const useDocRevisions = createSharedComposable(() => {
     comparisonContent.value = null
     comparisonBasis.value = 'previous'
     highlightChanges.value = true
+    diffChangeCount.value = 0
+    currentChangeIndex.value = 0
   }
 
   return {
@@ -237,11 +261,15 @@ export const useDocRevisions = createSharedComposable(() => {
     comparisonBasis,
     comparisonContent,
     highlightChanges,
+    diffChangeCount,
+    currentChangeIndex,
     loadRevisions,
     loadMore,
     selectRevision,
     restoreRevision,
     setComparisonBasis,
+    nextChange,
+    prevChange,
     reset,
     currentUserId: computed(() => user.value?.id),
   }

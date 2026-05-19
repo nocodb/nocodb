@@ -20,7 +20,7 @@ import { DocMathExtension } from '../DocMathExtension'
 import { DocBlockDirExtension } from '../DocBlockDirPlugin'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 import { UserMention } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
-import { DocDiffExtension, setDocDiffState } from './diffPlugin'
+import { DocDiffExtension, getDiffChanges, scrollToDiffChange, setDocDiffState } from './diffPlugin'
 
 interface Props {
   content: Record<string, any> | null
@@ -78,6 +78,7 @@ const viewerExtensions = [
       fromContent: props.comparisonContent,
       toContent: props.content,
       enabled: !!props.highlightChanges,
+      currentIndex: 0,
     },
   }),
 ]
@@ -99,6 +100,21 @@ const editor = useEditor({
   content: props.content || { type: 'doc', content: [{ type: 'paragraph' }] },
 })
 
+const { diffChangeCount, currentChangeIndex } = useDocRevisions()
+
+// Push the diff plugin's cached change-count up to the composable after every
+// state update so the modal header's "N changes" + ↑/↓ buttons stay in sync.
+// `nextTick` lets the plugin's `apply()` run before we read its state.
+async function syncChangeCount() {
+  await nextTick()
+  diffChangeCount.value = getDiffChanges(editor.value).length
+  // Clamp the index — e.g. switching from a 5-change diff to a 2-change one
+  // should put us back at index 0 instead of an out-of-range slot.
+  if (currentChangeIndex.value >= diffChangeCount.value) {
+    currentChangeIndex.value = 0
+  }
+}
+
 // Replace content when the previewed revision changes. We push the new doc
 // JSON into the diff state too so the comparison stays in sync — `setContent`
 // also fires a `docChanged` transaction, but we override it here for clarity.
@@ -109,6 +125,7 @@ watch(
     const nextDoc = next || { type: 'doc', content: [{ type: 'paragraph' }] }
     editor.value.commands.setContent(nextDoc, false)
     setDocDiffState(editor.value, { toContent: nextDoc })
+    syncChangeCount()
   },
 )
 
@@ -121,8 +138,25 @@ watch(
       fromContent: from ?? null,
       enabled: !!enabled,
     })
+    syncChangeCount()
   },
 )
+
+// Initial sync once the editor mounts (the first diff was computed in
+// `state.init`, but the composable hasn't been told about it yet).
+onMounted(() => {
+  syncChangeCount()
+})
+
+// Push the focused-change index into the plugin so the corresponding
+// decoration picks up the "current" class — then scroll. Order matters:
+// updating the meta first ensures the decoration is repainted before
+// the smooth-scroll animation begins.
+watch(currentChangeIndex, (index) => {
+  if (!editor.value) return
+  setDocDiffState(editor.value, { currentIndex: index })
+  scrollToDiffChange(editor.value, index)
+})
 
 onBeforeUnmount(() => {
   editor.value?.destroy()
@@ -154,6 +188,14 @@ onBeforeUnmount(() => {
     background-color: rgba(34, 197, 94, 0.18);
     border-radius: 2px;
     box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.32);
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  // The change currently focused by the step-through nav — more saturated
+  // background + a thicker ring so it pops above the rest.
+  .nc-doc-history-diff-insert-current {
+    background-color: rgba(34, 197, 94, 0.4);
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.85);
   }
 }
 
@@ -161,6 +203,10 @@ onBeforeUnmount(() => {
   .nc-doc-history-diff-insert {
     background-color: rgba(34, 197, 94, 0.28);
     box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.5);
+  }
+  .nc-doc-history-diff-insert-current {
+    background-color: rgba(34, 197, 94, 0.55);
+    box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.9);
   }
 }
 </style>

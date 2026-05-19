@@ -16,6 +16,24 @@ export interface DocDiffState {
   toContent: Record<string, any> | null
   /** When false, the plugin emits an empty decoration set (no highlighting). */
   enabled: boolean
+  /**
+   * Which change is "focused" in the step-through nav. The decoration at this
+   * index gets an extra `nc-doc-history-diff-insert-current` class so it's
+   * visually distinct from the rest. -1 = no focus.
+   */
+  currentIndex: number
+  /**
+   * Cached decoration set + change positions. Computed inside `apply` so that
+   * `props.decorations` is a trivial read, and so the viewer's step-through
+   * nav can read positions via `getDiffChanges()` without recomputing.
+   */
+  decorations: DecorationSet
+  changes: DocDiffChange[]
+}
+
+export interface DocDiffChange {
+  from: number
+  to: number
 }
 
 export const docDiffPluginKey = new PluginKey<DocDiffState>('docHistoryDiff')
@@ -31,25 +49,31 @@ export const docDiffPluginKey = new PluginKey<DocDiffState>('docHistoryDiff')
  *   - `fromContent` is missing (initial creation — no prior to compare)
  *   - either doc fails to parse against the schema
  */
-function computeDiffDecorations(
-  state: DocDiffState,
+/**
+ * Find inserted ranges in the "to" doc relative to the "from" doc.
+ * Returns an empty array when:
+ *   - the plugin is disabled
+ *   - `fromContent` is missing (initial creation — no prior to compare)
+ *   - either doc fails to parse against the schema
+ */
+function findChanges(
+  fromContent: Record<string, any> | null,
+  toContent: Record<string, any> | null,
+  enabled: boolean,
   schema: Schema,
-  currentDoc: PMNode,
-): DecorationSet {
-  if (!state.enabled || !state.fromContent || !state.toContent) {
-    return DecorationSet.empty
-  }
+): DocDiffChange[] {
+  if (!enabled || !fromContent || !toContent) return []
 
   let fromDoc: PMNode
   let toDoc: PMNode
   try {
-    fromDoc = PMNode.fromJSON(schema, state.fromContent)
-    toDoc = PMNode.fromJSON(schema, state.toContent)
+    fromDoc = PMNode.fromJSON(schema, fromContent)
+    toDoc = PMNode.fromJSON(schema, toContent)
   } catch {
-    return DecorationSet.empty
+    return []
   }
 
-  let changes: ChangeSet
+  let changeset: ChangeSet
   try {
     // Express the entire content as a single replace StepMap: remove the
     // full "from" doc body and insert the full "to" doc body. ChangeSet
@@ -57,30 +81,38 @@ function computeDiffDecorations(
     // ranges via its inner LCS — token-level precision without us needing
     // intermediate steps.
     const map = new StepMap([0, fromDoc.content.size, toDoc.content.size])
-    changes = ChangeSet.create(fromDoc).addSteps(toDoc, [map], null)
+    changeset = ChangeSet.create(fromDoc).addSteps(toDoc, [map], null)
   } catch {
-    return DecorationSet.empty
+    return []
   }
 
-  const decorations: Decoration[] = []
-
-  for (const change of changes.changes) {
-    // change.inserted is an array of `Span { length, data }`. Their lengths
-    // sum to (toB - fromB). We mark the entire inserted range as one
-    // decoration — finer span-by-span treatment is a future refinement.
+  const changes: DocDiffChange[] = []
+  for (const change of changeset.changes) {
     if (change.toB > change.fromB) {
-      decorations.push(
-        Decoration.inline(change.fromB, change.toB, {
-          class: 'nc-doc-history-diff-insert',
-        }),
-      )
+      changes.push({ from: change.fromB, to: change.toB })
     }
   }
+  return changes
+}
 
-  // Decorations are anchored to currentDoc (which is the same as toDoc when
-  // the plugin runs against an idle editor). We pass currentDoc so PM
-  // computes positions against the actual editor state — avoids the rare
-  // mismatch when the editor re-parses an identical JSON differently.
+/**
+ * Build decorations from a list of change ranges, marking one as "current"
+ * so the step-through nav has a visible focus.
+ */
+function buildDecorations(
+  changes: DocDiffChange[],
+  currentIndex: number,
+  currentDoc: PMNode,
+): DecorationSet {
+  if (!changes.length) return DecorationSet.empty
+  const decorations = changes.map((change, idx) =>
+    Decoration.inline(change.from, change.to, {
+      class:
+        idx === currentIndex
+          ? 'nc-doc-history-diff-insert nc-doc-history-diff-insert-current'
+          : 'nc-doc-history-diff-insert',
+    }),
+  )
   return DecorationSet.create(currentDoc, decorations)
 }
 
@@ -88,24 +120,76 @@ function computeDiffDecorations(
  * Plugin that renders an inline-insert decoration overlay. The viewer
  * dispatches an empty meta transaction with `{[docDiffPluginKey]: nextState}`
  * to recompute on prop changes.
+ *
+ * Decorations + positions are cached in plugin state so `props.decorations`
+ * stays cheap and external callers (the step-through nav) can read change
+ * positions via `getDiffChanges()` without re-running the diff.
  */
-export function docDiffPlugin(initial: DocDiffState) {
+export function docDiffPlugin(initial: Omit<DocDiffState, 'decorations' | 'changes'>) {
   return new Plugin<DocDiffState>({
     key: docDiffPluginKey,
     state: {
-      init: () => initial,
+      init(_, editorState) {
+        const changes = findChanges(
+          initial.fromContent,
+          initial.toContent,
+          initial.enabled,
+          editorState.schema,
+        )
+        const decorations = buildDecorations(
+          changes,
+          initial.currentIndex,
+          editorState.doc,
+        )
+        return { ...initial, changes, decorations }
+      },
       apply(tr, value, _oldState, newState) {
-        const meta = tr.getMeta(docDiffPluginKey) as Partial<DocDiffState> | undefined
-        if (meta) return { ...value, ...meta }
-        if (tr.docChanged) return { ...value, toContent: newState.doc.toJSON() }
-        return value
+        const meta = tr.getMeta(docDiffPluginKey) as
+          | Partial<DocDiffState>
+          | undefined
+
+        // Determine whether the underlying diff inputs changed (rerun the
+        // LCS) vs only the focused-change index (cheap rebuild). Doc edits
+        // here are rare since the viewer is read-only, but a content swap
+        // via setContent fires a docChanged transaction.
+        const inputChanged =
+          !!meta &&
+          ('fromContent' in meta || 'toContent' in meta || 'enabled' in meta)
+        const indexOnlyChanged =
+          !!meta && !inputChanged && 'currentIndex' in meta
+        const docChanged = tr.docChanged
+
+        const next: DocDiffState = { ...value, ...(meta ?? {}) }
+        if (docChanged) next.toContent = newState.doc.toJSON()
+
+        if (inputChanged || docChanged) {
+          next.changes = findChanges(
+            next.fromContent,
+            next.toContent,
+            next.enabled,
+            newState.schema,
+          )
+          next.decorations = buildDecorations(
+            next.changes,
+            next.currentIndex,
+            newState.doc,
+          )
+        } else if (indexOnlyChanged) {
+          next.decorations = buildDecorations(
+            value.changes,
+            next.currentIndex,
+            newState.doc,
+          )
+        } else {
+          // Unrelated transactions (selection, focus) — just map decorations.
+          next.decorations = value.decorations.map(tr.mapping, tr.doc)
+        }
+        return next
       },
     },
     props: {
       decorations(editorState) {
-        const state = docDiffPluginKey.getState(editorState)
-        if (!state) return DecorationSet.empty
-        return computeDiffDecorations(state, editorState.schema, editorState.doc)
+        return docDiffPluginKey.getState(editorState)?.decorations ?? DecorationSet.empty
       },
     },
   })
@@ -123,7 +207,8 @@ export const DocDiffExtension = Extension.create({
         fromContent: null,
         toContent: null,
         enabled: false,
-      } as DocDiffState,
+        currentIndex: 0,
+      } as Omit<DocDiffState, 'decorations' | 'changes'>,
     }
   },
   addProseMirrorPlugins() {
@@ -137,9 +222,47 @@ export const DocDiffExtension = Extension.create({
  */
 export function setDocDiffState(
   editor: { view: { state: any; dispatch: (tr: any) => void } } | null | undefined,
-  next: Partial<DocDiffState>,
+  next: Partial<Omit<DocDiffState, 'decorations' | 'changes'>>,
 ) {
   if (!editor) return
   const tr = editor.view.state.tr.setMeta(docDiffPluginKey, next)
   editor.view.dispatch(tr)
+}
+
+/**
+ * Read the cached list of change positions out of plugin state. Returns
+ * an empty array when the plugin is disabled or there are no changes.
+ */
+export function getDiffChanges(
+  editor: { view: { state: any } } | null | undefined,
+): DocDiffChange[] {
+  if (!editor) return []
+  return docDiffPluginKey.getState(editor.view.state)?.changes ?? []
+}
+
+/**
+ * Scroll the editor's viewport to the given change index. No-op when the
+ * index is out of range. Used by the step-through nav (↑/↓ buttons).
+ */
+export function scrollToDiffChange(
+  editor: { view: any } | null | undefined,
+  index: number,
+): void {
+  if (!editor) return
+  const changes = getDiffChanges(editor)
+  const change = changes[index]
+  if (!change) return
+
+  const view = editor.view
+  // Use the native DOM node at the change's start position so we can call
+  // `scrollIntoView` with smooth behavior — TR-based `scrollIntoView` jumps
+  // abruptly and forces a focus side-effect we don't want in a read-only
+  // viewer.
+  try {
+    const { node } = view.domAtPos(change.from)
+    const el = (node.nodeType === 1 ? node : node.parentElement) as HTMLElement | null
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  } catch {
+    // ignore — out-of-range or detached node
+  }
 }

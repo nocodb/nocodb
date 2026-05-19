@@ -8196,6 +8196,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         // Wed May 10 2023 17:47:46 GMT+0800 (Hong Kong Standard Time)
         keepLocalTime = false;
       }
+
+      // MySQL DateTime/CreatedTime/LastModifiedTime selects are wrapped with
+      // CONVERT_TZ(...,'+00:00') + a literal '+00:00' suffix in select-object.ts
+      // so the string is already correct UTC. Without this branch,
+      // dayjs.utc(keepLocalTime=true) would re-anchor the wall clock to the
+      // NocoDB server's local timezone before stamping +00:00 — on a non-UTC
+      // server (e.g. IST), this re-shifts the value and the displayed records
+      // no longer match the group-by SELECT's UTC keys.
+      if (
+        this.isMySQL &&
+        typeof d[col.id] === 'string' &&
+        !noTimezoneRegex.test(d[col.id])
+      ) {
+        keepLocalTime = false;
+      }
       // e.g. 01.01.2022 10:00:00+05:30 -> 2022-01-01 04:30:00+00:00
       // e.g. 2023-05-09 11:41:49 -> 2023-05-09 11:41:49+00:00
       d[col.id] = dayjs(d[col.id])

@@ -368,16 +368,35 @@ watch(
 }
 
 // Hide resize handles by default; reveal them on widget hover only when the
-// dashboard is in edit mode. Pull the handle a few px inside the rounded
-// border so the L-shape doesn't sit on top of the corner radius.
+// dashboard is in edit mode. Replace the default sharp L (which fights the
+// widget's rounded corner) with three diagonal hash marks — the diagonal
+// runs ALONG the corner's tangent and points along the resize axis, so
+// the glyph's geometry agrees with both the card shape and the action.
 :deep(.vgl-item__resizer) {
   @apply opacity-0 transition-opacity duration-150;
-  bottom: 6px !important;
-  right: 6px !important;
+  width: 18px !important;
+  height: 18px !important;
+  bottom: 4px !important;
+  right: 4px !important;
   color: var(--nc-content-gray-subtle2);
 }
+:deep(.vgl-item__resizer::before) {
+  // Override the library's default border-based L
+  border: none !important;
+  width: 14px !important;
+  height: 14px !important;
+  bottom: 2px !important;
+  right: 2px !important;
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'><g stroke='black' stroke-width='1.25' stroke-linecap='round' fill='none'><line x1='3' y1='13' x2='13' y2='3'/><line x1='7' y1='13' x2='13' y2='7'/><line x1='11' y1='13' x2='13' y2='11'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'><g stroke='black' stroke-width='1.25' stroke-linecap='round' fill='none'><line x1='3' y1='13' x2='13' y2='3'/><line x1='7' y1='13' x2='13' y2='7'/><line x1='11' y1='13' x2='13' y2='11'/></g></svg>");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
 :deep(.vgl-item:hover .vgl-item__resizer) {
-  @apply opacity-60;
+  @apply opacity-70;
 }
 :deep(.vgl-item--resizing .vgl-item__resizer),
 :deep(.vgl-item--dragging .vgl-item__resizer) {

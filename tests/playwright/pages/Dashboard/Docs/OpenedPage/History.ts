@@ -1,7 +1,14 @@
-import { expect, Locator } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { DocsOpenedPagePage } from '.';
 import BasePage from '../../../Base';
 
+/**
+ * Page object for the doc revision history flow.
+ *
+ * Surfaces: a list panel docked on the right of the editor, and a preview
+ * modal that opens when the user clicks a revision. Restore lives on the
+ * modal header and confirms via NcConfirmModal.
+ */
 export class DocsHistoryPage extends BasePage {
   readonly openedPage: DocsOpenedPagePage;
 
@@ -14,60 +21,86 @@ export class DocsHistoryPage extends BasePage {
     return this.openedPage.get();
   }
 
-  historyButton() {
-    return this.get().getByTestId('nc-doc-page-history-button');
+  // ── Locators ──────────────────────────────────────────────
+
+  pageMenuButton() {
+    return this.get().getByTestId('nc-doc-page-menu-btn');
   }
 
-  historyPane() {
-    return this.get().getByTestId('nc-doc-page-history-pane');
+  historyMenuItem() {
+    return this.rootPage.getByTestId('nc-doc-page-history');
   }
 
-  historyPaneList() {
-    return this.historyPane().getByTestId('nc-doc-page-history-pane-list');
+  sidebar() {
+    return this.rootPage.getByTestId('nc-doc-history-sidebar');
   }
 
-  async clickHistoryButton() {
-    return await this.historyButton().click();
+  /** A row in the history sidebar list — one per revision. */
+  sidebarItem(revisionId: string) {
+    return this.rootPage.getByTestId(`nc-doc-history-item-${revisionId}`);
   }
 
-  async verifyHistoryOpened({ isOpened }: { isOpened: boolean }) {
-    await this.historyPane().waitFor({ state: isOpened ? 'visible' : 'hidden' });
+  sidebarItems() {
+    return this.rootPage.locator('[data-testid^="nc-doc-history-item-"]');
   }
 
-  async verifyHistoryList({
-    count,
-    items,
-  }: {
-    count?: number;
-    items?: { title: string; index: number; active?: boolean }[] | undefined;
-  }) {
-    if (count) {
-      await expect(this.historyPaneList().locator('.nc-doc-page-history-pane-list-item')).toHaveCount(count);
-    }
-
-    if (items) {
-      for (const item of items) {
-        await expect(this.historyPaneList().locator('.nc-doc-page-history-pane-list-item').nth(item.index)).toHaveText(
-          item.title
-        );
-        if (item.active) {
-          await expect(
-            this.historyPaneList().locator('.nc-doc-page-history-pane-list-item').nth(item.index)
-          ).toHaveAttribute('aria-selected', 'true');
-        }
-      }
-    }
+  restoreButton() {
+    return this.rootPage.getByTestId('nc-doc-history-restore-btn');
   }
 
-  async clickHistoryItem({ index }: { index: number }) {
-    await this.historyPaneList().locator('.nc-doc-page-history-pane-list-item').nth(index).click();
+  highlightToggle() {
+    return this.rootPage.getByTestId('nc-doc-history-highlight-toggle');
   }
 
-  async clickRestoreButton() {
-    await this.get().getByTestId('nc-docs-history-restore-button').click();
+  changeNav() {
+    return this.rootPage.getByTestId('nc-doc-history-change-nav');
   }
 
-  async clickRestoreModalConfirmButton() {
-    await this.rootPage.getByTestId('nc-docs-history-confirm-button').click();
+  nextChangeButton() {
+    return this.rootPage.getByTestId('nc-doc-history-next-change');
+  }
+
+  prevChangeButton() {
+    return this.rootPage.getByTestId('nc-doc-history-prev-change');
+  }
+
+  // ── Actions ───────────────────────────────────────────────
+
+  async openHistory() {
+    await this.pageMenuButton().click();
+    await this.historyMenuItem().click();
+    await this.verifySidebarVisible(true);
+  }
+
+  async clickRevisionAt(index: number) {
+    await this.sidebarItems().nth(index).click();
+  }
+
+  async restoreSelectedRevision() {
+    await this.restoreButton().click();
+    // NcConfirmModal — click "Restore" in the warning dialog.
+    await this.rootPage.getByRole('button', { name: 'Restore' }).last().click();
+  }
+
+  async nextChange() {
+    await this.nextChangeButton().click();
+  }
+
+  async prevChange() {
+    await this.prevChangeButton().click();
+  }
+
+  // ── Assertions ────────────────────────────────────────────
+
+  async verifySidebarVisible(visible: boolean) {
+    await this.sidebar().waitFor({ state: visible ? 'visible' : 'hidden' });
+  }
+
+  async verifyRevisionCount(count: number) {
+    await expect(this.sidebarItems()).toHaveCount(count);
+  }
+
+  async verifyChangeNavLabel(label: string) {
+    await expect(this.changeNav()).toContainText(label);
   }
 }

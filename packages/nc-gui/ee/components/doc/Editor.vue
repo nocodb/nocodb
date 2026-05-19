@@ -2275,7 +2275,12 @@ defineExpose({ editor })
           </NcButton>
         </NcTooltip>
         <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight" class="flex">
-          <NcButton size="small" type="secondary" @click.stop="isPageMenuOpen = !isPageMenuOpen">
+          <NcButton
+            size="small"
+            type="secondary"
+            data-testid="nc-doc-page-menu-btn"
+            @click.stop="isPageMenuOpen = !isPageMenuOpen"
+          >
             <GeneralIcon icon="threeDotVertical" />
           </NcButton>
           <template #overlay>

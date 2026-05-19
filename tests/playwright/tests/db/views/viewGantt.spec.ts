@@ -96,25 +96,35 @@ test.describe('Gantt View', () => {
 
     await api.dbTableRow.bulkCreate('noco', context.base.id!, tableId, seedRecords);
 
-    // Add self-ref Predecessors LTAR — required for the dep graph
-    // endpoint to return non-empty edges. Created via the v3 fields API
-    // since the v1 column API doesn't take a self-ref shape directly.
-    await page.request.post(`/api/v3/meta/bases/${context.base.id}/tables/${tableId}/fields`, {
-      headers: { 'xc-auth': context.token, 'Content-Type': 'application/json' },
-      data: {
-        title: 'Predecessors',
-        type: 'Links',
-        options: { related_table_id: tableId, relation_type: 'hm' },
-      },
+    // Add self-ref Predecessors LTAR. Uses the established v1 column-create
+    // pattern (parentId === childId === tableId, type: 'hm') — same shape
+    // dateDependency.spec.ts uses for its self-ref predecessor column. The
+    // earlier v3 fields-POST shape silently failed in CI: the dbTableColumn
+    // path goes through the well-trodden LTAR builder + guarantees the
+    // column exists when the call resolves.
+    await api.dbTableColumn.create(tableId, {
+      title: 'Predecessors',
+      uidt: UITypes.LinkToAnotherRecord,
+      parentId: tableId,
+      childId: tableId,
+      type: 'hm',
     });
 
     // Re-fetch the table to capture the new column id + cache start/end
-    // ids so later tests can configure the DateDependency rule.
+    // ids so later tests can configure the DateDependency rule. Defensive
+    // find-or-throw so a regression here surfaces with a clear message
+    // rather than the cryptic "Cannot read properties of undefined" we
+    // got from the previous version.
     const fresh = await api.dbTable.read(tableId);
-    const cols = (fresh as any).columns as Array<{ id: string; title: string }>;
-    predecessorsColId = cols.find(c => c.title === 'Predecessors')!.id;
-    startColId = cols.find(c => c.title === 'Start')!.id;
-    endColId = cols.find(c => c.title === 'End')!.id;
+    const cols = (fresh.columns ?? []) as Array<{ id: string; title: string; uidt: string }>;
+    const findCol = (title: string) => {
+      const col = cols.find(c => c.title === title);
+      if (!col?.id) throw new Error(`Setup: expected column '${title}' not found on table ${tableId}`);
+      return col.id;
+    };
+    predecessorsColId = findCol('Predecessors');
+    startColId = findCol('Start');
+    endColId = findCol('End');
 
     await page.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(1000);

@@ -1283,24 +1283,4 @@ export default class Document extends DocumentCE implements DocumentType {
 
     return { root, tree, includeSubtree };
   }
-
-  /**
-   * Fetch just the content row for a doc. Used by the public reader so we
-   * don't pay the metadata round-trip again on each navigation.
-   */
-  public static async getContentOnly(
-    context: NcContext,
-    docId: string,
-  ): Promise<Record<string, any> | null> {
-    const row = await Noco.ncDocsContent.metaGet2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.DOC_CONTENT,
-      { fk_doc_id: docId },
-      ['content'],
-    );
-    if (!row) return null;
-    const parsed = prepareForResponse(row, ['content']);
-    return parsed.content ?? null;
-  }
 }

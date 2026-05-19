@@ -101,10 +101,4 @@ export default class Document implements DocumentType {
   public static async isInPublicScope(..._args): Promise<boolean> {
     return false;
   }
-
-  public static async getContentOnly(
-    ..._args
-  ): Promise<Record<string, any> | null> {
-    return null;
-  }
 }

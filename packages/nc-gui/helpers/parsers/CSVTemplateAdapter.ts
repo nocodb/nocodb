@@ -114,7 +114,8 @@ export default class CSVTemplateAdapter {
   }
 
   detectColumnType(tableIdx: number, data: []) {
-    for (let columnIdx = 0; columnIdx < data.length; columnIdx++) {
+    const columnCount = this.headers[tableIdx]?.length ?? 0
+    for (let columnIdx = 0; columnIdx < Math.min(data.length, columnCount); columnIdx++) {
       // skip null data
       if (!data[columnIdx]) continue
       const colData: any = [data[columnIdx]]

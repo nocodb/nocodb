@@ -96,6 +96,9 @@ import { DocumentsV3Service } from '~/services/v3/documents-v3.service';
 /* Documents — public share */
 import { PublicDocsController } from '~/ee/controllers/public-docs.controller';
 import { PublicDocsService } from '~/ee/services/public-docs.service';
+/* Documents — revision history */
+import { DocumentRevisionsV3Controller } from '~/ee/controllers/v3/document-revisions-v3.controller';
+import { DocumentRevisionsV3Service } from '~/ee/services/v3/document-revisions-v3.service';
 /* Workflows V3 */
 import { WorkflowsV3Controller } from '~/controllers/v3/workflows-v3.controller';
 import { WorkflowsV3Service } from '~/services/v3/workflows-v3.service';
@@ -280,6 +283,7 @@ export const nocoModuleEeMetadata = {
     DocumentsService,
     DocumentCommentsService,
     DocumentsV3Service,
+    DocumentRevisionsV3Service,
     SmartTextService,
 
     /* Dashboards */
@@ -399,6 +403,7 @@ export const nocoModuleEeMetadata = {
 
     DocumentsV3Controller,
     PublicDocsController,
+    DocumentRevisionsV3Controller,
     WorkflowsV3Controller,
 
     Datav3Controller,

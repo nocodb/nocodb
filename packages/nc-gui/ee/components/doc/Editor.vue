@@ -976,6 +976,21 @@ const toggleCommentsPanel = () => {
   isCommentsPanelOpen.value = !isCommentsPanelOpen.value
 }
 
+// --- History sidebar state ---
+const isHistoryPanelOpen = ref(false)
+const isHistoryPreviewOpen = ref(false)
+
+const onToggleHistoryPanel = () => {
+  isHistoryPanelOpen.value = !isHistoryPanelOpen.value
+  // Mutually exclusive with the comments panel for layout sanity.
+  if (isHistoryPanelOpen.value) isCommentsPanelOpen.value = false
+  isPageMenuOpen.value = false
+}
+
+const onHistoryPreviewRevision = (revisionId: string | null) => {
+  isHistoryPreviewOpen.value = !!revisionId
+}
+
 const { showUpgradeToUseDocsInlineComments, showUpgradeToUseDocsExportPdf } = useEeConfig()
 
 const onAddInlineComment = () => {
@@ -2331,6 +2346,15 @@ defineExpose({ editor })
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMessageCircle" />
                 {{ $t('general.comments') }}
               </NcMenuItem>
+              <NcMenuItem
+                v-if="isUIAllowed('documentRevisionList')"
+                v-e="['c:doc:history:open']"
+                data-testid="nc-doc-page-history"
+                @click="onToggleHistoryPanel"
+              >
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="ncHistory" />
+                {{ $t('labels.history') }}
+              </NcMenuItem>
               <NcMenuItem v-e="['c:doc:full-width:toggle']" @click="toggleFullWidth">
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMoveHorizontal" />
                 {{ isFullWidth ? $t('labels.exitFullWidth') : $t('labels.fullWidth') }}
@@ -3021,6 +3045,15 @@ defineExpose({ editor })
          available when the doc page is open. The dispatcher renders the doc
          branch when activeDocument is set. -->
     <LazyDlgShareAndCollaborateView v-if="!embedded && !isCellMode" />
+
+    <!-- History sidebar (desktop only — modal on mobile not yet supported in v1) -->
+    <DocHistorySidebar
+      v-if="!isCellMode && isHistoryPanelOpen && !isMobileMode"
+      :doc-id="docId"
+      @close="isHistoryPanelOpen = false"
+      @preview-revision="onHistoryPreviewRevision"
+    />
+    <DocHistoryPreviewModal v-model:visible="isHistoryPreviewOpen" />
   </div>
 </template>
 

@@ -21,6 +21,8 @@ import { HookPostOperations } from '~/controllers/internal/modules/HookPost.oper
 import { HookGetOperations } from '~/controllers/internal/modules/HookGet.operations';
 import { DocumentsGetOperations } from '~/controllers/internal/modules/DocumentsGet.operations';
 import { DocumentsPostOperations } from '~/controllers/internal/modules/DocumentsPost.operations';
+import { DocumentRevisionsGetOperations } from '~/controllers/internal/modules/DocumentRevisionsGet.operations';
+import { DocumentRevisionsPostOperations } from '~/controllers/internal/modules/DocumentRevisionsPost.operations';
 import { DocumentCommentsGetOperations } from '~/controllers/internal/modules/DocumentCommentsGet.operations';
 import { DocumentCommentsPostOperations } from '~/controllers/internal/modules/DocumentCommentsPost.operations';
 import { AiDataPostOperations } from '~/controllers/internal/modules/AiDataPost.operations';
@@ -56,6 +58,8 @@ export const InternalApiModules = [
   BaseVariablePostOperations,
   DocumentsGetOperations,
   DocumentsPostOperations,
+  DocumentRevisionsGetOperations,
+  DocumentRevisionsPostOperations,
   DocumentCommentsGetOperations,
   DocumentCommentsPostOperations,
   AiDataPostOperations,

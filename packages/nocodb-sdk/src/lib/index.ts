@@ -112,6 +112,7 @@ export * from '~/lib/chat';
 export * from '~/lib/v3';
 export * from '~/lib/Document';
 export * from '~/lib/DocumentComment';
+export * from '~/lib/DocumentRevision';
 export * from '~/lib/docs';
 export * from '~/lib/entityNameValidation';
 export * from '~/lib/smartText';

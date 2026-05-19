@@ -470,6 +470,9 @@ const permissionScopes = {
     'documentShare',
     'documentUnshare',
     'documentShareUpdate',
+    'documentRevisionList',
+    'documentRevisionGet',
+    'documentRevisionRestore',
 
     // Permissions (table/field/document permissions)
     'setPermission',
@@ -916,6 +919,8 @@ const rolePermissions:
       documentList: true,
       documentListAll: true,
       documentGet: true,
+      documentRevisionList: true,
+      documentRevisionGet: true,
 
       // SmartText — read-only for viewers
       smartTextGetContent: true,
@@ -1035,6 +1040,7 @@ const rolePermissions:
       // so that document lifecycle is controlled by project admins.
       documentUpdate: true,
       documentReorder: true,
+      documentRevisionRestore: true,
 
       // SmartText — editors can update cell content
       smartTextUpdateContent: true,
@@ -1708,6 +1714,9 @@ const permissionDescriptions: Record<string, string> = {
   documentShare: 'publish a document as a public read-only link',
   documentUnshare: 'unpublish a previously shared document',
   documentShareUpdate: 'update share settings (subtree) on a shared document',
+  documentRevisionList: 'view list of document revisions',
+  documentRevisionGet: 'view a specific document revision',
+  documentRevisionRestore: 'restore a document to a prior revision',
 
   smartTextGetContent: 'read SmartText cell content',
   smartTextUpdateContent: 'update SmartText cell content',

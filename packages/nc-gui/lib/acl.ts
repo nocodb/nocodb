@@ -183,6 +183,7 @@ const rolePermissions = {
       // Documents — editors can update and reorder, but NOT create/delete
       documentUpdate: true,
       documentReorder: true,
+      documentRevisionRestore: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -217,6 +218,8 @@ const rolePermissions = {
       // Documents — read-only for viewers
       documentList: true,
       documentGet: true,
+      documentRevisionList: true,
+      documentRevisionGet: true,
 
       // Document Comments — read-only for viewers
       documentCommentList: true,

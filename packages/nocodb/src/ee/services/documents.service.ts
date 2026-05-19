@@ -22,7 +22,8 @@ import {
   getLimit,
 } from '~/helpers/paymentHelpers';
 import { assertNotSandbox } from '~/helpers/sandboxGuards';
-import { Document, FileReference, Permission } from '~/models';
+import { DocRevision, Document, FileReference, Permission } from '~/models';
+import { DocRevisionSource } from 'nocodb-sdk';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -544,6 +545,7 @@ export class DocumentsService extends DocumentsServiceCE {
     docId: string,
     payload: Partial<DocumentType>,
     req: NcRequest,
+    options?: { revisionSource?: DocRevisionSource },
   ) {
     await assertNotSandbox(
       context,
@@ -640,6 +642,32 @@ export class DocumentsService extends DocumentsServiceCE {
     }
 
     const doc = await Document.update(context, docId, payload);
+
+    // Record a revision when content or title actually changed.
+    // Coalescing (same author + within window) is handled inside DocRevision.record().
+    const contentChanged =
+      payload.content !== undefined &&
+      JSON.stringify(payload.content) !== JSON.stringify(existing.content);
+    const titleChanged =
+      payload.title !== undefined && payload.title !== existing.title;
+    if (contentChanged || titleChanged) {
+      try {
+        await DocRevision.record(context, {
+          docId,
+          version: doc.version!,
+          content: doc.content,
+          title: doc.title!,
+          createdBy: req.user.id,
+          source: options?.revisionSource ?? DocRevisionSource.AUTO,
+        });
+      } catch (e) {
+        // Don't fail the user's save if revision capture errors.
+        this.logger.error(
+          `Failed to record revision for doc ${docId}: ${e.message}`,
+          e.stack,
+        );
+      }
+    }
 
     this.appHooksService.emit(AppEvents.DOCUMENT_UPDATE, {
       context,

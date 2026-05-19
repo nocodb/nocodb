@@ -16,8 +16,12 @@ const {
   selectedRevisionContent,
   isLoadingSelected,
   isRestoring,
+  comparisonBasis,
+  comparisonContent,
+  highlightChanges,
   selectRevision,
   restoreRevision,
+  setComparisonBasis,
 } = useDocRevisions()
 
 const { isUIAllowed } = useRoles()
@@ -46,22 +50,7 @@ const sourceLabel = computed(() => {
   return 'Auto-saved'
 })
 
-// Render the PM JSON as plain text for v1. Phase-3 will swap this for a
-// read-only TipTap viewer + diff decorations.
-const previewText = computed(() => {
-  const content = selectedRevisionContent.value?.content
-  if (!content) return ''
-  return extractTextFromPM(content)
-})
-
-function extractTextFromPM(node: any): string {
-  if (!node) return ''
-  if (typeof node.text === 'string') return node.text
-  if (Array.isArray(node.content)) {
-    return node.content.map(extractTextFromPM).join(node.type === 'paragraph' ? '' : '\n')
-  }
-  return ''
-}
+const previewContent = computed(() => selectedRevisionContent.value?.content ?? null)
 
 function onClose() {
   emit('update:visible', false)
@@ -97,8 +86,8 @@ async function onRestore() {
     @cancel="onClose"
   >
     <template #header>
-      <div class="flex items-center justify-between w-full pr-2">
-        <div class="flex flex-col min-w-0">
+      <div class="flex items-center justify-between w-full pr-2 gap-3">
+        <div class="flex flex-col min-w-0 flex-1">
           <span class="font-semibold text-base text-nc-content-gray truncate">
             {{ selectedRevisionContent?.title || 'Untitled' }}
           </span>
@@ -106,18 +95,42 @@ async function onRestore() {
             {{ sourceLabel }} by {{ author }} · {{ formattedTimestamp }}
           </span>
         </div>
-        <NcButton
-          v-if="canRestore"
-          v-e="['c:doc:history:restore']"
-          size="small"
-          type="primary"
-          :loading="isRestoring"
-          data-testid="nc-doc-history-restore-btn"
-          @click="onRestore"
-        >
-          <GeneralIcon icon="ncRefreshCw" />
-          Restore
-        </NcButton>
+        <div class="flex items-center gap-2 flex-none">
+          <!-- Highlight changes toggle -->
+          <NcTooltip placement="bottom">
+            <template #title>Highlight changes</template>
+            <a-switch
+              v-model:checked="highlightChanges"
+              v-e="['c:doc:history:toggle-highlight', { enabled: highlightChanges }]"
+              size="small"
+              data-testid="nc-doc-history-highlight-toggle"
+            />
+          </NcTooltip>
+          <!-- Compare-basis selector -->
+          <NcSelect
+            :value="comparisonBasis"
+            size="small"
+            class="!w-36"
+            :options="[
+              { value: 'previous', label: 'vs Previous' },
+              { value: 'current', label: 'vs Current' },
+            ]"
+            data-testid="nc-doc-history-compare-select"
+            @change="(v: any) => setComparisonBasis(v)"
+          />
+          <NcButton
+            v-if="canRestore"
+            v-e="['c:doc:history:restore']"
+            size="small"
+            type="primary"
+            :loading="isRestoring"
+            data-testid="nc-doc-history-restore-btn"
+            @click="onRestore"
+          >
+            <GeneralIcon icon="ncRefreshCw" />
+            Restore
+          </NcButton>
+        </div>
       </div>
     </template>
 
@@ -128,8 +141,12 @@ async function onRestore() {
       <div v-else-if="!selectedRevisionContent" class="flex items-center justify-center min-h-[400px] text-nc-content-gray-subtle">
         Select a revision to preview
       </div>
-      <div v-else class="px-2 py-2 whitespace-pre-wrap text-sm text-nc-content-gray leading-relaxed">
-        {{ previewText }}
+      <div v-else class="px-4 py-3">
+        <DocHistoryViewer
+          :content="previewContent"
+          :comparison-content="comparisonContent"
+          :highlight-changes="highlightChanges"
+        />
       </div>
     </div>
   </NcModal>

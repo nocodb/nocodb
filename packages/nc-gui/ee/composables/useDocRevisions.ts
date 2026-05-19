@@ -45,6 +45,13 @@ export const useDocRevisions = createSharedComposable(() => {
   const isLoadingSelected = ref(false)
   const isRestoring = ref(false)
 
+  // Diff state — paired with the selected revision. `comparisonContent` is
+  // fetched lazily based on `comparisonBasis`. `highlightChanges` drives the
+  // toggle in the panel header.
+  const comparisonBasis = ref<'previous' | 'current'>('previous')
+  const comparisonContent = ref<Record<string, any> | null>(null)
+  const highlightChanges = ref(true)
+
   function enrich(rev: DocRevisionListItem): DocRevisionListItem {
     if (!rev.created_by || !activeProjectId.value) return rev
     const map = basesUser.value.get(activeProjectId.value)
@@ -94,16 +101,10 @@ export const useDocRevisions = createSharedComposable(() => {
     await loadRevisions(activeDocId.value, { append: true })
   }
 
-  async function selectRevision(revisionId: string | null) {
-    selectedRevisionId.value = revisionId
-    selectedRevisionContent.value = null
-
-    if (!revisionId || !activeDocId.value) return
-    if (!activeWorkspaceId.value || !activeProjectId.value) return
-
+  async function fetchRevisionContent(revisionId: string): Promise<DocRevisionFull | null> {
+    if (!activeDocId.value || !activeWorkspaceId.value || !activeProjectId.value) return null
     try {
-      isLoadingSelected.value = true
-      const res = (await $api.internal.getOperation(
+      return (await $api.internal.getOperation(
         activeWorkspaceId.value,
         activeProjectId.value,
         {
@@ -112,13 +113,75 @@ export const useDocRevisions = createSharedComposable(() => {
           revisionId,
         },
       )) as DocRevisionFull
-      selectedRevisionContent.value = res
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-      selectedRevisionId.value = null
+      return null
+    }
+  }
+
+  /**
+   * Resolve which revision to compare against, based on the current basis
+   * and the selected revision's position in the list. Returns null when no
+   * comparison is possible (e.g. oldest revision + basis=previous).
+   */
+  function resolveComparisonRevisionId(selectedId: string): string | null {
+    const idx = revisions.value.findIndex((r) => r.id === selectedId)
+    if (idx < 0) return null
+
+    if (comparisonBasis.value === 'current') {
+      // "Current" = the newest entry in the list. Don't diff against itself.
+      const current = revisions.value[0]
+      if (!current || current.id === selectedId) return null
+      return current.id
+    }
+
+    // basis === 'previous' — the chronologically older neighbor (next in
+    // the list, since it's sorted DESC). Skip when selected is the oldest.
+    const prev = revisions.value[idx + 1]
+    return prev?.id ?? null
+  }
+
+  async function refreshComparisonContent() {
+    if (!selectedRevisionId.value) {
+      comparisonContent.value = null
+      return
+    }
+    const compareId = resolveComparisonRevisionId(selectedRevisionId.value)
+    if (!compareId) {
+      comparisonContent.value = null
+      return
+    }
+    const rev = await fetchRevisionContent(compareId)
+    comparisonContent.value = rev?.content ?? null
+  }
+
+  async function selectRevision(revisionId: string | null) {
+    selectedRevisionId.value = revisionId
+    selectedRevisionContent.value = null
+    comparisonContent.value = null
+
+    if (!revisionId || !activeDocId.value) return
+
+    try {
+      isLoadingSelected.value = true
+      const res = await fetchRevisionContent(revisionId)
+      if (!res) {
+        selectedRevisionId.value = null
+        return
+      }
+      selectedRevisionContent.value = res
+      // Kick off comparison fetch in parallel — the viewer can render
+      // without it; diff highlights pop in when it lands.
+      refreshComparisonContent()
     } finally {
       isLoadingSelected.value = false
     }
+  }
+
+  function setComparisonBasis(basis: 'previous' | 'current') {
+    if (comparisonBasis.value === basis) return
+    comparisonBasis.value = basis
+    refreshComparisonContent()
   }
 
   async function restoreRevision(revisionId: string): Promise<boolean> {
@@ -157,6 +220,9 @@ export const useDocRevisions = createSharedComposable(() => {
     hasMore.value = false
     selectedRevisionId.value = null
     selectedRevisionContent.value = null
+    comparisonContent.value = null
+    comparisonBasis.value = 'previous'
+    highlightChanges.value = true
   }
 
   return {
@@ -168,10 +234,14 @@ export const useDocRevisions = createSharedComposable(() => {
     selectedRevisionContent,
     isLoadingSelected,
     isRestoring,
+    comparisonBasis,
+    comparisonContent,
+    highlightChanges,
     loadRevisions,
     loadMore,
     selectRevision,
     restoreRevision,
+    setComparisonBasis,
     reset,
     currentUserId: computed(() => user.value?.id),
   }

@@ -283,6 +283,17 @@ export class GanttDatasService {
     const source = await Source.get(context, model.source_id);
     const dbDriver = await NcConnectionMgrv2.get(source);
 
+    // Parent-table baseModel scoped to the current view — applies RLS and
+    // the view's filters. Used by both branches: directly by the FK path,
+    // and by the junction path to derive the visible PK set so the
+    // junction read only returns edges from rows the caller can see.
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view.id,
+      dbDriver,
+      source,
+    });
+
     // `om` (and `mm`) routes through an MM-style junction table even for
     // self-ref one-to-many. The "Predecessors" virtual field's
     // fk_child_column_id then points back to the parent PK — selecting it
@@ -309,10 +320,31 @@ export class GanttDatasService {
         return { edges: [] as Array<[string, string]> };
       }
 
-      // Read the junction directly. View filters can't apply here — the
-      // junction has no view scope. Sorting/limits irrelevant for graphs.
+      // Resolve the visible PK set on the parent table (RLS + view filters
+      // applied via the standard baseModel.list path). Junction tables have
+      // no RLS of their own, so reading the junction without scope would
+      // leak the existence of restricted rows via their PKs in the edges.
+      // Scoping mm_parent to the visible set mirrors the security envelope
+      // of the legacy nestedList path this endpoint replaced.
+      const visibleRows = (await baseModel.list(
+        {
+          fieldsSet: new Set<string>([pkCol.id]),
+          limitOverride: GANTT_DEPS_LIMIT,
+        },
+      )) as Array<Record<string, any>>;
+      const visiblePks = visibleRows
+        .map((r) => r?.[pkCol.title as string])
+        .filter((v) => v != null)
+        .map(String);
+
+      if (!visiblePks.length) {
+        return { edges: [] as Array<[string, string]> };
+      }
+
       // Each junction row = one edge (mm_parent, mm_child) where parent =
       // the row that "owns" the LTAR field, child = the linked row.
+      // The mm_parent IN visiblePks predicate scopes the read to edges
+      // originating from rows the user can see.
       const junctionBaseModel = await Model.getBaseModelSQL(context, {
         id: junctionModel.id,
         dbDriver,
@@ -323,7 +355,17 @@ export class GanttDatasService {
         {
           fieldsSet: new Set<string>([mmParentCol.id, mmChildCol.id]),
           limitOverride: GANTT_DEPS_LIMIT,
+          customConditions: [
+            {
+              fk_column_id: mmParentCol.id,
+              comparison_op: 'in',
+              value: visiblePks,
+              logical_op: 'and',
+            } as any,
+          ],
         },
+        // Junction has no view scope or RLS of its own — visibility is
+        // enforced via the mm_parent IN visiblePks predicate above.
         { ignoreViewFilterAndSort: true, ignoreRls: true },
       )) as Array<Record<string, any>>;
 
@@ -352,12 +394,6 @@ export class GanttDatasService {
 
     // fieldsSet override forces these two columns through the visibility
     // gate (FK column is typically `system: true` and hidden in the view).
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view.id,
-      dbDriver,
-      source,
-    });
     const fieldsSet = new Set<string>([pkCol.id, fkChildCol.id]);
 
     const rows = (await baseModel.list(

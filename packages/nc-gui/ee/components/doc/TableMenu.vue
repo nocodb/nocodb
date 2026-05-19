@@ -620,9 +620,14 @@ const onDistributeColumns = () => {
 }
 
 // --- Delete table ---
+// Menu can be opened via hover alone, so the editor selection may not be inside
+// the table. Place the cursor in a cell first so deleteTable() finds the table.
 const onDeleteTable = () => {
   menuOpen.value = null
-  editor.value.chain().focus().deleteTable().run()
+  focusCell(0, 0)
+  nextTick(() => {
+    editor.value.chain().focus().deleteTable().run()
+  })
 }
 
 // --- Toggle menu ---

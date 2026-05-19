@@ -183,106 +183,122 @@ onBeforeUnmount(() => {
   overrides — the diff-insert decoration colour and its dark-theme variant.
 -->
 <style lang="scss">
+// `@import` is deprecated but still functional — see the note at the
+// matching import in Editor.vue for why we haven't switched to `@use` yet.
 @import '../_doc-content';
 </style>
 
 <style lang="scss" scoped>
+// All decoration / widget styling is nested under `:deep(...)` because
+// `docDiffPlugin` mounts its decorations / DOM widgets at runtime inside
+// the editor's PM content root, which Vue's scoped CSS otherwise can't
+// reach with descendant selectors. `:deep()` un-scopes everything inside
+// the parens so widget DOM matches.
 .nc-doc-history-viewer :deep(.nc-doc-history-viewer-content) {
-  // Inserted text highlight. The class is applied as an inline decoration
-  // by `docDiffPlugin` to every range that's new in the previewed revision
-  // compared to the comparison basis. Background-only — no border / ring.
+  // ── Insert highlight ─────────────────────────────────────
   .nc-doc-history-diff-insert {
     background-color: rgba(34, 197, 94, 0.18);
     border-radius: 2px;
     transition: background-color 0.15s ease;
   }
-
-  // The change currently focused by the step-through nav — same shape, just
-  // a more saturated green fill so it stands out from the rest.
   .nc-doc-history-diff-insert-current {
     background-color: rgba(34, 197, 94, 0.45);
   }
-}
 
-// Inline strikethrough — used when the deletion is entirely within a single
-// block (text + marks, no paragraph/heading/list boundary crossed). Flows
-// inline with the surrounding text so a mid-paragraph deletion shows as
-// "kept ~~deleted~~ kept" instead of breaking the paragraph in two.
-//
-// Visual matches completed task-items in `_doc-content.scss`: muted-grey
-// text + grey strikethrough, sat on a very light red wash so the deletion
-// is locatable without dominating the surrounding prose.
-:global(.nc-doc-history-diff-delete) {
-  background-color: rgba(239, 68, 68, 0.08);
-  color: var(--nc-content-gray-muted);
-  text-decoration: line-through;
-  text-decoration-color: var(--nc-content-gray-disabled);
-  border-radius: 2px;
-  padding: 0 2px;
-  transition: background-color 0.15s ease;
-}
-:global(.nc-doc-history-diff-delete-current) {
-  background-color: rgba(239, 68, 68, 0.22);
-}
+  // ── Inline-strike delete (within a single block) ─────────
+  // Muted-grey text + grey strikethrough on a very light red wash —
+  // matches the completed-task style in `_doc-content.scss`.
+  .nc-doc-history-diff-delete {
+    background-color: rgba(239, 68, 68, 0.08);
+    color: var(--nc-content-gray-muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--nc-content-gray-disabled);
+    border-radius: 2px;
+    padding: 0 2px;
+    transition: background-color 0.15s ease;
+  }
+  .nc-doc-history-diff-delete-current {
+    background-color: rgba(239, 68, 68, 0.22);
+  }
 
-[theme='dark'] :global(.nc-doc-history-diff-delete) {
-  background-color: rgba(239, 68, 68, 0.14);
-}
-[theme='dark'] :global(.nc-doc-history-diff-delete-current) {
-  background-color: rgba(239, 68, 68, 0.3);
-}
+  // ── Block-callout delete (crosses block boundaries) ──────
+  // Re-uses the partial's `.nc-doc-editor-content.ProseMirror` styles
+  // for the inner body so lists / tables / headings render correctly.
+  .nc-doc-history-deleted-block {
+    background-color: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.18);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    display: block;
+    user-select: none;
 
-// Deleted-content callout. Rendered as a Decoration.widget at the position
-// in the new doc where content was removed; the inner body re-uses the
-// shared `_doc-content` styles via the `nc-doc-editor-content.ProseMirror`
-// class so lists / tables / headings inside render identically to the
-// live editor. Not :deep-scoped because the widget is a child of the PM
-// content root but its class lives outside Vue's scope-attribute tree.
-:global(.nc-doc-history-deleted-block) {
-  background-color: rgba(239, 68, 68, 0.06);
-  border: 1px solid rgba(239, 68, 68, 0.18);
-  border-radius: 6px;
-  padding: 10px 14px;
-  margin: 8px 0;
-  display: block;
-  user-select: none; // header non-interactive in v1; body keeps default
+    &.nc-doc-history-deleted-block-current {
+      background-color: rgba(239, 68, 68, 0.14);
+      border-color: rgba(239, 68, 68, 0.42);
+    }
+  }
 
-  // The currently-focused deleted block — saturated red, same pattern as
-  // insertion's currently-focused state.
-  &.nc-doc-history-deleted-block-current {
-    background-color: rgba(239, 68, 68, 0.14);
-    border-color: rgba(239, 68, 68, 0.42);
+  .nc-doc-history-deleted-block-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgb(220, 38, 38);
+    margin-bottom: 6px;
+  }
+
+  .nc-doc-history-deleted-block-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    background-color: rgba(239, 68, 68, 0.2);
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .nc-doc-history-deleted-block-body {
+    user-select: text;
+
+    // The partial draws table borders in `var(--nc-border-gray-medium)`,
+    // which washes out against the red callout. Override with darker,
+    // collapsed borders inside the callout so cells stay legible.
+    table {
+      border-collapse: collapse !important;
+      border-spacing: 0;
+      border: 1px solid var(--nc-border-gray-dark, #9ca3af) !important;
+      border-radius: 4px !important;
+      margin: 8px 0 !important;
+      width: 100%;
+    }
+    table td,
+    table th {
+      border: 1px solid var(--nc-border-gray-dark, #9ca3af) !important;
+      padding: 6px 8px !important;
+      vertical-align: top;
+      // Empty cells collapse to zero height because DOMSerializer emits
+      // `<p></p>` without PM's trailing-break placeholder. A min cell
+      // height keeps the table readable even when the deleted snapshot
+      // had blank cells. `height` on a table-cell acts as min-height.
+      height: 32px;
+    }
+    table td p:empty,
+    table th p:empty {
+      min-height: 1em;
+    }
+    table th {
+      background-color: rgba(255, 255, 255, 0.5) !important;
+      font-weight: 600;
+      text-align: left;
+    }
   }
 }
 
-:global(.nc-doc-history-deleted-block-header) {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 500;
-  color: rgb(220, 38, 38);
-  margin-bottom: 6px;
-}
-
-:global(.nc-doc-history-deleted-block-icon) {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  background-color: rgba(239, 68, 68, 0.2);
-  font-size: 11px;
-  line-height: 1;
-}
-
-// Re-enable user selection on the deleted content body itself (the wrapper
-// disables it to keep the header inert).
-:global(.nc-doc-history-deleted-block-body) {
-  user-select: text;
-}
-
+// ── Dark theme overrides ─────────────────────────────────
 [theme='dark'] .nc-doc-history-viewer :deep(.nc-doc-history-viewer-content) {
   .nc-doc-history-diff-insert {
     background-color: rgba(34, 197, 94, 0.28);
@@ -290,17 +306,22 @@ onBeforeUnmount(() => {
   .nc-doc-history-diff-insert-current {
     background-color: rgba(34, 197, 94, 0.6);
   }
-}
-
-[theme='dark'] :global(.nc-doc-history-deleted-block) {
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
-  &.nc-doc-history-deleted-block-current {
-    background-color: rgba(239, 68, 68, 0.22);
-    border-color: rgba(239, 68, 68, 0.55);
+  .nc-doc-history-diff-delete {
+    background-color: rgba(239, 68, 68, 0.14);
   }
-}
-[theme='dark'] :global(.nc-doc-history-deleted-block-header) {
-  color: rgb(248, 113, 113);
+  .nc-doc-history-diff-delete-current {
+    background-color: rgba(239, 68, 68, 0.3);
+  }
+  .nc-doc-history-deleted-block {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    &.nc-doc-history-deleted-block-current {
+      background-color: rgba(239, 68, 68, 0.22);
+      border-color: rgba(239, 68, 68, 0.55);
+    }
+  }
+  .nc-doc-history-deleted-block-header {
+    color: rgb(248, 113, 113);
+  }
 }
 </style>

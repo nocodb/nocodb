@@ -3638,6 +3638,10 @@ defineExpose({ editor })
 
 // Content rendering styles for the .nc-doc-editor-content.ProseMirror root
 // live in a shared partial so the read-only history Viewer renders identically.
+// We still use `@import` here (deprecated but functional) — `@use` requires
+// being at the top of the file, which would mean reshuffling ~500 lines of
+// chrome styles that need to render BEFORE the content rules cascade in.
+// Revisit when Sass 3.0 lands and `@import` actually breaks.
 @import './_doc-content';
 
 // Paste link embed popup

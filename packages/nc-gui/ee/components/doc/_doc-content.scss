@@ -13,10 +13,15 @@
     -webkit-box-decoration-break: clone;
   }
 
-  min-height: 60px;
-  font-size: 0.95rem;
-  line-height: 1.7;
-  color: var(--nc-content-gray);
+  // Declarations on the parent selector must be wrapped in `& {}` when they
+  // follow a nested rule — silences Sass's mixed-decls deprecation and
+  // matches the CSS-native ordering rules that Sass will enforce next major.
+  & {
+    min-height: 60px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--nc-content-gray);
+  }
 
   ::selection {
     background: color-mix(in srgb, var(--nc-fill-primary) 35%, transparent);
@@ -426,20 +431,25 @@
   // `useTheme()` puts on `<html>`. Light palette = GitHub Light, dark
   // palette = GitHub Dark — both familiar to developers and well-tuned
   // for contrast.
-  --nc-code-block-bg: #f6f8fa;
-  --nc-code-block-text: #24292f;
-  --nc-code-block-keyword: #d73a49;
-  --nc-code-block-title: #6f42c1;
-  --nc-code-block-attr: #005cc5;
-  --nc-code-block-string: #032f62;
-  --nc-code-block-built-in: #e36209;
-  --nc-code-block-comment: #6a737d;
-  --nc-code-block-name: #22863a;
-  --nc-code-block-section: #005cc5;
-  --nc-code-block-toolbar-bg: rgba(0, 0, 0, 0.05);
-  --nc-code-block-toolbar-bg-hover: rgba(0, 0, 0, 0.1);
-  --nc-code-block-toolbar-fg: rgba(0, 0, 0, 0.55);
-  --nc-code-block-toolbar-fg-hover: rgba(0, 0, 0, 0.85);
+  //
+  // Wrapped in `& {}` because these declarations follow nested rules at
+  // the same level — see Sass's mixed-decls deprecation.
+  & {
+    --nc-code-block-bg: #f6f8fa;
+    --nc-code-block-text: #24292f;
+    --nc-code-block-keyword: #d73a49;
+    --nc-code-block-title: #6f42c1;
+    --nc-code-block-attr: #005cc5;
+    --nc-code-block-string: #032f62;
+    --nc-code-block-built-in: #e36209;
+    --nc-code-block-comment: #6a737d;
+    --nc-code-block-name: #22863a;
+    --nc-code-block-section: #005cc5;
+    --nc-code-block-toolbar-bg: rgba(0, 0, 0, 0.05);
+    --nc-code-block-toolbar-bg-hover: rgba(0, 0, 0, 0.1);
+    --nc-code-block-toolbar-fg: rgba(0, 0, 0, 0.55);
+    --nc-code-block-toolbar-fg-hover: rgba(0, 0, 0, 0.85);
+  }
 
   pre {
     code {

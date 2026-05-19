@@ -81,6 +81,13 @@ const coverImageSrc = computed(() => {
   return refId ? buildAttachmentUrl(refId) : ''
 })
 
+// Resolve the icon to show in the topbar. Prefer the active doc's icon
+// (loaded with content); fall back to the tree node so the chrome renders
+// the right glyph between the meta and content requests.
+const topbarIcon = computed(
+  () => activeContent.value?.icon ?? activeNode.value?.icon ?? meta.value?.root?.icon ?? null,
+)
+
 const editorInstance = computed<any>(() => docEditorRef.value?.editor ?? undefined)
 
 const { downloadMarkdown } = useDocumentExport({
@@ -190,7 +197,21 @@ watch(
           </template>
 
           <div v-else class="text-sm font-semibold truncate flex gap-2 items-center">
-            <GeneralIcon icon="ncFileText" class="!w-4 !h-4 ml-0.5 text-nc-content-gray-subtle" />
+            <!-- Prefer the active doc's icon (loaded with content) and fall
+                 back to the tree node's icon so the chrome renders before
+                 the content request resolves. Same component the in-app
+                 editor uses, so emoji rendering stays consistent. -->
+            <LazyGeneralEmojiPicker
+              :key="topbarIcon ?? ''"
+              :emoji="topbarIcon ?? undefined"
+              :readonly="true"
+              size="xsmall"
+              class="!text-[16px]"
+            >
+              <template #default>
+                <GeneralIcon icon="ncFileText" class="!w-4 !h-4 ml-0.5 text-nc-content-gray-subtle" />
+              </template>
+            </LazyGeneralEmojiPicker>
             <span class="truncate">{{ activeContent?.title || activeNode?.title || meta?.root?.title || $t('general.untitled') }}</span>
           </div>
         </div>
@@ -262,7 +283,17 @@ watch(
           :data-testid="`nc-shared-doc-tree-${row.node.id}`"
           @click="navigateToDoc(row.node.id)"
         >
-          <GeneralIcon icon="ncFileText" class="!w-3.5 !h-3.5 text-nc-content-gray-subtle" />
+          <LazyGeneralEmojiPicker
+            :key="row.node.icon ?? ''"
+            :emoji="row.node.icon ?? undefined"
+            :readonly="true"
+            size="xsmall"
+            class="!text-[14px]"
+          >
+            <template #default>
+              <GeneralIcon icon="ncFileText" class="!w-3.5 !h-3.5 text-nc-content-gray-subtle" />
+            </template>
+          </LazyGeneralEmojiPicker>
           <span class="truncate text-bodySm">{{ row.node.title }}</span>
         </div>
       </aside>

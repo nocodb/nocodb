@@ -957,6 +957,7 @@ export default class Document extends DocumentCE implements DocumentType {
       parent_id: string | null;
       order: number;
       has_children: boolean;
+      icon: string | null;
     }>
   > {
     const rootNode = {
@@ -965,12 +966,17 @@ export default class Document extends DocumentCE implements DocumentType {
       parent_id: null as string | null,
       order: root.order ?? 0,
       has_children: !!root.has_children,
+      // Emoji / icon-name lives on doc.meta.icon — surface it so the
+      // shared sidebar + topbar render the same icon as the in-app editor.
+      icon: (root.meta as any)?.icon ?? null,
     };
 
     const includeSubtree = !!(root.meta as any)?.share?.include_subtree;
     if (!includeSubtree) return [rootNode];
 
     // BFS over parent_id within the same base, soft-deleted excluded.
+    // `meta` is fetched alongside structural fields so descendant nodes
+    // can carry their icon to the client.
     const collected: Record<string, any>[] = [];
     let frontier: string[] = [root.id];
 
@@ -995,6 +1001,7 @@ export default class Document extends DocumentCE implements DocumentType {
             'parent_id',
             'order',
             'has_children',
+            'meta',
           ],
         },
       );
@@ -1008,16 +1015,32 @@ export default class Document extends DocumentCE implements DocumentType {
 
     return [
       rootNode,
-      ...collected.map((c) => ({
-        id: c.id as string,
-        title: (c.title as string) || 'Untitled',
-        // Anchor descendants of the root under "null" so the root stays the
-        // tree root from the consumer's perspective — the parent_id chain
-        // above the root would otherwise leak.
-        parent_id: c.parent_id === root.parent_id ? null : c.parent_id,
-        order: (c.order as number) ?? 0,
-        has_children: !!c.has_children,
-      })),
+      ...collected.map((c) => {
+        // metaList2 returns `meta` as a JSON string (raw column value);
+        // parse defensively so callers can read fields directly.
+        const meta =
+          typeof c.meta === 'string'
+            ? (() => {
+                try {
+                  return JSON.parse(c.meta);
+                } catch {
+                  return {};
+                }
+              })()
+            : c.meta ?? {};
+
+        return {
+          id: c.id as string,
+          title: (c.title as string) || 'Untitled',
+          // Anchor descendants of the root under "null" so the root stays the
+          // tree root from the consumer's perspective — the parent_id chain
+          // above the root would otherwise leak.
+          parent_id: c.parent_id === root.parent_id ? null : c.parent_id,
+          order: (c.order as number) ?? 0,
+          has_children: !!c.has_children,
+          icon: (meta as any)?.icon ?? null,
+        };
+      }),
     ];
   }
 
@@ -1063,6 +1086,7 @@ export default class Document extends DocumentCE implements DocumentType {
       parent_id: string | null;
       order: number;
       has_children: boolean;
+      icon: string | null;
     }>;
     includeSubtree: boolean;
   } | null> {

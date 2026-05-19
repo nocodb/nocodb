@@ -36,6 +36,12 @@ export interface PublicDocNode {
   parent_id: string | null;
   order: number;
   has_children: boolean;
+  /**
+   * Emoji or icon-name string from `doc.meta.icon`. Null when unset.
+   * Surfaced on every node so the sidebar tree and topbar can render the
+   * same icon the in-app editor shows.
+   */
+  icon: string | null;
 }
 
 /** Response shape for GET /api/v2/public/shared-doc/:uuid/meta */

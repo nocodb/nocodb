@@ -67,6 +67,7 @@ export class PublicDocsService {
         parent_id: null,
         order: root.order ?? 0,
         has_children: !!root.has_children,
+        icon: (root.meta as any)?.icon ?? null,
       },
       tree,
       include_subtree: includeSubtree,

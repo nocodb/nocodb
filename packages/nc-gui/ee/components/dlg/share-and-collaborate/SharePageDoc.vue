@@ -58,7 +58,7 @@ const toggleShare = async () => {
       )
       $e('c:doc:share:disable')
       patchDoc({ uuid: null })
-      message.success(t('msg.info.docShareDisabled'))
+      message.toast(t('msg.info.docShareDisabled'))
     } else {
       const res = (await $api.internal.postOperation(
         activeWorkspaceId.value!,
@@ -70,7 +70,7 @@ const toggleShare = async () => {
       const meta = { ...(activeDocument.value.meta ?? {}) } as any
       meta.share = { include_subtree: res.include_subtree }
       patchDoc({ uuid: res.uuid, meta })
-      message.success(t('msg.info.docShareEnabled'))
+      message.toast(t('msg.info.docShareEnabled'))
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

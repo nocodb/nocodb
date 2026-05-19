@@ -87,6 +87,11 @@ const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
 const { showShareModal } = storeToRefs(useShare())
 
 const openShareModal = () => {
+  // Close the page menu first so it doesn't sit behind the share dialog
+  // (the menu is anchored to the topbar and would otherwise overlap the
+  // upper-right of the modal). Matches the pattern used by the download /
+  // full-width / delete handlers below.
+  isPageMenuOpen.value = false
   showShareModal.value = true
 }
 

@@ -63,14 +63,23 @@ const updatedAgo = computed(() => {
 const docEditorRef = ref<{ editor: any } | null>(null)
 const docTitle = computed(() => activeContent.value?.title || activeNode.value?.title || '')
 
-// Build the absolute attachment URL for the markdown export. Mirrors the
-// public proxy URL pattern useDocumentImageUpload uses for <img src>.
+// Build the absolute attachment URL for the markdown export and the cover
+// banner. Mirrors the public proxy URL pattern useDocumentImageUpload uses
+// for inline <img src>.
 const buildAttachmentUrl = (fileRefId: string) => {
   const base = appInfo.value?.ncSiteUrl?.replace(/\/$/, '') ?? ''
   if (!uuid.value || !activeDocId.value || !fileRefId) return ''
   const qs = password.value ? `?xc-password=${encodeURIComponent(password.value)}` : ''
   return `${base}/api/v2/public/shared-doc/${uuid.value}/doc/${activeDocId.value}/attachment/${encodeURIComponent(fileRefId)}${qs}`
 }
+
+// In-app DocEditor renders the cover image in doc mode only — the public
+// reader runs the editor in cell mode, so we render the cover here instead
+// to keep the shared chrome (cover + icon + title + subtitle) consistent.
+const coverImageSrc = computed(() => {
+  const refId = activeContent.value?.cover_image_file_ref_id
+  return refId ? buildAttachmentUrl(refId) : ''
+})
 
 const editorInstance = computed<any>(() => docEditorRef.value?.editor ?? undefined)
 
@@ -263,10 +272,20 @@ watch(
           {{ $t('general.loading') }}…
         </div>
         <template v-else-if="activeContent">
+          <!-- Cover banner — mirrors DocEditor's doc-mode cover (full-width
+               240px image). Editor renders the cover only in doc mode and
+               the public reader runs the editor in cell mode, so we draw
+               the banner ourselves above the title row. -->
+          <div v-if="coverImageSrc" class="nc-shared-doc-cover" data-testid="nc-shared-doc-cover">
+            <img :src="coverImageSrc" class="nc-shared-doc-cover-image" alt="" />
+          </div>
           <!-- Title row mirrors DocEditor's inner container (max-w 900 + px-10)
                so it aligns with the prose body below, and uses the same icon
                + title + updated-ago shape DocEditor renders in doc mode. -->
-          <div class="max-w-[900px] mx-auto px-10 pt-12 pb-4">
+          <div
+            class="max-w-[900px] mx-auto px-10 pb-4"
+            :class="coverImageSrc ? 'pt-8' : 'pt-12'"
+          >
             <div class="nc-doc-title-row flex items-center">
               <div class="nc-doc-editor-icon-wrapper">
                 <LazyGeneralEmojiPicker
@@ -320,5 +339,23 @@ watch(
 
 .nc-shared-doc-tree-row {
   user-select: none;
+}
+
+// Match DocEditor's cover styling (240px banner, cover-fit). Kept in sync
+// with .nc-doc-cover / .nc-doc-cover-image so doc and shared views feel
+// the same.
+.nc-shared-doc-cover {
+  width: 100%;
+  height: 240px;
+  min-height: 240px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.nc-shared-doc-cover-image {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  object-position: center;
 }
 </style>

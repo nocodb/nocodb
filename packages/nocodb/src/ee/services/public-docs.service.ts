@@ -111,6 +111,12 @@ export class PublicDocsService {
       id: doc.id,
       title: doc.title || 'Untitled',
       icon: (doc.meta as any)?.icon ?? null,
+      // The cover image is stored on the doc as a FileReference id; the
+      // reader rebuilds the URL through the public attachment proxy, same
+      // path as inline images. The proxy validates fk_doc_id, so a cover
+      // ref leaked into the wrong doc still 404s.
+      cover_image_file_ref_id:
+        (doc.meta as any)?.cover_image_file_ref_id ?? null,
       content: doc.content ?? { type: 'doc', content: [{ type: 'paragraph' }] },
       updated_at: doc.updated_at,
     };

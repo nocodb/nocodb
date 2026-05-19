@@ -56,6 +56,12 @@ export interface PublicDocContentResponse {
   title: string;
   /** Emoji or icon-name string from `doc.meta.icon`. Null when unset. */
   icon: string | null;
+  /**
+   * FileReference id of the cover image. Null when the doc has no cover.
+   * The reader builds the absolute URL by appending it to the public
+   * attachment proxy path (same flow as inline images).
+   */
+  cover_image_file_ref_id: string | null;
   content: Record<string, any>;
   updated_at: string;
 }

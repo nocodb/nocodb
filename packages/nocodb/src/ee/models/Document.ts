@@ -1,4 +1,5 @@
 import { ModelTypes } from 'nocodb-sdk';
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
 import { v4 as uuidv4 } from 'uuid';
 import DocumentCE from 'src/models/Document';
@@ -856,6 +857,36 @@ export default class Document extends DocumentCE implements DocumentType {
     const existing = await this.getMeta(context, docId, ncMeta);
     if (!existing) NcError.get(context).genericNotFound('Document', docId);
 
+    // Refuse to share docs with custom visibility. An explicit
+    // DOCUMENT_VISIBILITY row means the owner restricted who can see this
+    // doc inside the workspace; publishing it publicly would bypass that
+    // restriction by handing anyone-with-the-URL the same view the owner
+    // tried to block. The check is direct (explicit row on this doc only)
+    // — inherited restrictions from ancestors aren't tested here because
+    // the user-facing flag (`has_visibility_permission`) maps 1:1 to the
+    // explicit row, and the rule stays predictable: reset the doc's own
+    // visibility to default, then share.
+    //
+    // Raw ncMeta query (no Permission model) is intentional — Permission
+    // already imports Document, so importing it back would close a
+    // circular reference. The lookup is one-shot per share toggle, so
+    // skipping the cached list is fine.
+    const visibilityPermission = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PERMISSIONS,
+      {
+        entity: PermissionEntity.DOCUMENT,
+        entity_id: docId,
+        permission: PermissionKey.DOCUMENT_VISIBILITY,
+      },
+    );
+    if (visibilityPermission) {
+      NcError.get(context).forbidden(
+        'This document has custom visibility permissions. Reset visibility to default to enable public sharing.',
+      );
+    }
+
     if (!existing.uuid) {
       const uuid = uuidv4();
       const currentMeta = existing.meta ?? {};
@@ -1002,6 +1033,47 @@ export default class Document extends DocumentCE implements DocumentType {
         fields: ['id', 'title', 'parent_id', 'order', 'has_children', 'meta'],
       },
     );
+
+    // Drop children with explicit DOCUMENT_VISIBILITY permissions —
+    // they're excluded from the public share, and so are their
+    // descendants. The pruning happens naturally: the frontend only
+    // calls /children/:parentId once a node appears in the tree, and
+    // we never surface a restricted node here, so deeper levels are
+    // never requested. The corresponding `isInPublicScope` guard on
+    // /content + /attachment + /children prevents direct-URL bypass.
+    //
+    // Raw ncMeta query (no Permission model) to avoid the circular
+    // import — Permission already imports Document. Permissions are
+    // base-scoped and cheap to list per call; if this becomes a hot
+    // path we can co-load into the share-scope cache.
+    if (rows.length) {
+      const visibilityRows = await ncMeta.metaList2(
+        root.fk_workspace_id,
+        root.base_id,
+        MetaTable.PERMISSIONS,
+        {
+          condition: {
+            base_id: root.base_id,
+            entity: PermissionEntity.DOCUMENT,
+            permission: PermissionKey.DOCUMENT_VISIBILITY,
+          },
+          xcCondition: {
+            entity_id: { in: rows.map((r: any) => r.id as string) },
+          },
+          fields: ['entity_id'],
+        },
+      );
+      if (visibilityRows.length) {
+        const restricted = new Set<string>(
+          (visibilityRows as Array<{ entity_id: string }>).map(
+            (p) => p.entity_id,
+          ),
+        );
+        for (let i = rows.length - 1; i >= 0; i--) {
+          if (restricted.has(rows[i].id as string)) rows.splice(i, 1);
+        }
+      }
+    }
 
     return rows.map((c: any) => {
       // metaList2 returns `meta` as a JSON string (raw column value); parse

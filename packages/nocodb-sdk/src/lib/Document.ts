@@ -17,6 +17,15 @@ export interface DocumentType {
   comment_count?: number;
   /** True when the document has explicit (non-default) permissions set */
   has_permissions?: boolean;
+  /**
+   * True when the document has an explicit `document_visibility` permission
+   * row. Public sharing is blocked when this is true: anonymous access
+   * would bypass the owner's per-role/user restriction, contradicting the
+   * intent of setting custom visibility. Surfaced separately from
+   * `has_permissions` because edit-only permissions don't affect read-only
+   * public share.
+   */
+  has_visibility_permission?: boolean;
   /** Public share UUID — when set, the doc is publicly accessible at /doc/<uuid>. */
   uuid?: string | null;
   /**

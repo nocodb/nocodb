@@ -3510,6 +3510,8 @@
       "viewPasswordNotVisibleAfterSave": "For security, this password won't be shown again after saving. Make sure to store it somewhere safe.",
       "docShareEnabled": "Public sharing enabled",
       "docShareDisabled": "Public sharing disabled",
+      "docShareBlockedByVisibility": "This document has custom visibility permissions. Reset visibility to default to enable public sharing.",
+      "docShareSubtreeExcludesRestricted": "Sub-pages with custom visibility permissions are excluded from this public share.",
       "trashEmpty": "Trash is empty",
       "variableKeyImmutable": "Key cannot be changed after creation",
       "variableSetupHint": "Set values for the variables required by this base. Required fields must be configured for full functionality.",

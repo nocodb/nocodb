@@ -21,6 +21,17 @@ const isUpdating = ref({
 
 const restrictedSharing = computed(() => isPrivateBase.value)
 
+// Public sharing is blocked when the doc has custom DOCUMENT_VISIBILITY
+// permissions. The owner deliberately restricted who can see this doc
+// inside the workspace; handing the world a public URL would bypass that
+// restriction. Backend share endpoint enforces the same rule — this flag
+// is purely UX so the toggle can be disabled up-front instead of failing
+// after the user clicks. Edit-only permissions don't block; only
+// visibility (`has_visibility_permission`) matters here.
+const isBlockedByVisibility = computed(
+  () => !!activeDocument.value?.has_visibility_permission,
+)
+
 const isPublicShared = computed(() => {
   if (restrictedSharing.value) return false
   return !!activeDocument.value?.uuid
@@ -110,8 +121,20 @@ const toggleSubtree = async () => {
         <div class="text-nc-content-gray-emphasis font-medium">
           {{ $t('activity.enabledPublicViewing') }}
         </div>
+        <NcTooltip
+          v-if="!restrictedSharing && isBlockedByVisibility"
+          :title="$t('msg.info.docShareBlockedByVisibility')"
+          placement="left"
+        >
+          <a-switch
+            :checked="false"
+            disabled
+            class="share-doc-toggle !mt-0.25"
+            data-testid="share-doc-toggle"
+          />
+        </NcTooltip>
         <a-switch
-          v-if="!restrictedSharing"
+          v-else-if="!restrictedSharing"
           v-e="['c:share:doc:enable:toggle']"
           :checked="isPublicShared"
           :loading="isUpdating.public"
@@ -120,6 +143,17 @@ const toggleSubtree = async () => {
           @click="toggleShare"
         />
         <div v-else class="text-nc-content-gray-muted">{{ $t('labels.sharingRestricted') }}</div>
+      </div>
+
+      <!-- Inline notice when the toggle is blocked by custom visibility,
+           so the reason is visible without hovering the disabled switch. -->
+      <div
+        v-if="!restrictedSharing && isBlockedByVisibility"
+        class="flex flex-row items-start gap-x-2 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md text-nc-content-gray-subtle"
+        data-testid="nc-share-doc-blocked-notice"
+      >
+        <GeneralIcon icon="info" class="flex-none !w-3.5 !h-3.5 mt-0.5" />
+        <div class="flex-1 text-bodySm">{{ $t('msg.info.docShareBlockedByVisibility') }}</div>
       </div>
 
       <template v-if="isPublicShared">
@@ -142,6 +176,19 @@ const toggleSubtree = async () => {
               size="small"
               @click="toggleSubtree"
             />
+          </div>
+          <!-- Note: backend skips sub-pages (and their descendants) with
+               custom visibility permissions when subtree is on. Surface
+               that to the owner so the public manifest size isn't a
+               surprise. Sits inside the same panel so the relationship
+               is clear. -->
+          <div
+            v-if="includeSubtree"
+            class="flex flex-row items-start gap-x-2 mt-2 text-nc-content-gray-subtle"
+            data-testid="nc-share-doc-subtree-note"
+          >
+            <GeneralIcon icon="info" class="flex-none !w-3.5 !h-3.5 mt-0.5" />
+            <div class="flex-1 text-bodySm">{{ $t('msg.info.docShareSubtreeExcludesRestricted') }}</div>
           </div>
         </div>
       </template>

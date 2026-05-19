@@ -170,6 +170,12 @@ export default class Document extends DocumentCE implements DocumentType {
     parentId: string | null | undefined = null,
     ncMeta = Noco.ncMeta,
   ) {
+    // `uuid` is fetched here so the share-state survives a sidebar refresh.
+    // The docs store rebuilds its in-memory map from these lite rows, and
+    // SharePageDoc reads `activeDocument.uuid` to decide whether the public-
+    // viewing toggle is on — without it, the toggle would flip back to off
+    // every time the sidebar reloads even though the DB row still has the
+    // uuid. Password stays out (bcrypt hash, not needed for UI state).
     const liteFields = [
       'id',
       'base_id',
@@ -180,6 +186,7 @@ export default class Document extends DocumentCE implements DocumentType {
       'parent_id',
       'has_children',
       'doc_version',
+      'uuid',
       'created_by',
       'updated_by',
       'created_at',
@@ -225,6 +232,12 @@ export default class Document extends DocumentCE implements DocumentType {
   ) {
     if (!parentIds.length) return [];
 
+    // `uuid` is fetched here so the share-state survives a sidebar refresh.
+    // The docs store rebuilds its in-memory map from these lite rows, and
+    // SharePageDoc reads `activeDocument.uuid` to decide whether the public-
+    // viewing toggle is on — without it, the toggle would flip back to off
+    // every time the sidebar reloads even though the DB row still has the
+    // uuid. Password stays out (bcrypt hash, not needed for UI state).
     const liteFields = [
       'id',
       'base_id',
@@ -235,6 +248,7 @@ export default class Document extends DocumentCE implements DocumentType {
       'parent_id',
       'has_children',
       'doc_version',
+      'uuid',
       'created_by',
       'updated_by',
       'created_at',
@@ -280,6 +294,12 @@ export default class Document extends DocumentCE implements DocumentType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
+    // `uuid` is fetched here so the share-state survives a sidebar refresh.
+    // The docs store rebuilds its in-memory map from these lite rows, and
+    // SharePageDoc reads `activeDocument.uuid` to decide whether the public-
+    // viewing toggle is on — without it, the toggle would flip back to off
+    // every time the sidebar reloads even though the DB row still has the
+    // uuid. Password stays out (bcrypt hash, not needed for UI state).
     const liteFields = [
       'id',
       'base_id',
@@ -290,6 +310,7 @@ export default class Document extends DocumentCE implements DocumentType {
       'parent_id',
       'has_children',
       'doc_version',
+      'uuid',
       'created_by',
       'updated_by',
       'created_at',

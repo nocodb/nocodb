@@ -149,7 +149,7 @@ export class DocumentsV3Controller {
     @TenantContext() context: NcContext,
     @Param('docId') docId: string,
     @Body()
-    body: { password?: string | null; include_subtree?: boolean },
+    body: { include_subtree?: boolean },
   ) {
     await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
     return await this.documentsV3Service.docShareUpdate(

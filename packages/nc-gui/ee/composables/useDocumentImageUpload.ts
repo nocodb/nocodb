@@ -55,14 +55,12 @@ export function useDocumentImageUpload() {
     if (!fileRefId) return ''
 
     // Public-share viewer: no auth context, route through the UUID-gated
-    // public endpoint. Password (if set) rides in the query since <img> can't
-    // send headers.
+    // public endpoint.
     const pub = publicShare?.value
     if (pub?.sharedDocUuid && pub?.docId) {
-      const qs = pub.password ? `?xc-password=${encodeURIComponent(pub.password)}` : ''
-      return `${appInfo.value.ncSiteUrl}/api/v2/public/shared-doc/${
-        pub.sharedDocUuid
-      }/doc/${pub.docId}/attachment/${encodeURIComponent(fileRefId)}${qs}`
+      return `${appInfo.value.ncSiteUrl}/api/v2/public/shared-doc/${pub.sharedDocUuid}/doc/${
+        pub.docId
+      }/attachment/${encodeURIComponent(fileRefId)}`
     }
 
     const baseId = base?.value?.id

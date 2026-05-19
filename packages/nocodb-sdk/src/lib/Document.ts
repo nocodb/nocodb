@@ -19,7 +19,11 @@ export interface DocumentType {
   has_permissions?: boolean;
   /** Public share UUID — when set, the doc is publicly accessible at /doc/<uuid>. */
   uuid?: string | null;
-  /** Stored password hash (bcrypt) — masked with sentinel when returned to clients. */
+  /**
+   * Stored share password. Reserved on the schema (shared column with view
+   * share) — not exposed via any docs API in Phase 1. Kept on the type so
+   * a future re-enable doesn't need a migration or type changes.
+   */
   password?: string | null;
 }
 
@@ -29,8 +33,27 @@ export interface DocumentShareMeta {
   include_subtree?: boolean;
 }
 
-/** Lightweight node in the subtree manifest returned by the public share API. */
-export interface PublicDocNode {
+/**
+ * Typed accessor for `doc.meta.share`. Returns an empty share-meta object
+ * when the doc is unshared or the field is missing, so callers can read
+ * fields like `getDocShareMeta(doc.meta).include_subtree` without
+ * repeating optional-chain + `as any` casts at each site.
+ */
+export function getDocShareMeta(
+  meta?: Record<string, any> | null,
+): DocumentShareMeta {
+  const share = (meta as { share?: DocumentShareMeta } | null | undefined)
+    ?.share;
+  return share ?? {};
+}
+
+/**
+ * Lightweight node in the initial public-share tree. Same shape as a child
+ * node except `parent_id` can be null — the share root is re-anchored to
+ * null so the frontend tree walker (starts at parent_id=null) treats it as
+ * the visible root regardless of its DB position.
+ */
+export interface PublicDocTreeNode {
   id: string;
   title: string;
   parent_id: string | null;
@@ -44,17 +67,36 @@ export interface PublicDocNode {
   icon: string | null;
 }
 
+/**
+ * Direct-child node returned by the lazy children endpoint. parent_id is
+ * always a real doc id — never null — since children are only fetched for
+ * a specific parent under the share.
+ */
+export interface PublicDocChildNode extends PublicDocTreeNode {
+  parent_id: string;
+}
+
+/** @deprecated Use {@link PublicDocTreeNode} or {@link PublicDocChildNode}. */
+export type PublicDocNode = PublicDocTreeNode;
+
 /** Response shape for GET /api/v2/public/shared-doc/:uuid/meta */
 export interface PublicDocMetaResponse {
   /** Root doc (the one whose UUID was used to access the share). */
-  root: PublicDocNode;
-  /** Subtree manifest — empty array when share is not scoped to descendants. */
-  tree: PublicDocNode[];
+  root: PublicDocTreeNode;
+  /**
+   * Initial visible tree — share root + its direct children. Deeper levels
+   * are fetched lazily via `/children/:parentDocId` on expand. Empty array
+   * (just the root) when descendants are not part of the share.
+   */
+  tree: PublicDocTreeNode[];
   /** Whether descendants are part of the share. */
   include_subtree: boolean;
   base: { id: string; title: string };
   workspace?: { id: string; title: string };
 }
+
+/** Response shape for GET /api/v2/public/shared-doc/:uuid/children/:parentDocId */
+export type PublicDocChildrenResponse = PublicDocChildNode[];
 
 /** Response shape for GET /api/v2/public/shared-doc/:uuid/doc/:docId/content */
 export interface PublicDocContentResponse {
@@ -62,6 +104,19 @@ export interface PublicDocContentResponse {
   title: string;
   /** Emoji or icon-name string from `doc.meta.icon`. Null when unset. */
   icon: string | null;
+  /**
+   * Tree-shape fields, mirroring what `documentGet` exposes in-app — the
+   * public reader walks the parent chain via this endpoint (same flow as
+   * `useDocumentsStore.expandToDocument`), so each `/content` response also
+   * carries enough metadata to place the doc into the sidebar tree.
+   *
+   * The share root is re-anchored to `parent_id=null` (matches the initial
+   * manifest), so a deep-linked walk that hits the root finds the tree root
+   * without leaking the doc's position under any non-shared ancestor.
+   */
+  parent_id: string | null;
+  order: number;
+  has_children: boolean;
   /**
    * FileReference id of the cover image. Null when the doc has no cover.
    * The reader builds the absolute URL by appending it to the public

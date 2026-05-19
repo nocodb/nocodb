@@ -1,67 +1,46 @@
-import type { PublicDocContentResponse, PublicDocMetaResponse } from 'nocodb-sdk'
+import type { PublicDocChildNode, PublicDocChildrenResponse, PublicDocContentResponse, PublicDocMetaResponse } from 'nocodb-sdk'
 
 /**
  * Public reader composable for shared docs. Sibling to useSharedView — owns:
- *   - manifest fetch (root + subtree titles), gated by optional password
+ *   - initial manifest fetch (root + direct children)
+ *   - lazy children fetch on sidebar expand
  *   - per-doc content fetch on navigation
- *   - password handshake (HTTP 403 → reveal password input)
  *
- * Not exported as createSharedComposable: each public-doc page mount gets a
- * fresh instance so navigating between two shared links doesn't leak state.
+ * Plain `ref` so each `/doc/<uuid>` page mount gets a fresh instance and two
+ * concurrent shares opened in separate tabs don't share state.
  */
 export function useSharedDoc() {
   const { appInfo } = useGlobal()
 
-  const meta = useState<PublicDocMetaResponse | null>('shared-doc-meta', () => null)
-  const activeContent = useState<PublicDocContentResponse | null>('shared-doc-content', () => null)
+  const meta = ref<PublicDocMetaResponse | null>(null)
+  const activeContent = ref<PublicDocContentResponse | null>(null)
   const isLoading = ref(false)
-  const requiresPassword = ref(false)
-  // Any non-password failure on /meta or /content (revoked share, 404, 5xx,
-  // network) flips this to true so the page can render the same not-found
-  // empty state shared-view shows on broken view URLs.
+  // Any failure on /meta or /content (revoked share, 404, 5xx, network) flips
+  // this to true so the page can render the same not-found empty state
+  // shared-view shows on broken view URLs.
   const notFound = ref(false)
-  const password = useState<string | undefined>('shared-doc-password', () => undefined)
 
-  const setPassword = (val: string | undefined) => {
-    password.value = val
-  }
+  // Lazy-load bookkeeping for the sidebar tree. Mirrors the in-app docs
+  // store's loadedParentIds / loadingParentIds so the public reader expands
+  // nodes the same way the authed sidebar does.
+  const loadedParentIds = ref<Set<string>>(new Set())
+  const loadingParentIds = ref<Set<string>>(new Set())
 
-  // Returns true when the error is the password-required signal (403 +
-  // ERR_INVALID_SHARED_VIEW_PASSWORD). Anything else is treated as
-  // "share is gone" by the caller.
-  const isPasswordRequiredError = (e: any) => {
-    const status = e?.response?.status ?? e?.status
-    const body = e?.response?._data ?? e?.data
-    return (
-      status === 403 ||
-      body?.error === 'ERR_INVALID_SHARED_VIEW_PASSWORD' ||
-      /password/i.test(body?.message ?? '')
-    )
-  }
-
-  const baseUrl = computed(
-    () => appInfo.value?.ncSiteUrl?.replace(/\/$/, '') ?? '',
-  )
-
-  const buildHeaders = () =>
-    password.value ? { 'xc-password': password.value } : undefined
+  const baseUrl = computed(() => appInfo.value?.ncSiteUrl?.replace(/\/$/, '') ?? '')
 
   const loadMeta = async (uuid: string): Promise<boolean> => {
     isLoading.value = true
     try {
-      const res = await $fetch<PublicDocMetaResponse>(
-        `${baseUrl.value}/api/v2/public/shared-doc/${uuid}/meta`,
-        { headers: buildHeaders() as any },
-      )
+      const res = await $fetch<PublicDocMetaResponse>(`${baseUrl.value}/api/v2/public/shared-doc/${uuid}/meta`)
       meta.value = res
-      requiresPassword.value = false
+      // The root's direct children are part of the initial manifest, so
+      // mark the root as already loaded — no follow-up /children call when
+      // the user expands it.
+      loadedParentIds.value = new Set([res.root.id])
+      loadingParentIds.value = new Set()
       notFound.value = false
       return true
-    } catch (e: any) {
-      if (isPasswordRequiredError(e)) {
-        requiresPassword.value = true
-        return false
-      }
+    } catch {
       // Revoked share, bad uuid, 5xx, network — surface the same generic
       // empty state shared-view uses instead of an infinite spinner.
       notFound.value = true
@@ -74,18 +53,11 @@ export function useSharedDoc() {
   const loadDoc = async (uuid: string, docId: string): Promise<boolean> => {
     isLoading.value = true
     try {
-      const res = await $fetch<PublicDocContentResponse>(
-        `${baseUrl.value}/api/v2/public/shared-doc/${uuid}/doc/${docId}/content`,
-        { headers: buildHeaders() as any },
-      )
+      const res = await $fetch<PublicDocContentResponse>(`${baseUrl.value}/api/v2/public/shared-doc/${uuid}/doc/${docId}/content`)
       activeContent.value = res
       notFound.value = false
       return true
-    } catch (e: any) {
-      if (isPasswordRequiredError(e)) {
-        requiresPassword.value = true
-        return false
-      }
+    } catch {
       notFound.value = true
       return false
     } finally {
@@ -93,15 +65,88 @@ export function useSharedDoc() {
     }
   }
 
+  /**
+   * Fetch direct children of `parentDocId` and merge them into `meta.tree`.
+   * No-op if children for that parent are already loaded or currently
+   * loading. Errors are swallowed because expanding a node shouldn't tear
+   * down the page — the user just sees an empty branch.
+   */
+  const loadChildren = async (uuid: string, parentDocId: string): Promise<void> => {
+    if (!meta.value) return
+    if (loadedParentIds.value.has(parentDocId)) return
+    if (loadingParentIds.value.has(parentDocId)) return
+
+    loadingParentIds.value = new Set([...loadingParentIds.value, parentDocId])
+    try {
+      const children = await $fetch<PublicDocChildrenResponse>(
+        `${baseUrl.value}/api/v2/public/shared-doc/${uuid}/children/${parentDocId}`,
+      )
+      if (ncIsArray(children) && meta.value) {
+        const existingIds = new Set(meta.value.tree.map((n) => n.id))
+        const fresh = (children as PublicDocChildNode[]).filter((c) => !existingIds.has(c.id))
+        if (fresh.length) {
+          meta.value = { ...meta.value, tree: [...meta.value.tree, ...fresh] }
+        }
+      }
+      loadedParentIds.value = new Set([...loadedParentIds.value, parentDocId])
+    } catch {
+      // Leave the parent un-loaded so a future retry (e.g. collapse + expand)
+      // can re-fetch. Don't tip into the page-wide notFound state — one
+      // expansion failing is recoverable.
+    } finally {
+      const next = new Set(loadingParentIds.value)
+      next.delete(parentDocId)
+      loadingParentIds.value = next
+    }
+  }
+
+  const isLoadingChildren = (parentDocId: string) => loadingParentIds.value.has(parentDocId)
+  const areChildrenLoaded = (parentDocId: string) => loadedParentIds.value.has(parentDocId)
+
+  /**
+   * Fetch a single doc's tree-shape metadata via `/content`, without touching
+   * `activeContent`. Mirrors the in-app `documentGet` call used inside
+   * `useDocumentsStore.expandToDocument` — the public reader uses this to
+   * walk the parent chain on deep-link so the sidebar can pre-expand the
+   * path to the active sub-document. Returns `null` on 404 / 5xx so callers
+   * can stop the walk without tearing down the page.
+   *
+   * Adds the fetched node to `meta.tree` (de-duped) so the sidebar tree
+   * walker can render it once siblings are loaded.
+   */
+  const fetchDocInfo = async (uuid: string, docId: string): Promise<PublicDocChildNode | null> => {
+    if (!meta.value) return null
+    try {
+      const res = await $fetch<PublicDocContentResponse>(`${baseUrl.value}/api/v2/public/shared-doc/${uuid}/doc/${docId}/content`)
+      const node: PublicDocChildNode = {
+        id: res.id,
+        title: res.title || 'Untitled',
+        icon: res.icon ?? null,
+        // The share root is re-anchored to null server-side; cast keeps the
+        // PublicDocChildNode shape (non-null parent_id) for non-root docs.
+        parent_id: (res.parent_id ?? null) as unknown as string,
+        order: res.order ?? 0,
+        has_children: !!res.has_children,
+      }
+      if (meta.value && !meta.value.tree.some((n) => n.id === node.id)) {
+        meta.value = { ...meta.value, tree: [...meta.value.tree, node] }
+      }
+      return node
+    } catch {
+      return null
+    }
+  }
+
   return {
     meta,
     activeContent,
     isLoading,
-    requiresPassword,
     notFound,
-    password,
-    setPassword,
     loadMeta,
     loadDoc,
+    loadChildren,
+    fetchDocInfo,
+    isLoadingChildren,
+    areChildrenLoaded,
   }
 }

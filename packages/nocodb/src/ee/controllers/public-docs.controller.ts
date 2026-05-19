@@ -1,13 +1,5 @@
 import path from 'path';
-import {
-  Controller,
-  Get,
-  Header,
-  Param,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Header, Param, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
@@ -16,12 +8,12 @@ import { AttachmentsService } from '~/services/attachments.service';
 import { PresignedUrl } from '~/models';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { isPreviewAllowed, localFileExists } from '~/helpers/attachmentHelpers';
-import { NcContext, NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 
 /**
  * Public reader endpoints for shared docs. Mirrors PublicMetasController for
- * views — UUID is the bearer credential, optional xc-password header gates
- * password-protected shares.
+ * views — UUID is the bearer credential. Docs do not support password
+ * protection.
  *
  * The `X-Robots-Tag: noindex, nofollow` header on every response is the
  * Phase-1 indexing posture. Phase 2 will introduce a toggle and the header
@@ -54,55 +46,59 @@ export class PublicDocsController {
   @Header('X-Robots-Tag', 'noindex, nofollow')
   async docMetaGet(
     @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
     @Param('sharedDocUuid') sharedDocUuid: string,
   ) {
-    return await this.publicDocsService.docMetaGet(context, {
-      password: (req.headers?.['xc-password'] as string) ?? '',
-      sharedDocUuid,
-    });
+    return await this.publicDocsService.docMetaGet(context, { sharedDocUuid });
   }
 
   @Get('/api/v2/public/shared-doc/:sharedDocUuid/doc/:docId/content')
   @Header('X-Robots-Tag', 'noindex, nofollow')
   async docContentGet(
     @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
     @Param('sharedDocUuid') sharedDocUuid: string,
     @Param('docId') docId: string,
   ) {
     return await this.publicDocsService.docContentGet(context, {
-      password: (req.headers?.['xc-password'] as string) ?? '',
       sharedDocUuid,
       docId,
     });
   }
 
   /**
-   * Public-share attachment proxy. Anonymous: gated by the UUID + optional
-   * password (query param `xc-password` since `<img>` can't send headers).
-   * Streams local files or redirects to a signed URL on external storage.
+   * Lazy children fetch — returns the direct children of `parentDocId`
+   * inside the share. The reader sidebar calls this when the user expands
+   * a node, mirroring the in-app `documentList(parent_id=docId)` pattern.
+   */
+  @Get('/api/v2/public/shared-doc/:sharedDocUuid/children/:parentDocId')
+  @Header('X-Robots-Tag', 'noindex, nofollow')
+  async docChildrenGet(
+    @TenantContext() context: NcContext,
+    @Param('sharedDocUuid') sharedDocUuid: string,
+    @Param('parentDocId') parentDocId: string,
+  ) {
+    return await this.publicDocsService.docChildrenGet(context, {
+      sharedDocUuid,
+      parentDocId,
+    });
+  }
+
+  /**
+   * Public-share attachment proxy. Anonymous: gated by the UUID. Streams
+   * local files or redirects to a signed URL on external storage.
    */
   @Get('/api/v2/public/shared-doc/:sharedDocUuid/doc/:docId/attachment/:fileId')
   @Header('X-Robots-Tag', 'noindex, nofollow')
   async docAttachmentGet(
     @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
     @Param('sharedDocUuid') sharedDocUuid: string,
     @Param('docId') docId: string,
     @Param('fileId') fileRefId: string,
     @Res() res: Response,
   ) {
-    const password =
-      (req.headers?.['xc-password'] as string) ??
-      (req.query?.['xc-password'] as string) ??
-      '';
-
     const { fileUrl } = await this.publicDocsService.docAttachmentGet(context, {
       sharedDocUuid,
       docId,
       fileRefId,
-      password,
     });
 
     return this.serveAttachment(fileUrl, res);
@@ -150,7 +146,11 @@ export class PublicDocsController {
         return res.status(404).send('File not found');
       }
 
-      res.setHeader('Cache-Control', 'public, max-age=86400, immutable');
+      // 5 minutes — short enough that revoking the share takes effect
+      // quickly, long enough to soak up the burst of <img> requests a single
+      // page render fires. Aligned with the external-storage redirect path
+      // above so both backends behave the same after unshare.
+      res.setHeader('Cache-Control', 'public, max-age=300');
 
       if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
         res.sendFile(file.path);

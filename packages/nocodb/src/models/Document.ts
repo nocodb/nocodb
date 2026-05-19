@@ -19,7 +19,10 @@ export default class Document implements DocumentType {
   comment_count?: number;
   /** Public-share UUID — when set, the doc is publicly accessible via /doc/<uuid>. */
   uuid?: string | null;
-  /** Stored share password (bcrypt hash). Masked with sentinel when returned to clients. */
+  /**
+   * Stored share password. Reserved on the schema (shared column with view
+   * share) — not exposed via any docs API in Phase 1.
+   */
   password?: string | null;
 
   constructor(doc: Document | DocumentType) {
@@ -87,19 +90,21 @@ export default class Document implements DocumentType {
     return null;
   }
 
-  public static async verifyPassword(..._args): Promise<boolean> {
-    return false;
-  }
-
-  public static maskPasswordForResponse<T>(doc: T): T {
-    return doc;
-  }
-
-  public static async getPublicSubtree(..._args): Promise<any[]> {
+  public static async getPublicInitialTree(..._args): Promise<any[]> {
     return [];
   }
 
-  public static async getContentOnly(..._args): Promise<Record<string, any> | null> {
+  public static async getPublicChildren(..._args): Promise<any[]> {
+    return [];
+  }
+
+  public static async isInPublicScope(..._args): Promise<boolean> {
+    return false;
+  }
+
+  public static async getContentOnly(
+    ..._args
+  ): Promise<Record<string, any> | null> {
     return null;
   }
 }

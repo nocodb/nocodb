@@ -183,9 +183,8 @@ export const SmartTextCellAttachmentInj: InjectionKey<Ref<{ tableId: string; col
 /**
  * Public-share attachment context. Provided by the anonymous shared-doc reader
  * page so attachment nodes know to build URLs against the public endpoint
- * (gated by sharedDocUuid + optional password) instead of the auth-protected
- * proxy. Null in normal (authenticated) editor contexts.
+ * (gated by sharedDocUuid) instead of the auth-protected proxy. Null in
+ * normal (authenticated) editor contexts.
  */
-export const PublicDocShareInj: InjectionKey<
-  Ref<{ sharedDocUuid: string; docId: string; password?: string } | null>
-> = Symbol('public-doc-share-injection')
+export const PublicDocShareInj: InjectionKey<Ref<{ sharedDocUuid: string; docId: string } | null>> =
+  Symbol('public-doc-share-injection')

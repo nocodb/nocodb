@@ -222,7 +222,7 @@ export type InternalPOSTResponseType = Promise<
   | { job_id: string }
   | { pm: ProseMirrorDoc | null; markdown: string | null }
   | UndoRedoResult
-  | { uuid: string | null; include_subtree: boolean; password: boolean }
+  | { uuid: string | null; include_subtree: boolean }
 >;
 
 export interface InternalApiModule<

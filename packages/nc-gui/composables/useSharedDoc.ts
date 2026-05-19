@@ -8,23 +8,25 @@ export function useSharedDoc() {
   const meta = ref<PublicDocMetaResponse | null>(null)
   const activeContent = ref<PublicDocContentResponse | null>(null)
   const isLoading = ref(false)
-  const requiresPassword = ref(false)
   const notFound = ref(false)
-  const password = ref<string | undefined>(undefined)
 
   const loadMeta = async (..._args: any[]) => {}
   const loadDoc = async (..._args: any[]) => {}
-  const setPassword = (..._args: any[]) => {}
+  const loadChildren = async (..._args: any[]) => {}
+  const fetchDocInfo = async (..._args: any[]) => null
+  const isLoadingChildren = (..._args: any[]) => false
+  const areChildrenLoaded = (..._args: any[]) => false
 
   return {
     meta,
     activeContent,
     isLoading,
-    requiresPassword,
     notFound,
-    password,
     loadMeta,
     loadDoc,
-    setPassword,
+    loadChildren,
+    fetchDocInfo,
+    isLoadingChildren,
+    areChildrenLoaded,
   }
 }

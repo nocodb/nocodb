@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PublicDocNode } from 'nocodb-sdk'
+import type { PublicDocTreeNode } from 'nocodb-sdk'
 
 /**
  * Public reader for shared docs (/doc/<uuid>).
@@ -8,8 +8,7 @@ import type { PublicDocNode } from 'nocodb-sdk'
  * the doc content for the currently-selected node. Subtree navigation is
  * driven by a `?p=<docId>` query param so deep-links to descendants work.
  *
- * Anonymous-friendly: no auth, no headers required unless the share is
- * password-protected.
+ * Anonymous-friendly: no auth, no headers required.
  */
 
 definePageMeta({
@@ -30,28 +29,66 @@ const {
   meta,
   activeContent,
   isLoading,
-  requiresPassword,
   notFound,
-  password,
-  setPassword,
   loadMeta,
   loadDoc,
+  loadChildren,
+  fetchDocInfo,
+  isLoadingChildren,
+  areChildrenLoaded,
 } = useSharedDoc()
 
-const passwordInput = ref('')
-const passwordError = ref(false)
-
-const renderableTree = computed<PublicDocNode[]>(() => meta.value?.tree ?? [])
+const renderableTree = computed<PublicDocTreeNode[]>(() => meta.value?.tree ?? [])
 
 // Map for quick title lookup when rendering breadcrumbs / titles.
 const nodesById = computed(() => {
-  const m = new Map<string, PublicDocNode>()
+  const m = new Map<string, PublicDocTreeNode>()
   for (const n of renderableTree.value) m.set(n.id, n)
   return m
 })
 
-const activeNode = computed(() =>
-  activeDocId.value ? nodesById.value.get(activeDocId.value) : null,
+const activeNode = computed(() => (activeDocId.value ? nodesById.value.get(activeDocId.value) : null))
+
+// Tracks which nodes are expanded in the sidebar. Mirrors the in-app docs
+// store's expandedDocIds — children are fetched lazily on expand, so a
+// node is "expanded" in the UI sense even before its children arrive.
+const expandedDocIds = ref<Set<string>>(new Set())
+
+// Reset expansion state and seed with the new root whenever the share root
+// changes (navigating between two /doc/<uuid> pages reuses this component,
+// so state from the previous share would otherwise leak into the next).
+// Root is expanded by default — its children come with the initial manifest.
+watch(
+  () => meta.value?.root?.id,
+  (id) => {
+    expandedDocIds.value = id ? new Set([id]) : new Set()
+  },
+)
+
+// Auto-expand the active doc and all its ancestors in the sidebar so a
+// deep-link or in-page navigation reveals the path from the share root.
+// Mirrors useDocumentsStore.expandToDocument — limited to ancestors present
+// in the tree we already fetched (initial manifest + lazy-loaded children).
+watch(
+  [activeDocId, renderableTree],
+  ([id, tree]) => {
+    if (!id || !tree?.length) return
+    const byId = new Map<string, PublicDocTreeNode>()
+    for (const n of tree) byId.set(n.id, n)
+
+    const node = byId.get(id)
+    const next = new Set(expandedDocIds.value)
+    if (node?.has_children) next.add(id)
+    let cursor: string | null = node?.parent_id ?? null
+    while (cursor) {
+      next.add(cursor)
+      cursor = byId.get(cursor)?.parent_id ?? null
+    }
+    if (next.size !== expandedDocIds.value.size) {
+      expandedDocIds.value = next
+    }
+  },
+  { immediate: true },
 )
 
 const sidebarVisible = computed(() => !!meta.value?.include_subtree && renderableTree.value.length > 1)
@@ -70,8 +107,7 @@ const docTitle = computed(() => activeContent.value?.title || activeNode.value?.
 const buildAttachmentUrl = (fileRefId: string) => {
   const base = appInfo.value?.ncSiteUrl?.replace(/\/$/, '') ?? ''
   if (!uuid.value || !activeDocId.value || !fileRefId) return ''
-  const qs = password.value ? `?xc-password=${encodeURIComponent(password.value)}` : ''
-  return `${base}/api/v2/public/shared-doc/${uuid.value}/doc/${activeDocId.value}/attachment/${encodeURIComponent(fileRefId)}${qs}`
+  return `${base}/api/v2/public/shared-doc/${uuid.value}/doc/${activeDocId.value}/attachment/${encodeURIComponent(fileRefId)}`
 }
 
 // In-app DocEditor renders the cover image in doc mode only — the public
@@ -85,9 +121,7 @@ const coverImageSrc = computed(() => {
 // Resolve the icon to show in the topbar. Prefer the active doc's icon
 // (loaded with content); fall back to the tree node so the chrome renders
 // the right glyph between the meta and content requests.
-const topbarIcon = computed(
-  () => activeContent.value?.icon ?? activeNode.value?.icon ?? meta.value?.root?.icon ?? null,
-)
+const topbarIcon = computed(() => activeContent.value?.icon ?? activeNode.value?.icon ?? meta.value?.root?.icon ?? null)
 
 const editorInstance = computed<any>(() => docEditorRef.value?.editor ?? undefined)
 
@@ -101,19 +135,8 @@ const { downloadMarkdown } = useDocumentExport({
 // attachment URLs through the public endpoint instead of the authed one.
 provide(
   PublicDocShareInj,
-  computed(() =>
-    uuid.value && activeDocId.value
-      ? { sharedDocUuid: uuid.value, docId: activeDocId.value, password: password.value }
-      : null,
-  ),
+  computed(() => (uuid.value && activeDocId.value ? { sharedDocUuid: uuid.value, docId: activeDocId.value } : null)),
 )
-
-const submitPassword = async () => {
-  setPassword(passwordInput.value)
-  passwordError.value = false
-  const ok = await loadMeta(uuid.value)
-  if (!ok) passwordError.value = true
-}
 
 const navigateToDoc = (docId: string) => {
   router.replace({
@@ -122,29 +145,81 @@ const navigateToDoc = (docId: string) => {
 }
 
 // Direct children of the currently-displayed doc — drives the Notion-style
-// "Sub documents" panel at the bottom of the body. Same shape as the in-app
-// DocSubDocumentsList component (components/doc/SubDocumentsList.vue) but
-// sourced from the share-scope tree we already fetched, so it works
-// anonymously. Empty when subtree share is off or the active doc is a leaf.
-const subDocs = computed<PublicDocNode[]>(() => {
+// "Sub documents" panel at the bottom of the body. Sourced from the
+// share-scope tree we already fetched (initial manifest + anything the user
+// has expanded so far). Empty when subtree share is off, the active doc is
+// a leaf, or its children haven't been lazy-loaded yet.
+const subDocs = computed<PublicDocTreeNode[]>(() => {
   const id = activeDocId.value
   if (!id) return []
-  return renderableTree.value
-    .filter((n) => n.parent_id === id)
-    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  return renderableTree.value.filter((n) => n.parent_id === id).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 })
 
-// Build a flat sidebar with simple indentation by parent_id depth. Anything
-// fancier (collapsible nodes, drag, etc.) can come later — this is the
-// minimum needed for navigation.
+// Auto-load children of the currently-viewed doc so the sub-documents panel
+// fills in even when the user navigates without expanding the sidebar.
+watch(activeDocId, (id) => {
+  if (!id || !uuid.value) return
+  if (areChildrenLoaded(id)) return
+  const node = nodesById.value.get(id)
+  // Skip the call for known leaf nodes to avoid a 200 + empty array on
+  // every leaf navigation. For unknown nodes (deep links / descendants
+  // not yet pulled into the tree), fetch optimistically — the backend
+  // returns an empty array for leaves and 404s anything out of scope.
+  if (node && !node.has_children) return
+  loadChildren(uuid.value, id)
+})
+
+// Deep-link path resolver — mirrors useDocumentsStore.expandToDocument over
+// the public API. When the active doc isn't yet in the tree (the URL points
+// at a sub-document the initial manifest didn't include), walk up from its
+// parent_id by repeatedly hitting /content (the public-reader equivalent of
+// in-app's `documentGet`); merge each ancestor into the tree and lazy-load
+// its children so siblings at every depth render in the sidebar.
+watch([activeContent, () => meta.value?.root?.id], async ([content, rootId]) => {
+  if (!content || !rootId || !uuid.value) return
+  if (content.id === rootId) return
+
+  const parentIdsToLoadChildren: string[] = []
+  let cursor: string | null = content.parent_id ?? null
+
+  // Walk up the parent chain. Stop at the share root (already in the
+  // initial manifest) or when an ancestor is missing / out of scope.
+  let depth = 0
+  while (cursor && cursor !== rootId && depth < 64) {
+    depth += 1
+    let node = nodesById.value.get(cursor)
+    if (!node) {
+      const fetched = await fetchDocInfo(uuid.value, cursor)
+      if (!fetched) break
+      node = fetched
+    }
+    parentIdsToLoadChildren.push(cursor)
+    cursor = (node.parent_id as string | null) ?? null
+  }
+
+  // Always pull in siblings of the active doc — its immediate parent's
+  // children include the active doc itself, which is how the active row
+  // makes it into the tree when it wasn't in the initial manifest.
+  if (content.parent_id) parentIdsToLoadChildren.push(content.parent_id)
+
+  const unique = [...new Set(parentIdsToLoadChildren)]
+  await Promise.all(unique.map((pid) => loadChildren(uuid.value, pid)))
+})
+
+// Build a flat sidebar walking from the share root only — descendants of
+// collapsed nodes are hidden, and an "expanded" parent whose children
+// aren't loaded yet still renders as expanded (with no rows underneath) so
+// the spinner can sit on the chevron while loadChildren resolves.
 interface TreeRow {
-  node: PublicDocNode
+  node: PublicDocTreeNode
   depth: number
 }
 
 const sidebarRows = computed<TreeRow[]>(() => {
-  const rows: TreeRow[] = []
-  const childrenByParent = new Map<string | null, PublicDocNode[]>()
+  const rootId = meta.value?.root?.id
+  if (!rootId) return []
+
+  const childrenByParent = new Map<string | null, PublicDocTreeNode[]>()
   for (const n of renderableTree.value) {
     const key = n.parent_id ?? null
     const list = childrenByParent.get(key) ?? []
@@ -155,17 +230,34 @@ const sidebarRows = computed<TreeRow[]>(() => {
     list.sort((a, b) => (a.order || 0) - (b.order || 0))
   }
 
+  const rows: TreeRow[] = []
   const walk = (parent: string | null, depth: number) => {
     const kids = childrenByParent.get(parent) ?? []
     for (const k of kids) {
       rows.push({ node: k, depth })
-      walk(k.id, depth + 1)
+      if (expandedDocIds.value.has(k.id)) walk(k.id, depth + 1)
     }
   }
-
   walk(null, 0)
   return rows
 })
+
+const toggleExpand = async (docId: string) => {
+  if (!uuid.value) return
+  const next = new Set(expandedDocIds.value)
+  if (next.has(docId)) {
+    next.delete(docId)
+    expandedDocIds.value = next
+    return
+  }
+  next.add(docId)
+  expandedDocIds.value = next
+  // Fetch children if not already loaded. loadChildren itself is a no-op
+  // when the parent's children are cached or in flight.
+  if (!areChildrenLoaded(docId)) {
+    await loadChildren(uuid.value, docId)
+  }
+}
 
 watch(
   uuid,
@@ -179,10 +271,10 @@ watch(
 watch(
   activeDocId,
   async (id) => {
-    // Skip content fetch when we're still waiting on password OR when the
-    // meta call already 404'd — otherwise we'd fire a second request that
-    // overwrites the not-found state with a no-op load.
-    if (!id || requiresPassword.value || notFound.value || !uuid.value) return
+    // Skip content fetch when the meta call already 404'd — otherwise we'd
+    // fire a second request that overwrites the not-found state with a
+    // no-op load.
+    if (!id || notFound.value || !uuid.value) return
     await loadDoc(uuid.value, id)
   },
   { immediate: true },
@@ -235,7 +327,9 @@ watch(
                 <GeneralIcon icon="ncFileText" class="!w-4 !h-4 ml-0.5 text-nc-content-gray-subtle" />
               </template>
             </LazyGeneralEmojiPicker>
-            <span class="truncate">{{ activeContent?.title || activeNode?.title || meta?.root?.title || $t('general.untitled') }}</span>
+            <span class="truncate">{{
+              activeContent?.title || activeNode?.title || meta?.root?.title || $t('general.untitled')
+            }}</span>
           </div>
         </div>
       </div>
@@ -244,7 +338,7 @@ watch(
         <DashboardMiniSidebarTheme placement="bottom" render-as-btn />
 
         <NcButton
-          v-if="activeContent && !requiresPassword"
+          v-if="activeContent"
           v-e="['c:doc:share:download:markdown']"
           size="xs"
           type="secondary"
@@ -259,70 +353,83 @@ watch(
       </div>
     </div>
 
-    <!-- Password gate -->
-    <div
-      v-if="requiresPassword"
-      class="flex-1 flex items-center justify-center px-4"
-      data-testid="nc-shared-doc-password-gate"
-    >
-      <div class="w-full max-w-sm flex flex-col gap-3 p-6 rounded-lg border-1 border-nc-border-gray-medium">
-        <div class="flex items-center gap-2">
-          <GeneralIcon icon="ncLock" class="text-nc-content-gray-subtle" />
-          <div class="font-medium">{{ $t('msg.info.docShareEnterPassword') }}</div>
-        </div>
-        <a-input-password
-          v-model:value="passwordInput"
-          :placeholder="$t('placeholder.password.enter')"
-          autocomplete="current-password"
-          data-testid="nc-shared-doc-password-input"
-          @press-enter="submitPassword"
-        />
-        <div v-if="passwordError" class="text-bodySm text-nc-content-red-dark">
-          {{ $t('msg.error.invalidPassword') }}
-        </div>
-        <NcButton
-          type="primary"
-          :disabled="!passwordInput"
-          data-testid="nc-shared-doc-password-submit"
-          @click="submitPassword"
-        >
-          {{ $t('general.continue') }}
-        </NcButton>
-      </div>
-    </div>
-
     <!-- Main split: sidebar + content -->
-    <div v-else class="flex-1 flex min-h-0">
+    <div class="flex-1 flex min-h-0">
       <aside
         v-if="sidebarVisible"
         class="nc-shared-doc-sidebar shrink-0 w-64 border-r-1 border-nc-border-gray-light overflow-y-auto p-2"
       >
-        <!-- Row metrics mirror the in-app sidebar (Dashboard/TreeView/Documents/Node.vue):
-             min/max-h-7 + py-0.5 for the 28px line height, text-bodyDefaultSm + font-medium for
-             the 13px/500 type ramp, gap-1 with a w-6/h-6 icon wrapper for icon alignment. -->
+        <!-- Mirror the in-app sidebar row (Dashboard/TreeView/Documents/Node.vue):
+             same 28px row (min/max-h-7 + py-0.5), 13px/500 type ramp,
+             24px icon wrapper with a hover-only chevron overlay, indent ramp of
+             8 + min(depth, 8)*8 px, and active state in brand-tinted text +
+             bg-primary-selected. The chevron-on-hover hit-target toggles
+             expansion; everywhere else on the row navigates. -->
         <div
           v-for="row in sidebarRows"
           :key="row.node.id"
-          class="nc-shared-doc-tree-row !rounded-md !py-0.5 !min-h-7 !max-h-7 !my-0.5 select-none text-nc-content-gray-subtle text-bodyDefaultSm font-medium flex items-center gap-1 cursor-pointer hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle)"
-          :class="{ 'bg-nc-bg-gray-light text-nc-content-gray-emphasis': row.node.id === activeDocId }"
-          :style="{ paddingInlineStart: `${row.depth * 12 + 8}px`, paddingInlineEnd: '8px' }"
+          class="nc-shared-doc-tree-row group !rounded-md !py-0.5 !min-h-7 !max-h-7 !my-0.5 select-none text-nc-content-gray-subtle text-bodyDefaultSm font-medium flex items-center gap-1 cursor-pointer hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) transition-all ease-in duration-100"
+          :class="{ active: row.node.id === activeDocId }"
+          :style="{
+            // Mirrors the in-app drag-drop indent unit (List.vue INDENT_PX = 24)
+            // so a depth-1 row sits ~24px deeper than its parent, matching what
+            // the in-app sidebar shows on the screen.
+            paddingInlineStart: `${8 + Math.min(row.depth, 8) * 24}px`,
+            paddingInlineEnd: '3px',
+          }"
           :data-testid="`nc-shared-doc-tree-${row.node.id}`"
           @click="navigateToDoc(row.node.id)"
         >
-          <div class="flex items-center justify-center min-w-6 h-6 flex-none">
-            <LazyGeneralEmojiPicker
-              :key="row.node.icon ?? ''"
-              :emoji="row.node.icon ?? undefined"
-              :readonly="true"
-              size="xsmall"
-              class="!text-[16px]"
+          <!-- Icon + chevron overlay. The chevron sits on top of the doc icon and fades in
+               on row hover; when there are no children it stays muted and non-interactive,
+               so the row still looks consistent at every depth. -->
+          <div class="flex items-center min-w-6 h-6 flex-none relative">
+            <button
+              type="button"
+              class="nc-shared-doc-tree-expand absolute inset-0 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10"
+              :class="
+                row.node.has_children
+                  ? 'text-nc-content-gray-subtle2 hover:text-nc-content-gray cursor-pointer'
+                  : '!text-nc-content-gray-muted cursor-not-allowed'
+              "
+              :disabled="!row.node.has_children"
+              :data-testid="`nc-shared-doc-tree-expand-${row.node.id}`"
+              :aria-expanded="expandedDocIds.has(row.node.id)"
+              @click.stop="row.node.has_children && toggleExpand(row.node.id)"
             >
-              <template #default>
-                <GeneralIcon icon="ncFileText" class="!w-4 !h-4 text-nc-content-gray-subtle" />
-              </template>
-            </LazyGeneralEmojiPicker>
+              <GeneralLoader v-if="isLoadingChildren(row.node.id)" class="!w-3.5 !h-3.5" />
+              <GeneralIcon
+                v-else
+                icon="ncChevronRight"
+                class="!w-3.5 !h-3.5 transform transition-transform duration-200 text-current"
+                :class="{ '!rotate-90': expandedDocIds.has(row.node.id) }"
+              />
+            </button>
+            <div class="flex items-center group-hover:opacity-0 transition-opacity duration-150 pointer-events-none">
+              <LazyGeneralEmojiPicker
+                :key="row.node.icon ?? ''"
+                :emoji="row.node.icon ?? undefined"
+                :readonly="true"
+                size="small"
+                class="!text-[16px]"
+              >
+                <template #default>
+                  <GeneralIcon
+                    icon="ncFileText"
+                    class="!w-4 !text-[16px]"
+                    :class="row.node.id === activeDocId ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
+                  />
+                </template>
+              </LazyGeneralEmojiPicker>
+            </div>
           </div>
-          <span class="truncate" :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }">{{ row.node.title }}</span>
+          <span
+            class="truncate"
+            :class="{ 'font-medium text-nc-content-brand-disabled': row.node.id === activeDocId }"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+          >
+            {{ row.node.title }}
+          </span>
         </div>
       </aside>
 
@@ -341,10 +448,7 @@ watch(
           <!-- Title row mirrors DocEditor's inner container (max-w 900 + px-10)
                so it aligns with the prose body below, and uses the same icon
                + title + updated-ago shape DocEditor renders in doc mode. -->
-          <div
-            class="max-w-[900px] mx-auto px-10 pb-4"
-            :class="coverImageSrc ? 'pt-8' : 'pt-12'"
-          >
+          <div class="max-w-[900px] mx-auto px-10 pb-4" :class="coverImageSrc ? 'pt-8' : 'pt-12'">
             <div class="nc-doc-title-row flex items-center">
               <div class="nc-doc-editor-icon-wrapper">
                 <LazyGeneralEmojiPicker
@@ -440,6 +544,13 @@ watch(
 
 .nc-shared-doc-tree-row {
   user-select: none;
+
+  // Match the in-app active row (ee/components/dashboard/TreeView/Documents/List.vue
+  // .nc-documents-menu .active): primary-selected tint in light mode,
+  // gray-medium in dark, with a slightly heavier font weight.
+  &.active {
+    @apply !bg-primary-selected dark:!bg-nc-bg-gray-medium font-medium;
+  }
 }
 
 // Match DocEditor's cover styling (240px banner, cover-fit). Kept in sync

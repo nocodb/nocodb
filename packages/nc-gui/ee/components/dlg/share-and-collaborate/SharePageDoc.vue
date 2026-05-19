@@ -1,8 +1,11 @@
 <script lang="ts" setup>
+import { getDocShareMeta } from 'nocodb-sdk'
+
 const { dashboardUrl } = useDashboard()
 
 const documentsStore = useDocumentsStore()
 const { activeDocument } = storeToRefs(documentsStore)
+const { applyDocPatch } = documentsStore
 
 const { isPrivateBase } = storeToRefs(useBase())
 const { activeProjectId } = storeToRefs(useBases())
@@ -25,8 +28,7 @@ const isPublicShared = computed(() => {
 
 const includeSubtree = computed(() => {
   // Default true when share is enabled — backend seeds this on first share.
-  const meta = activeDocument.value?.meta as any
-  return meta?.share?.include_subtree ?? true
+  return getDocShareMeta(activeDocument.value?.meta).include_subtree ?? true
 })
 
 const url = computed(() => sharedDocUrl() ?? '')
@@ -36,40 +38,32 @@ function sharedDocUrl() {
   return `${dashboardUrl.value}/doc/${activeDocument.value.uuid}`
 }
 
-// Patch the local reactive doc so the UI updates immediately. The store's
-// activeDocument is reactive — assigning to its fields propagates.
-const patchDoc = (patch: Partial<NonNullable<typeof activeDocument.value>>) => {
-  if (!activeDocument.value) return
-  Object.assign(activeDocument.value, patch)
-}
-
 const toggleShare = async () => {
-  if (!activeDocument.value?.id || !activeProjectId.value) return
+  const docId = activeDocument.value?.id
+  const baseId = activeProjectId.value
+  if (!docId || !baseId) return
   if (isUpdating.value.public) return
 
   isUpdating.value.public = true
   try {
     if (isPublicShared.value) {
-      await $api.internal.postOperation(
-        activeWorkspaceId.value!,
-        activeProjectId.value,
-        { operation: 'documentUnshare' },
-        { docId: activeDocument.value.id },
-      )
+      await $api.internal.postOperation(activeWorkspaceId.value!, baseId, { operation: 'documentUnshare' }, { docId })
       $e('c:doc:share:disable')
-      patchDoc({ uuid: null })
+      applyDocPatch(baseId, docId, { uuid: null })
       message.toast(t('msg.info.docShareDisabled'))
     } else {
       const res = (await $api.internal.postOperation(
         activeWorkspaceId.value!,
-        activeProjectId.value,
+        baseId,
         { operation: 'documentShare' },
-        { docId: activeDocument.value.id },
+        { docId },
       )) as { uuid: string; include_subtree: boolean }
       $e('c:doc:share:enable')
-      const meta = { ...(activeDocument.value.meta ?? {}) } as any
-      meta.share = { include_subtree: res.include_subtree }
-      patchDoc({ uuid: res.uuid, meta })
+      const meta = {
+        ...(activeDocument.value?.meta ?? {}),
+        share: { include_subtree: res.include_subtree },
+      }
+      applyDocPatch(baseId, docId, { uuid: res.uuid, meta })
       message.toast(t('msg.info.docShareEnabled'))
     }
   } catch (e: any) {
@@ -80,7 +74,9 @@ const toggleShare = async () => {
 }
 
 const toggleSubtree = async () => {
-  if (!activeDocument.value?.id || !activeProjectId.value) return
+  const docId = activeDocument.value?.id
+  const baseId = activeProjectId.value
+  if (!docId || !baseId) return
   if (isUpdating.value.subtree) return
 
   const nextValue = !includeSubtree.value
@@ -88,14 +84,16 @@ const toggleSubtree = async () => {
   try {
     await $api.internal.postOperation(
       activeWorkspaceId.value!,
-      activeProjectId.value,
+      baseId,
       { operation: 'documentShareUpdate' },
-      { docId: activeDocument.value.id, include_subtree: nextValue },
+      { docId, include_subtree: nextValue },
     )
     $e('c:doc:share:subtree:toggle', { include_subtree: nextValue })
-    const meta = { ...(activeDocument.value.meta ?? {}) } as any
-    meta.share = { ...(meta.share ?? {}), include_subtree: nextValue }
-    patchDoc({ meta })
+    const meta = {
+      ...(activeDocument.value?.meta ?? {}),
+      share: { ...getDocShareMeta(activeDocument.value?.meta), include_subtree: nextValue },
+    }
+    applyDocPatch(baseId, docId, { meta })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

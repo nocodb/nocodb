@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { getDocShareMeta } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   DocumentCreateV3Type,
@@ -171,20 +172,11 @@ export class DocumentsV3Service {
   async docShare(
     context: NcContext,
     param: { docId: string },
-  ): Promise<{ uuid: string; include_subtree: boolean; password: boolean }> {
+  ): Promise<{ uuid: string; include_subtree: boolean }> {
     const doc = await Document.share(context, param.docId);
-    // Default include_subtree=true on first share so the public URL is useful
-    // out of the box. Owner can flip it off in the share modal.
-    const currentMeta = (doc.meta as any) ?? {};
-    if (!currentMeta.share || currentMeta.share.include_subtree === undefined) {
-      await Document.updateShareSettings(context, param.docId, {
-        include_subtree: true,
-      });
-    }
     return {
       uuid: doc.uuid!,
-      include_subtree: currentMeta?.share?.include_subtree ?? true,
-      password: !!doc.password,
+      include_subtree: !!getDocShareMeta(doc.meta).include_subtree,
     };
   }
 
@@ -199,17 +191,15 @@ export class DocumentsV3Service {
   async docShareUpdate(
     context: NcContext,
     param: { docId: string },
-    body: { password?: string | null; include_subtree?: boolean },
+    body: { include_subtree?: boolean },
   ): Promise<{
     uuid: string | null;
     include_subtree: boolean;
-    password: boolean;
   }> {
     const doc = await Document.updateShareSettings(context, param.docId, body);
     return {
       uuid: doc.uuid ?? null,
-      include_subtree: !!(doc.meta as any)?.share?.include_subtree,
-      password: !!doc.password,
+      include_subtree: !!getDocShareMeta(doc.meta).include_subtree,
     };
   }
 }

@@ -105,7 +105,6 @@ export class DocumentsPostOperations
           context,
           { docId: payload.docId },
           {
-            ...('password' in payload && { password: payload.password }),
             ...('include_subtree' in payload && {
               include_subtree: payload.include_subtree,
             }),

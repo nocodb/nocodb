@@ -3504,14 +3504,12 @@
       "youCanOnlyUploadMaxLimitFilesAtATime": "You can only upload {limit} {type} file at a time",
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time",
       "variableKeyRequired": "Variable key is required",
-      "variableKeyFormat": "Key must be uppercase letters, numbers and underscores (e.g. WEBHOOK_URL)",
-      "invalidPassword": "Invalid password. Please try again."
+      "variableKeyFormat": "Key must be uppercase letters, numbers and underscores (e.g. WEBHOOK_URL)"
     },
     "info": {
       "viewPasswordNotVisibleAfterSave": "For security, this password won't be shown again after saving. Make sure to store it somewhere safe.",
       "docShareEnabled": "Public sharing enabled",
       "docShareDisabled": "Public sharing disabled",
-      "docShareEnterPassword": "Enter password to view this document",
       "trashEmpty": "Trash is empty",
       "variableKeyImmutable": "Key cannot be changed after creation",
       "variableSetupHint": "Set values for the variables required by this base. Required fields must be configured for full functionality.",

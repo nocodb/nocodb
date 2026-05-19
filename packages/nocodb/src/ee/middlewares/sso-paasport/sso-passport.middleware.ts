@@ -506,8 +506,8 @@ export class SSOPassportMiddleware implements NestMiddleware {
         scope: ['profile', 'email'],
       },
       (req, accessToken, refreshToken, profile, done) => {
+        const email = sanitizeEmail(profile.emails[0].value);
         (async () => {
-          const email = sanitizeEmail(profile.emails[0].value);
           this.debugger.info(
             `Processing Google authentication for email: ${email}`,
           );

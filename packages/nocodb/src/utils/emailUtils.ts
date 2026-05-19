@@ -6,14 +6,22 @@ import inflection from 'inflection';
 const GMAIL_DOMAINS = ['gmail.com', 'googlemail.com'];
 
 /**
- * Invisible / formatting characters that `String.prototype.trim()` does NOT strip
- * and that `validator.isEmail()` accepts silently. If they ride along on a pasted
- * address they corrupt the stored email and break canonical-email dedup.
+ * Strip Unicode format chars (Cf) and default-ignorable code points — these
+ * pass `validator.isEmail()` and are not stripped by `String.prototype.trim()`,
+ * so they corrupt stored emails and break canonical-email dedup.
  *
- * Covers zero-width chars (U+200B-U+200D, U+2060, U+FEFF), bidi marks/isolates
- * (U+200E-U+200F, U+202A-U+202E, U+2066-U+2069), and soft hyphen (U+00AD).
+ * `\p{Cf}` covers ZWSP/ZWNJ/ZWJ, bidi marks and isolates, Word Joiner, the
+ * invisible-math operators (U+2061-U+2064), BOM, and the Tag block — all of
+ * which pass `isEmail()` somewhere in the address.
+ * `\p{Default_Ignorable_Code_Point}` adds Soft Hyphen, Variation Selectors,
+ * Hangul Fillers (including the U+3164 spoofing char), Mongolian Vowel
+ * Separator, and similar.
+ *
+ * Neither category contains any character that is legitimately part of an
+ * IDN (IDNA2008 / RFC 5891) or an internationalized email local part
+ * (RFC 6531), so this is safe for non-ASCII addresses.
  */
-const INVISIBLE_CHARS = /[­​-‏‪-‮⁠⁦-⁩﻿]/g;
+const INVISIBLE_CHARS = /[\p{Cf}\p{Default_Ignorable_Code_Point}]/gu;
 
 /**
  * Strip invisible/formatting characters and surrounding whitespace from an

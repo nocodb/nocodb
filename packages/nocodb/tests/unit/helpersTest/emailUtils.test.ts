@@ -51,6 +51,35 @@ function emailUtilsTests() {
     it('does NOT lowercase', () => {
       expect(sanitizeEmail('Foo@Bar.COM')).to.equal('Foo@Bar.COM');
     });
+
+    it('strips U+3164 Hangul Filler (spoofing char that passes isEmail)', () => {
+      expect(sanitizeEmail('foo@bar.comㅤ')).to.equal('foo@bar.com');
+    });
+
+    it('strips U+2061-U+2064 invisible math operators', () => {
+      expect(sanitizeEmail('foo@bar.com⁡⁢⁣⁤')).to.equal('foo@bar.com');
+    });
+
+    it('strips U+FE00-U+FE0F variation selectors', () => {
+      expect(sanitizeEmail('foo@bar.com️︀')).to.equal('foo@bar.com');
+    });
+
+    it('strips U+180E Mongolian Vowel Separator', () => {
+      expect(sanitizeEmail('foo@bar.com᠎')).to.equal('foo@bar.com');
+    });
+
+    it('strips Tag block chars (U+E0001 / U+E0020-U+E007F) from the domain', () => {
+      // Tag block chars pass isEmail() in the domain part — verified locally
+      expect(sanitizeEmail('foo@bar\u{E0020}\u{E0041}.com')).to.equal(
+        'foo@bar.com',
+      );
+    });
+
+    it('leaves IDN / internationalized addresses unchanged', () => {
+      expect(sanitizeEmail('üser@bär.com')).to.equal('üser@bär.com');
+      expect(sanitizeEmail('山田@example.com')).to.equal('山田@example.com');
+      expect(sanitizeEmail('محمد@example.com')).to.equal('محمد@example.com');
+    });
   });
 
   describe('normalizeEmail', () => {

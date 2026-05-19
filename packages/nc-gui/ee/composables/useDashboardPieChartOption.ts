@@ -6,12 +6,12 @@ const SMALL_SLICE_PERCENT = 3
 const MAX_SLICES_BEFORE_BUCKETING = 8
 const LABEL_MIN_SLICE_PERCENT = 4
 const LEGEND_TRUNCATE = 28
-// Below this widget width a side legend has no room — even a 55%-radius
-// chart has a diameter of 110% of the min dimension, which crashes into
-// the legend on the right. Switch legend to bottom under this threshold.
-// 480px is empirically the lowest width that fits a ~140px legend + a
-// readable chart side-by-side without label overlap.
-const NARROW_WIDGET_PX = 480
+// Below this widget width a side legend crowds the chart — slice labels
+// at the chart's right edge end up flush with the legend text. Switch
+// legend to bottom under this threshold. 600px is empirically the
+// lowest width that fits a ~160px legend AND a comfortable chart
+// side-by-side without crowding.
+const NARROW_WIDGET_PX = 600
 
 function luminance(hex: string): number {
   const c = hex.replace('#', '')
@@ -159,14 +159,16 @@ export function useDashboardPieChartOption(
       none: ['50%', '50%'],
     }
     const center = legendConfig.value.show ? centerByPosition[position] : ['50%', '50%']
-    // Shrink the chart when the legend takes a side, so the legend has
-    // breathing room and slice labels don't overlap legend text.
+    // Shrink the chart when the legend takes a side. ECharts radius is
+    // % of min(W, H), so a 55% radius is 110% diameter — easily crowds
+    // a side legend. 48% (96% diameter) leaves room around the chart
+    // for breathing space against the legend.
     const radius = isDonut
       ? legendOnSide
-        ? ['28%', '55%']
+        ? ['24%', '48%']
         : ['38%', '70%']
       : legendOnSide
-        ? '55%'
+        ? '48%'
         : '70%'
 
     return {

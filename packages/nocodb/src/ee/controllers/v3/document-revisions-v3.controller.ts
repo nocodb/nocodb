@@ -15,7 +15,6 @@ import type {
 } from '~/services/v3/document-revisions-v3.types';
 import type { DocumentV3Type } from '~/services/v3/documents-v3.types';
 import { NcContext, NcRequest } from '~/interface/config';
-import { checkForFeature } from '~/helpers/paymentHelpers';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DocumentRevisionsV3Service } from '~/services/v3/document-revisions-v3.service';
@@ -37,15 +36,15 @@ export class DocumentRevisionsV3Controller {
   async list(
     @TenantContext() context: NcContext,
     @Param('docId') docId: string,
-    @Query('limit') limit?: string,
-    @Query('before') before?: string,
+    @Query('limit') limit: string | undefined,
+    @Query('before') before: string | undefined,
+    @Request() req: NcRequest,
   ): Promise<DocumentRevisionV3ListResponseType> {
-    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
-
     return await this.documentRevisionsV3Service.list(context, {
       docId,
       limit: limit ? Number(limit) : undefined,
       before,
+      req,
     });
   }
 
@@ -55,12 +54,12 @@ export class DocumentRevisionsV3Controller {
     @TenantContext() context: NcContext,
     @Param('docId') docId: string,
     @Param('revisionId') revisionId: string,
+    @Request() req: NcRequest,
   ): Promise<DocumentRevisionV3Type> {
-    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
-
     return await this.documentRevisionsV3Service.get(context, {
       docId,
       revisionId,
+      req,
     });
   }
 
@@ -73,8 +72,6 @@ export class DocumentRevisionsV3Controller {
     @Param('revisionId') revisionId: string,
     @Request() req: NcRequest,
   ): Promise<DocumentV3Type> {
-    await checkForFeature(context, PlanFeatureTypes.FEATURE_DOCS_APIS);
-
     return await this.documentRevisionsV3Service.restore(
       context,
       { docId, revisionId },

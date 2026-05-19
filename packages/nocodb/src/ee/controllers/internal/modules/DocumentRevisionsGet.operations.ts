@@ -44,14 +44,13 @@ export class DocumentRevisionsGetOperations
         if (!docId) {
           NcError.badRequest('Missing required parameter: docId');
         }
-        const limit = req.query.limit
-          ? Number(req.query.limit)
-          : undefined;
+        const limit = req.query.limit ? Number(req.query.limit) : undefined;
         const before = req.query.before as string | undefined;
         return await this.documentRevisionsV3Service.list(context, {
           docId,
           limit,
           before,
+          req,
         });
       }
       case 'documentRevisionGet': {
@@ -65,6 +64,7 @@ export class DocumentRevisionsGetOperations
         return await this.documentRevisionsV3Service.get(context, {
           docId,
           revisionId,
+          req,
         });
       }
     }

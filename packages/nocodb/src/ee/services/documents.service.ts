@@ -360,6 +360,37 @@ export class DocumentsService extends DocumentsServiceCE {
   }
 
   /**
+   * Visibility-gated existence check for a document. Used by adjacent
+   * features (revisions, comments) that need to confirm a user is allowed
+   * to see a doc before exposing any of its history / sub-resources.
+   *
+   * Returns the doc (meta only — no content) on success. Throws
+   * `genericNotFound` when the doc is missing OR when document-level
+   * visibility hides it from this user — the same error in both cases so
+   * the endpoint cannot be used to enumerate hidden docs.
+   */
+  async assertDocVisible(context: NcContext, docId: string, req?: NcRequest) {
+    const doc = await Document.getMeta(context, docId);
+    if (!doc) {
+      NcError.get(context).genericNotFound('Document', docId);
+    }
+
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_VISIBILITY,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.get(context).genericNotFound('Document', docId);
+      }
+    }
+
+    return doc;
+  }
+
+  /**
    * Fetch a single document with full content (ProseMirror JSON).
    *
    * SECURITY: `req` must be passed by all EE controller call-sites to enforce

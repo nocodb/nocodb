@@ -4,7 +4,6 @@ import { MetaTable } from '~/utils/globals';
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.DOC_REVISIONS, (table) => {
     table.string('id', 40).notNullable();
-    table.string('fk_audit_id', 40).nullable();
     table.string('fk_doc_id', 20).notNullable();
     table.string('base_id', 20).notNullable();
     table.string('fk_workspace_id', 20);
@@ -20,7 +19,6 @@ const up = async (knex: Knex) => {
       ['fk_doc_id', 'created_at'],
       'nc_doc_revisions_v2_doc_created_idx',
     );
-    table.index(['fk_audit_id'], 'nc_doc_revisions_v2_audit_idx');
     table.index(
       ['base_id', 'fk_workspace_id'],
       'nc_doc_revisions_v2_tenant_idx',

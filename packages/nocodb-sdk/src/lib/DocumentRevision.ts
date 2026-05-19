@@ -6,7 +6,6 @@ export enum DocRevisionSource {
 
 export interface DocumentRevisionType {
   id?: string;
-  fk_audit_id?: string | null;
   fk_doc_id?: string;
   base_id?: string;
   fk_workspace_id?: string;

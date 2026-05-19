@@ -24,6 +24,7 @@ import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import { notDeletedXcCondition } from '~/utils/trashUtils';
+import DocRevision from '~/ee/models/DocRevision';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -540,16 +541,8 @@ export default class Document extends DocumentCE implements DocumentType {
       { fk_doc_id: docId },
     );
 
-    // Cascade revision history. Inlined (rather than calling
-    // DocRevision.deleteForDoc) to avoid a circular import — DocRevision
-    // already lives in the same satellite DB, so a direct metaDelete
-    // against MetaTable.DOC_REVISIONS is equivalent.
-    await Noco.ncDocsContent.metaDelete(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.DOC_REVISIONS,
-      { fk_doc_id: docId },
-    );
+    // Cascade revision history.
+    await DocRevision.deleteForDoc(context, docId);
 
     await ncMeta.metaDelete(
       context.workspace_id,

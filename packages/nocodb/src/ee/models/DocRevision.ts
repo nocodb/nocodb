@@ -3,7 +3,6 @@ import { DocRevisionSource } from 'nocodb-sdk';
 import type { DocumentRevisionType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 /**
@@ -23,7 +22,6 @@ function getCoalesceWindowMs(): number {
 
 export default class DocRevision implements DocumentRevisionType {
   id?: string;
-  fk_audit_id?: string | null;
   fk_doc_id?: string;
   base_id?: string;
   fk_workspace_id?: string;
@@ -43,8 +41,9 @@ export default class DocRevision implements DocumentRevisionType {
    * Record a revision for a document save.
    *
    * Coalescing: when the latest revision is by the same user and within the
-   * coalesce window, the prior row is updated in place (its content/title/
-   * version/created_at are refreshed). Otherwise a new row is inserted.
+   * coalesce window, the prior row's content/title/version are updated in
+   * place. `created_at` is intentionally preserved so the timeline shows
+   * when the editing session began. Otherwise a new row is inserted.
    *
    * The caller is responsible for deciding whether a content change happened —
    * this method always writes (insert or update). Callers should pass only
@@ -59,7 +58,6 @@ export default class DocRevision implements DocumentRevisionType {
       title: string;
       createdBy: string;
       source?: DocRevisionSource;
-      fkAuditId?: string | null;
     },
   ): Promise<DocRevision> {
     const {
@@ -69,7 +67,6 @@ export default class DocRevision implements DocumentRevisionType {
       title,
       createdBy,
       source = DocRevisionSource.AUTO,
-      fkAuditId = null,
     } = params;
 
     const latest = await this.latestForDoc(context, docId);
@@ -89,7 +86,6 @@ export default class DocRevision implements DocumentRevisionType {
         version,
         title,
         content,
-        fk_audit_id: fkAuditId,
       };
       await Noco.ncDocsContent.metaUpdate(
         context.workspace_id,
@@ -103,7 +99,6 @@ export default class DocRevision implements DocumentRevisionType {
 
     const insertObj: Record<string, any> = {
       id: uuidv7(),
-      fk_audit_id: fkAuditId,
       fk_doc_id: docId,
       base_id: context.base_id,
       fk_workspace_id: context.workspace_id,
@@ -184,7 +179,6 @@ export default class DocRevision implements DocumentRevisionType {
         limit,
         fields: [
           'id',
-          'fk_audit_id',
           'fk_doc_id',
           'version',
           'title',

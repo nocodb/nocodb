@@ -544,7 +544,6 @@ export enum CacheScope {
   CHAT_SESSION = 'chatSession',
   DOCUMENT = 'document',
   DOC_CONTENT = 'docContent',
-  DOC_REVISION = 'docRevision',
   API_TOKEN_SCOPE = 'apiTokenScope',
   TRASH = 'trash',
 }

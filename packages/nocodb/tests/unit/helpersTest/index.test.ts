@@ -4,6 +4,7 @@ import { publicDatasSanitizeTest } from './publicDatasSanitize.test';
 import { stringHelperTest } from './stringHelpers.test';
 import { planResolutionTests } from './planResolution.test';
 import { attachmentHelpersTest } from './attachmentHelpers.test';
+import { emailUtilsTest } from './emailUtils.test';
 import { apiTokenPermissionTest } from './apiTokenPermission.test';
 import { mailAuditTests } from './mailAudit.test';
 import { jobsProcessorTest } from './jobsProcessor.test';
@@ -36,6 +37,7 @@ function _helperTests() {
   stringHelperTest();
   NcConcurrentTest();
   attachmentHelpersTest();
+  emailUtilsTest();
   jobsProcessorTest();
   dashboardV3ConfigTransformTest();
   dateDependencyHelperTests();

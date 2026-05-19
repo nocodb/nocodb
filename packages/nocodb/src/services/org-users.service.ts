@@ -32,6 +32,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import { MailEvent } from '~/interface/Mail';
 import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import { ensureUserInDefaultOrg } from '~/helpers/verifyDefaultOrg';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class OrgUsersService {
@@ -238,7 +239,7 @@ export class OrgUsersService {
     const emails = (param.user.email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim())
+      .map((v) => sanitizeEmail(v))
       .filter(Boolean);
 
     // check for invalid emails

@@ -37,6 +37,7 @@ import { extractProps } from '~/helpers/extractProps';
 import deepClone from '~/helpers/deepClone';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class UsersService {
@@ -279,7 +280,7 @@ export class UsersService {
       param.body,
     );
 
-    const _email = param.body.email;
+    const _email = sanitizeEmail(param.body.email);
 
     if (!_email) {
       NcError.badRequest('Please enter your email address.');
@@ -506,7 +507,8 @@ export class UsersService {
   }): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SignUpReq', param.body);
 
-    const { email: _email, token, ignore_subscribe } = param.req.body;
+    const { email: rawEmail, token, ignore_subscribe } = param.req.body;
+    const _email = sanitizeEmail(rawEmail);
 
     let { password } = param.req.body;
 

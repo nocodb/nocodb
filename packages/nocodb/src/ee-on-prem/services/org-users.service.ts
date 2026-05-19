@@ -12,6 +12,7 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { MailService } from '~/services/mail/mail.service';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { removeUserFromOrgCascade } from '~/ee/helpers/orgUserRemovalHelper';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class OrgUsersService extends OrgUsersServiceCE {
@@ -246,7 +247,7 @@ export class OrgUsersService extends OrgUsersServiceCE {
     // Find user by email
     const user = await ncMeta
       .knexConnection(MetaTable.USERS)
-      .where('email', param.email.toLowerCase().trim())
+      .where('email', sanitizeEmail(param.email).toLowerCase())
       .where(function () {
         this.where('is_deleted', false).orWhereNull('is_deleted');
       })

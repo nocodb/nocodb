@@ -14,6 +14,7 @@ import WorkspaceUser from '~/models/WorkspaceUser';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { UsersService } from '~/services/users/users.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
+import { sanitizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -169,7 +170,7 @@ export class WorkspaceUsersService {
     const emails = (email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim())
+      .map((v) => sanitizeEmail(v))
       .filter(Boolean);
 
     if (!emails.length) {

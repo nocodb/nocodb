@@ -6,14 +6,37 @@ import inflection from 'inflection';
 const GMAIL_DOMAINS = ['gmail.com', 'googlemail.com'];
 
 /**
+ * Invisible / formatting characters that `String.prototype.trim()` does NOT strip
+ * and that `validator.isEmail()` accepts silently. If they ride along on a pasted
+ * address they corrupt the stored email and break canonical-email dedup.
+ *
+ * Covers zero-width chars (U+200B-U+200D, U+2060, U+FEFF), bidi marks/isolates
+ * (U+200E-U+200F, U+202A-U+202E, U+2066-U+2069), and soft hyphen (U+00AD).
+ */
+const INVISIBLE_CHARS = /[­​-‏‪-‮⁠⁦-⁩﻿]/g;
+
+/**
+ * Strip invisible/formatting characters and surrounding whitespace from an
+ * email-shaped input. Safe to call at any entry point — does not lowercase or
+ * otherwise alter the address.
+ */
+export function sanitizeEmail(email: string): string {
+  if (!email) return email;
+  return email.replace(INVISIBLE_CHARS, '').trim();
+}
+
+/**
  * Normalize an email address to its canonical form to prevent alias abuse.
  *
+ * - Strips invisible/zero-width characters and whitespace
  * - Strips plus addressing (`user+tag@` → `user@`) for all providers
  * - Removes dots from the local part for Gmail/Googlemail
  * - Normalizes `googlemail.com` → `gmail.com`
  * - Lowercases the entire address
  */
 export function normalizeEmail(email: string): string {
+  email = sanitizeEmail(email);
+
   const atIndex = email.lastIndexOf('@');
   if (atIndex === -1) return email.toLowerCase();
 

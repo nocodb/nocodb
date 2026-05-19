@@ -20,6 +20,7 @@ import {
   NOCODB_USER_EXTENSION,
   ORG_ROLE_TO_LABEL,
 } from '~/services/scim/scim-helpers';
+import { sanitizeEmail } from '~/utils/emailUtils';
 // Seat limits are workspace-scoped; org-level SCIM provisioning
 // does not enforce them (users are added to workspaces separately).
 
@@ -461,7 +462,8 @@ export class ScimUsersService {
 
     // Detect email change — email is immutable in NocoDB.
     // If the IdP changed the email, soft-delete the old user and create a new one.
-    const newEmail = this.extractEmail(scimUser) || scimUser.userName;
+    const newEmail =
+      this.extractEmail(scimUser) || sanitizeEmail(scimUser.userName);
     if (newEmail) {
       const currentUser = await User.get(orgUser.fk_user_id);
       if (currentUser && currentUser.email !== newEmail) {
@@ -748,11 +750,12 @@ export class ScimUsersService {
 
     // Handle emails patched via path like emails[type eq "work"].value
     if (patchData['emails[type eq "work"].value'] !== undefined) {
-      const emailValue = patchData['emails[type eq "work"].value'];
-      if (
-        !emailValue ||
-        (typeof emailValue === 'string' && !emailValue.trim())
-      ) {
+      const rawEmailValue = patchData['emails[type eq "work"].value'];
+      const emailValue =
+        typeof rawEmailValue === 'string'
+          ? sanitizeEmail(rawEmailValue)
+          : rawEmailValue;
+      if (!emailValue || (typeof emailValue === 'string' && !emailValue)) {
         NcError.badRequest('Email value cannot be empty');
       }
       if (typeof emailValue === 'string' && !isEmail(emailValue)) {
@@ -1055,7 +1058,7 @@ export class ScimUsersService {
 
     if (!candidate) return null;
 
-    candidate = candidate.trim().toLowerCase();
+    candidate = sanitizeEmail(candidate).toLowerCase();
 
     if (!isEmail(candidate)) return null;
 

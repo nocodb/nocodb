@@ -274,27 +274,32 @@ watch(
         v-if="sidebarVisible"
         class="nc-shared-doc-sidebar shrink-0 w-64 border-r-1 border-nc-border-gray-light overflow-y-auto p-2"
       >
+        <!-- Row metrics mirror the in-app sidebar (Dashboard/TreeView/Documents/Node.vue):
+             min/max-h-7 + py-0.5 for the 28px line height, text-bodyDefaultSm + font-medium for
+             the 13px/500 type ramp, gap-1 with a w-6/h-6 icon wrapper for icon alignment. -->
         <div
           v-for="row in sidebarRows"
           :key="row.node.id"
-          class="nc-shared-doc-tree-row flex items-center gap-1 px-2 py-1 rounded cursor-pointer hover:bg-nc-bg-gray-light"
-          :class="{ 'bg-nc-bg-gray-light font-medium': row.node.id === activeDocId }"
-          :style="{ paddingInlineStart: `${row.depth * 12 + 8}px` }"
+          class="nc-shared-doc-tree-row !rounded-md !py-0.5 !min-h-7 !max-h-7 !my-0.5 select-none text-nc-content-gray-subtle text-bodyDefaultSm font-medium flex items-center gap-1 cursor-pointer hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle)"
+          :class="{ 'bg-nc-bg-gray-light text-nc-content-gray-emphasis': row.node.id === activeDocId }"
+          :style="{ paddingInlineStart: `${row.depth * 12 + 8}px`, paddingInlineEnd: '8px' }"
           :data-testid="`nc-shared-doc-tree-${row.node.id}`"
           @click="navigateToDoc(row.node.id)"
         >
-          <LazyGeneralEmojiPicker
-            :key="row.node.icon ?? ''"
-            :emoji="row.node.icon ?? undefined"
-            :readonly="true"
-            size="xsmall"
-            class="!text-[14px]"
-          >
-            <template #default>
-              <GeneralIcon icon="ncFileText" class="!w-3.5 !h-3.5 text-nc-content-gray-subtle" />
-            </template>
-          </LazyGeneralEmojiPicker>
-          <span class="truncate text-bodySm">{{ row.node.title }}</span>
+          <div class="flex items-center justify-center min-w-6 h-6 flex-none">
+            <LazyGeneralEmojiPicker
+              :key="row.node.icon ?? ''"
+              :emoji="row.node.icon ?? undefined"
+              :readonly="true"
+              size="xsmall"
+              class="!text-[16px]"
+            >
+              <template #default>
+                <GeneralIcon icon="ncFileText" class="!w-4 !h-4 text-nc-content-gray-subtle" />
+              </template>
+            </LazyGeneralEmojiPicker>
+          </div>
+          <span class="truncate" :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }">{{ row.node.title }}</span>
         </div>
       </aside>
 

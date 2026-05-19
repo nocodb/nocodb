@@ -933,20 +933,34 @@ export default class Document extends DocumentCE implements DocumentType {
     return fresh;
   }
 
-  /** Disable public share — clears uuid. */
+  /**
+   * Disable public share — clears uuid and resets share-time settings on
+   * `meta.share` so the next `share()` call starts from the documented
+   * default rather than inheriting the previous toggle state.
+   */
   public static async unshare(
     context: NcContext,
     docId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    // Read uuid before clearing so we can invalidate the share-scope cache.
+    // Read existing state before clearing so we can invalidate the share-
+    // scope cache and rebuild meta without the share block.
     const doc = await this.getMeta(context, docId, ncMeta);
+
+    const updateObj: Record<string, any> = { uuid: null };
+
+    // Drop `meta.share` if present — preserves the rest of meta (icon,
+    // cover, lock, etc.) and lets a future share() seed defaults fresh.
+    if (doc?.meta && (doc.meta as any).share) {
+      const { share: _share, ...restMeta } = doc.meta as Record<string, any>;
+      Object.assign(updateObj, prepareForDb({ meta: restMeta }, ['meta']));
+    }
 
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.MODELS,
-      { uuid: null },
+      updateObj,
       { id: docId, type: ModelTypes.DOCUMENT },
     );
     if (doc?.uuid) {

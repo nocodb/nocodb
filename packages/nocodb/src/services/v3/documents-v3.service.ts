@@ -16,6 +16,7 @@ import { DocumentsService } from '~/services/documents.service';
 import { Document } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
+import { assertNotSandbox } from '~/helpers/sandboxGuards';
 
 @Injectable()
 export class DocumentsV3Service {
@@ -163,6 +164,11 @@ export class DocumentsV3Service {
   }
 
   // --- Public share ---
+  //
+  // Docs are excluded from sandbox bases (see DocumentsService.create); the
+  // share toggles inherit that restriction — a sandbox can't host docs, so
+  // it can't publish them either. assertNotSandbox keeps the rule visible
+  // alongside the other doc mutations.
 
   /**
    * Enable public share for a doc. Idempotent — returns existing UUID if the
@@ -173,6 +179,10 @@ export class DocumentsV3Service {
     context: NcContext,
     param: { docId: string },
   ): Promise<{ uuid: string; include_subtree: boolean }> {
+    await assertNotSandbox(
+      context,
+      'Documents are not available in a sandbox.',
+    );
     const doc = await Document.share(context, param.docId);
     return {
       uuid: doc.uuid!,
@@ -184,6 +194,10 @@ export class DocumentsV3Service {
     context: NcContext,
     param: { docId: string },
   ): Promise<boolean> {
+    await assertNotSandbox(
+      context,
+      'Documents are not available in a sandbox.',
+    );
     await Document.unshare(context, param.docId);
     return true;
   }
@@ -196,6 +210,10 @@ export class DocumentsV3Service {
     uuid: string | null;
     include_subtree: boolean;
   }> {
+    await assertNotSandbox(
+      context,
+      'Documents are not available in a sandbox.',
+    );
     const doc = await Document.updateShareSettings(context, param.docId, body);
     return {
       uuid: doc.uuid ?? null,

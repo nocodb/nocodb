@@ -18,6 +18,13 @@ import { NcContext } from '~/interface/config';
  * The `X-Robots-Tag: noindex, nofollow` header on every response is the
  * Phase-1 indexing posture. Phase 2 will introduce a toggle and the header
  * will become conditional.
+ *
+ * Production note: deployments should set `NC_SECURE_ATTACHMENTS=true`. In
+ * secure mode the global unauthenticated `/download/:filename(*)` route is
+ * not registered (replaced by `/dltemp/:param(*)` which only resolves
+ * server-issued signed paths), so embedded `attrs.path` values surfaced via
+ * the public content response are inert and access goes exclusively through
+ * this controller's UUID-gated, scope-checked proxy.
  */
 @UseGuards(PublicApiLimiterGuard)
 @Controller()
@@ -109,6 +116,19 @@ export class PublicDocsController {
    * AttachmentProxyController.serveAttachment — same storage abstraction, but
    * we keep a local copy to avoid coupling the public controller to the
    * authed one (different guards, different scope).
+   *
+   * Caching policy — `Cache-Control: private, max-age=300, must-revalidate`:
+   *   - `private` blocks shared caches (CDN, corporate proxy, ISP cache) from
+   *     storing responses keyed by the share URL. Industry standard for
+   *     short-lived, per-session resources (mirrors AWS / Azure signed-URL
+   *     guidance and the authed AttachmentProxyController on this codebase).
+   *   - `max-age=300` lets the browser absorb the burst of <img> requests a
+   *     page render fires without re-hitting the proxy.
+   *   - `must-revalidate` prevents stale-while-disconnected behaviour after
+   *     max-age, so revocation propagates through the browser cache at most
+   *     5 minutes after the share is disabled. Content already streamed to
+   *     disk cannot be revoked — see PUBLIC_SHARED_SIGNED_URL_TTL_SECONDS
+   *     below for the matching signed-URL TTL on external storage.
    */
   private async serveAttachment(fileUrl: string, res: Response) {
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
@@ -126,12 +146,19 @@ export class PublicDocsController {
         );
       }
 
+      // Shorter expiry than the default 2h presigned TTL — once a signed URL
+      // leaves the proxy we can't recall it, so the URL itself caps the
+      // window during which a revoked share can still resolve the file on
+      // the storage backend. 15 minutes is short enough to bound that
+      // window and long enough that page navigation / image preloads inside
+      // a single session don't churn new signed URLs.
       const signedUrl = await PresignedUrl.getSignedUrl({
         pathOrUrl,
         preview: true,
+        expireSeconds: PUBLIC_SHARED_SIGNED_URL_TTL_SECONDS,
       });
 
-      res.setHeader('Cache-Control', 'public, max-age=300');
+      res.setHeader('Cache-Control', 'private, max-age=300, must-revalidate');
       return res.redirect(302, signedUrl);
     }
 
@@ -146,11 +173,7 @@ export class PublicDocsController {
         return res.status(404).send('File not found');
       }
 
-      // 5 minutes — short enough that revoking the share takes effect
-      // quickly, long enough to soak up the burst of <img> requests a single
-      // page render fires. Aligned with the external-storage redirect path
-      // above so both backends behave the same after unshare.
-      res.setHeader('Cache-Control', 'public, max-age=300');
+      res.setHeader('Cache-Control', 'private, max-age=300, must-revalidate');
 
       if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
         res.sendFile(file.path);
@@ -162,3 +185,11 @@ export class PublicDocsController {
     }
   }
 }
+
+/**
+ * Lifetime of an external-storage signed URL handed to anonymous public-share
+ * viewers. Bounds the post-revocation window: after a share is disabled,
+ * already-issued signed URLs continue to resolve directly against the
+ * storage backend until they expire.
+ */
+const PUBLIC_SHARED_SIGNED_URL_TTL_SECONDS = 15 * 60;

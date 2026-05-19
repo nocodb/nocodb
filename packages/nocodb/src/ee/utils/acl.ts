@@ -1695,7 +1695,7 @@ const permissionDescriptions: Record<string, string> = {
   documentReorder: 'reorder documents',
   documentShare: 'publish a document as a public read-only link',
   documentUnshare: 'unpublish a previously shared document',
-  documentShareUpdate: 'update share settings (password, subtree) on a shared document',
+  documentShareUpdate: 'update share settings (subtree) on a shared document',
 
   smartTextGetContent: 'read SmartText cell content',
   smartTextUpdateContent: 'update SmartText cell content',

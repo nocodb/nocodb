@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk';
 import type {
   PublicDocChildrenResponse,
   PublicDocContentResponse,
@@ -8,6 +9,8 @@ import type { NcContext } from '~/interface/config';
 import Document from '~/ee/models/Document';
 import { Base, FileReference } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 
 /**
  * Public-share reader for docs. Mirrors PublicMetasService for views — one
@@ -36,12 +39,36 @@ export class PublicDocsService {
    * Resolve access to a shared doc by UUID. All three public endpoints share
    * this prelude — factor it once so the cached scope lookup happens
    * uniformly, and so endpoint code can focus on its specific response shape.
+   *
+   * Re-validates root visibility on every request, bypassing the share-scope
+   * cache. `Document.share()` refuses when an explicit DOCUMENT_VISIBILITY
+   * row already exists on the root, but a row can be added AFTER the share
+   * is published. Cache invalidation on permission writes is best-effort
+   * (cross-feature coupling), so the check is repeated here as the
+   * authoritative source: if the root has custom visibility, the share is
+   * treated as if it doesn't exist. One small DB query per request,
+   * identical scope cost to `isInPublicScope`'s per-call visibility lookup.
    */
   private async resolveShareScope(context: NcContext, sharedDocUuid: string) {
     const scope = await Document.getCachedShareScope(context, sharedDocUuid);
     if (!scope) {
       NcError.get(context).genericNotFound('Document', sharedDocUuid);
     }
+
+    const rootRestricted = await Noco.ncMeta.metaGet2(
+      scope.root.fk_workspace_id,
+      scope.root.base_id,
+      MetaTable.PERMISSIONS,
+      {
+        entity: PermissionEntity.DOCUMENT,
+        entity_id: scope.root.id,
+        permission: PermissionKey.DOCUMENT_VISIBILITY,
+      },
+    );
+    if (rootRestricted) {
+      NcError.get(context).genericNotFound('Document', sharedDocUuid);
+    }
+
     return scope;
   }
 

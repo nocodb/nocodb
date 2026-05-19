@@ -31,6 +31,7 @@ const {
   activeContent,
   isLoading,
   requiresPassword,
+  notFound,
   password,
   setPassword,
   loadMeta,
@@ -165,7 +166,10 @@ watch(
 watch(
   activeDocId,
   async (id) => {
-    if (!id || requiresPassword.value || !uuid.value) return
+    // Skip content fetch when we're still waiting on password OR when the
+    // meta call already 404'd — otherwise we'd fire a second request that
+    // overwrites the not-found state with a no-op load.
+    if (!id || requiresPassword.value || notFound.value || !uuid.value) return
     await loadDoc(uuid.value, id)
   },
   { immediate: true },
@@ -173,7 +177,13 @@ watch(
 </script>
 
 <template>
-  <div class="nc-shared-doc-page w-full h-full flex flex-col bg-nc-bg-default">
+  <!-- Revoked share / 404 / 5xx: render the same empty state shared-view
+       shows on a broken /nc/view URL (see layouts/shared-view.vue). No
+       topbar/sidebar so it feels like a top-level error page, matching
+       the in-product 404. -->
+  <GeneralPageDoesNotExist v-if="notFound" data-testid="nc-shared-doc-not-found" />
+
+  <div v-else class="nc-shared-doc-page w-full h-full flex flex-col bg-nc-bg-default">
     <!-- Top bar: NOCODB wordmark + doc title + theme toggle. Mirrors the
          shared-view layout header so docs and views feel consistent. -->
     <div

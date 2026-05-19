@@ -9,6 +9,7 @@ export function useSharedDoc() {
   const activeContent = ref<PublicDocContentResponse | null>(null)
   const isLoading = ref(false)
   const requiresPassword = ref(false)
+  const notFound = ref(false)
   const password = ref<string | undefined>(undefined)
 
   const loadMeta = async (..._args: any[]) => {}
@@ -20,6 +21,7 @@ export function useSharedDoc() {
     activeContent,
     isLoading,
     requiresPassword,
+    notFound,
     password,
     loadMeta,
     loadDoc,

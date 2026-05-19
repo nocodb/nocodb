@@ -16,10 +16,27 @@ export function useSharedDoc() {
   const activeContent = useState<PublicDocContentResponse | null>('shared-doc-content', () => null)
   const isLoading = ref(false)
   const requiresPassword = ref(false)
+  // Any non-password failure on /meta or /content (revoked share, 404, 5xx,
+  // network) flips this to true so the page can render the same not-found
+  // empty state shared-view shows on broken view URLs.
+  const notFound = ref(false)
   const password = useState<string | undefined>('shared-doc-password', () => undefined)
 
   const setPassword = (val: string | undefined) => {
     password.value = val
+  }
+
+  // Returns true when the error is the password-required signal (403 +
+  // ERR_INVALID_SHARED_VIEW_PASSWORD). Anything else is treated as
+  // "share is gone" by the caller.
+  const isPasswordRequiredError = (e: any) => {
+    const status = e?.response?.status ?? e?.status
+    const body = e?.response?._data ?? e?.data
+    return (
+      status === 403 ||
+      body?.error === 'ERR_INVALID_SHARED_VIEW_PASSWORD' ||
+      /password/i.test(body?.message ?? '')
+    )
   }
 
   const baseUrl = computed(
@@ -38,21 +55,17 @@ export function useSharedDoc() {
       )
       meta.value = res
       requiresPassword.value = false
+      notFound.value = false
       return true
     } catch (e: any) {
-      // Backend signals password requirement via the InvalidSharedViewPassword
-      // error — surface as a flag to the UI rather than a thrown error.
-      const status = e?.response?.status ?? e?.status
-      const body = e?.response?._data ?? e?.data
-      if (
-        status === 403 ||
-        body?.error === 'ERR_INVALID_SHARED_VIEW_PASSWORD' ||
-        /password/i.test(body?.message ?? '')
-      ) {
+      if (isPasswordRequiredError(e)) {
         requiresPassword.value = true
         return false
       }
-      throw e
+      // Revoked share, bad uuid, 5xx, network — surface the same generic
+      // empty state shared-view uses instead of an infinite spinner.
+      notFound.value = true
+      return false
     } finally {
       isLoading.value = false
     }
@@ -66,18 +79,15 @@ export function useSharedDoc() {
         { headers: buildHeaders() as any },
       )
       activeContent.value = res
+      notFound.value = false
       return true
     } catch (e: any) {
-      const status = e?.response?.status ?? e?.status
-      const body = e?.response?._data ?? e?.data
-      if (
-        status === 403 ||
-        body?.error === 'ERR_INVALID_SHARED_VIEW_PASSWORD'
-      ) {
+      if (isPasswordRequiredError(e)) {
         requiresPassword.value = true
         return false
       }
-      throw e
+      notFound.value = true
+      return false
     } finally {
       isLoading.value = false
     }
@@ -88,6 +98,7 @@ export function useSharedDoc() {
     activeContent,
     isLoading,
     requiresPassword,
+    notFound,
     password,
     setPassword,
     loadMeta,

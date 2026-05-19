@@ -346,6 +346,7 @@ class BatchableExtBaseModelSqlv2 extends BaseModelSqlv2 {
         data,
         dependencyColumns,
         options?.apiVersion,
+        { skipPublicRedaction: options?.skipPublicRedaction },
       );
     }
 

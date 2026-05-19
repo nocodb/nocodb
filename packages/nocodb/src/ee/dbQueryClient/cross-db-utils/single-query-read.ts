@@ -47,6 +47,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
       ignoreRls?: boolean;
       deletedOnly?: boolean;
       fk_display_value_column_id?: string | null;
+      skipPublicRedaction?: boolean;
     },
   ): Promise<Record<string, any>> {
     client.validateClientType(ctx.source.type);
@@ -289,6 +290,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
         skipSubstitutingColumnIds:
           context.api_version === NcApiVersion.V3 &&
           ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        skipPublicRedaction: ctx.skipPublicRedaction,
       });
     } catch (e) {
       // Check if this is a transient error (connection/timeout issue)

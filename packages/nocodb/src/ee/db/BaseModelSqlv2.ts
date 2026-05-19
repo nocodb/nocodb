@@ -371,6 +371,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         data,
         dependencyColumns,
         options?.apiVersion,
+        { skipPublicRedaction: options?.skipPublicRedaction },
       );
     }
     // Update button fields
@@ -662,6 +663,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     disableOptimization?: boolean;
     view?: View;
     ignoreRls?: boolean;
+    skipPublicRedaction?: boolean;
   }): Promise<any> {
     return (await canUseOptimisedQuery(this.context, {
       source: param.source,
@@ -690,6 +692,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           source: param.source,
           getHiddenColumn: true,
           ignoreRls: param.ignoreRls,
+          skipPublicRedaction: param.skipPublicRedaction,
         })
       : super.readRecord(param);
   }

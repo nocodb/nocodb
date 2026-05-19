@@ -42,6 +42,7 @@ export async function singleQueryRead(
     ignoreRls?: boolean;
     deletedOnly?: boolean;
     fk_display_value_column_id?: string | null;
+    skipPublicRedaction?: boolean;
   },
 ): Promise<Record<string, any>> {
   const dbQuery = DBQueryClient.get(ClientType.PG);

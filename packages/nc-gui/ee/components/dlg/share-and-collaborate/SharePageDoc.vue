@@ -129,12 +129,6 @@ const toggleSubtree = async () => {
           <GeneralCopyUrl v-model:url="url" />
         </div>
 
-        <!-- Search engines are blocked from the public page in Phase 1 -->
-        <div class="flex flex-row items-center gap-x-2 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md text-nc-content-gray-subtle">
-          <GeneralIcon icon="info" class="flex-none !w-3.5 !h-3.5" />
-          <div class="flex-1 text-bodySm">{{ $t('msg.info.docShareNoindex') }}</div>
-        </div>
-
         <!-- Include sub-pages -->
         <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md">
           <div class="flex flex-row items-center justify-between">

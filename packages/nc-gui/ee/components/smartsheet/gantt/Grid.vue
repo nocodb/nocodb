@@ -779,34 +779,6 @@ const getBarStyle = (row: RowType) => {
   }
 }
 
-// Render the primary-value cell next to the bar instead of inside it when the
-// text wouldn't fit. Approx char width for `text-xs` is ~7px; +20px accounts
-// for left/right padding inside the bar. Whenever the estimated label width
-// exceeds the bar width, we spill the label to the right rather than
-// truncating it. Returns null when the bar can hold the label, when off-screen,
-// or for milestones (which render their label to the right of the diamond
-// already — see line ~1707).
-const AVG_CHAR_PX = 7
-const LABEL_INSIDE_PADDING = 20
-
-const getSpillLabelStyle = (row: RowType) => {
-  if (isMilestone(row)) return null
-  const barStyle = getBarStyle(row)
-  if (!barStyle) return null
-  const widthPx = parseFloat(barStyle.width)
-  if (!Number.isFinite(widthPx)) return null
-
-  const text = primaryField.value ? String(row.row?.[primaryField.value.title!] ?? '') : ''
-  const estLabelWidth = text.length * AVG_CHAR_PX + LABEL_INSIDE_PADDING
-  if (widthPx >= estLabelWidth) return null
-
-  const leftPx = parseFloat(barStyle.left)
-  return {
-    left: `${leftPx + widthPx + 6}px`,
-    height: `${ROW_HEIGHT - 8}px`,
-  }
-}
-
 // Milestones: a record with only an end date (no start date) renders as a
 // diamond centered on the end-date column. It still lists in the sidebar and
 // can be a dependency source or target. MILESTONE_SIZE is the diagonal
@@ -1355,32 +1327,37 @@ const linkDragPreviewPath = computed(() => {
   return `M ${startX} ${startY} L ${startX} ${currentY} L ${currentX} ${currentY}`
 })
 
-// #11: Build tooltip text for a record bar — improved format with em-dash and year
+// #11: Build tooltip text for a record bar. Prepends the primary value
+// (title) so when the bar's inline label is clipped at the bar's right
+// edge, the row identity is still recoverable on hover.
 const getBarTooltip = (row: RowType) => {
   const range = props.ganttRange[0]
   if (!range) return ''
 
+  const title = primaryField.value
+    ? String(row.row?.[primaryField.value.title!] ?? '').trim()
+    : ''
+
   const startDate = parseDate(row, range.fk_from_col)
   const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
 
-  // Milestone: end date only, show the single date
+  let dateLine = ''
   if (!startDate && endDate) {
-    return endDate.format('MMM D, YYYY')
+    dateLine = endDate.format('MMM D, YYYY')
+  } else if (startDate) {
+    const effectiveEnd = endDate || startDate
+    const days = effectiveEnd.diff(startDate, 'day') + 1
+    if (days <= 1) {
+      dateLine = startDate.format('MMM D, YYYY')
+    } else {
+      // Show year on both sides if they differ, otherwise only on end
+      const sameYear = startDate.year() === effectiveEnd.year()
+      const startFmt = sameYear ? 'MMM D' : 'MMM D, YYYY'
+      dateLine = `${startDate.format(startFmt)} — ${effectiveEnd.format('MMM D, YYYY')}  ·  ${days} days`
+    }
   }
 
-  if (!startDate) return ''
-
-  const effectiveEnd = endDate || startDate
-  const days = effectiveEnd.diff(startDate, 'day') + 1
-
-  if (days <= 1) {
-    return startDate.format('MMM D, YYYY')
-  }
-
-  // Show year on both sides if they differ, otherwise only on end
-  const sameYear = startDate.year() === effectiveEnd.year()
-  const startFmt = sameYear ? 'MMM D' : 'MMM D, YYYY'
-  return `${startDate.format(startFmt)} — ${effectiveEnd.format('MMM D, YYYY')}  ·  ${days} days`
+  return [title, dateLine].filter(Boolean).join('  ·  ')
 }
 
 // Determine if a date is today
@@ -2141,7 +2118,7 @@ const onGridMouseLeave = () => {
                 <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
               </template>
               <div
-                class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow transition-opacity select-none group peer w-full relative"
+                class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow transition-opacity select-none group peer w-full relative overflow-hidden"
                 :class="{
                   'cursor-grabbing': dragInProgress && dragRecord === record && canDrag,
                   'cursor-grab': !isInteracting && canDrag,
@@ -2194,7 +2171,6 @@ const onGridMouseLeave = () => {
                 </div>
 
                 <span
-                  v-if="!getSpillLabelStyle(record)"
                   class="whitespace-nowrap inline-flex items-center"
                   :class="{
                     'pl-7': !isStartVisible(record),
@@ -2288,27 +2264,6 @@ const onGridMouseLeave = () => {
                 @click.stop
               />
             </NcTooltip>
-            <!-- Spill-over label — appears to the right of narrow bars (< LABEL_SPILL_THRESHOLD)
-                 so the title is still readable. Pointer-events disabled so the
-                 label doesn't intercept clicks meant for the bar or for
-                 click-empty-area-to-create. -->
-            <div
-              v-if="!isMilestone(record) && getSpillLabelStyle(record)"
-              class="absolute top-1 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none"
-              :style="getSpillLabelStyle(record)!"
-            >
-              <template v-for="field in fields" :key="field.id">
-                <LazySmartsheetPlainCell
-                  v-if="!isRowEmpty(record, field!)"
-                  v-model="record.row[field!.title!]"
-                  class="text-xs"
-                  :bold="fieldStyles[field.id]?.bold"
-                  :column="field"
-                  :italic="fieldStyles[field.id]?.italic"
-                  :underline="fieldStyles[field.id]?.underline"
-                />
-              </template>
-            </div>
             </template>
           </div>
 

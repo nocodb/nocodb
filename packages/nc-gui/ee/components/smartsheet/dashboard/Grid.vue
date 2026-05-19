@@ -368,13 +368,16 @@ watch(
 }
 
 // Hide resize handles by default; reveal them on widget hover only when the
-// dashboard is in edit mode. Without this, users had no visual cue for
-// where to grab to resize a widget.
+// dashboard is in edit mode. Pull the handle a few px inside the rounded
+// border so the L-shape doesn't sit on top of the corner radius.
 :deep(.vgl-item__resizer) {
   @apply opacity-0 transition-opacity duration-150;
+  bottom: 6px !important;
+  right: 6px !important;
+  color: var(--nc-content-gray-subtle2);
 }
 :deep(.vgl-item:hover .vgl-item__resizer) {
-  @apply opacity-100;
+  @apply opacity-60;
 }
 :deep(.vgl-item--resizing .vgl-item__resizer),
 :deep(.vgl-item--dragging .vgl-item__resizer) {

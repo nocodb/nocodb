@@ -111,8 +111,12 @@ const chartOption = computed<ECOption>(() => {
     tooltip: {
       trigger: 'item',
       formatter: (params: any) => {
-        const categoryName = params.data.name
-        const value = params.data?.formatted_value !== undefined ? params.data.formatted_value : params.value[1]
+        // Scatter data points are { value, formatted_value, count } with no
+        // `name` field — the category sits on the x-axis. ECharts surfaces
+        // it as params.name (the indexed category from xAxis.data).
+        const categoryName = params.name
+        const rawValue = Array.isArray(params.value) ? params.value[1] : params.value
+        const value = params.data?.formatted_value !== undefined ? params.data.formatted_value : rawValue
         return `<strong>${categoryName}</strong><br/>${params.marker}${params.seriesName}: ${value}`
       },
       backgroundColor: 'rgba(50, 50, 50, 0.9)',

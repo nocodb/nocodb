@@ -118,8 +118,8 @@ function onSelect(rev: DocRevisionListItem) {
           <GeneralUserIcon size="medium" :user="userTile(rev)" />
         </div>
         <div class="nc-doc-history-content">
-          <div class="text-sm font-medium text-nc-content-gray">{{ formatTimestamp(rev.created_at) }}</div>
-          <div class="text-xs text-nc-content-gray-subtle mt-0.5">
+          <div class="text-xs font-medium text-nc-content-gray">{{ formatTimestamp(rev.created_at) }}</div>
+          <div class="text-xs text-nc-content-gray-muted mt-0.5">
             <template v-if="idx === 0">
               Current version · {{ authorLabel(rev) }}
             </template>

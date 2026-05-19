@@ -121,6 +121,19 @@ const navigateToDoc = (docId: string) => {
   })
 }
 
+// Direct children of the currently-displayed doc — drives the Notion-style
+// "Sub documents" panel at the bottom of the body. Same shape as the in-app
+// DocSubDocumentsList component (components/doc/SubDocumentsList.vue) but
+// sourced from the share-scope tree we already fetched, so it works
+// anonymously. Empty when subtree share is off or the active doc is a leaf.
+const subDocs = computed<PublicDocNode[]>(() => {
+  const id = activeDocId.value
+  if (!id) return []
+  return renderableTree.value
+    .filter((n) => n.parent_id === id)
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+})
+
 // Build a flat sidebar with simple indentation by parent_id depth. Anything
 // fancier (collapsible nodes, drag, etc.) can come later — this is the
 // minimum needed for navigation.
@@ -366,6 +379,45 @@ watch(
             :initial-content="activeContent.content"
             :read-only="true"
           />
+          <!-- "Sub documents" panel — mirrors components/doc/SubDocumentsList.vue
+               for anonymous reads. The in-app version reads from the docs
+               store; here we use the share-scope tree we already loaded. -->
+          <div
+            v-if="subDocs.length"
+            class="max-w-[900px] mx-auto px-10 nc-shared-doc-sub-documents pt-8 pb-12"
+            data-testid="nc-shared-doc-sub-documents"
+          >
+            <div class="nc-shared-doc-sub-documents-header">
+              <span class="nc-shared-doc-sub-documents-title">{{ $t('labels.subDocuments') }}</span>
+            </div>
+            <div class="nc-shared-doc-sub-documents-list mt-2">
+              <div
+                v-for="child in subDocs"
+                :key="child.id"
+                v-e="['c:doc:share:sub-document:open']"
+                class="nc-shared-doc-sub-documents-item"
+                :data-testid="`nc-shared-doc-sub-documents-item-${child.id}`"
+                @click="navigateToDoc(child.id)"
+              >
+                <div class="nc-shared-doc-sub-documents-icon">
+                  <LazyGeneralEmojiPicker
+                    :key="child.icon ?? ''"
+                    :emoji="child.icon ?? undefined"
+                    :readonly="true"
+                    size="xsmall"
+                    class="!text-[16px]"
+                  >
+                    <template #default>
+                      <GeneralIcon icon="ncFileText" class="!text-[16px] text-nc-content-gray-subtle" />
+                    </template>
+                  </LazyGeneralEmojiPicker>
+                </div>
+                <span class="nc-shared-doc-sub-documents-name truncate">
+                  {{ child.title || $t('general.untitled') }}
+                </span>
+              </div>
+            </div>
+          </div>
         </template>
       </main>
     </div>
@@ -403,5 +455,35 @@ watch(
   height: 240px;
   object-fit: cover;
   object-position: center;
+}
+
+// "Sub documents" panel — kept in sync with components/doc/SubDocumentsList.vue
+// so the public reader matches the in-app feel.
+.nc-shared-doc-sub-documents-header {
+  border-bottom: 1px solid var(--nc-border-gray-medium);
+}
+
+.nc-shared-doc-sub-documents-title {
+  display: inline-block;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--nc-content-gray);
+  margin-bottom: -1px;
+  @apply text-sm font-semibold text-nc-content-gray;
+}
+
+.nc-shared-doc-sub-documents-item {
+  @apply flex items-center gap-2 px-1.5 py-1 rounded-md cursor-pointer text-bodyDefaultSm text-nc-content-gray;
+
+  &:hover {
+    background: var(--nc-bg-gray-light);
+  }
+}
+
+.nc-shared-doc-sub-documents-icon {
+  @apply flex items-center justify-center w-5 h-5 flex-none;
+}
+
+.nc-shared-doc-sub-documents-name {
+  @apply flex-1;
 }
 </style>

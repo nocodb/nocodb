@@ -341,10 +341,8 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
         this.option.dbErrorLogger.error(
           `${error.code} is not handled on database pg`,
         );
-        // Fall through to the default-extractor (in dispatcher) so the raw
-        // message has a chance to reach the user. Previously this branch
-        // assigned `message` and `httpStatus` then `return`ed without the
-        // result object — silently dropping every unmapped SQLSTATE.
+        message = `An error occurred when querying postgresql database.`;
+        httpStatus = 500;
         return;
     }
 

@@ -19,16 +19,18 @@ export class DefaultDBErrorExtractor implements IClientDbErrorExtractor {
     this.option?.dbErrorLogger?.error(error);
 
     // Legacy convention: messages with `--` carry a user-safe half after
-    // the delimiter. Honor it when present so we don't regress callers
-    // that rely on it.
+    // the delimiter. Honor it when present.
+    //
+    // Do NOT pass the raw `error.message` through for unmapped error
+    // codes — Knex prepends the full SQL query, and node/connection
+    // errors carry internal hostnames / file paths. User-authored
+    // exceptions (`RAISE EXCEPTION 'Currency mismatch ...'`) are
+    // handled safely via the per-SQLSTATE case in `PgDBErrorExtractor`
+    // (`P0001`-`P0004` using `pgRawMessage`); they don't need this
+    // fallback. Anything that lands here is unmapped — leave the
+    // message undefined and surface a generic error to the client.
     if (error.message?.includes('--')) {
       message = error.message.split('--')[1]?.trim();
-    } else if (typeof error.message === 'string' && error.message.trim()) {
-      // Otherwise pass the raw DB message through. User-authored
-      // exceptions (`RAISE EXCEPTION 'Currency mismatch ...'` etc.) and
-      // unmapped SQLSTATEs both end up here — surfacing the message is
-      // better than the previous behavior of silently dropping it.
-      message = error.message.trim();
     }
 
     return {

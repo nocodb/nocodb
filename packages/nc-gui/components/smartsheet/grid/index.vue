@@ -494,6 +494,24 @@ watch(
   },
 )
 
+// Sync `path` to the URL when activePath changes without activeRowId
+// changing — i.e. the path-less deep-link recovery flow updated the group
+// scope after the row's group cache loaded. Without this the URL stays as
+// `?rowId=X` and a refresh would replay the entire recovery dance instead
+// of resolving the group directly.
+watch(
+  () => expandedFormPanelStore?.activePath.value,
+  (newPath) => {
+    if (!isExpandedFormPanelOpen.value) return
+    if (isSyncingPanelRoute.value) return
+    const path = newPath ?? []
+    const pathStr = path.length === 0 ? undefined : path.join('-')
+    if ((routeQuery.value.path ?? undefined) === pathStr) return
+    setSyncingRoute()
+    router.push({ query: { ...routeQuery.value, path: pathStr } }).finally(clearSyncingRoute)
+  },
+)
+
 watch([isExpandedFormPanelOpen, () => expandedFormPanelStore?.activeRowIndex.value], () => {
   eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
 })
@@ -680,6 +698,21 @@ const resolveActiveRowIndex = () => {
     const path = expandedFormPanelStore.activePath.value
     const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
     if (idx === -1) {
+      // Path-less deep-link recovery: if a comment-mention notification
+      // opened the panel without group context (activePath=[]), the row
+      // won't be in the root cache. Before closing, try a cross-group
+      // lookup — the right group cache may have just loaded.
+      if ((path ?? []).length === 0) {
+        const location = expandedFormPanelRowNavigator.value?.findRowLocation?.(rowId)
+        if (location) {
+          expandedFormPanelStore.activePath.value = location.path
+          expandedFormPanelStore.activeRowIndex.value = location.index
+          return
+        }
+        // No recovery yet — leave the panel open; another data event
+        // will retry. Avoids closing on a transient empty-cache state.
+        return
+      }
       expandedFormPanelStore.closePanel()
     } else if (idx !== expandedFormPanelStore.activeRowIndex.value) {
       expandedFormPanelStore.activeRowIndex.value = idx
@@ -689,7 +722,29 @@ const resolveActiveRowIndex = () => {
 
 watch(() => cachedRows.value.size, resolveActiveRowIndex)
 
+// Group caches live behind a shallowRef (`groupDataCache`) — internal Map
+// mutations don't trigger reactivity, so the cachedRows-only watch above
+// never fires in group-by mode. Hook into the grid event bus so the
+// path-less deep-link recovery path in resolveActiveRowIndex retries as
+// each group's data lands.
+const panelGroupPathRecoveryListener = (event: SmartsheetStoreEvents) => {
+  if (
+    event !== SmartsheetStoreEvents.TRIGGER_RE_RENDER &&
+    event !== SmartsheetStoreEvents.GROUP_BY_RELOAD &&
+    event !== SmartsheetStoreEvents.DATA_RELOAD
+  ) {
+    return
+  }
+  if (!expandedFormPanelStore?.isOpen.value) return
+  if ((expandedFormPanelStore.activePath.value ?? []).length > 0) return
+  if (!isGroupBy.value) return
+  resolveActiveRowIndex()
+}
+
+eventBus.on(panelGroupPathRecoveryListener)
+
 onBeforeUnmount(() => {
+  eventBus.off(panelGroupPathRecoveryListener)
   if (resolveActiveRowIndexTimer) clearTimeout(resolveActiveRowIndexTimer)
 })
 

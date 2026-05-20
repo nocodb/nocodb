@@ -405,13 +405,27 @@ watch(
       // restore both the row AND its group scope — without it prev/next would
       // walk across all groups instead of the user's group.
       const pathParam = routeQuery.value.path as string | undefined
-      const path = pathParam
+      let path = pathParam
         ? pathParam
             .split('-')
             .map(Number)
             .filter((n) => !Number.isNaN(n))
         : []
-      const idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
+      let idx = expandedFormPanelRowNavigator.value?.findIndexByRowId?.(rowId, path) ?? -1
+
+      // Comment-mention notifications produce URLs like `?rowId=…&commentId=…`
+      // with no `path` — the notification can't know which view/group the user
+      // was in when the comment was written. Fall back to a cross-group lookup
+      // so the panel still opens scoped to the correct group instead of
+      // landing index-less (which breaks prev/next + the canvas highlight).
+      if (idx === -1 && !pathParam) {
+        const location = expandedFormPanelRowNavigator.value?.findRowLocation?.(rowId)
+        if (location) {
+          idx = location.index
+          path = location.path
+        }
+      }
+
       expandedFormPanelStore!.openPanel(
         { row: {}, oldRow: {}, rowMeta: {} } as Row,
         idx >= 0 ? idx : undefined,
@@ -562,6 +576,29 @@ expandedFormPanelRowNavigator.value = {
     }
     return pData.value.findIndex((row: Row) => extractPkFromRow(row.row, cols) === rowId)
   },
+  findRowLocation: (rowId: string) => {
+    const cols = meta.value?.columns as ColumnType[] | undefined
+    if (!cols) return null
+    if (isInfiniteScrollingEnabled.value) {
+      for (const [idx, row] of cachedRows.value) {
+        if (extractPkFromRow(row.row, cols) === rowId) return { index: idx, path: [] }
+      }
+      for (const [key, cache] of groupDataCache.value) {
+        for (const [idx, row] of cache.cachedRows.value) {
+          if (extractPkFromRow(row.row, cols) === rowId) {
+            const path = key
+              .split('-')
+              .map(Number)
+              .filter((n) => !Number.isNaN(n))
+            return { index: idx, path }
+          }
+        }
+      }
+      return null
+    }
+    const idx = pData.value.findIndex((row: Row) => extractPkFromRow(row.row, cols) === rowId)
+    return idx >= 0 ? { index: idx, path: [] } : null
+  },
 }
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
@@ -602,13 +639,16 @@ watch(
 
     // Skip the initial async load. At mount gridViewCols is empty so groupBy is
     // []; once the persisted view config arrives, groupBy transitions to its real
-    // value. If a deep link (?rowId=X&path=A-B) opened the panel with a path
-    // matching the just-loaded structure, the path was authored against this very
-    // structure and is still valid — don't tear it down. User-initiated changes
-    // still close because either oldKey is non-empty or the depth no longer matches.
+    // value. Two deep-link shapes need to survive that transition:
+    //   - `?rowId=X&path=A-B` — path matches the just-loaded depth (matched).
+    //   - `?rowId=X&commentId=Y` (comment-mention notifications) — URL carries
+    //     no path at all, so the panel opened with activePath=[]. The path
+    //     will be recovered later when the row's group cache loads; closing
+    //     here would strip rowId from the URL before that ever happens.
+    // User-initiated group changes still close because oldKey is non-empty.
     const newDepth = newKey ? newKey.split('|').length : 0
     const panelDepth = expandedFormPanelStore.activePath.value?.length ?? 0
-    if (!oldKey && panelDepth > 0 && panelDepth === newDepth) return
+    if (!oldKey && (panelDepth === 0 || panelDepth === newDepth)) return
 
     expandedFormPanelStore.closePanel()
   },

@@ -35,6 +35,13 @@ const [useProvideExpandedFormPanel, useExpandedFormPanel] = useInjectionState(()
     // active-row indicator in sync when the panel opens without an explicit index
     // (deep-link, page reload, surface switch from modal).
     findIndexByRowId?: (rowId: string, path?: number[]) => number
+    // Locates a rowId across every cached group (root + every group-by cache),
+    // returning the path it was found under. Used when a deep-link omits
+    // `?path=…` (e.g. comment-mention notifications, which don't carry view
+    // context) so the panel can still resolve the right group scope for the
+    // canvas highlight + prev/next. Returns null when the row isn't loaded
+    // anywhere yet (collapsed group, infinite-scroll cache miss).
+    findRowLocation?: (rowId: string) => { index: number; path: number[] } | null
   } | null>(null)
 
   const hasPrev = computed(() => activeRowIndex.value != null && activeRowIndex.value > 0)

@@ -35,31 +35,44 @@ const columns = [
   { column_name: 'End', title: 'End', uidt: UITypes.Date },
 ];
 
-// Spread across Q1 so bars are within month/quarter zoom buffers without
-// saturating the 400-record windowed-fetch cap. Years are 2024 — fixed
-// so test assertions don't depend on the wall clock.
-const seedRecords = [
-  { Id: 1, Title: 'Discovery', Owner: 'Alice', Start: '2024-01-08', End: '2024-01-19' },
-  { Id: 2, Title: 'Requirements', Owner: 'Bob', Start: '2024-01-15', End: '2024-01-26' },
-  { Id: 3, Title: 'Design Mockups', Owner: 'Carol', Start: '2024-01-29', End: '2024-02-09' },
-  { Id: 4, Title: 'Design Review', Owner: 'Dan', Start: '2024-02-12', End: '2024-02-16' },
-  { Id: 5, Title: 'Backend Setup', Owner: 'Eve', Start: '2024-02-05', End: '2024-02-16' },
-  { Id: 6, Title: 'DB Schema', Owner: 'Frank', Start: '2024-02-19', End: '2024-02-23' },
-  { Id: 7, Title: 'API Design', Owner: 'Grace', Start: '2024-02-26', End: '2024-03-08' },
+// Seed dates are wall-clock relative: every CI run lands within ±60 days
+// of "today" so the default month-zoom buffer covers them and
+// navigateToClosestRecord anchors on real data instead of bailing to today.
+// Fixed 2024 dates used to silently shift the buffer 25+ months in the past
+// once CI moved past 2024, producing barCount=0 for tests that just asked
+// "do bars render?" — the only signal was empty results, no error.
+const today = new Date();
+const dayOffset = (days: number) => {
+  const d = new Date(today);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+};
+
+// Build the seed lazily inside beforeEach so `today` reads at the time of
+// the test run, not module-load. (At module load `today` is fine too, but
+// inlining helps readability.)
+const buildSeedRecords = () => [
+  { Id: 1, Title: 'Discovery', Owner: 'Alice', Start: dayOffset(-45), End: dayOffset(-38) },
+  { Id: 2, Title: 'Requirements', Owner: 'Bob', Start: dayOffset(-37), End: dayOffset(-30) },
+  { Id: 3, Title: 'Design Mockups', Owner: 'Carol', Start: dayOffset(-28), End: dayOffset(-21) },
+  { Id: 4, Title: 'Design Review', Owner: 'Dan', Start: dayOffset(-20), End: dayOffset(-15) },
+  { Id: 5, Title: 'Backend Setup', Owner: 'Eve', Start: dayOffset(-25), End: dayOffset(-14) },
+  { Id: 6, Title: 'DB Schema', Owner: 'Frank', Start: dayOffset(-12), End: dayOffset(-8) },
+  { Id: 7, Title: 'API Design', Owner: 'Grace', Start: dayOffset(-7), End: dayOffset(2) },
   {
     Id: 8,
     Title: 'A very long task title that definitely exceeds a five-day bar at month zoom',
     Owner: 'Helen',
-    Start: '2024-03-11',
-    End: '2024-03-15',
+    Start: dayOffset(3),
+    End: dayOffset(7),
   },
-  { Id: 9, Title: 'Authentication', Owner: 'Ivan', Start: '2024-03-18', End: '2024-03-29' },
-  { Id: 10, Title: 'Core CRUD', Owner: 'Jake', Start: '2024-04-01', End: '2024-04-19' },
-  // Milestone row — only End is set. With both start/end columns configured
-  // on the DateDependency rule, isMilestone() returns true for rows where
-  // start is null but end is set; these render as a diamond marker rather
-  // than a bar. Covered by the dedicated milestone test below.
-  { Id: 11, Title: 'Q1 Milestone', Owner: 'Karl', Start: null, End: '2024-03-31' },
+  { Id: 9, Title: 'Authentication', Owner: 'Ivan', Start: dayOffset(10), End: dayOffset(20) },
+  { Id: 10, Title: 'Core CRUD', Owner: 'Jake', Start: dayOffset(22), End: dayOffset(40) },
+  // Milestone row — only End is set. isMilestone() returns true for rows
+  // where start is null and end is set; these render as a diamond, not a
+  // bar. Positioned near today so the milestone falls inside the default
+  // buffer; the dedicated milestone test below counts diamonds on the page.
+  { Id: 11, Title: 'Mid-Sprint Milestone', Owner: 'Karl', Start: null, End: dayOffset(0) },
 ];
 
 test.describe('Gantt View', () => {
@@ -71,6 +84,8 @@ test.describe('Gantt View', () => {
   let dashboard: DashboardPage;
   let gantt: GanttPage;
   let context: NcContext;
+
+  let api: Api<any>;
   let tableId: string;
   let predecessorsColId: string;
   let startColId: string;
@@ -81,7 +96,11 @@ test.describe('Gantt View', () => {
     dashboard = new DashboardPage(page, context.base);
     gantt = dashboard.gantt;
 
-    const api = new Api({
+    // SDK client talks directly to the backend on :8080 — bypasses the
+    // dev-server proxy at :3000 (which has bitten earlier versions of
+    // this spec that used page.request for /api/v1/db/meta/views/.../share
+    // and got the Nuxt SPA 404 HTML back).
+    api = new Api({
       baseURL: `http://localhost:8080/`,
       headers: { 'xc-auth': context.token },
     });
@@ -94,7 +113,7 @@ test.describe('Gantt View', () => {
     });
     tableId = (table as any).id;
 
-    await api.dbTableRow.bulkCreate('noco', context.base.id!, tableId, seedRecords);
+    await api.dbTableRow.bulkCreate('noco', context.base.id!, tableId, buildSeedRecords());
 
     // Add self-ref Predecessors LTAR. Uses the established v1 column-create
     // pattern (parentId === childId === tableId, type: 'hm') — same shape
@@ -148,22 +167,23 @@ test.describe('Gantt View', () => {
     const url = dashboard.rootPage.url();
     const viewId = url.split('/').filter(Boolean).pop()!.split('?')[0];
 
-    await dashboard.rootPage.request.post(
+    // Internal-API operation — no SDK wrapper exists for the
+    // operation=... dispatcher. Send via api.instance (axios bound to
+    // :8080) instead of page.request (bound to :3000 via the dev-server
+    // proxy) so we don't depend on the proxy's path rules.
+    await api.instance.post(
       `/api/v2/internal/${context.workspace.id}/${context.base.id}` +
         `?operation=updateDateDependency&modelId=${tableId}&ganttViewId=${viewId}`,
       {
-        headers: { 'xc-auth': context.token, 'Content-Type': 'application/json' },
-        data: {
-          fk_start_date_field_id: startColId,
-          fk_end_date_field_id: endColId,
-          fk_dependency_linkrow_field_id: predecessorsColId,
-          dependency_linkrow_role: 'predecessors',
-          dependency_connection_type: 'end-to-start',
-          dependency_buffer_type: 'none',
-          dependency_buffer_days: 0,
-          include_weekends: false,
-          is_active: true,
-        },
+        fk_start_date_field_id: startColId,
+        fk_end_date_field_id: endColId,
+        fk_dependency_linkrow_field_id: predecessorsColId,
+        dependency_linkrow_role: 'predecessors',
+        dependency_connection_type: 'end-to-start',
+        dependency_buffer_type: 'none',
+        dependency_buffer_days: 0,
+        include_weekends: false,
+        is_active: true,
       }
     );
 
@@ -302,27 +322,31 @@ test.describe('Gantt View', () => {
     expect(url).toMatch(/to_date=\d{4}-\d{2}-\d{2}/);
   });
 
-  test('dependency graph endpoint returns edges between linked rows', async ({ page }) => {
+  test('dependency graph endpoint returns edges between linked rows', async () => {
     const viewId = await createConfiguredGantt({ title: 'GDeps' });
 
-    // Wire two predecessor links: row 2 ← 1, row 3 ← 2. The dep graph
-    // endpoint should return both edges.
+    // Wire two predecessor links via the SDK's nestedAdd — direct to
+    // :8080, no proxy in between. Predecessors: row 2 ← 1, row 3 ← 2.
     for (const [child, pred] of [
       [2, 1],
       [3, 2],
     ] as const) {
-      await page.request.post(
-        `/api/v1/db/data/noco/${context.base.id}/${tableId}/${child}/hm/${predecessorsColId}/${pred}`,
-        { headers: { 'xc-auth': context.token } }
+      await api.dbTableRow.nestedAdd(
+        'noco',
+        context.base.id!,
+        tableId,
+        String(child),
+        'hm',
+        predecessorsColId,
+        String(pred)
       );
     }
 
-    const resp = await page.request.get(
-      `/api/v1/db/gantt-data/noco/${context.base.id}/${tableId}/views/${viewId}/deps`,
-      { headers: { 'xc-auth': context.token } }
+    const resp = await api.instance.get(
+      `/api/v1/db/gantt-data/noco/${context.base.id}/${tableId}/views/${viewId}/deps`
     );
-    expect(resp.status()).toBe(200);
-    const body = await resp.json();
+    expect(resp.status).toBe(200);
+    const body = resp.data;
     expect(Array.isArray(body.edges)).toBe(true);
     expect(body.edges.length).toBeGreaterThanOrEqual(2);
 
@@ -339,16 +363,15 @@ test.describe('Gantt View', () => {
     );
   });
 
-  test('public shared Gantt view renders bars and edges without auth', async ({ browser, page }) => {
+  test('public shared Gantt view renders bars and edges without auth', async ({ browser }) => {
     const viewId = await createConfiguredGantt({ title: 'GShared' });
 
-    // Enable sharing via the v1 share endpoint (same path the UI's
-    // Share button hits).
-    const shareResp = await page.request.post(`/api/v1/db/meta/views/${viewId}/share`, {
-      headers: { 'xc-auth': context.token, 'Content-Type': 'application/json' },
-      data: {},
-    });
-    const share = await shareResp.json();
+    // Enable sharing via the SDK — same backend route as the UI Share
+    // button. Going through api.dbViewShare instead of page.request so
+    // the call lands on :8080 directly; the previous page.request shape
+    // hit the dev-server SPA fallback in CI and got HTML back.
+
+    const share = (await api.dbViewShare.create(viewId, {} as any)) as { uuid: string };
     expect(share.uuid).toBeTruthy();
 
     // Open the share URL in an anonymous (no-auth) context — same
@@ -389,38 +412,30 @@ test.describe('Gantt View', () => {
     await expect(inspector).not.toBeVisible();
   });
 
-  test('deleting a Gantt view cascades the per-view DateDependency rule', async ({ page }) => {
+  test('deleting a Gantt view cascades the per-view DateDependency rule', async () => {
     const viewId = await createConfiguredGantt({ title: 'GDeleteCascade' });
 
-    // Pre-condition: rule is configured for this view.
-    const beforeResp = await page.request.get(
+    const ruleUrl = (vid: string) =>
       `/api/v2/internal/${context.workspace.id}/${context.base.id}` +
-        `?operation=getDateDependency&modelId=${tableId}&ganttViewId=${viewId}`,
-      { headers: { 'xc-auth': context.token } }
-    );
-    expect(beforeResp.status()).toBe(200);
-    const before = await beforeResp.json();
-    expect(before?.fk_start_date_field_id).toBe(startColId);
+      `?operation=getDateDependency&modelId=${tableId}&ganttViewId=${vid}`;
+
+    // Pre-condition: rule is configured for this view.
+    const beforeResp = await api.instance.get(ruleUrl(viewId));
+    expect(beforeResp.status).toBe(200);
+    expect(beforeResp.data?.fk_start_date_field_id).toBe(startColId);
 
     // Delete the view through the standard sidebar flow.
     await dashboard.viewSidebar.deleteView({ title: 'GDeleteCascade' });
 
     // Post-condition: the rule must be gone. Without the View.delete
     // cascade (`metaDelete` on fk_gantt_view_id) this row would orphan
-    // in nc_date_dependency — any future Gantt view created with a
-    // recycled id would inherit the dead rule.
-    const afterResp = await page.request.get(
-      `/api/v2/internal/${context.workspace.id}/${context.base.id}` +
-        `?operation=getDateDependency&modelId=${tableId}&ganttViewId=${viewId}`,
-      { headers: { 'xc-auth': context.token } }
-    );
-    const after = await afterResp.json();
-    // Endpoint returns null/empty when no rule exists for the given
-    // (model, gantt-view) pair.
-    expect(after === null || Object.keys(after ?? {}).length === 0).toBe(true);
+    // in nc_date_dependency.
+    const afterResp = await api.instance.get(ruleUrl(viewId), { validateStatus: () => true });
+    const after = afterResp.data;
+    expect(after === null || after === '' || Object.keys(after ?? {}).length === 0).toBe(true);
   });
 
-  test('two Gantt views on the same table carry independent rules', async ({ page }) => {
+  test('two Gantt views on the same table carry independent rules', async () => {
     // Gantt A — configured by createConfiguredGantt with the standard
     // (Start, End, Predecessors, end-to-start, no buffer) shape.
     const viewIdA = await createConfiguredGantt({ title: 'GIndependentA' });
@@ -436,32 +451,28 @@ test.describe('Gantt View', () => {
     const url = dashboard.rootPage.url();
     const viewIdB = url.split('/').filter(Boolean).pop()!.split('?')[0];
 
-    await page.request.post(
+    await api.instance.post(
       `/api/v2/internal/${context.workspace.id}/${context.base.id}` +
         `?operation=updateDateDependency&modelId=${tableId}&ganttViewId=${viewIdB}`,
       {
-        headers: { 'xc-auth': context.token, 'Content-Type': 'application/json' },
-        data: {
-          fk_start_date_field_id: startColId,
-          fk_end_date_field_id: null,
-          fk_dependency_linkrow_field_id: null,
-          dependency_linkrow_role: null,
-          dependency_connection_type: 'end-to-start',
-          dependency_buffer_type: 'none',
-          dependency_buffer_days: 0,
-          include_weekends: false,
-          is_active: true,
-        },
+        fk_start_date_field_id: startColId,
+        fk_end_date_field_id: null,
+        fk_dependency_linkrow_field_id: null,
+        dependency_linkrow_role: null,
+        dependency_connection_type: 'end-to-start',
+        dependency_buffer_type: 'none',
+        dependency_buffer_days: 0,
+        include_weekends: false,
+        is_active: true,
       }
     );
 
     const fetchRule = async (viewId: string) => {
-      const r = await page.request.get(
+      const r = await api.instance.get(
         `/api/v2/internal/${context.workspace.id}/${context.base.id}` +
-          `?operation=getDateDependency&modelId=${tableId}&ganttViewId=${viewId}`,
-        { headers: { 'xc-auth': context.token } }
+          `?operation=getDateDependency&modelId=${tableId}&ganttViewId=${viewId}`
       );
-      return r.json();
+      return r.data;
     };
 
     const ruleA = await fetchRule(viewIdA);
@@ -480,31 +491,34 @@ test.describe('Gantt View', () => {
     expect(ruleB.fk_gantt_view_id).toBe(viewIdB);
   });
 
-  test('dependency arrows render as DOM elements between linked rows', async ({ page }) => {
-    const _viewId = await createConfiguredGantt({ title: 'GArrows' });
+  test('dependency arrows render as DOM elements between linked rows', async () => {
+    await createConfiguredGantt({ title: 'GArrows' });
 
-    // Wire 3→2→1 predecessor chain via the v1 nested-LTAR endpoint.
-    // Same path the FE store hits on link.
+    // Wire 2 ← 1, 3 ← 2 via the SDK's nestedAdd — direct to :8080.
     for (const [child, pred] of [
       [2, 1],
       [3, 2],
     ] as const) {
-      await page.request.post(
-        `/api/v1/db/data/noco/${context.base.id}/${tableId}/${child}/hm/${predecessorsColId}/${pred}`,
-        { headers: { 'xc-auth': context.token } }
+      await api.dbTableRow.nestedAdd(
+        'noco',
+        context.base.id!,
+        tableId,
+        String(child),
+        'hm',
+        predecessorsColId,
+        String(pred)
       );
     }
 
-    // Reload so the windowed-fetch picks up the new links and the deps
-    // graph endpoint is re-queried. Without reload the existing in-memory
-    // dependencyLinks map wouldn't refresh in time.
+    // Reload so the in-memory dependencyLinks map refreshes from the
+    // /deps endpoint, then jump the buffer to today so rows 1–3 (seeded
+    // at dayOffset -45 to -28) sit alongside today's anchor at month
+    // zoom — bufferDays is wide enough at month zoom that both ends of
+    // the range and today fall in one window.
     await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await gantt.waitLoading();
+    await gantt.clickToday();
 
-    // Bars 1, 2, 3 must all be in the buffer for arrows to render.
-    // navigateToClosestRecord anchors near today; the 2024 seed dates
-    // are well in the past, so the helper jumps the buffer to ~Jan
-    // 2024 on mount and bars + arrows should be visible.
     const arrowCount = await gantt.getArrowCount();
     expect(arrowCount).toBeGreaterThanOrEqual(2);
   });
@@ -527,14 +541,10 @@ test.describe('Gantt View', () => {
     expect(barCount).toBeLessThanOrEqual(10);
   });
 
-  test('public shared Gantt view is read-only — no drag handles', async ({ browser, page }) => {
+  test('public shared Gantt view is read-only — no drag handles', async ({ browser }) => {
     const viewId = await createConfiguredGantt({ title: 'GReadOnly' });
 
-    const shareResp = await page.request.post(`/api/v1/db/meta/views/${viewId}/share`, {
-      headers: { 'xc-auth': context.token, 'Content-Type': 'application/json' },
-      data: {},
-    });
-    const share = await shareResp.json();
+    const share = (await api.dbViewShare.create(viewId, {} as any)) as { uuid: string };
     expect(share.uuid).toBeTruthy();
 
     const anonCtx = await browser.newContext({ storageState: undefined });

@@ -26,6 +26,7 @@ import {
   NcBaseError,
   ncIsNull,
   ncIsUndefined,
+  type OperationSource,
   parseProp,
   partialUpdateAllowedTypes,
   PermissionEntity,

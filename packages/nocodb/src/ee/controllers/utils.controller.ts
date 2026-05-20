@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAgent } from 'request-filtering-agent';
+import { getFilteredAgents } from '~/utils/ssrf';
 import {
   Body,
   Controller,
@@ -14,6 +14,7 @@ import { validateAndExtractSSLProp } from 'nocodb-sdk';
 import {
   getTestDatabaseName,
   IntegrationsType,
+  OperationSource,
   ProjectRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
@@ -110,33 +111,36 @@ export class UtilsController extends UtilsControllerCE {
       deepMerge(config, body);
     }
 
-    if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS !== 'true') {
-      if (
-        config.client !== 'snowflake' &&
-        (!config?.connection || !config?.connection.host)
-      ) {
-        NcError.badRequest('Connection missing host name or IP address');
+    if (
+      config.client !== 'snowflake' &&
+      (!config?.connection || !config?.connection.host)
+    ) {
+      NcError.badRequest('Connection missing host name or IP address');
+    }
+    if (config?.client && !config.client.includes('sqlite')) {
+      const host = config.connection.host;
+      const port = config.connection.port;
+      if (host) {
+        // Resolve and range-check the host; the driver opens a raw TCP
+        // socket, so the HTTP-only useAgent below does not protect it.
+        await validateDbConnectionHost(host);
       }
-      if (config?.client && !config.client.includes('sqlite')) {
-        const host = config.connection.host;
-        const port = config.connection.port;
-        if (host) {
-          // Resolve and range-check the host; the driver opens a raw TCP
-          // socket, so the HTTP-only useAgent below does not protect it.
-          await validateDbConnectionHost(host);
-        }
-        if (host && port) {
-          // Detect IPv6 addresses (e.g. ::1, fe80::1) which contain colons
-          // but exclude full URLs (e.g. https://host) that also contain colons via '://'
-          const isIPv6 = host.includes(':') && !host.includes('://');
-          // IPv6 addresses must be wrapped in brackets for valid URL format (e.g. http://[::1]:5432)
-          const formattedHost = isIPv6 ? `[${host}]` : host;
-          const url = `${
-            host.includes('://') ? '' : 'http://'
-          }${formattedHost}:${port}`;
+      if (host && port) {
+        // Detect IPv6 addresses (e.g. ::1, fe80::1) which contain colons
+        // but exclude full URLs (e.g. https://host) that also contain colons via '://'
+        const isIPv6 = host.includes(':') && !host.includes('://');
+        // IPv6 addresses must be wrapped in brackets for valid URL format (e.g. http://[::1]:5432)
+        const formattedHost = isIPv6 ? `[${host}]` : host;
+        const url = `${
+          host.includes('://') ? '' : 'http://'
+        }${formattedHost}:${port}`;
+        const agents = getFilteredAgents({
+          url,
+          source: OperationSource.EXTERNAL_DBS,
+        });
+        if (agents.httpAgent) {
           await axios(url, {
-            httpAgent: useAgent(url),
-            httpsAgent: useAgent(url),
+            ...agents,
             timeout: 100,
           }).catch((err) => {
             if (err.message.includes('DNS lookup')) {

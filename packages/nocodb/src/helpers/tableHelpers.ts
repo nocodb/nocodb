@@ -3,6 +3,7 @@ import {
   extractRolesObj,
   getProjectRole,
   type NcContext,
+  type OperationSource,
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
@@ -14,7 +15,6 @@ import type { User } from '~/models';
 import { Permission } from '~/models';
 import {
   deleteColumnSystemPropsFromRequest,
-  type OperationSource,
   TableSystemColumns,
 } from '~/helpers/columnHelpers';
 import {

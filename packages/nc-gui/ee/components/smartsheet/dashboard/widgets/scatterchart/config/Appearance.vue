@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import GroupedSettings from '../../common/GroupedSettings.vue'
+import PalettePicker from '../../common/PalettePicker.vue'
 
 const emit = defineEmits<{
   'update:appearance': [source: any]
@@ -34,6 +35,8 @@ const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCoun
 
 const showValueInChart = ref(selectedWidget.value?.config?.appearance?.showValueInChart ?? true)
 
+const colorSchema = ref(selectedWidget.value?.config?.appearance?.colorSchema ?? 'default')
+
 const fieldsYAxis = computed(() => selectedWidget.value?.config?.data?.yAxis?.fields || [])
 
 const handleChange = (type?: string, value?: any) => {
@@ -49,6 +52,7 @@ const handleChange = (type?: string, value?: any) => {
     legendPosition: appearanceLegendPosition.value,
     showCountInLegend: showCountInLegend.value,
     showValueInChart: showValueInChart.value,
+    colorSchema: colorSchema.value,
   })
 }
 </script>
@@ -87,6 +91,11 @@ const handleChange = (type?: string, value?: any) => {
           </template>
         </a-select>
       </div>
+    </div>
+
+    <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <label>{{ $t('general.colorPalette') }}</label>
+      <PalettePicker v-model="colorSchema" preview="scatter" @change="handleChange()" />
     </div>
 
     <div class="space-y-2">

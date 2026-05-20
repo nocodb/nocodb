@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import GroupedSettings from '../../common/GroupedSettings.vue'
+import PalettePicker from '../../common/PalettePicker.vue'
 
 const emit = defineEmits<{
   'update:appearance': [source: any]
@@ -20,11 +21,14 @@ const showCountInLegend = ref(selectedWidget.value?.config?.appearance?.showCoun
 
 const showPercentageOnChart = ref(selectedWidget.value?.config?.appearance?.showPercentageOnChart ?? true)
 
+const colorSchema = ref(selectedWidget.value?.config?.appearance?.colorSchema ?? 'default')
+
 const handleChange = () => {
   emit('update:appearance', {
     legendPosition: appearanceLegendPosition.value,
     showCountInLegend: showCountInLegend.value,
     showPercentageOnChart: showPercentageOnChart.value,
+    colorSchema: colorSchema.value,
   })
 }
 </script>
@@ -45,6 +49,11 @@ const handleChange = () => {
         </template>
       </a-select>
     </div>
+    <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <label>{{ $t('general.colorPalette') }}</label>
+      <PalettePicker v-model="colorSchema" preview="donut" @change="handleChange" />
+    </div>
+
     <div class="space-y-2">
       <div>
         <NcSwitch v-model:checked="showPercentageOnChart" @change="handleChange">

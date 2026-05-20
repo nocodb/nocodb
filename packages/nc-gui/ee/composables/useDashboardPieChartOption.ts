@@ -1,5 +1,5 @@
 import type { ChartTypes, ChartWidgetType } from 'nocodb-sdk'
-import { CHART_COLORS } from '~/lib/constants'
+import { getChartColors } from '~/lib/constants'
 import { truncateText } from '~/utils/stringUtils'
 
 const SMALL_SLICE_PERCENT = 3
@@ -88,14 +88,17 @@ export function useDashboardPieChartOption(
     return configured
   })
 
+  const paletteColors = computed(() => getChartColors(chartConfig.value?.appearance?.colorSchema))
+
   const processedData = computed(() => {
     const raw = widgetData.value?.data
     if (!Array.isArray(raw)) return []
 
     const bucketed = bucketSmallSlices(raw)
+    const palette = paletteColors.value
 
     return bucketed.map((item, i) => {
-      const sliceColor = CHART_COLORS[i % CHART_COLORS.length]
+      const sliceColor = palette[i % palette.length]
       return {
         ...item,
         // Per-slice label color picked from slice background luminance —
@@ -139,7 +142,17 @@ export function useDashboardPieChartOption(
       pageButtonItemGap: 4,
       pageIconSize: 10,
       pageTextStyle: { fontSize: 11 },
-      tooltip: { show: true },
+      tooltip: {
+        show: true,
+        formatter: (params: any) => {
+          const name = params.name
+          if (!showCountInLegend) return name
+          const item = processedData.value?.find((d: any) => d.name === name)
+          if (!item) return name
+          const displayValue = item.formatted_value !== undefined ? item.formatted_value : item.value
+          return `${name}: ${displayValue}`
+        },
+      },
     }
   })
 
@@ -172,7 +185,7 @@ export function useDashboardPieChartOption(
         : '70%'
 
     return {
-      color: CHART_COLORS,
+      color: paletteColors.value,
       tooltip: {
         trigger: 'item',
         formatter: (params: any) => {

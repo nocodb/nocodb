@@ -73,24 +73,59 @@ export const NC_CLOUD_URL = 'https://app.nocodb.com'
 
 export const clientMousePositionDefaultValue = { clientX: 0, clientY: 0 }
 
-// NocoDB-branded categorical palette for dashboard widgets.
-// Leads with brand blue (#3366ff) and steps ~30° around the wheel so
-// adjacent slices stay distinguishable. Saturation/lightness tuned to
-// feel calm rather than the loud default ECharts rainbow.
-export const CHART_COLORS = [
-  '#3366FF', // brand blue
-  '#36BFFF', // sky
-  '#22C7C9', // teal
-  '#22C55E', // green
-  '#FFCD56', // amber
-  '#FFA94D', // warm orange
-  '#FF6B6B', // coral
-  '#FF6B9D', // pink
-  '#B388EB', // soft purple
-  '#7C8FFF', // periwinkle
-  '#94A3B8', // slate
-  '#67E8F9', // light cyan
+// Curated palettes keyed by the chart appearance.colorSchema enum value.
+// 'default' is the NocoDB brand palette (current product default).
+// 'custom' is reserved — when wired, it consumes appearance.customColorSchema.
+export const CHART_PALETTES: Record<string, string[]> = {
+  default: [
+    '#3366FF', '#36BFFF', '#22C7C9', '#22C55E',
+    '#FFCD56', '#FFA94D', '#FF6B6B', '#FF6B9D',
+    '#B388EB', '#7C8FFF', '#94A3B8', '#67E8F9',
+  ],
+  classic: [
+    '#4E79A7', '#F28E2B', '#E15759', '#76B7B2',
+    '#59A14F', '#EDC948', '#B07AA1', '#9C755F',
+    '#FF9DA7', '#BAB0AC',
+  ],
+  vibrant: [
+    '#7C3AED', '#EC4899', '#F59E0B', '#10B981',
+    '#0EA5E9', '#EF4444', '#14B8A6', '#A855F7',
+    '#F97316', '#22D3EE',
+  ],
+  pastel: [
+    '#A5B4FC', '#FCA5A5', '#FCD34D', '#86EFAC',
+    '#67E8F9', '#F9A8D4', '#FDBA74', '#C4B5FD',
+    '#FECACA', '#BBF7D0',
+  ],
+  earth: [
+    '#8B4513', '#CD853F', '#DAA520', '#6B8E23',
+    '#A0522D', '#D2691E', '#BC8F8F', '#556B2F',
+    '#8FBC8F', '#B8860B',
+  ],
+  monoBlue: [
+    '#0B2D7A', '#1E40AF', '#2563EB', '#3B82F6',
+    '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE',
+  ],
+}
+
+// `value` is the colorSchema enum value (also the i18n key suffix under
+// labels.chartPalette.*). Components resolve the display label via t().
+export const CHART_PALETTE_OPTIONS = [
+  { value: 'default', colors: CHART_PALETTES.default },
+  { value: 'classic', colors: CHART_PALETTES.classic },
+  { value: 'vibrant', colors: CHART_PALETTES.vibrant },
+  { value: 'pastel', colors: CHART_PALETTES.pastel },
+  { value: 'earth', colors: CHART_PALETTES.earth },
+  { value: 'monoBlue', colors: CHART_PALETTES.monoBlue },
 ]
+
+export const getChartColors = (schema?: string | null): string[] => {
+  return CHART_PALETTES[schema ?? 'default'] ?? CHART_PALETTES.default!
+}
+
+// Legacy named export kept for any remaining consumer; resolves to the
+// default (brand) palette. New chart code reads getChartColors(appearance.colorSchema).
+export const CHART_COLORS = CHART_PALETTES.default!
 
 /** Virtual section ID for views not assigned to any real section */
 export const DEFAULT_SECTION_ID = '__default__'

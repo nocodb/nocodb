@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChartTypes, ChartWidgetType } from 'nocodb-sdk'
-import { CHART_COLORS } from '~/lib/constants'
+import { getChartColors } from '~/lib/constants'
 import { truncateText } from '~/utils/stringUtils'
 
 interface Props {
@@ -63,6 +63,20 @@ const legendConfig = computed(() => {
       color: '#666',
     },
     itemGap: 12,
+    tooltip: {
+      show: true,
+      formatter: (params: any) => {
+        const name = params.name
+        if (!showCountInLegend) return name
+        const seriesData = widgetData.value?.series?.find((s: any) => s.name === name)
+        if (!seriesData || !Array.isArray(seriesData.data)) return name
+        const total = seriesData.data.reduce((sum: number, item: any) => {
+          const value = typeof item === 'object' ? item.value || 0 : item
+          return sum + value
+        }, 0)
+        return `${name}: ${total}`
+      },
+    },
   }
 })
 
@@ -107,7 +121,7 @@ const chartOption = computed<ECOption>(() => {
   const startAtZero = chartConfig.value?.data?.yAxis?.startAtZero ?? true
 
   return {
-    color: CHART_COLORS,
+    color: getChartColors(chartConfig.value?.appearance?.colorSchema),
     tooltip: {
       trigger: 'item',
       formatter: (params: any) => {

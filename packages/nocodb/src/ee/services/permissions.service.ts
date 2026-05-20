@@ -347,10 +347,7 @@ export class PermissionsService {
       // Clear base permission list cache — cascade may have deleted child permissions
       await Permission.clearBaseCache(context);
 
-      // Visibility writes can change a public share's reachable subtree.
-      // Walk up from the affected doc and invalidate the share-scope cache
-      // for any shared ancestor. No-op on bases with no shared docs (the
-      // walk short-circuits on the per-base flag).
+      // Visibility writes change a share's reachable subtree.
       if (permission_key === PermissionKey.DOCUMENT_VISIBILITY) {
         await Document.invalidateShareCacheUpTree(context, entity_id);
       }
@@ -470,9 +467,7 @@ export class PermissionsService {
     await this.broadcastPermissionUpdate(context);
 
     if (DOCUMENT_PERMISSION_KEYS.includes(permission_key)) {
-      // Dropping a visibility row can re-expose a previously-hidden subtree
-      // inside a public share — invalidate so the cached reachable set is
-      // rebuilt on the next /meta call.
+      // Dropping a visibility row re-exposes the subtree to public shares.
       if (
         permission_key === PermissionKey.DOCUMENT_VISIBILITY &&
         permission.entity_id
@@ -604,9 +599,6 @@ export class PermissionsService {
       // Clear base permission list cache — bulk drop may have removed child permissions
       await Permission.clearBaseCache(context);
 
-      // Same rationale as dropPermission: each deleted visibility row may
-      // re-expose a subtree to a public share. Walk up once per affected
-      // entity_id (de-duplicated).
       const visibilityEntityIds = new Set(
         deletedPermissions
           .filter(

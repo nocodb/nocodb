@@ -23,13 +23,8 @@ const isUpdating = ref({
 
 const restrictedSharing = computed(() => isPrivateBase.value)
 
-// Public sharing is blocked when the doc has custom DOCUMENT_VISIBILITY
-// permissions. The owner deliberately restricted who can see this doc
-// inside the workspace; handing the world a public URL would bypass that
-// restriction. Backend share endpoint enforces the same rule — this flag
-// is purely UX so the toggle can be disabled up-front instead of failing
-// after the user clicks. Edit-only permissions don't block; only
-// visibility (`has_visibility_permission`) matters here.
+// Block sharing when a DOCUMENT_VISIBILITY restriction exists — public
+// URL would bypass it. Backend enforces too; this is UX-only.
 const isBlockedByVisibility = computed(() => !!activeDocument.value?.has_visibility_permission)
 
 const isPublicShared = computed(() => {
@@ -38,7 +33,6 @@ const isPublicShared = computed(() => {
 })
 
 const includeSubtree = computed(() => {
-  // Default true when share is enabled — backend seeds this on first share.
   return getDocShareMeta(activeDocument.value?.meta).include_subtree ?? true
 })
 
@@ -112,10 +106,7 @@ const toggleSubtree = async () => {
   }
 }
 
-// Drop the doc's explicit DOCUMENT_VISIBILITY row so the share toggle
-// becomes available again. Surfaced inline in the blocked-state notice
-// — the Share UI is Creator+ gated and dropPermission is Creator+, so
-// every user who can see this notice can also act on it.
+// Drop the explicit DOCUMENT_VISIBILITY row so the share toggle unblocks.
 const onResetVisibility = async () => {
   const docId = activeDocument.value?.id
   const baseId = activeProjectId.value
@@ -144,13 +135,8 @@ const onResetVisibility = async () => {
   }
 }
 
-// Refresh the active doc whenever the share modal opens. Permissions can
-// change between when the doc was first loaded into the docs store and
-// when the user clicks Share — without this refresh, the toggle reads
-// from stale state (e.g., would still appear enabled after a Creator-only
-// visibility row was added). One small GET per modal open is cheap; the
-// backend's request-time visibility re-check would catch the case as a
-// fallback, but the UX is to disable the toggle up-front.
+// Refresh on modal open so the toggle reflects current permissions, not
+// whatever was in the docs store at sidebar-load time.
 watch(showShareModal, async (visible) => {
   if (!visible) return
   const docId = activeDocument.value?.id
@@ -167,8 +153,7 @@ watch(showShareModal, async (visible) => {
       ...(fresh?.meta ? { meta: fresh.meta } : {}),
     })
   } catch {
-    // Silent — the modal still renders against the stale state, and the
-    // backend share endpoint will refuse if visibility is now restricted.
+    // Backend re-checks on share — safe to render stale state on fetch fail.
   }
 })
 </script>
@@ -181,9 +166,7 @@ watch(showShareModal, async (visible) => {
         <div class="text-nc-content-gray-emphasis font-medium">
           {{ $t('activity.enabledPublicViewing') }}
         </div>
-        <!-- Disabled switch when blocked by custom visibility — no tooltip
-             because the inline notice below carries the same message (with
-             an actionable link), making a hover-only tooltip redundant. -->
+        <!-- Inline notice below carries the message, so no tooltip here. -->
         <a-switch
           v-if="!restrictedSharing && isBlockedByVisibility"
           :checked="false"
@@ -203,8 +186,6 @@ watch(showShareModal, async (visible) => {
         <div v-else class="text-nc-content-gray-muted">{{ $t('labels.sharingRestricted') }}</div>
       </div>
 
-      <!-- Inline notice when the toggle is blocked by custom visibility,
-           so the reason is visible without hovering the disabled switch. -->
       <div
         v-if="!restrictedSharing && isBlockedByVisibility"
         class="flex flex-row items-start gap-x-2 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md text-nc-content-gray-subtle"
@@ -225,12 +206,8 @@ watch(showShareModal, async (visible) => {
         </i18n-t>
       </div>
 
-      <!-- A doc that was previously shared keeps its uuid even after a
-           visibility permission is added later, so `isPublicShared` alone
-           would still surface the URL / subtree section. Hide both while
-           visibility is restricted — the backend's request-time check
-           refuses to serve the URL anyway, so showing it would mislead
-           the owner into thinking the share is live. -->
+      <!-- uuid persists after a visibility permission is added; hide the
+           URL + subtree section while sharing is blocked. -->
       <template v-if="isPublicShared && !isBlockedByVisibility">
         <div class="mt-0.5 border-t-1 border-nc-border-gray-light pt-3">
           <GeneralCopyUrl v-model:url="url" />
@@ -252,10 +229,7 @@ watch(showShareModal, async (visible) => {
               @click="toggleSubtree"
             />
           </div>
-          <!-- Note: backend skips sub-pages (and their descendants) with
-               custom visibility permissions when subtree is on. Only
-               render when the doc actually has children — for a leaf
-               doc the subtree toggle is moot and the note is noise. -->
+          <!-- Hide on a leaf doc — subtree toggle is moot, note is noise. -->
           <div
             v-if="includeSubtree && !!activeDocument?.has_children"
             class="flex flex-row items-start gap-x-2 mt-2 text-nc-content-gray-subtle"

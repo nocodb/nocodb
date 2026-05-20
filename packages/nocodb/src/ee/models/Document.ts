@@ -31,37 +31,11 @@ import { notDeletedXcCondition } from '~/utils/trashUtils';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
-/**
- * TTL (seconds) for the per-base "any shared doc exists" flag. Long enough
- * that the lazy-refill DB check amortises across many doc mutations, short
- * enough that orphaned state (e.g. last shared doc soft-deleted, direct DB
- * mods, restore flows) self-heals within an hour.
- */
 const BASE_HAS_SHARES_TTL_SECONDS = 60 * 60;
-
-/**
- * TTL (seconds) for the uuid → doc cache consulted by `extract-ids` on
- * every public-share request. Mirrors the existing share patterns — View
- * and Dashboard look up by uuid uncached today, but docs see the same
- * uuid repeatedly while a user reads a shared page so caching pays off.
- * Short enough that drift from a hand-edited DB row self-heals; long
- * enough that the lookup isn't a hot DB query.
- */
 const DOC_BY_UUID_TTL_SECONDS = 60 * 60;
 
-/**
- * Resolved share-scope payload. `reachableDocIds` is the precomputed set of
- * docIds reachable through this share (excludes any subtree pruned by an
- * explicit DOCUMENT_VISIBILITY restriction). Per-request scope checks
- * consult this set instead of walking the parent chain.
- *
- * Mirrors the repo convention: the cache holds the **full** Document row so
- * other consumers can read any field; the response builder in
- * `PublicDocsService` projects to API shape at the response boundary.
- *
- * Redis serialization: `reachableDocIds` is persisted as `string[]` and
- * reconstructed back to a Set on read.
- */
+// `reachableDocIds` is serialized as `string[]` and rehydrated into a Set
+// on read; everything else round-trips through Redis as-is.
 export interface CachedShareScope {
   root: Document;
   tree: PublicDocTreeNode[];
@@ -69,34 +43,21 @@ export interface CachedShareScope {
   reachableDocIds: Set<string>;
 }
 
-/**
- * Data model for Documents (stored in nc_models_v2 with type='document').
- *
- * Document metadata lives in `nc_models_v2` (via ncMeta) while content
- * (ProseMirror JSON) lives in `nc_doc_content_v2` (via ncDocsContent).
- * When `NC_DOCS_DB` is not set, both resolve to the same meta connection.
- *
- * The DB column `doc_version` is mapped to `version` on the model/SDK side.
- *
- * JSON fields (content, meta) are stringified for DB storage and parsed on read
- * via `parseDocument()`. Cache invalidation uses `del` on update (not `update`) to
- * avoid storing stringified JSON in the cache layer.
- */
+// Metadata lives in nc_models_v2; content (ProseMirror JSON) lives in
+// nc_doc_content_v2 — see Noco.ncDocsContent. `doc_version` column maps
+// to `version` on the model.
 export default class Document extends DocumentCE implements DocumentType {
   constructor(doc: Document | DocumentType) {
     super(doc);
     Object.assign(this, doc);
   }
 
-  /** Base condition to scope queries to documents only. */
   private static get typeCondition() {
     return { type: ModelTypes.DOCUMENT };
   }
 
-  /**
-   * Get document metadata only (no content). Safe to use inside transactions
-   * because it does not query the satellite docs-content DB.
-   */
+  // Metadata only — does not query the satellite docs-content DB, so safe
+  // inside transactions.
   public static async getMeta(
     context: NcContext,
     docId: string,
@@ -113,8 +74,6 @@ export default class Document extends DocumentCE implements DocumentType {
         { id: docId, deleted: false, ...this.typeCondition },
       );
 
-      // `doc` is the raw MODELS row — content lives in DOC_CONTENT and is
-      // fetched separately, so it never enters this cache.
       if (doc) {
         await NocoCache.set(context, key, doc);
       }
@@ -134,7 +93,6 @@ export default class Document extends DocumentCE implements DocumentType {
   ) {
     const doc = await this.getMeta(context, docId, ncMeta);
 
-    // Fetch content separately from content service
     if (doc) {
       const contentRow = await Noco.ncDocsContent.metaGet2(
         context.workspace_id,
@@ -149,12 +107,7 @@ export default class Document extends DocumentCE implements DocumentType {
     return doc;
   }
 
-  /**
-   * Full list — includes content fetched from the separate content table.
-   * Used for tests and bulk export. For sidebar use `listLite()` instead.
-   *
-   * @param parentId — `null` (default) for root documents, doc ID for children.
-   */
+  // Full list (with content). For sidebar use listLite() instead.
   public static async list(
     context: NcContext,
     baseId: string,
@@ -203,25 +156,15 @@ export default class Document extends DocumentCE implements DocumentType {
     return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
-  /**
-   * Lightweight list for sidebar — excludes `content` to avoid
-   * transferring large ProseMirror JSON payloads.
-   *
-   * @param parentId — `null` for root documents, doc ID for children,
-   *   `undefined` to list all documents across all hierarchy levels.
-   */
+  // Sidebar list — strips `content` but keeps `uuid` so the share toggle
+  // state survives a sidebar refresh. parentId: null=root, string=children,
+  // undefined=all levels.
   public static async listLite(
     context: NcContext,
     baseId: string,
     parentId: string | null | undefined = null,
     ncMeta = Noco.ncMeta,
   ) {
-    // `uuid` is fetched here so the share-state survives a sidebar refresh.
-    // The docs store rebuilds its in-memory map from these lite rows, and
-    // SharePageDoc reads `activeDocument.uuid` to decide whether the public-
-    // viewing toggle is on — without it, the toggle would flip back to off
-    // every time the sidebar reloads even though the DB row still has the
-    // uuid. Password stays out (bcrypt hash, not needed for UI state).
     const liteFields = [
       'id',
       'base_id',
@@ -266,10 +209,6 @@ export default class Document extends DocumentCE implements DocumentType {
     return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
-  /**
-   * Batch-fetch lightweight docs for multiple parent IDs in a single query.
-   * Used to check has_children visibility without N+1 listLite calls.
-   */
   public static async listLiteByParentIds(
     context: NcContext,
     baseId: string,
@@ -278,12 +217,6 @@ export default class Document extends DocumentCE implements DocumentType {
   ) {
     if (!parentIds.length) return [];
 
-    // `uuid` is fetched here so the share-state survives a sidebar refresh.
-    // The docs store rebuilds its in-memory map from these lite rows, and
-    // SharePageDoc reads `activeDocument.uuid` to decide whether the public-
-    // viewing toggle is on — without it, the toggle would flip back to off
-    // every time the sidebar reloads even though the DB row still has the
-    // uuid. Password stays out (bcrypt hash, not needed for UI state).
     const liteFields = [
       'id',
       'base_id',
@@ -330,22 +263,13 @@ export default class Document extends DocumentCE implements DocumentType {
     return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
-  /**
-   * List ALL documents for a base (lightweight — no content, no parent_id filter).
-   * Returns a flat list of every non-deleted doc. Used by the permissions
-   * settings page to render the full doc tree in a single request.
-   */
+  // Flat list of every non-deleted doc in a base (no content). Used by the
+  // permissions page to render the full doc tree in one request.
   public static async listAllLite(
     context: NcContext,
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    // `uuid` is fetched here so the share-state survives a sidebar refresh.
-    // The docs store rebuilds its in-memory map from these lite rows, and
-    // SharePageDoc reads `activeDocument.uuid` to decide whether the public-
-    // viewing toggle is on — without it, the toggle would flip back to off
-    // every time the sidebar reloads even though the DB row still has the
-    // uuid. Password stays out (bcrypt hash, not needed for UI state).
     const liteFields = [
       'id',
       'base_id',
@@ -383,13 +307,8 @@ export default class Document extends DocumentCE implements DocumentType {
     return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
-  /**
-   * Load the given docs (by id) with their content. Pagination is the
-   * caller's responsibility — pass a bounded slice of ids so only that
-   * slice's metadata + content is held in memory at a time. Used by export
-   * to stream through all documents in a base without buffering every
-   * ProseMirror payload at once.
-   */
+  // Pagination is the caller's responsibility — used by export to stream
+  // through docs without buffering every ProseMirror payload at once.
   public static async listWithContent(
     context: NcContext,
     docIds: string[],
@@ -573,15 +492,10 @@ export default class Document extends DocumentCE implements DocumentType {
       );
     }
 
-    // Invalidate cache — updateObj contains stringified JSON fields
-    // that would corrupt the cache if written directly.
-    // The subsequent get() will re-fetch from DB and cache the parsed result.
+    // Invalidate, don't update — updateObj has stringified JSON fields.
     const key = `${CacheScope.DOCUMENT}:${docId}`;
     await NocoCache.del(context, key);
 
-    // Title / icon / order change → invalidate the share-scope cache of the
-    // doc itself (if it is a share root) and its ancestors (since their
-    // cached children list contains this doc's title/icon/order).
     await this.invalidateShareCacheUpTree(context, docId, ncMeta);
 
     return await this.get(context, docId, ncMeta);
@@ -592,9 +506,7 @@ export default class Document extends DocumentCE implements DocumentType {
     docId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    // Snapshot uuid + parent_id before the rows go away — the share-cache
-    // walk reads them off the live row, and a doc that was itself a share
-    // root needs its `:share:<uuid>` entry dropped explicitly.
+    // Snapshot uuid before the row goes away.
     const pre = await ncMeta.metaGet2(
       context.workspace_id,
       context.base_id,
@@ -603,12 +515,9 @@ export default class Document extends DocumentCE implements DocumentType {
       ['uuid', 'parent_id'],
     );
 
-    // Walk up from the doc itself so any shared ancestor (and the doc
-    // itself, if it's a share root) gets its cached scope dropped while
-    // the parent chain is still readable.
+    // Must walk while the parent chain is still readable.
     await this.invalidateShareCacheUpTree(context, docId, ncMeta);
 
-    // Delete content row first
     await Noco.ncDocsContent.metaDelete(
       context.workspace_id,
       context.base_id,
@@ -623,8 +532,6 @@ export default class Document extends DocumentCE implements DocumentType {
       { id: docId, ...this.typeCondition },
     );
 
-    // Drop the uuid → doc cache so the middleware doesn't keep resolving
-    // base_id off a freshly-deleted row.
     if (pre?.uuid) {
       await NocoCache.del('root', this.uuidCacheKey(pre.uuid as string));
     }
@@ -641,21 +548,15 @@ export default class Document extends DocumentCE implements DocumentType {
     docId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    // Read parent_id + uuid before deleting — uuid is needed to drop the
-    // global uuid → doc resolver entry if this doc was a share root.
     const doc = await this.get(context, docId, ncMeta);
     const parentId = doc?.parent_id;
     const docUuid = doc?.uuid;
 
-    // Invalidate the share-scope cache before the rows go away — the walk
-    // reads uuid + parent_id from the DB and the docs we're about to delete
-    // still have those values set here.
+    // Must walk while the parent chain is still readable.
     await this.invalidateShareCacheUpTree(context, docId, ncMeta);
 
-    // Cascade: soft-delete all descendants first
     await this.cascadeSoftDelete(context, docId, ncMeta);
 
-    // Soft-delete the document itself
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
@@ -671,7 +572,6 @@ export default class Document extends DocumentCE implements DocumentType {
     const key = `${CacheScope.DOCUMENT}:${docId}`;
     await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
 
-    // Update parent's has_children if it no longer has active children
     if (parentId) {
       await this.refreshHasChildren(context, parentId, ncMeta);
     }
@@ -692,9 +592,7 @@ export default class Document extends DocumentCE implements DocumentType {
           deleted: false,
           ...this.typeCondition,
         },
-        // uuid is needed to invalidate the share-scope cache when a
-        // descendant is itself a share root — otherwise its public meta
-        // call keeps returning the cached (now-deleted) row.
+        // uuid needed for share-cache invalidation on shared descendants.
         fields: ['id', 'uuid'],
       },
     );
@@ -794,9 +692,7 @@ export default class Document extends DocumentCE implements DocumentType {
       await this.refreshHasChildren(context, oldParentId, ncMeta);
     }
 
-    // Moving a doc changes the children list of both the old and the new
-    // parent — invalidate the share-scope cache up both chains so the public
-    // reader picks up the new placement without disable/re-enable share.
+    // Both old and new parent chains carry stale children lists.
     await this.invalidateShareCacheUpTree(context, oldParentId, ncMeta);
     if (targetParentId !== oldParentId) {
       await this.invalidateShareCacheUpTree(context, targetParentId, ncMeta);
@@ -880,20 +776,11 @@ export default class Document extends DocumentCE implements DocumentType {
   }
 
   // --- Public share ---
-  //
-  // Docs are rows in nc_models_v2, which already carries a uuid column
-  // (originally added for view share). Sharing a doc reuses the column
-  // directly — no migration needed. Docs do not support password protection.
+  // Reuses the existing uuid column on nc_models_v2 (added for view share).
+  // No password protection.
 
-  /**
-   * Lookup by public-share UUID (no auth context required — global bypass).
-   *
-   * Cached under the global `'root'` namespace because `extract-ids` calls
-   * this on every public-share request before it can derive `base_id`, so
-   * a workspace/base-scoped key would force the very DB lookup we want to
-   * avoid. Holds the full MODELS row — content lives in DOC_CONTENT and is
-   * fetched separately, so it never enters this cache.
-   */
+  // Cached under 'root' scope because extract-ids has no base_id yet — that's
+  // what this lookup is for.
   public static async getByUUID(
     _context: NcContext,
     uuid: string,
@@ -921,25 +808,12 @@ export default class Document extends DocumentCE implements DocumentType {
     return new Document(this.parseDocument(row));
   }
 
-  /**
-   * Cache key for the uuid → doc lookup. Lives under the global `'root'`
-   * cache namespace — see `getByUUID` for the rationale.
-   */
   private static uuidCacheKey(uuid: string): string {
     return `${CacheScope.DOCUMENT}:uuid:${uuid}`;
   }
 
-  /**
-   * Enable public share for a doc. Atomically assigns a uuid and seeds the
-   * default share settings (`meta.share.include_subtree=true`) in a single
-   * write so the share is immediately useful without a follow-up settings
-   * call.
-   *
-   * Race-safe: the underlying UPDATE filters on `uuid IS NULL`, so two
-   * concurrent share calls can't clobber each other — exactly one wins, the
-   * loser sees the winner's uuid on re-read. Idempotent: calling on an
-   * already-shared doc is a no-op and returns the existing uuid.
-   */
+  // Idempotent + race-safe: the UPDATE filters on `uuid IS NULL` so
+  // concurrent shares can't clobber each other.
   public static async share(
     context: NcContext,
     docId: string,
@@ -948,15 +822,9 @@ export default class Document extends DocumentCE implements DocumentType {
     const existing = await this.getMeta(context, docId, ncMeta);
     if (!existing) NcError.get(context).genericNotFound('Document', docId);
 
-    // Refuse to share docs with custom visibility. An explicit
-    // DOCUMENT_VISIBILITY row means the owner restricted who can see this
-    // doc inside the workspace; publishing it publicly would bypass that
-    // restriction by handing anyone-with-the-URL the same view the owner
-    // tried to block. The check is direct (explicit row on this doc only)
-    // — inherited restrictions from ancestors aren't tested here because
-    // the user-facing flag (`has_visibility_permission`) maps 1:1 to the
-    // explicit row, and the rule stays predictable: reset the doc's own
-    // visibility to default, then share.
+    // Public share would bypass an explicit DOCUMENT_VISIBILITY restriction.
+    // Only checks the doc's own row — inherited restrictions from ancestors
+    // map 1:1 to has_visibility_permission, which the UI also gates on.
     if (
       await this.hasVisibilityRestriction(
         context.workspace_id,
@@ -999,13 +867,11 @@ export default class Document extends DocumentCE implements DocumentType {
       await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
     }
 
-    // Re-read so the returned doc reflects the winning uuid + seeded meta
-    // (ours when no race, or another concurrent caller's when we lost).
+    // Re-read so the returned doc reflects the winning uuid (ours, or a
+    // concurrent caller's if we lost the race).
     const fresh = await this.getMeta(context, docId, ncMeta);
     if (!fresh) NcError.get(context).genericNotFound('Document', docId);
 
-    // Defensive: invalidate any stale share-scope cache for this uuid
-    // (e.g. concurrent request seeded the cache between unshare and re-share).
     if (fresh.uuid) {
       await NocoCache.del(
         context,
@@ -1013,31 +879,21 @@ export default class Document extends DocumentCE implements DocumentType {
       );
     }
 
-    // Set the per-base "has any share" flag so subsequent doc mutations
-    // know to invalidate share caches up the chain.
     await this.setBaseHasShare(context, true);
 
     return fresh;
   }
 
-  /**
-   * Disable public share — clears uuid and resets share-time settings on
-   * `meta.share` so the next `share()` call starts from the documented
-   * default rather than inheriting the previous toggle state.
-   */
   public static async unshare(
     context: NcContext,
     docId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    // Read existing state before clearing so we can invalidate the share-
-    // scope cache and rebuild meta without the share block.
     const doc = await this.getMeta(context, docId, ncMeta);
 
     const updateObj: Record<string, any> = { uuid: null };
 
-    // Drop `meta.share` if present — preserves the rest of meta (icon,
-    // cover, lock, etc.) and lets a future share() seed defaults fresh.
+    // Drop meta.share so a future share() starts from the documented default.
     if (doc?.meta && (doc.meta as any).share) {
       const { share: _share, ...restMeta } = doc.meta as Record<string, any>;
       Object.assign(updateObj, prepareForDb({ meta: restMeta }, ['meta']));
@@ -1056,17 +912,10 @@ export default class Document extends DocumentCE implements DocumentType {
     }
     await NocoCache.del(context, `${CacheScope.DOCUMENT}:${docId}`);
 
-    // Clear the per-base "has any share" flag — next mutation re-checks
-    // from DB (lazy refill). Avoids a SELECT-COUNT here on the hot path;
-    // the flag goes through a momentary "we don't know" miss → DB check
-    // → cache refill cycle, which still short-circuits subsequent edits
-    // when no shares remain.
+    // Lazy refill — avoids a SELECT-COUNT on the hot path.
     await NocoCache.del(context, this.baseSharesKey(context.base_id));
   }
 
-  /**
-   * Update share-time settings — currently only `meta.share.include_subtree`.
-   */
   public static async updateShareSettings(
     context: NcContext,
     docId: string,
@@ -1112,17 +961,8 @@ export default class Document extends DocumentCE implements DocumentType {
     return await this.getMeta(context, docId, ncMeta);
   }
 
-  /**
-   * Direct children of a doc, shaped for the public reader. Mirrors the
-   * in-app `Document.listLite(parentId)` pattern — one level at a time, no
-   * recursion.
-   *
-   * Visibility filtering is delegated to `reachableDocIds` — the cached
-   * descendant set computed once per share-scope cache fill. Pass the set
-   * from `getCachedShareScope`; children not in the set are silently
-   * dropped. When omitted, no visibility filtering is applied (caller is
-   * expected to gate access via scope.reachableDocIds elsewhere).
-   */
+  // Direct children for the public reader. Pass reachableDocIds from
+  // getCachedShareScope to drop docs blocked by visibility restrictions.
   public static async getPublicChildren(
     _context: NcContext,
     root: Document,
@@ -1151,19 +991,12 @@ export default class Document extends DocumentCE implements DocumentType {
       : rows;
 
     return filtered.map((c: any) => {
-      // metaList2 returns raw rows; reuse `parseDocument` so the meta JSON
-      // is parsed the same way the rest of the model layer parses it.
       const parsed = this.parseDocument({ ...c });
       const meta = (parsed.meta as Record<string, any> | null) ?? {};
 
       return {
         id: c.id as string,
         title: (c.title as string) || 'Untitled',
-        // Keep parent_id as-is. The share root is re-anchored to null in
-        // `buildShareScope`, so direct children point to the root's id and
-        // the frontend tree walker (starts at parent_id=null → root →
-        // descendants) reconstructs the tree correctly without further
-        // rewriting.
         parent_id: c.parent_id as string,
         order: (c.order as number) ?? 0,
         has_children: !!c.has_children,
@@ -1172,13 +1005,8 @@ export default class Document extends DocumentCE implements DocumentType {
     });
   }
 
-  /**
-   * Lightweight ancestor lookup for the deep-link walker — same shape as a
-   * child node, no content blob. Used when the reader needs to render
-   * intermediate nodes on the parent chain without fetching their full
-   * ProseMirror content. Returns null if the doc isn't reachable through
-   * `scope` (callers should still treat null as 404).
-   */
+  // Lightweight ancestor lookup for the deep-link walker. Returns null when
+  // the doc isn't reachable through `scope` (treat as 404).
   public static async getPublicLite(
     scope: CachedShareScope,
     docId: string,
@@ -1203,9 +1031,8 @@ export default class Document extends DocumentCE implements DocumentType {
     return {
       id: row.id as string,
       title: (row.title as string) || 'Untitled',
-      // Re-anchor the share root to parent_id=null so the frontend tree
-      // walker stops at the share boundary instead of leaking the doc's
-      // position under a non-shared ancestor.
+      // Re-anchor the share root to null so the frontend tree walker stops
+      // at the share boundary.
       parent_id: isRoot ? null : (row.parent_id as string | null) ?? null,
       order: (row.order as number) ?? 0,
       has_children: !!row.has_children,
@@ -1213,14 +1040,7 @@ export default class Document extends DocumentCE implements DocumentType {
     };
   }
 
-  /**
-   * Whether `docId` has an explicit DOCUMENT_VISIBILITY permission row in
-   * the same base. Used both at share-toggle time (refuse to publish) and
-   * at request time (re-check the share root as the authoritative source).
-   *
-   * Raw ncMeta query (no Permission model) to avoid the circular import
-   * — Permission already imports Document.
-   */
+  // Raw ncMeta query (no Permission model) to avoid the circular import.
   public static async hasVisibilityRestriction(
     workspaceId: string,
     baseId: string,
@@ -1240,16 +1060,9 @@ export default class Document extends DocumentCE implements DocumentType {
     return !!row;
   }
 
-  /**
-   * Per-base "has any shared doc" flag. Lets the doc-mutation path skip
-   * `invalidateShareCacheUpTree` entirely when no share exists in the
-   * base — the common case for most edits. Set on first `share()`,
-   * cleared by the share-cleanup pass on `unshare()` when the count
-   * drops to zero (or lazily recomputed on cache miss).
-   *
-   * Key:  `${CacheScope.DOCUMENT}:base-has-shares:${baseId}`
-   * Value: '1' if at least one shared doc exists in the base; absent otherwise.
-   */
+  // Per-base "has any shared doc" flag — lets doc mutations skip the
+  // share-cache walk when no share exists. Lazily recomputed on miss; TTL
+  // self-heals from drift.
   private static baseSharesKey(baseId: string): string {
     return `${CacheScope.DOCUMENT}:base-has-shares:${baseId}`;
   }
@@ -1266,10 +1079,6 @@ export default class Document extends DocumentCE implements DocumentType {
     if (cached === '1') return true;
     if (cached === '0') return false;
 
-    // Cache miss → resolve from DB and seed the flag for subsequent calls.
-    // TTL self-heals from drift (direct DB mods, orphaned state after a
-    // last-share soft-delete, restore flows) without forcing every doc
-    // edit to pay a metaGet2.
     const row = await ncMeta.metaGet2(
       context.workspace_id,
       context.base_id,
@@ -1300,18 +1109,10 @@ export default class Document extends DocumentCE implements DocumentType {
     );
   }
 
-  /**
-   * Walk up the parent chain from `startDocId` (inclusive) and invalidate the
-   * share-scope cache for every ancestor that has a `uuid` set. Public so
-   * cross-feature mutators (e.g. permission writes) can use the same
-   * invalidator; mutations inside the model use it directly.
-   *
-   * Short-circuits via `baseHasAnyShare` when no share exists in the base —
-   * the walk is otherwise pure overhead for the bulk of edits.
-   *
-   * Bounded to MAX_PUBLIC_SCOPE_WALK_DEPTH levels; legitimate doc trees never
-   * come close. Issues one metaGet2 per level (typically 1–5 queries).
-   */
+  // Walk the parent chain from startDocId (inclusive) and drop the share-
+  // scope cache for every shared ancestor. Short-circuits via
+  // baseHasAnyShare; one metaGet2 per level, bounded by
+  // MAX_PUBLIC_SCOPE_WALK_DEPTH.
   public static async invalidateShareCacheUpTree(
     context: NcContext,
     startDocId: string | null,
@@ -1340,15 +1141,8 @@ export default class Document extends DocumentCE implements DocumentType {
     }
   }
 
-  /**
-   * Compute the set of docIds reachable through the share rooted at
-   * `root` — BFS over all DOCUMENT rows in the base, pruning at restricted
-   * subtrees (any doc carrying an explicit DOCUMENT_VISIBILITY row blocks
-   * itself and its descendants).
-   *
-   * Two `metaList2` queries per cache fill (docs + permissions). Returns
-   * `{ root.id }` when `include_subtree` is false.
-   */
+  // BFS over the base's docs, pruning at any DOCUMENT_VISIBILITY restriction.
+  // Returns just {root.id} when include_subtree is false.
   private static async computeReachableDocIds(
     root: Document,
     includeSubtree: boolean,
@@ -1418,25 +1212,10 @@ export default class Document extends DocumentCE implements DocumentType {
     return reachable;
   }
 
-  /**
-   * Resolve the share root + initial visible tree + reachable descendant set
-   * for a UUID, cached.
-   *
-   * Cache key:  `${CacheScope.DOCUMENT}:share:${uuid}`
-   * Payload:    `{ root, tree, includeSubtree, reachableDocIds: string[] }`
-   * TTL:        `PUBLIC_SHARE_SCOPE_TTL_SECONDS` (defense-in-depth backstop).
-   *
-   * Invalidated on:
-   *   - `share`, `unshare`, `updateShareSettings`
-   *   - any insert/update/move/softDelete that touches a doc reachable from
-   *     the share root (via `invalidateShareCacheUpTree`)
-   *   - DOCUMENT_VISIBILITY permission writes (PermissionsService hooks
-   *     `invalidateShareCacheUpTree` from the entity_id)
-   *
-   * The cached `reachableDocIds` set lets per-request scope checks
-   * (`/content`, `/attachment`, `/children`) skip the parent-chain walk —
-   * one in-memory Set lookup vs O(depth) DB round-trips.
-   */
+  // Resolve + cache the share scope for a UUID. Invalidated by share /
+  // unshare / updateShareSettings, mutations within the share via
+  // invalidateShareCacheUpTree, and DOCUMENT_VISIBILITY permission writes.
+  // TTL is a defense-in-depth backstop.
   public static async getCachedShareScope(
     context: NcContext,
     uuid: string,
@@ -1446,9 +1225,6 @@ export default class Document extends DocumentCE implements DocumentType {
 
     const cached = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
     if (cached?.root) {
-      // Wrap the deserialised row back into a Document instance so callers
-      // can use methods + see typed properties identically to the freshly
-      // built case below.
       return {
         root: new Document(cached.root),
         tree: cached.tree ?? [],
@@ -1467,8 +1243,6 @@ export default class Document extends DocumentCE implements DocumentType {
       ncMeta,
     );
 
-    // Initial tree = root + direct children, intersected with the reachable
-    // set so restricted children never appear in the public sidebar.
     const rootNode: PublicDocTreeNode = {
       id: root.id,
       title: root.title || 'Untitled',
@@ -1489,10 +1263,7 @@ export default class Document extends DocumentCE implements DocumentType {
       : [];
     const tree: PublicDocTreeNode[] = [rootNode, ...children];
 
-    // Cache the full Document row — repo convention is to cache complete
-    // rows and project to response shape at the API boundary (see
-    // `PublicDocsService.docMetaGet`). `reachableDocIds` is serialised as a
-    // plain array; the Set is reconstructed on read.
+    // reachableDocIds → plain array; rehydrated to a Set on read.
     await NocoCache.setExpiring(
       context,
       key,

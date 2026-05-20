@@ -286,11 +286,7 @@ export const constructFilePath = (
   } as AttachmentFilePathConstructed;
 };
 
-/**
- * Reject paths that escape `nc/uploads` via traversal segments. `path.join`
- * normalises ".." but does not prevent the result from leaving the base
- * directory — we resolve and verify the prefix explicitly.
- */
+// path.join normalises ".." but doesn't prevent escape — verify explicitly.
 export function sanitizeAttachmentStoragePath(joined: string): string {
   const resolved = path.resolve(joined);
   const base = path.resolve('nc', 'uploads');
@@ -301,26 +297,15 @@ export function sanitizeAttachmentStoragePath(joined: string): string {
 }
 
 export interface ServeStoredAttachmentOptions {
-  /**
-   * External-storage signed URL TTL in seconds. Caps the post-revocation
-   * window — once a signed URL leaves the proxy it cannot be recalled, so
-   * the URL itself bounds how long a revoked share can still resolve the
-   * file. Defaults to the standard 5-min window.
-   */
+  // Caps how long a revoked share can still resolve the file once the
+  // signed URL has left the proxy. Defaults to 5 min.
   signedUrlTtlSeconds?: number;
-  /** Cache-Control header value applied to both external + local responses. */
   cacheControl: string;
-  /** Local-storage attachments resolver (NestJS service injected by caller). */
   attachmentsService: Pick<AttachmentsService, 'getFile'>;
 }
 
-/**
- * Stream a stored attachment to the client. Shared between the authed
- * AttachmentProxy and the anonymous PublicDocs share — different guards,
- * same storage abstraction. External storage → 302 to a short-lived signed
- * URL; local storage → stream the file directly with the same path
- * sanitisation guard.
- */
+// Shared between authed AttachmentProxy and anonymous PublicDocs share.
+// External storage → 302 to signed URL; local → stream directly.
 export async function serveStoredAttachment(
   res: Response,
   fileUrl: string,

@@ -165,17 +165,9 @@ export class DocumentsV3Service {
   }
 
   // --- Public share ---
-  //
-  // Docs are excluded from sandbox bases (see DocumentsService.create); the
-  // share toggles inherit that restriction — a sandbox can't host docs, so
-  // it can't publish them either. assertNotSandbox keeps the rule visible
-  // alongside the other doc mutations.
+  // Docs aren't available in sandboxes; assertNotSandbox enforces it on
+  // the share toggles too.
 
-  /**
-   * Enable public share for a doc. Idempotent — returns existing UUID if the
-   * doc is already shared. Default share scope includes descendants (Phase 1
-   * default; the toggle is exposed in updateShareSettings).
-   */
   async docShare(
     context: NcContext,
     param: { docId: string; req: NcRequest },
@@ -206,8 +198,7 @@ export class DocumentsV3Service {
       context,
       'Documents are not available in a sandbox.',
     );
-    // Snapshot the uuid before clearing so the audit event records what was
-    // published, not the post-unshare null.
+    // Snapshot uuid pre-clear for the audit event payload.
     const pre = await Document.getMeta(context, param.docId);
     await Document.unshare(context, param.docId);
 

@@ -11,40 +11,13 @@ import Document from '~/ee/models/Document';
 import { Base, FileReference } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
-/**
- * Public-share reader for docs. Mirrors PublicMetasService for views — one
- * endpoint for the initial manifest, one for per-doc content, one for
- * lazy-loaded children when the user expands a node, one lite ancestor
- * lookup for deep-link walks, and one for attachments.
- *
- * No auth context is required; the UUID is the bearer credential. Docs do
- * not support password protection. Access is gated by:
- *   1. UUID present on the share root (Document.getByUUID).
- *   2. Subtree visibility — descendants only reachable if the share root has
- *      `meta.share.include_subtree = true`.
- *   3. Per-doc scope check — every /content, /attachment, /children, and
- *      /lite request validates the requested docId against
- *      `scope.reachableDocIds`, the cached precomputed descendant set
- *      (excludes restricted subtrees).
- *
- * The scope (root + initial tree + reachable set) is cached via
- * `Document.getCachedShareScope` with an explicit TTL backstop. Mutations
- * on docs and DOCUMENT_VISIBILITY permission writes invalidate the cache
- * through `invalidateShareCacheUpTree`.
- */
+// Anonymous reader for public-shared docs. UUID is the bearer credential
+// (no password). Per-request access goes through resolveShareScope →
+// scope.reachableDocIds for every doc lookup.
 @Injectable()
 export class PublicDocsService {
-  /**
-   * Resolve access to a shared doc by UUID. Shared prelude for every public
-   * endpoint — keeps the cache lookup uniform and endpoint code focused on
-   * response shape.
-   *
-   * Re-validates root visibility on every request as the authoritative
-   * source. The cache builder already excludes a restricted root from
-   * `reachableDocIds`, so this is defense-in-depth — covers the (unlikely)
-   * race where a DOCUMENT_VISIBILITY write commits between cache fill and
-   * the next read, and TTL backstop catches any missed invalidator.
-   */
+  // Re-checks root visibility on every request — defense-in-depth against a
+  // race between DOCUMENT_VISIBILITY writes and cache invalidation.
   private async resolveShareScope(
     context: NcContext,
     sharedDocUuid: string,
@@ -104,10 +77,6 @@ export class PublicDocsService {
       NcError.get(context).genericNotFound('Document', param.docId);
     }
 
-    // Use a base-scoped context for the content fetch — the middleware
-    // populates context.base_id from the share UUID, but the spread keeps
-    // the call site explicit about which base the doc lives in (public
-    // docs share scope is always single-base).
     const baseScopedCtx = {
       ...context,
       workspace_id: root.fk_workspace_id,
@@ -124,21 +93,12 @@ export class PublicDocsService {
       id: doc.id,
       title: doc.title || 'Untitled',
       icon: (doc.meta as any)?.icon ?? null,
-      // Sidebar-shape fields, mirroring what documentGet returns in-app — the
-      // public reader walks the parent chain via this endpoint (same pattern
-      // as useDocumentsStore.expandToDocument), so it needs parent_id /
-      // has_children / order to render ancestors at the right spot in the
-      // tree. The share root is re-anchored to parent_id=null to match the
-      // initial manifest, so the frontend tree walker treats it as the
-      // visible root regardless of its DB position.
+      // Re-anchor the share root to null so the frontend tree walker treats
+      // it as the visible root regardless of its DB position.
       parent_id:
         doc.id === root.id ? null : (doc.parent_id as string | null) ?? null,
       order: doc.order ?? 0,
       has_children: !!doc.has_children,
-      // The cover image is stored on the doc as a FileReference id; the
-      // reader rebuilds the URL through the public attachment proxy, same
-      // path as inline images. The proxy validates fk_doc_id, so a cover
-      // ref leaked into the wrong doc still 404s.
       cover_image_file_ref_id:
         (doc.meta as any)?.cover_image_file_ref_id ?? null,
       content: doc.content ?? { type: 'doc', content: [{ type: 'paragraph' }] },
@@ -146,12 +106,6 @@ export class PublicDocsService {
     };
   }
 
-  /**
-   * Lite metadata for an ancestor on the deep-link walk. Same shape as a
-   * child node, no content blob. The reader uses this to render
-   * intermediate sidebar breadcrumbs without firing /content for every
-   * ancestor (whose ProseMirror blob it does not need).
-   */
   async docLiteGet(
     context: NcContext,
     param: { sharedDocUuid: string; docId: string },
@@ -165,12 +119,6 @@ export class PublicDocsService {
     return node;
   }
 
-  /**
-   * Resolve an attachment (image / file) referenced by a public-share doc.
-   * Returns the `file_url` (storage path) so the controller can stream the
-   * file. UUID gates the access; `fileRefId` must be a FileReference owned
-   * by a doc inside the share's subtree.
-   */
   async docAttachmentGet(
     context: NcContext,
     param: {
@@ -188,9 +136,6 @@ export class PublicDocsService {
       NcError.get(context).genericNotFound('Document', param.docId);
     }
 
-    // FileReference reads are workspace+base scoped. The middleware doesn't
-    // build a base-scoped context for public docs, so derive it from the
-    // resolved root.
     const baseScopedCtx = {
       ...context,
       workspace_id: root.fk_workspace_id,
@@ -205,16 +150,6 @@ export class PublicDocsService {
     return { fileUrl: fileRef.file_url };
   }
 
-  /**
-   * Direct children of a doc inside the share, fetched lazily when the
-   * reader expands a node in the sidebar. Mirrors the in-app
-   * `documentList(parent_id=docId)` pattern — one level at a time.
-   *
-   * Requires `include_subtree=true` on the share (otherwise the share is
-   * just the root and has no expandable children), and validates that
-   * `parentDocId` is reachable through the share root before listing — so
-   * the UUID can't be used to enumerate docs outside its subtree.
-   */
   async docChildrenGet(
     context: NcContext,
     param: { sharedDocUuid: string; parentDocId: string },

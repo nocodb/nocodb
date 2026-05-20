@@ -195,11 +195,8 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
         docId,
       })) as DocumentType
 
-      // Sync the freshly fetched doc back into the store so activeDocument
-      // resolves, sidebar auto-expand works, and stale fields (uuid,
-      // has_visibility_permission, meta.share.*, title, has_children) line
-      // up with the backend. Push as a lite row when the doc isn't yet in
-      // the store; patch in place via `applyDocPatch` when it already is.
+      // Sync into the store as a lite row (or patch in place) so
+      // activeDocument resolves and stale fields refresh.
       if (doc?.id) {
         const baseId = activeProjectId.value
         const baseDocs = documents.value.get(baseId) || []

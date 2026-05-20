@@ -19,7 +19,7 @@ function luminance(hex: string): number {
   const r = parseInt(c.substring(0, 2), 16) / 255
   const g = parseInt(c.substring(2, 4), 16) / 255
   const b = parseInt(c.substring(4, 6), 16) / 255
-  const t = (v: number) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4))
+  const t = (v: number) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4)
   return 0.2126 * t(r) + 0.7152 * t(g) + 0.0722 * t(b)
 }
 
@@ -163,13 +163,7 @@ export function useDashboardPieChartOption(
     // % of min(W, H), so a 55% radius is 110% diameter — easily crowds
     // a side legend. 48% (96% diameter) leaves room around the chart
     // for breathing space against the legend.
-    const radius = isDonut
-      ? legendOnSide
-        ? ['24%', '48%']
-        : ['38%', '70%']
-      : legendOnSide
-        ? '48%'
-        : '70%'
+    const radius = isDonut ? (legendOnSide ? ['24%', '48%'] : ['38%', '70%']) : legendOnSide ? '48%' : '70%'
 
     return {
       color: CHART_COLORS,

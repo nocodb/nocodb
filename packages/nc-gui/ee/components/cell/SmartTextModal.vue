@@ -313,12 +313,7 @@ const editorInitialContent = computed(() => pmContent.value ?? null)
         data-testid="nc-smart-text-modal-remote-banner"
       >
         <template #action>
-          <NcButton
-            size="xs"
-            type="secondary"
-            data-testid="nc-smart-text-modal-remote-refresh"
-            @click="applyPendingRemote"
-          >
+          <NcButton size="xs" type="secondary" data-testid="nc-smart-text-modal-remote-refresh" @click="applyPendingRemote">
             {{ $t('general.refresh') }}
           </NcButton>
         </template>

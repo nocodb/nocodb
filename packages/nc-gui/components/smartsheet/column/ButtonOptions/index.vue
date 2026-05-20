@@ -376,7 +376,6 @@ if (isEdit.value) {
     filtersCount.value = existingFilters.filter((f: FilterType) => !f.is_group && f.fk_column_id).length
   }
 }
-
 </script>
 
 <template>

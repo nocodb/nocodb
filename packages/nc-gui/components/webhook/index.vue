@@ -680,9 +680,7 @@ async function saveHooks() {
       fk_value_col_id: f.fk_value_col_id,
     }
     if (f.children?.length) {
-      out.children = f.children
-        .filter((c: any) => c.status !== 'delete')
-        .map(projectFilter)
+      out.children = f.children.filter((c: any) => c.status !== 'delete').map(projectFilter)
     }
     return out
   }
@@ -691,9 +689,7 @@ async function saveHooks() {
     const tree = (filterRef.value.filters?.value ?? filterRef.value.filters ?? []) as Array<
       FilterType & { status?: string; children?: any[] }
     >
-    bundledFilters = tree
-      .filter((f) => f.status !== 'delete')
-      .map(projectFilter) as FilterType[]
+    bundledFilters = tree.filter((f) => f.status !== 'delete').map(projectFilter) as FilterType[]
   } else if (!isConditionSupport.value) {
     // The condition is forced off (e.g. bulk webhook) — replace-all with
     // an empty array clears server-side filters.

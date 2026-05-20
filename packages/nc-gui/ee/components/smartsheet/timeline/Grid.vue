@@ -111,6 +111,12 @@ const handleVisibilityChange = () => {
   }
 }
 
+// Horizontal scroll: the body is the user-scrolled element; the header
+// follows via a watcher on the store's scrollLeft. In grouped mode multiple
+// Grid instances exist — they all sync to the same store value.
+const headerScrollRef = ref<HTMLElement | null>(null)
+const bodyScrollRef = ref<HTMLElement | null>(null)
+
 onMounted(() => {
   document.addEventListener('visibilitychange', handleVisibilityChange)
 
@@ -792,12 +798,6 @@ const onBarKeydown = (event: KeyboardEvent, record: RowType, laneIdx: number, ba
   const targetEl = gridBodyRef.value?.querySelector(`[data-lane="${targetLane}"][data-bar="${targetBar}"]`) as HTMLElement | null
   targetEl?.focus()
 }
-
-// Horizontal scroll: the body is the user-scrolled element; the header
-// follows via a watcher on the store's scrollLeft. In grouped mode multiple
-// Grid instances exist — they all sync to the same store value.
-const headerScrollRef = ref<HTMLElement | null>(null)
-const bodyScrollRef = ref<HTMLElement | null>(null)
 
 const onBodyScroll = (event: Event) => {
   const target = event.target as HTMLElement

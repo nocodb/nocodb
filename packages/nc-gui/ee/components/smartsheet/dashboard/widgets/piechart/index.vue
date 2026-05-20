@@ -85,5 +85,3 @@ watch(
     </div>
   </div>
 </template>
-
-

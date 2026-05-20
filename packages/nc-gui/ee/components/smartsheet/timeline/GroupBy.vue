@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import type dayjs from 'dayjs'
+import { TIMELINE_GROUP_SIDEBAR_WIDTH, type TimelineZoomLevel } from '../../../utils/timelineUtils'
 import GroupBy from './GroupBy.vue'
 import type { Row as RowType } from '#imports'
 import { shouldRenderCell } from '~/utils/groupbyUtils'
 import type { Group } from '~/lib/types'
-import { TIMELINE_GROUP_SIDEBAR_WIDTH, type TimelineZoomLevel } from '../../../utils/timelineUtils'
 
 const props = defineProps<{
   group: Group

@@ -548,12 +548,7 @@ export function useViewRowColorOption(params: {
     }
 
     try {
-      const deletedFilterIds = await deleteFilterWithSub(
-        $api,
-        view.value!.fk_workspace_id!,
-        view.value!.base_id!,
-        filterToDelete,
-      )
+      const deletedFilterIds = await deleteFilterWithSub($api, view.value!.fk_workspace_id!, view.value!.base_id!, filterToDelete)
 
       conditionToDelete.conditions = conditionToDelete.conditions.filter((f) => f.id !== filterToDelete.id)
       if (params.fk_parent_id) {

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { pickFields } from 'nocodb-sdk'
+import { PlanFeatureTypes, UITypes, isLinksOrLTAR, pickFields } from 'nocodb-sdk'
 import type { ColumnType, DateDependencyReqType, DateDependencyType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { PlanFeatureTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean

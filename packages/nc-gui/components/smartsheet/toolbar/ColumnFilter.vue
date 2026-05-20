@@ -732,8 +732,7 @@ const isLogicalOpChangeAllowed = computed(() => {
 // when logical operation is updated, update all the siblings with the same logical operation only if it's in locked state
 const onLogicalOpUpdate = async (filter: Filter, index: number) => {
   const isCascade =
-    index === 1 &&
-    visibleFilters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)
+    index === 1 && visibleFilters.value.slice(2).every((siblingFilter) => siblingFilter.logical_op !== filter.logical_op)
 
   if (isCascade) {
     const newOp = filter.logical_op as 'and' | 'or' | 'not'
@@ -745,9 +744,7 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
 
     // Single atomic API call → one changelog entry. Filter rows already
     // at `newOp` are server-side no-ops and don't enter the inverse map.
-    const filtersBody = targets
-      .filter((t) => t.id)
-      .map((t) => ({ filterId: t.id as string, logical_op: newOp }))
+    const filtersBody = targets.filter((t) => t.id).map((t) => ({ filterId: t.id as string, logical_op: newOp }))
 
     if (filtersBody.length) {
       await $api.internal.postOperation(

@@ -355,11 +355,7 @@ export const useRealtime = createSharedComposable(() => {
     } else if (event.action === 'view_column_update' || event.action === 'view_column_refresh') {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
       const changed = event.payload?.changes ?? event.payload ?? {}
-      if (
-        'group_by' in changed ||
-        'group_by_sort' in changed ||
-        'group_by_order' in changed
-      ) {
+      if ('group_by' in changed || 'group_by_sort' in changed || 'group_by_order' in changed) {
         $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
       }
     } else if (event.action === 'hook_create') {

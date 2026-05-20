@@ -579,18 +579,15 @@ export function useFillHandler({
                   }
                 }
 
-                bulkUpdateRows?.(
-                  rowsToPaste.concat(rowsToFill),
-                  propsToPaste.concat(propsToFill),
-                  { onError },
-                  groupPath,
-                ).then(() => {
-                  // Reset active cell, fill range, and fill mode after successful update
-                  activeCell.value.column = tempActiveCell.col
-                  activeCell.value.row = tempActiveCell.row
-                  fillStartRange.value = null
-                  isFillMode.value = false
-                })
+                bulkUpdateRows?.(rowsToPaste.concat(rowsToFill), propsToPaste.concat(propsToFill), { onError }, groupPath).then(
+                  () => {
+                    // Reset active cell, fill range, and fill mode after successful update
+                    activeCell.value.column = tempActiveCell.col
+                    activeCell.value.row = tempActiveCell.row
+                    fillStartRange.value = null
+                    isFillMode.value = false
+                  },
+                )
               })
               .catch((_e) => {
                 selection.value.clear()

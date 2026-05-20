@@ -338,9 +338,7 @@ const getCountWithLabel = (defaultCount: number) => {
             'width': width,
           }"
         >
-          <template
-            v-if="!isMmTable && ![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)"
-          >
+          <template v-if="!isMmTable && ![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)">
             <div
               v-if="field?.aggregation === 'none' || field?.aggregation === null"
               :class="{

@@ -17,6 +17,30 @@ export class OrgUsersService {
     protected readonly paymentService: PaymentService,
   ) {}
 
+  /**
+   * Defense-in-depth: ACL already gates these endpoints to
+   * `CloudOrgUserRoles.OWNER`, but assigning the ADMIN role is a privilege
+   * escalation, so confirm the requester is themselves an org admin at the
+   * service layer too.
+   */
+  protected async assertRequesterIsOrgAdmin(
+    orgId: string,
+    req: NcRequest,
+  ): Promise<void> {
+    const requesterId = req?.user?.id;
+    if (!requesterId) {
+      NcError.forbidden('Only org admins can assign the admin role');
+    }
+    const requester = await OrgUser.get(orgId, requesterId);
+    if (
+      !requester ||
+      (requester.roles !== EnterpriseOrgUserRoles.ADMIN &&
+        requester.roles !== EnterpriseOrgUserRoles.OWNER)
+    ) {
+      NcError.forbidden('Only org admins can assign the admin role');
+    }
+  }
+
   async addUserToOrg(param: {
     userId: string;
     orgId: string;
@@ -35,6 +59,10 @@ export class OrgUsersService {
       ) {
         NcError.badRequest(`Invalid org role: ${param.userProps.roles}`);
       }
+    }
+
+    if (param.userProps.roles === EnterpriseOrgUserRoles.ADMIN) {
+      await this.assertRequesterIsOrgAdmin(param.orgId, param.req);
     }
 
     // OrgUser.get() returns null for soft-deleted rows
@@ -198,6 +226,13 @@ export class OrgUsersService {
 
     if (!orgUser) {
       NcError.notFound('User not found in organization');
+    }
+
+    if (
+      param.orgRole === EnterpriseOrgUserRoles.ADMIN &&
+      orgUser.roles !== EnterpriseOrgUserRoles.ADMIN
+    ) {
+      await this.assertRequesterIsOrgAdmin(param.orgId, param.req);
     }
 
     // Block demoting the last admin

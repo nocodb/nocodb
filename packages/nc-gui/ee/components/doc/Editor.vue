@@ -2247,8 +2247,12 @@ defineExpose({ editor })
             size="small"
             type="text"
             data-testid="nc-doc-page-share-btn"
-            @click="openShareModal"
+            @click="(event) => { openShareModal(); (event.currentTarget as HTMLElement)?.blur() }"
           >
+            <!-- Blur the button after opening the modal: Ant restores focus
+                 to the trigger when the modal closes, which leaves a blue
+                 focus-visible ring lingering on the icon. Pre-emptively
+                 dropping focus means there's nothing to restore to. -->
             <GeneralIcon icon="ncShare" />
           </NcButton>
         </NcTooltip>

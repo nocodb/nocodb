@@ -741,3 +741,14 @@ export enum MapProvider {
 
 /** Default org ID for on-prem deployments */
 export const NC_DEFAULT_ORG_ID = 'org_default';
+
+export enum OperationSource {
+  AT_IMPORT = 'at_import',
+  HOOKS = 'hooks',
+  EXTERNAL_DBS = 'external_dbs',
+  ATTACHMENTS = 'attachments',
+  SSO = 'sso',
+  MIGRATION = 'migration',
+  WORKFLOW = 'workflow',
+  PLUGINS = 'plugins',
+}

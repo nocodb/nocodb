@@ -16,12 +16,12 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { PlanFeatureTypes } from 'nocodb-sdk';
-import type { OperationSource } from '~/helpers/columnHelpers';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
   NcApiVersion,
+  OperationSource,
   UserType,
 } from 'nocodb-sdk';
 import type {

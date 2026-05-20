@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAgent } from 'request-filtering-agent';
+import { getFilteredAgents } from '~/utils/ssrf';
 import {
   Body,
   Controller,
@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { BaseReqType, getTestDatabaseName, IntegrationsType } from 'nocodb-sdk';
+import { BaseReqType, getTestDatabaseName, IntegrationsType, OperationSource } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
@@ -98,30 +98,33 @@ export class SourceCreateController {
       deepMerge(config, body.config);
     }
 
-    if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS !== 'true') {
-      if (
-        config.client !== 'snowflake' &&
-        (!config?.connection || !config?.connection.host)
-      ) {
-        NcError.badRequest('Connection missing host name or IP address');
+    if (
+      config.client !== 'snowflake' &&
+      (!config?.connection || !config?.connection.host)
+    ) {
+      NcError.badRequest('Connection missing host name or IP address');
+    }
+    if (config?.client && !config?.client.includes('sqlite')) {
+      const host = config?.connection?.host;
+      const port = config?.connection?.port;
+      if (host) {
+        // Resolve and range-check the host; the driver opens a raw TCP
+        // socket, so the HTTP-only useAgent below does not protect it.
+        await validateDbConnectionHost(host);
       }
-      if (config?.client && !config?.client.includes('sqlite')) {
-        const host = config?.connection?.host;
-        const port = config?.connection?.port;
-        if (host) {
-          // Resolve and range-check the host; the driver opens a raw TCP
-          // socket, so the HTTP-only useAgent below does not protect it.
-          await validateDbConnectionHost(host);
-        }
-        if (host && port) {
-          const isIPv6 = host.includes(':') && !host.includes('://');
-          const formattedHost = isIPv6 ? `[${host}]` : host;
-          const url = `${
-            host.includes('://') ? '' : 'http://'
-          }${formattedHost}:${port}`;
+      if (host && port) {
+        const isIPv6 = host.includes(':') && !host.includes('://');
+        const formattedHost = isIPv6 ? `[${host}]` : host;
+        const url = `${
+          host.includes('://') ? '' : 'http://'
+        }${formattedHost}:${port}`;
+        const agents = getFilteredAgents({
+          url,
+          source: OperationSource.EXTERNAL_DBS,
+        });
+        if (agents.httpAgent) {
           await axios(url, {
-            httpAgent: useAgent(url),
-            httpsAgent: useAgent(url),
+            ...agents,
             timeout: 100,
           }).catch((err) => {
             if (err.message.includes('DNS lookup')) {

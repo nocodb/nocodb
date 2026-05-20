@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 
-import { useAgent } from 'request-filtering-agent';
-import { AppEvents, NcBaseError } from 'nocodb-sdk';
+import { getFilteredAgents } from '~/utils/ssrf';
+import { AppEvents, NcBaseError, OperationSource } from 'nocodb-sdk';
 import type {
   GoogleClientConfigType,
   OpenIDClientConfigType,
@@ -163,10 +163,7 @@ export class SSOClientService {
       const response = await axios(
         param.metadataUrl,
         process.env.NODE_ENV !== 'test'
-          ? {
-              httpAgent: useAgent(param.metadataUrl),
-              httpsAgent: useAgent(param.metadataUrl),
-            }
+          ? getFilteredAgents({ url: param.metadataUrl, source: OperationSource.SSO })
           : {},
       );
 

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
-import { getCircularReplacer } from 'nocodb-sdk';
-import { useAgent } from 'request-filtering-agent';
+import { getCircularReplacer, OperationSource } from 'nocodb-sdk';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { UtilsService as UtilsServiceCE } from 'src/services/utils.service';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
@@ -98,8 +98,7 @@ export class UtilsService extends UtilsServiceCE {
         : {},
       responseType: apiMeta.responseType || 'json',
       withCredentials: true,
-      httpAgent: useAgent(apiMeta.url),
-      httpsAgent: useAgent(apiMeta.url),
+      ...getFilteredAgents({ url: apiMeta.url, source: OperationSource.HOOKS }),
     };
     const data = await axios(_req);
     return data?.data;

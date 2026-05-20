@@ -1,10 +1,9 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { TablesService as TableServiceCE } from 'src/services/tables.service';
-import type { NcApiVersion } from 'nocodb-sdk';
+import type { NcApiVersion, OperationSource } from 'nocodb-sdk';
 import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
-import type { OperationSource } from '~/helpers/columnHelpers';
 import type { NcRequest } from '~/interface/config';
 import { OperationName } from '~/command-registry/op-names';
 import { MetaService } from '~/meta/meta.service';

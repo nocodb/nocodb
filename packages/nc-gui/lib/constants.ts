@@ -73,24 +73,57 @@ export const NC_CLOUD_URL = 'https://app.nocodb.com'
 
 export const clientMousePositionDefaultValue = { clientX: 0, clientY: 0 }
 
-// NocoDB-branded categorical palette for dashboard widgets.
-// Leads with brand blue (#3366ff) and steps ~30° around the wheel so
-// adjacent slices stay distinguishable. Saturation/lightness tuned to
-// feel calm rather than the loud default ECharts rainbow.
-export const CHART_COLORS = [
-  '#3366FF', // brand blue
-  '#36BFFF', // sky
-  '#22C7C9', // teal
-  '#22C55E', // green
-  '#FFCD56', // amber
-  '#FFA94D', // warm orange
-  '#FF6B6B', // coral
-  '#FF6B9D', // pink
-  '#B388EB', // soft purple
-  '#7C8FFF', // periwinkle
-  '#94A3B8', // slate
-  '#67E8F9', // light cyan
+// THROWAWAY (palette brainstorm): keeps default Brand list working and
+// adds a few candidate palettes + a lookup. Will be replaced by the
+// real palette schema after the design is approved.
+export const CHART_PALETTES: Record<string, string[]> = {
+  brand: [
+    '#3366FF', '#36BFFF', '#22C7C9', '#22C55E',
+    '#FFCD56', '#FFA94D', '#FF6B6B', '#FF6B9D',
+    '#B388EB', '#7C8FFF', '#94A3B8', '#67E8F9',
+  ],
+  classic: [
+    '#4E79A7', '#F28E2B', '#E15759', '#76B7B2',
+    '#59A14F', '#EDC948', '#B07AA1', '#9C755F',
+    '#FF9DA7', '#BAB0AC',
+  ],
+  vibrant: [
+    '#7C3AED', '#EC4899', '#F59E0B', '#10B981',
+    '#0EA5E9', '#EF4444', '#14B8A6', '#A855F7',
+    '#F97316', '#22D3EE',
+  ],
+  pastel: [
+    '#A5B4FC', '#FCA5A5', '#FCD34D', '#86EFAC',
+    '#67E8F9', '#F9A8D4', '#FDBA74', '#C4B5FD',
+    '#FECACA', '#BBF7D0',
+  ],
+  earth: [
+    '#8B4513', '#CD853F', '#DAA520', '#6B8E23',
+    '#A0522D', '#D2691E', '#BC8F8F', '#556B2F',
+    '#8FBC8F', '#B8860B',
+  ],
+  monoBlue: [
+    '#0B2D7A', '#1E40AF', '#2563EB', '#3B82F6',
+    '#60A5FA', '#93C5FD', '#BFDBFE', '#DBEAFE',
+  ],
+}
+
+export const CHART_PALETTE_OPTIONS = [
+  { label: 'Brand', value: 'brand', hint: 'cool-led', colors: CHART_PALETTES.brand },
+  { label: 'Classic', value: 'classic', hint: 'balanced', colors: CHART_PALETTES.classic },
+  { label: 'Vibrant', value: 'vibrant', hint: 'high-saturation', colors: CHART_PALETTES.vibrant },
+  { label: 'Pastel', value: 'pastel', hint: 'soft', colors: CHART_PALETTES.pastel },
+  { label: 'Earth', value: 'earth', hint: 'warm naturals', colors: CHART_PALETTES.earth },
+  { label: 'Mono Blue', value: 'monoBlue', hint: 'sequential', colors: CHART_PALETTES.monoBlue },
 ]
+
+export const getChartColors = (palette?: string | null): string[] => {
+  return CHART_PALETTES[palette ?? 'brand'] ?? CHART_PALETTES.brand!
+}
+
+// Brand palette kept as named export for existing consumers; new chart
+// code should call getChartColors(appearance.palette) instead.
+export const CHART_COLORS = CHART_PALETTES.brand!
 
 /** Virtual section ID for views not assigned to any real section */
 export const DEFAULT_SECTION_ID = '__default__'

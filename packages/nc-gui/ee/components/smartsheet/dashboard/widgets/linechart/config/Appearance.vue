@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import GroupedSettings from '../../common/GroupedSettings.vue'
+import PalettePicker from '../../common/PalettePicker.vue'
 
 const emit = defineEmits<{
   'update:appearance': [source: any]
@@ -38,6 +39,8 @@ const plotDataPoints = ref(selectedWidget.value?.config?.appearance?.plotDataPoi
 
 const smoothLines = ref(selectedWidget.value?.config?.appearance?.smoothLines ?? true)
 
+const palette = ref((selectedWidget.value?.config?.appearance as any)?.palette ?? 'brand')
+
 const fieldsYAxis = computed(() => selectedWidget.value?.config?.data?.yAxis?.fields || [])
 
 const handleChange = (type?: string, value?: any) => {
@@ -55,6 +58,7 @@ const handleChange = (type?: string, value?: any) => {
     showValueInChart: showValueInChart.value,
     plotDataPoints: plotDataPoints.value,
     smoothLines: smoothLines.value,
+    palette: palette.value,
   })
 }
 </script>
@@ -93,6 +97,11 @@ const handleChange = (type?: string, value?: any) => {
           </template>
         </a-select>
       </div>
+    </div>
+
+    <div class="flex flex-col gap-2 flex-1 min-w-0">
+      <label>Color palette</label>
+      <PalettePicker v-model="palette" preview="line" @change="handleChange()" />
     </div>
 
     <div class="space-y-2">

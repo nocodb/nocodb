@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChartTypes, ChartWidgetType } from 'nocodb-sdk'
-import { CHART_COLORS } from '~/lib/constants'
+import { getChartColors } from '~/lib/constants'
 import { truncateText } from '~/utils/stringUtils'
 
 interface Props {
@@ -110,7 +110,7 @@ const chartOption = computed<ECOption>(() => {
   const plotDataPoints = chartConfig.value?.appearance?.plotDataPoints ?? false
 
   return {
-    color: CHART_COLORS,
+    color: getChartColors((chartConfig.value?.appearance as any)?.palette),
     tooltip: {
       trigger: 'axis',
       axisPointer: {

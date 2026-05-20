@@ -238,13 +238,18 @@ function buildDecorations(
     // the surrounding paragraph visually, so the inline path is critical
     // for mid-paragraph edits.
     const inlineOnly = isInlineOnlySlice(change.slice)
+    // ProseMirror caches widget DOM by `spec.key` — if the key is stable
+    // across rebuilds, the cached node is reused and the render function
+    // is NOT invoked again. We need the function to re-run when focus
+    // shifts (so the `*-current` class can flip on / off), so encode
+    // `isCurrent` into the key.
     return Decoration.widget(
       change.from,
       () =>
         inlineOnly
           ? renderInlineDeletion(change.slice, isCurrent)
           : renderDeletedBlock(change.slice, schema, isCurrent),
-      { side: -1, key: `del-${idx}` },
+      { side: -1, key: `del-${idx}-${isCurrent ? 'cur' : 'off'}` },
     )
   })
 

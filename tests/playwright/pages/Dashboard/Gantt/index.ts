@@ -145,14 +145,27 @@ export class GanttPage extends BasePage {
   }
 
   /**
-   * Set zoom level. The dropdown is matched via `data-value=<level>`
-   * inside `.nc-gantt-zoom-dropdown`, same convention as Timeline.
+   * Set zoom level. The dropdown is an Ant Design `<a-select>` — options
+   * don't carry `data-value` attributes; click by visible label instead.
+   * Labels come from `zoomLabel(option)` in the FE which i18n-resolves
+   * to capitalized names ("Week", "2 weeks", "Month", "Quarter",
+   * "6 months", "Year", "2 years", "5 years").
    */
   async setZoomLevel(level: 'week' | '2week' | 'month' | 'quarter' | '6month' | 'year' | '2year' | '5year') {
+    const labels: Record<typeof level, string> = {
+      week: 'Week',
+      '2week': '2 weeks',
+      month: 'Month',
+      quarter: 'Quarter',
+      '6month': '6 months',
+      year: 'Year',
+      '2year': '2 years',
+      '5year': '5 years',
+    };
     await this.get().getByTestId('nc-gantt-view-mode').click();
     const dropdown = this.rootPage.locator('.nc-gantt-zoom-dropdown');
     await dropdown.waitFor({ state: 'visible' });
-    await dropdown.locator(`[data-value="${level}"]`).first().click();
+    await dropdown.locator('.ant-select-item-option-content').getByText(labels[level], { exact: true }).first().click();
     await this.rootPage.waitForTimeout(800);
   }
 

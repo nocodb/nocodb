@@ -10,6 +10,7 @@ const { applyDocPatch } = documentsStore
 const { isPrivateBase } = storeToRefs(useBase())
 const { activeProjectId } = storeToRefs(useBases())
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
+const { showShareModal } = storeToRefs(useShare())
 
 const { t } = useI18n()
 const { $api, $e } = useNuxtApp()
@@ -111,6 +112,34 @@ const toggleSubtree = async () => {
     isUpdating.value.subtree = false
   }
 }
+
+// Refresh the active doc whenever the share modal opens. Permissions can
+// change between when the doc was first loaded into the docs store and
+// when the user clicks Share — without this refresh, the toggle reads
+// from stale state (e.g., would still appear enabled after a Creator-only
+// visibility row was added). One small GET per modal open is cheap; the
+// backend's request-time visibility re-check would catch the case as a
+// fallback, but the UX is to disable the toggle up-front.
+watch(showShareModal, async (visible) => {
+  if (!visible) return
+  const docId = activeDocument.value?.id
+  const baseId = activeProjectId.value
+  if (!docId || !baseId || !activeWorkspaceId.value) return
+  try {
+    const fresh = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
+      operation: 'documentGet',
+      docId,
+    })) as { has_visibility_permission?: boolean; uuid?: string | null; meta?: Record<string, any> }
+    applyDocPatch(baseId, docId, {
+      has_visibility_permission: !!fresh?.has_visibility_permission,
+      uuid: fresh?.uuid ?? null,
+      ...(fresh?.meta ? { meta: fresh.meta } : {}),
+    })
+  } catch {
+    // Silent — the modal still renders against the stale state, and the
+    // backend share endpoint will refuse if visibility is now restricted.
+  }
+})
 </script>
 
 <template>

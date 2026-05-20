@@ -22,6 +22,23 @@ const buildKnexStub = () =>
     clientType: sinon.stub().returns('pg'),
   }) as unknown as CustomKnex;
 
+// Chainable Knex.QueryBuilder mock — `where` / `orWhere` MUST invoke the
+// callback when called with a function (the date-time handler nests its real
+// SQL emission inside `qb.where((nestedQb) => …)`). A plain `sinon.spy()`
+// records the call but never runs the callback, so `comparisonOp` → `knex.raw`
+// stays unreached and a broken implementation could still make the test pass.
+const buildQbStub = () => {
+  const qb: any = {};
+  const invokeIfCallback = (arg: any) => {
+    if (typeof arg === 'function') arg(qb);
+    return qb;
+  };
+  qb.where = sinon.stub().callsFake(invokeIfCallback);
+  qb.orWhere = sinon.stub().callsFake(invokeIfCallback);
+  qb.orWhereNull = sinon.stub().returns(qb);
+  return qb;
+};
+
 const buildColumn = (): Column =>
   ({
     column_name: 'CreatedAt',
@@ -43,6 +60,15 @@ const buildFilter = (overrides: Partial<Filter>): Filter =>
     meta: null,
     ...overrides,
   }) as unknown as Filter;
+
+const sqlOpForComparison: Record<string, string> = {
+  gt: '>',
+  gte: '>=',
+  ge: '>=',
+  lt: '<',
+  lte: '<=',
+  le: '<=',
+};
 
 function dateTimeFilterHandlerTests() {
   describe('DateTimeGeneralHandler — relative-date filter value coercion (#13101)', () => {
@@ -75,10 +101,16 @@ function dateTimeFilterHandlerTests() {
           expect(result).to.have.property('clause');
           expect(result.clause).to.be.a('function');
 
-          // Exercise the clause to make sure SQL building also works end-to-end.
-          const qb = { where: sinon.spy() } as any;
+          // Drive the clause through `buildQbStub` so the nested where-callback
+          // actually runs `comparisonOp`. If the typeof guard regresses, this
+          // path will throw `TypeError: i.replace is not a function`.
+          const qb = buildQbStub();
           result.clause(qb);
-          expect(qb.where.callCount).to.be.at.least(1);
+
+          const rawStub = knex.raw as unknown as sinon.SinonStub;
+          expect(rawStub.callCount).to.be.at.least(1);
+          const rawSql = rawStub.getCall(0).args[0] as string;
+          expect(rawSql).to.equal(`?? ${sqlOpForComparison[op]} ?`);
         });
       }
     }
@@ -94,17 +126,25 @@ function dateTimeFilterHandlerTests() {
         value: '2026-05-15 12:30:00',
       });
 
-      const result = await handler.filter(
-        knex,
-        filter,
-        buildColumn(),
-        buildOptions(),
-      );
+      const parseSpy = sinon.spy(handler as any, 'parseFilterValue');
+      try {
+        const result = await handler.filter(
+          knex,
+          filter,
+          buildColumn(),
+          buildOptions(),
+        );
 
-      expect(result).to.have.property('clause');
-      const qb = { where: sinon.spy() } as any;
-      result.clause(qb);
-      expect(qb.where.callCount).to.be.at.least(1);
+        expect(result).to.have.property('clause');
+        const qb = buildQbStub();
+        result.clause(qb);
+        expect((knex.raw as unknown as sinon.SinonStub).callCount).to.be.at.least(1);
+        // The time-component branch is the only path that invokes parseFilterValue
+        // inside filterGt/Gte/Lt/Lte — assert it actually fired.
+        expect(parseSpy.called).to.be.true;
+      } finally {
+        parseSpy.restore();
+      }
     });
 
     it('short-circuits to a no-op when relative-date value is null', async () => {
@@ -123,7 +163,7 @@ function dateTimeFilterHandlerTests() {
       );
 
       expect(result).to.have.property('clause');
-      const qb = { where: sinon.spy() } as any;
+      const qb = buildQbStub();
       // Falsy value returns an empty-clause result — calling clause is a no-op
       // and must not throw.
       expect(() => result.clause(qb)).to.not.throw();
@@ -137,16 +177,24 @@ function dateTimeFilterHandlerTests() {
         value: '14',
       });
 
-      const result = await handler.filter(
-        knex,
-        filter,
-        buildColumn(),
-        buildOptions(),
-      );
+      const parseSpy = sinon.spy(handler as any, 'parseFilterValue');
+      try {
+        const result = await handler.filter(
+          knex,
+          filter,
+          buildColumn(),
+          buildOptions(),
+        );
 
-      expect(result).to.have.property('clause');
-      const qb = { where: sinon.spy() } as any;
-      expect(() => result.clause(qb)).to.not.throw();
+        expect(result).to.have.property('clause');
+        const qb = buildQbStub();
+        expect(() => result.clause(qb)).to.not.throw();
+        // `'14'.replace('T', ' ').split(' ')[1]` is undefined, so the time-component
+        // branch in filterGt must be skipped — parseFilterValue stays unreached.
+        expect(parseSpy.called).to.be.false;
+      } finally {
+        parseSpy.restore();
+      }
     });
   });
 }

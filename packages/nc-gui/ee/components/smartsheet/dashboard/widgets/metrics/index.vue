@@ -66,7 +66,7 @@ watch(
         'mb-1.5': widget.description,
         'mb-3': !widget.description,
       }"
-      class="flex items-center"
+      class="flex items-center flex-shrink-0"
     >
       <div
         :style="{
@@ -78,7 +78,10 @@ watch(
       </div>
       <SmartsheetDashboardWidgetsCommonContext v-if="isEditing" :widget="widget" />
     </div>
-    <div v-if="widget.description" class="text-nc-content-gray-subtle2 whitespace-break-spaces text-bodyDefaultSm line-clamp-2">
+    <div
+      v-if="widget.description"
+      class="text-nc-content-gray-subtle2 whitespace-break-spaces text-bodyDefaultSm line-clamp-2 flex-shrink-0"
+    >
       {{ widget.description }}
     </div>
     <div

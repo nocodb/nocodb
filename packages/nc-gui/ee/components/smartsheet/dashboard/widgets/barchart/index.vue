@@ -22,18 +22,6 @@ const chartConfig = computed(() => {
   return widgetRef.value?.config
 })
 
-const widgetSize = computed(() => {
-  return widgetRef.value?.position?.h === 5 ? 'small' : 'medium'
-})
-
-const chartSize = computed(() => {
-  const sizeMap = {
-    small: { height: widgetRef?.value?.description ? '380px' : '420px' },
-    medium: { height: widgetRef?.value?.description ? '460px' : '520px' },
-  }
-  return sizeMap[widgetSize.value]
-})
-
 const disableLegend = computed(() => widgetRef.value?.config?.data?.yAxis?.fields?.length < 2)
 
 const legendConfig = computed(() => {
@@ -149,6 +137,7 @@ const chartOption = computed<ECOption>(() => {
         fontSize: 11,
         color: '#666',
         rotate: widgetData.value.categories.some((cat: string) => cat.length > 15) ? 45 : 0,
+        hideOverlap: true,
       },
       axisLine: {
         lineStyle: {
@@ -209,6 +198,7 @@ const chartOption = computed<ECOption>(() => {
           return value
         },
       },
+      labelLayout: { hideOverlap: true },
     })),
     animation: {
       duration: 750,
@@ -270,45 +260,15 @@ watch(
       </div>
     </div>
 
-    <div class="flex-1 p-4 pt-0">
-      <div
-        v-if="widgetRef.error"
-        :class="{
-          'bg-nc-bg-gray-extralight flex items-center justify-center h-full rounded-md': widgetRef.error,
-        }"
+    <div class="flex-1 min-h-0 p-4 pt-0">
+      <SmartsheetDashboardWidgetsCommonChartStates
+        :is-loading="isLoading"
+        :is-error="!!widgetRef.error"
+        :is-empty="!widgetData?.categories?.length || !widgetData?.series?.length"
       >
-        <SmartsheetDashboardWidgetsCommonWidgetsError />
-      </div>
-      <div v-else-if="isLoading" class="flex items-center justify-center h-full">
-        <div class="flex items-center gap-2 text-nc-content-gray-subtle2">
-          <div class="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
-          Loading chart data...
-        </div>
-      </div>
-
-      <div
-        v-else-if="!widgetData?.categories?.length || !widgetData?.series?.length"
-        class="flex items-center justify-center h-full text-nc-content-gray-subtle2"
-      >
-        <div class="text-center">
-          <div class="text-4xl mb-2">📊</div>
-          <div class="text-bodyDefaultSm">No data available</div>
-        </div>
-      </div>
-      <VChart v-else class="chart" :style="{ height: chartSize.height }" :option="chartOption" autoresize />
+        <VChart class="chart h-full w-full" :option="chartOption" autoresize />
+      </SmartsheetDashboardWidgetsCommonChartStates>
     </div>
   </div>
 </template>
 
-<style scoped lang="scss">
-// Loading animation
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-</style>

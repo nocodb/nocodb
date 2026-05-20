@@ -87,9 +87,7 @@ const addLineChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.LINE
 const addPieChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.PIE)
 const addDonutChartWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.DONUT)
 const addGaugeWidget = () => createWidget(WidgetTypes.GAUGE)
-/*
 const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SCATTER)
-*/
 </script>
 
 <template>
@@ -140,12 +138,12 @@ const addScatterPlotWidget = () => createWidget(WidgetTypes.CHART, ChartTypes.SC
         Gauge
       </div>
     </NcButton>
-    <!--    <NcButton size="small" type="text" @click="addScatterPlotWidget">
+    <NcButton size="small" type="text" @click="addScatterPlotWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="ncChartScatterPlot" class="w-5 h-5" />
         Scatter Plot
       </div>
-    </NcButton> -->
+    </NcButton>
     <NcButton size="small" type="text" @click="addIframeWidget">
       <div class="flex items-center text-nc-content-gray-subtle font-bold leading-5 gap-2">
         <GeneralIcon icon="cellUrl" class="w-5 h-5" />

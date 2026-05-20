@@ -22,18 +22,6 @@ const chartConfig = computed(() => {
   return widgetRef.value?.config
 })
 
-const widgetSize = computed(() => {
-  return widgetRef.value?.position?.h === 5 ? 'small' : 'medium'
-})
-
-const chartSize = computed(() => {
-  const sizeMap = {
-    small: { height: widgetRef?.value?.description ? '390px' : '420px' },
-    medium: { height: widgetRef?.value?.description ? '480px' : '520px' },
-  }
-  return sizeMap[widgetSize.value]
-})
-
 const disableLegend = computed(() => widgetRef.value?.config?.data?.yAxis?.fields?.length < 2)
 
 const legendConfig = computed(() => {
@@ -123,8 +111,12 @@ const chartOption = computed<ECOption>(() => {
     tooltip: {
       trigger: 'item',
       formatter: (params: any) => {
-        const categoryName = params.data.name
-        const value = params.data?.formatted_value !== undefined ? params.data.formatted_value : params.value[1]
+        // Scatter data points are { value, formatted_value, count } with no
+        // `name` field — the category sits on the x-axis. ECharts surfaces
+        // it as params.name (the indexed category from xAxis.data).
+        const categoryName = params.name
+        const rawValue = Array.isArray(params.value) ? params.value[1] : params.value
+        const value = params.data?.formatted_value !== undefined ? params.data.formatted_value : rawValue
         return `<strong>${categoryName}</strong><br/>${params.marker}${params.seriesName}: ${value}`
       },
       backgroundColor: 'rgba(50, 50, 50, 0.9)',
@@ -186,21 +178,19 @@ const chartOption = computed<ECOption>(() => {
     },
     series: widgetData.value.series.map((series: any) => ({
       name: series.name,
-      type: 'line',
+      type: 'scatter',
       data: series.data,
-      itemStyle: {
-        borderWidth: 2,
-      },
       symbol: 'circle',
-      symbolSize: 6,
+      symbolSize: 10,
+      itemStyle: {
+        opacity: 0.75,
+      },
       emphasis: {
+        scale: 1.4,
         itemStyle: {
-          borderWidth: 3,
-          shadowBlur: 10,
-          shadowColor: 'rgba(0, 0, 0, 0.3)',
-        },
-        lineStyle: {
-          width: 3,
+          opacity: 1,
+          shadowBlur: 8,
+          shadowColor: 'rgba(0, 0, 0, 0.25)',
         },
       },
       label: {
@@ -274,45 +264,15 @@ watch(
       </div>
     </div>
 
-    <div class="flex-1 p-4 pt-0">
-      <div
-        v-if="widgetRef.error"
-        :class="{
-          'bg-nc-bg-gray-extralight flex items-center justify-center h-full rounded-md': widgetRef.error,
-        }"
+    <div class="flex-1 min-h-0 p-4 pt-0">
+      <SmartsheetDashboardWidgetsCommonChartStates
+        :is-loading="isLoading"
+        :is-error="!!widgetRef.error"
+        :is-empty="!widgetData?.categories?.length || !widgetData?.series?.length"
       >
-        <SmartsheetDashboardWidgetsCommonWidgetsError />
-      </div>
-      <div v-else-if="isLoading" class="flex items-center justify-center h-full">
-        <div class="flex items-center gap-2 text-nc-content-gray-subtle2">
-          <div class="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>
-          Loading chart data...
-        </div>
-      </div>
-
-      <div
-        v-else-if="!widgetData?.categories?.length || !widgetData?.series?.length"
-        class="flex items-center justify-center h-full text-nc-content-gray-subtle2"
-      >
-        <div class="text-center">
-          <div class="text-4xl mb-2">📈</div>
-          <div class="text-bodyDefaultSm">No data available</div>
-        </div>
-      </div>
-      <VChart v-else class="chart" :style="{ height: chartSize.height }" :option="chartOption" autoresize />
+        <VChart class="chart h-full w-full" :option="chartOption" autoresize />
+      </SmartsheetDashboardWidgetsCommonChartStates>
     </div>
   </div>
 </template>
 
-<style scoped lang="scss">
-// Loading animation
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-</style>

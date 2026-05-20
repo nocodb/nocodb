@@ -32,7 +32,7 @@ export default defineNuxtConfig({
   ],
   echarts: {
     renderer: ['canvas'],
-    charts: ['BarChart', 'LineChart', 'PieChart'],
+    charts: ['BarChart', 'LineChart', 'PieChart', 'ScatterChart'],
     components: ['DatasetComponent', 'GridComponent', 'TooltipComponent', 'TitleComponent', 'LegendComponent'],
     ssr: false,
   },

@@ -367,8 +367,44 @@ watch(
   background-color: #f5f5f5;
 }
 
+// Hide resize handles by default; reveal them on widget hover only when the
+// dashboard is in edit mode. Replace the default sharp L (which fights the
+// widget's rounded corner) with three diagonal hash marks — the diagonal
+// runs ALONG the corner's tangent and points along the resize axis, so
+// the glyph's geometry agrees with both the card shape and the action.
 :deep(.vgl-item__resizer) {
-  @apply opacity-0;
+  @apply opacity-0 transition-opacity duration-150;
+  // 18px hit area sits flush in the corner so the cursor catches it
+  // anywhere near the rounded edge.
+  width: 18px !important;
+  height: 18px !important;
+  bottom: 0 !important;
+  right: 0 !important;
+  color: var(--nc-content-gray-subtle2);
+}
+:deep(.vgl-item__resizer::before) {
+  // Override the library's default border-based L
+  border: none !important;
+  // 14px visible icon, inset 3px so it tracks the rounded corner with
+  // ~2px of breathing room from the border curve (12px radius).
+  width: 14px !important;
+  height: 14px !important;
+  bottom: 3px !important;
+  right: 3px !important;
+  background-color: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'><g stroke='black' stroke-width='1.25' stroke-linecap='round' fill='none'><line x1='3' y1='13' x2='13' y2='3'/><line x1='7' y1='13' x2='13' y2='7'/><line x1='11' y1='13' x2='13' y2='11'/></g></svg>");
+  mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'><g stroke='black' stroke-width='1.25' stroke-linecap='round' fill='none'><line x1='3' y1='13' x2='13' y2='3'/><line x1='7' y1='13' x2='13' y2='7'/><line x1='11' y1='13' x2='13' y2='11'/></g></svg>");
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+:deep(.vgl-item:hover .vgl-item__resizer) {
+  @apply opacity-70;
+}
+:deep(.vgl-item--resizing .vgl-item__resizer),
+:deep(.vgl-item--dragging .vgl-item__resizer) {
+  @apply opacity-100;
 }
 </style>
 

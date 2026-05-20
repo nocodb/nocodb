@@ -297,7 +297,14 @@ watch(
     <div
       class="nc-shared-doc-topbar flex items-center justify-between px-3 py-2 border-b-1 border-nc-border-gray-medium shrink-0 h-[46px]"
     >
-      <div class="flex items-center gap-6 h-7 max-w-[calc(100%_-_120px)]">
+      <!-- flex-1 + min-w-0 so this left group claims all space opposite
+           the right-side action buttons (theme toggle + Download). Without
+           it, the group sizes to content, the breadcrumb's `max-w-1/4`
+           per segment computes against ~0px, and labels collapse to a
+           single character (see /doc/<uuid> demo with "Something" →
+           "S"). Mirrors how the in-app .nc-doc-page-menu-left uses
+           `absolute left-3 right: 120px` to claim a definite width. -->
+      <div class="flex items-center gap-6 h-7 flex-1 min-w-0">
         <a
           class="transition-all duration-200 cursor-pointer transform hover:scale-105"
           href="https://github.com/nocodb/nocodb"
@@ -308,32 +315,28 @@ watch(
           <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
         </a>
 
-        <div class="flex items-center gap-2 text-nc-content-gray-emphasis text-sm truncate">
+        <div class="flex items-center gap-2 text-nc-content-gray-emphasis text-sm truncate flex-1 min-w-0">
           <template v-if="isLoading && !activeContent">
             <span data-testid="nc-loading">{{ $t('general.loading') }}</span>
             <component :is="iconMap.reload" class="animate-infinite animate-spin" />
           </template>
 
-          <div v-else class="text-sm font-semibold truncate flex gap-2 items-center">
-            <!-- Prefer the active doc's icon (loaded with content) and fall
-                 back to the tree node's icon so the chrome renders before
-                 the content request resolves. Same component the in-app
-                 editor uses, so emoji rendering stays consistent. -->
-            <LazyGeneralEmojiPicker
-              :key="topbarIcon ?? ''"
-              :emoji="topbarIcon ?? undefined"
-              :readonly="true"
-              size="xsmall"
-              class="!text-[16px]"
-            >
-              <template #default>
-                <GeneralIcon icon="ncFileText" class="!w-4 !h-4 ml-0.5 text-nc-content-gray-subtle" />
-              </template>
-            </LazyGeneralEmojiPicker>
-            <span class="truncate">{{
-              activeContent?.title || activeNode?.title || meta?.root?.title || $t('general.untitled')
-            }}</span>
-          </div>
+          <!-- Notion-style breadcrumb: share-root → ancestors → current
+               page, each with a sibling/descendants dropdown. Ancestors
+               come out of `meta.tree` (initial manifest + anything the
+               deep-link walker / sidebar expansion has loaded). Mirrors
+               the in-app DocBreadcrumb shape — see DocBreadcrumbShared. -->
+          <DocBreadcrumbShared
+            v-else-if="meta?.root && activeDocId"
+            :uuid="uuid"
+            :root-node="meta.root"
+            :active-doc-id="activeDocId"
+            :active-icon="topbarIcon"
+            :active-title="docTitle"
+            :tree="renderableTree"
+            :load-children="loadChildren"
+            @select="navigateToDoc"
+          />
         </div>
       </div>
 

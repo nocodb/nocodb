@@ -3480,8 +3480,8 @@
       "duplicateTable": "Are you sure you want to duplicate the table?",
       "hideRequiredField": {
         "title": "Hide required field '{field}'?",
-        "content": "This field is required (NOT NULL with no default). Hiding it means new records added in this view will need to be opened in the expanded form to fill the required value before they can be saved.",
-        "hiddenBadge": "Required field is hidden — new records added in this view must be opened in the expanded form to fill the required value."
+        "content": "New rows added in this view won't save unless this field is filled via the expanded form.",
+        "hiddenBadge": "Required field hidden — new rows added here must use the expanded form to save."
       },
       "multiField": {
         "fieldVisibility": "You cannot change visibility of a field that is being edited. Please save or discard changes first.",

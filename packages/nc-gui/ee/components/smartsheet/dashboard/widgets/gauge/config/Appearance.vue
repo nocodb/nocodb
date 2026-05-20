@@ -13,6 +13,9 @@ const showValue = ref(selectedWidget.value?.config?.appearance?.showValue ?? tru
 
 const ranges = ref<GaugeRange[]>(selectedWidget.value?.config?.appearance?.ranges || defaultGaugeWidgetRange)
 
+// Tracks which range row's color picker is currently open. Only one open at a time.
+const openColorIndex = ref<number | null>(null)
+
 const onShowValueChange = () => {
   emit('update:appearance', {
     showValue: showValue.value,
@@ -74,12 +77,28 @@ const updateRange = (index: number, field: keyof GaugeRange, value: any) => {
     <div class="flex flex-col gap-3">
       <div v-for="(range, index) in ranges" :key="index" class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
-          <input
-            :value="range.color"
-            type="color"
-            class="w-10 h-10 rounded cursor-pointer border border-nc-border-gray"
-            @input="updateRange(index, 'color', ($event.target as HTMLInputElement).value)"
-          />
+          <NcDropdown
+            :visible="openColorIndex === index"
+            :auto-close="false"
+            overlay-class-name="nc-gauge-color-overlay"
+            @update:visible="(v) => (openColorIndex = v ? index : null)"
+          >
+            <button
+              type="button"
+              class="nc-gauge-color-swatch"
+              :style="{ backgroundColor: range.color }"
+              @click="openColorIndex = openColorIndex === index ? null : index"
+            />
+            <template #overlay>
+              <div class="nc-gauge-color-panel">
+                <LazyGeneralChromeWrapper
+                  :model-value="range.color"
+                  class="!w-full !shadow-none !bg-transparent"
+                  @input="updateRange(index, 'color', $event)"
+                />
+              </div>
+            </template>
+          </NcDropdown>
           <NcNonNullableNumberInput
             :model-value="range.min"
             :min="0"
@@ -131,5 +150,21 @@ const updateRange = (index: number, field: keyof GaugeRange, value: any) => {
 <style scoped lang="scss">
 :deep(.ant-input-number-handler-wrap) {
   @apply hidden;
+}
+
+.nc-gauge-color-swatch {
+  @apply w-8 h-8 rounded-lg cursor-pointer border border-nc-border-gray-medium
+         shadow-default flex items-center justify-center flex-shrink-0
+         transition-all duration-150;
+
+  &:hover {
+    @apply shadow-hover;
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-gauge-color-overlay {
+  @apply bg-nc-bg-default overflow-hidden w-[280px];
 }
 </style>

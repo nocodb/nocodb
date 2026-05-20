@@ -130,7 +130,7 @@ const options = computed<SelectProps['options']>(() =>
     })),
 )
 
-const filterOption = (input: string, option: any) => option.label.toLowerCase()?.includes(input.toLowerCase())
+const filterOption = (input: string, option: any) => option.label?.toLowerCase()?.includes(input.toLowerCase())
 
 // when a new filter is created, select a field by default
 if (!localValue.value && allowEmpty !== true) {

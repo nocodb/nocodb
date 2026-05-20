@@ -454,7 +454,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
 
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
-    ? (meta?.value ?? meta)?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
+    ? (meta?.value ?? meta)?.columns?.find((c) => c && c.id === colOptions.fk_relation_column_id)?.colOptions
     : col.colOptions
 
   // Use fk_related_base_id for cross-base relationships
@@ -471,7 +471,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   const customDisplayColId = (relationColumnOptions as LinkToAnotherRecordType)?.fk_display_value_column_id
   const childColumn = relatedTableMeta?.columns.find(
     (c: ColumnType) =>
-      c.id === (colOptions?.fk_lookup_column_id ?? customDisplayColId ?? relatedTableMeta?.columns.find((c) => c.pv)?.id),
+      c && c.id === (colOptions?.fk_lookup_column_id ?? customDisplayColId ?? relatedTableMeta?.columns.find((c) => c?.pv)?.id),
   ) as ColumnType | undefined
 
   // When the value is a record object (from Lookup of LTAR), extract the child column's

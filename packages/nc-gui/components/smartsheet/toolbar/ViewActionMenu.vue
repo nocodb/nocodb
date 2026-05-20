@@ -822,7 +822,7 @@ defineOptions({
       </template>
 
       <BookmarksMenuAction
-        v-if="isEeUI"
+        v-if="isEeUI && !isPublicView"
         target-type="view"
         :target-id="view.id!"
         :meta="{ view_type: view.type, workspace_id: base.fk_workspace_id, base_id: table.base_id, table_id: table.id }"

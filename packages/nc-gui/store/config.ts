@@ -33,6 +33,8 @@ export const useConfigStore = defineStore('configStore', () => {
       globalIsMobile.value = isMobileMode.value
       globalActiveBreakpoint.value = bp
 
+      if (!document.body) return
+
       // Change --topbar-height css variable
       document.documentElement.style.setProperty('--topbar-height', bp === 'xs' ? '3.875rem' : '3rem')
 

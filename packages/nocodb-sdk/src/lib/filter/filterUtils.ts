@@ -865,7 +865,7 @@ export const getPlaceholderNewRow = (
           ['allof'].includes(eachFilter.comparison_op)
         ) {
           const isMulti = parseProp(column.meta)?.is_multi;
-          if (isMulti || eachFilter.value?.indexOf?.(',') < 0) {
+          if (eachFilter.value && (isMulti || eachFilter.value.indexOf(',') < 0)) {
             const assignedValue = eachFilter.value
               .split(',')
               .map((k) => (k === '@me' ? option?.currentUser?.id : k))

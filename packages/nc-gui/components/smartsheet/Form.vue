@@ -449,7 +449,7 @@ function onMoveCallback(event: any) {
 }
 
 async function onMove(event: any, isVisibleFormFields = false) {
-  if (isLocked.value || !isEditable) return
+  if (isLocked.value || !isEditable || !view.value) return
 
   let { newIndex, element } = event.moved
 
@@ -766,7 +766,7 @@ async function onFieldMoveToNewRow(event: any, beforeRowKey?: string) {
 }
 
 async function showOrHideColumn(column: Record<string, any>, show: boolean, isFormSettings = false) {
-  if (isLocked.value || !isEditable) return
+  if (isLocked.value || !isEditable || !view.value) return
 
   if (shouldSkipColumn(column)) {
     // Required field can't be moved

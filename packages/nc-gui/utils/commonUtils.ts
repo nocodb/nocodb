@@ -100,7 +100,7 @@ export const ncArrayFrom = <T>(
  * ```
  */
 export const isUnicodeEmoji = (emoji: string) => {
-  return !!emoji?.match(/(\p{Emoji}|\p{Extended_Pictographic})/gu)
+  return typeof emoji === 'string' && !!emoji.match(/(\p{Emoji}|\p{Extended_Pictographic})/gu)
 }
 
 /**

@@ -434,6 +434,7 @@ const initSortable = (el: Element) => {
       // Update the allEntities array order to reflect the DOM change
       const entities = [...allEntities.value]
       const [movedEntity] = entities.splice(oldIndex, 1)
+      if (!movedEntity) return
       movedEntity.order = item.order
       entities.splice(newIndex, 0, movedEntity)
 

@@ -184,12 +184,13 @@ export class FormFilters {
 
       if (filter.is_group) {
         res = await this.validateCondition(filter.children, parentCol, errors)
-      } else {
-        if (!filter.fk_column_id || !this.formViewColumnsMapByFkColumnId[filter.fk_column_id]) {
-          res = false
+      } else if (!filter.fk_column_id || !this.formViewColumnsMapByFkColumnId[filter.fk_column_id]) {
+        if (filter.fk_column_id) {
+          errors[filter.fk_column_id] = `Condition references a field that no longer exists in the form.`
         }
-
-        const column = this.formViewColumnsMapByFkColumnId[filter.fk_column_id]
+        res = false
+      } else {
+        const column = this.formViewColumnsMapByFkColumnId[filter.fk_column_id]!
         // If the filter condition col is below parent column then this will be invalid condition so return false
         if (!this.isFieldAboveParentColumn(column, parentCol)) {
           errors[column.fk_column_id] = `Condition references a field (${column.title}) that comes later in the form.`

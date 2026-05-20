@@ -12,6 +12,7 @@ import type PGClient from '~/db/sql-client/lib/pg/PgClient';
 import type { NcContext } from '~/interface/config';
 import { META_COL_NAME } from '~/constants';
 import { normalizeDr } from '~/helpers/dbHelpers';
+import { formatLinkDbMapping } from '~/helpers/formatLinkDbMapping';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
@@ -130,6 +131,13 @@ export async function extractAndGenerateManyToManyRelations(
       );
 
       if (!isRelationAvailInA) {
+        const fkChildColA = assocModel.columns.find(
+          (c) => c.id === belongsToCols[0].colOptions.fk_child_column_id,
+        );
+        const fkParentColA = assocModel.columns.find(
+          (c) => c.id === belongsToCols[1].colOptions.fk_child_column_id,
+        );
+
         await Column.insert<LinkToAnotherRecordColumn>(context, {
           title: getUniqueColumnAliasName(
             modelA.columns,
@@ -149,9 +157,25 @@ export async function extractAndGenerateManyToManyRelations(
             plural: pluralize(modelB.title),
             singular: singularize(modelB.title),
           },
+          description:
+            fkChildColA && fkParentColA
+              ? formatLinkDbMapping({
+                  kind: 'mm',
+                  junctionTable: assocModel.table_name,
+                  fkChildColumn: fkChildColA.column_name,
+                  fkParentColumn: fkParentColA.column_name,
+                })
+              : undefined,
         });
       }
       if (!isRelationAvailInB) {
+        const fkChildColB = assocModel.columns.find(
+          (c) => c.id === belongsToCols[0].colOptions.fk_child_column_id,
+        );
+        const fkParentColB = assocModel.columns.find(
+          (c) => c.id === belongsToCols[1].colOptions.fk_child_column_id,
+        );
+
         await Column.insert<LinkToAnotherRecordColumn>(context, {
           title: getUniqueColumnAliasName(
             modelB.columns,
@@ -171,6 +195,15 @@ export async function extractAndGenerateManyToManyRelations(
             plural: pluralize(modelA.title),
             singular: singularize(modelA.title),
           },
+          description:
+            fkChildColB && fkParentColB
+              ? formatLinkDbMapping({
+                  kind: 'mm',
+                  junctionTable: assocModel.table_name,
+                  fkChildColumn: fkChildColB.column_name,
+                  fkParentColumn: fkParentColB.column_name,
+                })
+              : undefined,
         });
       }
 
@@ -466,6 +499,23 @@ export async function populateMeta(
               fk_related_model_id: column.hm ? tnId : rtnId,
               system: column.system,
               meta: column.meta,
+              description: formatLinkDbMapping(
+                column.hm
+                  ? {
+                      kind: 'hm',
+                      childTable: rel.tn,
+                      fkColumn: rel.cn,
+                      parentTable: rel.rtn,
+                      parentPk: rel.rcn,
+                    }
+                  : {
+                      kind: 'bt',
+                      childTable: rel.tn,
+                      fkColumn: rel.cn,
+                      parentTable: rel.rtn,
+                      parentPk: rel.rcn,
+                    },
+              ),
             });
 
             // nested relations data apis

@@ -82,6 +82,10 @@ export default class Document implements DocumentType {
     return null;
   }
 
+  public static async resolveBaseByUUID(..._args): Promise<any | null> {
+    return null;
+  }
+
   public static async share(..._args): Promise<any> {
     return null;
   }

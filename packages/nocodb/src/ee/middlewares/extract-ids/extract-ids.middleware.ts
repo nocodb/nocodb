@@ -338,9 +338,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           NcError.dashboardNotFound(sharedDashboardUuid);
         }
       } else if (sharedDocUuid) {
-        const doc = await Document.getByUUID(context, sharedDocUuid);
+        // Cached uuid → doc identity lookup. Public-share requests hit the
+        // middleware on every call, so the in-cache fast path is the
+        // difference between O(1) Redis hit and a DB round-trip per request.
+        const docIdentity = await Document.resolveBaseByUUID(sharedDocUuid);
 
-        if (!doc) {
+        if (!docIdentity) {
           NcError.get(context).genericNotFound('Document', sharedDocUuid);
         }
       } else if (hookId) {
@@ -824,15 +827,17 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
       req.ncBaseId = dashboard?.base_id;
     } else if (params.sharedDocUuid) {
-      const doc = await Document.getByUUID(context, req.params.sharedDocUuid);
+      const docIdentity = await Document.resolveBaseByUUID(
+        req.params.sharedDocUuid,
+      );
 
-      if (!doc) {
+      if (!docIdentity) {
         NcError.get(context).genericNotFound(
           'Document',
           req.params.sharedDocUuid,
         );
       }
-      req.ncBaseId = doc?.base_id;
+      req.ncBaseId = docIdentity?.base_id;
     } else if (params.hookId) {
       const hook = await Hook.get(context, params.hookId);
 

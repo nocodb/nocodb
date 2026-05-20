@@ -5,7 +5,7 @@ const { t } = useI18n()
 
 const { $api } = useNuxtApp()
 
-const { showInfoModal, showConfirmModal } = useNcConfirmModal()
+const { showInfoModal, showWarningModal } = useNcConfirmModal()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Organization')
 
@@ -87,28 +87,24 @@ const updateOrgRole = async (member: any, newRole: string) => {
   }
 }
 
-const confirmPromoteToAdmin = (member: any): Promise<boolean> =>
-  new Promise((resolve) => {
-    showConfirmModal({
-      title: t('title.confirmPromoteToOrgAdminTitle'),
-      content: t('title.confirmPromoteToOrgAdminSubtitle', {
-        email: member.display_name || member.email,
-      }),
-      showCancelBtn: true,
-      okText: t('general.continue'),
-      okProps: { type: 'primary' },
-      okCallback: () => resolve(true),
-      cancelCallback: () => resolve(false),
-    })
+const promoteWithConfirm = (member: any) => {
+  showWarningModal({
+    title: t('title.confirmPromoteToOrgAdminTitle'),
+    content: t('title.confirmPromoteToOrgAdminSubtitle', {
+      email: member.display_name || member.email,
+    }),
+    showCancelBtn: true,
+    okText: t('general.confirm'),
+    okCallback: async () => {
+      await updateOrgRole(member, EnterpriseOrgUserRoles.ADMIN)
+    },
   })
+}
 
 const onOrgRoleChange = (member: any) => async (role: string) => {
-  if (
-    role === EnterpriseOrgUserRoles.ADMIN &&
-    member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN
-  ) {
-    const confirmed = await confirmPromoteToAdmin(member)
-    if (!confirmed) return
+  if (role === EnterpriseOrgUserRoles.ADMIN && member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN) {
+    promoteWithConfirm(member)
+    return
   }
   await updateOrgRole(member, role)
 }

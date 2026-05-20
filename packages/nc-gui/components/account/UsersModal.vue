@@ -20,7 +20,7 @@ const { dashboardUrl } = useDashboard()
 
 const { clearBasesUser } = useBases()
 
-const { showConfirmModal } = useNcConfirmModal()
+const { showWarningModal } = useNcConfirmModal()
 
 const hasOrgRoles = computed(() => appInfo.value.isOnPrem && appInfo.value.ee)
 
@@ -28,19 +28,6 @@ const allowedRoles = computed(() => {
   if (!hasOrgRoles.value) return [OrgUserRoles.VIEWER]
   return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR, EnterpriseOrgUserRoles.ADMIN]
 })
-
-const confirmInviteAsAdmin = (): Promise<boolean> =>
-  new Promise((resolve) => {
-    showConfirmModal({
-      title: t('title.confirmInviteAsOrgAdminTitle'),
-      content: t('title.confirmInviteAsOrgAdminSubtitle'),
-      showCancelBtn: true,
-      okText: t('general.continue'),
-      okProps: { type: 'primary' },
-      okCallback: () => resolve(true),
-      cancelCallback: () => resolve(false),
-    })
-  })
 
 const inviteData = reactive({
   email: '',
@@ -132,22 +119,7 @@ const onRoleChange = (role: string) => {
   inviteData.role = role
 }
 
-const saveUser = async () => {
-  // Collect emails: pills + single typed email
-  const payloadEmails = singleEmailValue.value ? [singleEmailValue.value] : [...emailBadges.value]
-
-  // Also pick up any remaining text in the input
-  if (!singleEmailValue.value && inviteData.email?.trim() && validateEmail(inviteData.email.trim())) {
-    payloadEmails.push(inviteData.email.trim())
-  }
-
-  if (payloadEmails.length === 0) return
-
-  if (hasOrgRoles.value && inviteData.role === EnterpriseOrgUserRoles.ADMIN) {
-    const confirmed = await confirmInviteAsAdmin()
-    if (!confirmed) return
-  }
-
+const submitInvite = async (payloadEmails: string[]) => {
   isLoading.value = true
   $e('a:org-user:invite', { role: inviteData.role })
 
@@ -194,6 +166,33 @@ const saveUser = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+const saveUser = async () => {
+  // Collect emails: pills + single typed email
+  const payloadEmails = singleEmailValue.value ? [singleEmailValue.value] : [...emailBadges.value]
+
+  // Also pick up any remaining text in the input
+  if (!singleEmailValue.value && inviteData.email?.trim() && validateEmail(inviteData.email.trim())) {
+    payloadEmails.push(inviteData.email.trim())
+  }
+
+  if (payloadEmails.length === 0) return
+
+  if (hasOrgRoles.value && inviteData.role === EnterpriseOrgUserRoles.ADMIN) {
+    showWarningModal({
+      title: t('title.confirmInviteAsOrgAdminTitle'),
+      content: t('title.confirmInviteAsOrgAdminSubtitle'),
+      showCancelBtn: true,
+      okText: t('general.confirm'),
+      okCallback: async () => {
+        await submitInvite(payloadEmails)
+      },
+    })
+    return
+  }
+
+  await submitInvite(payloadEmails)
 }
 
 const hasInviteResults = computed(() => inviteResults.value.length > 0)

@@ -68,15 +68,21 @@ const viewStore = useViewsStore()
 
 const { updateViewMeta } = viewStore
 
+// Coalesce bursts of FIELD_RELOAD into one viewColumnList fetch — a single
+// column CUD can emit FIELD_RELOAD from the save site, the useColumnCreateStore
+// path, and the realtime socket. Without this, each emit reissues the same
+// `viewColumnList` call. See nocodb#6778.
+const loadViewColumnsDebounced = useDebounceFn(loadViewColumns, 50)
+
 const eventBusHandler = async (event: SmartsheetStoreEvents, payload?: any) => {
   if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     try {
-      await loadViewColumns()
+      await loadViewColumnsDebounced()
     } finally {
       payload?.callback?.()
     }
   } else if (event === SmartsheetStoreEvents.MAPPED_BY_COLUMN_CHANGE) {
-    loadViewColumns()
+    loadViewColumnsDebounced()
   }
 }
 

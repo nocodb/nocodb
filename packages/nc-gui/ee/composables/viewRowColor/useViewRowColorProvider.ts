@@ -107,16 +107,38 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
   )
 
   /**
-   * Watch row color update and field update events and reload row color info
+   * Watch row color update and field update events and reload row color info.
+   *
+   * A single column CUD can emit several of these events in quick succession
+   * (e.g. `useColumnCreateStore` emits `FIELD_UPDATE` + `ROW_COLOR_UPDATE`,
+   * the realtime socket then emits `FIELD_RELOAD` from `column_*` broadcasts,
+   * and downstream listeners may emit `FIELD_RELOAD` again). Without
+   * coalescing, each event hits `/row-color` independently — see #6778.
+   *
+   * Two paths to keep separate:
+   *   - ROW_COLOR_UPDATE *with* a `rowColorInfo` payload: realtime socket
+   *     already shipped the data, so `reloadRowColorInfo` skips the API and
+   *     just applies. Fire that eagerly so the payload isn't dropped by a
+   *     debounce that coalesces with a later no-arg FIELD_RELOAD.
+   *   - Everything else (API-fetching paths): debounce on the trailing edge
+   *     so the burst collapses to one `/row-color` GET. Use viewChange=true
+   *     conservatively — that's what FIELD_RELOAD already passed pre-fix.
    */
+  const reloadRowColorInfoDebounced = useDebounceFn(() => reloadRowColorInfo(true), 50)
+
   const smartsheetStoreEvents = async (event: SmartsheetStoreEvents, payload?: { viewChange?: boolean; rowColorInfo?: any }) => {
-    if ([SmartsheetStoreEvents.ROW_COLOR_UPDATE].includes(event)) {
-      reloadRowColorInfo(payload?.viewChange ?? false, payload?.rowColorInfo)
-    } else if ([SmartsheetStoreEvents.FIELD_UPDATE, SmartsheetStoreEvents.FIELD_RELOAD].includes(event)) {
+    if (event === SmartsheetStoreEvents.ROW_COLOR_UPDATE) {
+      if (payload?.rowColorInfo) {
+        // Apply realtime payload immediately; no API call to coalesce.
+        reloadRowColorInfo(payload?.viewChange ?? false, payload?.rowColorInfo)
+      } else {
+        reloadRowColorInfoDebounced()
+      }
+    } else if (event === SmartsheetStoreEvents.FIELD_UPDATE || event === SmartsheetStoreEvents.FIELD_RELOAD) {
       /**
        * No need to check view config copied event as we call `SmartsheetStoreEvents.FIELD_RELOAD` after it
        */
-      reloadRowColorInfo(true)
+      reloadRowColorInfoDebounced()
     }
   }
 

@@ -316,15 +316,13 @@ function documentShareTests() {
       expect(scope).to.not.equal(null);
       expect(scope!.root.id).to.equal(root.id);
       expect(scope!.includeSubtree).to.equal(true);
-      expect(scope!.reachableDocIds.has(root.id)).to.equal(true);
-      expect(scope!.reachableDocIds.has(child.id)).to.equal(true);
       // Tree carries root + direct children only (deeper levels are lazy).
       const treeIds = scope!.tree.map((n) => n.id);
       expect(treeIds).to.include(root.id);
       expect(treeIds).to.include(child.id);
     });
 
-    it('should exclude restricted subtrees from reachableDocIds', async () => {
+    it('should drop restricted direct children from the manifest tree', async () => {
       const root = await createDocument(ctx, { title: 'Root' });
       const visibleChild = await createDocument(ctx, {
         title: 'Visible',
@@ -334,27 +332,18 @@ function documentShareTests() {
         title: 'Restricted',
         parent_id: root.id,
       });
-      const grandchild = await createDocument(ctx, {
-        title: 'Under Restricted',
-        parent_id: restrictedChild.id,
-      });
-
-      // Share the root, then restrict a child — runtime resolver excludes
-      // it on the next scope build.
       const shared = await Document.share(ctx, root.id);
       await seedVisibilityRestriction(ctx, restrictedChild.id);
 
       const scope = await Document.getShareScope(ctx, shared.uuid!);
 
-      expect(scope).to.not.equal(null);
-      expect(scope!.reachableDocIds.has(root.id)).to.equal(true);
-      expect(scope!.reachableDocIds.has(visibleChild.id)).to.equal(true);
-      // Restricted node AND its descendants must be unreachable.
-      expect(scope!.reachableDocIds.has(restrictedChild.id)).to.equal(false);
-      expect(scope!.reachableDocIds.has(grandchild.id)).to.equal(false);
+      const treeIds = scope!.tree.map((n) => n.id);
+      expect(treeIds).to.include(root.id);
+      expect(treeIds).to.include(visibleChild.id);
+      expect(treeIds).to.not.include(restrictedChild.id);
     });
 
-    it('should return just the root when include_subtree=false', async () => {
+    it('should return just the root in the tree when include_subtree=false', async () => {
       const root = await createDocument(ctx, { title: 'Root' });
       await createDocument(ctx, { title: 'Child', parent_id: root.id });
       const shared = await Document.share(ctx, root.id);
@@ -366,8 +355,8 @@ function documentShareTests() {
       const scope = await Document.getShareScope(ctx, shared.uuid!);
 
       expect(scope!.includeSubtree).to.equal(false);
-      expect(scope!.reachableDocIds.size).to.equal(1);
-      expect(scope!.reachableDocIds.has(root.id)).to.equal(true);
+      expect(scope!.tree.length).to.equal(1);
+      expect(scope!.tree[0].id).to.equal(root.id);
     });
 
     // Used to live as a defense-in-depth re-check in PublicDocsService.
@@ -382,6 +371,125 @@ function documentShareTests() {
 
       const scope = await Document.getShareScope(ctx, shared.uuid!);
       expect(scope).to.equal(null);
+    });
+  });
+
+  // ── Document.isReachable ────────────────────────────────────────
+
+  describe('Document.isReachable', () => {
+    it('should accept the root', async () => {
+      const root = await createDocument(ctx, { title: 'Root' });
+      const shared = await Document.share(ctx, root.id);
+      const scope = (await Document.getShareScope(ctx, shared.uuid!))!;
+
+      expect(await Document.isReachable(scope, root.id)).to.equal(true);
+    });
+
+    it('should accept a direct child when include_subtree=true', async () => {
+      const root = await createDocument(ctx, { title: 'Root' });
+      const child = await createDocument(ctx, {
+        title: 'Child',
+        parent_id: root.id,
+      });
+      const shared = await Document.share(ctx, root.id);
+      const scope = (await Document.getShareScope(ctx, shared.uuid!))!;
+
+      expect(await Document.isReachable(scope, child.id)).to.equal(true);
+    });
+
+    it('should accept a deep descendant when include_subtree=true', async () => {
+      const root = await createDocument(ctx, { title: 'Root' });
+      const child = await createDocument(ctx, {
+        title: 'Child',
+        parent_id: root.id,
+      });
+      const grandchild = await createDocument(ctx, {
+        title: 'Grandchild',
+        parent_id: child.id,
+      });
+      const shared = await Document.share(ctx, root.id);
+      const scope = (await Document.getShareScope(ctx, shared.uuid!))!;
+
+      expect(await Document.isReachable(scope, grandchild.id)).to.equal(true);
+    });
+
+    it('should reject non-root docs when include_subtree=false', async () => {
+      const root = await createDocument(ctx, { title: 'Root' });
+      const child = await createDocument(ctx, {
+        title: 'Child',
+        parent_id: root.id,
+      });
+      const shared = await Document.share(ctx, root.id);
+      await Document.updateShareSettings(ctx, root.id, {
+        include_subtree: false,
+      });
+      const scope = (await Document.getShareScope(ctx, shared.uuid!))!;
+
+      expect(await Document.isReachable(scope, root.id)).to.equal(true);
+      expect(await Document.isReachable(scope, child.id)).to.equal(false);
+    });
+
+    it('should reject a doc that carries its own DOCUMENT_VISIBILITY row', async () => {
+      const root = await createDocument(ctx, { title: 'Root' });
+      const restricted = await createDocument(ctx, {
+        title: 'Restricted',
+        parent_id: root.id,
+      });
+      const shared = await Document.share(ctx, root.id);
+      await seedVisibilityRestriction(ctx, restricted.id);
+      const scope = (await Document.getShareScope(ctx, shared.uuid!))!;
+
+      expect(await Document.isReachable(scope, restricted.id)).to.equal(false);
+    });
+
+    it('should reject a descendant of a restricted ancestor', async () => {
+      const root = await createDocument(ctx, { title: 'Root' });
+      const restricted = await createDocument(ctx, {
+        title: 'Restricted',
+        parent_id: root.id,
+      });
+      const grandchild = await createDocument(ctx, {
+        title: 'Under Restricted',
+        parent_id: restricted.id,
+      });
+      const shared = await Document.share(ctx, root.id);
+      await seedVisibilityRestriction(ctx, restricted.id);
+      const scope = (await Document.getShareScope(ctx, shared.uuid!))!;
+
+      expect(await Document.isReachable(scope, grandchild.id)).to.equal(false);
+    });
+
+    it('should reject a doc that lives outside the share root', async () => {
+      const root = await createDocument(ctx, { title: 'Root' });
+      const sibling = await createDocument(ctx, { title: 'Sibling' });
+      const shared = await Document.share(ctx, root.id);
+      const scope = (await Document.getShareScope(ctx, shared.uuid!))!;
+
+      expect(await Document.isReachable(scope, sibling.id)).to.equal(false);
+    });
+
+    it('should reject a soft-deleted doc', async () => {
+      const root = await createDocument(ctx, { title: 'Root' });
+      const child = await createDocument(ctx, {
+        title: 'Child',
+        parent_id: root.id,
+      });
+      const shared = await Document.share(ctx, root.id);
+      const scope = (await Document.getShareScope(ctx, shared.uuid!))!;
+
+      await Document.softDelete(ctx, child.id);
+
+      expect(await Document.isReachable(scope, child.id)).to.equal(false);
+    });
+
+    it('should reject an unknown doc id', async () => {
+      const root = await createDocument(ctx, { title: 'Root' });
+      const shared = await Document.share(ctx, root.id);
+      const scope = (await Document.getShareScope(ctx, shared.uuid!))!;
+
+      expect(await Document.isReachable(scope, 'doc_does_not_exist')).to.equal(
+        false,
+      );
     });
   });
 
@@ -402,7 +510,7 @@ function documentShareTests() {
 
       const after = await Document.getShareScope(ctx, shared.uuid!);
       expect(after!.includeSubtree).to.equal(false);
-      expect(after!.reachableDocIds.size).to.equal(1);
+      expect(after!.tree.length).to.equal(1);
     });
 
     it('should drop the uuid→doc cache on unshare', async () => {

@@ -33,8 +33,12 @@ export interface ShareScope {
   root: Document;
   tree: PublicDocTreeNode[];
   includeSubtree: boolean;
-  reachableDocIds: Set<string>;
 }
+
+// Defensive cap on the ancestor walk in isReachable — guarantees
+// termination on a malformed parent chain. Document nesting in practice
+// is shallow.
+const MAX_ANCESTOR_WALK_DEPTH = 64;
 
 // Metadata lives in nc_models_v2; content (ProseMirror JSON) lives in
 // nc_doc_content_v2 — see Noco.ncDocsContent. `doc_version` column maps
@@ -928,13 +932,13 @@ export default class Document extends DocumentCE implements DocumentType {
     return await this.getMeta(context, docId, ncMeta);
   }
 
-  // Direct children for the public reader. Pass reachableDocIds from
-  // getShareScope to drop docs blocked by visibility restrictions.
+  // Direct children for the public reader. Drops children that carry
+  // their own DOCUMENT_VISIBILITY row — the caller is expected to have
+  // already verified the parent is reachable via isReachable.
   public static async getPublicChildren(
     _context: NcContext,
     root: Document,
     parentDocId: string,
-    reachableDocIds?: Set<string>,
     ncMeta = Noco.ncMeta,
   ): Promise<Array<PublicDocChildNode>> {
     const rows = await ncMeta.metaList2(
@@ -953,9 +957,28 @@ export default class Document extends DocumentCE implements DocumentType {
       },
     );
 
-    const filtered = reachableDocIds
-      ? rows.filter((r: any) => reachableDocIds.has(r.id as string))
-      : rows;
+    if (!rows.length) return [];
+
+    const restrictedRows = await ncMeta.metaList2(
+      root.fk_workspace_id,
+      root.base_id,
+      MetaTable.PERMISSIONS,
+      {
+        condition: {
+          entity: PermissionEntity.DOCUMENT,
+          permission: PermissionKey.DOCUMENT_VISIBILITY,
+        },
+        xcCondition: {
+          entity_id: { in: rows.map((r: any) => r.id as string) },
+        },
+        fields: ['entity_id'],
+      },
+    );
+    const restricted = new Set(
+      (restrictedRows as Array<{ entity_id: string }>).map((p) => p.entity_id),
+    );
+
+    const filtered = rows.filter((r: any) => !restricted.has(r.id as string));
 
     return filtered.map((c: any) => {
       const parsed = this.parseDocument({ ...c });
@@ -979,7 +1002,7 @@ export default class Document extends DocumentCE implements DocumentType {
     docId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<PublicDocLiteNode | null> {
-    if (!scope.reachableDocIds.has(docId)) return null;
+    if (!(await this.isReachable(scope, docId, ncMeta))) return null;
     const isRoot = docId === scope.root.id;
 
     const row = await ncMeta.metaGet2(
@@ -1027,77 +1050,6 @@ export default class Document extends DocumentCE implements DocumentType {
     return !!row;
   }
 
-  // BFS over the base's docs, pruning at any DOCUMENT_VISIBILITY restriction.
-  // Returns just {root.id} when include_subtree is false.
-  private static async computeReachableDocIds(
-    root: Document,
-    includeSubtree: boolean,
-    ncMeta: typeof Noco.ncMeta,
-  ): Promise<Set<string>> {
-    if (!includeSubtree) return new Set([root.id]);
-
-    const docs = await ncMeta.metaList2(
-      root.fk_workspace_id,
-      root.base_id,
-      MetaTable.MODELS,
-      {
-        condition: {
-          base_id: root.base_id,
-          type: ModelTypes.DOCUMENT,
-          deleted: false,
-        },
-        fields: ['id', 'parent_id'],
-      },
-    );
-
-    const restrictedRows = await ncMeta.metaList2(
-      root.fk_workspace_id,
-      root.base_id,
-      MetaTable.PERMISSIONS,
-      {
-        condition: {
-          base_id: root.base_id,
-          entity: PermissionEntity.DOCUMENT,
-          permission: PermissionKey.DOCUMENT_VISIBILITY,
-        },
-        fields: ['entity_id'],
-      },
-    );
-    const restricted = new Set(
-      (restrictedRows as Array<{ entity_id: string }>).map((p) => p.entity_id),
-    );
-
-    // Build adjacency map and BFS from root, skipping restricted nodes.
-    const childrenByParent = new Map<string, string[]>();
-    for (const d of docs as Array<{ id: string; parent_id: string | null }>) {
-      if (!d.parent_id) continue;
-      let bucket = childrenByParent.get(d.parent_id);
-      if (!bucket) {
-        bucket = [];
-        childrenByParent.set(d.parent_id, bucket);
-      }
-      bucket.push(d.id);
-    }
-
-    const reachable = new Set<string>();
-    if (!restricted.has(root.id)) {
-      const queue: string[] = [root.id];
-      while (queue.length) {
-        const current = queue.shift()!;
-        reachable.add(current);
-        const children = childrenByParent.get(current);
-        if (!children) continue;
-        for (const childId of children) {
-          if (restricted.has(childId)) continue;
-          if (reachable.has(childId)) continue;
-          queue.push(childId);
-        }
-      }
-    }
-
-    return reachable;
-  }
-
   // Resolve the share scope for a UUID — lazy, not cached. Returns null
   // when the uuid doesn't exist or its root has a DOCUMENT_VISIBILITY
   // restriction (callers treat null as 404).
@@ -1121,11 +1073,6 @@ export default class Document extends DocumentCE implements DocumentType {
     }
 
     const includeSubtree = !!getDocShareMeta(root.meta).include_subtree;
-    const reachableDocIds = await this.computeReachableDocIds(
-      root,
-      includeSubtree,
-      ncMeta,
-    );
 
     const rootNode: PublicDocTreeNode = {
       id: root.id,
@@ -1137,16 +1084,67 @@ export default class Document extends DocumentCE implements DocumentType {
     };
 
     const children = includeSubtree
-      ? await this.getPublicChildren(
-          context,
-          root,
-          root.id,
-          reachableDocIds,
-          ncMeta,
-        )
+      ? await this.getPublicChildren(context, root, root.id, ncMeta)
       : [];
     const tree: PublicDocTreeNode[] = [rootNode, ...children];
 
-    return { root, tree, includeSubtree, reachableDocIds };
+    return { root, tree, includeSubtree };
+  }
+
+  // Per-request reachability check — walks the parent chain from docId
+  // up to scope.root.id, rejecting if any node in the chain has a
+  // DOCUMENT_VISIBILITY restriction. Scales with depth, not base size.
+  public static async isReachable(
+    scope: ShareScope,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    if (!scope.includeSubtree) return docId === scope.root.id;
+    if (docId === scope.root.id) return true;
+
+    const chain: string[] = [];
+    let cursor: string | null = docId;
+    let reachedRoot = false;
+
+    for (let depth = 0; depth < MAX_ANCESTOR_WALK_DEPTH && cursor; depth++) {
+      chain.push(cursor);
+
+      const row = await ncMeta.metaGet2(
+        scope.root.fk_workspace_id,
+        scope.root.base_id,
+        MetaTable.MODELS,
+        { id: cursor, type: ModelTypes.DOCUMENT },
+        ['parent_id'],
+        notDeletedXcCondition,
+      );
+      if (!row) return false;
+
+      const parentId = (row.parent_id as string | null) ?? null;
+      if (parentId === scope.root.id) {
+        reachedRoot = true;
+        break;
+      }
+      if (!parentId) return false;
+      cursor = parentId;
+    }
+    if (!reachedRoot) return false;
+
+    // Single PERMISSIONS lookup for the whole chain (doc + every
+    // intermediate ancestor). Root itself is already vetted by
+    // getShareScope, so it's not in `chain`.
+    const restrictedRows = await ncMeta.metaList2(
+      scope.root.fk_workspace_id,
+      scope.root.base_id,
+      MetaTable.PERMISSIONS,
+      {
+        condition: {
+          entity: PermissionEntity.DOCUMENT,
+          permission: PermissionKey.DOCUMENT_VISIBILITY,
+        },
+        xcCondition: { entity_id: { in: chain } },
+        fields: ['entity_id'],
+      },
+    );
+    return restrictedRows.length === 0;
   }
 }

@@ -12,8 +12,8 @@ import { Base, FileReference } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
 // Anonymous reader for public-shared docs. UUID is the bearer credential
-// (no password). Per-request access goes through resolveShareScope →
-// scope.reachableDocIds for every doc lookup.
+// (no password). Per-request access goes through resolveShareScope, then
+// Document.isReachable for each addressed docId.
 @Injectable()
 export class PublicDocsService {
   private async resolveShareScope(
@@ -58,9 +58,9 @@ export class PublicDocsService {
     param: { sharedDocUuid: string; docId: string },
   ): Promise<PublicDocContentResponse> {
     const scope = await this.resolveShareScope(context, param.sharedDocUuid);
-    const { root, reachableDocIds } = scope;
+    const { root } = scope;
 
-    if (!reachableDocIds.has(param.docId)) {
+    if (!(await Document.isReachable(scope, param.docId))) {
       NcError.get(context).genericNotFound('Document', param.docId);
     }
 
@@ -114,12 +114,10 @@ export class PublicDocsService {
       fileRefId: string;
     },
   ): Promise<{ fileUrl: string }> {
-    const { root, reachableDocIds } = await this.resolveShareScope(
-      context,
-      param.sharedDocUuid,
-    );
+    const scope = await this.resolveShareScope(context, param.sharedDocUuid);
+    const { root } = scope;
 
-    if (!reachableDocIds.has(param.docId)) {
+    if (!(await Document.isReachable(scope, param.docId))) {
       NcError.get(context).genericNotFound('Document', param.docId);
     }
 
@@ -141,22 +139,17 @@ export class PublicDocsService {
     context: NcContext,
     param: { sharedDocUuid: string; parentDocId: string },
   ): Promise<PublicDocChildrenResponse> {
-    const { root, includeSubtree, reachableDocIds } =
-      await this.resolveShareScope(context, param.sharedDocUuid);
+    const scope = await this.resolveShareScope(context, param.sharedDocUuid);
+    const { root, includeSubtree } = scope;
 
     if (!includeSubtree) {
       NcError.get(context).genericNotFound('Document', param.parentDocId);
     }
 
-    if (!reachableDocIds.has(param.parentDocId)) {
+    if (!(await Document.isReachable(scope, param.parentDocId))) {
       NcError.get(context).genericNotFound('Document', param.parentDocId);
     }
 
-    return await Document.getPublicChildren(
-      context,
-      root,
-      param.parentDocId,
-      reachableDocIds,
-    );
+    return await Document.getPublicChildren(context, root, param.parentDocId);
   }
 }

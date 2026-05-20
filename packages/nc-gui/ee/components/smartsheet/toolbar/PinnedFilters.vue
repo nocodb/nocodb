@@ -681,16 +681,14 @@ const unpinFilter = async (filter: FilterType) => {
             >
               <!-- Header: field name · operator | enable/disable | unpin -->
               <div class="flex items-center gap-1.5 px-3 py-2 border-b border-nc-border-gray-medium min-w-0">
-                <!-- Field name with tooltip for truncated text -->
-                <NcTooltip class="truncate" placement="bottom">
+                <NcTooltip show-on-truncate-only class="truncate" placement="bottom">
                   <template #title>{{ getColumn(filter)?.title }}</template>
                   <span class="text-xs font-semibold text-nc-content-gray-subtle uppercase tracking-wide truncate">
                     {{ getColumn(filter)?.title }}
                   </span>
                 </NcTooltip>
                 <span class="text-xs text-nc-content-gray-muted flex-none">·</span>
-                <!-- Operator label with tooltip for truncated text -->
-                <NcTooltip class="truncate" placement="bottom">
+                <NcTooltip show-on-truncate-only class="truncate" placement="bottom">
                   <template #title>{{ getComparisonOpLabel(filter) }}</template>
                   <span class="text-xs text-nc-content-gray-muted truncate">
                     {{ getComparisonOpLabel(filter) }}
@@ -864,6 +862,7 @@ const unpinFilter = async (filter: FilterType) => {
                         </NcTooltip>
                         <GeneralIcon
                           v-if="filter.comparison_sub_op === subOp.value"
+                          id="nc-selected-item-icon"
                           icon="check"
                           class="h-4 w-4 text-primary flex-none"
                         />
@@ -891,15 +890,17 @@ const unpinFilter = async (filter: FilterType) => {
                       @update:value="(v: any) => updateDateValue(filter, v)"
                     />
                   </div>
-                  <div v-else-if="filter.comparison_sub_op === 'exactDate'" class="flex justify-center py-1">
-                    <NcDatePicker
-                      v-model:page-date="datePagePageDate"
-                      :selected-date="filter.value ? dayjs(filter.value as string) : null"
-                      :is-open="openFilterId === filter.id"
-                      :type="isDateMonthFormat(parseProp(getColumn(filter)?.meta)?.date_format || '') ? 'month' : 'date'"
-                      size="medium"
-                      @update:selected-date="(d: any) => updateDateValue(filter, d ? dayjs(d).format('YYYY-MM-DD') : null)"
-                    />
+                  <div v-else-if="filter.comparison_sub_op === 'exactDate'" class="py-1">
+                    <div class="w-full nc-pinned-date-picker">
+                      <NcDatePicker
+                        v-model:page-date="datePagePageDate"
+                        :selected-date="filter.value ? dayjs(filter.value as string) : null"
+                        :is-open="openFilterId === filter.id"
+                        :type="isDateMonthFormat(parseProp(getColumn(filter)?.meta)?.date_format || '') ? 'month' : 'date'"
+                        size="medium"
+                        @update:selected-date="(d: any) => updateDateValue(filter, d ? dayjs(d).format('YYYY-MM-DD') : null)"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1003,6 +1004,17 @@ const unpinFilter = async (filter: FilterType) => {
 
 :deep(.nc-user-avatar) {
   @apply min-h-4.2;
+}
+
+/**
+ * Make the inline NcDatePicker fill the available width of the pinned filter panel.
+ * NcMonthYearSelector defaults to `max-w-[350px]` without a base width, which causes
+ * the month/year grid to shrink to its content. Force the inner wrapper to span 100%.
+ */
+.nc-pinned-date-picker {
+  :deep(.rounded-y-xl) {
+    @apply max-w-full w-full;
+  }
 }
 </style>
 

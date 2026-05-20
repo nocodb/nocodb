@@ -142,7 +142,17 @@ export function useDashboardPieChartOption(
       pageButtonItemGap: 4,
       pageIconSize: 10,
       pageTextStyle: { fontSize: 11 },
-      tooltip: { show: true },
+      tooltip: {
+        show: true,
+        formatter: (params: any) => {
+          const name = params.name
+          if (!showCountInLegend) return name
+          const item = processedData.value?.find((d: any) => d.name === name)
+          if (!item) return name
+          const displayValue = item.formatted_value !== undefined ? item.formatted_value : item.value
+          return `${name}: ${displayValue}`
+        },
+      },
     }
   })
 

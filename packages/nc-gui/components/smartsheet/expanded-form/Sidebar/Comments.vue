@@ -116,11 +116,16 @@ const saveComment = async () => {
 const copyComment = async (comment: CommentType) => {
   const viewId = activeView.value?.fk_model_id === meta.value?.id ? activeView.value?.id : undefined
 
+  // Mirror copy-record-URL: include &path=… so the link still resolves when
+  // the source view is grouped (without it the deep-link can't open the row
+  // in another tab).
+  const pathParam = route.query?.path ? `&path=${route.query.path}` : ''
+
   await copy(
     encodeURI(
       `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}${
         viewId ? `/${viewId}` : ''
-      }?rowId=${primaryKey.value}&commentId=${comment.id}`,
+      }?rowId=${primaryKey.value}&commentId=${comment.id}${pathParam}`,
     ),
   )
 }
@@ -219,11 +224,10 @@ watch(commentsWrapperEl, () => {
       const query = router.currentRoute.value.query
       const commentId = query.commentId
       if (commentId) {
-        router.push({
-          query: {
-            rowId: query.rowId,
-          },
-        })
+        // Preserve `path` so the group context survives a reload after the
+        // comment deep-link is consumed; only commentId needs to be stripped.
+        const { commentId: _drop, ...rest } = query
+        router.push({ query: rest })
         scrollToComment(commentId as string)
 
         hoveredCommentId.value = commentId as string

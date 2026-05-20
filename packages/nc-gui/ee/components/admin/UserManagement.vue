@@ -5,7 +5,7 @@ const { t } = useI18n()
 
 const { $api } = useNuxtApp()
 
-const { showInfoModal } = useNcConfirmModal()
+const { showInfoModal, showConfirmModal } = useNcConfirmModal()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Organization')
 
@@ -63,7 +63,7 @@ const inviteUserToWorkspace = (email: string) => {
 }
 
 const orgAllowedRoles = computed(() => {
-  return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR]
+  return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR, EnterpriseOrgUserRoles.ADMIN]
 })
 
 const updateOrgRole = async (member: any, newRole: string) => {
@@ -87,7 +87,29 @@ const updateOrgRole = async (member: any, newRole: string) => {
   }
 }
 
+const confirmPromoteToAdmin = (member: any): Promise<boolean> =>
+  new Promise((resolve) => {
+    showConfirmModal({
+      title: t('title.confirmPromoteToOrgAdminTitle'),
+      content: t('title.confirmPromoteToOrgAdminSubtitle', {
+        email: member.display_name || member.email,
+      }),
+      showCancelBtn: true,
+      okText: t('general.continue'),
+      okProps: { type: 'primary' },
+      okCallback: () => resolve(true),
+      cancelCallback: () => resolve(false),
+    })
+  })
+
 const onOrgRoleChange = (member: any) => async (role: string) => {
+  if (
+    role === EnterpriseOrgUserRoles.ADMIN &&
+    member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN
+  ) {
+    const confirmed = await confirmPromoteToAdmin(member)
+    if (!confirmed) return
+  }
   await updateOrgRole(member, role)
 }
 
@@ -359,13 +381,7 @@ watch(selected, () => {
             </NcDropdown>
           </div>
           <div v-if="column.key === 'org_role'" class="flex items-center">
-            <template v-if="member.cloud_org_roles === EnterpriseOrgUserRoles.ADMIN">
-              <NcBadge :border="false" color="purple" class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none">
-                {{ $t('objects.roleType.orgAdmin') }}
-              </NcBadge>
-            </template>
             <RolesSelectorV2
-              v-else
               :on-role-change="onOrgRoleChange(member)"
               :role="member.cloud_org_roles || EnterpriseOrgUserRoles.VIEWER"
               :roles="orgAllowedRoles"
@@ -406,21 +422,19 @@ watch(selected, () => {
                     <span>{{ $t('activity.inviteToWorkspace') }}</span>
                   </NcMenuItem>
 
-                  <template v-if="member.cloud_org_roles !== EnterpriseOrgUserRoles.ADMIN">
-                    <NcDivider />
+                  <NcDivider />
 
-                    <NcTooltip :disabled="!member.scim_managed" :title="$t('labels.scimManagedRemovalTooltip')" placement="left">
-                      <NcMenuItem
-                        :disabled="member.scim_managed"
-                        danger
-                        data-testid="nc-admin-org-user-remove"
-                        @click="removeOrgMember(member)"
-                      >
-                        <GeneralIcon icon="delete" />
-                        {{ $t('activity.removeMember') }}
-                      </NcMenuItem>
-                    </NcTooltip>
-                  </template>
+                  <NcTooltip :disabled="!member.scim_managed" :title="$t('labels.scimManagedRemovalTooltip')" placement="left">
+                    <NcMenuItem
+                      :disabled="member.scim_managed"
+                      danger
+                      data-testid="nc-admin-org-user-remove"
+                      @click="removeOrgMember(member)"
+                    >
+                      <GeneralIcon icon="delete" />
+                      {{ $t('activity.removeMember') }}
+                    </NcMenuItem>
+                  </NcTooltip>
                 </NcMenu>
               </template>
             </NcDropdown>

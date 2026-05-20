@@ -347,11 +347,6 @@ export class PermissionsService {
       // Clear base permission list cache — cascade may have deleted child permissions
       await Permission.clearBaseCache(context);
 
-      // Visibility writes change a share's reachable subtree.
-      if (permission_key === PermissionKey.DOCUMENT_VISIBILITY) {
-        await Document.invalidateShareCacheUpTree(context, entity_id);
-      }
-
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
         payload: {
@@ -467,17 +462,6 @@ export class PermissionsService {
     await this.broadcastPermissionUpdate(context);
 
     if (DOCUMENT_PERMISSION_KEYS.includes(permission_key)) {
-      // Dropping a visibility row re-exposes the subtree to public shares.
-      if (
-        permission_key === PermissionKey.DOCUMENT_VISIBILITY &&
-        permission.entity_id
-      ) {
-        await Document.invalidateShareCacheUpTree(
-          context,
-          permission.entity_id,
-        );
-      }
-
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
         payload: {
@@ -598,18 +582,6 @@ export class PermissionsService {
     if (hasDocPermissions) {
       // Clear base permission list cache — bulk drop may have removed child permissions
       await Permission.clearBaseCache(context);
-
-      const visibilityEntityIds = new Set(
-        deletedPermissions
-          .filter(
-            (p) =>
-              p.permission === PermissionKey.DOCUMENT_VISIBILITY && p.entity_id,
-          )
-          .map((p) => p.entity_id as string),
-      );
-      for (const entityId of visibilityEntityIds) {
-        await Document.invalidateShareCacheUpTree(context, entityId);
-      }
 
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,

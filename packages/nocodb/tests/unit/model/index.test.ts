@@ -15,8 +15,10 @@ function modelTests() {
       const documentTest = require('./tests/document.test').default;
       const documentsServiceTest =
         require('./tests/documentsService.test').default;
+      const documentShareTest = require('./tests/documentShare.test').default;
       documentTest();
       documentsServiceTest();
+      documentShareTest();
     } catch (e) {
       // EE test files not available in CE
     }

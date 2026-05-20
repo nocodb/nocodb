@@ -60,12 +60,6 @@ export type PublicDocNode = PublicDocTreeNode;
 
 export type PublicDocLiteNode = PublicDocTreeNode;
 
-// Defensive cap to guarantee termination on a malformed cycle.
-export const MAX_PUBLIC_SCOPE_WALK_DEPTH = 64;
-
-// Backstop TTL — explicit invalidation handles the normal case.
-export const PUBLIC_SHARE_SCOPE_TTL_SECONDS = 300;
-
 export interface PublicDocMetaResponse {
   root: PublicDocTreeNode;
   // Initial visible tree (root + direct children); deeper levels fetched

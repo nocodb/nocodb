@@ -106,11 +106,7 @@ export default class Document implements DocumentType {
     return false;
   }
 
-  public static async getCachedShareScope(..._args): Promise<any | null> {
+  public static async getShareScope(..._args): Promise<any | null> {
     return null;
-  }
-
-  public static async invalidateShareCacheUpTree(..._args): Promise<void> {
-    return;
   }
 }

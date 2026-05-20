@@ -6,7 +6,7 @@ import type {
   PublicDocMetaResponse,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type { CachedShareScope } from '~/ee/models/Document';
+import type { ShareScope } from '~/ee/models/Document';
 import Document from '~/ee/models/Document';
 import { Base, FileReference } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -16,27 +16,14 @@ import { NcError } from '~/helpers/catchError';
 // scope.reachableDocIds for every doc lookup.
 @Injectable()
 export class PublicDocsService {
-  // Re-checks root visibility on every request — defense-in-depth against a
-  // race between DOCUMENT_VISIBILITY writes and cache invalidation.
   private async resolveShareScope(
     context: NcContext,
     sharedDocUuid: string,
-  ): Promise<CachedShareScope> {
-    const scope = await Document.getCachedShareScope(context, sharedDocUuid);
+  ): Promise<ShareScope> {
+    const scope = await Document.getShareScope(context, sharedDocUuid);
     if (!scope) {
       NcError.get(context).genericNotFound('Document', sharedDocUuid);
     }
-
-    if (
-      await Document.hasVisibilityRestriction(
-        scope.root.fk_workspace_id,
-        scope.root.base_id,
-        scope.root.id,
-      )
-    ) {
-      NcError.get(context).genericNotFound('Document', sharedDocUuid);
-    }
-
     return scope;
   }
 

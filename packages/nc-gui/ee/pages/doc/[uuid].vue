@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { MAX_PUBLIC_SCOPE_WALK_DEPTH } from 'nocodb-sdk'
 import type { PublicDocTreeNode } from 'nocodb-sdk'
+
+// Defensive walk-depth cap on the deep-link ancestor walk — terminates on a
+// malformed parent chain. Document nesting in practice is shallow.
+const MAX_ANCESTOR_WALK_DEPTH = 64
 
 /**
  * Public reader for shared docs (/doc/<uuid>).
@@ -186,9 +189,8 @@ watch([activeContent, () => meta.value?.root?.id], async ([content, rootId]) => 
 
   // Walk up the parent chain. Stop at the share root (already in the
   // initial manifest) or when an ancestor is missing / out of scope.
-  // MAX_PUBLIC_SCOPE_WALK_DEPTH is shared with the backend invariant.
   let depth = 0
-  while (cursor && cursor !== rootId && depth < MAX_PUBLIC_SCOPE_WALK_DEPTH) {
+  while (cursor && cursor !== rootId && depth < MAX_ANCESTOR_WALK_DEPTH) {
     depth += 1
     let node = nodesById.value.get(cursor)
     if (!node) {

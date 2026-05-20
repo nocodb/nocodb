@@ -1055,34 +1055,13 @@ export default class Document extends DocumentCE implements DocumentType {
     // we never surface a restricted node here, so deeper levels are
     // never requested. The corresponding `isInPublicScope` guard on
     // /content + /attachment + /children prevents direct-URL bypass.
-    //
-    // Raw ncMeta query (no Permission model) to avoid the circular
-    // import — Permission already imports Document. Permissions are
-    // base-scoped and cheap to list per call; if this becomes a hot
-    // path we can co-load into the share-scope cache.
     if (rows.length) {
-      const visibilityRows = await ncMeta.metaList2(
-        root.fk_workspace_id,
-        root.base_id,
-        MetaTable.PERMISSIONS,
-        {
-          condition: {
-            base_id: root.base_id,
-            entity: PermissionEntity.DOCUMENT,
-            permission: PermissionKey.DOCUMENT_VISIBILITY,
-          },
-          xcCondition: {
-            entity_id: { in: rows.map((r: any) => r.id as string) },
-          },
-          fields: ['entity_id'],
-        },
+      const restricted = await this.restrictedDocIdsIn(
+        root,
+        rows.map((r: any) => r.id as string),
+        ncMeta,
       );
-      if (visibilityRows.length) {
-        const restricted = new Set<string>(
-          (visibilityRows as Array<{ entity_id: string }>).map(
-            (p) => p.entity_id,
-          ),
-        );
+      if (restricted.size) {
         for (let i = rows.length - 1; i >= 0; i--) {
           if (restricted.has(rows[i].id as string)) rows.splice(i, 1);
         }
@@ -1181,8 +1160,19 @@ export default class Document extends DocumentCE implements DocumentType {
 
     if (!getDocShareMeta(root.meta).include_subtree) return false;
 
+    // Collect the parent chain from docId up to (but not including) the
+    // share root. If we reach root via parent_id, the chain represents
+    // every ancestor of docId inside the share scope; we then verify
+    // none of them — including docId itself — carries an explicit
+    // DOCUMENT_VISIBILITY restriction. Without this check, the
+    // visibility filter in `getPublicChildren` only prevents the doc
+    // from appearing in the sidebar — anyone who knows or guesses its
+    // id can still hit /content, /attachment, or /children directly
+    // and read the restricted subtree (security finding B1).
+    const chain: string[] = [];
     let cursor: string | null = docId;
     for (let i = 0; i < MAX_PUBLIC_SCOPE_WALK_DEPTH && cursor; i++) {
+      chain.push(cursor);
       const row = await ncMeta.metaGet2(
         root.fk_workspace_id,
         root.base_id,
@@ -1192,10 +1182,50 @@ export default class Document extends DocumentCE implements DocumentType {
         notDeletedXcCondition,
       );
       if (!row) return false;
-      if (row.parent_id === root.id) return true;
+      if (row.parent_id === root.id) {
+        const restricted = await this.restrictedDocIdsIn(root, chain, ncMeta);
+        return restricted.size === 0;
+      }
       cursor = (row.parent_id as string | null) ?? null;
     }
     return false;
+  }
+
+  /**
+   * Subset of `docIds` that carry an explicit `DOCUMENT_VISIBILITY`
+   * permission row in the same base. One small base-scoped query — used
+   * by both `isInPublicScope` (to reject restricted ancestors / docs on
+   * direct URL access) and `getPublicChildren` (to exclude restricted
+   * children from the public manifest).
+   *
+   * Raw ncMeta query (no Permission model) to avoid the circular import
+   * — Permission already imports Document. Permissions are base-scoped
+   * and cheap to list per call; if this becomes a hot path we can
+   * co-load into the share-scope cache.
+   */
+  private static async restrictedDocIdsIn(
+    root: Document,
+    docIds: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<Set<string>> {
+    if (!docIds.length) return new Set();
+    const rows = await ncMeta.metaList2(
+      root.fk_workspace_id,
+      root.base_id,
+      MetaTable.PERMISSIONS,
+      {
+        condition: {
+          base_id: root.base_id,
+          entity: PermissionEntity.DOCUMENT,
+          permission: PermissionKey.DOCUMENT_VISIBILITY,
+        },
+        xcCondition: { entity_id: { in: docIds } },
+        fields: ['entity_id'],
+      },
+    );
+    return new Set(
+      (rows as Array<{ entity_id: string }>).map((p) => p.entity_id),
+    );
   }
 
   /**

@@ -779,6 +779,38 @@ const getBarStyle = (row: RowType) => {
   }
 }
 
+// When a bar is too narrow to fit its label inline, render the label as a
+// separate floating element starting just past the bar's right edge.
+// Matches Airtable's Gantt behaviour: short bars become a small bordered
+// chip with the label flowing to the right, no border on the floating
+// text. We estimate label width from char count (avg ~7px for text-xs)
+// plus padding; when estimate > bar width we route to the spill path
+// instead of inline rendering. Pointer-events are disabled on the spill
+// element in the template so it doesn't intercept clicks meant for the
+// bar or for empty-area drag-to-create. Returns null for bars wide
+// enough to hold the label, off-screen bars, and milestones (which
+// have their own label placement next to the diamond).
+const AVG_CHAR_PX = 7
+const LABEL_INSIDE_PADDING = 20
+
+const getSpillLabelStyle = (row: RowType) => {
+  if (isMilestone(row)) return null
+  const barStyle = getBarStyle(row)
+  if (!barStyle) return null
+  const widthPx = parseFloat(barStyle.width)
+  if (!Number.isFinite(widthPx)) return null
+
+  const text = primaryField.value ? String(row.row?.[primaryField.value.title!] ?? '') : ''
+  const estLabelWidth = text.length * AVG_CHAR_PX + LABEL_INSIDE_PADDING
+  if (widthPx >= estLabelWidth) return null
+
+  const leftPx = parseFloat(barStyle.left)
+  return {
+    left: `${leftPx + widthPx + 6}px`,
+    height: `${ROW_HEIGHT - 8}px`,
+  }
+}
+
 // Milestones: a record with only an end date (no start date) renders as a
 // diamond centered on the end-date column. It still lists in the sidebar and
 // can be a dependency source or target. MILESTONE_SIZE is the diagonal
@@ -2118,7 +2150,7 @@ const onGridMouseLeave = () => {
                 <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
               </template>
               <div
-                class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow transition-opacity select-none group peer w-full relative overflow-hidden"
+                class="nc-gantt-bar border-1 flex items-center text-xs font-normal transition-shadow transition-opacity select-none group peer w-full relative"
                 :class="{
                   'cursor-grabbing': dragInProgress && dragRecord === record && canDrag,
                   'cursor-grab': !isInteracting && canDrag,
@@ -2171,6 +2203,7 @@ const onGridMouseLeave = () => {
                 </div>
 
                 <span
+                  v-if="!getSpillLabelStyle(record)"
                   class="whitespace-nowrap inline-flex items-center"
                   :class="{
                     'pl-7': !isStartVisible(record),
@@ -2264,6 +2297,30 @@ const onGridMouseLeave = () => {
                 @click.stop
               />
             </NcTooltip>
+
+            <!-- Spill-over label — for bars too narrow to hold their inline
+                 label inside, render the label as a separate floating
+                 element to the right of the bar. Matches Airtable's
+                 Gantt rendering convention. Pointer-events disabled so
+                 the floating text doesn't intercept clicks meant for
+                 adjacent bars or empty-area drag-to-create. -->
+            <div
+              v-if="!isMilestone(record) && getSpillLabelStyle(record)"
+              class="absolute top-1 flex items-center text-xs text-nc-content-gray whitespace-nowrap pointer-events-none"
+              :style="getSpillLabelStyle(record)!"
+            >
+              <template v-for="field in fields" :key="field.id">
+                <LazySmartsheetPlainCell
+                  v-if="!isRowEmpty(record, field!)"
+                  v-model="record.row[field!.title!]"
+                  class="text-xs"
+                  :bold="fieldStyles[field.id]?.bold"
+                  :column="field"
+                  :italic="fieldStyles[field.id]?.italic"
+                  :underline="fieldStyles[field.id]?.underline"
+                />
+              </template>
+            </div>
             </template>
           </div>
 

@@ -79,36 +79,14 @@ export class GanttPage extends BasePage {
   }
 
   /**
-   * Returns the visible (clipped) text of the first bar — what the user
-   * actually reads inside the bar's rectangle. With overflow-hidden on the
-   * bar div, narrow bars render less than their full inner text — but
-   * `textContent()` returns the full text regardless of clipping. Useful
-   * for asserting the bar contains a substring; not useful for asserting
-   * the clip happened. Use `verifyBarFitsInBox()` for the clip assertion.
+   * Returns the full text content of the bar at `index`. For wide bars
+   * this is what the user reads inside the rectangle; for narrow bars
+   * Gantt routes the label through a sibling spill-out element so the
+   * inside-bar content is empty — use `gantt.get().locator(...)` to find
+   * the spill text in that case.
    */
   async getBarText(index = 0): Promise<string> {
     return ((await this.bars().nth(index).textContent()) ?? '').trim();
-  }
-
-  /**
-   * Assert that the bar's rendered text doesn't visually spill past its
-   * own bounding box. Compares the rendered element's bounding box to its
-   * scrollWidth — if scrollWidth > clientWidth the content is clipped
-   * (good), and the overflow-hidden style keeps it invisible. Without the
-   * spill-out fix this returned scrollWidth ≈ clientWidth even on narrow
-   * bars (because the label rendered as a separate sibling). Now it
-   * should be strictly clipped when narrower than the inline text.
-   */
-  async verifyBarClipsWhenNarrow(index = 0) {
-    const bar = this.bars().nth(index);
-    await bar.scrollIntoViewIfNeeded();
-    const overflowsCleanly = await bar.evaluate(el => {
-      const style = window.getComputedStyle(el as HTMLElement);
-      // The bar must declare overflow-hidden so any overflow we measure
-      // below is actually clipped from view.
-      return style.overflow === 'hidden' || style.overflowX === 'hidden';
-    });
-    expect(overflowsCleanly, 'bar should have overflow:hidden').toBe(true);
   }
 
   /**

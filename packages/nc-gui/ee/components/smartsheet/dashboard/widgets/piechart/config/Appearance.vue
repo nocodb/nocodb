@@ -92,7 +92,7 @@ const handleChange = (type?: string, value?: any) => {
     </div>
 
     <div class="flex flex-col gap-2 flex-1 min-w-0">
-      <label>{{ $t('labels.colorPalette') }}</label>
+      <label>{{ $t('general.colorPalette') }}</label>
       <PalettePicker v-model="colorSchema" preview="pie" @change="handleChange()" />
     </div>
 

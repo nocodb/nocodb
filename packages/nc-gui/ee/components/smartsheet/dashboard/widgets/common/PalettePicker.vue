@@ -26,7 +26,7 @@ const vModel = computed({
   set: (v: string) => emits('update:modelValue', v),
 })
 
-const paletteLabel = (value: string) => t(`labels.chartPalette.${value}`)
+const paletteLabel = (value: string) => t(`general.chartPalette.${value}`)
 
 const onChange = (v: string) => emits('change', v)
 </script>

@@ -19,10 +19,14 @@ const emits = defineEmits<{
   'change': [value: string]
 }>()
 
+const { t } = useI18n()
+
 const vModel = computed({
   get: () => props.modelValue,
   set: (v: string) => emits('update:modelValue', v),
 })
+
+const paletteLabel = (value: string) => t(`labels.chartPalette.${value}`)
 
 const onChange = (v: string) => emits('change', v)
 </script>
@@ -38,11 +42,11 @@ const onChange = (v: string) => emits('change', v)
       v-for="opt in CHART_PALETTE_OPTIONS"
       :key="opt.value"
       :value="opt.value"
-      :label="opt.label"
+      :label="paletteLabel(opt.value)"
     >
       <div class="flex items-center gap-2.5 min-w-0">
         <PalettePreview :colors="opt.colors" :preview="preview" size="sm" />
-        <span class="text-bodySm text-nc-content-gray font-medium truncate">{{ opt.label }}</span>
+        <span class="text-bodySm text-nc-content-gray font-medium truncate">{{ paletteLabel(opt.value) }}</span>
       </div>
     </a-select-option>
   </NcSelect>

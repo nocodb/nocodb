@@ -108,13 +108,15 @@ export const CHART_PALETTES: Record<string, string[]> = {
   ],
 }
 
+// `value` is the colorSchema enum value (also the i18n key suffix under
+// labels.chartPalette.*). Components resolve the display label via t().
 export const CHART_PALETTE_OPTIONS = [
-  { label: 'Default', value: 'default', hint: 'cool-led', colors: CHART_PALETTES.default },
-  { label: 'Classic', value: 'classic', hint: 'balanced', colors: CHART_PALETTES.classic },
-  { label: 'Vibrant', value: 'vibrant', hint: 'high-saturation', colors: CHART_PALETTES.vibrant },
-  { label: 'Pastel', value: 'pastel', hint: 'soft', colors: CHART_PALETTES.pastel },
-  { label: 'Earth', value: 'earth', hint: 'warm naturals', colors: CHART_PALETTES.earth },
-  { label: 'Mono Blue', value: 'monoBlue', hint: 'sequential', colors: CHART_PALETTES.monoBlue },
+  { value: 'default', colors: CHART_PALETTES.default },
+  { value: 'classic', colors: CHART_PALETTES.classic },
+  { value: 'vibrant', colors: CHART_PALETTES.vibrant },
+  { value: 'pastel', colors: CHART_PALETTES.pastel },
+  { value: 'earth', colors: CHART_PALETTES.earth },
+  { value: 'monoBlue', colors: CHART_PALETTES.monoBlue },
 ]
 
 export const getChartColors = (schema?: string | null): string[] => {

@@ -575,6 +575,15 @@
     "apply": "Apply",
     "text": "Text",
     "appearance": "Appearance",
+    "colorPalette": "Color palette",
+    "chartPalette": {
+      "default": "Default",
+      "classic": "Classic",
+      "vibrant": "Vibrant",
+      "pastel": "Pastel",
+      "earth": "Earth",
+      "monoBlue": "Mono Blue"
+    },
     "now": "Now",
     "set": "Set",
     "format": "Format",

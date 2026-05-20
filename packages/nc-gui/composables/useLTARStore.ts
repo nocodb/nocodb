@@ -838,7 +838,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // Mirror the new-row branch: clear the linked record from the row store so
         // BT/MO cells (which display the linked record directly off the row) refresh
         // immediately. Reload paths are no-ops in EE, so this is the only signal.
-        if (isSingleTargetRelation.value) {
+        if (isSingleTargetRelation.value && rowStoreCurrentRow) {
           rowStoreCurrentRow.value.row[column.value.title!] = null
         }
       } catch (e: any) {
@@ -920,7 +920,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         // Mirror the new-row branch: write the picked record back to the row store so
         // BT/MO cells (which display the linked record directly off the row) refresh
         // immediately. Reload paths are no-ops in EE, so this is the only signal.
-        if (isSingleTargetRelation.value) {
+        if (isSingleTargetRelation.value && rowStoreCurrentRow) {
           rowStoreCurrentRow.value.row[column.value.title!] = row
         }
       } catch (e: any) {

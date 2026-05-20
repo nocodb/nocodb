@@ -216,15 +216,19 @@ onBeforeUnmount(() => {
   }
 
   // Atom-leaf insert (image nodes) — the inline highlight above doesn't
-  // wrap leaf-node DOM, so a node-level decoration adds a green frame
-  // around the image's NodeView wrapper.
-  .nc-doc-history-diff-insert-image {
+  // wrap leaf-node DOM, so a node-level decoration tags the NodeView
+  // wrapper. The wrapper spans the full alignment box (whole content
+  // width), which would draw the outline as a wide rectangle far past
+  // the picture's edges — we instead target the inner `.nc-doc-image`
+  // so the frame hugs the image at its configured size, matching how
+  // deleted images render.
+  .nc-doc-history-diff-insert-image .nc-doc-image {
     outline: 2px solid rgba(34, 197, 94, 0.5);
     outline-offset: 2px;
     border-radius: 4px;
     transition: outline-color 0.15s ease;
   }
-  .nc-doc-history-diff-insert-image-current {
+  .nc-doc-history-diff-insert-image-current .nc-doc-image {
     outline-color: rgba(34, 197, 94, 0.85);
   }
 

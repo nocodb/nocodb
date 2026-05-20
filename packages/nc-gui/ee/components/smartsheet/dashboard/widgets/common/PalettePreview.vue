@@ -132,7 +132,7 @@ const dotRadius = computed(() => (props.size === 'lg' ? 3 : 2.5))
   overflow: hidden;
   flex-shrink: 0;
   border-radius: 5px;
-  background: white;
+  background: var(--nc-bg-default);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.06);
   vertical-align: middle;
 }
@@ -149,7 +149,7 @@ const dotRadius = computed(() => (props.size === 'lg' ? 3 : 2.5))
 
 .nc-palette-pie-hole {
   position: absolute;
-  background: white;
+  background: var(--nc-bg-default);
   border-radius: 50%;
 }
 

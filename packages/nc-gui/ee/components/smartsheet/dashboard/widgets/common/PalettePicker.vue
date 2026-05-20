@@ -10,7 +10,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: 'brand',
+  modelValue: 'default',
   preview: 'pie',
 })
 

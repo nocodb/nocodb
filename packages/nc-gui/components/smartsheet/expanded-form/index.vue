@@ -998,6 +998,7 @@ export default {
             :blueprint-mode="props.blueprintMode"
             :view="props.view"
             :row-id="rowId"
+            @new-record="addNewRow"
             @duplicate-start="onDuplicateStart"
             @after-delete="onAfterDelete"
             @request-close="onClose(true)"

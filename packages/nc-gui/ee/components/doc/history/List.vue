@@ -92,10 +92,14 @@ function onSelect(rev: DocRevisionListItem) {
       v-else-if="!revisions.length"
       class="flex flex-col items-center justify-center flex-1 px-6 text-center"
     >
-      <GeneralIcon icon="ncHistory" class="text-nc-content-gray-muted w-8 h-8 mb-2" />
-      <span class="text-sm text-nc-content-gray-subtle">No revisions yet</span>
-      <span class="text-xs text-nc-content-gray-muted mt-1">
-        Edits will appear here once you save the document.
+      <div
+        class="flex items-center justify-center w-12 h-12 rounded-full bg-nc-bg-gray-light mb-3"
+      >
+        <GeneralIcon icon="ncHistory" class="text-nc-content-gray-subtle w-6 h-6" />
+      </div>
+      <span class="text-sm font-medium text-nc-content-gray">No versions saved yet</span>
+      <span class="text-xs text-nc-content-gray-muted mt-1.5 leading-relaxed max-w-[240px]">
+        A version is recorded each time the page is saved. Saves made within 2 minutes by the same author are merged into one.
       </span>
     </div>
 

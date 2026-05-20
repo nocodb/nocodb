@@ -130,9 +130,17 @@ async function onRestore() {
         </div>
         <div
           v-else-if="!selectedRevisionContent"
-          class="flex items-center justify-center min-h-[400px] text-nc-content-gray-subtle"
+          class="flex flex-col items-center justify-center h-full min-h-[400px] px-6 text-center"
         >
-          Select a revision to preview
+          <div
+            class="flex items-center justify-center w-14 h-14 rounded-full bg-nc-bg-gray-light mb-4"
+          >
+            <GeneralIcon icon="ncHistory" class="text-nc-content-gray-subtle w-7 h-7" />
+          </div>
+          <span class="text-base font-medium text-nc-content-gray">Select a version to preview</span>
+          <span class="text-sm text-nc-content-gray-muted mt-2 leading-relaxed max-w-[380px]">
+            Pick one from the list on the right to see the page as it was at that point. Changes against the current version are highlighted inline.
+          </span>
         </div>
         <div v-else class="max-w-[772px] mx-auto px-10 py-8">
           <!-- Document header — title + meta about the previewed version. -->

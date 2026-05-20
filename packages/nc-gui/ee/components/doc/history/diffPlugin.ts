@@ -25,16 +25,38 @@ export interface DocDiffState {
   /** Cached decoration set + change positions. Computed inside `apply`. */
   decorations: DecorationSet
   changes: DocDiffChange[]
+  /**
+   * Navigable steps for the ↑/↓ nav and the counter. A single ChangeSet entry
+   * that contains BOTH an insertion and a deletion (a replace) becomes one
+   * step here — even though it produces two decorations in `changes`. This is
+   * what users expect from a "1 of N" counter on a revision viewer.
+   */
+  steps: DocDiffStep[]
 }
 
 /**
- * One navigable change-step. Insertions and deletions are both represented
- * here so the step-through nav can cycle through them uniformly. Deletions
- * carry the original PM slice so we can re-serialize on every rebuild.
+ * One rendered decoration. Insertions get an inline green highlight;
+ * deletions render as a strikethrough span or block callout anchored at
+ * `from`. `stepIndex` ties the decoration back to the navigable step so
+ * the step-through nav can light up both halves of a replace together.
  */
 export type DocDiffChange =
-  | { type: 'insert'; from: number; to: number }
-  | { type: 'delete'; from: number; to: number; slice: Slice }
+  | { type: 'insert'; from: number; to: number; stepIndex: number }
+  | {
+      type: 'delete'
+      from: number
+      to: number
+      slice: Slice
+      stepIndex: number
+    }
+
+/**
+ * One entry in the step-through nav. `from` is the anchor position in the
+ * new doc — used to scroll the viewport when the user clicks ↑/↓.
+ */
+export interface DocDiffStep {
+  from: number
+}
 
 export const docDiffPluginKey = new PluginKey<DocDiffState>('docHistoryDiff')
 
@@ -50,8 +72,8 @@ function findChanges(
   toContent: Record<string, any> | null,
   enabled: boolean,
   schema: Schema,
-): DocDiffChange[] {
-  if (!enabled || !fromContent || !toContent) return []
+): { changes: DocDiffChange[]; steps: DocDiffStep[] } {
+  if (!enabled || !fromContent || !toContent) return { changes: [], steps: [] }
 
   let fromDoc: PMNode
   let toDoc: PMNode
@@ -59,7 +81,7 @@ function findChanges(
     fromDoc = PMNode.fromJSON(schema, fromContent)
     toDoc = PMNode.fromJSON(schema, toContent)
   } catch {
-    return []
+    return { changes: [], steps: [] }
   }
 
   let changeset: ChangeSet
@@ -72,14 +94,27 @@ function findChanges(
     const map = new StepMap([0, fromDoc.content.size, toDoc.content.size])
     changeset = ChangeSet.create(fromDoc).addSteps(toDoc, [map], null)
   } catch {
-    return []
+    return { changes: [], steps: [] }
   }
 
   const changes: DocDiffChange[] = []
+  const steps: DocDiffStep[] = []
   for (const change of changeset.changes) {
-    // Insertion at [fromB, toB] in the new doc.
+    // One ChangeSet entry = one logical edit. A pure insert and a pure
+    // delete both count as a single step; a replace (insert + delete at the
+    // same anchor) ALSO counts as a single step even though it produces two
+    // decorations. The step is only recorded once we know at least one
+    // decoration will render — empty / malformed slices are silently dropped.
+    const stepIndex = steps.length
+    const before = changes.length
+
     if (change.toB > change.fromB) {
-      changes.push({ type: 'insert', from: change.fromB, to: change.toB })
+      changes.push({
+        type: 'insert',
+        from: change.fromB,
+        to: change.toB,
+        stepIndex,
+      })
     }
     // Deletion: extract the slice from the old doc and anchor a widget at
     // `fromB` in the new doc. For pure deletions toB === fromB; for
@@ -94,14 +129,17 @@ function findChanges(
             from: change.fromB,
             to: change.fromB,
             slice,
+            stepIndex,
           })
         }
       } catch {
         // Slice extraction failed (rare, malformed boundaries) — skip.
       }
     }
+
+    if (changes.length > before) steps.push({ from: change.fromB })
   }
-  return changes
+  return { changes, steps }
 }
 
 /**
@@ -175,14 +213,16 @@ function renderDeletedBlock(
  */
 function buildDecorations(
   changes: DocDiffChange[],
-  currentIndex: number,
+  currentStepIndex: number,
   currentDoc: PMNode,
   schema: Schema,
 ): DecorationSet {
   if (!changes.length) return DecorationSet.empty
 
   const decorations: Decoration[] = changes.map((change, idx) => {
-    const isCurrent = idx === currentIndex
+    // Light up BOTH halves of a replace together — the insert highlight and
+    // the strikethrough widget that produced it share the same `stepIndex`.
+    const isCurrent = change.stepIndex === currentStepIndex
 
     if (change.type === 'insert') {
       return Decoration.inline(change.from, change.to, {
@@ -216,16 +256,18 @@ function buildDecorations(
  * dispatches a meta transaction with `{[docDiffPluginKey]: nextState}` to
  * recompute on prop changes.
  *
- * Decorations + positions are cached in plugin state so `props.decorations`
- * stays cheap and external callers (the step-through nav) can read change
- * positions via `getDiffChanges()` without re-running the LCS.
+ * Decorations + step positions are cached in plugin state so
+ * `props.decorations` stays cheap and external callers (the step-through
+ * nav) can read positions via `getDiffSteps()` without re-running the LCS.
  */
-export function docDiffPlugin(initial: Omit<DocDiffState, 'decorations' | 'changes'>) {
+export function docDiffPlugin(
+  initial: Omit<DocDiffState, 'decorations' | 'changes' | 'steps'>,
+) {
   return new Plugin<DocDiffState>({
     key: docDiffPluginKey,
     state: {
       init(_, editorState) {
-        const changes = findChanges(
+        const { changes, steps } = findChanges(
           initial.fromContent,
           initial.toContent,
           initial.enabled,
@@ -237,7 +279,7 @@ export function docDiffPlugin(initial: Omit<DocDiffState, 'decorations' | 'chang
           editorState.doc,
           editorState.schema,
         )
-        return { ...initial, changes, decorations }
+        return { ...initial, changes, steps, decorations }
       },
       apply(tr, value, _oldState, newState) {
         const meta = tr.getMeta(docDiffPluginKey) as
@@ -258,12 +300,14 @@ export function docDiffPlugin(initial: Omit<DocDiffState, 'decorations' | 'chang
         if (docChanged) next.toContent = newState.doc.toJSON()
 
         if (inputChanged || docChanged) {
-          next.changes = findChanges(
+          const result = findChanges(
             next.fromContent,
             next.toContent,
             next.enabled,
             newState.schema,
           )
+          next.changes = result.changes
+          next.steps = result.steps
           next.decorations = buildDecorations(
             next.changes,
             next.currentIndex,
@@ -305,7 +349,7 @@ export const DocDiffExtension = Extension.create({
         toContent: null,
         enabled: false,
         currentIndex: 0,
-      } as Omit<DocDiffState, 'decorations' | 'changes'>,
+      } as Omit<DocDiffState, 'decorations' | 'changes' | 'steps'>,
     }
   },
   addProseMirrorPlugins() {
@@ -319,7 +363,7 @@ export const DocDiffExtension = Extension.create({
  */
 export function setDocDiffState(
   editor: { view: { state: any; dispatch: (tr: any) => void } } | null | undefined,
-  next: Partial<Omit<DocDiffState, 'decorations' | 'changes'>>,
+  next: Partial<Omit<DocDiffState, 'decorations' | 'changes' | 'steps'>>,
 ) {
   if (!editor) return
   const tr = editor.view.state.tr.setMeta(docDiffPluginKey, next)
@@ -327,18 +371,20 @@ export function setDocDiffState(
 }
 
 /**
- * Read the cached list of change positions out of plugin state. Returns
- * an empty array when the plugin is disabled or there are no changes.
+ * Read the navigable step list — one entry per logical edit. A replace
+ * (insert + delete at the same anchor) is a single step here, even though
+ * it produces two on-screen decorations. Drives the "n / N" counter and
+ * the ↑/↓ step-through nav.
  */
-export function getDiffChanges(
+export function getDiffSteps(
   editor: { view: { state: any } } | null | undefined,
-): DocDiffChange[] {
+): DocDiffStep[] {
   if (!editor) return []
-  return docDiffPluginKey.getState(editor.view.state)?.changes ?? []
+  return docDiffPluginKey.getState(editor.view.state)?.steps ?? []
 }
 
 /**
- * Scroll the editor's viewport to the given change index. No-op when the
+ * Scroll the editor's viewport to the given step index. No-op when the
  * index is out of range. Used by the step-through nav (↑/↓ buttons).
  */
 export function scrollToDiffChange(
@@ -346,9 +392,9 @@ export function scrollToDiffChange(
   index: number,
 ): void {
   if (!editor) return
-  const changes = getDiffChanges(editor)
-  const change = changes[index]
-  if (!change) return
+  const steps = getDiffSteps(editor)
+  const step = steps[index]
+  if (!step) return
 
   const view = editor.view
   // Use the native DOM node at the change's start position so we can call
@@ -356,7 +402,7 @@ export function scrollToDiffChange(
   // abruptly and forces a focus side-effect we don't want in a read-only
   // viewer.
   try {
-    const { node } = view.domAtPos(change.from)
+    const { node } = view.domAtPos(step.from)
     const el = (node.nodeType === 1 ? node : node.parentElement) as HTMLElement | null
     el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   } catch {

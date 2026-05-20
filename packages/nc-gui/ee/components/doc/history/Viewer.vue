@@ -20,7 +20,7 @@ import { DocMathExtension } from '../DocMathExtension'
 import { DocBlockDirExtension } from '../DocBlockDirPlugin'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 import { UserMention } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
-import { DocDiffExtension, getDiffChanges, scrollToDiffChange, setDocDiffState } from './diffPlugin'
+import { DocDiffExtension, getDiffSteps, scrollToDiffChange, setDocDiffState } from './diffPlugin'
 
 interface Props {
   content: Record<string, any> | null
@@ -107,7 +107,10 @@ const { diffChangeCount, currentChangeIndex } = useDocRevisions()
 // `nextTick` lets the plugin's `apply()` run before we read its state.
 async function syncChangeCount() {
   await nextTick()
-  diffChangeCount.value = getDiffChanges(editor.value).length
+  // Count navigable steps, not individual decorations — a replace
+  // (insert + delete at the same anchor) is one step, even though it
+  // produces two decorations on screen.
+  diffChangeCount.value = getDiffSteps(editor.value).length
   // Clamp the index — e.g. switching from a 5-change diff to a 2-change one
   // should put us back at index 0 instead of an out-of-range slot.
   if (currentChangeIndex.value >= diffChangeCount.value) {

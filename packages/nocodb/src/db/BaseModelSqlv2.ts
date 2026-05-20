@@ -5897,9 +5897,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   // after webhook hooks have fired with full emails. Idempotent — redacting
   // already-redacted data is a no-op. Variadic so callers can pass multiple
   // payloads in one call (e.g. prevData + newData on updates).
-  protected async redactPublicForResponse(
-    ...payloads: any[]
-  ): Promise<void> {
+  protected async redactPublicForResponse(...payloads: any[]): Promise<void> {
     if (!this.context?.is_public) return;
     const userColumns = await this._getUserBearingColumns();
     if (!userColumns.length) return;

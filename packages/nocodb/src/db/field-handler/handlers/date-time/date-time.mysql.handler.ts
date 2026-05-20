@@ -63,14 +63,11 @@ export class DateTimeMySQLHandler extends DateTimeGeneralHandler {
     _options: FilterOptions,
   ) {
     qb.where(
-      knex.raw(
-        "CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') between ? and ?",
-        [
-          sourceField,
-          anchorDate.utc().format(this.dateValueFormat),
-          rangeDate.utc().format(this.dateValueFormat),
-        ],
-      ),
+      knex.raw("CONVERT_TZ(??, @@GLOBAL.time_zone, '+00:00') between ? and ?", [
+        sourceField,
+        anchorDate.utc().format(this.dateValueFormat),
+        rangeDate.utc().format(this.dateValueFormat),
+      ]),
     );
   }
 

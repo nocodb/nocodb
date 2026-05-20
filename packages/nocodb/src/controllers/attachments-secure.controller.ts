@@ -16,6 +16,7 @@ import {
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { PublicAttachmentScope } from 'nocodb-sdk';
+import contentDisposition from 'content-disposition';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
@@ -27,7 +28,6 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import contentDisposition from 'content-disposition';
 import {
   ATTACHMENT_ROOTS,
   isPreviewAllowed,

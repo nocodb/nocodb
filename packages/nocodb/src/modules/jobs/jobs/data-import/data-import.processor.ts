@@ -3,7 +3,6 @@ import {
   AuditV1OperationTypes,
   NcBaseErrorv2,
   NcErrorType,
-  serializeCurrencyValue,
   serializeDecimalValue,
   serializeDurationValue,
   serializeIntValue,

@@ -10,9 +10,9 @@ import PQueue from 'p-queue';
 import axios from 'axios';
 import hash from 'object-hash';
 import moment from 'moment';
-import { getFilteredAgents } from '~/utils/ssrf';
 import type { AttachmentReqType, FileType, NcContext } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import { getFilteredAgents } from '~/utils/ssrf';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { DataTableService } from '~/services/data-table.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -296,7 +296,10 @@ export class AttachmentsService {
           if (!url.startsWith('data:')) {
             response = await axios.head(url, {
               maxRedirects: 5,
-              ...getFilteredAgents({ url, source: OperationSource.ATTACHMENTS }),
+              ...getFilteredAgents({
+                url,
+                source: OperationSource.ATTACHMENTS,
+              }),
             });
             mimeType = response.headers['content-type']?.split(';')[0];
             size = response.headers['content-length'];

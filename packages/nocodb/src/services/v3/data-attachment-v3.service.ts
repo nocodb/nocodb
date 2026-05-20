@@ -3,9 +3,13 @@ import { PassThrough } from 'stream';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
-import { AuditV1OperationTypes, EventType, ncIsNull, OperationSource } from 'nocodb-sdk';
+import {
+  AuditV1OperationTypes,
+  EventType,
+  ncIsNull,
+  OperationSource,
+} from 'nocodb-sdk';
 import slash from 'slash';
-import { getFilteredAgents } from '~/utils/ssrf';
 import { getBase64FileSize } from 'src/helpers/stringHelpers';
 import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
 import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
@@ -13,6 +17,7 @@ import type {
   AttachmentBase64UploadParam,
   AttachmentUrlUploadParam,
 } from '~/types/data-columns/attachment';
+import { getFilteredAgents } from '~/utils/ssrf';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_ATTACHMENT_URL_MAX_REDIRECT,

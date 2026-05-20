@@ -1,8 +1,4 @@
-import {
-  getDateFormat,
-  UITypes,
-  validateDateWithUnknownFormat,
-} from 'nocodb-sdk';
+import { UITypes, validateDateWithUnknownFormat } from 'nocodb-sdk';
 import isURL from 'validator/lib/isURL';
 
 // Boolean option pairs for checkbox detection
@@ -145,7 +141,7 @@ export function extractMultiOrSingleSelectProps(
 }
 
 // Detects initial UIDT for a single value
-function detectInitialUidt(v: string): string {
+function _detectInitialUidt(v: string): string {
   if (!isNaN(Number(v)) && !isNaN(parseFloat(v))) return UITypes.Number;
   if (validateDateWithUnknownFormat(v)) return UITypes.DateTime;
   if (isCheckboxType([v])) return UITypes.Checkbox;
@@ -213,18 +209,12 @@ function initializeColumns(headers: string[]): DetectedColumn[] {
  */
 export function detectColumnTypes(
   headers: string[],
-  sampleRows: string[][],
-  options: {
+  _sampleRows: string[][],
+  _options: {
     maxRowsToParse?: number;
     autoSelectFieldTypes?: boolean;
   } = {},
 ): DetectedColumn[] {
-  const { maxRowsToParse = 500, autoSelectFieldTypes = true } = options;
-
-  const detectedColumnTypes: Record<number, Record<string, number>> = {};
-  const distinctValues: Record<number, Set<string>> = {};
-  const columnValues: Record<number, string[]> = {};
-
   const columns = initializeColumns(headers);
 
   // Skip column type detection — all columns default to SingleLineText
@@ -237,14 +227,12 @@ export function detectColumnTypes(
  */
 export function detectColumnTypesFromObjects(
   headers: string[],
-  sampleRows: Record<string, any>[],
-  options: {
+  _sampleRows: Record<string, any>[],
+  _options: {
     maxRowsToParse?: number;
     autoSelectFieldTypes?: boolean;
   } = {},
 ): DetectedColumn[] {
-  const { maxRowsToParse = 500, autoSelectFieldTypes = true } = options;
-
   const columns = initializeColumns(headers);
 
   // Skip column type detection — all columns default to SingleLineText

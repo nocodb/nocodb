@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import DashboardCE from 'src/models/Dashboard';
 import {
   isBcryptHash,
@@ -7,7 +8,6 @@ import {
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 import type { DashboardType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Widget from '~/models/Widget';
@@ -296,9 +296,13 @@ export default class Dashboard extends DashboardCE implements DashboardType {
   ): T {
     if (!dashboard || !dashboard.password) return dashboard;
     if (!isBcryptHash(dashboard.password)) return dashboard;
-    return Object.assign(Object.create(Object.getPrototypeOf(dashboard)), dashboard, {
-      password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
-    });
+    return Object.assign(
+      Object.create(Object.getPrototypeOf(dashboard)),
+      dashboard,
+      {
+        password: NC_VIEW_PASSWORD_PROTECTED_SENTINEL,
+      },
+    );
   }
 
   static async verifyPassword(

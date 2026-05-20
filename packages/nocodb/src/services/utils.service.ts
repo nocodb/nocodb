@@ -4,10 +4,10 @@ import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
 import { getCircularReplacer, OperationSource, ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
-import { getFilteredAgents } from '~/utils/ssrf';
 import dayjs from 'dayjs';
 import type { ErrorReportReqType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
+import { getFilteredAgents } from '~/utils/ssrf';
 import {
   NC_ATTACHMENT_FIELD_SIZE,
   NC_DATA_IMPORT_FILE_SIZE,

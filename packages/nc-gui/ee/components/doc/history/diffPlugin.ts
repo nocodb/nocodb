@@ -69,6 +69,13 @@ export interface DocDiffStep {
 export const docDiffPluginKey = new PluginKey<DocDiffState>('docHistoryDiff')
 
 /**
+ * Atom leaf nodes that get a node-level decoration on insert (green outline)
+ * and a class on delete (red outline + placeholder). Inline range decorations
+ * don't reach leaf DOM, so these need their own node decorations.
+ */
+const ATOM_NODE_TYPES = new Set(['image', 'embed', 'fileAttachment'])
+
+/**
  * Walk a ChangeSet against the (from, to) doc pair and produce both inserts
  * and deletes as navigable change-steps. Returns an empty array when:
  *   - the plugin is disabled
@@ -211,23 +218,28 @@ function wrapTextNodesWithDeletionMark(root: Node, isCurrent: boolean) {
 }
 
 /**
- * Re-resolve deleted images so they actually render. The persisted PM JSON
- * carries a stale signed URL in `src` (and the FileReference id in
- * `data-id`); without re-resolving, the browser shows a broken-image icon
- * and the user can't see what was deleted. We swap `src` for a fresh proxy
- * URL via the caller-supplied resolver, then tag the element with a
- * delete-image class so the red border can render on top.
+ * Mark deleted atom-leaf nodes (images, embeds, file attachments) with a
+ * red-outline class so the user can see what was removed. DOMSerializer
+ * emits these as bare schema elements (the live NodeView doesn't run), so:
  *
- * `data-width` and `data-align` are persisted on the serialised `<img>` but
- * `<img>` ignores them natively (they're consumed by the NodeView, which
- * the diff viewer bypasses). We apply both as inline styles so the deleted
- * image preserves the size + alignment the author had configured.
+ * - Images carry a stale signed URL in `src` plus a FileReference id in
+ *   `data-id`. We swap `src` for a fresh proxy URL via the caller-supplied
+ *   resolver and apply `data-width` / `data-align` as inline styles so the
+ *   picture renders at its original size and alignment.
+ * - Embeds and file attachments serialise to empty `<div data-type="...">`
+ *   elements — without a NodeView to fill them, they collapse to zero
+ *   height. We don't synthesise placeholder content here; instead we just
+ *   tag them with the delete class and let CSS (`::before` on the data-type)
+ *   render the URL / filename + a red outline.
  */
-function rewriteDeletedImages(
+function rewriteDeletedAtoms(
   root: Element,
   resolveImageSrc: ((id: string) => string) | null | undefined,
   isCurrent: boolean,
 ) {
+  const deleteClass = 'nc-doc-history-diff-delete-atom'
+  const currentClass = 'nc-doc-history-diff-delete-atom-current'
+
   const imgs = root.querySelectorAll('img')
   imgs.forEach((img) => {
     const id = img.getAttribute('data-id')
@@ -258,8 +270,75 @@ function rewriteDeletedImages(
       img.style.marginRight = 'auto'
     }
 
-    img.classList.add('nc-doc-history-diff-delete-image')
-    if (isCurrent) img.classList.add('nc-doc-history-diff-delete-image-current')
+    img.classList.add(deleteClass)
+    if (isCurrent) img.classList.add(currentClass)
+  })
+
+  // Embeds — bare `<div data-type="embed">` from DOMSerializer. We rebuild
+  // the NodeView's DOM structure (`.nc-embed-card` > `.nc-embed-iframe-wrapper`
+  // > `<iframe>`) by hand so the embed renders as an actual tile (matching
+  // the inserted-embed visual) instead of a text placeholder. The shared
+  // `_doc-content.scss` partial styles `.nc-embed-card` already — and the
+  // outline rule keys off `.nc-doc-history-diff-delete-atom .nc-embed-card`
+  // so the red frame hugs the tile.
+  const embeds = root.querySelectorAll('div[data-type="embed"]')
+  embeds.forEach((el) => {
+    const src = el.getAttribute('data-src') || ''
+    const width = el.getAttribute('data-width')
+    const height = el.getAttribute('data-height')
+
+    const card = document.createElement('div')
+    card.className = 'nc-embed-card'
+    if (width) {
+      card.style.width = `${width}%`
+      card.style.margin = '0 auto'
+    }
+
+    const wrapper = document.createElement('div')
+    wrapper.className = 'nc-embed-iframe-wrapper'
+    if (height) {
+      wrapper.style.height = `${height}px`
+    } else {
+      // 16:9 aspect default — mirrors DocEmbedNode.vue's `iframeWrapperStyle`.
+      // Without it the wrapper has no intrinsic height and collapses to a
+      // 0-px line; the iframe inside is absolutely positioned and would
+      // never become visible.
+      wrapper.style.paddingBottom = '56.25%'
+    }
+
+    if (src) {
+      const iframe = document.createElement('iframe')
+      iframe.src = src
+      iframe.className = `nc-embed-iframe${
+        height ? ' nc-embed-iframe-fixed' : ''
+      }`
+      iframe.setAttribute('frameborder', '0')
+      iframe.setAttribute(
+        'sandbox',
+        'allow-scripts allow-same-origin allow-popups allow-presentation',
+      )
+      iframe.setAttribute(
+        'allow',
+        'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture',
+      )
+      iframe.setAttribute('allowfullscreen', '')
+      wrapper.appendChild(iframe)
+    }
+
+    card.appendChild(wrapper)
+    el.replaceChildren(card)
+
+    el.classList.add(deleteClass)
+    if (isCurrent) el.classList.add(currentClass)
+  })
+
+  // File attachments — bare `<div data-type="file-attachment">` from
+  // DOMSerializer. No NodeView runs, so we leave the empty div in place and
+  // let the placeholder `::before` rule render a label with the filename.
+  const attachments = root.querySelectorAll('div[data-type="file-attachment"]')
+  attachments.forEach((el) => {
+    el.classList.add(deleteClass)
+    if (isCurrent) el.classList.add(currentClass)
   })
 }
 
@@ -269,9 +348,11 @@ function rewriteDeletedImages(
  * list, table, callout, ...) renders with its native styling. The text
  * leaves are then individually wrapped with the same red-wash + grey-strike
  * decoration used for inline deletions, so block chrome stays untouched
- * while every text run reads as deleted. Images get a red border (no wash,
- * no strike) — they're re-resolved to a live proxy URL first so the actual
- * picture is visible.
+ * while every text run reads as deleted. Atom-leaf nodes (image / embed /
+ * file attachment) get a red outline instead — images re-resolved to a
+ * live proxy URL so the picture is visible; embeds and attachments get a
+ * CSS-rendered placeholder showing their URL or filename (no NodeView
+ * runs in static serialisation).
  */
 function renderDeletedBlock(
   slice: Slice,
@@ -292,7 +373,7 @@ function renderDeletedBlock(
   try {
     const serializer = DOMSerializer.fromSchema(schema)
     wrap.appendChild(serializer.serializeFragment(slice.content))
-    rewriteDeletedImages(wrap, resolveImageSrc, isCurrent)
+    rewriteDeletedAtoms(wrap, resolveImageSrc, isCurrent)
     wrapTextNodesWithDeletionMark(wrap, isCurrent)
   } catch {
     wrap.textContent = slice.content.textBetween(0, slice.content.size, '\n')
@@ -329,16 +410,16 @@ function buildDecorations(
             : 'nc-doc-history-diff-insert',
         }),
       )
-      // Node decoration for atom leaves (images, attachments, embeds) so
-      // they pick up a green border — inline decorations don't apply to
+      // Node decoration for atom leaves (images, embeds, file attachments)
+      // so they pick up a green border — inline decorations don't apply to
       // leaf-node DOM and would otherwise leave inserted media unmarked.
       currentDoc.nodesBetween(change.from, change.to, (node, pos) => {
-        if (node.type.name === 'image' && node.isAtom) {
+        if (node.isAtom && ATOM_NODE_TYPES.has(node.type.name)) {
           decorations.push(
             Decoration.node(pos, pos + node.nodeSize, {
               class: isCurrent
-                ? 'nc-doc-history-diff-insert-image nc-doc-history-diff-insert-image-current'
-                : 'nc-doc-history-diff-insert-image',
+                ? 'nc-doc-history-diff-insert-atom nc-doc-history-diff-insert-atom-current'
+                : 'nc-doc-history-diff-insert-atom',
             }),
           )
         }

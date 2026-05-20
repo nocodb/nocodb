@@ -215,20 +215,24 @@ onBeforeUnmount(() => {
     background-color: rgba(34, 197, 94, 0.45);
   }
 
-  // Atom-leaf insert (image nodes) — the inline highlight above doesn't
-  // wrap leaf-node DOM, so a node-level decoration tags the NodeView
-  // wrapper. The wrapper spans the full alignment box (whole content
-  // width), which would draw the outline as a wide rectangle far past
-  // the picture's edges — we instead target the inner `.nc-doc-image`
-  // so the frame hugs the image at its configured size, matching how
-  // deleted images render.
-  .nc-doc-history-diff-insert-image .nc-doc-image {
+  // Atom-leaf insert (images, embeds, file attachments) — the inline
+  // highlight above doesn't wrap leaf-node DOM, so a node-level decoration
+  // tags the NodeView wrapper. Each wrapper spans the full alignment box
+  // (whole content width), which would draw the outline as a wide rectangle
+  // far past the actual media — we instead target the inner "card" element
+  // each NodeView renders so the frame hugs the content at its configured
+  // size. Same selector list for the focused-step variant.
+  .nc-doc-history-diff-insert-atom .nc-doc-image,
+  .nc-doc-history-diff-insert-atom .nc-embed-card,
+  .nc-doc-history-diff-insert-atom .nc-file-attachment-card {
     outline: 2px solid rgba(34, 197, 94, 0.5);
     outline-offset: 2px;
     border-radius: 4px;
     transition: outline-color 0.15s ease;
   }
-  .nc-doc-history-diff-insert-image-current .nc-doc-image {
+  .nc-doc-history-diff-insert-atom-current .nc-doc-image,
+  .nc-doc-history-diff-insert-atom-current .nc-embed-card,
+  .nc-doc-history-diff-insert-atom-current .nc-file-attachment-card {
     outline-color: rgba(34, 197, 94, 0.85);
   }
 
@@ -258,17 +262,44 @@ onBeforeUnmount(() => {
     user-select: text;
   }
 
-  // Deleted images get a red border (no wash, no strike). The stored `src`
-  // is rewritten to a live proxy URL before render so the actual picture
-  // shows — the border is the only deletion signal users need.
-  .nc-doc-history-diff-delete-image {
+  // Deleted atom-leaf nodes (images, embeds, file attachments) get a red
+  // outline so deletion is unambiguous. Images render natively via a
+  // rewritten src; embeds are rebuilt into the same `.nc-embed-card` /
+  // iframe DOM the NodeView produces (so deleted videos still play, just
+  // with a red frame); file attachments fall back to a CSS placeholder
+  // since their NodeView card isn't worth reconstructing for a deleted row.
+  .nc-doc-history-diff-delete-atom .nc-doc-image,
+  .nc-doc-history-diff-delete-atom .nc-embed-card {
     outline: 2px solid rgba(239, 68, 68, 0.5);
     outline-offset: 2px;
     border-radius: 4px;
     transition: outline-color 0.15s ease;
   }
-  .nc-doc-history-diff-delete-image-current {
+  .nc-doc-history-diff-delete-atom-current .nc-doc-image,
+  .nc-doc-history-diff-delete-atom-current .nc-embed-card {
     outline-color: rgba(239, 68, 68, 0.85);
+  }
+
+  // Placeholder for a deleted file attachment — shows the filename.
+  // (Embeds render the real tile and need no placeholder; images render
+  // the actual picture via the rewritten src.)
+  div[data-type='file-attachment'].nc-doc-history-diff-delete-atom {
+    display: block;
+    padding: 10px 14px;
+    background-color: rgba(239, 68, 68, 0.04);
+    border-radius: 4px;
+    color: var(--nc-content-gray-muted);
+    text-decoration: line-through;
+    text-decoration-color: var(--nc-content-gray-disabled);
+    outline: 2px solid rgba(239, 68, 68, 0.5);
+    outline-offset: 2px;
+  }
+  div[data-type='file-attachment'].nc-doc-history-diff-delete-atom-current {
+    outline-color: rgba(239, 68, 68, 0.85);
+  }
+  div[data-type='file-attachment'].nc-doc-history-diff-delete-atom::before {
+    content: 'Attachment: ' attr(data-file-name);
+    font-size: 13px;
   }
 }
 

@@ -39,6 +39,12 @@ const props = withDefaults(defineProps<Props>(), {
   highlightChanges: true,
 })
 
+// `buildProxyUrl` is what turns a doc-image's stored FileReference id into
+// a live, cookie-authenticated URL. The diff plugin reuses it to rewrite
+// `<img src>` on deleted snapshots so the actual picture renders instead
+// of the browser's broken-image fallback.
+const { buildProxyUrl } = useDocumentImageUpload()
+
 // Curated read-only extension list — rendering parity with the live doc
 // editor, minus all interactive extensions (slash command, drag handle,
 // search, AI, active block, heading collapse/anchor, columns toolbar,
@@ -79,6 +85,7 @@ const viewerExtensions = [
       toContent: props.content,
       enabled: !!props.highlightChanges,
       currentIndex: 0,
+      resolveImageSrc: buildProxyUrl,
     },
   }),
 ]
@@ -208,6 +215,19 @@ onBeforeUnmount(() => {
     background-color: rgba(34, 197, 94, 0.45);
   }
 
+  // Atom-leaf insert (image nodes) — the inline highlight above doesn't
+  // wrap leaf-node DOM, so a node-level decoration adds a green frame
+  // around the image's NodeView wrapper.
+  .nc-doc-history-diff-insert-image {
+    outline: 2px solid rgba(34, 197, 94, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+    transition: outline-color 0.15s ease;
+  }
+  .nc-doc-history-diff-insert-image-current {
+    outline-color: rgba(34, 197, 94, 0.85);
+  }
+
   // ── Inline-strike delete (within a single block) ─────────
   // Muted-grey text + grey strikethrough on a very light red wash —
   // matches the completed-task style in `_doc-content.scss`.
@@ -224,80 +244,27 @@ onBeforeUnmount(() => {
     background-color: rgba(239, 68, 68, 0.22);
   }
 
-  // ── Block-callout delete (crosses block boundaries) ──────
-  // Re-uses the partial's `.nc-doc-editor-content.ProseMirror` styles
-  // for the inner body so lists / tables / headings render correctly.
+  // ── Cross-block delete ───────────────────────────────────
+  // The wrapper is a passthrough — block chrome (quote bar, code-block
+  // background, callout body, list markers, ...) renders untouched, exactly
+  // like the surrounding doc. Text leaves inside the wrapper carry the
+  // `.nc-doc-history-diff-delete` class (injected at render time) and pick
+  // up the same red-wash + grey-strike treatment used for inline deletions.
   .nc-doc-history-deleted-block {
-    background-color: rgba(239, 68, 68, 0.06);
-    border: 1px solid rgba(239, 68, 68, 0.18);
-    border-radius: 6px;
-    padding: 10px 14px;
-    margin: 8px 0;
-    display: block;
-    user-select: none;
-
-    &.nc-doc-history-deleted-block-current {
-      background-color: rgba(239, 68, 68, 0.14);
-      border-color: rgba(239, 68, 68, 0.42);
-    }
-  }
-
-  .nc-doc-history-deleted-block-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    color: rgb(220, 38, 38);
-    margin-bottom: 6px;
-  }
-
-  .nc-doc-history-deleted-block-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    background-color: rgba(239, 68, 68, 0.2);
-    font-size: 11px;
-    line-height: 1;
-  }
-
-  .nc-doc-history-deleted-block-body {
     user-select: text;
+  }
 
-    // The partial draws table borders in `var(--nc-border-gray-medium)`,
-    // which washes out against the red callout. Override with darker,
-    // collapsed borders inside the callout so cells stay legible.
-    table {
-      border-collapse: collapse !important;
-      border-spacing: 0;
-      border: 1px solid var(--nc-border-gray-dark, #9ca3af) !important;
-      border-radius: 4px !important;
-      margin: 8px 0 !important;
-      width: 100%;
-    }
-    table td,
-    table th {
-      border: 1px solid var(--nc-border-gray-dark, #9ca3af) !important;
-      padding: 6px 8px !important;
-      vertical-align: top;
-      // Empty cells collapse to zero height because DOMSerializer emits
-      // `<p></p>` without PM's trailing-break placeholder. A min cell
-      // height keeps the table readable even when the deleted snapshot
-      // had blank cells. `height` on a table-cell acts as min-height.
-      height: 32px;
-    }
-    table td p:empty,
-    table th p:empty {
-      min-height: 1em;
-    }
-    table th {
-      background-color: rgba(255, 255, 255, 0.5) !important;
-      font-weight: 600;
-      text-align: left;
-    }
+  // Deleted images get a red border (no wash, no strike). The stored `src`
+  // is rewritten to a live proxy URL before render so the actual picture
+  // shows — the border is the only deletion signal users need.
+  .nc-doc-history-diff-delete-image {
+    outline: 2px solid rgba(239, 68, 68, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
+    transition: outline-color 0.15s ease;
+  }
+  .nc-doc-history-diff-delete-image-current {
+    outline-color: rgba(239, 68, 68, 0.85);
   }
 }
 
@@ -314,17 +281,6 @@ onBeforeUnmount(() => {
   }
   .nc-doc-history-diff-delete-current {
     background-color: rgba(239, 68, 68, 0.3);
-  }
-  .nc-doc-history-deleted-block {
-    background-color: rgba(239, 68, 68, 0.1);
-    border-color: rgba(239, 68, 68, 0.3);
-    &.nc-doc-history-deleted-block-current {
-      background-color: rgba(239, 68, 68, 0.22);
-      border-color: rgba(239, 68, 68, 0.55);
-    }
-  }
-  .nc-doc-history-deleted-block-header {
-    color: rgb(248, 113, 113);
   }
 }
 </style>

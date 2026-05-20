@@ -18,7 +18,7 @@ import {
   RootScopes,
 } from '~/utils/globals';
 import { normalizeEmail } from '~/utils/emailUtils';
-import { genJwt, randomTokenString } from '~/services/users/helpers';
+import { randomTokenString } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
   decryptPropIfRequired,
@@ -311,9 +311,11 @@ export class MfaService {
     // Clear lockout on success
     await this.clearMfaLockout(payload.id);
 
-    // Generate full JWT
+    // Return the verified user; JWT generation happens in the controller
+    // after setRefreshToken rotates token_version so the JWT carries the
+    // new version (single-session enforcement).
     return {
-      token: genJwt(user as any, config),
+      user,
       userId: user.id,
     };
   }

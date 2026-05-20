@@ -686,6 +686,13 @@ export class UsersService {
     return base;
   }
 
+  // Test-only bypass: parallel Playwright workers share user@nocodb.com
+  // and would otherwise invalidate each other's sessions. EE overrides to
+  // add an operator-controlled opt-out as well.
+  protected shouldEnforceSingleSession(_req?: any): boolean {
+    return process.env.PLAYWRIGHT_TEST !== 'true';
+  }
+
   async setRefreshToken({ res, req }) {
     const userId = req.user?.id;
 
@@ -697,12 +704,39 @@ export class UsersService {
 
     const refreshToken = randomTokenString();
 
-    if (!user['token_version']) {
-      user['token_version'] = randomTokenString();
+    // Single-session enforcement: rotate token_version and clear any existing
+    // refresh tokens so previously logged-in sessions for this user are
+    // invalidated as soon as this login completes.
+    // API tokens are unaffected — the JWT strategy short-circuits before the
+    // token_version check when `is_api_token` is set on the payload.
+    //
+    // The bypass conditions live in `shouldEnforceSingleSession`, which EE
+    // overrides to support deployment-specific opt-outs.
+    if (this.shouldEnforceSingleSession(req)) {
+      const newTokenVersion = randomTokenString();
 
       await User.update(user.id, {
-        token_version: user['token_version'],
+        token_version: newTokenVersion,
       });
+
+      user.token_version = newTokenVersion;
+      // Mirror onto req.user so the genJwt() call that follows (in login())
+      // signs the access token with the rotated version.
+      if (req.user) {
+        req.user.token_version = newTokenVersion;
+      }
+
+      await UserRefreshToken.deleteAllUserToken(user.id);
+    } else if (!user.token_version) {
+      // Preserve legacy behavior: ensure token_version exists for users that
+      // pre-date the column or had it cleared.
+      user.token_version = randomTokenString();
+      await User.update(user.id, {
+        token_version: user.token_version,
+      });
+      if (req.user) {
+        req.user.token_version = user.token_version;
+      }
     }
 
     await UserRefreshToken.insert({

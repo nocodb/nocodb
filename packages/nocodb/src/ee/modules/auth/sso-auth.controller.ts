@@ -17,6 +17,13 @@ export class SSOAuthController {
   @Get('/sso/:clientId/')
   @UseGuards(PublicApiLimiterGuard)
   async ssoLogin(@Req() req: NcRequest & { extra: any }, @Res() res: Response) {
+    // Route through setRefreshToken so single-session enforcement applies
+    // (rotates token_version + clears prior refresh tokens). Skip when the
+    // passport middleware did not populate req.user — the response was
+    // already finalized by passport (redirect to IdP).
+    if (req.user?.id) {
+      await this.usersService.setRefreshToken({ req, res });
+    }
     res.json({
       ...(await this.usersService.login(
         {

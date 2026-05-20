@@ -20,12 +20,27 @@ const { dashboardUrl } = useDashboard()
 
 const { clearBasesUser } = useBases()
 
+const { showConfirmModal } = useNcConfirmModal()
+
 const hasOrgRoles = computed(() => appInfo.value.isOnPrem && appInfo.value.ee)
 
 const allowedRoles = computed(() => {
   if (!hasOrgRoles.value) return [OrgUserRoles.VIEWER]
-  return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR]
+  return [EnterpriseOrgUserRoles.VIEWER, EnterpriseOrgUserRoles.CREATOR, EnterpriseOrgUserRoles.ADMIN]
 })
+
+const confirmInviteAsAdmin = (): Promise<boolean> =>
+  new Promise((resolve) => {
+    showConfirmModal({
+      title: t('title.confirmInviteAsOrgAdminTitle'),
+      content: t('title.confirmInviteAsOrgAdminSubtitle'),
+      showCancelBtn: true,
+      okText: t('general.continue'),
+      okProps: { type: 'primary' },
+      okCallback: () => resolve(true),
+      cancelCallback: () => resolve(false),
+    })
+  })
 
 const inviteData = reactive({
   email: '',
@@ -127,6 +142,11 @@ const saveUser = async () => {
   }
 
   if (payloadEmails.length === 0) return
+
+  if (hasOrgRoles.value && inviteData.role === EnterpriseOrgUserRoles.ADMIN) {
+    const confirmed = await confirmInviteAsAdmin()
+    if (!confirmed) return
+  }
 
   isLoading.value = true
   $e('a:org-user:invite', { role: inviteData.role })
